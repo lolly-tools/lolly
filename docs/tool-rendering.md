@@ -181,6 +181,7 @@ Some tools export data beside the rendered image: a calendar invite, a contact c
   - `{{icsStamp meetingTime}}` - a `date`/`datetime-local` value → iCalendar basic form (`20260915T143000`).
   - `{{rfcText x}}` - escape an iCalendar (RFC 5545) **or** vCard (RFC 6350) text field (`\` `;` `,` newline).
   - `{{csvCell x}}` - quote a CSV field per RFC 4180 only when needed.
+- **`ttml` / `scc`** - broadcast captions from a sibling template. Unlike `srt` and `vtt`, the template does not carry the file text: `template.ttml` or `template.scc` is `{{{cuesJson}}}`, a JSON list of `{start, end, text}` cues in seconds (or `{"cues": [...]}`), and the engine writes the file. SCC refuses a caption with a character CEA-608 cannot carry. TTML downloads as `application/ttml+xml`, SCC as `text/plain`.
 - **`srt` / `vtt`** (v1.150) - the same sibling-template mechanism, for subtitle sidecars: ship `template.srt` or `template.vtt`. The cue text itself is a hook extra (a captions tool already holds one in its target input), so the template is usually a single `{{captions}}`. SRT downloads as `text/plain` (SubRip has no registered MIME), WebVTT as `text/vtt`.
 - **`css` / `scss` / `gpl`** - the same sibling-template mechanism, for palette output: ship `template.css`, `template.scss` or `template.gpl`. `color-palette` is the reference (its `ase` sibling is binary, so that one comes from an `exportStill` hook instead of a template).
 

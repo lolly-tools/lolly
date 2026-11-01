@@ -59,6 +59,7 @@ Not every tool offers every format: a link can ask only for one the tool lists i
 | `gpl` / `ase` | Swatches for other design apps: GIMP palette and Adobe Swatch Exchange |
 | `ics` / `vcf` | Calendar event or contact card |
 | `srt` / `vtt` | Captions: SubRip and WebVTT |
+| `ttml` / `scc` | Broadcast captions: IMSC1.1 timed text and CEA-608 pop-on (Captions) |
 | `ttf` / `otf` / `woff` | Font files (Convert Font) |
 | `gif` | Animated GIF (animated tools only) |
 | `apng` | Animated PNG with full colour and real alpha (animated tools only) |

@@ -2,7 +2,7 @@
 
 Before you start, check that Lolly can open your file and make the one you need. The table groups formats by what each one is: formats Lolly only reads sit at the left, formats it only writes sit at the right, and formats it does both ways sit once in the middle. Tap a format for what it is and what Lolly keeps, such as transparency, colour profiles, layers and credentials.
 
-A few are not in the table yet: SRT and VTT captions, which Captions, Audiogram and Record export; STL and 3MF models, which 3D Studio opens; and Premiere XML + media, which Design exports.
+A few are not in the table yet: SRT and VTT captions, which Captions, Audiogram and Record export, and TTML and SCC captions, which Captions exports; STL and 3MF models, which 3D Studio opens; and Premiere XML + media, which Design exports.
 
 <!-- the three-zone formats table renders here -->
 

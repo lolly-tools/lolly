@@ -82,6 +82,7 @@ A wordmark set in your design system's face exports as SVG with every letter as 
 | A Premiere hand-off | **Premiere XML + media** | Timed clips and original media for Premiere (Design) |
 | Video for social and sharing | **MP4** or **WebM** | Best quality for the file size (see [Video](#video)) |
 | Captions | **SRT** or **VTT** | Timed text for a video player (Captions, Audiogram and Record) |
+| Broadcast captions | **TTML** or **SCC** | IMSC1.1 timed text, or CEA-608 pop-on captions (Captions; see [Broadcast captions](#broadcast-captions)) |
 | A training course | **SCORM (LMS)** | A versioned website, SCORM or xAPI package (see [SCORM](#scorm-course-packages)) |
 | Rich text or an email signature | **HTML** | Pastes formatted into mail clients |
 | Plain content | **MD** or **TXT** | Text only |
@@ -199,6 +200,16 @@ Then choose **Export course** from a supported tool, a project folder or a selec
 ![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 The package holds its finished content and needs no Lolly account. Put a Website ZIP on an HTTP(S) host; import an LMS ZIP unchanged. Test the destination before you share the course. For a course built from several saved creations, see [Create a training course](/info/training-creators.html).
+
+### Broadcast captions
+
+The Captions tool can also export **TTML** and **SCC**. Both are written from the same cue list as the SRT and VTT files, so the words and times match.
+
+- **TTML** is the IMSC1.1 Text Profile, with media-time clock times and one bottom-centre region. It carries no per-caption colour, font or position, because Lolly's captions hold a start, an end and text only.
+- **SCC** carries CEA-608 pop-on captions on channel 1 at 29.97 frames per second with drop-frame timecode. It supports the basic North American characters plus the special and extended ones. If a caption holds a character the set cannot carry, the export stops and tells you which character, so nothing is dropped without notice. Each caption wraps to 32 columns and at most 15 rows. A caption that cannot load before its start time is delayed by a few frames.
+- Roll-up and paint-on captions are not written.
+
+SCC output has not been checked against a real broadcast tool or hardware decoder. Test a file in your own pipeline before delivery.
 
 ### DXF (cut files)
 
@@ -410,7 +421,7 @@ These are the values for the URL `format=` parameter and the CLI `--export=` fla
 | Page and document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot design file) · `scorm` (course package, a ZIP) |
 | Motion | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Text and data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP palette) |
+| Text and data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | Bundles and packages | `zip` · `rpm` and `tar.gz` (the render sealed into a Linux package) |
 
 A few ids come from a tool's own export code: `ase` (Adobe Swatch Exchange, from Palette Lab) and `exr` and `hdr` (high-dynamic-range rasters, from Darkroom). **Convert Font** writes `ttf`, `otf` and `woff` from a font file you supply, so a bare link has nothing for it to render.

@@ -465,6 +465,16 @@
       "Plays in an HTML video track element",
       "On the way in, cue settings and inline tags are dropped and NOTE and STYLE blocks skipped"
     ],
+    "TTML": [
+      "IMSC1.1 Text Profile with media-time clock times",
+      "One bottom-centre region, no per-caption styling",
+      "Written from the Captions tool; the engine also reads TTML1 and TTML2"
+    ],
+    "SCC": [
+      "CEA-608 pop-on captions on channel 1 at 29.97 fps, drop-frame timecode",
+      "Characters outside the 608 set refuse the write",
+      "Not yet checked against a real broadcast tool"
+    ],
     "STL": [
       "Triangle mesh, geometry only",
       "Read on device, never uploaded",
@@ -1818,6 +1828,40 @@
         "writes": [],
         "preserves": "none",
         "note": "NOTE, STYLE and REGION blocks are skipped on the way in. Lolly writes the WEBVTT header and cues only."
+      }
+    },
+    {
+      "token": "TTML",
+      "name": "TTML",
+      "full": "Timed Text Markup Language (IMSC1.1)",
+      "category": "Data",
+      "dir": "out",
+      "features": [
+        "editable-text"
+      ],
+      "desc": "The XML caption format broadcasters and streaming services deliver, written as the IMSC1.1 Text Profile with media-time clock times and one bottom-centre region. The Captions tool exports its cues as .ttml. Colour, font and position are not written, because Lolly's captions hold a start, an end and text. The engine can also read TTML1 and TTML2 files, honouring begin, end and dur on the body, div and p elements, but the Captions tool does not take a .ttml through Add data yet.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "A TTML file from Lolly is cues and text only, with no metadata block."
+      }
+    },
+    {
+      "token": "SCC",
+      "name": "SCC",
+      "full": "Scenarist Closed Caption",
+      "category": "Data",
+      "dir": "out",
+      "features": [
+        "editable-text"
+      ],
+      "desc": "The text file that carries CEA-608 closed captions for broadcast tools. The Captions tool writes pop-on captions on channel 1 at 29.97 fps with drop-frame timecode, using the basic North American characters plus the special and extended ones. A character the set cannot carry stops the export and is named in the message, never dropped. Roll-up and paint-on captions are not written. This writer has not been checked against a real broadcast tool, so test a file in your own pipeline before delivery.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "An SCC file is caption control codes and text only, with no metadata block."
       }
     },
     {
