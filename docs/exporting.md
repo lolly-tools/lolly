@@ -214,7 +214,7 @@ Scroll, and the camera pulls back through the actual geometry: seven paths, no p
 
 ## Print
 
-**Print PDF** writes CMYK against a named press condition, **Coated FOGRA39** by default. Brand swatches with measured ink values convert exactly; other colours use a standard device conversion. **Print TIFF** writes DeviceCMYK pixels for a RIP and records the same press condition in its TIFF metadata. The Colour profile control drives both; [Colour profiles](#colour-profiles) has the detail.
+**Print PDF** writes CMYK against a named press condition, **Coated FOGRA39** by default. Brand swatches with measured ink values keep those values. Other colours are converted through a press profile: Lolly's own Coated FOGRA39 profile by default, or your own profile when you choose its **Embed** row. Greys and black stay on the black plate alone, so small type cannot misregister. FOGRA51, SWOP and GRACoL use a standard device conversion. **Print TIFF** writes DeviceCMYK pixels for a RIP and records the same press condition in its TIFF metadata. The Colour profile control drives both; [Colour profiles](#colour-profiles) has the detail.
 
 **Print marks & bleed** has its own card on the print formats: the bleed in millimetres plus Crop, Registration, Bleed, Colour bars and Stamp details.
 
@@ -280,7 +280,7 @@ Exports are tagged with a colour profile, so colour-managed apps such as print s
 - **SVG**, **EMF**, **EPS** and **DXF** are vectors with no embedded profile: SVG's colours are sRGB, EMF and EPS use device RGB, **EPS (CMYK)** writes DeviceCMYK and DXF uses the AutoCAD Color Index. SVG, EPS and DXF outline text to paths. EMF keeps text live and editable in Office and Google Slides, falling back to outlines only for runs the format cannot express; the export panel's **Outline fonts** option forces paths everywhere. SVG also reproduces CSS box shadows, inside and out.
 
 ::: details PDF/X-4 and your own press profile
-No CMYK profile ships with Lolly. A named press condition writes the output intent without claiming PDF/X-4 conformance, because PDF/X-4 wants the profile embedded.
+Lolly ships one CMYK profile, fitted to Fogra's FOGRA39 characterisation data and released under CC0, and converts colours through it for the default press condition. The profile is not embedded, because it is ICC version 4.3 and PDF/X-4 accepts versions up to 4.2. A named press condition therefore writes the output intent without claiming PDF/X-4 conformance.
 
 Load a CMYK profile of your own and choose its **Embed** row in the Colour profile control. It is embedded as the file's *DestOutputProfile*, and the PDF claims PDF/X-4 whenever the rest of the file allows. The press condition it declares is read off that profile: a registered name where the profile proves one, or `Custom` under the profile's own name.
 

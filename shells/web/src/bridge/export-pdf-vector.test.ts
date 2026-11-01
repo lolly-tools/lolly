@@ -419,6 +419,19 @@ test('substitutePdfRgb: process lock → k/K operators; unmatched → generic co
   );
 });
 
+test('substitutePdfRgb: a press separation converts unmatched colours, and black still overprints', () => {
+  const map = buildCmykPaletteMap([]);
+  const spotNames = assignSpotResourceNames(map);
+  // A stand-in separation with the press rule's shape: neutrals on K alone,
+  // everything else a four-ink build the device formula would never write.
+  const press = (r: number, g: number, b: number): [number, number, number, number] =>
+    r === g && g === b ? [0, 0, 0, 1 - r] : [0.1, 0.2, 0.3, 0.4];
+  const usedGs = new Set<string>();
+  const out = substitutePdfRgb('0 0 0 rg 0.2 0.4 0.6 RG', map, spotNames, undefined, undefined, usedGs, press);
+  assert.equal(out, '/GSfo gs 0 0 0 1 k /GSsk gs 0.1 0.2 0.3 0.4 K');
+  assert.deepEqual([...usedGs].sort(), ['GSfo', 'GSsk']);
+});
+
 test('substitutePdfRgb: spot lock switches to the /Separation colourspace at full tint', () => {
   const map = buildCmykPaletteMap([{ hex: '#0C322C', spot: { name: 'Pine' } }]);
   const spotNames = assignSpotResourceNames(map);

@@ -1199,6 +1199,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
 
     }
     if (targetFormat === 'lottie' && video.fps != null) exportOpts.fps = video.fps;
+    // EPS (CMYK) separates through the press condition's profile (the bundled FOGRA39
+    // one by default), so the condition a print link names reaches the Node tier too.
+    if (targetFormat === 'eps-cmyk' && pressProfile) exportOpts.colorProfile = pressProfile;
 
     // ── the `s=` still-export filter (plan 112 section 10) ────────────────────────────
     // `--s=2 --export=png` renders ONE slide of a framed document, exactly as

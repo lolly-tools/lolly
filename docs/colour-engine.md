@@ -47,4 +47,5 @@ A gradient authored in OKLab is baked into plain sRGB stops on the way out. Extr
 | OKLab and OKLCH maths, gamut mapping | `engine/src/brand-derive.ts` |
 | Ramps for palettes and gradient tokens | `engine/src/color-tools.ts` (`rampOklab`) |
 | ICC profile bytes and press conditions | `engine/src/color.ts` |
+| RGB to CMYK through a press profile | `engine/src/cmyk-separation.ts` |
 | Colours read out of SVG paint | `engine/src/svg-colors.ts` |
