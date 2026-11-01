@@ -569,6 +569,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'GridCraft number formats and Rust dependencies',
+      version: '0.14.2 (5e415cdd34d287b90a4a9df67eb4f532f6f72d96; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',
+      copyright: 'Storytold and individual crate authors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/xlsx-numfmt/xlsx-numfmt.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/xlsx-numfmt/LICENSES.txt'), 'utf8'),
+      note: 'GridCraft gridcraft-numfmt and gridcraft-core compiled through a bounded Lolly byte adapter. The only source change is an injected clock in place of the system clock. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/xlsx-numfmt/.',
+      where: 'web',
+    },
+    {
       name: 'Penpot layout kernel (compiled WASM)',
       version: PENPOT_LAYOUT_UPSTREAM.revision,
       spdx: 'MPL-2.0',

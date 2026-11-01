@@ -308,6 +308,7 @@ addCargoCrates('shells/tauri-desktop/src-tauri/Cargo.lock');
 addCargoCrates('shells/tauri-mobile/src-tauri/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/skera/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/adobe-psd/Cargo.lock');
+addCargoCrates('packages/node-shell/wasm/xlsx-numfmt/Cargo.lock');
 
 for (const artifact of vendorInventory.artifacts) {
   const purl = artifact.name.startsWith('@') ? purlFor(artifact.name, artifact.version) : `pkg:generic/${artifact.name}@${artifact.version}`;

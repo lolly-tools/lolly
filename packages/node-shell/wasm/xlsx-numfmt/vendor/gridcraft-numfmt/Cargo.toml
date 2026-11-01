@@ -1,0 +1,11 @@
+[package]
+name = "gridcraft-numfmt"
+version = "0.14.2"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+publish = false
+description = "GridCraft number formats: Excel format codes, General display, TEXT()"
+
+[dependencies]
+gridcraft-core = { path = "../gridcraft-core" }
