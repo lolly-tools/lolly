@@ -1476,10 +1476,10 @@ async function boot(): Promise<void> {
   // just-hydrated profile). Opt-in, so default OFF ⇒ attribute absent ⇒ full chrome.
   applyPerfUi(isFlagOnSync(PERFORMANCE_UI_FLAG));
   // Lolly may turn it on by itself, once, for a device that struggles to draw the chrome
-  // (lib/perf-ui-auto.ts). Never after a hand choice or for a scripted export; it counts
-  // only on the browse routes, the ones whose footer is the search bar.
+  // (lib/perf-ui-auto.ts). Never after a hand choice (asked again before each change, for
+  // other tabs) or for a scripted export; it counts only on the browse routes.
   const perfUiHandChoice = (profile as { featureFlags?: Record<string, boolean> }).featureFlags?.[PERFORMANCE_UI_FLAG.id] !== undefined;
-  if (!scriptedExport && perfUiAutoPending(perfUiHandChoice)) onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/perf-ui-auto.ts')).then(m => m.startPerfUiAuto({ browseRoute: () => (_lastRouteName && ROUTES[_lastRouteName].footer === 'search' ? _lastRouteName : null) })); });
+  if (!scriptedExport && perfUiAutoPending(perfUiHandChoice)) onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/perf-ui-auto.ts')).then(m => m.startPerfUiAuto({ browseRoute: () => (_lastRouteName && ROUTES[_lastRouteName].footer === 'search' ? _lastRouteName : null), handChoice: async () => (await host.profile.get()).featureFlags?.[PERFORMANCE_UI_FLAG.id] !== undefined })); });
   // The persistent bottom search bar (plans/99 M1) - one instance for the whole
   // session, mounted after #view. Needs the flag mirror (hydrateFeatureFlags above,
   // for the Pro link); hidden until the first navigate() below applies the route's

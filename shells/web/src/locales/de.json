@@ -10446,5 +10446,13 @@
   "Board": "Board",
   "Choose for {role}": "Für {role} auswählen",
   "Change {role}": "{role} ändern",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Die Anleitung Ihrer Marke, geschrieben für Menschen und Agenten. Agenten lesen zuerst den Marken-Skill, dann den für die anstehende Arbeit. Skills leiten die Arbeit an; die Hausregeln unter Regeln sind das, was Lolly prüft."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Die Anleitung Ihrer Marke, geschrieben für Menschen und Agenten. Agenten lesen zuerst den Marken-Skill, dann den für die anstehende Arbeit. Skills leiten die Arbeit an; die Hausregeln unter Regeln sind das, was Lolly prüft.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly hat zum einfacheren, schnelleren Look gewechselt, solange dieses Gerät ausgelastet ist. Es wechselt zurück, sobald sich die Lage beruhigt.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly hat zum einfacheren, schnelleren Look gewechselt, solange der Akku schwach ist. Es wechselt zurück, sobald dieses Gerät lädt.",
+  "On for now because this device is busy. It switches back when things calm down.": "Vorerst eingeschaltet, weil dieses Gerät ausgelastet ist. Es wechselt zurück, sobald sich die Lage beruhigt.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Vorerst eingeschaltet, weil der Akku schwach ist. Es wechselt zurück, sobald dieses Gerät lädt.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Am {date} automatisch eingeschaltet, als dieses Gerät ausgelastet war. Sie haben Behalten gewählt.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Am {date} automatisch eingeschaltet, als der Akku schwach war. Sie haben Behalten gewählt.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly schaltet hier nicht für ein langsames Gerät um, weil Sie am {date} Rückgängig gewählt haben.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly schaltet nicht um, solange dieses Gerät ausgelastet ist oder der Akku schwach ist, weil Sie am {date} Rückgängig gewählt haben."
 }

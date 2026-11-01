@@ -1801,5 +1801,13 @@
   "Board": "Bord",
   "Choose for {role}": "Kies voor {role}",
   "Change {role}": "{role} wijzigen",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "De richtlijnen van je merk, geschreven voor mensen en agents. Agents lezen eerst de merkvaardigheid en daarna die voor het werk. Vaardigheden begeleiden het werk; wat Lolly controleert zijn de merkregels in Regels."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "De richtlijnen van je merk, geschreven voor mensen en agents. Agents lezen eerst de merkvaardigheid en daarna die voor het werk. Vaardigheden begeleiden het werk; wat Lolly controleert zijn de merkregels in Regels.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly is overgestapt op de eenvoudigere, snellere look zolang dit apparaat het druk heeft. Het gaat terug zodra het rustiger wordt.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly is overgestapt op de eenvoudigere, snellere look zolang de batterij bijna leeg is. Het gaat terug zodra dit apparaat oplaadt.",
+  "On for now because this device is busy. It switches back when things calm down.": "Voorlopig aan, omdat dit apparaat het druk heeft. Het gaat terug zodra het rustiger wordt.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Voorlopig aan, omdat de batterij bijna leeg is. Het gaat terug zodra dit apparaat oplaadt.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Automatisch aangezet op {date} toen dit apparaat het druk had. Je hebt Houden gekozen.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Automatisch aangezet op {date} toen de batterij bijna leeg was. Je hebt Houden gekozen.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly schakelt hier niet over voor een traag apparaat, omdat je op {date} Ongedaan maken hebt gekozen.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly schakelt niet over zolang dit apparaat het druk heeft of de batterij bijna leeg is, omdat je op {date} Ongedaan maken hebt gekozen."
 }

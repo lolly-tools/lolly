@@ -1808,5 +1808,13 @@
   "Board": "Bảng",
   "Choose for {role}": "Chọn cho {role}",
   "Change {role}": "Thay đổi {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Hướng dẫn của thương hiệu bạn, viết cho con người và agent. Agent đọc skill thương hiệu trước, rồi skill cho công việc đang làm. Skill hướng dẫn công việc; quy tắc nội bộ trong Quy tắc là thứ Lolly kiểm tra."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Hướng dẫn của thương hiệu bạn, viết cho con người và agent. Agent đọc skill thương hiệu trước, rồi skill cho công việc đang làm. Skill hướng dẫn công việc; quy tắc nội bộ trong Quy tắc là thứ Lolly kiểm tra.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn trong lúc thiết bị này đang bận. Nó sẽ đổi lại khi mọi thứ dịu xuống.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn trong lúc pin yếu. Nó sẽ đổi lại khi thiết bị này đang sạc.",
+  "On for now because this device is busy. It switches back when things calm down.": "Tạm thời bật vì thiết bị này đang bận. Nó sẽ đổi lại khi mọi thứ dịu xuống.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Tạm thời bật vì pin yếu. Nó sẽ đổi lại khi thiết bị này đang sạc.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Tự động bật vào {date} khi thiết bị này đang bận. Bạn đã chọn Giữ.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Tự động bật vào {date} khi pin yếu. Bạn đã chọn Giữ.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly sẽ không tự chuyển ở đây cho thiết bị chậm, vì bạn đã chọn Hoàn tác vào {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly sẽ không tự chuyển khi thiết bị này đang bận hoặc pin yếu, vì bạn đã chọn Hoàn tác vào {date}."
 }

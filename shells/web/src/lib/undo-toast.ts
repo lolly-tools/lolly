@@ -31,8 +31,12 @@ export interface UndoToastOpts {
   actionLabel?: string;
   /** A second button after the action, for a notice that offers a way back AND a way
    *  to accept ("Undo" · "Keep"). Pressing it settles the toast at once: `commit`
-   *  runs, exactly as when the toast times out. */
+   *  runs, exactly as when the toast times out, unless `onAccept` is given. */
   acceptLabel?: string;
+  /** Run when the second button is pressed, in place of `commit`, for a notice where
+   *  pressing it means more than letting the notice time out ("Keep" a temporary change
+   *  for good, while a timeout leaves it temporary). */
+  onAccept?: () => void | Promise<void>;
   /** Let a sentence-long message wrap onto more lines instead of being cut short. */
   wrap?: boolean;
 }
@@ -108,7 +112,13 @@ export function showUndoToast(opts: UndoToastOpts): UndoToastHandle {
     clearTimeout(timer);
     try { void opts.undo(); } finally { remove(); }
   });
-  accept?.addEventListener('click', settle);
+  accept?.addEventListener('click', () => {
+    if (!opts.onAccept) { settle(); return; }
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    try { void opts.onAccept(); } finally { remove(); }
+  });
   pending.add(settle);
   const withdraw = (): void => {
     if (settled) return;
