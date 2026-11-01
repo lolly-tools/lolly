@@ -1492,24 +1492,41 @@ async function compute(model, canvasSize) {
     wallBg: _transparent ? '' : (/^\s*(transparent|none)?\s*$/i.test(String(inputs.background || '')) ? '' : _bg),
     wallCells: cells,
     wallHeadings: headings,
-    wallFont: headings.length ? await brandFont() : '',
+    wallFont: headings.length ? await headingFont() : '',
     wallDefs: defs ? '<defs>' + defs + '</defs>' : '',
     wallClip: doRepeat,
   };
 }
 
-// The brand's own face for tier headings. Headless SVG has no CSS cascade, so the
-// family travels as an attribute, the way the palette tool carries it.
-async function brandFont() {
-  var family = '';
-  if (host.tokens && host.tokens.resolve) {
-    try {
-      var v = await host.tokens.resolve('{font.brand}');
-      if (Array.isArray(v)) v = v.join(', ');
-      if (typeof v === 'string' && v.trim() && v.charAt(0) !== '{') family = v;
-    } catch (e) { /* the generic stack below draws it */ }
+// The tier headings' face: the design system's heading face (font.display), then
+// its text face (font.brand), then SUSE, the face the shell sets everything in when
+// a design system has no type tokens. It is the same order as the shell's
+// --font-display and --font-brand, which styles.css sets the headings in on the
+// canvas. A headless SVG has no stylesheet, so the CLI, the TUI and the MCP server
+// read this attribute to outline the headings, and a viewer reads it when the text
+// stays live. The generic family is only the last entry, never the whole list.
+var FAMILY_NAME = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;   // the shell's brand-vars.ts rule
+var GENERIC_FAMILY = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-(sans-serif|serif|monospace|rounded)|emoji|math|fangsong)$/i;
+async function headingFont() {
+  var faces = [];
+  function add(name) {
+    var n = String(name).trim().replace(/^['"]+|['"]+$/g, '').trim();
+    if (!FAMILY_NAME.test(n) || GENERIC_FAMILY.test(n)) return;
+    if (faces.some(function (f) { return f.toLowerCase() === n.toLowerCase(); })) return;
+    faces.push(n);
   }
-  return family ? family + ', sans-serif' : 'sans-serif';
+  if (host.tokens && host.tokens.resolve) {
+    for (var role of ['display', 'brand']) {
+      try {
+        var v = await host.tokens.resolve('{font.' + role + '}');
+        var list = Array.isArray(v) ? v : (typeof v === 'string' && v.charAt(0) !== '{' ? v.split(',') : []);
+        list.forEach(add);
+      } catch (e) { /* this role is unset: the next one, or SUSE, sets the headings */ }
+    }
+  }
+  add('SUSE');
+  // A name with a space or a digit is quoted, so "Source Sans 3" stays one family.
+  return faces.map(function (f) { return /^[A-Za-z_-][A-Za-z0-9_-]*$/.test(f) ? f : "'" + f + "'"; }).join(', ') + ', sans-serif';
 }
 
 // ctx.canvasSize is absent on an engine older than 1.293: the wall then fills the

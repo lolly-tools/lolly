@@ -2732,19 +2732,19 @@
     },
     {
       "file": "logo-wall.look0.svg",
-      "bytes": 32192,
-      "sha": "dd1439b7abaa1ac3",
-      "stddev": 30.399,
-      "inkRatio": 0.0532,
+      "bytes": 32309,
+      "sha": "67ea8b08c8cab1b7",
+      "stddev": 30.649,
+      "inkRatio": 0.05347,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 30.399,
-          "inkRatio": 0.0532
+          "stddev": 30.649,
+          "inkRatio": 0.05347
         },
         "black": {
-          "stddev": 6.271,
-          "inkRatio": 0.03114
+          "stddev": 6.278,
+          "inkRatio": 0.03155
         }
       },
       "blank": false,
@@ -2752,19 +2752,19 @@
     },
     {
       "file": "logo-wall.svg",
-      "bytes": 32192,
-      "sha": "1ca0589ec66acb28",
-      "stddev": 30.399,
-      "inkRatio": 0.0532,
+      "bytes": 32309,
+      "sha": "cc5167205e0a9f69",
+      "stddev": 30.649,
+      "inkRatio": 0.05347,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 30.399,
-          "inkRatio": 0.0532
+          "stddev": 30.649,
+          "inkRatio": 0.05347
         },
         "black": {
-          "stddev": 6.271,
-          "inkRatio": 0.03114
+          "stddev": 6.278,
+          "inkRatio": 0.03155
         }
       },
       "blank": false,

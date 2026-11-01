@@ -394,3 +394,59 @@ test('a catalog or remote logo is carried as its own bytes', { skip: SKIP }, asy
   assert.match(html, /href="data:image\/svg\+xml;base64,/);
   assert.doesNotMatch(html, /\/catalog\/assets\//);
 });
+
+/** The `font-family` attribute each tier heading carries, in document order. */
+function headingFaces(html: string): string[] {
+  return [...html.matchAll(/<text class="lw-heading"[^>]*\sfont-family="([^"]*)"/g)].map((m) => m[1]!.replace(/&#x27;/g, "'"));
+}
+
+/** A host whose design system answers font.<role> from `faces`; any other role is unset. */
+function tokenHost(faces: Record<string, unknown>) {
+  return baseHost({
+    tokens: {
+      resolve: async (ref: string) => {
+        const role = /^\{font\.([a-z]+)\}$/.exec(ref)?.[1];
+        if (role && role in faces) return faces[role];
+        throw new Error(`unresolved token ${ref}`);
+      },
+    },
+  });
+}
+
+test('tier headings are set in the design system\'s heading face, never a bare generic family', { skip: SKIP }, async () => {
+  const values = { logos: [{ logo: svgLogo('a.svg'), tier: 'Gold' }, { logo: svgLogo('b.svg'), tier: 'Silver' }], balance: false };
+  const faces = async (host: unknown) => headingFaces((await createRuntime(tool, host as never, values as Record<string, InputValue>)).getHydrated() as string);
+
+  // A design system with a heading face (lolly-demo's Outfit) sets the headings in it,
+  // with its text face and then SUSE behind it, the order the shell's --font-display
+  // and --font-brand fall back in. The CLI outlines the headings from this attribute.
+  assert.deepEqual(await faces(tokenHost({ display: 'Outfit', brand: 'SUSE' })), ['Outfit, SUSE, sans-serif', 'Outfit, SUSE, sans-serif']);
+  // With no heading face the text face sets them.
+  assert.deepEqual(await faces(tokenHost({ brand: 'Inter' })), ['Inter, SUSE, sans-serif', 'Inter, SUSE, sans-serif']);
+  // A DTCG fontFamily array keeps its order; a name with a space or a digit is quoted;
+  // a generic family inside the token is dropped, so it can never lead the list.
+  assert.deepEqual((await faces(tokenHost({ display: ['Source Sans 3', 'sans-serif'], brand: 'serif' })))[0], "'Source Sans 3', SUSE, sans-serif");
+  // A design system with no type tokens (one derived from a colour, as the landing's
+  // covers install), and a host with no tokens at all, still get SUSE, the face the
+  // shell sets everything in. A bare "sans-serif" was the bug: the canvas and every
+  // export then drew the headings in whatever generic face the viewer had.
+  for (const host of [tokenHost({}), baseHost()]) {
+    for (const face of await faces(host)) {
+      assert.equal(face, 'SUSE, sans-serif');
+    }
+  }
+});
+
+test('the canvas and the web export read the heading face from the shell\'s font variables', { skip: SKIP }, async () => {
+  // The web shell sets the headings by this rule, which follows a design system the
+  // person installs, and the web export reads the computed face from it to outline or
+  // label the headings.
+  const css = await fetchFile('logo-wall/styles.css');
+  const rule = /\.lw-svg text\.lw-heading\s*\{([^}]*)\}/.exec(css);
+  assert.ok(rule, 'styles.css sets the tier headings');
+  assert.match(rule![1]!, /font-family:\s*var\(--font-display,\s*var\(--font-brand,\s*'SUSE'/);
+  // Convert paths is offered for the wall's vector exports, so the web SVG can carry the
+  // headings as outlines of that face (the CLI outlines by default).
+  const rt = await createRuntime(tool, baseHost(), { logos: [{ logo: svgLogo('a.svg'), tier: 'Gold' }] } as Record<string, InputValue>);
+  assert.ok(rt.getModel().some((i: { id: string }) => i.id === 'convertPaths'), 'the Convert paths export option is offered');
+});

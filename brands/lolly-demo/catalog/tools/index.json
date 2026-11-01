@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-31T19:42:35.274Z",
+  "generatedAt": "2026-11-01T10:45:30.439Z",
   "tools": [
     {
       "id": "3d",
@@ -8289,7 +8289,7 @@
       "id": "logo-wall",
       "name": "Logo Wall",
       "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "status": "official",
       "category": "designer",
       "tags": [
