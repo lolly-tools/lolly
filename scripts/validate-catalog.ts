@@ -983,8 +983,29 @@ const RASTER_PREVIEWS: Record<string, string> = {
  * card is plain text. `drop` takes a shared entry off that pack's list and says why it does not hold
  * there; `add` gives the pack's own rasters their reasons, measured on its files. The
  * both-ways checks run on the result, and a `drop` naming no shared entry fails.
+ *
+ * suse joined this list on 1 Nov 2026. Its 29 Oct re-capture for the Jungle lead (85
+ * cards and looks, suse-lolly b3e223b) was taken on its own, and a few files from that
+ * run no longer measure the way lolly-start's do. The backdrop entries below are the
+ * borderline case of isRasterInSvgClothing: the file is still one GPU frame plus the CSS
+ * wash, and only the share of the frame moved. Re-capturing does not settle them, because
+ * the share falls either side of 60% from one capture to the next.
  */
 const RASTER_PREVIEW_CHANGES: Record<string, { drop: Record<string, string>; add: Record<string, string> }> = {
+  suse: {
+    drop: {
+      'backdrop.svg':
+        "This pack's default metaballs capture is one GPU frame under the CSS wash, as the shared entry says, but the Jungle greens encode to a 3,836 B JPEG: 59.5% of the file, under the 60% line, with 1,010 B of markup.",
+      'backdrop.look0.svg':
+        "Lava lamp in this pack: the same GPU frame and CSS wash, with the frame at 56.8% of the file, under the 60% line, and 1,526 B of markup. Nothing in it is tool geometry.",
+      'backdrop.look2.svg':
+        "Neural drift in this pack: the GPU frame is nearly flat (per-channel stddev under 1.5), so its JPEG is 2,091 B and 44.5% of the file, under the 60% line, with 1,010 B of markup. The lolly-demo drop records the same case.",
+    },
+    add: {
+      'frame.look0.svg':
+        "Browser frame around the Mesh Gradient tool's Flow mode, a WebGL fragment shader (the gradient.look2 class): one embedded <image>, 63.6% of the file, inside 3,707 B of frame markup. The same capture as lolly-demo's frame.look0.svg; a re-capture on 1 Nov 2026 measured the same.",
+    },
+  },
   'lolly-demo': {
     drop: {
       '3d-studio.svg': 'This pack carries the same WebGL frame as 3d-studio.webp, added below.',
