@@ -49,6 +49,7 @@ const CRATE_DIRS = [
   'packages/node-shell/wasm/adobe-psd',
   'packages/node-shell/wasm/xlsx-numfmt',
   'packages/node-shell/wasm/pdf-a11y',
+  'packages/node-shell/wasm/dxf',
   'packages/node-shell/wasm/indd',
 ];
 

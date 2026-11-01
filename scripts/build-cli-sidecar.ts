@@ -206,6 +206,7 @@ cpSync(join(REPO, 'packages/node-shell/wasm/xlsx-numfmt'), join(LIB, 'wasm/xlsx-
   recursive: true, filter: (source) => basename(source) !== 'target',
 });
 cpSync(join(REPO, 'packages/node-shell/wasm/pdf-a11y'), join(LIB, 'wasm/pdf-a11y'), { recursive: true, filter: (source) => basename(source) !== 'target' });
+cpSync(join(REPO, 'packages/node-shell/wasm/dxf'), join(LIB, 'wasm/dxf'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/indd'), join(LIB, 'wasm/indd'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(LIB, 'wasm/layout-kernel'), {
   recursive: true, filter: (source) => basename(source) !== 'target',

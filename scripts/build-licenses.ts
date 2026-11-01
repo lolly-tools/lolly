@@ -589,6 +589,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'CADCraft DXF tag reader and Rust dependencies',
+      version: '0.15.1 (258c89fbb021fd22cf25ef519e5caf018b692093; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT AND Apache-2.0 AND Unicode-3.0 AND BSD-3-Clause',
+      copyright: 'ArtCraft Team, CADCraft contributors and individual crate authors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/dxf/dxf.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/dxf/LICENSES.txt'), 'utf8'),
+      note: 'CADCraft cadcraft-dxf (the DXF tag reader only) compiled through a bounded Lolly byte adapter that maps tags to a flat entity list. One source change: binary DXF with one-byte group codes (R12 and earlier) is read. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/dxf/.',
+      where: 'web',
+    },
+    {
       name: 'storytold indd-utils INDD converter',
       version: '0.1.0 (136f973a9d5f1b3ef34e46e27f4a08af196efde7; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT',
