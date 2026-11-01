@@ -116,7 +116,7 @@ return {
 };
 ```
 
-`value` is the colour the tool draws while that input is empty, worked out as if the input were empty even when the person has set a colour, so the picker's "Follow the design system" choice shows the colour the input returns to. `source: 'design-system'` makes the field read "Design system" and announce "Ink: follows the design system (Liquorice)"; without the key the field reads "Automatic". Leave `value` out when the template decides the colour later, as Chart's palette slots do, and the field keeps the neutral pattern. `autoColors` is an ordinary extra, so the template never needs to read it and other shells ignore it. [Certificate](/#/tool/certificate) is the reference tool.
+`value` is the colour the tool draws while that input is empty, worked out as if the input were empty even when the person has set a colour, so the picker's "Follow the design system" choice shows the colour the input returns to. `source: 'design-system'` makes the field read "Design system" and announce "Ink: follows the design system (Liquorice)"; without the key the field reads "Automatic". Leave `value` out when the template decides the colour later, as Chart's palette slots do, and the field keeps the neutral pattern. `autoColors` is an ordinary extra: the template never needs to read the value, and other shells ignore the key. [Certificate](/#/tool/certificate) is the reference tool.
 
 ## Live input
 

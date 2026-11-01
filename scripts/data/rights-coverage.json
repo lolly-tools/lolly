@@ -43,6 +43,7 @@
         "shells/web/src/bridge/export.ts",
         "shells/web/src/bridge/export-shared.ts",
         "shells/web/src/views/tool/render.ts",
+        "shells/web/src/views/tool/exporting.ts",
         "shells/web/src/views/tool-actions/wiring.ts",
         "shells/web/src/views/record-control.ts",
         "shells/web/src/lib/deliver-file.ts",

@@ -138,7 +138,8 @@ test('the export bar, the copy and the send all hand their pixel size to the wra
   const dims = read('views/tool-actions/dims.ts');
   assert.match(dims, /dims: ExportDimensionOpts = exportDims\(ta\)/);
   assert.match(dims, /return exportPixelSize\(dims\);/);
-  // The deep-link auto-export names its size in the URL, so it carries it too.
-  const render = read('views/tool/render.ts');
-  assert.match(render, /\{ size: exportPixelSize\(expOpts\) \}/);
+  // A deep link gives its size in the URL, and the link export hands that size to the wrapper.
+  // It lives in views/tool/exporting.ts (linkExport) since the link export waits for the tool to settle.
+  const exporting = read('views/tool/exporting.ts');
+  assert.match(exporting, /\{ size: exportPixelSize\(expOpts\) \}/);
 });
