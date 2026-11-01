@@ -11,6 +11,9 @@
  *  3. Across the two. Design and the panel do share keys (Home, End, K, Delete, Ctrl A, ?). They are exclusive because the canvas
  *     handler bails while focus is inside `.tl-panel` (free-canvas/keys.ts), and the panel only sees keydown events whose
  *     target is inside its own root. The source check below fails if that bail is removed.
+ *  4. Brand Studio's slide review (rebrand/strip.ts shortcutRows). The rows are written as plain words ("Ctrl or Cmd and A"),
+ *     so they are turned into chords first. Within one mode no two rows may share a chord. The review is its own view, not
+ *     the Design canvas, so it may reuse Design's keys; the shared keys are recorded so a new one shows up in review.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -25,6 +28,7 @@ for (const key of ['window', 'document', 'HTMLElement', 'Event', 'Node', 'histor
 }
 const { designShortcutGroups } = await import('./design-shortcuts.ts');
 const { PANEL_SHORTCUTS } = await import('./timeline-config.ts');
+const { shortcutRows } = await import('./rebrand/strip.ts');
 const here = dirname(fileURLToPath(import.meta.url));
 
 /** "Ctrl Shift [ / ]" is two chords: the second inherits the first's modifiers. */
@@ -109,4 +113,50 @@ test('Design and the timeline panel share keys only under exclusive focus gates'
   assert.ok(/if \(fc\.timelinePanel && \(document\.activeElement as HTMLElement \| null\)\?\.closest\?\.\('\.tl-panel'\)\)\s*return;/.test(keys), 'the canvas key handler no longer bails while focus is in .tl-panel');
   const panel = readFileSync(join(here, 'timeline-panel.ts'), 'utf8');
   assert.ok(/root\.addEventListener\('keydown', tp\.panel\.onKey\)/.test(panel), 'the timeline panel no longer binds its keys on its own root');
+});
+
+const MODIFIERS = new Set(['shift', 'ctrl', 'alt']);
+
+/** The review's plain-word key rows as chords: "Ctrl or Cmd and A" is one chord, "Arrow keys, K and J" is three. */
+function rebrandChords(keys: string): string[] {
+  const tokens = keys.toLowerCase().replace(/shift\+f10/, 'shift f10').split(/[,+]|\band\b|\bor\b/).map((p) => p.trim().replace(/^an?\s+/, '')).filter(Boolean)
+    .map((p) => (p === 'cmd' ? 'ctrl' : p === 'arrow' || p === 'arrow keys' ? 'arrows' : p));
+  const mods = [...new Set(tokens.filter((p) => MODIFIERS.has(p)))].sort();
+  const rest = tokens.filter((p) => !MODIFIERS.has(p));
+  if (mods.length === 0) return rest;
+  return [[...mods, ...rest].join(' ')];
+}
+
+test('rebrand chord expansion', () => {
+  assert.deepEqual(rebrandChords('Arrow keys, K and J'), ['arrows', 'k', 'j']);
+  assert.deepEqual(rebrandChords('Ctrl or Cmd and A'), ['ctrl a']);
+  assert.deepEqual(rebrandChords('Shift, Ctrl or Cmd and Z'), ['ctrl shift z']);
+  assert.deepEqual(rebrandChords('Shift and an arrow'), ['shift arrows']);
+  assert.deepEqual(rebrandChords('Alt and an arrow'), ['alt arrows']);
+  assert.deepEqual(rebrandChords('Shift+F10'), ['shift f10']);
+  assert.deepEqual(rebrandChords('Home and End'), ['home', 'end']);
+});
+
+test('Brand Studio slide review: no two rows in a mode share a chord', () => {
+  for (const selectionOnly of [false, true]) {
+    const seen = new Map<string, string>(), clashes: string[] = [];
+    for (const row of shortcutRows(selectionOnly)) for (const chord of rebrandChords(row.keys)) {
+      if (seen.has(chord)) clashes.push(`${chord}: "${seen.get(chord)}" and "${row.label}"`);
+      seen.set(chord, row.label);
+    }
+    assert.deepEqual(clashes, [], selectionOnly ? 'keep-the-design mode' : 'full review');
+  }
+});
+
+test('Brand Studio slide review reuses Design keys only as a separate view', () => {
+  const design = new Set<string>();
+  for (const group of designShortcutGroups('Linux x86_64')) for (const row of group.rows) if (!row.gesture) for (const c of chordsOf(row.keys)) design.add(c.toLowerCase().replace(/\s+/g, ' '));
+  const shared = new Set<string>();
+  for (const row of shortcutRows(false)) for (const chord of rebrandChords(row.keys)) {
+    const norm = chord.split(' ').sort((a, b) => Number(!MODIFIERS.has(a)) - Number(!MODIFIERS.has(b)) || a.localeCompare(b)).join(' ');
+    for (const d of design) if (d.split(' ').sort((a, b) => Number(!MODIFIERS.has(a)) - Number(!MODIFIERS.has(b)) || a.localeCompare(b)).join(' ') === norm) shared.add(chord);
+  }
+  // Recorded so a new overlap shows up in review. The review is a deck screen with its own document key handler (rebrand/keys.ts);
+  // the Design canvas is not mounted there, so the two never receive the same key event.
+  assert.deepEqual([...shared].sort(), ['?', '\\', 'ctrl a', 'ctrl shift z', 'ctrl z', 'end', 'esc', 'home', 'k']);
 });
