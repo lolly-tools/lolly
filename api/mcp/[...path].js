@@ -69172,14 +69172,14 @@ function landed(sp, T, tMs) {
 function kfSpringAt(ease, u, spanMs) {
   if (!(u > 0)) return 0;
   if (u >= 1) return 1;
-  const { spring, window: window2 } = ease;
-  if (window2) {
-    const T2 = window2.span;
-    const a = landed(spring, T2, window2.from);
-    const b = landed(spring, T2, window2.to);
+  const { spring, window: cut } = ease;
+  if (cut) {
+    const T2 = cut.span;
+    const a = landed(spring, T2, cut.from);
+    const b = landed(spring, T2, cut.to);
     const d = b - a;
     if (d === 0) return u;
-    return (landed(spring, T2, window2.from + (window2.to - window2.from) * u) - a) / d;
+    return (landed(spring, T2, cut.from + (cut.to - cut.from) * u) - a) / d;
   }
   const T = typeof spanMs === "number" && spanMs > 0 && Number.isFinite(spanMs) ? spanMs : kfSpringSettleMs(spring);
   return landed(spring, T, u * T);

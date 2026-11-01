@@ -268,14 +268,14 @@ function landed(sp: KfSpring, T: number, tMs: number): number {
 export function kfSpringAt(ease: KfSpringEase, u: number, spanMs?: number): number {
   if (!(u > 0)) return 0;
   if (u >= 1) return 1;
-  const { spring, window } = ease;
-  if (window) {
-    const T = window.span;
-    const a = landed(spring, T, window.from);
-    const b = landed(spring, T, window.to);
+  const { spring, window: cut } = ease;
+  if (cut) {
+    const T = cut.span;
+    const a = landed(spring, T, cut.from);
+    const b = landed(spring, T, cut.to);
     const d = b - a;
     if (d === 0) return u;
-    return (landed(spring, T, window.from + (window.to - window.from) * u) - a) / d;
+    return (landed(spring, T, cut.from + (cut.to - cut.from) * u) - a) / d;
   }
   const T = typeof spanMs === 'number' && spanMs > 0 && Number.isFinite(spanMs) ? spanMs : kfSpringSettleMs(spring);
   return landed(spring, T, u * T);
