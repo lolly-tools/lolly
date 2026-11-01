@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
-import { LANES, REPO, matchesGlob, runLane, selectLanes, changesFromRaw, parseArgs, type Lane, type Selection } from '../scripts/ci-local.ts';
+import { LANES, REPO, BUILD_SKIP_REASON, buildsWebShell, matchesGlob, runLane, selectLanes, changesFromRaw, parseArgs, type Lane, type Selection } from '../scripts/ci-local.ts';
 
 interface Job { name?: string; steps?: { run?: string; env?: Record<string, string> }[]; strategy?: { matrix?: { include?: { shard?: string; partition?: string }[] } } }
 const workflow = (file: string) => parse(readFileSync(join(REPO, '.github/workflows', file), 'utf8')) as { on: Record<string, { paths?: string[] }>; jobs: Record<string, Job> };
@@ -68,6 +68,21 @@ test('--changed picks lanes by path and leaves the heavy tier out for docs and t
   const code = picked(changesFromRaw(':100644 100644 a b M\0engine/src/runtime.ts\0'));
   assert.ok(code.includes('test:browser') && !code.includes('docs'));
   assert.ok(matchesGlob('shells/web/src/a.ts', 'shells/web/**') && !matchesGlob('docs/a.md', 'shells/web/**'));
+});
+
+test('--changed skips every lane that runs build:web unless --with-build is given', () => {
+  const build = LANES.filter(buildsWebShell).map(l => l.id);
+  assert.deepEqual(build.sort(), ['build', 'web-browser']);
+  for (const lane of LANES.filter(l => l.steps.some(step => (step.ci ?? step.cmd).includes('build:web')))) assert.ok(build.includes(lane.id));
+  const change = changesFromRaw(':100644 100644 a b M\0shells/web/src/main.ts\0');
+  for (const withBuild of [false, true]) {
+    const picked = selectLanes(LANES, change, withBuild).filter(s => s.selected).map(s => s.lane.id);
+    for (const id of build) assert.equal(picked.includes(id), withBuild, `${id} with withBuild=${withBuild}`);
+  }
+  const skipped = selectLanes(LANES, change).find(s => s.lane.id === 'build')!;
+  assert.equal(runLane(skipped.lane, skipped, () => null, () => { throw new Error('must not run'); }).detail, BUILD_SKIP_REASON);
+  assert.equal(parseArgs(['--changed', '--with-build']).withBuild, true);
+  assert.equal(parseArgs(['--changed']).withBuild, false);
 });
 
 test('--list ids and unknown arguments are validated', () => {

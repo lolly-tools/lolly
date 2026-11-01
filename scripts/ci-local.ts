@@ -6,6 +6,7 @@
  *
  *   pnpm run ci:local                  every lane this machine can run
  *   pnpm run ci:local --changed        only lanes the diff against origin/main touches
+ *   pnpm run ci:local --changed --with-build   also run lanes that build the web shell
  *   pnpm run ci:local --list           print the lanes and the commands, run nothing
  *   pnpm run ci:local --only=typecheck,docs --skip=build
  *   pnpm run ci:local --strict         exit non-zero when a lane could not run
@@ -20,6 +21,10 @@
  * WebGPU adapter, ffmpeg, gitleaks) is reported NOT RUN. A lane is PASSED only
  * when every step in it ran and succeeded, so a missing browser can never read
  * as a pass.
+ *
+ * --changed leaves out every lane that runs build:web (the build rewrites tracked
+ * files such as the brand OG images) and lists it as skipped; --with-build runs
+ * them. Plain ci:local with no --changed runs them as before.
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync } from 'node:fs';
@@ -246,7 +251,11 @@ export function matchesGlob(file: string, glob: string): boolean {
   return file === glob;
 }
 
-export interface Selection { lane: Lane; selected: boolean; why: string }
+export interface Selection { lane: Lane; selected: boolean; why: string; skipDetail?: string }
+
+export const BUILD_SKIP_REASON = 'skipped: builds the web shell (pass --with-build to run)';
+/** A lane builds the web shell when any step runs build:web. That build rewrites tracked files such as the brand OG images. */
+export const buildsWebShell = (lane: Lane): boolean => lane.steps.some(step => step.cmd.includes('build:web'));
 
 export function changesFromRaw(raw: string): Change[] {
   const records = raw.split('\0');
@@ -266,12 +275,13 @@ export function changedFiles(base = 'origin/main'): Change[] {
 }
 
 /** Decide which lanes --changed runs. Pure: the caller supplies the changes. */
-export function selectLanes(lanes: readonly Lane[], changes: readonly Change[] | null): Selection[] {
+export function selectLanes(lanes: readonly Lane[], changes: readonly Change[] | null, withBuild = false): Selection[] {
   if (!changes) return lanes.map(lane => ({ lane, selected: true, why: 'all lanes' }));
   if (!changes.length) return lanes.map(lane => ({ lane, selected: false, why: 'no changes against origin/main' }));
   const docsAndTests = classifyDocsAndTests([...changes]).docsAndTestsEligible;
   const dependencyChange = touchesDependencies([...changes]);
-  return lanes.map((lane) => {
+  return lanes.map((lane): Selection => {
+    if (!withBuild && buildsWebShell(lane)) return { lane, selected: false, why: BUILD_SKIP_REASON, skipDetail: BUILD_SKIP_REASON };
     if (lane.heavy && docsAndTests) return { lane, selected: false, why: 'docs-and-tests change: CI leaves the heavy tier out' };
     if (lane.id === 'audit' && !dependencyChange) return { lane, selected: false, why: 'no dependency manifest or lockfile changed' };
     const hit = changes.find(change => lane.paths.some(glob => matchesGlob(change.path, glob)));
@@ -296,7 +306,7 @@ const HINTS: Record<Requirement, string> = {
   firefox: 'Playwright Firefox is not installed',
   webkit: 'Playwright WebKit is not installed',
   ffmpeg: 'ffmpeg and ffprobe are not on PATH',
-  gitleaks: 'gitleaks is not installed (set GITLEAKS_BIN to the pinned 8.29.1 binary)',
+  gitleaks: 'gitleaks is not installed (CI pins 8.29.1; set GITLEAKS_BIN if it is off PATH)',
   qpdf: 'qpdf is not installed',
   c2patool: 'c2patool is not installed',
   caddy: 'caddy is not installed',
@@ -307,20 +317,33 @@ const HINTS: Record<Requirement, string> = {
   'journey-shell': 'LOLLY_EXPORT_TEST_URL and LOLLY_WEB_BASE are unset: start a preview of a build on a port other than 5173 and export both',
 };
 
+const GITLEAKS_PIN = '8.29.1';
+
+/** Why gitleaks cannot be used, naming the version CI pins, or null when the right one is on PATH. */
+function gitleaksProblem(): string | null {
+  const bin = process.env.GITLEAKS_BIN?.trim() || 'gitleaks';
+  const result = spawnSync(bin, ['version'], { encoding: 'utf8' });
+  if (result.error || result.status !== 0) return HINTS.gitleaks;
+  const found = /\d+\.\d+\.\d+/.exec(String(result.stdout))?.[0];
+  if (found === GITLEAKS_PIN) return null;
+  return `gitleaks ${found ?? 'of unknown version'} is installed but CI pins ${GITLEAKS_PIN}; install ${GITLEAKS_PIN} or point GITLEAKS_BIN at it`;
+}
+
 /** The real probe. Returns null when the requirement is met, else the reason it is not. */
 export function systemHas(requirement: Requirement): string | null {
   const ok = (() => {
     switch (requirement) {
       case 'chromium': case 'firefox': case 'webkit': return playwrightHas(requirement);
       case 'ffmpeg': return onPath('ffmpeg') && onPath('ffprobe');
-      case 'gitleaks': return Boolean(process.env.GITLEAKS_BIN) || onPath('gitleaks');
+      case 'gitleaks': return gitleaksProblem() === null;
       case 'journey-shell': return Boolean(process.env.LOLLY_EXPORT_TEST_URL && process.env.LOLLY_WEB_BASE);
       // Confirmed by the WebGPU conformance step itself, never assumed. Chromium must exist first.
       case 'webgpu': return playwrightHas('chromium') && webgpuConfirmed;
       default: return onPath(requirement);
     }
   })();
-  return ok ? null : HINTS[requirement];
+  if (ok) return null;
+  return requirement === 'gitleaks' ? gitleaksProblem() : HINTS[requirement];
 }
 
 /** Set once the WebGPU conformance step has actually passed in this run. */
@@ -346,6 +369,7 @@ const realExec: Exec = (step) => {
 /** Run one lane. A step whose requirement is missing is NOT RUN, and the lane can then never read as passed. */
 export function runLane(lane: Lane, selection: Selection, has: Has = systemHas, exec: Exec = realExec): LaneResult {
   if (lane.skip) return { lane, status: 'skipped', detail: lane.skip, steps: [] };
+  if (selection.skipDetail) return { lane, status: 'skipped', detail: selection.skipDetail, steps: [] };
   if (!selection.selected) return { lane, status: 'unselected', detail: selection.why, steps: [] };
   const steps: StepResult[] = [];
   let blocked: string | null = null;
@@ -413,33 +437,34 @@ export function summary(results: readonly LaneResult[]): string {
   const unselected = results.filter(r => r.status === 'unselected');
   if (unselected.length) out.push(`Not selected by --changed: ${unselected.map(r => r.lane.id).join(', ')}`);
   const count = (status: LaneStatus) => results.filter(r => r.status === status).length;
-  out.push(`${count('passed')} passed, ${count('failed')} failed, ${count('not run')} not run, ${count('skipped')} skipped (hosted only).`);
+  out.push(`${count('passed')} passed, ${count('failed')} failed, ${count('not run')} not run, ${count('skipped')} skipped (hosted or builds the web shell).`);
   if (count('not run')) out.push('A lane marked NOT RUN has not been checked here. It is not a pass; CI will still run it.');
   return `${out.join('\n')}\n`;
 }
 
-export interface Options { list: boolean; changed: boolean; strict: boolean; only: string[] | null; skip: string[]; base: string }
+export interface Options { list: boolean; changed: boolean; strict: boolean; withBuild: boolean; only: string[] | null; skip: string[]; base: string }
 
 export function parseArgs(argv: readonly string[]): Options {
-  const options: Options = { list: false, changed: false, strict: false, only: null, skip: [], base: 'origin/main' };
+  const options: Options = { list: false, changed: false, strict: false, withBuild: false, only: null, skip: [], base: 'origin/main' };
   const ids = new Set(LANES.map(lane => lane.id));
   for (const arg of argv) {
     if (arg === '--list') options.list = true;
     else if (arg === '--changed') options.changed = true;
     else if (arg === '--strict') options.strict = true;
+    else if (arg === '--with-build') options.withBuild = true;
     else if (arg.startsWith('--only=') || arg.startsWith('--skip=')) {
       const names = arg.slice(arg.indexOf('=') + 1).split(',').map(s => s.trim()).filter(Boolean);
       const unknown = names.filter(name => !ids.has(name));
       if (unknown.length) throw new Error(`Unknown lane: ${unknown.join(', ')}. Run pnpm run ci:local --list for the ids.`);
       if (arg.startsWith('--only=')) options.only = names; else options.skip.push(...names);
-    } else throw new Error(`Unknown argument: ${arg}. Use --list, --changed, --only=ids, --skip=ids or --strict.`);
+    } else throw new Error(`Unknown argument: ${arg}. Use --list, --changed, --only=ids, --skip=ids, --with-build or --strict.`);
   }
   return options;
 }
 
 export function main(argv = process.argv.slice(2)): number {
   const options = parseArgs(argv);
-  const selections = selectLanes(LANES, options.changed ? changedFiles(options.base) : null).map((selection): Selection => {
+  const selections = selectLanes(LANES, options.changed ? changedFiles(options.base) : null, options.withBuild).map((selection): Selection => {
     if (options.only && !options.only.includes(selection.lane.id)) return { ...selection, selected: false, why: 'not named by --only' };
     if (options.skip.includes(selection.lane.id)) return { ...selection, selected: false, why: 'named by --skip' };
     return selection;

@@ -139,7 +139,8 @@ An unquoted directory (`node --test tests/`) makes current Node try to load `tes
 To see what CI will say before you push, run the same gates locally:
 
 ```bash
-pnpm run ci:local --changed   # only the lanes your diff against origin/main touches
+pnpm run ci:local --changed   # only the lanes your diff against origin/main touches; lanes that build the web shell are listed as skipped
+pnpm run ci:local --changed --with-build   # the same, and run the build lanes too
 pnpm run ci:local --list      # the lanes and commands, nothing run
 ```
 
