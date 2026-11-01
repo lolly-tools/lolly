@@ -1061,6 +1061,32 @@
         "notes": "Pinned PhotoCraft parser and writer. No-edit source preservation is verified separately from visual fidelity by the optional 258-file pinned corpus. Conventional inputs retain the established engine reader."
       }
     },
+    "engine/src/xlsx-import.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "xlsx-numfmt"
+      ],
+      "details": {
+        "inputSource": "User-picked .xlsx workbooks. The shell reads the file and supplies the number-format function; the engine owns the unzip and the XML scan.",
+        "bounds": "32 MiB per part, 256 MiB inflated in total, 2,000,000 cells, 16,384 columns, 16,777,216 padded cells; styles read at most 65,536 cell formats and 4,096 custom codes, each code up to 1,024 characters; at most 50,000 cells per formatter call",
+        "directTests": "`tests/xlsx-import.test.ts`, `tests/xlsx-numfmt.test.ts`",
+        "fuzzCoverage": "`xlsx-numfmt` mutates a stored-zip workbook with a styles part, so the styles reader, batching and the format codes are all reached.",
+        "notes": "Without a formatter the output is byte-identical to a read with no number formats. A formatter that throws or returns a wrong-sized or malformed answer leaves the unformatted text. Formulas are never evaluated."
+      }
+    },
+    "packages/node-shell/src/xlsx-numfmt.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "xlsx-numfmt"
+      ],
+      "details": {
+        "inputSource": "Cell values and Excel number-format codes from a workbook the engine has already unzipped. The shell loads the WASM module.",
+        "bounds": "16 MiB request, 100,000 cells and 4,096 format codes per request, 1,024 bytes per code, 32 KiB per text value, 32 MiB of output; 512 MiB WASM memory cap; the module imports nothing from the host",
+        "directTests": "`tests/xlsx-numfmt.test.ts`, the vendored crates' `cargo test --workspace`",
+        "fuzzCoverage": "`xlsx-numfmt` also feeds mutated bytes through the module as raw format codes.",
+        "notes": "Pinned GridCraft number-format engine. The clock is an injected value, so output depends only on the request. Numbers are parsed with exact float round-tripping."
+      }
+    },
     "engine/src/idml-read.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [
