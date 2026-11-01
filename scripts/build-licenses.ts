@@ -550,7 +550,7 @@ const MANIFEST: {
     },
     {
       name: 'PhotoCraft PSD parser and Rust dependencies',
-      version: '0.2.0 (7eb3b2e072aa3110da2a329bb49109744292a87b; pinned Cargo.lock)',
+      version: '0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',
       copyright: 'Storytold and individual crate authors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/adobe-psd/adobe-psd.wasm',
