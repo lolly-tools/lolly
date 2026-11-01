@@ -4088,7 +4088,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.296.0";
+    ENGINE_VERSION = "1.297.0";
   }
 });
 
@@ -7388,9 +7388,9 @@ function describeColor(input) {
     p3: maxChroma(L, h, "p3"),
     rec2020: maxChroma(L, h, "rec2020")
   };
-  const srgb = colorToSrgb(parsed);
+  const srgb2 = colorToSrgb(parsed);
   const byte = (v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, "0");
-  const srgbHex = `#${byte(srgb[0])}${byte(srgb[1])}${byte(srgb[2])}`;
+  const srgbHex = `#${byte(srgb2[0])}${byte(srgb2[1])}${byte(srgb2[2])}`;
   const notations = NOTATION_SPACES.map((space) => ({
     space,
     css: formatColor(convertColor(parsed, space)),
@@ -62923,7 +62923,7 @@ function finiteContour(c) {
 }
 function buildOffset(c, d, opts) {
   const tol = opts.tol ?? DEFAULT_TOL2;
-  const join33 = opts.join ?? "miter";
+  const join34 = opts.join ?? "miter";
   const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
   const seq = [];
   const corners3 = [];
@@ -62952,7 +62952,7 @@ function buildOffset(c, d, opts) {
     const pivot = corners3[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const t0 = cur.dirEnd ?? endTangent2(cur.curve);
     const t1 = next2.dirStart ?? startTangent2(next2.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join33, miterLimit));
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join34, miterLimit));
   }
   return out;
 }
@@ -63835,7 +63835,7 @@ function hbSystem(pts, wrap3, startTh, endTh, ths) {
   const a = new Array(m2).fill(0);
   const b = new Array(m2).fill(1);
   const c = new Array(m2).fill(0);
-  const join33 = (k, prevIx, nextIx) => {
+  const join34 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next2 = segs[nextIx];
     const j = hbJoin(prev, next2);
     r5[k] = j.r;
@@ -63844,10 +63844,10 @@ function hbSystem(pts, wrap3, startTh, endTh, ths) {
     c[k] = j.dB * -next2.d01;
   };
   if (wrap3) {
-    for (let k = 0; k < m2; k++) join33(k, (k - 1 + m2) % m2, k);
+    for (let k = 0; k < m2; k++) join34(k, (k - 1 + m2) % m2, k);
     return { r: r5, a, b, c, segs };
   }
-  for (let k = 1; k < m2 - 1; k++) join33(k, k - 1, k);
+  for (let k = 1; k < m2 - 1; k++) join34(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
     r5[0] = mod2pi3(ths[0] - startTh);
@@ -73193,7 +73193,7 @@ var init_contentseal = __esm({
 function cmykKey(r5, g2, b) {
   return `${Math.round(r5 * 100)},${Math.round(g2 * 100)},${Math.round(b * 100)}`;
 }
-function buildCmykPaletteMap(palette) {
+function buildCmykPaletteMap(palette, separate = rgbToCmyk) {
   const map = /* @__PURE__ */ new Map();
   for (const { hex: hex3, cmyk, spot } of palette ?? []) {
     if (!hex3 || !cmyk && !spot) continue;
@@ -73202,7 +73202,7 @@ function buildCmykPaletteMap(palette) {
     const r5 = parseInt(h.slice(0, 2), 16) / 255;
     const g2 = parseInt(h.slice(2, 4), 16) / 255;
     const b = parseInt(h.slice(4, 6), 16) / 255;
-    const frac = cmyk && cmyk.length === 4 ? cmyk.map((v) => v / 100) : rgbToCmyk(r5, g2, b);
+    const frac = cmyk && cmyk.length === 4 ? cmyk.map((v) => v / 100) : separate(r5, g2, b);
     const build2 = spot?.finish ? FINISH_MASK_CMYK : frac;
     map.set(cmykKey(r5, g2, b), spot ? { cmyk: build2, spot: { name: spot.name, cmyk: build2, ...spot.finish ? { finish: spot.finish } : {} } } : { cmyk: frac });
   }
@@ -73220,9 +73220,443 @@ var init_cmyk_palette = __esm({
   }
 });
 
+// engine/src/icc-pixels.ts
+function iccResolvedIntent(profile2, direction2, intent) {
+  try {
+    if (!profile2 || typeof profile2.toLab !== "function" || typeof profile2.fromLab !== "function") return null;
+    if (!Object.hasOwn(FALLBACK, intent)) return null;
+    const n7 = profile2.nChannels;
+    if (!Number.isInteger(n7) || n7 < 1) return null;
+    const midDevice = new Array(n7).fill(0.5);
+    for (const cand of FALLBACK[intent]) {
+      const ok3 = direction2 === "toPcs" ? profile2.toLab(cand, midDevice) !== null : profile2.fromLab(cand, [50, 0, 0]) !== null;
+      if (ok3) return cand;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+function buildLattice(profile2, direction2, intent) {
+  const s = LATTICE_N - 1;
+  const lat = new Float32Array(LATTICE_N * LATTICE_N * LATTICE_N * 3);
+  let p = 0;
+  for (let i = 0; i < LATTICE_N; i++) {
+    for (let j = 0; j < LATTICE_N; j++) {
+      for (let k = 0; k < LATTICE_N; k++) {
+        const res = direction2 === "toPcs" ? profile2.toLab(intent, [i / s, j / s, k / s]) : profile2.fromLab(intent, [i / s * 100, j / s * 255 - 128, k / s * 255 - 128]);
+        if (!res || res.length !== 3) return null;
+        if (!Number.isFinite(res[0]) || !Number.isFinite(res[1]) || !Number.isFinite(res[2])) return null;
+        lat[p++] = res[0];
+        lat[p++] = res[1];
+        lat[p++] = res[2];
+      }
+    }
+  }
+  return lat;
+}
+function getLattice(profile2, direction2, intent) {
+  let byKey = LATTICES.get(profile2);
+  if (!byKey) {
+    byKey = /* @__PURE__ */ new Map();
+    LATTICES.set(profile2, byKey);
+  }
+  const key2 = `${direction2}:${intent}`;
+  if (byKey.has(key2)) return byKey.get(key2) ?? null;
+  const lat = buildLattice(profile2, direction2, intent);
+  byKey.set(key2, lat);
+  return lat;
+}
+function tetraEval(lat, u, v, w, out, o) {
+  const s = LATTICE_N - 1;
+  const x = clamp017(u) * s;
+  const y = clamp017(v) * s;
+  const z = clamp017(w) * s;
+  let i = Math.floor(x);
+  let j = Math.floor(y);
+  let k = Math.floor(z);
+  if (i >= s) i = s - 1;
+  if (j >= s) j = s - 1;
+  if (k >= s) k = s - 1;
+  const fx = x - i;
+  const fy = y - j;
+  const fz = z - k;
+  const p0 = i * L_S0 + j * L_S1 + k * L_S2;
+  let o1;
+  let o2;
+  let f1;
+  let f22;
+  let f33;
+  if (fx >= fy) {
+    if (fy >= fz) {
+      o1 = L_S0;
+      o2 = L_S0 + L_S1;
+      f1 = fx;
+      f22 = fy;
+      f33 = fz;
+    } else if (fx >= fz) {
+      o1 = L_S0;
+      o2 = L_S0 + L_S2;
+      f1 = fx;
+      f22 = fz;
+      f33 = fy;
+    } else {
+      o1 = L_S2;
+      o2 = L_S2 + L_S0;
+      f1 = fz;
+      f22 = fx;
+      f33 = fy;
+    }
+  } else if (fx >= fz) {
+    o1 = L_S1;
+    o2 = L_S1 + L_S0;
+    f1 = fy;
+    f22 = fx;
+    f33 = fz;
+  } else if (fy >= fz) {
+    o1 = L_S1;
+    o2 = L_S1 + L_S2;
+    f1 = fy;
+    f22 = fz;
+    f33 = fx;
+  } else {
+    o1 = L_S2;
+    o2 = L_S2 + L_S1;
+    f1 = fz;
+    f22 = fy;
+    f33 = fx;
+  }
+  const o3 = L_S0 + L_S1 + L_S2;
+  for (let c = 0; c < 3; c++) {
+    const a = lat[p0 + c];
+    const b1 = lat[p0 + o1 + c];
+    const b2 = lat[p0 + o2 + c];
+    const b3 = lat[p0 + o3 + c];
+    out[o + c] = a + f1 * (b1 - a) + f22 * (b2 - b1) + f33 * (b3 - b2);
+  }
+}
+function rowEvaluator(profile2, direction2, intent) {
+  const n7 = profile2.nChannels;
+  if (n7 !== 1 && n7 !== 3) return null;
+  const direct = !iccRoundTripDecides(profile2);
+  if (!direct) {
+    if (n7 !== 3) return null;
+    const lat = getLattice(profile2, direction2, intent);
+    if (!lat) return null;
+    if (direction2 === "toPcs") {
+      return (row) => {
+        for (let i = 0; i < row.length; i += 4) {
+          tetraEval(lat, san(row[i]), san(row[i + 1]), san(row[i + 2]), row, i);
+        }
+        return true;
+      };
+    }
+    return (row) => {
+      for (let i = 0; i < row.length; i += 4) {
+        tetraEval(lat, san(row[i]) / 100, (san(row[i + 1]) + 128) / 255, (san(row[i + 2]) + 128) / 255, row, i);
+      }
+      return true;
+    };
+  }
+  if (direction2 === "toPcs") {
+    return (row) => {
+      for (let i = 0; i < row.length; i += 4) {
+        const dev = n7 === 1 ? [san(row[i])] : [san(row[i]), san(row[i + 1]), san(row[i + 2])];
+        const lab = profile2.toLab(intent, dev);
+        if (!lab) return false;
+        row[i] = lab[0];
+        row[i + 1] = lab[1];
+        row[i + 2] = lab[2];
+      }
+      return true;
+    };
+  }
+  return (row) => {
+    for (let i = 0; i < row.length; i += 4) {
+      const dev = profile2.fromLab(intent, [san(row[i]), san(row[i + 1]), san(row[i + 2])]);
+      if (!dev || dev.length !== n7) return false;
+      if (n7 === 1) {
+        row[i] = dev[0];
+        row[i + 1] = dev[0];
+        row[i + 2] = dev[0];
+      } else {
+        row[i] = dev[0];
+        row[i + 1] = dev[1];
+        row[i + 2] = dev[2];
+      }
+    }
+    return true;
+  };
+}
+function frameSane(frame) {
+  return !!frame && frame.data instanceof Float32Array && Number.isInteger(frame.width) && Number.isInteger(frame.height) && frame.width > 0 && frame.height > 0 && frame.data.length === frame.width * frame.height * 4;
+}
+function iccFrameRefusal(frame, direction2) {
+  if (!frameSane(frame)) return "not a well-formed DeepFrame: width, height and data length must agree";
+  if (direction2 !== "toPcs" && direction2 !== "fromPcs") return `unknown direction: ${String(direction2)}`;
+  if (direction2 === "toPcs") {
+    if (deviceInputOk(frame)) return null;
+    return `toPcs needs ENCODED device channels, but this frame is tagged '${String(frame.space)}' - a colorimetric space (linear light, or the PCS itself), whose channels are not this profile's device values. Tag a genuine device frame with ICC_DEVICE_SPACE ('${String(ICC_DEVICE_SPACE)}'); to transform colorimetric pixels, run the profile's other half with direction 'fromPcs' instead.`;
+  }
+  if (pcsInputOk(frame)) return null;
+  return `fromPcs needs a colorimetric frame (a real PixelSpace), but this frame is tagged '${String(frame.space)}' - device channels carry no colorimetry on their own. Run direction 'toPcs' with their profile first.`;
+}
+function applyIccToFrame(frame, profile2, direction2, intent) {
+  try {
+    if (!profileSane(profile2)) return null;
+    if (iccFrameRefusal(frame, direction2)) return null;
+    const resolved2 = iccResolvedIntent(profile2, direction2, intent);
+    if (!resolved2) return null;
+    const ev = rowEvaluator(profile2, direction2, resolved2);
+    if (!ev) return null;
+    const { width, height } = frame;
+    const stride = width * 4;
+    const out = new Float32Array(frame.data.length);
+    const needsLab = direction2 === "fromPcs" && frame.space !== "lab";
+    for (let y = 0; y < height; y++) {
+      const at = y * stride;
+      if (needsLab) {
+        const labRow = convertSpace(
+          { width, height: 1, data: frame.data.subarray(at, at + stride), space: frame.space },
+          "lab"
+        ).data;
+        out.set(labRow, at);
+      } else {
+        out.set(frame.data.subarray(at, at + stride), at);
+      }
+      if (!ev(out.subarray(at, at + stride))) return null;
+    }
+    return { width, height, data: out, space: direction2 === "toPcs" ? "lab" : ICC_DEVICE_SPACE };
+  } catch {
+    return null;
+  }
+}
+function convertViaIcc(frame, srcProfile, dstProfile, intent) {
+  try {
+    if (!profileSane(srcProfile) || !profileSane(dstProfile)) return null;
+    if (iccFrameRefusal(frame, "toPcs")) return null;
+    const inSrc = iccResolvedIntent(srcProfile, "toPcs", intent);
+    const inDst = iccResolvedIntent(dstProfile, "fromPcs", intent);
+    if (!inSrc || !inDst) return null;
+    const toPcs = rowEvaluator(srcProfile, "toPcs", inSrc);
+    const fromPcs = rowEvaluator(dstProfile, "fromPcs", inDst);
+    if (!toPcs || !fromPcs) return null;
+    const { width, height } = frame;
+    const stride = width * 4;
+    const out = new Float32Array(frame.data.length);
+    for (let y = 0; y < height; y++) {
+      const at = y * stride;
+      out.set(frame.data.subarray(at, at + stride), at);
+      const row = out.subarray(at, at + stride);
+      if (!toPcs(row) || !fromPcs(row)) return null;
+    }
+    return { width, height, data: out, space: ICC_DEVICE_SPACE };
+  } catch {
+    return null;
+  }
+}
+var ICC_DEVICE_SPACE, FALLBACK, LATTICE_N, L_S2, L_S1, L_S0, LATTICES, clamp017, san, profileSane, deviceInputOk, pcsInputOk;
+var init_icc_pixels = __esm({
+  "engine/src/icc-pixels.ts"() {
+    "use strict";
+    init_icc();
+    init_pixels();
+    ICC_DEVICE_SPACE = "icc-device";
+    FALLBACK = {
+      perceptual: ["perceptual"],
+      relative: ["relative", "perceptual"],
+      saturation: ["saturation", "perceptual"],
+      absolute: ["absolute", "relative", "perceptual"]
+    };
+    LATTICE_N = 33;
+    L_S2 = 3;
+    L_S1 = LATTICE_N * 3;
+    L_S0 = LATTICE_N * LATTICE_N * 3;
+    LATTICES = /* @__PURE__ */ new WeakMap();
+    clamp017 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
+    san = (v) => Number.isFinite(v) ? v : 0;
+    profileSane = (p) => !!p && typeof p.toLab === "function" && typeof p.fromLab === "function";
+    deviceInputOk = (frame) => frame.space === ICC_DEVICE_SPACE;
+    pcsInputOk = (frame) => PIXEL_SPACES.includes(frame.space);
+  }
+});
+
+// engine/src/cmyk-separation.ts
+function lightnessToY(L) {
+  return convertColor({ space: "lab", components: [L, 0, 0], alpha: 1, missing: 0 }, "xyz-d50").components[1];
+}
+function iccSeparation(profile2) {
+  try {
+    if (!profile2 || profile2.dataColourSpace !== "CMYK" || profile2.nChannels !== 4) return null;
+    const into = iccResolvedIntent(profile2, "fromPcs", "relative");
+    const back = iccResolvedIntent(profile2, "toPcs", "relative");
+    if (!into || !back) return null;
+    const toLab2 = (c) => profile2.toLab(back, c)?.[0] ?? null;
+    const richBuild = profile2.fromLab(into, [0, 0, 0]);
+    const richL = richBuild ? toLab2(richBuild) : null;
+    const ramp = new Float64Array(RAMP_STEPS + 1);
+    for (let i = 0; i <= RAMP_STEPS; i++) {
+      const L = toLab2([0, 0, 0, i / RAMP_STEPS]);
+      if (L === null || !Number.isFinite(L)) return null;
+      ramp[i] = i === 0 ? L : Math.min(L, ramp[i - 1]);
+    }
+    const kOnlyL = ramp[RAMP_STEPS];
+    if (richL === null || !Number.isFinite(richL)) return null;
+    if (!(kOnlyL < ramp[0]) || kOnlyL > MAX_BLACK_L) return null;
+    const rich = Math.max(0, Math.min(richL, MAX_BLACK_L));
+    const yKOnly = lightnessToY(kOnlyL);
+    const yRich = lightnessToY(rich);
+    const paperL = ramp[0];
+    const kFor = (L) => {
+      if (L >= paperL) return 0;
+      if (L <= kOnlyL) return 1;
+      let lo = 0, hi = RAMP_STEPS;
+      while (hi - lo > 1) {
+        const mid3 = lo + hi >> 1;
+        if (ramp[mid3] > L) lo = mid3;
+        else hi = mid3;
+      }
+      const a = ramp[lo], b = ramp[hi];
+      const t = a === b ? 0 : (a - L) / (a - b);
+      return (lo + t) / RAMP_STEPS;
+    };
+    const neutral = (v) => {
+      if (v >= 1) return [0, 0, 0, 0];
+      if (v <= 0) return [0, 0, 0, 1];
+      const y = convertColor(srgb(v, v, v), "xyz-d50").components[1] / WHITE_D50[1];
+      const yMapped = y * (1 - yKOnly) + yKOnly;
+      const L = convertColor(xyz50(WHITE_D50[0] * yMapped, WHITE_D50[1] * yMapped, WHITE_D50[2] * yMapped), "lab").components[0];
+      return [0, 0, 0, clamp018(kFor(L))];
+    };
+    const chromatic = (r5, g2, b) => {
+      const [x, y, z] = convertColor(srgb(r5, g2, b), "xyz-d50").components;
+      const s = 1 - yRich;
+      const mapped = xyz50(x * s + yRich * WHITE_D50[0], y * s + yRich * WHITE_D50[1], z * s + yRich * WHITE_D50[2]);
+      const [L, A, B] = convertColor(mapped, "lab").components;
+      const ink = profile2.fromLab(into, [L, A, B]);
+      if (!ink || ink.length !== 4 || !ink.every(Number.isFinite)) return rgbToCmyk(r5, g2, b);
+      return [clamp018(ink[0]), clamp018(ink[1]), clamp018(ink[2]), clamp018(ink[3])];
+    };
+    const memo2 = /* @__PURE__ */ new Map();
+    const separate = (r5, g2, b) => {
+      const R2 = clamp018(r5), G = clamp018(g2), B = clamp018(b);
+      const key2 = R2 + "," + G + "," + B;
+      const hit = memo2.get(key2);
+      if (hit) return [hit[0], hit[1], hit[2], hit[3]];
+      const max = Math.max(R2, G, B), min = Math.min(R2, G, B);
+      const out = max - min <= NEUTRAL_EPSILON ? neutral((R2 + G + B) / 3) : chromatic(R2, G, B);
+      if (memo2.size >= MEMO_LIMIT) memo2.clear();
+      memo2.set(key2, out);
+      return [out[0], out[1], out[2], out[3]];
+    };
+    return Object.freeze({
+      separate,
+      method: "icc",
+      profile: profile2.description || null,
+      blackPoints: Object.freeze({ kOnly: kOnlyL, rich })
+    });
+  } catch {
+    return null;
+  }
+}
+function separationLattice(sep3, size = 33) {
+  if (sep3.method === "device") {
+    return (r8, g8, b8, out, at) => {
+      const [c, m2, y, k] = sep3.separate(r8 / 255, g8 / 255, b8 / 255);
+      out[at] = c * 255 + 0.5 | 0;
+      out[at + 1] = m2 * 255 + 0.5 | 0;
+      out[at + 2] = y * 255 + 0.5 | 0;
+      out[at + 3] = k * 255 + 0.5 | 0;
+    };
+  }
+  const n7 = Math.max(2, Math.min(65, Math.floor(size)));
+  const last = n7 - 1;
+  const table = new Float32Array(n7 * n7 * n7 * 4);
+  for (let i = 0; i < n7; i++) {
+    for (let j = 0; j < n7; j++) {
+      for (let k = 0; k < n7; k++) {
+        const ink = sep3.separate(i / last, j / last, k / last);
+        table.set(ink, ((i * n7 + j) * n7 + k) * 4);
+      }
+    }
+  }
+  const sI = n7 * n7 * 4, sJ = n7 * 4, sK = 4;
+  return (r8, g8, b8, out, at) => {
+    const fr = r8 / 255 * last, fg = g8 / 255 * last, fb = b8 / 255 * last;
+    const i = Math.min(last - 1, fr | 0), j = Math.min(last - 1, fg | 0), k = Math.min(last - 1, fb | 0);
+    const dr = fr - i, dg = fg - j, db = fb - k;
+    const c0 = i * sI + j * sJ + k * sK;
+    let a, b, wa, wb;
+    const w0 = 1 - Math.max(dr, dg, db), w3 = Math.min(dr, dg, db);
+    if (dr >= dg) {
+      if (dg >= db) {
+        a = c0 + sI;
+        b = c0 + sI + sJ;
+        wa = dr - dg;
+        wb = dg - db;
+      } else if (dr >= db) {
+        a = c0 + sI;
+        b = c0 + sI + sK;
+        wa = dr - db;
+        wb = db - dg;
+      } else {
+        a = c0 + sK;
+        b = c0 + sI + sK;
+        wa = db - dr;
+        wb = dr - dg;
+      }
+    } else {
+      if (dr >= db) {
+        a = c0 + sJ;
+        b = c0 + sI + sJ;
+        wa = dg - dr;
+        wb = dr - db;
+      } else if (dg >= db) {
+        a = c0 + sJ;
+        b = c0 + sJ + sK;
+        wa = dg - db;
+        wb = db - dr;
+      } else {
+        a = c0 + sK;
+        b = c0 + sJ + sK;
+        wa = db - dg;
+        wb = dg - dr;
+      }
+    }
+    const c1 = c0 + sI + sJ + sK;
+    for (let ch = 0; ch < 4; ch++) {
+      const v = w0 * table[c0 + ch] + wa * table[a + ch] + wb * table[b + ch] + w3 * table[c1 + ch];
+      out[at + ch] = clamp018(v) * 255 + 0.5 | 0;
+    }
+  };
+}
+var DEVICE_SEPARATION, NEUTRAL_EPSILON, RAMP_STEPS, MEMO_LIMIT, MAX_BLACK_L, srgb, xyz50, WHITE_D50, clamp018;
+var init_cmyk_separation = __esm({
+  "engine/src/cmyk-separation.ts"() {
+    "use strict";
+    init_icc_pixels();
+    init_css_color();
+    init_color2();
+    DEVICE_SEPARATION = Object.freeze({
+      separate: rgbToCmyk,
+      method: "device",
+      profile: null,
+      blackPoints: null
+    });
+    NEUTRAL_EPSILON = 0.5 / 255;
+    RAMP_STEPS = 1024;
+    MEMO_LIMIT = 65536;
+    MAX_BLACK_L = 50;
+    srgb = (r5, g2, b) => ({ space: "srgb", components: [r5, g2, b], alpha: 1, missing: 0 });
+    xyz50 = (x, y, z) => ({ space: "xyz-d50", components: [x, y, z], alpha: 1, missing: 0 });
+    WHITE_D50 = convertColor(srgb(1, 1, 1), "xyz-d50").components;
+    clamp018 = (v) => v > 0 ? v < 1 ? v : 1 : 0;
+  }
+});
+
 // engine/src/hdr.ts
 function pqEncode(nits) {
-  const yn = Math.min(1, Math.max(0, san(nits) / 1e4));
+  const yn = Math.min(1, Math.max(0, san2(nits) / 1e4));
   if (yn <= 0) return 0;
   const y = yn ** PQ_M1;
   return ((PQ_C1 + PQ_C2 * y) / (1 + PQ_C3 * y)) ** PQ_M2;
@@ -73364,7 +73798,7 @@ function pqToU16(pq) {
   const src = pq.data;
   const out = new Uint16Array(src.length);
   for (let i = 0; i < src.length; i++) {
-    const v = san(src[i]);
+    const v = san2(src[i]);
     out[i] = v <= 0 ? 0 : v >= 1 ? 65535 : Math.round(v * 65535);
   }
   return out;
@@ -73381,7 +73815,7 @@ function pqToI420P10(pq) {
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
-      const yp = BT2020_KR * san(src[i]) + BT2020_KG * san(src[i + 1]) + BT2020_KB * san(src[i + 2]);
+      const yp = BT2020_KR * san2(src[i]) + BT2020_KG * san2(src[i + 1]) + BT2020_KB * san2(src[i + 2]);
       out[y * w + x] = to10bit(876 * yp + 64);
     }
   }
@@ -73397,9 +73831,9 @@ function pqToI420P10(pq) {
           const xx = cx2 * 2 + dx;
           if (xx >= w) break;
           const i = (yy * w + xx) * 4;
-          const r5 = san(src[i]);
-          const g2 = san(src[i + 1]);
-          const b = san(src[i + 2]);
+          const r5 = san2(src[i]);
+          const g2 = san2(src[i + 1]);
+          const b = san2(src[i + 2]);
           const yp = BT2020_KR * r5 + BT2020_KG * g2 + BT2020_KB * b;
           cbSum += (b - yp) / CB_DEN;
           crSum += (r5 - yp) / CR_DEN;
@@ -73413,7 +73847,7 @@ function pqToI420P10(pq) {
   }
   return { width: w, height: h, data: out };
 }
-var HDR_PQ_CICP, srgbToLinear5, PQ_M1, PQ_M2, PQ_C1, PQ_C2, PQ_C3, san, M_709_TO_2020, LINEAR_LUT2, DEFAULTS, BT2020_KR, BT2020_KB, BT2020_KG, CB_DEN, CR_DEN, to10bit;
+var HDR_PQ_CICP, srgbToLinear5, PQ_M1, PQ_M2, PQ_C1, PQ_C2, PQ_C3, san2, M_709_TO_2020, LINEAR_LUT2, DEFAULTS, BT2020_KR, BT2020_KB, BT2020_KG, CB_DEN, CR_DEN, to10bit;
 var init_hdr = __esm({
   "engine/src/hdr.ts"() {
     "use strict";
@@ -73426,7 +73860,7 @@ var init_hdr = __esm({
     PQ_C1 = 3424 / 4096;
     PQ_C2 = 2413 / 4096 * 32;
     PQ_C3 = 2392 / 4096 * 32;
-    san = (v) => Number.isFinite(v) ? v : 0;
+    san2 = (v) => Number.isFinite(v) ? v : 0;
     M_709_TO_2020 = [
       [0.6274038959, 0.3292830384, 0.0433130657],
       [0.0690972894, 0.9195403951, 0.0113623156],
@@ -73451,7 +73885,7 @@ var init_hdr = __esm({
     CB_DEN = 2 * (1 - BT2020_KB);
     CR_DEN = 2 * (1 - BT2020_KR);
     to10bit = (v) => {
-      const r5 = Math.round(san(v));
+      const r5 = Math.round(san2(v));
       return r5 < 0 ? 0 : r5 > 1023 ? 1023 : r5;
     };
   }
@@ -75705,7 +76139,7 @@ function clusterLeaves(idx, boxes2, gapScale = 1, sizeRatio = Infinity) {
     }
     return i;
   };
-  const join33 = (a, b) => {
+  const join34 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -75722,7 +76156,7 @@ function clusterLeaves(idx, boxes2, gapScale = 1, sizeRatio = Infinity) {
         const [lo, hi] = area2(ba) < area2(bb) ? [area2(ba), area2(bb)] : [area2(bb), area2(ba)];
         if (hi > lo * sizeRatio) continue;
       }
-      if (boxesOverlap2(grown, bb)) join33(a, b);
+      if (boxesOverlap2(grown, bb)) join34(a, b);
     }
   }
   const byRoot = /* @__PURE__ */ new Map();
@@ -77488,13 +77922,13 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
   const right = channels[1] ?? left;
   const [headL, headR] = limiter.process(left, right);
   const [tailL, tailR] = limiter.flush();
-  const join33 = (a, b) => {
+  const join34 = (a, b) => {
     const out = new Float32Array(a.length + b.length);
     out.set(a);
     out.set(b, a.length);
     return out;
   };
-  const limited3 = [join33(headL, tailL), join33(headR, tailR)];
+  const limited3 = [join34(headL, tailL), join34(headR, tailR)];
   channels = channels.length === 1 ? [limited3[0]] : limited3;
   if (limiter.engaged()) operations.push("Limited true peak to -1 dBTP");
   return {
@@ -82135,7 +82569,7 @@ function paintPad(paint2, paths, notes) {
     return v;
   };
   const cap = word(paint2.strokeCap, CAPS2, "strokeCap", "round");
-  const join33 = word(paint2.strokeJoin, JOINS2, "strokeJoin", "round");
+  const join34 = word(paint2.strokeJoin, JOINS2, "strokeJoin", "round");
   const headStart = word(paint2.headStart, HEADS, "headStart", "none");
   const headEnd = word(paint2.headEnd, HEADS, "headEnd", "none");
   const asked = [headStart, headEnd].filter((h) => h !== "none");
@@ -82147,7 +82581,7 @@ function paintPad(paint2, paths, notes) {
     else headReach = pathHeadSize(sw) * 0.7 + sw / 2;
     if (asked.includes("bar")) notes.push("a bar head has no PowerPoint line end, so a .pptx leaves it off");
   }
-  const reach2 = Math.max(cap === "square" ? Math.SQRT2 / 2 : 0.5, join33 === "miter" ? MITER_LIMIT / 2 : 0.5);
+  const reach2 = Math.max(cap === "square" ? Math.SQRT2 / 2 : 0.5, join34 === "miter" ? MITER_LIMIT / 2 : 0.5);
   return Math.ceil(Math.max(stroke && sw > 0 ? sw * reach2 : 0, headReach));
 }
 function designPathPlacement(geometry3, opts = {}) {
@@ -84215,11 +84649,11 @@ var init_emf = __esm({
 function rgbPaletteKey(r5, g2, b) {
   return Math.round(r5 * 100) + "," + Math.round(g2 * 100) + "," + Math.round(b * 100);
 }
-function colorOp(c, cmyk, palette) {
+function colorOp(c, cmyk, palette, separate = rgbToCmyk) {
   const r5 = (c.r & 255) / 255, g2 = (c.g & 255) / 255, b = (c.b & 255) / 255;
   if (cmyk) {
     const hit = palette?.get(rgbPaletteKey(r5, g2, b));
-    const [cy3, m2, y, k] = hit ? hit.cmyk : rgbToCmyk(r5, g2, b);
+    const [cy3, m2, y, k] = hit ? hit.cmyk : separate(r5, g2, b);
     return n2(cy3) + " " + n2(m2) + " " + n2(y) + " " + n2(k) + " setcmykcolor";
   }
   return n2(r5) + " " + n2(g2) + " " + n2(b) + " setrgbcolor";
@@ -84246,7 +84680,7 @@ function emitImagePrim(prim, out) {
   out.push(">");
   out.push("grestore");
 }
-function emitPathPrim2(prim, cmyk, out, palette) {
+function emitPathPrim2(prim, cmyk, out, palette, separate) {
   const { subpaths, fill: fill2, stroke, fillRule } = prim;
   if (!subpaths || !subpaths.length) return;
   out.push("newpath");
@@ -84263,12 +84697,12 @@ function emitPathPrim2(prim, cmyk, out, palette) {
   const fillVerb = fillRule === "evenodd" ? "eofill" : "fill";
   const lw = n2(Math.max(0, stroke ? stroke.width : 0)) + " setlinewidth";
   if (fill2 && stroke) {
-    out.push("gsave", colorOp(fill2, cmyk, palette), fillVerb, "grestore");
-    out.push(colorOp(stroke, cmyk, palette), lw, "stroke");
+    out.push("gsave", colorOp(fill2, cmyk, palette, separate), fillVerb, "grestore");
+    out.push(colorOp(stroke, cmyk, palette, separate), lw, "stroke");
   } else if (fill2) {
-    out.push(colorOp(fill2, cmyk, palette), fillVerb);
+    out.push(colorOp(fill2, cmyk, palette, separate), fillVerb);
   } else if (stroke) {
-    out.push(colorOp(stroke, cmyk, palette), lw, "stroke");
+    out.push(colorOp(stroke, cmyk, palette, separate), lw, "stroke");
   }
 }
 function emitEps(ir, opts = {}) {
@@ -84302,7 +84736,7 @@ function emitEps(ir, opts = {}) {
     L.push(n2(geo.artwork.x) + " " + n2(geo.artwork.y) + " translate");
     L.push(n2(geo.artwork.w / Wpx) + " " + n2(geo.artwork.h / Hpx) + " scale");
     for (const prim of ir.prims || []) {
-      if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette);
+      if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === "image") emitImagePrim(prim, L);
     }
     L.push("grestore");
@@ -84311,7 +84745,7 @@ function emitEps(ir, opts = {}) {
     L.push("0 " + n2(Hpt) + " translate");
     L.push(n2(sx) + " " + n2(-sy) + " scale");
     for (const prim of ir.prims || []) {
-      if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette);
+      if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === "image") emitImagePrim(prim, L);
     }
   }
@@ -86488,7 +86922,7 @@ function readClrMods(clr2) {
   }
   return out;
 }
-function clamp017(v) {
+function clamp019(v) {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 function hexToRgb3(hex3) {
@@ -86552,8 +86986,8 @@ function linearToSrgb4(lin) {
 function applyClrMods(hex3, mods) {
   let [r5, g2, b] = hexToRgb3(hex3);
   if (mods.shade !== void 0 || mods.tint !== void 0) {
-    const shade = mods.shade === void 0 ? 1 : clamp017(mods.shade);
-    const tint = mods.tint === void 0 ? 1 : clamp017(mods.tint);
+    const shade = mods.shade === void 0 ? 1 : clamp019(mods.shade);
+    const tint = mods.tint === void 0 ? 1 : clamp019(mods.tint);
     const mix2 = (c) => {
       const code = Math.max(0, Math.min(255, Math.round(c)));
       const lin = SRGB_TO_LINEAR2[code] ?? 0;
@@ -86565,7 +86999,7 @@ function applyClrMods(hex3, mods) {
   }
   if (mods.lumMod !== void 0 || mods.lumOff !== void 0) {
     const [h, s, l] = rgbToHsl2(r5, g2, b);
-    const lit = clamp017(l * (mods.lumMod ?? 1) + (mods.lumOff ?? 0));
+    const lit = clamp019(l * (mods.lumMod ?? 1) + (mods.lumOff ?? 0));
     [r5, g2, b] = hslToRgb(h, s, lit);
   }
   return rgbToHex(r5, g2, b);
@@ -99301,7 +99735,7 @@ function gradientMarkup(g2, id3, images) {
   const stops = (g2.stops ?? []).filter((s) => s && isFinite(s.offset));
   if (stops.length < 2) return "";
   const gt = ` gradientTransform="matrix(${m2.slice(0, 6).map(g6).join(" ")})"`;
-  const stopsXml = stops.map((s) => `<stop offset="${clamp018(s.offset)}" stop-color="${safeAttrColor(s.color, "#000000")}"/>`).join("");
+  const stopsXml = stops.map((s) => `<stop offset="${clamp0110(s.offset)}" stop-color="${safeAttrColor(s.color, "#000000")}"/>`).join("");
   const c = g2.coords ?? [];
   if (g2.type === 2) {
     if (c.length < 4 || !c.slice(0, 4).every((v) => isFinite(v))) return "";
@@ -99702,7 +100136,7 @@ function cullPdfNodes(nodes, win) {
   }
   return { nodes: out, total, dropped: total - out.length, unbounded };
 }
-var r, escapeXml2, safeAttrColor, opacityAttr, rotateAttr, g4, g6, clamp018, CULL_PAD_PT, EMPTY_EXTENT, finite2, PDF_SVG_MAX_NODES, PDF_SVG_MAX_MASK_NODES, PDF_SVG_MAX_GRADIENT_STOPS, PDF_SVG_MAX_OUTLINE_LINES, PDF_SVG_MAX_TEXT_LINES, PDF_SVG_MAX_SOURCE_CHARS, PDF_SVG_MAX_CLIPS, PDF_SVG_MAX_CLIP_D, PDF_SVG_MAX_PATH_D, PDF_SVG_MAX_OUTLINE_D, PDF_SVG_MAX_COORD, PLANE, planeBox, AA_PAD;
+var r, escapeXml2, safeAttrColor, opacityAttr, rotateAttr, g4, g6, clamp0110, CULL_PAD_PT, EMPTY_EXTENT, finite2, PDF_SVG_MAX_NODES, PDF_SVG_MAX_MASK_NODES, PDF_SVG_MAX_GRADIENT_STOPS, PDF_SVG_MAX_OUTLINE_LINES, PDF_SVG_MAX_TEXT_LINES, PDF_SVG_MAX_SOURCE_CHARS, PDF_SVG_MAX_CLIPS, PDF_SVG_MAX_CLIP_D, PDF_SVG_MAX_PATH_D, PDF_SVG_MAX_OUTLINE_D, PDF_SVG_MAX_COORD, PLANE, planeBox, AA_PAD;
 var init_pdf_svg = __esm({
   "engine/src/pdf-svg.ts"() {
     "use strict";
@@ -99723,7 +100157,7 @@ var init_pdf_svg = __esm({
     rotateAttr = (n7) => n7.rot ? ` transform="rotate(${r(n7.rot)} ${r(n7.x + n7.w / 2)} ${r(n7.y + n7.h / 2)})"` : "";
     g4 = (v) => Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 1e4) / 1e4;
     g6 = (v) => Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 1e6) / 1e6;
-    clamp018 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
+    clamp0110 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
     CULL_PAD_PT = 2;
     EMPTY_EXTENT = { x: 0, y: 0, w: 0, h: 0 };
     finite2 = (v) => typeof v === "number" && isFinite(v);
@@ -99788,7 +100222,7 @@ function cluster(items2) {
     }
     return i;
   };
-  const join33 = (a, b) => {
+  const join34 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -99798,7 +100232,7 @@ function cluster(items2) {
     const a = expand(items2[i].rect, gap);
     for (let j = i + 1; j < items2.length; j++) {
       if (find(i) === find(j)) continue;
-      if (overlaps(a, items2[j].rect)) join33(i, j);
+      if (overlaps(a, items2[j].rect)) join34(i, j);
     }
   }
   const collect3 = () => {
@@ -99835,7 +100269,7 @@ function cluster(items2) {
           if (find(ra) === find(rb)) continue;
           const reach2 = Math.min(diagonal(rectA), diagonal(rectB)) * GROUP_REACH;
           if (gapBetween(rectA, rectB) <= Math.max(gap, reach2)) {
-            join33(ra, rb);
+            join34(ra, rb);
             merged = true;
           }
         }
@@ -101143,267 +101577,6 @@ var init_gamut_tier = __esm({
   }
 });
 
-// engine/src/icc-pixels.ts
-function iccResolvedIntent(profile2, direction2, intent) {
-  try {
-    if (!profile2 || typeof profile2.toLab !== "function" || typeof profile2.fromLab !== "function") return null;
-    if (!Object.hasOwn(FALLBACK, intent)) return null;
-    const n7 = profile2.nChannels;
-    if (!Number.isInteger(n7) || n7 < 1) return null;
-    const midDevice = new Array(n7).fill(0.5);
-    for (const cand of FALLBACK[intent]) {
-      const ok3 = direction2 === "toPcs" ? profile2.toLab(cand, midDevice) !== null : profile2.fromLab(cand, [50, 0, 0]) !== null;
-      if (ok3) return cand;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-function buildLattice(profile2, direction2, intent) {
-  const s = LATTICE_N - 1;
-  const lat = new Float32Array(LATTICE_N * LATTICE_N * LATTICE_N * 3);
-  let p = 0;
-  for (let i = 0; i < LATTICE_N; i++) {
-    for (let j = 0; j < LATTICE_N; j++) {
-      for (let k = 0; k < LATTICE_N; k++) {
-        const res = direction2 === "toPcs" ? profile2.toLab(intent, [i / s, j / s, k / s]) : profile2.fromLab(intent, [i / s * 100, j / s * 255 - 128, k / s * 255 - 128]);
-        if (!res || res.length !== 3) return null;
-        if (!Number.isFinite(res[0]) || !Number.isFinite(res[1]) || !Number.isFinite(res[2])) return null;
-        lat[p++] = res[0];
-        lat[p++] = res[1];
-        lat[p++] = res[2];
-      }
-    }
-  }
-  return lat;
-}
-function getLattice(profile2, direction2, intent) {
-  let byKey = LATTICES.get(profile2);
-  if (!byKey) {
-    byKey = /* @__PURE__ */ new Map();
-    LATTICES.set(profile2, byKey);
-  }
-  const key2 = `${direction2}:${intent}`;
-  if (byKey.has(key2)) return byKey.get(key2) ?? null;
-  const lat = buildLattice(profile2, direction2, intent);
-  byKey.set(key2, lat);
-  return lat;
-}
-function tetraEval(lat, u, v, w, out, o) {
-  const s = LATTICE_N - 1;
-  const x = clamp019(u) * s;
-  const y = clamp019(v) * s;
-  const z = clamp019(w) * s;
-  let i = Math.floor(x);
-  let j = Math.floor(y);
-  let k = Math.floor(z);
-  if (i >= s) i = s - 1;
-  if (j >= s) j = s - 1;
-  if (k >= s) k = s - 1;
-  const fx = x - i;
-  const fy = y - j;
-  const fz = z - k;
-  const p0 = i * L_S0 + j * L_S1 + k * L_S2;
-  let o1;
-  let o2;
-  let f1;
-  let f22;
-  let f33;
-  if (fx >= fy) {
-    if (fy >= fz) {
-      o1 = L_S0;
-      o2 = L_S0 + L_S1;
-      f1 = fx;
-      f22 = fy;
-      f33 = fz;
-    } else if (fx >= fz) {
-      o1 = L_S0;
-      o2 = L_S0 + L_S2;
-      f1 = fx;
-      f22 = fz;
-      f33 = fy;
-    } else {
-      o1 = L_S2;
-      o2 = L_S2 + L_S0;
-      f1 = fz;
-      f22 = fx;
-      f33 = fy;
-    }
-  } else if (fx >= fz) {
-    o1 = L_S1;
-    o2 = L_S1 + L_S0;
-    f1 = fy;
-    f22 = fx;
-    f33 = fz;
-  } else if (fy >= fz) {
-    o1 = L_S1;
-    o2 = L_S1 + L_S2;
-    f1 = fy;
-    f22 = fz;
-    f33 = fx;
-  } else {
-    o1 = L_S2;
-    o2 = L_S2 + L_S1;
-    f1 = fz;
-    f22 = fy;
-    f33 = fx;
-  }
-  const o3 = L_S0 + L_S1 + L_S2;
-  for (let c = 0; c < 3; c++) {
-    const a = lat[p0 + c];
-    const b1 = lat[p0 + o1 + c];
-    const b2 = lat[p0 + o2 + c];
-    const b3 = lat[p0 + o3 + c];
-    out[o + c] = a + f1 * (b1 - a) + f22 * (b2 - b1) + f33 * (b3 - b2);
-  }
-}
-function rowEvaluator(profile2, direction2, intent) {
-  const n7 = profile2.nChannels;
-  if (n7 !== 1 && n7 !== 3) return null;
-  const direct = !iccRoundTripDecides(profile2);
-  if (!direct) {
-    if (n7 !== 3) return null;
-    const lat = getLattice(profile2, direction2, intent);
-    if (!lat) return null;
-    if (direction2 === "toPcs") {
-      return (row) => {
-        for (let i = 0; i < row.length; i += 4) {
-          tetraEval(lat, san2(row[i]), san2(row[i + 1]), san2(row[i + 2]), row, i);
-        }
-        return true;
-      };
-    }
-    return (row) => {
-      for (let i = 0; i < row.length; i += 4) {
-        tetraEval(lat, san2(row[i]) / 100, (san2(row[i + 1]) + 128) / 255, (san2(row[i + 2]) + 128) / 255, row, i);
-      }
-      return true;
-    };
-  }
-  if (direction2 === "toPcs") {
-    return (row) => {
-      for (let i = 0; i < row.length; i += 4) {
-        const dev = n7 === 1 ? [san2(row[i])] : [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])];
-        const lab = profile2.toLab(intent, dev);
-        if (!lab) return false;
-        row[i] = lab[0];
-        row[i + 1] = lab[1];
-        row[i + 2] = lab[2];
-      }
-      return true;
-    };
-  }
-  return (row) => {
-    for (let i = 0; i < row.length; i += 4) {
-      const dev = profile2.fromLab(intent, [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])]);
-      if (!dev || dev.length !== n7) return false;
-      if (n7 === 1) {
-        row[i] = dev[0];
-        row[i + 1] = dev[0];
-        row[i + 2] = dev[0];
-      } else {
-        row[i] = dev[0];
-        row[i + 1] = dev[1];
-        row[i + 2] = dev[2];
-      }
-    }
-    return true;
-  };
-}
-function frameSane(frame) {
-  return !!frame && frame.data instanceof Float32Array && Number.isInteger(frame.width) && Number.isInteger(frame.height) && frame.width > 0 && frame.height > 0 && frame.data.length === frame.width * frame.height * 4;
-}
-function iccFrameRefusal(frame, direction2) {
-  if (!frameSane(frame)) return "not a well-formed DeepFrame: width, height and data length must agree";
-  if (direction2 !== "toPcs" && direction2 !== "fromPcs") return `unknown direction: ${String(direction2)}`;
-  if (direction2 === "toPcs") {
-    if (deviceInputOk(frame)) return null;
-    return `toPcs needs ENCODED device channels, but this frame is tagged '${String(frame.space)}' - a colorimetric space (linear light, or the PCS itself), whose channels are not this profile's device values. Tag a genuine device frame with ICC_DEVICE_SPACE ('${String(ICC_DEVICE_SPACE)}'); to transform colorimetric pixels, run the profile's other half with direction 'fromPcs' instead.`;
-  }
-  if (pcsInputOk(frame)) return null;
-  return `fromPcs needs a colorimetric frame (a real PixelSpace), but this frame is tagged '${String(frame.space)}' - device channels carry no colorimetry on their own. Run direction 'toPcs' with their profile first.`;
-}
-function applyIccToFrame(frame, profile2, direction2, intent) {
-  try {
-    if (!profileSane(profile2)) return null;
-    if (iccFrameRefusal(frame, direction2)) return null;
-    const resolved2 = iccResolvedIntent(profile2, direction2, intent);
-    if (!resolved2) return null;
-    const ev = rowEvaluator(profile2, direction2, resolved2);
-    if (!ev) return null;
-    const { width, height } = frame;
-    const stride = width * 4;
-    const out = new Float32Array(frame.data.length);
-    const needsLab = direction2 === "fromPcs" && frame.space !== "lab";
-    for (let y = 0; y < height; y++) {
-      const at = y * stride;
-      if (needsLab) {
-        const labRow = convertSpace(
-          { width, height: 1, data: frame.data.subarray(at, at + stride), space: frame.space },
-          "lab"
-        ).data;
-        out.set(labRow, at);
-      } else {
-        out.set(frame.data.subarray(at, at + stride), at);
-      }
-      if (!ev(out.subarray(at, at + stride))) return null;
-    }
-    return { width, height, data: out, space: direction2 === "toPcs" ? "lab" : ICC_DEVICE_SPACE };
-  } catch {
-    return null;
-  }
-}
-function convertViaIcc(frame, srcProfile, dstProfile, intent) {
-  try {
-    if (!profileSane(srcProfile) || !profileSane(dstProfile)) return null;
-    if (iccFrameRefusal(frame, "toPcs")) return null;
-    const inSrc = iccResolvedIntent(srcProfile, "toPcs", intent);
-    const inDst = iccResolvedIntent(dstProfile, "fromPcs", intent);
-    if (!inSrc || !inDst) return null;
-    const toPcs = rowEvaluator(srcProfile, "toPcs", inSrc);
-    const fromPcs = rowEvaluator(dstProfile, "fromPcs", inDst);
-    if (!toPcs || !fromPcs) return null;
-    const { width, height } = frame;
-    const stride = width * 4;
-    const out = new Float32Array(frame.data.length);
-    for (let y = 0; y < height; y++) {
-      const at = y * stride;
-      out.set(frame.data.subarray(at, at + stride), at);
-      const row = out.subarray(at, at + stride);
-      if (!toPcs(row) || !fromPcs(row)) return null;
-    }
-    return { width, height, data: out, space: ICC_DEVICE_SPACE };
-  } catch {
-    return null;
-  }
-}
-var ICC_DEVICE_SPACE, FALLBACK, LATTICE_N, L_S2, L_S1, L_S0, LATTICES, clamp019, san2, profileSane, deviceInputOk, pcsInputOk;
-var init_icc_pixels = __esm({
-  "engine/src/icc-pixels.ts"() {
-    "use strict";
-    init_icc();
-    init_pixels();
-    ICC_DEVICE_SPACE = "icc-device";
-    FALLBACK = {
-      perceptual: ["perceptual"],
-      relative: ["relative", "perceptual"],
-      saturation: ["saturation", "perceptual"],
-      absolute: ["absolute", "relative", "perceptual"]
-    };
-    LATTICE_N = 33;
-    L_S2 = 3;
-    L_S1 = LATTICE_N * 3;
-    L_S0 = LATTICE_N * LATTICE_N * 3;
-    LATTICES = /* @__PURE__ */ new WeakMap();
-    clamp019 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
-    san2 = (v) => Number.isFinite(v) ? v : 0;
-    profileSane = (p) => !!p && typeof p.toLab === "function" && typeof p.fromLab === "function";
-    deviceInputOk = (frame) => frame.space === ICC_DEVICE_SPACE;
-    pcsInputOk = (frame) => PIXEL_SPACES.includes(frame.space);
-  }
-});
-
 // engine/src/chroma-key.ts
 function rgbToOklab(r5, g2, b) {
   return linearSrgbToOklab(srgbToLinear(r5 / 255), srgbToLinear(g2 / 255), srgbToLinear(b / 255));
@@ -102107,7 +102280,7 @@ function guidedCoefficientsColor(mask, r5, g2, bl, width, height, radius, epsilo
 function guidedFilter(mask, guide, width, height, radius, epsilon) {
   const { a, b } = guidedCoefficients(mask, guide, width, height, radius, epsilon);
   const out = new Float32Array(width * height);
-  for (let i = 0; i < out.length; i++) out[i] = clamp0110(a[i] * guide[i] + b[i]);
+  for (let i = 0; i < out.length; i++) out[i] = clamp0111(a[i] * guide[i] + b[i]);
   return out;
 }
 function resizePlane(src, sw, sh, dw, dh) {
@@ -102182,22 +102355,22 @@ function refineMatte(alpha, rgba2, width, height, opts = {}) {
     for (let i = 0; i < n7; i++) {
       const w = floor > 0 ? vU[i] / (vU[i] + floor) : 1;
       const q = arU[i] * gr[i] + agU[i] * gg[i] + abU[i] * gb[i] + bU[i];
-      refined[i] = clamp0110(w * q + (1 - w) * model2[i]);
+      refined[i] = clamp0111(w * q + (1 - w) * model2[i]);
     }
   }
   const out = new Uint8Array(n7);
   for (let i = 0; i < n7; i++) {
-    const v = clamp0110((refined[i] - 0.5) * contrast3 + 0.5 + shift * 0.5);
+    const v = clamp0111((refined[i] - 0.5) * contrast3 + 0.5 + shift * 0.5);
     out[i] = Math.round(v * 255);
   }
   return out;
 }
-var TEXTURE_FLOOR, clamp0110;
+var TEXTURE_FLOOR, clamp0111;
 var init_guided_matte = __esm({
   "engine/src/guided-matte.ts"() {
     "use strict";
     TEXTURE_FLOOR = 4e-4;
-    clamp0110 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
+    clamp0111 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
   }
 });
 
@@ -102729,7 +102902,7 @@ function simulateCvd(rgb3, type, severity) {
   ];
 }
 function toGrayscale(rgb3) {
-  const y = Math.round(clamp0111((REC709.r * rgb3[0] + REC709.g * rgb3[1] + REC709.b * rgb3[2]) / 255) * 255);
+  const y = Math.round(clamp0112((REC709.r * rgb3[0] + REC709.g * rgb3[1] + REC709.b * rgb3[2]) / 255) * 255);
   return [y, y, y];
 }
 function simulateCvdHex(hex3, type, severity) {
@@ -102742,7 +102915,7 @@ function toGrayscaleHex(hex3) {
   if (!rgba2) return null;
   return toHex(toGrayscale([rgba2[0], rgba2[1], rgba2[2]]));
 }
-var PROTAN, DEUTAN, TRITAN, TABLES2, REC709, clamp0111, round255, toHex;
+var PROTAN, DEUTAN, TRITAN, TABLES2, REC709, clamp0112, round255, toHex;
 var init_color_vision = __esm({
   "engine/src/color-vision.ts"() {
     "use strict";
@@ -102825,8 +102998,8 @@ var init_color_vision = __esm({
       tritan: TRITAN
     };
     REC709 = { r: 0.2126, g: 0.7152, b: 0.0722 };
-    clamp0111 = (n7) => n7 < 0 ? 0 : n7 > 1 ? 1 : n7;
-    round255 = (n7) => Math.round(clamp0111(n7) * 255);
+    clamp0112 = (n7) => n7 < 0 ? 0 : n7 > 1 ? 1 : n7;
+    round255 = (n7) => Math.round(clamp0112(n7) * 255);
     toHex = (rgb3) => "#" + rgb3.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("");
   }
 });
@@ -111774,9 +111947,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     if (rule === "evenodd" || rule === "nonzero") own4.fillRule = rule;
     const cap = get4("stroke-linecap");
     if (cap === "butt" || cap === "round" || cap === "square") own4.cap = cap;
-    const join33 = get4("stroke-linejoin");
-    if (join33 === "miter" || join33 === "round" || join33 === "bevel") own4.join = join33;
-    else if (join33 === "miter-clip" || join33 === "arcs") own4.join = "miter";
+    const join34 = get4("stroke-linejoin");
+    if (join34 === "miter" || join34 === "round" || join34 === "bevel") own4.join = join34;
+    else if (join34 === "miter-clip" || join34 === "arcs") own4.join = "miter";
     const dash = get4("stroke-dasharray");
     if (dash !== void 0) {
       const list4 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own4.fontSize)).filter((v) => v !== void 0 && v >= 0);
@@ -114077,7 +114250,7 @@ function pourItems(placements, mode3) {
     while (parent[at] !== at) at = parent[at];
     return at;
   };
-  const join33 = (a, b) => {
+  const join34 = (a, b) => {
     const ra = find(a);
     const rb = find(b);
     if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb);
@@ -114089,17 +114262,17 @@ function pourItems(placements, mode3) {
       const ba = boxOf6(a);
       const bb = boxOf6(b);
       if (mode3 === "rows") {
-        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join33(i, j);
+        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join34(i, j);
       } else if (mode3 === "columns") {
-        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join33(i, j);
+        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join34(i, j);
       } else {
         const [upper, lower3, top, bottom] = ba.y0 <= bb.y0 ? [a, b, ba, bb] : [b, a, bb, ba];
         const gap = bottom.y0 - top.y1;
-        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join33(i, j);
+        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join34(i, j);
         const marker = isMarkerText(a) ? ba : isMarkerText(b) ? bb : void 0;
         if (marker && spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) {
           const across = Math.max(ba.x0, bb.x0) - Math.min(ba.x1, bb.x1);
-          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join33(i, j);
+          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join34(i, j);
         }
       }
     }
@@ -122281,9 +122454,9 @@ function oklabToRgb01(L, a, b) {
   const s0 = L - 0.0894841775 * a - 1.291485548 * b;
   const l = l0 * l0 * l0, m2 = m0 * m0 * m0, s = s0 * s0 * s0;
   return [
-    clamp0112(encodeSrgb(4.0767416621 * l - 3.3077115913 * m2 + 0.2309699292 * s)),
-    clamp0112(encodeSrgb(-1.2684380046 * l + 2.6097574011 * m2 - 0.3413193965 * s)),
-    clamp0112(encodeSrgb(-0.0041960863 * l - 0.7034186147 * m2 + 1.707614701 * s))
+    clamp0113(encodeSrgb(4.0767416621 * l - 3.3077115913 * m2 + 0.2309699292 * s)),
+    clamp0113(encodeSrgb(-1.2684380046 * l + 2.6097574011 * m2 - 0.3413193965 * s)),
+    clamp0113(encodeSrgb(-0.0041960863 * l - 0.7034186147 * m2 + 1.707614701 * s))
   ];
 }
 function photoLookHex8(hex3) {
@@ -122386,7 +122559,7 @@ function gradeTables(contrast3, lightness) {
     let n7 = clut[v];
     if (light > 0) n7 += (255 - n7) * light;
     else if (light < 0) n7 *= 1 + light;
-    unit2[v] = clamp0112(n7 / 255);
+    unit2[v] = clamp0113(n7 / 255);
     linear[v] = decodeSrgb(unit2[v]);
   }
   return { unit: unit2, linear };
@@ -122467,9 +122640,9 @@ function lumaMap(d, def, ta, grade) {
     const b01 = grade ? grade.unit[d[i + 2]] : d[i + 2] / 255;
     let tr, tg, tb;
     if (!table) {
-      tr = tg = tb = clamp0112(0.213 * r01 + 0.715 * g01 + 0.072 * b01);
+      tr = tg = tb = clamp0113(0.213 * r01 + 0.715 * g01 + 0.072 * b01);
     } else {
-      const y = clamp0112(0.2126 * r01 + 0.7152 * g01 + 0.0722 * b01);
+      const y = clamp0113(0.2126 * r01 + 0.7152 * g01 + 0.0722 * b01);
       const pos = y * n7;
       const k = pos >= n7 ? n7 - 1 : pos | 0;
       const u = pos - k;
@@ -122503,7 +122676,7 @@ function photoLookPreviewTable(look3, count4 = 17) {
     if (contrast3) n7 = Math.max(0, Math.min(255, cf * (n7 - 128) + 128));
     if (light > 0) n7 += (255 - n7) * light;
     else if (light < 0) n7 *= 1 + light;
-    return clamp0112(n7 / 255);
+    return clamp0113(n7 / 255);
   };
   const out = [];
   for (let j = 0; j < count4; j += 1) {
@@ -122516,14 +122689,14 @@ function photoLookPreviewTable(look3, count4 = 17) {
   }
   return out;
 }
-var PHOTO_LOOK_RECIPE, LINEAR_8, clamp0112, HEX63, HEX3, VARIANT_KEYS, LCACHE_SIZE;
+var PHOTO_LOOK_RECIPE, LINEAR_8, clamp0113, HEX63, HEX3, VARIANT_KEYS, LCACHE_SIZE;
 var init_photo_look = __esm({
   "engine/src/photo-look.ts"() {
     "use strict";
     init_grade();
     PHOTO_LOOK_RECIPE = "photo-look-v1";
     LINEAR_8 = null;
-    clamp0112 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
+    clamp0113 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
     HEX63 = /^#([0-9a-f]{6})$/i;
     HEX3 = /^#([0-9a-f]{3})$/i;
     VARIANT_KEYS = ["stops", "shadow", "mid", "highlight", "amount", "contrast", "lightness", "lut", "previewBg"];
@@ -128152,14 +128325,14 @@ function clamp6(value2, min, max, fallback) {
   if (!Number.isFinite(value2)) return fallback;
   return value2 < min ? min : value2 > max ? max : value2;
 }
-function clamp0113(u) {
+function clamp0114(u) {
   return u < 0 ? 0 : u > 1 ? 1 : u;
 }
 function radians(degrees) {
   return degrees * Math.PI / 180;
 }
 function smoothstep3(u) {
-  const t = clamp0113(u);
+  const t = clamp0114(u);
   return t * t * (3 - 2 * t);
 }
 function bump(value2, from, to) {
@@ -128168,17 +128341,17 @@ function bump(value2, from, to) {
   return u <= 0 || u >= 1 ? 0 : Math.sin(Math.PI * u);
 }
 function backOut(u, overshoot) {
-  const t = clamp0113(u);
+  const t = clamp0114(u);
   const settle2 = 1 - (1 - t) ** 3;
   const swell = 6.75 * t * t * (1 - t);
   return settle2 + overshoot * swell;
 }
 function anticipate(u, depth) {
-  const t = clamp0113(u);
+  const t = clamp0114(u);
   return smoothstep3(t) - depth * 6.75 * t * (1 - t) ** 2;
 }
 function bounceOut(u) {
-  const t = clamp0113(u);
+  const t = clamp0114(u);
   const n7 = 7.5625;
   const d = 2.75;
   if (t < 1 / d) return n7 * t * t;
@@ -128194,7 +128367,7 @@ function bounceOut(u) {
   return n7 * x * x + 0.984375;
 }
 function arc(u) {
-  const t = clamp0113(u);
+  const t = clamp0114(u);
   return 4 * t * (1 - t);
 }
 function travel(units2, amount) {
@@ -128246,7 +128419,7 @@ function studioObjectPose(scene, time2, clipSeconds) {
     return pose3;
   }
   if (kind === "coin") {
-    const flight = clamp0113(q / 0.8);
+    const flight = clamp0114(q / 0.8);
     pose3.lift = travel(1.2, amount) * arc(flight);
     pose3.tilt = [flight >= 1 ? 0 : 2 * Math.PI * flight, 0];
     squash2(pose3, 0.12 * amount * bump(q, 0.8, 1));
@@ -128264,7 +128437,7 @@ function studioObjectPose(scene, time2, clipSeconds) {
     const lands = BOUNCE_LANDINGS.map((stage) => from + span * stage);
     const height = travel(3, amount);
     pose3.lift = q < from ? height * smoothstep3(q / from) : height * (1 - bounceOut((q - from) / span));
-    pose3.spin = 2 * Math.PI * clamp0113(q / lands[0]);
+    pose3.spin = 2 * Math.PI * clamp0114(q / lands[0]);
     squash2(
       pose3,
       0.22 * amount * bump(q, lands[0], lands[0] + 0.09) + 0.09 * amount * bump(q, lands[1], lands[1] + 0.05)
@@ -134765,13 +134938,13 @@ function deleteTextStory(snapshot, id3) {
   current.frames = current.frames.filter((frame) => frame.storyId !== id3);
   return admitted2(current);
 }
-function linkTextFrames(snapshot, sourceId, targetId, join33, fresh) {
+function linkTextFrames(snapshot, sourceId, targetId, join34, fresh) {
   const current = admitted2(snapshot), source = owner2(current, sourceId), target2 = owner2(current, targetId);
   if (source.id === target2.id) throw new TextSourceError("thread-cycle", "These frames already belong to the same story.");
   const affected = [...source.frameIds, ...target2.frameIds];
   mutable(current, affected);
   if (current.frames.some((frame) => affected.includes(frame.id) && frame.mode === "path")) throw new TextSourceError("thread-path", "Detach text from its path before linking frames.");
-  if ((target2.source || target2.frameIds.length > 1) && !join33) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
+  if ((target2.source || target2.frameIds.length > 1) && !join34) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
   if (target2.frameIds[0] !== targetId) throw new TextSourceError("thread-target", "Choose the first frame of the target story.");
   let merged = source;
   if (target2.source) {
@@ -135843,7 +136016,7 @@ function gridRead(units2) {
   const hS = sim(hSpread, WIDTH_ZERO);
   const regular = rowCount === 1 ? 1 : 0.7;
   if (wS <= 0 || hS <= 0) return null;
-  const confidence = r25((0.4 * wS + 0.3 * hS + 0.3) * regular * clamp0114(inGrid.length / (R2 * C)));
+  const confidence = r25((0.4 * wS + 0.3 * hS + 0.3) * regular * clamp0115(inGrid.length / (R2 * C)));
   const params2 = {
     count: inGrid.length,
     countWord: countWord(inGrid.length),
@@ -135881,7 +136054,7 @@ function splitRead(units2) {
   const words4 = beside.reduce((n7, t) => n7 + t.words, 0);
   const share = area(pic.box);
   const penalty = under.length > 0 ? 0.15 : 0;
-  const confidence = r25(0.5 + 0.3 * clamp0114((share - SPLIT_PICTURE) / 0.2) + 0.2 * clamp0114(beside.length / texts.length) - penalty);
+  const confidence = r25(0.5 + 0.3 * clamp0115((share - SPLIT_PICTURE) / 0.2) + 0.2 * clamp0115(beside.length / texts.length) - penalty);
   const chart = pic.kind === "chart";
   const structure = chart ? side2 === "left" ? "chart-and-callout" : "callout-and-chart" : side2 === "right" ? "text-and-image" : "image-and-text";
   const params2 = {
@@ -135922,7 +136095,7 @@ function calloutRead(units2) {
     reads.push({
       read: "callout",
       structure: "text-and-callout",
-      confidence: r25(0.7 + 0.15 * clamp0114(level2 / beside.length) + 0.05 * clamp0114(card.words / 10)),
+      confidence: r25(0.7 + 0.15 * clamp0115(level2 / beside.length) + 0.05 * clamp0115(card.words / 10)),
       coverage: 0,
       unitIds: [...beside.map((t) => t.id), card.id],
       needs: 2,
@@ -136023,7 +136196,7 @@ function tableRead(cells, body) {
   if (pts.length >= 4 && (pts[pts.length - 1] ?? 0) > TABLE_PT_RATIO * (pts[Math.floor(pts.length / 2)] ?? 0)) return null;
   const counts = rows2.map((r5) => r5.length);
   const regular = counts.filter((n7) => n7 === Math.round(median6(counts))).length / rows2.length;
-  const confidence = r25(0.4 * clamp0114(fill2) + 0.4 * regular + 0.2);
+  const confidence = r25(0.4 * clamp0115(fill2) + 0.4 * regular + 0.2);
   return {
     read: "table",
     structure: "table",
@@ -136441,7 +136614,7 @@ function withAutoMatchEntries(report4, plan, master, source) {
   const entries = report4.entries.filter((entry2) => entry2.code !== "layout.auto-matched");
   return { ...report4, entries: [...entries, ...autoMatchReportEntries(plan, master, source)] };
 }
-var STRUCTURE_RULES, ROW_OVERLAP, ROW_CENTRE_TOL, COL_OVERLAP, WIDTH_SAME, WIDTH_ZERO, Y_ZERO, GAP_ZERO, MIN_SPAN2, MAX_COLUMN_WIDTH, CONTENT_PICTURE, SPLIT_PICTURE, BLOCK_GAP, BLOCK_OVERLAP, BLOCK_WIDTH_RATIO, SINGLE_LINE, CARD_CONTAINMENT2, TABLE_MIN_CELLS, TABLE_EDGE, TABLE_FILL, TABLE_PT_RATIO, APPLY, PROPOSE, APPLY_COVERAGE, MIN_COVERAGE, BIG_NUMBER_PT, RUNNER_UP_GAP, LABEL_GAP, STACK_EDGE, STACK_MAX, PRIOR_MAX, DENSE_UNITS, TOP_BAND, BACKGROUND_SHARE, CAPTION_WORDS, area, overlap1, yOverlapShare, xOverlapShare, cy, cx, clamp0114, sim, r25, pct, NUMBERED, DATED, AGENDA_WORDS, COUNT_WORDS, CALLOUT_MIN_WIDTH, CONTINUED_STRUCTURES, NEAREST, COUNTED_FAMILIES, LAYOUT_NAME_ALIASES, NAME_TOKENS, EARLY_SLIDES, FURNITURE_CLASSES, OPENING_QUOTE, CLOSING_QUOTE, AUTO_MATCH_BANDS, SUPERSEDED_REASONS, BAND_WORDS;
+var STRUCTURE_RULES, ROW_OVERLAP, ROW_CENTRE_TOL, COL_OVERLAP, WIDTH_SAME, WIDTH_ZERO, Y_ZERO, GAP_ZERO, MIN_SPAN2, MAX_COLUMN_WIDTH, CONTENT_PICTURE, SPLIT_PICTURE, BLOCK_GAP, BLOCK_OVERLAP, BLOCK_WIDTH_RATIO, SINGLE_LINE, CARD_CONTAINMENT2, TABLE_MIN_CELLS, TABLE_EDGE, TABLE_FILL, TABLE_PT_RATIO, APPLY, PROPOSE, APPLY_COVERAGE, MIN_COVERAGE, BIG_NUMBER_PT, RUNNER_UP_GAP, LABEL_GAP, STACK_EDGE, STACK_MAX, PRIOR_MAX, DENSE_UNITS, TOP_BAND, BACKGROUND_SHARE, CAPTION_WORDS, area, overlap1, yOverlapShare, xOverlapShare, cy, cx, clamp0115, sim, r25, pct, NUMBERED, DATED, AGENDA_WORDS, COUNT_WORDS, CALLOUT_MIN_WIDTH, CONTINUED_STRUCTURES, NEAREST, COUNTED_FAMILIES, LAYOUT_NAME_ALIASES, NAME_TOKENS, EARLY_SLIDES, FURNITURE_CLASSES, OPENING_QUOTE, CLOSING_QUOTE, AUTO_MATCH_BANDS, SUPERSEDED_REASONS, BAND_WORDS;
 var init_rebrand_structure = __esm({
   "engine/src/rebrand-structure.ts"() {
     "use strict";
@@ -136491,8 +136664,8 @@ var init_rebrand_structure = __esm({
     xOverlapShare = (a, b) => overlap1(a.x, a.x + a.w, b.x, b.x + b.w) / Math.max(1e-6, Math.min(a.w, b.w));
     cy = (b) => b.y + b.h / 2;
     cx = (b) => b.x + b.w / 2;
-    clamp0114 = (n7) => Math.max(0, Math.min(1, n7));
-    sim = (dev, zeroAt) => clamp0114(1 - dev / zeroAt);
+    clamp0115 = (n7) => Math.max(0, Math.min(1, n7));
+    sim = (dev, zeroAt) => clamp0115(1 - dev / zeroAt);
     r25 = (n7) => Math.round(n7 * 100) / 100;
     pct = (n7) => Math.round(n7 * 100);
     NUMBERED = /^\s*(?:(?:step|phase|stage)\s+)?(?:\d{1,2}|[ivx]{1,4})(?:[.):]|\s|$)/i;
@@ -141408,7 +141581,7 @@ function inkAbove(image, area2, under, lineHeight, threshold, maxLines) {
 function outlinedBoxes(regions) {
   const tolX = OUTLINE_TOLERANCE * regions.width;
   const tolY = OUTLINE_TOLERANCE * regions.height;
-  const join33 = (horizontal) => {
+  const join34 = (horizontal) => {
     const parts = regions.regions.filter((r5) => r5.kind === "rule" && r5.evidence.orientation === (horizontal ? "horizontal" : "vertical")).map((r5) => ({
       from: horizontal ? r5.box.x : r5.box.y,
       to: horizontal ? r5.box.x + r5.box.w : r5.box.y + r5.box.h,
@@ -141438,8 +141611,8 @@ function outlinedBoxes(regions) {
     }
     return out;
   };
-  const rows2 = join33(true);
-  const cols = join33(false);
+  const rows2 = join34(true);
+  const cols = join34(false);
   const found = [];
   for (const top of rows2) {
     for (const bottom of rows2) {
@@ -145929,6 +146102,7 @@ __export(src_exports, {
   DESIGN_TEXT_LINE_HEIGHTS: () => DESIGN_TEXT_LINE_HEIGHTS,
   DESIGN_VERSION_LATEST: () => DESIGN_VERSION_LATEST,
   DETECT_THRESHOLD: () => DETECT_THRESHOLD,
+  DEVICE_SEPARATION: () => DEVICE_SEPARATION,
   DIGITAL_SOURCE_TYPE: () => DIGITAL_SOURCE_TYPE,
   DOCUMENT_API_VERSION: () => DOCUMENT_API_VERSION,
   DOCUMENT_PATH_CHARS: () => DOCUMENT_PATH_CHARS,
@@ -146077,6 +146251,7 @@ __export(src_exports, {
   MISSING_C2: () => MISSING_C2,
   MOTION_FORMATS: () => MOTION_FORMATS,
   NAMED_COLORS: () => NAMED_COLORS,
+  NEUTRAL_EPSILON: () => NEUTRAL_EPSILON,
   NOTATION_SPACES: () => NOTATION_SPACES,
   NO_GAMUT_SOURCE: () => NO_GAMUT_SOURCE,
   OUTPUT_LICENCE_CHOICES: () => OUTPUT_LICENCE_CHOICES,
@@ -146874,6 +147049,7 @@ __export(src_exports, {
   iccResolvedIntent: () => iccResolvedIntent,
   iccRoundTripDecides: () => iccRoundTripDecides,
   iccRoundTripDeltaE: () => iccRoundTripDeltaE,
+  iccSeparation: () => iccSeparation,
   iconThemeSurfaces: () => iconThemeSurfaces,
   ignoredTokenAxes: () => ignoredTokenAxes,
   ignoresTokenAxes: () => ignoresTokenAxes,
@@ -147476,6 +147652,7 @@ __export(src_exports, {
   selectFramePage: () => selectFramePage,
   selfUnion: () => selfUnion,
   sentenceCaseDesignText: () => sentenceCaseDesignText,
+  separationLattice: () => separationLattice,
   sequenceSampleTimes: () => sequenceSampleTimes,
   serialiseKf: () => serialiseKf,
   serialisePresentInteractOpts: () => serialisePresentInteractOpts,
@@ -147811,6 +147988,7 @@ var init_src2 = __esm({
     init_framing();
     init_color2();
     init_cmyk_palette();
+    init_cmyk_separation();
     init_css_color();
     init_gradient_spec();
     init_pixels();
@@ -151099,8 +151277,8 @@ function sampledFunction(walk2, work, o, d0, d1) {
 function rampOf(fn, comps, t0, t1) {
   const span = t1 - t0 || 1;
   const out = [];
-  for (let i = 0; i <= RAMP_STEPS; i++) {
-    const hex3 = colourAt(fn, comps, t0 + span * i / RAMP_STEPS);
+  for (let i = 0; i <= RAMP_STEPS2; i++) {
+    const hex3 = colourAt(fn, comps, t0 + span * i / RAMP_STEPS2);
     if (!hex3) return null;
     out.push(hex3);
   }
@@ -151925,7 +152103,7 @@ function pdfLineRunTexts(line) {
 function pdfPageScanned(nodes, width, height) {
   return extractPageText(nodes, { width, height }).scanned;
 }
-var PDF_READ_RESOURCE_BUDGET, MAX_RESOURCE_DEPTH, INFLATE_STEP, MAX_FUNCTION_DEPTH, PDF_READ_FUNCTION_BUDGET, MAX_SAMPLE_BYTES, PDF_READ_SAMPLE_BUDGET, FUNCTION_WORK, SHADING_SPACES, RAMP_STEPS, PdfPageTooLargeError, PDF_WS2, PDF_DELIM2, INVISIBLE_MCID, ARTIFACT_MCID_BASE, ARTIFACT_MARKER_KEY, MAX_STRUCT_DEPTH, NODE_PDF_IMAGE_CODEC, PDF_MAX_VECTORS, PDF_VECTOR_PAD, LINE_BASELINE_TOLERANCE, LINE_GAP_SIZES, UPRIGHT_DEG, ESTIMATED_WORD_GAP_EM2;
+var PDF_READ_RESOURCE_BUDGET, MAX_RESOURCE_DEPTH, INFLATE_STEP, MAX_FUNCTION_DEPTH, PDF_READ_FUNCTION_BUDGET, MAX_SAMPLE_BYTES, PDF_READ_SAMPLE_BUDGET, FUNCTION_WORK, SHADING_SPACES, RAMP_STEPS2, PdfPageTooLargeError, PDF_WS2, PDF_DELIM2, INVISIBLE_MCID, ARTIFACT_MCID_BASE, ARTIFACT_MARKER_KEY, MAX_STRUCT_DEPTH, NODE_PDF_IMAGE_CODEC, PDF_MAX_VECTORS, PDF_VECTOR_PAD, LINE_BASELINE_TOLERANCE, LINE_GAP_SIZES, UPRIGHT_DEG, ESTIMATED_WORD_GAP_EM2;
 var init_pdf_read = __esm({
   "packages/node-shell/src/pdf-read.ts"() {
     "use strict";
@@ -151945,7 +152123,7 @@ var init_pdf_read = __esm({
     PDF_READ_SAMPLE_BUDGET = 16 << 20;
     FUNCTION_WORK = /* @__PURE__ */ new WeakMap();
     SHADING_SPACES = /* @__PURE__ */ new Set(["DeviceGray", "DeviceRGB", "DeviceCMYK", "CalGray", "CalRGB"]);
-    RAMP_STEPS = 16;
+    RAMP_STEPS2 = 16;
     PdfPageTooLargeError = class extends Error {
       chars;
       /** True when decoding stopped at the budget, so `chars` is a lower bound. */
@@ -162966,9 +163144,9 @@ var init_text_composition = __esm({
 });
 
 // packages/node-shell/src/text.ts
-import { readFile as readFile8, readdir as readdir3 } from "node:fs/promises";
+import { readFile as readFile9, readdir as readdir3 } from "node:fs/promises";
 import { existsSync as existsSync7 } from "node:fs";
-import { join as join12 } from "node:path";
+import { join as join13 } from "node:path";
 import { fileURLToPath as fileURLToPath5 } from "node:url";
 async function loadHarfBuzz() {
   if (!_hb) _hb = await import("harfbuzzjs");
@@ -162993,14 +163171,14 @@ async function loadFontBytes(fontUrl, repoRoot2) {
     filePath = fileURLToPath5(fontUrl);
   } else if (fontUrl.startsWith("/")) {
     const roots2 = rootsFor3(repoRoot2);
-    filePath = (roots2 ? contentUrlFile(fontUrl, roots2) : null) ?? join12(repoRoot2, fontUrl.slice(1));
+    filePath = (roots2 ? contentUrlFile(fontUrl, roots2) : null) ?? join13(repoRoot2, fontUrl.slice(1));
     if (!existsSync7(filePath) && fontUrl.startsWith("/fonts/")) {
-      filePath = join12(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
+      filePath = join13(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
     }
   } else {
-    filePath = join12(repoRoot2, fontUrl);
+    filePath = join13(repoRoot2, fontUrl);
   }
-  return new Uint8Array(await readFile8(filePath));
+  return new Uint8Array(await readFile9(filePath));
 }
 async function loadFace(fontUrl, repoRoot2) {
   const key2 = JSON.stringify([repoRoot2, fontUrl]);
@@ -163091,7 +163269,7 @@ function fontDirs2(root2) {
   const roots2 = rootsFor3(root2);
   const dirs = [];
   if (roots2) dirs.push({ abs: catalogFile("fonts/ttf", roots2), url: "/catalog/fonts/ttf/" });
-  dirs.push({ abs: join12(root2, "shells", "web", "public", "fonts"), url: "/fonts/" });
+  dirs.push({ abs: join13(root2, "shells", "web", "public", "fonts"), url: "/fonts/" });
   return dirs;
 }
 function parseFontStem(stem2) {
@@ -163325,13 +163503,13 @@ var init_text3 = __esm({
 });
 
 // packages/node-shell/src/browsers.ts
-import { join as join14 } from "node:path";
+import { join as join15 } from "node:path";
 import { existsSync as existsSync9 } from "node:fs";
 import { homedir as homedir2 } from "node:os";
 function playwrightUserCacheDir(env = process.env, platform = process.platform, home = homedir2()) {
-  if (platform === "darwin") return join14(home, "Library", "Caches", "ms-playwright");
-  if (platform === "win32") return join14(env.LOCALAPPDATA || join14(home, "AppData", "Local"), "ms-playwright");
-  return join14(env.XDG_CACHE_HOME || join14(home, ".cache"), "ms-playwright");
+  if (platform === "darwin") return join15(home, "Library", "Caches", "ms-playwright");
+  if (platform === "win32") return join15(env.LOCALAPPDATA || join15(home, "AppData", "Local"), "ms-playwright");
+  return join15(env.XDG_CACHE_HOME || join15(home, ".cache"), "ms-playwright");
 }
 function resolveBrowsersDir() {
   if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
@@ -163391,8 +163569,8 @@ var init_browsers = __esm({
     "use strict";
     init_repo_root();
     init_webgpu_launch();
-    INSTALL_BROWSERS_DIR = join14(repoRoot(), ".browsers");
-    SIBLING_BROWSERS_DIR = join14(repoRoot(), "services", "mcp", ".browsers");
+    INSTALL_BROWSERS_DIR = join15(repoRoot(), ".browsers");
+    SIBLING_BROWSERS_DIR = join15(repoRoot(), "services", "mcp", ".browsers");
     BrowserError = class extends Error {
     };
     browserPromise = null;
@@ -163539,7 +163717,7 @@ var init_ocr_math = __esm({
 });
 
 // packages/node-shell/src/ml/ocr.ts
-import { readFile as readFile10 } from "node:fs/promises";
+import { readFile as readFile11 } from "node:fs/promises";
 async function load2(id3) {
   const existing2 = loadedByModel.get(id3);
   if (existing2) return existing2;
@@ -163551,7 +163729,7 @@ async function load2(id3) {
     refuseMissing("ocr", info?.name ?? id3, OCR_MODEL_BYTES[id3] ?? 0);
   }
   const p = (async () => {
-    const dict = await readFile10(modelPath("ocr", files.dict), "utf8");
+    const dict = await readFile11(modelPath("ocr", files.dict), "utf8");
     const lines = dict.split(/\r?\n/).filter((l) => l.length > 0);
     const charset = ["", ...lines, " "];
     const [det, rec2] = await Promise.all([
@@ -163855,7 +164033,7 @@ __export(canvas_exports, {
   pictureName: () => pictureName,
   sniffImageMime: () => sniffImageMime
 });
-import { createHash as createHash9 } from "node:crypto";
+import { createHash as createHash10 } from "node:crypto";
 import { createRequire as createRequire3 } from "node:module";
 function registerCatalogFonts(mod) {
   if (fontsRegistered) return;
@@ -163896,7 +164074,7 @@ function hostedDecodeLimits() {
 function refuse2(limits, pic, record46, message) {
   limits.refusals?.push(message);
   if (limits.refused) {
-    const key2 = createHash9("sha256").update(pic.bytes).digest("hex");
+    const key2 = createHash10("sha256").update(pic.bytes).digest("hex");
     const seen = limits.refused.find((r5) => r5.key === key2 && r5.limit === record46.limit);
     if (!seen) limits.refused.push({ ...record46, key: key2, ...pic.source ? { source: pic.source } : {} });
     else if (!seen.source && pic.source) seen.source = pic.source;
@@ -164320,18 +164498,18 @@ var init_label_artwork = __esm({
 
 // packages/node-shell/src/state-dir.ts
 import { homedir as homedir3 } from "node:os";
-import { join as join16 } from "node:path";
+import { join as join17 } from "node:path";
 import { existsSync as existsSync10 } from "node:fs";
 function desktopAppDataDir(env = process.env, probe = {}) {
   const platform = probe.platform ?? process.platform;
   const home = probe.home ?? homedir3();
-  if (platform === "darwin") return join16(home, "Library", "Application Support", DESKTOP_APP_IDENTIFIER);
+  if (platform === "darwin") return join17(home, "Library", "Application Support", DESKTOP_APP_IDENTIFIER);
   if (platform === "win32") {
     const appdata = env.APPDATA?.trim();
-    return appdata ? join16(appdata, DESKTOP_APP_IDENTIFIER) : null;
+    return appdata ? join17(appdata, DESKTOP_APP_IDENTIFIER) : null;
   }
   const xdg = env.XDG_DATA_HOME?.trim();
-  return join16(xdg || join16(home, ".local", "share"), DESKTOP_APP_IDENTIFIER);
+  return join17(xdg || join17(home, ".local", "share"), DESKTOP_APP_IDENTIFIER);
 }
 function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.write(m2), probe = {}) {
   const fresh = env.LOLLY_STATE_DIR?.trim();
@@ -164348,7 +164526,7 @@ function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.writ
   const app = desktopAppDataDir(env, probe);
   if (app && exists(app)) return { dir: app, explicit: false, deprecated: false, source: "app", shared: true };
   const home = probe.home ?? homedir3();
-  return { dir: join16(home, ".lolly"), explicit: false, deprecated: false, source: "default", shared: false };
+  return { dir: join17(home, ".lolly"), explicit: false, deprecated: false, source: "default", shared: false };
 }
 var deprecationNoted, DESKTOP_APP_IDENTIFIER, stateDir;
 var init_state_dir = __esm({
@@ -164374,10 +164552,10 @@ function encodePng16(frame, opts = {}) {
   const out = new Uint16Array(px3 * channels);
   const src = f.data;
   for (let p = 0, s = 0, d = 0; p < px3; p++, s += 4, d += channels) {
-    out[d] = Math.round(clamp0116(linearToSrgb3(clamp0116(src[s]))) * 65535);
-    out[d + 1] = Math.round(clamp0116(linearToSrgb3(clamp0116(src[s + 1]))) * 65535);
-    out[d + 2] = Math.round(clamp0116(linearToSrgb3(clamp0116(src[s + 2]))) * 65535);
-    if (channels === 4) out[d + 3] = Math.round(clamp0116(src[s + 3]) * 65535);
+    out[d] = Math.round(clamp0117(linearToSrgb3(clamp0117(src[s]))) * 65535);
+    out[d + 1] = Math.round(clamp0117(linearToSrgb3(clamp0117(src[s + 1]))) * 65535);
+    out[d + 2] = Math.round(clamp0117(linearToSrgb3(clamp0117(src[s + 2]))) * 65535);
+    if (channels === 4) out[d + 3] = Math.round(clamp0117(src[s + 3]) * 65535);
   }
   return packPng(out, {
     width: f.width,
@@ -164400,8 +164578,8 @@ function encodeDither8(frame, opts = {}) {
     for (let x = 0; x < W; x++) {
       const s = (y * W + x) * 4, d = (y * W + x) * channels, e = (x + 1) * 3;
       for (let c = 0; c < 3; c++) {
-        const want = linearToSrgb3(clamp0116(src[s + c])) * 255 + errCur[e + c];
-        const q = clamp0116(Math.round(want) / 255) * 255;
+        const want = linearToSrgb3(clamp0117(src[s + c])) * 255 + errCur[e + c];
+        const q = clamp0117(Math.round(want) / 255) * 255;
         out[d + c] = q;
         const err = want - q;
         errCur[e + 3 + c] = (errCur[e + 3 + c] ?? 0) + err * (7 / 16);
@@ -164409,7 +164587,7 @@ function encodeDither8(frame, opts = {}) {
         errNext[e + c] = (errNext[e + c] ?? 0) + err * (5 / 16);
         errNext[e + 3 + c] = (errNext[e + 3 + c] ?? 0) + err * (1 / 16);
       }
-      if (channels === 4) out[d + 3] = Math.round(clamp0116(src[s + 3]) * 255);
+      if (channels === 4) out[d + 3] = Math.round(clamp0117(src[s + 3]) * 255);
     }
     errCur.set(errNext);
   }
@@ -164421,7 +164599,7 @@ function encodeDither8(frame, opts = {}) {
     ...opts.dpi && opts.dpi > 0 ? { dpi: opts.dpi } : {}
   });
 }
-var clamp0116;
+var clamp0117;
 var init_deep_encode = __esm({
   "engine/src/deep-encode.ts"() {
     "use strict";
@@ -164429,7 +164607,7 @@ var init_deep_encode = __esm({
     init_exr();
     init_radiance();
     init_png();
-    clamp0116 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
+    clamp0117 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
   }
 });
 
@@ -164446,7 +164624,7 @@ function readDeepPng(bytes2) {
   if (bytes2.length < 8 || ![137, 80, 78, 71, 13, 10, 26, 10].every((b, i) => bytes2[i] === b)) return null;
   if (bytes2.length > DEEP_MAX_BYTES) throw new Error("PNG exceeds the HDR input limit.");
   const view = new DataView(bytes2.buffer, bytes2.byteOffset, bytes2.length);
-  let width = 0, height = 0, depth = 0, color6 = 0, interlace = 0, gamma, srgb = false, ended = false;
+  let width = 0, height = 0, depth = 0, color6 = 0, interlace = 0, gamma, srgb2 = false, ended = false;
   let chroma, oriented = false;
   let icc, cicp, trns;
   const data = [];
@@ -164489,7 +164667,7 @@ function readDeepPng(bytes2) {
         const p = offset + 2 + i * 12;
         if (ev.getUint16(p, le) === 274) oriented = ev.getUint16(p + 8, le) !== 1;
       }
-    } else if (type === "sRGB") srgb = true;
+    } else if (type === "sRGB") srgb2 = true;
     else if (type === "tRNS") trns = chunk6;
     else if (type === "iCCP") {
       const zero2 = chunk6.indexOf(0);
@@ -164561,13 +164739,13 @@ function readDeepPng(bytes2) {
     if (!pcs) throw new Error("The PNG colour profile cannot be converted at full precision.");
     return convertSpace(pcs, "srgb-linear");
   }
-  if (chroma && !srgb) {
+  if (chroma && !srgb2) {
     const choices2 = [["srgb-linear", [0.3127, 0.329, 0.64, 0.33, 0.3, 0.6, 0.15, 0.06]], ["display-p3-linear", [0.3127, 0.329, 0.68, 0.32, 0.265, 0.69, 0.15, 0.06]], ["rec2020-linear", [0.3127, 0.329, 0.708, 0.292, 0.17, 0.797, 0.131, 0.046]]];
     const match = choices2.find(([, values]) => values.every((n7, i) => Math.abs(n7 - chroma[i]) < 2e-5));
     if (!match) throw new Error("Convert this PNG to sRGB, Display P3 or Rec.2020 before HDR editing.");
     frame.space = match[0];
   }
-  return decodeTransfer(frame, 13, srgb ? void 0 : gamma);
+  return decodeTransfer(frame, 13, srgb2 ? void 0 : gamma);
 }
 var init_deep_png = __esm({
   "engine/src/deep-png.ts"() {
@@ -165269,15 +165447,15 @@ var init_geometry_clipping = __esm({
 
 // packages/node-shell/src/geometry-wasm-node.ts
 import { existsSync as existsSync11 } from "node:fs";
-import { readFile as readFile15 } from "node:fs/promises";
-import { dirname as dirname6, join as join19 } from "node:path";
+import { readFile as readFile16 } from "node:fs/promises";
+import { dirname as dirname6, join as join20 } from "node:path";
 import { fileURLToPath as fileURLToPath9 } from "node:url";
 async function readGeometryWasm(name) {
   const adjacent = fileURLToPath9(new URL(`../wasm/geometry-kernel/${name}`, import.meta.url));
-  if (existsSync11(adjacent)) return readFile15(adjacent);
+  if (existsSync11(adjacent)) return readFile16(adjacent);
   for (let dir = dirname6(adjacent); ; dir = dirname6(dir)) {
-    const candidate = join19(dir, "packages/node-shell/wasm/geometry-kernel", name);
-    if (existsSync11(candidate)) return readFile15(candidate);
+    const candidate = join20(dir, "packages/node-shell/wasm/geometry-kernel", name);
+    if (existsSync11(candidate)) return readFile16(candidate);
     if (dirname6(dir) === dir) break;
   }
   throw new Error(`The geometry kernel ${name} is not installed.`);
@@ -165538,20 +165716,20 @@ __export(fonts_exports, {
   createNodeFontsAPI: () => createNodeFontsAPI
 });
 import { existsSync as existsSync12 } from "node:fs";
-import { readFile as readFile16 } from "node:fs/promises";
-import { dirname as dirname7, join as join20 } from "node:path";
+import { readFile as readFile17 } from "node:fs/promises";
+import { dirname as dirname7, join as join21 } from "node:path";
 import { fileURLToPath as fileURLToPath10 } from "node:url";
 function skeraPath() {
   const adjacent = fileURLToPath10(new URL("../wasm/skera/skera.wasm", import.meta.url));
   if (existsSync12(adjacent)) return adjacent;
   for (let dir = dirname7(adjacent); dirname7(dir) !== dir; dir = dirname7(dir)) {
-    const candidate = join20(dir, "packages/node-shell/wasm/skera/skera.wasm");
+    const candidate = join21(dir, "packages/node-shell/wasm/skera/skera.wasm");
     if (existsSync12(candidate)) return candidate;
   }
   throw new Error("The font subset runtime is not installed.");
 }
 function skeraModule() {
-  compiled2 ??= Promise.resolve().then(() => readFile16(skeraPath())).then((bytes2) => WebAssembly.compile(bytes2)).catch((error2) => {
+  compiled2 ??= Promise.resolve().then(() => readFile17(skeraPath())).then((bytes2) => WebAssembly.compile(bytes2)).catch((error2) => {
     compiled2 = void 0;
     throw error2;
   });
@@ -165592,7 +165770,7 @@ __export(text_measure_exports, {
   textMeasureSpecOfRow: () => textMeasureSpecOfRow
 });
 import { existsSync as existsSync13, readdirSync as readdirSync2, readFileSync as readFileSync7 } from "node:fs";
-import { join as join21 } from "node:path";
+import { join as join22 } from "node:path";
 function firstFamily(value2) {
   if (typeof value2 !== "string") return void 0;
   const first = value2.split(",")[0]?.trim().replace(/^['"]|['"]$/g, "").trim();
@@ -165633,7 +165811,7 @@ function measureFontsFromTokens(doc, theme) {
 function variableFaces(root2) {
   const hit = variableCache.get(root2);
   if (hit) return hit;
-  const dir = join21(root2, "shells", "web", "public", "fonts");
+  const dir = join22(root2, "shells", "web", "public", "fonts");
   const faces = [];
   if (existsSync13(dir)) {
     for (const name of readdirSync2(dir)) {
@@ -165645,7 +165823,7 @@ function variableFaces(root2) {
   return faces;
 }
 function fontFile(url, root2) {
-  if (url.startsWith("/fonts/")) return join21(root2, "shells", "web", "public", url.slice(1));
+  if (url.startsWith("/fonts/")) return join22(root2, "shells", "web", "public", url.slice(1));
   if (url.startsWith("/catalog/")) {
     try {
       return contentUrlFile(url, contentRoots({ root: root2 }));
@@ -165843,15 +166021,15 @@ var init_layout_kernel = __esm({
 
 // packages/node-shell/src/layout-kernel-node.ts
 import { existsSync as existsSync14 } from "node:fs";
-import { readFile as readFile17 } from "node:fs/promises";
-import { dirname as dirname8, join as join22 } from "node:path";
+import { readFile as readFile18 } from "node:fs/promises";
+import { dirname as dirname8, join as join23 } from "node:path";
 import { fileURLToPath as fileURLToPath11 } from "node:url";
 async function loadLayoutKernel() {
   const adjacent = fileURLToPath11(new URL("../wasm/layout-kernel/layout-kernel.wasm", import.meta.url));
-  if (existsSync14(adjacent)) return createLayoutKernel(new Uint8Array(await readFile17(adjacent)));
+  if (existsSync14(adjacent)) return createLayoutKernel(new Uint8Array(await readFile18(adjacent)));
   for (let dir = dirname8(adjacent); ; dir = dirname8(dir)) {
-    const candidate = join22(dir, "packages/node-shell/wasm/layout-kernel/layout-kernel.wasm");
-    if (existsSync14(candidate)) return createLayoutKernel(new Uint8Array(await readFile17(candidate)));
+    const candidate = join23(dir, "packages/node-shell/wasm/layout-kernel/layout-kernel.wasm");
+    if (existsSync14(candidate)) return createLayoutKernel(new Uint8Array(await readFile18(candidate)));
     if (dirname8(dir) === dir) break;
   }
   throw new Error("The layout kernel is not installed.");
@@ -165979,21 +166157,21 @@ __export(emoji_exports, {
   EMOJI_PACK_TAG: () => EMOJI_PACK_TAG,
   createNodeEmojiAPI: () => createNodeEmojiAPI
 });
-import { readFile as readFile18, stat as stat3 } from "node:fs/promises";
+import { readFile as readFile19, stat as stat3 } from "node:fs/promises";
 import { resolve as resolve3, sep } from "node:path";
 import { gunzip as gunzip2 } from "node:zlib";
 import { promisify } from "node:util";
 async function bundleText(file) {
   try {
     if ((await stat3(file)).size > BUNDLE_MAX_BYTES) return null;
-    return await readFile18(file, "utf8");
+    return await readFile19(file, "utf8");
   } catch (error2) {
     if (error2.code !== "ENOENT") return null;
   }
   try {
     const compressed = `${file}.gz`;
     if ((await stat3(compressed)).size > BUNDLE_MAX_BYTES) return null;
-    const bytes2 = await inflateBundle(await readFile18(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
+    const bytes2 = await inflateBundle(await readFile19(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
     return bytes2.toString("utf8");
   } catch {
     return null;
@@ -166030,7 +166208,7 @@ async function jsdomParser() {
 async function createNodeEmojiAPI(options2 = {}) {
   const parseXml = options2.parseXml ?? await jsdomParser();
   const catalogDir = options2.catalogDir;
-  const loadIndex2 = async () => catalogDir ? JSON.parse(await readFile18(`${catalogDir.replace(/\/+$/, "")}/assets/index.json`, "utf8")) : readAssetIndex();
+  const loadIndex2 = async () => catalogDir ? JSON.parse(await readFile19(`${catalogDir.replace(/\/+$/, "")}/assets/index.json`, "utf8")) : readAssetIndex();
   const bundles = /* @__PURE__ */ new Map();
   let listed = null;
   async function entries() {
@@ -168003,7 +168181,7 @@ var init_pdfx2 = __esm({
 });
 
 // packages/node-shell/src/pdf-finishing.ts
-function brandSwatchPalette(palette) {
+function brandSwatchPalette(palette, separate = rgbToCmyk) {
   const out = [], seen = /* @__PURE__ */ new Set();
   for (const { hex: hex3, cmyk, label: label5, spot } of palette ?? []) {
     if (!hex3 || !cmyk && !spot) continue;
@@ -168012,7 +168190,7 @@ function brandSwatchPalette(palette) {
     const r5 = parseInt(h.slice(0, 2), 16) / 255;
     const g2 = parseInt(h.slice(2, 4), 16) / 255;
     const b = parseInt(h.slice(4, 6), 16) / 255;
-    const frac = cmyk && cmyk.length === 4 ? cmyk.map((v) => v / 100) : rgbToCmyk(r5, g2, b);
+    const frac = cmyk && cmyk.length === 4 ? cmyk.map((v) => v / 100) : separate(r5, g2, b);
     const key2 = `${h}:${frac.join(",")}:${spot?.name ?? ""}:${spot?.finish ?? ""}`;
     if (seen.has(key2)) continue;
     seen.add(key2);
@@ -168025,7 +168203,7 @@ function brandSwatchPalette(palette) {
   }
   return out;
 }
-function printGeometryForSize(trimWpt, trimHpt, opts, paletteSource) {
+function printGeometryForSize(trimWpt, trimHpt, opts, paletteSource, separate = rgbToCmyk) {
   const bleedDim = parseDimension(opts.bleed);
   const bleedPt = bleedDim ? toPoints(bleedDim) : 0;
   const marks = {
@@ -168037,7 +168215,7 @@ function printGeometryForSize(trimWpt, trimHpt, opts, paletteSource) {
   };
   const anyMark = marks.crop || marks.registration || marks.bleed || marks.colorBars || marks.provenance;
   if (bleedPt <= 0 && !anyMark) return null;
-  const palette = marks.colorBars ? brandSwatchPalette(paletteSource) : [];
+  const palette = marks.colorBars ? brandSwatchPalette(paletteSource, separate) : [];
   return computePrintGeometry({ trimWpt, trimHpt, bleedPt, marks, palette, barStyle: opts.barStyle, barRadiusPt: opts.barRadiusPt });
 }
 async function encryptPdfStrong(blob, password) {
@@ -168389,11 +168567,11 @@ var init_trust_anchors = __esm({
 });
 
 // packages/node-shell/src/enrollment-trust.ts
-import { readFile as readFile19 } from "node:fs/promises";
+import { readFile as readFile20 } from "node:fs/promises";
 async function loadEnrollmentTrust(env = process.env) {
   const path = env.LOLLY_ENROLLMENT_TRUST;
   if (!path) return null;
-  const bytes2 = await readFile19(expandHome(path));
+  const bytes2 = await readFile20(expandHome(path));
   if (bytes2.length > 2e5) throw new Error("Managed identity trust file exceeds its limit");
   const trust = parseEnrollmentTrustBundle(bytes2.toString("utf8"));
   const files = JSON.parse(env.LOLLY_ENROLLMENT_CRLS || "{}");
@@ -168401,7 +168579,7 @@ async function loadEnrollmentTrust(env = process.env) {
   const crls = /* @__PURE__ */ Object.create(null);
   for (const [issuer, path2] of Object.entries(files)) {
     if (!trust.issuers.has(issuer) || typeof path2 !== "string" || !path2.length) throw new Error("Managed identity CRL configuration is invalid");
-    const bytes3 = await readFile19(expandHome(path2));
+    const bytes3 = await readFile20(expandHome(path2));
     if (bytes3.length > 1500 * 1024) throw new Error("Managed identity CRL file exceeds its limit");
     crls[issuer] = bytes3.includes("-----BEGIN X509 CRL-----") ? pemToDer(bytes3.toString("utf8")) : new Uint8Array(bytes3);
   }
@@ -168424,7 +168602,7 @@ __export(signing_identity_exports, {
   describeIdentity: () => describeIdentity,
   resolveSigningIdentity: () => resolveSigningIdentity
 });
-import { readFile as readFile20 } from "node:fs/promises";
+import { readFile as readFile21 } from "node:fs/promises";
 import { createPrivateKey, createPublicKey, webcrypto } from "node:crypto";
 function readCertChain(bytes2, source) {
   const text12 = bytes2.toString("latin1");
@@ -168611,7 +168789,7 @@ function sameBytes2(a, b) {
 }
 async function readSecret(path, code, flag) {
   try {
-    return await readFile20(expandHome(path));
+    return await readFile21(expandHome(path));
   } catch (e) {
     throw new SigningIdentityError(`${flag}: cannot read "${path}" (${firstLine(e.message)}).`, code);
   }
@@ -168759,11 +168937,11 @@ import { execFile } from "node:child_process";
 import { promisify as promisify2 } from "node:util";
 import { mkdtemp, writeFile as writeFile4, rm as rm3 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join as join24 } from "node:path";
+import { join as join25 } from "node:path";
 async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffprobe", decode: "ffmpeg" }, options2 = {}) {
   options2.signal?.throwIfAborted();
   if (!bytes2.length || bytes2.length > 256 * 1024 * 1024) throw new Error("Motion inspection accepts 1 byte to 256 MiB.");
-  const directory = await mkdtemp(join24(tmpdir(), "lolly-motion-check-")), path = join24(directory, "delivery");
+  const directory = await mkdtemp(join25(tmpdir(), "lolly-motion-check-")), path = join25(directory, "delivery");
   const facts2 = {}, checks = [];
   try {
     await writeFile4(path, bytes2);
@@ -168851,7 +169029,7 @@ import { execFile as execFile2 } from "node:child_process";
 import { promisify as promisify3 } from "node:util";
 import { mkdtemp as mkdtemp2, writeFile as writeFile5, rm as rm4 } from "node:fs/promises";
 import { tmpdir as tmpdir2 } from "node:os";
-import { join as join25 } from "node:path";
+import { join as join26 } from "node:path";
 async function collectProductionMotion(bytes2, contract2, signal, binaries = { probe: "ffprobe", decode: "ffmpeg" }) {
   signal?.throwIfAborted();
   const facts2 = { limitations: ["motion-appearance-between-samples-unmeasured", "decoded-rgb8-not-hdr-or-cross-device-conformance", "encoded-pixels-do-not-prove-text-or-chart-semantics"] };
@@ -168867,7 +169045,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     facts2.limitations.push("unsupported-motion-container");
     return facts2;
   }
-  const directory = await mkdtemp2(join25(tmpdir2(), "lolly-production-motion-")), path = join25(directory, "delivery");
+  const directory = await mkdtemp2(join26(tmpdir2(), "lolly-production-motion-")), path = join26(directory, "delivery");
   try {
     await writeFile5(path, bytes2);
     const { stdout } = await run2(binaries.probe, ["-v", "error", "-protocol_whitelist", "file,pipe", "-show_streams", "-show_format", "-of", "json", path], { signal, timeout: 3e4, maxBuffer: 2 * 1024 * 1024 });
@@ -168992,15 +169170,15 @@ var init_production_motion = __esm({
 
 // packages/node-shell/src/production-pdf.ts
 import { execFile as execFile3 } from "node:child_process";
-import { mkdtemp as mkdtemp3, readFile as readFile23, rm as rm5, writeFile as writeFile6 } from "node:fs/promises";
+import { mkdtemp as mkdtemp3, readFile as readFile24, rm as rm5, writeFile as writeFile6 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
-import { join as join26 } from "node:path";
+import { join as join27 } from "node:path";
 import { promisify as promisify4 } from "node:util";
 async function collectProductionPdf(bytes2, contract2, signal) {
   const facts2 = { format: "pdf", limitations: ["pdf-print-colour-and-overprint-unchecked", "pdf-font-identity-unchecked"] };
-  const dir = await mkdtemp3(join26(tmpdir3(), "lolly-production-"));
+  const dir = await mkdtemp3(join27(tmpdir3(), "lolly-production-"));
   try {
-    const file = join26(dir, "input.pdf");
+    const file = join27(dir, "input.pdf");
     await writeFile6(file, bytes2);
     const opts = { encoding: "utf8", timeout: 1e4, maxBuffer: 2 * 1024 * 1024, signal, env: { ...process.env, LC_ALL: "C" } };
     const { stdout } = await exec("pdfinfo", ["-box", "-f", "1", "-l", "100", file], opts);
@@ -169031,8 +169209,8 @@ async function collectProductionPdf(bytes2, contract2, signal) {
     if (contract2.comparison || contract2.alpha !== "any") {
       if (pages !== 1 || !facts2.width || !facts2.height || Math.ceil(facts2.width) * Math.ceil(facts2.height) > PRODUCTION_MAX_PIXELS) facts2.limitations.push("pdf-pixel-budget-or-multiple-pages");
       else {
-        await exec("pdftoppm", ["-f", "1", "-singlefile", "-cropbox", "-scale-dimension-before-rotation", "-r", "96", "-png", file, join26(dir, "page")], opts);
-        const raster = await productionRaster(new Uint8Array(await readFile23(join26(dir, "page.png"))), signal);
+        await exec("pdftoppm", ["-f", "1", "-singlefile", "-cropbox", "-scale-dimension-before-rotation", "-r", "96", "-png", file, join27(dir, "page")], opts);
+        const raster = await productionRaster(new Uint8Array(await readFile24(join27(dir, "page.png"))), signal);
         facts2.pixels = raster.pixels;
         facts2.opaque = raster.opaque;
       }
@@ -169178,7 +169356,7 @@ var init_production2 = __esm({
 // packages/node-shell/src/desktop-renderer.ts
 import { constants, existsSync as existsSync18, accessSync, statSync as statSync4, lstatSync, openSync, fstatSync, readSync, closeSync } from "node:fs";
 import { homedir as homedir5, tmpdir as tmpdir4 } from "node:os";
-import { basename as basename3, delimiter, join as join28 } from "node:path";
+import { basename as basename3, delimiter, join as join29 } from "node:path";
 import { spawn as spawn3, spawnSync } from "node:child_process";
 import { connect } from "node:net";
 function rendererPreference(value2 = process.env.LOLLY_RENDERER) {
@@ -169200,24 +169378,24 @@ function rendererOrder(preference, available) {
 function desktopExecutableCandidates(platform = process.platform, env = process.env, userHome = homedir5()) {
   const explicit = env.LOLLY_DESKTOP_BIN ? [env.LOLLY_DESKTOP_BIN] : [];
   if (platform === "darwin") {
-    const bundles = ["/Applications/Lolly.app", join28(userHome, "Applications", "Lolly.app")];
+    const bundles = ["/Applications/Lolly.app", join29(userHome, "Applications", "Lolly.app")];
     return [
       ...explicit,
-      ...bundles.flatMap((app) => ["lolly-desktop", "Lolly"].map((bin) => join28(app, "Contents", "MacOS", bin)))
+      ...bundles.flatMap((app) => ["lolly-desktop", "Lolly"].map((bin) => join29(app, "Contents", "MacOS", bin)))
     ];
   }
   if (platform === "win32") {
-    const local2 = env.LOCALAPPDATA || join28(userHome, "AppData", "Local");
+    const local2 = env.LOCALAPPDATA || join29(userHome, "AppData", "Local");
     const programs = env.ProgramFiles || "C:\\Program Files";
     const dirs = [
-      join28(local2, "Lolly"),
-      join28(local2, "Programs", "Lolly"),
-      join28(programs, "Lolly"),
+      join29(local2, "Lolly"),
+      join29(local2, "Programs", "Lolly"),
+      join29(programs, "Lolly"),
       ...windowsInstallLocations(env)
     ];
     return [
       ...explicit,
-      ...dirs.flatMap((dir) => ["Lolly.exe", "lolly-desktop.exe"].map((bin) => join28(dir, bin))),
+      ...dirs.flatMap((dir) => ["Lolly.exe", "lolly-desktop.exe"].map((bin) => join29(dir, bin))),
       ...pathCandidates(["Lolly.exe", "lolly-desktop.exe", "lolly.exe"], platform, env)
     ];
   }
@@ -169225,9 +169403,9 @@ function desktopExecutableCandidates(platform = process.platform, env = process.
     ...explicit,
     ...env.APPIMAGE ? [env.APPIMAGE] : [],
     ...["lolly-desktop", "lolly", "Lolly"].flatMap((bin) => [
-      join28(userHome, ".local", "bin", bin),
-      join28("/usr/bin", bin),
-      join28("/app/bin", bin)
+      join29(userHome, ".local", "bin", bin),
+      join29("/usr/bin", bin),
+      join29("/app/bin", bin)
     ]),
     ...pathCandidates(["lolly-desktop", "Lolly", "lolly"], platform, env)
   ];
@@ -169238,7 +169416,7 @@ function pathCandidates(names, platform, env) {
   const sep3 = platform === "win32" ? ";" : delimiter;
   const out = [];
   for (const dir of raw.split(sep3).filter(Boolean).slice(0, 64)) {
-    for (const name of names) out.push(join28(dir, name));
+    for (const name of names) out.push(join29(dir, name));
   }
   return out;
 }
@@ -169301,7 +169479,7 @@ function renderServerPath(probe = {}) {
   const override = env.LOLLY_RENDER_SERVER?.trim();
   if (override) return override;
   const dir = probe.dataDir === void 0 ? desktopAppDataDir(env) : probe.dataDir;
-  return dir ? join28(dir, "render.json") : null;
+  return dir ? join29(dir, "render.json") : null;
 }
 function processAlive(pid) {
   try {
@@ -169609,9 +169787,9 @@ __export(webshell_render_exports, {
   transformViaWebShell: () => transformViaWebShell
 });
 import { createServer as createServer2 } from "node:http";
-import { readFile as readFile26, stat as stat6 } from "node:fs/promises";
+import { readFile as readFile27, stat as stat6 } from "node:fs/promises";
 import { existsSync as existsSync19, writeFileSync as writeFileSync2 } from "node:fs";
-import { join as join29, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
+import { join as join30, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
   const remote = process.env.LOLLY_WEB_BASE;
   if (remote) return remote.replace(/\/$/, "");
@@ -169645,8 +169823,8 @@ function activeContentResponse(urlPath) {
   }
 }
 function serveDist2() {
-  const dist2 = process.env.LOLLY_WEB_DIST || join29(repoRoot(), "shells", "web", "dist");
-  if (!existsSync19(join29(dist2, "index.html"))) {
+  const dist2 = process.env.LOLLY_WEB_DIST || join30(repoRoot(), "shells", "web", "dist");
+  if (!existsSync19(join30(dist2, "index.html"))) {
     throw new BrowserError(
       `No built web shell at ${dist2}. Run \`pnpm run build:web\` (or set LOLLY_WEB_DIST to a prebuilt shell / LOLLY_WEB_BASE to a running one). Raster/PDF/video export needs it; svg and data formats render without it.`
     );
@@ -169668,9 +169846,9 @@ function serveDist2() {
         return;
       }
       if (!live2 && (urlPath === "/" || !existsSync19(filePath) || !(await stat6(filePath)).isFile())) {
-        filePath = join29(root2, "index.html");
+        filePath = join30(root2, "index.html");
       }
-      const data = await readFile26(filePath);
+      const data = await readFile27(filePath);
       res.setHeader("Content-Type", MIME4[extname3(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
@@ -169782,7 +169960,7 @@ function startDebug() {
         ...network.length ? network.map((l) => `  ${l}`) : ["  (nothing)"],
         ""
       ];
-      const path = tierBDebugConfig.outPath ? `${tierBDebugConfig.outPath}.tier-b-debug.log` : join29(process.cwd(), `lolly-tier-b-debug-${label5.replace(/[^a-z0-9.-]+/gi, "-")}.log`);
+      const path = tierBDebugConfig.outPath ? `${tierBDebugConfig.outPath}.tier-b-debug.log` : join30(process.cwd(), `lolly-tier-b-debug-${label5.replace(/[^a-z0-9.-]+/gi, "-")}.log`);
       try {
         writeFileSync2(path, lines.join("\n"), "utf8");
         writtenPath = path;
@@ -169924,7 +170102,7 @@ async function transformViaWebShell({ toolId, fileInputId: fileInputId2, file, q
     }
     const path = await outcome.d.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes2 = new Uint8Array(await readFile26(path));
+    const bytes2 = new Uint8Array(await readFile27(path));
     const filename = outcome.d.suggestedFilename() || file.name;
     await outcome.d.delete().catch(() => {
     });
@@ -169968,7 +170146,7 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     debug.step("read the downloaded bytes");
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes2 = new Uint8Array(await readFile26(path));
+    const bytes2 = new Uint8Array(await readFile27(path));
     await download.delete().catch(() => {
     });
     dims.onProductionInputs?.(observeInputs(bytes2));
@@ -170035,7 +170213,7 @@ async function renderVideoViaScreenshot(toolId, query2, format, dims = {}) {
     debug.step("read the downloaded bytes");
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes2 = new Uint8Array(await readFile26(path));
+    const bytes2 = new Uint8Array(await readFile27(path));
     await download.delete().catch(() => {
     });
     return { bytes: bytes2, mime: MIME4["." + format.toLowerCase()] ?? "application/octet-stream" };
@@ -170080,7 +170258,7 @@ async function renderToolPackageViaWebShell(bytes2, toolId, query2, format, prod
     const download = await downloading;
     const path = await download.path();
     if (!path) throw new BrowserError("The tool produced no output file.");
-    const rendered = new Uint8Array(await readFile26(path));
+    const rendered = new Uint8Array(await readFile27(path));
     production.onProductionInputs?.(observeInputs(rendered));
     return rendered;
   } finally {
@@ -170186,7 +170364,7 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
     }
     const path = await download.path();
     if (!path) throw new BrowserError(`The ${format} export of ${label5} yielded no file.`);
-    const out = new Uint8Array(await readFile26(path));
+    const out = new Uint8Array(await readFile27(path));
     const filename = download.suggestedFilename();
     await download.delete().catch(() => {
     });
@@ -170237,8 +170415,8 @@ function fitsDesktopRequest(toolUrl) {
 }
 function assertDurableEncoder(dims, remote) {
   if (!dims.durable || remote) return;
-  const dist2 = process.env.LOLLY_WEB_DIST || join29(repoRoot(), "shells", "web", "dist");
-  const model2 = join29(dist2, "models", "trustmark", "encoder_Q.onnx");
+  const dist2 = process.env.LOLLY_WEB_DIST || join30(repoRoot(), "shells", "web", "dist");
+  const model2 = join30(dist2, "models", "trustmark", "encoder_Q.onnx");
   if (!existsSync19(model2)) {
     throw new BrowserError(
       `The durable credential needs the TrustMark encoder model, which isn't in the built web shell (${model2}). Rebuild it with \`pnpm run build:web\` (the model ships in shells/web/public), or export without --durable.`
@@ -170996,7 +171174,7 @@ var init_forensic2 = __esm({
 });
 
 // packages/node-shell/src/check.ts
-import { createHash as createHash10 } from "node:crypto";
+import { createHash as createHash11 } from "node:crypto";
 function fidelityNote(compared) {
   const excepted = compared.fidelity.excepted?.length ?? 0;
   return (excepted ? ` ${excepted === 1 ? "1 string is recorded as a deliberate edit" : `${excepted} strings are recorded as deliberate edits`} (excepted, not passed).` : "") + (compared.complete ? "" : " The comparison stopped at one of its limits, so the family is partial (see fidelity.coverage.partial).");
@@ -172012,7 +172190,7 @@ var init_check = __esm({
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
-    sha2562 = (bytes2) => createHash10("sha256").update(bytes2).digest("hex");
+    sha2562 = (bytes2) => createHash11("sha256").update(bytes2).digest("hex");
     zero = () => ({ error: 0, warn: 0, info: 0 });
     familyState = (state, reason2) => ({
       state,
@@ -172033,7 +172211,7 @@ var init_check = __esm({
 });
 
 // packages/node-shell/src/compose-photo-surface.ts
-import { readFile as readFile27 } from "node:fs/promises";
+import { readFile as readFile28 } from "node:fs/promises";
 function mimeOf2(bytes2) {
   if (bytes2[0] === 255 && bytes2[1] === 216) return "image/jpeg";
   if (bytes2[0] === 137 && bytes2[1] === 80 && bytes2[2] === 78 && bytes2[3] === 71) return "image/png";
@@ -172169,7 +172347,7 @@ async function markInks(id3) {
     const svg = (entry2?.formats ?? []).find((f) => String(f.format).toLowerCase() === "svg" && f.url);
     const file = svg?.url ? contentUrlFile2(svg.url) : null;
     if (!file) return null;
-    const colours2 = extractSvgColors(await readFile27(file, "utf8"));
+    const colours2 = extractSvgColors(await readFile28(file, "utf8"));
     if (!colours2.length) return ["#000000"];
     const lums = colours2.map((c) => hexLuminance(c)).filter((l) => l !== null);
     if (lums.length && (Math.max(...lums) + 0.05) / (Math.min(...lums) + 0.05) >= 3) return null;
@@ -172282,7 +172460,7 @@ __export(design_compose_exports, {
   resolveComposeMaster: () => resolveComposeMaster,
   suggestCompose: () => suggestCompose
 });
-import { readFile as readFile28 } from "node:fs/promises";
+import { readFile as readFile29 } from "node:fs/promises";
 function parseComposeSize(value2) {
   const m2 = /^\s*(\d+)\s*[x×X]\s*(\d+)\s*$/.exec(value2);
   if (!m2) return null;
@@ -172294,7 +172472,7 @@ function parseComposeSize(value2) {
 async function readJsonFile(path, code, what) {
   let text12;
   try {
-    text12 = await readFile28(path, "utf8");
+    text12 = await readFile29(path, "utf8");
   } catch (err) {
     throw new DesignComposeError(code, `${what} ${path} could not be read: ${err.message}`);
   }
@@ -173506,7 +173684,7 @@ init_webgpu_launch();
 init_production_browser();
 init_export_wait();
 init_open_session();
-import { readFile as readFile24, stat as stat5 } from "node:fs/promises";
+import { readFile as readFile25, stat as stat5 } from "node:fs/promises";
 import { existsSync as existsSync16 } from "node:fs";
 
 // shells/cli/src/bridge.ts
@@ -173527,7 +173705,7 @@ async function prepareJxlAsset(ref2, bytes2) {
 
 // shells/cli/src/bridge.ts
 init_asset_bytes();
-import { readFile as readFile21 } from "node:fs/promises";
+import { readFile as readFile22 } from "node:fs/promises";
 
 // packages/node-shell/src/public-http.ts
 import { lookup } from "node:dns/promises";
@@ -173762,10 +173940,51 @@ async function fetchPublicBytes(raw, opts = {}) {
 
 // shells/cli/src/bridge.ts
 init_src2();
+import { zipSync as zipSync2 } from "fflate";
+
+// packages/node-shell/src/press-separation-node.ts
+init_src2();
+init_repo_root();
+import { readFile as readFile8 } from "node:fs/promises";
+import { createHash as createHash8 } from "node:crypto";
+import { join as join12 } from "node:path";
+
+// packages/node-shell/src/press-separation.ts
+init_src2();
+var BUNDLED_PRESS_PROFILE = Object.freeze({
+  condition: "fogra39",
+  file: "craft-coated-fogra39.icc",
+  bytes: 712888,
+  sha256: "be2d6bdad6e0508f3a486659893748eebc7063933e53dbb917da8cfa8028f20e"
+});
+function usesBundledPressProfile(colorProfile) {
+  const wanted = CMYK_CONDITIONS[BUNDLED_PRESS_PROFILE.condition];
+  const value2 = colorProfile ?? DEFAULT_CMYK_CONDITION;
+  return cmykCondition(value2).identifier === wanted.identifier;
+}
+
+// packages/node-shell/src/press-separation-node.ts
+var bundled;
+function bundledPressSeparation() {
+  bundled ??= readFile8(new URL(`../icc/${BUNDLED_PRESS_PROFILE.file}`, import.meta.url)).catch((error2) => {
+    if (error2.code !== "ENOENT") throw error2;
+    return readFile8(join12(repoRoot(), "packages/node-shell/icc", BUNDLED_PRESS_PROFILE.file));
+  }).then((bytes2) => {
+    if (createHash8("sha256").update(bytes2).digest("hex") !== BUNDLED_PRESS_PROFILE.sha256) return null;
+    const profile2 = parseIccProfile(new Uint8Array(bytes2));
+    return profile2 ? iccSeparation(profile2) : null;
+  }).catch(() => null);
+  return bundled;
+}
+async function pressSeparationFor(colorProfile) {
+  if (!usesBundledPressProfile(colorProfile)) return DEVICE_SEPARATION;
+  return await bundledPressSeparation() ?? DEVICE_SEPARATION;
+}
+
+// shells/cli/src/bridge.ts
 init_src2();
 init_pdf2();
 init_pptx3();
-import { zipSync as zipSync2 } from "fflate";
 
 // packages/node-shell/src/net.ts
 var MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
@@ -174391,15 +174610,15 @@ init_text3();
 // packages/node-shell/src/audio.ts
 init_src2();
 init_content_roots();
-import { readFile as readFile9 } from "node:fs/promises";
+import { readFile as readFile10 } from "node:fs/promises";
 import { fileURLToPath as fileURLToPath7 } from "node:url";
-import { isAbsolute, join as join13 } from "node:path";
+import { isAbsolute, join as join14 } from "node:path";
 
 // packages/node-shell/src/rondo.ts
 import { Worker as Worker3 } from "node:worker_threads";
 import { existsSync as existsSync8 } from "node:fs";
 import { fileURLToPath as fileURLToPath6 } from "node:url";
-import { createHash as createHash8 } from "node:crypto";
+import { createHash as createHash9 } from "node:crypto";
 
 // packages/rondo/src/limits.ts
 var RONDO_LIMITS = Object.freeze({
@@ -174648,7 +174867,7 @@ function runWorker2(job, caps, timeoutMs, limitText) {
   });
 }
 var secondsText = (ms) => ms < 1e4 ? (ms / 1e3).toFixed(1) : String(Math.round(ms / 1e3));
-var digestOf = (song) => createHash8("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
+var digestOf = (song) => createHash9("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
 var copyOf = (k) => ({
   ...k,
   channels: [k.channels[0].slice(), k.channels[1].slice()],
@@ -174665,7 +174884,7 @@ async function renderRondoSong(song, opts = {}) {
     throw new RondoAudioError(`This host renders songs up to ${maxSeconds} s long; ${seconds2} s was asked for.`, "rondo.limits.seconds");
   }
   const key2 = `${digestOf(song)}|${seconds2 ?? "natural"}|${maxSeconds}`;
-  const sourceDigest = createHash8("sha256").update(rondoSourceBytes(song)).digest("hex");
+  const sourceDigest = createHash9("sha256").update(rondoSourceBytes(song)).digest("hex");
   const report4 = (k, cached2) => ({
     sampleRate: k.sampleRate,
     channels: k.channels,
@@ -174805,11 +175024,11 @@ async function bytesOf2(src, repoRoot2, readSource2) {
     if (!res.ok) throw new Error(`audio: fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile9(fileURLToPath7(url)));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile10(fileURLToPath7(url)));
   const roots2 = url.startsWith("/") ? rootsFor4(repoRoot2) : void 0;
   const content2 = roots2 ? contentUrlFile(url, roots2) : null;
-  const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join13(repoRoot2, url.replace(/^\//, "")));
-  return new Uint8Array(await readFile9(path));
+  const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join14(repoRoot2, url.replace(/^\//, "")));
+  return new Uint8Array(await readFile10(path));
 }
 async function songOf(src, repoRoot2, readSource2) {
   const bytes2 = await bytesOf2(src, repoRoot2, readSource2);
@@ -175528,7 +175747,7 @@ async function runDriveSteps(page3, steps, opts = {}) {
     await page3.waitForTimeout(DRIVE_SETTLE_MS);
   }
 }
-var clamp0115 = (n7) => Number.isFinite(n7) ? Math.min(0.9, Math.max(0, n7)) : 0;
+var clamp0116 = (n7) => Number.isFinite(n7) ? Math.min(0.9, Math.max(0, n7)) : 0;
 function recolorCss(p) {
   switch (p.recolor) {
     case "invert":
@@ -175639,8 +175858,8 @@ async function captureUrl(params2, format, dims, opts = {}) {
       });
       return { bytes: new Uint8Array(pdf), mime: "application/pdf" };
     }
-    const l = clamp0115(params2.cropLeft), r5 = clamp0115(params2.cropRight);
-    const t = clamp0115(params2.cropTop), b = clamp0115(params2.cropBottom);
+    const l = clamp0116(params2.cropLeft), r5 = clamp0116(params2.cropRight);
+    const t = clamp0116(params2.cropTop), b = clamp0116(params2.cropBottom);
     const clipW = Math.max(1, Math.round(width * (1 - l - r5)));
     const clipH = Math.max(1, Math.round(height * (1 - t - b)));
     const notes = [];
@@ -177087,9 +177306,9 @@ init_canvas();
 init_session();
 init_src2();
 import { readFileSync as readFileSync6 } from "node:fs";
-import { readFile as readFile11 } from "node:fs/promises";
+import { readFile as readFile12 } from "node:fs/promises";
 import { createRequire as createRequire4 } from "node:module";
-import { isAbsolute as isAbsolute2, join as join15 } from "node:path";
+import { isAbsolute as isAbsolute2, join as join16 } from "node:path";
 import { fileURLToPath as fileURLToPath8 } from "node:url";
 
 // packages/node-shell/src/tts-blend.ts
@@ -177255,10 +177474,10 @@ var FAMILY_DIR = {
   whisper: WHISPER_MODEL_ID
 };
 function modelFilePath(modelsDir, family2, rel) {
-  return join15(modelsDir, FAMILY_DIR[family2], rel);
+  return join16(modelsDir, FAMILY_DIR[family2], rel);
 }
 function missingModelFiles(modelsDir, family2, only) {
-  return missingPinnedFiles(join15(modelsDir, FAMILY_DIR[family2]), SPEECH_MODEL_FILES[family2], only);
+  return missingPinnedFiles(join16(modelsDir, FAMILY_DIR[family2]), SPEECH_MODEL_FILES[family2], only);
 }
 function mb(bytes2) {
   return `${(bytes2 / (1024 * 1024)).toFixed(1)} MB`;
@@ -177269,7 +177488,7 @@ function missingModelError(family2, modelsDir, missing, consentBytes) {
   const head2 = bySize.slice(0, 3).join(", ");
   const more = bySize.length > 3 ? `, and ${bySize.length - 3} more` : "";
   const err = new Error(
-    `speech: the ${family2} model is not on this machine - missing ${head2}${more} under ${join15(modelsDir, FAMILY_DIR[family2])}. It is a one-time ${mb(consentBytes)} (${consentBytes} bytes) download: run  lolly models fetch ${family2}`
+    `speech: the ${family2} model is not on this machine - missing ${head2}${more} under ${join16(modelsDir, FAMILY_DIR[family2])}. It is a one-time ${mb(consentBytes)} (${consentBytes} bytes) download: run  lolly models fetch ${family2}`
   );
   return Object.assign(err, { modelMissing: family2, kind: "MODEL_NOT_STAGED" });
 }
@@ -177390,9 +177609,9 @@ async function bytesOf3(src, root2) {
     if (!res.ok) throw new Error(`speech: audio fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile11(fileURLToPath8(url)));
-  const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join15(root2, url.replace(/^\//, ""));
-  return new Uint8Array(await readFile11(path));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile12(fileURLToPath8(url)));
+  const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join16(root2, url.replace(/^\//, ""));
+  return new Uint8Array(await readFile12(path));
 }
 function resampleMono(pcm, from, to) {
   if (from === to || pcm.length === 0) return pcm;
@@ -177666,7 +177885,7 @@ function createNodeSpeechAPI(opts = {}) {
 }
 
 // packages/node-shell/src/scan.ts
-import { readFile as readFile12 } from "node:fs/promises";
+import { readFile as readFile13 } from "node:fs/promises";
 import { createRequire as createRequire5 } from "node:module";
 import { readBarcodes, prepareZXingModule } from "zxing-wasm/reader";
 var ZXING_TO_BD = {
@@ -177707,7 +177926,7 @@ function ensureModule() {
     prepared2 = (async () => {
       const require2 = createRequire5(import.meta.url);
       const wasmPath = require2.resolve("zxing-wasm/reader/zxing_reader.wasm");
-      const bytes2 = await readFile12(wasmPath);
+      const bytes2 = await readFile13(wasmPath);
       prepareZXingModule({ overrides: { wasmBinary: bytes2.buffer.slice(bytes2.byteOffset, bytes2.byteOffset + bytes2.byteLength) } });
     })().catch((e) => {
       prepared2 = null;
@@ -177775,18 +177994,18 @@ init_state_dir();
 // packages/node-shell/src/session-store.ts
 init_fs_token();
 init_session_record();
-import { mkdir as mkdir2, readdir as readdir4, readFile as readFile13, rm as rm2, writeFile as writeFile2 } from "node:fs/promises";
-import { join as join17 } from "node:path";
+import { mkdir as mkdir2, readdir as readdir4, readFile as readFile14, rm as rm2, writeFile as writeFile2 } from "node:fs/promises";
+import { join as join18 } from "node:path";
 var SESSION_SUBDIR = "saved-state";
 function sessionsDir(stateDir2) {
-  return join17(stateDir2, SESSION_SUBDIR);
+  return join18(stateDir2, SESSION_SUBDIR);
 }
 function sessionFilePath(stateDir2, slot) {
-  return join17(sessionsDir(stateDir2), `${encodeFsToken(slot)}.json`);
+  return join18(sessionsDir(stateDir2), `${encodeFsToken(slot)}.json`);
 }
 async function readSessionRecord(stateDir2, slot) {
   try {
-    const raw = JSON.parse(await readFile13(sessionFilePath(stateDir2, slot), "utf8"));
+    const raw = JSON.parse(await readFile14(sessionFilePath(stateDir2, slot), "utf8"));
     return normalise4(raw);
   } catch {
     return null;
@@ -177794,7 +178013,7 @@ async function readSessionRecord(stateDir2, slot) {
 }
 async function loadSessionData(stateDir2, slot) {
   try {
-    const raw = JSON.parse(await readFile13(sessionFilePath(stateDir2, slot), "utf8"));
+    const raw = JSON.parse(await readFile14(sessionFilePath(stateDir2, slot), "utf8"));
     return migrateSessionRecord(raw);
   } catch {
     return null;
@@ -177864,13 +178083,13 @@ function normalise4(raw) {
 }
 
 // packages/node-shell/src/design-systems.ts
-import { basename as basename2, join as join18 } from "node:path";
-import { mkdir as mkdir3, readFile as readFile14, rename as rename2, writeFile as writeFile3 } from "node:fs/promises";
+import { basename as basename2, join as join19 } from "node:path";
+import { mkdir as mkdir3, readFile as readFile15, rename as rename2, writeFile as writeFile3 } from "node:fs/promises";
 init_state_dir();
 var FORMAT = 1;
 var INDEX_FILE = "design-systems.json";
 var emptyRegistry = () => ({ format: FORMAT, active: null, startSeen: false, systems: [] });
-var indexPath = () => join18(resolveStateDir().dir, INDEX_FILE);
+var indexPath = () => join19(resolveStateDir().dir, INDEX_FILE);
 function safeRegistry(value2) {
   if (!value2 || typeof value2 !== "object") return emptyRegistry();
   const v = value2;
@@ -177883,7 +178102,7 @@ function safeRegistry(value2) {
 }
 async function readRegistry() {
   try {
-    return safeRegistry(JSON.parse(await readFile14(indexPath(), "utf8")));
+    return safeRegistry(JSON.parse(await readFile15(indexPath(), "utf8")));
   } catch {
     return emptyRegistry();
   }
@@ -177896,7 +178115,7 @@ async function readActiveDesignSystemTokens() {
   const active = await activeNodeDesignSystem();
   if (!active?.tokensFile) return null;
   try {
-    return JSON.parse(await readFile14(join18(resolveStateDir().dir, active.tokensFile), "utf8"));
+    return JSON.parse(await readFile15(join19(resolveStateDir().dir, active.tokensFile), "utf8"));
   } catch {
     return null;
   }
@@ -178206,7 +178425,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
     return bytes2;
   };
   async function readHostedSource(source, allowedTypes = PUBLIC_IMAGE_TYPES) {
-    if (source.startsWith("/catalog/")) return bounded2(new Uint8Array(await readFile21(assetFilePath(source))));
+    if (source.startsWith("/catalog/")) return bounded2(new Uint8Array(await readFile22(assetFilePath(source))));
     if (/^data:/i.test(source)) return bounded2(decodeDataUrl2(source));
     return (await fetchPublicBytes(source, { allowedTypes })).bytes;
   }
@@ -178241,7 +178460,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       if (source instanceof Uint8Array) return source;
       if (typeof source === "object" && "arrayBuffer" in source) return new Uint8Array(await source.arrayBuffer());
       if (typeof source !== "string") return host.assets.bytes(source);
-      if (source.startsWith("/catalog/")) return new Uint8Array(await readFile21(assetFilePath(source)));
+      if (source.startsWith("/catalog/")) return new Uint8Array(await readFile22(assetFilePath(source)));
       if (publicOnlyAssets) return readHostedSource(source);
       const response = await fetch(source);
       if (!response.ok) throw new Error(`Could not read HDR source (${response.status}).`);
@@ -178272,7 +178491,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile21(assetFilePath(pal.formats[0].url), "utf8"));
+      const doc = JSON.parse(await readFile22(assetFilePath(pal.formats[0].url), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -178282,7 +178501,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile21(assetFilePath(pal.formats[0].url), "utf8"));
+      const doc = JSON.parse(await readFile22(assetFilePath(pal.formats[0].url), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -178298,7 +178517,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
         const meta = assetById.get(lutId);
         const fmt5 = meta?.formats.find((f) => f.format === "cube") ?? meta?.formats[0];
         if (!fmt5) return null;
-        return parseLutText(await readFile21(assetFilePath(fmt5.url), "utf8"), lutId);
+        return parseLutText(await readFile22(assetFilePath(fmt5.url), "utf8"), lutId);
       })().catch(() => null);
       lutReads.set(lutId, pending3);
     }
@@ -178334,7 +178553,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
   const tokensAssets = assetIndex2.assets.filter((a) => a.type === "tokens");
   const headTokensId = pickHeadAssetId(tokensAssets.map((a) => a.id));
   const headTokensAsset3 = tokensAssets.find((a) => a.id === headTokensId) ?? null;
-  const readAssetDoc = async (asset2) => JSON.parse(await readFile21(assetFilePath(asset2.formats[0].url), "utf8"));
+  const readAssetDoc = async (asset2) => JSON.parse(await readFile22(assetFilePath(asset2.formats[0].url), "utf8"));
   let tokensDocCache = null;
   let tokensDocRevision = "";
   let tokensDocSystem = null;
@@ -178572,7 +178791,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       if (shipped) {
         const file = contentUrlFile(id3);
         if (!file) throw new Error(`Tool asset not found: ${id3}`);
-        const bytes2 = await readFile21(file);
+        const bytes2 = await readFile22(file);
         return { source: "remote", id: id3, type: shipped.type, format: shipped.format, url: `data:${shipped.mime};base64,${bytes2.toString("base64")}`, meta: { name: shipped.file } };
       }
       if (/^data:/i.test(id3)) {
@@ -178608,7 +178827,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       const fmt5 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
       if (!fmt5) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
       const localPath2 = assetFilePath(fmt5.url);
-      let buf = await readFile21(localPath2);
+      let buf = await readFile22(localPath2);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt5.format === "json") {
         try {
@@ -178912,13 +179131,14 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
         const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, label: "EPS" });
+        const separate = format === "eps-cmyk" ? (await pressSeparationFor(opts.colorProfile)).separate : void 0;
         const text12 = emitEps(ir, {
           width: opts.width,
           height: opts.height,
           unit: opts.unit,
           dpi: opts.dpi,
           cmyk: format === "eps-cmyk",
-          ...format === "eps-cmyk" ? { cmykPalette: await brandCmykPalette(host) } : {},
+          ...separate ? { cmykPalette: await brandCmykPalette(host, separate), separate } : {},
           meta: opts.meta
         });
         return new Blob([text12], { type: "application/postscript" });
@@ -179308,7 +179528,7 @@ function mimeFor(format) {
       return "application/octet-stream";
   }
 }
-async function brandCmykPalette(host) {
+async function brandCmykPalette(host, separate) {
   try {
     const colors = await host.tokens?.colors?.();
     if (!Array.isArray(colors) || colors.length === 0) return /* @__PURE__ */ new Map();
@@ -179317,7 +179537,7 @@ async function brandCmykPalette(host) {
       ...Array.isArray(c.cmyk) ? { cmyk: c.cmyk } : {},
       label: c.name,
       spot: c.spot ?? null
-    })));
+    })), separate);
   } catch {
     return /* @__PURE__ */ new Map();
   }
@@ -179489,9 +179709,9 @@ function withHost(profile2, fn, opts = {}) {
 // services/mcp/src/webshell.ts
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
-import { readFile as readFile22, stat as stat4 } from "node:fs/promises";
+import { readFile as readFile23, stat as stat4 } from "node:fs/promises";
 import { existsSync as existsSync15 } from "node:fs";
-import { join as join23, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
+import { join as join24, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
 // services/mcp/src/egress.ts
 import { lookup as lookup2 } from "node:dns/promises";
@@ -179612,18 +179832,18 @@ async function webShellBase() {
 }
 function webShellReady(env = process.env) {
   if (env.LOLLY_WEB_BASE) return true;
-  return existsSync15(join23(env.LOLLY_WEB_DIST || join23(REPO_ROOT, "shells", "web", "dist"), "index.html"));
+  return existsSync15(join24(env.LOLLY_WEB_DIST || join24(REPO_ROOT, "shells", "web", "dist"), "index.html"));
 }
 async function buildAndServe() {
-  const dist2 = process.env.LOLLY_WEB_DIST || join23(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync15(join23(dist2, "index.html"))) {
-    if (!existsSync15(join23(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist2 = process.env.LOLLY_WEB_DIST || join24(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync15(join24(dist2, "index.html"))) {
+    if (!existsSync15(join24(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist2}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync15(join23(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
+    if (!existsSync15(join24(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
   }
   return serveDist(dist2);
 }
@@ -179649,9 +179869,9 @@ function serveDist(dist2) {
         return;
       }
       if (urlPath === "/" || !existsSync15(filePath) || !(await stat4(filePath)).isFile()) {
-        filePath = join23(root2, "index.html");
+        filePath = join24(root2, "index.html");
       }
-      const data = await readFile22(filePath);
+      const data = await readFile23(filePath);
       res.setHeader("Content-Type", MIME2[extname(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.end(data);
@@ -180085,7 +180305,7 @@ async function readBoundedDownload(filename) {
   if (info.size > MAX_BROWSER_OUTPUT_BYTES) {
     throw new RenderError(`Browser export exceeds the ${MAX_BROWSER_OUTPUT_BYTES}-byte output limit.`);
   }
-  return new Uint8Array(await readFile24(filename));
+  return new Uint8Array(await readFile25(filename));
 }
 function browserLaunchArgs(env = process.env) {
   return [
@@ -180681,7 +180901,7 @@ init_src();
 init_content_roots();
 init_state_dir();
 import { existsSync as existsSync17, readFileSync as readFileSync8 } from "node:fs";
-import { isAbsolute as isAbsolute3, join as join27, resolve as resolve5 } from "node:path";
+import { isAbsolute as isAbsolute3, join as join28, resolve as resolve5 } from "node:path";
 var PRESET_ASSET_TAGS = ["slides", "rebrand-preset"];
 var PRESET_FILE_VERSION = 1;
 var PERSONAL_PRESETS_FILE = "rebrand-presets.json";
@@ -180876,7 +181096,7 @@ function packPresetFiles(roots2) {
   });
 }
 function personalPresetsFile(opts = {}) {
-  return opts.personalFile ?? join27(stateDir(opts.env ?? process.env), PERSONAL_PRESETS_FILE);
+  return opts.personalFile ?? join28(stateDir(opts.env ?? process.env), PERSONAL_PRESETS_FILE);
 }
 function listPresets(opts = {}) {
   const presets = [];
@@ -182980,7 +183200,7 @@ async function callRebrand(args, env = process.env, limits = rebrandLimitsFor(en
 // packages/node-shell/src/look.ts
 init_src2();
 init_raster_child();
-import { readFile as readFile25 } from "node:fs/promises";
+import { readFile as readFile26 } from "node:fs/promises";
 import { extname as extname2, resolve as resolve6, sep as sep2 } from "node:path";
 import { fileURLToPath as fileURLToPath12 } from "node:url";
 var B642 = /^[A-Za-z0-9+/]*={0,2}$/;
@@ -183042,7 +183262,7 @@ async function cleanRef(value2, roots2, depth) {
   const mime2 = IMAGE_TYPES[extname2(full).toLowerCase()];
   if (!mime2) return "";
   try {
-    const bytes2 = await readFile25(full);
+    const bytes2 = await readFile26(full);
     if (bytes2.length > MAX_INLINE_BYTES) return "";
     if (mime2 === "image/svg+xml") {
       if (depth >= MAX_NESTING) return "";
@@ -185867,7 +186087,7 @@ init_design_brief2();
 
 // packages/node-shell/src/token-report.ts
 init_src2();
-import { createHash as createHash11 } from "node:crypto";
+import { createHash as createHash12 } from "node:crypto";
 var TOKEN_REPORT_LIMITS = Object.freeze({
   /** Rows a token list returns when the caller gives no limit. */
   listDefault: 50,
@@ -185892,7 +186112,7 @@ var TokenReportError = class extends Error {
 };
 var clampWhole = (value2, fallback, min, max) => typeof value2 === "number" && Number.isFinite(value2) ? Math.min(max, Math.max(min, Math.trunc(value2))) : fallback;
 function tokenRevision(doc) {
-  return `sha256:${createHash11("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
+  return `sha256:${createHash12("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
 }
 function storedTokenChoices(doc) {
   return resolveTokenSelection(doc, {}).choices;
@@ -187071,7 +187291,7 @@ init_src2();
 init_src();
 init_file_v1();
 init_design_lolly();
-import { createHash as createHash12 } from "node:crypto";
+import { createHash as createHash13 } from "node:crypto";
 
 // schemas/design-package-v1.schema.json
 var design_package_v1_schema_default = {
@@ -187576,7 +187796,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = stru
       } catch (err) {
         throw new ToolCodeError("input.unsupported", `The compiled document could not be packaged: ${err instanceof Error ? err.message : String(err)}`);
       }
-      const sha2563 = createHash12("sha256").update(packed2.bytes).digest("hex");
+      const sha2563 = createHash13("sha256").update(packed2.bytes).digest("hex");
       const name2 = "document.lolly";
       const structured = { legacy: true, manifest: packed2.manifest, bytes: packed2.bytes.byteLength, sha256: sha2563 };
       const block2 = { type: "resource", resource: { uri: resourceUri2("package", sha2563, name2), mimeType: LOLLY_MIME2, blob: Buffer.from(packed2.bytes).toString("base64") } };
@@ -187641,10 +187861,10 @@ function isFileTransform(manifest) {
 // services/mcp/src/result-files.ts
 init_file_v1();
 init_delivery_v1();
-import { createHash as createHash13, createHmac, randomUUID as randomUUID2 } from "node:crypto";
-import { mkdtemp as mkdtemp4, readFile as readFile29, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
+import { createHash as createHash14, createHmac, randomUUID as randomUUID2 } from "node:crypto";
+import { mkdtemp as mkdtemp4, readFile as readFile30, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
-import { join as join30 } from "node:path";
+import { join as join31 } from "node:path";
 var RESULT_LINK_THRESHOLD = 1024 * 1024;
 var RESULT_TTL_SEC = 300;
 var OWNER_LIMIT = 64 * 1024 * 1024;
@@ -187653,7 +187873,7 @@ var ENTRY_LIMIT = 200;
 var PATH_PATTERN = /^\/api\/mcp\/files\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function bearerPrincipal(header) {
   const bearer = /^Bearer\s+(.+)$/i.exec(header ?? "")?.[1]?.trim();
-  return bearer ? createHash13("sha256").update(bearer).digest("hex") : null;
+  return bearer ? createHash14("sha256").update(bearer).digest("hex") : null;
 }
 function privateFileScopeEnabled(env) {
   return env.LOLLY_MCP_PRIVATE_FILES === "1" && !!env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && (env.LOLLY_MCP_REPLICAS === void 0 || env.LOLLY_MCP_REPLICAS === "1");
@@ -187712,10 +187932,10 @@ var ResultFiles = class {
     try {
       const base = new URL(origin);
       const expires = Math.floor(this.now() / 1e3) + this.lifetimeSeconds;
-      this.directory ??= mkdtemp4(join30(tmpdir5(), "lolly-mcp-results-"));
-      file = join30(await this.directory, id3);
+      this.directory ??= mkdtemp4(join31(tmpdir5(), "lolly-mcp-results-"));
+      file = join31(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
-      const digest2 = createHash13("sha256").update(bytes2).digest("hex");
+      const digest2 = createHash14("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
       const filename = safeFileName(name);
       this.entries.set(id3, { owner: owner3, path, file, expires, size: bytes2.byteLength, sha256: digest2, mime: /^[\w.+-]+\/[\w.+-]+(?:;[\x20-\x7e]*)?$/.test(mime2) ? mime2 : "application/octet-stream", name: filename });
@@ -187743,8 +187963,8 @@ var ResultFiles = class {
     const host = new URL(origin).host;
     const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner3, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
     if (status !== "ok") return null;
-    const bytes2 = await readFile29(entry2.file);
-    if (bytes2.byteLength !== entry2.size || createHash13("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
+    const bytes2 = await readFile30(entry2.file);
+    if (bytes2.byteLength !== entry2.size || createHash14("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
     if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
     return { bytes: bytes2, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
   }
@@ -188865,8 +189085,8 @@ function readProductionReference(value2) {
 // services/mcp/src/resources.ts
 init_design_brief();
 init_design_brief2();
-import { readFile as readFile30 } from "node:fs/promises";
-import { join as join31 } from "node:path";
+import { readFile as readFile31 } from "node:fs/promises";
+import { join as join32 } from "node:path";
 init_brand_skill_v1();
 init_src2();
 init_schema();
@@ -188899,7 +189119,7 @@ async function tokensResource(uri) {
   const tokenUrl = tokenAsset2.formats[0].url;
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset2.id}: ${tokenUrl} is not in this profile's catalog.`);
-  const doc = JSON.parse(await readFile30(tokenPath, "utf8"));
+  const doc = JSON.parse(await readFile31(tokenPath, "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -188922,7 +189142,7 @@ async function assetsListing(uri) {
 async function previewResource(uri, id3) {
   for (const file of [`${id3}.svg`, `${id3}.look0.svg`]) {
     try {
-      const text12 = await readFile30(join31(previewsDir(), file), "utf8");
+      const text12 = await readFile31(join32(previewsDir(), file), "utf8");
       return { uri, mimeType: "image/svg+xml", text: text12 };
     } catch {
     }
@@ -188977,12 +189197,12 @@ async function readResource(uri) {
     const skill = await brandSkillResource(uri);
     if (skill) return skill;
   }
-  if (uri === "lolly://skill") return { uri, mimeType: "text/markdown", text: await readFile30(join31(REPO_ROOT, "skills/lolly/SKILL.md"), "utf8") };
+  if (uri === "lolly://skill") return { uri, mimeType: "text/markdown", text: await readFile31(join32(REPO_ROOT, "skills/lolly/SKILL.md"), "utf8") };
   const sharedSkillMatch = /^lolly:\/\/skill\/((?:reference|examples)\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:md|json))$/.exec(uri);
   if (sharedSkillMatch) return {
     uri,
     mimeType: uri.endsWith(".json") ? "application/json" : "text/markdown",
-    text: await readFile30(join31(REPO_ROOT, "skills/lolly", sharedSkillMatch[1]), "utf8")
+    text: await readFile31(join32(REPO_ROOT, "skills/lolly", sharedSkillMatch[1]), "utf8")
   };
   const skillMatch = /^lolly:\/\/tool\/([a-z0-9-]+)\/skill$/.exec(uri);
   if (skillMatch) {
@@ -189018,7 +189238,7 @@ async function readResource(uri) {
 // services/mcp/src/file-resources.ts
 import { mkdtemp as mkdtemp5, writeFile as writeFile8, unlink as unlink2, rm as rm7 } from "node:fs/promises";
 import { tmpdir as tmpdir6 } from "node:os";
-import { join as join32 } from "node:path";
+import { join as join33 } from "node:path";
 import { randomUUID as randomUUID3 } from "node:crypto";
 
 // packages/node-shell/src/file-operations.ts
@@ -189026,7 +189246,7 @@ init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash14 } from "node:crypto";
+import { createHash as createHash15 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -189170,7 +189390,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes2) ? (await runJxl({ operation: "probe", bytes: bytes2 }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes2, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash14("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash15("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request2, signal, execution = "device") {
   return executeFileOperationV1(file, request2, {
@@ -189288,8 +189508,8 @@ var PrivateFileResources = class {
     const id3 = randomUUID3();
     let path;
     try {
-      this.directory ??= mkdtemp5(join32(tmpdir6(), "lolly-private-files-"));
-      path = join32(await this.directory, id3);
+      this.directory ??= mkdtemp5(join33(tmpdir6(), "lolly-private-files-"));
+      path = join33(await this.directory, id3);
       const facts2 = await describeOperationFile(file);
       await writeFile8(path, Buffer.from(await file.arrayBuffer()), { flag: "wx", mode: 384 });
       const ref2 = { id: id3, version: facts2.sha256, role, facts: facts2, ...source ? { derivedFrom: { id: source.ref.id, version: source.ref.version, sha256: source.ref.facts.sha256 } } : {} };
@@ -189776,10 +189996,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash16 } from "node:crypto";
+import { createHash as createHash17 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash15 } from "node:crypto";
+import { createHash as createHash16 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -189912,7 +190132,7 @@ function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   return new MemoryRateLimiter();
 }
 function digestKey(namespace3, scope2, subject) {
-  return createHash15("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+  return createHash16("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -190381,10 +190601,10 @@ async function renderGet(path, query2, opts) {
   for (const key2 of dropped) params2.delete(key2);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash16("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt5}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash17("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt5}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     ...deliveryHeaders("public-bounded", { tokenBearing: true }),
-    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash16("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
+    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash17("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
     vary: "Accept-Encoding",
     etag,
     "x-robots-tag": "noindex"
@@ -190473,7 +190693,7 @@ function renderFailure(e) {
 }
 
 // services/mcp/src/image-proxy.ts
-import { createHash as createHash17 } from "node:crypto";
+import { createHash as createHash18 } from "node:crypto";
 init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
 function matchImageProxyPath(path) {
@@ -190581,13 +190801,13 @@ async function proxyImage(reqUrl, opts) {
     if (name === "TimeoutError" || name === "AbortError") return errorResponse2(504, "That address took too long to answer.");
     return errorResponse2(502, `Couldn't fetch that URL: ${e.message}`);
   }
-  const etag = `"${createHash17("sha256").update(bytes2).digest("hex")}"`;
+  const etag = `"${createHash18("sha256").update(bytes2).digest("hex")}"`;
   const headers = {
     "content-type": rawType,
     ...deliveryHeaders(privateResponse ? "person-private" : "public-bounded", { boundedAgeSec: cacheAge, tokenBearing: true }),
     etag,
     vary: "Accept-Encoding",
-    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash17("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
+    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash18("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
     "content-security-policy": "sandbox",
     "x-content-type-options": "nosniff",
     "content-disposition": "inline",
@@ -190868,7 +191088,7 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash18 } from "node:crypto";
+import { createHash as createHash19 } from "node:crypto";
 
 // services/mcp/src/admission-namespace.ts
 function admissionNamespace(env) {
@@ -191236,7 +191456,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash18("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash19("sha256").update(auth).digest("hex");
       const refusal3 = await limited2(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal3) return send(res, refusal3);
       const spent = await overBudget(budget3);

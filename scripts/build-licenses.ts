@@ -559,6 +559,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'Coated FOGRA39 press profile (craft-cms)',
+      version: 'f8f8829cc7be65d466d687dae381d1ca60e31242 (storytold/craft-libs)',
+      spdx: 'CC0-1.0',
+      copyright: 'craft-libs contributors; dedicated to the public domain under CC0 1.0.',
+      files: 'packages/node-shell/icc/craft-coated-fogra39.icc',
+      text: readFileSync(join(ROOT, 'packages/node-shell/icc/LICENSE-CC0.md'), 'utf8').trim(),
+      note: 'Unmodified ICC v4.3 output profile, fitted by craft-libs to Fogra\'s FOGRA39 characterisation data, used to separate RGB artwork into CMYK for the Coated FOGRA39 press condition. "FOGRA39" identifies the reference data the profile is fitted to; such use does not imply certification, approval or endorsement by Fogra. Provenance and checksum are in packages/node-shell/icc/README.md.',
+      where: 'web',
+    },
+    {
       name: 'Penpot layout kernel (compiled WASM)',
       version: PENPOT_LAYOUT_UPSTREAM.revision,
       spdx: 'MPL-2.0',
