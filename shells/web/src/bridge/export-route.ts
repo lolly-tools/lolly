@@ -98,7 +98,7 @@ async function gpuPixels(node: Element, opts: ExportOpts, deps: StillRouteDeps, 
  * is admitted, else by the browser renderer. Records the route on `opts` for the credential.
  */
 export async function routeDesignStill(node: Element, format: string, opts: ExportOpts, deps: StillRouteDeps): Promise<Blob> {
-  const refusals = designGpuRefusals(format, opts, exportRouteChoice());
+  const refusals = designGpuRefusals(format, opts, await exportRouteChoice());
   if (refusals.length) return compatibilityBecause(format, opts, deps, refusals);
   const started = performance.now();
   const timer = new AbortController();

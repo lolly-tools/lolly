@@ -58,16 +58,16 @@ const withGpu = <T>(run: () => Promise<T>): Promise<T> => {
 };
 const reset = () => { logs.length = 0; localStorage.clear(); };
 
-test('the choice reads the stored override first, then the internal flag, and is off by default', () => {
+test('the choice reads the stored override first, then the internal flag, and is off by default', async () => {
   reset();
   assert.equal(EXPORT_GPU_FLAG.default, false);
-  assert.equal(exportRouteChoice(), 'auto');
+  assert.equal(await exportRouteChoice(), 'auto');
   setFlagMirror(EXPORT_GPU_FLAG.id, true);
-  assert.equal(exportRouteChoice(), 'ops');
+  assert.equal(await exportRouteChoice(), 'ops');
   localStorage.setItem(EXPORT_ROUTE_KEY, 'legacy');
-  assert.equal(exportRouteChoice(), 'legacy', 'the stored override wins over the flag');
+  assert.equal(await exportRouteChoice(), 'legacy', 'the stored override wins over the flag');
   localStorage.setItem(EXPORT_ROUTE_KEY, 'sideways');
-  assert.equal(exportRouteChoice(), 'ops', 'an unknown value is ignored');
+  assert.equal(await exportRouteChoice(), 'ops', 'an unknown value is ignored');
   assert.equal(parseDesignExportRouteChoice(' OPS '), 'ops');
   assert.equal(parseDesignExportRouteChoice(undefined), null);
 });
