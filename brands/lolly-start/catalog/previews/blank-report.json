@@ -2793,8 +2793,8 @@
     },
     {
       "file": "logo-wall.look0.svg",
-      "bytes": 32192,
-      "sha": "c73e9b21362eb8f2",
+      "bytes": 32264,
+      "sha": "342b1e8f8a62765c",
       "stddev": 27.315,
       "inkRatio": 0.05062,
       "ground": "white",
@@ -2813,8 +2813,8 @@
     },
     {
       "file": "logo-wall.svg",
-      "bytes": 32192,
-      "sha": "f2a2b0cfcc2022b2",
+      "bytes": 32264,
+      "sha": "7457842ab371ed9b",
       "stddev": 27.315,
       "inkRatio": 0.05062,
       "ground": "white",
