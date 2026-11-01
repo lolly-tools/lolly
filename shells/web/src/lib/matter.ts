@@ -196,7 +196,7 @@ export interface MattePre {
   spec: MatteModelSpec;
   /** Edge refinement after the model (`MatteOpts.refine`); absent means the default. */
   refine?: MatteOpts['refine'];
-  /** Clean the colour of the soft edge (`MatteOpts.cleanEdgeColour`); absent means leave it. */
+  /** Clean the colour of the soft edge (`MatteOpts.cleanEdgeColour`); absent means off. */
   cleanEdgeColour?: boolean;
 }
 

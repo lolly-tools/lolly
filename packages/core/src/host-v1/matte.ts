@@ -86,7 +86,7 @@ export interface MatteOpts {
   /**
    * Clean the colour of the cut-out's soft edge (off by default). Fringe pixels
    * keep some of the old background's colour, a green halo from a green screen
-   * for one; this replaces it with the colour of the solid subject next to it.
+   * for one; this swaps in the colour of the solid subject beside the edge.
    * Only the RGB of semi-transparent edge pixels changes, and alpha never does.
    * A shell from before this field ignores it and returns the input's RGB.
    */

@@ -242,7 +242,7 @@ export interface DecontaminateOptions {
   amount?: number;
 }
 
-/** A pixel is solid foreground at or above this alpha, and a fringe pixel at or above SOFT_FLOOR and below it. */
+/** Alpha from this up is solid subject. Between SOFT_FLOOR and this is the soft edge. */
 const SOLID_ALPHA = 0.98;
 const SOFT_FLOOR = 0.02;
 /** Least weighted coverage a scale needs before its colour estimate is trusted. */
@@ -257,7 +257,7 @@ const MIN_SUPPORT = 1e-4;
  * box scales are tried fine to coarse and the finest with enough support wins,
  * so thin fringes take a near colour and wide ones still find one.
  *
- * Opt-in: nothing calls this unless a cut-out asks for it. Alpha is never
+ * Opt-in: nothing calls this unless the caller turns it on. Alpha is never
  * changed; RGB changes only where alpha is between SOFT_FLOOR and SOLID_ALPHA.
  * A fringe with no solid pixel within the coarsest scale keeps its colour.
  * Parameters (a box of radius max(r, 3), a 4x widening, strength scaled by

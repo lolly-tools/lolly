@@ -209,3 +209,17 @@ test('decontamination is deterministic, and a fringe with no solid subject near 
   const out = decontaminateEdgeColour(rgba, faint, w, h);
   for (let i = 0; i < w * h * 4; i += 4) for (let c = 0; c < 3; c++) assert.equal(out[i + c], rgba[i + c]);
 });
+
+import { composeCutout } from '../packages/node-shell/src/ml/matte-math.ts';
+
+test('composeCutout without the option is the photo RGB plus the matte, byte for byte', () => {
+  const w = 64, h = 64;
+  const { rgba, alpha } = greenFringeScene(w, h);
+  const plain = composeCutout(rgba, alpha, w, h);
+  assert.deepEqual(plain, composeCutout(rgba, alpha, w, h, false));
+  for (let i = 0; i < w * h; i++) {
+    for (let c = 0; c < 3; c++) assert.equal(plain[i * 4 + c], rgba[i * 4 + c]);
+    assert.equal(plain[i * 4 + 3], alpha[i]);
+  }
+  assert.notDeepEqual(composeCutout(rgba, alpha, w, h, true), plain, 'switched on, the fringe colour changes');
+});
