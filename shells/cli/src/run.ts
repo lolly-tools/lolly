@@ -12,6 +12,7 @@ import { readFile, writeFile, stat } from 'node:fs/promises';
 import { resolve, basename, dirname, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
+import { xlsxFormatter } from '@lolly-tools/node-shell/xlsx-numfmt-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
@@ -700,7 +701,8 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     if (sheets.length > 1 && sheet === undefined) {
       note(`ℹ ${dataPath} has ${sheets.length} sheets (${sheets.map(s => s.name).join(', ')}); reading the first. Pass --${inputId}-sheet=<name|index> to choose.`);
     }
-    const { rows, sheetName } = readXlsx(bytes, sheet !== undefined ? { sheet } : {});
+    const formatCell = await xlsxFormatter();
+    const { rows, sheetName } = readXlsx(bytes, { ...(sheet !== undefined ? { sheet } : {}), ...(formatCell ? { formatCell } : {}) });
     if (sheetName) note(`ℹ read sheet “${sheetName}” from ${dataPath}`);
     return rowsToCsv(rows);
   };

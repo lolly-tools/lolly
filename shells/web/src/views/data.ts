@@ -15,6 +15,7 @@
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { TableValue } from '@lolly/engine';
 import { readXlsx, listXlsxSheets } from '@lolly/engine';
+import type { XlsxCellFormatter } from '@lolly/engine';
 import { mountDataGrid, type DataGridHandle } from '../components/data-grid.ts';
 import { sourceToGrid, gridToTarget } from '../lib/convert-codecs.ts';
 import { t } from '../i18n.ts';
@@ -91,6 +92,8 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
   let baseName = 'sheet';
   // Parse worksheets lazily, but retain each edited grid while the book is open.
   let xlsxBytes: Uint8Array | null = null;
+  // Supplied once an .xlsx is picked, so sheets read later show Excel's number formats.
+  let formatCell: XlsxCellFormatter | undefined;
   let activeSheet = 0;
   const sheets = new Map<number, { value: TableValue; note?: string }>();
   let generation = 0;
@@ -165,7 +168,7 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
   }
 
   function readSheet(bytes: Uint8Array, sheet: number): { value: TableValue; note?: string } {
-    const { rows, truncated } = readXlsx(bytes, { sheet, limit: VIEW_ROW_LIMIT });
+    const { rows, truncated } = readXlsx(bytes, { sheet, limit: VIEW_ROW_LIMIT, ...(formatCell ? { formatCell } : {}) });
     return { value: gridFromRows(rows), note: truncated ? t('Showing the first {n} rows.').replace('{n}', String(VIEW_ROW_LIMIT)) : undefined };
   }
 
@@ -175,6 +178,8 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (!active || current !== generation) return;
       const isXlsx = /\.xlsx$/i.test(file.name);
+      if (isXlsx) formatCell = await (await import('../bridge/xlsx-numfmt.ts')).xlsxFormatter();
+      if (!active || current !== generation) return;
       const names = isXlsx ? listXlsxSheets(bytes).map((s) => s.name) : [];
       const kind = /\.tsv$/i.test(file.name) ? 'tsv' : /\.json$/i.test(file.name) ? 'json' : 'csv';
       const first = isXlsx ? readSheet(bytes, 0) : { value: gridFromRows(sourceToGrid(kind, bytes)), note: undefined };

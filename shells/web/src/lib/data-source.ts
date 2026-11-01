@@ -28,8 +28,8 @@ const OFFICE_DOC_RE = /\.(pptx|docx)$/i;
 
 /**
  * Decode a picked data file to the text a text/longtext field receives. An `.xlsx` is
- * unzipped and serialised to CSV - reading `sheet` (a 0-based index or exact name;
- * default the first sheet); a `.pptx`/`.docx` is extracted to Markdown (its images
+ * unzipped and serialised to CSV, with number formats applied - reading `sheet` (a
+ * 0-based index or exact name; default the first sheet); a `.pptx`/`.docx` is extracted to Markdown (its images
  * are dropped - a text field holds text); every other file is decoded as UTF-8 text.
  * Throws the engine's message on an unreadable file so the caller can surface it.
  */
@@ -39,7 +39,10 @@ export async function fileBytesToFieldText(
   sheet?: number | string,
 ): Promise<string> {
   if (/\.xlsx$/i.test(filename)) {
-    const { rows } = readXlsx(bytes, sheet !== undefined ? { sheet } : {});
+    // Cells show as Excel shows them (dates, currency, percentages); the module loads on first use.
+    const { xlsxFormatter } = await import('../bridge/xlsx-numfmt.ts');
+    const formatCell = await xlsxFormatter();
+    const { rows } = readXlsx(bytes, { ...(sheet !== undefined ? { sheet } : {}), ...(formatCell ? { formatCell } : {}) });
     return rowsToCsv(rows);
   }
   if (OFFICE_DOC_RE.test(filename)) {
