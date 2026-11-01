@@ -85,6 +85,22 @@ export function groupWordsToCues(
   return cues;
 }
 
+/** A finding a broadcast caption reader or writer reports without refusing the file. */
+export interface CaptionIssue {
+  /** Stable machine-readable id, for example `roll-up` or `unsupported-character`. */
+  code: string;
+  /** Plain sentence for a person. */
+  message: string;
+}
+
+/** A caption file or caption list was refused. The message says why, in plain words. */
+export class CaptionFormatError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CaptionFormatError';
+  }
+}
+
 const round3 = (v: number): number => Math.round(v * 1000) / 1000;
 
 /** How the narration clip sits inside its slide, plus the grouping knobs. */
