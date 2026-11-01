@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Tasarım sisteminden: {name}",
   "Editing the curve detaches it from the design system.": "Eğriyi düzenlemek onu tasarım sisteminden ayırır.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt. Kurşun kalem (Shift C) ve spline türü için basılı tut",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt",
+  "Create file": "Dosya oluştur",
+  "File type": "Dosya türü",
+  "Filename": "Dosya adı",
+  "Markdown file (.md)": "Markdown dosyası (.md)",
+  "New file": "Yeni dosya",
+  "Open in Write": "Write'ta aç",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Bu zaman çizelgesinin başvurduğu medya dosyalarını seç ya da etiketli yer tutucularla devam et.",
+  "Text file (.txt)": "Metin dosyası (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "O InDesign dosyası bu cihazda dönüştürülemedi. InDesign'dan IDML olarak dışa aktar ve yeniden dene.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "O InDesign dosyası açılamadı. InDesign'dan IDML olarak dışa aktar ve yeniden dene."
 }

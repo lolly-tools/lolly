@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Dari sistem desain: {name}",
   "Editing the curve detaches it from the design system.": "Mengedit kurva melepaskannya dari sistem desain.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pena (P) - klik untuk menempatkan titik, seret untuk melengkung, Alt untuk sudut. Tahan untuk Pensil (Shift C) dan jenis spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pena (P) - klik untuk menempatkan titik, seret untuk melengkung, Alt untuk sudut"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pena (P) - klik untuk menempatkan titik, seret untuk melengkung, Alt untuk sudut",
+  "Create file": "Buat file",
+  "File type": "Jenis file",
+  "Filename": "Nama file",
+  "Markdown file (.md)": "File Markdown (.md)",
+  "New file": "File baru",
+  "Open in Write": "Buka di Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Pilih file media yang dirujuk oleh lini masa ini, atau lanjutkan dengan placeholder berlabel.",
+  "Text file (.txt)": "File teks (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "File InDesign itu tidak dapat dikonversi di perangkat ini. Ekspor dari InDesign sebagai IDML lalu coba lagi.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "File InDesign itu tidak dapat dibuka. Ekspor dari InDesign sebagai IDML lalu coba lagi."
 }

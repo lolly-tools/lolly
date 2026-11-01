@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Aus dem Design-System: {name}",
   "Editing the curve detaches it from the design system.": "Wenn Sie die Kurve bearbeiten, wird sie vom Design-System gelöst.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke. Halten für den Bleistift (Shift C) und den Spline-Typ",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke",
+  "Create file": "Datei erstellen",
+  "File type": "Dateityp",
+  "Filename": "Dateiname",
+  "Markdown file (.md)": "Markdown-Datei (.md)",
+  "New file": "Neue Datei",
+  "Open in Write": "In Write öffnen",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Wählen Sie die Mediendateien aus, auf die diese Zeitleiste verweist, oder fahren Sie mit beschrifteten Platzhaltern fort.",
+  "Text file (.txt)": "Textdatei (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Diese InDesign-Datei konnte auf diesem Gerät nicht konvertiert werden. Exportieren Sie sie aus InDesign als IDML und versuchen Sie es erneut.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Diese InDesign-Datei konnte nicht geöffnet werden. Exportieren Sie sie aus InDesign als IDML und versuchen Sie es erneut."
 }

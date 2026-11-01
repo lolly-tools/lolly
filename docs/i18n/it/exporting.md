@@ -214,7 +214,7 @@ Scorrendo, la telecamera si allontana attraverso la geometria vera e propria: se
 
 ## Stampa
 
-**Print PDF** scrive CMYK rispetto a una condizione di stampa con nome, **Coated FOGRA39** per impostazione predefinita. I campioni del brand con valori di inchiostro misurati convertono esattamente; gli altri colori usano una conversione standard del dispositivo. **Print TIFF** scrive pixel DeviceCMYK per un RIP e registra la stessa condizione di stampa nei suoi metadati TIFF. Il controllo Colour profile guida entrambi; [Colour profiles](#colour-profiles) ha i dettagli.
+**Print PDF** scrive CMYK rispetto a una condizione di stampa con nome, **Coated FOGRA39** per impostazione predefinita. I campioni del brand con valori di inchiostro misurati mantengono quei valori. Gli altri colori vengono convertiti tramite un profilo di stampa: il profilo Coated FOGRA39 di Lolly per impostazione predefinita, oppure il tuo profilo quando scegli la sua riga **Embed**. Grigi e nero restano solo sulla lastra del nero, così il testo piccolo non va fuori registro. FOGRA51, SWOP e GRACoL usano una conversione standard del dispositivo. **Print TIFF** scrive pixel DeviceCMYK per un RIP e registra la stessa condizione di stampa nei suoi metadati TIFF. Il controllo Colour profile guida entrambi; [Colour profiles](#colour-profiles) ha i dettagli.
 
 **Print marks & bleed** ha una propria scheda sui formati di stampa: l'abbondanza in millimetri più Crop, Registration, Bleed, Colour bars e Stamp details.
 
@@ -223,6 +223,15 @@ Alcuni strumenti creano un **PDF a più pagine**: una copertina, un contenuto ch
 **Prima di esportare.** Una scheda **Before you export** in fondo al pannello dice cosa sta per vedere una tipografia: formato, dimensione e abbondanza, aree di taglio e abbondanza, copertura d'inchiostro, conteggio delle lastre e numero di pagine, con un verdetto accanto al titolo. Non blocca mai un'esportazione. Design mostra sempre la scheda con i propri controlli, comprese le regole di stile del design system livello per livello e il segnale di scrittura per il testo del documento ([Before you export](/info/design.html#before-you-export)), e aggiunge questi controlli di stampa quando **Print preflight** è attivo. Negli altri strumenti, attiva **Print preflight** in Settings → Preferences → Feature flags; è disattivato per impostazione predefinita, e un'installazione di Lolly Work può attivarlo per i suoi membri.
 
 **Dopo l'esportazione.** Una volta che il file è pronto, Lolly lo rilegge e lo confronta con ciò che hai scelto: formato, dimensione in pixel o pagina, durata della clip, sfondo trasparente, colore CMYK, HDR, Content Credentials e una password per PDF o ZIP. Tutto ciò che differisce viene scritto nella scheda di esportazione. Ogni misura viene dal file, mai dall'impostazione, e una proprietà a cui il file non sa rispondere non viene contata come corrispondenza. La riga di comando scrive il confronto completo con `--export-report` (vedi [Render with the CLI](/info/cli-rendering.html)).
+
+**Controlli di accessibilità del PDF.** Per un PDF, la riga di comando elenca anche 32 controlli di accessibilità nel file `--export-report`, sotto `pdfAccessibility`. Ogni controllo ha un id, una descrizione semplice, un esito e il punto del file in cui ha trovato un problema:
+
+- **Superato**: il controllo ha esaminato qualcosa e non ha trovato nulla di sbagliato.
+- **Non riuscito**: il controllo ha trovato un problema. Ne sono elencati i numeri di pagina o i tag.
+- **Non applicabile**: il file non conteneva nulla di quel tipo da esaminare, come i controlli sulle tabelle in un file senza tabelle. Questo non dice nulla sul file.
+- **Serve una persona**: sei controlli non possono essere giudicati da un programma (ordine di lettura, contrasto dei colori, lampeggiamenti, script, limiti di tempo e link ripetuti).
+
+L'elenco non è un verdetto. Non dice che un PDF rispetta PDF/UA né che chi usa tecnologie assistive può usarlo, e una persona deve comunque controllare il file con uno screen reader. I PDF di Lolly oggi non superano i controlli sui tag, perché gli esportatori non scrivono ancora tag. Il controllo legge il file sul tuo dispositivo e non cambia nulla. I file che richiedono una password sono indicati come non controllati, non come superati. Per controllare un PDF che ti è stato inviato, trascinalo in [Strip Hidden Data](/info/utilities.html), che mostra lo stesso elenco sotto **PDF accessibility checks**.
 
 I controlli dell'inspector di Design e il confronto con il brand in Design System Setup sono controlli distinti: guardano il design, mentre queste due schede guardano il file.
 
@@ -280,7 +289,7 @@ Le esportazioni sono contrassegnate con un profilo colore, così le app con gest
 - **SVG**, **EMF**, **EPS** e **DXF** sono vettoriali senza profilo incorporato: i colori SVG sono sRGB, EMF ed EPS usano RGB di dispositivo, **EPS (CMYK)** scrive DeviceCMYK e DXF usa l'AutoCAD Color Index. SVG, EPS e DXF convertono il testo in tracciati. EMF mantiene il testo vivo e modificabile in Office e Google Slides, ripiegando sui contorni solo per le porzioni che il formato non sa esprimere; l'opzione **Outline fonts** del pannello di esportazione forza i tracciati ovunque. SVG riproduce anche le ombre dei box CSS, interne ed esterne.
 
 ::: details PDF/X-4 e il tuo profilo di stampa
-Con Lolly non viene distribuito alcun profilo CMYK. Una condizione di stampa con nome scrive l'output intent senza dichiarare la conformità a PDF/X-4, perché PDF/X-4 richiede il profilo incorporato.
+Lolly include un profilo CMYK, adattato ai dati di caratterizzazione FOGRA39 di Fogra e rilasciato con licenza CC0, e converte i colori attraverso di esso per la condizione di stampa predefinita. Il profilo non è incorporato, perché è ICC versione 4.3 e PDF/X-4 accetta versioni fino alla 4.2. Una condizione di stampa con nome scrive quindi l'output intent senza dichiarare la conformità a PDF/X-4.
 
 Carica un profilo CMYK tuo e scegli la sua riga **Embed** nel controllo Colour profile. Viene incorporato come *DestOutputProfile* del file, e il PDF dichiara PDF/X-4 ogni volta che il resto del file lo consente. La condizione di stampa che dichiara è letta da quel profilo: un nome registrato dove il profilo ne dimostra uno, oppure `Custom` sotto il nome del profilo stesso.
 

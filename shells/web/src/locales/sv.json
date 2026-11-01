@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Från designsystemet: {name}",
   "Editing the curve detaches it from the design system.": "Om du redigerar kurvan kopplas den bort från designsystemet.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn. Håll för Blyertspennan (Shift C) och splinetypen",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn",
+  "Create file": "Skapa fil",
+  "File type": "Filtyp",
+  "Filename": "Filnamn",
+  "Markdown file (.md)": "Markdown-fil (.md)",
+  "New file": "Ny fil",
+  "Open in Write": "Öppna i Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Välj de mediafiler som den här tidslinjen hänvisar till, eller fortsätt med märkta platshållare.",
+  "Text file (.txt)": "Textfil (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Den InDesign-filen kunde inte konverteras på den här enheten. Exportera den från InDesign som IDML och försök igen.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Den InDesign-filen kunde inte öppnas. Exportera den från InDesign som IDML och försök igen."
 }

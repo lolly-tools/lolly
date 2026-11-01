@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Mula sa design system: {name}",
   "Editing the curve detaches it from the design system.": "Kapag inedit ang curve, hihiwalay ito sa design system.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner. I-hold para sa Lapis (Shift C) at sa spline type",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner",
+  "Create file": "Gumawa ng file",
+  "File type": "Uri ng file",
+  "Filename": "Pangalan ng file",
+  "Markdown file (.md)": "Markdown file (.md)",
+  "New file": "Bagong file",
+  "Open in Write": "Buksan sa Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Piliin ang media files na tinutukoy ng timeline na ito, o magpatuloy gamit ang may label na placeholders.",
+  "Text file (.txt)": "Text file (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Hindi ma-convert sa device na ito ang InDesign file na iyon. I-export ito mula sa InDesign bilang IDML at subukan ulit.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Hindi mabuksan ang InDesign file na iyon. I-export ito mula sa InDesign bilang IDML at subukan ulit."
 }

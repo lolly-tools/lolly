@@ -2536,7 +2536,7 @@
   "Fade in": "Intrare progresivă",
   "Fade out": "Ieșire progresivă",
   "Fades": "Estompări",
-  "Failed": "Echec",
+  "Failed": "Eșuat",
   "Failed to load: {message}": "Încărcarea a eșuat: {message}",
   "Fallback sets": "Seturi de rezervă",
   "Fallbacks": "Rezerve",
@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Din sistemul de design: {name}",
   "Editing the curve detaches it from the design system.": "Editarea curbei o deconectează de la sistemul de design.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț. Ține apăsat pentru Creion (Shift C) și tipul de spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț",
+  "Create file": "Creează fișier",
+  "File type": "Tip de fișier",
+  "Filename": "Nume fișier",
+  "Markdown file (.md)": "Fișier Markdown (.md)",
+  "New file": "Fișier nou",
+  "Open in Write": "Deschide în Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Selectează fișierele media la care face referire această cronologie sau continuă cu substituenți etichetați.",
+  "Text file (.txt)": "Fișier text (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Acel fișier InDesign nu a putut fi convertit pe acest dispozitiv. Exportă-l din InDesign ca IDML și încearcă din nou.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Acel fișier InDesign nu a putut fi deschis. Exportă-l din InDesign ca IDML și încearcă din nou."
 }

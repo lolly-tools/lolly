@@ -214,7 +214,7 @@ Přejeď a kamera se vzdálí skrz skutečnou geometrii: sedm cest, nikde žádn
 
 ## Tisk
 
-**Print PDF** zapisuje CMYK proti pojmenované tiskové podmínce, ve výchozím stavu **Coated FOGRA39**. Vzorky značky se změřenými hodnotami inkoustu se převádějí přesně; ostatní barvy používají standardní převod zařízení. **Print TIFF** zapisuje pixely DeviceCMYK pro RIP a zaznamenává stejnou tiskovou podmínku do metadat TIFF. Obojí řídí ovládání Colour profile; podrobnosti jsou v [Barevné profily](#colour-profiles).
+**Print PDF** zapisuje CMYK proti pojmenované tiskové podmínce, ve výchozím stavu **Coated FOGRA39**. Vzorky značky se změřenými hodnotami inkoustu si tyto hodnoty ponechají. Ostatní barvy se převádějí přes tiskový profil: výchozí je vlastní profil Coated FOGRA39 od Lolly, nebo tvůj vlastní profil, když zvolíš jeho řádek **Embed**. Šedé a černé zůstávají jen na černé desce, takže drobné písmo se nemůže rozjet. FOGRA51, SWOP a GRACoL používají standardní převod zařízení. **Print TIFF** zapisuje pixely DeviceCMYK pro RIP a stejnou tiskovou podmínku zaznamenává do metadat TIFF. Obojí řídí ovládání Colour profile; podrobnosti jsou v [Barevné profily](#colour-profiles).
 
 **Print marks & bleed** má vlastní kartu na tiskových formátech: spadávka v milimetrech plus Crop, Registration, Bleed, Colour bars a Stamp details.
 
@@ -223,6 +223,15 @@ Některé nástroje sestavují **vícestránkové PDF**: obálku, obsah, který 
 **Před exportem.** Karta **Before you export** dole v panelu říká, co se tiskárna chystá uvidět: formát, velikost a spadávku, oblasti ořezu a spadávky, pokrytí inkoustem, počty desek a počet stránek, s verdiktem vedle nadpisu. Nikdy export neblokuje. Design kartu ukazuje vždy s vlastními kontrolami, včetně interních pravidel designového systému vrstvu po vrstvě a signálu psaní pro text dokumentu ([Před exportem](/info/design.html#before-you-export)), a tyto tiskové kontroly přidá, když je **Print preflight** zapnuto. V ostatních nástrojích zapni **Print preflight** v Settings → Preferences → Feature flags; ve výchozím stavu je vypnuto a nasazení Lolly Work jej může pro své členy zapnout.
 
 **Po exportu.** Jakmile je soubor hotový, Lolly jej přečte zpět a porovná s tím, co jsi zvolil: formát, velikost v pixelech nebo stránkách, délku klipu, průhledné pozadí, barvu CMYK, HDR, Content Credentials a heslo PDF nebo ZIP. Cokoli, co se liší, se zapíše na exportní kartu. Každé měření pochází ze souboru, nikdy z nastavení, a vlastnost, na kterou soubor nedokáže odpovědět, se nepočítá jako shoda. Příkazový řádek zapíše úplné porovnání pomocí `--export-report` (viz [Vykreslování pomocí CLI](/info/cli-rendering.html)).
+
+**Kontroly přístupnosti PDF.** U PDF příkazový řádek také uvádí 32 kontrol přístupnosti v souboru `--export-report`, pod `pdfAccessibility`. Každá kontrola má id, srozumitelný popis, výsledek a místo v souboru, kde našla problém:
+
+- **Prošlo**: kontrola se na něco podívala a nenašla nic špatného.
+- **Neúspěšné**: kontrola našla problém. Uvedena jsou čísla stránek nebo značky.
+- **Netýká se**: soubor neobsahoval nic, na co by se kontrola mohla podívat, například kontroly tabulek v souboru bez tabulek. O souboru to nic neříká.
+- **Potřebuje člověka**: šest kontrol program posoudit nedokáže (pořadí čtení, barevný kontrast, blikání, skripty, časové limity a opakované odkazy).
+
+Seznam není verdikt. Neříká, že PDF splňuje PDF/UA nebo že ho lidé s asistivními technologiemi mohou používat, a soubor musí stále zkontrolovat člověk se čtečkou obrazovky. Vlastní PDF z Lolly dnes v kontrolách značení neprojdou, protože exportéry zatím nezapisují žádné značky. Kontrola čte soubor na tvém zařízení a nic nemění. Soubory vyžadující heslo jsou uvedeny jako nezkontrolované, ne jako prošlé. Chceš-li zkontrolovat PDF, které ti někdo poslal, přetáhni ho do [Strip Hidden Data](/info/utilities.html), který zobrazí stejný seznam pod **Kontroly přístupnosti PDF**.
 
 Kontroly inspektoru Design a porovnání se značkou v Design System Setup jsou samostatné kontroly: dívají se na návrh, zatímco tyto dvě karty se dívají na soubor.
 
@@ -280,7 +289,7 @@ Exporty jsou označeny barevným profilem, takže aplikace se správou barev, ja
 - **SVG**, **EMF**, **EPS** a **DXF** jsou vektory bez vloženého profilu: barvy SVG jsou sRGB, EMF a EPS používají zařízení RGB, **EPS (CMYK)** zapisuje DeviceCMYK a DXF používá AutoCAD Color Index. SVG, EPS a DXF převádějí text na cesty. EMF drží text živý a upravitelný v Office a Google Slides, s náhradou obrysy jen pro úseky, které formát nevyjádří; volba **Outline fonts** v panelu exportu vynutí cesty všude. SVG také reprodukuje stíny polí CSS, uvnitř i vně.
 
 ::: details PDF/X-4 a tvůj vlastní tiskový profil
-Žádný profil CMYK se s Lolly nedodává. Pojmenovaná tisková podmínka zapíše výstupní záměr bez tvrzení o souladu s PDF/X-4, protože PDF/X-4 chce profil vložený.
+Lolly dodává jeden profil CMYK, přizpůsobený charakterizačním datům FOGRA39 od Fogra a vydaný pod CC0, a převádí přes něj barvy pro výchozí tiskovou podmínku. Profil není vložen, protože je ve verzi ICC 4.3 a PDF/X-4 přijímá verze nejvýše 4.2. Pojmenovaná tisková podmínka proto zapíše výstupní záměr, aniž by tvrdila shodu s PDF/X-4.
 
 Načti vlastní profil CMYK a zvol jeho řádek **Embed** v ovládání Colour profile. Vloží se jako *DestOutputProfile* souboru a PDF tvrdí PDF/X-4, kdykoli to zbytek souboru dovolí. Tisková podmínka, kterou deklaruje, se čte z toho profilu: registrované jméno, kde ho profil dokazuje, nebo `Custom` pod vlastním jménem profilu.
 

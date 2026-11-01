@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Z systemu projektowego: {name}",
   "Editing the curve detaches it from the design system.": "Edycja krzywej odłącza ją od systemu projektowego.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pióro (P) - kliknij, aby umieścić punkty, przeciągnij, aby zakrzywić, Alt dla narożnika. Przytrzymaj, aby wybrać Ołówek (Shift C) lub typ splajnu",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pióro (P) - kliknij, aby umieścić punkty, przeciągnij, aby zakrzywić, Alt dla narożnika"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pióro (P) - kliknij, aby umieścić punkty, przeciągnij, aby zakrzywić, Alt dla narożnika",
+  "Create file": "Utwórz plik",
+  "File type": "Typ pliku",
+  "Filename": "Nazwa pliku",
+  "Markdown file (.md)": "Plik Markdown (.md)",
+  "New file": "Nowy plik",
+  "Open in Write": "Otwórz w Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Wybierz pliki multimedialne, do których odwołuje się ta oś czasu, albo kontynuuj z opisanymi symbolami zastępczymi.",
+  "Text file (.txt)": "Plik tekstowy (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Nie udało się przekonwertować tego pliku InDesign na tym urządzeniu. Wyeksportuj go z InDesign jako IDML i spróbuj ponownie.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Nie udało się otworzyć tego pliku InDesign. Wyeksportuj go z InDesign jako IDML i spróbuj ponownie."
 }

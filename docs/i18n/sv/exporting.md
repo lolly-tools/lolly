@@ -214,7 +214,7 @@ Scrolla, och kameran dras tillbaka genom den faktiska geometrin: sju banor, inga
 
 ## Tryck
 
-**Print PDF** skriver CMYK mot ett namngivet tryckförhållande, **Coated FOGRA39** som standard. Varumärkesfärgprov med uppmätta färgvärden konverteras exakt; andra färger använder en vanlig enhetskonvertering. **Print TIFF** skriver DeviceCMYK-pixlar för en RIP och registrerar samma tryckförhållande i sina TIFF-metadata. Kontrollen Colour profile styr båda; [Färgprofiler](#colour-profiles) har detaljerna.
+**Print PDF** skriver CMYK mot ett namngivet tryckförhållande, **Coated FOGRA39** som standard. Varumärkesfärgprov med uppmätta färgvärden behåller de värdena. Andra färger konverteras via en tryckprofil: Lollys egen Coated FOGRA39-profil som standard, eller din egen profil när du väljer dess **Embed**-rad. Gråtoner och svart stannar enbart på svartplåten, så att liten text inte får passningsfel. FOGRA51, SWOP och GRACoL använder en vanlig enhetskonvertering. **Print TIFF** skriver DeviceCMYK-pixlar för en RIP och registrerar samma tryckförhållande i sina TIFF-metadata. Kontrollen Colour profile styr båda; [Färgprofiler](#colour-profiles) har detaljerna.
 
 **Print marks & bleed** har ett eget kort på tryckformaten: utfallet i millimeter plus Crop, Registration, Bleed, Colour bars och Stamp details.
 
@@ -223,6 +223,15 @@ Vissa verktyg bygger en **PDF med flera sidor**: ett omslag, innehåll som flyte
 **Innan du exporterar.** Ett kort **Before you export** längst ner i panelen säger vad ett tryckeri är på väg att se: format, storlek och utfall, beskärnings- och utfallsytor, färgtäckning, antal plåtar och sidantal, med ett utlåtande bredvid rubriken. Det blockerar aldrig en export. Design visar alltid kortet med sina egna kontroller, inklusive designsystemets organisationsregler lager för lager och skrivsignalen för dokumentets text ([Innan du exporterar](/info/design.html#before-you-export)), och lägger till de här tryckkontrollerna när **Print preflight** är på. I andra verktyg slår du på **Print preflight** under Settings → Preferences → Feature flags; den är av som standard, och en Lolly Work-installation kan slå på den för sina medlemmar.
 
 **Efter att du exporterat.** När filen är klar läser Lolly tillbaka den och jämför den med det du valde: format, pixel- eller sidstorlek, klipplängd, en transparent bakgrund, CMYK-färg, HDR, Content Credentials och ett PDF- eller ZIP-lösenord. Allt som skiljer sig skrivs på exportkortet. Varje mätning kommer från filen, aldrig från inställningen, och en egenskap som filen inte kan svara på räknas inte som en matchning. Kommandoraden skriver hela jämförelsen med `--export-report` (se [Rendera med CLI](/info/cli-rendering.html)).
+
+**Tillgänglighetskontroller för PDF.** För en PDF listar kommandoraden också 32 tillgänglighetskontroller i `--export-report`-filen, under `pdfAccessibility`. Varje kontroll har ett id, en vanlig beskrivning, ett utfall och var i filen den hittade ett problem:
+
+- **Godkänd**: kontrollen tittade på något och hittade inget fel.
+- **Misslyckad**: kontrollen hittade ett problem. Dess sidnummer eller taggar listas.
+- **Inte tillämpligt**: filen hade inget av det slaget att granska, till exempel tabellkontroller i en fil utan tabeller. Det säger inget om filen.
+- **Behöver en person**: sex kontroller kan inte bedömas av ett program (läsordning, färgkontrast, blinkningar, skript, tidsgränser och upprepade länkar).
+
+Listan är inget utlåtande. Den säger inte att en PDF uppfyller PDF/UA eller att personer som använder hjälpmedel kan använda den, och någon behöver fortfarande kontrollera filen med en skärmläsare. Lollys egna PDF-filer underkänns i taggningskontrollerna i dag, eftersom exportörerna ännu inte skriver några taggar. Kontrollen läser filen på din enhet och ändrar ingenting. Filer som kräver lösenord anges som ej kontrollerade, inte som godkända. Om du vill kontrollera en PDF du har fått, släpp den i [Strip Hidden Data](/info/utilities.html), som visar samma lista under **PDF accessibility checks**.
 
 Designinspektörens kontroller och varumärkesjämförelsen i Design System Setup är separata kontroller: de tittar på designen, medan de här två korten tittar på filen.
 
@@ -280,7 +289,7 @@ Exporter taggas med en färgprofil, så att färghanterade program som tryckerie
 - **SVG**, **EMF**, **EPS** och **DXF** är vektorer utan inbäddad profil: SVG:s färger är sRGB, EMF och EPS använder enhets-RGB, **EPS (CMYK)** skriver DeviceCMYK och DXF använder AutoCAD Color Index. SVG, EPS och DXF konturar text till banor. EMF behåller text levande och redigerbar i Office och Google Slides, och faller bara tillbaka på konturer för textavsnitt formatet inte kan uttrycka; exportpanelens alternativ **Outline fonts** tvingar banor överallt. SVG återger också CSS-rutskuggor, inåt och utåt.
 
 ::: details PDF/X-4 och din egen tryckprofil
-Ingen CMYK-profil levereras med Lolly. Ett namngivet tryckförhållande skriver utdataavsikten utan att påstå PDF/X-4-överensstämmelse, eftersom PDF/X-4 vill ha profilen inbäddad.
+Lolly levereras med en CMYK-profil, anpassad efter Fogras karakteriseringsdata för FOGRA39 och utgiven under CC0, och konverterar färger genom den för standardtryckförhållandet. Profilen bäddas inte in, eftersom den är ICC version 4.3 och PDF/X-4 accepterar versioner upp till 4.2. Ett namngivet tryckförhållande skriver därför utdataavsikten utan att påstå PDF/X-4-överensstämmelse.
 
 Läs in en egen CMYK-profil och välj dess **Embed**-rad i kontrollen Colour profile. Den bäddas in som filens *DestOutputProfile*, och PDF:en påstår PDF/X-4 så länge resten av filen tillåter det. Tryckförhållandet den deklarerar läses av från den profilen: ett registrerat namn där profilen bevisar ett, eller `Custom` under profilens eget namn.
 

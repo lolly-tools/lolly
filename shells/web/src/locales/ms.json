@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Daripada sistem reka bentuk: {name}",
   "Editing the curve detaches it from the design system.": "Mengedit lengkung akan memutuskannya daripada sistem reka bentuk.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut. Tahan untuk Pensel (Shift C) dan jenis spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut",
+  "Create file": "Cipta fail",
+  "File type": "Jenis fail",
+  "Filename": "Nama fail",
+  "Markdown file (.md)": "Fail Markdown (.md)",
+  "New file": "Fail baharu",
+  "Open in Write": "Buka dalam Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Pilih fail media yang dirujuk oleh garis masa ini, atau teruskan dengan ruang letak berlabel.",
+  "Text file (.txt)": "Fail teks (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Fail InDesign itu tidak dapat ditukar pada peranti ini. Eksport daripada InDesign sebagai IDML dan cuba lagi.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Fail InDesign itu tidak dapat dibuka. Eksport daripada InDesign sebagai IDML dan cuba lagi."
 }

@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "ڈیزائن سسٹم سے: {name}",
   "Editing the curve detaches it from the design system.": "وکر میں ترمیم کرنے سے یہ ڈیزائن سسٹم سے الگ ہو جاتا ہے۔",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt۔ پنسل (Shift C) اور اسپلائن کی قسم کے لیے دبائے رکھیں",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt",
+  "Create file": "فائل بنائیں",
+  "File type": "فائل کی قسم",
+  "Filename": "فائل کا نام",
+  "Markdown file (.md)": "Markdown فائل (.md)",
+  "New file": "نئی فائل",
+  "Open in Write": "Write میں کھولیں",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "اس ٹائم لائن میں حوالہ دی گئی میڈیا فائلیں منتخب کریں، یا لیبل والے پلیس ہولڈرز کے ساتھ جاری رکھیں۔",
+  "Text file (.txt)": "ٹیکسٹ فائل (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "اس InDesign فائل کو اس ڈیوائس پر تبدیل نہیں کیا جا سکا۔ اسے InDesign سے IDML کے طور پر ایکسپورٹ کریں اور دوبارہ کوشش کریں۔",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "اس InDesign فائل کو کھولا نہیں جا سکا۔ اسے InDesign سے IDML کے طور پر ایکسپورٹ کریں اور دوبارہ کوشش کریں۔"
 }

@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Dal sistema di design: {name}",
   "Editing the curve detaches it from the design system.": "Modificare la curva la scollega dal sistema di design.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penna (P) - clicca per posizionare i punti, trascina per curvare, Alt per un angolo. Tieni premuto per la Matita (Shift C) e il tipo di spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - clicca per posizionare i punti, trascina per curvare, Alt per un angolo"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - clicca per posizionare i punti, trascina per curvare, Alt per un angolo",
+  "Create file": "Crea file",
+  "File type": "Tipo di file",
+  "Filename": "Nome file",
+  "Markdown file (.md)": "File Markdown (.md)",
+  "New file": "Nuovo file",
+  "Open in Write": "Apri in Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Seleziona i file multimediali a cui rimanda questa timeline, oppure continua con segnaposto etichettati.",
+  "Text file (.txt)": "File di testo (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Non è stato possibile convertire quel file InDesign su questo dispositivo. Esportalo da InDesign come IDML e riprova.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Non è stato possibile aprire quel file InDesign. Esportalo da InDesign come IDML e riprova."
 }
