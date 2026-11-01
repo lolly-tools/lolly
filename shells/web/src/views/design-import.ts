@@ -152,8 +152,8 @@ const SKIP_TAGS = new Set([
  */
 export async function parseDesignFile(
   file: File | Blob,
-  { host, log, interactive, map, preserveHierarchy }: {
-    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; preserveHierarchy?: boolean;
+  { host, log, interactive, map, preserveHierarchy, signal }: {
+    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; preserveHierarchy?: boolean; signal?: AbortSignal;
   } = {},
 ): Promise<DesignImportResult> {
   const warn: (msg: string) => void = typeof log === 'function' ? log : () => {};
@@ -190,7 +190,7 @@ export async function parseDesignFile(
 
   // A native InDesign .indd is converted to IDML on this device, then follows the IDML path.
   if (isIndd(buf, file && (file as File).name)) {
-    const files = await inddToIdmlParts(buf, file, warn);
+    const files = await inddToIdmlParts(buf, file, warn, signal);
     const { parseIdmlZip } = await import('./idml-import.ts');
     return parseIdmlZip(files, { host, warn, map, interactive });
   }
@@ -271,8 +271,8 @@ export interface DesignArtboardsResult {
  */
 export async function parseDesignArtboards(
   file: File | Blob,
-  { host, log, interactive, map, pages }: {
-    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; pages?: number[];
+  { host, log, interactive, map, pages, signal }: {
+    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; pages?: number[]; signal?: AbortSignal;
   } = {},
 ): Promise<DesignArtboardsResult> {
   const warn: (msg: string) => void = typeof log === 'function' ? log : () => {};
@@ -305,7 +305,7 @@ export async function parseDesignArtboards(
   }
 
   if (isIndd(buf, file && (file as File).name)) {
-    const files = await inddToIdmlParts(buf, file, warn);
+    const files = await inddToIdmlParts(buf, file, warn, signal);
     const { parseIdmlSpreads } = await import('./idml-import.ts');
     return { frames: await parseIdmlSpreads(files, { host, warn, map, interactive }), background: '#ffffff' };
   }
@@ -392,19 +392,21 @@ function isIndd(buf: Uint8Array, name?: unknown): boolean {
 const MAX_INDD_WARNINGS_SHOWN = 20;
 const INDD_PREVIEW_NOTE = 'This InDesign file was converted to IDML on your device. It is a preview: some formatting may differ from InDesign, so check the result against your original.';
 
-// Convert native INDD bytes to IDML on the device and return the unzipped package parts for the
+// Convert native INDD bytes to IDML on the device, on a worker, and return the unzipped package parts for the
 // shared IDML path. The converter's warnings go to the same report as the IDML reader's own.
-export async function inddToIdmlParts(buf: Uint8Array, file: File | Blob, warn: (msg: string) => void): Promise<Record<string, Uint8Array>> {
+export async function inddToIdmlParts(buf: Uint8Array, file: File | Blob, warn: (msg: string) => void, signal?: AbortSignal): Promise<Record<string, Uint8Array>> {
   if (!isInddSignature(buf)) {
     throw new Error('This file isn’t an InDesign document that Lolly can read. Files saved by InDesign 2.0 or later open here. Otherwise export an IDML from InDesign (File, Export, InDesign Markup).');
   }
   const name = String((file as File).name || 'document.indd');
-  // Let the dialog paint its busy state before the synchronous conversion starts.
-  await new Promise<void>(resolve => setTimeout(resolve, 0));
-  const { loadInddKernel } = await import('../bridge/indd.ts');
+  warn('Converting the InDesign file on your device…');
+  const { convertInddOffThread } = await import('../bridge/indd.ts');
   let converted: { idml: Uint8Array; warnings: string[] };
-  try { converted = (await loadInddKernel()).convert(buf, name); }
-  catch (error) { throw new Error(describeInddError(error)); }
+  try { converted = await convertInddOffThread(buf, name, signal); }
+  catch (error) {
+    if (signal?.aborted) throw error;
+    throw new Error(describeInddError(error));
+  }
   warn(INDD_PREVIEW_NOTE);
   for (const w of converted.warnings.slice(0, MAX_INDD_WARNINGS_SHOWN)) warn(`InDesign conversion: ${w}`);
   if (converted.warnings.length > MAX_INDD_WARNINGS_SHOWN) warn(`InDesign conversion: ${converted.warnings.length - MAX_INDD_WARNINGS_SHOWN} more notes were left out.`);
@@ -1690,8 +1692,8 @@ const MAX_EXPORT_MARKS = 60;
  */
 export async function parseDesignScenes(
   file: File | Blob,
-  { host, log, interactive, map }: {
-    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions;
+  { host, log, interactive, map, signal }: {
+    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; signal?: AbortSignal;
   } = {},
 ): Promise<DesignScenesResult> {
   const warn: (msg: string) => void = typeof log === 'function' ? log : () => {};
@@ -1709,7 +1711,7 @@ export async function parseDesignScenes(
   }
 
   if (isIndd(buf, file && (file as File).name)) {
-    const files = await inddToIdmlParts(buf, file, warn);
+    const files = await inddToIdmlParts(buf, file, warn, signal);
     const { parseIdmlSpreads } = await import('./idml-import.ts');
     const scenes: { name: string; asset: AssetRef }[] = [];
     for (const res of await parseIdmlSpreads(files, { host, warn, map, interactive })) {
