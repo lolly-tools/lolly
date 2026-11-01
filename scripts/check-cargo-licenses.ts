@@ -48,6 +48,7 @@ const LOCKFILES = [
   'packages/node-shell/wasm/xlsx-numfmt/Cargo.lock',
   'packages/node-shell/wasm/pdf-a11y/Cargo.lock',
   'packages/node-shell/wasm/dxf/Cargo.lock',
+  'packages/node-shell/wasm/audio-dsp/Cargo.lock',
   'packages/node-shell/wasm/indd/Cargo.lock',
 ];
 

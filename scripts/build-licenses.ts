@@ -599,6 +599,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'FilmCraft audio DSP and Rust dependencies',
+      version: '0.15.0 (9c6d66114c71179f66d21933b6bf6b88311adf46; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',
+      copyright: 'Storytold and individual crate authors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/audio-dsp/audio-dsp.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/audio-dsp/LICENSES.txt'), 'utf8'),
+      note: 'FilmCraft filmcraft-audio-dsp (EBU R128 loudness, DeNoise, DeHum, DeEsser, DeReverb, click removal and clip sync) compiled through a bounded Lolly byte adapter. The crate source is unchanged. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/audio-dsp/.',
+      where: 'web',
+    },
+    {
       name: 'storytold indd-utils INDD converter',
       version: '0.1.0 (136f973a9d5f1b3ef34e46e27f4a08af196efde7; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT',

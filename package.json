@@ -188,6 +188,7 @@
     "build:xlsx-numfmt": "node scripts/build-xlsx-numfmt.ts",
     "build:pdf-a11y": "node scripts/build-pdf-a11y.ts",
     "build:dxf": "node scripts/build-dxf.ts",
+    "build:audio-dsp": "node scripts/build-audio-dsp.ts",
     "build:indd": "node scripts/build-indd.ts",
     "fetch:adobe-corpus": "node scripts/adobe-corpus.ts --fetch",
     "verify:adobe-corpus": "node scripts/adobe-corpus.ts",

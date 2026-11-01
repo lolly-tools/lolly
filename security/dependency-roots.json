@@ -97,6 +97,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "audio-dsp-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/audio-dsp",
+      "lockfile": "packages/node-shell/wasm/audio-dsp/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "indd-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/indd",
