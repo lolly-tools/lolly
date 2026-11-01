@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-01T18:12:33.052Z",
+  "generatedAt": "2026-11-01T19:27:01.781Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6131,7 +6131,7 @@
       "id": "captions",
       "name": "Captions",
       "description": "Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
-      "version": "1.0.4",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -6151,6 +6151,8 @@
         "penpot",
         "srt",
         "vtt",
+        "ttml",
+        "scc",
         "json",
         "jpg",
         "webp"
