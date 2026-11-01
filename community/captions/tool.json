@@ -61,7 +61,7 @@
     },
     "width": 1920,
     "height": 1080,
-    "formats": ["png", "svg", "penpot", "srt", "vtt", "json", "jpg", "webp"],
+    "formats": ["png", "svg", "penpot", "srt", "vtt", "ttml", "scc", "json", "jpg", "webp"],
     "actions": [
       "copy",
       "download",

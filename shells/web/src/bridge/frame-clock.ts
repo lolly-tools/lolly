@@ -102,7 +102,7 @@ export function endFrameClock(c: FrameClockCanvas | null): void {
 const NOT_HELD: ReadonlySet<string> = new Set([
   'webm', 'mp4', 'gif', 'apng', 'webp-anim', 'svg-anim',
   'wav', 'mp3', 'm4a', 'aac', 'opus', 'ogg', 'flac',
-  'json', 'csv', 'ics', 'vcf', 'srt', 'vtt', 'css', 'scss', 'gpl',
+  'json', 'csv', 'ics', 'vcf', 'srt', 'vtt', 'ttml', 'scc', 'css', 'scss', 'gpl',
   'zip', 'rpm', 'tar.gz',
   'lottie', 'idml', 'premiere-xml',
 ]);
