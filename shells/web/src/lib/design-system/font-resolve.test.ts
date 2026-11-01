@@ -16,7 +16,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { parseFaceName, googleMatch, describeFaceSource, variableWeightRange } from './font-resolve.ts';
+import { parseFaceName, googleMatch, describeFaceSource, variableWeightRange, fontGap } from './font-resolve.ts';
 import { POPULAR_FAMILIES } from '../google-fonts.ts';
 
 interface Case {
@@ -178,6 +178,36 @@ test('a metric lookalike is never claimed to be the font', () => {
 test('a catalogue that genuinely carries the name wins over the lookalike table', () => {
   // The refusal is "Google has no Helvetica", not "Helvetica may never match".
   assert.equal(googleMatch('Helvetica', ['Helvetica', 'Inter']), 'Helvetica');
+});
+
+test('Cascadia Code and Mono are the real faces, so they resolve and are no lookalike', () => {
+  // Microsoft publishes both under the SIL OFL 1.1 and Google Fonts carries
+  // them, so a name match is honest here.
+  assert.equal(googleMatch('Cascadia Code'), 'Cascadia Code');
+  assert.equal(googleMatch('Cascadia Mono'), 'Cascadia Mono');
+  assert.equal(googleMatch(parseFaceName('Cascadia Code SemiBold').family), 'Cascadia Code');
+  assert.equal(fontGap('Cascadia Code'), null, 'nothing to report when the face resolves');
+});
+
+test('Aptos has no open metric twin, so it never resolves and the report says so', () => {
+  for (const name of ['Aptos', 'Aptos Display', 'Aptos Narrow', 'Aptos Serif', 'Aptos Mono', 'Aptos-Bold']) {
+    assert.equal(googleMatch(name), null, `${name} must not resolve to a lookalike`);
+    assert.ok(fontGap(name), `${name} gets a plain not-available statement`);
+  }
+  const gap = fontGap('Aptos-Bold');
+  assert.equal(gap?.family, 'Aptos');
+  assert.equal(gap?.usedInstead, 'sans-serif');
+  assert.match(gap?.message ?? '', /Aptos is not available here/);
+  assert.match(gap?.message ?? '', /generic sans-serif face instead/);
+  assert.equal(fontGap('Aptos Mono')?.usedInstead, 'monospace');
+  assert.equal(fontGap('Aptos Serif')?.usedInstead, 'serif');
+});
+
+test('fontGap stays quiet for names it has no statement about', () => {
+  assert.equal(fontGap('Inter'), null);
+  assert.equal(fontGap('Totally Made Up Face'), null);
+  assert.equal(fontGap('constructor'), null);
+  assert.equal(fontGap(''), null);
 });
 
 test('googleMatch says null for anything it does not have', () => {

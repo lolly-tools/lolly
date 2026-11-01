@@ -269,7 +269,8 @@ export const PINNED_FAMILIES: readonly string[] = [
 const ALPHABETICAL_FAMILIES: readonly string[] = [
   'Albert Sans', 'Alegreya', 'Anton', 'Archivo', 'Archivo Black', 'Arimo',
   'Asap', 'Assistant', 'Atkinson Hyperlegible', 'Barlow', 'Be Vietnam Pro',
-  'Bebas Neue', 'Bitter', 'Bricolage Grotesque', 'Cabin', 'Catamaran',
+  'Bebas Neue', 'Bitter', 'Bricolage Grotesque', 'Cabin', 'Cascadia Code',
+  'Cascadia Mono', 'Catamaran',
   'Caveat', 'Chivo', 'Comfortaa', 'Cormorant Garamond', 'Crimson Text',
   'DM Mono', 'DM Sans', 'DM Serif Display', 'Dancing Script', 'Dosis',
   'EB Garamond', 'Exo 2', 'Figtree', 'Fira Code', 'Fira Sans', 'Fraunces',
