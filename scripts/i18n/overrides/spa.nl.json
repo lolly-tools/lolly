@@ -1809,5 +1809,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "Automatisch aangezet op {date} toen dit apparaat het druk had. Je hebt Houden gekozen.",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "Automatisch aangezet op {date} toen de batterij bijna leeg was. Je hebt Houden gekozen.",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly schakelt hier niet over voor een traag apparaat, omdat je op {date} Ongedaan maken hebt gekozen.",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly schakelt niet over zolang dit apparaat het druk heeft of de batterij bijna leeg is, omdat je op {date} Ongedaan maken hebt gekozen."
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly schakelt niet over zolang dit apparaat het druk heeft of de batterij bijna leeg is, omdat je op {date} Ongedaan maken hebt gekozen.",
+  "Use the automatic colour": "Automatische kleur gebruiken",
+  "follows the design system ({colour})": "volgt het design system ({colour})",
+  "follows the design system": "volgt het design system",
+  "automatic ({colour})": "automatisch ({colour})",
+  "automatic": "automatisch"
 }

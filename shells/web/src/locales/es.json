@@ -10454,5 +10454,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "Activado automáticamente el {date} mientras este dispositivo estaba ocupado. Elegiste Conservar.",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "Activado automáticamente el {date} mientras la batería estaba baja. Elegiste Conservar.",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly no cambiará aquí por un dispositivo lento, porque elegiste Deshacer el {date}.",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly no cambiará mientras este dispositivo esté ocupado o con poca batería, porque elegiste Deshacer el {date}."
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly no cambiará mientras este dispositivo esté ocupado o con poca batería, porque elegiste Deshacer el {date}.",
+  "Use the automatic colour": "Usar el color automático",
+  "follows the design system ({colour})": "sigue el sistema de diseño ({colour})",
+  "follows the design system": "sigue el sistema de diseño",
+  "automatic ({colour})": "automático ({colour})",
+  "automatic": "automático"
 }

@@ -1809,5 +1809,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "Aktiverades automatiskt den {date} medan den här enheten var upptagen. Du valde Behåll.",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "Aktiverades automatiskt den {date} medan batteriet var svagt. Du valde Behåll.",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly byter inte här för en långsam enhet, eftersom du valde Ångra den {date}.",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly byter inte medan den här enheten är upptagen eller batteriet är svagt, eftersom du valde Ångra den {date}."
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly byter inte medan den här enheten är upptagen eller batteriet är svagt, eftersom du valde Ångra den {date}.",
+  "Use the automatic colour": "Använd den automatiska färgen",
+  "follows the design system ({colour})": "följer designsystemet ({colour})",
+  "follows the design system": "följer designsystemet",
+  "automatic ({colour})": "automatisk ({colour})",
+  "automatic": "automatisk"
 }

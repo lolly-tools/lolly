@@ -9,8 +9,9 @@
  * ("blockId:idx:fieldId") routes into its block row.
  */
 import {
-  colorFieldHtml, colourwayLeadSwatches, LEADS_SWATCH_SOURCE, provideSwatchSource, wireColorField,
+  colorFieldHtml, colourwayLeadSwatches, LEADS_SWATCH_SOURCE, provideSwatchSource, setColorFieldAuto, wireColorField,
 } from '../components/color-field.ts';
+import type { ColorFieldAuto } from '../components/color-field.ts';
 import { liveThemedHost } from '../lib/document-theme.ts';
 import { asRow } from './tool-types.ts';
 import type { InputModelItem, InputValue } from '../../../../engine/src/inputs.ts';
@@ -24,11 +25,75 @@ import type { WebToolHost } from './tool/shared.ts';
  * offers the shared swatches. Either way it is the same colour field as an
  * ordinary colour input, restricted to swatches when `swatchesOnly` is set.
  */
-export function paletteFieldHtml(id: string, input: Pick<InputModelItem, 'value' | 'palette' | 'swatchesOnly'>): string {
+export function paletteFieldHtml(id: string, input: Pick<InputModelItem, 'value' | 'palette' | 'swatchesOnly' | 'default' | 'label'>): string {
   return colorFieldHtml(id, input.value, {
     swatchesOnly: input.swatchesOnly === true,
     ...(input.palette === LEADS_SWATCH_SOURCE ? { swatchSource: LEADS_SWATCH_SOURCE } : {}),
+    ...fieldNaming(input),
   });
+}
+
+/**
+ * The markup for an ordinary colour input. The field's accessible name leads with the
+ * input's own label ("Ink: Liquorice #09141a"), and an input whose default is empty
+ * may be left empty, so its field takes `auto` (ColorFieldAuto): empty reads as
+ * automatic instead of as black. The colour the tool draws there arrives after render
+ * from paintAutoColours.
+ */
+export function colourInputHtml(id: string, input: Pick<InputModelItem, 'value' | 'swatchesOnly' | 'default' | 'label'>): string {
+  return colorFieldHtml(id, input.value, { swatchesOnly: input.swatchesOnly === true, ...fieldNaming(input) });
+}
+
+/** A block row's colour field (a block field's default decides, as above). */
+export function blockColourFieldHtml(fieldId: string, value: string, field: { default?: unknown }): string {
+  return colorFieldHtml(fieldId, value, { block: true, ...(emptyByDefault(field) ? { auto: {} } : {}) });
+}
+
+const emptyByDefault = (input: { default?: unknown }): boolean =>
+  input.default === undefined || input.default === null || input.default === '';
+
+function fieldNaming(input: { default?: unknown; label?: string }): { label?: string; auto?: ColorFieldAuto } {
+  return {
+    ...(input.label ? { label: input.label } : {}),
+    ...(emptyByDefault(input) ? { auto: {} } : {}),
+  };
+}
+
+/** Input ids that can be read as a template path (`autoColors.<id>.value`). */
+const PATH_ID = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+/**
+ * What the tool draws in each empty colour input, from its hook's `autoColors` value:
+ * `{ <inputId>: { value: '<css colour>', source: 'design-system' } }`. A tool that does
+ * not report leaves its empty inputs on the neutral automatic chip. Read through the
+ * runtime's template context, in one pass for the whole panel.
+ */
+export function readAutoColours(runtime: Pick<Runtime, 'getHydratedText'>, ids: readonly string[]): Map<string, ColorFieldAuto> {
+  const out = new Map<string, ColorFieldAuto>();
+  const readable = ids.filter((id) => PATH_ID.test(id));
+  if (!readable.length) return out;
+  let text = '';
+  try {
+    text = runtime.getHydratedText(readable.map((id) => `{{autoColors.${id}.value}}\u001f{{autoColors.${id}.source}}`).join('\u001e'));
+  } catch { return out; }
+  const rows = text.split('\u001e');
+  readable.forEach((id, i) => {
+    const [value = '', source = ''] = (rows[i] ?? '').split('\u001f');
+    out.set(id, { color: value.trim() || null, source: source.trim() === 'design-system' ? 'design-system' : 'tool' });
+  });
+  return out;
+}
+
+/** Point every empty-capable top-level colour field under `panel` at what the tool draws now. */
+export function paintAutoColours(panel: ParentNode, runtime: Pick<Runtime, 'getHydratedText'>): void {
+  const fields = [...panel.querySelectorAll<HTMLElement>('[data-color-field][data-color-auto]')]
+    .filter((f) => !(f.dataset.colorField ?? '').includes(':'));
+  if (!fields.length) return;
+  const autos = readAutoColours(runtime, fields.map((f) => f.dataset.colorField ?? ''));
+  for (const field of fields) {
+    const auto = autos.get(field.dataset.colorField ?? '');
+    if (auto) setColorFieldAuto(field, auto);
+  }
 }
 
 export interface ToolColourWiring {
@@ -87,4 +152,5 @@ export function wireToolColourFields(el: HTMLElement, w: ToolColourWiring): void
     onInteractStart: () => w.onInteract(true),
     onInteractEnd: () => w.onInteract(false),
   });
+  paintAutoColours(el, runtime);
 }

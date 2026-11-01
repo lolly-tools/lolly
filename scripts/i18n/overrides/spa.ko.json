@@ -1947,5 +1947,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "이 기기가 바빴던 {date}에 자동으로 켜졌어요. 유지를 선택하셨어요.",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "배터리가 부족했던 {date}에 자동으로 켜졌어요. 유지를 선택하셨어요.",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "{date}에 실행 취소를 선택해서 Lolly는 여기서 느린 기기 때문에 자동으로 전환하지 않아요.",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "{date}에 실행 취소를 선택해서 Lolly는 이 기기가 바쁘거나 배터리가 부족해도 자동으로 전환하지 않아요."
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "{date}에 실행 취소를 선택해서 Lolly는 이 기기가 바쁘거나 배터리가 부족해도 자동으로 전환하지 않아요.",
+  "Use the automatic colour": "자동 색상 사용",
+  "follows the design system ({colour})": "디자인 시스템을 따름 ({colour})",
+  "follows the design system": "디자인 시스템을 따름",
+  "automatic ({colour})": "자동 ({colour})",
+  "automatic": "자동"
 }

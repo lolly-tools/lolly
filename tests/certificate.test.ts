@@ -461,6 +461,32 @@ test('Ink, Paper and Accent override the colourway, and a pale lead hands its jo
   }
 });
 
+// The web shell paints an empty Ink, Paper or Accent with the colour the sheet draws
+// there (components/color-field.ts ColorFieldAuto), read from this extra. Before, an
+// empty colour input showed a black chip named "#000000".
+test('autoColors reports what each empty colour input draws, as if it were emptied', { skip: SKIP }, async () => {
+  const read = (rt: any, id: string) => [rt.getHydratedText(`{{autoColors.${id}.value}}`), rt.getHydratedText(`{{autoColors.${id}.source}}`)];
+  const classic = await createRuntime(tool, colourwayHost(), { style: 'classic' });
+  assert.deepEqual(read(classic, 'color'), ['#09141a', 'design-system']);
+  assert.deepEqual(read(classic, 'background'), ['#ffffff', 'design-system']);
+  assert.deepEqual(read(classic, 'accent'), [LEADS.spearmint!.primary, 'design-system']);
+  // Celebration prints on the lead in the colour made for the lead, and the chips show both.
+  const party = await createRuntime(tool, colourwayHost(), { style: 'celebration' });
+  assert.deepEqual(read(party, 'background')[0], LEADS.spearmint!.primary);
+  assert.deepEqual(read(party, 'color')[0], LEADS.spearmint!['on-primary']);
+  // A set Ink still reports the design system's ink: the colour "Follow the design
+  // system" returns to, not the colour the person chose.
+  const set = await createRuntime(tool, colourwayHost(), { style: 'classic', color: '#50c369' });
+  assert.equal(cssVar(set.getHydrated() as string, 'ct-ink'), '#50c369');
+  assert.deepEqual(read(set, 'color'), ['#09141a', 'design-system']);
+  // The colourway moves the chips with the sheet.
+  await classic.setTokenSelection({ colourway: 'spring' });
+  assert.equal(read(classic, 'accent')[0], LEADS.spring!.primary);
+  // In Modern the accent is the panel.
+  const modern = await createRuntime(tool, colourwayHost(), { style: 'modern' });
+  assert.equal(read(modern, 'accent')[0], cssVar(modern.getHydrated() as string, 'ct-panel'));
+});
+
 test('the logo version follows the ground it sits on', { skip: SKIP }, async () => {
   const asked: string[] = [];
   const host = colourwayHost({ assets: { get: async (id: string) => ({ id, url: 'asset:' + id }) } });

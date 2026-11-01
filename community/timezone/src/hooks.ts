@@ -33,6 +33,12 @@ async function compute(ctx: any) {
     _state: safeJson(state),
     _artwork: artwork(state),
     _data: exportData,
+    // What the two overrides draw while they are left empty, for the web shell to
+    // show on their chips: the theme's own background and text colours.
+    autoColors: {
+      background: { value: state.palette.auto.background, source: 'tool' },
+      ink: { value: state.palette.auto.ink, source: 'tool' },
+    },
   };
 }
 export const onInit = (ctx: any) => compute(ctx);

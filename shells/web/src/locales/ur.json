@@ -10454,5 +10454,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "{date} کو خودکار طور پر آن ہوا، جب یہ ڈیوائس مصروف تھی۔ آپ نے رکھیں منتخب کیا۔",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "{date} کو خودکار طور پر آن ہوا، جب بیٹری کم تھی۔ آپ نے رکھیں منتخب کیا۔",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly یہاں سست ڈیوائس کی وجہ سے خودکار طور پر نہیں بدلے گا، کیونکہ آپ نے {date} کو کالعدم کریں منتخب کیا تھا۔",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "جب تک یہ ڈیوائس مصروف ہے یا بیٹری کم ہے، Lolly خودکار طور پر نہیں بدلے گا، کیونکہ آپ نے {date} کو کالعدم کریں منتخب کیا تھا۔"
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "جب تک یہ ڈیوائس مصروف ہے یا بیٹری کم ہے، Lolly خودکار طور پر نہیں بدلے گا، کیونکہ آپ نے {date} کو کالعدم کریں منتخب کیا تھا۔",
+  "Use the automatic colour": "خودکار رنگ استعمال کریں",
+  "follows the design system ({colour})": "ڈیزائن سسٹم کی پیروی کرتا ہے ({colour})",
+  "follows the design system": "ڈیزائن سسٹم کی پیروی کرتا ہے",
+  "automatic ({colour})": "خودکار ({colour})",
+  "automatic": "خودکار"
 }

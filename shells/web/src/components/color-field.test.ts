@@ -15,6 +15,7 @@ import { JSDOM } from 'jsdom';
 import {
   lchTrackGradients, LCH_MAX, colorFieldHtml, wireColorField, setSwatches, runBoundaries,
   swatchName, resolveColorVar, colorVarLabel, setSwatchSource, provideSwatchSource, LEADS_SWATCH_SOURCE, colourwayLeadSwatches,
+  setColorFieldAuto,
 } from './color-field.ts';
 import type { ColorChangeDetail, ColorFieldValue, WireColorFieldOpts } from './color-field.ts';
 import { colorSpaces } from './color-spaces.ts';
@@ -130,6 +131,8 @@ test('wiring a field emits NOTHING - no mount-time echo, in any configuration', 
     { float: true, modes: true, dials: true },
     { swatchesOnly: true },
     { block: true },
+    { auto: {} },
+    { auto: { color: '#09141a', source: 'design-system' as const }, label: 'Ink' },
   ]) {
     for (const v of ['#30ba78', '#30ba7880', 'transparent', '', 'not a colour', 'color(display-p3 1 0 0)']) {
       const { seen } = mount(v, opts);
@@ -1396,4 +1399,96 @@ test('read through the runtime\'s live choices, the leads follow a look switch',
   assert.equal((await values())?.[1], '#c2410c', 'the light look');
   runtime.tokenSelection = { '': 'dark', colourway: 'persimmon' };
   assert.equal((await values())?.[1], '#fb923c', 'the same reader, after the switch, reads the dark look');
+});
+
+
+// ── An empty field on a host that allows empty (ColorFieldAuto) ───────────────
+// The Certificate refresh found Ink, Paper and Accent (and Chart's and Timezone's
+// empty colours) showing a black chip announced as "#000000". Empty is not black:
+// the tool draws a colour of its own there.
+
+const trigger = (field: HTMLElement): HTMLElement => field.querySelector<HTMLElement>('.color-trigger')!;
+const preview = (field: HTMLElement): HTMLElement => field.querySelector<HTMLElement>('.color-trigger-preview')!;
+const autoOption = (field: HTMLElement): HTMLElement => field.querySelector<HTMLElement>('[data-color-auto-option]')!;
+const click = (el: Element): void => { el.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); };
+
+test('an empty field that follows the design system shows the colour the tool draws, never black', () => {
+  setSwatches([{ value: '#09141a', label: 'Liquorice', group: 'Brand', ref: '{color.brand.liquorice}' }]);
+  const { field } = mount('', { label: 'Ink', auto: { color: '#09141a', source: 'design-system' } });
+  assert.equal(trigger(field).getAttribute('aria-label'), 'Ink: follows the design system (Liquorice)');
+  assert.equal(field.querySelector('.color-trigger-name')!.textContent, 'Design system');
+  assert.ok(preview(field).classList.contains('color-trigger-preview--auto'));
+  assert.equal(preview(field).style.background.replace(/\s/g, ''), 'rgb(9,20,26)');
+  assert.ok(preview(field).querySelector('.color-auto-mark'), 'the chip carries the automatic mark');
+  assert.ok(field.hasAttribute('data-color-empty'));
+  assert.equal(valueInput(field).value, '', 'the value field is empty, not #000000');
+  assert.equal(autoOption(field).getAttribute('aria-pressed'), 'true');
+  assert.doesNotMatch(trigger(field).outerHTML, /#000000|rgb\(0, 0, 0\)/i, 'nothing on the trigger says black');
+});
+
+test('an empty field whose colour the host cannot read shows the neutral pattern and says automatic', () => {
+  const { field } = mount('', { label: 'Data label colour', auto: {} });
+  assert.equal(trigger(field).getAttribute('aria-label'), 'Data label colour: automatic');
+  assert.equal(field.querySelector('.color-trigger-name')!.textContent, 'Automatic');
+  assert.ok(preview(field).classList.contains('color-trigger-preview--unknown'));
+  assert.equal(preview(field).style.background, '', 'the pattern comes from the stylesheet, not an inline colour');
+  assert.equal(autoOption(field).textContent!.trim(), 'Use the automatic colour');
+});
+
+test('without auto an empty value renders as it always has', () => {
+  const { field } = mount('', {});
+  assert.equal(field.hasAttribute('data-color-auto'), false);
+  assert.equal(field.querySelector('[data-color-auto-option]'), null);
+  assert.equal(trigger(field).getAttribute('aria-label'), 'Colour: #000000');
+});
+
+test('choosing a colour sets it and emits exactly as before; the field stops following', () => {
+  setSwatches([{ value: '#30ba78', label: 'Jungle', group: 'Brand', ref: null }]);
+  const { field, seen } = mount('', { label: 'Ink', auto: { color: '#09141a', source: 'design-system' } });
+  click(trigger(field));
+  click(field.querySelector('[data-swatch-value="#30ba78"]')!);
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0]!.value, '#30ba78', 'a non-empty emit is the plain hex it always was');
+  assert.equal(field.hasAttribute('data-color-empty'), false);
+  assert.equal(trigger(field).getAttribute('aria-label'), 'Ink: Jungle #30ba78');
+  assert.equal(preview(field).classList.contains('color-trigger-preview--auto'), false);
+  assert.equal(preview(field).classList.contains('color-trigger-preview--unknown'), false);
+  assert.equal(autoOption(field).getAttribute('aria-pressed'), 'false');
+});
+
+test('"Follow the design system" empties a set field once, and a second press emits nothing', () => {
+  const { field, seen } = mount('#30ba78', { label: 'Ink', auto: { color: '#09141a', source: 'design-system' } });
+  assert.equal(autoOption(field).getAttribute('aria-pressed'), 'false');
+  assert.equal(autoOption(field).textContent!.trim(), 'Follow the design system');
+  click(autoOption(field));
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0]!.value, '', 'the host hears empty: the tool picks the colour again');
+  assert.ok(field.hasAttribute('data-color-empty'));
+  assert.equal(field.dataset.colorCanon, '');
+  assert.equal(valueInput(field).value, '');
+  assert.match(trigger(field).getAttribute('aria-label')!, /^Ink: follows the design system/);
+  assert.equal(autoOption(field).getAttribute('aria-pressed'), 'true');
+  click(autoOption(field));
+  assert.equal(seen.length, 1, 'already following: nothing to change');
+});
+
+test('setColorFieldAuto moves the chip with the tool (a colourway switch) and leaves a set colour alone', () => {
+  const { field, seen } = mount('', { label: 'Paper', auto: { color: '#ffffff', source: 'design-system' } });
+  setColorFieldAuto(field, { color: '#033633', source: 'design-system' });
+  assert.equal(preview(field).style.background.replace(/\s/g, ''), 'rgb(3,54,51)');
+  assert.equal(autoOption(field).querySelector<HTMLElement>('.color-auto-chip')!.style.background.replace(/\s/g, ''), 'rgb(3,54,51)');
+  setColorFieldAuto(field, { color: null, source: 'tool' });
+  assert.ok(preview(field).classList.contains('color-trigger-preview--unknown'));
+  assert.equal(trigger(field).getAttribute('aria-label'), 'Paper: automatic');
+  assert.equal(seen.length, 0, 'repainting the automatic colour is never an edit');
+  const set = mount('#30ba78', { label: 'Paper', auto: {} }).field;
+  setColorFieldAuto(set, { color: '#033633', source: 'design-system' });
+  assert.equal(trigger(set).getAttribute('aria-label')!.startsWith('Paper: '), true);
+  assert.doesNotMatch(trigger(set).getAttribute('aria-label')!, /follows/, 'a set colour keeps its own name');
+});
+
+test('an unsafe automatic colour is not painted', () => {
+  const { field } = mount('', { auto: { color: 'red;background-image:url(x)', source: 'design-system' } });
+  assert.equal(preview(field).style.background, '');
+  assert.ok(preview(field).classList.contains('color-trigger-preview--unknown'));
 });

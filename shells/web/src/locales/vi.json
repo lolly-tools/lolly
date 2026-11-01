@@ -10454,5 +10454,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "Tự động bật vào {date} khi thiết bị này đang bận. Bạn đã chọn Giữ.",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "Tự động bật vào {date} khi pin yếu. Bạn đã chọn Giữ.",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly sẽ không tự chuyển ở đây cho thiết bị chậm, vì bạn đã chọn Hoàn tác vào {date}.",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly sẽ không tự chuyển khi thiết bị này đang bận hoặc pin yếu, vì bạn đã chọn Hoàn tác vào {date}."
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly sẽ không tự chuyển khi thiết bị này đang bận hoặc pin yếu, vì bạn đã chọn Hoàn tác vào {date}.",
+  "Use the automatic colour": "Dùng màu tự động",
+  "follows the design system ({colour})": "theo hệ thống thiết kế ({colour})",
+  "follows the design system": "theo hệ thống thiết kế",
+  "automatic ({colour})": "tự động ({colour})",
+  "automatic": "tự động"
 }

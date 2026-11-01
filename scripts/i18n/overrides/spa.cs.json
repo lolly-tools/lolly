@@ -1811,5 +1811,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "Zapnuto automaticky dne {date}, když bylo toto zařízení vytížené. Zvolil jsi Ponechat.",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "Zapnuto automaticky dne {date}, když byla baterie téměř vybitá. Zvolil jsi Ponechat.",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly tady nebude přepínat kvůli pomalému zařízení, protože jsi dne {date} zvolil Zpět.",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly nebude přepínat, dokud je toto zařízení vytížené nebo má málo baterie, protože jsi dne {date} zvolil Zpět."
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly nebude přepínat, dokud je toto zařízení vytížené nebo má málo baterie, protože jsi dne {date} zvolil Zpět.",
+  "Use the automatic colour": "Použij automatickou barvu",
+  "follows the design system ({colour})": "řídí se design systémem ({colour})",
+  "follows the design system": "řídí se design systémem",
+  "automatic ({colour})": "automatická ({colour})",
+  "automatic": "automatická"
 }

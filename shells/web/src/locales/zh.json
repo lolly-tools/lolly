@@ -10454,5 +10454,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "已于 {date} 在这台设备忙碌时自动开启。你选了“保留”。",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "已于 {date} 在电量偏低时自动开启。你选了“保留”。",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "由于你在 {date} 选了“撤销”，Lolly 不会在这里因设备运行缓慢而自动切换。",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "由于你在 {date} 选了“撤销”，Lolly 不会在这台设备忙碌或电量偏低时自动切换。"
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "由于你在 {date} 选了“撤销”，Lolly 不会在这台设备忙碌或电量偏低时自动切换。",
+  "Use the automatic colour": "使用自动颜色",
+  "follows the design system ({colour})": "跟随设计系统（{colour}）",
+  "follows the design system": "跟随设计系统",
+  "automatic ({colour})": "自动（{colour}）",
+  "automatic": "自动"
 }

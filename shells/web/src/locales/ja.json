@@ -10454,5 +10454,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "このデバイスがビジー状態だったため、{date}に自動でオンになりました。「保持」を選んだので、そのままオンです。",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "バッテリー残量が少なかったため、{date}に自動でオンになりました。「保持」を選んだので、そのままオンです。",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "{date}に「元に戻す」を選んだため、Lollyはここでは動作の遅いデバイス向けの自動切り替えを行いません。",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "{date}に「元に戻す」を選んだため、Lollyはこのデバイスがビジー状態の間やバッテリー残量が少ない間は自動切り替えを行いません。"
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "{date}に「元に戻す」を選んだため、Lollyはこのデバイスがビジー状態の間やバッテリー残量が少ない間は自動切り替えを行いません。",
+  "Use the automatic colour": "自動カラーを使う",
+  "follows the design system ({colour})": "デザインシステムに従っています ({colour})",
+  "follows the design system": "デザインシステムに従っています",
+  "automatic ({colour})": "自動 ({colour})",
+  "automatic": "自動"
 }

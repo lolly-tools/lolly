@@ -165,7 +165,12 @@
 
 .st-head-right { text-align: right; }
 
-.st-letterhead .st-logo { max-height: 6.2cqmin; }
+/* A set height, not a max-height: the mark shares a flex row with the name, and a logo
+   file that gives only a viewBox has no width of its own there, so with height auto
+   the image measured 0 x 0 and the letterhead printed no logo. The width follows the
+   file's proportions, capped in container units (a percentage cap would read the
+   row's own unsettled width). */
+.st-letterhead .st-logo { height: 6.2cqmin; max-width: 40cqmin; }
 .st-letterhead .st-wordmark { font-size: 3.3cqmin; }
 .st-letterhead .st-name { font-size: 1.62cqmin; }
 .st-letterhead .st-role { font-size: 1.43cqmin; margin-top: 0.3cqmin; }

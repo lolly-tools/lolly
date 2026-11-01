@@ -10454,5 +10454,10 @@
   "Turned on automatically on {date} while this device was busy. You chose Keep.": "Activat automat la {date}, când acest dispozitiv era ocupat. Ai ales Păstrează.",
   "Turned on automatically on {date} while the battery was low. You chose Keep.": "Activat automat la {date}, când bateria era descărcată. Ai ales Păstrează.",
   "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly nu va comuta aici pentru un dispozitiv lent, pentru că ai ales Anulează la {date}.",
-  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly nu va comuta cât timp acest dispozitiv este ocupat sau are bateria descărcată, pentru că ai ales Anulează la {date}."
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly nu va comuta cât timp acest dispozitiv este ocupat sau are bateria descărcată, pentru că ai ales Anulează la {date}.",
+  "Use the automatic colour": "Folosește culoarea automată",
+  "follows the design system ({colour})": "urmează sistemul de design ({colour})",
+  "follows the design system": "urmează sistemul de design",
+  "automatic ({colour})": "automată ({colour})",
+  "automatic": "automată"
 }

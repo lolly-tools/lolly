@@ -1402,7 +1402,7 @@
   "shells/web/src/views/tool/exporting-studio.test.ts": 2,
   "shells/web/src/views/tool/exporting.ts": 3,
   "shells/web/src/views/tool/history.ts": 4,
-  "shells/web/src/views/tool/render.ts": 2,
+  "shells/web/src/views/tool/render.ts": 1,
   "shells/web/src/views/tool/session.ts": 8,
   "shells/web/src/views/tool/setup.ts": 10,
   "shells/web/src/views/tool/shared.ts": 7,
