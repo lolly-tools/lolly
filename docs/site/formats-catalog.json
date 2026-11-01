@@ -480,6 +480,24 @@
       "Brand fonts as a font package",
       "lolly pack and lolly icons in the terminal",
       "Byte-identical output for the same input"
+    ],
+    "EDL": [
+      "Reads CMX 3600 events: cuts, record and source timecode",
+      "Drop-frame and non-drop timecode at 29.97 and 59.94",
+      "Audio channels, FROM CLIP NAME and SOURCE FILE comments",
+      "Rate chosen by you; up to 10,000 events"
+    ],
+    "OpenTimelineIO": [
+      "Reads .otio JSON: tracks, clips, gaps and source ranges",
+      "Clips at different rates on one timeline",
+      "Reports transitions, nesting, effects and speed changes",
+      "Up to 10,000 clips and 128 tracks"
+    ],
+    "FCPXML": [
+      "Reads versions 1.8 to 1.11, one sequence",
+      "Primary storyline, connected clips on lanes and gaps",
+      "Drop-frame timecode and mixed media rates",
+      "Reports compound clips, titles, transitions, effects and retiming"
     ]
   },
   "_unsupported_note": "Known gaps per format token, shown in the dialog under 'Not yet supported'. Editorial and accurate, not exhaustive: seed only what is genuinely true today. A format with no entry shows no gap list. Expand this during the format-support roadmap review.",
@@ -529,6 +547,18 @@
     "RPM": [
       "No GPG signature: sign the package with rpmsign before publishing it to a repository",
       "Data packages only (noarch); no compiled programs"
+    ],
+    "EDL": [
+      "Import only: Lolly does not write an EDL",
+      "Dissolves and wipes import as cuts; speed changes play at normal speed"
+    ],
+    "OpenTimelineIO": [
+      "Import only: Lolly does not write .otio",
+      "Nested stacks, transitions, effects and speed changes are not applied"
+    ],
+    "FCPXML": [
+      "Import only: Lolly does not write FCPXML",
+      "Compound and multicam clips, titles, transitions and effects are not applied"
     ]
   },
   "formats": [
@@ -1165,6 +1195,60 @@
         "writes": [],
         "preserves": "none",
         "note": "sequence.xml carries the sequence name and clip timing, not document metadata. When the export has metadata, it travels as lolly-metadata.json inside the package."
+      }
+    },
+    {
+      "token": "EDL",
+      "name": "EDL",
+      "full": "CMX 3600 edit decision list (.edl)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "desc": "The plain-text cut list that editing and grading apps trade. Lolly opens a CMX 3600 EDL in Sequence with its clips, gaps, In and Out points, drop-frame or non-drop timecode and audio channels. A list carries no frame rate, so Lolly asks for one (or assumes 29.97 for drop-frame lists and 24 otherwise) and says so. Dissolves, wipes, speed changes, locators and colour decisions are listed in the import report rather than applied.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The list names reels and timecode only. Media is relinked by the file you select or left as labelled placeholders."
+      }
+    },
+    {
+      "token": "OpenTimelineIO",
+      "name": "OpenTimelineIO",
+      "full": "OpenTimelineIO timeline (.otio)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "desc": "The Academy Software Foundation's open timeline format, as JSON. Lolly opens an .otio timeline in Sequence with its video and audio tracks, clips, gaps, source ranges, rates and start time, including clips at different rates on one timeline. Transitions, nested stacks, effects and speed changes are listed in the import report rather than applied.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Reads the JSON schema as plain data and never runs a plugin or adapter. Media paths come from the ExternalReference target."
+      }
+    },
+    {
+      "token": "FCPXML",
+      "name": "FCPXML",
+      "full": "Final Cut Pro XML, versions 1.8 to 1.11 (.fcpxml)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "desc": "Final Cut Pro's own interchange format, also written by DaVinci Resolve and others. Lolly opens an .fcpxml in Sequence with the primary storyline, connected clips on their lanes, gaps, source ranges, rational rates and drop-frame timecode, including media at different rates. Compound and multicam clips, titles, transitions, effects and retiming are listed in the import report rather than applied.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Reads one sequence from a plain .fcpxml file; the .fcpxmld bundle is not read. Media comes from the asset sources."
       }
     },
     {

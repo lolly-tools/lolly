@@ -27,6 +27,7 @@ Every frame becomes a scene on the timeline, ready for timing, music and a voice
 | **`.psd`** or **`.psb`** | Photoshop | Text, shapes and paths stay editable; other layers come in as pictures in place (see [Photoshop files](#photoshop-files)). |
 | **`.pptx`** | PowerPoint | One slide on the board (a longer deck asks which), or every slide as an artboard or a timed scene. |
 | **`.xml`** | Premiere (Final Cut Pro 7 XML), or a Lolly XML + media ZIP | Choose **Replace the board**; the clips open in Sequence (see [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange)). |
+| **`.edl`**, **`.otio`** or **`.fcpxml`** | A CMX 3600 EDL, OpenTimelineIO, or Final Cut Pro X XML (1.8 to 1.11) | Choose **Replace the board**; the clips open in Sequence and the import report lists anything not applied (see [EDL, OpenTimelineIO and FCPXML exchange](/info/sequence-editor.html#edl-opentimelineio-and-fcpxml-exchange)). |
 | **`.svg`** | Any app, including Figma and Penpot SVG exports | For editable text from a Figma SVG, untick *Outline text* in Figma's export dialog. |
 
 SVG is the widest door: almost any design app can export SVG, so almost any design can reach Lolly that way. A PowerPoint deck has other doors too: [Rebrand a deck](/info/rebrand.html) moves one onto your design system, and [Formats](/info/formats.html#bringing-files-in) lists the rest.

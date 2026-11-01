@@ -27,6 +27,7 @@
 // (DOMPurify on ingest). Scripts never run and never reach disk.
 
 import { storeUserUpload } from './picker.ts';
+import { detectTimelineFormat } from '../../../../engine/src/timeline-import.ts';
 import {
   importPenpotLayouts,
   penpotSvgLayoutFindings,
@@ -162,7 +163,7 @@ export async function parseDesignFile(
   }
   const buf = new Uint8Array(await file.arrayBuffer());
 
-  if (/^\s*(?:<\?xml[^>]*>\s*)?(?:<!DOCTYPE\s+xmeml\s*>\s*)?<xmeml[\s>]/i.test(new TextDecoder().decode(buf.subarray(0, 1024)))) {
+  if (detectTimelineFormat(new TextDecoder().decode(buf.subarray(0, 65536)))) {
     const { importPremiereFile } = await import('./premiere-import.ts');
     return importPremiereFile(file, { host, interactive, warn });
   }
