@@ -1715,12 +1715,15 @@ function docLogoBlock(keys: string[]): string {
  * accessible name - NOT nested inside the logo's link, which would be invalid and
  * would leave the badge unreachable by keyboard: a link's name is the text it
  * contains, so a badge in there would make the logo link read as "Open Lolly -
- * browse all tools Verify this logo's credentials". It is a sibling of the logo mark
+ * browse all tools" followed by the badge's own name. It is a sibling of the logo mark
  * inside .hero-logo-slot, which is the positioned box for both.
  */
 const HERO_VERIFY = (lang: Lang) => {
   const href = `${localizeHref(lang, '/')}#/verify?src=${encodeURIComponent('/info/icon.svg')}`;
-  const label = t("Verify this logo's credentials");
+  // The name says what the badge proves, not only where it goes (plan 341): the logo
+  // is the page's own receipt, and a reader who hovers it learns what a Content
+  // Credential is before the click.
+  const label = t('This logo carries a Content Credential. Check the credential in Verify.');
   return `<a class="hero-verify" href="${esc(href)}" aria-label="${esc(label)}" title="${esc(label)}">`
     + `<span aria-hidden="true">${SITE_ICONS.importPointShield}</span></a>`;
 };

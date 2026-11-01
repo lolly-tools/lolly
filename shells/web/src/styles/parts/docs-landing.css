@@ -87,7 +87,7 @@ html[data-theme="dark"] .quicknav{background:hsl(var(--background) / .9)}
    the whole line and the badge lands out at the viewport edge. It carries the width
    the link used to own (the link now fills it). The logo is no longer the page's h1
    (that is the hero statement above now), so it is a plain mark; the badge stays a
-   SIBLING of the logo link, not inside it, so "Verify this logo's credentials" is not
+   SIBLING of the logo link, not inside it, so the badge's own name is not
    folded into the logo link's accessible name. The reset just clears default box
    metrics on the mark. */
 .hero-logo-slot{position:relative;width:clamp(180px,32vw,340px);margin:0 auto 1.5rem}
