@@ -720,6 +720,9 @@ export const DOCS_PAGES: Array<{ slug: string; src: string }> = [
   // who has lost something reads it in their own language.
   { slug: 'find-your-work', src: 'find-your-work.md' },
   { slug: 'brand-studio', src: 'brand-studio.md' },
+  // Working with partners: the partner who receives a design-system file, places a mark
+  // or builds a sponsor wall is often working in a language other than the lead brand's.
+  { slug: 'partners', src: 'partners.md' },
   { slug: 'exporting', src: 'exporting.md' },
   // The Rondocode credential detail moved here from Export a file in plan 322. The
   // colour notes that left the same page went to colour-engine, a tool-author
