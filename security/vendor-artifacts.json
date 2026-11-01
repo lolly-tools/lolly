@@ -30,6 +30,16 @@
       "repository": "https://github.com/paper-design/shaders",
       "source": "https://registry.npmjs.org/@paper-design/shaders/-/shaders-0.0.80.tgz",
       "localChanges": false
+    },
+    {
+      "name": "craft-coated-fogra39",
+      "version": "f8f8829cc7be65d466d687dae381d1ca60e31242",
+      "license": "CC0-1.0",
+      "path": "packages/node-shell/icc/craft-coated-fogra39.icc",
+      "sha256": "be2d6bdad6e0508f3a486659893748eebc7063933e53dbb917da8cfa8028f20e",
+      "repository": "https://github.com/storytold/craft-libs",
+      "source": "https://github.com/storytold/craft-libs/blob/f8f8829cc7be65d466d687dae381d1ca60e31242/crates/cms/profiles/craft-coated-fogra39.icc",
+      "localChanges": false
     }
   ],
   "sourceTrees": [

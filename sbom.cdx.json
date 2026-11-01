@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:5674c7a3-cf4f-42b8-8099-988cdae49a13",
+  "serialNumber": "urn:uuid:e89cdf57-4e51-4fa0-85ac-f0bf50742406",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-29T12:13:59.336Z",
+    "timestamp": "2026-11-01T13:22:08.454Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -19602,6 +19602,47 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:generic/craft-coated-fogra39@f8f8829cc7be65d466d687dae381d1ca60e31242",
+      "name": "craft-coated-fogra39",
+      "version": "f8f8829cc7be65d466d687dae381d1ca60e31242",
+      "purl": "pkg:generic/craft-coated-fogra39@f8f8829cc7be65d466d687dae381d1ca60e31242",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "CC0-1.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "be2d6bdad6e0508f3a486659893748eebc7063933e53dbb917da8cfa8028f20e"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/storytold/craft-libs"
+        },
+        {
+          "type": "distribution",
+          "url": "https://github.com/storytold/craft-libs/blob/f8f8829cc7be65d466d687dae381d1ca60e31242/crates/cms/profiles/craft-coated-fogra39.icc"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "packages/node-shell/icc/craft-coated-fogra39.icc"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
         }
       ]
     },
