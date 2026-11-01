@@ -214,7 +214,7 @@ Street Map 是最清楚的例子。整份設計本來就是筆畫，所以每條
 
 ## 列印
 
-**Print PDF** 對照具名的印刷條件寫出 CMYK，預設為 **Coated FOGRA39**。有測量油墨值的品牌色票會精確轉換；其他色彩使用標準的裝置轉換。**Print TIFF** 為 RIP 寫出 DeviceCMYK 像素，並在其 TIFF 中繼資料中記錄相同的印刷條件。Colour profile 控制項驅動兩者；[色彩描述檔](#colour-profiles)有詳細說明。
+**Print PDF** 對照具名的印刷條件寫出 CMYK，預設為 **Coated FOGRA39**。有測量油墨值的品牌色票會保留這些數值。其他色彩會透過印刷描述檔轉換：預設使用 Lolly 自己的 Coated FOGRA39 描述檔，或在你選擇其 **Embed** 列時使用你自己的描述檔。灰色與黑色只保留在黑版上，因此小字不會套印不準。FOGRA51、SWOP 與 GRACoL 使用標準的裝置轉換。**Print TIFF** 為 RIP 寫出 DeviceCMYK 像素，並在其 TIFF 中繼資料中記錄相同的印刷條件。Colour profile 控制項驅動兩者；[色彩描述檔](#colour-profiles)有詳細說明。
 
 **Print marks & bleed** 在列印格式上有自己的卡片：以公釐計的出血，加上 Crop、Registration、Bleed、Colour bars 與 Stamp 詳細資料。
 
@@ -223,6 +223,15 @@ Street Map 是最清楚的例子。整份設計本來就是筆畫，所以每條
 **匯出之前。** 面板底部的 **Before you export** 卡片說明印刷廠即將看到什麼：格式、大小與出血、裁切與出血區域、油墨覆蓋量、色版數量與頁數，標題旁附有判定。它絕不阻擋匯出。Design 一律以自己的檢查顯示該卡片，包括逐層的設計系統內部規範，以及文件文字的寫作訊號（[匯出之前](/info/design.html#before-you-export)），並在 **Print preflight** 開啟時加入這些列印檢查。在其他工具中，請在 Settings → Preferences → Feature flags 下開啟 **Print preflight**；它預設為關閉，而 Lolly Work 部署可以為其成員開啟它。
 
 **匯出之後。** 檔案就緒後，Lolly 會讀回它，並與你的選擇比較：格式、像素或頁面大小、片段長度、透明背景、CMYK 色彩、HDR、Content Credentials，以及 PDF 或 ZIP 密碼。任何不同之處都會寫在匯出卡片上。每項測量都來自檔案，絕不來自設定，而檔案無法回答的屬性不會被算作相符。命令列以 `--export-report` 寫出完整的比較（請見[用 CLI 渲染](/info/cli-rendering.html)）。
+
+**PDF 無障礙檢查。** 對於 PDF，命令列還會在 `--export-report` 檔案的 `pdfAccessibility` 下列出 32 項無障礙檢查。每項檢查都有一個 id、一段白話說明、一個結果，以及它在檔案中發現問題的位置：
+
+- **通過**：該檢查查看了某些內容，沒有發現問題。
+- **失敗**：該檢查發現了問題。會列出相關的頁碼或標籤。
+- **不適用**：檔案中沒有該類內容可供檢查，例如沒有表格的檔案中的表格檢查。這不代表檔案本身的任何情況。
+- **需要人工**：有六項檢查無法由程式判斷（閱讀順序、色彩對比、閃爍、指令碼、時間限制與重複連結）。
+
+這份清單不是結論。它並不表示某個 PDF 符合 PDF/UA，也不表示使用輔助技術的人可以使用它，仍然需要有人用螢幕閱讀器檢查檔案。Lolly 自己的 PDF 目前無法通過標籤檢查，因為匯出器尚未寫入任何標籤。檢查在你的裝置上讀取檔案，不會變更任何內容。需要密碼的檔案會被標為未檢查，而不是通過。要檢查別人寄給你的 PDF，請把它拖進 [Strip Hidden Data](/info/utilities.html)，它會在 **PDF accessibility checks** 下顯示同樣的清單。
 
 Design 的 inspector 檢查與 Design System Setup 中的品牌比較是獨立的檢查：它們檢視設計，而這兩張卡片檢視檔案。
 
@@ -280,7 +289,7 @@ Lolly 讀取每種現代 CSS 色彩，以感知方式進行色彩運算，並以
 - **SVG**、**EMF**、**EPS** 與 **DXF** 是沒有內嵌描述檔的向量：SVG 的色彩是 sRGB，EMF 與 EPS 使用裝置 RGB，**EPS (CMYK)** 寫出 DeviceCMYK，DXF 使用 AutoCAD Color Index。SVG、EPS 與 DXF 會把文字轉成路徑外框。EMF 讓文字在 Office 與 Google Slides 中保持即時且可編輯，只有該格式無法表達的區段才退回外框；匯出面板的 **Outline fonts** 選項則強制到處都使用路徑。SVG 也會重現 CSS 方塊陰影，包括內陰影與外陰影。
 
 ::: details PDF/X-4 與你自己的印刷描述檔
-Lolly 不附帶任何 CMYK 描述檔。具名的印刷條件會寫出輸出意圖，但不宣稱符合 PDF/X-4，因為 PDF/X-4 要求內嵌描述檔。
+Lolly 附帶一個 CMYK 描述檔，它依 Fogra 的 FOGRA39 特性化資料擬合，並以 CC0 釋出，預設印刷條件下的色彩都透過它轉換。該描述檔不會內嵌，因為它是 ICC 4.3 版，而 PDF/X-4 最高接受 4.2 版。因此具名的印刷條件會寫出輸出意圖，但不宣稱符合 PDF/X-4。
 
 載入你自己的 CMYK 描述檔，並在 Colour profile 控制項中選擇它的 **Embed** 列。它會作為檔案的 *DestOutputProfile* 內嵌，而只要檔案的其餘部分允許，PDF 就宣稱符合 PDF/X-4。它宣告的印刷條件是從該描述檔讀出的：描述檔能證明時是已登記的名稱，否則是以描述檔自己名稱表示的 `Custom`。
 

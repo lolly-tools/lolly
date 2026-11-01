@@ -214,7 +214,7 @@ Scrollen Sie, und die Kamera zoomt durch die tatsächliche Geometrie zurück: si
 
 ## Druck
 
-**Print PDF** schreibt CMYK gegen eine benannte Druckbedingung, standardmäßig **Coated FOGRA39**. Markenfarbfelder mit gemessenen Farbwerten werden exakt umgerechnet; andere Farben nutzen eine Standard-Geräteumrechnung. **Print TIFF** schreibt DeviceCMYK-Pixel für ein RIP und hält dieselbe Druckbedingung in seinen TIFF-Metadaten fest. Das Steuerelement Colour profile steuert beide; [Farbprofile](#colour-profiles) hat die Einzelheiten.
+**Print PDF** schreibt CMYK gegen eine benannte Druckbedingung, standardmäßig **Coated FOGRA39**. Markenfarbfelder mit gemessenen Farbwerten behalten diese Werte. Andere Farben werden über ein Druckprofil umgerechnet: standardmäßig das eigene Coated-FOGRA39-Profil von Lolly oder Ihr eigenes Profil, wenn Sie dessen Zeile **Embed** wählen. Grau und Schwarz bleiben allein auf der Schwarzplatte, damit kleine Schrift nicht passerfehlerhaft wird. FOGRA51, SWOP und GRACoL nutzen eine Standard-Geräteumrechnung. **Print TIFF** schreibt DeviceCMYK-Pixel für ein RIP und hält dieselbe Druckbedingung in seinen TIFF-Metadaten fest. Das Steuerelement Colour profile steuert beide; [Farbprofile](#colour-profiles) enthält die Einzelheiten.
 
 **Print marks & bleed** hat auf den Druckformaten eine eigene Karte: den Beschnitt in Millimetern plus Details zu Crop, Registration, Bleed, Colour bars und Stamp.
 
@@ -223,6 +223,15 @@ Manche Tools bauen ein **mehrseitiges PDF**: ein Cover, Inhalt, der auf so viele
 **Vor dem Export.** Eine Karte **Before you export** am Fuß des Panels sagt, was eine Druckerei gleich sehen wird: Format, Größe und Beschnitt, Beschnitt- und Anschnittbereiche, Farbauftrag, Anzahl der Druckplatten und Seitenzahl, mit einem Urteil neben ihrer Überschrift. Sie blockiert nie einen Export. Design zeigt die Karte immer mit eigenen Prüfungen, darunter die Hausregeln des Designsystems Ebene für Ebene und das Schreibsignal für den Text des Dokuments ([Vor dem Export](/info/design.html#before-you-export)), und ergänzt diese Druckprüfungen, wenn **Print preflight** an ist. Schalten Sie in anderen Tools **Print preflight** unter Settings → Preferences → Feature flags ein; es ist standardmäßig aus, und eine Lolly-Work-Bereitstellung kann es für ihre Mitglieder einschalten.
 
 **Nach dem Export.** Sobald die Datei fertig ist, liest Lolly sie zurück und vergleicht sie mit dem, was Sie gewählt haben: Format, Pixel- oder Seitengröße, Cliplänge, einen transparenten Hintergrund, CMYK-Farbe, HDR, Content Credentials und ein PDF- oder ZIP-Passwort. Alles, was abweicht, wird auf die Export-Karte geschrieben. Jede Messung stammt aus der Datei, nie aus der Einstellung, und eine Eigenschaft, die die Datei nicht beantworten kann, zählt nicht als Übereinstimmung. Die Kommandozeile schreibt den vollständigen Vergleich mit `--export-report` (siehe [Mit der CLI rendern](/info/cli-rendering.html)).
+
+**PDF-Barrierefreiheitsprüfungen.** Bei einem PDF listet die Kommandozeile in der `--export-report`-Datei unter `pdfAccessibility` außerdem 32 Barrierefreiheitsprüfungen auf. Jede Prüfung hat eine ID, eine verständliche Beschreibung, ein Ergebnis und die Stelle in der Datei, an der sie ein Problem gefunden hat:
+
+- **Bestanden**: Die Prüfung hat etwas untersucht und nichts Falsches gefunden.
+- **Versagt**: Die Prüfung hat ein Problem gefunden. Die Seitenzahlen oder Tags werden aufgelistet.
+- **Nicht zutreffend**: Die Datei enthielt nichts dieser Art, zum Beispiel Tabellenprüfungen in einer Datei ohne Tabellen. Das sagt nichts über die Datei aus.
+- **Braucht einen Menschen**: Sechs Prüfungen kann ein Programm nicht beurteilen (Lesereihenfolge, Farbkontrast, Blinken, Skripte, Zeitlimits und wiederholte Links).
+
+Die Liste ist kein Urteil. Sie besagt nicht, dass ein PDF PDF/UA erfüllt oder dass Menschen mit assistiven Technologien es nutzen können, und ein Mensch muss die Datei weiterhin mit einem Screenreader prüfen. Die PDFs von Lolly fallen heute bei den Tagging-Prüfungen durch, weil die Exporter noch keine Tags schreiben. Die Prüfung liest die Datei auf Ihrem Gerät und ändert nichts. Passwortgeschützte Dateien werden als ungeprüft ausgewiesen, nicht als bestanden. Um ein PDF zu prüfen, das Sie erhalten haben, legen Sie es in [Strip Hidden Data](/info/utilities.html) ab, das dieselbe Liste unter **PDF-Barrierefreiheitsprüfungen** zeigt.
 
 Die Inspektor-Prüfungen von Design und der Markenvergleich in Design System Setup sind getrennte Prüfungen: Sie betrachten das Design, während diese beiden Karten die Datei betrachten.
 
@@ -280,7 +289,7 @@ Exporte werden mit einem Farbprofil markiert, sodass farbverwaltete Apps wie Dru
 - **SVG**, **EMF**, **EPS** und **DXF** sind Vektoren ohne eingebettetes Profil: Die Farben von SVG sind sRGB, EMF und EPS nutzen Geräte-RGB, **EPS (CMYK)** schreibt DeviceCMYK, und DXF nutzt den AutoCAD Color Index. SVG, EPS und DXF wandeln Text in Pfade um. EMF hält Text in Office und Google Folien live und bearbeitbar und fällt nur bei Textläufen, die das Format nicht ausdrücken kann, auf Umrisse zurück; die Option **Outline fonts** des Export-Panels erzwingt überall Pfade. SVG gibt außerdem CSS-Box-Schatten wieder, innen und außen.
 
 ::: details PDF/X-4 und Ihr eigenes Druckprofil
-Mit Lolly wird kein CMYK-Profil ausgeliefert. Eine benannte Druckbedingung schreibt den Output Intent, ohne PDF/X-4-Konformität zu behaupten, weil PDF/X-4 das eingebettete Profil verlangt.
+Lolly liefert ein CMYK-Profil mit, das an die FOGRA39-Charakterisierungsdaten von Fogra angepasst und unter CC0 veröffentlicht ist, und rechnet Farben für die Standard-Druckbedingung darüber um. Das Profil wird nicht eingebettet, weil es ICC-Version 4.3 ist und PDF/X-4 Versionen bis 4.2 akzeptiert. Eine benannte Druckbedingung schreibt daher den Output Intent, ohne PDF/X-4-Konformität zu behaupten.
 
 Laden Sie ein eigenes CMYK-Profil und wählen Sie seine Zeile **Embed** im Steuerelement Colour profile. Es wird als *DestOutputProfile* der Datei eingebettet, und das PDF beansprucht PDF/X-4, wann immer der Rest der Datei es erlaubt. Die Druckbedingung, die es deklariert, wird aus diesem Profil gelesen: ein registrierter Name, wo das Profil einen belegt, oder `Custom` unter dem eigenen Namen des Profils.
 

@@ -144,7 +144,7 @@ export function cliVerbs(root = ROOT): Set<string> {
   const src = readFileSync(join(root, 'shells/cli/bin/lolly.ts'), 'utf8');
   const m = /const VERBS = new Set\(\[([^\]]*)\]\)/.exec(src);
   if (!m) throw new Error('shells/cli/bin/lolly.ts: the VERBS set has moved; update cliVerbs');
-  return new Set([...m[1]!.matchAll(/'([a-z-]+)'/g)].map(v => v[1]!).concat(['adobe', 'help']));
+  return new Set([...m[1]!.matchAll(/'([a-z-]+)'/g)].map(v => v[1]!).concat(['adobe', 'dxf', 'help']));
 }
 
 /** Tool ids that a line of shell names as the tool to run. */

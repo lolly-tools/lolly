@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "來自設計系統：{name}",
   "Editing the curve detaches it from the design system.": "編輯曲線會使其與設計系統中斷連結。",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "鋼筆 (P) - 點按放置節點，拖曳成曲線，Alt 設為角點。長按可選鉛筆 (Shift C) 和曲線類型",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "鋼筆 (P) - 點按放置節點，拖曳成曲線，Alt 設為角點"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "鋼筆 (P) - 點按放置節點，拖曳成曲線，Alt 設為角點",
+  "Create file": "建立檔案",
+  "File type": "檔案類型",
+  "Filename": "檔案名稱",
+  "Markdown file (.md)": "Markdown 檔案 (.md)",
+  "New file": "新增檔案",
+  "Open in Write": "在 Write 中開啟",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "選擇此時間軸參照的媒體檔案，或以帶標籤的預留位置繼續。",
+  "Text file (.txt)": "文字檔案 (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "無法在此裝置上轉換該 InDesign 檔案。請從 InDesign 匯出為 IDML 後再試一次。",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "無法開啟該 InDesign 檔案。請從 InDesign 匯出為 IDML 後再試一次。"
 }

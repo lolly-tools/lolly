@@ -12,6 +12,14 @@ export interface CleanPcmOptions {
   enhanced?: readonly Float32Array[];
   /** Absolute sample threshold for exact edge trimming. Default -60 dBFS. */
   silenceThreshold?: number;
+  /**
+   * PCM already repaired by the shell's model-free repair chain (`planRepair`),
+   * made from the same input. It replaces the working signal before the model
+   * blend, trim and normalise steps; the loudness "before" still reads the input.
+   */
+  repaired?: readonly Float32Array[];
+  /** What the repair did, in plain words, for the result's operations list. */
+  repairOperations?: readonly string[];
 }
 
 export interface CleanPcmResult {
@@ -24,6 +32,7 @@ export interface CleanPcmResult {
   trimEndSeconds: number;
   loudnessBefore: number | null;
   loudnessAfter: number | null;
+  /** Sample peak in dBFS. A shell with the audio module replaces it with the true peak in dBTP. */
   truePeakDb: number;
   operations: string[];
 }
@@ -88,6 +97,14 @@ export function cleanAudioPcm(
   const operations: string[] = [];
 
   let channels: Float32Array[] = original;
+  if (opts.repaired?.length) {
+    channels = opts.repaired.slice(0, 2).map(channel => {
+      const out = new Float32Array(length);
+      out.set(channel.subarray(0, length));
+      return out;
+    });
+    for (const label of opts.repairOperations ?? []) operations.push(label);
+  }
   const denoise = opts.denoise ?? 'off';
   if (denoise !== 'off') {
     if (!opts.enhanced?.length) throw new Error('audio clean: the requested speech denoiser is unavailable in this shell');

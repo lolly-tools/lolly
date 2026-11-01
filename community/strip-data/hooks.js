@@ -709,10 +709,36 @@ async function officeReport(f, host, base, selected) {
   }
 }
 
+// The accessibility checks, listed and never summed into a verdict. A shell without the
+// capability, or a file it cannot read, leaves the section out or says why.
+async function pdfChecks(host, bytes) {
+  const none = { a11yShown: false, a11yHeadline: '', a11yRows: [], a11yStatement: '', a11yRefused: '' };
+  if (!host || !host.pdf || typeof host.pdf.accessibility !== 'function') return none;
+  try {
+    const report = await host.pdf.accessibility(bytes);
+    const label = { pass: 'Passed', fail: 'Failed', 'not-applicable': 'Not applicable', 'needs-person': 'Needs a person' };
+    const c = report.counts;
+    return {
+      a11yShown: true,
+      a11yHeadline: `${c.pass} of ${report.rows.length} checks passed, ${c.fail} failed, ${c['not-applicable']} did not apply and ${c['needs-person']} need a person.`,
+      a11yRows: report.rows.map(r => ({
+        name: r.name, description: r.description, outcome: r.outcome, outcomeLabel: label[r.outcome] || r.outcome,
+        where: r.outcome === 'fail' ? r.where : '',
+        notes: r.outcome === 'fail' ? r.notes.join(' ') + (r.more > 0 ? ` (and ${r.more} more)` : '') : '',
+      })),
+      a11yStatement: report.statements.join(' '),
+      a11yRefused: '',
+    };
+  } catch (e) {
+    return { ...none, a11yShown: true, a11yRefused: (e && e.message) ? e.message : 'The accessibility checks could not run on this file.' };
+  }
+}
+
 async function patch({ model, host }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
   const f = inputs.source;
   const blank = {
+    a11yShown: false, a11yHeadline: '', a11yRows: [], a11yStatement: '', a11yRefused: '',
     hasFile: false, supported: false, pdfUnavailable: false, inspectOnly: false, findings: [], nothingFound: false,
     officeMetadata: false, officeProperties: [], propertySelected: false, properties: [],
     fileName: '', fileSize: '', kind: '', metaSummary: '', cleanSize: '',
@@ -737,8 +763,10 @@ async function patch({ model, host }) {
     }
     let findings = [];
     try { ({ findings } = await host.pdf.analyze(f.bytes)); } catch (e) { findings = []; }
+    const a11y = await pdfChecks(host, f.bytes);
     return {
       ...base,
+      ...a11y,
       supported: true,
       kind: 'PDF',
       findings,

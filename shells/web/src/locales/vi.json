@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Từ hệ thống thiết kế: {name}",
   "Editing the curve detaches it from the design system.": "Chỉnh sửa đường cong sẽ tách nó khỏi hệ thống thiết kế.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc. Giữ để chọn Bút chì (Shift C) và kiểu spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc",
+  "Create file": "Tạo tệp",
+  "File type": "Loại tệp",
+  "Filename": "Tên tệp",
+  "Markdown file (.md)": "Tệp Markdown (.md)",
+  "New file": "Tệp mới",
+  "Open in Write": "Mở trong Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Chọn các tệp phương tiện mà dòng thời gian này tham chiếu, hoặc tiếp tục với phần giữ chỗ có nhãn.",
+  "Text file (.txt)": "Tệp văn bản (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Không thể chuyển đổi tệp InDesign đó trên thiết bị này. Hãy xuất nó từ InDesign dưới dạng IDML rồi thử lại.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Không thể mở tệp InDesign đó. Hãy xuất nó từ InDesign dưới dạng IDML rồi thử lại."
 }

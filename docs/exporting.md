@@ -224,6 +224,15 @@ Some tools build a **multi-page PDF**: a cover, content that flows onto as many 
 
 **After you export.** Once the file is ready, Lolly reads it back and compares it with what you chose: format, pixel or page size, clip length, a transparent background, CMYK colour, HDR, Content Credentials and a PDF or ZIP password. Anything that differs is written on the export card. Each measurement comes from the file, never from the setting, and a property the file cannot answer is not counted as a match. The command line writes the full comparison with `--export-report` (see [Render with the CLI](/info/cli-rendering.html)).
 
+**PDF accessibility checks.** For a PDF, the command line also lists 32 accessibility checks in the `--export-report` file, under `pdfAccessibility`. Each check has an id, a plain description, an outcome and where in the file it found a problem:
+
+- **Passed**: the check looked at something and found nothing wrong.
+- **Failed**: the check found a problem. Its page numbers or tags are listed.
+- **Not applicable**: the file had nothing of that kind to look at, such as table checks in a file with no tables. This says nothing about the file.
+- **Needs a person**: six checks cannot be judged by a program (reading order, colour contrast, flashing, scripts, time limits and repeated links).
+
+The list is not a verdict. It does not say a PDF meets PDF/UA or that people who use assistive technology can use it, and a person still needs to check the file with a screen reader. Lolly's own PDFs fail the tagging checks today, because the exporters write no tags yet. The check reads the file on your device and changes nothing. Files that need a password are named as unchecked, not passed. To check a PDF you were sent, drop it into [Strip Hidden Data](/info/utilities.html), which shows the same list under **PDF accessibility checks**.
+
 Design's inspector checks and the brand comparison in Design System Setup are separate checks: they look at the design, while these two cards look at the file.
 
 ::: details Cost from a rate card

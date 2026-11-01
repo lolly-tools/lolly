@@ -55,6 +55,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - layout-abi    : raw WASM layout_alloc/layout_solve bytes through Rust serde_json and modern flex/grid routines
  *   - penpot-layout : importPenpotLayouts + penpotChildrenPaintOrder, then Design request placement/evaluation
  *   - design-guides : v1/v2 guide text/JSON, canonical reparse and finite snap targets without DOM
+ *   - dxf           : the DXF reader (WASM tag reader, entity list), then the flattener and Design boxes over what it returns
  *   - font-inspect  : inspectFont + glyphsForText over a real variable TTF, its WOFF wrapper and crafted overlapping cmap 4/12 tables (sfnt directory, name, fvar, cmap 4/12)
  */
 
@@ -1991,6 +1992,40 @@ export const adobeXmlTarget: FuzzTarget = {
     else readCameraRawPreset(source, parseXml);
   },
 };
+export const timelineEdlTarget: FuzzTarget = {
+  name: 'timeline-edl',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/timeline/df-2997.edl', import.meta.url))), new Uint8Array(await readFile(new URL('../fixtures/timeline/df-5994.edl', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const { readEdl } = await import('../../engine/src/timeline-edl.ts');
+    const source = new TextDecoder().decode(bytes);
+    readEdl(source);
+  },
+};
+export const timelineOtioTarget: FuzzTarget = {
+  name: 'timeline-otio',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/timeline/mixed-rate.otio', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const { readOtio } = await import('../../engine/src/timeline-otio.ts');
+    readOtio(new TextDecoder().decode(bytes));
+  },
+};
+export const timelineFcpxmlTarget: FuzzTarget = {
+  name: 'timeline-fcpxml',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/timeline/df-2997.fcpxml', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const { readFcpxml } = await import('../../engine/src/timeline-fcpxml.ts');
+    readFcpxml(new TextDecoder().decode(bytes), parseXml);
+  },
+};
 export const adobePsdTarget: FuzzTarget = {
   name: 'adobe-psd',
   async seeds() {
@@ -2031,6 +2066,38 @@ export const xlsxNumfmtTarget: FuzzTarget = {
     readXlsx(bytes, { formatCell: kernel.formatCell });
   },
 };
+// PDF accessibility check (packages/node-shell/wasm/pdf-a11y): reads an arbitrary user PDF.
+// Contract: a report or a typed PdfAccessibilityError refusal; never a trap, a hang or an
+// answer the transport cannot parse. Seeds are a small untagged PDF and a tagged one with a
+// table and a figure, so mutations reach the xref reader, the content scan and the structure walk.
+export const pdfA11yTarget: FuzzTarget = {
+  name: 'pdf-a11y',
+  async seeds() {
+    const enc = (t: string) => new TextEncoder().encode(t);
+    const build = (bodies: string[], root: string) => {
+      let out = '%PDF-1.7\n'; const offsets: number[] = [];
+      bodies.forEach((b, i) => { offsets.push(out.length); out += `${i + 1} 0 obj\n${b}\nendobj\n`; });
+      const xref = out.length;
+      out += `xref\n0 ${bodies.length + 1}\n0000000000 65535 f \n${offsets.map(o => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`;
+      return enc(`${out}trailer << /Size ${bodies.length + 1} /Root 1 0 R ${root} >>\nstartxref\n${xref}\n%%EOF\n`);
+    };
+    const stream = (d: string) => `<< /Length ${d.length} >>\nstream\n${d}\nendstream`;
+    const page = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R /Annots [9 0 R] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> >>';
+    const content = '/Figure << /MCID 0 >> BDC 0 0 10 10 re f EMC /P << /MCID 1 >> BDC BT /F1 12 Tf 20 100 Td (Hi) Tj ET EMC';
+    return [
+      build(['<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R >>', stream('0 0 10 10 re f')], ''),
+      build(['<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 5 0 R /MarkInfo << /Marked true >> /Lang (en) >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', page, stream(content),
+        '<< /Type /StructTreeRoot /K [6 0 R 7 0 R 8 0 R] >>', '<< /S /Figure /Pg 3 0 R /K 0 >>', '<< /S /P /Pg 3 0 R /K 1 >>', '<< /S /Table /Pg 3 0 R /K [] >>',
+        '<< /Type /Annot /Subtype /Link /Rect [0 0 10 10] >>'], ''),
+    ];
+  },
+  async invoke(bytes) {
+    const { checkPdfAccessibility } = await import('../../packages/node-shell/src/pdf-a11y-node.ts');
+    const { PdfAccessibilityError } = await import('../../packages/node-shell/src/pdf-a11y.ts');
+    const { summarisePdfAccessibility } = await import('../../engine/src/pdf-accessibility.ts');
+    try { summarisePdfAccessibility(await checkPdfAccessibility(bytes)); } catch (error) { if (!(error instanceof PdfAccessibilityError)) throw error; }
+  },
+};
 // INDD to IDML converter (packages/node-shell/wasm/indd): the most untrusted binary the Design
 // import touches. Contract: a typed InddError refusal or a conversion with warnings; never a
 // trap, hang or output over the declared 128 MiB limit. Seeds are a signature-only page set and,
@@ -2058,6 +2125,44 @@ export const inddTarget: FuzzTarget = {
       // A trap retires the instance; report it as the crash the runner classifies.
       if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
     }
+  },
+};
+// DXF reader (packages/node-shell/wasm/dxf): untrusted CAD files. Contract: a typed DxfError refusal or
+// a flat entity list that the flattener and the Design mapper then handle; never a trap, hang or
+// output over the declared limits. Seeds are synthetic ASCII, binary R13+ and binary R12 drawings.
+export const dxfTarget: FuzzTarget = {
+  name: 'dxf',
+  async seeds() {
+    const f = await import('../fixtures/dxf/synthetic.ts');
+    const ascii = f.dxfText({
+      layers: [{ name: 'WALLS', aci: 1 }, { name: 'TEXT', aci: 3, flags: 1 }],
+      styles: [{ name: 'PLAN', font: 'arial.ttf', typeface: 'Arial' }, { name: 'OLD', font: 'simplex.shx' }],
+      blocks: [{ name: 'DOOR', base: [1, 0], entities: f.line(1, 0, 3, 0) }, { name: 'SITE', xref: 'site.dwg' }],
+      entities: [
+        ...f.line(0, 0, 10, 0, 'WALLS'), ...f.circle(5, 5, 2), ...f.arc(0, 0, 4, 10, 80), ...f.ellipse(2, 2, 3, 0, 0.5),
+        ...f.lwpolyline([[0, 0, 0.5], [4, 0], [4, 3]], true), ...f.polyline([[0, 0], [2, 1, 0.3], [4, 0]]),
+        ...f.spline(3, [0, 0, 0, 0, 1, 1, 1, 1], [[0, 0], [1, 2], [2, -2], [3, 0]]), ...f.fitSpline([[0, 0], [1, 1], [2, 0]]),
+        ...f.text(1, 1, 0.5, 'Hall', 'PLAN'), ...f.mtext(2, 2, 0.5, '{\\fCalibri|b0;Living\\PRoom}', 'PLAN'),
+        ...f.insert('DOOR', 3, 3, '0', [[41, 2], [50, 90], [70, 2], [44, 3]]), ...f.insert('SITE', 0, 0),
+        [0, 'HATCH'], [8, 'WALLS'],
+      ],
+    });
+    return [new TextEncoder().encode(ascii), f.dxfBinary(ascii), f.dxfBinary(ascii, true)];
+  },
+  async invoke(bytes) {
+    const { loadDxfKernel } = await import('../../packages/node-shell/src/dxf-node.ts');
+    const { DxfError } = await import('../../packages/node-shell/src/dxf.ts');
+    const { flattenDxf } = await import('../../engine/src/dxf-import.ts');
+    const { dxfToDesign } = await import('../../engine/src/dxf-design.ts');
+    let raw: Parameters<typeof flattenDxf>[0];
+    try { raw = (await loadDxfKernel()).read(bytes); }
+    catch (error) {
+      if (!(error instanceof DxfError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+      return;
+    }
+    dxfToDesign(flattenDxf(raw));
   },
 };
 export const idmlReadTarget: FuzzTarget = {
@@ -2153,9 +2258,70 @@ export const fontInspectTarget: FuzzTarget = {
   async invoke(bytes) { inspectFont(bytes); glyphsForText(bytes, 'Hello, Wörld'); },
 };
 
+// Audio DSP module (packages/node-shell/wasm/audio-dsp): the raw byte ABI that the decoded PCM
+// of an untrusted recording reaches through the shell. Contract: a status 0 or 1 reply with a
+// bounded result; never a trap, hang or unbounded allocation. Each call gets a fresh instance
+// that already holds a meter (handle 1) and a repair chain (handle 2), so mutated process,
+// read and flush requests reach real state. The first input byte picks the operation.
+export const audioDspTarget: FuzzTarget = {
+  name: 'audio-dsp',
+  async seeds() {
+    const enc = new TextEncoder();
+    const req = (op: number, json: string, floats: number[] = []): Uint8Array => {
+      const head = enc.encode(json);
+      const out = new Uint8Array(1 + 4 + head.length + floats.length * 4);
+      out[0] = op;
+      new DataView(out.buffer).setUint32(1, head.length, true);
+      out.set(head, 5);
+      for (let i = 0; i < floats.length; i++) new DataView(out.buffer).setFloat32(5 + head.length + i * 4, floats[i]!, true);
+      return out;
+    };
+    const wave = Array.from({ length: 480 }, (_, i) => 0.2 * Math.sin(i / 7));
+    return [
+      req(1, '{"sampleRate":48000,"channels":2,"series":true}'),
+      req(2, '{"handle":1}', wave),
+      req(3, '{"handle":1}'),
+      req(4, '{"sampleRate":44100,"channels":1,"chain":[{"id":"dehum","params":{"frequency":1}},{"id":"denoise"},{"id":"deesser"},{"id":"dereverb"},{"id":"declick"}]}'),
+      req(5, '{"handle":2}', wave),
+      req(6, '{"handle":2}'),
+      req(7, '{"sampleRate":8000,"framesA":240,"maxLag":100}', wave),
+      req(8, '{"handle":1}'),
+    ];
+  },
+  async invoke(bytes) {
+    const { readFileSync } = await import('node:fs');
+    const wasm = new WebAssembly.Module(readFileSync(new URL('../../packages/node-shell/wasm/audio-dsp/audio-dsp.wasm', import.meta.url)));
+    const api = new WebAssembly.Instance(wasm, {}).exports as unknown as {
+      memory: WebAssembly.Memory; audio_dsp_alloc(n: number): number; audio_dsp_free(p: number): void;
+      audio_dsp_run(p: number, n: number, op: number): number; audio_dsp_result_len(): number;
+    };
+    const send = (op: number, body: Uint8Array): number => {
+      if (!body.length) return -1;
+      const p = api.audio_dsp_alloc(body.length);
+      if (!p) return -1;
+      new Uint8Array(api.memory.buffer, p, body.length).set(body);
+      const status = api.audio_dsp_run(p, body.length, op);
+      api.audio_dsp_free(p);
+      return status;
+    };
+    const json = (text: string): Uint8Array => {
+      const head = new TextEncoder().encode(text);
+      const out = new Uint8Array(4 + head.length);
+      new DataView(out.buffer).setUint32(0, head.length, true);
+      out.set(head, 4);
+      return out;
+    };
+    send(1, json('{"sampleRate":48000,"channels":2,"series":true}'));
+    send(4, json('{"sampleRate":48000,"channels":1,"chain":[{"id":"denoise"},{"id":"dehum"},{"id":"declick"}]}'));
+    const status = send(bytes[0]! % 9, bytes.subarray(1));
+    if (status !== -1 && status !== 0 && status !== 1) throw new Error(`audio-dsp: unexpected status ${status}`);
+    if (api.audio_dsp_result_len() > 160 * 1024 * 1024) throw new Error('audio-dsp: oversized result');
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, adobePsdTarget, xlsxNumfmtTarget, inddTarget, idmlReadTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, dxfTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,
@@ -2171,6 +2337,6 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget, fontInspectTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

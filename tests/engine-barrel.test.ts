@@ -10,6 +10,10 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.298 DXF import: a shell-supplied reader's entity list, flattened into Design paths and text.
+  'DXF_LIMITS', 'DXF_MAX_BOXES', 'DxfDesignResult', 'DxfImport', 'DxfImportOptions', 'DxfRaw', 'DxfReader',
+  'DxfReport', 'DxfStroke', 'DxfText', 'DxfUnits',
+  'aciToHex', 'dxfReportLines', 'dxfToDesign', 'dxfUnits', 'flattenDxf', 'importDxf', 'looksLikeDxf',
   // Additive 1.297 press separation: RGB to CMYK through a press profile, and its raster lattice.
   'CmykSeparation', 'DEVICE_SEPARATION', 'NEUTRAL_EPSILON', 'SeparateRgb', 'iccSeparation', 'separationLattice',
   // Additive 1.293 canvas size: the one conversion every shell hands a tool's hooks and template.
@@ -36,6 +40,8 @@ const EXPECTED: readonly string[] = [
   'DesignTextSegment', 'DesignVisibleText', 'DesignVisibleTextOpts',
   'WRITING_SCORE_CODE', 'checkFindingFromWritingScore',
   'creationFeedback', 'creationFeedbackDelta', 'designVisibleText', 'designWritingScore',
+  // Additive PDF accessibility report types.
+  'PdfAccessibilityOutcome', 'PdfAccessibilityReader', 'PdfAccessibilityRow', 'PdfAccessibilitySummary', 'VerifyExportReaders',
   // Additive 1.262 static-copy findings for layouts declared in legacy Penpot SVG.
   'LayoutFinding', 'PenpotSvgLayout', 'penpotSvgLayoutFindings',
   // Additive 1.262 data conversion choices and the all-worksheets manifest.
@@ -46,6 +52,8 @@ const EXPECTED: readonly string[] = [
   // Additive 1.262 export report: requested settings beside facts read from the output bytes.
   'ExportCheck', 'ExportReport', 'ExportRequest', 'ExportValue', 'OutputFacts',
   'compareExport', 'exportRequestFromJob', 'inspectOutput', 'verifyExport',
+  'PDF_ACCESSIBILITY_RULES', 'PDF_ACCESSIBILITY_RULE_IDS', 'PDF_ACCESSIBILITY_STATEMENTS', 'pdfAccessibilityCounts', 'pdfAccessibilityHeadline',
+  'pdfAccessibilityOutcome', 'pdfAccessibilityOutcomeLabel', 'pdfAccessibilityRows', 'pdfAccessibilityText', 'summarisePdfAccessibility',
   'ActiveContentV1', 'ExtractScoreV1', 'InventoryRecognizerV1', 'LabelledBlockV1', 'MATCH_CER', 'ReadExtractErrorCode', 'ReadExtractOptsV1',
   'characterErrorRate', 'editDistance', 'normaliseForScore', 'scoreExtract', 'wordErrorRate',
   // Additive 1.262 bounded JPEG marker walker for placing JPEGs on PDF pages.
@@ -81,6 +89,9 @@ const EXPECTED: readonly string[] = [
   'CameraRawPreset', 'InterchangeClip', 'InterchangeRate', 'InterchangeSequence',
   'framesToSeconds', 'premiereSequenceValues', 'readCameraRawPreset', 'readIdmlSpreads',
   'readPremiereXml', 'secondsToFrames', 'writePremiereXml',
+  // Additive timeline interchange readers (EDL, OpenTimelineIO, FCPXML).
+  'EdlOptions', 'TimelineFormat', 'TimelineReadOptions', 'detectTimelineFormat', 'framesToTimecode',
+  'readEdl', 'readFcpxml', 'readOtio', 'readTimeline', 'timecodeToFrames',
   // Additive 1.244 image repair and matte refinement APIs.
   'HealFrame', 'HealMode', 'HealOptions', 'MatteRefineOptions', 'boxMean', 'guidedFilter',
   'healCoverageBounds', 'healFrame', 'refineMatte', 'resizeMask', 'spotHealPremultiplied',
@@ -811,6 +822,12 @@ const EXPECTED: readonly string[] = [
   'chromaTickStep',
   'clamp',
   'cleanAudioPcm',
+  'planRepair',
+  'repairRequested',
+  'AudioRepairOpts',
+  'RepairStage',
+  'RepairStageId',
+  'RepairStrength',
   'cleanAudioPreview',
   'clipToGamut',
   'colLetters',
@@ -946,6 +963,7 @@ const EXPECTED: readonly string[] = [
   'inspectPreparation',
   'inspectPrivateText',
   'integratedLoudness',
+  'R128Report',
   'invisibleCharName',
   'isBmp',
   'isDocx',

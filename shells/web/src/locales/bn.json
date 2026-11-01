@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "ডিজাইন সিস্টেম থেকে: {name}",
   "Editing the curve detaches it from the design system.": "কার্ভ সম্পাদনা করলে এটি ডিজাইন সিস্টেম থেকে বিচ্ছিন্ন হয়।",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "পেন (P) - পয়েন্ট বসাতে ক্লিক করুন, বাঁকাতে টানুন, কোণের জন্য Alt। পেন্সিল (Shift C) ও স্প্লাইন টাইপের জন্য চেপে ধরুন",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "পেন (P) - পয়েন্ট বসাতে ক্লিক করুন, বাঁকাতে টানুন, কোণের জন্য Alt"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "পেন (P) - পয়েন্ট বসাতে ক্লিক করুন, বাঁকাতে টানুন, কোণের জন্য Alt",
+  "Create file": "ফাইল তৈরি করুন",
+  "File type": "ফাইলের ধরন",
+  "Filename": "ফাইলের নাম",
+  "Markdown file (.md)": "Markdown ফাইল (.md)",
+  "New file": "নতুন ফাইল",
+  "Open in Write": "Write-এ খুলুন",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "এই টাইমলাইনে উল্লেখ করা মিডিয়া ফাইলগুলো বেছে নিন, অথবা লেবেলযুক্ত প্লেসহোল্ডার নিয়ে এগিয়ে যান।",
+  "Text file (.txt)": "টেক্সট ফাইল (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "এই ডিভাইসে ওই InDesign ফাইলটি রূপান্তর করা যায়নি। InDesign থেকে IDML হিসেবে এক্সপোর্ট করে আবার চেষ্টা করুন।",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "ওই InDesign ফাইলটি খোলা যায়নি। InDesign থেকে IDML হিসেবে এক্সপোর্ট করে আবার চেষ্টা করুন।"
 }

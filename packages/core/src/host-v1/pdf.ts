@@ -93,6 +93,84 @@ export interface PdfAPI {
 
   /** Apply an AES-256 open password as the final PDF byte operation. */
   lock?(bytes: Uint8Array, password: string): Promise<{ bytes: Uint8Array }>;
+
+  /**
+   * Run Lolly's 32 PDF accessibility checks on the file and report, for each one,
+   * whether it passed, failed, did not apply or needs a person, in Lolly's words. Read-only: the
+   * file is never changed, tagged or fixed. The result lists checks, not a verdict.
+   * Passing every automatic check does not make a PDF accessible or conformant to
+   * PDF/UA, so every report says a human check is still needed. Rejects with an
+   * error whose `code` is `not-pdf`, `encrypted`, `damaged` or `too-large` when the
+   * file cannot be read. Runs locally. Feature-detect `host.pdf?.accessibility`.
+   */
+  accessibility?(bytes: Uint8Array): Promise<PdfAccessibilitySummary>;
+}
+
+// ─── PDF accessibility check ──────────────────────────────────────────────────
+
+/** What one check came to. `manual` checks always need a person; `skipped` ones were not run. */
+export type PdfAccessibilityStatus = 'passed' | 'failed' | 'manual' | 'skipped';
+
+/** One place a check found a problem. Pages are 1-based. */
+export interface PdfAccessibilityFinding {
+  page?: number;
+  /** The sentence the checker wrote, in English. */
+  message: string;
+  /** The same sentence with named holes, so a shell can say it in another language. */
+  pattern: string;
+  values: [string, string][];
+  /** The structure element at fault, as object number and generation, when there is one. */
+  object?: [number, number];
+  /** The area on the page, in PDF user space, when the content can be located. */
+  bbox?: [number, number, number, number];
+}
+
+/** One rule as the checker returned the result. */
+export interface PdfAccessibilityRuleResult {
+  /** Stable id such as `tagged-pdf` or `table-headers`. */
+  id: string;
+  category: string;
+  /** Only a person can judge the result. */
+  manual: boolean;
+  /** False when the file gave the rule nothing to look at, so a pass means nothing was wrong, not that something was checked. */
+  applies: boolean;
+  status: PdfAccessibilityStatus;
+  findings: PdfAccessibilityFinding[];
+}
+
+/** The module's raw answer for one file. */
+export interface PdfAccessibilityReport {
+  v: 1;
+  pages: number;
+  rules: PdfAccessibilityRuleResult[];
+}
+
+/** The outcome a person reads for one check. */
+export type PdfAccessibilityOutcome = 'pass' | 'fail' | 'not-applicable' | 'needs-person';
+
+/** One row of the PDF accessibility report, in Lolly's words. */
+export interface PdfAccessibilityRow {
+  id: string;
+  category: string;
+  name: string;
+  /** A plain sentence saying what the check looks for. */
+  description: string;
+  outcome: PdfAccessibilityOutcome;
+  /** Where in the file: `Whole file`, or the 1-based pages, or elements and pages. */
+  where: string;
+  /** The problems, one sentence each, capped; `more` says how many were left out. */
+  notes: string[];
+  more: number;
+}
+
+/** The report Lolly shows and writes: rows in rule order, counts and the statements that qualify them. */
+export interface PdfAccessibilitySummary {
+  $format: 'lolly-pdf-accessibility';
+  formatVersion: 1;
+  pages: number;
+  counts: Record<PdfAccessibilityOutcome, number>;
+  rows: PdfAccessibilityRow[];
+  statements: string[];
 }
 
 export type PdfPageOperation = 'reorder' | 'rotate' | 'extract' | 'delete' | 'merge' | 'split';

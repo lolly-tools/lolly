@@ -5,7 +5,7 @@ description: "Operate the Lolly Clean tool (clean) using its declared inputs and
 
 # Clean
 
-Tool ID: `clean`. Tool version: `1.0.1`. Engine range: `^1.0.0`.
+Tool ID: `clean`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
 
 Clean a voice recording, trim edge silence and set its loudness on your device.
 
@@ -23,6 +23,11 @@ This is an on-device utility. File bytes require a separately permitted file rou
 | --- | --- | --- |
 | source | file |  |
 | denoise | select |  |
+| repairNoise | select |  |
+| repairHum | select |  |
+| repairDeEss | select |  |
+| repairDeclick | boolean |  |
+| repairDereverb | select |  |
 | normalize | select |  |
 | trimSilence | boolean |  |
 | audioFormat | select |  |

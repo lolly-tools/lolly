@@ -449,6 +449,7 @@ Inspect a PDF, remove its metadata and make it smaller. The metadata and structu
 | `fromImages(images, opts?)` *(optional, v1.262)* | `Promise<PdfImagesResult>` | A new PDF with one PNG or JPEG per page. JPEG data is embedded without re-encoding and its metadata is left out |
 | `stamp(bytes, opts)` *(optional)* | `Promise<PdfStampResult>` | Place PNG or JPEG stamps at top-left PDF-point coordinates |
 | `lock(bytes, password)` *(optional)* | `Promise<{ bytes }>` | Apply an AES-256 open password as the last step |
+| `accessibility(bytes)` *(optional)* | `Promise<PdfAccessibilitySummary>` | Run 32 PDF accessibility checks and list which passed, failed, did not apply or need a person, in Lolly's words. Read-only: nothing is tagged or fixed. It is a list of checks, not a PDF/UA verdict. Rejects with a `code` of `not-pdf`, `encrypted`, `damaged` or `too-large` when the file cannot be read |
 :::
 
 ### `host.pptx`
@@ -563,7 +564,9 @@ An **`AudioLevel`** is the audio counterpart to `MediaFrame` (all amplitudes `0.
 | `isAvailable()` | `boolean`: a decoder exists here. Does **not** promise a given file decodes |
 | `analyse(src, opts?)` | `Promise<AudioAnalysis>`: decode and analyse; rejects on unfetchable bytes or a missing codec |
 | `decode(src, opts?)` | `Promise<AudioDecoded>`: optional, v1.246. PCM for a recorded clip, or the rendered audio of a computed one |
-| `clean(src, opts?)` | `Promise<AudioCleanResult>`: optional. Decode, clean and re-encode a clip on the device: `denoise`, `normalize` to a loudness target, `trimSilence` and an `output` format. The result reports loudness before and after, true peak and the operations applied. The Node shells read and write WAV only; a container a shell cannot handle is refused by name |
+| `clean(src, opts?)` | `Promise<AudioCleanResult>`: optional. Decode, clean and re-encode a clip on the device: `denoise` (the on-device speech model), `repair` (plain signal processing with no model: `noise`, `hum`, `deEss`, `declick`, `dereverb`), `normalize` to a loudness target, `trimSilence` and an `output` format. The result reports loudness before and after, true peak and the operations applied. When the shell has the audio module it also carries `report`, the full EBU R128 readings of the input and the output, and `truePeakDb` is then the true peak in dBTP. The Node shells read and write WAV only; a container a shell cannot handle is refused by name |
+| `loudness(src, opts?)` | `Promise<AudioLoudness>`: optional. EBU R128 (BS.1770-4) readings of a clip: integrated, momentary, short-term, loudness range, sample peak and true peak, plus a reading every 100 ms with `series: true`. A mono file is measured as heard on both speakers. Needs the audio module; a shell without it leaves this undefined |
+| `align(a, b, opts?)` | `Promise<AudioAlignment \| null>`: optional. Where recording `b` starts relative to recording `a` when both captured one event, by GCC-PHAT correlation: `offsetSeconds`, `offsetSamples`, `confidence`, `reliable`, `inverted`. Resolves null when they share too little sound; show a result with `reliable: false` as a guess. Each clip is read up to its first 4 minutes (`truncated` says so) |
 
 `src` is a URL (including `blob:` / `data:`), an `AssetRef` or raw encoded bytes; the last lets a `file` input's in-memory upload be analysed without being stored first.
 

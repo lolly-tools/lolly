@@ -214,7 +214,7 @@ Gulir, dan kamera mundur menembus geometri sebenarnya: tujuh path, tidak ada pik
 
 ## Cetak
 
-**Print PDF** menulis CMYK terhadap kondisi cetak bernama, **Coated FOGRA39** secara default. Swatch brand dengan nilai tinta terukur dikonversi persis; warna lain memakai konversi perangkat standar. **Print TIFF** menulis piksel DeviceCMYK untuk RIP dan mencatat kondisi cetak yang sama dalam metadata TIFF-nya. Kontrol Colour profile menggerakkan keduanya; [Colour profiles](#colour-profiles) memuat detailnya.
+**Print PDF** menulis CMYK terhadap kondisi cetak bernama, **Coated FOGRA39** secara default. Swatch brand dengan nilai tinta terukur tetap mempertahankan nilai tersebut. Warna lain dikonversi melalui profil cetak: profil Coated FOGRA39 milik Lolly secara default, atau profil Anda sendiri saat Anda memilih baris **Embed**-nya. Abu-abu dan hitam tetap hanya di pelat hitam, sehingga teks kecil tidak bisa meleset registrasi. FOGRA51, SWOP, dan GRACoL memakai konversi perangkat standar. **Print TIFF** menulis piksel DeviceCMYK untuk RIP dan mencatat kondisi cetak yang sama dalam metadata TIFF-nya. Kontrol Colour profile menggerakkan keduanya; [Colour profiles](#colour-profiles) memuat detailnya.
 
 **Print marks & bleed** memiliki kartu sendiri pada format cetak: bleed dalam milimeter ditambah detail Crop, Registration, Bleed, Colour bars, dan Stamp.
 
@@ -223,6 +223,15 @@ Beberapa alat membangun **PDF multi-halaman**: sampul, konten yang mengalir ke s
 **Before you export.** Kartu **Before you export** di dasar panel menyatakan apa yang akan dilihat percetakan: format, ukuran dan bleed, area trim dan bleed, cakupan tinta, jumlah plat, dan jumlah halaman, dengan vonis di samping judulnya. Ia tidak pernah memblokir ekspor. Design selalu menampilkan kartu dengan pemeriksaannya sendiri, termasuk aturan baku design system layer demi layer dan sinyal tulisan untuk teks dokumen ([Before you export](/info/design.html#before-you-export)), dan menambahkan pemeriksaan cetak ini bila **Print preflight** aktif. Pada alat lain, aktifkan **Print preflight** di Settings → Preferences → Feature flags; ia mati secara default, dan deployment Lolly Work dapat mengaktifkannya untuk anggotanya.
 
 **After you export.** Setelah file siap, Lolly membacanya kembali dan membandingkannya dengan pilihan Anda: format, ukuran piksel atau halaman, panjang klip, latar transparan, warna CMYK, HDR, Content Credentials, dan kata sandi PDF atau ZIP. Apa pun yang berbeda ditulis di kartu ekspor. Setiap pengukuran berasal dari file, tidak pernah dari pengaturan, dan properti yang tidak dapat dijawab file tidak dihitung sebagai cocok. Baris perintah menulis perbandingan lengkap dengan `--export-report` (lihat [Render with the CLI](/info/cli-rendering.html)).
+
+**Pemeriksaan aksesibilitas PDF.** Untuk PDF, baris perintah juga mencantumkan 32 pemeriksaan aksesibilitas di file `--export-report`, di bawah `pdfAccessibility`. Setiap pemeriksaan memiliki id, deskripsi yang jelas, hasil, dan lokasi di file tempat masalah ditemukan:
+
+- **Lolos**: pemeriksaan melihat sesuatu dan tidak menemukan masalah.
+- **Gagal**: pemeriksaan menemukan masalah. Nomor halaman atau tag-nya dicantumkan.
+- **Tidak berlaku**: file tidak memiliki hal semacam itu untuk diperiksa, seperti pemeriksaan tabel pada file tanpa tabel. Ini tidak menyatakan apa pun tentang file.
+- **Perlu manusia**: enam pemeriksaan tidak dapat dinilai oleh program (urutan baca, kontras warna, kedipan, skrip, batas waktu, dan tautan berulang).
+
+Daftar ini bukan vonis. Daftar ini tidak menyatakan bahwa PDF memenuhi PDF/UA atau bahwa pengguna teknologi bantu dapat menggunakannya, dan seseorang tetap perlu memeriksa file dengan pembaca layar. PDF buatan Lolly sendiri saat ini gagal dalam pemeriksaan penandaan, karena eksporter belum menulis tag. Pemeriksaan membaca file di perangkat Anda dan tidak mengubah apa pun. File yang memerlukan kata sandi dicatat sebagai tidak diperiksa, bukan lolos. Untuk memeriksa PDF yang dikirim kepada Anda, letakkan di [Strip Hidden Data](/info/utilities.html), yang menampilkan daftar yang sama di bawah **Pemeriksaan aksesibilitas PDF**.
 
 Pemeriksaan inspector Design dan perbandingan brand di Design System Setup adalah pemeriksaan terpisah: mereka melihat desain, sementara kedua kartu ini melihat file.
 
@@ -280,7 +289,7 @@ Ekspor ditandai dengan profil warna, sehingga aplikasi yang terkelola warna sepe
 - **SVG**, **EMF**, **EPS**, dan **DXF** adalah vektor tanpa profil tersemat: warna SVG adalah sRGB, EMF dan EPS memakai RGB perangkat, **EPS (CMYK)** menulis DeviceCMYK, dan DXF memakai AutoCAD Color Index. SVG, EPS, dan DXF mengonturkan teks menjadi path. EMF mempertahankan teks hidup dan dapat disunting di Office dan Google Slides, kembali ke kontur hanya untuk run yang tidak dapat dinyatakan format; opsi **Outline fonts** pada panel ekspor memaksa path di mana-mana. SVG juga mereproduksi bayangan kotak CSS, di dalam dan di luar.
 
 ::: details PDF/X-4 dan profil cetak Anda sendiri
-Tidak ada profil CMYK yang dikirim bersama Lolly. Kondisi cetak bernama menulis output intent tanpa mengklaim kesesuaian PDF/X-4, karena PDF/X-4 menghendaki profil disematkan.
+Lolly menyertakan satu profil CMYK, yang disesuaikan dengan data karakterisasi FOGRA39 dari Fogra dan dirilis di bawah CC0, dan mengonversi warna melaluinya untuk kondisi cetak default. Profil tidak disematkan, karena merupakan ICC versi 4.3 sedangkan PDF/X-4 menerima versi hingga 4.2. Karena itu kondisi cetak bernama menulis output intent tanpa mengklaim kesesuaian dengan PDF/X-4.
 
 Muat profil CMYK Anda sendiri dan pilih baris **Embed**-nya di kontrol Colour profile. Ia disematkan sebagai *DestOutputProfile* file, dan PDF mengklaim PDF/X-4 selama sisa file mengizinkan. Kondisi cetak yang dideklarasikannya dibaca dari profil itu: nama terdaftar bila profil membuktikannya, atau `Custom` di bawah nama profil sendiri.
 

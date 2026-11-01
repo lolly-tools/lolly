@@ -214,7 +214,7 @@ Kaydır, ve kamera gerçek geometrinin içinden geri çekilir: yedi yol, hiçbir
 
 ## Baskı
 
-**Print PDF**, adlandırılmış bir baskı koşuluna karşı, varsayılan olarak **Coated FOGRA39** ile CMYK yazar. Ölçülmüş mürekkep değerli marka örnekleri tam olarak dönüştürülür; diğer renkler standart bir aygıt dönüşümü kullanır. **Print TIFF** bir RIP için DeviceCMYK pikselleri yazar ve aynı baskı koşulunu TIFF meta verisinde kaydeder. Colour profile denetimi ikisini de yönetir; ayrıntı [Colour profiles](#colour-profiles) altında.
+**Print PDF**, adlandırılmış bir baskı koşuluna karşı, varsayılan olarak **Coated FOGRA39** ile CMYK yazar. Ölçülmüş mürekkep değerli marka örnekleri bu değerleri korur. Diğer renkler bir baskı profili üzerinden dönüştürülür: varsayılan olarak Lolly'nin kendi Coated FOGRA39 profili ya da **Embed** satırını seçtiğinde kendi profilin. Griler ve siyah yalnızca siyah plakada kalır; böylece küçük yazılarda çakışma hatası olmaz. FOGRA51, SWOP ve GRACoL standart bir aygıt dönüşümü kullanır. **Print TIFF** bir RIP için DeviceCMYK pikselleri yazar ve aynı baskı koşulunu TIFF meta verisinde kaydeder. Colour profile denetimi ikisini de yönetir; ayrıntı [Colour profiles](#colour-profiles) altında.
 
 **Print marks & bleed** baskı biçimlerinde kendi kartına sahiptir: milimetre cinsinden taşma payı ve Crop, Registration, Bleed, Colour bars ile Stamp ayrıntıları.
 
@@ -223,6 +223,15 @@ Bazı araçlar **çok sayfalı bir PDF** kurar: bir kapak, gerektiği kadar sayf
 **Before you export.** Panelin altındaki **Before you export** kartı, bir matbaanın göreceği şeyi söyler: biçim, boyut ve taşma payı, kesim ve taşma alanları, mürekkep kapsama, plaka sayıları ve sayfa sayısı; başlığının yanında bir kararla. Asla bir dışa aktarmayı engellemez. Design, tasarım sisteminin kurumsal stil kurallarını katman katman ve belgenin metni için yazım sinyalini içeren kendi denetimleriyle kartı her zaman gösterir ([Before you export](/info/design.html#before-you-export)) ve **Print preflight** açıkken bu baskı denetimlerini ekler. Diğer araçlarda Settings → Preferences → Feature flags altında **Print preflight** aç; varsayılan olarak kapalıdır ve bir Lolly Work dağıtımı bunu üyeleri için açabilir.
 
 **After you export.** Dosya hazır olduğunda Lolly onu geri okur ve seçtiklerinle karşılaştırır: biçim, piksel veya sayfa boyutu, klip uzunluğu, saydam arka plan, CMYK renk, HDR, Content Credentials ve bir PDF veya ZIP parolası. Farklı olan her şey dışa aktarma kartına yazılır. Her ölçüm ayardan değil dosyadan gelir ve dosyanın yanıtlayamadığı bir özellik eşleşme sayılmaz. Komut satırı tam karşılaştırmayı `--export-report` ile yazar (bkz. [Render with the CLI](/info/cli-rendering.html)).
+
+**PDF erişilebilirlik denetimleri.** Bir PDF için komut satırı, `--export-report` dosyasında `pdfAccessibility` altında 32 erişilebilirlik denetimini de listeler. Her denetimin bir kimliği, sade bir açıklaması, bir sonucu ve dosyada sorunu nerede bulduğu bilgisi vardır:
+
+- **Geçti**: denetim bir şeye baktı ve yanlış bir şey bulmadı.
+- **Başarısız**: denetim bir sorun buldu. Sayfa numaraları veya etiketleri listelenir.
+- **Geçerli değil**: dosyada bakılacak o türden bir şey yoktu; örneğin tablosu olmayan bir dosyada tablo denetimleri. Bu, dosya hakkında bir şey söylemez.
+- **Bir kişi gerekli**: altı denetim bir program tarafından değerlendirilemez (okuma sırası, renk kontrastı, yanıp sönme, betikler, zaman sınırları ve tekrarlanan bağlantılar).
+
+Liste bir hüküm değildir. Bir PDF'in PDF/UA'ya uyduğunu ya da yardımcı teknoloji kullanan kişilerin onu kullanabileceğini söylemez; dosyayı bir ekran okuyucuyla kontrol etmek için yine de bir kişi gerekir. Lolly'nin kendi PDF'leri bugün etiketleme denetimlerinden geçemiyor, çünkü dışa aktarıcılar henüz etiket yazmıyor. Denetim dosyayı cihazında okur ve hiçbir şeyi değiştirmez. Parola gerektiren dosyalar geçti değil, denetlenmedi olarak adlandırılır. Sana gönderilen bir PDF'i denetlemek için onu [Strip Hidden Data](/info/utilities.html) aracına bırak; aynı listeyi **PDF accessibility checks** altında gösterir.
 
 Design'ın denetleyici denetimleri ve Design System Setup'taki marka karşılaştırması ayrı denetimlerdir: tasarıma bakarlar, bu iki kart ise dosyaya.
 
@@ -280,7 +289,7 @@ Dışa aktarmalar bir renk profiliyle etiketlenir; böylece matbaalar, Photoshop
 - **SVG**, **EMF**, **EPS** ve **DXF**, gömülü profili olmayan vektörlerdir: SVG'nin renkleri sRGB'dir, EMF ve EPS aygıt RGB'sini kullanır, **EPS (CMYK)** DeviceCMYK yazar ve DXF AutoCAD Color Index kullanır. SVG, EPS ve DXF metni yollara dış çizgiler. EMF metni Office ve Google Slides'ta canlı ve düzenlenebilir tutar, yalnızca biçimin ifade edemediği parçalar için dış çizgilere döner; dışa aktarma panelinin **Outline fonts** seçeneği her yerde yolları zorlar. SVG ayrıca CSS kutu gölgelerini, içte ve dışta yeniden üretir.
 
 ::: details PDF/X-4 ve kendi baskı profilin
-Lolly ile hiçbir CMYK profili gelmez. Adlandırılmış bir baskı koşulu, PDF/X-4 uyumluluğunu iddia etmeden çıktı amacını yazar, çünkü PDF/X-4 profilin gömülmesini ister.
+Lolly, Fogra'nın FOGRA39 karakterizasyon verisine uydurulmuş ve CC0 altında yayımlanmış tek bir CMYK profiliyle gelir ve varsayılan baskı koşulu için renkleri bu profil üzerinden dönüştürür. Profil gömülmez, çünkü ICC sürüm 4.3'tür ve PDF/X-4 en fazla 4.2 sürümünü kabul eder. Bu yüzden adlandırılmış bir baskı koşulu, PDF/X-4 uyumluluğunu iddia etmeden çıktı amacını yazar.
 
 Kendi CMYK profilini yükle ve Colour profile denetiminde **Embed** satırını seç. Dosyanın *DestOutputProfile* değeri olarak gömülür ve dosyanın geri kalanı izin verdiğinde PDF, PDF/X-4 iddiasında bulunur. Bildirdiği baskı koşulu o profilden okunur: profilin kanıtladığı yerde kayıtlı bir ad ya da profilin kendi adı altında `Custom`.
 

@@ -9,6 +9,8 @@
  */
 import type { AudioSource, AudioCleanOpts, AudioCleanResult } from '@lolly-tools/core/host-v1';
 import { cleanAudioPcm, resamplePcm, cleanAudioPreview } from '../../../../engine/src/audio-clean.ts';
+import { planRepair, repairRequested } from '../../../../engine/src/audio-repair.ts';
+import type { AudioLoudnessReport } from '@lolly-tools/core/host-v1';
 
 type Decoder = (src: AudioSource) => Promise<{ channels: Float32Array[]; sampleRate: number }>;
 
@@ -19,16 +21,49 @@ function videoHint(opts: AudioCleanOpts): boolean {
 export async function runAudioClean(src: AudioSource, opts: AudioCleanOpts, toPcm: Decoder): Promise<AudioCleanResult> {
   const decoded = await toPcm(src);
   const channels = resamplePcm(decoded.channels, decoded.sampleRate);
+  // Model-free repair first, in the audio worker. Its output is what the speech model sees.
+  let repaired: Float32Array[] | undefined;
+  let repairOperations: string[] = [];
+  let clicksRepaired: number | undefined;
+  if (repairRequested(opts.repair)) {
+    const stages = planRepair(opts.repair);
+    try {
+      const { repairAudio } = await import('./audio-dsp.ts');
+      const r = await repairAudio(channels.slice(0, 2), 48_000, stages);
+      repaired = r.channels;
+      repairOperations = stages.map(s => s.label);
+      if (stages.some(s => s.id === 'declick')) clicksRepaired = r.clicksRepaired;
+    } catch (error) {
+      throw new Error(`audio clean: the repair step could not run (${String((error as Error)?.message || error)})`);
+    }
+  }
   let enhanced: Float32Array[] | undefined;
   if ((opts.denoise ?? 'off') !== 'off') {
     try {
       const { cleanPcm } = await import('../lib/audio-clean-core.ts');
-      enhanced = await cleanPcm(channels, 48_000);
+      enhanced = await cleanPcm(repaired ?? channels, 48_000);
     } catch (error) {
       throw new Error(`audio clean: the on-device speech denoiser could not run (${String((error as Error)?.message || error)})`);
     }
   }
-  const result = cleanAudioPcm(channels, 48_000, { ...opts, trimSilence: videoHint(opts) ? false : opts.trimSilence, ...(enhanced ? { enhanced } : {}) });
+  const cleaned = cleanAudioPcm(channels, 48_000, {
+    ...opts, trimSilence: videoHint(opts) ? false : opts.trimSilence,
+    ...(enhanced ? { enhanced } : {}), ...(repaired ? { repaired, repairOperations } : {}),
+  });
+  // Full R128 readings of the input and the output. The true peak replaces the sample peak.
+  let report: { before: AudioLoudnessReport; after: AudioLoudnessReport } | undefined;
+  try {
+    const { measureLoudness } = await import('./audio-dsp.ts');
+    const [before, after] = await Promise.all([
+      measureLoudness(channels.slice(0, 2), 48_000), measureLoudness(cleaned.channels, 48_000),
+    ]);
+    report = { before: before.report, after: after.report };
+  } catch { /* A shell without the audio module reports integrated loudness only. */ }
+  const result = {
+    ...cleaned,
+    ...(report ? { report, truePeakDb: report.after.truePeakDb ?? -Infinity } : {}),
+    ...(clicksRepaired !== undefined ? { clicksRepaired } : {}),
+  };
   const format = opts.output ?? 'wav';
   if (videoHint(opts)) {
     const { encodeAudio } = await import('../lib/audio-encode.ts');

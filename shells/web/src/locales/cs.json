@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Ze systému designu: {name}",
   "Editing the curve detaches it from the design system.": "Úpravou křivky ji odpojíte od systému designu.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh. Podrž pro Tužku (Shift C) a typ spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh",
+  "Create file": "Vytvořit soubor",
+  "File type": "Typ souboru",
+  "Filename": "Název souboru",
+  "Markdown file (.md)": "Soubor Markdown (.md)",
+  "New file": "Nový soubor",
+  "Open in Write": "Otevřít ve Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Vyber mediální soubory, na které se tato časová osa odkazuje, nebo pokračuj s popsanými zástupnými prvky.",
+  "Text file (.txt)": "Textový soubor (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Tento soubor InDesign se na tomto zařízení nepodařilo převést. Exportuj ho z InDesignu jako IDML a zkus to znovu.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Tento soubor InDesign se nepodařilo otevřít. Exportuj ho z InDesignu jako IDML a zkus to znovu."
 }

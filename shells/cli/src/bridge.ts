@@ -1552,6 +1552,10 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
 
   // PDF metadata inspect + strip is pure pdf-lib and needs no browser.
   host.pdf = createPdfAPI();
+  host.pdf.accessibility = async (bytes) => {
+    const [{ checkPdfAccessibility }, { summarisePdfAccessibility }] = await Promise.all([import('@lolly-tools/node-shell/pdf-a11y-node'), import('../../../engine/src/pdf-accessibility.ts')]);
+    return summarisePdfAccessibility(await checkPdfAccessibility(bytes));
+  };
 
   // pdf.redact + pdf.pages (plan 183 WS4) - the two PdfAPI members that REBUILD
   // PIXELS. They used to be web-only, so `lolly redact` on a PDF escalated a black

@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "디자인 시스템에서: {name}",
   "Editing the curve detaches it from the design system.": "곡선을 편집하면 디자인 시스템과의 연결이 끊깁니다.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요. 길게 누르면 연필 (Shift C)과 스플라인 종류",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요",
+  "Create file": "파일 만들기",
+  "File type": "파일 형식",
+  "Filename": "파일 이름",
+  "Markdown file (.md)": "Markdown 파일(.md)",
+  "New file": "새 파일",
+  "Open in Write": "Write에서 열기",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "이 타임라인이 참조하는 미디어 파일을 선택하거나, 이름표가 붙은 자리 표시자로 계속하세요.",
+  "Text file (.txt)": "텍스트 파일(.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "그 InDesign 파일은 이 기기에서 변환할 수 없었어요. InDesign에서 IDML로 내보낸 다음 다시 시도하세요.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "그 InDesign 파일을 열 수 없었어요. InDesign에서 IDML로 내보낸 다음 다시 시도하세요."
 }

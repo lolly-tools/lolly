@@ -214,7 +214,7 @@ Derulează, iar camera se retrage prin geometria efectivă: șapte căi, fără 
 
 ## Tipar
 
-**Print PDF** scrie CMYK față de o condiție de presă numită, implicit **Coated FOGRA39**. Mostrele de brand cu valori de cerneală măsurate se convertesc exact; celelalte culori folosesc o conversie standard de dispozitiv. **Print TIFF** scrie pixeli DeviceCMYK pentru un RIP și înregistrează aceeași condiție de presă în metadatele TIFF. Controlul Colour profile le conduce pe amândouă; [Profiluri de culoare](#colour-profiles) are detaliile.
+**Print PDF** scrie CMYK față de o condiție de presă numită, implicit **Coated FOGRA39**. Mostrele de brand cu valori de cerneală măsurate își păstrează acele valori. Celelalte culori sunt convertite printr-un profil de presă: profilul Coated FOGRA39 propriu Lolly, implicit, sau profilul tău când alegi rândul **Embed**. Grisurile și negrul rămân doar pe placa neagră, astfel încât textul mic să nu iasă din registru. FOGRA51, SWOP și GRACoL folosesc o conversie standard de dispozitiv. **Print TIFF** scrie pixeli DeviceCMYK pentru un RIP și înregistrează aceeași condiție de presă în metadatele TIFF. Controlul Colour profile le conduce pe amândouă; [Profiluri de culoare](#colour-profiles) are detaliile.
 
 **Print marks & bleed** are propriul card pe formatele de tipar: bleed-ul în milimetri plus detaliile Crop, Registration, Bleed, Colour bars și Stamp.
 
@@ -223,6 +223,15 @@ Unele instrumente construiesc un **PDF cu mai multe pagini**: o copertă, conți
 **Înainte să exporți.** Un card **Before you export** la baza panoului spune ce urmează să vadă o tipografie: format, dimensiune și bleed, zonele de tăiere și bleed, acoperirea cu cerneală, numărul de plăci și numărul de pagini, cu un verdict lângă titlu. Nu blochează niciodată un export. Design arată mereu cardul cu propriile verificări, inclusiv regulile de casă ale sistemului de design strat cu strat și semnalul de scriere pentru textul documentului ([Înainte să exporți](/info/design.html#before-you-export)), și adaugă aceste verificări de tipar când **Print preflight** este activ. În alte instrumente, activează **Print preflight** în Settings → Preferences → Feature flags; este oprit implicit, iar o instalare Lolly Work îl poate activa pentru membrii ei.
 
 **După export.** Odată ce fișierul e gata, Lolly îl citește înapoi și îl compară cu ce ai ales: format, dimensiune în pixeli sau pagină, lungimea clipului, fundal transparent, culoare CMYK, HDR, Content Credentials și o parolă de PDF sau ZIP. Tot ce diferă este scris pe cardul de export. Fiecare măsurătoare vine din fișier, niciodată din setare, iar o proprietate la care fișierul nu poate răspunde nu este numărată ca potrivire. Linia de comandă scrie comparația completă cu `--export-report` (vezi [Randează cu CLI](/info/cli-rendering.html)).
+
+**Verificări de accesibilitate PDF.** Pentru un PDF, linia de comandă listează și 32 de verificări de accesibilitate în fișierul `--export-report`, sub `pdfAccessibility`. Fiecare verificare are un id, o descriere simplă, un rezultat și locul din fișier unde a găsit o problemă:
+
+- **Trecut**: verificarea a examinat ceva și nu a găsit nimic greșit.
+- **Eșuat**: verificarea a găsit o problemă. Sunt listate numerele de pagină sau etichetele.
+- **Nu se aplică**: fișierul nu avea nimic de acel fel de examinat, cum ar fi verificările de tabele într-un fișier fără tabele. Asta nu spune nimic despre fișier.
+- **Necesită o persoană**: șase verificări nu pot fi judecate de un program (ordinea de citire, contrastul culorilor, sclipirile, scripturile, limitele de timp și linkurile repetate).
+
+Lista nu este un verdict. Nu spune că un PDF respectă PDF/UA sau că persoanele care folosesc tehnologii asistive îl pot folosi, iar o persoană trebuie totuși să verifice fișierul cu un cititor de ecran. PDF-urile Lolly proprii eșuează astăzi la verificările de etichetare, pentru că exportatoarele nu scriu încă etichete. Verificarea citește fișierul pe dispozitivul tău și nu schimbă nimic. Fișierele care cer o parolă sunt indicate ca neverificate, nu ca trecute. Pentru a verifica un PDF primit, trage-l în [Strip Hidden Data](/info/utilities.html), care arată aceeași listă sub **PDF accessibility checks**.
 
 Verificările inspectorului Design și compararea brandului din Design System Setup sunt verificări separate: ele se uită la design, în timp ce aceste două carduri se uită la fișier.
 
@@ -280,7 +289,7 @@ Exporturile sunt etichetate cu un profil de culoare, deci aplicațiile cu gestio
 - **SVG**, **EMF**, **EPS** și **DXF** sunt vectori fără profil încorporat: culorile SVG sunt sRGB, EMF și EPS folosesc RGB de dispozitiv, **EPS (CMYK)** scrie DeviceCMYK, iar DXF folosește AutoCAD Color Index. SVG, EPS și DXF conturează textul în căi. EMF păstrează textul viu și editabil în Office și Google Slides, revenind la contururi doar pentru secvențele pe care formatul nu le poate exprima; opțiunea **Outline fonts** a panoului de export forțează căi peste tot. SVG reproduce și umbrele CSS ale casetelor, în interior și în exterior.
 
 ::: details PDF/X-4 și propriul profil de presă
-Lolly nu livrează niciun profil CMYK. O condiție de presă numită scrie output intent fără să pretindă conformitate PDF/X-4, pentru că PDF/X-4 vrea profilul încorporat.
+Lolly livrează un singur profil CMYK, potrivit datelor de caracterizare FOGRA39 de la Fogra și publicat sub CC0, și convertește culorile prin el pentru condiția de presă implicită. Profilul nu este încorporat, pentru că este ICC versiunea 4.3, iar PDF/X-4 acceptă versiuni până la 4.2. O condiție de presă numită scrie deci output intent fără să pretindă conformitate PDF/X-4.
 
 Încarcă un profil CMYK propriu și alege rândul lui **Embed** în controlul Colour profile. Este încorporat ca *DestOutputProfile* al fișierului, iar PDF-ul pretinde PDF/X-4 oricând restul fișierului permite. Condiția de presă pe care o declară este citită din acel profil: un nume înregistrat unde profilul dovedește unul sau `Custom` sub numele propriu al profilului.
 

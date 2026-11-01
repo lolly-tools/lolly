@@ -21,7 +21,7 @@ function job(host,v){
  try{
   var results=await Promise.all([_cleanAnalyses.get(f.bytes),job(ctx.host,v)]),a=results[0],r=results[1];
   if(a){o.wave=bars(a.peaks);o.beforeDuration=fmtTime(a.duration);}
-  o.done=true;o.before=fmtLufs(r.loudnessBefore);o.after=fmtLufs(r.loudnessAfter);o.trimmed=fmtTime(r.secondsTrimmed);o.peak=isFinite(r.truePeakDb)?r.truePeakDb.toFixed(1)+' dBTP':'Silence';o.operations=r.operations.join(' · ')||'Decoded and re-encoded';o.outputText=(r.container||r.format).toUpperCase()+' · '+fmtTime(r.durationAfter)+' · '+fmtBytes(r.bytes.length);
+  o.done=true;o.before=fmtLufs(r.report?r.report.before.integrated:r.loudnessBefore);o.after=fmtLufs(r.report?r.report.after.integrated:r.loudnessAfter);o.range=r.report?fmtLu(r.report.after.loudnessRange):'';o.trimmed=fmtTime(r.secondsTrimmed);o.peak=isFinite(r.truePeakDb)?r.truePeakDb.toFixed(1)+' dBTP':'Silence';o.operations=r.operations.join(' · ')||'Decoded and re-encoded';o.outputText=(r.container||r.format).toUpperCase()+' · '+fmtTime(r.durationAfter)+' · '+fmtBytes(r.bytes.length);
   o.previewUrl=r.previewUrl;o.afterWave=r.afterWave;o.previewNote=r.previewNote;
  }catch(e){o.error=String(e&&e.message||e);}
  o.pending=false;return o;
@@ -31,15 +31,17 @@ var _cleanJobKey='', _cleanJob=null;
 function vals(model){var o={};model.forEach(function(i){o[i.id]=i.value;});return o;}
 function fmtBytes(n){if(!(n>=0))return'';if(n<1024)return n+' B';var u=['KB','MB','GB'],x=n,p=-1;do{x/=1024;p++;}while(x>=1024&&p<2);return(x<10?x.toFixed(1):Math.round(x))+' '+u[p];}
 function fmtTime(n){n=Math.max(0,Number(n)||0);var m=Math.floor(n/60),s=n-m*60;return m?m+':'+s.toFixed(1).padStart(4,'0'):s.toFixed(1)+'s';}
+function fmtLu(n){return n==null||!isFinite(n)?'n/a':Number(n).toFixed(1)+' LU';}
 function fmtLufs(n){return n==null||!isFinite(n)?'No measurable programme':Number(n).toFixed(1)+' LUFS';}
 function base(name){return String(name||'recording').replace(/\.[^.]+$/,'');}
-function cleanOpts(v){return{denoise:v.denoise||'off',normalize:v.normalize==='off'?'off':Number(v.normalize),trimSilence:Boolean(v.trimSilence),output:v.audioFormat||'wav',sourceName:v.source&&v.source.name,sourceMime:v.source&&(v.source.mime||v.source.type)};}
-function jobKey(v){var f=v.source;return[f&&f.url,f&&f.size,v.denoise,v.normalize,v.trimSilence,v.audioFormat].join('|');}
+function repairOpts(v){var r={};if(v.repairNoise&&v.repairNoise!=='off')r.noise=v.repairNoise;if(v.repairHum&&v.repairHum!=='off')r.hum=v.repairHum;if(v.repairDeEss&&v.repairDeEss!=='off')r.deEss=v.repairDeEss;if(v.repairDeclick)r.declick=true;if(v.repairDereverb&&v.repairDereverb!=='off')r.dereverb=v.repairDereverb;return Object.keys(r).length?r:null;}
+function cleanOpts(v){var o={denoise:v.denoise||'off',normalize:v.normalize==='off'?'off':Number(v.normalize),trimSilence:Boolean(v.trimSilence),output:v.audioFormat||'wav',sourceName:v.source&&v.source.name,sourceMime:v.source&&(v.source.mime||v.source.type)},r=repairOpts(v);if(r)o.repair=r;return o;}
+function jobKey(v){var f=v.source;return[f&&f.url,f&&f.size,v.denoise,v.normalize,v.trimSilence,v.audioFormat,v.repairNoise,v.repairHum,v.repairDeEss,v.repairDeclick,v.repairDereverb].join('|');}
 function job(host,v){const k=jobKey(v);if(k===_cleanJobKey&&_cleanJob)return _cleanJob;_cleanJobKey=k;_cleanJob=host.audio.clean(v.source.bytes,cleanOpts(v));_cleanJob.catch(function(){if(_cleanJobKey===k){_cleanJobKey='';_cleanJob=null;}});return _cleanJob;}
 function budget(p,ms){return new Promise(function(resolve){var done=false,t=setTimeout(function(){if(!done){done=true;resolve(null);}},ms);p.then(function(v){if(!done){done=true;clearTimeout(t);resolve(v);}},function(){if(!done){done=true;clearTimeout(t);resolve(null);}});});}
 function bars(peaks){var a=[];if(!peaks)return a;for(let i=0;i<peaks.length;i+=Math.max(1,Math.ceil(peaks.length/72)))a.push({h:Math.max(3,Math.round((peaks[i]||0)*54))});return a;}
 async function compute(ctx){
- var v=vals(ctx.model),f=v.source,o={hasFile:false,available:false,fileName:'',fileSize:'',sourceUrl:'',error:'',wave:[],pending:false,done:false,before:'',after:'',trimmed:'',peak:'',operations:'',outputText:''};
+ var v=vals(ctx.model),f=v.source,o={hasFile:false,available:false,fileName:'',fileSize:'',sourceUrl:'',error:'',wave:[],pending:false,done:false,before:'',after:'',range:'',trimmed:'',peak:'',operations:'',outputText:''};
  if(!f||!f.bytes)return o;o.hasFile=true;o.fileName=f.name||'recording';o.fileSize=fmtBytes(f.size||f.bytes.length);o.sourceUrl=f.url||'';
  if(!ctx.host||!ctx.host.audio||typeof ctx.host.audio.clean!=='function'){o.error='Audio cleanup is not available in this app.';return o;}o.available=true;
  try{if(typeof ctx.host.audio.analyse==='function'){const a=await ctx.host.audio.analyse(f.bytes,{buckets:72,fps:1,bands:8});o.wave=bars(a.peaks);o.beforeDuration=fmtTime(a.duration);}}catch(e){o.error=String(e&&e.message||e);}

@@ -1,0 +1,26 @@
+[package]
+name = "lolly-dxf"
+version = "0.1.0"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+members = [".", "vendor/cadcraft-dxf"]
+resolver = "3"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+cadcraft-dxf = { path = "vendor/cadcraft-dxf" }
+serde = { version = "1", features = ["derive"] }
+# float_roundtrip: a coordinate must reach the flattener as the exact double the file stored.
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

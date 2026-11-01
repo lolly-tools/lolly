@@ -214,7 +214,7 @@ Tatal, dan kamera menarik diri kembali melalui geometri sebenar: tujuh laluan, t
 
 ## Cetakan
 
-**Print PDF** menulis CMYK terhadap keadaan mesin cetak bernama, **Coated FOGRA39** secara lalai. Swatch jenama dengan nilai dakwat yang diukur ditukar dengan tepat; warna lain menggunakan penukaran peranti piawai. **Print TIFF** menulis piksel DeviceCMYK untuk RIP dan merekodkan keadaan mesin cetak yang sama dalam metadata TIFF-nya. Kawalan Colour profile memacu kedua-duanya; [Colour profiles](#colour-profiles) mempunyai butirannya.
+**Print PDF** menulis CMYK terhadap keadaan mesin cetak bernama, **Coated FOGRA39** secara lalai. Swatch jenama dengan nilai dakwat yang diukur mengekalkan nilai tersebut. Warna lain ditukar melalui profil mesin cetak: profil Coated FOGRA39 milik Lolly secara lalai, atau profil anda sendiri apabila anda memilih baris **Embed**-nya. Kelabu dan hitam kekal pada plat hitam sahaja, jadi teks kecil tidak tersasar daftar. FOGRA51, SWOP dan GRACoL menggunakan penukaran peranti piawai. **Print TIFF** menulis piksel DeviceCMYK untuk RIP dan merekodkan keadaan mesin cetak yang sama dalam metadata TIFF-nya. Kawalan Colour profile memacu kedua-duanya; [Colour profiles](#colour-profiles) mempunyai butirannya.
 
 **Print marks & bleed** mempunyai kadnya sendiri pada format cetakan: bleed dalam milimeter serta Crop, Registration, Bleed, Colour bars dan Stamp details.
 
@@ -223,6 +223,15 @@ Sesetengah alat membina **PDF berbilang halaman**: muka depan, kandungan yang me
 **Before you export.** Kad **Before you export** di kaki panel menyatakan apa yang kedai cetak akan lihat: format, saiz dan bleed, kawasan trim dan bleed, litupan dakwat, bilangan plat dan bilangan halaman, dengan keputusan di sebelah tajuknya. Ia tidak pernah menyekat eksport. Design sentiasa menunjukkan kad dengan semakannya sendiri, termasuk peraturan dalaman sistem reka bentuk lapisan demi lapisan dan isyarat penulisan bagi teks dokumen ([Before you export](/info/design.html#before-you-export)), dan menambah semakan cetakan ini apabila **Print preflight** hidup. Dalam alat lain, hidupkan **Print preflight** di bawah Settings → Preferences → Feature flags; ia mati secara lalai, dan penempatan Lolly Work boleh menghidupkannya untuk ahlinya.
 
 **After you export.** Setelah fail sedia, Lolly membacanya semula dan membandingkannya dengan apa yang anda pilih: format, saiz piksel atau halaman, panjang klip, latar telus, warna CMYK, HDR, Content Credentials dan kata laluan PDF atau ZIP. Apa-apa yang berbeza ditulis pada kad eksport. Setiap ukuran datang daripada fail, tidak pernah daripada tetapan, dan sifat yang tidak dapat dijawab fail tidak dikira sebagai padanan. Baris perintah menulis perbandingan penuh dengan `--export-report` (lihat [Render with the CLI](/info/cli-rendering.html)).
+
+**Semakan kebolehcapaian PDF.** Untuk PDF, baris perintah turut menyenaraikan 32 semakan kebolehcapaian dalam fail `--export-report`, di bawah `pdfAccessibility`. Setiap semakan mempunyai id, huraian ringkas, keputusan dan lokasi dalam fail tempat masalah ditemui:
+
+- **Lulus**: semakan melihat sesuatu dan tidak menemui sebarang masalah.
+- **Gagal**: semakan menemui masalah. Nombor halaman atau teg-nya disenaraikan.
+- **Tidak berkenaan**: fail tidak mempunyai apa-apa jenis itu untuk dilihat, seperti semakan jadual dalam fail tanpa jadual. Ini tidak menyatakan apa-apa tentang fail itu.
+- **Perlukan manusia**: enam semakan tidak dapat dinilai oleh program (susunan bacaan, kontras warna, kelipan, skrip, had masa dan pautan berulang).
+
+Senarai ini bukan keputusan muktamad. Ia tidak menyatakan bahawa sesuatu PDF memenuhi PDF/UA atau bahawa orang yang menggunakan teknologi bantuan boleh menggunakannya, dan seseorang masih perlu menyemak fail itu dengan pembaca skrin. PDF Lolly sendiri gagal dalam semakan penandaan pada masa ini, kerana pengeksport belum menulis teg. Semakan ini membaca fail pada peranti anda dan tidak mengubah apa-apa. Fail yang memerlukan kata laluan dinamakan sebagai tidak disemak, bukan lulus. Untuk menyemak PDF yang dihantar kepada anda, letakkannya ke dalam [Strip Hidden Data](/info/utilities.html), yang menunjukkan senarai yang sama di bawah **PDF accessibility checks**.
 
 Semakan inspektor Design dan perbandingan jenama dalam Design System Setup ialah semakan berasingan: ia melihat reka bentuk, manakala dua kad ini melihat fail.
 
@@ -280,7 +289,7 @@ Eksport ditandakan dengan profil warna, supaya apl terurus warna seperti kedai c
 - **SVG**, **EMF**, **EPS** dan **DXF** ialah vektor tanpa profil terbenam: warna SVG ialah sRGB, EMF dan EPS menggunakan RGB peranti, **EPS (CMYK)** menulis DeviceCMYK dan DXF menggunakan AutoCAD Color Index. SVG, EPS dan DXF menggariskan luar teks kepada laluan. EMF mengekalkan teks langsung dan boleh disunting dalam Office dan Google Slides, kembali kepada garis luar hanya untuk larian yang tidak dapat diungkapkan format; pilihan **Outline fonts** panel eksport memaksa laluan di mana-mana. SVG juga menghasilkan semula bayang kotak CSS, dalam dan luar.
 
 ::: details PDF/X-4 dan profil mesin cetak anda sendiri
-Tiada profil CMYK dihantar bersama Lolly. Keadaan mesin cetak bernama menulis niat output tanpa mendakwa pematuhan PDF/X-4, kerana PDF/X-4 mahu profil dibenamkan.
+Lolly menyertakan satu profil CMYK, disesuaikan dengan data pencirian FOGRA39 Fogra dan dikeluarkan di bawah CC0, dan menukar warna melaluinya untuk keadaan mesin cetak lalai. Profil itu tidak dibenamkan, kerana ia ICC versi 4.3 dan PDF/X-4 menerima versi sehingga 4.2. Keadaan mesin cetak bernama oleh itu menulis output intent tanpa mendakwa pematuhan PDF/X-4.
 
 Muatkan profil CMYK anda sendiri dan pilih baris **Embed**-nya dalam kawalan Colour profile. Ia dibenamkan sebagai *DestOutputProfile* fail, dan PDF mendakwa PDF/X-4 apabila selebihnya fail membenarkan. Keadaan mesin cetak yang diisytiharkannya dibaca daripada profil itu: nama berdaftar di mana profil membuktikan satu, atau `Custom` di bawah nama profil sendiri.
 

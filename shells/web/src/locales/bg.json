@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "От дизайн системата: {name}",
   "Editing the curve detaches it from the design system.": "Редактирането на кривата я откача от дизайн системата.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл. Задръж за Молив (Shift C) и типа сплайн",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл",
+  "Create file": "Създай файл",
+  "File type": "Тип файл",
+  "Filename": "Име на файла",
+  "Markdown file (.md)": "Markdown файл (.md)",
+  "New file": "Нов файл",
+  "Open in Write": "Отвори в Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Избери медийните файлове, към които препраща тази времева линия, или продължи с обозначени заместители.",
+  "Text file (.txt)": "Текстов файл (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Този InDesign файл не можа да бъде преобразуван на това устройство. Експортирай го от InDesign като IDML и опитай отново.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Този InDesign файл не можа да бъде отворен. Експортирай го от InDesign като IDML и опитай отново."
 }

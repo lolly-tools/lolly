@@ -2,7 +2,9 @@
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 import { readCameraRawPreset } from '../../../engine/src/camera-raw-preset.ts';
-import { readPremiereXml, premiereSequenceValues } from '../../../engine/src/premiere-xml.ts';
+import { premiereSequenceValues } from '../../../engine/src/premiere-xml.ts';
+import { readTimeline } from '../../../engine/src/timeline-import.ts';
+import { rateFromFps } from '../../../engine/src/timeline-common.ts';
 import { serializeUrlState } from '../../../engine/src/url-mode.ts';
 import { loadPsdKernel } from '@lolly-tools/node-shell/adobe-psd-node';
 import { loadInddKernel } from '@lolly-tools/node-shell/indd-node';
@@ -14,14 +16,15 @@ import { readZip } from '../../../engine/src/zip.ts';
 import { basename } from 'node:path';
 
 export const ADOBE_HELP = `lolly adobe preset <preset.xmp> [--output=report.json]
-lolly adobe timeline <sequence.xml> [--output=report.json]
+lolly adobe timeline <sequence.xml|timeline.fcpxml|timeline.otio|cuts.edl> [--rate=29.97] [--output=report.json]
 lolly adobe idml <document.idml|document.indd> [--output=report.json]
 lolly adobe indd <document.indd> --output=document.idml
 lolly adobe psd-inspect <source.psd>
 lolly adobe psd-preserve <source.psd> --output=copy.psd
 
 Preset reports contain Darkroom input values and a shareable URL. Timeline reports
-retain rational frame counts and include Design inputs with missing-media placeholders.
+retain rational frame counts, list every unsupported feature and include Design inputs with missing-media placeholders.
+An EDL has no frame rate, so pass --rate (24, 25, 29.97, 59.94 and so on); drop-frame lists default to 29.97.
 PSD preservation writes a no-edit copy; composed Lolly PSD exports are separate.
 A native .indd is converted to IDML on this device (preview): "indd" writes the package and
 prints the converter's warnings to stderr, and "idml" reads an .indd straight into its report.
@@ -57,8 +60,12 @@ export async function adobeCli(args: string[], flags: Record<string, string>): P
         report = { frames, notes };
       } else if (command === 'preset') {
         const preset = readCameraRawPreset(source, parse);
-        report = { ...preset, url: `https://lolly.tools/t/darkroom?${serializeUrlState(Object.entries(preset.values).map(([id, value]) => ({ id, type: 'number', value })))}` };
-      } else { const sequence = readPremiereXml(source, parse); report = { sequence, ...await premiereSequenceValues(sequence) }; }
+        report = { ...preset, url: `https://lolly.tools/t/darkroom?${serializeUrlState(Object.entries(preset.values).map(([id, value]) => ({ id, type: typeof value === 'boolean' ? 'boolean' : 'number', value })))}` };
+      } else {
+        const rate = flags.rate ? rateFromFps(Number(flags.rate)) : undefined;
+        const { format, sequence } = readTimeline(source, { parse, rate });
+        report = { format, sequence, ...await premiereSequenceValues(sequence) };
+      }
     } finally { dom.window.close(); }
   }
   const json = `${JSON.stringify(report, null, 2)}\n`;

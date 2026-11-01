@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Із системи дизайну: {name}",
   "Editing the curve detaches it from the design system.": "Редагування кривої від’єднує її від системи дизайну.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Перо (P) - клацніть, щоб розмістити точки, перетягніть, щоб вигнути, Alt для кута. Утримуйте для олівця (Shift C) і типу сплайна",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Перо (P) - клацніть, щоб розмістити точки, перетягніть, щоб вигнути, Alt для кута"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Перо (P) - клацніть, щоб розмістити точки, перетягніть, щоб вигнути, Alt для кута",
+  "Create file": "Створити файл",
+  "File type": "Тип файлу",
+  "Filename": "Назва файлу",
+  "Markdown file (.md)": "Файл Markdown (.md)",
+  "New file": "Новий файл",
+  "Open in Write": "Відкрити у Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Виберіть медіафайли, на які посилається ця часова шкала, або продовжте з позначеними заповнювачами.",
+  "Text file (.txt)": "Текстовий файл (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Цей файл InDesign не вдалося перетворити на цьому пристрої. Експортуйте його з InDesign як IDML і спробуйте ще раз.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Цей файл InDesign не вдалося відкрити. Експортуйте його з InDesign як IDML і спробуйте ще раз."
 }

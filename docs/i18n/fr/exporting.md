@@ -214,7 +214,7 @@ Fais défiler, et la caméra recule à travers la géométrie réelle : sept che
 
 ## Impression
 
-**Print PDF** écrit du CMJN selon une condition d'impression nommée, **Coated FOGRA39** par défaut. Les nuanciers de marque avec valeurs d'encre mesurées se convertissent exactement ; les autres couleurs utilisent une conversion d'appareil standard. **Print TIFF** écrit des pixels DeviceCMYK pour un RIP et consigne la même condition d'impression dans ses métadonnées TIFF. Le contrôle Colour profile pilote les deux ; [Colour profiles](#colour-profiles) donne le détail.
+**Print PDF** écrit du CMJN selon une condition d'impression nommée, **Coated FOGRA39** par défaut. Les nuanciers de marque avec valeurs d'encre mesurées conservent ces valeurs. Les autres couleurs sont converties via un profil de presse : le profil Coated FOGRA39 propre à Lolly par défaut, ou ton propre profil quand tu choisis sa ligne **Embed**. Les gris et le noir restent sur la seule plaque noire, si bien que les petits caractères ne peuvent pas se décaler au repérage. FOGRA51, SWOP et GRACoL utilisent une conversion d'appareil standard. **Print TIFF** écrit des pixels DeviceCMYK pour un RIP et consigne la même condition d'impression dans ses métadonnées TIFF. Le contrôle Colour profile pilote les deux ; [Colour profiles](#colour-profiles) donne le détail.
 
 **Print marks & bleed** a sa propre carte sur les formats d'impression : le fond perdu en millimètres plus Crop, Registration, Bleed, Colour bars et Stamp details.
 
@@ -223,6 +223,15 @@ Certains outils produisent un **PDF de plusieurs pages** : une couverture, du co
 **Avant d'exporter.** Une carte **Before you export** au pied du panneau dit ce qu'un imprimeur est sur le point de voir : format, taille et fond perdu, zones de coupe et de fond perdu, couverture d'encre, nombre de plaques et de pages, avec un verdict à côté de son titre. Elle ne bloque jamais un export. Design affiche toujours la carte avec ses propres vérifications, dont les règles maison du design system calque par calque et le signal d'écriture du texte du document ([Before you export](/info/design.html#before-you-export)), et ajoute ces vérifications d'impression quand **Print preflight** est activé. Dans les autres outils, active **Print preflight** sous Settings → Preferences → Feature flags ; il est désactivé par défaut, et un déploiement Lolly Work peut l'activer pour ses membres.
 
 **Après l'export.** Une fois le fichier prêt, Lolly le relit et le compare à ce que tu as choisi : format, taille en pixels ou de page, durée du clip, fond transparent, couleur CMJN, HDR, Content Credentials et mot de passe de PDF ou de ZIP. Tout ce qui diffère est écrit sur la carte d'export. Chaque mesure vient du fichier, jamais du réglage, et une propriété que le fichier ne peut pas renseigner n'est pas comptée comme conforme. La ligne de commande écrit la comparaison complète avec `--export-report` (voir [Render with the CLI](/info/cli-rendering.html)).
+
+**Vérifications d'accessibilité PDF.** Pour un PDF, la ligne de commande liste aussi 32 vérifications d'accessibilité dans le fichier `--export-report`, sous `pdfAccessibility`. Chaque vérification a un id, une description claire, un résultat et l'endroit du fichier où elle a trouvé un problème :
+
+- **Réussi** : la vérification a examiné quelque chose et n'a rien trouvé d'anormal.
+- **Échoué** : la vérification a trouvé un problème. Ses numéros de page ou ses balises sont listés.
+- **Sans objet** : le fichier ne contenait rien de ce genre à examiner, comme des vérifications de tableaux dans un fichier sans tableau. Cela ne dit rien du fichier.
+- **Nécessite une personne** : six vérifications ne peuvent pas être jugées par un programme (ordre de lecture, contraste des couleurs, clignotement, scripts, limites de temps et liens répétés).
+
+La liste n'est pas un verdict. Elle ne dit pas qu'un PDF respecte PDF/UA ni que les personnes qui utilisent des technologies d'assistance peuvent s'en servir, et une personne doit encore vérifier le fichier avec un lecteur d'écran. Les PDF de Lolly échouent aujourd'hui aux vérifications de balisage, parce que les exporteurs n'écrivent pas encore de balises. La vérification lit le fichier sur ton appareil et ne modifie rien. Les fichiers protégés par mot de passe sont indiqués comme non vérifiés, pas comme réussis. Pour vérifier un PDF qu'on t'a envoyé, dépose-le dans [Strip Hidden Data](/info/utilities.html), qui affiche la même liste sous **Vérifications d'accessibilité PDF**.
 
 Les vérifications de l'inspector de Design et la comparaison de marque dans Design System Setup sont des vérifications distinctes : elles examinent le design, tandis que ces deux cartes examinent le fichier.
 
@@ -280,7 +289,7 @@ Les exports sont balisés avec un profil colorimétrique, pour que les applicati
 - **SVG**, **EMF**, **EPS** et **DXF** sont des vecteurs sans profil incorporé : les couleurs du SVG sont en sRGB, EMF et EPS utilisent du RVB d'appareil, **EPS (CMYK)** écrit du DeviceCMYK et DXF utilise l'AutoCAD Color Index. SVG, EPS et DXF détourent le texte en tracés. EMF garde le texte actif et modifiable dans Office et Google Slides, ne revenant aux contours que pour les passages que le format ne peut pas exprimer ; l'option **Outline fonts** du panneau d'export force des tracés partout. SVG reproduit aussi les ombres portées CSS, intérieures et extérieures.
 
 ::: details PDF/X-4 et ton propre profil de presse
-Aucun profil CMJN n'est livré avec Lolly. Une condition d'impression nommée écrit l'output intent sans revendiquer la conformité PDF/X-4, car PDF/X-4 exige que le profil soit incorporé.
+Lolly fournit un profil CMJN, ajusté aux données de caractérisation FOGRA39 de Fogra et publié sous CC0, et convertit les couleurs à travers lui pour la condition d'impression par défaut. Le profil n'est pas incorporé, car il est en ICC version 4.3 et PDF/X-4 accepte les versions jusqu'à 4.2. Une condition d'impression nommée écrit donc l'intention de sortie sans revendiquer la conformité PDF/X-4.
 
 Charge un profil CMJN à toi et choisis sa ligne **Embed** dans le contrôle Colour profile. Il est incorporé comme *DestOutputProfile* du fichier, et le PDF revendique PDF/X-4 chaque fois que le reste du fichier le permet. La condition d'impression qu'il déclare est lue sur ce profil : un nom enregistré là où le profil en prouve un, ou `Custom` sous le nom propre du profil.
 

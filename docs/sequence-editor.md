@@ -181,6 +181,34 @@ The CLI reports an XML timeline's frame counts and mapped inputs without opening
 lolly adobe timeline sequence.xml
 ```
 
+## EDL, OpenTimelineIO and FCPXML exchange
+
+Sequence also opens three more timeline formats with **Import a design** and **Replace the board**. Lolly reads each one by its content, not its file name.
+
+| Format | Typical source | What comes across |
+|---|---|---|
+| **CMX 3600 EDL** (`.edl`) | Resolve, Premiere, Avid, Final Cut | Cuts, gaps, source In and Out, drop-frame and non-drop timecode, video and audio channels, clip names and source file comments |
+| **OpenTimelineIO** (`.otio`) | Resolve, Premiere and Avid adapters, pipeline tools | Video and audio tracks, clips, gaps, source ranges, rates and start time |
+| **FCPXML 1.8 to 1.11** (`.fcpxml`) | Final Cut Pro, Resolve | The primary storyline, connected clips on their lanes, gaps, source ranges, rational rates and drop-frame timecode |
+
+All three open the way a Premiere XML timeline does: clips are placed on the sequence clock with their In and Out points, gaps stay empty, and media is relinked from the files you select or shown as labelled placeholders. A timeline that mixes rates, such as 23.976 media on a 24 fps edit, keeps each clip's own rate, and positions are rounded to whole timeline frames. Drop-frame timecode at 29.97 and 59.94 is counted the way broadcast tools count it, so a clip sits on the frame the source app showed.
+
+An EDL holds no frame rate. Lolly assumes 29.97 for a drop-frame list and 24 for any other, and the import report says so. From the command line, pass the real rate:
+
+```sh
+lolly adobe timeline cuts.edl --rate=25
+```
+
+Nothing is dropped silently. The import report lists every feature Lolly does not apply, with a count when it repeats:
+
+- transitions (dissolves, wipes and keys), which import as cuts;
+- speed changes and retiming, where the clip plays at normal speed;
+- effects, colour decisions, transform and crop adjustments;
+- markers and locators;
+- compound clips, nested stacks, multicam clips, titles and generators.
+
+These formats are import only. To send an edit out, use [Premiere XML + media](#premiere-xml-exchange). A `.fcpxmld` bundle is not read; export a plain `.fcpxml` instead. Files can hold up to 10,000 clips and 128 tracks, and the XML formats are limited to 8 MB.
+
 ## How selection follows the playhead
 
 A timed canvas shows one instant, and three promises keep editing predictable:

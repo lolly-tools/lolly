@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "من نظام التصميم: {name}",
   "Editing the curve detaches it from the design system.": "تعديل المنحنى يفصله عن نظام التصميم.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "القلم (P) - انقر لوضع النقاط، اسحب للانحناء، Alt لزاوية حادة. اضغط مطولًا لقلم الرصاص (Shift C) ونوع المنحنى",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "القلم (P) - انقر لوضع النقاط، اسحب للانحناء، Alt لزاوية حادة"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "القلم (P) - انقر لوضع النقاط، اسحب للانحناء، Alt لزاوية حادة",
+  "Create file": "إنشاء ملف",
+  "File type": "نوع الملف",
+  "Filename": "اسم الملف",
+  "Markdown file (.md)": "ملف Markdown ‏(.md)",
+  "New file": "ملف جديد",
+  "Open in Write": "افتح في Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "اختر ملفات الوسائط التي يشير إليها هذا الخط الزمني، أو تابع بعناصر نائبة معنونة.",
+  "Text file (.txt)": "ملف نصي (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "تعذّر تحويل ملف InDesign هذا على هذا الجهاز. صدّره من InDesign بصيغة IDML وحاول مرة أخرى.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "تعذّر فتح ملف InDesign هذا. صدّره من InDesign بصيغة IDML وحاول مرة أخرى."
 }

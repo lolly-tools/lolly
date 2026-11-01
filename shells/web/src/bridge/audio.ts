@@ -20,7 +20,7 @@
  */
 import type {
   AudioAPI, AudioSource, AudioAnalyseOpts, AudioAnalysis, AssetRef, AudioCleanOpts,
-  AudioDecodeOpts, AudioDecoded, AudioFinding,
+  AudioDecodeOpts, AudioDecoded, AudioFinding, AudioLoudness, AudioLoudnessOpts, AudioAlignOpts, AudioAlignment,
 } from '@lolly-tools/core/host-v1';
 import type { ZzfxSong } from '../../../../engine/src/zzfxm.ts';
 import { renderSong } from '../lib/zzfxm-render.ts';
@@ -299,6 +299,18 @@ export function createAudioAPI(): Required<AudioAPI> {
       // first paint, so it lives in its own chunk (scripts/check-bundle-budget.ts).
       const { runAudioClean } = await import('./audio-clean-run.ts');
       return runAudioClean(src, opts, toPcm);
+    },
+
+    /** Full EBU R128 reading. The audio module runs in a worker, loaded on first use. */
+    async loudness(src: AudioSource, opts: AudioLoudnessOpts = {}): Promise<AudioLoudness> {
+      const { runLoudness } = await import('./audio-measure-run.ts');
+      return runLoudness(src, opts, toPcm);
+    },
+
+    /** Offset between two recordings of one event. */
+    async align(a: AudioSource, b: AudioSource, opts: AudioAlignOpts = {}): Promise<AudioAlignment | null> {
+      const { runAlign } = await import('./audio-measure-run.ts');
+      return runAlign(a, b, opts, toPcm);
     },
 
     /**

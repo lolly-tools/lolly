@@ -26,7 +26,7 @@ test('Clean exposes every processing choice and exports using the selected setti
   try {
     dom.window.document.body.innerHTML = runtime.getHydrated();
     const root = dom.window.document;
-    for (const id of ['denoise', 'normalize', 'audioFormat', 'trimSilence']) {
+    for (const id of ['denoise', 'normalize', 'audioFormat', 'trimSilence', 'repairNoise', 'repairHum', 'repairDeEss', 'repairDereverb', 'repairDeclick']) {
       assert.ok(root.querySelector(`[data-input-id="${id}"]`), `${id} is available without a sidebar`);
     }
     await runtime.setInput('denoise', 'light');
@@ -39,6 +39,12 @@ test('Clean exposes every processing choice and exports using the selected setti
     const result = await runtime.exportFile();
     assert.equal(Array.isArray(result), false);
     assert.deepEqual(calls.at(-1), { denoise: 'light', normalize: 'off', trimSilence: false, output: 'mp3', sourceName: 'voice.wav', sourceMime: 'audio/wav' });
+    // The model-free repair choices travel as one `repair` object, only when something is chosen.
+    await runtime.setInput('repairHum', '50');
+    await runtime.setInput('repairNoise', 'strong');
+    await runtime.setInput('repairDeclick', true);
+    await runtime.exportFile();
+    assert.deepEqual(calls.at(-1)?.repair, { noise: 'strong', hum: '50', declick: true });
     assert.equal((Array.isArray(result) ? result[0] : result)?.filename, 'voice-clean.mp3');
   } finally { runtime.destroy(); dom.window.close(); }
 });

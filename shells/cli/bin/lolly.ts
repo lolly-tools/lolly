@@ -99,6 +99,9 @@ Usage:
   lolly prepare <file…>                   inspect and prepare private files locally
   lolly adobe <operation> <file>          PSD preservation, IDML, photo preset or
                                            timeline inspection; adobe --help for details
+  lolly dxf <drawing.dxf> [--output=.svg|.json] [--layers=A,B]
+                                           read an AutoCAD DXF floor plan or drawing on this
+                                           device; dxf --help for details
   lolly inspect <file> --forensic          inspect located AI clues and coverage
   lolly diff <a.json> <b.json>              semantic document diff
   lolly optimize <document.json>            run named immutable stages
@@ -446,7 +449,8 @@ try {
   // --help / -h / --version / -v are recognised ANYWHERE in argv, before anything treats
   // the token as a tool id (`lolly --help` used to print "Tool not found: --help").
   if (args.some(a => a === '--help' || a === '-h' || a === 'help')) {
-    if (rawFirst === 'adobe') { const { ADOBE_HELP } = await import('../src/adobe.ts'); await writeOut(ADOBE_HELP); }
+    if (rawFirst === 'dxf') { const { DXF_HELP } = await import('../src/dxf.ts'); await writeOut(DXF_HELP); }
+    else if (rawFirst === 'adobe') { const { ADOBE_HELP } = await import('../src/adobe.ts'); await writeOut(ADOBE_HELP); }
     else if (rawFirst === 'prepare') { const { prepareCli } = await import('../src/prepare.ts'); await prepareCli([], { help: '1' }); }
     else if (rawFirst === 'compose') { const { COMPOSE_HELP } = await import('../src/compose.ts'); await writeOut(COMPOSE_HELP); }
     else {
@@ -513,7 +517,7 @@ async function main(): Promise<void> {
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
   const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
-  beginCommand(cmd === 'adobe' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
+  beginCommand(cmd === 'adobe' || cmd === 'dxf' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
   // A command that needs them says so here, once, with the routes to a root - instead
@@ -521,6 +525,9 @@ async function main(): Promise<void> {
   if (needsContentRoot(cmd)) assertContentRoot();
 
   // ── explicit verbs ────────────────────────────────────────────────────────
+  if (cmd === 'dxf') {
+    const { dxfCli } = await import('../src/dxf.ts'); await dxfCli(positionals.slice(1), flags, g.json); return;
+  }
   if (cmd === 'adobe') {
     const { adobeCli } = await import('../src/adobe.ts'); await adobeCli(positionals.slice(1), flags); return;
   }

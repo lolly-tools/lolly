@@ -13,6 +13,7 @@ import { resolve, basename, dirname, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { xlsxFormatter } from '@lolly-tools/node-shell/xlsx-numfmt-node';
+import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
@@ -1665,7 +1666,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       ...(C2PA_FORMATS.includes(finalFormat) ? { credential: wantC2pa } : {}),
       ...(password ? { password: true } : {}),
       ...(hdr ? { hdr: true } : {}),
-    }, new Uint8Array(buf));
+    }, new Uint8Array(buf), { pdfAccessibility: checkPdfAccessibility });
     const json = JSON.stringify(report, null, 2) + '\n';
     if (exportReportPath === '-') process.stderr.write(json); else await writeFile(exportReportPath, json);
     // A difference is a promise this run did not keep, so --strict turns it into an exit code.

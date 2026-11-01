@@ -2536,7 +2536,7 @@
   "Fade in": "Fade in",
   "Fade out": "Fade out",
   "Fades": "Fades",
-  "Failed": "Gefeliciteerd",
+  "Failed": "Mislukt",
   "Failed to load: {message}": "Laden mislukt: {message}",
   "Fallback sets": "Reservesets",
   "Fallbacks": "Terugvallers",
@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "Uit het design system: {name}",
   "Editing the curve detaches it from the design system.": "Als je de curve bewerkt, wordt hij losgekoppeld van het design system.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek. Houd ingedrukt voor het Potlood (Shift C) en het splinetype",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek",
+  "Create file": "Bestand maken",
+  "File type": "Bestandstype",
+  "Filename": "Bestandsnaam",
+  "Markdown file (.md)": "Markdown-bestand (.md)",
+  "New file": "Nieuw bestand",
+  "Open in Write": "Openen in Write",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Selecteer de mediabestanden waarnaar deze tijdlijn verwijst, of ga verder met benoemde plaatshouders.",
+  "Text file (.txt)": "Tekstbestand (.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Dat InDesign-bestand kon niet op dit apparaat worden omgezet. Exporteer het vanuit InDesign als IDML en probeer het opnieuw.",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Dat InDesign-bestand kon niet worden geopend. Exporteer het vanuit InDesign als IDML en probeer het opnieuw."
 }

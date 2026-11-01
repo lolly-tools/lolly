@@ -10476,5 +10476,15 @@
   "From the design system: {name}": "デザインシステムから：{name}",
   "Editing the curve detaches it from the design system.": "カーブを編集するとデザインシステムとのリンクが外れます。",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "ペン (P) - クリックで点を配置、ドラッグで曲線、Alt で角。長押しで鉛筆 (Shift C) とスプラインの種類",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "ペン (P) - クリックで点を配置、ドラッグで曲線、Alt で角"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "ペン (P) - クリックで点を配置、ドラッグで曲線、Alt で角",
+  "Create file": "ファイルを作成",
+  "File type": "ファイルの種類",
+  "Filename": "ファイル名",
+  "Markdown file (.md)": "Markdownファイル(.md)",
+  "New file": "新規ファイル",
+  "Open in Write": "Writeで開く",
+  "Select the media files referenced by this timeline, or continue with labelled placeholders.": "このタイムラインが参照するメディアファイルを選択するか、名前付きのプレースホルダーのまま続けてください。",
+  "Text file (.txt)": "テキストファイル(.txt)",
+  "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "そのInDesignファイルはこのデバイスでは変換できませんでした。InDesignからIDMLとして書き出して、もう一度お試しください。",
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "そのInDesignファイルを開けませんでした。InDesignからIDMLとして書き出して、もう一度お試しください。"
 }

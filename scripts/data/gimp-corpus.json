@@ -1,0 +1,149 @@
+{
+  "repository": "storytold/photocraft-corpus",
+  "commit": "c3abfc1c794409a71ade6a22283caab4ba4d2aa8",
+  "license": "MIT OR Apache-2.0",
+  "producer": "GIMP 3.2.6",
+  "note": "The gimp/ directory last changed at fbe9227a; this pin is the corpus head on 2026-11-01 with the same 28 files.",
+  "files": [
+    {
+      "path": "gimp/channel.png",
+      "bytes": 12056,
+      "sha256": "cd8d886607bc407c11c3b3ff1d95d43c80e5ca6c0dbe32bf0b206cc7cd3504a7"
+    },
+    {
+      "path": "gimp/channel.xcf",
+      "bytes": 6499,
+      "sha256": "89e0cdacd88ab5e705fd02b419327979a279f18ce6b99b40f6c5717dfe486a2e"
+    },
+    {
+      "path": "gimp/float-linear.png",
+      "bytes": 2417,
+      "sha256": "cc434c6c01a4afd2bffd18061de9d3161516dd92f24c2477d61a780f5dc5ca59"
+    },
+    {
+      "path": "gimp/float-linear.xcf",
+      "bytes": 7186,
+      "sha256": "e6729fa602ccc2b4c5eef2f399ca78a35c4bc0910d4e05173de415a81118ffc5"
+    },
+    {
+      "path": "gimp/gray16.png",
+      "bytes": 3094,
+      "sha256": "f2107656985c9c7c7c1c627435d0429844ce55bb00918a893c07fe391a2e6a14"
+    },
+    {
+      "path": "gimp/gray16.xcf",
+      "bytes": 5019,
+      "sha256": "9b17c916b3f89ada8bd8bc9602ac4d2064d30c79462518914ffcc2471fc79db7"
+    },
+    {
+      "path": "gimp/groups-perceptual.png",
+      "bytes": 16431,
+      "sha256": "97c7cd9fb8f7a64dc23f15a120dfc00707a84189820d51f78c0d46c8774e7582"
+    },
+    {
+      "path": "gimp/groups-perceptual.xcf",
+      "bytes": 13132,
+      "sha256": "2799a2de44db4d203a817edd719c4d55ef9de3e7e5376cabf8bdae1f47eec4d5"
+    },
+    {
+      "path": "gimp/groups.png",
+      "bytes": 16633,
+      "sha256": "6be6bb24d71e329f61318d4663ceedb1d58a66739910156179a18e6bc8c7bebf"
+    },
+    {
+      "path": "gimp/groups.xcf",
+      "bytes": 13132,
+      "sha256": "f69c752f4de23cdd1e12463502a9c9ae3af684df66c6f8e0cf947364e01e6a52"
+    },
+    {
+      "path": "gimp/indexed.png",
+      "bytes": 9101,
+      "sha256": "0d19a18bbdf9a28eb0699de52e4b3689ccf4895dc43413ff8c7df3ecaab19f4b"
+    },
+    {
+      "path": "gimp/indexed.xcf",
+      "bytes": 2612,
+      "sha256": "96c48a46e5b3e220f274fdb515cc24c4e3ceae609f0b4d68e60b9461b76bdbc2"
+    },
+    {
+      "path": "gimp/layers-8bit-perceptual.png",
+      "bytes": 15695,
+      "sha256": "5ae4ec19ac8b056c22cca9d6d752bddac606fdf7ba983d60956da261252dcf36"
+    },
+    {
+      "path": "gimp/layers-8bit-perceptual.xcf",
+      "bytes": 8660,
+      "sha256": "30080fcbb90075b45a1ad6ab674ff9df66127f27f95a3c979c9dea87523a52fa"
+    },
+    {
+      "path": "gimp/layers-8bit.png",
+      "bytes": 15928,
+      "sha256": "5ab8111ad492730a7e90ae1439eaa8482f32d546719c6a002abf1de58ab7b18d"
+    },
+    {
+      "path": "gimp/layers-8bit.xcf",
+      "bytes": 8660,
+      "sha256": "b408c8f746a3a790781703291c59b3cd3d185a967327480a4bd4bbe39d8f8bce"
+    },
+    {
+      "path": "gimp/legacy-modes-perceptual.png",
+      "bytes": 17818,
+      "sha256": "54313f695507d20fa8ab7dc7ec82be59af5b86afdc21c7b662d56f2465776c0a"
+    },
+    {
+      "path": "gimp/legacy-modes-perceptual.xcf",
+      "bytes": 11809,
+      "sha256": "9c3bc560a1a82dde34e1c41f79a0ddb277788b0cac55cf91294d9eddb2126a72"
+    },
+    {
+      "path": "gimp/legacy-modes.png",
+      "bytes": 17724,
+      "sha256": "96cccee5d525a3c00a68cffd7fec285d70c8213c933ef88737ea9c1e4d740ea8"
+    },
+    {
+      "path": "gimp/legacy-modes.xcf",
+      "bytes": 11809,
+      "sha256": "f2bdb5c8e7ee2e7d0fac4ad12fb4919366bcc84cdf22ec091b70eb148f95fc36"
+    },
+    {
+      "path": "gimp/mask-perceptual.png",
+      "bytes": 6065,
+      "sha256": "34925fd060e4e58a85fe8b3934ad7a4ff82287a54e385978a4f14124c393d25b"
+    },
+    {
+      "path": "gimp/mask-perceptual.xcf",
+      "bytes": 6169,
+      "sha256": "d932f76b5feaf4f229157a3da75c7e5c85602b3b6b890a3396acc87c2ae4f31c"
+    },
+    {
+      "path": "gimp/mask.png",
+      "bytes": 5365,
+      "sha256": "1d21f0b2562032f0b319e02b9951de7333483cb6dfbaeeb3a5a266225da39596"
+    },
+    {
+      "path": "gimp/mask.xcf",
+      "bytes": 6052,
+      "sha256": "2fc690147c3fcda0ab56c6c76aa5709a57671ed65d58759b0ebaa7ac4a92432f"
+    },
+    {
+      "path": "gimp/text-perceptual.png",
+      "bytes": 2773,
+      "sha256": "9a17b6f6b460d8b880cfceaa0906f99b9c0a45487a7e7b0738b814dabc2fa558"
+    },
+    {
+      "path": "gimp/text-perceptual.xcf",
+      "bytes": 3045,
+      "sha256": "819633fb66710f02e575ae2bea79220717537287fe59bef52542b187cd3b9eca"
+    },
+    {
+      "path": "gimp/text.png",
+      "bytes": 2776,
+      "sha256": "21702736824b70ca50bc9c53f6fa182cc9a5f173f6cc0e1c53fca5a454ec882e"
+    },
+    {
+      "path": "gimp/text.xcf",
+      "bytes": 3045,
+      "sha256": "a6928228a237a1c611de0296ea42bfd713e40e069654a9d4ae57c89222fa1d2b"
+    }
+  ]
+}

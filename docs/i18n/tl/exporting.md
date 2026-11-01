@@ -214,7 +214,7 @@ Mag-scroll, at bumabalik ang camera papasok sa tunay na geometry: pitong paths, 
 
 ## Print
 
-Ang **Print PDF** ay nagsusulat ng CMYK laban sa pinangalanang press condition, **Coated FOGRA39** bilang default. Ang mga brand swatch na may sinukat na ink value ay eksaktong nako-convert; ang ibang kulay ay gumagamit ng karaniwang device conversion. Ang **Print TIFF** ay nagsusulat ng DeviceCMYK pixel para sa RIP at itinatala ang parehong press condition sa TIFF metadata nito. Ang Colour profile control ang nagtutulak sa pareho; nasa [Mga colour profile](#colour-profiles) ang detalye.
+Ang **Print PDF** ay nagsusulat ng CMYK laban sa pinangalanang press condition, **Coated FOGRA39** bilang default. Ang mga brand swatch na may sinukat na ink value ay nananatili sa mga value na iyon. Ang ibang kulay ay kino-convert gamit ang press profile: ang sariling Coated FOGRA39 profile ng Lolly bilang default, o ang sarili mong profile kapag pinili mo ang **Embed** row nito. Ang gray at itim ay nananatili sa black plate lang, kaya hindi nagkakamali ng register ang maliliit na type. Ang FOGRA51, SWOP at GRACoL ay gumagamit ng karaniwang device conversion. Ang **Print TIFF** ay nagsusulat ng DeviceCMYK pixel para sa RIP at itinatala ang parehong press condition sa TIFF metadata nito. Ang Colour profile control ang nagtutulak sa pareho; nasa [Mga colour profile](#colour-profiles) ang detalye.
 
 Ang **Print marks & bleed** ay may sariling card sa mga print format: ang bleed sa millimetro kasama ang Crop, Registration, Bleed, Colour bars at Stamp details.
 
@@ -223,6 +223,15 @@ Ang ilang tool ay gumagawa ng **multi-page PDF**: cover, nilalamang umaagos sa k
 **Bago ka mag-export.** Ang **Before you export** card sa paanan ng panel ay nagsasabi kung ano ang malapit nang makita ng print shop: format, laki at bleed, trim at bleed area, ink coverage, bilang ng plate at bilang ng page, na may hatol sa tabi ng heading nito. Hindi ito kailanman humaharang sa export. Laging ipinapakita ng Design ang card na may sarili nitong mga check, kasama ang mga house rule ng design system layer por layer at ang writing signal para sa text ng dokumento ([Before you export](/info/design.html#before-you-export)), at nagdaragdag ng mga print check na ito kapag naka-on ang **Print preflight**. Sa ibang tool, i-on ang **Print preflight** sa ilalim ng Settings → Preferences → Feature flags; naka-off ito bilang default, at ang Lolly Work deployment ay maaaring i-on ito para sa mga miyembro nito.
 
 **Pagkatapos mong mag-export.** Kapag handa na ang file, binabasa ito pabalik ng Lolly at inihahambing sa pinili mo: format, laki ng pixel o page, haba ng clip, transparent na background, kulay na CMYK, HDR, Content Credentials at password ng PDF o ZIP. Anumang magkaiba ay isinusulat sa export card. Ang bawat sukat ay galing sa file, hindi kailanman sa setting, at ang property na hindi masagot ng file ay hindi binibilang bilang tugma. Isinusulat ng command line ang buong paghahambing gamit ang `--export-report` (tingnan ang [Mag-render gamit ang CLI](/info/cli-rendering.html)).
+
+**Mga PDF accessibility check.** Para sa PDF, inililista rin ng command line ang 32 accessibility check sa `--export-report` file, sa ilalim ng `pdfAccessibility`. Bawat check ay may id, simpleng paglalarawan, resulta at lugar sa file kung saan ito nakakita ng problema:
+
+- **Pumasa**: tumingin ang check sa isang bagay at walang nakitang mali.
+- **Nabigo**: may nakitang problema ang check. Nakalista ang mga page number o tag nito.
+- **Hindi applicable**: walang ganoong uri ng bagay sa file na titingnan, gaya ng table check sa file na walang table. Wala itong sinasabi tungkol sa file.
+- **Kailangan ng tao**: anim na check ang hindi kayang husgahan ng program (reading order, colour contrast, flashing, script, time limit at paulit-ulit na link).
+
+Hindi hatol ang listahan. Hindi nito sinasabing sumusunod ang PDF sa PDF/UA o magagamit ito ng mga taong gumagamit ng assistive technology, at kailangan pa rin ng tao na suriin ang file gamit ang screen reader. Bumabagsak ngayon sa tagging check ang sariling mga PDF ng Lolly, dahil wala pang isinusulat na tag ang mga exporter. Binabasa ng check ang file sa device mo at wala itong binabago. Ang mga file na nangangailangan ng password ay pinangalanang hindi nasuri, hindi pumasa. Para suriin ang PDF na ipinadala sa iyo, i-drop ito sa [Strip Hidden Data](/info/utilities.html), na nagpapakita ng parehong listahan sa ilalim ng **PDF accessibility checks**.
 
 Hiwalay na mga check ang mga check ng inspector ng Design at ang paghahambing ng brand sa Design System Setup: tinitingnan nila ang design, habang ang dalawang card na ito ay tumitingin sa file.
 
@@ -280,7 +289,7 @@ Ang mga export ay may tag na colour profile, kaya ang mga colour-managed na app 
 - Ang **SVG**, **EMF**, **EPS** at **DXF** ay mga vector na walang naka-embed na profile: ang mga kulay ng SVG ay sRGB, gumagamit ng device RGB ang EMF at EPS, ang **EPS (CMYK)** ay nagsusulat ng DeviceCMYK at gumagamit ang DXF ng AutoCAD Color Index. Ang SVG, EPS at DXF ay nag-o-outline ng text papunta sa mga path. Pinapanatili ng EMF na live at mae-edit ang text sa Office at Google Slides, bumabalik lang sa outline para sa mga run na hindi kayang ipahayag ng format; ang **Outline fonts** option ng export panel ay pinipilit ang mga path saanman. Ginagaya rin ng SVG ang mga CSS box shadow, sa loob at labas.
 
 ::: details PDF/X-4 at ang sarili mong press profile
-Walang CMYK profile na kasama sa Lolly. Ang pinangalanang press condition ay nagsusulat ng output intent nang hindi nagke-claim ng PDF/X-4 conformance, dahil gusto ng PDF/X-4 na naka-embed ang profile.
+May kasamang isang CMYK profile ang Lolly, na akma sa FOGRA39 characterisation data ng Fogra at inilabas sa ilalim ng CC0, at kino-convert nito ang mga kulay gamit iyon para sa default na press condition. Hindi naka-embed ang profile, dahil ICC version 4.3 ito at tumatanggap ang PDF/X-4 ng hanggang version 4.2. Kaya ang pinangalanang press condition ay nagsusulat ng output intent nang hindi nagke-claim ng PDF/X-4 conformance.
 
 Mag-load ng sarili mong CMYK profile at piliin ang **Embed** row nito sa Colour profile control. Ine-embed ito bilang *DestOutputProfile* ng file, at nagke-claim ang PDF ng PDF/X-4 kapag pinapayagan ng natitirang bahagi ng file. Ang press condition na idinedeklara nito ay binabasa mula sa profile na iyon: rehistradong pangalan kung may napatunayan ang profile, o `Custom` sa ilalim ng sariling pangalan ng profile.
 

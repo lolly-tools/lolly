@@ -197,6 +197,9 @@ export type {
 // property is compared with a value read from the output bytes, and the report is
 // bound to those bytes by SHA-256 (plan 203 rank 12).
 export { verifyExport, compareExport, exportRequestFromJob } from './preflight-output.ts';
+export { PDF_ACCESSIBILITY_RULES, PDF_ACCESSIBILITY_RULE_IDS, PDF_ACCESSIBILITY_STATEMENTS, pdfAccessibilityOutcome, pdfAccessibilityRows, pdfAccessibilityCounts, pdfAccessibilityHeadline, summarisePdfAccessibility, pdfAccessibilityOutcomeLabel, pdfAccessibilityText } from './pdf-accessibility.ts';
+export type { PdfAccessibilityReader, PdfAccessibilitySummary, PdfAccessibilityRow, PdfAccessibilityOutcome } from './pdf-accessibility.ts';
+export type { VerifyExportReaders } from './preflight-output.ts';
 export type { ExportRequest, ExportCheck, ExportReport, ExportValue } from './preflight-output.ts';
 export { inspectOutput } from './output-facts.ts';
 export type { OutputFacts } from './output-facts.ts';
@@ -250,6 +253,8 @@ export type {
 export { analysePcm, fftInPlace } from './audio-analyse.ts';
 export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analyse.ts';
 export { cleanAudioPcm, resamplePcm, cleanAudioPreview } from './audio-clean.ts';
+export { planRepair, repairRequested } from './audio-repair.ts';
+export type { AudioRepairOpts, RepairStage, RepairStageId, RepairStrength } from './audio-repair.ts';
 // Captions (host.speech, v1.96) - spoken-word timings in, subtitle cues out. The
 // grouping and VTT/SRT timestamp maths live here so the browser and a headless
 // export break caption lines at the same words.
@@ -497,6 +502,10 @@ export type { DashSegment, DashFitOpts } from './dash-fit.ts';
 export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';
+export { importDxf, flattenDxf, looksLikeDxf, dxfReportLines, dxfUnits, aciToHex, DXF_LIMITS } from './dxf-import.ts';
+export type { DxfRaw, DxfReader, DxfImport, DxfImportOptions, DxfReport, DxfStroke, DxfText, DxfUnits } from './dxf-import.ts';
+export { dxfToDesign, DXF_MAX_BOXES } from './dxf-design.ts';
+export type { DxfDesignResult } from './dxf-design.ts';
 export { emitWmf } from './wmf.ts';
 export { buildPptxParts, EMU_PER_PX } from './pptx.ts';
 export type {
@@ -923,6 +932,7 @@ export { ENGINE_VERSION } from './version.ts';
 export { base64ToBytes } from './bytes.ts';
 export { createTruePeakLimiter, activitySpans } from './audio-dynamics.ts';
 export { createLoudnessMeter, integratedLoudness, normalizeGain, LOUDNESS_RATE } from './audio-loudness.ts';
+export type { R128Report } from './audio-loudness.ts';
 export { parseFxChain, serializeFxChain, processFxPcm, FX_PRESETS, FX_CHAIN_MAX_CHARS } from './audio-fx.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';
@@ -1276,6 +1286,13 @@ export { readCameraRawPreset } from './camera-raw-preset.ts';
 export type { CameraRawPreset } from './camera-raw-preset.ts';
 export { readPremiereXml, writePremiereXml, premiereSequenceValues, framesToSeconds, secondsToFrames } from './premiere-xml.ts';
 export type { InterchangeRate, InterchangeClip, InterchangeSequence } from './premiere-xml.ts';
+export { readEdl } from './timeline-edl.ts';
+export type { EdlOptions } from './timeline-edl.ts';
+export { readOtio } from './timeline-otio.ts';
+export { readFcpxml } from './timeline-fcpxml.ts';
+export { readTimeline, detectTimelineFormat } from './timeline-import.ts';
+export type { TimelineFormat, TimelineReadOptions } from './timeline-import.ts';
+export { timecodeToFrames, framesToTimecode } from './timeline-common.ts';
 export { readIdmlSpreads } from './idml-read.ts';
 
 export { createDesignLayoutEvaluator, hasDesignLayout, validateDesignLayout, designLayoutSourceEdit, parseLayoutTrack } from './design-layout.ts';

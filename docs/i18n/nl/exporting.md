@@ -214,7 +214,7 @@ Scroll, en de camera zoomt terug door de daadwerkelijke geometrie: zeven paden, 
 
 ## Drukwerk
 
-**Print PDF** schrijft CMYK tegen een benoemde drukconditie, standaard **Coated FOGRA39**. Merkstalen met gemeten inktwaarden worden exact omgezet; andere kleuren gebruiken een standaard apparaatomzetting. **Print TIFF** schrijft DeviceCMYK-pixels voor een RIP en legt dezelfde drukconditie vast in zijn TIFF-metadata. De bediening Colour profile stuurt beide; [Kleurprofielen](#colour-profiles) bevat de details.
+**Print PDF** schrijft CMYK tegen een benoemde drukconditie, standaard **Coated FOGRA39**. Merkstalen met gemeten inktwaarden behouden die waarden. Andere kleuren worden omgezet via een drukprofiel: het eigen Coated FOGRA39-profiel van Lolly als standaard, of je eigen profiel wanneer je de rij **Embed** kiest. Grijs en zwart blijven alleen op de zwartplaat staan, zodat kleine tekst niet uit register kan raken. FOGRA51, SWOP en GRACoL gebruiken een standaard apparaatomzetting. **Print TIFF** schrijft DeviceCMYK-pixels voor een RIP en legt dezelfde drukconditie vast in zijn TIFF-metadata. De bediening Colour profile stuurt beide; [Kleurprofielen](#colour-profiles) bevat de details.
 
 **Print marks & bleed** heeft een eigen kaart bij de drukformaten: de afloop in millimeters plus Crop, Registration, Bleed, Colour bars en Stamp details.
 
@@ -223,6 +223,15 @@ Sommige tools bouwen een **PDF met meerdere pagina's**: een omslag, inhoud die d
 **Voordat je exporteert.** Een kaart **Before you export** onderaan het paneel zegt wat een drukker straks gaat zien: formaat, grootte en afloop, snij- en afloopgebieden, inktdekking, aantal platen en aantal pagina's, met een oordeel naast de kop. Ze blokkeert nooit een export. Design toont de kaart altijd met zijn eigen controles, inclusief de huisstijlregels van het design system laag voor laag en het schrijfsignaal voor de tekst van het document ([Voordat je exporteert](/info/design.html#before-you-export)), en voegt deze drukcontroles toe wanneer **Print preflight** aan staat. Zet in andere tools **Print preflight** aan onder Settings → Preferences → Feature flags; het staat standaard uit, en een Lolly Work-implementatie kan het voor haar leden aanzetten.
 
 **Nadat je exporteert.** Zodra het bestand klaar is, leest Lolly het terug en vergelijkt het met wat je koos: formaat, pixel- of paginaformaat, cliplengte, een transparante achtergrond, CMYK-kleur, HDR, Content Credentials en een PDF- of ZIP-wachtwoord. Alles wat afwijkt wordt op de exportkaart geschreven. Elke meting komt uit het bestand, nooit uit de instelling, en een eigenschap die het bestand niet kan beantwoorden telt niet als overeenkomst. De opdrachtregel schrijft de volledige vergelijking met `--export-report` (zie [Render with the CLI](/info/cli-rendering.html)).
+
+**Toegankelijkheidscontroles voor PDF.** Voor een PDF toont de opdrachtregel ook 32 toegankelijkheidscontroles in het `--export-report`-bestand, onder `pdfAccessibility`. Elke controle heeft een id, een heldere beschrijving, een uitkomst en de plek in het bestand waar een probleem is gevonden:
+
+- **Geslaagd**: de controle heeft iets bekeken en niets gevonden dat niet klopt.
+- **Mislukt**: de controle heeft een probleem gevonden. De paginanummers of tags worden vermeld.
+- **Niet van toepassing**: het bestand bevatte niets van die soort om te bekijken, zoals tabelcontroles in een bestand zonder tabellen. Dit zegt niets over het bestand.
+- **Mens nodig**: zes controles kan een programma niet beoordelen (leesvolgorde, kleurcontrast, flitsen, scripts, tijdslimieten en herhaalde links).
+
+De lijst is geen oordeel. Ze zegt niet dat een PDF voldoet aan PDF/UA of dat mensen die hulptechnologie gebruiken de PDF kunnen gebruiken, en iemand moet het bestand nog steeds met een schermlezer controleren. De eigen PDF's van Lolly zakken nu voor de tagcontroles, omdat de exporteurs nog geen tags schrijven. De controle leest het bestand op je apparaat en wijzigt niets. Bestanden waarvoor een wachtwoord nodig is, worden als niet gecontroleerd vermeld, niet als geslaagd. Om een PDF te controleren die je is toegestuurd, sleep je die naar [Strip Hidden Data](/info/utilities.html), dat dezelfde lijst toont onder **PDF accessibility checks**.
 
 De inspectorcontroles van Design en de merkvergelijking in Design System Setup zijn aparte controles: ze kijken naar het ontwerp, terwijl deze twee kaarten naar het bestand kijken.
 
@@ -280,7 +289,7 @@ Exports worden gelabeld met een kleurprofiel, zodat kleurbeheerde apps zoals dru
 - **SVG**, **EMF**, **EPS** en **DXF** zijn vectoren zonder ingesloten profiel: de kleuren van SVG zijn sRGB, EMF en EPS gebruiken apparaat-RGB, **EPS (CMYK)** schrijft DeviceCMYK en DXF gebruikt de AutoCAD Color Index. SVG, EPS en DXF zetten tekst om in paden. EMF houdt tekst live en bewerkbaar in Office en Google Slides, en valt alleen terug op omtrekken voor stukken die het formaat niet kan uitdrukken; de optie **Outline fonts** van het exportpaneel forceert overal paden. SVG reproduceert ook CSS-boxschaduwen, binnen en buiten.
 
 ::: details PDF/X-4 en je eigen drukprofiel
-Er wordt geen CMYK-profiel met Lolly meegeleverd. Een benoemde drukconditie schrijft de output intent zonder PDF/X-4-conformiteit te claimen, omdat PDF/X-4 het ingesloten profiel wil.
+Lolly levert één CMYK-profiel mee, afgestemd op de FOGRA39-karakteriseringsgegevens van Fogra en vrijgegeven onder CC0, en zet kleuren er voor de standaard drukconditie doorheen om. Het profiel wordt niet ingesloten, omdat het ICC-versie 4.3 is en PDF/X-4 versies tot en met 4.2 accepteert. Een benoemde drukconditie schrijft daarom de output intent zonder PDF/X-4-conformiteit te claimen.
 
 Laad een eigen CMYK-profiel en kies zijn rij **Embed** in de bediening Colour profile. Het wordt ingesloten als *DestOutputProfile* van het bestand, en de PDF claimt PDF/X-4 zodra de rest van het bestand dat toelaat. De drukconditie die ze verklaart wordt van dat profiel afgelezen: een geregistreerde naam waar het profiel er een bewijst, of `Custom` onder de eigen naam van het profiel.
 

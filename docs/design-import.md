@@ -24,9 +24,11 @@ Every frame becomes a scene on the timeline, ready for timing, music and a voice
 | **`.ai`** or **`.pdf`** | Illustrator, saved with the default *PDF-compatible* option, or any PDF | Vector paint, text and images read straight from the page. |
 | **`.idml`** | InDesign: *File → Export → InDesign Markup* | Every spread and its margins, as artboards or scenes; **Replace the board** opens the first spread. |
 | **`.indd`** or **`.indt`** | InDesign, saved as a document or a template (a preview) | Converted to IDML on your device, then read like an `.idml` (see [InDesign files](#indesign-files)). |
+| **`.dxf`** | AutoCAD, or any CAD or floor-plan program that saves DXF | Layers become groups of line and curve paths, with text as text boxes (see [DXF drawings](#dxf-drawings-and-floor-plans)). |
 | **`.psd`** or **`.psb`** | Photoshop | Text, shapes and paths stay editable; other layers come in as pictures in place (see [Photoshop files](#photoshop-files)). |
 | **`.pptx`** | PowerPoint | One slide on the board (a longer deck asks which), or every slide as an artboard or a timed scene. |
 | **`.xml`** | Premiere (Final Cut Pro 7 XML), or a Lolly XML + media ZIP | Choose **Replace the board**; the clips open in Sequence (see [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange)). |
+| **`.edl`**, **`.otio`** or **`.fcpxml`** | A CMX 3600 EDL, OpenTimelineIO, or Final Cut Pro X XML (1.8 to 1.11) | Choose **Replace the board**; the clips open in Sequence and the import report lists anything not applied (see [EDL, OpenTimelineIO and FCPXML exchange](/info/sequence-editor.html#edl-opentimelineio-and-fcpxml-exchange)). |
 | **`.svg`** | Any app, including Figma and Penpot SVG exports | For editable text from a Figma SVG, untick *Outline text* in Figma's export dialog. |
 
 SVG is the widest door: almost any design app can export SVG, so almost any design can reach Lolly that way. A PowerPoint deck has other doors too: [Rebrand a deck](/info/rebrand.html) moves one onto your design system, and [Formats](/info/formats.html#bringing-files-in) lists the rest.
@@ -38,6 +40,16 @@ A native `.indd` or `.indt` is converted to IDML on your device with a bundled W
 This is a preview. The converter does not yet write every attribute InDesign writes, so spacing, styles and effects can differ from InDesign, and the import report says so and lists the converter's own warnings. When the result matters, export an `.idml` from InDesign and import that instead. The converter was written from observation of sample files and not from Adobe's documentation, and its [source and caveats](https://github.com/lolly-tools/lolly/tree/main/packages/node-shell/wasm/indd/vendor/indd-utils) are published beside the module.
 
 Limits: the file can be up to 128 MB, the converted package up to 128 MB and the converter's memory 1 GB. A file over a limit, an InDesign 1.x file, a file cut short and a file that is not an InDesign document each stop with a plain message. A very large file converts on the same thread as the page, so the window can pause for a moment. In the command line, `lolly adobe indd document.indd --output=document.idml` writes the package and prints the converter's warnings, and `lolly adobe idml document.indd` reports what Design would import.
+
+## DXF drawings and floor plans
+
+A `.dxf` file, ASCII or binary and saved by AutoCAD R12 through 2018, opens as a drawing. Each DXF layer becomes a group in Design. Inside a group, each colour is one or more path boxes (lines, polylines with arcs, circles, arcs, ellipses and splines) and each piece of text is a text box. Blocks are expanded to eight levels, array inserts are repeated, and a dimension is drawn through the lines and text of its own block. The drawing is read on your device with a bundled WebAssembly module and nothing is uploaded.
+
+The drawing is scaled to fit about 2,400 pixels on its long side. The import report gives the real scale as "one pixel is N mm", read from the file's `$INSUNITS` setting. A file that states no units is read as millimetres, and the report says that was assumed.
+
+Nothing is guessed. A text box carries the font the file names: a TrueType style's typeface, a font file name such as `arial.ttf`, or an inline MTEXT font. A style that uses an SHX font, which Lolly cannot draw, keeps its wording in the default font and is listed in the report. External references (XREFs), paper-space layouts and viewports, layers the file turns off or freezes, and every entity that is not drawn (hatches, solids, leaders, images and the rest) are counted in the report and left out. Open an external reference as its own file to import that drawing.
+
+Limits: the file can be up to 32 MB, with up to 2 million group codes, 250,000 entities and 10,000 blocks. One import makes at most 2,000 Design layers and splits a large layer into several path boxes, so a very dense drawing reports what did not fit. In the command line, `lolly dxf plan.dxf` prints the report, `--output=plan.svg` writes an SVG preview, `--output=plan.json` writes the Design boxes, and `--layers=WALLS,DOORS` keeps only those layers. A DXF file written by Lolly's own DXF export reads back at its real size.
 
 ## What happens to the layers
 
