@@ -231,7 +231,9 @@ test('the trap headline breaks mid-word where the canvas does, and is clipped', 
 test('lists, bold, mono and italic runs measure in their own faces', async () => {
   const m = await measureTextNode({ text: '- First point\n- **Second** point with {mono|code}\n1. A *numbered* line', size: 32, weight: 400, width: 700, lineHeight: 1.3, pad: 8 });
   assert.deepEqual(m.lines.map((l) => [l.text, l.break]), [['•  First point', 'forced'], ['•  Second point with code', 'forced'], ['1.  A numbered line', 'end']]);
-  const widths = [169.36, 366.69, 263.31];
+  // The marker "1.  " and "A " share a face, so they are shaped together and keep the
+  // kern between the space and the A, as Chromium does: 262.42 px there.
+  const widths = [169.36, 366.69, 262.44];
   m.lines.forEach((l, i) => {
     assert.ok(Math.abs(l.width - widths[i]!) <= 0.05, `line ${i} width ${l.width}`);
   });

@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.294.0', () => {
+test('ENGINE_VERSION is 1.295.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -570,7 +570,8 @@ test('ENGINE_VERSION is 1.294.0', () => {
   // 1.291.0 adds path handles that curve the travel between keyframed positions (plans/330); capture is unchanged.
   // 1.293.0 tells every hook and template the canvas size, and re-runs a tool that follows it; capture is unchanged.
   // 1.294.0 points the brand-skill check's guidance at the Rules room; capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.294.0');
+  // 1.295.0 shapes a Design text line's runs in one face together, so a list marker keeps its kern; capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.295.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

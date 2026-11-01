@@ -4088,7 +4088,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.294.0";
+    ENGINE_VERSION = "1.295.0";
   }
 });
 
@@ -116759,31 +116759,44 @@ async function measureCore(spec, shaper, draw) {
     const segStart = [];
     const missingAt = /* @__PURE__ */ new Set();
     for (const [n8, seg4] of segments.entries()) {
-      segStart.push(advances.length);
-      const result2 = await shape(seg4.text, seg4.face);
+      segStart.push(faceAt.length);
+      for (let i = 0; i < seg4.text.length; i++) {
+        faceAt.push(seg4.face);
+        segAt.push(n8);
+      }
+    }
+    const groups = [];
+    for (const [n8, seg4] of segments.entries()) {
+      const last = groups[groups.length - 1];
+      if (last && faceKey(last.face) === faceKey(seg4.face)) last.end += seg4.text.length;
+      else groups.push({ start: segStart[n8], end: segStart[n8] + seg4.text.length, face: seg4.face });
+    }
+    const groupAt = [];
+    for (const [g2, group] of groups.entries()) {
+      const text12 = drawn.slice(group.start, group.end);
+      const result2 = await shape(text12, group.face);
       for (const i of result2.missing ?? []) {
-        if (!Number.isInteger(i) || i < 0 || i >= seg4.text.length) continue;
-        missingAt.add(advances.length + i);
-        const ch = String.fromCodePoint(seg4.text.codePointAt(i));
-        let set = uncovered.get(seg4.face.family);
+        if (!Number.isInteger(i) || i < 0 || i >= text12.length) continue;
+        missingAt.add(group.start + i);
+        const ch = String.fromCodePoint(text12.codePointAt(i));
+        let set = uncovered.get(group.face.family);
         if (!set) {
           set = /* @__PURE__ */ new Set();
-          uncovered.set(seg4.face.family, set);
+          uncovered.set(group.face.family, set);
         }
         set.add(ch);
       }
-      for (let i = 0; i < seg4.text.length; i++) {
+      for (let i = 0; i < text12.length; i++) {
         advances.push(Number.isFinite(result2.advances[i]) ? result2.advances[i] : 0);
-        faceAt.push(seg4.face);
-        segAt.push(n8);
+        groupAt.push(g2);
       }
     }
     const reshape = async (a, z) => {
       let total = 0;
       for (let k = a; k < z; ) {
-        const n8 = segAt[k];
-        const stop = Math.min(z, segStart[n8] + segments[n8].text.length);
-        const result2 = await shape(drawn.slice(k, stop), segments[n8].face);
+        const group = groups[groupAt[k]];
+        const stop = Math.min(z, group.end);
+        const result2 = await shape(drawn.slice(k, stop), group.face);
         for (const adv of result2.advances) total += Number.isFinite(adv) ? adv : 0;
         k = stop;
       }

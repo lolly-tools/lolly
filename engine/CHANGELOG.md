@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.295.0
+
+- `measureDesignText` and `drawDesignText` shape each stretch of a paragraph's runs in one face as one run, the way Chromium shapes across the inline elements between them, instead of shaping every run alone. A list marker and the text after it, or a coloured or underlined span and its neighbours, keep the kerning between them: in SUSE at 48 px the space before a "T" is 1.53 px narrower, so the drawn line "•  Third supporting idea" now starts where the canvas draws it rather than 1.5 px to the right. Runs keep their own colour and decoration, and a change of face still starts a new shaping run. Line widths, breaks and run positions move by the kern only where such a pair meets a run boundary; the Design PNG drawn by the GPU route, and the SVG and PDF drawn from the operations, follow.
+
 ## 1.294.0
 
 - The brand-skill check's `guidance-only` detail for a statement with no house rule of its kind now points at the studio's **Rules** room, the room's label since plan 336: "Not checked: the design system has no text-case rule. One could be drafted in the Rules room." It used to give the room's former label, Usage & rules. Only the `detail` text changes; statuses, kinds and every other field read as before.
