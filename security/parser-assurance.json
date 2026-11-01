@@ -1048,6 +1048,32 @@
         "notes": "Rational frame rates remain in the interchange model. Lolly clock conversion and unsupported effects are reported. No media path is fetched implicitly."
       }
     },
+    "engine/src/captions-scc.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "captions-scc"
+      ],
+      "details": {
+        "inputSource": "User-supplied SCC caption files, read and written as plain text.",
+        "bounds": "4 MiB text; 200,000 lines; 2,000,000 byte pairs; 20,000 captions; 2,000 characters and 15 rows per written caption; timecodes checked, dropped drop-frame labels refused, order enforced",
+        "directTests": "`tests/captions-broadcast.test.ts`",
+        "fuzzCoverage": "`captions-scc` mutates written pop-on files in drop-frame and non-drop form plus a roll-up file, and writes every read result back.",
+        "notes": "Pop-on, channel 1 only. Roll-up, paint-on, text mode, other channels and styling are reported, never dropped silently. Characters outside the set refuse the write unless replacement is asked for. Not checked against a real broadcast tool."
+      }
+    },
+    "engine/src/captions-ttml.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "captions-ttml"
+      ],
+      "details": {
+        "inputSource": "User-supplied TTML and IMSC1 files. The XML parser is supplied by the shell.",
+        "bounds": "8 MiB XML through the shared XML admission (no DTD or entities, 50,000 elements, depth 64); 20,000 captions of at most 10,000 characters; times capped at 100 hours; media time base only",
+        "directTests": "`tests/captions-broadcast.test.ts`",
+        "fuzzCoverage": "`captions-ttml` mutates a written IMSC1 file and a hand-built file with frame, tick and nested time containers, and writes every read result back.",
+        "notes": "Styling and layout are ignored and noted. Bad or open-ended paragraphs are skipped and listed. Sequential containers are read as parallel with a note."
+      }
+    },
     "engine/src/timeline-edl.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [

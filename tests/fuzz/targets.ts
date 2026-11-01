@@ -2351,9 +2351,38 @@ export const audioDspTarget: FuzzTarget = {
   },
 };
 
+export const captionsSccTarget: FuzzTarget = {
+  name: 'captions-scc',
+  async seeds() {
+    const { cuesToScc } = await import('../../engine/src/captions-scc.ts');
+    const cues = [{ start: 3, end: 5, text: 'Hello, world' }, { start: 5, end: 8.5, text: 'Ñandú ♪ {x}\nsecond line' }, { start: 70, end: 72, text: 'After the minute' }];
+    return [new TextEncoder().encode(cuesToScc(cues).text), new TextEncoder().encode(cuesToScc(cues, { dropFrame: false }).text),
+      new TextEncoder().encode('Scenarist_SCC V1.0\n\n00:00:00:00\t9425 9425 94ad 94ad c1c2 94ad 94ad 4344\n\n00:00:02:00\t942c 942c\n')];
+  },
+  async invoke(bytes) {
+    const { sccToCues, cuesToScc } = await import('../../engine/src/captions-scc.ts');
+    const { cues } = sccToCues(new TextDecoder().decode(bytes));
+    cuesToScc(cues, { onUnsupported: 'replace' });
+  },
+};
+export const captionsTtmlTarget: FuzzTarget = {
+  name: 'captions-ttml',
+  async seeds() {
+    const { cuesToTtml } = await import('../../engine/src/captions-ttml.ts');
+    const cues = [{ start: 1, end: 2.5, text: 'Hello & goodbye' }, { start: 3, end: 4, text: 'Two\nlines' }];
+    const timed = '<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" ttp:frameRate="30" ttp:frameRateMultiplier="1000 1001"><body begin="5s"><div begin="00:00:01:15"><p begin="30t" end="60t">x<br/><span begin="1s" end="2s">y</span></p></div></body></tt>';
+    return [new TextEncoder().encode(cuesToTtml(cues)), new TextEncoder().encode(timed)];
+  },
+  async invoke(bytes) {
+    const { ttmlToCues, cuesToTtml } = await import('../../engine/src/captions-ttml.ts');
+    const { cues } = ttmlToCues(new TextDecoder().decode(bytes), parseXml);
+    cuesToTtml(cues);
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, dxfTarget, idmlReadTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,
