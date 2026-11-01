@@ -57,7 +57,7 @@ export async function adobeCli(args: string[], flags: Record<string, string>): P
         report = { frames, notes };
       } else if (command === 'preset') {
         const preset = readCameraRawPreset(source, parse);
-        report = { ...preset, url: `https://lolly.tools/t/darkroom?${serializeUrlState(Object.entries(preset.values).map(([id, value]) => ({ id, type: 'number', value })))}` };
+        report = { ...preset, url: `https://lolly.tools/t/darkroom?${serializeUrlState(Object.entries(preset.values).map(([id, value]) => ({ id, type: typeof value === 'boolean' ? 'boolean' : 'number', value })))}` };
       } else { const sequence = readPremiereXml(source, parse); report = { sequence, ...await premiereSequenceValues(sequence) }; }
     } finally { dom.window.close(); }
   }
