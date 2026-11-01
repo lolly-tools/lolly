@@ -91,3 +91,12 @@ targetRules = ["generic-api-key"]
 paths = ['^brands/lolly-start/catalog/tools/index\.sig\.json$']
 regexTarget = "secret"
 regexes = ['^91ac6f1cf2b4bc36c740a22949b8d18b1116849194148483f7b173d07396738b$']
+
+[[allowlists]]
+description = "The CLI logo-wall test feeds imageMime two inert secrets-file fixtures (dictionary words plus 0123456789) that start like BMP and GIF headers, to prove text is never taken for a picture"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^tests/cli-logo-wall\.test\.ts$''']
+commits = [
+  "9710097d0205bcb7f8f3280ed1d23714f2fb7bd8",
+]
