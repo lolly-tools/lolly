@@ -90,7 +90,7 @@
     "AudioAPI": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "e0bbf1afd25c3c018d99e453415b0fb3384374085036be9d2b0fe09529e21a97"
+      "sha256": "bf7bc3a815722479e3726de0aade43bff44c6b5443fb42404ce75eba3aa1a301"
     },
     "AudioDecodeOpts": {
       "module": "audio.ts",
@@ -107,15 +107,45 @@
       "kind": "InterfaceDeclaration",
       "sha256": "c6c834745ca0f269f8fbdacebb63461afdfa3802fdaea933ac9b36ef5d5713f8"
     },
+    "AudioRepairOpts": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a46453f90cf6fdc27052c43020cb4f924f878337e7a7b959b2026cbe8c1a6b26"
+    },
+    "AudioLoudnessReport": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "1888367cc0a3f1fdbc240f4c9d5aabe76a18c257af954962f6040552bc0cd5ce"
+    },
+    "AudioLoudnessOpts": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "64165dbd54e17558afc86e653d53a77b0a3c30590f54412e20b55e46360b577a"
+    },
+    "AudioLoudness": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e7d51d512916b495e15ac2c370a9de318e1bcda1e776bba2f0f1ba93e2ecf1df"
+    },
+    "AudioAlignOpts": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "78c53defefea8708962860f4dea8fcbf316452ce482d8b0010096dda6bf1877c"
+    },
+    "AudioAlignment": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d76cdc4d0978e8fdce05726b846a341fdbb1b7debcd7d7871668d6341a7733c8"
+    },
     "AudioCleanOpts": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "3a22bac59f770a21cbb480b013c9222a21c6cc107a14b2480d6670bff024a493"
+      "sha256": "a5e4dbba29640c5f5329323304f9cf090f5a364398f188f2e0001c5101ebaa51"
     },
     "AudioCleanResult": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "d33106642a68b1eb1ea32a1ec5e55a6c9240ccaf4646254d8f58b5a16b0a2b1c"
+      "sha256": "6a91ce6f1d666f08499c2b95241f44406b9c2c94a46741a2f7e9c845b54d3bcd"
     },
     "AudioSource": {
       "module": "audio.ts",

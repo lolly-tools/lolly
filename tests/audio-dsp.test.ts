@@ -317,6 +317,6 @@ test('host.audio.align finds the offset between two WAV recordings', async () =>
   const b = a.slice(24_000, 24_000 + rate * 3);
   const audio = createNodeAudioAPI({ repoRoot: process.cwd() });
   const r = await audio.align!(packWav({ channels: [a], sampleRate: rate }, { format: 'int16' }), packWav({ channels: [b], sampleRate: rate }, { format: 'int16' }));
-  assert.ok(r && r.reliable);
+  assert.ok(r?.reliable);
   assert.ok(Math.abs(r!.offsetSeconds - 0.5) < 0.001, `offset ${r!.offsetSeconds}`);
 });

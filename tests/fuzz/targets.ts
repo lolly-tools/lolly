@@ -2273,7 +2273,7 @@ export const audioDspTarget: FuzzTarget = {
       out[0] = op;
       new DataView(out.buffer).setUint32(1, head.length, true);
       out.set(head, 5);
-      floats.forEach((f, i) => new DataView(out.buffer).setFloat32(5 + head.length + i * 4, f, true));
+      for (let i = 0; i < floats.length; i++) new DataView(out.buffer).setFloat32(5 + head.length + i * 4, floats[i]!, true);
       return out;
     };
     const wave = Array.from({ length: 480 }, (_, i) => 0.2 * Math.sin(i / 7));
