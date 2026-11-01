@@ -287,6 +287,7 @@
       "Text outlined to paths",
       "Nearest AutoCAD Color Index (ACI)",
       "Line-art only, rasters dropped",
+      "Reads ASCII and binary DXF (R12 to 2018) into Design",
       "Records its source (999 comment)"
     ],
     "CMYK TIFF": [
@@ -1521,18 +1522,18 @@
       "name": "DXF",
       "full": "Drawing Exchange Format",
       "category": "Vector",
-      "dir": "out",
+      "dir": "both",
       "features": [
         "vector",
         "text-as-paths",
         "print"
       ],
-      "desc": "The file a cutting machine reads: laser cutters, vinyl plotters and CNC/CAD software all speak DXF. Lolly writes outline paths in real millimetres (curves smoothed to a fine tolerance, text outlined, colours mapped to the nearest AutoCAD Color Index that usually picks the cutting operation). It's line-art only, so photographic or filtered regions are dropped with a warning.",
+      "desc": "The file a cutting machine reads: laser cutters, vinyl plotters and CNC/CAD software all speak DXF. Lolly also opens DXF floor plans and drawings in Design: each layer becomes a group of line and curve paths with text as text boxes, scaled from the file's own units, and the import report lists external references, paper space, SHX fonts and anything not drawn. Lolly writes outline paths in real millimetres (curves smoothed to a fine tolerance, text outlined, colours mapped to the nearest AutoCAD Color Index that usually picks the cutting operation). It's line-art only, so photographic or filtered regions are dropped with a warning.",
       "metadata": {
         "reads": [],
         "writes": [],
         "preserves": "n/a",
-        "note": "A 999 comment names Lolly."
+        "note": "A 999 comment names Lolly on export. An import reads layers, units and text and drops other record data."
       }
     },
     {

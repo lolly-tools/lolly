@@ -2,13 +2,13 @@
 /**
  * DXF import: the flat entity list from the shell's tag reader to paths, text and a report.
  *
- * `engine/src/dxf.ts` writes DXF; this module reads it. The engine stays free of WebAssembly:
+ * `engine/src/dxf.ts` writes DXF; this module reads DXF files. The engine stays free of WebAssembly:
  * a shell supplies `read` (bytes to {@link DxfRaw}), the way `readXlsx` takes `formatCell`. Lolly's
  * own flattener then does the drawing work: entities become cubic and line subpaths, blocks are
  * expanded to a bounded depth, layers keep their names and colours, and `$INSUNITS` sets the
  * real-world scale reported to the person.
  *
- * Nothing is guessed. A text style that names a TrueType face keeps that face's name. A style that
+ * Nothing is guessed. A text style that gives a TrueType face keeps that face's name. A style that
  * uses an SHX font, an XREF, a paper-space layout or an entity this importer does not draw is
  * counted in the report instead of being replaced by something plausible.
  *
@@ -198,7 +198,7 @@ export interface DxfReport {
   xrefs: Array<{ name: string; path: string; inserted: number }>;
   paperSpace: { count: number; types: Record<string, number> };
   shxFonts: Array<{ file: string; styles: string[]; textItems: number }>;
-  /** Text items whose style names no font at all. */
+  /** Text items whose style gives no font at all. */
   unnamedFontTexts: number;
   skipped: Record<string, number>;
   missingBlocks: string[];
@@ -293,6 +293,17 @@ export function plainMtext(raw: string): MtextPlain {
     out += ch;
   }
   return { text: percentCodes(out).replace(/\r/g, ''), ...(font ? { font } : {}), extraFonts };
+}
+
+/** Drop control characters other than tab and line breaks. */
+function stripControls(s: string): string {
+  let out = '';
+  for (const ch of s) {
+    const c = ch.charCodeAt(0);
+    if (c < 32 && c !== 9 && c !== 10 && c !== 13) continue;
+    out += ch;
+  }
+  return out;
 }
 
 function fontFromFile(file: string): string {
@@ -465,7 +476,7 @@ function addText(ctx: Ctx, e: DxfRawEntity, layer: number, color: string, inheri
   } else {
     text = percentCodes(e.tx);
   }
-  text = text.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
+  text = stripControls(text);
   if (!text.trim()) return;
   // Justified TEXT is placed by its second point; left-baseline TEXT by its first.
   const ha = num(e.ha, 0), va = num(e.va, 0);

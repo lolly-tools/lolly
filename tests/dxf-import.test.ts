@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * DXF import: the WASM tag reader (Node loader), the flattener in engine/src/dxf-import.ts and the
- * Design boxes built from it. Fixtures are synthetic (tests/fixtures/dxf/synthetic.ts) and the
+ * Design boxes built from that list. Fixtures are synthetic (tests/fixtures/dxf/synthetic.ts) and the
  * round-trip case goes through Lolly's own emitDxf writer. No network, no corpus.
  *
  * Run with: node --test tests/dxf-import.test.ts
@@ -208,7 +208,7 @@ test('extrusion (0,0,-1) mirrors an entity across the y axis', () => {
   const r = imp(dxfText({ entities: [...line(0, 0, 100, 0), [0, 'CIRCLE'], [8, '0'], [10, 50], [20, 0], [30, 0], [40, 5], [210, 0], [220, 0], [230, -1]] }), { pxPerUnit: 1, margin: 0 });
   const circle = r.strokes.flatMap((s) => s.subpaths).find((sp) => sp.closed)!;
   const b = subPathBounds(circle)!;
-  // Mirrored, the centre is at x = -50 and the drawing spans -55 to 100, so the centre lands 5 from the left edge.
+  // Mirrored, the centre is at x = -50 and the drawing spans -55 to 100, so the centre sits 5 from the left edge.
   near((b[0] + b[2]) / 2, 5, 1e-6);
 });
 

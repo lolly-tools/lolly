@@ -73,7 +73,7 @@ export function arcSegments(cx: number, cy: number, rx: number, ry: number, rot:
   return out;
 }
 
-/** A polyline vertex (x, y) with the bulge of the segment that leaves it. */
+/** A polyline vertex (x, y) with the bulge of the segment that leaves that vertex. */
 export interface BulgeVertex { x: number; y: number; bulge: number }
 
 /** Segments from (x0, y0) to (x1, y1) for a DXF bulge (tan of a quarter of the included angle). */
@@ -201,6 +201,6 @@ export function sampleNurbs(s: NurbsInput, samples: number): Array<[number, numb
 
 export function polylineFromPoints(pts: ReadonlyArray<readonly [number, number]>, closed: boolean): SubPath {
   const segments: PathSegment[] = [];
-  pts.forEach((p, i) => segments.push(seg(i === 0 ? 'M' : 'L', p[0], p[1])));
+  for (let i = 0; i < pts.length; i++) segments.push(seg(i === 0 ? 'M' : 'L', pts[i]![0], pts[i]![1]));
   return { segments, closed };
 }

@@ -198,7 +198,7 @@ export async function parseDesignFile(
   }
 
   // AutoCAD DXF (ASCII or binary): layers become groups of native paths and text boxes, and the
-  // import report names what was not drawn (XREFs, paper space, SHX fonts, hatches).
+  // import report lists what was not drawn (XREFs, paper space, SHX fonts, hatches).
   if (isDxf(buf, file && (file as File).name)) return parseDxfAsDesign(buf, { warn, map });
 
   // Sniff: Penpot exports, Figma .fig and InDesign .idml are all ZIPs (magic "PK\x03\x04").
