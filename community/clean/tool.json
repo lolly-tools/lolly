@@ -2,7 +2,7 @@
   "id": "clean",
   "name": "Clean",
   "description": "Clean a voice recording, trim edge silence and set its loudness on your device.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",
