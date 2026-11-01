@@ -46,8 +46,9 @@ function headingIds(slug: string): Set<string> {
     m[1]!.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')));
 }
 
-test('the rail is two labelled rows of six tiles', () => {
-  assert.deepEqual(downloads.rows.map((r) => r.id), ['apps', 'linux']);
+test('the rail is three labelled rows of six tiles', () => {
+  // Apps, Linux, and the terminal and automation routes (plan 341).
+  assert.deepEqual(downloads.rows.map((r) => r.id), ['apps', 'linux', 'terminal']);
   for (const row of downloads.rows) {
     assert.ok(row.label.trim(), `row ${row.id} has no label`);
     assert.equal(row.items.length, 6, `row ${row.id} should hold six tiles (the grid steps are 6, 3 and 2 columns)`);
@@ -75,6 +76,19 @@ test('a file tile points at a stable lolli.li alias, a guide tile at a real head
     assert.ok(t.hash, `${t.id}: has neither a file nor an anchor`);
     assert.ok(existsSync(resolve(repoRoot, `docs/${slug}.md`)), `${t.id}: docs/${slug}.md does not exist`);
     assert.ok(headingIds(slug).has(t.hash!), `${t.id}: docs/${slug}.md has no heading with id "${t.hash}"`);
+  }
+});
+
+test('the terminal and automation row opens docs pages, not files', () => {
+  // CLI, TUI, MCP server, browser extension, GitHub Action and the tool SDK: none is
+  // a download from lolli.li, so each tile opens the section of its own guide that
+  // says how to get it (checked against real headings by the test above).
+  const row = downloads.rows.find((r) => r.id === 'terminal');
+  assert.ok(row, 'the rail has a terminal and automation row');
+  assert.deepEqual(row.items.map((t) => t.id), ['cli', 'tui', 'mcp', 'extension', 'action', 'sdk']);
+  for (const t of row.items) {
+    assert.equal(t.file, undefined, `${t.id}: a terminal-row tile links a guide, not a file`);
+    assert.ok(t.slug && t.slug !== 'install', `${t.id}: links its own guide, not the install page`);
   }
 });
 
