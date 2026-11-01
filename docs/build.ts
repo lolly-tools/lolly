@@ -136,7 +136,9 @@ const OG_IMAGE = `${PREVIEW_URL}/og.png`;
 // decode SVG - so point it at the derived PNG of the mark, not the signed source icon.svg.
 // It's still the one mark: icon-512.png is rasterised from icon.svg by `pnpm run icons`.
 const OG_LOGO = `${PREVIEW_URL}/icons/icon-512.png`;
-const SITE_DESCRIPTION = 'Lolly: constraint-first, template-driven platform for generating production-ready creative and content assets at scale.';
+// What search results, link previews, llms.txt and the side-door JSON-LD say Lolly
+// is (plan 341): the one-sentence definition, in the landing's own plain words.
+const SITE_DESCRIPTION = 'Lolly makes finished files (graphics, documents, video and print) from a few answers, in your own design system, on your device. Free and open source.';
 // Landing-page <title>/share title (matches the web shell's index.html). Other
 // pages use "<page title> - Lolly", so this is landing-only. Kept short: the
 // browser tab wears this string, so a tagline here would be cut off.
@@ -1620,6 +1622,12 @@ DOC_ICONS.file = DOC_ICONS.document!;
 // The app registry has no book glyph, so this is drawn here in the same 24px
 // stroke style: an open book, for the guides and documentation bullet.
 DOC_ICONS.book = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>`;
+// The rail's terminal and automation row (plan 341): the app registry has a keyboard
+// but no terminal window or extension piece, so those two are drawn here in the same
+// 24px stroke style.
+DOC_ICONS.terminal = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><rect x="2.5" y="4" width="19" height="16" rx="2.5"/><path d="m7 9.5 3 2.5-3 2.5"/><path d="M12.5 15H17"/></svg>`;
+DOC_ICONS.keyboard = appIcon('keyboard');
+DOC_ICONS.puzzle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/></svg>`;
 // The AI mark. Mirrors the spark the web shell's /verify view uses for
 // AI-generated content, so the same idea wears the same glyph in both places.
 DOC_ICONS.sparkle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg>`;
@@ -1811,9 +1819,13 @@ function downloadsRail(lang: Lang): string {
     if (!link.file && !link.hash) throw new Error(`downloads.json tile "${it.id}" has neither a file nor an install-page anchor`);
     const href = link.file ? `${RELEASE}/${link.file}` : `${localeHref(lang, link.slug ?? 'install')}#${link.hash}`;
     const named = link.version ? `${it.name} ${link.version}` : it.name;
+    // A file-less tile opens a section of a docs page: the install guide for an app
+    // store or a repository, the page's own guide for the terminal and automation row.
     const label = link.file
       ? t('Install for {os}: {name}, {ext} file').replace('{os}', it.os).replace('{name}', named).replace('{ext}', it.ext)
-      : t('{os}: {name}. Opens the install guide').replace('{os}', it.os).replace('{name}', named);
+      : (link.slug ?? 'install') === 'install'
+        ? t('{os}: {name}. Opens the install guide').replace('{os}', it.os).replace('{name}', named)
+        : t('{os}: {name}. Opens the guide').replace('{os}', it.os).replace('{name}', named);
     const mark = it.logo ? docLogo(it.logo) : docIcon(it.icon ?? 'download');
     return `<a class="dl-tile" data-dl="${esc(it.logo ?? it.id)}"${link.version ? ` data-version="${esc(link.version)}"` : ''} href="${esc(href)}"${link.file ? ' download' : ''} aria-label="${esc(label)}">
           <span class="dl-top" aria-hidden="true">
@@ -1833,12 +1845,19 @@ function downloadsRail(lang: Lang): string {
         ${row.items.map(tile).join('\n        ')}
         </div>
       </div>`).join('\n      ');
+  // On a phone the rows fold behind one switch (plan 341: the dark block was most of a
+  // screen). A checkbox and its label rather than <details>, because the rows must stay
+  // open on wider screens whatever the switch says, and a closed <details> hides its
+  // content in browsers that cannot style ::details-content. The switch is hidden, and
+  // out of the tab order, from 601px up; the in-app reader strips scripts, so no script.
   return `<div class="hero-downloads">
       <div class="dl-head">
         <span class="dl-label">${esc(d.label)}</span>
         <span class="dl-lead">${esc(d.lead)}</span>
       </div>
-      <div class="dl-rows">
+      <input class="dl-fold-cb" type="checkbox" id="dl-fold" aria-controls="dl-rows">
+      <label class="dl-fold" for="dl-fold"><span class="dl-fold-show">${esc(t('Show every download'))}</span><span class="dl-fold-hide">${esc(t('Hide the downloads'))}</span>${docIcon('adm-chevron')}</label>
+      <div class="dl-rows" id="dl-rows">
       ${rows}
       </div>
       <a class="dl-verify" href="${RELEASE}/SHA256SUMS.txt">${docIcon('shieldcheck')}<span>${esc(t('Verify downloads (SHA-256)'))}</span></a>
@@ -2358,9 +2377,9 @@ interface HeroChrome {
 /** `hue`: the OKLCH hue the cover was posed in (scripts/build-covers.ts) - the
  *  fan opens on the cover nearest the reader's own accent (lib/covers-flow.ts). */
 interface LandingCover { img: string; video?: string; hue?: number; name: string; promise: string; href: string; alt: string }
-interface CoversJson { label: string; open: string; prev: string; next: string; pick: string; covers: LandingCover[] }
+interface CoversJson { label: string; open: string; prev: string; next: string; pick: string; caption?: string; covers: LandingCover[] }
 interface WhatWhyJson {
-  what: { heading: string; body: string; more: { label: string; slug: string } };
+  what: { heading: string; body: string; library?: string; more: { label: string; slug: string } };
   stats: Array<{ count: string; label: string; slug: string }>;
   why: { heading: string; statement: string; receipts: Array<{ label: string; slug: string }>; more: { label: string; slug: string } };
 }
@@ -2517,6 +2536,7 @@ function workBand(lang: Lang): string {
   <div class="work-inner reveal">
     <div class="work-cols">
       <div class="work-copy">
+        <p class="work-eyebrow">${esc(w.eyebrow)}</p>
         <h2 class="work-heading">${esc(w.heading)}</h2>
         <p class="work-body">${esc(w.body)}</p>
       </div>
@@ -2556,11 +2576,11 @@ function whoIsBehindBlock(lang: Lang): string {
 }
 
 // ── The landing (plans/177: five beats, top to bottom) ───────────────────────
-// 1 hero ("Lolly is …" cycling its five claims) · 2 covers (the studios in the
-// app's own Cover Flow gesture) · 3 what/why (the counts; the sovereignty
-// statement's one home) · 4 the persona device (top tabs + side tabs, CSS-only
-// radios so the in-app reader rehosts it working, scripts stripped) · 5 who is
-// behind this. Everything the previous landing carried beyond these lives on
+// 1 hero ("Lolly is …" cycling its claims) · 2 covers (the studios in the
+// app's own Cover Flow gesture) · 3 what/why (the counts; the offline
+// statement's one home) · 4 the persona device (people doors + side tabs, CSS-only
+// radios so the in-app reader rehosts it working, scripts stripped), then the Lolly
+// Work band and the download rail (plan 341) · 5 who is behind this. Everything the previous landing carried beyond these lives on
 // the docs page the plan's disposition table names. The copy is docs/site/*.json;
 // only the hero's tagline and one-liner come from site.md.
 function buildLandingContent(md: string, lang: Lang = 'en') {
@@ -2632,7 +2652,10 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
     ? `<video src="/info/shots/${esc(c.video)}" poster="/info/shots/${esc(c.img)}" autoplay muted loop playsinline preload="metadata" aria-label="${esc(c.alt)}"></video>`
     : `<img src="/info/shots/${esc(c.img)}" alt="${esc(c.alt)}" loading="lazy" decoding="async">`;
   // No heading row above the fan (Andy, 2026-09-02: "remove this row of text,
-  // it's not needed") - the covers speak for themselves.
+  // it's not needed"). One muted caption line sits under the dots instead (plan 341,
+  // Andy 2026-11-01): a first-time reader saw sixteen different-looking products,
+  // and the line says they are one app wearing sixteen design systems. It is outside
+  // the carousel region, so it shows in the scriptless filmstrip too.
   const coversHtml = `<section class="covers-section" id="covers">
   <div class="covers-inner">
     <div class="covers" id="coversRoot" role="region" aria-roledescription="carousel" aria-label="${esc(cv.label)}" tabindex="0">
@@ -2649,6 +2672,7 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
         <button type="button" class="covers-btn" data-covers="next" aria-label="${esc(cv.next)}">›</button>
       </div>
     </div>
+    ${cv.caption ? `<p class="covers-caption">${esc(cv.caption)}</p>` : ''}
   </div>
 </section>`;
 
@@ -2670,6 +2694,7 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
     <div class="whatwhy-col reveal">
       <h2 class="whatwhy-big">${esc(ww.what.heading)}</h2>
       <p class="whatwhy-body">${esc(ww.what.body)}</p>
+      ${ww.what.library ? `<p class="whatwhy-body">${esc(ww.what.library)}</p>` : ''}
       <div class="whatwhy-stats">
         ${stats.map(s => `<a class="whatwhy-stat" href="${esc(localeHref(lang, s.slug))}"><b>${esc(s.n)}</b><span>${esc(s.label)}</span></a>`).join('\n        ')}
       </div>
@@ -2688,16 +2713,19 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
 </section>`;
 
   // ── beat 4: the persona device ─────────────────────────────────────────────
-  // Top tabs, one per documentation pathway (Start, Create, Automate, Manage,
-  // Deploy, Trust; Andy, 2026-10-23), with SIDE TABS for the sub-sections
-  // (Andy, 2026-09-02): detail without leaving the door. CSS-ONLY,
+  // Top tabs, one per kind of PERSON (plan 341, Andy 2026-11-01: Just you; A small
+  // team or club; Clients and partners; Classes, events and the public; Developers
+  // and agents; An organisation). The six documentation pathways keep their home in
+  // the strip above the What column, so the strip and the doors do different jobs.
+  // SIDE TABS hold the jobs each person comes with (Andy, 2026-09-02: detail
+  // without leaving the door). CSS-ONLY,
   // the audience-strip precedent: hidden radios + labels + nth-matched pairing
   // rules in docs-landing.css, so the in-app reader (which strips scripts)
   // rehosts a fully working device. Keyboard is the native radio group. Each
   // pane's primary call to action jumps into the APP; the docs page is the
   // compromise (plans/177 CTA policy - the URLs are pinned in docs-claims).
   // Each door tab wears the mascot persona.json names. A lane with `mascot` (the
-  // magpie guards Security) shows it figure-sized beside its pane's copy, at the
+  // magpie guards Trust) shows it figure-sized beside its pane's copy, at the
   // inline end, through the same credentialed wrapper as the import band's
   // kookaburra - not on the side tab, where a 24px glyph read as an icon (Andy,
   // 2026-09-02). It is emitted BEFORE the copy so the phone stylesheet can float
@@ -2741,11 +2769,13 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
   </div>
 </section>`;
 
-  // ── beat 4a: get the app ───────────────────────────────────────────────────
-  // The download rail closed the hero until 2026-09-02; it now sits between the
-  // persona device and the lolly.work band (Andy), so a reader meets the tiles
-  // after the pitch rather than before it. Same rail, same tile styles: the band
-  // paints the hero's dark surface under it so the on-band-dark colours hold.
+  // ── beat 4c: get the app ───────────────────────────────────────────────────
+  // The download rail closed the hero until 2026-09-02, then sat between the persona
+  // device and the Lolly Work band; since plan 341 (Andy, 2026-11-01) it follows the
+  // Work band, so the pitch and the organisation's offer both come before the tiles.
+  // Same rail, same tile styles: the band paints the hero's dark surface under it so
+  // the on-band-dark colours hold. A third row carries the terminal and automation
+  // routes, and on a phone the rows fold behind one switch (downloadsRail).
   const downloadsHtml = `<section class="downloads-section" id="get-the-app">
   <div class="downloads-inner reveal">
     ${downloadsRail(lang)}
@@ -2793,8 +2823,8 @@ ${coversHtml}
 ${stripBand}
 ${whatWhyHtml}
 ${personaHtml}
-${downloadsHtml}
 ${workBand(lang)}
+${downloadsHtml}
 ${whoIsBehindBlock(lang)}
 ${NAV_SOLID_JS}
 ${HERO_CYCLE_JS}
@@ -5770,7 +5800,7 @@ function footerSitemap(lang: Lang): string {
   return `<div role="navigation" class="footer-sitemap" aria-label="${label}">${body}</div>`;
 }
 
-const FOOTER = (lang: Lang, page?: Page) => `<footer>${footerSitemap(lang)}<p>Lolly - <a href="${REPO_URL}">${esc(t('Open Source'))}</a> · <a href="${localeHref(lang, 'privacy')}">${esc(t('Privacy Policy'))}</a> · <a href="${localeHref(lang, 'inclusive-design')}">${esc(t('Inclusive Design'))}</a> · <a href="${localeHref(lang, 'shoulders-of-giants')}">${esc(t('Provenance'))}</a> · <a href="${localeHref(lang, 'faq')}">${esc(t('FAQ'))}</a></p>${FOUNDED_BY}<p class="docs-license">${esc(t('Code'))} (<a href="${CODE_LICENSE_URL}">MPL 2.0</a>) · ${esc(t('Content'))} (<a rel="license" href="${page?.contentLicense === 'MPL-2.0' ? CODE_LICENSE_URL : CONTENT_LICENSE_URL}">${page?.contentLicense === 'MPL-2.0' ? 'MPL 2.0' : 'CC BY-SA 4.0'}</a>) · <a href="${SITE_URL}">lolly.tools</a></p></footer>`;
+const FOOTER = (lang: Lang, page?: Page) => `<footer>${footerSitemap(lang)}<p>Lolly - <a href="${REPO_URL}">${esc(t('Open Source'))}</a> · <a href="${localeHref(lang, 'privacy')}">${esc(t('Privacy Policy'))}</a> · <a href="${localeHref(lang, 'inclusive-design')}">${esc(t('Inclusive Design'))}</a> · <a href="${localeHref(lang, 'shoulders-of-giants')}">${esc(t('Provenance'))}</a> · <a href="${localeHref(lang, 'faq')}">${esc(t('FAQ'))}</a></p>${page?.isLanding ? '' : FOUNDED_BY}<p class="docs-license">${esc(t('Code'))} (<a href="${CODE_LICENSE_URL}">MPL 2.0</a>) · ${esc(t('Content'))} (<a rel="license" href="${page?.contentLicense === 'MPL-2.0' ? CODE_LICENSE_URL : CONTENT_LICENSE_URL}">${page?.contentLicense === 'MPL-2.0' ? 'MPL 2.0' : 'CC BY-SA 4.0'}</a>) · <a href="${SITE_URL}">lolly.tools</a></p></footer>`;
 
 // Docs sidebar for a page, driven by its pathway. Falls back to the builders
 // sidebar for any non-landing page without an explicit pathway.
