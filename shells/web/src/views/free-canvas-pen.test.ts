@@ -373,12 +373,14 @@ function maxDeviation(a: Array<{ x: number; y: number }>, b: Array<{ x: number; 
 //
 // The pen bar's switcher only exists once there is a draft, so the type used to be
 // something you discovered after drawing in the wrong one - and only `hyperbezier → cubic`
-// converts losslessly. Press-and-hold (or right-click) the rail button instead.
+// converts losslessly. Press-and-hold (or right-click) the rail button instead: the pen
+// slot's menu lists the type rows under its two tools, the Pen and the Pencil.
 
 const penBtn = (f: Fixture): HTMLButtonElement =>
   f.stageEl.querySelector<HTMLButtonElement>('.fc-btn-pen')!;
+/** The spline type rows of the open menu, which follow the slot's Pen and Pencil rows. */
 const popItems = (f: Fixture): HTMLButtonElement[] =>
-  [...f.stageEl.querySelectorAll<HTMLButtonElement>('.fc-popover .fc-pop-item')];
+  [...f.stageEl.querySelectorAll<HTMLButtonElement>('.fc-popover .fc-pop-item[data-pop^="spline-"]')];
 
 test('right-clicking the pen button offers every spline type, marking the current one', () => {
   const f = mount([]);
@@ -386,6 +388,9 @@ test('right-clicking the pen button offers every spline type, marking the curren
   frames();
   const items = popItems(f);
   assert.equal(items.length, PEN_KINDS.length, 'one row per kind the engine can lower');
+  assert.deepEqual(items.map((b) => b.dataset.pop), PEN_KINDS.map((k) => `spline-${k}`), 'in the switcher\'s order');
+  const rule = items[0]!.previousElementSibling;
+  assert.equal(rule?.getAttribute('role'), 'separator', 'a rule parts them from the slot\'s two tools, so each radio group has its own checked row');
   const checked = items.filter((b) => b.getAttribute('aria-checked') === 'true');
   assert.equal(checked.length, 1, 'exactly one is current');
   assert.match(checked[0]!.textContent || '', /smooth/i, 'and it is the hyperbezier default');
@@ -2049,7 +2054,21 @@ test('undo while drawing takes back the last placed node, not an earlier edit', 
   f.destroy();
 });
 
-const pencilBtn = (f: Fixture): HTMLButtonElement | null => f.stageEl.querySelector<HTMLButtonElement>('.fc-btn-pencil');
+/** The pen slot, which holds the Pen and the Pencil. */
+const penSlot = (f: Fixture): HTMLButtonElement => f.stageEl.querySelector<HTMLButtonElement>('.fc-toolbar .fc-btn-pen')!;
+/** The pen slot's menu, as a right-click opens it (a hold opens the same one): its rows. */
+function slotMenu(f: Fixture): HTMLButtonElement[] {
+  penSlot(f).dispatchEvent(new W.MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+  frames();
+  return [...f.stageEl.querySelectorAll<HTMLButtonElement>('.fc-popover .fc-pop-item')];
+}
+/** Arm the Pencil the way a person does without the key: the pen slot's menu. */
+function pickPencil(f: Fixture): void {
+  const row = slotMenu(f).find((b) => b.dataset.pop === 'pencil');
+  assert.ok(row, 'the pen slot offers the Pencil when the manifest declares pathField');
+  click(row!);
+  frames();
+}
 
 /** One freehand stroke: down, every sample as its own move, up. */
 function stroke(f: Fixture, pts: Array<[number, number]>): void {
@@ -2063,10 +2082,7 @@ function stroke(f: Fixture, pts: Array<[number, number]>): void {
 
 test('the Pencil turns a freehand stroke into one editable path box, in one commit', () => {
   const f = mount([]);
-  const btn = pencilBtn(f);
-  assert.ok(btn, 'the Pencil sits on the rail when the manifest declares pathField');
-  click(btn!);
-  frames();
+  pickPencil(f);
   assert.ok(f.stageEl.classList.contains('fc-penciling'));
   const pts: Array<[number, number]> = [];
   for (let i = 0; i <= 60; i++) {
@@ -2096,9 +2112,82 @@ test('Shift+C arms the Pencil, and a click with it commits nothing', () => {
   keyWith('C', { shift: true });
   frames();
   assert.ok(f.stageEl.classList.contains('fc-penciling'));
-  assert.equal(pencilBtn(f)?.getAttribute('aria-pressed'), 'true');
+  assert.equal(penSlot(f).getAttribute('aria-pressed'), 'true');
+  assert.equal(penSlot(f).dataset.variant, 'pencil', 'the pen slot shows the Pencil');
   const commits = f.commits();
   stroke(f, [[400, 400], [400.4, 400.2]]);
   assert.equal(f.commits(), commits, 'a dab is not a shape');
+  f.destroy();
+});
+
+test('the Pencil shares the pen\'s rail slot: the slot\'s menu offers both, the slot shows the one in use or used last, and a click picks it', () => {
+  const f = mount([]);
+  const slot = penSlot(f);
+  const SLOT_PEN = 'Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type';
+  const PEN = 'Pen (P) - click to place points, drag to curve, Alt for a corner';
+  const PENCIL = 'Pencil (Shift C) - drag to draw a freehand path you can edit afterwards';
+  const penciling = (): boolean => f.stageEl.classList.contains('fc-penciling');
+  const penning = (): boolean => f.stageEl.classList.contains('fc-penning');
+  assert.equal(f.stageEl.querySelector('.fc-btn-pencil'), null, 'the Pencil has no rail button of its own');
+  assert.equal(slot.dataset.variant, 'pen', 'every mount starts on the Pen');
+  assert.equal(slot.getAttribute('aria-label'), SLOT_PEN, 'the slot says a hold offers the Pencil');
+  assert.equal(slot.getAttribute('data-tip'), SLOT_PEN);
+  assert.equal(slot.getAttribute('aria-haspopup'), 'true');
+  assert.ok(slot.querySelector('svg .fc-slot-pen') && slot.querySelector('svg .fc-slot-pencil'), 'the slot carries both glyphs');
+  assert.equal(slot.getAttribute('aria-pressed'), 'false');
+
+  // The menu: the two tools first, each with its glyph and the one the slot holds checked.
+  let rows = slotMenu(f);
+  const tools = (): Array<[string | null, string | null]> =>
+    [...f.stageEl.querySelectorAll<HTMLElement>('.fc-popover [data-pop="pen"], .fc-popover [data-pop="pencil"]')]
+      .map((r) => [r.textContent, r.getAttribute('aria-checked')]);
+  assert.deepEqual(rows.slice(0, 2).map((r) => r.dataset.pop), ['pen', 'pencil'], 'the two tools lead the menu');
+  assert.deepEqual(tools(), [[PEN, 'true'], [PENCIL, 'false']]);
+  assert.ok(rows.slice(0, 2).every((r) => r.getAttribute('role') === 'menuitemradio' && r.querySelector('.fc-pop-ic svg')), 'radios, each with its glyph');
+  click(rows[1]!);
+  frames();
+  assert.equal(f.stageEl.querySelector('.fc-popover'), null, 'the row closes the menu');
+  assert.ok(penciling(), 'the Pencil row arms the Pencil');
+  assert.equal(slot.dataset.variant, 'pencil', 'the slot shows the Pencil');
+  assert.equal(slot.getAttribute('aria-label'), PENCIL, 'and is named for the Pencil');
+  assert.equal(slot.getAttribute('data-tip'), PENCIL);
+  assert.equal(slot.getAttribute('aria-pressed'), 'true', 'and is pressed');
+  assert.ok(slot.classList.contains('is-armed'));
+  rows = slotMenu(f);
+  assert.deepEqual(tools().map(([, on]) => on), ['false', 'true'], 'the menu checks the Pencil now');
+  click(rows[1]!);
+  frames();
+  assert.ok(penciling(), 'picking the Pencil again keeps it');
+
+  // A click on the slot while its tool is out puts the tool down, as the Pen's own click
+  // always did; the slot keeps the Pencil, the tool used last, for the next click to pick.
+  click(slot);
+  frames();
+  assert.equal(penciling(), false, 'a click on the lit slot puts the Pencil down');
+  assert.equal(slot.getAttribute('aria-pressed'), 'false');
+  assert.equal(slot.dataset.variant, 'pencil', 'the slot keeps the Pencil, the tool used last');
+  click(slot);
+  frames();
+  assert.ok(penciling(), 'a click picks the tool the slot shows');
+
+  // The keys move the slot too: P to the Pen, Shift+C back to the Pencil.
+  key('p');
+  frames();
+  assert.ok(penning() && !penciling(), 'P picks the Pen');
+  assert.equal(slot.dataset.variant, 'pen', 'the slot shows the Pen');
+  assert.equal(slot.getAttribute('aria-label'), SLOT_PEN);
+  assert.equal(slot.getAttribute('aria-pressed'), 'true');
+  keyWith('C', { shift: true });
+  frames();
+  assert.ok(penciling() && !penning(), 'Shift+C picks the Pencil');
+  assert.equal(slot.dataset.variant, 'pencil');
+
+  // A spline type from the same menu arms the Pen, so the slot shows the Pen again.
+  const straight = slotMenu(f).find((b) => b.dataset.pop === 'spline-line');
+  assert.ok(straight, 'the spline types follow the two tools');
+  click(straight!);
+  frames();
+  assert.ok(penning(), 'a type row arms the Pen');
+  assert.equal(slot.dataset.variant, 'pen');
   f.destroy();
 });

@@ -1808,5 +1808,7 @@
   "Board": "Board",
   "Choose for {role}": "Für {role} auswählen",
   "Change {role}": "{role} ändern",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Die Anleitung Ihrer Marke, geschrieben für Menschen und Agenten. Agenten lesen zuerst den Marken-Skill, dann den für die anstehende Arbeit. Skills leiten die Arbeit an; die Hausregeln unter Regeln sind das, was Lolly prüft."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Die Anleitung Ihrer Marke, geschrieben für Menschen und Agenten. Agenten lesen zuerst den Marken-Skill, dann den für die anstehende Arbeit. Skills leiten die Arbeit an; die Hausregeln unter Regeln sind das, was Lolly prüft.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke. Halten für den Bleistift (Shift C) und den Spline-Typ",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke"
 }

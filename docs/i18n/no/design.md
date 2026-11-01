@@ -10,9 +10,9 @@ Denne siden går gjennom lerretet fra den første boksen til en ferdig presentas
 
 **Toppmenyen** starter med **Home**, **File menu** og dokumentets navn (klikk på navnet for å gi dokumentet nytt navn). Midten har **Undo**, **Redo**, **History**, zoomkontrollene (med **Fit all** og **Fit artboard**) og brytere for **Timeline**, **Navigator** og **Inspector**. Til høyre ligger **Share**, **Present** og **Export**. På en telefon flyttes de mindre brukte knappene inn i **More actions**.
 
-**Verktøylinjen** nedover siden har Lolly-menyen og verktøyene du tegner med: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, deretter knappene Timeline, Artboards og Auto-arrange.
+**Verktøylinjen** nedover siden har Lolly-menyen og verktøyene du tegner med: **Pointer**, **Add a box**, **Pen** (**Pencil** deler knappen med den), **Edit points**, **Line**, deretter knappene Timeline, Artboards og Auto-arrange.
 
-![Verktøylinjen på det frie canvaset: et draghåndtak, Lolly-menyen, så Peker, Legg til en boks, Penn, Blyant, Rediger punkter, Linje, Tidslinje, Tegnebrett og Auto-ordne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Verktøylinjen på det frie canvaset: et draghåndtak, Lolly-menyen, så Peker, Legg til en boks, Penn, Rediger punkter, Linje, Tidslinje, Tegnebrett og Auto-ordne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Lerretet fungerer som en designers arbeidsflate rundt tegnebrettet:
 
@@ -79,7 +79,7 @@ Bokser, sirkler og avrundede rammer dekker de fleste layouter. For en hvilken so
 
 **Fortsett på en åpen bane.** Med Pen på trykker du på en av endene av en åpen bane, og da tegner du den banen videre: hvert klikk legger til et punkt etter den enden, eller foran det første punktet når du startet fra begynnelsen. Enter beholder resultatet, og Escape lar banen stå nøyaktig som den var. Banen forblir den samme boksen, med fyll, strek og pilspisser, og én angring setter den tilbake. Delete tar tilbake bare punktene du la til. En lukket form, en linje festet til en boks og en bane med flere deler har ingen fri ende å fortsette på.
 
-**Tegn frihånd med Pencil.** Knappen **Pencil** på linjen (eller `Shift C`) tar opp streken din mens du drar. Når du slipper, glatter Lolly streken til noen få punkter med Bezier-håndtak, beholder de skarpe svingene som hjørner og holder kurven innenfor et par skjermpiksler fra der hånden din gikk. En strek som ender nær starten, lukkes. Resultatet er en vanlig bane, med samme maling som en penn-bane, og du kan redigere punktene etterpå.
+**Tegn frihånd med Pencil.** Trykk `Shift C`, eller trykk og hold **Pen**-knappen på linjen (eller høyreklikk på knappen) og velg **Pencil**; knappen viser deretter Pencil til du velger Pen igjen. Pencil tar opp streken din mens du drar. Når du slipper, glatter Lolly streken til noen få punkter med Bezier-håndtak, beholder de skarpe svingene som hjørner og holder kurven innenfor et par skjermpiksler fra der hånden din gikk. En strek som ender nær starten, lukkes. Resultatet er en vanlig bane, med samme maling som en penn-bane, og du kan redigere punktene etterpå.
 
 Resultatet er en vanlig boks. Flytt, endre størrelse på, roter, grupper, juster, endre stablerekkefølge for, fyll, skygg eller tone ut banen som en hvilken som helst annen boks. Den første banen får fyllet og streken merkevaren din gir en bane, og hver nye bane etter det får det du brukte sist. I et verktøy der merkevaren ikke setter noe for baner, får en ny bane strek i fargen du tegnet med, så formen aldri er usynlig.
 

@@ -10,9 +10,9 @@ Deze pagina loopt het canvas door van het eerste vak tot een afgerond deck: het 
 
 De **bovenbalk** begint met **Home**, het **File menu** en de naam van het document (klik op de naam om het document te hernoemen). Het midden bevat **Undo**, **Redo**, **History**, de zoombediening (met **Fit all** en **Fit artboard**) en schakelaars voor de **Timeline**, de **Navigator** en de **Inspector**. Rechts staan **Share**, **Present** en **Export**. Op een telefoon verhuizen de minder gebruikte knoppen naar **More actions**.
 
-De **toolbalk** langs de zijkant bevat het Lolly-menu en de tools waarmee je tekent: **Pointer**, **Add a box**, **Pen**, **Potlood**, **Edit points**, **Line**, dan de knoppen Timeline, Artboards en Auto-arrange.
+De **toolbalk** langs de zijkant bevat het Lolly-menu en de tools waarmee je tekent: **Pointer**, **Add a box**, **Pen** (het **Potlood** deelt die knop), **Edit points**, **Line**, dan de knoppen Timeline, Artboards en Auto-arrange.
 
-![De gereedschapsbalk van het vrije canvas: een sleepgreep, het Lolly-menu, dan Pointer, Vak toevoegen, Pen, Potlood, Punten bewerken, Lijn, Tijdlijn, Tekenvlakken en Automatisch rangschikken](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![De gereedschapsbalk van het vrije canvas: een sleepgreep, het Lolly-menu, dan Pointer, Vak toevoegen, Pen, Punten bewerken, Lijn, Tijdlijn, Tekenvlakken en Automatisch rangschikken](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Het canvas werkt als de werktafel van een ontwerper rond het tekenbord:
 
@@ -79,7 +79,7 @@ Vakken, cirkels en afgeronde kaders dekken de meeste lay-outs. Teken voor elke a
 
 **Zet een open pad voort.** Met de Pen aan druk je op een van de uiteinden van een open pad en teken je dat pad opnieuw: elke klik voegt een punt toe na dat uiteinde, of vóór het eerste punt als je bij het begin startte. Enter bewaart het resultaat en Escape laat het pad precies zoals het was. Het pad blijft hetzelfde vak, met zijn vulling, lijn en pijlpunten, en één undo zet het terug. Delete haalt alleen de punten terug die je toevoegde. Een gesloten vorm, een lijn die aan een vak vastzit en een pad met meerdere delen hebben geen vrij uiteinde om voort te zetten.
 
-**Teken uit de losse hand met het Potlood.** De knop **Potlood** op de balk (of `Shift C`) neemt je streek op terwijl je sleept. Als je loslaat, maakt Lolly de streek glad tot een paar punten met Bezier-grepen, houdt scherpe bochten als hoeken en houdt de kromme binnen een paar schermpixels van waar je hand liep. Een streek die vlak bij zijn begin eindigt, sluit. Het resultaat is een gewoon pad, met dezelfde verf als een penpad, en je kunt de punten daarna bewerken.
+**Teken uit de losse hand met het Potlood.** Druk op `Shift C`, of houd de knop **Pen** op de balk ingedrukt (of klik er met rechts op) en kies **Potlood**; de knop toont daarna het Potlood tot je weer de Pen kiest. Het Potlood neemt je streek op terwijl je sleept. Als je loslaat, maakt Lolly de streek glad tot een paar punten met Bezier-grepen, houdt scherpe bochten als hoeken en houdt de kromme binnen een paar schermpixels van waar je hand liep. Een streek die vlak bij zijn begin eindigt, sluit. Het resultaat is een gewoon pad, met dezelfde verf als een penpad, en je kunt de punten daarna bewerken.
 
 Het resultaat is een gewoon vak. Verplaats, vergroot of verklein, roteer, groepeer, lijn uit, herorden, vul, schaduw of vervaag het pad zoals elk ander vak. Het eerste pad krijgt de vulling en lijn die je merk aan een pad geeft, en elk nieuw pad daarna krijgt wat je het laatst gebruikte. In een tool waarvan het merk niets voor paden instelt, krijgt een nieuw pad een lijn in de kleur waarmee je tekende, zodat de vorm nooit onzichtbaar is.
 

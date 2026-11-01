@@ -10446,5 +10446,7 @@
   "Board": "Pano",
   "Choose for {role}": "{role} için seç",
   "Change {role}": "{role} değiştir",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Markanın rehberliği, insanlar ve aracılar için yazılmış. Aracılar önce marka becerisini, sonra eldeki işe uygun olanı okur. Beceriler işi yönlendirir; Kurallar'daki kurum kuralları Lolly'nin denetlediği şeydir."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Markanın rehberliği, insanlar ve aracılar için yazılmış. Aracılar önce marka becerisini, sonra eldeki işe uygun olanı okur. Beceriler işi yönlendirir; Kurallar'daki kurum kuralları Lolly'nin denetlediği şeydir.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt. Kurşun kalem (Shift C) ve spline türü için basılı tut",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt"
 }

@@ -10446,5 +10446,7 @@
   "Board": "Board",
   "Choose for {role}": "Pumili para sa {role}",
   "Change {role}": "Baguhin ang {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ang gabay ng brand mo, isinulat para sa mga tao at agent. Binabasa muna ng agents ang brand skill, saka ang para sa gawain. Gumagabay ang skills sa trabaho; ang house rules sa Rules ang sinusuri ng Lolly."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ang gabay ng brand mo, isinulat para sa mga tao at agent. Binabasa muna ng agents ang brand skill, saka ang para sa gawain. Gumagabay ang skills sa trabaho; ang house rules sa Rules ang sinusuri ng Lolly.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner. I-hold para sa Lapis (Shift C) at sa spline type",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner"
 }

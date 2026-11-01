@@ -10,9 +10,9 @@ Design 是用於沒有範本涵蓋之版面的工具：從零開始的海報、�
 
 **頂端列**以 **Home**、**File menu** 與文件名稱開頭（點擊名稱即可重新命名文件）。中間包含 **Undo**、**Redo**、**History**、縮放控制項（附 **Fit all** 與 **Fit artboard**），以及 **Timeline**、**Navigator** 與 **Inspector** 的切換。右側是 **Share**、**Present** 與 **Export**。在手機上，較少使用的按鈕會移到 **More actions**。
 
-沿側邊的**工具列**包含 Lolly 選單與你用來繪圖的工具：**Pointer**、**Add a box**、**Pen**、**Pencil**、**Edit points**、**Line**，接著是 Timeline、Artboards 與 Auto-arrange 按鈕。
+沿側邊的**工具列**包含 Lolly 選單與你用來繪圖的工具：**Pointer**、**Add a box**、**Pen**（與 **Pencil** 共用一個按鈕）、**Edit points**、**Line**，接著是 Timeline、Artboards 與 Auto-arrange 按鈕。
 
-![自由畫布的工具列：拖曳握把、Lolly 選單，接著是指標、新增方塊、鋼筆、鉛筆、編輯節點、線條、時間軸、畫板與自動排列](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![自由畫布的工具列：拖曳握把、Lolly 選單，接著是指標、新增方塊、鋼筆、編輯節點、線條、時間軸、畫板與自動排列](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 畫布的運作像設計師圍繞畫板的暫放區：
 
@@ -79,7 +79,7 @@ Design 是用於沒有範本涵蓋之版面的工具：從零開始的海報、�
 
 **接續開放路徑。** 開啟 Pen 後，按住開放路徑的任一端，你就是在重新繪製該路徑：每次點擊都會在該端之後加上一個點，若你從起點開始，則加在第一個點之前。Enter 保留結果，Escape 則讓路徑完全維持原樣。路徑仍是同一個方塊，保有它的填色、筆畫與箭頭，一次復原就能還原。Delete 只會取回你新增的點。封閉的形狀、連接到方塊的線，以及有多個部分的路徑沒有可接續的自由端。
 
-**用 Pencil 徒手繪製。** 工具列的 **Pencil** 按鈕（或 `Shift C`）會在你拖曳時記錄筆跡。放開後，Lolly 會把筆跡平滑成少數幾個帶貝茲把手的點，保留急轉彎為轉角，並讓曲線與你的手實際走過的位置相差不超過幾個螢幕像素。終點靠近起點的筆跡會封閉。結果是一般的路徑，與 Pen 路徑有相同的上色方式，之後你可以編輯它的點。
+**用 Pencil 徒手繪製。** 按下 `Shift C`，或在工具列上按住 **Pen** 按鈕（或在該按鈕上按右鍵）並選擇 **Pencil**；之後按鈕會一直顯示 Pencil，直到你再次選擇 Pen。Pencil 會在你拖曳時記錄筆跡。放開後，Lolly 會把筆跡平滑成少數幾個帶貝茲把手的點，保留急轉彎為轉角，並讓曲線與你的手實際走過的位置相差不超過幾個螢幕像素。終點靠近起點的筆跡會封閉。結果是一般的路徑，與 Pen 路徑有相同的上色方式，之後你可以編輯它的點。
 
 結果是一般的方塊。可以像任何其他方塊一樣移動、調整大小、旋轉、群組、對齊、重新排序、填色、加陰影或淡化該路徑。第一個路徑會採用你的品牌為路徑設定的填色與筆畫，之後每個新路徑則採用你上次使用的設定。在品牌沒有為路徑設定任何內容的工具中，新路徑會以你繪製時使用的顏色描邊，所以形狀永遠不會看不見。
 

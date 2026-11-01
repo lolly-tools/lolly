@@ -10446,5 +10446,7 @@
   "Board": "Tavle",
   "Choose for {role}": "Velg for {role}",
   "Change {role}": "Endre {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Merkevarens veiledning, skrevet for mennesker og agenter. Agenter leser merkevareferdigheten først, så den for oppgaven. Ferdigheter veileder arbeidet; husreglene i Regler er det Lolly sjekker."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Merkevarens veiledning, skrevet for mennesker og agenter. Agenter leser merkevareferdigheten først, så den for oppgaven. Ferdigheter veileder arbeidet; husreglene i Regler er det Lolly sjekker.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penn (P) - klikk for å plassere punkter, dra for å kurve, Alt for et hjørne. Hold inne for Blyant (Shift C) og splinetype",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penn (P) - klikk for å plassere punkter, dra for å kurve, Alt for et hjørne"
 }

@@ -1939,5 +1939,7 @@
   "Board": "보드",
   "Choose for {role}": "{role} 선택",
   "Change {role}": "{role} 변경",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "브랜드의 안내서로, 사람과 에이전트를 위해 쓰였어요. 에이전트는 브랜드 스킬을 먼저 읽고, 그다음 작업에 맞는 스킬을 읽어요. 스킬은 작업을 안내하고, 규칙의 하우스 룰은 Lolly가 검사하는 대상이에요."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "브랜드의 안내서로, 사람과 에이전트를 위해 쓰였어요. 에이전트는 브랜드 스킬을 먼저 읽고, 그다음 작업에 맞는 스킬을 읽어요. 스킬은 작업을 안내하고, 규칙의 하우스 룰은 Lolly가 검사하는 대상이에요.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요. 길게 누르면 연필 (Shift C)과 스플라인 종류",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요"
 }

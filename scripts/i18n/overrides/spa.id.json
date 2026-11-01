@@ -1808,5 +1808,7 @@
   "Board": "Papan",
   "Choose for {role}": "Pilih untuk {role}",
   "Change {role}": "Ubah {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Panduan merek Anda, ditulis untuk orang dan agen. Agen membaca skill merek terlebih dahulu, lalu skill untuk pekerjaan yang dihadapi. Skills memandu pekerjaan; aturan internal di Aturan adalah yang diperiksa Lolly."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Panduan merek Anda, ditulis untuk orang dan agen. Agen membaca skill merek terlebih dahulu, lalu skill untuk pekerjaan yang dihadapi. Skills memandu pekerjaan; aturan internal di Aturan adalah yang diperiksa Lolly.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pena (P) - klik untuk menempatkan titik, seret untuk melengkung, Alt untuk sudut. Tahan untuk Pensil (Shift C) dan jenis spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pena (P) - klik untuk menempatkan titik, seret untuk melengkung, Alt untuk sudut"
 }

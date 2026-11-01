@@ -10,9 +10,9 @@ Trang này dẫn qua canvas từ hộp đầu tiên đến một bộ trang hoà
 
 **Thanh trên** bắt đầu với **Home**, **File menu** và tên tài liệu (nhấp tên để đổi tên tài liệu). Giữa là **Undo**, **Redo**, **History**, các điều khiển thu phóng (với **Fit all** và **Fit artboard**) và công tắc cho **Timeline**, **Navigator** và **Inspector**. Bên phải là **Share**, **Present** và **Export**. Trên điện thoại, các nút ít dùng hơn chuyển vào **More actions**.
 
-**Thanh công cụ** dọc bên cạnh chứa menu Lolly và các công cụ bạn vẽ: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, rồi các nút Timeline, Artboards và Auto-arrange.
+**Thanh công cụ** dọc bên cạnh chứa menu Lolly và các công cụ bạn vẽ: **Pointer**, **Add a box**, **Pen** (dùng chung nút với **Pencil**), **Edit points**, **Line**, rồi các nút Timeline, Artboards và Auto-arrange.
 
-![Thanh công cụ của canvas tự do: tay cầm kéo, menu Lolly, rồi Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards và Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Thanh công cụ của canvas tự do: tay cầm kéo, menu Lolly, rồi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards và Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Canvas hoạt động như bàn dán của nhà thiết kế quanh artboard:
 
@@ -79,7 +79,7 @@ Hộp, hình tròn và khung bo góc bao quát hầu hết bố cục. Với b�
 
 **Nối tiếp một đường dẫn hở.** Với Pen đang bật, nhấn vào một đầu của đường dẫn hở và bạn lại đang vẽ đường dẫn đó: mỗi lần nhấp thêm một điểm sau đầu đó, hoặc trước điểm đầu tiên khi bạn bắt đầu từ phía đầu. Enter giữ kết quả và Escape để đường dẫn đúng như trước. Đường dẫn vẫn là cùng một hộp, với lớp tô, nét và đầu mũi tên của nó, và một lần undo đưa nó về như cũ. Delete chỉ lấy lại các điểm bạn vừa thêm. Một hình khép kín, một đường nối vào hộp và một đường dẫn có nhiều phần không có đầu tự do để nối tiếp.
 
-**Vẽ tự do bằng Pencil.** Nút **Pencil** của thanh công cụ (hoặc `Shift C`) ghi nét của bạn khi bạn kéo. Khi bạn thả, Lolly làm mượt nét thành vài điểm có tay nắm Bezier, giữ các khúc ngoặt gắt làm góc, và giữ đường cong trong vòng vài pixel màn hình so với nơi tay bạn đi. Một nét kết thúc gần điểm đầu sẽ khép lại. Kết quả là một đường dẫn bình thường, với cùng lớp sơn như đường dẫn của Pen, và bạn có thể chỉnh các điểm của nó sau đó.
+**Vẽ tự do bằng Pencil.** Nhấn `Shift C`, hoặc nhấn giữ nút **Pen** trên thanh công cụ (hoặc nhấp chuột phải vào nút) và chọn **Pencil**; sau đó nút hiện Pencil cho đến khi bạn chọn lại Pen. Pencil ghi nét của bạn khi bạn kéo. Khi bạn thả, Lolly làm mượt nét thành vài điểm có tay nắm Bezier, giữ các khúc ngoặt gắt làm góc, và giữ đường cong trong vòng vài pixel màn hình so với nơi tay bạn đi. Một nét kết thúc gần điểm đầu sẽ khép lại. Kết quả là một đường dẫn bình thường, với cùng lớp sơn như đường dẫn của Pen, và bạn có thể chỉnh các điểm của nó sau đó.
 
 Kết quả là một hộp bình thường. Di chuyển, đổi kích thước, xoay, nhóm, căn chỉnh, sắp xếp lại lớp, tô, đổ bóng hoặc làm mờ đường dẫn như bất kỳ hộp nào khác. Đường dẫn đầu tiên nhận màu tô và nét mà thương hiệu của bạn dành cho đường dẫn, và mỗi đường dẫn mới sau đó nhận những gì bạn dùng gần nhất. Trong một công cụ mà thương hiệu không đặt gì cho đường dẫn, đường dẫn mới được vẽ nét bằng màu bạn vẽ, nên hình không bao giờ vô hình.
 

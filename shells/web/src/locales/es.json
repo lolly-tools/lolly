@@ -10446,5 +10446,7 @@
   "Board": "Tablero",
   "Choose for {role}": "Elegir para {role}",
   "Change {role}": "Cambiar {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "La guía de tu marca, escrita para personas y agentes. Los agentes leen primero el skill de la marca y luego el del trabajo en curso. Los skills guían el trabajo; las reglas internas de Reglas son lo que Lolly comprueba."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "La guía de tu marca, escrita para personas y agentes. Los agentes leen primero el skill de la marca y luego el del trabajo en curso. Los skills guían el trabajo; las reglas internas de Reglas son lo que Lolly comprueba.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pluma (P) - haz clic para colocar puntos, arrastra para curvar, Alt para una esquina. Mantén pulsado para el Lápiz (Shift C) y el tipo de spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pluma (P) - haz clic para colocar puntos, arrastra para curvar, Alt para una esquina"
 }

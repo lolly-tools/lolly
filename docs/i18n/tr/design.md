@@ -10,9 +10,9 @@ Bu sayfa tuvali ilk kutudan bitmiş bir sunuma kadar gezdirir: pencere, kutular�
 
 **Üst çubuk**, **Home**, **File menu** ve belgenin adıyla başlar (belgeyi yeniden adlandırmak için ada tıkla). Orta kısım **Undo**, **Redo**, **History**, yakınlaştırma denetimleri (**Fit all** ve **Fit artboard** ile) ve **Timeline**, **Navigator** ile **Inspector** anahtarlarını tutar. Sağda **Share**, **Present** ve **Export** durur. Bir telefonda daha az kullanılan düğmeler **More actions** içine taşınır.
 
-Yanda aşağı doğru uzanan **araç rayı**, Lolly menüsünü ve çizim yaptığın araçları tutar: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, sonra Timeline, Artboards ve Auto-arrange düğmeleri.
+Yanda aşağı doğru uzanan **araç rayı**, Lolly menüsünü ve çizim yaptığın araçları tutar: **Pointer**, **Add a box**, **Pen** (**Pencil** onunla aynı düğmeyi paylaşır), **Edit points**, **Line**, sonra Timeline, Artboards ve Auto-arrange düğmeleri.
 
-![Serbest kanvas araç rayı: bir sürükleme tutamacı, Lolly menüsü, ardından İşaretçi, Bir kutu ekle, Kalem, Kurşun kalem, Noktaları düzenle, Çizgi, Zaman çizelgesi, Çalışma alanları ve Otomatik düzenle](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Serbest kanvas araç rayı: bir sürükleme tutamacı, Lolly menüsü, ardından İşaretçi, Bir kutu ekle, Kalem, Noktaları düzenle, Çizgi, Zaman çizelgesi, Çalışma alanları ve Otomatik düzenle](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Tuval, çalışma alanının etrafında bir tasarımcının masası gibi çalışır:
 
@@ -79,7 +79,7 @@ Kutular, daireler ve yuvarlatılmış çerçeveler düzenlerin çoğunu kapsar. 
 
 **Açık bir yola devam et.** Pen açıkken açık bir yolun iki ucundan birine bas; o yolu yeniden çiziyorsun demektir: her tıklama o uçtan sonra, başlangıçtan başladıysan ilk noktanın önüne bir nokta ekler. Enter sonucu korur, Escape yolu tam olduğu gibi bırakır. Yol aynı kutu olarak kalır; dolgusu, konturu ve ok uçları değişmez ve tek bir geri alma onu eski hâline getirir. Delete yalnızca senin eklediğin noktaları geri alır. Kapalı bir şeklin, bir kutuya bağlı bir çizginin ve birkaç parçalı bir yolun devam ettirilecek serbest ucu yoktur.
 
-**Kurşun kalemle serbest çiz.** Raydaki **Pencil** düğmesi (veya `Shift C`) sürüklerken çizgini kaydeder. Bıraktığında Lolly çizgiyi Bezier tutamaklı birkaç noktaya yumuşatır, keskin dönüşleri köşe olarak korur ve eğriyi elinin gittiği yerden birkaç ekran pikseli içinde tutar. Başlangıcına yakın biten bir çizgi kapanır. Sonuç, bir pen yoluyla aynı boyaya sahip sıradan bir yoldur ve noktalarını sonradan düzenleyebilirsin.
+**Kurşun kalemle serbest çiz.** `Shift C` tuşuna bas ya da raydaki **Pen** düğmesine basılı tut (veya düğmeye sağ tıkla) ve **Pencil** seç; düğme bundan sonra yeniden Pen seçene kadar Pencil'ı gösterir. Pencil sürüklerken çizgini kaydeder. Bıraktığında Lolly çizgiyi Bezier tutamaklı birkaç noktaya yumuşatır, keskin dönüşleri köşe olarak korur ve eğriyi elinin gittiği yerden birkaç ekran pikseli içinde tutar. Başlangıcına yakın biten bir çizgi kapanır. Sonuç, bir pen yoluyla aynı boyaya sahip sıradan bir yoldur ve noktalarını sonradan düzenleyebilirsin.
 
 Sonuç sıradan bir kutudur. Yolu diğer her kutu gibi taşı, yeniden boyutlandır, döndür, grupla, hizala, yeniden sırala, doldur, gölgele veya soldur. İlk yol, markanın bir yola verdiği dolguyu ve çizgiyi alır ve sonraki her yeni yol en son kullandığını alır. Markasının yollar için hiçbir şey ayarlamadığı bir araçta yeni bir yol çizdiğin renkle çizilir; böylece şekil asla görünmez olmaz.
 

@@ -11,11 +11,15 @@
  * The tolerances are in SCREEN px and converted at the zoom the stroke was drawn at, so a
  * stroke drawn zoomed in keeps its finer detail and one drawn zoomed out is not fitted
  * with hundreds of nodes. Nothing snaps: a freehand line goes where the hand went.
+ *
+ * The Pencil has no rail button of its own: it shares the pen's slot, as Scale shares the
+ * pointer's (scale-mode.ts), and this module owns that slot.
  */
 import { freehandPath, MAX_SAMPLES } from '../free-canvas-pencil.ts';
 import { announce } from '../../a11y.ts';
 import { t } from '../../i18n.ts';
-import type { Point } from './shared.ts';
+import { SVG, icon } from '../free-canvas-icons.ts';
+import { showSlotTool, type Point } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /** The fit's error bound, in screen px. */
@@ -98,8 +102,56 @@ export function cancel(fc: FcCtx): void {
   fc.penTool.paintPen();
 }
 
+// ── the pen slot ─────────────────────────────────────────────────────────────
+
+/** The pen slot's labels: the tool a click on the slot picks, named with its key. The
+ *  pen's says that a hold offers the Pencil and the spline types, as the pointer's says
+ *  that a hold offers Scale. */
+const SLOT_PEN_LABEL = (): string =>
+  t('Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type');
+const PEN_LABEL = (): string => t('Pen (P) - click to place points, drag to curve, Alt for a corner');
+const PENCIL_LABEL = (): string => t('Pencil (Shift C) - drag to draw a freehand path you can edit afterwards');
+
+/**
+ * The rail's pen slot, written in place (the rail is built once). It holds the Pen and
+ * the Pencil and shows the one in use, or the one used last once the pointer is back,
+ * with `data-variant="pen"` or `"pencil"` (the slot holds both glyphs and editor.css
+ * draws the variant's), and it stays pressed while either is out. Called on every tool
+ * switch (modes.ts setMode), so P, Shift+C and the slot's own menu all move the slot.
+ */
+export function syncPenSlot(fc: FcCtx): void {
+  if (fc.mode === 'pen' || fc.mode === 'pencil') fc.penSlotTool = fc.mode;
+  const slot = fc.modeBtns.pen;
+  if (!slot || slot.dataset.variant === fc.penSlotTool) return;
+  showSlotTool(slot, fc.penSlotTool, fc.penSlotTool === 'pencil' ? PENCIL_LABEL() : SLOT_PEN_LABEL());
+}
+/** The pen slot's click: the tool the slot shows, or the pointer when that tool is already
+ *  out, as a click on the Pen's own button always put the Pen down. */
+export function pickPenSlot(fc: FcCtx): void {
+  const tool = fc.penSlotTool;
+  if (fc.mode === tool) fc.modes.toPointer();
+  else fc.modes.setMode(tool);
+}
+/**
+ * The pen slot's menu, on a hold or a right-click of the slot as the pointer slot offers
+ * Scale: the Pen (P) and the Pencil (Shift C), the one the slot holds checked, then the
+ * Pen's spline types, so the type can still be chosen before anything is drawn.
+ */
+export function openPenSlotMenu(fc: FcCtx, anchor: HTMLElement): void {
+  const pencil = fc.penSlotTool === 'pencil';
+  fc.menus.spawnPopover(anchor, [
+    { label: PEN_LABEL(), icon: icon(SVG.pen), key: 'pen', on: !pencil, run: () => fc.modes.setMode('pen') },
+    { label: PENCIL_LABEL(), icon: icon(SVG.freehand), key: 'pencil', on: pencil, run: () => fc.modes.setMode('pencil') },
+    { sep: true },
+    ...fc.penTool.penKindItems(),
+  ]);
+}
+
 export function pencilOps(fc: FcCtx) {
   return {
+    syncSlot: bindOp(fc, syncPenSlot),
+    pickSlot: bindOp(fc, pickPenSlot),
+    openSlotMenu: bindOp(fc, openPenSlotMenu),
     enterPencil: bindOp(fc, enterPencil),
     exitPencil: bindOp(fc, exitPencil),
     tryPencilAt: bindOp(fc, tryPencilAt),

@@ -10,9 +10,9 @@ Design은 어떤 템플릿으로도 다룰 수 없는 레이아웃을 위한 도
 
 **상단 막대**는 **Home**, **File menu**, 문서 이름으로 시작해요(이름을 클릭하면 문서 이름을 바꿔요). 가운데에는 **Undo**, **Redo**, **History**, 확대/축소 컨트롤(**Fit all**과 **Fit artboard** 포함), **Timeline**, **Navigator**, **Inspector** 토글이 있어요. 오른쪽에는 **Share**, **Present**, **Export**가 있어요. 휴대폰에서는 덜 쓰는 버튼이 **More actions**로 옮겨져요.
 
-옆쪽을 따라 내려가는 **도구 레일**에는 Lolly 메뉴와 그리는 도구가 있어요. **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, 그리고 Timeline, Artboards, Auto-arrange 버튼이에요.
+옆쪽을 따라 내려가는 **도구 레일**에는 Lolly 메뉴와 그리는 도구가 있어요. **Pointer**, **Add a box**, **Pen**(**Pencil**과 같은 버튼), **Edit points**, **Line**, 그리고 Timeline, Artboards, Auto-arrange 버튼이에요.
 
-![자유 캔버스의 도구 막대 - 끌기 손잡이, Lolly 메뉴, 그리고 Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards, Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![자유 캔버스의 도구 막대 - 끌기 손잡이, Lolly 메뉴, 그리고 Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards, Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 캔버스는 아트보드 주변의 디자이너용 작업대처럼 동작해요.
 
@@ -79,7 +79,7 @@ Design은 어떤 템플릿으로도 다룰 수 없는 레이아웃을 위한 도
 
 **열린 경로 이어 그리기.** Pen을 켠 상태에서 열린 경로의 한쪽 끝을 누르면 그 경로를 다시 그리게 돼요. 클릭할 때마다 그 끝 뒤에 점이 추가되고, 시작점에서 출발했다면 첫 점 앞에 추가돼요. Enter는 결과를 유지하고 Escape는 경로를 그대로 두고 나가요. 경로는 같은 박스로 남고 채우기, 선, 화살촉도 그대로이며 실행 취소 한 번으로 되돌아가요. Delete는 새로 추가한 점만 되돌려요. 닫힌 도형, 박스에 붙은 선, 여러 부분으로 이뤄진 경로에는 이어 그릴 자유 끝이 없어요.
 
-**Pencil로 자유롭게 그리기.** 레일의 **Pencil** 버튼(또는 `Shift C`)은 끄는 동안 획을 기록해요. 놓으면 Lolly가 획을 베지어 핸들이 달린 몇 개의 점으로 매끄럽게 다듬고, 급한 꺾임은 모서리로 남기며, 곡선이 손이 지나간 곳에서 화면 픽셀 두어 개 이내에 머물게 해요. 시작점 가까이에서 끝나는 획은 닫혀요. 결과는 펜 경로와 같은 페인트를 가진 일반 경로이며 나중에 점을 편집할 수 있어요.
+**Pencil로 자유롭게 그리기.** `Shift C`를 누르거나, 레일의 **Pen** 버튼을 길게 누르거나(또는 버튼을 우클릭하고) **Pencil**을 선택하세요. 그러면 Pen을 다시 고를 때까지 버튼에 Pencil이 표시돼요. Pencil은 끄는 동안 획을 기록해요. 놓으면 Lolly가 획을 베지어 핸들이 달린 몇 개의 점으로 매끄럽게 다듬고, 급한 꺾임은 모서리로 남기며, 곡선이 손이 지나간 곳에서 화면 픽셀 두어 개 이내에 머물게 해요. 시작점 가까이에서 끝나는 획은 닫혀요. 결과는 펜 경로와 같은 페인트를 가진 일반 경로이며 나중에 점을 편집할 수 있어요.
 
 결과는 일반 박스예요. 다른 박스처럼 경로를 이동, 크기 조정, 회전, 그룹화, 정렬, 순서 변경, 채우기, 음영 또는 흐리게 할 수 있어요. 첫 번째 경로는 브랜드가 경로에 주는 채우기와 선을 받고, 이후 새 경로는 마지막에 쓴 것을 받아요. 브랜드가 경로에 아무것도 정하지 않은 도구에서는 새 경로가 그릴 때 쓴 색으로 선이 그려지므로 도형이 보이지 않는 일은 없어요.
 
