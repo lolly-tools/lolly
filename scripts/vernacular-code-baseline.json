@@ -1356,7 +1356,7 @@
   "shells/web/src/views/timeline-panel/helpers.ts": 7,
   "shells/web/src/views/timeline-panel/inspector-pane.ts": 12,
   "shells/web/src/views/timeline-panel/keyframes.ts": 3,
-  "shells/web/src/views/timeline-panel/kf-dock.ts": 10,
+  "shells/web/src/views/timeline-panel/kf-dock.ts": 9,
   "shells/web/src/views/timeline-panel/menus.ts": 4,
   "shells/web/src/views/timeline-panel/panel.ts": 3,
   "shells/web/src/views/timeline-panel/playback.ts": 1,

@@ -9,7 +9,6 @@ import { MAX_NODE_RASTER_NODES } from '../../lib/clip-thumbs.ts';
 import { DEFAULT_TRANSITION, TRANSITIONS, isTransitionKind } from '../../lib/transitions.ts';
 import { KF_EASE_TOKENS, KF_HOLD_EASE, kfEaseCss, kfEaseName } from '../../../../../engine/src/keyframes.ts';
 import type { KfChannel } from '../../../../../engine/src/keyframes.ts';
-import type { EasingEditorHandle } from '../../components/easing-editor.ts';
 import { DRIVE_FPS, beginAuthoredDom, createSequenceTime } from '../../bridge/sequence-dom.ts';
 import { seqJunctions, boxTiming, isTimed } from '../timeline-math.ts';
 import type { Box, LaneDrop, TimeCfg } from '../timeline-math.ts';
@@ -39,6 +38,8 @@ export interface TimelineRuntime {
  */
 export interface TimelineHost {
   log?(level: string, msg: string): void;
+  /** The design system's tokens: the motion tokens a keyframe curve can follow (plans/329). */
+  tokens?: HostV1['tokens'];
   recorder?: RecorderAPI;
   /** The optional speech bridge (v1.96 synthesis, v1.99 speech-to-text) - behind the
    *  "Script a voiceover" button and the speech-to-text arm of Generate subtitles.
@@ -935,9 +936,10 @@ export interface KfLatchRefs {
   list: HTMLElement;
   /**
    * The curve editor DOCKED in this popup (section 8's M2.7): the keyframe it is showing,
-   * and the handle to tear down. Null when the row has no keyframes to ease.
+   * and the handle to tear down - the bezier editor, or the spring and design-system
+   * dock (plans/329). Null when the row has no keyframes to ease.
    */
-  dock: { atMs: number; editor: EasingEditorHandle | null; host: HTMLElement } | null;
+  dock: { atMs: number; editor: { destroy(): void } | null; host: HTMLElement } | null;
 }
 
 /**

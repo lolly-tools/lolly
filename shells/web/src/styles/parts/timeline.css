@@ -840,6 +840,13 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
   font-size: calc(11.5px * var(--a11y-fs));
   color: var(--ui-color-text-muted);
 }
+/* A keyframe bound to a design-system curve or spring (plans/329) names the token first. */
+.tl-kf-dock-bound {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ui-color-text-default);
+}
 
 /* ─── Per-property keyframing (plans/328) ────────────────────────────────────────
    Every pose and appearance row ends in its own DIAMOND: a toggle that keys that one

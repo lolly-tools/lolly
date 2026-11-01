@@ -10459,5 +10459,20 @@
   "follows the design system ({colour})": "跟随设计系统（{colour}）",
   "follows the design system": "跟随设计系统",
   "automatic ({colour})": "自动（{colour}）",
-  "automatic": "自动"
+  "automatic": "自动",
+  "{name} spring": "{name}弹簧",
+  "{name} (not in this design system)": "{name}（不在此设计系统中）",
+  "Curves": "曲线",
+  "Springs": "弹簧",
+  "Gentle": "柔和",
+  "Quick": "快速",
+  "Bouncy": "弹跳",
+  "Custom spring": "自定义弹簧",
+  "Stiffness": "刚度",
+  "Damping": "阻尼",
+  "Mass": "质量",
+  "Settles in {t} s": "{t} 秒后静止",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "弹簧静止之前就到了下一个关键帧。剩余的运动会平均分配到整个片段。",
+  "From the design system: {name}": "来自设计系统：{name}",
+  "Editing the curve detaches it from the design system.": "编辑曲线会使其与设计系统断开。"
 }

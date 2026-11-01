@@ -10459,5 +10459,20 @@
   "follows the design system ({colour})": "mengikut sistem reka bentuk ({colour})",
   "follows the design system": "mengikut sistem reka bentuk",
   "automatic ({colour})": "automatik ({colour})",
-  "automatic": "automatik"
+  "automatic": "automatik",
+  "{name} spring": "Spring {name}",
+  "{name} (not in this design system)": "{name} (tiada dalam sistem reka bentuk ini)",
+  "Curves": "Lengkung",
+  "Springs": "Spring",
+  "Gentle": "Lembut",
+  "Quick": "Pantas",
+  "Bouncy": "Melantun",
+  "Custom spring": "Spring tersuai",
+  "Stiffness": "Kekakuan",
+  "Damping": "Redaman",
+  "Mass": "Jisim",
+  "Settles in {t} s": "Stabil dalam {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Bingkai utama seterusnya tiba sebelum spring stabil. Baki gerakan diagihkan sepanjang segmen.",
+  "From the design system: {name}": "Daripada sistem reka bentuk: {name}",
+  "Editing the curve detaches it from the design system.": "Mengedit lengkung akan memutuskannya daripada sistem reka bentuk."
 }

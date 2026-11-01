@@ -1821,5 +1821,20 @@
   "follows the design system ({colour})": "folgt dem Designsystem ({colour})",
   "follows the design system": "folgt dem Designsystem",
   "automatic ({colour})": "automatisch ({colour})",
-  "automatic": "automatisch"
+  "automatic": "automatisch",
+  "{name} spring": "Feder {name}",
+  "{name} (not in this design system)": "{name} (nicht in diesem Design-System)",
+  "Curves": "Kurven",
+  "Springs": "Federn",
+  "Gentle": "Sanft",
+  "Quick": "Schnell",
+  "Bouncy": "Federnd",
+  "Custom spring": "Eigene Feder",
+  "Stiffness": "Steifigkeit",
+  "Damping": "Dämpfung",
+  "Mass": "Masse",
+  "Settles in {t} s": "Kommt nach {t} s zur Ruhe",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Das nächste Schlüsselbild kommt, bevor die Feder zur Ruhe kommt. Der Rest der Bewegung wird über den Abschnitt verteilt.",
+  "From the design system: {name}": "Aus dem Design-System: {name}",
+  "Editing the curve detaches it from the design system.": "Wenn Sie die Kurve bearbeiten, wird sie vom Design-System gelöst."
 }

@@ -10459,5 +10459,20 @@
   "follows the design system ({colour})": "suit le design system ({colour})",
   "follows the design system": "suit le design system",
   "automatic ({colour})": "automatique ({colour})",
-  "automatic": "automatique"
+  "automatic": "automatique",
+  "{name} spring": "Ressort {name}",
+  "{name} (not in this design system)": "{name} (absent de ce design system)",
+  "Curves": "Courbes",
+  "Springs": "Ressorts",
+  "Gentle": "Doux",
+  "Quick": "Rapide",
+  "Bouncy": "Rebondissant",
+  "Custom spring": "Ressort personnalisé",
+  "Stiffness": "Raideur",
+  "Damping": "Amortissement",
+  "Mass": "Masse",
+  "Settles in {t} s": "Se stabilise en {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "L’image clé suivante arrive avant que le ressort se stabilise. Le reste du mouvement est réparti sur le segment.",
+  "From the design system: {name}": "Du design system : {name}",
+  "Editing the curve detaches it from the design system.": "Modifier la courbe la détache du design system."
 }

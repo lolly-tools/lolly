@@ -1957,5 +1957,20 @@
   "follows the design system ({colour})": "يتبع نظام التصميم ({colour})",
   "follows the design system": "يتبع نظام التصميم",
   "automatic ({colour})": "تلقائي ({colour})",
-  "automatic": "تلقائي"
+  "automatic": "تلقائي",
+  "{name} spring": "نابض {name}",
+  "{name} (not in this design system)": "{name} (غير موجود في نظام التصميم هذا)",
+  "Curves": "المنحنيات",
+  "Springs": "النوابض",
+  "Gentle": "لطيف",
+  "Quick": "سريع",
+  "Bouncy": "مرتد",
+  "Custom spring": "نابض مخصّص",
+  "Stiffness": "الصلابة",
+  "Damping": "التخميد",
+  "Mass": "الكتلة",
+  "Settles in {t} s": "يستقر خلال {t} ث",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "يأتي الإطار المفتاحي التالي قبل أن يستقر النابض. يُوزَّع باقي الحركة على المقطع.",
+  "From the design system: {name}": "من نظام التصميم: {name}",
+  "Editing the curve detaches it from the design system.": "تعديل المنحنى يفصله عن نظام التصميم."
 }

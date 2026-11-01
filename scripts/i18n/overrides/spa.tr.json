@@ -1950,5 +1950,20 @@
   "follows the design system ({colour})": "tasarım sistemini izliyor ({colour})",
   "follows the design system": "tasarım sistemini izliyor",
   "automatic ({colour})": "otomatik ({colour})",
-  "automatic": "otomatik"
+  "automatic": "otomatik",
+  "{name} spring": "{name} yay",
+  "{name} (not in this design system)": "{name} (bu tasarım sisteminde yok)",
+  "Curves": "Eğriler",
+  "Springs": "Yaylar",
+  "Gentle": "Yumuşak",
+  "Quick": "Hızlı",
+  "Bouncy": "Zıplayan",
+  "Custom spring": "Özel yay",
+  "Stiffness": "Sertlik",
+  "Damping": "Sönümleme",
+  "Mass": "Kütle",
+  "Settles in {t} s": "{t} sn içinde durulur",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Yay durulmadan önce sonraki anahtar kare gelir. Hareketin geri kalanı bölüm boyunca dağıtılır.",
+  "From the design system: {name}": "Tasarım sisteminden: {name}",
+  "Editing the curve detaches it from the design system.": "Eğriyi düzenlemek onu tasarım sisteminden ayırır."
 }

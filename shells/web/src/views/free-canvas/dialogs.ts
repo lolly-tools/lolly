@@ -21,6 +21,8 @@ import { wireChoreographPreview } from '../choreograph-preview.ts';
 import { HEAD_CHOICES, ROUTE_CHOICES, dashRowOn } from './shared.ts';
 import type { ConfirmAsk, ImportMode, NumberAsk, SvgLayerPlan, SvgSourceBox } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { offerMotionDurations } from '../motion-durations.ts';
+import { ensureMotionTokens } from '../../lib/motion-tokens.ts';
 
 /**
  * Validate a typed dash pattern. The ENGINE owns this contract (it is the same parse the
@@ -952,6 +954,10 @@ export function askChoreograph(fc: FcCtx): void {
 
   const cards = Array.from(p.querySelectorAll<HTMLButtonElement>('[data-choreo]'));
   const secIn = p.querySelector<HTMLInputElement>('[data-choreo-sec]')!;
+  // The design system's durations long enough to be a Length, as suggestions (plans/329).
+  const offerLengths = (): void => offerMotionDurations(secIn, { min: 0.8, max: 3600, unit: 's' });
+  offerLengths();
+  void ensureMotionTokens(fc.host as HostV1).then(() => { if (live()) offerLengths(); });
   const staggerIn = p.querySelector<HTMLInputElement>('[data-choreo-stagger]')!;
   const orderSel = p.querySelector<HTMLSelectElement>('[data-choreo-order]')!;
   const camIn = p.querySelector<HTMLInputElement>('[data-choreo-camera]')!;

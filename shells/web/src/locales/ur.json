@@ -10459,5 +10459,20 @@
   "follows the design system ({colour})": "ڈیزائن سسٹم کی پیروی کرتا ہے ({colour})",
   "follows the design system": "ڈیزائن سسٹم کی پیروی کرتا ہے",
   "automatic ({colour})": "خودکار ({colour})",
-  "automatic": "خودکار"
+  "automatic": "خودکار",
+  "{name} spring": "{name} اسپرنگ",
+  "{name} (not in this design system)": "{name} (اس ڈیزائن سسٹم میں نہیں)",
+  "Curves": "وکر",
+  "Springs": "اسپرنگ",
+  "Gentle": "نرم",
+  "Quick": "تیز",
+  "Bouncy": "اچھلتا",
+  "Custom spring": "حسبِ ضرورت اسپرنگ",
+  "Stiffness": "سختی",
+  "Damping": "ڈیمپنگ",
+  "Mass": "کمیت",
+  "Settles in {t} s": "{t} سیکنڈ میں ٹھہر جاتا ہے",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "اسپرنگ کے ٹھہرنے سے پہلے اگلا کی فریم آ جاتا ہے۔ باقی حرکت پورے حصے پر پھیلا دی جاتی ہے۔",
+  "From the design system: {name}": "ڈیزائن سسٹم سے: {name}",
+  "Editing the curve detaches it from the design system.": "وکر میں ترمیم کرنے سے یہ ڈیزائن سسٹم سے الگ ہو جاتا ہے۔"
 }

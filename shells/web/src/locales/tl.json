@@ -10459,5 +10459,20 @@
   "follows the design system ({colour})": "sumusunod sa design system ({colour})",
   "follows the design system": "sumusunod sa design system",
   "automatic ({colour})": "awtomatiko ({colour})",
-  "automatic": "awtomatiko"
+  "automatic": "awtomatiko",
+  "{name} spring": "Spring na {name}",
+  "{name} (not in this design system)": "{name} (wala sa design system na ito)",
+  "Curves": "Mga curve",
+  "Springs": "Mga spring",
+  "Gentle": "Banayad",
+  "Quick": "Mabilis",
+  "Bouncy": "Talbog",
+  "Custom spring": "Custom na spring",
+  "Stiffness": "Tigas",
+  "Damping": "Damping",
+  "Mass": "Masa",
+  "Settles in {t} s": "Tumitigil sa loob ng {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Dumarating ang susunod na keyframe bago tumigil ang spring. Ikinakalat ang natitirang galaw sa buong segment.",
+  "From the design system: {name}": "Mula sa design system: {name}",
+  "Editing the curve detaches it from the design system.": "Kapag inedit ang curve, hihiwalay ito sa design system."
 }

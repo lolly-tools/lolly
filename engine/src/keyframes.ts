@@ -1,4 +1,8 @@
 import { clamp } from './clamp.ts';
+import {
+  kfSpringAt, kfSpringCss, kfSpringPresetName, kfSpringToken, parseKfSpring, subdivideKfSpring,
+  type KfSpring, type KfSpringEase,
+} from './kf-spring.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Keyframe tracks, the `kf` wire grammar, and the depth-camera projection - 
@@ -126,6 +130,32 @@ import { clamp } from './clamp.ts';
  *
  * Neither token is a time, an ease or a channel name followed by a number, so a reader
  * that predates them skips each one as junk and keeps the rest of the keyframe.
+ *
+ * ## Springs and design-system eases (1.295, plans/329)
+ *
+ * Two ease forms joined the vocabulary. Both start with `e`, and neither matches a
+ * channel, so a reader older than 1.295 skips them as junk and plays the default curve.
+ *
+ * - **A spring**, `esp(<stiffness>)(<damping>)(<mass>)`, e.g. `esp(600)(15)(1)`. It runs in
+ *   real time from the keyframe and ARRIVES exactly on the next one: whatever distance it has not
+ *   covered by then is spread evenly over the segment (kf-spring.ts carries the physics,
+ *   the arrival rule and why the spring is integrated rather than solved). The named springs
+ *   (Gentle, Quick, Bouncy, Slow) have no tokens of their own; each is its plain spelling.
+ *   A split or trim writes a WINDOW, `esp(k)(c)(m)(<span>)(<from>)(<to>)`: the part
+ *   `from`..`to` ms of the same spring fitted to `span` ms, rescaled to fill its own
+ *   segment, which is what makes a cut through a spring exact.
+ * - **A design-system ease**, `et(<token path>)<fallback>`, e.g.
+ *   `et(motion.spring.bouncy)esp(400)(15)(1)`. The ease is bound to the motion token by
+ *   name, so changing the token changes the motion. The path is dot-separated letters,
+ *   digits and hyphens, at most {@link KF_EASE_REF_MAX} characters (a token named with
+ *   anything else cannot be bound). The fallback is the value the token had when it was
+ *   bound - a preset, a bezier or a plain spring - and it plays wherever the token is
+ *   missing; with no fallback, the default curve plays. The shell installs the live
+ *   values with {@link setKfEaseTokens}.
+ *
+ * A spring may overshoot. A channel eased by a spring is held to its own wire clamp
+ * (`KF_CLAMPS`), so trim, colour, aperture and volume never leave their range; `o` is
+ * linear as it always was. A bezier overshoot is evaluated exactly as before 1.295.
  */
 
 // ─── channels ────────────────────────────────────────────────────────────────
@@ -277,13 +307,15 @@ export const KF_MAX_KEYS = 256;
  * `KF_MAX_KEYS` rather than picked: the two caps have to be mutually
  * satisfiable or the module produces a wire it then mangles. The widest a
  * single keyframe can serialise to is `t` at its cap (8) + the separator + the
- * widest custom bezier (32) + all 25 channels at the widest spelling their
- * clamp and quantum allow (217) + one separator per channel (25) = 283 chars,
- * so a full-density track is 256 × 283 + 255 = 72 703.
- * 73 728 (72 KiB) clears that, which is what makes the section 4.6 round-trip law
+ * widest ease (100: a design-system ease, `et(` + a 64-character token path + `)` +
+ * the widest custom bezier as its fallback, 32) + all 25 channels at the widest spelling
+ * their clamp and quantum allow (217) + one separator per channel (25) + the two path
+ * handles at their widest with a separator each (50) = 401 chars, so a full-density
+ * track is 256 × 401 + 255 = 102 911.
+ * 106 496 (104 KiB) clears that, which is what makes the section 4.6 round-trip law
  * `parse(serialise(parse(s))) === parse(s)` hold BY CONSTRUCTION for every
  * input: the key cap dominates, so `serialiseKf` can never hand back a string
- * `parseKf` would truncate. `tests/keyframes.test.ts` re-derives the 174 from
+ * `parseKf` would truncate. `tests/keyframes.test.ts` re-derives the widest keyframe from
  * `KF_CLAMPS`/`KF_QUANTA` and fails if a widened clamp ever eats the headroom - 
  * re-derive this constant then, don't paper over it. It has already happened
  * once, which is why the test exists: `w`/`h` (plans/104 section 5.2, P1) added two
@@ -291,14 +323,16 @@ export const KF_MAX_KEYS = 256;
  * 40 960 stopped dominating. `v` (plans/165) later added 7 more per key, which the
  * headroom absorbed. The ten appearance channels (plans/328) added 102 chars per
  * key, 26 112 chars of full-density track, and the cap moved from 48 KiB to 72 KiB.
- * The two path handles (plans/330) add two 24-char tokens and their separators, 50
- * chars per key, so the widest keyframe is now 333 chars and a full-density track
- * 85 503; the cap moved to 88 KiB (90 112), which leaves 4 609 chars of headroom.
+ * The two path handles (plans/330) added two 24-char tokens and their separators, 50
+ * chars per key, and the cap moved to 88 KiB (90 112). The design-system ease
+ * (plans/329) then widened the widest ease from 32 to 100 chars, 68 more per key and
+ * 17 408 more at full density, and the cap moved to 104 KiB, which leaves 3 585 chars
+ * of headroom.
  *
  * (Plan section 5.1 said 8 KB, written before anyone measured a full-pose track: at
  * 8 KB a 256-key camera track loses ~148 of its keyframes on the way out.)
  */
-export const KF_MAX_CHARS = 90112;
+export const KF_MAX_CHARS = 106496;
 
 /** `t` is clamped to this (MAX_TIME_S · 1000). */
 export const KF_MAX_TIME_MS = 3_600_000;
@@ -368,6 +402,14 @@ export const KF_LINEAR_EASE = 'el';
 export const KF_HOLD_CSS = 'hold';
 
 const EB_RE = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
+/**
+ * A design-system ease is `et(<path>)` followed by an optional fallback ease. The path
+ * is dot-separated segments of letters, digits and hyphens - the kf charset minus its
+ * separators (`_`, `*`) and the parentheses.
+ */
+const REF_PATH_RE = /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*$/;
+/** The longest token path a design-system ease may name. */
+export const KF_EASE_REF_MAX = 64;
 /** A path handle token (plans/330): `hi(dx)(dy)` or `ho(dx)(dy)`. */
 const KF_HANDLE_RE = /^h([io])\(([^()]*)\)\(([^()]*)\)$/;
 const NUM_RE = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
@@ -468,6 +510,11 @@ export function normaliseKfEase(tok: unknown): string | null {
   if (typeof tok !== 'string' || tok === '') return null;
   if (tok === KF_HOLD_EASE) return KF_HOLD_EASE;
   if (Object.hasOwn(KF_EASE_PRESETS, tok)) return tok;
+  if (tok.startsWith('esp(')) {
+    const sp = parseKfSpring(tok);
+    return sp ? kfSpringToken(sp.spring, sp.window) : null;
+  }
+  if (tok.startsWith('et(')) return normaliseRef(tok);
   const m = EB_RE.exec(tok);
   if (!m) return null;
   const a = num(m[1] ?? ''), b = num(m[2] ?? ''), c = num(m[3] ?? ''), d = num(m[4] ?? '');
@@ -475,38 +522,246 @@ export function normaliseKfEase(tok: unknown): string | null {
   return easeFromPoints(a, b, c, d);
 }
 
+/**
+ * A CONCRETE ease: a preset, a bezier or a plain spring, canonical, or null. This is what
+ * a design-system ease may carry as its fallback and what a motion token may resolve to:
+ * never hold (a token is a curve), never another reference, never a window (a window is a
+ * cut through one segment, not a curve a brand names).
+ */
+function normaliseConcrete(tok: unknown): string | null {
+  // Never a reference inside a reference - and refusing it before parsing is what keeps a
+  // hostile `et(a)et(a)et(a)…` from recursing once per repetition.
+  if (typeof tok === 'string' && tok.startsWith('et(')) return null;
+  const norm = normaliseKfEase(tok);
+  if (norm === null || norm === KF_HOLD_EASE || norm.startsWith('et(')) return null;
+  if (norm.startsWith('esp(') && parseKfSpring(norm)?.window) return null;
+  return norm;
+}
+
+/** A reference's path and whatever follows it, or null when the head is not `et(<path>)`. */
+function splitRef(tok: string): { path: string; rest: string } | null {
+  if (!tok.startsWith('et(')) return null;
+  const close = tok.indexOf(')');
+  // Bounded before any pattern runs: a path longer than the cap is refused unread.
+  if (close < 4 || close > 3 + KF_EASE_REF_MAX) return null;
+  const path = tok.slice(3, close);
+  return REF_PATH_RE.test(path) ? { path, rest: tok.slice(close + 1) } : null;
+}
+
+function normaliseRef(tok: string): string | null {
+  const ref = splitRef(tok);
+  if (!ref) return null;
+  const { path, rest } = ref;
+  // A fallback that is not a concrete ease is dropped rather than refusing the binding:
+  // the token still points at a curve, and the default plays where the token is missing.
+  const fb = rest === '' ? null : normaliseConcrete(rest);
+  return fb === null || fb === KF_DEFAULT_EASE ? `et(${path})` : `et(${path})${fb}`;
+}
+
+// ─── design-system eases: the live values ────────────────────────────────────
+
+/**
+ * The live value of every bindable motion token, path → concrete ease, installed by the
+ * shell from the active design system. Module-level and therefore per realm: a worker
+ * that evaluates tracks is handed a snapshot ({@link kfEaseTokensSnapshot}) with its job.
+ */
+let EASE_TOKENS: ReadonlyMap<string, string> = new Map();
+let EASE_MISS: ((path: string) => void) | undefined;
+const EASE_MISSED = new Set<string>();
+
+/** Options for {@link setKfEaseTokens}. */
+export interface KfEaseTokenOptions {
+  /** Called once per missing path per install, so the shell can log the miss. Never throws into evaluation. */
+  onMiss?: (path: string) => void;
+}
+
+function readEaseTokens(map: Readonly<Record<string, string>> | ReadonlyMap<string, string> | null | undefined): Map<string, string> {
+  const out = new Map<string, string>();
+  if (!map) return out;
+  const entries = map instanceof Map ? [...map.entries()] : Object.entries(map);
+  for (const [path, value] of entries) {
+    if (typeof path !== 'string' || !splitRef(`et(${path})`)) continue;
+    const ease = normaliseConcrete(value);
+    if (ease !== null) out.set(path, ease);
+  }
+  return out;
+}
+
+/**
+ * Install the design system's motion tokens (path → a concrete ease: a preset, an
+ * `eb(...)` or a plain `esp(...)`). Anything else in the map is ignored. `null` clears.
+ */
+export function setKfEaseTokens(
+  map: Readonly<Record<string, string>> | ReadonlyMap<string, string> | null | undefined,
+  opts?: KfEaseTokenOptions,
+): void {
+  EASE_TOKENS = readEaseTokens(map);
+  EASE_MISS = opts?.onMiss;
+  EASE_MISSED.clear();
+  EASE_INFO_CACHE.clear();
+}
+
+/** The installed motion tokens, as a plain object a worker message can carry. */
+export function kfEaseTokensSnapshot(): Record<string, string> {
+  return Object.fromEntries(EASE_TOKENS);
+}
+
+/**
+ * Run `fn` with `map` installed, then put the previous tokens back. Synchronous on
+ * purpose: an `await` inside would let other evaluation see the wrong design system.
+ */
+export function withKfEaseTokens<T>(map: Readonly<Record<string, string>> | ReadonlyMap<string, string> | null | undefined, fn: () => T): T {
+  const prevTokens = EASE_TOKENS, prevMiss = EASE_MISS;
+  EASE_TOKENS = readEaseTokens(map);
+  EASE_INFO_CACHE.clear();
+  try {
+    return fn();
+  } finally {
+    EASE_TOKENS = prevTokens;
+    EASE_MISS = prevMiss;
+    EASE_INFO_CACHE.clear();
+  }
+}
+
+// ─── what an ease token means ─────────────────────────────────────────────────
+
+type EaseInfo =
+  | { readonly kind: 'hold' }
+  | { readonly kind: 'bezier'; readonly pts: readonly [number, number, number, number] }
+  | { readonly kind: 'spring'; readonly spring: KfSpringEase };
+
+const HOLD_INFO: EaseInfo = Object.freeze({ kind: 'hold' });
+// One frozen answer per preset, so the evaluator's hot path allocates nothing for them.
+const PRESET_INFO: ReadonlyMap<string, EaseInfo> = new Map(
+  KF_EASE_TOKENS.map((tok) => [tok, Object.freeze({ kind: 'bezier', pts: KF_EASE_PRESETS[tok].pts }) as EaseInfo]),
+);
+const DEFAULT_INFO: EaseInfo = PRESET_INFO.get(KF_DEFAULT_EASE) as EaseInfo;
+
 // Bounded so a track full of junk cannot grow it without limit. Module-level and
 // therefore per-thread, which is the point: the cached form is a plain string
 // key, never a compiled closure - a closure in a structured-cloned track would
-// DataCloneError and silently kill worker offload (section 5.1).
-const EASE_PTS_CACHE = new Map<string, readonly [number, number, number, number] | null>();
+// DataCloneError and silently kill worker offload (section 5.1). Cleared when the
+// design system's motion tokens change, since a bound ease resolves through them.
+const EASE_INFO_CACHE = new Map<string, EaseInfo | null>();
 
-function easePts(ease: string): readonly [number, number, number, number] | null {
-  if (Object.hasOwn(KF_EASE_PRESETS, ease)) return KF_EASE_PRESETS[ease as KfEasePresetToken].pts;
-  const hit = EASE_PTS_CACHE.get(ease);
-  if (hit !== undefined) return hit;
-  const norm = normaliseKfEase(ease);
-  let pts: readonly [number, number, number, number] | null = null;
-  if (norm !== null && norm !== KF_HOLD_EASE) {
-    if (Object.hasOwn(KF_EASE_PRESETS, norm)) pts = KF_EASE_PRESETS[norm as KfEasePresetToken].pts;
-    else {
-      const m = EB_RE.exec(norm);
-      if (m) {
-        const a = num(m[1] ?? ''), b = num(m[2] ?? ''), c = num(m[3] ?? ''), d = num(m[4] ?? '');
-        if (a !== null && b !== null && c !== null && d !== null) pts = Object.freeze([a, b, c, d] as [number, number, number, number]);
-      }
-    }
+/** What a CANONICAL concrete token means (no reference). */
+function concreteInfo(norm: string): EaseInfo | null {
+  if (norm === KF_HOLD_EASE) return HOLD_INFO;
+  const preset = PRESET_INFO.get(norm);
+  if (preset) return preset;
+  if (norm.startsWith('esp(')) {
+    const sp = parseKfSpring(norm);
+    return sp ? { kind: 'spring', spring: sp } : null;
   }
-  if (EASE_PTS_CACHE.size >= 256) EASE_PTS_CACHE.clear();
-  EASE_PTS_CACHE.set(ease, pts);
-  return pts;
+  const m = EB_RE.exec(norm);
+  if (!m) return null;
+  const a = num(m[1] ?? ''), b = num(m[2] ?? ''), c = num(m[3] ?? ''), d = num(m[4] ?? '');
+  if (a === null || b === null || c === null || d === null) return null;
+  return { kind: 'bezier', pts: Object.freeze([a, b, c, d] as [number, number, number, number]) };
 }
 
-/** The four control points of an ease token, or null for `eh` / anything unparseable. */
+/** The concrete ease a canonical reference plays now: the live token, its fallback, or the default. */
+function resolveRef(norm: string): string {
+  const ref = splitRef(norm);
+  const path = ref?.path ?? '';
+  const live = EASE_TOKENS.get(path);
+  if (live !== undefined) return live;
+  if (!EASE_MISSED.has(path)) {
+    EASE_MISSED.add(path);
+    try { EASE_MISS?.(path); } catch { /* a logger must never break a frame */ }
+  }
+  return normaliseConcrete(ref?.rest ?? '') ?? KF_DEFAULT_EASE;
+}
+
+/** What an ease token means right now, or null when it is not an ease at all. */
+function easeInfo(ease: string): EaseInfo | null {
+  const preset = PRESET_INFO.get(ease);
+  if (preset) return preset;
+  const hit = EASE_INFO_CACHE.get(ease);
+  if (hit !== undefined) return hit;
+  const norm = normaliseKfEase(ease);
+  let info: EaseInfo | null = null;
+  if (norm !== null) info = concreteInfo(norm.startsWith('et(') ? resolveRef(norm) : norm);
+  if (EASE_INFO_CACHE.size >= 256) EASE_INFO_CACHE.clear();
+  EASE_INFO_CACHE.set(ease, info);
+  return info;
+}
+
+function easePts(ease: string): readonly [number, number, number, number] | null {
+  const info = easeInfo(ease);
+  return info?.kind === 'bezier' ? info.pts : null;
+}
+
+/**
+ * The four control points of an ease token, or null for `eh`, a spring, or anything
+ * unparseable. A design-system ease answers with the curve it plays now.
+ */
 export function kfEasePoints(ease: unknown): [number, number, number, number] | null {
   if (typeof ease !== 'string') return null;
   const p = easePts(ease);
   return p ? [p[0], p[1], p[2], p[3]] : null;
+}
+
+/** The kinds of ease, as {@link kfEaseKind} reports them. */
+export type KfEaseKind = 'hold' | 'bezier' | 'spring' | 'token';
+
+/**
+ * Which kind of ease a token is AS WRITTEN: `token` for a design-system ease whatever it
+ * resolves to, else what it is. Null when it is not an ease.
+ */
+export function kfEaseKind(ease: unknown): KfEaseKind | null {
+  const norm = normaliseKfEase(ease);
+  if (norm === null) return null;
+  if (norm === KF_HOLD_EASE) return 'hold';
+  if (norm.startsWith('et(')) return 'token';
+  return norm.startsWith('esp(') ? 'spring' : 'bezier';
+}
+
+/** The token path a design-system ease is bound to, or null. */
+export function kfEaseTokenPath(ease: unknown): string | null {
+  const norm = normaliseKfEase(ease);
+  if (norm === null || !norm.startsWith('et(')) return null;
+  return splitRef(norm)?.path ?? null;
+}
+
+/**
+ * The concrete ease a token plays now: itself, or for a design-system ease the live
+ * token, its fallback or the default. Unrecognised input answers the default.
+ */
+export function kfEaseResolved(ease: unknown): string {
+  const norm = normaliseKfEase(ease);
+  if (norm === null) return KF_DEFAULT_EASE;
+  return norm.startsWith('et(') ? resolveRef(norm) : norm;
+}
+
+/** True when the ease plays a spring now (a spring, or a design-system ease resolving to one). */
+export function kfEaseIsSpring(ease: unknown): boolean {
+  return typeof ease === 'string' && easeInfo(ease)?.kind === 'spring';
+}
+
+/**
+ * The spring an ease plays now, with its window when it is a split half, or null.
+ */
+export function kfEaseSpring(ease: unknown): { spring: KfSpring; window: KfSpringEase['window'] } | null {
+  if (typeof ease !== 'string') return null;
+  const info = easeInfo(ease);
+  return info?.kind === 'spring' ? { spring: info.spring.spring, window: info.spring.window } : null;
+}
+
+/** The named spring a token is, by exact value (`gentle`, `quick`, `bouncy`, `slow`), or ''. */
+export function kfEaseSpringName(ease: unknown): string {
+  const norm = normaliseKfEase(ease);
+  if (norm === null || !norm.startsWith('esp(')) return '';
+  const sp = parseKfSpring(norm);
+  return sp && !sp.window ? kfSpringPresetName(sp.spring) : '';
+}
+
+/**
+ * A design-system ease bound to `path`, carrying `fallback` (the token's current value)
+ * for wherever the token is missing. Null when the path cannot be written on the wire.
+ */
+export function kfBindEase(path: string, fallback?: string | null): string | null {
+  return normaliseRef(`et(${path})${normaliseConcrete(fallback) ?? ''}`);
 }
 
 /**
@@ -514,12 +769,18 @@ export function kfEasePoints(ease: unknown): [number, number, number, number] | 
  *
  * `eh` holds: 0 until the segment ends. An unrecognised token falls back to the
  * grammar's default rather than throwing - junk is skipped everywhere else too.
+ *
+ * `spanMs` is the segment's length. Only a spring reads it (a spring runs in real time,
+ * see kf-spring.ts); without it a spring is drawn over its own settle time.
  */
-export function kfEaseAt(ease: string, u: number): number {
+export function kfEaseAt(ease: string, u: number, spanMs?: number): number {
   if (!(u > 0)) return 0;
   if (u >= 1) return 1;
   if (ease === KF_HOLD_EASE) return 0;
-  const p = easePts(ease) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE as KfEasePresetToken].pts;
+  const info = easeInfo(ease) ?? DEFAULT_INFO;
+  if (info.kind === 'hold') return 0;
+  if (info.kind === 'spring') return kfSpringAt(info.spring, u, spanMs);
+  const p = info.pts;
   return cubicBezierAt(p[0], p[1], p[2], p[3], u);
 }
 
@@ -529,12 +790,15 @@ export function kfEaseAt(ease: string, u: number): number {
  * Always the `cubic-bezier(a,b,c,d)` spelling (commas - which is exactly why
  * this adapter exists: they are banned from the kf charset). `eh` has no CSS
  * equivalent and returns the documented `'hold'` sentinel; anything
- * unrecognised returns the default ease's CSS.
+ * unrecognised returns the default ease's CSS. A spring is CSS `linear()` with
+ * enough stops to follow it, over `spanMs` (its settle time when absent).
  */
-export function kfEaseCss(ease: unknown): string {
+export function kfEaseCss(ease: unknown, spanMs?: number): string {
   if (ease === KF_HOLD_EASE) return KF_HOLD_CSS;
-  const p = (typeof ease === 'string' ? easePts(ease) : null)
-    ?? KF_EASE_PRESETS[KF_DEFAULT_EASE as KfEasePresetToken].pts;
+  const info = (typeof ease === 'string' ? easeInfo(ease) : null) ?? DEFAULT_INFO;
+  if (info.kind === 'hold') return KF_HOLD_CSS;
+  if (info.kind === 'spring') return kfSpringCss(info.spring, spanMs);
+  const p = info.pts;
   return `cubic-bezier(${p.map((n) => fmt(quant(n, KF_BEZIER_QUANTUM))).join(',')})`;
 }
 
@@ -706,12 +970,24 @@ function subdividedEaseToken(x1: number, y1: number, x2: number, y2: number): st
  *
  * `lambda` outside (0, 1) means the cut is not inside the segment: both halves
  * keep the original ease.
+ *
+ * Springs (plans/329) split exactly too, into two WINDOWS of the same fitted spring
+ * (kf-spring.ts `subdivideKfSpring`), which is why a spring needs `spanMs`, the segment's
+ * length: it runs in real time. A design-system ease is resolved first and its halves are
+ * the curve it plays now, written out: half of a token is not the token, so a cut inside
+ * a bound segment detaches it there. A cut outside the segment keeps the binding.
  */
-export function subdivideKfEase(ease: unknown, lambda: number): KfEaseSubdivision {
-  const tok = (typeof ease === 'string' ? normaliseKfEase(ease) : null) ?? KF_DEFAULT_EASE;
-  if (tok === KF_HOLD_EASE) return { left: KF_HOLD_EASE, right: KF_HOLD_EASE };
+export function subdivideKfEase(ease: unknown, lambda: number, spanMs?: number): KfEaseSubdivision {
+  const orig = (typeof ease === 'string' ? normaliseKfEase(ease) : null) ?? KF_DEFAULT_EASE;
+  if (orig === KF_HOLD_EASE) return { left: KF_HOLD_EASE, right: KF_HOLD_EASE };
   const lam = typeof lambda === 'number' && Number.isFinite(lambda) ? lambda : 0;
-  if (!(lam > 0) || !(lam < 1)) return { left: tok, right: tok };
+  if (!(lam > 0) || !(lam < 1)) return { left: orig, right: orig };
+  const tok = orig.startsWith('et(') ? resolveRef(orig) : orig;
+  const info = easeInfo(tok);
+  if (info?.kind === 'spring') {
+    const halves = subdivideKfSpring(info.spring, lam, spanMs);
+    return { left: halves.left ?? tok, right: halves.right ?? tok };
+  }
   const p = easePts(tok) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE as KfEasePresetToken].pts;
   const [x1, y1, x2, y2] = p;
   const s = easeParamAtX(x1, x2, lam);
@@ -1006,15 +1282,33 @@ function sampleChannel(track: KfTrack, ks: readonly number[], ch: KfChannel, t: 
   if (!(span > 0)) return bv;
   const u = (t - a.t) / span;
   // A CURVED position segment (plans/330) travels along its cubic instead; on every
-  // other segment, and on every track without handles, this is never true.
+  // other segment, and on every track without handles, this is never true. A spring
+  // reads the segment's length here as it does below, and its overshoot past either
+  // end of the curve is held to the channel's range in the same way.
   if ((ch === 'x' || ch === 'y') && a.ease !== KF_HOLD_EASE) {
     const seg = curvedSegment(track, ks[lo] as number, ks[lo + 1] as number);
-    if (seg) return pathPoint(seg, kfEaseAt(a.ease, u))[ch === 'x' ? 0 : 1];
+    if (seg) {
+      const p = kfEaseAt(a.ease, u, span);
+      const v = pathPoint(seg, p)[ch === 'x' ? 0 : 1];
+      if ((p < 0 || p > 1) && kfEaseIsSpring(a.ease)) {
+        const [lo, hi] = KF_CLAMPS[ch];
+        return v < lo ? lo : v > hi ? hi : v;
+      }
+      return v;
+    }
   }
   // The segment ease governs every channel EXCEPT `o`, which is always linear -
   // `eh` still holds it, like any channel (section 5.2).
   const ease = ch === 'o' ? (a.ease === KF_HOLD_EASE ? KF_HOLD_EASE : KF_LINEAR_EASE) : a.ease;
-  return av + (bv - av) * kfEaseAt(ease, u);
+  const e = kfEaseAt(ease, u, span);
+  const v = av + (bv - av) * e;
+  // A spring's overshoot is held to the channel's own range (plans/329). Only a spring:
+  // a bezier overshoot is evaluated exactly as it always was.
+  if ((e < 0 || e > 1) && kfEaseIsSpring(ease)) {
+    const [lo, hi] = KF_CLAMPS[ch];
+    return v < lo ? lo : v > hi ? hi : v;
+  }
+  return v;
 }
 
 /**
@@ -1252,7 +1546,7 @@ export function kfSubdividePath(track: KfTrack | null | undefined, tMs: number):
   for (const c of idx.values()) {
     const ka = track[c.a] as KfKey, kb = track[c.b] as KfKey;
     if (!(tMs > ka.t && tMs < kb.t) || ka.ease === KF_HOLD_EASE) continue;
-    const p = kfEaseAt(ka.ease, (tMs - ka.t) / (kb.t - ka.t));
+    const p = kfEaseAt(ka.ease, (tMs - ka.t) / (kb.t - ka.t), kb.t - ka.t);
     if (!(p > 0 && p < 1) || !((c.lens[PATH_CHORDS] as number) > 0)) return null;
     const s = arcParam(c, p);
     const q = c.p;

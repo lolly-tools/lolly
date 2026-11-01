@@ -10459,5 +10459,20 @@
   "follows the design system ({colour})": "デザインシステムに従っています ({colour})",
   "follows the design system": "デザインシステムに従っています",
   "automatic ({colour})": "自動 ({colour})",
-  "automatic": "自動"
+  "automatic": "自動",
+  "{name} spring": "{name}スプリング",
+  "{name} (not in this design system)": "{name}（このデザインシステムにはありません）",
+  "Curves": "カーブ",
+  "Springs": "スプリング",
+  "Gentle": "ゆったり",
+  "Quick": "すばやい",
+  "Bouncy": "弾む",
+  "Custom spring": "カスタムスプリング",
+  "Stiffness": "剛性",
+  "Damping": "減衰",
+  "Mass": "質量",
+  "Settles in {t} s": "{t} 秒で静止",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "スプリングが静止する前に次のキーフレームが来ます。残りの動きは区間全体に振り分けられます。",
+  "From the design system: {name}": "デザインシステムから：{name}",
+  "Editing the curve detaches it from the design system.": "カーブを編集するとデザインシステムとのリンクが外れます。"
 }

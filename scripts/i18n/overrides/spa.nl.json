@@ -1814,5 +1814,20 @@
   "follows the design system ({colour})": "volgt het design system ({colour})",
   "follows the design system": "volgt het design system",
   "automatic ({colour})": "automatisch ({colour})",
-  "automatic": "automatisch"
+  "automatic": "automatisch",
+  "{name} spring": "Veer {name}",
+  "{name} (not in this design system)": "{name} (niet in dit design system)",
+  "Curves": "Curves",
+  "Springs": "Veren",
+  "Gentle": "Zacht",
+  "Quick": "Snel",
+  "Bouncy": "Verend",
+  "Custom spring": "Aangepaste veer",
+  "Stiffness": "Stijfheid",
+  "Damping": "Demping",
+  "Mass": "Massa",
+  "Settles in {t} s": "Komt in {t} s tot rust",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Het volgende sleutelframe komt voordat de veer tot rust komt. De rest van de beweging wordt over het segment verdeeld.",
+  "From the design system: {name}": "Uit het design system: {name}",
+  "Editing the curve detaches it from the design system.": "Als je de curve bewerkt, wordt hij losgekoppeld van het design system."
 }

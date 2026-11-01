@@ -10459,5 +10459,20 @@
   "follows the design system ({colour})": "urmează sistemul de design ({colour})",
   "follows the design system": "urmează sistemul de design",
   "automatic ({colour})": "automată ({colour})",
-  "automatic": "automată"
+  "automatic": "automată",
+  "{name} spring": "Arc {name}",
+  "{name} (not in this design system)": "{name} (nu există în acest sistem de design)",
+  "Curves": "Curbe",
+  "Springs": "Arcuri",
+  "Gentle": "Blând",
+  "Quick": "Rapid",
+  "Bouncy": "Săltăreț",
+  "Custom spring": "Arc personalizat",
+  "Stiffness": "Rigiditate",
+  "Damping": "Amortizare",
+  "Mass": "Masă",
+  "Settles in {t} s": "Se stabilizează în {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Următorul cadru-cheie vine înainte ca arcul să se stabilizeze. Restul mișcării este împărțit pe tot segmentul.",
+  "From the design system: {name}": "Din sistemul de design: {name}",
+  "Editing the curve detaches it from the design system.": "Editarea curbei o deconectează de la sistemul de design."
 }

@@ -79,6 +79,36 @@ Every entry that states `kind` or `rotation` must agree; a disagreement is repor
 
 Lolly gives behaviour to `mode` and `colourway` today. The other kinds are kept, shown and resolved as plain theme choices. A group with no kind, or a kind this version does not know, resolves exactly as it did before kinds existed, and the inspector reports an unknown kind. `lolly system inspect --json` and `host.tokens.inspect()` list each group with its `kind` and canonical option, and `host.tokens.themes()` gives each theme its `id`, when the file has one, and its group's `kind`.
 
+### Motion tokens
+
+A design system can define motion for Sequence: durations, curves and springs. Lolly reads three DTCG types and one extension:
+
+| Token | `$value` | What Lolly does with it |
+| --- | --- | --- |
+| `duration` | `{ "value": 200, "unit": "ms" }`, or `"200ms"` / `"0.2s"` | Offered as a suggestion in length fields: a clip's **Enter (ms)** and **Exit (ms)**, and Choreograph's **Length** |
+| `cubicBezier` | `[x1, y1, x2, y2]`, x between 0 and 1 | Listed as a curve a keyframe can follow |
+| `transition` | `{ duration, delay, timingFunction }` | Its `timingFunction` is listed as a curve; its duration is shown beside the curve and never changes keyframe times |
+
+DTCG has no spring type, so a spring is any token that carries `spring` under the `com.suse.lolly` extension key. Give it a `transition` type with a curve that resembles the spring, so a tool that does not read springs still gets a sensible curve:
+
+```json
+{
+  "motion": {
+    "spring": {
+      "bouncy": {
+        "$type": "transition",
+        "$value": { "duration": { "value": 700, "unit": "ms" }, "delay": { "value": 0, "unit": "ms" }, "timingFunction": [0.3, 1.3, 0.6, 1] },
+        "$extensions": { "com.suse.lolly": { "spring": { "stiffness": 400, "damping": 20, "mass": 1 } } }
+      }
+    }
+  }
+}
+```
+
+`stiffness` is required. Give `damping` directly, or `dampingRatio` (1 means no bounce) and Lolly works out the damping; `mass` is 1 when absent. Lolly Demo and Lolly Starter ship a small scale: `motion.duration.short`, `medium` and `long`; `motion.curve.standard`, `emphasised` and `exit`; and `motion.spring.gentle` and `bouncy`.
+
+A keyframe follows a curve or spring by its token path, so the path has to fit in a link: letters, digits and hyphens between dots, at most 64 characters. A token with any other path is left out of the list. [Animating](/info/animating.html#follow-the-design-system) covers following a token from the Keyframes popup.
+
 ## How tools use tokens
 
 Tools reach tokens three ways:

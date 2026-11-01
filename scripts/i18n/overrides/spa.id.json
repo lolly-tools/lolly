@@ -1821,5 +1821,20 @@
   "follows the design system ({colour})": "mengikuti sistem desain ({colour})",
   "follows the design system": "mengikuti sistem desain",
   "automatic ({colour})": "otomatis ({colour})",
-  "automatic": "otomatis"
+  "automatic": "otomatis",
+  "{name} spring": "Pegas {name}",
+  "{name} (not in this design system)": "{name} (tidak ada di sistem desain ini)",
+  "Curves": "Kurva",
+  "Springs": "Pegas",
+  "Gentle": "Lembut",
+  "Quick": "Cepat",
+  "Bouncy": "Memantul",
+  "Custom spring": "Pegas kustom",
+  "Stiffness": "Kekakuan",
+  "Damping": "Redaman",
+  "Mass": "Massa",
+  "Settles in {t} s": "Stabil dalam {t} dtk",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Bingkai kunci berikutnya datang sebelum pegas stabil. Sisa gerakan disebar di sepanjang segmen.",
+  "From the design system: {name}": "Dari sistem desain: {name}",
+  "Editing the curve detaches it from the design system.": "Mengedit kurva melepaskannya dari sistem desain."
 }

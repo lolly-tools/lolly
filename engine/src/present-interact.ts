@@ -251,7 +251,7 @@ export function samplePresentInteractAuto(
     if (!next) return { to: point.depth, done: false, stopIndex: point.stopIndex, paused };
     const segmentMs = duration / segments;
     if (left < segmentMs) {
-      const fraction = kfEaseAt(options.ease, left / segmentMs);
+      const fraction = kfEaseAt(options.ease, left / segmentMs, segmentMs);
       const to = flags.reducedMotion || point.y === null || next.y === null ? point.depth
         : clamp(point.y + (next.y - point.y) * fraction, 0, clamp(context.scrollMax, 0, PRESENT_INTERACT_MAX_DEPTH));
       return { to, done: false, stopIndex: point.stopIndex, paused };

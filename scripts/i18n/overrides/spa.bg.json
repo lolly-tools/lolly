@@ -1952,5 +1952,20 @@
   "follows the design system ({colour})": "следва дизайн системата ({colour})",
   "follows the design system": "следва дизайн системата",
   "automatic ({colour})": "автоматично ({colour})",
-  "automatic": "автоматично"
+  "automatic": "автоматично",
+  "{name} spring": "Пружина {name}",
+  "{name} (not in this design system)": "{name} (няма го в тази дизайн система)",
+  "Curves": "Криви",
+  "Springs": "Пружини",
+  "Gentle": "Мека",
+  "Quick": "Бърза",
+  "Bouncy": "Подскачаща",
+  "Custom spring": "Пружина по избор",
+  "Stiffness": "Твърдост",
+  "Damping": "Затихване",
+  "Mass": "Маса",
+  "Settles in {t} s": "Успокоява се за {t} с",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Следващият ключов кадър идва, преди пружината да се успокои. Останалата част от движението се разпределя по сегмента.",
+  "From the design system: {name}": "От дизайн системата: {name}",
+  "Editing the curve detaches it from the design system.": "Редактирането на кривата я откача от дизайн системата."
 }

@@ -1821,5 +1821,20 @@
   "follows the design system ({colour})": "theo hệ thống thiết kế ({colour})",
   "follows the design system": "theo hệ thống thiết kế",
   "automatic ({colour})": "tự động ({colour})",
-  "automatic": "tự động"
+  "automatic": "tự động",
+  "{name} spring": "Lò xo {name}",
+  "{name} (not in this design system)": "{name} (không có trong hệ thống thiết kế này)",
+  "Curves": "Đường cong",
+  "Springs": "Lò xo",
+  "Gentle": "Êm",
+  "Quick": "Nhanh",
+  "Bouncy": "Nảy",
+  "Custom spring": "Lò xo tùy chỉnh",
+  "Stiffness": "Độ cứng",
+  "Damping": "Giảm chấn",
+  "Mass": "Khối lượng",
+  "Settles in {t} s": "Ổn định sau {t} giây",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Khung hình chính tiếp theo đến trước khi lò xo ổn định. Phần chuyển động còn lại được rải đều trên đoạn.",
+  "From the design system: {name}": "Từ hệ thống thiết kế: {name}",
+  "Editing the curve detaches it from the design system.": "Chỉnh sửa đường cong sẽ tách nó khỏi hệ thống thiết kế."
 }

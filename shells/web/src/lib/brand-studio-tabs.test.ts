@@ -85,7 +85,8 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
     assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 4, Starter$/);
     assert.ok(m.$('[data-tk-jump="logos"] .tk-tag'), 'the tile says the marks are the starter’s');
     assert.equal(n('shape'), '2');
-    assert.equal(n('all'), '93');
+    // 93 until plans/329 seeded the motion scale: three durations, three curves, two springs.
+    assert.equal(n('all'), '101');
     for (const id of ['color', 'type', 'logos', 'shape', 'more']) assert.ok(m.$(`[data-tk-sec="${id}"]`), id);
     assert.match(m.$('[data-tk-body="type"] .tk-empty')!.textContent!, /No typeface of your own yet\. Tools use the starter faces below until you choose one\./);
     assert.equal(m.el.querySelectorAll('[data-tk-body="type"] .tk-group .tk-row').length, 4, 'the four faces sit under the Starter head');

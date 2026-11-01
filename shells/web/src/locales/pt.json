@@ -10459,5 +10459,20 @@
   "follows the design system ({colour})": "segue o sistema de design ({colour})",
   "follows the design system": "segue o sistema de design",
   "automatic ({colour})": "automática ({colour})",
-  "automatic": "automática"
+  "automatic": "automática",
+  "{name} spring": "Mola {name}",
+  "{name} (not in this design system)": "{name} (não está neste sistema de design)",
+  "Curves": "Curvas",
+  "Springs": "Molas",
+  "Gentle": "Suave",
+  "Quick": "Rápida",
+  "Bouncy": "Saltitante",
+  "Custom spring": "Mola personalizada",
+  "Stiffness": "Rigidez",
+  "Damping": "Amortecimento",
+  "Mass": "Massa",
+  "Settles in {t} s": "Estabiliza em {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "O próximo quadro-chave chega antes de a mola estabilizar. O resto do movimento é distribuído pelo trecho.",
+  "From the design system: {name}": "Do sistema de design: {name}",
+  "Editing the curve detaches it from the design system.": "Editar a curva desvincula-a do sistema de design."
 }
