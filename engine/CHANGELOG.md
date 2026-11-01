@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.299.0
+
+- Image tracing (new module `image-trace.ts`): turns a shell-supplied tracer's output (the `packages/node-shell/wasm/image-trace` module, vectorcraft's colour tracer with logo, illustration, line art and centreline presets) into Design path boxes that follow the image box's fit and position. The module refuses more than 4 megapixels, and the shell caps a result at 1,500 shapes and 60,000 points. Not re-exported from `index.ts`; shells import it by path.
+- Matte edge colour: `decontaminateEdgeColour` and `MatteOpts.cleanEdgeColour` (off by default) replace the old background's colour in soft edge pixels with the subject's own, by normalised convolution at three scales. Alpha is never changed, and with the option off the output is byte-identical to before.
+- Broadcast captions (new modules `captions-ttml.ts`, `captions-scc.ts`): `cuesToTtml`/`ttmlToCues` (IMSC1.1 Text Profile, media-time clock) and `cuesToScc`/`sccToCues` (CEA-608 pop-on, channel 1, 29.97 drop-frame, doubled control codes, odd parity), plus `CaptionFormatError` and `CaptionIssue`. Text templates gain the `ttml` and `scc` formats. Roll-up, paint-on, text mode and other channels are listed, or refused with `strict`; characters the 608 set cannot carry are refused, never dropped.
+
 ## 1.298.0
 
 - DXF import (new modules `dxf-import.ts`, `dxf-design.ts`, `geom/dxf-geom.ts`): `importDxf` takes a shell-supplied reader (the `packages/node-shell/wasm/dxf` module, ASCII and binary DXF, R12 to 2018) and `flattenDxf`/`dxfToDesign` turn its bounded entity list into Design path and text boxes, a group per layer, with units from `$INSUNITS`. XREFs, paper space, SHX fonts, hatches and other undrawn entities are reported, never guessed. `looksLikeDxf` sniffs a file. `dxf.ts` (the writer) is unchanged.
