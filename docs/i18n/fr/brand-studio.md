@@ -22,7 +22,7 @@ La barre en haut du studio porte le nom du design system, et ce nom est un champ
 
 Le studio est un ensemble de pièces sans ordre fixe : rien n'est numéroté et rien n'attend autre chose. Sur un bureau, les pièces se rangent en une bande sous la barre. Sur un téléphone, elles passent dans une barre au bord inférieur, là où le pouce les atteint, avec la pièce ouverte amenée dans la vue ; la feuille de la palette et le plateau s'élèvent au-dessus de cette barre, et la barre s'efface pendant que tu saisis. Au clavier, Tab atteint la bande une seule fois, et les flèches, Début et Fin passent d'une pièce à l'autre.
 
-![La barre du studio et ses pièces : Board, Colours, Type, Logos, Tokens, Files, Rules et Skills]](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![La barre du studio et ses pièces : Board, Colours, Type, Logos, Tokens, Files, Rules et Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Pièce | Ce que tu y fais | Clé de lien |
 |---|---|---|
@@ -108,7 +108,7 @@ Ta première couleur devient le **primaire**, et une pastille le confirme, comme
 
 Tes couleurs se placent à côté d'un aperçu **In context** sur un grand écran, et au-dessus sur un plus petit. L'aperçu montre une affiche, un graphique ou une carte d'interface dans ta palette. Les couleurs de départ restent dans leur propre groupe repliable.
 
-![La pièce Colours sur Lolly Demo : la palette en groupes repliables, chaque couleur avec son nom et son hexadécimal, et le téléchargement de la palette dans l'en-tête]](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![La pièce Colours sur Lolly Demo : la palette en groupes repliables, chaque couleur avec son nom et son hexadécimal, et le téléchargement de la palette dans l'en-tête](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![La salle Colours après l'ajout d'une couleur, avec sa palette et un aperçu de composition en direct](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -165,7 +165,7 @@ Quatre sections repliées se trouvent sous l'aperçu et les rôles. Chacune s'ou
 
 La palette liste tes couleurs en groupes repliables, chacun avec son propre **+ Add**. Crée et renomme les groupes comme tu veux. Un rôle ne crée jamais une seconde tuile : une tuile sur laquelle pointe un rôle porte plutôt une petite marque (**P**, **S**, **Su**, **T**). **Colour chart** sous les tuiles montre les mêmes couleurs sur la **Wheel** OKLCH (fais glisser un point pour recolorer, clique sur un espace vide pour ajouter un échantillon) et le graphique **Gamut**, qui montre où s'arrête la plage affichable. `#/start?area=color&focus=chart` ouvre directement le graphique.
 
-![Le panneau de palette, chaque groupe repliable, avec le téléchargement de la palette dans son en-tête]](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Le panneau de palette, chaque groupe repliable, avec le téléchargement de la palette dans son en-tête](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![La roue OKLCH - l'angle est la teinte, la distance vers l'extérieur est la chroma et les gris suivent un rail de luminosité sur le côté](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -204,7 +204,7 @@ Les téléchargements de la palette (design tokens, CSS, SCSS, GIMP et Adobe Swa
 
 Sans police propre, la pièce est une seule carte : **Primary**, composée à taille de lecture dans la police qui la sert aujourd'hui, avec une étiquette **Starter**, un bouton **Choose for Primary** et la ligne *"Nothing installs until you choose one."* Headings, code et italique suivent le primaire jusqu'à ce que tu les choisisses ; **Choose them separately** affiche leurs cartes.
 
-![La pièce Type sans police choisie pour l'instant : une carte à taille de lecture, une étiquette Starter dessus et un seul **Choose for Primary** rempli]](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![La pièce Type sans police choisie pour l'instant : une carte à taille de lecture, une étiquette Starter dessus et un seul **Choose for Primary** rempli](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Choisis une police et la pièce s'ouvre sur quatre cartes de rôle, la liste Fonts et un spécimen en direct :
 
@@ -259,7 +259,7 @@ Dépose les fichiers que ta marque conserve, hors logos : fichiers **vector**, *
 
 **Rules** met au travail les choix de ta marque : ce que les gens peuvent changer, ce qui reste fixe et ce que Lolly peut vérifier.
 
-![Rules sur Lolly Demo : une carte Brand rules vide avec Add your first rule, puis Try your brand in use avec ses exemples prêts à être rendus]](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules sur Lolly Demo : une carte Brand rules vide avec Add your first rule, puis Try your brand in use avec ses exemples prêts à être rendus](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** liste tes règles. **Add rule** (ou **Add your first rule**) ouvre un court formulaire :
 

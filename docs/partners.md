@@ -30,7 +30,7 @@ Fonts you added travel inside a design-system file, so check that their licences
 A reusable tool keeps every partner's pieces in your layout, because a partner changes only what you allow.
 
 1. In Design, make the piece in your design system. Draw an image box where the partner's logo goes, and leave the space around the box that the layout needs.
-2. Choose **Share with rules** from the File menu. Select the image box and choose **Make editable**. In its **Rules**, allow replacement uploads, set a minimum pixel size and the upload formats you accept (SVG where you can), and choose **Fit inside** for **Image fit**, which keeps a wide or a tall logo inside the box.
+2. Choose **Share with rules** from the File menu. Select the image box and choose **Make editable**. In its **Rules**, allow replacement uploads, set a minimum pixel size and the upload formats you accept (SVG where you can). Set the box's own **Image fit** to **Contain (fit inside)**, which keeps a wide or a tall logo inside the box.
 3. Make the partner's name or offer editable too, with a character limit.
 4. Press **Preview** and try a very wide logo, a very tall one and a long name.
 5. Choose **Share .lolly**, and write instructions for the partner: which version of their logo to upload, such as the full-colour horizontal logo for a light background.
@@ -76,7 +76,7 @@ Before you export, check the mark:
 
 - **The right file.** Use the file the partner supplied, an SVG where there is one. A logo copied from a web page or a slide blurs when printed.
 - **The right version for the background.** Use a reverse or a one-colour version on a dark or busy background, when the partner's guidelines offer one.
-- **Proportions.** Set the image box to **Fit inside**, and the mark is never stretched.
+- **Proportions.** Set the image box's **Image fit** to **Contain (fit inside)**, and the mark is never stretched.
 - **Clear space and size.** Leave the space the partner's guidelines ask for around the mark, and keep the mark above their minimum size. Lolly measures neither.
 - **Which brand leads.** Size the two marks to follow both brands' guidelines on which one leads.
 - **Rights.** Lolly shows the licence recorded for a catalogue asset. A file you upload yourself has no licence record, and its details read *Licence not recorded*, so keep the partner's permission to use their mark with your own records ([Creative rights and credits](/info/creative-rights.html)).
