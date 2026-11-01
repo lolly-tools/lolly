@@ -649,9 +649,7 @@ function readStyles(store: PartStore): XlsxStyles {
   const custom = new Map<number, string>();
   const fmts = /<numFmts\b[^>]*>([\s\S]*?)<\/numFmts>/i.exec(xml);
   if (fmts) {
-    const re = /<numFmt\b[^>]*>/gi;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(fmts[1]!)) !== null) {
+    for (const m of fmts[1]!.matchAll(/<numFmt\b[^>]*>/gi)) {
       const id = Number.parseInt(attr(m[0], 'numFmtId') ?? '', 10);
       const code = attr(m[0], 'formatCode');
       if (Number.isInteger(id) && id >= 0 && code && code.length <= MAX_FORMAT_CODE) custom.set(id, code);
@@ -661,9 +659,7 @@ function readStyles(store: PartStore): XlsxStyles {
   const xfs: (string | null)[] = [];
   const section = /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/i.exec(xml);
   if (section) {
-    const re = /<xf\b[^>]*>/gi;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(section[1]!)) !== null) {
+    for (const m of section[1]!.matchAll(/<xf\b[^>]*>/gi)) {
       const id = Number.parseInt(attr(m[0], 'numFmtId') ?? '0', 10);
       const code = Number.isInteger(id) ? (custom.get(id) ?? BUILTIN_FORMATS[id] ?? null) : null;
       xfs.push(code === null || /^\s*general\s*$/i.test(code) ? null : code);

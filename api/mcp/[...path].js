@@ -94428,9 +94428,7 @@ function readStyles2(store) {
   const custom = /* @__PURE__ */ new Map();
   const fmts = /<numFmts\b[^>]*>([\s\S]*?)<\/numFmts>/i.exec(xml3);
   if (fmts) {
-    const re = /<numFmt\b[^>]*>/gi;
-    let m2;
-    while ((m2 = re.exec(fmts[1])) !== null) {
+    for (const m2 of fmts[1].matchAll(/<numFmt\b[^>]*>/gi)) {
       const id3 = Number.parseInt(attr2(m2[0], "numFmtId") ?? "", 10);
       const code = attr2(m2[0], "formatCode");
       if (Number.isInteger(id3) && id3 >= 0 && code && code.length <= MAX_FORMAT_CODE) custom.set(id3, code);
@@ -94440,9 +94438,7 @@ function readStyles2(store) {
   const xfs = [];
   const section = /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/i.exec(xml3);
   if (section) {
-    const re = /<xf\b[^>]*>/gi;
-    let m2;
-    while ((m2 = re.exec(section[1])) !== null) {
+    for (const m2 of section[1].matchAll(/<xf\b[^>]*>/gi)) {
       const id3 = Number.parseInt(attr2(m2[0], "numFmtId") ?? "0", 10);
       const code = Number.isInteger(id3) ? custom.get(id3) ?? BUILTIN_FORMATS[id3] ?? null : null;
       xfs.push(code === null || /^\s*general\s*$/i.test(code) ? null : code);
