@@ -57,7 +57,7 @@ export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
   lift: { required: ['svg'], optional: [] },
   keyframes: { required: ['sample'], optional: [] },
   recorder: { required: ['isAvailable', 'record', 'still'], optional: [] },
-  audio: { required: ['isAvailable', 'analyse'], optional: ['clean', 'decode'] },
+  audio: { required: ['isAvailable', 'analyse'], optional: ['clean', 'decode', 'loudness', 'align'] },
   codec: { required: ['png16', 'exr', 'radiance', 'dither8'], optional: ['decode','preview','compose','validate'] },
   layers: { required: ['writePsd'], optional: [] },
   upscale: { required: ['isAvailable', 'backend', 'models', 'modelBytes', 'cached', 'canRun', 'run'], optional: [] },
