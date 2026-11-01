@@ -94155,6 +94155,7 @@ function openXlsx(bytes2) {
   }
   let declared;
   let shared;
+  let styles;
   const sheetList = () => declared ??= allSheets(store);
   return {
     sheets: () => sheetList().map((s, index2) => ({ name: s.name || `Sheet ${index2 + 1}`, index: index2 })),
@@ -94170,7 +94171,12 @@ function openXlsx(bytes2) {
       if (sheetXml == null) throw new Error("The chosen sheet is missing or too large.");
       shared ??= readSharedStrings(store);
       const formulas = { mode: opts.cells === "formulas" ? "formulas" : "cached", shared: /* @__PURE__ */ new Map(), cells: 0, kept: 0 };
-      const { rows: rows2, truncated } = readSheet(sheetXml, shared, limit3, formulas);
+      let formats;
+      if (typeof opts.formatCell === "function") {
+        styles ??= readStyles2(store);
+        formats = { format: opts.formatCell, xfs: styles.xfs, system: styles.system, pending: [], dates: [] };
+      }
+      const { rows: rows2, truncated } = readSheet(sheetXml, shared, limit3, formulas, formats);
       if (!rows2.length) throw new Error(truncated ? "That sheet is too large to read." : "That sheet has no cells.");
       return {
         rows: rows2,
@@ -94178,7 +94184,8 @@ function openXlsx(bytes2) {
         sheetPath: chosen.path,
         sheetName: chosen.name || void 0,
         formulaCells: formulas.cells,
-        ...formulas.mode === "formulas" ? { formulaResultsKept: formulas.kept } : {}
+        ...formulas.mode === "formulas" ? { formulaResultsKept: formulas.kept } : {},
+        ...formats ? { dates: formats.dates } : {}
       };
     }
   };
@@ -94312,7 +94319,7 @@ function collectText(fragment) {
   }
   return decodeXml(text12);
 }
-function readSheet(xml3, shared, limit3, formulas) {
+function readSheet(xml3, shared, limit3, formulas, formats) {
   const grid = /* @__PURE__ */ new Map();
   let maxCol = -1;
   let maxRow = -1;
@@ -94364,7 +94371,9 @@ function readSheet(xml3, shared, limit3, formulas) {
     row.set(colIdx, value2);
     if (colIdx > maxCol) maxCol = colIdx;
     if (rowIdx > maxRow) maxRow = rowIdx;
+    if (formats && formula === void 0) queueFormat(formats, attrs, value2, rowIdx, colIdx);
   }
+  if (formats) applyFormats(formats, grid);
   if (maxRow < 0 || maxCol < 0) return { rows: [], truncated };
   let width = maxCol + 1;
   let lastRow = maxRow;
@@ -94408,6 +94417,77 @@ function cellValue(attrs, inner, shared) {
     return firstElemText(inner, "v").trim() === "1" ? "TRUE" : "FALSE";
   }
   return decodeXml(firstElemText(inner, "v"));
+}
+function readStyles2(store) {
+  const wb = store.text("xl/workbook.xml");
+  const pr = wb ? /<workbookPr\b[^>]*>/i.exec(wb) : null;
+  const flag = pr ? (attr2(pr[0], "date1904") ?? "").trim().toLowerCase() : "";
+  const system = flag === "1" || flag === "true" ? 1904 : 1900;
+  const xml3 = store.text("xl/styles.xml");
+  if (!xml3) return { xfs: [], system };
+  const custom = /* @__PURE__ */ new Map();
+  const fmts = /<numFmts\b[^>]*>([\s\S]*?)<\/numFmts>/i.exec(xml3);
+  if (fmts) {
+    const re = /<numFmt\b[^>]*>/gi;
+    let m2;
+    while ((m2 = re.exec(fmts[1])) !== null) {
+      const id3 = Number.parseInt(attr2(m2[0], "numFmtId") ?? "", 10);
+      const code = attr2(m2[0], "formatCode");
+      if (Number.isInteger(id3) && id3 >= 0 && code && code.length <= MAX_FORMAT_CODE) custom.set(id3, code);
+      if (custom.size >= MAX_NUM_FMTS) break;
+    }
+  }
+  const xfs = [];
+  const section = /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/i.exec(xml3);
+  if (section) {
+    const re = /<xf\b[^>]*>/gi;
+    let m2;
+    while ((m2 = re.exec(section[1])) !== null) {
+      const id3 = Number.parseInt(attr2(m2[0], "numFmtId") ?? "0", 10);
+      const code = Number.isInteger(id3) ? custom.get(id3) ?? BUILTIN_FORMATS[id3] ?? null : null;
+      xfs.push(code === null || /^\s*general\s*$/i.test(code) ? null : code);
+      if (xfs.length >= MAX_XFS) break;
+    }
+  }
+  return { xfs, system };
+}
+function queueFormat(f, attrs, value2, row, col) {
+  const style = attr2(attrs, "s");
+  if (style === null) return;
+  const code = f.xfs[Number.parseInt(style, 10)];
+  if (!code) return;
+  const t = attr2(attrs, "t") || "n";
+  let v;
+  if (t === "n") {
+    v = Number(value2);
+    if (!Number.isFinite(v)) return;
+  } else if (t === "s" || t === "inlineStr" || t === "str") v = value2;
+  else return;
+  f.pending.push({ row, col, req: { value: v, formatCode: code, dateSystem: f.system } });
+}
+function applyFormats(f, grid) {
+  for (let start = 0; start < f.pending.length; start += XLSX_FORMAT_BATCH) {
+    const batch = f.pending.slice(start, start + XLSX_FORMAT_BATCH);
+    let out;
+    try {
+      out = f.format(batch.map((b) => b.req));
+    } catch {
+      continue;
+    }
+    if (!Array.isArray(out) || out.length !== batch.length) continue;
+    for (let i = 0; i < batch.length; i++) {
+      const r5 = out[i];
+      const at = batch[i];
+      if (!r5 || typeof r5.text !== "string" || !KINDS2.has(r5.kind)) continue;
+      const row = grid.get(at.row);
+      if (!row) continue;
+      row.set(at.col, r5.text);
+      if (typeof r5.iso === "string" && /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2})?$/.test(r5.iso)) {
+        f.dates.push({ row: at.row, col: at.col, iso: r5.iso });
+      }
+    }
+  }
+  f.dates.sort((a, b) => a.row - b.row || a.col - b.col);
 }
 function formulaText(inner, row, col, state) {
   const m2 = /<f\b([^>]*?)(?:\/>|>([\s\S]*?)<\/f>)/.exec(inner);
@@ -94591,16 +94671,71 @@ function decodeXml(s) {
     }
   });
 }
-var DEFAULT_XLSX_ROW_LIMIT, MAX_PART_BYTES3, MAX_TOTAL_BYTES, MAX_COLS, MAX_CELLS, MAX_GRID_CELLS, MAX_ROWS2, NAME_CHAR, REF_AT, WORD_AT, NUMBER_AT, REF_RE;
+var XLSX_FORMAT_BATCH, DEFAULT_XLSX_ROW_LIMIT, MAX_PART_BYTES3, MAX_TOTAL_BYTES, MAX_COLS, MAX_CELLS, MAX_GRID_CELLS, BUILTIN_FORMATS, MAX_XFS, MAX_NUM_FMTS, MAX_FORMAT_CODE, KINDS2, MAX_ROWS2, NAME_CHAR, REF_AT, WORD_AT, NUMBER_AT, REF_RE;
 var init_xlsx_import = __esm({
   "engine/src/xlsx-import.ts"() {
     "use strict";
+    XLSX_FORMAT_BATCH = 5e4;
     DEFAULT_XLSX_ROW_LIMIT = 1e3;
     MAX_PART_BYTES3 = 32 * 1024 * 1024;
     MAX_TOTAL_BYTES = 256 * 1024 * 1024;
     MAX_COLS = 16384;
     MAX_CELLS = 2e6;
     MAX_GRID_CELLS = 16777216;
+    BUILTIN_FORMATS = {
+      1: "0",
+      2: "0.00",
+      3: "#,##0",
+      4: "#,##0.00",
+      5: '"$"#,##0_);\\("$"#,##0\\)',
+      6: '"$"#,##0_);[Red]\\("$"#,##0\\)',
+      7: '"$"#,##0.00_);\\("$"#,##0.00\\)',
+      8: '"$"#,##0.00_);[Red]\\("$"#,##0.00\\)',
+      9: "0%",
+      10: "0.00%",
+      11: "0.00E+00",
+      12: "# ?/?",
+      13: "# ??/??",
+      14: "m/d/yyyy",
+      15: "d-mmm-yy",
+      16: "d-mmm",
+      17: "mmm-yy",
+      18: "h:mm AM/PM",
+      19: "h:mm:ss AM/PM",
+      20: "h:mm",
+      21: "h:mm:ss",
+      22: "m/d/yyyy h:mm",
+      37: "#,##0 ;(#,##0)",
+      38: "#,##0 ;[Red](#,##0)",
+      39: "#,##0.00;(#,##0.00)",
+      40: "#,##0.00;[Red](#,##0.00)",
+      41: '_(* #,##0_);_(* \\(#,##0\\);_(* "-"_);_(@_)',
+      42: '_("$"* #,##0_);_("$"* \\(#,##0\\);_("$"* "-"_);_(@_)',
+      43: '_(* #,##0.00_);_(* \\(#,##0.00\\);_(* "-"??_);_(@_)',
+      44: '_("$"* #,##0.00_);_("$"* \\(#,##0.00\\);_("$"* "-"??_);_(@_)',
+      45: "mm:ss",
+      46: "[h]:mm:ss",
+      47: "mmss.0",
+      48: "##0.0E+0",
+      49: "@"
+    };
+    MAX_XFS = 65536;
+    MAX_NUM_FMTS = 4096;
+    MAX_FORMAT_CODE = 1024;
+    KINDS2 = /* @__PURE__ */ new Set([
+      "general",
+      "number",
+      "currency",
+      "accounting",
+      "date",
+      "time",
+      "percentage",
+      "fraction",
+      "scientific",
+      "text",
+      "special",
+      "custom"
+    ]);
     MAX_ROWS2 = 1048576;
     NAME_CHAR = /[\p{L}\p{N}_.$\\?]/u;
     REF_AT = /(\$?)([A-Za-z]{1,3})(\$?)(\d{1,7})/y;
