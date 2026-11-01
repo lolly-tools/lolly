@@ -12,11 +12,12 @@
  * physical output size by a single CTM set once at the top.
  *
  * Like color.js / units.js this is a format authority: it imports only those two
- * (toPoints for the bounding box, rgbToCmyk for the DeviceCMYK variant). No DOM,
+ * (toPoints for the bounding box, rgbToCmyk as the DeviceCMYK variant's default
+ * separation; a caller passes its press separation as `separate`). No DOM,
  * no Handlebars, no ajv - fully node:test-able.
  */
 import { parseDimension, toPoints, CSS_DPI } from './units.ts';
-import { rgbToCmyk } from './color.ts';
+import { rgbToCmyk, type Cmyk } from './color.ts';
 import type { Rgb, VectorIr, VectorPathPrim, VectorImagePrim, VectorEmitOpts } from './emf.ts';
 import type { PrintGeometry } from './print-marks.ts';
 
@@ -31,6 +32,9 @@ export interface EpsEmitOpts extends VectorEmitOpts {
   cmyk?: boolean;
   meta?: { title?: string };
   cmykPalette?: EpsCmykPalette;
+  /** How a colour with no palette match becomes ink on the CMYK variant: the
+   *  export's press separation (cmyk-separation.ts). Defaults to the device formula. */
+  separate?: (r: number, g: number, b: number) => Cmyk;
   /** Print geometry (bleed + marks + colour bar). When present, the media box is the
    *  page box, the artwork is placed into the bleed box, and the marks are drawn. */
   geometry?: PrintGeometry;
@@ -52,11 +56,11 @@ function rgbPaletteKey(r: number, g: number, b: number): string {
   return Math.round(r * 100) + ',' + Math.round(g * 100) + ',' + Math.round(b * 100);
 }
 
-function colorOp(c: Rgb, cmyk: boolean, palette?: EpsCmykPalette): string {
+function colorOp(c: Rgb, cmyk: boolean, palette?: EpsCmykPalette, separate: (r: number, g: number, b: number) => Cmyk = rgbToCmyk): string {
   const r = (c.r & 0xff) / 255, g = (c.g & 0xff) / 255, b = (c.b & 0xff) / 255;
   if (cmyk) {
     const hit = palette?.get(rgbPaletteKey(r, g, b));
-    const [cy, m, y, k] = hit ? hit.cmyk : rgbToCmyk(r, g, b);
+    const [cy, m, y, k] = hit ? hit.cmyk : separate(r, g, b);
     return n(cy) + ' ' + n(m) + ' ' + n(y) + ' ' + n(k) + ' setcmykcolor';
   }
   return n(r) + ' ' + n(g) + ' ' + n(b) + ' setrgbcolor';
@@ -91,7 +95,7 @@ function emitImagePrim(prim: VectorImagePrim, out: string[]): void {
   out.push('grestore');
 }
 
-function emitPathPrim(prim: VectorPathPrim, cmyk: boolean, out: string[], palette?: EpsCmykPalette): void {
+function emitPathPrim(prim: VectorPathPrim, cmyk: boolean, out: string[], palette?: EpsCmykPalette, separate?: (r: number, g: number, b: number) => Cmyk): void {
   const { subpaths, fill, stroke, fillRule } = prim;
   if (!subpaths || !subpaths.length) return;
   out.push('newpath');
@@ -108,12 +112,12 @@ function emitPathPrim(prim: VectorPathPrim, cmyk: boolean, out: string[], palett
   const fillVerb = fillRule === 'evenodd' ? 'eofill' : 'fill';
   const lw = n(Math.max(0, stroke ? stroke.width : 0)) + ' setlinewidth';
   if (fill && stroke) {
-    out.push('gsave', colorOp(fill, cmyk, palette), fillVerb, 'grestore');
-    out.push(colorOp(stroke, cmyk, palette), lw, 'stroke');
+    out.push('gsave', colorOp(fill, cmyk, palette, separate), fillVerb, 'grestore');
+    out.push(colorOp(stroke, cmyk, palette, separate), lw, 'stroke');
   } else if (fill) {
-    out.push(colorOp(fill, cmyk, palette), fillVerb);
+    out.push(colorOp(fill, cmyk, palette, separate), fillVerb);
   } else if (stroke) {
-    out.push(colorOp(stroke, cmyk, palette), lw, 'stroke');
+    out.push(colorOp(stroke, cmyk, palette, separate), lw, 'stroke');
   }
 }
 
@@ -160,7 +164,7 @@ export function emitEps(ir: VectorIr, opts: EpsEmitOpts = {}): string {
     L.push(n(geo.artwork.x) + ' ' + n(geo.artwork.y) + ' translate');
     L.push(n(geo.artwork.w / Wpx) + ' ' + n(geo.artwork.h / Hpx) + ' scale');
     for (const prim of ir.prims || []) {
-      if (prim && prim.type === 'path') emitPathPrim(prim, cmyk, L, opts.cmykPalette);
+      if (prim && prim.type === 'path') emitPathPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === 'image') emitImagePrim(prim, L);
     }
     L.push('grestore');
@@ -169,7 +173,7 @@ export function emitEps(ir: VectorIr, opts: EpsEmitOpts = {}): string {
     L.push('0 ' + n(Hpt) + ' translate');
     L.push(n(sx) + ' ' + n(-sy) + ' scale');
     for (const prim of ir.prims || []) {
-      if (prim && prim.type === 'path') emitPathPrim(prim, cmyk, L, opts.cmykPalette);
+      if (prim && prim.type === 'path') emitPathPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === 'image') emitImagePrim(prim, L);
     }
   }
