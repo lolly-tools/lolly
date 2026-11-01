@@ -13,7 +13,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chromium } from 'playwright';
-import { shellSettled } from './helpers/shell-settled.ts';
+import { gotoSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 const ROOMS = ['overview', 'color', 'type', 'logos', 'tokens', 'catalogue', 'usage'];
@@ -28,7 +28,7 @@ test('each design-system room fits a 390px phone, the open face picker included'
       for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
     });
     const page = await context.newPage();
-    await page.goto(`${origin}/#/start`, { waitUntil: 'networkidle' }); await shellSettled(page);
+    await gotoSettled(page, `${origin}/#/start`);
     const width = (): Promise<{ scroll: number; client: number }> => page.evaluate(() => ({
       scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth,
     }));
@@ -43,7 +43,9 @@ test('each design-system room fits a 390px phone, the open face picker included'
       assert.ok(scroll <= client, `the ${room} room is ${scroll}px wide on a ${client}px phone`);
     }
     assert.ok(visited.length >= 5, `the studio rooms were found (${visited.join(', ') || 'none'})`);
-    await page.goto(`${origin}/#/start`, { waitUntil: 'networkidle' }); await shellSettled(page);
+    // Back to #/start from inside the studio is a hash change: the studio mounts again,
+    // and a door clicked before that belongs to the studio being replaced.
+    await gotoSettled(page, `${origin}/#/start`);
     await page.locator('[data-ds-room="type"]').first().click();
     await page.getByRole('button', { name: /^Choose for / }).first().click();
     await page.locator('.be-typestage-pinrow').waitFor();
