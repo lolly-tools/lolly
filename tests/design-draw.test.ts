@@ -13,6 +13,11 @@ import { inflateSync } from 'node:zlib';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
+import { pathBounds, pathFromSubPaths } from '../engine/src/geom/path.ts';
+import { parseSvgPath } from '../engine/src/svg-path.ts';
+import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
+import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
+import { createNodeTextShaper } from '../packages/node-shell/src/text-measure.ts';
 import { baseHost } from './helpers/host.ts';
 
 const triangle = encodeAuthoredPaths([{ kind: 'cubic', closed: true, nodes: [{ x: 0, y: 1 }, { x: 0.5, y: 0 }, { x: 1, y: 1 }] }] as never) ?? '';
@@ -223,7 +228,9 @@ test('outlined underlines sit under the baseline in the run paint, cleared aroun
     return { d: clusters.map((c) => c.d).join(''), ...(opts.clusters ? { clusters } : {}) };
   });
   assert.deepEqual(draw.findings, []);
-  assert.deepEqual(calls.map((c) => [c.text, c.clusters ?? false]), [['gap_x', true], [' ab', false]], 'only an underlined run asks for its clusters');
+  // The underlined run and the plain one after it share a face: one stretch, split by cluster.
+  assert.deepEqual(calls.map((c) => [c.text, c.clusters ?? false]), [['gap_x ab', true]], 'runs in one face are outlined as one stretch');
+  assert.ok(draw.ops[0]!.words!.outlines![0]![1]!.startsWith('M1,-8L9,-8'), 'the second run\'s clusters move to its own origin');
   // Size 20: a 2 px line 1 px under the baseline at 36, cleared 2 px either side of g and p.
   assert.deepEqual(draw.ops[0]!.words!.underlines, [[{ y: 1, height: 2, spans: [{ x: 11, width: 8 }, { x: 31, width: 19 }] }, null]]);
   const svg = designDrawSvg(draw, emit);
@@ -270,6 +277,70 @@ test('the line under a hanging space takes that space\'s own ink, as its own fra
   assert.ok(green.svg.includes(green.rect(20, 5, '#00ff00')));
   assert.equal(green.svg.match(/height="2"/g)?.length, 2, 'the line is the space\'s piece and the second line\'s');
   assert.ok(green.pdf.includes(`q 0 1 0 rg ${green.origin}20 1 5 2 re f\nQ\n`));
+});
+
+test('runs in one face are outlined as one stretch and split where each cluster starts; right to left or without clusters, run by run', async () => {
+  const outlined = async (clusters: (text: string) => Array<{ start: number; d: string; x?: number }> | undefined) => {
+    const draw = compileDesignDraw([{ id: 'w', kind: 'text', x: 0, y: 0, w: 300, h: 100, text: 'ab{#ff0000|cd}', fontSize: 20, align: 'left', valign: 'top' }] as never, { width: 300, height: 100 });
+    await layoutDesignDrawText(draw, shaper);
+    const calls: string[] = [];
+    await outlineDesignDrawText(draw, async ({ text }) => {
+      calls.push(text);
+      const got = clusters(text);
+      return { d: `M0 0H${text.length}`, ...(got ? { clusters: got } : {}) };
+    });
+    return { calls, outlines: draw.ops[0]!.words!.outlines, runs: draw.ops[0]!.words!.layout!.lines[0]!.runs.map((r) => [r.text, r.x, r.width]) };
+  };
+  // "bc" is one cluster, a ligature that starts in the first run: it is drawn there, and
+  // the second run's own cluster moves from the stretch's origin to the run's (20 px).
+  const lig = await outlined((text) => (text === 'abcd' ? [{ start: 0, d: 'M0 0H5' }, { start: 1, d: 'M10 0H15' }, { start: 3, d: 'M30 0H35' }] : undefined));
+  assert.deepEqual(lig.runs, [['ab', 0, 20], ['cd', 20, 20]]);
+  assert.deepEqual([lig.calls, lig.outlines], [['abcd'], [['M0 0H5M10 0H15', 'M10,0L15,0']]]);
+  const rtl = await outlined((text) => (text === 'abcd' ? [{ start: 0, d: '', x: 30 }, { start: 2, d: '', x: 0 }] : undefined));
+  assert.deepEqual([rtl.calls, rtl.outlines], [['abcd', 'ab', 'cd'], [['M0 0H2', 'M0 0H2']]], 'a stretch shaped right to left does not fit slots laid out left to right');
+  const none = await outlined(() => undefined);
+  assert.deepEqual([none.calls, none.outlines], [['abcd', 'ab', 'cd'], [['M0 0H2', 'M0 0H2']]], 'a host with no clusters outlines each run alone');
+});
+
+test('a ligature across a run boundary is drawn whole in the run it starts in, so each run\'s glyphs stay inside its slot', async () => {
+  // Real HarfBuzz over SUSE at 48 px, where the second "f" and the "i" are one "fi" glyph.
+  // Chromium forms that glyph across the span too: "off" takes its whole advance and paints
+  // the glyph in its own colour, and the span starts at the "c". The measure lays the slots
+  // out that way, so the outlines must follow; outlined alone, "off" left an 11 px gap and
+  // "ice" overlapped " more" by 13 px.
+  const root = repoRoot();
+  const shaper48 = createNodeTextShaper({ repoRoot: root });
+  const text = createNodeTextAPI({ repoRoot: root });
+  const ink = (d: string): [number, number] => { const b = pathBounds(pathFromSubPaths(parseSvgPath(d)))!; return [b.x0, b.x1]; };
+  let colour: unknown;
+  for (const authored of ['off{#cc0000|ice} more', 'off{u|ice} more']) {
+    const draw = compileDesignDraw([{ id: 'w', kind: 'text', x: 0, y: 0, w: 600, h: 100, text: authored, fontSize: 48, weight: 400, align: 'left', valign: 'top' }] as never, { width: 600, height: 100 });
+    await layoutDesignDrawText(draw, shaper48);
+    const calls: string[] = [];
+    await outlineDesignDrawText(draw, (o) => { calls.push(o.text); return text.toPath(o); });
+    assert.deepEqual([draw.findings, calls], [[], ['office more']], `${authored}: the line is one stretch in one face`);
+    const words = draw.ops[0]!.words!, line = words.layout!.lines[0]!, runs = line.runs;
+    assert.deepEqual(runs.map((r) => r.text), ['off', 'ice', ' more']);
+    // The same line outlined whole: each run must draw exactly the clusters that start in that run.
+    const face = runs[0]!.face;
+    const whole = await text.toPath({ text: 'office more', fontUrl: face.file, fontSize: 48, variations: Object.entries(face.variations ?? {}).map(([k, v]) => `${k}=${v}`), clusters: true });
+    let from = 0;
+    runs.forEach((run, i) => {
+      const end = run.x + run.width;
+      if (i + 1 < runs.length) assert.ok(Math.abs(end - runs[i + 1]!.x) <= 0.01, `${authored}: "${run.text}" ends at ${end}, where the next run starts (${runs[i + 1]!.x})`);
+      const [lo, hi] = ink(words.outlines![0]![i]!);
+      assert.ok(lo >= 0 && hi <= run.width, `${authored}: "${run.text}" ink ${lo}..${hi} inside its ${run.width} px slot`);
+      const own = whole.clusters!.filter((c) => c.start >= from && c.start < from + run.text.length && c.d);
+      const [wlo, whi] = ink(own.map((c) => c.d).join(''));
+      assert.ok(Math.abs(run.x + lo - wlo) <= 0.01 && Math.abs(run.x + hi - whi) <= 0.01, `${authored}: "${run.text}" ink at ${run.x + lo}..${run.x + hi}, the whole line's at ${wlo}..${whi}`);
+      from += run.text.length;
+    });
+    if (authored.includes('{u|')) {
+      // The underline goes under the span's own slot, from the "c" to the space, as Chromium draws the line.
+      assert.deepEqual(words.underlines![0]!.map((u) => u?.spans ?? null), [null, [{ x: 0, width: runs[1]!.width }], null]);
+      assert.deepEqual(words.outlines, colour, 'an underline changes no glyph');
+    } else colour = words.outlines;
+  }
 });
 
 test('a picture reads its fit, keyword or framing, and is clipped inside the border at the inner radius', () => {

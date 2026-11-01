@@ -3604,9 +3604,9 @@ var init_canonical_json = __esm({
 
 // engine/src/bytes.ts
 function concatBytes(parts) {
-  let n8 = 0;
-  for (const p of parts) n8 += p.length;
-  const out = new Uint8Array(n8);
+  let n7 = 0;
+  for (const p of parts) n7 += p.length;
+  const out = new Uint8Array(n7);
   let o = 0;
   for (const p of parts) {
     out.set(p, o);
@@ -3684,11 +3684,11 @@ function ecdsaDerToRaw(derSig, size) {
   }
   return out;
 }
-function derLen(n8) {
-  if (n8 < 128) return Uint8Array.of(n8);
-  if (n8 < 256) return Uint8Array.of(129, n8);
-  if (n8 < 65536) return Uint8Array.of(130, n8 >>> 8, n8 & 255);
-  return Uint8Array.of(131, n8 >>> 16, n8 >>> 8 & 255, n8 & 255);
+function derLen(n7) {
+  if (n7 < 128) return Uint8Array.of(n7);
+  if (n7 < 256) return Uint8Array.of(129, n7);
+  if (n7 < 65536) return Uint8Array.of(130, n7 >>> 8, n7 & 255);
+  return Uint8Array.of(131, n7 >>> 16, n7 >>> 8 & 255, n7 & 255);
 }
 function derWrap(tag3, body) {
   return concatBytes([Uint8Array.of(tag3), derLen(body.length), body]);
@@ -3720,11 +3720,11 @@ var init_der_read = __esm({
 });
 
 // engine/src/x509.ts
-function derLen2(n8) {
-  if (n8 < 128) return Uint8Array.of(n8);
-  if (n8 < 256) return Uint8Array.of(129, n8);
-  if (n8 < 65536) return Uint8Array.of(130, n8 >>> 8, n8 & 255);
-  return Uint8Array.of(131, n8 >>> 16, n8 >>> 8 & 255, n8 & 255);
+function derLen2(n7) {
+  if (n7 < 128) return Uint8Array.of(n7);
+  if (n7 < 256) return Uint8Array.of(129, n7);
+  if (n7 < 65536) return Uint8Array.of(130, n7 >>> 8, n7 & 255);
+  return Uint8Array.of(131, n7 >>> 16, n7 >>> 8 & 255, n7 & 255);
 }
 function der(tag3, ...content2) {
   const body = concatBytes(content2);
@@ -3741,7 +3741,7 @@ function derOid(oid2) {
   const bytes2 = [parts[0] * 40 + parts[1]];
   for (const p of parts.slice(2)) {
     const grp = [p & 127];
-    for (let n8 = Math.floor(p / 128); n8 > 0; n8 = Math.floor(n8 / 128)) grp.unshift(n8 & 127 | 128);
+    for (let n7 = Math.floor(p / 128); n7 > 0; n7 = Math.floor(n7 / 128)) grp.unshift(n7 & 127 | 128);
     bytes2.push(...grp);
   }
   return der(6, Uint8Array.from(bytes2));
@@ -4088,7 +4088,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.294.0";
+    ENGINE_VERSION = "1.295.0";
   }
 });
 
@@ -4100,9 +4100,9 @@ function parseVersion(v) {
   const out = [];
   for (let i = 0; i < 3; i++) {
     const seg4 = parts[i];
-    const n8 = seg4 === void 0 || seg4 === "" ? 0 : Number(seg4);
-    if (!Number.isFinite(n8) || n8 < 0) return null;
-    out.push(Math.floor(n8));
+    const n7 = seg4 === void 0 || seg4 === "" ? 0 : Number(seg4);
+    if (!Number.isFinite(n7) || n7 < 0) return null;
+    out.push(Math.floor(n7));
   }
   return out;
 }
@@ -4126,7 +4126,7 @@ function termToPredicate(term) {
   const maj = majW ? 0 : Math.floor(Number(seg4[0]));
   const min = minW ? 0 : Math.floor(Number(seg4[1]));
   const pat = patW ? 0 : Math.floor(Number(seg4[2]));
-  if ([maj, min, pat].some((n8) => !Number.isFinite(n8) || n8 < 0)) return () => false;
+  if ([maj, min, pat].some((n7) => !Number.isFinite(n7) || n7 < 0)) return () => false;
   const base = [maj, min, pat];
   const atLeast = (lo) => (v) => cmp(v, lo) >= 0;
   const below = (hi) => (v) => cmp(v, hi) < 0;
@@ -4203,7 +4203,7 @@ function parseSkillFrontmatter(text12) {
     break;
   }
   if (end < 0) return { present: true, fields: {}, metadata: {}, body: text12, length: 0, errors: ["The frontmatter block is not closed with a --- line."] };
-  const length2 = lines.slice(0, end + 1).reduce((n8, line) => n8 + line.length + 1, 0);
+  const length2 = lines.slice(0, end + 1).reduce((n7, line) => n7 + line.length + 1, 0);
   const fields2 = {};
   const metadata2 = {};
   const errors = [];
@@ -4735,8 +4735,8 @@ function parseHex(s) {
   h = h.slice(1);
   if (h.length === 3 || h.length === 4) h = [...h].map((c) => c + c).join("");
   if (h.length !== 6 && h.length !== 8 || /[^0-9a-f]/.test(h)) return null;
-  const n8 = (i) => parseInt(h.slice(i, i + 2), 16);
-  return [n8(0), n8(2), n8(4), h.length === 8 ? n8(6) / 255 : 1];
+  const n7 = (i) => parseInt(h.slice(i, i + 2), 16);
+  return [n7(0), n7(2), n7(4), h.length === 8 ? n7(6) / 255 : 1];
 }
 function parseComponentToken(tok) {
   if (tok.toLowerCase() === "none") return { n: 0, pct: false, none: true };
@@ -4747,9 +4747,9 @@ function parseHueToken(tok) {
   if (tok.toLowerCase() === "none") return 0;
   const m2 = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)(deg|rad|grad|turn)?$/i.exec(tok);
   if (!m2) return null;
-  const n8 = parseFloat(m2[1]);
+  const n7 = parseFloat(m2[1]);
   const unit2 = (m2[2] ?? "deg").toLowerCase();
-  const deg2 = unit2 === "rad" ? n8 * 180 / Math.PI : unit2 === "grad" ? n8 * 0.9 : unit2 === "turn" ? n8 * 360 : n8;
+  const deg2 = unit2 === "rad" ? n7 * 180 / Math.PI : unit2 === "grad" ? n7 * 0.9 : unit2 === "turn" ? n7 * 360 : n7;
   return normHue(deg2);
 }
 function parseAlphaToken(tok) {
@@ -4920,20 +4920,20 @@ function parseCssColor(input) {
   }
   return null;
 }
-function rampLightnesses(primaryL, n8) {
+function rampLightnesses(primaryL, n7) {
   const src = RAMP_L;
   const Ls = [];
-  for (let i = 0; i < n8; i++) {
-    const t = n8 === 1 ? 0.5 : i / (n8 - 1);
+  for (let i = 0; i < n7; i++) {
+    const t = n7 === 1 ? 0.5 : i / (n7 - 1);
     const x = t * (src.length - 1);
     const lo = Math.floor(x), hi = Math.min(src.length - 1, lo + 1);
     Ls.push(src[lo] + (src[hi] - src[lo]) * (x - lo));
   }
-  if (primaryL >= 0.45 && primaryL <= 0.75 && n8 >= 3) {
-    const mid3 = Math.round((n8 - 1) / 2);
+  if (primaryL >= 0.45 && primaryL <= 0.75 && n7 >= 3) {
+    const mid3 = Math.round((n7 - 1) / 2);
     Ls[mid3] = primaryL;
     for (let i = 1; i < mid3; i++) Ls[i] = Ls[0] + (Ls[mid3] - Ls[0]) * (i / mid3);
-    for (let i = mid3 + 1; i < n8 - 1; i++) Ls[i] = Ls[mid3] + (Ls[n8 - 1] - Ls[mid3]) * ((i - mid3) / (n8 - 1 - mid3));
+    for (let i = mid3 + 1; i < n7 - 1; i++) Ls[i] = Ls[mid3] + (Ls[n7 - 1] - Ls[mid3]) * ((i - mid3) / (n7 - 1 - mid3));
   }
   return Ls;
 }
@@ -4950,11 +4950,11 @@ function nudgeHue(from, toward, maxDeg) {
 function emitHex(v) {
   return oklchToHex(parseOklch(formatOklch(v)) ?? v);
 }
-function stepsByDistance(preferred, tie, n8 = 9) {
+function stepsByDistance(preferred, tie, n7 = 9) {
   const out = [preferred];
-  for (let d = 1; d < n8; d++) {
+  for (let d = 1; d < n7; d++) {
     for (const s of [preferred + tie * d, preferred - tie * d]) {
-      if (s >= 1 && s <= n8 && !out.includes(s)) out.push(s);
+      if (s >= 1 && s <= n7 && !out.includes(s)) out.push(s);
     }
   }
   return out;
@@ -5125,7 +5125,7 @@ var clamp01, normHue, apply3, srgbToLinear, linearToSrgb, lmsToOklab, D50_WHITE,
 var init_brand_derive = __esm({
   "engine/src/brand-derive.ts"() {
     "use strict";
-    clamp01 = (n8) => Math.min(1, Math.max(0, n8));
+    clamp01 = (n7) => Math.min(1, Math.max(0, n7));
     normHue = (h) => (h % 360 + 360) % 360;
     apply3 = (m2, x, y, z) => [
       m2[0] * x + m2[1] * y + m2[2] * z,
@@ -5164,7 +5164,7 @@ var init_brand_derive = __esm({
     ];
     parseComponent = parseComponentToken;
     parseAlphaComponent = parseAlphaToken;
-    fmtNum = (n8, dp) => n8.toFixed(dp).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+    fmtNum = (n7, dp) => n7.toFixed(dp).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
     JND = 0.02;
     GAMUT_EPSILON = 1e-4;
     MAP_EPSILON = GAMUT_EPSILON;
@@ -5498,32 +5498,32 @@ function encodeOklch(l, c, h, encode = "srgb") {
   ];
 }
 function sliceGamutEdge(plane, fixed3, limit2 = "srgb", steps = 96, cMax = SLICE_C_MAX) {
-  const n8 = Math.max(2, Math.floor(steps));
+  const n7 = Math.max(2, Math.floor(steps));
   const src = resolveGamutSource(limit2);
   const pts = [];
   if (plane === "lc") {
-    for (let i = 0; i <= n8; i++) {
-      const l = 1 - i / n8;
-      pts.push({ x: Math.min(1, maxChroma(l, fixed3, src) / cMax), y: i / n8 });
+    for (let i = 0; i <= n7; i++) {
+      const l = 1 - i / n7;
+      pts.push({ x: Math.min(1, maxChroma(l, fixed3, src) / cMax), y: i / n7 });
     }
   } else if (plane === "ch") {
-    for (let i = 0; i <= n8; i++) {
-      const h = i / n8 * 360;
+    for (let i = 0; i <= n7; i++) {
+      const h = i / n7 * 360;
       const c = Math.min(1, maxChroma(fixed3, h, src) / cMax);
-      pts.push({ x: i / n8, y: 1 - c });
+      pts.push({ x: i / n7, y: 1 - c });
     }
   }
   return pts;
 }
 function sliceGamutRegion(plane, fixed3, limit2 = "srgb", steps = 96, cMax = SLICE_C_MAX) {
-  const n8 = Math.max(2, Math.floor(steps));
+  const n7 = Math.max(2, Math.floor(steps));
   const src = resolveGamutSource(limit2);
   if (plane === "lc") {
-    const edge = sliceGamutEdge("lc", fixed3, src, n8, cMax);
+    const edge = sliceGamutEdge("lc", fixed3, src, n7, cMax);
     return [[{ x: 0, y: 0 }, { x: 0, y: 1 }, ...edge.slice().reverse()]];
   }
   if (plane === "ch") {
-    const edge = sliceGamutEdge("ch", fixed3, src, n8, cMax);
+    const edge = sliceGamutEdge("ch", fixed3, src, n7, cMax);
     return [[{ x: 0, y: 1 }, { x: 1, y: 1 }, ...edge.slice().reverse()]];
   }
   const c = Math.max(0, fixed3);
@@ -5565,8 +5565,8 @@ function sliceGamutRegion(plane, fixed3, limit2 = "srgb", steps = 96, cMax = SLI
     }
     run3 = [];
   };
-  for (let i = 0; i <= n8; i++) {
-    const x = i / n8;
+  for (let i = 0; i <= n7; i++) {
+    const x = i / n7;
     const w = window2(x * 360);
     if (w) run3.push({ x, ...w });
     else flush();
@@ -5854,7 +5854,7 @@ function colorToSrgb8(c) {
 }
 function colorToHexString(c) {
   const [r5, g2, b, a] = colorToSrgb8(c);
-  const h = (n8) => n8.toString(16).padStart(2, "0");
+  const h = (n7) => n7.toString(16).padStart(2, "0");
   const base = `#${h(r5)}${h(g2)}${h(b)}`;
   return a >= 1 ? base : base + h(Math.round(a * 255));
 }
@@ -6006,7 +6006,7 @@ var init_css_color = __esm({
     MISSING_C1 = 1 << 1;
     MISSING_C2 = 1 << 2;
     MISSING_ALPHA = 1 << 3;
-    clamp012 = (n8) => Math.min(1, Math.max(0, n8));
+    clamp012 = (n7) => Math.min(1, Math.max(0, n7));
     normHue3 = (h) => (h % 360 + 360) % 360;
     apply33 = (m2, v) => [
       m2[0] * v[0] + m2[1] * v[1] + m2[2] * v[2],
@@ -6351,7 +6351,7 @@ var init_css_color = __esm({
     };
     PROBES = [0.25, 0.5, 0.75];
     inSrgb = (rgb3) => rgb3.every((v) => v >= -GAMUT_EPSILON && v <= 1 + GAMUT_EPSILON);
-    fmtNum2 = (n8, dp) => (Number(n8.toFixed(dp)) + 0).toFixed(dp).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+    fmtNum2 = (n7, dp) => (Number(n7.toFixed(dp)) + 0).toFixed(dp).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
     RGB_SPACES = /* @__PURE__ */ new Set([
       "srgb",
       "srgb-linear",
@@ -6447,7 +6447,7 @@ function formatGradientSpec(g2) {
     g2.hue && g2.hue !== "shorter" ? g2.hue : ""
   ].filter(Boolean).join(".");
   const head2 = KIND_SHORT[g2.kind] + (mods ? `.${mods}` : "");
-  const num19 = (n8) => String(Math.round(n8 * 100) / 100);
+  const num19 = (n7) => String(Math.round(n7 * 100) / 100);
   const stops = g2.stops.map((s) => `${wireColor(s.color)}-${num19(clampPos(s.pos))}`);
   return [head2, num19(normAngle(g2.angle)), ...stops].join("_");
 }
@@ -6511,8 +6511,8 @@ var init_gradient_spec = __esm({
       increasing: "increasing",
       decreasing: "decreasing"
     };
-    normAngle = (n8) => (n8 % 360 + 360) % 360;
-    clampPos = (n8) => Math.min(100, Math.max(0, n8));
+    normAngle = (n7) => (n7 % 360 + 360) % 360;
+    clampPos = (n7) => Math.min(100, Math.max(0, n7));
     wireColor = (c) => c.startsWith("#") ? c.slice(1) : c;
   }
 });
@@ -6547,11 +6547,11 @@ function evalCurve(c, x) {
     case "gamma":
       return clamp013(pow(v, c.g));
     case "table": {
-      const n8 = c.t.length;
-      if (n8 === 0) return v;
-      if (n8 === 1) return c.t[0];
-      const t = v * (n8 - 1);
-      const i = Math.min(Math.floor(t), n8 - 2);
+      const n7 = c.t.length;
+      if (n7 === 0) return v;
+      if (n7 === 1) return c.t[0];
+      const t = v * (n7 - 1);
+      const i = Math.min(Math.floor(t), n7 - 2);
       const f = t - i;
       return c.t[i] * (1 - f) + c.t[i + 1] * f;
     }
@@ -6613,12 +6613,12 @@ function parseCurve(b, off, end) {
     const fn = u16(b, off + 8, end);
     if (fn < 0 || fn > 4) return null;
     const counts = [1, 3, 4, 5, 7];
-    const n8 = counts[fn];
-    if (n8 > MAX_PARA_PARAMS) return null;
-    const size = 12 + n8 * 4;
+    const n7 = counts[fn];
+    if (n7 > MAX_PARA_PARAMS) return null;
+    const size = 12 + n7 * 4;
     if (off + size > end) return null;
     const p = [];
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       const v = s15f16(b, off + 12 + i * 4, end);
       if (v === null || !Number.isFinite(v)) return null;
       p.push(v);
@@ -6701,13 +6701,13 @@ function parseMft(b, off, end, bits, inputIsPcsXyz) {
     if (v === null || !Number.isFinite(v)) return null;
     m2.push(v);
   }
-  let n8 = 256;
+  let n7 = 256;
   let mOut = 256;
   let p = off + 48;
   if (bits === 16) {
-    n8 = u16(b, off + 48, end);
+    n7 = u16(b, off + 48, end);
     mOut = u16(b, off + 50, end);
-    if (n8 < 2 || n8 > MAX_TABLE_ENTRIES || mOut < 2 || mOut > MAX_TABLE_ENTRIES) return null;
+    if (n7 < 2 || n7 > MAX_TABLE_ENTRIES || mOut < 2 || mOut > MAX_TABLE_ENTRIES) return null;
     p = off + 52;
   }
   let nodes = 1;
@@ -6718,7 +6718,7 @@ function parseMft(b, off, end, bits, inputIsPcsXyz) {
   const clutValues = nodes * nOut;
   const unit2 = bits === 8 ? 1 : 2;
   const maxVal = bits === 8 ? 255 : 65535;
-  const inBytes = nIn * n8 * unit2;
+  const inBytes = nIn * n7 * unit2;
   const clutBytes = clutValues * unit2;
   const outBytes = nOut * mOut * unit2;
   if (!Number.isSafeInteger(inBytes + clutBytes + outBytes)) return null;
@@ -6726,9 +6726,9 @@ function parseMft(b, off, end, bits, inputIsPcsXyz) {
   const readAt = (q) => bits === 8 ? u8(b, q, end) : u16(b, q, end);
   const inCurves = [];
   for (let d = 0; d < nIn; d++) {
-    const t = new Float32Array(n8);
-    for (let i = 0; i < n8; i++) {
-      const v = readAt(p + (d * n8 + i) * unit2);
+    const t = new Float32Array(n7);
+    for (let i = 0; i < n7; i++) {
+      const v = readAt(p + (d * n7 + i) * unit2);
       if (v < 0) return null;
       t[i] = v / maxVal;
     }
@@ -6862,11 +6862,11 @@ function parseTextTag(b, off, size, fileEnd) {
     return s;
   }
   if (type === "mluc") {
-    const n8 = u32(b, off + 8, end);
+    const n7 = u32(b, off + 8, end);
     const recSize = u32(b, off + 12, end);
-    if (n8 < 1 || recSize < 12 || n8 > MAX_TAGS) return "";
+    if (n7 < 1 || recSize < 12 || n7 > MAX_TAGS) return "";
     let best = -1;
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       const rec2 = off + 16 + i * recSize;
       if (rec2 + 12 > end) break;
       const lang = u16(b, rec2, end);
@@ -6900,8 +6900,8 @@ function parseTextTag(b, off, size, fileEnd) {
 function spaceChannels(s) {
   if (Object.hasOwn(SPACE_CHANNELS, s)) return SPACE_CHANNELS[s];
   if (/^[0-9A-F]CLR$/.test(s)) {
-    const n8 = Number.parseInt(s[0], 16);
-    return n8 >= 2 && n8 <= MAX_CHANNELS ? n8 : 0;
+    const n7 = Number.parseInt(s[0], 16);
+    return n7 >= 2 && n7 <= MAX_CHANNELS ? n7 : 0;
   }
   return 0;
 }
@@ -7091,8 +7091,8 @@ function parseInner(b) {
       if (intent === "absolute") return mediaWhite !== null && profile2.hasIntent("relative");
       if (!Object.hasOwn(INTENT_TAG, intent)) return false;
       if (hasDirect()) return true;
-      const n8 = INTENT_TAG[intent];
-      return tags3.has(`A2B${n8}`) || tags3.has(`B2A${n8}`);
+      const n7 = INTENT_TAG[intent];
+      return tags3.has(`A2B${n7}`) || tags3.has(`B2A${n7}`);
     },
     toLab(intent, channels) {
       if (!channels || typeof channels.length !== "number" || channels.length !== nChannels) return null;
@@ -7267,7 +7267,7 @@ function sha256Prefix(data) {
   new DataView(withPad.buffer).setUint32(withPad.length - 4, bitLen >>> 0);
   new DataView(withPad.buffer).setUint32(withPad.length - 8, Math.floor(bitLen / 4294967296));
   const w = new Uint32Array(64);
-  const rotr2 = (x, n8) => (x >>> n8 | x << 32 - n8) >>> 0;
+  const rotr2 = (x, n7) => (x >>> n7 | x << 32 - n7) >>> 0;
   for (let off = 0; off < withPad.length; off += 64) {
     for (let i = 0; i < 16; i++) {
       w[i] = (withPad[off + i * 4] << 24 | withPad[off + i * 4 + 1] << 16 | withPad[off + i * 4 + 2] << 8 | withPad[off + i * 4 + 3]) >>> 0;
@@ -7318,7 +7318,7 @@ var init_icc = __esm({
     MAX_CLUT_VALUES = 1 << 22;
     MAX_PARA_PARAMS = 7;
     MAX_CURVE_INVERT_STEPS = 40;
-    clamp013 = (n8) => n8 < 0 ? 0 : n8 > 1 ? 1 : n8;
+    clamp013 = (n7) => n7 < 0 ? 0 : n7 > 1 ? 1 : n7;
     IDENTITY_CURVE = { kind: "identity" };
     pow = (x, g2) => x <= 0 ? 0 : x ** g2;
     SPACE_CHANNELS = {
@@ -7353,15 +7353,15 @@ var init_icc = __esm({
     TARG_SCAN = 4096;
     K256 = /* @__PURE__ */ (() => {
       const primes = [];
-      for (let n8 = 2; primes.length < 64; n8++) {
+      for (let n7 = 2; primes.length < 64; n7++) {
         let p = true;
-        for (let d = 2; d * d <= n8; d++) if (n8 % d === 0) {
+        for (let d = 2; d * d <= n7; d++) if (n7 % d === 0) {
           p = false;
           break;
         }
-        if (p) primes.push(n8);
+        if (p) primes.push(n7);
       }
-      return primes.map((n8) => Math.floor(Math.cbrt(n8) % 1 * 2 ** 32) >>> 0);
+      return primes.map((n7) => Math.floor(Math.cbrt(n7) % 1 * 2 ** 32) >>> 0);
     })();
   }
 });
@@ -7475,8 +7475,8 @@ var init_token_ext = __esm({
 
 // engine/src/palette-export.ts
 function hexToRgb(hex3) {
-  const n8 = parseInt(hex3.slice(1), 16);
-  return [n8 >> 16 & 255, n8 >> 8 & 255, n8 & 255];
+  const n7 = parseInt(hex3.slice(1), 16);
+  return [n7 >> 16 & 255, n7 >> 8 & 255, n7 & 255];
 }
 function wideColour(css2) {
   if (!css2) return null;
@@ -7488,8 +7488,8 @@ function wideColour(css2) {
   return { css: formatColor(parsed), face: gamut === "p3" ? "display-p3" : "rec2020", lab: [l, a, b] };
 }
 function cmykOf(v) {
-  if (!Array.isArray(v) || v.length !== 4 || !v.every((n8) => typeof n8 === "number" && Number.isFinite(n8))) return null;
-  return v.map((n8) => Math.min(100, Math.max(0, n8)));
+  if (!Array.isArray(v) || v.length !== 4 || !v.every((n7) => typeof n7 === "number" && Number.isFinite(n7))) return null;
+  return v.map((n7) => Math.min(100, Math.max(0, n7)));
 }
 function spotOf(v) {
   if (!v || typeof v.name !== "string" || !v.name.trim()) return null;
@@ -7580,7 +7580,7 @@ function paletteScssVariables(swatches) {
   return lines.join("\n") + "\n";
 }
 function paletteGpl(swatches, paletteName = "Lolly brand") {
-  const pad = (n8) => String(n8).padStart(3, " ");
+  const pad = (n7) => String(n7).padStart(3, " ");
   const rows2 = resolved(swatches).map((s) => `${pad(s.rgb[0])} ${pad(s.rgb[1])} ${pad(s.rgb[2])}	${s.group} ${s.name}`);
   return `GIMP Palette
 Name: ${paletteName}
@@ -7625,7 +7625,7 @@ function colorEntryBlock(name, model2, values, type) {
   return block;
 }
 function aseEntry(s) {
-  const cmyk = s.cmyk?.map((n8) => n8 / 100);
+  const cmyk = s.cmyk?.map((n7) => n7 / 100);
   const lab = () => {
     const [l, a, b] = s.wide?.lab ?? convertColor(parseColor(s.hex), "lab").components;
     return [l / 100, a, b];
@@ -7639,7 +7639,7 @@ function aseEntry(s) {
 function paletteAse(swatches) {
   const blocks = resolved(swatches).map(aseEntry);
   const headerLen = 4 + 2 + 2 + 4;
-  const total = headerLen + blocks.reduce((n8, b) => n8 + b.length, 0);
+  const total = headerLen + blocks.reduce((n7, b) => n7 + b.length, 0);
   const out = new Uint8Array(total);
   out.set([65, 83, 69, 70], 0);
   const dv = new DataView(out.buffer);
@@ -7814,20 +7814,20 @@ function solveLightnessForApca(hue, chroma, targetLc, bgHex, opts = {}) {
   return build2((a + b) / 2, true, s);
 }
 function bezierAt(points, t) {
-  const n8 = points.length - 1;
-  if (n8 === 0) return points[0];
+  const n7 = points.length - 1;
+  if (n7 === 0) return points[0];
   const row = [1];
-  for (let i = 1; i <= n8; i++) row.push(row[i - 1] * (n8 - i + 1) / i);
+  for (let i = 1; i <= n7; i++) row.push(row[i - 1] * (n7 - i + 1) / i);
   const out = [0, 0, 0];
-  for (let i = 0; i <= n8; i++) {
-    const w = row[i] * (1 - t) ** (n8 - i) * t ** i;
+  for (let i = 0; i <= n7; i++) {
+    const w = row[i] * (1 - t) ** (n7 - i) * t ** i;
     out[0] += w * points[i][0];
     out[1] += w * points[i][1];
     out[2] += w * points[i][2];
   }
   return out;
 }
-function rampOklab(stops, n8, opts = {}) {
+function rampOklab(stops, n7, opts = {}) {
   if (!Array.isArray(stops) || stops.length === 0) {
     throw new Error("rampOklab: at least one stop is required");
   }
@@ -7836,7 +7836,7 @@ function rampOklab(stops, n8, opts = {}) {
     if (!lab) throw new Error(`rampOklab: unparseable stop ${i}: ${JSON.stringify(s)}`);
     return lab;
   });
-  const count4 = Math.floor(n8);
+  const count4 = Math.floor(n7);
   if (count4 <= 0) return [];
   const L0 = points[0][0];
   const L1 = points[points.length - 1][0];
@@ -7864,10 +7864,10 @@ function rampOklab(stops, n8, opts = {}) {
   }
   return out;
 }
-function classBreaks(data, mode3, n8) {
+function classBreaks(data, mode3, n7) {
   const values = (Array.isArray(data) ? data : []).filter((v) => Number.isFinite(v));
   if (values.length === 0) return [];
-  const bins = Math.max(1, Math.floor(n8));
+  const bins = Math.max(1, Math.floor(n7));
   const min = Math.min(...values);
   const max = Math.max(...values);
   if (mode3 === "e") {
@@ -7889,8 +7889,8 @@ function classBreaks(data, mode3, n8) {
     return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
   });
 }
-function distinctColors(n8, opts = {}) {
-  const count4 = Math.floor(n8);
+function distinctColors(n7, opts = {}) {
+  const count4 = Math.floor(n7);
   if (count4 <= 0) return [];
   const anchor = opts.anchorHex != null ? toOklch(opts.anchorHex) : null;
   const minDeltaE = Number.isFinite(opts.minDeltaE) ? Math.max(0, opts.minDeltaE) : 0.02;
@@ -9068,8 +9068,8 @@ var init_chart_v1 = __esm({
 
 // packages/core/src/design-v1.ts
 function finite(value2, fallback = 0) {
-  const n8 = typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : value2;
-  return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
+  const n7 = typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : value2;
+  return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
 }
 function text3(value2) {
   return typeof value2 === "string" ? value2 : "";
@@ -9588,7 +9588,7 @@ function colorCss(value2) {
   let source = value2;
   if (value2 && typeof value2 === "object") {
     const v = value2;
-    if (Array.isArray(v.components) && v.components.length === 3 && v.components.every((n8) => typeof n8 === "number" && Number.isFinite(n8))) {
+    if (Array.isArray(v.components) && v.components.length === 3 && v.components.every((n7) => typeof n7 === "number" && Number.isFinite(n7))) {
       const space = typeof v.colorSpace === "string" ? v.colorSpace : "srgb", alpha = typeof v.alpha === "number" ? v.alpha : 1;
       source = ["lab", "lch", "oklab", "oklch"].includes(space) ? `${space}(${v.components.join(" ")} / ${alpha})` : `color(${space} ${v.components.join(" ")} / ${alpha})`;
     } else source = v.hex;
@@ -9638,8 +9638,8 @@ function readFaces(ext) {
 }
 function normaliseFaceValue(v) {
   if (typeof v === "string") return v.trim() ? v.trim() : null;
-  if (Array.isArray(v) && v.length === 4 && v.every((n8) => typeof n8 === "number" && Number.isFinite(n8))) {
-    return v.map((n8) => Math.min(100, Math.max(0, n8)));
+  if (Array.isArray(v) && v.length === 4 && v.every((n7) => typeof n7 === "number" && Number.isFinite(n7))) {
+    return v.map((n7) => Math.min(100, Math.max(0, n7)));
   }
   return null;
 }
@@ -10275,7 +10275,7 @@ function normHex(s) {
   return /^#(?:[0-9a-f]{6}|[0-9a-f]{8})$/.test(h) ? h : null;
 }
 function rgbaToHex(r5, g2, b, a = 1) {
-  const h = (n8) => Math.max(0, Math.min(255, Math.round(Number(n8) || 0))).toString(16).padStart(2, "0");
+  const h = (n7) => Math.max(0, Math.min(255, Math.round(Number(n7) || 0))).toString(16).padStart(2, "0");
   const base = `#${h(r5)}${h(g2)}${h(b)}`;
   return a >= 1 ? base : base + h(a * 255);
 }
@@ -10296,7 +10296,7 @@ var init_tokens2 = __esm({
     ALIAS_RE = /^\{([^{}]+)\}$/;
     isRecord = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     strOrNull = (v) => typeof v === "string" ? v : null;
-    isNumberArray = (v) => Array.isArray(v) && v.every((n8) => typeof n8 === "number");
+    isNumberArray = (v) => Array.isArray(v) && v.every((n7) => typeof n7 === "number");
     isSpotColor = (v) => {
       if (!isRecord(v) || typeof v.name !== "string") return false;
       return v.book === void 0 || typeof v.book === "string";
@@ -11007,15 +11007,15 @@ function resolveVectorValue(input, initial) {
   const fields2 = input.fields ?? [];
   const out = {};
   for (const f of fields2) {
-    let n8 = f.default ?? 0;
+    let n7 = f.default ?? 0;
     const raw = isObjectValue(initial) ? initial[f.id] : void 0;
     if (raw !== void 0 && raw !== null && raw !== "") {
       const parsed = Number(raw);
-      if (!Number.isNaN(parsed)) n8 = parsed;
+      if (!Number.isNaN(parsed)) n7 = parsed;
     }
-    if (f.min !== void 0 && n8 < f.min) n8 = f.min;
-    if (f.max !== void 0 && n8 > f.max) n8 = f.max;
-    out[f.id] = n8;
+    if (f.min !== void 0 && n7 < f.min) n7 = f.min;
+    if (f.max !== void 0 && n7 > f.max) n7 = f.max;
+    out[f.id] = n7;
   }
   return out;
 }
@@ -11117,11 +11117,11 @@ function constrain(input, value2, options2) {
     return value2;
   }
   if (input.type === "number") {
-    const n8 = Number(value2);
-    if (Number.isNaN(n8)) return input.value;
-    if (input.min !== void 0 && n8 < input.min) return input.min;
-    if (input.max !== void 0 && n8 > input.max) return input.max;
-    return n8;
+    const n7 = Number(value2);
+    if (Number.isNaN(n7)) return input.value;
+    if (input.min !== void 0 && n7 < input.min) return input.min;
+    if (input.max !== void 0 && n7 > input.max) return input.max;
+    return n7;
   }
   if (input.type === "file") {
     if (input.multiple) {
@@ -11143,11 +11143,11 @@ function constrain(input, value2, options2) {
     const out = { ...isObjectValue(input.value) ? input.value : {} };
     for (const f of fields2) {
       if (value2[f.id] === void 0) continue;
-      let n8 = Number(value2[f.id]);
-      if (Number.isNaN(n8)) continue;
-      if (f.min !== void 0 && n8 < f.min) n8 = f.min;
-      if (f.max !== void 0 && n8 > f.max) n8 = f.max;
-      out[f.id] = n8;
+      let n7 = Number(value2[f.id]);
+      if (Number.isNaN(n7)) continue;
+      if (f.min !== void 0 && n7 < f.min) n7 = f.min;
+      if (f.max !== void 0 && n7 > f.max) n7 = f.max;
+      out[f.id] = n7;
     }
     return out;
   }
@@ -11346,24 +11346,24 @@ function pickColourway(axis, policy, ctx = {}) {
   const options2 = canonicalFirst(axis);
   if (!options2.length) throw new Error("pickColourway: the colourway group has no options.");
   const pick = (i) => ({ group: axis.group, option: options2[i].id });
-  const n8 = options2.length;
+  const n7 = options2.length;
   const index2 = nonNegativeIndex(ctx.index);
   switch (policy) {
     case "cycle":
-      return pick(index2 % n8);
+      return pick(index2 % n7);
     case "by-key":
-      return ctx.key ? pick(fnv1a(ctx.key) % n8) : pick(0);
+      return ctx.key ? pick(fnv1a(ctx.key) % n7) : pick(0);
     case "shuffle": {
       if (ctx.seed === void 0 || ctx.seed === "") return pick(0);
       const base = typeof ctx.seed === "number" ? ctx.seed >>> 0 : fnv1a(ctx.seed);
-      const round11 = Math.floor(index2 / n8);
+      const round11 = Math.floor(index2 / n7);
       const rand = mulberry32((base ^ Math.imul(round11 + 1, 2654435761)) >>> 0);
       const order = options2.map((_, i) => i);
-      for (let i = n8 - 1; i > 0; i -= 1) {
+      for (let i = n7 - 1; i > 0; i -= 1) {
         const j = Math.floor(rand() * (i + 1));
         [order[i], order[j]] = [order[j], order[i]];
       }
-      return pick(order[index2 % n8]);
+      return pick(order[index2 % n7]);
     }
     case "by-date": {
       const date = typeof ctx.date === "string" ? ctx.date.slice(0, 10) : "";
@@ -11980,7 +11980,7 @@ function validateDesignTool(d, reserved = []) {
   const variants = new Map(d.variants.map((v) => [v.id, v]));
   if (variants.size !== d.variants.length || !variants.has(d.defaultVariant)) add3("artboards", "Choose a valid default artboard and unique artboard ids.");
   for (const v of d.variants) {
-    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(v.id) || ![v.width, v.height].every((n8) => Number.isFinite(n8) && n8 >= 1 && n8 <= 16384)) add3("artboard-size", "Artboards need a size between 1 and 16384 pixels.");
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(v.id) || ![v.width, v.height].every((n7) => Number.isFinite(n7) && n7 >= 1 && n7 <= 16384)) add3("artboard-size", "Artboards need a size between 1 and 16384 pixels.");
     if (v.boxes.length > 1e3 || new Set(v.boxes.map((b) => b.id)).size !== v.boxes.length) add3("layers", "Layers need unique, permanent ids.");
   }
   const fields2 = new Map(d.inputs.map((f) => [f.input.id, f]));
@@ -12006,7 +12006,7 @@ function validateDesignTool(d, reserved = []) {
     if (!idPattern.test(i.id) || badKeys.has(i.id) || internal.has(i.id) || reserved.includes(i.id) || i.id.startsWith("__")) add3("input-id", "Use a unique input id that is not a reserved setting.", i.id);
     if (!["text", "longtext", "number", "select", "color", "asset", "vector", ...d.sourceTool ? ["boolean", "url", "date", "time", "datetime-local"] : []].includes(i.type)) add3("input-type", "This input type is not supported in a locked tool.", i.id);
     if (i.type === "select" && (!i.options?.length || i.options.some((o) => !o.value || !o.label) || new Set(i.options.map((o) => o.value)).size !== i.options.length)) add3("options", "Give each option a label and a unique value.", i.id);
-    if (i.type === "number" && (![i.min, i.max, i.step, i.default].every((n8) => typeof n8 === "number" && Number.isFinite(n8)) || Number(i.min) > Number(i.max) || Number(i.step) <= 0)) add3("range", "Set a finite minimum, maximum, default and positive step.", i.id);
+    if (i.type === "number" && (![i.min, i.max, i.step, i.default].every((n7) => typeof n7 === "number" && Number.isFinite(n7)) || Number(i.min) > Number(i.max) || Number(i.step) <= 0)) add3("range", "Set a finite minimum, maximum, default and positive step.", i.id);
     if (i.type === "asset" && i.assetType !== "image") add3("media", "Editable images must use the image asset type.", i.id);
     if (i.type === "vector") {
       const axes = i.fields;
@@ -12014,7 +12014,7 @@ function validateDesignTool(d, reserved = []) {
     }
     if (!f.targets.length && !d.sourceTool?.inputs[i.id] && !choiceIds.has(i.id) && !d.recipes.some((r5) => r5.parts.some((p) => "inputId" in p && p.inputId === i.id))) add3("unlinked", "Link this input to an object.", i.id);
     if (f.common && (f.common.key === "headshot" ? i.type !== "asset" : !["text", "longtext"].includes(i.type))) add3("common-type", "Use an image for a headshot and text for other common fields.", i.id);
-    if (f.image && (i.type !== "asset" || [f.image.minWidth, f.image.minHeight].some((n8) => n8 !== void 0 && (!Number.isInteger(n8) || n8 < 1 || n8 > 32768)) || f.image.formats && (!f.image.formats.length || f.image.formats.some((format) => !["png", "jpeg", "webp", "avif", "svg"].includes(format))))) add3("image-rule", "Choose image formats and positive minimum pixel dimensions.", i.id);
+    if (f.image && (i.type !== "asset" || [f.image.minWidth, f.image.minHeight].some((n7) => n7 !== void 0 && (!Number.isInteger(n7) || n7 < 1 || n7 > 32768)) || f.image.formats && (!f.image.formats.length || f.image.formats.some((format) => !["png", "jpeg", "webp", "avif", "svg"].includes(format))))) add3("image-rule", "Choose image formats and positive minimum pixel dimensions.", i.id);
     if (f.common?.source === "profile" && (!["person", "recipient", "presenter"].includes(f.common.subject) || !["firstname", "lastname", "email"].includes(f.common.key))) add3("profile", "Profile prefill is only available for a person\u2019s name or email.", i.id);
     for (const target2 of f.targets) {
       checkTarget(target2, i.id, i.type);
@@ -12107,8 +12107,8 @@ function validateDesignValues(p, values, required = false) {
     } else if (i.type === "boolean") {
       if (typeof v !== "boolean") bad("choose on or off.");
     } else if (i.type === "number") {
-      const n8 = Number(v);
-      if (!Number.isFinite(n8) || n8 < Number(i.min) || n8 > Number(i.max) || Math.abs((n8 - Number(i.min)) / Number(i.step) - Math.round((n8 - Number(i.min)) / Number(i.step))) > 1e-7) bad(`use ${i.min} to ${i.max}, in steps of ${i.step}.`);
+      const n7 = Number(v);
+      if (!Number.isFinite(n7) || n7 < Number(i.min) || n7 > Number(i.max) || Math.abs((n7 - Number(i.min)) / Number(i.step) - Math.round((n7 - Number(i.min)) / Number(i.step))) > 1e-7) bad(`use ${i.min} to ${i.max}, in steps of ${i.step}.`);
     } else if (i.type === "select" && !i.options?.some((o) => o.value === v)) bad("choose an approved option.");
     else if (i.type === "color" && (typeof v !== "string" || !/^#[\da-f]{3,8}$/i.test(v))) bad("choose a valid colour.");
     else if (i.type === "asset" && typeof v === "object" && "type" in v && (!["raster", "vector"].includes(String(v.type)) || "format" in v && ["gif", "apng", "html"].includes(String(v.format)))) bad("choose a still image.");
@@ -12116,8 +12116,8 @@ function validateDesignValues(p, values, required = false) {
       const fields2 = i.fields;
       if (!v || typeof v !== "object" || !fields2?.length) bad("set valid image positioning.");
       else for (const field2 of fields2) {
-        const n8 = Number(v[field2.id] ?? i.default?.[field2.id]);
-        if (!Number.isFinite(n8) || n8 < field2.min || n8 > field2.max || field2.step && Math.abs((n8 - field2.min) / field2.step - Math.round((n8 - field2.min) / field2.step)) > 1e-7) bad(`${field2.id} must be between ${field2.min} and ${field2.max}, using its declared step.`);
+        const n7 = Number(v[field2.id] ?? i.default?.[field2.id]);
+        if (!Number.isFinite(n7) || n7 < field2.min || n7 > field2.max || field2.step && Math.abs((n7 - field2.min) / field2.step - Math.round((n7 - field2.min) / field2.step)) > 1e-7) bad(`${field2.id} must be between ${field2.min} and ${field2.max}, using its declared step.`);
       }
     }
     const assetId2 = typeof v === "object" && v && "id" in v ? String(v.id) : String(v);
@@ -12161,7 +12161,7 @@ function designExportSize(policy, values, format, width, height) {
   if (!variant) throw new Error("The selected artboard is unavailable.");
   const w = width ?? (height === void 0 ? variant.width : height * variant.width / variant.height);
   const h = height ?? w * variant.height / variant.width;
-  if (![w, h].every((n8) => Number.isFinite(n8) && n8 > 0) || Math.abs(w / h - variant.width / variant.height) > 1e-3) throw new Error("Keep the artboard proportions chosen by the designer.");
+  if (![w, h].every((n7) => Number.isFinite(n7) && n7 > 0) || Math.abs(w / h - variant.width / variant.height) > 1e-3) throw new Error("Keep the artboard proportions chosen by the designer.");
   return { width: w, height: h };
 }
 var init_policy = __esm({
@@ -35666,9 +35666,9 @@ var init_xml_escape = __esm({
 // engine/src/emoji-svg-syntax.ts
 function svgScalar(input, minimum = -SVG_SCALAR_LIMIT, maximum = SVG_SCALAR_LIMIT) {
   const value2 = input.trim();
-  const n8 = Number(value2);
-  if (!scalar3.test(value2) || !Number.isFinite(n8) || n8 < minimum || n8 > maximum) throw new Error("Unsupported SVG number.");
-  return String(n8);
+  const n7 = Number(value2);
+  if (!scalar3.test(value2) || !Number.isFinite(n7) || n7 < minimum || n7 > maximum) throw new Error("Unsupported SVG number.");
+  return String(n7);
 }
 function tokens(input, commands) {
   if (input.length > 4e5) throw new Error("SVG path exceeds the supported length.");
@@ -37911,7 +37911,7 @@ var init_rights_evaluate = __esm({
       3204031479,
       3329325298
     ]);
-    rotr = (x, n8) => x >>> n8 | x << 32 - n8;
+    rotr = (x, n7) => x >>> n7 | x << 32 - n7;
   }
 });
 
@@ -38255,12 +38255,12 @@ var init_framing = __esm({
   "engine/src/framing.ts"() {
     "use strict";
     num = (v, dflt) => {
-      const n8 = Number(v);
-      return Number.isFinite(n8) ? n8 : dflt;
+      const n7 = Number(v);
+      return Number.isFinite(n7) ? n7 : dflt;
     };
     FRAMING_PERSPECTIVE = 1200;
-    css = (n8) => {
-      const s = n8.toFixed(3).replace(/\.?0+$/, "");
+    css = (n7) => {
+      const s = n7.toFixed(3).replace(/\.?0+$/, "");
       return s === "-0" ? "0" : s;
     };
   }
@@ -39259,8 +39259,8 @@ var init_metadata = __esm({
     SKILL_ID_RE = /^[a-z0-9]+(?:\/[a-z0-9][a-z0-9-]*)+$/;
     SKILL_REVISION_RE = /^[A-Za-z0-9._-]{1,32}$/;
     SHA256_HEX_RE = /^[0-9a-f]{64}$/;
-    clip = (s, n8) => s.length > n8 ? s.slice(0, n8) : s;
-    text4 = (v, n8) => typeof v === "string" ? clip(v.trim(), n8) : "";
+    clip = (s, n7) => s.length > n7 ? s.slice(0, n7) : s;
+    text4 = (v, n7) => typeof v === "string" ? clip(v.trim(), n7) : "";
     designSystemIdOf = (v) => {
       const id3 = typeof v === "string" ? v.trim() : "";
       return isDesignSystemId(id3) ? id3 : "";
@@ -42085,10 +42085,10 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
   let dtheta = angV((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry);
   if (!fs && dtheta > 0) dtheta -= 2 * Math.PI;
   if (fs && dtheta < 0) dtheta += 2 * Math.PI;
-  const n8 = Math.max(1, Math.ceil(Math.abs(dtheta) / (Math.PI / 2)));
-  const dt = dtheta / n8;
+  const n7 = Math.max(1, Math.ceil(Math.abs(dtheta) / (Math.PI / 2)));
+  const dt = dtheta / n7;
   const results = [];
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     const t1 = theta1 + i * dt;
     const t2 = theta1 + (i + 1) * dt;
     const alpha = 4 / 3 * tan(dt / 4);
@@ -42253,26 +42253,26 @@ function flattenCubic(c, tol = 0.1) {
 function isLineCubic(c, tol = 1e-9) {
   return flatnessCubic(c) <= tol;
 }
-function polyEval(co, n8, t) {
+function polyEval(co, n7, t) {
   let v = 0;
-  for (let i = n8; i >= 0; i--) v = v * t + co[i];
+  for (let i = n7; i >= 0; i--) v = v * t + co[i];
   return v;
 }
-function polyEvalD(co, n8, t) {
-  let v = co[n8], dv = 0;
-  for (let i = n8 - 1; i >= 0; i--) {
+function polyEvalD(co, n7, t) {
+  let v = co[n7], dv = 0;
+  for (let i = n7 - 1; i >= 0; i--) {
     dv = dv * t + v;
     v = v * t + co[i];
   }
   EV_SLOPE = dv;
   return v;
 }
-function rootInBracket(co, n8, lo, hi, flo, fhi, fTol) {
+function rootInBracket(co, n7, lo, hi, flo, fhi, fTol) {
   let a = lo, b = hi, fa = flo, fb = fhi;
   let t = a + (b - a) * fa / (fa - fb);
   if (!(t > a && t < b)) t = (a + b) / 2;
   for (let i = 0; i < 80; i++) {
-    const f = polyEvalD(co, n8, t);
+    const f = polyEvalD(co, n7, t);
     if (f === 0 || Math.abs(f) <= fTol) return t;
     if (f < 0 === fa < 0) {
       a = t;
@@ -42298,11 +42298,11 @@ function rootsIn01(co, len2, depth, out, withCritical = false, minimaOnly = fals
     if (a > scale) scale = a;
   }
   if (!(scale > 0) || !Number.isFinite(scale)) return 0;
-  let n8 = len2 - 1;
-  while (n8 > 0 && Math.abs(co[n8]) <= scale * 1e-14) n8--;
-  if (n8 < 1) return 0;
+  let n7 = len2 - 1;
+  while (n7 > 0 && Math.abs(co[n7]) <= scale * 1e-14) n7--;
+  if (n7 < 1) return 0;
   const fTol = scale * 8e-16;
-  if (n8 === 1) {
+  if (n7 === 1) {
     const t = -co[0] / co[1];
     if (t >= 0 && t <= 1) {
       out[0] = t;
@@ -42310,7 +42310,7 @@ function rootsIn01(co, len2, depth, out, withCritical = false, minimaOnly = fals
     }
     return 0;
   }
-  if (n8 === 2) {
+  if (n7 === 2) {
     const cc = co[0], bb = co[1], aa = co[2];
     const disc = bb * bb - 4 * aa * cc;
     if (disc < 0) return 0;
@@ -42325,11 +42325,11 @@ function rootsIn01(co, len2, depth, out, withCritical = false, minimaOnly = fals
     return count5;
   }
   const dc = CO_BUF[depth + 1];
-  for (let i = 1; i <= n8; i++) dc[i - 1] = co[i] * i;
+  for (let i = 1; i <= n7; i++) dc[i - 1] = co[i] * i;
   const knots = KN_BUF[depth];
-  const nk = rootsIn01(dc, n8, depth + 1, knots);
+  const nk = rootsIn01(dc, n7, depth + 1, knots);
   let count4 = 0;
-  let pt = 0, pf = polyEval(co, n8, 0);
+  let pt = 0, pf = polyEval(co, n7, 0);
   if (pf === 0) out[count4++] = 0;
   for (let i = 0; i <= nk; i++) {
     const k = i < nk ? knots[i] : 1;
@@ -42337,10 +42337,10 @@ function rootsIn01(co, len2, depth, out, withCritical = false, minimaOnly = fals
       pt = k;
       continue;
     }
-    const f = polyEval(co, n8, k);
+    const f = polyEval(co, n7, k);
     if (f === 0) out[count4++] = k;
-    else if (pf < 0 && f > 0) out[count4++] = rootInBracket(co, n8, pt, k, pf, f, fTol);
-    else if (pf > 0 && f < 0 && !minimaOnly) out[count4++] = rootInBracket(co, n8, pt, k, pf, f, fTol);
+    else if (pf < 0 && f > 0) out[count4++] = rootInBracket(co, n7, pt, k, pf, f, fTol);
+    else if (pf > 0 && f < 0 && !minimaOnly) out[count4++] = rootInBracket(co, n7, pt, k, pf, f, fTol);
     pt = k;
     pf = f;
   }
@@ -42363,11 +42363,11 @@ function nearestOnCubic(c, px3, py, _samples) {
   q[4] = 5 * AB;
   q[5] = 3 * AA;
   const cand = NEAREST_OUT;
-  const n8 = rootsIn01(q, 6, 0, cand, true, true);
-  cand[n8] = 0;
-  cand[n8 + 1] = 1;
+  const n7 = rootsIn01(q, 6, 0, cand, true, true);
+  cand[n7] = 0;
+  cand[n7 + 1] = 1;
   let bestT = 0, bestD2 = Infinity, bestP = { x: c[0], y: c[1] };
-  for (let i = 0; i <= n8 + 1; i++) {
+  for (let i = 0; i <= n7 + 1; i++) {
     let t = cand[i];
     if (!(t >= 0)) t = 0;
     else if (t > 1) t = 1;
@@ -43763,7 +43763,7 @@ function checkDesignLayoutReceipt(receipt, values, node) {
   const root2 = node;
   const nodes = root2?.querySelectorAll ? Array.from(root2.querySelectorAll("[data-layout-receipt]")) : [];
   if (root2?.matches?.("[data-layout-receipt]")) nodes.push(root2);
-  if (!nodes.length || nodes.some((n8) => n8.getAttribute("data-layout-receipt") !== record46.stamp)) {
+  if (!nodes.length || nodes.some((n7) => n7.getAttribute("data-layout-receipt") !== record46.stamp)) {
     throw new Error(
       "Layout is still changing. Wait for the current layout to appear, then export again."
     );
@@ -44448,7 +44448,7 @@ var init_video_meta = __esm({
     init_bytes();
     utf8 = (s) => new TextEncoder().encode(s);
     concat = (...parts) => concatBytes(parts);
-    be32 = (n8) => new Uint8Array([n8 >>> 24 & 255, n8 >>> 16 & 255, n8 >>> 8 & 255, n8 & 255]);
+    be32 = (n7) => new Uint8Array([n7 >>> 24 & 255, n7 >>> 16 & 255, n7 >>> 8 & 255, n7 & 255]);
     fourcc = (s) => Uint8Array.from(s, (c) => c.charCodeAt(0) & 255);
     box = (type, ...parts) => {
       const payload = concat(...parts);
@@ -44485,12 +44485,12 @@ var init_video_meta = __esm({
     ebml = (id3, payload) => concat(id3, writeVint(payload.length), payload);
     simpleTag = (name, value2) => ebml(ID_SIMPLETAG, concat(ebml(ID_TAGNAME, utf8(name)), ebml(ID_TAGSTRING, utf8(value2))));
     idAt = (bytes2, off, id3) => id3.every((b, i) => bytes2[off + i] === b);
-    beUint = (n8) => {
+    beUint = (n7) => {
       const out = [];
       do {
-        out.unshift(n8 & 255);
-        n8 = Math.floor(n8 / 256);
-      } while (n8 > 0);
+        out.unshift(n7 & 255);
+        n7 = Math.floor(n7 / 256);
+      } while (n7 > 0);
       return new Uint8Array(out);
     };
   }
@@ -44577,9 +44577,9 @@ function parseOpusTags(packet) {
   return { vendor, comments };
 }
 function buildOpusTags(vendor, comments) {
-  const u327 = (n8) => {
+  const u327 = (n7) => {
     const a = new Uint8Array(4);
-    new DataView(a.buffer).setUint32(0, n8, true);
+    new DataView(a.buffer).setUint32(0, n7, true);
     return a;
   };
   const parts = [te3.encode("OpusTags"), u327(vendor.length), vendor, u327(comments.length)];
@@ -44828,16 +44828,16 @@ function patchMpfEntries(bytes2, images) {
   const count4 = dv.getUint16(ifd, le);
   if (!inSeg(ifd, 2 + count4 * 12)) return false;
   let entriesAt = -1;
-  let n8 = 0;
+  let n7 = 0;
   for (let i = 0; i < count4; i++) {
     const e = ifd + 2 + i * 12;
     const tag3 = dv.getUint16(e, le);
-    if (tag3 === 45057) n8 = dv.getUint32(e + 8, le);
+    if (tag3 === 45057) n7 = dv.getUint32(e + 8, le);
     if (tag3 === 45058) entriesAt = h + dv.getUint32(e + 8, le);
   }
-  if (entriesAt < 0 || n8 !== images.length) return false;
-  if (!inSeg(entriesAt, n8 * 16)) return false;
-  for (let i = 0; i < n8; i++) {
+  if (entriesAt < 0 || n7 !== images.length) return false;
+  if (!inSeg(entriesAt, n7 * 16)) return false;
+  for (let i = 0; i < n7; i++) {
     const at = entriesAt + i * 16;
     dv.setUint32(at + 4, images[i].length, le);
     dv.setUint32(at + 8, i === 0 ? 0 : images[i].start - h, le);
@@ -44913,8 +44913,8 @@ function aesCtrLe(encKey, data) {
       v >>= 8n;
     }
     const ks = aes.encryptBlock(counter);
-    const n8 = Math.min(16, data.length - off);
-    for (let i = 0; i < n8; i++) out[off + i] = data[off + i] ^ ks[i];
+    const n7 = Math.min(16, data.length - off);
+    for (let i = 0; i < n7; i++) out[off + i] = data[off + i] ^ ks[i];
     value2 += 1n;
   }
   return out;
@@ -44942,7 +44942,7 @@ function aesExtraField(method) {
   return new Uint8Array([1, 153, 7, 0, 2, 0, 65, 69, 3, method & 255, 0]);
 }
 async function buildEncryptedZip(entries, opts) {
-  const rng = opts.rng ?? ((n8) => globalThis.crypto.getRandomValues(new Uint8Array(n8)));
+  const rng = opts.rng ?? ((n7) => globalThis.crypto.getRandomValues(new Uint8Array(n7)));
   const pw = new TextEncoder().encode(opts.password);
   const framed = [];
   for (const e of entries) {
@@ -45038,10 +45038,10 @@ var init_zip_crypto = __esm({
     subtle3 = globalThis.crypto.subtle;
     CRC_TABLE = (() => {
       const t = new Uint32Array(256);
-      for (let n8 = 0; n8 < 256; n8++) {
-        let c = n8;
+      for (let n7 = 0; n7 < 256; n7++) {
+        let c = n7;
         for (let k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
-        t[n8] = c >>> 0;
+        t[n7] = c >>> 0;
       }
       return t;
     })();
@@ -45170,15 +45170,15 @@ function revBits(code, len2) {
   return r5;
 }
 function tokenize(data, lazy, maxChain) {
-  const n8 = data.length;
-  const tokens3 = new Uint32Array(n8);
+  const n7 = data.length;
+  const tokens3 = new Uint32Array(n7);
   let count4 = 0;
-  if (n8 < MIN_MATCH + 1) {
-    for (let i2 = 0; i2 < n8; i2++) tokens3[count4++] = data[i2];
+  if (n7 < MIN_MATCH + 1) {
+    for (let i2 = 0; i2 < n7; i2++) tokens3[count4++] = data[i2];
     return { tokens: tokens3, count: count4 };
   }
   const head2 = new Int32Array(HASH_SIZE).fill(-1);
-  const prev = new Int32Array(n8);
+  const prev = new Int32Array(n7);
   const hashAt = (i2) => (data[i2] << 10 ^ data[i2 + 1] << 5 ^ data[i2 + 2]) & HASH_SIZE - 1;
   const insert = (i2) => {
     const h = hashAt(i2);
@@ -45186,7 +45186,7 @@ function tokenize(data, lazy, maxChain) {
     head2[h] = i2;
   };
   const findMatch = (pos) => {
-    const maxLen = Math.min(MAX_MATCH, n8 - pos);
+    const maxLen = Math.min(MAX_MATCH, n7 - pos);
     if (maxLen < MIN_MATCH) return 0;
     const floor = pos - WINDOW;
     let best = 0;
@@ -45207,12 +45207,12 @@ function tokenize(data, lazy, maxChain) {
     }
     return best >= MIN_MATCH ? bestDist << 9 | best : 0;
   };
-  const hashLimit = n8 - MIN_MATCH;
+  const hashLimit = n7 - MIN_MATCH;
   let i = 0;
   let prevLen = 0;
   let prevDist = 0;
   let havePrev = false;
-  while (i < n8) {
+  while (i < n7) {
     let mLen = 0;
     let mDist = 0;
     if (i <= hashLimit) {
@@ -45237,7 +45237,7 @@ function tokenize(data, lazy, maxChain) {
       continue;
     }
     if (mLen >= MIN_MATCH) {
-      if (lazy && mLen < NICE_LEN && i + 1 < n8) {
+      if (lazy && mLen < NICE_LEN && i + 1 < n7) {
         prevLen = mLen;
         prevDist = mDist;
         havePrev = true;
@@ -45288,13 +45288,13 @@ function fixedCost(tokens3, count4) {
   return bits;
 }
 function deflateRaw(data, opts) {
-  const n8 = data.length;
+  const n7 = data.length;
   const lazy = opts?.lazy !== false;
   const maxChain = Math.max(1, opts?.maxChain ?? 128);
   const { tokens: tokens3, count: count4 } = tokenize(data, lazy, maxChain);
   const fixedBytes = Math.ceil(fixedCost(tokens3, count4) / 8);
-  const storedBlocks = Math.max(1, Math.ceil(n8 / STORED_MAX));
-  const storedBytes = n8 + 5 * storedBlocks;
+  const storedBlocks = Math.max(1, Math.ceil(n7 / STORED_MAX));
+  const storedBytes = n7 + 5 * storedBlocks;
   if (fixedBytes <= storedBytes) {
     const w2 = new BitWriter(fixedBytes);
     w2.writeBits(1, 1);
@@ -45305,15 +45305,15 @@ function deflateRaw(data, opts) {
   const w = new BitWriter(storedBytes);
   let off = 0;
   do {
-    const chunk6 = Math.min(STORED_MAX, n8 - off);
-    const final = off + chunk6 >= n8;
+    const chunk6 = Math.min(STORED_MAX, n7 - off);
+    const final = off + chunk6 >= n7;
     w.writeBits(final ? 1 : 0, 1);
     w.writeBits(0, 2);
     w.alignByte();
     w.writeBytes(Uint8Array.of(chunk6 & 255, chunk6 >>> 8 & 255, ~chunk6 & 255, ~chunk6 >>> 8 & 255));
     w.writeBytes(data.subarray(off, off + chunk6));
     off += chunk6;
-  } while (off < n8);
+  } while (off < n7);
   return w.finish();
 }
 function adler32(data, seed = 1) {
@@ -45321,10 +45321,10 @@ function adler32(data, seed = 1) {
   const NMAX = 5552;
   let s1 = seed & 65535;
   let s2 = seed >>> 16 & 65535;
-  const n8 = data.length;
+  const n7 = data.length;
   let i = 0;
-  while (i < n8) {
-    const end = Math.min(n8, i + NMAX);
+  while (i < n7) {
+    const end = Math.min(n7, i + NMAX);
     for (; i < end; i++) {
       s1 += data[i];
       s2 += s1;
@@ -45500,10 +45500,10 @@ function createDeflateStream(opts = {}) {
           run3(false);
           slide();
         }
-        const n8 = Math.min(win.length - winLen, slab.length - off);
-        win.set(slab.subarray(off, off + n8), winLen);
-        winLen += n8;
-        off += n8;
+        const n7 = Math.min(win.length - winLen, slab.length - off);
+        win.set(slab.subarray(off, off + n7), winLen);
+        winLen += n7;
+        off += n7;
         run3(false);
       }
       const out = w.drain();
@@ -45761,9 +45761,9 @@ var init_deflate = __esm({
       constructor(capacity) {
         this.out = new Uint8Array(Math.max(64, capacity));
       }
-      ensure(n8) {
-        if (this.len + n8 <= this.out.length) return;
-        const grown = new Uint8Array(Math.max(this.out.length * 2, this.len + n8));
+      ensure(n7) {
+        if (this.len + n7 <= this.out.length) return;
+        const grown = new Uint8Array(Math.max(this.out.length * 2, this.len + n7));
         grown.set(this.out.subarray(0, this.len));
         this.out = grown;
       }
@@ -45805,9 +45805,9 @@ var init_deflate = __esm({
       len = 0;
       bitBuf = 0;
       bitCnt = 0;
-      ensure(n8) {
-        if (this.len + n8 <= this.out.length) return;
-        const grown = new Uint8Array(Math.max(this.out.length * 2, this.len + n8));
+      ensure(n7) {
+        if (this.len + n7 <= this.out.length) return;
+        const grown = new Uint8Array(Math.max(this.out.length * 2, this.len + n7));
         grown.set(this.out.subarray(0, this.len));
         this.out = grown;
       }
@@ -46132,7 +46132,7 @@ function parsePdf(bin) {
   if (!root2) throw new Error("C2PA embed: trailer has no /Root");
   const sizeM = /\/Size\s+(\d+)/.exec(trailers[0]);
   let maxNum = sizeM ? +sizeM[1] - 1 : 0;
-  for (const n8 of entries.keys()) if (n8 > maxNum) maxNum = n8;
+  for (const n7 of entries.keys()) if (n7 > maxNum) maxNum = n7;
   const infoM = /\/Info\s+\d+\s+\d+\s+R/.exec(trailers[0]);
   const idM = /\/ID\s*\[[^\]]*\]/.exec(trailers[0]);
   return { startxref, entries, root: root2, maxNum, infoRaw: infoM ? infoM[0] : null, idRaw: idM ? idM[0] : null };
@@ -46281,14 +46281,14 @@ ${xrefOff}
   }
   return out;
 }
-function u32be(n8) {
-  return Uint8Array.of(n8 >>> 24 & 255, n8 >>> 16 & 255, n8 >>> 8 & 255, n8 & 255);
+function u32be(n7) {
+  return Uint8Array.of(n7 >>> 24 & 255, n7 >>> 16 & 255, n7 >>> 8 & 255, n7 & 255);
 }
-function u32le(n8) {
-  return Uint8Array.of(n8 & 255, n8 >>> 8 & 255, n8 >>> 16 & 255, n8 >>> 24 & 255);
+function u32le(n7) {
+  return Uint8Array.of(n7 & 255, n7 >>> 8 & 255, n7 >>> 16 & 255, n7 >>> 24 & 255);
 }
-function u16be(n8) {
-  return Uint8Array.of(n8 >>> 8 & 255, n8 & 255);
+function u16be(n7) {
+  return Uint8Array.of(n7 >>> 8 & 255, n7 & 255);
 }
 function crc322(...parts) {
   let c = 4294967295;
@@ -46491,14 +46491,14 @@ function placeTiff(tiff, manifest) {
   const padLen = (4 - tiff.length % 4) % 4;
   const ifdOffset = tiff.length + padLen;
   const valueOffset = ifdOffset + 2 + 12 + 4;
-  const num162 = (n8) => {
+  const num162 = (n7) => {
     const b = new Uint8Array(2);
-    new DataView(b.buffer)[le ? "setUint16" : "setUint16"](0, n8, le);
+    new DataView(b.buffer)[le ? "setUint16" : "setUint16"](0, n7, le);
     return b;
   };
-  const num32 = (n8) => {
+  const num32 = (n7) => {
     const b = new Uint8Array(4);
-    new DataView(b.buffer).setUint32(0, n8, le);
+    new DataView(b.buffer).setUint32(0, n7, le);
     return b;
   };
   const newIfd = concatBytes([
@@ -46608,10 +46608,10 @@ function placeFlac(flac, manifest) {
   for (let i = 0; i < ordered.length; i++) {
     const b = ordered[i];
     const isLast = i === ordered.length - 1;
-    const n8 = b.body.length;
-    out.push(Uint8Array.of((isLast ? 128 : 0) | b.type, n8 >> 16 & 255, n8 >> 8 & 255, n8 & 255), b.body);
+    const n7 = b.body.length;
+    out.push(Uint8Array.of((isLast ? 128 : 0) | b.type, n7 >> 16 & 255, n7 >> 8 & 255, n7 & 255), b.body);
     if (i === 1) exclStart = pos;
-    pos += 4 + n8;
+    pos += 4 + n7;
   }
   out.push(frames);
   return { out: concatBytes(out), exclusions: [{ start: exclStart, length: 4 + c2paBody.length }] };
@@ -46884,7 +46884,7 @@ function htmlAnchors(bin) {
       continue;
     }
     if (htmlTagNameAt(bin, at + 1, "body")) break;
-    const raw = HTML_RAW_TEXT.find((n8) => htmlTagNameAt(bin, at + 1, n8));
+    const raw = HTML_RAW_TEXT.find((n7) => htmlTagNameAt(bin, at + 1, n7));
     if (raw) {
       const open3 = htmlTagEnd(bin, at + 1 + raw.length);
       if (open3 < 0) break;
@@ -47128,10 +47128,10 @@ var init_c2pa_containers = __esm({
     asciiBytes = (s) => te4.encode(s);
     CRC_TABLE2 = (() => {
       const t = new Uint32Array(256);
-      for (let n8 = 0; n8 < 256; n8++) {
-        let c = n8;
+      for (let n7 = 0; n7 < 256; n7++) {
+        let c = n7;
         for (let k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
-        t[n8] = c >>> 0;
+        t[n7] = c >>> 0;
       }
       return t;
     })();
@@ -47167,11 +47167,11 @@ var init_c2pa_containers = __esm({
     ];
     isC2paUuidBox = (bytes2, b) => b.type === "uuid" && b.size >= 24 && C2PA_BMFF_UUID.every((v, i) => bytes2[b.off + 8 + i] === v);
     bmffExcluded = (bytes2, b) => isC2paUuidBox(bytes2, b) || b.type === "ftyp" || b.type === "mfra" || b.type === "free" || b.type === "skip";
-    u64be = (n8) => {
+    u64be = (n7) => {
       const out = new Uint8Array(8);
       for (let i = 7; i >= 0; i--) {
-        out[i] = n8 % 256;
-        n8 = Math.floor(n8 / 256);
+        out[i] = n7 % 256;
+        n7 = Math.floor(n7 / 256);
       }
       return out;
     };
@@ -47192,7 +47192,7 @@ var init_c2pa_containers = __esm({
       ebml(ID_FILEDATA, manifest)
     ])));
     MP3_GEOB_MIME = "application/x-c2pa-manifest-store";
-    syncsafe = (n8) => Uint8Array.of(n8 >>> 21 & 127, n8 >>> 14 & 127, n8 >>> 7 & 127, n8 & 127);
+    syncsafe = (n7) => Uint8Array.of(n7 >>> 21 & 127, n7 >>> 14 & 127, n7 >>> 7 & 127, n7 & 127);
     readSyncsafe = (b, off) => (b[off] & 127) << 21 | (b[off + 1] & 127) << 14 | (b[off + 2] & 127) << 7 | b[off + 3] & 127;
     ARMOR_BEGIN = "-----BEGIN C2PA MANIFEST-----";
     ARMOR_END = "-----END C2PA MANIFEST-----";
@@ -47373,15 +47373,15 @@ function rightsSourceEntry(rights, ingredient) {
     ...rights.usedHash != null ? { usedHash: rights.usedHash } : {}
   };
 }
-function cborHead(major, n8) {
+function cborHead(major, n7) {
   const m2 = major << 5;
-  if (n8 < 24) return Uint8Array.of(m2 | n8);
-  if (n8 < 256) return Uint8Array.of(m2 | 24, n8);
-  if (n8 < 65536) return Uint8Array.of(m2 | 25, n8 >>> 8, n8 & 255);
-  if (n8 < 4294967296) return Uint8Array.of(m2 | 26, n8 >>> 24, n8 >>> 16 & 255, n8 >>> 8 & 255, n8 & 255);
+  if (n7 < 24) return Uint8Array.of(m2 | n7);
+  if (n7 < 256) return Uint8Array.of(m2 | 24, n7);
+  if (n7 < 65536) return Uint8Array.of(m2 | 25, n7 >>> 8, n7 & 255);
+  if (n7 < 4294967296) return Uint8Array.of(m2 | 26, n7 >>> 24, n7 >>> 16 & 255, n7 >>> 8 & 255, n7 & 255);
   const out = new Uint8Array(9);
   out[0] = m2 | 27;
-  new DataView(out.buffer).setBigUint64(1, BigInt(n8));
+  new DataView(out.buffer).setBigUint64(1, BigInt(n7));
   return out;
 }
 function cborEncodeInto(value2, out) {
@@ -49509,9 +49509,9 @@ function parseCertSigAlg(cert, algId) {
           } else if (field2.tag === 162) {
             const s = derChildren(cert, field2)[0];
             if (s && s.tag === 2) {
-              let n8 = 0;
-              for (const b of cert.slice(s.contentStart, s.end)) n8 = n8 * 256 + b;
-              saltLength = n8;
+              let n7 = 0;
+              for (const b of cert.slice(s.contentStart, s.end)) n7 = n7 * 256 + b;
+              saltLength = n7;
             }
           }
         }
@@ -49647,15 +49647,15 @@ function children(b, t, count4) {
 function oid(b, t) {
   if (t.tag !== 6 || t.end <= t.contentStart) throw new Error("Invalid object identifier");
   const nums = [];
-  let n8 = 0;
+  let n7 = 0;
   let start = true;
   for (const v of b.subarray(t.contentStart, t.end)) {
     if (start && v === 128) throw new Error("Noncanonical object identifier");
-    n8 = n8 * 128 + (v & 127);
-    if (!Number.isSafeInteger(n8)) throw new Error("Object identifier is too large");
+    n7 = n7 * 128 + (v & 127);
+    if (!Number.isSafeInteger(n7)) throw new Error("Object identifier is too large");
     if (!(v & 128)) {
-      nums.push(n8);
-      n8 = 0;
+      nums.push(n7);
+      n7 = 0;
       start = true;
     } else start = false;
   }
@@ -49666,10 +49666,10 @@ function oid(b, t) {
 function uint(b, t) {
   const v = b.subarray(t.contentStart, t.end);
   if (t.tag !== 2 || !v.length || v[0] & 128 || v.length > 1 && v[0] === 0 && !(v[1] & 128)) throw new Error("Invalid unsigned integer");
-  let n8 = 0;
-  for (const x of v) n8 = n8 * 256 + x;
-  if (!Number.isSafeInteger(n8)) throw new Error("Integer is too large");
-  return n8;
+  let n7 = 0;
+  for (const x of v) n7 = n7 * 256 + x;
+  if (!Number.isSafeInteger(n7)) throw new Error("Integer is too large");
+  return n7;
 }
 function bool(b, t) {
   if (t.tag !== 1 || t.end - t.contentStart !== 1 || ![0, 255].includes(b[t.contentStart])) throw new Error("Invalid DER boolean");
@@ -49908,10 +49908,10 @@ function parseEnrollmentTrustBundle(raw) {
   const providers = /* @__PURE__ */ Object.create(null);
   if (!Object.keys(b.providers).length || Object.keys(b.providers).length > 8) throw new Error("Enrollment assurance policies are missing");
   for (const [name, value2] of Object.entries(b.providers)) {
-    if (!value2 || typeof value2 !== "object" || Object.keys(value2).some((k) => !["issuer", "policyOid", "domains"].includes(k)) || !/^[a-z][a-z0-9_-]{0,31}$/.test(name) || !issuers.has(value2?.issuer) || typeof value2.policyOid !== "string" || !/^(?:0|1|2)\.\d+(?:\.\d+){2,20}$/.test(value2.policyOid) || value2.policyOid === "2.5.29.32.0" || value2.policyOid.split(".").some((n8) => !Number.isSafeInteger(+n8) || +n8 > 2147483647 || String(+n8) !== n8) || +value2.policyOid[0] < 2 && +value2.policyOid.split(".")[1] > 39 || !Array.isArray(value2.domains) || !value2.domains.length || value2.domains.length > 32 || value2.domains.some((d) => typeof d !== "string" || d.length > 253 || !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(d))) throw new Error("Invalid enrollment assurance policy");
+    if (!value2 || typeof value2 !== "object" || Object.keys(value2).some((k) => !["issuer", "policyOid", "domains"].includes(k)) || !/^[a-z][a-z0-9_-]{0,31}$/.test(name) || !issuers.has(value2?.issuer) || typeof value2.policyOid !== "string" || !/^(?:0|1|2)\.\d+(?:\.\d+){2,20}$/.test(value2.policyOid) || value2.policyOid === "2.5.29.32.0" || value2.policyOid.split(".").some((n7) => !Number.isSafeInteger(+n7) || +n7 > 2147483647 || String(+n7) !== n7) || +value2.policyOid[0] < 2 && +value2.policyOid.split(".")[1] > 39 || !Array.isArray(value2.domains) || !value2.domains.length || value2.domains.length > 32 || value2.domains.some((d) => typeof d !== "string" || d.length > 253 || !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(d))) throw new Error("Invalid enrollment assurance policy");
     providers[name] = { issuer: value2.issuer, policyOid: value2.policyOid, domains: [...new Set(value2.domains)] };
   }
-  for (const n8 of ["defaultLifetimeSeconds", "maxLifetimeSeconds", "crlMaxAgeSeconds"]) if (!Number.isSafeInteger(b[n8]) || b[n8] < 60 || b[n8] > 7 * 86400) throw new Error("Enrollment lifetime and status policies are required");
+  for (const n7 of ["defaultLifetimeSeconds", "maxLifetimeSeconds", "crlMaxAgeSeconds"]) if (!Number.isSafeInteger(b[n7]) || b[n7] < 60 || b[n7] > 7 * 86400) throw new Error("Enrollment lifetime and status policies are required");
   if (b.defaultLifetimeSeconds > 86400 || b.defaultLifetimeSeconds > b.maxLifetimeSeconds || b.crlMaxAgeSeconds > b.maxLifetimeSeconds || typeof b.unifiedCrl !== "boolean") throw new Error("Invalid enrollment lifetime policy");
   return { version: 1, roots: b.roots.map(enrollmentCertificateDer), issuers, providers, defaultLifetimeSeconds: b.defaultLifetimeSeconds, maxLifetimeSeconds: b.maxLifetimeSeconds, crlMaxAgeSeconds: b.crlMaxAgeSeconds, unifiedCrl: b.unifiedCrl };
 }
@@ -49976,36 +49976,36 @@ function decodeItem(b, i, depth = 0) {
   if (depth > MAX_CBOR_DEPTH) throw new Error("cbor: nesting too deep");
   const ib = b[i++];
   const major = ib >> 5;
-  let n8 = ib & 31;
-  const indefinite = n8 === 31;
+  let n7 = ib & 31;
+  const indefinite = n7 === 31;
   const need = (k) => {
     if (i + k > b.length) throw new Error("cbor: truncated length head");
   };
   if (indefinite) {
     if (major < 2 || major === 6) throw new Error("cbor: reserved indefinite head");
     if (major === 7) return [CBOR_BREAK, i];
-  } else if (n8 === 24) {
+  } else if (n7 === 24) {
     need(1);
-    n8 = b[i];
+    n7 = b[i];
     i += 1;
-  } else if (n8 === 25) {
+  } else if (n7 === 25) {
     need(2);
-    n8 = b[i] << 8 | b[i + 1];
+    n7 = b[i] << 8 | b[i + 1];
     i += 2;
-  } else if (n8 === 26) {
+  } else if (n7 === 26) {
     need(4);
-    n8 = b[i] * 16777216 + (b[i + 1] << 16 | b[i + 2] << 8 | b[i + 3]);
+    n7 = b[i] * 16777216 + (b[i + 1] << 16 | b[i + 2] << 8 | b[i + 3]);
     i += 4;
-  } else if (n8 === 27) {
+  } else if (n7 === 27) {
     need(8);
-    n8 = Number(new DataView(b.buffer, b.byteOffset + i, 8).getBigUint64(0));
+    n7 = Number(new DataView(b.buffer, b.byteOffset + i, 8).getBigUint64(0));
     i += 8;
-  } else if (n8 > 27) throw new Error("cbor: reserved length head");
+  } else if (n7 > 27) throw new Error("cbor: reserved length head");
   switch (major) {
     case 0:
-      return [n8, i];
+      return [n7, i];
     case 1:
-      return [-1 - n8, i];
+      return [-1 - n7, i];
     case 2:
     case 3: {
       if (indefinite) {
@@ -50019,12 +50019,12 @@ function decodeItem(b, i, depth = 0) {
         const whole = concatBytes(parts);
         return [major === 2 ? whole : td3.decode(whole), i];
       }
-      if (i + n8 > b.length) throw new Error("cbor: truncated string");
-      return [major === 2 ? b.slice(i, i + n8) : td3.decode(b.slice(i, i + n8)), i + n8];
+      if (i + n7 > b.length) throw new Error("cbor: truncated string");
+      return [major === 2 ? b.slice(i, i + n7) : td3.decode(b.slice(i, i + n7)), i + n7];
     }
     case 4: {
       const a = [];
-      for (let k = 0; indefinite || k < n8; k++) {
+      for (let k = 0; indefinite || k < n7; k++) {
         const [v, j] = decodeItem(b, i, depth + 1);
         i = j;
         if (v === CBOR_BREAK) break;
@@ -50034,7 +50034,7 @@ function decodeItem(b, i, depth = 0) {
     }
     case 5: {
       const m2 = /* @__PURE__ */ new Map();
-      for (let k = 0; indefinite || k < n8; k++) {
+      for (let k = 0; indefinite || k < n7; k++) {
         const [key2, j] = decodeItem(b, i, depth + 1);
         if (key2 === CBOR_BREAK) {
           i = j;
@@ -50048,12 +50048,12 @@ function decodeItem(b, i, depth = 0) {
     }
     case 6: {
       const [v, j] = decodeItem(b, i, depth + 1);
-      return [{ tag: n8, value: v }, j];
+      return [{ tag: n7, value: v }, j];
     }
     default: {
-      if (n8 === 20) return [false, i];
-      if (n8 === 21) return [true, i];
-      if (n8 === 22 || n8 === 23) return [null, i];
+      if (n7 === 20) return [false, i];
+      if (n7 === 21) return [true, i];
+      if (n7 === 22 || n7 === 23) return [null, i];
       const head2 = ib & 31;
       if (head2 === 25) {
         const h = b[i - 2] << 8 | b[i - 1];
@@ -50289,7 +50289,7 @@ function extractC2paFromJpeg(jpeg) {
     const first = group[0].body;
     if (!(first.length > 28 && ascii(first, 24, 4) === "c2pa")) continue;
     const parts = group.map((s, idx) => idx === 0 ? s.body.subarray(8) : s.body.subarray(16));
-    const manifest = new Uint8Array(parts.reduce((n8, p) => n8 + p.length, 0));
+    const manifest = new Uint8Array(parts.reduce((n7, p) => n7 + p.length, 0));
     let o = 0;
     for (const p of parts) {
       manifest.set(p, o);
@@ -50316,10 +50316,10 @@ function extractC2paFromGif(gif) {
     const isC2pa = label4 === 255 && ascii(gif, i + 3, 8) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0;
     const parts = [];
     while (j < gif.length && gif[j] !== 0) {
-      const n8 = gif[j];
-      if (j + 1 + n8 > gif.length) throw new Error("malformed GIF sub-blocks");
-      if (isC2pa) parts.push(gif.subarray(j + 1, j + 1 + n8));
-      j += 1 + n8;
+      const n7 = gif[j];
+      if (j + 1 + n7 > gif.length) throw new Error("malformed GIF sub-blocks");
+      if (isC2pa) parts.push(gif.subarray(j + 1, j + 1 + n7));
+      j += 1 + n7;
     }
     if (j >= gif.length) throw new Error("truncated GIF sub-blocks");
     j += 1;
@@ -51175,7 +51175,7 @@ var init_c2pa_extract = __esm({
     CBOR_BREAK = /* @__PURE__ */ Symbol("cbor break");
     MAX_CBOR_DEPTH = 64;
     contentOf = (bytes2, sub) => bytes2.slice(sub.children[0].payloadStart, sub.children[0].end);
-    ascii = (b, o, n8) => String.fromCharCode(...b.subarray(o, o + n8));
+    ascii = (b, o, n7) => String.fromCharCode(...b.subarray(o, o + n7));
     SNIFF_HEAD_BYTES = 4096;
     SNIFF_TAIL_BYTES = 64 * 1024;
     MAX_FULL_SCAN_BYTES = 4 * 1024 * 1024;
@@ -51222,10 +51222,10 @@ var init_c2pa_extract = __esm({
       /** Bigger than the text readers will decode. */
       tooLarge: "lolly.text.tooLarge"
     });
-    tooLarge = (what, n8) => ({
+    tooLarge = (what, n7) => ({
       store: null,
       status: C2PA_TEXT_STATUS.tooLarge,
-      detail: `${what} is ${n8} bytes; the text readers cap at ${MAX_TEXT_BYTES}`
+      detail: `${what} is ${n7} bytes; the text readers cap at ${MAX_TEXT_BYTES}`
     });
     BASE64_ONLY = /^[A-Za-z0-9+/]+={0,2}$/;
     MAX_HTML_REFS = 8;
@@ -51787,9 +51787,9 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
         if (excluded(b)) continue;
         if (version >= 2) {
           const marker = new Uint8Array(8);
-          for (let i = 7, n8 = b.off; i >= 0; i--) {
-            marker[i] = n8 % 256;
-            n8 = Math.floor(n8 / 256);
+          for (let i = 7, n7 = b.off; i >= 0; i--) {
+            marker[i] = n7 % 256;
+            n7 = Math.floor(n7 / 256);
           }
           spans.push(marker);
         }
@@ -52241,7 +52241,7 @@ function paintsOf(row, f, resolveColour, own4 = false) {
       let g2 = 0;
       let b = 0;
       let a = 0;
-      let n8 = 0;
+      let n7 = 0;
       let readable2 = true;
       for (const stop of spec.stops) {
         const colour = resolveColour(stop.color);
@@ -52255,10 +52255,10 @@ function paintsOf(row, f, resolveColour, own4 = false) {
         g2 += cg;
         b += cb;
         a += Math.max(0, Math.min(1, c.alpha));
-        n8++;
+        n7++;
       }
-      if (!readable2 || !n8) out.push({ kind: "unknown" });
-      else out.push({ kind: "colour", rgb: [r5 / n8, g2 / n8, b / n8], alpha: a / n8 * opacity });
+      if (!readable2 || !n7) out.push({ kind: "unknown" });
+      else out.push({ kind: "colour", rgb: [r5 / n7, g2 / n7, b / n7], alpha: a / n7 * opacity });
     }
   }
   const fillRaw = row[f.fill];
@@ -52310,7 +52310,7 @@ function surfaceUnderDesignLayer(rows2, index2, canvas, resolveColour) {
   const under = resolveFrom(0);
   if (!under) return null;
   if (under.kind === "photo") return "photo";
-  const hex3 = "#" + under.rgb.map((n8) => Math.round(Math.max(0, Math.min(255, n8))).toString(16).padStart(2, "0")).join("");
+  const hex3 = "#" + under.rgb.map((n7) => Math.round(Math.max(0, Math.min(255, n7))).toString(16).padStart(2, "0")).join("");
   return bgIsDark(hex3) ? "dark" : "light";
 }
 function logoSurfaceRule(rules) {
@@ -52348,8 +52348,8 @@ function themeSurfaceColours(doc) {
       return null;
     }
   };
-  const lightName = names.find((n8) => !/dark/i.test(n8));
-  const darkName = names.find((n8) => /dark/i.test(n8));
+  const lightName = names.find((n7) => !/dark/i.test(n7));
+  const darkName = names.find((n7) => /dark/i.test(n7));
   out.light = read(lightName);
   out.dark = darkName ? read(darkName) : null;
   return out;
@@ -52537,8 +52537,8 @@ var init_surface_variant = __esm({
     record9 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     strings = (v) => Array.isArray(v) ? v.filter((s) => typeof s === "string" && s.length > 0) : [];
     num3 = (v, fallback) => {
-      const n8 = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
-      return Number.isFinite(n8) ? n8 : fallback;
+      const n7 = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
+      return Number.isFinite(n7) ? n7 : fallback;
     };
     LOGO_TOKEN_PREFIX = "asset.logo.";
     REVERSE = "-reverse";
@@ -54823,11 +54823,11 @@ function xyzType([x, y, z]) {
   return b;
 }
 function curveType(samples) {
-  const n8 = samples.length;
-  const b = new Uint8Array(12 + n8 * 2);
+  const n7 = samples.length;
+  const b = new Uint8Array(12 + n7 * 2);
   const dv = new DataView(b.buffer);
   writeSig(b, 0, "curv");
-  dv.setUint32(8, n8);
+  dv.setUint32(8, n7);
   for (const [i, s] of samples.entries()) dv.setUint16(12 + i * 2, s);
   return b;
 }
@@ -54993,7 +54993,7 @@ var init_color2 = __esm({
   "engine/src/color.ts"() {
     "use strict";
     s15f162 = (v) => Math.round(v * 65536);
-    align4 = (n8) => n8 + 3 & ~3;
+    align4 = (n7) => n7 + 3 & ~3;
     D50 = [0.9642, 1, 0.8249];
     PRIMARIES = {
       r: [0.43607, 0.22249, 0.01392],
@@ -55022,7 +55022,7 @@ var init_color2 = __esm({
     COLOR_PROFILES = {
       srgb: { id: "srgb", name: "sRGB IEC61966-2.1", space: "RGB", bytes: srgbIccProfile }
     };
-    isProfileName = (n8) => Object.hasOwn(COLOR_PROFILES, n8);
+    isProfileName = (n7) => Object.hasOwn(COLOR_PROFILES, n7);
     CMYK_CONDITIONS = {
       fogra39: { identifier: "FOGRA39", info: "Coated FOGRA39 (ISO 12647-2:2004)", registry: "http://www.color.org", tac: 330 },
       fogra51: { identifier: "FOGRA51", info: "PSO Coated v3 (FOGRA51)", registry: "http://www.color.org", tac: 300 },
@@ -55030,7 +55030,7 @@ var init_color2 = __esm({
       gracol: { identifier: "CGATS TR 006", info: "GRACoL 2006 Coated", registry: "http://www.color.org", tac: 340 }
     };
     DEFAULT_CMYK_CONDITION = "fogra39";
-    isCmykConditionName = (n8) => Object.hasOwn(CMYK_CONDITIONS, n8);
+    isCmykConditionName = (n7) => Object.hasOwn(CMYK_CONDITIONS, n7);
   }
 });
 
@@ -55177,9 +55177,9 @@ var init_preflight2 = __esm({
     KNOWN_FINISHES = new Set(KNOWN_FINISH_KINDS);
     lower = (v) => typeof v === "string" ? v.toLowerCase() : "";
     isFiniteNum = (v) => typeof v === "number" && Number.isFinite(v);
-    num4 = (n8) => {
-      if (!Number.isFinite(n8)) return "?";
-      const r5 = Math.round(n8 * 100) / 100;
+    num4 = (n7) => {
+      if (!Number.isFinite(n7)) return "?";
+      const r5 = Math.round(n7 * 100) / 100;
       return Number.isInteger(r5) ? String(r5) : String(r5);
     };
     labelOf = (i) => typeof i.label === "string" && i.label || typeof i.id === "string" && i.id || "An input";
@@ -55208,8 +55208,8 @@ var init_preflight2 = __esm({
       if (!m2) return null;
       let h = m2[1];
       if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-      const n8 = parseInt(h, 16);
-      return [(n8 >> 16 & 255) / 255, (n8 >> 8 & 255) / 255, (n8 & 255) / 255];
+      const n7 = parseInt(h, 16);
+      return [(n7 >> 16 & 255) / 255, (n7 >> 8 & 255) / 255, (n7 & 255) / 255];
     };
     swatchTac = (s) => {
       if (s?.spot?.finish) return null;
@@ -55481,7 +55481,7 @@ var init_preflight2 = __esm({
     OFFSET_MIN_DPI = 250;
     OFFSET_HARD_DPI = 150;
     LARGE_FORMAT_MIN_DPI = 72;
-    round0 = (n8) => Math.round(n8);
+    round0 = (n7) => Math.round(n7);
     checkEffectiveDpi = (c) => {
       if (!RASTER_FORMATS.has(c.fmt)) return;
       const trim2 = physicalTrim(c);
@@ -55632,14 +55632,14 @@ var init_preflight2 = __esm({
       if (!input) return;
       const table = normalizeTableValue(input.value);
       if (!table) return;
-      const n8 = Math.max(1, table.rows.length);
+      const n7 = Math.max(1, table.rows.length);
       const bound = c.job.modelPhase === "post-init" ? "exact" : "ceiling";
       c.add({
         id: "count.pages.paginate",
         severity: "info",
-        message: `${n8} ${n8 === 1 ? "page" : "pages"}, one per row of ${labelOf(input)}.`,
+        message: `${n7} ${n7 === 1 ? "page" : "pages"}, one per row of ${labelOf(input)}.`,
         evidence: { source: src, rows: table.rows.length, modelPhase: c.job.modelPhase ?? null },
-        count: { kind: "pages", value: n8, unit: "page", bound, basis: "manifest.render.paginate" }
+        count: { kind: "pages", value: n7, unit: "page", bound, basis: "manifest.render.paginate" }
       });
     };
     checkPagesPages = (c) => {
@@ -55650,13 +55650,13 @@ var init_preflight2 = __esm({
       if (!input || !isFiniteNum(input.value)) return;
       const lo = isFiniteNum(pages.min) ? pages.min : 1;
       const hi = isFiniteNum(pages.max) ? pages.max : 6;
-      const n8 = Math.round(clamp(input.value, lo, hi));
+      const n7 = Math.round(clamp(input.value, lo, hi));
       c.add({
         id: "count.pages.pages",
         severity: "info",
-        message: `${n8} ${n8 === 1 ? "page" : "pages"}.`,
+        message: `${n7} ${n7 === 1 ? "page" : "pages"}.`,
         evidence: { source: id3, typed: input.value, min: lo, max: hi },
-        count: { kind: "pages", value: n8, unit: "page", bound: "exact", basis: "manifest.render.pages" }
+        count: { kind: "pages", value: n7, unit: "page", bound: "exact", basis: "manifest.render.pages" }
       });
     };
     checkPagesFromStage = (c) => {
@@ -55665,27 +55665,27 @@ var init_preflight2 = __esm({
       if (r5?.paginate?.source || r5?.pages?.count) return;
       const st = c.job?.stage;
       if (st?.known !== true) return;
-      const n8 = st.value?.pageBoxes;
-      if (!isFiniteNum(n8) || n8 <= 0) return;
+      const n7 = st.value?.pageBoxes;
+      if (!isFiniteNum(n7) || n7 <= 0) return;
       c.add({
         id: "count.pages.stage",
         severity: "info",
-        message: `${Math.floor(n8)} ${n8 === 1 ? "page" : "pages"}, counted on the artwork as it stands.`,
-        evidence: { format: c.fmt, pageBoxes: Math.floor(n8) },
-        count: { kind: "pages", value: Math.floor(n8), unit: "page", bound: "exact", basis: "stage.pageBoxes" }
+        message: `${Math.floor(n7)} ${n7 === 1 ? "page" : "pages"}, counted on the artwork as it stands.`,
+        evidence: { format: c.fmt, pageBoxes: Math.floor(n7) },
+        count: { kind: "pages", value: Math.floor(n7), unit: "page", bound: "exact", basis: "stage.pageBoxes" }
       });
     };
     checkArtboardFanOut = (c) => {
       if (!STILL_IMAGE_FORMATS.has(c.fmt)) return;
       const st = c.job?.stage;
       if (st?.known !== true) return;
-      const n8 = st.value?.pageBoxes;
-      if (!isFiniteNum(n8) || n8 <= 1) return;
+      const n7 = st.value?.pageBoxes;
+      if (!isFiniteNum(n7) || n7 <= 1) return;
       c.add({
         id: "count.artboard-fanout",
         severity: "info",
-        message: `${Math.floor(n8)} artboards export as ${Math.floor(n8)} separate ${c.fmt.toUpperCase()} files (delivered zipped), each at its own artboard size - the size shown is the active artboard's.`,
-        evidence: { format: c.fmt, pageBoxes: Math.floor(n8) }
+        message: `${Math.floor(n7)} artboards export as ${Math.floor(n7)} separate ${c.fmt.toUpperCase()} files (delivered zipped), each at its own artboard size - the size shown is the active artboard's.`,
+        evidence: { format: c.fmt, pageBoxes: Math.floor(n7) }
       });
     };
     checkPagesUnknown = (c) => {
@@ -55851,24 +55851,24 @@ var init_preflight2 = __esm({
       });
     };
     cutsOf = (c) => {
-      const n8 = c.job?.settings?.cuts;
-      return isFiniteNum(n8) && n8 > 1 ? Math.floor(n8) : 0;
+      const n7 = c.job?.settings?.cuts;
+      return isFiniteNum(n7) && n7 > 1 ? Math.floor(n7) : 0;
     };
     checkCutsNeedsStage = (c) => {
-      const n8 = cutsOf(c);
-      if (!n8 || c.job?.stage?.known !== false) return;
+      const n7 = cutsOf(c);
+      if (!n7 || c.job?.stage?.known !== false) return;
       c.add({
         id: "count.cuts-needs-stage",
         severity: "info",
         needs: "needs-mount",
-        message: `cuts=${n8} is set. It multiplies the output only on a timed composition, which Lolly cannot tell without the artwork on screen. Counted as one file.`,
-        evidence: { cuts: n8, format: c.fmt }
+        message: `cuts=${n7} is set. It multiplies the output only on a timed composition, which Lolly cannot tell without the artwork on screen. Counted as one file.`,
+        evidence: { cuts: n7, format: c.fmt }
       });
     };
     checkCutsInert = (c) => {
-      const n8 = cutsOf(c);
+      const n7 = cutsOf(c);
       const st = c.job?.stage;
-      if (!n8 || st?.known !== true) return;
+      if (!n7 || st?.known !== true) return;
       const seq = st.value?.isSequence === true;
       const fmtOk = CUTS_FORMATS.has(c.fmt);
       if (seq && fmtOk) return;
@@ -55876,30 +55876,30 @@ var init_preflight2 = __esm({
       c.add({
         id: "count.cuts-inert",
         severity: "info",
-        message: `cuts=${n8} is set but does nothing here: ${reason2}. One file will come out.`,
-        evidence: { cuts: n8, format: c.fmt, isSequence: seq },
+        message: `cuts=${n7} is set but does nothing here: ${reason2}. One file will come out.`,
+        evidence: { cuts: n7, format: c.fmt, isSequence: seq },
         count: { kind: "outputFiles", value: 1, unit: "file", bound: "exact", basis: "settings.cuts" }
       });
     };
     checkCutsApplies = (c) => {
-      const n8 = cutsOf(c);
+      const n7 = cutsOf(c);
       const st = c.job?.stage;
-      if (!n8 || st?.known !== true || st.value?.isSequence !== true || !CUTS_FORMATS.has(c.fmt)) return;
+      if (!n7 || st?.known !== true || st.value?.isSequence !== true || !CUTS_FORMATS.has(c.fmt)) return;
       const pdf = c.fmt === "pdf";
       c.add({
         id: "count.cuts-applies",
         severity: "info",
-        message: `A contact sheet of ${n8} frames, delivered as one ${pdf ? "PDF" : "ZIP"}.`,
-        evidence: { cuts: n8, format: c.fmt, delivery: pdf ? "pdf" : "zip" },
+        message: `A contact sheet of ${n7} frames, delivered as one ${pdf ? "PDF" : "ZIP"}.`,
+        evidence: { cuts: n7, format: c.fmt, delivery: pdf ? "pdf" : "zip" },
         count: { kind: "outputFiles", value: 1, unit: "file", bound: "exact", basis: "settings.cuts" }
       });
       if (pdf) {
         c.add({
           id: "count.cuts-applies",
           severity: "info",
-          message: `${n8} pages, one per frame.`,
-          evidence: { cuts: n8, format: c.fmt },
-          count: { kind: "pages", value: n8, unit: "page", bound: "exact", basis: "settings.cuts" }
+          message: `${n7} pages, one per frame.`,
+          evidence: { cuts: n7, format: c.fmt },
+          count: { kind: "pages", value: n7, unit: "page", bound: "exact", basis: "settings.cuts" }
         });
       }
     };
@@ -56142,11 +56142,11 @@ var LINEAR, encoded, ShutterAccumulator;
 var init_motion_sampling = __esm({
   "engine/src/motion-sampling.ts"() {
     "use strict";
-    LINEAR = Float64Array.from({ length: 256 }, (_, n8) => {
-      const s = n8 / 255;
+    LINEAR = Float64Array.from({ length: 256 }, (_, n7) => {
+      const s = n7 / 255;
       return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
     });
-    encoded = (n8) => Math.round(255 * (n8 <= 31308e-7 ? n8 * 12.92 : 1.055 * n8 ** (1 / 2.4) - 0.055));
+    encoded = (n7) => Math.round(255 * (n7 <= 31308e-7 ? n7 * 12.92 : 1.055 * n7 ** (1 / 2.4) - 0.055));
     ShutterAccumulator = class {
       sum;
       count = 0;
@@ -56298,9 +56298,9 @@ var init_lang = __esm({
 // engine/src/url-mode.ts
 function numberIn(raw, min, max, integer2 = false) {
   if (raw == null || raw.trim() === "") return null;
-  const n8 = Number(raw);
-  if (!Number.isFinite(n8) || n8 < min || n8 > max) return null;
-  return integer2 ? Math.round(n8) : n8;
+  const n7 = Number(raw);
+  if (!Number.isFinite(n7) || n7 < min || n7 > max) return null;
+  return integer2 ? Math.round(n7) : n7;
 }
 function parseVideoParams(params2) {
   const codecRaw = (params2.get("codec") ?? "").trim().toLowerCase();
@@ -56331,8 +56331,8 @@ function parseC2pa(raw) {
   if (raw == null) return null;
   const v = String(raw).trim().toLowerCase();
   if (v === "off" || v === "0" || v === "false" || v === "no") return { on: false, days: null };
-  const n8 = Number(v);
-  return { on: true, days: [7, 30, 90, 365].includes(n8) ? n8 : null };
+  const n7 = Number(v);
+  return { on: true, days: [7, 30, 90, 365].includes(n7) ? n7 : null };
 }
 function parseImprint(raw) {
   if (raw == null) return null;
@@ -56357,7 +56357,7 @@ function parseHdr(raw) {
   if (v === "off" || v === "0" || v === "false" || v === "no") return null;
   if (v === "" || v === "1" || v === "on" || v === "pq" || v === "true") return { ...HDR_DEFAULTS };
   const p = v.split("-").map(Number);
-  const dial = (n8, lo, hi, def) => n8 != null && Number.isFinite(n8) ? Math.min(hi, Math.max(lo, Math.round(n8))) : def;
+  const dial = (n7, lo, hi, def) => n7 != null && Number.isFinite(n7) ? Math.min(hi, Math.max(lo, Math.round(n7))) : def;
   return {
     peakNits: dial(p[0], 100, 1e4, HDR_DEFAULTS.peakNits),
     reach: dial(p[1], 0, 100, HDR_DEFAULTS.reach),
@@ -56376,9 +56376,9 @@ function serializeHdr(s) {
 }
 function parseCuts(raw) {
   if (raw == null) return 1;
-  const n8 = Number(String(raw).trim());
-  if (!Number.isFinite(n8)) return 1;
-  const i = Math.trunc(n8);
+  const n7 = Number(String(raw).trim());
+  if (!Number.isFinite(n7)) return 1;
+  const i = Math.trunc(n7);
   if (i < 1) return 1;
   return Math.min(i, CUTS_MAX);
 }
@@ -56403,8 +56403,8 @@ function parseUrlState(searchParams, manifest) {
     if (key2.startsWith("pkg.")) continue;
     const vec = vectorFieldByKey[key2];
     if (vec) {
-      const n8 = Number(raw);
-      if (raw !== "" && !Number.isNaN(n8)) (values[vec.input.id] ??= {})[vec.field.id] = n8;
+      const n7 = Number(raw);
+      if (raw !== "" && !Number.isNaN(n7)) (values[vec.input.id] ??= {})[vec.field.id] = n7;
       continue;
     }
     const input = inputsByKey[key2];
@@ -57080,7 +57080,7 @@ function jxlWithXmp(codestream, xmp) {
   const xml3 = text5.encode(xmp);
   if (xml3.length > MAX_METADATA) throw new Error("JPEG XL metadata exceeds 1 MiB.");
   const parts = [signature, box2("ftyp", new Uint8Array([106, 120, 108, 32, 0, 0, 0, 0, 106, 120, 108, 32])), box2("xml ", xml3), box2("jxlc", codestream)];
-  const size = parts.reduce((n8, part) => n8 + part.length, 0);
+  const size = parts.reduce((n7, part) => n7 + part.length, 0);
   if (size > JXL_LIMITS.inputBytes) throw new Error("JPEG XL output exceeds 128 MiB.");
   const out = new Uint8Array(size);
   let at = 0;
@@ -57435,9 +57435,9 @@ function clip2(s) {
 function readIfd(dv, off, le) {
   const out = [];
   if (off <= 0 || off + 2 > dv.byteLength) return out;
-  const n8 = dv.getUint16(off, le);
+  const n7 = dv.getUint16(off, le);
   let p = off + 2;
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     if (p + 12 > dv.byteLength) break;
     const tag3 = dv.getUint16(p, le);
     const type = dv.getUint16(p + 2, le);
@@ -57494,8 +57494,8 @@ function rationals(dv, e, want) {
   }
   return out.length === want ? out : null;
 }
-function round(n8, dp = 1) {
-  return (Math.round(n8 * 10 ** dp) / 10 ** dp).toString();
+function round(n7, dp = 1) {
+  return (Math.round(n7 * 10 ** dp) / 10 ** dp).toString();
 }
 function readGps(dv, off, le) {
   let latRef = null, lonRef = null;
@@ -57776,10 +57776,10 @@ function sniffAppended(b, off) {
   }
   return scan2 > 0 && printable / scan2 > 0.9 ? "text" : "binary data";
 }
-function fmtBytes(n8) {
-  if (n8 < 1024) return `${n8} B`;
-  if (n8 < 1024 * 1024) return `${Math.round(n8 / 1024)} KB`;
-  return `${(n8 / 1024 / 1024).toFixed(1)} MB`;
+function fmtBytes(n7) {
+  if (n7 < 1024) return `${n7} B`;
+  if (n7 < 1024 * 1024) return `${Math.round(n7 / 1024)} KB`;
+  return `${(n7 / 1024 / 1024).toFixed(1)} MB`;
 }
 function describeDeclaredImage(bytes2, off) {
   const idx = readMpfIndex(bytes2);
@@ -58117,10 +58117,10 @@ function bmffGps(out, fix) {
   out.fields.push({ label: "Coordinates", value: `${fix.lat.toFixed(6)}, ${fix.lon.toFixed(6)}`, group: "location", sensitive: true });
 }
 function detectProducer(handlerNotes, encoder5, hasVideo) {
-  const dated = handlerNotes.find((n8) => GOOGLE_NOTE_DATED.test(n8));
+  const dated = handlerNotes.find((n7) => GOOGLE_NOTE_DATED.test(n7));
   if (dated) return { vendor: "Google", signature: "reencode", hint: "a YouTube-style server re-encode", markers: [dated] };
   const markers = [];
-  const note2 = handlerNotes.find((n8) => GOOGLE_NOTE.test(n8));
+  const note2 = handlerNotes.find((n7) => GOOGLE_NOTE.test(n7));
   if (note2) markers.push(note2);
   if (encoder5 === "Google") markers.push("encoder tag \u201CGoogle\u201D");
   if (!markers.length) return void 0;
@@ -58324,9 +58324,9 @@ function readHeifItemTable(bytes2) {
     const baseOffsetSize = bytes2[p + 1] >> 4;
     const indexSize = v === 1 || v === 2 ? bytes2[p + 1] & 15 : 0;
     p += 2;
-    const readN = (at, n8) => {
+    const readN = (at, n7) => {
       let out = 0;
-      for (let i = 0; i < n8; i++) out = out * 256 + bytes2[at + i];
+      for (let i = 0; i < n7; i++) out = out * 256 + bytes2[at + i];
       return out;
     };
     const count4 = v === 2 ? u323(bytes2, p) : u163(bytes2, p);
@@ -58370,7 +58370,7 @@ function readHeifItemTable(bytes2) {
   };
 }
 function heifItemPayload(bytes2, store, item2) {
-  const total = item2.extents.reduce((n8, e) => n8 + e.length, 0);
+  const total = item2.extents.reduce((n7, e) => n7 + e.length, 0);
   if (!item2.extents.length || total <= 0 || total > MAX_HEIF_ITEM_BYTES) return null;
   const out = new Uint8Array(total);
   let o = 0;
@@ -58820,33 +58820,33 @@ function parseTag(raw) {
 function tokenize2(s) {
   const toks = [];
   let i = 0;
-  const n8 = s.length;
-  while (i < n8) {
+  const n7 = s.length;
+  while (i < n7) {
     if (s[i] === "<") {
       if (s.startsWith("<!--", i)) {
         const end = s.indexOf("-->", i + 4);
-        const close = end === -1 ? n8 : end + 3;
+        const close = end === -1 ? n7 : end + 3;
         toks.push({ t: "comment", raw: s.slice(i, close) });
         i = close;
       } else if (s.startsWith("<![CDATA[", i)) {
         const end = s.indexOf("]]>", i + 9);
-        const close = end === -1 ? n8 : end + 3;
+        const close = end === -1 ? n7 : end + 3;
         toks.push({ t: "cdata", raw: s.slice(i, close) });
         i = close;
       } else if (s.startsWith("<!", i)) {
         const end = s.indexOf(">", i);
-        const close = end === -1 ? n8 : end + 1;
+        const close = end === -1 ? n7 : end + 1;
         toks.push({ t: "doctype", raw: s.slice(i, close) });
         i = close;
       } else if (s.startsWith("<?", i)) {
         const end = s.indexOf("?>", i);
-        const close = end === -1 ? n8 : end + 2;
+        const close = end === -1 ? n7 : end + 2;
         const raw = s.slice(i, close);
         toks.push({ t: "pi", raw, isXmlDecl: /^<\?xml\s/i.test(raw) });
         i = close;
       } else {
         let j = i + 1, q = "";
-        while (j < n8) {
+        while (j < n7) {
           const c = s[j];
           if (q) {
             if (c === q) q = "";
@@ -58854,13 +58854,13 @@ function tokenize2(s) {
           else if (c === ">") break;
           j++;
         }
-        const close = j < n8 ? j + 1 : n8;
+        const close = j < n7 ? j + 1 : n7;
         toks.push(parseTag(s.slice(i, close)));
         i = close;
       }
     } else {
       const next2 = s.indexOf("<", i);
-      const close = next2 === -1 ? n8 : next2;
+      const close = next2 === -1 ? n7 : next2;
       toks.push({ t: "text", raw: s.slice(i, close) });
       i = close;
     }
@@ -59243,7 +59243,7 @@ function measureDocument(doc, opts = {}) {
   const weights = /* @__PURE__ */ new Map();
   for (const input of doc.model) collectModelAssetWeights(input, weights);
   const assets = info.assets.map((id3) => weights.has(id3) ? { id: id3, bytes: weights.get(id3) } : { id: id3 });
-  return { width: pixels3(opts.width ?? doc.manifest.render.width ?? 0), height: pixels3(opts.height ?? doc.manifest.render.height ?? 0), unit: unit2, dpi, boxes: Object.keys(ids(doc.hydrated)).length, assets, bytes: info.bytes, assetBytes: [...weights.values()].reduce((sum, n8) => sum + n8, 0), ...opts.gamut ? { gamut: opts.gamut } : {} };
+  return { width: pixels3(opts.width ?? doc.manifest.render.width ?? 0), height: pixels3(opts.height ?? doc.manifest.render.height ?? 0), unit: unit2, dpi, boxes: Object.keys(ids(doc.hydrated)).length, assets, bytes: info.bytes, assetBytes: [...weights.values()].reduce((sum, n7) => sum + n7, 0), ...opts.gamut ? { gamut: opts.gamut } : {} };
 }
 function collectModelAssetWeights(input, out) {
   const weigh = (value2) => {
@@ -59412,19 +59412,19 @@ function cubicRoots01(a, b, c, d, dirs) {
   return dedupeRoots(out, sg, dirs);
 }
 function dedupeRoots(ts, sg, dirs) {
-  const n8 = ts.length;
-  if (n8 === 0) {
+  const n7 = ts.length;
+  if (n7 === 0) {
     if (dirs) dirs.length = 0;
     return ts;
   }
-  if (n8 === 1) {
+  if (n7 === 1) {
     if (dirs) {
       dirs.length = 0;
       dirs.push(sg[0]);
     }
     return ts;
   }
-  for (let i = 1; i < n8; i++) {
+  for (let i = 1; i < n7; i++) {
     const t = ts[i], g2 = sg[i];
     let j = i - 1;
     while (j >= 0 && ts[j] > t) {
@@ -59437,7 +59437,7 @@ function dedupeRoots(ts, sg, dirs) {
   }
   const out = [];
   const dd = [];
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     const t = ts[i];
     if (!out.length || t - out[out.length - 1] > 1e-9) {
       out.push(t);
@@ -59561,8 +59561,8 @@ function coincidentTwin(search, swap, c1, lo, hi, tol) {
   return null;
 }
 function nearest2(c, x, y) {
-  const n8 = nearestOnCubic(c, x, y);
-  let t = n8.t, best = n8.distance, bestT = n8.t, bestP = n8.point, worse = 0, prev = n8.distance;
+  const n7 = nearestOnCubic(c, x, y);
+  let t = n7.t, best = n7.distance, bestT = n7.t, bestP = n7.point, worse = 0, prev = n7.distance;
   for (let i = 0; i < POLISH_STEPS; i++) {
     const p = evalCubic(c, t), d1 = tangentAt(c, t);
     const d2 = secondDerivative(c, t);
@@ -59586,7 +59586,7 @@ function nearest2(c, x, y) {
     prev = dn;
     t = tn;
   }
-  return best < n8.distance ? { t: bestT, point: bestP, distance: best } : n8;
+  return best < n7.distance ? { t: bestT, point: bestP, distance: best } : n7;
 }
 function secondDerivative(c, t) {
   const mt = 1 - t;
@@ -59631,12 +59631,12 @@ function sharedRun(c1, c2, tol) {
   const try2 = [0, 1].filter((u) => onC1[u] === null && mayLieOn(c1, fat1, c2[6 * u], c2[6 * u + 1], eps));
   if (shared + try1.length + try2.length < 2) return null;
   for (const t of try1) {
-    const n8 = nearestOnCubic(c2, c1[6 * t], c1[6 * t + 1]);
-    if (n8.distance <= eps) onC2[t] = n8.t;
+    const n7 = nearestOnCubic(c2, c1[6 * t], c1[6 * t + 1]);
+    if (n7.distance <= eps) onC2[t] = n7.t;
   }
   for (const u of try2) {
-    const n8 = nearestOnCubic(c1, c2[6 * u], c2[6 * u + 1]);
-    if (n8.distance <= eps) onC1[u] = n8.t;
+    const n7 = nearestOnCubic(c1, c2[6 * u], c2[6 * u + 1]);
+    if (n7.distance <= eps) onC1[u] = n7.t;
   }
   const ends = [];
   for (const t of [0, 1]) if (onC2[t] !== null) ends.push([t, onC2[t]]);
@@ -59715,14 +59715,14 @@ function overrunClip(c1, c2, t1lo, t1hi, t2lo, t2hi, tol, depth, search, swap = 
   const fat = fatLine(c2);
   if (!fat && s2 <= res) {
     const p = evalCubic(c2, 0.5);
-    const n8 = nearestOnCubic(c1, p.x, p.y);
-    if (n8.distance > tol + s2) {
-      if (n8.distance <= POINT_OFF_SLACK * tol) stall(search, swap, t1lo, t1hi, t2lo, t2hi);
+    const n7 = nearestOnCubic(c1, p.x, p.y);
+    if (n7.distance > tol + s2) {
+      if (n7.distance <= POINT_OFF_SLACK * tol) stall(search, swap, t1lo, t1hi, t2lo, t2hi);
       return;
     }
-    const m1 = t1lo + (t1hi - t1lo) * n8.t, m2 = (t2lo + t2hi) / 2;
+    const m1 = t1lo + (t1hi - t1lo) * n7.t, m2 = (t2lo + t2hi) / 2;
     if (shallow(search, swap, m1, m2)) stall(search, swap, t1lo, t1hi, t2lo, t2hi);
-    else emit(m1, m2, n8.point.x, n8.point.y);
+    else emit(m1, m2, n7.point.x, n7.point.y);
     return;
   }
   const clipped = fat ? clipToFatLine(c1, fat, search.pad, search.pad) : [0, 1];
@@ -59801,11 +59801,11 @@ function clipIntersect(c1, c2, t1lo, t1hi, t2lo, t2hi, tol, depth, out, work, sw
   clipIntersect(c2, nc1, t2lo, t2hi, nt1lo, nt1hi, tol, depth + 1, out, work, !swap);
 }
 function bernMul(p, q) {
-  const m2 = p.length - 1, n8 = q.length - 1;
-  const out = new Array(m2 + n8 + 1).fill(0);
-  const bm = BINOM[m2], bn = BINOM[n8], bmn = BINOM[m2 + n8];
+  const m2 = p.length - 1, n7 = q.length - 1;
+  const out = new Array(m2 + n7 + 1).fill(0);
+  const bm = BINOM[m2], bn = BINOM[n7], bmn = BINOM[m2 + n7];
   for (let i = 0; i <= m2; i++) {
-    for (let j = 0; j <= n8; j++) out[i + j] = out[i + j] + bm[i] * bn[j] / bmn[i + j] * p[i] * q[j];
+    for (let j = 0; j <= n7; j++) out[i + j] = out[i + j] + bm[i] * bn[j] / bmn[i + j] * p[i] * q[j];
   }
   return out;
 }
@@ -59821,14 +59821,14 @@ function bernRuns(c, t0, t1, depth, out) {
     else out.push(t0, t1);
     return;
   }
-  const n8 = c.length, left = new Array(n8), right = new Array(n8);
+  const n7 = c.length, left = new Array(n7), right = new Array(n7);
   const w = c.slice();
   left[0] = w[0];
-  right[n8 - 1] = w[n8 - 1];
-  for (let k = 1; k < n8; k++) {
-    for (let i = 0; i < n8 - k; i++) w[i] = (w[i] + w[i + 1]) * 0.5;
+  right[n7 - 1] = w[n7 - 1];
+  for (let k = 1; k < n7; k++) {
+    for (let i = 0; i < n7 - k; i++) w[i] = (w[i] + w[i + 1]) * 0.5;
     left[k] = w[0];
-    right[n8 - 1 - k] = w[n8 - 1 - k];
+    right[n7 - 1 - k] = w[n7 - 1 - k];
   }
   const mid3 = (t0 + t1) / 2;
   bernRuns(left, t0, mid3, depth + 1, out);
@@ -60084,8 +60084,8 @@ function oneTouch(scan2, a, b) {
   return true;
 }
 function stretches(r5) {
-  const n8 = r5.length / 4;
-  const parent = Array.from({ length: n8 }, (_, i) => i);
+  const n7 = r5.length / 4;
+  const parent = Array.from({ length: n7 }, (_, i) => i);
   const root2 = (i) => {
     while (parent[i] !== i) {
       parent[i] = parent[parent[i]];
@@ -60094,11 +60094,11 @@ function stretches(r5) {
     return i;
   };
   const order = parent.slice().sort((i, j) => r5[4 * i] - r5[4 * j]);
-  for (let k = 0; k < n8; k++) {
+  for (let k = 0; k < n7; k++) {
     const i = order[k];
     const side2 = Math.min(r5[4 * i + 1] - r5[4 * i], r5[4 * i + 3] - r5[4 * i + 2]);
     const reach2 = TOUCH + STRETCH_REACH * side2;
-    for (let m2 = k + 1; m2 < n8; m2++) {
+    for (let m2 = k + 1; m2 < n7; m2++) {
       const j = order[m2];
       if (r5[4 * j] > r5[4 * i + 1] + reach2) break;
       if (r5[4 * j + 2] <= r5[4 * i + 3] + reach2 && r5[4 * i + 2] <= r5[4 * j + 3] + reach2) {
@@ -60547,9 +60547,9 @@ var init_intersect = __esm({
     TWIN_RUN_DEPTH = 12;
     BINOM = (() => {
       const rows2 = [[1]];
-      for (let n8 = 1; n8 <= 10; n8++) {
-        const prev = rows2[n8 - 1], row = [1];
-        for (let k = 1; k < n8; k++) row.push(prev[k - 1] + prev[k]);
+      for (let n7 = 1; n7 <= 10; n7++) {
+        const prev = rows2[n7 - 1], row = [1];
+        for (let k = 1; k < n7; k++) row.push(prev[k - 1] + prev[k]);
         row.push(1);
         rows2.push(row);
       }
@@ -61157,15 +61157,15 @@ function overlapRun(ci, cj, weld, budget3) {
     const p = evalCubic(ci, t);
     if (!inflated(hj, p.x, p.y, weld)) continue;
     budget3.work -= 32;
-    const n8 = nearestOnCubic(cj, p.x, p.y);
-    if (n8.distance <= weld) ends.push([t, n8.t]);
+    const n7 = nearestOnCubic(cj, p.x, p.y);
+    if (n7.distance <= weld) ends.push([t, n7.t]);
   }
   for (const t of [0, 1]) {
     const p = evalCubic(cj, t);
     if (!inflated(hi, p.x, p.y, weld)) continue;
     budget3.work -= 32;
-    const n8 = nearestOnCubic(ci, p.x, p.y);
-    if (n8.distance <= weld) ends.push([n8.t, t]);
+    const n7 = nearestOnCubic(ci, p.x, p.y);
+    if (n7.distance <= weld) ends.push([n7.t, t]);
   }
   if (ends.length < 2) return null;
   let a0 = 1, a1 = 0, b0 = 1, b1 = 0;
@@ -61232,8 +61232,8 @@ function contactSplits(ci, cj, weld, budget3) {
 function pinContact(ci, cj, s0, s1, weld, budget3) {
   const gap = (s) => {
     const p = evalCubic(ci, s);
-    const n8 = nearestOnCubic(cj, p.x, p.y);
-    return { d: n8.distance, t: n8.t };
+    const n7 = nearestOnCubic(cj, p.x, p.y);
+    return { d: n7.distance, t: n7.t };
   };
   const R2 = 0.6180339887498949;
   let lo = s0, hi = s1;
@@ -61270,13 +61270,13 @@ function overlapSplits(ci, cj, weld, budget3) {
   budget3.work -= 256;
   for (const t of [0, 1]) {
     const p = evalCubic(ci, t);
-    const n8 = nearestOnCubic(cj, p.x, p.y);
-    if (n8.distance <= weld) b.push(n8.t);
+    const n7 = nearestOnCubic(cj, p.x, p.y);
+    if (n7.distance <= weld) b.push(n7.t);
   }
   for (const t of [0, 1]) {
     const p = evalCubic(cj, t);
-    const n8 = nearestOnCubic(ci, p.x, p.y);
-    if (n8.distance <= weld) a.push(n8.t);
+    const n7 = nearestOnCubic(ci, p.x, p.y);
+    if (n7.distance <= weld) a.push(n7.t);
   }
   return { a, b };
 }
@@ -61301,8 +61301,8 @@ function alignSplits(groups, weld, budget3) {
         if (!inflated(ic.box, p.x, p.y, weld)) continue;
         if (budget3.work <= 0) return;
         budget3.work -= 32;
-        const n8 = nearestOnCubic(ic.c, p.x, p.y);
-        if (n8.distance <= weld) addSplit(g2.splits, j, n8.t, budget3);
+        const n7 = nearestOnCubic(ic.c, p.x, p.y);
+        if (n7.distance <= weld) addSplit(g2.splits, j, n7.t, budget3);
       }
     }
   }
@@ -62354,11 +62354,11 @@ function fitToCubics(src, opts = {}) {
   return b.out;
 }
 function polyCubicSource(curves2) {
-  const n8 = curves2.length;
+  const n7 = curves2.length;
   const at = (t) => {
-    const scaled2 = Math.min(Math.max(t, 0), 1) * n8;
+    const scaled2 = Math.min(Math.max(t, 0), 1) * n7;
     let i = Math.floor(scaled2);
-    if (i >= n8) i = n8 - 1;
+    if (i >= n7) i = n7 - 1;
     return { i, u: scaled2 - i };
   };
   return {
@@ -62366,7 +62366,7 @@ function polyCubicSource(curves2) {
       const { i, u } = at(t);
       const c = curves2[i];
       const p = evalCubic(c, u), d = tangentAt(c, u);
-      return { x: p.x, y: p.y, dx: d.x * n8, dy: d.y * n8 };
+      return { x: p.x, y: p.y, dx: d.x * n7, dy: d.y * n7 };
     },
     momentIntegrals(t0, t1) {
       const a = at(t0), z = at(t1);
@@ -62390,16 +62390,16 @@ function polyCubicSource(curves2) {
     },
     breaks() {
       const out = [];
-      for (let i = 1; i < n8; i++) {
+      for (let i = 1; i < n7; i++) {
         const a = tangentAt(curves2[i - 1], 1), b2 = tangentAt(curves2[i], 0);
         const la = hypot(a.x, a.y), lb = hypot(b2.x, b2.y);
         if (la < 1e-12 || lb < 1e-12) {
-          out.push(i / n8);
+          out.push(i / n7);
           continue;
         }
         const cos2 = (a.x * b2.x + a.y * b2.y) / (la * lb);
         const sin2 = Math.abs(a.x * b2.y - a.y * b2.x) / (la * lb);
-        if (cos2 < 0.9998 || sin2 > 0.02) out.push(i / n8);
+        if (cos2 < 0.9998 || sin2 > 0.02) out.push(i / n7);
       }
       return out;
     }
@@ -62749,17 +62749,17 @@ function rootsInUnit(poly) {
   return out;
 }
 function bernsteinFromPower(a) {
-  const n8 = a.length - 1;
+  const n7 = a.length - 1;
   const rows2 = [];
-  for (let i = 0; i <= n8; i++) {
+  for (let i = 0; i <= n7; i++) {
     const row = [1];
     for (let k = 1; k <= i; k++) row.push(row[k - 1] * (i - k + 1) / k);
     rows2.push(row);
   }
   const out = [];
-  for (let k = 0; k <= n8; k++) {
+  for (let k = 0; k <= n7; k++) {
     let s = 0;
-    for (let i = 0; i <= k; i++) s += rows2[k][i] / rows2[n8][i] * a[i];
+    for (let i = 0; i <= k; i++) s += rows2[k][i] / rows2[n7][i] * a[i];
     out.push(s);
   }
   return out;
@@ -62988,11 +62988,11 @@ function arcJoin(a, b, pivot, heading) {
     const turn2 = (a.x - pivot.x) * heading.y - (a.y - pivot.y) * heading.x;
     if (turn2 !== 0) sweep = turn2 > 0 ? Math.abs(sweep) : -Math.abs(sweep);
   }
-  const n8 = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2)));
-  const step = sweep / n8;
+  const n7 = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2)));
+  const step = sweep / n7;
   const k = 4 / 3 * tan(step / 4);
   const out = [];
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     const s = from + step * i, e = s + step;
     const sx = pivot.x + r5 * cos(s), sy = pivot.y + r5 * sin(s);
     const ex = pivot.x + r5 * cos(e), ey = pivot.y + r5 * sin(e);
@@ -63069,10 +63069,10 @@ function fitRecursive(pts, t0, t1, tol, depth) {
   ];
 }
 function bezierWithTangents(pts, u, t0, t1) {
-  const n8 = pts.length;
-  const first = pts[0], last = pts[n8 - 1];
+  const n7 = pts.length;
+  const first = pts[0], last = pts[n7 - 1];
   let c00 = 0, c01 = 0, c11 = 0, x0 = 0, x1 = 0;
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     const t = u[i], mt = 1 - t;
     const b0 = mt * mt * mt, b1 = 3 * mt * mt * t, b2 = 3 * mt * t * t, b3 = t * t * t;
     const a0x = t0.x * b1, a0y = t0.y * b1;
@@ -63425,22 +63425,22 @@ function segClothoid(ax, ay, bx, by, psiA, psiB) {
   return { alpha, b, c, scale, kEntry: b / scale, kExit: (b + 2 * c) / scale };
 }
 function partition(nodes, closed) {
-  const n8 = nodes.length;
-  const wrap3 = closed && n8 > 2;
+  const n7 = nodes.length;
+  const wrap3 = closed && n7 > 2;
   const runs2 = [];
   if (wrap3) {
     const corners3 = [];
-    for (let i = 0; i < n8; i++) if (isCorner(nodes[i])) corners3.push(i);
+    for (let i = 0; i < n7; i++) if (isCorner(nodes[i])) corners3.push(i);
     if (corners3.length === 0) {
       runs2.push({ idx: nodes.map((_, i) => i), wrap: true });
       return runs2;
     }
     const s = corners3[0];
     let cur = [s];
-    for (let k = 1; k <= n8; k++) {
-      const i = (s + k) % n8;
+    for (let k = 1; k <= n7; k++) {
+      const i = (s + k) % n7;
       cur.push(i);
-      if (k < n8 && isCorner(nodes[i])) {
+      if (k < n7 && isCorner(nodes[i])) {
         runs2.push({ idx: cur, wrap: false });
         cur = [i];
       }
@@ -63448,9 +63448,9 @@ function partition(nodes, closed) {
     runs2.push({ idx: cur, wrap: false });
   } else {
     let cur = [0];
-    for (let i = 1; i < n8; i++) {
+    for (let i = 1; i < n7; i++) {
       cur.push(i);
-      if (i < n8 - 1 && isCorner(nodes[i])) {
+      if (i < n7 - 1 && isCorner(nodes[i])) {
         runs2.push({ idx: cur, wrap: false });
         cur = [i];
       }
@@ -63545,11 +63545,11 @@ function solveRun(pts, wrap3) {
   return psi;
 }
 function solveDense(A, b) {
-  const n8 = b.length;
+  const n7 = b.length;
   const M2 = A.map((row, i) => [...row, b[i]]);
-  for (let col = 0; col < n8; col++) {
+  for (let col = 0; col < n7; col++) {
     let piv = col;
-    for (let row = col + 1; row < n8; row++) if (Math.abs(M2[row][col]) > Math.abs(M2[piv][col])) piv = row;
+    for (let row = col + 1; row < n7; row++) if (Math.abs(M2[row][col]) > Math.abs(M2[piv][col])) piv = row;
     if (piv !== col) {
       const t = M2[piv];
       M2[piv] = M2[col];
@@ -63557,14 +63557,14 @@ function solveDense(A, b) {
     }
     const d = M2[col][col];
     if (Math.abs(d) < 1e-12) continue;
-    for (let row = 0; row < n8; row++) {
+    for (let row = 0; row < n7; row++) {
       if (row === col) continue;
       const f = M2[row][col] / d;
       if (f === 0) continue;
-      for (let k = col; k <= n8; k++) M2[row][k] -= f * M2[col][k];
+      for (let k = col; k <= n7; k++) M2[row][k] -= f * M2[col][k];
     }
   }
-  return M2.map((row, i) => Math.abs(M2[i][i]) < 1e-12 ? 0 : row[n8] / M2[i][i]);
+  return M2.map((row, i) => Math.abs(M2[i][i]) < 1e-12 ? 0 : row[n7] / M2[i][i]);
 }
 function segToCubics(ax, ay, bx, by, psiA, psiB) {
   const dx = bx - ax, dy = by - ay;
@@ -63610,9 +63610,9 @@ function segToCubics(ax, ay, bx, by, psiA, psiB) {
   return out;
 }
 function solveTangents(nodes, closed) {
-  const n8 = nodes.length;
-  const psiOut = new Array(n8).fill(0);
-  const psiIn = new Array(n8).fill(0);
+  const n7 = nodes.length;
+  const psiOut = new Array(n7).fill(0);
+  const psiIn = new Array(n7).fill(0);
   for (const run3 of partition(nodes, closed)) {
     const m2 = run3.idx.length;
     if (m2 < 2) continue;
@@ -63627,15 +63627,15 @@ function solveTangents(nodes, closed) {
   return { psiOut, psiIn };
 }
 function spiroCubics(nodes, closed) {
-  const n8 = nodes.length;
-  if (n8 < 2) return [];
-  const wrap3 = closed && n8 > 2;
-  const nSeg = wrap3 ? n8 : n8 - 1;
+  const n7 = nodes.length;
+  if (n7 < 2) return [];
+  const wrap3 = closed && n7 > 2;
+  const nSeg = wrap3 ? n7 : n7 - 1;
   const { psiOut, psiIn } = solveTangents(nodes, closed);
   const out = [];
   for (let i = 0; i < nSeg; i++) {
-    const a = nodes[i], b = nodes[(i + 1) % n8];
-    out.push(...segToCubics(a.x, a.y, b.x, b.y, psiOut[i], psiIn[(i + 1) % n8]));
+    const a = nodes[i], b = nodes[(i + 1) % n7];
+    out.push(...segToCubics(a.x, a.y, b.x, b.y, psiOut[i], psiIn[(i + 1) % n7]));
   }
   return out;
 }
@@ -63665,28 +63665,28 @@ var init_spiro = __esm({
       0.05061426814518821
     ];
     theta = (a, b, c, u) => a + b * u + c * u * u;
-    isCorner = (n8) => (n8.continuity ?? "corner") === "corner";
+    isCorner = (n7) => (n7.continuity ?? "corner") === "corner";
     ARC_TOL = 0.25;
   }
 });
 
 // engine/src/geom/spline.ts
 function toCubics(path, warm) {
-  const n8 = path.nodes;
-  if (n8.length < 2) return [];
+  const n7 = path.nodes;
+  if (n7.length < 2) return [];
   switch (path.kind) {
     case "line":
-      return lineSegments(n8, path.closed);
+      return lineSegments(n7, path.closed);
     case "cubic":
-      return cubicSegments(n8, path.closed);
+      return cubicSegments(n7, path.closed);
     case "catmull-rom":
-      return catmullRom(n8, path.closed, path.tension ?? 0.5);
+      return catmullRom(n7, path.closed, path.tension ?? 0.5);
     case "bspline":
-      return bspline(n8, path.closed);
+      return bspline(n7, path.closed);
     case "hyperbezier":
-      return hyperbezierCubics(n8, path.closed, solveHyperbezier(n8, path.closed, warm));
+      return hyperbezierCubics(n7, path.closed, solveHyperbezier(n7, path.closed, warm));
     case "spiro":
-      return spiroCubics(n8, path.closed);
+      return spiroCubics(n7, path.closed);
     default:
       throw new Error(`unknown spline kind: ${String(path.kind)}`);
   }
@@ -63697,23 +63697,23 @@ function pairs(items2, closed) {
   if (closed && items2.length > 2) out.push([items2[items2.length - 1], items2[0]]);
   return out;
 }
-function lineSegments(n8, closed) {
-  return pairs(n8, closed).map(([a, b]) => lineToCubic(a.x, a.y, b.x, b.y));
+function lineSegments(n7, closed) {
+  return pairs(n7, closed).map(([a, b]) => lineToCubic(a.x, a.y, b.x, b.y));
 }
-function cubicSegments(n8, closed) {
-  return pairs(n8, closed).map(([a, b]) => {
+function cubicSegments(n7, closed) {
+  return pairs(n7, closed).map(([a, b]) => {
     const c1x = a.x + (a.hOutX ?? 0), c1y = a.y + (a.hOutY ?? 0);
     const c2x = b.x + (b.hInX ?? 0), c2y = b.y + (b.hInY ?? 0);
     return [a.x, a.y, c1x, c1y, c2x, c2y, b.x, b.y];
   });
 }
-function catmullRom(n8, closed, alpha) {
+function catmullRom(n7, closed, alpha) {
   const at = (i) => {
-    if (closed) return n8[(i % n8.length + n8.length) % n8.length];
-    return n8[Math.min(n8.length - 1, Math.max(0, i))];
+    if (closed) return n7[(i % n7.length + n7.length) % n7.length];
+    return n7[Math.min(n7.length - 1, Math.max(0, i))];
   };
   const out = [];
-  const last = closed ? n8.length : n8.length - 1;
+  const last = closed ? n7.length : n7.length - 1;
   for (let i = 0; i < last; i++) {
     const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
     const d = (a, b) => Math.max(1e-9, pow2(hypot(b.x - a.x, b.y - a.y), alpha));
@@ -63726,13 +63726,13 @@ function catmullRom(n8, closed, alpha) {
   }
   return out;
 }
-function bspline(n8, closed) {
+function bspline(n7, closed) {
   const at = (i) => {
-    if (closed) return n8[(i % n8.length + n8.length) % n8.length];
-    return n8[Math.min(n8.length - 1, Math.max(0, i))];
+    if (closed) return n7[(i % n7.length + n7.length) % n7.length];
+    return n7[Math.min(n7.length - 1, Math.max(0, i))];
   };
   const out = [];
-  const last = closed ? n8.length : n8.length - 3;
+  const last = closed ? n7.length : n7.length - 3;
   for (let i = 0; i < last; i++) {
     const p0 = at(i), p1 = at(i + 1), p2 = at(i + 2), p3 = at(i + 3);
     const s = 1 / 6;
@@ -63869,43 +63869,43 @@ function hbSystem(pts, wrap3, startTh, endTh, ths) {
   return { r: r5, a, b, c, segs };
 }
 function hbThomas(a, b, c, d) {
-  const n8 = b.length;
+  const n7 = b.length;
   const bb = b.slice(), dd = d.slice();
-  for (let i = 1; i < n8; i++) {
+  for (let i = 1; i < n7; i++) {
     if (Math.abs(bb[i - 1]) < 1e-300) return null;
     const w = a[i] / bb[i - 1];
     bb[i] = bb[i] - w * c[i - 1];
     dd[i] = dd[i] - w * dd[i - 1];
   }
-  if (Math.abs(bb[n8 - 1]) < 1e-300) return null;
-  const x = new Array(n8).fill(0);
-  x[n8 - 1] = dd[n8 - 1] / bb[n8 - 1];
-  for (let i = n8 - 2; i >= 0; i--) x[i] = (dd[i] - c[i] * x[i + 1]) / bb[i];
+  if (Math.abs(bb[n7 - 1]) < 1e-300) return null;
+  const x = new Array(n7).fill(0);
+  x[n7 - 1] = dd[n7 - 1] / bb[n7 - 1];
+  for (let i = n7 - 2; i >= 0; i--) x[i] = (dd[i] - c[i] * x[i + 1]) / bb[i];
   for (const v of x) if (!Number.isFinite(v)) return null;
   return x;
 }
 function hbCyclic(a, b, c, d) {
-  const n8 = b.length;
-  if (n8 < 3) return null;
-  const alpha = a[0], beta = c[n8 - 1];
+  const n7 = b.length;
+  if (n7 < 3) return null;
+  const alpha = a[0], beta = c[n7 - 1];
   const gamma = -b[0] || 1;
   const bb = b.slice();
   bb[0] = b[0] - gamma;
-  bb[n8 - 1] = b[n8 - 1] - alpha * beta / gamma;
-  const u = new Array(n8).fill(0);
+  bb[n7 - 1] = b[n7 - 1] - alpha * beta / gamma;
+  const u = new Array(n7).fill(0);
   u[0] = gamma;
-  u[n8 - 1] = beta;
+  u[n7 - 1] = beta;
   const y = hbThomas(a, bb, c, d);
   if (!y) return null;
   const z = hbThomas(a, bb, c, u);
   if (!z) return null;
-  const vy = y[0] + alpha / gamma * y[n8 - 1];
-  const vz = z[0] + alpha / gamma * z[n8 - 1];
+  const vy = y[0] + alpha / gamma * y[n7 - 1];
+  const vz = z[0] + alpha / gamma * z[n7 - 1];
   const denom = 1 + vz;
   if (!(Math.abs(denom) > 1e-300)) return null;
   const f = vy / denom;
-  const x = new Array(n8).fill(0);
-  for (let i = 0; i < n8; i++) {
+  const x = new Array(n7).fill(0);
+  for (let i = 0; i < n7; i++) {
     x[i] = y[i] - f * z[i];
     if (!Number.isFinite(x[i])) return null;
   }
@@ -64018,27 +64018,27 @@ function hbIsBreak(p) {
   return p.corner || p.in !== null || p.out !== null;
 }
 function solveHyperbezier(nodes, closed, warm) {
-  const n8 = nodes.length;
-  const rth = new Array(n8).fill(0);
-  const lth = new Array(n8).fill(0);
-  const kBlend = new Array(n8).fill(null);
+  const n7 = nodes.length;
+  const rth = new Array(n7).fill(0);
+  const lth = new Array(n7).fill(0);
+  const kBlend = new Array(n7).fill(null);
   const empty2 = { rth, lth, kBlend, converged: true, residual: 0, iterations: 0, reversals: 0 };
-  if (n8 < 2) return empty2;
-  const wrap3 = closed && n8 > 2;
-  const nSeg = wrap3 ? n8 : n8 - 1;
+  if (n7 < 2) return empty2;
+  const wrap3 = closed && n7 > 2;
+  const nSeg = wrap3 ? n7 : n7 - 1;
   const pins = nodes.map(hbPin);
   const breaks = [];
-  for (let i = 0; i < n8; i++) if (hbIsBreak(pins[i])) breaks.push(i);
+  for (let i = 0; i < n7; i++) if (hbIsBreak(pins[i])) breaks.push(i);
   const runs2 = [];
   if (wrap3 && breaks.length === 0) {
     runs2.push({ idx: nodes.map((_, i) => i), wrap: true });
   } else if (wrap3) {
     const s = breaks[0];
     let cur = [s];
-    for (let k = 1; k <= n8; k++) {
-      const i = (s + k) % n8;
+    for (let k = 1; k <= n7; k++) {
+      const i = (s + k) % n7;
       cur.push(i);
-      if (k < n8 && hbIsBreak(pins[i])) {
+      if (k < n7 && hbIsBreak(pins[i])) {
         runs2.push({ idx: cur, wrap: false });
         cur = [i];
       }
@@ -64046,9 +64046,9 @@ function solveHyperbezier(nodes, closed, warm) {
     runs2.push({ idx: cur, wrap: false });
   } else {
     let cur = [0];
-    for (let i = 1; i < n8; i++) {
+    for (let i = 1; i < n7; i++) {
       cur.push(i);
-      if (i < n8 - 1 && hbIsBreak(pins[i])) {
+      if (i < n7 - 1 && hbIsBreak(pins[i])) {
         runs2.push({ idx: cur, wrap: false });
         cur = [i];
       }
@@ -64066,7 +64066,7 @@ function solveHyperbezier(nodes, closed, warm) {
     const startTh = run3.wrap ? null : pins[idx[0]].out;
     const endTh = run3.wrap ? null : pins[idx[m2 - 1]].in;
     let warmRun = null;
-    if (warm && warm.rth.length === n8 && warm.lth.length === n8) {
+    if (warm && warm.rth.length === n7 && warm.lth.length === n7) {
       warmRun = idx.map((i, j) => run3.wrap || j < m2 - 1 ? warm.rth[i] : warm.lth[i]);
     }
     const res = hbSolveRun(pts, run3.wrap, startTh, endTh, warmRun);
@@ -64081,22 +64081,22 @@ function solveHyperbezier(nodes, closed, warm) {
   }
   if (!wrap3) {
     lth[0] = pins[0].in ?? rth[0];
-    rth[n8 - 1] = pins[n8 - 1].out ?? lth[n8 - 1];
+    rth[n7 - 1] = pins[n7 - 1].out ?? lth[n7 - 1];
   }
   const segs = [];
   let reversals = 0;
   for (let i = 0; i < nSeg; i++) {
-    const a = nodes[i], b = nodes[(i + 1) % n8];
-    const st = hbSegState(a.x, a.y, b.x, b.y, rth[i], lth[(i + 1) % n8]);
+    const a = nodes[i], b = nodes[(i + 1) % n7];
+    const st = hbSegState(a.x, a.y, b.x, b.y, rth[i], lth[(i + 1) % n7]);
     if (st.a0 < 0) reversals++;
     if (st.a1 < 0) reversals++;
     segs.push(st);
   }
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     const p = pins[i];
     if (p.corner || !hbIsBreak(p)) continue;
-    const prev = wrap3 ? segs[(i - 1 + n8) % n8] : i > 0 ? segs[i - 1] : void 0;
-    const next2 = wrap3 ? segs[i] : i < n8 - 1 ? segs[i] : void 0;
+    const prev = wrap3 ? segs[(i - 1 + n7) % n7] : i > 0 ? segs[i - 1] : void 0;
+    const next2 = wrap3 ? segs[i] : i < n7 - 1 ? segs[i] : void 0;
     if (!prev || !next2) continue;
     const rK = next2.k0u / next2.chord;
     const lK = prev.k1u / prev.chord;
@@ -64120,13 +64120,13 @@ function hbBlendArm(arm, oldK, kTarget) {
   return 3 * arm * scale;
 }
 function hyperbezierCubics(nodes, closed, solution) {
-  const n8 = nodes.length;
-  if (n8 < 2) return [];
-  const wrap3 = closed && n8 > 2;
-  const nSeg = wrap3 ? n8 : n8 - 1;
+  const n7 = nodes.length;
+  if (n7 < 2) return [];
+  const wrap3 = closed && n7 > 2;
+  const nSeg = wrap3 ? n7 : n7 - 1;
   const out = [];
   for (let i = 0; i < nSeg; i++) {
-    const a = nodes[i], b = nodes[(i + 1) % n8];
+    const a = nodes[i], b = nodes[(i + 1) % n7];
     const dx = b.x - a.x, dy = b.y - a.y;
     const chord = hypot(dx, dy);
     if (!(chord > HB_MIN_CHORD)) {
@@ -64135,11 +64135,11 @@ function hyperbezierCubics(nodes, closed, solution) {
     }
     const chth = atan2(dy, dx);
     const th0 = mod2pi3((solution.rth[i] ?? chth) - chth);
-    const th1 = mod2pi3(chth - (solution.lth[(i + 1) % n8] ?? chth));
+    const th1 = mod2pi3(chth - (solution.lth[(i + 1) % n7] ?? chth));
     const cur = hbCurve(th0, th1);
     let arm0 = cur.a0, arm1 = cur.a1;
     const kb0 = solution.kBlend[i] ?? null;
-    const kb1 = solution.kBlend[(i + 1) % n8] ?? null;
+    const kb1 = solution.kBlend[(i + 1) % n7] ?? null;
     if (kb0 !== null) arm0 = hbBlendArm(cur.a0, cur.k0u, kb0 * chord);
     if (kb1 !== null) arm1 = hbBlendArm(cur.a1, cur.k1u, kb1 * chord);
     const ux1 = arm0 * cos(th0), uy1 = arm0 * sin(th0);
@@ -64212,15 +64212,15 @@ function encodeAuthoredPath(path) {
   const header = [VERSION, kind, path.closed ? "1" : "0"];
   if (typeof path.tension === "number" && Number.isFinite(path.tension)) header.push(numOut(path.tension));
   const recs = [header.join(FLD)];
-  for (const n8 of nodes) {
-    for (const v of [n8.x, n8.y]) {
+  for (const n7 of nodes) {
+    for (const v of [n7.x, n7.y]) {
       if (typeof v !== "number" || !Number.isFinite(v)) {
         throw new Error("authored-url: node coordinates must be finite numbers");
       }
     }
-    const fields2 = [numOut(n8.x), numOut(n8.y)];
-    const hs = [n8.hInX, n8.hInY, n8.hOutX, n8.hOutY].map(handleOut);
-    const cont = n8.continuity ? CONT_OUT[n8.continuity] : "";
+    const fields2 = [numOut(n7.x), numOut(n7.y)];
+    const hs = [n7.hInX, n7.hInY, n7.hOutX, n7.hOutY].map(handleOut);
+    const cont = n7.continuity ? CONT_OUT[n7.continuity] : "";
     if (hs.some((s) => s !== "") || cont) fields2.push(...hs);
     if (cont) fields2.push(cont);
     while (fields2.length > 2 && fields2[fields2.length - 1] === "") fields2.pop();
@@ -64685,8 +64685,8 @@ function parsePath(d) {
   }
   for (const c of path) {
     for (const k of c.curves) {
-      for (const n8 of k) {
-        if (!Number.isFinite(n8)) return fail2("invalid-path", "geom: path data yields a non-finite coordinate");
+      for (const n7 of k) {
+        if (!Number.isFinite(n7)) return fail2("invalid-path", "geom: path data yields a non-finite coordinate");
       }
     }
   }
@@ -64758,9 +64758,9 @@ function contoursIn(input) {
       if (!Array.isArray(k) || k.length !== 8) {
         return fail2("invalid-argument", "geom: each curve must be 8 numbers [x0,y0,x1,y1,x2,y2,x3,y3]");
       }
-      for (const n8 of k) {
-        if (typeof n8 !== "number" || !Number.isFinite(n8) || Math.abs(n8) > MAX_COORD) {
-          return fail2("invalid-argument", `geom: curve coordinate ${String(n8)} is not a usable number`);
+      for (const n7 of k) {
+        if (typeof n7 !== "number" || !Number.isFinite(n7) || Math.abs(n7) > MAX_COORD) {
+          return fail2("invalid-argument", `geom: curve coordinate ${String(n7)} is not a usable number`);
         }
       }
       built.push([...k]);
@@ -64769,8 +64769,8 @@ function contoursIn(input) {
   }
   return out;
 }
-function nodeIn(n8) {
-  const o = n8;
+function nodeIn(n7) {
+  const o = n7;
   if (!o || typeof o !== "object") return fail2("invalid-argument", "geom: node must be an object");
   for (const key2 of ["x", "y", "hInX", "hInY", "hOutX", "hOutY"]) {
     const v = o[key2];
@@ -64869,8 +64869,8 @@ function makeGeomApi(dependencies = {}) {
         return fail2("invalid-argument", "geom: tension must be a finite number");
       }
       const nodes = [];
-      for (const n8 of src.nodes) {
-        const v = nodeIn(n8);
+      for (const n7 of src.nodes) {
+        const v = nodeIn(n7);
         if (isFail(v)) return v;
         nodes.push(v);
       }
@@ -64899,8 +64899,8 @@ function makeGeomApi(dependencies = {}) {
         total += src.nodes.length;
         if (total > MAX_NODES2) return fail2("too-large", `geom: ${total} nodes (limit ${MAX_NODES2})`);
         const nodes = [];
-        for (const n8 of src.nodes) {
-          const v = nodeIn(n8);
+        for (const n7 of src.nodes) {
+          const v = nodeIn(n7);
           if (isFail(v)) return v;
           nodes.push(v);
         }
@@ -64928,10 +64928,10 @@ function makeGeomApi(dependencies = {}) {
       if (moved !== "in" && moved !== "out") {
         return fail2("invalid-argument", "geom: `moved` must be 'in' or 'out'");
       }
-      const n8 = nodeIn(node);
-      if (isFail(n8)) return n8;
+      const n7 = nodeIn(node);
+      if (isFail(n7)) return n7;
       try {
-        return ok2(enforceContinuity(n8, moved));
+        return ok2(enforceContinuity(n7, moved));
       } catch (e) {
         return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
       }
@@ -65831,16 +65831,16 @@ function createHookWorkerCore(port, opts = {}) {
   function compile2(host, source) {
     const factory = new Function(
       "host",
-      `${source}; return {` + [...WORKER_HOOK_NAMES, ...IN_REALM_ONLY_HOOK_NAMES].map((n8) => `${n8}: typeof ${n8} !== 'undefined' ? ${n8} : null`).join(",") + `};`
+      `${source}; return {` + [...WORKER_HOOK_NAMES, ...IN_REALM_ONLY_HOOK_NAMES].map((n7) => `${n7}: typeof ${n7} !== 'undefined' ? ${n7} : null`).join(",") + `};`
     );
     const raw = factory(host);
     const mod = {};
-    for (const n8 of WORKER_HOOK_NAMES) {
-      if (typeof raw[n8] === "function") mod[n8] = raw[n8];
+    for (const n7 of WORKER_HOOK_NAMES) {
+      if (typeof raw[n7] === "function") mod[n7] = raw[n7];
     }
     return {
       mod,
-      inRealmOnlyDeclared: IN_REALM_ONLY_HOOK_NAMES.filter((n8) => typeof raw[n8] === "function")
+      inRealmOnlyDeclared: IN_REALM_ONLY_HOOK_NAMES.filter((n7) => typeof raw[n7] === "function")
     };
   }
   function handle(msg3) {
@@ -65855,7 +65855,7 @@ function createHookWorkerCore(port, opts = {}) {
         const compiled3 = compile2(run3.host, msg3.hooksSource);
         run3.mod = compiled3.mod;
         inRealmOnlyDeclared = compiled3.inRealmOnlyDeclared;
-        declared = WORKER_HOOK_NAMES.filter((n8) => run3.mod[n8] != null);
+        declared = WORKER_HOOK_NAMES.filter((n7) => run3.mod[n7] != null);
       } catch (e) {
         compileError = e.message;
         runs2.delete(msg3.runId);
@@ -66010,8 +66010,8 @@ function gifFrameCount(bytes2, stopAt = 2) {
   if (packed & 128) p += 3 * (1 << (packed & 7) + 1);
   let frames = 0;
   let guard = 0;
-  const n8 = bytes2.length;
-  while (p < n8 && guard++ < 1e6) {
+  const n7 = bytes2.length;
+  while (p < n7 && guard++ < 1e6) {
     const block = bytes2[p++];
     if (block === 59) break;
     if (block === 44) {
@@ -66031,8 +66031,8 @@ function gifFrameCount(bytes2, stopAt = 2) {
   return frames;
 }
 function skipSubBlocks(bytes2, p) {
-  const n8 = bytes2.length;
-  while (p < n8) {
+  const n7 = bytes2.length;
+  while (p < n7) {
     const len2 = bytes2[p++];
     if (len2 === 0) break;
     p += len2;
@@ -66042,8 +66042,8 @@ function skipSubBlocks(bytes2, p) {
 function isAnimatedPng(bytes2) {
   let p = 8;
   let guard = 0;
-  const n8 = bytes2.length;
-  while (p + 8 <= n8 && guard++ < 1e5) {
+  const n7 = bytes2.length;
+  while (p + 8 <= n7 && guard++ < 1e5) {
     const len2 = bytes2[p] << 24 | bytes2[p + 1] << 16 | bytes2[p + 2] << 8 | bytes2[p + 3];
     if (fourcc2(bytes2, p + 4, "acTL")) return true;
     if (fourcc2(bytes2, p + 4, "IDAT")) return false;
@@ -66154,10 +66154,10 @@ function object2(c, depth) {
   if (depth > MAX_DEPTH3) throw new Stop();
   c.unicode();
   c.key();
-  const n8 = c.u32();
-  if (n8 > MAX_ITEMS) throw new Stop();
+  const n7 = c.u32();
+  if (n7 > MAX_ITEMS) throw new Stop();
   const out = /* @__PURE__ */ Object.create(null);
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     c.count();
     const k = c.key();
     out[k] = item(c, c.ascii(4), depth);
@@ -66170,10 +66170,10 @@ function item(c, type, depth) {
     case "GlbO":
       return object2(c, depth + 1);
     case "VlLs": {
-      const n8 = c.u32();
-      if (n8 > MAX_LIST) throw new Stop();
+      const n7 = c.u32();
+      if (n7 > MAX_LIST) throw new Stop();
       const list4 = [];
-      for (let i = 0; i < n8; i++) {
+      for (let i = 0; i < n7; i++) {
         c.count();
         list4.push(item(c, c.ascii(4), depth + 1));
       }
@@ -66186,10 +66186,10 @@ function item(c, type, depth) {
       return c.f64();
     case "UnFl": {
       c.skip(4);
-      const n8 = c.u32();
-      if (n8 > MAX_LIST) throw new Stop();
+      const n7 = c.u32();
+      if (n7 > MAX_LIST) throw new Stop();
       const list4 = [];
-      for (let i = 0; i < n8; i++) list4.push(c.f64());
+      for (let i = 0; i < n7; i++) list4.push(c.f64());
       return list4;
     }
     case "TEXT":
@@ -66208,11 +66208,11 @@ function item(c, type, depth) {
       c.unicode();
       return c.key();
     case "tdta": {
-      const n8 = c.u32();
-      if (n8 > MAX_DATA) throw new Stop();
-      c.need(n8);
-      const data = c.b.slice(c.p, c.p + n8);
-      c.p += n8;
+      const n7 = c.u32();
+      if (n7 > MAX_DATA) throw new Stop();
+      c.need(n7);
+      const data = c.b.slice(c.p, c.p + n7);
+      c.p += n7;
       return data;
     }
     case "alis":
@@ -66227,9 +66227,9 @@ function item(c, type, depth) {
   }
 }
 function reference2(c) {
-  const n8 = c.u32();
-  if (n8 > MAX_ITEMS) throw new Stop();
-  for (let i = 0; i < n8; i++) {
+  const n7 = c.u32();
+  if (n7 > MAX_ITEMS) throw new Stop();
+  for (let i = 0; i < n7; i++) {
     c.count();
     switch (c.ascii(4)) {
       case "prop":
@@ -66396,8 +66396,8 @@ function parseEngineData(bytes2) {
       if (at() === 43 || at() === 45) p++;
       while (at() >= 48 && at() <= 57) p++;
     }
-    const n8 = Number(decodeLatin1([...bytes2.subarray(s, p)]));
-    return Number.isFinite(n8) ? n8 : null;
+    const n7 = Number(decodeLatin1([...bytes2.subarray(s, p)]));
+    return Number.isFinite(n7) ? n7 : null;
   }
   function str11() {
     p++;
@@ -66433,8 +66433,8 @@ function parseEngineData(bytes2) {
       if (b === -1) return null;
       p++;
       if (b === 62) break;
-      const n8 = b >= 48 && b <= 57 ? b - 48 : b >= 97 && b <= 102 ? b - 87 : b >= 65 && b <= 70 ? b - 55 : -1;
-      if (n8 >= 0) nib.push(n8);
+      const n7 = b >= 48 && b <= 57 ? b - 48 : b >= 97 && b <= 102 ? b - 87 : b >= 65 && b <= 70 ? b - 55 : -1;
+      if (n7 >= 0) nib.push(n7);
     }
     const raw = [];
     for (let k = 0; k + 1 < nib.length; k += 2) raw.push(nib[k] << 4 | nib[k + 1]);
@@ -66472,8 +66472,8 @@ var init_psd_descriptor = __esm({
         this.p = start;
         this.v = new DataView(b.buffer, b.byteOffset, b.byteLength);
       }
-      need(n8) {
-        if (n8 < 0 || this.p + n8 > this.b.length) throw new Stop();
+      need(n7) {
+        if (n7 < 0 || this.p + n7 > this.b.length) throw new Stop();
       }
       u8() {
         this.need(1);
@@ -66503,32 +66503,32 @@ var init_psd_descriptor = __esm({
         this.p += 8;
         return x;
       }
-      ascii(n8) {
-        this.need(n8);
+      ascii(n7) {
+        this.need(n7);
         let s = "";
-        for (let i = 0; i < n8; i++) s += String.fromCharCode(this.b[this.p + i]);
-        this.p += n8;
+        for (let i = 0; i < n7; i++) s += String.fromCharCode(this.b[this.p + i]);
+        this.p += n7;
         return s;
       }
       /** A key: a length, then that many characters, or a 4-character ID when the length is 0. */
       key() {
-        const n8 = this.u32();
-        if (n8 > MAX_KEY) throw new Stop();
-        return this.ascii(n8 === 0 ? 4 : n8);
+        const n7 = this.u32();
+        if (n7 > MAX_KEY) throw new Stop();
+        return this.ascii(n7 === 0 ? 4 : n7);
       }
       /** A Unicode string: a character count, then UTF-16BE. A trailing NUL is dropped. */
       unicode() {
-        const n8 = this.u32();
-        if (n8 > MAX_DATA / 2) throw new Stop();
-        this.need(n8 * 2);
+        const n7 = this.u32();
+        if (n7 > MAX_DATA / 2) throw new Stop();
+        this.need(n7 * 2);
         let s = "";
-        for (let i = 0; i < n8; i++) s += String.fromCharCode(this.v.getUint16(this.p + i * 2));
-        this.p += n8 * 2;
+        for (let i = 0; i < n7; i++) s += String.fromCharCode(this.v.getUint16(this.p + i * 2));
+        this.p += n7 * 2;
         return s.replace(/\0+$/, "");
       }
-      skip(n8) {
-        this.need(n8);
-        this.p += n8;
+      skip(n7) {
+        this.need(n7);
+        this.p += n7;
       }
       count() {
         if (++this.total > MAX_TOTAL) throw new Stop();
@@ -66783,9 +66783,9 @@ function readFontName(name) {
   return { family: family2, weight, italic: ITALIC.test(style) };
 }
 function engineColor(values) {
-  const n8 = values.map((v) => engineNumber(v)).filter((v) => v != null);
-  if (!n8.length) return null;
-  const [r5, g2, b] = n8.length >= 4 ? [n8[1], n8[2], n8[3]] : n8.length === 3 ? [n8[0], n8[1], n8[2]] : [n8[0], n8[0], n8[0]];
+  const n7 = values.map((v) => engineNumber(v)).filter((v) => v != null);
+  if (!n7.length) return null;
+  const [r5, g2, b] = n7.length >= 4 ? [n7[1], n7[2], n7[3]] : n7.length === 3 ? [n7[0], n7[1], n7[2]] : [n7[0], n7[0], n7[0]];
   const c = (v) => Math.round(Math.max(0, Math.min(255, v > 1 ? v : v * 255))).toString(16).padStart(2, "0");
   return `#${c(r5)}${c(g2)}${c(b)}`;
 }
@@ -66816,7 +66816,7 @@ function runStyle(run3, fonts, scale) {
 }
 function splitRuns(text12, styles, lengths) {
   const first = styles[0];
-  const usable = styles.length > 1 && lengths.length === styles.length && lengths.every((n8) => n8 != null && Number.isInteger(n8) && n8 >= 0);
+  const usable = styles.length > 1 && lengths.length === styles.length && lengths.every((n7) => n7 != null && Number.isInteger(n7) && n7 >= 0);
   if (!usable) return [{ ...first, text: text12 }];
   const out = [];
   let at = 0;
@@ -67180,14 +67180,14 @@ var init_psd_layer_semantics = __esm({
 
 // engine/src/packbits.ts
 function packBitsEncode(src) {
-  const n8 = src.length;
-  if (n8 === 0) return new Uint8Array(0);
-  const out = new Uint8Array(n8 + Math.ceil(n8 / 128) + 1);
+  const n7 = src.length;
+  if (n7 === 0) return new Uint8Array(0);
+  const out = new Uint8Array(n7 + Math.ceil(n7 / 128) + 1);
   let o = 0;
   let i = 0;
-  while (i < n8) {
+  while (i < n7) {
     let runEnd2 = i + 1;
-    while (runEnd2 < n8 && runEnd2 - i < 128 && src[runEnd2] === src[i]) runEnd2++;
+    while (runEnd2 < n7 && runEnd2 - i < 128 && src[runEnd2] === src[i]) runEnd2++;
     const runLen = runEnd2 - i;
     if (runLen >= 3) {
       out[o++] = 257 - runLen;
@@ -67195,8 +67195,8 @@ function packBitsEncode(src) {
       i = runEnd2;
     } else {
       let j = i + 1;
-      while (j < n8 && j - i < 128) {
-        if (j + 2 < n8 && src[j] === src[j + 1] && src[j] === src[j + 2]) break;
+      while (j < n7 && j - i < 128) {
+        if (j + 2 < n7 && src[j] === src[j + 1] && src[j] === src[j + 2]) break;
         j++;
       }
       const litLen = j - i;
@@ -67466,16 +67466,16 @@ function readPsd(bytes2, opts = {}) {
   const budgetMax = opts.maxDecodedBytes ?? DEFAULT_DECODE_BUDGET;
   let budgetUsed = 0;
   let budgetWarned = false;
-  const reserve = (n8) => {
-    if (!Number.isSafeInteger(n8) || n8 < 0) return false;
-    if (budgetUsed + n8 > budgetMax) {
+  const reserve = (n7) => {
+    if (!Number.isSafeInteger(n7) || n7 < 0) return false;
+    if (budgetUsed + n7 > budgetMax) {
       if (!budgetWarned) {
         budgetWarned = true;
         warn2("decode.budget.exhausted", `${budgetMax} bytes`);
       }
       return false;
     }
-    budgetUsed += n8;
+    budgetUsed += n7;
     return true;
   };
   if (!isPsd(bytes2)) throw new PsdUnsupportedError("not-psd", "not a PSD/PSB file (missing 8BPS signature)");
@@ -67692,7 +67692,7 @@ function readLayerRecord(c, end, psb, warn2, semanticBudget) {
   let section = 0;
   let blocks;
   let keptHere = 0;
-  for (let n8 = 0; c.p + 12 <= extraEnd && n8 < MAX_EXTRA_BLOCKS; n8++) {
+  for (let n7 = 0; c.p + 12 <= extraEnd && n7 < MAX_EXTRA_BLOCKS; n7++) {
     const sig2 = c.ascii(4);
     if (sig2 !== "8BIM" && sig2 !== "8B64") break;
     const key2 = c.ascii(4);
@@ -67713,12 +67713,12 @@ function readLayerRecord(c, end, psb, warn2, semanticBudget) {
         section = 0;
       }
     } else if (SEMANTIC_BLOCK_KEYS.has(key2) && blockEnd >= c.p) {
-      const n9 = blockEnd - c.p;
-      if (keptHere + n9 <= MAX_SEMANTIC_BYTES_PER_LAYER && n9 <= semanticBudget.left) {
+      const n8 = blockEnd - c.p;
+      if (keptHere + n8 <= MAX_SEMANTIC_BYTES_PER_LAYER && n8 <= semanticBudget.left) {
         blocks ??= /* @__PURE__ */ new Map();
         blocks.set(key2, c.b.slice(c.p, blockEnd));
-        keptHere += n9;
-        semanticBudget.left -= n9;
+        keptHere += n8;
+        semanticBudget.left -= n8;
       } else {
         warn2("layer.semantics", `${key2} block too large to read`);
       }
@@ -67850,7 +67850,7 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn2, 
     return null;
   }
   const out = new Uint8Array(w * h * 4);
-  const n8 = w * h;
+  const n7 = w * h;
   const alpha = planes.get(-1);
   if (colorMode === "gray") {
     const g2 = planes.get(0);
@@ -67858,7 +67858,7 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn2, 
       warn2("layer.skipped", rec2.name);
       return null;
     }
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       const o = i * 4;
       out[o] = out[o + 1] = out[o + 2] = g2[i];
       out[o + 3] = alpha ? alpha[i] : 255;
@@ -67871,7 +67871,7 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn2, 
       warn2("layer.skipped", rec2.name);
       return null;
     }
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       const o = i * 4;
       out[o] = r5[i];
       out[o + 1] = g2[i];
@@ -67887,7 +67887,7 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn2, 
       warn2("layer.skipped", rec2.name);
       return null;
     }
-    cmykPlanesToRgba(cyan, mag, yel, key2, alpha ?? null, n8, out, icc, warn2);
+    cmykPlanesToRgba(cyan, mag, yel, key2, alpha ?? null, n7, out, icc, warn2);
   }
   if (rec2.mask && opts.applyLayerMasks !== false && !rec2.mask.disabled) {
     const mPlane = planes.get(-2) ?? planes.get(-3);
@@ -67940,12 +67940,12 @@ function applyMask(out, w, h, rec2, mPlane) {
     }
   }
 }
-function cmykPlanesToRgba(cy3, ma, ye, ke, alpha, n8, out, icc, warn2) {
+function cmykPlanesToRgba(cy3, ma, ye, ke, alpha, n7, out, icc, warn2) {
   const profile2 = icc ? parseIccProfile(icc) : null;
-  const lut = profile2 && profile2.dataColourSpace === "CMYK" ? buildCmykLut(profile2, cy3, ma, ye, ke, n8, warn2) : null;
+  const lut = profile2 && profile2.dataColourSpace === "CMYK" ? buildCmykLut(profile2, cy3, ma, ye, ke, n7, warn2) : null;
   if (!lut && icc) warn2("cmyk.no-profile", "embedded profile unusable - naive conversion");
   if (!lut && !icc) warn2("cmyk.no-profile", "no embedded profile - naive conversion");
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     const o = i * 4;
     const key2 = (cy3[i] << 8 | ma[i]) * 65536 + (ye[i] << 8 | ke[i]);
     const hit = lut?.get(key2);
@@ -67962,9 +67962,9 @@ function cmykPlanesToRgba(cy3, ma, ye, ke, alpha, n8, out, icc, warn2) {
     out[o + 3] = alpha ? alpha[i] : 255;
   }
 }
-function buildCmykLut(profile2, cy3, ma, ye, ke, n8, warn2) {
+function buildCmykLut(profile2, cy3, ma, ye, ke, n7, warn2) {
   const unique3 = /* @__PURE__ */ new Map();
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     const key2 = (cy3[i] << 8 | ma[i]) * 65536 + (ye[i] << 8 | ke[i]);
     if (!unique3.has(key2)) {
       if (unique3.size >= MAX_CMYK_CACHE) {
@@ -68073,20 +68073,20 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
     warn2("composite.bad", `unknown compression ${comp2}`);
     return void 0;
   }
-  const n8 = width * height;
-  const out = new Uint8Array(n8 * 4);
+  const n7 = width * height;
+  const out = new Uint8Array(n7 * 4);
   const alpha = mergedHasAlpha && planes.length > colorChannels ? planes[colorChannels] : null;
   if (colorMode === "gray") {
     const g2 = planes[0];
     if (!g2) return void 0;
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       const o = i * 4;
       out[o] = out[o + 1] = out[o + 2] = g2[i];
       out[o + 3] = alpha ? alpha[i] : 255;
     }
   } else if (colorMode === "rgb") {
     if (planes.length < 3) return void 0;
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       const o = i * 4;
       out[o] = planes[0][i];
       out[o + 1] = planes[1][i];
@@ -68095,7 +68095,7 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
     }
   } else {
     if (planes.length < 4) return void 0;
-    cmykPlanesToRgba(planes[0], planes[1], planes[2], planes[3], alpha, n8, out, icc, warn2);
+    cmykPlanesToRgba(planes[0], planes[1], planes[2], planes[3], alpha, n7, out, icc, warn2);
   }
   return { width, height, pixels: out };
 }
@@ -68149,8 +68149,8 @@ var init_psd = __esm({
       get left() {
         return this.b.length - this.p;
       }
-      need(n8) {
-        return n8 >= 0 && this.p + n8 <= this.b.length;
+      need(n7) {
+        return n7 >= 0 && this.p + n7 <= this.b.length;
       }
       u8() {
         return this.b[this.p++];
@@ -68182,10 +68182,10 @@ var init_psd = __esm({
         this.p += 8;
         return hi * 4294967296 + lo;
       }
-      ascii(n8) {
+      ascii(n7) {
         let s = "";
-        for (let i = 0; i < n8; i++) s += String.fromCharCode(this.b[this.p + i]);
-        this.p += n8;
+        for (let i = 0; i < n7; i++) s += String.fromCharCode(this.b[this.p + i]);
+        this.p += n7;
         return s;
       }
     };
@@ -68258,7 +68258,7 @@ function writePsd(doc) {
     const nameBytes = pascalName(l.name);
     const luni = luniBlock(l.name);
     const tagged = (l.extraBlocks ?? []).map(([k, data]) => taggedBlock(k, data));
-    const taggedLen = tagged.reduce((n8, b) => n8 + b.length, 0);
+    const taggedLen = tagged.reduce((n7, b) => n7 + b.length, 0);
     const extraLen = 4 + maskLen + 4 + nameBytes.length + luni.length + taggedLen;
     const rec2 = new Uint8Array(16 + 2 + ids2.length * 6 + 4 + 4 + 1 + 1 + 1 + 1 + 4 + extraLen);
     const rv = new DataView(rec2.buffer);
@@ -68490,16 +68490,16 @@ function readXcf(bytes2, opts = {}) {
   const budgetMax = opts.maxDecodedBytes ?? DEFAULT_DECODE_BUDGET2;
   let budgetUsed = 0;
   let budgetWarned = false;
-  const reserve = (n9) => {
-    if (!Number.isSafeInteger(n9) || n9 < 0) return false;
-    if (budgetUsed + n9 > budgetMax) {
+  const reserve = (n8) => {
+    if (!Number.isSafeInteger(n8) || n8 < 0) return false;
+    if (budgetUsed + n8 > budgetMax) {
       if (!budgetWarned) {
         budgetWarned = true;
         warn2("decode.budget.exhausted", `${budgetMax} bytes`);
       }
       return false;
     }
-    budgetUsed += n9;
+    budgetUsed += n8;
     return true;
   };
   const version = parseVersion2(bytes2);
@@ -68535,8 +68535,8 @@ function readXcf(bytes2, opts = {}) {
   p = readProps(bytes2, v, p, MAX_PROPS, (id3, at, len2) => {
     if (id3 === PROP_COMPRESSION && len2 >= 1) compression = bytes2[at];
     else if (id3 === PROP_COLORMAP && len2 >= 4) {
-      const n9 = u327(at);
-      if (n9 > 0 && n9 <= 256 && at + 4 + n9 * 3 <= bytes2.length) colormap = bytes2.slice(at + 4, at + 4 + n9 * 3);
+      const n8 = u327(at);
+      if (n8 > 0 && n8 <= 256 && at + 4 + n8 * 3 <= bytes2.length) colormap = bytes2.slice(at + 4, at + 4 + n8 * 3);
     }
   });
   if (p < 0) throw new XcfUnsupportedError("not-xcf", "unreadable image property list");
@@ -68589,11 +68589,11 @@ function readXcf(bytes2, opts = {}) {
     }
     x.layer.groupPath = path;
   });
-  const n8 = topDown.length;
+  const n7 = topDown.length;
   const layers = [];
-  for (let i = n8 - 1; i >= 0; i--) {
+  for (let i = n7 - 1; i >= 0; i--) {
     const l = topDown[i].layer;
-    l.groupPath = l.groupPath.map((g2) => n8 - 1 - g2);
+    l.groupPath = l.groupPath.map((g2) => n7 - 1 - g2);
     layers.push(l);
   }
   return {
@@ -68838,15 +68838,15 @@ function decodeTile(bytes2, at, end, tw, th, bpp, ctx) {
     }
   }
   let p = at;
-  const n8 = tw * th;
+  const n7 = tw * th;
   for (let plane = 0; plane < bpp; plane++) {
     let written = 0;
-    while (written < n8) {
+    while (written < n7) {
       if (p >= end || p >= bytes2.length) return null;
       const op = bytes2[p++];
       if (op < 127) {
         const len2 = op + 1;
-        if (p >= bytes2.length || written + len2 > n8) return null;
+        if (p >= bytes2.length || written + len2 > n7) return null;
         const val = bytes2[p++];
         for (let i = 0; i < len2; i++) out[(written + i) * bpp + plane] = val;
         written += len2;
@@ -68855,20 +68855,20 @@ function decodeTile(bytes2, at, end, tw, th, bpp, ctx) {
         const len2 = bytes2[p] << 8 | bytes2[p + 1];
         const val = bytes2[p + 2];
         p += 3;
-        if (len2 === 0 || written + len2 > n8) return null;
+        if (len2 === 0 || written + len2 > n7) return null;
         for (let i = 0; i < len2; i++) out[(written + i) * bpp + plane] = val;
         written += len2;
       } else if (op === 128) {
         if (p + 2 > bytes2.length) return null;
         const len2 = bytes2[p] << 8 | bytes2[p + 1];
         p += 2;
-        if (len2 === 0 || p + len2 > bytes2.length || written + len2 > n8) return null;
+        if (len2 === 0 || p + len2 > bytes2.length || written + len2 > n7) return null;
         for (let i = 0; i < len2; i++) out[(written + i) * bpp + plane] = bytes2[p + i];
         p += len2;
         written += len2;
       } else {
         const len2 = 256 - op;
-        if (p + len2 > bytes2.length || written + len2 > n8) return null;
+        if (p + len2 > bytes2.length || written + len2 > n7) return null;
         for (let i = 0; i < len2; i++) out[(written + i) * bpp + plane] = bytes2[p + i];
         p += len2;
         written += len2;
@@ -68878,8 +68878,8 @@ function decodeTile(bytes2, at, end, tw, th, bpp, ctx) {
   return out;
 }
 function rawToRgba(raw, w, h, type, ctx) {
-  const n8 = w * h;
-  const out = new Uint8Array(n8 * 4);
+  const n7 = w * h;
+  const out = new Uint8Array(n7 * 4);
   const sb = type >= 4 ? 1 : ctx.sampleBytes;
   const channels = type === 0 ? 3 : type === 1 ? 4 : type === 2 ? 1 : type === 3 ? 2 : type === 4 ? 1 : 2;
   const bpp = channels * sb;
@@ -68889,7 +68889,7 @@ function rawToRgba(raw, w, h, type, ctx) {
   };
   if (type === 0 || type === 1) {
     const hasA = type === 1;
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       const o = i * 4;
       out[o] = sample(i, 0);
       out[o + 1] = sample(i, 1);
@@ -68898,7 +68898,7 @@ function rawToRgba(raw, w, h, type, ctx) {
     }
   } else if (type === 2 || type === 3) {
     const hasA = type === 3;
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       const o = i * 4;
       const g2 = sample(i, 0);
       out[o] = out[o + 1] = out[o + 2] = g2;
@@ -68907,7 +68907,7 @@ function rawToRgba(raw, w, h, type, ctx) {
   } else {
     const map = ctx.colormap;
     const hasA = type === 5;
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       const o = i * 4;
       const idx = raw[i * bpp];
       if (map && idx * 3 + 2 < map.length) {
@@ -69017,13 +69017,13 @@ function parseFrameAddress(s) {
   const buildPart = dot < 0 ? "" : raw.slice(dot + 1);
   let build2 = null;
   if (isPositional(buildPart)) {
-    const n8 = parseInt(buildPart, 10);
-    build2 = n8 >= 1 ? n8 : null;
+    const n7 = parseInt(buildPart, 10);
+    build2 = n7 >= 1 ? n7 : null;
   }
   if (slidePart === "") return null;
   if (isPositional(slidePart)) {
-    const n8 = parseInt(slidePart, 10);
-    return { position: n8, id: null, build: build2, raw };
+    const n7 = parseInt(slidePart, 10);
+    return { position: n7, id: null, build: build2, raw };
   }
   return { position: null, id: slidePart, build: build2, raw };
 }
@@ -69069,13 +69069,13 @@ function isKfSafe(s) {
 }
 function quant(v, q) {
   const inv = Math.round(1 / q);
-  const n8 = Math.round(v * inv) / inv;
-  return Object.is(n8, -0) ? 0 : n8;
+  const n7 = Math.round(v * inv) / inv;
+  return Object.is(n7, -0) ? 0 : n7;
 }
 function num5(s) {
   if (!NUM_RE2.test(s)) return null;
-  const n8 = Number(s);
-  return Number.isFinite(n8) ? n8 : null;
+  const n7 = Number(s);
+  return Number.isFinite(n7) ? n7 : null;
 }
 function snip(s) {
   return s.length > 40 ? `${s.slice(0, 40)}\u2026` : s;
@@ -69166,7 +69166,7 @@ function kfEaseAt(ease, u) {
 function kfEaseCss(ease) {
   if (ease === KF_HOLD_EASE) return KF_HOLD_CSS;
   const p = (typeof ease === "string" ? easePts(ease) : null) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE].pts;
-  return `cubic-bezier(${p.map((n8) => fmt(quant(n8, KF_BEZIER_QUANTUM))).join(",")})`;
+  return `cubic-bezier(${p.map((n7) => fmt(quant(n7, KF_BEZIER_QUANTUM))).join(",")})`;
 }
 function kfEaseName(ease) {
   if (typeof ease !== "string") return "";
@@ -69185,7 +69185,7 @@ function kfEaseToken(v) {
   const m2 = CSS_BEZIER_RE.exec(s);
   if (m2) {
     const parts = (m2[1] ?? "").split(",").map((x) => num5(x.trim()));
-    if (parts.length === 4 && parts.every((n8) => n8 !== null)) {
+    if (parts.length === 4 && parts.every((n7) => n7 !== null)) {
       return easeFromPoints(parts[0], parts[1], parts[2], parts[3]);
     }
   }
@@ -69345,9 +69345,9 @@ function parseKf(s, opts) {
       let matched = false;
       for (const ch of CHANNELS_BY_LENGTH) {
         if (!tok.startsWith(ch)) continue;
-        const n8 = num5(tok.slice(ch.length));
-        if (n8 === null) continue;
-        v[ch] = n8;
+        const n7 = num5(tok.slice(ch.length));
+        if (n7 === null) continue;
+        v[ch] = n7;
         matched = true;
         break;
       }
@@ -69677,30 +69677,30 @@ function localMatrix(hs, ox, oy, cpx, cpy, effc) {
 }
 function fmt9(v) {
   if (!Number.isFinite(v)) return "0";
-  const n8 = Math.round(v * 1e9) / 1e9;
-  return String(Object.is(n8, -0) ? 0 : n8);
+  const n7 = Math.round(v * 1e9) / 1e9;
+  return String(Object.is(n7, -0) ? 0 : n7);
 }
 function kfMatrix3dCss(m2) {
   const i = m2[8];
   const k = Number.isFinite(i) && i !== 0 ? 1 / i : 1;
-  const n8 = m2.map((v) => v * k);
+  const n7 = m2.map((v) => v * k);
   return `matrix3d(${[
-    n8[0],
-    n8[3],
+    n7[0],
+    n7[3],
     0,
-    n8[6],
-    n8[1],
-    n8[4],
+    n7[6],
+    n7[1],
+    n7[4],
     0,
-    n8[7],
+    n7[7],
     0,
     0,
     1,
     0,
-    n8[2],
-    n8[5],
+    n7[2],
+    n7[5],
     0,
-    n8[8]
+    n7[8]
   ].map((v) => fmt9(v)).join(", ")})`;
 }
 function projectSurfacePoint(cam, x, y, z = 0) {
@@ -70007,8 +70007,8 @@ var init_keyframes2 = __esm({
 // engine/src/present-interact.ts
 function boundedNumber(value2, lo, hi) {
   if (!NUMBER.test(value2)) return null;
-  const n8 = Number(value2);
-  return Number.isFinite(n8) ? clamp3(n8, lo, hi) : null;
+  const n7 = Number(value2);
+  return Number.isFinite(n7) ? clamp3(n7, lo, hi) : null;
 }
 function invalidDepthText(text12) {
   for (let index2 = 0; index2 < text12.length; index2++) {
@@ -70027,8 +70027,8 @@ function parsePresentInteractDepth(value2) {
   const text12 = value2.trim();
   if (/^#[^\s#]{1,128}$/u.test(text12)) return text12;
   if (text12.endsWith("%")) {
-    const n8 = boundedNumber(text12.slice(0, -1), 0, 100);
-    return n8 === null ? null : `${n8}%`;
+    const n7 = boundedNumber(text12.slice(0, -1), 0, 100);
+    return n7 === null ? null : `${n7}%`;
   }
   return boundedNumber(text12, 0, PRESENT_INTERACT_MAX_DEPTH);
 }
@@ -70269,7 +70269,7 @@ var init_present_interact = __esm({
       keep: "keep"
     });
     NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i;
-    clamp3 = (n8, lo, hi) => Math.min(hi, Math.max(lo, n8));
+    clamp3 = (n7, lo, hi) => Math.min(hi, Math.max(lo, n7));
     defaults = () => ({ ...PRESENT_INTERACT_DEFAULTS, stops: [] });
   }
 });
@@ -70282,8 +70282,8 @@ function looksLikeTable(text12) {
   if (/^\s*\|.*\|\s*$/m.test(t)) return true;
   const lines = t.split(/\r\n?|\n/).filter((l) => l.trim());
   if (lines.length < 2 || !lines[0].includes(",")) return false;
-  const n8 = splitCsvLine(lines[0]).length;
-  return n8 > 1 && lines.every((l) => splitCsvLine(l).length === n8);
+  const n7 = splitCsvLine(lines[0]).length;
+  return n7 > 1 && lines.every((l) => splitCsvLine(l).length === n7);
 }
 function parseTableText(text12) {
   const t = text12.replace(/\r\n?/g, "\n").replace(/\n+$/, "");
@@ -70585,7 +70585,7 @@ function parseDelimited(text12, delim = ",") {
   let field2 = "";
   let inQuotes = false;
   let i = 0;
-  const n8 = text12.length;
+  const n7 = text12.length;
   const endField = () => {
     row.push(field2);
     field2 = "";
@@ -70595,7 +70595,7 @@ function parseDelimited(text12, delim = ",") {
     rows2.push(row);
     row = [];
   };
-  while (i < n8) {
+  while (i < n7) {
     const ch = text12[i];
     if (inQuotes) {
       if (ch === '"') {
@@ -70857,7 +70857,7 @@ function insertPngChunksAfterIhdr(png, chunks) {
   const SIG = [137, 80, 78, 71, 13, 10, 26, 10];
   for (let i = 0; i < 8; i++) if (png[i] !== SIG[i]) return null;
   const at = 8 + 12 + readU322(png, 8);
-  const extra = chunks.reduce((n8, c) => n8 + c.length, 0);
+  const extra = chunks.reduce((n7, c) => n7 + c.length, 0);
   const out = new Uint8Array(png.length + extra);
   out.set(png.subarray(0, at), 0);
   let o = at;
@@ -70876,9 +70876,9 @@ function buildExifTiff(fields2) {
     data.set(s, 0);
     return { tag: f.tag, count: data.length, data };
   }).filter((e) => e.count > 1);
-  const n8 = entries.length;
-  if (!n8) return null;
-  const dataStart = 8 + 2 + n8 * 12 + 4;
+  const n7 = entries.length;
+  if (!n7) return null;
+  const dataStart = 8 + 2 + n7 * 12 + 4;
   const dataLen = entries.reduce((s, e) => s + (e.count > 4 ? e.count : 0), 0);
   const tiff = new Uint8Array(dataStart + dataLen);
   const dv = new DataView(tiff.buffer);
@@ -70886,7 +70886,7 @@ function buildExifTiff(fields2) {
   tiff[1] = 73;
   dv.setUint16(2, 42, true);
   dv.setUint32(4, 8, true);
-  dv.setUint16(8, n8, true);
+  dv.setUint16(8, n7, true);
   let entryOff = 10, dataOff = dataStart;
   for (const e of entries) {
     dv.setUint16(entryOff, e.tag, true);
@@ -70900,7 +70900,7 @@ function buildExifTiff(fields2) {
     }
     entryOff += 12;
   }
-  dv.setUint32(10 + n8 * 12, 0, true);
+  dv.setUint32(10 + n7 * 12, 0, true);
   return tiff;
 }
 function insertJpegExif(b, meta) {
@@ -70989,7 +70989,7 @@ function insertJpegIcc(b, iccBytes) {
     while (b[at] === 255 && (b[at + 1] === 224 || b[at + 1] === 225)) {
       at += 2 + (b[at + 2] << 8 | b[at + 3]);
     }
-    const extra = segs.reduce((n8, s) => n8 + s.length, 0);
+    const extra = segs.reduce((n7, s) => n7 + s.length, 0);
     const out = new Uint8Array(b.length + extra);
     out.set(b.subarray(0, at), 0);
     let o = at;
@@ -71073,7 +71073,7 @@ async function pipeThroughTransform(transform2, data) {
     if (done) break;
     chunks.push(value2);
   }
-  const total = chunks.reduce((n8, c) => n8 + c.length, 0);
+  const total = chunks.reduce((n7, c) => n7 + c.length, 0);
   const out = new Uint8Array(total);
   let i = 0;
   for (const c of chunks) {
@@ -71321,7 +71321,7 @@ function carryIntoWebp(bytes2, tiff, xmp) {
   }
   if (tiff) parts.push(riffChunk("EXIF", tiff));
   if (xmp) parts.push(riffChunk("XMP ", new TextEncoder().encode(xmp)));
-  const body = parts.reduce((n8, p) => n8 + p.length, 0);
+  const body = parts.reduce((n7, p) => n7 + p.length, 0);
   const out = new Uint8Array(12 + body);
   out[0] = 82;
   out[1] = 73;
@@ -71427,11 +71427,11 @@ function parseIloc(bytes2, iloc) {
   const offsetSize = bytes2[p] >> 4, lengthSize = bytes2[p] & 15;
   const baseOffsetSize = bytes2[p + 1] >> 4;
   const indexSize = version >= 1 ? bytes2[p + 1] & 15 : 0;
-  for (const n8 of [offsetSize, lengthSize, baseOffsetSize, indexSize]) if (n8 !== 0 && n8 !== 4 && n8 !== 8) return null;
+  for (const n7 of [offsetSize, lengthSize, baseOffsetSize, indexSize]) if (n7 !== 0 && n7 !== 4 && n7 !== 8) return null;
   p += 2;
-  const readN = (at, n8) => {
+  const readN = (at, n7) => {
     let out = 0;
-    for (let i = 0; i < n8; i++) out = out * 256 + bytes2[at + i];
+    for (let i = 0; i < n7; i++) out = out * 256 + bytes2[at + i];
     return out;
   };
   const count4 = version === 2 ? readN(p, 4) : readN(p, 2);
@@ -71816,16 +71816,16 @@ function clamp8(v) {
   return r5 < 0 ? 0 : r5 > 255 ? 255 : r5;
 }
 function psnrRgb(a, b) {
-  let sse = 0, n8 = 0;
+  let sse = 0, n7 = 0;
   for (let p = 0; p < a.length; p += 4) {
     for (let c = 0; c < 3; c++) {
       const d = a[p + c] - b[p + c];
       sse += d * d;
-      n8++;
+      n7++;
     }
   }
-  if (n8 === 0 || sse === 0) return Infinity;
-  const mse = sse / n8;
+  if (n7 === 0 || sse === 0) return Infinity;
+  const mse = sse / n7;
   return 10 * Math.log10(255 * 255 / mse);
 }
 function detectWatermark(rgba2, opts) {
@@ -72165,9 +72165,9 @@ function lnGamma(x) {
   for (let i = 0; i < 8; i++) a += c[i] / (x + i + 1);
   return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
 }
-function channelP(rgba2, channel5, n8) {
+function channelP(rgba2, channel5, n7) {
   const h = new Float64Array(256);
-  for (let i = 0; i < n8; i++) h[rgba2[i * 4 + channel5]]++;
+  for (let i = 0; i < n7; i++) h[rgba2[i * 4 + channel5]]++;
   let chi2 = 0, k = 0;
   for (let v = 0; v < 256; v += 2) {
     const e = (h[v] + h[v + 1]) / 2;
@@ -72190,9 +72190,9 @@ function analyzeLsb(rgba2, opts) {
   try {
     let best = 0;
     for (const f of LSB_PREFIXES) {
-      const n8 = Math.floor(total * f);
-      if (n8 < LSB_MIN_PIXELS) continue;
-      const p = Math.min(channelP(rgba2, 0, n8), channelP(rgba2, 1, n8), channelP(rgba2, 2, n8));
+      const n7 = Math.floor(total * f);
+      if (n7 < LSB_MIN_PIXELS) continue;
+      const p = Math.min(channelP(rgba2, 0, n7), channelP(rgba2, 1, n7), channelP(rgba2, 2, n7));
       if (p > best) best = p;
     }
     return { suspicious: best >= LSB_P_THRESHOLD, score: best, pixels: total };
@@ -72231,10 +72231,10 @@ function gMod(engine, v) {
   return v < engine.n ? v : v - engine.n;
 }
 function gModN(engine, v) {
-  const n8 = engine.n;
-  while (v >= n8) {
-    v -= n8;
-    v = (v & n8) + (v >>> engine.m);
+  const n7 = engine.n;
+  while (v >= n7) {
+    v -= n7;
+    v = (v & n7) + (v >>> engine.m);
   }
   return v;
 }
@@ -72342,19 +72342,19 @@ function createBchEngine(t, poly) {
     tmp = tmp >>> 1;
     m2++;
   }
-  const n8 = (1 << m2) - 1;
+  const n7 = (1 << m2) - 1;
   const eccBytes = ceilDiv(m2 * t, 8);
   const engine = {
     m: m2,
     t,
     poly,
-    n: n8,
+    n: n7,
     eccBytes,
     eccBits: 0,
     // set below, once the generator polynomial's real degree is known
     cyclicTab: [],
-    exponents: new Array(n8 + 1).fill(0),
-    logarithms: new Array(n8 + 1).fill(0),
+    exponents: new Array(n7 + 1).fill(0),
+    logarithms: new Array(n7 + 1).fill(0),
     elpPre: new Array(m2 + 1).fill(0),
     eccBuf: [],
     errloc: new Array(t).fill(0)
@@ -72362,7 +72362,7 @@ function createBchEngine(t, poly) {
   const k = 1 << deg(poly);
   if (k !== 1 << m2) throw new Error("trustmark: BCH polynomial degree does not match field size");
   let x = 1;
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     engine.exponents[i] = x;
     engine.logarithms[x] = i;
     if (i && x === 1) throw new Error("trustmark: BCH polynomial is not primitive for this field");
@@ -72370,9 +72370,9 @@ function createBchEngine(t, poly) {
     if (x & k) x ^= poly;
   }
   engine.logarithms[0] = 0;
-  engine.exponents[n8] = 1;
+  engine.exponents[n7] = 1;
   const g2 = { deg: 0, c: new Array(m2 * t + 1).fill(0) };
-  const roots2 = new Array(n8 + 1).fill(0);
+  const roots2 = new Array(n7 + 1).fill(0);
   for (let i = 0; i < t; i++) {
     let r5 = 2 * i + 1;
     for (let j = 0; j < m2; j++) {
@@ -72382,7 +72382,7 @@ function createBchEngine(t, poly) {
   }
   g2.deg = 0;
   g2.c[0] = 1;
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     if (roots2[i]) {
       const r5 = engine.exponents[i];
       g2.c[g2.deg + 1] = 1;
@@ -72420,7 +72420,7 @@ function createBchEngine(t, poly) {
   let x2 = 0;
   const precomp = new Array(31).fill(0);
   let remaining = m2;
-  while (x2 <= n8 && remaining) {
+  while (x2 <= n7 && remaining) {
     let y = gSqrt(engine, x2) ^ x2;
     for (let i = 0; i < 2; i++) {
       const r5 = gLog(engine, y);
@@ -72530,7 +72530,7 @@ function bchDecode(engine, data, recvecc) {
     }
   }
   for (let i = 0; i < t; i++) syn[2 * i + 1] = gSqrt(engine, syn[i]);
-  const n8 = engine.n;
+  const n7 = engine.n;
   let pp = -1;
   let pd = 1;
   let pelp = { deg: 0, c: new Array(2 * t).fill(0) };
@@ -72543,7 +72543,7 @@ function bchDecode(engine, data, recvecc) {
     if (d) {
       const k = 2 * i - pp;
       const elpCopy = { deg: elp.deg, c: elp.c.slice() };
-      const tmp0 = gLog(engine, d) + n8 - gLog(engine, pd);
+      const tmp0 = gLog(engine, d) + n7 - gLog(engine, pd);
       for (let j = 0; j <= pelp.deg; j++) {
         if (pelp.c[j]) {
           const l = gLog(engine, pelp.c[j]);
@@ -73055,7 +73055,7 @@ function pqToI420P10(pq) {
     for (let cx2 = 0; cx2 < cw; cx2++) {
       let cbSum = 0;
       let crSum = 0;
-      let n8 = 0;
+      let n7 = 0;
       for (let dy = 0; dy < 2; dy++) {
         const yy = cy3 * 2 + dy;
         if (yy >= h) break;
@@ -73069,10 +73069,10 @@ function pqToI420P10(pq) {
           const yp = BT2020_KR * r5 + BT2020_KG * g2 + BT2020_KB * b;
           cbSum += (b - yp) / CB_DEN;
           crSum += (r5 - yp) / CR_DEN;
-          n8++;
+          n7++;
         }
       }
-      const inv = n8 > 0 ? 1 / n8 : 0;
+      const inv = n7 > 0 ? 1 / n7 : 0;
       out[ySize + cy3 * cw + cx2] = to10bit(896 * (cbSum * inv) + 512);
       out[ySize + cSize + cy3 * cw + cx2] = to10bit(896 * (crSum * inv) + 512);
     }
@@ -73142,9 +73142,9 @@ function isoBrand(b) {
   if (brand.startsWith("hei") || brand === "mif1" || brand === "msf1") return "heic";
   return "mp4";
 }
-function head(b, n8 = 1024) {
+function head(b, n7 = 1024) {
   let s = "";
-  for (let i = 0; i < Math.min(n8, b.length); i++) s += String.fromCharCode(b[i]);
+  for (let i = 0; i < Math.min(n7, b.length); i++) s += String.fromCharCode(b[i]);
   return s;
 }
 function sniffFormat2(bytes2) {
@@ -73374,9 +73374,9 @@ function ebmlElements(b, start, end, stopAt) {
 function svgLength(value2) {
   const m2 = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|mm|cm|q)?\s*$/i.exec(value2 ?? "");
   if (!m2) return null;
-  const n8 = Number(m2[1]), unit2 = (m2[2] ?? "px").toLowerCase();
-  if (!Number.isFinite(n8) || n8 <= 0) return null;
-  return unit2 === "px" ? { px: n8, pt: n8 * 0.75 } : { pt: n8 * POINTS_PER[unit2] };
+  const n7 = Number(m2[1]), unit2 = (m2[2] ?? "px").toLowerCase();
+  if (!Number.isFinite(n7) || n7 <= 0) return null;
+  return unit2 === "px" ? { px: n7, pt: n7 * 0.75 } : { pt: n7 * POINTS_PER[unit2] };
 }
 function svgRootTag(text12, f) {
   const open3 = /<svg\b/i.exec(text12);
@@ -73394,10 +73394,10 @@ function svgBox(value2) {
   return { w: nums[2], h: nums[3] };
 }
 function countMatches(text12, re) {
-  let n8 = 0;
+  let n7 = 0;
   re.lastIndex = 0;
-  while (re.exec(text12)) n8++;
-  return n8;
+  while (re.exec(text12)) n7++;
+  return n7;
 }
 function forwardSearch(text12, needle) {
   let searchedFrom = -1, found = -1;
@@ -73504,13 +73504,13 @@ function inflate(dict, data, f, budget3) {
   }
 }
 function expandObjectStream(dict, data, objects, f, budget3) {
-  const n8 = Number(/\/N\s+(\d+)/.exec(dict)?.[1] ?? 0), first = Number(/\/First\s+(\d+)/.exec(dict)?.[1] ?? 0);
+  const n7 = Number(/\/N\s+(\d+)/.exec(dict)?.[1] ?? 0), first = Number(/\/First\s+(\d+)/.exec(dict)?.[1] ?? 0);
   const raw = inflate(dict, data, f, budget3);
-  if (!raw || !n8 || n8 > 1e5) return;
+  if (!raw || !n7 || n7 > 1e5) return;
   const text12 = latin1(raw);
   const header = text12.slice(0, first).trim().split(/\s+/).map(Number);
   let previous2 = -1;
-  for (let i = 0; i + 1 < header.length && i / 2 < n8; i += 2) {
+  for (let i = 0; i + 1 < header.length && i / 2 < n7; i += 2) {
     const start = first + header[i + 1], next2 = i + 3 < header.length ? first + header[i + 3] : text12.length;
     if (!Number.isFinite(start) || start < previous2) {
       f.limits.push("pdf-object-stream-offsets");
@@ -73577,11 +73577,11 @@ var init_output_facts = __esm({
     u24le = (b, o) => (b[o] ?? 0) | (b[o + 1] ?? 0) << 8 | (b[o + 2] ?? 0) << 16;
     u32le2 = (b, o) => ((b[o] ?? 0) | (b[o + 1] ?? 0) << 8 | (b[o + 2] ?? 0) << 16 | (b[o + 3] ?? 0) << 24) >>> 0;
     tag4 = (b, o) => String.fromCharCode(b[o] ?? 0, b[o + 1] ?? 0, b[o + 2] ?? 0, b[o + 3] ?? 0);
-    round2 = (n8) => Math.round(n8 * 100) / 100;
+    round2 = (n7) => Math.round(n7 * 100) / 100;
     readPng2 = (b, f) => {
-      let at = 8, n8 = 0, colourType = -1, trns = false, iccFound = false, cicpTransfer = -1;
+      let at = 8, n7 = 0, colourType = -1, trns = false, iccFound = false, cicpTransfer = -1;
       let declaredFrames = 0, fctl = 0, delayMs = 0, meta = false, dpi = null, ended = false;
-      while (at + 12 <= b.length && n8++ < OUTPUT_MAX_STRUCTURES) {
+      while (at + 12 <= b.length && n7++ < OUTPUT_MAX_STRUCTURES) {
         const len2 = u32be2(b, at), type = tag4(b, at + 4), d = at + 8;
         if (d + len2 + 4 > b.length) {
           f.limits.push("png-truncated");
@@ -73684,9 +73684,9 @@ var init_output_facts = __esm({
       f.basis.pages = "jpeg";
     };
     readWebp2 = (b, f) => {
-      let at = 12, n8 = 0, alpha = false, anim = false, frames = 0, delay = 0, iccFound = false, meta = false, sized = false;
+      let at = 12, n7 = 0, alpha = false, anim = false, frames = 0, delay = 0, iccFound = false, meta = false, sized = false;
       const end = Math.min(b.length, 8 + u32le2(b, 4));
-      while (at + 8 <= end && n8++ < OUTPUT_MAX_STRUCTURES) {
+      while (at + 8 <= end && n7++ < OUTPUT_MAX_STRUCTURES) {
         const type = tag4(b, at), len2 = u32le2(b, at + 4), d = at + 8;
         if (d + len2 > b.length) {
           f.limits.push("webp-truncated");
@@ -74115,12 +74115,12 @@ var init_output_facts = __esm({
         return;
       }
       const total = u16le(b, eocd + 10);
-      let at = u32le2(b, eocd + 16), encrypted = false, n8 = 0;
-      for (; n8 < total && at + 46 <= b.length && u32le2(b, at) === 33639248; n8++) {
+      let at = u32le2(b, eocd + 16), encrypted = false, n7 = 0;
+      for (; n7 < total && at + 46 <= b.length && u32le2(b, at) === 33639248; n7++) {
         encrypted ||= (u16le(b, at + 8) & 1) === 1 || u16le(b, at + 10) === 99;
         at += 46 + u16le(b, at + 28) + u16le(b, at + 30) + u16le(b, at + 32);
       }
-      if (n8 < total) {
+      if (n7 < total) {
         f.limits.push("zip-central-directory-truncated");
         f.encrypted = encrypted ? known(true) : unknown("not-resolved");
         return;
@@ -74426,7 +74426,7 @@ var init_preflight_output = __esm({
     known2 = (value2) => ({ known: true, value: value2 });
     notSet = { known: false, why: "not-set" };
     asValue = (f) => f;
-    num6 = (n8) => String(Math.round(n8 * 100) / 100);
+    num6 = (n7) => String(Math.round(n7 * 100) / 100);
     seconds = (ms) => `${num6(ms / 1e3)} s`;
     LABEL = {
       format: "container format",
@@ -75096,34 +75096,34 @@ function localName(raw) {
 }
 function scanTags(s) {
   const tags3 = [];
-  const n8 = s.length;
+  const n7 = s.length;
   let i = 0;
-  while (i < n8) {
+  while (i < n7) {
     const lt = s.indexOf("<", i);
     if (lt < 0) break;
     if (s.startsWith("<!--", lt)) {
       const e = s.indexOf("-->", lt + 4);
-      i = e < 0 ? n8 : e + 3;
+      i = e < 0 ? n7 : e + 3;
       continue;
     }
     if (s.startsWith("<![CDATA[", lt)) {
       const e = s.indexOf("]]>", lt + 9);
-      i = e < 0 ? n8 : e + 3;
+      i = e < 0 ? n7 : e + 3;
       continue;
     }
     if (s.startsWith("<!", lt)) {
       const e = s.indexOf(">", lt);
-      i = e < 0 ? n8 : e + 1;
+      i = e < 0 ? n7 : e + 1;
       continue;
     }
     if (s.startsWith("<?", lt)) {
       const e = s.indexOf("?>", lt);
-      i = e < 0 ? n8 : e + 2;
+      i = e < 0 ? n7 : e + 2;
       continue;
     }
     let j = lt + 1;
     let quote2 = "";
-    while (j < n8) {
+    while (j < n7) {
       const c = s[j];
       if (quote2) {
         if (c === quote2) quote2 = "";
@@ -75131,8 +75131,8 @@ function scanTags(s) {
       else if (c === ">") break;
       j++;
     }
-    const end = j < n8 ? j + 1 : n8;
-    const inner = s.slice(lt + 1, j < n8 ? j : n8);
+    const end = j < n7 ? j + 1 : n7;
+    const inner = s.slice(lt + 1, j < n7 ? j : n7);
     if (inner[0] === "/") {
       const q = inner.slice(1).trim();
       tags3.push({ name: localName(q), qname: q, attrs: "", kind: "close", start: lt, end });
@@ -75183,8 +75183,8 @@ function unitCompositing(attrs) {
     const v = (style[prop4] ?? attrOf(attrs, prop4) ?? "").trim().toLowerCase();
     if (v === "" || v === "none" || v === "normal" || v === "auto") continue;
     if (prop4 === "opacity") {
-      const n8 = parseFloat(v);
-      if (Number.isFinite(n8) && n8 >= 1) continue;
+      const n7 = parseFloat(v);
+      if (Number.isFinite(n7) && n7 >= 1) continue;
     }
     return prop4;
   }
@@ -75438,7 +75438,7 @@ function splitUnsafeClusters(clusters, boxes2, count4) {
 }
 function inkOf(tags3, node) {
   const end = node.tag.kind === "self" ? node.ti + 1 : skipSubtree(tags3, node.ti) ?? tags3.length;
-  let n8 = 0;
+  let n7 = 0;
   for (let i = node.ti; i < end; i++) {
     const t = tags3[i];
     if (t.kind === "close") continue;
@@ -75447,9 +75447,9 @@ function inkOf(tags3, node) {
       i = after - 1;
       continue;
     }
-    if (PAINT_TAGS.has(t.name)) n8++;
+    if (PAINT_TAGS.has(t.name)) n7++;
   }
-  return n8;
+  return n7;
 }
 function matScale(m2) {
   if (!m2) return 1;
@@ -75723,8 +75723,8 @@ function rootAttributes(attrs, crop) {
   let out = attrOf(attrs, "xmlns") != null ? attrs : ` xmlns="http://www.w3.org/2000/svg"${attrs}`;
   if (!crop) return out;
   out = out.replace(/(?:^|\s)(?:viewBox|width|height)\s*=\s*(?:"[^"]*"|'[^']*')/gi, "");
-  const n8 = (v) => String(Math.round(v * 1e3) / 1e3);
-  return `${out} viewBox="${n8(crop.x)} ${n8(crop.y)} ${n8(crop.w)} ${n8(crop.h)}" width="${n8(crop.w)}" height="${n8(crop.h)}"`;
+  const n7 = (v) => String(Math.round(v * 1e3) / 1e3);
+  return `${out} viewBox="${n7(crop.x)} ${n7(crop.y)} ${n7(crop.w)} ${n7(crop.h)}" width="${n7(crop.w)}" height="${n7(crop.h)}"`;
 }
 function svgRootViewBox(markup) {
   if (typeof markup !== "string" || !markup || markup.length > SVG_LAYERS_MAX_CHARS) return null;
@@ -75734,9 +75734,9 @@ function svgRootViewBox(markup) {
 function viewBoxOf(attrs) {
   const raw = attrOf(attrs, "viewBox");
   if (raw) {
-    const n8 = raw.trim().split(/[\s,]+/).map(Number);
-    if (n8.length >= 4 && n8.every((v) => Number.isFinite(v)) && n8[2] > 0 && n8[3] > 0) {
-      return { x: n8[0], y: n8[1], w: n8[2], h: n8[3] };
+    const n7 = raw.trim().split(/[\s,]+/).map(Number);
+    if (n7.length >= 4 && n7.every((v) => Number.isFinite(v)) && n7[2] > 0 && n7[3] > 0) {
+      return { x: n7[0], y: n7[1], w: n7[2], h: n7[3] };
     }
     return null;
   }
@@ -76432,22 +76432,22 @@ function analysePcm(channels, sampleRate, opts = {}) {
   };
 }
 function detectBeats(flux, fps) {
-  const n8 = flux.length;
+  const n7 = flux.length;
   const minLag = Math.max(2, Math.floor(60 / MAX_BPM * fps));
   const maxLag = Math.floor(60 / MIN_BPM * fps);
-  if (n8 < maxLag * 2 || maxLag <= minLag) return { bpm: null, beats: new Float32Array(0) };
+  if (n7 < maxLag * 2 || maxLag <= minLag) return { bpm: null, beats: new Float32Array(0) };
   let mean = 0;
-  for (let i = 0; i < n8; i++) mean += flux[i];
-  mean /= n8;
-  const x = new Float64Array(n8);
-  for (let i = 0; i < n8; i++) x[i] = flux[i] - mean;
+  for (let i = 0; i < n7; i++) mean += flux[i];
+  mean /= n7;
+  const x = new Float64Array(n7);
+  for (let i = 0; i < n7; i++) x[i] = flux[i] - mean;
   let energy = 0;
-  for (let i = 0; i < n8; i++) energy += x[i] * x[i];
+  for (let i = 0; i < n7; i++) energy += x[i] * x[i];
   if (energy <= 0) return { bpm: null, beats: new Float32Array(0) };
   const score2 = (lag) => {
     let acc = 0;
-    for (let i = lag; i < n8; i++) acc += x[i] * x[i - lag];
-    return acc / (n8 - lag);
+    for (let i = lag; i < n7; i++) acc += x[i] * x[i - lag];
+    return acc / (n7 - lag);
   };
   let bestLag = 0;
   let bestScore = 0;
@@ -76458,7 +76458,7 @@ function detectBeats(flux, fps) {
       bestLag = lag;
     }
   }
-  const variance = energy / n8;
+  const variance = energy / n7;
   if (!bestLag || bestScore < variance * 0.12) return { bpm: null, beats: new Float32Array(0) };
   for (const div of [2, 3]) {
     const lag = Math.round(bestLag / div);
@@ -76470,14 +76470,14 @@ function detectBeats(flux, fps) {
     }
   }
   let anchor = 0;
-  for (let i = 1; i < n8; i++) if (flux[i] > flux[anchor]) anchor = i;
+  for (let i = 1; i < n7; i++) if (flux[i] > flux[anchor]) anchor = i;
   const snap = Math.max(1, Math.round(bestLag / 4));
   const beats = [];
   const first = anchor - Math.floor(anchor / bestLag) * bestLag;
-  for (let grid = first; grid < n8; grid += bestLag) {
+  for (let grid = first; grid < n7; grid += bestLag) {
     let at = grid;
     let best = flux[grid];
-    for (let i = Math.max(0, grid - snap); i < Math.min(n8, grid + snap + 1); i++) {
+    for (let i = Math.max(0, grid - snap); i < Math.min(n7, grid + snap + 1); i++) {
       if (flux[i] > best) {
         best = flux[i];
         at = i;
@@ -76508,9 +76508,9 @@ function overviewPeaks(mono, buckets) {
 }
 function downmix(channels, from, to) {
   const out = new Float32Array(Math.max(0, to - from));
-  const n8 = channels.length;
+  const n7 = channels.length;
   for (const ch of channels) {
-    for (let i = from; i < to; i++) out[i - from] = out[i - from] + (ch[i] ?? 0) / n8;
+    for (let i = from; i < to; i++) out[i - from] = out[i - from] + (ch[i] ?? 0) / n7;
   }
   return out;
 }
@@ -76566,16 +76566,16 @@ function logBandEdges(bands, half) {
   }
   return out;
 }
-function hannWindow(n8) {
-  const w = new Float64Array(n8);
-  for (let i = 0; i < n8; i++) w[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / n8);
+function hannWindow(n7) {
+  const w = new Float64Array(n7);
+  for (let i = 0; i < n7; i++) w[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / n7);
   return w;
 }
 function fftInPlace(re, im) {
-  const n8 = re.length;
-  if (n8 < 2 || (n8 & n8 - 1) !== 0) throw new Error("fftInPlace: length must be a power of two");
-  for (let i = 1, j = 0; i < n8; i++) {
-    let bit = n8 >> 1;
+  const n7 = re.length;
+  if (n7 < 2 || (n7 & n7 - 1) !== 0) throw new Error("fftInPlace: length must be a power of two");
+  for (let i = 1, j = 0; i < n7; i++) {
+    let bit = n7 >> 1;
     for (; j & bit; bit >>= 1) j ^= bit;
     j ^= bit;
     if (i < j) {
@@ -76587,11 +76587,11 @@ function fftInPlace(re, im) {
       im[j] = ti;
     }
   }
-  for (let len2 = 2; len2 <= n8; len2 <<= 1) {
+  for (let len2 = 2; len2 <= n7; len2 <<= 1) {
     const ang = -2 * Math.PI / len2;
     const wr = Math.cos(ang);
     const wi = Math.sin(ang);
-    for (let i = 0; i < n8; i += len2) {
+    for (let i = 0; i < n7; i += len2) {
       let cr = 1;
       let ci = 0;
       for (let k = 0; k < len2 >> 1; k++) {
@@ -76616,9 +76616,9 @@ function clampInt(v, lo, hi) {
   return Math.round(clamp(Number.isFinite(v) ? v : lo, lo, hi));
 }
 function nextPow2(v) {
-  let n8 = 1;
-  while (n8 < v) n8 <<= 1;
-  return n8;
+  let n7 = 1;
+  while (n7 < v) n7 <<= 1;
+  return n7;
 }
 var BASS_HZ, MID_HZ, FFT_SIZE, MIN_BPM, MAX_BPM, OCTAVE_TOLERANCE, SILENCE, DB_RANGE;
 var init_audio_analyse = __esm({
@@ -76653,11 +76653,11 @@ function tpPhases() {
   const denom = besselI0(beta);
   const centre = (N2 - 1) / 2;
   const h = new Float64Array(N2);
-  for (let n8 = 0; n8 < N2; n8++) {
-    const x = (n8 - centre) / TP_OVERSAMPLE;
+  for (let n7 = 0; n7 < N2; n7++) {
+    const x = (n7 - centre) / TP_OVERSAMPLE;
     const sinc = x === 0 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
-    const w = besselI0(beta * Math.sqrt(Math.max(0, 1 - ((n8 - centre) / centre) ** 2))) / denom;
-    h[n8] = sinc * w;
+    const w = besselI0(beta * Math.sqrt(Math.max(0, 1 - ((n7 - centre) / centre) ** 2))) / denom;
+    h[n7] = sinc * w;
   }
   const phases = [];
   for (let p = 0; p < TP_OVERSAMPLE; p++) {
@@ -76732,12 +76732,12 @@ function createTruePeakLimiter(opts = {}) {
   }
   return {
     process(left, right) {
-      const n8 = left.length;
-      const emittable = Math.max(0, written + n8 - look3) - emitted;
+      const n7 = left.length;
+      const emittable = Math.max(0, written + n7 - look3) - emitted;
       const outL = new Float32Array(emittable);
       const outR = new Float32Array(emittable);
       let oi = 0;
-      for (let i = 0; i < n8; i++) oi = consume2(left[i], right[i] ?? left[i], outL, outR, oi);
+      for (let i = 0; i < n7; i++) oi = consume2(left[i], right[i] ?? left[i], outL, outR, oi);
       return [outL, outR];
     },
     flush() {
@@ -76761,14 +76761,14 @@ function activitySpans(channels, opts = {}) {
   const close = 10 ** ((opts.closeDb ?? -51) / 20);
   const minSpan = (opts.minSpanMs ?? 150) / 1e3;
   const minGap = (opts.minGapMs ?? 300) / 1e3;
-  const n8 = channels[0]?.length ?? 0;
-  if (!n8) return [];
+  const n7 = channels[0]?.length ?? 0;
+  if (!n7) return [];
   const raw = [];
   let openAt = -1;
-  const blocks = Math.ceil(n8 / block);
+  const blocks = Math.ceil(n7 / block);
   for (let b = 0; b < blocks; b++) {
     const s = b * block;
-    const e = Math.min(s + block, n8);
+    const e = Math.min(s + block, n7);
     let sum = 0;
     for (const ch of channels) {
       for (let i = s; i < e; i++) sum += ch[i] * ch[i];
@@ -76782,7 +76782,7 @@ function activitySpans(channels, opts = {}) {
       openAt = -1;
     }
   }
-  if (openAt >= 0) raw.push({ from: openAt, to: n8 / rate3 });
+  if (openAt >= 0) raw.push({ from: openAt, to: n7 / rate3 });
   const merged = [];
   for (const s of raw) {
     const last = merged[merged.length - 1];
@@ -77041,9 +77041,9 @@ function toInt16(s) {
   const v = Math.round((s > 1 ? 1 : s < -1 ? -1 : s) * 32768);
   return v > 32767 ? 32767 : v;
 }
-function str3(u82, at, n8) {
+function str3(u82, at, n7) {
   let s = "";
-  for (let i = 0; i < n8; i++) s += String.fromCharCode(u82[at + i] ?? 0);
+  for (let i = 0; i < n7; i++) s += String.fromCharCode(u82[at + i] ?? 0);
   return s;
 }
 var FMT_PCM, FMT_FLOAT, FMT_ALAW, FMT_MULAW, FMT_EXTENSIBLE, MAX_CHANNELS2;
@@ -77239,7 +77239,7 @@ function stamp(seconds2, sep3) {
   const m2 = Math.floor(ms % 36e5 / 6e4);
   const s = Math.floor(ms % 6e4 / 1e3);
   const frac = ms % 1e3;
-  const pad = (n8, w = 2) => String(n8).padStart(w, "0");
+  const pad = (n7, w = 2) => String(n7).padStart(w, "0");
   return `${pad(h)}:${pad(m2)}:${pad(s)}${sep3}${pad(frac, 3)}`;
 }
 function cuesToVtt(cues) {
@@ -77982,17 +77982,17 @@ function detectDocKind(text12) {
 }
 function commentSpans(text12) {
   const out = [];
-  const n8 = text12.length;
+  const n7 = text12.length;
   let i = 0;
   const lineEnd = (from) => {
     const nl = text12.indexOf("\n", from);
-    return nl === -1 ? n8 : nl;
+    return nl === -1 ? n7 : nl;
   };
   const blockEnd = (from, close) => {
     const idx = text12.indexOf(close, from);
-    return idx === -1 ? n8 : idx + close.length;
+    return idx === -1 ? n7 : idx + close.length;
   };
-  while (i < n8) {
+  while (i < n7) {
     const ch = text12[i];
     const two = text12.slice(i, i + 2);
     if (two === "//") {
@@ -78064,10 +78064,10 @@ function wordSpans(text12) {
   return collect2(new RegExp(WORD_RE.source, WORD_RE.flags), text12);
 }
 function sentenceWordLengths(text12) {
-  return text12.split(/[.!?]+[\s"')\]]+|\n+/u).map((s) => wordCount(s)).filter((n8) => n8 > 0);
+  return text12.split(/[.!?]+[\s"')\]]+|\n+/u).map((s) => wordCount(s)).filter((n7) => n7 > 0);
 }
 function paragraphWordLengths(text12) {
-  return text12.split(/\n[ \t]*\n+/u).map((p) => wordCount(p)).filter((n8) => n8 > 0);
+  return text12.split(/\n[ \t]*\n+/u).map((p) => wordCount(p)).filter((n7) => n7 > 0);
 }
 function coefficientOfVariation(lens) {
   const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
@@ -78759,7 +78759,7 @@ function textFacts(text12) {
     paragraphs: paragraphs2,
     bulletLines,
     hidden: byCount(hiddenCounts).map(([name, count4]) => ({ name, count: count4, severity: hiddenCharSeverity(name) })),
-    scripts: byCount(scriptCounts).map(([script, n8]) => ({ script, pct: Math.round(n8 / Math.max(1, letters2) * 100) })).filter((s) => s.pct >= 1),
+    scripts: byCount(scriptCounts).map(([script, n7]) => ({ script, pct: Math.round(n7 / Math.max(1, letters2) * 100) })).filter((s) => s.pct >= 1),
     punctuation: { emDash, curlyQuotes, ellipsisChar },
     linkHosts: byCount(hostCounts).map(([host, count4]) => ({ host, count: count4 })),
     lineEndings: { lf, crlf },
@@ -78829,12 +78829,12 @@ function humanizeText(input) {
   const changes = [];
   const apply4 = (re, repl, kind, label4) => {
     const g2 = re.flags.includes("g") ? re : new RegExp(re.source, `${re.flags}g`);
-    let n8 = 0;
+    let n7 = 0;
     text12 = text12.replace(g2, () => {
-      n8 += 1;
+      n7 += 1;
       return repl;
     });
-    if (n8 > 0) changes.push({ kind, label: label4, count: n8 });
+    if (n7 > 0) changes.push({ kind, label: label4, count: n7 });
   };
   let fpCount = 0;
   const fpModels = /* @__PURE__ */ new Set();
@@ -79055,7 +79055,7 @@ function rewordGate(original, candidate) {
   if (!multisetEqual(numbersOf(o), numbersOf(c)) || !multisetEqual(urlsOf(o), urlsOf(c)) || !multisetEqual(emailsOf(o), emailsOf(c))) reasons.push("facts-changed");
   const oNames = nameTokens(o);
   const cNames = nameTokens(c);
-  if (![...oNames].every((n8) => c.includes(n8)) || ![...cNames].every((n8) => oNames.has(n8) || o.includes(n8))) {
+  if (![...oNames].every((n7) => c.includes(n7)) || ![...cNames].every((n7) => oNames.has(n7) || o.includes(n7))) {
     reasons.push("names-changed");
   }
   const or = analyzeTextSignals(o, { source: "digital" });
@@ -79124,7 +79124,7 @@ var init_reword = __esm({
     SPAN_CAP = 12;
     REWORD_SYSTEM_PROMPT = "You rewrite sentences. Rewrite the sentence the user sends so it is shorter and plainer, the way a person would say it. Keep the meaning. Keep every name, number, date and link exactly as written. Do not add new information, opinions or hedges. Reply with the rewritten sentence only - no quotes, no preamble, no explanation.\nExample:\nSentence: It is important to note that our solution leverages cutting-edge technology in order to deliver outstanding results for customers.\nRewrite: Our solution uses new technology to get customers results.";
     squash = (s) => s.toLowerCase().replace(/\s+/g, " ").trim();
-    numbersOf = (s) => (s.match(/\d+(?:[.,]\d+)*%?/g) ?? []).map((n8) => n8.replace(/[.,]$/, ""));
+    numbersOf = (s) => (s.match(/\d+(?:[.,]\d+)*%?/g) ?? []).map((n7) => n7.replace(/[.,]$/, ""));
     urlsOf = (s) => (s.match(/(?:https?:\/\/|www\.)\S+/gi) ?? []).map((u) => u.replace(/[).,;!?]+$/, "").toLowerCase());
     emailsOf = (s) => (s.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) ?? []).map((e) => e.toLowerCase());
   }
@@ -79312,13 +79312,13 @@ function chunkByPhonemeLength(words4, wordPhonemes, maxChars = MAX_PHONEME_CHARS
   return chunks;
 }
 function wordTimingsFromDurations(durations, spans, waveformLength, sampleRate) {
-  const n8 = durations.length;
+  const n7 = durations.length;
   const last = spans.at(-1);
   const expected = last ? last.end + 1 : 2;
-  if (n8 !== expected || waveformLength <= 0) return null;
-  const pre = new Float64Array(n8 + 1);
-  for (let i = 0; i < n8; i++) pre[i + 1] = pre[i] + Number(durations[i]);
-  const totalFrames = pre[n8];
+  if (n7 !== expected || waveformLength <= 0) return null;
+  const pre = new Float64Array(n7 + 1);
+  for (let i = 0; i < n7; i++) pre[i + 1] = pre[i] + Number(durations[i]);
+  const totalFrames = pre[n7];
   if (!(totalFrames > 0)) return null;
   const framesPerSecond = totalFrames / (waveformLength / sampleRate);
   return spans.map((s) => ({
@@ -79581,8 +79581,8 @@ function parseVoiceBlend(voice) {
     const cut = part.lastIndexOf(":");
     const id3 = (cut >= 0 ? part.slice(0, cut) : part).trim();
     if (!KOKORO_VOICES.some((v) => v.id === id3)) throw unknownVoice(id3);
-    const n8 = cut >= 0 ? Number(part.slice(cut + 1).trim()) : Number.NaN;
-    return { id: id3, w: Number.isFinite(n8) && n8 >= 0 ? n8 : null };
+    const n7 = cut >= 0 ? Number(part.slice(cut + 1).trim()) : Number.NaN;
+    return { id: id3, w: Number.isFinite(n7) && n7 >= 0 ? n7 : null };
   });
   const namedSum = raw.reduce((a, r5) => a + (r5.w ?? 0), 0);
   const unnamed = raw.filter((r5) => r5.w === null).length;
@@ -79661,7 +79661,7 @@ var init_speech_text = __esm({
     MAX_MARKS = SENTINEL_TOP - SENTINEL_BASE + 1;
     PHRASE_SPACE = "\uE800";
     PHRASE_SPACE_RE = /\uE800/g;
-    clampSpeed = (n8) => Math.min(MAX_SPEECH_SPEED, Math.max(MIN_SPEECH_SPEED, n8));
+    clampSpeed = (n7) => Math.min(MAX_SPEECH_SPEED, Math.max(MIN_SPEECH_SPEED, n7));
   }
 });
 
@@ -79745,12 +79745,12 @@ function midiToSong(parsed, opts = {}) {
   if (!division || division & 32768) throw new Error("unsupported MIDI time division (SMPTE)");
   const stepTicks = division / stepsPerQuarter;
   const quant3 = (tick) => Math.round(tick / stepTicks);
-  const minMidi = notes.reduce((m2, n8) => Math.min(m2, n8.midi), Infinity);
+  const minMidi = notes.reduce((m2, n7) => Math.min(m2, n7.midi), Infinity);
   const K4 = minMidi - 1;
   const baseFreq = 440 * 2 ** ((K4 - 57) / 12);
   const piano = [...PIANO];
   piano[2] = baseFreq;
-  const events = notes.map((n8) => ({ s: quant3(n8.start), e: Math.max(quant3(n8.start) + 1, quant3(n8.end)), z: n8.midi - K4 })).filter((ev) => ev.s < MIDI_MAX_STEPS).sort((a, b) => a.s - b.s || b.z - a.z);
+  const events = notes.map((n7) => ({ s: quant3(n7.start), e: Math.max(quant3(n7.start) + 1, quant3(n7.end)), z: n7.midi - K4 })).filter((ev) => ev.s < MIDI_MAX_STEPS).sort((a, b) => a.s - b.s || b.z - a.z);
   if (!events.length) throw new Error("no notes in MIDI");
   const totalSteps = Math.min(events.reduce((m2, e) => Math.max(m2, e.e), 1), MIDI_MAX_STEPS);
   const voiceEnd = [];
@@ -79816,7 +79816,7 @@ function hits(steps, note2 = 12) {
 }
 function placed(entries) {
   const a = new Array(STEPS).fill(R);
-  for (const [s, n8] of entries) if (s >= 0 && s < STEPS) a[s] = n8;
+  for (const [s, n7] of entries) if (s >= 0 && s < STEPS) a[s] = n7;
   return a;
 }
 function walk(rng, scale, root2, restProb) {
@@ -79841,9 +79841,9 @@ function arrange(numPatterns, bpm, targetSec) {
   for (let i = 0; i < count4; i++) seq.push(i % numPatterns);
   return seq;
 }
-function everyN(n8) {
+function everyN(n7) {
   const a = [];
-  for (let s = 0; s < STEPS; s += n8) a.push(s);
+  for (let s = 0; s < STEPS; s += n7) a.push(s);
   return a;
 }
 function breakbeat(rng, ghostProb = 0) {
@@ -80464,7 +80464,7 @@ function uniqueRondoIngredients(ingredients) {
   return out;
 }
 function rondoRecordedSentence(names) {
-  const quoted2 = names.map((n8) => `"${n8}"`);
+  const quoted2 = names.map((n7) => `"${n7}"`);
   const which = quoted2.length === 1 ? `the song ${quoted2[0]}` : `the songs ${list(quoted2)}`;
   return `Content Credentials in this file record ${which}, rendered in Lolly's sandbox (the vm execution class), as a source.`;
 }
@@ -80540,22 +80540,22 @@ function isAxisAlignedMat(m2) {
   return Math.abs(m2.b) < 1e-6 && Math.abs(m2.c) < 1e-6 && m2.a > 0 && m2.d > 0;
 }
 function matToSvg(m2) {
-  const n8 = (v) => {
+  const n7 = (v) => {
     const r5 = Math.round(v * 1e5) / 1e5;
     return Object.is(r5, -0) ? 0 : r5;
   };
-  return `matrix(${n8(m2.a)},${n8(m2.b)},${n8(m2.c)},${n8(m2.d)},${n8(m2.e)},${n8(m2.f)})`;
+  return `matrix(${n7(m2.a)},${n7(m2.b)},${n7(m2.c)},${n7(m2.d)},${n7(m2.e)},${n7(m2.f)})`;
 }
 function parseCssLength(value2, refPx = 0) {
   if (value2 == null || value2 === "" || value2 === "0" || value2 === "0px") return 0;
   const s = String(value2).trim();
   if (s.includes("(")) return 0;
   if (s.endsWith("%")) {
-    const n9 = parseFloat(s);
-    return Number.isFinite(n9) ? n9 / 100 * refPx : 0;
+    const n8 = parseFloat(s);
+    return Number.isFinite(n8) ? n8 / 100 * refPx : 0;
   }
-  const n8 = parseFloat(s);
-  return Number.isFinite(n8) ? n8 : 0;
+  const n7 = parseFloat(s);
+  return Number.isFinite(n7) ? n7 : 0;
 }
 function cornerPair(value2, w, h) {
   const s = String(value2 || "").trim();
@@ -80661,12 +80661,12 @@ function normalCdf(x) {
 function gaussianShadowBands(blur2, alpha, bands) {
   const sigma = blur2 / 2;
   if (!(sigma > 0) || !(alpha > 0)) return [];
-  const n8 = Math.max(8, Math.min(bands ?? 160, Math.round(4 * sigma)));
+  const n7 = Math.max(8, Math.min(bands ?? 160, Math.round(4 * sigma)));
   const reach2 = 3 * sigma;
-  const step = 2 * reach2 / n8;
+  const step = 2 * reach2 / n7;
   const out = [];
   let acc = 0;
-  for (let i = 0; i < n8; i++) {
+  for (let i = 0; i < n7; i++) {
     const outer = reach2 - i * step;
     const target2 = alpha * (1 - normalCdf((outer - step / 2) / sigma));
     if (target2 <= acc) continue;
@@ -81013,8 +81013,8 @@ function parseConicGradient(value2, w, h) {
         if (tok === "left" || tok === "top") return 0;
         if (tok === "right" || tok === "bottom") return ref2;
         if (tok.endsWith("%")) return Number.parseFloat(tok) / 100 * ref2;
-        const n8 = Number.parseFloat(tok);
-        return Number.isFinite(n8) ? n8 : null;
+        const n7 = Number.parseFloat(tok);
+        return Number.isFinite(n7) ? n7 : null;
       };
       const toks = am[1].trim().split(/\s+/);
       const px3 = axis(toks[0] ?? "center", w);
@@ -81077,15 +81077,15 @@ var init_css_paint = __esm({
 
 // engine/src/geom/authored-frame.ts
 function scaleAuthored(p, sx, sy) {
-  return { ...p, nodes: p.nodes.map((n8) => scaleNode(n8, sx, sy)) };
+  return { ...p, nodes: p.nodes.map((n7) => scaleNode(n7, sx, sy)) };
 }
-function scaleNode(n8, sx, sy) {
-  const out = { x: n8.x * sx, y: n8.y * sy };
-  if (n8.hInX !== void 0) out.hInX = n8.hInX * sx;
-  if (n8.hInY !== void 0) out.hInY = n8.hInY * sy;
-  if (n8.hOutX !== void 0) out.hOutX = n8.hOutX * sx;
-  if (n8.hOutY !== void 0) out.hOutY = n8.hOutY * sy;
-  if (n8.continuity !== void 0) out.continuity = n8.continuity;
+function scaleNode(n7, sx, sy) {
+  const out = { x: n7.x * sx, y: n7.y * sy };
+  if (n7.hInX !== void 0) out.hInX = n7.hInX * sx;
+  if (n7.hInY !== void 0) out.hInY = n7.hInY * sy;
+  if (n7.hOutX !== void 0) out.hOutX = n7.hOutX * sx;
+  if (n7.hOutY !== void 0) out.hOutY = n7.hOutY * sy;
+  if (n7.continuity !== void 0) out.continuity = n7.continuity;
   return out;
 }
 function lowerAuthored(p, warm) {
@@ -81127,7 +81127,7 @@ function refitAuthoredFrame(paths, fr, warm) {
   return {
     frame: { x, y, w, h, rot: fr.rot },
     // Handles are OFFSETS from their node, so a frame translation never touches one.
-    paths: paths.map((p) => ({ ...p, nodes: p.nodes.map((n8) => ({ ...n8, x: n8.x - offX, y: n8.y - offY })) }))
+    paths: paths.map((p) => ({ ...p, nodes: p.nodes.map((n7) => ({ ...n7, x: n7.x - offX, y: n7.y - offY })) }))
   };
 }
 function authoredFromSubPaths(subs) {
@@ -81147,12 +81147,12 @@ function authoredFromSubPaths(subs) {
           prev.hOutX = oX;
           prev.hOutY = oY;
         }
-        const n8 = { x: seg4.x, y: seg4.y };
+        const n7 = { x: seg4.x, y: seg4.y };
         if (iX || iY) {
-          n8.hInX = iX;
-          n8.hInY = iY;
+          n7.hInX = iX;
+          n7.hInY = iY;
         }
-        nodes.push(n8);
+        nodes.push(n7);
       } else {
         nodes.push({ x: seg4.x, y: seg4.y });
       }
@@ -81191,9 +81191,9 @@ function parseDashArray(text12) {
   const out = [];
   for (const p of parts) {
     if (!DASH_NUM_RE.test(p)) return null;
-    const n8 = Number(p);
-    if (!Number.isFinite(n8) || n8 < 0 || n8 > MAX_VALUE) return null;
-    out.push(n8);
+    const n7 = Number(p);
+    if (!Number.isFinite(n7) || n7 < 0 || n7 > MAX_VALUE) return null;
+    out.push(n7);
   }
   if (!out.length || !out.some((v) => v > 0)) return null;
   if (out.length % 2 === 1) out.push(...out.slice());
@@ -81202,8 +81202,8 @@ function parseDashArray(text12) {
 function normPattern(pattern) {
   if (!Array.isArray(pattern) || pattern.length === 0) return null;
   const out = pattern.slice(0, MAX_PATTERN).map((v) => {
-    const n8 = Number(v);
-    return Number.isFinite(n8) && n8 > 0 ? Math.min(n8, MAX_VALUE) : 0;
+    const n7 = Number(v);
+    return Number.isFinite(n7) && n7 > 0 ? Math.min(n7, MAX_VALUE) : 0;
   });
   if (out.length % 2 === 1) out.push(...out.slice());
   let sum = 0;
@@ -81212,11 +81212,11 @@ function normPattern(pattern) {
 }
 function planSpan(L, pat, cycle, minScale, maxScale, budget3) {
   const k = pat.length, d0 = pat[0];
-  const n8 = Math.max(1, Math.round(L / cycle));
-  const s = L / (n8 * cycle);
-  if (s >= minScale && s <= maxScale && n8 * k + 1 <= budget3) {
+  const n7 = Math.max(1, Math.round(L / cycle));
+  const s = L / (n7 * cycle);
+  if (s >= minScale && s <= maxScale && n7 * k + 1 <= budget3) {
     const runs3 = [d0 * s / 2];
-    for (let c = 0; c < n8; c++) {
+    for (let c = 0; c < n7; c++) {
       if (c > 0) runs3.push(d0 * s);
       for (let i2 = 1; i2 < k; i2++) runs3.push(pat[i2] * s);
     }
@@ -81255,8 +81255,8 @@ function quantise(runs2) {
 }
 function fitRuns(spanLengths, pattern, opts) {
   const spans = (Array.isArray(spanLengths) ? spanLengths : []).map((v) => {
-    const n8 = Number(v);
-    return Number.isFinite(n8) && n8 > 0 ? n8 : 0;
+    const n7 = Number(v);
+    return Number.isFinite(n7) && n7 > 0 ? n7 : 0;
   });
   let total = 0;
   for (const L of spans) total += L;
@@ -81313,8 +81313,8 @@ var init_dash_fit = __esm({
     EPS3 = 1e-9;
     r22 = (v) => Math.round(v * 100) / 100;
     numOr = (v, d) => {
-      const n8 = Number(v);
-      return Number.isFinite(n8) ? n8 : d;
+      const n7 = Number(v);
+      return Number.isFinite(n7) ? n7 : d;
     };
     DASH_NUM_RE = /^(?:\d+(?:\.\d+)?|\.\d+)$/;
   }
@@ -81392,10 +81392,10 @@ function connectorRoute(a, b, style) {
   const cx2 = s2.x + frac * (t2.x - s2.x);
   return { pts: [s2, { x: cx2, y: s2.y }, { x: cx2, y: t2.y }, t2], tux: right ? 1 : -1, tuy: 0, curved, orient: "h" };
 }
-function sampleQuad(pa, cpt, pb, n8 = 14) {
+function sampleQuad(pa, cpt, pb, n7 = 14) {
   const out = [];
-  for (let i = 0; i <= n8; i++) {
-    const t = i / n8, u = 1 - t;
+  for (let i = 0; i <= n7; i++) {
+    const t = i / n7, u = 1 - t;
     out.push({ x: u * u * pa.x + 2 * u * t * cpt.x + t * t * pb.x, y: u * u * pa.y + 2 * u * t * cpt.y + t * t * pb.y });
   }
   return out;
@@ -81555,21 +81555,21 @@ function dashArrayRun(poly, corners3, pattern, fit, col, width) {
 function routedLineSvg(a, b, decor) {
   const route = connectorRoute(a, b, decor.style);
   const pts = route.pts.map((p) => ({ x: p.x, y: p.y }));
-  const n8 = pts.length;
-  if (n8 < 2) return "";
+  const n7 = pts.length;
+  if (n7 < 2) return "";
   const col = decor.color;
   const width = clamp(numOr2(decor.width, 2.5), 0.5, 20);
   const headStart = String(decor.headStart || "none");
   const headEnd = String(decor.headEnd || "none");
   const headSize = pathHeadSize(width);
   const gap = Math.max(8, headSize * 0.8);
-  const last = { x: pts[n8 - 1].x, y: pts[n8 - 1].y }, first = { x: pts[0].x, y: pts[0].y };
-  const lastNbr = pts[n8 - 2], firstNbr = pts[1];
+  const last = { x: pts[n7 - 1].x, y: pts[n7 - 1].y }, first = { x: pts[0].x, y: pts[0].y };
+  const lastNbr = pts[n7 - 2], firstNbr = pts[1];
   let endTip = last, startTip = first;
   if (headEnd !== "none") {
     const ge = Math.min(gap, dist(last, lastNbr) * 0.55);
     endTip = along(last, lastNbr, ge);
-    pts[n8 - 1] = along(last, lastNbr, Math.min(ge + edgeHeadInset(headEnd, headSize), dist(last, lastNbr) * 0.9));
+    pts[n7 - 1] = along(last, lastNbr, Math.min(ge + edgeHeadInset(headEnd, headSize), dist(last, lastNbr) * 0.9));
   }
   if (headStart !== "none") {
     const gs = Math.min(gap, dist(first, firstNbr) * 0.55);
@@ -81695,8 +81695,8 @@ var init_connectors2 = __esm({
     ef2 = (v) => Math.round(v * 100) / 100;
     escAttr = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     numOr2 = (v, d) => {
-      const n8 = Number(v);
-      return Number.isFinite(n8) ? n8 : d;
+      const n7 = Number(v);
+      return Number.isFinite(n7) ? n7 : d;
     };
     EDGE_POINT_RE = /^@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
     CONNECTOR_ROUTE_STYLES = [
@@ -81736,10 +81736,10 @@ function refuse(code, message) {
   throw Object.assign(new Error(message.startsWith("geom: ") ? message : `geom: ${message}`), { code });
 }
 function coord(v, where) {
-  const n8 = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : Number.NaN;
-  if (!Number.isFinite(n8)) refuse("invalid-argument", `${where} is not a finite number`);
-  if (Math.abs(n8) > MAX_COORD2) refuse("invalid-argument", `${where} exceeds \xB1${MAX_COORD2}`);
-  return n8;
+  const n7 = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : Number.NaN;
+  if (!Number.isFinite(n7)) refuse("invalid-argument", `${where} is not a finite number`);
+  if (Math.abs(n7) > MAX_COORD2) refuse("invalid-argument", `${where} exceeds \xB1${MAX_COORD2}`);
+  return n7;
 }
 function pathsFromPoints(g2, ox, oy, notes) {
   const pts = g2.points;
@@ -81891,9 +81891,9 @@ var init_design_path_author = __esm({
 // engine/src/design-hierarchy.ts
 function resolveDesignPages(pages = emptyPages) {
   if (!Array.isArray(pages) || !pages.length) return [{ id: DEFAULT_DESIGN_PAGE, name: "Page 1" }];
-  const resolved2 = pages.slice(0, DESIGN_HIERARCHY_LIMITS.pages).filter(record11).map((page3, n8) => ({
+  const resolved2 = pages.slice(0, DESIGN_HIERARCHY_LIMITS.pages).filter(record11).map((page3, n7) => ({
     id: key(page3.id),
-    name: typeof page3.name === "string" ? page3.name : `Page ${n8 + 1}`,
+    name: typeof page3.name === "string" ? page3.name : `Page ${n7 + 1}`,
     ...Number.isFinite(Number(page3.order)) && page3.order !== "" && page3.order != null ? { order: Number(page3.order) } : {}
   }));
   return resolved2.length ? resolved2 : [{ id: DEFAULT_DESIGN_PAGE, name: "Page 1" }];
@@ -81980,7 +81980,7 @@ function designHierarchyIndex(boxes2, pages = emptyPages) {
     result.rowsByPage.get(page3)?.push(row);
     if (!result.parent.has(id3)) result.rootsByPage.get(page3)?.push(id3);
   }
-  const positions = new Map(boxes2.map((row, n8) => [key(row.id), n8]));
+  const positions = new Map(boxes2.map((row, n7) => [key(row.id), n7]));
   const stackPosition = (id3) => {
     const own4 = positions.get(id3) ?? 0, children2 = result.children.get(id3);
     return result.byId.get(id3)?.kind === "group" && children2?.length ? Math.min(own4, Math.max(...children2.map((child2) => positions.get(child2) ?? 0))) : own4;
@@ -82012,7 +82012,7 @@ function designHierarchyAncestors(index2, id3) {
 }
 function designHierarchyDescendants(index2, selected) {
   const result = new Set(selected), pending3 = [...selected];
-  for (let n8 = 0; n8 < pending3.length; n8++) for (const id3 of index2.children.get(pending3[n8]) || []) {
+  for (let n7 = 0; n7 < pending3.length; n7++) for (const id3 of index2.children.get(pending3[n7]) || []) {
     if (!result.has(id3)) {
       result.add(id3);
       pending3.push(id3);
@@ -82066,7 +82066,7 @@ function migrateDesignHierarchy(boxes2, pages = emptyPages) {
     const frameSet = new Set(members.map((row) => key(row.frame)));
     const ownerSet = new Set(members.map((row) => index2.parent.get(key(row.id)) || ""));
     const domain = siblingDomains.get(JSON.stringify([[...pageSet][0], [...ownerSet][0]]));
-    const slots = members.map((row) => domain?.get(key(row.id)) ?? -1).filter((n8) => n8 >= 0);
+    const slots = members.map((row) => domain?.get(key(row.id)) ?? -1).filter((n7) => n7 >= 0);
     const interleaved = slots.length > 0 && slots[slots.length - 1] - slots[0] + 1 !== slots.length;
     if (pageSet.size > 1 || frameSet.size > 1 || ownerSet.size > 1 || interleaved || members.some((row) => key(row.layoutOwner))) {
       if (findings.length < 256) findings.push({ id: tag3, code: "hierarchy.legacy-group-scope", message: "An old group spans owning containers, contains layout items or interleaves other artwork. Its original membership and clipping are preserved; ungroup those layers before converting." });
@@ -82074,9 +82074,9 @@ function migrateDesignHierarchy(boxes2, pages = emptyPages) {
     }
     let id3 = tag3;
     if (!validId(id3) || used.has(id3)) {
-      let n8 = groups.length + 1;
+      let n7 = groups.length + 1;
       do {
-        id3 = `legacy-group-${n8++}`;
+        id3 = `legacy-group-${n7++}`;
       } while (used.has(id3));
     }
     used.add(id3);
@@ -82160,7 +82160,7 @@ function refreshDesignGroupBounds(boxes2, pages = emptyPages, groupIds) {
     const u = (left + right) / 2, v = (top + bottom) / 2, w = right - left, h = bottom - top;
     const x = u * c - v * s - w / 2, y = u * s + v * c - h / 2;
     if ([x, y, w, h].some((value2) => !Number.isFinite(value2) || Math.abs(value2) > DESIGN_HIERARCHY_LIMITS.scalar)) throw new DesignHierarchyError("The group bounds exceed the geometry limit.");
-    if (["x", "y", "w", "h"].some((field2, n8) => Math.abs(number(group[field2]) - [x, y, w, h][n8]) > 1e-8)) changed.set(id3, { ...group, x, y, w, h });
+    if (["x", "y", "w", "h"].some((field2, n7) => Math.abs(number(group[field2]) - [x, y, w, h][n7]) > 1e-8)) changed.set(id3, { ...group, x, y, w, h });
   }
   return changed.size ? boxes2.map((row) => changed.get(key(row.id)) || row) : boxes2;
 }
@@ -82181,8 +82181,8 @@ var init_design_hierarchy = __esm({
     record11 = (value2) => !!value2 && typeof value2 === "object" && !Array.isArray(value2);
     validId = (value2) => typeof value2 === "string" && value2.length > 0 && value2.length <= DESIGN_HIERARCHY_LIMITS.id;
     number = (value2) => {
-      const n8 = Number(value2);
-      return Number.isFinite(n8) ? n8 : 0;
+      const n7 = Number(value2);
+      return Number.isFinite(n7) ? n7 : 0;
     };
   }
 });
@@ -82274,15 +82274,15 @@ function reorderDesignRow(rows2, id3, anchor, path, pages) {
   });
   const scope2 = designHierarchyDescendants(graph, /* @__PURE__ */ new Set([id3]));
   const moving = rows2.filter((row) => isRow(row) && scope2.has(String(row.id)));
-  for (let n8 = rows2.length - 1; n8 >= 0; n8--) {
-    const row = rows2[n8];
-    if (isRow(row) && scope2.has(String(row.id))) rows2.splice(n8, 1);
+  for (let n7 = rows2.length - 1; n7 >= 0; n7--) {
+    const row = rows2[n7];
+    if (isRow(row) && scope2.has(String(row.id))) rows2.splice(n7, 1);
   }
   const anchorScope = anchor.side === "after" ? designHierarchyDescendants(graph, /* @__PURE__ */ new Set([anchor.id])) : /* @__PURE__ */ new Set([anchor.id]);
   let anchorNow = rows2.indexOf(relative2.row);
-  if (anchor.side === "after") for (let n8 = anchorNow; n8 < rows2.length; n8++) {
-    const row = rows2[n8];
-    if (isRow(row) && anchorScope.has(String(row.id))) anchorNow = n8;
+  if (anchor.side === "after") for (let n7 = anchorNow; n7 < rows2.length; n7++) {
+    const row = rows2[n7];
+    if (isRow(row) && anchorScope.has(String(row.id))) anchorNow = n7;
   }
   rows2.splice(anchorNow + (anchor.side === "after" ? 1 : 0), 0, ...moving);
 }
@@ -82626,7 +82626,7 @@ var init_design_text_style = __esm({
     VALIGNS = ["top", "middle", "bottom"];
     hexOf = (value2) => {
       const rgba2 = typeof value2 === "string" ? parseColorToSrgb8(value2) : null;
-      return rgba2 && rgba2[3] >= 1 ? "#" + rgba2.slice(0, 3).map((n8) => n8.toString(16).padStart(2, "0")).join("") : void 0;
+      return rgba2 && rgba2[3] >= 1 ? "#" + rgba2.slice(0, 3).map((n7) => n7.toString(16).padStart(2, "0")).join("") : void 0;
     };
     withoutBase = (style) => {
       const { basedOn: _basedOn, ...rest2 } = style;
@@ -82637,11 +82637,11 @@ var init_design_text_style = __esm({
 
 // engine/src/design-authoring.ts
 function numberAt(value2, pointer2, opts = {}) {
-  const n8 = typeof value2 === "number" ? value2 : typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : NaN;
-  if (!Number.isFinite(n8)) throw new Error(`${pointer2}: expected a number.`);
-  if (opts.integer && !Number.isInteger(n8)) throw new Error(`${pointer2}: expected a whole number.`);
-  if (opts.min !== void 0 && n8 < opts.min) throw new Error(`${pointer2}: expected a number of at least ${opts.min}.`);
-  return n8;
+  const n7 = typeof value2 === "number" ? value2 : typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : NaN;
+  if (!Number.isFinite(n7)) throw new Error(`${pointer2}: expected a number.`);
+  if (opts.integer && !Number.isInteger(n7)) throw new Error(`${pointer2}: expected a whole number.`);
+  if (opts.min !== void 0 && n7 < opts.min) throw new Error(`${pointer2}: expected a number of at least ${opts.min}.`);
+  return n7;
 }
 function luminance(colour) {
   const rgba2 = typeof colour === "string" ? parseColorToSrgb8(colour) : null;
@@ -82654,7 +82654,7 @@ function luminance(colour) {
 }
 function hexOf2(colour) {
   const rgba2 = typeof colour === "string" ? parseColorToSrgb8(colour) : null;
-  return rgba2 && rgba2[3] >= 1 ? "#" + rgba2.slice(0, 3).map((n8) => n8.toString(16).padStart(2, "0")).join("") : void 0;
+  return rgba2 && rgba2[3] >= 1 ? "#" + rgba2.slice(0, 3).map((n7) => n7.toString(16).padStart(2, "0")).join("") : void 0;
 }
 function frameIdOf(row) {
   if (!record13(row) || row.kind !== "frame" && !row.$artboard) return null;
@@ -83103,9 +83103,9 @@ function expandGrid(row, pointer2, guard) {
   if (order !== "row" && order !== "column") throw new Error(`${p}/order: expected row or column.`);
   const templates = templatesAt(g2.cell, `${p}/cell`);
   if (!Array.isArray(g2.items)) throw new Error(`${p}/items: expected an array of items.`);
-  const n8 = g2.items.length;
-  const rows2 = g2.rows === void 0 ? Math.max(1, Math.ceil(n8 / columns)) : numberAt(g2.rows, `${p}/rows`, { min: 1, integer: true });
-  if (n8 > rows2 * columns) throw new Error(`${p}/items: ${n8} items do not fit ${rows2} rows of ${columns} columns.`);
+  const n7 = g2.items.length;
+  const rows2 = g2.rows === void 0 ? Math.max(1, Math.ceil(n7 / columns)) : numberAt(g2.rows, `${p}/rows`, { min: 1, integer: true });
+  if (n7 > rows2 * columns) throw new Error(`${p}/items: ${n7} items do not fit ${rows2} rows of ${columns} columns.`);
   const out = [];
   g2.items.forEach((item2, i) => {
     const r5 = order === "row" ? Math.floor(i / columns) : i % rows2;
@@ -83221,19 +83221,19 @@ function finishNotes(ctx) {
     });
   }
   if (ctx.unknownGround.length) {
-    const n8 = ctx.unknownGround.length;
+    const n7 = ctx.unknownGround.length;
     notes.push({
       path: ctx.unknownGround[0],
       code: "authoring.fg.ground",
-      message: `${n8} text row${n8 === 1 ? "" : "s"} took black without a contrast check: no style or brief theme gave a colour, and neither ${n8 === 1 ? "its" : "their"} own fill nor ${n8 === 1 ? "its" : "their"} artboard's is a colour that can be read. Give ${n8 === 1 ? "it" : "them"} an fg or a style with one.`
+      message: `${n7} text row${n7 === 1 ? "" : "s"} took black without a contrast check: no style or brief theme gave a colour, and neither ${n7 === 1 ? "its" : "their"} own fill nor ${n7 === 1 ? "its" : "their"} artboard's is a colour that can be read. Give ${n7 === 1 ? "it" : "them"} an fg or a style with one.`
     });
   }
   if (ctx.deferred.length) {
-    const n8 = ctx.deferred.length;
+    const n7 = ctx.deferred.length;
     notes.push({
       path: ctx.deferred[0],
       code: "authoring.colour.deferred",
-      message: `${n8} row${n8 === 1 ? "" : "s"} name${n8 === 1 ? "s" : ""} a colour token, and no brand tokens were supplied here, so ${n8 === 1 ? "it was" : "they were"} left as written; the runtime resolves ${n8 === 1 ? "it" : "them"} when the document opens.`
+      message: `${n7} row${n7 === 1 ? "" : "s"} name${n7 === 1 ? "s" : ""} a colour token, and no brand tokens were supplied here, so ${n7 === 1 ? "it was" : "they were"} left as written; the runtime resolves ${n7 === 1 ? "it" : "them"} when the document opens.`
     });
   }
   if (ctx.lowContrast.length) {
@@ -83322,7 +83322,7 @@ function expandDesignAuthoringDocument(doc, opts = {}) {
   const styles = pick("$styles");
   const theme = pick("$theme");
   const themes = pick("$themes");
-  if (themes.value !== void 0 && themes.value !== "all" && !(Array.isArray(themes.value) && themes.value.length > 0 && themes.value.length <= 16 && themes.value.every((n8) => typeof n8 === "string" && n8)))
+  if (themes.value !== void 0 && themes.value !== "all" && !(Array.isArray(themes.value) && themes.value.length > 0 && themes.value.length <= 16 && themes.value.every((n7) => typeof n7 === "string" && n7)))
     throw new Error(`${themes.pointer}: expected "all" or a list of theme names.`);
   const docStyles = {};
   if (styles.value !== void 0) {
@@ -83499,7 +83499,7 @@ var init_design_authoring = __esm({
     dollarKeys = (v) => Object.keys(v).filter((k) => k.startsWith("$"));
     hasDollar = (v) => record13(v) && Object.keys(v).some((k) => k.startsWith("$"));
     seg2 = (key2) => String(key2).replace(/~/g, "~0").replace(/\//g, "~1");
-    tidy2 = (n8) => Math.round(n8 * 1e6) / 1e6 + 0;
+    tidy2 = (n7) => Math.round(n7 * 1e6) / 1e6 + 0;
     optionalNumber = (value2, pointer2, fallback) => value2 === void 0 ? fallback : numberAt(value2, pointer2);
     contrast = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     inkOn = (ground) => contrast(ground, 0) >= contrast(ground, 1) ? "#000000" : "#ffffff";
@@ -83545,11 +83545,11 @@ function recMoveTo(x, y) {
   });
 }
 function recPoly(iType, pts, anchor) {
-  const n8 = pts.length;
-  const bodyLen = 16 + 4 + 8 * n8;
+  const n7 = pts.length;
+  const bodyLen = 16 + 4 + 8 * n7;
   return record14(iType, bodyLen, (dv, o) => {
     setRect(dv, o, bboxOf(anchor ? [anchor, ...pts] : pts));
-    dv.setUint32(o + 16, n8, true);
+    dv.setUint32(o + 16, n7, true);
     let p = o + 20;
     for (const pt of pts) {
       dv.setInt32(p, clampInt2(pt.x), true);
@@ -83659,8 +83659,8 @@ function recStretchDibits(prim) {
   dv.setUint32(116, 0, true);
   const px3 = new Uint8Array(buf, 120, bitsLen);
   const rgb3 = prim.rgb;
-  const n8 = Math.min(pxW * pxH, Math.floor(rgb3.length / 3));
-  for (let i = 0; i < n8; i++) {
+  const n7 = Math.min(pxW * pxH, Math.floor(rgb3.length / 3));
+  for (let i = 0; i < n7; i++) {
     px3[i * 4] = rgb3[i * 3 + 2];
     px3[i * 4 + 1] = rgb3[i * 3 + 1];
     px3[i * 4 + 2] = rgb3[i * 3];
@@ -83687,8 +83687,8 @@ function recCreateFontW(handle, prim) {
   });
 }
 function recExtTextOutW(prim, canvasW, canvasH, exScale, eyScale) {
-  const n8 = prim.text.length;
-  const strBytes = 2 * n8;
+  const n7 = prim.text.length;
+  const strBytes = 2 * n7;
   const pad = (4 - strBytes % 4) % 4;
   const bodyLen = 68 + strBytes + pad;
   return record14(EMR_EXTTEXTOUTW, bodyLen, (dv, o) => {
@@ -83698,12 +83698,12 @@ function recExtTextOutW(prim, canvasW, canvasH, exScale, eyScale) {
     dv.setFloat32(o + 24, eyScale, true);
     dv.setInt32(o + 28, clampInt2(prim.x), true);
     dv.setInt32(o + 32, clampInt2(prim.y), true);
-    dv.setUint32(o + 36, n8, true);
+    dv.setUint32(o + 36, n7, true);
     dv.setUint32(o + 40, 76, true);
     dv.setUint32(o + 44, 0, true);
     setRect(dv, o + 48, { left: 0, top: 0, right: 0, bottom: 0 });
     dv.setUint32(o + 64, 0, true);
-    for (let i = 0; i < n8; i++) dv.setUint16(o + 68 + i * 2, prim.text.charCodeAt(i), true);
+    for (let i = 0; i < n7; i++) dv.setUint16(o + 68 + i * 2, prim.text.charCodeAt(i), true);
   });
 }
 function emitTextPrim(prim, out, canvasW, canvasH, exScale, eyScale) {
@@ -83771,7 +83771,7 @@ function emitEmf(ir, opts = {}) {
   }
   body.push(recEof());
   const nRecords = body.length + 1;
-  const bodyBytes = body.reduce((n8, r5) => n8 + r5.length, 0);
+  const bodyBytes = body.reduce((n7, r5) => n7 + r5.length, 0);
   const nBytes = HEADER_SIZE + bodyBytes;
   const out = new Uint8Array(nBytes);
   out.set(writeHeader(h, nBytes, nRecords, hasText2 ? N_HANDLES + 1 : N_HANDLES), 0);
@@ -84202,9 +84202,9 @@ function rec(func, params2) {
   return new Uint8Array(buf);
 }
 function recPoly2(func, pts) {
-  const n8 = Math.min(pts.length, MAX_POLY_POINTS);
-  const params2 = [n8];
-  for (let i = 0; i < n8; i++) {
+  const n7 = Math.min(pts.length, MAX_POLY_POINTS);
+  const params2 = [n7];
+  for (let i = 0; i < n7; i++) {
     params2.push(clampI16(pts[i].x), clampI16(pts[i].y));
   }
   return rec(func, params2);
@@ -84693,8 +84693,8 @@ function timingXml(slide) {
   if (!rows2.length && !wantAudio && wantVideo) {
     return '<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst>' + videoNodeXml(2, videoSpid, slide.video) + "</p:childTnLst></p:cTn></p:par></p:tnLst></p:timing>";
   }
-  let n8 = 2;
-  const nextId = () => ++n8;
+  let n7 = 2;
+  const nextId = () => ++n7;
   const clickSet = new Set(rows2.map((r5) => r5.click));
   if (wantAudio) clickSet.add(0);
   const clicks = [...clickSet].sort((a, b) => a - b);
@@ -84824,22 +84824,22 @@ function notesMasterXml(notesW, notesH) {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:notesMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/><p:sp><p:nvSpPr><p:cNvPr id="2" name="Notes Placeholder"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${cx2}" cy="${cy3}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:notesMaster>`;
 }
-function presentationXml(n8, emuW, emuH, hasAnyNotes = false) {
+function presentationXml(n7, emuW, emuH, hasAnyNotes = false) {
   let sldIds = "";
-  for (let i = 0; i < n8; i++) sldIds += `<p:sldId id="${256 + i}" r:id="rId${i + 2}"/>`;
-  const notesMasterIdLst = hasAnyNotes ? `<p:notesMasterIdLst><p:notesMasterId r:id="rId${n8 + 3}"/></p:notesMasterIdLst>` : "";
+  for (let i = 0; i < n7; i++) sldIds += `<p:sldId id="${256 + i}" r:id="rId${i + 2}"/>`;
+  const notesMasterIdLst = hasAnyNotes ? `<p:notesMasterIdLst><p:notesMasterId r:id="rId${n7 + 3}"/></p:notesMasterIdLst>` : "";
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>` + notesMasterIdLst + `<p:sldIdLst>${sldIds}</p:sldIdLst><p:sldSz cx="${emuW}" cy="${emuH}"/><p:notesSz cx="${emuH}" cy="${emuW}"/></p:presentation>`;
 }
-function presentationRelsXml(n8, hasAnyNotes = false) {
+function presentationRelsXml(n7, hasAnyNotes = false) {
   let rels = `<Relationship Id="rId1" Type="${REL}/slideMaster" Target="slideMasters/slideMaster1.xml"/>`;
-  for (let i = 0; i < n8; i++) rels += `<Relationship Id="rId${i + 2}" Type="${REL}/slide" Target="slides/slide${i + 1}.xml"/>`;
-  rels += `<Relationship Id="rId${n8 + 2}" Type="${REL}/theme" Target="theme/theme1.xml"/>`;
-  if (hasAnyNotes) rels += `<Relationship Id="rId${n8 + 3}" Type="${REL}/notesMaster" Target="notesMasters/notesMaster1.xml"/>`;
+  for (let i = 0; i < n7; i++) rels += `<Relationship Id="rId${i + 2}" Type="${REL}/slide" Target="slides/slide${i + 1}.xml"/>`;
+  rels += `<Relationship Id="rId${n7 + 2}" Type="${REL}/theme" Target="theme/theme1.xml"/>`;
+  if (hasAnyNotes) rels += `<Relationship Id="rId${n7 + 3}" Type="${REL}/notesMaster" Target="notesMasters/notesMaster1.xml"/>`;
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="${PKG_REL_NS}">${rels}</Relationships>`;
 }
-function contentTypesXml(n8, exts, notedIdxs = [], nLayouts = 1, audioExts = /* @__PURE__ */ new Set()) {
+function contentTypesXml(n7, exts, notedIdxs = [], nLayouts = 1, audioExts = /* @__PURE__ */ new Set()) {
   const defaults2 = [
     `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>`,
     `<Default Extension="xml" ContentType="application/xml"/>`
@@ -84849,7 +84849,7 @@ function contentTypesXml(n8, exts, notedIdxs = [], nLayouts = 1, audioExts = /* 
   let overrides = `<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>`;
   for (let i = 0; i < nLayouts; i++) overrides += `<Override PartName="/ppt/slideLayouts/slideLayout${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>`;
   overrides += `<Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>`;
-  for (let i = 0; i < n8; i++) overrides += `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`;
+  for (let i = 0; i < n7; i++) overrides += `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`;
   if (notedIdxs.length) {
     overrides += `<Override PartName="/ppt/notesMasters/notesMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml"/><Override PartName="/ppt/theme/theme2.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>`;
     for (const i of notedIdxs) overrides += `<Override PartName="/ppt/notesSlides/notesSlide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>`;
@@ -84909,7 +84909,7 @@ function themeXml(theme) {
   const name = xmlEsc3(theme?.name ?? "Lolly");
   const majorFace = xmlEsc3(theme?.fonts?.major ?? "Calibri");
   const minorFace = xmlEsc3(theme?.fonts?.minor ?? "Calibri");
-  const c = (n8, hex3) => `<a:${n8}><a:srgbClr val="${hex3}"/></a:${n8}>`;
+  const c = (n7, hex3) => `<a:${n7}><a:srgbClr val="${hex3}"/></a:${n7}>`;
   const fontLst = (face) => `<a:latin typeface="${face}"/><a:ea typeface="${face}"/><a:cs typeface="${face}"/>`;
   const three = (inner) => inner + inner + inner;
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -84919,7 +84919,7 @@ function buildPptxParts(slides, opts = {}) {
   if (!slides.length) throw new Error("buildPptxParts: at least one slide is required");
   const emuW = Math.max(1, Math.round(opts.emuW ?? 1280 * EMU_PER_PX));
   const emuH = Math.max(1, Math.round(opts.emuH ?? 720 * EMU_PER_PX));
-  const n8 = slides.length;
+  const n7 = slides.length;
   const layouts = opts.layouts && opts.layouts.length ? opts.layouts : null;
   const nLayouts = layouts ? layouts.length : 1;
   const exts = /* @__PURE__ */ new Set();
@@ -84938,10 +84938,10 @@ function buildPptxParts(slides, opts = {}) {
   const noted = slides.map((s, i) => ({ i, notes: (s.notes ?? "").trim() })).filter((x) => x.notes !== "");
   const hasAnyNotes = noted.length > 0;
   const parts = {
-    "[Content_Types].xml": contentTypesXml(n8, exts, noted.map((x) => x.i), nLayouts, audioExts).replace("<Override ", (hasAnyVideo ? '<Default Extension="mp4" ContentType="video/mp4"/>' : "") + "<Override "),
+    "[Content_Types].xml": contentTypesXml(n7, exts, noted.map((x) => x.i), nLayouts, audioExts).replace("<Override ", (hasAnyVideo ? '<Default Extension="mp4" ContentType="video/mp4"/>' : "") + "<Override "),
     "_rels/.rels": ROOT_RELS,
-    "ppt/presentation.xml": presentationXml(n8, emuW, emuH, hasAnyNotes),
-    "ppt/_rels/presentation.xml.rels": presentationRelsXml(n8, hasAnyNotes),
+    "ppt/presentation.xml": presentationXml(n7, emuW, emuH, hasAnyNotes),
+    "ppt/_rels/presentation.xml.rels": presentationRelsXml(n7, hasAnyNotes),
     "ppt/slideMasters/slideMaster1.xml": slideMasterXml(nLayouts, !!layouts),
     "ppt/slideMasters/_rels/slideMaster1.xml.rels": slideMasterRelsXml(nLayouts)
   };
@@ -84959,7 +84959,7 @@ function buildPptxParts(slides, opts = {}) {
   }
   parts["ppt/theme/theme1.xml"] = themeXml(opts.theme);
   parts["docProps/core.xml"] = corePropsXml(opts.meta, now2, "Presentation");
-  parts["docProps/app.xml"] = appPropsXml(n8);
+  parts["docProps/app.xml"] = appPropsXml(n7);
   if (hasAnyAudio) parts[`ppt/media/${AUDIO_ICON_NAME}`] = AUDIO_ICON_PNG;
   slides.forEach((slide, i) => {
     const hasNotes = (slide.notes ?? "").trim() !== "";
@@ -85074,8 +85074,8 @@ var init_pptx2 = __esm({
       folHlink: "6B7280"
     };
     hexNorm = (v) => v.replace("#", "").slice(0, 6).toUpperCase().padStart(6, "0");
-    appPropsXml = (n8) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Lolly</Application><Slides>${n8}</Slides><PresentationFormat>Custom</PresentationFormat></Properties>`;
+    appPropsXml = (n7) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Lolly</Application><Slides>${n7}</Slides><PresentationFormat>Custom</PresentationFormat></Properties>`;
   }
 });
 
@@ -85104,12 +85104,12 @@ function parseTransform2(v) {
   while ((m2 = re.exec(v)) !== null) {
     saw = true;
     const name = m2[1].toLowerCase();
-    const n8 = (m2[2] ?? "").trim().split(/[\s,]+/).filter((s) => s !== "").map(Number);
-    if (n8.some((x) => !Number.isFinite(x))) return null;
+    const n7 = (m2[2] ?? "").trim().split(/[\s,]+/).filter((s) => s !== "").map(Number);
+    if (n7.some((x) => !Number.isFinite(x))) return null;
     let t;
-    if (name === "translate") t = [1, 0, 0, 1, n8[0] ?? 0, n8[1] ?? 0];
-    else if (name === "scale") t = [n8[0] ?? 1, 0, 0, n8[1] ?? n8[0] ?? 1, 0, 0];
-    else if (name === "matrix" && n8.length >= 6) t = [n8[0], n8[1], n8[2], n8[3], n8[4], n8[5]];
+    if (name === "translate") t = [1, 0, 0, 1, n7[0] ?? 0, n7[1] ?? 0];
+    else if (name === "scale") t = [n7[0] ?? 1, 0, 0, n7[1] ?? n7[0] ?? 1, 0, 0];
+    else if (name === "matrix" && n7.length >= 6) t = [n7[0], n7[1], n7[2], n7[3], n7[4], n7[5]];
     else return null;
     acc = matMul2(acc, t);
   }
@@ -85149,8 +85149,8 @@ function resolvePaint(v) {
 }
 function num01(raw) {
   if (raw == null) return void 0;
-  const n8 = parseFloat(raw);
-  return Number.isFinite(n8) ? Math.min(1, Math.max(0, n8)) : void 0;
+  const n7 = parseFloat(raw);
+  return Number.isFinite(n7) ? Math.min(1, Math.max(0, n7)) : void 0;
 }
 function primitiveToD(tag3, attrs) {
   if (tag3 === "rect") {
@@ -85213,10 +85213,10 @@ function rootMap(rootAttrs, targetW, targetH) {
 function emLen(raw, fontSize) {
   if (raw == null || raw.trim() === "") return 0;
   const s = raw.trim();
-  const n8 = parseFloat(s);
-  if (!Number.isFinite(n8)) return null;
-  if (/em$/i.test(s)) return n8 * fontSize;
-  if (/px$/i.test(s) || /^[-+.\d]+$/.test(s)) return n8;
+  const n7 = parseFloat(s);
+  if (!Number.isFinite(n7)) return null;
+  if (/em$/i.test(s)) return n7 * fontSize;
+  if (/px$/i.test(s) || /^[-+.\d]+$/.test(s)) return n7;
   return null;
 }
 function isPlainSpacing(raw) {
@@ -85272,7 +85272,7 @@ function lower2(svgText, targetW, targetH, withText) {
   let mVb = null;
   let sawSvg = false;
   let capture = null;
-  const round11 = (n8) => Math.round(n8);
+  const round11 = (n7) => Math.round(n7);
   const emit = (d, f, forceNoFill) => {
     if (!mVb) return;
     const fillA = typeof f.fill === "object" && f.fill ? f.groupAlpha * f.fillOpacity * f.fill.a : 0;
@@ -85415,9 +85415,9 @@ function lower2(svgText, targetW, targetH, withText) {
     let fontSize = parent.fontSize;
     if (fsRaw != null) {
       const s = fsRaw.trim();
-      const n8 = parseFloat(s);
-      if (Number.isFinite(n8) && n8 > 0) {
-        fontSize = /em$/i.test(s) ? n8 * parent.fontSize : /%$/.test(s) ? n8 / 100 * parent.fontSize : n8;
+      const n7 = parseFloat(s);
+      if (Number.isFinite(n7) && n7 > 0) {
+        fontSize = /em$/i.test(s) ? n7 * parent.fontSize : /%$/.test(s) ? n7 / 100 * parent.fontSize : n7;
       }
     }
     const fwRaw = (style["font-weight"] ?? attrOf2(attrsRaw, "font-weight"))?.trim().toLowerCase();
@@ -85524,8 +85524,8 @@ var init_svg_custgeom = __esm({
     matScale2 = (m2) => Math.sqrt(Math.abs(m2[0] * m2[3] - m2[1] * m2[2])) || 1;
     numAttr2 = (attrs, name, def) => {
       const v = attrOf2(attrs, name);
-      const n8 = v != null ? parseFloat(v) : NaN;
-      return Number.isFinite(n8) ? n8 : def;
+      const n7 = v != null ? parseFloat(v) : NaN;
+      return Number.isFinite(n7) ? n7 : def;
     };
     GENERIC_FAMILIES = /* @__PURE__ */ new Set([
       "serif",
@@ -85953,23 +85953,23 @@ function localName2(nodeName, localHint) {
 function elemLocal(el) {
   return localName2(el.nodeName, el.localName ?? null);
 }
-function isElement(n8) {
-  return n8 != null && n8.nodeType === ELEMENT_NODE2;
+function isElement(n7) {
+  return n7 != null && n7.nodeType === ELEMENT_NODE2;
 }
 function childElements(el) {
   const out = [];
   const kids2 = el.childNodes;
   for (let i = 0; i < kids2.length; i++) {
-    const n8 = kids2[i];
-    if (isElement(n8)) out.push(n8);
+    const n7 = kids2[i];
+    if (isElement(n7)) out.push(n7);
   }
   return out;
 }
 function firstChildByLocal(el, local2) {
   const kids2 = el.childNodes;
   for (let i = 0; i < kids2.length; i++) {
-    const n8 = kids2[i];
-    if (isElement(n8) && elemLocal(n8) === local2) return n8;
+    const n7 = kids2[i];
+    if (isElement(n7) && elemLocal(n7) === local2) return n7;
   }
   return null;
 }
@@ -85985,8 +85985,8 @@ function descendantByLocal(root2, local2) {
     if (el !== root2 && elemLocal(el) === local2) return el;
     const kids2 = el.childNodes;
     for (let i = kids2.length - 1; i >= 0; i--) {
-      const n8 = kids2[i];
-      if (isElement(n8)) stack.push(n8);
+      const n7 = kids2[i];
+      if (isElement(n7)) stack.push(n7);
     }
   }
   return null;
@@ -86009,9 +86009,9 @@ function textOf(el) {
 }
 function toInt(v, def = 0) {
   if (v == null) return def;
-  const n8 = Number.parseInt(v, 10);
-  if (!Number.isFinite(n8)) return def;
-  return Math.max(-MAX_COORD3, Math.min(MAX_COORD3, n8));
+  const n7 = Number.parseInt(v, 10);
+  if (!Number.isFinite(n7)) return def;
+  return Math.max(-MAX_COORD3, Math.min(MAX_COORD3, n7));
 }
 function truthy(v) {
   return v === "1" || v === "true" || v === "on";
@@ -86136,9 +86136,9 @@ function resolveScheme(slot, theme) {
 function pctOf(el) {
   const raw = attrByLocal(el, "val");
   if (raw == null) return void 0;
-  const n8 = Number.parseInt(raw, 10);
-  if (!Number.isFinite(n8)) return void 0;
-  return Math.max(-10, Math.min(10, n8 / 1e5));
+  const n7 = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n7)) return void 0;
+  return Math.max(-10, Math.min(10, n7 / 1e5));
 }
 function readClrMods(clr2) {
   let out;
@@ -86166,8 +86166,8 @@ function hexToRgb3(hex3) {
 }
 function rgbToHex(r5, g2, b) {
   const one = (v) => {
-    const n8 = Math.max(0, Math.min(255, Math.round(v)));
-    return (n8 < 16 ? "0" : "") + n8.toString(16).toUpperCase();
+    const n7 = Math.max(0, Math.min(255, Math.round(v)));
+    return (n7 < 16 ? "0" : "") + n7.toString(16).toUpperCase();
   };
   return one(r5) + one(g2) + one(b);
 }
@@ -86522,8 +86522,8 @@ function readRunProps(rPr, theme) {
   if (strike) out.strike = strike !== "noStrike";
   const baseline = attrByLocal(rPr, "baseline");
   if (baseline) {
-    const n8 = Number.parseInt(baseline, 10);
-    if (Number.isFinite(n8)) out.baseline = n8;
+    const n7 = Number.parseInt(baseline, 10);
+    if (Number.isFinite(n7)) out.baseline = n7;
   }
   const cap = attrByLocal(rPr, "cap");
   if (cap === "all" || cap === "small" || cap === "none") out.cap = cap;
@@ -86558,15 +86558,15 @@ function spacingPt(el) {
   const pts = el ? firstChildByLocal(el, "spcPts") : null;
   const val = pts ? attrByLocal(pts, "val") : null;
   if (!val) return void 0;
-  const n8 = toInt(val) / 100;
-  return Number.isFinite(n8) && n8 >= 0 && n8 <= MAX_SPACING_PT ? n8 : void 0;
+  const n7 = toInt(val) / 100;
+  return Number.isFinite(n7) && n7 >= 0 && n7 <= MAX_SPACING_PT ? n7 : void 0;
 }
 function spacingPct(el) {
   const pct2 = el ? firstChildByLocal(el, "spcPct") : null;
   const val = pct2 ? attrByLocal(pct2, "val") : null;
   if (!val) return void 0;
-  const n8 = toInt(val) / 1e3;
-  return Number.isFinite(n8) && n8 > 0 && n8 <= MAX_SPACING_PCT ? n8 : void 0;
+  const n7 = toInt(val) / 1e3;
+  return Number.isFinite(n7) && n7 > 0 && n7 <= MAX_SPACING_PCT ? n7 : void 0;
 }
 function readParaProps(pPr) {
   const out = {};
@@ -86576,13 +86576,13 @@ function readParaProps(pPr) {
   if (align) out.align = align;
   const marL = attrByLocal(pPr, "marL");
   if (marL) {
-    const n8 = toInt(marL);
-    if (Number.isFinite(n8) && Math.abs(n8) <= MAX_INDENT_EMU) out.marginLeftEmu = n8;
+    const n7 = toInt(marL);
+    if (Number.isFinite(n7) && Math.abs(n7) <= MAX_INDENT_EMU) out.marginLeftEmu = n7;
   }
   const indent = attrByLocal(pPr, "indent");
   if (indent) {
-    const n8 = toInt(indent);
-    if (Number.isFinite(n8) && Math.abs(n8) <= MAX_INDENT_EMU) out.indentEmu = n8;
+    const n7 = toInt(indent);
+    if (Number.isFinite(n7) && Math.abs(n7) <= MAX_INDENT_EMU) out.indentEmu = n7;
   }
   const before = spacingPt(firstChildByLocal(pPr, "spcBef"));
   if (before !== void 0) out.spaceBeforePt = before;
@@ -86605,8 +86605,8 @@ function readParaProps(pPr) {
       if (type) out.numberStyle = type.slice(0, MAX_TOKEN_LEN);
       const startAt = attrByLocal(buAutoNum, "startAt");
       if (startAt) {
-        const n8 = toInt(startAt);
-        if (Number.isFinite(n8) && n8 >= 1 && n8 <= MAX_NUMBER_START) out.numberStart = n8;
+        const n7 = toInt(startAt);
+        if (Number.isFinite(n7) && n7 >= 1 && n7 <= MAX_NUMBER_START) out.numberStart = n7;
       }
     } else if (firstChildByLocal(pPr, "buBlip")) {
       out.bullet = "bullet";
@@ -86735,8 +86735,8 @@ function readTxBody(txBody, theme, inherit, ctx) {
     const pPr = firstChildByLocal(pEl, "pPr");
     const rawLvl = pPr ? attrByLocal(pPr, "lvl") : null;
     if (rawLvl != null) {
-      const n8 = Number.parseInt(rawLvl, 10);
-      if (Number.isFinite(n8) && n8 > 0) para.lvl = Math.min(n8, MAX_OUTLINE_LVL);
+      const n7 = Number.parseInt(rawLvl, 10);
+      if (Number.isFinite(n7) && n7 > 0) para.lvl = Math.min(n7, MAX_OUTLINE_LVL);
     }
     const level2 = inherit ? inherit(para.lvl ?? 0) : void 0;
     let runInherit = level2?.run;
@@ -86791,11 +86791,11 @@ function readPlaceholder(sp) {
 function ptCoord(pt, axis) {
   const raw = attrByLocal(pt, axis);
   if (raw == null || !/^-?\d+(\.\d+)?$/.test(raw.trim())) return null;
-  const n8 = Number(raw);
-  return Number.isFinite(n8) && Math.abs(n8) <= MAX_COORD3 ? n8 : null;
+  const n7 = Number(raw);
+  return Number.isFinite(n7) && Math.abs(n7) <= MAX_COORD3 ? n7 : null;
 }
-function pathNum(n8) {
-  const r5 = Math.round(n8 * 1e3) / 1e3;
+function pathNum(n7) {
+  const r5 = Math.round(n7 * 1e3) / 1e3;
   return Object.is(r5, -0) ? "0" : String(r5);
 }
 function arcToCubics(x, y, wR, hR, stDeg, swDeg) {
@@ -86905,8 +86905,8 @@ function readCustGeom(custGeom, extent2, ctx) {
         const read = (attr6) => {
           const raw = attrByLocal(cmd, attr6);
           if (raw == null || !/^-?\d+(\.\d+)?$/.test(raw.trim())) return null;
-          const n8 = Number(raw);
-          return Number.isFinite(n8) ? n8 : null;
+          const n7 = Number(raw);
+          return Number.isFinite(n7) ? n7 : null;
         };
         const wR = read("wR");
         const hR = read("hR");
@@ -87154,8 +87154,8 @@ function readCachePoints(ctx, holder, cacheLocal) {
 }
 function readChartValues(ctx, val) {
   return readCachePoints(ctx, val, "numCache").map((s) => {
-    const n8 = Number.parseFloat(s);
-    return Number.isFinite(n8) ? n8 : 0;
+    const n7 = Number.parseFloat(s);
+    return Number.isFinite(n7) ? n7 : 0;
   });
 }
 function readChartCategories(ctx, cat) {
@@ -88390,11 +88390,11 @@ function dominant(pairs2) {
   let bestN = 0;
   for (const { value: value2, weight } of pairs2) {
     if (value2 === void 0) continue;
-    const n8 = (tally2.get(value2) ?? 0) + weight;
-    tally2.set(value2, n8);
-    if (n8 > bestN) {
+    const n7 = (tally2.get(value2) ?? 0) + weight;
+    tally2.set(value2, n7);
+    if (n7 > bestN) {
       best = value2;
-      bestN = n8;
+      bestN = n7;
     }
   }
   return best;
@@ -88485,7 +88485,7 @@ function designTextOf(paras, opts = {}) {
   const sizes = new Set(weighted.filter(({ weight }) => weight > 0).map(({ run: run3 }) => run3.sizePt).filter((pt) => typeof pt === "number"));
   if (sizes.size > 1 && !masterSetsType) dropped.add("sizes");
   const stated = paras.some((para) => para.align !== void 0);
-  const align = stated ? dominant(paras.map((para) => ({ value: para.align ?? "left", weight: para.runs.reduce((n8, run3) => n8 + run3.text.length, 0) }))) : void 0;
+  const align = stated ? dominant(paras.map((para) => ({ value: para.align ?? "left", weight: para.runs.reduce((n7, run3) => n7 + run3.text.length, 0) }))) : void 0;
   const formatOf = (run3) => {
     let color6 = null;
     const hex3 = hexOf3(run3);
@@ -88556,7 +88556,7 @@ function designTextOf(paras, opts = {}) {
 function designTextFromPlain(text12, paras = [], rowWeight = 400) {
   const slots = [];
   paras.forEach((para, p) => {
-    const breaks = para.runs.reduce((n8, run3) => n8 + (run3.text.replace(/\r\n?/g, "\n").match(/\n/g)?.length ?? 0), 0);
+    const breaks = para.runs.reduce((n7, run3) => n7 + (run3.text.replace(/\r\n?/g, "\n").match(/\n/g)?.length ?? 0), 0);
     slots.push({ para: p, continues: false });
     for (let k = 0; k < breaks; k += 1) slots.push({ para: p, continues: true });
   });
@@ -88821,9 +88821,9 @@ function deckToMarkdown(deck) {
     const slide = slides[i];
     if (slide == null || typeof slide !== "object") continue;
     const blocks = [];
-    const nodes = readingOrder(Array.isArray(slide.nodes) ? slide.nodes : []).filter((n8) => !isFurniture(n8));
-    const titleNode = nodes.find((n8) => n8.type === "text" && TITLE_PH.has(phType(n8)));
-    const subNode = nodes.find((n8) => n8.type === "text" && phType(n8) === "subTitle");
+    const nodes = readingOrder(Array.isArray(slide.nodes) ? slide.nodes : []).filter((n7) => !isFurniture(n7));
+    const titleNode = nodes.find((n7) => n7.type === "text" && TITLE_PH.has(phType(n7)));
+    const subNode = nodes.find((n7) => n7.type === "text" && phType(n7) === "subTitle");
     if (titleNode) {
       const title = textOfNode(titleNode, true);
       if (title) blocks.push(`${i === 0 ? "#" : "##"} ${title}`);
@@ -88931,7 +88931,7 @@ function mdInline(node, ctx, depth) {
 }
 function mdInlines(nodes, ctx, depth) {
   let out = "";
-  for (const n8 of inlineList(nodes)) out += mdInline(n8, ctx, depth);
+  for (const n7 of inlineList(nodes)) out += mdInline(n7, ctx, depth);
   return out;
 }
 function mdList(items2, ordered) {
@@ -89040,7 +89040,7 @@ function htmlInline(node, depth) {
 }
 function htmlInlines(nodes, depth) {
   let out = "";
-  for (const n8 of inlineList(nodes)) out += htmlInline(n8, depth);
+  for (const n7 of inlineList(nodes)) out += htmlInline(n7, depth);
   return out;
 }
 function htmlList(items2, ordered) {
@@ -89125,8 +89125,8 @@ var init_doc_md = __esm({
     MAX_LIST_LEVEL = 8;
     stripControl = (s) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "");
     inlineList = (v) => Array.isArray(v) ? v : [];
-    clampHeading = (n8) => Number.isFinite(n8) ? Math.min(6, Math.max(1, Math.trunc(n8))) : 1;
-    clampListLevel = (n8) => Number.isFinite(n8) ? Math.min(MAX_LIST_LEVEL, Math.max(0, Math.trunc(n8))) : 0;
+    clampHeading = (n7) => Number.isFinite(n7) ? Math.min(6, Math.max(1, Math.trunc(n7))) : 1;
+    clampListLevel = (n7) => Number.isFinite(n7) ? Math.min(MAX_LIST_LEVEL, Math.max(0, Math.trunc(n7))) : 0;
     MD_SPECIAL = /[\\`*_[\]<>|~]/g;
     escapeMd = (s) => stripControl(s).replace(MD_SPECIAL, "\\$&");
     guardBlockStart = (s) => s.replace(/^([ \t]*)([#>+-]|\d+[.)])(?=\s|$)/, "$1\\$2");
@@ -89145,15 +89145,15 @@ function localName3(nodeName, localHint) {
 function elemLocal2(el) {
   return localName3(el.nodeName, el.localName ?? null);
 }
-function isElement2(n8) {
-  return n8 != null && n8.nodeType === ELEMENT_NODE3;
+function isElement2(n7) {
+  return n7 != null && n7.nodeType === ELEMENT_NODE3;
 }
 function childElements2(el) {
   const out = [];
   const kids2 = el.childNodes;
   for (let i = 0; i < kids2.length; i++) {
-    const n8 = kids2[i];
-    if (isElement2(n8)) out.push(n8);
+    const n7 = kids2[i];
+    if (isElement2(n7)) out.push(n7);
   }
   return out;
 }
@@ -89161,8 +89161,8 @@ function firstChildByLocal2(el, local2) {
   if (!el) return null;
   const kids2 = el.childNodes;
   for (let i = 0; i < kids2.length; i++) {
-    const n8 = kids2[i];
-    if (isElement2(n8) && elemLocal2(n8) === local2) return n8;
+    const n7 = kids2[i];
+    if (isElement2(n7) && elemLocal2(n7) === local2) return n7;
   }
   return null;
 }
@@ -89178,8 +89178,8 @@ function descendantByLocal2(root2, local2) {
     if (el !== root2 && elemLocal2(el) === local2) return el;
     const kids2 = el.childNodes;
     for (let i = kids2.length - 1; i >= 0; i--) {
-      const n8 = kids2[i];
-      if (isElement2(n8)) stack.push(n8);
+      const n7 = kids2[i];
+      if (isElement2(n7)) stack.push(n7);
     }
   }
   return null;
@@ -89203,8 +89203,8 @@ function textOf2(el) {
 }
 function toInt2(v, def) {
   if (v == null) return def;
-  const n8 = Number.parseInt(v, 10);
-  return Number.isFinite(n8) ? n8 : def;
+  const n7 = Number.parseInt(v, 10);
+  return Number.isFinite(n7) ? n7 : def;
 }
 function onOff(el) {
   if (!el) return false;
@@ -89288,9 +89288,9 @@ function headingFromName(name) {
 }
 function levelFromOutline(v) {
   if (v == null) return null;
-  const n8 = Number.parseInt(v, 10);
-  if (!Number.isFinite(n8) || n8 < 0 || n8 > 8) return null;
-  return Math.min(6, n8 + 1);
+  const n7 = Number.parseInt(v, 10);
+  if (!Number.isFinite(n7) || n7 < 0 || n7 > 8) return null;
+  return Math.min(6, n7 + 1);
 }
 function readStyles(store, parseXml) {
   const levels2 = /* @__PURE__ */ new Map();
@@ -89389,9 +89389,9 @@ function wrapMarks(kids2, rPr) {
 }
 function noteRefId(ctx, kind, rawId) {
   if (rawId == null) return null;
-  const n8 = Number.parseInt(rawId, 10);
-  if (!Number.isFinite(n8) || n8 <= 0) return null;
-  const key2 = `${kind}${n8}`;
+  const n7 = Number.parseInt(rawId, 10);
+  if (!Number.isFinite(n7) || n7 <= 0) return null;
+  const key2 = `${kind}${n7}`;
   const seen = ctx.noteIds.get(key2);
   if (seen) return seen;
   if (ctx.noteOrder.length >= MAX_FOOTNOTES) {
@@ -89479,7 +89479,7 @@ function collectInlines(el, ctx, depth, images, out) {
         const anchor = attrByLocal2(child2, "anchor");
         const href = rel?.target ? rel.target : anchor ? `#${anchor}` : "";
         if (href) out.push({ type: "link", href, inlines: inner });
-        else for (const n8 of inner) out.push(n8);
+        else for (const n7 of inner) out.push(n7);
         break;
       }
       case "sdt": {
@@ -89502,13 +89502,13 @@ function collectInlines(el, ctx, depth, images, out) {
   }
 }
 function hasText(nodes) {
-  for (const n8 of nodes) {
-    switch (n8.type) {
+  for (const n7 of nodes) {
+    switch (n7.type) {
       case "text":
-        if (n8.text.trim().length) return true;
+        if (n7.text.trim().length) return true;
         break;
       case "code":
-        if (n8.text.trim().length) return true;
+        if (n7.text.trim().length) return true;
         break;
       case "footnoteRef":
         return true;
@@ -89517,7 +89517,7 @@ function hasText(nodes) {
       case "underline":
       case "strike":
       case "link":
-        if (hasText(n8.inlines)) return true;
+        if (hasText(n7.inlines)) return true;
         break;
       default:
         break;
@@ -89597,7 +89597,7 @@ function cellInlines(tc, ctx, depth, images) {
         for (const inner of childrenByLocal2(tr, "tc")) {
           if (!first) out.push({ type: "br" });
           first = false;
-          for (const n8 of cellInlines(inner, ctx, depth + 1, images)) out.push(n8);
+          for (const n7 of cellInlines(inner, ctx, depth + 1, images)) out.push(n7);
         }
       }
     }
@@ -89709,9 +89709,9 @@ function collectNotes(ctx, path, local2, kind, into) {
     if (type && type !== "normal") continue;
     const id3 = attrByLocal2(note2, "id");
     if (id3 == null) continue;
-    const n8 = Number.parseInt(id3, 10);
-    if (!Number.isFinite(n8) || n8 <= 0) continue;
-    into.set(`${kind}${n8}`, note2);
+    const n7 = Number.parseInt(id3, 10);
+    if (!Number.isFinite(n7) || n7 <= 0) continue;
+    into.set(`${kind}${n7}`, note2);
     if (into.size > MAX_FOOTNOTES) return;
   }
 }
@@ -89933,10 +89933,10 @@ function pdfxProfileEligibility(f, intentSpace) {
   if (space !== intentSpace) {
     return { ok: false, reason: `profile is ${space || "?"}, the output intent is ${intentSpace}` };
   }
-  const n8 = Number(f.nChannels);
-  if (!N_ALLOWED.has(n8)) return { ok: false, reason: `${n8} colour channels cannot be an /N value` };
-  if (intentSpace === "CMYK" && n8 !== 4) return { ok: false, reason: `CMYK profile with ${n8} channels` };
-  if (intentSpace === "RGB" && n8 !== 3) return { ok: false, reason: `RGB profile with ${n8} channels` };
+  const n7 = Number(f.nChannels);
+  if (!N_ALLOWED.has(n7)) return { ok: false, reason: `${n7} colour channels cannot be an /N value` };
+  if (intentSpace === "CMYK" && n7 !== 4) return { ok: false, reason: `CMYK profile with ${n7} channels` };
+  if (intentSpace === "RGB" && n7 !== 3) return { ok: false, reason: `RGB profile with ${n7} channels` };
   const m2 = /^(\d+)\.(\d+)/.exec(String(f.version ?? ""));
   if (!m2) return { ok: false, reason: "unreadable ICC version" };
   const [major, minor] = [Number(m2[1]), Number(m2[2])];
@@ -90794,9 +90794,9 @@ function parseChunks(bytes2) {
   return chunks;
 }
 function concat3(parts) {
-  let n8 = 0;
-  for (const p of parts) n8 += p.length;
-  const out = new Uint8Array(n8);
+  let n7 = 0;
+  for (const p of parts) n7 += p.length;
+  const out = new Uint8Array(n7);
   let o = 0;
   for (const p of parts) {
     out.set(p, o);
@@ -90961,11 +90961,11 @@ var init_apng_decode = __esm({
 function chunk3(fourcc4, payload) {
   const out = new Uint8Array(8 + payload.length + (payload.length & 1));
   for (let i = 0; i < 4; i++) out[i] = fourcc4.charCodeAt(i);
-  const n8 = payload.length;
-  out[4] = n8 & 255;
-  out[5] = n8 >>> 8 & 255;
-  out[6] = n8 >>> 16 & 255;
-  out[7] = n8 >>> 24 & 255;
+  const n7 = payload.length;
+  out[4] = n7 & 255;
+  out[5] = n7 >>> 8 & 255;
+  out[6] = n7 >>> 16 & 255;
+  out[7] = n7 >>> 24 & 255;
   out.set(payload, 8);
   return out;
 }
@@ -91078,11 +91078,11 @@ var init_webp_anim = __esm({
 function chunk4(cc, payload) {
   const out = new Uint8Array(8 + payload.length + (payload.length & 1));
   for (let i = 0; i < 4; i++) out[i] = cc.charCodeAt(i);
-  const n8 = payload.length;
-  out[4] = n8 & 255;
-  out[5] = n8 >>> 8 & 255;
-  out[6] = n8 >>> 16 & 255;
-  out[7] = n8 >>> 24 & 255;
+  const n7 = payload.length;
+  out[4] = n7 & 255;
+  out[5] = n7 >>> 8 & 255;
+  out[6] = n7 >>> 16 & 255;
+  out[7] = n7 >>> 24 & 255;
   out.set(payload, 8);
   return out;
 }
@@ -91260,7 +91260,7 @@ function packTiff(pixels3, opts = { width: 0, height: 0 }) {
   const description = opts.description ?? meta.description;
   const enc6 = new TextEncoder();
   const entries = [];
-  const num19 = (tag3, type, n8) => entries.push({ tag: tag3, type, count: 1, n: n8 });
+  const num19 = (tag3, type, n7) => entries.push({ tag: tag3, type, count: 1, n: n7 });
   const asciiTag = (tag3, s) => {
     if (!s) return;
     const a = enc6.encode(String(s));
@@ -91391,9 +91391,9 @@ function chunk5(type, data) {
   return out;
 }
 function concat4(parts) {
-  let n8 = 0;
-  for (const p of parts) n8 += p.length;
-  const out = new Uint8Array(n8);
+  let n7 = 0;
+  for (const p of parts) n7 += p.length;
+  const out = new Uint8Array(n7);
   let o = 0;
   for (const p of parts) {
     out.set(p, o);
@@ -91419,14 +91419,14 @@ function msad(row) {
   return sum;
 }
 function filterRow(raw, prior, bpp, dst, scratch, auto) {
-  const n8 = raw.length;
+  const n7 = raw.length;
   if (!auto) {
     dst[0] = 0;
     dst.set(raw, 1);
     return;
   }
   const [sub, up, avg, pae] = scratch;
-  for (let x = 0; x < n8; x++) {
+  for (let x = 0; x < n7; x++) {
     const r5 = raw[x];
     const a = x >= bpp ? raw[x - bpp] : 0;
     const b = prior ? prior[x] : 0;
@@ -91946,8 +91946,8 @@ var init_ico_decode = __esm({
 });
 
 // engine/src/tar.ts
-function padTo512(n8) {
-  return n8 + BLOCK3 - 1 & ~(BLOCK3 - 1);
+function padTo512(n7) {
+  return n7 + BLOCK3 - 1 & ~(BLOCK3 - 1);
 }
 function packTar(files) {
   const encoder5 = new TextEncoder();
@@ -92074,8 +92074,8 @@ function readTarGz(bytes2, opts = {}) {
   const maxArchiveBytes = readLimit2(opts.maxArchiveBytes, TAR_MAX_ARCHIVE_BYTES, "maxArchiveBytes");
   return readTar(gunzip(bytes2, { maxOutputBytes: maxArchiveBytes }), { ...opts, maxArchiveBytes });
 }
-function padTo5122(n8) {
-  return Math.ceil(n8 / BLOCK4) * BLOCK4;
+function padTo5122(n7) {
+  return Math.ceil(n7 / BLOCK4) * BLOCK4;
 }
 function readLimit2(value2, fallback, name) {
   const limit2 = value2 ?? fallback;
@@ -92156,8 +92156,8 @@ var init_tar_read = __esm({
 });
 
 // engine/src/cpio.ts
-function pad4(n8) {
-  return n8 + 3 & ~3;
+function pad4(n7) {
+  return n7 + 3 & ~3;
 }
 function writeHex8(out, off, value2) {
   const s = (value2 >>> 0).toString(16).toUpperCase().padStart(8, "0");
@@ -92223,16 +92223,16 @@ var init_cpio = __esm({
 });
 
 // engine/src/rpm.ts
-function u325(n8) {
+function u325(n7) {
   const b = new Uint8Array(4);
-  b[0] = n8 >>> 24 & 255;
-  b[1] = n8 >>> 16 & 255;
-  b[2] = n8 >>> 8 & 255;
-  b[3] = n8 & 255;
+  b[0] = n7 >>> 24 & 255;
+  b[1] = n7 >>> 16 & 255;
+  b[2] = n7 >>> 8 & 255;
+  b[3] = n7 & 255;
   return b;
 }
-function u165(n8) {
-  return Uint8Array.of(n8 >>> 8 & 255, n8 & 255);
+function u165(n7) {
+  return Uint8Array.of(n7 >>> 8 & 255, n7 & 255);
 }
 function eStringArray(tag3, arr) {
   return { tag: tag3, type: T_STRING_ARRAY, count: arr.length, data: concatBytes(arr.map(cstr)), align: 1 };
@@ -92710,16 +92710,16 @@ function convertFontContainer(bytes2, target2) {
 }
 function tableChecksum(data) {
   let sum = 0;
-  const n8 = data.length;
-  const full = n8 & ~3;
+  const n7 = data.length;
+  const full = n7 & ~3;
   let i = 0;
   for (; i < full; i += 4) {
     const w = (data[i] << 24 | data[i + 1] << 16 | data[i + 2] << 8 | data[i + 3]) >>> 0;
     sum = sum + w >>> 0;
   }
-  if (i < n8) {
+  if (i < n7) {
     let w = 0;
-    for (let b = 0; b < 4; b++) w = (w << 8 | (i + b < n8 ? data[i + b] : 0)) >>> 0;
+    for (let b = 0; b < 4; b++) w = (w << 8 | (i + b < n7 ? data[i + b] : 0)) >>> 0;
     sum = sum + w >>> 0;
   }
   return sum >>> 0;
@@ -92897,7 +92897,7 @@ var init_font_convert = __esm({
     WOFF_DIR_ENTRY_SIZE = 20;
     SFNT_HEADER_SIZE = 12;
     SFNT_DIR_ENTRY_SIZE = 16;
-    align42 = (n8) => n8 + 3 & ~3;
+    align42 = (n7) => n7 + 3 & ~3;
   }
 });
 
@@ -93557,8 +93557,8 @@ function readSheet(xml3, shared, limit2, formulas) {
   outer: while ((tok = tokenRe.exec(xml3)) !== null) {
     if (tok[0].startsWith("<row")) {
       const r5 = attr2(tok[0], "r");
-      const n8 = r5 ? Number.parseInt(r5, 10) : NaN;
-      cursorRow = Number.isFinite(n8) && n8 > 0 ? n8 - 1 : cursorRow + (grid.size ? 1 : 0);
+      const n7 = r5 ? Number.parseInt(r5, 10) : NaN;
+      cursorRow = Number.isFinite(n7) && n7 > 0 ? n7 - 1 : cursorRow + (grid.size ? 1 : 0);
       cursorCol = 0;
       continue;
     }
@@ -93752,12 +93752,12 @@ function shiftFormula(formula, dr, dc) {
   return out;
 }
 function indexToCol(index2) {
-  let n8 = index2 + 1;
+  let n7 = index2 + 1;
   let s = "";
-  while (n8 > 0) {
-    const rem = (n8 - 1) % 26;
+  while (n7 > 0) {
+    const rem = (n7 - 1) % 26;
     s = String.fromCharCode(65 + rem) + s;
-    n8 = Math.floor((n8 - 1) / 26);
+    n7 = Math.floor((n7 - 1) / 26);
   }
   return s;
 }
@@ -93770,14 +93770,14 @@ function parseRef(ref2) {
   return { row, col };
 }
 function colToIndex(letters2) {
-  let n8 = 0;
+  let n7 = 0;
   for (let i = 0; i < letters2.length; i++) {
     const c = letters2.charCodeAt(i) & ~32;
     if (c < 65 || c > 90) return -1;
-    n8 = n8 * 26 + (c - 64);
-    if (n8 > MAX_COLS + 1) return MAX_COLS;
+    n7 = n7 * 26 + (c - 64);
+    if (n7 > MAX_COLS + 1) return MAX_COLS;
   }
-  return n8 - 1;
+  return n7 - 1;
 }
 function firstElem(xml3, name) {
   const re = new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}>|<${name}\\b[^>]*/>`, "i");
@@ -93898,8 +93898,8 @@ function cellXml(ref2, value2, internString) {
   const idx = internString(sanitizeText(String(text12)));
   return `<c r="${ref2}" t="s"><v>${idx}</v></c>`;
 }
-function numText(n8) {
-  return Object.is(n8, -0) ? "0" : String(n8);
+function numText(n7) {
+  return Object.is(n7, -0) ? "0" : String(n7);
 }
 function sharedStringsXml(strings4, totalRefs) {
   let items2 = "";
@@ -93925,12 +93925,12 @@ function stylesXml() {
   return XML_DECL2 + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
 }
 function colLetters(index2) {
-  let n8 = Math.max(0, Math.floor(index2));
+  let n7 = Math.max(0, Math.floor(index2));
   let out = "";
   for (; ; ) {
-    out = String.fromCharCode(65 + n8 % 26) + out;
-    n8 = Math.floor(n8 / 26) - 1;
-    if (n8 < 0) break;
+    out = String.fromCharCode(65 + n7 % 26) + out;
+    n7 = Math.floor(n7 / 26) - 1;
+    if (n7 < 0) break;
   }
   return out;
 }
@@ -94561,7 +94561,7 @@ var init_riff_meta = __esm({
     init_bytes();
     te10 = new TextEncoder();
     fourccBytes = (s) => Uint8Array.from(s, (c) => c.charCodeAt(0) & 255);
-    u32le3 = (n8) => Uint8Array.of(n8 & 255, n8 >>> 8 & 255, n8 >>> 16 & 255, n8 >>> 24 & 255);
+    u32le3 = (n7) => Uint8Array.of(n7 & 255, n7 >>> 8 & 255, n7 >>> 16 & 255, n7 >>> 24 & 255);
   }
 });
 
@@ -94939,9 +94939,9 @@ var init_epub_read = __esm({
 
 // engine/src/odt.ts
 function clampLevel(level2) {
-  const n8 = Math.trunc(level2 ?? 1);
-  if (!Number.isFinite(n8) || n8 < 1) return 1;
-  return n8 > 10 ? 10 : n8;
+  const n7 = Math.trunc(level2 ?? 1);
+  if (!Number.isFinite(n7) || n7 < 1) return 1;
+  return n7 > 10 ? 10 : n7;
 }
 function bodyBlock(block) {
   const text12 = escapeXml(block.text);
@@ -95071,8 +95071,8 @@ function rPrXml(m2, offBold) {
 }
 function hasMark(nodes, depth = 0) {
   if (depth > MAX_INLINE_DEPTH3) return false;
-  for (const n8 of nodes) {
-    switch (n8.type) {
+  for (const n7 of nodes) {
+    switch (n7.type) {
       case "strong":
       case "em":
       case "underline":
@@ -95081,7 +95081,7 @@ function hasMark(nodes, depth = 0) {
       case "code":
         return true;
       case "link":
-        if (hasMark(n8.inlines, depth + 1)) return true;
+        if (hasMark(n7.inlines, depth + 1)) return true;
         break;
       default:
         break;
@@ -95092,38 +95092,38 @@ function hasMark(nodes, depth = 0) {
 function inlinesXml(nodes, ctx, m2, offBold, inLink, depth) {
   if (depth > MAX_INLINE_DEPTH3) return "";
   let out = "";
-  for (const n8 of nodes) {
-    switch (n8.type) {
+  for (const n7 of nodes) {
+    switch (n7.type) {
       case "text":
-        out += textRun(n8.text ?? "", rPrXml(m2, offBold));
+        out += textRun(n7.text ?? "", rPrXml(m2, offBold));
         break;
       case "code":
-        out += textRun(n8.text ?? "", rPrXml({ ...m2, code: true }, offBold));
+        out += textRun(n7.text ?? "", rPrXml({ ...m2, code: true }, offBold));
         break;
       case "br":
         out += `<w:r>${rPrXml(m2, offBold)}<w:br/></w:r>`;
         break;
       case "strong":
-        out += inlinesXml(n8.inlines, ctx, { ...m2, b: true }, offBold, inLink, depth + 1);
+        out += inlinesXml(n7.inlines, ctx, { ...m2, b: true }, offBold, inLink, depth + 1);
         break;
       case "em":
-        out += inlinesXml(n8.inlines, ctx, { ...m2, i: true }, offBold, inLink, depth + 1);
+        out += inlinesXml(n7.inlines, ctx, { ...m2, i: true }, offBold, inLink, depth + 1);
         break;
       case "underline":
-        out += inlinesXml(n8.inlines, ctx, { ...m2, u: true }, offBold, inLink, depth + 1);
+        out += inlinesXml(n7.inlines, ctx, { ...m2, u: true }, offBold, inLink, depth + 1);
         break;
       case "strike":
-        out += inlinesXml(n8.inlines, ctx, { ...m2, s: true }, offBold, inLink, depth + 1);
+        out += inlinesXml(n7.inlines, ctx, { ...m2, s: true }, offBold, inLink, depth + 1);
         break;
       case "footnoteRef": {
-        const id3 = ctx.noteIds.get(String(n8.id));
+        const id3 = ctx.noteIds.get(String(n7.id));
         if (id3 != null) out += `<w:r>${rPrXml(m2, offBold)}<w:footnoteReference w:id="${id3}"/></w:r>`;
         break;
       }
       case "link": {
-        const inner = inlinesXml(n8.inlines, ctx, m2, offBold, true, depth + 1);
+        const inner = inlinesXml(n7.inlines, ctx, m2, offBold, true, depth + 1);
         if (!inner) break;
-        const href = typeof n8.href === "string" ? n8.href : "";
+        const href = typeof n7.href === "string" ? n7.href : "";
         if (inLink || !href) {
           out += inner;
           break;
@@ -95327,7 +95327,7 @@ function abstractNum(id3, ordered) {
 }
 function footnotesXml(notes) {
   const furniture = `<w:footnote w:type="separator" w:id="-1"><w:p><w:r><w:separator/></w:r></w:p></w:footnote><w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:footnote>`;
-  const bodies = notes.map((n8) => `<w:footnote w:id="${n8.id}"><w:p><w:r><w:footnoteRef/></w:r>${n8.runs}</w:p></w:footnote>`).join("");
+  const bodies = notes.map((n7) => `<w:footnote w:id="${n7.id}"><w:p><w:r><w:footnoteRef/></w:r>${n7.runs}</w:p></w:footnote>`).join("");
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:footnotes xmlns:w="${W_NS}">${furniture}${bodies}</w:footnotes>`;
 }
@@ -95409,8 +95409,8 @@ var init_docx = __esm({
     WP_NS = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
     MAX_INLINE_DEPTH3 = 16;
     xmlEsc5 = (s) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    clampLevel2 = (n8) => Number.isFinite(n8) ? Math.min(6, Math.max(1, Math.trunc(n8))) : 1;
-    clampSpan = (n8) => Number.isFinite(n8) ? Math.min(512, Math.max(1, Math.trunc(n8))) : 1;
+    clampLevel2 = (n7) => Number.isFinite(n7) ? Math.min(6, Math.max(1, Math.trunc(n7))) : 1;
+    clampSpan = (n7) => Number.isFinite(n7) ? Math.min(512, Math.max(1, Math.trunc(n7))) : 1;
     NO_MARKS = { b: false, i: false, u: false, s: false, code: false };
     textRun = (text12, rPr) => `<w:r>${rPr}<w:t xml:space="preserve">${xmlEsc5(text12)}</w:t></w:r>`;
     paraXml2 = (pPrInner, runs2) => `<w:p>${pPrInner ? `<w:pPr>${pPrInner}</w:pPr>` : ""}${runs2}</w:p>`;
@@ -95547,30 +95547,30 @@ function has2(o, k) {
   return typeof o === "object" && o !== null && Object.hasOwn(o, k);
 }
 function nodeToBox(node, opts) {
-  const n8 = node || {};
+  const n7 = node || {};
   const o = opts || {};
   const id3 = o.id != null ? String(o.id) : "";
-  const kind = n8.kind === "group" ? "group" : n8.kind === "text" ? "text" : n8.kind === "image" ? "image" : "box";
+  const kind = n7.kind === "group" ? "group" : n7.kind === "text" ? "text" : n7.kind === "image" ? "image" : "box";
   const seed = SEED[kind === "group" ? "box" : kind];
   const sc = o.seedColors || {};
   const seedBg = kind === "box" ? sc.boxBg ?? seed.bg : kind === "image" ? sc.imageBg ?? seed.bg : seed.bg;
-  const x = Math.round(num8(n8.x, 0));
-  const y = Math.round(num8(n8.y, 0));
-  const w = Math.max(1, Math.round(num8(n8.w, 1)));
-  const h = Math.max(1, Math.round(num8(n8.h, 1)));
-  const rot = round1(num8(n8.rot, 0));
-  const opacity = clamp(Math.round(num8(n8.opacity, 100)), 0, 100);
-  const shape = SHAPES[n8.shape] ? n8.shape : num8(n8.radius, 0) > 0 ? "rounded" : "rect";
-  const radius = Math.max(0, Math.round(num8(n8.radius, shape === "rounded" ? 16 : 0)));
-  const bg = has2(n8, "fill") ? safeColor(n8.fill, "") : seedBg;
-  const font = mapFontFamily(n8.fontFamily, o.fonts);
-  const weight = mapWeight(n8.fontWeight, font, o.fonts);
-  const align = mapAlign(n8.textAlign);
-  const fontSize = Math.max(1, Math.round(num8(n8.fontSize, kind === "text" ? 64 : 48)));
-  const lineHeight = num8(n8.lineHeight, seed.lineHeight != null ? seed.lineHeight : 1.12);
-  const img = n8.image;
+  const x = Math.round(num8(n7.x, 0));
+  const y = Math.round(num8(n7.y, 0));
+  const w = Math.max(1, Math.round(num8(n7.w, 1)));
+  const h = Math.max(1, Math.round(num8(n7.h, 1)));
+  const rot = round1(num8(n7.rot, 0));
+  const opacity = clamp(Math.round(num8(n7.opacity, 100)), 0, 100);
+  const shape = SHAPES[n7.shape] ? n7.shape : num8(n7.radius, 0) > 0 ? "rounded" : "rect";
+  const radius = Math.max(0, Math.round(num8(n7.radius, shape === "rounded" ? 16 : 0)));
+  const bg = has2(n7, "fill") ? safeColor(n7.fill, "") : seedBg;
+  const font = mapFontFamily(n7.fontFamily, o.fonts);
+  const weight = mapWeight(n7.fontWeight, font, o.fonts);
+  const align = mapAlign(n7.textAlign);
+  const fontSize = Math.max(1, Math.round(num8(n7.fontSize, kind === "text" ? 64 : 48)));
+  const lineHeight = num8(n7.lineHeight, seed.lineHeight != null ? seed.lineHeight : 1.12);
+  const img = n7.image;
   const image = img && typeof img === "object" && img.id != null && img.id !== "" ? img : null;
-  const fit = FITS[n8.fit] ? n8.fit : seed.fit || "contain";
+  const fit = FITS[n7.fit] ? n7.fit : seed.fit || "contain";
   return {
     id: id3,
     kind,
@@ -95582,47 +95582,47 @@ function nodeToBox(node, opts) {
     shape,
     radius,
     bg,
-    grad: n8.grad != null ? String(n8.grad) : "",
+    grad: n7.grad != null ? String(n7.grad) : "",
     opacity,
     image,
     fit,
-    blend: BLENDS[n8.blend] ? n8.blend : "normal",
-    text: n8.text != null ? String(n8.text) : "",
-    fg: safeColor(n8.fg, sc.textFg ?? SEED.text.fg),
+    blend: BLENDS[n7.blend] ? n7.blend : "normal",
+    text: n7.text != null ? String(n7.text) : "",
+    fg: safeColor(n7.fg, sc.textFg ?? SEED.text.fg),
     fontSize,
     align,
     valign: kind === "text" ? seed.valign || "top" : "middle",
     weight,
     font,
     lineHeight,
-    ...n8.tracking != null ? { tracking: round22(num8(n8.tracking, 0)) } : {},
-    group: n8.group != null && n8.group !== "" ? String(n8.group) : "",
+    ...n7.tracking != null ? { tracking: round22(num8(n7.tracking, 0)) } : {},
+    group: n7.group != null && n7.group !== "" ? String(n7.group) : "",
     clip: "",
-    pad: Math.max(0, Math.round(num8(n8.pad, 8))),
-    shadow: n8.shadow || "none",
-    shadowColor: n8.shadowColor ? safeColor(n8.shadowColor, "#00000055") : "#00000055",
-    shadowX: Math.round(num8(n8.shadowX, 0)),
-    shadowY: Math.round(num8(n8.shadowY, 0)),
-    shadowBlur: Math.round(num8(n8.shadowBlur, 10)),
-    blur: clamp(round1(num8(n8.blur, 0)), 0, 300),
-    stroke: n8.stroke ? safeColor(n8.stroke, "") : "",
-    strokeW: Math.max(0, num8(n8.strokeW, 0) ?? 0),
-    strokeDash: n8.strokeDash === "dashed" || n8.strokeDash === "dotted" ? n8.strokeDash : "",
+    pad: Math.max(0, Math.round(num8(n7.pad, 8))),
+    shadow: n7.shadow || "none",
+    shadowColor: n7.shadowColor ? safeColor(n7.shadowColor, "#00000055") : "#00000055",
+    shadowX: Math.round(num8(n7.shadowX, 0)),
+    shadowY: Math.round(num8(n7.shadowY, 0)),
+    shadowBlur: Math.round(num8(n7.shadowBlur, 10)),
+    blur: clamp(round1(num8(n7.blur, 0)), 0, 300),
+    stroke: n7.stroke ? safeColor(n7.stroke, "") : "",
+    strokeW: Math.max(0, num8(n7.strokeW, 0) ?? 0),
+    strokeDash: n7.strokeDash === "dashed" || n7.strokeDash === "dotted" ? n7.strokeDash : "",
     // Authored dash/gap lengths (Penpot 2.17 PR #9765). Numbers, never strings, so
     // the compact blocks URL form is untouched - it cannot carry a comma or a tilde.
     // 0 keeps the editor's width-proportional synthesis, so an unauthored row is
     // byte-identical to what it produced before these fields existed.
-    strokeDashLen: Math.max(0, round22(num8(n8.strokeDashLen, 0))),
-    strokeGapLen: Math.max(0, round22(num8(n8.strokeGapLen, 0))),
+    strokeDashLen: Math.max(0, round22(num8(n7.strokeDashLen, 0))),
+    strokeGapLen: Math.max(0, round22(num8(n7.strokeGapLen, 0))),
     // Backdrop blur (frosted glass) - CSS backdrop-filter, same 0..300 clamp and
     // 1-decimal rounding as `blur`. 0 is off, so a row without the field renders
     // byte-identically to one from before the field existed.
-    bgBlur: clamp(round1(num8(n8.bgBlur, 0)), 0, 300),
+    bgBlur: clamp(round1(num8(n7.bgBlur, 0)), 0, 300),
     // Stroke position and per-side widths, present only when the source set them, so a
     // source without them maps to the same row as before.
-    ...n8.strokeAlign === "inside" || n8.strokeAlign === "center" || n8.strokeAlign === "outside" ? { strokeAlign: n8.strokeAlign } : {},
+    ...n7.strokeAlign === "inside" || n7.strokeAlign === "center" || n7.strokeAlign === "outside" ? { strokeAlign: n7.strokeAlign } : {},
     ...["strokeTop", "strokeRight", "strokeBottom", "strokeLeft"].reduce((out, key2) => {
-      const v = num8(n8[key2], void 0);
+      const v = num8(n7[key2], void 0);
       if (v !== void 0) out[key2] = clamp(round22(v), 0, 400);
       return out;
     }, {})
@@ -95656,8 +95656,8 @@ function pkids(o) {
   const c = pget(o, "children");
   return Array.isArray(c) ? c : [];
 }
-function isLeaf(n8) {
-  return n8 != null && pget(n8, "text") !== void 0;
+function isLeaf(n7) {
+  return n7 != null && pget(n7, "text") !== void 0;
 }
 function numOrNull(v) {
   const x = parseFloat(v);
@@ -95711,16 +95711,16 @@ function parsePenpotContent(contentJson) {
       if (!firstStyle && t !== "") firstStyle = lf;
     }
   }
-  (function walk2(n8) {
-    if (n8 == null || typeof n8 !== "object") return;
-    const type = pget(n8, "type");
-    const children2 = pkids(n8);
+  (function walk2(n7) {
+    if (n7 == null || typeof n7 !== "object") return;
+    const type = pget(n7, "type");
+    const children2 = pkids(n7);
     if (type === "paragraph" || type == null && children2.some(isLeaf)) {
-      collectParagraph(n8);
+      collectParagraph(n7);
       return;
     }
-    if (isLeaf(n8) && !children2.length) {
-      collectParagraph(n8);
+    if (isLeaf(n7) && !children2.length) {
+      collectParagraph(n7);
       return;
     }
     children2.forEach(walk2);
@@ -95752,22 +95752,22 @@ function collectPenpotFontUsage(contentJson) {
   }
   if (!root2 || typeof root2 !== "object") return [];
   const byKey = /* @__PURE__ */ new Map();
-  (function walk2(n8) {
-    if (n8 == null || typeof n8 !== "object") return;
-    const fid = pget(n8, "font-id");
+  (function walk2(n7) {
+    if (n7 == null || typeof n7 !== "object") return;
+    const fid = pget(n7, "font-id");
     if (fid !== void 0) {
       const fontId = String(fid);
-      const fontVariantId2 = String(pget(n8, "font-variant-id") ?? "");
-      const fontStyle = String(pget(n8, "font-style") ?? "normal");
+      const fontVariantId2 = String(pget(n7, "font-variant-id") ?? "");
+      const fontStyle = String(pget(n7, "font-style") ?? "normal");
       const key2 = `${fontId}|${fontVariantId2}|${fontStyle}`;
       const cur = byKey.get(key2);
       if (cur) {
         cur.runs++;
       } else {
-        const w = Number(pget(n8, "font-weight"));
+        const w = Number(pget(n7, "font-weight"));
         byKey.set(key2, {
           fontId,
-          fontFamily: String(pget(n8, "font-family") ?? ""),
+          fontFamily: String(pget(n7, "font-family") ?? ""),
           fontVariantId: fontVariantId2,
           fontWeight: Number.isFinite(w) ? w : 400,
           fontStyle,
@@ -95775,7 +95775,7 @@ function collectPenpotFontUsage(contentJson) {
         });
       }
     }
-    pkids(n8).forEach(walk2);
+    pkids(n7).forEach(walk2);
   })(root2);
   return [...byKey.values()];
 }
@@ -95861,10 +95861,10 @@ function penpotPathContentToD(content2) {
     for (const seg4 of content2) {
       const cmd = String(pget(seg4, "command") ?? "").replace(/^:/, "");
       const p = pget(seg4, "params");
-      const n8 = (k) => num8(pget(p, k), 0);
-      if (cmd === "move-to") parts.push(`M${n8("x")},${n8("y")}`);
-      else if (cmd === "line-to") parts.push(`L${n8("x")},${n8("y")}`);
-      else if (cmd === "curve-to") parts.push(`C${n8("c1x")},${n8("c1y")},${n8("c2x")},${n8("c2y")},${n8("x")},${n8("y")}`);
+      const n7 = (k) => num8(pget(p, k), 0);
+      if (cmd === "move-to") parts.push(`M${n7("x")},${n7("y")}`);
+      else if (cmd === "line-to") parts.push(`L${n7("x")},${n7("y")}`);
+      else if (cmd === "curve-to") parts.push(`C${n7("c1x")},${n7("c1y")},${n7("c2x")},${n7("c2y")},${n7("x")},${n7("y")}`);
       else if (cmd === "close-path") parts.push("Z");
       else return "";
     }
@@ -95883,8 +95883,8 @@ function strokeStyleOf(st) {
 function strokeLen(st, key2) {
   const v = pget(st, key2);
   if (v == null) return void 0;
-  const n8 = typeof v === "number" ? v : parseFloat(String(v));
-  return isFinite(n8) && n8 >= 0 ? n8 : void 0;
+  const n7 = typeof v === "number" ? v : parseFloat(String(v));
+  return isFinite(n7) && n7 >= 0 ? n7 : void 0;
 }
 function topPenpotStroke(sh) {
   const list4 = Array.isArray(sh.strokes) ? sh.strokes : [];
@@ -96516,7 +96516,7 @@ function decodeFigVectorPath(bytes2) {
     off += 4;
     return Math.round(v * 100) / 100;
   };
-  const room = (n8) => off + n8 * 4 <= b.length;
+  const room = (n7) => off + n7 * 4 <= b.length;
   const NF = { 0: 0, 1: 2, 2: 2, 3: 4, 4: 6 };
   const LT = { 0: "Z", 1: "M", 2: "L", 3: "Q", 4: "C" };
   while (off < b.length) {
@@ -96657,14 +96657,14 @@ function figmaNodesToNodes(nodeChanges, blobs) {
   const list4 = Array.isArray(nodeChanges) ? nodeChanges : [];
   const key2 = (g2) => g2 ? String(g2.sessionID) + ":" + String(g2.localID) : "";
   const kids2 = {};
-  for (const n8 of list4) {
-    if (n8 && n8.parentIndex && n8.parentIndex.guid) {
-      const p = key2(n8.parentIndex.guid);
-      (kids2[p] || (kids2[p] = [])).push(n8);
+  for (const n7 of list4) {
+    if (n7 && n7.parentIndex && n7.parentIndex.guid) {
+      const p = key2(n7.parentIndex.guid);
+      (kids2[p] || (kids2[p] = [])).push(n7);
     }
   }
-  const canvases = list4.filter((n8) => n8 && n8.type === "CANVAS" && !n8.internalOnly && n8.name !== "Internal Only Canvas");
-  const page3 = canvases[0] || list4.find((n8) => n8 && n8.type === "CANVAS");
+  const canvases = list4.filter((n7) => n7 && n7.type === "CANVAS" && !n7.internalOnly && n7.name !== "Internal Only Canvas");
+  const page3 = canvases[0] || list4.find((n7) => n7 && n7.type === "CANVAS");
   if (!page3) return [];
   const out = [];
   const visit = (node, pabs) => {
@@ -96681,17 +96681,17 @@ function figmaNodesToNodes(nodeChanges, blobs) {
 }
 function shiftNodesToOrigin(nodes) {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const n8 of nodes) {
-    const x = num8(n8.x, 0), y = num8(n8.y, 0);
+  for (const n7 of nodes) {
+    const x = num8(n7.x, 0), y = num8(n7.y, 0);
     minX = Math.min(minX, x);
     minY = Math.min(minY, y);
-    maxX = Math.max(maxX, x + num8(n8.w, 0));
-    maxY = Math.max(maxY, y + num8(n8.h, 0));
+    maxX = Math.max(maxX, x + num8(n7.w, 0));
+    maxY = Math.max(maxY, y + num8(n7.h, 0));
   }
   if (!isFinite(minX)) return { width: 1080, height: 1080 };
-  for (const n8 of nodes) {
-    n8.x = num8(n8.x, 0) - minX;
-    n8.y = num8(n8.y, 0) - minY;
+  for (const n7 of nodes) {
+    n7.x = num8(n7.x, 0) - minX;
+    n7.y = num8(n7.y, 0) - minY;
   }
   return { width: Math.max(1, Math.round(maxX - minX)), height: Math.max(1, Math.round(maxY - minY)) };
 }
@@ -96719,13 +96719,13 @@ function figmaNodesToScenes(nodeChanges, blobs) {
   const list4 = Array.isArray(nodeChanges) ? nodeChanges : [];
   const key2 = (g2) => g2 ? String(g2.sessionID) + ":" + String(g2.localID) : "";
   const kids2 = {};
-  for (const n8 of list4) {
-    if (n8 && n8.parentIndex && n8.parentIndex.guid) {
-      const p = key2(n8.parentIndex.guid);
-      (kids2[p] || (kids2[p] = [])).push(n8);
+  for (const n7 of list4) {
+    if (n7 && n7.parentIndex && n7.parentIndex.guid) {
+      const p = key2(n7.parentIndex.guid);
+      (kids2[p] || (kids2[p] = [])).push(n7);
     }
   }
-  const canvases = list4.filter((n8) => n8 && n8.type === "CANVAS" && !n8.internalOnly && n8.name !== "Internal Only Canvas");
+  const canvases = list4.filter((n7) => n7 && n7.type === "CANVAS" && !n7.internalOnly && n7.name !== "Internal Only Canvas");
   const scenes = [];
   for (const page3 of canvases) {
     const pageAbs = figMatrix(page3);
@@ -96753,9 +96753,9 @@ function figmaNodesToScenes(nodeChanges, blobs) {
           { x: 0, y: 0, width: num8(child2.size.x, 0), height: num8(child2.size.y, 0) },
           matMul3(pageAbs, figMatrix(child2))
         );
-        for (const n8 of nodes) {
-          n8.x = num8(n8.x, 0) - geom.x;
-          n8.y = num8(n8.y, 0) - geom.y;
+        for (const n7 of nodes) {
+          n7.x = num8(n7.x, 0) - geom.x;
+          n7.y = num8(n7.y, 0) - geom.y;
         }
         framed.push({
           at: { x: geom.x, y: geom.y, w: geom.w, h: geom.h },
@@ -97103,30 +97103,30 @@ function isAchromatic(fill2) {
   if (!c) return true;
   return Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) <= 12;
 }
-function nodeFill(n8) {
-  const v = n8.fill || (n8._vectorFill && n8._vectorFill !== "none" ? n8._vectorFill : "") || "";
+function nodeFill(n7) {
+  const v = n7.fill || (n7._vectorFill && n7._vectorFill !== "none" ? n7._vectorFill : "") || "";
   return hexRgb(v) ? v : "";
 }
 function constantMask(nodes, region, subtype = "Luminosity") {
   if (!Array.isArray(nodes) || nodes.length !== 1) return null;
-  const n8 = nodes[0];
-  if (!n8 || n8.kind !== "box" || n8.shape !== "rect") return null;
-  if (n8._gradient || n8._imageXObject || n8._vectorPath) return null;
+  const n7 = nodes[0];
+  if (!n7 || n7.kind !== "box" || n7.shape !== "rect") return null;
+  if (n7._gradient || n7._imageXObject || n7._vectorPath) return null;
   const area2 = Math.max(0, region.w) * Math.max(0, region.h);
   if (!(area2 > 0)) return null;
-  const cover = Math.max(0, n8.w) * Math.max(0, n8.h) / area2;
+  const cover = Math.max(0, n7.w) * Math.max(0, n7.h) / area2;
   if (!(cover >= 0.95)) return null;
-  const alpha = typeof n8.opacity === "number" ? Math.max(0, Math.min(100, n8.opacity)) / 100 : 1;
+  const alpha = typeof n7.opacity === "number" ? Math.max(0, Math.min(100, n7.opacity)) / 100 : 1;
   if (subtype === "Alpha") return alpha;
-  const col = nodeFill(n8);
+  const col = nodeFill(n7);
   if (!col) return null;
   return relativeLuminance(col) * alpha;
 }
-function isShadowPlate(n8) {
-  if (!n8 || !n8._softMask) return false;
-  if (n8.kind === "text") return false;
-  const alpha = typeof n8.opacity === "number" ? n8.opacity : 100;
-  return alpha < 90 && isAchromatic(nodeFill(n8));
+function isShadowPlate(n7) {
+  if (!n7 || !n7._softMask) return false;
+  if (n7.kind === "text") return false;
+  const alpha = typeof n7.opacity === "number" ? n7.opacity : 100;
+  return alpha < 90 && isAchromatic(nodeFill(n7));
 }
 var fin, r23;
 var init_pdf_smask = __esm({
@@ -97175,7 +97175,7 @@ function streamByte(c) {
   return WIN_ANSI_BYTE.get(c) ?? c;
 }
 function tokenize3(src, maxTokens) {
-  const n8 = src.length;
+  const n7 = src.length;
   const out = [];
   let i = 0;
   let count4 = 0;
@@ -97185,7 +97185,7 @@ function tokenize3(src, maxTokens) {
     const bytes2 = [];
     let depth = 0;
     i++;
-    while (i < n8) {
+    while (i < n7) {
       const c = code(i);
       if (c === 92) {
         i++;
@@ -97231,7 +97231,7 @@ function tokenize3(src, maxTokens) {
     const bytes2 = [];
     i++;
     let hi = "";
-    while (i < n8) {
+    while (i < n7) {
       const c = code(i);
       if (c === 62) {
         i++;
@@ -97254,7 +97254,7 @@ function tokenize3(src, maxTokens) {
   const readName2 = () => {
     i++;
     let s = "";
-    while (i < n8) {
+    while (i < n7) {
       const c = code(i);
       if (WS.has(c) || DELIM.has(c)) break;
       if (c === 35) {
@@ -97269,7 +97269,7 @@ function tokenize3(src, maxTokens) {
   };
   const readNumberOrOp = () => {
     let s = "";
-    while (i < n8) {
+    while (i < n7) {
       const c = code(i);
       if (WS.has(c) || DELIM.has(c)) break;
       s += src[i];
@@ -97282,11 +97282,11 @@ function tokenize3(src, maxTokens) {
   const readDict = () => {
     let depth = 1;
     let mcid = null;
-    while (i < n8) {
+    while (i < n7) {
       const c = code(i);
       if (c === 40) {
         let par = 0;
-        while (i < n8) {
+        while (i < n7) {
           const d = code(i);
           if (d === 92) {
             i += 2;
@@ -97310,7 +97310,7 @@ function tokenize3(src, maxTokens) {
         continue;
       }
       if (c === 60) {
-        while (i < n8 && code(i) !== 62) i++;
+        while (i < n7 && code(i) !== 62) i++;
         i++;
         continue;
       }
@@ -97324,9 +97324,9 @@ function tokenize3(src, maxTokens) {
         const start = i;
         const key2 = readName2();
         if (key2 === "MCID") {
-          while (i < n8 && WS.has(code(i))) i++;
+          while (i < n7 && WS.has(code(i))) i++;
           const numStart = i;
-          while (i < n8 && !WS.has(code(i)) && !DELIM.has(code(i))) i++;
+          while (i < n7 && !WS.has(code(i)) && !DELIM.has(code(i))) i++;
           const v = parseInt(src.slice(numStart, i), 10);
           if (isFinite(v)) mcid = v;
         } else if (i === start) i++;
@@ -97339,7 +97339,7 @@ function tokenize3(src, maxTokens) {
   let arrayDepth = 0;
   const skipArrayBody = () => {
     let depth = 1;
-    while (i < n8 && depth > 0) {
+    while (i < n7 && depth > 0) {
       const c = code(i);
       if (c === 40) {
         readString();
@@ -97363,7 +97363,7 @@ function tokenize3(src, maxTokens) {
     }
     arrayDepth++;
     const items2 = [];
-    while (i < n8) {
+    while (i < n7) {
       const c = code(i);
       if (WS.has(c)) {
         i++;
@@ -97375,7 +97375,7 @@ function tokenize3(src, maxTokens) {
       }
       const tk = readOne();
       if (tk) items2.push(tk);
-      else if (i < n8 && code(i) !== 93) i++;
+      else if (i < n7 && code(i) !== 93) i++;
     }
     arrayDepth--;
     return items2;
@@ -97383,7 +97383,7 @@ function tokenize3(src, maxTokens) {
   function readOne() {
     if (count4 >= maxTokens) {
       exhausted = true;
-      i = n8;
+      i = n7;
       return null;
     }
     count4++;
@@ -97405,29 +97405,29 @@ function tokenize3(src, maxTokens) {
     return readNumberOrOp();
   }
   const skipInlineImage = () => {
-    while (i < n8) {
+    while (i < n7) {
       if (src[i] === "I" && src[i + 1] === "D") {
         i += 2;
         break;
       }
       i++;
     }
-    while (i < n8) {
-      if (src[i] === "E" && src[i + 1] === "I" && (i + 2 >= n8 || WS.has(code(i + 2)))) {
+    while (i < n7) {
+      if (src[i] === "E" && src[i + 1] === "I" && (i + 2 >= n7 || WS.has(code(i + 2)))) {
         i += 2;
         break;
       }
       i++;
     }
   };
-  while (i < n8) {
+  while (i < n7) {
     const c = code(i);
     if (WS.has(c)) {
       i++;
       continue;
     }
     if (c === 37) {
-      while (i < n8 && code(i) !== 10 && code(i) !== 13) i++;
+      while (i < n7 && code(i) !== 10 && code(i) !== 13) i++;
       continue;
     }
     const before = i;
@@ -97869,9 +97869,9 @@ function interpretPdfPage(page3) {
       if (s.fillTileNodes && mode3 !== "stroke") {
         const baked2 = serializePath(segs);
         const pathClip = baked2.d ? [{ d: baked2.d, evenOdd }] : [];
-        for (const n8 of s.fillTileNodes) {
+        for (const n7 of s.fillTileNodes) {
           if (sink.count >= sink.max) break;
-          sink.nodes.push(pathClip.length ? { ...n8, _clips: [...n8._clips ?? [], ...pathClip] } : { ...n8 });
+          sink.nodes.push(pathClip.length ? { ...n7, _clips: [...n7._clips ?? [], ...pathClip] } : { ...n7 });
           sink.count++;
         }
         s.fillTileNodes = null;
@@ -98005,7 +98005,7 @@ function interpretPdfPage(page3) {
         onWarn("pattern.unsupported", name);
         return;
       }
-      const isRaster2 = (n8) => !!n8._imageXObject && !n8._vectorPath;
+      const isRaster2 = (n7) => !!n7._imageXObject && !n7._vectorPath;
       if (out.some(isRaster2)) {
         const allRaster = out.every(isRaster2);
         const noRepeat = tl.xStep >= tl.bbox[2] - tl.bbox[0] - 0.5 && tl.yStep >= tl.bbox[3] - tl.bbox[1] - 0.5;
@@ -98020,8 +98020,8 @@ function interpretPdfPage(page3) {
             onWarn("pattern.tiling.raster.skipped", name);
             return;
           }
-          s.fillTileNodes = out.map((n8) => {
-            const c = s.clips.length ? { ...n8, _clips: [...n8._clips ?? [], ...s.clips] } : { ...n8 };
+          s.fillTileNodes = out.map((n7) => {
+            const c = s.clips.length ? { ...n7, _clips: [...n7._clips ?? [], ...s.clips] } : { ...n7 };
             if (!c._softMask && mp.extra._softMask) c._softMask = mp.extra._softMask;
             if (mp.scale < 1) c.opacity = clamp(Math.round((typeof c.opacity === "number" ? c.opacity : 100) * mp.scale), 0, 100);
             return c;
@@ -98581,7 +98581,7 @@ function interpretPdfPage(page3) {
         out = { kind: "constant", value: c };
         onWarn("smask.group.folded", def.id);
       } else {
-        for (const n8 of sub.nodes) delete n8._groupPath;
+        for (const n7 of sub.nodes) delete n7._groupPath;
         out = {
           kind: "mask",
           mask: { key: key2, nodes: sub.nodes, x: region.x, y: region.y, w: region.w, h: region.h, subtype: def.subtype === "Alpha" ? "Alpha" : "Luminosity" }
@@ -98622,16 +98622,16 @@ function hexRgb2(hex3) {
   const p = h.length === 3 ? [h[0] + h[0], h[1] + h[1], h[2] + h[2]] : [h.slice(0, 2), h.slice(2, 4), h.slice(4, 6)];
   return [parseInt(p[0], 16), parseInt(p[1], 16), parseInt(p[2], 16)];
 }
-function nodeFlat(n8) {
-  const v = n8.fill || (n8._vectorFill && n8._vectorFill !== "none" ? n8._vectorFill : "") || n8._gradient?.flat || "";
+function nodeFlat(n7) {
+  const v = n7.fill || (n7._vectorFill && n7._vectorFill !== "none" ? n7._vectorFill : "") || n7._gradient?.flat || "";
   return hexRgb2(v) ? v : "";
 }
 function meanNodeColor(list4) {
   let r5 = 0, g2 = 0, b = 0, wsum = 0;
-  for (const n8 of list4) {
-    const c = hexRgb2(nodeFlat(n8));
+  for (const n7 of list4) {
+    const c = hexRgb2(nodeFlat(n7));
     if (!c) continue;
-    const a = Math.max(0, n8.w) * Math.max(0, n8.h) * (clamp(typeof n8.opacity === "number" ? n8.opacity : 100, 0, 100) / 100);
+    const a = Math.max(0, n7.w) * Math.max(0, n7.h) * (clamp(typeof n7.opacity === "number" ? n7.opacity : 100, 0, 100) / 100);
     if (!(a > 0)) continue;
     r5 += c[0] * a;
     g2 += c[1] * a;
@@ -98885,68 +98885,68 @@ var init_pdf_map = __esm({
 });
 
 // engine/src/pdf-svg.ts
-function rectEl(n8, fillOverride) {
-  const fill2 = fillOverride || safeAttrColor(n8.fill, "none");
+function rectEl(n7, fillOverride) {
+  const fill2 = fillOverride || safeAttrColor(n7.fill, "none");
   if (fill2 === "none") return "";
-  const rx = n8.radius ? ` rx="${r(n8.radius)}"` : "";
-  return `<rect x="${r(n8.x)}" y="${r(n8.y)}" width="${r(n8.w)}" height="${r(n8.h)}"${rx} fill="${fill2}"${opacityAttr(n8)}${rotateAttr(n8)}/>`;
+  const rx = n7.radius ? ` rx="${r(n7.radius)}"` : "";
+  return `<rect x="${r(n7.x)}" y="${r(n7.y)}" width="${r(n7.w)}" height="${r(n7.h)}"${rx} fill="${fill2}"${opacityAttr(n7)}${rotateAttr(n7)}/>`;
 }
-function ellipseEl(n8, fillOverride) {
-  const fill2 = fillOverride || safeAttrColor(n8.fill, "none");
+function ellipseEl(n7, fillOverride) {
+  const fill2 = fillOverride || safeAttrColor(n7.fill, "none");
   if (fill2 === "none") return "";
-  return `<ellipse cx="${r(n8.x + n8.w / 2)}" cy="${r(n8.y + n8.h / 2)}" rx="${r(n8.w / 2)}" ry="${r(n8.h / 2)}" fill="${fill2}"${opacityAttr(n8)}${rotateAttr(n8)}/>`;
+  return `<ellipse cx="${r(n7.x + n7.w / 2)}" cy="${r(n7.y + n7.h / 2)}" rx="${r(n7.w / 2)}" ry="${r(n7.h / 2)}" fill="${fill2}"${opacityAttr(n7)}${rotateAttr(n7)}/>`;
 }
-function vectorPathD(n8) {
-  return String(n8._vectorPath ?? "").replace(/["<>&']/g, "");
+function vectorPathD(n7) {
+  return String(n7._vectorPath ?? "").replace(/["<>&']/g, "");
 }
-function pathEl(n8, fillOverride) {
-  const d = vectorPathD(n8);
+function pathEl(n7, fillOverride) {
+  const d = vectorPathD(n7);
   if (!d) return "";
-  const fill2 = fillOverride || safeAttrColor(n8._vectorFill, "none");
-  const st = n8._vectorStroke;
+  const fill2 = fillOverride || safeAttrColor(n7._vectorFill, "none");
+  const st = n7._vectorStroke;
   const stroke = st && st.color ? ` stroke="${safeAttrColor(st.color, "#000000")}" stroke-width="${r(Math.max(0.3, +st.width || 1))}"` + (st.cap === "round" || st.cap === "square" ? ` stroke-linecap="${st.cap}"` : "") + (st.join === "round" || st.join === "bevel" ? ` stroke-linejoin="${st.join}"` : "") : "";
   if (fill2 === "none" && !stroke) return "";
-  const rule = n8._vectorFillRule === "evenodd" ? ' fill-rule="evenodd"' : stroke ? ' fill-rule="nonzero"' : "";
-  return `<path d="${d}" fill="${fill2}"${stroke}${rule}${opacityAttr(n8)}/>`;
+  const rule = n7._vectorFillRule === "evenodd" ? ' fill-rule="evenodd"' : stroke ? ' fill-rule="nonzero"' : "";
+  return `<path d="${d}" fill="${fill2}"${stroke}${rule}${opacityAttr(n7)}/>`;
 }
-function imageEl(n8, images) {
-  const href = n8._imageXObject ? images[n8._imageXObject] : void 0;
+function imageEl(n7, images) {
+  const href = n7._imageXObject ? images[n7._imageXObject] : void 0;
   if (!href || !/^data:image\//i.test(href)) return "";
-  if (r(n8.w) <= 0 || r(n8.h) <= 0) return "";
-  return `<image x="${r(n8.x)}" y="${r(n8.y)}" width="${r(n8.w)}" height="${r(n8.h)}" preserveAspectRatio="none" href="${escapeXml2(href)}"${opacityAttr(n8)}${rotateAttr(n8)}/>`;
+  if (r(n7.w) <= 0 || r(n7.h) <= 0) return "";
+  return `<image x="${r(n7.x)}" y="${r(n7.y)}" width="${r(n7.w)}" height="${r(n7.h)}" preserveAspectRatio="none" href="${escapeXml2(href)}"${opacityAttr(n7)}${rotateAttr(n7)}/>`;
 }
-function leadOf(n8) {
-  const v = +(n8.lineHeight ?? 0);
+function leadOf(n7) {
+  const v = +(n7.lineHeight ?? 0);
   return isFinite(v) && v > 0 ? v : 1.4;
 }
-function outlinedTextEl(n8) {
-  const lines = n8._outlinePath ?? [];
+function outlinedTextEl(n7) {
+  const lines = n7._outlinePath ?? [];
   if (!lines.length) return "";
-  const size = Math.max(1, +(n8.fontSize ?? 0) || 12);
-  const lineH = leadOf(n8) * size;
-  const baseline0 = n8.y + size * 0.8;
-  const fill2 = safeAttrColor(n8.fg, "#000000");
+  const size = Math.max(1, +(n7.fontSize ?? 0) || 12);
+  const lineH = leadOf(n7) * size;
+  const baseline0 = n7.y + size * 0.8;
+  const fill2 = safeAttrColor(n7.fg, "#000000");
   const parts = [];
   for (let i = 0; i < lines.length; i++) {
     const d = lines[i];
     if (!d) continue;
-    parts.push(`<g transform="translate(${r(n8.x)} ${r(baseline0 + i * lineH)})"><path d="${d}" fill="${fill2}"${opacityAttr(n8)}/></g>`);
+    parts.push(`<g transform="translate(${r(n7.x)} ${r(baseline0 + i * lineH)})"><path d="${d}" fill="${fill2}"${opacityAttr(n7)}/></g>`);
   }
   return parts.join("");
 }
-function textEl(n8) {
-  const text12 = String(n8.text ?? "");
+function textEl(n7) {
+  const text12 = String(n7.text ?? "");
   if (!text12.trim()) return "";
-  const size = Math.max(1, +(n8.fontSize ?? 0) || 12);
-  const lineH = leadOf(n8) * size;
-  const baseline0 = n8.y + size * 0.8;
-  const family2 = String(n8.fontFamily || "").trim();
+  const size = Math.max(1, +(n7.fontSize ?? 0) || 12);
+  const lineH = leadOf(n7) * size;
+  const baseline0 = n7.y + size * 0.8;
+  const family2 = String(n7.fontFamily || "").trim();
   const familyAttr = family2 ? ` font-family="${escapeXml2(family2)}, sans-serif"` : ` font-family="sans-serif"`;
-  const weight = n8.fontWeight != null && n8.fontWeight !== "" ? ` font-weight="${escapeXml2(String(n8.fontWeight))}"` : "";
-  const tracking = n8.tracking ? ` letter-spacing="${r(n8.tracking)}"` : "";
-  const rot = n8.rot ? ` transform="rotate(${r(n8.rot)} ${r(n8.x)} ${r(baseline0)})"` : "";
-  const spans = text12.split("\n").map((line, i) => `<tspan x="${r(n8.x)}" y="${r(baseline0 + i * lineH)}">${escapeXml2(line)}</tspan>`).join("");
-  return `<text xml:space="preserve" fill="${safeAttrColor(n8.fg, "#000000")}" font-size="${r(size)}"${familyAttr}${weight}${tracking}${opacityAttr(n8)}${rot}>${spans}</text>`;
+  const weight = n7.fontWeight != null && n7.fontWeight !== "" ? ` font-weight="${escapeXml2(String(n7.fontWeight))}"` : "";
+  const tracking = n7.tracking ? ` letter-spacing="${r(n7.tracking)}"` : "";
+  const rot = n7.rot ? ` transform="rotate(${r(n7.rot)} ${r(n7.x)} ${r(baseline0)})"` : "";
+  const spans = text12.split("\n").map((line, i) => `<tspan x="${r(n7.x)}" y="${r(baseline0 + i * lineH)}">${escapeXml2(line)}</tspan>`).join("");
+  return `<text xml:space="preserve" fill="${safeAttrColor(n7.fg, "#000000")}" font-size="${r(size)}"${familyAttr}${weight}${tracking}${opacityAttr(n7)}${rot}>${spans}</text>`;
 }
 function gradientMarkup(g2, id3, images) {
   const m2 = g2.matrix;
@@ -98977,13 +98977,13 @@ function gradientMarkup(g2, id3, images) {
   const fr = c[2] > 0 ? ` fr="${g4(c[2])}"` : "";
   return `<radialGradient id="${id3}" gradientUnits="userSpaceOnUse" cx="${g4(c[3])}" cy="${g4(c[4])}" r="${g4(c[5])}" fx="${g4(c[0])}" fy="${g4(c[1])}"${fr}${gt}>${stopsXml}</radialGradient>`;
 }
-function pdfNodeElementKind(n8) {
-  if (!n8) return "none";
-  if (n8._vectorPath) return "path";
-  if (n8._imageXObject) return "image";
-  if (n8._outlinePath?.length) return "outlined-text";
-  if (n8.kind === "text") return "text";
-  if (n8.kind === "box") return "box";
+function pdfNodeElementKind(n7) {
+  if (!n7) return "none";
+  if (n7._vectorPath) return "path";
+  if (n7._imageXObject) return "image";
+  if (n7._outlinePath?.length) return "outlined-text";
+  if (n7.kind === "text") return "text";
+  if (n7.kind === "box") return "box";
   return "none";
 }
 function pdfNodesToSvg(nodes, opts) {
@@ -99007,14 +99007,14 @@ function pdfNodesToSvg(nodes, opts) {
     }
     return id3;
   };
-  const clipWrap = (n8, el) => {
-    if (!el || !n8._clips?.length) return el;
-    const open3 = n8._clips.map((c) => `<g clip-path="url(#${clipId(c)})">`).join("");
-    return `${open3}${el}${"</g>".repeat(n8._clips.length)}`;
+  const clipWrap = (n7, el) => {
+    if (!el || !n7._clips?.length) return el;
+    const open3 = n7._clips.map((c) => `<g clip-path="url(#${clipId(c)})">`).join("");
+    return `${open3}${el}${"</g>".repeat(n7._clips.length)}`;
   };
   const gradDefs = /* @__PURE__ */ new Map();
-  const gradientFill = (n8) => {
-    const g2 = n8._gradient;
+  const gradientFill = (n7) => {
+    const g2 = n7._gradient;
     if (!g2) return "";
     const key2 = JSON.stringify([g2.type, g2.coords, g2.matrix, g2.extend, g2.stops, g2.domain, g2.tileKey]);
     let entry2 = gradDefs.get(key2);
@@ -99033,25 +99033,25 @@ function pdfNodesToSvg(nodes, opts) {
     openGroup = g2;
   };
   const usedGrads = /* @__PURE__ */ new Set();
-  const renderNode = (n8) => {
+  const renderNode = (n7) => {
     let el = "", gref = "";
-    switch (pdfNodeElementKind(n8)) {
+    switch (pdfNodeElementKind(n7)) {
       case "path":
-        gref = gradientFill(n8);
-        el = pathEl(n8, gref);
+        gref = gradientFill(n7);
+        el = pathEl(n7, gref);
         break;
       case "image":
-        el = imageEl(n8, images);
+        el = imageEl(n7, images);
         break;
       case "outlined-text":
-        el = outlinedTextEl(n8);
+        el = outlinedTextEl(n7);
         break;
       case "text":
-        el = textEl(n8);
+        el = textEl(n7);
         break;
       case "box":
-        gref = gradientFill(n8);
-        el = n8.shape === "ellipse" ? ellipseEl(n8, gref) : rectEl(n8, gref);
+        gref = gradientFill(n7);
+        el = n7.shape === "ellipse" ? ellipseEl(n7, gref) : rectEl(n7, gref);
         break;
       case "none":
         el = "";
@@ -99060,8 +99060,8 @@ function pdfNodesToSvg(nodes, opts) {
     return { el, gref };
   };
   const maskDefs = /* @__PURE__ */ new Map();
-  const maskWrap = (n8, el) => {
-    const m2 = n8._softMask;
+  const maskWrap = (n7, el) => {
+    const m2 = n7._softMask;
     if (!el || !m2 || !(m2.w > 0) || !(m2.h > 0)) return el;
     let entry2 = maskDefs.get(m2.key);
     if (!entry2) {
@@ -99100,14 +99100,14 @@ function pdfNodesToSvg(nodes, opts) {
     d.uses++;
     return `<use href="#${d.id}"/>`;
   };
-  for (const n8 of nodes ?? []) {
-    if (!n8 || !(n8.w > 0) || !(n8.h > 0)) continue;
-    const got = renderNode(n8);
-    const el = maskWrap(n8, got.el);
+  for (const n7 of nodes ?? []) {
+    if (!n7 || !(n7.w > 0) || !(n7.h > 0)) continue;
+    const got = renderNode(n7);
+    const el = maskWrap(n7, got.el);
     if (!el) continue;
     if (got.gref) usedGrads.add(got.gref.slice(5, -1));
-    setGroup(n8.group ?? "");
-    body.push(clipWrap(n8, useRef(el)));
+    setGroup(n7.group ?? "");
+    body.push(clipWrap(n7, useRef(el)));
   }
   setGroup("");
   const pathDefsXml = [...pathDefs.values()].filter((d) => d.uses > 1).map((d) => {
@@ -99143,27 +99143,27 @@ function assertPdfSvgBudgets(nodes) {
       throw new Error(`pdfNodesToSvg: source strings exceed ${PDF_SVG_MAX_SOURCE_CHARS} characters`);
     }
   };
-  const inspect = (n8, maskChild) => {
-    if (!n8 || typeof n8 !== "object") return;
-    charge(n8.text, PDF_SVG_MAX_SOURCE_CHARS, "text");
-    if (typeof n8.text === "string") {
+  const inspect = (n7, maskChild) => {
+    if (!n7 || typeof n7 !== "object") return;
+    charge(n7.text, PDF_SVG_MAX_SOURCE_CHARS, "text");
+    if (typeof n7.text === "string") {
       let lines = 1;
-      for (let at = n8.text.indexOf("\n"); at >= 0; at = n8.text.indexOf("\n", at + 1)) {
+      for (let at = n7.text.indexOf("\n"); at >= 0; at = n7.text.indexOf("\n", at + 1)) {
         if (++lines > PDF_SVG_MAX_TEXT_LINES) {
           throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_TEXT_LINES} text lines`);
         }
       }
     }
-    charge(n8.group, PDF_SVG_MAX_SOURCE_CHARS, "group");
-    charge(n8._vectorPath, PDF_SVG_MAX_PATH_D, "vector path");
-    const clips2 = n8._clips;
+    charge(n7.group, PDF_SVG_MAX_SOURCE_CHARS, "group");
+    charge(n7._vectorPath, PDF_SVG_MAX_PATH_D, "vector path");
+    const clips2 = n7._clips;
     if (clips2 !== void 0) {
       if (!Array.isArray(clips2) || clips2.length > PDF_SVG_MAX_CLIPS) {
         throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_CLIPS} clips on one node`);
       }
       for (const clip4 of clips2) charge(clip4?.d, PDF_SVG_MAX_CLIP_D, "clip path");
     }
-    const outlines = n8._outlinePath;
+    const outlines = n7._outlinePath;
     if (outlines !== void 0) {
       if (!Array.isArray(outlines) || outlines.length > PDF_SVG_MAX_OUTLINE_LINES) {
         throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_OUTLINE_LINES} outline lines`);
@@ -99178,16 +99178,16 @@ function assertPdfSvgBudgets(nodes) {
         throw new Error(`pdfNodesToSvg: outline paths exceed ${PDF_SVG_MAX_OUTLINE_D} characters`);
       }
     }
-    const gradient2 = n8._gradient;
+    const gradient2 = n7._gradient;
     if (gradient2?.stops !== void 0 && (!Array.isArray(gradient2.stops) || gradient2.stops.length > PDF_SVG_MAX_GRADIENT_STOPS)) {
       throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_GRADIENT_STOPS} gradient stops`);
     }
-    if (!maskChild && n8._softMask) {
-      const children2 = n8._softMask.nodes;
+    if (!maskChild && n7._softMask) {
+      const children2 = n7._softMask.nodes;
       if (!Array.isArray(children2) || children2.length > PDF_SVG_MAX_MASK_NODES) {
         throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_MASK_NODES} soft-mask nodes`);
       }
-      charge(n8._softMask.key, PDF_SVG_MAX_SOURCE_CHARS, "soft-mask key");
+      charge(n7._softMask.key, PDF_SVG_MAX_SOURCE_CHARS, "soft-mask key");
       for (const child2 of children2) inspect(child2, true);
     }
   };
@@ -99239,23 +99239,23 @@ function rotatedAabb(b, deg2, ax, ay) {
   }
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
-function pdfNodeExtent(n8) {
+function pdfNodeExtent(n7) {
   try {
-    if (!n8 || typeof n8 !== "object") return EMPTY_EXTENT;
-    if (!finite2(n8.x) || !finite2(n8.y) || !finite2(n8.w) || !finite2(n8.h)) return null;
-    if (n8.rot != null && !finite2(n8.rot)) return null;
-    if (Math.abs(n8.x) > PDF_SVG_MAX_COORD || Math.abs(n8.y) > PDF_SVG_MAX_COORD || Math.abs(n8.w) > PDF_SVG_MAX_COORD || Math.abs(n8.h) > PDF_SVG_MAX_COORD) return null;
-    if (!(n8.w > 0) || !(n8.h > 0)) return EMPTY_EXTENT;
-    const kind = pdfNodeElementKind(n8);
-    const rot = n8.rot || 0;
+    if (!n7 || typeof n7 !== "object") return EMPTY_EXTENT;
+    if (!finite2(n7.x) || !finite2(n7.y) || !finite2(n7.w) || !finite2(n7.h)) return null;
+    if (n7.rot != null && !finite2(n7.rot)) return null;
+    if (Math.abs(n7.x) > PDF_SVG_MAX_COORD || Math.abs(n7.y) > PDF_SVG_MAX_COORD || Math.abs(n7.w) > PDF_SVG_MAX_COORD || Math.abs(n7.h) > PDF_SVG_MAX_COORD) return null;
+    if (!(n7.w > 0) || !(n7.h > 0)) return EMPTY_EXTENT;
+    const kind = pdfNodeElementKind(n7);
+    const rot = n7.rot || 0;
     let box4;
     if (kind === "none") {
       box4 = EMPTY_EXTENT;
     } else if (kind === "outlined-text") {
-      const size = Math.max(1, +(n8.fontSize ?? 0) || 12);
-      const lineH = leadOf(n8) * size;
-      const baseline0 = n8.y + size * 0.8;
-      const lines = n8._outlinePath ?? [];
+      const size = Math.max(1, +(n7.fontSize ?? 0) || 12);
+      const lineH = leadOf(n7) * size;
+      const baseline0 = n7.y + size * 0.8;
+      const lines = n7._outlinePath ?? [];
       if (!Array.isArray(lines) || lines.length > PDF_SVG_MAX_OUTLINE_LINES) return null;
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       let budget3 = PDF_SVG_MAX_OUTLINE_D, scannable = true;
@@ -99269,8 +99269,8 @@ function pdfNodeExtent(n8) {
           break;
         }
         const dy = baseline0 + i * lineH;
-        if (n8.x + lb.x < minX) minX = n8.x + lb.x;
-        if (n8.x + lb.x + lb.w > maxX) maxX = n8.x + lb.x + lb.w;
+        if (n7.x + lb.x < minX) minX = n7.x + lb.x;
+        if (n7.x + lb.x + lb.w > maxX) maxX = n7.x + lb.x + lb.w;
         if (dy + lb.y < minY) minY = dy + lb.y;
         if (dy + lb.y + lb.h > maxY) maxY = dy + lb.y + lb.h;
       }
@@ -99278,9 +99278,9 @@ function pdfNodeExtent(n8) {
       else if (!isFinite(minX)) box4 = EMPTY_EXTENT;
       else box4 = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
     } else if (kind === "text") {
-      const size = Math.max(1, +(n8.fontSize ?? 0) || 12);
-      const baseline0 = n8.y + size * 0.8;
-      const text12 = String(n8.text ?? "");
+      const size = Math.max(1, +(n7.fontSize ?? 0) || 12);
+      const baseline0 = n7.y + size * 0.8;
+      const text12 = String(n7.text ?? "");
       if (!text12.trim()) {
         box4 = EMPTY_EXTENT;
       } else if (rot) {
@@ -99288,12 +99288,12 @@ function pdfNodeExtent(n8) {
       } else {
         const lineCount = Math.max(text12.split("\n").length, 1);
         if (!finite2(lineCount) || lineCount > 1e6) return null;
-        const top = n8.y - size * 0.5;
-        const bottom = baseline0 + (lineCount - 1) * leadOf(n8) * size + size * 0.5;
+        const top = n7.y - size * 0.5;
+        const bottom = baseline0 + (lineCount - 1) * leadOf(n7) * size + size * 0.5;
         box4 = { x: -PLANE, y: top, w: 2 * PLANE, h: bottom - top };
       }
     } else if (kind === "path") {
-      const d = vectorPathD(n8);
+      const d = vectorPathD(n7);
       if (!d) {
         box4 = EMPTY_EXTENT;
       } else {
@@ -99301,14 +99301,14 @@ function pdfNodeExtent(n8) {
         if (!hull) box4 = planeBox();
         else {
           box4 = {
-            x: Math.min(n8.x, hull.x),
-            y: Math.min(n8.y, hull.y),
-            w: Math.max(n8.x + n8.w, hull.x + hull.w) - Math.min(n8.x, hull.x),
-            h: Math.max(n8.y + n8.h, hull.y + hull.h) - Math.min(n8.y, hull.y)
+            x: Math.min(n7.x, hull.x),
+            y: Math.min(n7.y, hull.y),
+            w: Math.max(n7.x + n7.w, hull.x + hull.w) - Math.min(n7.x, hull.x),
+            h: Math.max(n7.y + n7.h, hull.y + hull.h) - Math.min(n7.y, hull.y)
           };
         }
       }
-      const st = n8._vectorStroke;
+      const st = n7._vectorStroke;
       if (st && st.color && box4 !== EMPTY_EXTENT) {
         const sw = Math.max(0.3, +st.width || 1);
         if (!finite2(sw)) return null;
@@ -99316,11 +99316,11 @@ function pdfNodeExtent(n8) {
         box4 = { x: box4.x - o, y: box4.y - o, w: box4.w + 2 * o, h: box4.h + 2 * o };
       }
     } else {
-      box4 = { x: n8.x, y: n8.y, w: n8.w, h: n8.h };
-      if (rot) box4 = rotatedAabb(box4, rot, n8.x + n8.w / 2, n8.y + n8.h / 2);
+      box4 = { x: n7.x, y: n7.y, w: n7.w, h: n7.h };
+      if (rot) box4 = rotatedAabb(box4, rot, n7.x + n7.w / 2, n7.y + n7.h / 2);
     }
     if (!finite2(box4.x) || !finite2(box4.y) || !finite2(box4.w) || !finite2(box4.h)) return null;
-    const clips2 = n8._clips;
+    const clips2 = n7._clips;
     if (clips2 && clips2.length) {
       if (!Array.isArray(clips2) || clips2.length > PDF_SVG_MAX_CLIPS) return null;
       for (const c of clips2) {
@@ -99330,7 +99330,7 @@ function pdfNodeExtent(n8) {
         if (!(box4.w > 0) || !(box4.h > 0)) return EMPTY_EXTENT;
       }
     }
-    const sm = n8._softMask;
+    const sm = n7._softMask;
     if (sm && finite2(sm.x) && finite2(sm.y) && finite2(sm.w) && finite2(sm.h) && sm.w > 0 && sm.h > 0) {
       box4 = intersectAa(box4, sm);
       if (!(box4.w > 0) || !(box4.h > 0)) return EMPTY_EXTENT;
@@ -99354,17 +99354,17 @@ function cullPdfNodes(nodes, win) {
   const wx2 = win.x + win.width + pad, wy2 = win.y + win.height + pad;
   const out = [];
   let unbounded = 0;
-  for (const n8 of list4) {
+  for (const n7 of list4) {
     let keep2 = true;
     try {
-      const e = pdfNodeExtent(n8);
+      const e = pdfNodeExtent(n7);
       if (e === null) unbounded++;
       else keep2 = e.w > 0 && e.h > 0 && e.x < wx2 && e.x + e.w > wx && e.y < wy2 && e.y + e.h > wy;
     } catch {
       unbounded++;
       keep2 = true;
     }
-    if (keep2) out.push(n8);
+    if (keep2) out.push(n7);
   }
   return { nodes: out, total, dropped: total - out.length, unbounded };
 }
@@ -99373,8 +99373,8 @@ var init_pdf_svg = __esm({
   "engine/src/pdf-svg.ts"() {
     "use strict";
     r = (v) => {
-      const n8 = Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 100) / 100;
-      return isFinite(n8) ? n8 : 0;
+      const n7 = Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 100) / 100;
+      return isFinite(n7) ? n7 : 0;
     };
     escapeXml2 = (s) => String(s).replace(/[&<>"']/g, (c) => c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;");
     safeAttrColor = (v, dflt) => {
@@ -99382,11 +99382,11 @@ var init_pdf_svg = __esm({
       if (s.toLowerCase() === "none") return "none";
       return /^#[0-9a-fA-F]{3,8}$/.test(s) ? s : dflt;
     };
-    opacityAttr = (n8) => {
-      const v = typeof n8.opacity === "number" ? n8.opacity : 100;
+    opacityAttr = (n7) => {
+      const v = typeof n7.opacity === "number" ? n7.opacity : 100;
       return v >= 100 || v < 0 ? "" : ` opacity="${r(v / 100)}"`;
     };
-    rotateAttr = (n8) => n8.rot ? ` transform="rotate(${r(n8.rot)} ${r(n8.x + n8.w / 2)} ${r(n8.y + n8.h / 2)})"` : "";
+    rotateAttr = (n7) => n7.rot ? ` transform="rotate(${r(n7.rot)} ${r(n7.x + n7.w / 2)} ${r(n7.y + n7.h / 2)})"` : "";
     g4 = (v) => Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 1e4) / 1e4;
     g6 = (v) => Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 1e6) / 1e6;
     clamp018 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
@@ -99411,17 +99411,17 @@ var init_pdf_svg = __esm({
 });
 
 // engine/src/pdf-artwork.ts
-function isVectorPaint(n8) {
-  if (!n8 || n8.kind === "text") return false;
-  if (n8._vectorPath) return true;
-  return n8.kind === "box" && !!(n8.fill || n8._vectorFill);
+function isVectorPaint(n7) {
+  if (!n7 || n7.kind === "text") return false;
+  if (n7._vectorPath) return true;
+  return n7.kind === "box" && !!(n7.fill || n7._vectorFill);
 }
-function isPlainRect(n8) {
-  if (n8._vectorPath) return !hasCurve(n8);
-  return n8.kind === "box" && n8.shape !== "ellipse";
+function isPlainRect(n7) {
+  if (n7._vectorPath) return !hasCurve(n7);
+  return n7.kind === "box" && n7.shape !== "ellipse";
 }
-function fillOf(n8) {
-  return String(n8._vectorFill || n8.fill || "");
+function fillOf(n7) {
+  return String(n7._vectorFill || n7.fill || "");
 }
 function expand(r5, by) {
   return { x: r5.x - by, y: r5.y - by, w: r5.w + by * 2, h: r5.h + by * 2 };
@@ -99518,15 +99518,15 @@ function findVectorArtwork(nodes, opts = {}) {
   const pageLong = Math.max(opts.width ?? 0, opts.height ?? 0);
   const items2 = [];
   for (let i = 0; i < nodes.length && i < PDF_ARTWORK_MAX_NODES; i++) {
-    const n8 = nodes[i];
-    if (!isVectorPaint(n8)) continue;
-    const e = pdfNodeExtent(n8);
+    const n7 = nodes[i];
+    if (!isVectorPaint(n7)) continue;
+    const e = pdfNodeExtent(n7);
     if (!e || !(e.w > 0) || !(e.h > 0)) continue;
-    if (isPlainRect(n8)) {
+    if (isPlainRect(n7)) {
       if (pageArea > 1 && e.w * e.h / pageArea > PANEL_FRACTION) continue;
       if (pageLong > 0 && Math.max(e.w, e.h) > pageLong * BAR_SPAN) continue;
     }
-    items2.push({ i, rect: { x: e.x, y: e.y, w: e.w, h: e.h }, group: String(n8.group ?? ""), plain: isPlainRect(n8) });
+    items2.push({ i, rect: { x: e.x, y: e.y, w: e.w, h: e.h }, group: String(n7.group ?? ""), plain: isPlainRect(n7) });
   }
   if (items2.length < MIN_SHAPES) return out;
   for (const c of cluster(items2)) {
@@ -99539,10 +99539,10 @@ function findVectorArtwork(nodes, opts = {}) {
     const long = Math.max(rect.w, rect.h);
     const short = Math.max(1e-6, Math.min(rect.w, rect.h));
     if (long / short > MAX_ASPECT) continue;
-    const curved = members.some((n8) => hasCurve(n8) || n8.shape === "ellipse");
+    const curved = members.some((n7) => hasCurve(n7) || n7.shape === "ellipse");
     const fillCounts = /* @__PURE__ */ new Map();
-    for (const n8 of members) {
-      const f = fillOf(n8);
+    for (const n7 of members) {
+      const f = fillOf(n7);
       if (f) fillCounts.set(f, (fillCounts.get(f) ?? 0) + 1);
     }
     const fills = [...fillCounts.entries()].sort((a, b) => b[1] - a[1]).map(([f]) => f);
@@ -99582,7 +99582,7 @@ var init_pdf_artwork = __esm({
     MAX_ASPECT = 12;
     PDF_ARTWORK_MAX_NODES = 4e3;
     PDF_ARTWORK_MAX_CANDIDATES = 60;
-    hasCurve = (n8) => /C/.test(String(n8._vectorPath ?? ""));
+    hasCurve = (n7) => /C/.test(String(n7._vectorPath ?? ""));
     diagonal = (r5) => Math.hypot(r5.w, r5.h);
   }
 });
@@ -99611,18 +99611,18 @@ function unionArea(rects) {
   }
   return area2;
 }
-function coverFill(n8) {
-  if (n8._softMask) return null;
-  if (typeof n8.opacity === "number" && n8.opacity < OPAQUE_MIN) return null;
-  if (n8.kind === "image") return "image";
-  if (n8.kind !== "box") return null;
-  const fill2 = n8._vectorFill || n8.fill;
+function coverFill(n7) {
+  if (n7._softMask) return null;
+  if (typeof n7.opacity === "number" && n7.opacity < OPAQUE_MIN) return null;
+  if (n7.kind === "image") return "image";
+  if (n7.kind !== "box") return null;
+  const fill2 = n7._vectorFill || n7.fill;
   return fill2 ? String(fill2) : null;
 }
-function textRect(n8) {
-  if (n8.kind !== "text" || !n8.text || !n8.text.slice(0, PDF_REDACTION_MAX_TEXT_CHARS).trim()) return null;
-  if (!isFinite(n8.x) || !isFinite(n8.y) || !(n8.w > 0) || !(n8.h > 0)) return null;
-  return { x: n8.x, y: n8.y, w: n8.w, h: n8.h };
+function textRect(n7) {
+  if (n7.kind !== "text" || !n7.text || !n7.text.slice(0, PDF_REDACTION_MAX_TEXT_CHARS).trim()) return null;
+  if (!isFinite(n7.x) || !isFinite(n7.y) || !(n7.w > 0) || !(n7.h > 0)) return null;
+  return { x: n7.x, y: n7.y, w: n7.w, h: n7.h };
 }
 function findHiddenText(nodes, opts = {}) {
   const minCoverage = opts.minCoverage ?? DEFAULT_MIN_COVERAGE;
@@ -99630,10 +99630,10 @@ function findHiddenText(nodes, opts = {}) {
   const covers4 = [];
   const nodeCount2 = Math.min(Array.isArray(nodes) ? nodes.length : 0, PDF_REDACTION_MAX_NODES);
   for (let i = 0; i < nodeCount2; i++) {
-    const n8 = nodes[i];
-    const fill2 = coverFill(n8);
-    if (!fill2 || !isFinite(n8.x) || !isFinite(n8.y) || !(n8.w > 0) || !(n8.h > 0)) continue;
-    covers4.push({ i, rect: { x: n8.x, y: n8.y, w: n8.w, h: n8.h }, fill: fill2 });
+    const n7 = nodes[i];
+    const fill2 = coverFill(n7);
+    if (!fill2 || !isFinite(n7.x) || !isFinite(n7.y) || !(n7.w > 0) || !(n7.h > 0)) continue;
+    covers4.push({ i, rect: { x: n7.x, y: n7.y, w: n7.w, h: n7.h }, fill: fill2 });
   }
   if (!covers4.length) return out;
   for (let i = 0; i < nodeCount2; i++) {
@@ -99693,41 +99693,41 @@ function median3(xs) {
   const m2 = s.length >> 1;
   return s.length % 2 ? s[m2] : (s[m2 - 1] + s[m2]) / 2;
 }
-function isBold(n8) {
-  const w = n8.fontWeight;
+function isBold(n7) {
+  const w = n7.fontWeight;
   if (typeof w === "number") return w >= 600;
   if (typeof w === "string") return /bold|black|heavy|semibold/i.test(w);
-  return /bold|black|heavy/i.test(String(n8.fontFamily ?? ""));
+  return /bold|black|heavy/i.test(String(n7.fontFamily ?? ""));
 }
 function escapeLeading(s) {
   return s.replace(/^([#>|]|\d+[.)]\s|[-*+]\s)/, "\\$1");
 }
-function rightEdge(n8, lineIndex, text12, size) {
-  const ink = Array.isArray(n8.lineInk) ? n8.lineInk[lineIndex] : void 0;
-  const tracking = typeof n8.tracking === "number" && Number.isFinite(n8.tracking) && n8.tracking > 0 ? { tracking: n8.tracking } : {};
-  if (typeof ink === "number" && Number.isFinite(ink) && ink > 0) return { right: n8.x + ink, measured: true, ...tracking };
-  return { right: n8.x + text12.length * size * 0.55, ...tracking };
+function rightEdge(n7, lineIndex, text12, size) {
+  const ink = Array.isArray(n7.lineInk) ? n7.lineInk[lineIndex] : void 0;
+  const tracking = typeof n7.tracking === "number" && Number.isFinite(n7.tracking) && n7.tracking > 0 ? { tracking: n7.tracking } : {};
+  if (typeof ink === "number" && Number.isFinite(ink) && ink > 0) return { right: n7.x + ink, measured: true, ...tracking };
+  return { right: n7.x + text12.length * size * 0.55, ...tracking };
 }
 function toItems(nodes) {
   const items2 = [];
   let rotated = 0;
   let chars = 0;
   for (let nodeIndex = 0; nodeIndex < nodes.length && nodeIndex < PDF_TEXT_MAX_NODES; nodeIndex++) {
-    const n8 = nodes[nodeIndex];
-    if (n8.kind !== "text") continue;
-    const source = typeof n8.text === "string" ? n8.text : "";
+    const n7 = nodes[nodeIndex];
+    if (n7.kind !== "text") continue;
+    const source = typeof n7.text === "string" ? n7.text : "";
     const remaining = PDF_TEXT_MAX_CHARS - chars;
     if (remaining <= 0 || items2.length >= PDF_TEXT_MAX_ITEMS) break;
     const raw = source.slice(0, remaining);
     chars += raw.length;
     if (!raw.trim()) continue;
-    if (Math.abs(n8.rot ?? 0) > MAX_SKEW_DEG) {
+    if (Math.abs(n7.rot ?? 0) > MAX_SKEW_DEG) {
       rotated++;
       continue;
     }
-    const size = Math.max(1, n8.fontSize ?? 12);
-    const bold = isBold(n8);
-    const font = String(n8.fontFamily ?? "");
+    const size = Math.max(1, n7.fontSize ?? 12);
+    const bold = isBold(n7);
+    const font = String(n7.fontFamily ?? "");
     let lineStart = 0;
     let lineIndex = 0;
     while (lineStart <= raw.length && items2.length < PDF_TEXT_MAX_ITEMS) {
@@ -99737,18 +99737,18 @@ function toItems(nodes) {
       if (text12.trim()) {
         items2.push({
           text: text12,
-          x: n8.x,
+          x: n7.x,
           // Undo pdf-map's box-top shift, then step down one line per split line
           // at the node's REAL leading when the interpreter measured one.
-          baseline: n8.y + size * 0.8 + lineIndex * size * (typeof n8.lineHeight === "number" && isFinite(n8.lineHeight) && n8.lineHeight > 0 ? n8.lineHeight : 1.4),
+          baseline: n7.y + size * 0.8 + lineIndex * size * (typeof n7.lineHeight === "number" && isFinite(n7.lineHeight) && n7.lineHeight > 0 ? n7.lineHeight : 1.4),
           // The measured ink width when the interpreter supplied one; otherwise
           // 0.55 em a character, pdf-map's own default advance, so the two agree.
-          ...rightEdge(n8, lineIndex, text12, size),
-          ...newline < 0 && n8.spaceAfter ? { spaceAfter: true } : {},
+          ...rightEdge(n7, lineIndex, text12, size),
+          ...newline < 0 && n7.spaceAfter ? { spaceAfter: true } : {},
           size,
           font,
           bold,
-          ...typeof n8.mcid === "number" ? { mcid: n8.mcid } : {}
+          ...typeof n7.mcid === "number" ? { mcid: n7.mcid } : {}
         });
       }
       if (newline < 0) break;
@@ -99949,8 +99949,8 @@ function dominantStyle(lines) {
   }
   let size = lines[0]?.size ?? 0;
   let best = -1;
-  for (const [s, n8] of chars) if (n8 > best) {
-    best = n8;
+  for (const [s, n7] of chars) if (n7 > best) {
+    best = n7;
     size = s;
   }
   return { size, bold: all > 0 && bold / all > 0.5 };
@@ -100230,8 +100230,8 @@ function markHeadings(blocks) {
   for (const b of blocks) chars.set(b.size, (chars.get(b.size) ?? 0) + b.text.length);
   let body = 0;
   let best = -1;
-  for (const [size, n8] of chars) if (n8 > best) {
-    best = n8;
+  for (const [size, n7] of chars) if (n7 > best) {
+    best = n7;
     body = size;
   }
   if (!body) return;
@@ -100277,7 +100277,7 @@ function extractPageText(nodes, opts = {}) {
   const { items: items2, rotated } = toItems(boundedNodes);
   if (!items2.length) {
     const pageArea = Math.max(1, (opts.width ?? 0) * (opts.height ?? 0));
-    const covered = boundedNodes.some((n8) => n8.kind === "image" && n8.w * n8.h / pageArea >= SCAN_COVERAGE);
+    const covered = boundedNodes.some((n7) => n7.kind === "image" && n7.w * n7.h / pageArea >= SCAN_COVERAGE);
     return {
       blocks: [],
       lines: [],
@@ -100293,8 +100293,8 @@ function extractPageText(nodes, opts = {}) {
   for (const it of items2) sizeChars.set(it.size, (sizeChars.get(it.size) ?? 0) + it.text.length);
   let bodySize = items2[0].size;
   let bestChars = -1;
-  for (const [s, n8] of sizeChars) if (n8 > bestChars) {
-    bestChars = n8;
+  for (const [s, n7] of sizeChars) if (n7 > bestChars) {
+    bestChars = n7;
     bodySize = s;
   }
   if (opts.tagged?.length) {
@@ -100319,7 +100319,7 @@ function extractPageText(nodes, opts = {}) {
     }
   }
   const flows = readRegion(items2, 0, { steps: 0, minGap: bodySize * GUTTER_SIZES, bodySize });
-  const columns = flows.reduce((n8, f) => Math.max(n8, f.column + 1), 1);
+  const columns = flows.reduce((n7, f) => Math.max(n7, f.column + 1), 1);
   const blocks = flows.flatMap((f) => blocksFromColumn(toLines(f.items), f.column));
   markHeadings(blocks);
   return {
@@ -100526,8 +100526,8 @@ function projectGamutSolid(solid, view) {
     const cam = q.pts.map(project);
     let area2 = 0;
     for (let i = 0; i < cam.length; i++) {
-      const p = cam[i], n8 = cam[(i + 1) % cam.length];
-      area2 += p.x * n8.y - n8.x * p.y;
+      const p = cam[i], n7 = cam[(i + 1) % cam.length];
+      area2 += p.x * n7.y - n7.x * p.y;
     }
     if (solid.embed !== "landscape" && area2 <= 0) continue;
     const depth = cam.reduce((s, p) => s + p.z, 0) / cam.length;
@@ -100566,16 +100566,16 @@ function projectSolidPoint(solid, o, view) {
 }
 function shadedSolidFill(o, k, encode = "srgb") {
   const [r5, g2, b] = encodeOklch(o.l, o.c, o.h, encode);
-  const n8 = (v) => Math.min(1, Math.max(0, v * k)).toFixed(4);
-  return encode === "display-p3" ? `color(display-p3 ${n8(r5)} ${n8(g2)} ${n8(b)})` : `rgb(${Math.round(+n8(r5) * 255)} ${Math.round(+n8(g2) * 255)} ${Math.round(+n8(b) * 255)})`;
+  const n7 = (v) => Math.min(1, Math.max(0, v * k)).toFixed(4);
+  return encode === "display-p3" ? `color(display-p3 ${n7(r5)} ${n7(g2)} ${n7(b)})` : `rgb(${Math.round(+n7(r5) * 255)} ${Math.round(+n7(g2) * 255)} ${Math.round(+n7(b) * 255)})`;
 }
 function gamutSolidToSvg(projected, opts = {}) {
   const size = opts.size && opts.size > 0 ? opts.size : 512;
   const encode = opts.encode ?? "srgb";
   const dp = Math.max(0, Math.floor(opts.precision ?? 2));
   const fmt4 = (v) => {
-    const n8 = Number.isFinite(v) ? v : 0;
-    return parseFloat(n8.toFixed(dp)).toString();
+    const n7 = Number.isFinite(v) ? v : 0;
+    return parseFloat(n7.toFixed(dp)).toString();
   };
   const polys = [];
   for (const q of projected) {
@@ -100649,14 +100649,14 @@ function imageColorCloud(data, width, height, opts) {
     const own4 = space === "display-p3" ? "p3" : "srgb";
     if (inGamut(l, c, hue, own4) && !inGamut(l, c + nearEdge, hue, own4)) atRisk++;
   }
-  const points = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, maxPoints).map(([key2, n8]) => {
+  const points = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, maxPoints).map(([key2, n7]) => {
     const step = 256 / GRID;
     const half = step / 2;
     const r5 = Math.min(255, Math.round((key2 >> GRID_BITS * 2 & GRID - 1) * step + half));
     const g2 = Math.min(255, Math.round((key2 >> GRID_BITS & GRID - 1) * step + half));
     const b = Math.min(255, Math.round((key2 & GRID - 1) * step + half));
     const { l, c, hue } = toOklch2(r5, g2, b, space);
-    return { l, c, h: hue, n: n8, hex: hexOf4(r5, g2, b, space) };
+    return { l, c, h: hue, n: n7, hex: hexOf4(r5, g2, b, space) };
   });
   let dominantHue = null;
   let bestBin = -1, bestN = 0;
@@ -100669,7 +100669,7 @@ function imageColorCloud(data, width, height, opts) {
   if (bestBin >= 0 && bestN > 0) {
     dominantHue = { h: bestBin * 30 + 15, share: bestN / Math.max(1, sampled) };
   }
-  const per = (n8) => sampled ? n8 / sampled : 0;
+  const per = (n7) => sampled ? n7 / sampled : 0;
   return {
     space,
     points,
@@ -100814,9 +100814,9 @@ function iccResolvedIntent(profile2, direction2, intent) {
   try {
     if (!profile2 || typeof profile2.toLab !== "function" || typeof profile2.fromLab !== "function") return null;
     if (!Object.hasOwn(FALLBACK, intent)) return null;
-    const n8 = profile2.nChannels;
-    if (!Number.isInteger(n8) || n8 < 1) return null;
-    const midDevice = new Array(n8).fill(0.5);
+    const n7 = profile2.nChannels;
+    if (!Number.isInteger(n7) || n7 < 1) return null;
+    const midDevice = new Array(n7).fill(0.5);
     for (const cand of FALLBACK[intent]) {
       const ok3 = direction2 === "toPcs" ? profile2.toLab(cand, midDevice) !== null : profile2.fromLab(cand, [50, 0, 0]) !== null;
       if (ok3) return cand;
@@ -100925,11 +100925,11 @@ function tetraEval(lat, u, v, w, out, o) {
   }
 }
 function rowEvaluator(profile2, direction2, intent) {
-  const n8 = profile2.nChannels;
-  if (n8 !== 1 && n8 !== 3) return null;
+  const n7 = profile2.nChannels;
+  if (n7 !== 1 && n7 !== 3) return null;
   const direct = !iccRoundTripDecides(profile2);
   if (!direct) {
-    if (n8 !== 3) return null;
+    if (n7 !== 3) return null;
     const lat = getLattice(profile2, direction2, intent);
     if (!lat) return null;
     if (direction2 === "toPcs") {
@@ -100950,7 +100950,7 @@ function rowEvaluator(profile2, direction2, intent) {
   if (direction2 === "toPcs") {
     return (row) => {
       for (let i = 0; i < row.length; i += 4) {
-        const dev = n8 === 1 ? [san2(row[i])] : [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])];
+        const dev = n7 === 1 ? [san2(row[i])] : [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])];
         const lab = profile2.toLab(intent, dev);
         if (!lab) return false;
         row[i] = lab[0];
@@ -100963,8 +100963,8 @@ function rowEvaluator(profile2, direction2, intent) {
   return (row) => {
     for (let i = 0; i < row.length; i += 4) {
       const dev = profile2.fromLab(intent, [san2(row[i]), san2(row[i + 1]), san2(row[i + 2])]);
-      if (!dev || dev.length !== n8) return false;
-      if (n8 === 1) {
+      if (!dev || dev.length !== n7) return false;
+      if (n7 === 1) {
         row[i] = dev[0];
         row[i + 1] = dev[0];
         row[i + 2] = dev[0];
@@ -101081,8 +101081,8 @@ function chromaKeyAlpha(rgba2, width, height, opts) {
   const tol = Math.max(0, opts.tolerance);
   const soft = Math.max(1e-4, opts.softness);
   const sp = Math.max(0, Math.min(1, opts.spill ?? 0));
-  const n8 = Math.min(Math.max(0, Math.floor(width * height)), Math.floor(out.length / 4));
-  for (let p = 0; p < n8; p++) {
+  const n7 = Math.min(Math.max(0, Math.floor(width * height)), Math.floor(out.length / 4));
+  for (let p = 0; p < n7; p++) {
     const i = p * 4;
     const r5 = out[i], g2 = out[i + 1], b = out[i + 2];
     const [L, a, bb] = rgbToOklab(r5, g2, b);
@@ -101172,9 +101172,9 @@ function inpaintTelea(frame, mask, opts = {}) {
   const wy1 = Math.min(height - 1, maxY + margin);
   const ww = wx1 - wx0 + 1;
   const wh = wy1 - wy0 + 1;
-  const n8 = ww * wh;
-  const flags = new Uint8Array(n8);
-  const T = new Float32Array(n8);
+  const n7 = ww * wh;
+  const flags = new Uint8Array(n7);
+  const T = new Float32Array(n7);
   for (let y = 0; y < wh; y++) {
     const src = (wy0 + y) * width + wx0;
     const dst = y * ww;
@@ -101184,7 +101184,7 @@ function inpaintTelea(frame, mask, opts = {}) {
       T[dst + x] = FAR_T;
     }
   }
-  const heap = new THeap(n8, T);
+  const heap = new THeap(n7, T);
   for (let y = 0; y < wh; y++) {
     const row = y * ww;
     for (let x = 0; x < ww; x++) {
@@ -101407,7 +101407,7 @@ function healCoverageBounds(coverage, width, height) {
 function score(rgba2, W, H, role, wx0, wy0, ww, wh, dx, dy) {
   if (Math.abs(dx) < ww && Math.abs(dy) < wh) return Infinity;
   if (wx0 + dx < 0 || wy0 + dy < 0 || wx0 + ww + dx > W || wy0 + wh + dy > H) return Infinity;
-  let sum = 0, n8 = 0;
+  let sum = 0, n7 = 0;
   for (let y = 0; y < wh; y++) {
     for (let x = 0; x < ww; x++) {
       if (role[y * ww + x] !== RING) continue;
@@ -101417,10 +101417,10 @@ function score(rgba2, W, H, role, wx0, wy0, ww, wh, dx, dy) {
         const d = rgba2[t + c] - rgba2[s + c];
         sum += d * d;
       }
-      n8++;
+      n7++;
     }
   }
-  return n8 ? sum / n8 : Infinity;
+  return n7 ? sum / n7 : Infinity;
 }
 function solve(value2, role, w, h, depth) {
   let iterations = 300;
@@ -101475,7 +101475,7 @@ function solve(value2, role, w, h, depth) {
         const p = y * w + x;
         if (role[p] !== HOLE) continue;
         sum.fill(0);
-        let n8 = 0;
+        let n7 = 0;
         for (let k = 0; k < 4; k++) {
           const nx = k === 0 ? x - 1 : k === 1 ? x + 1 : x;
           const ny = k === 2 ? y - 1 : k === 3 ? y + 1 : y;
@@ -101483,12 +101483,12 @@ function solve(value2, role, w, h, depth) {
           const q = ny * w + nx;
           if (role[q] === OUTSIDE) continue;
           for (let c = 0; c < 4; c++) sum[c] = f32(sum[c] + value2[q * 4 + c]);
-          n8++;
+          n7++;
         }
-        if (!n8) continue;
+        if (!n7) continue;
         for (let c = 0; c < 4; c++) {
           const v = value2[p * 4 + c];
-          value2[p * 4 + c] = f32(v + f32(omega * f32(f32(sum[c] / n8) - v)));
+          value2[p * 4 + c] = f32(v + f32(omega * f32(f32(sum[c] / n7) - v)));
         }
       }
     }
@@ -101581,16 +101581,16 @@ function spotHealPremultiplied(rgba2, coverage, width, height, opts) {
       }
       if (!haveSource) {
         for (let c = 0; c < 3; c++) {
-          let around = 0, n8 = 0;
+          let around = 0, n7 = 0;
           for (let k = 0; k < 4; k++) {
             const nx = k === 0 ? ix - 1 : k === 1 ? ix + 1 : ix;
             const ny = k === 2 ? iy - 1 : k === 3 ? iy + 1 : iy;
             if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
             around += rgba2[(ny * W + nx) * 4 + c];
-            n8++;
+            n7++;
           }
-          if (n8) {
-            const d = rgba2[t + c] - around / n8;
+          if (n7) {
+            const d = rgba2[t + c] - around / n7;
             detail[c] = detail[c] + d * d;
           }
         }
@@ -101717,18 +101717,18 @@ function boxMean(src, width, height, radius) {
   return out;
 }
 function guidedCoefficients(mask, guide, width, height, radius, epsilon) {
-  const n8 = width * height;
+  const n7 = width * height;
   const meanI = boxMean(guide, width, height, radius);
   const meanP = boxMean(mask, width, height, radius);
-  const sq = new Float32Array(n8), prod = new Float32Array(n8);
-  for (let i = 0; i < n8; i++) {
+  const sq = new Float32Array(n7), prod = new Float32Array(n7);
+  for (let i = 0; i < n7; i++) {
     sq[i] = guide[i] * guide[i];
     prod[i] = guide[i] * mask[i];
   }
   const meanII = boxMean(sq, width, height, radius);
   const meanIP = boxMean(prod, width, height, radius);
-  const a = new Float32Array(n8), b = new Float32Array(n8), v = new Float32Array(n8);
-  for (let i = 0; i < n8; i++) {
+  const a = new Float32Array(n7), b = new Float32Array(n7), v = new Float32Array(n7);
+  for (let i = 0; i < n7; i++) {
     const variance = meanII[i] - meanI[i] * meanI[i];
     const covariance = meanIP[i] - meanI[i] * meanP[i];
     a[i] = covariance / (variance + epsilon);
@@ -101738,18 +101738,18 @@ function guidedCoefficients(mask, guide, width, height, radius, epsilon) {
   return { a: boxMean(a, width, height, radius), b: boxMean(b, width, height, radius), variance: boxMean(v, width, height, radius) };
 }
 function guidedCoefficientsColor(mask, r5, g2, bl, width, height, radius, epsilon) {
-  const n8 = width * height;
+  const n7 = width * height;
   const box4 = (src) => boxMean(src, width, height, radius);
   const prod = (x, y) => {
-    const o = new Float32Array(n8);
-    for (let i = 0; i < n8; i++) o[i] = x[i] * y[i];
+    const o = new Float32Array(n7);
+    for (let i = 0; i < n7; i++) o[i] = x[i] * y[i];
     return o;
   };
   const mR = box4(r5), mG = box4(g2), mB = box4(bl), mP = box4(mask);
   const mRP = box4(prod(r5, mask)), mGP = box4(prod(g2, mask)), mBP = box4(prod(bl, mask));
   const vRR = box4(prod(r5, r5)), vRG = box4(prod(r5, g2)), vRB = box4(prod(r5, bl)), vGG = box4(prod(g2, g2)), vGB = box4(prod(g2, bl)), vBB = box4(prod(bl, bl));
-  const ar = new Float32Array(n8), ag = new Float32Array(n8), ab = new Float32Array(n8), b = new Float32Array(n8), v = new Float32Array(n8);
-  for (let i = 0; i < n8; i++) {
+  const ar = new Float32Array(n7), ag = new Float32Array(n7), ab = new Float32Array(n7), b = new Float32Array(n7), v = new Float32Array(n7);
+  for (let i = 0; i < n7; i++) {
     const mr = mR[i], mg = mG[i], mb2 = mB[i], mp = mP[i];
     const rr = vRR[i] - mr * mr + epsilon, rg = vRG[i] - mr * mg, rb = vRB[i] - mr * mb2;
     const gg = vGG[i] - mg * mg + epsilon, gb = vGB[i] - mg * mb2, bb = vBB[i] - mb2 * mb2 + epsilon;
@@ -101815,9 +101815,9 @@ function resizeMask(mask, sw, sh, dw, dh) {
   for (let i = 0; i < out.length; i++) out[i] = Math.round(Math.min(255, Math.max(0, scaled2[i])));
   return out;
 }
-function channelsOf(rgba2, n8) {
-  const r5 = new Float32Array(n8), g2 = new Float32Array(n8), b = new Float32Array(n8);
-  for (let i = 0; i < n8; i++) {
+function channelsOf(rgba2, n7) {
+  const r5 = new Float32Array(n7), g2 = new Float32Array(n7), b = new Float32Array(n7);
+  for (let i = 0; i < n7; i++) {
     r5[i] = rgba2[i * 4] / 255;
     g2[i] = rgba2[i * 4 + 1] / 255;
     b[i] = rgba2[i * 4 + 2] / 255;
@@ -101825,16 +101825,16 @@ function channelsOf(rgba2, n8) {
   return [r5, g2, b];
 }
 function refineMatte(alpha, rgba2, width, height, opts = {}) {
-  const n8 = width * height;
+  const n7 = width * height;
   const radius = Math.max(0, Math.min(40, Math.round(opts.radius ?? 12)));
   const epsilon = opts.epsilon ?? 1e-4;
   const shift = Math.max(-1, Math.min(1, opts.shift ?? 0));
   const contrast3 = Math.max(1, Math.min(10, opts.contrast ?? 1));
   const limit2 = Math.max(64, opts.limit ?? 1024);
-  let refined = new Float32Array(n8);
-  for (let i = 0; i < n8; i++) refined[i] = alpha[i] / 255;
+  let refined = new Float32Array(n7);
+  for (let i = 0; i < n7; i++) refined[i] = alpha[i] / 255;
   if (radius > 0 && width > 1 && height > 1) {
-    const [gr, gg, gb] = channelsOf(rgba2, n8);
+    const [gr, gg, gb] = channelsOf(rgba2, n7);
     const factor = Math.min(1, limit2 / Math.max(width, height));
     const sw = Math.max(1, Math.round(width * factor)), sh = Math.max(1, Math.round(height * factor));
     const r5 = Math.max(1, Math.round(radius * factor));
@@ -101844,15 +101844,15 @@ function refineMatte(alpha, rgba2, width, height, opts = {}) {
     const arU = up(c.ar), agU = up(c.ag), abU = up(c.ab), bU = up(c.b), vU = up(c.variance);
     const floor = opts.textureFloor ?? TEXTURE_FLOOR;
     const model2 = refined;
-    refined = new Float32Array(n8);
-    for (let i = 0; i < n8; i++) {
+    refined = new Float32Array(n7);
+    for (let i = 0; i < n7; i++) {
       const w = floor > 0 ? vU[i] / (vU[i] + floor) : 1;
       const q = arU[i] * gr[i] + agU[i] * gg[i] + abU[i] * gb[i] + bU[i];
       refined[i] = clamp0110(w * q + (1 - w) * model2[i]);
     }
   }
-  const out = new Uint8Array(n8);
-  for (let i = 0; i < n8; i++) {
+  const out = new Uint8Array(n7);
+  for (let i = 0; i < n7; i++) {
     const v = clamp0110((refined[i] - 0.5) * contrast3 + 0.5 + shift * 0.5);
     out[i] = Math.round(v * 255);
   }
@@ -102283,8 +102283,8 @@ function evalChannel(curve, t) {
   }
   return last.v;
 }
-function sampleCurve(curve, n8 = curve.L.points.length) {
-  const count4 = Math.floor(n8);
+function sampleCurve(curve, n7 = curve.L.points.length) {
+  const count4 = Math.floor(n7);
   if (count4 <= 0) return [];
   const L = { points: orderedPoints(curve.L) };
   const C = { points: orderedPoints(curve.C) };
@@ -102300,11 +102300,11 @@ function sampleCurve(curve, n8 = curve.L.points.length) {
   }
   return out;
 }
-function bakeCurve(curve, n8 = curve.L.points.length) {
-  return sampleCurve(curve, n8).map((stop) => oklchToHex(stop));
+function bakeCurve(curve, n7 = curve.L.points.length) {
+  return sampleCurve(curve, n7).map((stop) => oklchToHex(stop));
 }
-function defaultColorCurve(primary, n8, chromaScale = 1) {
-  const count4 = Math.max(1, Math.floor(n8));
+function defaultColorCurve(primary, n7, chromaScale = 1) {
+  const count4 = Math.max(1, Math.floor(n7));
   const peak = bellPeak(primary.l);
   const Ls = rampLightnesses(primary.l, count4);
   const L = [];
@@ -102321,11 +102321,11 @@ function defaultColorCurve(primary, n8, chromaScale = 1) {
 }
 function curveFromRamp(hexStops) {
   const parsed = [];
-  const n8 = hexStops.length;
-  for (let i = 0; i < n8; i++) {
+  const n7 = hexStops.length;
+  for (let i = 0; i < n7; i++) {
     const c = hexToOklch(hexStops[i]);
     if (!c) continue;
-    parsed.push({ t: stepT(i, n8), c });
+    parsed.push({ t: stepT(i, n7), c });
   }
   return {
     L: { points: parsed.map((p) => ({ t: p.t, v: p.c.l })) },
@@ -102354,7 +102354,7 @@ var init_color_curve = __esm({
   "engine/src/color-curve.ts"() {
     "use strict";
     init_brand_derive();
-    stepT = (i, n8) => n8 <= 1 ? 0.5 : i / (n8 - 1);
+    stepT = (i, n7) => n7 <= 1 ? 0.5 : i / (n7 - 1);
     bellPeak = (primaryL) => Math.min(0.75, Math.max(0.45, primaryL));
     sortPoints = (points) => [...points].sort((a, b) => a.t - b.t);
     isSorted = (points) => {
@@ -102491,8 +102491,8 @@ var init_color_vision = __esm({
       tritan: TRITAN
     };
     REC709 = { r: 0.2126, g: 0.7152, b: 0.0722 };
-    clamp0111 = (n8) => n8 < 0 ? 0 : n8 > 1 ? 1 : n8;
-    round255 = (n8) => Math.round(clamp0111(n8) * 255);
+    clamp0111 = (n7) => n7 < 0 ? 0 : n7 > 1 ? 1 : n7;
+    round255 = (n7) => Math.round(clamp0111(n7) * 255);
     toHex = (rgb3) => "#" + rgb3.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("");
   }
 });
@@ -102785,8 +102785,8 @@ function fromOlderTokenFormat(node, count4, depth = 0) {
   }
   return copy ?? node;
 }
-function olderFormatWarning(n8) {
-  return n8 ? [`${n8} token${n8 === 1 ? "" : "s"} in the older Tokens Studio format (value and type) read as $value and $type`] : [];
+function olderFormatWarning(n7) {
+  return n7 ? [`${n7} token${n7 === 1 ? "" : "s"} in the older Tokens Studio format (value and type) read as $value and $type`] : [];
 }
 function coerceTokensDoc(json) {
   if (!isRecord2(json)) {
@@ -103089,16 +103089,16 @@ function scanPenpotUsage(entries) {
     }
   };
   const fonts = /* @__PURE__ */ new Map();
-  const walkText = (n8) => {
-    if (Array.isArray(n8)) {
-      for (const c of n8) walkText(c);
+  const walkText = (n7) => {
+    if (Array.isArray(n7)) {
+      for (const c of n7) walkText(c);
       return;
     }
-    if (!isRecord2(n8)) return;
-    if (pv(n8, "text") !== void 0 && Array.isArray(pv(n8, "fills"))) {
-      seePaints(pv(n8, "fills"), "fillColor", "fillColorGradient", "textRuns");
+    if (!isRecord2(n7)) return;
+    if (pv(n7, "text") !== void 0 && Array.isArray(pv(n7, "fills"))) {
+      seePaints(pv(n7, "fills"), "fillColor", "fillColorGradient", "textRuns");
     }
-    walkText(pv(n8, "children"));
+    walkText(pv(n7, "children"));
   };
   for (const path of pagePaths) {
     const shape = parseEntry(entries, path, warnings2, budget3);
@@ -103120,10 +103120,10 @@ function scanPenpotUsage(entries) {
   const colorRows = [...colors.entries()].map(([hex3, t]) => ({ hex: hex3, ...t, total: t.fills + t.strokes + t.textRuns + t.gradientStops })).sort((a, b) => b.total - a.total || (a.hex < b.hex ? -1 : a.hex > b.hex ? 1 : 0));
   const gradientRows = [...gradients.entries()].map(([sig2, v]) => {
     let angle = 0, best = -1;
-    for (const [a, n8] of v.angles) {
-      if (n8 > best || n8 === best && a < angle) {
+    for (const [a, n7] of v.angles) {
+      if (n7 > best || n7 === best && a < angle) {
         angle = a;
-        best = n8;
+        best = n7;
       }
     }
     return { sig: sig2, row: { type: v.type, stops: v.stops, count: v.count, angle } };
@@ -103201,8 +103201,8 @@ var init_brand_import = __esm({
       return HEX6_RE.test(s) ? s.toUpperCase() : null;
     };
     numOr3 = (v, d) => {
-      const n8 = Number(v);
-      return Number.isFinite(n8) ? n8 : d;
+      const n7 = Number(v);
+      return Number.isFinite(n7) ? n7 : d;
     };
     kebabOf = (k) => k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
     TYPE_ATTRS = /* @__PURE__ */ new Set([
@@ -103532,18 +103532,18 @@ function designLayoutRequest(container, children2, tracks) {
       for (let y = cell2[0]; y < cell2[0] + cell2[2]; y++)
         for (let x = cell2[1]; x < cell2[1] + cell2[3]; x++) occupied.add(`${y}:${x}`);
     };
-    for (const [n8, item2] of items2.entries()) {
+    for (const [n7, item2] of items2.entries()) {
       if (item2.absolute || item2.hidden) continue;
-      if (item2.cell.some((n9) => !Number.isInteger(n9) || n9 < 0 || n9 > MAX_LAYOUT_TRACKS_PER_AXIS))
+      if (item2.cell.some((n8) => !Number.isInteger(n8) || n8 < 0 || n8 > MAX_LAYOUT_TRACKS_PER_AXIS))
         throw new Error("Grid placement must use whole numbers between 1 and 1024.");
       if (item2.cell[0] && item2.cell[1]) {
         mark(item2.cell);
-        if (children2[n8].layoutArea) areas.set(String(children2[n8].layoutArea), item2.cell);
+        if (children2[n7].layoutArea) areas.set(String(children2[n7].layoutArea), item2.cell);
       }
     }
-    for (const [n8, item2] of items2.entries()) {
+    for (const [n7, item2] of items2.entries()) {
       if (item2.absolute || item2.hidden) continue;
-      const area2 = areas.get(String(children2[n8].layoutArea || ""));
+      const area2 = areas.get(String(children2[n7].layoutArea || ""));
       if (area2) item2.cell = [...area2];
       if (!item2.cell[0] || !item2.cell[1]) {
         let found = false;
@@ -103645,14 +103645,14 @@ function createDesignLayoutEvaluator(solve3, measure3) {
     if (findings.length)
       return { boxes: source, findings, passes: 0, solved: 0, grids: [] };
     const boxes2 = source.map((r5) => ({ ...r5 }));
-    const byId = new Map(boxes2.map((r5, n8) => [id(r5), n8]));
+    const byId = new Map(boxes2.map((r5, n7) => [id(r5), n7]));
     const owner3 = (r5) => boxes2[byId.get(String(r5.group || ""))]?.kind === "group" ? String(r5.group) : String(r5.layoutOwner || r5.frame || "");
     const children2 = /* @__PURE__ */ new Map();
-    for (const [n8, r5] of boxes2.entries()) {
+    for (const [n7, r5] of boxes2.entries()) {
       const o = owner3(r5);
       if (o) {
         const list4 = children2.get(o) || [];
-        list4.push(n8);
+        list4.push(n7);
         children2.set(o, list4);
       }
     }
@@ -103671,8 +103671,8 @@ function createDesignLayoutEvaluator(solve3, measure3) {
     };
     containers.sort((a, b) => depth(b) - depth(a));
     const participating = new Set([...containers, ...intrinsicGroups].map(id)), pending3 = [...participating];
-    for (let n8 = 0; n8 < pending3.length; n8++)
-      for (const index2 of children2.get(pending3[n8]) || []) {
+    for (let n7 = 0; n7 < pending3.length; n7++)
+      for (const index2 of children2.get(pending3[n7]) || []) {
         const child2 = id(boxes2[index2]);
         if (!participating.has(child2)) {
           participating.add(child2);
@@ -103730,8 +103730,8 @@ function createDesignLayoutEvaluator(solve3, measure3) {
       for (; passes2 < MAX_LAYOUT_PASSES; passes2++) {
         const before = boxes2.map((r5) => [r5.x, r5.y, r5.w, r5.h, r5.rot].join(","));
         for (const group of intrinsicGroups) {
-          const n8 = byId.get(id(group));
-          boxes2[n8] = measureGroupBounds(boxes2[n8], boxes2, children2, visit);
+          const n7 = byId.get(id(group));
+          boxes2[n7] = measureGroupBounds(boxes2[n7], boxes2, children2, visit);
         }
         for (const c of containers) {
           const index2 = byId.get(id(c));
@@ -103740,33 +103740,33 @@ function createDesignLayoutEvaluator(solve3, measure3) {
           work += members.length + 1;
           if (work > MAX_LAYOUT_REFLOW_WORK)
             throw new Error("Layout exceeds its aggregate reflow work budget.");
-          for (const n8 of members) {
-            const row = boxes2[n8];
+          for (const n7 of members) {
+            const row = boxes2[n7];
             if (row.layoutAngle !== "" && row.layoutAngle != null)
-              boxes2[n8] = { ...row, rot: number2(container.rot) + number2(row.layoutAngle) };
+              boxes2[n7] = { ...row, rot: number2(container.rot) + number2(row.layoutAngle) };
             if (on2(row.layoutAbsolute) && row.layoutX !== "" && row.layoutX != null && row.layoutY !== "" && row.layoutY != null) {
-              const b = corners(container), a = number2(container.rot) * Math.PI / 180, u = [cos(a), sin(a)], v = [-sin(a), cos(a)], r5 = boxes2[n8];
+              const b = corners(container), a = number2(container.rot) * Math.PI / 180, u = [cos(a), sin(a)], v = [-sin(a), cos(a)], r5 = boxes2[n7];
               const angle = number2(r5.rot) * Math.PI / 180, cc = cos(angle), ss = sin(angle), w = number2(r5.w, 100), h = number2(r5.h, 100);
               const nx = b[0] + u[0] * number2(row.layoutX) + v[0] * number2(row.layoutY), ny = b[1] + u[1] * number2(row.layoutX) + v[1] * number2(row.layoutY);
-              boxes2[n8] = {
+              boxes2[n7] = {
                 ...r5,
                 x: nx + cc * w / 2 - ss * h / 2 - w / 2,
                 y: ny + ss * w / 2 + cc * h / 2 - h / 2
               };
             }
-            if (row.kind === "group") carryGroupGeometry(row, boxes2[n8], boxes2, children2, visit);
+            if (row.kind === "group") carryGroupGeometry(row, boxes2[n7], boxes2, children2, visit);
           }
-          for (const n8 of members) {
-            let r5 = boxes2[n8];
+          for (const n7 of members) {
+            let r5 = boxes2[n7];
             if (r5.kind === "image" && r5.image && inFlow(r5) && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug")) {
               const image = r5.image, iw = Number(image.width), ih = Number(image.height);
-              if (![iw, ih].every((n9) => Number.isFinite(n9) && n9 > 0 && n9 <= MAX_LAYOUT_SCALAR))
+              if (![iw, ih].every((n8) => Number.isFinite(n8) && n8 > 0 && n8 <= MAX_LAYOUT_SCALAR))
                 throw new Error(
                   "An image with content sizing needs its intrinsic width and height. Reopen or replace the asset."
                 );
               const width = mode(r5, "W") === "hug" ? mode(r5, "H") === "hug" ? iw : number2(r5.h) * iw / ih : number2(r5.w);
               const height = mode(r5, "H") === "hug" ? width * ih / iw : number2(r5.h);
-              boxes2[n8] = r5 = { ...r5, w: width, h: height };
+              boxes2[n7] = r5 = { ...r5, w: width, h: height };
             }
             if (!measure3 && isText(r5) && !r5.textStory && inFlow(r5) && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug"))
               throw new Error("Text with content sizing needs a font measurement capability.");
@@ -103776,7 +103776,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
               r5,
               mode(r5, "W") === "hug" ? MAX_LAYOUT_SCALAR : number2(r5.w, 100)
             );
-            boxes2[n8] = {
+            boxes2[n7] = {
               ...r5,
               ...mode(r5, "W") === "hug" ? { w: Math.max(0.01, measured.width) } : {},
               ...mode(r5, "H") === "hug" ? { h: Math.max(0.01, measured.height) } : {}
@@ -103784,7 +103784,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
           }
           const req = designLayoutRequest(
             container,
-            members.map((n8) => boxes2[n8]),
+            members.map((n7) => boxes2[n7]),
             tracks
           );
           const key2 = JSON.stringify(req);
@@ -103818,9 +103818,9 @@ function createDesignLayoutEvaluator(solve3, measure3) {
               columns: answer.columns || [],
               rows: answer.rows || [],
               cells: req.items.flatMap(
-                (item2, n8) => item2.hidden || item2.absolute ? [] : [
+                (item2, n7) => item2.hidden || item2.absolute ? [] : [
                   {
-                    id: id(boxes2[members[n8]]),
+                    id: id(boxes2[members[n7]]),
                     row: item2.cell[0],
                     column: item2.cell[1],
                     rowSpan: item2.cell[2],
@@ -103829,15 +103829,15 @@ function createDesignLayoutEvaluator(solve3, measure3) {
                 ]
               )
             });
-          if (result.length !== members.length + 1 || result.some((b) => b.length !== 8 || b.some((n8) => !Number.isFinite(n8))))
+          if (result.length !== members.length + 1 || result.some((b) => b.length !== 8 || b.some((n7) => !Number.isFinite(n7))))
             throw new Error("Layout solver returned invalid bounds.");
           const next2 = fromCorners(container, result[0]);
           boxes2[index2] = next2;
-          for (const [i, n8] of members.entries()) {
-            const old = boxes2[n8];
+          for (const [i, n7] of members.entries()) {
+            const old = boxes2[n7];
             const answerChild = fromCorners(old, result[i + 1]);
             const nextChild = old.kind === "group" ? settleGroupGeometry(old, answerChild) : answerChild;
-            boxes2[n8] = nextChild;
+            boxes2[n7] = nextChild;
             if (old.kind === "group") carryGroupGeometry(old, nextChild, boxes2, children2, visit);
             if ((old.kind === "frame" || hasDesignLayout([old])) && (nextChild.x !== old.x || nextChild.y !== old.y)) {
               const dx = number2(nextChild.x) - number2(old.x), dy = number2(nextChild.y) - number2(old.y);
@@ -103852,7 +103852,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
             }
           }
         }
-        if (boxes2.every((r5, n8) => before[n8] === [r5.x, r5.y, r5.w, r5.h, r5.rot].join(","))) break;
+        if (boxes2.every((r5, n7) => before[n7] === [r5.x, r5.y, r5.w, r5.h, r5.rot].join(","))) break;
       }
       if (passes2 === 16)
         throw new Error(
@@ -103927,8 +103927,8 @@ function designLayoutSourceEdit(source, evaluated, proposed, options2 = {}) {
 function designLayoutDescendants(rows2, selected) {
   const result = new Set(selected), pending3 = [...result];
   const index2 = designHierarchyIndex(rows2);
-  for (let n8 = 0; n8 < pending3.length; n8++)
-    for (const child2 of index2.children.get(pending3[n8]) || [])
+  for (let n7 = 0; n7 < pending3.length; n7++)
+    for (const child2 of index2.children.get(pending3[n7]) || [])
       if (!result.has(child2)) {
         result.add(child2);
         pending3.push(child2);
@@ -104041,7 +104041,7 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
     add3("", "penpot.layout.identity", "Penpot source identities are not aligned with imported layers.");
     return { boxes: boxes2, tracks, findings };
   }
-  const mapped = new Map(sourceIds.map((sourceId, n8) => [sourceId, boxes2[n8]]));
+  const mapped = new Map(sourceIds.map((sourceId, n7) => [sourceId, boxes2[n7]]));
   for (const sourceId of sourceIds) {
     const shape = shapes2[sourceId];
     if (shape?.layout !== "flex" && shape?.layout !== "grid") continue;
@@ -104049,8 +104049,8 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
       if (!mapped.has(String(child2))) add3(sourceId, "penpot.layout.child", "A layout layer could not be retained during import.");
     }
   }
-  const result = boxes2.map((box4, n8) => {
-    const sourceId = sourceIds[n8], shape = shapes2[sourceId] || {}, row = { ...box4 };
+  const result = boxes2.map((box4, n7) => {
+    const sourceId = sourceIds[n7], shape = shapes2[sourceId] || {}, row = { ...box4 };
     const parent = shapes2[String(shape.parentId)] || {};
     if (typeof shape.name === "string") row.name = shape.name;
     if (shape.type === "frame") row.kind = String(shape.parentId) === ROOT ? "frame" : "box";
@@ -104178,7 +104178,7 @@ function exportPenpotLayout(row, children2, tracks) {
     props.layoutItemHSizing = ppSizing(row.layoutW);
     props.layoutItemVSizing = ppSizing(row.layoutH);
     props.layoutItemMarginType = "multiple";
-    props.layoutItemMargin = Object.fromEntries(SIDES.map((side2, n8) => [`m${n8 + 1}`, num9(row[`layoutMargin${side2}`])]));
+    props.layoutItemMargin = Object.fromEntries(SIDES.map((side2, n7) => [`m${n7 + 1}`, num9(row[`layoutMargin${side2}`])]));
     if (row.layoutAbsolute === true) props.layoutItemAbsolute = true;
     if (row.layoutSelf && row.layoutSelf !== "auto") props.layoutItemAlignSelf = row.layoutSelf;
     for (const [target2, source] of [["layoutItemMinW", "layoutMinW"], ["layoutItemMaxW", "layoutMaxW"], ["layoutItemMinH", "layoutMinH"], ["layoutItemMaxH", "layoutMaxH"]]) {
@@ -104191,7 +104191,7 @@ function exportPenpotLayout(row, children2, tracks) {
     layoutGapType: "multiple",
     layoutGap: { rowGap: num9(row.layoutGapY), columnGap: num9(row.layoutGapX) },
     layoutPaddingType: "multiple",
-    layoutPadding: Object.fromEntries(SIDES.map((side2, n8) => [`p${n8 + 1}`, num9(row[`layoutPad${side2}`])])),
+    layoutPadding: Object.fromEntries(SIDES.map((side2, n7) => [`p${n7 + 1}`, num9(row[`layoutPad${side2}`])])),
     layoutAlignItems: row.layoutAlign || "start",
     layoutAlignContent: row.layoutAlignContent || "stretch",
     layoutJustifyItems: row.layoutJustifyItems || "start",
@@ -104203,9 +104203,9 @@ function exportPenpotLayout(row, children2, tracks) {
   }
   props.layoutGridDir = row.layoutDirection || "row";
   const request2 = designLayoutRequest(row, [...children2], tracks);
-  const cells = children2.flatMap((child2, n8) => {
+  const cells = children2.flatMap((child2, n7) => {
     if (child2.layoutAbsolute === true || child2.hidden === true) return [];
-    const cell2 = request2.items[n8].cell;
+    const cell2 = request2.items[n7].cell;
     return [{
       row: cell2[0],
       column: cell2[1],
@@ -104795,12 +104795,12 @@ function vectorColourUses(object4) {
   const add3 = (channel5, hex3, weight) => {
     let useId;
     if (channel5 === "series") {
-      let n8 = seriesIndex.get(hex3);
-      if (n8 === void 0) {
-        n8 = seriesIndex.size + 1;
-        seriesIndex.set(hex3, n8);
+      let n7 = seriesIndex.get(hex3);
+      if (n7 === void 0) {
+        n7 = seriesIndex.size + 1;
+        seriesIndex.set(hex3, n7);
       }
-      useId = `${object4.id}:series:${n8}`;
+      useId = `${object4.id}:series:${n7}`;
     } else {
       useId = `${object4.id}:${channel5}:${hex3.slice(1)}`;
     }
@@ -105223,7 +105223,7 @@ var init_slide_structures = __esm({
     "use strict";
     init_src();
     init_slide_structures_data();
-    round4 = (n8) => Math.round(n8 * 1e4) / 1e4;
+    round4 = (n7) => Math.round(n7 * 1e4) / 1e4;
     ROLES = new Set(ARCHETYPE_ROLES);
     NUMBER_WORDS = {
       one: "1",
@@ -105377,15 +105377,15 @@ function evidenceMessage(evidence, index2, context) {
     case "aspect":
       return reviewMessage("evidence.aspect", { ratio: typeof value2 === "number" ? Math.round(value2 * 10) / 10 : String(value2) });
     case "text-length": {
-      const n8 = count(value2);
-      if (n8 === 0) return reviewMessage("evidence.no-text", {});
-      return n8 === 1 ? reviewMessage("evidence.words.one", { count: 1 }) : reviewMessage("evidence.words.many", { count: n8 });
+      const n7 = count(value2);
+      if (n7 === 0) return reviewMessage("evidence.no-text", {});
+      return n7 === 1 ? reviewMessage("evidence.words.one", { count: 1 }) : reviewMessage("evidence.words.many", { count: n7 });
     }
     case "text-size": {
       const pt = typeof value2 === "number" ? Math.round(value2 * 10) / 10 : 0;
-      const n8 = words4 ? count(words4.value) : 0;
-      if (n8 === 1) return reviewMessage("evidence.text-size.words.one", { count: 1, pt });
-      if (n8 > 1) return reviewMessage("evidence.text-size.words.many", { count: n8, pt });
+      const n7 = words4 ? count(words4.value) : 0;
+      if (n7 === 1) return reviewMessage("evidence.text-size.words.one", { count: 1, pt });
+      if (n7 > 1) return reviewMessage("evidence.text-size.words.many", { count: n7, pt });
       return reviewMessage("evidence.text-size", { pt });
     }
     case "size-rank": {
@@ -106889,9 +106889,9 @@ function censusDeck(source, opts = {}) {
         continue;
       }
       if (takenIds.has(verified.group.id)) {
-        let n8 = 2;
-        while (takenIds.has(`${verified.group.id}:${n8}`)) n8 += 1;
-        verified.group.id = `${verified.group.id}:${n8}`;
+        let n7 = 2;
+        while (takenIds.has(`${verified.group.id}:${n7}`)) n7 += 1;
+        verified.group.id = `${verified.group.id}:${n7}`;
       }
       takenIds.add(verified.group.id);
       groups.push(verified.group);
@@ -107162,7 +107162,7 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
           const held = mine2.get(slideId);
           if (held && together(held, ids2, true)) shared += 1;
         }
-        const enough = (n8) => n8 >= 2 && n8 >= MARK_MERGE_SHARE * Math.min(mine2.size, theirs.size);
+        const enough = (n7) => n7 >= 2 && n7 >= MARK_MERGE_SHARE * Math.min(mine2.size, theirs.size);
         if (!enough(shared) && !(enough([...theirs.keys()].filter((id3) => mine2.has(id3)).length) && inheritedCopy(keeper, other)))
           continue;
         if (inherited3(keeper) && !inherited3(other)) keeper.exemplar = other.exemplar;
@@ -107383,7 +107383,7 @@ function useIdFor(objectId, channel5, hex3, shared, index2) {
 function addUse(uses, use) {
   const suffix = use.hex.replace("#", "").toLowerCase();
   let candidate = use.useId;
-  for (let n8 = 0; n8 < 8; n8 += 1) {
+  for (let n7 = 0; n7 < 8; n7 += 1) {
     const existing2 = uses.get(candidate);
     if (!existing2) {
       uses.set(candidate, { ...use, useId: candidate });
@@ -107394,7 +107394,7 @@ function addUse(uses, use) {
       for (const id3 of use.objectIds) if (!existing2.objectIds.includes(id3)) existing2.objectIds.push(id3);
       return;
     }
-    candidate = n8 === 0 ? `${use.useId}:${suffix}` : `${use.useId}:${suffix}:${n8 + 1}`;
+    candidate = n7 === 0 ? `${use.useId}:${suffix}` : `${use.useId}:${suffix}:${n7 + 1}`;
   }
 }
 function groundUseId(slideId) {
@@ -107691,7 +107691,7 @@ function insideShare(inner, outer) {
   return area2 > 0 ? ix * iy / area2 : 0;
 }
 function roundBox2(box4) {
-  const r5 = (n8) => Math.round(n8 * 1e4) / 1e4;
+  const r5 = (n7) => Math.round(n7 * 1e4) / 1e4;
   return { x: r5(box4.x), y: r5(box4.y), w: r5(box4.w), h: r5(box4.h) };
 }
 function layoutUnitsOf(frame, hypotheses) {
@@ -108168,8 +108168,8 @@ function backdropAt(archetype, pieces, colors, ground, point3, before) {
   return backdrop;
 }
 function copyId(id3, taken) {
-  for (let n8 = 1; ; n8 += 1) {
-    const suffix = `-t${n8}`;
+  for (let n7 = 1; ; n7 += 1) {
+    const suffix = `-t${n7}`;
     const candidate = `${id3.slice(0, 64 - suffix.length)}${suffix}`;
     if (!taken.has(candidate)) return candidate;
   }
@@ -108825,7 +108825,7 @@ function finalizeReport(report4, objectIds) {
     seen.set(id3, (seen.get(id3) ?? 0) + 1);
   }
   const missing = [...expected].filter((id3) => !seen.has(id3)).sort();
-  const duplicated = [...seen.entries()].filter(([, n8]) => n8 > 1).map(([id3]) => id3).sort();
+  const duplicated = [...seen.entries()].filter(([, n7]) => n7 > 1).map(([id3]) => id3).sort();
   const unknown2 = [...new Set(strangers)].sort();
   if (missing.length || duplicated.length || unknown2.length) {
     const parts = [];
@@ -110664,8 +110664,8 @@ function rowNumber(row, key2) {
   const v = row[key2];
   if (typeof v === "number") return Number.isFinite(v) ? v : null;
   if (typeof v !== "string" || v.trim() === "") return null;
-  const n8 = Number(v);
-  return Number.isFinite(n8) ? n8 : null;
+  const n7 = Number(v);
+  return Number.isFinite(n7) ? n7 : null;
 }
 function rowText(row, key2) {
   const v = row[key2];
@@ -110680,8 +110680,8 @@ function ordinalFromId(id3, role) {
   const tail = dot >= 0 ? id3.slice(dot + 1) : id3;
   if (tail === role) return 0;
   if (!tail.startsWith(`${role}-`)) return null;
-  const n8 = Number(tail.slice(role.length + 1));
-  return Number.isInteger(n8) && n8 >= 2 ? n8 - 1 : null;
+  const n7 = Number(tail.slice(role.length + 1));
+  return Number.isInteger(n7) && n7 >= 2 ? n7 - 1 : null;
 }
 function roleOrdinals(layers) {
   const out = /* @__PURE__ */ new Map();
@@ -110706,11 +110706,11 @@ function roleOrdinals(layers) {
   });
   for (const { index: index2, role } of pending3) {
     const set = taken.get(role) ?? /* @__PURE__ */ new Set();
-    let n8 = 0;
-    while (set.has(n8)) n8 += 1;
-    set.add(n8);
+    let n7 = 0;
+    while (set.has(n7)) n7 += 1;
+    set.add(n7);
     taken.set(role, set);
-    out.set(index2, n8);
+    out.set(index2, n7);
   }
   return out;
 }
@@ -110861,13 +110861,13 @@ function planSlots(master, from, to, layers, opts) {
       const [hostIndex, hostPh] = host;
       const box4 = place(hostPh.box, master, origin.x, origin.y);
       const members = [hostIndex, ...left];
-      const n8 = members.length;
+      const n7 = members.length;
       const gutter = Math.round(master.size.width * SHARED_GUTTER_SHARE);
       const across = box4.w >= box4.h;
       const span = across ? box4.w : box4.h;
       members.forEach((index2, k) => {
-        const start = Math.round(k * (span + gutter) / n8);
-        const end = Math.round((k + 1) * (span + gutter) / n8) - gutter;
+        const start = Math.round(k * (span + gutter) / n7);
+        const end = Math.round((k + 1) * (span + gutter) / n7) - gutter;
         const cell2 = across ? { x: box4.x + start, y: box4.y, w: Math.max(1, end - start), h: box4.h } : { x: box4.x, y: box4.y + start, w: box4.w, h: Math.max(1, end - start) };
         cellOf3.set(index2, cell2);
         if (k > 0) {
@@ -110882,9 +110882,9 @@ function planSlots(master, from, to, layers, opts) {
   const keyOf3 = /* @__PURE__ */ new Map();
   const seen = /* @__PURE__ */ new Map();
   for (const ph of targets) {
-    const n8 = (seen.get(ph.role) ?? 0) + 1;
-    seen.set(ph.role, n8);
-    keyOf3.set(ph, `${ph.role}#${n8}`);
+    const n7 = (seen.get(ph.role) ?? 0) + 1;
+    seen.set(ph.role, n7);
+    keyOf3.set(ph, `${ph.role}#${n7}`);
   }
   const sharedSet = new Set(shared);
   const slotKeys = layers.map((_, index2) => {
@@ -110977,7 +110977,7 @@ function masterAtSize(master, size) {
   if (w === master.size.width && h === master.size.height) return master;
   const k = Math.min(w / master.size.width, h / master.size.height);
   if (!Number.isFinite(k) || k <= 0) return master;
-  const px3 = (n8) => Math.max(1, Math.round(n8 * k));
+  const px3 = (n7) => Math.max(1, Math.round(n7 * k));
   const scaled2 = (style) => style && typeof style.fontSize === "number" ? { ...style, fontSize: px3(style.fontSize) } : style;
   const scale = master.typeScale;
   return {
@@ -111008,7 +111008,7 @@ var init_slide_master = __esm({
     init_logo_variant();
     init_surface_variant();
     init_token_block_bindings();
-    ROUND = (n8) => Math.round(n8 * 1e4) / 1e4;
+    ROUND = (n7) => Math.round(n7 * 1e4) / 1e4;
     STYLE_FIELDS2 = ["fontSize", "weight", "align", "valign", "font", "fg"];
     linkColour = (row, field2, tokenPath, value2) => {
       Object.assign(row, withBlockTokenBinding(row, "tokenLinks", field2, { ref: `{${tokenPath}}`, value: value2 }));
@@ -111043,8 +111043,8 @@ function kids(el) {
   const out = [];
   const list4 = el.childNodes;
   for (let i = 0; i < list4.length; i++) {
-    const n8 = list4[i];
-    if (n8 && n8.nodeType === 1) out.push(n8);
+    const n7 = list4[i];
+    if (n7 && n7.nodeType === 1) out.push(n7);
   }
   return out;
 }
@@ -111177,27 +111177,27 @@ function lengthOf(value2, fontSize) {
   if (value2 === void 0) return void 0;
   const m2 = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*(px|pt|pc|mm|cm|in|em|ex|%)?$/.exec(value2.trim());
   if (!m2) return void 0;
-  const n8 = Number(m2[1]);
-  if (!Number.isFinite(n8)) return void 0;
+  const n7 = Number(m2[1]);
+  if (!Number.isFinite(n7)) return void 0;
   switch (m2[2]) {
     case "pt":
-      return n8 * 4 / 3;
+      return n7 * 4 / 3;
     case "pc":
-      return n8 * 16;
+      return n7 * 16;
     case "mm":
-      return n8 * 96 / 25.4;
+      return n7 * 96 / 25.4;
     case "cm":
-      return n8 * 96 / 2.54;
+      return n7 * 96 / 2.54;
     case "in":
-      return n8 * 96;
+      return n7 * 96;
     case "em":
-      return n8 * fontSize;
+      return n7 * fontSize;
     case "ex":
-      return n8 * fontSize / 2;
+      return n7 * fontSize / 2;
     case "%":
       return void 0;
     default:
-      return n8;
+      return n7;
   }
 }
 function lengthIn(value2, at, axis) {
@@ -111205,8 +111205,8 @@ function lengthIn(value2, at, axis) {
   const pct2 = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*%$/.exec(value2.trim());
   if (!pct2) return lengthOf(value2, at.fontSize);
   const base = axis === "x" ? at.vw : axis === "y" ? at.vh : Math.sqrt((at.vw * at.vw + at.vh * at.vh) / 2);
-  const n8 = Number(pct2[1]) / 100 * base;
-  return Number.isFinite(n8) ? n8 : void 0;
+  const n7 = Number(pct2[1]) / 100 * base;
+  return Number.isFinite(n7) ? n7 : void 0;
 }
 function outlineOf(el, tag3, at) {
   let unreadable = false;
@@ -111272,8 +111272,8 @@ function unitOf(value2) {
   if (value2 === void 0) return void 0;
   const m2 = /^([+-]?(?:\d+\.?\d*|\.\d+))\s*(%)?$/.exec(value2.trim());
   if (!m2) return void 0;
-  const n8 = Number(m2[1]) / (m2[2] ? 100 : 1);
-  return Number.isFinite(n8) ? Math.max(0, Math.min(1, n8)) : void 0;
+  const n7 = Number(m2[1]) / (m2[2] ? 100 : 1);
+  return Number.isFinite(n7) ? Math.max(0, Math.min(1, n7)) : void 0;
 }
 function familyOf2(value2) {
   let list4 = value2.trim();
@@ -111285,8 +111285,8 @@ function familyOf2(value2) {
   }
   return void 0;
 }
-function round32(n8) {
-  const r5 = Math.round(n8 * 1e3) / 1e3;
+function round32(n7) {
+  const r5 = Math.round(n7 * 1e3) / 1e3;
   return Object.is(r5, -0) ? 0 : r5;
 }
 function paintOf(value2, currentColor) {
@@ -111315,21 +111315,21 @@ function transformSubPaths(subs, m2) {
   }));
 }
 function dOf(subs) {
-  const n8 = (v) => String(round32(v));
+  const n7 = (v) => String(round32(v));
   let out = "";
   for (const sub of subs) {
     for (const seg4 of sub.segments) {
-      if (seg4.op === "C") out += `C${n8(seg4.x1)} ${n8(seg4.y1)} ${n8(seg4.x2)} ${n8(seg4.y2)} ${n8(seg4.x)} ${n8(seg4.y)}`;
-      else out += `${seg4.op}${n8(seg4.x)} ${n8(seg4.y)}`;
+      if (seg4.op === "C") out += `C${n7(seg4.x1)} ${n7(seg4.y1)} ${n7(seg4.x2)} ${n7(seg4.y2)} ${n7(seg4.x)} ${n7(seg4.y)}`;
+      else out += `${seg4.op}${n7(seg4.x)} ${n7(seg4.y)}`;
     }
     if (sub.closed) out += "Z";
   }
   return out;
 }
 function nodeCount(contours) {
-  let n8 = 0;
-  for (const c of contours) n8 += c.curves.length + (c.closed ? 0 : 1);
-  return n8;
+  let n7 = 0;
+  for (const c of contours) n7 += c.curves.length + (c.closed ? 0 : 1);
+  return n7;
 }
 function svgItemsOf(svgText, parseXml, opts = {}) {
   const maxItems = Math.max(0, Math.min(VECTOR_ITEMS_MAX, opts.maxItems ?? VECTOR_ITEMS_MAX));
@@ -111560,7 +111560,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       return v != null && v.trim().split(/[\s,]+/).length > (node === el && (a === "x" || a === "y") ? 1 : 0);
     });
     const descendants = Array.from(el.getElementsByTagName("*"));
-    if (el.getAttribute("textLength") || descendants.some((n8) => localOf(n8) === "textPath" || n8.getAttribute("textLength") || positioned(n8)) || positioned(el)) {
+    if (el.getAttribute("textLength") || descendants.some((n7) => localOf(n7) === "textPath" || n7.getAttribute("textLength") || positioned(n7)) || positioned(el)) {
       omit("unsupported-text");
       return;
     }
@@ -112015,8 +112015,8 @@ function custGeomItems(geom, box4, paint2) {
   }
   return out;
 }
-function r24(n8) {
-  const r5 = Math.round(n8 * 100) / 100;
+function r24(n7) {
+  const r5 = Math.round(n7 * 100) / 100;
   return Object.is(r5, -0) ? 0 : r5;
 }
 function hexWithAlpha(hex3, alpha) {
@@ -112086,9 +112086,9 @@ function vectorItemsToRows(items2, place2, opts) {
     if (flipH) row.flipH = true;
     if (flipV) row.flipV = true;
   };
-  let n8 = 0;
+  let n7 = 0;
   for (const item2 of items2.items) {
-    const id3 = `${opts.idPrefix}.i${n8}`;
+    const id3 = `${opts.idPrefix}.i${n7}`;
     const row = { id: id3, group: opts.group };
     if (opts.frame) row.frame = opts.frame;
     if (item2.kind === "text") {
@@ -112112,7 +112112,7 @@ function vectorItemsToRows(items2, place2, opts) {
       if (item2.opacity !== void 0 && item2.opacity < 1) row.opacity = Math.round(item2.opacity * 100);
       row.name = rowName("Text", item2);
       rows2.push(row);
-      n8 += 1;
+      n7 += 1;
       continue;
     }
     const strokeW = item2.stroke ? item2.stroke.width * lineScale : 0;
@@ -112171,7 +112171,7 @@ function vectorItemsToRows(items2, place2, opts) {
     }
     if (item2.opacity !== void 0 && item2.opacity < 1) row.opacity = Math.round(item2.opacity * 100);
     rows2.push(row);
-    n8 += 1;
+    n7 += 1;
   }
   if (!rows2.length) return { refused: "empty" };
   return { rows: rows2, box: drawn };
@@ -112190,9 +112190,9 @@ function labelWidthEm(text12) {
   return Math.max(em2, floor);
 }
 function vectorRowsPathChars(rows2) {
-  let n8 = 0;
-  for (const row of rows2) if (row.kind === "path" && typeof row.path === "string") n8 += row.path.length;
-  return n8;
+  let n7 = 0;
+  for (const row of rows2) if (row.kind === "path" && typeof row.path === "string") n7 += row.path.length;
+  return n7;
 }
 function vectorRowNameParts(name) {
   const at = name.indexOf(": ");
@@ -112399,8 +112399,8 @@ function formattingNotCarried(slideNumber, dropped) {
 function correctedWithout(slideNumber, lost) {
   return `The corrected text on slide ${slideNumber} is plain words, so the ${wordList(lost)} the source text carried did not travel.`;
 }
-function round23(n8) {
-  return Number.isFinite(n8) ? Math.round(n8 * 100) / 100 : 0;
+function round23(n7) {
+  return Number.isFinite(n7) ? Math.round(n7 * 100) / 100 : 0;
 }
 function rowId(row) {
   return typeof row.id === "string" ? row.id : String(row.id ?? "");
@@ -112504,15 +112504,15 @@ function carriesItems(object4) {
 function vectorGroupOf(layerId) {
   return `vector:${layerId}`;
 }
-function shapesWord(n8) {
-  return n8 === 1 ? "1 editable shape" : `${n8} editable shapes`;
+function shapesWord(n7) {
+  return n7 === 1 ? "1 editable shape" : `${n7} editable shapes`;
 }
 function vectorCarriedMessage(noun, slideNumber, rows2, desc) {
   const credit = desc ? ` It credits its source: ${desc}` : "";
   return `The ${noun} on slide ${slideNumber} was carried over as ${shapesWord(rows2)} in one group.${credit}`;
 }
 function vectorOmittedMessage(noun, slideNumber, omitted) {
-  const total = omitted.reduce((n8, o) => n8 + o.count, 0);
+  const total = omitted.reduce((n7, o) => n7 + o.count, 0);
   const parts = omitted.map((o) => `${o.count} for ${OMIT_WORDS[o.reason] ?? o.reason}`).join(", ");
   return `${total === 1 ? "1 part" : `${total} parts`} of the ${noun} on slide ${slideNumber} could not be carried as shapes and ${total === 1 ? "was" : "were"} left out (${parts}).`;
 }
@@ -112775,12 +112775,12 @@ function compileFaithful(source, opts = {}) {
         produced.push(layerId);
         backward.push({ layerId, sourceObjectIds: [object4.id] });
         const sourceRows = object4.table.length;
-        const sourceCols = object4.table.reduce((n8, row2) => Math.max(n8, row2.length), 0);
+        const sourceCols = object4.table.reduce((n7, row2) => Math.max(n7, row2.length), 0);
         const rows2 = object4.table.slice(0, MAX_TABLE_ROWS5);
-        const cols = Math.min(MAX_TABLE_COLS5, rows2.reduce((n8, row2) => Math.max(n8, row2.length), 0));
+        const cols = Math.min(MAX_TABLE_COLS5, rows2.reduce((n7, row2) => Math.max(n7, row2.length), 0));
         const capped = sourceRows > MAX_TABLE_ROWS5 || sourceCols > MAX_TABLE_COLS5;
-        const sourceCells = object4.table.reduce((n8, row2) => n8 + row2.length, 0);
-        const carriedCells = rows2.reduce((n8, row2) => n8 + Math.min(row2.length, cols), 0);
+        const sourceCells = object4.table.reduce((n7, row2) => n7 + row2.length, 0);
+        const carriedCells = rows2.reduce((n7, row2) => n7 + Math.min(row2.length, cols), 0);
         const droppedCells = sourceCells - carriedCells;
         const cellW = cols > 0 ? object4.box.w * at.sx / cols : 0;
         const cellH = rows2.length > 0 ? object4.box.h * at.sy / rows2.length : 0;
@@ -113012,8 +113012,8 @@ function layoutDesignText(text12, fontSize, width) {
 }
 function designTextPad(row) {
   const raw = row.pad;
-  const n8 = typeof raw === "number" ? raw : typeof raw === "string" && raw.trim() !== "" ? Number(raw) : DESIGN_TEXT_PAD;
-  return Math.round(Math.max(0, Math.min(DESIGN_MAX_PAD, Number.isFinite(n8) ? n8 : DESIGN_TEXT_PAD)));
+  const n7 = typeof raw === "number" ? raw : typeof raw === "string" && raw.trim() !== "" ? Number(raw) : DESIGN_TEXT_PAD;
+  return Math.round(Math.max(0, Math.min(DESIGN_MAX_PAD, Number.isFinite(n7) ? n7 : DESIGN_TEXT_PAD)));
 }
 function designTextFit(row) {
   const text12 = rowStr(row, "text");
@@ -113043,14 +113043,14 @@ function deckContinuationLimit(included) {
   return Math.max(MIN_DECK_CONTINUATIONS, Math.ceil(Math.max(0, included) * DECK_CONTINUATION_SHARE));
 }
 function pictureGrid(box4, aspects, gutter) {
-  const n8 = aspects.length;
-  if (n8 === 0 || !(box4.w > 0) || !(box4.h > 0)) return [];
+  const n7 = aspects.length;
+  if (n7 === 0 || !(box4.w > 0) || !(box4.h > 0)) return [];
   const gap = Math.max(0, gutter);
   const ratio = (a) => Number.isFinite(a) && a > 0 ? a : 1;
   const fitted = (a, w, h) => w / h > ratio(a) ? { w: h * ratio(a), h } : { w, h: w / ratio(a) };
   let best;
-  for (let cols2 = 1; cols2 <= n8; cols2 += 1) {
-    const rows3 = Math.ceil(n8 / cols2);
+  for (let cols2 = 1; cols2 <= n7; cols2 += 1) {
+    const rows3 = Math.ceil(n7 / cols2);
     const cw2 = (box4.w - (cols2 - 1) * gap) / cols2;
     const ch2 = (box4.h - (rows3 - 1) * gap) / rows3;
     if (!(cw2 > 0) || !(ch2 > 0)) continue;
@@ -113063,7 +113063,7 @@ function pictureGrid(box4, aspects, gutter) {
   }
   if (!best) return [];
   const cols = best.cols;
-  const rows2 = Math.ceil(n8 / cols);
+  const rows2 = Math.ceil(n7 / cols);
   const room = { w: (box4.w - (cols - 1) * gap) / cols, h: (box4.h - (rows2 - 1) * gap) / rows2 };
   let cw = 0;
   let ch = 0;
@@ -113074,7 +113074,7 @@ function pictureGrid(box4, aspects, gutter) {
   }
   const left = box4.x + (box4.w - (cols * cw + (cols - 1) * gap)) / 2;
   const top = box4.y + (box4.h - (rows2 * ch + (rows2 - 1) * gap)) / 2;
-  const lastCount = n8 - (rows2 - 1) * cols;
+  const lastCount = n7 - (rows2 - 1) * cols;
   return aspects.map((a, i) => {
     const row = Math.floor(i / cols);
     const col = i % cols;
@@ -113109,8 +113109,8 @@ function rowNum(row, key2) {
   const value2 = row[key2];
   if (typeof value2 === "number") return Number.isFinite(value2) ? value2 : 0;
   if (typeof value2 !== "string" || value2.trim() === "") return 0;
-  const n8 = Number(value2);
-  return Number.isFinite(n8) ? n8 : 0;
+  const n7 = Number(value2);
+  return Number.isFinite(n7) ? n7 : 0;
 }
 function sizedMaster(master, size) {
   if (!size || !(size.width > 0) || !(size.height > 0)) return master;
@@ -113156,11 +113156,11 @@ function outcomeOf(entry2, applyUnreviewed, applyNeedsAttention) {
 }
 function tableLines(table) {
   const sourceRows = table.length;
-  const sourceCols = table.reduce((n8, row) => Math.max(n8, row.length), 0);
+  const sourceCols = table.reduce((n7, row) => Math.max(n7, row.length), 0);
   const rows2 = table.slice(0, MAX_TABLE_ROWS5);
-  const cols = Math.min(MAX_TABLE_COLS5, rows2.reduce((n8, row) => Math.max(n8, row.length), 0));
-  const sourceCells = table.reduce((n8, row) => n8 + row.length, 0);
-  const carried = rows2.reduce((n8, row) => n8 + Math.min(row.length, cols), 0);
+  const cols = Math.min(MAX_TABLE_COLS5, rows2.reduce((n7, row) => Math.max(n7, row.length), 0));
+  const sourceCells = table.reduce((n7, row) => n7 + row.length, 0);
+  const carried = rows2.reduce((n7, row) => n7 + Math.min(row.length, cols), 0);
   return {
     text: rows2.map((row) => row.slice(0, cols).map((cell2) => cell2 ?? "").join("	")).join("\n"),
     cap: { sourceRows, sourceCols, dropped: sourceCells - carried, rows: rows2.length, cols }
@@ -113811,16 +113811,16 @@ function pourItems(placements, mode3) {
   return items2;
 }
 function balancedParts(sizes, k) {
-  const n8 = sizes.length;
-  const parts = Math.max(1, Math.min(k, n8));
-  if (n8 === 0) return [];
+  const n7 = sizes.length;
+  const parts = Math.max(1, Math.min(k, n7));
+  if (n7 === 0) return [];
   const prefix = [0];
   for (const size of sizes) prefix.push(prefix[prefix.length - 1] + Math.max(0, size));
-  const best = Array.from({ length: parts + 1 }, () => new Array(n8 + 1).fill(Number.POSITIVE_INFINITY));
-  const cut = Array.from({ length: parts + 1 }, () => new Array(n8 + 1).fill(0));
+  const best = Array.from({ length: parts + 1 }, () => new Array(n7 + 1).fill(Number.POSITIVE_INFINITY));
+  const cut = Array.from({ length: parts + 1 }, () => new Array(n7 + 1).fill(0));
   best[0][0] = 0;
   for (let j = 1; j <= parts; j += 1) {
-    for (let i = j; i <= n8; i += 1) {
+    for (let i = j; i <= n7; i += 1) {
       for (let at = j - 1; at < i; at += 1) {
         const here = Math.max(best[j - 1][at], prefix[i] - prefix[at]);
         if (here < best[j][i] - 1e-9) {
@@ -113831,7 +113831,7 @@ function balancedParts(sizes, k) {
     }
   }
   const counts = [];
-  let end = n8;
+  let end = n7;
   for (let j = parts; j >= 1; j -= 1) {
     const start = cut[j][end];
     counts.unshift(end - start);
@@ -114500,9 +114500,9 @@ function compileRenovated(input) {
   };
   const distributeToPeers = (build2, peers, texts, assignedTo) => {
     const units2 = pourItems(texts, "grid").sort((a, b) => a.reading - b.reading);
-    const lengths = units2.map((unit2) => unit2.members.reduce((n8, p) => n8 + (p.text ?? "").length, 0));
+    const lengths = units2.map((unit2) => unit2.members.reduce((n7, p) => n7 + (p.text ?? "").length, 0));
     const shortest = Math.max(1, Math.min(...lengths));
-    const like = lengths.every((n8) => n8 <= shortest * 2);
+    const like = lengths.every((n7) => n7 <= shortest * 2);
     const first = build2.rows[peers[0]?.index ?? -1];
     const sizes = like ? units2.map(() => 1) : units2.map((unit2) => estimateTextHeight(unit2.members.map((p) => p.text ?? "").join("\n"), first ? rowNum(first, "fontSize") : master.typeScale.body, first ? rowNum(first, "w") : frameW));
     const counts = balancedParts(sizes, peers.length);
@@ -116758,32 +116758,45 @@ async function measureCore(spec, shaper, draw) {
     const segAt = [];
     const segStart = [];
     const missingAt = /* @__PURE__ */ new Set();
-    for (const [n8, seg4] of segments.entries()) {
-      segStart.push(advances.length);
-      const result2 = await shape(seg4.text, seg4.face);
+    for (const [n7, seg4] of segments.entries()) {
+      segStart.push(faceAt.length);
+      for (let i = 0; i < seg4.text.length; i++) {
+        faceAt.push(seg4.face);
+        segAt.push(n7);
+      }
+    }
+    const groups = [];
+    for (const [n7, seg4] of segments.entries()) {
+      const last = groups[groups.length - 1];
+      if (last && faceKey(last.face) === faceKey(seg4.face)) last.end += seg4.text.length;
+      else groups.push({ start: segStart[n7], end: segStart[n7] + seg4.text.length, face: seg4.face });
+    }
+    const groupAt = [];
+    for (const [g2, group] of groups.entries()) {
+      const text12 = drawn.slice(group.start, group.end);
+      const result2 = await shape(text12, group.face);
       for (const i of result2.missing ?? []) {
-        if (!Number.isInteger(i) || i < 0 || i >= seg4.text.length) continue;
-        missingAt.add(advances.length + i);
-        const ch = String.fromCodePoint(seg4.text.codePointAt(i));
-        let set = uncovered.get(seg4.face.family);
+        if (!Number.isInteger(i) || i < 0 || i >= text12.length) continue;
+        missingAt.add(group.start + i);
+        const ch = String.fromCodePoint(text12.codePointAt(i));
+        let set = uncovered.get(group.face.family);
         if (!set) {
           set = /* @__PURE__ */ new Set();
-          uncovered.set(seg4.face.family, set);
+          uncovered.set(group.face.family, set);
         }
         set.add(ch);
       }
-      for (let i = 0; i < seg4.text.length; i++) {
+      for (let i = 0; i < text12.length; i++) {
         advances.push(Number.isFinite(result2.advances[i]) ? result2.advances[i] : 0);
-        faceAt.push(seg4.face);
-        segAt.push(n8);
+        groupAt.push(g2);
       }
     }
     const reshape = async (a, z) => {
       let total = 0;
       for (let k = a; k < z; ) {
-        const n8 = segAt[k];
-        const stop = Math.min(z, segStart[n8] + segments[n8].text.length);
-        const result2 = await shape(drawn.slice(k, stop), segments[n8].face);
+        const group = groups[groupAt[k]];
+        const stop = Math.min(z, group.end);
+        const result2 = await shape(drawn.slice(k, stop), group.face);
         for (const adv of result2.advances) total += Number.isFinite(adv) ? adv : 0;
         k = stop;
       }
@@ -116830,11 +116843,11 @@ async function measureCore(spec, shaper, draw) {
         const place2 = (from, to) => {
           const out = [];
           for (let k = from; k < to; ) {
-            const n8 = segAt[k];
-            const stop = Math.min(to, segStart[n8] + segments[n8].text.length);
+            const n7 = segAt[k];
+            const stop = Math.min(to, segStart[n7] + segments[n7].text.length);
             let width = 0;
             for (let i2 = k; i2 < stop; i2++) width += advances[i2];
-            out.push({ text: drawn.slice(k, stop), x, width, face: segments[n8].face, seg: segments[n8] });
+            out.push({ text: drawn.slice(k, stop), x, width, face: segments[n7].face, seg: segments[n7] });
             x += width;
             k = stop;
           }
@@ -116966,8 +116979,8 @@ function textMeasureSpecOfRow(row, fonts) {
   const spec = { text: String(row.text ?? ""), width: specNum(row.w) };
   const numeric = (key2, v) => {
     if (!given(v)) return;
-    const n8 = specNum(v);
-    if (Number.isFinite(n8)) spec[key2] = n8;
+    const n7 = specNum(v);
+    if (Number.isFinite(n7)) spec[key2] = n7;
   };
   numeric("height", row.h);
   if (given(row.font)) spec.font = String(row.font);
@@ -117006,8 +117019,8 @@ var init_design_text_measure = __esm({
     VALIGNS2 = ["top", "middle", "bottom"];
     HANGING = /[\t   -  -  　]/;
     num10 = (value2, fallback) => {
-      const n8 = typeof value2 === "number" ? value2 : typeof value2 === "string" ? parseFloat(value2) : NaN;
-      return Number.isFinite(n8) ? n8 : fallback;
+      const n7 = typeof value2 === "number" ? value2 : typeof value2 === "string" ? parseFloat(value2) : NaN;
+      return Number.isFinite(n7) ? n7 : fallback;
     };
     clamp4 = (value2, lo, hi) => Math.min(hi, Math.max(lo, value2));
     round24 = (value2) => Math.round(value2 * 100) / 100;
@@ -117032,10 +117045,143 @@ var init_design_text_measure = __esm({
   }
 });
 
+// engine/src/text-spacing.ts
+function transformTextPath(d, matrix) {
+  const at = (x, y) => `${n4(matrix.a * x + matrix.c * y + matrix.e)},${n4(matrix.b * x + matrix.d * y + matrix.f)}`;
+  return parseSvgPath(d).map((path) => path.segments.map((segment2) => segment2.op === "C" ? `C${at(segment2.x1, segment2.y1)} ${at(segment2.x2, segment2.y2)} ${at(segment2.x, segment2.y)}` : `${segment2.op}${at(segment2.x, segment2.y)}`).join("") + (path.closed ? "Z" : "")).join("");
+}
+function translateTextPath(d, x, y = 0) {
+  if (!d || !x && !y) return d;
+  return translateOutlinePath(d, x, y) ?? translateParsedPath(d, x, y);
+}
+function translateParsedPath(d, x, y) {
+  return parseSvgPath(d).map((path) => path.segments.map((segment2) => segment2.op === "C" ? `C${n4(segment2.x1 + x)},${n4(segment2.y1 + y)} ${n4(segment2.x2 + x)},${n4(segment2.y2 + y)} ${n4(segment2.x + x)},${n4(segment2.y + y)}` : `${segment2.op}${n4(segment2.x + x)},${n4(segment2.y + y)}`).join("") + (path.closed ? "Z" : "")).join("");
+}
+function translateOutlinePath(d, x, y) {
+  if (d.length > 4e4) return null;
+  let i = 0, out = "", sub = "", drawn = false, cx2 = 0, cy3 = 0, open3 = false;
+  const flush = () => {
+    if (drawn) out += sub;
+    sub = "";
+    drawn = false;
+  };
+  const digits = () => {
+    const from = i;
+    for (let c = d.charCodeAt(i); c >= 48 && c <= 57; c = d.charCodeAt(++i)) ;
+    return i > from;
+  };
+  const num19 = () => {
+    const from = i;
+    if (d.charCodeAt(i) === 45) i++;
+    if (!digits()) return null;
+    if (d.charCodeAt(i) === 46) {
+      i++;
+      if (!digits()) return null;
+    }
+    return Number(d.slice(from, i));
+  };
+  const pair = (spaced) => {
+    if (spaced) {
+      if (d.charCodeAt(i) !== 32) return null;
+      i++;
+    }
+    const px3 = num19();
+    if (px3 === null || d.charCodeAt(i) !== 44) return null;
+    i++;
+    const py = num19();
+    return py === null ? null : [px3, py];
+  };
+  const at = (px3, py) => `${n4(px3 + x)},${n4(py + y)}`;
+  while (i < d.length) {
+    const op = d[i++];
+    if (op === "M") {
+      const p = pair(false);
+      if (!p) return null;
+      flush();
+      sub = `M${at(p[0], p[1])}`;
+      cx2 = p[0];
+      cy3 = p[1];
+      open3 = true;
+    } else if (!open3) {
+      return null;
+    } else if (op === "L") {
+      const p = pair(false);
+      if (!p) return null;
+      sub += `L${at(p[0], p[1])}`;
+      cx2 = p[0];
+      cy3 = p[1];
+      drawn = true;
+    } else if (op === "C") {
+      const a = pair(false), b = a && pair(true), c = b && pair(true);
+      if (!a || !b || !c) return null;
+      sub += `C${at(a[0], a[1])} ${at(b[0], b[1])} ${at(c[0], c[1])}`;
+      cx2 = c[0];
+      cy3 = c[1];
+      drawn = true;
+    } else if (op === "Q") {
+      const q = pair(false), p = q && pair(true);
+      if (!q || !p) return null;
+      const x1 = cx2 + 2 / 3 * (q[0] - cx2), y1 = cy3 + 2 / 3 * (q[1] - cy3);
+      const x2 = p[0] + 2 / 3 * (q[0] - p[0]), y2 = p[1] + 2 / 3 * (q[1] - p[1]);
+      sub += `C${at(x1, y1)} ${at(x2, y2)} ${at(p[0], p[1])}`;
+      cx2 = p[0];
+      cy3 = p[1];
+      drawn = true;
+    } else if (op === "Z") {
+      sub += "Z";
+      open3 = false;
+    } else {
+      return null;
+    }
+  }
+  flush();
+  return out;
+}
+function textSpaceWidth(line, source) {
+  return line.pieces.reduce((sum, piece) => sum + (piece.artwork?.whitespace ? piece.advance : piece.shape?.clusters.reduce((sum2, cluster2) => sum2 + (/^[ \u00a0\u202f]+$/u.test(source.slice(cluster2.start, cluster2.end)) ? cluster2.advance : 0), 0) ?? 0), 0);
+}
+function spaceTextLine(line, source, factor) {
+  if (Math.abs(factor - 1) < 1e-6) return line;
+  let pen = 0;
+  const pieces = line.pieces.map((piece) => {
+    const x = pen;
+    if (!piece.shape) {
+      const scale = piece.artwork?.whitespace ? factor : 1, advance2 = piece.advance * scale;
+      pen += advance2;
+      return { ...piece, x, advance: advance2, carets: piece.carets.map((caret) => ({ ...caret, x: n4((caret.x - piece.x) * scale + x) })) };
+    }
+    const visual = [...piece.shape.clusters].sort((a, b) => a.x - b.x), moved = /* @__PURE__ */ new Map();
+    let delta = 0;
+    for (const cluster2 of visual) {
+      const extra = /^[ \u00a0\u202f]+$/u.test(source.slice(cluster2.start, cluster2.end)) ? cluster2.advance * (factor - 1) : 0;
+      moved.set(cluster2.start, {
+        ...cluster2,
+        x: n4(cluster2.x + delta),
+        advance: n4(cluster2.advance + extra),
+        d: translateTextPath(cluster2.d, delta),
+        carets: cluster2.carets.map((caret) => ({ ...caret, x: n4(caret.x + delta + (cluster2.advance ? (caret.x - cluster2.x) / cluster2.advance * extra : 0)) }))
+      });
+      delta += extra;
+    }
+    const advance = n4(piece.advance + delta), shape = { ...piece.shape, advance, clusters: piece.shape.clusters.map((cluster2) => moved.get(cluster2.start)) };
+    pen += advance;
+    return { ...piece, x: n4(x), advance, shape, carets: shape.clusters.flatMap((cluster2) => cluster2.carets.map((caret) => ({ ...caret, x: n4(x + caret.x) }))) };
+  });
+  return { ...line, pieces, advance: n4(pen + (line.hyphen?.shape.advance ?? 0)) };
+}
+var n4;
+var init_text_spacing = __esm({
+  "engine/src/text-spacing.ts"() {
+    "use strict";
+    init_svg_path();
+    n4 = (value2) => Math.round(value2 * 1e4) / 1e4;
+  }
+});
+
 // engine/src/design-stroke.ts
 function leading(value2, fallback) {
-  const n8 = typeof value2 === "number" ? value2 : Number.parseFloat(String(value2));
-  return Number.isFinite(n8) ? n8 : fallback;
+  const n7 = typeof value2 === "number" ? value2 : Number.parseFloat(String(value2));
+  return Number.isFinite(n7) ? n7 : fallback;
 }
 function designStrokeAlign(row) {
   const kind = text6(row.kind);
@@ -117055,8 +117201,8 @@ function designStrokeSidesApply(row) {
 function sideOf(value2, fallback) {
   const s = text6(value2).trim();
   if (s === "") return fallback;
-  const n8 = Number.parseFloat(s);
-  return Number.isFinite(n8) ? Math.min(400, Math.max(0, n8)) : fallback;
+  const n7 = Number.parseFloat(s);
+  return Number.isFinite(n7) ? Math.min(400, Math.max(0, n7)) : fallback;
 }
 function designStrokeSides(row) {
   const w = leading(row.strokeW, 0);
@@ -117163,8 +117309,8 @@ function kfLookPose(track, tMs) {
 }
 function quant2(v, q) {
   const inv = Math.round(1 / q);
-  const n8 = Math.round(v * inv) / inv;
-  return Object.is(n8, -0) ? 0 : n8;
+  const n7 = Math.round(v * inv) / inv;
+  return Object.is(n7, -0) ? 0 : n7;
 }
 function kfOklabFromSrgb8(r5, g2, b) {
   const [L, A, B] = linearSrgbToOklab(srgbToLinear(r5 / 255), srgbToLinear(g2 / 255), srgbToLinear(b / 255));
@@ -117212,8 +117358,8 @@ function kfLookVars(pose3, opts = {}) {
   if (fill2) out[KF_LOOK_VARS.fill] = fill2;
   const stroke = kfColourCss(pose3, "stroke", opts.strokeAlpha ?? 1);
   if (stroke) out[KF_LOOK_VARS.stroke] = stroke;
-  if (typeof pose3.lw === "number") out[KF_LOOK_VARS.width] = `${n4(Math.max(0, pose3.lw))}px`;
-  if (typeof pose3.cr === "number") out[KF_LOOK_VARS.radius] = `${n4(Math.max(0, pose3.cr))}px`;
+  if (typeof pose3.lw === "number") out[KF_LOOK_VARS.width] = `${n42(Math.max(0, pose3.lw))}px`;
+  if (typeof pose3.cr === "number") out[KF_LOOK_VARS.radius] = `${n42(Math.max(0, pose3.cr))}px`;
   const span = kfTrimSpan(pose3);
   if (span) {
     const len2 = span.to - span.from;
@@ -117222,8 +117368,8 @@ function kfLookVars(pose3, opts = {}) {
       out[KF_LOOK_VARS.trimOffset] = "0";
       out[KF_LOOK_VARS.trimOn] = "1";
     } else {
-      out[KF_LOOK_VARS.trim] = `${n4(len2)} 2`;
-      out[KF_LOOK_VARS.trimOffset] = n4(-span.from);
+      out[KF_LOOK_VARS.trim] = `${n42(len2)} 2`;
+      out[KF_LOOK_VARS.trimOffset] = n42(-span.from);
       out[KF_LOOK_VARS.trimOn] = len2 > 1e-6 ? "1" : "0";
     }
   }
@@ -117245,7 +117391,7 @@ function kfOutlinePath(shape, w, h, radius, inset) {
   const arc2 = (x, y) => `A${f3(r5)} ${f3(r5)} 0 0 1 ${f3(x)} ${f3(y)}`;
   return `M${f3(x0 + r5)} ${f3(y0)}H${f3(x1 - r5)}${arc2(x1, y0 + r5)}V${f3(y1 - r5)}${arc2(x1 - r5, y1)}H${f3(x0 + r5)}${arc2(x0, y1 - r5)}V${f3(y0 + r5)}${arc2(x0 + r5, y0)}Z`;
 }
-var KF_FILL_CHANNELS, KF_STROKE_CHANNELS, KF_LOOK_CHANNELS, LOOK_SET, KF_LOOK_VARS, hex23, n4, f3;
+var KF_FILL_CHANNELS, KF_STROKE_CHANNELS, KF_LOOK_CHANNELS, LOOK_SET, KF_LOOK_VARS, hex23, n42, f3;
 var init_kf_look = __esm({
   "engine/src/kf-look.ts"() {
     "use strict";
@@ -117274,8 +117420,8 @@ var init_kf_look = __esm({
       /** 1, or 0 when the trim draws nothing (a zero-length dash would still paint a round cap). */
       trimOn: "--lolly-kf-trim-on"
     });
-    hex23 = (n8) => n8.toString(16).padStart(2, "0");
-    n4 = (v) => String(Math.round(v * 1e4) / 1e4);
+    hex23 = (n7) => n7.toString(16).padStart(2, "0");
+    n42 = (v) => String(Math.round(v * 1e4) / 1e4);
     f3 = (v) => String(Math.round(v * 1e3) / 1e3);
   }
 });
@@ -117316,9 +117462,9 @@ function frameKeys(track, chs, fps, startMs, value2) {
   const samples = [];
   for (let f = f0; f <= f1; f++) {
     const local2 = Math.min(last, Math.max(first, f * 1e3 / fps - startMs));
-    samples.push({ f, v: value2(local2).map((n8) => Math.round(n8 * 1e4) / 1e4) });
+    samples.push({ f, v: value2(local2).map((n7) => Math.round(n7 * 1e4) / 1e4) });
   }
-  const same = (a, b) => a.length === b.length && a.every((n8, i) => n8 === b[i]);
+  const same = (a, b) => a.length === b.length && a.every((n7, i) => n7 === b[i]);
   const kept2 = samples.filter((s, i) => i === 0 || i === samples.length - 1 || !(same(s.v, samples[i - 1].v) && same(s.v, samples[i + 1].v)));
   if (kept2.length === 1) return fixed2(kept2[0].v);
   return {
@@ -117332,7 +117478,7 @@ function frameKeys(track, chs, fps, startMs, value2) {
 function lottieOutline(shape, w, h, radius, inset) {
   const i = Math.max(0, inset);
   const W = Math.max(0, w - 2 * i), H = Math.max(0, h - 2 * i);
-  const r26 = (n8) => Math.round(n8 * 1e3) / 1e3;
+  const r26 = (n7) => Math.round(n7 * 1e3) / 1e3;
   const v = [], ins = [], outs = [];
   const add3 = (x, y, inT, outT) => {
     v.push([r26(x), r26(y)]);
@@ -117574,7 +117720,7 @@ var init_lottie_model = __esm({
 function numericVector(value2) {
   const values = typeof value2 === "number" ? [value2] : value2;
   if (!Array.isArray(values) || !values.length || values.length > 4) throw new Error("This property is not an editable numeric track.");
-  return values.map((n8) => lottieNumber(n8, "Property value", -1e9, 1e9));
+  return values.map((n7) => lottieNumber(n7, "Property value", -1e9, 1e9));
 }
 function propertyKeys(property4) {
   if (property4.a !== 1) return [];
@@ -117588,8 +117734,8 @@ function propertyKeys(property4) {
   return keys2;
 }
 function component(value2, dimension, fallback) {
-  const n8 = Array.isArray(value2) ? value2[dimension] ?? value2[0] : value2;
-  return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
+  const n7 = Array.isArray(value2) ? value2[dimension] ?? value2[0] : value2;
+  return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
 }
 function keyEase(key2, dimension = 0) {
   const outgoing = key2.o && typeof key2.o === "object" && !Array.isArray(key2.o) ? key2.o : {};
@@ -117665,8 +117811,8 @@ function sampleLottieProperty(property4, frame, validatedKeys) {
 }
 function setKeyEase(key2, points, dimensions, dimension) {
   if (!Number.isInteger(dimension) || dimension < 0 || dimension >= dimensions) throw new Error("Invalid easing dimension.");
-  points.forEach((n8, i) => {
-    lottieNumber(n8, "Easing control", i % 2 === 0 ? 0 : -100, i % 2 === 0 ? 1 : 100);
+  points.forEach((n7, i) => {
+    lottieNumber(n7, "Easing control", i % 2 === 0 ? 0 : -100, i % 2 === 0 ? 1 : 100);
   });
   const curves2 = Array.from({ length: dimensions }, (_, d) => d === dimension ? points : keyEase(key2, d));
   key2.o = { x: curves2.map((c) => c[0]), y: curves2.map((c) => c[1]) };
@@ -117795,7 +117941,7 @@ function retimeLottie(source, fps, prefix) {
 function channel3(track, key2, fps, startMs, base, multiplier = 1, replace = false) {
   const keys2 = track.filter((item2) => item2.v[key2] !== void 0);
   if (!keys2.length) return lottieStatic(base);
-  const value2 = (n8) => replace ? n8 * multiplier : base + n8 * multiplier;
+  const value2 = (n7) => replace ? n7 * multiplier : base + n7 * multiplier;
   return { a: 1, k: keys2.map((item2, index2) => {
     const next2 = keys2[index2 + 1];
     const points = key2 === "o" ? [0, 0, 1, 1] : kfEasePoints(item2.ease) ?? [0, 0, 1, 1];
@@ -117819,9 +117965,9 @@ function pathPosition(layer, track, fps) {
     return [bx + (p.x ?? 0), by + (p.y ?? 0), 0];
   };
   const out = [];
-  keys2.forEach(({ key: key2, index: index2 }, n8) => {
+  keys2.forEach(({ key: key2, index: index2 }, n7) => {
     const s = [bx + key2.v.x, by + key2.v.y, 0];
-    const next2 = keys2[n8 + 1];
+    const next2 = keys2[n7 + 1];
     if (!next2) {
       out.push({ t: frame(key2.t), s });
       return;
@@ -117991,7 +118137,7 @@ function compileLottieCompatRow(row, offset, supplied) {
   let shape;
   if (row.kind === "path") {
     const commands = lottieCompatPaths(row, box4, supplied.geom);
-    const contours = pathFromSubPaths(commands).map((contour) => ({ ...contour, curves: contour.curves.map((curve) => curve.map((n8, index2) => n8 + (index2 % 2 === 0 ? box4.x : box4.y))) }));
+    const contours = pathFromSubPaths(commands).map((contour) => ({ ...contour, curves: contour.curves.map((curve) => curve.map((n7, index2) => n7 + (index2 % 2 === 0 ? box4.x : box4.y))) }));
     shape = { kind: "path", contours, commands, evenOdd: row.fillRule === "evenodd" };
   } else {
     const name = String(row.shape ?? "");
@@ -118653,8 +118799,8 @@ function rowNum2(row, key2, fallback = 0) {
   const value2 = row[key2];
   if (typeof value2 === "number") return Number.isFinite(value2) ? value2 : fallback;
   if (typeof value2 !== "string" || value2.trim() === "") return fallback;
-  const n8 = Number(value2);
-  return Number.isFinite(n8) ? n8 : fallback;
+  const n7 = Number(value2);
+  return Number.isFinite(n7) ? n7 : fallback;
 }
 function rowFlag(row, key2) {
   const value2 = row[key2];
@@ -118749,14 +118895,14 @@ function pathContours(row, box4, thumbScale) {
   const contours = [];
   for (const path of paths) {
     if (thumbScale !== void 0 && subPixel(path.nodes, w, h, thumbScale)) continue;
-    const nodes = path.nodes.map((n8) => ({
-      ...n8,
-      x: box4.x + n8.x * w,
-      y: box4.y + n8.y * h,
-      ...n8.hInX !== void 0 ? { hInX: n8.hInX * w } : {},
-      ...n8.hInY !== void 0 ? { hInY: n8.hInY * h } : {},
-      ...n8.hOutX !== void 0 ? { hOutX: n8.hOutX * w } : {},
-      ...n8.hOutY !== void 0 ? { hOutY: n8.hOutY * h } : {}
+    const nodes = path.nodes.map((n7) => ({
+      ...n7,
+      x: box4.x + n7.x * w,
+      y: box4.y + n7.y * h,
+      ...n7.hInX !== void 0 ? { hInX: n7.hInX * w } : {},
+      ...n7.hInY !== void 0 ? { hInY: n7.hInY * h } : {},
+      ...n7.hOutX !== void 0 ? { hOutX: n7.hOutX * w } : {},
+      ...n7.hOutY !== void 0 ? { hOutY: n7.hOutY * h } : {}
     }));
     try {
       const curves2 = toCubics({ ...path, nodes });
@@ -118891,8 +119037,8 @@ function shadowOf(row, color6) {
 }
 function leadingNumber(value2, fallback) {
   if (typeof value2 === "number") return Number.isFinite(value2) ? value2 : fallback;
-  const n8 = Number.parseFloat(String(value2 ?? ""));
-  return Number.isFinite(n8) ? n8 : fallback;
+  const n7 = Number.parseFloat(String(value2 ?? ""));
+  return Number.isFinite(n7) ? n7 : fallback;
 }
 function designBool(value2, fallback) {
   if (value2 === true || value2 === false) return value2;
@@ -119043,7 +119189,7 @@ function compileDesignDraw(rows2, size, opts = {}) {
   if (opts.semantics === "pptx-compat") throw new Error("The native PPTX producer owns page selection; compile its admitted primitives with compileDesignRow.");
   const head2 = rows2[0];
   const framed = head2 !== void 0 && rowStr2(head2, "kind") === "frame";
-  const round11 = opts.semantics !== "preview" ? Math.round : (n8) => n8;
+  const round11 = opts.semantics !== "preview" ? Math.round : (n7) => n7;
   const offset = framed ? { x: round11(rowNum2(head2, "x")), y: round11(rowNum2(head2, "y")) } : { x: 0, y: 0 };
   const ground = framed ? rowStr2(head2, "bg") : "";
   const background = opts.colors === "resolved" && ground ? resolveDrawColor(ground, opts.resolveColor)?.color ?? "" : ground;
@@ -119096,6 +119242,46 @@ async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
     if (!words4 || !layout2) continue;
     const m2 = layout2.measure;
     const features = [...words4.spec.ligatures === false || m2.tracking !== 0 ? ["liga=0", "clig=0"] : [], ...words4.spec.alternates ? ["salt=1"] : []];
+    const axesOf = (face) => face.variations ? Object.entries(face.variations).map(([axis, value2]) => `${axis}=${value2}`) : void 0;
+    const outline2 = (text12, face, clusters) => {
+      const variations = axesOf(face);
+      return toPath({ text: text12, fontUrl: face.file, fontSize: m2.size, ...features.length ? { features } : {}, ...m2.tracking ? { letterSpacing: m2.tracking } : {}, ...variations ? { variations } : {}, ...clusters ? { clusters: true } : {} });
+    };
+    const alone = async (run3, clusters) => {
+      if (!run3.text.trim()) return { d: "" };
+      if (!run3.face.file) return null;
+      try {
+        const shaped = await outline2(run3.text, run3.face, clusters);
+        return { d: shaped.d, ...shaped.clusters ? { clusters: shaped.clusters } : {} };
+      } catch {
+        return null;
+      }
+    };
+    const whole = async (stretch) => {
+      const text12 = stretch.map((run3) => run3.text).join("");
+      let shaped;
+      try {
+        shaped = await outline2(text12, stretch[0].face, true);
+      } catch {
+        return null;
+      }
+      if (!shaped.clusters) return null;
+      const out = stretch.map(() => ({ d: "", clusters: [] }));
+      let k = 0, from = 0, pen = -Infinity;
+      for (const cluster2 of [...shaped.clusters].sort((a, b) => a.start - b.start)) {
+        if (!Number.isInteger(cluster2.start) || cluster2.start < 0 || cluster2.start >= text12.length) return null;
+        if (cluster2.x !== void 0) {
+          if (cluster2.x < pen) return null;
+          pen = cluster2.x;
+        }
+        while (cluster2.start >= from + stretch[k].text.length) from += stretch[k++].text.length;
+        const d = translateTextPath(cluster2.d, stretch[0].x - stretch[k].x);
+        if (cluster2.d && !d) return null;
+        out[k].d += d;
+        out[k].clusters.push({ start: cluster2.start - from, d });
+      }
+      return out;
+    };
     let decorated = false, missing = false;
     words4.outlines = [];
     delete words4.strikes;
@@ -119104,12 +119290,14 @@ async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
       const row = [];
       const strikes = [];
       const underlines = [];
+      const bands = [];
       for (const run3 of line.runs) {
         const origin = op.box.x + line.x + run3.x;
         const band2 = run3.underline ? underlineGeometry(m2.size, op.box.y + line.baseline) : null;
         if (run3.underline && !band2) decorated = true;
+        bands.push(band2);
         underlines.push(band2 && !run3.text.trim() ? { y: band2.y, height: band2.height, spans: underlineSpans(origin, run3.width, [], band2.dilation) } : null);
-        const variations = run3.face.variations ? Object.entries(run3.face.variations).map(([axis, value2]) => `${axis}=${value2}`) : void 0;
+        const variations = axesOf(run3.face);
         let strike = null;
         if (run3.strike) {
           if (strikeMetrics && run3.face.file) {
@@ -119124,22 +119312,30 @@ async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
           if (!strike) decorated = true;
         }
         strikes.push(strike);
-        if (!run3.text.trim() || !run3.face.file) {
-          row.push(run3.text.trim() ? null : "");
-          if (run3.text.trim()) missing = true;
-          continue;
-        }
-        try {
-          const shaped = await toPath({ text: run3.text, fontUrl: run3.face.file, fontSize: m2.size, ...features.length ? { features } : {}, ...m2.tracking ? { letterSpacing: m2.tracking } : {}, ...variations ? { variations } : {}, ...band2 ? { clusters: true } : {} });
-          row.push(shaped.d);
-          if (band2) {
-            const gaps = underlineInkGaps(run3.text, shaped.clusters, band2);
-            if (gaps) underlines[underlines.length - 1] = { y: band2.y, height: band2.height, spans: underlineSpans(origin, run3.width, gaps, band2.dilation) };
-            else decorated = true;
-          }
-        } catch {
+      }
+      const outlines = [];
+      for (let a = 0; a < line.runs.length; ) {
+        let z = a + 1;
+        while (z < line.runs.length && runFace(line.runs[z].face) === runFace(line.runs[a].face)) z++;
+        const stretch = line.runs.slice(a, z);
+        const split = stretch.length > 1 && stretch[0].face.file && stretch.some((run3) => run3.text.trim()) ? await whole(stretch) : null;
+        if (split) outlines.push(...split);
+        else for (let k = a; k < z; k++) outlines.push(await alone(line.runs[k], !!bands[k]));
+        a = z;
+      }
+      for (const [i, run3] of line.runs.entries()) {
+        const got = outlines[i];
+        if (!got) {
           row.push(null);
           missing = true;
+          continue;
+        }
+        row.push(got.d);
+        const band2 = bands[i];
+        if (band2 && run3.text.trim()) {
+          const gaps = underlineInkGaps(run3.text, got.clusters, band2);
+          if (gaps) underlines[i] = { y: band2.y, height: band2.height, spans: underlineSpans(op.box.x + line.x + run3.x, run3.width, gaps, band2.dilation) };
+          else decorated = true;
         }
       }
       const hanging = line.hanging?.filter((run3) => run3.underline) ?? [];
@@ -119203,13 +119399,14 @@ async function describeDesignDrawPictures(page3, describe3) {
   for (const op of page3.ops) if (await settle2(op)) kept2.push(op);
   page3.ops = kept2;
 }
-var DESIGN_DRAW_VERSION, authoredColor, strokeWidest, NON_STATIC, DEFAULT_FONT_SIZE, FITS2, OBJPOS, BLENDS2, clampTo;
+var DESIGN_DRAW_VERSION, authoredColor, strokeWidest, NON_STATIC, DEFAULT_FONT_SIZE, FITS2, OBJPOS, BLENDS2, clampTo, runFace;
 var init_design_draw = __esm({
   "engine/src/design-draw.ts"() {
     "use strict";
     init_deck_compile();
     init_text_decoration();
     init_design_text_measure();
+    init_text_spacing();
     init_emoji_segment();
     init_authored_url();
     init_design_draw_lottie();
@@ -119245,6 +119442,7 @@ var init_design_draw = __esm({
     ]);
     BLENDS2 = /* @__PURE__ */ new Set(["multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]);
     clampTo = (v, a, b) => v < a ? a : v > b ? b : v;
+    runFace = (face) => JSON.stringify([face.family, face.weight, face.italic, face.file, face.variations ?? null]);
   }
 });
 
@@ -119264,16 +119462,16 @@ function penpotUuid() {
   return c?.randomUUID ? c.randomUUID() : fallbackUuid();
 }
 function seededPenpotUuid(seed = 1) {
-  let n8 = seed >>> 0 || 1;
+  let n7 = seed >>> 0 || 1;
   return () => {
     const w = [];
     for (let i = 0; i < 4; i++) {
-      n8 ^= n8 << 13;
-      n8 >>>= 0;
-      n8 ^= n8 >>> 17;
-      n8 ^= n8 << 5;
-      n8 >>>= 0;
-      w.push(n8);
+      n7 ^= n7 << 13;
+      n7 >>>= 0;
+      n7 ^= n7 >>> 17;
+      n7 ^= n7 << 5;
+      n7 >>>= 0;
+      w.push(n7);
     }
     const h = w.map((x) => x.toString(16).padStart(8, "0")).join("");
     const s = h.slice(0, 12) + "4" + h.slice(13, 16) + "8" + h.slice(17, 32);
@@ -119336,13 +119534,13 @@ function transformSubpaths(subs, m2) {
   }));
 }
 function subpathsToD(subs) {
-  const n8 = (v) => String(r4(v));
+  const n7 = (v) => String(r4(v));
   const out = [];
   for (const sp of subs) {
     for (const s of sp.segments) {
-      if (s.op === "M") out.push(`M${n8(s.x)},${n8(s.y)}`);
-      else if (s.op === "L") out.push(`L${n8(s.x)},${n8(s.y)}`);
-      else out.push(`C${n8(s.x1)},${n8(s.y1)} ${n8(s.x2)},${n8(s.y2)} ${n8(s.x)},${n8(s.y)}`);
+      if (s.op === "M") out.push(`M${n7(s.x)},${n7(s.y)}`);
+      else if (s.op === "L") out.push(`L${n7(s.x)},${n7(s.y)}`);
+      else out.push(`C${n7(s.x1)},${n7(s.y1)} ${n7(s.x2)},${n7(s.y2)} ${n7(s.x)},${n7(s.y)}`);
     }
     if (sp.closed) out.push("Z");
   }
@@ -119874,8 +120072,8 @@ function penpotTokensJson(doc, selection) {
   const setNames = Object.keys(sets);
   if (!setNames.length) return null;
   const metaIn = isRec6(doc.$metadata) ? doc.$metadata : {};
-  const order = (Array.isArray(metaIn.tokenSetOrder) ? metaIn.tokenSetOrder : []).map(String).filter((n8) => n8 in sets);
-  for (const n8 of setNames) if (!order.includes(n8)) order.push(n8);
+  const order = (Array.isArray(metaIn.tokenSetOrder) ? metaIn.tokenSetOrder : []).map(String).filter((n7) => n7 in sets);
+  for (const n7 of setNames) if (!order.includes(n7)) order.push(n7);
   const themes = [];
   for (const raw of Array.isArray(doc.$themes) ? doc.$themes : []) {
     if (!isRec6(raw) || typeof raw.name !== "string" || !raw.name) continue;
@@ -119908,13 +120106,13 @@ function penpotTokensJson(doc, selection) {
   const setsGivenDirectly = !!selection?.activeSets?.length;
   let chosenNames = [];
   if (selection?.activeThemes?.length) {
-    chosenNames = selection.activeThemes.filter((n8) => byName.has(n8));
+    chosenNames = selection.activeThemes.filter((n7) => byName.has(n7));
   }
-  if (!chosenNames.length && !setsGivenDirectly) chosenNames = srcActive.filter((n8) => byName.has(n8));
+  if (!chosenNames.length && !setsGivenDirectly) chosenNames = srcActive.filter((n7) => byName.has(n7));
   if (!setsGivenDirectly && themes.length) {
     const groupOf2 = (t) => t && typeof t.group === "string" ? t.group : "";
     const canonical3 = new Map(readTokenAxes(doc).axes.map((a) => [a.group, a.canonical]));
-    const covered = new Set(chosenNames.map((n8) => groupOf2(byName.get(n8))));
+    const covered = new Set(chosenNames.map((n7) => groupOf2(byName.get(n7))));
     const pick = (t) => {
       const g2 = groupOf2(t);
       const nm = typeof t.name === "string" ? t.name : "";
@@ -119930,24 +120128,24 @@ function penpotTokensJson(doc, selection) {
   let active;
   if (setsGivenDirectly) {
     const want = new Set(selection.activeSets);
-    active = order.filter((n8) => want.has(n8));
+    active = order.filter((n7) => want.has(n7));
     if (!active.length) active = order.slice();
   } else if (chosenNames.length) {
     const enabled4 = /* @__PURE__ */ new Set();
-    for (const n8 of chosenNames) {
-      const t = byName.get(n8);
+    for (const n7 of chosenNames) {
+      const t = byName.get(n7);
       if (!t) continue;
       for (const [name, st] of Object.entries(t.selectedTokenSets)) {
         if (st === "enabled") enabled4.add(name);
       }
     }
-    active = order.filter((n8) => enabled4.has(n8));
+    active = order.filter((n7) => enabled4.has(n7));
     if (!active.length) active = order.slice();
   } else {
     active = order.slice();
   }
   const out = /* @__PURE__ */ Object.create(null);
-  for (const n8 of order) out[n8] = sets[n8];
+  for (const n7 of order) out[n7] = sets[n7];
   if (themes.length) out.$themes = themes;
   const meta = { tokenSetOrder: order, activeSets: active.length ? active : order.slice() };
   if (chosenNames.length) meta.activeThemes = chosenNames;
@@ -120231,11 +120429,11 @@ function boxesToPenpotDoc(boxesIn, o) {
       if (!dec || !dec.ok || !Array.isArray(dec.value)) return null;
       const ds = [];
       for (const src of dec.value) {
-        const nodes = src.nodes.map((n8) => {
-          const out = { x: fin2(n8.x) * w, y: fin2(n8.y) * h };
-          for (const k of ["hInX", "hOutX"]) if (n8[k] != null) out[k] = fin2(n8[k]) * w;
-          for (const k of ["hInY", "hOutY"]) if (n8[k] != null) out[k] = fin2(n8[k]) * h;
-          if (n8.continuity) out.continuity = n8.continuity;
+        const nodes = src.nodes.map((n7) => {
+          const out = { x: fin2(n7.x) * w, y: fin2(n7.y) * h };
+          for (const k of ["hInX", "hOutX"]) if (n7[k] != null) out[k] = fin2(n7[k]) * w;
+          for (const k of ["hInY", "hOutY"]) if (n7[k] != null) out[k] = fin2(n7[k]) * h;
+          if (n7.continuity) out.continuity = n7.continuity;
           return out;
         });
         const res = geomApi2.fromNodes({ kind: src.kind, nodes, closed: src.closed === true, tension: src.tension, decimals: 3 });
@@ -120325,7 +120523,7 @@ function boxesToPenpotDoc(boxesIn, o) {
     const index2 = designHierarchyIndex(source, o.pages);
     const findings = [...index2.findings, ...hasDesignLayout(source) ? validateDesignLayout(source, o.layoutTracks) : []];
     if (findings.length) throw new Error(findings.map((finding3) => finding3.message).join("\n"));
-    const paintIndex = new Map(boxes2.map((box4, n8) => [String(box4.id), n8]));
+    const paintIndex = new Map(boxes2.map((box4, n7) => [String(box4.id), n7]));
     const lowerTree = (box4) => {
       let children2 = (index2.children.get(String(box4.id)) || []).map((id3) => byId.get(id3));
       if (hasDesignLayout([box4])) children2 = children2.slice().sort((a, b) => fin2(a.layoutOrder) - fin2(b.layoutOrder));
@@ -120568,7 +120766,7 @@ function parseTransform3(s) {
     any = true;
     const fn = hit[1].toLowerCase();
     const a = hit[2].trim().split(/[\s,]+/).filter(Boolean).map(Number);
-    if (a.some((n8) => !Number.isFinite(n8))) return null;
+    if (a.some((n7) => !Number.isFinite(n7))) return null;
     let t;
     if (fn === "matrix" && a.length === 6) t = { a: a[0], b: a[1], c: a[2], d: a[3], e: a[4], f: a[5] };
     else if (fn === "translate") t = { a: 1, b: 0, c: 0, d: 1, e: a[0] ?? 0, f: a[1] ?? 0 };
@@ -120589,23 +120787,23 @@ function parseLen(v, d = 0, ref2 = 0) {
   if (v == null || v === "") return d;
   const m2 = /^(-?\d*\.?\d+(?:e[-+]?\d+)?)\s*(px|pt|mm|cm|in|%|em|rem)?$/i.exec(v.trim());
   if (!m2) return d;
-  const n8 = parseFloat(m2[1]);
+  const n7 = parseFloat(m2[1]);
   switch ((m2[2] ?? "px").toLowerCase()) {
     case "%":
-      return ref2 * n8 / 100;
+      return ref2 * n7 / 100;
     case "pt":
-      return n8 * 96 / 72;
+      return n7 * 96 / 72;
     case "mm":
-      return n8 * 96 / 25.4;
+      return n7 * 96 / 25.4;
     case "cm":
-      return n8 * 96 / 2.54;
+      return n7 * 96 / 2.54;
     case "in":
-      return n8 * 96;
+      return n7 * 96;
     case "em":
     case "rem":
-      return n8 * 16;
+      return n7 * 16;
     default:
-      return n8;
+      return n7;
   }
 }
 function decodeBase64(b64) {
@@ -120932,8 +121130,8 @@ function svgToPenpotDoc(svgText, o) {
     if (!c) return [];
     const s = { color: c.hex, opacity: f.strokeOpacity * c.alpha, width: f.strokeWidth * meanScale(f.m), alignment: "center" };
     if (f.strokeDash && !/^none$/i.test(f.strokeDash)) {
-      const nums = f.strokeDash.split(/[\s,]+/).map((v) => parseLen(v, 0)).filter((n8) => Number.isFinite(n8));
-      if (nums.length && nums.some((n8) => n8 > 0)) {
+      const nums = f.strokeDash.split(/[\s,]+/).map((v) => parseLen(v, 0)).filter((n7) => Number.isFinite(n7));
+      if (nums.length && nums.some((n7) => n7 > 0)) {
         const k = meanScale(f.m);
         const dash = (nums[0] ?? 0) * k, gap = (nums[1] ?? nums[0] ?? 0) * k;
         s.style = dash <= s.width * 1.05 && f.strokeCap === "round" ? "dotted" : "dashed";
@@ -121509,21 +121707,21 @@ var init_penpot_file = __esm({
     MAX_TEXT_PARAGRAPHS = 400;
     isRec6 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     fin2 = (v, d = 0) => {
-      const n8 = typeof v === "number" ? v : parseFloat(String(v));
-      return Number.isFinite(n8) ? n8 : d;
+      const n7 = typeof v === "number" ? v : parseFloat(String(v));
+      return Number.isFinite(n7) ? n7 : d;
     };
     r4 = (v) => {
-      const n8 = Math.round(v * 1e4) / 1e4;
-      return Number.isFinite(n8) ? Object.is(n8, -0) ? 0 : n8 : 0;
+      const n7 = Math.round(v * 1e4) / 1e4;
+      return Number.isFinite(n7) ? Object.is(n7, -0) ? 0 : n7 : 0;
     };
     IDENT = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
-    mul2 = (m2, n8) => ({
-      a: m2.a * n8.a + m2.c * n8.b,
-      b: m2.b * n8.a + m2.d * n8.b,
-      c: m2.a * n8.c + m2.c * n8.d,
-      d: m2.b * n8.c + m2.d * n8.d,
-      e: m2.a * n8.e + m2.c * n8.f + m2.e,
-      f: m2.b * n8.e + m2.d * n8.f + m2.f
+    mul2 = (m2, n7) => ({
+      a: m2.a * n7.a + m2.c * n7.b,
+      b: m2.b * n7.a + m2.d * n7.b,
+      c: m2.a * n7.c + m2.c * n7.d,
+      d: m2.b * n7.c + m2.d * n7.d,
+      e: m2.a * n7.e + m2.c * n7.f + m2.e,
+      f: m2.b * n7.e + m2.d * n7.f + m2.f
     });
     apply2 = (m2, x, y) => [m2.a * x + m2.c * y + m2.e, m2.b * x + m2.d * y + m2.f];
     meanScale = (m2) => Math.sqrt(Math.abs(m2.a * m2.d - m2.b * m2.c)) || 1;
@@ -121715,15 +121913,15 @@ function photoLookHex8(hex3) {
   const t = hex3.trim();
   const six = HEX63.exec(t)?.[1] ?? HEX3.exec(t)?.[1]?.replace(/./g, (c) => c + c);
   if (!six) return null;
-  const n8 = parseInt(six, 16);
-  return [n8 >> 16 & 255, n8 >> 8 & 255, n8 & 255];
+  const n7 = parseInt(six, 16);
+  return [n7 >> 16 & 255, n7 >> 8 & 255, n7 & 255];
 }
 function photoLookStops(look3) {
   const raw = Array.isArray(look3.stops) && look3.stops.length ? look3.stops : [look3.shadow, look3.mid, look3.highlight].filter((c) => typeof c === "string" && !!c);
-  const n8 = raw.length;
+  const n7 = raw.length;
   return raw.map((s, i) => {
     const color6 = typeof s === "string" ? s : s.color;
-    const pos = typeof s === "object" && typeof s.pos === "number" ? s.pos / 100 : n8 > 1 ? i / (n8 - 1) : 0;
+    const pos = typeof s === "object" && typeof s.pos === "number" ? s.pos / 100 : n7 > 1 ? i / (n7 - 1) : 0;
     return { color: color6, pos };
   });
 }
@@ -121807,10 +122005,10 @@ function gradeTables(contrast3, lightness) {
   const unit2 = new Float64Array(256);
   const linear = new Float64Array(256);
   for (let v = 0; v < 256; v += 1) {
-    let n8 = clut[v];
-    if (light > 0) n8 += (255 - n8) * light;
-    else if (light < 0) n8 *= 1 + light;
-    unit2[v] = clamp0112(n8 / 255);
+    let n7 = clut[v];
+    if (light > 0) n7 += (255 - n7) * light;
+    else if (light < 0) n7 *= 1 + light;
+    unit2[v] = clamp0112(n7 / 255);
     linear[v] = decodeSrgb(unit2[v]);
   }
   return { unit: unit2, linear };
@@ -121884,7 +122082,7 @@ function gradientMap(d, def, ta, grade) {
 function lumaMap(d, def, ta, grade) {
   const grey = def.kind === "greyscale";
   const table = grey ? null : duotoneRamp(def);
-  const n8 = table ? table.length - 1 : 0;
+  const n7 = table ? table.length - 1 : 0;
   for (let i = 0; i < d.length; i += 4) {
     const r01 = grade ? grade.unit[d[i]] : d[i] / 255;
     const g01 = grade ? grade.unit[d[i + 1]] : d[i + 1] / 255;
@@ -121894,8 +122092,8 @@ function lumaMap(d, def, ta, grade) {
       tr = tg = tb = clamp0112(0.213 * r01 + 0.715 * g01 + 0.072 * b01);
     } else {
       const y = clamp0112(0.2126 * r01 + 0.7152 * g01 + 0.0722 * b01);
-      const pos = y * n8;
-      const k = pos >= n8 ? n8 - 1 : pos | 0;
+      const pos = y * n7;
+      const k = pos >= n7 ? n7 - 1 : pos | 0;
       const u = pos - k;
       const lo = table[k], hi = table[k + 1];
       tr = lo[0] + (hi[0] - lo[0]) * u;
@@ -121923,11 +122121,11 @@ function photoLookPreviewTable(look3, count4 = 17) {
   const light = Math.max(-100, Math.min(100, finite7(look3.lightness))) / 100;
   const cf = 259 * (contrast3 + 255) / (255 * (259 - contrast3));
   const graded = (s) => {
-    let n8 = s * 255;
-    if (contrast3) n8 = Math.max(0, Math.min(255, cf * (n8 - 128) + 128));
-    if (light > 0) n8 += (255 - n8) * light;
-    else if (light < 0) n8 *= 1 + light;
-    return clamp0112(n8 / 255);
+    let n7 = s * 255;
+    if (contrast3) n7 = Math.max(0, Math.min(255, cf * (n7 - 128) + 128));
+    if (light > 0) n7 += (255 - n7) * light;
+    else if (light < 0) n7 *= 1 + light;
+    return clamp0112(n7 / 255);
   };
   const out = [];
   for (let j = 0; j < count4; j += 1) {
@@ -121983,14 +122181,14 @@ function validStops(stops, required) {
   if (stops === void 0) return !required;
   if (!Array.isArray(stops) || stops.length < 2 || stops.length > MAX_LOOK_STOPS) return false;
   let last = -Infinity;
-  const n8 = stops.length;
-  for (let i = 0; i < n8; i += 1) {
+  const n7 = stops.length;
+  for (let i = 0; i < n7; i += 1) {
     const s = stops[i];
     const color6 = typeof s === "string" ? s : s && typeof s === "object" ? s.color : void 0;
     if (!hexToUnitRgb(color6)) return false;
     const pos = s && typeof s === "object" ? s.pos : void 0;
     if (pos !== void 0 && (typeof pos !== "number" || !Number.isFinite(pos) || pos < 0 || pos > 100)) return false;
-    const effective = typeof pos === "number" ? pos : i / (n8 - 1) * 100;
+    const effective = typeof pos === "number" ? pos : i / (n7 - 1) * 100;
     if (effective < last) return false;
     last = effective;
   }
@@ -122002,8 +122200,8 @@ function validLutId(id3) {
 function validVariant(v) {
   if (v.amount !== void 0 && (typeof v.amount !== "number" || !Number.isFinite(v.amount) || v.amount < 0 || v.amount > 100)) return false;
   for (const key2 of ["contrast", "lightness"]) {
-    const n8 = v[key2];
-    if (n8 !== void 0 && (typeof n8 !== "number" || !Number.isFinite(n8) || n8 < -100 || n8 > 100)) return false;
+    const n7 = v[key2];
+    if (n7 !== void 0 && (typeof n7 !== "number" || !Number.isFinite(n7) || n7 < -100 || n7 > 100)) return false;
   }
   for (const key2 of ["shadow", "mid", "highlight", "previewBg"]) if (v[key2] !== void 0 && !hexToUnitRgb(v[key2])) return false;
   if (v.lut !== void 0 && !validLutId(v.lut)) return false;
@@ -122049,8 +122247,8 @@ function hexToUnitRgb(hex3) {
   const m2 = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex3.trim());
   if (!m2) return null;
   const h = m2[1].length === 3 ? m2[1].replace(/./g, (c) => c + c) : m2[1];
-  const n8 = parseInt(h, 16);
-  return [(n8 >> 16 & 255) / 255, (n8 >> 8 & 255) / 255, (n8 & 255) / 255];
+  const n7 = parseInt(h, 16);
+  return [(n7 >> 16 & 255) / 255, (n7 >> 8 & 255) / 255, (n7 & 255) / 255];
 }
 function trim(v) {
   return String(Math.round(v * 1e4) / 1e4);
@@ -122237,17 +122435,17 @@ function freeverb(channels, rate3, mixPct, roomPct) {
   const feedback = 0.7 + roomPct / 100 * 0.28;
   const damp = 0.2;
   const scale = rate3 / 44100;
-  const n8 = channels[0].length;
+  const n7 = channels[0].length;
   for (let ch = 0; ch < channels.length; ch++) {
     const spread = ch === 0 ? 0 : FV_SPREAD;
     const src = Float32Array.from(channels[ch]);
-    const acc = new Float32Array(n8);
+    const acc = new Float32Array(n7);
     for (const base of FV_COMBS) {
       const len2 = Math.max(1, Math.round((base + spread) * scale));
       const buf = new Float32Array(len2);
       let idx = 0;
       let store = 0;
-      for (let i = 0; i < n8; i++) {
+      for (let i = 0; i < n7; i++) {
         const out = buf[idx];
         store = out * (1 - damp) + store * damp;
         buf[idx] = src[i] + store * Math.min(0.98, feedback);
@@ -122260,8 +122458,8 @@ function freeverb(channels, rate3, mixPct, roomPct) {
       const len2 = Math.max(1, Math.round((base + spread) * scale));
       const buf = new Float32Array(len2);
       let idx = 0;
-      const next2 = new Float32Array(n8);
-      for (let i = 0; i < n8; i++) {
+      const next2 = new Float32Array(n7);
+      for (let i = 0; i < n7; i++) {
         const bufout = buf[idx];
         const input = wetCh[i];
         next2[i] = -input + bufout;
@@ -122272,7 +122470,7 @@ function freeverb(channels, rate3, mixPct, roomPct) {
     }
     const dst = channels[ch];
     const wetGain = wet * 0.015 * 3;
-    for (let i = 0; i < n8; i++) dst[i] = dst[i] * (1 - wet) + wetCh[i] * wetGain;
+    for (let i = 0; i < n7; i++) dst[i] = dst[i] * (1 - wet) + wetCh[i] * wetGain;
   }
 }
 function echoFx(channels, rate3, ms, fbPct, mixPct) {
@@ -122604,8 +122802,8 @@ var init_prepare_pii = __esm({
         label: "Bank account (IBAN)",
         re: /\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]{4}){2,7}(?:\s?[A-Z0-9]{1,3})?\b/g,
         test: (m2) => {
-          const n8 = m2.replace(/\s/g, "").length;
-          return n8 >= 15 && n8 <= 34;
+          const n7 = m2.replace(/\s/g, "").length;
+          return n7 >= 15 && n7 <= 34;
         }
       },
       {
@@ -122970,7 +123168,7 @@ function inspectXml(part, root2, format, budget3) {
     }
   }
   if (path.endsWith(".rels")) {
-    for (const node of nodes.filter((n8) => n8.name === "Relationship")) {
+    for (const node of nodes.filter((n7) => n7.name === "Relationship")) {
       if (officeAttr(node, "TargetMode")?.toLowerCase() === "external") add3("office-links", "External relationship (not fetched)", officeAttr(node, "Target") ?? "", `Relationship: ${officeAttr(node, "Id") ?? "?"}`);
     }
   }
@@ -122978,7 +123176,7 @@ function inspectXml(part, root2, format, budget3) {
     for (const node of nodes) {
       if (node.name === "comment") add3("office-comments", "Comment and author", `${officeAttr(node, "author") ?? ""} ${officeAttr(node, "initials") ?? ""} ${officeText(node)}`.trim(), `Comment: ${officeAttr(node, "id") ?? "?"}`);
       if (["ins", "del", "moveFrom", "moveTo"].includes(node.name) || node.name.endsWith("PrChange")) add3("office-revisions", "Tracked change (accept/reject policy required)", `${officeAttr(node, "author") ?? ""} ${officeAttr(node, "date") ?? ""} ${officeText(node)}`.trim() || node.name, `Tracked change: ${officeAttr(node, "id") ?? "?"}`);
-      if (node.name === "r" && officeNodes(node).some((n8) => ["vanish", "webHidden"].includes(n8.name) && enabled(officeAttr(n8, "val")))) add3("office-hidden", "Hidden text run", officeText(node) || "Hidden run without text preview");
+      if (node.name === "r" && officeNodes(node).some((n7) => ["vanish", "webHidden"].includes(n7.name) && enabled(officeAttr(n7, "val")))) add3("office-hidden", "Hidden text run", officeText(node) || "Hidden run without text preview");
     }
     if (/comments(?:Extended|Extensible|Ids)\.xml$/.test(path)) add3("office-comments", "Comment identity or thread data", officeText(root2) || "Comment thread and identity records");
   }
@@ -122986,7 +123184,7 @@ function inspectXml(part, root2, format, budget3) {
     if (/^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(path)) add3("office-notes", "Speaker notes", officeText(root2) || "Speaker notes part");
     if (/^ppt\/slides\/slide\d+\.xml$/.test(path) && !enabled(officeAttr(root2, "show"))) add3("office-hidden", "Hidden slide", officeText(root2) || "Hidden slide without text preview");
     if (/comments|commentAuthors/.test(path)) {
-      for (const node of nodes.filter((n8) => ["cm", "comment", "cmAuthor", "author"].includes(n8.name))) add3("office-comments", "Slide comment or author", `${officeAttr(node, "name") ?? ""} ${officeAttr(node, "authorId") ?? ""} ${officeText(node)}`.trim() || "Comment identity record");
+      for (const node of nodes.filter((n7) => ["cm", "comment", "cmAuthor", "author"].includes(n7.name))) add3("office-comments", "Slide comment or author", `${officeAttr(node, "name") ?? ""} ${officeAttr(node, "authorId") ?? ""} ${officeText(node)}`.trim() || "Comment identity record");
     }
   }
   if (format === "xlsx" && path.startsWith("xl/")) {
@@ -123133,7 +123331,7 @@ function zipComment(bytes2, members) {
   const view = new DataView(bytes2.buffer, bytes2.byteOffset, bytes2.length);
   for (let end = bytes2.length - 22; end >= Math.max(0, bytes2.length - 65557); end--) {
     if (view.getUint32(end, true) !== 101010256 || end + 22 + view.getUint16(end + 20, true) !== bytes2.length) continue;
-    if (view.getUint16(end + 10, true) !== members.length || view.getUint32(end + 12, true) !== members.reduce((n8, m2) => n8 + m2.central.length, 0) || view.getUint32(end + 16, true) + view.getUint32(end + 12, true) !== end) continue;
+    if (view.getUint16(end + 10, true) !== members.length || view.getUint32(end + 12, true) !== members.reduce((n7, m2) => n7 + m2.central.length, 0) || view.getUint32(end + 16, true) + view.getUint32(end + 12, true) !== end) continue;
     return bytes2.slice(end + 22);
   }
   throw new Error("Unsupported ZIP trailer.");
@@ -123181,29 +123379,29 @@ function openDocxMetadata(bytes2, name, limits = {}) {
         if ((type.startsWith(OFFICE2) || type.startsWith("http://purl.oclc.org/ooxml/officeDocument/relationships/")) && WORD_XML_RELATIONS.has(type.slice(type.lastIndexOf("/") + 1)) && !wordXmlTarget(member.name, node.attrs.Target ?? "", node.attrs.TargetMode, memberNames)) return unsupported("A Word XML relationship target cannot be safely inspected. This file remains inspect-only.");
       }
       if (member.name === "[Content_Types].xml" || member.name === "_rels/.rels" || member.name === "word/document.xml" || Object.hasOwn(PARTS, member.name)) trees.set(member.name, root2);
-      const nodes = officeNodes(root2).filter((n8) => n8.namespace === WORD).sort((a, b) => a.start - b.start);
+      const nodes = officeNodes(root2).filter((n7) => n7.namespace === WORD).sort((a, b) => a.start - b.start);
       if (nodes.some((node) => node.name === "dataBinding")) return unsupported("XML-bound content controls can display document properties. Metadata cleanup is unavailable for this file; the properties and bound content are retained.");
-      const instructions = nodes.filter((n8) => n8.name === "instrText").map((n8) => n8.text).join("") + nodes.filter((n8) => n8.name === "fldSimple").map((n8) => Object.entries(n8.attrs).filter(([key2]) => key2.endsWith(":instr") && n8.attributeNamespaces[key2] === WORD).map(([, value2]) => value2).join("")).join("");
+      const instructions = nodes.filter((n7) => n7.name === "instrText").map((n7) => n7.text).join("") + nodes.filter((n7) => n7.name === "fldSimple").map((n7) => Object.entries(n7.attrs).filter(([key2]) => key2.endsWith(":instr") && n7.attributeNamespaces[key2] === WORD).map(([, value2]) => value2).join("")).join("");
       if (/(?:DOCPROPERTY|AUTHOR|TITLE|SUBJECT|KEYWORDS|COMMENTS|CREATEDATE|SAVEDATE|PRINTDATE|LASTSAVEDBY|REVNUM)/i.test(instructions)) return unsupported("Document fields can display document properties. Metadata cleanup is unavailable for this file; the properties and field content are retained.");
       for (const [code, names] of EXTENDED_FIELD_CODES) if (code.test(instructions)) for (const field2 of names) dependent.add(field2);
-      drawings ||= /^word\/charts\//i.test(member.name) || officeNodes(root2).some((n8) => n8.namespace === VML || n8.namespace === WORD && /^(?:drawing|pict|object)$/.test(n8.name));
+      drawings ||= /^word\/charts\//i.test(member.name) || officeNodes(root2).some((n7) => n7.namespace === VML || n7.namespace === WORD && /^(?:drawing|pict|object)$/.test(n7.name));
       if (Object.hasOwn(PARTS, member.name)) propertyParts.set(member.name, { member, bytes: decoded, text: propertyText(decoded), properties: [] });
     }
     const types = trees.get("[Content_Types].xml"), relationships = trees.get("_rels/.rels"), doc = trees.get("word/document.xml");
     if (types?.name !== "Types" || types.namespace !== TYPES || relationships?.name !== "Relationships" || relationships.namespace !== RELS || doc?.name !== "document" || doc.namespace !== WORD) throw new Error("Unsupported DOCX structure.");
-    const overrides = types.children.filter((n8) => n8.namespace === TYPES && n8.name === "Override");
-    const defaults2 = types.children.filter((n8) => n8.namespace === TYPES && n8.name === "Default");
-    const rels = relationships.children.filter((n8) => n8.namespace === RELS && n8.name === "Relationship");
-    const overridesByName = new Map(overrides.map((n8) => [n8.attrs.PartName?.replace(/[A-Z]/g, (char) => char.toLowerCase()), n8]));
-    if (overridesByName.size !== overrides.length || new Set(defaults2.map((n8) => n8.attrs.Extension?.toLowerCase())).size !== defaults2.length || new Set(rels.map((n8) => n8.attrs.Id)).size !== rels.length) throw new Error("Ambiguous package declarations.");
+    const overrides = types.children.filter((n7) => n7.namespace === TYPES && n7.name === "Override");
+    const defaults2 = types.children.filter((n7) => n7.namespace === TYPES && n7.name === "Default");
+    const rels = relationships.children.filter((n7) => n7.namespace === RELS && n7.name === "Relationship");
+    const overridesByName = new Map(overrides.map((n7) => [n7.attrs.PartName?.replace(/[A-Z]/g, (char) => char.toLowerCase()), n7]));
+    if (overridesByName.size !== overrides.length || new Set(defaults2.map((n7) => n7.attrs.Extension?.toLowerCase())).size !== defaults2.length || new Set(rels.map((n7) => n7.attrs.Id)).size !== rels.length) throw new Error("Ambiguous package declarations.");
     const xmlType = (type) => /(?:\+xml|^(?:application|text)\/xml)(?:\s*;|$)/i.test(type);
-    if (overrides.some((n8) => xmlType(n8.attrs.ContentType ?? "") && !/\.(?:xml|rels)$/i.test(n8.attrs.PartName ?? "")) || defaults2.some((n8) => xmlType(n8.attrs.ContentType ?? "") && !/^(?:xml|rels)$/i.test(n8.attrs.Extension ?? ""))) return unsupported("XML parts with unconventional filename extensions are not supported for DOCX metadata cleanup. This file remains inspect-only.");
-    if (types.children.some((n8) => /macro|vba|signature/i.test(n8.attrs.ContentType ?? ""))) return unsupported("Macro-enabled or signed package declarations prevent DOCX metadata cleanup.");
-    const main = rels.filter((n8) => n8.attrs.Type === `${OFFICE2}officeDocument`);
+    if (overrides.some((n7) => xmlType(n7.attrs.ContentType ?? "") && !/\.(?:xml|rels)$/i.test(n7.attrs.PartName ?? "")) || defaults2.some((n7) => xmlType(n7.attrs.ContentType ?? "") && !/^(?:xml|rels)$/i.test(n7.attrs.Extension ?? ""))) return unsupported("XML parts with unconventional filename extensions are not supported for DOCX metadata cleanup. This file remains inspect-only.");
+    if (types.children.some((n7) => /macro|vba|signature/i.test(n7.attrs.ContentType ?? ""))) return unsupported("Macro-enabled or signed package declarations prevent DOCX metadata cleanup.");
+    const main = rels.filter((n7) => n7.attrs.Type === `${OFFICE2}officeDocument`);
     if (main.length !== 1 || main[0].attrs.TargetMode || target(main[0].attrs.Target ?? "") !== "word/document.xml" || overridesByName.get("/word/document.xml")?.attrs.ContentType !== MAIN_TYPE) throw new Error("Unsupported main document declaration.");
     const retained = [], drawn = [];
     for (const [path, spec] of Object.entries(PARTS)) {
-      const matching = rels.filter((n8) => n8.attrs.Type === spec.relation);
+      const matching = rels.filter((n7) => n7.attrs.Type === spec.relation);
       const part = propertyParts.get(path), root2 = trees.get(path);
       const declaration = overridesByName.get(`/${path.toLowerCase()}`);
       if (!part) {
@@ -123246,7 +123444,7 @@ function openDocxMetadata(bytes2, name, limits = {}) {
           continue;
         }
         part.properties.push({ id: id3, part: path, label: label4, location: location4, value: officeText(node), offset: node.start, start: node.start, end: node.end });
-        if ([...propertyParts.values()].reduce((n8, p) => n8 + p.properties.length, 0) > 2e3) throw new Error("Property count limit reached.");
+        if ([...propertyParts.values()].reduce((n7, p) => n7 + p.properties.length, 0) > 2e3) throw new Error("Property count limit reached.");
       }
     }
     const properties2 = [...propertyParts.values()].flatMap((p) => p.properties.map(({ start: _start, end: _end, ...property4 }) => property4));
@@ -123844,7 +124042,7 @@ async function applyPreparation(sources, inspection, choices2, removeScopes = []
     limitations: GENERAL_LIMITS,
     ...failed2.size ? { stages: [...failed2].map((sourceId) => ({ sourceId, operation: "replace-values", status: "failed", inputSha256: fresh.inspection.sources.find((s) => s.id === sourceId).sha256, outputSha256: after.sources.find((s) => s.id === sourceId).sha256, limitations: ["Selected changes failed. Original retained."] })) } : {}
   };
-  report4.replaced = report4.scopes.reduce((n8, s) => n8 + s.replaced, 0);
+  report4.replaced = report4.scopes.reduce((n7, s) => n7 + s.replaced, 0);
   for (const root2 of fresh.roots) {
     const selected = fresh.inspection.findings.filter((f) => f.action === "remove-property" && chosen.has(f.groupId) && (!chosen.get(f.groupId).findings || chosen.get(f.groupId).findings.includes(f.id)) && fresh.inspection.scopes.find((s) => s.id === f.scopeId)?.sourceId === root2.scope.sourceId);
     if (!selected.length) continue;
@@ -124177,24 +124375,24 @@ function compareText(before, after, options2, budget3) {
     ae--;
     be--;
   }
-  const n8 = ae - start, m2 = be - start;
-  if (!n8 && !m2) return;
-  if (!budget3.spend((n8 + 1) * (m2 + 1))) return;
-  const cols = m2 + 1, dp = new Uint32Array((n8 + 1) * cols);
-  for (let i2 = n8 - 1; i2 >= 0; i2--) for (let j2 = m2 - 1; j2 >= 0; j2--)
+  const n7 = ae - start, m2 = be - start;
+  if (!n7 && !m2) return;
+  if (!budget3.spend((n7 + 1) * (m2 + 1))) return;
+  const cols = m2 + 1, dp = new Uint32Array((n7 + 1) * cols);
+  for (let i2 = n7 - 1; i2 >= 0; i2--) for (let j2 = m2 - 1; j2 >= 0; j2--)
     dp[i2 * cols + j2] = a[start + i2].key === b[start + j2].key ? 1 + dp[(i2 + 1) * cols + j2 + 1] : Math.max(dp[(i2 + 1) * cols + j2], dp[i2 * cols + j2 + 1]);
   let i = 0, j = 0;
   const location4 = (token2) => ({ path: [], line: token2.line, offset: token2.offset });
-  while (i < n8 || j < m2) {
-    if (i < n8 && j < m2 && a[start + i].key === b[start + j].key) {
+  while (i < n7 || j < m2) {
+    if (i < n7 && j < m2 && a[start + i].key === b[start + j].key) {
       i++;
       j++;
       continue;
     }
     const left = [], right = [];
-    while (i < n8 || j < m2) {
-      if (i < n8 && j < m2 && a[start + i].key === b[start + j].key) break;
-      if (j < m2 && (i === n8 || dp[i * cols + j + 1] > dp[(i + 1) * cols + j])) right.push(b[start + j++]);
+    while (i < n7 || j < m2) {
+      if (i < n7 && j < m2 && a[start + i].key === b[start + j].key) break;
+      if (j < m2 && (i === n7 || dp[i * cols + j + 1] > dp[(i + 1) * cols + j])) right.push(b[start + j++]);
       else left.push(a[start + i++]);
     }
     const av = comparisonValue(left.map((t) => t.text).join("")), bv = comparisonValue(right.map((t) => t.text).join(""));
@@ -125605,8 +125803,8 @@ function encode64(text12) {
   const bytes2 = new TextEncoder().encode(text12);
   let out = "";
   for (let i = 0; i < bytes2.length; i += 3) {
-    const n8 = bytes2[i] << 16 | (bytes2[i + 1] ?? 0) << 8 | (bytes2[i + 2] ?? 0);
-    out += B64[n8 >>> 18 & 63] + B64[n8 >>> 12 & 63] + (i + 1 < bytes2.length ? B64[n8 >>> 6 & 63] : "=") + (i + 2 < bytes2.length ? B64[n8 & 63] : "=");
+    const n7 = bytes2[i] << 16 | (bytes2[i + 1] ?? 0) << 8 | (bytes2[i + 2] ?? 0);
+    out += B64[n7 >>> 18 & 63] + B64[n7 >>> 12 & 63] + (i + 1 < bytes2.length ? B64[n7 >>> 6 & 63] : "=") + (i + 2 < bytes2.length ? B64[n7 & 63] : "=");
   }
   return out;
 }
@@ -125616,23 +125814,23 @@ function decode64(text12) {
     throw new Error("This is not valid Base64.");
   const body = s.replace(/=+$/, "");
   const bytes2 = [];
-  let bits = 0, n8 = 0;
+  let bits = 0, n7 = 0;
   for (const c of body) {
-    n8 = n8 << 6 | B64.indexOf(c);
+    n7 = n7 << 6 | B64.indexOf(c);
     bits += 6;
     if (bits >= 8) {
       bits -= 8;
-      bytes2.push(n8 >>> bits & 255);
+      bytes2.push(n7 >>> bits & 255);
     }
   }
-  if (bits && n8 & (1 << bits) - 1) throw new Error("This Base64 has invalid padding bits.");
+  if (bits && n7 & (1 << bits) - 1) throw new Error("This Base64 has invalid padding bits.");
   return new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array(bytes2));
 }
 function bounded(value2, fallback, min, max) {
-  const n8 = Number(value2 ?? fallback);
-  if (!Number.isFinite(n8) || n8 < min || n8 > max)
+  const n7 = Number(value2 ?? fallback);
+  if (!Number.isFinite(n7) || n7 < min || n7 > max)
     throw new Error(`Choose a number from ${min} to ${max}.`);
-  return Math.trunc(n8);
+  return Math.trunc(n7);
 }
 function createTextToolsAPI(env) {
   return {
@@ -125957,8 +126155,8 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
         };
         if (names[v]) return names[v];
         if (!v.startsWith("#")) return raw;
-        const n8 = v[1].toLowerCase() === "x" ? Number.parseInt(v.slice(2), 16) : Number(v.slice(1));
-        return n8 > 0 && n8 <= 1114111 && !(n8 >= 55296 && n8 <= 57343) ? String.fromCodePoint(n8) : raw;
+        const n7 = v[1].toLowerCase() === "x" ? Number.parseInt(v.slice(2), 16) : Number(v.slice(1));
+        return n7 > 0 && n7 <= 1114111 && !(n7 >= 55296 && n7 <= 57343) ? String.fromCodePoint(n7) : raw;
       });
       notes.push("Decodes numeric and basic HTML entities. Other named entities are retained.");
       break;
@@ -126455,7 +126653,7 @@ var init_progress = __esm({
 // engine/src/learning/compile.ts
 function checkSignature(bytes2, mime2) {
   const at = (offset, text12) => [...text12].every((c, i) => bytes2[offset + i] === c.charCodeAt(0));
-  const starts = (...signature2) => signature2.every((n8, i) => bytes2[i] === n8);
+  const starts = (...signature2) => signature2.every((n7, i) => bytes2[i] === n7);
   const valid2 = mime2 === "image/png" ? starts(137, 80, 78, 71, 13, 10, 26, 10) : mime2 === "image/jpeg" ? starts(255, 216, 255) : mime2 === "image/webp" ? at(0, "RIFF") && at(8, "WEBP") : mime2 === "video/mp4" || mime2 === "audio/mp4" ? at(4, "ftyp") : mime2 === "video/webm" || mime2 === "audio/webm" ? starts(26, 69, 223, 163) : mime2 === "audio/mpeg" ? at(0, "ID3") || bytes2[0] === 255 && ((bytes2[1] ?? 0) & 224) === 224 : mime2 === "audio/ogg" ? at(0, "OggS") : mime2 === "audio/wav" ? at(0, "RIFF") && at(8, "WAVE") : mime2 === "application/pdf" ? at(0, "%PDF-") : mime2 === "text/plain";
   if (!valid2)
     throw new Error(`A required file does not match its ${mime2} format. Replace or re-export it.`);
@@ -126873,7 +127071,7 @@ ${SESSION_BRIDGE}
 var sourceHooks=(function(host){
 var ${names.join(",")};
 ${source.hooks}
-return {${names.map((n8) => `${n8}:typeof ${n8}==='function'?${n8}:null`).join(",")}};
+return {${names.map((n7) => `${n7}:typeof ${n7}==='function'?${n7}:null`).join(",")}};
 })(sourceHost);
 ${SESSION_HOOKS}`;
   return {
@@ -127032,7 +127230,7 @@ function presetKey(view, at, over) {
     elevation: clamp5(over.elevation ?? view.elevation, -60, 80),
     fov: clamp5(over.fov ?? view.fov, 15, 80),
     zoom: clamp5(over.zoom ?? view.zoom, 0.05, 3),
-    target: view.target.map((n8) => clamp5(n8, -25, 25)),
+    target: view.target.map((n7) => clamp5(n7, -25, 25)),
     focus: clamp5(view.focus, 0, 500)
   };
 }
@@ -127142,8 +127340,8 @@ var init_studio3d_camera_path = __esm({
     "use strict";
     STUDIO_CAMERA_KEY_LIMIT = 12;
     num11 = (value2, fallback) => {
-      const n8 = Number(value2);
-      return Number.isFinite(n8) ? Math.round(n8 * 1e3) / 1e3 : fallback;
+      const n7 = Number(value2);
+      return Number.isFinite(n7) ? Math.round(n7 * 1e3) / 1e3 : fallback;
     };
     STUDIO_CAMERA_PRESETS = ["sweep", "pushin", "dolly", "reveal", "crane"];
     STUDIO_CAMERA_MOTIONS = ["still", "keys", ...STUDIO_CAMERA_PRESETS];
@@ -127174,8 +127372,8 @@ function studioObjectName(row, index2) {
 }
 function studioActiveObject(values) {
   const rows2 = studioArrangementRows(values);
-  const n8 = Number(values.activeObject);
-  return Math.max(0, Math.min(rows2.length - 1, Number.isFinite(n8) ? Math.trunc(n8) - 1 : 0));
+  const n7 = Number(values.activeObject);
+  return Math.max(0, Math.min(rows2.length - 1, Number.isFinite(n7) ? Math.trunc(n7) - 1 : 0));
 }
 function studioSceneObjects(scene) {
   if (scene.objects?.length) return scene.objects;
@@ -127254,8 +127452,8 @@ function record20(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function number6(value2, fallback, min, max) {
-  const n8 = typeof value2 === "number" ? value2 : typeof value2 === "string" && value2.trim() ? Number(value2) : NaN;
-  return Number.isFinite(n8) ? Math.max(min, Math.min(max, n8)) : fallback;
+  const n7 = typeof value2 === "number" ? value2 : typeof value2 === "string" && value2.trim() ? Number(value2) : NaN;
+  return Number.isFinite(n7) ? Math.max(min, Math.min(max, n7)) : fallback;
 }
 function items(values) {
   if (!Array.isArray(values.subjects) || !values.subjects.length)
@@ -127279,8 +127477,8 @@ function studioSubjectIds(values) {
 }
 function studioActiveIndex(values) {
   const rows2 = items(values);
-  const n8 = Number(values.activeSubject);
-  return Math.max(0, Math.min(rows2.length - 1, Number.isFinite(n8) ? Math.trunc(n8) - 1 : 0));
+  const n7 = Number(values.activeSubject);
+  return Math.max(0, Math.min(rows2.length - 1, Number.isFinite(n7) ? Math.trunc(n7) - 1 : 0));
 }
 function itemValues2(values, item2) {
   const kind = item2.kind === "model" ? "model" : item2.kind === "primitive" ? "primitive" : item2.kind === "text" ? "text" : "artwork";
@@ -127375,8 +127573,8 @@ function studioFocusEdit(values, distance4) {
 function studioCollectionSize(values) {
   const size = record20(values.collectionSize);
   const edge = (value2) => {
-    const n8 = Number(value2);
-    return Math.max(64, Math.min(4096, Number.isFinite(n8) && n8 > 0 ? Math.round(n8) : 1024));
+    const n7 = Number(value2);
+    return Math.max(64, Math.min(4096, Number.isFinite(n7) && n7 > 0 ? Math.round(n7) : 1024));
   };
   const width = edge(size.width), height = edge(size.height);
   if (width * height > 12e6) throw new Error("Keep each image below 12 million pixels.");
@@ -127453,8 +127651,8 @@ var init_studio3d_lights = __esm({
       rim: [3, 5, -3]
     };
     STUDIO_KEY_CARD_OFFSET = [-0.4, -2.8, -1];
-    round5 = (n8) => Math.round(n8 * 1e3) / 1e3;
-    clampRange = (n8) => Math.max(-STUDIO_LIGHT_RANGE, Math.min(STUDIO_LIGHT_RANGE, round5(n8)));
+    round5 = (n7) => Math.round(n7 * 1e3) / 1e3;
+    clampRange = (n7) => Math.max(-STUDIO_LIGHT_RANGE, Math.min(STUDIO_LIGHT_RANGE, round5(n7)));
   }
 });
 
@@ -127498,19 +127696,19 @@ function anticipate(u, depth) {
 }
 function bounceOut(u) {
   const t = clamp0113(u);
-  const n8 = 7.5625;
+  const n7 = 7.5625;
   const d = 2.75;
-  if (t < 1 / d) return n8 * t * t;
+  if (t < 1 / d) return n7 * t * t;
   if (t < 2 / d) {
     const x2 = t - 1.5 / d;
-    return n8 * x2 * x2 + 0.75;
+    return n7 * x2 * x2 + 0.75;
   }
   if (t < 2.5 / d) {
     const x2 = t - 2.25 / d;
-    return n8 * x2 * x2 + 0.9375;
+    return n7 * x2 * x2 + 0.9375;
   }
   const x = t - 2.625 / d;
-  return n8 * x * x + 0.984375;
+  return n7 * x * x + 0.984375;
 }
 function arc(u) {
   const t = clamp0113(u);
@@ -127624,8 +127822,8 @@ function record21(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function number7(value2, fallback, min, max) {
-  const n8 = typeof value2 === "number" ? value2 : typeof value2 === "string" && value2.trim() ? Number(value2) : NaN;
-  return Number.isFinite(n8) ? Math.max(min, Math.min(max, n8)) : fallback;
+  const n7 = typeof value2 === "number" ? value2 : typeof value2 === "string" && value2.trim() ? Number(value2) : NaN;
+  return Number.isFinite(n7) ? Math.max(min, Math.min(max, n7)) : fallback;
 }
 function choice2(value2, choices2, fallback) {
   return typeof value2 === "string" && choices2.includes(value2) ? value2 : fallback;
@@ -127828,7 +128026,7 @@ function buildStudioScene(input) {
       kind: "area",
       color: keyColor,
       intensity: 3,
-      position: keyPosition.map((n8, i) => n8 + STUDIO_KEY_CARD_OFFSET[i]),
+      position: keyPosition.map((n7, i) => n7 + STUDIO_KEY_CARD_OFFSET[i]),
       size: Math.max(0.2, softness * 2),
       shadows: false
     }
@@ -128568,7 +128766,7 @@ var init_brand_check = __esm({
 function hex8(input) {
   const rgba2 = parseColorToSrgb8(input);
   if (!rgba2 || rgba2[3] < 1) return null;
-  return "#" + rgba2.slice(0, 3).map((n8) => n8.toString(16).padStart(2, "0")).join("");
+  return "#" + rgba2.slice(0, 3).map((n7) => n7.toString(16).padStart(2, "0")).join("");
 }
 function setInCapitals(text12, exempt) {
   const words4 = (text12.replace(/\{[^|{}]+\|/g, "").match(new RegExp("\\p{L}+", "gu")) ?? []).filter((w) => !exempt.has(w));
@@ -128839,8 +129037,8 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
           if (colour.hex === surface.hex) continue;
           const fgNames = pairings.names.get(colour.hex);
           if (!fgNames?.length) continue;
-          if (fgNames.some((n8) => policy.text.includes(n8))) continue;
-          const graphicOnly = fgNames.some((n8) => policy.graphic.includes(n8));
+          if (fgNames.some((n7) => policy.text.includes(n7))) continue;
+          const graphicOnly = fgNames.some((n7) => policy.graphic.includes(n7));
           const fg = label(fgNames[0]);
           add3(
             row,
@@ -128912,7 +129110,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         add3(row, "strokeDash", style, "solid", `A ${style} border is reserved for ${meaning}.`);
       }
     } else if (rule.kind === "logo-surface") {
-      const fromCatalog = (names2) => names2.map((n8) => catalogLogos[n8]).filter((v) => typeof v === "string");
+      const fromCatalog = (names2) => names2.map((n7) => catalogLogos[n7]).filter((v) => typeof v === "string");
       const light = strings2(p.light).length ? strings2(p.light) : fromCatalog(["onLight", "monoOnLight"]);
       const dark = strings2(p.dark).length ? strings2(p.dark) : fromCatalog(["onDark", "monoOnDark"]);
       const photo = strings2(p.photo).length ? strings2(p.photo) : dark;
@@ -128985,8 +129183,8 @@ var init_design_house_rules = __esm({
     record26 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     strings2 = (v) => Array.isArray(v) ? v.filter((s) => typeof s === "string" && s.length > 0) : [];
     num12 = (v, fallback) => {
-      const n8 = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
-      return Number.isFinite(n8) ? n8 : fallback;
+      const n7 = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
+      return Number.isFinite(n7) ? n7 : fallback;
     };
     valueText2 = (v) => typeof v === "string" ? v : record26(v) && typeof v.ref === "string" ? v.ref : "";
     isHidden = (row) => row.hidden === true || row.hidden === "true";
@@ -129065,7 +129263,7 @@ function brandSkillIndexEntry(asset2) {
   const formats = Array.isArray(asset2.formats) ? asset2.formats.filter(record27) : [];
   const entry2 = formats.find((f) => f.format === "md") ?? formats[0];
   const files = meta.files ?? [];
-  const size = (typeof entry2?.size === "number" ? entry2.size : 0) + files.reduce((n8, f) => n8 + f.size, 0);
+  const size = (typeof entry2?.size === "number" ? entry2.size : 0) + files.reduce((n7, f) => n7 + f.size, 0);
   return {
     id: asset2.id,
     name: meta.name,
@@ -129271,7 +129469,7 @@ function classifyBrandSkillLinks(links, assets, meta) {
   for (const a of assets) for (const f of a.formats ?? []) {
     byUrl.set(f.url, a);
     const w = words(f.url);
-    if (w.length >= 2 && !named.some((n8) => n8.asset.id === a.id)) named.push({ asset: a, words: w });
+    if (w.length >= 2 && !named.some((n7) => n7.asset.id === a.id)) named.push({ asset: a, words: w });
   }
   const approved = new Map((meta?.references ?? []).map((r5) => [r5.url, r5.asset]));
   const urlOf = (a) => a?.formats?.[0]?.url;
@@ -129289,7 +129487,7 @@ function classifyBrandSkillLinks(links, assets, meta) {
       const mapped = approved.get(target2);
       if (mapped) return { ...link, kind: "asset", asset: mapped, approved: true, ...urlOf(byId.get(mapped)) ? { assetUrl: urlOf(byId.get(mapped)) } : {} };
       const linkWords = new Set(words(target2));
-      const hits2 = named.filter((n8) => n8.words.every((w) => linkWords.has(w))).sort((a, b) => b.words.length - a.words.length || a.asset.id.localeCompare(b.asset.id));
+      const hits2 = named.filter((n7) => n7.words.every((w) => linkWords.has(w))).sort((a, b) => b.words.length - a.words.length || a.asset.id.localeCompare(b.asset.id));
       const best = hits2.length && (hits2.length === 1 || hits2[0].words.length > hits2[1].words.length) ? hits2[0].asset.id : void 0;
       return { ...link, kind: "external", ...hits2.length ? { candidates: hits2.map((h) => h.asset.id) } : {}, ...best ? { proposed: best } : {} };
     }
@@ -129629,7 +129827,7 @@ function spreadExemplars(ids2, limit2 = 12) {
   return Array.from({ length: limit2 }, (_, i) => sorted[Math.floor(i * step)]);
 }
 function brandSkillFilesSize(files) {
-  return Object.values(files).reduce((n8, v) => n8 + (typeof v === "string" ? ENCODER.encode(v).length : v.length), 0);
+  return Object.values(files).reduce((n7, v) => n7 + (typeof v === "string" ? ENCODER.encode(v).length : v.length), 0);
 }
 var FENCE, MD_LINK2, AUTOLINK, BARE_URL, SCOPE_PATTERNS, EXECUTABLE, words, GENERIC_FAMILIES2, TYPE_WORDS, RULE_PATTERNS, UNCHECKED_PATTERNS, ENCODER, cell;
 var init_brand_skill = __esm({
@@ -129739,7 +129937,7 @@ function combinationSection(doc, theme, themes) {
     const bg = byPath.get(entry2.path);
     if (!combos || !bg) continue;
     const group = entry2.path.split(".").slice(0, -1).join(".");
-    const resolve8 = (names) => (Array.isArray(names) ? names : []).filter((n8) => typeof n8 === "string").map((n8) => byPath.get(`${group}.${n8}`)).filter((s) => !!s).map((s) => ({ path: s.path, value: s.value, name: s.name }));
+    const resolve8 = (names) => (Array.isArray(names) ? names : []).filter((n7) => typeof n7 === "string").map((n7) => byPath.get(`${group}.${n7}`)).filter((s) => !!s).map((s) => ({ path: s.path, value: s.value, name: s.name }));
     const text12 = resolve8(combos.text);
     const graphic = resolve8(combos.graphic);
     declared.push({
@@ -129976,7 +130174,7 @@ function designBrief(doc, catalog, opts = {}) {
   const icons = iconSection(doc, facts2, assets, themes);
   const media = mediaSection(doc, facts2, assets);
   const logos = logoSection(facts2, assets, context.assets.filter((a) => a.path.startsWith("asset.logo")), houseRules);
-  const mediaCount = Object.values(media.families).reduce((n8, f) => n8 + f.count, 0);
+  const mediaCount = Object.values(media.families).reduce((n7, f) => n7 + f.count, 0);
   const type = typeSection(master, context.fonts, houseRules);
   const styles = textStylesFromBrief({ type, themes, houseRules, theme: opts.theme ?? null }, { width: master.size.width, height: master.size.height });
   const colourways = colourwaySection(doc);
@@ -130043,9 +130241,9 @@ var init_design_brief = __esm({
     tagsOf = (a) => Array.isArray(a.tags) ? a.tags.filter((t) => typeof t === "string") : [];
     hexOf6 = (value2) => {
       const rgba2 = typeof value2 === "string" ? parseColorToSrgb8(value2) : null;
-      return rgba2 && rgba2[3] >= 1 ? "#" + rgba2.slice(0, 3).map((n8) => n8.toString(16).padStart(2, "0")).join("") : null;
+      return rgba2 && rgba2[3] >= 1 ? "#" + rgba2.slice(0, 3).map((n7) => n7.toString(16).padStart(2, "0")).join("") : null;
     };
-    round25 = (n8) => Math.round(n8 * 100) / 100;
+    round25 = (n7) => Math.round(n7 * 100) / 100;
     MEDIA_TYPES2 = /* @__PURE__ */ new Set(["raster", "vector", "lut", "lottie"]);
   }
 });
@@ -130304,10 +130502,10 @@ var init_creation_feedback = __esm({
     str7 = (v) => typeof v === "string" ? v : "";
     truthy2 = (v) => v === true || v === "true" || v === 1 || v === "1";
     num13 = (v, fallback) => {
-      const n8 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
-      return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
+      const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
+      return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
-    plural = (n8, one, many = `${one}s`) => `${n8} ${n8 === 1 ? one : many}`;
+    plural = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     selfHidden = (row) => truthy2(row.hidden) || row.__offPage === true;
     byStrength = (a, b) => b.heat - a.heat || b.weight - a.weight || (a.spans?.[0]?.index ?? Infinity) - (b.spans?.[0]?.index ?? Infinity) || a.kind.localeCompare(b.kind);
     quote = (s) => `"${s}"`;
@@ -130332,8 +130530,8 @@ var init_types = __esm({
 
 // engine/src/forensic/design.ts
 function num14(value2, fallback) {
-  const n8 = typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : value2;
-  return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
+  const n7 = typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : value2;
+  return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
 }
 function designCornerRadius(row) {
   const shape = str8(row.shape);
@@ -130516,8 +130714,8 @@ function designForensicPages(boxes2, opts = {}) {
     });
   const pages = [];
   const artboardIds = [];
-  for (const [n8, group] of groups.slice(0, cap).entries()) {
-    const pageId = String(n8 + 1);
+  for (const [n7, group] of groups.slice(0, cap).entries()) {
+    const pageId = String(n7 + 1);
     const artboardRef = group.artboardId ? { artboardId: group.artboardId } : {};
     const notes = [];
     let complete = true;
@@ -130882,12 +131080,12 @@ function forensicNumberingFindings(page3) {
   const out = [];
   const lines = [...page3.text.matchAll(/^.*$/gm)].filter((m2) => m2[0].trim());
   const numbered = lines.flatMap((m2) => {
-    const n8 = /^(?:\s*)([#–—-]\s*)?(0[1-9]|[1-9]\d{0,3})(?:[.)]\s+|\s+|$)/u.exec(m2[0]);
-    return n8 ? [
+    const n7 = /^(?:\s*)([#–—-]\s*)?(0[1-9]|[1-9]\d{0,3})(?:[.)]\s+|\s+|$)/u.exec(m2[0]);
+    return n7 ? [
       {
-        number: Number(n8[2]),
-        decorated: !!n8[1] && !(page3.docKind === "markdown" && n8[1].trim() === "#") || n8[2].startsWith("0"),
-        literal: n8[0].trim(),
+        number: Number(n7[2]),
+        decorated: !!n7[1] && !(page3.docKind === "markdown" && n7[1].trim() === "#") || n7[2].startsWith("0"),
+        literal: n7[0].trim(),
         index: m2.index,
         length: m2[0].length
       }
@@ -130895,10 +131093,10 @@ function forensicNumberingFindings(page3) {
   });
   let sequence = [];
   const emit = () => {
-    if (sequence.length < 2 || sequence.length > 9 || !sequence.some((n8) => n8.decorated))
+    if (sequence.length < 2 || sequence.length > 9 || !sequence.some((n7) => n7.decorated))
       return;
-    if (sequence[0].number !== 1 || sequence.some((n8, i) => n8.number !== i + 1)) return;
-    const context = sequence.map((n8) => page3.text.slice(n8.index, n8.index + n8.length)).join(" ");
+    if (sequence[0].number !== 1 || sequence.some((n7, i) => n7.number !== i + 1)) return;
+    const context = sequence.map((n7) => page3.text.slice(n7.index, n7.index + n7.length)).join(" ");
     const excluded = /\b(?:chapter|clause|version|page|step|procedure|example|numbering|score)\b/i.test(context);
     out.push({
       id: `${page3.id}:numbering:${sequence[0].index}`,
@@ -130907,7 +131105,7 @@ function forensicNumberingFindings(page3) {
       version: FORENSIC_VERSION,
       modality: "text",
       label: page3.complete ? "Decorative numbering in a short list" : "Decorated labels in a partial extract",
-      detail: `${sequence.length} observed items use labels such as ${sequence.find((n8) => n8.decorated).literal}.${page3.complete ? "" : " Unread content may continue the sequence, so no short-list claim is made."}`,
+      detail: `${sequence.length} observed items use labels such as ${sequence.find((n7) => n7.decorated).literal}.${page3.complete ? "" : " Unread content may continue the sequence, so no short-list claim is made."}`,
       method: page3.source === "ocr" ? "ocr" : "original-text",
       confidence: page3.source === "ocr" ? 0.6 : 0.9,
       confidenceBasis: "heuristic",
@@ -130915,19 +131113,19 @@ function forensicNumberingFindings(page3) {
       alternatives: [
         "An ordered procedure, identifier or established editorial style may require these labels."
       ],
-      locations: sequence.map((n8) => ({
+      locations: sequence.map((n7) => ({
         page: page3.id,
-        span: { index: n8.index, length: n8.length }
+        span: { index: n7.index, length: n7.length }
       })),
       measurements: { count: sequence.length, complete: page3.complete }
     });
   };
-  for (const n8 of numbered) {
-    if (sequence.length && (n8.number !== sequence.at(-1).number + 1 || n8.index - sequence.at(-1).index > 2e3)) {
+  for (const n7 of numbered) {
+    if (sequence.length && (n7.number !== sequence.at(-1).number + 1 || n7.index - sequence.at(-1).index > 2e3)) {
       emit();
       sequence = [];
     }
-    sequence.push(n8);
+    sequence.push(n7);
   }
   emit();
   return out;
@@ -131200,7 +131398,7 @@ async function verifyForensicReport(report4, bytes2) {
     const unit2 = (v) => num19(v) && v >= 0 && v <= 1;
     const integer2 = (v, max) => num19(v) && Number.isInteger(v) && v >= 0 && v <= max;
     const array = (v, max) => Array.isArray(v) && v.length <= max;
-    const box4 = (b) => b && [b.x, b.y, b.width, b.height].every((n8) => num19(n8) && Math.abs(n8) <= 1e7) && b.width >= 0 && b.height >= 0;
+    const box4 = (b) => b && [b.x, b.y, b.width, b.height].every((n7) => num19(n7) && Math.abs(n7) <= 1e7) && b.width >= 0 && b.height >= 0;
     const measurement2 = (m2) => m2 && typeof m2 === "object" && !Array.isArray(m2) && Object.keys(m2).length <= 256 && Object.entries(m2).every(([k, v]) => str11(k) && (str11(v) || num19(v) || typeof v === "boolean"));
     if (report4?.profile !== "lolly/forensic-ai-v1" || report4.version !== FORENSIC_VERSION || ![
       "text",
@@ -131525,8 +131723,8 @@ var init_design_check = __esm({
     init_report();
     record31 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     finite3 = (v, fallback = 0) => {
-      const n8 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
-      return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
+      const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
+      return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
     placeOf = (lookup4, layerId) => layerId ? lookup4?.get(layerId) : void 0;
     BRAND_FIELD_WORDS = {
@@ -131557,10 +131755,10 @@ function similarity(a, b) {
   const counts = countsOf(a);
   let shared = 0;
   for (const w of b) {
-    const n8 = counts.get(w) ?? 0;
-    if (n8 > 0) {
+    const n7 = counts.get(w) ?? 0;
+    if (n7 > 0) {
       shared += 1;
-      counts.set(w, n8 - 1);
+      counts.set(w, n7 - 1);
     }
   }
   return 2 * shared / (a.length + b.length);
@@ -131569,7 +131767,7 @@ function similarityOfCounts(a, aLength, b, bLength) {
   if (!aLength || !bLength) return 0;
   let shared = 0;
   const [small, large] = a.size <= b.size ? [a, b] : [b, a];
-  for (const [w, n8] of small) shared += Math.min(n8, large.get(w) ?? 0);
+  for (const [w, n7] of small) shared += Math.min(n7, large.get(w) ?? 0);
   return 2 * shared / (aLength + bLength);
 }
 function indexWords(lineWords) {
@@ -131747,10 +131945,10 @@ function looseOccurrences(board, s, work) {
   let rarest = 0;
   let fewest = Infinity;
   for (let i = 0; i < s.words.length; i += 1) {
-    const n8 = board.wordAt.get(s.words[i])?.length ?? 0;
-    if (n8 === 0) return [];
-    if (n8 < fewest) {
-      fewest = n8;
+    const n7 = board.wordAt.get(s.words[i])?.length ?? 0;
+    if (n7 === 0) return [];
+    if (n7 < fewest) {
+      fewest = n7;
       rarest = i;
     }
   }
@@ -131856,13 +132054,13 @@ function inOrderOnBoard(source, lines, raw, from, work = { left: Infinity }) {
 function mostSimilarLine(words4, board, work) {
   if (!words4.length || work.left <= 0) return null;
   const touched = [];
-  for (const [w, n8] of countsOf(words4)) {
+  for (const [w, n7] of countsOf(words4)) {
     const postings = board.wordLines.get(w) ?? [];
     work.left -= postings.length;
     for (const i of postings) {
       const before = board.tally[i];
       if (before === 0) touched.push(i);
-      board.tally[i] = before + n8;
+      board.tally[i] = before + n7;
     }
   }
   touched.sort((a, b) => a - b);
@@ -132228,8 +132426,8 @@ var init_check_fidelity = __esm({
     str9 = (v) => typeof v === "string" ? v : "";
     truthy4 = (v) => v === true || v === "true" || v === 1 || v === "1";
     finite4 = (v, fallback = 0) => {
-      const n8 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
-      return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
+      const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
+      return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
     wordsIn = (looseText) => looseText.split(" ").filter(Boolean);
     wordsOf2 = (text12) => wordsIn(loose(text12));
@@ -132238,7 +132436,7 @@ var init_check_fidelity = __esm({
     wordsPresent = (s, board) => s.words.every((w) => board.wordCounts.has(w));
     SEQUENCE_GAP_LINES = 12;
     sameWords = (a, b) => a.length === b.length && a.every((w, i) => w === b[i]);
-    slideRef = (n8) => `slide ${n8}`;
+    slideRef = (n7) => `slide ${n7}`;
     boardRef = (b) => `artboard \u201C${b.name || b.id || "untitled"}\u201D`;
   }
 });
@@ -132405,7 +132603,7 @@ function importTextFragment(doc, input, inlineId) {
     if (!same && fonts.has(id3)) {
       const base = `font-${font.sha256}-${font.faceIndex}`;
       id3 = base;
-      for (let n8 = 1; fonts.has(id3); n8++) id3 = `${base}-${n8}`;
+      for (let n7 = 1; fonts.has(id3); n7++) id3 = `${base}-${n7}`;
     }
     ids2.set(font.id, id3);
     if (!same) fonts.set(id3, { ...font, id: id3 });
@@ -132431,139 +132629,6 @@ var init_text_fragment = __esm({
     init_text_source();
     init_text_edits();
     init_text_styles();
-  }
-});
-
-// engine/src/text-spacing.ts
-function transformTextPath(d, matrix) {
-  const at = (x, y) => `${n5(matrix.a * x + matrix.c * y + matrix.e)},${n5(matrix.b * x + matrix.d * y + matrix.f)}`;
-  return parseSvgPath(d).map((path) => path.segments.map((segment2) => segment2.op === "C" ? `C${at(segment2.x1, segment2.y1)} ${at(segment2.x2, segment2.y2)} ${at(segment2.x, segment2.y)}` : `${segment2.op}${at(segment2.x, segment2.y)}`).join("") + (path.closed ? "Z" : "")).join("");
-}
-function translateTextPath(d, x, y = 0) {
-  if (!d || !x && !y) return d;
-  return translateOutlinePath(d, x, y) ?? translateParsedPath(d, x, y);
-}
-function translateParsedPath(d, x, y) {
-  return parseSvgPath(d).map((path) => path.segments.map((segment2) => segment2.op === "C" ? `C${n5(segment2.x1 + x)},${n5(segment2.y1 + y)} ${n5(segment2.x2 + x)},${n5(segment2.y2 + y)} ${n5(segment2.x + x)},${n5(segment2.y + y)}` : `${segment2.op}${n5(segment2.x + x)},${n5(segment2.y + y)}`).join("") + (path.closed ? "Z" : "")).join("");
-}
-function translateOutlinePath(d, x, y) {
-  if (d.length > 4e4) return null;
-  let i = 0, out = "", sub = "", drawn = false, cx2 = 0, cy3 = 0, open3 = false;
-  const flush = () => {
-    if (drawn) out += sub;
-    sub = "";
-    drawn = false;
-  };
-  const digits = () => {
-    const from = i;
-    for (let c = d.charCodeAt(i); c >= 48 && c <= 57; c = d.charCodeAt(++i)) ;
-    return i > from;
-  };
-  const num19 = () => {
-    const from = i;
-    if (d.charCodeAt(i) === 45) i++;
-    if (!digits()) return null;
-    if (d.charCodeAt(i) === 46) {
-      i++;
-      if (!digits()) return null;
-    }
-    return Number(d.slice(from, i));
-  };
-  const pair = (spaced) => {
-    if (spaced) {
-      if (d.charCodeAt(i) !== 32) return null;
-      i++;
-    }
-    const px3 = num19();
-    if (px3 === null || d.charCodeAt(i) !== 44) return null;
-    i++;
-    const py = num19();
-    return py === null ? null : [px3, py];
-  };
-  const at = (px3, py) => `${n5(px3 + x)},${n5(py + y)}`;
-  while (i < d.length) {
-    const op = d[i++];
-    if (op === "M") {
-      const p = pair(false);
-      if (!p) return null;
-      flush();
-      sub = `M${at(p[0], p[1])}`;
-      cx2 = p[0];
-      cy3 = p[1];
-      open3 = true;
-    } else if (!open3) {
-      return null;
-    } else if (op === "L") {
-      const p = pair(false);
-      if (!p) return null;
-      sub += `L${at(p[0], p[1])}`;
-      cx2 = p[0];
-      cy3 = p[1];
-      drawn = true;
-    } else if (op === "C") {
-      const a = pair(false), b = a && pair(true), c = b && pair(true);
-      if (!a || !b || !c) return null;
-      sub += `C${at(a[0], a[1])} ${at(b[0], b[1])} ${at(c[0], c[1])}`;
-      cx2 = c[0];
-      cy3 = c[1];
-      drawn = true;
-    } else if (op === "Q") {
-      const q = pair(false), p = q && pair(true);
-      if (!q || !p) return null;
-      const x1 = cx2 + 2 / 3 * (q[0] - cx2), y1 = cy3 + 2 / 3 * (q[1] - cy3);
-      const x2 = p[0] + 2 / 3 * (q[0] - p[0]), y2 = p[1] + 2 / 3 * (q[1] - p[1]);
-      sub += `C${at(x1, y1)} ${at(x2, y2)} ${at(p[0], p[1])}`;
-      cx2 = p[0];
-      cy3 = p[1];
-      drawn = true;
-    } else if (op === "Z") {
-      sub += "Z";
-      open3 = false;
-    } else {
-      return null;
-    }
-  }
-  flush();
-  return out;
-}
-function textSpaceWidth(line, source) {
-  return line.pieces.reduce((sum, piece) => sum + (piece.artwork?.whitespace ? piece.advance : piece.shape?.clusters.reduce((sum2, cluster2) => sum2 + (/^[ \u00a0\u202f]+$/u.test(source.slice(cluster2.start, cluster2.end)) ? cluster2.advance : 0), 0) ?? 0), 0);
-}
-function spaceTextLine(line, source, factor) {
-  if (Math.abs(factor - 1) < 1e-6) return line;
-  let pen = 0;
-  const pieces = line.pieces.map((piece) => {
-    const x = pen;
-    if (!piece.shape) {
-      const scale = piece.artwork?.whitespace ? factor : 1, advance2 = piece.advance * scale;
-      pen += advance2;
-      return { ...piece, x, advance: advance2, carets: piece.carets.map((caret) => ({ ...caret, x: n5((caret.x - piece.x) * scale + x) })) };
-    }
-    const visual = [...piece.shape.clusters].sort((a, b) => a.x - b.x), moved = /* @__PURE__ */ new Map();
-    let delta = 0;
-    for (const cluster2 of visual) {
-      const extra = /^[ \u00a0\u202f]+$/u.test(source.slice(cluster2.start, cluster2.end)) ? cluster2.advance * (factor - 1) : 0;
-      moved.set(cluster2.start, {
-        ...cluster2,
-        x: n5(cluster2.x + delta),
-        advance: n5(cluster2.advance + extra),
-        d: translateTextPath(cluster2.d, delta),
-        carets: cluster2.carets.map((caret) => ({ ...caret, x: n5(caret.x + delta + (cluster2.advance ? (caret.x - cluster2.x) / cluster2.advance * extra : 0)) }))
-      });
-      delta += extra;
-    }
-    const advance = n5(piece.advance + delta), shape = { ...piece.shape, advance, clusters: piece.shape.clusters.map((cluster2) => moved.get(cluster2.start)) };
-    pen += advance;
-    return { ...piece, x: n5(x), advance, shape, carets: shape.clusters.flatMap((cluster2) => cluster2.carets.map((caret) => ({ ...caret, x: n5(x + caret.x) }))) };
-  });
-  return { ...line, pieces, advance: n5(pen + (line.hyphen?.shape.advance ?? 0)) };
-}
-var n5;
-var init_text_spacing = __esm({
-  "engine/src/text-spacing.ts"() {
-    "use strict";
-    init_svg_path();
-    n5 = (value2) => Math.round(value2 * 1e4) / 1e4;
   }
 });
 
@@ -132813,7 +132878,7 @@ async function prepareTextParagraph(doc, story, paragraph, services, artwork = [
     while (scripts[scriptIndex] && scripts[scriptIndex].end <= semantic.forward.get(start)) scriptIndex++;
     const script = scripts[scriptIndex]?.script ?? "Zyyy", inline = inlineByOffset.get(start);
     const art = prepared3.get(start) ?? (inline ? { start, end, svg: inline.svg, overflow: inline.overflow, whitespace: false, width: inline.width, ascent: inline.ascent, descent: inline.descent, id: inline.id, sha256: "" } : void 0);
-    if (art && (art.end !== end || ![art.width, art.inkWidth ?? art.width, art.ascent, art.descent].every((n8) => Number.isFinite(n8) && n8 >= 0))) throw new TextSourceError("artwork-range", "Inline artwork must cover one complete character with finite dimensions.");
+    if (art && (art.end !== end || ![art.width, art.inkWidth ?? art.width, art.ascent, art.descent].every((n7) => Number.isFinite(n7) && n7 >= 0))) throw new TextSourceError("artwork-range", "Inline artwork must cover one complete character with finite dimensions.");
     const hidden4 = [...text12].every((char) => [173, 8203, 8288, 65279, 1564, 8206, 8207].includes(char.codePointAt(0)) || char.codePointAt(0) >= 8234 && char.codePointAt(0) <= 8238 || char.codePointAt(0) >= 8294 && char.codePointAt(0) <= 8297);
     const separator2 = story.breaks.some((item2) => item2.start === start);
     const id3 = [style.font, ...style.fallbackFonts ?? []].find((id4) => art || hidden4 || separator2 || text12 === "	" || covers2(metadata2.get(id4), textDisplaySource(text12, style.case, settings.language).text));
@@ -132959,7 +133024,7 @@ var init_text_paragraph = __esm({
     init_text_tabs();
     init_text_display();
     init_text_semantic();
-    round6 = (n8) => Math.round(n8 * 1e4) / 1e4;
+    round6 = (n7) => Math.round(n7 * 1e4) / 1e4;
   }
 });
 
@@ -134408,25 +134473,25 @@ async function textLayoutSvg(layout2, story, frameId, parseXml) {
   let placement2 = 0;
   for (const line of layout2.lines) {
     if (line.frameId !== frameId) continue;
-    for (const rule of line.rules ?? []) fragments.push(`<rect x="${n6(rule.x)}" y="${n6(rule.y)}" width="${n6(rule.width)}" height="${n6(rule.height)}" fill="${color3(rule.color)}"/>`);
-    for (const leader of line.leaders ?? []) for (let i = 0; i < leader.count; i++) fragments.push(`<g fill="${color3(leader.color)}" transform="translate(${n6(leader.x + i * leader.step)} ${n6(leader.y)})">${leader.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
+    for (const rule of line.rules ?? []) fragments.push(`<rect x="${n5(rule.x)}" y="${n5(rule.y)}" width="${n5(rule.width)}" height="${n5(rule.height)}" fill="${color3(rule.color)}"/>`);
+    for (const leader of line.leaders ?? []) for (let i = 0; i < leader.count; i++) fragments.push(`<g fill="${color3(leader.color)}" transform="translate(${n5(leader.x + i * leader.step)} ${n5(leader.y)})">${leader.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
     for (const run3 of line.runs) {
-      const paths = run3.shape.clusters.map((cluster2) => `<path data-text-start="${n6(cluster2.start)}" data-text-end="${n6(cluster2.end)}" d="${escapeMarkup2(cluster2.d)}"/>`).join("");
-      const decoration = (y) => `<rect x="0" y="${n6(y)}" width="${n6(run3.shape.advance)}" height="${n6(Math.max(0.5, run3.shape.size / 16))}"/>`;
-      fragments.push(`<g fill="${color3(run3.color)}" transform="translate(${n6(run3.x)} ${n6(run3.y)}) rotate(${n6(run3.angle)})">${paths}${run3.character.underline ? decoration(run3.shape.size / 10) : ""}${run3.character.strike ? decoration(-run3.shape.size * 0.3) : ""}</g>`);
+      const paths = run3.shape.clusters.map((cluster2) => `<path data-text-start="${n5(cluster2.start)}" data-text-end="${n5(cluster2.end)}" d="${escapeMarkup2(cluster2.d)}"/>`).join("");
+      const decoration = (y) => `<rect x="0" y="${n5(y)}" width="${n5(run3.shape.advance)}" height="${n5(Math.max(0.5, run3.shape.size / 16))}"/>`;
+      fragments.push(`<g fill="${color3(run3.color)}" transform="translate(${n5(run3.x)} ${n5(run3.y)}) rotate(${n5(run3.angle)})">${paths}${run3.character.underline ? decoration(run3.shape.size / 10) : ""}${run3.character.strike ? decoration(-run3.shape.size * 0.3) : ""}</g>`);
     }
     for (const inline of line.inlines) {
       const svg = admitTextInlineSvg(inline.svg, parseXml, `${prefix}-${placement2++}`);
-      const fitted = svg.replace(/^<svg([^>]*)>/, (_match, attributes2) => `<svg${attributes2.replace(/ (width|height)="[^"]*"/g, "")} width="${n6(inline.width)}" height="${n6(inline.height)}"${inline.overflow === "visible" ? ' overflow="visible"' : ""}>`);
+      const fitted = svg.replace(/^<svg([^>]*)>/, (_match, attributes2) => `<svg${attributes2.replace(/ (width|height)="[^"]*"/g, "")} width="${n5(inline.width)}" height="${n5(inline.height)}"${inline.overflow === "visible" ? ' overflow="visible"' : ""}>`);
       const sources = story.inlines.find((item2) => item2.offset === inline.offset)?.emojiSources;
-      fragments.push(`<g data-text-start="${n6(inline.offset)}"${sources?.length ? ` data-emoji-vector-sources="${escapeMarkup2(JSON.stringify(sources))}"` : ``} transform="translate(${n6(inline.x)} ${n6(inline.y)}) rotate(${n6(inline.angle)})">${fitted}</g>`);
+      fragments.push(`<g data-text-start="${n5(inline.offset)}"${sources?.length ? ` data-emoji-vector-sources="${escapeMarkup2(JSON.stringify(sources))}"` : ``} transform="translate(${n5(inline.x)} ${n5(inline.y)}) rotate(${n5(inline.angle)})">${fitted}</g>`);
     }
-    if (line.hyphen) fragments.push(`<g fill="${color3(line.hyphen.color ?? "#000000")}" transform="translate(${n6(line.hyphen.x)} ${n6(line.hyphen.y)})">${line.hyphen.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
+    if (line.hyphen) fragments.push(`<g fill="${color3(line.hyphen.color ?? "#000000")}" transform="translate(${n5(line.hyphen.x)} ${n5(line.hyphen.y)})">${line.hyphen.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
   }
   const stamp3 = await sha256Hex(new TextEncoder().encode(JSON.stringify([layout2.algorithm, layout2.shaper, layout2.documentHash, layout2.resources, frame.width, frame.height, frame.clip, frame.guide, layout2.lines.filter((line) => line.frameId === frameId)])));
-  return `<svg xmlns="http://www.w3.org/2000/svg" data-composed-text="${escapeMarkup2(story.id)}" data-text-layout="${stamp3}" data-text-frame="${escapeMarkup2(frameId)}" data-text-revision="${n6(story.revision)}"${layout2.overset && layout2.frames.at(-1)?.id === frameId ? ' data-text-overset="' + n6(layout2.overset.start) + '"' : ""} role="img" width="${n6(frame.width)}" height="${n6(frame.height)}" viewBox="0 0 ${n6(frame.width)} ${n6(frame.height)}" overflow="${frame.clip ? "hidden" : "visible"}"><title>${escapeMarkup2(story.source.slice(frame.start, frame.end))}</title>${fragments.join("")}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" data-composed-text="${escapeMarkup2(story.id)}" data-text-layout="${stamp3}" data-text-frame="${escapeMarkup2(frameId)}" data-text-revision="${n5(story.revision)}"${layout2.overset && layout2.frames.at(-1)?.id === frameId ? ' data-text-overset="' + n5(layout2.overset.start) + '"' : ""} role="img" width="${n5(frame.width)}" height="${n5(frame.height)}" viewBox="0 0 ${n5(frame.width)} ${n5(frame.height)}" overflow="${frame.clip ? "hidden" : "visible"}"><title>${escapeMarkup2(story.source.slice(frame.start, frame.end))}</title>${fragments.join("")}</svg>`;
 }
-var escapeMarkup2, n6, color3;
+var escapeMarkup2, n5, color3;
 var init_text_layout_svg = __esm({
   "engine/src/text-layout-svg.ts"() {
     "use strict";
@@ -134435,7 +134500,7 @@ var init_text_layout_svg = __esm({
     init_text_source();
     init_css_color();
     escapeMarkup2 = (value2) => value2.replace(/[&<>"'\r]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;", "\r": "&#13;" })[c]);
-    n6 = (value2) => {
+    n5 = (value2) => {
       if (!Number.isFinite(value2) || Math.abs(value2) > 1e8) throw new TextSourceError("layout-coordinate", "Text layout contains an invalid coordinate.");
       return String(Math.round(value2 * 1e4) / 1e4);
     };
@@ -134535,12 +134600,12 @@ function vectorContourNodes(contour, width, height) {
   return { kind: "cubic", closed: contour.closed, nodes };
 }
 function shapePath(element) {
-  const n8 = (name, fallback = 0) => element.hasAttribute(name) ? Number(element.getAttribute(name)) : fallback;
+  const n7 = (name, fallback = 0) => element.hasAttribute(name) ? Number(element.getAttribute(name)) : fallback;
   switch (element.localName) {
     case "path":
       return element.getAttribute("d") ?? "";
     case "line":
-      return `M${n8("x1")} ${n8("y1")}L${n8("x2")} ${n8("y2")}`;
+      return `M${n7("x1")} ${n7("y1")}L${n7("x2")} ${n7("y2")}`;
     case "polygon":
     case "polyline": {
       const points = (element.getAttribute("points") ?? "").trim().split(/[\s,]+/).map(Number);
@@ -134548,12 +134613,12 @@ function shapePath(element) {
     }
     case "circle":
     case "ellipse": {
-      const x = n8("cx"), y = n8("cy"), rx = n8(element.localName === "circle" ? "r" : "rx"), ry = n8(element.localName === "circle" ? "r" : "ry");
+      const x = n7("cx"), y = n7("cy"), rx = n7(element.localName === "circle" ? "r" : "rx"), ry = n7(element.localName === "circle" ? "r" : "ry");
       if (!rx || !ry) return "";
       return `M${x - rx} ${y}A${rx} ${ry} 0 1 1 ${x + rx} ${y}A${rx} ${ry} 0 1 1 ${x - rx} ${y}Z`;
     }
     case "rect": {
-      const x = n8("x"), y = n8("y"), w = n8("width"), h = n8("height"), rx = Math.min(w / 2, n8("rx", n8("ry"))), ry = Math.min(h / 2, n8("ry", n8("rx")));
+      const x = n7("x"), y = n7("y"), w = n7("width"), h = n7("height"), rx = Math.min(w / 2, n7("rx", n7("ry"))), ry = Math.min(h / 2, n7("ry", n7("rx")));
       if (!w || !h) return "";
       if (!rx || !ry) return `M${x} ${y}H${x + w}V${y + h}H${x}Z`;
       return `M${x + rx} ${y}H${x + w - rx}A${rx} ${ry} 0 0 1 ${x + w} ${y + ry}V${y + h - ry}A${rx} ${ry} 0 0 1 ${x + w - rx} ${y + h}H${x + rx}A${rx} ${ry} 0 0 1 ${x} ${y + h - ry}V${y + ry}A${rx} ${ry} 0 0 1 ${x + rx} ${y}Z`;
@@ -134965,8 +135030,8 @@ function cardFrom(container, members) {
     id: container.id,
     kind: "card",
     box: { ...container.box },
-    words: members.reduce((n8, u) => n8 + u.words, 0),
-    maxPt: members.reduce((n8, u) => Math.max(n8, u.maxPt), 0),
+    words: members.reduce((n7, u) => n7 + u.words, 0),
+    maxPt: members.reduce((n7, u) => Math.max(n7, u.maxPt), 0),
     figure: members.some((u) => u.figure),
     numbered: first?.numbered ?? false,
     dated: members.some((u) => u.dated),
@@ -135115,9 +135180,9 @@ function slideUnits(features, ctx) {
   }
   const cells = units2.filter((u) => u.kind === "text" && !heading(u.id));
   const headings = units2.filter((u) => heading(u.id) && u.kind === "text");
-  const words4 = units2.reduce((n8, u) => n8 + u.words, 0);
+  const words4 = units2.reduce((n7, u) => n7 + u.words, 0);
   const onTop = units2.filter((u) => area(u.box) < BACKGROUND_SHARE && !heading(u.id) && u.kind !== "shape" && u.kind !== "icon");
-  const ground = onTop.some((u) => u.kind !== "text") || cards.length > 0 || onTop.reduce((n8, u) => n8 + u.words, 0) > CAPTION_WORDS;
+  const ground = onTop.some((u) => u.kind !== "text") || cards.length > 0 || onTop.reduce((n7, u) => n7 + u.words, 0) > CAPTION_WORDS;
   const loose2 = units2.filter((u) => !absorbed.has(u.id) && !heading(u.id) && !(ground && u.kind === "pic" && area(u.box) >= BACKGROUND_SHARE));
   const raw = loose2.filter((u) => u.kind !== "shape" && u.kind !== "icon").length + cards.length;
   units2 = mergeBlocks(pairLabels(loose2, ctx), ctx.slideHeightPx);
@@ -135156,8 +135221,8 @@ function clusterCols(units2) {
   for (const c of cols) c.sort((a, b) => a.box.y - b.box.y || compareCodeUnits(a.id, b.id));
   return cols;
 }
-function countWord(n8) {
-  return COUNT_WORDS[n8] ?? "many";
+function countWord(n7) {
+  return COUNT_WORDS[n7] ?? "many";
 }
 function reason(code, params2) {
   return reviewMessage(code, params2);
@@ -135192,10 +135257,10 @@ function rowRead(fullRow, rules) {
   const gS = sim(gapRange, GAP_ZERO);
   if (wS <= 0 || yS <= 0) return null;
   const confidence = r25(0.45 * wS + 0.3 * yS + 0.25 * gS);
-  const n8 = row.length;
+  const n7 = row.length;
   const params2 = {
-    count: n8,
-    countWord: countWord(n8),
+    count: n7,
+    countWord: countWord(n7),
     widthSpread: pct(wSpread),
     rowSpread: pct(ySpread),
     gapSpread: pct(gapRange),
@@ -135205,69 +135270,69 @@ function rowRead(fullRow, rules) {
   const unitIds = row.map((u) => u.id);
   if (isPic) {
     return {
-      read: `image-row-${n8}`,
-      structure: `images-${n8}`,
+      read: `image-row-${n7}`,
+      structure: `images-${n7}`,
       confidence,
       coverage: 0,
       unitIds,
-      needs: n8,
+      needs: n7,
       reason: reason("layout.reason.images", params2),
-      signature: `row:${n8}:pic`
+      signature: `row:${n7}:pic`
     };
   }
   if (row.every((u) => u.figure)) {
     return {
-      read: `stats-${n8}`,
-      structure: `stats-${n8}`,
+      read: `stats-${n7}`,
+      structure: `stats-${n7}`,
       confidence,
       coverage: 0,
       unitIds,
-      needs: n8,
+      needs: n7,
       reason: reason("layout.reason.stats", params2),
-      signature: `row:${n8}:figure`
+      signature: `row:${n7}:figure`
     };
   }
   const numberedInOrder = row.every((u) => u.numbered);
-  const chevrons = connectors.length > 0 && connectors.length >= n8 - 1;
-  if (n8 >= 3 && (numberedInOrder || chevrons)) {
+  const chevrons = connectors.length > 0 && connectors.length >= n7 - 1;
+  if (n7 >= 3 && (numberedInOrder || chevrons)) {
     return {
-      read: `steps-${n8}`,
-      structure: `steps-${n8}`,
+      read: `steps-${n7}`,
+      structure: `steps-${n7}`,
       confidence,
       coverage: 0,
       unitIds,
-      needs: n8,
+      needs: n7,
       reason: reason("layout.reason.steps", params2),
-      signature: `row:${n8}:steps`
+      signature: `row:${n7}:steps`
     };
   }
   const ruled = rules.some((r5) => row.every((u) => yOverlapShare(r5.box, { ...u.box, y: u.box.y - 0.05, h: u.box.h + 0.1 }) > 0));
   const datedAll = row.every((u) => u.dated);
-  if (n8 >= 3 && (ruled || datedAll)) {
+  if (n7 >= 3 && (ruled || datedAll)) {
     return {
       read: "timeline",
       structure: "timeline",
       confidence,
       coverage: 0,
       unitIds,
-      needs: n8,
+      needs: n7,
       reason: reason("layout.reason.timeline", params2),
-      signature: `row:${n8}:timeline`
+      signature: `row:${n7}:timeline`
     };
   }
-  let structure = `columns-${n8}`;
+  let structure = `columns-${n7}`;
   const cards = row.every((u) => u.kind === "card");
-  if (n8 === 2 && !cards) structure = row.every((u) => u.headed) ? "comparison" : "text-two-column";
-  else if ((n8 === 3 || n8 === 4) && row.every((u) => u.iconAbove)) structure = `icon-columns-${n8}`;
+  if (n7 === 2 && !cards) structure = row.every((u) => u.headed) ? "comparison" : "text-two-column";
+  else if ((n7 === 3 || n7 === 4) && row.every((u) => u.iconAbove)) structure = `icon-columns-${n7}`;
   return {
-    read: `columns-${n8}`,
+    read: `columns-${n7}`,
     structure,
     confidence,
     coverage: 0,
     unitIds,
-    needs: n8,
+    needs: n7,
     reason: reason(cards ? wSpread <= WIDTH_SAME ? "layout.reason.row.cards.same" : "layout.reason.row.cards.uneven" : wSpread <= WIDTH_SAME ? "layout.reason.row.text.same" : "layout.reason.row.text.uneven", params2),
-    signature: `row:${n8}:${cards ? "card" : "text"}`
+    signature: `row:${n7}:${cards ? "card" : "text"}`
   };
 }
 function gridRead(units2) {
@@ -135330,7 +135395,7 @@ function splitRead(units2) {
   const under = texts.filter((t) => !disjoint.includes(t) && yOverlapShare(t.box, pic.box) >= 0.3 && (onRight ? t.box.x < pic.box.x - 0.05 : t.box.x + t.box.w > pic.box.x + pic.box.w + 0.05));
   const beside = [...disjoint, ...under];
   if (beside.length === 0) return null;
-  const words4 = beside.reduce((n8, t) => n8 + t.words, 0);
+  const words4 = beside.reduce((n7, t) => n7 + t.words, 0);
   const share = area(pic.box);
   const penalty = under.length > 0 ? 0.15 : 0;
   const confidence = r25(0.5 + 0.3 * clamp0114((share - SPLIT_PICTURE) / 0.2) + 0.2 * clamp0114(beside.length / texts.length) - penalty);
@@ -135405,11 +135470,11 @@ function stackRead(units2, ctx) {
   const gS = sim(gapRange, GAP_ZERO);
   if (lS <= 0 || wS <= 0) return null;
   const confidence = r25(0.4 * lS + 0.35 * wS + 0.25 * gS);
-  const n8 = col.length;
+  const n7 = col.length;
   const labelled = col.every((u) => u.labelled || u.numbered);
   const params2 = {
-    count: n8,
-    countWord: countWord(n8),
+    count: n7,
+    countWord: countWord(n7),
     edgeSpread: pct(lSpread),
     widthSpread: pct(wSpread),
     gapSpread: pct(gapRange),
@@ -135425,14 +135490,14 @@ function stackRead(units2, ctx) {
     code = "layout.reason.stack.labelled";
   }
   return {
-    read: `stack-${n8}`,
+    read: `stack-${n7}`,
     structure,
     confidence,
     coverage: 0,
     unitIds: col.map((u) => u.id),
-    needs: structure === "title-body" ? 1 : n8,
+    needs: structure === "title-body" ? 1 : n7,
     reason: reason(code, params2),
-    signature: `stack:${n8}:${labelled ? "labelled" : "plain"}`
+    signature: `stack:${n7}:${labelled ? "labelled" : "plain"}`
   };
 }
 function bigNumberRead(units2) {
@@ -135471,10 +135536,10 @@ function tableRead(cells, body) {
   const inLattice = cells.filter((c) => cols.some((e) => Math.abs((e[0] ?? 0) - c.box.x) <= TABLE_EDGE) && rows2.some((r5) => r5.includes(c))).length;
   const fill2 = inLattice / lattice;
   if (fill2 < TABLE_FILL || inLattice < TABLE_MIN_CELLS) return null;
-  const pts = cells.map((c) => c.maxPt).filter((n8) => n8 > 0).sort((a, b) => a - b);
+  const pts = cells.map((c) => c.maxPt).filter((n7) => n7 > 0).sort((a, b) => a - b);
   if (pts.length >= 4 && (pts[pts.length - 1] ?? 0) > TABLE_PT_RATIO * (pts[Math.floor(pts.length / 2)] ?? 0)) return null;
   const counts = rows2.map((r5) => r5.length);
-  const regular = counts.filter((n8) => n8 === Math.round(median6(counts))).length / rows2.length;
+  const regular = counts.filter((n7) => n7 === Math.round(median6(counts))).length / rows2.length;
   const confidence = r25(0.4 * clamp0114(fill2) + 0.4 * regular + 0.2);
   return {
     read: "table",
@@ -135490,7 +135555,7 @@ function tableRead(cells, body) {
 function wholeRead(su, quoted2) {
   const { headings, body } = su;
   const allWords = su.words;
-  const picArea = Math.min(1, body.filter((u) => u.kind === "pic").reduce((n8, u) => n8 + area(u.box), 0));
+  const picArea = Math.min(1, body.filter((u) => u.kind === "pic").reduce((n7, u) => n7 + area(u.box), 0));
   const tables = body.filter((u) => u.kind === "table").length;
   const charts = body.filter((u) => u.kind === "chart").length;
   const texts = body.filter((u) => u.kind === "text" || u.kind === "card");
@@ -135507,7 +135572,7 @@ function wholeRead(su, quoted2) {
     return photo ? named("image-with-quote", 0.8, "layout.reason.quote.picture", { words: allWords, pictures }, 2) : named("quote", 0.85, "layout.reason.quote", { words: allWords }, 1);
   }
   if (picArea >= 0.6 && allWords <= 30 && (headings.length === 0 || picArea >= 0.9)) {
-    const words4 = texts.reduce((n8, u) => n8 + u.words, 0);
+    const words4 = texts.reduce((n7, u) => n7 + u.words, 0);
     return named(words4 > 0 ? "full-image-caption" : "full-image", 0.9, "layout.reason.full-image", { share: pct(picArea), pictures }, pictures + charts + (texts.length > 0 ? 1 : 0));
   }
   if (body.length === 0) return { kind: "heading", read: null };
@@ -135606,8 +135671,8 @@ function archetypeForRead(master, structure) {
   const plain = archetypeForStructure(master, "title-body") ?? master.archetypes.find((a) => a.id === "content");
   return { archetype: plain, exact: false };
 }
-function countWordCap(n8) {
-  const word = countWord(n8);
+function countWordCap(n7) {
+  const word = countWord(n7);
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 function structureName(structure) {
@@ -135873,17 +135938,17 @@ function autoMatchReportEntries(plan, master, source) {
     if (!slide.include || slide.layoutSource !== "auto") return;
     const band = autoBand(slide, master);
     const structure = slide.layoutMatch?.structure ?? slide.layout;
-    const n8 = numberOf2.get(slide.id) ?? i + 1;
+    const n7 = numberOf2.get(slide.id) ?? i + 1;
     const { archetype, exact } = archetypeForRead(master, structure);
     const used = layoutArchetype(master, slide.layout) ?? archetype;
     const agrees = !slide.layoutMatch || !archetype || !used || archetype.id === used.id;
     let message;
     if (!agrees) {
-      message = `Slide ${n8}: the ${archetypeName(used)} layout stays from an earlier Auto-match; the slide now reads as ${structureName(structure)}.`;
+      message = `Slide ${n7}: the ${archetypeName(used)} layout stays from an earlier Auto-match; the slide now reads as ${structureName(structure)}.`;
     } else if (exact || !slide.layoutMatch) {
-      message = `Slide ${n8}: Auto-match set the ${archetypeName(used)} layout, ${BAND_WORDS[band]}.`;
+      message = `Slide ${n7}: Auto-match set the ${archetypeName(used)} layout, ${BAND_WORDS[band]}.`;
     } else {
-      message = `Slide ${n8}: Auto-match read ${structureName(structure)}, ${BAND_WORDS[band]}; this design system has no such layout, so ${archetypeName(used)} was used.`;
+      message = `Slide ${n7}: Auto-match read ${structureName(structure)}, ${BAND_WORDS[band]}; this design system has no such layout, so ${archetypeName(used)} was used.`;
     }
     out.push({ code: "layout.auto-matched", message, slideId: slide.id, reason: `${structure}:${band}` });
   });
@@ -135943,10 +136008,10 @@ var init_rebrand_structure = __esm({
     xOverlapShare = (a, b) => overlap1(a.x, a.x + a.w, b.x, b.x + b.w) / Math.max(1e-6, Math.min(a.w, b.w));
     cy = (b) => b.y + b.h / 2;
     cx = (b) => b.x + b.w / 2;
-    clamp0114 = (n8) => Math.max(0, Math.min(1, n8));
+    clamp0114 = (n7) => Math.max(0, Math.min(1, n7));
     sim = (dev, zeroAt) => clamp0114(1 - dev / zeroAt);
-    r25 = (n8) => Math.round(n8 * 100) / 100;
-    pct = (n8) => Math.round(n8 * 100);
+    r25 = (n7) => Math.round(n7 * 100) / 100;
+    pct = (n7) => Math.round(n7 * 100);
     NUMBERED = /^\s*(?:(?:step|phase|stage)\s+)?(?:\d{1,2}|[ivx]{1,4})(?:[.):]|\s|$)/i;
     DATED = /\b(?:19|20)\d{2}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|\bq[1-4]\b|\bh[12]\b/i;
     AGENDA_WORDS = /\b(?:agenda|contents|overview|outline|today|topics)\b/i;
@@ -136508,8 +136573,8 @@ var init_rebrand_plan = __esm({
 function svgEscape(value2) {
   return value2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 }
-function round26(n8) {
-  return Number.isFinite(n8) ? Math.round(n8 * 100) / 100 : 0;
+function round26(n7) {
+  return Number.isFinite(n7) ? Math.round(n7 * 100) / 100 : 0;
 }
 function aspect(fit) {
   if (fit === "cover") return "xMidYMid slice";
@@ -136844,8 +136909,8 @@ function hatchedBox(box4, flat) {
   if (parts.length === 0) return rect;
   return `${rect}<path d="${parts.join("")}" fill="none" stroke="${MUTED_INK}" stroke-width="1" vector-effect="non-scaling-stroke" opacity="0.5"/>`;
 }
-function round12(n8) {
-  return Number.isFinite(n8) ? Math.round(n8 * 10) / 10 : 0;
+function round12(n7) {
+  return Number.isFinite(n7) ? Math.round(n7 * 10) / 10 : 0;
 }
 function familyOf4(stated, ctx) {
   switch (stated) {
@@ -137000,9 +137065,9 @@ var init_frame_preview_svg = __esm({
 
 // engine/src/design-compose.ts
 function numberAt2(value2, pointer2) {
-  const n8 = typeof value2 === "number" ? value2 : typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : NaN;
-  if (!Number.isFinite(n8)) throw new Error(`${pointer2}: expected a number.`);
-  return n8;
+  const n7 = typeof value2 === "number" ? value2 : typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : NaN;
+  if (!Number.isFinite(n7)) throw new Error(`${pointer2}: expected a number.`);
+  return n7;
 }
 function checkKeys(value2, allowed, pointer2, what) {
   for (const key2 of Object.keys(value2)) {
@@ -137052,7 +137117,7 @@ function underPhotoShare(list4, size) {
   for (const row of list4) {
     if (!record33(row) || row.kind !== "image" && (row.kind !== void 0 || typeof row.image !== "string")) continue;
     const [x, y, w, h] = ["x", "y", "w", "h"].map((k) => Number(row[k]));
-    if (![x, y, w, h].every((n8) => Number.isFinite(n8)) || !(w > 0) || !(h > 0)) continue;
+    if (![x, y, w, h].every((n7) => Number.isFinite(n7)) || !(w > 0) || !(h > 0)) continue;
     const across = Math.max(0, Math.min(size.width, x + w) - Math.max(0, x));
     const down = Math.max(0, Math.min(size.height, y + h) - Math.max(0, y));
     best = Math.max(best, across * down / (size.width * size.height));
@@ -137118,8 +137183,8 @@ function inkReadsOnGround(archetype, resolve8) {
 function slotKeyOf(key2) {
   const m2 = /^([a-z]+)(?:#([1-9][0-9]*))?$/.exec(key2);
   if (!m2) return null;
-  const n8 = m2[2] ? Number(m2[2]) : 1;
-  return { role: m2[1], n: n8, key: n8 === 1 ? m2[1] : `${m2[1]}#${n8}` };
+  const n7 = m2[2] ? Number(m2[2]) : 1;
+  return { role: m2[1], n: n7, key: n7 === 1 ? m2[1] : `${m2[1]}#${n7}` };
 }
 function seededKey(row, prefix) {
   const role = typeof row.role === "string" ? row.role : "";
@@ -137367,7 +137432,7 @@ function composeDesignSlides(spec, ctx) {
   const follow2 = followsTheme && tokenSet ? themeFollowOf(tokenSet, themeNames ?? [], ctx.themeTokens, ctx.resolveToken) : null;
   const inventory2 = ctx.inventory ?? null;
   const brief2 = ctx.brief ?? null;
-  const briefThemes = record33(brief2) && Array.isArray(brief2.themes) ? new Set(brief2.themes.filter(record33).map((t) => t.name).filter((n8) => typeof n8 === "string")) : /* @__PURE__ */ new Set();
+  const briefThemes = record33(brief2) && Array.isArray(brief2.themes) ? new Set(brief2.themes.filter(record33).map((t) => t.name).filter((n7) => typeof n7 === "string")) : /* @__PURE__ */ new Set();
   const briefTheme = (ground) => briefThemes.has(ground) ? ground : void 0;
   const tables = /* @__PURE__ */ new Map();
   const styleTable = (ground) => {
@@ -137436,11 +137501,11 @@ function composeDesignSlides(spec, ctx) {
     const slideCase = caseAt(slide.case, `${p}/case`) ?? deckCase;
     let source;
     if (slide.source !== void 0) {
-      const n8 = slide.source;
-      if (typeof n8 !== "number" || !Number.isInteger(n8) || n8 < 1) throw new Error(`${p}/source: expected a 1-based slide number.`);
-      if (inventory2 && n8 > inventory2.slides.length) throw new Error(`${p}/source: the inventory has ${plural2(inventory2.slides.length, "slide")}.`);
-      source = n8;
-      if (inventory2 && !sources.includes(n8)) sources.push(n8);
+      const n7 = slide.source;
+      if (typeof n7 !== "number" || !Number.isInteger(n7) || n7 < 1) throw new Error(`${p}/source: expected a 1-based slide number.`);
+      if (inventory2 && n7 > inventory2.slides.length) throw new Error(`${p}/source: the inventory has ${plural2(inventory2.slides.length, "slide")}.`);
+      source = n7;
+      if (inventory2 && !sources.includes(n7)) sources.push(n7);
     }
     const slideFurniture = furnitureAt(slide.furniture, `${p}/furniture`);
     const omit = [.../* @__PURE__ */ new Set([...deckFurniture.omit, ...slideFurniture.omit])];
@@ -137685,8 +137750,8 @@ function composeDesignSlides(spec, ctx) {
         if (typeof row.id !== "string" || !row.id) continue;
         const id3 = row.id;
         const auto = new RegExp(`^${frameId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.${key2}-(\\d+)$`).exec(id3);
-        const n8 = auto ? Number(auto[1]) - 1 : -1;
-        const k = n8 >= 0 && record33(given2[n8]) && given2[n8].id === void 0 ? n8 : given2.findIndex((g2) => record33(g2) && g2.id === row.id);
+        const n7 = auto ? Number(auto[1]) - 1 : -1;
+        const k = n7 >= 0 && record33(given2[n7]) && given2[n7].id === void 0 ? n7 : given2.findIndex((g2) => record33(g2) && g2.id === row.id);
         const pointer2 = k >= 0 ? `${p}/${key2}/${k}` : `${p}/${key2}`;
         const taker = takenBy.get(id3);
         if (taker) throw new Error(`${pointer2}: layer "${id3}" is already the id of ${taker.what} (${taker.pointer}); give this row another id.`);
@@ -137729,7 +137794,7 @@ function composeDesignSlides(spec, ctx) {
   }
   let edits = [];
   if (inventory2 && sources.length) {
-    const sub = { ...inventory2, slides: sources.map((n8) => inventory2.slides[n8 - 1]) };
+    const sub = { ...inventory2, slides: sources.map((n7) => inventory2.slides[n7 - 1]) };
     const fidelity = checkFidelity(sub, boxes2.map((row) => typeof row.text === "string" && row.text.includes("{@") ? { ...row, text: withoutRunRefs(row.text) } : row), { notes: false });
     edits = [
       ...fidelity.fidelity.missingStrings.map((source) => replacedBy(source, literals, inventory2) ?? { source, reason: COUNTER.test(source) ? "Decorative numbering left out: the number only counted the items, in reading order." : "Left out of the composed slides." }),
@@ -137898,9 +137963,9 @@ function fillSlot(row, value2, pointer2, fx) {
     if (key2 === "x" || key2 === "y") {
       row[key2] = (key2 === "x" ? fx.origin.x : fx.origin.y) + numberAt2(v, `${pointer2}/${key2}`);
     } else if (key2 === "w" || key2 === "h") {
-      const n8 = numberAt2(v, `${pointer2}/${key2}`);
-      if (n8 <= 0) throw new Error(`${pointer2}/${key2}: expected a size above 0.`);
-      row[key2] = n8;
+      const n7 = numberAt2(v, `${pointer2}/${key2}`);
+      if (n7 <= 0) throw new Error(`${pointer2}/${key2}: expected a size above 0.`);
+      row[key2] = n7;
     } else if (v === null || ["string", "number", "boolean"].includes(typeof v)) {
       row[key2] = key2 === "weight" && typeof v === "number" ? String(v) : v;
       if (COMPOSE_COLOUR_FIELDS.includes(key2) && typeof v === "string" && isColourRef(v)) setColourLink(row, key2, null);
@@ -138021,13 +138086,13 @@ function carriedText(row, source, value2, pointer2, fx, asked) {
     const list4 = Array.isArray(value2.para) ? value2.para : [value2.para];
     if (!list4.length) throw new Error(`${pointer2}/para: expected a 0-based paragraph number, or a list of them.`);
     const seen = /* @__PURE__ */ new Set();
-    paragraphs2 = list4.map((n8, k) => {
+    paragraphs2 = list4.map((n7, k) => {
       const at = Array.isArray(value2.para) ? `${pointer2}/para/${k}` : `${pointer2}/para`;
-      if (typeof n8 !== "number" || !Number.isInteger(n8) || n8 < 0) throw new Error(`${at}: expected a 0-based paragraph number.`);
-      if (n8 >= source.length) throw new Error(`${at}: "${id3}" has ${plural2(source.length, "paragraph")} (0 to ${source.length - 1}).`);
-      if (seen.has(n8)) throw new Error(`${at}: paragraph ${n8} is listed twice.`);
-      seen.add(n8);
-      return source[n8];
+      if (typeof n7 !== "number" || !Number.isInteger(n7) || n7 < 0) throw new Error(`${at}: expected a 0-based paragraph number.`);
+      if (n7 >= source.length) throw new Error(`${at}: "${id3}" has ${plural2(source.length, "paragraph")} (0 to ${source.length - 1}).`);
+      if (seen.has(n7)) throw new Error(`${at}: paragraph ${n7} is listed twice.`);
+      seen.add(n7);
+      return source[n7];
     });
   }
   const carried = value2.para !== void 0 ? paragraphs2 : source;
@@ -138378,10 +138443,10 @@ function composeArchetypeCatalog(master) {
   return master.archetypes.filter((a) => !a.variantOf && !twins.has(a.id)).map((a) => {
     const seen = /* @__PURE__ */ new Map();
     const slots = a.placeholders.map((ph) => {
-      const n8 = (seen.get(ph.role) ?? 0) + 1;
-      seen.set(ph.role, n8);
+      const n7 = (seen.get(ph.role) ?? 0) + 1;
+      seen.set(ph.role, n7);
       return {
-        key: n8 === 1 ? ph.role : `${ph.role}#${n8}`,
+        key: n7 === 1 ? ph.role : `${ph.role}#${n7}`,
         role: ph.role,
         kind: ph.kind,
         optional: ph.optional === true,
@@ -138441,7 +138506,7 @@ var init_design_compose = __esm({
     STYLE_ROW_FIELDS2 = ["fontSize", "weight", "lineHeight", "tracking", "font", "align", "valign", "pad", "fg"];
     record33 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     seg3 = (key2) => String(key2).replace(/~/g, "~0").replace(/\//g, "~1");
-    plural2 = (n8, one, many = `${one}s`) => `${n8} ${n8 === 1 ? one : many}`;
+    plural2 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     strings3 = (v) => Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.length > 0) : [];
     luminanceContrast = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     LARGE_TEXT_ROLES = /* @__PURE__ */ new Set(["title", "subtitle", "quote", "number"]);
@@ -138542,9 +138607,9 @@ function sequenceOf(piece) {
 function slotRefs(archetype) {
   const seen = /* @__PURE__ */ new Map();
   return archetype.placeholders.map((ph) => {
-    const n8 = (seen.get(ph.role) ?? 0) + 1;
-    seen.set(ph.role, n8);
-    const ref2 = { key: n8 === 1 ? ph.role : `${ph.role}#${n8}`, role: ph.role, kind: ph.kind, optional: ph.optional === true };
+    const n7 = (seen.get(ph.role) ?? 0) + 1;
+    seen.set(ph.role, n7);
+    const ref2 = { key: n7 === 1 ? ph.role : `${ph.role}#${n7}`, role: ph.role, kind: ph.kind, optional: ph.optional === true };
     if (ph.group !== void 0) ref2.group = ph.group;
     return ref2;
   });
@@ -138700,14 +138765,14 @@ function fillImages(pics, slots, into, keyOf3) {
 }
 function cellPieces(items2, slots) {
   const textSlots = slots.filter((s) => s.kind !== "image").length;
-  const split = items2.reduce((n8, i) => n8 + Math.max(1, i.paras.length), 0) <= textSlots;
+  const split = items2.reduce((n7, i) => n7 + Math.max(1, i.paras.length), 0) <= textSlots;
   return items2.flatMap((i) => piecesOf(i, split));
 }
-function cutRuns(values, n8) {
+function cutRuns(values, n7) {
   const sorted = [...new Set(values)].sort((a, b) => a - b);
-  if (n8 <= 1 || sorted.length <= 1) return () => 0;
+  if (n7 <= 1 || sorted.length <= 1) return () => 0;
   const gaps = sorted.slice(1).map((v, k) => ({ at: (v + sorted[k]) / 2, size: v - sorted[k] }));
-  const cuts = gaps.sort((a, b) => b.size - a.size || a.at - b.at).slice(0, n8 - 1).map((g2) => g2.at).sort((a, b) => a - b);
+  const cuts = gaps.sort((a, b) => b.size - a.size || a.at - b.at).slice(0, n7 - 1).map((g2) => g2.at).sort((a, b) => a - b);
   return (v) => cuts.filter((c) => v > c).length;
 }
 function withoutCounter(cell2) {
@@ -138724,8 +138789,8 @@ function withoutCounter(cell2) {
   });
   return { ...cell2, pieces };
 }
-function axisOf(values, n8) {
-  if (n8 > 0) return { index: cutRuns(values, n8), count: n8 };
+function axisOf(values, n7) {
+  if (n7 > 0) return { index: cutRuns(values, n7), count: n7 };
   const starts = runs(values);
   return { index: (v) => Math.max(0, starts.filter((st) => v >= st - 1e-9).length - 1), count: Math.max(1, starts.length) };
 }
@@ -138963,18 +139028,18 @@ function fromRead(id3, read, heading, body, pics, ctx) {
   const loosePics = pics.filter((p) => !cellPics.includes(p));
   const cardRow = CARD_ROW.exec(read.structure);
   if (cardRow && countedCells(sourceCells)) {
-    const n8 = sourceCells.length;
-    const columns = n8 <= 4 ? ctx.view.forStructure(`columns-${n8}`) : void 0;
-    const flow = columns ? void 0 : flowFor(n8, "columns", true);
+    const n7 = sourceCells.length;
+    const columns = n7 <= 4 ? ctx.view.forStructure(`columns-${n7}`) : void 0;
+    const flow = columns ? void 0 : flowFor(n7, "columns", true);
     const row = columns ?? (flow ? ctx.view.find(flow) : void 0);
-    if (row && cellRefs(row).length >= n8) {
+    if (row && cellRefs(row).length >= n7) {
       titleInto(row, heading, slots);
       const filled2 = fillCells(row, sourceCells.map(withoutCounter), ctx);
       return {
         archetype: row.id,
         slots,
         cells: filled2.cells,
-        why: `The cards are numbered 1 to ${n8} in reading order, so the numbers only count them: they are left out as decorative numbering (compose lists them in its edits, for --edits-out), and the cards stay a row (${row.name}).`,
+        why: `The cards are numbered 1 to ${n7} in reading order, so the numbers only count them: they are left out as decorative numbering (compose lists them in its edits, for --edits-out), and the cards stay a row (${row.name}).`,
         extraText: filled2.extraText,
         extraPics: [...filled2.extraPics, ...loosePics]
       };
@@ -139049,7 +139114,7 @@ function fromText(id3, heading, given2, pics, ctx) {
     if (d) return d;
   }
   const groups = groupsOf(body);
-  const flowId = groups.every((g2) => g2.reduce((n8, i) => n8 + Math.max(1, i.paras.length), 0) <= 2) ? flowFor(groups.length, "columns", false) : void 0;
+  const flowId = groups.every((g2) => g2.reduce((n7, i) => n7 + Math.max(1, i.paras.length), 0) <= 2) ? flowFor(groups.length, "columns", false) : void 0;
   const flow = flowId ? view.find(flowId) : void 0;
   if (flow && contentPics.length === 0) {
     const slots = {};
@@ -139395,17 +139460,17 @@ var init_design_compose_suggest = __esm({
 
 // engine/src/slide-regions.ts
 function hexOf7(c) {
-  const h = (n8) => Math.max(0, Math.min(255, Math.round(n8))).toString(16).padStart(2, "0");
+  const h = (n7) => Math.max(0, Math.min(255, Math.round(n7))).toString(16).padStart(2, "0");
   return `#${h(c[0])}${h(c[1])}${h(c[2])}`;
 }
 function rgbOfHex(hex3) {
   const m2 = /^#?([0-9a-fA-F]{6})$/.exec(hex3.trim());
   if (!m2 || m2[1] === void 0) return null;
-  const n8 = Number.parseInt(m2[1], 16);
-  return [n8 >> 16 & 255, n8 >> 8 & 255, n8 & 255];
+  const n7 = Number.parseInt(m2[1], 16);
+  return [n7 >> 16 & 255, n7 >> 8 & 255, n7 & 255];
 }
-function round33(n8) {
-  return Math.round(n8 * 1e3) / 1e3;
+function round33(n7) {
+  return Math.round(n7 * 1e3) / 1e3;
 }
 function median7(values) {
   if (values.length === 0) return 0;
@@ -139434,24 +139499,24 @@ function groundRgb(g2, px3, py) {
   return [g2.rgb[k] ?? 0, g2.rgb[k + 1] ?? 0, g2.rgb[k + 2] ?? 0];
 }
 function solve2(a, b) {
-  const n8 = b.length;
+  const n7 = b.length;
   const m2 = a.map((row, i) => [...row, b[i] ?? 0]);
-  for (let col = 0; col < n8; col++) {
+  for (let col = 0; col < n7; col++) {
     let pivot = col;
-    for (let r5 = col + 1; r5 < n8; r5++) if (Math.abs(m2[r5]?.[col] ?? 0) > Math.abs(m2[pivot]?.[col] ?? 0)) pivot = r5;
+    for (let r5 = col + 1; r5 < n7; r5++) if (Math.abs(m2[r5]?.[col] ?? 0) > Math.abs(m2[pivot]?.[col] ?? 0)) pivot = r5;
     const top = m2[pivot];
     if (!top || Math.abs(top[col] ?? 0) < 1e-9) return null;
     m2[pivot] = m2[col] ?? top;
     m2[col] = top;
-    for (let r5 = 0; r5 < n8; r5++) {
+    for (let r5 = 0; r5 < n7; r5++) {
       if (r5 === col) continue;
       const row = m2[r5];
       if (!row) continue;
       const f = (row[col] ?? 0) / (top[col] ?? 1);
-      for (let k = col; k <= n8; k++) row[k] = (row[k] ?? 0) - f * (top[k] ?? 0);
+      for (let k = col; k <= n7; k++) row[k] = (row[k] ?? 0) - f * (top[k] ?? 0);
     }
   }
-  return m2.map((row, i) => (row[n8] ?? 0) / (row[i] ?? 1));
+  return m2.map((row, i) => (row[n7] ?? 0) / (row[i] ?? 1));
 }
 function terms(u, v) {
   return [1, u, v, u * u, v * v, u * v];
@@ -139660,9 +139725,9 @@ function colourStats(pass, box4, counter) {
   }
   let bestKey = -1;
   let best = 0;
-  for (const [key2, n8] of counts) {
-    if (n8 > best || n8 === best && key2 < bestKey) {
-      best = n8;
+  for (const [key2, n7] of counts) {
+    if (n7 > best || n7 === best && key2 < bestKey) {
+      best = n7;
       bestKey = key2;
     }
   }
@@ -139713,10 +139778,10 @@ function label2(on3, gw, gh, eight) {
           if (!eight && dx !== 0 && dy !== 0) continue;
           const nx = cx2 + dx;
           if (nx < 0 || nx >= gw) continue;
-          const n8 = ny * gw + nx;
-          if (on3[n8] && (labels[n8] ?? 0) < 0) {
-            labels[n8] = id3;
-            stack[top++] = n8;
+          const n7 = ny * gw + nx;
+          if (on3[n7] && (labels[n7] ?? 0) < 0) {
+            labels[n7] = id3;
+            stack[top++] = n7;
           }
         }
       }
@@ -140398,7 +140463,7 @@ function groundOfRegion(regions, region) {
 }
 function modelOf(ground) {
   if (typeof ground === "string") return flatGround(rgbOfHex(ground) ?? [255, 255, 255]);
-  const valid2 = ground.surface.length === 3 && ground.surface.every((row) => row.length === 6 && row.every((n8) => Number.isFinite(n8))) && ground.width > 0 && ground.height > 0;
+  const valid2 = ground.surface.length === 3 && ground.surface.every((row) => row.length === 6 && row.every((n7) => Number.isFinite(n7))) && ground.width > 0 && ground.height > 0;
   return valid2 ? surfaceModel(ground.surface, ground.width, ground.height) : flatGround([255, 255, 255]);
 }
 function cropRgba(image, box4, pad = 0) {
@@ -140487,9 +140552,9 @@ function inkColourOf(image, box4, ground, threshold) {
   }
   let bestKey = -1;
   let best = 0;
-  for (const [key2, n8] of counts) {
-    if (n8 > best || n8 === best && key2 < bestKey) {
-      best = n8;
+  for (const [key2, n7] of counts) {
+    if (n7 > best || n7 === best && key2 < bestKey) {
+      best = n7;
       bestKey = key2;
     }
   }
@@ -140541,9 +140606,9 @@ function outlineColourOf(image, box4) {
   }
   let bestKey = -1;
   let best = 0;
-  for (const [key2, n8] of counts) {
-    if (n8 > best || n8 === best && key2 < bestKey) {
-      best = n8;
+  for (const [key2, n7] of counts) {
+    if (n7 > best || n7 === best && key2 < bestKey) {
+      best = n7;
       bestKey = key2;
     }
   }
@@ -140695,17 +140760,17 @@ function lineInkColourOf(image, box4) {
     }
   });
   let most = 0;
-  for (const n9 of counts.values()) most = Math.max(most, n9);
+  for (const n8 of counts.values()) most = Math.max(most, n8);
   if (most === 0) return null;
   let bestKey = -1;
   let bestDistance = -1;
   let bestCount = 0;
-  for (const [key2, n9] of counts) {
-    if (n9 < LINE_INK_CANDIDATE * most) continue;
-    const d = (distance4.get(key2) ?? 0) / n9;
-    if (d > bestDistance || d === bestDistance && (n9 > bestCount || n9 === bestCount && key2 < bestKey)) {
+  for (const [key2, n8] of counts) {
+    if (n8 < LINE_INK_CANDIDATE * most) continue;
+    const d = (distance4.get(key2) ?? 0) / n8;
+    if (d > bestDistance || d === bestDistance && (n8 > bestCount || n8 === bestCount && key2 < bestKey)) {
       bestDistance = d;
-      bestCount = n9;
+      bestCount = n8;
       bestKey = key2;
     }
   }
@@ -140717,10 +140782,10 @@ function lineInkColourOf(image, box4) {
     mean[1] += g2[1];
     mean[2] += g2[2];
   }
-  const n8 = Math.max(1, lineGround.colours.length);
+  const n7 = Math.max(1, lineGround.colours.length);
   return {
     ink: hexOf7([sum[0] / bestCount, sum[1] / bestCount, sum[2] / bestCount]),
-    ground: hexOf7([mean[0] / n8, mean[1] / n8, mean[2] / n8])
+    ground: hexOf7([mean[0] / n7, mean[1] / n7, mean[2] / n7])
   };
 }
 function strokeRatioOf(image, box4, ink) {
@@ -140923,20 +140988,20 @@ function channelsApart(a, b) {
 }
 function fitPieces(pieces, advances) {
   const m2 = pieces.length;
-  const n8 = advances.length;
+  const n7 = advances.length;
   const span = (pieces[m2 - 1]?.b ?? 0) - (pieces[0]?.a ?? 0) + 1;
   const total = advances.reduce((sum, v) => sum + v, 0) || 1;
   const scale = span / total;
   const prefix = [0];
   for (const v of advances) prefix.push((prefix[prefix.length - 1] ?? 0) + v);
-  const cost = Array.from({ length: m2 + 1 }, () => new Array(n8 + 1).fill(Number.POSITIVE_INFINITY));
-  const from = Array.from({ length: m2 + 1 }, () => new Array(n8 + 1).fill(-1));
+  const cost = Array.from({ length: m2 + 1 }, () => new Array(n7 + 1).fill(Number.POSITIVE_INFINITY));
+  const from = Array.from({ length: m2 + 1 }, () => new Array(n7 + 1).fill(-1));
   const row0 = cost[0];
   if (row0) row0[0] = 0;
   for (let i = 1; i <= m2; i++) {
     const p = pieces[i - 1];
     const width = p ? p.b - p.a + 1 : 0;
-    for (let j2 = i; j2 <= n8 - (m2 - i); j2++) {
+    for (let j2 = i; j2 <= n7 - (m2 - i); j2++) {
       for (let k = i - 1; k < j2; k++) {
         const prior = cost[i - 1]?.[k] ?? Number.POSITIVE_INFINITY;
         if (!Number.isFinite(prior)) continue;
@@ -140951,7 +141016,7 @@ function fitPieces(pieces, advances) {
     }
   }
   const out = [];
-  let j = n8;
+  let j = n7;
   for (let i = m2; i >= 1; i--) {
     const k = from[i]?.[j] ?? i - 1;
     out.unshift({ from: k, to: j - 1 });
@@ -140997,12 +141062,12 @@ function lineGlyphsOf(image, box4, text12) {
     }
   }
   let fullest = 0;
-  for (const n8 of rowInk) fullest = Math.max(fullest, n8);
+  for (const n7 of rowInk) fullest = Math.max(fullest, n7);
   if (fullest === 0) return null;
   let top = -1;
   let bottom = -1;
-  rowInk.forEach((n8, r5) => {
-    if (n8 < Math.max(1, TEXT_INK_FLOOR * fullest)) return;
+  rowInk.forEach((n7, r5) => {
+    if (n7 < Math.max(1, TEXT_INK_FLOOR * fullest)) return;
     if (top < 0) top = r5;
     bottom = r5;
   });
@@ -141065,8 +141130,8 @@ function lineGlyphsOf(image, box4, text12) {
     }
   };
   if (ranges) {
-    words4.forEach((word, n8) => {
-      const range = ranges?.[n8];
+    words4.forEach((word, n7) => {
+      const range = ranges?.[n7];
       if (!range) return;
       if (range.pieces.length === word.e - word.s + 1) {
         range.pieces.forEach((p, k) => {
@@ -141115,17 +141180,17 @@ function lineGlyphsOf(image, box4, text12) {
       }
     }
     let most = 0;
-    for (const n8 of counts.values()) most = Math.max(most, n8);
+    for (const n7 of counts.values()) most = Math.max(most, n7);
     if (most === 0) return null;
     let bestKey = -1;
     let bestFar = -1;
     let bestCount = 0;
-    for (const [key2, n8] of counts) {
-      if (n8 < LINE_INK_CANDIDATE * most) continue;
-      const d = (far.get(key2) ?? 0) / n8;
-      if (d > bestFar || d === bestFar && (n8 > bestCount || n8 === bestCount && key2 < bestKey)) {
+    for (const [key2, n7] of counts) {
+      if (n7 < LINE_INK_CANDIDATE * most) continue;
+      const d = (far.get(key2) ?? 0) / n7;
+      if (d > bestFar || d === bestFar && (n7 > bestCount || n7 === bestCount && key2 < bestKey)) {
         bestFar = d;
-        bestCount = n8;
+        bestCount = n7;
         bestKey = key2;
       }
     }
@@ -141274,7 +141339,7 @@ function lineGlyphsOf(image, box4, text12) {
     const third = Math.max(1, Math.floor(rows2.length / 3));
     const upper = rows2.slice(0, third);
     const lower3 = rows2.slice(rows2.length - third);
-    const mean = (list4, f) => list4.reduce((n8, row) => n8 + f(row), 0) / list4.length;
+    const mean = (list4, f) => list4.reduce((n7, row) => n7 + f(row), 0) / list4.length;
     const lean = (mean(upper, (row) => (row.left + row.right) / 2) - mean(lower3, (row) => (row.left + row.right) / 2)) * stride / rows2.length;
     const topWidth = mean(upper, (row) => row.right - row.left + 1);
     const lowWidth = mean(lower3, (row) => row.right - row.left + 1);
@@ -141382,9 +141447,9 @@ function paintOutBoxes(image, boxes2) {
     levels2.push(next2);
     level2 = next2;
   }
-  for (let n8 = levels2.length - 2; n8 >= 0; n8--) {
-    const fine = levels2[n8];
-    const coarse = levels2[n8 + 1];
+  for (let n7 = levels2.length - 2; n7 >= 0; n7--) {
+    const fine = levels2[n7];
+    const coarse = levels2[n7 + 1];
     if (!fine || !coarse) continue;
     for (let y = 0; y < fine.h; y++) {
       for (let x = 0; x < fine.w; x++) {
@@ -141423,7 +141488,7 @@ function inkAngleOf(image, box4, ground) {
   const y1 = Math.min(image.height, Math.ceil(box4.y + box4.h));
   if (x1 <= x0 || y1 <= y0) return null;
   const stride = Math.max(1, Math.ceil(Math.sqrt((x1 - x0) * (y1 - y0) / COLOUR_SAMPLE_CAP)));
-  let n8 = 0;
+  let n7 = 0;
   let sx = 0;
   let sy = 0;
   let sxx = 0;
@@ -141436,7 +141501,7 @@ function inkAngleOf(image, box4, ground) {
       if (d < TEXT_MIN_CONTRAST) continue;
       const u = x - x0;
       const v = y1 - y;
-      n8++;
+      n7++;
       sx += u;
       sy += v;
       sxx += u * u;
@@ -141444,12 +141509,12 @@ function inkAngleOf(image, box4, ground) {
       sxy += u * v;
     }
   }
-  if (n8 < 8) return null;
-  const mx = sx / n8;
-  const my = sy / n8;
-  const cxx = sxx / n8 - mx * mx;
-  const cyy = syy / n8 - my * my;
-  const cxy = sxy / n8 - mx * my;
+  if (n7 < 8) return null;
+  const mx = sx / n7;
+  const my = sy / n7;
+  const cxx = sxx / n7 - mx * mx;
+  const cyy = syy / n7 - my * my;
+  const cxy = sxy / n7 - mx * my;
   const theta2 = 0.5 * Math.atan2(2 * cxy, cxx - cyy);
   const mean = (cxx + cyy) / 2;
   const spread = Math.sqrt(((cxx - cyy) / 2) ** 2 + cxy ** 2);
@@ -141561,20 +141626,20 @@ function unionBox(boxes2) {
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
 }
 function readingOrderOf(boxes2, max = DEFAULT_MAX_LINES) {
-  const n8 = boxes2.length;
+  const n7 = boxes2.length;
   const byPosition3 = (a, b) => {
     const A = boxes2[a];
     const B = boxes2[b];
     if (!A || !B) return a - b;
     return A.y - B.y || A.x - B.x || a - b;
   };
-  if (n8 > max) return { order: [...Array(n8).keys()].sort(byPosition3), fallback: true };
-  const edges = Array.from({ length: n8 }, () => []);
-  const indegree = new Array(n8).fill(0);
-  for (let a = 0; a < n8; a++) {
+  if (n7 > max) return { order: [...Array(n7).keys()].sort(byPosition3), fallback: true };
+  const edges = Array.from({ length: n7 }, () => []);
+  const indegree = new Array(n7).fill(0);
+  for (let a = 0; a < n7; a++) {
     const A = boxes2[a];
     if (!A) continue;
-    for (let b = 0; b < n8; b++) {
+    for (let b = 0; b < n7; b++) {
       const B = boxes2[b];
       if (a === b || !B) continue;
       let before = false;
@@ -141584,7 +141649,7 @@ function readingOrderOf(boxes2, max = DEFAULT_MAX_LINES) {
         const lo = Math.min(cy2(A), cy2(B));
         const hi = Math.max(cy2(A), cy2(B));
         before = true;
-        for (let c = 0; c < n8 && before; c++) {
+        for (let c = 0; c < n7 && before; c++) {
           const C = boxes2[c];
           if (c === a || c === b || !C) continue;
           if (cy2(C) > lo && cy2(C) < hi && xOverlap(C, A) > 0 && xOverlap(C, B) > 0) before = false;
@@ -141596,16 +141661,16 @@ function readingOrderOf(boxes2, max = DEFAULT_MAX_LINES) {
       }
     }
   }
-  const done = new Uint8Array(n8);
+  const done = new Uint8Array(n7);
   const order = [];
-  while (order.length < n8) {
+  while (order.length < n7) {
     let pick = -1;
-    for (let i = 0; i < n8; i++) {
+    for (let i = 0; i < n7; i++) {
       if (done[i] || (indegree[i] ?? 0) > 0) continue;
       if (pick < 0 || byPosition3(i, pick) < 0) pick = i;
     }
     if (pick < 0) {
-      for (let i = 0; i < n8; i++) if (!done[i] && (pick < 0 || byPosition3(i, pick) < 0)) pick = i;
+      for (let i = 0; i < n7; i++) if (!done[i] && (pick < 0 || byPosition3(i, pick) < 0)) pick = i;
     }
     done[pick] = 1;
     order.push(pick);
@@ -141758,7 +141823,7 @@ function assembleLines(input, opts) {
   for (const group of groups.values()) {
     group.sort((a, b) => a.box.x - b.box.x || a.index - b.index);
     const raw = group.map((g2) => g2.text).join(" ");
-    const chars = group.reduce((n8, g2) => n8 + g2.text.length, 0);
+    const chars = group.reduce((n7, g2) => n7 + g2.text.length, 0);
     const box4 = unionBox(group.map((g2) => g2.box));
     const estimates = group.map((g2) => lineSizeEstimate(g2.text, g2.box.h, opts)).filter((e) => e !== null);
     lines.push({
@@ -142197,7 +142262,7 @@ var init_motion_cues = __esm({
     "use strict";
     init_keyframes2();
     idOk = (id3) => typeof id3 === "string" && /^[\w-]{1,80}$/.test(id3);
-    finite5 = (n8) => typeof n8 === "number" && Number.isFinite(n8);
+    finite5 = (n7) => typeof n7 === "number" && Number.isFinite(n7);
     fieldOf = (target2) => ({ start: "start", enterEnd: "enterMs", exitStart: "exitMs", keyframe: "kf" })[target2];
   }
 });
@@ -142279,7 +142344,7 @@ function compareProductionPixels(a, b, policy, signal) {
       continue;
     }
     let ma = 0, mb2 = 0, aa = 0, bb = 0, ab = 0, samples = 0, ia = 0, ib = 0;
-    const n8 = r5.width * r5.height;
+    const n7 = r5.width * r5.height;
     for (let y = r5.y; y < r5.y + r5.height; y++) {
       if (y % 64 === 0) signal?.throwIfAborted();
       for (let x = r5.x; x < r5.x + r5.width; x++) {
@@ -142295,9 +142360,9 @@ function compareProductionPixels(a, b, policy, signal) {
         if (vb2 < 250) ib++;
       }
     }
-    const va = Math.max(0, aa / n8), vb = Math.max(0, bb / n8), cov = ab / n8;
+    const va = Math.max(0, aa / n7), vb = Math.max(0, bb / n7), cov = ab / n7;
     const ssim = (2 * ma * mb2 + 6.5025) * (2 * cov + 58.5225) / ((ma * ma + mb2 * mb2 + 6.5025) * (va + vb + 58.5225));
-    const ink = Math.abs(ia - ib) / n8;
+    const ink = Math.abs(ia - ib) / n7;
     out.push(check2(`appearance.${r5.id}.ssim`, r5.id, ssim >= r5.minSsim, "region-luminance-ssim", ssim, r5.minSsim), check2(`appearance.${r5.id}.ink`, r5.id, ink <= r5.maxInkDelta, "region-ink-fraction-delta", ink, r5.maxInkDelta));
   }
   return out;
@@ -142635,15 +142700,15 @@ async function collectProductionSvg(bytes2, contract2, parse2) {
   };
   for (const r5 of contract2.requirements) {
     if (r5.kind === "resource" || r5.kind === "input") continue;
-    const nodes = snapshot.nodes.filter((n9) => n9.id === r5.location);
+    const nodes = snapshot.nodes.filter((n8) => n8.id === r5.location);
     if (nodes.length > 1) {
       facts2.limitations.push(`duplicate-svg-id:${r5.location}`);
       continue;
     }
-    const n8 = nodes[0];
-    if (r5.kind === "text") facts2.text[r5.location] = n8 && ["text", "tspan", "textPath"].includes(n8.name) ? n8.text : "";
-    else if (r5.kind === "link") facts2.links[r5.location] = n8?.href ?? "";
-    else facts2.nodes[r5.location] = n8 ? await sha256Hex(new TextEncoder().encode(n8.xml)) : "";
+    const n7 = nodes[0];
+    if (r5.kind === "text") facts2.text[r5.location] = n7 && ["text", "tspan", "textPath"].includes(n7.name) ? n7.text : "";
+    else if (r5.kind === "link") facts2.links[r5.location] = n7?.href ?? "";
+    else facts2.nodes[r5.location] = n7 ? await sha256Hex(new TextEncoder().encode(n7.xml)) : "";
   }
   return facts2;
 }
@@ -142778,17 +142843,17 @@ function mergeTokenDocuments(base, local2, incoming) {
   }
   let nodes = 0;
   const conflicts = [];
-  function merge(b, l, n8, location4, depth) {
+  function merge(b, l, n7, location4, depth) {
     if (++nodes > 2e4 || depth > 48) throw new Error("The source merge exceeded its scan limit.");
-    if (equal(l, n8) || equal(b, n8)) return structuredClone(l);
-    if (equal(b, l)) return structuredClone(n8);
-    if (record35(l) && record35(n8) && (!b || record35(b)) && !("$value" in l) && !("$value" in n8)) {
-      return Object.fromEntries([.../* @__PURE__ */ new Set([...Object.keys(record35(b) ? b : {}), ...Object.keys(l), ...Object.keys(n8)])].flatMap((k) => {
-        const value2 = merge(record35(b) ? b[k] : void 0, l[k], n8[k], `${location4}/${k.replaceAll("~", "~0").replaceAll("/", "~1")}`, depth + 1);
+    if (equal(l, n7) || equal(b, n7)) return structuredClone(l);
+    if (equal(b, l)) return structuredClone(n7);
+    if (record35(l) && record35(n7) && (!b || record35(b)) && !("$value" in l) && !("$value" in n7)) {
+      return Object.fromEntries([.../* @__PURE__ */ new Set([...Object.keys(record35(b) ? b : {}), ...Object.keys(l), ...Object.keys(n7)])].flatMap((k) => {
+        const value2 = merge(record35(b) ? b[k] : void 0, l[k], n7[k], `${location4}/${k.replaceAll("~", "~0").replaceAll("/", "~1")}`, depth + 1);
         return value2 === void 0 ? [] : [[k, value2]];
       }));
     }
-    conflicts.push({ location: location4, base: structuredClone(b), local: structuredClone(l), incoming: structuredClone(n8) });
+    conflicts.push({ location: location4, base: structuredClone(b), local: structuredClone(l), incoming: structuredClone(n7) });
     return structuredClone(l);
   }
   return { document: merge(base, local2, incoming, "", 0), conflicts };
@@ -142879,7 +142944,7 @@ function forensicRasterCards(rgba2, width, height) {
         width: Math.max(body.right, strip.right) - Math.min(body.left, strip.left) + 1,
         height: Math.max(body.bottom, strip.bottom) - Math.min(body.top, strip.top) + 1
       };
-      const hex3 = (c) => `#${c.map((n8) => n8.toString(16).padStart(2, "0")).join("")}`;
+      const hex3 = (c) => `#${c.map((n7) => n7.toString(16).padStart(2, "0")).join("")}`;
       shapes2.push({
         box: box4,
         radius: Math.min(bw, bh) * 0.1,
@@ -142982,9 +143047,9 @@ async function forensicModelWindows(text12, maxTokens, measure3, score2, cap = 3
     throw new Error("Invalid classifier budget.");
   const bounded2 = text12.slice(0, 65536), measured = [];
   const count4 = (part) => {
-    const n8 = measure3(part);
-    if (!Number.isInteger(n8) || n8 < 1) throw new Error("Invalid classifier token count.");
-    return n8;
+    const n7 = measure3(part);
+    if (!Number.isInteger(n7) || n7 < 1) throw new Error("Invalid classifier token count.");
+    return n7;
   };
   for (let index2 = 0; index2 < bounded2.length; ) {
     let length2 = Math.min(8192, bounded2.length - index2);
@@ -143159,7 +143224,7 @@ function forensicHeat(report4, pageId) {
       }
     for (const l of here) {
       if (!l.box) continue;
-      const key2 = [l.box.x, l.box.y, l.box.width, l.box.height].map((n8) => n8.toFixed(2)).join(",");
+      const key2 = [l.box.x, l.box.y, l.box.width, l.box.height].map((n7) => n7.toFixed(2)).join(",");
       const region = regions.get(key2) ?? { box: l.box, heat: 0, signals: [] };
       if (!region.signals.some((s) => s.finding === f.id)) region.signals.push(signal);
       regions.set(key2, region);
@@ -143403,16 +143468,16 @@ function length(v) {
   if (v == null) return null;
   const m2 = new RegExp(`^\\s*(${NUM})\\s*(px)?\\s*$`).exec(v);
   if (!m2) return null;
-  const n8 = Number(m2[1]);
-  return Number.isFinite(n8) && n8 > 0 ? n8 : null;
+  const n7 = Number(m2[1]);
+  return Number.isFinite(n7) && n7 > 0 ? n7 : null;
 }
 function svgDocumentFrame(svg) {
   const tag3 = rootTag(svg);
   if (!tag3) return null;
   const vb = attr4(tag3.attrs, "viewBox");
   if (vb != null) {
-    const n8 = vb.trim().split(/[\s,]+/).map(Number);
-    if (n8.length === 4 && n8.every(Number.isFinite) && n8[2] > 0 && n8[3] > 0) return { x: n8[0], y: n8[1], w: n8[2], h: n8[3] };
+    const n7 = vb.trim().split(/[\s,]+/).map(Number);
+    if (n7.length === 4 && n7.every(Number.isFinite) && n7[2] > 0 && n7[3] > 0) return { x: n7[0], y: n7[1], w: n7[2], h: n7[3] };
   }
   const w = length(attr4(tag3.attrs, "width")), h = length(attr4(tag3.attrs, "height"));
   return w && h ? { x: 0, y: 0, w, h } : null;
@@ -143500,7 +143565,7 @@ function sampleDisc(img, cx2, cy3, radius) {
   const r5 = Math.max(0, radius);
   const x0 = Math.max(0, Math.floor(cx2 - r5)), x1 = Math.min(img.width - 1, Math.floor(cx2 + r5));
   const y0 = Math.max(0, Math.floor(cy3 - r5)), y1 = Math.min(img.height - 1, Math.floor(cy3 + r5));
-  let sr = 0, sg = 0, sb = 0, sa = 0, n8 = 0;
+  let sr = 0, sg = 0, sb = 0, sa = 0, n7 = 0;
   for (let y = y0; y <= y1; y++) {
     for (let x = x0; x <= x1; x++) {
       const dx = x + 0.5 - cx2, dy = y + 0.5 - cy3;
@@ -143513,17 +143578,17 @@ function sampleDisc(img, cx2, cy3, radius) {
       sg += img.data[i + 1] * k;
       sb += img.data[i + 2] * k;
       sa += a;
-      n8++;
+      n7++;
     }
   }
-  if (!n8 || sa === 0) return { hex: null, rgb: null, alpha: 0, oklab: null };
+  if (!n7 || sa === 0) return { hex: null, rgb: null, alpha: 0, oklab: null };
   const scale = 255 / sa;
   const rgb3 = [Math.round(sr * scale), Math.round(sg * scale), Math.round(sb * scale)];
   const lab = linearSrgbToOklab(srgbToLinear(rgb3[0] / 255), srgbToLinear(rgb3[1] / 255), srgbToLinear(rgb3[2] / 255));
   return {
     hex: `#${hex24(rgb3[0])}${hex24(rgb3[1])}${hex24(rgb3[2])}`,
     rgb: rgb3,
-    alpha: Math.round(sa / n8 / 255 * 1e3) / 1e3,
+    alpha: Math.round(sa / n7 / 255 * 1e3) / 1e3,
     oklab: [Math.round(lab[0] * 1e4) / 1e4, Math.round(lab[1] * 1e4) / 1e4, Math.round(lab[2] * 1e4) / 1e4]
   };
 }
@@ -143652,10 +143717,10 @@ function edgeMap(img, detail) {
       const ax = at % w, ay = (at - ax) / w;
       for (let ny = Math.max(0, ay - 1); ny <= Math.min(h - 1, ay + 1); ny++) {
         for (let nx = Math.max(0, ax - 1); nx <= Math.min(w - 1, ax + 1); nx++) {
-          const n8 = ny * w + nx;
-          if (edge[n8] || ridge[n8] < low) continue;
-          edge[n8] = 1;
-          stack.push(n8);
+          const n7 = ny * w + nx;
+          if (edge[n7] || ridge[n7] < low) continue;
+          edge[n7] = 1;
+          stack.push(n7);
         }
       }
     }
@@ -143667,8 +143732,8 @@ function looseNeighbours(edge, seen, w, h, i) {
   let count4 = 0;
   for (let ny = Math.max(0, y - 1); ny <= Math.min(h - 1, y + 1); ny++) {
     for (let nx = Math.max(0, x - 1); nx <= Math.min(w - 1, x + 1); nx++) {
-      const n8 = ny * w + nx;
-      if (n8 !== i && edge[n8] && !seen[n8]) count4++;
+      const n7 = ny * w + nx;
+      if (n7 !== i && edge[n7] && !seen[n7]) count4++;
     }
   }
   return count4;
@@ -143685,12 +143750,12 @@ function follow(edge, seen, w, h, start) {
       let best = -Infinity;
       for (let ny = Math.max(0, y - reach2); ny <= Math.min(h - 1, y + reach2); ny++) {
         for (let nx = Math.max(0, x - reach2); nx <= Math.min(w - 1, x + reach2); nx++) {
-          const n8 = ny * w + nx;
-          if (n8 === at || !edge[n8] || seen[n8]) continue;
+          const n7 = ny * w + nx;
+          if (n7 === at || !edge[n7] || seen[n7]) continue;
           const score2 = (Math.sign(nx - x) * dx + Math.sign(ny - y) * dy) * 4 + (nx === x || ny === y ? 1 : 0);
           if (score2 > best) {
             best = score2;
-            next2 = n8;
+            next2 = n7;
           }
         }
       }
@@ -144248,7 +144313,7 @@ var init_content_inventory = __esm({
     NUMBER_MARKER2 = /^(?:\d{1,3}|[ivx]{1,5})[.):]?$/i;
     ICON_FONT = /material\s*(?:icons|symbols)|font\s*awesome|fontawesome|glyphicons|icomoon|ionicons|feather|remix\s*icon|bootstrap\s*icons|segoe\s*(?:mdl2|fluent)\s*(?:assets|icons)|wingdings|webdings|^symbol$/i;
     HEX4 = /^#?([0-9a-f]{6})(?:[0-9a-f]{2})?$/i;
-    round7 = (n8) => Math.round(n8 * 1e6) / 1e6;
+    round7 = (n7) => Math.round(n7 * 1e6) / 1e6;
     paraText2 = (para) => para.runs.map((r5) => r5.text).join("");
     OCR_SAYS = {
       "not-run": "the text was not read (OCR not run)",
@@ -144256,7 +144321,7 @@ var init_content_inventory = __esm({
       "no-text-found": "OCR found no text in it",
       "text-found": "its text was read by OCR"
     };
-    round42 = (n8) => Math.round(Math.min(1, Math.max(0, n8)) * 1e4) / 1e4;
+    round42 = (n7) => Math.round(Math.min(1, Math.max(0, n7)) * 1e4) / 1e4;
   }
 });
 
@@ -144271,10 +144336,10 @@ function parsePageSelection(selection, pageCount) {
     count4 === 0 ? `${what} is not in this file, which has no pages.` : `${what} is not in this file, which has ${count4 === 1 ? "one page" : `${count4} pages`}.`
   );
   if (typeof selection !== "string") {
-    for (const n8 of selection) {
-      if (!Number.isInteger(n8) || n8 < 1) throw new ReadExtractError("pages.invalid", `${String(n8)} is not a page number; pages count from 1.`);
-      if (n8 > count4) throw outside(`Page ${n8}`);
-      picked.add(n8);
+    for (const n7 of selection) {
+      if (!Number.isInteger(n7) || n7 < 1) throw new ReadExtractError("pages.invalid", `${String(n7)} is not a page number; pages count from 1.`);
+      if (n7 > count4) throw outside(`Page ${n7}`);
+      picked.add(n7);
     }
     return [...picked].sort((a, b) => a - b);
   }
@@ -144285,10 +144350,10 @@ function parsePageSelection(selection, pageCount) {
     const single = /^(\d+)$/.exec(token2);
     const range = /^(\d+)\s*-\s*(\d*)$/.exec(token2);
     if (single) {
-      const n8 = Number(single[1]);
-      if (n8 < 1) throw new ReadExtractError("pages.invalid", "Pages count from 1.");
-      if (n8 > count4) throw outside(`Page ${n8}`);
-      picked.add(n8);
+      const n7 = Number(single[1]);
+      if (n7 < 1) throw new ReadExtractError("pages.invalid", "Pages count from 1.");
+      if (n7 > count4) throw outside(`Page ${n7}`);
+      picked.add(n7);
     } else if (range) {
       const a = Number(range[1]);
       const b = range[2] ? Number(range[2]) : count4;
@@ -144296,7 +144361,7 @@ function parsePageSelection(selection, pageCount) {
       const lo = Math.min(a, b);
       const hi = Math.max(a, b);
       if (hi > count4) throw outside(`Pages ${token2}`);
-      for (let n8 = lo; n8 <= hi; n8++) picked.add(n8);
+      for (let n7 = lo; n7 <= hi; n7++) picked.add(n7);
     } else {
       throw new ReadExtractError("pages.invalid", `"${token2}" is not a page or a range; write pages such as 1-3,7,10-.`);
     }
@@ -144609,8 +144674,8 @@ var init_read_extract = __esm({
     MAX_BUDGET = 1e9;
     BLOCK_ID = /^p([1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
     lengthOf2 = (text12) => Array.from(text12).length;
-    countOf = (n8, one, many) => n8 === 1 ? `one ${one}` : `${n8} ${many}`;
-    percent2 = (n8) => `${Math.round(n8 * 100)}%`;
+    countOf = (n7, one, many) => n7 === 1 ? `one ${one}` : `${n7} ${many}`;
+    percent2 = (n7) => `${Math.round(n7 * 100)}%`;
     cellOf2 = (cell2) => escapeMarkdown(cell2).replace(/\r?\n/g, "<br>");
   }
 });
@@ -144714,7 +144779,7 @@ var init_read_extract_quality = __esm({
     MATCH_CER = 0.34;
     charsOf = (text12) => Array.from(normaliseForScore(text12));
     wordsOf4 = (text12) => normaliseForScore(text12).split(" ").filter(Boolean);
-    round43 = (n8) => Math.round(n8 * 1e4) / 1e4;
+    round43 = (n7) => Math.round(n7 * 1e4) / 1e4;
   }
 });
 
@@ -144939,7 +145004,7 @@ var init_premiere_xml = __esm({
 import { strFromU8 } from "fflate";
 async function readIdmlSpreads(files, parse2, { warn: warn2 = () => {
 }, map, linkedFiles = {}, storeImage } = {}) {
-  if (Object.keys(files).length > 4096 || Object.values(files).reduce((n8, b) => n8 + b.length, 0) > 128 * 1024 * 1024) throw new Error("IDML package exceeds the import limits.");
+  if (Object.keys(files).length > 4096 || Object.values(files).reduce((n7, b) => n7 + b.length, 0) > 128 * 1024 * 1024) throw new Error("IDML package exceeds the import limits.");
   const xml3 = (path) => {
     const b = files[path];
     if (!b) return null;
@@ -144993,7 +145058,7 @@ async function readIdmlSpreads(files, parse2, { warn: warn2 = () => {
     }
     const pages = Array.from(spreadEl.children).filter((el) => el.localName === "Page").map((el) => {
       const bounds = (el.getAttribute("GeometricBounds") || "").split(/\s+/).map(Number);
-      if (bounds.length !== 4 || bounds.some((n8) => !Number.isFinite(n8))) return null;
+      if (bounds.length !== 4 || bounds.some((n7) => !Number.isFinite(n7))) return null;
       return boxGeomFromBBox({ x: bounds[1], y: bounds[0], width: bounds[3] - bounds[1], height: bounds[2] - bounds[0] }, parseItemTransform(el));
     }).filter((p) => p !== null);
     let size;
@@ -145055,7 +145120,7 @@ function walkItem(el, parentMatrix, group, ctx) {
 }
 function parseItemTransform(el) {
   const t = (el.getAttribute("ItemTransform") || "").trim().split(/\s+/).map(Number);
-  if (t.length < 6 || t.some((n8) => !Number.isFinite(n8))) return IDENTITY5;
+  if (t.length < 6 || t.some((n7) => !Number.isFinite(n7))) return IDENTITY5;
   return { a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5] };
 }
 function localBBox(el) {
@@ -145086,16 +145151,16 @@ function matMul5(P, C) {
 }
 function shiftToOrigin(nodes) {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const n8 of nodes) {
-    minX = Math.min(minX, n8.x);
-    minY = Math.min(minY, n8.y);
-    maxX = Math.max(maxX, n8.x + n8.w);
-    maxY = Math.max(maxY, n8.y + n8.h);
+  for (const n7 of nodes) {
+    minX = Math.min(minX, n7.x);
+    minY = Math.min(minY, n7.y);
+    maxX = Math.max(maxX, n7.x + n7.w);
+    maxY = Math.max(maxY, n7.y + n7.h);
   }
   if (!Number.isFinite(minX)) return { width: 1080, height: 1080 };
-  for (const n8 of nodes) {
-    n8.x -= minX;
-    n8.y -= minY;
+  for (const n7 of nodes) {
+    n7.x -= minX;
+    n7.y -= minY;
   }
   return { width: Math.max(1, Math.round(maxX - minX)), height: Math.max(1, Math.round(maxY - minY)) };
 }
@@ -145122,7 +145187,7 @@ function resolveColor2(ref2, swatches) {
 }
 function colorValueToHex(space, value2) {
   const v = (value2 || "").trim().split(/\s+/).map(Number);
-  if (v.some((n8) => !Number.isFinite(n8))) return "";
+  if (v.some((n7) => !Number.isFinite(n7))) return "";
   const to255 = (x) => Math.max(0, Math.min(255, Math.round(x)));
   const sp = space || "";
   if (/RGB/i.test(sp) && v.length >= 3) return rgb(to255(v[0]), to255(v[1]), to255(v[2]));
@@ -147786,7 +147851,7 @@ function planStamp(roots2) {
     } catch {
       names = ["<missing>"];
     }
-    parts.push(rootAbs + ":" + names.map((n8) => n8 + (existsSync2(join2(rootAbs, n8, "tool.json")) ? "+" : "-")).join(","));
+    parts.push(rootAbs + ":" + names.map((n7) => n7 + (existsSync2(join2(rootAbs, n7, "tool.json")) ? "+" : "-")).join(","));
   }
   return parts.join("|");
 }
@@ -148261,8 +148326,8 @@ var init_design_pptx_stroke = __esm({
     init_path();
     text10 = (row, key2) => row[key2] == null ? "" : String(row[key2]);
     value = (row, key2, fallback = 0) => {
-      const n8 = Number.parseFloat(text10(row, key2));
-      return Number.isFinite(n8) ? n8 : fallback;
+      const n7 = Number.parseFloat(text10(row, key2));
+      return Number.isFinite(n7) ? n7 : fallback;
     };
     PLACEMENT = ["strokeAlign", "strokeTop", "strokeRight", "strokeBottom", "strokeLeft"];
     scaled = (contours) => contours.map((c) => ({ closed: c.closed, curves: c.curves.map((q) => q.map((v) => v * EMU_PER_PX)) }));
@@ -148288,8 +148353,8 @@ function featureSettingsToHb(value2) {
 function letterSpacingPx(value2) {
   const v = String(value2 || "").trim();
   if (!v || v === "normal") return 0;
-  const n8 = parseFloat(v);
-  return Number.isFinite(n8) ? n8 : 0;
+  const n7 = parseFloat(v);
+  return Number.isFinite(n7) ? n7 : 0;
 }
 var SUSE_FONT_DIR;
 var init_text_svg = __esm({
@@ -148314,9 +148379,9 @@ function tokenFontStack(value2) {
   return names.join(", ");
 }
 function deckWeight(v) {
-  const n8 = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
-  if (!Number.isFinite(n8)) return void 0;
-  return Math.max(100, Math.min(900, Math.round(n8 / 100) * 100));
+  const n7 = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
+  if (!Number.isFinite(n7)) return void 0;
+  return Math.max(100, Math.min(900, Math.round(n7 / 100) * 100));
 }
 function staticFaceFile(family2, weight, italic) {
   const w = deckWeight(weight);
@@ -148531,8 +148596,8 @@ function deckSvgIntrinsicSize(bytes2) {
   const length2 = (value2) => {
     const m2 = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|cm|mm)?\s*$/i.exec(value2 ?? "");
     if (!m2) return 0;
-    const n8 = parseFloat(m2[1]) * (SVG_UNIT_PX[(m2[2] ?? "").toLowerCase()] ?? 0);
-    return Number.isFinite(n8) && n8 > 0 ? n8 : 0;
+    const n7 = parseFloat(m2[1]) * (SVG_UNIT_PX[(m2[2] ?? "").toLowerCase()] ?? 0);
+    return Number.isFinite(n7) && n7 > 0 ? n7 : 0;
   };
   const vb = (attr6("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
   const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2] > 0 ? vb[2] : 0;
@@ -148563,8 +148628,8 @@ function positionFractions(value2) {
 function deckPictureAnchor(row) {
   const framing = row.imageFraming && typeof row.imageFraming === "object" ? row.imageFraming : null;
   const pctOf2 = (v) => {
-    const n8 = Number(v);
-    return Number.isFinite(n8) ? Math.min(100, Math.max(0, n8)) / 100 : 0.5;
+    const n7 = Number(v);
+    return Number.isFinite(n7) ? Math.min(100, Math.max(0, n7)) / 100 : 0.5;
   };
   const [fx, fy] = framing ? [pctOf2(framing.x ?? 50), pctOf2(framing.y ?? 50)] : positionFractions(typeof row.imgpos === "string" ? row.imgpos : "");
   const zoomRaw = framing ? Number(framing.zoom ?? 100) : 100;
@@ -148714,7 +148779,7 @@ var init_pptx_deck = __esm({
     init_gradient_spec();
     init_css_color();
     init_text_svg();
-    hex25 = (n8) => Math.max(0, Math.min(255, Math.round(Number.isFinite(n8) ? n8 : 0))).toString(16).padStart(2, "0").toUpperCase();
+    hex25 = (n7) => Math.max(0, Math.min(255, Math.round(Number.isFinite(n7) ? n7 : 0))).toString(16).padStart(2, "0").toUpperCase();
     GENERIC_FAMILY = /^(?:serif|sans-serif|monospace|cursive|fantasy|math|emoji|fangsong|system-ui|ui-[\w-]+|-apple-system|blinkmacsystemfont|inherit|initial|unset)$/i;
     STATIC_WEIGHT_NAMES = {
       100: "Thin",
@@ -148923,14 +148988,14 @@ function pathDataOf(row, cx2, cy3) {
   const fy = bool2(row, "flipV") ? -1 : 1;
   const contours = [];
   for (const path of paths) {
-    const nodes = path.nodes.map((n8) => ({
-      ...n8,
-      x: (fx < 0 ? 1 - n8.x : n8.x) * cx2,
-      y: (fy < 0 ? 1 - n8.y : n8.y) * cy3,
-      ...n8.hInX !== void 0 ? { hInX: n8.hInX * cx2 * fx } : {},
-      ...n8.hInY !== void 0 ? { hInY: n8.hInY * cy3 * fy } : {},
-      ...n8.hOutX !== void 0 ? { hOutX: n8.hOutX * cx2 * fx } : {},
-      ...n8.hOutY !== void 0 ? { hOutY: n8.hOutY * cy3 * fy } : {}
+    const nodes = path.nodes.map((n7) => ({
+      ...n7,
+      x: (fx < 0 ? 1 - n7.x : n7.x) * cx2,
+      y: (fy < 0 ? 1 - n7.y : n7.y) * cy3,
+      ...n7.hInX !== void 0 ? { hInX: n7.hInX * cx2 * fx } : {},
+      ...n7.hInY !== void 0 ? { hInY: n7.hInY * cy3 * fy } : {},
+      ...n7.hOutX !== void 0 ? { hOutX: n7.hOutX * cx2 * fx } : {},
+      ...n7.hOutY !== void 0 ? { hOutY: n7.hOutY * cy3 * fy } : {}
     }));
     try {
       const curves2 = toCubics({ ...path, nodes });
@@ -149550,8 +149615,8 @@ var init_design_pptx = __esm({
       const v = row[key2];
       if (typeof v === "number") return Number.isFinite(v) ? v : fallback;
       if (typeof v === "string" && v.trim() !== "") {
-        const n8 = Number(v);
-        return Number.isFinite(n8) ? n8 : fallback;
+        const n7 = Number(v);
+        return Number.isFinite(n7) ? n7 : fallback;
       }
       return fallback;
     };
@@ -150126,8 +150191,8 @@ function colorSpaceName(ctx, o) {
   if (v instanceof PDFArray && v.size()) {
     const head2 = nameOf(ctx, v.get(0));
     if (head2 === "ICCBased") {
-      const n8 = numOf(ctx, dictOf(ctx, v.get(1))?.get(PDFName.of("N")));
-      return n8 === 1 ? "DeviceGray" : n8 === 4 ? "DeviceCMYK" : "DeviceRGB";
+      const n7 = numOf(ctx, dictOf(ctx, v.get(1))?.get(PDFName.of("N")));
+      return n7 === 1 ? "DeviceGray" : n7 === 4 ? "DeviceCMYK" : "DeviceRGB";
     }
     return head2;
   }
@@ -150389,7 +150454,7 @@ function componentsToHex(vals, comps) {
     const c = vals[0] ?? 0, m2 = vals[1] ?? 0, y = vals[2] ?? 0, k = vals[3] ?? 0;
     rgb3 = [chan((1 - c) * (1 - k)), chan((1 - m2) * (1 - k)), chan((1 - y) * (1 - k))];
   } else rgb3 = [chan(vals[0] ?? 0), chan(vals[1] ?? 0), chan(vals[2] ?? 0)];
-  return `#${rgb3.map((n8) => n8.toString(16).padStart(2, "0")).join("")}`;
+  return `#${rgb3.map((n7) => n7.toString(16).padStart(2, "0")).join("")}`;
 }
 function colourAt(fn, comps, ...inputs) {
   try {
@@ -150448,9 +150513,9 @@ function parseFunction(walk2, work, o, depth) {
   if (type === 2) {
     const c0 = numArray(ctx, d.get(PDFName.of("C0"))) ?? [0];
     const c1 = numArray(ctx, d.get(PDFName.of("C1"))) ?? [1];
-    const n8 = numOf(ctx, d.get(PDFName.of("N"))) ?? 1;
+    const n7 = numOf(ctx, d.get(PDFName.of("N"))) ?? 1;
     return (t = d0) => {
-      const p = clampT(t) ** n8;
+      const p = clampT(t) ** n7;
       return c0.map((c, j) => c + p * ((c1[j] ?? c) - c));
     };
   }
@@ -150486,9 +150551,9 @@ function sampledFunction(walk2, work, o, d0, d1) {
     walk2.warn(`function.sampled.inputs (${size.length})`);
     return null;
   }
-  const n8 = Math.floor(size[0] ?? 0), m2 = Math.floor(range.length / 2);
-  if (!Number.isFinite(n8) || n8 < 1 || m2 < 1 || bps < 1 || bps > 32) return null;
-  const need = Math.ceil(n8 * m2 * bps / 8);
+  const n7 = Math.floor(size[0] ?? 0), m2 = Math.floor(range.length / 2);
+  if (!Number.isFinite(n7) || n7 < 1 || m2 < 1 || bps < 1 || bps > 32) return null;
+  const need = Math.ceil(n7 * m2 * bps / 8);
   if (need > MAX_SAMPLE_BYTES) {
     walk2.warn(`function.sampled.too-large (${need} bytes declared)`);
     return null;
@@ -150503,7 +150568,7 @@ function sampledFunction(walk2, work, o, d0, d1) {
     return null;
   }
   work.bytesLeft -= need;
-  const encode = numArray(ctx, d.get(PDFName.of("Encode"))) ?? [0, n8 - 1];
+  const encode = numArray(ctx, d.get(PDFName.of("Encode"))) ?? [0, n7 - 1];
   const decode = numArray(ctx, d.get(PDFName.of("Decode"))) ?? range;
   const bytes2 = pdfStreamBytes(stream, need);
   if (!bytes2 || bytes2.length < need) return null;
@@ -150515,10 +150580,10 @@ function sampledFunction(walk2, work, o, d0, d1) {
   };
   return (t = d0) => {
     const tt = t < d0 ? d0 : t > d1 ? d1 : t;
-    const e0 = encode[0] ?? 0, e1 = encode[1] ?? n8 - 1;
+    const e0 = encode[0] ?? 0, e1 = encode[1] ?? n7 - 1;
     let e = d1 > d0 ? e0 + (tt - d0) * (e1 - e0) / (d1 - d0) : e0;
-    e = e < 0 ? 0 : e > n8 - 1 ? n8 - 1 : e;
-    const i0 = Math.floor(e), i1 = Math.min(n8 - 1, i0 + 1), frac = e - i0;
+    e = e < 0 ? 0 : e > n7 - 1 ? n7 - 1 : e;
+    const i0 = Math.floor(e), i1 = Math.min(n7 - 1, i0 + 1), frac = e - i0;
     const out = [];
     for (let c = 0; c < m2; c++) {
       const s = sampleAt2(i0, c) + (sampleAt2(i1, c) - sampleAt2(i0, c)) * frac;
@@ -150704,11 +150769,11 @@ function interpretPdfDocPage(doc, pageIndex, opts = {}) {
   const truncated = raw.length >= PDF_MAP_MAX_PAGE_NODES;
   const hidden4 = /* @__PURE__ */ new Set();
   if (invisible?.shows) {
-    for (const n8 of raw) {
-      if (n8.kind === "text" && n8.mcid === INVISIBLE_MCID) {
-        delete n8.mcid;
-        n8.opacity = 0;
-        hidden4.add(n8);
+    for (const n7 of raw) {
+      if (n7.kind === "text" && n7.mcid === INVISIBLE_MCID) {
+        delete n7.mcid;
+        n7.opacity = 0;
+        hidden4.add(n7);
       }
     }
   }
@@ -150718,18 +150783,18 @@ function interpretPdfDocPage(doc, pageIndex, opts = {}) {
     out.nodes = labelled.nodes;
     out.artifacts = labelled.artifacts;
   }
-  if (opts.invisibleText) out.invisible = out.nodes.map((n8) => hidden4.has(n8));
+  if (opts.invisibleText) out.invisible = out.nodes.map((n7) => hidden4.has(n7));
   return out;
 }
 function walkPdfOps(src, visit) {
-  const n8 = src.length;
+  const n7 = src.length;
   const code = (k) => src.charCodeAt(k);
   let operands = [];
   let operandsStart = -1;
   let i = 0;
   const skipString = () => {
     let depth = 0;
-    while (i < n8) {
+    while (i < n7) {
       const c = code(i);
       if (c === 92) {
         i += 2;
@@ -150748,7 +150813,7 @@ function walkPdfOps(src, visit) {
   };
   const skipDict = () => {
     let depth = 1;
-    while (i < n8) {
+    while (i < n7) {
       const c = code(i);
       if (c === 40) {
         skipString();
@@ -150760,7 +150825,7 @@ function walkPdfOps(src, visit) {
         continue;
       }
       if (c === 60) {
-        while (i < n8 && code(i) !== 62) i++;
+        while (i < n7 && code(i) !== 62) i++;
         i++;
         continue;
       }
@@ -150775,17 +150840,17 @@ function walkPdfOps(src, visit) {
   };
   const readRegular = () => {
     const start = i;
-    while (i < n8 && !PDF_WS2.has(code(i)) && !PDF_DELIM2.has(code(i))) i++;
+    while (i < n7 && !PDF_WS2.has(code(i)) && !PDF_DELIM2.has(code(i))) i++;
     return src.slice(start, i);
   };
-  while (i < n8) {
+  while (i < n7) {
     const c = code(i);
     if (PDF_WS2.has(c)) {
       i++;
       continue;
     }
     if (c === 37) {
-      while (i < n8 && code(i) !== 10 && code(i) !== 13) i++;
+      while (i < n7 && code(i) !== 10 && code(i) !== 13) i++;
       continue;
     }
     if (operandsStart < 0) operandsStart = i;
@@ -150802,7 +150867,7 @@ function walkPdfOps(src, visit) {
       continue;
     }
     if (c === 60) {
-      while (i < n8 && code(i) !== 62) i++;
+      while (i < n7 && code(i) !== 62) i++;
       i++;
       operands.push({ t: "other" });
       continue;
@@ -150827,15 +150892,15 @@ function walkPdfOps(src, visit) {
       continue;
     }
     if (word === "BI") {
-      while (i < n8) {
+      while (i < n7) {
         if (src[i] === "I" && src[i + 1] === "D") {
           i += 2;
           break;
         }
         i++;
       }
-      while (i < n8) {
-        if (src[i] === "E" && src[i + 1] === "I" && (i + 2 >= n8 || PDF_WS2.has(code(i + 2)))) {
+      while (i < n7) {
+        if (src[i] === "E" && src[i + 1] === "I" && (i + 2 >= n7 || PDF_WS2.has(code(i + 2)))) {
           i += 2;
           break;
         }
@@ -151613,8 +151678,8 @@ var init_pptx3 = __esm({
 });
 
 // packages/node-shell/src/rebrand/flattened.ts
-function round27(n8) {
-  return Math.round(n8 * 100) / 100;
+function round27(n7) {
+  return Math.round(n7 * 100) / 100;
 }
 function coverOf(box4, slide) {
   const cover = Math.max(0, Math.min(box4.x + box4.w, slide.width) - Math.max(box4.x, 0)) * Math.max(0, Math.min(box4.y + box4.h, slide.height) - Math.max(box4.y, 0));
@@ -151630,7 +151695,7 @@ function flattenedPictureOf(slide) {
   return coverOf(pic.box, slide) >= FLATTENED_AREA_SHARE2 ? pic : null;
 }
 async function fingerprintOf2(kind, box4, content2) {
-  const grid = (n8) => Math.round(n8 / 8) * 8;
+  const grid = (n7) => Math.round(n7 / 8) * 8;
   const material = `${kind}|${grid(box4.x)},${grid(box4.y)},${grid(box4.w)},${grid(box4.h)}|${content2}`;
   return `${kind}:${(await sha256Hex(new TextEncoder().encode(material))).slice(0, 16)}`;
 }
@@ -152170,7 +152235,7 @@ async function reconstructFlattenedSlide(input) {
         if (!members.length) continue;
         const box4 = unionOf(members.map((l) => l.box));
         const block = { lines: members, box: box4 };
-        const glyphs2 = members.reduce((n8, l) => n8 + letters(l.text), 0);
+        const glyphs2 = members.reduce((n7, l) => n7 + letters(l.text), 0);
         if (key2.startsWith("~") && glyphs2 < TITLE_MIN_CHARS) {
           const host = pictures.find((p) => insideShare3(box4, p.box) >= INCIDENTAL_INSIDE);
           if (host) block.inPicture = host.id;
@@ -152449,7 +152514,7 @@ async function reconstructFlattenedSlide(input) {
       const own5 = sized.find((one) => one.para === para);
       if (!own5 || own5.size <= 0 || own5.words.length === 0) return false;
       const peers = sized.filter((one) => one.para !== para && one.size > 0 && Math.abs(one.size - own5.size) <= PEER_SIZE * own5.size).flatMap((one) => one.words);
-      if (peers.reduce((n8, w) => n8 + w.letters, 0) < PEER_MIN_LETTERS) return false;
+      if (peers.reduce((n7, w) => n7 + w.letters, 0) < PEER_MIN_LETTERS) return false;
       const mine = weightedMedian(own5.words.map((w) => ({ r: w.stem, n: w.letters })));
       return mine >= BOLD_RATIO * weightedMedian(peers.map((w) => ({ r: w.stem, n: w.letters })));
     };
@@ -152485,15 +152550,15 @@ async function reconstructFlattenedSlide(input) {
         if (heavierThanPeers(para)) return true;
         if (usualWeight <= 0) return false;
         let sum = 0;
-        let n8 = 0;
+        let n7 = 0;
         for (const index2 of para.lines) {
           const line = block.lines[index2];
           const ratio = line ? weight.get(line) : void 0;
           if (!line || ratio === void 0) continue;
           sum += ratio * letters(line.text);
-          n8 += letters(line.text);
+          n7 += letters(line.text);
         }
-        return n8 > 0 && sum / n8 >= BOLD_RATIO * usualWeight;
+        return n7 > 0 && sum / n7 >= BOLD_RATIO * usualWeight;
       };
       const heavyOf = (para) => {
         const words4 = wordsOf6(block, typeset, para);
@@ -152855,14 +152920,14 @@ function wordStems(glyphs2) {
     const start = k;
     while (k < chars.length && chars[k]?.trim()) k++;
     const stem2 = glyphs2.stems[start];
-    const n8 = letters(chars.slice(start, k).join(""));
-    if (typeof stem2 === "number" && stem2 > 0 && n8 > 0) out.push({ stem: stem2, letters: n8 });
+    const n7 = letters(chars.slice(start, k).join(""));
+    if (typeof stem2 === "number" && stem2 > 0 && n7 > 0) out.push({ stem: stem2, letters: n7 });
   }
   return out;
 }
 function weightedMedian(values) {
   const sorted = [...values].filter((v) => v.n > 0).sort((a, b) => a.r - b.r);
-  const total = sorted.reduce((n8, v) => n8 + v.n, 0);
+  const total = sorted.reduce((n7, v) => n7 + v.n, 0);
   let seen = 0;
   for (const v of sorted) {
     seen += v.n;
@@ -152879,7 +152944,7 @@ function lineParts(line, piece, hex3, bold, glyphs2, heavy) {
   let offset = 0;
   while (offset < all.length && !all[offset]?.trim()) offset++;
   const chars = Array.from(piece);
-  const n8 = chars.length;
+  const n7 = chars.length;
   const solid = (k) => Boolean(chars[k]?.trim());
   const colours2 = chars.map((_, k) => {
     const ink = solid(k) ? glyphs2.inks[offset + k] ?? null : null;
@@ -152887,13 +152952,13 @@ function lineParts(line, piece, hex3, bold, glyphs2, heavy) {
   });
   const wordOf = chars.map(() => -1);
   const words4 = [];
-  for (let k = 0; k < n8; ) {
+  for (let k = 0; k < n7; ) {
     if (!solid(k)) {
       k++;
       continue;
     }
     const start = k;
-    while (k < n8 && solid(k)) wordOf[k++] = words4.length;
+    while (k < n7 && solid(k)) wordOf[k++] = words4.length;
     const word = chars.slice(start, k).join("");
     words4.push({ heavy: heavy(glyphs2.stems[offset + start] ?? null, capitalsOnly(word)), letters: letters(word) });
   }
@@ -152913,7 +152978,7 @@ function lineParts(line, piece, hex3, bold, glyphs2, heavy) {
   return parts;
 }
 function snapSizes(block) {
-  const sizes = block.paragraphs.map((p) => p.sizePx).filter((n8) => n8 !== null && n8 > 0).sort((a, b) => a - b);
+  const sizes = block.paragraphs.map((p) => p.sizePx).filter((n7) => n7 !== null && n7 > 0).sort((a, b) => a - b);
   if (sizes.length < 2) return block;
   const mid3 = sizes.length >> 1;
   const median10 = sizes.length % 2 ? sizes[mid3] ?? 0 : ((sizes[mid3 - 1] ?? 0) + (sizes[mid3] ?? 0)) / 2;
@@ -152958,15 +153023,15 @@ function cardEdgeOf(image, unit2, skip = CARD_SKIP_STRIPS) {
     const from = Math.max(0, Math.round(across ? unit2.y : unit2.x));
     const to = Math.min(across ? image.height : image.width, Math.round(across ? unit2.y + unit2.h : unit2.x + unit2.w));
     const sum = [0, 0, 0];
-    let n8 = 0;
+    let n7 = 0;
     for (let k = from; k < to; k += 2) {
       const i = ((across ? k : pos) * image.width + (across ? pos : k)) * 4;
       sum[0] += image.data[i] ?? 0;
       sum[1] += image.data[i + 1] ?? 0;
       sum[2] += image.data[i + 2] ?? 0;
-      n8++;
+      n7++;
     }
-    return n8 ? [sum[0] / n8, sum[1] / n8, sum[2] / n8] : null;
+    return n7 ? [sum[0] / n7, sum[1] / n7, sum[2] / n7] : null;
   };
   const reachOf2 = (side2) => {
     const size = side2 === "left" || side2 === "right" ? unit2.w : unit2.h;
@@ -152991,8 +153056,8 @@ function cardEdgeOf(image, unit2, skip = CARD_SKIP_STRIPS) {
 }
 function tileStarts(length2, tile) {
   if (length2 <= tile) return [0];
-  const n8 = Math.ceil((length2 - tile) / (tile / 2)) + 1;
-  return Array.from({ length: n8 }, (_, i) => Math.round(i * (length2 - tile) / (n8 - 1)));
+  const n7 = Math.ceil((length2 - tile) / (tile / 2)) + 1;
+  return Array.from({ length: n7 }, (_, i) => Math.round(i * (length2 - tile) / (n7 - 1)));
 }
 async function readPage(picture, ocr, opts) {
   const { signal } = opts;
@@ -153025,14 +153090,14 @@ async function readPage(picture, ocr, opts) {
   const ys = tileStarts(picture.height, side2);
   const confident = whole.length > 0 && whole.every((l) => l.confidence >= TILE_SKIP_CONFIDENCE);
   if (xs.length > 1 || ys.length > 1) {
-    let n8 = 0;
+    let n7 = 0;
     for (const y of ys) {
       for (const x of xs) {
-        n8++;
+        n7++;
         const box4 = { x, y, w: Math.min(side2, picture.width - x), h: Math.min(side2, picture.height - y) };
         if (confident && whole.some((l) => centreIn(l.box, box4))) continue;
-        const got = await readBox(`page.tile${n8}`, box4);
-        for (const l of got ?? []) all.push({ ...l, from: n8 });
+        const got = await readBox(`page.tile${n7}`, box4);
+        for (const l of got ?? []) all.push({ ...l, from: n7 });
       }
     }
   }
@@ -153160,7 +153225,7 @@ function joinAtSpace(left, right, overlapping = false) {
 }
 function joinReadings(pieces, box4, words4 = []) {
   const parts = pieces.flat();
-  const chars = parts.reduce((n8, l) => n8 + l.text.trim().length, 0);
+  const chars = parts.reduce((n7, l) => n7 + l.text.trim().length, 0);
   const confidence = parts.reduce((sum, l) => sum + l.confidence * l.text.trim().length, 0) / Math.max(1, chars);
   let text12 = "";
   pieces.forEach((piece, k) => {
@@ -153191,8 +153256,8 @@ function groupUnits(built, base, pageArea, cards, barriers = []) {
     const lb = labelOf2(b);
     return Math.abs(la.y - lb.y) < 0.5 * Math.min(la.h, lb.h) ? la.x - lb.x : la.y - lb.y;
   });
-  cardOrder.forEach(({ icon, texts: texts2 }, n8) => {
-    const id3 = `${base}.card${n8 + 1}`;
+  cardOrder.forEach(({ icon, texts: texts2 }, n7) => {
+    const id3 = `${base}.card${n7 + 1}`;
     for (const b of [icon, ...texts2]) b.object.groupPath = [...b.object.groupPath ?? [], id3];
   });
   const inCard = new Set(cards.flatMap((c) => [c.icon, ...c.texts]));
@@ -153230,8 +153295,8 @@ function groupUnits(built, base, pageArea, cards, barriers = []) {
   const rows2 = pairs2.filter((p) => pairs2.some((q) => q !== p && column(p.icon.pictureBox, q.icon.pictureBox)));
   if (rows2.length < 2) return;
   rows2.sort((a, b) => a.icon.pictureBox.y - b.icon.pictureBox.y);
-  rows2.forEach(({ icon, text: text12 }, n8) => {
-    const id3 = `${base}.row${n8 + 1}`;
+  rows2.forEach(({ icon, text: text12 }, n7) => {
+    const id3 = `${base}.row${n7 + 1}`;
     icon.object.groupPath = [id3];
     text12.object.groupPath = [id3];
   });
@@ -153239,13 +153304,13 @@ function groupUnits(built, base, pageArea, cards, barriers = []) {
     const u = unionOf([icon.pictureBox, text12.pictureBox]);
     return u.y + u.h / 2;
   });
-  const bands = middles.map((at, n8) => ({
-    above: n8 > 0 ? ((middles[n8 - 1] ?? at) + at) / 2 : at - ((middles[n8 + 1] ?? at) - at) / 2,
-    below: n8 + 1 < middles.length ? (at + (middles[n8 + 1] ?? at)) / 2 : at + (at - (middles[n8 - 1] ?? at)) / 2
+  const bands = middles.map((at, n7) => ({
+    above: n7 > 0 ? ((middles[n7 - 1] ?? at) + at) / 2 : at - ((middles[n7 + 1] ?? at) - at) / 2,
+    below: n7 + 1 < middles.length ? (at + (middles[n7 + 1] ?? at)) / 2 : at + (at - (middles[n7 - 1] ?? at)) / 2
   }));
-  const rowRules = barriers.filter((r5) => r5.w >= r5.h && middles.some((at, n8) => {
-    const next2 = middles[n8 + 1];
-    const label4 = rows2[n8]?.text.pictureBox;
+  const rowRules = barriers.filter((r5) => r5.w >= r5.h && middles.some((at, n7) => {
+    const next2 = middles[n7 + 1];
+    const label4 = rows2[n7]?.text.pictureBox;
     return next2 !== void 0 && label4 !== void 0 && r5.y + r5.h / 2 > at && r5.y + r5.h / 2 < next2 && r5.x <= label4.x && r5.x + r5.w >= label4.x + label4.w;
   }));
   const ruled = rowRules.length * 2 >= rows2.length - 1 && rowRules.length > 0;
@@ -153260,10 +153325,10 @@ function groupUnits(built, base, pageArea, cards, barriers = []) {
     if (b.object.kind !== "text" || inRows.has(b) || inCard.has(b) || b.object.roleEstimate === "title") continue;
     if (ruled ? b.pictureBox.x + b.pictureBox.w / 2 > tableRight : spansRows(b)) continue;
     const mid3 = b.pictureBox.y + b.pictureBox.h / 2;
-    const n8 = bands.findIndex((band) => mid3 >= band.above && mid3 < band.below);
-    const text12 = rows2[n8]?.text;
+    const n7 = bands.findIndex((band) => mid3 >= band.above && mid3 < band.below);
+    const text12 = rows2[n7]?.text;
     if (!text12 || b.pictureBox.x <= text12.pictureBox.x) continue;
-    b.object.groupPath = [...b.object.groupPath ?? [], `${base}.row${n8 + 1}`];
+    b.object.groupPath = [...b.object.groupPath ?? [], `${base}.row${n7 + 1}`];
   }
 }
 function titleThenRows(ordered) {
@@ -153431,10 +153496,10 @@ async function leftoverPictures(picture, found, ground, store, toSlide, base, oc
           const nx = cx2 + dx;
           const ny = cy3 + dy;
           if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue;
-          const n8 = ny * gw + nx;
-          if (!seen[n8] && (count4[n8] ?? 0) >= minCount) {
-            seen[n8] = 1;
-            stack.push(n8);
+          const n7 = ny * gw + nx;
+          if (!seen[n7] && (count4[n7] ?? 0) >= minCount) {
+            seen[n7] = 1;
+            stack.push(n7);
           }
         }
       }
@@ -153609,12 +153674,12 @@ function colorOf(value2, opacity) {
   return out;
 }
 async function fingerprintOf3(kind, box4, content2) {
-  const grid = (n8) => Math.round(n8 / 8) * 8;
+  const grid = (n7) => Math.round(n7 / 8) * 8;
   const material = `${kind}|${grid(box4.x)},${grid(box4.y)},${grid(box4.w)},${grid(box4.h)}|${content2}`;
   return `${kind}:${(await sha256Hex(new TextEncoder().encode(material))).slice(0, 16)}`;
 }
 function vectorMaterial(members, ox, oy) {
-  const r12 = (n8) => String(Math.round(n8 * 10) / 10);
+  const r12 = (n7) => String(Math.round(n7 * 10) / 10);
   const relPath2 = (d) => {
     let k = 0;
     return d.replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, (num19) => {
@@ -153631,22 +153696,22 @@ function vectorMaterial(members, ox, oy) {
     m2._vectorPath ? relPath2(m2._vectorPath) : `${r12(m2.x - ox)},${r12(m2.y - oy)},${r12(m2.w)},${r12(m2.h)}`
   ].join(",")).join(";");
 }
-function isRaster(n8) {
-  return n8.kind === "image" && !!n8._imageXObject && !n8._vectorPath;
+function isRaster(n7) {
+  return n7.kind === "image" && !!n7._imageXObject && !n7._vectorPath;
 }
-function isShapeBox(n8) {
-  const fill2 = colorOf(n8.fill, n8.opacity);
-  return n8.kind === "box" && !!fill2 && (fill2.alpha ?? 1) > 0;
+function isShapeBox(n7) {
+  const fill2 = colorOf(n7.fill, n7.opacity);
+  return n7.kind === "box" && !!fill2 && (fill2.alpha ?? 1) > 0;
 }
-function isVectorPath(n8) {
-  if (!n8._vectorPath || (n8.opacity ?? 100) <= 0) return false;
-  const fill2 = n8._vectorFill && n8._vectorFill !== "none";
-  return !!(fill2 || n8._vectorStroke || n8._gradient);
+function isVectorPath(n7) {
+  if (!n7._vectorPath || (n7.opacity ?? 100) <= 0) return false;
+  const fill2 = n7._vectorFill && n7._vectorFill !== "none";
+  return !!(fill2 || n7._vectorStroke || n7._gradient);
 }
 function clipBounds(d) {
   if (!d || d.length > 1e6 || /[^MLCZ0-9eE.,+\s-]/.test(d)) return null;
   const nums = [...d.matchAll(/[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g)].map((m2) => Number(m2[0]));
-  if (nums.length < 2 || nums.length % 2 || nums.some((n8) => !Number.isFinite(n8))) return null;
+  if (nums.length < 2 || nums.length % 2 || nums.some((n7) => !Number.isFinite(n7))) return null;
   const xs = nums.filter((_, k) => k % 2 === 0);
   const ys = nums.filter((_, k) => k % 2 === 1);
   const x0 = Math.min(...xs);
@@ -153670,35 +153735,35 @@ function clipBounds(d) {
   }
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0, rect, points: straight ? xs.map((x, k) => [x, ys[k]]) : [] };
 }
-function tracesFrame(k, n8) {
+function tracesFrame(k, n7) {
   if (k.points.length < 4) return false;
-  const rad = (n8.rot ?? 0) * Math.PI / 180;
-  const cx2 = n8.x + n8.w / 2;
-  const cy3 = n8.y + n8.h / 2;
-  const corners3 = [[n8.x, n8.y], [n8.x + n8.w, n8.y], [n8.x + n8.w, n8.y + n8.h], [n8.x, n8.y + n8.h]].map(([x, y]) => [
+  const rad = (n7.rot ?? 0) * Math.PI / 180;
+  const cx2 = n7.x + n7.w / 2;
+  const cy3 = n7.y + n7.h / 2;
+  const corners3 = [[n7.x, n7.y], [n7.x + n7.w, n7.y], [n7.x + n7.w, n7.y + n7.h], [n7.x, n7.y + n7.h]].map(([x, y]) => [
     cx2 + (x - cx2) * Math.cos(rad) - (y - cy3) * Math.sin(rad),
     cy3 + (x - cx2) * Math.sin(rad) + (y - cy3) * Math.cos(rad)
   ]);
   const near = (a, b) => Math.abs(a[0] - b[0]) < 0.5 && Math.abs(a[1] - b[1]) < 0.5;
   return k.points.every((p) => corners3.some((c) => near(p, c))) && corners3.every((c) => k.points.some((p) => near(p, c)));
 }
-function clipRead(n8) {
-  const rot = n8.rot ?? 0;
+function clipRead(n7) {
+  const rot = n7.rot ?? 0;
   const quarter2 = (Math.round(rot / 90) % 4 + 4) % 4;
   const square = Math.abs(rot - Math.round(rot / 90) * 90) < 0.5;
-  let box4 = { x: n8.x, y: n8.y, w: n8.w, h: n8.h };
+  let box4 = { x: n7.x, y: n7.y, w: n7.w, h: n7.h };
   if (square && quarter2 % 2 === 1) {
-    box4 = { x: n8.x + (n8.w - n8.h) / 2, y: n8.y + (n8.h - n8.w) / 2, w: n8.h, h: n8.w };
+    box4 = { x: n7.x + (n7.w - n7.h) / 2, y: n7.y + (n7.h - n7.w) / 2, w: n7.h, h: n7.w };
   } else if (!square) {
     const rad = rot * Math.PI / 180;
-    const w = Math.abs(n8.w * Math.cos(rad)) + Math.abs(n8.h * Math.sin(rad));
-    const h = Math.abs(n8.w * Math.sin(rad)) + Math.abs(n8.h * Math.cos(rad));
-    box4 = { x: n8.x + (n8.w - w) / 2, y: n8.y + (n8.h - h) / 2, w, h };
+    const w = Math.abs(n7.w * Math.cos(rad)) + Math.abs(n7.h * Math.sin(rad));
+    const h = Math.abs(n7.w * Math.sin(rad)) + Math.abs(n7.h * Math.cos(rad));
+    box4 = { x: n7.x + (n7.w - w) / 2, y: n7.y + (n7.h - h) / 2, w, h };
   }
   let cut = false;
   let exact = true;
   const upright = square;
-  for (const c of n8._clips ?? []) {
+  for (const c of n7._clips ?? []) {
     const k = clipBounds(c.d);
     if (!k) {
       cut = true;
@@ -153706,7 +153771,7 @@ function clipRead(n8) {
       continue;
     }
     const holds3 = k.x <= box4.x + EDGE_EPS && k.y <= box4.y + EDGE_EPS && k.x + k.w >= box4.x + box4.w - EDGE_EPS && k.y + k.h >= box4.y + box4.h - EDGE_EPS;
-    if (holds3 && k.rect || tracesFrame(k, n8)) continue;
+    if (holds3 && k.rect || tracesFrame(k, n7)) continue;
     cut = true;
     if (!k.rect || !upright) exact = false;
     const x0 = Math.max(box4.x, k.x);
@@ -153984,7 +154049,7 @@ async function sourceDeckFromPdf(bytes2, opts) {
     let ranks = /* @__PURE__ */ new Map();
     if (page3) {
       const struct = /* @__PURE__ */ new Map();
-      if (page3.nodes.some((n8) => n8.kind === "text" && typeof n8.mcid === "number")) {
+      if (page3.nodes.some((n7) => n7.kind === "text" && typeof n7.mcid === "number")) {
         let k = 0;
         for (const element of readPdfStructOrder(doc, index2)) {
           for (const mcid of element.mcids) if (!struct.has(mcid)) struct.set(mcid, k++);
@@ -154070,44 +154135,44 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
   }
   let cover = -1;
   let coverArea = 0;
-  nodes.forEach((n8, i) => {
-    if (!isRaster(n8)) return;
-    const area2 = n8.w * n8.h;
+  nodes.forEach((n7, i) => {
+    if (!isRaster(n7)) return;
+    const area2 = n7.w * n7.h;
     if (area2 > coverArea) {
       coverArea = area2;
       cover = i;
     }
   });
-  const others = nodes.map((n8, i) => ({ n: n8, i })).filter(({ n: n8, i }) => i !== cover && i !== groundIndex && !invisible[i] && paints(n8));
-  const othersArea = others.reduce((sum, { n: n8 }) => sum + Math.max(0, n8.w) * Math.max(0, n8.h), 0);
-  const atEdge = (n8) => {
-    const cx2 = (n8.x + n8.w / 2) / Math.max(1, width);
-    const cy3 = (n8.y + n8.h / 2) / Math.max(1, height);
+  const others = nodes.map((n7, i) => ({ n: n7, i })).filter(({ n: n7, i }) => i !== cover && i !== groundIndex && !invisible[i] && paints(n7));
+  const othersArea = others.reduce((sum, { n: n7 }) => sum + Math.max(0, n7.w) * Math.max(0, n7.h), 0);
+  const atEdge = (n7) => {
+    const cx2 = (n7.x + n7.w / 2) / Math.max(1, width);
+    const cy3 = (n7.y + n7.h / 2) / Math.max(1, height);
     return cx2 < FLATTEN_EDGE_BAND || cx2 > 1 - FLATTEN_EDGE_BAND || cy3 < FLATTEN_EDGE_BAND || cy3 > 1 - FLATTEN_EDGE_BAND;
   };
-  const furniture = new Set(others.filter(({ n: n8 }) => atEdge(n8)).map(({ i }) => i));
+  const furniture = new Set(others.filter(({ n: n7 }) => atEdge(n7)).map(({ i }) => i));
   const inner = others.filter(({ i }) => !furniture.has(i));
   const flattened = cover >= 0 && coverArea / pageArea >= 0.5 && inner.length <= FLATTEN_MAX_OTHERS && othersArea / pageArea <= FLATTEN_MAX_OTHER_AREA && pdfPageScanned(nodes.filter((_, i) => !invisible[i] && !furniture.has(i)), width, height);
   const units2 = [];
   const picUnit = (i, ocr) => ({
     z: i,
     build: async (id3) => {
-      const n8 = nodes[i];
-      const desc = page3.imageStreams.get(n8._imageXObject ?? "");
+      const n7 = nodes[i];
+      const desc = page3.imageStreams.get(n7._imageXObject ?? "");
       const media = await store(desc);
-      const box4 = boxOf3(n8.x, n8.y, n8.w, n8.h, n8.rot);
+      const box4 = boxOf3(n7.x, n7.y, n7.w, n7.h, n7.rot);
       let fidelity;
       const own4 = [];
       const object4 = { id: id3, fingerprint: "", kind: "pic", box: box4, origin: artifacts[i] ? "pdf-artifact" : "slide", fidelity: { state: "editable" } };
-      const clip4 = clipRead(n8);
+      const clip4 = clipRead(n7);
       if (clip4.cut && clip4.visible) object4.clip = boxOf3(clip4.visible.x, clip4.visible.y, clip4.visible.w, clip4.visible.h);
-      const cutApprox = clip4.cut && !clip4.exact || !!n8._softMask;
+      const cutApprox = clip4.cut && !clip4.exact || !!n7._softMask;
       if (media.ref) {
         object4.media = media.ref;
         if (media.mime) object4.mediaMime = media.mime;
         fidelity = media.opaque || cutApprox ? { state: "approximate", reason: "reader-approximation" } : { state: "raster-preserved" };
         if (clip4.cut && !clip4.exact) own4.push(cutWarning(id3, "The picture", false));
-        if (n8._softMask) own4.push(cutWarning(id3, "The picture", true));
+        if (n7._softMask) own4.push(cutWarning(id3, "The picture", true));
       } else {
         fidelity = { state: "unavailable", reason: media.reason ?? "media-missing" };
         own4.push({ code: "media-skipped", message: `The picture ${id3} was not stored: ${media.issue ?? media.reason ?? "media-missing"}.`, objectIds: [id3] });
@@ -154115,7 +154180,7 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
       if (media.width > 0 && media.height > 0) object4.raster = { width: media.width, height: media.height };
       if (ocr) object4.ocr = ocr;
       object4.fidelity = fidelity;
-      object4.fingerprint = await fingerprintOf3("pic", box4, media.hash ?? `${n8._imageXObject ?? ""}|${media.reason ?? ""}`);
+      object4.fingerprint = await fingerprintOf3("pic", box4, media.hash ?? `${n7._imageXObject ?? ""}|${media.reason ?? ""}`);
       return { object: object4, warnings: own4 };
     }
   });
@@ -154151,8 +154216,8 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
       if (rank !== void 0) unit2.rank = rank;
       units2.push(unit2);
     }
-    nodes.forEach((n8, i) => {
-      if (isRaster(n8) && clipRead(n8).visible) units2.push(picUnit(i, void 0));
+    nodes.forEach((n7, i) => {
+      if (isRaster(n7) && clipRead(n7).visible) units2.push(picUnit(i, void 0));
     });
     const claimed = /* @__PURE__ */ new Set();
     if (groundIndex >= 0) claimed.add(groundIndex);
@@ -154164,13 +154229,13 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
       const fill2 = mark.fills[0];
       units2.push({ z: Math.min(...members), build: async (id3) => vectorObject(id3, nodes, members, extent2, width, height, artifacts, fill2) });
     }
-    nodes.forEach((n8, i) => {
+    nodes.forEach((n7, i) => {
       if (claimed.has(i)) return;
-      if (isShapeBox(n8)) {
-        const clip4 = clipRead(n8);
-        if (clip4.visible) units2.push({ z: i, build: async (id3) => shapeObject(id3, n8, artifacts[i], clip4) });
-      } else if (isVectorPath(n8)) {
-        const e = pdfNodeExtent(n8) ?? { x: n8.x, y: n8.y, w: n8.w, h: n8.h };
+      if (isShapeBox(n7)) {
+        const clip4 = clipRead(n7);
+        if (clip4.visible) units2.push({ z: i, build: async (id3) => shapeObject(id3, n7, artifacts[i], clip4) });
+      } else if (isVectorPath(n7)) {
+        const e = pdfNodeExtent(n7) ?? { x: n7.x, y: n7.y, w: n7.w, h: n7.h };
         units2.push({ z: i, build: async (id3) => vectorObject(id3, nodes, [i], e, width, height, artifacts, void 0) });
       }
     });
@@ -154198,12 +154263,12 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
   if (background) out.background = background;
   return out;
 }
-function paints(n8) {
-  if (n8.kind === "text") return !!n8.text?.trim();
-  return isRaster(n8) || isShapeBox(n8) || isVectorPath(n8);
+function paints(n7) {
+  if (n7.kind === "text") return !!n7.text?.trim();
+  return isRaster(n7) || isShapeBox(n7) || isVectorPath(n7);
 }
 function ocrLayer(nodes, invisible, picture) {
-  const layer = nodes.filter((n8, i) => invisible[i] && n8.kind === "text");
+  const layer = nodes.filter((n7, i) => invisible[i] && n7.kind === "text");
   const lines = pdfTextLines(layer).slice(0, MAX_OCR_LINES);
   if (!lines.length) return { state: "not-run" };
   const text12 = lines.map((line) => pdfLineRunTexts(line).join("").slice(0, 65536));
@@ -154247,17 +154312,17 @@ async function textObject(id3, line, fontRuns) {
   object4.fingerprint = await fingerprintOf3("text", box4, runs2.map((r5) => r5.text).join(""));
   return { object: object4, warnings: [] };
 }
-async function shapeObject(id3, n8, artifact, clip4) {
-  const geom = n8.shape === "ellipse" ? "ellipse" : (n8.radius ?? 0) > 0 ? "roundRect" : "rect";
+async function shapeObject(id3, n7, artifact, clip4) {
+  const geom = n7.shape === "ellipse" ? "ellipse" : (n7.radius ?? 0) > 0 ? "roundRect" : "rect";
   const exactCut = clip4.cut && clip4.exact && geom === "rect" && clip4.visible;
-  const shown = exactCut ? clip4.visible : { x: n8.x, y: n8.y, w: n8.w, h: n8.h };
-  const box4 = boxOf3(shown.x, shown.y, shown.w, shown.h, n8.rot);
+  const shown = exactCut ? clip4.visible : { x: n7.x, y: n7.y, w: n7.w, h: n7.h };
+  const box4 = boxOf3(shown.x, shown.y, shown.w, shown.h, n7.rot);
   const object4 = { id: id3, fingerprint: "", kind: "shape", box: box4, origin: artifact ? "pdf-artifact" : "slide", fidelity: { state: "editable" }, geom };
   if (clip4.cut && !exactCut && clip4.visible) object4.clip = boxOf3(clip4.visible.x, clip4.visible.y, clip4.visible.w, clip4.visible.h);
-  const fill2 = colorOf(n8.fill, n8.opacity);
+  const fill2 = colorOf(n7.fill, n7.opacity);
   if (fill2) object4.fill = fill2;
   const warnings2 = [];
-  if (n8._gradient) {
+  if (n7._gradient) {
     object4.fidelity = { state: "approximate", reason: "reader-approximation" };
     warnings2.push({ code: "gradient-flattened", message: `A gradient on ${id3} was read as one flat colour.`, objectIds: [id3] });
   }
@@ -154269,7 +154334,7 @@ async function shapeObject(id3, n8, artifact, clip4) {
       objectIds: [id3]
     } : cutWarning(id3, "The shape", false));
   }
-  if (n8._softMask) {
+  if (n7._softMask) {
     object4.fidelity = { state: "approximate", reason: "reader-approximation" };
     warnings2.push(cutWarning(id3, "The shape", true));
   }
@@ -154343,9 +154408,9 @@ var init_source_pdf = __esm({
     FLATTEN_MAX_OTHER_AREA = 0.05;
     FLATTEN_EDGE_BAND = 0.1;
     MAX_OCR_LINES = 4096;
-    round28 = (n8) => Math.round(n8 * 100) / 100;
+    round28 = (n7) => Math.round(n7 * 100) / 100;
     px = (pt) => round28((Number.isFinite(pt) ? pt : 0) * PX_PER_PT);
-    plural3 = (n8, one, many) => n8 === 1 ? one : many;
+    plural3 = (n7, one, many) => n7 === 1 ? one : many;
     EDGE_EPS = 0.01;
     GUTTER_SIZES2 = 1.8;
     MIN_COLUMN_LINES2 = 4;
@@ -154377,8 +154442,8 @@ function unionOutline(subpaths) {
   const geom = subpaths.filter((sp) => sp.closed && sp.knots.length >= 2).map((sp) => ({
     closed: true,
     curves: sp.knots.map((k, i) => {
-      const n8 = sp.knots[(i + 1) % sp.knots.length];
-      return [k.x, k.y, k.outX, k.outY, n8.inX, n8.inY, n8.x, n8.y];
+      const n7 = sp.knots[(i + 1) % sp.knots.length];
+      return [k.x, k.y, k.outX, k.outY, n7.inX, n7.inY, n7.x, n7.y];
     })
   }));
   let merged;
@@ -154402,14 +154467,14 @@ function unionOutline(subpaths) {
   return out.length ? out : null;
 }
 function psdPathData(subpaths) {
-  const n8 = (v) => String(Math.round(v * 100) / 100);
+  const n7 = (v) => String(Math.round(v * 100) / 100);
   return subpaths.filter((sp) => sp.knots.length >= 2).map((sp) => {
     const k = sp.knots;
-    const parts = [`M${n8(k[0].x)} ${n8(k[0].y)}`];
+    const parts = [`M${n7(k[0].x)} ${n7(k[0].y)}`];
     const segments = sp.closed ? k.length : k.length - 1;
     for (let i = 0; i < segments; i++) {
       const a = k[i], b = k[(i + 1) % k.length];
-      parts.push(`C${n8(a.outX)} ${n8(a.outY)} ${n8(b.inX)} ${n8(b.inY)} ${n8(b.x)} ${n8(b.y)}`);
+      parts.push(`C${n7(a.outX)} ${n7(a.outY)} ${n7(b.inX)} ${n7(b.inY)} ${n7(b.x)} ${n7(b.y)}`);
     }
     if (sp.closed) parts.push("Z");
     return parts.join("");
@@ -154433,7 +154498,7 @@ function color4(hex3, alpha = 1) {
   return out;
 }
 async function fingerprintOf4(kind, b, content2) {
-  const grid = (n8) => Math.round(n8 / 8) * 8;
+  const grid = (n7) => Math.round(n7 / 8) * 8;
   const material = `${kind}|${grid(b.x)},${grid(b.y)},${grid(b.w)},${grid(b.h)}|${content2}`;
   return `${kind}:${(await sha256Hex(new TextEncoder().encode(material))).slice(0, 16)}`;
 }
@@ -154626,7 +154691,7 @@ var init_source_psd = __esm({
     init_bytes();
     init_psd_outline();
     PSD_SLIDE_ID = "canvas";
-    round29 = (n8) => Math.round(n8 * 100) / 100;
+    round29 = (n7) => Math.round(n7 * 100) / 100;
     PT_PER_PX2 = 0.75;
   }
 });
@@ -154662,11 +154727,11 @@ function edgesOf(d, map) {
       const [c2x, c2y] = map(seg4.x2, seg4.y2);
       const [ex, ey] = map(seg4.x, seg4.y);
       const len2 = Math.hypot(c1x - px3, c1y - py) + Math.hypot(c2x - c1x, c2y - c1y) + Math.hypot(ex - c2x, ey - c2y);
-      const n8 = Math.max(2, Math.min(32, Math.ceil(len2 / 2)));
+      const n7 = Math.max(2, Math.min(32, Math.ceil(len2 / 2)));
       let lx = px3;
       let ly = py;
-      for (let i = 1; i <= n8; i++) {
-        const t = i / n8;
+      for (let i = 1; i <= n7; i++) {
+        const t = i / n7;
         const u = 1 - t;
         const x = u * u * u * px3 + 3 * u * u * t * c1x + 3 * u * t * t * c2x + t * t * t * ex;
         const y = u * u * u * py + 3 * u * u * t * c1y + 3 * u * t * t * c2y + t * t * t * ey;
@@ -154742,12 +154807,12 @@ function glyphRunFrame(items2, run3, span) {
 function glyphRunKey(items2, run3) {
   let h1 = 2166136261;
   let h2 = 16777619;
-  let n8 = 0;
+  let n7 = 0;
   const feed = (value2) => {
     const v = Math.round(value2 * 20);
     h1 = Math.imul(h1 ^ v, 16777619) >>> 0;
-    h2 = Math.imul(h2 ^ v + n8, 1540483477) >>> 0;
-    n8 += 1;
+    h2 = Math.imul(h2 ^ v + n7, 1540483477) >>> 0;
+    n7 += 1;
   };
   for (const index2 of run3.items) {
     const item2 = items2.items[index2];
@@ -154766,7 +154831,7 @@ function glyphRunKey(items2, run3) {
       feed(sub.closed ? -1e6 : -2e6);
     }
   }
-  return `${h1.toString(36)}.${h2.toString(36)}.${n8}.${run3.glyphs}`;
+  return `${h1.toString(36)}.${h2.toString(36)}.${n7}.${run3.glyphs}`;
 }
 function fold2(text12) {
   return text12.normalize("NFKC").toLowerCase().replace(/\s+/g, " ").trim();
@@ -154894,7 +154959,7 @@ function settleByPhrases(runs2, texts, phrases, out) {
   if (!phrases.length) return;
   const order = runs2.map((_, i) => i).filter((i) => texts[i]);
   for (const stack of stacksOf(runs2, order)) {
-    const n8 = stack.length;
+    const n7 = stack.length;
     const pieceCost = (a, b) => {
       const lines = stack.slice(a, b + 1).map((i) => texts[i]);
       const joined = lines.join(" ");
@@ -154909,10 +154974,10 @@ function settleByPhrases(runs2, texts, phrases, out) {
       }
       return best;
     };
-    const dp = new Array(n8 + 1).fill(Infinity);
-    const cut = new Array(n8 + 1);
+    const dp = new Array(n7 + 1).fill(Infinity);
+    const cut = new Array(n7 + 1);
     dp[0] = 0;
-    for (let b = 1; b <= n8; b++) {
+    for (let b = 1; b <= n7; b++) {
       for (let a = Math.max(0, b - 8); a < b; a++) {
         if (!Number.isFinite(dp[a])) continue;
         const piece = pieceCost(a, b - 1);
@@ -154923,7 +154988,7 @@ function settleByPhrases(runs2, texts, phrases, out) {
         }
       }
     }
-    for (let b = n8; b > 0; ) {
+    for (let b = n7; b > 0; ) {
       const piece = cut[b];
       for (const [k, text12] of (piece.parts ?? []).entries()) out.set(stack[piece.from + k], { text: text12, confirmed: true });
       b = piece.from;
@@ -155050,8 +155115,8 @@ function anchorOf3(run3, runs2, items2) {
   if (kin.some((r5) => Math.abs(r5.box.x + r5.box.w / 2 - mid3) <= tol && Math.abs(r5.box.x - left) > tol)) return "middle";
   return "start";
 }
-function r3(n8) {
-  const r5 = Math.round(n8 * 1e3) / 1e3;
+function r3(n7) {
+  const r5 = Math.round(n7 * 1e3) / 1e3;
   return Object.is(r5, -0) ? 0 : r5;
 }
 function inkChars(text12) {
@@ -155322,8 +155387,8 @@ function lineageParts(parts, slidePart, parseXml) {
   return master ? { layout: layout2, master } : { layout: layout2 };
 }
 function px2(emu3) {
-  const n8 = typeof emu3 === "number" && Number.isFinite(emu3) ? emu3 : 0;
-  return Math.round(n8 / EMU_PER_PX3 * 100) / 100;
+  const n7 = typeof emu3 === "number" && Number.isFinite(emu3) ? emu3 : 0;
+  return Math.round(n7 / EMU_PER_PX3 * 100) / 100;
 }
 function boxOf4(node) {
   return { x: px2(node.xEmu), y: px2(node.yEmu), w: px2(node.cxEmu), h: px2(node.cyEmu), rot: node.rot ?? 0 };
@@ -155441,7 +155506,7 @@ function mimeOf(part) {
   return MIME_BY_EXTENSION[ext] ?? "application/octet-stream";
 }
 async function fingerprintOf5(kind, box4, content2) {
-  const grid = (n8) => Math.round(n8 / 8) * 8;
+  const grid = (n7) => Math.round(n7 / 8) * 8;
   const material = `${kind}|${grid(box4.x)},${grid(box4.y)},${grid(box4.w)},${grid(box4.h)}|${content2}`;
   return `${kind}:${(await sha256Hex(new TextEncoder().encode(material))).slice(0, 16)}`;
 }
@@ -156099,8 +156164,8 @@ function executionProviders(env = process.env) {
 function sessionThreads(env = process.env) {
   const raw = env.LOLLY_ORT_THREADS?.trim();
   if (!raw) return void 0;
-  const n8 = Number(raw);
-  return Number.isInteger(n8) && n8 >= 1 && n8 <= 256 ? n8 : void 0;
+  const n7 = Number(raw);
+  return Number.isInteger(n7) && n7 >= 1 && n7 <= 256 ? n7 : void 0;
 }
 function transformersSessionOptions(env = process.env) {
   const threads = sessionThreads(env);
@@ -156329,10 +156394,10 @@ function mapPsd(meta, payload, options2, budget3) {
     if (!v) return fallback;
     const at = index2 * depth / 8;
     if (at + depth / 8 > v.byteLength) throw new Error("PSD channel is shorter than its dimensions.");
-    const n8 = depth === 8 ? v.getUint8(at) / 255 : depth === 16 ? v.getUint16(at) / 65535 : v.getFloat32(at);
-    return Number.isFinite(n8) ? n8 : 0;
+    const n7 = depth === 8 ? v.getUint8(at) / 255 : depth === 16 ? v.getUint16(at) / 65535 : v.getFloat32(at);
+    return Number.isFinite(n7) ? n7 : 0;
   };
-  const byte = (n8) => Math.round(Math.max(0, Math.min(1, n8)) * 255);
+  const byte = (n7) => Math.round(Math.max(0, Math.min(1, n7)) * 255);
   function pixels3(width, height, planes) {
     const count4 = width * height;
     charge(count4 * 4);
@@ -156343,7 +156408,7 @@ function mapPsd(meta, payload, options2, budget3) {
       let rgb3;
       if (mode3 === "lab") rgb3 = convertColor({ space: "lab", components: [c[0] * 100, c[1] * 255 - 128, c[2] * 255 - 128], alpha: 1, missing: 0 }, "srgb").components;
       else if (mode3 === "cmyk") {
-        const lab = profile2?.toLab("relative", c.map((n8) => 1 - n8));
+        const lab = profile2?.toLab("relative", c.map((n7) => 1 - n7));
         rgb3 = lab ? convertColor({ space: "lab", components: lab, alpha: 1, missing: 0 }, "srgb").components : [c[0] * c[3], c[1] * c[3], c[2] * c[3]];
       } else if (mode3 === "gray") {
         const gray = depth === 32 ? linearToSrgb3(c[0]) : c[0];
@@ -156405,7 +156470,7 @@ function mapPsd(meta, payload, options2, budget3) {
     indexed.set(i, raster);
     if (isGroup) ancestors.push(i);
   }
-  const indices = [...indexed.keys()].sort((a, b) => a - b), remap = new Map(indices.map((n8, i) => [n8, i]));
+  const indices = [...indexed.keys()].sort((a, b) => a - b), remap = new Map(indices.map((n7, i) => [n7, i]));
   const layers = indices.map((i) => indexed.get(i));
   for (const layer of layers) layer.groupPath = layer.groupPath.map((i) => remap.get(i)).filter((i) => i !== void 0);
   return { format: "psd", width: meta.width, height: meta.height, depth, colorMode: mode3, layers, composite: composite2, icc, warnings: warnings2 };
@@ -157784,20 +157849,20 @@ var init_schema = __esm({
 
 // engine/src/exr.ts
 function zipPreprocess(raw) {
-  const n8 = raw.length;
-  const tmp = new Uint8Array(n8);
-  if (n8 === 0) return tmp;
+  const n7 = raw.length;
+  const tmp = new Uint8Array(n7);
+  if (n7 === 0) return tmp;
   let t1 = 0;
-  let t2 = n8 + 1 >> 1;
+  let t2 = n7 + 1 >> 1;
   let s = 0;
   for (; ; ) {
-    if (s < n8) tmp[t1++] = raw[s++];
+    if (s < n7) tmp[t1++] = raw[s++];
     else break;
-    if (s < n8) tmp[t2++] = raw[s++];
+    if (s < n7) tmp[t2++] = raw[s++];
     else break;
   }
   let p = tmp[0];
-  for (let i = 1; i < n8; i++) {
+  for (let i = 1; i < n7; i++) {
     const cur = tmp[i];
     tmp[i] = cur - p + (128 + 256) & 255;
     p = cur;
@@ -158015,9 +158080,9 @@ var init_exr = __esm({
         this.buf = new Uint8Array(Math.max(64, capacity));
         this.view = new DataView(this.buf.buffer);
       }
-      ensure(n8) {
-        if (this.len + n8 <= this.buf.length) return;
-        const grown = new Uint8Array(Math.max(this.buf.length * 2, this.len + n8));
+      ensure(n7) {
+        if (this.len + n7 <= this.buf.length) return;
+        const grown = new Uint8Array(Math.max(this.buf.length * 2, this.len + n7));
         grown.set(this.buf.subarray(0, this.len));
         this.buf = grown;
         this.view = new DataView(grown.buffer);
@@ -158189,7 +158254,7 @@ function parseRadianceHeader(bytes2) {
       if (Number.isFinite(v)) gamma = v;
     } else if (key2 === "PRIMARIES") {
       const nums = value2.split(/\s+/).map(Number);
-      if (nums.length === 8 && nums.every((n8) => Number.isFinite(n8))) primaries = nums;
+      if (nums.length === 8 && nums.every((n7) => Number.isFinite(n7))) primaries = nums;
     } else if (key2 === "SOFTWARE") software = value2;
   }
   const res = readLine();
@@ -158249,7 +158314,7 @@ function packRadiance(frame, opts = {}) {
   lines.push(`EXPOSURE=${exposure2}`);
   if (opts.gamma !== void 0) lines.push(`GAMMA=${opts.gamma}`);
   const prim = opts.primaries === void 0 || opts.primaries === "auto" ? PRIMARIES2[space] ?? null : opts.primaries;
-  if (prim && (prim.length !== 8 || !prim.every((n8) => Number.isFinite(n8)))) {
+  if (prim && (prim.length !== 8 || !prim.every((n7) => Number.isFinite(n7)))) {
     throw new Error("packRadiance: primaries must be 8 finite numbers (rx ry gx gy bx by wx wy)");
   }
   if (prim) lines.push(`PRIMARIES=${prim.join(" ")}`);
@@ -158273,13 +158338,13 @@ function packRadiance(frame, opts = {}) {
 function encodeRle(rgbe, width, height) {
   const worst = height * (4 + 4 * (width + Math.ceil(width / 128) + 2));
   const out = new Uint8Array(worst);
-  let n8 = 0;
+  let n7 = 0;
   for (let y = 0; y < height; y++) {
     const row = y * width * 4;
-    out[n8++] = 2;
-    out[n8++] = 2;
-    out[n8++] = width >> 8 & 255;
-    out[n8++] = width & 255;
+    out[n7++] = 2;
+    out[n7++] = 2;
+    out[n7++] = width >> 8 & 255;
+    out[n7++] = width & 255;
     for (let c = 0; c < 4; c++) {
       const at = (x) => rgbe[row + x * 4 + c];
       let j = 0;
@@ -158295,8 +158360,8 @@ function encodeRle(rgbe, width, height) {
           while (at(c2) === at(j)) {
             c2++;
             if (c2 === beg) {
-              out[n8++] = 128 + (beg - j);
-              out[n8++] = at(j);
+              out[n7++] = 128 + (beg - j);
+              out[n7++] = at(j);
               j = beg;
               break;
             }
@@ -158305,20 +158370,20 @@ function encodeRle(rgbe, width, height) {
         while (j < beg) {
           let k = beg - j;
           if (k > 128) k = 128;
-          out[n8++] = k;
-          for (let m2 = 0; m2 < k; m2++) out[n8++] = at(j + m2);
+          out[n7++] = k;
+          for (let m2 = 0; m2 < k; m2++) out[n7++] = at(j + m2);
           j += k;
         }
         if (cnt >= MIN_RUN) {
-          out[n8++] = 128 + cnt;
-          out[n8++] = at(beg);
+          out[n7++] = 128 + cnt;
+          out[n7++] = at(beg);
           j += cnt;
         }
       }
     }
   }
-  if (n8 > out.length) throw new Error(`packRadiance: RLE buffer overrun (${n8} > ${out.length})`);
-  return out.subarray(0, n8);
+  if (n7 > out.length) throw new Error(`packRadiance: RLE buffer overrun (${n7} > ${out.length})`);
+  return out.subarray(0, n7);
 }
 function readRadiance(bytes2) {
   const head2 = parseRadianceHeader(bytes2);
@@ -158887,8 +158952,8 @@ var init_asset_bytes = __esm({
 });
 
 // packages/node-shell/src/contrast-sample.ts
-function channel4(n8) {
-  const s = n8 / 255;
+function channel4(n7) {
+  const s = n7 / 255;
   return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
 }
 function luminance3(r5, g2, b) {
@@ -159227,14 +159292,14 @@ function list3(items2, cap = LIST_CAP) {
 function uniq(items2) {
   return [...new Set(items2.filter(Boolean))];
 }
-function bytesLabel(n8) {
-  if (!Number.isFinite(n8) || n8 < 0) return "";
-  if (n8 < 1024) return `${n8} B`;
-  if (n8 < 1024 * 1024) return `${(n8 / 1024).toFixed(n8 < 10 * 1024 ? 1 : 0)} KB`;
-  return `${(n8 / (1024 * 1024)).toFixed(1)} MB`;
+function bytesLabel(n7) {
+  if (!Number.isFinite(n7) || n7 < 0) return "";
+  if (n7 < 1024) return `${n7} B`;
+  if (n7 < 1024 * 1024) return `${(n7 / 1024).toFixed(n7 < 10 * 1024 ? 1 : 0)} KB`;
+  return `${(n7 / (1024 * 1024)).toFixed(1)} MB`;
 }
-function count3(n8, one, many = `${one}s`) {
-  return `${n8} ${n8 === 1 ? one : many}`;
+function count3(n7, one, many = `${one}s`) {
+  return `${n7} ${n7 === 1 ? one : many}`;
 }
 function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
   if (depth > MAX_DEPTH6 || out.length >= MAX_ITEMS2) return out;
@@ -159293,10 +159358,10 @@ function collectAttachments(ctx, doc, pages) {
   });
 }
 function* eachAnnot(ctx, pages) {
-  let n8 = 0;
+  let n7 = 0;
   for (const page3 of pages) {
     for (const ref2 of arrOf(ctx, page3.get(PDFName2.of("Annots"))) ?? []) {
-      if (n8++ >= MAX_ITEMS2) return;
+      if (n7++ >= MAX_ITEMS2) return;
       const d = dictOf2(ctx, ref2);
       if (d) yield d;
     }
@@ -159376,8 +159441,8 @@ function collectActions(ctx, doc, pages, fields2) {
 function fieldValue(ctx, v) {
   const s = strOf(ctx, v);
   if (s != null) return s;
-  const n8 = nameOf2(ctx, v);
-  if (n8 != null) return n8 === "Off" ? null : n8;
+  const n7 = nameOf2(ctx, v);
+  if (n7 != null) return n7 === "Off" ? null : n7;
   const num19 = numOf2(ctx, v);
   if (num19 != null) return String(num19);
   const arr = arrOf(ctx, v);
@@ -159420,10 +159485,10 @@ function collectLayers(ctx, doc) {
   const byTag = /* @__PURE__ */ new Map();
   const names = [];
   for (const g2 of arrOf(ctx, get2(ctx, ocp, "OCGs")) ?? []) {
-    const n8 = strOf(ctx, get2(ctx, g2, "Name")) ?? "(unnamed layer)";
-    names.push(n8);
+    const n7 = strOf(ctx, get2(ctx, g2, "Name")) ?? "(unnamed layer)";
+    names.push(n7);
     const tag3 = refTag(g2);
-    if (tag3) byTag.set(tag3, n8);
+    if (tag3) byTag.set(tag3, n7);
   }
   const hidden4 = [];
   for (const g2 of arrOf(ctx, get2(ctx, get2(ctx, ocp, "D"), "OFF")) ?? []) {
@@ -159557,8 +159622,8 @@ async function pdfActiveContent(bytes2) {
     const leading2 = (label4) => {
       const found = findings.find((f) => f.label === label4);
       if (!found) return 0;
-      const n8 = /^(\d+)/.exec(found.detail);
-      return n8 ? Number(n8[1]) : 1;
+      const n7 = /^(\d+)/.exec(found.detail);
+      return n7 ? Number(n7[1]) : 1;
     };
     const out = {};
     const scripts = leading2("JavaScript");
@@ -160116,7 +160181,7 @@ async function packageDesign(input, opts = {}) {
   } catch (err) {
     throw new DesignPackageError("authoring.invalid", err.message);
   }
-  const warnings2 = expanded.notes.map((n8) => ({ code: "authoring.note", message: `${n8.code}: ${n8.message}`, ...n8.path ? { path: n8.path } : {} }));
+  const warnings2 = expanded.notes.map((n7) => ({ code: "authoring.note", message: `${n7.code}: ${n7.message}`, ...n7.path ? { path: n7.path } : {} }));
   const keys2 = /* @__PURE__ */ new Map();
   for (const asset2 of opts.assets ?? []) {
     if (!asset2.key) throw new DesignPackageError("asset.invalid", "An asset needs a key: the image value the rows name it by (KEY=PATH).");
@@ -160408,7 +160473,7 @@ var init_design_lolly = __esm({
     init_pipeline();
     record37 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     sha256Hex4 = (bytes2) => createHash7("sha256").update(bytes2).digest("hex");
-    plural4 = (n8, one, many = `${one}s`) => `${n8} ${n8 === 1 ? one : many}`;
+    plural4 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     MEDIA_REF_RE = /^user\/media\/([0-9a-f]{64})$/;
     HASH_KEY_RE = /^[a-z][a-z0-9+.-]*:([0-9a-f]{8,64})$/i;
     listOf = (items2, max = 6) => items2.slice(0, max).join(", ") + (items2.length > max ? ` and ${items2.length - max} more` : "");
@@ -160848,7 +160913,7 @@ function cleanJpeg(src) {
   const keep2 = [src.subarray(0, 2)];
   let width = 0, height = 0, orientation = 1, droppedMetadata = false;
   let jfifX = 0, jfifY = 0, exifX = 0, exifY = 0;
-  segments.forEach((seg4, n8) => {
+  segments.forEach((seg4, n7) => {
     const { marker } = seg4;
     const payload = jpegSegmentBody(src, seg4);
     let kept2 = true;
@@ -160875,7 +160940,7 @@ function cleanJpeg(src) {
     }
     if (kept2) keep2.push(src.subarray(seg4.start, seg4.end));
     else if (marker !== 216) droppedMetadata = true;
-    if (marker === 218) keep2.push(src.subarray(seg4.end, segments[n8 + 1]?.start ?? src.length));
+    if (marker === 218) keep2.push(src.subarray(seg4.end, segments[n7 + 1]?.start ?? src.length));
   });
   if (!width || !height) throw refusal2("this JPEG has no readable image size");
   if (scan2.eoi === null) keep2.push(new Uint8Array([255, 217]));
@@ -160909,7 +160974,7 @@ function readPngFacts(bytes2) {
   if (!isPng(bytes2) || bytes2.length < 33 || !startsWith2(bytes2.subarray(12), "IHDR")) throw refusal2("this PNG is damaged and cannot be placed on a page");
   const facts2 = { width: u327(16), height: u327(20), ppiX: 0, ppiY: 0, animated: false };
   let at = 33;
-  for (let n8 = 0; n8 < 4096 && at + 12 <= bytes2.length; n8++) {
+  for (let n7 = 0; n7 < 4096 && at + 12 <= bytes2.length; n7++) {
     const length2 = u327(at), type = bytes2.subarray(at + 4, at + 8);
     if (startsWith2(type, "IDAT") || startsWith2(type, "IEND")) break;
     if (startsWith2(type, "acTL")) facts2.animated = true;
@@ -160957,8 +161022,8 @@ function layoutImagePage(w, h, pageSize, margin) {
   const pw = w * scale, ph = h * scale;
   return { width: pw, height: ph, box: { x: 0, y: 0, w: pw, h: ph } };
 }
-function plural5(n8, one, many = `${one}s`) {
-  return `${n8} ${n8 === 1 ? one : many}`;
+function plural5(n7, one, many = `${one}s`) {
+  return `${n7} ${n7 === 1 ? one : many}`;
 }
 async function imagesToPdf(images, opts = {}) {
   const list4 = Array.isArray(images) ? images.filter((image) => image?.bytes?.length) : [];
@@ -161296,8 +161361,8 @@ function pointAnnotationsAt(page3) {
   const ctx = page3.doc.context;
   for (const ref2 of annotsOf(ctx, page3.node)) dictOf3(ctx, ref2)?.set(PDFName4.of("P"), page3.ref);
 }
-function say(n8, one, many) {
-  return n8 === 1 ? one : many.replace("#", String(n8));
+function say(n7, one, many) {
+  return n7 === 1 ? one : many.replace("#", String(n7));
 }
 function pageEffects(docs, outputPages, inPlace) {
   const all = [];
@@ -161306,8 +161371,8 @@ function pageEffects(docs, outputPages, inPlace) {
   });
   let annotations = 0, links = 0;
   const fields2 = /* @__PURE__ */ new Set();
-  for (const n8 of new Set(outputPages)) {
-    const hit = all[n8 - 1];
+  for (const n7 of new Set(outputPages)) {
+    const hit = all[n7 - 1];
     if (!hit) continue;
     annotations += hit.page.annotations;
     links += hit.page.links;
@@ -161331,8 +161396,8 @@ function pageEffects(docs, outputPages, inPlace) {
     effects.push(inPlace ? { feature: "links", count: links, outcome: "kept", message: say(links, "1 link to another page still works.", "# links to other pages still work.") } : { feature: "links", count: links, outcome: "broken", message: say(links, "1 link to another page no longer works.", "# links to other pages no longer work.") });
   }
   if (fields2.size) {
-    const n8 = fields2.size;
-    effects.push(inPlace ? { feature: "forms", count: n8, outcome: "kept", message: say(n8, "1 form field can still be filled in.", "# form fields can still be filled in.") } : { feature: "forms", count: n8, outcome: "broken", message: say(n8, "1 form field can no longer be filled in.", "# form fields can no longer be filled in.") });
+    const n7 = fields2.size;
+    effects.push(inPlace ? { feature: "forms", count: n7, outcome: "kept", message: say(n7, "1 form field can still be filled in.", "# form fields can still be filled in.") } : { feature: "forms", count: n7, outcome: "broken", message: say(n7, "1 form field can no longer be filled in.", "# form fields can no longer be filled in.") });
   }
   if (signatures) {
     effects.push(inPlace ? {
@@ -161446,8 +161511,8 @@ async function stripPdf(bytes2) {
   return { bytes: out };
 }
 function clampNum(v, lo, hi, dflt) {
-  const n8 = Number(v);
-  return Number.isFinite(n8) ? Math.min(hi, Math.max(lo, n8)) : dflt;
+  const n7 = Number(v);
+  return Number.isFinite(n7) ? Math.min(hi, Math.max(lo, n7)) : dflt;
 }
 function compressParams(opts = {}) {
   const base = COMPRESS_LEVELS[opts.level] || COMPRESS_LEVELS.balanced;
@@ -161599,9 +161664,9 @@ function parsePdfPageExpression(expression, pageCount) {
     if (!token2) throw pdfRefusal(`invalid page expression "${source}"`);
     const single = /^(\d+)$/.exec(token2);
     if (single) {
-      const n8 = Number(single[1]);
-      if (n8 < 1 || n8 > pageCount) throw pdfRefusal(`page ${n8} is outside this ${pageCount}-page document`);
-      out.push(n8);
+      const n7 = Number(single[1]);
+      if (n7 < 1 || n7 > pageCount) throw pdfRefusal(`page ${n7} is outside this ${pageCount}-page document`);
+      out.push(n7);
       continue;
     }
     const range = /^(\d+)-(\d*)$/.exec(token2);
@@ -161612,9 +161677,9 @@ function parsePdfPageExpression(expression, pageCount) {
       throw pdfRefusal(`range "${token2}" is outside this ${pageCount}-page document`);
     }
     const step = from <= to ? 1 : -1;
-    for (let n8 = from; ; n8 += step) {
-      out.push(n8);
-      if (n8 === to) break;
+    for (let n7 = from; ; n7 += step) {
+      out.push(n7);
+      if (n7 === to) break;
     }
   }
   return out;
@@ -161697,7 +161762,7 @@ async function organizePdf(bytes2, opts) {
     for (const group of groups) {
       const doc = await PDFDocument4.create({ updateMetadata: false });
       await copyPdfInfo(source, doc);
-      await copyInto(doc, source, group.map((n8) => n8 - 1));
+      await copyInto(doc, source, group.map((n7) => n7 - 1));
       const part = await save(doc);
       files.push({ bytes: part, pages: group });
       afterBytes += part.length;
@@ -161705,7 +161770,7 @@ async function organizePdf(bytes2, opts) {
     return {
       files,
       beforePages,
-      afterPages: groups.reduce((n8, g2) => n8 + g2.length, 0),
+      afterPages: groups.reduce((n7, g2) => n7 + g2.length, 0),
       beforeBytes,
       afterBytes,
       pageOrder: groups.flat(),
@@ -161752,7 +161817,7 @@ async function organizePdf(bytes2, opts) {
   let order;
   if (operation === "delete") {
     const remove = new Set(selected);
-    order = Array.from({ length: beforePages }, (_, i) => i + 1).filter((n8) => !remove.has(n8));
+    order = Array.from({ length: beforePages }, (_, i) => i + 1).filter((n7) => !remove.has(n7));
     if (!order.length) throw pdfRefusal("delete would leave a document with no pages");
   } else {
     order = selected;
@@ -161763,7 +161828,7 @@ async function organizePdf(bytes2, opts) {
   }
   const output = await PDFDocument4.create({ updateMetadata: false });
   await copyPdfInfo(source, output);
-  await copyInto(output, source, order.map((n8) => n8 - 1));
+  await copyInto(output, source, order.map((n7) => n7 - 1));
   const out = await save(output);
   const verb = operation === "delete" ? `Deleted ${beforePages - order.length} page${beforePages - order.length === 1 ? "" : "s"}` : operation === "extract" ? `Extracted ${order.length} page${order.length === 1 ? "" : "s"}` : `Reordered ${order.length} pages`;
   return {
@@ -161827,7 +161892,7 @@ async function lockPdf(bytes2, password) {
   const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(bytes2, { updateMetadata: false });
   const ctx = doc.context;
-  const rnd = (n8) => globalThis.crypto.getRandomValues(new Uint8Array(n8));
+  const rnd = (n7) => globalThis.crypto.getRandomValues(new Uint8Array(n7));
   const hex3 = (b) => [...b].map((x) => x.toString(16).padStart(2, "0")).join("").toUpperCase();
   const P = -4;
   const fileKey = rnd(32);
@@ -162087,7 +162152,7 @@ var init_text_outline = __esm({
   "packages/node-shell/src/text-outline.ts"() {
     "use strict";
     compiled = /* @__PURE__ */ new WeakMap();
-    round8 = (n8) => Math.round(n8 * 1e4) / 1e4;
+    round8 = (n7) => Math.round(n7 * 1e4) / 1e4;
   }
 });
 
@@ -162247,7 +162312,7 @@ var init_text_shape = __esm({
     init_text_outline();
     init_text_glyphs();
     glyphs = createGlyphCache();
-    round9 = (n8) => Math.round(n8 * 1e4) / 1e4;
+    round9 = (n7) => Math.round(n7 * 1e4) / 1e4;
   }
 });
 
@@ -162295,7 +162360,7 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
     const supplied = await read(resource);
     if (!(supplied instanceof Uint8Array) || supplied.length < 12 || supplied.length > MAX_FONT_BYTES2) throw new TextSourceError("font-size", "The font is empty or exceeds the supported size.");
     const input = new Uint8Array(supplied);
-    const hash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", input))].map((n8) => n8.toString(16).padStart(2, "0")).join("");
+    const hash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", input))].map((n7) => n7.toString(16).padStart(2, "0")).join("");
     if (hash !== resource.sha256) throw new TextSourceError("font-changed", `The font content changed: ${resource.family}`);
     const kind = sfntKind(input);
     let bytes2 = input;
@@ -162508,8 +162573,8 @@ function segmentByFace(text12, chain2) {
   }
   return segs;
 }
-function fmt3(n8) {
-  return Math.round(n8 * 100) / 100;
+function fmt3(n7) {
+  return Math.round(n7 * 100) / 100;
 }
 function rootsFor3(root2) {
   try {
@@ -162584,7 +162649,7 @@ function transformPath(pathStr, offsetX, offsetY, scale) {
   });
 }
 function clustersFrom(pieces, textLength) {
-  const r26 = (n8) => Math.round(n8 * 100) / 100;
+  const r26 = (n7) => Math.round(n7 * 100) / 100;
   const starts = [...pieces.keys()].sort((a, b) => a - b);
   return starts.map((start, i) => {
     const p = pieces.get(start);
@@ -162881,12 +162946,12 @@ function ctcGreedyDecode(probs, T, C, charset) {
   return { text: out, confidence: kept2 ? sum / kept2 : 0 };
 }
 function connectedComponentBoxes(prob, w, h, { binThresh, minArea, boxThresh }) {
-  const n8 = w * h;
-  const seen = new Uint8Array(n8);
+  const n7 = w * h;
+  const seen = new Uint8Array(n7);
   const stack = [];
   const boxes2 = [];
   const at = (i) => prob[i] ?? 0;
-  for (let start = 0; start < n8; start++) {
+  for (let start = 0; start < n7; start++) {
     if (seen[start] || at(start) < binThresh) continue;
     let minX = w, minY = h, maxX = 0, maxY = 0, count4 = 0, probSum = 0;
     seen[start] = 1;
@@ -163358,7 +163423,7 @@ function decodeRefusalWarnings(limits) {
   const refused = limits?.refused ?? [];
   const out = [];
   const size = (r5) => `${r5.width} x ${r5.height}`;
-  const count4 = (n8) => n8 === 1 ? "A picture was" : `${n8} pictures were`;
+  const count4 = (n7) => n7 === 1 ? "A picture was" : `${n7} pictures were`;
   const over = refused.filter((r5) => r5.limit === "picture");
   if (over.length === 1) {
     const r5 = over[0];
@@ -163648,9 +163713,9 @@ async function installNodeCanvas(win, target2 = globalThis, opts = {}) {
   }
   const URLCtor = target2["URL"];
   if (URLCtor && typeof URLCtor.createObjectURL !== "function") {
-    let n8 = 0;
+    let n7 = 0;
     URLCtor.createObjectURL = (blob) => {
-      const url = `blob:lolly-node/${Date.now().toString(36)}-${n8++}`;
+      const url = `blob:lolly-node/${Date.now().toString(36)}-${n7++}`;
       blobUrls.set(url, blob);
       return url;
     };
@@ -163717,7 +163782,7 @@ var init_canvas = __esm({
     };
     HOSTED_DECODE_MAX_PIXELS = 4096 * 4096;
     HOSTED_DECODE_BUDGET_PIXELS = 4 * HOSTED_DECODE_MAX_PIXELS;
-    pixels = (n8) => n8.toLocaleString("en");
+    pixels = (n7) => n7.toLocaleString("en");
     limited = (limits) => !!(limits && (limits.maxPixels || limits.budgetPixels));
     sharpModule3 = null;
     MIME_BY_MAGIC = [
@@ -163994,7 +164059,7 @@ function readDeepPng(bytes2) {
   }
   if (chroma && !srgb) {
     const choices2 = [["srgb-linear", [0.3127, 0.329, 0.64, 0.33, 0.3, 0.6, 0.15, 0.06]], ["display-p3-linear", [0.3127, 0.329, 0.68, 0.32, 0.265, 0.69, 0.15, 0.06]], ["rec2020-linear", [0.3127, 0.329, 0.708, 0.292, 0.17, 0.797, 0.131, 0.046]]];
-    const match = choices2.find(([, values]) => values.every((n8, i) => Math.abs(n8 - chroma[i]) < 2e-5));
+    const match = choices2.find(([, values]) => values.every((n7, i) => Math.abs(n7 - chroma[i]) < 2e-5));
     if (!match) throw new Error("Convert this PNG to sRGB, Display P3 or Rec.2020 before HDR editing.");
     frame.space = match[0];
   }
@@ -164027,12 +164092,12 @@ function readDeepTiff(bytes2) {
   const tags3 = /* @__PURE__ */ new Map();
   const sizes = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 11: 4, 12: 8 };
   for (let i = 0; i < count4; i++) {
-    const offset = ifd + 2 + i * 12, tag3 = v.getUint16(offset, le), type = v.getUint16(offset + 2, le), n8 = v.getUint32(offset + 4, le);
+    const offset = ifd + 2 + i * 12, tag3 = v.getUint16(offset, le), type = v.getUint16(offset + 2, le), n7 = v.getUint32(offset + 4, le);
     const unit2 = sizes[type];
     if (!unit2) continue;
-    const size = unit2 * n8, at = size <= 4 ? offset + 8 : v.getUint32(offset + 8, le);
+    const size = unit2 * n7, at = size <= 4 ? offset + 8 : v.getUint32(offset + 8, le);
     if (!Number.isSafeInteger(size) || at + size > bytes2.length || tags3.has(tag3)) throw new Error("Invalid TIFF field.");
-    tags3.set(tag3, { type, count: n8, at, size });
+    tags3.set(tag3, { type, count: n7, at, size });
   }
   const list4 = (tag3, fallback = []) => {
     const item2 = tags3.get(tag3);
@@ -164045,7 +164110,7 @@ function readDeepTiff(bytes2) {
   deepDimensions(width, height);
   const spp = one(277, 1), depth = list4(258, [8]), sample = list4(339, [1]);
   const bits = depth[0], kind = sample[0], photo = one(262, 1), compression = one(259, 1), predictor = one(317, 1), orientation = one(274, 1);
-  if (![1, 2].includes(photo) || ![1, 2, 3, 4].includes(spp) || photo === 2 && spp < 3 || photo === 1 && spp > 2 || depth.some((n8) => n8 !== bits) || sample.some((n8) => n8 !== kind) || !([8, 16].includes(bits) && kind === 1 || bits === 32 && kind === 3) || one(284, 1) !== 1 || ![1, 8, 32946].includes(compression) || ![1, 2].includes(predictor) || kind === 3 && predictor !== 1 || orientation < 1 || orientation > 8 || tags3.has(322)) {
+  if (![1, 2].includes(photo) || ![1, 2, 3, 4].includes(spp) || photo === 2 && spp < 3 || photo === 1 && spp > 2 || depth.some((n7) => n7 !== bits) || sample.some((n7) => n7 !== kind) || !([8, 16].includes(bits) && kind === 1 || bits === 32 && kind === 3) || one(284, 1) !== 1 || ![1, 8, 32946].includes(compression) || ![1, 2].includes(predictor) || kind === 3 && predictor !== 1 || orientation < 1 || orientation > 8 || tags3.has(322)) {
     throw new Error("Use stripped RGB/gray TIFF with no compression or Deflate, at 8/16-bit integer or 32-bit float.");
   }
   const offsets2 = list4(273), lengths = list4(279), rows2 = one(278, height), extra = one(338, 0);
@@ -164069,8 +164134,8 @@ function readDeepTiff(bytes2) {
       const d = (strip * rows2 * width + p) * 4, s = p * spp;
       const alpha = hasAlpha3 ? value2(s + spp - 1) : 1;
       for (let c = 0; c < 3; c++) {
-        const n8 = value2(s + (photo === 1 ? 0 : c));
-        rgba2[d + c] = extra === 1 && alpha > 0 ? n8 / alpha : n8;
+        const n7 = value2(s + (photo === 1 ? 0 : c));
+        rgba2[d + c] = extra === 1 && alpha > 0 ? n7 / alpha : n7;
       }
       rgba2[d + 3] = alpha;
     }
@@ -164082,8 +164147,8 @@ function readDeepTiff(bytes2) {
     const icc = bytes2.subarray(iccTag.at, iccTag.at + iccTag.size), profile2 = parseIccProfile(icc);
     let cicp;
     if (icc.length >= 132) {
-      const iv = new DataView(icc.buffer, icc.byteOffset, icc.length), n8 = iv.getUint32(128);
-      if (n8 <= 1024 && 132 + n8 * 12 <= icc.length) for (let i = 0; i < n8; i++) {
+      const iv = new DataView(icc.buffer, icc.byteOffset, icc.length), n7 = iv.getUint32(128);
+      if (n7 <= 1024 && 132 + n7 * 12 <= icc.length) for (let i = 0; i < n7; i++) {
         const at = 132 + i * 12;
         if (iv.getUint32(at) !== 1667851120) continue;
         const start = iv.getUint32(at + 4), size = iv.getUint32(at + 8);
@@ -164181,7 +164246,7 @@ function readDeepExr(bytes2) {
     if (chroma.type !== "chromaticities" || chroma.size !== 32) throw new Error("Invalid OpenEXR chromaticities.");
     const value2 = Array.from({ length: 8 }, (_, i) => v.getFloat32(chroma.start + i * 4, true));
     const choices2 = [["srgb-linear", [0.64, 0.33, 0.3, 0.6, 0.15, 0.06, 0.3127, 0.329]], ["display-p3-linear", [0.68, 0.32, 0.265, 0.69, 0.15, 0.06, 0.3127, 0.329]], ["rec2020-linear", [0.708, 0.292, 0.17, 0.797, 0.131, 0.046, 0.3127, 0.329]]];
-    const match = choices2.find(([, coords]) => coords.every((n8, i) => Math.abs(n8 - value2[i]) < 1e-5));
+    const match = choices2.find(([, coords]) => coords.every((n7, i) => Math.abs(n7 - value2[i]) < 1e-5));
     if (!match) throw new Error("Convert this OpenEXR to linear sRGB, Display P3 or Rec.2020 before import.");
     space = match[0];
   }
@@ -164189,7 +164254,7 @@ function readDeepExr(bytes2) {
   if (table + count4 * 8 > bytes2.length) throw new Error("Truncated OpenEXR offset table.");
   const rgba2 = new Float32Array(width * height * 4);
   for (let i = 3; i < rgba2.length; i += 4) rgba2[i] = 1;
-  const seen = /* @__PURE__ */ new Set(), rowBytes = channels.reduce((n8, channel5) => n8 + channel5.bytes * width, 0);
+  const seen = /* @__PURE__ */ new Set(), rowBytes = channels.reduce((n7, channel5) => n7 + channel5.bytes * width, 0);
   for (let chunk6 = 0; chunk6 < count4; chunk6++) {
     const offset = Number(v.getBigUint64(table + chunk6 * 8, true));
     if (!Number.isSafeInteger(offset) || offset < table + count4 * 8 || offset + 8 > bytes2.length) throw new Error("Invalid OpenEXR chunk offset.");
@@ -164352,7 +164417,7 @@ var init_deep_compose = __esm({
     "use strict";
     init_pixels();
     init_deep_image();
-    clamp9 = (n8) => Math.max(0, Math.min(1, n8));
+    clamp9 = (n7) => Math.max(0, Math.min(1, n7));
     DEEP_BLENDS = ["source-over", "normal", "multiply", "screen", "overlay", "darken", "lighten", "difference", "exclusion", "plus-lighter"];
   }
 });
@@ -165119,7 +165184,7 @@ function createNodeTextShaper(opts = {}) {
 async function measureTextNode(spec, opts = {}) {
   const root2 = opts.repoRoot ?? repoRoot();
   const notes = [];
-  const shaper = createNodeTextShaper({ repoRoot: root2, onNote: (n8) => notes.push(n8) });
+  const shaper = createNodeTextShaper({ repoRoot: root2, onNote: (n7) => notes.push(n7) });
   const fonts = spec?.fonts ?? measureFontsFromBrief(opts.brief);
   const result = await measureDesignText({ ...spec, fonts }, shaper);
   if (notes.length) result.notes.push(...notes);
@@ -166046,8 +166111,8 @@ var init_sequence_marks = __esm({
     "use strict";
     MAX_MS = 36e5;
     stamp2 = (s) => {
-      const n8 = Number(s);
-      return s !== "" && Number.isFinite(n8) && n8 >= 0 && n8 <= MAX_MS ? Math.round(n8) : void 0;
+      const n7 = Number(s);
+      return s !== "" && Number.isFinite(n7) && n7 >= 0 && n7 <= MAX_MS ? Math.round(n7) : void 0;
     };
   }
 });
@@ -166192,7 +166257,7 @@ var init_design_lottie = __esm({
     init_sequence_marks();
     yes = (value2) => value2 === true || value2 === "true" || value2 === "1" || value2 === 1;
     authoredTime = (value2) => value2 !== "" && value2 != null && Number.isFinite(Number(value2));
-    clamp10 = (n8, lo, hi) => Math.max(lo, Math.min(n8, hi));
+    clamp10 = (n7, lo, hi) => Math.max(lo, Math.min(n7, hi));
   }
 });
 
@@ -166359,7 +166424,7 @@ var init_design_idml = __esm({
     ns = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging";
     xml2 = (body) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${body}`;
     wrap2 = (kind, body) => xml2(`<idPkg:${kind} xmlns:idPkg="${ns}" DOMVersion="16.0">${body}</idPkg:${kind}>`);
-    number9 = (n8) => String(Math.round(n8 * 1e6) / 1e6);
+    number9 = (n7) => String(Math.round(n7 * 1e6) / 1e6);
   }
 });
 
@@ -166443,7 +166508,7 @@ var init_design_premiere = __esm({
 
 // engine/src/design-draw-pdf.ts
 import { unzlibSync as unzlibSync8, zlibSync } from "fflate";
-function n7(v) {
+function n6(v) {
   if (!Number.isFinite(v)) return "0";
   const r5 = Math.round(v * 1e4) / 1e4;
   return Object.is(r5, -0) || r5 === 0 ? "0" : String(r5);
@@ -166462,15 +166527,15 @@ function rgb2(hex3) {
 }
 function rectPath2(b, radius) {
   const r5 = Math.max(0, Math.min(radius, b.w / 2, b.h / 2));
-  if (r5 === 0) return `${n7(b.x)} ${n7(b.y)} ${n7(b.w)} ${n7(b.h)} re
+  if (r5 === 0) return `${n6(b.x)} ${n6(b.y)} ${n6(b.w)} ${n6(b.h)} re
 `;
   const k = r5 * KAPPA3, x0 = b.x, y0 = b.y, x1 = b.x + b.w, y1 = b.y + b.h;
-  return `${n7(x0 + r5)} ${n7(y0)} m ${n7(x1 - r5)} ${n7(y0)} l ${n7(x1 - r5 + k)} ${n7(y0)} ${n7(x1)} ${n7(y0 + r5 - k)} ${n7(x1)} ${n7(y0 + r5)} c ${n7(x1)} ${n7(y1 - r5)} l ${n7(x1)} ${n7(y1 - r5 + k)} ${n7(x1 - r5 + k)} ${n7(y1)} ${n7(x1 - r5)} ${n7(y1)} c ${n7(x0 + r5)} ${n7(y1)} l ${n7(x0 + r5 - k)} ${n7(y1)} ${n7(x0)} ${n7(y1 - r5 + k)} ${n7(x0)} ${n7(y1 - r5)} c ${n7(x0)} ${n7(y0 + r5)} l ${n7(x0)} ${n7(y0 + r5 - k)} ${n7(x0 + r5 - k)} ${n7(y0)} ${n7(x0 + r5)} ${n7(y0)} c h
+  return `${n6(x0 + r5)} ${n6(y0)} m ${n6(x1 - r5)} ${n6(y0)} l ${n6(x1 - r5 + k)} ${n6(y0)} ${n6(x1)} ${n6(y0 + r5 - k)} ${n6(x1)} ${n6(y0 + r5)} c ${n6(x1)} ${n6(y1 - r5)} l ${n6(x1)} ${n6(y1 - r5 + k)} ${n6(x1 - r5 + k)} ${n6(y1)} ${n6(x1 - r5)} ${n6(y1)} c ${n6(x0 + r5)} ${n6(y1)} l ${n6(x0 + r5 - k)} ${n6(y1)} ${n6(x0)} ${n6(y1 - r5 + k)} ${n6(x0)} ${n6(y1 - r5)} c ${n6(x0)} ${n6(y0 + r5)} l ${n6(x0)} ${n6(y0 + r5 - k)} ${n6(x0 + r5 - k)} ${n6(y0)} ${n6(x0 + r5)} ${n6(y0)} c h
 `;
 }
 function ellipsePath2(b) {
   const cx2 = b.x + b.w / 2, cy3 = b.y + b.h / 2, rx = b.w / 2, ry = b.h / 2, kx = rx * KAPPA3, ky = ry * KAPPA3;
-  return `${n7(cx2 + rx)} ${n7(cy3)} m ${n7(cx2 + rx)} ${n7(cy3 + ky)} ${n7(cx2 + kx)} ${n7(cy3 + ry)} ${n7(cx2)} ${n7(cy3 + ry)} c ${n7(cx2 - kx)} ${n7(cy3 + ry)} ${n7(cx2 - rx)} ${n7(cy3 + ky)} ${n7(cx2 - rx)} ${n7(cy3)} c ${n7(cx2 - rx)} ${n7(cy3 - ky)} ${n7(cx2 - kx)} ${n7(cy3 - ry)} ${n7(cx2)} ${n7(cy3 - ry)} c ${n7(cx2 + kx)} ${n7(cy3 - ry)} ${n7(cx2 + rx)} ${n7(cy3 - ky)} ${n7(cx2 + rx)} ${n7(cy3)} c h
+  return `${n6(cx2 + rx)} ${n6(cy3)} m ${n6(cx2 + rx)} ${n6(cy3 + ky)} ${n6(cx2 + kx)} ${n6(cy3 + ry)} ${n6(cx2)} ${n6(cy3 + ry)} c ${n6(cx2 - kx)} ${n6(cy3 + ry)} ${n6(cx2 - rx)} ${n6(cy3 + ky)} ${n6(cx2 - rx)} ${n6(cy3)} c ${n6(cx2 - rx)} ${n6(cy3 - ky)} ${n6(cx2 - kx)} ${n6(cy3 - ry)} ${n6(cx2)} ${n6(cy3 - ry)} c ${n6(cx2 + kx)} ${n6(cy3 - ry)} ${n6(cx2 + rx)} ${n6(cy3 - ky)} ${n6(cx2 + rx)} ${n6(cy3)} c h
 `;
 }
 function outlinePath(shape, b) {
@@ -166482,8 +166547,8 @@ function contoursPath(contours) {
   for (const c of contours) {
     const first = c.curves[0];
     if (!first) continue;
-    out += `${n7(first[0])} ${n7(first[1])} m`;
-    for (const k of c.curves) out += ` ${n7(k[2])} ${n7(k[3])} ${n7(k[4])} ${n7(k[5])} ${n7(k[6])} ${n7(k[7])} c`;
+    out += `${n6(first[0])} ${n6(first[1])} m`;
+    for (const k of c.curves) out += ` ${n6(k[2])} ${n6(k[3])} ${n6(k[4])} ${n6(k[5])} ${n6(k[6])} ${n6(k[7])} c`;
     out += c.closed ? " h\n" : "\n";
   }
   return out;
@@ -166492,9 +166557,9 @@ function svgPath2(d) {
   let out = "";
   for (const sub of parseSvgPath(d)) {
     for (const s of sub.segments) {
-      if (s.op === "M") out += `${n7(s.x)} ${n7(s.y)} m `;
-      else if (s.op === "L") out += `${n7(s.x)} ${n7(s.y)} l `;
-      else out += `${n7(s.x1)} ${n7(s.y1)} ${n7(s.x2)} ${n7(s.y2)} ${n7(s.x)} ${n7(s.y)} c `;
+      if (s.op === "M") out += `${n6(s.x)} ${n6(s.y)} m `;
+      else if (s.op === "L") out += `${n6(s.x)} ${n6(s.y)} l `;
+      else out += `${n6(s.x1)} ${n6(s.y1)} ${n6(s.x2)} ${n6(s.y2)} ${n6(s.x)} ${n6(s.y)} c `;
     }
     if (sub.closed) out += "h ";
   }
@@ -166615,14 +166680,14 @@ function stopsFunction(stops, value2) {
   const list4 = [...stops].sort((a, b) => a.offset - b.offset);
   if (list4[0].offset > 0) list4.unshift({ ...list4[0], offset: 0 });
   if (list4[list4.length - 1].offset < 1) list4.push({ ...list4[list4.length - 1], offset: 1 });
-  const piece = (a, b) => `<< /FunctionType 2 /Domain [0 1] /C0 [${value2(a).map(n7).join(" ")}] /C1 [${value2(b).map(n7).join(" ")}] /N 1 >>`;
+  const piece = (a, b) => `<< /FunctionType 2 /Domain [0 1] /C0 [${value2(a).map(n6).join(" ")}] /C1 [${value2(b).map(n6).join(" ")}] /N 1 >>`;
   if (list4.length === 2) return piece(list4[0], list4[1]);
   const pieces = [], bounds = [];
   for (let i = 0; i + 1 < list4.length; i++) {
     pieces.push(piece(list4[i], list4[i + 1]));
     if (i + 2 < list4.length) bounds.push(Math.max(list4[i + 1].offset, (bounds[bounds.length - 1] ?? 0) + 1e-4));
   }
-  return `<< /FunctionType 3 /Domain [0 1] /Functions [${pieces.join(" ")}] /Bounds [${bounds.map(n7).join(" ")}] /Encode [${pieces.map(() => "0 1").join(" ")}] >>`;
+  return `<< /FunctionType 3 /Domain [0 1] /Functions [${pieces.join(" ")}] /Bounds [${bounds.map(n6).join(" ")}] /Encode [${pieces.map(() => "0 1").join(" ")}] >>`;
 }
 function designDrawPdf(pages, info = {}) {
   const objects = new PdfObjects();
@@ -166652,20 +166717,20 @@ function designDrawPdf(pages, info = {}) {
     const art = item2.artwork ?? { x: 0, y: 0, w: item2.size.w, h: item2.size.h };
     const opacityGs = (fill2, stroke) => {
       if ((fill2 ?? 1) >= 1 && (stroke ?? 1) >= 1) return "";
-      const key2 = `${n7(fill2 ?? 1)} ${n7(stroke ?? 1)}`;
-      return `/${res.name("gs", `o ${key2}`, () => `<< /ca ${n7(fill2 ?? 1)} /CA ${n7(stroke ?? 1)} >>`)} gs `;
+      const key2 = `${n6(fill2 ?? 1)} ${n6(stroke ?? 1)}`;
+      return `/${res.name("gs", `o ${key2}`, () => `<< /ca ${n6(fill2 ?? 1)} /CA ${n6(stroke ?? 1)} >>`)} gs `;
     };
     const shadingFor = (paint3, gray) => {
       const num19 = objects.reserve();
       const fn = stopsFunction(paint3.stops, gray ? (s) => [s.opacity] : (s) => rgb2(s.color));
       const space = gray ? "/DeviceGray" : "/DeviceRGB";
-      objects.put(num19, paint3.kind === "linear" ? `<< /ShadingType 2 /ColorSpace ${space} /Coords [${[paint3.x1, paint3.y1, paint3.x2, paint3.y2].map(n7).join(" ")}] /Function ${fn} /Extend [true true] >>` : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 0.71] /Function ${fn} /Extend [true true] >>`);
+      objects.put(num19, paint3.kind === "linear" ? `<< /ShadingType 2 /ColorSpace ${space} /Coords [${[paint3.x1, paint3.y1, paint3.x2, paint3.y2].map(n6).join(" ")}] /Function ${fn} /Extend [true true] >>` : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 0.71] /Function ${fn} /Extend [true true] >>`);
       return num19;
     };
     const gradientFill = (paint3, box4) => {
       const key2 = JSON.stringify(paint3);
       const sh = res.name("shading", key2, () => shadingFor(paint3, false));
-      const frame = paint3.kind === "radial" ? `${n7(box4.w)} 0 0 ${n7(box4.h)} ${n7(box4.x + box4.w / 2)} ${n7(box4.y + box4.h / 2)} cm ` : "";
+      const frame = paint3.kind === "radial" ? `${n6(box4.w)} 0 0 ${n6(box4.h)} ${n6(box4.x + box4.w / 2)} ${n6(box4.y + box4.h / 2)} cm ` : "";
       let mask = "";
       if (paint3.stops.some((s) => s.opacity < 1)) {
         const gsName = res.name("gs", `m ${key2}`, () => {
@@ -166679,10 +166744,10 @@ function designDrawPdf(pages, info = {}) {
 `;
     };
     const strokeOps = (s) => {
-      let out = `${color5(s.color, "RG")} ${n7(s.width)} w `;
+      let out = `${color5(s.color, "RG")} ${n6(s.width)} w `;
       if (s.cap !== void 0) out += `${CAPS3[s.cap] ?? 0} J `;
       if (s.join !== void 0) out += `${JOINS3[s.join] ?? 0} j `;
-      if (s.dash) out += `[${n7(s.dash[0])} ${n7(s.dash[1])}] 0 d `;
+      if (s.dash) out += `[${n6(s.dash[0])} ${n6(s.dash[1])}] 0 d `;
       return out;
     };
     const shapeBody = (op) => {
@@ -166694,7 +166759,7 @@ function designDrawPdf(pages, info = {}) {
         const s2 = op.stroke;
         if (s2 && (s2.align === "inside" || s2.align === "outside")) {
           const b = op.box, m2 = Math.max(b.w, b.h) + s2.width * 8 + 1;
-          const clip4 = s2.align === "outside" ? `${n7(b.x - m2)} ${n7(b.y - m2)} ${n7(b.w + 2 * m2)} ${n7(b.h + 2 * m2)} re
+          const clip4 = s2.align === "outside" ? `${n6(b.x - m2)} ${n6(b.y - m2)} ${n6(b.w + 2 * m2)} ${n6(b.h + 2 * m2)} re
 ${path}W* n
 ` : `${path}${op.shape.evenOdd ? "W*" : "W"} n
 `;
@@ -166782,7 +166847,7 @@ Q
       const square = picture.element.shape.kind === "rect" && picture.element.shape.radius === 0;
       const own4 = picture.clip && square && picture.zoom >= 1 ? "" : clipTo(picture.element);
       return `q
-${picture.clip ? clipTo(picture.clip) : ""}${own4}${n7(r5.w)} 0 0 ${n7(-r5.h)} ${n7(r5.x)} ${n7(r5.y + r5.h)} cm /${name} Do
+${picture.clip ? clipTo(picture.clip) : ""}${own4}${n6(r5.w)} 0 0 ${n6(-r5.h)} ${n6(r5.x)} ${n6(r5.y + r5.h)} cm /${name} Do
 Q
 `;
     };
@@ -166804,13 +166869,13 @@ ${clipTo({ box: inner, shape })}`;
           const strike = words4.strikes?.[li]?.[ri];
           const underline = words4.underlines?.[li]?.[ri];
           const pieces = underline?.spans.filter((s) => s.width > 0) ?? [];
-          const rect = (s) => `${n7(s.x)} ${n7(underline?.y ?? 0)} ${n7(s.width)} ${n7(underline?.height ?? 0)} re`;
+          const rect = (s) => `${n6(s.x)} ${n6(underline?.y ?? 0)} ${n6(s.width)} ${n6(underline?.height ?? 0)} re`;
           const under = pieces.filter((s) => s.ink === void 0).map(rect).join(" ");
-          const origin = `1 0 0 1 ${n7(box4.x + line.x + run3.x)} ${n7(box4.y + line.baseline)} cm
+          const origin = `1 0 0 1 ${n6(box4.x + line.x + run3.x)} ${n6(box4.y + line.baseline)} cm
 `;
           if (d || strike || under) out += `q ${opacityGs(ink === words4.ink ? words4.inkOpacity : void 0)}${color5(ink, "rg")} ${origin}${under ? `${under} f
 ` : ""}${d ? `${svgPath2(d)}f
-` : ""}${strike && strike.width > 0 ? `0 ${n7(strike.y)} ${n7(strike.width)} ${n7(strike.height)} re f
+` : ""}${strike && strike.width > 0 ? `0 ${n6(strike.y)} ${n6(strike.width)} ${n6(strike.height)} re f
 ` : ""}Q
 `;
           for (const s of pieces) {
@@ -166830,7 +166895,7 @@ Q
         const sx2 = op.pose.flipH ? -1 : 1, sy2 = op.pose.flipV ? -1 : 1;
         const cos2 = Math.cos(a), sin2 = Math.sin(a);
         const m2 = [cos2 * sx2, sin2 * sx2, -sin2 * sy2, cos2 * sy2];
-        inner += `${m2.map(n7).join(" ")} ${n7(cx2 - m2[0] * cx2 - m2[2] * cy3)} ${n7(cy3 - m2[1] * cx2 - m2[3] * cy3)} cm
+        inner += `${m2.map(n6).join(" ")} ${n6(cx2 - m2[0] * cx2 - m2[2] * cy3)} ${n6(cy3 - m2[1] * cx2 - m2[3] * cy3)} cm
 `;
       }
       if (op.op === "shape") inner += shapeBody(op);
@@ -166842,7 +166907,7 @@ Q
       let out = "q\n";
       if (op.clip?.points.length) {
         const [first, ...rest2] = op.clip.points;
-        out += `${n7(first[0])} ${n7(first[1])} m ${rest2.map(([x, y]) => `${n7(x)} ${n7(y)} l`).join(" ")} h W n
+        out += `${n6(first[0])} ${n6(first[1])} m ${rest2.map(([x, y]) => `${n6(x)} ${n6(y)} l`).join(" ")} h W n
 `;
       }
       const blend2 = op.blend ? BLEND[op.blend] : void 0;
@@ -166854,7 +166919,7 @@ Q
         res = outer;
         objects.flate(form, `/Type /XObject /Subtype /Form /BBox [-100000 -100000 100000 100000] /Group << /Type /Group /S /Transparency >> /Resources ${formRes.dict()}`, text12);
         const xname = res.name("xobject", `f ${form}`, () => form);
-        const gs = res.name("gs", `g ${n7(op.opacity / 100)} ${blend2 ?? ""}`, () => `<< /ca ${n7(op.opacity / 100)} /CA ${n7(op.opacity / 100)}${blend2 ? ` /BM /${blend2}` : ""} >>`);
+        const gs = res.name("gs", `g ${n6(op.opacity / 100)} ${blend2 ?? ""}`, () => `<< /ca ${n6(op.opacity / 100)} /CA ${n6(op.opacity / 100)}${blend2 ? ` /BM /${blend2}` : ""} >>`);
         out += `/${gs} gs /${xname} Do
 `;
       } else out += body(op);
@@ -166862,10 +166927,10 @@ Q
 `;
     };
     const sx = art.w / page3.width, sy = art.h / page3.height;
-    let content2 = `1 0 0 -1 0 ${n7(item2.size.h)} cm ${n7(sx)} 0 0 ${n7(sy)} ${n7(art.x)} ${n7(art.y)} cm
+    let content2 = `1 0 0 -1 0 ${n6(item2.size.h)} cm ${n6(sx)} 0 0 ${n6(sy)} ${n6(art.x)} ${n6(art.y)} cm
 `;
     if (page3.frame) content2 += paint2(page3.frame);
-    else if (page3.background) content2 += `q ${color5(page3.background, "rg")} 0 0 ${n7(page3.width)} ${n7(page3.height)} re f Q
+    else if (page3.background) content2 += `q ${color5(page3.background, "rg")} 0 0 ${n6(page3.width)} ${n6(page3.height)} re f Q
 `;
     const rows2 = page3.ops.map(paint2).join("");
     content2 += page3.clip && rows2 ? `q
@@ -166873,7 +166938,7 @@ ${clipTo(page3.clip)}${rows2}Q
 ` : rows2;
     const contents = objects.reserve(), pageNum = objects.reserve();
     objects.flate(contents, "", content2);
-    objects.put(pageNum, `<< /Type /Page /Parent ${pagesNum} 0 R /MediaBox [0 0 ${n7(item2.size.w)} ${n7(item2.size.h)}] /Resources ${pageRes.dict()} /Contents ${contents} 0 R /Group << /Type /Group /S /Transparency /CS /DeviceRGB >> >>`);
+    objects.put(pageNum, `<< /Type /Page /Parent ${pagesNum} 0 R /MediaBox [0 0 ${n6(item2.size.w)} ${n6(item2.size.h)}] /Resources ${pageRes.dict()} /Contents ${contents} 0 R /Group << /Type /Group /S /Transparency /CS /DeviceRGB >> >>`);
     kids2.push(pageNum);
   }
   objects.put(pagesNum, `<< /Type /Pages /Kids [${kids2.map((k) => `${k} 0 R`).join(" ")}] /Count ${kids2.length} >>`);
@@ -166895,7 +166960,7 @@ var init_design_draw_pdf = __esm({
     init_png_unfilter();
     init_svg_path();
     enc5 = new TextEncoder();
-    color5 = (hex3, op) => `${rgb2(hex3).map(n7).join(" ")} ${op}`;
+    color5 = (hex3, op) => `${rgb2(hex3).map(n6).join(" ")} ${op}`;
     PdfObjects = class {
       bodies = [null];
       reserve() {
@@ -167472,7 +167537,7 @@ async function encryptPdfStrong(blob, password) {
   const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(new Uint8Array(await blob.arrayBuffer()), { updateMetadata: false });
   const ctx = doc.context;
-  const rnd = (n8) => globalThis.crypto.getRandomValues(new Uint8Array(n8));
+  const rnd = (n7) => globalThis.crypto.getRandomValues(new Uint8Array(n7));
   const hexU = (b) => {
     let s = "";
     for (const x of b) s += x.toString(16).padStart(2, "0");
@@ -167566,7 +167631,7 @@ function provenanceLabels(meta) {
   return { topLeft: topLeft2, topRight, bottomLeftUp: meta.tool ? credit : "" };
 }
 function formatStamp(d) {
-  const p = (n8) => String(n8).padStart(2, "0");
+  const p = (n7) => String(n7).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 function setPageBoxes(page3, geo) {
@@ -168261,15 +168326,15 @@ var init_motion_inspect = __esm({
     init_motion_report();
     run = promisify2(execFile);
     rate = (value2) => {
-      const [n8, d = "1"] = value2.split("/");
-      const out = Number(n8) / Number(d);
+      const [n7, d = "1"] = value2.split("/");
+      const out = Number(n7) / Number(d);
       return Number.isFinite(out) && out > 0 ? out : void 0;
     };
     measurement = (text12, pattern) => {
       const raw = [...text12.matchAll(pattern)].at(-1)?.[1];
       if (raw === void 0) return void 0;
-      const n8 = Number(raw);
-      return Number.isFinite(n8) ? n8 : null;
+      const n7 = Number(raw);
+      return Number.isFinite(n7) ? n7 : null;
     };
   }
 });
@@ -168332,7 +168397,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     const sampleBudget = times.length * width * height <= 16e6;
     const indices = sampleBudget ? [...new Set(times.map((t) => Math.round(t * contract2.motion.fps)))] : [];
     if (!sampleBudget) facts2.limitations.push("motion-sample-pixel-budget");
-    const selection = indices.length ? `,select='${indices.map((n8) => `eq(n,${n8})`).join("+")}'` : "";
+    const selection = indices.length ? `,select='${indices.map((n7) => `eq(n,${n7})`).join("+")}'` : "";
     const args = [
       "-hide_banner",
       "-nostdin",
@@ -168589,7 +168654,7 @@ var init_production2 = __esm({
               valid: root2.localName === "svg" && root2.namespaceURI === "http://www.w3.org/2000/svg",
               width: root2.getAttribute("width"),
               height: root2.getAttribute("height"),
-              nodes: [root2, ...Array.from(root2.getElementsByTagName("*"))].filter((n8) => wanted.has(n8.id)).map((n8) => ({ id: n8.id, name: n8.namespaceURI === "http://www.w3.org/2000/svg" ? n8.localName : "unsupported", text: n8.textContent ?? "", href: n8.getAttribute("href") ?? n8.getAttributeNS("http://www.w3.org/1999/xlink", "href") ?? "", xml: n8.outerHTML }))
+              nodes: [root2, ...Array.from(root2.getElementsByTagName("*"))].filter((n7) => wanted.has(n7.id)).map((n7) => ({ id: n7.id, name: n7.namespaceURI === "http://www.w3.org/2000/svg" ? n7.localName : "unsupported", text: n7.textContent ?? "", href: n7.getAttribute("href") ?? n7.getAttributeNS("http://www.w3.org/1999/xlink", "href") ?? "", xml: n7.outerHTML }))
             };
           } finally {
             dom.window.close();
@@ -169863,20 +169928,20 @@ function covers3(node, w, h) {
   const iy = Math.max(0, Math.min(node.yEmu + node.cyEmu, h) - Math.max(node.yEmu, 0));
   return w > 0 && h > 0 && ix * iy / (w * h) >= COVER;
 }
-function groundOf2(slide, n8, w, h) {
-  let ground = { slide: n8, unknown: true };
+function groundOf2(slide, n7, w, h) {
+  let ground = { slide: n7, unknown: true };
   const bg = slide.background;
-  if (bg?.media) ground = { slide: n8, photo: true };
+  if (bg?.media) ground = { slide: n7, photo: true };
   else if (bg && !bg.gradient) {
     const hex3 = hexOf8(bg.color);
-    if (hex3 && hex3.length === 7) ground = { slide: n8, hex: hex3 };
+    if (hex3 && hex3.length === 7) ground = { slide: n7, hex: hex3 };
   }
   for (const node of [...slide.inherited ?? [], ...slide.nodes]) {
     if (!covers3(node, w, h)) continue;
-    if (node.type === "pic") ground = { slide: n8, photo: true };
+    if (node.type === "pic") ground = { slide: n7, photo: true };
     else if ((node.type === "shape" || node.type === "text") && !node.gradient) {
       const hex3 = hexOf8(node.fill);
-      if (hex3 && hex3.length === 7) ground = { slide: n8, hex: hex3 };
+      if (hex3 && hex3.length === 7) ground = { slide: n7, hex: hex3 };
     }
   }
   return ground;
@@ -169889,19 +169954,19 @@ async function readPptxBrand(bytes2) {
   const w = deck.widthEmu;
   const h = deck.heightEmu;
   deck.slides.forEach((slide, i) => {
-    const n8 = i + 1;
-    const frame = `slide-${n8}`;
+    const n7 = i + 1;
+    const frame = `slide-${n7}`;
     const add3 = (row) => {
       rows2.push({ frame, ...row });
-      slideOf.set(String(row.id), n8);
+      slideOf.set(String(row.id), n7);
     };
-    rows2.push({ id: frame, kind: "frame", name: `Slide ${n8}`, x: 0, y: 0, w: 1, h: 1, ...hexOf8(slide.background?.color) && !slide.background?.gradient ? { bg: hexOf8(slide.background?.color) } : {} });
-    slideOf.set(frame, n8);
-    grounds.push(groundOf2(slide, n8, w, h));
+    rows2.push({ id: frame, kind: "frame", name: `Slide ${n7}`, x: 0, y: 0, w: 1, h: 1, ...hexOf8(slide.background?.color) && !slide.background?.gradient ? { bg: hexOf8(slide.background?.color) } : {} });
+    slideOf.set(frame, n7);
+    grounds.push(groundOf2(slide, n7, w, h));
     [...slide.inherited ?? [], ...slide.nodes].forEach((node, j) => {
       const id3 = `${frame}-${j + 1}`;
       const alt = node.alt;
-      const name = typeof alt === "string" && alt.trim() ? alt.trim().slice(0, 80) : `Slide ${n8} shape ${j + 1}`;
+      const name = typeof alt === "string" && alt.trim() ? alt.trim().slice(0, 80) : `Slide ${n7} shape ${j + 1}`;
       if (node.type === "shape") {
         const bg = node.gradient ? null : hexOf8(node.fill);
         const stroke = node.lineGradient ? null : hexOf8(node.line);
@@ -170036,7 +170101,7 @@ function passiveForensicSvg(source, parse2 = (source2) => new DOMParser().parseF
   const vb = (root2.getAttribute("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
   const width = vb.length === 4 ? vb[2] : Number.parseFloat(root2.getAttribute("width") ?? "1200");
   const height = vb.length === 4 ? vb[3] : Number.parseFloat(root2.getAttribute("height") ?? "1200");
-  if (![width, height].every((n8) => Number.isFinite(n8) && n8 > 0 && n8 <= 5e4))
+  if (![width, height].every((n7) => Number.isFinite(n7) && n7 > 0 && n7 <= 5e4))
     throw new Error("Invalid SVG dimensions.");
   const originX = vb.length === 4 ? vb[0] : 0, originY = vb.length === 4 ? vb[1] : 0;
   root2.setAttribute("width", String(width));
@@ -170330,7 +170395,7 @@ async function inspectForensicBytes(bytes2, name, opts = {}) {
         const deck = readPptx(parts, parse2);
         for (const [index2, slide] of deck.slides.slice(0, cap).entries()) {
           const text12 = slide.nodes.flatMap(
-            (n8) => n8.type === "text" ? n8.paras.map((p) => p.runs.map((r5) => r5.text).join("")) : n8.type === "table" ? n8.rows.map((r5) => r5.join(" ")) : []
+            (n7) => n7.type === "text" ? n7.paras.map((p) => p.runs.map((r5) => r5.text).join("")) : n7.type === "table" ? n7.rows.map((r5) => r5.join(" ")) : []
           ).join("\n");
           pages.push(make(String(index2 + 1), text12));
         }
@@ -170673,10 +170738,10 @@ function contentInventoryProblems(value2) {
         });
       const notes = slide.notes;
       if (notes !== null && need(record39(notes), `${at}/notes`, "must be null or an object")) {
-        const n8 = notes;
-        need(isStr(n8.text), `${at}/notes/text`, "must be a string");
+        const n7 = notes;
+        need(isStr(n7.text), `${at}/notes/text`, "must be a string");
         need(
-          Array.isArray(n8.paragraphs) && n8.paragraphs.every((p) => record39(p) && Array.isArray(p.lines) && p.lines.every(isStr)),
+          Array.isArray(n7.paragraphs) && n7.paragraphs.every((p) => record39(p) && Array.isArray(p.lines) && p.lines.every(isStr)),
           `${at}/notes/paragraphs`,
           "must be paragraphs of string lines"
         );
@@ -170845,7 +170910,7 @@ async function textMeasureFamily(input, ds, opts, lookup4) {
   for (const { layerId, index: index2, measure: measure3 } of report4.measured) {
     const row = rows2[index2];
     const text12 = String(row.text ?? "");
-    if (!text12.trim() || measure3.notes.some((n8) => n8.includes("fitText"))) continue;
+    if (!text12.trim() || measure3.notes.some((n7) => n7.includes("fitText"))) continue;
     if (measure3.uncovered?.length) {
       fallback++;
       continue;
@@ -171435,10 +171500,10 @@ var init_check = __esm({
       }
     };
     record39 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    plural7 = (n8, one, many = `${one}s`) => `${n8} ${n8 === 1 ? one : many}`;
+    plural7 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     finite6 = (v, fallback = 0) => {
-      const n8 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
-      return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
+      const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
+      return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
     sha2562 = (bytes2) => createHash10("sha256").update(bytes2).digest("hex");
     zero = () => ({ error: 0, warn: 0, info: 0 });
@@ -171520,7 +171585,7 @@ function gradSvg(row, box4, id3, slideIndex, opts) {
     fill: `url(#${id3})`
   };
 }
-function rowSvg(row, bytesOf4, slideIndex, n8, opts) {
+function rowSvg(row, bytesOf4, slideIndex, n7, opts) {
   const box4 = boxOf5(row);
   if (!box4 || hiddenRow(row)) return { svg: "", picture: null };
   const rawOpacity = row.opacity === void 0 || row.opacity === null || row.opacity === "" ? 100 : Number(row.opacity);
@@ -171556,7 +171621,7 @@ function rowSvg(row, bytesOf4, slideIndex, n8, opts) {
       if (paint2.alpha > 0) parts.push(rect(paint2.hex, paint2.alpha));
     }
     if (typeof row.grad === "string" && row.grad.trim()) {
-      const grad = gradSvg(row, box4, `g${slideIndex}-${n8}`, slideIndex, opts);
+      const grad = gradSvg(row, box4, `g${slideIndex}-${n7}`, slideIndex, opts);
       if ("refused" in grad) return grad;
       parts.push(`<defs>${grad.defs}</defs>${rect(grad.fill)}`);
     }
@@ -171621,9 +171686,9 @@ async function measureComposePhotos(spec, size, bytesOf4, marks, opts = {}) {
     let covered = false;
     let refused = null;
     const parts = [];
-    for (const [n8, row] of slide.under.entries()) {
+    for (const [n7, row] of slide.under.entries()) {
       if (!record42(row)) continue;
-      const drawn = rowSvg(row, bytesOf4, index2, n8, opts);
+      const drawn = rowSvg(row, bytesOf4, index2, n7, opts);
       const box4 = boxOf5(row);
       const isPicture = row.kind === "image" || row.kind === void 0 && row.image !== void 0;
       if (isPicture && box4 && !hiddenRow(row)) {
@@ -171632,7 +171697,7 @@ async function measureComposePhotos(spec, size, bytesOf4, marks, opts = {}) {
         if (across * down / (size.width * size.height) >= PHOTO_COVER2) covered = true;
       }
       if ("refused" in drawn) {
-        refused ??= { reason: `under row ${n8 + 1}${typeof row.id === "string" ? ` (${row.id})` : ""}: ${drawn.refused}`, quiet: drawn.quiet === true };
+        refused ??= { reason: `under row ${n7 + 1}${typeof row.id === "string" ? ` (${row.id})` : ""}: ${drawn.refused}`, quiet: drawn.quiet === true };
         continue;
       }
       if (drawn.svg) parts.push(drawn.svg);
@@ -172844,8 +172909,8 @@ function isDegenerateSvg(bytes2) {
 function attrNum(tag3, name) {
   const m2 = tag3.match(new RegExp(`${name}\\s*=\\s*["']([^"']*)["']`, "i"));
   if (!m2) return NaN;
-  const n8 = parseFloat(m2[1]);
-  return Number.isFinite(n8) ? n8 : NaN;
+  const n7 = parseFloat(m2[1]);
+  return Number.isFinite(n7) ? n7 : NaN;
 }
 function utf83(bytes2) {
   return Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength).toString("utf8");
@@ -173283,8 +173348,8 @@ function len(v, total = 0) {
   if (v == null) return 0;
   const s = String(v).trim();
   if (s.endsWith("%")) return parseFloat(s) / 100 * total;
-  const n8 = parseFloat(s);
-  return Number.isFinite(n8) ? n8 : 0;
+  const n7 = parseFloat(s);
+  return Number.isFinite(n7) ? n7 : 0;
 }
 function rectPath(x, y, w, h, rx, ry) {
   if (w <= 0 || h <= 0) return "";
@@ -173305,14 +173370,14 @@ function pointsPath(str11, close) {
   return d + (close ? " Z" : "");
 }
 var IDENTITY6 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
-function matMul6(m2, n8) {
+function matMul6(m2, n7) {
   return {
-    a: m2.a * n8.a + m2.c * n8.b,
-    b: m2.b * n8.a + m2.d * n8.b,
-    c: m2.a * n8.c + m2.c * n8.d,
-    d: m2.b * n8.c + m2.d * n8.d,
-    e: m2.a * n8.e + m2.c * n8.f + m2.e,
-    f: m2.b * n8.e + m2.d * n8.f + m2.f
+    a: m2.a * n7.a + m2.c * n7.b,
+    b: m2.b * n7.a + m2.d * n7.b,
+    c: m2.a * n7.c + m2.c * n7.d,
+    d: m2.b * n7.c + m2.d * n7.d,
+    e: m2.a * n7.e + m2.c * n7.f + m2.e,
+    f: m2.b * n7.e + m2.d * n7.f + m2.f
   };
 }
 function parseTransformList(str11) {
@@ -173320,7 +173385,7 @@ function parseTransformList(str11) {
   const re = /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/gi;
   for (const hit of str11.matchAll(re)) {
     const fn = (hit[1] ?? "").toLowerCase();
-    const a = (hit[2] ?? "").split(/[\s,]+/).map(parseFloat).filter((n8) => !Number.isNaN(n8));
+    const a = (hit[2] ?? "").split(/[\s,]+/).map(parseFloat).filter((n7) => !Number.isNaN(n7));
     const g2 = (i, d) => {
       const v = a[i];
       return typeof v === "number" && Number.isFinite(v) ? v : d;
@@ -173460,8 +173525,8 @@ async function svgDomToIr(svgEl, ctx = {}) {
   const pxAttr = (name) => {
     const a = svgEl.getAttribute(name);
     if (!a || /%/.test(a)) return NaN;
-    const n8 = parseFloat(a);
-    return Number.isFinite(n8) && n8 > 0 ? n8 : NaN;
+    const n7 = parseFloat(a);
+    return Number.isFinite(n7) && n7 > 0 ? n7 : NaN;
   };
   if (!hasVb) {
     vbW = pxAttr("width") || 0;
@@ -174465,13 +174530,13 @@ function parseUnicodeRange(spec) {
   return out;
 }
 function coverageCount(ranges, text12) {
-  let n8 = 0;
+  let n7 = 0;
   for (const ch of text12) {
     if (/\s/.test(ch)) continue;
     const cp = ch.codePointAt(0);
-    if (!ranges.length || ranges.some(([lo, hi]) => cp >= lo && cp <= hi)) n8++;
+    if (!ranges.length || ranges.some(([lo, hi]) => cp >= lo && cp <= hi)) n7++;
   }
-  return n8;
+  return n7;
 }
 var weightRange = (weight) => {
   const parts = weight.trim().split(/\s+/).map(Number);
@@ -174956,7 +175021,7 @@ async function runDriveSteps(page3, steps, opts = {}) {
     await page3.waitForTimeout(DRIVE_SETTLE_MS);
   }
 }
-var clamp0115 = (n8) => Number.isFinite(n8) ? Math.min(0.9, Math.max(0, n8)) : 0;
+var clamp0115 = (n7) => Number.isFinite(n7) ? Math.min(0.9, Math.max(0, n7)) : 0;
 function recolorCss(p) {
   switch (p.recolor) {
     case "invert":
@@ -175903,17 +175968,17 @@ var REDACT_DPI_MIN = 72;
 var REDACT_DPI_MAX = 300;
 var BAR_INFLATE_PX = 2;
 function clampDpi(dpi) {
-  const n8 = Number(dpi);
-  if (!isFinite(n8)) return REDACT_DPI_DEFAULT;
-  return Math.min(REDACT_DPI_MAX, Math.max(REDACT_DPI_MIN, n8));
+  const n7 = Number(dpi);
+  if (!isFinite(n7)) return REDACT_DPI_DEFAULT;
+  return Math.min(REDACT_DPI_MAX, Math.max(REDACT_DPI_MIN, n7));
 }
 var PAGES_MAX_DEFAULT = 40;
 function clampMaxPages(v) {
-  const n8 = Math.floor(Number(v));
-  return Number.isFinite(n8) && n8 >= 1 ? n8 : PAGES_MAX_DEFAULT;
+  const n7 = Math.floor(Number(v));
+  return Number.isFinite(n7) && n7 >= 1 ? n7 : PAGES_MAX_DEFAULT;
 }
 async function collectPages(count4, maxPages, renderOne, pageNumbers) {
-  const indices = pageNumbers ? [...new Set(pageNumbers)].filter((n8) => Number.isInteger(n8) && n8 >= 1 && n8 <= count4).slice(0, maxPages).map((n8) => n8 - 1) : Array.from({ length: Math.min(count4, maxPages) }, (_, i) => i);
+  const indices = pageNumbers ? [...new Set(pageNumbers)].filter((n7) => Number.isInteger(n7) && n7 >= 1 && n7 <= count4).slice(0, maxPages).map((n7) => n7 - 1) : Array.from({ length: Math.min(count4, maxPages) }, (_, i) => i);
   const pages = [];
   const failed2 = [];
   for (const i of indices) {
@@ -176343,8 +176408,8 @@ async function openPdfForRender(bytes2) {
         }
       });
       const images = {};
-      for (const n8 of nodes) {
-        const key2 = n8._imageXObject;
+      for (const n7 of nodes) {
+        const key2 = n7._imageXObject;
         if (!key2 || key2 in images) continue;
         const desc = streams.get(key2);
         if (!desc) continue;
@@ -176601,7 +176666,7 @@ function cleanWordTimings(raw, chunkDuration) {
     const prevEnd = out.length > 0 ? out[out.length - 1].end : 0;
     let start = isFiniteTime(w.start) ? w.start : prevEnd;
     start = Math.min(chunkDuration, Math.max(start, prevEnd));
-    const nextStart = kept2.slice(i + 1).find((n8) => isFiniteTime(n8.start))?.start;
+    const nextStart = kept2.slice(i + 1).find((n7) => isFiniteTime(n7.start))?.start;
     let end = isFiniteTime(w.end) ? w.end : nextStart ?? chunkDuration;
     end = Math.min(chunkDuration, Math.max(end, start));
     out.push({ text: w.text, start, end });
@@ -176832,12 +176897,12 @@ function resampleMono(pcm, from, to) {
       const a = i * ratio;
       const b = Math.min(pcm.length, Math.ceil(a + ratio));
       let sum = 0;
-      let n8 = 0;
+      let n7 = 0;
       for (let j = Math.floor(a); j < b; j++) {
         sum += pcm[j];
-        n8++;
+        n7++;
       }
-      out[i] = n8 ? sum / n8 : 0;
+      out[i] = n7 ? sum / n7 : 0;
     }
     return out;
   }
@@ -177372,8 +177437,8 @@ function prop3(el, name, getComputed) {
 }
 function coord2(v) {
   if (!v) return 0;
-  const n8 = parseFloat(String(v).trim());
-  return Number.isFinite(n8) ? n8 : 0;
+  const n7 = parseFloat(String(v).trim());
+  return Number.isFinite(n7) ? n7 : 0;
 }
 function familyStack(css2) {
   if (!css2) return [];
@@ -177385,17 +177450,17 @@ function numericWeight(v) {
   if (s === "normal") return 400;
   if (s === "lighter") return 300;
   if (s === "bolder") return 700;
-  const n8 = parseInt(s, 10);
-  return Number.isFinite(n8) ? Math.min(900, Math.max(100, n8)) : 400;
+  const n7 = parseInt(s, 10);
+  return Number.isFinite(n7) ? Math.min(900, Math.max(100, n7)) : 400;
 }
 function letterSpacingPx2(v, fontSize) {
   if (!v) return 0;
   const s = v.trim();
   if (/^normal$/i.test(s)) return 0;
-  const n8 = parseFloat(s);
-  if (!Number.isFinite(n8)) return 0;
-  if (/em$/i.test(s)) return n8 * fontSize;
-  return n8;
+  const n7 = parseFloat(s);
+  if (!Number.isFinite(n7)) return 0;
+  if (/em$/i.test(s)) return n7 * fontSize;
+  return n7;
 }
 function unplaceableReason(el) {
   if (el.children.length) return "the run contains tspan/textPath children";
@@ -177471,7 +177536,7 @@ async function outlineSvgText(svg, host, opts = {}) {
   }
   return result;
 }
-var round10 = (n8) => Math.round(n8 * 100) / 100;
+var round10 = (n7) => Math.round(n7 * 100) / 100;
 
 // shells/cli/src/exit-codes.ts
 var EXIT = {
@@ -178777,8 +178842,8 @@ function rondoCapsFor(env, hosted) {
   const base = { ...hosted ? HOSTED_RONDO_CAPS : LOCAL_RONDO_CAPS };
   const raw = env.LOLLY_MCP_RONDO_MAX_SECONDS?.trim();
   if (raw) {
-    const n8 = Number(raw);
-    if (Number.isFinite(n8) && n8 >= 1 && n8 <= LOCAL_RONDO_CAPS.maxSeconds) base.maxSeconds = n8;
+    const n7 = Number(raw);
+    if (Number.isFinite(n7) && n7 >= 1 && n7 <= LOCAL_RONDO_CAPS.maxSeconds) base.maxSeconds = n7;
   }
   return base;
 }
@@ -178808,7 +178873,7 @@ function songCredentialText(songs) {
   const lines = [];
   if (songs.recorded.length) lines.push(`Songs: ${rondoRecordedSentence(songs.recorded)}`);
   const missing = songs.expected.filter((name) => !songs.recorded.includes(name));
-  if (missing.length) lines.push(`Songs: Content Credentials in this file do not record ${missing.map((n8) => `"${n8}"`).join(", ")}.`);
+  if (missing.length) lines.push(`Songs: Content Credentials in this file do not record ${missing.map((n7) => `"${n7}"`).join(", ")}.`);
   return lines.join("\n");
 }
 
@@ -179457,8 +179522,8 @@ var HOSTED_MAX_RASTER_PIXELS = 1600 * 1600;
 function maxRasterPixelsFor(env, hosted) {
   const raw = env.LOLLY_MCP_MAX_RASTER_PIXELS?.trim();
   if (raw) {
-    const n8 = Number(raw);
-    if (Number.isSafeInteger(n8) && n8 >= 0) return n8 || void 0;
+    const n7 = Number(raw);
+    if (Number.isSafeInteger(n7) && n7 >= 0) return n7 || void 0;
   }
   return hosted ? HOSTED_MAX_RASTER_PIXELS : void 0;
 }
@@ -182545,8 +182610,8 @@ function cappedSize(frame, region, maxSide, cap) {
   return size;
 }
 var num18 = (v, dflt, lo, hi) => {
-  const n8 = Number(v);
-  return v != null && v !== "" && Number.isFinite(n8) ? Math.min(hi, Math.max(lo, n8)) : dflt;
+  const n7 = Number(v);
+  return v != null && v !== "" && Number.isFinite(n7) ? Math.min(hi, Math.max(lo, n7)) : dflt;
 };
 var r1 = (v) => Math.round(v * 10) / 10;
 async function lookAt(src, opts, ctx) {
@@ -182599,8 +182664,8 @@ async function sampleColors(src, opts, ctx) {
 }
 function sampleLine(s) {
   if (!s.hex) return `(${r1(s.x)}, ${r1(s.y)}): ${s.note ?? "transparent"}`;
-  const n8 = s.nearest;
-  return `(${r1(s.x)}, ${r1(s.y)}): ${s.hex}` + (n8 ? ` - ${n8.verdict === "match" ? "matches" : n8.verdict === "close" ? "close to" : "nearest brand colour"} ${n8.name ?? n8.path ?? n8.value} ${n8.value} (\u0394E ${n8.deltaE})` : "");
+  const n7 = s.nearest;
+  return `(${r1(s.x)}, ${r1(s.y)}): ${s.hex}` + (n7 ? ` - ${n7.verdict === "match" ? "matches" : n7.verdict === "close" ? "close to" : "nearest brand colour"} ${n7.name ?? n7.path ?? n7.value} ${n7.value} (\u0394E ${n7.deltaE})` : "");
 }
 async function traceSourceEdges(src, opts, ctx) {
   const region = clampRegion(src.frame, opts.region ?? void 0);
@@ -183570,8 +183635,8 @@ function resourceUri2(tool, sha2563, path) {
   const hex3 = sha2563.replace(/^sha256:/, "").slice(0, 12);
   return `lolly://${tool}/${hex3}/${path.split("/").map(encodeURIComponent).join("/")}`;
 }
-function plural6(n8, one, many = `${one}s`) {
-  return `${n8} ${n8 === 1 ? one : many}`;
+function plural6(n7, one, many = `${one}s`) {
+  return `${n7} ${n7 === 1 ? one : many}`;
 }
 
 // services/mcp/src/read.ts
@@ -183684,7 +183749,7 @@ function tooManySlides2(count4, max) {
   return new ToolCodeError("source.too-large", `The deck has ${count4} slides and this server reads up to ${max} in one call; run lolly read on the CLI for this deck.`);
 }
 function countsOf2(inv) {
-  const sum = (pick) => inv.slides.reduce((n8, slide) => n8 + pick(slide), 0);
+  const sum = (pick) => inv.slides.reduce((n7, slide) => n7 + pick(slide), 0);
   return {
     slides: inv.slides.length,
     text: sum((s) => s.text.length),
@@ -184631,7 +184696,7 @@ async function callCheck(args, resolveDesign, env = process.env, limits = struct
       throw new ToolCodeError("request.invalid", "pageCap is a whole number from 1 to 100.");
     if (args.strict !== void 0 && typeof args.strict !== "boolean") throw new ToolCodeError("request.invalid", "strict is true or false.");
     if (args.theme !== void 0 && (typeof args.theme !== "string" || !args.theme)) throw new ToolCodeError("request.invalid", "theme is a theme name.");
-    if (args.themes !== void 0 && args.themes !== "all" && !(Array.isArray(args.themes) && args.themes.length > 0 && args.themes.length <= 16 && args.themes.every((n8) => typeof n8 === "string" && n8)))
+    if (args.themes !== void 0 && args.themes !== "all" && !(Array.isArray(args.themes) && args.themes.length > 0 && args.themes.length <= 16 && args.themes.every((n7) => typeof n7 === "string" && n7)))
       throw new ToolCodeError("request.invalid", 'themes is "all" or a list of theme names.');
     if (isHostedServer(env) && args.source !== void 0) {
       const carried = fileArgLength(args.file) + fileArgLength(args.source);
@@ -185159,10 +185224,10 @@ var record41 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
 function numberArg(args, key2, opts = {}) {
   const raw = args[key2];
   if (raw === void 0 || raw === null) return void 0;
-  const n8 = typeof raw === "number" ? raw : typeof raw === "string" && raw.trim() ? Number(raw) : NaN;
-  if (!Number.isFinite(n8) || opts.positive && n8 <= 0 || opts.min !== void 0 && n8 < opts.min)
+  const n7 = typeof raw === "number" ? raw : typeof raw === "string" && raw.trim() ? Number(raw) : NaN;
+  if (!Number.isFinite(n7) || opts.positive && n7 <= 0 || opts.min !== void 0 && n7 < opts.min)
     throw new ToolCodeError("request.invalid", `${key2} must be ${opts.positive ? "a positive number" : opts.min !== void 0 ? `a number of at least ${opts.min}` : "a number"}.`);
-  return n8;
+  return n7;
 }
 async function profileBrief(theme) {
   try {
@@ -187012,7 +187077,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = stru
     }
     if (shape !== "design") throw new ToolCodeError("input.unsupported", "document must be a Design document (a boxes array, {boxes} or {values: {boxes}}) or a compiled document as lolly_compile returns it.");
     if (isHostedServer(env)) {
-      const carried = (Array.isArray(args.assets) ? args.assets.reduce((n8, a) => n8 + fileArgLength(a), 0) : 0) + fileArgLength(args.source);
+      const carried = (Array.isArray(args.assets) ? args.assets.reduce((n7, a) => n7 + fileArgLength(a), 0) : 0) + fileArgLength(args.source);
       if (carried > requestRoom(ctx))
         throw new ToolCodeError("asset.too-large", `The pictures and the source come to ${carried} bytes of base64 and one request here carries ${requestRoom(ctx)}; run lolly package on the CLI.`);
     }
@@ -187368,10 +187433,10 @@ var MAX_BRAND_SKILLS2 = 16;
 async function brandSkillsSettings(args) {
   const raw = args.brandSkills;
   if (raw === void 0 || raw === null) return { brandSkills: [] };
-  if (!Array.isArray(raw) || raw.some((n8) => typeof n8 !== "string" || !n8.trim())) {
+  if (!Array.isArray(raw) || raw.some((n7) => typeof n7 !== "string" || !n7.trim())) {
     return { error: 'brandSkills must be a list of brand skill names, such as ["acme-brand"].' };
   }
-  const names = [...new Set(raw.map((n8) => n8.trim()))];
+  const names = [...new Set(raw.map((n7) => n7.trim()))];
   if (names.length > MAX_BRAND_SKILLS2) return { error: `brandSkills takes at most ${MAX_BRAND_SKILLS2} skills.` };
   const audience = isHostedServer() ? "public" : "all";
   const out = [];
@@ -187392,7 +187457,7 @@ async function brandSkillsSettings(args) {
   if (unknown2.length) {
     const list4 = listProfileBrandSkills({ audience });
     const available = [...list4?.skills.map((s) => s.name) ?? [], ...list4 ? [`${list4.baseline.name} (generated)`] : []];
-    const quoted2 = unknown2.map((n8) => `"${n8}"`).join(", ");
+    const quoted2 = unknown2.map((n7) => `"${n7}"`).join(", ");
     return { error: `Unknown brand skill${unknown2.length > 1 ? "s" : ""} ${quoted2}. Available: ${available.length ? available.join(", ") : "none"}. Read lolly://design-system/skills for the list.` };
   }
   return { brandSkills: out };
@@ -187850,8 +187915,8 @@ function c2paSetting(v) {
   if (v === void 0 || v === null) return null;
   const s = String(v).toLowerCase();
   if (s === "off") return { on: false, days: null };
-  const n8 = Number(s);
-  return { on: true, days: [7, 30, 90, 365].includes(n8) ? n8 : null };
+  const n7 = Number(s);
+  return { on: true, days: [7, 30, 90, 365].includes(n7) ? n7 : null };
 }
 var renderForLook = async (args) => {
   const toolId = String(args.toolId ?? "");
@@ -188694,8 +188759,8 @@ var PrivateFileResources = class {
   }
   reserve(owner3, bytes2) {
     const entries = [...this.entries.values()];
-    const ownerBytes = entries.filter((e) => e.owner === owner3).reduce((n8, e) => n8 + e.ref.facts.size, 0) + (this.reservations.get(owner3) ?? 0);
-    const allBytes = entries.reduce((n8, e) => n8 + e.ref.facts.size, 0) + [...this.reservations.values()].reduce((a, b) => a + b, 0);
+    const ownerBytes = entries.filter((e) => e.owner === owner3).reduce((n7, e) => n7 + e.ref.facts.size, 0) + (this.reservations.get(owner3) ?? 0);
+    const allBytes = entries.reduce((n7, e) => n7 + e.ref.facts.size, 0) + [...this.reservations.values()].reduce((a, b) => a + b, 0);
     if (ownerBytes + bytes2 > OWNER_LIMIT2 || allBytes + bytes2 > GLOBAL_LIMIT2 || entries.length + this.pending >= 200) throw new Error("Private file quota reached. Delete unused handles or wait for expiry.");
     this.pending++;
     this.reservations.set(owner3, (this.reservations.get(owner3) ?? 0) + bytes2);
@@ -189387,9 +189452,9 @@ function secondsToNextUtcDay(now2) {
 }
 function limitFromEnv(raw, fallback, scale) {
   if (raw == null || raw.trim() === "") return fallback;
-  const n8 = Number(raw);
-  if (!Number.isFinite(n8) || n8 < 0) throw new Error("usage budget values must be non-negative numbers");
-  return Math.round(n8 * scale);
+  const n7 = Number(raw);
+  if (!Number.isFinite(n7) || n7 < 0) throw new Error("usage budget values must be non-negative numbers");
+  return Math.round(n7 * scale);
 }
 function budgetLimits(env) {
   const hosted = hostedDeployment(env);
@@ -189731,11 +189796,11 @@ function dimensionError(params2, raster) {
   for (const [name, alias] of [["width", "w"], ["height", "h"]]) {
     const raw = params2.get(name) ?? params2.get(alias);
     if (raw == null) continue;
-    const n8 = Number(raw);
-    if (!Number.isFinite(n8) || n8 <= 0) return `${name} must be a positive number`;
-    let value2 = n8;
+    const n7 = Number(raw);
+    if (!Number.isFinite(n7) || n7 <= 0) return `${name} must be a positive number`;
+    let value2 = n7;
     if (unit2 !== "px") {
-      const dim = parseDimension(`${n8}${unit2}`);
+      const dim = parseDimension(`${n7}${unit2}`);
       if (dim) value2 = toPixels(dim, dpi);
     }
     if (value2 > MAX_EDGE_PX) return `${name} exceeds the ${MAX_EDGE_PX}px output cap`;
@@ -189751,8 +189816,8 @@ function etagMatches(ifNoneMatch, etag) {
   return ifNoneMatch.split(",").some((t) => t.trim().replace(/^W\//, "") === etag);
 }
 function budget(raw, fallback) {
-  const n8 = Number(raw);
-  return Number.isSafeInteger(n8) && n8 > 0 ? n8 : fallback;
+  const n7 = Number(raw);
+  return Number.isSafeInteger(n7) && n7 > 0 ? n7 : fallback;
 }
 async function renderGet(path, query2, opts) {
   const env = opts.env ?? process.env;
@@ -189923,8 +189988,8 @@ function errorResponse2(status, error2, extra = {}) {
   return { status, headers: { ...NO_STORE2, ...extra }, body: JSON.stringify({ error: error2 }) };
 }
 function budget2(raw, fallback) {
-  const n8 = Number(raw);
-  return Number.isSafeInteger(n8) && n8 > 0 ? n8 : fallback;
+  const n7 = Number(raw);
+  return Number.isSafeInteger(n7) && n7 > 0 ? n7 : fallback;
 }
 var SIGNATURE_PARAM = /^(?:x-amz-.+|signature|sig|token|expires)$/i;
 function upstreamImagePolicy(url, headers) {
@@ -190031,7 +190096,7 @@ var te11 = new TextEncoder();
 var subtle10 = globalThis.crypto.subtle;
 var bytesToB64u = (bytes2) => Buffer.from(bytes2).toString("base64url");
 var b64uToBytes = (str11) => new Uint8Array(Buffer.from(String(str11), "base64url"));
-var randomB64u = (n8 = 32) => bytesToB64u(globalThis.crypto.getRandomValues(new Uint8Array(n8)));
+var randomB64u = (n7 = 32) => bytesToB64u(globalThis.crypto.getRandomValues(new Uint8Array(n7)));
 async function hmac(secret, text12) {
   if (!secret) throw new Error("signing secret is not set");
   const key2 = await subtle10.importKey("raw", te11.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
