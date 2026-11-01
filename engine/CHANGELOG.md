@@ -12,6 +12,9 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 - `separationLattice(sep, size = 33)` evaluates a separation for 8-bit raster pixels by tetrahedral interpolation over a lattice in encoded sRGB, so exact greys stay on K. Against the bundled FOGRA39-fitted profile its mean ΔE76 from the exact separation is under 0.2. `DEVICE_SEPARATION` wraps `rgbToCmyk` unchanged.
 - `buildCmykPaletteMap(palette, separate?)` and `emitEps(ir, { separate })` take the separation for colours with no CMYK lock. Both default to `rgbToCmyk`, so existing callers write the same bytes.
 - New barrel exports: `iccSeparation`, `separationLattice`, `DEVICE_SEPARATION`, `NEUTRAL_EPSILON`, `CmykSeparation`, `SeparateRgb`.
+- `readXlsx` takes an optional `formatCell` (batched): `xlsx-import.ts` now reads `xl/styles.xml` `numFmts` and `cellXfs`, maps Excel's built-in format ids to codes and hands each cell's value and code to the formatter, so cells carry their display text and date cells an ISO date. The engine loads no formatter itself; the shells supply GridCraft's number formats from a WASM module. Without `formatCell` the output is byte-identical to 1.296.
+- New barrel types: `XlsxCellFormatter`, `XlsxCellFormatRequest`, `XlsxCellFormatResult`, `XlsxCellKind`, `XlsxDateCell`.
+- The Adobe XML reader allows 512 attributes per element (was 128). Real InDesign paragraph styles carry about 180 attributes, which the old limit refused, so IDML converted from INDD could not be read.
 
 ## 1.296.0
 
