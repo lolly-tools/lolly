@@ -1,0 +1,13 @@
+[package]
+name = "indd"
+version = "0.1.0"
+edition = "2024"
+description = "Reader for INDD files and converter to IDML"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/storytold/indd-utils"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
