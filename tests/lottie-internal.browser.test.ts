@@ -64,6 +64,20 @@ test('nested layer/property edits, curves, undo, independent duplicates and save
     await editor.locator('[data-frame="10"]').click();
     await editor.locator('.ease-ed-input').fill('cubic-bezier(0.2,0,0.8,1)'); await editor.locator('.ease-ed-input').press('Tab');
     await editor.getByLabel('Property', { exact: true }).selectOption('shapes/1/c');
+    // Two channel edits made inside one write's round trip are both kept: each waits for the
+    // one before it rather than being dropped while that one is written.
+    await editor.evaluate(root => {
+      for (const [label, value] of [['R', '0.5'], ['B', '0.5']] as const) {
+        const field = root.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!;
+        field.dataset.typed = ''; field.value = value; field.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+    // Read the fields the redraw put back, not the two values typed into the old ones.
+    await page.waitForFunction(() => ['R', 'B'].every(label => {
+      const field = document.querySelector<HTMLInputElement>(`.tl-animation-editor input[aria-label="${label}"]`);
+      return field && !('typed' in field.dataset) && field.value === '0.5';
+    }));
+    await editor.getByLabel('B', { exact: true }).fill('0'); await editor.getByLabel('B', { exact: true }).press('Tab');
     await editor.getByLabel('G', { exact: true }).fill('1'); await editor.getByLabel('G', { exact: true }).press('Tab');
     await editor.getByLabel('R', { exact: true }).fill('0'); await editor.getByLabel('R', { exact: true }).press('Tab');
     await editor.getByLabel('Visible', { exact: true }).uncheck();

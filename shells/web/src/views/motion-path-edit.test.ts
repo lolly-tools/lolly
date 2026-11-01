@@ -63,6 +63,7 @@ interface Rig {
   boxes: Box[];
   commits: Box[][];
   snaps: { alt: boolean; nodes: number }[];
+  menus: { x: number; y: number; solo: boolean }[];
   handle: ReturnType<typeof mountMotionPath>;
   hits(part?: string): HTMLElement[];
   hitAt(t: number, part?: string): HTMLElement;
@@ -90,6 +91,7 @@ function rig(boxes: Box[], opts: { editable?: boolean; noPort?: boolean; snapBy?
   const state = { boxes };
   const commits: Box[][] = [];
   const snaps: { alt: boolean; nodes: number }[] = [];
+  const menus: { x: number; y: number; solo: boolean }[] = [];
   const handle = mountMotionPath({
     overlayEl: overlay, geom, time,
     getBoxes: () => state.boxes,
@@ -104,11 +106,12 @@ function rig(boxes: Box[], opts: { editable?: boolean; noPort?: boolean; snapBy?
           return alt || !opts.snapBy ? at : { x: at.x + opts.snapBy.x, y: at.y + opts.snapBy.y };
         },
         clearGuides: () => {},
+        menu: (x: number, y: number, solo: boolean) => { menus.push({ x, y, solo }); },
       },
     }),
   });
   const r: Rig = {
-    overlay, canvasEl, commits, snaps, handle,
+    overlay, canvasEl, commits, snaps, menus, handle,
     get boxes() { return state.boxes; },
     hits: (part) => [...overlay.querySelectorAll<HTMLElement>(part ? `.mp-hit[data-part="${part}"]` : '.mp-hit')],
     hitAt: (t, part = 'key') => overlay.querySelector<HTMLElement>(`.mp-hit[data-t="${t}"][data-part="${part}"]`)!,
@@ -152,6 +155,25 @@ test('no edit port, or a box the port refuses: nothing is a target and nothing c
       assert.ok(r.overlay.querySelectorAll('.mp-key').length > 0, 'the path itself still draws');
     } finally { r.teardown(); }
   }
+});
+
+test('a right-click on a point opens the canvas menu there, not the browser\'s, and selects nothing', () => {
+  const r = rig([mover()]);
+  try {
+    // Key 0 is the box at rest, so its target sits on the box's centre (200, 150).
+    const hit = r.hitAt(0);
+    fire(hit, 'pointerdown', cx(200), cy(150), { button: 2 });
+    fire(dom.window, 'pointerup', cx(200), cy(150), { button: 2 });
+    const menu = new dom.window.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: cx(200), clientY: cy(150), button: 2, altKey: true });
+    hit.dispatchEvent(menu);
+    assert.equal(menu.defaultPrevented, true, 'the browser keeps its own menu shut');
+    assert.deepEqual(r.menus, [{ x: cx(200), y: cy(150), solo: true }], 'the canvas menu opens at the press, Alt passed on');
+    assert.equal(r.overlay.querySelector('.mp-chip'), null, 'the secondary button selects no point');
+    assert.equal(r.commits.length, 0);
+    const line = new dom.window.MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    r.overlay.dispatchEvent(line);
+    assert.equal(r.menus.length, 1, 'only a point forwards: the rest of the overlay is left alone');
+  } finally { r.teardown(); }
 });
 
 // ── dragging a point ──────────────────────────────────────────────────────────
