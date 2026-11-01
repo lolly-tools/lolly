@@ -196,8 +196,8 @@
           "bytes": 1715
         },
         "reference/inputs.json": {
-          "sha256": "e663b2111afe2616d3a54f2bab171135e177817762baf7da872c51b7d1a1d87f",
-          "bytes": 1815
+          "sha256": "625cebfa0f8d7c17193c4e735a29b0738b0fc1de4ebabf18aaec2b3a28e6d408",
+          "bytes": 1859
         }
       },
       "path": "battlecards/SKILL.md"
