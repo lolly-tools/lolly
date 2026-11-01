@@ -23,6 +23,7 @@ Tvůj designový systém určuje, jak vypadá každý nástroj.
 - **[Design System Setup](/info/brand-studio.html)** - loga, barvy, písmo a zbytek, nastavené jednou na `#/start`.
 - **[Lolly Demo v praxi](/info/lolly-demo-in-use.html)** - colourways na skutečné práci a přepnutí na vlastní designový systém.
 - **[Architektury značek](/info/brand-architectures.html)** - několik designových systémů, nebo jeden s několika colourways, pro jednu organizaci.
+- **[Společná práce s partnery](/info/partners.html)** - sdílej svou značku s partnerem, pracuj ve značce, kterou jsi dostal, a vytvoř stěnu sponzorů.
 - **[Import návrhu](/info/design-import.html)** - soubor `.fig`, `.penpot`, `.ai`, `.idml` nebo SVG otevřený jako upravitelné rozvržení, ne plochý obrázek.
 - **[Rebrand prezentace](/info/rebrand.html)** - prezentace PowerPoint přenesená do tvého designového systému, s grafy a animacemi nedotčenými.
 - **[Sdílej návrh s pravidly](/info/create-a-tool.html)** - změň rozvržení na nástroj, který vyplňují ostatní.

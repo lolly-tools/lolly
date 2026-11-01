@@ -1447,7 +1447,7 @@
       "id": "lolly/icons/search",
       "name": "Search",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -1462,7 +1462,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/search.svg",
-          "checksum": "sha256-YnSrsRHE7NDqxpazFERDM9pYY16tPGQHOMF44hyfvkM=",
+          "checksum": "sha256-3va3FbRrrTH6qB/gy81EVSOICk8wJpaukx0wMxFbGTk=",
           "size": 1513
         }
       ],
@@ -1837,7 +1837,7 @@
       "id": "lolly/icons/graduation-cap",
       "name": "Graduation Cap",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -1852,7 +1852,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/graduation-cap.svg",
-          "checksum": "sha256-HY9iTO0Ret7nnzTju0URxKk9CL2MDBEoAQJNURLutNc=",
+          "checksum": "sha256-5e/LhPqnVINQ5WIKg33zgBWhBMEMh2ItQQ3a+n/dvJY=",
           "size": 2300
         }
       ],
@@ -2101,7 +2101,7 @@
       "id": "lolly/icons/package",
       "name": "Package",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2117,7 +2117,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/package.svg",
-          "checksum": "sha256-Bzh43OpUZX2m4GOJCeq+mOcmiDSmRPJZ5oxMzfI3aAQ=",
+          "checksum": "sha256-EAFY2Y4kL6Pt1c61D2thyc31OCZ5eqDxOeOTEGVjrc0=",
           "size": 2394
         }
       ],
@@ -2154,7 +2154,7 @@
       "id": "lolly/icons/megaphone",
       "name": "Megaphone",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2169,7 +2169,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/megaphone.svg",
-          "checksum": "sha256-r+u6/PY8JZaRlnpIYUE+xPMbwENE7ZxoNCS9pt8PygU=",
+          "checksum": "sha256-zYhfDvvK09h6dCNZ9mHkuNP/oUnl32TOCeTYBP2L8zA=",
           "size": 1581
         }
       ],
@@ -2180,7 +2180,7 @@
       "id": "lolly/icons/images",
       "name": "Images",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2195,7 +2195,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/images.svg",
-          "checksum": "sha256-Jwn/7UO9fTwrEzWSoZ+NbmatjGaiflcrVbx7KiYj4Ww=",
+          "checksum": "sha256-P1zZeGBaeutcR0yuEVBVEyUExr0MQYZIds5H1hQ3+dM=",
           "size": 3940
         }
       ],
@@ -2260,7 +2260,7 @@
       "id": "lolly/icons/film",
       "name": "Film",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2276,7 +2276,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/film.svg",
-          "checksum": "sha256-QQ5oGNHjG8Jbr9NEWKzmRWA+VxWG1m5jTzw2FZ3/qJc=",
+          "checksum": "sha256-Y+OTHvsu3fwzvFMqC6mqy6sQv8acuGk6rHfJnzuCW+I=",
           "size": 2033
         }
       ],
@@ -2394,7 +2394,7 @@
       "id": "lolly/icons/globe",
       "name": "Globe",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2410,7 +2410,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/globe.svg",
-          "checksum": "sha256-SMQb6Urszso66NBOOdExV+7sMDLNxHJnkpnhBmQFPVU=",
+          "checksum": "sha256-1CkVcN2fx8tK5MEM8RuiK7HNEZjs5YEY7yevUskSpaA=",
           "size": 2388
         }
       ],
@@ -2447,7 +2447,7 @@
       "id": "lolly/icons/box",
       "name": "Box",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2462,7 +2462,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/box.svg",
-          "checksum": "sha256-liUzVdnhF9jszJxe50CrdGm1lN8OxXhzlnfZ/XVwycI=",
+          "checksum": "sha256-S0Eh9ep9xU6Nj7pj2HDEv7erk7McakDE+2QjKQEQlbM=",
           "size": 2890
         }
       ],
@@ -2473,7 +2473,7 @@
       "id": "lolly/icons/hammer",
       "name": "Hammer",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2488,7 +2488,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/hammer.svg",
-          "checksum": "sha256-AW5ifapkcadEnQnJ66sOgMdeaT/eGUuzjEMzMZyT6bc=",
+          "checksum": "sha256-xodrf0Ec87PmGRqhMejLWs6MZQqEfaPgzPgdve/n68U=",
           "size": 2933
         }
       ],
@@ -2499,7 +2499,7 @@
       "id": "lolly/icons/flask",
       "name": "Flask",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2515,7 +2515,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/flask.svg",
-          "checksum": "sha256-9+coZROoWg/IFEHJK6wTVmIzSw6boMlKc2ZzTflxOcw=",
+          "checksum": "sha256-8g48KgeDNEahhskr+E98LatmDCL2AhSWWnDvX1cQHR4=",
           "size": 2365
         }
       ],
@@ -2606,7 +2606,7 @@
       "id": "lolly/icons/image",
       "name": "Image",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2621,7 +2621,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/image.svg",
-          "checksum": "sha256-u2rcPH/ag46pryjInjUEyBApPc5Dp/+AtZiszHSGpl4=",
+          "checksum": "sha256-Bg9GOwMbg9zcaC2jtK2sSrhdM0njBZ2Z/w1Gocf0pMU=",
           "size": 2990
         }
       ],
@@ -2658,7 +2658,7 @@
       "id": "lolly/icons/file",
       "name": "File",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2673,7 +2673,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/file.svg",
-          "checksum": "sha256-k5pSGZD4iE5t6A9XDfIOIxn0Sm8id/SdAndruCC/FOs=",
+          "checksum": "sha256-j0yeJtfkFk+fp9NeUzzUQPD+imjj0LOWMPap0KXIZk8=",
           "size": 1290
         }
       ],
@@ -2841,7 +2841,7 @@
       "id": "lolly/icons/award",
       "name": "Award",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2857,7 +2857,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/award.svg",
-          "checksum": "sha256-+iKCCx+kViETUHYy3mNKtsPl7EZzoiaZ9ZKAkYuSvQ8=",
+          "checksum": "sha256-e3WSdGUSVm1O7j0K4pPJnIhEge2phBSrdVMF47UI3bs=",
           "size": 1764
         }
       ],
@@ -2946,7 +2946,7 @@
       "id": "lolly/icons/lock",
       "name": "Lock",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -2961,7 +2961,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/lock.svg",
-          "checksum": "sha256-fFDR7JWqw18SLT86ajhejh+rLAEoYSrX1H5u7z4Eq90=",
+          "checksum": "sha256-b/bE7YRx44UvDNY8kyzIQznwLcbwoHYBOUwjsDzDWQ8=",
           "size": 3798
         }
       ],
@@ -3184,7 +3184,7 @@
       "id": "lolly/icons/table",
       "name": "Table",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -3200,7 +3200,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/table.svg",
-          "checksum": "sha256-jPUQHfocW5mnDZZ1yjCuk5EZzXJQEr4xZi2XJikBkOg=",
+          "checksum": "sha256-k2mheQ8c026S/UZngt+k54DvN0YWGDCoF/DRWN0LLGc=",
           "size": 1605
         }
       ],
@@ -3316,7 +3316,7 @@
       "id": "lolly/icons/monitor",
       "name": "Monitor",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -3332,7 +3332,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/monitor.svg",
-          "checksum": "sha256-aA//ph3aO1kJ1aM4PcWCah6mC03lLPm2NHVKaUakqAY=",
+          "checksum": "sha256-3HImzLz0r0AGgoSv+js+d/oBg7eHSQgfRatn4UTbYso=",
           "size": 1538
         }
       ],
@@ -3607,7 +3607,7 @@
       "id": "lolly/icons/bird",
       "name": "Bird",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -3623,7 +3623,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/bird.svg",
-          "checksum": "sha256-tfX+n0LZSH+PXMnQjRKhOq9t5UDMTdlGvyxGSzIulkI=",
+          "checksum": "sha256-aceMsMsxQ8/jkxNunHj/WGG++SeW6fcCLnUdyf9P0cA=",
           "size": 2525
         }
       ],
@@ -3714,7 +3714,7 @@
       "id": "lolly/icons/train",
       "name": "Train",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "icon",
@@ -3730,7 +3730,7 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/icons/train.svg",
-          "checksum": "sha256-F0m4PdUrDNMRyE4BJoz0EevjD+mrDyGdB9MIZEFQs9k=",
+          "checksum": "sha256-xMDhQel0ykfmKX7XRAoB+J0ZwfdFr7gNqY4jRsvwWek=",
           "size": 2414
         }
       ],

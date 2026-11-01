@@ -23,6 +23,7 @@
 - **[Design System Setup](/info/brand-studio.html)** - লোগো, রঙ, টাইপ ও বাকি সব, `#/start`-এ একবার সেট করা।
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - আসল কাজে কালারওয়ে, এবং নিজের ডিজাইন সিস্টেমে যাওয়া।
 - **[Brand architectures](/info/brand-architectures.html)** - একটি প্রতিষ্ঠানের জন্য কয়েকটি ডিজাইন সিস্টেম, বা কয়েকটি কালারওয়েসহ একটি।
+- **[অংশীদারদের সঙ্গে কাজ](/info/partners.html)** - অংশীদারের সঙ্গে আপনার ব্র্যান্ড ভাগ করুন, আপনাকে দেওয়া ব্র্যান্ডে কাজ করুন এবং স্পনসর ওয়াল বানান।
 - **[Import a design](/info/design-import.html)** - একটি `.fig`, `.penpot`, `.ai`, `.idml` বা SVG ফাইল সমতল ছবির বদলে সম্পাদনাযোগ্য লেআউট হিসেবে খোলা।
 - **[Rebrand a deck](/info/rebrand.html)** - একটি PowerPoint ডেক আপনার ডিজাইন সিস্টেমে নেওয়া, চার্ট ও অ্যানিমেশন অক্ষত রেখে।
 - **[Share a design with rules](/info/create-a-tool.html)** - একটি লেআউটকে এমন টুলে পরিণত করুন যা অন্যরা পূরণ করে।

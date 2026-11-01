@@ -10,9 +10,9 @@ Deze pagina loopt het canvas door van het eerste vak tot een afgerond deck: het 
 
 De **bovenbalk** begint met **Home**, het **File menu** en de naam van het document (klik op de naam om het document te hernoemen). Het midden bevat **Undo**, **Redo**, **History**, de zoombediening (met **Fit all** en **Fit artboard**) en schakelaars voor de **Timeline**, de **Navigator** en de **Inspector**. Rechts staan **Share**, **Present** en **Export**. Op een telefoon verhuizen de minder gebruikte knoppen naar **More actions**.
 
-De **toolbalk** langs de zijkant bevat het Lolly-menu en de tools waarmee je tekent: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, dan de knoppen Timeline, Artboards en Auto-arrange.
+De **toolbalk** langs de zijkant bevat het Lolly-menu en de tools waarmee je tekent: **Pointer**, **Add a box**, **Pen**, **Potlood**, **Edit points**, **Line**, dan de knoppen Timeline, Artboards en Auto-arrange.
 
-![De gereedschapsbalk van het vrije canvas: een sleepgreep, het Lolly-menu, dan Pointer, Vak toevoegen, Pen, Punten bewerken, Lijn, Tijdlijn, Tekenvlakken en Automatisch rangschikken](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![De gereedschapsbalk van het vrije canvas: een sleepgreep, het Lolly-menu, dan Pointer, Vak toevoegen, Pen, Potlood, Punten bewerken, Lijn, Tijdlijn, Tekenvlakken en Automatisch rangschikken](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Het canvas werkt als de werktafel van een ontwerper rond het tekenbord:
 
@@ -68,17 +68,26 @@ Zonder ingedrukte toets wordt een draai naar de dichtstbijzijnde 15 graden getro
 
 ## Teken je eigen vormen
 
-Vakken, cirkels en afgeronde kaders dekken de meeste lay-outs. Teken voor elke andere vorm er zelf een: de knop **Pen** op de balk (of `P`) zet je in tekenmodus. Drie enkele toetsen wisselen tussen modi: `V` voor de Pointer, `P` voor de Pen en `N` voor **Edit points**. De Pointer is altijd de uitweg.
+Vakken, cirkels en afgeronde kaders dekken de meeste lay-outs. Teken voor elke andere vorm er zelf een: de knop **Pen** op de balk (of `P`) zet je in tekenmodus. Vier toetsen wisselen tussen modi: `V` voor de Pointer, `P` voor de Pen, `Shift C` voor het **Potlood** en `N` voor **Edit points**. De Pointer is altijd de uitweg.
 
 - **Klik** om een punt te plaatsen. Bij het standaardkrommetype trekt **klikken en slepen** de grepen van het punt uit om een kromme te maken; houd **Alt** ingedrukt terwijl je klikt voor een harde hoek. (Bij de andere krommetypen is elk punt een hoek en doet slepen niets.)
-- Punten klikken vast aan het tekenbord en je andere vakken terwijl je ze plaatst. Alt onderdrukt het raster terwijl je tekent, en zowel het raster als de randen terwijl je daarna een punt sleept.
+- Houd **Shift** ingedrukt terwijl je klikt en het nieuwe segment verlaat het vorige punt onder een veelvoud van 15 graden, zodat horizontale, verticale en 45-gradenlijnen exact uitkomen. Shift terwijl je een greep uitsleept stapt de greep op dezelfde manier.
+- Punten klikken vast aan het tekenbord, je andere vakken en de andere punten van hetzelfde pad terwijl je ze plaatst, zodat een punt uitlijnt met een eerder geplaatst punt. Alt onderdrukt het raster terwijl je tekent, en zowel het raster als de randen terwijl je daarna een punt sleept.
 - **Klik op je eerste punt** om de vorm te sluiten. Anders druk je op **Enter**, dubbelklik je of wissel je van tool, en de tekening blijft behouden.
 - **Escape** werkt stap voor stap: de eerste druk verlaat de tekening, de tweede verlaat de pen.
-- **Delete** tijdens het tekenen laat het laatste punt vallen.
+- **Delete**, of Undo (`⌘ Z` of `Ctrl Z`), tijdens het tekenen laat het laatste punt vallen.
+
+**Zet een open pad voort.** Met de Pen aan druk je op een van de uiteinden van een open pad en teken je dat pad opnieuw: elke klik voegt een punt toe na dat uiteinde, of vóór het eerste punt als je bij het begin startte. Enter bewaart het resultaat en Escape laat het pad precies zoals het was. Het pad blijft hetzelfde vak, met zijn vulling, lijn en pijlpunten, en één undo zet het terug. Delete haalt alleen de punten terug die je toevoegde. Een gesloten vorm, een lijn die aan een vak vastzit en een pad met meerdere delen hebben geen vrij uiteinde om voort te zetten.
+
+**Teken uit de losse hand met het Potlood.** De knop **Potlood** op de balk (of `Shift C`) neemt je streek op terwijl je sleept. Als je loslaat, maakt Lolly de streek glad tot een paar punten met Bezier-grepen, houdt scherpe bochten als hoeken en houdt de kromme binnen een paar schermpixels van waar je hand liep. Een streek die vlak bij zijn begin eindigt, sluit. Het resultaat is een gewoon pad, met dezelfde verf als een penpad, en je kunt de punten daarna bewerken.
 
 Het resultaat is een gewoon vak. Verplaats, vergroot of verklein, roteer, groepeer, lijn uit, herorden, vul, schaduw of vervaag het pad zoals elk ander vak. Het eerste pad krijgt de vulling en lijn die je merk aan een pad geeft, en elk nieuw pad daarna krijgt wat je het laatst gebruikte. In een tool waarvan het merk niets voor paden instelt, krijgt een nieuw pad een lijn in de kleur waarmee je tekende, zodat de vorm nooit onzichtbaar is.
 
 **Bewerk de punten opnieuw.** Dubbelklik op de vorm, of gebruik **Edit points** op de objectbalk. Sleep een punt om het te verplaatsen, sleep een greep om de kromme opnieuw te richten, klik op de kromme om een punt in te voegen of sleep een kader om meerdere punten en druk op Delete. Een pad behoudt altijd minstens twee punten.
+
+- Houd **Shift** ingedrukt terwijl je een punt sleept en de hoek met het volgende punt langs het pad dat niet beweegt gaat in stappen van 15 graden. Shift terwijl je een greep sleept stapt de greep rond zijn eigen punt. Shift terwijl je klikt voegt nog steeds een punt of greep aan de selectie toe; de stappen beginnen zodra je sleept.
+- Een gesleept punt klikt vast aan het tekenbord, andere vakken en de andere punten van het pad. Houd Alt ingedrukt om het vrij te plaatsen.
+- Klik op een greep om die te selecteren en druk dan op **Delete** om hem terug op zijn punt te trekken. Die kant van het punt wordt een hoek, zonder greep die de kromme trekt. Met punten geselecteerd verwijdert Delete de punten zoals voorheen.
 
 Het **splinetype** bepaalt wat voor kromme door je punten loopt:
 
@@ -112,6 +121,25 @@ Drie andere werken op één vorm. **Outline stroke…** zet een lijn om in een g
 ![Een sikkel en een ring met een echt gat, beide gemaakt met Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Het resultaat is een nieuw pad dat je met de pen kunt blijven bewerken, opgeslagen als gewone Bezier-krommen, dus het oorspronkelijke splinetype gaat niet mee. Gaten zijn echte gaten: de bediening **Fill rule** in het lijnpaneel bepaalt of overlappende contouren vullen (*non-zero*) of doorboren (*even-odd*). De bewerkingen weigeren liever dan te vernietigen: vraag twee vormen die niet overlappen te doorsnijden en er verandert niets. Tekst- en afbeeldingsvakken hebben geen omtrek, dus die blijven met rust.
+
+## Lijnen
+
+Een vak, een afbeelding, een tekenbord en een penpad kunnen elk een lijn dragen: een kleur, een breedte en een stijl (effen, gestreept of gestippeld). De lijnrijen staan onder **Vulling** in de Inspecteur, en de knop **Lijn** op de objectbalk opent ze.
+
+**Positie** plaatst de lijn op de omtrek: **Binnen**, **Midden** of **Buiten**. Een vak krijgt zijn lijn binnen tenzij je anders kiest, zodat de buitenrand blijft waar je hem tekende, en een penpad krijgt zijn lijn gecentreerd op de kromme. Bij een gecentreerde of buitenlijn blijven de vulling, de afbeelding en de tekst binnen de binnenrand van de lijn, en blijft de selectieomtrek op de eigen rand van het vak. Een open pad heeft geen binnenkant, dus de lijn ligt altijd gecentreerd. De lijn van een tekenbord blijft altijd binnen de pagina, omdat de paginarand de exportrand is.
+
+**Lijn per zijde.** Bij een rechthoek, een afgerond vak, een pil of een tekenbord toont de schakelaar naast de breedte vier breedtes: **Boven**, **Rechts**, **Onderkant** en **Links**. Zet één zijde op 0 om die zijde te verbergen, wat een scheidingslijn of onderstreping geeft zonder tweede vorm. De schakelaar toont of verbergt alleen de vier cellen en wijzigt nooit een waarde. Zolang de zijden verschillen, staat bij de breedte **Gemengd**; typ daar een breedte om alle vier de zijden tegelijk in te stellen. Kleur, positie en stijl blijven voor elke zijde gedeeld, en afgeronde hoeken buigen mee met de breedtes ernaast, zoals een CSS-rand dat doet. Ellipsen, cirkels en penpaden tekenen overal één breedte.
+
+Hoe de formaten een lijn meenemen:
+
+| Formaat | Positie | Per zijde |
+|---|---|---|
+| SVG, PDF, PNG en de andere afbeeldingen | Exact. De binnen- of buitenlijn van een penpad wordt twee keer zo breed getekend en bij één kant van de omtrek afgeknipt. | Een effen lijn is exact, als één vorm tussen de buiten- en binnenrand van de lijn. Een gestreepte of gestippelde lijn wordt in SVG als streepjes langs elke zijde getekend en in PDF effen. |
+| Penpot | Binnen, midden en buiten reizen mee als de lijnuitlijning van Penpot. Een tekenbord is altijd `inner`. | Penpot 2.19 of later leest de vier breedtes native. Penpot 2.18 tekent de bovenbreedte overal, en Penpot 2.17 of eerder weigert een bestand met breedtes per zijde. |
+| PowerPoint | PowerPoint tekent een lijn gecentreerd op de rand van de vorm. Midden is exact; buiten verplaatst de vorm met de halve breedte naar buiten, waardoor de lijn van PowerPoint buiten het vak valt; binnen behoudt de gecentreerde lijn die oudere exports schreven. | De lijn wordt een aparte vorm (de ring tussen de buiten- en binnenrand), over een vorm zonder lijn. |
+| dotLottie | Lottie-lijnen zijn gecentreerd, dus een buitenlijn van een vak of een penpad met binnen- of buitenlijn wordt met een melding geweigerd. | Geweigerd met een melding. |
+
+Een doorschijnende gecentreerde lijn laat de pagina door zijn binnenste helft zien, in plaats van de vulling, op het canvas en in elke export. Als je een Penpot-bestand importeert, behoudt elke lijn zijn uitlijning en zijn breedtes per zijde, en de `strokeAlign` en afzonderlijke lijngewichten van een Figma-bestand komen op dezelfde manier mee.
 
 ## 3D-scènes en tools in een ontwerp
 
@@ -167,7 +195,7 @@ Waar een concrete kleur- of lettertypesuggestie bestaat, wijzigt haar knop die e
 
 ### Huisstijlregels en het schrijfsignaal
 
-De kaart van het exportpaneel controleert ook de huisstijlregels die je design system meebrengt, zoals tekstgewicht en uitlijning, goedgekeurde kleurcombinaties of een logo per oppervlak, laag voor laag. Elke bevinding is een waarschuwing met de naam van de laag boven de regel. Een regel waarvoor deze build geen controle heeft, wordt vermeld als niet gecontroleerd, nooit als gevolgd. [Usage & rules](/info/brand-studio.html#usage-rules) noemt de regels, en `lolly check` past dezelfde toe op een opgeslagen document.
+De kaart van het exportpaneel controleert ook de huisstijlregels die je design system meebrengt, zoals tekstgewicht en uitlijning, goedgekeurde kleurcombinaties of een logo per oppervlak, laag voor laag. Elke bevinding is een waarschuwing met de naam van de laag boven de regel. Een regel waarvoor deze build geen controle heeft, wordt vermeld als niet gecontroleerd, nooit als gevolgd. [Rules](/info/brand-studio.html#rules) noemt de regels, en `lolly check` past dezelfde toe op een opgeslagen document.
 
 Dezelfde kaart toont het schrijfsignaal voor de tekst die het document tekent: de band (geen, zwak, merkbaar of sterk), dan de eigen zin van Verify met de score uit 100 en maximaal drie gemarkeerde zinsneden, elk met de laag die ze bevat. **Open the text in Verify** brengt die tekst naar [Verify](/#/verify) voor de volledige lezing; [AI-bewijs in Verify](/info/verify-ai-evidence.html) legt uit wat de score weegt. De score is een signaal, geen oordeel: ze telt patronen die gebruikelijk zijn in gegenereerde tekst en kan niet zeggen wie de woorden schreef. Verborgen lagen blijven buiten beide controles, en de kaart zegt hoeveel.
 

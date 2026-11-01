@@ -19,7 +19,7 @@ Preferences je jedna dlouhá stránka s **lištou nastavení** po straně a pole
 - <!--i:usercheck--> **Your details** - tvé jméno, kontaktní údaje a portrét a přepínač **Use my details to create**. [Profily](/info/profile.html) vysvětlují, jak je nástroje používají.
 - <!--i:seal--> **Content Credentials** - volitelná ověřená identita, která podepisuje tvé exporty. Viz [Content Credentials](/info/content-credentials-identity.html).
 - <!--i:palette--> **Design systems** - přepínání, přidávání, skrývání nebo odstraňování designových systémů. Každou akci pokrývá [Design System Setup](/info/brand-studio.html#manage-your-design-systems).
-- <!--i:moon--> **Appearance** - motiv (Light, Dark nebo Brand, který aplikaci vybarví tvou paletou) a **Interface follows the design system**.
+- <!--i:moon--> **Appearance** - motiv (Light, Dark nebo Brand, který aplikaci vybarví tvou paletou), **Your colourway**, když designový systém nabízí víc než jeden ([Udělej si colourway po svém](/info/colourways.html#make-a-colourway-your-own)), a **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - sada, z níž se emoji kreslí, když začneš něco nového, s licencí jejího umění a mírou, jakou je tvá paleta přebarvuje (**Off**, **Subtle**, **Strong**, **Full**, **Mono** nebo **Duotone**). **Keep skin tones and flags** ponechá ty ve vlastních barvách. Práce, kterou jsi už vytvořil, si drží sadu, s níž vznikla.
 - <!--i:eyeoff--> **Accessibility** - čtyři přepínače pohodlí plus Sound a Neurospicy Mode. Viz [Přístupnost](#accessibility).
 - <!--i:link--> **Connected services** - úložiště, které připojíš, například Dropbox, Google Drive, OneDrive, Nextcloud nebo S3, a **Sync across devices**. Viz [Synchronizace zařízení](/info/sync.html).

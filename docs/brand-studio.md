@@ -1,6 +1,6 @@
 # Design System Setup
 
-Your logo, colours and typefaces belong in one place, so every tool, page and export draws with them. That place is **Design System Setup**, at `#/start`, and its tagline says what it is for: *Make it yours*.
+Your logo, colours and typefaces belong in one place, so every tool, page and export draws with them. That place is **Design System Setup**, at `#/start`.
 
 Start with whatever you have. Drop in a logo and Lolly reads its colours. Choose a typeface, or drop the font file your company licenses. Each change shows across the whole app straight away. Your logo, fonts and tokens stay on this device. Picking a Google Font is the one step that reaches out: Lolly asks first, then fetches the family once.
 
@@ -16,33 +16,36 @@ When it looks right, give the design system a name and press **Export**. You get
 - <!--i:download--> **Export** writes the whole system as one `LollyBrand-….lolly` file.
 :::
 
-The header shows which design system you are **Editing**, and its name is a field you can change at any time. When your first edit asks **What is this design system called?**, the words from your logo are filled in if the logo spells them out. **Save name** keeps the name; **Not now** keeps a placeholder until you type one in the header. The name labels the system in Settings and when you switch, and it becomes the name of the file **Export** writes.
+The bar across the top of the studio carries the design system's name, and the name is a field you can change at any time: **Enter** keeps a new name and **Escape** puts the old one back. When your first edit asks **What is this design system called?**, the words from your logo are filled in if the logo spells them out. **Save name** keeps the name; **Not now** keeps a placeholder until you type one in the bar. The name labels the system in Settings and when you switch, and it becomes the name of the file **Export** writes.
 
 ## The rooms
 
-The studio is a set of rooms in a rail down the side, in no fixed order: nothing is numbered and nothing waits on anything else. On a phone the rail becomes a strip of chips under the header.
+The studio is a set of rooms in no fixed order: nothing is numbered and nothing waits on anything else. On a desk the rooms sit in one strip under the bar. On a phone they move to a bar along the bottom edge, where a thumb reaches them, with the open room scrolled into view; the palette sheet and the tray rise above that bar, and the bar steps aside while you type. With a keyboard, Tab reaches the strip once, and the arrow keys, Home and End move from room to room.
 
-![The studio's room rail: Overview, Colours, Type, Logos, Tokens, Files and Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![The studio's bar and its rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Room | What you do there | Link key |
 |---|---|---|
-| **Overview** | See what the system holds, with a door into each room | `overview` |
+| **Board** | See what the system holds, with a door into each room | `overview` |
 | **Colours** | Add colours, give them roles, build shades and a palette | `color` |
 | **Type** | Choose the four faces the app, the tools and every export read | `type` |
 | **Logos** | Place your marks in every orientation and treatment | `logos` |
 | **Tokens** | Corners, spacing, shadows and every other named value | `tokens` |
 | **Files** | The images, audio and motion files your brand keeps | `catalogue` |
-| **Usage & rules** | The rules your brand applies, checked on real examples | `usage` |
+| **Rules** | The rules your brand applies, checked on real examples | `usage` |
+| **Skills** | The brand's written standards for people and agents, to read and download | `skills` |
 
-Link to a room with `#/start?area=<key>`. The Files room keeps the key `catalogue`, because a room key is a permanent contract, and `?tab=` still works as an older alias. An unknown key opens Overview.
+Link to a room with `#/start?area=<key>`. The Files room keeps the key `catalogue`, the Board keeps `overview` and Rules keeps `usage`, because a room key is a permanent contract, and `?tab=` still works as an older alias. An unknown key opens the Board.
 
-The **foot of the rail** holds the actions for the whole system rather than one room. **Add from…** brings a brand in ([Bring a brand in](#bring-a-brand-in)), and the **Tray** holds what a scan found that you have not added yet. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** and **Restore brand settings** keep and move the system ([Keep and move your design system](#keep-and-move-your-design-system)). Each appears once there is something for it to act on.
+The **bar** holds the actions for the whole system rather than one room. **Add from…** brings a brand in ([Bring a brand in](#bring-a-brand-in)), and the **Tray** holds what a scan found that you have not added yet. **Export** writes the system as one file, and **More** holds **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** and **Design systems**, which opens the list in Settings where you switch ([Keep and move your design system](#keep-and-move-your-design-system)). Each appears once there is something for it to act on. On a phone, **Add from…** moves into **More** and **Export** shows as its icon.
 
-## Overview
+## Board
 
-With nothing chosen yet, Overview offers four ways to start. **Start from a reference** opens the source picker for a logo, screenshot, web page or design file, and **Pick a colour**, **Choose a face** and **Add a logo** open those controls directly. Opening one writes nothing, and **Explore the tools** is there from the start.
+With nothing chosen yet, the Board offers four ways to start. **Start from a reference** opens the source picker for a logo, screenshot, web page or design file, and **Pick a colour**, **Choose a face** and **Add a logo** open those controls directly. Opening one writes nothing, and **Explore the tools** is there from the start.
 
-Once anything is your own, Overview shows what you have, with your own counts leading. Colours gives the number of colours, with a muted `· N starter` where inherited colours show; its strip puts your colours first, then a hairline, then the faded starter ones. Type reads by role (*Inter for headings*, with *Starter for the rest* on the line below). Logos says how many slots are filled (or **Not set**), Tokens shows the corner radius and Files says **Nothing yet** while the library is empty. Every block opens its room.
+Once anything is your own, the Board shows what you have, with your own counts leading. Colours gives the number of colours, with a muted `· N starter` where inherited colours show; its strip puts your colours first, then a hairline, then the faded starter ones. Colourways shows each colourway as a small tile in its lead colour. Type reads by role and sets each family in its own face (*Inter for headings*, with *Starter for the rest* on the line below). Logos says how many slots are filled (or **Not set**), Tokens shows the corner radius and Files says **Nothing yet** while the library is empty. Every block opens its room.
+
+A design system that came with the app and can be edited, such as Lolly Demo, has all of that from the start: the Board shows its colours, colourways, faces and marks, with a **Came with this app** tag beside the heading.
 
 ### Starter and yours
 
@@ -60,7 +63,7 @@ Once anything is your own, Overview shows what you have, with your own counts le
 
 - Chosen or installed by you.
 - Full strength, and a tinted card where you installed a face.
-- Counted on Overview and in Tokens.
+- Counted on the Board and in Tokens.
 - A role that follows another reads **↳ follows Primary** rather than repeating the primary's name.
 :::
 
@@ -105,7 +108,7 @@ Your first colour becomes the **primary**, and a chip confirms it, such as *"Pri
 
 Your colours sit beside an **In context** preview on a wide screen, and above it on a smaller one. The preview shows a poster, chart or interface card in your palette. Starter colours stay in their own folding group.
 
-![The Colours room on Lolly Demo: the palette in folding groups, each colour with its name and hex, and the download pill at the foot](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![The Colours room on Lolly Demo: the palette in folding groups, each colour with its name and hex, and the palette download in the head](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![The Colours room after adding one colour, with its palette and a live composition preview](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -117,7 +120,7 @@ Once the palette has shades, the strip shows all seven roles a tool can read: Pr
 
 The app's own accent follows the design system by default. That is the **Interface follows the design system** setting in **Settings → Appearance**; turning the setting off leaves the app's chrome neutral, while tools, canvases and exports follow the design system either way.
 
-**Colourways.** A design system can hold several lead colours, each chosen per piece. Lolly keeps every colourway, but this room cannot author one yet: a colourway is written in the token file. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work, and [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) has the format.
+**Colourways.** A design system can hold several lead colours, each chosen per piece. The **Colourways** row at the head of **Colour roles** shows one chip per colourway, with **Default** on the canonical one. **+ Add** starts a new colourway from one of the palette's colours. Choose a chip, and the roles strip, the palette and the previews edit that colourway, in the look the **Light** and **Dark** switch chooses; the chosen colourway can be renamed, duplicated, made the default or removed. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) has the steps and the token format, and [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
 
 ### Find more colours
 
@@ -162,7 +165,7 @@ Four folded sections sit below the preview and the roles. Each opens directly wi
 
 The palette lists your colours in folding groups, each with its own **+ Add**. Create and rename groups as you like. A role never makes a second tile: a tile a role points at wears a small mark instead (**P**, **S**, **Su**, **T**). **Colour chart** below the tiles shows the same colours on the OKLCH **Wheel** (drag a dot to recolour, click empty space to add a swatch) and the **Gamut** chart, which shows where the displayable range ends. `#/start?area=color&focus=chart` opens the chart directly.
 
-![The palette pane, every group foldable, with the download pill parked at its bottom edge](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![The palette pane, every group foldable, with the palette download in its head](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![The OKLCH wheel - angle is hue, distance out is chroma and the greys ride a lightness rail down the side](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -178,7 +181,7 @@ Click a swatch to open its editor:
 **Deleting a swatch** is safe. Derived shades and theme roles are hidden, so nothing that reads them breaks, while colours you added are removed.
 
 ::: details Working with many swatches
-Each swatch has a drag handle. Drag to reorder within a group, or focus the handle, press Space, use the arrow keys and press Space again to drop; Escape cancels. To move colours between groups, use the editor's **Group** control or select several and use **Move to**.
+Each swatch has a drag handle. Drag to reorder within a group, or focus the handle, press Space, use the arrow keys and press Space again to drop; Escape cancels. On a phone the palette shows four colours a row and the handles appear in Select mode, rather than as a row under every colour. To move colours between groups, use the editor's **Group** control or select several and use **Move to**.
 
 Selection needs no mode. The bar appears with the first selected tile and leaves with the last.
 
@@ -195,13 +198,13 @@ The bar reads **{n} selected**, then **Move to**, **Give a role** (each colour t
 
 The optional **Gradients** panel builds blend tokens from the palette. Each gradient has a preview, 2 to 8 named stops and an angle. A stop points at a swatch, so recolour the swatch and the gradient follows. Blends run in OKLCH.
 
-The palette downloads (design tokens, CSS, SCSS, GIMP and Adobe Swatch Exchange) sit in a pill at the foot of the palette once there are shades. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) describes each format.
+The palette downloads (design tokens, CSS, SCSS, GIMP and Adobe Swatch Exchange) sit in the palette's head, beside its heading. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) describes each format.
 
 ## Type
 
-With no face of its own, the room is one card: **Primary**, set at reading size in the face serving it today, with a **Starter** tag, a **Choose a face** button and the line *"Nothing installs until you choose one."* Headings, code and italic follow the primary until you choose them; **Choose them separately** shows their cards.
+With no face of its own, the room is one card: **Primary**, set at reading size in the face serving it today, with a **Starter** tag, a **Choose for Primary** button and the line *"Nothing installs until you choose one."* Headings, code and italic follow the primary until you choose them; **Choose them separately** shows their cards.
 
-![The Type room with no face chosen yet - one card at reading size, a Starter tag on it, and one filled Choose a face](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![The Type room with no face chosen yet - one card at reading size, a Starter tag on it, and one filled Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Choose one face and the room opens into four role cards, the Fonts list and a live specimen:
 
@@ -210,7 +213,7 @@ Choose one face and the room opens into four role cards, the Fonts list and a li
 - **Code**: a monospace face for code and data.
 - **Italic**: a true italic for emphasis, quotations and asides.
 
-A card is tinted only where you installed that face, and its button says **Change** on a face of your own and **Choose a face** everywhere else. Nothing on a card commits anything: the button opens the compare stage for that role.
+A card is tinted only where you installed that face. Its button says which role it is for: **Change Headings** on a face of your own and **Choose for Headings** everywhere else. The sample line wraps rather than cutting off. Nothing on a card commits anything: the button opens the compare stage for that role.
 
 ![The four role cards revealed - each set in the face that serves it, with a Starter tag where nobody chose one and Italic following the primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -218,7 +221,7 @@ A card is tinted only where you installed that face, and its button says **Chang
 
 The stage opens inside the room, under the card you pressed, and the cards fold to a one-line strip so the stage shows on a phone's first screen. Escape cancels and returns focus to the card.
 
-1. Press **Choose a face** on the card.
+1. Press **Choose for** and the role on the card.
 2. Type a family name and press **Preview**, or press one of the six **Pinned** families under the field.
 3. Press **Use this face**.
 
@@ -239,7 +242,7 @@ Tokens are the named values behind the design system: colours, typefaces, logos,
 ![The Tokens room: the head with an example from the system and the file actions, tiles counting each kind of token, then the colour pairs with their contrast readouts](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **The head** gives an example from your own system (*Primary is Spearmint, #033633*) and the file actions: **Download** (the whole system as design tokens, or the palette in five other formats), **Copy CSS** and **Add from…** to read a JSON file back in.
-- **Tiles** count each kind of token and jump to its section: Colours, Type, Logos, Shape and spacing, More and All tokens. They count what is your own, as Overview does. On a phone the tiles scroll sideways.
+- **Tiles** count each kind of token and jump to its section: Colours, Type, Logos, Shape and spacing, More and All tokens. They count what each section holds; a section holding only what came with the blank starter wears a **Starter** tag, and a system that came with the app counts its own material without one. On a phone the tiles wrap to two rows of three.
 - **Colours** starts with the pairs tools put together (text on surface, on primary, muted on surface) with an APCA readout in light and dark, and flags **Weak contrast** where a pair falls short. Then every colour group: a ramp as one row of chips, other colours with their value and the reference tools use, such as `{color.brand.spearmint}`. Press a reference to copy the reference. **Edit in Colours** opens a group in the Colours room.
 - **Type** and **Logos** list the face for each role and each logo slot, with **Edit in Type** and **Edit in Logos** once you have your own.
 - **Shape and spacing** holds **Rounded corners** (`shape.radius`) and **Spacing rhythm** (`space.base`). Each reads *Lolly default* until you move the slider and *Yours* after, saves at once and can be undone.
@@ -252,11 +255,11 @@ A section with nothing in it offers the way to fill the gap: **Pick a colour**, 
 
 Drop the files your brand keeps, apart from logos: **vector**, **image**, **audio** and **motion** files (video, Lottie and animations). They appear in [Assets](/info/using.html#assets-your-library), sorted into sections and ready in every tool's asset picker, and they stay on this device.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** puts your brand's choices to work: what people can change, what stays fixed and what Lolly can check.
+**Rules** puts your brand's choices to work: what people can change, what stays fixed and what Lolly can check.
 
-![Usage & rules on Lolly Demo: four house rules, each marked Checked in Design and Required or Advisory, then Try your design system in use with its examples ready to render](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules on Lolly Demo: four house rules, each marked Checked in Design and Required or Advisory, then Try your design system in use with its examples ready to render](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** lists your rules. **Add rule** (or **Add your first rule**) opens a short form:
 
@@ -275,9 +278,15 @@ Lolly Demo brings four approved house rules. Headlines are never set in capitals
 
 A build that ships with a fixed brand shows the same rules and examples read-only, under *This brand is set*.
 
+## Skills
+
+**Skills** lists the active design system's [brand skills](/info/brand-skills.html): the brand's written standards, one per discipline, for people and AI agents. Each row gives the discipline, the brand's own status (**Draft** or **Approved**), whether the skill is public or internal and its revision. Choose a row to read the skill beside its coverage, which sets the skill's lines against your tokens: what Lolly checks, what conflicts, what agrees and what is guidance only.
+
+**Download skill (.zip)** writes the skill as an Agent Skills folder for an agent tool, with catalog links pointing at this Lolly, and **Copy as one file** puts the same text on the clipboard for a chat window. A design system without skills of its own lists a baseline that Lolly writes from its tokens and house rules each time the baseline is read. The room reads skills and never edits them.
+
 ## Bring a brand in
 
-**Add from…** at the foot of the rail opens a picker that asks what you have, not what format it is:
+**Add from…** in the bar opens a picker that asks what you have, not what format it is:
 
 - **Design tokens or a design file**: DTCG or Tokens Studio JSON, a Penpot project, a zip of token sets, a Lolly design system pack or an SVG.
 - **PDF**: a deck or a guidelines file, read on this device for its colours, marks and embedded typefaces.
@@ -305,7 +314,7 @@ PDF and design-file imports keep their own review controls. Items in the **Tray*
 
 ### Find and compare a look
 
-Open **Find a look** from Overview or from the design-system list in Settings. Browse systems saved on this device and a few reusable Lolly examples, and search by name, colour tag or declared font. **Closest to my current palette** sorts by measured colour similarity, with matching fonts breaking ties; it is not a quality score.
+Open **Find a look** from the Board or from the design-system list in Settings. Browse systems saved on this device and a few reusable Lolly examples, and search by name, colour tag or declared font. **Closest to my current palette** sorts by measured colour similarity, with matching fonts breaking ties; it is not a quality score.
 
 Select one look to review it, or two to compare side by side. Selecting changes nothing. **Use this saved system** switches to it, and **Use these colours** applies an example's colours through the usual checkpoint, keeping your fonts. **Restore brand settings** recovers the previous look. Saved systems have editable **Search tags** under **Details and design context**. The examples are original Lolly colour recipes, with no scraped collection and no account.
 
@@ -317,17 +326,17 @@ Select one look to review it, or two to compare side by side. Selecting changes 
 
 **Export** writes one **`LollyBrand-….lolly`** file: your tokens, fonts, logos and theme preference, with an integrity manifest that is checked on the way back in. Web releases before 1.0.7 named the same file `.zip`, and that spelling is still accepted. **Tokens (.json)** writes the plain design-tokens document on its own, with no fonts or logos, for a repository, a build step or another tokens tool.
 
-To bring one back, use **Add from… → Design tokens or a design file**, or drop the file on the studio. That is how a colleague hands you a brand, or how you carry one to a second install, with no account and no cloud. To bring a brand in from the command line, see [`ingest:brand`](/info/configuration.html#brand-packs).
+To bring one back, use **Add from… → Design tokens or a design file**, or drop the file on the studio. That is how a colleague hands you a brand, or how you carry one to a second install, with no account and no cloud. [Working with partners](/info/partners.html) covers what else to send when the person receiving your brand works for another organisation. To bring a brand in from the command line, see [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** packages the fonts you added into an installable RPM. If you uploaded any of them yourself, Lolly asks you to confirm that you may redistribute them first.
 
 ### Restore earlier settings
 
-Choose **Restore brand settings**, select a dated checkpoint and press **Restore**. It restores colours, type settings and other tokens for the active brand; font and image files stay as they are. Lolly saves your current settings as **Before restore** first, so you can reverse a restore even after closing the browser. The latest 20 checkpoints are kept on this device.
+Open **More** in the bar, choose **Restore brand settings**, select a dated checkpoint and press **Restore**. It restores colours, type settings and other tokens for the active brand; font and image files stay as they are. Lolly saves your current settings as **Before restore** first, so you can reverse a restore even after closing the browser. The latest 20 checkpoints are kept on this device.
 
 ### Versions
 
-A published version is a **permanent, named copy** kept on this device. It never changes, so a tool or a link that pins it (with `designv`) keeps drawing the same thing. A system with something of your own shows a quiet **Versions & publishing** link at the foot of the rail; after your first publish it becomes the **Versions** entry. `#/start?area=versions` opens it directly.
+A published version is a **permanent, named copy** kept on this device. It never changes, so a tool or a link that pins it (with `designv`) keeps drawing the same thing. A system with something of your own lists **Versions & publishing** in the bar's **More** menu; after your first publish **Versions** joins the rooms. `#/start?area=versions` opens it directly.
 
 - **A version is permanent.** There is no delete yet, and the panel says so.
 - **Removals lead the compatibility card**, because a removed token is what breaks a tool.
@@ -361,5 +370,6 @@ Changing what a server supplies is an administrator's task: its operator changes
 
 - **[Using Lolly](/info/using.html)**: the tools, saving, sharing and Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: how divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities.
+- **[Working with partners](/info/partners.html)**: sharing your brand with a partner, and working in a brand you were given.
 - **[Design Tokens](/info/design-tokens.html)**: the token model your brand is written in.
 - **[Export a file](/info/exporting.html)**: print units, CMYK and the formats your brand renders into.

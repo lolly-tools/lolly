@@ -182,6 +182,12 @@ export interface TimelinePanelOpts {
    * that declares no text field simply never offers the action.
    */
   textField?: string;
+  /**
+   * The box sub-fields holding its left and top edges (free-canvas's `cfg.xField` and
+   * `cfg.yField`), so a keyframe's position reads in the inspector's own numbers in the
+   * Keyframes popup (plans/330). Absent, the popup shows the keyframe's offset instead.
+   */
+  posFields?: { x: string; y: string };
 }
 
 /**

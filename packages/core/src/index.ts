@@ -109,6 +109,7 @@ export type {
 
 export { defineTool, defineHooks } from './define-tool.ts';
 export type {
+  CanvasSize,
   HookContext,
   HookModelItem,
   HookResult,

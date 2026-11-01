@@ -13,7 +13,7 @@ Hồ sơ của bạn cũng chứa những gì bạn tích lũy khi làm việc: 
 | **Location** | Thành phố và quốc gia. |
 | **Headshot** | Một ảnh tùy chọn, cắt vuông và giữ làm ảnh cục bộ, cho các công cụ như chữ ký email, thẻ trích dẫn và sơ đồ tổ chức. |
 | **Use my details to create** | Một công tắc tham gia (khi bật nó đọc **Using my details**). Nó quyết định thông tin của bạn có đi cùng làm ghi công tác giả trong tệp xuất và trong các lượt chạy Batch hay không. Nó không ảnh hưởng đến điền sẵn; xem [How tools use your profile](#how-tools-use-your-profile). |
-| **Preferences** | Chủ đề, cài đặt trợ năng và những phần của ứng dụng bạn đã bật trong **Feature flags**. |
+| **Preferences** | Chủ đề, colourway của bạn trong mỗi hệ thống thiết kế, cài đặt trợ năng và những phần của ứng dụng bạn đã bật trong **Feature flags**. |
 | **Your work** | Các phiên đã lưu cùng hình thu nhỏ, sắp xếp trong [Projects](/info/find-your-work.html), ảnh đã tải lên và số liệu hoạt động cục bộ. |
 
 Không cái nào bắt buộc. Một hồ sơ trống vẫn dùng được; chỉ điền những gì giúp bạn đỡ gõ.

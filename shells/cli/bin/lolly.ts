@@ -60,6 +60,9 @@ Usage:
   lolly list [--q=words] [--limit=1..100]  list or scope tools (explicit spelling)
   lolly describe <tool-id> [--all]         show essential inputs; --all shows every input
   lolly run <tool-id> [--flags]            render
+  lolly run <tool-id> <picture…> [--flags] one row per picture in the tool's drop list
+                                           (logo-wall); or --<list>-file=<picture>,
+                                           --<list>-files=<paths.txt|-> one path a line
   lolly run <tool.lolly> --trust-tool [--export=png] [--output=file]
   lolly run <session.lolly> [--export=pptx|pdf|png|svg|jpg|webp] [--output=file] [--s=<artboard>]
                                            export a saved Design session with the
@@ -637,7 +640,7 @@ async function main(): Promise<void> {
     // `--document` takes a file path on `run` (it is an on/off flag on `validate`), so a bare
     // one parsing to "1" would read a file called "1".
     if (args.includes('--document')) throw usageError('--document needs a value: write --document=<design.json|->.', 'MISSING_FLAG_VALUE');
-    await render(toolId, flags, undefined, repeated);
+    await render(toolId, flags, undefined, repeated, undefined, positionals.slice(2));
     return;
   }
 
@@ -908,7 +911,8 @@ async function main(): Promise<void> {
     // own `format=` param (kept in the params, read by runToolCli) or the path-segment
     // format wins. An explicit CLI `--export=svg` is non-empty and still overrides.
     const toleratedUrlKeys = new Set(Object.keys(urlParams).filter(key => !(key in flags)));
-    await render(ref.toolId, merged, ref.format ?? undefined, repeated, toleratedUrlKeys);
+    // The same keys are the link's own choices, which never pick a file on this computer.
+    await render(ref.toolId, merged, ref.format ?? undefined, repeated, toleratedUrlKeys, positionals.slice(1), toleratedUrlKeys);
     return;
   }
 
@@ -920,14 +924,17 @@ async function main(): Promise<void> {
   // Global flags are not "a flag was given" either: `lolly qr-code --quiet` still means
   // "tell me about this tool", and `--json` on a bare tool id is the machine-readable
   // spelling of `describe`, not a render request.
+  // Files after the tool id (`lolly logo-wall logos/*.png`) are a render request too:
+  // they become rows of the tool's dropToAdd input (src/block-files.ts).
   const GLOBAL = new Set(['lang', 'quiet', 'verbose', 'strict', 'json']);
   const flagKeys = Object.keys(flags).filter(k => !GLOBAL.has(k));
-  if (flagKeys.length === 0) {
+  const files = positionals.slice(1);
+  if (flagKeys.length === 0 && files.length === 0) {
     beginCommand('describe', g.json);
     await showToolInputsCli(toolId, { lang: normalizeLang(flags.lang) ?? undefined, json: g.json });
     return;
   }
-  await render(toolId, flags, undefined, repeated);
+  await render(toolId, flags, undefined, repeated, undefined, files);
 }
 
 /** The one render call site: every path (verb, sugar, URL) funnels through it, so the
@@ -938,6 +945,8 @@ async function render(
   urlFormat?: string,
   repeated: Record<string, string[]> = {},
   toleratedUnknown: ReadonlySet<string> = new Set(),
+  files: readonly string[] = [],
+  linkParams?: ReadonlySet<string>,
 ): Promise<void> {
   if (isOn(flags.json)) {
     // `--json` on a render is deliberately absent at GA (contract section 3): run's stdout IS
@@ -973,6 +982,8 @@ async function render(
     text: textMode(flags.text),
     rejectUnknown: true,
     toleratedUnknown,
+    files,
+    ...(linkParams ? { linkParams } : {}),
   });
 }
 

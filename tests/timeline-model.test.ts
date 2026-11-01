@@ -611,6 +611,17 @@ test('keyframes: the emitted track is the ENGINE\'s canonical serialisation, byt
     't0_et(motion..x)_x1', 't0_et(.x)_x1', 't0_et()_x1', 't0_et(a b)_x1',
     `t0_et(${'a'.repeat(64)})_x1`, `t0_et(${'a'.repeat(65)})_x1`,
     `t0_${'et(a)'.repeat(4000)}_x1`,                   // a hostile chain never recurses
+    // Path handles (plans/330): kept only beside a whole position, dropped at (0, 0),
+    // clamped and quantised like x/y, last one of each kind wins, written after channels.
+    't0_x0_y0_ho(80)(-60)*t1500_eo_x300_y0_hi(-80)(-60)',
+    't0_ho(1)(2)_x0_y0_hi(-3)(4)_hi(5)(6)',            // order on the wire, last wins
+    't0_x5_hi(3)(4)*t10_y5_ho(1)(1)',                  // no whole position: dropped
+    't0_x0_y0_hi(0)(0)_ho(0.004)(-0.004)',             // quantises to (0, 0): dropped
+    't0_x0_y0_ho(5)(5)_ho(0)(0)',                      // a later (0, 0) clears it
+    't0_x0_y0_ho(999999)(-1.23456)_hi(a)(1)',          // clamp, quantum, junk numbers
+    't0_x0_y0_ho(1)(2)(3)_hi()(1)_hx(1)(2)',           // malformed handle tokens are junk
+    // Both together: a bound ease and a spring on keyframes that carry path handles.
+    't0_et(motion.spring.bouncy)esp(400)(15)(1)_x0_y0_ho(80)(-60)*t1500_esp(600)(15)(1)_x300_y0_hi(-80)(-60)*t3000_x0_y0',
     Array.from({ length: 400 }, (_v, i) => `t${i}_x${i}`).join('*'),  // the 256 cap
     't0_x1*'.repeat(3000),                             // the char cap
     // ~42.6 KB: BETWEEN the hook's old hand-derived cap (40 960) and the engine's

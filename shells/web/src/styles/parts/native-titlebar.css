@@ -41,7 +41,8 @@ html[data-native-titlebar="mac"] .sidebar-back-row {
 
 /* Batch and Set up your brand keep their back control in the page flow. */
 html[data-native-titlebar="mac"] .pro-back,
-html[data-native-titlebar="mac"] .start-back-row {
+html[data-native-titlebar="mac"] .start-back-row,
+html[data-native-titlebar="mac"] .ds-bar-exit {
   margin-inline-start: calc(var(--titlebar-inset) - 16px);
 }
 

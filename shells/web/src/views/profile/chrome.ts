@@ -237,6 +237,10 @@ export function wireCleanup(pv: ProfileViewCtx): void {
     pv.inboxUnsub = null;
     pv.designSystemsUnsub?.();
     pv.designSystemsUnsub = null;
+    pv.colourwayPrefUnsub?.();
+    pv.colourwayPrefUnsub = null;
+    pv.perfUiUnsub?.();
+    pv.perfUiUnsub = null;
   };
 }
 

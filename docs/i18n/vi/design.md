@@ -10,9 +10,9 @@ Trang này dẫn qua canvas từ hộp đầu tiên đến một bộ trang hoà
 
 **Thanh trên** bắt đầu với **Home**, **File menu** và tên tài liệu (nhấp tên để đổi tên tài liệu). Giữa là **Undo**, **Redo**, **History**, các điều khiển thu phóng (với **Fit all** và **Fit artboard**) và công tắc cho **Timeline**, **Navigator** và **Inspector**. Bên phải là **Share**, **Present** và **Export**. Trên điện thoại, các nút ít dùng hơn chuyển vào **More actions**.
 
-**Thanh công cụ** dọc bên cạnh chứa menu Lolly và các công cụ bạn vẽ: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, rồi các nút Timeline, Artboards và Auto-arrange.
+**Thanh công cụ** dọc bên cạnh chứa menu Lolly và các công cụ bạn vẽ: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, rồi các nút Timeline, Artboards và Auto-arrange.
 
-![Thanh công cụ của canvas tự do: tay cầm kéo, menu Lolly, rồi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards và Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Thanh công cụ của canvas tự do: tay cầm kéo, menu Lolly, rồi Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards và Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Canvas hoạt động như bàn dán của nhà thiết kế quanh artboard:
 
@@ -68,17 +68,26 @@ Khi không giữ phím nào, một lần xoay được kéo về mức 15 độ 
 
 ## Vẽ hình khối của riêng bạn
 
-Hộp, hình tròn và khung bo góc bao quát hầu hết bố cục. Với bất kỳ hình nào khác, hãy vẽ: nút **Pen** của thanh công cụ (hoặc `P`) đưa bạn vào chế độ vẽ. Ba phím đơn chuyển giữa các chế độ: `V` cho Pointer, `P` cho Pen và `N` cho **Edit points**. Pointer luôn là lối thoát.
+Hộp, hình tròn và khung bo góc bao quát hầu hết bố cục. Với bất kỳ hình nào khác, hãy vẽ: nút **Pen** của thanh công cụ (hoặc `P`) đưa bạn vào chế độ vẽ. Bốn phím chuyển giữa các chế độ: `V` cho Pointer, `P` cho Pen, `Shift C` cho **Pencil** và `N` cho **Edit points**. Pointer luôn là lối thoát.
 
 - **Nhấp** để đặt một điểm. Với kiểu đường cong mặc định, **nhấp và kéo** kéo tay nắm của điểm ra để tạo đường cong; giữ **Alt** khi nhấp để có góc nhọn. (Với các kiểu đường cong khác, mọi điểm là góc và kéo không làm gì.)
-- Các điểm bắt dính vào artboard và các hộp khác khi bạn đặt. Alt tắt lưới khi bạn vẽ, và tắt cả lưới lẫn các cạnh khi bạn kéo một điểm sau đó.
+- Giữ **Shift** khi nhấp và đoạn mới rời điểm trước nó theo bội số của 15 độ, nên đường ngang, đứng và 45 độ ra chính xác. Shift khi kéo một tay nắm ra cũng chỉnh tay nắm theo từng bước như vậy.
+- Các điểm bắt dính vào artboard, các hộp khác và các điểm khác của cùng đường dẫn khi bạn đặt, nên một điểm thẳng hàng với điểm bạn đặt trước đó. Alt tắt lưới khi bạn vẽ, và tắt cả lưới lẫn các cạnh khi bạn kéo một điểm sau đó.
 - **Nhấp điểm đầu tiên** để đóng hình. Nếu không, nhấn **Enter**, nhấp đúp hoặc đổi công cụ, và nét vẽ được giữ.
 - **Escape** hoạt động từng bước: lần nhấn đầu bỏ nét vẽ, lần thứ hai rời bút.
-- **Delete** khi đang vẽ bỏ điểm cuối.
+- **Delete**, hoặc Undo (`⌘ Z` hoặc `Ctrl Z`), khi đang vẽ bỏ điểm cuối.
+
+**Nối tiếp một đường dẫn hở.** Với Pen đang bật, nhấn vào một đầu của đường dẫn hở và bạn lại đang vẽ đường dẫn đó: mỗi lần nhấp thêm một điểm sau đầu đó, hoặc trước điểm đầu tiên khi bạn bắt đầu từ phía đầu. Enter giữ kết quả và Escape để đường dẫn đúng như trước. Đường dẫn vẫn là cùng một hộp, với lớp tô, nét và đầu mũi tên của nó, và một lần undo đưa nó về như cũ. Delete chỉ lấy lại các điểm bạn vừa thêm. Một hình khép kín, một đường nối vào hộp và một đường dẫn có nhiều phần không có đầu tự do để nối tiếp.
+
+**Vẽ tự do bằng Pencil.** Nút **Pencil** của thanh công cụ (hoặc `Shift C`) ghi nét của bạn khi bạn kéo. Khi bạn thả, Lolly làm mượt nét thành vài điểm có tay nắm Bezier, giữ các khúc ngoặt gắt làm góc, và giữ đường cong trong vòng vài pixel màn hình so với nơi tay bạn đi. Một nét kết thúc gần điểm đầu sẽ khép lại. Kết quả là một đường dẫn bình thường, với cùng lớp sơn như đường dẫn của Pen, và bạn có thể chỉnh các điểm của nó sau đó.
 
 Kết quả là một hộp bình thường. Di chuyển, đổi kích thước, xoay, nhóm, căn chỉnh, sắp xếp lại lớp, tô, đổ bóng hoặc làm mờ đường dẫn như bất kỳ hộp nào khác. Đường dẫn đầu tiên nhận màu tô và nét mà thương hiệu của bạn dành cho đường dẫn, và mỗi đường dẫn mới sau đó nhận những gì bạn dùng gần nhất. Trong một công cụ mà thương hiệu không đặt gì cho đường dẫn, đường dẫn mới được vẽ nét bằng màu bạn vẽ, nên hình không bao giờ vô hình.
 
 **Chỉnh lại các điểm.** Nhấp đúp hình, hoặc dùng **Edit points** trên thanh đối tượng. Kéo một điểm để di chuyển, kéo tay nắm để chỉnh lại hướng đường cong, nhấp lên đường cong để chèn điểm hoặc kéo một khung quanh nhiều điểm và nhấn Delete. Một đường dẫn luôn giữ ít nhất hai điểm.
+
+- Giữ **Shift** khi kéo một điểm và góc của nó so với điểm kế tiếp trên đường dẫn không di chuyển đi theo bước 15 độ. Shift khi kéo một tay nắm xoay tay nắm theo từng bước quanh điểm của chính nó. Shift khi nhấp vẫn thêm một điểm hoặc tay nắm vào vùng chọn; các bước bắt đầu khi bạn kéo.
+- Một điểm được kéo bắt dính vào artboard, các hộp khác và các điểm khác của đường dẫn. Giữ Alt để đặt tự do.
+- Nhấp một tay nắm để chọn nó, rồi nhấn **Delete** để kéo nó về lại điểm của nó. Phía đó của điểm trở thành góc, không còn tay nắm kéo đường cong. Khi đã chọn các điểm, Delete vẫn xóa các điểm như trước.
 
 **Spline type** quyết định loại đường cong chạy qua các điểm của bạn:
 
@@ -112,6 +121,25 @@ Ba thao tác khác dùng cho một hình đơn. **Outline stroke…** biến né
 ![Một hình lưỡi liềm và một chiếc nhẫn có lỗ thật, cả hai đều tạo bằng Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Kết quả là một đường dẫn mới bạn có thể tiếp tục chỉnh bằng bút, lưu dưới dạng đường cong Bezier thường, nên kiểu spline ban đầu không được giữ lại. Lỗ là lỗ thật: điều khiển **Fill rule** trên bảng nét quyết định các đường viền chồng nhau sẽ tô (*non-zero*) hay đục thủng (*even-odd*). Các thao tác từ chối thay vì phá hủy: yêu cầu giao hai hình không chồng nhau và không có gì thay đổi. Hộp văn bản và hộp ảnh không có đường viền, nên được bỏ qua.
+
+## Strokes
+
+Một hộp, một ảnh, một board và một đường dẫn của Pen đều có thể mang một nét: màu, độ dày và kiểu (liền, gạch hoặc chấm). Các hàng nét nằm dưới **Fill** trong Inspector, và nút **Stroke** trên thanh đối tượng mở chúng.
+
+**Position** đặt nét trên đường viền: **Inside**, **Centre** hoặc **Outside**. Một hộp được vẽ nét bên trong trừ khi bạn chọn khác, nên cạnh ngoài của nó ở nguyên nơi bạn vẽ, còn đường dẫn của Pen được vẽ nét căn giữa theo đường cong. Với nét ở giữa hoặc bên ngoài, lớp tô, ảnh và văn bản ở lại trong cạnh trong của nét, còn đường viền chọn ở lại trên cạnh riêng của hộp. Một đường dẫn hở không có bên trong, nên luôn được vẽ nét ở giữa. Nét của board luôn ở trong trang, vì cạnh trang là cạnh xuất.
+
+**Stroke per side.** Trên hình chữ nhật, hộp bo góc, viên thuốc hoặc board, nút bật cạnh độ dày hiện bốn độ dày: **Top**, **Right**, **Bottom** và **Left**. Đặt một cạnh bằng 0 để ẩn cạnh đó, cho bạn một đường chia hoặc gạch chân mà không cần hình thứ hai. Nút bật chỉ hiện hoặc ẩn bốn ô và không bao giờ đổi giá trị. Khi các cạnh khác nhau, độ dày hiện **Mixed**; gõ một độ dày vào đó để đặt cả bốn cạnh cùng lúc. Màu, vị trí và kiểu vẫn dùng chung cho mọi cạnh, và góc bo cong theo các độ dày bên cạnh, như một border CSS. Elip, hình tròn và đường dẫn của Pen vẽ một độ dày đều quanh hình.
+
+Cách các định dạng mang một nét:
+
+| Định dạng | Position | Mỗi cạnh |
+|---|---|---|
+| SVG, PDF, PNG và các ảnh khác | Chính xác. Nét trong hoặc ngoài của đường dẫn Pen được vẽ dày gấp đôi và cắt về một phía của đường viền. | Nét liền là chính xác, dưới dạng một hình giữa cạnh ngoài và cạnh trong của nét. Nét gạch hoặc chấm được vẽ thành các đoạn gạch dọc mỗi cạnh trong SVG và thành nét liền trong PDF. |
+| Penpot | Inside, centre và outside đi theo căn chỉnh nét của Penpot. Board luôn là `inner`. | Penpot 2.19 trở lên đọc bốn độ dày nguyên bản. Penpot 2.18 vẽ độ dày cạnh trên đều quanh hình, và Penpot 2.17 trở xuống từ chối tệp mang độ dày theo cạnh. |
+| PowerPoint | PowerPoint vẽ đường căn giữa trên cạnh của hình. Centre là chính xác; outside dời hình ra ngoài nửa độ dày, đặt đường của PowerPoint bên ngoài hộp; inside giữ đường căn giữa mà các bản xuất cũ đã ghi. | Nét trở thành một hình riêng (vòng giữa cạnh ngoài và cạnh trong), nằm trên một hình không có đường viền. |
+| dotLottie | Nét Lottie căn giữa, nên nét ngoài của hộp hoặc nét trong hay ngoài của đường dẫn Pen bị từ chối kèm một thông báo. | Bị từ chối kèm một thông báo. |
+
+Một nét ở giữa trong mờ cho thấy trang qua nửa trong của nó, thay vì lớp tô, trên canvas và trong mọi bản xuất. Khi bạn nhập một tệp Penpot, mỗi nét giữ căn chỉnh và độ dày theo cạnh của nó, và `strokeAlign` cùng độ dày nét riêng lẻ của tệp Figma được đưa sang theo cách tương tự.
 
 ## Cảnh 3D và công cụ trong một thiết kế
 
@@ -167,7 +195,7 @@ Nơi có gợi ý màu hoặc phông chữ cụ thể, nút của nó đổi đ�
 
 ### Quy tắc nội bộ và tín hiệu văn phong
 
-Thẻ của bảng xuất cũng kiểm tra các quy tắc nội bộ (house rules) mà hệ thống thiết kế của bạn mang theo, như độ đậm và căn lề văn bản, cặp màu được duyệt hoặc logo cho từng bề mặt, theo từng lớp. Mỗi phát hiện là một cảnh báo với tên lớp phía trên quy tắc. Một quy tắc mà bản dựng này không có bộ kiểm tra được liệt kê là chưa kiểm tra, không bao giờ là đã tuân theo. [Usage & rules](/info/brand-studio.html#usage-rules) liệt kê các quy tắc, và `lolly check` áp dụng chính các quy tắc đó cho một tài liệu đã lưu.
+Thẻ của bảng xuất cũng kiểm tra các quy tắc nội bộ (house rules) mà hệ thống thiết kế của bạn mang theo, như độ đậm và căn lề văn bản, cặp màu được duyệt hoặc logo cho từng bề mặt, theo từng lớp. Mỗi phát hiện là một cảnh báo với tên lớp phía trên quy tắc. Một quy tắc mà bản dựng này không có bộ kiểm tra được liệt kê là chưa kiểm tra, không bao giờ là đã tuân theo. [Rules](/info/brand-studio.html#rules) liệt kê các quy tắc, và `lolly check` áp dụng chính các quy tắc đó cho một tài liệu đã lưu.
 
 Cùng thẻ hiện tín hiệu văn phong cho văn bản mà tài liệu vẽ: dải của nó (none, weak, notable hoặc strong), rồi câu riêng của Verify với điểm trên 100 và tối đa ba cụm từ bị đánh dấu, mỗi cụm kèm lớp chứa chúng. **Open the text in Verify** đưa văn bản đó tới [Verify](/#/verify) để đọc đầy đủ; [AI evidence in Verify](/info/verify-ai-evidence.html) giải thích điểm cân nhắc những gì. Điểm là một tín hiệu, không phải phán quyết: nó đếm các mẫu thường gặp trong văn bản do máy sinh và không thể biết ai viết các từ. Lớp ẩn bị loại khỏi cả hai kiểm tra, và thẻ cho biết có bao nhiêu.
 

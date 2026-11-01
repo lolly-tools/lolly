@@ -10,9 +10,9 @@ Tato stránka provádí plátnem od prvního pole po hotovou sadu snímků: okno
 
 **Horní lišta** začíná tlačítky **Home**, **File menu** a názvem dokumentu (kliknutím na název dokument přejmenuješ). Uprostřed jsou **Undo**, **Redo**, **History**, ovládání zvětšení (s **Fit all** a **Fit artboard**) a přepínače **Timeline**, **Navigator** a **Inspector**. Vpravo jsou **Share**, **Present** a **Export**. Na telefonu se méně používaná tlačítka přesunou do **More actions**.
 
-**Lišta nástrojů** po straně drží nabídku Lolly a nástroje, kterými kreslíš: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, pak tlačítka Timeline, Artboards a Auto-arrange.
+**Lišta nástrojů** po straně drží nabídku Lolly a nástroje, kterými kreslíš: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, pak tlačítka Timeline, Artboards a Auto-arrange.
 
-![Lišta nástrojů volného plátna: úchyt pro tažení, nabídka Lolly, pak Ukazatel, Přidat rámeček, Pero, Upravit body, Čára, Časová osa, Kresebné plochy a Automaticky uspořádat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Lišta nástrojů volného plátna: úchyt pro tažení, nabídka Lolly, pak Ukazatel, Přidat rámeček, Pero, Tužka, Upravit body, Čára, Časová osa, Kresebné plochy a Automaticky uspořádat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Plátno funguje jako návrhářův stůl kolem kreslicí plochy:
 
@@ -68,17 +68,26 @@ Bez držené klávesy se otočení přitáhne na nejbližších 15 stupňů, jak
 
 ## Kresli vlastní tvary
 
-Pole, kruhy a zaoblené rámy pokrývají většinu rozvržení. Pro jakýkoli jiný tvar ho nakresli: tlačítko **Pen** na liště (nebo `P`) tě přepne do režimu kreslení. Mezi režimy přepínají tři jednotlivé klávesy: `V` pro Pointer, `P` pro Pen a `N` pro **Edit points**. Pointer je vždy cesta ven.
+Pole, kruhy a zaoblené rámy pokrývají většinu rozvržení. Pro jakýkoli jiný tvar ho nakresli: tlačítko **Pen** na liště (nebo `P`) tě přepne do režimu kreslení. Mezi režimy přepínají čtyři klávesy: `V` pro Pointer, `P` pro Pen, `Shift C` pro **Pencil** a `N` pro **Edit points**. Pointer je vždy cesta ven.
 
 - **Kliknutím** umístíš bod. U výchozího typu křivky **kliknutí s tažením** vytáhne úchyty bodu a vytvoří křivku; podrž **Alt** při kliknutí pro ostrý roh. (U ostatních typů křivek je každý bod rohem a tažení nedělá nic.)
-- Body se při umisťování přichytávají ke kreslicí ploše a dalším polím. Alt při kreslení potlačí mřížku a při pozdějším tažení bodu mřížku i hrany.
+- Podrž **Shift** při kliknutí a nový segment opustí předchozí bod pod násobkem 15 stupňů, takže vodorovné, svislé a 45stupňové čáry vyjdou přesně. Shift při tažení úchytu krokuje úchyt stejným způsobem.
+- Body se při umisťování přichytávají ke kreslicí ploše, dalším polím a dalším bodům téže cesty, takže bod zapadne k dříve umístěnému. Alt při kreslení potlačí mřížku a při pozdějším tažení bodu mřížku i hrany.
 - **Klikni na první bod** pro uzavření tvaru. Jinak stiskni **Enter**, dvakrát klikni nebo přepni nástroj a kresba se zachová.
 - **Escape** funguje po jednom kroku: první stisk kresbu opustí, druhý opustí pero.
-- **Delete** při kreslení odstraní poslední bod.
+- **Delete** nebo Zpět (`⌘ Z` nebo `Ctrl Z`) při kreslení odstraní poslední bod.
+
+**Pokračuj v otevřené cestě.** S zapnutým Pen stiskni kterýkoli konec otevřené cesty a kreslíš tu cestu znovu: každé kliknutí přidá bod za ten konec, nebo před první bod, když jsi začal od začátku. Enter výsledek zachová a Escape nechá cestu přesně tak, jak byla. Cesta zůstane tímž polem, s výplní, čárou a hroty šipek, a jedno Zpět ji vrátí. Delete vezme zpět jen body, které jsi přidal. Uzavřený tvar, čára připojená k poli a cesta s více částmi nemají volný konec, na kterém by šlo pokračovat.
+
+**Kresli od ruky tužkou.** Tlačítko **Pencil** na liště (nebo `Shift C`) zaznamenává tvůj tah, dokud táhneš. Když pustíš, Lolly tah vyhladí na několik bodů s Bézierovými úchyty, ostré zlomy ponechá jako rohy a křivku drží do několika obrazovkových pixelů od místa, kudy šla tvá ruka. Tah, který skončí poblíž svého začátku, se uzavře. Výsledkem je běžná cesta, se stejnou barvou jako cesta z pera, a její body můžeš poté upravovat.
 
 Výsledkem je běžné pole. Cestu přesouvej, měň jí velikost, otáčej, seskupuj, zarovnávej, přeskládávej, vyplňuj, stínuj nebo vyblednuj jako jakékoli jiné pole. První cesta převezme výplň a čáru, které tvá značka cestě dává, a každá další převezme to, co jsi naposledy použil. V nástroji, jehož značka pro cesty nic nenastavuje, je nová cesta vykreslena barvou, kterou jsi kreslil, takže tvar nikdy není neviditelný.
 
 **Body znovu upravit.** Dvakrát klikni na tvar nebo použij **Edit points** na liště objektu. Tažením bodu ho přesuneš, tažením úchytu přemíříš křivku, kliknutím na křivku vložíš bod nebo táhni rámeček kolem několika bodů a stiskni Delete. Cesta vždy zachová alespoň dva body.
+
+- Podrž **Shift** při tažení bodu a jeho úhel od dalšího nepohybujícího se bodu cesty se mění po 15 stupních. Shift při tažení úchytu krokuje úchyt kolem jeho bodu. Shift při kliknutí stále přidá bod nebo úchyt do výběru; kroky začnou, až když táhneš.
+- Tažený bod se přichytává ke kreslicí ploše, dalším polím a dalším bodům cesty. Podrž Alt pro volné umístění.
+- Klikni na úchyt, vyber ho a stiskni **Delete**: vrátí se zpět na svůj bod. Ta strana bodu se stane rohem, bez úchytu, který by křivku táhl. Při vybraných bodech Delete body odstraní jako dřív.
 
 **Spline type** určuje, jaký druh křivky vede tvými body:
 
@@ -112,6 +121,25 @@ Další tři fungují na jediném tvaru. **Outline stroke…** změní čáru na
 ![Půlměsíc a prstenec se skutečnou dírou, oba vytvořené pomocí Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Výsledkem je nová cesta, kterou můžeš dál upravovat perem, uložená jako prosté Bézierovy křivky, takže původní typ splinu se nepřenáší. Díry jsou skutečné díry: ovládací prvek **Fill rule** na panelu čáry rozhoduje, zda se překrývající kontury vyplní (*non-zero*), nebo prorazí (*even-odd*). Operace raději odmítnou, než by něco zničily: požádáš-li o průnik dvou tvarů, které se nepřekrývají, nic se nezmění. Textová a obrázková pole nemají obrys, takže zůstanou nedotčena.
+
+## Strokes
+
+Pole, obrázek, plocha i cesta z pera mohou nést obrys: barvu, šířku a styl (plný, čárkovaný nebo tečkovaný). Řádky obrysu jsou v Inspector pod **Fill** a tlačítko **Stroke** na liště objektu je otevře.
+
+**Position** umístí obrys na hranici tvaru: **Inside**, **Centre** nebo **Outside**. Pole má obrys uvnitř, dokud nezvolíš jinak, takže jeho vnější hrana zůstane tam, kde jsi ji nakreslil, a cesta z pera má obrys vystředěný na křivce. U vystředěného nebo vnějšího obrysu zůstávají výplň, obrázek a text uvnitř vnitřní hrany obrysu a obrys výběru zůstává na vlastní hraně pole. Otevřená cesta nemá vnitřek, takže se vždy obtahuje vystředěně. Obrys plochy vždy zůstává uvnitř stránky, protože hrana stránky je hranou exportu.
+
+**Obrys po stranách.** U obdélníku, zaobleného pole, pilulky nebo plochy přepínač vedle šířky ukáže čtyři šířky: **Top**, **Right**, **Bottom** a **Left**. Nastav jednu stranu na 0 a ta strana zmizí, což dá dělicí čáru nebo podtržení bez druhého tvaru. Přepínač jen ukazuje nebo skrývá čtyři buňky a nikdy nemění hodnotu. Dokud se strany liší, šířka čte **Mixed**; napiš tam šířku a nastaví se všechny čtyři strany najednou. Barva, pozice a styl zůstávají společné pro všechny strany a zaoblené rohy se zakřivují spolu se šířkami vedle sebe, jako u CSS ohraničení. Elipsy, kruhy a cesty z pera kreslí jednu šířku dokola.
+
+Jak formáty obrys nesou:
+
+| Formát | Pozice | Po stranách |
+|---|---|---|
+| SVG, PDF, PNG a další obrázky | Přesně. Vnitřní nebo vnější obrys cesty z pera se nakreslí dvakrát tak široký a ořízne k jedné straně obrysu. | Plný obrys je přesný, jako jeden tvar mezi vnější a vnitřní hranou obrysu. Čárkovaný nebo tečkovaný se v SVG kreslí jako čárky podél každé strany a v PDF plný. |
+| Penpot | Uvnitř, střed i vně putují jako zarovnání obrysu v Penpotu. Plocha je vždy `inner`. | Penpot 2.19 nebo novější čte čtyři šířky nativně. Penpot 2.18 kreslí horní šířku dokola a Penpot 2.17 nebo starší odmítne soubor, který nese šířky po stranách. |
+| PowerPoint | PowerPoint kreslí čáru vystředěnou na hraně tvaru. Střed je přesný; vně posune tvar ven o polovinu šířky, což dá čáru PowerPointu vně pole; uvnitř ponechá vystředěnou čáru, jakou psaly starší exporty. | Obrys se stane samostatným tvarem (prstenec mezi vnější a vnitřní hranou) nad tvarem bez čáry. |
+| dotLottie | Obrysy Lottie jsou vystředěné, takže vnější obrys pole nebo obrys cesty z pera uvnitř či vně se odmítne se zprávou. | Odmítnuto se zprávou. |
+
+Průsvitný vystředěný obrys ukazuje svou vnitřní polovinou stránku, ne výplň, na plátně i v každém exportu. Při importu souboru Penpot si každý obrys drží zarovnání i šířky po stranách a `strokeAlign` a jednotlivé šířky obrysu ze souboru Figma přicházejí stejně.
 
 ## 3D scény a nástroje uvnitř návrhu
 
@@ -167,7 +195,7 @@ Kde existuje konkrétní návrh barvy nebo písma, jeho tlačítko změní tu je
 
 ### Interní pravidla a signál psaní
 
-Karta v panelu exportu také kontroluje interní pravidla, která tvůj designový systém přináší, například tloušťku a zarovnání textu, schválené dvojice barev nebo logo pro každou plochu, vrstvu po vrstvě. Každý nález je varování s názvem vrstvy nad pravidlem. Pravidlo, pro které toto sestavení nemá kontrolu, je uvedeno jako nezkontrolované, nikdy jako dodržené. [Usage & rules](/info/brand-studio.html#usage-rules) pravidla vypisuje a `lolly check` uplatňuje tatáž na uložený dokument.
+Karta v panelu exportu také kontroluje interní pravidla, která tvůj designový systém přináší, například tloušťku a zarovnání textu, schválené dvojice barev nebo logo pro každou plochu, vrstvu po vrstvě. Každý nález je varování s názvem vrstvy nad pravidlem. Pravidlo, pro které toto sestavení nemá kontrolu, je uvedeno jako nezkontrolované, nikdy jako dodržené. [Rules](/info/brand-studio.html#rules) pravidla vypisuje a `lolly check` uplatňuje tatáž na uložený dokument.
 
 Stejná karta ukazuje signál psaní pro text, který dokument kreslí: jeho pásmo (none, weak, notable nebo strong), pak větu samotného Verify se skóre ze 100 a až třemi označenými frázemi, každou s vrstvou, která je drží. **Open the text in Verify** odnese ten text do [Verify](/#/verify) pro úplné čtení; [Důkazy AI ve Verify](/info/verify-ai-evidence.html) vysvětlují, co skóre váží. Skóre je signál, ne verdikt: počítá vzorce běžné v generovaném psaní a nepozná, kdo slova napsal. Skryté vrstvy jsou z obou kontrol vynechány a karta říká kolik.
 

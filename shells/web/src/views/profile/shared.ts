@@ -172,7 +172,7 @@ export const NAV_SECTIONS: ReadonlyArray<ProfileNavSection> = [
   // The design systems on this device (plans/186 section 5) - what every tool
   // renders with, so it sits with "how the app dresses" rather than the plumbing.
   { id: 'design-systems-section', icon: 'tokens', label: 'Design systems', keywords: 'design system brand tokens colours fonts logos switch hosted instance' },
-  { id: 'appearance-section', icon: 'palette', label: 'Appearance', keywords: 'theme dark light mode colour color sound look' },
+  { id: 'appearance-section', icon: 'palette', label: 'Appearance', keywords: 'theme dark light mode colour color colourway colorway sound look' },
   // The set new work starts from (plans/252). Beside Appearance because both are
   // "what my things look like", but its own card: this one reaches the documents
   // and the exports, not the app chrome.

@@ -276,8 +276,8 @@
     {
       "version": 1,
       "toolId": "certificate",
-      "toolVersion": "1.0.5",
-      "toolVersionRange": "1.0.5",
+      "toolVersion": "1.2.1",
+      "toolVersionRange": "1.2.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -286,16 +286,16 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "e7312e879e5adc6d3f14e479224fcf42a33c5a6a0469d8e42d3eb6015b580803",
-          "bytes": 2022
+          "sha256": "f70764fc3268026ffdc604f7b4d10570c44e37c00516ffd7465c9e9d440ce5cb",
+          "bytes": 2262
         },
         "reference/inputs.json": {
-          "sha256": "af3542091fe31561f74489e8b3ee5df8ca1236bf452d664c36618faa8973767c",
-          "bytes": 3996
+          "sha256": "4a7636099a417b72d48b231aecfa3b21ab1e92ca763d3939c6f239bf43b18dac",
+          "bytes": 10280
         },
         "reference/examples.json": {
-          "sha256": "cb7401360b461a96f69f995cc422aecd1e60934938ba281a6ed134b3aa92c367",
-          "bytes": 1460
+          "sha256": "b70bb61ca1984df2a2900e445fa2e36d3bc286fea9f3a88e5870ec641c4c8928",
+          "bytes": 1661
         }
       },
       "path": "certificate/SKILL.md"
@@ -889,21 +889,26 @@
     {
       "version": 1,
       "toolId": "logo-wall",
-      "toolVersion": "1.4.3",
-      "toolVersionRange": "1.4.3",
+      "toolVersion": "1.7.0",
+      "toolVersionRange": "1.7.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
-        "reference/inputs.json"
+        "reference/inputs.json",
+        "reference/examples.json"
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "82257de1185b22c48c8b06f1901d3d49ec89b9b5c19e603ae0b2008dcd92cfe1",
-          "bytes": 1937
+          "sha256": "96f751b0e90c4c662007cd0cd3b07f4df87e062852480568b37065db476572fc",
+          "bytes": 2136
         },
         "reference/inputs.json": {
-          "sha256": "174c5e91150ef2ff5ec016b19bd98d188e7a8febf61e1129d320fddad609fb71",
-          "bytes": 8959
+          "sha256": "342c501368a8c83f391e5c5b1f508e864a793ce1ec9ddf7695d7d8429353243e",
+          "bytes": 10462
+        },
+        "reference/examples.json": {
+          "sha256": "571070ba28cc5d80bf5929d2c2b97f73126c0701def32bb72c3a8a2fc87166ee",
+          "bytes": 2502
         }
       },
       "path": "logo-wall/SKILL.md"

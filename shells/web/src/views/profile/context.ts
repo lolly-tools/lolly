@@ -99,6 +99,12 @@ export interface ProfileViewCtx {
   inboxUnsub: (() => void) | null;
   /** Detaches the Design systems card from design-system switches and the page's key and press listeners. */
   designSystemsUnsub: (() => void) | null;
+  /** Takes down the Your colourway row and its listeners (plans/331). */
+  colourwayPrefUnsub: (() => void) | null;
+  /** Stops the Performance UI row following changes made outside this view. */
+  perfUiUnsub: (() => void) | null;
+  /** The colourway the person chose, for the Appearance summary; null while the design system's own is in force. */
+  colourwayName: string | null;
   connectionsDetails: HTMLDetailsElement | null;
   connectionsLoaded: boolean;
   syncLoaded: boolean;

@@ -19,7 +19,7 @@ Preferencesは、横に**設定レール**が並ぶ1本の長いページで、�
 - <!--i:usercheck--> **Your details** - 名前、連絡先、顔写真、そして**Use my details to create**スイッチ。ツールがそれらをどう使うかは[プロフィール](/info/profile.html)で説明しています。
 - <!--i:seal--> **Content Credentials** - 書き出しに署名する任意の認証済みID。[Content Credentials](/info/content-credentials-identity.html)をご覧ください。
 - <!--i:palette--> **Design systems** - デザインシステムを切り替える、追加する、非表示にする、削除する。各操作は[Design System Setup](/info/brand-studio.html#manage-your-design-systems)で扱っています。
-- <!--i:moon--> **Appearance** - テーマ(Light、Dark、またはアプリをお使いのパレットで塗るBrand)と**Interface follows the design system**。
+- <!--i:moon--> **Appearance** - テーマ(Light、Dark、またはアプリをお使いのパレットで塗るBrand)デザインシステムが複数提供している場合の**Your colourway**([カラーウェイを自分のものにする](/info/colourways.html#make-a-colourway-your-own))、そして**Interface follows the design system**。
 - <!--i:sparkle--> **Emoji** - 新しく始めるときに絵文字を描くセットと、そのアートワークのライセンス、パレットが絵文字を再着色する強さ(**Off**、**Subtle**、**Strong**、**Full**、**Mono**、**Duotone**)。**Keep skin tones and flags**は、それらを元の色のままにします。すでに作った作品は、作ったときのセットを保ちます。
 - <!--i:eyeoff--> **Accessibility** - 4つの快適さスイッチと、SoundとNeurospicy Mode。[アクセシビリティ](#accessibility)をご覧ください。
 - <!--i:link--> **Connected services** - Dropbox、Google Drive、OneDrive、Nextcloud、S3など、接続するストレージと、**Sync across devices**。[デバイスを同期する](/info/sync.html)をご覧ください。

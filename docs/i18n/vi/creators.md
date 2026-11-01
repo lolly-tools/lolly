@@ -23,6 +23,7 @@ Hệ thống thiết kế của bạn quyết định mọi công cụ trông ra
 - **[Design System Setup](/info/brand-studio.html)** - logo, màu sắc, kiểu chữ và phần còn lại, thiết lập một lần tại `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourway trên công việc thật, và chuyển sang hệ thống thiết kế của riêng bạn.
 - **[Brand architectures](/info/brand-architectures.html)** - nhiều hệ thống thiết kế, hoặc một hệ thống với nhiều colourway, cho một tổ chức.
+- **[Working with partners](/info/partners.html)** - chia sẻ thương hiệu của bạn với đối tác, làm việc trong một thương hiệu bạn được trao và dựng một bức tường nhà tài trợ.
 - **[Import a design](/info/design-import.html)** - tệp `.fig`, `.penpot`, `.ai`, `.idml` hoặc SVG được mở như bố cục chỉnh sửa được thay vì một bức ảnh phẳng.
 - **[Rebrand a deck](/info/rebrand.html)** - bộ trình chiếu PowerPoint chuyển sang hệ thống thiết kế của bạn, giữ nguyên biểu đồ và hoạt ảnh.
 - **[Share a design with rules](/info/create-a-tool.html)** - biến một bố cục thành công cụ để người khác điền vào.

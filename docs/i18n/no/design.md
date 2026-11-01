@@ -10,9 +10,9 @@ Denne siden går gjennom lerretet fra den første boksen til en ferdig presentas
 
 **Toppmenyen** starter med **Home**, **File menu** og dokumentets navn (klikk på navnet for å gi dokumentet nytt navn). Midten har **Undo**, **Redo**, **History**, zoomkontrollene (med **Fit all** og **Fit artboard**) og brytere for **Timeline**, **Navigator** og **Inspector**. Til høyre ligger **Share**, **Present** og **Export**. På en telefon flyttes de mindre brukte knappene inn i **More actions**.
 
-**Verktøylinjen** nedover siden har Lolly-menyen og verktøyene du tegner med: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, deretter knappene Timeline, Artboards og Auto-arrange.
+**Verktøylinjen** nedover siden har Lolly-menyen og verktøyene du tegner med: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, deretter knappene Timeline, Artboards og Auto-arrange.
 
-![Verktøylinjen på det frie canvaset: et draghåndtak, Lolly-menyen, så Peker, Legg til en boks, Penn, Rediger punkter, Linje, Tidslinje, Tegnebrett og Auto-ordne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Verktøylinjen på det frie canvaset: et draghåndtak, Lolly-menyen, så Peker, Legg til en boks, Penn, Blyant, Rediger punkter, Linje, Tidslinje, Tegnebrett og Auto-ordne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Lerretet fungerer som en designers arbeidsflate rundt tegnebrettet:
 
@@ -68,17 +68,26 @@ Uten noen tast holdt trekkes en snuing til nærmeste 15 grader når den kommer i
 
 ## Tegn dine egne former
 
-Bokser, sirkler og avrundede rammer dekker de fleste layouter. For en hvilken som helst annen form, tegn en: **Pen**-knappen på linjen (eller `P`) setter deg i tegnemodus. Tre enkelttaster flytter mellom modusene: `V` for Pointer, `P` for Pen og `N` for **Edit points**. Pointer er alltid veien ut.
+Bokser, sirkler og avrundede rammer dekker de fleste layouter. For en hvilken som helst annen form, tegn en: **Pen**-knappen på linjen (eller `P`) setter deg i tegnemodus. Fire taster flytter mellom modusene: `V` for Pointer, `P` for Pen, `Shift C` for **Pencil** og `N` for **Edit points**. Pointer er alltid veien ut.
 
 - **Klikk** for å plassere et punkt. På standard kurvetype trekker **klikk og dra** ut punktets håndtak for å lage en kurve; hold **Alt** mens du klikker for et hardt hjørne. (På de andre kurvetypene er hvert punkt et hjørne, og et drag gjør ingenting.)
-- Punkter festes til tegnebrettet og de andre boksene dine mens du plasserer dem. Alt slår av rutenettet mens du tegner, og både rutenettet og kantene mens du drar et punkt etterpå.
+- Hold **Shift** mens du klikker, så forlater det nye segmentet punktet før det i et multiplum av 15 grader, slik at vannrette, loddrette og 45-graders linjer blir nøyaktige. Shift mens du drar ut et håndtak, trinner håndtaket på samme måte.
+- Punkter festes til tegnebrettet, de andre boksene dine og de andre punktene i samme bane mens du plasserer dem, så et punkt flukter med et du la tidligere. Alt slår av rutenettet mens du tegner, og både rutenettet og kantene mens du drar et punkt etterpå.
 - **Klikk på det første punktet** for å lukke formen. Ellers trykker du **Enter**, dobbeltklikker eller bytter verktøy, så beholdes tegningen.
 - **Escape** virker ett trinn om gangen: første trykk forlater tegningen, andre trykk forlater pennen.
-- **Delete** mens du tegner fjerner det siste punktet.
+- **Delete**, eller Angre (`⌘ Z` eller `Ctrl Z`), mens du tegner, fjerner det siste punktet.
+
+**Fortsett på en åpen bane.** Med Pen på trykker du på en av endene av en åpen bane, og da tegner du den banen videre: hvert klikk legger til et punkt etter den enden, eller foran det første punktet når du startet fra begynnelsen. Enter beholder resultatet, og Escape lar banen stå nøyaktig som den var. Banen forblir den samme boksen, med fyll, strek og pilspisser, og én angring setter den tilbake. Delete tar tilbake bare punktene du la til. En lukket form, en linje festet til en boks og en bane med flere deler har ingen fri ende å fortsette på.
+
+**Tegn frihånd med Pencil.** Knappen **Pencil** på linjen (eller `Shift C`) tar opp streken din mens du drar. Når du slipper, glatter Lolly streken til noen få punkter med Bezier-håndtak, beholder de skarpe svingene som hjørner og holder kurven innenfor et par skjermpiksler fra der hånden din gikk. En strek som ender nær starten, lukkes. Resultatet er en vanlig bane, med samme maling som en penn-bane, og du kan redigere punktene etterpå.
 
 Resultatet er en vanlig boks. Flytt, endre størrelse på, roter, grupper, juster, endre stablerekkefølge for, fyll, skygg eller tone ut banen som en hvilken som helst annen boks. Den første banen får fyllet og streken merkevaren din gir en bane, og hver nye bane etter det får det du brukte sist. I et verktøy der merkevaren ikke setter noe for baner, får en ny bane strek i fargen du tegnet med, så formen aldri er usynlig.
 
 **Rediger punktene igjen.** Dobbeltklikk formen, eller bruk **Edit points** på objektlinjen. Dra et punkt for å flytte det, dra et håndtak for å sikte kurven på nytt, klikk på kurven for å sette inn et punkt eller dra en boks rundt flere punkter og trykk Delete. En bane beholder alltid minst to punkter.
+
+- Hold **Shift** mens du drar et punkt, så går vinkelen fra neste punkt langs banen som ikke flyttes, i trinn på 15 grader. Shift mens du drar et håndtak, trinner håndtaket rundt sitt eget punkt. Shift mens du klikker legger fortsatt til et punkt eller et håndtak i utvalget; trinnene starter når du drar.
+- Et dratt punkt festes til tegnebrettet, andre bokser og de andre punktene i banen. Hold Alt for å plassere det fritt.
+- Klikk på et håndtak for å velge det, og trykk deretter **Delete** for å trekke det tilbake til punktet. Den siden av punktet blir et hjørne, uten håndtak som drar i kurven. Med punkter valgt fjerner Delete punktene som før.
 
 **Spline type** avgjør hva slags kurve som går gjennom punktene dine:
 
@@ -112,6 +121,25 @@ Tre til virker på én enkelt form. **Outline stroke…** gjør en strek om til 
 ![En halvmåne og en ring med et ekte hull, begge laget med Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Resultatet er en ny bane du kan fortsette å redigere med pennen, lagret som vanlige Bezier-kurver, så den opprinnelige splinetypen følger ikke med. Hull er ekte hull: kontrollen **Fill rule** i strekpanelet avgjør om overlappende konturer fylles (*non-zero*) eller stanses ut (*even-odd*). Operasjonene nekter heller enn å ødelegge: be om å skjære to former som ikke overlapper, og ingenting endres. Tekst- og bildebokser har ingen kontur, så de lades i fred.
+
+## Streker
+
+En boks, et bilde, et tegnebrett og en penn-bane kan hver ha en strek: en farge, en bredde og en stil (hel, stiplet eller prikket). Strekradene ligger under **Fill** i Inspector, og knappen **Stroke** på objektlinjen åpner dem.
+
+**Position** plasserer streken på omrisset: **Inside**, **Centre** eller **Outside**. En boks får streken innenfor med mindre du velger noe annet, så den ytre kanten blir der du tegnet den, og en penn-bane får streken sentrert på kurven. Med en sentrert eller utvendig strek blir fyllet, bildet og teksten innenfor strekens indre kant, og markeringsrammen blir på boksens egen kant. En åpen bane har ingen innside, så den får alltid sentrert strek. Et tegnebretts strek blir alltid innenfor siden, fordi sidekanten er eksportkanten.
+
+**Strek per side.** På et rektangel, en avrundet boks, en pille eller et tegnebrett viser bryteren ved siden av bredden fire bredder: **Top**, **Right**, **Bottom** og **Left**. Sett én side til 0 for å skjule den, så får du en skillelinje eller en understrek uten en ekstra form. Bryteren viser eller skjuler bare de fire cellene og endrer aldri en verdi. Mens sidene er ulike, står bredden som **Mixed**; skriv en bredde der for å sette alle fire sider på en gang. Farge, posisjon og stil deles av alle sider, og avrundede hjørner buer med breddene ved siden av, slik en CSS-kant gjør. Ellipser, sirkler og penn-baner tegner én bredde hele veien rundt.
+
+Slik bærer formatene en strek:
+
+| Format | Position | Per side |
+|---|---|---|
+| SVG, PDF, PNG og de andre bildene | Nøyaktig. En penn-banes indre eller ytre strek tegnes dobbelt så bred og klippes til én side av omrisset. | En hel strek er nøyaktig, som én form mellom strekens ytre og indre kant. En stiplet eller prikket strek tegnes som streker langs hver side i SVG og hel i PDF. |
+| Penpot | Inside, centre og outside følger med som Penpots strekjustering. Et tegnebrett er alltid `inner`. | Penpot 2.19 eller nyere leser de fire breddene direkte. Penpot 2.18 tegner toppbredden hele veien rundt, og Penpot 2.17 eller eldre avviser en fil med bredder per side. |
+| PowerPoint | PowerPoint tegner en linje sentrert på formens kant. Centre er nøyaktig; outside flytter formen ut med halve bredden, noe som setter PowerPoints linje utenfor boksen; inside beholder den sentrerte linjen eldre eksporter skrev. | Streken blir en egen form (ringen mellom ytre og indre kant), over en form uten linje. |
+| dotLottie | Lottie-streker er sentrert, så en utvendig boksstrek eller en penn-banestrek innenfor eller utenfor avvises med en melding. | Avvises med en melding. |
+
+En gjennomskinnelig sentrert strek viser siden gjennom sin indre halvdel, i stedet for fyllet, på canvaset og i alle eksporter. Når du importerer en Penpot-fil, beholder hver strek sin justering og sine bredder per side, og en Figma-fils `strokeAlign` og individuelle strekvekter kommer over på samme måte.
 
 ## 3D-scener og verktøy inne i et design
 
@@ -167,7 +195,7 @@ Der det finnes et konkret forslag til farge eller skrift, endrer knappen det ene
 
 ### Interne regler og skrivesignalet
 
-Kortet i eksportpanelet sjekker også de interne reglene designsystemet ditt har med seg, som tekstvekt og justering, godkjente fargepar eller en logo per flate, lag for lag. Hvert funn er en advarsel med lagets navn over regelen. En regel dette bygget ikke har noen kontroll for, listes som ikke sjekket, aldri som fulgt. [Usage & rules](/info/brand-studio.html#usage-rules) lister reglene, og `lolly check` bruker de samme på et lagret dokument.
+Kortet i eksportpanelet sjekker også de interne reglene designsystemet ditt har med seg, som tekstvekt og justering, godkjente fargepar eller en logo per flate, lag for lag. Hvert funn er en advarsel med lagets navn over regelen. En regel dette bygget ikke har noen kontroll for, listes som ikke sjekket, aldri som fulgt. [Rules](/info/brand-studio.html#rules) lister reglene, og `lolly check` bruker de samme på et lagret dokument.
 
 Det samme kortet viser skrivesignalet for teksten dokumentet tegner: båndet (none, weak, notable eller strong), deretter Verifys egen setning med poengsummen av 100 og opptil tre flaggede fraser, hver med laget som holder dem. **Open the text in Verify** tar den teksten til [Verify](/#/verify) for den fulle avlesningen; [AI evidence in Verify](/info/verify-ai-evidence.html) forklarer hva poengsummen veier. Poengsummen er et signal, ikke en dom: den teller mønstre som er vanlige i generert skriving og kan ikke si hvem som skrev ordene. Skjulte lag utelates fra begge sjekkene, og kortet sier hvor mange.
 

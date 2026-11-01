@@ -13,7 +13,7 @@ Din profil håller också det du bygger upp medan du arbetar: sparade sessioner,
 | **Location** | Stad och land. |
 | **Headshot** | Ett valfritt foto, beskuret till en kvadrat och sparat som en lokal bild, för verktyg som e-postsignaturer, citatkort och organisationsscheman. |
 | **Use my details to create** | Ett opt-in-reglage (det lyder **Using my details** när det är på). Det avgör om dina uppgifter följer med som upphovskredit i exporterade filer och på Batch-körningar. Det påverkar inte förifyllning; se [Hur verktyg använder din profil](#how-tools-use-your-profile). |
-| **Preferences** | Ditt tema, dina tillgänglighetsinställningar och vilka delar av appen du slagit på i **Feature flags**. |
+| **Preferences** | Ditt tema, din färgvariant i varje designsystem, dina tillgänglighetsinställningar och vilka delar av appen du slagit på i **Feature flags**. |
 | **Your work** | Sparade sessioner med sina miniatyrer, ordnade i [Projects](/info/find-your-work.html), dina uppladdade bilder och din lokala aktivitetsstatistik. |
 
 Inget av det är obligatoriskt. En tom profil fungerar; fyll bara i det som sparar dig från att skriva.

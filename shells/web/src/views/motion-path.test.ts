@@ -181,6 +181,20 @@ test('(b) the layer carries [data-export-hide], so detachExportHidden removes it
   } finally { f.teardown(); }
 });
 
+test('(a) + (b) the editing chrome\'s top layer (plans/330) keeps the same two guarantees', () => {
+  const f = mount([moving()]);
+  try {
+    const top = f.overlay.querySelector('.mp-top') as HTMLElement;
+    assert.ok(top, 'the selected point\'s handles and chip have a layer of their own');
+    assert.equal(f.canvasEl.contains(top), false, 'outside the node runtime.export sees');
+    assert.equal(top.parentElement, f.overlay);
+    assert.ok(top.hasAttribute('data-export-hide'), 'and removed before any format is written');
+    assert.equal(top.getAttribute('aria-hidden'), 'true');
+    f.handle.destroy();
+    assert.equal(f.overlay.querySelector('.mp-top'), null, 'teardown takes it too');
+  } finally { f.teardown(); }
+});
+
 // ── (c): the module never writes to a .lolly-box ──────────────────────────────
 
 test('(c) source scan: the module is never handed the canvas, and writes only to nodes it minted', () => {
@@ -192,8 +206,10 @@ test('(c) source scan: the module is never handed the canvas, and writes only to
   // artboard selector, no `document.querySelector` of any kind.
   assert.equal(/lolly-box/.test(CODE), false, 'the module must not know the artboard selector');
   assert.equal(/querySelector/.test(CODE), false, 'and must not reach into the document at all');
-  // Every inline-style and attribute write must target a node this module MINTED.
-  const MINTED = new Set(['layer', 'svg', 'g', 'line', 'flow', 'dot']);
+  // Every inline-style and attribute write must target a node this module MINTED: the
+  // drawing's own, plus the editing chrome's hit targets, handle arms and the chip
+  // (plans/330).
+  const MINTED = new Set(['layer', 'svg', 'g', 'line', 'flow', 'dot', 'top', 'el', 'arm', 'mark', 'chip', 'act']);
   const writes = (re: RegExp): string[] => {
     const out: string[] = [];
     const r = new RegExp(re.source, 'g');

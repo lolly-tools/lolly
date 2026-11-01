@@ -13,7 +13,7 @@ Seu perfil também guarda o que você acumula enquanto trabalha: sessões salvas
 | **Location** | Cidade e país. |
 | **Headshot** | Uma foto opcional, recortada em quadrado e mantida como imagem local, para ferramentas como assinaturas de e-mail, cartões de citação e organogramas. |
 | **Use my details to create** | Uma chave de adesão opcional (passa a mostrar **Using my details** quando ativada). Ela decide se os seus dados viajam como crédito de autoria nos arquivos exportados e nas execuções do Batch. Não afeta o preenchimento automático; veja [How tools use your profile](#how-tools-use-your-profile). |
-| **Preferences** | Seu tema, suas configurações de acessibilidade e quais partes do app você ativou em **Feature flags**. |
+| **Preferences** | Seu tema, sua variação de cores em cada sistema de design, suas configurações de acessibilidade e quais partes do app você ativou em **Feature flags**. |
 | **Your work** | Sessões salvas com as miniaturas, organizadas em [Projects](/info/find-your-work.html), suas imagens enviadas e suas estatísticas de atividade local. |
 
 Nada disso é obrigatório. Um perfil em branco funciona; preencha só o que poupa você de digitar.

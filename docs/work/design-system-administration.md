@@ -115,7 +115,7 @@ without the field keep their earlier refresh behaviour.
 
 ## Managed production rules
 
-**Usage & rules** shows the design system's published guide and, for policy editors, a reviewed
+The **Rules** room shows the design system's published guide and, for policy editors, a reviewed
 mapping from the guide's example roles to installed tool inputs. Brand labels stay separate from
 Lolly's interface roles. Select a tool, choose the matching example and token mode, then connect
 only inputs that serve those purposes. The review shows required input coverage separately for

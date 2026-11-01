@@ -19,7 +19,7 @@ Preferences er én lang side med en **innstillingsliste** ved siden og et felt *
 - <!--i:usercheck--> **Your details** - navnet ditt, kontaktopplysningene og portrettbildet ditt, og bryteren **Use my details to create**. [Profiles](/info/profile.html) forklarer hvordan verktøy bruker dem.
 - <!--i:seal--> **Content Credentials** - den valgfrie verifiserte identiteten som signerer eksportene dine. Se [Content Credentials](/info/content-credentials-identity.html).
 - <!--i:palette--> **Design systems** - bytt, legg til, skjul eller fjern designsystemer. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) dekker hver handling.
-- <!--i:moon--> **Appearance** - temaet (Light, Dark eller Brand, som maler appen i paletten din) og **Interface follows the design system**.
+- <!--i:moon--> **Appearance** - temaet (Light, Dark eller Brand, som maler appen i paletten din), **Your colourway** når designsystemet tilbyr mer enn én ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) og **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - settet emojiene dine tegnes fra når du starter noe nytt, med kunstverkets lisens, og hvor sterkt paletten din omfarger dem (**Off**, **Subtle**, **Strong**, **Full**, **Mono** eller **Duotone**). **Keep skin tones and flags** lar disse beholde sine egne farger. Arbeid du allerede har laget, beholder settet det ble laget med.
 - <!--i:eyeoff--> **Accessibility** - fire komfortbrytere, pluss Sound og Neurospicy Mode. Se [Accessibility](#accessibility).
 - <!--i:link--> **Connected services** - lagring du kobler til, som Dropbox, Google Drive, OneDrive, Nextcloud eller S3, og **Sync across devices**. Se [Sync your devices](/info/sync.html).

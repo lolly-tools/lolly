@@ -32,7 +32,7 @@ import { num, type Box } from './free-canvas-math.ts';
 // over every importer, and this module is pure time math the panel loads eagerly.
 import {
   DEFAULT_PERSPECTIVE, KF_CAMERA_CHANNELS, KF_CHANNELS, KF_DEFAULT_EASE, KF_MAX_TIME_MS,
-  KF_QUANTA, evaluateKf, kfChannelsUsed, kfEaseToken, parseKf, projectLayer, resolveCamera,
+  KF_QUANTA, evaluateKf, kfChannelsUsed, kfEaseToken, kfSubdividePath, parseKf, projectLayer, resolveCamera,
   serialiseKf, subdivideKfEase,
 } from '../../../../engine/src/keyframes.ts';
 import type {
@@ -532,14 +532,19 @@ export function kfTrackBefore(track: KfTrack, cutMs: number): KfKey[] {
   if (!track.length) return [];
   const cut = Math.max(0, Math.round(num(cutMs, 0)));
   const { left, right } = seamEases(track, cut);
+  // A cut inside a CURVED position segment (plans/330) splits the curve too, so the
+  // first half still travels the path it did: the segment's start keyframe gets its
+  // shortened handle and the synthesised key the two handles the split gives that point.
+  const path = kfSubdividePath(track, cut);
   const out: KfKey[] = [];
   for (const k of track) {
     if (k.t >= cut) break;
     out.push(k);
   }
+  if (path && out[path.a]) out[path.a] = { ...out[path.a]!, ho: path.aHo };
   const last = out[out.length - 1];
-  if (left !== null && last) out[out.length - 1] = { t: last.t, ease: left, v: last.v };
-  out.push({ t: cut, ease: right, v: evaluateKf(track, cut) });
+  if (left !== null && last) out[out.length - 1] = { ...last, ease: left };
+  out.push({ t: cut, ease: right, v: evaluateKf(track, cut), ...(path ? { hi: path.hi, ho: path.ho } : {}) });
   return out;
 }
 
@@ -554,10 +559,14 @@ export function kfTrackBefore(track: KfTrack, cutMs: number): KfKey[] {
 export function kfTrackAfter(track: KfTrack, cutMs: number): KfKey[] {
   if (!track.length) return [];
   const cut = Math.round(num(cutMs, 0));
-  if (cut <= 0) return track.map((k) => ({ t: k.t - cut, ease: k.ease, v: k.v }));
+  if (cut <= 0) return track.map((k) => ({ ...k, t: k.t - cut }));
   const { right } = seamEases(track, cut);
-  const out: KfKey[] = [{ t: 0, ease: right, v: evaluateKf(track, cut) }];
-  for (const k of track) if (k.t > cut) out.push({ t: k.t - cut, ease: k.ease, v: k.v });
+  const path = kfSubdividePath(track, cut);
+  const out: KfKey[] = [{ t: 0, ease: right, v: evaluateKf(track, cut), ...(path ? { hi: path.hi, ho: path.ho } : {}) }];
+  track.forEach((k, i) => {
+    if (k.t <= cut) return;
+    out.push(path && i === path.b ? { ...k, t: k.t - cut, hi: path.bHi } : { ...k, t: k.t - cut });
+  });
   return out;
 }
 
@@ -582,14 +591,22 @@ export function kfTrackJoin(a: KfTrack, b: KfTrack, offsetMs: number): KfKey[] {
   if (!b.length) return a.map((k) => k);
   const out: KfKey[] = [];
   let seamPose: KfPose = {};
+  let seamKey: KfKey | null = null;
   for (const k of a) {
     if (k.t < seam) out.push(k);
-    else if (k.t === seam) seamPose = { ...k.v };
+    else if (k.t === seam) { seamPose = { ...k.v }; seamKey = k; }
     // Keys past the seam are dropped: B's track owns that region of the joined clip.
   }
   const opening = b[0] as KfKey;
-  out.push({ t: seam, ease: opening.ease, v: { ...seamPose, ...evaluateKf(b, 0) } });
-  for (const k of b) if (k.t > 0) out.push({ t: k.t + seam, ease: k.ease, v: k.v });
+  // The seam keeps A's handle into it and B's handle out of it (plans/330), so undoing a
+  // split rejoins the two halves of a curved path into the curve they were cut from.
+  const hi = seamKey?.hi;
+  const ho = opening.t === 0 ? opening.ho : undefined;
+  out.push({
+    t: seam, ease: opening.ease, v: { ...seamPose, ...evaluateKf(b, 0) },
+    ...(hi ? { hi } : {}), ...(ho ? { ho } : {}),
+  });
+  for (const k of b) if (k.t > 0) out.push({ ...k, t: k.t + seam });
   return out;
 }
 
@@ -813,7 +830,7 @@ function upsertKey(track: KfTrack, atMs: number, pose: KfPose, ease?: string): K
   const out: KfKey[] = [];
   let done = false;
   for (const k of track) {
-    if (k.t === t) { out.push({ t, ease: ease ?? k.ease, v: pose }); done = true; }
+    if (k.t === t) { out.push({ ...k, t, ease: ease ?? k.ease, v: pose }); done = true; }
     else out.push(k);
   }
   // A new diamond inherits the ease of the segment it lands inside, so inserting one
@@ -822,7 +839,14 @@ function upsertKey(track: KfTrack, atMs: number, pose: KfPose, ease?: string): K
   if (!done) {
     let inherited = KF_DEFAULT_EASE;
     for (const k of track) if (k.t < t) inherited = k.ease;
-    out.push({ t, ease: ease ?? inherited, v: pose });
+    // A new POSITION inside a curved segment (plans/330) splits the curve, so the path
+    // the box travels keeps its shape through the keyframe that now sits on the curve.
+    const path = typeof pose.x === 'number' && typeof pose.y === 'number' ? kfSubdividePath(track, t) : null;
+    if (path) {
+      out[path.a] = { ...out[path.a]!, ho: path.aHo };
+      out[path.b] = { ...out[path.b]!, hi: path.bHi };
+    }
+    out.push({ t, ease: ease ?? inherited, v: pose, ...(path ? { hi: path.hi, ho: path.ho } : {}) });
   }
   return out;
 }
@@ -943,7 +967,7 @@ export function kfTrackRetime(track: KfTrack, fromMs: number, toMs: number): KfK
   if (!moved) return track.map((k) => k);
   const to = Math.round(clamp(num(toMs, 0), 0, KF_MAX_TIME_MS));
   if (to === from) return track.map((k) => k);
-  return [...track.filter((k) => k.t !== from && k.t !== to), { t: to, ease: moved.ease, v: moved.v }];
+  return [...track.filter((k) => k.t !== from && k.t !== to), { ...moved, t: to }];
 }
 
 /**
@@ -962,7 +986,7 @@ export function rescaleKfTrack(track: KfTrack, targetMs: number): KfKey[] {
   const end = track.length ? track[track.length - 1]!.t : 0;
   if (end <= 0 || !Number.isFinite(targetMs) || targetMs <= 0) return track.map((k) => k);
   const scale = targetMs / end;
-  return track.map((k) => ({ t: Math.round(k.t * scale), ease: k.ease, v: k.v }));
+  return track.map((k) => ({ ...k, t: Math.round(k.t * scale) }));
 }
 
 /**
@@ -990,7 +1014,7 @@ export function kfTrackDuplicate(track: KfTrack, fromMs: number, toMs: number): 
   const src = kfKeyAt(track, Math.round(num(fromMs, 0)));
   if (!src) return track.map((k) => k);
   const to = Math.round(clamp(num(toMs, 0), 0, KF_MAX_TIME_MS));
-  return [...track.filter((k) => k.t !== to), { t: to, ease: src.ease, v: { ...src.v } }];
+  return [...track.filter((k) => k.t !== to), { ...src, t: to, v: { ...src.v } }];
 }
 
 /** Drop one keyframe. */
@@ -1010,7 +1034,7 @@ export function kfTrackDelete(track: KfTrack, atMs: number): KfKey[] {
 export function kfTrackSetEase(track: KfTrack, atMs: number, ease: unknown): KfKey[] {
   const t = Math.round(num(atMs, 0));
   const tok = kfEaseToken(ease);
-  return track.map((k) => (k.t === t ? { t: k.t, ease: tok, v: k.v } : k));
+  return track.map((k) => (k.t === t ? { ...k, ease: tok } : k));
 }
 
 /**

@@ -19,7 +19,7 @@ Preferences صفحة طويلة واحدة بـ **شريط إعدادات** عل
 - <!--i:usercheck--> **Your details** - اسمك وتفاصيل اتصالك وصورتك الشخصية ومفتاح **Use my details to create**. يشرح [الملفات الشخصية](/info/profile.html) كيف تستخدمها الأدوات.
 - <!--i:seal--> **Content Credentials** - الهوية الموثّقة الاختيارية التي توقّع تصديراتك. راجع [Content Credentials](/info/content-credentials-identity.html).
 - <!--i:palette--> **Design systems** - بدّل أنظمة التصميم أو أضفها أو أخفها أو أزلها. يغطي [Design System Setup](/info/brand-studio.html#manage-your-design-systems) كل إجراء.
-- <!--i:moon--> **Appearance** - السمة (Light أو Dark أو Brand، التي تطلي التطبيق بلوحتك) و**Interface follows the design system**.
+- <!--i:moon--> **Appearance** - السمة (Light أو Dark أو Brand، التي تطلي التطبيق بلوحتك)، و**Your colourway** عندما يقدّم نظام التصميم أكثر من واحد ([اجعل طقم ألوان لك](/info/colourways.html#make-a-colourway-your-own)) و**Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - المجموعة التي ترسم منها الإيموجي عندما تبدأ شيئاً جديداً، مع ترخيص أعمالها الفنية، ومدى إعادة تلوينها بلوحتك (**Off** أو **Subtle** أو **Strong** أو **Full** أو **Mono** أو **Duotone**). يترك **Keep skin tones and flags** تلك بألوانها الخاصة. والعمل الذي صنعته سابقاً يحتفظ بالمجموعة التي صُنع بها.
 - <!--i:eyeoff--> **Accessibility** - أربعة مفاتيح راحة، إضافة إلى Sound وNeurospicy Mode. راجع [إمكانية الوصول](#accessibility).
 - <!--i:link--> **Connected services** - التخزين الذي تربطه، مثل Dropbox أو Google Drive أو OneDrive أو Nextcloud أو S3، و**Sync across devices**. راجع [زامن أجهزتك](/info/sync.html).

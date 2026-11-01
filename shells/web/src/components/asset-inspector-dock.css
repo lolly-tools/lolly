@@ -26,7 +26,8 @@
 .cat-inspector .cat-details-meta > div { grid-template-columns: minmax(0, 1fr); gap: var(--sp-1); font-size: var(--ui-type-label); }
 .cat-inspector .cat-details-meta dd { min-width: 0; overflow-wrap: anywhere; }
 .cat-inspector .cat-details-meta dt { font-size: var(--ui-type-caption); }
-.cat-inspector :is([data-tech], [data-usage]) .cat-tech-head { display: none; }
+/* Stacked rows: the value lines up under its label, clear of the glyph column. */
+.cat-inspector .cat-details-meta:has(.cat-meta-icon) dd { padding-inline-start: var(--meta-glyph-indent); }
 .cat-inspector .cat-details-cred { margin: 0; }
 .cat-inspector .cat-cred-panels { min-width: 0; gap: var(--ui-space-panel); }
 .cat-inspector .cat-cred-lolly { flex-wrap: wrap; }
@@ -58,7 +59,8 @@
 .cat-inspector .valid-meta-grid { grid-template-columns: minmax(0, 1fr); }
 
 @container asset-inspector (min-width: 360px) {
-  .cat-inspector .cat-details-meta > div { grid-template-columns: minmax(90px, .35fr) minmax(0, 1fr); gap: var(--sp-4); }
+  .cat-inspector .cat-details-meta > div { grid-template-columns: minmax(calc(90px + var(--meta-glyph-indent)), .4fr) minmax(0, 1fr); gap: var(--sp-4); }
+  .cat-inspector .cat-details-meta:has(.cat-meta-icon) dd { padding-inline-start: 0; }
 }
 @container asset-inspector (min-width: 480px) {
   .cat-inspector .valid-step { grid-template-columns: minmax(90px, .35fr) minmax(0, 1fr); }

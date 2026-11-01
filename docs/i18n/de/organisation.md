@@ -75,6 +75,10 @@ Ihre Organisation hostet [Lolly Work](https://github.com/lolly-tools/lolly-work)
 Wenn Sie den Dienst einrichten, beginnen Sie mit [Bereitstellung](/info/deployment.html#organisation-services-with-lolly-work). Die öffentliche Demo unter [lolly.work](https://lolly.work) ist eine Sandbox; nutzen Sie für Arbeit, die Sie behalten müssen, die eigene Adresse Ihrer Organisation.
 :::
 
+## Die Marke einer anderen Organisation
+
+Ein Partner, Kunde oder Sponsor schickt Ihnen seine Marke vielleicht als Designsystem-Datei (`.lolly`) statt als Adresse. Eine solche Datei zu öffnen verbindet die App mit nichts: Sie fügt sein Designsystem auf diesem Gerät neben Ihrem eigenen hinzu. Eine Einrichtungsdatei Ihrer eigenen Organisation ist etwas anderes, denn sie verbindet die App mit dem Lolly der Organisation, und die Vorschau zeigt, was das Öffnen einer Datei bewirkt, bevor sich etwas ändert. [Zusammenarbeit mit Partnern](/info/partners.html) behandelt beide Seiten der Arbeit in der Marke einer anderen Organisation.
+
 ## Verlassen
 
 **Leave** auf der Karte **Lolly instance** in **Settings** entfernt das Designsystem, die Tools und den Katalog Ihrer Organisation. Ihre eigene Arbeit bleibt. Alles, was Sie mit ihren Tools erstellt haben, öffnet sich erst wieder, wenn Sie sich neu verbinden.

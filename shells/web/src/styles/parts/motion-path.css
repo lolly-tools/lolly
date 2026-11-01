@@ -78,6 +78,76 @@
   stroke-width: 1.25px;
 }
 
+/* ── editing (plans/330) ──────────────────────────────────────────────────────
+   A keyframe that keys no position is a moment on the travel, not a point that sets
+   it: smaller and hollow. The SELECTED point takes the pen node's selected look
+   (primary fill, light rim), so "this is the one your handles belong to" reads the
+   same in both editors. */
+.mp-key.is-other { fill: hsl(var(--background)); stroke: var(--mp-c); stroke-width: 1.5px; }
+.mp-key.is-on { fill: hsl(var(--primary)); stroke: #ffffff; stroke-width: 1.5px; }
+
+/* The chrome the path's editing adds: hit targets, the pen tool's own handle marks
+   (`.fc-pen-handle`, `.fc-pen-arm` from editor.css, which read these two halo colours
+   off their container) and the selected point's chip. */
+.mp-chrome {
+  position: absolute; inset: 0; pointer-events: none;
+  --pen-casing: rgba(255, 255, 255, 0.95); --pen-edge: rgba(0, 0, 0, 0.55);
+}
+
+/* The selected point, drawn over its own arms: the keyframe diamond in the pen node's
+   selected colours (primary fill, light rim, dark edge), so it reads at any zoom. */
+.mp-sel {
+  position: absolute; box-sizing: border-box;
+  width: 9px; height: 9px; margin-left: -4.5px; margin-top: -4.5px;
+  transform: rotate(45deg);
+  background: hsl(var(--primary)); border: 1.5px solid #ffffff;
+  outline: 1px solid var(--pen-edge);
+  pointer-events: none;
+}
+
+/* A point's or a handle's target: invisible, larger than the mark, and the ONLY part of
+   the layer a pointer can land on. The line itself stays transparent to the pointer,
+   so a press between two points falls through to whatever is under it. */
+.mp-hit {
+  position: absolute; width: 22px; height: 22px; margin-left: -11px; margin-top: -11px;
+  border-radius: var(--radius-round);
+  pointer-events: auto; cursor: move; touch-action: none;
+}
+@media (any-pointer: coarse) {
+  .mp-hit { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; }
+}
+
+/* The selected point's chip: its time, and Curve the path or Straighten. Below and to
+   the right of the point, out of the way of the handles' usual reach. */
+.mp-chip {
+  position: absolute;
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px; border-radius: var(--radius-md);
+  background: hsl(var(--card));
+  box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+  color: hsl(var(--foreground));
+  font-size: var(--fs-xs); line-height: 1;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+/* Below the selected box's chrome, centred on it (the point sits under the box). */
+.mp-chip.is-under { transform: translateX(-50%); }
+.mp-chip-time {
+  padding: 0 6px;
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+.mp-chip-act {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 26px; padding: 0 8px;
+  border: none; border-radius: var(--radius-sm); background: transparent;
+  color: inherit; font: inherit; font-weight: 600;
+  cursor: pointer;
+}
+.mp-chip-act svg { width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); flex: none; }
+.mp-chip-act:hover { background: hsl(var(--muted)); }
+.mp-chip-act:active { filter: brightness(0.92); }
+
 @keyframes mp-flow {
   /* NEGATIVE, so the dashes travel FORWARD along the path (t = 0 → t = end), which is
      the direction the box actually moves in. One dash period, so the loop is seamless. */

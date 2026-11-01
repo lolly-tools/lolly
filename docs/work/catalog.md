@@ -6,6 +6,8 @@ available and how to retire an asset. The catalog holds tools, brand assets, tok
 logos from three sources, and every source passes through the same governance before it
 reaches a member.
 
+An existing DAM can remain the source of record. Work connects its selected assets to Lolly production while the organisation retains the choice to keep the connection or plan a transition. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains the responsibilities; [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful integration and administrator change management.
+
 ::: figure work-catalog-sources
 The pack, connected providers and member submissions pass through exposure, lifecycle and tag rules into each person's feed.
 :::
@@ -702,6 +704,8 @@ catalog source, use [organisation delivery destinations](delivery.md).
 <a id="the-exit---materialize-a-source-into-your-own-store"></a>
 
 ### Leaving a DAM
+
+Migration is a separate decision from connecting a library. You can keep a provider connected for production without materializing or cutting over. [Plan a DAM transition](/info/dam-transition.html) covers inventory, administrator responsibilities, coexistence and acceptance before changing source authority.
 
 When you want to *leave* a DAM, `lw providers materialize <id>` copies its assets into the
 instance's own store, and `lw providers cutover <id>` moves their identities from `ext/*` to

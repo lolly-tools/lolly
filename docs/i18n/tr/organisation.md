@@ -75,6 +75,10 @@ Kuruluşun [Lolly Work](https://github.com/lolly-tools/lolly-work)'ü Lolly'nin 
 Hizmeti kuruyorsan [Deployment](/info/deployment.html#organisation-services-with-lolly-work) ile başla. [lolly.work](https://lolly.work) adresindeki herkese açık demo bir kum havuzudur; saklaman gereken iş için kuruluşunun kendi adresini kullan.
 :::
 
+## Başka bir kuruluşun markası
+
+Bir ortak, müşteri veya sponsor sana markasını bir adres yerine tasarım sistemi dosyası (`.lolly`) olarak gönderebilir. Bu türden bir dosyayı açmak uygulamayı hiçbir şeye bağlamaz: onların tasarım sistemini bu cihazda seninkinin yanına ekler. Kendi kuruluşundan gelen bir kurulum dosyası farklıdır, çünkü uygulamayı kuruluşun Lolly'sine bağlar; önizleme, bir dosyayı açmanın ne yapacağını hiçbir şey değişmeden önce gösterir. Başka bir kuruluşun markasında çalışmanın iki yanını da [Ortaklarla çalışma](/info/partners.html) anlatır.
+
 ## Ayrılma
 
 **Settings** içindeki **Lolly instance** kartında **Leave**, kuruluşunun tasarım sistemini, araçlarını ve kataloğunu kaldırır. Kendi işin kalır. Onun araçlarıyla yaptığın her şey, yeniden bağlanana kadar bir daha açılmaz.

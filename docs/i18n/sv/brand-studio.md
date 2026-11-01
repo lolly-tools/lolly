@@ -1,6 +1,6 @@
 # Design System Setup
 
-Din logotyp, dina färger och dina typsnitt hör hemma på ett ställe, så att varje verktyg, sida och export ritar med dem. Det stället är **Design System Setup**, på `#/start`, och dess slogan säger vad det är till för: *Make it yours*.
+Din logotyp, dina färger och dina typsnitt hör hemma på ett ställe, så att varje verktyg, sida och export ritar med dem. Det stället är **Design System Setup**, på `#/start`.
 
 Börja med det du har. Släpp in en logotyp så läser Lolly dess färger. Välj ett typsnitt, eller släpp in typsnittsfilen som ditt företag licensierar. Varje ändring syns genom hela appen direkt. Din logotyp, dina typsnitt och dina tokens stannar på den här enheten. Att välja ett Google Font är det enda steget som når ut: Lolly frågar först och hämtar sedan familjen en gång.
 
@@ -16,33 +16,36 @@ När det ser rätt ut ger du designsystemet ett namn och trycker på **Export**.
 - <!--i:download--> **Export** skriver hela systemet som en `LollyBrand-….lolly`-fil.
 :::
 
-Rubriken visar vilket designsystem du **Editing**, och dess namn är ett fält du kan ändra när som helst. När din första redigering frågar **What is this design system called?** fylls orden från din logotyp i om logotypen stavar ut dem. **Save name** behåller namnet; **Not now** behåller en platshållare tills du skriver ett i rubriken. Namnet märker systemet i Settings och när du byter, och blir namnet på filen **Export** skriver.
+Fältet längst upp i studion bär designsystemets namn, och namnet är ett fält du kan ändra när som helst: **Enter** behåller ett nytt namn och **Escape** sätter tillbaka det gamla. När din första redigering frågar **What is this design system called?** fylls orden från din logotyp i om logotypen stavar ut dem. **Save name** behåller namnet; **Not now** behåller en platshållare tills du skriver ett i fältet. Namnet märker systemet i Settings och när du byter, och blir namnet på filen **Export** skriver.
 
 ## Rummen
 
-Studion är en uppsättning rum i en rail längs sidan, i ingen fast ordning: inget är numrerat och inget väntar på något annat. På en telefon blir railen en rad chips under rubriken.
+Studion är en uppsättning rum i ingen fast ordning: inget är numrerat och inget väntar på något annat. På ett skrivbord ligger rummen i en rad under fältet. På en telefon flyttar de till en rad längs nederkanten, där en tumme når dem, med det öppna rummet rullat i sikte; palettbladet och facket reser sig ovanför raden, och raden viker undan medan du skriver. Med tangentbord når Tab raden en gång, och piltangenterna, Home och End flyttar från rum till rum.
 
-![Studions rumsrail: Overview, Colours, Type, Logos, Tokens, Files och Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Studions fält och dess rum: Board, Colours, Type, Logos, Tokens, Files, Rules och Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Rum | Vad du gör där | Länknyckel |
 |---|---|---|
-| **Overview** | Se vad systemet håller, med en dörr in till varje rum | `overview` |
+| **Board** | Se vad systemet håller, med en dörr in till varje rum | `overview` |
 | **Colours** | Lägg till färger, ge dem roller, bygg nyanser och en palett | `color` |
 | **Type** | Välj de fyra typsnitt som appen, verktygen och varje export läser | `type` |
 | **Logos** | Placera dina märken i varje orientering och behandling | `logos` |
 | **Tokens** | Hörn, avstånd, skuggor och varje annat namngivet värde | `tokens` |
 | **Files** | Bild-, ljud- och rörelsefilerna ditt varumärke behåller | `catalogue` |
-| **Usage & rules** | Reglerna ditt varumärke tillämpar, kontrollerade på verkliga exempel | `usage` |
+| **Rules** | Reglerna ditt varumärke tillämpar, kontrollerade på verkliga exempel | `usage` |
+| **Skills** | Varumärkets skrivna riktlinjer för människor och agenter, att läsa och ladda ner | `skills` |
 
-Länka till ett rum med `#/start?area=<key>`. Rummet Files behåller nyckeln `catalogue`, eftersom en rumsnyckel är ett permanent kontrakt, och `?tab=` fungerar fortfarande som ett äldre alias. En okänd nyckel öppnar Overview.
+Länka till ett rum med `#/start?area=<key>`. Rummet Files behåller nyckeln `catalogue`, Board behåller `overview` och Rules behåller `usage`, eftersom en rumsnyckel är ett permanent kontrakt, och `?tab=` fungerar fortfarande som ett äldre alias. En okänd nyckel öppnar Board.
 
-**Railens nederkant** håller åtgärderna för hela systemet snarare än för ett rum. **Add from…** tar in ett varumärke ([Ta in ett varumärke](#bring-a-brand-in)), och **Tray** håller det en skanning hittade som du ännu inte lagt till. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** och **Restore brand settings** behåller och flyttar systemet ([Behåll och flytta ditt designsystem](#keep-and-move-your-design-system)). Var och en visas först när det finns något för den att verka på.
+**Fältet** håller åtgärderna för hela systemet snarare än för ett rum. **Add from…** tar in ett varumärke ([Ta in ett varumärke](#bring-a-brand-in)), och **Tray** håller det en skanning hittade som du ännu inte lagt till. **Export** skriver systemet som en fil, och **More** håller **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** och **Design systems**, som öppnar listan i Settings där du byter ([Behåll och flytta ditt designsystem](#keep-and-move-your-design-system)). Var och en visas först när det finns något för den att verka på. På en telefon flyttar **Add from…** in i **More** och **Export** visas som sin ikon.
 
-## Översikt
+## Board
 
-Utan något valt ännu erbjuder Overview fyra sätt att börja. **Start from a reference** öppnar källväljaren för en logotyp, skärmbild, webbsida eller designfil, och **Pick a colour**, **Choose a face** och **Add a logo** öppnar de kontrollerna direkt. Att öppna en skriver ingenting, och **Explore the tools** finns där från start.
+Utan något valt ännu erbjuder Board fyra sätt att börja. **Start from a reference** öppnar källväljaren för en logotyp, skärmbild, webbsida eller designfil, och **Pick a colour**, **Choose a face** och **Add a logo** öppnar de kontrollerna direkt. Att öppna en skriver ingenting, och **Explore the tools** finns där från start.
 
-När något är ditt eget visar Overview vad du har, med dina egna antal först. Colours anger antalet färger, med ett dämpat `· N starter` där ärvda färger visas; dess band lägger dina färger först, sedan en hårfin linje, sedan de bleka startfärgerna. Type läses efter roll (*Inter for headings*, med *Starter for the rest* på raden under). Logos säger hur många platser som är fyllda (eller **Not set**), Tokens visar hörnradien och Files säger **Nothing yet** medan biblioteket är tomt. Varje block öppnar sitt rum.
+När något är ditt eget visar Board vad du har, med dina egna antal först. Colours anger antalet färger, med ett dämpat `· N starter` där ärvda färger visas; dess band lägger dina färger först, sedan en hårfin linje, sedan de bleka startfärgerna. Colourways visar varje colourway som en liten ruta i sin ledande färg. Type läses efter roll och sätter varje familj i sitt eget typsnitt (*Inter for headings*, med *Starter for the rest* på raden under). Logos säger hur många platser som är fyllda (eller **Not set**), Tokens visar hörnradien och Files säger **Nothing yet** medan biblioteket är tomt. Varje block öppnar sitt rum.
+
+Ett designsystem som följde med appen och kan redigeras, till exempel Lolly Demo, har allt detta från start: Board visar dess färger, colourways, typsnitt och märken, med en tagg **Came with this app** vid rubriken.
 
 ### Starter och ditt
 
@@ -60,7 +63,7 @@ När något är ditt eget visar Overview vad du har, med dina egna antal först.
 
 - Valt eller installerat av dig.
 - Full styrka, och ett färgat kort där du installerat ett typsnitt.
-- Räknas på Overview och i Tokens.
+- Räknas på Board och i Tokens.
 - En roll som följer en annan lyder **↳ follows Primary** i stället för att upprepa primärfärgens namn.
 :::
 
@@ -105,7 +108,7 @@ Din första färg blir **primärfärgen**, och ett chip bekräftar det, till exe
 
 Dina färger sitter bredvid en förhandsvisning **In context** på en bred skärm, och ovanför den på en mindre. Förhandsvisningen visar en affisch, ett diagram eller ett gränssnittskort i din palett. Startfärger stannar i sin egen hopfällbara grupp.
 
-![Rummet Colours på Lolly Demo: paletten i hopfällbara grupper, varje färg med sitt namn och hexvärde, och nedladdningspillret längst ner](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Rummet Colours på Lolly Demo: paletten i hopfällbara grupper, varje färg med sitt namn och hexvärde, och palettnedladdningen i huvudet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Färger-rummet efter att en färg lagts till, med dess palett och en levande kompositionsförhandsgranskning](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -117,7 +120,7 @@ När paletten har nyanser visar bandet alla sju roller ett verktyg kan läsa: Pr
 
 Appens egen accent följer designsystemet som standard. Det är inställningen **Interface follows the design system** i **Settings → Appearance**; att stänga av den lämnar appens gränssnitt neutralt, medan verktyg, ytor och exporter följer designsystemet i båda fallen.
 
-**Färgvarianter.** Ett designsystem kan hålla flera ledfärger, var och en vald per stycke. Lolly behåller varje färgvariant, men det här rummet kan ännu inte skapa en: en färgvariant skrivs i tokenfilen. På ett system med färgvarianter behöver varje färgvariant sin egen primär- och sekundärfärg, och sin egen yta när färgvarianterna färgar bakgrunden, så de rollerna förblir inställda i färgprovsredigeraren. [Lolly Demo i bruk](/info/lolly-demo-in-use.html#colourways-on-real-work) visar färgvarianter på verkligt arbete, och [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) har formatet.
+**Färgvarianter.** Ett designsystem kan hålla flera ledfärger, var och en vald per stycke. Raden **Colourways** överst i **Colour roles** visar en chip per färgvariant, med **Default** på den kanoniska. **+ Add** startar en ny färgvariant från en av palettens färger. Välj en chip, så redigerar rollremsan, paletten och förhandsvisningarna den färgvarianten, i det utseende som växlaren **Light** och **Dark** väljer; den valda färgvarianten kan byta namn, dupliceras, göras till standard eller tas bort. På ett system med färgvarianter behöver varje färgvariant sin egen primär- och sekundärfärg, och sin egen yta när färgvarianterna färgar bakgrunden, så de rollerna förblir inställda i färgprovsredigeraren. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) har stegen och tokenformatet, och [Lolly Demo i bruk](/info/lolly-demo-in-use.html#colourways-on-real-work) visar färgvarianter på verkligt arbete.
 
 ### Hitta fler färger
 
@@ -162,7 +165,7 @@ Fyra hopfällda avsnitt sitter under förhandsvisningen och rollerna. Vart och e
 
 Paletten listar dina färger i hopfällbara grupper, var och en med sin egen **+ Add**. Skapa och döp om grupper som du vill. En roll gör aldrig en andra ruta: en ruta som en roll pekar på bär ett litet märke i stället (**P**, **S**, **Su**, **T**). **Colour chart** under rutorna visar samma färger på OKLCH-**Wheel** (dra en prick för att färga om, klicka på tom yta för att lägga till ett färgprov) och diagrammet **Gamut**, som visar var det visningsbara omfånget slutar. `#/start?area=color&focus=chart` öppnar diagrammet direkt.
 
-![Färgpaletten, varje grupp fällbar, med nedladdningspillret placerat längs nederkanten](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Färgpaletten, varje grupp fällbar, med palettnedladdningen i sitt huvud](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH-hjulet - vinkeln är nyans, avståndet ut är kroma och gråtonerna följer en ljushetsskala nedför sidan](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -178,7 +181,7 @@ Klicka på ett färgprov för att öppna dess redigerare:
 **Att radera ett färgprov** är säkert. Härledda nyanser och temaroller döljs, så inget som läser dem går sönder, medan färger du lagt till tas bort.
 
 ::: details Att arbeta med många färgprov
-Varje färgprov har ett draghandtag. Dra för att ordna om inom en grupp, eller fokusera handtaget, tryck Space, använd piltangenterna och tryck Space igen för att släppa; Escape avbryter. För att flytta färger mellan grupper använder du redigerarens kontroll **Group** eller markerar flera och använder **Move to**.
+Varje färgprov har ett draghandtag. Dra för att ordna om inom en grupp, eller fokusera handtaget, tryck Space, använd piltangenterna och tryck Space igen för att släppa; Escape avbryter. På en telefon visar paletten fyra färger per rad och handtagen visas i läget Select, i stället för som en rad under varje färg. För att flytta färger mellan grupper använder du redigerarens kontroll **Group** eller markerar flera och använder **Move to**.
 
 Markering behöver inget läge. Fältet visas med den första markerade rutan och försvinner med den sista.
 
@@ -195,13 +198,13 @@ Fältet lyder **{n} selected**, sedan **Move to**, **Give a role** (varje färg 
 
 Den valfria panelen **Gradients** bygger blandningstokens från paletten. Varje gradient har en förhandsvisning, 2 till 8 namngivna stopp och en vinkel. Ett stopp pekar på ett färgprov, så färga om färgprovet så följer gradienten. Blandningar körs i OKLCH.
 
-Palettnedladdningarna (designtokens, CSS, SCSS, GIMP och Adobe Swatch Exchange) sitter i ett piller längst ner i paletten när det finns nyanser. [Ta din palett och dina typsnitt med dig överallt](/info/using.html#take-your-palette-and-fonts-anywhere) beskriver varje format.
+Palettnedladdningarna (designtokens, CSS, SCSS, GIMP och Adobe Swatch Exchange) sitter i palettens huvud, bredvid dess rubrik. [Ta din palett och dina typsnitt med dig överallt](/info/using.html#take-your-palette-and-fonts-anywhere) beskriver varje format.
 
 ## Typsnitt
 
-Utan ett eget typsnitt är rummet ett kort: **Primary**, satt i lässtorlek i typsnittet som tjänar det i dag, med en **Starter**-tagg, en **Choose a face**-knapp och raden *"Nothing installs until you choose one."* Rubriker, kod och kursiv följer primärfärgen tills du väljer dem; **Choose them separately** visar deras kort.
+Utan ett eget typsnitt är rummet ett kort: **Primary**, satt i lässtorlek i typsnittet som tjänar det i dag, med en **Starter**-tagg, en **Choose for Primary**-knapp och raden *"Nothing installs until you choose one."* Rubriker, kod och kursiv följer primärfärgen tills du väljer dem; **Choose them separately** visar deras kort.
 
-![Typografi-rummet med inget snitt valt än - ett kort i läsbar storlek, en Standard-tagg på det och en fylld Välj ett snitt](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Typografi-rummet med inget snitt valt än - ett kort i läsbar storlek, en Standard-tagg på det och en fylld Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Välj ett typsnitt så öppnas rummet i fyra rollkort, listan Fonts och ett levande specimen:
 
@@ -210,7 +213,7 @@ Välj ett typsnitt så öppnas rummet i fyra rollkort, listan Fonts och ett leva
 - **Code**: ett monospace-typsnitt för kod och data.
 - **Italic**: en äkta kursiv för betoning, citat och sidokommentarer.
 
-Ett kort är färgat bara där du installerat det typsnittet, och dess knapp säger **Change** på ett eget typsnitt och **Choose a face** överallt annars. Inget på ett kort bekräftar något: knappen öppnar jämförelsescenen för den rollen.
+Ett kort är färgat bara där du installerat det typsnittet. Dess knapp säger vilken roll den gäller: **Change Headings** på ett eget typsnitt och **Choose for Headings** överallt annars. Provraden bryts i stället för att klippas av. Inget på ett kort bekräftar något: knappen öppnar jämförelsescenen för den rollen.
 
 ![De fyra rollkorten synliga - vart och ett satt i det snitt som tjänar det, med en Standard-tagg där ingen valt ett och Italic som följer primärfärgen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -218,7 +221,7 @@ Ett kort är färgat bara där du installerat det typsnittet, och dess knapp sä
 
 Scenen öppnas inne i rummet, under kortet du tryckte på, och korten viks till en rad så att scenen syns på en telefons första skärm. Escape avbryter och återför fokus till kortet.
 
-1. Tryck på **Choose a face** på kortet.
+1. Tryck på **Choose for** och rollen på kortet.
 2. Skriv ett familjenamn och tryck på **Preview**, eller tryck på en av de sex **Pinned**-familjerna under fältet.
 3. Tryck på **Use this face**.
 
@@ -239,7 +242,7 @@ Tokens är de namngivna värdena bakom designsystemet: färger, typsnitt, logoty
 ![Rummet Tokens: huvudet med ett exempel från systemet och filåtgärderna, rutor som räknar varje sorts token, sedan färgparen med sina kontrastavläsningar](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **Huvudet** ger ett exempel från ditt eget system (*Primary is Spearmint, #033633*) och filåtgärderna: **Download** (hela systemet som designtokens, eller paletten i fem andra format), **Copy CSS** och **Add from…** för att läsa tillbaka en JSON-fil.
-- **Rutor** räknar varje sorts token och hoppar till dess avsnitt: Colours, Type, Logos, Shape and spacing, More och All tokens. De räknar det som är ditt eget, som Overview gör. På en telefon rullar rutorna i sidled.
+- **Rutor** räknar varje sorts token och hoppar till dess avsnitt: Colours, Type, Logos, Shape and spacing, More och All tokens. De räknar vad varje avsnitt håller; ett avsnitt som bara håller det som följde med det tomma startsystemet bär en tagg **Starter**, och ett system som följde med appen räknar sitt eget material utan den. På en telefon bryts rutorna till två rader om tre.
 - **Colours** börjar med paren som verktyg sätter ihop (text på yta, på primärfärg, dämpad på yta) med en APCA-avläsning i ljust och mörkt, och flaggar **Weak contrast** där ett par inte räcker. Sedan varje färggrupp: en ramp som en rad chips, andra färger med sitt värde och referensen som verktyg använder, som `{color.brand.spearmint}`. Tryck på en referens för att kopiera referensen. **Edit in Colours** öppnar en grupp i rummet Colours.
 - **Type** och **Logos** listar typsnittet för varje roll och varje logotypplats, med **Edit in Type** och **Edit in Logos** när du har egna.
 - **Shape and spacing** håller **Rounded corners** (`shape.radius`) och **Spacing rhythm** (`space.base`). Var och en lyder *Lolly default* tills du flyttar reglaget och *Yours* efteråt, sparas direkt och kan ångras.
@@ -252,11 +255,11 @@ Ett avsnitt utan innehåll erbjuder sättet att fylla luckan: **Pick a colour**,
 
 Släpp filerna som ditt varumärke behåller, förutom logotyper: **vector**-, **image**-, **audio**- och **motion**-filer (video, Lottie och animationer). De visas i [Assets](/info/using.html#assets-your-library), sorterade i avsnitt och redo i varje verktygs tillgångsväljare, och de stannar på den här enheten.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** sätter ditt varumärkes val i arbete: vad folk kan ändra, vad som förblir fast och vad Lolly kan kontrollera.
+**Rules** sätter ditt varumärkes val i arbete: vad folk kan ändra, vad som förblir fast och vad Lolly kan kontrollera.
 
-![Usage & rules på Lolly Demo: ett tomt kort Brand rules med Add your first rule, sedan Try your brand in use med sina exempel redo att renderas](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules på Lolly Demo: ett tomt kort Brand rules med Add your first rule, sedan Try your brand in use med sina exempel redo att renderas](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** listar dina regler. **Add rule** (eller **Add your first rule**) öppnar ett kort formulär:
 
@@ -273,9 +276,15 @@ Regler som ett designsystem medför i sin tokenfil, som godkända färgpar, text
 
 Ett bygge som levereras med ett fast varumärke visar samma regler och exempel skrivskyddade, under *This brand is set*.
 
+## Skills
+
+**Skills** listar det aktiva designsystemets [varumärkesfärdigheter](/info/brand-skills.html): varumärkets skrivna riktlinjer, en per disciplin, för människor och AI-agenter. Varje rad anger disciplinen, varumärkets egen status (**Draft** eller **Approved**), om färdigheten är offentlig eller intern och dess revision. Välj en rad för att läsa färdigheten bredvid dess täckning, som ställer färdighetens rader mot dina tokens: vad Lolly kontrollerar, vad som står i konflikt, vad som stämmer och vad som bara är vägledning.
+
+**Download skill (.zip)** skriver färdigheten som en Agent Skills-mapp för ett agentverktyg, med kataloglänkar som pekar till den här Lolly, och **Copy as one file** lägger samma text på urklipp för ett chattfönster. Ett designsystem utan egna färdigheter listar en baslinje som Lolly skriver från dess tokens och husregler varje gång baslinjen läses. Rummet läser färdigheter och redigerar dem aldrig.
+
 ## Ta in ett varumärke
 
-**Add from…** längst ner i railen öppnar en väljare som frågar vad du har, inte vilket format det är:
+**Add from…** i fältet öppnar en väljare som frågar vad du har, inte vilket format det är:
 
 - **Design tokens or a design file**: DTCG- eller Tokens Studio-JSON, ett Penpot-projekt, en zip med tokenuppsättningar, ett Lolly-designsystempaket eller en SVG.
 - **PDF**: en presentation eller en riktlinjefil, läst på den här enheten för sina färger, märken och inbäddade typsnitt.
@@ -303,7 +312,7 @@ PDF- och designfilsimporter behåller sina egna granskningskontroller. Poster i 
 
 ### Hitta och jämför en look
 
-Öppna **Find a look** från Overview eller från listan över designsystem i Settings. Bläddra bland system sparade på den här enheten och några återanvändbara Lolly-exempel, och sök på namn, färgtagg eller deklarerat typsnitt. **Closest to my current palette** sorterar efter uppmätt färglikhet, med matchande typsnitt som avgör vid lika; det är inget kvalitetsbetyg.
+Öppna **Find a look** från Board eller från listan över designsystem i Settings. Bläddra bland system sparade på den här enheten och några återanvändbara Lolly-exempel, och sök på namn, färgtagg eller deklarerat typsnitt. **Closest to my current palette** sorterar efter uppmätt färglikhet, med matchande typsnitt som avgör vid lika; det är inget kvalitetsbetyg.
 
 Välj en look för att granska den, eller två för att jämföra sida vid sida. Att välja ändrar ingenting. **Use this saved system** byter till det, och **Use these colours** tillämpar ett exempels färger genom den vanliga kontrollpunkten, med dina typsnitt bevarade. **Restore brand settings** återställer den tidigare looken. Sparade system har redigerbara **Search tags** under **Details and design context**. Exemplen är originalrecept på Lolly-färger, utan skrapad samling och utan konto.
 
@@ -315,17 +324,17 @@ Välj en look för att granska den, eller två för att jämföra sida vid sida.
 
 **Export** skriver en **`LollyBrand-….lolly`**-fil: dina tokens, typsnitt, logotyper och temaval, med ett integritetsmanifest som kontrolleras på vägen tillbaka in. Webbversioner före 1.0.7 kallade samma fil `.zip`, och den stavningen godtas fortfarande. **Tokens (.json)** skriver det rena designtokendokumentet ensamt, utan typsnitt eller logotyper, för ett arkiv, ett byggsteg eller ett annat tokenverktyg.
 
-För att ta tillbaka ett använder du **Add from… → Design tokens or a design file**, eller släpper filen på studion. Så lämnar en kollega över ett varumärke till dig, eller så för du ett till en andra installation, utan konto och utan moln. För att ta in ett varumärke från kommandoraden, se [`ingest:brand`](/info/configuration.html#brand-packs).
+För att ta tillbaka ett använder du **Add from… → Design tokens or a design file**, eller släpper filen på studion. Så lämnar en kollega över ett varumärke till dig, eller så för du ett till en andra installation, utan konto och utan moln. [Samarbeta med partners](/info/partners.html) beskriver vad mer du ska skicka när den som tar emot ditt varumärke arbetar för en annan organisation. För att ta in ett varumärke från kommandoraden, se [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** paketerar typsnitten du lagt till i en installerbar RPM. Om du själv laddat upp något av dem ber Lolly dig först bekräfta att du får vidaredistribuera dem.
 
 ### Återställ tidigare inställningar
 
-Välj **Restore brand settings**, välj en daterad kontrollpunkt och tryck på **Restore**. Det återställer färger, typinställningar och andra tokens för det aktiva varumärket; typsnitts- och bildfiler förblir som de är. Lolly sparar dina nuvarande inställningar som **Before restore** först, så att du kan ångra en återställning även efter att ha stängt webbläsaren. De senaste 20 kontrollpunkterna behålls på den här enheten.
+Öppna **More** i fältet, välj **Restore brand settings**, välj en daterad kontrollpunkt och tryck på **Restore**. Det återställer färger, typinställningar och andra tokens för det aktiva varumärket; typsnitts- och bildfiler förblir som de är. Lolly sparar dina nuvarande inställningar som **Before restore** först, så att du kan ångra en återställning även efter att ha stängt webbläsaren. De senaste 20 kontrollpunkterna behålls på den här enheten.
 
 ### Versioner
 
-En publicerad version är en **permanent, namngiven kopia** som behålls på den här enheten. Den ändras aldrig, så ett verktyg eller en länk som fäster den (med `designv`) fortsätter rita samma sak. Ett system med något eget visar en diskret länk **Versions & publishing** längst ner i railen; efter din första publicering blir den posten **Versions**. `#/start?area=versions` öppnar den direkt.
+En publicerad version är en **permanent, namngiven kopia** som behålls på den här enheten. Den ändras aldrig, så ett verktyg eller en länk som fäster den (med `designv`) fortsätter rita samma sak. Ett system med något eget listar **Versions & publishing** i fältets meny **More**; efter din första publicering ansluter **Versions** till rummen. `#/start?area=versions` öppnar den direkt.
 
 - **En version är permanent.** Det finns ännu ingen radering, och panelen säger det.
 - **Borttagningar leder kompatibilitetskortet**, eftersom en borttagen token är det som får ett verktyg att gå sönder.
@@ -359,5 +368,6 @@ Att ändra vad en server tillhandahåller är en administratörsuppgift: dess op
 
 - **[Använda Lolly](/info/using.html)**: verktygen, att spara, dela och Assets.
 - **[Varumärkesarkitekturer](/info/brand-architectures.html)**: hur divisioner, produkter, endorsed brands, kunder och säsonger avbildas på designsystem, färgvarianter och logotypidentiteter.
+- **[Samarbeta med partners](/info/partners.html)**: dela ditt varumärke med en partner och arbeta i ett varumärke du fått.
 - **[Design Tokens](/info/design-tokens.html)**: tokenmodellen ditt varumärke är skrivet i.
 - **[Exportera en fil](/info/exporting.html)**: tryckenheter, CMYK och formaten ditt varumärke renderas till.

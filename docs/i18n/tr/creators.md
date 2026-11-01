@@ -23,6 +23,7 @@ Tasarım sistemin, her aracın nasıl göründüğüne karar verir.
 - **[Design System Setup](/info/brand-studio.html)** - logolar, renkler, yazı ve gerisi, `#/start` adresinde bir kez ayarlanır.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - gerçek işlerde colourway'ler ve kendi tasarım sistemine geçiş.
 - **[Brand architectures](/info/brand-architectures.html)** - bir kuruluş için birkaç tasarım sistemi ya da birkaç colourway'li tek bir sistem.
+- **[Ortaklarla çalışma](/info/partners.html)** - markanı bir ortakla paylaş, sana verilmiş bir markada çalış ve sponsor duvarı yap.
 - **[Import a design](/info/design-import.html)** - düz bir resim yerine düzenlenebilir bir düzen olarak açılan bir `.fig`, `.penpot`, `.ai`, `.idml` veya SVG dosyası.
 - **[Rebrand a deck](/info/rebrand.html)** - grafikleri ve animasyonları bozulmadan tasarım sistemine taşınan bir PowerPoint sunumu.
 - **[Share a design with rules](/info/create-a-tool.html)** - bir düzeni başkalarının doldurduğu bir araca dönüştür.

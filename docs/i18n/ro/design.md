@@ -10,9 +10,9 @@ Această pagină parcurge canvasul de la prima casetă până la un deck termina
 
 **Bara de sus** începe cu **Home**, **File menu** și numele documentului (fă clic pe nume ca să redenumești documentul). La mijloc sunt **Undo**, **Redo**, **History**, controalele de zoom (cu **Fit all** și **Fit artboard**) și comutatoare pentru **Timeline**, **Navigator** și **Inspector**. În dreapta stau **Share**, **Present** și **Export**. Pe telefon, butoanele mai rar folosite trec în **More actions**.
 
-**Bara de unelte** de pe margine conține meniul Lolly și uneltele cu care desenezi: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, apoi butoanele Timeline, Artboards și Auto-arrange.
+**Bara de unelte** de pe margine conține meniul Lolly și uneltele cu care desenezi: **Pointer**, **Add a box**, **Pen**, **Instrumentul creion**, **Edit points**, **Line**, apoi butoanele Timeline, Artboards și Auto-arrange.
 
-![Bara de instrumente a canvasului liber: un mâner de tragere, meniul Lolly, apoi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards și Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Bara de instrumente a canvasului liber: un mâner de tragere, meniul Lolly, apoi Pointer, Add a box, Pen, Instrumentul creion, Edit points, Line, Timeline, Artboards și Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Canvasul funcționează ca o masă de lucru a designerului în jurul planșei:
 
@@ -68,17 +68,26 @@ Fără nicio tastă ținută, o rotire este trasă la cel mai apropiat multiplu 
 
 ## Desenează-ți propriile forme
 
-Casetele, cercurile și cadrele rotunjite acoperă cele mai multe layouturi. Pentru orice altă formă, desenează una: butonul **Pen** de pe bară (sau `P`) te pune în modul desen. Trei taste simple te mută între moduri: `V` pentru Pointer, `P` pentru Pen și `N` pentru **Edit points**. Pointer este mereu ieșirea.
+Casetele, cercurile și cadrele rotunjite acoperă cele mai multe layouturi. Pentru orice altă formă, desenează una: butonul **Pen** de pe bară (sau `P`) te pune în modul desen. Patru taste te mută între moduri: `V` pentru Pointer, `P` pentru Pen, `Shift C` pentru **Instrumentul creion** și `N` pentru **Edit points**. Pointer este mereu ieșirea.
 
 - **Fă clic** ca să plasezi un punct. La tipul de curbă implicit, **clic și tragere** scoate mânerele punctului ca să facă o curbă; ține **Alt** când dai clic pentru un colț dur. (La celelalte tipuri de curbă fiecare punct este un colț, iar o tragere nu face nimic.)
-- Punctele se fixează pe planșă și pe celelalte casete pe măsură ce le plasezi. Alt suspendă grila cât desenezi, iar apoi, cât tragi un punct, suspendă și grila, și marginile.
+- Ține apăsat **Shift** când dai clic, iar segmentul nou pleacă din punctul dinainte la un multiplu de 15 grade, deci liniile orizontale, verticale și la 45 de grade ies exacte. Shift cât tragi un mâner îl mută în același fel, în trepte.
+- Punctele se fixează pe planșă, pe celelalte casete și pe celelalte puncte ale aceleiași căi pe măsură ce le plasezi, deci un punct se aliniază cu unul plasat mai devreme. Alt suspendă grila cât desenezi, iar apoi, cât tragi un punct, suspendă și grila, și marginile.
 - **Fă clic pe primul punct** ca să închizi forma. Altfel apasă **Enter**, fă dublu clic sau schimbă unealta, iar desenul este păstrat.
 - **Escape** funcționează un pas pe rând: prima apăsare abandonează desenul, a doua părăsește pen-ul.
-- **Delete** în timp ce desenezi elimină ultimul punct.
+- **Delete**, sau Undo (`⌘ Z` ori `Ctrl Z`), în timp ce desenezi elimină ultimul punct.
+
+**Continuă o cale deschisă.** Cu Pen pornit, apasă pe oricare capăt al unei căi deschise și desenezi din nou acea cale: fiecare clic adaugă un punct după acel capăt sau în fața primului punct când ai pornit de la început. Enter păstrează rezultatul, iar Escape lasă calea exact cum era. Calea rămâne aceeași casetă, cu umplerea, conturul și vârfurile de săgeată, iar un singur undo o aduce înapoi. Delete anulează doar punctele pe care le-ai adăugat. O formă închisă, o linie atașată unei casete și o cale cu mai multe părți nu au capăt liber din care să continui.
+
+**Desenează liber cu Instrumentul creion.** Butonul **Instrumentul creion** de pe bară (sau `Shift C`) înregistrează trasul cât tragi. Când dai drumul, Lolly netezește trasul în câteva puncte cu mânere Bezier, păstrează cotiturile ascuțite ca colțuri și ține curba la câțiva pixeli de ecran de locul pe unde a mers mâna ta. Un traseu care se termină aproape de început se închide. Rezultatul este o cale obișnuită, cu aceeași vopsea ca o cale cu Pen, iar punctele ei se pot edita după aceea.
 
 Rezultatul este o casetă obișnuită. Mută, redimensionează, rotește, grupează, aliniază, reordonează, umple, umbrește sau estompează calea ca orice altă casetă. Prima cale primește umplerea și conturul pe care brandul tău le dă unei căi, iar fiecare cale nouă de după primește ce ai folosit ultima dată. Într-un instrument al cărui brand nu setează nimic pentru căi, o cale nouă are contur în culoarea cu care ai desenat, deci forma nu este niciodată invizibilă.
 
 **Editează din nou punctele.** Fă dublu clic pe formă sau folosește **Edit points** din bara de obiect. Trage un punct ca să-l muți, trage un mâner ca să reorientezi curba, fă clic pe curbă ca să inserezi un punct sau trage o casetă în jurul mai multor puncte și apasă Delete. O cale păstrează mereu cel puțin două puncte.
+
+- Ține apăsat **Shift** cât tragi un punct, iar unghiul lui față de următorul punct al căii care nu se mișcă merge în trepte de 15 grade. Shift cât tragi un mâner îl rotește în trepte în jurul punctului lui. Shift la clic adaugă în continuare un punct sau un mâner la selecție; treptele încep odată ce tragi.
+- Un punct tras se fixează pe planșă, pe celelalte casete și pe celelalte puncte ale căii. Ține apăsat Alt ca să-l plasezi liber.
+- Fă clic pe un mâner ca să-l selectezi, apoi apasă **Delete** ca să-l tragi înapoi pe punctul lui. Acea parte a punctului devine un colț, fără mâner care să tragă curba. Cu puncte selectate, Delete elimină punctele ca înainte.
 
 **Spline type** decide ce fel de curbă trece prin punctele tale:
 
@@ -112,6 +121,25 @@ Selectează două sau mai multe forme, fă clic dreapta pe canvas (atingere cu d
 ![O semilună și un inel cu o gaură reală, ambele produse de Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Rezultatul este o cale nouă pe care o poți edita în continuare cu pen-ul, stocată ca simple curbe Bezier, deci tipul original de spline nu se păstrează. Găurile sunt găuri reale: controlul **Fill rule** din panoul de contur decide dacă contururile suprapuse umplu (*non-zero*) sau perforează (*even-odd*). Operațiile refuză, nu distrug: dacă ceri intersecția a două forme care nu se suprapun, nu se schimbă nimic. Casetele de text și imagine nu au contur, deci sunt lăsate neatinse.
+
+## Contururi
+
+O casetă, o imagine, o planșă și o cale cu Pen pot purta fiecare un contur: o culoare, o grosime și un stil (continuu, întrerupt sau punctat). Rândurile conturului stau sub **Fill** în Inspector, iar butonul **Contur** de pe bara de obiect le deschide.
+
+**Poziție** așază conturul pe linia formei: **Interior**, **Centru** sau **Exterior**. O casetă are conturul în interior dacă nu alegi altceva, deci marginea ei exterioară rămâne unde ai desenat-o, iar o cale cu Pen are conturul centrat pe curbă. Cu un contur centrat sau exterior, umplerea, imaginea și textul rămân în marginea interioară a conturului, iar conturul de selecție rămâne pe marginea proprie a casetei. O cale deschisă nu are interior, deci conturul ei este mereu centrat. Conturul unei planșe rămâne mereu în interiorul paginii, pentru că marginea paginii este marginea exportului.
+
+**Contur pe fiecare latură.** La un dreptunghi, o casetă rotunjită, o pilulă sau o planșă, comutatorul de lângă grosime arată patru grosimi: **Sus**, **Dreapta**, **Jos** și **Stânga**. Setează o latură la 0 ca s-o ascunzi, ceea ce îți dă un separator sau o subliniere fără o a doua formă. Comutatorul doar arată sau ascunde cele patru celule și nu schimbă niciodată o valoare. Cât timp laturile diferă, grosimea se citește **Mixt**; scrie acolo o grosime ca s-o setezi pe toate patru deodată. Culoarea, poziția și stilul rămân comune tuturor laturilor, iar colțurile rotunjite se curbează odată cu grosimile de lângă ele, ca la un border CSS. Elipsele, cercurile și căile cu Pen desenează o singură grosime peste tot.
+
+Cum poartă formatele un contur:
+
+| Format | Poziție | Pe fiecare latură |
+|---|---|---|
+| SVG, PDF, PNG și celelalte imagini | Exactă. Conturul interior sau exterior al unei căi cu Pen este desenat de două ori mai gros și tăiat pe o parte a liniei. | Un contur continuu este exact, ca o singură formă între marginea exterioară și cea interioară a conturului. Unul întrerupt sau punctat este desenat ca linii întrerupte de-a lungul fiecărei laturi în SVG și continuu în PDF. |
+| Penpot | Interior, centru și exterior călătoresc ca alinierea conturului din Penpot. O planșă este mereu `inner`. | Penpot 2.19 sau mai nou citește nativ cele patru grosimi. Penpot 2.18 desenează grosimea de sus peste tot, iar Penpot 2.17 sau mai vechi refuză un fișier care poartă grosimi pe fiecare latură. |
+| PowerPoint | PowerPoint desenează o linie centrată pe marginea formei. Centrul este exact; exteriorul mută forma în afară cu jumătate din grosime, ceea ce pune linia PowerPoint în afara casetei; interiorul păstrează linia centrată pe care o scriau exporturile mai vechi. | Conturul devine o formă separată (inelul dintre marginea exterioară și cea interioară), peste o formă fără linie. |
+| dotLottie | Conturele Lottie sunt centrate, deci un contur exterior de casetă sau un contur interior ori exterior de cale cu Pen este refuzat cu un mesaj. | Refuzat cu un mesaj. |
+
+Un contur centrat translucid arată pagina prin jumătatea lui interioară, nu umplerea, pe canvas și în fiecare export. Când imporți un fișier Penpot, fiecare contur își păstrează alinierea și grosimile pe fiecare latură, iar `strokeAlign` și grosimile individuale ale conturului dintr-un fișier Figma vin la fel.
 
 ## Scene 3D și instrumente în interiorul unui design
 
@@ -167,7 +195,7 @@ Unde există o sugestie concretă de culoare sau font, butonul ei schimbă acel 
 
 ### Reguli de casă și semnalul de scriere
 
-Cardul panoului de export verifică și regulile de casă pe care le aduce sistemul tău de design, precum greutatea și alinierea textului, perechile de culori aprobate sau un logo pe suprafață, strat cu strat. Fiecare constatare este un avertisment cu numele stratului deasupra regulii. O regulă pentru care această versiune nu are verificator este listată ca neverificată, niciodată ca respectată. [Usage & rules](/info/brand-studio.html#usage-rules) listează regulile, iar `lolly check` le aplică pe aceleași unui document salvat.
+Cardul panoului de export verifică și regulile de casă pe care le aduce sistemul tău de design, precum greutatea și alinierea textului, perechile de culori aprobate sau un logo pe suprafață, strat cu strat. Fiecare constatare este un avertisment cu numele stratului deasupra regulii. O regulă pentru care această versiune nu are verificator este listată ca neverificată, niciodată ca respectată. [Rules](/info/brand-studio.html#rules) listează regulile, iar `lolly check` le aplică pe aceleași unui document salvat.
 
 Același card arată semnalul de scriere pentru textul desenat de document: banda lui (none, weak, notable sau strong), apoi propria propoziție a Verify cu scorul din 100 și până la trei fraze semnalate, fiecare cu stratul care le conține. **Open the text in Verify** duce acel text în [Verify](/#/verify) pentru citirea completă; [Dovezi AI în Verify](/info/verify-ai-evidence.html) explică ce cântărește scorul. Scorul este un semnal, nu un verdict: numără tipare comune în scrisul generat și nu poate spune cine a scris cuvintele. Straturile ascunse sunt lăsate în afara ambelor verificări, iar cardul spune câte.
 

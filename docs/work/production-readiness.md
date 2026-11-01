@@ -6,6 +6,8 @@ what it can prove from those files and a staging address, and lists what it cann
 so you know which evidence is still yours to gather. It changes nothing and approves
 nothing.
 
+Readiness is specific to the deployment and workflow. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) is evidence of a working integration and adoption process; it does not establish every source mapping, destination adapter or operational control for another instance.
+
 Run it from a source checkout with development dependencies installed
 (`pnpm install --frozen-lockfile`). It checks the configuration against a strict,
 sign-in gated OIDC profile:

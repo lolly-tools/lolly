@@ -33,8 +33,19 @@ test('asset inspector resizes, collapses and keeps the complete journey readable
     assert.ok(measured.every(row => row.scroll <= row.client + 1), JSON.stringify(measured));
   };
   try {
+    // A fold stored for the retired Technical details section must not linger.
+    await page.addInitScript(() => { try { localStorage.setItem('lolly:asset-inspector', JSON.stringify({ 'section:technical': 1 })); } catch { /* blocked storage */ } });
     await page.goto(`${origin}/#/a`, { waitUntil: 'domcontentloaded' });
     await page.locator('.cat-remote .cat-tile-open').first().click();
+    // One Details section holds the record's rows and the file's own facts, each label led by a hidden glyph.
+    const details = page.locator('[data-inspector-section="details"]');
+    await details.waitFor();
+    assert.equal(await details.locator('.section-card-title').textContent(), 'Details');
+    assert.equal(await page.locator('[data-inspector-section="technical"]').count(), 0);
+    assert.equal(await details.locator('[data-meta="format"]').count(), 1, 'Format is shown once');
+    const glyphs = await details.locator('dl > div > dt').evaluateAll(dts => dts.map(dt => ({ label: dt.textContent, hidden: dt.querySelector('svg.cat-meta-icon')?.getAttribute('aria-hidden') })));
+    assert.ok(glyphs.length >= 4 && glyphs.every(row => row.label && row.hidden === 'true'), JSON.stringify(glyphs));
+    assert.equal(await page.evaluate(() => localStorage.getItem('lolly:asset-inspector')?.includes('section:technical') ?? false), false);
     const dialog = page.locator('.cat-details'), grip = page.getByRole('separator', { name: 'Resize asset details' });
     await page.getByRole('button', { name: 'Inspect & verify', exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Check Content Credentials', exact: true }).count(), 0);
@@ -82,6 +93,57 @@ test('asset inspector resizes, collapses and keeps the complete journey readable
     await page.getByRole('button', { name: 'Inspect & verify', exact: true }).click();
     await page.waitForURL('**/#/verify?asset=ext%2Fdam%2Fart');
     await page.locator('.verify-view').waitFor(); assert.equal(await page.locator('.cat-details').count(), 0);
+    assert.deepEqual(errors, []);
+  } catch (error) {
+    console.error(JSON.stringify({ errors, body: (await page.locator('body').innerText()).slice(-3500) })); throw error;
+  } finally { await context.close(); await closeBrowser(); }
+});
+
+test('a catalog PDF shows its recorded size at once, its pages from the viewer\'s read, and on a phone the details open from the header', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL or LOLLY_IMPORT_TEST_URL to a local web shell', timeout: 120_000 }, async () => {
+  assert.ok(['localhost', '127.0.0.1'].includes(new URL(origin!).hostname));
+  // A three-page PDF with a US Letter MediaBox, written out by hand so the test needs no fixture file.
+  const objects = ['<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [3 0 R 4 0 R 5 0 R] /Count 3 >>',
+    ...[3, 4, 5].map(() => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>')];
+  let body = '%PDF-1.4\n'; const offsets: number[] = [];
+  objects.forEach((object, index) => { offsets.push(body.length); body += `${index + 1} 0 obj ${object} endobj\n`; });
+  const xref = body.length;
+  body += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.map(offset => `${String(offset).padStart(10, '0')} 00000 n \n`).join('')}trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  const pdf = Buffer.from(body, 'latin1');
+  const book = { id: 'ext/dam/book', name: 'Brand book', provider: 'dam', type: 'data', version: '1234567890123458',
+    formats: [{ format: 'pdf', url: '/catalog/ext/dam/book/one', size: pdf.length }], meta: { providerLabel: 'Campaign library' } };
+  const browser = await getBrowser(), context = await browser.newContext({ viewport: { width: 390, height: 844 } }), page = await context.newPage();
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.route('**/catalog/assets/index.json*', route => route.fulfill({ json: { assets: [] } }));
+  await page.route('**/catalog/ext/**', route => route.fulfill({ contentType: 'application/pdf', body: pdf }));
+  await page.route('**/api/v1/catalog/**', route => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/sources')) return route.fulfill({ json: { scope: 'fixture', sources: [{ id: 'dam', label: 'Campaign library', status: 'current', count: 1 }] } });
+    if (path === '/api/v1/catalog/assets') return route.fulfill({ json: { assets: [book], total: 1, nextCursor: null, version: 'fixture', complete: true,
+      capabilities: { indexedFilters: ['scope', 'q', 'source', 'types', 'tag', 'taxonomyKind', 'taxonomyId'] }, facets: { sources: [], sections: [], collections: [], tags: [], types: [] } } });
+    return route.fulfill({ json: { ...book, canEdit: false, fields: {}, fieldDefs: [] } });
+  });
+  try {
+    await page.goto(`${origin}/#/a`, { waitUntil: 'domcontentloaded' });
+    await page.locator('.cat-remote .cat-tile-open').first().click();
+    const details = page.locator('[data-inspector-section="details"]');
+    await details.waitFor({ state: 'attached' });
+    // The record's size is there before any read; the viewer's read adds the pages.
+    assert.equal(await details.locator('[data-meta="fileSize"] dd').textContent(), `${pdf.length} B`);
+    await details.locator('[data-meta="pages"]').waitFor({ state: 'attached' });
+    assert.equal(await details.locator('[data-meta="pages"] dd').textContent(), '3');
+    assert.equal(await details.locator('[data-meta="dimensions"] dd').textContent(), '612 × 792 pt');
+    // A real click, so a header covering the button fails here.
+    const toggle = page.locator('.cat-details-header .asset-viewer-details-toggle');
+    await toggle.click();
+    assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+    await page.locator('.cat-inspector-title-row').getByText('Brand book', { exact: true }).waitFor();
+    await page.locator('.cat-inspector-primary').getByRole('button', { name: /^Download/ }).waitFor();
+    await details.scrollIntoViewIfNeeded();
+    assert.ok(await details.locator('[data-meta="pages"]').isVisible());
+    if (process.env.LOLLY_ASSETS_EVIDENCE) await page.screenshot({ path: `${process.env.LOLLY_ASSETS_EVIDENCE}/inspector-pdf-phone.png` });
+    await page.getByRole('button', { name: 'Back to preview', exact: true }).click();
+    await page.locator('.asset-format-viewer').waitFor();
+    assert.equal(await page.locator('.cat-inspector').isVisible(), false);
     assert.deepEqual(errors, []);
   } catch (error) {
     console.error(JSON.stringify({ errors, body: (await page.locator('body').innerText()).slice(-3500) })); throw error;

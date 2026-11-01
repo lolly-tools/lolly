@@ -12,7 +12,7 @@ The **top bar** starts with **Home**, the **File menu** and the document's name 
 
 The **tool rail** down the side holds the Lolly menu and the tools you draw with: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, then the Timeline, Artboards and Auto-arrange buttons.
 
-![The free-canvas tool rail: a drag grip, the Lolly menu, then Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards and Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![The free-canvas tool rail: a drag grip, the Lolly menu, then Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards and Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 The canvas works like a designer's pasteboard around the artboard:
 
@@ -195,7 +195,7 @@ Where a concrete colour or font suggestion exists, its button changes that one l
 
 ### House rules and the writing signal
 
-The export panel's card also checks the house rules your design system brings with it, such as text weight and alignment, approved colour pairings or a logo per surface, layer by layer. Each finding has the layer's name above the rule. A finding against a required rule is a warning, and one against an advisory rule is a note. A logo finding gives each logo's name from the catalog. A rule this build has no checker for is listed as not checked, never as followed. [Usage & rules](/info/brand-studio.html#usage-rules) lists the rules, and `lolly check` applies the same ones to a saved document.
+The export panel's card also checks the house rules your design system brings with it, such as text weight and alignment, approved colour pairings or a logo per surface, layer by layer. Each finding has the layer's name above the rule. A finding against a required rule is a warning, and one against an advisory rule is a note. A logo finding gives each logo's name from the catalog. A rule this build has no checker for is listed as not checked, never as followed. [Rules](/info/brand-studio.html#rules) lists the rules, and `lolly check` applies the same ones to a saved document.
 
 The same card shows the writing signal for the text the document draws: its band (none, weak, notable or strong), then Verify's own sentence with the score out of 100 and up to three flagged phrases, each with the layer that holds them. **Open the text in Verify** takes that text to [Verify](/#/verify) for the full reading; [AI evidence in Verify](/info/verify-ai-evidence.html) explains what the score weighs. The score is a signal, not a verdict: it counts patterns common in generated writing and cannot tell who wrote the words. Hidden layers are left out of both checks, and the card says how many.
 

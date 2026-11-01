@@ -48,6 +48,21 @@ function snapWithNodes(fc: FcCtx, at: Point, alt: boolean, nodes: readonly Point
   return { x: snap.x, y: snap.y };
 }
 
+/**
+ * The pen's node snapping for a point on a MOTION PATH (plans/330), so a keyframe's point
+ * lines up with the grid, the smart guides and the path's other points exactly as a pen
+ * node does. The box the path belongs to is left out of its own guides, and Alt is the
+ * raw pointer, as on a node drag.
+ */
+export function snapPathPoint(fc: FcCtx, at: Point, alt: boolean, nodes: readonly Point[], id: string): Point {
+  if (alt) {
+    fc.gestures.clearGuides();
+    return { x: at.x, y: at.y };
+  }
+  const self = new Set([fc.select.indexOfId(fc.select.getBoxes(), id)]);
+  return snapWithNodes(fc, at, false, nodes, self);
+}
+
 /** Where a pen press puts its node while drawing. Shift holds the new segment to 15 degree
  *  steps from the node before it, and wins over snapping, since a guide would pull the node
  *  off the angle that was asked for. Otherwise the node snaps to the canvas and to every
@@ -279,5 +294,6 @@ export function penAssistOps(fc: FcCtx) {
     cancelResume: bindOp(fc, cancelResume),
     finishResume: bindOp(fc, finishResume),
     retractSelectedHandles: bindOp(fc, retractSelectedHandles),
+    snapPathPoint: bindOp(fc, snapPathPoint),
   };
 }

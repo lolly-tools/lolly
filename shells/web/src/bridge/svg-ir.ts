@@ -33,5 +33,12 @@ export type {
  * shell's font registry unless the caller names its own resolver.
  */
 export function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promise<VectorIrResult> {
-  return walkSvgToIr(svgEl, { resolveFont: resolveVectorFont, ...ctx });
+  return walkSvgToIr(svgEl, { resolveFont: resolveVectorFont, readImage: readPageImage, ...ctx });
+}
+
+/** An `<image>`'s bytes through the page's own fetch: a catalog path or an allowed
+ *  remote picture reads the way the page drew it, inside the browser's CSP. The Node
+ *  shells pass no reader, so there only inline pictures are read. */
+async function readPageImage(href: string): Promise<Blob | null> {
+  return (await fetch(href)).blob();
 }

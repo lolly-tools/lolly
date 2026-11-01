@@ -2,6 +2,8 @@
 
 Your organisation can run its own Lolly: the same app, with the tools and design systems it chose. This page shows how to reach it, sign in and what changes once you do.
 
+If you are planning the organisation's setup, [Use Lolly with your existing DAM](/info/use-with-dam.html) explains how an approved library can stay in place while people start producing content in Lolly. [Content sovereignty](/info/content-sovereignty.html) describes the wider control over creation, governance, storage and portability.
+
 ::: note What you need from your organisation
 The web address of its Lolly, or a `.lolly` setup file your organisation made. lolly.tools on its own does not connect to an organisation.
 :::
@@ -74,6 +76,10 @@ Your organisation hosts [Lolly Work](https://github.com/lolly-tools/lolly-work) 
 
 If you are setting up the service, start with [Deployment](/info/deployment.html#organisation-services-with-lolly-work). The public demo at [lolly.work](https://lolly.work) is a sandbox; use your organisation's own address for work you need to keep.
 :::
+
+## Another organisation's brand
+
+A partner, client or sponsor may send you their brand as a design-system file (`.lolly`) rather than an address. Opening that kind of file connects the app to nothing: it adds their design system beside your own on this device. A setup file from your own organisation is different, because it connects the app to the organisation's Lolly, and the preview shows what opening a file will do before anything changes. [Working with partners](/info/partners.html) covers both sides of working in another organisation's brand.
 
 ## Leaving
 

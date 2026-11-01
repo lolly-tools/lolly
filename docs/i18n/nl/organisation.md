@@ -75,6 +75,10 @@ Je organisatie host [Lolly Work](https://github.com/lolly-tools/lolly-work) naas
 Als je de dienst opzet, begin dan met [Deployment](/info/deployment.html#organisation-services-with-lolly-work). De openbare demo op [lolly.work](https://lolly.work) is een sandbox; gebruik het eigen adres van je organisatie voor werk dat je wilt bewaren.
 :::
 
+## Het merk van een andere organisatie
+
+Een partner, klant of sponsor kan je zijn merk sturen als design-systeembestand (`.lolly`) in plaats van als adres. Zo'n bestand openen verbindt de app met niets: het zet hun design system naast het jouwe op dit apparaat. Een setupbestand van je eigen organisatie is anders, want dat verbindt de app met de Lolly van de organisatie, en de voorvertoning laat zien wat het openen van een bestand doet voordat er iets verandert. [Samenwerken met partners](/info/partners.html) behandelt beide kanten van werken in het merk van een andere organisatie.
+
 ## Verlaten
 
 **Leave**, op de kaart **Lolly instance** in **Settings**, verwijdert het design system, de tools en de catalogus van je organisatie. Je eigen werk blijft. Alles wat je met haar tools maakte, opent pas weer nadat je opnieuw verbindt.

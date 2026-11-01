@@ -15,6 +15,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Lolly: information and documentation | [site.md](site.md) |
 | Start | [quickstart.md](quickstart.md) |
 | What is Lolly? | [what-is-lolly.md](what-is-lolly.md) |
+| What is content sovereignty? | [content-sovereignty.md](content-sovereignty.md) |
+| How SUSE connected Brandfolder to Lolly | [suse-brandfolder.md](suse-brandfolder.md) |
 | How Lolly works | [how-lolly-works.md](how-lolly-works.md) |
 | Make your first file | [make-something.md](make-something.md) |
 | Meet Lolly Demo | [lolly-demo.md](lolly-demo.md) |
@@ -42,6 +44,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Design System Setup | [brand-studio.md](brand-studio.md) |
 | Brand architectures | [brand-architectures.md](brand-architectures.md) |
 | Colourways | [colourways.md](colourways.md) |
+| Working with partners | [partners.md](partners.md) |
 | 3D Studio | [3d-studio.md](3d-studio.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
 | Sync your devices | [sync.md](sync.md) |
@@ -76,6 +79,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Lolly and online file converters | [compare-converters.md](compare-converters.md) |
 | Lolly and Penpot | [compare-penpot.md](compare-penpot.md) |
 | Lolly and brand portals | [compare-brand-portals.md](compare-brand-portals.md) |
+| Create on-brand content from approved DAM assets | [dam-production.md](dam-production.md) |
 | Browser extension | [extension.md](extension.md) |
 | Lolly for sales teams | [sales.md](sales.md) |
 | Lolly for the newsroom | [press.md](press.md) |
@@ -148,6 +152,9 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Guide | Source |
 | --- | --- |
 | Manage | [operators.md](operators.md) |
+| Use Lolly with your existing DAM | [use-with-dam.md](use-with-dam.md) |
+| Lolly for DAM vendors and implementation partners | [dam-partners.md](dam-partners.md) |
+| Plan a DAM transition without disrupting content teams | [dam-transition.md](dam-transition.md) |
 | Profiles, brands and tool configuration | [configuration.md](configuration.md) |
 | Adoption & Governance | [adoption-governance.md](adoption-governance.md) |
 | Sign-in and sessions | [work/identity.md](work/identity.md) |

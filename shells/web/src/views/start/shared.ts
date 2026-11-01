@@ -223,3 +223,18 @@ export function markExtension(mime: string): string | null {
       return null;
   }
 }
+
+/**
+ * Focus the first target that actually takes focus. A target that is hidden,
+ * or not drawn (display: none in a narrow layout), ignores focus(), and that
+ * is only known by asking: focus() is called and the active element read back.
+ * Returns the element that took focus, or null when none did.
+ */
+export function handFocusBack(targets: ReadonlyArray<HTMLElement | null | undefined>): HTMLElement | null {
+  for (const el of targets) {
+    if (!el || el.hidden) continue;
+    el.focus();
+    if (el.ownerDocument.activeElement === el) return el;
+  }
+  return null;
+}

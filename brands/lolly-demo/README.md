@@ -84,7 +84,7 @@ handoff with one named owner.
 - **Four house rules.** The tokens carry a `brandSystem` in
   `$extensions['com.suse.lolly']` whose rules Design checks layer by layer
   (`engine/src/design-house-rules.ts`): the export panel's Before you export
-  card, `lolly check` and the Start view's Usage & rules room all read them.
+  card, `lolly check` and the Start view's Rules room all read them.
   Each rule cites the Lolly brand standards (`/brand`) or the pack's own brand
   skill (`lolly/skill/brand`):
   - `headline-case` (text-case, required): headlines are never set in capitals.
@@ -100,7 +100,7 @@ handoff with one named owner.
   All four are approved (`review: { state: "approved", authority: "Andy
   Fitzsimon" }`, 24 Oct 2026), so `lolly check` reports a headline in capitals
   as an error and a finding from the three advisory rules as a warning, and the
-  Usage & rules room shows each one as Required or Advisory. Three kinds are
+  Rules room shows each one as Required or Advisory. Three kinds are
   left out on purpose.
   The slide master sets titles at weight 700 while the standards page sets
   headings at 500, so there is no single weight for a text-weight rule. The

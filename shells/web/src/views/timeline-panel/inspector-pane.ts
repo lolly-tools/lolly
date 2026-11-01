@@ -1118,7 +1118,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
         const keys =
           hit >= 0
             ? track.map((k, j) =>
-                j === hit ? { t: k.t, ease: k.ease, v: { ...k.v, v: val } } : k
+                j === hit ? { ...k, v: { ...k.v, v: val } } : k
               )
             : [...track, { t: atMs, ease: '', v: { v: val } }];
         // The key CAPTURES the row's level and the flat trim resets to neutral in
@@ -1147,7 +1147,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
             .map((k) => {
               const pose = { ...k.v } as Record<string, number>;
               delete pose.v;
-              return { t: k.t, ease: k.ease, v: pose };
+              return { ...k, v: pose };
             })
             .filter((k) => Object.keys(k.v).length > 0);
           tp.helpers.write(setKfTrack(rows, cfg, id, keys as never));

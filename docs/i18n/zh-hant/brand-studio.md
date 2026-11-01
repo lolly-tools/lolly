@@ -1,6 +1,6 @@
 # Design System Setup
 
-你的標誌、色彩與字型屬於同一個地方，讓每個工具、頁面與匯出都以它們繪製。那個地方就是位於 `#/start` 的 **Design System Setup**，它的標語說明了用途：*Make it yours*。
+你的標誌、色彩與字型屬於同一個地方，讓每個工具、頁面與匯出都以它們繪製。那個地方就是位於 `#/start` 的 **Design System Setup**。
 
 從你手上有的東西開始。放入標誌，Lolly 會讀取它的色彩。選擇字型，或放入你公司授權的字型檔案。每項更改都會立即顯示在整個應用程式中。你的標誌、字型與 token 留在這部裝置上。挑選 Google Font 是唯一會對外連絡的步驟：Lolly 會先詢問，然後只擷取該字型家族一次。
 
@@ -16,33 +16,36 @@
 - <!--i:download--> **Export** 會把整個系統寫成一個 `LollyBrand-….lolly` 檔案。
 :::
 
-標頭顯示你正在 **Editing** 哪個設計系統，其名稱是你隨時可以更改的欄位。當你的第一次編輯詢問 **What is this design system called?** 時，如果標誌上有拼出文字，其文字會被填入。**Save name** 保留名稱；**Not now** 會保留一個預留名稱，直到你在標頭中輸入。名稱會在 Settings 中以及你切換時標示該系統，也會成為 **Export** 寫出的檔案的名稱。
+工作室頂端的列帶有設計系統的名稱，名稱是你隨時可以更改的欄位：**Enter** 保留新名稱，**Escape** 還原舊名稱。當你的第一次編輯詢問 **What is this design system called?** 時，如果標誌上有拼出文字，其文字會被填入。**Save name** 保留名稱；**Not now** 會保留一個預留名稱，直到你在列中輸入。名稱會在 Settings 中以及你切換時標示該系統，也會成為 **Export** 寫出的檔案的名稱。
 
 ## 各個房間
 
-工作室是側邊列中的一組房間，沒有固定順序：沒有任何編號，也沒有任何東西需要等待其他東西。在手機上，這個列會變成標頭下方的一排晶片。
+工作室是一組沒有固定順序的房間：沒有任何編號，也沒有任何東西需要等待其他東西。在桌面上，房間排成一列，位於頂端列的下方。在手機上，它們移到螢幕底部邊緣的列，拇指搆得到的地方，開啟的房間會捲動到可見處；調色盤面板與托盤會升到那一列之上，你打字時那一列會讓開。使用鍵盤時，Tab 只會抵達這一列一次，方向鍵、Home 與 End 則在房間之間移動。
 
-![工作室的房間列：Overview、Colours、Type、Logos、Tokens、Files 與 Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![工作室的頂端列與房間：Board、Colours、Type、Logos、Tokens、Files、Rules 與 Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | 房間 | 你在那裡做什麼 | 連結鍵 |
 |---|---|---|
-| **Overview** | 查看系統保存了什麼，並附有進入每個房間的門 | `overview` |
+| **Board** | 查看系統保存了什麼，並附有進入每個房間的門 | `overview` |
 | **Colours** | 新增色彩、賦予角色、建立色階與調色盤 | `color` |
 | **Type** | 選擇應用程式、工具與每個匯出所讀取的四種字型 | `type` |
 | **Logos** | 以各種方向與處理方式放置你的標記 | `logos` |
 | **Tokens** | 圓角、間距、陰影與其他每個具名的值 | `tokens` |
 | **Files** | 你的品牌保存的圖片、音訊與動態檔案 | `catalogue` |
-| **Usage & rules** | 你的品牌套用的規則，在實際範例上檢查 | `usage` |
+| **Rules** | 你的品牌套用的規則，在實際範例上檢查 | `usage` |
+| **Skills** | 品牌為人員與代理程式撰寫的標準，可閱讀與下載 | `skills` |
 
-以 `#/start?area=<key>` 連結到某個房間。Files 房間保留鍵 `catalogue`，因為房間鍵是永久的契約，而 `?tab=` 仍作為較舊的別名繼續有效。未知的鍵會開啟 Overview。
+以 `#/start?area=<key>` 連結到某個房間。Files 房間保留鍵 `catalogue`，Board 保留 `overview`，Rules 保留 `usage`，因為房間鍵是永久的契約，而 `?tab=` 仍作為較舊的別名繼續有效。未知的鍵會開啟 Board。
 
-**側邊列的底部**放的是針對整個系統而非單一房間的動作。**Add from…** 帶入品牌（[帶入品牌](#bring-a-brand-in)），**Tray** 則保存掃描找到但你尚未加入的東西。**Export**、**Tokens (.json)**、**Fonts for Linux (.rpm)**、**Versions** 與 **Restore brand settings** 負責保存與搬移系統（[保存並搬移你的設計系統](#keep-and-move-your-design-system)）。每一項只有在有東西可以作用時才會出現。
+**頂端列**放的是針對整個系統而非單一房間的動作。**Add from…** 帶入品牌（[帶入品牌](#bring-a-brand-in)），**Tray** 則保存掃描找到但你尚未加入的東西。**Export** 把系統寫成一個檔案，**More** 則收納 **Tokens (.json)**、**Fonts for Linux (.rpm)**、**Versions & publishing**、**Restore brand settings** 與 **Design systems**，後者會在 Settings 中開啟可切換的清單（[保存並搬移你的設計系統](#keep-and-move-your-design-system)）。每一項只有在有東西可以作用時才會出現。在手機上，**Add from…** 移入 **More**，**Export** 只顯示為圖示。
 
-## 總覽
+## Board
 
-在尚未選擇任何東西時，Overview 提供四種開始的方式。**Start from a reference** 開啟標誌、螢幕截圖、網頁或設計檔案的來源選擇器，而 **Pick a colour**、**Choose a face** 與 **Add a logo** 則直接開啟那些控制項。開啟任何一個都不會寫入內容，而 **Explore the tools** 從一開始就在。
+在尚未選擇任何東西時，Board 提供四種開始的方式。**Start from a reference** 開啟標誌、螢幕截圖、網頁或設計檔案的來源選擇器，而 **Pick a colour**、**Choose a face** 與 **Add a logo** 則直接開啟那些控制項。開啟任何一個都不會寫入內容，而 **Explore the tools** 從一開始就在。
 
-一旦有任何東西屬於你自己，Overview 就會顯示你擁有什麼，以你自己的計數為先。Colours 給出色彩的數量，在顯示繼承色彩時附上淡化的 `· N starter`；它的色帶先放你的色彩，然後是一條細線，再來是淡化的起始色彩。Type 依角色顯示（*Inter for headings*，下一行是 *Starter for the rest*）。Logos 說明填了多少個欄位（或 **Not set**），Tokens 顯示圓角半徑，而在資料庫仍為空時，Files 顯示 **Nothing yet**。每個區塊都會開啟其房間。
+一旦有任何東西屬於你自己，Board 就會顯示你擁有什麼，以你自己的計數為先。Colours 給出色彩的數量，在顯示繼承色彩時附上淡化的 `· N starter`；它的色帶先放你的色彩，然後是一條細線，再來是淡化的起始色彩。Colourways 把每個色彩方案顯示為以其主色呈現的小圖塊。Type 依角色顯示，並以各自的字型排出每個字型家族（*Inter for headings*，下一行是 *Starter for the rest*）。Logos 說明填了多少個欄位（或 **Not set**），Tokens 顯示圓角半徑，而在資料庫仍為空時，Files 顯示 **Nothing yet**。每個區塊都會開啟其房間。
+
+隨應用程式提供且可編輯的設計系統，例如 Lolly Demo，從一開始就具備這一切：Board 會顯示它的色彩、色彩方案、字型與標誌，標題旁帶有 **Came with this app** 標籤。
 
 ### Starter 與 Yours
 
@@ -60,7 +63,7 @@
 
 - 由你選擇或安裝。
 - 完整強度，而在你安裝了字型之處是帶色調的卡片。
-- 計入 Overview 與 Tokens。
+- 計入 Board 與 Tokens。
 - 跟隨另一個角色的角色顯示為 **↳ follows Primary**，而不重複主色的名稱。
 :::
 
@@ -105,7 +108,7 @@
 
 你的色彩在寬螢幕上位於 **In context** 預覽旁邊，在較小的螢幕上則位於其上方。預覽以你的調色盤顯示海報、圖表或介面卡片。起始色彩留在它們自己的摺疊群組中。
 
-![Lolly Demo 上的 Colours 房間：摺疊群組中的調色盤，每個色彩附有名稱與十六進位值，以及底部的下載膠囊](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Lolly Demo 上的 Colours 房間：摺疊群組中的調色盤，每個色彩附有名稱與十六進位值，以及頭部的調色盤下載](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![加入一個色彩後的 Colours 房間，帶有它的調色盤和一個即時的構圖預覽](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -117,7 +120,7 @@
 
 應用程式自己的強調色預設跟隨設計系統。這就是 **Settings → Appearance** 中的 **Interface follows the design system** 設定；關閉該設定會讓應用程式的外框保持中性，而工具、畫布與匯出無論如何都跟隨設計系統。
 
-**Colourways。** 設計系統可以保存多個主色，每件作品各自選擇。Lolly 保留每一種配色方案，但這個房間目前還無法建立配色方案：配色方案是寫在 token 檔案中的。在有配色方案的系統上，每種配色方案都需要自己的主色與次要色，而在配色方案為背景著色時還需要自己的表面色，所以這些角色仍在色票編輯器中設定。[實際使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了在真實工作上的配色方案，[為設計系統加入配色方案](/info/colourways.html#add-colourways-to-a-design-system)則有格式說明。
+**Colourways。** 設計系統可以保存多個主色，每件作品各自選擇。**Colour roles** 頂端的 **Colourways** 列為每種配色方案顯示一個晶片，標準的那一種標有 **Default**。**+ Add** 會從調色盤的某個色彩開始一種新的配色方案。選擇一個晶片後，角色列、調色盤與預覽就會編輯該配色方案，外觀則依 **Light** 與 **Dark** 切換所選；所選的配色方案可以重新命名、複製、設為預設或移除。在有配色方案的系統上，每種配色方案都需要自己的主色與次要色，而在配色方案為背景著色時還需要自己的表面色，所以這些角色仍在色票編輯器中設定。[為設計系統加入配色方案](/info/colourways.html#add-colourways-to-a-design-system)有步驟與 token 格式，[實際使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)則展示了在真實工作上的配色方案。
 
 ### 找到更多色彩
 
@@ -162,7 +165,7 @@
 
 調色盤將你的色彩列在摺疊群組中，每個群組有自己的 **+ Add**。可隨意建立並重新命名群組。角色絕不會產生第二個圖塊：角色所指的圖塊會改為戴上一個小標記（**P**、**S**、**Su**、**T**）。圖塊下方的 **Colour chart** 在 OKLCH 的 **Wheel**（拖曳圓點即可重新著色，點擊空白處可新增色票）以及顯示可顯示範圍終點的 **Gamut** 圖上呈現相同的色彩。`#/start?area=color&focus=chart` 會直接開啟圖表。
 
-![調色盤面板，每組都可折疊，下載小圓鈕停靠在其底部邊緣](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![調色盤面板，每組都可折疊，調色盤下載位於其頭部](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH 色輪 - 角度代表色相，離中心的距離代表彩度，灰階則沿側邊的明度軌道排列](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -178,7 +181,7 @@
 **刪除色票**是安全的。衍生的色階與主題角色會被隱藏，因此任何讀取它們的東西都不會壞掉，而你新增的色彩則會被移除。
 
 ::: details 處理許多色票
-每個色票都有拖曳把手。拖曳即可在群組內重新排序，或讓把手取得焦點，按 Space、使用方向鍵，再按 Space 放下；Escape 取消。若要在群組之間移動色彩，請使用編輯器的 **Group** 控制項，或選取數個後使用 **Move to**。
+每個色票都有拖曳把手。拖曳即可在群組內重新排序，或讓把手取得焦點，按 Space、使用方向鍵，再按 Space 放下；Escape 取消。在手機上，調色盤每列顯示四個色彩，把手會在 Select 模式中出現，而不是在每個色彩下方佔一列。若要在群組之間移動色彩，請使用編輯器的 **Group** 控制項，或選取數個後使用 **Move to**。
 
 選取不需要模式。選取列隨第一個被選取的圖塊出現，隨最後一個離開。
 
@@ -195,13 +198,13 @@
 
 選用的 **Gradients** 面板由調色盤建立混色 token。每個漸層有預覽、2 到 8 個具名停點與角度。停點指向色票，所以為色票重新著色，漸層就會跟隨。混色在 OKLCH 中進行。
 
-一旦有了色階，調色盤的下載（設計 token、CSS、SCSS、GIMP 與 Adobe Swatch Exchange）會放在調色盤底部的膠囊中。[隨處攜帶你的調色盤與字型](/info/using.html#take-your-palette-and-fonts-anywhere)說明了每種格式。
+一旦有了色階，調色盤的下載（設計 token、CSS、SCSS、GIMP 與 Adobe Swatch Exchange）會放在調色盤的頭部、標題旁。[隨處攜帶你的調色盤與字型](/info/using.html#take-your-palette-and-fonts-anywhere)說明了每種格式。
 
 ## 字體
 
-在沒有自己字型時，房間只是一張卡片：**Primary**，以目前提供服務的字型用閱讀大小排版，帶有 **Starter** 標籤、**Choose a face** 按鈕，以及 *"Nothing installs until you choose one."* 這一行。Headings、code 與 italic 在你選擇它們之前都跟隨主色；**Choose them separately** 會顯示它們的卡片。
+在沒有自己字型時，房間只是一張卡片：**Primary**，以目前提供服務的字型用閱讀大小排版，帶有 **Starter** 標籤、**Choose for Primary** 按鈕，以及 *"Nothing installs until you choose one."* 這一行。Headings、code 與 italic 在你選擇它們之前都跟隨主色；**Choose them separately** 會顯示它們的卡片。
 
-![尚未選擇字體的 Type 房間 - 一張閱讀大小的卡片，帶有一個 Starter 標籤，以及一個已填色的 Choose a face](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![尚未選擇字體的 Type 房間 - 一張閱讀大小的卡片，帶有一個 Starter 標籤，以及一個已填色的 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 選擇一種字型，房間就會展開成四張角色卡片、Fonts 清單與即時樣張：
 
@@ -210,7 +213,7 @@
 - **Code**：用於程式碼與資料的等寬字型。
 - **Italic**：用於強調、引言與旁白的真正斜體。
 
-只有在你安裝了該字型之處，卡片才會有色調，而它的按鈕在你自己的字型上顯示 **Change**，其他地方顯示 **Choose a face**。卡片上的任何東西都不會提交任何內容：按鈕會開啟該角色的比較舞台。
+只有在你安裝了該字型之處，卡片才會有色調。它的按鈕會說明是為哪個角色：自己的字型上顯示 **Change Headings**，其他地方顯示 **Choose for Headings**。範例文字會換行而不是被截斷。卡片上的任何東西都不會提交任何內容：按鈕會開啟該角色的比較舞台。
 
 ![四張角色卡揭曉 - 每張都以服務它的字體呈現，沒人選擇的一張帶著 Starter 標籤，Italic 沿用主要字體](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -218,7 +221,7 @@
 
 舞台在房間內、你所按的卡片下方開啟，卡片會摺疊成一行的條列，讓舞台顯示在手機的第一個畫面上。Escape 取消並將焦點還給卡片。
 
-1. 在卡片上按下 **Choose a face**。
+1. 在卡片上按下 **Choose for** 與該角色。
 2. 輸入字型家族名稱並按下 **Preview**，或按下欄位下方六個 **Pinned** 字型家族之一。
 3. 按下 **Use this face**。
 
@@ -239,7 +242,7 @@ Token 是設計系統背後的具名值：色彩、字型、標誌、圓角與�
 ![Tokens 房間：頂部有取自系統的範例與檔案動作，圖塊計算每種 token，接著是附有對比讀數的色彩配對](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **頂部**給出取自你自己系統的範例（*Primary is Spearmint, #033633*）和檔案動作：**Download**（整個系統作為設計 token，或以其他五種格式下載調色盤）、**Copy CSS**，以及讀回 JSON 檔案的 **Add from…**。
-- **圖塊**計算每種 token 並跳到其區段：Colours、Type、Logos、Shape and spacing、More 與 All tokens。它們計算屬於你自己的部分，與 Overview 相同。在手機上，圖塊可橫向捲動。
+- **圖塊**計算每種 token 並跳到其區段：Colours、Type、Logos、Shape and spacing、More 與 All tokens。它們計算每個區段所含的內容；只含空白起始內容的區段會帶有 **Starter** 標籤，而隨應用程式提供的系統則計算自己的內容，不帶標籤。在手機上，圖塊排成兩列、每列三個。
 - **Colours** 先列出工具搭配使用的配對（表面上的文字、主色上的文字、表面上的淡化文字），附有淺色與深色的 APCA 讀數，並在配對不足之處標示 **Weak contrast**。接著是每個色彩群組：色階為一排色塊，其他色彩附有其值與工具使用的參照，例如 `{color.brand.spearmint}`。按下參照即可複製該參照。**Edit in Colours** 在 Colours 房間中開啟群組。
 - **Type** 與 **Logos** 列出每個角色與每個標誌欄位的字型，一旦有自己的，就有 **Edit in Type** 與 **Edit in Logos**。
 - **Shape and spacing** 包含 **Rounded corners**（`shape.radius`）與 **Spacing rhythm**（`space.base`）。在你移動滑桿之前，各顯示 *Lolly default*，之後顯示 *Yours*，會立即儲存並可復原。
@@ -252,11 +255,11 @@ Token 是設計系統背後的具名值：色彩、字型、標誌、圓角與�
 
 放入你的品牌保存的檔案（標誌除外）：**vector**、**image**、**audio** 與 **motion** 檔案（影片、Lottie 與動畫）。它們會出現在 [Assets](/info/using.html#assets-your-library) 中，分區整理，並在每個工具的素材選擇器中就緒，且留在這部裝置上。
 
-## Usage & rules
+## Rules
 
-**Usage & rules** 讓你的品牌選擇發揮作用：人們可以更改什麼、什麼保持固定，以及 Lolly 能檢查什麼。
+**Rules** 讓你的品牌選擇發揮作用：人們可以更改什麼、什麼保持固定，以及 Lolly 能檢查什麼。
 
-![Lolly Demo 上的 Usage & rules：空的 Brand rules 卡片附有 Add your first rule，接著是 Try your brand in use，其範例已準備好渲染](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo 上的 Rules：空的 Brand rules 卡片附有 Add your first rule，接著是 Try your brand in use，其範例已準備好渲染](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** 列出你的規則。**Add rule**（或 **Add your first rule**）開啟一個簡短的表單：
 
@@ -273,9 +276,15 @@ Token 是設計系統背後的具名值：色彩、字型、標誌、圓角與�
 
 帶有固定品牌的建置版本會在 *This brand is set* 之下，以唯讀方式顯示相同的規則與範例。
 
+## Skills
+
+**Skills** 列出目前設計系統的[品牌技能](/info/brand-skills.html)：品牌的書面標準，每個專業領域一份，供人員與 AI 代理程式使用。每一列顯示專業領域、品牌自己的狀態（**Draft** 或 **Approved**）、技能是公開還是內部，以及它的修訂版。選擇一列即可在涵蓋範圍旁閱讀該技能，涵蓋範圍會把技能的各行與你的 token 對照：Lolly 檢查什麼、什麼衝突、什麼一致，以及什麼只是指引。
+
+**Download skill (.zip)** 會把技能寫成給代理工具使用的 Agent Skills 資料夾，目錄連結指向這個 Lolly；**Copy as one file** 則把同樣的文字放到剪貼簿，方便貼進聊天視窗。沒有自己技能的設計系統會列出一份基準，這份基準由 Lolly 每次讀取時依其 token 與內部規則寫成。這個房間只讀取技能，從不編輯。
+
 ## 匯入品牌
 
-側邊列底部的 **Add from…** 會開啟一個選擇器，詢問你有什麼，而不是它是什麼格式：
+列中的 **Add from…** 會開啟一個選擇器，詢問你有什麼，而不是它是什麼格式：
 
 - **設計 token 或設計檔案**：DTCG 或 Tokens Studio JSON、Penpot 專案、token 集合的 zip、Lolly 設計系統套件或 SVG。
 - **PDF**：簡報或指南檔案，在這部裝置上讀取其色彩、標記與內嵌字型。
@@ -303,7 +312,7 @@ PDF 與設計檔案匯入保留自己的審閱控制項。**Tray** 中的項目�
 
 ### 尋找並比較外觀
 
-從 Overview 或 Settings 中的設計系統清單開啟 **Find a look**。瀏覽儲存在這部裝置上的系統以及幾個可重複使用的 Lolly 範例，並依名稱、色彩標籤或宣告的字型搜尋。**Closest to my current palette** 依測量到的色彩相似度排序，字型相符者用於打破平手；這不是品質分數。
+從 Board 或 Settings 中的設計系統清單開啟 **Find a look**。瀏覽儲存在這部裝置上的系統以及幾個可重複使用的 Lolly 範例，並依名稱、色彩標籤或宣告的字型搜尋。**Closest to my current palette** 依測量到的色彩相似度排序，字型相符者用於打破平手；這不是品質分數。
 
 選擇一個外觀來審閱，或選擇兩個並排比較。選取不會改變任何東西。**Use this saved system** 會切換到它，**Use these colours** 則透過通常的檢查點套用範例的色彩，並保留你的字型。**Restore brand settings** 可復原先前的外觀。已儲存的系統在 **Details and design context** 下有可編輯的 **Search tags**。這些範例是 Lolly 原創的色彩配方，沒有爬取的收藏，也不需要帳號。
 
@@ -315,17 +324,17 @@ PDF 與設計檔案匯入保留自己的審閱控制項。**Tray** 中的項目�
 
 **Export** 會寫出一個 **`LollyBrand-….lolly`** 檔案：你的 token、字型、標誌與主題偏好，附有在匯入時檢查的完整性 manifest。1.0.7 之前的網頁版本把同一個檔案命名為 `.zip`，而那種寫法仍被接受。**Tokens (.json)** 單獨寫出純設計 token 文件，不含字型或標誌，供儲存庫、建置步驟或另一個 token 工具使用。
 
-若要帶回一個，請使用 **Add from… → Design tokens or a design file**，或把檔案拖放到工作室上。這就是同事把品牌交給你，或你把品牌帶到第二個安裝的方式，不需要帳號，也不需要雲端。若要從命令列帶入品牌，請見 [`ingest:brand`](/info/configuration.html#brand-packs)。
+若要帶回一個，請使用 **Add from… → Design tokens or a design file**，或把檔案拖放到工作室上。這就是同事把品牌交給你，或你把品牌帶到第二個安裝的方式，不需要帳號，也不需要雲端。[與夥伴合作](/info/partners.html)說明當收到你品牌的人任職於另一個組織時，還應該傳送什麼。若要從命令列帶入品牌，請見 [`ingest:brand`](/info/configuration.html#brand-packs)。
 
 **Fonts for Linux (.rpm)** 會把你新增的字型打包成可安裝的 RPM。如果其中有任何字型是你自己上傳的，Lolly 會先要求你確認你可以重新散布它們。
 
 ### 還原較早的設定
 
-選擇 **Restore brand settings**，選取有日期的檢查點並按下 **Restore**。它會還原使用中品牌的色彩、字型設定與其他 token；字型與圖片檔案維持原樣。Lolly 會先將你目前的設定儲存為 **Before restore**，所以即使關閉了瀏覽器，你也能復原一次還原。最近的 20 個檢查點保存在這部裝置上。
+開啟列中的 **More**，選擇 **Restore brand settings**，選取有日期的檢查點並按下 **Restore**。它會還原使用中品牌的色彩、字型設定與其他 token；字型與圖片檔案維持原樣。Lolly 會先將你目前的設定儲存為 **Before restore**，所以即使關閉了瀏覽器，你也能復原一次還原。最近的 20 個檢查點保存在這部裝置上。
 
 ### 版本
 
-已發布的版本是保存在這部裝置上的**永久、具名副本**。它絕不改變，所以固定它的工具或連結（以 `designv`）會持續繪製相同的東西。有你自己內容的系統，會在側邊列底部顯示低調的 **Versions & publishing** 連結；第一次發布之後，它會成為 **Versions** 項目。`#/start?area=versions` 會直接開啟它。
+已發布的版本是保存在這部裝置上的**永久、具名副本**。它絕不改變，所以固定它的工具或連結（以 `designv`）會持續繪製相同的東西。有你自己內容的系統，會在列的 **More** 選單中列出 **Versions & publishing**；第一次發布之後，**Versions** 會加入房間之列。`#/start?area=versions` 會直接開啟它。
 
 - **版本是永久的。** 目前沒有刪除功能，面板也會這樣說明。
 - **相容性卡片以移除項目領頭**，因為被移除的 token 會讓工具壞掉。
@@ -359,5 +368,6 @@ PDF 與設計檔案匯入保留自己的審閱控制項。**Tray** 中的項目�
 
 - **[使用 Lolly](/info/using.html)**：工具、儲存、分享與 Assets。
 - **[品牌架構](/info/brand-architectures.html)**：事業部、產品、背書品牌、客戶與季節如何對應到設計系統、配色方案與標誌身分。
+- **[與夥伴合作](/info/partners.html)**：與夥伴分享你的品牌，以及在別人交給你的品牌中工作。
 - **[設計 Token](/info/design-tokens.html)**：你的品牌所撰寫的 token 模型。
 - **[匯出檔案](/info/exporting.html)**：列印單位、CMYK，以及你的品牌渲染成的格式。

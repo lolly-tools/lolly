@@ -1965,6 +1965,16 @@
       "slug": "brand-studio",
       "anchor": "use-design-context-outside-the-app",
       "label": "Use design context locally"
+    },
+    "overview": {
+      "slug": "brand-studio",
+      "anchor": "board",
+      "label": "Overview"
+    },
+    "usage-rules": {
+      "slug": "brand-studio",
+      "anchor": "rules",
+      "label": "Usage & rules"
     }
   },
   "search": {

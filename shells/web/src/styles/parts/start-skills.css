@@ -26,7 +26,7 @@
 
   /* The reader: a raised card with the text on the left and the coverage map beside it
      on a wide screen, below it on a narrow one. */
-  .skills-reader { background: var(--ui-color-surface-raised); border-radius: var(--radius-lg); box-shadow: var(--ui-edge-faint), var(--ui-elevation-panel); padding: 24px; scroll-margin-top: var(--ds-sticky-top, 16px); min-width: 0; }
+  .skills-reader { background: var(--ui-color-surface-raised); border-radius: var(--radius-lg); box-shadow: var(--ui-edge-faint), var(--ui-elevation-panel); padding: 24px; min-width: 0; }
   .skills-reader:empty { display: none; }
   .skills-reader-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .skills-reader-title { min-width: 0; flex: 1 1 260px; }
@@ -69,7 +69,7 @@
   /* Coverage and owner notes. */
   .skills-aside { min-width: 0; display: grid; gap: 24px; align-content: start; }
   .skills-aside h4 { margin: 0 0 10px; font-size: var(--fs-xl); font-weight: 600; }
-  .skills-coverage { scroll-margin-top: var(--ds-sticky-top, 16px); background: hsl(var(--muted) / .45); border-radius: var(--radius-md); padding: 16px; min-width: 0; }
+  .skills-coverage { background: hsl(var(--muted) / .45); border-radius: var(--radius-md); padding: 16px; min-width: 0; }
   .skills-group { margin: 0; }
   .skills-group + .skills-group { margin-top: 4px; }
   .skills-group > summary, .skills-group--empty { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: auto; padding-block: 8px; font-size: var(--fs-lg); }

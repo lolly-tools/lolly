@@ -19,7 +19,7 @@ Preferences is één lange pagina met een **instellingenbalk** langs de zijkant 
 - <!--i:usercheck--> **Your details** - je naam, contactgegevens en pasfoto, en de schakelaar **Use my details to create**. [Profielen](/info/profile.html) legt uit hoe tools ze gebruiken.
 - <!--i:seal--> **Content Credentials** - de optionele geverifieerde identiteit die je exports ondertekent. Zie [Content Credentials](/info/content-credentials-identity.html).
 - <!--i:palette--> **Design systems** - design systems wisselen, toevoegen, verbergen of verwijderen. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) behandelt elke actie.
-- <!--i:moon--> **Appearance** - het thema (Light, Dark of Brand, dat de app in je palet schildert) en **Interface follows the design system**.
+- <!--i:moon--> **Appearance** - het thema (Light, Dark of Brand, dat de app in je palet schildert), **Your colourway** wanneer het design system er meer dan één biedt ([Maak een colourway van jou](/info/colourways.html#make-a-colourway-your-own)) en **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - de set waaruit je emoji worden getekend wanneer je iets nieuws begint, met de artworklicentie, en hoe sterk je palet ze herkleurt (**Off**, **Subtle**, **Strong**, **Full**, **Mono** of **Duotone**). **Keep skin tones and flags** laat die in hun eigen kleuren. Werk dat je al maakte behoudt de set waarmee het is gemaakt.
 - <!--i:eyeoff--> **Accessibility** - vier comfortschakelaars, plus Sound en Neurospicy Mode. Zie [Toegankelijkheid](#accessibility).
 - <!--i:link--> **Connected services** - opslag die je koppelt, zoals Dropbox, Google Drive, OneDrive, Nextcloud of S3, en **Sync across devices**. Zie [Je apparaten synchroniseren](/info/sync.html).

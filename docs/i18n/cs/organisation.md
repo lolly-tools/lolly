@@ -75,6 +75,10 @@ Tvá organizace hostuje [Lolly Work](https://github.com/lolly-tools/lolly-work) 
 Pokud službu zřizuješ, začni [Nasazením](/info/deployment.html#organisation-services-with-lolly-work). Veřejné demo na [lolly.work](https://lolly.work) je pískoviště; pro práci, kterou potřebuješ uchovat, použij vlastní adresu své organizace.
 :::
 
+## Značka jiné organizace
+
+Partner, klient nebo sponzor ti může poslat svou značku jako soubor designového systému (`.lolly`) místo adresy. Otevření takového souboru aplikaci k ničemu nepřipojí: přidá jejich designový systém vedle tvého na tomto zařízení. Instalační soubor od tvé vlastní organizace je jiný, protože aplikaci připojí k Lolly organizace, a náhled ukáže, co otevření souboru udělá, než se cokoli změní. [Společná práce s partnery](/info/partners.html) pokrývá obě strany práce ve značce jiné organizace.
+
 ## Opuštění
 
 **Leave** na kartě **Lolly instance** v **Settings** odstraní designový systém, nástroje a katalog tvé organizace. Tvá vlastní práce zůstane. Cokoli jsi s jejími nástroji vytvořil, se znovu neotevře, dokud se nepřipojíš zpět.

@@ -10,9 +10,9 @@ Ta strona prowadzi przez kanwę od pierwszego boksu do gotowej prezentacji: okno
 
 **Górny pasek** zaczyna się od **Home**, **File menu** i nazwy dokumentu (kliknij nazwę, aby zmienić nazwę dokumentu). Środek zawiera **Undo**, **Redo**, **History**, kontrolki powiększenia (z **Fit all** i **Fit artboard**) oraz przełączniki **Timeline**, **Navigator** i **Inspector**. Po prawej są **Share**, **Present** i **Export**. Na telefonie rzadziej używane przyciski przechodzą do **More actions**.
 
-**Szyna narzędzi** z boku zawiera menu Lolly i narzędzia do rysowania: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, a potem przyciski Timeline, Artboards i Auto-arrange.
+**Szyna narzędzi** z boku zawiera menu Lolly i narzędzia do rysowania: **Pointer**, **Add a box**, **Pen**, **Ołówek**, **Edit points**, **Line**, a potem przyciski Timeline, Artboards i Auto-arrange.
 
-![Listwa narzędzi wolnej kanwy: uchwyt do przeciągania, menu Lolly, dalej Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards i Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Listwa narzędzi wolnej kanwy: uchwyt do przeciągania, menu Lolly, dalej Pointer, Add a box, Pen, Ołówek, Edit points, Line, Timeline, Artboards i Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Kanwa działa jak stół projektanta wokół obszaru roboczego:
 
@@ -68,17 +68,26 @@ Gdy nie trzymasz żadnego klawisza, obrót jest przyciągany do najbliższych 15
 
 ## Rysuj własne kształty
 
-Boksy, koła i zaokrąglone ramki pokrywają większość układów. Dla każdego innego kształtu narysuj go: przycisk **Pen** na szynie (lub `P`) wprowadza w tryb rysowania. Trzy pojedyncze klawisze przełączają tryby: `V` dla Pointer, `P` dla Pen i `N` dla **Edit points**. Pointer jest zawsze drogą wyjścia.
+Boksy, koła i zaokrąglone ramki pokrywają większość układów. Dla każdego innego kształtu narysuj go: przycisk **Pen** na szynie (lub `P`) wprowadza w tryb rysowania. Cztery klawisze przełączają tryby: `V` dla Pointer, `P` dla Pen, `Shift C` dla **Ołówka** i `N` dla **Edit points**. Pointer jest zawsze drogą wyjścia.
 
 - **Kliknij**, aby umieścić punkt. Przy domyślnym typie krzywej **kliknij i przeciągnij**, aby wyciągnąć uchwyty punktu i uzyskać krzywą; przytrzymaj **Alt** podczas klikania, aby uzyskać ostry róg. (W innych typach krzywych każdy punkt jest rogiem, a przeciągnięcie nic nie robi.)
-- Punkty przyciągają się do obszaru roboczego i Twoich innych boksów podczas umieszczania. Alt wyłącza siatkę podczas rysowania, a przy późniejszym przeciąganiu punktu wyłącza zarówno siatkę, jak i krawędzie.
+- Przytrzymaj **Shift** podczas klikania, a nowy odcinek odejdzie od poprzedniego punktu pod kątem będącym wielokrotnością 15 stopni, więc linie poziome, pionowe i pod kątem 45 stopni wychodzą dokładnie. Shift podczas wyciągania uchwytu zaokrągla uchwyt w ten sam sposób.
+- Punkty przyciągają się do obszaru roboczego, Twoich innych boksów i pozostałych punktów tej samej ścieżki podczas umieszczania, więc punkt ustawia się w linii z wcześniej umieszczonym. Alt wyłącza siatkę podczas rysowania, a przy późniejszym przeciąganiu punktu wyłącza zarówno siatkę, jak i krawędzie.
 - **Kliknij pierwszy punkt**, aby zamknąć kształt. W przeciwnym razie naciśnij **Enter**, kliknij dwukrotnie lub zmień narzędzie, a rysunek zostanie zachowany.
 - **Escape** działa krok po kroku: pierwsze naciśnięcie porzuca rysunek, drugie opuszcza pióro.
-- **Delete** podczas rysowania usuwa ostatni punkt.
+- **Delete** lub cofnij (`⌘ Z` albo `Ctrl Z`) podczas rysowania usuwa ostatni punkt.
+
+**Kontynuuj otwartą ścieżkę.** Przy włączonym Pen naciśnij jeden z końców otwartej ścieżki, a znów rysujesz tę ścieżkę: każde kliknięcie dodaje punkt za tym końcem lub przed pierwszym punktem, jeśli zacząłeś od początku. Enter zachowuje wynik, a Escape zostawia ścieżkę dokładnie taką, jaka była. Ścieżka pozostaje tym samym boksem, z wypełnieniem, obrysem i grotami, a jedno cofnięcie przywraca ją. Delete cofa tylko dodane przez Ciebie punkty. Zamknięty kształt, linia przypięta do boksu i ścieżka z kilkoma częściami nie mają wolnego końca do kontynuowania.
+
+**Rysuj odręcznie Ołówkiem.** Przycisk **Ołówek** na szynie (lub `Shift C`) zapisuje Twoją kreskę podczas przeciągania. Gdy puścisz, Lolly wygładza kreskę do kilku punktów z uchwytami Beziera, zachowuje ostre zakręty jako rogi i trzyma krzywą w granicach kilku pikseli ekranu od miejsca, którędy poszła Twoja ręka. Kreska kończąca się blisko początku zamyka się. Wynikiem jest zwykła ścieżka, z takim samym wypełnieniem jak ścieżka z Pen, i możesz potem edytować jej punkty.
 
 Wynik jest zwykłym boksem. Przesuwaj, zmieniaj rozmiar, obracaj, grupuj, wyrównuj, zmieniaj kolejność, wypełniaj, cieniuj lub wyblaszczaj ścieżkę jak każdy inny box. Pierwsza ścieżka dostaje wypełnienie i obrys, które Twoja marka nadaje ścieżce, a każda następna dostaje to, czego ostatnio użyłeś. W narzędziu, w którym marka nie ustawia niczego dla ścieżek, nowa ścieżka jest obrysowana kolorem, którym rysowałeś, więc kształt nigdy nie jest niewidoczny.
 
 **Edytuj punkty ponownie.** Kliknij kształt dwukrotnie lub użyj **Edit points** na pasku obiektu. Przeciągnij punkt, aby go przesunąć, przeciągnij uchwyt, aby zmienić kierunek krzywej, kliknij na krzywej, aby wstawić punkt, lub przeciągnij ramkę wokół kilku punktów i naciśnij Delete. Ścieżka zawsze zachowuje co najmniej dwa punkty.
+
+- Przytrzymaj **Shift** podczas przeciągania punktu, a jego kąt względem następnego nieruchomego punktu na ścieżce zmienia się co 15 stopni. Shift podczas przeciągania uchwytu zaokrągla uchwyt wokół jego własnego punktu. Shift podczas klikania nadal dodaje punkt lub uchwyt do zaznaczenia; kroki zaczynają się, gdy zaczniesz przeciągać.
+- Przeciągany punkt przyciąga się do obszaru roboczego, innych boksów i pozostałych punktów ścieżki. Przytrzymaj Alt, aby umieścić go swobodnie.
+- Kliknij uchwyt, aby go zaznaczyć, a potem naciśnij **Delete**, aby cofnąć go na jego punkt. Ta strona punktu staje się rogiem, bez uchwytu ciągnącego krzywą. Gdy zaznaczone są punkty, Delete usuwa punkty jak dotąd.
 
 **Spline type** decyduje, jaki rodzaj krzywej przechodzi przez Twoje punkty:
 
@@ -112,6 +121,25 @@ Trzy kolejne działają na pojedynczym kształcie. **Outline stroke…** zamieni
 ![Półksiężyc i pierścień z prawdziwym otworem, oba utworzone przez Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Wynik to nowa ścieżka, którą możesz dalej edytować piórem, zapisana jako zwykłe krzywe Beziera, więc pierwotny typ splajnu się nie przenosi. Otwory są prawdziwymi otworami: kontrolka **Fill rule** w panelu obrysu decyduje, czy nakładające się kontury wypełniają (*non-zero*), czy przebijają (*even-odd*). Operacje odmawiają zamiast niszczyć: poproś o przecięcie dwóch kształtów, które się nie nakładają, a nic się nie zmieni. Boksy tekstu i obrazu nie mają konturu, więc są pomijane.
+
+## Obrysy
+
+Box, obraz, tablica i ścieżka z Pen mogą mieć obrys: kolor, grubość i styl (ciągły, kreskowany lub kropkowany). Wiersze obrysu są pod **Fill** w Inspektorze, a przycisk **Obrys** na pasku obiektu je otwiera.
+
+**Pozycja** ustawia obrys względem konturu: **Wewnątrz**, **Środek** lub **Na zewnątrz**. Box ma obrys wewnątrz, dopóki nie wybierzesz inaczej, więc jego zewnętrzna krawędź zostaje tam, gdzie ją narysowałeś, a ścieżka z Pen ma obrys wyśrodkowany na krzywej. Przy obrysie wyśrodkowanym lub zewnętrznym wypełnienie, obraz i tekst zostają wewnątrz wewnętrznej krawędzi obrysu, a obrys zaznaczenia zostaje na własnej krawędzi boksu. Otwarta ścieżka nie ma wnętrza, więc zawsze ma obrys wyśrodkowany. Obrys tablicy zawsze zostaje wewnątrz strony, bo krawędź strony jest krawędzią eksportu.
+
+**Obrys na stronę.** Na prostokącie, zaokrąglonym boksie, pigułce lub tablicy przełącznik obok grubości pokazuje cztery grubości: **Góra**, **Prawa**, **Dół** i **Lewa**. Ustaw jedną stronę na 0, aby ją ukryć, co daje separator lub podkreślenie bez drugiego kształtu. Przełącznik tylko pokazuje lub ukrywa cztery pola i nigdy nie zmienia wartości. Gdy strony się różnią, grubość pokazuje **Mieszane**; wpisz tam grubość, aby ustawić wszystkie cztery strony naraz. Kolor, pozycja i styl pozostają wspólne dla każdej strony, a zaokrąglone rogi zakrzywiają się razem z sąsiednimi grubościami, tak jak w obramowaniu CSS. Elipsy, koła i ścieżki z Pen mają jedną grubość dookoła.
+
+Jak formaty przenoszą obrys:
+
+| Format | Pozycja | Na stronę |
+|---|---|---|
+| SVG, PDF, PNG i inne obrazy | Dokładnie. Obrys wewnętrzny lub zewnętrzny ścieżki z Pen jest rysowany dwa razy grubszy i przycięty do jednej strony konturu. | Obrys ciągły jest dokładny, jako jeden kształt między zewnętrzną a wewnętrzną krawędzią obrysu. Kreskowany lub kropkowany jest rysowany jako kreski wzdłuż każdej strony w SVG i jako ciągły w PDF. |
+| Penpot | Wewnątrz, środek i na zewnątrz przechodzą jako wyrównanie obrysu w Penpot. Tablica to zawsze `inner`. | Penpot 2.19 lub nowszy czyta cztery grubości natywnie. Penpot 2.18 rysuje górną grubość dookoła, a Penpot 2.17 lub starszy odrzuca plik z grubościami na stronę. |
+| PowerPoint | PowerPoint rysuje linię wyśrodkowaną na krawędzi kształtu. Środek jest dokładny; na zewnątrz przesuwa kształt o pół grubości, co umieszcza linię PowerPoint poza boksem; wewnątrz zachowuje linię wyśrodkowaną, jaką zapisywały starsze eksporty. | Obrys staje się osobnym kształtem (pierścień między krawędzią zewnętrzną a wewnętrzną) nad kształtem bez linii. |
+| dotLottie | Obrysy Lottie są wyśrodkowane, więc zewnętrzny obrys boksu lub obrys ścieżki z Pen wewnątrz albo na zewnątrz jest odrzucany z komunikatem. | Odrzucony z komunikatem. |
+
+Półprzezroczysty wyśrodkowany obrys pokazuje przez swoją wewnętrzną połowę stronę, a nie wypełnienie, na kanwie i w każdym eksporcie. Gdy importujesz plik Penpot, każdy obrys zachowuje swoje wyrównanie i grubości na stronę, a `strokeAlign` i indywidualne grubości obrysu z pliku Figma przechodzą w ten sam sposób.
 
 ## Sceny 3D i narzędzia wewnątrz projektu
 
@@ -167,7 +195,7 @@ Tam, gdzie istnieje konkretna sugestia koloru lub czcionki, jej przycisk zmienia
 
 ### Reguły organizacji i sygnał pisania
 
-Karta w panelu eksportu sprawdza też reguły organizacji, które niesie Twój system projektowy, takie jak grubość i wyrównanie tekstu, zatwierdzone zestawienia kolorów lub logo na powierzchnię, warstwa po warstwie. Każde ustalenie jest ostrzeżeniem z nazwą warstwy nad regułą. Reguła, dla której ta kompilacja nie ma sprawdzacza, jest wymieniana jako niesprawdzona, nigdy jako spełniona. [Usage & rules](/info/brand-studio.html#usage-rules) wymienia reguły, a `lolly check` stosuje te same do zapisanego dokumentu.
+Karta w panelu eksportu sprawdza też reguły organizacji, które niesie Twój system projektowy, takie jak grubość i wyrównanie tekstu, zatwierdzone zestawienia kolorów lub logo na powierzchnię, warstwa po warstwie. Każde ustalenie jest ostrzeżeniem z nazwą warstwy nad regułą. Reguła, dla której ta kompilacja nie ma sprawdzacza, jest wymieniana jako niesprawdzona, nigdy jako spełniona. [Rules](/info/brand-studio.html#rules) wymienia reguły, a `lolly check` stosuje te same do zapisanego dokumentu.
 
 Ta sama karta pokazuje sygnał pisania dla tekstu rysowanego przez dokument: jego pasmo (none, weak, notable lub strong), potem własne zdanie Verify z wynikiem w skali do 100 i do trzema oznaczonymi frazami, każda z warstwą, która ją zawiera. **Open the text in Verify** zabiera ten tekst do [Verify](/#/verify) na pełny odczyt; [AI evidence in Verify](/info/verify-ai-evidence.html) wyjaśnia, co waży wynik. Wynik jest sygnałem, a nie wyrokiem: liczy wzorce częste w tekstach generowanych i nie potrafi powiedzieć, kto napisał słowa. Ukryte warstwy są pomijane w obu kontrolach, a karta podaje ile.
 

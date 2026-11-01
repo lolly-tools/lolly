@@ -41,6 +41,9 @@ export interface ThemeChoicesOpts {
   /** Called after each draw with whether there is anything to show, so the section
    *  around the control can hide itself when the design system offers no choice. */
   onVisible?(visible: boolean): void;
+  /** The first row's tip, as plain text. Defaults to what a choice does to a document;
+   *  Settings says what a personal choice does instead (components/colourway-pref.ts). */
+  tip?: string;
 }
 
 /** A segmented control holds this many options at most; more draw as a select. */
@@ -90,7 +93,7 @@ export function mountThemeChoices(el: HTMLElement, port: DocumentThemePort, opts
     // One tip for the section, on its first row: what the choices change. The control
     // is named by the label text alone and described by the tip, so a screen reader
     // reads "Colourway", then the tip, never the tip button's own name.
-    const tip = gi === 0 ? helpTip(t('Colours linked to the design system follow this choice.')) : null;
+    const tip = gi === 0 ? helpTip(opts.tip ?? t('Colours linked to the design system follow this choice.')) : null;
     const label = `<span class="field-label theme-choice-label"><span id="${labelId}">${escapeText(group.label)}</span>${tip ? tip.button : ''}</span>`;
     const names = `aria-labelledby="${labelId}"${tip ? ` aria-describedby="${tip.id}"` : ''}`;
     let control: string;

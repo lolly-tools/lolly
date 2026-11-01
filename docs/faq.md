@@ -144,3 +144,11 @@ They live in a separate, private repository. A public clone does not fetch the S
 ## What flavour is that Lolly logo?
 
 Some say Lime, others say Mint and sometimes Apple, Lolly brings the sweetness, you make the flavour happen!
+
+## What does Lolly mean by content sovereignty?
+
+Control over how your content is created, governed, stored and moved across the systems you choose. Lolly supports local production, editable work and portable tools; Lolly Work adds organisation-controlled shared services. Source licences, available dependencies and the workflow's data flows still matter. [What is content sovereignty?](/info/content-sovereignty.html) explains each control and its limits.
+
+## Can we keep our existing DAM?
+
+Yes. A supported DAM can remain the source of record while Lolly Work connects selected assets to Lolly tools. Source access, permitted edits, use rights and approval of the finished output are separate decisions. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains the arrangement, and [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful use during adoption.

@@ -24,12 +24,17 @@ export interface LibGroup {
   sub?: LibSubGroup[];
   /** Set on the groups audio belongs in; the rest are for pictures. `other` takes either. */
   audio?: true;
+  /** Set on a group an asset belongs to by what it is: the group is never offered as a
+   *  place to move an asset, and an override never moves an asset into or out of the group. */
+  fixed?: true;
 }
 
 // Library sections, in display order. A candidate is bucketed into exactly one:
 // 'background' wins over 'themable' so a two-colour background pattern lands under
 // Backgrounds, not Icons. Headshots and Photos are SEPARATE top-level groups (each
-// collapses on its own). 'other' catches anything untagged.
+// collapses on its own). 'other' catches anything untagged. Emoji sets come last, as
+// the Assets view shows them: a set is chosen for its licence, coverage and artwork,
+// which is a different question from where a picture belongs.
 export const LIB_GROUPS: LibGroup[] = [
   { key: 'logos',         label: 'Logos' },
   { key: 'backgrounds',   label: 'Backgrounds' },
@@ -45,6 +50,7 @@ export const LIB_GROUPS: LibGroup[] = [
   { key: 'voice',         label: 'Voice',         audio: true },
   { key: 'other-audio',   label: 'Other audio',   audio: true },
   { key: 'other',         label: 'More' },
+  { key: 'emoji-sets',    label: 'Emoji sets',    fixed: true },
 ];
 
 // Audio is grouped by what it is FOR, the split an editor's sound panel uses. Tags
@@ -65,7 +71,7 @@ export function isAudioAsset(ref: AssetRef | undefined): boolean {
 /** The groups an asset may be moved into: audio groups for audio, picture groups otherwise, More for both. */
 export function groupsFor(ref: AssetRef | undefined): LibGroup[] {
   const audio = isAudioAsset(ref);
-  return LIB_GROUPS.filter((g) => g.key === 'other' || Boolean(g.audio) === audio);
+  return LIB_GROUPS.filter((g) => !g.fixed && (g.key === 'other' || Boolean(g.audio) === audio));
 }
 
 function audioCategory(tags: Set<string>, format: string | undefined): string {
@@ -81,14 +87,17 @@ export function categoryLabel(key: string): string {
 }
 
 /**
- * The library group an asset belongs to. A per-user override (base id → group key) wins;
- * otherwise the tags decide. Keep in lockstep with LIB_GROUPS.
+ * The library group an asset belongs to. An emoji set is always Emoji sets, the section
+ * the Assets view shows it in. Otherwise a per-user override (base id → group key) wins,
+ * then the tags decide, and an image a person uploaded that nothing else describes is
+ * filed with the photos. Keep in lockstep with LIB_GROUPS.
  */
 export function libCategory(ref: AssetRef | undefined, overrides?: Record<string, string> | null): string {
+  const t = new Set((ref?.meta?.tags as string[] | undefined) || []);
+  if (t.has('emoji-pack')) return 'emoji-sets';
   const base = stripAssetModifiers(ref?.id ?? '');
   const over = overrides?.[base];
-  if (over && LIB_GROUPS.some(g => g.key === over)) return over;
-  const t = new Set((ref?.meta?.tags as string[] | undefined) || []);
+  if (over && LIB_GROUPS.some(g => g.key === over && !g.fixed)) return over;
   // Audio first, so a "background music" tag never files a track under Backgrounds.
   if (isAudioAsset(ref)) return audioCategory(t, ref?.format?.toLowerCase());
   // A brand skill is guidance by type, whatever it is tagged.
@@ -100,6 +109,9 @@ export function libCategory(ref: AssetRef | undefined, overrides?: Record<string
   if (t.has('illustration')) return 'illustrations';
   if (t.has('photo'))        return 'photos';
   if (t.has('themable'))     return 'icons';
+  // An upload carries no library tags, and a raster image is a photo far more often
+  // than anything else; Recategorise moves the exceptions.
+  if (ref?.source === 'user' && ref.type === 'raster') return 'photos';
   return 'other';
 }
 

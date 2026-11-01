@@ -17,14 +17,14 @@ lolly.tools mở ra với **Lolly Demo**, hệ thống thiết kế mẫu của 
 Hãy chọn lộ trình phù hợp với những gì bạn có:
 
 - <!--i:palette--> **Một màu.** Mở **Design System Setup** (`#/start`), đặt tên cho hệ thống thiết kế và chọn một màu chính. Lolly suy ra từ đó một bảng màu hoàn chỉnh, dễ tiếp cận, với các bề mặt sáng và tối, văn bản và màu nhấn. Chọn một phông chữ là bạn có một thương hiệu dùng được.
-- <!--i:upload--> **Một tệp token.** **Add from…**, ở chân thanh phòng trong Design System Setup, nhận tệp token DTCG, Tokens Studio hoặc Penpot, một SVG hay một gói `LollyBrand`. Thả vào và bảng màu tự điền. Khi hệ thống thiết kế còn trống, **Start from a reference** trong phòng Overview mở cùng bộ chọn đó.
+- <!--i:upload--> **Một tệp token.** **Add from…**, trên thanh ở đầu Design System Setup, nhận tệp token DTCG, Tokens Studio hoặc Penpot, một SVG hay một gói `LollyBrand`. Thả vào và bảng màu tự điền. Khi hệ thống thiết kế còn trống, **Start from a reference** trên Board mở cùng bộ chọn đó.
 - <!--i:pentool--> **Một thiết kế hoàn chỉnh.** Trong Design, chọn **Import a design** và thả tệp `.fig`, `.penpot`, `.ai`, `.idml` hoặc SVG. Xem [Đưa vào những gì bạn đã có](#bring-in-what-you-already-have) bên dưới.
 
 Lần đầu bạn mở thư viện, một lời chào ngắn đưa ra cùng các lựa chọn đó: **Make it yours** mở Design System Setup, **Bring your design** mở bộ chọn tệp cho một thiết kế và **Explore the community tools** đóng lời chào.
 
 ![Phòng Colours của Design System Setup trên bản cài mới: một chip trực tiếp, một ô nhập và toàn bộ quyết định đầu tiên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Từ đó, bảy phòng đưa nó đi xa tùy ý bạn, theo thứ tự nào cũng được: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** và **Usage & rules**. Mọi bản xem trước trong ứng dụng cập nhật khi bạn gõ. [Design System Setup](/info/brand-studio.html) giới thiệu từng phòng.
+Từ đó, tám phòng đưa nó đi xa tùy ý bạn, theo thứ tự nào cũng được: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** và **Skills**. Mọi bản xem trước trong ứng dụng cập nhật khi bạn gõ. [Design System Setup](/info/brand-studio.html) giới thiệu từng phòng.
 
 Phông chữ được giữ trên thiết bị của bạn. Chọn một Google Font và Lolly lưu tệp như một tài nguyên thương hiệu, nên kiểu chữ của bạn đi cùng ngoại tuyến và không có gì được tải khi một công cụ vẽ.
 

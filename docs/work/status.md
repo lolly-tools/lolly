@@ -59,6 +59,8 @@ Work's tests use recorded fixtures for identity providers and DAMs. They check t
 each vendor's published contract. They cannot show that your tenant matches that
 contract, so run these checks before you rely on an integration.
 
+Brandfolder has successful integration use reported at SUSE, including administrator change management, in [the deployment account](/info/suse-brandfolder.html) recorded on 31 October 2026. That is evidence for the connected workflow. It does not qualify every optional field, another tenant or the separate outbound Brandfolder delivery adapter.
+
 - **Identity.** Check your registered callbacks, real owner groups, SCIM subject correlation,
   denied groups, revocation and source disable. [Customer setup](customer-setup.md) walks
   through each one and shows which integrations it has actually observed.

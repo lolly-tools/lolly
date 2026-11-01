@@ -17,6 +17,7 @@
 import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers, parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
 import type { GradeLut } from '../../../../engine/src/grade.ts';
 import { photoLookGpuRecipe } from '../../../../packages/node-shell/src/pixel-kernel-recipe.ts';
+import { parseToolAssetId } from '../../../../packages/node-shell/src/tool-asset-id.ts';
 // c2pa-verify is LAZY on purpose. It is the entry to the whole provenance
 // cluster (c2pa + c2pa-extract + c2pa-containers + c2pa-verdict + c2pa-trust +
 // video-meta, ~65 KB gz), and this module is on the boot path, so a static
@@ -532,6 +533,22 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // logged warning instead of breaking the mount.
       if (/^data:/i.test(id) || /^https?:\/\//i.test(id)) {
         return await (await import('./url-asset.ts')).resolveUrlAsset(id);
+      }
+
+      // A picture a tool ships beside its manifest, `/tools/<tool-id>/assets/<file>`
+      // (packages/node-shell/src/tool-asset-id.ts), as a tool's example looks name
+      // their pictures. Tool files are signed with the catalog, so the bytes come
+      // through the verified resource read (a blob: URL) when this instance checks
+      // signatures, and from this instance's own tool path otherwise.
+      const shipped = parseToolAssetId(id);
+      if (shipped) {
+        const { verifiedResourceURL, catalogResourceAddress } = await import('../catalog/tool-bytes.ts');
+        const verified = await verifiedResourceURL(id);
+        return {
+          source: 'remote', id, type: shipped.type, format: shipped.format,
+          url: verified === id ? catalogResourceAddress(id).href : verified,
+          meta: { name: shipped.file },
+        };
       }
 
       // A presentation modifier can ride in the id, chosen at pick time and

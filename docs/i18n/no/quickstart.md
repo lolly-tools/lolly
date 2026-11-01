@@ -17,14 +17,14 @@ lolly.tools åpner i **Lolly Demo**, Lollys eget eksempel på et designsystem; [
 Velg ruten som passer det du har:
 
 - <!--i:palette--> **Én farge.** Åpne **Design System Setup** (`#/start`), gi designsystemet et navn og velg en primærfarge. Lolly utleder en komplett, tilgjengelig palett fra den, med lyse og mørke flater, tekst og aksenter. Velg en skrift, så har du en fungerende merkevare.
-- <!--i:upload--> **En tokens-fil.** **Add from…**, nederst i romlisten i Design System Setup, tar en DTCG-, Tokens Studio- eller Penpot-tokens-fil, en SVG eller en `LollyBrand`-pakke. Slipp den inn, så fylles paletten. Mens designsystemet fortsatt er tomt, åpner **Start from a reference** i rommet Overview den samme velgeren.
+- <!--i:upload--> **En tokens-fil.** **Add from…**, i linjen øverst i Design System Setup, tar en DTCG-, Tokens Studio- eller Penpot-tokens-fil, en SVG eller en `LollyBrand`-pakke. Slipp den inn, så fylles paletten. Mens designsystemet fortsatt er tomt, åpner **Start from a reference** i rommet Board den samme velgeren.
 - <!--i:pentool--> **Et ferdig design.** I Design velger du **Import a design** og slipper en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil. Se [Bring in what you already have](#bring-in-what-you-already-have) nedenfor.
 
 Første gang du åpner galleriet, tilbyr en kort velkomst de samme valgene: **Make it yours** åpner Design System Setup, **Bring your design** åpner en filvelger for et design og **Explore the community tools** lukker velkomsten.
 
 ![Rommet Colours i Design System Setup på en ny installasjon: ett levende fargefelt, ett inndatafelt og hele den første beslutningen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Derfra tar sju rom deg så langt du vil, i hvilken som helst rekkefølge: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** og **Usage & rules**. Hver forhåndsvisning i appen oppdateres mens du skriver. [Design System Setup](/info/brand-studio.html) dekker hvert rom.
+Derfra tar åtte rom deg så langt du vil, i hvilken som helst rekkefølge: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** og **Skills**. Hver forhåndsvisning i appen oppdateres mens du skriver. [Design System Setup](/info/brand-studio.html) dekker hvert rom.
 
 Skrifter lagres på enheten din. Velg en Google Font, så lagrer Lolly filen som en merkevareressurs, slik at skriften din følger med uten nett og ingenting hentes når et verktøy tegner.
 

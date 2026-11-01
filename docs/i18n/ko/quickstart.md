@@ -17,14 +17,14 @@ lolly.tools는 Lolly 자체의 샘플 디자인 시스템인 **Lolly Demo**로 �
 가진 것에 맞는 방법을 고르세요.
 
 - <!--i:palette--> **색상 하나.** **Design System Setup**(`#/start`)을 열고 디자인 시스템 이름을 지은 뒤 기본 색상을 골라요. Lolly가 거기서 밝은 면과 어두운 면, 텍스트, 강조색을 갖춘 접근성 높은 팔레트 전체를 만들어요. 글꼴을 고르면 쓸 수 있는 브랜드가 완성돼요.
-- <!--i:upload--> **토큰 파일.** Design System Setup의 룸 레일 하단에 있는 **Add from…**은 DTCG, Tokens Studio, Penpot 토큰 파일, SVG, `LollyBrand` 팩을 받아요. 놓으면 팔레트가 채워져요. 디자인 시스템이 아직 비어 있는 동안에는 Overview 룸의 **Start from a reference**가 같은 선택기를 열어요.
+- <!--i:upload--> **토큰 파일.** Design System Setup 맨 위 바에 있는 **Add from…**은 DTCG, Tokens Studio, Penpot 토큰 파일, SVG, `LollyBrand` 팩을 받아요. 놓으면 팔레트가 채워져요. 디자인 시스템이 아직 비어 있는 동안에는 Board 룸의 **Start from a reference**가 같은 선택기를 열어요.
 - <!--i:pentool--> **완성된 디자인.** Design에서 **Import a design**을 선택하고 `.fig`, `.penpot`, `.ai`, `.idml` 또는 SVG 파일을 놓아요. 아래 [이미 가진 것 가져오기](#bring-in-what-you-already-have)를 참고하세요.
 
 갤러리를 처음 열면 짧은 환영 화면이 같은 선택지를 제공해요. **Make it yours**는 Design System Setup을 열고, **Bring your design**은 디자인용 파일 선택기를 열고, **Explore the community tools**는 환영 화면을 닫아요.
 
 ![새로 설치한 상태의 Design System Setup의 Colours 룸: 실시간 칩 하나, 입력란 하나, 첫 결정의 전부](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-거기서부터 일곱 개의 룸이 원하는 만큼, 어떤 순서로든 이어져요. **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Usage & rules**예요. 앱의 모든 미리보기는 입력하는 대로 업데이트돼요. [Design System Setup](/info/brand-studio.html)에서 각 룸을 다뤄요.
+거기서부터 여덟 개의 룸이 원하는 만큼, 어떤 순서로든 이어져요. **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**, **Skills**예요. 앱의 모든 미리보기는 입력하는 대로 업데이트돼요. [Design System Setup](/info/brand-studio.html)에서 각 룸을 다뤄요.
 
 글꼴은 기기에 보관돼요. Google Font를 고르면 Lolly가 파일을 브랜드 에셋으로 저장하므로, 글꼴이 오프라인에서도 따라다니고 도구가 그릴 때 아무것도 가져오지 않아요.
 

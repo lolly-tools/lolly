@@ -154,6 +154,9 @@ export function renderShell(pv: ProfileViewCtx): void {
               <div class="profile-theme-sample">Aa</div>
             </button>`).join('')}
         </div>
+        ${/* Your colourway (plans/331): the design system's colourway this person takes as
+             theirs. Hidden until wireColourwayPref finds a design system with more than one. */''}
+        <div class="profile-colourway" id="colourway-pref" hidden></div>
         <ul class="feature-flags profile-a11y-prefs" id="appearance-prefs">${pv.prefs.followDsListHtml()}
         </ul>
         </div>

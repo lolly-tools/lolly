@@ -6,6 +6,8 @@ Most software asks for your trust. This section does the opposite: every claim L
 >
 > The receipts: the [Privacy Policy](/info/privacy.html) lists every request the app can make, and [Verify It Yourself](/info/verify-yourself.html) shows you how to check each one.
 
+[Content sovereignty](/info/content-sovereignty.html) connects these controls: how your content is created, governed, stored and moved across chosen systems. An existing DAM can remain the source of record; [the connected workflow](/info/use-with-dam.html) explains the responsibilities.
+
 ## Where did this content come from?
 
 The media Lolly renders carries [Content Credentials](/info/content-credentials-identity.html) by default. When a file arrives with a history already attached, Lolly keeps it rather than flattening it, so the chain survives an edit. Drop any file on [Verify](/#/verify) and the record comes back, worked out on your device:

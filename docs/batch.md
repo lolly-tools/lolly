@@ -46,6 +46,10 @@ Each row keeps its own theme choices: light or dark, and a colourway when the de
 
 A CSV carries the choices in a `_themes` column after the size columns, holding the same JSON as the `_themes` link parameter, for example `{"":"dark","colourway":"beach"}`. A blank cell, or `{}`, means the design system's defaults. The column is written only when some row has choices, so a batch without any exports the same CSV as before. On import, a cell that is not valid theme choices is listed as an issue and its row renders in the defaults. The grid has no control for changing a row's choices yet, so set them in the CSV or in the saved session.
 
+### A language for each row
+
+A tool that prints its own wording, such as Certificate, can take a `language` column with a short language code such as `de`, `ja` or `ar`. Each row then prints its wording and its date in that language, and Arabic and Urdu rows are laid out right to left. A blank cell follows the app's language. A language whose translation Lolly does not hold yet prints in English, date included, so a certificate is never half translated.
+
 ### Batch, or Render folder
 
 Batch makes many variants of one template. To re-render sessions you have already saved, select them in Projects and use **Render selection**, or **Render folder** for a whole folder; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) covers both.

@@ -74,7 +74,7 @@ export function sidebarHtml(dt: DetailsCtx): string {
   const management = projectFile ? `<details class="cat-action-group" open><summary>${t('File')}</summary><div class="cat-act-row">${projectActions}</div></details>` : shared ? '' : `<details class="cat-action-group">
     <summary>${t('File')}</summary><div class="cat-act-row">
       ${button('add-to-project', t('Add to project…'), icon('folder'))}
-      ${button('recategorise', t('Recategorise…'), TAG_ICON)}
+      ${emojiPackMeta(ref) ? '' : button('recategorise', t('Recategorise…'), TAG_ICON)}
       ${isUser ? button('rename', t('Rename'), PENCIL_ICON) + button('replace', t('Replace…'), REPLACE_ICON) : ''}
       ${isUser && catalogSubmitter('upload') ? button('catalog-submit', catalogSubmitter('upload')!.label(), icon('upload')) : ''}
       ${isUser ? button('delete', t('Move to Trash'), TRASH_ICON, 'cat-act-danger') : hidden ? button('unhide', t('Unhide'), EYE_ICON) : button('hide', t('Hide'), EYE_OFF_ICON, 'cat-act-danger')}

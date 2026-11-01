@@ -837,8 +837,12 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // Focused controls own their activation keys, including Space on disclosures. A box on
     // the canvas is the exception: it takes focus as a role="button" when it is selected,
     // but it has no activation key of its own, so Space-pan and the zoom keys still apply.
+    // The view chords (Shift+1, Shift+2, Shift+0) are no control's activation keys, so a
+    // control on the stage itself, such as an artboard title just clicked, lets them through.
     const control = deepActiveElement()?.closest('button, summary, a[href], [role="button"], [role="slider"]');
-    if (control && !(control.hasAttribute('data-box-id') && canvasEl?.contains(control))) return;
+    const viewChord = e.shiftKey && (e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit0');
+    if (control && !(control.hasAttribute('data-box-id') && canvasEl?.contains(control))
+      && !(viewChord && stageEl.contains(control))) return;
     if (e.code === 'Space' && !isTyping()) { e.preventDefault(); spaceDown = true; stageEl.classList.add('is-grabbable'); return; }
     if (isTyping()) return;
     // Shift+1 / Shift+2 are matched on `code`, not `key`: the shifted digits are '!' and

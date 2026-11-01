@@ -286,6 +286,47 @@ test('the growth-from-zero state IS export-driven', { skip: SKIP }, async () => 
   assert.equal(dOf(doc, '[data-l="0"]'), seedD(html), 'seeking back must re-run from the seed');
 });
 
+// Defect (round 1 of the still hold): the web shell called every frame clock at t 0 for
+// the stills that read the page, as the rasters always have. Growth's t 0 is the bare
+// seed, so an SVG or PDF of a growth-from-zero piece that had finished growing came out as
+// a seed, where main exported the grown piece (about 103 KB of SVG). Growth's clock declares
+// no still pose, so those formats read the page as it has grown.
+test('an SVG or PDF of a piece grown from zero is the grown piece, never the seed', { skip: SKIP }, async () => {
+  const { holdStillExports, holdStillFrame } = await import('../shells/web/src/bridge/frame-clock.ts');
+  const tool: any = await loadTool('growth', (p: string) => readFile(join(COMMUNITY, p), 'utf8'));
+  const values = { seedShape: 'ring', steps: 200, grown: false, seed: 5 };
+  const read: string[] = [];
+  const rt = await createRuntime(tool, baseHost({ export: { render: async () => { read.push(dOf(doc, '[data-l="0"]')); return new Blob([]); } } }), values);
+  const html = rt.getHydrated() as string;
+  // The template's own loop, pumped frame by frame until the piece has grown.
+  const dom = new JSDOM(`<!DOCTYPE html><body>${html}</body>`);
+  const win: any = dom.window;
+  win.__lollyGrowthSim = { simState: G.simState, stepOnce: G.stepOnce, runTo: G.runTo, pathD: G.pathD, flipX: G.flipX };
+  const queue: Array<() => void> = [];
+  const src = html.match(/<script>([\s\S]*?)<\/script>/)![1]!;
+  new Function('window', 'document', 'requestAnimationFrame', src)(win, win.document, (cb: () => void) => queue.push(cb));
+  const doc = win.document;
+  const clock = doc.querySelector('.gr-clock');
+  for (let i = 0; i < 400 && queue.length; i++) queue.shift()!();
+  const grownD = dOf(doc, '[data-l="0"]');
+  assert.notEqual(grownD, seedD(html), 'the preview has grown');
+  assert.equal(typeof clock.__lollyFrameRender, 'function', 'the clock is there for the clips');
+  assert.notEqual(clock.__lollyFrameRender.stillPose, true, 'and declares no still pose, because its t 0 is the seed');
+
+  const node = doc.body.firstElementChild;
+  const runtime = holdStillExports(rt, tool);
+  for (const format of ['svg', 'svgz', 'pdf', 'pdf-cmyk', 'penpot']) {
+    const release = holdStillFrame(node, format);
+    assert.equal(dOf(doc, '[data-l="0"]'), grownD, `${format}: the export entry reads the grown piece`);
+    assert.notEqual(clock.__lollyFrameDriven, true, `${format}: and leaves the loop alone`);
+    release();
+    read.length = 0;
+    await runtime.export(node, format, { embedMeta: false, watermark: false });
+    assert.deepEqual(read, [grownD], `${format}: through the runtime as well`);
+  }
+  win.close();
+});
+
 test('mirror symmetry flips the path data, never the group scale', { skip: SKIP }, async () => {
   // A scale(-1) group exports every stroke inside it at the PDF walker's 0.1pt
   // floor (it averages the group's x/y scale into the stroke multiplier).

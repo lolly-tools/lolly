@@ -15,7 +15,7 @@ import { collabHistoryStamp } from '../../lib/collab-undo.ts';
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
-import { annotateTemplate, diffDocuments, expandQuery, hasEncryptedState, inspectDocument, measureDocument, parseUrlState } from '@lolly/engine';
+import { annotateTemplate, canvasSizeOf, diffDocuments, expandQuery, hasEncryptedState, inspectDocument, measureDocument, parseUrlState } from '@lolly/engine';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import type { InputValue, InputWriteOptions } from '../../../../../engine/src/inputs.js';
 import { buildInputModel, tokenRestoreRefsOf } from '../../../../../engine/src/inputs.ts';
@@ -634,6 +634,23 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     madeWith,
   } = await prepareToolDesignSystemContext(tview.host, urlDesignSystem, slot); tview.dsRegistry = dsRegistry; tview.mountedSystemId = mountedSystemId; tview.madeWith = madeWith;
 
+  // New work starts in the colourway the person took as theirs in Settings >
+  // Appearance (plans/331). Only new work: a resumed or collaborative session, a link
+  // that carries input values, a framed or presented piece, a scripted export and a
+  // docs capture all keep what they name, and when they name nothing they draw the
+  // canonical colourway as before. The choice goes in as `__tokenSelection`, the key a
+  // saved session stores it under, so the runtime, the compose wrapper above, the
+  // session and the address (syncThemesRoute) all carry it like a choice made in the
+  // sidebar, and the piece keeps it whatever the person chooses later.
+  const newWork = !slot && !tview.carriedMount && pendingLiveCollab()?.toolId !== toolId
+    && !isIframeMode() && !tview.isFull && !tview.isPresent && !tview.autoExport && !tview.autoCopy
+    && !captureNeutralPinned() && Object.keys(values).length === 0;
+  if (newWork && !tview.openedSession.url.tokenSelection && !tview.initialValues.__tokenSelection) {
+    const { newWorkTokenSelection } = await import('../../lib/colourway-seed.ts');
+    const seed = await newWorkTokenSelection(tview.host, tview.tool.manifest.tokenAxes);
+    if (seed) tview.initialValues = { ...tview.initialValues, __tokenSelection: seed };
+  }
+
   // The document's emoji style (link, saved session or brand, preference) goes in at
   // creation, before onInit: the tool's first text composition then uses the right
   // glyphs, input pickers that open before the Emoji section see the right set, and
@@ -652,8 +669,19 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   const progressiveInit = !tview.autoExport && !tview.autoCopy && !captureNeutralPinned();
   const { observeProductionExport } = await import('../../bridge/production-observer.ts');
   observeProductionExport(tview.host, toolId, () => tview.runtime?.getModel() ?? []);
+  // The canvas size the tool first lays out for (engine 1.293): the link's or the saved
+  // session's export size, in the same precedence the export bar seeds from, so a tool
+  // that follows the size opens at that shape instead of laying out twice. The bar's
+  // own value (a size select, a remembered export) arrives through refreshCanvasPreview.
+  const sizeFields = tview.tool.manifest.render.dims !== false && !tview.tool.manifest.designTool;
+  const canvasSize = sizeFields ? canvasSizeOf(
+    tview.urlWidth || Number(tview.initialValues.__export_width) || undefined,
+    tview.urlHeight || Number(tview.initialValues.__export_height) || undefined,
+    tview.urlUnit || (tview.initialValues.__export_unit as string | undefined) || 'px',
+  ) : null;
   const runtime: ToolRuntime = await createRuntime(tview.tool, tview.host, tview.initialValues, {
     progressiveInit,
+    canvasSize,
     ...(toolId === 'design' ? { viewState: { pageId: 'page-1' } } : {}),
     tokenSelection: tview.openedSession.url.tokenSelection,
     ...(emojiStyle === undefined ? {} : { emojiStyle }),

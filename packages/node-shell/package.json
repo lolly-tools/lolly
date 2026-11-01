@@ -27,6 +27,7 @@
     "./file-operations": "./src/file-operations.ts",
     "./repo-root": "./src/repo-root.ts",
     "./content-roots": "./src/content-roots.ts",
+    "./tool-asset-id": "./src/tool-asset-id.ts",
     "./emoji": "./src/emoji.ts",
     "./state-dir": "./src/state-dir.ts",
     "./session-store": "./src/session-store.ts",

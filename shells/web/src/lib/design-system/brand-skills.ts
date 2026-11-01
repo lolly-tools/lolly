@@ -29,6 +29,7 @@ import { designSystemNamespace, isDesignSystemId } from '../../../../../engine/s
 import { instancePath } from '../instance.ts';
 import { t } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
+import { metaRow, type MetaKey } from '../meta-rows.ts';
 import type { ActiveRecord } from './active.ts';
 
 /** The host slice skills are read through. Structural: any caller's host fits. */
@@ -294,12 +295,12 @@ export function skillSteward(entry: Pick<BrandSkillIndexEntryV1, 'owner' | 'main
 export function skillDetailRows(ref: AssetRef): string {
   const entry = skillIndexEntryOfRef(ref);
   if (!entry) return '';
-  const row = (label: string, value: string): string => (value ? `<div><dt>${escapeText(label)}</dt><dd>${escapeText(value)}</dd></div>` : '');
+  const row = (key: MetaKey, label: string, value: string): string => (value ? metaRow(key, label, escapeText(value)) : '');
   const href = `#/start?area=skills&skill=${encodeURIComponent(entry.id)}`;
-  return row(t('Discipline'), t(DISCIPLINE_LABELS[entry.discipline]))
-    + row(t('Status'), entry.status === 'approved' ? t('Approved by the brand') : t('Draft'))
-    + row(t('Audience'), entry.audience === 'internal' ? t('Internal') : t('Public'))
-    + row(t('Revision'), entry.skillRevision)
-    + row(t('Steward'), skillSteward(entry))
-    + `<div><dt>${escapeText(t('Skill'))}</dt><dd><a href="${escapeText(href)}">${escapeText(t('Open in Skills'))}</a></dd></div>`;
+  return row('discipline', t('Discipline'), t(DISCIPLINE_LABELS[entry.discipline]))
+    + row('status', t('Status'), entry.status === 'approved' ? t('Approved by the brand') : t('Draft'))
+    + row('audience', t('Audience'), entry.audience === 'internal' ? t('Internal') : t('Public'))
+    + row('revision', t('Revision'), entry.skillRevision)
+    + row('steward', t('Steward'), skillSteward(entry))
+    + metaRow('skill', t('Skill'), `<a href="${escapeText(href)}">${escapeText(t('Open in Skills'))}</a>`);
 }

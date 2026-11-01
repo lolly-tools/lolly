@@ -13,7 +13,7 @@
 | **Location** | 도시와 국가. |
 | **Headshot** | 이메일 서명, 견적 카드, 조직도 같은 도구를 위해 정사각형으로 잘라 로컬 이미지로 보관하는 선택적 사진. |
 | **Use my details to create** | 동의 스위치 하나(한 번 켜면 **Using my details**로 표시돼요). 내보낸 파일과 Batch 실행에서 세부 정보가 작성자 크레딧으로 전달될지를 정해요. 미리 채우기에는 영향이 없으며 [도구가 프로필을 쓰는 방식](#how-tools-use-your-profile)을 참고하세요. |
-| **Preferences** | 테마, 접근성 설정, **Feature flags**에서 켠 앱의 부분. |
+| **Preferences** | 테마, 디자인 시스템별 컬러웨이, 접근성 설정, **Feature flags**에서 켠 앱의 부분. |
 | **Your work** | 썸네일이 있는 저장된 세션([Projects](/info/find-your-work.html)에 정리됨), 업로드한 이미지, 로컬 활동 통계. |
 
 이 중 필수인 것은 없어요. 빈 프로필도 작동하니 입력을 줄여주는 것만 채우세요.

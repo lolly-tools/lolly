@@ -218,7 +218,7 @@ export function mountSkillsRoom(el: HTMLElement, opts: SkillsRoomOpts) {
   const paint = (): void => {
     const authored = rows.filter(r => !r.entry.generated).length;
     const intro = authored
-      ? t('Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in Usage & rules are what Lolly checks.')
+      ? t('Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.')
       : t('This design system has no skills of its own yet. Until the brand adds some, agents read the baseline Lolly generates from the tokens and house rules.');
     el.innerHTML = `<header class="usage-head"><div><p class="start-eyebrow">${e(label)}</p><h2>${t('Skills')}</h2><p>${intro}</p></div>${opts.readonly ? `<span class="usage-badge skills-lock">${icon('lock', { size: 14 })} ${t('Read-only')}</span>` : ''}</header>
       <section class="usage-rules skills-list" aria-label="${e(t('Skills in this design system'))}">${rows.map(rowHtml).join('')}</section>

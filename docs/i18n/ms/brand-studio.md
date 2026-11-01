@@ -1,6 +1,6 @@
 # Design System Setup
 
-Logo, warna dan muka taip anda berada di satu tempat, supaya setiap alat, halaman dan eksport melukis dengannya. Tempat itu ialah **Design System Setup**, di `#/start`, dan taglinenya menyatakan untuk apa ia: *Make it yours*.
+Logo, warna dan muka taip anda berada di satu tempat, supaya setiap alat, halaman dan eksport melukis dengannya. Tempat itu ialah **Design System Setup**, di `#/start`.
 
 Mulakan dengan apa sahaja yang anda ada. Letakkan logo dan Lolly membaca warnanya. Pilih muka taip, atau letakkan fail fon yang dilesenkan syarikat anda. Setiap perubahan ditunjukkan merentasi keseluruhan apl serta-merta. Logo, fon dan token anda kekal pada peranti ini. Memilih Google Font ialah satu-satunya langkah yang menjangkau keluar: Lolly bertanya dahulu, kemudian mengambil keluarga itu sekali.
 
@@ -16,33 +16,36 @@ Apabila ia kelihatan betul, namakan sistem reka bentuk dan tekan **Export**. And
 - <!--i:download--> **Export** menulis keseluruhan sistem sebagai satu fail `LollyBrand-….lolly`.
 :::
 
-Pengepala menunjukkan sistem reka bentuk mana yang sedang anda **Editing**, dan namanya ialah medan yang boleh anda ubah pada bila-bila masa. Apabila suntingan pertama anda bertanya **What is this design system called?**, perkataan daripada logo anda diisi jika logo mengeja perkataan itu. **Save name** menyimpan nama; **Not now** mengekalkan pemegang tempat sehingga anda menaipnya dalam pengepala. Nama melabelkan sistem dalam Settings dan semasa anda menukar, dan ia menjadi nama fail yang ditulis **Export**.
+Bar di bahagian atas studio memuatkan nama sistem reka bentuk, dan nama itu ialah medan yang boleh anda ubah pada bila-bila masa: **Enter** mengekalkan nama baharu dan **Escape** memulihkan nama lama. Apabila suntingan pertama anda bertanya **What is this design system called?**, perkataan daripada logo anda diisi jika logo mengeja perkataan itu. **Save name** menyimpan nama; **Not now** mengekalkan pemegang tempat sehingga anda menaipnya dalam bar. Nama melabelkan sistem dalam Settings dan semasa anda menukar, dan ia menjadi nama fail yang ditulis **Export**.
 
 ## Bilik-bilik
 
-Studio ialah set bilik dalam rel di sisi, tanpa susunan tetap: tiada apa-apa bernombor dan tiada apa-apa menunggu yang lain. Pada telefon rel menjadi jalur cip di bawah pengepala.
+Studio ialah set bilik tanpa susunan tetap: tiada apa-apa bernombor dan tiada apa-apa menunggu yang lain. Pada desktop, bilik-bilik berada dalam satu jalur di bawah bar. Pada telefon, ia berpindah ke bar di sepanjang tepi bawah, tempat ibu jari boleh mencapainya, dengan bilik yang terbuka digulung ke paparan; helaian palet dan dulang naik di atas bar itu, dan bar mengalah semasa anda menaip. Dengan papan kekunci, Tab sampai ke jalur itu sekali sahaja, dan kekunci anak panah, Home serta End bergerak dari bilik ke bilik.
 
-![Rel bilik studio: Overview, Colours, Type, Logos, Tokens, Files dan Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Bar studio dan bilik-biliknya: Board, Colours, Type, Logos, Tokens, Files, Rules dan Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Bilik | Apa yang anda lakukan di situ | Kunci pautan |
 |---|---|---|
-| **Overview** | Lihat apa yang dipegang sistem, dengan pintu ke setiap bilik | `overview` |
+| **Board** | Lihat apa yang dipegang sistem, dengan pintu ke setiap bilik | `overview` |
 | **Colours** | Tambah warna, beri peranan, bina teduhan dan palet | `color` |
 | **Type** | Pilih empat muka yang dibaca apl, alat dan setiap eksport | `type` |
 | **Logos** | Letakkan lambang anda dalam setiap orientasi dan rawatan | `logos` |
 | **Tokens** | Sudut, jarak, bayang dan setiap nilai bernama lain | `tokens` |
 | **Files** | Fail imej, audio dan gerakan yang disimpan jenama anda | `catalogue` |
-| **Usage & rules** | Peraturan yang digunakan jenama anda, disemak pada contoh sebenar | `usage` |
+| **Rules** | Peraturan yang digunakan jenama anda, disemak pada contoh sebenar | `usage` |
+| **Skills** | Piawaian bertulis jenama untuk orang dan ejen, untuk dibaca dan dimuat turun | `skills` |
 
-Pautkan ke bilik dengan `#/start?area=<key>`. Bilik Files mengekalkan kunci `catalogue`, kerana kunci bilik ialah kontrak kekal, dan `?tab=` masih berfungsi sebagai alias lama. Kunci tidak diketahui membuka Overview.
+Pautkan ke bilik dengan `#/start?area=<key>`. Bilik Files mengekalkan kunci `catalogue`, Board mengekalkan `overview` dan Rules mengekalkan `usage`, kerana kunci bilik ialah kontrak kekal, dan `?tab=` masih berfungsi sebagai alias lama. Kunci tidak diketahui membuka Board.
 
-**Kaki rel** memegang tindakan untuk keseluruhan sistem dan bukan satu bilik. **Add from…** membawa jenama masuk ([Bring a brand in](#bring-a-brand-in)), dan **Tray** memegang apa yang ditemui imbasan yang belum anda tambah. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** dan **Restore brand settings** menyimpan dan memindahkan sistem ([Keep and move your design system](#keep-and-move-your-design-system)). Setiap satu muncul sebaik ada sesuatu untuk ia bertindak.
+**Bar** memegang tindakan untuk keseluruhan sistem dan bukan satu bilik. **Add from…** membawa jenama masuk ([Bring a brand in](#bring-a-brand-in)), dan **Tray** memegang apa yang ditemui imbasan yang belum anda tambah. **Export** menulis sistem sebagai satu fail, dan **More** memegang **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** dan **Design systems**, yang membuka senarai dalam Settings tempat anda bertukar ([Keep and move your design system](#keep-and-move-your-design-system)). Setiap satu muncul sebaik ada sesuatu untuk ia bertindak. Pada telefon, **Add from…** berpindah ke dalam **More** dan **Export** ditunjukkan sebagai ikonnya.
 
-## Overview
+## Board
 
-Tanpa apa-apa dipilih lagi, Overview menawarkan empat cara untuk bermula. **Start from a reference** membuka pemilih sumber untuk logo, tangkapan skrin, halaman web atau fail reka bentuk, dan **Pick a colour**, **Choose a face** dan **Add a logo** membuka kawalan itu secara terus. Membuka satu tidak menulis apa-apa, dan **Explore the tools** ada dari awal.
+Tanpa apa-apa dipilih lagi, Board menawarkan empat cara untuk bermula. **Start from a reference** membuka pemilih sumber untuk logo, tangkapan skrin, halaman web atau fail reka bentuk, dan **Pick a colour**, **Choose a face** dan **Add a logo** membuka kawalan itu secara terus. Membuka satu tidak menulis apa-apa, dan **Explore the tools** ada dari awal.
 
-Setelah apa-apa menjadi milik anda, Overview menunjukkan apa yang anda ada, dengan kiraan anda sendiri di hadapan. Colours memberikan bilangan warna, dengan `· N starter` malap di mana warna warisan ditunjukkan; jalurnya meletakkan warna anda dahulu, kemudian garis halus, kemudian warna starter yang pudar. Type dibaca mengikut peranan (*Inter for headings*, dengan *Starter for the rest* pada baris di bawah). Logos menyatakan berapa banyak slot diisi (atau **Not set**), Tokens menunjukkan jejari sudut dan Files menyatakan **Nothing yet** semasa pustaka kosong. Setiap blok membuka biliknya.
+Setelah apa-apa menjadi milik anda, Board menunjukkan apa yang anda ada, dengan kiraan anda sendiri di hadapan. Colours memberikan bilangan warna, dengan `· N starter` malap di mana warna warisan ditunjukkan; jalurnya meletakkan warna anda dahulu, kemudian garis halus, kemudian warna starter yang pudar. Colourways menunjukkan setiap colourway sebagai jubin kecil dalam warna utamanya. Type dibaca mengikut peranan dan menetapkan setiap keluarga dalam mukanya sendiri (*Inter for headings*, dengan *Starter for the rest* pada baris di bawah). Logos menyatakan berapa banyak slot diisi (atau **Not set**), Tokens menunjukkan jejari sudut dan Files menyatakan **Nothing yet** semasa pustaka kosong. Setiap blok membuka biliknya.
+
+Sistem reka bentuk yang datang bersama apl dan boleh disunting, seperti Lolly Demo, mempunyai semua itu dari awal: Board menunjukkan warna, colourway, muka taip dan tandanya, dengan teg **Came with this app** di sebelah tajuk.
 
 ### Starter dan milik anda
 
@@ -60,7 +63,7 @@ Setelah apa-apa menjadi milik anda, Overview menunjukkan apa yang anda ada, deng
 
 - Dipilih atau dipasang oleh anda.
 - Kekuatan penuh, dan kad berwarna di mana anda memasang muka.
-- Dikira pada Overview dan dalam Tokens.
+- Dikira pada Board dan dalam Tokens.
 - Peranan yang mengikut yang lain berbunyi **↳ follows Primary** dan bukan mengulang nama primer.
 :::
 
@@ -105,7 +108,7 @@ Warna pertama anda menjadi **primary**, dan cip mengesahkannya, seperti *"Primar
 
 Warna anda berada di sebelah pratonton **In context** pada skrin lebar, dan di atasnya pada skrin lebih kecil. Pratonton menunjukkan poster, carta atau kad antara muka dalam palet anda. Warna starter kekal dalam kumpulan terlipat sendiri.
 
-![Bilik Colours pada Lolly Demo: palet dalam kumpulan terlipat, setiap warna dengan nama dan hex, dan pil muat turun di kaki](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Bilik Colours pada Lolly Demo: palet dalam kumpulan terlipat, setiap warna dengan nama dan hex, dan muat turun palet di kepala](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Bilik Colours selepas menambah satu warna, dengan paletnya dan satu pratonton komposisi langsung](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -117,7 +120,7 @@ Setelah palet mempunyai teduhan, jalur menunjukkan ketujuh-tujuh peranan yang bo
 
 Aksen apl sendiri mengikut sistem reka bentuk secara lalai. Itulah tetapan **Interface follows the design system** dalam **Settings → Appearance**; mematikan tetapan membiarkan chrome apl neutral, manakala alat, kanvas dan eksport mengikut sistem reka bentuk dalam kedua-dua keadaan.
 
-**Colourways.** Sistem reka bentuk boleh memegang beberapa warna utama, masing-masing dipilih bagi setiap karya. Lolly menyimpan setiap colourway, tetapi bilik ini belum boleh mengarang satu: colourway ditulis dalam fail token. Pada sistem dengan colourway, setiap colourway memerlukan primer dan sekunder sendiri, dan permukaan sendiri apabila colourway mewarnai latar, jadi peranan itu kekal ditetapkan dalam penyunting swatch. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada kerja sebenar, dan [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) mempunyai formatnya.
+**Colourways.** Sistem reka bentuk boleh memegang beberapa warna utama, masing-masing dipilih bagi setiap karya. Baris **Skema warna** di kepala **Peranan warna** menunjukkan satu cip bagi setiap colourway, dengan **Lalai** pada yang kanonik. **+ Tambah** memulakan colourway baharu daripada salah satu warna palet. Pilih satu cip, dan jalur peranan, palet dan pratonton menyunting colourway itu, dalam rupa yang dipilih oleh suis **Terang** dan **Gelap**; colourway yang dipilih boleh dinamakan semula, diduakan, dijadikan lalai atau dialih keluar. Pada sistem dengan colourway, setiap colourway memerlukan primer dan sekunder sendiri, dan permukaan sendiri apabila colourway mewarnai latar, jadi peranan itu kekal ditetapkan dalam penyunting swatch. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) mempunyai langkah dan format token, dan [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada kerja sebenar.
 
 ### Cari lebih banyak warna
 
@@ -162,7 +165,7 @@ Empat bahagian terlipat berada di bawah pratonton dan peranan. Setiap satu dibuk
 
 Palet menyenaraikan warna anda dalam kumpulan terlipat, masing-masing dengan **+ Add** sendiri. Cipta dan namakan semula kumpulan sesuka hati. Peranan tidak pernah membuat jubin kedua: jubin yang ditunjuk peranan memakai tanda kecil sebaliknya (**P**, **S**, **Su**, **T**). **Colour chart** di bawah jubin menunjukkan warna yang sama pada **Wheel** OKLCH (seret titik untuk mewarnakan semula, klik ruang kosong untuk menambah swatch) dan carta **Gamut**, yang menunjukkan di mana julat boleh dipaparkan berakhir. `#/start?area=color&focus=chart` membuka carta terus.
 
-![Anak tetingkap palet, setiap kumpulan boleh dilipat, dengan pil muat turun diletakkan di tepi bawahnya](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Anak tetingkap palet, setiap kumpulan boleh dilipat, dengan muat turun palet di kepalanya](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Roda OKLCH - sudut ialah hue, jarak keluar ialah chroma dan warna kelabu bergerak mengikut landasan lightness di tepi](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -178,7 +181,7 @@ Klik swatch untuk membuka penyuntingnya:
 **Memadam swatch** adalah selamat. Teduhan terbitan dan peranan tema disembunyikan, jadi tiada apa-apa yang membacanya rosak, manakala warna yang anda tambah dibuang.
 
 ::: details Bekerja dengan banyak swatch
-Setiap swatch mempunyai pemegang seret. Seret untuk menyusun semula dalam kumpulan, atau fokuskan pemegang, tekan Space, gunakan kekunci anak panah dan tekan Space sekali lagi untuk melepas; Escape membatalkan. Untuk memindahkan warna antara kumpulan, gunakan kawalan **Group** penyunting atau pilih beberapa dan gunakan **Move to**.
+Setiap swatch mempunyai pemegang seret. Seret untuk menyusun semula dalam kumpulan, atau fokuskan pemegang, tekan Space, gunakan kekunci anak panah dan tekan Space sekali lagi untuk melepas; Escape membatalkan. Pada telefon palet menunjukkan empat warna sebaris dan pemegang muncul dalam mod Select, dan bukan sebagai baris di bawah setiap warna. Untuk memindahkan warna antara kumpulan, gunakan kawalan **Group** penyunting atau pilih beberapa dan gunakan **Move to**.
 
 Pemilihan tidak memerlukan mod. Bar muncul dengan jubin pertama yang dipilih dan pergi bersama yang terakhir.
 
@@ -195,13 +198,13 @@ Bar berbunyi **{n} selected**, kemudian **Move to**, **Give a role** (setiap war
 
 Panel **Gradients** pilihan membina token adunan daripada palet. Setiap kecerunan mempunyai pratonton, 2 hingga 8 hentian bernama dan sudut. Hentian menunjuk kepada swatch, jadi warnakan semula swatch dan kecerunan mengikut. Adunan dijalankan dalam OKLCH.
 
-Muat turun palet (token reka bentuk, CSS, SCSS, GIMP dan Adobe Swatch Exchange) berada dalam pil di kaki palet setelah ada teduhan. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) menerangkan setiap format.
+Muat turun palet (token reka bentuk, CSS, SCSS, GIMP dan Adobe Swatch Exchange) berada di kepala palet, di sebelah tajuknya. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) menerangkan setiap format.
 
 ## Type
 
-Tanpa muka sendiri, bilik ialah satu kad: **Primary**, ditetapkan pada saiz bacaan dalam muka yang melayaninya hari ini, dengan teg **Starter**, butang **Choose a face** dan baris *"Nothing installs until you choose one."* Headings, code dan italic mengikut primer sehingga anda memilihnya; **Choose them separately** menunjukkan kad mereka.
+Tanpa muka sendiri, bilik ialah satu kad: **Primary**, ditetapkan pada saiz bacaan dalam muka yang melayaninya hari ini, dengan teg **Starter**, butang **Choose for Primary** dan baris *"Nothing installs until you choose one."* Headings, code dan italic mengikut primer sehingga anda memilihnya; **Choose them separately** menunjukkan kad mereka.
 
-![Bilik Type dengan belum ada muka taip yang dipilih - satu kad pada saiz bacaan, satu tag Starter di atasnya, dan satu Choose a face yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Bilik Type dengan belum ada muka taip yang dipilih - satu kad pada saiz bacaan, satu tag Starter di atasnya, dan satu Choose for Primary yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Pilih satu muka dan bilik terbuka menjadi empat kad peranan, senarai Fonts dan spesimen langsung:
 
@@ -210,7 +213,7 @@ Pilih satu muka dan bilik terbuka menjadi empat kad peranan, senarai Fonts dan s
 - **Code**: muka monospace untuk kod dan data.
 - **Italic**: italik sebenar untuk penekanan, petikan dan kenyataan sampingan.
 
-Kad hanya diwarnakan di mana anda memasang muka itu, dan butangnya berbunyi **Change** pada muka milik anda dan **Choose a face** di tempat lain. Tiada apa-apa pada kad mengomit apa-apa: butang membuka pentas banding untuk peranan itu.
+Kad hanya diwarnakan di mana anda memasang muka itu. Butangnya menyatakan untuk peranan mana ia: **Change Headings** pada muka milik anda dan **Choose for Headings** di tempat lain. Baris sampel dibalut dan bukan dipotong. Tiada apa-apa pada kad mengomit apa-apa: butang membuka pentas banding untuk peranan itu.
 
 ![Empat kad peranan didedahkan - setiap satu ditetapkan dalam muka taip yang berkhidmat untuknya, dengan satu tag Starter di mana tiada sesiapa memilih satu dan Italic mengikuti primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -218,7 +221,7 @@ Kad hanya diwarnakan di mana anda memasang muka itu, dan butangnya berbunyi **Ch
 
 Pentas dibuka di dalam bilik, di bawah kad yang anda tekan, dan kad dilipat menjadi jalur satu baris supaya pentas kelihatan pada skrin pertama telefon. Escape membatalkan dan memulangkan fokus kepada kad.
 
-1. Tekan **Choose a face** pada kad.
+1. Tekan **Choose for** dan peranan pada kad.
 2. Taip nama keluarga dan tekan **Preview**, atau tekan salah satu daripada enam keluarga **Pinned** di bawah medan.
 3. Tekan **Use this face**.
 
@@ -239,7 +242,7 @@ Token ialah nilai bernama di sebalik sistem reka bentuk: warna, muka taip, logo,
 ![Bilik Tokens: kepala dengan contoh daripada sistem dan tindakan fail, jubin yang mengira setiap jenis token, kemudian pasangan warna dengan bacaan kontrasnya](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **Kepala** memberikan contoh daripada sistem anda sendiri (*Primary is Spearmint, #033633*) dan tindakan fail: **Download** (keseluruhan sistem sebagai token reka bentuk, atau palet dalam lima format lain), **Copy CSS** dan **Add from…** untuk membaca semula fail JSON.
-- **Jubin** mengira setiap jenis token dan melompat ke bahagiannya: Colours, Type, Logos, Shape and spacing, More dan All tokens. Ia mengira apa yang milik anda, seperti Overview. Pada telefon jubin menatal ke sisi.
+- **Jubin** mengira setiap jenis token dan melompat ke bahagiannya: Colours, Type, Logos, Shape and spacing, More dan All tokens. Ia mengira apa yang dipegang setiap bahagian; bahagian yang hanya memegang apa yang datang bersama starter kosong memakai teg **Starter**, dan sistem yang datang bersama apl mengira bahannya sendiri tanpa teg. Pada telefon jubin dibalut kepada dua baris, tiga sebaris.
 - **Colours** bermula dengan pasangan yang diletakkan alat bersama (teks pada permukaan, pada primer, muted pada permukaan) dengan bacaan APCA dalam cerah dan gelap, dan menandakan **Weak contrast** di mana pasangan kurang. Kemudian setiap kumpulan warna: ramp sebagai satu baris cip, warna lain dengan nilai dan rujukan yang digunakan alat, seperti `{color.brand.spearmint}`. Tekan rujukan untuk menyalin rujukan. **Edit in Colours** membuka kumpulan dalam bilik Colours.
 - **Type** dan **Logos** menyenaraikan muka bagi setiap peranan dan setiap slot logo, dengan **Edit in Type** dan **Edit in Logos** setelah anda mempunyai milik sendiri.
 - **Shape and spacing** memegang **Rounded corners** (`shape.radius`) dan **Spacing rhythm** (`space.base`). Masing-masing berbunyi *Lolly default* sehingga anda menggerakkan peluncur dan *Yours* selepas itu, menyimpan serta-merta dan boleh dibatalkan.
@@ -252,11 +255,11 @@ Bahagian tanpa apa-apa di dalamnya menawarkan cara mengisi jurang: **Pick a colo
 
 Letakkan fail yang disimpan jenama anda, selain logo: fail **vector**, **image**, **audio** dan **motion** (video, Lottie dan animasi). Ia muncul dalam [Assets](/info/using.html#assets-your-library), disusun ke dalam bahagian dan sedia dalam pemilih aset setiap alat, dan ia kekal pada peranti ini.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** meletakkan pilihan jenama anda untuk bekerja: apa yang boleh diubah orang, apa yang kekal tetap dan apa yang boleh disemak Lolly.
+**Rules** meletakkan pilihan jenama anda untuk bekerja: apa yang boleh diubah orang, apa yang kekal tetap dan apa yang boleh disemak Lolly.
 
-![Usage & rules pada Lolly Demo: kad Brand rules kosong dengan Add your first rule, kemudian Try your brand in use dengan contohnya sedia untuk dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules pada Lolly Demo: kad Brand rules kosong dengan Add your first rule, kemudian Try your brand in use dengan contohnya sedia untuk dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** menyenaraikan peraturan anda. **Add rule** (atau **Add your first rule**) membuka borang ringkas:
 
@@ -273,9 +276,15 @@ Peraturan yang dibawa sistem reka bentuk dalam fail tokennya, seperti pasangan w
 
 Binaan yang dihantar dengan jenama tetap menunjukkan peraturan dan contoh yang sama baca sahaja, di bawah *This brand is set*.
 
+## Skills
+
+**Skills** menyenaraikan [brand skills](/info/brand-skills.html) sistem reka bentuk aktif: piawaian bertulis jenama, satu bagi setiap disiplin, untuk orang dan ejen AI. Setiap baris memberikan disiplin, status jenama sendiri (**Draf** atau **Diluluskan**), sama ada kemahiran itu awam atau dalaman, dan semakannya. Pilih satu baris untuk membaca kemahiran di sebelah liputannya, yang meletakkan baris kemahiran itu berhadapan token anda: apa yang Lolly semak, apa yang bercanggah, apa yang selari dan apa yang sekadar panduan.
+
+**Muat turun kemahiran (.zip)** menulis kemahiran sebagai folder Agent Skills untuk alat ejen, dengan pautan katalog menuju ke Lolly ini, dan **Salin sebagai satu fail** meletakkan teks yang sama pada papan keratan untuk tetingkap sembang. Sistem reka bentuk tanpa kemahiran sendiri menyenaraikan garis asas yang Lolly tulis daripada token dan peraturan rumahnya setiap kali garis asas itu dibaca. Bilik ini membaca kemahiran dan tidak pernah menyuntingnya.
+
 ## Bawa masuk satu jenama
 
-**Add from…** di kaki rel membuka pemilih yang bertanya apa yang anda ada, bukan apa formatnya:
+**Add from…** dalam bar membuka pemilih yang bertanya apa yang anda ada, bukan apa formatnya:
 
 - **Design tokens or a design file**: JSON DTCG atau Tokens Studio, projek Penpot, zip set token, pek sistem reka bentuk Lolly atau SVG.
 - **PDF**: dek atau fail garis panduan, dibaca pada peranti ini untuk warna, lambang dan muka taip terbenamnya.
@@ -303,7 +312,7 @@ Import PDF dan fail reka bentuk mengekalkan kawalan semakan sendiri. Item dalam 
 
 ### Cari dan banding rupa
 
-Buka **Find a look** daripada Overview atau daripada senarai sistem reka bentuk dalam Settings. Layari sistem yang disimpan pada peranti ini dan beberapa contoh Lolly boleh guna semula, dan cari mengikut nama, teg warna atau fon yang diisytiharkan. **Closest to my current palette** mengisih mengikut persamaan warna yang diukur, dengan fon yang sepadan memutuskan seri; ia bukan skor kualiti.
+Buka **Find a look** daripada Board atau daripada senarai sistem reka bentuk dalam Settings. Layari sistem yang disimpan pada peranti ini dan beberapa contoh Lolly boleh guna semula, dan cari mengikut nama, teg warna atau fon yang diisytiharkan. **Closest to my current palette** mengisih mengikut persamaan warna yang diukur, dengan fon yang sepadan memutuskan seri; ia bukan skor kualiti.
 
 Pilih satu rupa untuk menyemaknya, atau dua untuk dibandingkan bersebelahan. Memilih tidak mengubah apa-apa. **Use this saved system** bertukar kepadanya, dan **Use these colours** menggunakan warna contoh melalui titik semak biasa, mengekalkan fon anda. **Restore brand settings** memulihkan rupa sebelumnya. Sistem tersimpan mempunyai **Search tags** boleh sunting di bawah **Details and design context**. Contoh ialah resipi warna Lolly asli, tanpa koleksi yang diraut dan tanpa akaun.
 
@@ -315,17 +324,17 @@ Pilih satu rupa untuk menyemaknya, atau dua untuk dibandingkan bersebelahan. Mem
 
 **Export** menulis satu fail **`LollyBrand-….lolly`**: token, fon, logo dan pilihan tema anda, dengan manifes integriti yang disemak semasa kembali masuk. Keluaran web sebelum 1.0.7 menamakan fail yang sama `.zip`, dan ejaan itu masih diterima. **Tokens (.json)** menulis dokumen token reka bentuk biasa sahaja, tanpa fon atau logo, untuk repositori, langkah binaan atau alat token lain.
 
-Untuk membawa satu kembali, gunakan **Add from… → Design tokens or a design file**, atau letakkan fail pada studio. Begitulah rakan sekerja menyerahkan jenama kepada anda, atau cara anda membawa satu ke pemasangan kedua, tanpa akaun dan tanpa awan. Untuk membawa jenama masuk daripada baris perintah, lihat [`ingest:brand`](/info/configuration.html#brand-packs).
+Untuk membawa satu kembali, gunakan **Add from… → Design tokens or a design file**, atau letakkan fail pada studio. Begitulah rakan sekerja menyerahkan jenama kepada anda, atau cara anda membawa satu ke pemasangan kedua, tanpa akaun dan tanpa awan. [Working with partners](/info/partners.html) merangkumi apa lagi yang perlu dihantar apabila orang yang menerima jenama anda bekerja untuk organisasi lain. Untuk membawa jenama masuk daripada baris perintah, lihat [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** membungkus fon yang anda tambah ke dalam RPM boleh pasang. Jika anda memuat naik mana-mana daripadanya sendiri, Lolly meminta anda mengesahkan bahawa anda boleh mengedarkannya semula dahulu.
 
 ### Pulihkan tetapan terdahulu
 
-Pilih **Restore brand settings**, pilih titik semak bertarikh dan tekan **Restore**. Ia memulihkan warna, tetapan taip dan token lain untuk jenama aktif; fail fon dan imej kekal seperti sedia ada. Lolly menyimpan tetapan semasa anda sebagai **Before restore** dahulu, supaya anda boleh membalikkan pemulihan walaupun selepas menutup pelayar. 20 titik semak terkini disimpan pada peranti ini.
+Buka **More** dalam bar, pilih **Restore brand settings**, pilih titik semak bertarikh dan tekan **Restore**. Ia memulihkan warna, tetapan taip dan token lain untuk jenama aktif; fail fon dan imej kekal seperti sedia ada. Lolly menyimpan tetapan semasa anda sebagai **Before restore** dahulu, supaya anda boleh membalikkan pemulihan walaupun selepas menutup pelayar. 20 titik semak terkini disimpan pada peranti ini.
 
 ### Versions
 
-Versi yang diterbitkan ialah **salinan kekal yang bernama** yang disimpan pada peranti ini. Ia tidak pernah berubah, jadi alat atau pautan yang menyematnya (dengan `designv`) terus melukis perkara yang sama. Sistem dengan sesuatu milik anda menunjukkan pautan **Versions & publishing** yang tenang di kaki rel; selepas penerbitan pertama anda ia menjadi entri **Versions**. `#/start?area=versions` membukanya terus.
+Versi yang diterbitkan ialah **salinan kekal yang bernama** yang disimpan pada peranti ini. Ia tidak pernah berubah, jadi alat atau pautan yang menyematnya (dengan `designv`) terus melukis perkara yang sama. Sistem dengan sesuatu milik anda menyenaraikan **Versions & publishing** dalam menu **More** bar; selepas penerbitan pertama anda **Versions** menyertai bilik-bilik itu. `#/start?area=versions` membukanya terus.
 
 - **Versi adalah kekal.** Belum ada pemadaman, dan panel menyatakannya.
 - **Pembuangan mendahului kad keserasian**, kerana token yang dibuang ialah apa yang merosakkan alat.
@@ -361,3 +370,4 @@ Mengubah apa yang dibekalkan pelayan ialah tugas pentadbir: pengendalinya mengub
 - **[Brand architectures](/info/brand-architectures.html)**: bagaimana bahagian, produk, jenama yang disokong, pelanggan dan musim dipetakan kepada sistem reka bentuk, colourway dan identiti logo.
 - **[Design Tokens](/info/design-tokens.html)**: model token tempat jenama anda ditulis.
 - **[Export a file](/info/exporting.html)**: unit cetakan, CMYK dan format yang dirender jenama anda.
+- **[Working with partners](/info/partners.html)**: berkongsi jenama anda dengan rakan kongsi, dan bekerja dalam jenama yang diberikan kepada anda.

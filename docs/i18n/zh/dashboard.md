@@ -19,7 +19,7 @@ Preferences 是一个长页面，侧边有一条**设置栏**，栏上方的 **S
 - <!--i:usercheck--> **Your details** - 你的姓名、联系方式和头像，以及 **Use my details to create** 开关。[个人资料](/info/profile.html)解释了工具如何使用它们。
 - <!--i:seal--> **Content Credentials** - 为你的导出签名的可选已验证身份。参见 [Content Credentials](/info/content-credentials-identity.html)。
 - <!--i:palette--> **Design systems** - 切换、添加、隐藏或移除设计系统。[Design System Setup](/info/brand-studio.html#manage-your-design-systems) 介绍了每个操作。
-- <!--i:moon--> **Appearance** - 主题（Light、Dark 或用你的调色板为应用着色的 Brand）和 **Interface follows the design system**。
+- <!--i:moon--> **Appearance** - 主题（Light、Dark 或用你的调色板为应用着色的 Brand）、当设计系统提供多种配色方案时的 **Your colourway**（[让配色方案成为你自己的](/info/colourways.html#make-a-colourway-your-own)）以及 **Interface follows the design system**。
 - <!--i:sparkle--> **Emoji** - 你开始新作品时 emoji 所取自的集合及其素材许可协议，以及你的调色板为它们重新着色的强度（**Off**、**Subtle**、**Strong**、**Full**、**Mono** 或 **Duotone**）。**Keep skin tones and flags** 让这些保持自己的颜色。你已经完成的作品保留制作时所用的集合。
 - <!--i:eyeoff--> **Accessibility** - 四个舒适度开关，外加 Sound 和 Neurospicy Mode。参见[无障碍](#accessibility)。
 - <!--i:link--> **Connected services** - 你连接的存储，例如 Dropbox、Google Drive、OneDrive、Nextcloud 或 S3，以及 **Sync across devices**。参见[同步你的设备](/info/sync.html)。

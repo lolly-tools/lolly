@@ -10,9 +10,9 @@ Esta página percorre o canvas da primeira caixa até um deck pronto: a janela, 
 
 A **barra superior** começa com **Home**, o **File menu** e o nome do documento (clique no nome para renomear o documento). No meio ficam **Undo**, **Redo**, **History**, os controles de zoom (com **Fit all** e **Fit artboard**) e alternadores para a **Timeline**, o **Navigator** e o **Inspector**. À direita ficam **Share**, **Present** e **Export**. No celular, os botões menos usados vão para **More actions**.
 
-A **barra de ferramentas** na lateral reúne o menu Lolly e as ferramentas com que você desenha: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, e depois os botões Timeline, Artboards e Auto-arrange.
+A **barra de ferramentas** na lateral reúne o menu Lolly e as ferramentas com que você desenha: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, e depois os botões Timeline, Artboards e Auto-arrange.
 
-![A barra de ferramentas da tela livre: uma alça de arraste, o menu do Lolly, depois Ponteiro, Adicionar uma caixa, Caneta, Editar pontos, Linha, Linha do tempo, Pranchetas e Organizar automaticamente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![A barra de ferramentas da tela livre: uma alça de arraste, o menu do Lolly, depois Ponteiro, Adicionar uma caixa, Caneta, Lápis, Editar pontos, Linha, Linha do tempo, Pranchetas e Organizar automaticamente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 O canvas funciona como a mesa de trabalho de um designer ao redor da prancheta:
 
@@ -68,17 +68,26 @@ Sem nenhuma tecla pressionada, um giro é puxado para os 15 graus mais próximos
 
 ## Desenhe suas próprias formas
 
-Caixas, círculos e molduras arredondadas cobrem a maioria dos layouts. Para qualquer outra forma, desenhe uma: o botão **Pen** da barra (ou `P`) coloca você no modo de desenho. Três teclas simples alternam entre os modos: `V` para o Pointer, `P` para a Pen e `N` para **Edit points**. O Pointer é sempre a saída.
+Caixas, círculos e molduras arredondadas cobrem a maioria dos layouts. Para qualquer outra forma, desenhe uma: o botão **Pen** da barra (ou `P`) coloca você no modo de desenho. Quatro teclas alternam entre os modos: `V` para o Pointer, `P` para a Pen, `Shift C` para o **Pencil** e `N` para **Edit points**. O Pointer é sempre a saída.
 
 - **Clique** para colocar um ponto. No tipo de curva padrão, **clicar e arrastar** puxa as alças do ponto para formar uma curva; segure **Alt** ao clicar para um canto vivo. (Nos outros tipos de curva, todo ponto é um canto e arrastar não faz nada.)
-- Os pontos se encaixam na prancheta e nas suas outras caixas conforme você os coloca. Alt suspende a grade enquanto você desenha, e tanto a grade quanto as bordas enquanto você arrasta um ponto depois.
+- Segure **Shift** ao clicar e o novo segmento sai do ponto anterior em um múltiplo de 15 graus, então linhas niveladas, na vertical e de 45 graus saem exatas. Shift enquanto você arrasta uma alça faz a alça avançar do mesmo modo.
+- Os pontos se encaixam na prancheta, nas suas outras caixas e nos outros pontos do mesmo caminho conforme você os coloca, então um ponto se alinha com um que você colocou antes. Alt suspende a grade enquanto você desenha, e tanto a grade quanto as bordas enquanto você arrasta um ponto depois.
 - **Clique no primeiro ponto** para fechar a forma. Caso contrário, pressione **Enter**, clique duas vezes ou troque de ferramenta, e o desenho é mantido.
 - **Escape** funciona um passo de cada vez: a primeira pressão abandona o desenho, a segunda sai da caneta.
-- **Delete** durante o desenho descarta o último ponto.
+- **Delete**, ou Desfazer (`⌘ Z` ou `Ctrl Z`), durante o desenho descarta o último ponto.
+
+**Continue um caminho aberto.** Com a Pen ativa, pressione em qualquer extremidade de um caminho aberto e você volta a desenhar esse caminho: cada clique acrescenta um ponto depois dessa extremidade, ou antes do primeiro ponto quando você começou pelo início. Enter mantém o resultado e Escape deixa o caminho exatamente como estava. O caminho continua sendo a mesma caixa, com o preenchimento, o traço e as pontas de seta, e um único desfazer o devolve. Delete desfaz apenas os pontos que você acrescentou. Uma forma fechada, uma linha presa a uma caixa e um caminho com várias partes não têm extremidade livre para continuar.
+
+**Desenhe à mão livre com o Pencil.** O botão **Pencil** da barra (ou `Shift C`) grava o seu traço enquanto você arrasta. Ao soltar, o Lolly suaviza o traço em poucos pontos com alças Bezier, mantém as curvas fechadas como cantos e mantém a curva a poucos pixels de tela de onde a sua mão passou. Um traço que termina perto do início se fecha. O resultado é um caminho comum, com o mesmo preenchimento de um caminho da caneta, e você pode editar os pontos dele depois.
 
 O resultado é uma caixa comum. Mova, redimensione, gire, agrupe, alinhe, reordene, preencha, sombreie ou esmaeça o caminho como qualquer outra caixa. O primeiro caminho recebe o preenchimento e o traço que a sua marca dá a um caminho, e cada novo caminho depois dele recebe o que você usou por último. Em uma ferramenta cuja marca não define nada para caminhos, um novo caminho recebe um traço na cor com que você desenhou, para que a forma nunca fique invisível.
 
 **Edite os pontos de novo.** Clique duas vezes na forma ou use **Edit points** na barra do objeto. Arraste um ponto para movê-lo, arraste uma alça para redirecionar a curva, clique na curva para inserir um ponto ou arraste uma caixa em volta de vários pontos e pressione Delete. Um caminho sempre mantém pelo menos dois pontos.
+
+- Segure **Shift** enquanto arrasta um ponto e o ângulo dele em relação ao próximo ponto do caminho que não está se movendo avança em passos de 15 graus. Shift enquanto você arrasta uma alça faz a alça girar em passos em torno do próprio ponto. Shift ao clicar ainda acrescenta um ponto ou uma alça à seleção; os passos começam quando você arrasta.
+- Um ponto arrastado se encaixa na prancheta, em outras caixas e nos outros pontos do caminho. Segure Alt para colocá-lo livremente.
+- Clique em uma alça para selecioná-la e pressione **Delete** para puxá-la de volta ao ponto. Esse lado do ponto vira um canto, sem alça puxando a curva. Com pontos selecionados, Delete remove os pontos como antes.
 
 O **Spline type** decide que tipo de curva passa pelos seus pontos:
 
@@ -112,6 +121,25 @@ Mais três funcionam em uma única forma. **Outline stroke…** transforma um tr
 ![Um crescente e um anel com um furo de verdade, ambos produzidos por Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 O resultado é um novo caminho que você pode continuar editando com a caneta, armazenado como curvas Bezier simples, então o tipo de spline original não se mantém. Os furos são furos de verdade: o controle **Fill rule** no painel de traço decide se contornos sobrepostos preenchem (*non-zero*) ou perfuram (*even-odd*). As operações recusam em vez de destruir: peça a interseção de duas formas que não se sobrepõem e nada muda. Caixas de texto e de imagem não têm contorno, então são deixadas de lado.
+
+## Traçados
+
+Uma caixa, uma imagem, uma prancheta e um caminho da caneta podem ter um traçado: uma cor, uma espessura e um estilo (sólido, tracejado ou pontilhado). As linhas de traçado ficam sob **Fill** no Inspetor, e o botão **Stroke** da barra do objeto as abre.
+
+**Position** coloca o traçado no contorno: **Inside**, **Centre** ou **Outside**. Uma caixa é traçada por dentro, a menos que você escolha outra coisa, então a borda externa fica onde você a desenhou, e um caminho da caneta é traçado centralizado na curva. Com um traçado centralizado ou externo, o preenchimento, a imagem e o texto ficam dentro da borda interna do traçado, e o contorno de seleção fica na borda da própria caixa. Um caminho aberto não tem lado de dentro, então é sempre traçado centralizado. O traçado de uma prancheta fica sempre dentro da página, porque a borda da página é a borda da exportação.
+
+**Traçado por lado.** Em um retângulo, uma caixa arredondada, uma pílula ou uma prancheta, o botão ao lado da espessura mostra quatro espessuras: **Top**, **Right**, **Bottom** e **Left**. Defina um lado como 0 para ocultá-lo, o que dá um divisor ou um sublinhado sem uma segunda forma. O botão apenas mostra ou oculta as quatro células e nunca muda um valor. Enquanto os lados diferem, a espessura aparece como **Mixed**; digite uma espessura ali para definir os quatro lados de uma vez. Cor, posição e estilo continuam compartilhados por todos os lados, e os cantos arredondados se curvam junto com as espessuras ao lado, como uma borda CSS. Elipses, círculos e caminhos da caneta desenham uma única espessura em volta.
+
+Como os formatos levam um traçado:
+
+| Formato | Posição | Por lado |
+|---|---|---|
+| SVG, PDF, PNG e as outras imagens | Exata. O traçado interno ou externo de um caminho da caneta é desenhado com o dobro da espessura e recortado para um lado do contorno. | Um traçado sólido é exato, como uma forma entre as bordas externa e interna do traçado. Um tracejado ou pontilhado é desenhado como traços ao longo de cada lado no SVG e sólido no PDF. |
+| Penpot | Dentro, centro e fora viajam como o alinhamento de traçado do Penpot. Uma prancheta é sempre `inner`. | O Penpot 2.19 ou posterior lê as quatro espessuras nativamente. O Penpot 2.18 desenha a espessura superior em volta toda, e o Penpot 2.17 ou anterior recusa um arquivo que traga espessuras por lado. |
+| PowerPoint | O PowerPoint desenha uma linha centralizada na borda da forma. Centro é exato; fora move a forma para fora pela metade da espessura, o que põe a linha do PowerPoint fora da caixa; dentro mantém a linha centralizada que as exportações antigas gravavam. | O traçado vira uma forma separada (o anel entre as bordas externa e interna), sobre uma forma sem linha. |
+| dotLottie | Os traçados do Lottie são centralizados, então um traçado externo de caixa ou um traçado de caminho da caneta interno ou externo é recusado com uma mensagem. | Recusado com uma mensagem. |
+
+Um traçado centralizado translúcido mostra a página através da metade interna, e não o preenchimento, no canvas e em todas as exportações. Quando você importa um arquivo do Penpot, cada traçado mantém o alinhamento e as espessuras por lado, e o `strokeAlign` de um arquivo do Figma e as espessuras individuais de traçado vêm do mesmo modo.
 
 ## Cenas 3D e ferramentas dentro de um design
 
@@ -167,7 +195,7 @@ Onde existe uma sugestão concreta de cor ou fonte, o botão dela altera aquela 
 
 ### Regras da casa e o sinal de escrita
 
-O cartão do painel de exportação também verifica as regras da casa que o seu sistema de design traz, como peso e alinhamento do texto, combinações de cores aprovadas ou um logotipo por superfície, camada por camada. Cada achado é um aviso, com o nome da camada acima da regra. Uma regra para a qual esta versão não tem verificador é listada como não verificada, nunca como cumprida. [Usage & rules](/info/brand-studio.html#usage-rules) lista as regras, e o `lolly check` aplica as mesmas a um documento salvo.
+O cartão do painel de exportação também verifica as regras da casa que o seu sistema de design traz, como peso e alinhamento do texto, combinações de cores aprovadas ou um logotipo por superfície, camada por camada. Cada achado é um aviso, com o nome da camada acima da regra. Uma regra para a qual esta versão não tem verificador é listada como não verificada, nunca como cumprida. [Rules](/info/brand-studio.html#rules) lista as regras, e o `lolly check` aplica as mesmas a um documento salvo.
 
 O mesmo cartão mostra o sinal de escrita do texto que o documento desenha: a faixa dele (none, weak, notable ou strong), depois a frase do próprio Verify com a nota de 0 a 100 e até três trechos sinalizados, cada um com a camada que os contém. **Open the text in Verify** leva esse texto ao [Verify](/#/verify) para a leitura completa; [AI evidence in Verify](/info/verify-ai-evidence.html) explica o que a nota pesa. A nota é um sinal, não um veredito: ela conta padrões comuns em textos gerados e não consegue dizer quem escreveu as palavras. Camadas ocultas ficam fora das duas verificações, e o cartão diz quantas são.
 

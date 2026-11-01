@@ -1,6 +1,6 @@
 # Design System Setup
 
-로고, 색상, 서체는 한곳에 있어야 모든 도구, 페이지, 내보내기가 그것으로 그려져요. 그곳이 `#/start`의 **Design System Setup**이며, 슬로건이 용도를 말해줘요. *Make it yours*.
+로고, 색상, 서체는 한곳에 있어야 모든 도구, 페이지, 내보내기가 그것으로 그려져요. 그곳이 `#/start`의 **Design System Setup**이에요.
 
 가진 것으로 시작하세요. 로고를 놓으면 Lolly가 색상을 읽어요. 서체를 고르거나 회사가 라이선스한 글꼴 파일을 놓으세요. 변경은 모두 앱 전체에 바로 반영돼요. 로고, 글꼴, 토큰은 이 기기에 머물러요. Google Font를 고르는 것만 밖으로 나가는 단계이며, Lolly가 먼저 묻고 패밀리를 한 번 가져와요.
 
@@ -16,33 +16,36 @@
 - <!--i:download--> **Export**가 전체 시스템을 `LollyBrand-….lolly` 파일 하나로 써요.
 :::
 
-헤더는 **Editing** 중인 디자인 시스템을 보여주며, 이름은 언제든 바꿀 수 있는 입력란이에요. 첫 편집이 **What is this design system called?**라고 물을 때, 로고가 글자를 포함하면 로고의 단어가 미리 채워져요. **Save name**은 이름을 유지하고, **Not now**는 헤더에 입력할 때까지 임시 이름을 유지해요. 이름은 Settings와 전환할 때 시스템의 라벨이 되고 **Export**가 쓰는 파일 이름이 돼요.
+스튜디오 맨 위의 바에는 디자인 시스템의 이름이 있고, 이름은 언제든 바꿀 수 있는 입력란이에요. **Enter**는 새 이름을 유지하고 **Escape**는 이전 이름으로 되돌려요. 첫 편집이 **What is this design system called?**라고 물을 때, 로고가 글자를 포함하면 로고의 단어가 미리 채워져요. **Save name**은 이름을 유지하고, **Not now**는 바에 입력할 때까지 임시 이름을 유지해요. 이름은 Settings와 전환할 때 시스템의 라벨이 되고 **Export**가 쓰는 파일 이름이 돼요.
 
 ## The rooms
 
-스튜디오는 옆의 레일에 있는 룸의 모음이며 정해진 순서는 없어요. 번호도 없고 다른 것을 기다리는 것도 없어요. 휴대폰에서는 레일이 헤더 아래의 칩 띠가 돼요.
+스튜디오는 정해진 순서가 없는 룸의 모음이에요. 번호도 없고 다른 것을 기다리는 것도 없어요. 데스크톱에서는 룸이 바 아래의 띠 하나에 놓여요. 휴대폰에서는 엄지가 닿는 아래쪽 가장자리의 바로 옮겨 가고, 열린 룸이 보이도록 스크롤돼요. 팔레트 시트와 트레이는 그 바 위로 올라오고, 입력하는 동안에는 바가 비켜요. 키보드로는 Tab이 띠에 한 번 닿고, 화살표 키, Home, End로 룸 사이를 이동해요.
 
-![스튜디오의 룸 레일: Overview, Colours, Type, Logos, Tokens, Files, Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![스튜디오의 바와 룸: Board, Colours, Type, Logos, Tokens, Files, Rules, Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | 룸 | 하는 일 | 링크 키 |
 |---|---|---|
-| **Overview** | 시스템에 담긴 것을 보고, 각 룸으로 가는 문이 있어요 | `overview` |
+| **Board** | 시스템에 담긴 것을 보고, 각 룸으로 가는 문이 있어요 | `overview` |
 | **Colours** | 색상을 추가하고, 역할을 주고, 음영과 팔레트를 만들어요 | `color` |
 | **Type** | 앱, 도구, 모든 내보내기가 읽는 서체 네 개를 골라요 | `type` |
 | **Logos** | 모든 방향과 처리 방식으로 마크를 배치해요 | `logos` |
 | **Tokens** | 모서리, 간격, 그림자, 그 밖의 모든 이름 붙은 값 | `tokens` |
 | **Files** | 브랜드가 보관하는 이미지, 오디오, 모션 파일 | `catalogue` |
-| **Usage & rules** | 브랜드가 적용하는 규칙을 실제 예시로 확인해요 | `usage` |
+| **Rules** | 브랜드가 적용하는 규칙을 실제 예시로 확인해요 | `usage` |
+| **Skills** | 사람과 에이전트를 위한 브랜드의 문서화된 기준을 읽고 내려받아요 | `skills` |
 
-`#/start?area=<key>`로 룸에 연결해요. Files 룸은 룸 키가 영구 계약이므로 키 `catalogue`를 유지하고, `?tab=`도 예전 별칭으로 계속 작동해요. 알 수 없는 키는 Overview를 열어요.
+`#/start?area=<key>`로 룸에 연결해요. 룸 키는 영구 계약이므로 Files 룸은 키 `catalogue`를, Board는 `overview`를, Rules는 `usage`를 유지하고, `?tab=`도 예전 별칭으로 계속 작동해요. 알 수 없는 키는 Board를 열어요.
 
-**레일 하단**에는 한 룸이 아니라 시스템 전체에 대한 동작이 있어요. **Add from…**은 브랜드를 가져오고([브랜드 가져오기](#bring-a-brand-in)), **Tray**는 스캔이 찾았지만 아직 추가하지 않은 것을 담아요. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions**, **Restore brand settings**는 시스템을 보관하고 옮겨요([디자인 시스템 보관과 이동](#keep-and-move-your-design-system)). 각각 작용할 대상이 있을 때 나타나요.
+**바**에는 한 룸이 아니라 시스템 전체에 대한 동작이 있어요. **Add from…**은 브랜드를 가져오고([브랜드 가져오기](#bring-a-brand-in)), **Tray**는 스캔이 찾았지만 아직 추가하지 않은 것을 담아요. **Export**는 시스템을 파일 하나로 쓰고, **More**에는 **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings**, **Design systems**가 있어요. **Design systems**는 전환할 수 있는 Settings의 목록을 열어요([디자인 시스템 보관과 이동](#keep-and-move-your-design-system)). 각각 작용할 대상이 있을 때 나타나요. 휴대폰에서는 **Add from…**이 **More** 안으로 들어가고 **Export**는 아이콘으로 보여요.
 
-## Overview
+## Board
 
-아직 선택한 것이 없으면 Overview는 시작하는 방법 네 가지를 제안해요. **Start from a reference**는 로고, 스크린샷, 웹 페이지, 디자인 파일의 소스 선택기를 열고, **Pick a colour**, **Choose a face**, **Add a logo**는 해당 컨트롤을 바로 열어요. 하나를 열어도 아무것도 쓰이지 않으며, **Explore the tools**는 처음부터 있어요.
+아직 선택한 것이 없으면 Board는 시작하는 방법 네 가지를 제안해요. **Start from a reference**는 로고, 스크린샷, 웹 페이지, 디자인 파일의 소스 선택기를 열고, **Pick a colour**, **Choose a face**, **Add a logo**는 해당 컨트롤을 바로 열어요. 하나를 열어도 아무것도 쓰이지 않으며, **Explore the tools**는 처음부터 있어요.
 
-무언가 사용자 자신의 것이 되면 Overview는 가진 것을 보여주며 사용자의 개수가 앞에 와요. Colours는 색상 수를 보여주고, 상속된 색상이 있으면 흐린 `· N starter`가 붙어요. 띠는 사용자의 색상을 먼저, 그다음 가는 선, 그다음 흐려진 스타터 색상을 놓아요. Type은 역할별로 읽혀요(*Inter for headings*, 그 아래 줄에 *Starter for the rest*). Logos는 채워진 슬롯 수(또는 **Not set**)를 알려주고, Tokens는 모서리 반경을 보여주며, Files는 라이브러리가 비어 있는 동안 **Nothing yet**이라고 해요. 모든 블록이 해당 룸을 열어요.
+무언가 사용자 자신의 것이 되면 Board는 가진 것을 보여주며 사용자의 개수가 앞에 와요. Colours는 색상 수를 보여주고, 상속된 색상이 있으면 흐린 `· N starter`가 붙어요. 띠는 사용자의 색상을 먼저, 그다음 가는 선, 그다음 흐려진 스타터 색상을 놓아요. Colourways는 각 컬러웨이를 대표 색상의 작은 타일로 보여줘요. Type은 역할별로 읽히고 각 패밀리를 자기 서체로 보여줘요(*Inter for headings*, 그 아래 줄에 *Starter for the rest*). Logos는 채워진 슬롯 수(또는 **Not set**)를 알려주고, Tokens는 모서리 반경을 보여주며, Files는 라이브러리가 비어 있는 동안 **Nothing yet**이라고 해요. 모든 블록이 해당 룸을 열어요.
+
+Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템은 처음부터 이 모두를 갖고 있어요. Board에 색상, 컬러웨이, 서체, 마크가 보이고 제목 옆에 **Came with this app** 태그가 붙어요.
 
 ### Starter와 Yours
 
@@ -60,7 +63,7 @@
 
 - 사용자가 선택하거나 설치한 것.
 - 완전한 강도이며, 서체를 설치한 곳은 색조가 있는 카드예요.
-- Overview와 Tokens에서 세어져요.
+- Board와 Tokens에서 세어져요.
 - 다른 것을 따르는 역할은 기본 색상의 이름을 반복하는 대신 **↳ follows Primary**로 표시돼요.
 :::
 
@@ -105,7 +108,7 @@
 
 색상은 넓은 화면에서 **In context** 미리보기 옆에, 작은 화면에서는 위에 놓여요. 미리보기는 팔레트로 만든 포스터, 차트, 인터페이스 카드를 보여줘요. 스타터 색상은 자체 접이식 그룹에 남아요.
 
-![Lolly Demo의 Colours 룸: 접이식 그룹의 팔레트, 이름과 헥스가 있는 각 색상, 아래쪽의 다운로드 알약](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Lolly Demo의 Colours 룸: 접이식 그룹의 팔레트, 이름과 헥스가 있는 각 색상, 머리말에 있는 팔레트 다운로드](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![색상 하나를 추가한 뒤의 Colours 룸. 팔레트와 실시간 구성 미리보기가 표시됨](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -117,7 +120,7 @@
 
 앱 자체의 강조색은 기본적으로 디자인 시스템을 따라요. **Settings → Appearance**의 **Interface follows the design system** 설정이에요. 이 설정을 끄면 앱 크롬은 중립으로 남고, 도구, 캔버스, 내보내기는 어느 쪽이든 디자인 시스템을 따라요.
 
-**컬러웨이.** 디자인 시스템은 작품마다 선택되는 대표 색상을 여럿 가질 수 있어요. Lolly는 모든 컬러웨이를 보관하지만 이 룸에서 아직 작성할 수는 없어요. 컬러웨이는 토큰 파일에 작성돼요. 컬러웨이가 있는 시스템에서는 모든 컬러웨이에 자체 기본 색상과 보조 색상이 필요하고, 컬러웨이가 배경에 색조를 입히면 자체 표면도 필요하므로 그 역할은 견본 편집기에 설정된 채로 남아요. [Lolly Demo 사용하기](/info/lolly-demo-in-use.html#colourways-on-real-work)가 실제 작업의 컬러웨이를 보여주고, [디자인 시스템에 컬러웨이 추가하기](/info/colourways.html#add-colourways-to-a-design-system)에 형식이 있어요.
+**컬러웨이.** 디자인 시스템은 작품마다 선택되는 대표 색상을 여럿 가질 수 있어요. **Colour roles** 맨 위의 **Colourways** 행은 컬러웨이마다 칩 하나를 보여주고, 표준 컬러웨이에는 **기본값** 표시가 붙어요. **+ 추가**는 팔레트의 색상 하나에서 새 컬러웨이를 시작해요. 칩을 고르면 역할 띠, 팔레트, 미리보기가 그 컬러웨이를 편집하며, 모습은 **라이트**와 **다크** 스위치가 정하는 대로예요. 고른 컬러웨이는 이름을 바꾸고, 복제하고, 기본값으로 만들고, 제거할 수 있어요. 컬러웨이가 있는 시스템에서는 모든 컬러웨이에 자체 기본 색상과 보조 색상이 필요하고, 컬러웨이가 배경에 색조를 입히면 자체 표면도 필요하므로 그 역할은 견본 편집기에 설정된 채로 남아요. [디자인 시스템에 컬러웨이 추가하기](/info/colourways.html#add-colourways-to-a-design-system)에 단계와 토큰 형식이 있고, [Lolly Demo 사용하기](/info/lolly-demo-in-use.html#colourways-on-real-work)가 실제 작업의 컬러웨이를 보여줘요.
 
 ### 더 많은 색상 찾기
 
@@ -162,7 +165,7 @@
 
 팔레트는 색상을 접이식 그룹으로 나열하며 각각 자체 **+ Add**가 있어요. 그룹은 원하는 대로 만들고 이름을 바꾸세요. 역할은 두 번째 타일을 만들지 않아요. 역할이 가리키는 타일에는 대신 작은 표시(**P**, **S**, **Su**, **T**)가 붙어요. 타일 아래 **Colour chart**는 같은 색상을 OKLCH **Wheel**(점을 끌어 색을 바꾸고, 빈 곳을 클릭해 견본을 추가)과 표시 가능한 범위가 끝나는 곳을 보여주는 **Gamut** 차트로 보여줘요. `#/start?area=color&focus=chart`가 차트를 바로 열어요.
 
-![팔레트 패널, 모든 그룹을 접고 펼 수 있으며, 하단 가장자리에 다운로드 필이 고정되어 있음](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![팔레트 패널, 모든 그룹을 접고 펼 수 있으며, 머리말에 팔레트 다운로드가 있음](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH 휠 - 각도는 색상, 바깥쪽 거리는 채도이며 회색은 옆쪽의 명도 레일을 따라 배치됨](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -178,7 +181,7 @@
 **견본 삭제**는 안전해요. 파생된 음영과 테마 역할은 숨겨지므로 그것을 읽는 어떤 것도 깨지지 않고, 추가한 색상은 제거돼요.
 
 ::: details 견본이 많을 때 작업하기
-각 견본에는 끌기 핸들이 있어요. 끌어서 그룹 안의 순서를 바꾸거나, 핸들에 포커스를 두고 Space를 누르고 화살표 키를 쓴 뒤 Space를 다시 눌러 놓아요. Escape는 취소해요. 그룹 간에 색상을 옮기려면 편집기의 **Group** 컨트롤을 쓰거나 여러 개를 선택해 **Move to**를 쓰세요.
+각 견본에는 끌기 핸들이 있어요. 끌어서 그룹 안의 순서를 바꾸거나, 핸들에 포커스를 두고 Space를 누르고 화살표 키를 쓴 뒤 Space를 다시 눌러 놓아요. Escape는 취소해요. 휴대폰에서는 팔레트가 한 줄에 색상 네 개를 보여주고, 핸들은 모든 색상 아래 줄로 나오는 대신 Select 모드에서 나타나요. 그룹 간에 색상을 옮기려면 편집기의 **Group** 컨트롤을 쓰거나 여러 개를 선택해 **Move to**를 쓰세요.
 
 선택에는 모드가 필요 없어요. 막대는 첫 선택된 타일과 함께 나타나고 마지막 타일과 함께 사라져요.
 
@@ -195,13 +198,13 @@
 
 선택 사항인 **Gradients** 패널은 팔레트에서 블렌드 토큰을 만들어요. 각 그라디언트에는 미리보기, 이름 붙은 정지점 2~8개, 각도가 있어요. 정지점은 견본을 가리키므로 견본의 색을 바꾸면 그라디언트가 따라와요. 블렌드는 OKLCH로 실행돼요.
 
-팔레트 다운로드(디자인 토큰, CSS, SCSS, GIMP, Adobe Swatch Exchange)는 음영이 생기면 팔레트 하단의 알약에 있어요. [팔레트와 글꼴을 어디서나 가져가기](/info/using.html#take-your-palette-and-fonts-anywhere)가 각 형식을 설명해요.
+팔레트 다운로드(디자인 토큰, CSS, SCSS, GIMP, Adobe Swatch Exchange)는 팔레트의 머리말, 제목 옆에 있어요. [팔레트와 글꼴을 어디서나 가져가기](/info/using.html#take-your-palette-and-fonts-anywhere)가 각 형식을 설명해요.
 
 ## 타입
 
-자체 서체가 없으면 룸은 카드 하나예요. **Primary**가 현재 제공하는 서체의 읽기 크기로 표시되고, **Starter** 태그, **Choose a face** 버튼, *"Nothing installs until you choose one."* 문구가 있어요. Headings, code, italic은 직접 고르기 전까지 기본을 따르며, **Choose them separately**가 각 카드를 보여줘요.
+자체 서체가 없으면 룸은 카드 하나예요. **Primary**가 현재 제공하는 서체의 읽기 크기로 표시되고, **Starter** 태그, **Choose for Primary** 버튼, *"Nothing installs until you choose one."* 문구가 있어요. Headings, code, italic은 직접 고르기 전까지 기본을 따르며, **Choose them separately**가 각 카드를 보여줘요.
 
-![아직 서체를 선택하지 않은 Type 룸 - 읽기 좋은 크기의 카드 하나, 그 위의 Starter 태그, 그리고 채워진 Choose a face](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![아직 서체를 선택하지 않은 Type 룸 - 읽기 좋은 크기의 카드 하나, 그 위의 Starter 태그, 그리고 채워진 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 서체 하나를 고르면 룸이 역할 카드 네 개, Fonts 목록, 실시간 견본으로 열려요.
 
@@ -210,7 +213,7 @@
 - **Code**: 코드와 데이터용 고정폭 서체.
 - **Italic**: 강조, 인용, 부연용 진짜 이탤릭.
 
-카드는 그 서체를 설치한 곳에만 색조가 입혀지며, 버튼은 사용자 자신의 서체에서는 **Change**, 그 외에는 **Choose a face**라고 표시돼요. 카드의 어떤 것도 확정하지 않아요. 버튼은 그 역할의 비교 스테이지를 열어요.
+카드는 그 서체를 설치한 곳에만 색조가 입혀져요. 버튼은 어느 역할용인지 말해줘요. 사용자 자신의 서체에서는 **Change Headings**, 그 외에는 **Choose for Headings**라고 표시돼요. 샘플 줄은 잘리지 않고 줄바꿈돼요. 카드의 어떤 것도 확정하지 않아요. 버튼은 그 역할의 비교 스테이지를 열어요.
 
 ![드러난 네 개의 역할 카드 - 각각 담당하는 서체로 설정되며, 아무도 선택하지 않은 곳에는 Starter 태그가 붙고 Italic은 기본 서체를 따름](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -218,7 +221,7 @@
 
 스테이지는 누른 카드 아래의 룸 안에서 열리고, 카드는 한 줄 띠로 접히므로 휴대폰의 첫 화면에도 스테이지가 보여요. Escape는 취소하고 카드로 포커스를 돌려요.
 
-1. 카드에서 **Choose a face**를 누르세요.
+1. 카드에서 **Choose for**와 역할을 누르세요.
 2. 패밀리 이름을 입력하고 **Preview**를 누르거나, 입력란 아래 **Pinned** 패밀리 여섯 개 중 하나를 누르세요.
 3. **Use this face**를 누르세요.
 
@@ -239,7 +242,7 @@
 ![Tokens 룸: 시스템의 예시와 파일 동작이 있는 헤더, 토큰 종류별 개수 타일, 그다음 대비 수치가 있는 색상 쌍](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **헤더**는 사용자 시스템의 예시(*Primary is Spearmint, #033633*)와 파일 동작을 보여줘요. **Download**(전체 시스템을 디자인 토큰으로, 또는 팔레트를 다른 다섯 가지 형식으로), **Copy CSS**, JSON 파일을 다시 읽는 **Add from…**이에요.
-- **타일**은 토큰 종류별로 개수를 세고 해당 섹션으로 이동해요. Colours, Type, Logos, Shape and spacing, More, All tokens예요. Overview처럼 사용자 자신의 것을 세요. 휴대폰에서는 타일이 옆으로 스크롤돼요.
+- **타일**은 토큰 종류별로 개수를 세고 해당 섹션으로 이동해요. Colours, Type, Logos, Shape and spacing, More, All tokens예요. 각 섹션이 담은 것을 세어요. 빈 스타터에서 온 것만 담은 섹션에는 **Starter** 태그가 붙고, 앱과 함께 온 시스템은 태그 없이 자기 자료를 세어요. 휴대폰에서는 타일이 세 개씩 두 줄로 줄바꿈돼요.
 - **Colours**는 도구가 함께 놓는 쌍(표면 위의 텍스트, 기본 색상 위, 표면 위의 흐린 텍스트)에 밝고 어두운 모습의 APCA 수치를 보여주는 것으로 시작하고, 쌍이 기준에 못 미치면 **Weak contrast**를 표시해요. 그다음 모든 색상 그룹이 이어져요. 램프는 칩 한 줄로, 다른 색상은 값과 `{color.brand.spearmint}` 같은 도구가 쓰는 참조와 함께 보여줘요. 참조를 누르면 참조가 복사돼요. **Edit in Colours**는 Colours 룸에서 그룹을 열어요.
 - **Type**과 **Logos**는 각 역할과 각 로고 슬롯의 서체를 나열하며, 직접 가진 것이 생기면 **Edit in Type**과 **Edit in Logos**가 나타나요.
 - **Shape and spacing**에는 **Rounded corners**(`shape.radius`)와 **Spacing rhythm**(`space.base`)이 있어요. 각각 슬라이더를 움직이기 전에는 *Lolly default*, 후에는 *Yours*로 표시되고, 즉시 저장되며 실행 취소할 수 있어요.
@@ -252,11 +255,11 @@
 
 로고 외에 브랜드가 보관하는 파일을 놓으세요. **vector**, **image**, **audio**, **motion** 파일(동영상, Lottie, 애니메이션)이에요. 이들은 [Assets](/info/using.html#assets-your-library)에 섹션별로 정렬되어 나타나고 모든 도구의 에셋 선택기에서 준비되며, 이 기기에 남아요.
 
-## Usage & rules
+## Rules
 
-**Usage & rules**는 브랜드의 선택이 작동하게 해요. 사람들이 바꿀 수 있는 것, 고정되는 것, Lolly가 확인할 수 있는 것이에요.
+**Rules**는 브랜드의 선택이 작동하게 해요. 사람들이 바꿀 수 있는 것, 고정되는 것, Lolly가 확인할 수 있는 것이에요.
 
-![Lolly Demo의 Usage & rules: Add your first rule이 있는 빈 Brand rules 카드, 그다음 렌더링할 준비가 된 예시가 있는 Try your brand in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo의 Rules: Add your first rule이 있는 빈 Brand rules 카드, 그다음 렌더링할 준비가 된 예시가 있는 Try your brand in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules**는 규칙을 나열해요. **Add rule**(또는 **Add your first rule**)이 짧은 양식을 열어요.
 
@@ -273,9 +276,15 @@
 
 고정된 브랜드와 함께 제공되는 빌드는 같은 규칙과 예시를 *This brand is set* 아래에 읽기 전용으로 보여줘요.
 
+## Skills
+
+**Skills**는 활성 디자인 시스템의 [브랜드 스킬](/info/brand-skills.html)을 나열해요. 사람과 AI 에이전트를 위해 분야마다 하나씩 쓰인 브랜드의 문서화된 기준이에요. 각 행에는 분야, 브랜드 자체의 상태(**초안** 또는 **승인됨**), 스킬이 공개인지 내부용인지, 개정본이 나와요. 행을 고르면 스킬을 적용 범위 옆에서 읽을 수 있어요. 적용 범위는 스킬의 문장을 토큰과 맞대어 Lolly가 확인하는 것, 충돌하는 것, 일치하는 것, 안내일 뿐인 것을 보여줘요.
+
+**스킬 다운로드 (.zip)**는 스킬을 에이전트 도구용 Agent Skills 폴더로 쓰고 카탈로그 링크는 이 Lolly를 가리키게 해요. **파일 하나로 복사**는 같은 텍스트를 채팅 창에 붙여넣을 수 있게 클립보드에 넣어요. 자체 스킬이 없는 디자인 시스템에는 Lolly가 토큰과 하우스 규칙에서 기준 스킬을 만들어 나열하며, 기준 스킬을 읽을 때마다 새로 써요. 이 룸은 스킬을 읽기만 하고 편집하지 않아요.
+
 ## 브랜드 가져오기
 
-레일 하단의 **Add from…**은 형식이 아니라 무엇을 가졌는지를 묻는 선택기를 열어요.
+바의 **Add from…**은 형식이 아니라 무엇을 가졌는지를 묻는 선택기를 열어요.
 
 - **Design tokens or a design file**: DTCG 또는 Tokens Studio JSON, Penpot 프로젝트, 토큰 세트의 zip, Lolly 디자인 시스템 팩, SVG.
 - **PDF**: 덱이나 가이드라인 파일이며 색상, 마크, 포함된 서체를 이 기기에서 읽어요.
@@ -303,7 +312,7 @@ PDF와 디자인 파일 가져오기는 자체 검토 컨트롤을 유지해요.
 
 ### 룩 찾기와 비교
 
-Overview 또는 Settings의 디자인 시스템 목록에서 **Find a look**을 여세요. 이 기기에 저장된 시스템과 재사용 가능한 Lolly 예시 몇 개를 둘러보고, 이름, 색상 태그, 선언된 글꼴로 검색해요. **Closest to my current palette**는 측정된 색상 유사도로 정렬하며 일치하는 글꼴이 동점을 가르고, 품질 점수가 아니에요.
+Board 또는 Settings의 디자인 시스템 목록에서 **Find a look**을 여세요. 이 기기에 저장된 시스템과 재사용 가능한 Lolly 예시 몇 개를 둘러보고, 이름, 색상 태그, 선언된 글꼴로 검색해요. **Closest to my current palette**는 측정된 색상 유사도로 정렬하며 일치하는 글꼴이 동점을 가르고, 품질 점수가 아니에요.
 
 룩 하나를 선택해 검토하거나, 둘을 선택해 나란히 비교하세요. 선택은 아무것도 바꾸지 않아요. **Use this saved system**은 그것으로 전환하고, **Use these colours**는 예시의 색상을 일반 체크포인트를 거쳐 적용하며 글꼴은 유지해요. **Restore brand settings**는 이전 룩을 복구해요. 저장된 시스템에는 **Details and design context** 아래에 편집 가능한 **Search tags**가 있어요. 예시는 스크랩한 모음이나 계정 없이 만든 Lolly 고유의 색상 레시피예요.
 
@@ -315,17 +324,17 @@ Overview 또는 Settings의 디자인 시스템 목록에서 **Find a look**을 
 
 **Export**는 토큰, 글꼴, 로고, 테마 환경설정과 다시 가져올 때 확인되는 무결성 매니페스트가 담긴 **`LollyBrand-….lolly`** 파일 하나를 써요. 1.0.7 이전의 웹 릴리스는 같은 파일을 `.zip`이라고 이름 붙였으며 그 표기도 계속 받아요. **Tokens (.json)**은 글꼴이나 로고 없이 저장소, 빌드 단계, 다른 토큰 도구를 위한 일반 디자인 토큰 문서만 단독으로 써요.
 
-되돌리려면 **Add from… → Design tokens or a design file**을 쓰거나 스튜디오에 파일을 놓으세요. 동료가 브랜드를 건네거나 두 번째 설치로 가져가는 방법이며 계정도 클라우드도 필요 없어요. 명령줄에서 브랜드를 가져오려면 [`ingest:brand`](/info/configuration.html#brand-packs)를 참고하세요.
+되돌리려면 **Add from… → Design tokens or a design file**을 쓰거나 스튜디오에 파일을 놓으세요. 동료가 브랜드를 건네거나 두 번째 설치로 가져가는 방법이며 계정도 클라우드도 필요 없어요. [파트너와 함께 일하기](/info/partners.html)는 브랜드를 받는 사람이 다른 조직에서 일할 때 무엇을 더 보내야 하는지 다뤄요. 명령줄에서 브랜드를 가져오려면 [`ingest:brand`](/info/configuration.html#brand-packs)를 참고하세요.
 
 **Fonts for Linux (.rpm)**은 추가한 글꼴을 설치 가능한 RPM으로 패키징해요. 직접 업로드한 글꼴이 있으면 Lolly가 먼저 재배포해도 되는지 확인을 요청해요.
 
 ### 이전 설정 복원
 
-**Restore brand settings**를 선택하고 날짜가 있는 체크포인트를 골라 **Restore**를 누르세요. 활성 브랜드의 색상, 서체 설정, 다른 토큰을 복원하고 글꼴과 이미지 파일은 그대로예요. Lolly가 먼저 현재 설정을 **Before restore**로 저장하므로 브라우저를 닫은 뒤에도 복원을 되돌릴 수 있어요. 최근 체크포인트 20개가 이 기기에 보관돼요.
+바에서 **More**를 열고 **Restore brand settings**를 선택하고 날짜가 있는 체크포인트를 골라 **Restore**를 누르세요. 활성 브랜드의 색상, 서체 설정, 다른 토큰을 복원하고 글꼴과 이미지 파일은 그대로예요. Lolly가 먼저 현재 설정을 **Before restore**로 저장하므로 브라우저를 닫은 뒤에도 복원을 되돌릴 수 있어요. 최근 체크포인트 20개가 이 기기에 보관돼요.
 
 ### 버전
 
-게시된 버전은 이 기기에 보관되는 **영구적이고 이름 붙은 사본**이에요. 바뀌지 않으므로 이를 고정한 도구나 링크(`designv`로)는 계속 같은 것을 그려요. 사용자 자신의 것이 있는 시스템은 레일 하단에 조용한 **Versions & publishing** 링크를 보여주며, 첫 게시 후에는 **Versions** 항목이 돼요. `#/start?area=versions`가 바로 열어요.
+게시된 버전은 이 기기에 보관되는 **영구적이고 이름 붙은 사본**이에요. 바뀌지 않으므로 이를 고정한 도구나 링크(`designv`로)는 계속 같은 것을 그려요. 사용자 자신의 것이 있는 시스템은 바의 **More** 메뉴에 **Versions & publishing**이 나열되고, 첫 게시 후에는 **Versions**가 룸에 더해져요. `#/start?area=versions`가 바로 열어요.
 
 - **버전은 영구적이에요.** 아직 삭제 기능이 없으며 패널이 그렇게 알려줘요.
 - **제거 항목이 호환성 카드의 맨 앞에 와요.** 제거된 토큰이 도구를 깨뜨리기 때문이에요.
@@ -359,5 +368,6 @@ Overview 또는 Settings의 디자인 시스템 목록에서 **Find a look**을 
 
 - **[Lolly 사용하기](/info/using.html)**: 도구, 저장, 공유, Assets.
 - **[브랜드 아키텍처](/info/brand-architectures.html)**: 사업부, 제품, 보증 브랜드, 고객, 시즌이 디자인 시스템, 컬러웨이, 로고 신원에 어떻게 대응하는지 다뤄요.
+- **[파트너와 함께 일하기](/info/partners.html)**: 브랜드를 파트너와 공유하고, 받은 브랜드 안에서 작업해요.
 - **[디자인 토큰](/info/design-tokens.html)**: 브랜드가 작성되는 토큰 모델.
 - **[파일 내보내기](/info/exporting.html)**: 인쇄 단위, CMYK, 브랜드가 렌더링되는 형식.

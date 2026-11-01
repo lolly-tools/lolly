@@ -37,7 +37,7 @@ const neutralDoc = (): Record<string, unknown> => ({
 });
 const colourOnly = (): Record<string, unknown> => ({ color: { brand: { teal: { $type: 'color', $value: '#127a7a', $description: 'Teal' } } } });
 
-function mount(initial: Record<string, unknown>, starter: ReadonlySet<string> = new Set(), opts: { fonts?: string[]; clipboardRefuses?: boolean } = {}) {
+function mount(initial: Record<string, unknown>, starter: ReadonlySet<string> = new Set(), opts: { fonts?: string[]; clipboardRefuses?: boolean; supplied?: boolean } = {}) {
   let doc = structuredClone(initial);
   const calls = { setDoc: 0, persist: [] as boolean[], notify: 0, undo: [] as string[], clipboard: [] as string[] };
   const host = {
@@ -57,6 +57,7 @@ function mount(initial: Record<string, unknown>, starter: ReadonlySet<string> = 
     swatches: () => walkSwatches(doc, 'light'),
     starterIds: () => starter,
     userFontFamilies: () => opts.fonts ?? [],
+    supplied: () => !!opts.supplied,
   };
   const el = document.createElement('div');
   el.className = 'be-tokens';
@@ -77,10 +78,11 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
     assert.equal(n('color'), String(palette));
     assert.equal(n('color'), '41');
     // No face is installed on this device and no mark uploaded here, so neither
-    // is the person's own: the Type room tags SUSE Starter and the Logos room is empty.
-    assert.equal(n('type'), '0');
-    assert.equal(n('logos'), '0');
-    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 0, Starter$/);
+    // is the person's own. The tiles still count what the system holds, never a
+    // zero over material that is there, and the tag says whose it is (plan 336).
+    assert.equal(n('type'), '4');
+    assert.equal(n('logos'), '9');
+    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 4, Starter$/);
     assert.ok(m.$('[data-tk-jump="logos"] .tk-tag'), 'the tile says the marks are the starter’s');
     assert.equal(n('shape'), '2');
     // 93 until plans/329 seeded the motion scale: three durations, three curves, two springs.
@@ -100,6 +102,16 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
     assert.equal(m.$<HTMLElement>('[data-tk-example]')!.hidden, false);
     assert.match(m.$('[data-tk-example]')!.textContent!, /^For example, Primary is Spearmint, #033633\.$/);
     for (const fold of ['ui', 'inspect']) assert.equal(m.$<HTMLDetailsElement>(`[data-tk-adv="${fold}"]`)!.open, false, `${fold} starts closed`);
+  } finally { m.done(); }
+});
+
+test('Lolly Demo as the app supplies it: what it holds is its own, with no Starter tag', () => {
+  const m = mount(DEMO, new Set(), { supplied: true });
+  try {
+    assert.equal(m.$('[data-tk-jump="type"] .tk-tile-n')!.textContent, '4');
+    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 4$/);
+    assert.equal(m.$('[data-tk-jump="logos"] .tk-tile-n')!.textContent, '9');
+    assert.equal(m.$('[data-tk-overview] .tk-tag'), null, 'no tile calls a supplied system’s material the starter’s');
   } finally { m.done(); }
 });
 
@@ -198,7 +210,8 @@ test('only the starter neutrals: the starter group with its note, no pairs, and 
     assert.equal(m.el.querySelectorAll('[data-tk-sec="color"] .stu-chip').length, 9);
     assert.equal(m.$('[data-tk-pairs]'), null);
     assert.equal(m.$<HTMLAnchorElement>('[data-tk-sec="color"] .tk-sec-act')!.getAttribute('href'), '#/start?area=color&group=neutral');
-    assert.equal(m.$('[data-tk-jump="color"] .tk-tile-n')!.textContent, '0');
+    assert.equal(m.$('[data-tk-jump="color"] .tk-tile-n')!.textContent, '9', 'the tile counts the neutrals it holds');
+    assert.ok(m.$('[data-tk-jump="color"] .tk-tag'), 'and says they are the starter’s');
     assert.equal(tokensRoomModel(neutralDoc(), starter).starterOnly, true);
   } finally { m.done(); }
 });

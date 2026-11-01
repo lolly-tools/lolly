@@ -1,5 +1,5 @@
 {
-  "$comment": "Lolly Demo's Etiquette icons as two-tone source. Each glyph is the web shell's registry drawing (shells/web/src/lib/icons.ts, the 'registry' key) with its strokes sorted into the base (class c2, the object) and the accent (class c1, the detail that carries the meaning). node scripts/build-etiquette-icons.ts outlines every stroke with the engine and writes brands/lolly-demo/catalog/assets/lolly/icons/<slug>.svg plus the lolly/icons/<slug> index rows. A slug is a permanent asset id: never rename one.",
+  "$comment": "Lolly Demo's Etiquette icons as two-tone source. Each glyph is the web shell's registry drawing (shells/web/src/lib/icons.ts, the 'registry' key) with its strokes sorted into the base (class c2, the object) and the accent (class c1, the detail that carries the meaning). node scripts/build-etiquette-icons.ts outlines every stroke with the engine and writes brands/lolly-demo/catalog/assets/lolly/icons/<slug>.svg plus the lolly/icons/<slug> index rows. A slug is a permanent asset id: never rename one. An icon may set \"accentBehind\": true to draw its accent under the base, and \"version\" (raise it whenever a drawing changes, since the shell caches catalog bytes by id and version).",
   "stroke": 2,
   "icons": [
     {
@@ -34,7 +34,9 @@
       ],
       "accent": [
         "<path d=\"m21 21-4.3-4.3\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "download",
@@ -283,7 +285,9 @@
       ],
       "accent": [
         "<path d=\"M22 10v6\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "external-link",
@@ -459,7 +463,9 @@
       ],
       "accent": [
         "<path d=\"m7.5 4.27 9 5.15\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "hexagon",
@@ -491,7 +497,9 @@
       ],
       "accent": [
         "<path d=\"M11.6 16.8a3 3 0 1 1-5.8-1.6\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "images",
@@ -509,7 +517,9 @@
       "accent": [
         "<circle cx=\"12\" cy=\"8\" r=\"2\"/>",
         "<path d=\"m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "shapes",
@@ -569,7 +579,9 @@
         "<path d=\"M3 16.5h4\"/>",
         "<path d=\"M17 7.5h4\"/>",
         "<path d=\"M17 16.5h4\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "palette",
@@ -662,7 +674,9 @@
       "accent": [
         "<path d=\"M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20\"/>",
         "<path d=\"M2 12h20\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "stamp",
@@ -696,7 +710,9 @@
       "accent": [
         "<path d=\"M3.3 7 12 12l8.7-5\"/>",
         "<path d=\"M12 22V12\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "hammer",
@@ -713,7 +729,9 @@
       ],
       "accent": [
         "<path d=\"m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "flask",
@@ -731,7 +749,9 @@
       ],
       "accent": [
         "<path d=\"M6.453 15h11.094\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "users",
@@ -807,7 +827,9 @@
       "accent": [
         "<circle cx=\"9\" cy=\"9\" r=\"2\"/>",
         "<path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "music",
@@ -840,7 +862,9 @@
       ],
       "accent": [
         "<path d=\"M14 3v5h5\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "eye",
@@ -958,7 +982,9 @@
       ],
       "accent": [
         "<path d=\"M9 14.2 8 22l4-2.5 4 2.5-1-7.8\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "mail",
@@ -1027,7 +1053,9 @@
       ],
       "accent": [
         "<path d=\"M8 10.5V7.5a4 4 0 0 1 8 0v3\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "map-pin",
@@ -1182,7 +1210,9 @@
       "accent": [
         "<path d=\"M3 9h18\"/>",
         "<path d=\"M3 15h18\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "layers",
@@ -1267,7 +1297,9 @@
       ],
       "accent": [
         "<path d=\"M8 21h8M12 16v5\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "volume",
@@ -1466,7 +1498,9 @@
       ],
       "accent": [
         "<path d=\"M7 18a6 6 0 0 0 3.84-10.61\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "wind-chimes",
@@ -1549,7 +1583,9 @@
         "<path d=\"M8 3.1V7a4 4 0 0 0 8 0V3.1\"/>",
         "<path d=\"m9 15-1-1\"/>",
         "<path d=\"m15 15 1-1\"/>"
-      ]
+      ],
+      "accentBehind": true,
+      "version": "1.1.0"
     },
     {
       "slug": "keyboard",

@@ -5,6 +5,12 @@ approval flag and availability dates carried across. Brandfolder stays the sourc
 of truth: Work stores references plus its own governance settings, and reads the files when
 someone uses them.
 
+## Deployment evidence
+
+Successful Brandfolder integration at SUSE is reported in [How SUSE connected Brandfolder to Lolly](/info/suse-brandfolder.html), recorded from the Lolly maintainer's account on 31 October 2026. The connection helped inherit an existing system and supported administrator change management for content approvals. Migration is planned for the end of December 2026, not reported complete.
+
+That account confirms use of the integration, not every optional mapping. The two availability field names below retain their separate live-check requirement. Brandfolder outbound delivery is a different adapter and remains subject to its own [destination qualification](../delivery.md).
+
 ## What you need from Brandfolder
 
 - **A Brandfolder API key**, from *My Profile > Integrations > API key*. An admin-level key sees

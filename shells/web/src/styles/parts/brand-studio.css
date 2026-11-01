@@ -346,7 +346,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    a full-radius brand rounds these into circles, and that's the intent. */
 .be-pal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: .9rem .6rem; }
 .be-pal-card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-content: start; gap: .2rem; min-width: 0; }
-.be-pal-card .be-swatch { grid-column: 1 / -1; aspect-ratio: 1.12; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px hsl(var(--foreground) / .07); }
+.be-pal-card .be-swatch { grid-column: 1 / -1; aspect-ratio: 1.12; border-radius: var(--radius-sm); box-shadow: var(--ui-elevation-control); }
 .be-pal-name { grid-column: 1 / -1; grid-row: 2; font-size: var(--fs-xs); font-weight: 550; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-top: .25rem; }
 .be-pal-hex { align-self: center; grid-column: 1; grid-row: 3; font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
 .be-pal-check { position: absolute; inset-block-start: .15rem; inset-inline-end: .15rem; width: max(44px, var(--ui-size-target)); height: max(44px, var(--ui-size-target)); display: grid; place-items: center; cursor: pointer; }
@@ -387,7 +387,12 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   background:
     linear-gradient(var(--sw, transparent), var(--sw, transparent)),
     repeating-conic-gradient(hsl(var(--muted-foreground) / .35) 0% 25%, hsl(var(--card)) 0% 50%) 50% / 8px 8px;
-
+  /* A uniform 10% hairline drawn OVER the colour, so a swatch the same value as
+     the page (Avocado #edf6e0 on an #edf6e0 wash) still has an edge, and a dark
+     one keeps it in the dark look (plan 336). The tile's own shadow sits under
+     this chip, where a pale colour hid it. */
+  border-radius: inherit;
+  box-shadow: var(--ui-edge-faint);
 }
 /* The role mark a tile wears when a role points at it - P, S, Su, T (plan 182
    section 4.2). ONE tile per token: an assignment re-points an alias, it never
@@ -406,34 +411,23 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 }
 .be-swatch-role.is-onlight { color: hsl(0 0% 8%); text-shadow: 0 1px 2px hsl(0 0% 100% / .55); }
 
-/* Download-all - the floating pill at the palette pane's bottom edge (the
-   catalog toolbar's exact clothes: asset-shared.css .cat-toolbar), so the palette
-   export never scrolls away while the pane shows. ≥1100px it simply SITS at
-   the pane's viewport-anchored bottom, outside the pane's scroller; below
-   that the pane is in page flow and the sticky bottom floats the pill. */
+/* Download-all - in the palette's own head (plan 336), after the heading and
+   the save state. It used to float over the tiles as a pill at the pane's
+   bottom edge; a head control never covers a swatch and never scrolls away
+   from the palette it exports. */
 .be-pal-dock {
-  position: static;
-  z-index: 10; /* over the panels it floats past; well under the popovers (30) */
-  display: flex; align-items: center; gap: var(--sp-5);
-  width: fit-content;
+  display: flex; align-items: center; gap: var(--sp-4);
+  margin-inline-start: auto;
   max-width: 100%;
-  margin: 0 auto;
-  padding: 7px 9px;
-  border-radius: calc(var(--radius) * 2);
-  /* SOLID, not frosted: the pill floats over panel body text on phones (no
-     pane scroller below 1100px), and the old .82-alpha + blur let that text
-     read through the controls (plans/163 F5). A card-solid fill with the
-     border and a slightly deeper shadow keeps it legible as a docked bar. */
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 4px 16px #00000029;
 }
-/* The box/chevron/focus recipe now comes from `.field-select .field-select--sm`
-   (parts/fields.css, layer primitives - the markup carries both). Only the dock's
-   own geometry stays here: it must shrink inside the pill and never run past it,
-   and it keeps the pill's full-radius corner rather than the compact half-radius.
-   (`--auto` on the markup keeps the content-width sizing it always had - the
-   primitive's default is a full-width sidebar field.) */
+/* Nothing of the system's own to download yet (only the starter group, or no
+   group at all): the head keeps to the room's first decision. */
+.be-palette:not(:has(.be-pal-group:not(.be-pal-group--starter) [data-be-tile])) .be-pal-dock { display: none; }
+/* The box/chevron/focus recipe comes from `.field-select .field-select--sm`
+   (parts/fields.css, layer primitives - the markup carries both). Only the
+   dock's own geometry stays here: it shrinks inside the head row and never runs
+   past it. (`--auto` keeps the content-width sizing; the primitive's default is
+   a full-width sidebar field.) */
 .be-pal-fmt-sel { min-width: 0; max-width: 15rem; border-radius: var(--radius); }
 
 /* Swatch editor popover - absolutely placed under the clicked tile by JS.
@@ -559,7 +553,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    the tint, and the green PRIMARY badge inside says which own face serves the
    primary role. It was `.is-primary`, which tinted one row and left the others
    looking like candidates. */
-.be-font-row.is-own { border-color: hsl(var(--primary) / .5); background: hsl(var(--primary) / .05); }
+.be-font-row.is-own { background: var(--ui-color-selection-surface); }
 /* The group label above the own rows, and the folded starter row under them.
    The fold reuses the studio's own disclosure (.be-subst-details) but not its
    uppercase summary: this summary is a SENTENCE, not a label. */
@@ -628,6 +622,14 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    an inline host would anchor the pop to one line fragment of the sentence. */
 .be-logos-lead { display: block; }
 .be-logo-row { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+/* A phone shows the slots two-up (plan 336): one 315px square per row made
+   eight slots more than five screens of thumb. */
+@media (max-width: 640px) {
+  .be-logo-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+  /* Two lines kept for every slot's name, so a name that wraps ("Horizontal ·
+     primary reverse") does not push its tile below its neighbour's. */
+  .be-logo-slot > .be-logo-slot-head { align-items: flex-start; min-height: calc(var(--fs-xs) * 2.8); }
+}
 .be-logo-slot { display: grid; gap: .4rem;}
 .be-logo-slot-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.2rem; }
 .be-logo-slot-name { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
@@ -774,7 +776,7 @@ background-image:
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
 }
 .be-logo-chip-slot { display: flex; align-items: baseline; justify-content: space-between; gap: .4rem; text-align: left; }
-.be-logo-chip-slot.is-suggested { border-color: hsl(var(--primary) / .55); }
+.be-logo-chip-slot.is-suggested { background: var(--ui-color-selection-surface); }
 .be-logo-chip-taken { font-weight: 500; color: hsl(var(--muted-foreground)); font-size: var(--fs-xs); }
 /* The trim card mounts here; every .trimo* rule rides parts/dropzone.css, which
    trim-offer.ts imports itself. */
@@ -1022,16 +1024,15 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
    difference between assign and remove. It has to be visible without reading
    the a11y tree.
 
-   An all-round ring in the brand's own colour plus a wash of the same hue: the
-   ring reads at a glance and in high-contrast, and it wraps the pill evenly
-   (a one-sided accent edge on a rounded control is the house's standing no).
-   Deliberately NOT the primary fill pair - that recipe is declared once, in
-   buttons.css, and this is a toggle state, not a primary action. */
+   A wash of the brand's own hue and a heavier label, on the pill's neutral
+   edge: a coloured outline on a rounded control is the house's standing no
+   (plan 336 swept the last resting ones). Deliberately NOT the primary fill
+   pair - that recipe is declared once, in buttons.css, and this is a toggle
+   state, not a primary action. */
 .be-useas-row .be-btn[aria-pressed="true"] {
-  border-color: hsl(var(--primary));
-  box-shadow: inset 0 0 0 1px hsl(var(--primary));
-  background: hsl(var(--primary) / .14);
+  background: hsl(var(--primary) / .16);
   color: hsl(var(--foreground));
+  font-weight: 650;
 }
 /* A lead's own role (plans/319) stays pressed but is not a toggle: pressing it
    again explains instead of clearing, so it keeps the pressed look and drops
@@ -1085,7 +1086,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
       to the viewport - the page itself never scrolls on this tab.
       GUARD: the side pane must NEVER get a z-index, transform or contain - the
       swatch popover (.be-editor, z-index 30) positions against `.be` and has
-      to keep beating the sticky action row (z-index 20); any of those would
+      to keep beating the studio's pinned bar (z-index 20); any of those would
       trap it in a new stacking/containing context. Below 1100px the divider is
       display:none and the side content simply follows the main column in flow.
       (This block sits AFTER the .be-tab rules above - the column-gap override
@@ -1096,7 +1097,6 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-split-side, .be-split-main, .be-split-scroll { min-width: 0; }
 .be-split-main { display: grid; gap: 1rem; align-content: start; }
 .be-split-scroll > * + * { margin-top: 1.5rem; }
-.be-split-side > .be-pal-dock { margin-top: 1rem; }
 .be-split-divider, .be-generate-cta, .be-pal-later { display: none; }
 [data-be-tab-panel="color"] .be-panel { border: 0; padding: 0; }
 [data-be-tab-panel="color"] .be-wing { border: 0; background: hsl(var(--muted) / .45); }
@@ -1110,7 +1110,6 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-bulk-preview { display: none; }
 @media (max-width: 1099px) {
   .be-bulk-preview { display: inline-flex; }
-  .be-context { scroll-margin-block-start: calc(var(--chrome-h) * 2 + var(--sp-4)); }
 }
 .be-preview-empty { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: var(--radius); margin: 0; padding: 1rem; background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center; }
 .be-context .be-context-head { margin-bottom: 0; }
@@ -1222,10 +1221,9 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   background: hsl(var(--background)); font-size: var(--fs-sm); cursor: pointer;
 }
 .be-logo-colours-choice input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
-.be-logo-colours-choice:has(input:checked) {
-  border: 2px solid hsl(var(--primary)); font-weight: 600;
-  padding: calc(.3rem - 1px) calc(.8rem - 1px) calc(.3rem - 1px) calc(.35rem - 1px);
-}
+/* The chosen colour reads as a tinted fill and a heavier label on the pill's
+   neutral edge - never an accent outline on a rounded shape (plan 336). */
+.be-logo-colours-choice:has(input:checked) { background: var(--ui-color-selection-surface); font-weight: 650; }
 .be-logo-colours-choice:has(input:focus-visible) { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .be-logo-colours-sw {
   width: 28px; height: 28px; border-radius: var(--radius-round); background: var(--sw, transparent);
@@ -1264,7 +1262,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   padding: .75rem .8rem;
   border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .55);
 }
-.be-typecard.is-own { border-color: hsl(var(--primary) / .5); background: hsl(var(--primary) / .05); }
+/* Own reads as a tinted fill on the card's neutral edge, never a coloured outline. */
+.be-typecard.is-own { background: var(--ui-color-selection-surface); }
 .be-typecard-head { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
 .be-typecard-role { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
 .be-typecard-face {
@@ -1276,11 +1275,12 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-typecard.is-own .be-typecard-face { color: hsl(var(--foreground)); font-weight: 600; }
 .be-typecard-tag { flex: none; }
 .be-typecard-tag[hidden] { display: none; }
-/* One line, always: the card is a glance at a face, and a wrapped sample would
-   change height as the type does. */
+/* The sample wraps rather than cutting off mid-word (plan 336): a face is
+   judged on whole words. Two lines are reserved so the cards in a row keep one
+   height whichever face is set, and long mono runs break anywhere. */
 .be-typecard-sample {
   margin: 0; font-size: calc(1.3rem * var(--a11y-fs)); line-height: 1.3; color: hsl(var(--foreground));
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  min-height: 2.6em; overflow-wrap: anywhere; text-wrap: balance;
 }
 .be-typecard-sample--mono { font-size: calc(.86rem * var(--a11y-fs)); }
 .be-typecard-act { justify-self: start; }
@@ -1367,9 +1367,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-typecards[data-collapsed] .be-typecard-note,
 .be-typecards[data-collapsed] .be-typecard-act { display: none; }
 .be-typecards[data-collapsed] .be-typecard-chip { display: inline; white-space: nowrap; }
-.be-typecards[data-collapsed] .be-typecard.is-choosing {
-  border-color: hsl(var(--primary) / .5); background: hsl(var(--primary) / .05);
-}
+.be-typecards[data-collapsed] .be-typecard.is-choosing { background: var(--ui-color-selection-surface); }
 .be-typecards[data-collapsed] .be-typecard.is-choosing .be-typecard-role,
 .be-typecards[data-collapsed] .be-typecard.is-choosing .be-typecard-chip { color: hsl(var(--foreground)); }
 /* The grammar holds in the strip: an own face is full ink here too. */
@@ -1783,13 +1781,9 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
 .tk-adv > .token-workspace { width: auto; }
 
 @media (max-width: 899px) {
-  /* One scrolling row of tiles that bleeds to the screen edge inside the gutter. */
-  .tk-overview {
-    display: flex; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; scrollbar-width: none;
-    padding: 2px 16px; margin-inline: -16px;
-  }
-  .tk-overview::-webkit-scrollbar { display: none; }
-  .tk-tile { flex: 0 0 7.5rem; scroll-snap-align: start; }
+  /* The six tiles wrap to two rows of three (plan 336): a row that scrolled
+     off the edge cut the third tile in half and hid the rest. */
+  .tk-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tk-actions .tk-fmt { flex: 1 1 100%; }
   .tk-pair-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tk-adv > :not(summary) { margin-inline: var(--sp-4); }
@@ -1917,7 +1911,7 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
   .start { --stu-sheet-h: 45dvh; } /* pre-first-snap default; per-state below */
   /* Peek = the measured strip row + the home-indicator inset (the sheet hugs
      the viewport bottom, so the strip itself must clear it). */
-  .start[data-stu-sheet="peek"] { --stu-sheet-h: calc(var(--stu-peek-h, 64px) + var(--safe-bottom)); }
+  .start[data-stu-sheet="peek"] { --stu-sheet-h: calc(var(--stu-peek-h, 64px) + var(--ds-sheet-inset, var(--safe-bottom))); }
   /* Clamped against the visible area: the soft keyboard eats the bottom of the
      viewport without shrinking dvh, so an unclamped 50/88dvh sheet would run
      its own free edge under the keyboard. min() is a no-op while --vv-bottom
@@ -1928,9 +1922,6 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
   /* Page bottom clearance - the last panel must scroll clear of the peek strip. */
   .start:has(> .stu-sheet) { padding-bottom: calc(96px + var(--stu-peek-h, 64px) + var(--safe-bottom)); }
 
-  /* The download pill sticks to the viewport bottom here (no pane scroller
-     below 1100px) - lifted clear of the palette sheet's peek strip. */
-  .be-pal-dock { margin-block: 1rem; }
 
   /* ── Beat 0 on a phone (plan 182 section 7, ColoursPhone.dc.html). Chip and
         field on one line, then the three doors with Add filled and taking the
@@ -1971,27 +1962,30 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
      grip, so the three settle as one movement rather than three; :has() scopes
      it to a mounted sheet, since --stu-sheet-h keeps a value either way. */
   .start:has(> .stu-sheet) .be-bulkbar {
-    bottom: calc(var(--stu-sheet-h) + var(--vv-bottom, 0px) + 12px);
+    bottom: calc(var(--stu-sheet-h) + var(--ds-roombar-h, 0px) + var(--vv-bottom, 0px) + 12px);
     transition: bottom .34s var(--ease-out);
   }
   .start.is-stu-sheet-dragging .be-bulkbar { transition: none; }
   .start[data-palette-visible] > .stu-sheet,
   .start[data-palette-visible] > .stu-sheet-grip { display: none; }
-  .start[data-palette-visible] .be-bulkbar { bottom: calc(12px + var(--safe-bottom) + var(--vv-bottom, 0px)); }
+  .start[data-palette-visible] .be-bulkbar { bottom: calc(12px + var(--ds-roombar-h, var(--safe-bottom)) + var(--vv-bottom, 0px)); }
 
 
   .start > .stu-sheet {
     display: flex;
     flex-direction: column;
     position: fixed;
-    left: 0; right: 0; bottom: 0;
+    left: 0; right: 0;
+    /* Docked on the studio's room bar (start-bar.css), which then owns the
+       home-indicator inset; 0 and the inset itself everywhere else. */
+    bottom: var(--ds-roombar-h, 0px);
     height: var(--stu-sheet-h);
     max-height: 92dvh;
-    z-index: 50; /* over the sticky action row (20) and the swatch popover (30) - taps land at peek, where the popover sits above the strip */
+    z-index: 50; /* over the pinned bar (20) and the swatch popover (30) - taps land at peek, where the popover sits above the strip */
     background: hsl(var(--card));
     border-radius: 18px 18px 0 0;
     box-shadow: 0 -10px 34px hsl(var(--foreground) / .18);
-    padding-bottom: var(--safe-bottom);
+    padding-bottom: var(--ds-sheet-inset, var(--safe-bottom));
     /* Clip the body to the rounded edge; the grip is a SIBLING, never cropped. */
     overflow: hidden;
     transition: height .34s var(--ease-out); /* the tool sheet's settle */
@@ -2061,7 +2055,7 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
     justify-content: center;
     position: fixed;
     left: 0; width: 100%;
-    bottom: var(--stu-sheet-h); /* tracks the sheet's free edge */
+    bottom: calc(var(--stu-sheet-h) + var(--ds-roombar-h, 0px)); /* tracks the sheet's free edge */
     transform: translateY(50%);
     height: 30px;               /* generous hit area straddling the edge */
     z-index: 60;                /* above the sheet */
@@ -2502,22 +2496,19 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
       "Select" collects tiles into a set; one floating bar deletes the lot.
       The bar is FIXED bottom-centre like .cat-bulkbar.
 
-      Z-INDEX 40 IS ITS PLACE IN ONE CONTEXT, AND CANNOT BE RAISED OUT OF IT.
-      The bar lives inside the editor mount, and start.css's
-      `.start > *:not(.gallery-topright)` gives every direct child of .start
-      `position: relative; z-index: 1` - a stacking context. So 40 is only a
-      ranking against its neighbours INSIDE that context (sticky action row 20,
-      swatch popover 30), and the whole context paints at level 1 against the
-      mobile palette sheet, a direct child of .start at 50. No value here beats
-      the sheet; 400 would paint under it exactly as 40 does.
+      Z-INDEX 40 RANKS IT OVER THE STUDIO'S PINNED BAR (20) AND THE SWATCH
+      POPOVER (30), AND UNDER THE MOBILE PALETTE SHEET (50). In the studio the
+      room shell keeps no stacking context of its own (start-bar.css), so the
+      bar, the sheet and this bar rank in one context. Raising this past 50 is
+      not the answer to the sheet: two fixed things at the bottom edge would
+      then fight for the same taps.
 
       Which matters, because the bar WAS painted under the sheet at half (50dvh)
       and full (88dvh) - the two states the sheet exists for - leaving Delete and
       Cancel unreachable on a phone that has no Escape key to leave select mode
       with. The fix is geometry, not depth: on mobile the bar rides the sheet's
       free edge the way the grip does (see the mobile block above), so it is
-      never behind it in the first place. It also stops fighting the download
-      dock, which stands down while selecting ([data-pal-selecting] below). */
+      never behind it in the first place. */
 /* The selection ring: a 2px gap then a 2px accent ring, drawn OUTSIDE the tile
    (plan 182 section 5.5's mockup). Outside is what makes it read on a white
    swatch as well as a black one - the ring never has to contrast with the
@@ -2642,10 +2633,10 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
   .be-bulkbar { gap: var(--sp-2); padding: 6px 6px 6px 12px; overflow-x: auto; }
   .be-bulkbar-menu { max-height: 34dvh; }
 }
-/* While selecting, the download dock yields the floor to the action bar (both
-   are fixed, and on a phone they land on top of each other). The attribute is
-   set on the editor's MOUNT element (brand-editor.ts's `root`), which is the
-   PARENT of `.be` - `.be[data-pal-selecting]` matched nothing. */
+/* While selecting, the head's download stands down: the action bar is the one
+   way to act on the selection. The attribute is set on the editor's MOUNT
+   element (brand-editor.ts's `root`), which is the PARENT of `.be` -
+   `.be[data-pal-selecting]` matched nothing. */
 [data-pal-selecting] .be-pal-dock { display: none; }
 
 /* The sheet's mirror chips reflect multi-select the same way the real tiles
@@ -2667,6 +2658,19 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
 .be-pal-reorder:hover, .be-pal-reorder[aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
 .be-pal-reorder[aria-pressed="true"] { cursor: grabbing; }
 .be-pal-reorder:focus-visible, .be-pal-card.is-reorder-target { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; border-radius: var(--ui-radius-control); }
+/* Phones (plan 336; Andy's decision 6, applied to the phone first): four tiles a
+   row. The drag handle shows in Select mode and to keyboard focus instead of
+   adding a 44px row under every colour, so 41 colours are about four screens of
+   thumb rather than eight. The keyboard path (Space, arrows, Space) is unchanged. */
+@media (max-width: 640px) {
+  .be-pal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .7rem .5rem; }
+  .be-pal-card .be-swatch { aspect-ratio: 1; }
+  .be-pal-name { font-size: var(--fs-2xs); }
+  .be-pal-hex { grid-column: 1 / -1; font-size: var(--fs-2xs); overflow: hidden; text-overflow: ellipsis; }
+  .be-pal-reorder { display: none; }
+  [data-pal-selecting] .be-pal-reorder,
+  .be-pal-card:has(:focus-visible) .be-pal-reorder { display: grid; grid-column: 1 / -1; grid-row: 4; justify-self: stretch; }
+}
 
 .be-pal-group-head { position: relative; min-height: 44px; }
 .be-pal-group-all, .be-pal .be-add--sm { min-width: 44px; min-height: 44px; }

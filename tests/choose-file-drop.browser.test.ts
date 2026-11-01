@@ -132,7 +132,7 @@ test('Logos room: slot tiles and the custom-mark form take a dropped file, and k
     await page.locator('dialog.view-loading').waitFor({ state: 'detached' });
     const importer = page.locator('[data-ds-src-tiles]');
     const railDrag = () => page.evaluate(() => {
-      const rail = document.querySelector('.ds-rail');
+      const rail = document.querySelector('.ds-room-nav');
       if (!rail) throw new Error('no rail');
       const transfer = new DataTransfer();
       transfer.items.add(new File(['x'], 'a.png', { type: 'image/png' }));

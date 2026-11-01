@@ -2,17 +2,32 @@
   "id": "logo-wall",
   "name": "Logo Wall",
   "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-  "version": "1.4.3",
-  "engineVersion": "^1.0.0",
+  "version": "1.7.0",
+  "engineVersion": "^1.293.0",
   "status": "official",
   "category": "designer",
-  "tags": ["logo", "lockup", "wall", "grid", "nascar", "logos", "brand", "partners", "customers", "sponsors", "clients", "montage", "cloud", "vector", "threshold", "on-device"],
+  "tags": ["logo", "lockup", "wall", "grid", "nascar", "logos", "brand", "partners", "customers", "sponsors", "clients", "montage", "cloud", "vector", "threshold", "tiers", "on-device"],
+  "examples": [
+    {"label":"Tiered sponsor wall of placeholder wordmarks, in the brand ink","theme":"light","values":{"logos":[
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/your-logo.svg","_unresolved":true},"tier":"Gold partners"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/logo-here.svg","_unresolved":true},"tier":"Gold partners"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/company.svg","_unresolved":true},"tier":"Silver partners"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/sponsor.svg","_unresolved":true},"tier":"Silver partners"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/brand-name.svg","_unresolved":true},"tier":"Silver partners"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/sample-co.svg","_unresolved":true},"tier":"Silver partners"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/example.svg","_unresolved":true},"tier":"Supporters"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/lorem-ipsum.svg","_unresolved":true},"tier":"Supporters"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/placeholder.svg","_unresolved":true},"tier":"Supporters"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/partner-name.svg","_unresolved":true},"tier":"Supporters"},
+      {"logo":{"source":"remote","id":"/tools/logo-wall/assets/wordmark.svg","_unresolved":true},"tier":"Supporters"}],"vectorizeAll":true}}
+  ],
   "a11yLabel": "A grid of {{logos.length}} logos",
   "render": {
     "sectionIcons": {
       "Layout": "grid",
       "Vector ink": "droplet",
-      "Step & repeat": "repeat"
+      "Step & repeat": "repeat",
+      "Tiers": "layers"
     },
     "width": 1280,
     "height": 720,
@@ -20,12 +35,14 @@
     "actions": ["copy", "download", "save"],
     "layout": "sidebar",
     "transparentBg": true,
+    "followsCanvasSize": true,
     "convertPaths": false
   },
   "hooks": {
     "onInit": true,
     "onInput": true,
-    "beforeExport": true
+    "beforeExport": true,
+    "afterExport": true
   },
   "inputs": [
     {
@@ -59,7 +76,9 @@
         { "id": "invert", "label": "Invert", "type": "boolean", "default": false, "showIf": { "vectorize": true, "tune": true },
           "help": "For a white or pale logo." },
         { "id": "detail", "label": "Detail", "type": "number", "display": "slider", "min": 80, "max": 320, "step": 10, "default": 200, "showIf": { "vectorize": true, "tune": true } },
-        { "id": "smoothing", "label": "Smoothing", "type": "number", "display": "slider", "min": 0, "max": 100, "step": 5, "default": 60, "showIf": { "vectorize": true, "tune": true } }
+        { "id": "smoothing", "label": "Smoothing", "type": "number", "display": "slider", "min": 0, "max": 100, "step": 5, "default": 60, "showIf": { "vectorize": true, "tune": true } },
+        { "id": "tier", "label": "Tier", "type": "text", "default": "",
+          "help": "Group logos by sponsor level. Logos with the same tier sit together in their own rows, in the order each tier first appears, under that tier as a heading. Leave every tier empty for one even grid." }
       ],
       "default": []
     },
@@ -73,7 +92,7 @@
       "max": 10,
       "step": 1,
       "default": 4,
-      "help": "How many logos sit in each row."
+      "help": "How many logos sit in each row. At another canvas size, such as a tall 1080 x 1920 or an A4 page, the wall puts fewer or more in each row to fill that shape."
     },
     {
       "id": "gap",
@@ -122,6 +141,35 @@
       "step": 1,
       "default": 48,
       "help": "Breathing room above and below the wall."
+    },
+    {
+      "id": "tierHeadings",
+      "section": "Tiers",
+      "label": "Tier headings",
+      "type": "boolean",
+      "default": true,
+      "help": "Show each tier's name above its group of logos. Only applies when logos have a tier."
+    },
+    {
+      "id": "tierSizing",
+      "section": "Tiers",
+      "label": "Tier sizes",
+      "type": "select",
+      "display": "segmented",
+      "default": "step",
+      "help": "Step down puts one more logo in a row for each tier below the first, so higher tiers read larger. Same size gives every tier the Columns setting. Presence, Size % and Balance sizes still apply to each logo.",
+      "options": [
+        { "value": "step", "label": "Step down" },
+        { "value": "even", "label": "Same size" }
+      ]
+    },
+    {
+      "id": "headingColor",
+      "section": "Tiers",
+      "label": "Heading colour",
+      "type": "color",
+      "default": "{color.semantic.text}",
+      "help": "The colour of the tier headings."
     },
     {
       "id": "background",
@@ -237,7 +285,7 @@
       "default": 6,
       "section": "Step & repeat",
       "showIf": { "repeat": ["grid", "brick", "checker"] },
-      "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied."
+      "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied. At another canvas size the wall stacks fewer or more rows to fill that shape."
     }
   ]
 }

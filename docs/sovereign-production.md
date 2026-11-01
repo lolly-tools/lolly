@@ -2,6 +2,8 @@
 
 Sovereign creative production means the making of a file happens on hardware you control, under software you can read, with no third party in the path: the render, the export, the signature and the verification all run on the device holding the file. This page is for a security reviewer or public-sector buyer asking whether Lolly can work that way, and every claim on it can be checked in an afternoon.
 
+This is the local-production part of [content sovereignty](/info/content-sovereignty.html), the wider control over creation, governance, storage and movement across chosen systems. Connected DAMs and organisation services can participate in that wider arrangement; each introduces its own data flows and responsibilities. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains the connected workflow.
+
 Two different things get called sovereignty, and the difference decides which questions you still have to ask.
 
 ::: cols

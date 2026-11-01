@@ -1,0 +1,99 @@
+[
+  {
+    "label": "Tiered sponsor wall of placeholder wordmarks, in the brand ink",
+    "theme": "light",
+    "values": {
+      "logos": [
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/your-logo.svg",
+            "_unresolved": true
+          },
+          "tier": "Gold partners"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/logo-here.svg",
+            "_unresolved": true
+          },
+          "tier": "Gold partners"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/company.svg",
+            "_unresolved": true
+          },
+          "tier": "Silver partners"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/sponsor.svg",
+            "_unresolved": true
+          },
+          "tier": "Silver partners"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/brand-name.svg",
+            "_unresolved": true
+          },
+          "tier": "Silver partners"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/sample-co.svg",
+            "_unresolved": true
+          },
+          "tier": "Silver partners"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/example.svg",
+            "_unresolved": true
+          },
+          "tier": "Supporters"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/lorem-ipsum.svg",
+            "_unresolved": true
+          },
+          "tier": "Supporters"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/placeholder.svg",
+            "_unresolved": true
+          },
+          "tier": "Supporters"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/partner-name.svg",
+            "_unresolved": true
+          },
+          "tier": "Supporters"
+        },
+        {
+          "logo": {
+            "source": "remote",
+            "id": "/tools/logo-wall/assets/wordmark.svg",
+            "_unresolved": true
+          },
+          "tier": "Supporters"
+        }
+      ],
+      "vectorizeAll": true
+    }
+  }
+]

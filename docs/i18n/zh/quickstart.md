@@ -17,14 +17,14 @@ lolly.tools 默认打开 **Lolly Demo**，即 Lolly 自己的示例设计系统�
 选择与你手头内容相符的路径：
 
 - <!--i:palette--> **一种颜色。** 打开 **Design System Setup**（`#/start`），为你的设计系统命名并选一个主色。Lolly 会据此推导出完整且无障碍的调色板，包含浅色和深色表面、文字和强调色。再选一个字体，你就有了一个可用的品牌。
-- <!--i:upload--> **一个令牌文件。** Design System Setup 中房间栏底部的 **Add from…** 接受 DTCG、Tokens Studio 或 Penpot 令牌文件、SVG，或 `LollyBrand` 包。拖进去，调色板就会填好。当设计系统仍然为空时，Overview 房间中的 **Start from a reference** 会打开同一个选择器。
+- <!--i:upload--> **一个令牌文件。** Design System Setup 顶部栏中的 **Add from…** 接受 DTCG、Tokens Studio 或 Penpot 令牌文件、SVG，或 `LollyBrand` 包。拖进去，调色板就会填好。当设计系统仍然为空时，Board 上的 **Start from a reference** 会打开同一个选择器。
 - <!--i:pentool--> **一份成品设计。** 在 Design 中选择 **Import a design**，拖入 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 文件。参见下文的[带入你已有的内容](#bring-in-what-you-already-have)。
 
 你第一次打开图库时，会有一段简短的欢迎，提供同样的选择：**Make it yours** 打开 Design System Setup，**Bring your design** 打开设计文件选择器，**Explore the community tools** 关闭欢迎页。
 
 ![全新安装后 Design System Setup 的 Colours 房间：一个实时色块、一个字段，以及第一个决定的全部内容](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-从这里开始，七个房间可以按任意顺序，带你想走多远就走多远：**Overview**、**Colours**、**Type**、**Logos**、**Tokens**、**Files** 和 **Usage & rules**。应用中的每个预览都会随你输入而更新。[Design System Setup](/info/brand-studio.html) 介绍了每个房间。
+从这里开始，八个房间可以按任意顺序，带你想走多远就走多远：**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules** 和 **Skills**。应用中的每个预览都会随你输入而更新。[Design System Setup](/info/brand-studio.html) 介绍了每个房间。
 
 字体保存在你的设备上。选一个 Google Font，Lolly 会把字体文件存为品牌素材，所以你的字体可以离线随身携带，工具绘制时不会获取任何内容。
 

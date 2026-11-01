@@ -1116,13 +1116,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // escape()s every value, chips are escape()d licence strings/t() constants.
   'views/assets.ts': 1,  // +1 2026-09-02 (plans/129 section 2.3): openSendDialog's per-target status line - the remote url is safeHref()-gated and escape()d, the label escape()d; +1 2026-08-21 (plans/132 WP-M): the mount-time loading skeleton (viewEl.innerHTML) - static markup, the only interpolation is a repeated constant tile string, no user text; +1 2026-08-20 (WP-G): the [data-usage] Used-in fill - labels escape()d, mirrors the [data-tech] sink; +1 2026-08-20: the Download-as toolbar menu (body-popover render `el.innerHTML`) - format values/labels are constants (plus the escape()d source format), no user text; +1 2026-08-18: interpBtn.innerHTML = INTERP_ICON - a trusted inline SVG constant, no interpolation; +2 2026-08-18 (plans/125): the [data-tsig] box (renderTextPanel, catTextWorkHtml escape()s every value) + read-text - the read-text <pre> is filled via textContent, never markup; +1 2026-08-18 (plans/126 markdown reading view): setTextRenderMode's [data-md-rendered] fill - user markdown through lib/markdown mdToHtml then DOMPurify.sanitize, the same pairing doc-editor's paste path uses; 2026-08-19 (inline-edits UX pass): the analyse-text fill folded into renderTextPanel, and the freed slot is openEditCard's card.innerHTML - sugCardHtml/rwCardHtml escape() every interpolated value
   'views/assets/actions.ts': 1,   // 2026-10-02: the Open with menu - menuItemHtml escape()s the tool name and act, the icon is a trusted lib/icons glyph
-  'views/assets/details-sheet.ts': 9,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/details-sheet.ts': 8,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts; -1 2026-10-31: the technical rows join the Details list through lib/meta-rows.ts mergeMetaRows
   'views/assets/details-shared.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/details-panels.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/details-inline-modes.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/wiring.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/sections.ts': 6,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts; +3 2026-10-07 (Track A scale): expandDeferred inserts the folded group's body built by the same groupSection callers the full paint uses, and appendPage inserts assetTile() output plus showMoreHtml() (a scope string the view minted and two numbers), all already escape()d where interpolated; +1 2026-10-16: renderShared inserts the shared-library section from remote.ts html(), the same markup the full paint writes, with server labels, the query and tag names escape()d and tiles from assetTile()
+  'lib/meta-rows.ts': 1,   // 2026-10-31: one details row parsed in an inert template - metaRow escape()s the label and every caller escapes the value it passes
   'lib/lazy-grid.ts': 2,   // 2026-10-07 (Track A scale): a deferred body and a further page of cards, both from the caller's own render functions (the picker's card(), every value escapeHtml()d); the module adds no interpolation of its own
   'views/assets/downloads.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/swatch-set.ts': 1,   // 2026-10-19: the swatch format menu - menuItemHtml rows (label and reason escape()d there), the count and the fit notes through escape(), icons from the fixed registry; the same body-popover pattern as actions.ts Open with
@@ -2037,7 +2038,12 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 255 to 254: Design System Setup's Overview doors use the edge and control elevation.
     // 253 to 250: the Settings Design system tab's hero, primary chip and ink
     // ribbon went with the illustrations; the new read uses hairlines only.
-    pin: 250,
+    // 250 to 247 (plan 336): the palette download stopped floating, and the
+    // swatch tiles and the pressed Use as pill read through the edge and
+    // control elevation tokens.
+    // 247 to 243 (plan 336): the studio's glowing Add from button and its
+    // breathing keyframes went with the rail; the bar's button is a plain pill.
+    pin: 243,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

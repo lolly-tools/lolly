@@ -186,18 +186,15 @@ export function typeRoleSample(role: FontRole): string {
 /**
  * The role button's two strings, kept in one place because they have to agree.
  *
- * The button is icon-free but ROLE-free too: "Change" on its own would be four
- * identical buttons on four cards, so the accessible name names the role. WCAG
- * 2.5.3 (Label in Name) then requires the visible words to be IN that name - 
- * speech control says "click Change", and a name of "Change the Headings face"
- * matches while "Choose the Headings face" over a visible "Change" does not.
- * Both strings below are built so the visible label is a literal prefix of the
- * spoken one, in every state. `paintRoleCards` rewrites BOTH together.
+ * The button says which role it is for: four cards with four identical "Choose a
+ * face" buttons read as one control repeated (plan 336 P10). The visible words ARE
+ * the accessible name, so speech control and a screen reader hear exactly what is
+ * on the button (WCAG 2.5.3, Label in Name). Plain text out: the scaffold escapes
+ * it and `paintRoleCards` writes it as textContent, both strings together.
  */
 export function typeRoleActStrings(roleLabel: string, isSet: boolean): { text: string; name: string } {
-  return isSet
-    ? { text: t('Change'), name: tRaw('Change the {role} face', { role: roleLabel }) }
-    : { text: t('Choose a face'), name: tRaw('Choose a face for {role}', { role: roleLabel }) };
+  const text = isSet ? tRaw('Change {role}', { role: roleLabel }) : tRaw('Choose for {role}', { role: roleLabel });
+  return { text, name: text };
 }
 
 /**
@@ -227,7 +224,7 @@ export function typeRoleCardHtml(def: TypeRoleDef): string {
       <p class="be-typecard-sample${def.mono ? ' be-typecard-sample--mono' : ''}"
         style="font-family:${def.css}${def.slanted ? ';font-style:italic' : ''}">${typeRoleSample(def.id)}</p>
       <button type="button" class="be-btn be-typecard-act" data-be-typecard-choose="${def.id}"
-        aria-label="${escape(act.name)}"><span data-be-typecard-actlabel>${act.text}</span></button>
+        aria-label="${escape(act.name)}"><span data-be-typecard-actlabel>${escape(act.text)}</span></button>
       ${def.id === 'brand'
       ? `<span class="be-typecard-note">${t('Nothing installs until you choose one.')}</span>`
       : ''}

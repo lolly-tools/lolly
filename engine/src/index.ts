@@ -40,7 +40,7 @@ export type {
   InRealmOnlyHookName, HookInitDoneMsg, HookInvokeDoneMsg, HookReportMsg, HookHostCallMsg, HookLogMsg, HookWorkerOut,
   HookWorkerPort, HookWorkerCoreOpts,
 } from './hook-worker-core.ts';
-export type { HookExecutor, Hooks, RuntimeViewState } from './runtime.ts';
+export type { HookExecutor, Hooks, RuntimeViewState, CanvasSize } from './runtime.ts';
 // Emoji (1.196): the runtime draws every emoji in a rendered tree from the
 // chosen pinned pack. TYPES ONLY here on purpose - the pinned Unicode tables are
 // half a megabyte, so the modules themselves stay behind the runtime's dynamic
@@ -129,6 +129,7 @@ export {
   UNITS, CSS_DPI, isUnit, parseDimension,
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
 } from './units.ts';
+export { canvasSizeOf } from './units.ts';
 export {
   frameRect, framingStyle, normalizeFraming, isNeutralFraming, isTilted,
   framingQuad, projectFramingPoint, minZoomForCover, FRAMING_PERSPECTIVE,
@@ -889,11 +890,15 @@ export {
   // that keeps every screen-parallel document on the path it always took.
   cameraTilted, kfMatrix3dCss, projectSurfacePoint,
 } from './keyframes.ts';
+// 1.291 (plans/330) - path handles: the curved travel between two positions, the split
+// that keeps it whole and the inverse projection that lets the drawn path be edited.
+export { kfPathCurves, kfSubdividePath, kfUnprojectCentre } from './keyframes.ts';
+export type { KfHandle, KfPathSplit } from './keyframes.ts';
 // 1.290 (plans/328) - the appearance channels as paint: fill and stroke colour in OKLab,
 // stroke width, corner radius and trim, written as `--lolly-kf-*` custom properties.
 export { KF_LOOK_CHANNELS, KF_FILL_CHANNELS, KF_STROKE_CHANNELS, KF_LOOK_VARS, isKfLookChannel } from './kf-look.ts';
 export { kfLookUsed, kfLookPose, kfLookVars, kfColourKey, kfColourCss, kfOklabOf, kfTrimSpan, kfOutlinePath } from './kf-look.ts';
-// 1.291 (plans/329) - spring eases and design-system motion tokens on the `kf` wire:
+// 1.295 (plans/329) - spring eases and design-system motion tokens on the `kf` wire:
 // `esp(k)(c)(m)` springs, `et(<path>)` bindings and the table the shell installs.
 export { KF_EASE_REF_MAX, setKfEaseTokens, kfEaseTokensSnapshot, kfBindEase } from './keyframes.ts';
 export { kfEaseKind, kfEaseTokenPath, kfEaseResolved, kfEaseSpring, kfEaseSpringName } from './keyframes.ts';

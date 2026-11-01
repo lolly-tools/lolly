@@ -2,7 +2,9 @@
 
 One poster leads with green, the next with coral, and both are plainly the same brand. A colourway is one of those leads: a lead colour, the colour that sits on it and a partner colour, kept in your design system beside the others. You choose a colourway for each piece you make, and the design system itself stays as it is.
 
-Lolly Demo, the design system lolly.tools opens with, ships six: Spearmint, Morning, Spring, Beach, Afternoon and Midnight. Each holds its colours for the light look and for the dark look, so any colourway can be drawn in either.
+Inside one brand, a department or a product often has a colourway of its own. Each person can take one as theirs in **Settings → Appearance**, so the app around them and each new piece they start wear their team's lead ([Make a colourway your own](#make-a-colourway-your-own)).
+
+Lolly Demo, the design system lolly.tools opens with, ships six: Spearmint, Morning, Spring, Beach, Afternoon and Midnight. Each holds its colours for the light look and for the dark look, so any colourway can be drawn in either. You make and edit colourways in the **Colours** room of Design System Setup ([Add colourways to a design system](#add-colourways-to-a-design-system)).
 
 ::: figure colourways-looks
 Lolly Demo's six colourways in the light look and the dark look: each has a lead, the colour on the lead and a partner.
@@ -25,9 +27,28 @@ The choice travels wherever the piece goes:
 - **In a batch,** per row, in the CSV's `_themes` column ([Batch](/info/batch.html#make-many-versions-of-one-design)).
 - **In the exported file,** as the [design-system record](/info/exporting.html#the-design-system-record), which gives the colourway beside the tool: *Chart (Beach colourway)*.
 
-## The app keeps the canonical colourway
+## Make a colourway your own
 
-The app's accent, favicon and logo tint follow the canonical colourway, whatever the open piece uses: the app belongs to the device, and the canvas belongs to the piece. A Beach poster shows Beach on the canvas and the canonical colour in the app around the poster. The same holds for every other theme group, whether or not it declares a kind, except light and dark, which follow the app's appearance setting.
+A team inside a brand, such as a department or a product, often has a colourway of its own. In **Settings → Appearance**, **Your colourway** shows the design system's colourways as dots, drawn in the app's current look, with the canonical one marked as the design system default. Pick a dot and two things change:
+
+- The app's accent, favicon and logo tint take your colourway on this device, in light and in dark.
+- Each new piece you start is drawn in your colourway and stores that choice, exactly as if you had picked the dot in the tool's sidebar. A tool opened fresh, a new Design document and a template all start this way. When you choose another colourway later, a piece you already started keeps its own.
+
+The row appears only when the active design system has more than one colourway. The choice is kept on your profile, once per design system, so someone who works in two design systems keeps one in each, and a backup or Sync carries the choices with the rest of your profile. Picking the canonical colourway stores nothing: you then follow the design system, whatever it makes canonical later. If the design system drops the colourway you chose, the app and new work go back to the canonical one.
+
+Your choice never changes a piece that already has its colours settled:
+
+- a saved session, and a link or a copy that carries a colourway;
+- a link with input values, which is a piece someone already made. Without a colourway in the link, that piece opens in the canonical colourway, as it always has;
+- a scripted export (`export=`), a framed tool (`iframe`), a `full` view, a presentation and a collaboration;
+- a tool whose manifest ignores colourways ([Tools that keep their own colours](#tools-that-keep-their-own-colours));
+- the command line, the TUI and the MCP server, which hold no personal choice and draw the canonical colourway unless a link or `--_themes` asks for another.
+
+An export started in your colourway records that colourway in its [design-system record](/info/exporting.html#the-design-system-record), the same way as a colourway picked in the sidebar.
+
+## The app follows your colourway
+
+The app's accent, favicon and logo tint follow your colourway, or the canonical colourway when you have not chosen one, whatever the open piece uses: the app belongs to the device, and the canvas belongs to the piece. A Beach poster shows Beach on the canvas and your colourway in the app around the poster. Every other theme group stays on its canonical option for the app, whether or not it declares a kind, except light and dark, which follow the app's appearance setting.
 
 The canonical colourway is the one marked `canonical`, or the first when none is marked. For Lolly Demo it is Spearmint. **Settings → Design system** lists the design system's colourways (`#/settings?dash-colourways`).
 
@@ -42,6 +63,7 @@ Some tools draw several colours at once, and they draw on the whole family: ever
 | Mesh Gradient | **Shuffle colours** draws on the leads before the rest of the design system. |
 | The visualiser's colour schemes | One scheme per colourway, in the design system's order and labelled with the colourway's name, with that colourway's partner as the counterpoint. A lead too dark or too grey to carry the picture hands the field to its partner. |
 | Audio and text covers in Assets and the picker | The leads come first in the colours the covers are drawn from. |
+| Certificate | Celebration's printed confetti and the falling pieces of the **Confetti** motion use the piece's accent and partner, then the other colourways' leads. |
 
 When a piece's colourway or look changes, Chart, Mesh Gradient and Filter read the colours they keep from the design system again as the open tool redraws, and every input keeps its value. Covers belong to the app, not to a piece: they list the same leads whatever colourway a piece uses, in the app's own light or dark appearance.
 
@@ -55,7 +77,7 @@ When a link or `--_themes` asks such a tool for another option, `lolly run` prin
 
 ## Rules for a series
 
-A series of pieces, such as a week of social posts or the speakers at an event, can take its colourways from a rule. The engine's `pickColourway` function applies five rules. No series or batch flow in the app applies them yet, so for now they are for scripts and tools that call the engine.
+A series of pieces, such as a week of social posts or the speakers at an event, can take its colourways from a rule. The engine's `pickColourway` function applies five rules. No series or batch flow in the app applies them yet, so for now they are for scripts and tools that call the engine. Until a flow applies a rule, give each row its colourway in a batch CSV's `_themes` column ([Batch](/info/batch.html#colourways-and-themes-per-row)), or export one piece in several colourways from the command line with `--themes=Spearmint,Beach` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)).
 
 ::: figure colourways-series
 Eight pieces from Lolly Demo under each rule, picked by the engine itself.
@@ -73,7 +95,21 @@ A rule is applied when each piece is made, and the piece stores the colourway it
 
 ## Add colourways to a design system
 
-Design System Setup does not author colourways yet. For now a colourway file is written by hand, by a script or with the engine's colourway functions, and imported like any other token file.
+### In Design System Setup
+
+The **Colours** room makes and edits colourways. Open **Colour roles**: the **Colourways** row at its head shows one chip per colourway in its lead colour, with **Default** on the canonical one.
+
+1. Press **+ Add** and choose one of the palette's colours. The new colourway takes that colour as its lead, and Lolly works out the colour that sits on the lead and the partner, for light and for dark: the same values a whole design system derived from that colour would use. The surface, the text and the ramps stay the design system's own. On a design system with one lead colour, the first **+ Add** makes the current lead the canonical colourway, named after its colour, and nothing it draws changes.
+2. Choose a chip to edit that colourway. The roles strip, the palette and the previews below then read and write that colourway, and the **Light** and **Dark** switch beside the row chooses which look you edit.
+3. With a colourway chosen, type a new name in the name field, or press **Duplicate**, **Make default** or **Remove**. The canonical colourway cannot be removed.
+
+Each edit goes through the room's undo and saving, and Lolly refuses an edit that would change how any other colourway or look draws. A managed design system shows the row with no editing controls. When a token file encodes its colourways in a way the studio cannot edit, the row gives the reason, and choosing a colourway in a tool still works.
+
+Three things are not in the room yet and are written in the token file: the order of the colourways, a date window on a colourway and a rotation rule for the group.
+
+### In the token file
+
+A colourway can also be written by hand, by a script or with the engine's colourway functions, and imported like any other token file.
 
 A colourway is a theme group of kind `colourway` ([Design Tokens](/info/design-tokens.html#what-a-theme-group-means) covers kinds). It cannot simply override `color.semantic.primary`: token sets apply in set order, not group by group, so a colourway set placed after the light and dark sets would give the same primary to both looks. Instead each colourway holds its colours per look, and the light and dark sets link the role slots to them. This is how Lolly Demo does it, trimmed to two colourways:
 
@@ -115,7 +151,7 @@ Imported files often encode colourways their own way, for example by overriding 
 
 Five more functions edit the colourways a file already has. `renameColourway` changes a colourway's display name and never its id, because pieces store the id. `reorderColourways` puts them in a new order with the canonical one first. `setCanonicalColourway` makes another colourway canonical and moves it first. `duplicateColourway` copies one under a new id and name. `removeColourway` removes any colourway except the canonical one, and clears any stored choice of that colourway.
 
-Each function works on a copy, resolves every token under every choice of look and colourway before and after, and refuses the edit with reasons when a remaining choice would draw something different. Two changes are intended: after `setCanonicalColourway`, a piece that chose no colourway draws the new canonical one, and after `removeColourway`, a piece that stored the removed colourway draws the canonical one. `colourwaysEditable` says whether a file's colourways can be edited this way, and why not. Design System Setup's **Rebuild palette** keeps every colourway ([Design System Setup](/info/brand-studio.html#committing-a-generated-palette)).
+Each function works on a copy, resolves every token under every choice of look and colourway before and after, and refuses the edit with reasons when a remaining choice would draw something different. Two changes are intended: after `setCanonicalColourway`, a piece that chose no colourway draws the new canonical one, and after `removeColourway`, a piece that stored the removed colourway draws the canonical one. `colourwaysEditable` says whether a file's colourways can be edited this way, and why not. The Colours room's colourway controls call these functions, and Design System Setup's **Rebuild palette** keeps every colourway ([Design System Setup](/info/brand-studio.html#committing-a-generated-palette)).
 :::
 
 ## Colourways in Penpot

@@ -1,6 +1,6 @@
 # Design System Setup
 
-Tu logotipo, tus colores y tus tipografías pertenecen a un solo lugar, para que cada herramienta, página y exportación dibuje con ellos. Ese lugar es **Design System Setup**, en `#/start`, y su lema dice para qué sirve: *Make it yours*.
+Tu logotipo, tus colores y tus tipografías pertenecen a un solo lugar, para que cada herramienta, página y exportación dibuje con ellos. Ese lugar es **Design System Setup**, en `#/start`.
 
 Empieza con lo que tengas. Suelta un logotipo y Lolly lee sus colores. Elige una tipografía, o suelta el archivo de fuente que licencia tu empresa. Cada cambio se muestra enseguida en toda la aplicación. Tu logotipo, tus fuentes y tus tokens se quedan en este dispositivo. Elegir una Google Font es el único paso que sale al exterior: Lolly pregunta primero, y luego descarga la familia una vez.
 
@@ -16,33 +16,36 @@ Cuando se ve bien, da un nombre al design system y pulsa **Export**. Obtienes un
 - <!--i:download--> **Export** escribe todo el sistema como un único archivo `LollyBrand-….lolly`.
 :::
 
-La cabecera muestra qué design system estás **Editing**, y su nombre es un campo que puedes cambiar en cualquier momento. Cuando tu primera edición pregunta **What is this design system called?**, se rellenan las palabras de tu logotipo si el logotipo las deletrea. **Save name** conserva el nombre; **Not now** mantiene un marcador hasta que escribas uno en la cabecera. El nombre etiqueta el sistema en Settings y al cambiar, y pasa a ser el nombre del archivo que escribe **Export**.
+La barra de la parte superior del estudio lleva el nombre del design system, y el nombre es un campo que puedes cambiar en cualquier momento: **Enter** conserva un nombre nuevo y **Escape** devuelve el anterior. Cuando tu primera edición pregunta **What is this design system called?**, se rellenan las palabras de tu logotipo si el logotipo las deletrea. **Save name** conserva el nombre; **Not now** mantiene un marcador hasta que escribas uno en la barra. El nombre etiqueta el sistema en Settings y al cambiar, y pasa a ser el nombre del archivo que escribe **Export**.
 
 ## Las salas
 
-El estudio es un conjunto de salas en un carril a un lado, sin un orden fijo: nada está numerado y nada espera a otra cosa. En un teléfono el carril pasa a ser una tira de chips bajo la cabecera.
+El estudio es un conjunto de salas sin un orden fijo: nada está numerado y nada espera a otra cosa. En un escritorio las salas están en una tira bajo la barra. En un teléfono pasan a una barra en el borde inferior, donde las alcanza el pulgar, con la sala abierta desplazada a la vista; la hoja de la paleta y la bandeja suben por encima de esa barra, y la barra se aparta mientras escribes. Con un teclado, Tab llega a la tira una sola vez, y las teclas de flecha, Inicio y Fin pasan de una sala a otra.
 
-![El carril de salas del estudio: Overview, Colours, Type, Logos, Tokens, Files y Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![La barra del estudio y sus salas: Board, Colours, Type, Logos, Tokens, Files, Rules y Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Sala | Qué haces allí | Clave de enlace |
 |---|---|---|
-| **Overview** | Ver qué contiene el sistema, con una puerta a cada sala | `overview` |
+| **Board** | Ver qué contiene el sistema, con una puerta a cada sala | `overview` |
 | **Colours** | Añadir colores, darles roles, crear tonos y una paleta | `color` |
 | **Type** | Elegir las cuatro tipografías que leen la aplicación, las herramientas y cada exportación | `type` |
 | **Logos** | Colocar tus marcas en cada orientación y tratamiento | `logos` |
 | **Tokens** | Esquinas, espaciado, sombras y cualquier otro valor con nombre | `tokens` |
 | **Files** | Las imágenes, el audio y los archivos de movimiento que guarda tu marca | `catalogue` |
-| **Usage & rules** | Las reglas que aplica tu marca, comprobadas con ejemplos reales | `usage` |
+| **Rules** | Las reglas que aplica tu marca, comprobadas con ejemplos reales | `usage` |
+| **Skills** | Los estándares escritos de la marca para personas y agentes, para leer y descargar | `skills` |
 
-Enlaza a una sala con `#/start?area=<key>`. La sala Files conserva la clave `catalogue`, porque la clave de una sala es un contrato permanente, y `?tab=` sigue funcionando como alias anterior. Una clave desconocida abre Overview.
+Enlaza a una sala con `#/start?area=<key>`. La sala Files conserva la clave `catalogue`, Board conserva `overview` y Rules conserva `usage`, porque la clave de una sala es un contrato permanente, y `?tab=` sigue funcionando como alias anterior. Una clave desconocida abre Board.
 
-El **pie del carril** contiene las acciones de todo el sistema y no de una sala. **Add from…** incorpora una marca ([Bring a brand in](#bring-a-brand-in)), y la **Tray** guarda lo que encontró un escaneo y aún no has añadido. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** y **Restore brand settings** conservan y trasladan el sistema ([Keep and move your design system](#keep-and-move-your-design-system)). Cada una aparece cuando hay algo sobre lo que actuar.
+La **barra** contiene las acciones de todo el sistema y no de una sala. **Add from…** incorpora una marca ([Bring a brand in](#bring-a-brand-in)), y la **Tray** guarda lo que encontró un escaneo y aún no has añadido. **Export** escribe el sistema como un solo archivo, y **More** contiene **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** y **Design systems**, que abre la lista en Settings donde cambias de sistema ([Keep and move your design system](#keep-and-move-your-design-system)). Cada una aparece cuando hay algo sobre lo que actuar. En un teléfono, **Add from…** pasa a **More** y **Export** se muestra como su icono.
 
-## Overview
+## Board
 
-Sin nada elegido todavía, Overview ofrece cuatro maneras de empezar. **Start from a reference** abre el selector de fuente para un logotipo, una captura, una página web o un archivo de diseño, y **Pick a colour**, **Choose a face** y **Add a logo** abren directamente esos controles. Abrir uno no escribe nada, y **Explore the tools** está disponible desde el principio.
+Sin nada elegido todavía, Board ofrece cuatro maneras de empezar. **Start from a reference** abre el selector de fuente para un logotipo, una captura, una página web o un archivo de diseño, y **Pick a colour**, **Choose a face** y **Add a logo** abren directamente esos controles. Abrir uno no escribe nada, y **Explore the tools** está disponible desde el principio.
 
-Cuando algo es tuyo, Overview muestra lo que tienes, con tus propios recuentos delante. Colours da el número de colores, con un `· N starter` atenuado donde se muestran colores heredados; su tira pone primero tus colores, luego una línea fina, luego los colores de inicio atenuados. Type se lee por rol (*Inter for headings*, con *Starter for the rest* en la línea de abajo). Logos indica cuántos espacios están rellenos (o **Not set**), Tokens muestra el radio de las esquinas y Files dice **Nothing yet** mientras la biblioteca está vacía. Cada bloque abre su sala.
+Cuando algo es tuyo, Board muestra lo que tienes, con tus propios recuentos delante. Colours da el número de colores, con un `· N starter` atenuado donde se muestran colores heredados; su tira pone primero tus colores, luego una línea fina, luego los colores de inicio atenuados. Colourways muestra cada colourway como un pequeño mosaico con su color principal. Type se lee por rol y compone cada familia con su propia tipografía (*Inter for headings*, con *Starter for the rest* en la línea de abajo). Logos indica cuántos espacios están rellenos (o **Not set**), Tokens muestra el radio de las esquinas y Files dice **Nothing yet** mientras la biblioteca está vacía. Cada bloque abre su sala.
+
+Un design system que vino con la aplicación y se puede editar, como Lolly Demo, tiene todo eso desde el principio: Board muestra sus colores, colourways, tipografías y marcas, con una etiqueta **Came with this app** junto al encabezado.
 
 ### Starter y Yours
 
@@ -60,7 +63,7 @@ Cuando algo es tuyo, Overview muestra lo que tienes, con tus propios recuentos d
 
 - Elegido o instalado por ti.
 - A plena intensidad, y una tarjeta teñida donde instalaste una tipografía.
-- Cuenta en Overview y en Tokens.
+- Cuenta en Board y en Tokens.
 - Un rol que sigue a otro dice **↳ follows Primary** en lugar de repetir el nombre del primario.
 :::
 
@@ -105,7 +108,7 @@ Tu primer color pasa a ser el **primary**, y un chip lo confirma, como *"Primary
 
 Tus colores se sitúan junto a una vista previa **In context** en una pantalla ancha, y encima en una más pequeña. La vista previa muestra un póster, un gráfico o una tarjeta de interfaz con tu paleta. Los colores de inicio permanecen en su propio grupo plegable.
 
-![La sala Colours en Lolly Demo: la paleta en grupos plegables, cada color con su nombre y hex, y la píldora de descarga al pie](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![La sala Colours en Lolly Demo: la paleta en grupos plegables, cada color con su nombre y hex, y la descarga de la paleta en la cabecera](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![La sala Colores después de añadir un color, con su paleta y una vista previa de composición en vivo](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -117,7 +120,7 @@ Cuando la paleta tiene tonos, la tira muestra los siete roles que puede leer una
 
 El acento propio de la aplicación sigue por defecto al design system. Ese es el ajuste **Interface follows the design system** en **Settings → Appearance**; desactivarlo deja neutro el marco de la aplicación, mientras que las herramientas, los lienzos y las exportaciones siguen al design system en ambos casos.
 
-**Colourways.** Un design system puede tener varios colores principales, elegidos para cada pieza. Lolly conserva todas las colourways, pero esta sala todavía no puede crear una: una colourway se escribe en el archivo de tokens. En un sistema con colourways, cada colourway necesita su propio primario y secundario, y su propia superficie cuando las colourways tiñen el fondo, así que esos roles se mantienen en el editor de muestras. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) muestra colourways en trabajo real, y [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) tiene el formato.
+**Colourways.** Un design system puede tener varios colores principales, elegidos para cada pieza. La fila **Colourways** al comienzo de **Colour roles** muestra un chip por colourway, con **Default** en la canónica. **+ Add** inicia una colourway nueva a partir de uno de los colores de la paleta. Elige un chip, y la tira de roles, la paleta y las vistas previas editan esa colourway, con el aspecto que elija el interruptor **Light** y **Dark**; la colourway elegida se puede renombrar, duplicar, convertir en la predeterminada o eliminar. En un sistema con colourways, cada colourway necesita su propio primario y secundario, y su propia superficie cuando las colourways tiñen el fondo, así que esos roles se mantienen en el editor de muestras. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) tiene los pasos y el formato de tokens, y [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) muestra colourways en trabajo real.
 
 ### Encuentra más colores
 
@@ -162,7 +165,7 @@ Cuatro secciones plegadas están bajo la vista previa y los roles. Cada una se a
 
 La paleta enumera tus colores en grupos plegables, cada uno con su propio **+ Add**. Crea y renombra grupos como quieras. Un rol nunca crea un segundo mosaico: un mosaico al que apunta un rol lleva una pequeña marca (**P**, **S**, **Su**, **T**). **Colour chart**, bajo los mosaicos, muestra los mismos colores en la **Wheel** OKLCH (arrastra un punto para recolorear, haz clic en un espacio vacío para añadir una muestra) y en el gráfico **Gamut**, que muestra dónde termina el rango representable. `#/start?area=color&focus=chart` abre el gráfico directamente.
 
-![El panel de la paleta, cada grupo plegable, con la píldora de descarga anclada en su borde inferior](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![El panel de la paleta, cada grupo plegable, con la descarga de la paleta en su cabecera](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![La rueda OKLCH - el ángulo es el tono, la distancia hacia fuera es el croma y los grises recorren un carril de luminosidad en el lateral](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -178,7 +181,7 @@ Haz clic en una muestra para abrir su editor:
 **Eliminar una muestra** es seguro. Los tonos derivados y los roles de tema se ocultan, de modo que nada que los lea se rompe, mientras que los colores que añadiste se eliminan.
 
 ::: details Trabajar con muchas muestras
-Cada muestra tiene un asa de arrastre. Arrastra para reordenar dentro de un grupo, o enfoca el asa, pulsa Espacio, usa las teclas de flecha y pulsa Espacio de nuevo para soltar; Escape cancela. Para mover colores entre grupos, usa el control **Group** del editor o selecciona varios y usa **Move to**.
+Cada muestra tiene un asa de arrastre. Arrastra para reordenar dentro de un grupo, o enfoca el asa, pulsa Espacio, usa las teclas de flecha y pulsa Espacio de nuevo para soltar; Escape cancela. En un teléfono la paleta muestra cuatro colores por fila y las asas aparecen en el modo Select, en lugar de una fila bajo cada color. Para mover colores entre grupos, usa el control **Group** del editor o selecciona varios y usa **Move to**.
 
 La selección no necesita un modo. La barra aparece con el primer mosaico seleccionado y se va con el último.
 
@@ -195,13 +198,13 @@ La barra dice **{n} selected**, luego **Move to**, **Give a role** (cada color t
 
 El panel opcional **Gradients** crea tokens de mezcla a partir de la paleta. Cada degradado tiene una vista previa, de 2 a 8 paradas con nombre y un ángulo. Una parada apunta a una muestra, así que si recoloreas la muestra, el degradado la sigue. Las mezclas se calculan en OKLCH.
 
-Las descargas de la paleta (design tokens, CSS, SCSS, GIMP y Adobe Swatch Exchange) están en una píldora al pie de la paleta cuando hay tonos. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) describe cada formato.
+Las descargas de la paleta (design tokens, CSS, SCSS, GIMP y Adobe Swatch Exchange) están en la cabecera de la paleta, junto a su encabezado. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) describe cada formato.
 
 ## Tipografía
 
-Sin una tipografía propia, la sala es una sola tarjeta: **Primary**, compuesta a tamaño de lectura con la tipografía que la sirve hoy, con una etiqueta **Starter**, un botón **Choose a face** y la línea *"Nothing installs until you choose one."* Headings, Code e Italic siguen al primario hasta que los eliges; **Choose them separately** muestra sus tarjetas.
+Sin una tipografía propia, la sala es una sola tarjeta: **Primary**, compuesta a tamaño de lectura con la tipografía que la sirve hoy, con una etiqueta **Starter**, un botón **Choose for Primary** y la línea *"Nothing installs until you choose one."* Headings, Code e Italic siguen al primario hasta que los eliges; **Choose them separately** muestra sus tarjetas.
 
-![La sala Tipografía sin ninguna fuente elegida todavía - una tarjeta a tamaño de lectura, una etiqueta Inicial en ella, y un Elegir una fuente relleno](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![La sala Tipografía sin ninguna fuente elegida todavía - una tarjeta a tamaño de lectura, una etiqueta Inicial en ella, y un Choose for Primary relleno](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Elige una tipografía y la sala se abre en cuatro tarjetas de rol, la lista Fonts y una muestra en vivo:
 
@@ -210,7 +213,7 @@ Elige una tipografía y la sala se abre en cuatro tarjetas de rol, la lista Font
 - **Code**: una tipografía monoespaciada para código y datos.
 - **Italic**: una cursiva verdadera para énfasis, citas y apartes.
 
-Una tarjeta se tiñe solo donde instalaste esa tipografía, y su botón dice **Change** en una tipografía propia y **Choose a face** en todas las demás. Nada de una tarjeta confirma nada: el botón abre la fase de comparación para ese rol.
+Una tarjeta se tiñe solo donde instalaste esa tipografía, Su botón dice para qué rol es: **Change Headings** en una tipografía propia y **Choose for Headings** en todas las demás. La línea de muestra se ajusta en lugar de cortarse. Nada de una tarjeta confirma nada: el botón abre la fase de comparación para ese rol.
 
 ![Las cuatro tarjetas de rol reveladas - cada una tipografiada en la fuente que la sirve, con una etiqueta Inicial donde nadie eligió una y Cursiva siguiendo a la principal](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -218,7 +221,7 @@ Una tarjeta se tiñe solo donde instalaste esa tipografía, y su botón dice **C
 
 La fase se abre dentro de la sala, bajo la tarjeta que pulsaste, y las tarjetas se pliegan en una tira de una línea para que la fase se vea en la primera pantalla de un teléfono. Escape cancela y devuelve el foco a la tarjeta.
 
-1. Pulsa **Choose a face** en la tarjeta.
+1. Pulsa **Choose for** y el rol en la tarjeta.
 2. Escribe el nombre de una familia y pulsa **Preview**, o pulsa una de las seis familias **Pinned** bajo el campo.
 3. Pulsa **Use this face**.
 
@@ -239,7 +242,7 @@ Los tokens son los valores con nombre detrás del design system: colores, tipogr
 ![La sala Tokens: la cabecera con un ejemplo del sistema y las acciones de archivo, mosaicos que cuentan cada tipo de token, y luego los pares de colores con sus lecturas de contraste](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **La cabecera** da un ejemplo de tu propio sistema (*Primary is Spearmint, #033633*) y las acciones de archivo: **Download** (todo el sistema como design tokens, o la paleta en otros cinco formatos), **Copy CSS** y **Add from…** para volver a leer un archivo JSON.
-- **Los mosaicos** cuentan cada tipo de token y saltan a su sección: Colours, Type, Logos, Shape and spacing, More y All tokens. Cuentan lo que es tuyo, como hace Overview. En un teléfono los mosaicos se desplazan de lado.
+- **Los mosaicos** cuentan cada tipo de token y saltan a su sección: Colours, Type, Logos, Shape and spacing, More y All tokens. Cuentan lo que contiene cada sección; una sección que solo contiene lo que vino con el inicio en blanco lleva una etiqueta **Starter**, y un sistema que vino con la aplicación cuenta su propio material sin ella. En un teléfono los mosaicos se reparten en dos filas de tres.
 - **Colours** empieza con los pares que las herramientas combinan (texto sobre superficie, sobre primario, atenuado sobre superficie) con una lectura APCA en claro y oscuro, y marca **Weak contrast** donde un par se queda corto. Luego cada grupo de colores: una rampa como una fila de chips, otros colores con su valor y la referencia que usan las herramientas, como `{color.brand.spearmint}`. Pulsa una referencia para copiarla. **Edit in Colours** abre un grupo en la sala Colours.
 - **Type** y **Logos** enumeran la tipografía de cada rol y cada espacio de logotipo, con **Edit in Type** y **Edit in Logos** cuando tienes los tuyos.
 - **Shape and spacing** contiene **Rounded corners** (`shape.radius`) y **Spacing rhythm** (`space.base`). Cada uno dice *Lolly default* hasta que mueves el deslizador y *Yours* después, se guarda al instante y se puede deshacer.
@@ -252,11 +255,11 @@ Una sección sin nada ofrece la forma de llenar el hueco: **Pick a colour**, **C
 
 Suelta los archivos que guarda tu marca, aparte de los logotipos: archivos **vector**, **image**, **audio** y **motion** (vídeo, Lottie y animaciones). Aparecen en [Assets](/info/using.html#assets-your-library), ordenados en secciones y listos en el selector de recursos de cada herramienta, y se quedan en este dispositivo.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** pone a trabajar las decisiones de tu marca: qué pueden cambiar las personas, qué permanece fijo y qué puede comprobar Lolly.
+**Rules** pone a trabajar las decisiones de tu marca: qué pueden cambiar las personas, qué permanece fijo y qué puede comprobar Lolly.
 
-![Usage & rules en Lolly Demo: una tarjeta Brand rules vacía con Add your first rule, y luego Try your brand in use con sus ejemplos listos para renderizar](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules en Lolly Demo: cuatro reglas internas, cada una marcada Checked in Design y Required o Advisory, y luego Try your design system in use con sus ejemplos listos para renderizar](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** enumera tus reglas. **Add rule** (o **Add your first rule**) abre un formulario breve:
 
@@ -273,9 +276,15 @@ Las reglas que un design system trae en su archivo de tokens, como combinaciones
 
 Una compilación que incluye una marca fija muestra las mismas reglas y ejemplos en solo lectura, bajo *This brand is set*.
 
+## Skills
+
+**Skills** enumera las [brand skills](/info/brand-skills.html) del design system activo: los estándares escritos de la marca, uno por disciplina, para personas y agentes de IA. Cada fila indica la disciplina, el estado propio de la marca (**Draft** o **Approved**), si la skill es pública o interna y su revisión. Elige una fila para leer la skill junto a su cobertura, que contrasta las líneas de la skill con tus tokens: lo que Lolly comprueba, lo que entra en conflicto, lo que coincide y lo que es solo orientación.
+
+**Download skill (.zip)** escribe la skill como una carpeta de Agent Skills para una herramienta de agente, con enlaces de catálogo que apuntan a este Lolly, y **Copy as one file** pone el mismo texto en el portapapeles para una ventana de chat. Un design system sin skills propias enumera una base que Lolly escribe a partir de sus tokens y reglas de la casa cada vez que se lee. La sala lee las skills y nunca las edita.
+
 ## Traer una marca
 
-**Add from…**, al pie del carril, abre un selector que pregunta qué tienes, no en qué formato está:
+**Add from…**, en la barra, abre un selector que pregunta qué tienes, no en qué formato está:
 
 - **Design tokens or a design file**: JSON DTCG o Tokens Studio, un proyecto de Penpot, un zip de conjuntos de tokens, un paquete de design system de Lolly o un SVG.
 - **PDF**: un deck o un archivo de directrices, leído en este dispositivo para sus colores, marcas y tipografías incrustadas.
@@ -303,7 +312,7 @@ Las importaciones de PDF y de archivos de diseño conservan sus propios controle
 
 ### Encontrar y comparar un aspecto
 
-Abre **Find a look** desde Overview o desde la lista de design systems en Settings. Explora los sistemas guardados en este dispositivo y unos pocos ejemplos reutilizables de Lolly, y busca por nombre, etiqueta de color o fuente declarada. **Closest to my current palette** ordena por similitud de color medida, desempatando con las fuentes coincidentes; no es una puntuación de calidad.
+Abre **Find a look** desde Board o desde la lista de design systems en Settings. Explora los sistemas guardados en este dispositivo y unos pocos ejemplos reutilizables de Lolly, y busca por nombre, etiqueta de color o fuente declarada. **Closest to my current palette** ordena por similitud de color medida, desempatando con las fuentes coincidentes; no es una puntuación de calidad.
 
 Selecciona un aspecto para revisarlo, o dos para compararlos lado a lado. Seleccionar no cambia nada. **Use this saved system** cambia a él, y **Use these colours** aplica los colores de un ejemplo mediante el punto de control habitual, conservando tus fuentes. **Restore brand settings** recupera el aspecto anterior. Los sistemas guardados tienen **Search tags** editables en **Details and design context**. Los ejemplos son recetas de color originales de Lolly, sin ninguna colección extraída y sin cuenta.
 
@@ -315,17 +324,17 @@ Selecciona un aspecto para revisarlo, o dos para compararlos lado a lado. Selecc
 
 **Export** escribe un archivo **`LollyBrand-….lolly`**: tus tokens, fuentes, logotipos y preferencia de tema, con un manifiesto de integridad que se comprueba al volver a entrar. Las versiones web anteriores a la 1.0.7 llamaban `.zip` al mismo archivo, y esa grafía todavía se acepta. **Tokens (.json)** escribe por separado el documento simple de design tokens, sin fuentes ni logotipos, para un repositorio, un paso de compilación u otra herramienta de tokens.
 
-Para traer uno de vuelta, usa **Add from… → Design tokens or a design file**, o suelta el archivo sobre el estudio. Así te entrega una marca un colega, o así llevas una a una segunda instalación, sin cuenta y sin nube. Para traer una marca desde la línea de comandos, consulta [`ingest:brand`](/info/configuration.html#brand-packs).
+Para traer uno de vuelta, usa **Add from… → Design tokens or a design file**, o suelta el archivo sobre el estudio. Así te entrega una marca un colega, o así llevas una a una segunda instalación, sin cuenta y sin nube. [Working with partners](/info/partners.html) explica qué más enviar cuando la persona que recibe tu marca trabaja para otra organización. Para traer una marca desde la línea de comandos, consulta [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** empaqueta las fuentes que añadiste en un RPM instalable. Si subiste alguna tú mismo, Lolly te pide antes que confirmes que puedes redistribuirla.
 
 ### Restaurar ajustes anteriores
 
-Elige **Restore brand settings**, selecciona un punto de control con fecha y pulsa **Restore**. Restaura colores, ajustes de tipografía y otros tokens de la marca activa; los archivos de fuente e imagen se quedan como están. Lolly guarda antes tus ajustes actuales como **Before restore**, para que puedas revertir una restauración incluso después de cerrar el navegador. Se conservan los últimos 20 puntos de control en este dispositivo.
+Abre **More** en la barra, elige **Restore brand settings**, selecciona un punto de control con fecha y pulsa **Restore**. Restaura colores, ajustes de tipografía y otros tokens de la marca activa; los archivos de fuente e imagen se quedan como están. Lolly guarda antes tus ajustes actuales como **Before restore**, para que puedas revertir una restauración incluso después de cerrar el navegador. Se conservan los últimos 20 puntos de control en este dispositivo.
 
 ### Versions
 
-Una versión publicada es una **copia permanente con nombre** guardada en este dispositivo. Nunca cambia, así que una herramienta o un enlace que la fija (con `designv`) sigue dibujando lo mismo. Un sistema con algo propio muestra un discreto enlace **Versions & publishing** al pie del carril; tras tu primera publicación pasa a ser la entrada **Versions**. `#/start?area=versions` la abre directamente.
+Una versión publicada es una **copia permanente con nombre** guardada en este dispositivo. Nunca cambia, así que una herramienta o un enlace que la fija (con `designv`) sigue dibujando lo mismo. Un sistema con algo propio muestra **Versions & publishing** en el menú **More** de la barra; tras tu primera publicación **Versions** se une a las salas. `#/start?area=versions` la abre directamente.
 
 - **Una versión es permanente.** Todavía no hay eliminación, y el panel lo dice.
 - **Las eliminaciones encabezan la tarjeta de compatibilidad**, porque un token eliminado es lo que rompe una herramienta.
@@ -359,5 +368,6 @@ Cambiar lo que aporta un servidor es tarea de un administrador: su operador camb
 
 - **[Using Lolly](/info/using.html)**: las herramientas, guardar, compartir y Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: cómo se corresponden divisiones, productos, marcas avaladas, clientes y temporadas con design systems, colourways e identidades de logotipo.
+- **[Working with partners](/info/partners.html)**: compartir tu marca con un socio y trabajar en una marca que te han dado.
 - **[Design Tokens](/info/design-tokens.html)**: el modelo de tokens en el que se escribe tu marca.
 - **[Export a file](/info/exporting.html)**: unidades de impresión, CMYK y los formatos en los que se renderiza tu marca.

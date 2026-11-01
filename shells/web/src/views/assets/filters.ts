@@ -210,7 +210,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
     parts.push(cat.tiles.groupSection(g.key, g.label, items.length, () => colourRow + assetGridHtml(cat, g.key, items)));
   }
   if (packItems.length) {
-    parts.push(cat.tiles.groupSection('emoji-sets', 'Emoji sets', packItems.length, () => assetGridHtml(cat, 'emoji-sets', packItems)));
+    parts.push(cat.tiles.groupSection('emoji-sets', categoryLabel('emoji-sets'), packItems.length, () => assetGridHtml(cat, 'emoji-sets', packItems)));
   }
   // Hidden assets never match a search (they're not in `visible`); keep them under a
   // dedicated group only in the normal (non-search) view.

@@ -4,13 +4,13 @@
  * mountTool → createRuntime; renderSvg turns the current state into an SVG string
  * (for the terminal preview); exportToFile writes a real file via the Node bridge.
  */
-import { loadTool, createRuntime, parseUrlState, serializeUrlState, expandQuery, normalizeLang, embedC2pa, C2PA_FORMATS, readFileDesignRecord } from '@lolly/engine';
+import { loadTool, createRuntime, canvasSizeOf, parseUrlState, serializeUrlState, expandQuery, normalizeLang, embedC2pa, C2PA_FORMATS, readFileDesignRecord, parseToolUrl } from '@lolly/engine';
 import type { UrlState } from '../../../engine/src/url-mode.ts';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 // The DOM-free/raster format split + the resvg fast path + the export C2PA payload,
 // shared with the CLI (one implementation, no drift).
-import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal } from '@lolly-tools/node-shell/raster';
+import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
@@ -26,6 +26,29 @@ import type { JSDOM } from 'jsdom';
 export type Runtime = Awaited<ReturnType<typeof createRuntime>>;
 export type Manifest = Awaited<ReturnType<typeof loadTool>>['manifest'];
 
+/**
+ * The tool a pasted lolly.tools link opens, with its settings, or why it opens
+ * none. The result always carries `fromLink`, so the mount refuses a link that
+ * points at files on this computer (`mountTool`).
+ */
+export function toolLinkRoute(url: string, known: (toolId: string) => boolean): { toolId: string; query: string; fromLink: true } | { error: string } {
+  const ref = parseToolUrl(url);
+  if (!ref) return { error: 'Not a recognised lolly.tools URL' };
+  if (!known(ref.toolId)) return { error: `This build has no tool “${ref.toolId}”` };
+  return { toolId: ref.toolId, query: ref.query, fromLink: true };
+}
+
+/** A pasted link that points at a file on this computer (see `mountTool`). */
+export class LinkLocalFileError extends Error {
+  override name = 'LinkLocalFileError';
+  readonly hit: { inputId: string; fieldId: string | null; value: string };
+  constructor(hit: { inputId: string; fieldId: string | null; value: string }) {
+    super(`The link sets ${hit.fieldId ? `a ${hit.fieldId} in ${hit.inputId}` : hit.inputId} to "${hit.value}", a file on this computer. ` +
+      'A link cannot choose files for Lolly to read, so the tool was not opened. Open the tool from the gallery and add the file yourself.');
+    this.hit = hit;
+  }
+}
+
 /** What a mount yields: the runtime, its manifest, and the FULL reserved URL state from
  *  the share link (so the caller can seed the export panel + know the requested language),
  *  not just the input values. */
@@ -40,9 +63,18 @@ export interface MountResult { runtime: Runtime; manifest: Manifest; reserved: U
  * app has only that (no URL-state), so it is what reopens it here. Values win over the
  * query where both name an input: they are the same state one step later, with nothing
  * dropped by an encoder. This is the web tool view's own rule (views/tool.ts).
+ *
+ * `fromLink` marks a query someone else wrote (a pasted lolly.tools link). Such a
+ * query says what to draw, never which files on this computer to read: a `file:`
+ * URL or a local path in a picture, or a path in a file input, is refused with a
+ * `LinkLocalFileError` and nothing is mounted. The CLI refuses the same
+ * (`bakeLocalBlockAssets`, LINK_LOCAL_PATH), because the bridge's
+ * `host.assets.bytes` reads `file:` URLs and a hook such as Logo Wall's inlines
+ * what it reads into the export.
  */
 export async function mountTool(
   toolId: string, host: HostV1, query = '', values?: Record<string, unknown>,
+  opts: { fromLink?: boolean } = {},
 ): Promise<MountResult> {
   // Expand a packed `z=` share link FIRST (mirrors shells/cli/src/run.ts) - a no-op on a
   // readable or empty query. Without this the TUI silently loads a packed link at defaults.
@@ -60,10 +92,31 @@ export async function mountTool(
   // dims, unit, dpi, c2pa, password, filename) seed the export panel instead of being
   // silently dropped and reset to manifest defaults.
   const reserved = parseUrlState(expanded, tool.manifest);
+  if (opts.fromLink) {
+    const { linkLocalFile } = await import('../../cli/src/block-files.ts');
+    const hit = await linkLocalFile(tool.manifest as Parameters<typeof linkLocalFile>[0], reserved.values as Record<string, unknown>);
+    if (hit) throw new LinkLocalFileError(hit);
+  }
   const initial = values ? { ...reserved.values, ...values } : reserved.values;
-  const runtime = await createRuntime(tool, host, initial as Parameters<typeof createRuntime>[2]);
+  // The link's size is the canvas size the hooks first lay out for (engine 1.293); the
+  // Export panel's width and height move it from there (setCanvasSizeFrom).
+  const runtime = await createRuntime(tool, host, initial as Parameters<typeof createRuntime>[2], {
+    canvasSize: canvasSizeOf(reserved.width, reserved.height, reserved.unit ?? 'px'),
+  });
   await (await import('./document-emoji.ts')).seedEmoji(runtime,host,reserved,values);
   return { runtime, manifest: tool.manifest, reserved };
+}
+
+/**
+ * Tell the tool the canvas size the Export panel's width, height and unit describe
+ * (engine 1.293), the same CSS pixels the web shell hands it for that size. Both
+ * sides blank or invalid is the tool's own size. A tool that follows the size lays
+ * itself out again. True when the size changed: the caller then repaints the preview.
+ */
+export async function setCanvasSizeFrom(runtime: Runtime, dims: { width?: number; height?: number; unit?: string }): Promise<boolean> {
+  const before = runtime.canvasSize;
+  await runtime.setCanvasSize(canvasSizeOf(dims.width, dims.height, dims.unit || 'px'));
+  return runtime.canvasSize !== before;
 }
 
 /** The current state as a URL query - what a saved session stores + reopens from. */
@@ -111,8 +164,14 @@ function canvasOf(dom: JSDOM): HTMLElement {
  * Render the runtime's CURRENT state to an SVG string, or null when this tool can't
  * produce SVG in a pure-Node shell (HTML-layout tools need a browser engine). Used
  * for the terminal image preview - resvg rasterises the returned SVG.
+ *
+ * `dims` is the size a PNG export will be drawn at. As in the CLI's Tier A
+ * (shells/cli/src/raster.ts), it reaches the SVG export as the width and height an
+ * SVG export of that size gets, so a tool that lays itself out for the export's
+ * shape (Logo Wall) draws the same picture into both, and only when the drawn root
+ * <svg> has a viewBox, so a tool without one keeps the scaling the PNG always had.
  */
-export async function renderSvg(runtime: Runtime, dom: JSDOM): Promise<string | null> {
+export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims): Promise<string | null> {
   try {
     const canvas = canvasOf(dom);
     canvas.innerHTML = runtime.getHydrated();
@@ -120,7 +179,7 @@ export async function renderSvg(runtime: Runtime, dom: JSDOM): Promise<string | 
     // the chosen set like any other canvas. Stated here rather than left to the
     // side effect of the export below, which walks the same node a moment later.
     await runtime.applyEmojiToDom(canvas);
-    const blob = await runtime.export(canvas, 'svg', {});
+    const blob = await runtime.export(canvas, 'svg', svgExportSize(canvas, dims));
     return await blob.text();
   } catch {
     return null;
@@ -153,6 +212,9 @@ export async function exportToFile(
     throw new Error(printPrepRefusal(fmt));
   }
   const transform = isTransform(manifest);
+  // The canvas size is the export's own (engine 1.293), so a tool that lays itself out
+  // for the canvas draws this file at this shape. A no-op when the view already set that size.
+  await setCanvasSizeFrom(runtime, dims);
   // The design-system record (plans/319): the export panel's Design system row sets it
   // per export, so the runtime's own exports and the Tier-B URL read one switch.
   if (typeof dims.madeWith === 'boolean') runtime.setMadeWith(dims.madeWith);
@@ -253,7 +315,7 @@ export async function exportToFile(
   //     same fix shells/cli/src/raster.ts made). Only the DURABLE (neural TrustMark)
   //     mark still needs the web shell's export path, so that alone falls through.
   if (!floatScene && modelValues(runtime).editingRange !== 'hdr' && eligibleForResvgPng(fmt, dims)) {
-    const svg = await renderSvg(runtime, dom);
+    const svg = await renderSvg(runtime, dom, dims);
     if (svg) {
       // Shared Tier-A rasteriser (node-shell), identical to the CLI: imprint when asked
       // (a frame below the detection floor returns the plain PNG unmarked, never fails)

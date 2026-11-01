@@ -302,6 +302,11 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
       fc.scaleMode.set(false);
       return;
     }
+    // A selected motion-path point (plans/330) is the innermost thing on the canvas.
+    if (fc.motionPath?.onKey(e)) {
+      e.preventDefault();
+      return;
+    }
     if (fc.selectedEdges.size) {
       e.preventDefault();
       fc.edges.deselectEdge();
@@ -521,6 +526,12 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
       return;
     }
     fc.textEdit.startTextEdit(first, { selectAll: e.key === 'Enter' && !(fc.cv.textStoryField && rows[at]?.[fc.cv.textStoryField]) });
+    return;
+  }
+  // With a motion-path point selected (plans/330), Delete takes its handles back, as it
+  // does on a pen node: never the box the path belongs to.
+  if ((e.key === 'Delete' || e.key === 'Backspace') && fc.motionPath?.onKey(e)) {
+    e.preventDefault();
     return;
   }
   // In gradient mode the selected thing is a STOP, so Delete removes that - deleting

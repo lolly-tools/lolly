@@ -10,9 +10,9 @@ Questa pagina percorre la tela dal primo box a un deck finito: la finestra, la m
 
 La **barra superiore** inizia con **Home**, il **File menu** e il nome del documento (fai clic sul nome per rinominare il documento). Al centro ci sono **Undo**, **Redo**, **History**, i controlli di zoom (con **Fit all** e **Fit artboard**) e gli interruttori per **Timeline**, **Navigator** e **Inspector**. A destra si trovano **Share**, **Present** e **Export**. Su un telefono, i pulsanti meno usati passano in **More actions**.
 
-La **barra degli strumenti** sul lato contiene il menu Lolly e gli strumenti con cui disegni: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, poi i pulsanti Timeline, Artboards e Auto-arrange.
+La **barra degli strumenti** sul lato contiene il menu Lolly e gli strumenti con cui disegni: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, poi i pulsanti Timeline, Artboards e Auto-arrange.
 
-![La barra degli strumenti del canvas libero: una maniglia di trascinamento, il menu Lolly, poi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards e Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![La barra degli strumenti del canvas libero: una maniglia di trascinamento, il menu Lolly, poi Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards e Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 La tela funziona come il banco di lavoro di un designer attorno all'artboard:
 
@@ -68,17 +68,26 @@ Senza tasti premuti, una rotazione viene attratta verso i 15 gradi più vicini q
 
 ## Disegna le tue forme
 
-Box, cerchi e riquadri arrotondati coprono la maggior parte dei layout. Per ogni altra forma, disegnala: il pulsante **Pen** della barra (o `P`) ti porta in modalità disegno. Tre tasti singoli passano da una modalità all'altra: `V` per il Pointer, `P` per la Pen e `N` per **Edit points**. Il Pointer è sempre la via d'uscita.
+Box, cerchi e riquadri arrotondati coprono la maggior parte dei layout. Per ogni altra forma, disegnala: il pulsante **Pen** della barra (o `P`) ti porta in modalità disegno. Quattro tasti passano da una modalità all'altra: `V` per il Pointer, `P` per la Pen, `Shift C` per la **Pencil** e `N` per **Edit points**. Il Pointer è sempre la via d'uscita.
 
 - **Fai clic** per posizionare un punto. Con il tipo di curva predefinito, **fai clic e trascina** per estrarre le maniglie del punto e creare una curva; tieni premuto **Alt** mentre fai clic per un angolo netto. (Con gli altri tipi di curva ogni punto è un angolo e il trascinamento non fa nulla.)
-- I punti si agganciano all'artboard e agli altri box mentre li posizioni. Alt sopprime la griglia mentre disegni, e sia la griglia sia i bordi mentre trascini un punto in seguito.
+- Tieni premuto **Shift** mentre fai clic e il nuovo segmento lascia il punto precedente a un multiplo di 15 gradi, così le linee orizzontali, verticali e a 45 gradi vengono esatte. Shift mentre trascini una maniglia la fa avanzare allo stesso modo.
+- I punti si agganciano all'artboard, agli altri box e agli altri punti dello stesso tracciato mentre li posizioni, così un punto si allinea a uno posizionato prima. Alt sopprime la griglia mentre disegni, e sia la griglia sia i bordi mentre trascini un punto in seguito.
 - **Fai clic sul primo punto** per chiudere la forma. Altrimenti premi **Enter**, fai doppio clic o cambia strumento, e il disegno viene mantenuto.
 - **Escape** funziona un passo alla volta: la prima pressione abbandona il disegno, la seconda lascia la penna.
-- **Delete** durante il disegno elimina l'ultimo punto.
+- **Delete**, o Annulla (`⌘ Z` o `Ctrl Z`), durante il disegno elimina l'ultimo punto.
+
+**Continua un tracciato aperto.** Con la Pen attiva, premi su una delle due estremità di un tracciato aperto e disegni di nuovo quel tracciato: ogni clic aggiunge un punto dopo quell'estremità, oppure davanti al primo punto se sei partito dall'inizio. Enter mantiene il risultato ed Escape lascia il tracciato esattamente com'era. Il tracciato resta lo stesso box, con riempimento, tratto e punte di freccia, e un solo annulla lo riporta indietro. Delete annulla solo i punti che hai aggiunto. Una forma chiusa, una linea collegata a un box e un tracciato con più parti non hanno un'estremità libera da cui continuare.
+
+**Disegna a mano libera con la Pencil.** Il pulsante **Pencil** della barra (o `Shift C`) registra il tuo tratto mentre trascini. Quando rilasci, Lolly semplifica il tratto in pochi punti con maniglie di Bezier, mantiene le svolte nette come angoli e tiene la curva entro un paio di pixel dello schermo da dove è passata la tua mano. Un tratto che finisce vicino al suo inizio si chiude. Il risultato è un normale tracciato, con la stessa vernice di un tracciato a penna, e puoi modificarne i punti in seguito.
 
 Il risultato è un normale box. Sposta, ridimensiona, ruota, raggruppa, allinea, riordina, riempi, ombreggia o sfuma il tracciato come qualsiasi altro box. Il primo tracciato prende il riempimento e il tratto che il tuo brand assegna a un tracciato, e ogni nuovo tracciato successivo prende ciò che hai usato per ultimo. In uno strumento il cui brand non imposta nulla per i tracciati, un nuovo tracciato viene tracciato nel colore con cui hai disegnato, così la forma non è mai invisibile.
 
 **Modifica di nuovo i punti.** Fai doppio clic sulla forma, oppure usa **Edit points** nella barra dell'oggetto. Trascina un punto per spostarlo, trascina una maniglia per reindirizzare la curva, fai clic sulla curva per inserire un punto oppure trascina un riquadro attorno a più punti e premi Delete. Un tracciato mantiene sempre almeno due punti.
+
+- Tieni premuto **Shift** mentre trascini un punto e il suo angolo rispetto al punto successivo del tracciato che non si muove avanza a passi di 15 gradi. Shift mentre trascini una maniglia la fa girare a passi attorno al suo punto. Shift mentre fai clic aggiunge ancora un punto o una maniglia alla selezione; i passi iniziano quando trascini.
+- Un punto trascinato si aggancia all'artboard, agli altri box e agli altri punti del tracciato. Tieni premuto Alt per posizionarlo liberamente.
+- Fai clic su una maniglia per selezionarla, poi premi **Delete** per riportarla sul suo punto. Quel lato del punto diventa un angolo, senza alcuna maniglia che tira la curva. Con dei punti selezionati, Delete rimuove i punti come prima.
 
 Il **tipo di spline** decide che tipo di curva passa per i tuoi punti:
 
@@ -112,6 +121,25 @@ Altre tre operazioni agiscono su una singola forma. **Outline stroke…** trasfo
 ![Una mezzaluna e un anello con un vero foro, entrambi prodotti da Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Il risultato è un nuovo tracciato che puoi continuare a modificare con la penna, memorizzato come semplici curve di Bezier, quindi il tipo di spline originale non viene mantenuto. I fori sono veri fori: il controllo **Fill rule** nel pannello del tratto decide se i contorni sovrapposti si riempiono (*non-zero*) o si bucano (*even-odd*). Le operazioni rifiutano piuttosto che distruggere: se chiedi di intersecare due forme che non si sovrappongono, non cambia nulla. I box di testo e di immagine non hanno un contorno, quindi vengono lasciati stare.
+
+## Tratti
+
+Un box, un'immagine, una tavola e un tracciato a penna possono avere ciascuno un tratto: un colore, uno spessore e uno stile (continuo, tratteggiato o puntinato). Le righe del tratto stanno sotto **Fill** nell'Inspector, e il pulsante **Stroke** della barra dell'oggetto le apre.
+
+**Position** colloca il tratto sul contorno: **Inside**, **Centre** o **Outside**. Un box è tracciato all'interno salvo diversa scelta, così il suo bordo esterno resta dove l'hai disegnato, e un tracciato a penna è tracciato centrato sulla sua curva. Con un tratto centrato o esterno il riempimento, l'immagine e il testo restano dentro il bordo interno del tratto, e il contorno di selezione resta sul bordo del box. Un tracciato aperto non ha un interno, quindi è sempre tracciato centrato. Il tratto di una tavola resta sempre dentro la pagina, perché il bordo della pagina è il bordo di esportazione.
+
+**Tratto per lato.** Su un rettangolo, un box arrotondato, una pillola o una tavola, l'interruttore accanto allo spessore mostra quattro spessori: **Top**, **Right**, **Bottom** e **Left**. Imposta un lato a 0 per nasconderlo, e ottieni un divisore o una sottolineatura senza una seconda forma. L'interruttore mostra o nasconde soltanto le quattro celle e non cambia mai un valore. Finché i lati differiscono, lo spessore indica **Mixed**; digita uno spessore lì per impostare tutti e quattro i lati insieme. Colore, posizione e stile restano condivisi da ogni lato, e gli angoli arrotondati si curvano con gli spessori accanto, come fa un bordo CSS. Ellissi, cerchi e tracciati a penna disegnano un solo spessore tutto attorno.
+
+Come i formati portano un tratto:
+
+| Formato | Position | Per lato |
+|---|---|---|
+| SVG, PDF, PNG e le altre immagini | Esatta. Il tratto interno o esterno di un tracciato a penna è disegnato con spessore doppio e ritagliato su un lato del contorno. | Un tratto continuo è esatto, come una sola forma tra il bordo esterno e quello interno del tratto. Uno tratteggiato o puntinato è disegnato come trattini lungo ogni lato in SVG e continuo in PDF. |
+| Penpot | Interno, centro ed esterno viaggiano come allineamento del tratto di Penpot. Una tavola è sempre `inner`. | Penpot 2.19 o successivo legge nativamente i quattro spessori. Penpot 2.18 disegna lo spessore superiore tutto attorno, e Penpot 2.17 o precedente rifiuta un file che porta spessori per lato. |
+| PowerPoint | PowerPoint disegna una linea centrata sul bordo della forma. Centro è esatto; esterno sposta la forma all'esterno di metà spessore, il che porta la linea di PowerPoint fuori dal box; interno mantiene la linea centrata che scrivevano le esportazioni precedenti. | Il tratto diventa una forma separata (l'anello tra il bordo esterno e quello interno), sopra una forma senza linea. |
+| dotLottie | I tratti Lottie sono centrati, quindi un tratto esterno di un box o un tratto interno o esterno di un tracciato a penna viene rifiutato con un messaggio. | Rifiutato con un messaggio. |
+
+Un tratto centrato traslucido mostra la pagina attraverso la sua metà interna, anziché il riempimento, sulla tela e in ogni esportazione. Quando importi un file Penpot, ogni tratto mantiene il suo allineamento e i suoi spessori per lato, e `strokeAlign` e i pesi individuali del tratto di un file Figma arrivano allo stesso modo.
 
 ## Scene 3D e strumenti dentro un design
 
@@ -167,7 +195,7 @@ Dove esiste un suggerimento concreto di colore o font, il suo pulsante cambia qu
 
 ### Regole di stile e segnale di scrittura
 
-La scheda del pannello di esportazione controlla anche le regole di stile che il tuo design system porta con sé, come peso e allineamento del testo, abbinamenti di colore approvati o un logo per superficie, livello per livello. Ogni rilievo è un avviso con il nome del livello sopra la regola. Una regola per cui questa build non ha un controllo è elencata come non controllata, mai come rispettata. [Usage & rules](/info/brand-studio.html#usage-rules) elenca le regole, e `lolly check` applica le stesse a un documento salvato.
+La scheda del pannello di esportazione controlla anche le regole di stile che il tuo design system porta con sé, come peso e allineamento del testo, abbinamenti di colore approvati o un logo per superficie, livello per livello. Ogni rilievo è un avviso con il nome del livello sopra la regola. Una regola per cui questa build non ha un controllo è elencata come non controllata, mai come rispettata. [Rules](/info/brand-studio.html#rules) elenca le regole, e `lolly check` applica le stesse a un documento salvato.
 
 La stessa scheda mostra il segnale di scrittura per il testo che il documento disegna: la sua fascia (nessuno, debole, notevole o forte), poi la frase di Verify con il punteggio su 100 e fino a tre frasi segnalate, ciascuna con il livello che le contiene. **Open the text in Verify** porta quel testo a [Verify](/#/verify) per la lettura completa; [AI evidence in Verify](/info/verify-ai-evidence.html) spiega cosa pesa il punteggio. Il punteggio è un segnale, non un verdetto: conta schemi comuni nella scrittura generata e non può dire chi ha scritto le parole. I livelli nascosti sono esclusi da entrambi i controlli, e la scheda dice quanti sono.
 

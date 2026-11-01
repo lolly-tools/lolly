@@ -23,6 +23,7 @@ Sistemul tău de design decide cum arată fiecare instrument.
 - **[Design System Setup](/info/brand-studio.html)** - logouri, culori, tipografie și restul, setate o dată la `#/start`.
 - **[Lolly Demo în uz](/info/lolly-demo-in-use.html)** - colourway-uri pe muncă reală și trecerea la propriul tău sistem de design.
 - **[Arhitecturi de brand](/info/brand-architectures.html)** - mai multe sisteme de design sau unul cu mai multe colourway-uri, pentru o organizație.
+- **[Working with partners](/info/partners.html)** - partajează-ți brandul cu un partener, lucrează într-un brand primit și construiește un perete de sponsori.
 - **[Importă un design](/info/design-import.html)** - un fișier `.fig`, `.penpot`, `.ai`, `.idml` sau SVG deschis ca layout editabil, nu ca imagine plată.
 - **[Rebrand a deck](/info/rebrand.html)** - un deck PowerPoint mutat pe sistemul tău de design, cu diagramele și animațiile intacte.
 - **[Partajează un design cu reguli](/info/create-a-tool.html)** - transformă un layout într-un instrument pe care ceilalți îl completează.

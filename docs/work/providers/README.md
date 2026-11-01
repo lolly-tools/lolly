@@ -5,6 +5,8 @@ bucket, a Google Drive folder or a DAM. Connect that place to Lolly Work as a **
 its files appear in the Work catalog, ready to pick inside Lolly tools without downloading and
 uploading them again.
 
+An existing DAM can remain the source of record throughout this workflow. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains the division of responsibilities, and [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful use during adoption. Connection, source-field qualification and a later migration are separate decisions.
+
 The source stays in charge. Work reads from it and never edits it, and you decide which groups
 see which files. Optimizely CMP is the one source that can also receive finished exports, and
 only when you turn that on. Penpot is a design-system source: its tokens feed a design system.

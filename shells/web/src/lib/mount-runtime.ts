@@ -29,10 +29,16 @@
  * back to its own approximation with no error anywhere. It would also run the
  * tool before the WebGPU check has passed. mount-runtime.test.ts greps the source
  * tree to hold the line.
+ *
+ * It is also where a still export is held for the whole export (bridge/frame-clock.ts
+ * holdStillExports): a tool whose frame clock declares a still pose is posed and frozen
+ * before the engine starts, ahead of its beforeExport hook. Every other tool's export
+ * runs untouched, in the engine's own order.
  */
 import { createRuntime, inRealmHookExecutor } from '@lolly/engine';
 import type { HookExecutor } from '@lolly/engine';
 import { installToolApis } from '../bridge/index.ts';
+import { holdStillExports } from '../bridge/frame-clock.ts';
 import { getWorkerHookExecutor } from '../bridge/hook-worker.ts';
 import { webGpuChecked } from './webgpu/device.ts';
 import { canvasCostsEnabled, timeHookCalls } from './canvas-feedback.ts';
@@ -95,7 +101,7 @@ export const createToolRuntime: CreateRuntime = async (tool, host, initialState,
   // Rejects with the startup check's WebGpuError once it has failed, so no hook runs.
   await webGpuChecked();
   await installToolApis(host as Parameters<typeof installToolApis>[0]);
-  return createRuntime(tool, host, initialState, withHookPolicy(tool, opts, false));
+  return holdStillExports(await createRuntime(tool, host, initialState, withHookPolicy(tool, opts, false)), tool);
 };
 
 /**
@@ -109,7 +115,7 @@ export const createToolRuntime: CreateRuntime = async (tool, host, initialState,
 export const createInteractiveToolRuntime: CreateRuntime = async (tool, host, initialState, opts) => {
   await webGpuChecked();
   await installToolApis(host as Parameters<typeof installToolApis>[0]);
-  return createRuntime(tool, host, initialState, withHookTiming(withHookPolicy(tool, opts, true)));
+  return holdStillExports(await createRuntime(tool, host, initialState, withHookTiming(withHookPolicy(tool, opts, true))), tool);
 };
 
 /**

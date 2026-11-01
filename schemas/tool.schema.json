@@ -443,6 +443,11 @@
           "default": false,
           "description": "Adds a 'No BG' (transparent background) toggle to the export bar. The engine injects it into the model so hooks can react to it via onInit/onInput."
         },
+        "followsCanvasSize": {
+          "type": "boolean",
+          "default": false,
+          "description": "The tool lays itself out for the canvas size (engine 1.293). Every hook receives ctx.canvasSize, the size the shell is making the tool at in CSS pixels (96 per inch): the requested export size when both sides are known, else render.width x render.height; templates read it as {{@canvasSize.width}} and {{@canvasSize.height}}. With this set, a change of size runs onInput with id '__canvasSize', whose patch updates computed values only, and repaints. Without it the runtime only records the size, so the tool renders exactly as before. Raise engineVersion to ^1.293.0 when you set it."
+        },
         "c2pa": {
           "type": "boolean",
           "default": true,

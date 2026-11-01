@@ -75,6 +75,10 @@ Ino-host ng organisasyon mo ang [Lolly Work](https://github.com/lolly-tools/loll
 Kung ikaw ang nagse-setup ng serbisyo, magsimula sa [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Sandbox ang pampublikong demo sa [lolly.work](https://lolly.work); gamitin ang sariling address ng organisasyon mo para sa gawang kailangan mong itago.
 :::
 
+## Brand ng ibang organisasyon
+
+Ang partner, kliyente o sponsor ay puwedeng magpadala sa iyo ng brand nila bilang design-system file (`.lolly`) sa halip na address. Ang pagbubukas ng ganoong file ay hindi nagkokonekta ng app sa anumang bagay: idinadagdag nito ang design system nila sa tabi ng sarili mo sa device na ito. Iba ang setup file mula sa sarili mong organisasyon, dahil ikinokonekta nito ang app sa Lolly ng organisasyon, at ipinapakita ng preview kung ano ang gagawin ng pagbubukas ng file bago magbago ang anumang bagay. Sinasaklaw ng [Pakikipagtulungan sa mga partner](/info/partners.html) ang magkabilang panig ng pagtatrabaho sa brand ng ibang organisasyon.
+
 ## Pag-alis
 
 Inaalis ng **Leave**, sa **Lolly instance** card sa **Settings**, ang design system, mga tool at catalogue ng organisasyon mo. Nananatili ang sarili mong gawa. Anumang ginawa mo gamit ang mga tool nito ay hindi na muling magbubukas hanggang kumonekta ka ulit.

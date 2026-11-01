@@ -36,13 +36,18 @@
 .project-asset-page .asset-format-viewer { height:75dvh; }
 @media(max-width:600px) { .asset-viewer-toolbar { padding:var(--sp-2); gap:var(--sp-1); } .asset-pdf-rail { position:absolute; inset:0 auto 0 0; width:10rem; z-index:4; background:var(--ui-color-surface-raised); } .cat-details.has-format-viewer { width:100%; } .asset-font-details { grid-template-columns:1fr; } }
 @media(max-width:859px) {
+  /* The viewer fills the screen under the dialog's header, and the whole inspector (name,
+     Download, Details and the rest) takes the same space when the header's Details button
+     is pressed. Both sit in the one grid row under the header, so the header covers neither. */
   .cat-details.has-format-viewer { width:100vw; max-width:100vw; height:100dvh; max-height:100dvh; margin:0; border-radius:0; overflow:hidden; }
-  .cat-details.has-format-viewer .cat-details-preview { height:100%; max-height:none; min-height:0; padding:calc(3.5rem + env(safe-area-inset-top)) 0 env(safe-area-inset-bottom); border-radius:0; }
-  .cat-details.has-format-viewer .cat-details-close { top:calc(var(--sp-3) + env(safe-area-inset-top)); }
-  .asset-viewer-details-toggle { display:inline-flex; position:absolute; top:calc(var(--sp-3) + env(safe-area-inset-top)); left:var(--sp-3); z-index:4; }
-  .cat-details.has-format-viewer .cat-details-body { display:none; position:absolute; inset:calc(3.5rem + env(safe-area-inset-top)) 0 0; z-index:3; overflow:auto; padding-bottom:calc(var(--sp-5) + env(safe-area-inset-bottom)); background:var(--ui-color-surface-raised); }
-  .cat-details.has-format-viewer.is-showing-details .cat-details-body { display:block; }
+  .cat-details[open].has-format-viewer { display:grid; grid-template:auto minmax(0, 1fr) / minmax(0, 1fr); }
+  .cat-details.has-format-viewer > :is(.cat-details-preview, .cat-inspector) { grid-area:2 / 1; }
+  .cat-details.has-format-viewer .cat-details-preview { height:auto; max-height:none; min-height:0; padding:0 0 env(safe-area-inset-bottom); border-radius:0; }
+  .cat-details.has-format-viewer .cat-inspector { display:none; z-index:3; overflow:auto; overscroll-behavior:contain; padding-bottom:env(safe-area-inset-bottom); }
+  .cat-details.has-format-viewer.is-showing-details .cat-inspector { display:flex; }
   .cat-details.has-format-viewer.is-showing-details .cat-details-preview { visibility:hidden; }
+  .asset-viewer-details-toggle { display:inline-flex; margin-inline-start:auto; }
+  .asset-viewer-details-toggle + .cat-details-close { margin-inline-start:0; }
 }
 .asset-vector-stage { flex:1; min-height:0; overflow:auto; padding:var(--sp-3); }
 .asset-vector-stage img { width:100%; display:block; min-height:2rem; }

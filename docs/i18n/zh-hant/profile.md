@@ -13,7 +13,7 @@
 | **Location** | 城市與國家。 |
 | **Headshot** | 選用的照片，裁切成正方形並保存為本機圖片，供電子郵件簽名檔、引言卡與組織圖等工具使用。 |
 | **Use my details to create** | 一個選擇加入的開關（開啟後顯示為 **Using my details**）。它決定你的詳細資料是否作為作者署名隨匯出的檔案與 Batch 執行一起傳遞。它不影響預先填入；請見[工具如何使用你的個人資料](#how-tools-use-your-profile)。 |
-| **Preferences** | 你的主題、你的無障礙設定，以及你在 **Feature flags** 中開啟了應用程式的哪些部分。 |
+| **Preferences** | 你的主題、你在每個設計系統中的配色方案、你的無障礙設定，以及你在 **Feature flags** 中開啟了應用程式的哪些部分。 |
 | **Your work** | 附有縮圖的已儲存工作階段（整理在 [Projects](/info/find-your-work.html) 中）、你上傳的圖片，以及你本機的活動統計。 |
 
 其中沒有任何一項是必填的。空白的個人資料也能運作；只填入能讓你少打字的部分就好。

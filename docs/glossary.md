@@ -4,9 +4,11 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 ## Words you will see in the app
 
+**Content sovereignty.** Control over how your content is created, governed, stored and moved across the systems you choose. In Lolly this includes local production, editable work, portable tools and optional organisation-controlled services. An existing DAM can remain the source of record. These controls do not override source licences or guarantee exact future renders; see [What is content sovereignty?](/info/content-sovereignty.html).
+
 **Design system.** Your colours, fonts, logos and a few rules, which every tool draws with. You set it up once in Design System Setup and switch between design systems in **Settings → Preferences → Design systems**. In the code the same thing is called a brand (see *Design system and brand* below).
 
-**Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Overview, Colours, Type, Logos, Tokens, Files and Usage & rules. "Make it yours" is its heading.
+**Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills, with Versions once a version is published. A bar across the top carries the design system's name.
 
 **Lolly Demo.** Lolly's own sample design system, the one lolly.tools opens with; its lead colour is green. [Meet Lolly Demo](/info/lolly-demo.html) shows the whole design system.
 
@@ -14,9 +16,9 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Managed design system.** A design system your build or your organisation supplies. It shows a lock and stays read-only; you can make an editable copy.
 
-**Colourway.** One of several lead colours a design system offers, with the colour that sits on it and a partner colour, chosen per piece of work. Organisations that rotate their primary colour across pieces use colourways. A colourway combines with light and dark rather than replacing them. One colourway is canonical: work that chooses none is drawn in it, and the app's own colours (its accent, favicon and logo tint) always follow it, never the colourway of the piece on screen. See [Colourways](/info/colourways.html).
+**Colourway.** One of several lead colours a design system offers, with the colour that sits on it and a partner colour, chosen per piece of work. Organisations that rotate their primary colour across pieces use colourways. A colourway combines with light and dark rather than replacing them. One colourway is canonical: work that chooses none is drawn in the canonical colourway. The app's own colours (its accent, favicon and logo tint) follow the colourway a person chose in **Settings → Appearance**, else the canonical one, and never the colourway of the piece on screen; new work starts in the person's colourway. See [Colourways](/info/colourways.html).
 
-**Brand architecture.** How an organisation relates its brands to one another, from one masterbrand with coloured divisions to brands with no visible relationship. Lolly maps each arrangement onto design systems, colourways and logo identities; see [Brand architectures](/info/brand-architectures.html).
+**Brand architecture.** How an organisation relates its brands to one another, from one masterbrand with coloured divisions to brands with no visible relationship. Lolly maps each arrangement onto design systems, colourways and logo identities; see [Brand architectures](/info/brand-architectures.html). Work that carries a partner's or sponsor's brand beside your own is covered in [Working with partners](/info/partners.html).
 
 **Brand skill.** A brand's standards for one discipline (the overall brand, photography, motion, iconography and so on), written as an Agent Skill: a Markdown file, with optional text references, that people and AI agents read. It is a catalog asset of type `skill` with a permanent id such as `lolly/skill/photography`, carried with the design system it belongs to, and Lolly never rewrites its text. Each skill is `public` or `internal`, and internal skills stay out of every static catalog. A skill is guidance and never gives a pass or a fail; the design system's house rules are what Lolly checks. Not the Lolly skill, which says how to operate Lolly, and not a tool skill, which says how to operate one tool. See [Brand skills](/info/brand-skills.html).
 

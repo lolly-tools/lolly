@@ -13,7 +13,7 @@ Tvůj profil také drží to, co při práci nashromáždíš: uložené relace,
 | **Location** | Město a země. |
 | **Headshot** | Volitelná fotka, oříznutá na čtverec a uložená jako místní obrázek, pro nástroje jako e-mailové podpisy, citační karty a organizační schémata. |
 | **Use my details to create** | Jeden volitelný přepínač (po zapnutí se jmenuje **Using my details**). Rozhoduje, zda tvé údaje putují jako autorské uvedení v exportovaných souborech a při během úloh Batch. Neovlivňuje předvyplňování; viz [Jak nástroje používají tvůj profil](#how-tools-use-your-profile). |
-| **Preferences** | Tvůj motiv, nastavení přístupnosti a které části aplikace sis zapnul v **Feature flags**. |
+| **Preferences** | Tvůj motiv, tvůj colourway v každém designovém systému, nastavení přístupnosti a které části aplikace sis zapnul v **Feature flags**. |
 | **Your work** | Uložené relace s miniaturami, uspořádané v [Projects](/info/find-your-work.html), tvé nahrané obrázky a místní statistiky aktivity. |
 
 Nic z toho není povinné. Prázdný profil funguje; vyplň jen to, co ti ušetří psaní.

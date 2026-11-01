@@ -15,18 +15,21 @@
     "company": "Northwind Institute",
     "brandLogo": true,
     "serial": "",
+    "style": "modern",
     "pageSize": "a4-landscape",
-    "color": "{color.semantic.text}",
-    "background": "{color.semantic.surface}",
-    "accent": "{color.semantic.primary}"
+    "motion": "none",
+    "color": "",
+    "background": "",
+    "accent": ""
   },
   "presets": [
     {
       "id": "appreciation",
       "name": "Thank you",
-      "description": "Appreciation for time given, rather than a prize won.",
+      "description": "Appreciation for time given, rather than a prize won, in full colour.",
       "values": {
         "certKind": "appreciation",
+        "style": "celebration",
         "firstname": "Priya",
         "lastname": "Nair",
         "awardtopic": "Two years of volunteering",
@@ -41,6 +44,7 @@
       "description": "A titled award with your own wording in place of the kind.",
       "values": {
         "heading": "Team of the Year",
+        "style": "classic",
         "firstname": "The Atlas",
         "lastname": "Team",
         "awardtopic": "For shipping the 2026 platform on time and in the open",

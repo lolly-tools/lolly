@@ -15,6 +15,8 @@ import { bindOp, type ProfileViewCtx } from './context.ts';
 // currentTheme() can hand back a name that is not one of THEMES (a stale stored
 // value), so a miss shows the raw name rather than an empty summary.
 export const themeLabel = (_pv: ProfileViewCtx, name: string): string => tRaw((THEME_LABELS as Record<string, string>)[name] ?? name);
+// The theme, then the person's colourway when it is not the design system's own (plans/331).
+export const appearanceSummary = (pv: ProfileViewCtx, theme: string): string => [themeLabel(pv, theme), pv.colourwayName].filter(Boolean).join(' · ');
 export const a11yOnCount = (pv: ProfileViewCtx) => { const { A11Y_ROWS, a11yState } = pv; return A11Y_ROWS.filter(r => a11yState[r.key]).length; };
 export const a11ySummary = (pv: ProfileViewCtx) => (a11yOnCount(pv) ? tRaw('{n} on', { n: a11yOnCount(pv) }) : t('Off'));
 export const rendersSummary = (pv: ProfileViewCtx) => (pv.renderSaveState ? t('Keeping copies') : t('Off'));
@@ -30,6 +32,7 @@ export const setSummary = (pv: ProfileViewCtx, id: string, text: string): void =
 export function summariesOps(pv: ProfileViewCtx) {
   return {
     themeLabel: bindOp(pv, themeLabel),
+    appearanceSummary: bindOp(pv, appearanceSummary),
     a11yOnCount: bindOp(pv, a11yOnCount),
     a11ySummary: bindOp(pv, a11ySummary),
     rendersSummary: bindOp(pv, rendersSummary),

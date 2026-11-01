@@ -38,6 +38,12 @@
  * of passing for the wrong reason. The 2026-09-19 `bs-palette-pane` recipe adds
  * five primary shades through the current UI. No shot was dropped: the file
  * still grades the same six files.
+ *
+ * ⚑ 2026-10-31: the Brand Studio redesign (8f3e0e68d) recaptured `brand-studio`
+ * as the studio's bar and room strip, 13 layers whose biggest holds 20 % and no
+ * hero, so the hero and descent cases moved to a frozen copy of the 2026-10-21
+ * capture (`tests/fixtures/svg-lift/brand-studio-hero.svg`), the last one that
+ * still showed the problem, while every other case still grades the six live files.
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -67,12 +73,18 @@ function ink(markup: string): number {
 
 interface Shot { name: string; src: string; layers: SvgLayer[]; viewBox: SvgLayerBox | null; warnings: string[] }
 
-const shots: Shot[] = SHOTS.map((name) => {
-  const path = `${SHOTS_DIR}${name}.svg`;
+function lift(name: string, path: string): Shot {
   const src = existsSync(path) ? readFileSync(path, 'utf8') : '';
   const r = src ? enumerateSvgLayers(src) : { layers: [], warnings: [], viewBox: null };
   return { name, src, layers: r.layers, viewBox: r.viewBox, warnings: r.warnings };
-});
+}
+
+const shots: Shot[] = SHOTS.map((name) => lift(name, `${SHOTS_DIR}${name}.svg`));
+
+/** `brand-studio` as captured 2026-10-21, frozen for the hero and descent cases:
+ *  the live page lost its hero in the 2026-10-31 redesign (see the header). */
+const HERO_FIXTURE = 'tests/fixtures/svg-lift/brand-studio-hero.svg';
+const hero: Shot = lift('brand-studio-hero', fileURLToPath(new URL('./fixtures/svg-lift/brand-studio-hero.svg', import.meta.url)));
 
 // The shots are committed; a missing one is a broken checkout, not a reason to
 // pass. Name the path in the message, so it is actionable.
@@ -218,9 +230,13 @@ describe('a derived document is cropped to its ink, and the row is cut to match'
     // is a share of full-stage and not an area.
     // Re-measured 2026-09-25: ai-stance-change-history measures 20.1 % after the
     // panel-system re-capture (d0f6404b0); budget raised to 25 % with headroom.
+    // Re-measured 2026-10-31 on the Brand Studio redesign recapture (8f3e0e68d),
+    // both budgets lowered to the new measurement plus headroom: brand-studio is
+    // now the bar and room strip and measures 17.2 % (budget was 70 %), and
+    // bs-palette-pane measures 6.3 % (budget was 15 %). The lift code did not change.
     const worst: Record<string, number> = {
       'brand-colours': 0.70, 'ai-stance-change-history': 0.25, 'cc-verify-mobile': 0.35,
-      'bs-palette-pane': 0.15, 'brand-studio': 0.70, 'seq-studio-timeline': 0.10,
+      'bs-palette-pane': 0.10, 'brand-studio': 0.20, 'seq-studio-timeline': 0.10,
     };
     for (const s of shots) {
       const stage = s.viewBox!.w * s.viewBox!.h;
@@ -280,7 +296,15 @@ describe('geometric peers share a depth, so grids stay grids', () => {
     // both groups: 59 layers on 24 rungs. Each group's caption row is a rung of its
     // own (5, then 8), because the Spectrum heading puts the second group 4.2
     // caption heights below the first, past LIFT_PEER_GAP. The lift code did not change.
-    'bs-palette-pane': { rungs: 24, biggest: 13 },
+    // Re-measured 2026-10-31 on the Brand Studio redesign recapture (8f3e0e68d): the
+    // pane is wider (776 px, was 644), so the swatches run six columns, and the frame
+    // now reaches the top row of a third group below the Spectrum one. The wells lift
+    // as one rung of 15 (5, then 8, then 2 of the third group) and the cards as one
+    // of 14, because the enumeration finds 78 layers and the 64-layer cap merges the
+    // last 15 into one, the third group's second card among them: 64 layers on 26
+    // rungs. The caption rows are still a rung of 5 and a rung of 8. The lift code
+    // did not change.
+    'bs-palette-pane': { rungs: 26, biggest: 15 },
     // Re-measured 2026-09-25: the panel-system re-capture (d0f6404b0) redrew the verify
     // cards, so the block now lifts as 8 layers on 5 rungs with a biggest rung of 4.
     'cc-verify-mobile': { rungs: 5, biggest: 4 },     // the card block
@@ -337,8 +361,16 @@ describe('a layer holding the whole picture is opened up', () => {
   // around it. `brand-studio` is the one of the six that still shows it, measured
   // 74 % in one layer of 3, opened up into 8. (`bs-colour-first`, outside the
   // six, is the other one measured that day: 79 %, 5 layers into 9.)
-  test('brand-studio: 3 layers of which one held 74% becomes a real stack', () => {
-    const s = shots.find((x) => x.name === 'brand-studio')!;
+  // Re-fixtured 2026-10-31: the Brand Studio redesign (8f3e0e68d) recaptured
+  // `brand-studio` as the bar and room strip, 13 layers whose biggest holds 20 %,
+  // so the live shot has no hero left to open up. The lift code did not change.
+  // The hero and descent cases read HERO_FIXTURE instead, a frozen copy of the
+  // 2026-10-21 capture, re-measured: 93 % in one layer of 3, opened up into 9
+  // (the 74 % and 8 above were measured on an earlier capture). Every asserted
+  // number is the one written before.
+  test('brand-studio, frozen 2026-10-21: 3 layers of which one held 93% becomes a real stack', () => {
+    const s = hero;
+    assert.ok(s.src, `${HERO_FIXTURE} is missing - it is committed, so restore it`);
     // The fixture must still HAVE the problem it grades. Asserted rather than
     // assumed, because `brand-colours` stopped having one without saying so, and
     // only the layer-count band below caught it - a re-capture whose count sat
@@ -351,7 +383,8 @@ describe('a layer holding the whole picture is opened up', () => {
       `the fixture must still hold a hero: biggest of ${raw.layers.length} is ${(heroShare * 100).toFixed(0)}%`);
     // 6 is twice the 3 it starts from, so a descent that stopped working fails;
     // 20 is SVG_LAYERS_HERO_BUDGET, the count a person can still read in the
-    // dialog, so a descent that ran away fails too. Measured 8.
+    // dialog, so a descent that ran away fails too. Measured 8, and 9 on the
+    // frozen 2026-10-21 capture.
     assert.ok(s.layers.length >= 6 && s.layers.length <= 20,
       `expected 6–20 sensible layers, got ${s.layers.length}`);
     assert.match(s.warnings.join(' '), /held \d+% of this artwork/,
@@ -383,8 +416,10 @@ describe('a layer holding the whole picture is opened up', () => {
     // The descent half follows the hero case onto `brand-studio` (2026-09-03):
     // on the re-captured `brand-colours` there is no descent to opt out of, so
     // `heroDescent: false` and the default agree whatever the flag does. Measured
-    // on brand-studio: 8 layers by default, 3 with the descent off.
-    const s = shots.find((x) => x.name === 'brand-studio')!;
+    // on brand-studio: 8 layers by default, 3 with the descent off. Since
+    // 2026-10-31 the descent half reads the frozen 2026-10-21 capture, with the
+    // hero case: 9 layers by default, 3 with the descent off.
+    const s = hero;
     const raw = enumerateSvgLayers(s.src, { heroDescent: false });
     assert.equal(raw.layers.length, 3, 'the 1.119 enumeration, unchanged');
     assert.ok(raw.layers.length < s.layers.length,
@@ -423,7 +458,9 @@ describe('opening a hero up respects the ceilings it was given', () => {
     // `brand-colours` has no hero, so capping it refused nothing and this read as
     // a pass while proving nothing. On `brand-studio` the descent is real - 3
     // candidates become 8 - and 8 is past a cap of 6, so it is refused whole.
-    const s = shots.find((x) => x.name === 'brand-studio')!;
+    // Since 2026-10-31 this reads the frozen 2026-10-21 capture, with the hero
+    // case: there the 3 candidates become 9, still past the cap of 6.
+    const s = hero;
     const capped = enumerateSvgLayers(s.src, { maxLayers: 6 });
     assert.ok(capped.layers.length <= 6, `the cap must bind: got ${capped.layers.length}`);
     // Measured: 3 layers, which is the un-descended enumeration exactly, and no

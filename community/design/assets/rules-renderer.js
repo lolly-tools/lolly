@@ -1869,7 +1869,7 @@ var KF_MAX_KEYS = 256;   // parse caps - a blocks sub-field has no length limit 
 // truncated a max-density track ~6 KB before the engine would have - the two
 // sides reading different keyframes off the same string. The pin-test corpus
 // carries a track between the two old caps so a re-divergence fails loudly.
-var KF_MAX_CHARS = 92160;
+var KF_MAX_CHARS = 106496;
 var KF_NUM = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/; // no exponent, no '+', no NaN/Infinity
 // plans/329: a spring, esp(stiffness)(damping)(mass), optionally followed by a window
 // (span)(from)(to) in ms, and a design-system ease, et(<token path>) followed by the
@@ -1883,6 +1883,19 @@ var KF_REF_PATH = /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*$/;
 var KF_REF_MAX = 64;
 var KF_T = /^t(-?(?:\d+(?:\.\d+)?|\.\d+))$/;
 var KF_EB = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
+// A path handle (plans/330): hi(dx)(dy) into a keyframe's position, ho(dx)(dy) out of it,
+// px from that position, on the x/y clamp and quantum. TRANSCRIBED like the tables above.
+var KF_HANDLE = /^h([io])\(([^()]*)\)\(([^()]*)\)$/;
+
+// A handle held to the x/y clamp and quantum, or null when it is not two numbers or comes
+// to (0, 0): a retracted handle and an absent one are the same wire.
+function kfHandle(m) {
+  var dx = kfNum(m[2]), dy = kfNum(m[3]);
+  if (dx === null || dy === null) return null;
+  dx = kfQuant(clamp(dx, KF_CLAMPS.x[0], KF_CLAMPS.x[1]), KF_QUANTA.x);
+  dy = kfQuant(clamp(dy, KF_CLAMPS.y[0], KF_CLAMPS.y[1]), KF_QUANTA.y);
+  return dx === 0 && dy === 0 ? null : [dx, dy];
+}
 
 // Round to a quantum whose inverse is an exact power of ten, so String() of the result is
 // its shortest round-tripping spelling - and −0 never reaches the wire.
@@ -1996,12 +2009,20 @@ function kfAttr(v) {
     if (tRaw === null) continue;
     var ease = KF_DEFAULT_EASE;
     var vals = {};
+    var hin = null, hout = null;
     for (var i = 1; i < toks.length; i++) {
       var tok = toks[i];
       if (tok.charAt(0) === 'e') {
         // Later tokens overwrite earlier ones - the wire reads as a list of assignments.
         var e = kfEase(tok);
         if (e) { ease = e; continue; }
+      }
+      // A path handle, tried before the channels because 'h' is one. The last one of each
+      // kind wins, and one that comes to (0, 0) clears an earlier one, as the engine reads.
+      var hm = KF_HANDLE.exec(tok);
+      if (hm && kfNum(hm[2]) !== null && kfNum(hm[3]) !== null) {
+        if (hm[1] === 'i') hin = kfHandle(hm); else hout = kfHandle(hm);
+        continue;
       }
       for (var c = 0; c < KF_CHANNELS_BY_LEN.length; c++) {
         var ch = KF_CHANNELS_BY_LEN[c];
@@ -2012,7 +2033,10 @@ function kfAttr(v) {
         break;
       }
     }
-    keys.push({ t: Math.round(clamp(tRaw, 0, MAX_TIME_S * 1000)), ease: ease, v: vals });
+    var hasPos = Object.prototype.hasOwnProperty.call(vals, 'x') && Object.prototype.hasOwnProperty.call(vals, 'y');
+    // A handle bends the travel between two positions, so only a keyframe holding one keeps it.
+    keys.push({ t: Math.round(clamp(tRaw, 0, MAX_TIME_S * 1000)), ease: ease, v: vals,
+      hi: hasPos ? hin : null, ho: hasPos ? hout : null });
   }
   // Sorted by time, then last-wins at equal times: a re-keyed pose replaces the one it was
   // written over rather than leaving an unreachable twin behind. Array.sort is stable.
@@ -2032,6 +2056,8 @@ function kfAttr(v) {
       if (!Object.prototype.hasOwnProperty.call(key.v, cn)) continue;
       parts.push(cn + key.v[cn]);
     }
+    if (key.hi) parts.push('hi(' + key.hi[0] + ')(' + key.hi[1] + ')');
+    if (key.ho) parts.push('ho(' + key.ho[0] + ')(' + key.ho[1] + ')');
     wire.push(parts.join('_'));
   }
   return wire.join('*');

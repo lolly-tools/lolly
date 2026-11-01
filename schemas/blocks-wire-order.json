@@ -267,7 +267,8 @@
       "threshold",
       "invert",
       "detail",
-      "smoothing"
+      "smoothing",
+      "tier"
     ],
     "lottie-digi-ad:scenes": [
       "anim",

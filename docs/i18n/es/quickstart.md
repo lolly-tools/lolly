@@ -17,14 +17,14 @@ lolly.tools se abre en **Lolly Demo**, el design system de muestra del propio Lo
 Elige la ruta que corresponda a lo que tienes:
 
 - <!--i:palette--> **Un color.** Abre **Design System Setup** (`#/start`), da un nombre a tu design system y elige un color primario. Lolly deriva de él una paleta completa y accesible, con superficies claras y oscuras, texto y acentos. Elige una fuente y ya tienes una marca que funciona.
-- <!--i:upload--> **Un archivo de tokens.** **Add from…**, al pie del carril de salas de Design System Setup, acepta un archivo de tokens DTCG, Tokens Studio o Penpot, un SVG o un paquete `LollyBrand`. Suéltalo y la paleta se rellena. Mientras el design system sigue vacío, **Start from a reference** en la sala Overview abre el mismo selector.
+- <!--i:upload--> **Un archivo de tokens.** **Add from…**, en la barra superior de Design System Setup, acepta un archivo de tokens DTCG, Tokens Studio o Penpot, un SVG o un paquete `LollyBrand`. Suéltalo y la paleta se rellena. Mientras el design system sigue vacío, **Start from a reference** en la sala Board abre el mismo selector.
 - <!--i:pentool--> **Un diseño terminado.** En Design, elige **Import a design** y suelta un archivo `.fig`, `.penpot`, `.ai`, `.idml` o SVG. Consulta [Trae lo que ya tienes](#bring-in-what-you-already-have) más abajo.
 
 La primera vez que abres la galería, una breve bienvenida ofrece las mismas opciones: **Make it yours** abre Design System Setup, **Bring your design** abre un selector de archivos para un diseño y **Explore the community tools** cierra la bienvenida.
 
 ![La sala Colours de Design System Setup en una instalación nueva: una muestra en vivo, un campo y toda la primera decisión](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-A partir de ahí, siete salas lo llevan tan lejos como quieras, en cualquier orden: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** y **Usage & rules**. Todas las vistas previas de la aplicación se actualizan mientras escribes. [Design System Setup](/info/brand-studio.html) cubre cada sala.
+A partir de ahí, ocho salas lo llevan tan lejos como quieras, en cualquier orden: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** y **Skills**. Todas las vistas previas de la aplicación se actualizan mientras escribes. [Design System Setup](/info/brand-studio.html) cubre cada sala.
 
 Las fuentes se guardan en tu dispositivo. Elige una Google Font y Lolly guarda el archivo como recurso de marca, de modo que tu tipografía viaja sin conexión y no se descarga nada cuando una herramienta dibuja.
 

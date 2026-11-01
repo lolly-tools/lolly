@@ -10,9 +10,9 @@ Esta página recorre el lienzo desde el primer cuadro hasta un deck terminado: l
 
 La **barra superior** empieza con **Home**, el **File menu** y el nombre del documento (haz clic en el nombre para renombrar el documento). En el centro están **Undo**, **Redo**, **History**, los controles de zoom (con **Fit all** y **Fit artboard**) y los interruptores de la **Timeline**, el **Navigator** y el **Inspector**. A la derecha están **Share**, **Present** y **Export**. En un teléfono, los botones menos usados pasan a **More actions**.
 
-El **carril de herramientas** a un lado contiene el menú de Lolly y las herramientas con las que dibujas: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, y luego los botones de Timeline, Artboards y Auto-arrange.
+El **carril de herramientas** a un lado contiene el menú de Lolly y las herramientas con las que dibujas: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, y luego los botones de Timeline, Artboards y Auto-arrange.
 
-![La barra de herramientas del lienzo libre: un asa de arrastre, el menú de Lolly y luego Puntero, Añadir un cuadro, Pluma, Editar puntos, Línea, Línea de tiempo, Áreas de diseño y Organizar automáticamente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![La barra de herramientas del lienzo libre: un asa de arrastre, el menú de Lolly y luego Puntero, Añadir un cuadro, Pluma, Lápiz, Editar puntos, Línea, Línea de tiempo, Áreas de diseño y Organizar automáticamente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 El lienzo funciona como la mesa de trabajo de un diseñador alrededor de la mesa de arte:
 
@@ -68,17 +68,26 @@ Sin ninguna tecla pulsada, un giro se atrae a los 15 grados más próximos cuand
 
 ## Dibuja tus propias formas
 
-Los cuadros, círculos y marcos redondeados cubren la mayoría de los diseños. Para cualquier otra forma, dibuja una: el botón **Pen** del carril (o `P`) te pone en modo de dibujo. Tres teclas sueltas cambian entre modos: `V` para el Pointer, `P` para el Pen y `N` para **Edit points**. El Pointer es siempre la salida.
+Los cuadros, círculos y marcos redondeados cubren la mayoría de los diseños. Para cualquier otra forma, dibuja una: el botón **Pen** del carril (o `P`) te pone en modo de dibujo. Cuatro teclas cambian entre modos: `V` para el Pointer, `P` para el Pen, `Shift C` para el **Pencil** y `N` para **Edit points**. El Pointer es siempre la salida.
 
 - **Haz clic** para colocar un punto. En el tipo de curva predeterminado, **hacer clic y arrastrar** saca los tiradores del punto para hacer una curva; mantén **Alt** al hacer clic para un vértice duro. (En los demás tipos de curva todos los puntos son vértices y arrastrar no hace nada.)
-- Los puntos se ajustan a la mesa de arte y a tus otros cuadros al colocarlos. Alt suspende la cuadrícula mientras dibujas, y tanto la cuadrícula como los bordes mientras arrastras un punto después.
+- Mantén **Shift** al hacer clic y el nuevo segmento sale del punto anterior en un múltiplo de 15 grados, así que las líneas niveladas, verticales y de 45 grados salen exactas. Shift mientras sacas un tirador lo ajusta del mismo modo.
+- Los puntos se ajustan a la mesa de arte, a tus otros cuadros y a los demás puntos del mismo trazado al colocarlos, así que un punto queda alineado con uno que colocaste antes. Alt suspende la cuadrícula mientras dibujas, y tanto la cuadrícula como los bordes mientras arrastras un punto después.
 - **Haz clic en tu primer punto** para cerrar la forma. En caso contrario pulsa **Enter**, haz doble clic o cambia de herramienta, y el dibujo se conserva.
 - **Escape** funciona de paso en paso: la primera pulsación abandona el dibujo, la segunda sale del pen.
-- **Delete** mientras dibujas elimina el último punto.
+- **Delete**, o Deshacer (`⌘ Z` o `Ctrl Z`), mientras dibujas elimina el último punto.
+
+**Continúa un trazado abierto.** Con el Pen activo, pulsa en cualquiera de los extremos de un trazado abierto y vuelves a dibujar ese trazado: cada clic añade un punto después de ese extremo, o delante del primer punto si empezaste desde el principio. Enter conserva el resultado y Escape deja el trazado exactamente como estaba. El trazado sigue siendo el mismo cuadro, con su relleno, trazo y puntas de flecha, y un solo deshacer lo devuelve. Delete retira solo los puntos que añadiste. Una forma cerrada, una línea unida a un cuadro y un trazado con varias partes no tienen un extremo libre para continuar.
+
+**Dibuja a mano alzada con el Pencil.** El botón **Pencil** del carril (o `Shift C`) graba tu trazo mientras arrastras. Al soltar, Lolly suaviza el trazo en unos pocos puntos con tiradores Bezier, conserva los giros bruscos como vértices y mantiene la curva a un par de píxeles de pantalla de por dónde fue tu mano. Un trazo que termina cerca de su inicio se cierra. El resultado es un trazado normal, con la misma pintura que un trazado de pluma, y después puedes editar sus puntos.
 
 El resultado es un cuadro normal. Mueve, redimensiona, gira, agrupa, alinea, reordena, rellena, sombrea o desvanece el trazado como cualquier otro cuadro. El primer trazado toma el relleno y el trazo que tu marca da a un trazado, y cada trazado nuevo toma lo último que usaste. En una herramienta cuya marca no define nada para los trazados, un trazado nuevo se perfila con el color con el que dibujaste, así que la forma nunca es invisible.
 
 **Edita los puntos de nuevo.** Haz doble clic en la forma, o usa **Edit points** en la barra de objeto. Arrastra un punto para moverlo, arrastra un tirador para reorientar la curva, haz clic en la curva para insertar un punto, o arrastra un recuadro alrededor de varios puntos y pulsa Delete. Un trazado siempre conserva al menos dos puntos.
+
+- Mantén **Shift** mientras arrastras un punto y su ángulo respecto al siguiente punto del trazado que no se mueve avanza en pasos de 15 grados. Shift mientras arrastras un tirador gira el tirador alrededor de su propio punto. Shift al hacer clic sigue añadiendo un punto o un tirador a la selección; los pasos empiezan cuando arrastras.
+- Un punto arrastrado se ajusta a la mesa de arte, a otros cuadros y a los demás puntos del trazado. Mantén Alt para colocarlo libremente.
+- Haz clic en un tirador para seleccionarlo y pulsa **Delete** para devolverlo a su punto. Ese lado del punto pasa a ser un vértice, sin tirador que tire de la curva. Con puntos seleccionados, Delete elimina los puntos como antes.
 
 **Spline type** decide qué tipo de curva pasa por tus puntos:
 
@@ -112,6 +121,25 @@ Otras tres funcionan sobre una sola forma. **Outline stroke…** convierte un tr
 ![Una media luna y un anillo con un agujero real, ambos producidos con Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 El resultado es un trazado nuevo que puedes seguir editando con el pen, guardado como curvas Bézier simples, por lo que el tipo de spline original no se conserva. Los agujeros son agujeros reales: el control **Fill rule** del panel de trazo decide si los contornos superpuestos se rellenan (*non-zero*) o se perforan (*even-odd*). Las operaciones se niegan antes que destruir: si pides intersecar dos formas que no se superponen, no cambia nada. Los cuadros de texto e imagen no tienen contorno, así que se dejan como están.
+
+## Trazos
+
+Un cuadro, una imagen, un tablero y un trazado de pluma pueden llevar cada uno un trazo: un color, un grosor y un estilo (sólido, discontinuo o punteado). Las filas del trazo están bajo **Fill** en el Inspector, y el botón **Stroke** de la barra de objeto las abre.
+
+**Position** coloca el trazo sobre el contorno: **Inside**, **Centre** u **Outside**. Un cuadro lleva el trazo por dentro salvo que elijas otra cosa, así que su borde exterior queda donde lo dibujaste, y un trazado de pluma lleva el trazo centrado sobre su curva. Con un trazo centrado o exterior, el relleno, la imagen y el texto quedan dentro del borde interior del trazo, y el contorno de selección queda en el borde propio del cuadro. Un trazado abierto no tiene interior, así que siempre lleva el trazo centrado. El trazo de un tablero siempre queda dentro de la página, porque el borde de la página es el borde de exportación.
+
+**Trazo por lado.** En un rectángulo, un cuadro redondeado, una píldora o un tablero, el interruptor junto al grosor muestra cuatro grosores: **Top**, **Right**, **Bottom** y **Left**. Pon un lado a 0 para ocultarlo, lo que da un divisor o un subrayado sin una segunda forma. El interruptor solo muestra u oculta las cuatro celdas y nunca cambia un valor. Mientras los lados difieren, el grosor muestra **Mixed**; escribe ahí un grosor para fijar los cuatro lados a la vez. El color, la posición y el estilo siguen compartidos por todos los lados, y las esquinas redondeadas se curvan con los grosores que tienen al lado, como hace un borde CSS. Las elipses, los círculos y los trazados de pluma dibujan un solo grosor en todo el contorno.
+
+Cómo llevan un trazo los formatos:
+
+| Formato | Posición | Por lado |
+|---|---|---|
+| SVG, PDF, PNG y las demás imágenes | Exacta. El trazo interior o exterior de un trazado de pluma se dibuja al doble de grosor y se recorta a un lado del contorno. | Un trazo sólido es exacto, como una forma entre los bordes exterior e interior del trazo. Uno discontinuo o punteado se dibuja como guiones a lo largo de cada lado en SVG y sólido en PDF. |
+| Penpot | Interior, centrado y exterior viajan como la alineación del trazo de Penpot. Un tablero es siempre `inner`. | Penpot 2.19 o posterior lee los cuatro grosores de forma nativa. Penpot 2.18 dibuja el grosor superior en todo el contorno, y Penpot 2.17 o anterior rechaza un archivo que lleve grosores por lado. |
+| PowerPoint | PowerPoint dibuja una línea centrada sobre el borde de la forma. Centrado es exacto; exterior desplaza la forma hacia fuera la mitad del grosor, lo que deja la línea de PowerPoint fuera del cuadro; interior conserva la línea centrada que escribían las exportaciones anteriores. | El trazo se convierte en una forma aparte (el anillo entre los bordes exterior e interior), sobre una forma sin línea. |
+| dotLottie | Los trazos de Lottie son centrados, así que un trazo exterior de cuadro o un trazo de pluma interior o exterior se rechaza con un mensaje. | Rechazado con un mensaje. |
+
+Un trazo centrado translúcido deja ver la página por su mitad interior, en lugar del relleno, en el lienzo y en cada exportación. Al importar un archivo de Penpot, cada trazo conserva su alineación y sus grosores por lado, y el `strokeAlign` y los grosores de trazo individuales de un archivo de Figma pasan del mismo modo.
 
 ## Escenas 3D y herramientas dentro de un diseño
 
@@ -167,7 +195,7 @@ Donde existe una sugerencia concreta de color o fuente, su botón cambia esa ún
 
 ### Normas internas y la señal de redacción
 
-La tarjeta del panel de exportación también comprueba las normas internas que trae tu design system, como el grosor y la alineación del texto, las combinaciones de colores aprobadas o un logotipo por superficie, capa por capa. Cada hallazgo es una advertencia con el nombre de la capa sobre la regla. Una regla para la que esta compilación no tiene comprobador se enumera como no comprobada, nunca como cumplida. [Usage & rules](/info/brand-studio.html#usage-rules) enumera las reglas, y `lolly check` aplica las mismas a un documento guardado.
+La tarjeta del panel de exportación también comprueba las normas internas que trae tu design system, como el grosor y la alineación del texto, las combinaciones de colores aprobadas o un logotipo por superficie, capa por capa. Cada hallazgo es una advertencia con el nombre de la capa sobre la regla. Una regla para la que esta compilación no tiene comprobador se enumera como no comprobada, nunca como cumplida. [Rules](/info/brand-studio.html#rules) enumera las reglas, y `lolly check` aplica las mismas a un documento guardado.
 
 La misma tarjeta muestra la señal de redacción del texto que dibuja el documento: su banda (none, weak, notable o strong), y luego la propia frase de Verify con la puntuación sobre 100 y hasta tres frases señaladas, cada una con la capa que las contiene. **Open the text in Verify** lleva ese texto a [Verify](/#/verify) para la lectura completa; [AI evidence in Verify](/info/verify-ai-evidence.html) explica qué pondera la puntuación. La puntuación es una señal, no un veredicto: cuenta patrones comunes en la escritura generada y no puede decir quién escribió las palabras. Las capas ocultas quedan fuera de ambas comprobaciones, y la tarjeta indica cuántas.
 

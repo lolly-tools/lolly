@@ -28,6 +28,7 @@ import { mountModal } from '../../components/modal.ts';
 import { mountAssetInspectorDock } from '../../components/asset-inspector-dock.ts';
 import { copyText } from '../../lib/copy-text.ts';
 import { icon } from '../../lib/icons.ts';
+import { metaRow, type MetaKey } from '../../lib/meta-rows.ts';
 import { segHtml } from '../../lib/seg.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { replaceRouteUrl } from '../../lib/url-state.ts';
@@ -60,8 +61,8 @@ const copyButton = (value: string, label = value): string =>
   `<button type="button" class="cat-swatch-copy" data-swatch-copy="${escapeText(value)}"
     aria-label="${escapeText(tRaw('Copy {v}', { v: label }))}" data-tip="${escapeText(t('Copy'))}">${icon('clipboard', { size: 15 })}</button>`;
 
-const row = (label: string, value: string, copy?: string): string =>
-  `<div><dt>${escapeText(label)}</dt><dd><span class="cat-swatch-val">${value}</span>${copy ? copyButton(copy) : ''}</dd></div>`;
+const row = (key: MetaKey, label: string, value: string, copy?: string): string =>
+  metaRow(key, label, `<span class="cat-swatch-val">${value}</span>${copy ? copyButton(copy) : ''}`);
 
 // ── Sections ──────────────────────────────────────────────────────────────────
 
@@ -74,7 +75,7 @@ function faceRows(faces: Record<string, string | number[]> | undefined): string 
     const label = target.startsWith('icc:')
       ? tRaw('Press profile ({intent})', { intent: intent || t('default') })
       : target === 'srgb' ? 'sRGB' : target === 'display-p3' ? 'Display-P3' : target === 'rec2020' ? 'Rec.2020' : target;
-    return row(tRaw('Authored for {target}', { target: label }), `<code>${escapeText(text)}</code>`, text);
+    return row('authoredFor', tRaw('Authored for {target}', { target: label }), `<code>${escapeText(text)}</code>`, text);
   }).join('');
 }
 
@@ -83,22 +84,22 @@ export function linkedHtml(f: SwatchFacts): string {
   const { entry } = f;
   const rows: string[] = [];
   if (Array.isArray(entry.cmyk)) {
-    rows.push(row(t('CMYK'), `<code>${escapeText(cmykText(entry.cmyk))}</code>`, entry.cmyk.join(', ')));
+    rows.push(row('cmyk', t('CMYK'), `<code>${escapeText(cmykText(entry.cmyk))}</code>`, entry.cmyk.join(', ')));
   } else if (f.desc) {
-    rows.push(row(t('CMYK'), `<span class="cat-swatch-muted">${escapeText(t('Not set. CMYK PDF exports use the generic RGB to CMYK conversion.'))}</span>`));
+    rows.push(row('cmyk', t('CMYK'), `<span class="cat-swatch-muted">${escapeText(t('Not set. CMYK PDF exports use the generic RGB to CMYK conversion.'))}</span>`));
   }
   if (entry.spot) {
     const book = entry.spot.book ? ` <span class="cat-swatch-muted">${escapeText(entry.spot.book)}</span>` : '';
-    rows.push(row(entry.spot.finish ? t('Finish') : t('Spot ink'), `${escapeText(entry.spot.name)}${book}`, entry.spot.name));
-    if (entry.spot.finish) rows.push(row(t('Applied as'), escapeText(String(entry.spot.finish))));
+    rows.push(row(entry.spot.finish ? 'finish' : 'spotInk', entry.spot.finish ? t('Finish') : t('Spot ink'), `${escapeText(entry.spot.name)}${book}`, entry.spot.name));
+    if (entry.spot.finish) rows.push(row('appliedAs', t('Applied as'), escapeText(String(entry.spot.finish))));
   }
   rows.push(faceRows(entry.token?.faces));
-  if (f.desc && !f.desc.inSrgb) rows.push(row(t('sRGB fallback'), `<code>${escapeText(f.hex)}</code>`, f.hex));
+  if (f.desc && !f.desc.inSrgb) rows.push(row('srgbFallback', t('sRGB fallback'), `<code>${escapeText(f.hex)}</code>`, f.hex));
   const token = entry.token;
   if (token) {
-    rows.push(row(t('Design token'), `<code>${escapeText(token.ref)}</code>`, token.ref));
-    if (f.subject !== f.lead) rows.push(row(t('Authored as'), `<code>${escapeText(f.subject)}</code>`, f.subject));
-    if (token.description && token.description !== entry.label) rows.push(row(t('Description'), escapeText(token.description)));
+    rows.push(row('designToken', t('Design token'), `<code>${escapeText(token.ref)}</code>`, token.ref));
+    if (f.subject !== f.lead) rows.push(row('authoredAs', t('Authored as'), `<code>${escapeText(f.subject)}</code>`, f.subject));
+    if (token.description && token.description !== entry.label) rows.push(row('description', t('Description'), escapeText(token.description)));
   }
   const body = rows.filter(Boolean).join('');
   return body
@@ -142,8 +143,8 @@ export function plotHtml(f: SwatchFacts): string {
     <div class="cat-swatch-chart" data-swatch-chart></div>
     <p class="cat-swatch-why" data-swatch-why>${planeCaption()}</p>
     <dl class="cat-details-meta cat-swatch-meta">
-      ${row(t('Displayable in'), `<strong>${escapeText(t(GAMUT_TITLE[desc.gamut]))}</strong> <span class="cat-swatch-muted">${escapeText(t(GAMUT_BLURB[desc.gamut]))}</span>`)}
-      ${row(t('Chroma headroom'), `<code>${over ? '' : '+'}${headroom.toFixed(3)}</code> <span class="cat-swatch-muted">${escapeText(over
+      ${row('displayableIn', t('Displayable in'), `<strong>${escapeText(t(GAMUT_TITLE[desc.gamut]))}</strong> <span class="cat-swatch-muted">${escapeText(t(GAMUT_BLURB[desc.gamut]))}</span>`)}
+      ${row('chromaHeadroom', t('Chroma headroom'), `<code>${over ? '' : '+'}${headroom.toFixed(3)}</code> <span class="cat-swatch-muted">${escapeText(over
         ? tRaw('past the sRGB ceiling of {max} at this lightness and hue', { max: desc.ceiling.srgb.toFixed(3) })
         : t('of chroma still available within sRGB at this lightness and hue'))}</span>`)}
     </dl>

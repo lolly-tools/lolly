@@ -75,6 +75,10 @@ Organisasjonen din huser [Lolly Work](https://github.com/lolly-tools/lolly-work)
 Hvis du setter opp tjenesten, start med [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Den offentlige demoen på [lolly.work](https://lolly.work) er en sandkasse; bruk organisasjonens egen adresse for arbeid du må beholde.
 :::
 
+## En annen organisasjons merkevare
+
+En partner, kunde eller sponsor kan sende deg merkevaren sin som en designsystemfil (`.lolly`) i stedet for en adresse. Å åpne en slik fil kobler appen til ingenting: den legger designsystemet deres ved siden av ditt eget på denne enheten. En oppsettfil fra din egen organisasjon er noe annet, fordi den kobler appen til organisasjonens Lolly, og forhåndsvisningen viser hva det å åpne en fil vil gjøre før noe endres. [Working with partners](/info/partners.html) dekker begge sider av å arbeide i en annen organisasjons merkevare.
+
 ## Å forlate
 
 **Leave**, på kortet **Lolly instance** i **Settings**, fjerner organisasjonens designsystem, verktøy og katalog. Ditt eget arbeid blir. Alt du lagde med verktøyene dens, åpnes ikke igjen før du kobler til på nytt.

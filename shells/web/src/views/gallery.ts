@@ -45,6 +45,7 @@ import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.ts';
 import { personalizeNudgeMarkup, mountPersonalizeNudge } from './personalize-nudge.ts';
 import { offlineNudgeMarkup, mountOfflineNudge } from './offline-nudge.ts';
+import { holdFirstRunBanner, settleFirstRunBanner } from '../lib/first-run-prompts.ts';
 import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
 import { mountFeaturedRow, resolveExamples } from '../components/featured-row.ts';
 import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
@@ -867,9 +868,9 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
   // Hidden until the ladder reveals it (see revealFirstRunBanner) - and hidden
   // from the accessibility tree with it, so a screen reader isn't told about a
-  // banner this visit may never show.
-  const firstRunEl = viewEl.querySelector<HTMLElement>('.privacy-notice, .personalize-nudge');
-  if (firstRunEl) firstRunEl.hidden = true;
+  // banner this visit may never show. Pending until the ladder decides, so a waiting
+  // notice (lib/first-run-prompts.ts) cannot appear over the banner.
+  const firstRunEl = holdFirstRunBanner(viewEl.querySelector<HTMLElement>('.privacy-notice, .personalize-nudge'));
 
   /** Show the one banner this visit is allowed, if there is one. Each mount is a
    *  no-op when its own markup isn't the one that won the slot.
@@ -2209,7 +2210,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       return;
     }
     revealFirstRunBanner();
-  })().finally(() => previewQueue.setPaused(false));
+  })().finally(() => { previewQueue.setPaused(false); settleFirstRunBanner(firstRunEl); });
 
 
 }

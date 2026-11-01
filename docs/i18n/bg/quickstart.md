@@ -17,14 +17,14 @@ lolly.tools се отваря в **Lolly Demo**, собствената прим
 Избери пътя, който отговаря на това, което имаш:
 
 - <!--i:palette--> **Един цвят.** Отвори **Design System Setup** (`#/start`), дай име на дизайн системата си и избери основен цвят. Lolly извежда от него пълна достъпна палитра, със светли и тъмни повърхности, текст и акценти. Избери шрифт и имаш работеща марка.
-- <!--i:upload--> **Файл с токени.** **Add from…**, в долната част на лентата със стаите в Design System Setup, приема файл с токени DTCG, Tokens Studio или Penpot, SVG или пакет `LollyBrand`. Пусни го и палитрата се попълва. Докато дизайн системата още е празна, **Start from a reference** в стаята Overview отваря същия избирач.
+- <!--i:upload--> **Файл с токени.** **Add from…**, в горната лента на Design System Setup, приема файл с токени DTCG, Tokens Studio или Penpot, SVG или пакет `LollyBrand`. Пусни го и палитрата се попълва. Докато дизайн системата още е празна, **Start from a reference** в стаята Board отваря същия избирач.
 - <!--i:pentool--> **Завършен дизайн.** В Design избери **Import a design** и пусни файл `.fig`, `.penpot`, `.ai`, `.idml` или SVG. Вж. [Донеси това, което вече имаш](#bring-in-what-you-already-have) по-долу.
 
 Първия път, когато отвориш галерията, кратко приветствие предлага същите възможности: **Make it yours** отваря Design System Setup, **Bring your design** отваря избирач на файл за дизайн, а **Explore the community tools** затваря приветствието.
 
 ![Стаята Colours на Design System Setup при нова инсталация: един жив чип, едно поле и цялото първо решение](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Оттам седем стаи го водят докъдето поискаш, в какъвто ред искаш: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** и **Usage & rules**. Всеки преглед в приложението се обновява, докато пишеш. [Design System Setup](/info/brand-studio.html) разглежда всяка стая.
+Оттам осем стаи го водят докъдето поискаш, в какъвто ред искаш: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** и **Skills**. Всеки преглед в приложението се обновява, докато пишеш. [Design System Setup](/info/brand-studio.html) разглежда всяка стая.
 
 Шрифтовете се пазят на устройството ти. Избери Google Font и Lolly запазва файла като ресурс на марката, така че шрифтът ти пътува офлайн и нищо не се изтегля, когато инструмент рисува.
 

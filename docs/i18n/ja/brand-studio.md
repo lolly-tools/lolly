@@ -1,6 +1,6 @@
 # Design System Setup
 
-ロゴ、色、書体は1か所にあるべきもので、そうすればすべてのツール、ページ、書き出しがそれらで描画されます。その場所が`#/start`の**Design System Setup**で、そのタグラインがその目的を表しています。*Make it yours*(自分らしくする)。
+ロゴ、色、書体は1か所にあるべきもので、そうすればすべてのツール、ページ、書き出しがそれらで描画されます。その場所が`#/start`の**Design System Setup**です。
 
 お持ちのものから始めてください。ロゴをドロップすると、Lollyがその色を読み取ります。書体を選ぶか、会社がライセンスを持つフォントファイルをドロップします。変更は、アプリ全体にすぐ反映されます。ロゴ、フォント、トークンは、このデバイスにとどまります。外部に接続する唯一の手順がGoogleフォントの選択で、Lollyは先に確認を求めてから、そのファミリーを一度だけ取得します。
 
@@ -16,33 +16,36 @@
 - <!--i:download--> **Export**は、システム全体を1つの`LollyBrand-….lolly`ファイルとして書き出します。
 :::
 
-ヘッダーには、どのデザインシステムを**Editing**しているかが表示され、その名前は、いつでも変更できるフィールドです。最初の編集で**What is this design system called?**と尋ねられたとき、ロゴが言葉を綴っている場合は、そこから取った言葉が入力されています。**Save name**は名前を保持し、**Not now**は、ヘッダーに入力するまで仮の名前を保持します。名前は、Settingsとシステムを切り替えるときのシステムのラベルになり、**Export**が書き出すファイルの名前にもなります。
+スタジオの上部のバーにはデザインシステムの名前があり、名前はいつでも変更できるフィールドです。**Enter**で新しい名前を保持し、**Escape**で元の名前に戻します。最初の編集で**What is this design system called?**と尋ねられたとき、ロゴが言葉を綴っている場合は、そこから取った言葉が入力されています。**Save name**は名前を保持し、**Not now**は、バーに入力するまで仮の名前を保持します。名前は、Settingsとシステムを切り替えるときのシステムのラベルになり、**Export**が書き出すファイルの名前にもなります。
 
 ## ルーム
 
-スタジオは、側面のレールに並ぶルームの集まりで、順序は決まっていません。番号は付かず、他の何かを待つこともありません。スマートフォンでは、レールはヘッダーの下のチップの帯になります。
+スタジオは、順序の決まっていないルームの集まりです。番号は付かず、他の何かを待つこともありません。デスクトップでは、ルームはバーの下の1本の帯に並びます。スマートフォンでは、親指が届く下端のバーに移り、開いているルームが見える位置にスクロールされます。パレットのシートとトレイはそのバーの上に現れ、入力中はバーが脇によけます。キーボードでは、Tabで帯に一度だけ移動でき、矢印キー、Home、Endでルーム間を移動します。
 
-![スタジオのルームレール: Overview、Colours、Type、Logos、Tokens、Files、Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![スタジオのバーとルーム: Board、Colours、Type、Logos、Tokens、Files、Rules、Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | ルーム | そこですること | リンクキー |
 |---|---|---|
-| **Overview** | システムが持つものを確認し、各ルームへの入口がある | `overview` |
+| **Board** | システムが持つものを確認し、各ルームへの入口がある | `overview` |
 | **Colours** | 色を追加し、役割を与え、シェードとパレットを作る | `color` |
 | **Type** | アプリ、ツール、すべての書き出しが読む4つの書体を選ぶ | `type` |
 | **Logos** | あらゆる向きと処理でマークを配置する | `logos` |
 | **Tokens** | 角丸、余白、影、その他すべての名前付きの値 | `tokens` |
 | **Files** | ブランドが保持する画像、音声、モーションのファイル | `catalogue` |
-| **Usage & rules** | ブランドが適用するルールを、実際の例で確認する | `usage` |
+| **Rules** | ブランドが適用するルールを、実際の例で確認する | `usage` |
+| **Skills** | 人とエージェント向けに書かれたブランドの基準を、読んでダウンロードする | `skills` |
 
-ルームへは`#/start?area=<key>`でリンクします。Filesルームは、ルームのキーが恒久的な契約であるため`catalogue`というキーを保持し、`?tab=`も古い別名としてまだ動作します。不明なキーはOverviewを開きます。
+ルームへは`#/start?area=<key>`でリンクします。ルームのキーは恒久的な契約なので、Filesルームはキー`catalogue`、Boardは`overview`、Rulesは`usage`を保持し、`?tab=`も古い別名としてまだ動作します。不明なキーはBoardを開きます。
 
-**レールの下部**には、1つのルームではなくシステム全体に対する操作があります。**Add from…**はブランドを取り込み([ブランドを取り込む](#bring-a-brand-in))、**Tray**は、スキャンで見つかったもののまだ追加していないものを保持します。**Export**、**Tokens (.json)**、**Fonts for Linux (.rpm)**、**Versions**、**Restore brand settings**は、システムを保存、移動します([デザインシステムを保管して移す](#keep-and-move-your-design-system))。それぞれ、操作の対象があるときに表示されます。
+**バー**には、1つのルームではなくシステム全体に対する操作があります。**Add from…**はブランドを取り込み([ブランドを取り込む](#bring-a-brand-in))、**Tray**は、スキャンで見つかったもののまだ追加していないものを保持します。**Export**はシステムを1つのファイルとして書き出し、**More**には**Tokens (.json)**、**Fonts for Linux (.rpm)**、**Versions & publishing**、**Restore brand settings**、**Design systems**があります。**Design systems**は、切り替えを行うSettingsの一覧を開きます([デザインシステムを保管して移す](#keep-and-move-your-design-system))。それぞれ、操作の対象があるときに表示されます。スマートフォンでは、**Add from…**は**More**の中に移り、**Export**はアイコンで表示されます。
 
-## Overview
+## Board
 
-まだ何も選んでいない場合、Overviewは始め方を4つ提示します。**Start from a reference**は、ロゴ、スクリーンショット、Webページ、デザインファイルのソース選択画面を開き、**Pick a colour**、**Choose a face**、**Add a logo**は、それぞれのコントロールを直接開きます。開いても何も書き込まれず、**Explore the tools**は最初から表示されています。
+まだ何も選んでいない場合、Boardは始め方を4つ提示します。**Start from a reference**は、ロゴ、スクリーンショット、Webページ、デザインファイルのソース選択画面を開き、**Pick a colour**、**Choose a face**、**Add a logo**は、それぞれのコントロールを直接開きます。開いても何も書き込まれず、**Explore the tools**は最初から表示されています。
 
-何かがご自身のものになると、Overviewは、持っているものを、ご自身のものの数を先頭にして表示します。Coloursは色の数を示し、継承された色が表示される場合は、控えめに`· N starter`が付きます。そのストリップでは、ご自身の色が先に、続いて細い線、その後に薄く表示されたスターターの色が並びます。Typeは役割別に読み取れます(*Inter for headings*、その下の行に*Starter for the rest*)。Logosは埋まったスロットの数(または**Not set**)を示し、Tokensは角丸を示し、Filesはライブラリが空のあいだ**Nothing yet**と表示します。どのブロックも、そのルームを開きます。
+何かがご自身のものになると、Boardは、持っているものを、ご自身のものの数を先頭にして表示します。Coloursは色の数を示し、継承された色が表示される場合は、控えめに`· N starter`が付きます。そのストリップでは、ご自身の色が先に、続いて細い線、その後に薄く表示されたスターターの色が並びます。Colourwaysは、各カラーウェイを主要色の小さなタイルで示します。Typeは役割別に読み取れ、各ファミリーをそれぞれの書体で表示します(*Inter for headings*、その下の行に*Starter for the rest*)。Logosは埋まったスロットの数(または**Not set**)を示し、Tokensは角丸を示し、Filesはライブラリが空のあいだ**Nothing yet**と表示します。どのブロックも、そのルームを開きます。
+
+Lolly Demoのように、アプリに付属していて編集できるデザインシステムには、最初からこれらがすべてあります。Boardには、その色、カラーウェイ、書体、マークが表示され、見出しの横に**Came with this app**タグが付きます。
 
 ### スターターとご自身のもの
 
@@ -60,7 +63,7 @@
 
 - ご自身で選んだ、またはインストールしたもの。
 - 通常の強さで、書体をインストールした場合は色味付きのカードで表示されます。
-- OverviewとTokensで数えられます。
+- BoardとTokensで数えられます。
 - 別の役割に従う役割は、プライマリの名前を繰り返さず、**↳ follows Primary**と表示されます。
 :::
 
@@ -105,7 +108,7 @@
 
 色は、広い画面では**In context**プレビューの横に、小さい画面ではその上に並びます。プレビューには、ポスター、グラフ、インターフェースカードがパレットで表示されます。スターターの色は、独自の折りたたみグループにとどまります。
 
-![Lolly DemoのColoursルーム: 折りたたみグループに入ったパレット、名前と16進値付きの各色、下部のダウンロードピル](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Lolly DemoのColoursルーム: 折りたたみグループに入ったパレット、名前と16進値付きの各色、ヘッダーにあるパレットのダウンロード](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![色を1つ追加した後のColoursルーム。パレットとライブの構成プレビューが表示されている](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -117,7 +120,7 @@
 
 アプリ自身のアクセントは、既定でデザインシステムに従います。これが**Settings → Appearance**の**Interface follows the design system**設定です。この設定をオフにすると、アプリのクロームはニュートラルのままになりますが、ツール、キャンバス、書き出しは、どちらの場合もデザインシステムに従います。
 
-**カラーウェイ。** デザインシステムは複数のリードカラーを持てて、作品ごとに選ばれます。Lollyはすべてのカラーウェイを保持しますが、このルームでは、まだカラーウェイを作成できません。カラーウェイはトークンファイルに記述されます。カラーウェイを持つシステムでは、すべてのカラーウェイに独自のプライマリとセカンダリが必要で、カラーウェイが背景を色づける場合は独自のサーフェスも必要なため、それらの役割はスウォッチエディターで設定したままにします。実際の作業でのカラーウェイは[Lolly Demoを使う](/info/lolly-demo-in-use.html#colourways-on-real-work)で、形式は[デザインシステムにカラーウェイを追加する](/info/colourways.html#add-colourways-to-a-design-system)で確認できます。
+**カラーウェイ。** デザインシステムは複数のリードカラーを持てて、作品ごとに選ばれます。**Colour roles**の先頭にある**Colourways**行には、カラーウェイごとにチップが1つ表示され、正規のものには**Default**と表示されます。**+ Add**は、パレットの色の1つから新しいカラーウェイを始めます。チップを選ぶと、ロールのストリップ、パレット、プレビューがそのカラーウェイを編集し、**Light**と**Dark**のスイッチで選んだ見た目で表示されます。選んだカラーウェイは、名前の変更、複製、デフォルトへの設定、削除ができます。カラーウェイを持つシステムでは、すべてのカラーウェイに独自のプライマリとセカンダリが必要で、カラーウェイが背景を色づける場合は独自のサーフェスも必要なため、それらの役割はスウォッチエディターで設定したままにします。手順とトークンの形式は[デザインシステムにカラーウェイを追加する](/info/colourways.html#add-colourways-to-a-design-system)で、実際の作業でのカラーウェイは[Lolly Demoを使う](/info/lolly-demo-in-use.html#colourways-on-real-work)で確認できます。
 
 ### 他の色を探す
 
@@ -162,7 +165,7 @@
 
 パレットには、ご自身の色が折りたたみグループで一覧になり、それぞれに専用の**+ Add**があります。グループは自由に作成、名前変更できます。役割が2つ目のタイルを作ることはなく、役割が指すタイルには、代わりに小さな印(**P**、**S**、**Su**、**T**)が付きます。タイルの下の**Colour chart**は、同じ色をOKLCHの**Wheel**(点をドラッグして再着色し、空いている場所をクリックしてスウォッチを追加)と、表示可能な範囲の限界を示す**Gamut**チャートで表示します。`#/start?area=color&focus=chart`でチャートを直接開きます。
 
-![パレットペイン。すべてのグループが折りたたみ可能で、ダウンロードピルが下端に配置されている](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![パレットペイン。すべてのグループが折りたたみ可能で、ヘッダーにパレットのダウンロードがある](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCHホイール - 角度が色相、外側への距離が彩度、グレーは側面のライトネスレールに沿って並ぶ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -178,7 +181,7 @@
 **スウォッチの削除**は安全です。導出されたシェードとテーマの役割は非表示になるだけなので、それらを読むものが壊れることはなく、追加した色は削除されます。
 
 ::: details 多数のスウォッチを扱う
-各スウォッチにはドラッグ用のハンドルがあります。ドラッグしてグループ内で並べ替えるか、ハンドルにフォーカスを当ててSpaceを押し、矢印キーで移動して、もう一度Spaceで置きます。Escapeでキャンセルします。グループ間で色を移動するには、エディターの**Group**コントロールを使うか、複数を選択して**Move to**を使います。
+各スウォッチにはドラッグ用のハンドルがあります。ドラッグしてグループ内で並べ替えるか、ハンドルにフォーカスを当ててSpaceを押し、矢印キーで移動して、もう一度Spaceで置きます。Escapeでキャンセルします。スマートフォンでは、パレットは1行に4色を表示し、ハンドルはすべての色の下に行として出るのではなく、Selectモードで表示されます。グループ間で色を移動するには、エディターの**Group**コントロールを使うか、複数を選択して**Move to**を使います。
 
 選択にモードは不要です。バーは、最初のタイルが選択されると現れ、最後のタイルが解除されると消えます。
 
@@ -195,13 +198,13 @@
 
 任意の**Gradients**パネルは、パレットからブレンドトークンを作ります。各グラデーションには、プレビュー、2〜8個の名前付きストップ、角度があります。ストップはスウォッチを指すため、スウォッチを再着色するとグラデーションが追従します。ブレンドはOKLCHで行われます。
 
-パレットのダウンロード(デザイントークン、CSS、SCSS、GIMP、Adobe Swatch Exchange)は、シェードができると、パレットの下部のピルに表示されます。各形式は[パレットとフォントをどこへでも持ち出す](/info/using.html#take-your-palette-and-fonts-anywhere)で説明しています。
+パレットのダウンロード(デザイントークン、CSS、SCSS、GIMP、Adobe Swatch Exchange)は、パレットのヘッダーの、見出しの横にあります。各形式は[パレットとフォントをどこへでも持ち出す](/info/using.html#take-your-palette-and-fonts-anywhere)で説明しています。
 
 ## タイプ
 
-独自の書体がない場合、ルームは1枚のカードだけです。**Primary**が、現在使われている書体で読みやすいサイズで表示され、**Starter**タグ、**Choose a face**ボタン、*"Nothing installs until you choose one."*という一文があります。Headings、Code、Italicは、選ぶまではプライマリに従い、**Choose them separately**でそれらのカードが表示されます。
+独自の書体がない場合、ルームは1枚のカードだけです。**Primary**が、現在使われている書体で読みやすいサイズで表示され、**Starter**タグ、**Choose for Primary**ボタン、*"Nothing installs until you choose one."*という一文があります。Headings、Code、Italicは、選ぶまではプライマリに従い、**Choose them separately**でそれらのカードが表示されます。
 
-![まだ書体が選ばれていないTypeルーム - 読みやすいサイズの1枚のカード、その上のStarterタグ、そして塗りつぶされたChoose a face](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![まだ書体が選ばれていないTypeルーム - 読みやすいサイズの1枚のカード、その上のStarterタグ、そして塗りつぶされたChoose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 書体を1つ選ぶと、ルームは、4つの役割カード、Fontsの一覧、ライブの見本に開きます。
 
@@ -210,7 +213,7 @@
 - **Code**: コードとデータ用の等幅書体。
 - **Italic**: 強調、引用、補足のための本物のイタリック。
 
-カードに色味が付くのは、その書体をインストールした場合だけで、ボタンは、ご自身の書体では**Change**、それ以外では**Choose a face**と表示されます。カード上の操作は何も確定せず、ボタンは、その役割の比較ステージを開きます。
+カードに色味が付くのは、その書体をインストールした場合だけです。ボタンには、どの役割用かが表示されます。ご自身の書体では**Change Headings**、それ以外では**Choose for Headings**です。サンプルの行は、途中で切れずに折り返されます。カード上の操作は何も確定せず、ボタンは、その役割の比較ステージを開きます。
 
 ![明らかになった4つのロールカード - それぞれが担当するフェイスで設定され、誰も選んでいない場合はStarterタグが付き、Italicはプライマリに従う](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -218,7 +221,7 @@
 
 ステージは、押したカードの下のルーム内で開き、スマートフォンの最初の画面にステージが収まるように、カードは1行のストリップに折りたたまれます。Escapeでキャンセルし、フォーカスはカードに戻ります。
 
-1. カードの**Choose a face**を押します。
+1. カードの**Choose for**と役割を押します。
 2. ファミリー名を入力して**Preview**を押すか、欄の下にある6つの**Pinned**ファミリーのいずれかを押します。
 3. **Use this face**を押します。
 
@@ -239,7 +242,7 @@
 ![Tokensルーム: システムの例とファイル操作のあるヘッダー、各種類のトークンを数えるタイル、続いてコントラスト表示付きの色のペア](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **ヘッダー**には、ご自身のシステムからの例(*Primary is Spearmint, #033633*)と、ファイル操作があります。**Download**(システム全体をデザイントークンとして、またはパレットを他の5つの形式で)、**Copy CSS**、JSONファイルを読み戻す**Add from…**です。
-- **タイル**は各種類のトークンを数え、そのセクションにジャンプします。Colours、Type、Logos、Shape and spacing、More、All tokensです。Overviewと同様に、ご自身のものを数えます。スマートフォンでは、タイルは横にスクロールします。
+- **タイル**は各種類のトークンを数え、そのセクションにジャンプします。Colours、Type、Logos、Shape and spacing、More、All tokensです。各セクションが持つものを数えます。空のスターターのものだけを持つセクションには**Starter**タグが付き、アプリに付属するシステムは、タグなしで自身の素材を数えます。スマートフォンでは、タイルは3つずつ2行に折り返されます。
 - **Colours**は、ツールが組み合わせるペア(サーフェス上のテキスト、プライマリ上、サーフェス上のミュート)から始まり、ライトとダークのAPCA値が表示され、足りないペアには**Weak contrast**の印が付きます。その後にすべての色グループが続きます。ランプは1行のチップとして、その他の色は値と、`{color.brand.spearmint}`のようにツールが使う参照とともに表示されます。参照を押すと、その参照がコピーされます。**Edit in Colours**はグループをColoursルームで開きます。
 - **Type**と**Logos**は、各役割の書体と各ロゴスロットを一覧にし、ご自身のものがあれば**Edit in Type**と**Edit in Logos**が付きます。
 - **Shape and spacing**には、**Rounded corners**(`shape.radius`)と**Spacing rhythm**(`space.base`)があります。それぞれ、スライダーを動かすまでは*Lolly default*、動かした後は*Yours*と表示され、すぐに保存され、元に戻せます。
@@ -252,11 +255,11 @@
 
 ロゴ以外の、ブランドが保持するファイルをドロップします。**vector**、**image**、**audio**、**motion**のファイル(動画、Lottie、アニメーション)です。これらは[Assets](/info/using.html#assets-your-library)にセクション別に並び、すべてのツールのアセットピッカーですぐに使え、このデバイスにとどまります。
 
-## Usage & rules
+## Rules
 
-**Usage & rules**は、ブランドの選択を実際に機能させます。人が変更できること、固定されたまま変わらないこと、Lollyが確認できること。
+**Rules**は、ブランドの選択を実際に機能させます。人が変更できること、固定されたまま変わらないこと、Lollyが確認できること。
 
-![Lolly DemoのUsage & rules: 空のBrand rulesカードとAdd your first rule、続いて、レンダリングの準備ができた例のあるTry your brand in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly DemoのRules: 空のBrand rulesカードとAdd your first rule、続いて、レンダリングの準備ができた例のあるTry your brand in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules**は、ルールを一覧にします。**Add rule**(または**Add your first rule**)で短いフォームが開きます。
 
@@ -273,9 +276,15 @@
 
 固定されたブランドとともに出荷されるビルドは、同じルールと例を、*This brand is set*の下に読み取り専用で表示します。
 
+## Skills
+
+**Skills**は、有効なデザインシステムの[ブランドスキル](/info/brand-skills.html)を一覧にします。ブランドの書かれた基準で、分野ごとに1つあり、人とAIエージェント向けです。各行には、分野、ブランド自身のステータス(**Draft**または**Approved**)、スキルが公開か社内向けか、そしてリビジョンが表示されます。行を選ぶと、スキルがカバレッジとともに読めます。カバレッジは、スキルの各行をご自身のトークンと突き合わせて、Lollyが確認するもの、食い違うもの、一致するもの、ガイダンスにとどまるものを示します。
+
+**Download skill (.zip)**は、スキルをエージェントツール用のAgent Skillsフォルダーとして書き出し、カタログのリンクはこのLollyを指します。**Copy as one file**は、同じテキストをチャットウィンドウ用にクリップボードへコピーします。独自のスキルを持たないデザインシステムには、ベースラインが一覧されます。これは、ベースラインが読まれるたびに、Lollyがトークンとハウスルールから書き起こすものです。このルームはスキルを読むだけで、編集はしません。
+
 ## ブランドを取り込む
 
-レールの下部にある**Add from…**は、形式ではなく、何を持っているかを尋ねるピッカーを開きます。
+バーにある**Add from…**は、形式ではなく、何を持っているかを尋ねるピッカーを開きます。
 
 - **Design tokens or a design file**: DTCGまたはTokens StudioのJSON、Penpotプロジェクト、トークンセットのzip、Lollyデザインシステムのパック、SVG。
 - **PDF**: デッキまたはガイドラインのファイル。色、マーク、埋め込まれた書体を、このデバイス上で読み取ります。
@@ -303,7 +312,7 @@ PDFとデザインファイルのインポートには、独自のレビュー�
 
 ### 外観を探して比較する
 
-OverviewまたはSettingsのデザインシステム一覧から**Find a look**を開きます。このデバイスに保存されたシステムと、再利用できるいくつかのLollyの例を閲覧し、名前、色のタグ、宣言されたフォントで検索できます。**Closest to my current palette**は、測定した色の類似度で並べ、同点の場合は一致するフォントで決まります。品質のスコアではありません。
+BoardまたはSettingsのデザインシステム一覧から**Find a look**を開きます。このデバイスに保存されたシステムと、再利用できるいくつかのLollyの例を閲覧し、名前、色のタグ、宣言されたフォントで検索できます。**Closest to my current palette**は、測定した色の類似度で並べ、同点の場合は一致するフォントで決まります。品質のスコアではありません。
 
 1つの外観を選ぶとレビューでき、2つ選ぶと並べて比較できます。選択しても何も変わりません。**Use this saved system**はそれに切り替え、**Use these colours**は、通常のチェックポイントを経て例の色を適用し、フォントは保持します。**Restore brand settings**は、以前の外観を復元します。保存済みシステムには、**Details and design context**の下に編集可能な**Search tags**があります。例はLolly独自の配色レシピで、収集された素材も、アカウントもありません。
 
@@ -315,17 +324,17 @@ OverviewまたはSettingsのデザインシステム一覧から**Find a look**�
 
 **Export**は、**`LollyBrand-….lolly`**ファイルを1つ書き出します。トークン、フォント、ロゴ、テーマ設定と、読み戻すときに検査される整合性マニフェストです。1.0.7より前のWebリリースは、同じファイルを`.zip`と呼んでいましたが、その表記も引き続き受け付けられます。**Tokens (.json)**は、フォントもロゴも含まない、通常のデザイントークンのドキュメントだけを書き出します。リポジトリ、ビルドステップ、別のトークンツール向けです。
 
-読み戻すには、**Add from… → Design tokens or a design file**を使うか、ファイルをスタジオにドロップします。これが、同僚からブランドを受け取る方法であり、2つ目のインストールにブランドを持ち込む方法で、アカウントもクラウドも不要です。コマンドラインからブランドを取り込むには、[`ingest:brand`](/info/configuration.html#brand-packs)をご覧ください。
+読み戻すには、**Add from… → Design tokens or a design file**を使うか、ファイルをスタジオにドロップします。これが、同僚からブランドを受け取る方法であり、2つ目のインストールにブランドを持ち込む方法で、アカウントもクラウドも不要です。受け取る人が別の組織で働いている場合に、ほかに何を送るかは、[パートナーとの協業](/info/partners.html)で説明しています。コマンドラインからブランドを取り込むには、[`ingest:brand`](/info/configuration.html#brand-packs)をご覧ください。
 
 **Fonts for Linux (.rpm)**は、追加したフォントをインストール可能なRPMにパッケージします。ご自身でアップロードしたフォントが含まれる場合、Lollyは先に、再配布してよいことの確認を求めます。
 
 ### 以前の設定を復元する
 
-**Restore brand settings**を選び、日付付きのチェックポイントを選択して、**Restore**を押します。現在のブランドの色、書体設定、その他のトークンが復元され、フォントと画像のファイルはそのままです。Lollyは、先に現在の設定を**Before restore**として保存するため、ブラウザを閉じた後でも復元を取り消せます。このデバイスには、直近20個のチェックポイントが保持されます。
+バーの**More**を開き、**Restore brand settings**を選び、日付付きのチェックポイントを選択して、**Restore**を押します。現在のブランドの色、書体設定、その他のトークンが復元され、フォントと画像のファイルはそのままです。Lollyは、先に現在の設定を**Before restore**として保存するため、ブラウザを閉じた後でも復元を取り消せます。このデバイスには、直近20個のチェックポイントが保持されます。
 
 ### バージョン
 
-公開されたバージョンは、このデバイスに保持される**恒久的な名前付きのコピー**です。変更されないため、それを固定する(`designv`で)ツールやリンクは、いつも同じものを描画し続けます。ご自身のものがあるシステムでは、レール下部に控えめな**Versions & publishing**リンクが表示され、最初の公開後は**Versions**の項目になります。`#/start?area=versions`で直接開きます。
+公開されたバージョンは、このデバイスに保持される**恒久的な名前付きのコピー**です。変更されないため、それを固定する(`designv`で)ツールやリンクは、いつも同じものを描画し続けます。ご自身のものがあるシステムでは、バーの**More**メニューに**Versions & publishing**が並び、最初の公開後は**Versions**がルームに加わります。`#/start?area=versions`で直接開きます。
 
 - **バージョンは恒久的です。** まだ削除はなく、パネルにもその旨が書かれています。
 - **削除は互換性カードの先頭に表示されます。** ツールを壊すのは、削除されたトークンだからです。
@@ -359,5 +368,6 @@ OverviewまたはSettingsのデザインシステム一覧から**Find a look**�
 
 - **[Lollyを使う](/info/using.html)**: ツール、保存、共有、Assets。
 - **[ブランドアーキテクチャ](/info/brand-architectures.html)**: 部門、製品、エンドース付きブランド、クライアント、シーズンが、デザインシステム、カラーウェイ、ロゴのアイデンティティにどう対応するか。
+- **[パートナーとの協業](/info/partners.html)**: 自分のブランドをパートナーと共有することと、渡されたブランドで作業すること。
 - **[デザイントークン](/info/design-tokens.html)**: ブランドが記述されるトークンモデル。
 - **[ファイルを書き出す](/info/exporting.html)**: 印刷の単位、CMYK、ブランドが出力される形式。

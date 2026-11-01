@@ -345,6 +345,8 @@ export function buildKeyframes(tp: TpCtx,
       props.textContent = holds.map((g) => kfGroupLabel(g)).join(' · ');
       row.appendChild(props);
     }
+    // Where this keyframe puts the box, and whether the travel through it curves (plans/330).
+    tp.kfPath.positionRow(row, id, box, k, at);
     list.appendChild(row);
   }
   body.appendChild(list);

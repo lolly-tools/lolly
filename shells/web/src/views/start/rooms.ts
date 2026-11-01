@@ -43,7 +43,10 @@ export const syncPaletteSheet = (start: StartCtx): void => {
 export const syncVersionsEntry = (start: StartCtx): void => {
   const { versionsBtn, versionsLink } = start;
   if (start.activeArea === 'versions') start.versionsOffered = true;
-  if (versionsBtn) versionsBtn.hidden = !start.versionsOffered;
+  if (versionsBtn && versionsBtn.hidden === start.versionsOffered) {
+    versionsBtn.hidden = !start.versionsOffered;
+    start.bar.syncStrip(true); // the strip gained a room, so the ink re-measures
+  }
   // The first publish has to stay one press away, so a system worth exporting
   // that has never published gets the quiet entry instead of the rail one - and
   // drops it again as soon as the rail entry latches on.
@@ -110,13 +113,14 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
     else btn.removeAttribute('aria-current');
     if (on && opts.focus) btn.focus();
   }
+  start.bar.syncStrip();
   overviewPanel.hidden = area !== 'overview';
   start.usagePanel.hidden = area !== 'usage';
   if (area === 'usage') {
     if (start.usage) void start.usage.refresh();
     else start.usage = mountUsageRoom(start.usagePanel, { host: start.host, studio: start.studio, changed: () => { start.rooms.refreshFurnished(); start.brand.wireRegistry(); } });
   } else start.usage?.suspend();
-  // Skills (plan 323): mounted on first open, like Usage & rules, so a studio that
+  // Skills (plan 323): mounted on first open, like Rules, so a studio that
   // never opens the room never reads a skill.
   start.skillsPanel.hidden = area !== 'skills';
   if (area === 'skills') {
@@ -163,21 +167,41 @@ export function openFocus(start: StartCtx, area: StartArea, focus: string): void
 }
 export function wireEditorPanels(start: StartCtx): void {
   const { editorRoot, shell } = start;
-  // Under 900px the room chips pin to the top of the page, so a jump inside a room
-  // (the Tokens room's tiles, a token's detail) has to land below them, not under.
-  // --ds-sticky-top is the chips' height plus a breath; the rooms read it as
-  // scroll-margin-top (styles/parts/start.css).
-  const dsShell = shell.querySelector<HTMLElement>('.ds-shell');
-  const nav = shell.querySelector<HTMLElement>('.ds-room-nav');
-  const narrow = window.matchMedia('(max-width: 899px)');
+  // The bar (and on a desk the room strip under it) pins to the top of the page,
+  // and on a phone the rooms sit in a bar fixed to the bottom edge. Keyboard focus
+  // and a jump inside a room (the Tokens room's tiles, a skill on a phone) have to
+  // land clear of both (WCAG 2.4.11). --ds-sticky-top and --ds-sticky-bottom are
+  // their heights plus a breath, and the page reads them as its scroll padding
+  // (styles/parts/start-bar.css). They sit on the root because the root is the
+  // scroller, and they leave with the studio. Measured on every resize of either
+  // block: the window, the type size, the phone's room bar stepping aside.
+  const docEl = document.documentElement;
+  const top = shell.querySelector<HTMLElement>('.ds-top');
+  const roomBar = shell.querySelector<HTMLElement>('.ds-room-nav');
+  let observer: ResizeObserver | null = null;
+  const stopStickyTop = (): void => {
+    window.removeEventListener('resize', syncStickyTop);
+    observer?.disconnect();
+    observer = null;
+    docEl.style.removeProperty('--ds-sticky-top');
+    docEl.style.removeProperty('--ds-sticky-bottom');
+  };
   const syncStickyTop = (): void => {
-    if (!dsShell?.isConnected) { window.removeEventListener('resize', syncStickyTop); return; }
-    if (nav && narrow.matches) dsShell.style.setProperty('--ds-sticky-top', `${Math.ceil(nav.getBoundingClientRect().height) + 8}px`);
-    else dsShell.style.removeProperty('--ds-sticky-top');
+    if (!top?.isConnected) { stopStickyTop(); return; }
+    docEl.style.setProperty('--ds-sticky-top', `${Math.ceil(top.getBoundingClientRect().height) + 8}px`);
+    // Only a room bar fixed to the edge covers the page; on a desk it is part of
+    // the pinned block above.
+    const below = roomBar && getComputedStyle(roomBar).position === 'fixed' ? roomBar.getBoundingClientRect().height : 0;
+    if (below > 0) docEl.style.setProperty('--ds-sticky-bottom', `${Math.ceil(below) + 8}px`);
+    else docEl.style.removeProperty('--ds-sticky-bottom');
   };
   syncStickyTop();
   window.addEventListener('resize', syncStickyTop);
-  start.unsubStickyTop = () => window.removeEventListener('resize', syncStickyTop);
+  if (typeof ResizeObserver === 'function') {
+    observer = new ResizeObserver(() => syncStickyTop());
+    for (const el of [top, roomBar]) if (el) observer.observe(el);
+  }
+  start.unsubStickyTop = stopStickyTop;
   // Name each editor panel after the rail item that opens it (the editor renders
   // the panels; only this view knows what navigates to them).
   editorRoot?.querySelectorAll<HTMLElement>('[data-be-tab-panel]').forEach((panel) => {

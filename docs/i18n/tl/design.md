@@ -10,9 +10,9 @@ Dinadaanan ng pahinang ito ang canvas mula sa unang kahon hanggang sa tapos na d
 
 Nagsisimula ang **top bar** sa **Home**, ang **File menu** at ang pangalan ng dokumento (i-click ang pangalan para palitan ang pangalan ng dokumento). Nasa gitna ang **Undo**, **Redo**, **History**, ang mga kontrol sa zoom (kasama ang **Fit all** at **Fit artboard**) at mga toggle para sa **Timeline**, **Navigator** at **Inspector**. Sa kanan ay ang **Share**, **Present** at **Export**. Sa phone, lumilipat sa **More actions** ang mga bihirang gamitin na button.
 
-Hawak ng **tool rail** sa gilid ang Lolly menu at ang mga tool na ginagamit mo sa pagguhit: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, saka ang mga button ng Timeline, Artboards at Auto-arrange.
+Hawak ng **tool rail** sa gilid ang Lolly menu at ang mga tool na ginagamit mo sa pagguhit: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, saka ang mga button ng Timeline, Artboards at Auto-arrange.
 
-![Ang tool rail ng free canvas: isang drag grip, ang Lolly menu, tapos Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards at Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Ang tool rail ng free canvas: isang drag grip, ang Lolly menu, tapos Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards at Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Gumagana ang canvas tulad ng pasteboard ng designer sa paligid ng artboard:
 
@@ -68,17 +68,26 @@ Kapag walang hawak na key, hinihila ang pag-ikot sa pinakamalapit na 15 digri ka
 
 ## Gumuhit ng sarili mong mga hugis
 
-Sakop ng mga kahon, bilog at bilugang frame ang karamihan ng layout. Para sa anumang ibang hugis, gumuhit ng isa: ang **Pen** button ng rail (o `P`) ay naglalagay sa iyo sa drawing mode. Tatlong solong key ang lumilipat sa pagitan ng mga mode: `V` para sa Pointer, `P` para sa Pen at `N` para sa **Edit points**. Ang Pointer ang laging labasan.
+Sakop ng mga kahon, bilog at bilugang frame ang karamihan ng layout. Para sa anumang ibang hugis, gumuhit ng isa: ang **Pen** button ng rail (o `P`) ay naglalagay sa iyo sa drawing mode. Apat na key ang lumilipat sa pagitan ng mga mode: `V` para sa Pointer, `P` para sa Pen, `Shift C` para sa **Pencil** at `N` para sa **Edit points**. Ang Pointer ang laging labasan.
 
 - **Mag-click** para maglagay ng punto. Sa default na curve type, ang **click and drag** ay humihila ng mga handle ng punto para gumawa ng kurba; pindutin ang **Alt** habang nagki-click para sa matigas na sulok. (Sa ibang curve type, bawat punto ay sulok at walang epekto ang drag.)
-- Nag-i-snap ang mga punto sa artboard at sa ibang mga kahon mo habang inilalagay. Pinipigilan ng Alt ang grid habang gumuguhit, at ang grid at mga gilid pareho habang dina-drag ang punto pagkatapos.
+- Pindutin ang **Shift** habang nagki-click at ang bagong segment ay aalis sa naunang punto sa multiple ng 15 degrees, kaya eksakto ang patag, patayo at 45 degree na linya. Ang Shift habang humihila ng handle ay ganoon din ang hakbang ng handle.
+- Nag-i-snap ang mga punto sa artboard, sa ibang mga kahon mo at sa iba pang punto ng parehong path habang inilalagay, kaya nakahanay ang punto sa inilagay mo kanina. Pinipigilan ng Alt ang grid habang gumuguhit, at ang grid at mga gilid pareho habang dina-drag ang punto pagkatapos.
 - **I-click ang una mong punto** para isara ang hugis. Kung hindi, pindutin ang **Enter**, mag-double-click o lumipat ng tool, at iniingatan ang drawing.
 - Ang **Escape** ay gumagana isang hakbang sa bawat pagkakataon: ang unang pindot ay iniiwan ang drawing, ang pangalawa ay lumalabas sa pen.
-- Ang **Delete** habang gumuguhit ay nag-aalis ng huling punto.
+- Ang **Delete**, o Undo (`⌘ Z` o `Ctrl Z`), habang gumuguhit ay nag-aalis ng huling punto.
+
+**Ituloy ang bukas na path.** Nakabukas ang Pen, pindutin ang alinmang dulo ng bukas na path at muli mong iginuguhit ang path na iyon: bawat click ay nagdaragdag ng punto pagkatapos ng dulong iyon, o sa harap ng unang punto kapag nagsimula ka sa simula. Itinatago ng Enter ang resulta at iniiwan ng Escape ang path nang eksakto kung paano ito dati. Nananatiling parehong kahon ang path, kasama ang fill, stroke at arrowhead nito, at ibinabalik ito ng isang undo. Binabawi lang ng Delete ang mga punto na idinagdag mo. Ang saradong hugis, ang linyang nakakabit sa kahon at ang path na may ilang bahagi ay walang malayang dulo na maitutuloy.
+
+**Gumuhit ng freehand gamit ang Pencil.** Itinatala ng **Pencil** button ng rail (o `Shift C`) ang stroke mo habang nagda-drag ka. Pagbitaw mo, pinapakinis ng Lolly ang stroke sa ilang punto na may Bezier handle, iniingatan ang matatalim na liko bilang sulok, at pinananatili ang kurba sa loob ng ilang screen pixel mula sa dinaanan ng kamay mo. Ang stroke na nagtatapos malapit sa simula nito ay sumasara. Ang resulta ay karaniwang path, na may parehong paint ng pen path, at puwede mong i-edit ang mga punto nito pagkatapos.
 
 Ang resulta ay karaniwang kahon. Ilipat, i-resize, i-rotate, i-group, i-align, i-restack, punan, i-shade o i-fade ang path tulad ng anumang ibang kahon. Ang unang path ay kumukuha ng fill at stroke na ibinibigay ng brand mo sa path, at ang bawat bagong path pagkatapos ay kumukuha ng huli mong ginamit. Sa tool na walang itinatakda ang brand para sa mga path, ang bagong path ay may stroke sa kulay na ginamit mo sa pagguhit, kaya hindi kailanman di-nakikita ang hugis.
 
 **I-edit muli ang mga punto.** I-double-click ang hugis, o gamitin ang **Edit points** sa object bar. I-drag ang punto para ilipat ito, i-drag ang handle para itutok muli ang kurba, mag-click sa kurba para magpasok ng punto o mag-drag ng kahon sa ilang punto at pindutin ang Delete. Laging may natitirang hindi bababa sa dalawang punto ang path.
+
+- Pindutin ang **Shift** habang dina-drag ang punto at ang anggulo nito mula sa susunod na punto sa path na hindi gumagalaw ay gumagalaw sa 15 degree na hakbang. Ang Shift habang dina-drag ang handle ay ihahakbang ang handle paikot sa sarili nitong punto. Ang Shift habang nagki-click ay nagdaragdag pa rin ng punto o handle sa selection; nagsisimula ang mga hakbang kapag nag-drag ka.
+- Ang dina-drag na punto ay nag-i-snap sa artboard, sa ibang kahon at sa iba pang punto ng path. Pindutin ang Alt para ilagay ito nang malaya.
+- Mag-click ng handle para piliin ito, saka pindutin ang **Delete** para ibalik ito sa punto nito. Ang panig na iyon ng punto ay nagiging sulok, na walang handle na humihila sa kurba. Kapag may mga napiling punto, inaalis ng Delete ang mga punto tulad ng dati.
 
 Ang **Spline type** ang nagpapasya kung anong uri ng kurba ang dumadaan sa mga punto mo:
 
@@ -112,6 +121,25 @@ Tatlo pa ang gumagana sa isang hugis. Ang **Outline stroke…** ay ginagawang pu
 ![Isang gasuklay at isang singsing na may tunay na butas, parehong gawa ng Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Ang resulta ay bagong path na puwede mong ituloy na i-edit gamit ang pen, naka-store bilang simpleng Bezier curve, kaya hindi nadadala ang orihinal na spline type. Tunay na butas ang mga butas: ang **Fill rule** control sa stroke panel ang nagpapasya kung pinupunan ng magkapatong na contour (*non-zero*) o tumatagos (*even-odd*). Tumatanggi ang mga operasyon sa halip na manira: kung hihilingin mong i-intersect ang dalawang hugis na hindi magkapatong, walang magbabago. Ang mga text at image box ay walang outline, kaya hindi sila ginagalaw.
+
+## Mga stroke
+
+Ang kahon, larawan, board at pen path ay may kanya-kanyang stroke: kulay, lapad at estilo (solid, dashed o dotted). Ang mga stroke row ay nasa ilalim ng **Fill** sa Inspector, at binubuksan ang mga ito ng **Stroke** button sa object bar.
+
+Inilalagay ng **Position** ang stroke sa outline: **Inside**, **Centre** o **Outside**. Ang kahon ay may stroke sa loob maliban kung pumili ka ng iba, kaya nananatili ang panlabas na gilid nito kung saan mo ito iginuhit, at ang pen path ay may stroke na nakagitna sa kurba nito. Sa nakagitna o panlabas na stroke, nananatili ang fill, larawan at text sa loob ng panloob na gilid ng stroke, at nananatili ang selection outline sa sariling gilid ng kahon. Ang bukas na path ay walang loob, kaya laging nakagitna ang stroke nito. Ang stroke ng board ay laging nasa loob ng page, dahil ang gilid ng page ang gilid ng export.
+
+**Stroke bawat gilid.** Sa rectangle, bilugang kahon, pill o board, ipinapakita ng toggle sa tabi ng lapad ang apat na lapad: **Top**, **Right**, **Bottom** at **Left**. Itakda ang isang gilid sa 0 para itago ang gilid na iyon, na nagbibigay ng divider o underline nang walang pangalawang hugis. Ipinapakita o itinatago lang ng toggle ang apat na cell at hindi kailanman nagbabago ng value. Habang magkakaiba ang mga gilid, **Mixed** ang basa ng lapad; mag-type ng lapad doon para itakda ang lahat ng apat na gilid nang sabay. Ang kulay, position at estilo ay nananatiling pinagsasaluhan ng bawat gilid, at ang mga bilugang sulok ay kumukurba kasama ng mga katabing lapad, tulad ng CSS border. Ang ellipse, bilog at pen path ay gumuguhit ng iisang lapad sa lahat ng dako.
+
+Kung paano dinadala ng mga format ang stroke:
+
+| Format | Position | Bawat gilid |
+|---|---|---|
+| SVG, PDF, PNG at ang iba pang larawan | Eksakto. Ang panloob o panlabas na stroke ng pen path ay iginuguhit nang dalawang beses ang lapad at kina-clip sa isang panig ng outline. | Eksakto ang solid na stroke, bilang isang hugis sa pagitan ng panlabas at panloob na gilid ng stroke. Ang dashed o dotted ay iginuguhit bilang mga dash sa bawat gilid sa SVG at solid sa PDF. |
+| Penpot | Ang inside, centre at outside ay dumadaan bilang stroke alignment ng Penpot. Ang board ay laging `inner`. | Native na binabasa ng Penpot 2.19 o mas bago ang apat na lapad. Iginuguhit ng Penpot 2.18 ang itaas na lapad sa lahat ng gilid, at tinatanggihan ng Penpot 2.17 o mas luma ang file na may dalang lapad bawat gilid. |
+| PowerPoint | Iginuguhit ng PowerPoint ang linya na nakagitna sa gilid ng hugis. Eksakto ang centre; inililipat ng outside ang hugis palabas nang kalahati ng lapad, na naglalagay sa linya ng PowerPoint sa labas ng kahon; ang inside ay nagpapanatili ng nakagitnang linya na isinulat ng mga mas lumang export. | Nagiging hiwalay na hugis ang stroke (ang singsing sa pagitan ng panlabas at panloob na gilid), sa ibabaw ng hugis na walang linya. |
+| dotLottie | Nakagitna ang mga Lottie stroke, kaya ang panlabas na stroke ng kahon o ang pen path na may stroke sa loob o labas ay tinatanggihan na may mensahe. | Tinatanggihan na may mensahe. |
+
+Ang translucent na nakagitnang stroke ay nagpapakita ng page sa panloob na kalahati nito, sa halip na ang fill, sa canvas at sa bawat export. Kapag nag-import ka ng Penpot file, iniingatan ng bawat stroke ang alignment at mga lapad bawat gilid nito, at ganoon din dumadating ang `strokeAlign` at mga indibidwal na stroke weight ng Figma file.
 
 ## Mga 3D scene at tool sa loob ng design
 
@@ -167,7 +195,7 @@ Kung may konkretong suhestiyon sa kulay o font, binabago ng button nito ang isan
 
 ### Mga house rule at ang writing signal
 
-Sinusuri din ng card ng export panel ang mga house rule na dala ng design system mo, tulad ng bigat at alignment ng text, aprubadong pagpapares ng kulay o logo bawat surface, layer por layer. Ang bawat natuklasan ay babala na may pangalan ng layer sa itaas ng rule. Ang rule na walang checker ang build na ito ay inililista bilang hindi nasuri, hindi kailanman bilang sinusunod. Inililista ng [Usage & rules](/info/brand-studio.html#usage-rules) ang mga rule, at ang `lolly check` ay naglalapat ng parehong mga ito sa naka-save na dokumento.
+Sinusuri din ng card ng export panel ang mga house rule na dala ng design system mo, tulad ng bigat at alignment ng text, aprubadong pagpapares ng kulay o logo bawat surface, layer por layer. Ang bawat natuklasan ay babala na may pangalan ng layer sa itaas ng rule. Ang rule na walang checker ang build na ito ay inililista bilang hindi nasuri, hindi kailanman bilang sinusunod. Inililista ng [Rules](/info/brand-studio.html#rules) ang mga rule, at ang `lolly check` ay naglalapat ng parehong mga ito sa naka-save na dokumento.
 
 Ipinapakita ng parehong card ang writing signal para sa text na iginuguhit ng dokumento: ang band nito (none, weak, notable o strong), saka ang sariling pangungusap ng Verify na may score na ang kabuuan ay 100 at hanggang tatlong naka-flag na parirala, bawat isa kasama ang layer na may hawak sa kanila. Dinadala ng **Open the text in Verify** ang text na iyon sa [Verify](/#/verify) para sa buong pagbasa; ipinapaliwanag ng [AI evidence in Verify](/info/verify-ai-evidence.html) kung ano ang tinitimbang ng score. Ang score ay signal, hindi hatol: binibilang nito ang mga pattern na karaniwan sa generated na pagsulat at hindi nito masasabi kung sino ang sumulat ng mga salita. Hindi isinasama sa dalawang check ang mga nakatagong layer, at sinasabi ng card kung ilan.
 

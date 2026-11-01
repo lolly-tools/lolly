@@ -288,6 +288,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   // empty on any brand that ships no starter - so the palette and the Overview
   // count agree about which colours nobody chose. See readStarterDoc.
   bedit.starterSwatches = new Set<string>();
+  bedit.supplied = false;
   bedit.revealedStarterGroup = null;
 
   // Ownership still informs Overview and mobile affordances; it never hides palette editing.

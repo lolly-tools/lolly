@@ -17,14 +17,14 @@ lolly.tools opens in **Lolly Demo**, Lolly's own sample design system; [Meet Lol
 Choose the route that matches what you have:
 
 - <!--i:palette--> **One colour.** Open **Design System Setup** (`#/start`), give your design system a name and pick a primary colour. Lolly derives a complete, accessible palette from it, with light and dark surfaces, text and accents. Pick a font and you have a working brand.
-- <!--i:upload--> **A tokens file.** **Add from…**, at the foot of the room rail in Design System Setup, takes a DTCG, Tokens Studio or Penpot tokens file, an SVG or a `LollyBrand` pack. Drop it in and the palette fills. While the design system is still empty, **Start from a reference** in the Overview room opens the same picker.
+- <!--i:upload--> **A tokens file.** **Add from…**, in the bar at the top of Design System Setup, takes a DTCG, Tokens Studio or Penpot tokens file, an SVG or a `LollyBrand` pack. Drop it in and the palette fills. While the design system is still empty, **Start from a reference** on the Board opens the same picker.
 - <!--i:pentool--> **A finished design.** In Design, choose **Import a design** and drop a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file. See [Bring in what you already have](#bring-in-what-you-already-have) below.
 
 The first time you open the gallery, a short welcome offers the same choices: **Make it yours** opens Design System Setup, **Bring your design** opens a file picker for a design and **Explore the community tools** closes the welcome.
 
 ![The Colours room of Design System Setup on a fresh install: one live chip, one field and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-From there, seven rooms take it as far as you like, in any order: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** and **Usage & rules**. Every preview in the app updates as you type. [Design System Setup](/info/brand-studio.html) covers each room.
+From there, eight rooms take it as far as you like, in any order: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** and **Skills**. Every preview in the app updates as you type. [Design System Setup](/info/brand-studio.html) covers each room.
 
 Fonts are kept on your device. Pick a Google Font and Lolly stores the file as a brand asset, so your type travels offline and nothing is fetched when a tool draws.
 

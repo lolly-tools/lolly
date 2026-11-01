@@ -17,7 +17,11 @@ export function mountAssetViewerDetails(dialog: HTMLDialogElement): void {
   button.addEventListener('click', () => {
     const showing = dialog.classList.toggle('is-showing-details');
     button.setAttribute('aria-expanded', String(showing));
-    button.textContent = t(showing ? 'Back to preview' : 'Details');
+    button.textContent = showing ? t('Back to preview') : t('Details');
   });
-  dialog.prepend(button);
+  // The button sits in the dialog's header, beside Close: anywhere else on a phone the
+  // header covers it, and the details could not be opened at all.
+  const header = dialog.querySelector<HTMLElement>(':scope > .cat-details-header');
+  const close = header?.querySelector<HTMLElement>(':scope > .cat-details-close');
+  if (close) close.before(button); else if (header) header.append(button); else dialog.prepend(button);
 }
