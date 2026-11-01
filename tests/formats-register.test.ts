@@ -74,3 +74,17 @@ test('every format sits in a family the table and the register list', () => {
   const stray = load().formats.filter((f) => !families.has(f.category)).map((f) => `${f.name}: ${f.category}`);
   assert.deepEqual(stray, []);
 });
+
+test('XLSX import claims a chosen sheet and number formats, and no longer claims first-sheet-only', () => {
+  // readXlsx takes `sheet` and listXlsxSheets lists the tabs; readXlsx applies number formats when a
+  // shell supplies the formatter. The register has to state both, and stay import-only.
+  const reg = JSON.parse(readFileSync(REGISTER, 'utf8')) as Register & { unsupported: Record<string, string[]> };
+  const xlsx = reg.formats.find((f) => f.token === 'XLSX');
+  assert.ok(xlsx, 'the register lists XLSX');
+  assert.equal(xlsx.dir, 'in');
+  assert.match(xlsx.desc, /sheet you can choose/);
+  assert.match(xlsx.desc, /number formats/);
+  assert.match(xlsx.desc, /Import-only/);
+  assert.equal(reg.unsupported.XLSX?.some((line) => /first worksheet only/i.test(line)), false);
+  assert.ok(reg.unsupported.XLSX?.some((line) => /^Import-only/.test(line)), 'XLSX keeps its Import-only limit');
+});

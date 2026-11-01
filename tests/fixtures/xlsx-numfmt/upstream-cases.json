@@ -1,0 +1,2147 @@
+{
+"_source": "Cases copied from the GridCraft gridcraft-numfmt tests (src/tests.rs and tests/poi_number_format_approx.rs) at commit 5e415cdd34d287b90a4a9df67eb4f532f6f72d96. Date system 1900. Expected strings are Excel results.",
+"cases": [
+{
+"code": "0.00",
+"value": 1234.567,
+"expected": "1234.57"
+},
+{
+"code": "#,##0",
+"value": 1234567.0,
+"expected": "1,234,567"
+},
+{
+"code": "#,##0",
+"value": -1234567.89,
+"expected": "-1,234,568"
+},
+{
+"code": "#,##0.00",
+"value": 0.0,
+"expected": "0.00"
+},
+{
+"code": "0",
+"value": 0.5,
+"expected": "1"
+},
+{
+"code": "0",
+"value": -2.5,
+"expected": "-3"
+},
+{
+"code": "0.00",
+"value": 2.675,
+"expected": "2.68"
+},
+{
+"code": "0.00",
+"value": 1.005,
+"expected": "1.01"
+},
+{
+"code": "0.0",
+"value": -0.04,
+"expected": "0.0"
+},
+{
+"code": "00000",
+"value": 123.0,
+"expected": "00123"
+},
+{
+"code": "000-00-0000",
+"value": 123456789.0,
+"expected": "123-45-6789"
+},
+{
+"code": "#.##",
+"value": 0.5,
+"expected": ".5"
+},
+{
+"code": "0.##",
+"value": 1.0,
+"expected": "1."
+},
+{
+"code": "#",
+"value": 0.0,
+"expected": ""
+},
+{
+"code": "0.0?",
+"value": 1.5,
+"expected": "1.5 "
+},
+{
+"code": "??0.0",
+"value": 1.5,
+"expected": "  1.5"
+},
+{
+"code": ".00",
+"value": 12.5,
+"expected": "12.50"
+},
+{
+"code": "0",
+"value": 1e+20,
+"expected": "100000000000000000000"
+},
+{
+"code": "0.0",
+"value": 1e-20,
+"expected": "0.0"
+},
+{
+"code": "0,000",
+"value": 5.0,
+"expected": "0,005"
+},
+{
+"code": "#,##0.000",
+"value": 1234.5,
+"expected": "1,234.500"
+},
+{
+"code": "#,##0,",
+"value": 1234567.0,
+"expected": "1,235"
+},
+{
+"code": "0.0,,",
+"value": 12345678.0,
+"expected": "12.3"
+},
+{
+"code": "0,\"K\"",
+"value": 12345.0,
+"expected": "12K"
+},
+{
+"code": "0%",
+"value": 0.256,
+"expected": "26%"
+},
+{
+"code": "0.00%",
+"value": 0.12345,
+"expected": "12.35%"
+},
+{
+"code": "0%%",
+"value": 0.5,
+"expected": "5000%%"
+},
+{
+"code": "0%",
+"value": -0.5,
+"expected": "-50%"
+},
+{
+"code": "0;-0;;@",
+"value": 0.0,
+"expected": ""
+},
+{
+"code": "0;-0;\"zero\"",
+"value": 0.0,
+"expected": "zero"
+},
+{
+"code": "0;-0;\"zero\"",
+"value": 0.001,
+"expected": "0"
+},
+{
+"code": "0_);(0)",
+"value": 5.0,
+"expected": "5 "
+},
+{
+"code": "0_);(0)",
+"value": -5.0,
+"expected": "(5)"
+},
+{
+"code": ";;;",
+"value": 5.0,
+"expected": ""
+},
+{
+"code": "[<1]0.00;0",
+"value": 0.5,
+"expected": "0.50"
+},
+{
+"code": "[<1]0.00;0",
+"value": 5.0,
+"expected": "5"
+},
+{
+"code": "[<1]0.00;0",
+"value": -5.0,
+"expected": "5.00"
+},
+{
+"code": "[>=1000]0,\"K\";0",
+"value": -5.0,
+"expected": "5"
+},
+{
+"code": "[>=1000]0,\"K\"",
+"value": -5.0,
+"expected": "-5"
+},
+{
+"code": "0.00E+00",
+"value": 12345.0,
+"expected": "1.23E+04"
+},
+{
+"code": "0.00E+00",
+"value": 0.000123,
+"expected": "1.23E-04"
+},
+{
+"code": "0.00E+00",
+"value": 0.0,
+"expected": "0.00E+00"
+},
+{
+"code": "0.00E-00",
+"value": 12345.0,
+"expected": "1.23E04"
+},
+{
+"code": "0.00e+00",
+"value": 12345.0,
+"expected": "1.23e+04"
+},
+{
+"code": "##0.0E+0",
+"value": 12345.0,
+"expected": "12.3E+3"
+},
+{
+"code": "0.0E+0",
+"value": 1e-05,
+"expected": "1.0E-5"
+},
+{
+"code": "0.000E+00",
+"value": 1e-300,
+"expected": "1.000E-300"
+},
+{
+"code": "0.00E+00",
+"value": 9.999,
+"expected": "1.00E+01"
+},
+{
+"code": "0.00E+00",
+"value": -12345.0,
+"expected": "-1.23E+04"
+},
+{
+"code": "# ?/?",
+"value": 1.5,
+"expected": "1 1/2"
+},
+{
+"code": "# ?/?",
+"value": 0.25,
+"expected": " 1/4"
+},
+{
+"code": "# ?/?",
+"value": 2.0,
+"expected": "2    "
+},
+{
+"code": "# ?/?",
+"value": 0.0,
+"expected": "0    "
+},
+{
+"code": "# ?/?",
+"value": -1.5,
+"expected": "-1 1/2"
+},
+{
+"code": "?/8",
+"value": 0.5,
+"expected": "4/8"
+},
+{
+"code": "# ?/8",
+"value": 2.125,
+"expected": "2 1/8"
+},
+{
+"code": "?/?",
+"value": 1.5,
+"expected": "3/2"
+},
+{
+"code": "# ?/?",
+"value": 0.99,
+"expected": "1    "
+},
+{
+"code": "# ???/???",
+"value": 0.123,
+"expected": " 100/813"
+},
+{
+"code": "# ???/???",
+"value": 0.5,
+"expected": "   1/2  "
+},
+{
+"code": "?/1000000000",
+"value": 20000000000.0,
+"expected": "20000000000000000000/1000000000"
+},
+{
+"code": "?/?",
+"value": 1e+20,
+"expected": "100000000000000000000/1"
+},
+{
+"code": "?/100",
+"value": 1e+18,
+"expected": "100000000000000000000/100"
+},
+{
+"code": "??/??",
+"value": 1e+25,
+"expected": "10000000000000000000000000/1 "
+},
+{
+"code": "?/1000000000",
+"value": 2.5,
+"expected": "2500000000/1000000000"
+},
+{
+"code": "\"$\"#,##0.00",
+"value": 3.0,
+"expected": "$3.00"
+},
+{
+"code": "$#,##0.00",
+"value": -3.0,
+"expected": "-$3.00"
+},
+{
+"code": "[$€-407]#,##0.00",
+"value": 1234.5,
+"expected": "€1,234.50"
+},
+{
+"code": "0\" units\"",
+"value": 5.0,
+"expected": "5 units"
+},
+{
+"code": "\\A0",
+"value": 5.0,
+"expected": "A5"
+},
+{
+"code": "(0)",
+"value": 5.0,
+"expected": "(5)"
+},
+{
+"code": "m/d/yyyy",
+"value": 46302.0,
+"expected": "10/7/2026"
+},
+{
+"code": "dddd, mmmm d, yyyy",
+"value": 46302.0,
+"expected": "Wednesday, October 7, 2026"
+},
+{
+"code": "ddd mmm yy",
+"value": 46302.0,
+"expected": "Wed Oct 26"
+},
+{
+"code": "mmmmm",
+"value": 46302.0,
+"expected": "O"
+},
+{
+"code": "dd/mm/yyyy",
+"value": 46302.0,
+"expected": "07/10/2026"
+},
+{
+"code": "d-mmm-yy",
+"value": 46302.0,
+"expected": "7-Oct-26"
+},
+{
+"code": "e",
+"value": 46302.0,
+"expected": "2026"
+},
+{
+"code": "YYYY-MM-DD",
+"value": 46302.0,
+"expected": "2026-10-07"
+},
+{
+"code": "yyyy-mm-dd hh:mm:ss",
+"value": 46302.5,
+"expected": "2026-10-07 12:00:00"
+},
+{
+"code": "h:mm AM/PM",
+"value": 0.75,
+"expected": "6:00 PM"
+},
+{
+"code": "h AM/PM",
+"value": 0.0,
+"expected": "12 AM"
+},
+{
+"code": "h a/p",
+"value": 0.25,
+"expected": "6 a"
+},
+{
+"code": "hh:mm",
+"value": 0.75,
+"expected": "18:00"
+},
+{
+"code": "[h]:mm",
+"value": 1.5,
+"expected": "36:00"
+},
+{
+"code": "[h]:mm:ss",
+"value": 2.25,
+"expected": "54:00:00"
+},
+{
+"code": "m/d/yyyy",
+"value": 60.0,
+"expected": "2/29/1900"
+},
+{
+"code": "m/d/yyyy",
+"value": 0.0,
+"expected": "1/0/1900"
+},
+{
+"code": "m/d/yyyy",
+"value": -1.0,
+"expected": "########"
+},
+{
+"code": "m/d/yyyy",
+"value": 3000000.0,
+"expected": "########"
+},
+{
+"code": "[$-409]m/d/yyyy",
+"value": 46302.0,
+"expected": "10/7/2026"
+},
+{
+"code": "m/d/yyyy h:mm",
+"value": 46302.75,
+"expected": "10/7/2026 18:00"
+},
+{
+"code": "mmss.0",
+"value": 0.0,
+"expected": "0000.0"
+},
+{
+"code": "@",
+"value": 5.0,
+"expected": "5"
+},
+{
+"code": "General",
+"value": 100000000000.0,
+"expected": "1E+11"
+},
+{
+"code": "General",
+"value": 12345678901.0,
+"expected": "12345678901"
+},
+{
+"code": "General",
+"value": -1234.5,
+"expected": "-1234.5"
+},
+{
+"code": "general",
+"value": 123456.789012,
+"expected": "123456.789"
+},
+{
+"code": "General\" units\"",
+"value": 5.0,
+"expected": "5 units"
+},
+{
+"code": "General;[Red]-General",
+"value": -5.0,
+"expected": "-5"
+},
+{
+"code": "#,##0",
+"value": 1234567890123455.0,
+"expected": "1,234,567,890,123,450"
+},
+{
+"code": "#,##0",
+"value": -3267527853107975.0,
+"expected": "-3,267,527,853,107,970"
+},
+{
+"code": "0",
+"value": 123456789012345.5,
+"expected": "123456789012345"
+},
+{
+"code": "0.00",
+"value": 123456789012345.5,
+"expected": "123456789012345.00"
+},
+{
+"code": "0",
+"value": 999999999999999.5,
+"expected": "999999999999999"
+},
+{
+"code": "0",
+"value": -999999999999999.5,
+"expected": "-999999999999999"
+},
+{
+"code": "0",
+"value": 4999999999999995.0,
+"expected": "4999999999999990"
+},
+{
+"code": "#,##0",
+"value": -4999999999999995.0,
+"expected": "-4,999,999,999,999,990"
+},
+{
+"code": "0",
+"value": 1234567890123455.5,
+"expected": "1234567890123460"
+},
+{
+"code": "0",
+"value": 1234567890123456.0,
+"expected": "1234567890123460"
+},
+{
+"code": "0",
+"value": 1234567890123454.0,
+"expected": "1234567890123450"
+},
+{
+"code": "0.00",
+"value": 2.675,
+"expected": "2.68"
+},
+{
+"code": "0.00",
+"value": 1.005,
+"expected": "1.01"
+},
+{
+"code": "0.0",
+"value": 0.285,
+"expected": "0.3"
+},
+{
+"code": "0.0",
+"value": 99999999999999.95,
+"expected": "100000000000000.0"
+},
+{
+"code": "0",
+"value": 0.5,
+"expected": "1"
+},
+{
+"code": "0",
+"value": 2.5,
+"expected": "3"
+},
+{
+"code": "# ?/000",
+"value": 0.5,
+"expected": " 1/002"
+},
+{
+"code": "[0;0",
+"value": 5.0,
+"expected": "[5"
+},
+{
+"code": "0;[0",
+"value": -5.0,
+"expected": "[5"
+},
+{
+"code": "0;-0;[",
+"value": 0.0,
+"expected": "["
+},
+{
+"code": "[Red]0;[Blue]-0",
+"value": -5.0,
+"expected": "-5"
+},
+{
+"code": "[>=100]0.0;0",
+"value": 150.0,
+"expected": "150.0"
+},
+{
+"code": "[$-409]0.00",
+"value": 2.5,
+"expected": "2.50"
+},
+{
+"code": "[$€-2] #,##0",
+"value": 1234.0,
+"expected": "€ 1,234"
+},
+{
+"code": "0\\[0",
+"value": 5.0,
+"expected": "0[5"
+},
+{
+"code": "\"[\"0;0",
+"value": 5.0,
+"expected": "[5"
+},
+{
+"code": "0;-0;;@",
+"value": "hi",
+"expected": "hi"
+},
+{
+"code": ";;;",
+"value": "x",
+"expected": ""
+},
+{
+"code": "@",
+"value": "hello",
+"expected": "hello"
+},
+{
+"code": "\"<\"@\">\"",
+"value": "x",
+"expected": "<x>"
+},
+{
+"code": "0.00",
+"value": "abc",
+"expected": "abc"
+},
+{
+"code": "|#,e-#|",
+"value": 123456.789,
+"expected": "|1e5|",
+"source": "poi"
+},
+{
+"code": "|#e-#,|",
+"value": 123456.789,
+"expected": "|1e5|",
+"source": "poi"
+},
+{
+"code": "|#%e-#|",
+"value": 123456.789,
+"expected": "|1%e5|",
+"source": "poi"
+},
+{
+"code": "|#e-#%|",
+"value": 123456.789,
+"expected": "|1e5%|",
+"source": "poi"
+},
+{
+"code": "|#|e-|#|",
+"value": 123456.789,
+"expected": "|1|e|5|",
+"source": "poi"
+},
+{
+"code": "|#.#|e-|#|",
+"value": 123456.789,
+"expected": "|1.2|e|5|",
+"source": "poi"
+},
+{
+"code": "|####.####|e-|#|",
+"value": 123456.789,
+"expected": "|12.3457|e|4|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e-|#|",
+"value": 123456.789,
+"expected": "|123456.789|e|0|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e-|#|",
+"value": 123456.789,
+"expected": "|123,456.789|e|0|",
+"source": "poi"
+},
+{
+"code": "|0|e-|0|",
+"value": 123456.789,
+"expected": "|1|e|5|",
+"source": "poi"
+},
+{
+"code": "|0.0|e-|0|",
+"value": 123456.789,
+"expected": "|1.2|e|5|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e-|0|",
+"value": 123456.789,
+"expected": "|0012.3457|e|4|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e-|0|",
+"value": 123456.789,
+"expected": "|0123456.7890|e|0|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e-|0|",
+"value": 123456.789,
+"expected": "|0,123,456.7890|e|0|",
+"source": "poi"
+},
+{
+"code": "|?|e-|?|",
+"value": 123456.789,
+"expected": "|1|e|5|",
+"source": "poi"
+},
+{
+"code": "|?.?|e-|?|",
+"value": 123456.789,
+"expected": "|1.2|e|5|",
+"source": "poi"
+},
+{
+"code": "|????.????|e-|?|",
+"value": 123456.789,
+"expected": "|  12.3457|e|4|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e-|?|",
+"value": 123456.789,
+"expected": "| 123456.789 |e|0|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e-|?|",
+"value": 123456.789,
+"expected": "|  123,456.789 |e|0|",
+"source": "poi"
+},
+{
+"code": "|#,e+#|",
+"value": 123456.789,
+"expected": "|1e+5|",
+"source": "poi"
+},
+{
+"code": "|#e+#,|",
+"value": 123456.789,
+"expected": "|1e+5|",
+"source": "poi"
+},
+{
+"code": "|#%e+#|",
+"value": 123456.789,
+"expected": "|1%e+5|",
+"source": "poi"
+},
+{
+"code": "|#e+#%|",
+"value": 123456.789,
+"expected": "|1e+5%|",
+"source": "poi"
+},
+{
+"code": "|#|e+|#|",
+"value": 123456.789,
+"expected": "|1|e|+5|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#|",
+"value": 123456.789,
+"expected": "|1.2|e|+5|",
+"source": "poi"
+},
+{
+"code": "|####.####|e+|#|",
+"value": 123456.789,
+"expected": "|12.3457|e|+4|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e+|#|",
+"value": 123456.789,
+"expected": "|123456.789|e|+0|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e+|#|",
+"value": 123456.789,
+"expected": "|123,456.789|e|+0|",
+"source": "poi"
+},
+{
+"code": "|0|e+|0|",
+"value": 123456.789,
+"expected": "|1|e|+5|",
+"source": "poi"
+},
+{
+"code": "|0.0|e+|0|",
+"value": 123456.789,
+"expected": "|1.2|e|+5|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e+|0|",
+"value": 123456.789,
+"expected": "|0012.3457|e|+4|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e+|0|",
+"value": 123456.789,
+"expected": "|0123456.7890|e|+0|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e+|0|",
+"value": 123456.789,
+"expected": "|0,123,456.7890|e|+0|",
+"source": "poi"
+},
+{
+"code": "|?|e+|?|",
+"value": 123456.789,
+"expected": "|1|e|+5|",
+"source": "poi"
+},
+{
+"code": "|?.?|e+|?|",
+"value": 123456.789,
+"expected": "|1.2|e|+5|",
+"source": "poi"
+},
+{
+"code": "|????.????|e+|?|",
+"value": 123456.789,
+"expected": "|  12.3457|e|+4|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e+|?|",
+"value": 123456.789,
+"expected": "| 123456.789 |e|+0|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e+|?|",
+"value": 123456.789,
+"expected": "|  123,456.789 |e|+0|",
+"source": "poi"
+},
+{
+"code": "|#.#|E-|#|",
+"value": 123456.789,
+"expected": "|1.2|E|5|",
+"source": "poi"
+},
+{
+"code": "|#.#|E+|#|",
+"value": 123456.789,
+"expected": "|1.2|E|+5|",
+"source": "poi"
+},
+{
+"code": "|#,e-#|",
+"value": 1.23456789e-05,
+"expected": "|1e-5|",
+"source": "poi"
+},
+{
+"code": "|#e-#,|",
+"value": 1.23456789e-05,
+"expected": "|1e-5|",
+"source": "poi"
+},
+{
+"code": "|#%e-#|",
+"value": 1.23456789e-05,
+"expected": "|1%e-5|",
+"source": "poi"
+},
+{
+"code": "|#e-#%|",
+"value": 1.23456789e-05,
+"expected": "|1e-5%|",
+"source": "poi"
+},
+{
+"code": "|#|e-|#|",
+"value": 1.23456789e-05,
+"expected": "|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|#.#|e-|#|",
+"value": 1.23456789e-05,
+"expected": "|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|####.####|e-|#|",
+"value": 1.23456789e-05,
+"expected": "|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e-|#|",
+"value": 1.23456789e-05,
+"expected": "|123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e-|#|",
+"value": 1.23456789e-05,
+"expected": "|123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|0|e-|0|",
+"value": 1.23456789e-05,
+"expected": "|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|0.0|e-|0|",
+"value": 1.23456789e-05,
+"expected": "|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e-|0|",
+"value": 1.23456789e-05,
+"expected": "|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e-|0|",
+"value": 1.23456789e-05,
+"expected": "|0000123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e-|0|",
+"value": 1.23456789e-05,
+"expected": "|0,000,123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|?|e-|?|",
+"value": 1.23456789e-05,
+"expected": "|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|?.?|e-|?|",
+"value": 1.23456789e-05,
+"expected": "|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|????.????|e-|?|",
+"value": 1.23456789e-05,
+"expected": "|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e-|?|",
+"value": 1.23456789e-05,
+"expected": "|    123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e-|?|",
+"value": 1.23456789e-05,
+"expected": "|      123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#,e+#|",
+"value": 1.23456789e-05,
+"expected": "|1e-5|",
+"source": "poi"
+},
+{
+"code": "|#e+#,|",
+"value": 1.23456789e-05,
+"expected": "|1e-5|",
+"source": "poi"
+},
+{
+"code": "|#%e+#|",
+"value": 1.23456789e-05,
+"expected": "|1%e-5|",
+"source": "poi"
+},
+{
+"code": "|#e+#%|",
+"value": 1.23456789e-05,
+"expected": "|1e-5%|",
+"source": "poi"
+},
+{
+"code": "|#|e+|#|",
+"value": 1.23456789e-05,
+"expected": "|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#|",
+"value": 1.23456789e-05,
+"expected": "|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|#.####|e+|#|",
+"value": 0.000123456789,
+"expected": "|1.2346|e|-4|",
+"source": "poi"
+},
+{
+"code": "|##.####|e+|#|",
+"value": 0.000123456789,
+"expected": "|1.2346|e|-4|",
+"source": "poi"
+},
+{
+"code": "|###.####|e+|#|",
+"value": 0.000123456789,
+"expected": "|123.4568|e|-6|",
+"source": "poi"
+},
+{
+"code": "|####.####|e+|#|",
+"value": 0.000123456789,
+"expected": "|1.2346|e|-4|",
+"source": "poi"
+},
+{
+"code": "|#####.####|e+|#|",
+"value": 0.000123456789,
+"expected": "|12.3457|e|-5|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e+|#|",
+"value": 0.000123456789,
+"expected": "|1234.5679|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#.####|e+|#|",
+"value": 1.23456789e-05,
+"expected": "|1.2346|e|-5|",
+"source": "poi"
+},
+{
+"code": "|##.####|e+|#|",
+"value": 1.23456789e-05,
+"expected": "|12.3457|e|-6|",
+"source": "poi"
+},
+{
+"code": "|###.####|e+|#|",
+"value": 1.23456789e-05,
+"expected": "|12.3457|e|-6|",
+"source": "poi"
+},
+{
+"code": "|####.####|e+|#|",
+"value": 1.23456789e-05,
+"expected": "|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|#####.####|e+|#|",
+"value": 1.23456789e-05,
+"expected": "|1.2346|e|-5|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e+|#|",
+"value": 1.23456789e-05,
+"expected": "|123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#.####|e+|#|",
+"value": 1.23456789e-06,
+"expected": "|1.2346|e|-6|",
+"source": "poi"
+},
+{
+"code": "|##.####|e+|#|",
+"value": 1.23456789e-06,
+"expected": "|1.2346|e|-6|",
+"source": "poi"
+},
+{
+"code": "|###.####|e+|#|",
+"value": 1.23456789e-06,
+"expected": "|1.2346|e|-6|",
+"source": "poi"
+},
+{
+"code": "|####.####|e+|#|",
+"value": 1.23456789e-06,
+"expected": "|123.4568|e|-8|",
+"source": "poi"
+},
+{
+"code": "|#####.####|e+|#|",
+"value": 1.23456789e-06,
+"expected": "|12345.6789|e|-10|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e+|#|",
+"value": 1.23456789e-06,
+"expected": "|12.3457|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e+|#|",
+"value": 1.23456789e-06,
+"expected": "|12.3457|e|-7|",
+"source": "poi"
+},
+{
+"code": "|0|e+|0|",
+"value": 1.23456789e-05,
+"expected": "|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|0.0|e+|0|",
+"value": 1.23456789e-05,
+"expected": "|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e+|0|",
+"value": 1.23456789e-05,
+"expected": "|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e+|0|",
+"value": 1.23456789e-05,
+"expected": "|0000123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e+|0|",
+"value": 1.23456789e-05,
+"expected": "|0,000,123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|?|e+|?|",
+"value": 1.23456789e-05,
+"expected": "|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|?.?|e+|?|",
+"value": 1.23456789e-05,
+"expected": "|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|????.????|e+|?|",
+"value": 1.23456789e-05,
+"expected": "|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e+|?|",
+"value": 1.23456789e-05,
+"expected": "|    123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e+|?|",
+"value": 1.23456789e-05,
+"expected": "|      123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#.#|E-|#|",
+"value": 1.23456789e-05,
+"expected": "|1.2|E|-5|",
+"source": "poi"
+},
+{
+"code": "|#.#|E+|#|",
+"value": 1.23456789e-05,
+"expected": "|1.2|E|-5|",
+"source": "poi"
+},
+{
+"code": "|#,e-#|",
+"value": 0.0,
+"expected": "|0e0|",
+"source": "poi"
+},
+{
+"code": "|#e-#,|",
+"value": 0.0,
+"expected": "|0e0|",
+"source": "poi"
+},
+{
+"code": "|#%e-#|",
+"value": 0.0,
+"expected": "|0%e0|",
+"source": "poi"
+},
+{
+"code": "|#e-#%|",
+"value": 0.0,
+"expected": "|0e0%|",
+"source": "poi"
+},
+{
+"code": "|#|e-|#|",
+"value": 0.0,
+"expected": "|0|e|0|",
+"source": "poi"
+},
+{
+"code": "|#.#|e-|#|",
+"value": 0.0,
+"expected": "|0.|e|0|",
+"source": "poi"
+},
+{
+"code": "|####.####|e-|#|",
+"value": 0.0,
+"expected": "|0000.|e|0|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e-|#|",
+"value": 0.0,
+"expected": "|0000000.|e|0|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e-|#|",
+"value": 0.0,
+"expected": "|0,000,000.|e|0|",
+"source": "poi"
+},
+{
+"code": "|0|e-|0|",
+"value": 0.0,
+"expected": "|0|e|0|",
+"source": "poi"
+},
+{
+"code": "|0.0|e-|0|",
+"value": 0.0,
+"expected": "|0.0|e|0|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e-|0|",
+"value": 0.0,
+"expected": "|0000.0000|e|0|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e-|0|",
+"value": 0.0,
+"expected": "|0000000.0000|e|0|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e-|0|",
+"value": 0.0,
+"expected": "|0,000,000.0000|e|0|",
+"source": "poi"
+},
+{
+"code": "|?|e-|?|",
+"value": 0.0,
+"expected": "|0|e|0|",
+"source": "poi"
+},
+{
+"code": "|?.?|e-|?|",
+"value": 0.0,
+"expected": "|0. |e|0|",
+"source": "poi"
+},
+{
+"code": "|????.????|e-|?|",
+"value": 0.0,
+"expected": "|0000.    |e|0|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e-|?|",
+"value": 0.0,
+"expected": "|0000000.    |e|0|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e-|?|",
+"value": 0.0,
+"expected": "|0,000,000.    |e|0|",
+"source": "poi"
+},
+{
+"code": "|#,e+#|",
+"value": 0.0,
+"expected": "|0e+0|",
+"source": "poi"
+},
+{
+"code": "|#e+#,|",
+"value": 0.0,
+"expected": "|0e+0|",
+"source": "poi"
+},
+{
+"code": "|#%e+#|",
+"value": 0.0,
+"expected": "|0%e+0|",
+"source": "poi"
+},
+{
+"code": "|#e+#%|",
+"value": 0.0,
+"expected": "|0e+0%|",
+"source": "poi"
+},
+{
+"code": "|#|e+|#|",
+"value": 0.0,
+"expected": "|0|e|+0|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#|",
+"value": 0.0,
+"expected": "|0.|e|+0|",
+"source": "poi"
+},
+{
+"code": "|####.####|e+|#|",
+"value": 0.0,
+"expected": "|0000.|e|+0|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e+|#|",
+"value": 0.0,
+"expected": "|0000000.|e|+0|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e+|#|",
+"value": 0.0,
+"expected": "|0,000,000.|e|+0|",
+"source": "poi"
+},
+{
+"code": "|0|e+|0|",
+"value": 0.0,
+"expected": "|0|e|+0|",
+"source": "poi"
+},
+{
+"code": "|0.0|e+|0|",
+"value": 0.0,
+"expected": "|0.0|e|+0|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e+|0|",
+"value": 0.0,
+"expected": "|0000.0000|e|+0|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e+|0|",
+"value": 0.0,
+"expected": "|0000000.0000|e|+0|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e+|0|",
+"value": 0.0,
+"expected": "|0,000,000.0000|e|+0|",
+"source": "poi"
+},
+{
+"code": "|?|e+|?|",
+"value": 0.0,
+"expected": "|0|e|+0|",
+"source": "poi"
+},
+{
+"code": "|?.?|e+|?|",
+"value": 0.0,
+"expected": "|0. |e|+0|",
+"source": "poi"
+},
+{
+"code": "|????.????|e+|?|",
+"value": 0.0,
+"expected": "|0000.    |e|+0|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e+|?|",
+"value": 0.0,
+"expected": "|0000000.    |e|+0|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e+|?|",
+"value": 0.0,
+"expected": "|0,000,000.    |e|+0|",
+"source": "poi"
+},
+{
+"code": "|#.#|E-|#|",
+"value": 0.0,
+"expected": "|0.|E|0|",
+"source": "poi"
+},
+{
+"code": "|#.#|E+|#|",
+"value": 0.0,
+"expected": "|0.|E|+0|",
+"source": "poi"
+},
+{
+"code": "|#,e-#|",
+"value": -123456.789,
+"expected": "-|1e5|",
+"source": "poi"
+},
+{
+"code": "|#e-#,|",
+"value": -123456.789,
+"expected": "-|1e5|",
+"source": "poi"
+},
+{
+"code": "|#%e-#|",
+"value": -123456.789,
+"expected": "-|1%e5|",
+"source": "poi"
+},
+{
+"code": "|#e-#%|",
+"value": -123456.789,
+"expected": "-|1e5%|",
+"source": "poi"
+},
+{
+"code": "|#|e-|#|",
+"value": -123456.789,
+"expected": "-|1|e|5|",
+"source": "poi"
+},
+{
+"code": "|#.#|e-|#|",
+"value": -123456.789,
+"expected": "-|1.2|e|5|",
+"source": "poi"
+},
+{
+"code": "|####.####|e-|#|",
+"value": -123456.789,
+"expected": "-|12.3457|e|4|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e-|#|",
+"value": -123456.789,
+"expected": "-|123456.789|e|0|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e-|#|",
+"value": -123456.789,
+"expected": "-|123,456.789|e|0|",
+"source": "poi"
+},
+{
+"code": "|0|e-|0|",
+"value": -123456.789,
+"expected": "-|1|e|5|",
+"source": "poi"
+},
+{
+"code": "|0.0|e-|0|",
+"value": -123456.789,
+"expected": "-|1.2|e|5|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e-|0|",
+"value": -123456.789,
+"expected": "-|0012.3457|e|4|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e-|0|",
+"value": -123456.789,
+"expected": "-|0123456.7890|e|0|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e-|0|",
+"value": -123456.789,
+"expected": "-|0,123,456.7890|e|0|",
+"source": "poi"
+},
+{
+"code": "|?|e-|?|",
+"value": -123456.789,
+"expected": "-|1|e|5|",
+"source": "poi"
+},
+{
+"code": "|?.?|e-|?|",
+"value": -123456.789,
+"expected": "-|1.2|e|5|",
+"source": "poi"
+},
+{
+"code": "|????.????|e-|?|",
+"value": -123456.789,
+"expected": "-|  12.3457|e|4|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e-|?|",
+"value": -123456.789,
+"expected": "-| 123456.789 |e|0|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e-|?|",
+"value": -123456.789,
+"expected": "-|  123,456.789 |e|0|",
+"source": "poi"
+},
+{
+"code": "|#,e+#|",
+"value": -123456.789,
+"expected": "-|1e+5|",
+"source": "poi"
+},
+{
+"code": "|#e+#,|",
+"value": -123456.789,
+"expected": "-|1e+5|",
+"source": "poi"
+},
+{
+"code": "|#%e+#|",
+"value": -123456.789,
+"expected": "-|1%e+5|",
+"source": "poi"
+},
+{
+"code": "|#e+#%|",
+"value": -123456.789,
+"expected": "-|1e+5%|",
+"source": "poi"
+},
+{
+"code": "|#|e+|#|",
+"value": -123456.789,
+"expected": "-|1|e|+5|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#|",
+"value": -123456.789,
+"expected": "-|1.2|e|+5|",
+"source": "poi"
+},
+{
+"code": "|####.####|e+|#|",
+"value": -123456.789,
+"expected": "-|12.3457|e|+4|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e+|#|",
+"value": -123456.789,
+"expected": "-|123456.789|e|+0|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e+|#|",
+"value": -123456.789,
+"expected": "-|123,456.789|e|+0|",
+"source": "poi"
+},
+{
+"code": "|0|e+|0|",
+"value": -123456.789,
+"expected": "-|1|e|+5|",
+"source": "poi"
+},
+{
+"code": "|0.0|e+|0|",
+"value": -123456.789,
+"expected": "-|1.2|e|+5|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e+|0|",
+"value": -123456.789,
+"expected": "-|0012.3457|e|+4|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e+|0|",
+"value": -123456.789,
+"expected": "-|0123456.7890|e|+0|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e+|0|",
+"value": -123456.789,
+"expected": "-|0,123,456.7890|e|+0|",
+"source": "poi"
+},
+{
+"code": "|?|e+|?|",
+"value": -123456.789,
+"expected": "-|1|e|+5|",
+"source": "poi"
+},
+{
+"code": "|?.?|e+|?|",
+"value": -123456.789,
+"expected": "-|1.2|e|+5|",
+"source": "poi"
+},
+{
+"code": "|????.????|e+|?|",
+"value": -123456.789,
+"expected": "-|  12.3457|e|+4|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e+|?|",
+"value": -123456.789,
+"expected": "-| 123456.789 |e|+0|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e+|?|",
+"value": -123456.789,
+"expected": "-|  123,456.789 |e|+0|",
+"source": "poi"
+},
+{
+"code": "|#.#|E-|#|",
+"value": -123456.789,
+"expected": "-|1.2|E|5|",
+"source": "poi"
+},
+{
+"code": "|#.#|E+|#|",
+"value": -123456.789,
+"expected": "-|1.2|E|+5|",
+"source": "poi"
+},
+{
+"code": "|#,e-#|",
+"value": -1.23456789e-05,
+"expected": "-|1e-5|",
+"source": "poi"
+},
+{
+"code": "|#e-#,|",
+"value": -1.23456789e-05,
+"expected": "-|1e-5|",
+"source": "poi"
+},
+{
+"code": "|#%e-#|",
+"value": -1.23456789e-05,
+"expected": "-|1%e-5|",
+"source": "poi"
+},
+{
+"code": "|#e-#%|",
+"value": -1.23456789e-05,
+"expected": "-|1e-5%|",
+"source": "poi"
+},
+{
+"code": "|#|e-|#|",
+"value": -1.23456789e-05,
+"expected": "-|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|#.#|e-|#|",
+"value": -1.23456789e-05,
+"expected": "-|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|####.####|e-|#|",
+"value": -1.23456789e-05,
+"expected": "-|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e-|#|",
+"value": -1.23456789e-05,
+"expected": "-|123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e-|#|",
+"value": -1.23456789e-05,
+"expected": "-|123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|0|e-|0|",
+"value": -1.23456789e-05,
+"expected": "-|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|0.0|e-|0|",
+"value": -1.23456789e-05,
+"expected": "-|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e-|0|",
+"value": -1.23456789e-05,
+"expected": "-|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e-|0|",
+"value": -1.23456789e-05,
+"expected": "-|0000123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e-|0|",
+"value": -1.23456789e-05,
+"expected": "-|0,000,123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|?|e-|?|",
+"value": -1.23456789e-05,
+"expected": "-|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|?.?|e-|?|",
+"value": -1.23456789e-05,
+"expected": "-|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|????.????|e-|?|",
+"value": -1.23456789e-05,
+"expected": "-|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e-|?|",
+"value": -1.23456789e-05,
+"expected": "-|    123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e-|?|",
+"value": -1.23456789e-05,
+"expected": "-|      123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#,e+#|",
+"value": -1.23456789e-05,
+"expected": "-|1e-5|",
+"source": "poi"
+},
+{
+"code": "|#e+#,|",
+"value": -1.23456789e-05,
+"expected": "-|1e-5|",
+"source": "poi"
+},
+{
+"code": "|#%e+#|",
+"value": -1.23456789e-05,
+"expected": "-|1%e-5|",
+"source": "poi"
+},
+{
+"code": "|#e+#%|",
+"value": -1.23456789e-05,
+"expected": "-|1e-5%|",
+"source": "poi"
+},
+{
+"code": "|#|e+|#|",
+"value": -1.23456789e-05,
+"expected": "-|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#|",
+"value": -1.23456789e-05,
+"expected": "-|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|####.####|e+|#|",
+"value": -1.23456789e-05,
+"expected": "-|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|#######.####|e+|#|",
+"value": -1.23456789e-05,
+"expected": "-|123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#,######.####|e+|#|",
+"value": -1.23456789e-05,
+"expected": "-|123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|0|e+|0|",
+"value": -1.23456789e-05,
+"expected": "-|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|0.0|e+|0|",
+"value": -1.23456789e-05,
+"expected": "-|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|0000.0000|e+|0|",
+"value": -1.23456789e-05,
+"expected": "-|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|0000000.0000|e+|0|",
+"value": -1.23456789e-05,
+"expected": "-|0000123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|0,000000.0000|e+|0|",
+"value": -1.23456789e-05,
+"expected": "-|0,000,123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|?|e+|?|",
+"value": -1.23456789e-05,
+"expected": "-|1|e|-5|",
+"source": "poi"
+},
+{
+"code": "|?.?|e+|?|",
+"value": -1.23456789e-05,
+"expected": "-|1.2|e|-5|",
+"source": "poi"
+},
+{
+"code": "|????.????|e+|?|",
+"value": -1.23456789e-05,
+"expected": "-|1234.5679|e|-8|",
+"source": "poi"
+},
+{
+"code": "|???????.????|e+|?|",
+"value": -1.23456789e-05,
+"expected": "-|    123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|?,??????.????|e+|?|",
+"value": -1.23456789e-05,
+"expected": "-|      123.4568|e|-7|",
+"source": "poi"
+},
+{
+"code": "|#.#|E-|#|",
+"value": -1.23456789e-05,
+"expected": "-|1.2|E|-5|",
+"source": "poi"
+},
+{
+"code": "|#.#|E+|#|",
+"value": -1.23456789e-05,
+"expected": "-|1.2|E|-5|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#####|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|0|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|000|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|0000|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+0142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|00000|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+00142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|?|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|???|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|????|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+ 142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|?????|",
+"value": 1.2345678e+142,
+"expected": "|1.2|e|+  142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#|",
+"value": 0.0,
+"expected": "|0.|e|+0|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#####|",
+"value": 0.0,
+"expected": "|0.|e|+0|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|0|",
+"value": 0.0,
+"expected": "|0.|e|+0|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|000|",
+"value": 0.0,
+"expected": "|0.|e|+000|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|0000|",
+"value": 0.0,
+"expected": "|0.|e|+0000|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|00000|",
+"value": 0.0,
+"expected": "|0.|e|+00000|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|?|",
+"value": 0.0,
+"expected": "|0.|e|+0|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|???|",
+"value": 0.0,
+"expected": "|0.|e|+  0|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|????|",
+"value": 0.0,
+"expected": "|0.|e|+   0|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|?????|",
+"value": 0.0,
+"expected": "|0.|e|+    0|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|#####|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|0|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|000|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|0000|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-0142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|00000|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-00142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|000,00|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-00142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|?|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|???|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|????|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|- 142|",
+"source": "poi"
+},
+{
+"code": "|#.#|e+|?????|",
+"value": 1.2345678e-142,
+"expected": "|1.2|e|-  142|",
+"source": "poi"
+}
+]
+}

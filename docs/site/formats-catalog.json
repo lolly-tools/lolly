@@ -425,7 +425,8 @@
       "WOFF2 (Brotli) is read-detected but not written"
     ],
     "XLSX": [
-      "Reads the first worksheet, resolved through workbook.xml order",
+      "Reads one worksheet: the first in workbook.xml order by default, or the one you choose by name or position",
+      "Number formats apply: dates in the 1900 and 1904 systems, currency, percentages, fractions, conditional and text sections",
       "Shared strings, inline text, numbers, booleans and formula results resolve",
       "Up to 1,000 rows; macro-enabled .xlsm is refused; import-only"
     ],
@@ -508,7 +509,7 @@
       "WOFF2 (Brotli) is read-detected but not written"
     ],
     "XLSX": [
-      "First worksheet only",
+      "Number formats follow US English: locale-specific formats show the stored value",
       "Import-only (round-trip out via CSV/JSON)"
     ],
     "InDesign": [
@@ -1024,7 +1025,7 @@
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). Lolly can't read a raw .indd, but InDesign's File → Export → InDesign Markup gives an .idml that comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. Lolly writes one back from a Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
+      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). An .idml from InDesign's File → Export → InDesign Markup comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. A native .indd or .indt is converted to IDML on the device first, as a preview, up to 128 MB. Lolly writes one back from a Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1979,7 +1980,7 @@
       "features": [
         "data-table"
       ],
-      "desc": "Excel's spreadsheet workbook. Drop one and a tool's repeating fields fill from its first sheet, up to 1,000 rows, exactly like a pasted CSV with the first row becoming the column headers. Lolly reads the cells directly (shared strings, inline text, numbers, dates and formula results). Macro-enabled .xlsm workbooks are refused. Import-only.",
+      "desc": "Excel's spreadsheet workbook. Drop one and a tool's repeating fields fill from a sheet you can choose (the first by default), up to 1,000 rows, exactly like a pasted CSV with the first row becoming the column headers. Lolly reads the cells directly (shared strings, inline text, numbers, dates and formula results) and applies their number formats, so dates, currency, percentages and fractions arrive as Excel shows them. Macro-enabled .xlsm workbooks are refused. Import-only.",
       "metadata": {
         "reads": [],
         "writes": [],

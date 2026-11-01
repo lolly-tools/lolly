@@ -2005,6 +2005,61 @@ export const adobePsdTarget: FuzzTarget = {
     kernel.roundTrip(bytes);
   },
 };
+export const xlsxNumfmtTarget: FuzzTarget = {
+  name: 'xlsx-numfmt',
+  async seeds() {
+    const { storeZip } = await import('../../engine/src/zip.ts');
+    const enc = (t: string) => new TextEncoder().encode(t);
+    // Stored (not deflated) parts, so a mutation reaches the XML or the format codes instead of breaking the zip.
+    const book = (styles: string, cells: string) => storeZip([
+      { name: 'xl/workbook.xml', bytes: enc('<workbook xmlns:r="r"><workbookPr date1904="1"/><sheets><sheet name="Data" sheetId="1" r:id="rId1"/></sheets></workbook>') },
+      { name: 'xl/_rels/workbook.xml.rels', bytes: enc('<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>') },
+      { name: 'xl/worksheets/sheet1.xml', bytes: enc(`<worksheet><sheetData><row r="1">${cells}</row></sheetData></worksheet>`) },
+      { name: 'xl/styles.xml', bytes: enc(styles) },
+    ]);
+    const custom = '<styleSheet><numFmts count="3"><numFmt numFmtId="164" formatCode="yyyy-mm-dd"/><numFmt numFmtId="165" formatCode="[&gt;100]&quot;big&quot;;[&lt;0]&quot;neg&quot;;0.0%"/><numFmt numFmtId="166" formatCode="@&quot; units&quot;"/></numFmts><cellXfs count="5"><xf numFmtId="164"/><xf numFmtId="165"/><xf numFmtId="14"/><xf numFmtId="12"/><xf numFmtId="166"/></cellXfs></styleSheet>';
+    const cells = '<c r="A1" s="0"><v>45000.5</v></c><c r="B1" s="1"><v>-5</v></c><c r="C1" s="2"><v>60</v></c><c r="D1" s="3"><v>3.75</v></c><c r="E1" s="4" t="inlineStr"><is><t>bolts</t></is></c>';
+    return [book(custom, cells), enc('0.00E+00;[Red]\\(#,##0\\);"zero";@" units"')];
+  },
+  async invoke(bytes) {
+    const { loadXlsxNumfmtKernel } = await import('../../packages/node-shell/src/xlsx-numfmt-node.ts');
+    const { readXlsx } = await import('../../engine/src/xlsx-import.ts');
+    const kernel = await loadXlsxNumfmtKernel();
+    // The mutated bytes are read as a workbook (styles reader, batching) and, as text, as a raw format code.
+    const code = new TextDecoder('latin1').decode(bytes.subarray(0, 400));
+    kernel.format([{ value: 45000.5, formatCode: code, dateSystem: 1900 }, { value: 'text', formatCode: code, dateSystem: 1904 }, { value: -0.0042, formatCode: code, dateSystem: 1900 }]);
+    readXlsx(bytes, { formatCell: kernel.formatCell });
+  },
+};
+// INDD to IDML converter (packages/node-shell/wasm/indd): the most untrusted binary the Design
+// import touches. Contract: a typed InddError refusal or a conversion with warnings; never a
+// trap, hang or output over the declared 128 MiB limit. Seeds are a signature-only page set and,
+// when `node scripts/indd-corpus.ts fetch-fixtures` has run, the smallest open fixture.
+export const inddTarget: FuzzTarget = {
+  name: 'indd',
+  async seeds() {
+    const page = new Uint8Array(8 * 4096);
+    page.set([0x06, 0x06, 0xed, 0xf5, 0xd8, 0x1d, 0x46, 0xe5, 0xbd, 0x31, 0xef, 0xe7, 0xfe, 0x74, 0xb7, 0x1d]);
+    page.set(new TextEncoder().encode('DOCUMENT'), 16); page[24] = 1;
+    new DataView(page.buffer).setUint32(0x118, 8, true);
+    const seeds = [page];
+    try {
+      const { readFileSync } = await import('node:fs');
+      seeds.push(new Uint8Array(readFileSync(new URL('../../plans/corpora/indd-fixtures/xmp-toolkit-bluesquare/BlueSquare.indd', import.meta.url))));
+    } catch { /* The fixture is optional. */ }
+    return seeds;
+  },
+  async invoke(bytes) {
+    const { loadInddKernel } = await import('../../packages/node-shell/src/indd-node.ts');
+    const { InddError } = await import('../../packages/node-shell/src/indd.ts');
+    try { (await loadInddKernel()).convert(bytes, 'fuzz.indd'); }
+    catch (error) {
+      if (!(error instanceof InddError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+    }
+  },
+};
 export const idmlReadTarget: FuzzTarget = {
   name: 'idml-read',
   async seeds() {
@@ -2100,7 +2155,7 @@ export const fontInspectTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, adobePsdTarget, idmlReadTarget,
+  adobeXmlTarget, adobePsdTarget, xlsxNumfmtTarget, inddTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,

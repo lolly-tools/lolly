@@ -364,6 +364,61 @@ const METRIC_LOOKALIKES: Readonly<Record<string, string>> = {
   myriadpro: 'Source Sans 3',
 };
 
+/**
+ * Office faces that have NO open, metric-compatible stand-in, so there is no
+ * METRIC_LOOKALIKES row to write for them.
+ *
+ * Checked 2026-11-01 for Q2 of the Storytold adoption plan:
+ *  - Aptos (Office's default since 2023) is Microsoft's proprietary typeface.
+ *    The Google Fonts metadata lists no Aptos and no clone, and no open face is
+ *    published as drawn to its advance widths, so a row here would claim a
+ *    compatibility nobody has made.
+ *  - Cascadia Code and Cascadia Mono are Microsoft's own, under the SIL Open
+ *    Font License 1.1, and Google Fonts carries both. They are the real faces,
+ *    not lookalikes, so they live in the catalogue list in lib/google-fonts.ts
+ *    and resolve through googleMatch like any other family.
+ *
+ * This table feeds {@link fontGap}, the plain sentence an import report shows
+ * when a document asks for one of these and the catalogue has nothing to offer.
+ */
+const UNAVAILABLE_FACES: Readonly<Record<string, { label: string; kind: 'sans' | 'serif' | 'mono' }>> = {
+  aptos: { label: 'Aptos', kind: 'sans' },
+  aptosdisplay: { label: 'Aptos Display', kind: 'sans' },
+  aptosnarrow: { label: 'Aptos Narrow', kind: 'sans' },
+  aptosserif: { label: 'Aptos Serif', kind: 'serif' },
+  aptosmono: { label: 'Aptos Mono', kind: 'mono' },
+};
+
+const GENERIC_FOR_KIND = { sans: 'sans-serif', serif: 'serif', mono: 'monospace' } as const;
+
+export interface FontGap {
+  /** The family as the document spells it, cleaned of style suffixes. */
+  family: string;
+  /** What the import falls back to. A generic class, never a named lookalike. */
+  usedInstead: 'sans-serif' | 'serif' | 'monospace';
+  /** One sentence, ready to show beside the family name. */
+  message: string;
+}
+
+/**
+ * When a document asks for a face that is proprietary and has no open
+ * equivalent, state plainly that it is not available and that the generic class
+ * is used instead. Null for anything the catalogue can resolve, and for family
+ * spellings this table does not hold (those are reported by the ordinary unresolved path).
+ */
+export function fontGap(family: string, catalog: readonly string[] = POPULAR_FAMILIES): FontGap | null {
+  if (googleMatch(family, catalog)) return null;
+  const key = normFamily(parseFaceName(family).family || family);
+  if (!Object.hasOwn(UNAVAILABLE_FACES, key)) return null;
+  const { label, kind } = UNAVAILABLE_FACES[key]!;
+  const usedInstead = GENERIC_FOR_KIND[kind];
+  return {
+    family: label,
+    usedInstead,
+    message: `${label} is not available here: it is a proprietary Microsoft face with no open equivalent. The document will use a generic ${usedInstead} face instead.`,
+  };
+}
+
 /** Fold a family name to its comparison key: case, spaces and punctuation all ignored. */
 const normFamily = (family: string): string =>
   String(family ?? '').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g, '');

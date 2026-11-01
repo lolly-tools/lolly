@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** PDF finishing shared by the web and Node shells. No DOM, files or browser imports. */
 import { parseDimension, toPoints, computePrintGeometry, roundedRectPath, rgbToCmyk, FINISH_MASK_CMYK, buildEncryptDictValues, preparePassword, encryptObjectBytes, toolCredit } from '@lolly/engine';
-import type { BrandPaletteEntry } from '@lolly/engine';
+import type { BrandPaletteEntry, SeparateRgb } from '@lolly/engine';
 import type { ExportOpts, ExportMeta } from '@lolly-tools/core/host-v1';
 import type { LabelSlot, PrintGeometry } from '../../../engine/src/print-marks.ts';
 import type { CornerRadii } from '../../../engine/src/css-box.ts';
@@ -47,7 +47,7 @@ export interface PdfFinishSettings {
 // substitution has something to verify against. Deduped by hex+ink, since the
 // palette repeats Black/White as ramp endpoints; order is preserved so the
 // primary brand hues lead and survive the flat cell cap.
-export function brandSwatchPalette(palette: BrandPaletteEntry[] | undefined): { rgb: Rgb; cmyk: [number, number, number, number]; label?: string; spotName?: string }[] {
+export function brandSwatchPalette(palette: BrandPaletteEntry[] | undefined, separate: SeparateRgb = rgbToCmyk): { rgb: Rgb; cmyk: [number, number, number, number]; label?: string; spotName?: string }[] {
   const out: { rgb: Rgb; cmyk: [number, number, number, number]; label?: string; spotName?: string }[] = [], seen = new Set<string>();
   for (const { hex, cmyk, label, spot } of palette ?? []) {
     if (!hex || (!cmyk && !spot)) continue;
@@ -56,7 +56,7 @@ export function brandSwatchPalette(palette: BrandPaletteEntry[] | undefined): { 
     const r = parseInt(h.slice(0, 2), 16) / 255;
     const g = parseInt(h.slice(2, 4), 16) / 255;
     const b = parseInt(h.slice(4, 6), 16) / 255;
-    const frac = cmyk && cmyk.length === 4 ? (cmyk.map(v => v / 100) as [number, number, number, number]) : rgbToCmyk(r, g, b);
+    const frac = cmyk && cmyk.length === 4 ? (cmyk.map(v => v / 100) as [number, number, number, number]) : separate(r, g, b);
     const key = `${h}:${frac.join(',')}:${spot?.name ?? ''}:${spot?.finish ?? ''}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -75,7 +75,7 @@ export function brandSwatchPalette(palette: BrandPaletteEntry[] | undefined): { 
   return out;
 }
 
-export function printGeometryForSize(trimWpt: number, trimHpt: number, opts: PdfFinishingOpts, paletteSource: BrandPaletteEntry[] | undefined): PrintGeometry | null {
+export function printGeometryForSize(trimWpt: number, trimHpt: number, opts: PdfFinishingOpts, paletteSource: BrandPaletteEntry[] | undefined, separate: SeparateRgb = rgbToCmyk): PrintGeometry | null {
   const bleedDim = parseDimension(opts.bleed);
   const bleedPt = bleedDim ? toPoints(bleedDim) : 0;
   const marks = {
@@ -89,7 +89,7 @@ export function printGeometryForSize(trimWpt: number, trimHpt: number, opts: Pdf
   if (bleedPt <= 0 && !anyMark) return null;
   // Brand swatches drive the colour bar (RGB swatches for RGB output, RGB-beside-CMYK
   // pairs for CMYK). The plain RGB PDF with no palette gets the generic process bar.
-  const palette = marks.colorBars ? brandSwatchPalette(paletteSource) : [];
+  const palette = marks.colorBars ? brandSwatchPalette(paletteSource, separate) : [];
   return computePrintGeometry({ trimWpt, trimHpt, bleedPt, marks, palette, barStyle: opts.barStyle, barRadiusPt: opts.barRadiusPt });
 }
 

@@ -2404,6 +2404,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       // for the enhancer's own reap would hold a WebGL context until some other tool paints.
       void sceneSelection?.then(m => m.destroyDesignScenes()).catch(() => {});
       fc.disposed = true;
+      // A native InDesign conversion in flight stops with the canvas.
+      void import('../bridge/indd.ts').then(m => m.cancelInddConversion()).catch(() => {});
       // A drag in flight holds capture-phase modifier listeners on the window.
       fc.gestureKeysOff?.();
       fc.gestureKeysOff = null;

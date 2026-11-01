@@ -326,10 +326,10 @@ export type Cmyk = [number, number, number, number];
 
 /**
  * Naïve (GCR-free) RGB→CMYK. Inputs and outputs are 0–1. This is device CMYK,
- * not a profile-accurate separation; the CMYK PDF's OutputIntent declares the
- * press condition the values are meant to be read under (see CMYK_CONDITIONS).
- * Brand swatches with measured ink values bypass this via a palette lookup in
- * the shell, so this only governs incidental colours.
+ * not a profile-accurate separation. Print exports separate through a press
+ * profile when one is available (cmyk-separation.ts: the bundled FOGRA39 one by
+ * default) and fall back to this formula for a press condition with no profile.
+ * Brand swatches with measured ink values bypass both via a palette lookup.
  */
 export function rgbToCmyk(r: number, g: number, b: number): Cmyk {
   const k = 1 - Math.max(r, g, b);

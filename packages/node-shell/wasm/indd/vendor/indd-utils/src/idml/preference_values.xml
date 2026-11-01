@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Values that every IDML exported by InDesign in the corpus has in
+Resources/Preferences.xml. The converter writes them; values it reads
+from the INDD take precedence. Values in a block with MinimumVersion are
+written only for documents of that InDesign version or later. Generated
+by tools/root_values.py; evidence in docs/format/idml-values.md.
+-->
+<PreferenceValues>
+	<Values>
+		<ButtonPreference Name="" />
+		<PrintPreference PrintFile="" Collating="false" ReverseOrder="false" Sequence="All" PrintMasterPages="false" PrintNonprinting="false" PrintGuidesGrids="false" PaperOffset="0" PaperGap="0" PaperTransverse="false" Trapping="Off" Flip="None" Negative="false" SimulateOverprint="false" PrintCyan="true" PrintMagenta="true" PrintYellow="true" PrintBlack="true" SourceSpace="UseDocument" Intent="AbsoluteColorimetric" OPIImageReplacement="false" OmitEPS="false" OmitPDF="false" OmitBitmaps="false" IgnoreSpreadOverrides="false" CompositeScreening="$ID/kDefault" PrintLayers="VisiblePrintableLayers">
+			<Properties>
+				<PaperHeight type="enumeration">Auto</PaperHeight>
+				<PaperWidth type="enumeration">Auto</PaperWidth>
+				<Screening type="enumeration">Default</Screening>
+				<CRD type="enumeration">Default</CRD>
+			</Properties>
+		</PrintPreference>
+		<PrintBookletOption BookletType="TwoUpSaddleStitch" SpaceBetweenPages="0" BleedBetweenPages="0" Creep="0" SignatureSize="SignatureSize4" AutoAdjustMargins="true" MarginsUniformSize="false" PrintBlankPrinterSpreads="true">
+			<Properties>
+				<PageRange type="enumeration">AllPages</PageRange>
+			</Properties>
+		</PrintBookletOption>
+		<PrintBookletPrintPreference PrinterList="" PPDList="" PaperSizeList="" ScreeningList="" PrintFile="" Copies="1" Collating="false" ReverseOrder="false" PrintNonprinting="false" PrintGuidesGrids="false" PaperOffset="0" PaperGap="0" PaperTransverse="false" ScaleWidth="100" ScaleHeight="100" ScaleProportional="true" PrintLayers="VisiblePrintableLayers" UseDocumentBleedToPrint="true" TextAsBlack="false" Trapping="Off" Flip="None" Negative="false" SimulateOverprint="false" PrintCyan="true" PrintMagenta="true" PrintYellow="true" PrintBlack="true" DownloadPPDFonts="true" SourceSpace="UseDocument" Intent="AbsoluteColorimetric" OPIImageReplacement="false" OmitEPS="false" OmitPDF="false" OmitBitmaps="false" IgnoreSpreadOverrides="false" CompositeScreening="$ID/kDefault">
+			<Properties>
+				<PaperHeight type="enumeration">Auto</PaperHeight>
+				<PaperWidth type="enumeration">Auto</PaperWidth>
+				<Screening type="enumeration">Default</Screening>
+				<Profile type="enumeration">UseDocument</Profile>
+				<CRD type="enumeration">Default</CRD>
+			</Properties>
+		</PrintBookletPrintPreference>
+		<PageItemDefault FillColor="Swatch/None" EndJoin="MiterEndJoin" GapTint="-1" />
+		<StoryPreference StoryDirection="LeftToRightDirection" />
+		<TextFramePreference TextColumnFixedWidth="144" UseFixedColumnWidth="false" MinimumFirstBaselineOffset="0" VerticalJustification="TopAlign" VerticalThreshold="0" IgnoreWrap="false" VerticalBalanceColumns="false">
+			<Properties>
+				<InsetSpacing type="list"><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem></InsetSpacing>
+			</Properties>
+		</TextFramePreference>
+		<TextPreference UseOpticalSize="true" JustifyTextWraps="false" HighlightKinsoku="false" AddPages="EndOfStory" />
+		<TextDefault DesiredGlyphScaling="100" RuleAboveOverprint="false" RuleAboveGapTint="-1" RuleAboveGapOverprint="false" RuleBelowGapTint="-1" Position="Normal" StrikeThru="false" Skew="0" StrokeTint="-1" OverprintStroke="false" OverprintFill="false" OTFOrdinal="false" OTFFraction="false" OTFDiscretionaryLigature="false" OTFTitling="false" OTFSwash="false" UnderlineGapTint="-1" UnderlineOverprint="false" UnderlineGapOverprint="false" StrikeThroughTint="-1" StrikeThroughGapTint="-1" StrikeThroughOverprint="false" StrikeThroughGapOverprint="false" StrikeThroughWeight="-9999" KeepWithPrevious="false" SplitColumnOutsideGutter="0" SpanColumnMinSpaceBefore="0" SpanColumnMinSpaceAfter="0" LastLineIndent="0" OTFSlashedZero="false" OTFHistorical="false" GradientStrokeLength="-1" GradientStrokeAngle="0" GradientStrokeStart="0 0" RuleBelowOverprint="false" RuleBelowGapOverprint="false" KeepRuleAboveInFrame="false" IgnoreEdgeAlignment="false" OTFMark="true" OTFLocale="true" PositionalForm="None" OTFOverlapSwash="false" OTFStylisticAlternate="false" OTFJustificationAlternate="false" OTFStretchedAlternate="false" KeyboardDirection="DefaultDirection" DigitsType="DefaultDigits" Kashidas="DefaultKashidas" XOffsetDiacritic="0" YOffsetDiacritic="0" ParagraphBreakType="Anywhere" PageNumberType="AutoPageNumber" LeadingAki="-1" TrailingAki="-1" CharacterRotation="0" Jidori="0" ShataiMagnification="0" ShataiDegreeAngle="4500" ShataiAdjustRotation="false" ShataiAdjustTsume="true" Tatechuyoko="false" TatechuyokoXOffset="0" TatechuyokoYOffset="0" KentenTint="-1" KentenStrokeTint="-1" KentenWeight="-1" KentenOverprintFill="Auto" KentenOverprintStroke="Auto" KentenPlacement="0" KentenAlignment="AlignKentenCenter" KentenPosition="AboveRight" KentenXScale="100" KentenYScale="100" KentenCustomCharacter="" KentenCharacterSet="CharacterInput" RubyTint="-1" RubyWeight="-1" RubyOverprintFill="Auto" RubyOverprintStroke="Auto" RubyStrokeTint="-1" RubyOpenTypePro="true" RubyXScale="100" RubyYScale="100" RubyPosition="AboveRight" RubyXOffset="0" RubyYOffset="0" RubyAutoAlign="true" RubyOverhang="false" RubyAutoScaling="false" RubyParentScalingPercent="66" Warichu="false" WarichuSize="50" WarichuLines="2" WarichuLineSpacing="0" WarichuAlignment="Auto" WarichuCharsAfterBreak="2" WarichuCharsBeforeBreak="2" OTFHVKana="false" OTFRomanItalics="false" AutoTcyIncludeRoman="false" RubyAutoTcyAutoScale="true" ParagraphGyoudori="false" NumberingLevel="1" NumberingContinue="true" NumberingStartAt="1" NumberingApplyRestartPolicy="true" AppliedNamedGrid="n">
+			<Properties>
+				<RuleAboveGapColor type="object">Swatch/None</RuleAboveGapColor>
+				<RuleBelowGapColor type="object">Swatch/None</RuleBelowGapColor>
+				<RuleBelowType type="object">StrokeStyle/$ID/Solid</RuleBelowType>
+				<StrikeThroughColor type="string">Text Color</StrikeThroughColor>
+				<StrikeThroughGapColor type="object">Swatch/None</StrikeThroughGapColor>
+				<StrikeThroughType type="object">StrokeStyle/$ID/Solid</StrikeThroughType>
+				<KentenStrokeColor type="string">Text Color</KentenStrokeColor>
+				<KentenFont type="string">$ID/</KentenFont>
+				<KentenFontStyle type="enumeration">Nothing</KentenFontStyle>
+				<RubyFill type="string">Text Color</RubyFill>
+				<RubyStroke type="string">Text Color</RubyStroke>
+				<NumberingFormat type="string">1, 2, 3, 4...</NumberingFormat>
+				<NumberingRestartPolicies RestartPolicy="AnyPreviousLevel" LowerLevel="0" UpperLevel="0" />
+			</Properties>
+		</TextDefault>
+		<DictionaryPreference MergeUserDictionary="false" />
+		<AnchoredObjectDefault AnchorContent="Unassigned" InitialAnchorHeight="72" InitialAnchorWidth="72" AnchoredParagraphStyle="ParagraphStyle/$ID/[No paragraph style]" AnchoredObjectStyle="ObjectStyle/$ID/[None]" />
+		<AnchoredObjectSetting LockPosition="false" HorizontalReferencePoint="TextFrame" VerticalReferencePoint="LineBaseline" AnchorXoffset="0" AnchorSpaceAbove="0" />
+		<BaselineFrameGridOption UseCustomBaselineFrameGrid="false" StartingOffsetForBaselineFrameGrid="0" BaselineFrameGridRelativeOption="TopOfInset" BaselineFrameGridIncrement="12" />
+		<FootnoteOption FootnoteFirstBaselineOffset="LeadingOffset" RuleGapTint="100" RuleGapOverprint="false" RuleOverprint="false" ContinuingRuleTint="100" ContinuingRuleGapTint="100" ContinuingRuleOverprint="false" ContinuingRuleGapOverprint="false" ContinuingRuleLeftIndent="0" ContinuingRuleWidth="288" ContinuingRuleOffset="0">
+			<Properties>
+				<RuleGapColor type="object">Swatch/None</RuleGapColor>
+				<ContinuingRuleType type="object">StrokeStyle/$ID/Solid</ContinuingRuleType>
+				<ContinuingRuleColor type="object">Color/Black</ContinuingRuleColor>
+				<ContinuingRuleGapColor type="object">Swatch/None</ContinuingRuleGapColor>
+			</Properties>
+		</FootnoteOption>
+		<TextWrapPreference Inverse="false" TextWrapSide="BothSides">
+			<ContourOption IncludeInsideEdges="false" ContourPathName="$ID/" />
+		</TextWrapPreference>
+		<XMLImportPreference ImportToSelected="true" ImportStyle="MergeImport" RepeatTextElements="true" IgnoreUnmatchedIncoming="false" ImportTextIntoTables="true" IgnoreWhitespace="false" RemoveUnmatchedExisting="false" AllowTransform="false" ImportCALSTables="true">
+			<Properties>
+				<TransformFilename type="enumeration">StylesheetInXML</TransformFilename>
+				<TransformParameters></TransformParameters>
+			</Properties>
+		</XMLImportPreference>
+		<XMLExportPreference ExportFromSelected="false" FileEncoding="UTF8" Ruby="false" ExcludeDtd="true" CopyOriginalImages="false" CopyOptimizedImages="false" CopyFormattedImages="false" ImageConversion="Automatic" GIFOptionsPalette="AdaptivePalette" GIFOptionsInterlaced="false" JPEGOptionsQuality="Medium" JPEGOptionsFormat="BaselineEncoding" AllowTransform="false" CharacterReferences="false" ExportUntaggedTablesFormat="CALS">
+			<Properties>
+				<PreferredBrowser type="enumeration">Nothing</PreferredBrowser>
+				<TransformFilename type="enumeration">StylesheetInXML</TransformFilename>
+			</Properties>
+		</XMLExportPreference>
+		<XMLPreference>
+			<Properties>
+				<DefaultStoryTagColor type="enumeration">BrickRed</DefaultStoryTagColor>
+				<DefaultTableTagColor type="enumeration">DarkBlue</DefaultTableTagColor>
+				<DefaultCellTagColor type="enumeration">GrassGreen</DefaultCellTagColor>
+			</Properties>
+		</XMLPreference>
+		<ExportForWebPreference CopyFormattedImages="false" CopyOptimizedImages="false" CopyOriginalImages="false" ImageConversion="Automatic" GIFOptionsPalette="AdaptivePalette" GIFOptionsInterlaced="false" JPEGOptionsQuality="Medium" JPEGOptionsFormat="BaselineEncoding" />
+		<IndexOptions IncludeHiddenEntries="false" IndexFormat="NestedFormat" IncludeEmptyIndexSections="false" Level2Style="ParagraphStyle/$ID/[No paragraph style]" Level3Style="ParagraphStyle/$ID/[No paragraph style]" Level4Style="ParagraphStyle/$ID/[No paragraph style]" CrossReferenceStyle="CharacterStyle/$ID/[No character style]" CrossReferenceTopicStyle="CharacterStyle/$ID/[No character style]" FollowingTopicSeparator="  " PageRangeSeparator="^=" BetweenPageNumbersSeparator=", " BeforeCrossReferenceSeparator=". " EntryEndSeparator="" />
+		<IndexHeaderSetting HeaderSetName="$ID/" HeaderSetLanguage="256" />
+		<TinDocumentDataObject>
+			<Properties>
+				<GaijiRefMaps>/////wAAAAAAAAAA</GaijiRefMaps>
+			</Properties>
+		</TinDocumentDataObject>
+		<DocumentPreference PagesPerDocument="1" PreserveLayoutWhenShuffling="true" OverprintBlack="true" SnippetImportUsesOriginalLocation="false" />
+		<GuidePreference RulerGuidesViewThreshold="5" />
+		<PasteboardPreference>
+			<Properties>
+				<BleedGuideColor type="enumeration">Fiesta</BleedGuideColor>
+			</Properties>
+		</PasteboardPreference>
+		<ViewPreference PointsPerInch="72" HorizontalCustomPoints="12" VerticalCustomPoints="12" />
+		<TransparencyPreference GlobalLightAngle="120" GlobalLightAltitude="30" />
+		<TransparencyDefaultContainerObject>
+			<TransparencySetting>
+				<BlendingSetting BlendMode="Normal" Opacity="100" KnockoutGroup="false" IsolateBlending="false" />
+				<DropShadowSetting Mode="None" BlendMode="Multiply" Opacity="75" XOffset="7" YOffset="7" Size="5" EffectColor="n" Noise="0" Spread="0" UseGlobalLight="false" KnockedOut="true" HonorOtherEffects="false" />
+				<FeatherSetting Mode="None" Width="9" CornerType="Diffusion" Noise="0" ChokeAmount="0" />
+				<InnerShadowSetting Applied="false" EffectColor="n" BlendMode="Multiply" Opacity="75" Angle="120" Distance="7" UseGlobalLight="false" ChokeAmount="0" Size="7" Noise="0" />
+				<OuterGlowSetting Applied="false" BlendMode="Screen" Opacity="75" Noise="0" EffectColor="n" Technique="Softer" Spread="0" Size="7" />
+				<InnerGlowSetting Applied="false" BlendMode="Screen" Opacity="75" Noise="0" EffectColor="n" Technique="Softer" Spread="0" Size="7" Source="EdgeSourced" />
+				<BevelAndEmbossSetting Applied="false" Style="InnerBevel" Technique="SmoothContour" Depth="100" Direction="Up" Size="7" Soften="0" Angle="120" Altitude="30" UseGlobalLight="false" HighlightColor="n" HighlightBlendMode="Screen" HighlightOpacity="75" ShadowColor="n" ShadowBlendMode="Multiply" ShadowOpacity="75" />
+				<SatinSetting Applied="false" EffectColor="n" BlendMode="Multiply" Opacity="50" Angle="120" Distance="7" Size="7" InvertEffect="false" />
+				<DirectionalFeatherSetting Applied="false" LeftWidth="0" RightWidth="0" TopWidth="0" BottomWidth="0" ChokeAmount="0" Angle="0" FollowShapeMode="LeadingEdge" Noise="0" />
+				<GradientFeatherSetting Applied="false" Type="Linear" Angle="0" Length="0" GradientStart="0 0" HiliteAngle="0" HiliteLength="0" />
+			</TransparencySetting>
+			<StrokeTransparencySetting>
+				<BlendingSetting BlendMode="Normal" Opacity="100" KnockoutGroup="false" IsolateBlending="false" />
+				<DropShadowSetting Mode="None" BlendMode="Multiply" Opacity="75" XOffset="7" YOffset="7" Size="5" EffectColor="n" Noise="0" Spread="0" UseGlobalLight="false" KnockedOut="true" HonorOtherEffects="false" />
+				<FeatherSetting Mode="None" Width="9" CornerType="Diffusion" Noise="0" ChokeAmount="0" />
+				<InnerShadowSetting Applied="false" EffectColor="n" BlendMode="Multiply" Opacity="75" Angle="120" Distance="7" UseGlobalLight="false" ChokeAmount="0" Size="7" Noise="0" />
+				<OuterGlowSetting Applied="false" BlendMode="Screen" Opacity="75" Noise="0" EffectColor="n" Technique="Softer" Spread="0" Size="7" />
+				<InnerGlowSetting Applied="false" BlendMode="Screen" Opacity="75" Noise="0" EffectColor="n" Technique="Softer" Spread="0" Size="7" Source="EdgeSourced" />
+				<BevelAndEmbossSetting Applied="false" Style="InnerBevel" Technique="SmoothContour" Depth="100" Direction="Up" Size="7" Soften="0" Angle="120" Altitude="30" UseGlobalLight="false" HighlightColor="n" HighlightBlendMode="Screen" HighlightOpacity="75" ShadowColor="n" ShadowBlendMode="Multiply" ShadowOpacity="75" />
+				<SatinSetting Applied="false" EffectColor="n" BlendMode="Multiply" Opacity="50" Angle="120" Distance="7" Size="7" InvertEffect="false" />
+				<DirectionalFeatherSetting Applied="false" LeftWidth="0" RightWidth="0" TopWidth="0" BottomWidth="0" ChokeAmount="0" Angle="0" FollowShapeMode="LeadingEdge" Noise="0" />
+				<GradientFeatherSetting Applied="false" Type="Linear" Angle="0" Length="0" GradientStart="0 0" HiliteAngle="0" HiliteLength="0" />
+			</StrokeTransparencySetting>
+			<FillTransparencySetting>
+				<BlendingSetting BlendMode="Normal" Opacity="100" KnockoutGroup="false" IsolateBlending="false" />
+				<DropShadowSetting Mode="None" BlendMode="Multiply" Opacity="75" XOffset="7" YOffset="7" Size="5" EffectColor="n" Noise="0" Spread="0" UseGlobalLight="false" KnockedOut="true" HonorOtherEffects="false" />
+				<FeatherSetting Mode="None" Width="9" CornerType="Diffusion" Noise="0" ChokeAmount="0" />
+				<InnerShadowSetting Applied="false" EffectColor="n" BlendMode="Multiply" Opacity="75" Angle="120" Distance="7" UseGlobalLight="false" ChokeAmount="0" Size="7" Noise="0" />
+				<OuterGlowSetting Applied="false" BlendMode="Screen" Opacity="75" Noise="0" EffectColor="n" Technique="Softer" Spread="0" Size="7" />
+				<InnerGlowSetting Applied="false" BlendMode="Screen" Opacity="75" Noise="0" EffectColor="n" Technique="Softer" Spread="0" Size="7" Source="EdgeSourced" />
+				<BevelAndEmbossSetting Applied="false" Style="InnerBevel" Technique="SmoothContour" Depth="100" Direction="Up" Size="7" Soften="0" Angle="120" Altitude="30" UseGlobalLight="false" HighlightColor="n" HighlightBlendMode="Screen" HighlightOpacity="75" ShadowColor="n" ShadowBlendMode="Multiply" ShadowOpacity="75" />
+				<SatinSetting Applied="false" EffectColor="n" BlendMode="Multiply" Opacity="50" Angle="120" Distance="7" Size="7" InvertEffect="false" />
+				<DirectionalFeatherSetting Applied="false" LeftWidth="0" RightWidth="0" TopWidth="0" BottomWidth="0" ChokeAmount="0" Angle="0" FollowShapeMode="LeadingEdge" Noise="0" />
+				<GradientFeatherSetting Applied="false" Type="Linear" Angle="0" Length="0" GradientStart="0 0" HiliteAngle="0" HiliteLength="0" />
+			</FillTransparencySetting>
+			<ContentTransparencySetting>
+				<BlendingSetting BlendMode="Normal" Opacity="100" KnockoutGroup="false" IsolateBlending="false" />
+				<DropShadowSetting Mode="None" BlendMode="Multiply" Opacity="75" XOffset="7" YOffset="7" Size="5" EffectColor="n" Noise="0" Spread="0" UseGlobalLight="false" KnockedOut="true" HonorOtherEffects="false" />
+				<FeatherSetting Mode="None" Width="9" CornerType="Diffusion" Noise="0" ChokeAmount="0" />
+				<InnerShadowSetting Applied="false" EffectColor="n" BlendMode="Multiply" Opacity="75" Angle="120" Distance="7" UseGlobalLight="false" ChokeAmount="0" Size="7" Noise="0" />
+				<OuterGlowSetting Applied="false" BlendMode="Screen" Opacity="75" Noise="0" EffectColor="n" Technique="Softer" Spread="0" Size="7" />
+				<InnerGlowSetting Applied="false" BlendMode="Screen" Opacity="75" Noise="0" EffectColor="n" Technique="Softer" Spread="0" Size="7" Source="EdgeSourced" />
+				<BevelAndEmbossSetting Applied="false" Style="InnerBevel" Technique="SmoothContour" Depth="100" Direction="Up" Size="7" Soften="0" Angle="120" Altitude="30" UseGlobalLight="false" HighlightColor="n" HighlightBlendMode="Screen" HighlightOpacity="75" ShadowColor="n" ShadowBlendMode="Multiply" ShadowOpacity="75" />
+				<SatinSetting Applied="false" EffectColor="n" BlendMode="Multiply" Opacity="50" Angle="120" Distance="7" Size="7" InvertEffect="false" />
+				<DirectionalFeatherSetting Applied="false" LeftWidth="0" RightWidth="0" TopWidth="0" BottomWidth="0" ChokeAmount="0" Angle="0" FollowShapeMode="LeadingEdge" Noise="0" />
+				<GradientFeatherSetting Applied="false" Type="Linear" Angle="0" Length="0" GradientStart="0 0" HiliteAngle="0" HiliteLength="0" />
+			</ContentTransparencySetting>
+		</TransparencyDefaultContainerObject>
+		<LayoutGridDataInformation CharacterAki="0" HorizontalScale="100" VerticalScale="100" />
+		<StoryGridDataInformation CharacterAki="0" HorizontalScale="100" VerticalScale="100" LineAlignment="LeftOrTopLineJustify" GridAlignment="AlignEmCenter" CharacterAlignment="AlignEmCenter" GridView="GridViewEnum" CharacterCountLocation="BottomAlign" />
+		<CjkGridPreference MinimumScale="50" ColorEveryNthCell="10" SingleLineColorMode="true" ICFMode="false" UseCircularCells="false">
+			<Properties>
+				<LayoutGridColorIndex type="enumeration">GridGreen</LayoutGridColorIndex>
+			</Properties>
+		</CjkGridPreference>
+		<DataMergeOption FittingOption="Proportional" CenterImage="false" LinkImages="true" RemoveBlankLines="false" CreateNewDocument="false" DocumentSize="50" />
+		<LayoutAdjustmentPreference AllowGraphicsToResize="true" AllowRulerGuidesToMove="true" IgnoreRulerGuideAlignments="false" IgnoreObjectOrLayerLocks="true" />
+	</Values>
+	<Values MinimumVersion="8">
+		<TextFramePreference UseFlexibleColumnWidth="false" TextColumnMaxWidth="0" AutoSizingType="Off" AutoSizingReferencePoint="CenterPoint" UseMinimumHeightForAutoSizing="false" MinimumHeightForAutoSizing="0" UseMinimumWidthForAutoSizing="false" MinimumWidthForAutoSizing="0" UseNoLineBreaksForAutoSizing="false" />
+		<TextDefault ParagraphKashidaWidth="2" />
+		<EPubExportPreference BulletExportOption="UnorderedList" NumberedListExportOption="OrderedList" LeftMargin="0" RightMargin="0" TopMargin="0" BottomMargin="0" ImageAlignment="AlignCenter" ImageSpaceBefore="0" ImageSpaceAfter="0" UseImagePageBreak="false" ImagePageBreak="PageBreakBefore" ImageConversion="Automatic" GIFOptionsPalette="AdaptivePalette" GIFOptionsInterlaced="false" JPEGOptionsQuality="High" JPEGOptionsFormat="ProgressiveEncoding" IgnoreObjectConversionSettings="false" StripSoftReturn="false" PreserveLocalOverride="true" IncludeDocumentMetadata="true" Level="5" MarginUnit="CssPixel" SpaceUnit="CssPixel" CSSExportOption="EmbeddedCSS" Format="true" ExternalCSSPath="$ID/" IncludeCSSDefinition="true" ApplyImageAlignmentToAnchoredObjectSettings="true" FootnoteFollowParagraph="false" ExternalStyleSheets="" Javascripts="" />
+		<HTMLExportPreference ExportSelection="false" BulletExportOption="UnorderedList" NumberedListExportOption="OrderedList" ImageExportOption="OptimizedImage" ImageExportResolution="Ppi150" CustomImageSizeOption="SizeFixed" ImageAlignment="AlignCenter" ImageSpaceBefore="0" ImageSpaceAfter="0" ImageConversion="Automatic" GIFOptionsPalette="AdaptivePalette" GIFOptionsInterlaced="false" JPEGOptionsQuality="High" JPEGOptionsFormat="ProgressiveEncoding" Level="5" IgnoreObjectConversionSettings="false" ServerPath="" ImageExtension=".jpg" LeftMargin="0" RightMargin="0" TopMargin="0" BottomMargin="0" MarginUnit="CssPixel" SpaceUnit="CssPixel" ExternalCSSPath="$ID/" LinkToJavascript="true" JavascriptURL="$ID/" IncludeCSSDefinition="true" CSSExportOption="EmbeddedCSS" ApplyImageAlignmentToAnchoredObjectSettings="true" ExternalStyleSheets="" Javascripts="" />
+	</Values>
+	<Values MinimumVersion="9">
+		<EPubExportPreference GenerateCascadeStyleSheet="true" />
+		<HTMLExportPreference GenerateCascadeStyleSheet="true" />
+	</Values>
+	<Values MinimumVersion="10">
+		<PrintPreference PDFPassthrough="false" />
+		<PrintBookletPrintPreference PDFPassthrough="false" />
+		<EPubFixedLayoutExportPreference Level="5" ImageExportResolution="Ppi150" ImageConversion="Automatic" GIFOptionsPalette="AdaptivePalette" GIFOptionsInterlaced="false" JPEGOptionsQuality="High" JPEGOptionsFormat="ProgressiveEncoding" ExternalStyleSheets="" Javascripts="" EpubPageRange="" EpubPageRangeFormat="ExportAllPages" EpubSpreadControlOptions="SpreadsBasedOnDoc" />
+	</Values>
+	<Values MinimumVersion="11">
+		<TextDefault ParagraphShadingSuppressPrinting="false" />
+	</Values>
+	<Values MinimumVersion="12">
+		<PageItemDefault ArrowHeadAlignment="InsidePath" />
+	</Values>
+	<Values MinimumVersion="13">
+		<TextDefault ParagraphBorderOverprint="false" ParagraphBorderTint="-1" ParagraphBorderGapOverprint="false" ParagraphBorderGapTint="-1" ParagraphBorderStrokeEndCap="ButtEndCap" ParagraphBorderStrokeEndJoin="MiterEndJoin" ParagraphShadingTopLeftCornerOption="None" ParagraphShadingTopRightCornerOption="None" ParagraphShadingBottomLeftCornerOption="None" ParagraphShadingBottomRightCornerOption="None" ParagraphBorderTopLeftCornerOption="None" ParagraphBorderTopRightCornerOption="None" ParagraphBorderBottomLeftCornerOption="None" ParagraphBorderBottomRightCornerOption="None" ParagraphBorderWidth="ColumnWidth" ParagraphBorderDisplayIfSplits="false" ProviderHyphenationStyle="HyphAll">
+			<Properties>
+				<ParagraphBorderGapColor type="object">Swatch/None</ParagraphBorderGapColor>
+			</Properties>
+		</TextDefault>
+		<XMLPreference DeleteElementOnContentDeletion="false" />
+		<EPubExportPreference IncludeClassesInHTML="true" />
+		<HTMLExportPreference IncludeClassesInHTML="true" />
+	</Values>
+	<Values MinimumVersion="14">
+		<TextFramePreference FootnotesEnableOverrides="false" FootnotesSpanAcrossColumns="false" FootnotesMinimumSpacing="12" FootnotesSpaceBetween="6" />
+	</Values>
+	<Values MinimumVersion="15">
+		<TextFramePreference ColumnRuleOverride="false" ColumnRuleOffset="0" ColumnRuleTopInset="0" ColumnRuleInsetChainOverride="true" ColumnRuleBottomInset="0" ColumnRuleStrokeType="StrokeStyle/$ID/Solid" ColumnRuleStrokeTint="100" ColumnRuleOverprintOverride="false" />
+		<EPubExportPreference UseSVGAs="EmbedCode" />
+		<HTMLExportPreference UseSVGAs="EmbedCode" />
+	</Values>
+	<Values MinimumVersion="18">
+		<PageItemDefault GapColor="Swatch/None" />
+		<XMLPreference>
+			<Properties>
+				<DefaultImageTagColor type="enumeration">Violet</DefaultImageTagColor>
+			</Properties>
+		</XMLPreference>
+	</Values>
+	<Values MinimumVersion="20">
+		<EPubExportPreference EpubAccessibilityFeature="" EpubAccessibilityHazard="" EpubAccessibilityMode="" EpubAccessibilityModeSufficient="" EpubAccessibilitySummary="" EpubAccessibilityConformsTo="" EpubAccessibilityCertifiedBy="" EpubAccessibilityCredentials="" EpubAccessibilityReportLink="" EpubCreatePageNavigation="true" />
+		<EPubFixedLayoutExportPreference EpubAccessibilityFeature="" EpubAccessibilityHazard="" EpubAccessibilityMode="" EpubAccessibilityModeSufficient="" EpubAccessibilitySummary="" EpubAccessibilityConformsTo="" EpubAccessibilityCertifiedBy="" EpubAccessibilityCredentials="" EpubAccessibilityReportLink="" />
+	</Values>
+</PreferenceValues>

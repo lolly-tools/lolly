@@ -22,6 +22,7 @@
  * workspaces, so the plugin lives only in this shell's node_modules).
  */
 
+import { invoke } from '@tauri-apps/api/core';
 import {
   BaseDirectory,
   exists,
@@ -44,6 +45,8 @@ const appDataFs: StateFs = {
   mkdirRecursive: (path) => mkdir(path, { baseDir: BaseDirectory.AppData, recursive: true }),
   readTextFile: (path) => readTextFile(path, { baseDir: BaseDirectory.AppData }),
   writeTextFile: (path, text) => writeTextFile(path, text, { baseDir: BaseDirectory.AppData }),
+  // Native temp-file, sync, rename: a crash mid-save keeps the previous document.
+  writeDocumentAtomic: (path, text) => invoke<void>('write_document_atomic', { path, contents: text }),
   readDirNames: async (path) =>
     (await readDir(path, { baseDir: BaseDirectory.AppData })).map((entry) => entry.name),
   remove: (path) => remove(path, { baseDir: BaseDirectory.AppData }),

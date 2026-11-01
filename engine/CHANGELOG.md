@@ -6,6 +6,16 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.297.0
+
+- New module `cmyk-separation.ts`: `iccSeparation(profile)` turns a CMYK output profile into the separation a print export writes. Exact neutrals go on K alone, tone matched through the profile's K-only ramp, so black type and rules stay on one plate and still overprint. Other colours convert relative colorimetric with black point compensation. The result is memoised per colour (bounded at 65,536 entries). A profile that is not four-channel CMYK, has no usable table or has no K range returns null rather than a guess.
+- `separationLattice(sep, size = 33)` evaluates a separation for 8-bit raster pixels by tetrahedral interpolation over a lattice in encoded sRGB, so exact greys stay on K. Against the bundled FOGRA39-fitted profile its mean ΔE76 from the exact separation is under 0.2. `DEVICE_SEPARATION` wraps `rgbToCmyk` unchanged.
+- `buildCmykPaletteMap(palette, separate?)` and `emitEps(ir, { separate })` take the separation for colours with no CMYK lock. Both default to `rgbToCmyk`, so existing callers write the same bytes.
+- New barrel exports: `iccSeparation`, `separationLattice`, `DEVICE_SEPARATION`, `NEUTRAL_EPSILON`, `CmykSeparation`, `SeparateRgb`.
+- `readXlsx` takes an optional `formatCell` (batched): `xlsx-import.ts` now reads `xl/styles.xml` `numFmts` and `cellXfs`, maps Excel's built-in format ids to codes and hands each cell's value and code to the formatter, so cells carry their display text and date cells an ISO date. The engine loads no formatter itself; the shells supply GridCraft's number formats from a WASM module. Without `formatCell` the output is byte-identical to 1.296.
+- New barrel types: `XlsxCellFormatter`, `XlsxCellFormatRequest`, `XlsxCellFormatResult`, `XlsxCellKind`, `XlsxDateCell`.
+- The Adobe XML reader allows 512 attributes per element (was 128). Real InDesign paragraph styles carry about 180 attributes, which the old limit refused, so IDML converted from INDD could not be read.
+
 ## 1.296.0
 
 - Spring eases on the `kf` wire (new module `kf-spring.ts`): `esp(<stiffness>)(<damping>)(<mass>)`, clamped to 1..5000, 0..500 and 0.1..100 with quanta 0.1, 0.01 and 0.01. A spring runs in real time from its keyframe and lands exactly on the next one: whatever distance it has not covered there is spread evenly over the segment, `S(u) = x(uT) + (1 − x(T))·u`. It is integrated (Runge-Kutta, fixed 1 ms step, cached per spring, cubic Hermite between samples) with only + − × ÷, so V8 and JavaScriptCore produce the same bytes; there is no closed form and no `exp`, `sin` or `cos`. The named springs have no tokens of their own: Gentle `esp(100)(15)(1)`, Quick `esp(300)(20)(1)`, Bouncy `esp(600)(15)(1)`, Slow `esp(80)(20)(1)`. A split or trim writes a window, `esp(k)(c)(m)(<span>)(<from>)(<to>)` in ms, so `subdivideKfEase` cuts a spring exactly; it takes the segment's length as a new optional third argument.

@@ -2,16 +2,41 @@
 
 use crate::error::{PsdError, Result};
 
-/// A cursor over a byte slice. Every read is bounds checked.
+/// A name as UTF-16 code units, capped at `max` **without ever splitting a surrogate pair**.
+/// `encode_utf16().take(max)` would cut between the high and low half of a pair above U+FFFF and
+/// write ill-formed UTF-16 to disk, so whole scalar values are added until one would not fit.
+/// Both the `.aco` and `.ase` writers share this; keeping it in one place is deliberate, so the
+/// surrogate fix cannot drift between the two formats.
+pub(crate) fn utf16_units(name: &str, max: usize) -> Vec<u16> {
+    let mut units = Vec::new();
+    for c in name.chars() {
+        if units.len() + c.len_utf16() > max {
+            break;
+        }
+        let mut buf = [0u16; 2];
+        units.extend_from_slice(c.encode_utf16(&mut buf));
+    }
+    units
+}
+
+/// A cursor over a byte slice. Every read is bounds checked. Integers are big-endian (the PSD
+/// byte order) unless the reader was made with [`Reader::new_little`], which only the TIFF
+/// byte-order transcoder uses ([`crate::tiff`]).
 #[derive(Debug, Clone)]
 pub(crate) struct Reader<'a> {
     data: &'a [u8],
     pos: usize,
+    little: bool,
 }
 
 impl<'a> Reader<'a> {
     pub(crate) fn new(data: &'a [u8]) -> Self {
-        Reader { data, pos: 0 }
+        Reader { data, pos: 0, little: false }
+    }
+
+    /// A reader of little-endian integers (Photoshop data inside an Intel-order TIFF).
+    pub(crate) fn new_little(data: &'a [u8]) -> Self {
+        Reader { data, pos: 0, little: true }
     }
 
     pub(crate) fn pos(&self) -> usize {
@@ -47,7 +72,8 @@ impl<'a> Reader<'a> {
     }
 
     pub(crate) fn sub(&mut self, n: u64) -> Result<Reader<'a>> {
-        Ok(Reader::new(self.bytes_u64(n)?))
+        let little = self.little;
+        Ok(Reader { data: self.bytes_u64(n)?, pos: 0, little })
     }
 
     pub(crate) fn skip(&mut self, n: usize) -> Result<()> {
@@ -65,25 +91,32 @@ impl<'a> Reader<'a> {
         Ok(self.array::<1>()?[0])
     }
     pub(crate) fn u16(&mut self) -> Result<u16> {
-        Ok(u16::from_be_bytes(self.array()?))
+        let b = self.array()?;
+        Ok(if self.little { u16::from_le_bytes(b) } else { u16::from_be_bytes(b) })
     }
     pub(crate) fn i16(&mut self) -> Result<i16> {
-        Ok(i16::from_be_bytes(self.array()?))
+        let b = self.array()?;
+        Ok(if self.little { i16::from_le_bytes(b) } else { i16::from_be_bytes(b) })
     }
     pub(crate) fn u32(&mut self) -> Result<u32> {
-        Ok(u32::from_be_bytes(self.array()?))
+        let b = self.array()?;
+        Ok(if self.little { u32::from_le_bytes(b) } else { u32::from_be_bytes(b) })
     }
     pub(crate) fn i32(&mut self) -> Result<i32> {
-        Ok(i32::from_be_bytes(self.array()?))
+        let b = self.array()?;
+        Ok(if self.little { i32::from_le_bytes(b) } else { i32::from_be_bytes(b) })
     }
     pub(crate) fn u64(&mut self) -> Result<u64> {
-        Ok(u64::from_be_bytes(self.array()?))
+        let b = self.array()?;
+        Ok(if self.little { u64::from_le_bytes(b) } else { u64::from_be_bytes(b) })
     }
     pub(crate) fn i64(&mut self) -> Result<i64> {
-        Ok(i64::from_be_bytes(self.array()?))
+        let b = self.array()?;
+        Ok(if self.little { i64::from_le_bytes(b) } else { i64::from_be_bytes(b) })
     }
     pub(crate) fn f64(&mut self) -> Result<f64> {
-        Ok(f64::from_be_bytes(self.array()?))
+        let b = self.array()?;
+        Ok(if self.little { f64::from_le_bytes(b) } else { f64::from_be_bytes(b) })
     }
 
     /// Reads a length field that is 4 bytes, or 8 bytes when `long`.

@@ -10,6 +10,7 @@
  * drawSvgVectorsInRegion) stay in export.ts and import these.
  */
 import { splitCssArgs, parseGradientStop, parseGradientAngle, parseRadialGradient, rgbToCmyk, roundedRectPath, uniformRadius, parseColorToSrgb8, parseSvgPath } from '@lolly/engine';
+import type { SeparateRgb } from '@lolly/engine';
 import { objectPositionFractions } from './export-css.ts';
 import { FINISH_MASK_CMYK, buildCmykPaletteMap, cmykKey } from '@lolly/engine';
 import type { BrandPaletteEntry, PaletteHit, PaletteSpotHit } from '@lolly/engine';
@@ -576,8 +577,9 @@ export function cmykN(v: number): string {
 }
 
 // A fill/stroke is treated as solid black (and so OVERPRINTS) when it is pure K at
-// or above this. rgbToCmyk maps every neutral to exactly C=M=Y=0, so the equality
-// test on the CMY channels is exact; only K needs a threshold for near-solid text.
+// or above this. Both separations (the device formula and a press profile's, see
+// engine/src/cmyk-separation.ts) put every exact neutral on K alone, C=M=Y=0, so
+// the equality test on the CMY channels is exact; only K needs a threshold.
 export const OVERPRINT_K_MIN = 0.99;
 
 // The four overprint graphics states substitutePdfRgb selects (materialised as
@@ -599,7 +601,9 @@ export const OVERPRINT_GS_DEFS: Record<string, Record<string, boolean | number>>
 // resource name comes from spotNames, assigned by assignSpotResourceNames). `used`
 // collects the brand palette keys that matched (for the colour bar); `usedSpots`
 // collects the spot names actually referenced, so renderCmykPdf only materialises
-// a /Separation object for spots a content stream really uses.
+// a /Separation object for spots a content stream really uses. `separate` turns a
+// colour with no palette match into ink: the export's press separation, or the
+// device formula by default.
 export function substitutePdfRgb(
   text: string,
   paletteMap: Map<string, PaletteHit>,
@@ -607,6 +611,7 @@ export function substitutePdfRgb(
   used?: Set<string>,
   usedSpots?: Set<string>,
   usedGs?: Set<string>,
+  separate: SeparateRgb = rgbToCmyk,
 ): string {
   const N = '([+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?)';
   const W = '[\\s]+';
@@ -627,7 +632,7 @@ export function substitutePdfRgb(
         usedGs?.add(gs);
         return `/${gs} gs /${spotNames.get(hit.spot.name)} cs 1 scn`;
       }
-      const [c, m, y, k] = hit ? hit.cmyk : rgbToCmyk(+r, +g, +b);
+      const [c, m, y, k] = hit ? hit.cmyk : separate(+r, +g, +b);
       const gs = (c === 0 && m === 0 && y === 0 && k >= OVERPRINT_K_MIN) ? 'GSfo' : 'GSfk';
       usedGs?.add(gs);
       return `/${gs} gs ${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} k`;
@@ -640,7 +645,7 @@ export function substitutePdfRgb(
         usedGs?.add(gs);
         return `/${gs} gs /${spotNames.get(hit.spot.name)} CS 1 SCN`;
       }
-      const [c, m, y, k] = hit ? hit.cmyk : rgbToCmyk(+r, +g, +b);
+      const [c, m, y, k] = hit ? hit.cmyk : separate(+r, +g, +b);
       const gs = (c === 0 && m === 0 && y === 0 && k >= OVERPRINT_K_MIN) ? 'GSso' : 'GSsk';
       usedGs?.add(gs);
       return `/${gs} gs ${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} K`;
@@ -657,7 +662,7 @@ export function substitutePdfRgb(
  * alternate: blending between inks would need a DeviceN shading. Returns how many
  * shadings changed.
  */
-export async function convertShadingsToCmyk(pdfDoc: PDFDocument, paletteMap: Map<string, PaletteHit>, used?: Set<string>): Promise<number> {
+export async function convertShadingsToCmyk(pdfDoc: PDFDocument, paletteMap: Map<string, PaletteHit>, used?: Set<string>, separate: SeparateRgb = rgbToCmyk): Promise<number> {
   const { PDFName, PDFDict, PDFArray, PDFRef } = await import('pdf-lib');
   const ctx = pdfDoc.context;
   const resolve = (v: PDFObject | undefined): PDFObject | undefined => (v instanceof PDFRef ? ctx.lookup(v) : v);
@@ -684,7 +689,7 @@ export async function convertShadingsToCmyk(pdfDoc: PDFDocument, paletteMap: Map
     if (typeOf(fn) === 3) { partsOf(fn)?.forEach(convert); return; }
     for (const k of ['C0', 'C1']) {
       const [r, g, b] = rgbOf(fn.get(PDFName.of(k)))!;
-      fn.set(PDFName.of(k), ctx.obj(pdfColorHit(r!, g!, b!, paletteMap, used)?.cmyk ?? rgbToCmyk(r!, g!, b!)));
+      fn.set(PDFName.of(k), ctx.obj(pdfColorHit(r!, g!, b!, paletteMap, used)?.cmyk ?? separate(r!, g!, b!)));
     }
   };
   let count = 0;

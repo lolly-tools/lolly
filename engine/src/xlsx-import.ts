@@ -12,8 +12,10 @@
  * Pure and DOM-free. We import ONLY `fflate` (for inflate - the engine has
  * `deflateRaw` but no pure inflater) and scan the part XML with a small,
  * bounds-safe string/regex reader (no DOM, no injected parser). Numbers, dates
- * and formulae surface as their cached string value; styling/number-format is
- * not applied (a date shows its serial or cached text, matching a CSV paste).
+ * and formulae surface as their cached string value. Number formats are applied
+ * only when the caller supplies `formatCell` (the engine stays wasm-free: a shell
+ * hands it a function backed by the xlsx-numfmt module); without one a date shows
+ * its serial or cached text, matching a CSV paste.
  * With `cells: 'formulas'` a formula cell yields its formula text instead
  * (`=SUM(A1:A3)`); a shared formula is rewritten for each cell it covers, and a
  * cell whose formula cannot be rewritten safely keeps its cached value and is
@@ -49,7 +51,53 @@ export interface ReadXlsxOpts {
   /** `'cached'` (default) returns each formula cell's saved result; `'formulas'`
    *  returns its formula text, starting with `=`. */
   cells?: 'cached' | 'formulas';
+  /** Show cells the way Excel does. Called once per batch of at most
+   *  {@link XLSX_FORMAT_BATCH} cells with every formatted cell of the sheet; it
+   *  must return one result per request, in order. Omit it and the output is
+   *  byte-identical to a read without number formats. A throw, a wrong-length
+   *  answer or a malformed result keeps the unformatted text. */
+  formatCell?: XlsxCellFormatter | undefined;
 }
+
+/** One cell handed to a {@link XlsxCellFormatter}. */
+export interface XlsxCellFormatRequest {
+  /** The cell's number (from a numeric cell) or text (from a string cell). */
+  value: number | string;
+  /** The Excel number-format code, e.g. `m/d/yyyy` or `#,##0.00;[Red](#,##0.00)`. */
+  formatCode: string;
+  /** The workbook's date system: 1900 (default) or 1904 (`date1904`). */
+  dateSystem: 1900 | 1904;
+}
+
+/** What kind of cell a format code makes. `text` is a string value. */
+export type XlsxCellKind =
+  | 'general' | 'number' | 'currency' | 'accounting' | 'date' | 'time' | 'percentage'
+  | 'fraction' | 'scientific' | 'text' | 'special' | 'custom';
+
+/** The display of one formatted cell. */
+export interface XlsxCellFormatResult {
+  /** The cell text as Excel displays the cell. */
+  text: string;
+  kind: XlsxCellKind;
+  /** `YYYY-MM-DD` (or `YYYY-MM-DDTHH:MM:SS` when the format shows a time) for a
+   *  date cell with a real calendar date, usable as a `date` input value. */
+  iso?: string;
+}
+
+/** Formats a batch of cells. Synchronous: the shell loads its backing module first. */
+export type XlsxCellFormatter = (cells: XlsxCellFormatRequest[]) => XlsxCellFormatResult[];
+
+/** A date cell of the returned grid, with its ISO date. */
+export interface XlsxDateCell {
+  /** 0-based row in {@link ReadXlsxResult.rows}. */
+  row: number;
+  /** 0-based column. */
+  col: number;
+  iso: string;
+}
+
+/** Most cells handed to one `formatCell` call. */
+export const XLSX_FORMAT_BATCH = 50_000;
 
 /** Result of {@link readXlsx}: the chosen sheet's cells + a truncation flag. */
 export interface ReadXlsxResult {
@@ -66,6 +114,8 @@ export interface ReadXlsxResult {
   /** with `cells: 'formulas'`, formula cells returned as their cached value
    *  because their formula text could not be recovered for that cell. */
   formulaResultsKept?: number;
+  /** with `formatCell`, the date cells that have a real calendar date. */
+  dates?: XlsxDateCell[];
 }
 
 /** One worksheet of a workbook, in workbook (tab) order. */
@@ -172,6 +222,7 @@ export function openXlsx(bytes: Uint8Array): XlsxWorkbook {
 
   let declared: SheetEntry[] | undefined;
   let shared: string[] | undefined;
+  let styles: XlsxStyles | undefined;
   const sheetList = (): SheetEntry[] => (declared ??= allSheets(store));
 
   return {
@@ -195,11 +246,17 @@ export function openXlsx(bytes: Uint8Array): XlsxWorkbook {
       shared ??= readSharedStrings(store);
 
       const formulas: FormulaState = { mode: opts.cells === 'formulas' ? 'formulas' : 'cached', shared: new Map(), cells: 0, kept: 0 };
-      const { rows, truncated } = readSheet(sheetXml, shared, limit, formulas);
+      let formats: FormatState | undefined;
+      if (typeof opts.formatCell === 'function') {
+        styles ??= readStyles(store);
+        formats = { format: opts.formatCell, xfs: styles.xfs, system: styles.system, pending: [], dates: [] };
+      }
+      const { rows, truncated } = readSheet(sheetXml, shared, limit, formulas, formats);
       if (!rows.length) throw new Error(truncated ? 'That sheet is too large to read.' : 'That sheet has no cells.');
       return {
         rows, truncated, sheetPath: chosen.path, sheetName: chosen.name || undefined, formulaCells: formulas.cells,
         ...(formulas.mode === 'formulas' ? { formulaResultsKept: formulas.kept } : {}),
+        ...(formats ? { dates: formats.dates } : {}),
       };
     },
   };
@@ -415,6 +472,7 @@ function readSheet(
   shared: string[],
   limit: number,
   formulas: FormulaState,
+  formats?: FormatState,
 ): { rows: string[][]; truncated: boolean } {
   // Sparse fill: rowIndex → (colIndex → value). We track the max column so the
   // final grid is padded rectangular (gaps → '').
@@ -486,7 +544,10 @@ function readSheet(
     row.set(colIdx, value);
     if (colIdx > maxCol) maxCol = colIdx;
     if (rowIdx > maxRow) maxRow = rowIdx;
+    if (formats && formula === undefined) queueFormat(formats, attrs, value, rowIdx, colIdx);
   }
+
+  if (formats) applyFormats(formats, grid);
 
   if (maxRow < 0 || maxCol < 0) return { rows: [], truncated };
 
@@ -541,6 +602,128 @@ function cellValue(attrs: string, inner: string, shared: string[]): string {
   }
   // number / date / error - the literal cached value in <v>.
   return decodeXml(firstElemText(inner, 'v'));
+}
+
+// ─── number formats ──────────────────────────────────────────────────────────
+
+/** Excel's built-in number formats for ids 0 to 49 in en-US (ECMA-376 18.8.30).
+ *  Ids 23 to 36 and 50 and up are locale-specific and read as General. Kept in
+ *  step with the xlsx-numfmt module's own table. */
+const BUILTIN_FORMATS: Readonly<Record<number, string>> = {
+  1: '0', 2: '0.00', 3: '#,##0', 4: '#,##0.00',
+  5: '"$"#,##0_);\\("$"#,##0\\)', 6: '"$"#,##0_);[Red]\\("$"#,##0\\)',
+  7: '"$"#,##0.00_);\\("$"#,##0.00\\)', 8: '"$"#,##0.00_);[Red]\\("$"#,##0.00\\)',
+  9: '0%', 10: '0.00%', 11: '0.00E+00', 12: '# ?/?', 13: '# ??/??',
+  14: 'm/d/yyyy', 15: 'd-mmm-yy', 16: 'd-mmm', 17: 'mmm-yy', 18: 'h:mm AM/PM', 19: 'h:mm:ss AM/PM',
+  20: 'h:mm', 21: 'h:mm:ss', 22: 'm/d/yyyy h:mm',
+  37: '#,##0 ;(#,##0)', 38: '#,##0 ;[Red](#,##0)', 39: '#,##0.00;(#,##0.00)', 40: '#,##0.00;[Red](#,##0.00)',
+  41: '_(* #,##0_);_(* \\(#,##0\\);_(* "-"_);_(@_)',
+  42: '_("$"* #,##0_);_("$"* \\(#,##0\\);_("$"* "-"_);_(@_)',
+  43: '_(* #,##0.00_);_(* \\(#,##0.00\\);_(* "-"??_);_(@_)',
+  44: '_("$"* #,##0.00_);_("$"* \\(#,##0.00\\);_("$"* "-"??_);_(@_)',
+  45: 'mm:ss', 46: '[h]:mm:ss', 47: 'mmss.0', 48: '##0.0E+0', 49: '@',
+};
+
+/** Excel allows 64,000 cell formats and a few hundred custom codes; these are
+ *  generous ceilings so a crafted styles part cannot grow a table without bound. */
+const MAX_XFS = 65_536;
+const MAX_NUM_FMTS = 4096;
+/** A code longer than this is not a real format (Excel stops at 255 characters). */
+const MAX_FORMAT_CODE = 1024;
+
+interface XlsxStyles {
+  /** cellXfs index to its format code; null for General or an unknown id. */
+  xfs: (string | null)[];
+  system: 1900 | 1904;
+}
+
+/** Read the number-format side of xl/styles.xml and the workbook's date system. */
+function readStyles(store: PartStore): XlsxStyles {
+  const wb = store.text('xl/workbook.xml');
+  const pr = wb ? /<workbookPr\b[^>]*>/i.exec(wb) : null;
+  const flag = pr ? (attr(pr[0], 'date1904') ?? '').trim().toLowerCase() : '';
+  const system: 1900 | 1904 = flag === '1' || flag === 'true' ? 1904 : 1900;
+
+  const xml = store.text('xl/styles.xml');
+  if (!xml) return { xfs: [], system };
+  const custom = new Map<number, string>();
+  const fmts = /<numFmts\b[^>]*>([\s\S]*?)<\/numFmts>/i.exec(xml);
+  if (fmts) {
+    for (const m of fmts[1]!.matchAll(/<numFmt\b[^>]*>/gi)) {
+      const id = Number.parseInt(attr(m[0], 'numFmtId') ?? '', 10);
+      const code = attr(m[0], 'formatCode');
+      if (Number.isInteger(id) && id >= 0 && code && code.length <= MAX_FORMAT_CODE) custom.set(id, code);
+      if (custom.size >= MAX_NUM_FMTS) break;
+    }
+  }
+  const xfs: (string | null)[] = [];
+  const section = /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/i.exec(xml);
+  if (section) {
+    for (const m of section[1]!.matchAll(/<xf\b[^>]*>/gi)) {
+      const id = Number.parseInt(attr(m[0], 'numFmtId') ?? '0', 10);
+      const code = Number.isInteger(id) ? (custom.get(id) ?? BUILTIN_FORMATS[id] ?? null) : null;
+      xfs.push(code === null || /^\s*general\s*$/i.test(code) ? null : code);
+      if (xfs.length >= MAX_XFS) break;
+    }
+  }
+  return { xfs, system };
+}
+
+/** Per-sheet state for a read that formats cells. */
+interface FormatState {
+  format: XlsxCellFormatter;
+  xfs: (string | null)[];
+  system: 1900 | 1904;
+  pending: { row: number; col: number; req: XlsxCellFormatRequest }[];
+  dates: XlsxDateCell[];
+}
+
+const KINDS = new Set<string>([
+  'general', 'number', 'currency', 'accounting', 'date', 'time', 'percentage',
+  'fraction', 'scientific', 'text', 'special', 'custom',
+]);
+
+/** Note a cell for formatting when its style carries a non-General format and its
+ *  value is a number or a string (booleans and errors keep their text). */
+function queueFormat(f: FormatState, attrs: string, value: string, row: number, col: number): void {
+  const style = attr(attrs, 's');
+  if (style === null) return;
+  const code = f.xfs[Number.parseInt(style, 10)];
+  if (!code) return;
+  const t = attr(attrs, 't') || 'n';
+  let v: number | string;
+  if (t === 'n') {
+    v = Number(value);
+    if (!Number.isFinite(v)) return;
+  } else if (t === 's' || t === 'inlineStr' || t === 'str') v = value;
+  else return;
+  f.pending.push({ row, col, req: { value: v, formatCode: code, dateSystem: f.system } });
+}
+
+/** Run the formatter over the queued cells and write the display text back into the grid. */
+function applyFormats(f: FormatState, grid: Map<number, Map<number, string>>): void {
+  for (let start = 0; start < f.pending.length; start += XLSX_FORMAT_BATCH) {
+    const batch = f.pending.slice(start, start + XLSX_FORMAT_BATCH);
+    let out: XlsxCellFormatResult[];
+    try {
+      out = f.format(batch.map((b) => b.req));
+    } catch {
+      continue; // formatting is cosmetic: keep the unformatted text
+    }
+    if (!Array.isArray(out) || out.length !== batch.length) continue;
+    for (let i = 0; i < batch.length; i++) {
+      const r = out[i];
+      const at = batch[i]!;
+      if (!r || typeof r.text !== 'string' || !KINDS.has(r.kind)) continue;
+      const row = grid.get(at.row);
+      if (!row) continue;
+      row.set(at.col, r.text);
+      if (typeof r.iso === 'string' && /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2})?$/.test(r.iso)) {
+        f.dates.push({ row: at.row, col: at.col, iso: r.iso });
+      }
+    }
+  }
+  f.dates.sort((a, b) => a.row - b.row || a.col - b.col);
 }
 
 // ─── formulas ────────────────────────────────────────────────────────────────

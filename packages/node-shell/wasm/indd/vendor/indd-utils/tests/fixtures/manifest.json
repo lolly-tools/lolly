@@ -1,0 +1,53 @@
+{
+  "comment": "Sample files for tests/fixtures.rs. Fetch them with `python3 -I tools/fetch_fixtures.py`; each `path` is relative to tests/fixtures/files/. Never commit the files.",
+  "files": [
+    {
+      "path": "opf-neddy-flyer/Neddy_Flyer_HeatherRyan.indd",
+      "url": "https://raw.githubusercontent.com/openpreserve/format-corpus/0bd37b0d10f397e0c2a7785befa2253f912b77fc/desktop-publishing/InDesign/Neddy_Flyer_HeatherRyan.indd",
+      "size": 1503232,
+      "sha256": "8f206d618c0161cfddf4c18aa3932ed99d9e500bf1260c2551e316b12a4e3ed2",
+      "licence": "CC0-1.0",
+      "source": "https://github.com/openpreserve/format-corpus/tree/0bd37b0d10f397e0c2a7785befa2253f912b77fc/desktop-publishing/InDesign"
+    },
+    {
+      "path": "opf-neddy-flyer/Neddy_Flyer_HeatherRyan.pdf",
+      "url": "https://raw.githubusercontent.com/openpreserve/format-corpus/0bd37b0d10f397e0c2a7785befa2253f912b77fc/desktop-publishing/InDesign/Neddy_Flyer_HeatherRyan.pdf",
+      "size": 59106,
+      "sha256": "6a3c9444d4905c8896a717be7c30ee7d20b3c319eb2d3d469393a0f0e3529243",
+      "licence": "CC0-1.0",
+      "source": "https://github.com/openpreserve/format-corpus/tree/0bd37b0d10f397e0c2a7785befa2253f912b77fc/desktop-publishing/InDesign"
+    },
+    {
+      "path": "lizdenys-minizine/indesign-minizine-template.indd",
+      "url": "https://lizdenys.com/uploads/zines/indesign-minizine-template/indesign-minizine-template.indd",
+      "size": 1507328,
+      "sha256": "189021fc8c1d051e9528f155348bbf63bc90eac856f33668180bdfa8972b8cd8",
+      "licence": "CC0-1.0",
+      "source": "https://lizdenys.com/journal/articles/indesign-minizine-template.html"
+    },
+    {
+      "path": "bootstrap3-template/bootstrap3-indesign-template.indd",
+      "url": "https://raw.githubusercontent.com/jeffing/bootstrap3-indesign-template/59a7d9fbe360a495066a4dafb194ff59dde01c10/bootstrap3-indesign-template.indd",
+      "size": 2953216,
+      "sha256": "712875094e04336b7b643678b53abba9b557e104a19bd8ba95abd19829bf6740",
+      "licence": "MIT",
+      "source": "https://github.com/jeffing/bootstrap3-indesign-template/tree/59a7d9fbe360a495066a4dafb194ff59dde01c10"
+    },
+    {
+      "path": "xmp-toolkit-bluesquare/BlueSquare.indd",
+      "url": "https://raw.githubusercontent.com/adobe/XMP-Toolkit-SDK/7093513bd3caaad29da01db0f275d88a39d6bcc2/samples/testfiles/BlueSquare.indd",
+      "size": 757760,
+      "sha256": "5e4d1db27034f91fdc915c5fed77767935ae57015963c83ada25033860e144e0",
+      "licence": "BSD-3-Clause",
+      "source": "https://github.com/adobe/XMP-Toolkit-SDK/tree/7093513bd3caaad29da01db0f275d88a39d6bcc2/samples/testfiles"
+    },
+    {
+      "path": "scml-template/scml.indt",
+      "url": "https://raw.githubusercontent.com/scribenet/scr-scml-indesign-templates/556f09acc5ab48fa9957732c115f8eb78ca09717/scml.indt",
+      "size": 1187840,
+      "sha256": "70acd6bc2a95003bafef085aab2bc9aeaa275069374f4e79332ea17e6d208ac2",
+      "licence": "MIT",
+      "source": "https://github.com/scribenet/scr-scml-indesign-templates/tree/556f09acc5ab48fa9957732c115f8eb78ca09717"
+    }
+  ]
+}

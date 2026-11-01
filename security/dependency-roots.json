@@ -73,6 +73,22 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "xlsx-numfmt-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/xlsx-numfmt",
+      "lockfile": "packages/node-shell/wasm/xlsx-numfmt/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
+      "id": "indd-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/indd",
+      "lockfile": "packages/node-shell/wasm/indd/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "geometry-kernel-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/geometry-kernel",

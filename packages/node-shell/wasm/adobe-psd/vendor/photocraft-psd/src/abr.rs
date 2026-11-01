@@ -18,7 +18,15 @@
 //!              264 if 2), bounds 4 × i32, depth i16, compression u8, data
 //! "patt"    := patterns as in the `Patt` global block
 //! "desc"    := version u32 (16) + ActionDescriptor; key `Brsh` lists `brushPreset` objects
+//! "phry"    := version u32 (16) + ActionDescriptor; key `hierarchy` lists objects read as a
+//!              token stream: `Grup` { `Nm  ` name, `zuid` uuid } opens a folder, `preset` {} is
+//!              the next preset of `desc` (in order), `groupEnd` {} closes the current folder
 //! ```
+//!
+//! The `phry` (preset hierarchy) section keeps the Brushes panel folders of Photoshop CC (2018+)
+//! files: [`AbrFile::folders`] gives each preset's folder path. Folders nest (a `Grup` inside a
+//! `Grup`); presets outside any folder are at the top level. A damaged hierarchy never fails the
+//! parse: mismatches become warnings and the presets they affect land at the top level.
 //!
 //! [`parse`] never panics: every length is bounds-checked, sizes are capped ([`MAX_EDGE`],
 //! [`MAX_TOTAL_BYTES`]) and a damaged brush is skipped with a warning when the rest of the file
@@ -29,14 +37,17 @@ use crate::compression::{Compression, PlaneLayout, decode_planes, encode_planes}
 use crate::descriptor::{Descriptor, Value, VersionedDescriptor};
 use crate::error::{PsdError, Result};
 use crate::header::Version;
-use crate::patterns::{PsdPattern, parse_pattern_block, write_pattern_block};
+use crate::patterns::{PatternBudget, PsdPattern, parse_pattern_block_with, write_pattern_block};
 
 /// Largest sampled tip edge accepted (Photoshop's own limit is 5000 px).
 pub const MAX_EDGE: u32 = 8192;
 /// Most brushes read from one file.
 pub const MAX_BRUSHES: usize = 20_000;
-/// Cap on decoded sample bytes over the whole file.
-pub const MAX_TOTAL_BYTES: usize = 512 << 20;
+/// Cap on decoded sample bytes over the whole file. 32-bit targets (wasm) keep 512 MiB: the file,
+/// its base64 copies and the decoded tips must all fit a 4 GiB address space, and running out
+/// there aborts instead of returning an error.
+pub const MAX_TOTAL_BYTES: usize = if cfg!(target_pointer_width = "64") { 1 << 30 } else { 512 << 20 };
+const _: () = assert!(cfg!(target_pointer_width = "64") || MAX_TOTAL_BYTES == 512 << 20);
 
 /// A sampled tip: one grayscale plane where the maximum value is full paint.
 #[derive(Debug, Clone, PartialEq)]
@@ -110,6 +121,10 @@ pub struct AbrFile {
     pub patterns: Vec<PsdPattern>,
     /// v6+ brush presets: the `brushPreset` objects of the `desc` section, in file order.
     pub presets: Vec<Descriptor>,
+    /// v6+ folder of each preset, parallel to [`AbrFile::presets`]: the folder names from the
+    /// outermost in, empty for a preset at the top level. Empty when the file has no readable
+    /// preset hierarchy (`phry`), i.e. every preset is at the top level.
+    pub folders: Vec<Vec<String>>,
     /// Problems that did not stop the parse (skipped brushes, unknown sections…).
     pub warnings: Vec<String>,
 }
@@ -294,11 +309,12 @@ fn read_samp(data: &[u8], subversion: u16, out: &mut AbrFile, budget: &mut Budge
 
 fn read_desc(data: &[u8], out: &mut AbrFile) {
     match VersionedDescriptor::parse_prefix(data) {
-        Ok((vd, _)) => match vd.descriptor.get("Brsh") {
+        // Moves the presets out of the parsed descriptor instead of cloning each one.
+        Ok((vd, _)) => match vd.descriptor.items.into_iter().find(|(k, _)| k.is("Brsh")).map(|(_, v)| v) {
             Some(Value::List(items)) => {
-                for v in items.iter().take(MAX_BRUSHES) {
+                for v in items.into_iter().take(MAX_BRUSHES) {
                     if let Value::Descriptor(d) = v {
-                        out.presets.push(d.clone());
+                        out.presets.push(d);
                     }
                 }
             }
@@ -308,12 +324,118 @@ fn read_desc(data: &[u8], out: &mut AbrFile) {
     }
 }
 
+/// Deepest folder nesting read from or written to a preset hierarchy; deeper folders are merged
+/// into their ancestor at this depth.
+pub const MAX_FOLDER_DEPTH: usize = 32;
+/// Longest folder name kept (characters).
+const MAX_FOLDER_NAME: usize = 255;
+
+/// Most bytes of folder names held across all presets' folder paths (each name also counts its
+/// `String`). Presets past it are imported at the top level. 20,000 presets three folders deep
+/// with 20-character names take about 3 MB.
+const MAX_FOLDER_BYTES: usize = 16 << 20;
+
+/// Reads the `phry` token stream into one folder path per preset (`presets` of them, the count
+/// read from `desc`), in order. Paths are built only for those presets, within
+/// [`MAX_FOLDER_BYTES`]: a small section can't make the reader allocate more than that. `None`
+/// (with a warning) when the section is unreadable.
+fn read_phry(data: &[u8], presets: usize, warnings: &mut Vec<String>) -> Option<Vec<Vec<String>>> {
+    let vd = match VersionedDescriptor::parse_prefix(data) {
+        Ok((vd, _)) => vd,
+        Err(e) => {
+            warnings.push(format!("brush folders (phry) unreadable: {e}; brushes imported without folders"));
+            return None;
+        }
+    };
+    let Some(Value::List(items)) = vd.descriptor.get("hierarchy") else {
+        warnings.push("brush folders (phry) hold no hierarchy; brushes imported without folders".into());
+        return None;
+    };
+    let mut stack: Vec<String> = Vec::new();
+    // Folders opened past MAX_FOLDER_DEPTH: their `groupEnd`s close nothing on `stack`.
+    let mut overflow = 0usize;
+    let mut out = Vec::with_capacity(presets.min(MAX_BRUSHES));
+    // Preset tokens seen (only counted past `presets`), and the bytes held by `out`'s paths.
+    let (mut listed, mut bytes) = (0usize, 0usize);
+    let (mut unbalanced, mut too_deep, mut too_big) = (false, false, false);
+    for v in items {
+        let Value::Descriptor(d) = v else { continue };
+        if d.class_id.is("Grup") {
+            if stack.len() >= MAX_FOLDER_DEPTH {
+                overflow = overflow.saturating_add(1);
+                too_deep = true;
+                continue;
+            }
+            let name = match d.get("Nm  ") {
+                Some(Value::Text(t)) => t.to_string_lossy(),
+                _ => String::new(),
+            };
+            let name: String = name.trim().chars().take(MAX_FOLDER_NAME).collect();
+            stack.push(if name.is_empty() { "Group".to_string() } else { name });
+        } else if d.class_id.is("groupEnd") {
+            if overflow > 0 {
+                overflow -= 1;
+            } else if stack.pop().is_none() {
+                unbalanced = true;
+            }
+        } else if d.class_id.is("preset") {
+            listed = listed.saturating_add(1);
+            if out.len() >= presets {
+                continue;
+            }
+            let size = stack.iter().map(|n| n.len().saturating_add(size_of::<String>())).fold(0usize, usize::saturating_add);
+            match bytes.checked_add(size).filter(|&b| b <= MAX_FOLDER_BYTES) {
+                Some(b) if !too_big => {
+                    bytes = b;
+                    out.push(stack.clone());
+                }
+                _ => {
+                    too_big = true;
+                    out.push(Vec::new());
+                }
+            }
+        }
+    }
+    if unbalanced {
+        warnings.push("brush folders (phry): a folder end without a folder was ignored".into());
+    }
+    if too_deep {
+        warnings.push(format!("brush folders nested deeper than {MAX_FOLDER_DEPTH} levels were merged into their parent"));
+    }
+    if too_big {
+        warnings.push("brush folders (phry) too large; the remaining brushes were imported at the top level".into());
+    }
+    if listed != presets {
+        warnings.push(format!(
+            "brush folders (phry) list {listed} brushes but the file holds {presets}; {}",
+            if listed > presets { "the extra entries were ignored" } else { "the rest were imported at the top level" }
+        ));
+        out.resize(presets, Vec::new());
+    }
+    Some(out)
+}
+
+/// Pairs the `phry` section's preset tokens with the presets read from `desc`, in order.
+fn apply_hierarchy(out: &mut AbrFile, phry: Option<&[u8]>) {
+    let Some(data) = phry else { return };
+    let Some(folders) = read_phry(data, out.presets.len(), &mut out.warnings) else { return };
+    if folders.iter().any(|f| !f.is_empty()) {
+        out.folders = folders;
+    }
+}
+
 fn parse_v6(r: &mut Rd, out: &mut AbrFile) -> Result<()> {
+    parse_v6_within(r, out, &mut Budget(MAX_TOTAL_BYTES))
+}
+
+/// [`parse_v6`] with the samples and patterns sharing `budget`.
+fn parse_v6_within(r: &mut Rd, out: &mut AbrFile, budget: &mut Budget) -> Result<()> {
     out.subversion = r.u16()?;
     if !matches!(out.subversion, 1 | 2) {
         return Err(PsdError::Unsupported(format!("brush file subversion {}", out.subversion)));
     }
-    let mut budget = Budget(MAX_TOTAL_BYTES);
+    let mut hierarchy = None;
+    let mut patterns = PatternBudget::default();
     while r.left() >= 12 {
         let sig = r.arr::<4>()?;
         if &sig != b"8BIM" {
@@ -335,17 +457,31 @@ fn parse_v6(r: &mut Rd, out: &mut AbrFile) -> Result<()> {
             r.p += pad;
         }
         match &key {
-            b"samp" => read_samp(data, out.subversion, out, &mut budget)?,
-            b"patt" => match parse_pattern_block(data) {
-                Ok(p) => out.patterns.extend(p),
-                Err(e) => out.warnings.push(format!("embedded patterns unreadable: {e}")),
-            },
+            b"samp" => read_samp(data, out.subversion, out, budget)?,
+            b"patt" => {
+                // Patterns share the samples' budget and one padding budget across every `patt`
+                // section, so neither can be claimed twice and failed blocks still deduct their
+                // decoded charges.
+                let limit = u64::try_from(budget.0).unwrap_or(u64::MAX);
+                patterns.cap_decoded_to(limit);
+                let left = patterns.decoded_left();
+                let res = parse_pattern_block_with(data, &mut patterns);
+                let spent = usize::try_from(left.saturating_sub(patterns.decoded_left())).unwrap_or(usize::MAX);
+                budget.spend(spent)?;
+                match res {
+                    Ok(p) => out.patterns.extend(p),
+                    Err(e) => out.warnings.push(format!("embedded patterns unreadable: {e}")),
+                }
+            }
             b"desc" => read_desc(data, out),
-            // Preset hierarchy (groups) and tool presets: not needed for the tips.
-            b"phry" | b"lPdc" => {}
+            // Read once `desc` gives the preset count; `phry` may come first.
+            b"phry" => hierarchy = Some(data),
+            // Tool presets: not needed for the brushes.
+            b"lPdc" => {}
             k => out.warnings.push(format!("section {} ignored", String::from_utf8_lossy(k))),
         }
     }
+    apply_hierarchy(out, hierarchy);
     Ok(())
 }
 
@@ -441,8 +577,68 @@ fn section(o: &mut Vec<u8>, key: &[u8; 4], data: &[u8]) {
 }
 
 /// Writes a v6 (`subversion` 1 or 2) file: sampled tips, embedded patterns and the preset
-/// descriptors (each a `brushPreset` object), listed under `Brsh`.
+/// descriptors (each a `brushPreset` object), listed under `Brsh`. Every preset is at the top
+/// level ([`write_v6_folders`] keeps folders).
 pub fn write_v6(subversion: u16, samples: &[AbrSample], patterns: &[PsdPattern], presets: &[Descriptor], rle: bool) -> Result<Vec<u8>> {
+    write_v6_folders(subversion, samples, patterns, presets, &[], rle)
+}
+
+/// A stable uuid-shaped folder id (`zuid`) derived from the folder's path and position.
+fn folder_uuid(path: &[&str], seq: usize) -> String {
+    // FNV-1a over the path, with two seeds, for 128 bits.
+    let hash = |seed: u64| {
+        let mut h = 0xcbf2_9ce4_8422_2325u64 ^ seed;
+        for b in path.iter().flat_map(|s| s.bytes().chain(std::iter::once(0))).chain(seq.to_le_bytes()) {
+            h ^= u64::from(b);
+            h = h.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+        h
+    };
+    let (a, b) = (hash(1), hash(2));
+    format!("{:08x}-{:04x}-{:04x}-{:04x}-{:012x}", a >> 32, (a >> 16) & 0xffff, a & 0xffff, b >> 48, b & 0xffff_ffff_ffff)
+}
+
+/// The `phry` descriptor for presets in `folders` (one path per preset, in preset order).
+/// Presets of one folder that are not adjacent reopen it (a reader merges them by path).
+fn hierarchy_descriptor(folders: &[Vec<String>]) -> Descriptor {
+    let text = |s: &str| Value::Text(crate::descriptor::UnicodeString::new_nul(s));
+    let mut items = Vec::new();
+    let mut open: Vec<&str> = Vec::new();
+    let mut seq = 0usize;
+    for path in folders {
+        let path: Vec<&str> = path.iter().take(MAX_FOLDER_DEPTH).map(String::as_str).collect();
+        let common = open.iter().zip(&path).take_while(|(a, b)| a == b).count();
+        while open.len() > common {
+            open.pop();
+            items.push(Value::Descriptor(Descriptor::new("groupEnd")));
+        }
+        for name in path.iter().skip(common) {
+            open.push(name);
+            seq += 1;
+            items.push(Value::Descriptor(Descriptor::new("Grup").with("Nm  ", text(name)).with("zuid", text(&folder_uuid(&open, seq)))));
+        }
+        items.push(Value::Descriptor(Descriptor::new("preset")));
+    }
+    for _ in open {
+        items.push(Value::Descriptor(Descriptor::new("groupEnd")));
+    }
+    Descriptor::new("null").with("hierarchy", Value::List(items))
+}
+
+/// [`write_v6`] that also writes the preset hierarchy (`phry`): `folders` holds each preset's
+/// folder path (outermost first; empty = top level), parallel to `presets`. With no folders (an
+/// empty slice, or only empty paths) no hierarchy is written.
+pub fn write_v6_folders(
+    subversion: u16,
+    samples: &[AbrSample],
+    patterns: &[PsdPattern],
+    presets: &[Descriptor],
+    folders: &[Vec<String>],
+    rle: bool,
+) -> Result<Vec<u8>> {
+    if !folders.is_empty() && folders.len() != presets.len() {
+        return Err(PsdError::invalid(format!("{} folder paths for {} brush presets", folders.len(), presets.len())));
+    }
     if !matches!(subversion, 1 | 2) {
         return Err(PsdError::Unsupported(format!("brush file subversion {subversion}")));
     }
@@ -470,91 +666,11 @@ pub fn write_v6(subversion: u16, samples: &[AbrSample], patterns: &[PsdPattern],
     let list = Value::List(presets.iter().cloned().map(Value::Descriptor).collect());
     let desc = VersionedDescriptor::new(Descriptor::new("null").with("Brsh", list));
     section(&mut o, b"desc", &desc.to_bytes());
+    if folders.iter().any(|f| !f.is_empty()) {
+        section(&mut o, b"phry", &VersionedDescriptor::new(hierarchy_descriptor(folders)).to_bytes());
+    }
     Ok(o)
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::descriptor::UnicodeString;
-
-    fn sample(id: &str, w: u32, h: u32, depth: u16) -> AbrSample {
-        let bpp = usize::from(depth / 8);
-        let data = (0..w as usize * h as usize * bpp).map(|i| if (i / bpp) % 3 == 0 { 255 } else { (i % 7) as u8 * 30 }).collect();
-        AbrSample { id: id.into(), width: w, height: h, depth, data }
-    }
-
-    #[test]
-    fn v1_v2_round_trip_raw_and_rle() {
-        for version in [1u16, 2] {
-            for rle in [false, true] {
-                let brushes = vec![
-                    LegacyBrush {
-                        name: String::new(),
-                        spacing: 25,
-                        anti_alias: true,
-                        tip: LegacyTip::Computed { diameter: 19, hardness: 80, angle: -30, roundness: 50 },
-                    },
-                    LegacyBrush {
-                        name: if version == 2 { "Leaf ✓".into() } else { String::new() },
-                        spacing: 40,
-                        anti_alias: false,
-                        tip: LegacyTip::Sampled(sample("", 13, 9, 8)),
-                    },
-                    LegacyBrush { name: String::new(), spacing: 10, anti_alias: true, tip: LegacyTip::Sampled(sample("", 4, 6, 16)) },
-                ];
-                let bytes = write_v12(version, &brushes, rle).unwrap();
-                let f = parse(&bytes).unwrap();
-                assert_eq!(f.version, version);
-                assert_eq!(f.legacy, brushes, "v{version} rle={rle}");
-                assert!(f.warnings.is_empty(), "{:?}", f.warnings);
-            }
-        }
-    }
-
-    #[test]
-    fn v6_round_trip_both_subversions() {
-        let samples = vec![sample("$abc", 20, 11, 8), sample("$def", 5, 5, 16)];
-        let preset = Descriptor::new("brushPreset")
-            .with("Nm  ", Value::Text(UnicodeString::new_nul("Grass")))
-            .with("Brsh", Value::Descriptor(Descriptor::new("sampledBrush").with("sampledData", Value::Text(UnicodeString::new_nul("$abc")))));
-        for sub in [1u16, 2] {
-            for rle in [false, true] {
-                let bytes = write_v6(sub, &samples, &[], std::slice::from_ref(&preset), rle).unwrap();
-                let f = parse(&bytes).unwrap();
-                assert_eq!((f.version, f.subversion), (6, sub));
-                assert_eq!(f.samples, samples);
-                assert_eq!(f.presets, vec![preset.clone()]);
-                assert!(f.warnings.is_empty(), "{:?}", f.warnings);
-            }
-        }
-        assert_eq!(samples[1].to_unit().len(), 25);
-    }
-
-    #[test]
-    fn hostile_input_errors_without_panicking() {
-        assert!(parse(&[]).is_err());
-        assert!(parse(&[0, 3, 0, 0]).is_err());
-        assert!(parse(&[0, 6, 0, 9]).is_err());
-        // Absurd sample bounds.
-        let mut s = sample("", 2, 2, 8);
-        s.width = MAX_EDGE + 1;
-        assert!(write_v12(1, &[LegacyBrush { name: String::new(), spacing: 1, anti_alias: true, tip: LegacyTip::Sampled(s) }], false).is_err());
-        let good = write_v6(2, &[sample("$a", 30, 30, 8)], &[], &[Descriptor::new("brushPreset")], true).unwrap();
-        for cut in 0..good.len() {
-            let _ = parse(&good[..cut]);
-        }
-        let v2 = write_v12(2, &[LegacyBrush { name: "x".into(), spacing: 1, anti_alias: true, tip: LegacyTip::Sampled(sample("", 9, 9, 16)) }], true).unwrap();
-        for cut in 0..v2.len() {
-            let _ = parse(&v2[..cut]);
-        }
-        // Flip every byte once: never panics.
-        for i in 0..good.len() {
-            let mut b = good.clone();
-            b[i] ^= 0xa5;
-            let _ = parse(&b);
-        }
-        // A huge declared count with no data is an error, not an allocation.
-        assert!(parse(&[0, 2, 0xff, 0xff]).is_err());
-    }
-}
+mod tests;

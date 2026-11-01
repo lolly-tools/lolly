@@ -3522,6 +3522,55 @@
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
       "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture bootstrap3-template/bootstrap3-indesign-template.indd converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture lizdenys-minizine/indesign-minizine-template.indd converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture opf-neddy-flyer/Neddy_Flyer_HeatherRyan.indd converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture scml-template/scml.indt converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture xmp-toolkit-bluesquare/BlueSquare.indd converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "lolly adobe indd writes the package and prints warnings; adobe idml reads an .indd",
+      "reason": "fixtures not fetched",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "truncated fixtures refuse cleanly and repeated conversions keep the instance healthy",
+      "reason": "fixtures not fetched",
+      "capability": "fixture",
+      "owner": "tests"
     }
   ]
 }
