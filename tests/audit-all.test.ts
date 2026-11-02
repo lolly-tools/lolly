@@ -108,19 +108,15 @@ test('Cargo.lock reading keeps names, versions and versioned dependency entries'
   assert.equal(compareVersions('2.13.3', '2.14.1'), -1);
 });
 
-test('the zip advisory hold is scoped to the desktop Cargo root and still justified by its lockfile', () => {
+test('no live root holds an advisory exception, so every Cargo audit runs with nothing ignored', () => {
+  // The zip hold approved on 2026-10-17 ended on 2026-11-02, when tauri-plugin-updater 2.14.1 resolved
+  // zip 9. The mechanism stays tested below against a synthetic desktop root.
   const inventory = loadInventory();
   const holding = inventory.roots.filter((root) => root.advisoryExceptions?.length);
-  assert.deepEqual(holding.map((root) => root.id), ['tauri-desktop-cargo']);
-  const [held] = holding;
-  assert.ok(held);
-  assert.deepEqual(held.advisoryExceptions?.flatMap((entry) => entry.advisories), ZIP_ADVISORIES);
+  assert.deepEqual(holding.map((root) => root.id), []);
   assert.doesNotThrow(() => validateAdvisoryExceptions(inventory));
-
-  const desktop = cargoAuditArgs(held, 'Cargo.lock', false);
-  assert.deepEqual(desktop, ['audit', '--file', 'Cargo.lock', ...ZIP_ADVISORIES.flatMap((id) => ['--ignore', id])]);
-  for (const root of inventory.roots.filter((item) => item.ecosystem === 'cargo' && item.id !== 'tauri-desktop-cargo')) {
-    assert.ok(!cargoAuditArgs(root, 'Cargo.lock', true).includes('--ignore'), `${root.id} must not inherit the desktop hold`);
+  for (const root of inventory.roots.filter((item) => item.ecosystem === 'cargo')) {
+    assert.ok(!cargoAuditArgs(root, 'Cargo.lock', true).includes('--ignore'), `${root.id} must not ignore an advisory`);
   }
 });
 

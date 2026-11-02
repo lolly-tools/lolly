@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:43b0cd08-fec5-45f3-8dbe-5748c4a433d4",
+  "serialNumber": "urn:uuid:22c716e5-792c-4fdd-8c07-296dc869a83b",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-02T10:34:43.911Z",
+    "timestamp": "2026-11-02T10:57:28.334Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -298,31 +298,6 @@
         {
           "alg": "SHA-256",
           "content": "2a4385e2e34eb35d6b3efe798b9eb88096925d87726c0798709bf56d9ed84af3"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/arbitrary@1.4.2",
-      "name": "arbitrary",
-      "version": "1.4.2",
-      "purl": "pkg:cargo/arbitrary@1.4.2",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1"
         }
       ],
       "properties": [
@@ -3352,31 +3327,6 @@
         {
           "alg": "SHA-256",
           "content": "7cd812cc2bc1d69d4764bd80df88b4317eaef9e773c75226407d9bc0876b211c"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/derive_arbitrary@1.4.2",
-      "name": "derive_arbitrary",
-      "version": "1.4.2",
-      "purl": "pkg:cargo/derive_arbitrary@1.4.2",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "1e567bd82dcff979e4b03460c307b3cdc9e96fde3d73bed1496d2bc75d9dd62a"
         }
       ],
       "properties": [
@@ -8957,6 +8907,33 @@
         {
           "alg": "SHA-256",
           "content": "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/nix@0.31.3",
+      "name": "nix",
+      "version": "0.31.3",
+      "purl": "pkg:cargo/nix@0.31.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cf20d2fde8ff38632c426f1165ed7436270b44f199fc55284c38276f9db47c3d"
         }
       ],
       "properties": [
@@ -14891,10 +14868,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-plugin-updater@2.14.0",
+      "bom-ref": "pkg:cargo/tauri-plugin-updater@2.14.1",
       "name": "tauri-plugin-updater",
-      "version": "2.14.0",
-      "purl": "pkg:cargo/tauri-plugin-updater@2.14.0",
+      "version": "2.14.1",
+      "purl": "pkg:cargo/tauri-plugin-updater@2.14.1",
       "scope": "required",
       "licenses": [
         {
@@ -14904,7 +14881,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7259989d4fe11b2bf51f7d671642249b1837c4ae2da1430dc713ae38f98ceeec"
+          "content": "d957abbcb3f9f6c76d22a3a0f012f30880640d0bccb5634d2b12a9937e4c872b"
         }
       ],
       "properties": [
@@ -16472,6 +16449,31 @@
         {
           "name": "lolly:source",
           "value": "packages/node-shell/wasm/affinity/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/typed-path@0.13.0",
+      "name": "typed-path",
+      "version": "0.13.0",
+      "purl": "pkg:cargo/typed-path@0.13.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9ce898823d8cd0f028662d2f349694b1af0a5cc9be83f1d213a00d3147445e1e"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -20610,10 +20612,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/zip@4.6.1",
+      "bom-ref": "pkg:cargo/zip@9.2.2",
       "name": "zip",
-      "version": "4.6.1",
-      "purl": "pkg:cargo/zip@4.6.1",
+      "version": "9.2.2",
+      "purl": "pkg:cargo/zip@9.2.2",
       "scope": "required",
       "licenses": [
         {
@@ -20625,7 +20627,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "caa8cd6af31c3b31c6631b8f483848b91589021b28fffe50adada48d4f4d2ed1"
+          "content": "e408c6cc4699dd017d53dc080cd51c2cea2b5354af57a1479bd265ed42911487"
         }
       ],
       "properties": [
