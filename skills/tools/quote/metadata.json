@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "quote",
+  "toolVersion": "1.0.0",
+  "toolVersionRange": "1.0.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "7e004396bf42a1d53a08a8de16962158974c0ee0c16c31864a706f04cddb3234",
+      "bytes": 1903
+    },
+    "reference/inputs.json": {
+      "sha256": "b412bedd1af95d02f7ee83274273f22bccf2258193e3356d71ba736a3886a321",
+      "bytes": 3941
+    }
+  }
+}
