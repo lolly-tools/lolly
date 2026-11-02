@@ -1,6 +1,10 @@
 {
   "version": "1",
+<<<<<<< HEAD
   "generatedAt": "2026-11-02T15:08:15.280Z",
+=======
+  "generatedAt": "2026-11-02T16:50:40.044Z",
+>>>>>>> 43cd1eea7 (Quote: a new community tool for sales quotes from a table of line items)
   "tools": [
     {
       "id": "3d",
@@ -15099,6 +15103,35 @@
           }
         }
       ]
+    },
+    {
+      "id": "quote",
+      "name": "Quote",
+      "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "quote",
+        "sales",
+        "pricing",
+        "proposal",
+        "estimate",
+        "table",
+        "pdf"
+      ],
+      "formats": [
+        "pdf",
+        "png",
+        "svg",
+        "jpeg",
+        "webp"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 2h9l4 4v16H6z\"/><path d=\"M15 2v4h4\"/><line x1=\"9\" y1=\"10\" x2=\"16\" y2=\"10\"/><line x1=\"9\" y1=\"13.5\" x2=\"16\" y2=\"13.5\"/><line x1=\"12\" y1=\"18\" x2=\"16\" y2=\"18\"/></svg>",
+      "preview": "/catalog/previews/quote.svg"
     }
   ]
 }

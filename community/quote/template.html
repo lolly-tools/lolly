@@ -1,0 +1,45 @@
+<div class="qt-page" style="--qt-accent: {{default accent "#2563eb"}}; --qt-bg: {{default background "#ffffff"}}; --qt-ink: {{default ink "#111827"}};">
+  <div class="qt-sheet">
+    <header class="qt-head">
+      <div class="qt-who">
+        <span class="qt-kicker">{{default heading "Quote"}}</span>
+        <h1 class="qt-customer">{{default customer "Customer"}}</h1>
+      </div>
+      <dl class="qt-meta">
+        {{#if number}}<div><dt>Number</dt><dd>{{number}}</dd></div>{{/if}}
+        {{#if dateText}}<div><dt>Date</dt><dd>{{dateText}}</dd></div>{{/if}}
+        {{#if validText}}<div><dt>Valid until</dt><dd>{{validText}}</dd></div>{{/if}}
+      </dl>
+    </header>
+
+    {{!-- One row per line. Totals and money come formatted from hooks.js; every
+          value prints escaped. A picked-out line (the highlight input) and a line
+          whose quantity is still to be decided carry a class for the stylesheet. --}}
+    <table class="qt-lines">
+      <thead>
+        <tr><th class="qt-item">{{itemHead}}</th><th class="qt-num">{{qtyHead}}</th><th class="qt-num">{{unitHead}}</th><th class="qt-num">Total</th></tr>
+      </thead>
+      <tbody>
+        {{#each quoteLines}}
+        <tr class="qt-line{{#if highlight}} is-picked{{/if}}{{#if pending}} is-pending{{/if}}{{#if pricedLater}} is-later{{/if}}">
+          <td class="qt-item">{{item}}</td>
+          <td class="qt-num qt-qty">{{qtyText}}</td>
+          <td class="qt-num">{{unitText}}</td>
+          <td class="qt-num qt-total">{{totalText}}</td>
+        </tr>
+        {{else}}
+        <tr class="qt-line qt-empty"><td colspan="4">Paste a table of line items to start</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <div class="qt-sums">
+      <div class="qt-sum"><span>Subtotal</span><span>{{subtotalText}}</span></div>
+      {{#if hasDiscount}}<div class="qt-sum"><span>Discount {{discount}}%</span><span>- {{discountText}}</span></div>{{/if}}
+      {{#if hasTax}}<div class="qt-sum"><span>{{taxName}} {{tax}}%</span><span>{{taxText}}</span></div>{{/if}}
+      <div class="qt-sum qt-due"><span>Total</span><span>{{dueText}}</span></div>
+    </div>
+
+    {{#if notes}}<footer class="qt-notes">{{notes}}</footer>{{/if}}
+  </div>
+</div>

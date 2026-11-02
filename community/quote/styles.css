@@ -1,0 +1,152 @@
+/* Quote - one page that fills the canvas. The page is the query container
+   every cq unit below resolves against, so the same markup scales from the
+   stage preview to the export. Its shape picks the layout: a page (the
+   default), a portrait sheet with the header stacked, or a wide screen of
+   3:1 or so with the totals beside the lines, for a slide or a display. */
+
+.qt-page {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  container-type: size;
+  box-sizing: border-box;
+  border-top: 1.8cqmin solid var(--qt-accent, #2563eb);
+  background: var(--qt-bg, #ffffff);
+  color: var(--qt-ink, #111827);
+  font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  line-height: 1.35;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.qt-page * { box-sizing: border-box; margin: 0; }
+
+.qt-sheet {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3.2cqmin;
+  padding: 6cqmin 6.5cqmin 5cqmin;
+  font-size: 2.6cqmin;
+}
+
+.qt-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4cqmin;
+}
+.qt-kicker {
+  display: block;
+  color: var(--qt-accent, #2563eb);
+  font-size: 2.3cqmin;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.qt-customer {
+  margin-top: 1cqmin;
+  font-size: 6.4cqmin;
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+.qt-meta { display: flex; gap: 4cqmin; text-align: right; }
+.qt-meta dt { font-size: 1.9cqmin; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; }
+.qt-meta dd { font-size: 2.6cqmin; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.qt-lines {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.qt-lines th {
+  padding: 1.2cqmin 1.6cqmin;
+  border-bottom: 0.3cqmin solid currentColor;
+  font-size: 1.9cqmin;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  opacity: 0.75;
+}
+.qt-lines td {
+  padding: 1.7cqmin 1.6cqmin;
+  border-bottom: 0.15cqmin solid color-mix(in srgb, currentColor 18%, transparent);
+}
+.qt-lines .qt-num { text-align: right; white-space: nowrap; }
+.qt-item { width: 52%; }
+.qt-total { font-weight: 600; }
+.qt-line.is-picked td { background: color-mix(in srgb, var(--qt-accent, #2563eb) 16%, transparent); }
+.qt-line.is-picked .qt-qty { color: var(--qt-accent, #2563eb); font-weight: 750; }
+.qt-line.is-pending .qt-qty,
+.qt-line.is-pending .qt-total { color: var(--qt-accent, #2563eb); }
+.qt-line.is-later .qt-total { font-weight: 400; opacity: 0.6; }
+.qt-empty td { text-align: center; opacity: 0.5; }
+
+.qt-sums {
+  margin-left: auto;
+  width: min(100%, 46cqw);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8cqmin;
+  font-variant-numeric: tabular-nums;
+}
+.qt-sum { display: flex; justify-content: space-between; gap: 3cqmin; padding: 0 1.6cqmin; }
+.qt-sum span:last-child { white-space: nowrap; }
+.qt-due {
+  margin-top: 0.8cqmin;
+  padding-top: 1.4cqmin;
+  border-top: 0.3cqmin solid var(--qt-accent, #2563eb);
+  font-size: 3.6cqmin;
+  font-weight: 750;
+}
+
+.qt-notes {
+  margin-top: auto;
+  font-size: 1.9cqmin;
+  opacity: 0.6;
+  white-space: pre-line;
+}
+
+/* Portrait: the header stacks and the totals take the full width. */
+@container (max-aspect-ratio: 4 / 5) {
+  .qt-sheet { font-size: 2.4cqmin; }
+  .qt-head { flex-direction: column; align-items: flex-start; }
+  .qt-meta { text-align: left; }
+  .qt-sums { width: 100%; }
+}
+
+/* Wide: a screen or a slide. The page is short, so everything is sized to
+   its height (cqmin), bigger, and the totals stand beside the lines. Room for
+   four or five lines. */
+@container (min-aspect-ratio: 2 / 1) {
+  .qt-sheet {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas: "head head" "lines sums" "notes sums";
+    gap: 4cqmin 7cqmin;
+    padding: 6.5cqmin 7cqmin 5cqmin;
+    font-size: 4.6cqmin;
+  }
+  .qt-head { grid-area: head; }
+  .qt-kicker { font-size: 3.4cqmin; }
+  .qt-customer { font-size: 9cqmin; }
+  .qt-meta dt { font-size: 2.8cqmin; }
+  .qt-meta dd { font-size: 4.2cqmin; }
+  .qt-lines { grid-area: lines; align-self: start; }
+  .qt-lines th { padding: 1.4cqmin 2cqmin; font-size: 2.8cqmin; }
+  .qt-lines td { padding: 2cqmin; }
+  .qt-sums { grid-area: sums; align-self: end; width: 100%; gap: 1.4cqmin; }
+  .qt-sum { padding: 0; }
+  .qt-due {
+    flex-direction: column;
+    gap: 0.6cqmin;
+    margin-top: 1.4cqmin;
+    padding-top: 2.4cqmin;
+    font-size: 4.6cqmin;
+  }
+  .qt-due span:last-child { font-size: 11cqmin; line-height: 1; letter-spacing: -0.02em; }
+  .qt-notes { grid-area: notes; font-size: 2.8cqmin; }
+}
