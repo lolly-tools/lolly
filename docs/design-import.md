@@ -42,6 +42,22 @@ This is a preview. The converter does not yet write every attribute InDesign wri
 
 Limits: the file can be up to 128 MB, the converted package up to 128 MB and the converter's memory 1 GB. A file over a limit, an InDesign 1.x file, a file cut short and a file that is not an InDesign document each stop with a plain message. A very large file converts on the same thread as the page, so the window can pause for a moment. In the command line, `lolly adobe indd document.indd --output=document.idml` writes the package and prints the converter's warnings, and `lolly adobe idml document.indd` reports what Design would import.
 
+### What an IDML import carries
+
+Each spread becomes a Design page set, and the import report lists what was approximated or dropped. It does not claim to match InDesign, so compare the result with your original before sharing.
+
+| From InDesign | In Design |
+|---|---|
+| Paragraph and character styles, including styles based on other styles | Font, size, weight, italic, underline, strike, colour, tracking and leading, resolved from the style chain with local overrides on top |
+| Master page items | Placed on each page below the page's own items; an item you overrode on the page uses the page copy |
+| Tables | Grouped frames, one per cell, with cell text, fills and borders; the table sits at the top of its text frame, below any text before it |
+| Fill, stroke, corner radius, opacity and blend mode, from object styles and the item | The same properties on the box; a gradient uses its first colour |
+| Bulleted and numbered lists | Design list lines |
+
+Approximated: justified text is set left aligned, a frame that mixes sizes or fonts uses the most common ones, merged cells keep their combined size but not their inner borders, text threaded across frames appears in the first frame, and corner shapes other than rounded are drawn rounded.
+
+Not carried: space before and after paragraphs, indents, all caps, small caps, superscript and subscript, horizontal scale and skew, text wrap around objects, drop shadows and other effects, vertical alignment in a frame, table styles such as banded rows, and objects anchored inside text. Each shows up in the import report with a count.
+
 ## DXF drawings and floor plans
 
 A `.dxf` file, ASCII or binary and saved by AutoCAD R12 through 2018, opens as a drawing. Each DXF layer becomes a group in Design. Inside a group, each colour is one or more path boxes (lines, polylines with arcs, circles, arcs, ellipses and splines) and each piece of text is a text box. Blocks are expanded to eight levels, array inserts are repeated, and a dimension is drawn through the lines and text of its own block. The drawing is read on your device with a bundled WebAssembly module and nothing is uploaded.

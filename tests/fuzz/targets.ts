@@ -2235,10 +2235,21 @@ export const idmlReadTarget: FuzzTarget = {
   async seeds() {
     const { storeZip } = await import('../../engine/src/zip.ts');
     const encode = (s: string) => new TextEncoder().encode(s);
-    return [storeZip([
-      { name: 'designmap.xml', bytes: encode('<Document xmlns:p="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"><p:Spread src="Spreads/a.xml"/></Document>') },
-      { name: 'Spreads/a.xml', bytes: encode('<Spread><Page GeometricBounds="0 0 600 400"/><Rectangle FillColor="Color/Black"><Properties><PathGeometry><PathPointType Anchor="20 30"/><PathPointType Anchor="200 250"/></PathGeometry></Properties></Rectangle></Spread>') },
-    ])];
+    const ns = 'xmlns:p="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"';
+    const geometry = '<Properties><PathGeometry><PathPointType Anchor="20 30"/><PathPointType Anchor="200 250"/></PathGeometry></Properties>';
+    const plain = storeZip([
+      { name: 'designmap.xml', bytes: encode(`<Document ${ns}><p:Spread src="Spreads/a.xml"/></Document>`) },
+      { name: 'Spreads/a.xml', bytes: encode(`<Spread><Page GeometricBounds="0 0 600 400"/><Rectangle FillColor="Color/Black">${geometry}</Rectangle></Spread>`) },
+    ]);
+    // Styles with a BasedOn chain, a master page item, a table in a story and an object style.
+    const rich = storeZip([
+      { name: 'designmap.xml', bytes: encode(`<Document ${ns}><p:Styles src="Resources/Styles.xml"/><p:MasterSpread src="MasterSpreads/m.xml"/><p:Story src="Stories/t.xml"/><p:Spread src="Spreads/a.xml"/></Document>`) },
+      { name: 'Resources/Styles.xml', bytes: encode('<Styles><ParagraphStyle Self="ParagraphStyle/A" PointSize="12"><Properties><BasedOn type="object">ParagraphStyle/B</BasedOn></Properties></ParagraphStyle><ParagraphStyle Self="ParagraphStyle/B" FontStyle="Bold"><Properties><BasedOn type="object">ParagraphStyle/A</BasedOn></Properties></ParagraphStyle><ObjectStyle Self="ObjectStyle/O" FillColor="Color/Black" StrokeWeight="2" CornerOption="RoundedCorner" CornerRadius="4"/></Styles>') },
+      { name: 'MasterSpreads/m.xml', bytes: encode(`<MasterSpread Self="MasterSpread/m"><Page GeometricBounds="0 0 600 400" AppliedMaster="MasterSpread/m"/><Rectangle Self="mr" FillColor="Color/Black">${geometry}</Rectangle></MasterSpread>`) },
+      { name: 'Stories/t.xml', bytes: encode('<Story Self="t"><ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/A"><CharacterStyleRange><Content>Hello</Content><Br/><Table Self="tb"><Row Self="r" Name="0" SingleRowHeight="20"/><Column Self="c" Name="0" SingleColumnWidth="40"/><Cell Self="x" Name="0:0" RowSpan="1" ColumnSpan="1"><ParagraphStyleRange><CharacterStyleRange><Content>Cell</Content></CharacterStyleRange></ParagraphStyleRange></Cell></Table></CharacterStyleRange></ParagraphStyleRange></Story>') },
+      { name: 'Spreads/a.xml', bytes: encode(`<Spread><Page GeometricBounds="0 0 600 400" AppliedMaster="MasterSpread/m"/><Rectangle AppliedObjectStyle="ObjectStyle/O">${geometry}</Rectangle><TextFrame ParentStory="t">${geometry}</TextFrame></Spread>`) },
+    ]);
+    return [plain, rich];
   },
   async invoke(bytes) {
     const { readZip } = await import('../../engine/src/zip.ts');

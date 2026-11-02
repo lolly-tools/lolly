@@ -155,6 +155,7 @@
     ],
     "InDesign": [
       "Reads .idml markup export",
+      "Named styles, master items and tables carry over",
       "Text stays editable",
       "Images extracted",
       "Brand-conformed editable session",
@@ -1066,7 +1067,7 @@
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). An .idml from InDesign's File → Export → InDesign Markup comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. A native .indd or .indt is converted to IDML on the device first, as a preview, up to 128 MB. Lolly writes one back from a Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
+      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). An .idml from InDesign's File → Export → InDesign Markup comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. Named paragraph, character and object styles, master page items and tables carry over, and the import report lists what was approximated or dropped. A native .indd or .indt is converted to IDML on the device first, as a preview, up to 128 MB. Lolly writes one back from a Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
       "metadata": {
         "reads": [],
         "writes": [],

@@ -1250,10 +1250,10 @@
       ],
       "details": {
         "inputSource": "Unzipped user IDML parts; linked image bytes and XML parsing are supplied by the shell.",
-        "bounds": "4096 entries, 128 MiB aggregate parts, 8 MiB XML parts with common XML structure limits; 256 spreads, 10000 items per spread and 100000 total items, 32 M preview pixels; linked images capped at 64 MiB.",
-        "directTests": "`tests/adobe-interchange.test.ts`",
-        "fuzzCoverage": "`idml-read` mutates an independently assembled ZIP through bounded extraction and the shared reader.",
-        "notes": "All spreads and page bounds are retained. Named direct styles and supported text runs are mapped; unsupported formatting is reported. External links are never fetched implicitly."
+        "bounds": "4096 entries, 128 MiB aggregate parts, 8 MiB XML parts with common XML structure limits; 256 spreads, 256 master spreads nested at most 8 deep, 10000 items per spread and 100000 total items, 32 M preview pixels; 20000 named styles with BasedOn chains cut at 32 levels and at loops; 200000 text runs and 16 MiB of text; tables of at most 5000 cells and 512 tracks, 20000 cells per document; linked images capped at 64 MiB.",
+        "directTests": "`tests/adobe-interchange.test.ts`, `tests/idml-reader.test.ts`",
+        "fuzzCoverage": "`idml-read` mutates an independently assembled ZIP, including a package with a BasedOn loop, a self-based master, a table and an object style, through bounded extraction and the shared reader.",
+        "notes": "All spreads and page bounds are retained. Paragraph, character and object styles resolve through BasedOn chains; master items are placed on pages; tables become grouped cell frames. What Design cannot carry (paragraph spacing, indents, text wrap, effects) is counted and reported, never claimed as InDesign parity. External links are never fetched implicitly."
       }
     },
     "packages/node-shell/wasm/layout-kernel/src/lib.rs (layout_solve)": {
