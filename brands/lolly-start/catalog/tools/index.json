@@ -1,10 +1,6 @@
 {
   "version": "1",
-<<<<<<< HEAD
-  "generatedAt": "2026-11-02T15:08:14.829Z",
-=======
-  "generatedAt": "2026-11-02T16:50:39.587Z",
->>>>>>> 43cd1eea7 (Quote: a new community tool for sales quotes from a table of line items)
+  "generatedAt": "2026-11-02T17:44:12.294Z",
   "tools": [
     {
       "id": "compress-pdf",
