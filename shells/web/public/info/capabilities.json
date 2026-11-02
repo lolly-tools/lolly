@@ -547,6 +547,27 @@
       }
     },
     {
+      "token": "Affinity",
+      "name": "Affinity",
+      "category": "Vector",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "layers",
+        "editable-text",
+        "embeds-bitmaps"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Document metadata, such as the folder a file was saved in or user names, is never imported."
+      }
+    },
+    {
       "token": "HEIC",
       "name": "HEIC",
       "category": "Raster",
