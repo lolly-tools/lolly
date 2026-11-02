@@ -166,7 +166,7 @@ function strokeFields(ctx: Ctx, s: AffinityStroke | undefined, opacity: number):
   if (!color) return {};
   if (s.behind) note(ctx, 'approximated', 'Strokes set behind the fill are drawn over it');
   const out: Record<string, unknown> = { stroke: color, strokeW: r2(s.width), strokeCap: s.cap, strokeJoin: s.join };
-  if (s.dash && s.dash[0].length) {
+  if (s.dash?.[0].length) {
     out.strokeDash = s.dash[0][0] === 0 ? 'dotted' : 'dashed';
     out.strokeDashArray = s.dash[0].map(r2).join(' ');
   }
