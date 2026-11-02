@@ -6,7 +6,7 @@
  */
 import type { IdmlNode } from './idml-read.ts';
 import { buildText, type TextEnv } from './idml-text.ts';
-import { numericAttr, ownProps, tally, tintHex } from './idml-styles.ts';
+import { numericAttr, ownProps, tally } from './idml-styles.ts';
 
 export const MAX_CELLS_PER_TABLE = 5000;
 export const MAX_CELLS_PER_DOCUMENT = 20000;
@@ -19,7 +19,7 @@ export interface TableBudget { cells: number }
 
 /**
  * Nodes for one table placed with its top-left corner at (x, y). Returns the nodes and the
- * table's height so a following table in the same story can sit below it.
+ * table's height so a following table in the same story can start below the first.
  */
 export function tableNodes(table: Element, at: { x: number; y: number; group: string }, env: TextEnv, budget: TableBudget): { nodes: IdmlNode[]; height: number } {
   const { book, stats } = env;
@@ -27,7 +27,8 @@ export function tableNodes(table: Element, at: { x: number; y: number; group: st
   const rows = direct(table, 'Row').map(r => numericAttr(r.getAttribute('SingleRowHeight'), 0, 20000) ?? numericAttr(r.getAttribute('MinimumHeight'), 0, 20000) ?? 0);
   const cells = direct(table, 'Cell');
   if (!cols.length || !rows.length || cols.length > MAX_TRACKS || rows.length > MAX_TRACKS) { tally(stats, 'table.skipped', 'dropped'); return { nodes: [], height: 0 }; }
-  if (cells.length > MAX_CELLS_PER_TABLE || (budget.cells += cells.length) > MAX_CELLS_PER_DOCUMENT) { tally(stats, 'table.skipped', 'dropped'); return { nodes: [], height: 0 }; }
+  budget.cells += cells.length;
+  if (cells.length > MAX_CELLS_PER_TABLE || budget.cells > MAX_CELLS_PER_DOCUMENT) { tally(stats, 'table.skipped', 'dropped'); return { nodes: [], height: 0 }; }
   const xs = [0], ys = [0];
   for (const w of cols) xs.push(xs.at(-1)! + w);
   for (const h of rows) ys.push(ys.at(-1)! + h);

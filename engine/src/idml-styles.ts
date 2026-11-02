@@ -239,8 +239,8 @@ export type IdmlStats = Record<string, { mapped: number; approximated: number; d
 /** Count `n` things of one feature as mapped, approximated or dropped. */
 export function tally(stats: IdmlStats | undefined, feature: string, fate: Fate, n = 1): void {
   if (!stats || n <= 0) return;
-  const row = (stats[feature] ??= { mapped: 0, approximated: 0, dropped: 0 });
-  row[fate] += n;
+  stats[feature] ??= { mapped: 0, approximated: 0, dropped: 0 };
+  stats[feature][fate] += n;
 }
 
 /** What the import report says for each feature that was approximated or dropped. */

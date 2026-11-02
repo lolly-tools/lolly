@@ -9,7 +9,7 @@
 import { safeColor } from './design-map.ts';
 import { designTextOf } from './design-text.ts';
 import type { SourceParaV1, SourceRunV1 } from '@lolly-tools/core';
-import { ownProps, textAttrs, tintHex, tally, type StyleBook, type IdmlStats, type TextAttrs } from './idml-styles.ts';
+import { ownProps, textAttrs, tally, type StyleBook, type IdmlStats, type TextAttrs } from './idml-styles.ts';
 
 export interface StoryStyle {
   text: string; fontSize: number; fg: string; font: string; weight: number; align: string;
@@ -113,7 +113,8 @@ export function buildText(container: Element, env: TextEnv): StoryStyle {
         for (const child of Array.from(node.children)) {
           const name = child.localName;
           if (name === 'Content') {
-            if (++runCount > MAX_RUNS || (chars += (child.textContent || '').length) > 16 * 1024 * 1024) throw new Error('IDML story text exceeds the import limits.');
+            runCount++; chars += (child.textContent || '').length;
+            if (runCount > MAX_RUNS || chars > 16 * 1024 * 1024) throw new Error('IDML story text exceeds the import limits.');
             const text = child.textContent || '';
             if (!text) continue;
             const run: SourceRunV1 = {

@@ -58,7 +58,7 @@ export class MasterBook {
   /** The master's nodes for one target page, parents first, with page positions applied. */
   place(id: string, target: Rect, overrides: ReadonlySet<string>, stats?: IdmlStats, depth = 0, seen: Set<string> = new Set()): IdmlNode[] {
     const master = this.masters.get(id);
-    if (!master || !master.pages.length) return [];
+    if (!master?.pages.length) return [];
     if (depth >= MAX_DEPTH || seen.has(id)) { tally(stats, 'master.nested', 'dropped'); return []; }
     seen.add(id);
     const page = master.pages.reduce((best, p) => Math.abs(p.rect.x - target.x) < Math.abs(best.rect.x - target.x) ? p : best);
