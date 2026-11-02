@@ -96,8 +96,8 @@ importers:
   engine:
     dependencies:
       '@cto.af/linebreak':
-        specifier: 4.0.3
-        version: 4.0.3
+        specifier: 5.0.0
+        version: 5.0.0
       '@lolly-tools/core':
         specifier: workspace:*
         version: link:../packages/core
@@ -664,13 +664,13 @@ packages:
     resolution: {integrity: sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw==}
     engines: {node: '>=18'}
 
-  '@cto.af/linebreak@4.0.3':
-    resolution: {integrity: sha512-GiyepYtGQMo4LDynuhyFr0/hBGv0SFNVKnPjHuhFMnkseCBCIMecaCkKL8V3cu9mRas1djpSWznxigw/irV5Lw==}
-    engines: {node: '>=20'}
+  '@cto.af/linebreak@5.0.0':
+    resolution: {integrity: sha512-mU7yXJLN2WzjMIAzodXj7vDU31+T1+vOwd/pSkItbWKBn93ftZZayYYqMrUHpo+n5D1spkCx5VyU5+kxX+Shlw==}
+    engines: {node: '>=22'}
 
-  '@cto.af/unicode-trie-runtime@3.2.9':
-    resolution: {integrity: sha512-H4FHtvIef/8NlU+NsQolcL9SKu+fYIPMZI++h6rQcM1IN7C/AwiCs9L8WRff+O4hDMamksAEuwBjet2S9uPt4w==}
-    engines: {node: '>=20'}
+  '@cto.af/unicode-trie-runtime@3.2.11':
+    resolution: {integrity: sha512-0L7Mcw8xX4IRVjGFal+Qn/tH0aXlXGXTFsvVyAM+XelZbSkcPImPQjz8Cazup+hlrx/3RPhnHbxnMSm90tp8wg==}
+    engines: {node: '>=22'}
 
   '@dimforge/rapier3d-compat@0.12.0':
     resolution: {integrity: sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==}
@@ -3216,11 +3216,11 @@ snapshots:
 
   '@csstools/css-tokenizer@3.0.4': {}
 
-  '@cto.af/linebreak@4.0.3':
+  '@cto.af/linebreak@5.0.0':
     dependencies:
-      '@cto.af/unicode-trie-runtime': 3.2.9
+      '@cto.af/unicode-trie-runtime': 3.2.11
 
-  '@cto.af/unicode-trie-runtime@3.2.9':
+  '@cto.af/unicode-trie-runtime@3.2.11':
     dependencies:
       fflate: 0.8.3
 
