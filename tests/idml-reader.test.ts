@@ -103,6 +103,33 @@ test('a master based on another master places the parent items first', async () 
   assert.deepEqual(boxes.map(b => b.bg), ['#143250', '#c80000']);
 });
 
+const tableStory = (extra = '') => `<Story Self="t"><ParagraphStyleRange><CharacterStyleRange><Content>Intro</Content><Br/></CharacterStyleRange></ParagraphStyleRange><ParagraphStyleRange><CharacterStyleRange><Table Self="tb" ColumnCount="2" BodyRowCount="2" ${extra}>
+  <Row Self="r0" Name="0" SingleRowHeight="20"/><Row Self="r1" Name="1" SingleRowHeight="30"/><Column Self="c0" Name="0" SingleColumnWidth="60"/><Column Self="c1" Name="1" SingleColumnWidth="40"/>
+  <Cell Self="a" Name="0:0" RowSpan="1" ColumnSpan="1" FillColor="Color/Red" TopEdgeStrokeWeight="2" TopEdgeStrokeColor="Color/Ink" TopInset="2" LeftInset="2" BottomInset="2" RightInset="2"><ParagraphStyleRange><CharacterStyleRange PointSize="9"><Content>A1</Content></CharacterStyleRange></ParagraphStyleRange></Cell>
+  <Cell Self="b" Name="1:0" RowSpan="1" ColumnSpan="1"><ParagraphStyleRange><CharacterStyleRange><Content>B1</Content></CharacterStyleRange></ParagraphStyleRange></Cell>
+  <Cell Self="c" Name="0:1" RowSpan="1" ColumnSpan="2"><ParagraphStyleRange><CharacterStyleRange><Content>Wide</Content></CharacterStyleRange></ParagraphStyleRange></Cell>
+  </Table></CharacterStyleRange></ParagraphStyleRange></Story>`;
+
+test('a table becomes grouped cell frames on the grid with text, fills and borders', async () => {
+  const { boxes, notes } = await read(pkg({ stories: { t: tableStory() }, spread: `<Page GeometricBounds="0 0 200 300"/>${frame('t', 'ItemTransform="1 0 0 1 10 10"')}` }));
+  const cells = boxes.filter(b => b.group !== '' && b.kind !== 'group');
+  assert.equal(cells.length, 3);
+  assert.equal(new Set(cells.map(c => c.group)).size, 1);
+  const a = cells.find(c => c.text === 'A1')!, wide = cells.find(c => c.text === 'Wide')!;
+  assert.equal(a.bg, '#c80000'); assert.equal(a.w, 60); assert.equal(a.h, 20); assert.equal(a.stroke, '#143250'); assert.equal(a.strokeTop, 2);
+  assert.equal(wide.w, 100); assert.equal(wide.x, 10); assert.ok((wide.y as number) > (a.y as number));
+  assert.equal(boxes.find(b => b.text === 'Intro')!.kind, 'text');
+  for (const re of [/Tables become grouped frames/, /Merged cells/]) assert.ok(notes.some(n => re.test(n)), String(re));
+});
+
+test('a table over the cell limit is dropped and reported, not parsed', async () => {
+  const many = Array.from({ length: 5001 }, (_, i) => `<Cell Self="x${i}" Name="0:0"/>`).join('');
+  const story = `<Story Self="t"><ParagraphStyleRange><CharacterStyleRange><Table Self="tb"><Row Self="r" Name="0" SingleRowHeight="10"/><Column Self="c" Name="0" SingleColumnWidth="10"/>${many}</Table></CharacterStyleRange></ParagraphStyleRange></Story>`;
+  const { boxes, notes } = await read(pkg({ stories: { t: story }, spread: `<Page GeometricBounds="0 0 200 300"/>${frame('t')}` }));
+  assert.equal(boxes.length, 0);
+  assert.ok(notes.some(n => /beyond the size limits/.test(n)));
+});
+
 // Corpus-derived: the converted open fixtures, when fetched by `node plans/idml-reader/convert.ts`.
 const corpus = resolve(import.meta.dirname, '../plans/corpora/idml');
 const sample = 'PublicDataLab__fake-news-field-guide_layout_chapter-01.idml';
@@ -119,4 +146,12 @@ test('corpus case: master items of a converted leaflet reach its pages', { skip:
   const stats: IdmlStats = {};
   await readIdmlSpreads(Object.fromEntries(parts.map(p => [p.name, p.bytes])), parse, { stats });
   assert.ok((stats['master.items']?.mapped ?? 0) > 0);
+});
+
+const cfpb = 'cfpb__debt-collection-files_print_cfpb_debt-collection_model-validation-notice_es.idml';
+test('corpus case: the tables of a converted notice become cell frames', { skip: existsSync(resolve(corpus, cfpb)) ? false : 'converted corpus not present (plans/idml-reader/convert.ts)' }, async () => {
+  const parts = readZip(new Uint8Array(readFileSync(resolve(corpus, cfpb))), { maxInputBytes: 64 << 20, maxTotalBytes: 256 << 20, maxEntryBytes: 32 << 20, maxEntries: 4096 });
+  const stats: IdmlStats = {};
+  await readIdmlSpreads(Object.fromEntries(parts.map(p => [p.name, p.bytes])), parse, { stats });
+  assert.ok((stats['table.cells']?.mapped ?? 0) >= 10, JSON.stringify(stats['table.cells']));
 });

@@ -4,7 +4,8 @@ import { boxGeomFromBBox, finalizeBoxes, type DesignMapOptions } from './design-
 import { readAdobeXml, type AdobeXmlParser } from './adobe-xml.ts';
 import { strFromU8 } from 'fflate';
 import { StyleBook, tally, statsNotes, tintHex, type IdmlStats } from './idml-styles.ts';
-import { buildText, type StoryStyle } from './idml-text.ts';
+import { buildText, type StoryStyle, type TextEnv } from './idml-text.ts';
+import { tableNodes, type TableBudget } from './idml-table.ts';
 import { MasterBook, pageRect, type Rect } from './idml-master.ts';
 import type { AssetRef } from '@lolly-tools/core';
 interface M { a: number; b: number; c: number; d: number; e: number; f: number; }
@@ -22,6 +23,14 @@ export interface IdmlNode {
   fontFamily?: string;
   fontWeight?: number;
   textAlign?: string;
+  pad?: number;
+  stroke?: string;
+  strokeW?: number;
+  strokeAlign?: 'inside' | 'center' | 'outside';
+  strokeTop?: number;
+  strokeRight?: number;
+  strokeBottom?: number;
+  strokeLeft?: number;
   lineHeight?: number;
   tracking?: number;
   /** An empty text frame: kept on a page, not copied from a master. */
@@ -35,6 +44,10 @@ interface Ctx {
   warn: (msg: string) => void;
   book: StyleBook;
   stats: IdmlStats;
+  /** Stories already placed in a frame, so threaded frames do not repeat them. */
+  used: Set<string>;
+  tables: TableBudget;
+  env: TextEnv;
 }
 export interface ImportResult { boxes: object[]; width: number; height: number; background: string; }
 export interface IdmlOptions { warn?: (msg: string) => void; stats?: IdmlStats; map?: DesignMapOptions; linkedFiles?: Record<string, Uint8Array>; storeImage?: (path: string, bytes: Uint8Array) => Promise<AssetRef | null> }
@@ -76,9 +89,11 @@ export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: 
     const doc = xml(src), el = doc && innerElement(doc, 'MasterSpread');
     return el ? [{ id: el.getAttribute('Self') || '', el }] : [];
   });
+  const env: TextEnv = { book, warn, stats, colour: (ref, tint) => tintHex(resolveColor(ref ?? null, swatches), tint) };
+  const shared = { used: new Set<string>(), tables: { cells: 0 } as TableBudget, env };
   const masterGroups = { group: 0 };
   const masters = new MasterBook(masterEntries, el => pageRect(el, parseItemTransform(el)), item => {
-    const mctx: Ctx = { nodes: [], swatches, stories, seen: masterGroups, warn, book, stats };
+    const mctx: Ctx = { nodes: [], swatches, stories, seen: masterGroups, warn, book, stats, ...shared };
     walkItem(item, IDENTITY, '', mctx);
     return mctx.nodes;
   });
@@ -88,7 +103,7 @@ export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: 
   for (const [index, src] of spreadSrcs.entries()) {
     const spreadDoc = xml(src), spreadEl = spreadDoc && innerElement(spreadDoc, 'Spread');
     if (!spreadEl) throw new Error(`Could not read IDML spread ${index + 1}.`);
-    const ctx: Ctx = { nodes: [], swatches, stories, seen: { group: 0 }, warn, book, stats };
+    const ctx: Ctx = { nodes: [], swatches, stories, seen: { group: 0 }, warn, book, stats, ...shared };
     for (const child of Array.from(spreadEl.children)) walkItem(child, IDENTITY, '', ctx);
     const pageEls = Array.from(spreadEl.children).filter(el => el.localName === 'Page');
     const pageRects = pageEls.map(el => pageRect(el, parseItemTransform(el)));
@@ -152,9 +167,11 @@ function walkItem(el: Element, parentMatrix: M, group: string, ctx: Ctx): void {
   const fill = resolveColor(el.getAttribute('FillColor'), ctx.swatches);
 
   if (tag === 'TextFrame') {
-    const story = ctx.stories[el.getAttribute('ParentStory') || ''];
-    if (story && (story.text || '').trim()) {
-      ctx.nodes.push({
+    const storyId = el.getAttribute('ParentStory') || '';
+    const story = ctx.stories[storyId];
+    if (story && !ctx.used.has(storyId) && ((story.text || '').trim() || story.tables?.length)) {
+      ctx.used.add(storyId);
+      if ((story.text || '').trim()) ctx.nodes.push({
         kind: 'text', ...base,
         text: story.text,
         fg: story.fg || '#0c322c',
@@ -165,8 +182,16 @@ function walkItem(el: Element, parentMatrix: M, group: string, ctx: Ctx): void {
         ...(story.lineHeight ? { lineHeight: story.lineHeight } : {}),
         ...(story.tracking ? { tracking: story.tracking } : {}),
       });
+      let cursor = 0;
+      for (const [i, t] of (story.tables ?? []).entries()) {
+        const size = story.fontSize || 12, lines = Math.max(t.before, Math.ceil(t.chars * size * 0.5 / Math.max(1, geom.w)));
+        const y = base.y + Math.max(cursor, lines * size * (story.lineHeight || 1.2));
+        const made = tableNodes(t.el, { x: base.x, y, group: `${group || 'table'}-${++ctx.seen.group}-${i}` }, ctx.env, ctx.tables);
+        ctx.nodes.push(...made.nodes); cursor = y - base.y + made.height;
+      }
       return;
     }
+    if (story && ctx.used.has(storyId)) tally(ctx.stats, 'text.threaded', 'approximated');
     ctx.nodes.push({ kind: 'box', ...base, fill: '', empty: true }); // empty frame
     return;
   }
