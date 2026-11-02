@@ -192,6 +192,7 @@
     "build:dxf": "node scripts/build-dxf.ts",
     "build:audio-dsp": "node scripts/build-audio-dsp.ts",
     "build:indd": "node scripts/build-indd.ts",
+    "build:affinity": "node scripts/build-affinity.ts",
     "fetch:adobe-corpus": "node scripts/adobe-corpus.ts --fetch",
     "verify:adobe-corpus": "node scripts/adobe-corpus.ts",
     "test:oracles": "node --test scripts/pdf-oracle.test.ts",
