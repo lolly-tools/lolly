@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Bounded IDML parts into editable Design frames, using injected XML and asset IO. */
-import { boxGeomFromBBox, safeColor, mapAlign, finalizeBoxes, type DesignMapOptions } from './design-map.ts';
+import { boxGeomFromBBox, finalizeBoxes, type DesignMapOptions } from './design-map.ts';
 import { readAdobeXml, type AdobeXmlParser } from './adobe-xml.ts';
-import { designTextOf } from './design-text.ts';
 import { strFromU8 } from 'fflate';
-import type { SourceParaV1, AssetRef } from '@lolly-tools/core';
+import { StyleBook, tally, statsNotes, tintHex, type IdmlStats } from './idml-styles.ts';
+import { buildText, type StoryStyle } from './idml-text.ts';
+import type { AssetRef } from '@lolly-tools/core';
 interface M { a: number; b: number; c: number; d: number; e: number; f: number; }
-interface StoryStyle { text: string; fontSize: number; fg: string; font: string; weight: number; align: string; }
 export interface IdmlNode {
   kind: 'box' | 'text' | 'image';
   image?: AssetRef;
@@ -21,6 +21,8 @@ export interface IdmlNode {
   fontFamily?: string;
   fontWeight?: number;
   textAlign?: string;
+  lineHeight?: number;
+  tracking?: number;
 }
 interface Ctx {
   nodes: IdmlNode[];
@@ -28,9 +30,11 @@ interface Ctx {
   stories: Record<string, StoryStyle>;
   seen: { group: number };
   warn: (msg: string) => void;
+  book: StyleBook;
+  stats: IdmlStats;
 }
 export interface ImportResult { boxes: object[]; width: number; height: number; background: string; }
-export interface IdmlOptions { warn?: (msg: string) => void; map?: DesignMapOptions; linkedFiles?: Record<string, Uint8Array>; storeImage?: (path: string, bytes: Uint8Array) => Promise<AssetRef | null> }
+export interface IdmlOptions { warn?: (msg: string) => void; stats?: IdmlStats; map?: DesignMapOptions; linkedFiles?: Record<string, Uint8Array>; storeImage?: (path: string, bytes: Uint8Array) => Promise<AssetRef | null> }
 
 const IDENTITY: M = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
 const ITEM_TAGS = new Set(['Rectangle', 'Oval', 'Polygon', 'GraphicLine', 'TextFrame', 'Group']);
@@ -39,7 +43,7 @@ const ITEM_TAGS = new Set(['Rectangle', 'Oval', 'Polygon', 'GraphicLine', 'TextF
  * Parse an unzipped IDML package into a Design boxes array.
  * @param files unzipped entries (path → bytes)
  */
-export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: AdobeXmlParser, { warn = () => {}, map, linkedFiles = {}, storeImage }: IdmlOptions = {}): Promise<(ImportResult & { name: string; nodes: IdmlNode[] })[]> {
+export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: AdobeXmlParser, { warn = () => {}, map, linkedFiles = {}, storeImage, stats = {} }: IdmlOptions = {}): Promise<(ImportResult & { name: string; nodes: IdmlNode[] })[]> {
   if (Object.keys(files).length > 4096 || Object.values(files).reduce((n, b) => n + b.length, 0) > 128 * 1024 * 1024) throw new Error('IDML package exceeds the import limits.');
   const xml = (path: string): Document | null => {
     const b = files[path];
@@ -61,11 +65,9 @@ export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: 
 
   // Swatches (fills) and stories (text) are shared resources referenced by the items.
   const swatches = parseSwatches(xml(pkgSrcs('Graphic')[0] || 'Resources/Graphic.xml'));
-  const styles = new Map<string, Element>();
-  const stylesDoc = xml(pkgSrcs('Styles')[0] || 'Resources/Styles.xml');
-  if (stylesDoc) for (const el of elems(stylesDoc)) if (el.hasAttribute('Self')) styles.set(el.getAttribute('Self')!, el);
+  const book = new StyleBook(xml(pkgSrcs('Styles')[0] || 'Resources/Styles.xml'));
   const stories: Record<string, StoryStyle> = Object.create(null);
-  for (const src of pkgSrcs('Story')) { const d = xml(src); if (d) parseStories(d, swatches, stories, styles, warn); }
+  for (const src of pkgSrcs('Story')) { const d = xml(src); if (d) parseStories(d, swatches, stories, book, warn, stats); }
 
   if (spreadSrcs.length > 256) throw new Error('IDML contains more than 256 spreads.');
   const frames: (ImportResult & { name: string; nodes: IdmlNode[] })[] = [];
@@ -73,7 +75,7 @@ export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: 
   for (const [index, src] of spreadSrcs.entries()) {
     const spreadDoc = xml(src), spreadEl = spreadDoc && innerElement(spreadDoc, 'Spread');
     if (!spreadEl) throw new Error(`Could not read IDML spread ${index + 1}.`);
-    const ctx: Ctx = { nodes: [], swatches, stories, seen: { group: 0 }, warn };
+    const ctx: Ctx = { nodes: [], swatches, stories, seen: { group: 0 }, warn, book, stats };
     for (const child of Array.from(spreadEl.children)) walkItem(child, IDENTITY, '', ctx);
     if (ctx.nodes.length > 10000) throw new Error('IDML spread exceeds the item limit.');
     totalItems += ctx.nodes.length; if (totalItems > 100000) throw new Error('IDML document exceeds the total item limit.');
@@ -103,6 +105,8 @@ export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: 
     if (!Number.isFinite(size.width * size.height) || size.width * size.height > 32000000 || ctx.nodes.some(node => ![node.x, node.y, node.w, node.h, node.rot].every(Number.isFinite))) throw new Error('IDML spread geometry exceeds the preview limits.');
     frames.push({ ...size, nodes: ctx.nodes, name: `Spread ${index + 1}`, boxes: finalizeBoxes(ctx.nodes, { prefix: `d${index}-`, ...map }), background: '#ffffff' });
   }
+  if (book.truncated) tally(stats, 'style.chain-cut', 'approximated', book.truncated);
+  for (const note of statsNotes(stats)) warn(note);
   return frames;
 }
 
@@ -134,11 +138,13 @@ function walkItem(el: Element, parentMatrix: M, group: string, ctx: Ctx): void {
       ctx.nodes.push({
         kind: 'text', ...base,
         text: story.text,
-        fg: story.fg || safeColor(fill, '') || '#0c322c',
+        fg: story.fg || '#0c322c',
         fontSize: story.fontSize || 24,
         fontFamily: story.font || '',
         fontWeight: story.weight || 400,
         textAlign: story.align || 'left',
+        ...(story.lineHeight ? { lineHeight: story.lineHeight } : {}),
+        ...(story.tracking ? { tracking: story.tracking } : {}),
       });
       return;
     }
@@ -258,63 +264,13 @@ function rgb(r: number, g: number, b: number): string {
 
 // ── stories (text) ─────────────────────────────────────────────────────────────
 
-function parseStories(doc: Document, swatches: Record<string, string>, out: Record<string, StoryStyle>, styles: ReadonlyMap<string, Element> = new Map(), warn: (message: string) => void = () => {}): void {
+function parseStories(doc: Document, swatches: Record<string, string>, out: Record<string, StoryStyle>, book: StyleBook = new StyleBook(null), warn: (message: string) => void = () => {}, stats?: IdmlStats): void {
+  const colour = (ref: string | undefined, tint: number | undefined) => tintHex(resolveColor(ref ?? null, swatches), tint);
   for (const story of Array.from(doc.getElementsByTagName('Story'))) {
     const self = story.getAttribute('Self');
     if (!self) continue;
-    const paras: SourceParaV1[] = [];
-    let fontSize = 0, fg = '', font = '', weight = 0, align = '';
-    for (const psr of Array.from(story.getElementsByTagName('ParagraphStyleRange'))) {
-      const ps = styles.get(psr.getAttribute('AppliedParagraphStyle') || '');
-      const paragraphAlign = mapAlign(justificationToAlign(psr.getAttribute('Justification') || ps?.getAttribute('Justification') || null));
-      if (!align) align = paragraphAlign;
-      const para: SourceParaV1 = { runs: [], align: paragraphAlign };
-      for (const csr of Array.from(psr.getElementsByTagName('CharacterStyleRange'))) {
-        const cs = styles.get(csr.getAttribute('AppliedCharacterStyle') || '');
-        const attr = (key: string) => csr.getAttribute(key) || cs?.getAttribute(key) || psr.getAttribute(key) || ps?.getAttribute(key) || '';
-        const size = parseFloat(attr('PointSize')) || 0, color = safeColor(resolveColor(attr('FillColor'), swatches), '');
-        const family = fontFamilyOf(csr) || (cs ? fontFamilyOf(cs) : '') || (ps ? fontFamilyOf(ps) : ''), style = attr('FontStyle');
-        if (!fontSize) fontSize = size;
-        if (!fg) fg = color;
-        if (!font) font = family;
-        if (!weight) weight = weightFromFontStyle(style);
-        let text = '';
-        for (const child of Array.from(csr.childNodes)) {
-          if (child.nodeType === 1 && (child as Element).localName === 'Content') text += child.textContent || '';
-          else if (child.nodeType === 1 && (child as Element).localName === 'Br') text += '\n';
-        }
-        if (text) para.runs.push({ text, bold: /Bold|Black|Heavy/i.test(style), italic: /Italic|Oblique/i.test(style), underline: attr('Underline') === 'true', strike: attr('StrikeThru') === 'true', ...(size ? { sizePt: size } : {}), ...(family ? { font: family } : {}), ...(color ? { color: { hex: color } } : {}) });
-      }
-      const last = para.runs.at(-1); if (last?.text.endsWith('\n')) last.text = last.text.slice(0, -1);
-      paras.push(para);
-    }
-    if (paras.some(para => para.runs.some(run => !run.bold && run.text.trim()))) weight = 400;
-    const formatted = designTextOf(paras, { carryColour: true, rowWeight: weight || 400 });
-    if (formatted.dropped.length) warn(`Story ${self}: unsupported formatting ${formatted.dropped.join(', ')}.`);
-    if (story.getElementsByTagName('Table').length || story.getElementsByTagName('Footnote').length) warn(`Story ${self}: tables and footnotes are reduced to supported text runs.`);
-    out[self] = { text: formatted.text, fontSize, fg, font, weight, align };
+    out[self] = buildText(story, { book, colour, warn, stats });
   }
-}
-
-function justificationToAlign(j: string | null): string {
-  const s = String(j || '');
-  if (/Center/i.test(s)) return 'center';
-  if (/Right/i.test(s)) return 'right';
-  return 'left';
-}
-function fontFamilyOf(csr: Element): string {
-  const af = csr.getElementsByTagName('AppliedFont')[0];
-  return (af && (af.textContent || '').trim()) || csr.getAttribute('AppliedFont') || '';
-}
-function weightFromFontStyle(style: string | null): number {
-  const s = String(style || '');
-  if (/black|heavy/i.test(s)) return 900;
-  if (/extra[\s-]*bold|ultra/i.test(s)) return 800;
-  if (/semi[\s-]*bold|demi/i.test(s)) return 600;
-  if (/bold/i.test(s)) return 700;
-  if (/medium/i.test(s)) return 500;
-  if (/light/i.test(s)) return 300;
-  return 400;
 }
 
 // ── DOM helpers ────────────────────────────────────────────────────────────────
