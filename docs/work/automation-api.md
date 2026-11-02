@@ -111,7 +111,7 @@ with a stable `code` and a `reason`:
 | `UNSUPPORTED_FORMAT` | the deployment does not produce this format on the server; the web app can still export that format |
 | `HOOKED_TOOL_NEEDS_CHROMIUM` | the tool runs scripts, and no worker is configured |
 | `TOOL_REQUIRES_UNMET` | the tool needs host APIs the in-process render host does not provide |
-| `SVG_TEMPLATE_REQUIRED` | server rendering needs an SVG template |
+| `SVG_TEMPLATE_REQUIRED` | the tool lays out HTML, which needs the Chromium render worker, and no worker is configured |
 | `FORMAT_NOT_ALLOWED` | tool policy does not allow the format |
 | `FORBIDDEN` | the caller lacks the permission, such as `export.server` for `render` |
 | `RENDER_BUSY` / `WORKER_UNREACHABLE` | the configured worker is at capacity or did not answer its readiness check |

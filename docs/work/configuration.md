@@ -65,7 +65,7 @@ deployment files for a staged owner cutover ([Customer setup](customer-setup.md)
 |---|---|---|
 | `mode` | `auto` | `production` enforces production checks regardless of NODE_ENV. `evaluation` permits memory storage and ephemeral secrets, including inside a production container. `auto` inherits production from NODE_ENV for existing installations. |
 | `application` | `api` | `api` serves the console and API without requiring an employee shell. `web` requires a governed shellDir or external appUrl. A configured shellDir is checked in either profile. |
-| `requireServerRendering` | `false` | Require every advertised tool to have at least one configured server format. Hooked tools need a worker URL and secret. This checks configuration, not a successful worker render. |
+| `requireServerRendering` | `false` | Require every advertised tool to have at least one configured server format. Hooked and HTML-layout tools need a worker URL and secret. This checks configuration, not a successful worker render. |
 
 Production refuses memory storage, development login, open access, missing identity,
 an unsafe public base URL, signing secrets shorter than 32 bytes, inconsistent worker
