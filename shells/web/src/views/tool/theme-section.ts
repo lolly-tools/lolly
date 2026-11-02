@@ -18,11 +18,11 @@
  * section always show the same choice.
  *
  * A tool can draw the choices among its own inputs instead (manifest
- * `render.themeChoicesAfter`, opts.hosted): renderInputs leaves a slot after the
- * named input, and the control, in a node of its own, is moved into that slot
- * after every render, since renderInputs rewrites the panel each time. The
- * separate section then stays hidden. When the slot is missing (the named input
- * is not drawn) the control goes back to the separate section.
+ * `render.themeChoicesAfter`, opts.after): the control, in a node of its own, is
+ * placed right after the named input's row, and placed again after every render,
+ * since renderInputs rewrites the panel each time. The separate section then
+ * stays hidden. When the input is not drawn, the control goes back to the
+ * separate section.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { ColorSwatchOption } from '../../components/color-field.ts';
@@ -37,8 +37,8 @@ export interface ThemeSectionOpts {
   controller: DocumentThemeController;
   /** Loads the control. A test hands in the module it already imported. */
   load?: () => Promise<{ mountThemeChoices: typeof import('../../components/theme-choices.ts').mountThemeChoices }>;
-  /** The tool draws the choices among its inputs (manifest `render.themeChoicesAfter`). */
-  hosted?: boolean;
+  /** The input whose row the choices follow (manifest `render.themeChoicesAfter`). */
+  after?: string;
 }
 
 export interface ThemeSection {
@@ -58,7 +58,8 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
   const { controller, root } = opts;
   const section = root.querySelector<HTMLDetailsElement>('#theme-section');
   const body = root.querySelector<HTMLElement>('#theme-section-body');
-  const inputs = opts.hosted ? root.querySelector<HTMLElement>('#tool-inputs') : null;
+  const inputs = opts.after ? root.querySelector<HTMLElement>('#tool-inputs') : null;
+  const anchor = opts.after ? `[data-input-id="${opts.after.replace(/["\\]/g, '\\$&')}"]` : '';
   // The hosted control's own node, which survives each inputs render.
   const hostedNode = inputs && body ? body.ownerDocument.createElement('div') : null;
   if (hostedNode) hostedNode.className = 'theme-choices-hosted';
@@ -82,11 +83,12 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
     }
   };
 
-  // Into the slot the inputs left, or back to the separate section without one.
+  // Right after the named input's row, or back to the separate section without one.
   const place = (): void => {
     if (!hostedNode || !body || destroyed) return;
-    const target = inputs?.querySelector<HTMLElement>('[data-theme-slot]') ?? body;
-    if (hostedNode.parentElement !== target) target.append(hostedNode);
+    const row = inputs?.querySelector(anchor)?.closest('.input-row');
+    if (row) { if (row.nextElementSibling !== hostedNode) row.after(hostedNode); }
+    else if (hostedNode.parentElement !== body) body.append(hostedNode);
     if (control) show(wanted);
   };
   const watcher = inputs && typeof MutationObserver !== 'undefined' ? new MutationObserver(place) : null;

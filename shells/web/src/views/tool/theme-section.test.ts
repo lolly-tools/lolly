@@ -169,24 +169,26 @@ test('the view tells the controller what the tool reads when it mounts and track
   assert.match(source, /stopUsage\(\); themeSection\.destroy\(\); documentTheme\.dispose\(\);/);
 });
 
-test('a tool that names an input draws the choices in that input\'s slot, and keeps them there across re-renders', async () => {
+test('a tool that names an input draws the choices right after that input\'s row, and keeps them there across re-renders', async () => {
   (globalThis as Record<string, unknown>).MutationObserver = dom.window.MutationObserver;
   const root = sectionRoot();
   root.insertAdjacentHTML('afterbegin', '<div id="tool-inputs"></div>');
   const inputs = root.querySelector<HTMLElement>('#tool-inputs')!;
   const section = root.querySelector<HTMLDetailsElement>('#theme-section')!;
-  // What renderInputs writes for render.themeChoicesAfter: a slot after the named input.
+  // What renderInputs writes: one .input-row per input, the panel rewritten each render.
   const render = (): void => {
-    inputs.innerHTML = '<details open><div class="input-section-body"><div data-input-id="theme"></div>'
-      + '<div class="theme-choices-slot" data-theme-slot></div><div data-input-id="windowStyle"></div></div></details>';
+    inputs.innerHTML = '<details open><div class="input-section-body">'
+      + '<div class="input-row"><select data-input-id="theme"></select></div>'
+      + '<div class="input-row"><select data-input-id="windowStyle"></select></div></div></details>';
   };
   render();
   const f = fakeThemeController([MODE, COLOURWAY]);
-  const mounted = mountThemeSection({ root, controller: f.controller, load, hosted: true });
+  const mounted = mountThemeSection({ root, controller: f.controller, load, after: 'theme' });
   await flush();
-  const hosted = (): Element | null => inputs.querySelector('[data-theme-slot] > .theme-choices-hosted');
-  assert.ok(hosted(), 'the control sits in the slot after the named input');
+  const hosted = (): Element | null => inputs.querySelector('.input-row:has([data-input-id="theme"]) + .theme-choices-hosted');
+  assert.ok(hosted(), 'the control sits right after the named input\'s row');
   assert.ok(hosted()!.childElementCount > 0, 'and draws its choices there');
+  assert.equal(hosted()!.nextElementSibling?.querySelector('[data-input-id="windowStyle"]') !== null, true, 'before the next input');
   assert.equal(section.hidden, true, 'the separate section stays hidden');
   const control = hosted();
   render();
@@ -194,7 +196,7 @@ test('a tool that names an input draws the choices in that input\'s slot, and ke
   assert.equal(hosted(), control, 'a re-render of the inputs puts the same control back');
   inputs.innerHTML = '';
   await flush();
-  assert.equal(section.hidden, false, 'without a slot the choices go back to the separate section');
+  assert.equal(section.hidden, false, 'without the input the choices go back to the separate section');
   assert.ok(root.querySelector('#theme-section-body > .theme-choices-hosted'));
   mounted.destroy();
   assert.equal(root.querySelectorAll('.theme-choices-hosted').length, 0, 'a destroyed section leaves nothing behind');
