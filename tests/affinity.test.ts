@@ -16,7 +16,7 @@ import { manifest, measureAll, meanDifference } from '../scripts/affinity-corpus
 const corpus = resolve(import.meta.dirname, '../plans/corpora/affinity');
 const have = existsSync(join(corpus, 'patchy-vector.af'));
 const wasmUrl = new URL('../packages/node-shell/wasm/affinity/affinity.wasm', import.meta.url);
-const FETCH = 'run `node scripts/affinity-corpus.ts fetch` first';
+const FETCH = 'corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first';
 
 /** A container header and nothing else: 00 FF K A, version 12, a document, no thumbnail and no tables. */
 function header(): Uint8Array {

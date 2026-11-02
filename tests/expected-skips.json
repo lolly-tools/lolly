@@ -3575,35 +3575,35 @@
     {
       "file": "tests/affinity.test.ts",
       "fullName": "stage 1 opens every corpus file with its preview and facts",
-      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/affinity.test.ts",
       "fullName": "stage 2 maps every corpus file and its artboards stay near the embedded thumbnails",
-      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/affinity.test.ts",
       "fullName": "lolly affinity prints the facts, writes the preview and the Design rows",
-      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "shells/web/src/views/affinity-import.test.ts",
       "fullName": "artboards open as editable frames and the report reaches the warnings",
-      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
       "capability": "fixture",
       "owner": "shells/web"
     },
     {
       "file": "shells/web/src/views/affinity-import.test.ts",
       "fullName": "with no layers and no storage to place the preview, the failure is plain and names the way out",
-      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
       "capability": "fixture",
       "owner": "shells/web"
     },
@@ -3612,6 +3612,34 @@
       "fullName": "xcf oracle: GIMP merged PNGs against readXcf composites",
       "reason": "declared skip: set LOLLY_XCF_ORACLE=1 after pnpm run fetch:gimp-corpus",
       "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/idml-reader.test.ts",
+      "fullName": "corpus case: a converted InDesign file keeps style-driven type",
+      "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/idml-reader.test.ts",
+      "fullName": "corpus case: master items of a converted leaflet reach its pages",
+      "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/idml-reader.test.ts",
+      "fullName": "corpus case: the tables of a converted notice become cell frames",
+      "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/idml-reader.test.ts",
+      "fullName": "corpus case: object styles reach strokes, corners and opacity in a converted guide",
+      "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
+      "capability": "fixture",
       "owner": "tests"
     }
   ]

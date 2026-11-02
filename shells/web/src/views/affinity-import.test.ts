@@ -21,7 +21,7 @@ test('bytes that are not an Affinity container are refused in plain words', asyn
   await assert.rejects(importAffinity(new Uint8Array(64), new File([], 'x.af'), { warn: () => {} }), /isn’t an Affinity document/);
 });
 
-test('artboards open as editable frames and the report reaches the warnings', { skip: have ? false : 'run `node scripts/affinity-corpus.ts fetch` first' }, async () => {
+test('artboards open as editable frames and the report reaches the warnings', { skip: have ? false : 'corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first' }, async () => {
   const kernel = await createAffinityKernel(wasm);
   const bytes = new Uint8Array(readFileSync(corpus('patchy-artboards.af')));
   const read = async (b: Uint8Array, name: string): Promise<AffinityRead> => ({ inspection: kernel.inspect(b, name), ...kernel.model(b) });
@@ -31,7 +31,7 @@ test('artboards open as editable frames and the report reaches the warnings', { 
   assert.ok(warnings.some(w => /editable/.test(w)));
 });
 
-test('with no layers and no storage to place the preview, the failure is plain and names the way out', { skip: have ? false : 'run `node scripts/affinity-corpus.ts fetch` first' }, async () => {
+test('with no layers and no storage to place the preview, the failure is plain and names the way out', { skip: have ? false : 'corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first' }, async () => {
   const kernel = await createAffinityKernel(wasm);
   const bytes = new Uint8Array(readFileSync(corpus('patchy-artboards.af')));
   const read = async (b: Uint8Array, name: string): Promise<AffinityRead> => ({ inspection: kernel.inspect(b, name), modelError: 'damaged Affinity file: test' });

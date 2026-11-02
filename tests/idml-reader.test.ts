@@ -157,7 +157,7 @@ test('a text frame keeps its own fill, wrap and effects are reported, and a rule
 // Corpus-derived: the converted open fixtures, when fetched by `node plans/idml-reader/convert.ts`.
 const corpus = resolve(import.meta.dirname, '../plans/corpora/idml');
 const sample = 'PublicDataLab__fake-news-field-guide_layout_chapter-01.idml';
-test('corpus case: a converted InDesign file keeps style-driven type', { skip: existsSync(resolve(corpus, sample)) ? false : 'converted corpus not present (plans/idml-reader/convert.ts)' }, async () => {
+test('corpus case: a converted InDesign file keeps style-driven type', { skip: existsSync(resolve(corpus, sample)) ? false : 'converted corpus fixtures not present (plans/idml-reader/convert.ts)' }, async () => {
   const parts = readZip(new Uint8Array(readFileSync(resolve(corpus, sample))), { maxInputBytes: 64 << 20, maxTotalBytes: 256 << 20, maxEntryBytes: 32 << 20, maxEntries: 4096 });
   const { boxes } = await read(Object.fromEntries(parts.map(p => [p.name, p.bytes])));
   const text = boxes.filter(b => b.kind === 'text');
@@ -165,7 +165,7 @@ test('corpus case: a converted InDesign file keeps style-driven type', { skip: e
 });
 
 const leaflet = '3plus2__3plus2_leaflet_definitions_lent_2015_spreads_distribution.idml';
-test('corpus case: master items of a converted leaflet reach its pages', { skip: existsSync(resolve(corpus, leaflet)) ? false : 'converted corpus not present (plans/idml-reader/convert.ts)' }, async () => {
+test('corpus case: master items of a converted leaflet reach its pages', { skip: existsSync(resolve(corpus, leaflet)) ? false : 'converted corpus fixtures not present (plans/idml-reader/convert.ts)' }, async () => {
   const parts = readZip(new Uint8Array(readFileSync(resolve(corpus, leaflet))), { maxInputBytes: 64 << 20, maxTotalBytes: 256 << 20, maxEntryBytes: 32 << 20, maxEntries: 4096 });
   const stats: IdmlStats = {};
   await readIdmlSpreads(Object.fromEntries(parts.map(p => [p.name, p.bytes])), parse, { stats });
@@ -173,7 +173,7 @@ test('corpus case: master items of a converted leaflet reach its pages', { skip:
 });
 
 const cfpb = 'cfpb__debt-collection-files_print_cfpb_debt-collection_model-validation-notice_es.idml';
-test('corpus case: the tables of a converted notice become cell frames', { skip: existsSync(resolve(corpus, cfpb)) ? false : 'converted corpus not present (plans/idml-reader/convert.ts)' }, async () => {
+test('corpus case: the tables of a converted notice become cell frames', { skip: existsSync(resolve(corpus, cfpb)) ? false : 'converted corpus fixtures not present (plans/idml-reader/convert.ts)' }, async () => {
   const parts = readZip(new Uint8Array(readFileSync(resolve(corpus, cfpb))), { maxInputBytes: 64 << 20, maxTotalBytes: 256 << 20, maxEntryBytes: 32 << 20, maxEntries: 4096 });
   const stats: IdmlStats = {};
   await readIdmlSpreads(Object.fromEntries(parts.map(p => [p.name, p.bytes])), parse, { stats });
@@ -181,7 +181,7 @@ test('corpus case: the tables of a converted notice become cell frames', { skip:
 });
 
 const guide = 'andgein__sis-guide_2014_guide_trims.idml';
-test('corpus case: object styles reach strokes, corners and opacity in a converted guide', { skip: existsSync(resolve(corpus, guide)) ? false : 'converted corpus not present (plans/idml-reader/convert.ts)' }, async () => {
+test('corpus case: object styles reach strokes, corners and opacity in a converted guide', { skip: existsSync(resolve(corpus, guide)) ? false : 'converted corpus fixtures not present (plans/idml-reader/convert.ts)' }, async () => {
   const parts = readZip(new Uint8Array(readFileSync(resolve(corpus, guide))), { maxInputBytes: 64 << 20, maxTotalBytes: 256 << 20, maxEntryBytes: 32 << 20, maxEntries: 4096 });
   const { boxes } = await read(Object.fromEntries(parts.map(p => [p.name, p.bytes])));
   assert.ok(boxes.some(b => Number(b.strokeW) > 0) || boxes.some(b => Number(b.opacity) < 100), 'some appearance reaches the boxes');
