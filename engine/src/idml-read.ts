@@ -5,6 +5,7 @@ import { readAdobeXml, type AdobeXmlParser } from './adobe-xml.ts';
 import { strFromU8 } from 'fflate';
 import { StyleBook, tally, statsNotes, tintHex, type IdmlStats } from './idml-styles.ts';
 import { buildText, type StoryStyle } from './idml-text.ts';
+import { MasterBook, pageRect, type Rect } from './idml-master.ts';
 import type { AssetRef } from '@lolly-tools/core';
 interface M { a: number; b: number; c: number; d: number; e: number; f: number; }
 export interface IdmlNode {
@@ -23,6 +24,8 @@ export interface IdmlNode {
   textAlign?: string;
   lineHeight?: number;
   tracking?: number;
+  /** An empty text frame: kept on a page, not copied from a master. */
+  empty?: boolean;
 }
 interface Ctx {
   nodes: IdmlNode[];
@@ -69,6 +72,16 @@ export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: 
   const stories: Record<string, StoryStyle> = Object.create(null);
   for (const src of pkgSrcs('Story')) { const d = xml(src); if (d) parseStories(d, swatches, stories, book, warn, stats); }
 
+  const masterEntries = pkgSrcs('MasterSpread').flatMap(src => {
+    const doc = xml(src), el = doc && innerElement(doc, 'MasterSpread');
+    return el ? [{ id: el.getAttribute('Self') || '', el }] : [];
+  });
+  const masterGroups = { group: 0 };
+  const masters = new MasterBook(masterEntries, el => pageRect(el, parseItemTransform(el)), item => {
+    const mctx: Ctx = { nodes: [], swatches, stories, seen: masterGroups, warn, book, stats };
+    walkItem(item, IDENTITY, '', mctx);
+    return mctx.nodes;
+  });
   if (spreadSrcs.length > 256) throw new Error('IDML contains more than 256 spreads.');
   const frames: (ImportResult & { name: string; nodes: IdmlNode[] })[] = [];
   const images = new Map<string, AssetRef | null>(); let totalItems = 0;
@@ -77,6 +90,16 @@ export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: 
     if (!spreadEl) throw new Error(`Could not read IDML spread ${index + 1}.`);
     const ctx: Ctx = { nodes: [], swatches, stories, seen: { group: 0 }, warn, book, stats };
     for (const child of Array.from(spreadEl.children)) walkItem(child, IDENTITY, '', ctx);
+    const pageEls = Array.from(spreadEl.children).filter(el => el.localName === 'Page');
+    const pageRects = pageEls.map(el => pageRect(el, parseItemTransform(el)));
+    if (masters.size > 0 && spreadEl.getAttribute('ShowMasterItems') !== 'false') {
+      const below: IdmlNode[] = [];
+      pageEls.forEach((el, i) => {
+        const rect = pageRects[i], id = el.getAttribute('AppliedMaster') || '';
+        if (rect && masters.has(id)) below.push(...masters.place(id, rect, new Set((el.getAttribute('OverrideList') || '').split(/\s+/).filter(Boolean)), stats));
+      });
+      ctx.nodes = [...below, ...ctx.nodes];
+    }
     if (ctx.nodes.length > 10000) throw new Error('IDML spread exceeds the item limit.');
     totalItems += ctx.nodes.length; if (totalItems > 100000) throw new Error('IDML document exceeds the total item limit.');
     for (const node of ctx.nodes) if (node._imagePath) {
@@ -91,11 +114,7 @@ export async function readIdmlSpreads(files: Record<string, Uint8Array>, parse: 
         else warn(`Image ${name} could not be imported.`);
       } else warn(`Missing linked image: ${node._imagePath}. Supply its bytes to replace the placeholder.`);
     }
-    const pages = Array.from(spreadEl.children).filter(el => el.localName === 'Page').map(el => {
-      const bounds = (el.getAttribute('GeometricBounds') || '').split(/\s+/).map(Number);
-      if (bounds.length !== 4 || bounds.some(n => !Number.isFinite(n))) return null;
-      return boxGeomFromBBox({ x: bounds[1]!, y: bounds[0]!, width: bounds[3]! - bounds[1]!, height: bounds[2]! - bounds[0]! }, parseItemTransform(el));
-    }).filter((p): p is NonNullable<typeof p> => p !== null);
+    const pages = pageRects.filter((p): p is Rect => p !== null);
     let size: { width: number; height: number };
     if (pages.length) {
       const x = Math.min(...pages.map(p => p.x)), y = Math.min(...pages.map(p => p.y));
@@ -148,7 +167,7 @@ function walkItem(el: Element, parentMatrix: M, group: string, ctx: Ctx): void {
       });
       return;
     }
-    ctx.nodes.push({ kind: 'box', ...base, fill: '' }); // empty frame
+    ctx.nodes.push({ kind: 'box', ...base, fill: '', empty: true }); // empty frame
     return;
   }
 

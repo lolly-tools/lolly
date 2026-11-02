@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
 import { readIdmlSpreads } from '../engine/src/idml-read.ts';
 import { readZip } from '../engine/src/zip.ts';
+import type { IdmlStats } from '../engine/src/idml-styles.ts';
 
 const dom = new JSDOM(''), parse = (s: string) => new dom.window.DOMParser().parseFromString(s, 'application/xml');
 const enc = (s: string) => new TextEncoder().encode(s);
@@ -72,6 +73,36 @@ test('style chains deeper than the bound are cut and reported', async () => {
   assert.ok(notes.some(n => /cut short/.test(n)));
 });
 
+const rect = (self: string, w: number, h: number, extra = '') => `<Rectangle Self="${self}" ${extra}>${path(w, h)}</Rectangle>`;
+const masterA = `<MasterSpread Self="MasterSpread/mA"><Page Self="mp1" GeometricBounds="0 0 200 300" ItemTransform="1 0 0 1 -300 0"/><Page Self="mp2" GeometricBounds="0 0 200 300" ItemTransform="1 0 0 1 0 0"/>
+  ${rect('lm', 40, 20, 'FillColor="Color/Ink" ItemTransform="1 0 0 1 -290 10"')}${rect('rm', 40, 20, 'FillColor="Color/Red" ItemTransform="1 0 0 1 10 10"')}${rect('gone', 40, 20, 'FillColor="Color/Red" ItemTransform="1 0 0 1 60 100"')}${rect('board', 40, 20, 'FillColor="Color/Red" ItemTransform="1 0 0 1 500 10"')}</MasterSpread>`;
+
+test('master items sit below the page items, on the matching side, honouring overrides', async () => {
+  const spread = `<Page GeometricBounds="0 0 200 300" ItemTransform="1 0 0 1 0 0" AppliedMaster="MasterSpread/mA" OverrideList="gone"/>${rect('own', 50, 50, 'FillColor="Color/Ink" ItemTransform="1 0 0 1 100 100"')}${rect('gone-copy', 10, 10, 'FillColor="Color/Ink" ItemTransform="1 0 0 1 61 101"')}`;
+  const { boxes } = await read(pkg({ masters: { mA: masterA }, spread }));
+  const fills = boxes.map(b => b.bg);
+  assert.equal(boxes.length, 3, 'right master item, the page item and the override copy; no left, overridden or pasteboard item');
+  assert.equal(boxes[0]!.bg, '#c80000'); assert.equal(boxes[0]!.x, 10); assert.equal(boxes[0]!.y, 10);
+  assert.ok(fills.slice(1).every(f => f === '#143250'));
+});
+
+test('a page with hidden master items, or a master that loops, draws only its own items', async () => {
+  const hidden = `<Page GeometricBounds="0 0 200 300" AppliedMaster="MasterSpread/mA"/>`;
+  const files = pkg({ masters: { mA: masterA }, spread: hidden });
+  files['Spreads/s.xml'] = enc(`<idPkg:Spread ${PKG}><Spread ShowMasterItems="false">${hidden}${rect('own', 5, 5)}</Spread></idPkg:Spread>`);
+  assert.equal((await read(files)).boxes.length, 1);
+  const loop = `<MasterSpread Self="MasterSpread/mL"><Page GeometricBounds="0 0 100 100" AppliedMaster="MasterSpread/mL"/>${rect('x', 10, 10, 'FillColor="Color/Ink"')}</MasterSpread>`;
+  const { boxes } = await read(pkg({ masters: { mL: loop }, spread: `<Page GeometricBounds="0 0 100 100" AppliedMaster="MasterSpread/mL"/>` }));
+  assert.equal(boxes.length, 1);
+});
+
+test('a master based on another master places the parent items first', async () => {
+  const parent = `<MasterSpread Self="MasterSpread/mP"><Page GeometricBounds="0 0 100 100"/>${rect('p', 10, 10, 'FillColor="Color/Ink"')}</MasterSpread>`;
+  const child = `<MasterSpread Self="MasterSpread/mC"><Page GeometricBounds="0 0 100 100" AppliedMaster="MasterSpread/mP"/>${rect('c', 10, 10, 'FillColor="Color/Red" ItemTransform="1 0 0 1 20 0"')}</MasterSpread>`;
+  const { boxes } = await read(pkg({ masters: { mP: parent, mC: child }, spread: `<Page GeometricBounds="0 0 100 100" AppliedMaster="MasterSpread/mC"/>` }));
+  assert.deepEqual(boxes.map(b => b.bg), ['#143250', '#c80000']);
+});
+
 // Corpus-derived: the converted open fixtures, when fetched by `node plans/idml-reader/convert.ts`.
 const corpus = resolve(import.meta.dirname, '../plans/corpora/idml');
 const sample = 'PublicDataLab__fake-news-field-guide_layout_chapter-01.idml';
@@ -80,4 +111,12 @@ test('corpus case: a converted InDesign file keeps style-driven type', { skip: e
   const { boxes } = await read(Object.fromEntries(parts.map(p => [p.name, p.bytes])));
   const text = boxes.filter(b => b.kind === 'text');
   assert.ok(text.length > 10 && new Set(text.map(b => b.fontSize)).size > 3, 'sizes come from styles, not one default');
+});
+
+const leaflet = '3plus2__3plus2_leaflet_definitions_lent_2015_spreads_distribution.idml';
+test('corpus case: master items of a converted leaflet reach its pages', { skip: existsSync(resolve(corpus, leaflet)) ? false : 'converted corpus not present (plans/idml-reader/convert.ts)' }, async () => {
+  const parts = readZip(new Uint8Array(readFileSync(resolve(corpus, leaflet))), { maxInputBytes: 64 << 20, maxTotalBytes: 256 << 20, maxEntryBytes: 32 << 20, maxEntries: 4096 });
+  const stats: IdmlStats = {};
+  await readIdmlSpreads(Object.fromEntries(parts.map(p => [p.name, p.bytes])), parse, { stats });
+  assert.ok((stats['master.items']?.mapped ?? 0) > 0);
 });
