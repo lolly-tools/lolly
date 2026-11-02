@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:e7e71695-7f45-4e36-8f7a-5a6b8ad4ec95",
+  "serialNumber": "urn:uuid:43b0cd08-fec5-45f3-8dbe-5748c4a433d4",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-01T19:27:40.207Z",
+    "timestamp": "2026-11-02T10:34:43.911Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -2611,6 +2611,31 @@
         {
           "name": "lolly:source",
           "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/crc32fast@1.5.4",
+      "name": "crc32fast",
+      "version": "1.5.4",
+      "purl": "pkg:cargo/crc32fast@1.5.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f97d3416d5337d15c4b0d78c8c91df922ca143f57ec20e2d1c188333047ef04"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/affinity/Cargo.lock"
         }
       ]
     },
@@ -7973,6 +7998,27 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/lolly-affinity@0.1.0",
+      "name": "lolly-affinity",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/lolly-affinity@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/affinity/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/lolly-audio-dsp@0.1.0",
       "name": "lolly-audio-dsp",
       "version": "0.1.0",
@@ -12432,6 +12478,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/ruzstd@0.9.1",
+      "name": "ruzstd",
+      "version": "0.9.1",
+      "purl": "pkg:cargo/ruzstd@0.9.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69e4ce4a039f42bf25920b95667e4d789e98749ab11bbb8d2c2936f788421bb5"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/affinity/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/ryu@1.0.23",
       "name": "ryu",
       "version": "1.0.23",
@@ -16377,6 +16450,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/twox-hash@2.1.5",
+      "name": "twox-hash",
+      "version": "2.1.5",
+      "purl": "pkg:cargo/twox-hash@2.1.5",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "86a801b3cea342a06d468c8710662aa29e5e05e4f5c0d62f00bbb7f2ad7941c2"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/affinity/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/typeid@1.0.3",
       "name": "typeid",
       "version": "1.0.3",
@@ -17003,6 +17103,25 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/vectorcraft-affinity@0.19.0",
+      "name": "vectorcraft-affinity",
+      "version": "0.19.0",
+      "purl": "pkg:cargo/vectorcraft-affinity@0.19.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/affinity/Cargo.lock"
         }
       ]
     },
@@ -20513,6 +20632,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/zlib-rs@0.6.8",
+      "name": "zlib-rs",
+      "version": "0.6.8",
+      "purl": "pkg:cargo/zlib-rs@0.6.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "Zlib"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b268e58e7c693d7c271f93ffc4ba3b380412554231c85bf61ca7af91042a4112"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/affinity/Cargo.lock"
         }
       ]
     },
@@ -25401,20 +25547,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-dialog@2.8.3",
+      "bom-ref": "pkg:npm/%40tauri-apps/plugin-dialog@2.8.4",
       "name": "@tauri-apps/plugin-dialog",
-      "version": "2.8.3",
-      "purl": "pkg:npm/%40tauri-apps/plugin-dialog@2.8.3",
+      "version": "2.8.4",
+      "purl": "pkg:npm/%40tauri-apps/plugin-dialog@2.8.4",
       "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "1ddff205f936479bf6305af3ff4540ad25de87cc4a2cb5c6ba7a92893b5c1ca9f5ccd67068aba3b80d154b052f35fc02e210e81753ef792fa004335ede71eca7"
+          "content": "fba64e8977a739ac57c1bf2a09b04f753da35f67053da5551c622c92ba6624ba665a3faa2914c3e97ff3f71ee14dd4909fb35e75ca170a45867a3e1aedd0b897"
         }
       ]
     },
