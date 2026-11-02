@@ -10503,5 +10503,6 @@
   "Traced into {n} shapes, above the image.": "Getraced tot {n} vormen, boven de afbeelding.",
   "Tracing": "Tracen",
   "Tracing image": "Afbeelding tracen",
-  "Turn this picture into shapes you can edit.": "Verander deze afbeelding in vormen die je kunt bewerken."
+  "Turn this picture into shapes you can edit.": "Verander deze afbeelding in vormen die je kunt bewerken.",
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Dat Affinity-bestand kon niet worden geopend. Exporteer het vanuit Affinity als SVG of PDF en probeer het opnieuw."
 }

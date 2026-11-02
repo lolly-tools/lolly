@@ -10503,5 +10503,6 @@
   "Traced into {n} shapes, above the image.": "Calcada en {n} formas, encima de la imagen.",
   "Tracing": "Calcando",
   "Tracing image": "Calcando la imagen",
-  "Turn this picture into shapes you can edit.": "Convierte esta imagen en formas que puedas editar."
+  "Turn this picture into shapes you can edit.": "Convierte esta imagen en formas que puedas editar.",
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Ese archivo de Affinity no se pudo abrir. Expórtalo desde Affinity como SVG o PDF e inténtalo de nuevo."
 }
