@@ -615,7 +615,8 @@ export function wireFilmstrip(tview: ToolViewCtx): void {
     refresh: (themed) => refreshThemeSwatches(themed, viewEl, { setSwatches, refreshSwatches }),
   }); tview.documentTheme = documentTheme;
   const stopUsage = trackToolTokenUsage(documentTheme, tview.tool, runtime);
-  const themeSection = mountThemeSection({ root: viewEl, controller: documentTheme });
+  const themeSection = mountThemeSection({ root: viewEl, controller: documentTheme,
+    after: (tview.tool.manifest.render as { themeChoicesAfter?: string } | undefined)?.themeChoicesAfter });
   tview.mountLifecycle.add('document theme', () => { stopUsage(); themeSection.destroy(); documentTheme.dispose(); });
   // Always present in the template (both layouts render #tool-stage), so treat it
   // as non-null - mirrors mountTool's unguarded uses (ro.observe, fitCanvas, …).

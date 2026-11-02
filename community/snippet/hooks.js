@@ -142,7 +142,7 @@ async function compute(inputs) {
   const displayCode = expandTabs(code);
   const highlighted = await host.textTools.highlight(displayCode, inputs.language || 'auto', { calloutMode: inputs.calloutMode || 'off', calloutPrefixes: (inputs.calloutPrefix || '').split(',').map((p) => p.trim().toLowerCase()).filter(Boolean) });
   const lang = highlighted.language;
-  const theme = inputs.theme || 'suse-dark';
+  const theme = inputs.theme || 'design-system';
   const windowStyle = inputs.windowStyle || 'nuremberg';
   const lineNumbers = inputs.lineNumbers !== false;
   const showWindow = inputs.showWindow !== false;

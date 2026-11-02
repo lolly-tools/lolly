@@ -7,7 +7,7 @@ import { analyseIsolation } from '../scripts/tool-isolation.ts';
 import { snippetRender, snippetTool, snippetHooks } from './helpers/snippet.ts';
 
 test('Snippet keeps still defaults and exports complete directed scenes', async () => {
-  const originalIds = ['code', 'language', 'scale', 'lineHeight', 'lineNumbers', 'blinkCursor', 'fileName', 'titleScale', 'titleIcon', 'iconScale', 'windowStyle', 'showWindow', 'theme', 'shadow', 'calloutMode', 'calloutPrefix', 'calloutFont'];
+  const originalIds = ['code', 'language', 'scale', 'lineHeight', 'lineNumbers', 'blinkCursor', 'fileName', 'titleScale', 'titleIcon', 'iconScale', 'theme', 'windowStyle', 'showWindow', 'shadow', 'calloutMode', 'calloutPrefix', 'calloutFont'];
   assert.deepEqual(snippetTool.manifest.inputs.filter(i => originalIds.includes(i.id)).map(i => i.id), originalIds);
   const still = await snippetRender({ code: '' });
   assert.equal(still.scene.animated, false);

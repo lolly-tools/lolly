@@ -171,6 +171,36 @@
     "step": 5
   },
   {
+    "id": "theme",
+    "label": "Theme",
+    "help": "Design system follows the colourway and mode chosen below. The other themes keep their own colours.",
+    "type": "select",
+    "default": "design-system",
+    "options": [
+      {
+        "value": "design-system",
+        "label": "Design system"
+      },
+      {
+        "value": "suse-dark",
+        "label": "Design system dark"
+      },
+      {
+        "value": "suse-light",
+        "label": "Design system light"
+      },
+      {
+        "value": "github-dark",
+        "label": "GitHub dark"
+      },
+      {
+        "value": "nord",
+        "label": "Nord"
+      }
+    ],
+    "section": "Style"
+  },
+  {
     "id": "windowStyle",
     "label": "Frame style",
     "type": "select",
@@ -190,7 +220,7 @@
         "label": "Nuremberg"
       }
     ],
-    "section": "Title bar"
+    "section": "Style"
   },
   {
     "id": "showWindow",
@@ -198,32 +228,7 @@
     "label": "Window chrome",
     "type": "boolean",
     "default": true,
-    "section": "Title bar"
-  },
-  {
-    "id": "theme",
-    "label": "Theme",
-    "type": "select",
-    "default": "suse-dark",
-    "options": [
-      {
-        "value": "suse-dark",
-        "label": "Design system dark"
-      },
-      {
-        "value": "suse-light",
-        "label": "Design system light"
-      },
-      {
-        "value": "github-dark",
-        "label": "GitHub dark"
-      },
-      {
-        "value": "nord",
-        "label": "Nord"
-      }
-    ],
-    "section": "Look"
+    "section": "Style"
   },
   {
     "id": "shadow",
@@ -231,7 +236,7 @@
     "label": "Drop shadow",
     "type": "boolean",
     "default": true,
-    "section": "Look"
+    "section": "Style"
   },
   {
     "id": "calloutMode",

@@ -16,6 +16,13 @@
  * tool's `tokenAxes` ignores never show. The state is the view's one
  * `DocumentThemeController`, so this section and the Design inspector's Document
  * section always show the same choice.
+ *
+ * A tool can draw the choices among its own inputs instead (manifest
+ * `render.themeChoicesAfter`, opts.after): the control, in a node of its own, is
+ * placed right after the named input's row, and placed again after every render,
+ * since renderInputs rewrites the panel each time. The separate section then
+ * stays hidden. When the input is not drawn, the control goes back to the
+ * separate section.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { ColorSwatchOption } from '../../components/color-field.ts';
@@ -30,6 +37,8 @@ export interface ThemeSectionOpts {
   controller: DocumentThemeController;
   /** Loads the control. A test hands in the module it already imported. */
   load?: () => Promise<{ mountThemeChoices: typeof import('../../components/theme-choices.ts').mountThemeChoices }>;
+  /** The input whose row the choices follow (manifest `render.themeChoicesAfter`). */
+  after?: string;
 }
 
 export interface ThemeSection {
@@ -49,20 +58,41 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
   const { controller, root } = opts;
   const section = root.querySelector<HTMLDetailsElement>('#theme-section');
   const body = root.querySelector<HTMLElement>('#theme-section-body');
+  const inputs = opts.after ? root.querySelector<HTMLElement>('#tool-inputs') : null;
+  const anchor = opts.after ? `[data-input-id="${opts.after.replace(/["\\]/g, '\\$&')}"]` : '';
+  // The hosted control's own node, which survives each inputs render.
+  const hostedNode = inputs && body ? body.ownerDocument.createElement('div') : null;
+  if (hostedNode) hostedNode.className = 'theme-choices-hosted';
   let control: ThemeChoices | null = null;
   let loading: Promise<void> | null = null;
   let destroyed = false;
   let shownOnce = false;
+  let wanted = false; // what the control last asked for
   const load = opts.load ?? (() => import('../../components/theme-choices.ts'));
+  const inSlot = (): boolean => !!hostedNode?.parentElement && hostedNode.parentElement !== body;
 
-  const show = (visible: boolean): void => {
+  const show = (next: boolean): void => {
+    wanted = next;
     if (!section) return;
-    section.hidden = !visible;
-    if (visible && !shownOnce) {
+    if (hostedNode) hostedNode.hidden = inSlot() && !next;
+    if (inSlot()) { section.hidden = true; return; }
+    section.hidden = !next;
+    if (next && !shownOnce) {
       shownOnce = true;
       if (opensByDefault(controller.groups())) section.open = true;
     }
   };
+
+  // Right after the named input's row, or back to the separate section without one.
+  const place = (): void => {
+    if (!hostedNode || !body || destroyed) return;
+    const row = inputs?.querySelector(anchor)?.closest('.input-row');
+    if (row) { if (row.nextElementSibling !== hostedNode) row.after(hostedNode); }
+    else if (hostedNode.parentElement !== body) body.append(hostedNode);
+    if (control) show(wanted);
+  };
+  const watcher = inputs && typeof MutationObserver !== 'undefined' ? new MutationObserver(place) : null;
+  watcher?.observe(inputs!, { childList: true });
 
   // The control (and its stylesheet) loads the first time there is something to
   // show, so a tool whose design system offers no choice never pays for the chunk. The
@@ -75,7 +105,8 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
     if (loading) return;
     loading = load().then(({ mountThemeChoices }) => {
       if (destroyed) return;
-      control = mountThemeChoices(body, controller, { onVisible: show });
+      control = mountThemeChoices(hostedNode ?? body, controller, { onVisible: show });
+      place();
     }).catch((error: unknown) => {
       console.warn('[theme] the Design system section could not load:', error);
       loading = null;
@@ -88,8 +119,10 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
     destroy() {
       destroyed = true;
       off();
+      watcher?.disconnect();
       control?.destroy();
       control = null;
+      hostedNode?.remove();
     },
   };
 }

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-01T19:27:01.781Z",
+  "generatedAt": "2026-11-02T15:08:14.829Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -10751,7 +10751,7 @@
       "id": "snippet",
       "name": "Snippet",
       "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
-      "version": "1.6.2",
+      "version": "1.7.0",
       "status": "official",
       "category": "everyone",
       "requires": [

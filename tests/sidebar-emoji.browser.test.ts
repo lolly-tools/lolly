@@ -126,9 +126,10 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
       const mirror = field.parentElement!.querySelector<HTMLElement>('.input-emoji-display-text')!;
       return field.scrollTop > 0 && mirror.style.transform.includes(`${-field.scrollTop}px`);
     });
-    // The sidebar orders sections by the plan 273 band ladder, so Callouts (content) comes before Look (style).
+    // The sidebar orders sections by the plan 273 band ladder, so Callouts (content) comes before Style (style).
     // Snippet 1.6 added Interaction and Window pose; Scene steps stays hidden until the scene is set to custom.
-    assert.deepEqual(await page.locator('#tool-inputs .input-section-summary').allTextContents(), ['Text', 'Title bar', 'Callouts', 'Interaction', 'Window pose', 'Look']);
+    // Snippet 1.7 gathered Look, the frame controls and the design system's choices into Style.
+    assert.deepEqual(await page.locator('#tool-inputs .input-section-summary').allTextContents(), ['Text', 'Title bar', 'Callouts', 'Interaction', 'Window pose', 'Style']);
     assert.equal(await page.locator('#tool-inputs .input-section-icon svg').count(), 6);
 
     // Block fields use qualified row identities and retain the other cards.

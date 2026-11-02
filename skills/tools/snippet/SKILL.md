@@ -5,7 +5,7 @@ description: "Operate the Lolly Snippet tool (snippet) using its declared inputs
 
 # Snippet
 
-Tool ID: `snippet`. Tool version: `1.6.2`. Engine range: `^1.228.0`.
+Tool ID: `snippet`. Tool version: `1.7.0`. Engine range: `^1.301.0`.
 
 Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.
 
@@ -31,9 +31,9 @@ Required host APIs: textTools. Device capabilities: none.
 | titleScale | number |  |
 | titleIcon | asset |  |
 | iconScale | number |  |
+| theme | select |  |
 | windowStyle | select |  |
 | showWindow | boolean |  |
-| theme | select |  |
 | shadow | boolean |  |
 | calloutMode | select |  |
 | calloutPrefix | text |  |
