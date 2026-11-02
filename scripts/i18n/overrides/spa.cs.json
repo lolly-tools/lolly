@@ -1833,5 +1833,7 @@
   "From the design system: {name}": "Ze systému designu: {name}",
   "Editing the curve detaches it from the design system.": "Úpravou křivky ji odpojíte od systému designu.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh. Podrž pro Tužku (Shift C) a typ spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh",
+  "Recipients can change the inputs": "Příjemci mohou měnit vstupy",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Kdokoli s odkazem může změnit jeho vstupy a získat nový obrázek. Uzamčené vstupy zůstanou, jak jsou nastavené."
 }

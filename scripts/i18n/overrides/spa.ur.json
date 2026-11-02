@@ -1838,5 +1838,7 @@
   "From the design system: {name}": "ڈیزائن سسٹم سے: {name}",
   "Editing the curve detaches it from the design system.": "وکر میں ترمیم کرنے سے یہ ڈیزائن سسٹم سے الگ ہو جاتا ہے۔",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt۔ پنسل (Shift C) اور اسپلائن کی قسم کے لیے دبائے رکھیں",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt",
+  "Recipients can change the inputs": "وصول کنندگان ان پٹس تبدیل کر سکتے ہیں",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "لنک رکھنے والا کوئی بھی شخص اس کے ان پٹس تبدیل کر کے نئی تصویر حاصل کر سکتا ہے۔ لاک شدہ ان پٹس جیسے سیٹ ہیں ویسے ہی رہتے ہیں۔"
 }

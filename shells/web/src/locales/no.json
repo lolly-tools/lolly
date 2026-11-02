@@ -10504,5 +10504,7 @@
   "Tracing": "Vektoriserer",
   "Tracing image": "Vektoriserer bildet",
   "Turn this picture into shapes you can edit.": "Gjør dette bildet om til former du kan redigere.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Den Affinity-filen kunne ikke åpnes. Eksporter den fra Affinity som SVG eller PDF og prøv igjen."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Den Affinity-filen kunne ikke åpnes. Eksporter den fra Affinity som SVG eller PDF og prøv igjen.",
+  "Recipients can change the inputs": "Mottakere kan endre inndata",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Alle med lenken kan endre inndataene og få et nytt bilde. Låste inndata beholder verdiene som er satt."
 }

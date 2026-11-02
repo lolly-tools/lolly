@@ -16,7 +16,7 @@ import {
   registerShareSection, shareSectionBuilders, shareSectionOrder, shareSectionPlacement, mountShareSection, _clearShareSectionsForTests,
 } from './share-sections.ts';
 import {
-  instanceShareRows, hasInstanceShareRows, targetFromBaseParts,
+  instanceShareRows, hasInstanceShareRows, targetFromBaseParts, renderedMintBody,
 } from '../org/share-links.ts';
 
 // ── registry ──────────────────────────────────────────────────────────────────
@@ -99,15 +99,25 @@ test('mountShareSection places late arrivals by order, and equal orders append',
 // ── capability gating (pure) ────────────────────────────────────────────────────
 
 test('instance rows follow the caller capability bits', () => {
-  assert.deepEqual(instanceShareRows(undefined), { rendered: false, guest: false });
-  assert.deepEqual(instanceShareRows({}), { rendered: false, guest: false });
-  assert.deepEqual(instanceShareRows({ 'link.create': true }), { rendered: true, guest: false });
+  assert.deepEqual(instanceShareRows(undefined), { rendered: false, guest: false, open: false });
+  assert.deepEqual(instanceShareRows({}), { rendered: false, guest: false, open: false });
+  assert.deepEqual(instanceShareRows({ 'link.create': true }), { rendered: true, guest: false, open: false });
   assert.deepEqual(
     instanceShareRows({ 'link.create': true, 'link.create-guest': true }),
-    { rendered: true, guest: true },
+    { rendered: true, guest: true, open: false },
   );
   // guest-only (no ordinary link.create) still shows the section
-  assert.deepEqual(instanceShareRows({ 'link.create-guest': true }), { rendered: false, guest: true });
+  assert.deepEqual(instanceShareRows({ 'link.create-guest': true }), { rendered: false, guest: true, open: false });
+  // Opening a rendered link to its recipients' inputs also needs export.server.
+  assert.deepEqual(instanceShareRows({ 'link.create': true, 'export.server': true }), { rendered: true, guest: false, open: true });
+  assert.equal(instanceShareRows({ 'export.server': true }).open, false, 'no link to open without link.create');
+});
+
+test('the rendered link opens to its recipients only when asked', () => {
+  const target = { toolId: 'battlecards', params: { t: 'Competitor,Strength~VMware,Big' }, format: 'svg' };
+  assert.deepEqual(renderedMintBody(target, false), { kind: 'embed', target });
+  assert.deepEqual(renderedMintBody(target, true), { kind: 'embed', target: { ...target, open: true } });
+  assert.equal('open' in target, false, 'the caller\'s target is not changed');
 });
 
 test('the section renders iff at least one row is permitted', () => {

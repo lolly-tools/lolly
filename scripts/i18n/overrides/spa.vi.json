@@ -1838,5 +1838,7 @@
   "From the design system: {name}": "Từ hệ thống thiết kế: {name}",
   "Editing the curve detaches it from the design system.": "Chỉnh sửa đường cong sẽ tách nó khỏi hệ thống thiết kế.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc. Giữ để chọn Bút chì (Shift C) và kiểu spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc",
+  "Recipients can change the inputs": "Người nhận có thể thay đổi đầu vào",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Bất kỳ ai có liên kết đều có thể thay đổi đầu vào và nhận hình ảnh mới. Các đầu vào đã khóa giữ nguyên như đã đặt."
 }

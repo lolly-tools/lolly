@@ -1838,5 +1838,7 @@
   "From the design system: {name}": "Daripada sistem reka bentuk: {name}",
   "Editing the curve detaches it from the design system.": "Mengedit lengkung akan memutuskannya daripada sistem reka bentuk.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut. Tahan untuk Pensel (Shift C) dan jenis spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut",
+  "Recipients can change the inputs": "Penerima boleh mengubah input",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Sesiapa yang mempunyai pautan boleh mengubah inputnya dan mendapatkan imej baharu. Input yang dikunci kekal seperti yang ditetapkan."
 }

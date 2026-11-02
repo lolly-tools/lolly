@@ -10504,5 +10504,7 @@
   "Tracing": "ट्रेस हो रहा है",
   "Tracing image": "इमेज ट्रेस हो रही है",
   "Turn this picture into shapes you can edit.": "इस तस्वीर को ऐसी आकृतियों में बदलें जिन्हें आप एडिट कर सकें।",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "वह Affinity फ़ाइल खोली नहीं जा सकी। उसे Affinity से SVG या PDF के रूप में एक्सपोर्ट करें और फिर कोशिश करें।"
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "वह Affinity फ़ाइल खोली नहीं जा सकी। उसे Affinity से SVG या PDF के रूप में एक्सपोर्ट करें और फिर कोशिश करें।",
+  "Recipients can change the inputs": "प्राप्तकर्ता इनपुट बदल सकते हैं",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "लिंक वाला कोई भी व्यक्ति इसके इनपुट बदलकर नई इमेज पा सकता है। लॉक किए गए इनपुट वैसे ही रहते हैं जैसे सेट किए गए हैं।"
 }

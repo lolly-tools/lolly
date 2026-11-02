@@ -1969,5 +1969,7 @@
   "From the design system: {name}": "От дизайн системата: {name}",
   "Editing the curve detaches it from the design system.": "Редактирането на кривата я откача от дизайн системата.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл. Задръж за Молив (Shift C) и типа сплайн",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл",
+  "Recipients can change the inputs": "Получателите могат да променят входовете",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Всеки с линка може да променя входовете му и да получи ново изображение. Заключените входове остават каквито са зададени."
 }

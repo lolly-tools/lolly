@@ -1969,5 +1969,7 @@
   "From the design system: {name}": "Fra designsystemet: {name}",
   "Editing the curve detaches it from the design system.": "Hvis du redigerer kurven, kobles den fra designsystemet.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penn (P) - klikk for å plassere punkter, dra for å kurve, Alt for et hjørne. Hold inne for Blyant (Shift C) og splinetype",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penn (P) - klikk for å plassere punkter, dra for å kurve, Alt for et hjørne"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penn (P) - klikk for å plassere punkter, dra for å kurve, Alt for et hjørne",
+  "Recipients can change the inputs": "Mottakere kan endre inndata",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Alle med lenken kan endre inndataene og få et nytt bilde. Låste inndata beholder verdiene som er satt."
 }

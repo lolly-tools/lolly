@@ -10504,5 +10504,7 @@
   "Tracing": "Трасування",
   "Tracing image": "Трасування зображення",
   "Turn this picture into shapes you can edit.": "Перетворіть цю картинку на фігури, які можна редагувати.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Цей файл Affinity не вдалося відкрити. Експортуйте його з Affinity як SVG або PDF і спробуйте ще раз."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Цей файл Affinity не вдалося відкрити. Експортуйте його з Affinity як SVG або PDF і спробуйте ще раз.",
+  "Recipients can change the inputs": "Отримувачі можуть змінювати поля",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Будь-хто з посиланням може змінити його поля й отримати нове зображення. Заблоковані поля залишаються такими, як задано."
 }

@@ -10504,5 +10504,7 @@
   "Tracing": "Vetorizando",
   "Tracing image": "Vetorizando a imagem",
   "Turn this picture into shapes you can edit.": "Transforme esta imagem em formas que você pode editar.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Não foi possível abrir esse arquivo do Affinity. Exporte-o do Affinity como SVG ou PDF e tente de novo."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Não foi possível abrir esse arquivo do Affinity. Exporte-o do Affinity como SVG ou PDF e tente de novo.",
+  "Recipients can change the inputs": "Os destinatários podem alterar as entradas",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Qualquer pessoa com o link pode alterar suas entradas e obter uma nova imagem. As entradas bloqueadas continuam como definidas."
 }

@@ -10504,5 +10504,7 @@
   "Tracing": "Трасиране",
   "Tracing image": "Трасиране на изображението",
   "Turn this picture into shapes you can edit.": "Превърни това изображение във форми, които можеш да редактираш.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Този Affinity файл не можа да бъде отворен. Експортирай го от Affinity като SVG или PDF и опитай отново."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Този Affinity файл не можа да бъде отворен. Експортирай го от Affinity като SVG или PDF и опитай отново.",
+  "Recipients can change the inputs": "Получателите могат да променят входовете",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Всеки с линка може да променя входовете му и да получи ново изображение. Заключените входове остават каквито са зададени."
 }

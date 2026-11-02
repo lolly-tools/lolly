@@ -10504,5 +10504,7 @@
   "Tracing": "Tracciamento",
   "Tracing image": "Tracciamento dell’immagine",
   "Turn this picture into shapes you can edit.": "Trasforma questa immagine in forme che puoi modificare.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Non è stato possibile aprire quel file Affinity. Esportalo da Affinity come SVG o PDF e riprova."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Non è stato possibile aprire quel file Affinity. Esportalo da Affinity come SVG o PDF e riprova.",
+  "Recipients can change the inputs": "I destinatari possono modificare gli input",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Chiunque abbia il link può modificarne gli input e ottenere una nuova immagine. Gli input bloccati restano come impostati."
 }

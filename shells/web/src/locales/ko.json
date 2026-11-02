@@ -10504,5 +10504,7 @@
   "Tracing": "트레이스 중",
   "Tracing image": "이미지 트레이스 중",
   "Turn this picture into shapes you can edit.": "이 그림을 편집할 수 있는 도형으로 바꿔요.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "그 Affinity 파일을 열 수 없었어요. Affinity에서 SVG나 PDF로 내보낸 다음 다시 시도하세요."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "그 Affinity 파일을 열 수 없었어요. Affinity에서 SVG나 PDF로 내보낸 다음 다시 시도하세요.",
+  "Recipients can change the inputs": "받는 사람이 입력을 바꿀 수 있음",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "링크가 있는 사람은 누구나 입력을 바꿔 새 이미지를 받을 수 있어요. 잠긴 입력은 설정된 그대로 유지돼요."
 }

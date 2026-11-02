@@ -10504,5 +10504,7 @@
   "Tracing": "Menelusuri",
   "Tracing image": "Menelusuri gambar",
   "Turn this picture into shapes you can edit.": "Ubah gambar ini menjadi bentuk yang bisa Anda edit.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "File Affinity itu tidak dapat dibuka. Ekspor dari Affinity sebagai SVG atau PDF lalu coba lagi."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "File Affinity itu tidak dapat dibuka. Ekspor dari Affinity sebagai SVG atau PDF lalu coba lagi.",
+  "Recipients can change the inputs": "Penerima dapat mengubah input",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Siapa pun yang memiliki tautan dapat mengubah inputnya dan mendapatkan gambar baru. Input yang terkunci tetap seperti yang diatur."
 }

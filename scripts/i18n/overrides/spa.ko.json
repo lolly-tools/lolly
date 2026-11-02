@@ -1969,5 +1969,7 @@
   "From the design system: {name}": "디자인 시스템에서: {name}",
   "Editing the curve detaches it from the design system.": "곡선을 편집하면 디자인 시스템과의 연결이 끊깁니다.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요. 길게 누르면 연필 (Shift C)과 스플라인 종류",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요",
+  "Recipients can change the inputs": "받는 사람이 입력을 바꿀 수 있음",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "링크가 있는 사람은 누구나 입력을 바꿔 새 이미지를 받을 수 있어요. 잠긴 입력은 설정된 그대로 유지돼요."
 }

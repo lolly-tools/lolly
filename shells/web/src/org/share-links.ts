@@ -8,7 +8,9 @@
  * the lib/share-sections.ts seam:
  *
  *   - Rendered link (needs can['link.create']) - mints an `embed` link whose URL
- *     serves the rendered image itself and stays current.
+ *     serves the rendered image itself and stays current. A caller who may also
+ *     render on the server (can['export.server']) may let recipients change the
+ *     link's inputs: the instance then renders each new set as a new image.
  *   - Guest access (needs can['link.create-guest']) - mints a `guest-edit` link the
  *     recipient can edit for a bounded time, optionally password-protected; their
  *     saves land in the inviter's project.
@@ -32,11 +34,14 @@ import { helpTip } from '../components/help-tip.ts';
 
 // ── Pure helpers (exported for tests) ─────────────────────────────────────────
 
-/** Which instance rows a caller's capabilities permit. Pure. */
-export function instanceShareRows(can: Record<string, boolean> | undefined): { rendered: boolean; guest: boolean } {
+/** Which instance rows a caller's capabilities permit, and whether the rendered
+ *  link may be opened to its recipients' inputs (the instance asks for
+ *  export.server, because a link only hands on what its maker can do). Pure. */
+export function instanceShareRows(can: Record<string, boolean> | undefined): { rendered: boolean; guest: boolean; open: boolean } {
   return {
     rendered: !!can?.['link.create'],
     guest: !!can?.['link.create-guest'],
+    open: !!can?.['link.create'] && !!can?.['export.server'],
   };
 }
 
@@ -68,7 +73,7 @@ export function targetFromBaseParts(baseParts: readonly string[]): { params: Rec
 
 // ── Link minting ──────────────────────────────────────────────────────────────
 
-interface MintTarget { toolId: string; params?: Record<string, string>; format?: string }
+interface MintTarget { toolId: string; params?: Record<string, string>; format?: string; open?: boolean }
 interface MintBody {
   kind: 'embed' | 'share' | 'download' | 'guest-edit';
   target: MintTarget;
@@ -92,6 +97,13 @@ export async function withoutGovernedParams(target: MintTarget): Promise<MintTar
   if (!drop.size) return target;
   const params = Object.fromEntries(Object.entries(target.params).filter(([key]) => !drop.has(key)));
   return { ...target, params };
+}
+
+/** The rendered link's mint body. `open` lets recipients change its inputs: the
+ *  instance renders each new set in the link's address as a new image, within
+ *  the tool's policy. Pure. */
+export function renderedMintBody(target: MintTarget, open: boolean): MintBody {
+  return { kind: 'embed', target: open ? { ...target, open: true } : target };
 }
 
 async function mintLink(body: MintBody): Promise<MintResult> {
@@ -179,15 +191,28 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
     const row = document.createElement('div');
     row.className = 'share-instance-row';
     row.style.marginBottom = rows.guest ? '.9rem' : '0';
+    // The opt-in to open the link to its recipients' inputs, only for a caller
+    // the instance would let open one.
+    const openTip = rows.open ? helpTip(t('Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.')) : null;
     row.innerHTML =
       `<div class="share-option help-tip-host">` +
         `<strong style="font-weight:650">${escape(t('Rendered link'))}</strong>` +
         `<button type="button" class="btn btn--sm" data-act="mint-rendered">${escape(t('Get link'))}</button>` +
         tip.button + tip.pop +
-      `</div>`;
+      `</div>` +
+      (openTip
+        ? `<div class="share-option help-tip-host">` +
+            `<label style="display:inline-flex;align-items:center;gap:.4rem;font-size:13px">` +
+              `<input type="checkbox" data-rendered-open> ${escape(t('Recipients can change the inputs'))}` +
+            `</label>` + openTip.button + openTip.pop +
+          `</div>`
+        : '');
+    const openBox = row.querySelector<HTMLInputElement>('[data-rendered-open]');
     const result = makeResultRow(ctx.copy);
     const err = makeErrorLine();
     row.append(result.el, err.el);
+    // A link already shown no longer matches a changed choice.
+    openBox?.addEventListener('change', () => { result.el.hidden = true; });
     const btn = row.querySelector<HTMLButtonElement>('[data-act="mint-rendered"]')!;
     btn.addEventListener('click', async () => {
       err.clear();
@@ -197,7 +222,7 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
       try {
         // The instance refuses any supplied locked or hidden param and bakes
         // locked values itself, so the mint carries only what the caller may set.
-        const { url } = await mintLink({ kind: 'embed', target: await withoutGovernedParams(target) });
+        const { url } = await mintLink(renderedMintBody(await withoutGovernedParams(target), !!openBox?.checked));
         result.show(url);
       } catch {
         err.set(t('Could not create the link. Try again.'));

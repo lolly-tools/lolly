@@ -10504,5 +10504,7 @@
   "Tracing": "正在描摹",
   "Tracing image": "正在描摹图像",
   "Turn this picture into shapes you can edit.": "把这张图片变成可编辑的形状。",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "无法打开该 Affinity 文件。请从 Affinity 导出为 SVG 或 PDF 后重试。"
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "无法打开该 Affinity 文件。请从 Affinity 导出为 SVG 或 PDF 后重试。",
+  "Recipients can change the inputs": "收件人可以更改输入",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "任何拿到链接的人都可以更改其输入并获得新图像。已锁定的输入保持原设置。"
 }

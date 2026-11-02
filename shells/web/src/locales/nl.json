@@ -10504,5 +10504,7 @@
   "Tracing": "Tracen",
   "Tracing image": "Afbeelding tracen",
   "Turn this picture into shapes you can edit.": "Verander deze afbeelding in vormen die je kunt bewerken.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Dat Affinity-bestand kon niet worden geopend. Exporteer het vanuit Affinity als SVG of PDF en probeer het opnieuw."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Dat Affinity-bestand kon niet worden geopend. Exporteer het vanuit Affinity als SVG of PDF en probeer het opnieuw.",
+  "Recipients can change the inputs": "Ontvangers mogen de invoer wijzigen",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Iedereen met de link kan de invoer wijzigen en een nieuwe afbeelding krijgen. Vergrendelde invoer blijft zoals ingesteld."
 }

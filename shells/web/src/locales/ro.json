@@ -10504,5 +10504,7 @@
   "Tracing": "Se trasează",
   "Tracing image": "Se trasează imaginea",
   "Turn this picture into shapes you can edit.": "Transformă această imagine în forme pe care le poți edita.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Acel fișier Affinity nu a putut fi deschis. Exportă-l din Affinity ca SVG sau PDF și încearcă din nou."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Acel fișier Affinity nu a putut fi deschis. Exportă-l din Affinity ca SVG sau PDF și încearcă din nou.",
+  "Recipients can change the inputs": "Destinatarii pot schimba intrările",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Oricine are linkul poate schimba intrările și poate obține o imagine nouă. Intrările blocate rămân așa cum au fost setate."
 }
