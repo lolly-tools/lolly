@@ -619,6 +619,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'VectorCraft Affinity reader',
+      version: '0.19.0 (05d5f99fd7e7dc00db3a9754d594b1214945d855; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT',
+      copyright: 'The ArtCraft Team and the VectorCraft contributors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/affinity/affinity.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/affinity/LICENSES.txt'), 'utf8'),
+      note: 'Standalone vectorcraft-affinity crate (MIT is elected from MIT OR Apache-2.0) compiled through a bounded Lolly byte adapter. The file layout was learned from the MIT-licensed afread description and checked against public documents; no Affinity software was used. The provenance, the clean-room account and the one local edit are in packages/node-shell/wasm/affinity/vendor/vectorcraft-affinity/UPSTREAM.md. Source, build instructions and licences are in packages/node-shell/wasm/affinity/.',
+      where: 'web',
+    },
+    {
       name: 'storytold indd-utils INDD converter',
       version: '0.1.0 (136f973a9d5f1b3ef34e46e27f4a08af196efde7; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT',

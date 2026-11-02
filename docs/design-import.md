@@ -25,6 +25,7 @@ Every frame becomes a scene on the timeline, ready for timing, music and a voice
 | **`.idml`** | InDesign: *File → Export → InDesign Markup* | Every spread and its margins, as artboards or scenes; **Replace the board** opens the first spread. |
 | **`.indd`** or **`.indt`** | InDesign, saved as a document or a template (a preview) | Converted to IDML on your device, then read like an `.idml` (see [InDesign files](#indesign-files)). |
 | **`.dxf`** | AutoCAD, or any CAD or floor-plan program that saves DXF | Layers become groups of line and curve paths, with text as text boxes (see [DXF drawings](#dxf-drawings-and-floor-plans)). |
+| **`.af`**, **`.afdesign`**, **`.afphoto`** or **`.afpub`** | Affinity, saved as a document | Artboards or pages become frames; shapes, curves, text and pictures become editable layers (see [Affinity files](#affinity-files)). |
 | **`.psd`** or **`.psb`** | Photoshop | Text, shapes and paths stay editable; other layers come in as pictures in place (see [Photoshop files](#photoshop-files)). |
 | **`.pptx`** | PowerPoint | One slide on the board (a longer deck asks which), or every slide as an artboard or a timed scene. |
 | **`.xml`** | Premiere (Final Cut Pro 7 XML), or a Lolly XML + media ZIP | Choose **Replace the board**; the clips open in Sequence (see [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange)). |
@@ -50,6 +51,27 @@ The drawing is scaled to fit about 2,400 pixels on its long side. The import rep
 Nothing is guessed. A text box carries the font the file names: a TrueType style's typeface, a font file name such as `arial.ttf`, or an inline MTEXT font. A style that uses an SHX font, which Lolly cannot draw, keeps its wording in the default font and is listed in the report. External references (XREFs), paper-space layouts and viewports, layers the file turns off or freezes, and every entity that is not drawn (hatches, solids, leaders, images and the rest) are counted in the report and left out. Open an external reference as its own file to import that drawing.
 
 Limits: the file can be up to 32 MB, with up to 2 million group codes, 250,000 entities and 10,000 blocks. One import makes at most 2,000 Design layers and splits a large layer into several path boxes, so a very dense drawing reports what did not fit. In the command line, `lolly dxf plan.dxf` prints the report, `--output=plan.svg` writes an SVG preview, `--output=plan.json` writes the Design boxes, and `--layers=WALLS,DOORS` keeps only those layers. A DXF file written by Lolly's own DXF export reads back at its real size.
+
+## Affinity files
+
+A native Affinity file is read on your device with a bundled WebAssembly module. Nothing is uploaded and Affinity is not needed. Files from Affinity 1, 2 and 3 open: `.af` is the Affinity 3 document, and `.afdesign`, `.afphoto` and `.afpub` come from the earlier versions.
+
+What comes in as editable layers:
+
+- Each artboard becomes a frame. A file with no artboards becomes one frame per page or spread.
+- Groups keep their names as Design groups. Layer opacity, visibility and the common blend modes carry over.
+- Rectangles stay rectangles. Other shapes, curves and compound shapes become path layers with their nodes, so you can edit the outline.
+- Solid fills, linear and radial gradients, and strokes with their width, caps, joins and dashes. A drop shadow becomes Design's shadow.
+- Text stays text, with its font family, weight, size, colour, alignment, underline, strikethrough, italic and runs of different styles. Tables become a text layer per cell with a line on every edge.
+- Placed pictures and pixel layers become picture layers.
+
+The import report lists everything else, one line per kind with a count. It covers the effects (bevel, blur, glows, inner shadows and overlays), the adjustments and live filters, masks, master pages, and anything approximated, such as gradient midpoints, strokes drawn inside or outside a curve, and CMYK pictures shown without their colour profile. Text is laid out again by Design, so line breaks and spacing can differ from Affinity. Fonts that are not installed are replaced by the closest available face.
+
+If the layers cannot be read, Design opens Affinity's own embedded preview as one picture instead and says so: the layers are not editable, but you still see the artwork. In the command line, `lolly affinity file.afdesign` prints the kind, size, artboard and page counts and the container version. `--preview=preview.png` writes the embedded preview and `--output=design.json` writes the Design layers and the report. In Unpack, an Affinity file shows its page pictures, text, colours and font names.
+
+Limits: the file can be up to 96 MB, decoded pixel layers up to 32 million pixels and the returned pictures up to 128 MB. A file over a limit, a library of assets, brushes or styles, and a file cut short each stop with a plain message. The reader works in a background worker, so a large file does not freeze the page.
+
+There is no published specification for the format. The reader was written from a public description and checked against public documents, with no Affinity software involved, and it is AI-assisted. A file from a build or platform outside the tested set can fail or fall back to its preview. Its [source and provenance](https://github.com/lolly-tools/lolly/tree/main/packages/node-shell/wasm/affinity/vendor/vectorcraft-affinity) are published beside the module. When the result matters, export SVG or PDF from Affinity and import that instead.
 
 ## What happens to the layers
 

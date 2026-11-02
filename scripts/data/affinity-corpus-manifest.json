@@ -1,0 +1,482 @@
+{
+  "_comment": "Public Affinity documents, fetched by scripts/affinity-corpus.ts from pinned commits and verified by SHA-256. The files are never committed. Recipe and hashes follow vectorcraft xtask/affinity-corpus.sha256 at 05d5f99. Every repository states MIT, CC0-1.0 or Apache-2.0 at its root.",
+  "files": [
+    {
+      "name": "patchy-LICENSE.txt",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "LICENSE",
+      "licence": "MIT",
+      "sha256": "bbc50c8c376e0e5980939be7df6769feed1a30289c7efc6391b204dfb15de88d",
+      "bytes": 1073
+    },
+    {
+      "name": "patchy-NOTICE.txt",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "NOTICE-THIRD-PARTY.md",
+      "licence": "MIT",
+      "sha256": "150e423be0c5eb22f252a38c2de68ab3ccec7e20bfba166f7ddd622ac243d8f4",
+      "bytes": 22192
+    },
+    {
+      "name": "patchy-adjust-curves.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-adjust-curves.af",
+      "licence": "MIT",
+      "sha256": "9bea4e2ceddc2438943c3b26505299389d07c64bbe2821be01eba9e69a06ce1e",
+      "bytes": 16712
+    },
+    {
+      "name": "patchy-adjust-hsl.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-adjust-hsl.af",
+      "licence": "MIT",
+      "sha256": "3141df41efeab7a250782e1418d96d4faf3b15107763df8002714aa8a8edd259",
+      "bytes": 26192
+    },
+    {
+      "name": "patchy-artboards.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-artboards.af",
+      "licence": "MIT",
+      "sha256": "0361284661e1376b91675cb5f7705b1d560711c9f86aa53e255ee5365e023680",
+      "bytes": 15219
+    },
+    {
+      "name": "patchy-blend-affinity.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-blend-affinity.af",
+      "licence": "MIT",
+      "sha256": "7239c42b6f9fb25b6ad9c12397afb4e0c1361a505e8126855d3a8cb45b192b87",
+      "bytes": 24862
+    },
+    {
+      "name": "patchy-cmyk.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-cmyk.af",
+      "licence": "MIT",
+      "sha256": "4d1fd761dd1508a31d37c4f4acbe01ca0d336ef3cb9bfdcddfc40ad4102f9d74",
+      "bytes": 25909
+    },
+    {
+      "name": "patchy-dpi300.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-dpi300.af",
+      "licence": "MIT",
+      "sha256": "75975eea4c325b90beac5015f6c2731156e90a5ec0f4c0a22aa6324e5dcb4ffc",
+      "bytes": 16185
+    },
+    {
+      "name": "patchy-embedded-jpeg.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-embedded-jpeg.af",
+      "licence": "MIT",
+      "sha256": "bd15ca80e322eb38460176e1b9b187247c3b9e455e55624f71ae5db1122a1eed",
+      "bytes": 567374
+    },
+    {
+      "name": "patchy-fx-blur.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-fx-blur.af",
+      "licence": "MIT",
+      "sha256": "62c9a5c4cff475a1a47ad6582d24b4fcb56ac84e94641b7ca44c9f8b05053bf1",
+      "bytes": 17945
+    },
+    {
+      "name": "patchy-fx-gradient.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-fx-gradient.af",
+      "licence": "MIT",
+      "sha256": "d515c84a702aee19359740e61f4ff16b02e363533f24287be5e1ba4b3539ef54",
+      "bytes": 19788
+    },
+    {
+      "name": "patchy-fx.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-fx.af",
+      "licence": "MIT",
+      "sha256": "eeb8f0988a7effe2088ead4015916bed13875d9aaa88a3bf477127214831e820",
+      "bytes": 21160
+    },
+    {
+      "name": "patchy-group.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-group.af",
+      "licence": "MIT",
+      "sha256": "3da524362f70f316c3be4beab2022e2ae7275bbd153cc7204bc328a7dc8a538a",
+      "bytes": 16639
+    },
+    {
+      "name": "patchy-incremental-chain.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-incremental-chain.af",
+      "licence": "MIT",
+      "sha256": "25ee650339e7951a4db76932e889e0558134bd6b55be7c5b5c7d54b601c053bf",
+      "bytes": 29899
+    },
+    {
+      "name": "patchy-lab.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-lab.af",
+      "licence": "MIT",
+      "sha256": "f83c1bd0108315c95f55ddbfb84b7188e73c301dbeb0e3a209ddf991075737b0",
+      "bytes": 17473
+    },
+    {
+      "name": "patchy-lazy-placed.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-lazy-placed.af",
+      "licence": "MIT",
+      "sha256": "da724875124ca2dea2ab69671198c9e0af87f8e325d634c8f6d4256210b00dcc",
+      "bytes": 1170511
+    },
+    {
+      "name": "patchy-live-filter.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-live-filter.af",
+      "licence": "MIT",
+      "sha256": "59da2bb7d58a356e09ca1819020af85bb05217b1b24ec55df9f9f2ff5235c68a",
+      "bytes": 22702
+    },
+    {
+      "name": "patchy-rgba16.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-rgba16.af",
+      "licence": "MIT",
+      "sha256": "9e505e5dc5f0854d2a13ae30699b000b32f40b80d80afd570f00a33952ca895e",
+      "bytes": 18257
+    },
+    {
+      "name": "patchy-rgba8.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-rgba8.af",
+      "licence": "MIT",
+      "sha256": "9f2a838484399dfc4da4af893facf9d0cd33ed40173aa88264fe8f3756d81a42",
+      "bytes": 18159
+    },
+    {
+      "name": "patchy-shapes-2.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-shapes-2.af",
+      "licence": "MIT",
+      "sha256": "5dab9c128aa791558ccb8e995e6bf89cc1c50bfcd907dfdce9c764163503e17a",
+      "bytes": 46520
+    },
+    {
+      "name": "patchy-shapes.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-shapes.af",
+      "licence": "MIT",
+      "sha256": "dba88c1c2e1c1cca947af6ebc82e32457301b228c8f6a9483edbae7c4ef32653",
+      "bytes": 26045
+    },
+    {
+      "name": "patchy-text-artistic.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-text-artistic.af",
+      "licence": "MIT",
+      "sha256": "f03afbf8965a137439f2fb5d228e2c3349ca81d26e4e7e426b2fcc191348a7f4",
+      "bytes": 19516
+    },
+    {
+      "name": "patchy-text-caps.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-text-caps.af",
+      "licence": "MIT",
+      "sha256": "66b4fadba91cdf974c1ddef021ce073ecc09b5b25d8c273d400d6c71265b7b75",
+      "bytes": 24650
+    },
+    {
+      "name": "patchy-text-frame.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-text-frame.af",
+      "licence": "MIT",
+      "sha256": "0cf93a1105878ad237e7f3d724be8e85619efd91d2c7fc6ae63b121e0930fc72",
+      "bytes": 22625
+    },
+    {
+      "name": "patchy-text-indent.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-text-indent.af",
+      "licence": "MIT",
+      "sha256": "dfb6ca947e0d33091a7d6d9466f379cc22e3e8847ae7722d8e93bd89a0e8b813",
+      "bytes": 42088
+    },
+    {
+      "name": "patchy-text-para-spacing.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-text-para-spacing.af",
+      "licence": "MIT",
+      "sha256": "56c5d030b9956151110e57fe83aebc47d141efce4df424f6ff5643312c4a7549",
+      "bytes": 21309
+    },
+    {
+      "name": "patchy-text-rotated.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-text-rotated.af",
+      "licence": "MIT",
+      "sha256": "a5ccb62ee8d7e36d1a19a037aba989a5ba0232767e9f3305f7d9f7d4603291dd",
+      "bytes": 23177
+    },
+    {
+      "name": "patchy-text-runs.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-text-runs.af",
+      "licence": "MIT",
+      "sha256": "07c54ed90e49c4d791964228bee638fbff95a7b06dc3eccbedb3016f9fcef05e",
+      "bytes": 20175
+    },
+    {
+      "name": "patchy-transform.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-transform.af",
+      "licence": "MIT",
+      "sha256": "87e1dee23769932b7e414116233063a8d68726cbffdebb975b3cd0ef447c602a",
+      "bytes": 36603
+    },
+    {
+      "name": "patchy-vector-mask.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-vector-mask.af",
+      "licence": "MIT",
+      "sha256": "fa5dd80f44ae0712a9888c62953fd442a28119034d343db93b7892d5d2a61328",
+      "bytes": 19489
+    },
+    {
+      "name": "patchy-vector.af",
+      "repo": "SethRobinson/Patchy",
+      "commit": "de84eab550758b30fa062e479f5778cce7693b73",
+      "path": "test-fixtures/af/tiny-vector.af",
+      "licence": "MIT",
+      "sha256": "8ab1995ecbd9306ebcb7a4d2cd81701f34401e67f08b242f14dc3e3d04c94803",
+      "bytes": 21786
+    },
+    {
+      "name": "affinity3-mexican-guy.af",
+      "repo": "samuel-etver/vector-art",
+      "commit": "255f8add3c8f0740196e22bd59502b811b532f0b",
+      "path": "simple/mexican-guy.af",
+      "licence": "CC0-1.0",
+      "sha256": "c499cf3ca73cf7cd3e2e65bed048d1b8ecf03e7167b74d54f0ae6db31868cab8",
+      "bytes": 171858
+    },
+    {
+      "name": "affinity3-mexican-man.af",
+      "repo": "samuel-etver/vector-art",
+      "commit": "255f8add3c8f0740196e22bd59502b811b532f0b",
+      "path": "simple/mexican-man.af",
+      "licence": "CC0-1.0",
+      "sha256": "730e3fae51d9044ada58f51c7b5f9327d99e8d62376453bc251d0d26cda47743",
+      "bytes": 224810
+    },
+    {
+      "name": "affinity3-mexican-woman.af",
+      "repo": "samuel-etver/vector-art",
+      "commit": "255f8add3c8f0740196e22bd59502b811b532f0b",
+      "path": "simple/mexican-woman.af",
+      "licence": "CC0-1.0",
+      "sha256": "5f5fccc0bd8be2bb3b2a07461ec77a012a61eef1883485d7c80f72d4383231ce",
+      "bytes": 277410
+    },
+    {
+      "name": "affinity3-playing-cards.af",
+      "repo": "samuel-etver/vector-art",
+      "commit": "255f8add3c8f0740196e22bd59502b811b532f0b",
+      "path": "simple/playing-cards.af",
+      "licence": "CC0-1.0",
+      "sha256": "0a52bb923c949c566a4339b996bce1a67b683f61def1a73dfefb910effaa450d",
+      "bytes": 131302
+    },
+    {
+      "name": "designer-beer.afdesign",
+      "repo": "samuel-etver/vector-art",
+      "commit": "255f8add3c8f0740196e22bd59502b811b532f0b",
+      "path": "simple/beer.afdesign",
+      "licence": "CC0-1.0",
+      "sha256": "87a7bd93de16c404f6c6dd9cdebff96ec47832a3b342d2ce0af73d9a87e209e0",
+      "bytes": 76858
+    },
+    {
+      "name": "designer-cactus.afdesign",
+      "repo": "samuel-etver/vector-art",
+      "commit": "255f8add3c8f0740196e22bd59502b811b532f0b",
+      "path": "simple/cactus.afdesign",
+      "licence": "CC0-1.0",
+      "sha256": "09ba790c428e8e09dc0b9ddebb4f3db6daefaa2af1da492ee34e73fba1b8af69",
+      "bytes": 93534
+    },
+    {
+      "name": "designer-car.afdesign",
+      "repo": "samuel-etver/vector-art",
+      "commit": "255f8add3c8f0740196e22bd59502b811b532f0b",
+      "path": "simple/car.afdesign",
+      "licence": "CC0-1.0",
+      "sha256": "c3bcd0395b407493bc9d2877d424029b70f0e4c817a56e893f7ac74973df52e5",
+      "bytes": 37417
+    },
+    {
+      "name": "designer-flowers.afdesign",
+      "repo": "samuel-etver/vector-art",
+      "commit": "255f8add3c8f0740196e22bd59502b811b532f0b",
+      "path": "simple/flowers.afdesign",
+      "licence": "CC0-1.0",
+      "sha256": "112562bc91e7cccf003d34364430544208373c4fb4bb4ab9acdaf27cf0125047",
+      "bytes": 30347
+    },
+    {
+      "name": "designer-lion-track.afdesign",
+      "repo": "samuel-etver/vector-art",
+      "commit": "255f8add3c8f0740196e22bd59502b811b532f0b",
+      "path": "simple/lion-track.afdesign",
+      "licence": "CC0-1.0",
+      "sha256": "023531b8216f2d4da24ab715e3b313506712e50d5f5bf7da927f434def1d0ea2",
+      "bytes": 27362
+    },
+    {
+      "name": "afdesignload-color.afdesign",
+      "repo": "NickBeeuwsaert/AFDesignLoad",
+      "commit": "a18dd50a7079fb861a28835eeefa0d015f03f4a1",
+      "path": "testDesigns/color.afdesign",
+      "licence": "MIT",
+      "sha256": "cc8ca0db0d8fc545eb29153be900f153fa6b7b7eac068d05e54a502aba1264fe",
+      "bytes": 4872
+    },
+    {
+      "name": "afdesignload-layer_mode.afdesign",
+      "repo": "NickBeeuwsaert/AFDesignLoad",
+      "commit": "a18dd50a7079fb861a28835eeefa0d015f03f4a1",
+      "path": "testDesigns/layer_mode.afdesign",
+      "licence": "MIT",
+      "sha256": "9a17f500d09fb3b1a70d24aabdc2882955ec3eac3700a474549e6100be3a8484",
+      "bytes": 5021
+    },
+    {
+      "name": "afdesignload-layer_test.afdesign",
+      "repo": "NickBeeuwsaert/AFDesignLoad",
+      "commit": "a18dd50a7079fb861a28835eeefa0d015f03f4a1",
+      "path": "testDesigns/layer_test.afdesign",
+      "licence": "MIT",
+      "sha256": "77ae60c02749224fe2c52691c951568138eaed5f8584ebc5da83715fae0234dd",
+      "bytes": 4853
+    },
+    {
+      "name": "afdesignload-margins.afdesign",
+      "repo": "NickBeeuwsaert/AFDesignLoad",
+      "commit": "a18dd50a7079fb861a28835eeefa0d015f03f4a1",
+      "path": "testDesigns/margins.afdesign",
+      "licence": "MIT",
+      "sha256": "04944918ff8e29c5c1b466b7e43c232f7ab80db15fb934080bbcd7baaf093e22",
+      "bytes": 4491
+    },
+    {
+      "name": "afdesignload-raster_test.afdesign",
+      "repo": "NickBeeuwsaert/AFDesignLoad",
+      "commit": "a18dd50a7079fb861a28835eeefa0d015f03f4a1",
+      "path": "testDesigns/raster_test.afdesign",
+      "licence": "MIT",
+      "sha256": "35afa31b89f2b9970eb3701ee64e2a19476383637e8b07689334d6ffe556b593",
+      "bytes": 24569
+    },
+    {
+      "name": "afdesignload-revision_test.afdesign",
+      "repo": "NickBeeuwsaert/AFDesignLoad",
+      "commit": "a18dd50a7079fb861a28835eeefa0d015f03f4a1",
+      "path": "testDesigns/revision_test.afdesign",
+      "licence": "MIT",
+      "sha256": "e56c35f876277b101790ff4384cfde103a093ed6c81790a2d62176de21da339f",
+      "bytes": 4715
+    },
+    {
+      "name": "afdesignload-shape_test.afdesign",
+      "repo": "NickBeeuwsaert/AFDesignLoad",
+      "commit": "a18dd50a7079fb861a28835eeefa0d015f03f4a1",
+      "path": "testDesigns/shape_test.afdesign",
+      "licence": "MIT",
+      "sha256": "08946c60c0da1c8aeea92d65acfb244721eeb3b480ed358609f4a48bbecfc5b9",
+      "bytes": 49163
+    },
+    {
+      "name": "afdesignload-slice_test.afdesign",
+      "repo": "NickBeeuwsaert/AFDesignLoad",
+      "commit": "a18dd50a7079fb861a28835eeefa0d015f03f4a1",
+      "path": "testDesigns/slice_test.afdesign",
+      "licence": "MIT",
+      "sha256": "7306ab4fcbdc225d816f32a0d2aca15ac887053f60170459ac947e70f4ef343d",
+      "bytes": 4943
+    },
+    {
+      "name": "afdesignload-test_path.afdesign",
+      "repo": "NickBeeuwsaert/AFDesignLoad",
+      "commit": "a18dd50a7079fb861a28835eeefa0d015f03f4a1",
+      "path": "testDesigns/test_path.afdesign",
+      "licence": "MIT",
+      "sha256": "e5d04bac0235af9386aea251cdd6903ed7810d335fdb6194d0483ea30b14e24a",
+      "bytes": 37101
+    },
+    {
+      "name": "jac21-SimpleLogo.afdesign",
+      "repo": "Jac21/Branding",
+      "commit": "57ae3f45bf4637f6927c0b07de25b922c55f944f",
+      "path": "Logos/JC/DesignerFiles/Affinity/SimpleLogo.afdesign",
+      "licence": "MIT",
+      "sha256": "fbb196e918e302c16f8de9f2e6dffaef70ab3c317b32a9f44607fd4b2ead0206",
+      "bytes": 33869
+    },
+    {
+      "name": "jac21-SimpleLogoBanner.afdesign",
+      "repo": "Jac21/Branding",
+      "commit": "57ae3f45bf4637f6927c0b07de25b922c55f944f",
+      "path": "Logos/JC/DesignerFiles/Affinity/SimpleLogoBanner.afdesign",
+      "licence": "MIT",
+      "sha256": "9d874245936483de3ec04cca48b383028d33666801dff1814246a44e695e29b8",
+      "bytes": 1140900
+    },
+    {
+      "name": "eviltwo-AssetStore.aftemplate",
+      "repo": "eviltwo/AssetStoreTemplate",
+      "commit": "f671981ee89d15526285b3cc87b4393d3defe644",
+      "path": "AssetStoreTemplate/AssetStore.aftemplate",
+      "licence": "MIT",
+      "sha256": "e1b121d7c3d02356baa5dea512f5aa1fe77249c28d7b227e29cab2bc67ec323a",
+      "bytes": 11478
+    },
+    {
+      "name": "leakcanary-vector_icon.afdesign",
+      "repo": "square/leakcanary",
+      "commit": "00880a8fb66eb4046a0124bff8303a04874bc07e",
+      "path": "docs/assets/vector_icon.afdesign",
+      "licence": "Apache-2.0",
+      "sha256": "ec1072cb03fcd0ed7ac1dfc7e087f4920df545fe9c84a386a7dac2fd33fbbe1f",
+      "bytes": 23134
+    }
+  ]
+}

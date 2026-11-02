@@ -6,14 +6,14 @@ export const AFFINITY_MAX_INPUT = 96 * 1024 * 1024;
 const MAX_JSON = 48 * 1024 * 1024;
 const MAX_RESULT = 128 * 1024 * 1024 + MAX_JSON + 4;
 
-/** Affinity containers open with 00 FF 'K' 'A'; documents and asset libraries share it. */
+/** Affinity containers open with 00 FF 'K' 'A'; documents and asset libraries share this signature. */
 const SIGNATURE = [0x00, 0xff, 0x4b, 0x41];
 export function isAffinitySignature(bytes: Uint8Array): boolean {
   return bytes.length >= 16 && SIGNATURE.every((b, i) => bytes[i] === b);
 }
 
 export type AffinityKind = 'af' | 'afdesign' | 'afphoto' | 'afpub' | 'aftemplate';
-/** The document kind from the file name; the container itself does not record which app saved it. */
+/** The document kind from the file name; the container does not record which app saved the file. */
 export function affinityKindOf(name: string): AffinityKind {
   const ext = /\.(af|afdesign|afphoto|afpub|aftemplate)$/i.exec(name.trim())?.[1]?.toLowerCase();
   return (ext ?? 'af') as AffinityKind;

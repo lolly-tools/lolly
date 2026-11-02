@@ -1217,6 +1217,19 @@
         "notes": "Pinned FilmCraft audio DSP crate with no dependencies and no unsafe code. Long recordings stream through sessions in chunks, and the result does not depend on where the chunks are cut. There is no clock or random input, so output depends only on the request."
       }
     },
+    "packages/node-shell/src/affinity.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "affinity"
+      ],
+      "details": {
+        "inputSource": "User-supplied native Affinity files (.af, .afdesign, .afphoto, .afpub). Platform file access is supplied by the shell; the reader itself imports no host functions.",
+        "bounds": "96 MiB input, 96 MiB per archive entry and 256 MiB extracted, a 64 MiB zstd window, 32 megapixels of decoded pixel layers, 128 MiB of returned pictures, 48 MiB of model JSON, 128 levels of layers and 384 of object nesting, 500000 layers; 1 GiB WASM memory cap with a 1 MiB stack; a trap retires the instance",
+        "directTests": "`tests/affinity.test.ts`, the vendored crate's own `cargo test` unit and property tests, `scripts/affinity-corpus.ts` (51 public documents, SHA-256 pinned)",
+        "fuzzCoverage": "`affinity` mutates a header-only container and, when fetched, the four smallest public documents, through the Node loader, running both operations.",
+        "notes": "Pinned vectorcraft-affinity 05d5f99 (MIT OR Apache-2.0). Afread-derived with no specification and AI-assisted; the account is in its UPSTREAM.md and was accepted on 2026-11-02. Every archive entry is CRC-checked. The model JSON is bounded again by the shared TypeScript wrapper and then mapped by the pure engine module design-map-affinity.ts, which caps pages, boxes and canvas size. The reader denies panics and unsafe code."
+      }
+    },
     "packages/node-shell/src/indd.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [

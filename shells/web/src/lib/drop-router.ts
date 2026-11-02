@@ -6,7 +6,7 @@
  * drag-and-drop handler sniffs what landed and opens a chooser sheet offering
  * only the routes that genuinely apply:
  *
- *   design file (.fig/.penpot/.idml/.indd/.dxf/SVG/zip) → Design, parsed to boxes
+ *   design file (.fig/.penpot/.idml/.indd/.af family/.dxf/SVG/zip) → Design, parsed to boxes
  *   token doc / .penpot / design-system pack zip → Design System Setup
  *   PDF / .ai   → edit as a design · pages → SVG library assets · compress ·
  *                 Design System Setup (a guidelines PDF's colours, marks
@@ -72,7 +72,7 @@ import type { DesignSystemRegistry } from './design-system/registry.ts';
 type PickerModule = typeof import('../views/picker.ts');
 
 // Extension fallbacks for files whose MIME type the OS didn't fill in.
-const DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|dxf|svg|zip)$/i;
+const DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|af|afdesign|afphoto|afpub|aftemplate|dxf|svg|zip)$/i;
 // .bmp/.ico usually arrive with an image/* MIME (already accepted); the ext entries are
 // the blank-MIME backstop. .svgz is media/library only (svgz-as-design would need a
 // gunzip step in parseDesignFile).
@@ -96,7 +96,7 @@ const TEXT_DROP_RE = /\.(txt|md|markdown|text|js|jsx|mjs|cjs|ts|tsx|py|rb|go|rs|
 // The OOXML wordprocessing MIME (office-text.ts's DOCX_MIME), inlined so a plain
 // image drop never pulls that module's fflate + engine chunk in just to sniff.
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-const PURE_DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|dxf)$/i;
+const PURE_DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|af|afdesign|afphoto|afpub|aftemplate|dxf)$/i;
 const CONTAINER_DOC_EXT_RE = /\.(xlsx|docx|pptx|epub|odt)$/i;
 // Design-system shapes (plan 97 section 8). A Penpot project always carries a token
 // document; the zip/JSON cases need evidence, below.

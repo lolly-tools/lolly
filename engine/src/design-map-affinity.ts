@@ -65,7 +65,11 @@ export interface AffinityModel {
 
 // ── the result ──────────────────────────────────────────────────────────────
 
-export interface AffinityFrame { name: string; width: number; height: number; background: string; boxes: Record<string, unknown>[] }
+export interface AffinityFrame {
+  name: string; width: number; height: number; background: string; boxes: Record<string, unknown>[];
+  /** The frame's top-left corner in its spread's document pixels, and the spread it came from. */
+  x: number; y: number; spread: number;
+}
 export type AffinityNoteKind = 'effect' | 'adjustment' | 'approximated' | 'dropped' | 'reader';
 export interface AffinityNote { kind: AffinityNoteKind; text: string }
 export interface AffinityMapResult { frames: AffinityFrame[]; report: AffinityNote[] }
@@ -463,7 +467,7 @@ export async function mapAffinityDocument(model: AffinityModel, opts: AffinityMa
   const frames: AffinityFrame[] = [];
   const maxFrames = opts.maxFrames ?? 256;
   let skippedFrames = 0, idPrefix = 0;
-  const build = async (nodes: AffinityNode[], bounds: Rect4, name: string, background: string, bgPaint: AffinityPaint | null): Promise<void> => {
+  const build = async (spreadIndex: number, nodes: AffinityNode[], bounds: Rect4, name: string, background: string, bgPaint: AffinityPaint | null): Promise<void> => {
     if (frames.length >= maxFrames) { skippedFrames++; return; }
     const width = Math.max(1, Math.round(bounds[2] - bounds[0])), height = Math.max(1, Math.round(bounds[3] - bounds[1]));
     if (!finite(width * height) || width * height > MAX_CANVAS_PIXELS) throw new Error('This Affinity page is too large to open as layers.');
@@ -484,7 +488,7 @@ export async function mapAffinityDocument(model: AffinityModel, opts: AffinityMa
       if (extra) Object.assign(box, extra);
       boxes.push(box);
     });
-    frames.push({ name, width, height, background, boxes });
+    frames.push({ name, width, height, background, boxes, x: bounds[0], y: bounds[1], spread: spreadIndex });
   };
 
   for (const [si, spread] of model.spreads.entries()) {
@@ -496,13 +500,13 @@ export async function mapAffinityDocument(model: AffinityModel, opts: AffinityMa
         const paint = pickPaint(k.background);
         const bg = paint.t === 'solid' ? cssColor(paint.c) : paint.t === 'gradient' ? '#ffffff' : '';
         if (k.strokes.some(s => s.paint.t !== 'none')) { note({ notes }, 'dropped', 'Artboard borders'); }
-        await build(b.children, k.rect, scrub(b.name) || `Artboard ${si + 1}.${bi + 1}`, bg, paint);
+        await build(si, b.children, k.rect, scrub(b.name) || `Artboard ${si + 1}.${bi + 1}`, bg, paint);
       }
       const outside = spread.nodes.filter(n => n.kind.t !== 'artboard' && n.visible && n.kind.t !== 'master').length;
       if (outside) note({ notes }, 'dropped', `Objects outside every artboard (${outside} on the pasteboard)`);
     } else {
       const label = model.spreads.length > 1 ? `Spread ${si + 1}` : 'Page 1';
-      await build(spread.nodes, spread.bounds, label, spread.transparent ? '' : '#ffffff', null);
+      await build(si, spread.nodes, spread.bounds, label, spread.transparent ? '' : '#ffffff', null);
     }
   }
   if (!frames.length) throw new Error('No pages could be read from this Affinity file.');

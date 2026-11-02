@@ -3573,6 +3573,41 @@
       "owner": "tests"
     },
     {
+      "file": "tests/affinity.test.ts",
+      "fullName": "stage 1 opens every corpus file with its preview and facts",
+      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/affinity.test.ts",
+      "fullName": "stage 2 maps every corpus file and its artboards stay near the embedded thumbnails",
+      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/affinity.test.ts",
+      "fullName": "lolly affinity prints the facts, writes the preview and the Design rows",
+      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "shells/web/src/views/affinity-import.test.ts",
+      "fullName": "artboards open as editable frames and the report reaches the warnings",
+      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/views/affinity-import.test.ts",
+      "fullName": "with no layers and no storage to place the preview, the failure is plain and names the way out",
+      "reason": "run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "shells/web"
+    },
+    {
       "file": "tests/xcf-oracle.test.ts",
       "fullName": "xcf oracle: GIMP merged PNGs against readXcf composites",
       "reason": "declared skip: set LOLLY_XCF_ORACLE=1 after pnpm run fetch:gimp-corpus",

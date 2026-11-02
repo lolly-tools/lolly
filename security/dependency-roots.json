@@ -113,6 +113,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "affinity-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/affinity",
+      "lockfile": "packages/node-shell/wasm/affinity/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "indd-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/indd",

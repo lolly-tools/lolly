@@ -2197,6 +2197,39 @@ export const dxfTarget: FuzzTarget = {
     dxfToDesign(flattenDxf(raw));
   },
 };
+// Affinity reader (packages/node-shell/wasm/affinity): untrusted container, zstd/zlib entries and a
+// tagged object stream. Contract: a typed AffinityError refusal or a result under the declared
+// limits; never a trap, hang or oversized response. Seeds are a header-only container and, when
+// `node scripts/affinity-corpus.ts fetch` has run, the smallest public documents.
+export const affinityTarget: FuzzTarget = {
+  name: 'affinity',
+  async seeds() {
+    const head = new Uint8Array(96), v = new DataView(head.buffer);
+    head.set([0x00, 0xff, 0x4b, 0x41]); v.setUint16(4, 12, true); head.set(new TextEncoder().encode('nsrP'), 8); head.set(new TextEncoder().encode('#Inf'), 12);
+    v.setBigUint64(16, 72n, true); head.set(new TextEncoder().encode('Prot'), 64);
+    const seeds = [head];
+    try {
+      const { readFileSync, readdirSync, statSync } = await import('node:fs');
+      const dir = new URL('../../plans/corpora/affinity/', import.meta.url);
+      const files = readdirSync(dir).filter(f => /\.(af|afdesign)$/.test(f)).map(f => ({ f, size: statSync(new URL(f, dir)).size })).sort((a, b) => a.size - b.size).slice(0, 4);
+      for (const { f } of files) seeds.push(new Uint8Array(readFileSync(new URL(f, dir))));
+    } catch { /* The corpus is optional. */ }
+    return seeds;
+  },
+  async invoke(bytes) {
+    const { loadAffinityKernel } = await import('../../packages/node-shell/src/affinity-node.ts');
+    const { AffinityError } = await import('../../packages/node-shell/src/affinity.ts');
+    try {
+      const kernel = await loadAffinityKernel();
+      kernel.inspect(bytes, 'fuzz.af');
+      kernel.model(bytes);
+    } catch (error) {
+      if (!(error instanceof AffinityError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+    }
+  },
+};
 export const idmlReadTarget: FuzzTarget = {
   name: 'idml-read',
   async seeds() {
@@ -2382,7 +2415,7 @@ export const captionsTtmlTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,
