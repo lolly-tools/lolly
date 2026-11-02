@@ -28,7 +28,7 @@
     "@lezer/highlight": "^1.2.3",
     "acorn": "^8.19.0",
     "acorn-walk": "^8.3.4",
-    "pako": "^3.0.1",
+    "pako": "^3.0.3",
     "prettier": "^3.9.10"
   }
 }
