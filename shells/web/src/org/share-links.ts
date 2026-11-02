@@ -191,25 +191,23 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
     const row = document.createElement('div');
     row.className = 'share-instance-row';
     row.style.marginBottom = rows.guest ? '.9rem' : '0';
+    // The opt-in to open the link to its recipients' inputs, only for a caller
+    // the instance would let open one.
+    const openTip = rows.open ? helpTip(t('Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.')) : null;
     row.innerHTML =
       `<div class="share-option help-tip-host">` +
         `<strong style="font-weight:650">${escape(t('Rendered link'))}</strong>` +
         `<button type="button" class="btn btn--sm" data-act="mint-rendered">${escape(t('Get link'))}</button>` +
         tip.button + tip.pop +
-      `</div>`;
-    // Opt-in, and only for a caller the instance would let open a link.
-    let openBox: HTMLInputElement | null = null;
-    if (rows.open) {
-      const openTip = helpTip(t('Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.'));
-      const open = document.createElement('div');
-      open.className = 'share-option help-tip-host';
-      open.innerHTML =
-        `<label style="display:inline-flex;align-items:center;gap:.4rem;font-size:13px">` +
-          `<input type="checkbox" data-rendered-open> ${escape(t('Recipients can change the inputs'))}` +
-        `</label>` + openTip.button + openTip.pop;
-      openBox = open.querySelector<HTMLInputElement>('[data-rendered-open]');
-      row.append(open);
-    }
+      `</div>` +
+      (openTip
+        ? `<div class="share-option help-tip-host">` +
+            `<label style="display:inline-flex;align-items:center;gap:.4rem;font-size:13px">` +
+              `<input type="checkbox" data-rendered-open> ${escape(t('Recipients can change the inputs'))}` +
+            `</label>` + openTip.button + openTip.pop +
+          `</div>`
+        : '');
+    const openBox = row.querySelector<HTMLInputElement>('[data-rendered-open]');
     const result = makeResultRow(ctx.copy);
     const err = makeErrorLine();
     row.append(result.el, err.el);
