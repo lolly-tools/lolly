@@ -1838,5 +1838,7 @@
   "From the design system: {name}": "Aus dem Design-System: {name}",
   "Editing the curve detaches it from the design system.": "Wenn Sie die Kurve bearbeiten, wird sie vom Design-System gelöst.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke. Halten für den Bleistift (Shift C) und den Spline-Typ",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke",
+  "Recipients can change the inputs": "Empfänger dürfen die Eingaben ändern",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Jeder mit dem Link kann die Eingaben ändern und ein neues Bild erhalten. Gesperrte Eingaben behalten ihren festgelegten Wert."
 }

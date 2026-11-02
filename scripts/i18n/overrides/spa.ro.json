@@ -1837,5 +1837,7 @@
   "From the design system: {name}": "Din sistemul de design: {name}",
   "Editing the curve detaches it from the design system.": "Editarea curbei o deconectează de la sistemul de design.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț. Ține apăsat pentru Creion (Shift C) și tipul de spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț",
+  "Recipients can change the inputs": "Destinatarii pot schimba intrările",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Oricine are linkul poate schimba intrările și poate obține o imagine nouă. Intrările blocate rămân așa cum au fost setate."
 }

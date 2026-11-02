@@ -10504,5 +10504,7 @@
   "Tracing": "トレース中",
   "Tracing image": "画像をトレース中",
   "Turn this picture into shapes you can edit.": "この画像を編集できるシェイプに変換します。",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "そのAffinityファイルを開けませんでした。AffinityからSVGまたはPDFとして書き出して、もう一度お試しください。"
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "そのAffinityファイルを開けませんでした。AffinityからSVGまたはPDFとして書き出して、もう一度お試しください。",
+  "Recipients can change the inputs": "受け取る人が入力を変更できる",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "リンクを知っている人は誰でも入力を変更して、新しい画像を取得できます。ロックされた入力は設定のままです。"
 }

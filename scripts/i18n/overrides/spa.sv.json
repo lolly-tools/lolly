@@ -1831,5 +1831,7 @@
   "From the design system: {name}": "Från designsystemet: {name}",
   "Editing the curve detaches it from the design system.": "Om du redigerar kurvan kopplas den bort från designsystemet.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn. Håll för Blyertspennan (Shift C) och splinetypen",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn",
+  "Recipients can change the inputs": "Mottagare kan ändra indata",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Alla med länken kan ändra indata och få en ny bild. Låsta indata behåller sina inställda värden."
 }

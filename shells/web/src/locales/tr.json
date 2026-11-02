@@ -10504,5 +10504,7 @@
   "Tracing": "İzleniyor",
   "Tracing image": "Görsel izleniyor",
   "Turn this picture into shapes you can edit.": "Bu resmi düzenleyebileceğin şekillere dönüştür.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "O Affinity dosyası açılamadı. Affinity'den SVG veya PDF olarak dışa aktar ve yeniden dene."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "O Affinity dosyası açılamadı. Affinity'den SVG veya PDF olarak dışa aktar ve yeniden dene.",
+  "Recipients can change the inputs": "Alıcılar girdileri değiştirebilir",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Bağlantıya sahip herkes girdileri değiştirip yeni bir görsel alabilir. Kilitli girdiler ayarlandığı gibi kalır."
 }

@@ -10504,5 +10504,7 @@
   "Tracing": "Spårar",
   "Tracing image": "Spårar bild",
   "Turn this picture into shapes you can edit.": "Gör om bilden till former som du kan redigera.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Den Affinity-filen kunde inte öppnas. Exportera den från Affinity som SVG eller PDF och försök igen."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Den Affinity-filen kunde inte öppnas. Exportera den från Affinity som SVG eller PDF och försök igen.",
+  "Recipients can change the inputs": "Mottagare kan ändra indata",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Alla med länken kan ändra indata och få en ny bild. Låsta indata behåller sina inställda värden."
 }

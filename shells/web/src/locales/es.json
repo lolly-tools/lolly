@@ -10504,5 +10504,7 @@
   "Tracing": "Calcando",
   "Tracing image": "Calcando la imagen",
   "Turn this picture into shapes you can edit.": "Convierte esta imagen en formas que puedas editar.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Ese archivo de Affinity no se pudo abrir. Expórtalo desde Affinity como SVG o PDF e inténtalo de nuevo."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Ese archivo de Affinity no se pudo abrir. Expórtalo desde Affinity como SVG o PDF e inténtalo de nuevo.",
+  "Recipients can change the inputs": "Los destinatarios pueden cambiar las entradas",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Cualquiera que tenga el enlace puede cambiar sus entradas y obtener una imagen nueva. Las entradas bloqueadas se mantienen como están."
 }

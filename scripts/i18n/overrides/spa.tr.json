@@ -1967,5 +1967,7 @@
   "From the design system: {name}": "Tasarım sisteminden: {name}",
   "Editing the curve detaches it from the design system.": "Eğriyi düzenlemek onu tasarım sisteminden ayırır.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt. Kurşun kalem (Shift C) ve spline türü için basılı tut",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt",
+  "Recipients can change the inputs": "Alıcılar girdileri değiştirebilir",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Bağlantıya sahip herkes girdileri değiştirip yeni bir görsel alabilir. Kilitli girdiler ayarlandığı gibi kalır."
 }

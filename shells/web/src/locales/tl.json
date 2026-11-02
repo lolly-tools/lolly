@@ -10504,5 +10504,7 @@
   "Tracing": "Tinatrace",
   "Tracing image": "Tinatrace ang larawan",
   "Turn this picture into shapes you can edit.": "Gawing mga hugis na maeedit mo ang larawang ito.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Hindi mabuksan ang Affinity file na iyon. I-export ito mula sa Affinity bilang SVG o PDF at subukan ulit."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Hindi mabuksan ang Affinity file na iyon. I-export ito mula sa Affinity bilang SVG o PDF at subukan ulit.",
+  "Recipients can change the inputs": "Puwedeng baguhin ng recipients ang inputs",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Kahit sino na may link ay puwedeng magbago ng inputs nito at kumuha ng bagong larawan. Mananatili ang naka-lock na inputs ayon sa pagkakaset."
 }

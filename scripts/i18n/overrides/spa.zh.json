@@ -1840,5 +1840,7 @@
   "From the design system: {name}": "来自设计系统：{name}",
   "Editing the curve detaches it from the design system.": "编辑曲线会使其与设计系统断开。",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "钢笔 (P) - 点击放置节点，拖动生成曲线，按 Alt 切换尖角。长按可选铅笔 (Shift C) 和样条类型",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "钢笔 (P) - 点击放置节点，拖动生成曲线，按 Alt 切换尖角"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "钢笔 (P) - 点击放置节点，拖动生成曲线，按 Alt 切换尖角",
+  "Recipients can change the inputs": "收件人可以更改输入",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "任何拿到链接的人都可以更改其输入并获得新图像。已锁定的输入保持原设置。"
 }

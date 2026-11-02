@@ -1839,5 +1839,7 @@
   "From the design system: {name}": "डिज़ाइन सिस्टम से: {name}",
   "Editing the curve detaches it from the design system.": "कर्व संपादित करने से यह डिज़ाइन सिस्टम से अलग हो जाता है।",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "पेन (P) - पॉइंट रखने के लिए क्लिक करें, कर्व के लिए खींचें, कोने के लिए Alt। पेंसिल (Shift C) और स्प्लाइन टाइप के लिए दबाए रखें",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "पेन (P) - पॉइंट रखने के लिए क्लिक करें, कर्व के लिए खींचें, कोने के लिए Alt"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "पेन (P) - पॉइंट रखने के लिए क्लिक करें, कर्व के लिए खींचें, कोने के लिए Alt",
+  "Recipients can change the inputs": "प्राप्तकर्ता इनपुट बदल सकते हैं",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "लिंक वाला कोई भी व्यक्ति इसके इनपुट बदलकर नई इमेज पा सकता है। लॉक किए गए इनपुट वैसे ही रहते हैं जैसे सेट किए गए हैं।"
 }

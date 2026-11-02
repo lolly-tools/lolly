@@ -10504,5 +10504,7 @@
   "Tracing": "Trasování",
   "Tracing image": "Trasování obrázku",
   "Turn this picture into shapes you can edit.": "Změň tento obrázek na tvary, které můžeš upravovat.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Tento soubor Affinity se nepodařilo otevřít. Exportuj ho z Affinity jako SVG nebo PDF a zkus to znovu."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Tento soubor Affinity se nepodařilo otevřít. Exportuj ho z Affinity jako SVG nebo PDF a zkus to znovu.",
+  "Recipients can change the inputs": "Příjemci mohou měnit vstupy",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Kdokoli s odkazem může změnit jeho vstupy a získat nový obrázek. Uzamčené vstupy zůstanou, jak jsou nastavené."
 }

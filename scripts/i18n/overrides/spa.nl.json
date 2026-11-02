@@ -1831,5 +1831,7 @@
   "From the design system: {name}": "Uit het design system: {name}",
   "Editing the curve detaches it from the design system.": "Als je de curve bewerkt, wordt hij losgekoppeld van het design system.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek. Houd ingedrukt voor het Potlood (Shift C) en het splinetype",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek",
+  "Recipients can change the inputs": "Ontvangers mogen de invoer wijzigen",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Iedereen met de link kan de invoer wijzigen en een nieuwe afbeelding krijgen. Vergrendelde invoer blijft zoals ingesteld."
 }

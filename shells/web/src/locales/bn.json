@@ -10504,5 +10504,7 @@
   "Tracing": "ট্রেস হচ্ছে",
   "Tracing image": "ছবি ট্রেস হচ্ছে",
   "Turn this picture into shapes you can edit.": "এই ছবিটিকে এডিট করা যায় এমন শেপে বদলে নিন।",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "ওই Affinity ফাইলটি খোলা যায়নি। Affinity থেকে SVG বা PDF হিসেবে এক্সপোর্ট করে আবার চেষ্টা করুন।"
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "ওই Affinity ফাইলটি খোলা যায়নি। Affinity থেকে SVG বা PDF হিসেবে এক্সপোর্ট করে আবার চেষ্টা করুন।",
+  "Recipients can change the inputs": "প্রাপকেরা ইনপুট পরিবর্তন করতে পারবে",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "লিংক থাকলে যে কেউ এর ইনপুট পরিবর্তন করে নতুন ছবি পেতে পারেন। লক করা ইনপুট যেমন সেট করা আছে তেমনই থাকবে।"
 }

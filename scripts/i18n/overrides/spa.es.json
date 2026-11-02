@@ -1839,5 +1839,7 @@
   "From the design system: {name}": "Del sistema de diseño: {name}",
   "Editing the curve detaches it from the design system.": "Editar la curva la desvincula del sistema de diseño.",
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pluma (P) - haz clic para colocar puntos, arrastra para curvar, Alt para una esquina. Mantén pulsado para el Lápiz (Shift C) y el tipo de spline",
-  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pluma (P) - haz clic para colocar puntos, arrastra para curvar, Alt para una esquina"
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pluma (P) - haz clic para colocar puntos, arrastra para curvar, Alt para una esquina",
+  "Recipients can change the inputs": "Los destinatarios pueden cambiar las entradas",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Cualquiera que tenga el enlace puede cambiar sus entradas y obtener una imagen nueva. Las entradas bloqueadas se mantienen como están."
 }

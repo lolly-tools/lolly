@@ -10504,5 +10504,7 @@
   "Tracing": "جارٍ التتبع",
   "Tracing image": "جارٍ تتبع الصورة",
   "Turn this picture into shapes you can edit.": "حوّل هذه الصورة إلى أشكال يمكنك تحريرها.",
-  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "تعذّر فتح ملف Affinity هذا. صدّره من Affinity بصيغة SVG أو PDF وحاول مرة أخرى."
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "تعذّر فتح ملف Affinity هذا. صدّره من Affinity بصيغة SVG أو PDF وحاول مرة أخرى.",
+  "Recipients can change the inputs": "يمكن للمستلمين تغيير المدخلات",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "يمكن لأي شخص لديه الرابط تغيير مدخلاته والحصول على صورة جديدة. تبقى المدخلات المقفلة كما هي."
 }
