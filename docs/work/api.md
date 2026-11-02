@@ -539,6 +539,24 @@ a second.
 | `POST /l/:id?s=…[&name=…]` | public: checks a password link's password and sets its cookie; the guest landing's form joins here (`name`, `password`) and is answered with `303` into the app |
 | `GET /l/:id?s=…&zip=1`, `…&asset=<id>[&dl=1]` | public - a collection link's zip-all, and one member of that set (an id it does not name is `404 NOT_IN_COLLECTION`) |
 
+**Open links.** A `share`, `embed` or `download` link to a tool can let its recipients change
+the render. Mint it with `"open": true` in the target:
+
+```json
+POST /api/v1/links
+{ "kind": "embed", "target": { "toolId": "battlecards", "params": { "t": "Competitor,Strength~VMware,Price" }, "format": "svg", "open": true } }
+```
+
+The recipient then adds the tool's own URL params to the link, as a share link carries them
+(`…?s=…&t=…&format=png`). Each param they set replaces the baked one, and each new set renders
+a new asset with its own `ETag`. They can also change `format` and the size (`w`, `h`, `unit`,
+`dpi`). The tool's policy still applies: a locked, hidden or disallowed input answers `422`
+(`INPUT_LOCKED`, `INPUT_HIDDEN` or `INPUT_NOT_ALLOWED`), and the link's signature, expiry,
+revocation and password work as on any link. Opening a link needs `export.server` for the tool as well as `link.create`,
+because a link only hands on what its maker can do (`403` otherwise). A guest link, an asset
+link or a collection link cannot be open (`400`). Without `open`, a link ignores any params
+added to its URL.
+
 **Password links.** The password goes in the body of `POST /l/:id?s=…`, as the form field
 `password` or as JSON `{"password": "…"}`. The answer sets an HttpOnly cookie, `lw_link_<id>`,
 with `Path=/l/<id>`, lasting 12 hours at most and never past the link's expiry. A form gets a
