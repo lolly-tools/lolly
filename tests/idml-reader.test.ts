@@ -130,6 +130,30 @@ test('a table over the cell limit is dropped and reported, not parsed', async ()
   assert.ok(notes.some(n => /beyond the size limits/.test(n)));
 });
 
+const shapes = `<RootObjectStyleGroup Self="o"><ObjectStyle Self="ObjectStyle/Card" Name="Card" FillColor="Color/Ink" StrokeColor="Color/Red" StrokeWeight="3" StrokeAlignment="InsideAlignment" CornerOption="RoundedCorner" CornerRadius="9"><Properties><BasedOn type="object">ObjectStyle/Base</BasedOn></Properties><TransparencySetting><BlendingSetting Opacity="40" BlendMode="Multiply"/></TransparencySetting></ObjectStyle>
+  <ObjectStyle Self="ObjectStyle/Base" Name="Base" StrokeType="StrokeStyle/$ID/Dashed"/></RootObjectStyleGroup>`;
+
+test('object styles carry fill, stroke, corners, opacity and blend, with the item on top', async () => {
+  const spread = `<Page GeometricBounds="0 0 200 300"/>${rect('a', 50, 50, 'AppliedObjectStyle="ObjectStyle/Card"')}${rect('b', 50, 50, 'AppliedObjectStyle="ObjectStyle/Card" FillColor="Color/Red" StrokeWeight="0" ItemTransform="1 0 0 1 100 0"')}`;
+  const { boxes } = await read(pkg({ styles: shapes, spread }));
+  const [a, b] = boxes;
+  assert.equal(a!.bg, '#143250'); assert.equal(a!.stroke, '#c80000'); assert.equal(a!.strokeW, 3); assert.equal(a!.strokeAlign, 'inside');
+  assert.equal(a!.strokeDash, 'dashed'); assert.equal(a!.radius, 9); assert.equal(a!.opacity, 40); assert.equal(a!.blend, 'multiply');
+  assert.equal(b!.bg, '#c80000'); assert.equal(b!.strokeW, 0);
+});
+
+test('a text frame keeps its own fill, wrap and effects are reported, and a rule becomes a thin filled frame', async () => {
+  const story = `<Story Self="a"><ParagraphStyleRange><CharacterStyleRange><Content>Hi</Content></CharacterStyleRange></ParagraphStyleRange></Story>`;
+  const line = `<GraphicLine Self="ln" StrokeColor="Color/Red" StrokeWeight="4"><Properties><PathGeometry><GeometryPathType PathOpen="true"><PathPointArray><PathPointType Anchor="0 0"/><PathPointType Anchor="100 0"/></PathPointArray></GeometryPathType></PathGeometry></Properties></GraphicLine>`;
+  const spread = `<Page GeometricBounds="0 0 200 300"/><TextFrame Self="tf" ParentStory="a" FillColor="Color/Ink"><TextWrapPreference TextWrapMode="BoundingBoxTextWrap"/><TransparencySetting><DropShadowSetting Mode="Drop"/></TransparencySetting>${path(100, 40)}</TextFrame>${line}`;
+  const { boxes, notes } = await read(pkg({ stories: { a: story }, spread }));
+  const text = boxes.find(b => b.kind === 'text')!;
+  assert.equal(text.bg, '#143250');
+  const rule = boxes.find(b => b.kind === 'box')!;
+  assert.equal(rule.bg, '#c80000'); assert.equal(rule.h, 4);
+  for (const re of [/Text wrap around objects/, /Drop shadows/]) assert.ok(notes.some(n => re.test(n)), String(re));
+});
+
 // Corpus-derived: the converted open fixtures, when fetched by `node plans/idml-reader/convert.ts`.
 const corpus = resolve(import.meta.dirname, '../plans/corpora/idml');
 const sample = 'PublicDataLab__fake-news-field-guide_layout_chapter-01.idml';
@@ -154,4 +178,11 @@ test('corpus case: the tables of a converted notice become cell frames', { skip:
   const stats: IdmlStats = {};
   await readIdmlSpreads(Object.fromEntries(parts.map(p => [p.name, p.bytes])), parse, { stats });
   assert.ok((stats['table.cells']?.mapped ?? 0) >= 10, JSON.stringify(stats['table.cells']));
+});
+
+const guide = 'andgein__sis-guide_2014_guide_trims.idml';
+test('corpus case: object styles reach strokes, corners and opacity in a converted guide', { skip: existsSync(resolve(corpus, guide)) ? false : 'converted corpus not present (plans/idml-reader/convert.ts)' }, async () => {
+  const parts = readZip(new Uint8Array(readFileSync(resolve(corpus, guide))), { maxInputBytes: 64 << 20, maxTotalBytes: 256 << 20, maxEntryBytes: 32 << 20, maxEntries: 4096 });
+  const { boxes } = await read(Object.fromEntries(parts.map(p => [p.name, p.bytes])));
+  assert.ok(boxes.some(b => Number(b.strokeW) > 0) || boxes.some(b => Number(b.opacity) < 100), 'some appearance reaches the boxes');
 });

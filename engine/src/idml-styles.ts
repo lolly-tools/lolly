@@ -25,7 +25,7 @@ const OBJECT_KEYS = [
   'FillColor', 'FillTint', 'StrokeColor', 'StrokeTint', 'StrokeWeight', 'StrokeAlignment', 'StrokeType',
   'CornerOption', 'CornerRadius', 'TopLeftCornerOption', 'TopRightCornerOption', 'BottomLeftCornerOption', 'BottomRightCornerOption',
   'TopLeftCornerRadius', 'TopRightCornerRadius', 'BottomLeftCornerRadius', 'BottomRightCornerRadius',
-  'Opacity', 'TextWrapMode', 'InsetSpacing', 'VerticalJustification', 'TextColumnCount',
+  'Opacity', 'BlendMode', 'TextWrapMode', 'InsetSpacing', 'VerticalJustification', 'TextColumnCount',
 ];
 const CELL_KEYS = [
   'FillColor', 'FillTint', 'TopInset', 'LeftInset', 'BottomInset', 'RightInset',
@@ -80,6 +80,8 @@ function objectChildProps(el: Element, into: Record<string, string>): void {
     const t = directChild(el, holder), blending = t && directChild(t, 'BlendingSetting');
     const opacity = blending?.getAttribute('Opacity');
     if (opacity && holder === 'TransparencySetting') into.Opacity = opacity;
+    const mode = blending?.getAttribute('BlendMode');
+    if (mode && holder === 'TransparencySetting') into.BlendMode = mode;
   }
   const wrap = directChild(el, 'TextWrapPreference');
   const mode = wrap?.getAttribute('TextWrapMode');
@@ -263,6 +265,9 @@ const REPORT: Record<string, { approximated?: string; dropped?: string }> = {
   'wrap.text': { dropped: 'Text wrap around objects is not carried; Design text does not flow around other boxes.' },
   'object.gradient': { approximated: 'Gradient fills are set to the first colour of the gradient.' },
   'object.corner': { approximated: 'Corner shapes other than rounded are set rounded; unequal corners use the largest radius.' },
+  'object.stroke-type': { approximated: 'Stroke types other than solid, dashed and dotted are drawn solid.' },
+  'object.line': { approximated: 'Diagonal lines become thin rotated frames with an outline.' },
+  'object.inset': { approximated: 'Text frames with unequal insets use their average inset.' },
   'object.vertical-justify': { dropped: 'Vertical alignment of text in a frame is not carried.' },
   'object.effects': { dropped: 'Drop shadows, feathering and other effects are not carried.' },
 };

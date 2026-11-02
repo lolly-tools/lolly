@@ -6,6 +6,7 @@ import { strFromU8 } from 'fflate';
 import { StyleBook, tally, statsNotes, tintHex, type IdmlStats } from './idml-styles.ts';
 import { buildText, type StoryStyle, type TextEnv } from './idml-text.ts';
 import { tableNodes, type TableBudget } from './idml-table.ts';
+import { applyAppearance, objectAttrs } from './idml-object.ts';
 import { MasterBook, pageRect, type Rect } from './idml-master.ts';
 import type { AssetRef } from '@lolly-tools/core';
 interface M { a: number; b: number; c: number; d: number; e: number; f: number; }
@@ -24,6 +25,10 @@ export interface IdmlNode {
   fontWeight?: number;
   textAlign?: string;
   pad?: number;
+  radius?: number;
+  opacity?: number;
+  blend?: string;
+  strokeDash?: string;
   stroke?: string;
   strokeW?: number;
   strokeAlign?: 'inside' | 'center' | 'outside';
@@ -164,14 +169,19 @@ function walkItem(el: Element, parentMatrix: M, group: string, ctx: Ctx): void {
   if (geom.w < 1 && geom.h < 1) return;
 
   const base = { x: geom.x, y: geom.y, w: geom.w, h: geom.h, rot: geom.rot, group };
-  const fill = resolveColor(el.getAttribute('FillColor'), ctx.swatches);
+  const attrs = objectAttrs(el, ctx.book);
+  const push = (node: IdmlNode): void => {
+    applyAppearance(node, tag, attrs, ctx.env.colour, ctx.stats);
+    if (node.kind === 'box' && node.empty && (node.fill || node.stroke)) delete node.empty;
+    ctx.nodes.push(node);
+  };
 
   if (tag === 'TextFrame') {
     const storyId = el.getAttribute('ParentStory') || '';
     const story = ctx.stories[storyId];
     if (story && !ctx.used.has(storyId) && ((story.text || '').trim() || story.tables?.length)) {
       ctx.used.add(storyId);
-      if ((story.text || '').trim()) ctx.nodes.push({
+      if ((story.text || '').trim()) push({
         kind: 'text', ...base,
         text: story.text,
         fg: story.fg || '#0c322c',
@@ -192,7 +202,7 @@ function walkItem(el: Element, parentMatrix: M, group: string, ctx: Ctx): void {
       return;
     }
     if (story && ctx.used.has(storyId)) tally(ctx.stats, 'text.threaded', 'approximated');
-    ctx.nodes.push({ kind: 'box', ...base, fill: '', empty: true }); // empty frame
+    push({ kind: 'box', ...base, fill: '', empty: true }); // empty frame
     return;
   }
 
@@ -200,14 +210,16 @@ function walkItem(el: Element, parentMatrix: M, group: string, ctx: Ctx): void {
   // images externally, so the raster itself isn't in the package.
   if (hasPlacedContent(el)) {
     const link = Array.from(el.getElementsByTagName('Link'))[0];
-    ctx.nodes.push({ kind: 'box', ...base, fill: fill || '#eef1f0', _imagePath: link?.getAttribute('LinkResourceURI') || '' });
+    const node: IdmlNode = { kind: 'box', ...base, fill: '', _imagePath: link?.getAttribute('LinkResourceURI') || '' };
+    push(node);
+    if (!node.fill) node.fill = '#eef1f0';
     if (!link) ctx.warn('A placed graphic has no readable link and remains a placeholder.');
     return;
   }
 
-  const node: IdmlNode = { kind: 'box', ...base, fill };
+  const node: IdmlNode = { kind: 'box', ...base, fill: '' };
   if (tag === 'Oval') node.shape = 'ellipse';
-  ctx.nodes.push(node);
+  push(node);
 }
 
 // ── geometry ──────────────────────────────────────────────────────────────────
@@ -274,6 +286,12 @@ function parseSwatches(doc: Document | null): Record<string, string> {
     if (!self) continue;
     const hex = colorValueToHex(c.getAttribute('Space'), c.getAttribute('ColorValue'));
     if (hex) map[self] = hex;
+  }
+  // A gradient is approximated by its first stop.
+  for (const g of Array.from(doc.getElementsByTagName('Gradient'))) {
+    const self = g.getAttribute('Self'); const stop = Array.from(g.children).find(c => c.localName === 'GradientStop');
+    const base = stop?.getAttribute('StopColor');
+    if (self && base && map[base]) map[self] = map[base]!;
   }
   // Tints reference a base colour at a % - approximate as the base colour.
   for (const t of Array.from(doc.getElementsByTagName('Tint'))) {
