@@ -165,7 +165,7 @@ export function readArchiveMembers(bytes: Uint8Array, filename: string, budget: 
  * design bundles routed elsewhere, so they are excluded even though they are zips.
  */
 export function looksLikePlainArchiveName(name: string): boolean {
-  if (/\.(penpot|fig|idml|indd)$/i.test(name)) return false;
+  if (/\.(penpot|fig|idml|indd|af|afdesign|afphoto|afpub|aftemplate)$/i.test(name)) return false;
   return /\.(zip|tar|tar\.gz|tgz)$/i.test(name);
 }
 

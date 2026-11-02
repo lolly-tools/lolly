@@ -10503,5 +10503,6 @@
   "Traced into {n} shapes, above the image.": "도형 {n}개로 트레이스해서 이미지 위에 놓았어요.",
   "Tracing": "트레이스 중",
   "Tracing image": "이미지 트레이스 중",
-  "Turn this picture into shapes you can edit.": "이 그림을 편집할 수 있는 도형으로 바꿔요."
+  "Turn this picture into shapes you can edit.": "이 그림을 편집할 수 있는 도형으로 바꿔요.",
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "그 Affinity 파일을 열 수 없었어요. Affinity에서 SVG나 PDF로 내보낸 다음 다시 시도하세요."
 }

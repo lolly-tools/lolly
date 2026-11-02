@@ -10503,5 +10503,6 @@
   "Traced into {n} shapes, above the image.": "Đã vector hóa thành {n} hình, nằm trên ảnh.",
   "Tracing": "Đang vector hóa",
   "Tracing image": "Đang vector hóa ảnh",
-  "Turn this picture into shapes you can edit.": "Biến bức ảnh này thành các hình bạn có thể chỉnh sửa."
+  "Turn this picture into shapes you can edit.": "Biến bức ảnh này thành các hình bạn có thể chỉnh sửa.",
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Không thể mở tệp Affinity đó. Hãy xuất nó từ Affinity dưới dạng SVG hoặc PDF rồi thử lại."
 }

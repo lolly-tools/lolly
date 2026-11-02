@@ -10503,5 +10503,6 @@
   "Traced into {n} shapes, above the image.": "इमेज के ऊपर {n} आकृतियों में ट्रेस किया गया।",
   "Tracing": "ट्रेस हो रहा है",
   "Tracing image": "इमेज ट्रेस हो रही है",
-  "Turn this picture into shapes you can edit.": "इस तस्वीर को ऐसी आकृतियों में बदलें जिन्हें आप एडिट कर सकें।"
+  "Turn this picture into shapes you can edit.": "इस तस्वीर को ऐसी आकृतियों में बदलें जिन्हें आप एडिट कर सकें।",
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "वह Affinity फ़ाइल खोली नहीं जा सकी। उसे Affinity से SVG या PDF के रूप में एक्सपोर्ट करें और फिर कोशिश करें।"
 }

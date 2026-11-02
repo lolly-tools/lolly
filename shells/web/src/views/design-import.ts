@@ -67,6 +67,7 @@ import type { PdfPageSvg, EmbeddedFont, EmbeddedImage, EmbeddedImageScan, Extrac
 import { strFromU8 } from 'fflate';
 import { unzipAsync } from '../lib/zip.ts';
 import { isInddSignature, describeInddError } from '@lolly-tools/node-shell/indd';
+import { isAffinity } from './affinity-import.ts';
 import { isDxf, parseDxfAsDesign } from './dxf-import.ts';
 // Figma .fig decode: a canvas.fig is a Kiwi binary (self-describing schema + data).
 // The schema chunk is raw-DEFLATE (native DecompressionStream); the data chunk is zstd
@@ -197,6 +198,15 @@ export async function parseDesignFile(
     return parseIdmlZip(files, { host, warn, map, interactive });
   }
 
+  // A native Affinity file is read on this device: editable layers, or Affinity's own preview.
+  if (isAffinity(buf, file && (file as File).name)) {
+    const { importAffinity } = await import('./affinity-import.ts');
+    const res = await importAffinity(buf, file, { host: host as never, warn, map, signal });
+    const first = res.frames[0]!;
+    if (res.frames.length > 1) warn(`Opened the first of ${res.frames.length} artboards. Import as artboards or scenes to keep all of them.`);
+    return { boxes: first.boxes, width: first.width, height: first.height, background: first.background } as DesignImportResult;
+  }
+
   // AutoCAD DXF (ASCII or binary): layers become groups of native paths and text boxes, and the
   // import report lists what was not drawn (XREFs, paper space, SHX fonts, hatches).
   if (isDxf(buf, file && (file as File).name)) return parseDxfAsDesign(buf, { warn, map });
@@ -314,6 +324,12 @@ export async function parseDesignArtboards(
     const files = await inddToIdmlParts(buf, file, warn, signal);
     const { parseIdmlSpreads } = await import('./idml-import.ts');
     return { frames: await parseIdmlSpreads(files, { host, warn, map, interactive }), background: '#ffffff' };
+  }
+
+  if (isAffinity(buf, file && (file as File).name)) {
+    const { importAffinity } = await import('./affinity-import.ts');
+    const res = await importAffinity(buf, file, { host: host as never, warn, map, signal });
+    return { frames: res.frames.map(f => ({ name: f.name, width: f.width, height: f.height, boxes: f.boxes, background: f.background })), background: '#ffffff' };
   }
 
   if (isDxf(buf, file && (file as File).name)) return one(await parseDxfAsDesign(buf, { warn, map }) as DesignImportResult, baseName((file as File).name, 'drawing'));
@@ -1725,6 +1741,17 @@ export async function parseDesignScenes(
     for (const res of await parseIdmlSpreads(files, { host, warn, map, interactive })) {
       const asset = await bakeSceneAsset(host, warn, res.name, res.boxes, res.width, res.height);
       if (asset) scenes.push({ name: res.name, asset });
+    }
+    return { scenes };
+  }
+
+  if (isAffinity(buf, file && (file as File).name)) {
+    const { importAffinity } = await import('./affinity-import.ts');
+    const res = await importAffinity(buf, file, { host: host as never, warn, map, signal });
+    const scenes: { name: string; asset: AssetRef }[] = [];
+    for (const frame of res.frames) {
+      const asset = await bakeSceneAsset(host, warn, frame.name, frame.boxes, frame.width, frame.height);
+      if (asset) scenes.push({ name: frame.name, asset });
     }
     return { scenes };
   }

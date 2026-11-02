@@ -212,6 +212,7 @@ cpSync(join(REPO, 'packages/node-shell/wasm/audio-dsp'), join(LIB, 'wasm/audio-d
   recursive: true, filter: (source) => basename(source) !== 'target',
 });
 cpSync(join(REPO, 'packages/node-shell/wasm/indd'), join(LIB, 'wasm/indd'), { recursive: true, filter: (source) => basename(source) !== 'target' });
+cpSync(join(REPO, 'packages/node-shell/wasm/affinity'), join(LIB, 'wasm/affinity'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(LIB, 'wasm/layout-kernel'), {
   recursive: true, filter: (source) => basename(source) !== 'target',
 });

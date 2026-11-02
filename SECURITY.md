@@ -104,35 +104,12 @@ fails when the lockfile shows the hold has outlived its fix: no vulnerable copy 
 left, another crate starts pulling one in, or the parent crate's fixed release
 resolves. The exception then has to be removed in the same change.
 
-One exception is held today, approved by Andy on 2026-10-17:
-
-| Lockfile | Advisories | Crate | Removed when |
-|---|---|---|---|
-| `shells/tauri-desktop/src-tauri/Cargo.lock` | RUSTSEC-2026-0367, RUSTSEC-2026-0368, RUSTSEC-2026-0369 | `zip` 4.6.1, through `tauri-plugin-updater` 2.14.0 | `tauri-plugin-updater` 2.14.1 or later, or `zip` 9.0.0 or later, resolves |
-
-The justification:
-
-- `zip` 4.6.1 comes only through `tauri-plugin-updater` 2.x, which declares
-  `zip ^4` for `cfg(target_os = "windows")`. It is compiled for Windows targets
-  only.
-- The current release, v1.1.3, publishes no Windows build. Windows installers are
-  built only by the manual `desktop-extra.yml` dispatch.
-- Self-update is not live. `bundle.createUpdaterArtifacts` is `false`, and
-  `plugins.updater.pubkey` is still the `PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE`
-  placeholder.
-- The updater verifies a payload's minisign signature before it extracts
-  anything. The placeholder is not a valid key, so that check fails for every
-  payload, including in the v1.0.9 Windows installers, and `ZipArchive::extract`
-  is never reached.
-- The fix is merged upstream in
-  [tauri-apps/plugins-workspace#3698](https://github.com/tauri-apps/plugins-workspace/pull/3698)
-  (`ba98bfad`, `zip ^9`). It is pending release as `tauri-plugin-updater` 2.14.1 in
-  [#3712](https://github.com/tauri-apps/plugins-workspace/pull/3712). No published
-  2.x or 3.0 alpha accepts `zip` 9 yet.
-
-When 2.14.1 is published, run `cargo update -p tauri-plugin-updater` in
-`shells/tauri-desktop/src-tauri`, delete the exception and confirm that
-`pnpm run audit:all` passes without it.
+No exception is held today. The last one, approved by Andy on 2026-10-17, held
+RUSTSEC-2026-0367, RUSTSEC-2026-0368 and RUSTSEC-2026-0369 for `zip` 4.6.1, which
+reached `shells/tauri-desktop/src-tauri/Cargo.lock` only through
+`tauri-plugin-updater`. It was removed on 2026-11-02, when `tauri-plugin-updater`
+2.14.1 was published and resolved `zip` 9.2.2. That release also fixes
+RUSTSEC-2026-0429, a later `zip` advisory.
 
 The ignored/untracked checkout is deliberately not read by either command.
 Auditing it is an explicit opt-in because it may contain personal credentials:

@@ -155,6 +155,7 @@
     ],
     "InDesign": [
       "Reads .idml markup export",
+      "Named styles, master items and tables carry over",
       "Text stays editable",
       "Images extracted",
       "Brand-conformed editable session",
@@ -1066,7 +1067,7 @@
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). An .idml from InDesign's File → Export → InDesign Markup comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. A native .indd or .indt is converted to IDML on the device first, as a preview, up to 128 MB. Lolly writes one back from a Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
+      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). An .idml from InDesign's File → Export → InDesign Markup comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. Named paragraph, character and object styles, master page items and tables carry over, and the import report lists what was approximated or dropped. A native .indd or .indt is converted to IDML on the device first, as a preview, up to 128 MB. Lolly writes one back from a Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1090,6 +1091,26 @@
         "reads": [],
         "writes": [],
         "preserves": "n/a"
+      }
+    },
+    {
+      "token": "Affinity",
+      "name": "Affinity",
+      "full": "Affinity documents (.af, .afdesign, .afphoto, .afpub)",
+      "category": "Vector",
+      "dir": "in",
+      "features": [
+        "vector",
+        "layers",
+        "editable-text",
+        "embeds-bitmaps"
+      ],
+      "desc": "Native Affinity files: .af from Affinity 3 and .afdesign, .afphoto and .afpub from Affinity 1 and 2. They open in Design on the device, in the browser and in the command line, with no upload and no Affinity software. Each artboard (or page) becomes a frame; groups, rectangles, curves, text, tables and pictures become editable layers, and effects, adjustments and anything approximated are listed in the import report. If the layers cannot be read, Affinity's own embedded preview opens as one picture instead. Import only, up to 96 MB; the layout was learned without a published specification, so a file from an untested Affinity build can fall back to its preview.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Document metadata, such as the folder a file was saved in or user names, is never imported."
       }
     },
     {

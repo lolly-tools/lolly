@@ -10503,5 +10503,6 @@
   "Traced into {n} shapes, above the image.": "Vectorisée en {n} formes, au-dessus de l'image.",
   "Tracing": "Vectorisation",
   "Tracing image": "Vectorisation de l'image",
-  "Turn this picture into shapes you can edit.": "Transforme cette image en formes modifiables."
+  "Turn this picture into shapes you can edit.": "Transforme cette image en formes modifiables.",
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Ce fichier Affinity n'a pas pu être ouvert. Exporte-le depuis Affinity au format SVG ou PDF et réessaie."
 }

@@ -4092,7 +4092,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.299.0";
+    ENGINE_VERSION = "1.300.0";
   }
 });
 
@@ -7196,7 +7196,7 @@ function iccGamutSource(p, intent) {
   const digest2 = PROFILE_DIGEST.get(p) ?? fallbackId(p);
   const supported = iccGamutIntent(p, intent);
   const ink = isInkSpace(p.dataColourSpace);
-  const direct = DIRECT_LINEAR.get(p);
+  const direct2 = DIRECT_LINEAR.get(p);
   const device = (l, c, h) => supported ? iccDevice(p, intent, l, c, h) : null;
   return {
     id: `icc:${digest2}:${intent}`,
@@ -7204,7 +7204,7 @@ function iccGamutSource(p, intent) {
     contains(l, c, h) {
       const d = device(l, c, h);
       if (!d) return false;
-      const raw = direct?.(intent, d.lab);
+      const raw = direct2?.(intent, d.lab);
       if (raw?.some((v) => v < -CUBE_EPS || v > 1 + CUBE_EPS)) return false;
       const back = p.toLab(intent, d.dev);
       if (!back) return false;
@@ -65281,11 +65281,11 @@ function parseVectorPaint(value2, count4) {
 }
 function vectorPaintMatrices(paint2, count4, authored) {
   const admitted3 = parseVectorPaint(paint2, count4), result = new Array(count4), clips2 = /* @__PURE__ */ new Map(), pending5 = [];
-  function collect3(node) {
+  function collect4(node) {
     if (node.tag === "clipPath" && node.attributes.id) clips2.set(node.attributes.id, node);
-    for (const child2 of node.children ?? []) collect3(child2);
+    for (const child2 of node.children ?? []) collect4(child2);
   }
-  collect3(admitted3.root);
+  collect4(admitted3.root);
   function bounds(node) {
     if (!authored) throw new Error("This vector clip needs its authored geometry.");
     const contours = [];
@@ -70355,8 +70355,8 @@ function kfEaseToken(v) {
   if (s === KF_HOLD_CSS || s === KF_HOLD_EASE) return KF_HOLD_EASE;
   const byName = NAME_TO_TOKEN.get(s);
   if (byName) return byName;
-  const direct = normaliseKfEase(s);
-  if (direct !== null) return direct;
+  const direct2 = normaliseKfEase(s);
+  if (direct2 !== null) return direct2;
   const m2 = CSS_BEZIER_RE.exec(s);
   if (m2) {
     const parts = (m2[1] ?? "").split(",").map((x) => num6(x.trim()));
@@ -74209,8 +74209,8 @@ function tetraEval(lat, u, v, w, out, o) {
 function rowEvaluator(profile2, direction2, intent) {
   const n7 = profile2.nChannels;
   if (n7 !== 1 && n7 !== 3) return null;
-  const direct = !iccRoundTripDecides(profile2);
-  if (!direct) {
+  const direct2 = !iccRoundTripDecides(profile2);
+  if (!direct2) {
     if (n7 !== 3) return null;
     const lat = getLattice(profile2, direction2, intent);
     if (!lat) return null;
@@ -84254,9 +84254,9 @@ var init_design_layer_ops = __esm({
 });
 
 // engine/src/design-text-style.ts
-function topOf(tally2) {
-  if (!Array.isArray(tally2)) return void 0;
-  for (const entry2 of tally2) {
+function topOf(tally3) {
+  if (!Array.isArray(tally3)) return void 0;
+  for (const entry2 of tally3) {
     if (!record12(entry2)) continue;
     const v = entry2.value;
     if (typeof v === "string" && v && v !== "unset" || typeof v === "number" && Number.isFinite(v)) return v;
@@ -84529,8 +84529,8 @@ function kindOf(row) {
   return void 0;
 }
 function groundLuminance(fill2) {
-  const direct = luminance(fill2);
-  if (direct !== null || typeof fill2 !== "string") return direct;
+  const direct2 = luminance(fill2);
+  if (direct2 !== null || typeof fill2 !== "string") return direct2;
   const m2 = /^\s*var\(\s*--[\w-]+\s*,\s*(.+)\)\s*$/.exec(fill2);
   return m2 ? groundLuminance(m2[1]) : null;
 }
@@ -88041,7 +88041,7 @@ function figmaNodesToScenes(nodeChanges, blobs) {
   const scenes = [];
   for (const page3 of canvases) {
     const pageAbs = figMatrix(page3);
-    const collect3 = (root2, into) => {
+    const collect4 = (root2, into) => {
       const visit = (node, pabs) => {
         if (!node || node.visible === false) return;
         const abs = matMul3(pabs, figMatrix(node));
@@ -88059,7 +88059,7 @@ function figmaNodesToScenes(nodeChanges, blobs) {
       const type = String(child2.type || "");
       if (FIG_FRAME_TYPES.has(type) && child2.size) {
         const nodes = [];
-        collect3(child2, nodes);
+        collect4(child2, nodes);
         if (!nodes.length) continue;
         const geom = boxGeomFromBBox(
           { x: 0, y: 0, width: num10(child2.size.x, 0), height: num10(child2.size.y, 0) },
@@ -88079,7 +88079,7 @@ function figmaNodesToScenes(nodeChanges, blobs) {
           }
         });
       } else {
-        collect3(child2, loose2);
+        collect4(child2, loose2);
       }
     }
     scenes.push(...readingOrder(framed, (f) => f.at).map((f) => f.scene));
@@ -90105,8 +90105,8 @@ function descendantByLocal(root2, local2) {
   return null;
 }
 function attrByLocal(el, local2) {
-  const direct = el.getAttribute(local2);
-  if (direct != null) return direct;
+  const direct2 = el.getAttribute(local2);
+  if (direct2 != null) return direct2;
   const attrs = el.attributes;
   if (!attrs) return null;
   for (let i = 0; i < attrs.length; i++) {
@@ -92498,13 +92498,13 @@ function hexOf3(run3) {
   return m2?.[1] ? `#${m2[1].toLowerCase()}` : null;
 }
 function dominant(pairs2) {
-  const tally2 = /* @__PURE__ */ new Map();
+  const tally3 = /* @__PURE__ */ new Map();
   let best;
   let bestN = 0;
   for (const { value: value2, weight } of pairs2) {
     if (value2 === void 0) continue;
-    const n7 = (tally2.get(value2) ?? 0) + weight;
-    tally2.set(value2, n7);
+    const n7 = (tally3.get(value2) ?? 0) + weight;
+    tally3.set(value2, n7);
     if (n7 > bestN) {
       best = value2;
       bestN = n7;
@@ -93299,8 +93299,8 @@ function descendantByLocal2(root2, local2) {
 }
 function attrByLocal2(el, local2) {
   if (!el) return null;
-  const direct = el.getAttribute(local2);
-  if (direct != null) return direct;
+  const direct2 = el.getAttribute(local2);
+  if (direct2 != null) return direct2;
   const attrs = el.attributes;
   if (!attrs) return null;
   for (let i = 0; i < attrs.length; i++) {
@@ -93332,8 +93332,8 @@ function makeStore2(parts) {
     if (!lower3.has(k.toLowerCase())) lower3.set(k.toLowerCase(), k);
   }
   const raw = (path) => {
-    const direct = parts[path];
-    if (direct !== void 0) return direct;
+    const direct2 = parts[path];
+    if (direct2 !== void 0) return direct2;
     const real = lower3.get(path.toLowerCase());
     return real !== void 0 ? parts[real] : void 0;
   };
@@ -93650,8 +93650,8 @@ function headingLevel(styleId, pPr, ctx) {
   if (styleId) {
     const byStyle = ctx.styles.levels.get(styleId.toLowerCase());
     if (byStyle) return byStyle;
-    const direct = headingFromName(styleId);
-    if (direct) return direct;
+    const direct2 = headingFromName(styleId);
+    if (direct2) return direct2;
   }
   return levelFromOutline(valOf(firstChildByLocal2(pPr, "outlineLvl"))) ?? 0;
 }
@@ -93854,8 +93854,8 @@ function appendNotes(ctx) {
 }
 function isDocx(parts) {
   if (!parts || typeof parts !== "object") return false;
-  const direct = parts["word/document.xml"];
-  if (direct !== void 0) return typeof direct === "string" ? direct.length > 0 : direct.byteLength > 0;
+  const direct2 = parts["word/document.xml"];
+  if (direct2 !== void 0) return typeof direct2 === "string" ? direct2.length > 0 : direct2.byteLength > 0;
   for (const k of Object.keys(parts)) {
     if (k.toLowerCase() === "word/document.xml") {
       const raw = parts[k];
@@ -97557,8 +97557,8 @@ function makeStore3(entries) {
   const keys2 = Object.keys(entries);
   for (const k of keys2) if (!lower3.has(k.toLowerCase())) lower3.set(k.toLowerCase(), k);
   const resolve8 = (path) => {
-    const direct = entries[path];
-    if (direct !== void 0) return direct;
+    const direct2 = entries[path];
+    if (direct2 !== void 0) return direct2;
     const real = lower3.get(path.toLowerCase());
     return real !== void 0 ? entries[real] : void 0;
   };
@@ -102314,7 +102314,7 @@ function cluster(items2) {
       if (overlaps(a, items2[j].rect)) join36(i, j);
     }
   }
-  const collect3 = () => {
+  const collect4 = () => {
     const m2 = /* @__PURE__ */ new Map();
     for (let i = 0; i < items2.length; i++) {
       const root2 = find(i);
@@ -102330,7 +102330,7 @@ function cluster(items2) {
     return m2;
   };
   for (let pass = 0; pass < 4; pass++) {
-    const clusters = [...collect3().entries()];
+    const clusters = [...collect4().entries()];
     const byGroup = /* @__PURE__ */ new Map();
     for (const [root2, c] of clusters) {
       if (!c.group) continue;
@@ -102356,7 +102356,7 @@ function cluster(items2) {
     }
     if (!merged) break;
   }
-  return [...collect3().values()].map(({ idx, rect, group }) => ({ idx, rect, group }));
+  return [...collect4().values()].map(({ idx, rect, group }) => ({ idx, rect, group }));
 }
 function findVectorArtwork(nodes, opts = {}) {
   const out = [];
@@ -105711,11 +105711,11 @@ function scanPenpotUsage(entries) {
     v.count++;
     v.angles.set(angle, (v.angles.get(angle) ?? 0) + 1);
   };
-  const seePaints = (list4, colorKey, gradKey, tally2) => {
+  const seePaints = (list4, colorKey, gradKey, tally3) => {
     if (!Array.isArray(list4)) return;
     for (const p of list4) {
       if (!isRecord2(p)) continue;
-      bump2(normHex3(pv(p, colorKey)), tally2);
+      bump2(normHex3(pv(p, colorKey)), tally3);
       seeGradient(pv(p, gradKey));
     }
   };
@@ -114664,10 +114664,10 @@ function vectorItemsToRows(items2, place2, opts) {
   const vb = items2.viewBox;
   if (!items2.items.length) return { refused: "empty" };
   if (items2.items.length > maxRows) return { refused: "cap-reached" };
-  const finite8 = [vb.x, vb.y, vb.w, vb.h, place2.x, place2.y, place2.w, place2.h].every(Number.isFinite);
+  const finite9 = [vb.x, vb.y, vb.w, vb.h, place2.x, place2.y, place2.w, place2.h].every(Number.isFinite);
   const spanX = vb.w > 0;
   const spanY = vb.h > 0;
-  if (!finite8 || vb.w < 0 || vb.h < 0 || place2.w < 0 || place2.h < 0 || !spanX && !spanY) return { refused: "unplaceable" };
+  if (!finite9 || vb.w < 0 || vb.h < 0 || place2.w < 0 || place2.h < 0 || !spanX && !spanY) return { refused: "unplaceable" };
   let sx = spanX ? place2.w / vb.w : 1;
   let sy = spanY ? place2.h / vb.h : 1;
   let ox = place2.x;
@@ -124692,8 +124692,8 @@ function lookAmount(look3) {
   return typeof look3.amount === "number" && Number.isFinite(look3.amount) ? (look3.amount < 0 ? 0 : look3.amount > 100 ? 100 : look3.amount) / 100 : 1;
 }
 function lookGrade(look3) {
-  const finite8 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
-  return gradeTables(finite8(look3.contrast), finite8(look3.lightness));
+  const finite9 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
+  return gradeTables(finite9(look3.contrast), finite9(look3.lightness));
 }
 function duotoneRamp(look3) {
   return [look3.shadow ?? "#000000", ...look3.mid ? [look3.mid] : [], look3.highlight ?? "#ffffff"].map((c) => {
@@ -124791,9 +124791,9 @@ function photoLookPreviewTable(look3, count4 = 17) {
   if (stops.length < 2) return [];
   const tlut = photoLookToneTable(stops);
   const amount = lookAmount(look3);
-  const finite8 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
-  const contrast3 = Math.max(-100, Math.min(100, finite8(look3.contrast)));
-  const light = Math.max(-100, Math.min(100, finite8(look3.lightness))) / 100;
+  const finite9 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
+  const contrast3 = Math.max(-100, Math.min(100, finite9(look3.contrast)));
+  const light = Math.max(-100, Math.min(100, finite9(look3.lightness))) / 100;
   const cf = 259 * (contrast3 + 255) / (255 * (259 - contrast3));
   const graded = (s) => {
     let n7 = s * 255;
@@ -132570,7 +132570,7 @@ function baselineBrandSkill(source, opts = {}) {
   return { meta, markdown: bytes2 > BRAND_SKILL_MAX_BYTES ? markdown.slice(0, BRAND_SKILL_MAX_BYTES - 200) + "\n\nThe rest is in the design context.\n" : markdown };
 }
 function measureSvgFamily(sources) {
-  const tally2 = (m2, k) => {
+  const tally3 = (m2, k) => {
     m2.set(k, (m2.get(k) ?? 0) + 1);
   };
   const views = /* @__PURE__ */ new Map();
@@ -132580,9 +132580,9 @@ function measureSvgFamily(sources) {
   let themable = 0;
   for (const svg of sources) {
     const root2 = /<svg\b[^>]*>/i.exec(svg)?.[0] ?? "";
-    tally2(views, (/\bviewBox\s*=\s*["']([^"']+)["']/i.exec(root2)?.[1] ?? "none").trim().replace(/\s+/g, " "));
+    tally3(views, (/\bviewBox\s*=\s*["']([^"']+)["']/i.exec(root2)?.[1] ?? "none").trim().replace(/\s+/g, " "));
     if (/\.c1\b/.test(svg) && /\.c2\b/.test(svg)) themable++;
-    for (const m2 of svg.matchAll(/\bfill\s*[:=]\s*["']?\s*(#[0-9a-f]{3,8})\b/gi)) tally2(fills, hexOf5(m2[1]) ?? m2[1].toLowerCase());
+    for (const m2 of svg.matchAll(/\bfill\s*[:=]\s*["']?\s*(#[0-9a-f]{3,8})\b/gi)) tally3(fills, hexOf5(m2[1]) ?? m2[1].toLowerCase());
     pathCounts.push((svg.match(/<(path|circle|rect|ellipse|polygon|polyline|line)\b/gi) ?? []).length);
     if (/<text\b/i.test(svg)) disallowed.text++;
     if (/<image\b/i.test(svg)) disallowed.image++;
@@ -144820,7 +144820,7 @@ function typesetOcrLines(input, opts = {}) {
       lvl[i] = Math.min(8, k);
     }
   }
-  const alignOf = /* @__PURE__ */ new Map();
+  const alignOf2 = /* @__PURE__ */ new Map();
   for (let col = 0; col < roots2.length; col++) {
     const colLines = paras.flatMap((p, i) => columnOf[i] === col && !spans[i] ? p.items.map((w) => w.line.box) : []);
     if (colLines.length < 2) continue;
@@ -144828,12 +144828,12 @@ function typesetOcrLines(input, opts = {}) {
       const v = colLines.map(f);
       return Math.max(...v) - Math.min(...v);
     };
-    if (spread((b) => b.x) <= tol) alignOf.set(col, "left");
-    else if (spread((b) => b.x + b.w / 2) <= tol) alignOf.set(col, "center");
-    else if (spread((b) => b.x + b.w) <= tol) alignOf.set(col, "right");
+    if (spread((b) => b.x) <= tol) alignOf2.set(col, "left");
+    else if (spread((b) => b.x + b.w / 2) <= tol) alignOf2.set(col, "center");
+    else if (spread((b) => b.x + b.w) <= tol) alignOf2.set(col, "right");
   }
   paras.forEach((para, i) => {
-    const align = alignOf.get(columnOf[i] ?? 0);
+    const align = alignOf2.get(columnOf[i] ?? 0);
     if ((align === "center" || align === "right") && !para.bullet) lvl[i] = 0;
   });
   const paraSize = paras.map((p) => {
@@ -144873,7 +144873,7 @@ function typesetOcrLines(input, opts = {}) {
     };
     if (para.bullet && para.glyph && para.evidence !== "text-indent") result.bulletGlyph = para.glyph;
     if (para.evidence) result.bulletEvidence = para.evidence;
-    const align = spans[i] ? void 0 : alignOf.get(columnOf[i] ?? 0);
+    const align = spans[i] ? void 0 : alignOf2.get(columnOf[i] ?? 0);
     if (align) result.align = align;
     return result;
   });
@@ -145249,14 +145249,14 @@ function evaluateProductionFacts(contract2, facts2) {
   }
   return checks;
 }
-async function inspectProduction(bytes2, input, collect3, options2 = {}) {
+async function inspectProduction(bytes2, input, collect4, options2 = {}) {
   const contract2 = parseProductionSpec(input), { signal } = options2;
   signal?.throwIfAborted();
   const bounded2 = bytes2.length <= 32 * 1024 * 1024;
   let facts2 = { limitations: ["artifact-byte-budget-exceeded"] };
   if (bounded2) {
     try {
-      facts2 = await collect3(bytes2, contract2, signal);
+      facts2 = await collect4(bytes2, contract2, signal);
     } catch {
       signal?.throwIfAborted();
       facts2 = { limitations: ["collector-failed"] };
@@ -145271,7 +145271,7 @@ async function inspectProduction(bytes2, input, collect3, options2 = {}) {
     let reference3;
     if (options2.reference && options2.reference.length <= 32 * 1024 * 1024 && await sha256Hex(options2.reference) === comparison.referenceSha256) {
       try {
-        reference3 = await collect3(options2.reference, contract2, signal);
+        reference3 = await collect4(options2.reference, contract2, signal);
       } catch {
         signal?.throwIfAborted();
         limitations.push("reference-collector-failed");
@@ -146162,20 +146162,20 @@ var init_token_font_pins = __esm({
 // engine/src/token-edit.ts
 function supportedValue(type, value2) {
   if (typeof value2 === "string" && /^\{[^{}]+\}$/.test(value2)) return true;
-  const finite8 = (v) => typeof v === "number" && Number.isFinite(v);
-  if (type === "number") return finite8(value2);
+  const finite9 = (v) => typeof v === "number" && Number.isFinite(v);
+  if (type === "number") return finite9(value2);
   if (type === "string") return typeof value2 === "string";
   if (type === "color") return !!colorToHex(value2);
   if (type === "fontFamily") return typeof value2 === "string" && !!value2.trim() || Array.isArray(value2) && !!value2.length && value2.every((v) => typeof v === "string" && !!v.trim());
-  if (type === "fontWeight") return finite8(value2) && value2 >= 1 && value2 <= 1e3 || typeof value2 === "string" && /^(?:[1-9]\d{0,2}|1000|thin|hairline|extra-light|ultra-light|light|normal|regular|book|medium|semi-bold|demi-bold|bold|extra-bold|ultra-bold|black|heavy|extra-black|ultra-black)$/.test(value2);
+  if (type === "fontWeight") return finite9(value2) && value2 >= 1 && value2 <= 1e3 || typeof value2 === "string" && /^(?:[1-9]\d{0,2}|1000|thin|hairline|extra-light|ultra-light|light|normal|regular|book|medium|semi-bold|demi-bold|bold|extra-bold|ultra-bold|black|heavy|extra-black|ultra-black)$/.test(value2);
   if (type === "dimension" || type === "duration") {
     const units2 = type === "duration" ? ["ms", "s"] : ["px", "rem", "em", "%", "vh", "vw", "mm", "cm", "in", "pt", "pc"];
     const match = typeof value2 === "string" ? /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([a-z%]+)$/.exec(value2.trim()) : null;
     const number11 = match ? Number(match[1]) : record36(value2) ? value2.value : null;
     const unit2 = match ? match[2] : record36(value2) ? value2.unit : null;
-    return finite8(number11) && typeof unit2 === "string" && units2.includes(unit2) && (type !== "duration" || number11 >= 0);
+    return finite9(number11) && typeof unit2 === "string" && units2.includes(unit2) && (type !== "duration" || number11 >= 0);
   }
-  if (type === "cubicBezier") return Array.isArray(value2) && value2.length === 4 && value2.every(finite8) && value2[0] >= 0 && value2[0] <= 1 && value2[2] >= 0 && value2[2] <= 1;
+  if (type === "cubicBezier") return Array.isArray(value2) && value2.length === 4 && value2.every(finite9) && value2[0] >= 0 && value2[0] <= 1 && value2[2] >= 0 && value2[2] <= 1;
   if (type === "gradient") return Array.isArray(value2) && value2.length >= 2 && value2.length <= 32 && value2.every((v) => supportedValue("gradientStop", v));
   if (type === "shadow" && Array.isArray(value2)) return !!value2.length && value2.length <= 32 && value2.every((v) => supportedValue("shadow", v));
   if (type === "strokeStyle") return typeof value2 === "string" && ["solid", "dashed", "dotted", "double", "groove", "ridge", "outset", "inset"].includes(value2) || record36(value2) && Array.isArray(value2.dashArray) && value2.dashArray.every((v) => supportedValue("dimension", v)) && ["butt", "round", "square"].includes(String(value2.lineCap));
@@ -148457,10 +148457,741 @@ var init_timeline_import = __esm({
   }
 });
 
+// engine/src/idml-styles.ts
+function directChild(el, localName5) {
+  for (const c of Array.from(el.children)) if (c.localName === localName5) return c;
+  return null;
+}
+function ownProps(el, kind) {
+  const keys2 = KEYS3[kind], out = /* @__PURE__ */ Object.create(null);
+  for (const key2 of keys2) {
+    if (key2 === "BasedOn") continue;
+    const v = el.getAttribute(key2);
+    if (v !== null) out[key2] = v;
+  }
+  const props = directChild(el, "Properties");
+  if (props) for (const child2 of Array.from(props.children)) {
+    const key2 = child2.localName;
+    if (!keys2.has(key2)) continue;
+    if (key2 === "BulletChar") {
+      const value2 = child2.getAttribute("BulletCharacterValue");
+      if (value2) out[key2] = value2;
+      continue;
+    }
+    if (key2 === "InsetSpacing") {
+      const items2 = Array.from(child2.children).map((c) => (c.textContent || "").trim());
+      if (items2.length === 4) out[key2] = items2.join(" ");
+      continue;
+    }
+    if (child2.children.length) continue;
+    out[key2] = (child2.textContent || "").trim();
+  }
+  return out;
+}
+function objectChildProps(el, into) {
+  for (const holder of ["TransparencySetting", "FillTransparencySetting"]) {
+    const t = directChild(el, holder), blending = t && directChild(t, "BlendingSetting");
+    const opacity = blending?.getAttribute("Opacity");
+    if (opacity && holder === "TransparencySetting") into.Opacity = opacity;
+    const mode4 = blending?.getAttribute("BlendMode");
+    if (mode4 && holder === "TransparencySetting") into.BlendMode = mode4;
+  }
+  const wrap3 = directChild(el, "TextWrapPreference");
+  const mode3 = wrap3?.getAttribute("TextWrapMode");
+  if (mode3) into.TextWrapMode = mode3;
+  const text12 = directChild(el, "TextFramePreference");
+  if (text12) {
+    for (const key2 of ["VerticalJustification", "TextColumnCount"]) {
+      const v = text12.getAttribute(key2);
+      if (v !== null) into[key2] = v;
+    }
+    const inset = directChild(text12, "Properties"), spacing = inset && directChild(inset, "InsetSpacing");
+    if (spacing) {
+      const items2 = Array.from(spacing.children).map((c) => (c.textContent || "").trim());
+      if (items2.length === 4) into.InsetSpacing = items2.join(" ");
+    } else {
+      const v = text12.getAttribute("InsetSpacing");
+      if (v) into.InsetSpacing = v;
+    }
+  }
+}
+function itemChildProps(el) {
+  const out = /* @__PURE__ */ Object.create(null);
+  objectChildProps(el, out);
+  return out;
+}
+function basedOnRef(value2) {
+  return value2 ? value2.trim() : "";
+}
+function finite7(v, min, max) {
+  if (v === void 0 || v === "") return void 0;
+  const n7 = Number(v);
+  return Number.isFinite(n7) ? Math.max(min, Math.min(max, n7)) : void 0;
+}
+function textAttrs(...bags) {
+  const p = {};
+  for (const bag of bags) Object.assign(p, bag);
+  const out = {};
+  if (p.AppliedFont) out.font = p.AppliedFont;
+  if (p.FontStyle) out.fontStyle = p.FontStyle;
+  const size = finite7(p.PointSize, 1, 2e3);
+  if (size !== void 0) out.size = size;
+  const tracking = finite7(p.Tracking, -1e3, 1e4);
+  if (tracking !== void 0) out.tracking = tracking;
+  if (p.Leading !== void 0 && p.Leading !== "") {
+    const lead = p.Leading.toLowerCase() === "auto" ? void 0 : finite7(p.Leading, 0, 4e3);
+    if (lead !== void 0 && lead > 0) out.leading = lead;
+  }
+  const auto = finite7(p.AutoLeading, 1, 1e3);
+  if (auto !== void 0) out.autoLeading = auto;
+  if (p.FillColor) out.fill = p.FillColor;
+  const tint = finite7(p.FillTint, -1, 100);
+  if (tint !== void 0 && tint >= 0) out.fillTint = tint;
+  if (p.Justification) out.justification = p.Justification;
+  const before = finite7(p.SpaceBefore, 0, 4e3);
+  if (before !== void 0) out.spaceBefore = before;
+  const after = finite7(p.SpaceAfter, 0, 4e3);
+  if (after !== void 0) out.spaceAfter = after;
+  const left = finite7(p.LeftIndent, -4e3, 4e3);
+  if (left !== void 0) out.leftIndent = left;
+  const right = finite7(p.RightIndent, -4e3, 4e3);
+  if (right !== void 0) out.rightIndent = right;
+  const first = finite7(p.FirstLineIndent, -4e3, 4e3);
+  if (first !== void 0) out.firstIndent = first;
+  if (p.Underline !== void 0) out.underline = p.Underline === "true";
+  if (p.StrikeThru !== void 0) out.strike = p.StrikeThru === "true";
+  if (p.Capitalization) out.capitalization = p.Capitalization;
+  if (p.Position) out.position = p.Position;
+  if (p.BulletsAndNumberingListType) out.bullet = /^Bullet/i.test(p.BulletsAndNumberingListType) ? "bullet" : /^Numbered/i.test(p.BulletsAndNumberingListType) ? "number" : "none";
+  if (p.BulletChar) {
+    const code = Number(p.BulletChar);
+    if (Number.isInteger(code) && code > 31 && code < 1114111 && !(code >= 55296 && code <= 57343)) out.bulletChar = String.fromCodePoint(code);
+  }
+  const scale = finite7(p.HorizontalScale, 1, 1e3), skew = finite7(p.Skew, -180, 180);
+  if (scale !== void 0 && Math.abs(scale - 100) > 0.5 || skew !== void 0 && Math.abs(skew) > 0.5) out.distorted = true;
+  return out;
+}
+function tintHex(hex3, tint) {
+  if (tint === void 0 || tint >= 100 || !/^#[0-9a-f]{6}$/i.test(hex3)) return hex3;
+  const t = Math.max(0, tint) / 100, channel5 = (i) => Math.round(255 - (255 - parseInt(hex3.slice(i, i + 2), 16)) * t);
+  return "#" + [1, 3, 5].map((i) => channel5(i).toString(16).padStart(2, "0")).join("");
+}
+function numericAttr(v, min, max) {
+  return finite7(v ?? void 0, min, max);
+}
+function tally2(stats, feature, fate, n7 = 1) {
+  if (!stats || n7 <= 0) return;
+  stats[feature] ??= { mapped: 0, approximated: 0, dropped: 0 };
+  stats[feature][fate] += n7;
+}
+function statsNotes(stats) {
+  const notes = [];
+  for (const [feature, row] of Object.entries(stats)) {
+    const say2 = REPORT[feature];
+    if (!say2) continue;
+    if (row.dropped && say2.dropped) notes.push(`${say2.dropped} (${row.dropped})`);
+    if (row.approximated && say2.approximated) notes.push(`${say2.approximated} (${row.approximated})`);
+  }
+  return notes;
+}
+var MAX_STYLES2, MAX_CHAIN2, EMPTY3, TEXT_KEYS, OBJECT_KEYS, CELL_KEYS, KEYS3, ELEMENT, StyleBook, REPORT;
+var init_idml_styles = __esm({
+  "engine/src/idml-styles.ts"() {
+    "use strict";
+    MAX_STYLES2 = 2e4;
+    MAX_CHAIN2 = 32;
+    EMPTY3 = Object.freeze({});
+    TEXT_KEYS = [
+      "AppliedFont",
+      "FontStyle",
+      "PointSize",
+      "Tracking",
+      "Leading",
+      "AutoLeading",
+      "FillColor",
+      "FillTint",
+      "Justification",
+      "SpaceBefore",
+      "SpaceAfter",
+      "LeftIndent",
+      "RightIndent",
+      "FirstLineIndent",
+      "Underline",
+      "StrikeThru",
+      "Capitalization",
+      "Position",
+      "BulletsAndNumberingListType",
+      "BulletChar",
+      "HorizontalScale",
+      "Skew"
+    ];
+    OBJECT_KEYS = [
+      "FillColor",
+      "FillTint",
+      "StrokeColor",
+      "StrokeTint",
+      "StrokeWeight",
+      "StrokeAlignment",
+      "StrokeType",
+      "CornerOption",
+      "CornerRadius",
+      "TopLeftCornerOption",
+      "TopRightCornerOption",
+      "BottomLeftCornerOption",
+      "BottomRightCornerOption",
+      "TopLeftCornerRadius",
+      "TopRightCornerRadius",
+      "BottomLeftCornerRadius",
+      "BottomRightCornerRadius",
+      "Opacity",
+      "BlendMode",
+      "TextWrapMode",
+      "InsetSpacing",
+      "VerticalJustification",
+      "TextColumnCount"
+    ];
+    CELL_KEYS = [
+      "FillColor",
+      "FillTint",
+      "TopInset",
+      "LeftInset",
+      "BottomInset",
+      "RightInset",
+      "TopEdgeStrokeWeight",
+      "LeftEdgeStrokeWeight",
+      "BottomEdgeStrokeWeight",
+      "RightEdgeStrokeWeight",
+      "TopEdgeStrokeColor",
+      "LeftEdgeStrokeColor",
+      "BottomEdgeStrokeColor",
+      "RightEdgeStrokeColor",
+      "TopEdgeStrokeTint",
+      "LeftEdgeStrokeTint",
+      "BottomEdgeStrokeTint",
+      "RightEdgeStrokeTint"
+    ];
+    KEYS3 = {
+      paragraph: /* @__PURE__ */ new Set([...TEXT_KEYS, "BasedOn"]),
+      character: /* @__PURE__ */ new Set([...TEXT_KEYS, "BasedOn"]),
+      object: /* @__PURE__ */ new Set([...OBJECT_KEYS, "BasedOn"]),
+      cell: /* @__PURE__ */ new Set([...CELL_KEYS, "BasedOn"])
+    };
+    ELEMENT = { ParagraphStyle: "paragraph", CharacterStyle: "character", ObjectStyle: "object", CellStyle: "cell" };
+    StyleBook = class {
+      own = {
+        paragraph: /* @__PURE__ */ new Map(),
+        character: /* @__PURE__ */ new Map(),
+        object: /* @__PURE__ */ new Map(),
+        cell: /* @__PURE__ */ new Map()
+      };
+      basedOn = {
+        paragraph: /* @__PURE__ */ new Map(),
+        character: /* @__PURE__ */ new Map(),
+        object: /* @__PURE__ */ new Map(),
+        cell: /* @__PURE__ */ new Map()
+      };
+      cache = {
+        paragraph: /* @__PURE__ */ new Map(),
+        character: /* @__PURE__ */ new Map(),
+        object: /* @__PURE__ */ new Map(),
+        cell: /* @__PURE__ */ new Map()
+      };
+      /** Styles read, so a report can say how many named styles the package carried. */
+      count = 0;
+      /** Chains that were cut short by a cycle or the depth bound. */
+      truncated = 0;
+      constructor(doc) {
+        if (!doc) return;
+        for (const el of Array.from(doc.getElementsByTagName("*"))) {
+          const kind = ELEMENT[el.localName];
+          const self = kind && el.getAttribute("Self");
+          if (!kind || !self) continue;
+          if (++this.count > MAX_STYLES2) throw new Error("IDML contains more than 20000 named styles.");
+          const own4 = ownProps(el, kind);
+          if (kind === "object") objectChildProps(el, own4);
+          this.own[kind].set(self, own4);
+          const props = directChild(el, "Properties"), based = props && directChild(props, "BasedOn");
+          const ref2 = basedOnRef(based?.textContent || void 0);
+          if (ref2 && ref2 !== self) this.basedOn[kind].set(self, ref2);
+        }
+      }
+      has(kind, id3) {
+        return !!id3 && this.own[kind].has(id3);
+      }
+      /** The style's properties with its `BasedOn` ancestors underneath, nearest ancestor winning. */
+      resolve(kind, id3) {
+        if (!id3) return EMPTY3;
+        const hit = this.cache[kind].get(id3);
+        if (hit) return hit;
+        const chain2 = [], seen = /* @__PURE__ */ new Set();
+        for (let at = id3; at && !seen.has(at); at = this.basedOn[kind].get(at)) {
+          if (chain2.length >= MAX_CHAIN2) {
+            this.truncated++;
+            break;
+          }
+          seen.add(at);
+          const own4 = this.own[kind].get(at);
+          if (own4) chain2.push(own4);
+        }
+        if (chain2.length && this.basedOn[kind].has([...seen].at(-1)) && seen.has(this.basedOn[kind].get([...seen].at(-1)))) this.truncated++;
+        const merged = /* @__PURE__ */ Object.create(null);
+        for (let i = chain2.length - 1; i >= 0; i--) Object.assign(merged, chain2[i]);
+        this.cache[kind].set(id3, merged);
+        return merged;
+      }
+    };
+    REPORT = {
+      "text.mixed-type": { approximated: "Text frames that mix sizes or fonts are set in their most common size and font." },
+      "text.justified": { approximated: "Justified paragraphs are set left aligned." },
+      "text.paragraph-spacing": { dropped: "Space before and after paragraphs is not carried; Design text has no paragraph spacing." },
+      "text.indents": { dropped: "Paragraph indents are not carried." },
+      "text.letter-case-position": { dropped: "All caps, small caps, superscript and subscript runs are set as typed." },
+      "text.distortion": { dropped: "Horizontal scale and skew on text are not carried." },
+      "text.anchored-objects": { dropped: "Objects anchored inside text and footnotes are not carried." },
+      "style.unresolved": { dropped: "Some styles named in the text were not found, so their formatting is not applied." },
+      "style.chain-cut": { approximated: "Some style chains were cut short at 32 levels or at a loop." },
+      "master.items": { approximated: "Master items are placed on each page by position; overridden items use the page copy." },
+      "master.nested": { dropped: "Masters based on other masters beyond 8 levels are not placed." },
+      "text.threaded": { approximated: "Text threaded across several frames is placed in the first frame only." },
+      "table.skipped": { dropped: "Tables or cells beyond the size limits, or with unreadable positions, are not carried." },
+      "table.border-colours": { approximated: "Cells with borders in several colours use one border colour." },
+      "table.layout": { approximated: "Tables become grouped frames placed at the top of their text frame, below the text before them." },
+      "table.styles": { dropped: "Table style regions (header and banded fills) are not carried; cell fills and borders are." },
+      "table.spans": { approximated: "Merged cells keep their combined size but not their inner borders." },
+      "wrap.text": { dropped: "Text wrap around objects is not carried; Design text does not flow around other boxes." },
+      "object.gradient": { approximated: "Gradient fills are set to the first colour of the gradient." },
+      "object.corner": { approximated: "Corner shapes other than rounded are set rounded; unequal corners use the largest radius." },
+      "object.stroke-type": { approximated: "Stroke types other than solid, dashed and dotted are drawn solid." },
+      "object.line": { approximated: "Diagonal lines become thin rotated frames with an outline." },
+      "object.inset": { approximated: "Text frames with unequal insets use their average inset." },
+      "object.vertical-justify": { dropped: "Vertical alignment of text in a frame is not carried." },
+      "object.effects": { dropped: "Drop shadows, feathering and other effects are not carried." }
+    };
+  }
+});
+
+// engine/src/idml-text.ts
+function collect3(el, name, out, depth = 0) {
+  if (depth > 16) return;
+  for (const c of Array.from(el.children)) {
+    if (c.localName === name) out.push(c);
+    else if (!SKIP.has(c.localName)) collect3(c, name, out, depth + 1);
+  }
+}
+function weightFromFontStyle(style) {
+  const s = String(style || "");
+  if (/black|heavy/i.test(s)) return 900;
+  if (/extra[\s-]*bold|ultra/i.test(s)) return 800;
+  if (/semi[\s-]*bold|demi/i.test(s)) return 600;
+  if (/bold/i.test(s)) return 700;
+  if (/medium/i.test(s)) return 500;
+  if (/light/i.test(s)) return 300;
+  return 400;
+}
+function alignOf(j) {
+  const s = String(j || "");
+  if (/Justified/i.test(s) || /^To(?:Binding)?/i.test(s)) return { align: "justify", justified: true };
+  if (/Center/i.test(s)) return { align: "center", justified: false };
+  if (/Right/i.test(s) || /Away/i.test(s)) return { align: "right", justified: false };
+  return { align: "left", justified: false };
+}
+function dominant2(pairs2) {
+  const tally3 = /* @__PURE__ */ new Map();
+  let best, bestN = 0;
+  for (const { v, w } of pairs2) {
+    if (v === void 0) continue;
+    const n7 = (tally3.get(v) ?? 0) + w;
+    tally3.set(v, n7);
+    if (n7 > bestN) {
+      best = v;
+      bestN = n7;
+    }
+  }
+  return best;
+}
+function buildText(container, env) {
+  const { book, stats } = env;
+  const paras = [], pieces = [], paraAttrs = [];
+  const psrs = [];
+  collect3(container, "ParagraphStyleRange", psrs);
+  const tables = [];
+  let runCount = 0, chars = 0;
+  for (const psr of psrs) {
+    const pref = psr.getAttribute("AppliedParagraphStyle") || NORMAL;
+    if (!book.has("paragraph", pref) && pref !== NORMAL) tally2(stats, "style.unresolved", "dropped");
+    else tally2(stats, "style.paragraph", "mapped");
+    const pstyle = book.resolve("paragraph", pref), plocal = ownProps(psr, "paragraph");
+    const pa = textAttrs(pstyle, plocal);
+    const { align, justified } = alignOf(pa.justification);
+    const makePara = () => {
+      const para2 = { runs: [], align };
+      if (pa.bullet && pa.bullet !== "none") para2.bullet = pa.bullet;
+      if (pa.bulletChar && pa.bullet === "bullet") para2.bulletChar = pa.bulletChar;
+      if ((pa.spaceBefore ?? 0) > 0) para2.spaceBeforePt = pa.spaceBefore;
+      if ((pa.spaceAfter ?? 0) > 0) para2.spaceAfterPt = pa.spaceAfter;
+      return para2;
+    };
+    let para = makePara(), group = [];
+    const finish2 = () => {
+      paras.push(para);
+      pieces.push(group);
+      paraAttrs.push(pa);
+      if (justified) tally2(stats, "text.justified", "approximated");
+      if ((pa.spaceBefore ?? 0) > 0 || (pa.spaceAfter ?? 0) > 0) tally2(stats, "text.paragraph-spacing", "dropped");
+      if (pa.leftIndent || pa.firstIndent || pa.rightIndent) tally2(stats, "text.indents", "dropped");
+      if (pa.bullet && pa.bullet !== "none") tally2(stats, "text.bullets", "mapped");
+      para = makePara();
+      group = [];
+    };
+    const csrs = [];
+    collect3(psr, "CharacterStyleRange", csrs);
+    for (const csr of csrs) {
+      const cref = csr.getAttribute("AppliedCharacterStyle") || "";
+      const resolved2 = book.has("character", cref);
+      if (cref && !resolved2 && !/\$ID\//.test(cref)) tally2(stats, "style.unresolved", "dropped");
+      else if (resolved2) tally2(stats, "style.character", "mapped");
+      const a = textAttrs(pstyle, plocal, book.resolve("character", cref), ownProps(csr, "character"));
+      const weight2 = weightFromFontStyle(a.fontStyle), hex4 = safeColor(env.colour(a.fill, a.fillTint), "");
+      const flat = (node, depth) => {
+        for (const child2 of Array.from(node.children)) {
+          const name = child2.localName;
+          if (name === "Content") {
+            runCount++;
+            chars += (child2.textContent || "").length;
+            if (runCount > MAX_RUNS2 || chars > 16 * 1024 * 1024) throw new Error("IDML story text exceeds the import limits.");
+            const text13 = child2.textContent || "";
+            if (!text13) continue;
+            const run3 = {
+              text: text13,
+              bold: weight2 >= 600 || /Bold|Black|Heavy/i.test(a.fontStyle || ""),
+              italic: /Italic|Oblique/i.test(a.fontStyle || ""),
+              underline: a.underline === true,
+              strike: a.strike === true,
+              ...a.size ? { sizePt: a.size } : {},
+              ...a.font ? { font: a.font } : {},
+              ...hex4 ? { color: { hex: hex4 } } : {}
+            };
+            if (/Super/i.test(a.position || "")) run3.baseline = "super";
+            else if (/Sub/i.test(a.position || "")) run3.baseline = "sub";
+            if (/AllCaps/i.test(a.capitalization || "")) run3.case = "upper";
+            else if (/SmallCaps/i.test(a.capitalization || "")) run3.case = "small-caps";
+            if (run3.baseline || run3.case) tally2(stats, "text.letter-case-position", "dropped");
+            if (a.distorted) tally2(stats, "text.distortion", "dropped");
+            para.runs.push(run3);
+            group.push({ text: text13, a, weight: weight2, hex: hex4 });
+          } else if (name === "Br") finish2();
+          else if (name === "Table") tables.push({ el: child2, before: paras.length, chars });
+          else if (name === "Footnote" || OBJECTS.has(name)) tally2(stats, "text.anchored-objects", "dropped");
+          else if (!SKIP.has(name) && depth < 8) flat(child2, depth + 1);
+        }
+      };
+      flat(csr, 0);
+    }
+    if (para.runs.length) finish2();
+  }
+  const weighted = pieces.flat().filter((p) => p.text.trim());
+  const w = (p) => p.text.trim().length;
+  const size = dominant2(weighted.map((p) => ({ v: p.a.size, w: w(p) })));
+  const font = dominant2(weighted.map((p) => ({ v: p.a.font, w: w(p) })));
+  const hex3 = dominant2(weighted.map((p) => ({ v: p.hex || void 0, w: w(p) })));
+  const tracking = dominant2(weighted.map((p) => ({ v: p.a.tracking, w: w(p) })));
+  const leading2 = dominant2(weighted.map((p) => ({ v: p.a.leading !== void 0 ? p.a.leading : p.a.autoLeading !== void 0 ? -p.a.autoLeading : void 0, w: w(p) })));
+  const weights = weighted.map((p) => p.weight);
+  const allBold = weights.length > 0 && weights.every((x) => x >= 600);
+  const weight = allBold ? dominant2(weighted.map((p) => ({ v: p.weight, w: w(p) }))) ?? 700 : dominant2(weighted.filter((p) => p.weight < 600).map((p) => ({ v: p.weight, w: w(p) }))) ?? 400;
+  if (new Set(weighted.map((p) => p.a.size)).size > 1 || new Set(weighted.map((p) => p.a.font)).size > 1) tally2(stats, "text.mixed-type", "approximated");
+  else if (weighted.length) tally2(stats, "text.type", "mapped");
+  const formatted = designTextOf(paras, { carryColour: true, rowWeight: weight });
+  const text12 = formatted.text;
+  const out = { text: text12, fontSize: size || 0, fg: hex3 || "", font: font || "", weight, align: formatted.align === "justify" ? "left" : formatted.align || "left" };
+  const baseSize = size || 12;
+  if (leading2 !== void 0) out.lineHeight = Math.max(0.5, Math.min(4, Math.round((leading2 > 0 ? leading2 / baseSize : -leading2 / 100) * 100) / 100));
+  else if (weighted.length) out.lineHeight = 1.2;
+  if (tracking) out.tracking = Math.round(tracking / 1e3 * baseSize * 100) / 100;
+  if (tracking !== void 0 || leading2 !== void 0) tally2(stats, "text.leading-tracking", "mapped");
+  if (tables.length) out.tables = tables;
+  return out;
+}
+var NORMAL, OBJECTS, SKIP, MAX_RUNS2;
+var init_idml_text = __esm({
+  "engine/src/idml-text.ts"() {
+    "use strict";
+    init_design_map();
+    init_design_text();
+    init_idml_styles();
+    NORMAL = "ParagraphStyle/$ID/NormalParagraphStyle";
+    OBJECTS = /* @__PURE__ */ new Set(["Rectangle", "Oval", "Polygon", "GraphicLine", "TextFrame", "Group"]);
+    SKIP = /* @__PURE__ */ new Set([...OBJECTS, "Table", "Footnote", "Note", "Properties", "Image", "EPS", "PDF"]);
+    MAX_RUNS2 = 2e5;
+  }
+});
+
+// engine/src/idml-table.ts
+function direct(el, name) {
+  return Array.from(el.children).filter((c) => c.localName === name);
+}
+function tableNodes(table, at, env, budget3) {
+  const { book, stats } = env;
+  const cols = direct(table, "Column").map((c) => numericAttr(c.getAttribute("SingleColumnWidth"), 0, 2e4) ?? 0);
+  const rows2 = direct(table, "Row").map((r5) => numericAttr(r5.getAttribute("SingleRowHeight"), 0, 2e4) ?? numericAttr(r5.getAttribute("MinimumHeight"), 0, 2e4) ?? 0);
+  const cells = direct(table, "Cell");
+  if (!cols.length || !rows2.length || cols.length > MAX_TRACKS || rows2.length > MAX_TRACKS) {
+    tally2(stats, "table.skipped", "dropped");
+    return { nodes: [], height: 0 };
+  }
+  budget3.cells += cells.length;
+  if (cells.length > MAX_CELLS_PER_TABLE || budget3.cells > MAX_CELLS_PER_DOCUMENT) {
+    tally2(stats, "table.skipped", "dropped");
+    return { nodes: [], height: 0 };
+  }
+  const xs = [0], ys = [0];
+  for (const w of cols) xs.push(xs.at(-1) + w);
+  for (const h of rows2) ys.push(ys.at(-1) + h);
+  const style = table.getAttribute("AppliedTableStyle") || "";
+  if (style && !/\[(?:Basic Table|No table style)\]/.test(style)) tally2(stats, "table.styles", "dropped");
+  tally2(stats, "table.layout", "approximated");
+  const nodes = [];
+  for (const cell2 of cells) {
+    const [c, r5] = (cell2.getAttribute("Name") || "").split(":").map(Number);
+    if (!Number.isInteger(c) || !Number.isInteger(r5) || c < 0 || r5 < 0 || c >= cols.length || r5 >= rows2.length) {
+      tally2(stats, "table.skipped", "dropped");
+      continue;
+    }
+    const cs = Math.max(1, Math.min(cols.length - c, numericAttr(cell2.getAttribute("ColumnSpan"), 1, MAX_TRACKS) ?? 1));
+    const rs = Math.max(1, Math.min(rows2.length - r5, numericAttr(cell2.getAttribute("RowSpan"), 1, MAX_TRACKS) ?? 1));
+    if (cs > 1 || rs > 1) tally2(stats, "table.spans", "approximated");
+    const w = xs[c + cs] - xs[c], h = ys[r5 + rs] - ys[r5];
+    if (w < 1 || h < 1) continue;
+    const a = { ...book.resolve("cell", cell2.getAttribute("AppliedCellStyle")), ...ownProps(cell2, "cell") };
+    const fill2 = env.colour(a.FillColor, numericAttr(a.FillTint, 0, 100));
+    const widths = EDGES.map((e) => numericAttr(a[`${e}EdgeStrokeWeight`], 0, 200) ?? 0);
+    const colours2 = EDGES.map((e, i) => widths[i] > 0 ? env.colour(a[`${e}EdgeStrokeColor`], numericAttr(a[`${e}EdgeStrokeTint`], 0, 100)) : "");
+    const ink = colours2.find(Boolean) || "";
+    const insets = ["Top", "Left", "Bottom", "Right"].map((e) => numericAttr(a[`${e}Inset`], 0, 400) ?? 0);
+    const node = { kind: "box", x: at.x + xs[c], y: at.y + ys[r5], w, h, rot: 0, group: at.group, fill: fill2 };
+    if (ink) {
+      node.stroke = ink;
+      node.strokeW = Math.max(...widths);
+      node.strokeAlign = "inside";
+      if (new Set(widths).size > 1) [node.strokeTop, node.strokeLeft, node.strokeBottom, node.strokeRight] = widths;
+      if (new Set(colours2.filter(Boolean)).size > 1) tally2(stats, "table.border-colours", "approximated");
+    }
+    const story = buildText(cell2, env);
+    if (story.text.trim()) {
+      Object.assign(node, {
+        kind: "text",
+        text: story.text,
+        fg: story.fg || "#000000",
+        fontSize: story.fontSize || 12,
+        fontFamily: story.font || "",
+        fontWeight: story.weight || 400,
+        textAlign: story.align || "left",
+        pad: Math.round(insets.reduce((s, v) => s + v, 0) / 4),
+        ...story.lineHeight ? { lineHeight: story.lineHeight } : {},
+        ...story.tracking ? { tracking: story.tracking } : {}
+      });
+    }
+    nodes.push(node);
+    tally2(stats, "table.cells", "mapped");
+  }
+  return { nodes, height: ys.at(-1) };
+}
+var MAX_CELLS_PER_TABLE, MAX_CELLS_PER_DOCUMENT, MAX_TRACKS, EDGES;
+var init_idml_table = __esm({
+  "engine/src/idml-table.ts"() {
+    "use strict";
+    init_idml_text();
+    init_idml_styles();
+    MAX_CELLS_PER_TABLE = 5e3;
+    MAX_CELLS_PER_DOCUMENT = 2e4;
+    MAX_TRACKS = 512;
+    EDGES = ["Top", "Left", "Bottom", "Right"];
+  }
+});
+
+// engine/src/idml-object.ts
+function objectAttrs(el, book) {
+  const a = { ...book.resolve("object", el.getAttribute("AppliedObjectStyle")), ...ownProps(el, "object"), ...itemChildProps(el) };
+  const t = Array.from(el.children).find((c) => c.localName === "TransparencySetting");
+  if (t) for (const e of Array.from(t.children)) {
+    if (/^(?:DropShadow|InnerShadow|OuterGlow|InnerGlow|BevelAndEmboss|Satin|BasicFeather|DirectionalFeather|GradientFeather)Setting$/.test(e.localName) && (e.getAttribute("Mode") ?? "None") !== "None" && e.getAttribute("Applied") !== "false") a._effect = "1";
+  }
+  return a;
+}
+function applyAppearance(node, tag3, a, colour, stats) {
+  const tint = (key2) => numericAttr(a[key2], 0, 100);
+  if (a.FillColor !== void 0 && tag3 !== "GraphicLine") {
+    if (a.FillColor.startsWith("Gradient/")) tally2(stats, "object.gradient", "approximated");
+    node.fill = colour(a.FillColor, tint("FillTint"));
+    if (node.fill) tally2(stats, "object.fill", "mapped");
+  }
+  const weight = numericAttr(a.StrokeWeight, 0, 400) ?? 0, ink = colour(a.StrokeColor, tint("StrokeTint"));
+  if (weight > 0 && ink) {
+    tally2(stats, "object.stroke", "mapped");
+    if (tag3 === "GraphicLine" && node.rot === 0 && (node.h < 1 || node.w < 1)) {
+      if (node.h < 1) {
+        node.y -= weight / 2;
+        node.h = weight;
+      } else {
+        node.x -= weight / 2;
+        node.w = weight;
+      }
+      node.fill = ink;
+    } else {
+      if (tag3 === "GraphicLine") tally2(stats, "object.line", "approximated");
+      node.stroke = ink;
+      node.strokeW = weight;
+      node.strokeAlign = /Inside/i.test(a.StrokeAlignment || "") ? "inside" : /Outside/i.test(a.StrokeAlignment || "") ? "outside" : "center";
+      const type = a.StrokeType || "";
+      if (/Dashed/i.test(type)) node.strokeDash = "dashed";
+      else if (/Dot/i.test(type)) node.strokeDash = "dotted";
+      else if (type && !/Solid/i.test(type)) tally2(stats, "object.stroke-type", "approximated");
+    }
+  }
+  if (tag3 === "Rectangle" || tag3 === "TextFrame") {
+    let radius = 0, other = false, plain = 0;
+    for (const c of CORNERS) {
+      const option = a[`${c}CornerOption`] ?? a.CornerOption ?? "None";
+      if (option === "None") {
+        plain++;
+        continue;
+      }
+      if (option !== "RoundedCorner") other = true;
+      radius = Math.max(radius, numericAttr(a[`${c}CornerRadius`] ?? a.CornerRadius, 0, 2e3) ?? 0);
+    }
+    if (radius > 0) {
+      node.radius = radius;
+      tally2(stats, "object.corner", other || plain > 0 ? "approximated" : "mapped");
+    }
+  }
+  const opacity = numericAttr(a.Opacity, 0, 100);
+  if (opacity !== void 0 && opacity < 100) {
+    node.opacity = opacity;
+    tally2(stats, "object.opacity", "mapped");
+  }
+  const blend2 = BLEND[a.BlendMode || ""];
+  if (blend2) {
+    node.blend = blend2;
+    tally2(stats, "object.blend", "mapped");
+  }
+  if (a._effect) tally2(stats, "object.effects", "dropped");
+  if (a.TextWrapMode && a.TextWrapMode !== "None") tally2(stats, "wrap.text", "dropped");
+  if (tag3 === "TextFrame") {
+    if (a.VerticalJustification && a.VerticalJustification !== "TopAlign") tally2(stats, "object.vertical-justify", "dropped");
+    const inset = (a.InsetSpacing || "").split(/\s+/).map(Number);
+    if (inset.length === 4 && inset.every(Number.isFinite)) {
+      node.pad = Math.max(0, Math.round(inset.reduce((s, v) => s + v, 0) / 4));
+      if (new Set(inset).size > 1) tally2(stats, "object.inset", "approximated");
+    }
+  }
+}
+var BLEND, CORNERS;
+var init_idml_object = __esm({
+  "engine/src/idml-object.ts"() {
+    "use strict";
+    init_idml_styles();
+    BLEND = {
+      Multiply: "multiply",
+      Screen: "screen",
+      Overlay: "overlay",
+      SoftLight: "soft-light",
+      HardLight: "hard-light",
+      ColorDodge: "color-dodge",
+      ColorBurn: "color-burn",
+      Darken: "darken",
+      Lighten: "lighten",
+      Difference: "difference",
+      Exclusion: "exclusion",
+      Hue: "hue",
+      Saturation: "saturation",
+      Color: "color",
+      Luminosity: "luminosity"
+    };
+    CORNERS = ["TopLeft", "TopRight", "BottomLeft", "BottomRight"];
+  }
+});
+
+// engine/src/idml-master.ts
+function pageRect(page3, transform2) {
+  const bounds = (page3.getAttribute("GeometricBounds") || "").split(/\s+/).map(Number);
+  if (bounds.length !== 4 || bounds.some((n7) => !Number.isFinite(n7))) return null;
+  const g2 = boxGeomFromBBox({ x: bounds[1], y: bounds[0], width: bounds[3] - bounds[1], height: bounds[2] - bounds[0] }, transform2);
+  return { x: g2.x, y: g2.y, w: g2.w, h: g2.h };
+}
+var MAX_MASTERS, MAX_DEPTH8, MasterBook;
+var init_idml_master = __esm({
+  "engine/src/idml-master.ts"() {
+    "use strict";
+    init_design_map();
+    init_idml_styles();
+    MAX_MASTERS = 256;
+    MAX_DEPTH8 = 8;
+    MasterBook = class {
+      masters = /* @__PURE__ */ new Map();
+      constructor(entries, pageRectOf, walk3) {
+        if (entries.length > MAX_MASTERS) throw new Error("IDML contains more than 256 master spreads.");
+        for (const { id: id3, el } of entries) {
+          const pages = Array.from(el.children).filter((c) => c.localName === "Page").flatMap((page3) => {
+            const rect = pageRectOf(page3);
+            return rect ? [{ rect, applied: page3.getAttribute("AppliedMaster") || "" }] : [];
+          });
+          const items2 = [];
+          for (const child2 of Array.from(el.children)) {
+            if (child2.localName === "Page") continue;
+            const nodes = walk3(child2);
+            if (!nodes.length) continue;
+            const x0 = Math.min(...nodes.map((n7) => n7.x)), y0 = Math.min(...nodes.map((n7) => n7.y));
+            const x1 = Math.max(...nodes.map((n7) => n7.x + n7.w)), y1 = Math.max(...nodes.map((n7) => n7.y + n7.h));
+            items2.push({ self: child2.getAttribute("Self") || "", nodes, centre: { x: (x0 + x1) / 2, y: (y0 + y1) / 2 } });
+          }
+          this.masters.set(id3, { pages, items: items2 });
+        }
+      }
+      get size() {
+        return this.masters.size;
+      }
+      has(id3) {
+        return !!id3 && this.masters.has(id3);
+      }
+      /** The master's nodes for one target page, parents first, with page positions applied. */
+      place(id3, target2, overrides, stats, depth = 0, seen = /* @__PURE__ */ new Set()) {
+        const master = this.masters.get(id3);
+        if (!master?.pages.length) return [];
+        if (depth >= MAX_DEPTH8 || seen.has(id3)) {
+          tally2(stats, "master.nested", "dropped");
+          return [];
+        }
+        seen.add(id3);
+        const page3 = master.pages.reduce((best, p) => Math.abs(p.rect.x - target2.x) < Math.abs(best.rect.x - target2.x) ? p : best);
+        const dx = target2.x - page3.rect.x, dy = target2.y - page3.rect.y;
+        const out = page3.applied && this.masters.has(page3.applied) ? this.place(page3.applied, target2, overrides, stats, depth + 1, seen) : [];
+        seen.delete(id3);
+        const r5 = page3.rect;
+        for (const item2 of master.items) {
+          if (item2.centre.x < r5.x || item2.centre.x > r5.x + r5.w || item2.centre.y < r5.y || item2.centre.y > r5.y + r5.h) {
+            tally2(stats, "master.pasteboard", "dropped");
+            continue;
+          }
+          if (item2.self && overrides.has(item2.self)) {
+            tally2(stats, "master.overridden", "mapped");
+            continue;
+          }
+          for (const n7 of item2.nodes) {
+            if (n7.empty) continue;
+            out.push({ ...n7, x: n7.x + dx, y: n7.y + dy, group: n7.group ? `${id3}:${depth}:${n7.group}` : "" });
+          }
+          tally2(stats, "master.items", "mapped");
+        }
+        return out;
+      }
+    };
+  }
+});
+
 // engine/src/idml-read.ts
 import { strFromU8 } from "fflate";
 async function readIdmlSpreads(files, parse2, { warn: warn2 = () => {
-}, map, linkedFiles = {}, storeImage } = {}) {
+}, map, linkedFiles = {}, storeImage, stats = {} } = {}) {
   if (Object.keys(files).length > 4096 || Object.values(files).reduce((n7, b) => n7 + b.length, 0) > 128 * 1024 * 1024) throw new Error("IDML package exceeds the import limits.");
   const xml3 = (path) => {
     const b = files[path];
@@ -148477,16 +149208,24 @@ async function readIdmlSpreads(files, parse2, { warn: warn2 = () => {
   const spreadSrcs = pkgSrcs("Spread");
   if (!spreadSrcs.length) throw new Error("This .idml has no spreads to import.");
   const swatches = parseSwatches(xml3(pkgSrcs("Graphic")[0] || "Resources/Graphic.xml"));
-  const styles = /* @__PURE__ */ new Map();
-  const stylesDoc = xml3(pkgSrcs("Styles")[0] || "Resources/Styles.xml");
-  if (stylesDoc) {
-    for (const el of elems(stylesDoc)) if (el.hasAttribute("Self")) styles.set(el.getAttribute("Self"), el);
-  }
+  const book = new StyleBook(xml3(pkgSrcs("Styles")[0] || "Resources/Styles.xml"));
   const stories = /* @__PURE__ */ Object.create(null);
   for (const src of pkgSrcs("Story")) {
     const d = xml3(src);
-    if (d) parseStories(d, swatches, stories, styles, warn2);
+    if (d) parseStories(d, swatches, stories, book, warn2, stats);
   }
+  const masterEntries = pkgSrcs("MasterSpread").flatMap((src) => {
+    const doc = xml3(src), el = doc && innerElement(doc, "MasterSpread");
+    return el ? [{ id: el.getAttribute("Self") || "", el }] : [];
+  });
+  const env = { book, warn: warn2, stats, colour: (ref2, tint) => tintHex(resolveColor3(ref2 ?? null, swatches), tint) };
+  const shared = { used: /* @__PURE__ */ new Set(), tables: { cells: 0 }, env };
+  const masterGroups = { group: 0 };
+  const masters = new MasterBook(masterEntries, (el) => pageRect(el, parseItemTransform(el)), (item2) => {
+    const mctx = { nodes: [], swatches, stories, seen: masterGroups, warn: warn2, book, stats, ...shared };
+    walkItem(item2, IDENTITY6, "", mctx);
+    return mctx.nodes;
+  });
   if (spreadSrcs.length > 256) throw new Error("IDML contains more than 256 spreads.");
   const frames = [];
   const images = /* @__PURE__ */ new Map();
@@ -148494,8 +149233,18 @@ async function readIdmlSpreads(files, parse2, { warn: warn2 = () => {
   for (const [index2, src] of spreadSrcs.entries()) {
     const spreadDoc = xml3(src), spreadEl = spreadDoc && innerElement(spreadDoc, "Spread");
     if (!spreadEl) throw new Error(`Could not read IDML spread ${index2 + 1}.`);
-    const ctx = { nodes: [], swatches, stories, seen: { group: 0 }, warn: warn2 };
+    const ctx = { nodes: [], swatches, stories, seen: { group: 0 }, warn: warn2, book, stats, ...shared };
     for (const child2 of Array.from(spreadEl.children)) walkItem(child2, IDENTITY6, "", ctx);
+    const pageEls = Array.from(spreadEl.children).filter((el) => el.localName === "Page");
+    const pageRects = pageEls.map((el) => pageRect(el, parseItemTransform(el)));
+    if (masters.size > 0 && spreadEl.getAttribute("ShowMasterItems") !== "false") {
+      const below = [];
+      pageEls.forEach((el, i) => {
+        const rect = pageRects[i], id3 = el.getAttribute("AppliedMaster") || "";
+        if (rect && masters.has(id3)) below.push(...masters.place(id3, rect, new Set((el.getAttribute("OverrideList") || "").split(/\s+/).filter(Boolean)), stats));
+      });
+      ctx.nodes = [...below, ...ctx.nodes];
+    }
     if (ctx.nodes.length > 1e4) throw new Error("IDML spread exceeds the item limit.");
     totalItems += ctx.nodes.length;
     if (totalItems > 1e5) throw new Error("IDML document exceeds the total item limit.");
@@ -148513,11 +149262,7 @@ async function readIdmlSpreads(files, parse2, { warn: warn2 = () => {
         } else warn2(`Image ${name} could not be imported.`);
       } else warn2(`Missing linked image: ${node._imagePath}. Supply its bytes to replace the placeholder.`);
     }
-    const pages = Array.from(spreadEl.children).filter((el) => el.localName === "Page").map((el) => {
-      const bounds = (el.getAttribute("GeometricBounds") || "").split(/\s+/).map(Number);
-      if (bounds.length !== 4 || bounds.some((n7) => !Number.isFinite(n7))) return null;
-      return boxGeomFromBBox({ x: bounds[1], y: bounds[0], width: bounds[3] - bounds[1], height: bounds[2] - bounds[0] }, parseItemTransform(el));
-    }).filter((p) => p !== null);
+    const pages = pageRects.filter((p) => p !== null);
     let size;
     if (pages.length) {
       const x = Math.min(...pages.map((p) => p.x)), y = Math.min(...pages.map((p) => p.y));
@@ -148530,6 +149275,8 @@ async function readIdmlSpreads(files, parse2, { warn: warn2 = () => {
     if (!Number.isFinite(size.width * size.height) || size.width * size.height > 32e6 || ctx.nodes.some((node) => ![node.x, node.y, node.w, node.h, node.rot].every(Number.isFinite))) throw new Error("IDML spread geometry exceeds the preview limits.");
     frames.push({ ...size, nodes: ctx.nodes, name: `Spread ${index2 + 1}`, boxes: finalizeBoxes(ctx.nodes, { prefix: `d${index2}-`, ...map }), background: "#ffffff" });
   }
+  if (book.truncated) tally2(stats, "style.chain-cut", "approximated", book.truncated);
+  for (const note2 of statsNotes(stats)) warn2(note2);
   return frames;
 }
 function walkItem(el, parentMatrix, group, ctx) {
@@ -148546,34 +149293,54 @@ function walkItem(el, parentMatrix, group, ctx) {
   const geom = boxGeomFromBBox(bbox, world);
   if (geom.w < 1 && geom.h < 1) return;
   const base = { x: geom.x, y: geom.y, w: geom.w, h: geom.h, rot: geom.rot, group };
-  const fill2 = resolveColor3(el.getAttribute("FillColor"), ctx.swatches);
+  const attrs = objectAttrs(el, ctx.book);
+  const push = (node2) => {
+    applyAppearance(node2, tag3, attrs, ctx.env.colour, ctx.stats);
+    if (node2.kind === "box" && node2.empty && (node2.fill || node2.stroke)) delete node2.empty;
+    ctx.nodes.push(node2);
+  };
   if (tag3 === "TextFrame") {
-    const story = ctx.stories[el.getAttribute("ParentStory") || ""];
-    if (story && (story.text || "").trim()) {
-      ctx.nodes.push({
+    const storyId = el.getAttribute("ParentStory") || "";
+    const story = ctx.stories[storyId];
+    if (story && !ctx.used.has(storyId) && ((story.text || "").trim() || story.tables?.length)) {
+      ctx.used.add(storyId);
+      if ((story.text || "").trim()) push({
         kind: "text",
         ...base,
         text: story.text,
-        fg: story.fg || safeColor(fill2, "") || "#0c322c",
+        fg: story.fg || "#0c322c",
         fontSize: story.fontSize || 24,
         fontFamily: story.font || "",
         fontWeight: story.weight || 400,
-        textAlign: story.align || "left"
+        textAlign: story.align || "left",
+        ...story.lineHeight ? { lineHeight: story.lineHeight } : {},
+        ...story.tracking ? { tracking: story.tracking } : {}
       });
+      let cursor = 0;
+      for (const [i, t] of (story.tables ?? []).entries()) {
+        const size = story.fontSize || 12, lines = Math.max(t.before, Math.ceil(t.chars * size * 0.5 / Math.max(1, geom.w)));
+        const y = base.y + Math.max(cursor, lines * size * (story.lineHeight || 1.2));
+        const made = tableNodes(t.el, { x: base.x, y, group: `${group || "table"}-${++ctx.seen.group}-${i}` }, ctx.env, ctx.tables);
+        ctx.nodes.push(...made.nodes);
+        cursor = y - base.y + made.height;
+      }
       return;
     }
-    ctx.nodes.push({ kind: "box", ...base, fill: "" });
+    if (story && ctx.used.has(storyId)) tally2(ctx.stats, "text.threaded", "approximated");
+    push({ kind: "box", ...base, fill: "", empty: true });
     return;
   }
   if (hasPlacedContent(el)) {
     const link = Array.from(el.getElementsByTagName("Link"))[0];
-    ctx.nodes.push({ kind: "box", ...base, fill: fill2 || "#eef1f0", _imagePath: link?.getAttribute("LinkResourceURI") || "" });
+    const node2 = { kind: "box", ...base, fill: "", _imagePath: link?.getAttribute("LinkResourceURI") || "" };
+    push(node2);
+    if (!node2.fill) node2.fill = "#eef1f0";
     if (!link) ctx.warn("A placed graphic has no readable link and remains a placeholder.");
     return;
   }
-  const node = { kind: "box", ...base, fill: fill2 };
+  const node = { kind: "box", ...base, fill: "" };
   if (tag3 === "Oval") node.shape = "ellipse";
-  ctx.nodes.push(node);
+  push(node);
 }
 function parseItemTransform(el) {
   const t = (el.getAttribute("ItemTransform") || "").trim().split(/\s+/).map(Number);
@@ -148581,8 +149348,8 @@ function parseItemTransform(el) {
   return { a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5] };
 }
 function localBBox(el) {
-  const props = directChild(el, "Properties");
-  const geom = props && directChild(props, "PathGeometry");
+  const props = directChild2(el, "Properties");
+  const geom = props && directChild2(props, "PathGeometry");
   const anchors = geom ? Array.from(geom.getElementsByTagName("PathPointType")) : [];
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const pt of anchors) {
@@ -148630,6 +149397,12 @@ function parseSwatches(doc) {
     const hex3 = colorValueToHex(c.getAttribute("Space"), c.getAttribute("ColorValue"));
     if (hex3) map[self] = hex3;
   }
+  for (const g2 of Array.from(doc.getElementsByTagName("Gradient"))) {
+    const self = g2.getAttribute("Self");
+    const stop = Array.from(g2.children).find((c) => c.localName === "GradientStop");
+    const base = stop?.getAttribute("StopColor");
+    if (self && base && map[base]) map[self] = map[base];
+  }
   for (const t of Array.from(doc.getElementsByTagName("Tint"))) {
     const self = t.getAttribute("Self");
     const base = t.getAttribute("BaseColor");
@@ -148661,69 +149434,19 @@ function colorValueToHex(space, value2) {
 function rgb(r5, g2, b) {
   return "#" + [r5, g2, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
-function parseStories(doc, swatches, out, styles = /* @__PURE__ */ new Map(), warn2 = () => {
-}) {
+function parseStories(doc, swatches, out, book = new StyleBook(null), warn2 = () => {
+}, stats) {
+  const colour = (ref2, tint) => tintHex(resolveColor3(ref2 ?? null, swatches), tint);
   for (const story of Array.from(doc.getElementsByTagName("Story"))) {
     const self = story.getAttribute("Self");
     if (!self) continue;
-    const paras = [];
-    let fontSize = 0, fg = "", font = "", weight = 0, align = "";
-    for (const psr of Array.from(story.getElementsByTagName("ParagraphStyleRange"))) {
-      const ps = styles.get(psr.getAttribute("AppliedParagraphStyle") || "");
-      const paragraphAlign = mapAlign(justificationToAlign(psr.getAttribute("Justification") || ps?.getAttribute("Justification") || null));
-      if (!align) align = paragraphAlign;
-      const para = { runs: [], align: paragraphAlign };
-      for (const csr of Array.from(psr.getElementsByTagName("CharacterStyleRange"))) {
-        const cs = styles.get(csr.getAttribute("AppliedCharacterStyle") || "");
-        const attr7 = (key2) => csr.getAttribute(key2) || cs?.getAttribute(key2) || psr.getAttribute(key2) || ps?.getAttribute(key2) || "";
-        const size = parseFloat(attr7("PointSize")) || 0, color6 = safeColor(resolveColor3(attr7("FillColor"), swatches), "");
-        const family2 = fontFamilyOf(csr) || (cs ? fontFamilyOf(cs) : "") || (ps ? fontFamilyOf(ps) : ""), style = attr7("FontStyle");
-        if (!fontSize) fontSize = size;
-        if (!fg) fg = color6;
-        if (!font) font = family2;
-        if (!weight) weight = weightFromFontStyle(style);
-        let text12 = "";
-        for (const child2 of Array.from(csr.childNodes)) {
-          if (child2.nodeType === 1 && child2.localName === "Content") text12 += child2.textContent || "";
-          else if (child2.nodeType === 1 && child2.localName === "Br") text12 += "\n";
-        }
-        if (text12) para.runs.push({ text: text12, bold: /Bold|Black|Heavy/i.test(style), italic: /Italic|Oblique/i.test(style), underline: attr7("Underline") === "true", strike: attr7("StrikeThru") === "true", ...size ? { sizePt: size } : {}, ...family2 ? { font: family2 } : {}, ...color6 ? { color: { hex: color6 } } : {} });
-      }
-      const last = para.runs.at(-1);
-      if (last?.text.endsWith("\n")) last.text = last.text.slice(0, -1);
-      paras.push(para);
-    }
-    if (paras.some((para) => para.runs.some((run3) => !run3.bold && run3.text.trim()))) weight = 400;
-    const formatted = designTextOf(paras, { carryColour: true, rowWeight: weight || 400 });
-    if (formatted.dropped.length) warn2(`Story ${self}: unsupported formatting ${formatted.dropped.join(", ")}.`);
-    if (story.getElementsByTagName("Table").length || story.getElementsByTagName("Footnote").length) warn2(`Story ${self}: tables and footnotes are reduced to supported text runs.`);
-    out[self] = { text: formatted.text, fontSize, fg, font, weight, align };
+    out[self] = buildText(story, { book, colour, warn: warn2, stats });
   }
-}
-function justificationToAlign(j) {
-  const s = String(j || "");
-  if (/Center/i.test(s)) return "center";
-  if (/Right/i.test(s)) return "right";
-  return "left";
-}
-function fontFamilyOf(csr) {
-  const af = csr.getElementsByTagName("AppliedFont")[0];
-  return af && (af.textContent || "").trim() || csr.getAttribute("AppliedFont") || "";
-}
-function weightFromFontStyle(style) {
-  const s = String(style || "");
-  if (/black|heavy/i.test(s)) return 900;
-  if (/extra[\s-]*bold|ultra/i.test(s)) return 800;
-  if (/semi[\s-]*bold|demi/i.test(s)) return 600;
-  if (/bold/i.test(s)) return 700;
-  if (/medium/i.test(s)) return 500;
-  if (/light/i.test(s)) return 300;
-  return 400;
 }
 function elems(doc) {
   return Array.from(doc.getElementsByTagName("*"));
 }
-function directChild(el, localName5) {
+function directChild2(el, localName5) {
   for (const c of Array.from(el.children)) if (c.localName === localName5) return c;
   return null;
 }
@@ -148743,7 +149466,11 @@ var init_idml_read = __esm({
     "use strict";
     init_design_map();
     init_adobe_xml();
-    init_design_text();
+    init_idml_styles();
+    init_idml_text();
+    init_idml_table();
+    init_idml_object();
+    init_idml_master();
     IDENTITY6 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
     ITEM_TAGS = /* @__PURE__ */ new Set(["Rectangle", "Oval", "Polygon", "GraphicLine", "TextFrame", "Group"]);
     BUILTIN_SWATCHES = {
@@ -153499,8 +154226,8 @@ function readRenovationLollyFile(bytes2) {
 }
 function renovationAssetRow(manifest, ref2) {
   const rows2 = Array.isArray(manifest.assets) ? manifest.assets : [];
-  const direct = rows2.find((row) => row.id === ref2);
-  if (direct) return direct;
+  const direct2 = rows2.find((row) => row.id === ref2);
+  if (direct2) return direct2;
   let key2;
   try {
     key2 = assetDependency({ id: ref2 }).key;
@@ -162838,7 +163565,7 @@ function count3(n7, one, many = `${one}s`) {
   return `${n7} ${n7 === 1 ? one : many}`;
 }
 function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
-  if (depth > MAX_DEPTH8 || out.length >= MAX_ITEMS2) return out;
+  if (depth > MAX_DEPTH9 || out.length >= MAX_ITEMS2) return out;
   const tag3 = refTag(node);
   if (tag3) {
     if (seen.has(tag3)) return out;
@@ -162907,7 +163634,7 @@ function emptySink() {
   return { scripts: [], uris: [], launches: [], submits: [], remotes: [] };
 }
 function walkAction(ctx, action, sink, seen, depth = 0) {
-  if (depth > MAX_DEPTH8) return;
+  if (depth > MAX_DEPTH9) return;
   const tag3 = refTag(action);
   if (tag3) {
     if (seen.has(tag3)) return;
@@ -162986,7 +163713,7 @@ function fieldValue(ctx, v) {
   return null;
 }
 function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
-  if (depth > MAX_DEPTH8 || out.length >= MAX_ITEMS2) return;
+  if (depth > MAX_DEPTH9 || out.length >= MAX_ITEMS2) return;
   const tag3 = refTag(node);
   if (tag3) {
     if (seen.has(tag3)) return;
@@ -163138,11 +163865,11 @@ function scanPdfStructure(doc) {
   if (pages.length) add3("Pages", count3(pages.length, "page"));
   return out;
 }
-var MAX_DEPTH8, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
+var MAX_DEPTH9, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
 var init_pdf_structure = __esm({
   "packages/node-shell/src/pdf-structure.ts"() {
     "use strict";
-    MAX_DEPTH8 = 32;
+    MAX_DEPTH9 = 32;
     MAX_ITEMS2 = 500;
     LIST_CAP = 8;
     DETAIL_CAP = 400;
@@ -164718,7 +165445,7 @@ function countOutline(ctx, outlines) {
 }
 function inherited2(ctx, start, key2) {
   let node = start;
-  for (let depth = 0; node && depth < MAX_DEPTH9; depth++) {
+  for (let depth = 0; node && depth < MAX_DEPTH10; depth++) {
     const value2 = get3(node, key2);
     if (value2 !== void 0) return value2;
     node = dictOf3(ctx, get3(node, "Parent"));
@@ -164727,7 +165454,7 @@ function inherited2(ctx, start, key2) {
 }
 function fieldTag(ctx, widgetRef, widget) {
   let ref2 = widgetRef, node = widget;
-  for (let depth = 0; node && depth < MAX_DEPTH9; depth++) {
+  for (let depth = 0; node && depth < MAX_DEPTH10; depth++) {
     if (get3(node, "T") !== void 0) return ref2 instanceof PDFRef4 ? ref2.tag : null;
     ref2 = get3(node, "Parent");
     node = dictOf3(ctx, ref2);
@@ -164779,7 +165506,7 @@ function countSignatures(ctx, doc) {
       signed++;
       continue;
     }
-    if (kids2 && depth < MAX_DEPTH9) for (const kid of kids2) stack.push({ ref: kid, depth: depth + 1 });
+    if (kids2 && depth < MAX_DEPTH10) for (const kid of kids2) stack.push({ ref: kid, depth: depth + 1 });
   }
   return signed;
 }
@@ -164951,13 +165678,13 @@ function pageEffects(docs, outputPages, inPlace) {
   }
   return effects;
 }
-var MAX_ITEMS3, MAX_ANNOTS_PER_PAGE, MAX_DEPTH9;
+var MAX_ITEMS3, MAX_ANNOTS_PER_PAGE, MAX_DEPTH10;
 var init_pdf_page_effects = __esm({
   "packages/node-shell/src/pdf-page-effects.ts"() {
     "use strict";
     MAX_ITEMS3 = 1e4;
     MAX_ANNOTS_PER_PAGE = 2e3;
-    MAX_DEPTH9 = 32;
+    MAX_DEPTH10 = 32;
   }
 });
 
@@ -169689,8 +170416,8 @@ async function exportDesignLottie(opts, host) {
   };
   const content2 = visible2.filter((box4) => box4.kind !== "frame" && !yes(box4.ignored) && (!frame || String(box4.frame) === String(frame.id)));
   const timed = content2.filter((box4) => box4.lane === "seq" || authoredTime(box4.start));
-  const finite8 = timed.filter((box4) => authoredTime(box4.dur));
-  const durationMs = finite8.length ? Math.max(...finite8.map((box4) => start(box4) + Math.round(clamp10(lottieCompatNumber(box4.dur), 0.1, 3600) * 1e3))) : 5e3;
+  const finite9 = timed.filter((box4) => authoredTime(box4.dur));
+  const durationMs = finite9.length ? Math.max(...finite9.map((box4) => start(box4) + Math.round(clamp10(lottieCompatNumber(box4.dur), 0.1, 3600) * 1e3))) : 5e3;
   const layers = [];
   const fps = lottieCompatNumber(opts.fps, lottieCompatNumber(values.projectFps, 30));
   const motion = await readHostMotionTokens(host);
@@ -170450,7 +171177,7 @@ Q
         out += `${n6(first[0])} ${n6(first[1])} m ${rest2.map(([x, y]) => `${n6(x)} ${n6(y)} l`).join(" ")} h W n
 `;
       }
-      const blend2 = op.blend ? BLEND[op.blend] : void 0;
+      const blend2 = op.blend ? BLEND2[op.blend] : void 0;
       if (op.opacity < 100 || blend2) {
         const form = objects.reserve();
         const formRes = new Resources(), outer = res;
@@ -170491,7 +171218,7 @@ ${clipTo(page3.clip)}${rows2}Q
   }
   return objects.bytes(catalog, infoNum);
 }
-var enc5, color5, PdfObjects, Resources, KAPPA3, ringed, CAPS3, JOINS3, BLEND, pdfImageCache;
+var enc5, color5, PdfObjects, Resources, KAPPA3, ringed, CAPS3, JOINS3, BLEND2, pdfImageCache;
 var init_design_draw_pdf = __esm({
   "engine/src/design-draw-pdf.ts"() {
     "use strict";
@@ -170591,7 +171318,7 @@ ${at}
     ringed = (op) => op.shape.kind !== "path" && !!op.stroke && (!!op.stroke.sides || op.stroke.align === "center" || op.stroke.align === "outside");
     CAPS3 = { butt: 0, round: 1, square: 2 };
     JOINS3 = { miter: 0, round: 1, bevel: 2 };
-    BLEND = {
+    BLEND2 = {
       multiply: "Multiply",
       screen: "Screen",
       overlay: "Overlay",
@@ -174654,8 +175381,8 @@ async function imageResolutionFindings(input, opts, lookup4) {
     const raw = typeof row.image === "string" ? row.image : record39(row.image) && typeof row.image.id === "string" ? row.image.id : "";
     if (!raw || /^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("{") || raw.startsWith("/")) continue;
     const ref2 = stripAssetModifiers(raw);
-    const w = finite7(row.w);
-    const h = finite7(row.h);
+    const w = finite8(row.w);
+    const h = finite8(row.h);
     if (w <= 0 || h <= 0) continue;
     const size = await sizeOf3(ref2);
     if (!size) {
@@ -174667,7 +175394,7 @@ async function imageResolutionFindings(input, opts, lookup4) {
     const sx = w / size.w;
     const sy = h / size.h;
     const framing = record39(row.imageFraming) ? row.imageFraming : null;
-    const zoom = framing ? Math.max(1, finite7(framing.zoom, 100)) / 100 : 1;
+    const zoom = framing ? Math.max(1, finite8(framing.zoom, 100)) / 100 : 1;
     const fitted = fit === "none" ? 1 : fit === "scale-down" ? Math.min(1, sx, sy) : fit === "contain" ? Math.min(sx, sy) : Math.max(sx, sy);
     const scale = fitted * zoom;
     if (!(scale > IMAGE_MAX_UPSCALE + 1e-9)) continue;
@@ -175122,7 +175849,7 @@ async function checkFile(bytes2, name, asked = {}) {
     ...designSystem2 !== void 0 ? { designSystem: designSystem2 } : {}
   };
 }
-var EXIT2, FAMILIES, CHECK_MAX_INPUT_BYTES, SURFACE_WORDS, CheckInputError, record39, plural8, finite7, sha2562, zero, familyState, tierMissing, TEXT_MEASURE_CHECK_MAX_UNITS, IMAGE_MAX_UPSCALE, IMAGE_RESOLUTION_MAX_PICTURES, RASTER_FORMATS2, INFORM_ONLY_CODES, isFailed, LAYOUT_COLLECTORS, LINKED_COLOUR_FIELDS, DESIGN_CANVAS_BACKGROUND;
+var EXIT2, FAMILIES, CHECK_MAX_INPUT_BYTES, SURFACE_WORDS, CheckInputError, record39, plural8, finite8, sha2562, zero, familyState, tierMissing, TEXT_MEASURE_CHECK_MAX_UNITS, IMAGE_MAX_UPSCALE, IMAGE_RESOLUTION_MAX_PICTURES, RASTER_FORMATS2, INFORM_ONLY_CODES, isFailed, LAYOUT_COLLECTORS, LINKED_COLOUR_FIELDS, DESIGN_CANVAS_BACKGROUND;
 var init_check = __esm({
   "packages/node-shell/src/check.ts"() {
     "use strict";
@@ -175155,7 +175882,7 @@ var init_check = __esm({
     };
     record39 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     plural8 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
-    finite7 = (v, fallback = 0) => {
+    finite8 = (v, fallback = 0) => {
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
@@ -176997,7 +177724,7 @@ function matchesNetworkUrl(pattern, url) {
 init_src2();
 init_css_box();
 init_text_svg();
-var SKIP = /* @__PURE__ */ new Set([
+var SKIP2 = /* @__PURE__ */ new Set([
   "defs",
   "clippath",
   "lineargradient",
@@ -177254,7 +177981,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
   async function visit(el, t, inherited3) {
     if (!el.tagName) return;
     const tag3 = el.tagName.toLowerCase().replace(/^svg:/, "");
-    if (SKIP.has(tag3)) return;
+    if (SKIP2.has(tag3)) return;
     const et = applyElementTransform(el, t);
     const mapPt = (x, y) => ({
       x: (et.a * x + et.c * y + et.e - vbX) * regX,
@@ -180177,8 +180904,8 @@ function weightFromName(name) {
   return 400;
 }
 function colorSpaceOf(ctx, o) {
-  const direct = nameOf4(ctx, o);
-  if (direct) return direct;
+  const direct2 = nameOf4(ctx, o);
+  if (direct2) return direct2;
   const arr = ctx.lookup(o);
   if (arr instanceof PDFArray6 && arr.size()) return nameOf4(ctx, arr.get(0));
   return null;

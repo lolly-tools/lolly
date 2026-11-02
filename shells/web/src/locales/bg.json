@@ -10503,5 +10503,6 @@
   "Traced into {n} shapes, above the image.": "Трасирано в {n} форми над изображението.",
   "Tracing": "Трасиране",
   "Tracing image": "Трасиране на изображението",
-  "Turn this picture into shapes you can edit.": "Превърни това изображение във форми, които можеш да редактираш."
+  "Turn this picture into shapes you can edit.": "Превърни това изображение във форми, които можеш да редактираш.",
+  "That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.": "Този Affinity файл не можа да бъде отворен. Експортирай го от Affinity като SVG или PDF и опитай отново."
 }

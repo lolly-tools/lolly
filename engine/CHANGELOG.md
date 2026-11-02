@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.300.0
+
+- Affinity import (new module `design-map-affinity.ts`): maps the document model from a shell-supplied reader (the `packages/node-shell/wasm/affinity` module, vectorcraft's Affinity reader for container versions 8 to 12) to Design rows: artboards as frames, groups, rectangles, paths, fills, strokes, text, tables and pictures. Effects, adjustments, masks and master pages are listed in the import report, not applied. When mapping fails, shells place the file's embedded preview as one picture. Not re-exported from `index.ts`.
+- IDML reader (new modules `idml-styles.ts`, `idml-text.ts`, `idml-master.ts`, `idml-table.ts`, `idml-object.ts`): paragraph and character styles resolve through `BasedOn` chains (font, size, weight, tracking, leading, colour, alignment, bullets); applied master items are placed below each page's own items; tables become grouped cell frames; object styles carry fill, stroke, corners, opacity and blend. Gradients take their first stop and justified paragraphs are set left; paragraph spacing, indents, text wrap and effects are reported. `IdmlOptions.stats` is new and optional.
+- Behaviour changes in IDML import: a story threaded across several frames is placed in its first frame only (every frame used to repeat the whole story), and a text frame's fill becomes the box background rather than the text colour.
+
 ## 1.299.0
 
 - Image tracing (new module `image-trace.ts`): turns a shell-supplied tracer's output (the `packages/node-shell/wasm/image-trace` module, vectorcraft's colour tracer with logo, illustration, line art and centreline presets) into Design path boxes that follow the image box's fit and position. The module refuses more than 4 megapixels, and the shell caps a result at 1,500 shapes and 60,000 points. Not re-exported from `index.ts`; shells import it by path.
