@@ -735,6 +735,10 @@ export function renderInputs(
   // sections (chart, filter, darkroom) scans by shape as well as by word.
   const sectionIcons: Record<string, string> =
     (runtime.manifest?.render as { sectionIcons?: Record<string, string> } | undefined)?.sectionIcons ?? {};
+  // The input the design system's choices draw after (render.themeChoicesAfter).
+  // Only a slot is written here: views/tool/theme-section.ts moves its one control
+  // into the slot after every render, since this function rewrites the panel.
+  const themeChoicesAfter = (runtime.manifest?.render as { themeChoicesAfter?: string } | undefined)?.themeChoicesAfter;
 
   // ── bands (plans/273) ──────────────────────────────────────────────────────
   // The sidebar is ordered by the same five questions in every tool: content,
@@ -833,6 +837,11 @@ export function renderInputs(
     } else if (!pill && pillbarOpen) closePillbar();
     parts.push(renderOneInput(input, prevInput));
     prevInput = input;
+    if (themeChoicesAfter && input.id === themeChoicesAfter) {
+      closePillbar();
+      parts.push('<div class="theme-choices-slot" data-theme-slot></div>');
+      prevInput = null; // the choices end any pairing, as a section break does
+    }
   }
   closePillbar();
   if (openSection !== null) parts.push('</div></details>');

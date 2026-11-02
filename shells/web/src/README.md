@@ -9,7 +9,7 @@ Roughly 837,000 lines of TypeScript, tests included, and 63,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 593 files, 220,343 lines | 313 files, 99,097 lines | 12 files, 1,686 lines |
+| `views/` | 593 files, 220,384 lines | 313 files, 99,129 lines | 12 files, 1,686 lines |
 | `lib/` | 871 files, 179,728 lines | 521 files, 102,478 lines | 13 files, 1,820 lines |
 | `bridge/` | 250 files, 57,192 lines | 145 files, 29,840 lines | none |
 | `components/` | 130 files, 29,961 lines | 62 files, 15,763 lines | 24 files, 1,623 lines |
@@ -61,7 +61,7 @@ Do not be ambushed by these. The largest source files, by line count:
 |---|---|---|
 | 6,145 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
 | 3,904 | `views/valid.ts` | `valid-verdict.test.ts` only |
-| 3,798 | `views/tool-inputs.ts` | none |
+| 3,807 | `views/tool-inputs.ts` | none |
 | 3,775 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,624 | `views/color-lab.ts` | yes |
 | 3,273 | `bridge/export-svg-walker.ts` | **none** |

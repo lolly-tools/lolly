@@ -301,6 +301,11 @@
           },
           "description": "Section labels (input.section values) whose controls render in a denser 2-column grid instead of one control per row. A chrome-only presentation hint for input-dense pro tools; it never changes the input model, URL encoding, or determinism, and collapses back to one column on narrow panels/large-text. Wide controls (vector, blocks, textarea, asset, colour) still span the full width."
         },
+        "themeChoicesAfter": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The id of an input after which the web shell draws the design system's choices for the document (colourway, mode and any other theme group), inside that input's section, instead of in the separate Design system section. Keyed by input id so a translated section name cannot move it. A chrome-only presentation hint like sectionIcons: it never changes the input model, URL encoding or determinism, an id that names no input leaves the separate section in place, and the CLI and TUI ignore it."
+        },
         "sectionIcons": {
           "type": "object",
           "additionalProperties": {

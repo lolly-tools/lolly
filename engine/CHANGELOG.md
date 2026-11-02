@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.301.0
+
+- Manifest `render.themeChoicesAfter` (chrome only): the id of an input after which the web shell draws the design system's choices for the document (colourway, mode and any other theme group), inside that input's section, instead of in a separate Design system section. Keyed by input id, so a translated section name cannot move it. The CLI, the TUI and MCP ignore it, like `render.sectionIcons`.
+
 ## 1.300.0
 
 - Affinity import (new module `design-map-affinity.ts`): maps the document model from a shell-supplied reader (the `packages/node-shell/wasm/affinity` module, vectorcraft's Affinity reader for container versions 8 to 12) to Design rows: artboards as frames, groups, rectangles, paths, fills, strokes, text, tables and pictures. Effects, adjustments, masks and master pages are listed in the import report, not applied. When mapping fails, shells place the file's embedded preview as one picture. Not re-exported from `index.ts`.
