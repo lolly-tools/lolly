@@ -555,7 +555,7 @@ a new asset with its own `ETag`. They can also change `format` and the size (`w`
 revocation and password work as on any link. Opening a link needs `export.server` for the tool as well as `link.create`,
 because a link only hands on what its maker can do (`403` otherwise). A guest link, an asset
 link or a collection link cannot be open (`400`). Without `open`, a link ignores any params
-added to it.
+added to its URL.
 
 **Password links.** The password goes in the body of `POST /l/:id?s=…`, as the form field
 `password` or as JSON `{"password": "…"}`. The answer sets an HttpOnly cookie, `lw_link_<id>`,
