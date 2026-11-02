@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:22c716e5-792c-4fdd-8c07-296dc869a83b",
+  "serialNumber": "urn:uuid:6f3e36b7-a822-415b-8510-23694270f4d5",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-02T10:57:28.334Z",
+    "timestamp": "2026-11-02T11:30:56.857Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -25620,20 +25620,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-updater@2.14.0",
+      "bom-ref": "pkg:npm/%40tauri-apps/plugin-updater@2.14.1",
       "name": "@tauri-apps/plugin-updater",
-      "version": "2.14.0",
-      "purl": "pkg:npm/%40tauri-apps/plugin-updater@2.14.0",
+      "version": "2.14.1",
+      "purl": "pkg:npm/%40tauri-apps/plugin-updater@2.14.1",
       "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "81dca527db607abe219323a7db841977a30d38a568d84879de2c39b61d908f5bca4d1ffebb83c8c095ae8a2b39868858be86e7ea23af96700b7eba883d2ce1ed"
+          "content": "1ebee79419b5c13eb16f0ce367f4b7e9850b6b3bbc30d963e6fbcec0c978edf5c8ec74dae418e5d4f6c31305476994c02b3135559b14cb7e54aa76eb43199843"
         }
       ]
     },
