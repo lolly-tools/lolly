@@ -675,15 +675,20 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       } as unknown as InputValue;
       continue;
     }
-    const mime = mimeForFile(abs);
+    let mime = mimeForFile(abs);
+    let bytes: Uint8Array = await readFile(abs);
+    let assetName = basename(abs);
+    // A camera raw photo (DNG, CR2, CR3, NEF, ARW, RAF, ORF, RW2...) is developed on this computer
+    // and handed to the tool as a PNG, with a note on whether the colour is exact or approximate.
+    const developed = await (await import('./camera-raw.ts')).developRawPhoto(assetName, bytes);
+    if (developed) ({ name: assetName, bytes, mime } = developed);
     const isVec = mime === 'image/svg+xml';
-    const bytes = await readFile(abs);
     values[input.id] = await (await import('@lolly-tools/node-shell/jxl-asset')).prepareJxlAsset({
       source: 'user',
-      id: basename(abs),
+      id: assetName,
       type: isVec ? 'vector' : 'raster',
       format: isVec ? 'svg' : (mime.split('/')[1] || 'png'),
-      url: `data:${mime};base64,${bytes.toString('base64')}`,
+      url: `data:${mime};base64,${Buffer.from(bytes).toString('base64')}`,
       meta: { baked: true, name: basename(abs) },
     }, bytes);
   }

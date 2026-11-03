@@ -78,7 +78,8 @@ const DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|af|afdesign|afphoto|afpub|aftempl
 // gunzip step in parseDesignFile).
 // Reusable binary assets own their containers; a 3MF/MOGRT ZIP is not a design document.
 const LIBRARY_ASSET_EXT_RE = /\.(mogrt|3mf|glb|stl|ttf|otf|woff2?)$/i;
-const MEDIA_EXT_RE = /\.(png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|svg|svgz|bmp|ico|cur|mp4|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|rondo|json|lottie)$/i;
+// Camera raw files (DNG, CR2, NEF...) are developed on the device and stored as ordinary pictures.
+const MEDIA_EXT_RE = /\.(dng|cr2|cr3|nef|nrw|arw|srf|sr2|pef|orf|rw2|raf|png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|svg|svgz|bmp|ico|cur|mp4|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|rondo|json|lottie)$/i;
 // A rondocode song (plan 301): `.rondo` is rondo-language text and `.rondo.json` a
 // project file. Both are audio for the library, and the `.json` one must not be
 // read as a Lottie or offered as a token document on the strength of its suffix.

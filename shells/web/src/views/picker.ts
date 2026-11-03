@@ -2965,7 +2965,9 @@ export async function storeUserUpload(
     batch?: boolean;
   } = {},
 ): Promise<AssetRef> {
-  const special = await (await import('../lib/special-upload.ts')).tryStoreSpecialUpload(host, file);
+  // A camera raw file (DNG, CR2, NEF, ARW, RAF, ORF, RW2...) is developed on the device and stored as an
+  // ordinary picture. It is tried first: a DNG is TIFF-structured and would otherwise be taken for a deep TIFF.
+  const special = (await (await import('../lib/camera-raw-upload.ts')).tryStoreCameraRaw(host, file, f => storeUserUpload(host, f, { skipDupCheck: true }))) ?? await (await import('../lib/special-upload.ts')).tryStoreSpecialUpload(host, file);
   if (special) return special;
   const precision = await (await import('../lib/deep-upload.ts')).preparePrecisionUpload(host,file,o.image);
   if (precision.ref) return precision.ref;
@@ -3055,7 +3057,7 @@ export async function storeUserUpload(
   if (/\.zip$/i.test(file.name) && head4[0] === 0x50 && head4[1] === 0x4b) {
     const budget = archiveBudgetFor(file);
     const entries = readArchiveMembers(await readUploadArchiveBytes(file), file.name, budget);
-    const MEDIA_RE = /\.(png|jpe?g|webp|apng|gif|avif|jxl|heic|heif|bmp|ico|svg|svgz|mp4|m4v|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|json|lottie|pdf|txt|md|markdown|csv|tsv|xlsx)$/i;
+    const MEDIA_RE = /\.(dng|cr2|cr3|nef|nrw|arw|srf|sr2|pef|orf|rw2|raf|png|jpe?g|webp|apng|gif|avif|jxl|heic|heif|bmp|ico|svg|svgz|mp4|m4v|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|json|lottie|pdf|txt|md|markdown|csv|tsv|xlsx)$/i;
     const CAP = 200;
     let last: AssetRef | null = null;
     let n = 0;
