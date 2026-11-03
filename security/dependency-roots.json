@@ -58,6 +58,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "inpaint-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/inpaint",
+      "lockfile": "packages/node-shell/wasm/inpaint/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "xlsx-numfmt-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/xlsx-numfmt",

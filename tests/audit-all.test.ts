@@ -68,6 +68,7 @@ test('every authoritative npm/Cargo lock has an audit owner', () => {
     'packages/node-shell/wasm/gridcraft-calc/Cargo.lock',
     'packages/node-shell/wasm/image-trace/Cargo.lock',
     'packages/node-shell/wasm/indd/Cargo.lock',
+    'packages/node-shell/wasm/inpaint/Cargo.lock',
     'packages/node-shell/wasm/layout-kernel/Cargo.lock',
     'packages/node-shell/wasm/pdf-a11y/Cargo.lock',
     'packages/node-shell/wasm/pixel-kernel/Cargo.lock',

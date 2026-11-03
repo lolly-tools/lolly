@@ -1205,6 +1205,19 @@
         "notes": "The module aborts instead of unwinding, so a trap drops the instance, fails the call with a plain message and starts a fresh instance on the next call."
       }
     },
+    "packages/node-shell/src/inpaint.ts": {
+      "family": "Images and colour",
+      "fuzzTargets": [
+        "inpaint"
+      ],
+      "details": {
+        "inputSource": "Pixels and a painted mask from the Retouch dialog, taken from an image the user opened. The shell loads the WASM module.",
+        "bounds": "16,777,216 pixels per image, a request of 16 bytes plus 5 bytes per pixel, a processed window of 13,000,000 pixels, patch radius 1 to 8; 2 GiB WASM memory cap; the module imports nothing from the host",
+        "directTests": "`tests/inpaint-patchmatch.test.ts`, the adapter's `cargo test`",
+        "fuzzCoverage": "`inpaint` feeds mutated bytes as a small image and mask, and as a header whose sizes disagree with the lengths.",
+        "notes": "Pinned LightCraft PatchMatch kernel with its thread pool removed. A fixed-seed generator makes the same request give the same bytes. A mask with no unmasked pixel to copy from is refused."
+      }
+    },
     "packages/node-shell/src/pdf-a11y.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [

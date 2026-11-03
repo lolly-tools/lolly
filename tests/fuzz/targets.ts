@@ -2168,6 +2168,38 @@ export const formulaCalcTarget: FuzzTarget = {
   },
 };
 let fuzzCalc: Promise<{ runner: import('../../engine/src/calc.ts').CalcRunner; engine: import('../../engine/src/calc.ts').CalcEngine }> | undefined;
+// PatchMatch inpainting (packages/node-shell/wasm/inpaint). Mutated bytes become a small image and
+// mask, and also a size header that disagrees with the lengths. A run must return a buffer of
+// matching length or throw InpaintKernelError. Sizes stay small, so each case is quick.
+export const inpaintTarget: FuzzTarget = {
+  name: 'inpaint',
+  async seeds() {
+    const w = 24, h = 20, px = new Uint8Array(w * h * 4), mask = new Uint8Array(w * h);
+    for (let i = 0; i < w * h; i++) { px[i * 4] = (i * 7) & 255; px[i * 4 + 1] = (i * 3) & 255; px[i * 4 + 2] = 120; px[i * 4 + 3] = 255; }
+    for (let y = 8; y < 13; y++) for (let x = 9; x < 15; x++) mask[y * w + x] = 1;
+    const out = new Uint8Array(8 + px.length + mask.length);
+    new DataView(out.buffer).setUint32(0, w, true); new DataView(out.buffer).setUint32(4, h, true);
+    out.set(px, 8); out.set(mask, 8 + px.length);
+    return [out];
+  },
+  async invoke(bytes) {
+    const { loadInpaintKernel } = await import('../../packages/node-shell/src/inpaint-node.ts');
+    const { InpaintKernelError } = await import('../../packages/node-shell/src/inpaint.ts');
+    const kernel = await loadInpaintKernel();
+    if (bytes.length < 8) return;
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const w = (dv.getUint32(0, true) % 40) + 1, h = (dv.getUint32(4, true) % 40) + 1;
+    const pixels = new Uint8Array(w * h * 4), mask = new Uint8Array(w * h);
+    pixels.set(bytes.subarray(8, 8 + pixels.length));
+    mask.set(bytes.subarray(8 + pixels.length, 8 + pixels.length + mask.length));
+    try {
+      const out = kernel.fill(pixels, w, h, mask);
+      if (out.length !== pixels.length) throw new Error('inpaint returned the wrong size');
+    } catch (error) { if (!(error instanceof InpaintKernelError)) throw error; }
+    // Sizes that disagree with the lengths must be refused.
+    try { kernel.fill(bytes.subarray(8), dv.getUint32(0, true), dv.getUint32(4, true), bytes.subarray(0, 4)); } catch (error) { if (!(error instanceof InpaintKernelError)) throw error; }
+  },
+};
 // Image trace (packages/node-shell/wasm/image-trace): pixels from the shell's own decoder, plus an
 // 8-byte header (width, height) the module checks. Contract: a result the wire reader accepts or an
 // ImageTraceError refusal; never a trap or a hang. Seeds are a tiny logo and a tiny line drawing;
@@ -2553,7 +2585,7 @@ export const captionsTtmlTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, inddTarget, cameraRawTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, inddTarget, cameraRawTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget, inpaintTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,

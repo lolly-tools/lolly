@@ -261,6 +261,7 @@ const runtimeOnly = (source: string): boolean => {
 cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(PKG, 'wasm/adobe-psd'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/xlsx-numfmt'), join(PKG, 'wasm/xlsx-numfmt'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/gridcraft-calc'), join(PKG, 'wasm/gridcraft-calc'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/inpaint'), join(PKG, 'wasm/inpaint'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/image-trace'), join(PKG, 'wasm/image-trace'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/pdf-a11y'), join(PKG, 'wasm/pdf-a11y'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/dxf'), join(PKG, 'wasm/dxf'), { recursive: true, filter: runtimeOnly });
