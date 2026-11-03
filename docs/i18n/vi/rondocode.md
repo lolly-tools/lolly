@@ -12,7 +12,7 @@ Từ terminal, `lolly mix` nhận một bài hát làm toàn bộ nhạc nền; 
 
 ## Viết và xuất một bài hát
 
-Mở **Rondocode** từ **Utilities** để viết bài hát trong trình soạn thảo trực tiếp của rondocode và nghe khi bạn gõ. Xuất nó dưới dạng **WAV**, **MP3**, **M4A**, **Opus** hoặc **FLAC**, một ZIP các stem, **MIDI**, hoặc bản ghi những gì đang phát. **Export length** đặt số giây mà một bản xuất âm thanh kéo dài. Chính tệp bài hát (`.rondo.json`) là mã của bạn như đã viết và không mang thêm gì.
+Mở **Rondocode** từ **Utilities** để viết bài hát trong trình soạn thảo trực tiếp của rondocode và nghe khi bạn gõ. Xuất nó dưới dạng **WAV**, **MP3**, **M4A**, **Opus** hoặc **FLAC**, một ZIP các stem, **MIDI**, hoặc bản ghi những gì đang phát. Từ terminal, `lolly rondocode --export=mid` ghi cùng tệp MIDI đó. **Export length** đặt số giây mà một bản xuất âm thanh kéo dài. Chính tệp bài hát (`.rondo.json`) là mã của bạn như đã viết và không mang thêm gì.
 
 Một bài hát có thể hát lời của nó bằng `sing()`. Giọng hát được tạo trên thiết bị của bạn bằng các mô hình giọng đã tải, và tệp chứa giọng hát tổng hợp luôn khai báo giọng hát đó là do AI tạo (xem [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ Hầu hết tiện ích trên thiết bị không ghi credential, vì chúng bi�
 - Âm nhạc được tính từ mã của bài hát là phương tiện thuật toán và không được đánh dấu là AI.
 
 Khi một bài hát hát, tệp khai báo giọng hát đó là do AI tạo ở dạng máy đọc được. Loại nguồn số của credential là phương tiện tổng hợp tạo bằng mô hình đã huấn luyện, bản ghi liệt kê các phần được hát, và một khai báo AI C2PA cho mỗi mô hình xác định từng mô hình mà giọng hát đi qua: chuyển văn bản thành giọng Supertonic-3, bộ căn âm vị wav2vec 2.0, bộ mã hóa ContentVec và giọng RVC, với kho và commit mà Lolly lưu trữ nó. Tệp chứa giọng hát tổng hợp không bao giờ được lưu mà không có khai báo đó.
+
+### Tệp MIDI chứa gì
+
+Tệp MIDI là một Standard MIDI File, định dạng 1. Track đầu tiên chứa nhịp độ và nhịp 4/4, và sau đó có một track cho mỗi synth, đặt tên theo synth. Mỗi nốt giữ lại thời điểm bắt đầu, độ dài và velocity của nó. Synth có tên đọc lên như một nhạc cụ, chẳng hạn bass, strings, pad hay piano, sẽ nhận nhạc cụ General MIDI tương ứng, còn tên giống trống thì đi vào kênh 10. Một hệ chỉnh âm không phải mười hai âm sẽ được làm tròn đến nửa cung gần nhất bằng pitch bend.
+
+Tệp MIDI không thể chứa việc một bài hát nghe ra sao. Cài đặt synth, bộ lọc, hiệu ứng, bus, sample và phần hát không có trong đó, nên DAW phát các nốt bằng nhạc cụ của chính nó. Nhịp độ được đọc từ số chu kỳ mỗi giây của bài hát, với một chu kỳ là một ô nhịp bốn phách, vì nhịp riêng của bài hát không nằm trong những gì bộ kết xuất trả về.
 
 Tệp MIDI không có chỗ cho credential, nên một sự kiện văn bản trong tệp mang lời tuyên bố thay thế, và bảng xuất cho bạn biết điều đó. Bảng mô tả tất cả điều này trước khi bạn xuất, và sau mỗi lần xuất trình soạn thảo đọc lại tệp đã lưu và chỉ báo cáo điều mà việc đọc đó tìm thấy.
 

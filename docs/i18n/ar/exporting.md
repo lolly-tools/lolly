@@ -420,7 +420,7 @@ Street Map أوضح الحالات. التصميم كله خطوط أصلاً، 
 | متجه | `svg` · `svgz` (SVG مضغوط بـ gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (ملف قص) |
 | صفحة ومستند | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (ملف تصميم Penpot) · `scorm` (حزمة دورة، ZIP) |
 | حركة | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| صوت | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| صوت | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (نوتات MIDI، من Rondocode) |
 | نص وبيانات | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (لوحة GIMP) |
 | حزم وأرشيفات | `zip` · `rpm` و`tar.gz` (العرض مختوماً في حزمة Linux) |
 

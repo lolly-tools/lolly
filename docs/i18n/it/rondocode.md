@@ -12,7 +12,7 @@ Dal terminale, `lolly mix` prende una canzone come intera colonna sonora; vedi [
 
 ## Scrivere ed esportare una canzone
 
-Apri **Rondocode** da **Utilities** per scrivere una canzone nell'editor live di rondocode e ascoltarla mentre scrivi. Esportala come **WAV**, **MP3**, **M4A**, **Opus** o **FLAC**, come ZIP di stem, come **MIDI**, o come registrazione di ciò che sta suonando. **Export length** imposta quanti secondi dura un'esportazione audio. Il file della canzone stesso (`.rondo.json`) è il tuo codice così come scritto e non porta nulla di aggiunto.
+Apri **Rondocode** da **Utilities** per scrivere una canzone nell'editor live di rondocode e ascoltarla mentre scrivi. Esportala come **WAV**, **MP3**, **M4A**, **Opus** o **FLAC**, come ZIP di stem, come **MIDI**, o come registrazione di ciò che sta suonando. Dal terminale, `lolly rondocode --export=mid` scrive lo stesso file MIDI. **Export length** imposta quanti secondi dura un'esportazione audio. Il file della canzone stesso (`.rondo.json`) è il tuo codice così come scritto e non porta nulla di aggiunto.
 
 Una canzone può cantare i suoi testi con `sing()`. Il canto viene prodotto sul tuo dispositivo da modelli vocali scaricati, e un file che contiene canto sintetizzato dichiara sempre il canto come generato dall'IA (vedi [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ La maggior parte delle utility sul dispositivo non scrive alcuna credenziale, pe
 - La musica calcolata dal codice della canzone è media algoritmico e non è contrassegnata come IA.
 
 Quando una canzone canta, il file dichiara quel canto generato dall'IA in forma leggibile da una macchina. Il tipo di sorgente digitale della credenziale è media composito creato con modelli addestrati, il record elenca le parti cantate, e una dichiarazione IA C2PA per modello identifica ogni modello attraverso cui è passato il canto: la sintesi vocale Supertonic-3, l'allineatore di fonemi wav2vec 2.0, l'encoder ContentVec e la voce RVC, con il repository e il commit da cui Lolly li ospita. Un file che contiene canto sintetizzato non viene mai salvato senza quella dichiarazione.
+
+### Cosa contiene il file MIDI
+
+Il file MIDI è uno Standard MIDI File, formato 1. La prima traccia contiene il tempo e un tempo in 4/4, e dopo di essa c'è una traccia per ogni synth, con il nome del synth. Ogni nota mantiene il suo inizio, la sua durata e la sua velocity. Un synth il cui nome si legge come uno strumento, come un basso, archi, un pad o un pianoforte, riceve lo strumento General MIDI corrispondente, e un nome simile a una batteria va sul canale 10. Un'accordatura che non è a dodici toni viene arrotondata al semitono più vicino con un pitch bend.
+
+Un file MIDI non può contenere come suona una canzone. Le impostazioni dei synth, i filtri, gli effetti, i bus, i sample e il canto non ci sono, quindi una DAW suona le note con i propri strumenti. Il tempo viene letto dai cicli al secondo della canzone, con un ciclo pari a una battuta di quattro movimenti, perché il tempo in chiave proprio della canzone non fa parte di ciò che il renderer restituisce.
 
 Un file MIDI non ha spazio per una credenziale, quindi un evento di testo nel file porta invece la dichiarazione, e il pannello di esportazione te lo dice. Il pannello descrive tutto questo prima che tu esporti, e dopo ogni esportazione l'editor rilegge il file salvato e riporta solo ciò che quella lettura ha trovato.
 

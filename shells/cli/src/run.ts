@@ -13,6 +13,7 @@ import { resolve, basename, dirname, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { xlsxFormatter } from '@lolly-tools/node-shell/xlsx-numfmt-node';
+import { xlsxRecalc } from '@lolly-tools/node-shell/gridcraft-calc-node';
 import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
@@ -674,15 +675,20 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       } as unknown as InputValue;
       continue;
     }
-    const mime = mimeForFile(abs);
+    let mime = mimeForFile(abs);
+    let bytes: Uint8Array = await readFile(abs);
+    let assetName = basename(abs);
+    // A camera raw photo (DNG, CR2, CR3, NEF, ARW, RAF, ORF, RW2...) is developed on this computer
+    // and handed to the tool as a PNG, with a note on whether the colour is exact or approximate.
+    const developed = await (await import('./camera-raw.ts')).developRawPhoto(assetName, bytes);
+    if (developed) ({ name: assetName, bytes, mime } = developed);
     const isVec = mime === 'image/svg+xml';
-    const bytes = await readFile(abs);
     values[input.id] = await (await import('@lolly-tools/node-shell/jxl-asset')).prepareJxlAsset({
       source: 'user',
-      id: basename(abs),
+      id: assetName,
       type: isVec ? 'vector' : 'raster',
       format: isVec ? 'svg' : (mime.split('/')[1] || 'png'),
-      url: `data:${mime};base64,${bytes.toString('base64')}`,
+      url: `data:${mime};base64,${Buffer.from(bytes).toString('base64')}`,
       meta: { baked: true, name: basename(abs) },
     }, bytes);
   }
@@ -703,7 +709,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       note(`ℹ ${dataPath} has ${sheets.length} sheets (${sheets.map(s => s.name).join(', ')}); reading the first. Pass --${inputId}-sheet=<name|index> to choose.`);
     }
     const formatCell = await xlsxFormatter();
-    const { rows, sheetName } = readXlsx(bytes, { ...(sheet !== undefined ? { sheet } : {}), ...(formatCell ? { formatCell } : {}) });
+    // Formulas the file saved no result for are worked out; the others keep what the author saw.
+    const recalc = await xlsxRecalc();
+    const { rows, sheetName } = readXlsx(bytes, { ...(sheet !== undefined ? { sheet } : {}), ...(formatCell ? { formatCell } : {}), ...(recalc ? { recalc, recalcWhen: 'missing' as const } : {}) });
     if (sheetName) note(`ℹ read sheet “${sheetName}” from ${dataPath}`);
     return rowsToCsv(rows);
   };

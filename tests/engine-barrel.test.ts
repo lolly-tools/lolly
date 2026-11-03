@@ -10,6 +10,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive lossless Standard MIDI File reader and writer, and the notes-to-.mid export builder.
+  'MidiExportOptions', 'RondoMusicInput', 'rondoMusicToMidi', 'MidiNote', 'MidiVoiceSpec', 'SMF_LIMITS', 'SMF_MAX_VLQ', 'SmfChannelEvent', 'SmfChannelType', 'SmfError', 'SmfErrorCode', 'SmfEvent', 'SmfFile', 'SmfHeader', 'SmfLimits', 'SmfMetaEvent', 'SmfSysexEvent', 'SmfTimeDivision', 'SmfTrackChunk', 'SmfUnknownChunk', 'SmfWriteOptions', 'gmProgramFor', 'looksPercussive', 'notesToMidiBytes', 'notesToSmfFile', 'readSmf', 'smfEndOfTrack', 'smfKeySignature', 'smfKeySignatureEvent', 'smfTempo', 'smfTempoEvent', 'smfText', 'smfTextEvent', 'smfTimeDivision', 'smfTimeSignature', 'smfTimeSignatureEvent', 'velocityToMidi', 'voiceChannel', 'writeSmf',
   // Additive 1.299 broadcast captions: TTML/IMSC1.1 and SCC (CEA-608 pop-on) readers and writers, and their timecode and parity helpers.
   'CaptionFormatError', 'CaptionIssue', 'IMSC11_TEXT_PROFILE', 'SCC_LIMITS', 'SccReadOptions', 'SccReadResult', 'SccWriteOptions',
   'SccWriteResult', 'TTML_LIMITS', 'TtmlReadOptions', 'TtmlReadResult', 'TtmlTiming', 'TtmlWriteOptions',
@@ -64,6 +66,9 @@ const EXPECTED: readonly string[] = [
   'JpegScan', 'JpegSegment', 'jpegSegmentBody', 'scanJpegSegments',
   // Additive 1.262 font inspection and verified subsetting (host.fonts).
   'FontSubsetRunner', 'createFontsAPI', 'inspectFont',
+  // Additive host.calc: the formula engine's shell-facing core and the XLSX recalculator.
+  'createCalcEngine', 'createCalcAPI', 'xlsxRecalculator', 'isFormulaText', 'valueText', 'CALC_TABLE_MAX_CELLS',
+  'CalcRunner', 'CalcClockSource', 'CalcEngine', 'XlsxRecalculator', 'XlsxRecalcRequest', 'XlsxRecalcResult', 'XlsxRecalcReport', 'XlsxRecalcValue',
   // Additive 1.261 managed enrollment and issuer status validation.
   'EnrollmentPolicy', 'EnrollmentProviderPolicy', 'EnrollmentTrustBundle', 'VerifiedCrl',
   'createEnrollmentCsr', 'enrollmentProofMessage', 'parseEnrollmentTrustBundle',

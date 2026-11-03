@@ -342,6 +342,12 @@ export {
   parseMidi, midiToSong, midiToZzfxm,
   MIDI_MAX_NOTES, MIDI_MAX_STEPS, MIDI_MAX_VOICES,
 } from './midi.ts';
+export { readSmf, writeSmf, smfTimeDivision, smfTempo, smfTimeSignature, smfKeySignature, smfText, smfTextEvent, smfTempoEvent, smfTimeSignatureEvent, smfKeySignatureEvent, smfEndOfTrack, SmfError, SMF_LIMITS, SMF_MAX_VLQ, } from './smf.ts';
+export type { SmfFile, SmfHeader, SmfEvent, SmfChannelEvent, SmfMetaEvent, SmfSysexEvent, SmfTrackChunk, SmfUnknownChunk, SmfLimits, SmfErrorCode, SmfWriteOptions, SmfTimeDivision, SmfChannelType, } from './smf.ts';
+export { notesToSmfFile, notesToMidiBytes, gmProgramFor, looksPercussive, voiceChannel, velocityToMidi } from './smf-export.ts';
+export type { MidiNote, MidiVoiceSpec, MidiExportOptions } from './smf-export.ts';
+export { rondoMusicToMidi } from './rondo-midi.ts';
+export type { RondoMusicInput } from './rondo-midi.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
 // The seed → spec draw behind `zzfxm:<seed>`. Engine-side so every shell composes
 // the SAME song from one id; the draw order is a frozen contract (see the fn).
@@ -637,7 +643,9 @@ export { embedWavInfo } from './riff-meta.ts';
 export { parseDataRows, rowsToCsv, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export { expandDerivedFormats } from './derived-formats.ts';
 export { readXlsx, listXlsxSheets, DEFAULT_XLSX_ROW_LIMIT } from './xlsx-import.ts';
-export type { XlsxCellFormatter, XlsxCellFormatRequest, XlsxCellFormatResult, XlsxCellKind, XlsxDateCell } from './xlsx-import.ts';
+export type { XlsxCellFormatter, XlsxCellFormatRequest, XlsxCellFormatResult, XlsxCellKind, XlsxDateCell, XlsxRecalculator, XlsxRecalcRequest, XlsxRecalcResult, XlsxRecalcReport, XlsxRecalcValue } from './xlsx-import.ts';
+export { createCalcEngine, createCalcAPI, xlsxRecalculator, isFormulaText, valueText, CALC_TABLE_MAX_CELLS } from './calc.ts';
+export type { CalcRunner, CalcClockSource, CalcEngine } from './calc.ts';
 export { writeXlsx, colLetters } from './xlsx-write.ts';
 export { writeEpub } from './epub.ts';
 export {

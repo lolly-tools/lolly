@@ -12,7 +12,7 @@ Terminalden `lolly mix` bir şarkıyı tüm ses kaydı olarak alır; bkz. [CLI r
 
 ## Bir şarkı yaz ve dışa aktar
 
-Rondocode'un canlı düzenleyicisinde bir şarkı yazmak ve yazdıkça duymak için **Utilities** içinden **Rondocode** aç. Onu **WAV**, **MP3**, **M4A**, **Opus** veya **FLAC** olarak, bir kök (stem) ZIP'i olarak, **MIDI** olarak ya da çalanın bir kaydı olarak dışa aktar. **Export length** bir ses dışa aktarmasının kaç saniye süreceğini belirler. Şarkı dosyasının kendisi (`.rondo.json`) yazdığın hâliyle kodundur ve eklenmiş hiçbir şey taşımaz.
+Rondocode'un canlı düzenleyicisinde bir şarkı yazmak ve yazdıkça duymak için **Utilities** içinden **Rondocode** aç. Onu **WAV**, **MP3**, **M4A**, **Opus** veya **FLAC** olarak, bir kök (stem) ZIP'i olarak, **MIDI** olarak ya da çalanın bir kaydı olarak dışa aktar. Terminalden `lolly rondocode --export=mid` aynı MIDI dosyasını yazar. **Export length** bir ses dışa aktarmasının kaç saniye süreceğini belirler. Şarkı dosyasının kendisi (`.rondo.json`) yazdığın hâliyle kodundur ve eklenmiş hiçbir şey taşımaz.
 
 Bir şarkı sözlerini `sing()` ile söyleyebilir. Şarkı söyleme, cihazında indirilen ses modelleriyle yapılır ve sentezlenmiş şarkı söyleme tutan bir dosya, söylemeyi her zaman yapay zekâ üretimi olarak bildirir (bkz. [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ Cihaz üzerindeki yardımcı araçların çoğu, zaten sahip olduğun bir dosyay
 - Şarkının kodundan hesaplanan müzik algoritmik medyadır ve yapay zekâ olarak işaretlenmez.
 
 Bir şarkı söylediğinde dosya, bu söylemeyi makine tarafından okunabilir biçimde yapay zekâ üretimi olarak bildirir. Kimlik bilgisinin dijital kaynak türü, eğitilmiş modellerle yapılmış bileşik medyadır, kayıt söylenen bölümleri listeler ve model başına bir C2PA yapay zekâ bildirimi şarkı söylemenin geçtiği her modeli tanımlar: Supertonic-3 metinden konuşmaya, wav2vec 2.0 fonem hizalayıcı, ContentVec kodlayıcı ve RVC sesi; Lolly'nin onu barındırdığı depo ve commit ile. Sentezlenmiş şarkı söyleme tutan bir dosya bu bildirim olmadan asla kaydedilmez.
+
+### MIDI dosyasında ne var
+
+MIDI dosyası, format 1 bir Standard MIDI File'dır. İlk parça tempoyu ve 4/4 ölçü birimini taşır, ondan sonra her synth için o synth'in adını taşıyan bir parça gelir. Her nota başlangıcını, uzunluğunu ve velocity değerini korur. Adı bir enstrüman gibi okunan bir synth, örneğin bas, yaylılar, pad ya da piyano, eşleşen General MIDI enstrümanını alır; davul benzeri bir ad ise 10. kanala gider. On iki sesli olmayan bir akort, pitch bend ile en yakın yarım sese yuvarlanır.
+
+Bir MIDI dosyası bir şarkının nasıl ses verdiğini taşıyamaz. Synth ayarları, filtreler, efektler, bus'lar, örnekler ve vokal içinde yoktur; bu yüzden bir DAW notaları kendi enstrümanlarıyla çalar. Tempo, şarkının saniyedeki döngü sayısından okunur ve bir döngü dört vuruşluk bir ölçü kabul edilir, çünkü şarkının kendi ölçü birimi, oluşturucunun geri verdiği şeyin parçası değildir.
 
 Bir MIDI dosyasında kimlik bilgisi için yer yoktur; bu yüzden dosyadaki bir metin olayı beyanı taşır ve dışa aktarma paneli bunu söyler. Panel tüm bunları dışa aktarmadan önce anlatır ve her dışa aktarmadan sonra düzenleyici kayıtlı dosyayı geri okur ve yalnızca o okumanın bulduğunu bildirir.
 

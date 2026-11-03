@@ -22,7 +22,7 @@
       "label": "Line items",
       "type": "table",
       "urlKey": "t",
-      "help": "One line per row: an item, a quantity and a unit price. Leave a price empty for an item priced later. A quantity of ? marks a number still to be decided, and the totals wait until it is set.",
+      "help": "One line per row: an item, a quantity and a unit price. Leave a price empty for an item priced later. A quantity of ? marks a number still to be decided, and the totals wait until it is set. A cell that starts with = is a formula where the shell can work one out: the heading row is row 1, so =B2*0.9 takes ten percent off the first line's quantity. NOW and RAND stay live while you edit, and an export keeps the numbers on the page.",
       "default": {
         "columns": ["Item", "Quantity", "Unit price"],
         "rows": [

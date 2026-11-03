@@ -205,6 +205,9 @@ cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(LIB, 'wasm/adobe-p
 cpSync(join(REPO, 'packages/node-shell/wasm/xlsx-numfmt'), join(LIB, 'wasm/xlsx-numfmt'), {
   recursive: true, filter: (source) => basename(source) !== 'target',
 });
+cpSync(join(REPO, 'packages/node-shell/wasm/gridcraft-calc'), join(LIB, 'wasm/gridcraft-calc'), {
+  recursive: true, filter: (source) => basename(source) !== 'target',
+});
 cpSync(join(REPO, 'packages/node-shell/wasm/image-trace'), join(LIB, 'wasm/image-trace'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/pdf-a11y'), join(LIB, 'wasm/pdf-a11y'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/dxf'), join(LIB, 'wasm/dxf'), { recursive: true, filter: (source) => basename(source) !== 'target' });
@@ -212,6 +215,7 @@ cpSync(join(REPO, 'packages/node-shell/wasm/audio-dsp'), join(LIB, 'wasm/audio-d
   recursive: true, filter: (source) => basename(source) !== 'target',
 });
 cpSync(join(REPO, 'packages/node-shell/wasm/indd'), join(LIB, 'wasm/indd'), { recursive: true, filter: (source) => basename(source) !== 'target' });
+cpSync(join(REPO, 'packages/node-shell/wasm/camera-raw'), join(LIB, 'wasm/camera-raw'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/affinity'), join(LIB, 'wasm/affinity'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(LIB, 'wasm/layout-kernel'), {
   recursive: true, filter: (source) => basename(source) !== 'target',

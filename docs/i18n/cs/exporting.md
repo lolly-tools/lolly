@@ -420,7 +420,7 @@ Toto jsou hodnoty pro parametr URL `format=` a příznak CLI `--export=` (viz [P
 | Vektor | `svg` · `svgz` (SVG v gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (soubor pro řezání) |
 | Stránka a dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (návrhový soubor Penpot) · `scorm` (balíček kurzu, ZIP) |
 | Pohyb | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Zvuk | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Zvuk | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (noty MIDI z Rondocode) |
 | Text a data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paleta GIMP) |
 | Balíky a balíčky | `zip` · `rpm` a `tar.gz` (vykreslení zapečetěné do balíčku Linuxu) |
 

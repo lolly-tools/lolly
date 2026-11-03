@@ -1,0 +1,220 @@
+{
+  "source": "https://raw.pixls.us/",
+  "licenceNote": "Each file is listed on raw.pixls.us with the Creative Commons Zero 1.0 public domain dedication (https://creativecommons.org/publicdomain/zero/1.0/). Files under other licences on that site were not chosen.",
+  "listing": "https://raw.pixls.us/json/getrepository.php?set=all",
+  "retrieved": "2026-11-03",
+  "files": [
+    {
+      "path": "dng/samsung-sm-g973u-16bit-16bit-2-1132075471698.dng",
+      "url": "https://raw.pixls.us/getfile.php/3839/nice/Samsung - SM-G973U - 16bit 16bit (2.1132075471698).dng",
+      "sha256": "6492b7e0ac8e012524c0c83606a104cc9bf3b68f30fa60c7b73ffbe4dc584ab1",
+      "make": "Samsung",
+      "model": "SM-G973U",
+      "format": "DNG",
+      "mode": "16bit 16bit (2.1132075471698)",
+      "licence": "CC0-1.0",
+      "expect": "not-raw",
+      "note": "Labelled .dng on raw.pixls.us but the bytes are a JPEG; the decoder must refuse it."
+    },
+    {
+      "path": "dng/blackmagic-pocket-cinema-camera-4k-lossless.dng",
+      "url": "https://raw.pixls.us/getfile.php/4438/nice/Blackmagic - Blackmagic Pocket Cinema Camera 4k - 12bit (16:9).dng",
+      "sha256": "a90b542deab594093cdc91211c71ca9c3e451db12d400d5372fcfb6fc4cd27d3",
+      "make": "Blackmagic",
+      "model": "Blackmagic Pocket Cinema Camera 4k",
+      "format": "DNG",
+      "mode": "12bit (16:9) Lossless compressed DNG from video DNG sequence, full resolution",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "dng/adobe-dng-converter-canon-eos-5d-mark-iii-lossy-jpeg-compression-rgb-3.dng",
+      "url": "https://raw.pixls.us/getfile.php/1033/nice/Adobe DNG Converter - Canon EOS 5D Mark III - Lossy JPEG compression, rgb (3:2).DNG",
+      "sha256": "b22f1e36331f679abb8b13e433b9bbde3988723adf10fee7aa0dda6381016a98",
+      "make": "Adobe DNG Converter",
+      "model": "Canon EOS 5D Mark III",
+      "format": "DNG",
+      "mode": "Lossy JPEG compression, rgb (3:2)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "dng/canon-canon-powershot-a410-10bit-10bit-chdk-ver-1-5-0-4-3.dng",
+      "url": "https://raw.pixls.us/getfile.php/1327/nice/Canon - Canon PowerShot A410 - 10bit 10bit CHDK ver. 1.5.0 (4:3).DNG",
+      "sha256": "f0d2fe47507fadf50008bddbc6bd2c5e39fddbe90cca6bca72dd360fa0e0eb38",
+      "make": "Canon",
+      "model": "Canon PowerShot A410",
+      "format": "DNG",
+      "mode": "10bit 10bit CHDK ver. 1.5.0 (4:3)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "dng/adobe-dng-converter-canon-eos-5d-mark-iii-lossy-jpeg-compression-3-2.dng",
+      "url": "https://raw.pixls.us/getfile.php/1023/nice/Adobe DNG Converter - Canon EOS 5D Mark III - Lossy JPEG compression (3:2).DNG",
+      "sha256": "159326856c29073e845c3c5a9ecf98c6474f43ca15798a88ad5e2baecd0664b7",
+      "make": "Adobe DNG Converter",
+      "model": "Canon EOS 5D Mark III",
+      "format": "DNG",
+      "mode": "Lossy JPEG compression (3:2)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "dng/nikon-d80-16bit-3-2.dng",
+      "url": "https://raw.pixls.us/getfile.php/1988/nice/Nikon - D80 - 16bit (3:2).dng",
+      "sha256": "5095ca264e763624cd3aa62940286dd1bcff4504eefa1ce61cbb72f50f8426bb",
+      "make": "Nikon",
+      "model": "D80",
+      "format": "DNG",
+      "mode": "16bit (3:2)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "dng/plustek-opticfilm-8100-16bit-4-3.dng",
+      "url": "https://raw.pixls.us/getfile.php/3215/nice/Plustek - OpticFilm 8100 - 16bit (4:3).dng",
+      "sha256": "3e61f54fb982e00e384ac88ca64c8ad4049887cc2c4fb055114b648fd5e45815",
+      "make": "Plustek",
+      "model": "OpticFilm 8100",
+      "format": "DNG",
+      "mode": "16bit (4:3)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "dng/apple-iphone-xs-16bit-4-3.dng",
+      "url": "https://raw.pixls.us/getfile.php/3372/nice/Apple - iPhone XS - 16bit (4:3).dng",
+      "sha256": "50bc64ee8cfbbfb6c0531e29ab428ff985506a16fe2d1d2e74656f21b54505f6",
+      "make": "Apple",
+      "model": "iPhone XS",
+      "format": "DNG",
+      "mode": "16bit (4:3)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "dng/google-pixel-4a-16bit-4-3.dng",
+      "url": "https://raw.pixls.us/getfile.php/4176/nice/Google - Pixel 4a - 16bit (4:3).dng",
+      "sha256": "11b38186ee3455376291bcdb3049728a3f9dcd94b9e82ff76855d9f3430e44be",
+      "make": "Google",
+      "model": "Pixel 4a",
+      "format": "DNG",
+      "mode": "16bit (4:3)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "cr2/canon-eos-20d-raw-3-2.cr2",
+      "url": "https://raw.pixls.us/getfile.php/1018/nice/Canon - EOS 20D - RAW (3:2).CR2",
+      "sha256": "db78660d48589130d99e0bc621424851eb0f84df052634fb5bc89c7a02fe7033",
+      "make": "Canon",
+      "model": "EOS 20D",
+      "format": "CR2",
+      "mode": "RAW (3:2)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "cr2/canon-eos-40d-sraw2-sraw-3-2.cr2",
+      "url": "https://raw.pixls.us/getfile.php/2102/nice/Canon - EOS 40D - sRAW2 (sRAW) (3:2).CR2",
+      "sha256": "ba644e7dd2abe74eca260e67f0206ff113bf0f62e710f8130611e964d6be5bf1",
+      "make": "Canon",
+      "model": "EOS 40D",
+      "format": "CR2",
+      "mode": "sRAW2 (sRAW) (3:2)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "cr3/canon-eos-r6-3-2.cr3",
+      "url": "https://raw.pixls.us/getfile.php/4659/nice/Canon - EOS R6 - 3:2.CR3",
+      "sha256": "74abb0a113d075ad9887a058082f40dd2a938c4813a08474d82356f11a027778",
+      "make": "Canon",
+      "model": "EOS R6",
+      "format": "CR3",
+      "mode": "3:2",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "cr3/canon-eos-rp-3-2.cr3",
+      "url": "https://raw.pixls.us/getfile.php/4671/nice/Canon - EOS RP - 3:2.CR3",
+      "sha256": "4a859ab137f792aedaf3416b0aad1497ebaab02052a49453902e226699154aa7",
+      "make": "Canon",
+      "model": "EOS RP",
+      "format": "CR3",
+      "mode": "3:2",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "nef/nikon-d70-12bit-12bit-compressed-lossy-type-1-3-2.nef",
+      "url": "https://raw.pixls.us/getfile.php/2060/nice/Nikon - D70 - 12bit 12bit compressed (Lossy (type 1)) (3:2).NEF",
+      "sha256": "dd6405aeb33b0cd5bf66c98ba98ccbb478a765450cfd130810e470dab8d1f4b4",
+      "make": "Nikon",
+      "model": "D70",
+      "format": "NEF",
+      "mode": "12bit 12bit compressed (Lossy (type 1)) (3:2)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "nef/nikon-d2hs-12bit-12bit-uncompressed-3-2.nef",
+      "url": "https://raw.pixls.us/getfile.php/2852/nice/Nikon - D2Hs - 12bit 12bit uncompressed (3:2).NEF",
+      "sha256": "9ea1c3d5d6c8a11f33239079559f1f0c86bbdb9440a2c7d2578368647abf7ea4",
+      "make": "Nikon",
+      "model": "D2Hs",
+      "format": "NEF",
+      "mode": "12bit 12bit uncompressed (3:2)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "arw/sony-ilce-7s-14bit-14bit-compressed-3-2.arw",
+      "url": "https://raw.pixls.us/getfile.php/1582/nice/Sony - ILCE-7S - 14bit 14bit compressed (3:2).ARW",
+      "sha256": "a35ebb2fbec929daa5beb20d1ce5c15a8aac7b1a7a231455387f3df8a7442e07",
+      "make": "Sony",
+      "model": "ILCE-7S",
+      "format": "ARW",
+      "mode": "14bit 14bit compressed (3:2)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "raf/fujifilm-finepix-s5000-4-3.raf",
+      "url": "https://raw.pixls.us/getfile.php/2726/nice/Fujifilm - FinePix S5000 - 4:3.RAF",
+      "sha256": "dabd5e74521a6980156be9fd4b88d0c37b0fe4d0e0e6f5c12db8cffff1b76297",
+      "make": "Fujifilm",
+      "model": "FinePix S5000",
+      "format": "RAF",
+      "mode": "4:3",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "orf/olympus-e-1-16bit-4-3.orf",
+      "url": "https://raw.pixls.us/getfile.php/1800/nice/Olympus - E-1 - 16bit (4:3).ORF",
+      "sha256": "042286653fbae5b085bef4a4e626145385ea6e82e817f166b4904abcef64457c",
+      "make": "Olympus",
+      "model": "E-1",
+      "format": "ORF",
+      "mode": "16bit (4:3)",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "rw2/panasonic-dmc-lx7-1-1.rw2",
+      "url": "https://raw.pixls.us/getfile.php/7008/nice/Panasonic - DMC-LX7 - 1:1.RW2",
+      "sha256": "d142a23aca836053ed53e9ce3cb3ed2d434541d734d71a94a6eefadcd08bd31b",
+      "make": "Panasonic",
+      "model": "DMC-LX7",
+      "format": "RW2",
+      "mode": "1:1",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "rw2/panasonic-dmc-gf1-16-9.rw2",
+      "url": "https://raw.pixls.us/getfile.php/1478/nice/Panasonic - DMC-GF1 - 16:9.RW2",
+      "sha256": "a245e9df9bb52553d9d362cddf7a7e9824f2c9751735b27bef623a347037662b",
+      "make": "Panasonic",
+      "model": "DMC-GF1",
+      "format": "RW2",
+      "mode": "16:9",
+      "licence": "CC0-1.0"
+    },
+    {
+      "path": "pef/pentax-ist-ds-12bit-12bit-uncompressed-3-2.pef",
+      "url": "https://raw.pixls.us/getfile.php/4392/nice/Pentax - *ist DS - 12bit 12bit uncompressed (3:2).pef",
+      "sha256": "27809a7d252d515685ed4e6091b70ab25348502baeb75db03ce7b4f1d9549b76",
+      "make": "Pentax",
+      "model": "*ist DS",
+      "format": "PEF",
+      "mode": "12bit 12bit uncompressed (3:2)",
+      "licence": "CC0-1.0"
+    }
+  ]
+}

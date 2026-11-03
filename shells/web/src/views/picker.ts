@@ -40,6 +40,7 @@ import '../styles/picker.css';   // async CSS chunk (lazy view - not on the land
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { archiveBudgetFor, archiveMemberFile, readArchiveMembers, readUploadArchiveBytes } from '../lib/archive-ingest.ts';
 import DOMPurify from 'dompurify';
+import { videoImportFacts } from '../lib/video-device-check.ts';
 import { buildEmbedUrl, parseThemedAssetId, buildThemedAssetId, restyleIconTheme, sniffAnimatedRaster, sniffVideoContainer, parseTreatedAssetId, buildTreatedAssetId, stripAssetModifiers, extractC2paStore, prepareC2paIngredientFromStore, stripMetadata, midiToZzfxm, bakeAssetRef, decodeBmp, isBmp, decodeIco, isIco, gunzip, packPng, analyzeTextSignals, LEXICON_VERSION, extractFileMetadata } from '@lolly/engine';
 import type { RondoSourceV1 } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
@@ -2837,6 +2838,7 @@ function assertVerbatimSize(file: File, max: number, kind: string): void {
 function videoFormatOf(file: File): string {
   const t = file.type.toLowerCase(), n = file.name.toLowerCase();
   if (/webm/.test(t) || n.endsWith('.webm')) return 'webm';
+  if (/mxf/.test(t) || n.endsWith('.mxf')) return 'mxf';
   if (/quicktime/.test(t) || n.endsWith('.mov')) return 'mov';
   if (/mp4|m4v/.test(t) || /\.(mp4|m4v)$/.test(n)) return 'mp4';
   const ext = extFromMime(file.type);
@@ -2963,7 +2965,9 @@ export async function storeUserUpload(
     batch?: boolean;
   } = {},
 ): Promise<AssetRef> {
-  const special = await (await import('../lib/special-upload.ts')).tryStoreSpecialUpload(host, file);
+  // A camera raw file (DNG, CR2, NEF, ARW, RAF, ORF, RW2...) is developed on the device and stored as an
+  // ordinary picture. It is tried first: a DNG is TIFF-structured and would otherwise be taken for a deep TIFF.
+  const special = (await (await import('../lib/camera-raw-upload.ts')).tryStoreCameraRaw(host, file, f => storeUserUpload(host, f, { skipDupCheck: true }))) ?? await (await import('../lib/special-upload.ts')).tryStoreSpecialUpload(host, file);
   if (special) return special;
   const precision = await (await import('../lib/deep-upload.ts')).preparePrecisionUpload(host,file,o.image);
   if (precision.ref) return precision.ref;
@@ -3007,7 +3011,7 @@ export async function storeUserUpload(
   // A short video (webm/mp4/mov) - kept for motion. Stored verbatim (no raster
   // re-encode, which can't handle a video container at all). `let` because the byte
   // backstop below can promote a mislabelled clip to video.
-  let isVideo = !isLottie && !isVector && (/^video\//i.test(file.type) || /\.(mp4|m4v|mov|webm)$/i.test(file.name));
+  let isVideo = !isLottie && !isVector && (/^video\//i.test(file.type) || /\.(mp4|m4v|mov|webm|mxf)$/i.test(file.name) || /^application\/mxf$/i.test(file.type));
   // Music the browser can't decode from an <audio> element, handled before the
   // verbatim-audio test below. MIDI is CONVERTED on the way in: a Standard MIDI File
   // becomes a tiny ZzFXM song (engine midiToZzfxm) stored as a format:'zzfxm' asset - 
@@ -3053,7 +3057,7 @@ export async function storeUserUpload(
   if (/\.zip$/i.test(file.name) && head4[0] === 0x50 && head4[1] === 0x4b) {
     const budget = archiveBudgetFor(file);
     const entries = readArchiveMembers(await readUploadArchiveBytes(file), file.name, budget);
-    const MEDIA_RE = /\.(png|jpe?g|webp|apng|gif|avif|jxl|heic|heif|bmp|ico|svg|svgz|mp4|m4v|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|json|lottie|pdf|txt|md|markdown|csv|tsv|xlsx)$/i;
+    const MEDIA_RE = /\.(dng|cr2|cr3|nef|nrw|arw|srf|sr2|pef|orf|rw2|raf|png|jpe?g|webp|apng|gif|avif|jxl|heic|heif|bmp|ico|svg|svgz|mp4|m4v|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|json|lottie|pdf|txt|md|markdown|csv|tsv|xlsx)$/i;
     const CAP = 200;
     let last: AssetRef | null = null;
     let n = 0;
@@ -3218,6 +3222,7 @@ export async function storeUserUpload(
   // (its own frame rate, not a video/audio concept). Absent (not 0) on failure.
   let durationMs: number | undefined, fps: number | undefined;
   let lottieMeta: Record<string, unknown> | undefined;
+  let videoProbe: Record<string, unknown> | undefined;
   let jxlInfo: import('../../../../engine/src/jxl.ts').JxlInfo | undefined;
   // A text asset's AI-writing note (meta.aiSignals - the conventional shape in
   // host-v1.ts), computed in the isText branch while the bytes are in hand so the
@@ -3261,11 +3266,9 @@ export async function storeUserUpload(
     // readVideoDimensions already loads the metadata and hands back `duration`, so the
     // common case costs ONE metadata load; the extra probe is only for the
     // Infinity/0 MediaRecorder-webm case it was written for.
-    let duration: number | undefined;
-    ({ width, height, duration } = await readVideoDimensions(file));
-    durationMs = duration != null && duration > 0
-      ? Math.round(duration * 1000)
-      : await probeMediaDurationMs(file, 'video');
+    // Say what the container holds and whether this device can play it (lib/video-device-check.ts);
+    // a clip it cannot play is still stored whole.
+    ({ width, height, durationMs, videoProbe } = await videoImportFacts(file, { readVideoDimensions, probeMediaDurationMs }));
   } else if (isMidi) {
     // Convert the SMF to a ZzFXM song on device and store the JSON (a few KB) as a
     // format:'zzfxm' audio asset - the browser can't play raw MIDI, but it renders
@@ -3589,6 +3592,8 @@ export async function storeUserUpload(
       // Never 0/bogus: only ever set when resolved to a finite positive value.
       ...(durationMs != null ? { durationMs } : {}),
       ...(fps != null ? { fps } : {}),
+      // What the video container holds, and a note when this device cannot play the clip.
+      ...(videoProbe ? { videoProbe } : {}),
       // Bits per channel of the stored bytes, when the container states it.
       // Absent = unknown, never assumed 8.
       ...(storedDepth != null ? { depth: storedDepth } : {}),

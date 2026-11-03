@@ -66,6 +66,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "gridcraft-calc-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/gridcraft-calc",
+      "lockfile": "packages/node-shell/wasm/gridcraft-calc/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "image-trace-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/image-trace",
@@ -110,6 +118,14 @@
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/indd",
       "lockfile": "packages/node-shell/wasm/indd/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
+      "id": "camera-raw-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/camera-raw",
+      "lockfile": "packages/node-shell/wasm/camera-raw/Cargo.lock",
       "exposure": "shipped-runtime",
       "owner": "packages/node-shell"
     },

@@ -68,6 +68,7 @@ Not every tool offers every format: a link can ask only for one the tool lists i
 | `webm` | WebM video (animated tools only; Chrome, Firefox and Android) |
 | `mp4` | MP4 video (animated tools only; Safari, iOS and recent Chrome) |
 | `wav` / `mp3` / `m4a` / `opus` | Audio only: the sound with no picture |
+| `mid` | The notes of a Rondocode song as a Standard MIDI File (no audio) |
 :::
 
 ### Transparency and outlined text

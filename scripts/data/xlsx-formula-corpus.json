@@ -1,0 +1,105 @@
+{
+  "repository": "apache/poi",
+  "commit": "6966eb7d546fe0dc8ae4bd0132e0ea7fa4389c62",
+  "directory": "test-data/spreadsheet",
+  "licence": "Apache-2.0",
+  "note": "Excel-saved workbooks from Apache POI test data. They are fetched into plans/corpora and never committed. A requested run recalculates every sheet and fails on any cell that differs from the saved result and is not listed in knownDifferences.",
+  "files": [
+    {
+      "path": "50755_workday_formula_example.xlsx",
+      "bytes": 7928,
+      "sha256": "c519f7c90b74d2c92500c47370a6b85a0a19430a0ee6470254fcbeaaa71fc505"
+    },
+    {
+      "path": "56822-Countifs.xlsx",
+      "bytes": 6686,
+      "sha256": "dfa6d0e1b6a9983f34344bacdde63a0ba93a5c794b1e454efe181f6b04074711"
+    },
+    {
+      "path": "70005-countifs.xlsx",
+      "bytes": 5971,
+      "sha256": "15cc9f6a1f08c631f3dd097e88c2f889ef7a8772c3625de58b594e7ddc932467"
+    },
+    {
+      "path": "FormulaEvalTestData_Copy.xlsx",
+      "bytes": 65011,
+      "sha256": "01b21647d53501e8ec10f4eb522945d41ea3c8d1fdd57f8b0142ec34884c33eb"
+    },
+    {
+      "path": "FormulaSheetRange.xlsx",
+      "bytes": 12949,
+      "sha256": "1943a81a9d439e3bb843b66fd2f9bcdcf37e31232c850ea31d47681b5d5efa12"
+    },
+    {
+      "path": "MatrixFormulaEvalTestData.xlsx",
+      "bytes": 14875,
+      "sha256": "12f1dcef889c20fe54a09857790ba9803a7b061cc9fc5b85d0038cd6c86faa79"
+    },
+    {
+      "path": "NewlineInFormulas.xlsx",
+      "bytes": 8935,
+      "sha256": "3ec9c0c59a6e3f1ec66ca023c4a4ba0235c8047a41bf859fd223f352146637de"
+    },
+    {
+      "path": "TestShiftRowSharedFormula.xlsx",
+      "bytes": 8527,
+      "sha256": "21f222c39b70fee2aad244b70a06123aa3bbd2e99ba29cfbc2ed157bcae095cd"
+    },
+    {
+      "path": "VLookupFullColumn.xlsx",
+      "bytes": 13504,
+      "sha256": "2788b77ec3407056e75a56ae1ee01b0222e353ca29910a12ffc1e9a62569a990"
+    },
+    {
+      "path": "ValueFunctionOfBlank.xlsx",
+      "bytes": 8980,
+      "sha256": "202d993c1bdcde6f30619044a711f79f535bd0c8459f5e6ed30994962fdb09dd"
+    },
+    {
+      "path": "evaluate_formula_with_structured_table_references.xlsx",
+      "bytes": 9198,
+      "sha256": "f460fced2f6bac1f5b4b7d400fd7f2e3ff379af478c01d26388744cefd37a93a"
+    },
+    {
+      "path": "formula-eval.xlsx",
+      "bytes": 8369,
+      "sha256": "b82ba9d02f362acd061b4e0018dedc8b59db4c616c8768d89383a0806014eaa8"
+    },
+    {
+      "path": "noSharedStringTable.xlsx",
+      "bytes": 7820,
+      "sha256": "2aa358a1ab04cfffca6d13d827e4a5e12aea8376cdefc3a6e93575ce365d8ab6"
+    },
+    {
+      "path": "shared_formulas.xlsx",
+      "bytes": 10137,
+      "sha256": "31612d513b5ea5aaa69764779f87ac52588687770f3ccbf4b420ec21bc70561f"
+    },
+    {
+      "path": "testSharedFormulasSetBlank.xlsx",
+      "bytes": 8889,
+      "sha256": "c32169723f04c099700eca384550728a547aea1e969ff0cd50ff6071eaa847c0"
+    },
+    {
+      "path": "xlookup.xlsx",
+      "bytes": 12031,
+      "sha256": "4d8fd3db6469df14f280964b3a447e0be027eda0e2195ca62693e92d8d353910"
+    }
+  ],
+  "knownDifferences": {
+    "FormulaEvalTestData_Copy.xlsx": {
+      "EverythingTests": {
+        "G936": "MODE with a text literal gives #VALUE! where Excel gives #N/A",
+        "H936": "MODE with a text literal gives #VALUE! where Excel gives #N/A",
+        "K936": "MODE with a text literal and an error argument gives #VALUE! where Excel gives #DIV/0!",
+        "G1008": "OFFSET with array row and column arguments",
+        "M1352": "T() over a range",
+        "N1352": "T() over a range",
+        "O1352": "T() over a range"
+      },
+      "FinanceLibTests": {
+        "H20": "an iterative financial result that agrees to 3.6e-10 relative"
+      }
+    }
+  }
+}

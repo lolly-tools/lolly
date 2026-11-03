@@ -253,3 +253,22 @@ test('a song that failed is not rendered again for the next caller', async () =>
   assert.equal(await codeOf(renderRondoSong(hostile, { seconds: 1, caps })), 'rondo.vm.timeout');
   assert.ok(Date.now() - started < 100, 'answered from the kept failure, no second render');
 });
+
+test('decode with midi returns a Standard MIDI File of the notes the song schedules', async () => {
+  const { readSmf, smfText, smfTempo } = await import('@lolly/engine');
+  const audio = createNodeAudioAPI({ repoRoot: REPO });
+  const out = await audio.decode!(rondoSourceBytes(song('Acid', acid.js)), { seconds: 4, midi: { text: 'made here' } });
+  assert.ok(out.midi && out.midi.length > 30, 'a MIDI file came back');
+  const file = readSmf(out.midi);
+  assert.equal(file.header.format, 1);
+  const tracks = file.chunks.filter(c => c.kind === 'track');
+  assert.ok(tracks.length >= 2, 'a conductor track and at least one synth track');
+  const conductor = (tracks[0] as { events: Parameters<typeof smfTempo>[0][] }).events;
+  assert.equal(smfText(conductor[0]!), 'Acid');
+  assert.equal(smfText(conductor[1]!), 'made here');
+  assert.ok(smfTempo(conductor[2]!) !== null, 'a tempo event');
+  const events = tracks.slice(1).flatMap(t => (t as { events: { kind: string; type?: string }[] }).events);
+  assert.ok(events.some(e => e.kind === 'channel' && e.type === 'noteOn'), 'it holds notes');
+  // Without the option nothing is built.
+  assert.equal((await audio.decode!(rondoSourceBytes(song('Acid', acid.js)), { seconds: 1 })).midi, undefined);
+});

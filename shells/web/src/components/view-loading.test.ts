@@ -120,3 +120,29 @@ test('the boot screen is the only loader on a cold open', async () => {
   try { assert.ok(card()?.open, 'once a view has replaced the boot screen, a slow mount gets the card'); }
   finally { later.close(); }
 });
+
+test('a boot screen lifted into a route fade still counts, so the card does not stack on it', async () => {
+  // view-fade.ts moves #view's nodes into a .view-fade overlay. A navigation that
+  // started before the first view painted used to carry the grey boot screen there,
+  // and the card, finding no boot screen in #view, opened over it: two loaders.
+  const overlay = document.createElement('div');
+  overlay.className = 'view-fade app-view';
+  overlay.innerHTML = '<p class="loading">Loading…</p>';
+  document.body.append(overlay);
+  try {
+    const loading = beginViewLoading(0);
+    await pause(5);
+    assert.equal(card(), null, 'no card over the boot screen in the fade overlay');
+    loading.close();
+  } finally { overlay.remove(); }
+});
+
+test('the router keeps a loader in #view instead of fading or clearing it', async () => {
+  // Source pin: main.ts must not move the boot screen (or a view's own Loading… line)
+  // into a fade, nor clear that loader before the incoming view paints over the loader.
+  const { readFileSync } = await import('node:fs');
+  const main = readFileSync(new URL('../main.ts', import.meta.url), 'utf8');
+  assert.match(main, /const holdingLoader = view\.querySelector\(':scope > p\.loading'\) !== null;/);
+  assert.match(main, /!returning && !holdingLoader\)\s*\n\s*\? beginViewFade\(view\)/);
+  assert.match(main, /route\.name !== prevRouteName && !holdingLoader\) view\.replaceChildren\(\);/);
+});

@@ -217,7 +217,7 @@
       ],
       "details": {
         "inputSource": "the marker structure of any JPEG - one a user uploaded, and one our own export pipeline is about to stamp",
-        "bounds": "`JPEG_MAX_SEGMENTS = 4096`, `JPEG_MAX_APP_ID = 64`; every length field is checked against the buffer before it is acted on, and entropy data is walked (`FF 00` stuffing, `FF D0`\u2013`FF D7` restarts) rather than searched",
+        "bounds": "`JPEG_MAX_SEGMENTS = 4096`, `JPEG_MAX_APP_ID = 64`; every length field is checked against the buffer before it is acted on, and entropy data is walked (`FF 00` stuffing, `FF D0`–`FF D7` restarts) rather than searched",
         "directTests": "`tests/jpeg-segments.test.ts`",
         "fuzzCoverage": "`jpeg-structure` (scan/find/body/splice over minimal, MPF and mutated files)",
         "notes": "The one shared JPEG marker walker/writer, replacing three ad-hoc \"skip the leading APP0\" insertion points now that segment ORDER carries meaning (an MPF index stores absolute offsets, so it must precede ICC). The contract is split by side: the reader follows the house rule - never throws, `null` when the bytes are not a JPEG, a short scan flagged `truncated` when they are malformed - while `insertJpegSegments` follows the splicer convention it replaces and returns the input bytes untouched, all or nothing, on any problem. The structural invariant \"no reported segment ends past the buffer\" is asserted on every scan in the tests, including a few hundred seeded mutations of a real `sharp`-encoded file."
@@ -376,7 +376,7 @@
         "bounds": "`CUBE_MAX_N = 129`, `TDL_MAX_N = 65` (grid size), declared in the hooks beside the parsers",
         "directTests": "none of its own; the fuzz target is the coverage",
         "fuzzCoverage": "`lut-parse` (both parsers, over the real hook source)",
-        "notes": "The one **tool-data** parser that reads untrusted bytes, listed here because the input source is the same as every row above. Hooks ship as plain script rather than a module, so the target lifts the two functions out with `new Function` exactly the way the engine runtime compiles them. A controlled \"not a \u2026 LUT\" / \"too large\" throw is the desired outcome; hangs and allocation blow-ups are the findings."
+        "notes": "The one **tool-data** parser that reads untrusted bytes, listed here because the input source is the same as every row above. Hooks ship as plain script rather than a module, so the target lifts the two functions out with `new Function` exactly the way the engine runtime compiles them. A controlled \"not a … LUT\" / \"too large\" throw is the desired outcome; hangs and allocation blow-ups are the findings."
       }
     },
     "engine/src/video-meta.ts": {
@@ -416,8 +416,8 @@
         "inputSource": "the container a manifest is being spliced into - ordinarily Lolly's own render output, but on the ingest and re-attach paths a file a stranger sent",
         "bounds": "none named; the bounds are per-grammar and structural (each PNG chunk, JPEG segment, GIF block, RIFF/TIFF IFD, BMFF box, EBML element and PDF xref offset is validated against the buffer before it is acted on)",
         "directTests": "`tests/c2pa-containers.test.ts`, plus `tests/c2pa-formats.test.ts` and `tests/c2pa.test.ts` in aggregate",
-        "fuzzCoverage": "`c2pa-containers` (`sniffFormat` \u2192 `attachC2paStore`, or `embedC2paInPdf` for PDF)",
-        "notes": "Placement, not extraction - but placing means walking the host container's grammar, so it belongs here rather than under \"Writers\". Contract: it **throws** on a container it refuses to modify, so only a hang, a stack overflow or an allocation blow-up counts as a finding. `c2pa-containers-tiff-forged-ifd-pointer.bin` is a saved regression: a hostile TIFF IFD pointer. The target's format\u2192placer map is a `Record<Exclude<SniffFormat, \u2026>>` on purpose, so adding a placeable format without adding its placer row is a compile error rather than a silent forever-fuzzed-as-PNG."
+        "fuzzCoverage": "`c2pa-containers` (`sniffFormat` → `attachC2paStore`, or `embedC2paInPdf` for PDF)",
+        "notes": "Placement, not extraction - but placing means walking the host container's grammar, so it belongs here rather than under \"Writers\". Contract: it **throws** on a container it refuses to modify, so only a hang, a stack overflow or an allocation blow-up counts as a finding. `c2pa-containers-tiff-forged-ifd-pointer.bin` is a saved regression: a hostile TIFF IFD pointer. The target's format→placer map is a `Record<Exclude<SniffFormat, …>>` on purpose, so adding a placeable format without adding its placer row is a compile error rather than a silent forever-fuzzed-as-PNG."
       }
     },
     "engine/src/c2pa-verify.ts": {
@@ -430,7 +430,7 @@
         "bounds": "`MAX_CHAIN_INTERMEDIATES = 8`",
         "directTests": "`tests/c2pa-verify.test.ts`, `tests/c2pa-trust.test.ts`, `tests/c2pa-verdict.test.ts`, `tests/c2pa-c2patool-conformance.test.ts`",
         "fuzzCoverage": "`c2pa-verify` (`verifyC2pa`)",
-        "notes": "Reports failures as named checks rather than throwing, so a malformed manifest is a failed check and never an escaped exception. Chain walking consumes each intermediate at most once, so no A\u2192B\u2192A loop, and hostile chains are bounded to a trivial O(cap\u00b2)."
+        "notes": "Reports failures as named checks rather than throwing, so a malformed manifest is a failed check and never an escaped exception. Chain walking consumes each intermediate at most once, so no A→B→A loop, and hostile chains are bounded to a trivial O(cap²)."
       }
     },
     "engine/src/der-read.ts": {
@@ -497,7 +497,7 @@
         "bounds": "`BRAND_IMPORT_MAX_PART_BYTES/CHARS = 16 MB/M chars`, `BRAND_IMPORT_MAX_JSON_UNITS = 64 M`, `BRAND_IMPORT_MAX_ENTRIES = 50,000`, `BRAND_IMPORT_MAX_PAGE_PARTS = 25,000`, `BRAND_IMPORT_MAX_TOKEN_DOCS = 512`, `BRAND_IMPORT_MAX_SET_FILES = 2,048`, `BRAND_IMPORT_MAX_TOKEN_SETS = 4,096`, `BRAND_IMPORT_MAX_NODES = 1,000,000`, `BRAND_IMPORT_MAX_DEPTH = 64`",
         "directTests": "`tests/brand-import.test.ts`",
         "fuzzCoverage": "`brand-import` (all three token containers plus both Penpot page censuses)",
-        "notes": "Takes already-parsed JSON and already-unzipped path\u2192bytes entries, so the engine applies structural and aggregate budgets independently of the caller's inflation guard. Extraction never throws; a limit violation fails the whole operation closed instead of returning a partial token document or census. Page discovery is one bounded collection plus sort, not manifest-files \u00d7 archive-entries work."
+        "notes": "Takes already-parsed JSON and already-unzipped path→bytes entries, so the engine applies structural and aggregate budgets independently of the caller's inflation guard. Extraction never throws; a limit violation fails the whole operation closed instead of returning a partial token document or census. Page discovery is one bounded collection plus sort, not manifest-files × archive-entries work."
       }
     },
     "engine/src/tar-read.ts": {
@@ -536,7 +536,7 @@
         "bounds": "`MAX_TOKEN = 64 KB`, `MAX_UNPACKED = 256 KB`; `PBKDF2_ITERATIONS = 210_000`, `ENC_SALT_BYTES = 16`, `ENC_IV_BYTES = 12` on the encrypted variant",
         "directTests": "`tests/url-pack.test.ts`",
         "fuzzCoverage": "`url-pack` (`unpackToken` + `hasPackedState`, over both the token text and its decoded bytes)",
-        "notes": "The one module whose entire input is a URL param. Both caps exist because raw DEFLATE expands roughly 1000\u00d7, so a decompression bomb must not hang the tab."
+        "notes": "The one module whose entire input is a URL param. Both caps exist because raw DEFLATE expands roughly 1000×, so a decompression bomb must not hang the tab."
       }
     },
     "engine/src/keyframes.ts": {
@@ -631,6 +631,19 @@
         "notes": "Header states the hardening explicitly: every offset bounds-checked, malformed track lengths clamped to the buffer, note count and step span capped."
       }
     },
+    "engine/src/smf.ts": {
+      "family": "Audio, video and animation",
+      "fuzzTargets": [
+        "smf"
+      ],
+      "details": {
+        "inputSource": "a `.mid` a user uploaded or opened, read by the lossless Standard MIDI File reader",
+        "bounds": "`SMF_LIMITS`: 64 MiB input, 4096 tracks, 4096 unknown chunks, 1,000,000 events, 4 MiB per meta or sysex payload; variable-length quantities are at most four bytes",
+        "directTests": "`tests/smf.test.ts`, `tests/smf-corpus.test.ts`",
+        "fuzzCoverage": "`smf` (every accepted input must write back to the same bytes; every refusal must be an `SmfError`)",
+        "notes": "Chunk lengths past the end of the file are refused rather than clamped, and a meta or sysex event cancels running status, so a malformed file fails with a code and a byte offset."
+      }
+    },
     "engine/src/wav.ts": {
       "family": "Audio, video and animation",
       "fuzzTargets": [
@@ -641,7 +654,7 @@
         "bounds": "`MAX_CHANNELS = 32`",
         "directTests": "`tests/wav.test.ts`",
         "fuzzCoverage": "`wav` (`parseWav`)",
-        "notes": "Chunk walking cannot run backwards or off the end regardless of declared sizes. Unknown encodings (\u00b5-law, ADPCM, a compressed payload in a RIFF skin) are refused by name rather than misread as PCM, because misreading them yields full-scale noise that would look like a plausibly loud track."
+        "notes": "Chunk walking cannot run backwards or off the end regardless of declared sizes. Unknown encodings (µ-law, ADPCM, a compressed payload in a RIFF skin) are refused by name rather than misread as PCM, because misreading them yields full-scale noise that would look like a plausibly loud track."
       }
     },
     "engine/src/zzfxm.ts": {
@@ -651,7 +664,7 @@
       ],
       "details": {
         "inputSource": "a `ZzfxSong`, which on the MIDI and MOD paths derives from a user file or fetched JSON",
-        "bounds": "128 instruments \u00d7 21 params, 1,024 patterns, 4,096 sequence items, 32 channels, 32,768 steps/pattern, five-minute stereo output, 50 M mix-sample operations, 30-second individual synths and 120-second aggregate sample cache; BPM/note/numeric ranges are named public constants",
+        "bounds": "128 instruments × 21 params, 1,024 patterns, 4,096 sequence items, 32 channels, 32,768 steps/pattern, five-minute stereo output, 50 M mix-sample operations, 30-second individual synths and 120-second aggregate sample cache; BPM/note/numeric ranges are named public constants",
         "directTests": "`tests/zzfxm.test.ts`, `tests/zzfxm-seed-parity.test.ts`",
         "fuzzCoverage": "`zzfxm` (JSON and byte-derived song objects through the real guarded renderer)",
         "notes": "The two vendored MIT functions remain unchanged behind guarded public wrappers. Validation rejects ragged rows, invalid references and allocation-driving totals before either the upstream synth or mixer allocates. Direct `zzfxG`, `zzfxM`, and `renderZzfxm` calls all pass the same budgets."
@@ -1142,14 +1155,15 @@
     "engine/src/xlsx-import.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [
-        "xlsx-numfmt"
+        "xlsx-numfmt",
+        "formula-calc"
       ],
       "details": {
-        "inputSource": "User-picked .xlsx workbooks. The shell reads the file and supplies the number-format function; the engine owns the unzip and the XML scan.",
-        "bounds": "32 MiB per part, 256 MiB inflated in total, 2,000,000 cells, 16,384 columns, 16,777,216 padded cells; styles read at most 65,536 cell formats and 4,096 custom codes, each code up to 1,024 characters; at most 50,000 cells per formatter call",
-        "directTests": "`tests/xlsx-import.test.ts`, `tests/xlsx-numfmt.test.ts`",
-        "fuzzCoverage": "`xlsx-numfmt` mutates a stored-zip workbook with a styles part, so the styles reader, batching and the format codes are all reached.",
-        "notes": "Without a formatter the output is byte-identical to a read with no number formats. A formatter that throws or returns a wrong-sized or malformed answer leaves the unformatted text. Formulas are never evaluated."
+        "inputSource": "User-picked .xlsx workbooks. The shell reads the file and supplies the number-format function and the recalculation function; the engine owns the unzip and the XML scan.",
+        "bounds": "32 MiB per part, 256 MiB inflated in total, 2,000,000 cells, 16,384 columns, 16,777,216 padded cells; styles read at most 65,536 cell formats and 4,096 custom codes, each code up to 1,024 characters; at most 50,000 cells per formatter call; a recalculation reads every sheet (at most 64) through the same 2,000,000-cell cap and hands the module at most 400,000 cells and 100,000 formulas",
+        "directTests": "`tests/xlsx-import.test.ts`, `tests/xlsx-numfmt.test.ts`, `tests/gridcraft-calc.test.ts`",
+        "fuzzCoverage": "`xlsx-numfmt` mutates a stored-zip workbook with a styles part, so the styles reader, batching and the format codes are all reached. `formula-calc` feeds mutated formula text and request bodies to the formula module.",
+        "notes": "Without a formatter or recalculator the output is byte-identical to a read without them. A function that throws or returns a wrong-sized or malformed answer keeps the saved text and the read says why. Formulas are evaluated only when the caller supplies `recalc`; array, data-table, table-reference and workbook-reference formulas keep their saved results."
       }
     },
     "packages/node-shell/src/xlsx-numfmt.ts": {
@@ -1163,6 +1177,32 @@
         "directTests": "`tests/xlsx-numfmt.test.ts`, the vendored crates' `cargo test --workspace`",
         "fuzzCoverage": "`xlsx-numfmt` also feeds mutated bytes through the module as raw format codes.",
         "notes": "Pinned GridCraft number-format engine. The clock is an injected value, so output depends only on the request. Numbers are parsed with exact float round-tripping."
+      }
+    },
+    "engine/src/calc.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "formula-calc"
+      ],
+      "details": {
+        "inputSource": "Formula text from a tool's table input, from a workbook the engine has already unzipped, or from a tool calling host.calc. The shell loads the WASM module and supplies the clock and seed.",
+        "bounds": "100,000 table cells; the module takes at most 64 sheets, 400,000 cells, 100,000 formulas, 8,192 characters per formula, 32 KiB per text value and 16 MiB per request, and returns at most 32 MiB; arrays over 4,194,304 cells and more than 100,000 lambda calls per cell end in an error value; 512 MiB WASM memory cap; the module imports nothing from the host",
+        "directTests": "`tests/gridcraft-calc.test.ts`, `tests/quote-tool.test.ts`, the vendored crates' `cargo test --workspace`",
+        "fuzzCoverage": "`formula-calc` evaluates mutated formula text as a modern and as a legacy cell, and sends mutated bytes as the whole request, so the lexer, parser, evaluator and request reader are all reached.",
+        "notes": "Pinned GridCraft calculation engine. A formula that cannot be parsed is reported on its cell and evaluates to #NAME?. The clock and random seed are request fields, so output depends only on the request; a result carries the clock it read. Work is bounded by the limits above rather than by a timer, so a request near them can hold the page for a moment."
+      }
+    },
+    "packages/node-shell/src/gridcraft-calc.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "formula-calc"
+      ],
+      "details": {
+        "inputSource": "Request bytes from engine/src/calc.ts. The shell loads the WASM module.",
+        "bounds": "16 MiB request and 40 MiB response in the transport; the module's own limits are listed under engine/src/calc.ts; an instance that grew past 256 MiB is replaced after the call",
+        "directTests": "`tests/gridcraft-calc.test.ts`",
+        "fuzzCoverage": "`formula-calc` sends mutated bytes through the transport as a raw request.",
+        "notes": "The module aborts instead of unwinding, so a trap drops the instance, fails the call with a plain message and starts a fresh instance on the next call."
       }
     },
     "packages/node-shell/src/pdf-a11y.ts": {
@@ -1228,6 +1268,19 @@
         "directTests": "`tests/affinity.test.ts`, the vendored crate's own `cargo test` unit and property tests, `scripts/affinity-corpus.ts` (51 public documents, SHA-256 pinned)",
         "fuzzCoverage": "`affinity` mutates a header-only container and, when fetched, the four smallest public documents, through the Node loader, running both operations.",
         "notes": "Pinned vectorcraft-affinity 05d5f99 (MIT OR Apache-2.0). Afread-derived with no specification and AI-assisted; the account is in its UPSTREAM.md and was accepted on 2026-11-02. Every archive entry is CRC-checked. The model JSON is bounded again by the shared TypeScript wrapper and then mapped by the pure engine module design-map-affinity.ts, which caps pages, boxes and canvas size. The reader denies panics and unsafe code."
+      }
+    },
+    "packages/node-shell/src/camera-raw.ts": {
+      "family": "Images and colour",
+      "fuzzTargets": [
+        "camera-raw"
+      ],
+      "details": {
+        "inputSource": "User-supplied camera raw files (.dng, .cr2, .cr3, .nef, .nrw, .arw, .raf, .orf, .rw2, .pef): an upload, a drop or a photo path on the command line. Platform file access is supplied by the shell; the decoder itself imports no host functions.",
+        "bounds": "192 MiB input, 64 megapixels, 256 MiB for any one buffer, and a refusal before development when input, sensor data and the 16-bit frame together would pass 480 MiB; 512 MiB WASM memory cap with a 1 MiB stack; 24 warnings of 400 characters; a trap retires the instance; the web shell runs it on a worker with a 3 minute budget",
+        "directTests": "`tests/camera-raw.test.ts`, `tests/camera-raw-cli.test.ts`, `shells/web/src/bridge/camera-raw-worker-client.test.ts`, the vendored crate's own `cargo test` (134 unit and 86 integration tests, including hostile-file and truncation tests), `scripts/camera-raw-corpus.ts`",
+        "fuzzCoverage": "`camera-raw` mutates small synthetic Bayer DNG and TIFF/EP files through the Node loader. Real files from `scripts/camera-raw-corpus.ts` are decoded by that script, not fuzzed.",
+        "notes": "Pinned storytold photocraft raw 97a83f07 (MIT OR Apache-2.0), clean-room caveats recorded in its UPSTREAM.md; the JPEG XL decoder is left out. DNG colour is exact; every other format is a per-file fit to the embedded JPEG and is labelled approximate colour. The decoder forbids unsafe code and denies unwrap, expect and panic."
       }
     },
     "packages/node-shell/src/indd.ts": {
@@ -1323,7 +1376,9 @@
     },
     "packages/core/src/lolly-features.ts": {
       "family": "Design documents, links and agent requests",
-      "fuzzTargets": ["lolly-hierarchy"],
+      "fuzzTargets": [
+        "lolly-hierarchy"
+      ],
       "details": {
         "inputSource": "Parsed .lolly session values, project sessions, templates and bundled Design input manifests",
         "bounds": "One shared budget of 200,000 inspected or queued values; iterative traversal with cycle detection; canonical flat box records are inspected once without traversing opaque text and paint payloads; exhausting the scan conservatively requires reader 8",
@@ -1334,7 +1389,9 @@
     },
     "shells/web/src/lib/lolly-pack.ts": {
       "family": "Design documents, links and agent requests",
-      "fuzzTargets": ["lolly-hierarchy"],
+      "fuzzTargets": [
+        "lolly-hierarchy"
+      ],
       "details": {
         "inputSource": "Portable .lolly share ZIPs carrying saved sessions, project folders, templates and bundled tools",
         "bounds": "Existing unzip limits remain 512 MiB per part and 2 GiB total; projects admit at most 2,000 sessions and 500 folders; templates retain their existing 200-record cap; feature detection has one 200,000-value budget",
@@ -1345,7 +1402,9 @@
     },
     "packages/node-shell/src/lolly-file.ts": {
       "family": "Design documents, links and agent requests",
-      "fuzzTargets": ["lolly-hierarchy"],
+      "fuzzTargets": [
+        "lolly-hierarchy"
+      ],
       "details": {
         "inputSource": "Portable .lolly session and reusable-tool ZIPs opened by Node shells",
         "bounds": "Engine ZIP reader caps input and total inflated bytes at 512 MiB, each entry at 256 MiB and inventory at 10,000 entries; shared semantic feature detection inspects at most 200,000 values",
@@ -1378,6 +1437,19 @@
         "directTests": "`tests/font-inspect.test.ts`, `tests/font-convert-tool.test.ts`",
         "fuzzCoverage": "`font-inspect` mutates a real variable TTF, its WOFF wrapper and crafted fonts whose cmap format 4 segments and format 12 groups overlap, through `inspectFont` and `glyphsForText`",
         "notes": "Reads cmap formats 4 and 12 only; other formats report no coverage. Reading stops at the first format 4 end code that does not ascend and at the first format 12 group that overlaps or goes backwards; the spec requires both in ascending order. WOFF2 and collections are refused by name. The subset path refuses before any work on outlines other than TrueType and on restricting fsType values (font-subset-policy.ts), then re-parses the output with the same reader."
+      }
+    },
+    "engine/src/video-container-probe.ts": {
+      "family": "Audio, video and animation",
+      "fuzzTargets": [
+        "video-probe"
+      ],
+      "details": {
+        "inputSource": "A MOV, MP4 or MXF a user imported, read through a bounded `read(offset, length)` source",
+        "bounds": "4,096 top-level boxes, 32 MiB movie box, 100,000 child boxes per level, 2^20 timing entries, 64 tracks; MXF run-in 64 KiB, 16 MiB header metadata, 200,000 KLV items; 64-bit values above 2^53 and any read past the end of the file are refused",
+        "directTests": "`tests/video-container-probe.test.ts`, `tests/video-no-patent-codecs.test.ts`",
+        "fuzzCoverage": "`video-probe` (`probeVideoContainer`) over ProRes, H.264 and DNx MOV seeds and an OP1a MXF seed",
+        "notes": "Container structure only: sample entries, config records, MXF descriptors and labels. Nothing is decoded. Bytes that are none of the three containers answer null; a recognised but unreadable file throws `VideoProbeError` with a code (truncated, malformed, too-large)."
       }
     }
   }

@@ -420,7 +420,7 @@ Dette er verdiene for URL-parameteren `format=` og CLI-flagget `--export=` (se [
 | Vektor | `svg` · `svgz` (gzippet SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (skjærefil) |
 | Side og dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot-designfil) · `scorm` (kurspakke, en ZIP) |
 | Bevegelse | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Lyd | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Lyd | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDI-toner fra Rondocode) |
 | Tekst og data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP-palett) |
 | Bundler og pakker | `zip` · `rpm` og `tar.gz` (gjengivelsen forseglet i en Linux-pakke) |
 

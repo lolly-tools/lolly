@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-02T17:44:12.745Z",
+  "generatedAt": "2026-11-03T10:39:24.930Z",
   "tools": [
     {
       "id": "3d",
@@ -11165,8 +11165,8 @@
     {
       "id": "rondocode",
       "name": "Rondocode",
-      "description": "Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio, stems or MIDI with Content Credentials that record it, or keep its source.",
-      "version": "1.0.0",
+      "description": "Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio with Content Credentials that record it, as stems, as a MIDI file of its notes, or keep its source.",
+      "version": "1.1.0",
       "status": "community",
       "category": "utility",
       "privacy": "on-device",
@@ -11191,6 +11191,7 @@
         "mp3",
         "m4a",
         "opus",
+        "mid",
         "json"
       ],
       "width": 1280,

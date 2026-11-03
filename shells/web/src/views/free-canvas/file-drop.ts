@@ -10,7 +10,7 @@ import { bindOp, type FcCtx } from './context.ts';
 type Point = { x: number; y: number };
 type StoreFile = (file: File) => Promise<AssetRef | null>;
 const MEDIA_FILE =
-  /\.(png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|tiff?|svg|svgz|bmp|ico|cur|psd|psb|xcf|mp4|m4v|webm|mov|mkv|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|json|lottie)$/i;
+  /\.(dng|cr2|cr3|nef|nrw|arw|srf|sr2|pef|orf|rw2|raf|png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|tiff?|svg|svgz|bmp|ico|cur|psd|psb|xcf|mp4|m4v|webm|mov|mkv|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|json|lottie)$/i;
 
 /** One drop is one commit, even when it contains several kinds of media. */
 export function placeRefs(fc: FcCtx, refs: AssetRef[], centre: Point, at: number): void {

@@ -42,7 +42,9 @@ export async function fileBytesToFieldText(
     // Cells show as Excel shows them (dates, currency, percentages); the module loads on first use.
     const { xlsxFormatter } = await import('../bridge/xlsx-numfmt.ts');
     const formatCell = await xlsxFormatter();
-    const { rows } = readXlsx(bytes, { ...(sheet !== undefined ? { sheet } : {}), ...(formatCell ? { formatCell } : {}) });
+    // Formulas the file saved no result for are worked out; the others keep what the author saw.
+    const recalc = await (await import('../bridge/gridcraft-calc.ts')).xlsxRecalc();
+    const { rows } = readXlsx(bytes, { ...(sheet !== undefined ? { sheet } : {}), ...(formatCell ? { formatCell } : {}), ...(recalc ? { recalc, recalcWhen: 'missing' as const } : {}) });
     return rowsToCsv(rows);
   }
   if (OFFICE_DOC_RE.test(filename)) {

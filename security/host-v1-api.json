@@ -5,7 +5,7 @@
     "HOST_V1_OPTIONAL_APIS": {
       "module": "apis.ts",
       "kind": "FirstStatement",
-      "sha256": "fc369c16245419b4614c3655a71ff6c7dd021cdef8f03e4eba32e1b27e0d52f6"
+      "sha256": "4c82b77a69101730e961d540324d09bc94dab676d66c68ea480979d08616890a"
     },
     "HostApiName": {
       "module": "apis.ts",
@@ -95,7 +95,7 @@
     "AudioDecodeOpts": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "2237683c5e894318cb02029e852c86661c3fa529abc53c504f9c4d6f93d93967"
+      "sha256": "5ef68b4a9d3823ad4ad6dd4ca522b2a9938ef495ff63aa557593bcf4ed6c28d5"
     },
     "AudioFinding": {
       "module": "audio.ts",
@@ -105,7 +105,7 @@
     "AudioDecoded": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "c6c834745ca0f269f8fbdacebb63461afdfa3802fdaea933ac9b36ef5d5713f8"
+      "sha256": "dd33e250d283a78f0f21ad6d256a40194611ccce0317fdf25bdca254c3adbae2"
     },
     "AudioRepairOpts": {
       "module": "audio.ts",
@@ -181,6 +181,61 @@
       "module": "c2pa.ts",
       "kind": "InterfaceDeclaration",
       "sha256": "7bc2b013ceee896913abbc2b1bf2a5fdc9c5aa6bcdbab61d7d188afa749e1c2b"
+    },
+    "CalcValueV1": {
+      "module": "calc.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "fa5747a271c5e110ea2d7140540c7ca4afb2b30df324a9a2f6a89359029feada"
+    },
+    "CalcCellV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5f94583b4a65e0e0531f83d2c1ce01bfcfc600efbdc9955418e4293ebf4c4e61"
+    },
+    "CalcSheetV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "914920d841b5ade5dd22345f57ef216531f2c496829648ce3be960c4f3bd0d1e"
+    },
+    "CalcClockV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ce58cd66089c008dab19c55f2b447f76f9503a84efaf04302bfad6659c725fea"
+    },
+    "CalcRequestV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e9f5991ffe83f6ba7499e2ed91fc28c15e439db3bd870553141752ec442f4573"
+    },
+    "CalcResultCellV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "3c01498aa920a05019148aad2b64516f8f9bdb065f8d20a92a36422392550485"
+    },
+    "CalcResultV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "c27c57a19d0deeed34bf3f19175a3eddc456e754a1e12b52333d47dd71f61877"
+    },
+    "CalcTableV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a9a77a28c12611f10b929f97b585cc83a051e0edde2a36069c375907365ed891"
+    },
+    "CalcTableResultV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a58cb0e81168ec7b838296e4339ab336b44c75b76d40c6f3f44f260f5e232ee0"
+    },
+    "CalcFunctionV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "97af73ea047fd0518f5146dca1d563772861d64b60fdca6c1cf10b233c7e4ab7"
+    },
+    "CalcAPI": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d514374bed023c206c98618d869169aea774cd82b39b9a35bcd4a61c38a056c7"
     },
     "CaptureAPI": {
       "module": "capture.ts",
@@ -630,7 +685,7 @@
     "HostV1": {
       "module": "host.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "3e8bd81d388db8e16cd6902443d80bfee91c181dd0c7de163756a9c9f5020fac"
+      "sha256": "de9d73892a037be9937962d2a448db2891074bcb2936de23e5f845afdf110cbf"
     },
     "Capability": {
       "module": "host.ts",

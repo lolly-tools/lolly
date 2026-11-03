@@ -579,6 +579,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'GridCraft formula engine and Rust dependencies',
+      version: '0.14.2 (5e415cdd34d287b90a4a9df67eb4f532f6f72d96; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',
+      copyright: 'Storytold and individual crate authors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/gridcraft-calc/LICENSES.txt'), 'utf8'),
+      note: 'GridCraft gridcraft-calc, gridcraft-formula, gridcraft-functions, gridcraft-model, gridcraft-numfmt and gridcraft-core compiled through a bounded Lolly byte adapter. Source changes: an injected clock and random seed in place of the system clock, and the regular-expression functions left out. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/gridcraft-calc/.',
+      where: 'web',
+    },
+    {
       name: 'VectorCraft image tracer and Rust dependencies',
       version: '0.19.0 (05d5f99; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT AND Apache-2.0',
@@ -636,6 +646,16 @@ const MANIFEST: {
       files: 'packages/node-shell/wasm/indd/indd.wasm',
       text: readFileSync(join(ROOT, 'packages/node-shell/wasm/indd/LICENSES.txt'), 'utf8'),
       note: 'Standalone indd-utils crate (MIT is elected from MIT OR Apache-2.0) compiled through a bounded Lolly byte adapter. It was written by observing sample files and reads no Adobe source except the BSD-3-Clause XMP Toolkit container handler; the caveats are in packages/node-shell/wasm/indd/vendor/indd-utils/UPSTREAM.md. Source, build instructions and licences are in packages/node-shell/wasm/indd/.',
+      where: 'web',
+    },
+    {
+      name: 'storytold photocraft camera raw decoder',
+      version: '0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT',
+      copyright: 'The ArtCraft Team and the PhotoCraft contributors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/camera-raw/camera-raw.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/camera-raw/LICENSES.txt'), 'utf8'),
+      note: 'Standalone photocraft-raw crate (MIT is elected from MIT OR Apache-2.0) compiled through a bounded Lolly byte adapter. It was written from public specifications and sample files with no dcraw or LibRaw code; the caveats are in packages/node-shell/wasm/camera-raw/vendor/photocraft-raw/UPSTREAM.md. The JPEG XL decoder is left out. Source, build instructions and licences are in packages/node-shell/wasm/camera-raw/.',
       where: 'web',
     },
     {

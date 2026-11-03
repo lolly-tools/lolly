@@ -12,7 +12,7 @@ Din terminal, `lolly mix` ia o melodie ca întreaga coloană sonoră; vezi [Rand
 
 ## Scrie și exportă o melodie
 
-Deschide **Rondocode** din **Utilities** ca să scrii o melodie în editorul live rondocode și s-o auzi pe măsură ce tastezi. Exportă-o ca **WAV**, **MP3**, **M4A**, **Opus** sau **FLAC**, ca ZIP de stems, ca **MIDI** sau ca înregistrare a ceea ce se redă. **Export length** setează câte secunde durează un export audio. Fișierul melodiei în sine (`.rondo.json`) este codul tău așa cum a fost scris și nu poartă nimic adăugat.
+Deschide **Rondocode** din **Utilities** ca să scrii o melodie în editorul live rondocode și s-o auzi pe măsură ce tastezi. Exportă-o ca **WAV**, **MP3**, **M4A**, **Opus** sau **FLAC**, ca ZIP de stems, ca **MIDI** sau ca înregistrare a ceea ce se redă. Din terminal, `lolly rondocode --export=mid` scrie același fișier MIDI. **Export length** setează câte secunde durează un export audio. Fișierul melodiei în sine (`.rondo.json`) este codul tău așa cum a fost scris și nu poartă nimic adăugat.
 
 O melodie poate cânta versurile cu `sing()`. Cântatul este făcut pe dispozitivul tău de modele de voce descărcate, iar un fișier care conține cântat sintetizat declară mereu cântatul ca generat de AI (vezi [Funcții AI](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ Cele mai multe utilitare pe dispozitiv nu scriu credențială, pentru că transf
 - Muzica calculată din codul melodiei este media algoritmică și nu este marcată ca AI.
 
 Când o melodie cântă, fișierul declară cântatul ca generat de AI într-o formă citibilă de mașină. Tipul sursei digitale al credențialei este media compusă făcută cu modele antrenate, înregistrarea listează părțile cântate, iar o declarație C2PA AI pe model identifică fiecare model prin care a trecut cântatul: text-to-speech Supertonic-3, aliniatorul de foneme wav2vec 2.0, codificatorul ContentVec și vocea RVC, cu depozitul și commit-ul de unde îl găzduiește Lolly. Un fișier care conține cântat sintetizat nu este niciodată salvat fără acea declarație.
+
+### Ce conține fișierul MIDI
+
+Fișierul MIDI este un Standard MIDI File, format 1. Prima pistă conține tempoul și măsura de 4/4, iar după ea urmează câte o pistă pentru fiecare sintetizator, numită după sintetizator. Fiecare notă își păstrează începutul, durata și velocity. Un sintetizator al cărui nume se citește ca un instrument, precum un bas, corzi, un pad sau un pian, primește instrumentul General MIDI potrivit, iar un nume asemănător unei baterii merge pe canalul 10. O acordare care nu este în douăsprezece tonuri este rotunjită la cel mai apropiat semiton cu un pitch bend.
+
+Un fișier MIDI nu poate păstra cum sună o melodie. Setările sintetizatorului, filtrele, efectele, magistralele, sample-urile și cântatul nu sunt în el, așa că un DAW cântă notele cu propriile instrumente. Tempoul este citit din ciclurile pe secundă ale melodiei, un ciclu fiind o măsură de patru timpi, pentru că măsura proprie a melodiei nu face parte din ceea ce returnează randatorul.
 
 Un fișier MIDI nu are loc pentru o credențială, deci un eveniment text din fișier poartă în schimb afirmația, iar panoul de export îți spune asta. Panoul descrie toate acestea înainte să exporți, iar după fiecare export editorul citește fișierul salvat și raportează doar ce a găsit citirea.
 

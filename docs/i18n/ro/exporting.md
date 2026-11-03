@@ -420,7 +420,7 @@ Acestea sunt valorile pentru parametrul URL `format=` și indicatorul CLI `--exp
 | Vector | `svg` · `svgz` (SVG arhivat gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (fișier de tăiere) |
 | Pagină și document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (fișier de design Penpot) · `scorm` (pachet de curs, un ZIP) |
 | Mișcare | `gif` · `apng` (PNG animat) · `webp-anim` (WebP animat) · `svg-anim` (SVG animat) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (note MIDI, din Rondocode) |
 | Text și date | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paletă GIMP) |
 | Bundle-uri și pachete | `zip` · `rpm` și `tar.gz` (randarea sigilată într-un pachet Linux) |
 

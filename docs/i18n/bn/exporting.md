@@ -420,7 +420,7 @@ Lolly একটি CMYK প্রোফাইল পাঠায়, যা Fogr
 | ভেক্টর | `svg` · `svgz` (gzip করা SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (কাটার ফাইল) |
 | পৃষ্ঠা ও নথি | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot ডিজাইন ফাইল) · `scorm` (কোর্স প্যাকেজ, একটি ZIP) |
 | মোশন | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| অডিও | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| অডিও | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDI নোট, Rondocode থেকে) |
 | টেক্সট ও ডেটা | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | বান্ডল ও প্যাকেজ | `zip` · `rpm` ও `tar.gz` (Linux প্যাকেজে সিল করা রেন্ডার) |
 

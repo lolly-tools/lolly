@@ -18,6 +18,20 @@ Open **Darkroom** and choose an image. The controls run from broad to fine:
 
 To keep HDR or wide-gamut originals at full precision, set **Editing range** to **HDR**; see [Wide colour and HDR editing](/info/hdr-editing.html).
 
+## Open a camera raw photo
+
+Darkroom opens a raw file from your camera like any other photo: choose it, drop it on the page or pick it from **My images**. Lolly develops the file on your device, applies the camera's white balance, orientation and crop, and stores a normal picture at up to 3840 pixels on the long edge. The raw file itself is not kept. Darkroom then grades the developed picture. It does not re-develop the sensor data.
+
+- **DNG** files use the colour matrices stored in the file, so the colour is exact. The import note says "exact colour".
+- **CR2, NEF, ARW, ORF, RW2 and uncompressed RAF** files store no colour matrices. Lolly fits the colour to the JPEG the camera embedded in the same file, and the import note says "approximate colour" and how far the fit is from that JPEG. Pictures with strong local tone mapping, such as Active D-Lighting, can differ most.
+- **Canon CR3 and sRAW, compressed RAF and compressed PEF** cannot be decoded yet. Lolly opens the camera's embedded JPEG preview instead and says so. A DNG that uses JPEG XL compression is not supported either, so export it as a lossless DNG first.
+
+The note appears when the file comes in, with the camera, the size and the colour state. A file larger than 192 MB, or one that would need more than the 512 MB the decoder is allowed (about 50 megapixels), is refused with a message that suggests a smaller DNG or a JPEG from your camera software. The command line develops raw photos the same way and prints the same note:
+
+```sh
+lolly run darkroom --image=IMG_4059.CR2 --output=graded.png
+```
+
 ## Bring in an Adobe photo preset
 
 **Import Adobe photo preset** maps an XMP preset's exposure, contrast, highlights, shadows, saturation, vibrance and dehaze onto Darkroom's own controls. The result is approximate: profiles, Kelvin white balance, masks and settings Darkroom has no control for are listed in a report. Settings the preset does not mention keep their current values. Lua `.lrtemplate` files are refused, so export XMP from Adobe first.

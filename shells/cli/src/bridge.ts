@@ -788,6 +788,8 @@ export async function createCliBridge(
   host.scan = createNodeScanAPI();
   // host.fonts (v1.262) - font inspection and verified Skera subsetting, WASM read off disk.
   host.fonts = (await import('@lolly-tools/node-shell/fonts')).createNodeFontsAPI();
+  // host.calc - spreadsheet formulas over the committed WASM, read off disk on first use.
+  host.calc = (await import('@lolly-tools/node-shell/gridcraft-calc-node')).createNodeCalcAPI();
   host.prepare = (await import('@lolly/engine')).createPrepareAPI();
   host.compare = (await import('@lolly/engine')).createCompareAPI();
   let layout: Promise<import('@lolly-tools/core/host-v1').LayoutAPI> | undefined;

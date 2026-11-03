@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "Lollyはこのデバイスでエージェントを見つけましたが、まだリクエストを送れるものはありません。",
   "Lolly could not look for agents: {reason}": "Lollyはエージェントを探せませんでした: {reason}",
   "Your organisation's policy does not allow AI agents on this device.": "組織のポリシーにより、このデバイスではAIエージェントを使用できません。",
-  "Working on your request": "リクエストを処理しています"
+  "Working on your request": "リクエストを処理しています",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "おおよその色: カメラ内蔵のJPEGに合わせています（平均差 {de} ΔE）。",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "おおよその色: カメラ内蔵のJPEGに合わせています。",
+  "Approximate colour: this format has no embedded colour matrices.": "おおよその色: この形式には内蔵のカラーマトリクスがありません。",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "おおよその色: これはカメラ内蔵のJPEGプレビューで、センサーのRAWデータではありません。",
+  "Exact colour from the matrices in the DNG file.": "DNGファイル内のマトリクスによる正確な色です。",
+  "Monochrome sensor data.": "モノクロセンサーのデータです。",
+  "Playback": "再生",
+  "Start timecode": "開始タイムコード",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "このクリップの音声は {codec} を使用しており、このデバイスでは再生できません。映像は問題ありません。Lolly は元のファイルを保持します。",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "このクリップは {codec} を使用しており、このデバイスでは再生できません。編集アプリから H.264、HEVC、AV1 のいずれかのコピーを書き出すか、Mac の Lolly デスクトップアプリで開いてください。Lolly は元のファイルを保持します。",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "このクリップは {codec} を使用しており、このデバイスでは再生できません。編集アプリから H.264、HEVC、AV1 のいずれかのコピーを書き出してください。Lolly は元のファイルを保持します。",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "これは {codec} の MXF ファイルです。Lolly は中身を読み取れますが、MXF を再生できません。編集アプリから H.264、HEVC、AV1 のいずれかのコピーを書き出してください。Lolly は元のファイルを保持します。",
+  "{format} from {camera}": "{camera} の {format}"
 }

@@ -420,7 +420,7 @@ Questi sono i valori per il parametro URL `format=` e il flag CLI `--export=` (v
 | Vettoriale | `svg` · `svgz` (SVG compresso con gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (file di taglio) |
 | Pagina e documento | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (file di design Penpot) · `scorm` (pacchetto di corso, uno ZIP) |
 | Animazione | `gif` · `apng` (PNG animato) · `webp-anim` (WebP animato) · `svg-anim` (SVG animato) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (note MIDI, da Rondocode) |
 | Testo e dati | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (palette GIMP) |
 | Bundle e pacchetti | `zip` · `rpm` e `tar.gz` (il rendering sigillato in un pacchetto Linux) |
 

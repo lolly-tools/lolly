@@ -420,7 +420,7 @@ Lolly ایک CMYK پروفائل کے ساتھ آتا ہے، جو Fogra کے FOG
 | Vector | `svg` · `svgz` (gzipped SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (cut file) |
 | صفحہ اور دستاویز | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot design file) · `scorm` (course package, a ZIP) |
 | Motion | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| آڈیو | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| آڈیو | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDI نوٹس، Rondocode سے) |
 | متن اور ڈیٹا | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | بنڈلز اور پیکجز | `zip` · `rpm` اور `tar.gz` (the render sealed into a Linux package) |
 

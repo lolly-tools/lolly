@@ -32,6 +32,8 @@ import { open, readFile, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, extname, join, resolve } from 'node:path';
 import { isSvgDocument, SVG_SNIFF_BYTES } from '@lolly-tools/node-shell/format-sniff';
+import { looksLikeCameraRaw } from '@lolly-tools/node-shell/camera-raw';
+import { CAMERA_RAW_MIME, developRawPhoto } from './camera-raw.ts';
 import { refused, usageError } from './exit-codes.ts';
 
 /** The parts of a blocks sub-field this module reads. */
@@ -91,6 +93,8 @@ export function imageMime(name: string, bytes: Uint8Array): string {
   }
   if ((b[0] === 0xff && b[1] === 0x0a) || startsWith(b, JXL_BOX)) return 'image/jxl';
   if (isBmpHeader(b)) return 'image/bmp';
+  // A camera raw file is TIFF-structured (or RAF, CR3): the file is developed into a picture before a tool sees the bytes.
+  if (looksLikeCameraRaw(b, name)) return CAMERA_RAW_MIME;
   if (isTiffHeader(b)) return 'image/tiff';
   if (isSvgDocument(b)) return 'image/svg+xml';
   return 'application/octet-stream';
@@ -162,6 +166,11 @@ export function acceptsMime(accept: string | undefined, mime: string): boolean {
 
 /** One picture's bytes as the baked asset ref a web upload produces. */
 export async function bakedImageRef(name: string, bytes: Uint8Array, mime: string): Promise<Record<string, unknown>> {
+  if (mime === CAMERA_RAW_MIME) {
+    const developed = await developRawPhoto(name, bytes);
+    if (developed) ({ name, bytes, mime } = developed);
+    else mime = 'image/tiff';
+  }
   const isVec = mime === 'image/svg+xml';
   const { prepareJxlAsset } = await import('@lolly-tools/node-shell/jxl-asset');
   return await prepareJxlAsset({

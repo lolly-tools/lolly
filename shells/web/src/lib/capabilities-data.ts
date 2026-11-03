@@ -306,7 +306,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'formats', id: 'cap-formats', title: 'Export formats', icon: ICONS.image,
-    desc: '65 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
+    desc: '66 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
     cards: [
       { icon: ICONS.vector, title: 'Vector', shot: 'vt-wordmark-vector', keywords: 'svg svgz eps emf wmf dxf illustrator postscript outlines paths cut file laser cnc plotter penpot boards indesign idml', features: [
         { name: 'SVG · SVGZ', desc: 'Infinitely scalable and self-contained - text is outlined to paths (HarfBuzz-shaped) so it renders identically without the font installed. SVGZ is the same file gzip-compressed, 60 to 70% smaller.' },
@@ -334,6 +334,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
       ] },
       { icon: ICONS.film, title: 'Audio', keywords: 'mp3 m4a aac wav flac opus ogg audio soundtrack voice recorder audiogram sequence studio lossless encode download as', features: [
         { name: 'MP3 · M4A · WAV · Opus', desc: 'Recording and audio tools (the Voice Recorder, Audiogram and a Design sequence) export their soundtrack on its own - compact MP3, M4A or Opus, or full-quality lossless WAV - encoded on your device.' },
+        { name: 'MIDI', desc: 'Rondocode writes a song’s notes as a Standard MIDI File (<code>.mid</code>, format 1): a tempo track and one track per synth, with note velocities and General MIDI instruments where a synth’s name maps to one. Synth settings, effects, samples and singing are not in it, and a MIDI file has no place for Content Credentials, so a text event names the song instead.' },
         { name: 'AAC · Ogg · FLAC', desc: 'A Design sequence, and Download as on an audio file in your library, also write a bare AAC stream, Opus in an Ogg file, or lossless FLAC at the clip’s own sample rate. Ogg and FLAC carry Content Credentials; a bare AAC stream has no place for one, so choose M4A when the file should carry one.' },
       ] },
       { icon: ICONS.doc, title: 'Documents & data', keywords: 'pptx powerpoint keynote html markdown md txt json csv ics calendar vcf contact vcard docx word odt libreoffice scorm lms course srt vtt webvtt captions subtitles ttml imsc scc cea-608 broadcast', features: [
@@ -359,10 +360,11 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'import', id: 'cap-import', title: 'Import formats', icon: ICONS.install,
-    desc: '61 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
+    desc: '66 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
     cards: [
-      { icon: ICONS.image, title: 'Images', shot: 'auth-assets-uploads', keywords: 'png jpg jpeg webp avif heic heif jxl jpeg xl bmp ico favicon iphone photo exif gps strip gif apng animated svg svgz sanitise', features: [
+      { icon: ICONS.image, title: 'Images', shot: 'auth-assets-uploads', keywords: 'png jpg jpeg webp avif heic heif jxl jpeg xl bmp ico favicon iphone photo exif gps strip gif apng animated svg svgz sanitise raw dng camera raw cr2 cr3 nef arw raf orf rw2 pef darkroom develop approximate colour', features: [
         { name: 'PNG · JPG · WebP · AVIF · HEIC/HEIF', desc: 'Drop a photo or graphic into any image picker or your <strong>My images</strong> library. Stills are downscaled and stripped of EXIF/GPS on ingest; iPhone HEIC/HEIF decodes even where the browser can’t, via a bundled fallback. AVIF reads wherever the browser decodes it.' },
+        { name: 'DNG · Camera RAW (CR2 · CR3 · NEF · ARW · RAF · ORF · RW2)', desc: 'A raw photo is developed on your device and stored as a normal picture, ready for <strong>Darkroom</strong>. A DNG uses the colour matrices in the file, so its colour is exact. Other camera raws carry none, so their colour is fitted to the JPEG the camera embedded and labelled <em>approximate colour</em> in the import report. Variants Lolly cannot decode open the camera’s own JPEG preview instead.' },
         { name: 'Animated GIF · Animated PNG · Animated WebP', desc: 'Animated rasters are recognised and kept <em>verbatim</em> - frames intact - so a looping GIF or animated PNG stays animated when you place it.' },
         { name: 'JPEG XL · BMP · ICO', desc: 'A JPEG XL original is kept and shown as an sRGB view for editing; a BMP, or the largest image in an ICO, decodes directly.' },
         { name: 'SVG · SVGZ', desc: 'Vector artwork is sanitised - scripts, <code>on*</code> handlers and <code>javascript:</code> URLs are stripped - and normalised to a clean viewBox before it’s stored. A compressed <code>.svgz</code> unzips first.' },
@@ -383,17 +385,18 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'DTCG · Tokens Studio', desc: 'A W3C design-token file or a Tokens Studio export builds a whole brand - palette, ramps, type and themes - ready to use.' },
       ] },
       { icon: ICONS.doc, title: 'Data & animation', shot: 'auth-blocks-rows', keywords: 'csv json xlsx excel table rows paste spreadsheet html markdown md text rich lottie bodymovin dotlottie srt vtt webvtt captions subtitles', features: [
-        { name: 'CSV · JSON · XLSX', desc: 'Paste or drop a table and a tool’s repeating blocks fill from it - RFC 4180 CSV (quoted fields, embedded newlines), JSON rows/arrays, or the first sheet of an Excel workbook, up to a thousand rows. Macro-enabled workbooks are refused.' },
+        { name: 'CSV · JSON · XLSX', desc: 'Paste or drop a table and a tool’s repeating blocks fill from it - RFC 4180 CSV (quoted fields, embedded newlines), JSON rows/arrays, or the first sheet of an Excel workbook, up to a thousand rows. Formulas the file saved no result for are worked out on your device. Macro-enabled workbooks are refused.' },
         { name: 'HTML · Markdown · text', desc: 'A pasted rich-text selection or an HTML table fills a tool’s content or rows; Markdown and plain text come in as content.' },
         { name: 'SRT · WebVTT captions', desc: 'The Captions, Audiogram and Record tools take an existing caption file through Add data, so a transcript you already have needs no speech model.' },
         { name: 'Lottie (.json · .lottie)', desc: 'Bodymovin JSON and dotLottie animations validate and place as live vector animations.' },
       ] },
-      { icon: ICONS.film, title: 'Video', keywords: 'mp4 mov webm footage clip verbatim transcode', features: [
+      { icon: ICONS.film, title: 'Video', keywords: 'mp4 mov webm mxf prores dnx dnxhd dnxhr footage clip verbatim transcode proxy', features: [
         { name: 'MP4 · MOV · WebM', desc: 'Video files are stored <em>verbatim</em> - never transcoded - and their dimensions probed locally, ready to place in motion tools.' },
+        { name: 'MXF · ProRes · DNx', desc: 'Lolly reads the file header for the codec, size, rate, timecode and sound tracks, and uses your device’s own decoder where it has one. It bundles no ProRes or DNx decoder, so a clip your device cannot open says which codec it uses and how to get a copy that opens. The original is kept.' },
       ] },
       { icon: ICONS.sound, title: 'Sound & music', keywords: 'mp3 m4a aac wav ogg vorbis opus flac midi mod xm it s3m tracker music soundtrack bed audio import', features: [
         { name: 'MP3 · M4A · AAC · WAV · OGG · FLAC', desc: 'Kept byte for byte and decoded on your device, ready to be a video’s music bed or to play in the ambient player.' },
-        { name: 'MIDI · tracker modules', desc: 'A <code>.mid</code> score becomes a small on-device synth track, and MOD, XM, IT, S3M, STM and MTM tracker music plays through a bundled player.' },
+        { name: 'MIDI · tracker modules', desc: 'A <code>.mid</code> score becomes a small on-device synth track that keeps each note’s velocity, Rondocode writes a song as a <code>.mid</code> of its notes, and MOD, XM, IT, S3M, STM and MTM tracker music plays through a bundled player.' },
       ] },
       { icon: ICONS.cube, title: '3D models', keywords: '3d glb gltf stl 3mf model mesh import render', features: [
         { name: 'GLB · glTF · STL · 3MF', desc: '3D Studio loads your own model on your device, never uploaded, to render as a still or a turntable. An import for rendering, not a Lolly export.' },

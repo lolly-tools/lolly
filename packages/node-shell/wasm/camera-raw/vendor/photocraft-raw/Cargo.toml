@@ -1,0 +1,33 @@
+[package]
+name = "photocraft-raw"
+version = "0.18.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+description = "Pinned PhotoCraft camera raw decoder (DNG, CR2, NEF, ARW, RW2, ORF, RAF), JPEG XL decoder left out"
+
+[lib]
+name = "photocraft_raw"
+
+[features]
+default = []
+# Synthetic raw-file generators (DNG / CR2 / TIFF-EP writers and a lossless-JPEG encoder) for tests.
+testgen = ["dep:image"]
+# Real-file corpus tests (opt-in). They fail when the corpus is missing.
+corpus = []
+
+[dependencies]
+flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
+zune-jpeg = "0.5"
+zune-core = "0.5"
+image = { version = "0.25", default-features = false, features = ["jpeg"], optional = true }
+
+# Parallel bands on native; wasm builds stay single-threaded.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rayon = "1"
+
+[dev-dependencies]
+photocraft-raw = { path = ".", features = ["testgen"] }
+
+[lints.rust]
+unsafe_code = "forbid"

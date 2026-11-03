@@ -23,6 +23,7 @@
  */
 
 import { looksLikeHeic, decodeHeicBitmap } from './heic-decode.ts';
+import { isCameraRawName, CAMERA_RAW_MIME_RE } from '@lolly-tools/node-shell/camera-raw';
 import { isJxl } from '../../../../engine/src/jxl.ts';
 
 /** Longest-edge cap, in px, applied to stored user rasters (4K - high enough to
@@ -91,6 +92,11 @@ export function describeDecodeFailure(file: Blob & { name?: string }): string {
   return 'This image couldn’t be read. Try a JPEG, PNG, WebP or GIF.';
 }
 
+/** Cheap name and type test, so ordinary images never load the raw bridge. */
+function isCameraRawLike(file: Blob & { name?: string }): boolean {
+  return isCameraRawName(file.name) || CAMERA_RAW_MIME_RE.test(file.type);
+}
+
 /**
  * Decode any supported image file to an ImageBitmap (orientation baked in). Tries
  * the browser's native decoder first; on failure, if the file is HEIC/HEIF, falls
@@ -102,6 +108,15 @@ export function describeDecodeFailure(file: Blob & { name?: string }): string {
  * @returns {Promise<ImageBitmap>}
  */
 export async function decodeImageBitmap(file: Blob & { name?: string }): Promise<ImageBitmap> {
+  // A camera raw file is developed on the device (DNG with its own matrices, other raws with an
+  // approximate colour fit). Anything the raw decoder declines falls through to the native decoder.
+  if (isCameraRawLike(file)) {
+    const raw = await import('./camera-raw.ts');
+    if (await raw.isCameraRawFile(file)) {
+      try { return await raw.cameraRawBitmap(await raw.developCameraRaw(new Uint8Array(await file.arrayBuffer()), 'open')); }
+      catch { /* not raw after all, or not decodable here: let the native decoder have a go */ }
+    }
+  }
   if (isJxl(new Uint8Array(await file.slice(0, 12).arrayBuffer()))) {
     const { jxlDisplay } = await import('./jxl.ts');
     return createImageBitmap((await jxlDisplay(file)).blob);

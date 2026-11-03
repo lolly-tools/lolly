@@ -420,7 +420,7 @@ LollyにはCMYKプロファイルが1つ付属しています。FograのFOGRA39�
 | ベクター | `svg` · `svgz` (gzip圧縮のSVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (カット用ファイル) |
 | ページとドキュメント | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpotのデザインファイル) · `scorm` (コースパッケージ。ZIP) |
 | モーション | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| 音声 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| 音声 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDIノート(Rondocodeから)) |
 | テキストとデータ | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMPパレット) |
 | バンドルとパッケージ | `zip` · `rpm`と`tar.gz` (レンダリング結果をLinuxパッケージに封じたもの) |
 

@@ -85,6 +85,8 @@ test('XLSX import claims a chosen sheet and number formats, and no longer claims
   assert.match(xlsx.desc, /sheet you can choose/);
   assert.match(xlsx.desc, /number formats/);
   assert.match(xlsx.desc, /Import-only/);
+  assert.match(xlsx.desc, /formula the file saved no result for/, 'XLSX states that formulas without a saved result are worked out');
+  assert.ok(reg.unsupported.XLSX?.some((line) => /saved result/.test(line)), 'XLSX lists which formulas are not worked out');
   assert.equal(reg.unsupported.XLSX?.some((line) => /first worksheet only/i.test(line)), false);
   assert.ok(reg.unsupported.XLSX?.some((line) => /^Import-only/.test(line)), 'XLSX keeps its Import-only limit');
 });

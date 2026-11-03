@@ -12,7 +12,7 @@ Vom Terminal aus nimmt `lolly mix` einen Song als gesamten Soundtrack; siehe [CL
 
 ## Einen Song schreiben und exportieren
 
-Öffnen Sie **Rondocode** aus **Utilities**, um in Rondocodes Live-Editor einen Song zu schreiben und ihn beim Tippen zu hören. Exportieren Sie ihn als **WAV**, **MP3**, **M4A**, **Opus** oder **FLAC**, als ZIP aus Stems, als **MIDI** oder als Aufnahme dessen, was gerade läuft. **Export length** legt fest, wie viele Sekunden ein Audioexport dauert. Die Song-Datei selbst (`.rondo.json`) ist Ihr Code, wie geschrieben, und trägt nichts Hinzugefügtes.
+Öffnen Sie **Rondocode** aus **Utilities**, um in Rondocodes Live-Editor einen Song zu schreiben und ihn beim Tippen zu hören. Exportieren Sie ihn als **WAV**, **MP3**, **M4A**, **Opus** oder **FLAC**, als ZIP aus Stems, als **MIDI** oder als Aufnahme dessen, was gerade läuft. Im Terminal schreibt `lolly rondocode --export=mid` dieselbe MIDI-Datei. **Export length** legt fest, wie viele Sekunden ein Audioexport dauert. Die Song-Datei selbst (`.rondo.json`) ist Ihr Code, wie geschrieben, und trägt nichts Hinzugefügtes.
 
 Ein Song kann seine Texte mit `sing()` singen. Der Gesang wird auf Ihrem Gerät von heruntergeladenen Stimmmodellen erzeugt, und eine Datei mit synthetisiertem Gesang erklärt den Gesang immer als KI-erzeugt (siehe [KI-Funktionen](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ Die meisten Utilities auf dem Gerät schreiben kein Credential, weil sie eine Da
 - Musik, die aus dem Code des Songs berechnet wird, ist algorithmische Medien und nicht als KI gekennzeichnet.
 
 Wenn ein Song singt, erklärt die Datei diesen Gesang in maschinenlesbarer Form als KI-erzeugt. Der digitale Quelltyp des Credentials ist zusammengesetzte Medien, die mit trainierten Modellen erstellt wurden, der Eintrag listet die gesungenen Teile auf, und eine C2PA-KI-Offenlegung pro Modell nennt jedes Modell, durch das der Gesang lief: Supertonic-3 Text-to-Speech, den Phonem-Aligner wav2vec 2.0, den ContentVec-Encoder und die RVC-Stimme, mit dem Repository und Commit, von dem Lolly es hostet. Eine Datei mit synthetisiertem Gesang wird nie ohne diese Erklärung gespeichert.
+
+### Was die MIDI-Datei enthält
+
+Die MIDI-Datei ist eine Standard MIDI File im Format 1. Die erste Spur enthält das Tempo und eine 4/4-Taktart, danach folgt für jeden Synth eine eigene Spur, benannt nach dem Synth. Jede Note behält ihren Beginn, ihre Länge und ihre Velocity. Ein Synth, dessen Name wie ein Instrument klingt, etwa Bass, Strings, Pad oder Piano, erhält das passende General-MIDI-Instrument, und ein schlagzeugartiger Name kommt auf Kanal 10. Eine Stimmung, die nicht zwölftönig ist, wird per Pitch Bend auf den nächsten Halbton gerundet.
+
+Eine MIDI-Datei kann nicht festhalten, wie ein Song klingt. Die Synth-Einstellungen, Filter, Effekte, Busse, Samples und der Gesang sind nicht darin, deshalb spielt eine DAW die Noten mit ihren eigenen Instrumenten. Das Tempo wird aus den Zyklen pro Sekunde des Songs gelesen, wobei ein Zyklus ein Takt mit vier Schlägen ist, denn die eigene Taktart des Songs gehört nicht zu dem, was der Renderer zurückgibt.
 
 Eine MIDI-Datei hat keinen Platz für ein Credential, daher trägt ein Text-Ereignis in der Datei die Aussage stattdessen, und das Export-Panel sagt Ihnen das. Das Panel beschreibt all das vor dem Export, und nach jedem Export liest der Editor die gespeicherte Datei zurück und meldet nur, was dieses Lesen ergeben hat.
 

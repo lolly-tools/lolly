@@ -590,6 +590,48 @@
       }
     },
     {
+      "token": "DNG",
+      "name": "DNG",
+      "category": "Raster",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "raster",
+        "deep-color"
+      ],
+      "metadata": {
+        "reads": [
+          "exif"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Camera, lens settings and capture time are read for the import report. The developed picture is stored without them. Lolly does not write DNG."
+      }
+    },
+    {
+      "token": "Camera RAW",
+      "name": "Camera RAW",
+      "category": "Raster",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "raster",
+        "deep-color"
+      ],
+      "metadata": {
+        "reads": [
+          "exif"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Camera and exposure details are read for the import report. The developed picture is stored without them. Lolly does not write camera raw formats."
+      }
+    },
+    {
       "token": "PSB",
       "name": "PSB",
       "category": "Layered",
@@ -648,6 +690,66 @@
         "writes": [],
         "preserves": "n/a",
         "note": "Same BMFF reader as MP4: the XMP box, the ilst tags and the QuickTime mdta keys."
+      }
+    },
+    {
+      "token": "MXF",
+      "name": "MXF",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "ProRes",
+      "name": "Apple ProRes",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "DNx",
+      "name": "Avid DNxHD / DNxHR",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
       }
     },
     {
@@ -838,10 +940,10 @@
       "token": "MIDI",
       "name": "MIDI",
       "category": "Audio",
-      "dir": "in",
+      "dir": "both",
       "reads": true,
-      "writes": false,
-      "roundTrips": false,
+      "writes": true,
+      "roundTrips": true,
       "features": [
         "audio",
         "sequenced"
@@ -849,7 +951,8 @@
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a"
+        "preserves": "none",
+        "note": "A Standard MIDI File has no place for a Content Credential, so Rondocode writes a text event naming the song instead. Importing a .mid never rewrites it: the original bytes are kept."
       }
     },
     {

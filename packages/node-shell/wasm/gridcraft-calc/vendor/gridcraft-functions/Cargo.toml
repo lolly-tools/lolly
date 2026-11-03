@@ -1,0 +1,17 @@
+[package]
+name = "gridcraft-functions"
+version = "0.14.2"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+publish = false
+description = "GridCraft worksheet function library"
+
+[dependencies]
+gridcraft-core = { path = "../../../xlsx-numfmt/vendor/gridcraft-core" }
+regex = { version = "1", default-features = false, features = ["std", "unicode", "perf"], optional = true }
+
+[features]
+# Upstream always builds the REGEX* functions. Lolly leaves them out of the WASM module.
+default = ["regex"]
+regex = ["dep:regex"]

@@ -32,6 +32,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - svg-readers   : colour/layer/custom-geometry/path readers over one hostile SVG string
  *   - keyframes     : parse/normalise/evaluate the URL-mode `kf` wire grammar
  *   - midi          : Standard MIDI event walker plus note-to-pattern mapping
+ *   - smf           : lossless Standard MIDI File reader, then the writer must give the same bytes back
  *   - zzfxm         : guarded procedural-song object validation and PCM rendering
  *   - rondo-source  : rondocode song files and share links (base64url + dictionary DEFLATE)
  *   - rondo-staged  : the validator between the rondocode vm and the DSP (packages/rondo)
@@ -48,6 +49,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - c2pa-containers: attachC2paStore(bytes, fmt, store) + embedC2paInPdf - the placement-side container walkers
  *   - url-pack      : unpackToken(token) + expandQuery(query) - the `z` param decoder (DEFLATE bomb caps)
  *   - wav           : parseWav(bytes) - the RIFF/WAVE container walker
+ *   - video-probe   : probeVideoContainer(bytes) - the MOV/MP4/MXF header probe (no decode)
  *   - depth-hint    : depthHint(bytes) - the ingest bit-depth header sniff (web shell lib)
  *   - lut-parse     : parseCubeLut / parse3dlLut - the .cube/.3dl colour-grade LUT readers
  *   - docx-read     : readDocx(parts, parseXml) + isDocx, then both doc-md serialisers
@@ -62,7 +64,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
 import { storeZip } from '../../engine/src/zip.ts';
 import { inspectFont, glyphsForText } from '../../engine/src/font-inspect.ts';
 import { sfntToWoff } from '../../engine/src/font-convert.ts';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { readEmojiPack } from '../../engine/src/emoji-pack.ts';
 import { prepareEmojiSvg, emojiSvgMarkup } from '../../engine/src/emoji-svg.ts';
 import { emojiGraphemes, segmentEmojiText } from '../../engine/src/emoji-segment.ts';
@@ -79,6 +81,7 @@ import {
 } from '../../engine/src/c2pa-extract.ts';
 import { unpackToken, expandQuery, hasPackedState, packQuery } from '../../engine/src/url-pack.ts';
 import { parseWav } from '../../engine/src/wav.ts';
+import { bytesProbeSource, probeVideoContainer, VideoProbeError } from '../../engine/src/video-container-probe.ts';
 import { parseCubeLut, parse3dlLut } from '../../engine/src/grade.ts';
 import { readPsd } from '../../engine/src/psd.ts';
 import { writePsd } from '../../engine/src/psd-write.ts';
@@ -145,6 +148,7 @@ import { parseSampleTimes, sequenceSampleTimes } from '../../engine/src/sequence
 import { parseMotionParams } from '../../engine/src/motion-sampling.ts';
 import { validRequest, validateNegotiation, validateHttpHeaders, allowedOrigin } from '../../services/mcp/src/negotiation.ts';
 import { midiToSong, parseMidi } from '../../engine/src/midi.ts';
+import { readSmf, writeSmf, SmfError } from '../../engine/src/smf.ts';
 import { renderZzfxm, type ZzfxSong } from '../../engine/src/zzfxm.ts';
 import { packRadiance, parseRadianceHeader, readRadiance } from '../../engine/src/radiance.ts';
 import { assembleSealMessage, parseSealRecords } from '../../engine/src/seal.ts';
@@ -1250,6 +1254,46 @@ export const wavTarget: FuzzTarget = {
   async invoke(bytes) { parseWav(bytes); },
 };
 
+// ── video-probe: the MOV/MP4/MXF container probe ──────────────────────────────
+
+function probeBox(type: string, ...body: Uint8Array[]): Uint8Array {
+  const b = concat(body);
+  return concat([u32be(8 + b.length), bytesOf(type), b]);
+}
+
+function probeMovSeed(code: string): Uint8Array {
+  const z = (n: number): Uint8Array => new Uint8Array(n);
+  const u16b = (n: number): Uint8Array => Uint8Array.of((n >>> 8) & 0xff, n & 0xff);
+  const entry = probeBox(code, z(6), u16b(1), z(16), u16b(64), u16b(48), u32be(0x480000), u32be(0x480000), z(4), u16b(1), z(32), u16b(24), u16b(0xffff));
+  const stbl = probeBox('stbl', probeBox('stsd', z(4), u32be(1), entry), probeBox('stts', z(4), u32be(1), u32be(25), u32be(1000)));
+  const trak = probeBox('trak', probeBox('mdia', probeBox('mdhd', z(8), u32be(25000), u32be(50000), z(4)), probeBox('hdlr', z(4), bytesOf('vide'), z(12)), probeBox('minf', stbl)));
+  return concat([probeBox('ftyp', bytesOf('qt  '), u32be(0), bytesOf('qt  ')), probeBox('mdat', z(8)), probeBox('moov', probeBox('mvhd', z(8), u32be(1000), u32be(2000), z(80)), trak)]);
+}
+
+function probeMxfSeed(): Uint8Array {
+  const ul = (...r: number[]): Uint8Array => Uint8Array.from([0x06, 0x0e, 0x2b, 0x34, ...r]);
+  const ber = (n: number): Uint8Array => Uint8Array.of(0x83, (n >> 16) & 255, (n >> 8) & 255, n & 255);
+  const tag = (t: number, v: Uint8Array): Uint8Array => concat([Uint8Array.of(t >> 8, t & 255, v.length >> 8, v.length & 255), v]);
+  const desc = concat([ul(0x02, 0x53, 0x01, 0x01, 0x0d, 0x01, 0x01, 0x01, 0x01, 0x01, 0x28, 0x00), ber(60),
+    tag(0x3203, u32be(1920)), tag(0x3202, u32be(1080)), tag(0x3001, concat([u32be(25), u32be(1)])),
+    tag(0x3201, ul(0x04, 0x01, 0x01, 0x0a, 0x04, 0x01, 0x02, 0x02, 0x71, 0x26, 0, 0))]);
+  const pack = concat([Uint8Array.of(0, 1, 0, 3), u32be(1), new Uint8Array(24), u32be(0), u32be(desc.length), new Uint8Array(24),
+    ul(0x04, 0x01, 0x01, 0x09, 0x0d, 0x01, 0x02, 0x01, 0x01, 0x01, 0, 0), u32be(0), u32be(16)]);
+  return concat([ul(0x02, 0x05, 0x01, 0x01, 0x0d, 0x01, 0x02, 0x01, 0x01, 0x02, 0x04, 0x00), ber(pack.length), pack, desc]);
+}
+
+export const videoProbeTarget: FuzzTarget = {
+  name: 'video-probe',
+  async seeds() {
+    return [probeMovSeed('apch'), probeMovSeed('avc1'), probeMovSeed('AVdh'), probeMxfSeed()];
+  },
+  // Contract: null for foreign bytes, a VideoProbeError for a recognised container
+  // that cannot be read. Any other throw, a hang or a runaway allocation is a finding.
+  async invoke(bytes) {
+    try { await probeVideoContainer(bytesProbeSource(bytes)); } catch (e) { if (!(e instanceof VideoProbeError)) throw e; }
+  },
+};
+
 // depthHint (shells/web/src/lib/image-sample.ts): the ingest path's bit-depth
 // header sniff. Contract mirrors the house reader rule: never throws - hostile,
 // truncated, or lying headers answer nulls - and every read is a bounded slice,
@@ -1593,6 +1637,23 @@ export const midiTarget: FuzzTarget = {
   async invoke(bytes) {
     const parsed = parseMidi(bytes);
     midiToSong(parsed);
+  },
+};
+
+export const smfTarget: FuzzTarget = {
+  name: 'smf',
+  async seeds() {
+    const dir = new URL('../fixtures/smf/', import.meta.url);
+    return readdirSync(dir).filter((f) => f.endsWith('.mid')).map((f) => new Uint8Array(readFileSync(new URL(f, dir))));
+  },
+  async invoke(bytes) {
+    let file: ReturnType<typeof readSmf>;
+    try { file = readSmf(bytes, { maxBytes: 1 << 20, maxEvents: 100_000 }); } catch (e) {
+      if (e instanceof SmfError) throw e;
+      throw new Error(`readSmf threw a non-SmfError: ${String(e)}`);
+    }
+    const back = writeSmf(file);
+    if (back.length !== bytes.length || back.some((b, i) => b !== bytes[i])) throw new Error('SMF read then write did not give the same bytes');
   },
 };
 
@@ -2066,6 +2127,47 @@ export const xlsxNumfmtTarget: FuzzTarget = {
     readXlsx(bytes, { formatCell: kernel.formatCell });
   },
 };
+// Spreadsheet formulas (packages/node-shell/wasm/gridcraft-calc): formula text from a table cell or a
+// workbook, and the JSON request that carries a formula. Contract: a value or an error on the cell, or a refusal
+// message for the whole request; never a trap, a hang or a result of the wrong shape. Seeds are
+// ordinary formulas and one small request; mutations reach the lexer, the parser, the reference
+// forms, array constants, LET and LAMBDA, and the request reader.
+export const formulaCalcTarget: FuzzTarget = {
+  name: 'formula-calc',
+  async seeds() {
+    const enc = (t: string) => new TextEncoder().encode(t);
+    const request = JSON.stringify({ now: 1_790_000_000_000, seed: 3, sheets: [{ name: 'Data', cells: [{ r: 0, c: 0, v: 2 }, { r: 1, c: 0, v: 'x' }, { r: 2, c: 0, f: 'SUM(A1:A2)' }] }] });
+    return [
+      enc('SUM(A1:A3)*IF(B2>1,"a","b")&TEXT(NOW(),"yyyy-mm-dd")'),
+      enc("VLOOKUP(\"k\",'Sheet 2'!$A$1:$C$9,3,FALSE)+INDEX({1,2;3,4},2,1)"),
+      enc('LET(x,SEQUENCE(3),y,x*2,SUM(y))+LAMBDA(a,a+1)(2)'),
+      enc('XLOOKUP(1,A:A,B:B,"none")&SUMIFS(C2:C9,A2:A9,">=1",B2:B9,"<>")&Table1[[#This Row],[Col]]'),
+      enc(request),
+    ];
+  },
+  async invoke(bytes) {
+    const { createCalcEngine } = await import('../../engine/src/calc.ts');
+    const { compileGridcraftCalc, createGridcraftCalcRunner } = await import('../../packages/node-shell/src/gridcraft-calc.ts');
+    const { readFile } = await import('node:fs/promises');
+    fuzzCalc ??= (async () => {
+      const wasm = await readFile(new URL('../../packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm', import.meta.url));
+      const runner = createGridcraftCalcRunner(await compileGridcraftCalc(new Uint8Array(wasm)));
+      return { runner, engine: createCalcEngine(runner, () => ({ now: 1_790_000_000_000, seed: 1 })) };
+    })();
+    const { runner, engine } = await fuzzCalc;
+    // A trap is the one failure: the runner reports it with this message and a refusal never does.
+    const notATrap = (error: unknown): void => { if (error instanceof Error && /stopped on this input/.test(error.message)) throw new WebAssembly.RuntimeError(error.message); };
+    // As formula text in a cell beside data, so references resolve.
+    const text = new TextDecoder().decode(bytes.subarray(0, 4096));
+    try {
+      const out = engine.evaluate({ sheets: [{ name: 'Data', cells: [{ r: 0, c: 0, v: 2 }, { r: 1, c: 0, v: 'x' }, { r: 0, c: 1, f: text }, { r: 1, c: 1, f: text, legacy: true }] }] });
+      if (out.sheets.length !== 1 || out.sheets[0]!.cells.length < 2) throw new WebAssembly.RuntimeError('A formula request lost its cells.');
+    } catch (error) { notATrap(error); if (error instanceof WebAssembly.RuntimeError) throw error; }
+    // As the whole request body.
+    try { runner(1, bytes); } catch (error) { notATrap(error); }
+  },
+};
+let fuzzCalc: Promise<{ runner: import('../../engine/src/calc.ts').CalcRunner; engine: import('../../engine/src/calc.ts').CalcEngine }> | undefined;
 // Image trace (packages/node-shell/wasm/image-trace): pixels from the shell's own decoder, plus an
 // 8-byte header (width, height) the module checks. Contract: a result the wire reader accepts or an
 // ImageTraceError refusal; never a trap or a hang. Seeds are a tiny logo and a tiny line drawing;
@@ -2154,6 +2256,31 @@ export const inddTarget: FuzzTarget = {
     try { (await loadInddKernel()).convert(bytes, 'fuzz.indd'); }
     catch (error) {
       if (!(error instanceof InddError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+    }
+  },
+};
+// Camera raw decoder (packages/node-shell/wasm/camera-raw): untrusted camera files, TIFF IFD chains,
+// lossless and lossy JPEG tiles and vendor maker notes. Contract: a typed CameraRawError refusal or a
+// developed picture within the declared 512 MiB module memory; never a trap, hang or oversized
+// result. Seeds are small synthetic Bayer DNG and TIFF/EP files, so a run takes the same time everywhere.
+export const cameraRawTarget: FuzzTarget = {
+  name: 'camera-raw',
+  async seeds() {
+    const { buildDng } = await import('../camera-raw-fixtures.ts');
+    const scene = (x: number, y: number): [number, number, number] => [x / 24, y / 16, 0.4];
+    return [
+      buildDng({ width: 24, height: 16, scene, iso: 400, exposureTime: [1, 125], orientation: 6 }),
+      buildDng({ width: 24, height: 16, scene, dng: false, make: 'NIKON CORPORATION', model: 'NIKON D-TEST' }),
+    ];
+  },
+  async invoke(bytes) {
+    const { loadCameraRawKernel } = await import('../../packages/node-shell/src/camera-raw-node.ts');
+    const { CameraRawError } = await import('../../packages/node-shell/src/camera-raw.ts');
+    try { (await loadCameraRawKernel()).open(bytes, 'fast'); }
+    catch (error) {
+      if (!(error instanceof CameraRawError)) throw error;
       // A trap retires the instance; report it as the crash the runner classifies.
       if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
     }
@@ -2426,7 +2553,7 @@ export const captionsTtmlTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, inddTarget, cameraRawTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,
@@ -2438,9 +2565,9 @@ export const ALL_TARGETS: FuzzTarget[] = [
   epubReadTarget, jpegStructureTarget,
   rasterDecodeTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
-  derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
+  derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget, videoProbeTarget,
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
-  svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
+  svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
   geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget, imageTraceTarget,
 ];

@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "Lolly bu cihazda aracılar buldu, ancak henüz istek gönderebileceği bir tane yok.",
   "Lolly could not look for agents: {reason}": "Lolly aracıları arayamadı: {reason}",
   "Your organisation's policy does not allow AI agents on this device.": "Kuruluşunun ilkesi bu cihazda yapay zekâ aracılarına izin vermiyor.",
-  "Working on your request": "İsteğin üzerinde çalışılıyor"
+  "Working on your request": "İsteğin üzerinde çalışılıyor",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "Yaklaşık renk: kameranın gömülü JPEG'ine uyarlandı (ortalama fark {de} ΔE).",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "Yaklaşık renk: kameranın gömülü JPEG'ine uyarlandı.",
+  "Approximate colour: this format has no embedded colour matrices.": "Yaklaşık renk: bu biçimde gömülü renk matrisi yok.",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "Yaklaşık renk: bu, kameranın gömülü JPEG önizlemesi; ham sensör verisi değil.",
+  "Exact colour from the matrices in the DNG file.": "DNG dosyasındaki matrislerden elde edilen tam renk.",
+  "Monochrome sensor data.": "Tek renkli sensör verisi.",
+  "Playback": "Oynatma",
+  "Start timecode": "Başlangıç timecode'u",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "Bu klipteki ses, bu cihazın oynatamadığı {codec} kullanıyor. Görüntüde sorun yok. Lolly özgün dosyayı saklar.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Bu klip, bu cihazın oynatamadığı {codec} kullanıyor. Düzenleme uygulamandan H.264, HEVC veya AV1 kopyası dışa aktar ya da klibi Mac'teki Lolly masaüstü uygulamasında aç. Lolly özgün dosyayı saklar.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Bu klip, bu cihazın oynatamadığı {codec} kullanıyor. Düzenleme uygulamandan H.264, HEVC veya AV1 kopyası dışa aktar. Lolly özgün dosyayı saklar.",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Bu, {codec} içeren bir MXF dosyası. Lolly içindekini okuyabilir ama MXF oynatamaz. Düzenleme uygulamandan H.264, HEVC veya AV1 kopyası dışa aktar. Lolly özgün dosyayı saklar.",
+  "{format} from {camera}": "{camera} kamerasından {format}"
 }

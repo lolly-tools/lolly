@@ -12,7 +12,7 @@ Pelo terminal, `lolly mix` recebe uma música como trilha sonora inteira; veja [
 
 ## Escreva e exporte uma música
 
-Abra **Rondocode** em **Utilities** para escrever uma música no editor ao vivo do rondocode e ouvi-la enquanto digita. Exporte-a como **WAV**, **MP3**, **M4A**, **Opus** ou **FLAC**, como um ZIP de stems, como **MIDI**, ou como uma gravação do que está tocando. **Export length** define quantos segundos dura uma exportação de áudio. O arquivo da música (`.rondo.json`) é o seu código como escrito e não leva nada acrescentado.
+Abra **Rondocode** em **Utilities** para escrever uma música no editor ao vivo do rondocode e ouvi-la enquanto digita. Exporte-a como **WAV**, **MP3**, **M4A**, **Opus** ou **FLAC**, como um ZIP de stems, como **MIDI**, ou como uma gravação do que está tocando. Pelo terminal, `lolly rondocode --export=mid` grava o mesmo arquivo MIDI. **Export length** define quantos segundos dura uma exportação de áudio. O arquivo da música (`.rondo.json`) é o seu código como escrito e não leva nada acrescentado.
 
 Uma música pode cantar a letra com `sing()`. O canto é feito no seu dispositivo por modelos de voz baixados, e um arquivo que contém canto sintetizado sempre declara o canto como gerado por IA (veja [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ A maioria dos utilitários no dispositivo não grava credencial, porque transfor
 - A música calculada a partir do código da música é mídia algorítmica e não é marcada como IA.
 
 Quando uma música canta, o arquivo declara esse canto como gerado por IA em forma legível por máquina. O tipo de fonte digital da credencial é mídia composta feita com modelos treinados, o registro lista as partes cantadas, e uma divulgação de IA C2PA por modelo identifica cada modelo pelo qual o canto passou: texto para fala Supertonic-3, o alinhador de fonemas wav2vec 2.0, o codificador ContentVec e a voz RVC, com o repositório e o commit de onde o Lolly o hospeda. Um arquivo que contém canto sintetizado nunca é salvo sem essa declaração.
+
+### O que o arquivo MIDI contém
+
+O arquivo MIDI é um Standard MIDI File, formato 1. A primeira faixa guarda o andamento e um compasso 4/4, e depois dela há uma faixa para cada sintetizador, com o nome do sintetizador. Cada nota mantém seu início, sua duração e sua velocity. Um sintetizador cujo nome se lê como um instrumento, como um baixo, cordas, um pad ou um piano, recebe o instrumento General MIDI correspondente, e um nome parecido com bateria vai no canal 10. Uma afinação que não é de doze tons é arredondada para o semitom mais próximo com um pitch bend.
+
+Um arquivo MIDI não consegue guardar como uma música soa. As configurações do sintetizador, os filtros, os efeitos, os buses, os samples e o canto não estão nele, então uma DAW toca as notas com seus próprios instrumentos. O andamento é lido a partir dos ciclos por segundo da música, com um ciclo sendo um compasso de quatro tempos, porque o compasso próprio da música não faz parte do que o renderizador devolve.
 
 Um arquivo MIDI não tem lugar para uma credencial, então um evento de texto no arquivo carrega a declaração no lugar, e o painel de exportação avisa isso. O painel descreve tudo isso antes de você exportar, e depois de cada exportação o editor lê o arquivo salvo de volta e informa apenas o que essa leitura encontrou.
 

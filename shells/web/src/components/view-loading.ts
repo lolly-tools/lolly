@@ -69,8 +69,10 @@ export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
     if (closed) return;
     if (otherDialog()) { handle.close(); return; }
     // A cold open still shows index.html's boot screen (the same mark and the same
-    // word) until the first view mounts; a card over it said "Loading…" twice.
-    if (document.querySelector('#view > p.loading')) { handle.close(); return; }
+    // word) until the first view mounts; a card over it said "Loading…" twice. The
+    // screen can also sit in a route fade's overlay (view-fade.ts moves #view's nodes
+    // there), which still puts a loader on screen, so that copy counts too.
+    if (document.querySelector('#view > p.loading, .view-fade > p.loading')) { handle.close(); return; }
     const label = t('Loading…');
     // Other chrome uses the same SVG; give this instance its own gradient ids.
     const scope = `view-loading-${++sequence}`;

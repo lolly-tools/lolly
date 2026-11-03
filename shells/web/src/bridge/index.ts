@@ -310,6 +310,8 @@ export async function createBridge(): Promise<WebHost> {
     apply: async (sources, inspection, choices, remove) => (await import('../lib/prepare-client.ts')).runPreparation({ action: 'apply', sources, inspection, choices, remove }),
   };
   // Font files (v1.262): inspection and the Skera worker load on first use.
+  // Spreadsheet formulas: the formula module loads on first use.
+  host.calc = (await import('./gridcraft-calc.ts')).createWebCalcAPI();
   const loadFonts = memo(async () => (await import('./fonts.ts')).createWebFontsAPI());
   host.fonts = {
     inspect: async (bytes) => (await loadFonts()).inspect(bytes),

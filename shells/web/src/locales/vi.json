@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "Lolly đã tìm thấy agent trên thiết bị này, nhưng chưa có agent nào mà nó có thể gửi yêu cầu đến.",
   "Lolly could not look for agents: {reason}": "Lolly không thể tìm agent: {reason}",
   "Your organisation's policy does not allow AI agents on this device.": "Chính sách của tổ chức bạn không cho phép agent AI trên thiết bị này.",
-  "Working on your request": "Đang xử lý yêu cầu của bạn"
+  "Working on your request": "Đang xử lý yêu cầu của bạn",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "Màu gần đúng: được điều chỉnh theo JPEG nhúng của máy ảnh (chênh lệch trung bình {de} ΔE).",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "Màu gần đúng: được điều chỉnh theo JPEG nhúng của máy ảnh.",
+  "Approximate colour: this format has no embedded colour matrices.": "Màu gần đúng: định dạng này không có ma trận màu nhúng.",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "Màu gần đúng: đây là bản xem trước JPEG nhúng của máy ảnh, không phải dữ liệu thô của cảm biến.",
+  "Exact colour from the matrices in the DNG file.": "Màu chính xác từ các ma trận trong tệp DNG.",
+  "Monochrome sensor data.": "Dữ liệu cảm biến đơn sắc.",
+  "Playback": "Phát lại",
+  "Start timecode": "Timecode bắt đầu",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "Âm thanh trong clip này dùng {codec}, thiết bị này không phát được. Hình ảnh vẫn ổn. Lolly giữ nguyên tệp gốc.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Clip này dùng {codec}, thiết bị này không phát được. Hãy xuất một bản sao H.264, HEVC hoặc AV1 từ ứng dụng chỉnh sửa của bạn, hoặc mở clip trong ứng dụng Lolly dành cho máy tính để bàn trên Mac. Lolly giữ nguyên tệp gốc.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Clip này dùng {codec}, thiết bị này không phát được. Hãy xuất một bản sao H.264, HEVC hoặc AV1 từ ứng dụng chỉnh sửa của bạn. Lolly giữ nguyên tệp gốc.",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Đây là tệp MXF với {codec}. Lolly đọc được nội dung bên trong nhưng không phát được MXF. Hãy xuất một bản sao H.264, HEVC hoặc AV1 từ ứng dụng chỉnh sửa của bạn. Lolly giữ nguyên tệp gốc.",
+  "{format} from {camera}": "{format} từ {camera}"
 }
