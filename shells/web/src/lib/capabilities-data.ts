@@ -392,7 +392,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
       ] },
       { icon: ICONS.film, title: 'Video', keywords: 'mp4 mov webm mxf prores dnx dnxhd dnxhr footage clip verbatim transcode proxy', features: [
         { name: 'MP4 · MOV · WebM', desc: 'Video files are stored <em>verbatim</em> - never transcoded - and their dimensions probed locally, ready to place in motion tools.' },
-        { name: 'MXF · ProRes · DNx', desc: 'Lolly reads the file header to name the codec, size, rate, timecode and sound tracks, and uses your device’s own decoder where it has one. It bundles no ProRes or DNx decoder, so a clip your device cannot open says which codec it uses and how to get a copy that opens. The original is kept.' },
+        { name: 'MXF · ProRes · DNx', desc: 'Lolly reads the file header for the codec, size, rate, timecode and sound tracks, and uses your device’s own decoder where it has one. It bundles no ProRes or DNx decoder, so a clip your device cannot open says which codec it uses and how to get a copy that opens. The original is kept.' },
       ] },
       { icon: ICONS.sound, title: 'Sound & music', keywords: 'mp3 m4a aac wav ogg vorbis opus flac midi mod xm it s3m tracker music soundtrack bed audio import', features: [
         { name: 'MP3 · M4A · AAC · WAV · OGG · FLAC', desc: 'Kept byte for byte and decoded on your device, ready to be a video’s music bed or to play in the ambient player.' },

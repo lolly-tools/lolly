@@ -1269,7 +1269,7 @@
         "reads": [],
         "writes": [],
         "preserves": "n/a",
-        "note": "Only the container headers are read, to name the codec, size, rate and timecode. No metadata is read from or written to the file."
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
       }
     },
     {
@@ -1288,7 +1288,7 @@
         "reads": [],
         "writes": [],
         "preserves": "n/a",
-        "note": "Only the container headers are read, to name the codec, size, rate and timecode. No metadata is read from or written to the file."
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
       }
     },
     {
@@ -1307,7 +1307,7 @@
         "reads": [],
         "writes": [],
         "preserves": "n/a",
-        "note": "Only the container headers are read, to name the codec, size, rate and timecode. No metadata is read from or written to the file."
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
       }
     },
     {
