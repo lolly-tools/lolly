@@ -5,13 +5,13 @@ description: "Operate the Lolly Rondocode tool (rondocode) using its declared in
 
 # Rondocode
 
-Tool ID: `rondocode`. Tool version: `1.0.0`. Engine range: `^1.246.0`.
+Tool ID: `rondocode`. Tool version: `1.1.0`. Engine range: `^1.246.0`.
 
-Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio, stems or MIDI with Content Credentials that record it, or keep its source.
+Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio with Content Credentials that record it, as stems, as a MIDI file of its notes, or keep its source.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
-Declared output formats: png, html, wav, mp3, m4a, opus, json, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
+Declared output formats: png, html, wav, mp3, m4a, opus, mid, json, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
 
 Required host APIs: none. Device capabilities: none.
 
