@@ -66,6 +66,9 @@ const EXPECTED: readonly string[] = [
   'JpegScan', 'JpegSegment', 'jpegSegmentBody', 'scanJpegSegments',
   // Additive 1.262 font inspection and verified subsetting (host.fonts).
   'FontSubsetRunner', 'createFontsAPI', 'inspectFont',
+  // Additive host.calc: the formula engine's shell-facing core and the XLSX recalculator.
+  'createCalcEngine', 'createCalcAPI', 'xlsxRecalculator', 'isFormulaText', 'valueText', 'CALC_TABLE_MAX_CELLS',
+  'CalcRunner', 'CalcClockSource', 'CalcEngine', 'XlsxRecalculator', 'XlsxRecalcRequest', 'XlsxRecalcResult', 'XlsxRecalcReport', 'XlsxRecalcValue',
   // Additive 1.261 managed enrollment and issuer status validation.
   'EnrollmentPolicy', 'EnrollmentProviderPolicy', 'EnrollmentTrustBundle', 'VerifiedCrl',
   'createEnrollmentCsr', 'enrollmentProofMessage', 'parseEnrollmentTrustBundle',

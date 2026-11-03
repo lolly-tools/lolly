@@ -13,6 +13,7 @@ import { resolve, basename, dirname, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { xlsxFormatter } from '@lolly-tools/node-shell/xlsx-numfmt-node';
+import { xlsxRecalc } from '@lolly-tools/node-shell/gridcraft-calc-node';
 import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
@@ -703,7 +704,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       note(`ℹ ${dataPath} has ${sheets.length} sheets (${sheets.map(s => s.name).join(', ')}); reading the first. Pass --${inputId}-sheet=<name|index> to choose.`);
     }
     const formatCell = await xlsxFormatter();
-    const { rows, sheetName } = readXlsx(bytes, { ...(sheet !== undefined ? { sheet } : {}), ...(formatCell ? { formatCell } : {}) });
+    // Formulas the file saved no result for are worked out; the others keep what the author saw.
+    const recalc = await xlsxRecalc();
+    const { rows, sheetName } = readXlsx(bytes, { ...(sheet !== undefined ? { sheet } : {}), ...(formatCell ? { formatCell } : {}), ...(recalc ? { recalc, recalcWhen: 'missing' as const } : {}) });
     if (sheetName) note(`ℹ read sheet “${sheetName}” from ${dataPath}`);
     return rowsToCsv(rows);
   };

@@ -2127,6 +2127,47 @@ export const xlsxNumfmtTarget: FuzzTarget = {
     readXlsx(bytes, { formatCell: kernel.formatCell });
   },
 };
+// Spreadsheet formulas (packages/node-shell/wasm/gridcraft-calc): formula text from a table cell or a
+// workbook, and the JSON request that carries a formula. Contract: a value or an error on the cell, or a refusal
+// message for the whole request; never a trap, a hang or a result of the wrong shape. Seeds are
+// ordinary formulas and one small request; mutations reach the lexer, the parser, the reference
+// forms, array constants, LET and LAMBDA, and the request reader.
+export const formulaCalcTarget: FuzzTarget = {
+  name: 'formula-calc',
+  async seeds() {
+    const enc = (t: string) => new TextEncoder().encode(t);
+    const request = JSON.stringify({ now: 1_790_000_000_000, seed: 3, sheets: [{ name: 'Data', cells: [{ r: 0, c: 0, v: 2 }, { r: 1, c: 0, v: 'x' }, { r: 2, c: 0, f: 'SUM(A1:A2)' }] }] });
+    return [
+      enc('SUM(A1:A3)*IF(B2>1,"a","b")&TEXT(NOW(),"yyyy-mm-dd")'),
+      enc("VLOOKUP(\"k\",'Sheet 2'!$A$1:$C$9,3,FALSE)+INDEX({1,2;3,4},2,1)"),
+      enc('LET(x,SEQUENCE(3),y,x*2,SUM(y))+LAMBDA(a,a+1)(2)'),
+      enc('XLOOKUP(1,A:A,B:B,"none")&SUMIFS(C2:C9,A2:A9,">=1",B2:B9,"<>")&Table1[[#This Row],[Col]]'),
+      enc(request),
+    ];
+  },
+  async invoke(bytes) {
+    const { createCalcEngine } = await import('../../engine/src/calc.ts');
+    const { compileGridcraftCalc, createGridcraftCalcRunner } = await import('../../packages/node-shell/src/gridcraft-calc.ts');
+    const { readFile } = await import('node:fs/promises');
+    fuzzCalc ??= (async () => {
+      const wasm = await readFile(new URL('../../packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm', import.meta.url));
+      const runner = createGridcraftCalcRunner(await compileGridcraftCalc(new Uint8Array(wasm)));
+      return { runner, engine: createCalcEngine(runner, () => ({ now: 1_790_000_000_000, seed: 1 })) };
+    })();
+    const { runner, engine } = await fuzzCalc;
+    // A trap is the one failure: the runner reports it with this message and a refusal never does.
+    const notATrap = (error: unknown): void => { if (error instanceof Error && /stopped on this input/.test(error.message)) throw new WebAssembly.RuntimeError(error.message); };
+    // As formula text in a cell beside data, so references resolve.
+    const text = new TextDecoder().decode(bytes.subarray(0, 4096));
+    try {
+      const out = engine.evaluate({ sheets: [{ name: 'Data', cells: [{ r: 0, c: 0, v: 2 }, { r: 1, c: 0, v: 'x' }, { r: 0, c: 1, f: text }, { r: 1, c: 1, f: text, legacy: true }] }] });
+      if (out.sheets.length !== 1 || out.sheets[0]!.cells.length < 2) throw new WebAssembly.RuntimeError('A formula request lost its cells.');
+    } catch (error) { notATrap(error); if (error instanceof WebAssembly.RuntimeError) throw error; }
+    // As the whole request body.
+    try { runner(1, bytes); } catch (error) { notATrap(error); }
+  },
+};
+let fuzzCalc: Promise<{ runner: import('../../engine/src/calc.ts').CalcRunner; engine: import('../../engine/src/calc.ts').CalcEngine }> | undefined;
 // Image trace (packages/node-shell/wasm/image-trace): pixels from the shell's own decoder, plus an
 // 8-byte header (width, height) the module checks. Contract: a result the wire reader accepts or an
 // ImageTraceError refusal; never a trap or a hang. Seeds are a tiny logo and a tiny line drawing;
@@ -2487,7 +2528,7 @@ export const captionsTtmlTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, inddTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,

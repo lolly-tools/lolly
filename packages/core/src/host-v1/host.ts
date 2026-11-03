@@ -26,6 +26,7 @@ import type { ConnectorsAPI } from './connectors.ts';
 
 import type { ExportAPI } from './export.ts';
 
+import type { CalcAPI } from './calc.ts';
 import type { FontsAPI } from './fonts.ts';
 
 import type { GeomAPI } from './geom.ts';
@@ -183,6 +184,17 @@ export interface HostV1 {
    * `host.fonts`. Runs locally; the bytes are never uploaded.
    */
   fonts?: FontsAPI;
+
+  /**
+   * Spreadsheet formulas - evaluate cells of sheets, or the `=` cells of a
+   * `table` input, with a pinned formula engine (about 500 Excel functions).
+   * Volatile functions (NOW, TODAY, RAND...) stay live while a tool is edited and
+   * are frozen at export: an evaluation returns the clock and seed it read, and a
+   * tool exports the values it computed rather than evaluating again. Optional/
+   * additive (the engine minor after 1.301) and NOT gated by a `capabilities`
+   * flag: feature-detect `host.calc`. Runs locally; nothing is uploaded.
+   */
+  calc?: CalcAPI;
 
   /**
    * PPTX inspect + rebrand. Reads an uploaded .pptx deck (slide count, theme,

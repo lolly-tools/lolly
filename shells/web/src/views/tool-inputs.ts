@@ -1883,7 +1883,7 @@ export function renderInputs(
       // it through the SAME importer (parseDataRows). One importer, two spreadsheet formats.
       if (/\.xlsx$/i.test(file.name)) {
         try {
-          const { rows } = readXlsx(new Uint8Array(await file.arrayBuffer()), { formatCell: await (await import('../bridge/xlsx-numfmt.ts')).xlsxFormatter() });
+          const { rows } = readXlsx(new Uint8Array(await file.arrayBuffer()), { formatCell: await (await import('../bridge/xlsx-numfmt.ts')).xlsxFormatter(), ...await (await import('../bridge/gridcraft-calc.ts')).xlsxRecalcOptions() });
           ioFlash(btn, await applyData(rowsToCsv(rows), inp, 'csv'));
         } catch (e) {
           announce((e as { message?: string })?.message || 'Could not read that spreadsheet.', {

@@ -643,7 +643,9 @@ export { embedWavInfo } from './riff-meta.ts';
 export { parseDataRows, rowsToCsv, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export { expandDerivedFormats } from './derived-formats.ts';
 export { readXlsx, listXlsxSheets, DEFAULT_XLSX_ROW_LIMIT } from './xlsx-import.ts';
-export type { XlsxCellFormatter, XlsxCellFormatRequest, XlsxCellFormatResult, XlsxCellKind, XlsxDateCell } from './xlsx-import.ts';
+export type { XlsxCellFormatter, XlsxCellFormatRequest, XlsxCellFormatResult, XlsxCellKind, XlsxDateCell, XlsxRecalculator, XlsxRecalcRequest, XlsxRecalcResult, XlsxRecalcReport, XlsxRecalcValue } from './xlsx-import.ts';
+export { createCalcEngine, createCalcAPI, xlsxRecalculator, isFormulaText, valueText, CALC_TABLE_MAX_CELLS } from './calc.ts';
+export type { CalcRunner, CalcClockSource, CalcEngine } from './calc.ts';
 export { writeXlsx, colLetters } from './xlsx-write.ts';
 export { writeEpub } from './epub.ts';
 export {
