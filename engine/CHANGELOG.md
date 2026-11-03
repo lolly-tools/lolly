@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.303.0
+
+- Text-keeping PDF redaction: `host.pdf.redact` takes optional `keepText` (`PdfRedactOpts`) and reports `mode` (`PdfRedactResult`). The shell removes the glyphs, picture pixels and drawings under each box, keeps the rest of the page as text, then re-reads the result with Lolly's own reader and refuses it when anything is left under a box or cannot be checked. Flattening stays the default.
+- `PdfPageInput.glyphRuns` makes the PDF interpreter emit one text node per glyph (off by default; output unchanged), which the redaction check measures against each box. `PDF_MAP_MAX_GLYPH_NODES` bounds it.
+
 ## 1.302.0
 
 - Standard MIDI Files (new modules `smf.ts`, `smf-export.ts`, `rondo-midi.ts`): `readSmf` and `writeSmf` read and write formats 0, 1 and 2 losslessly (running status, variable-length quantities, meta and SysEx events, unknown chunks kept), so writing what was read gives back the same bytes. A notes-to-`.mid` builder writes a format-1 file with a conductor track and one track per voice, General MIDI programs where a voice maps to one and drums on channel 10; pitches off the 12-tone grid round with a pitch bend. Bounded reads refuse malformed input.
