@@ -661,6 +661,40 @@ html[data-layout="split"][data-posture="book"] .tool-masonry:is([data-browse-lay
   column-gap: var(--fold-gap);
 }
 
+/* ── On a reported fold: one page for what floats ─────────────────────────────
+   lib/fold-segment.ts gives the page beside the controls (--fold-seg-*): the side
+   away from the dominant hand on a book fold, the deck on a tabletop. The browse
+   footer, its search panel and the privacy strip above it keep to that page, the
+   footer in the phone's two rows, so no field and no button lies on the crease.
+   Modal dialogs keep to it too (the chrome layer, below). A flat or continuous
+   screen reports no fold and keeps today's centring. */
+html[data-layout="split"][data-posture="book"] .gallery-footer,
+html[data-layout="split"][data-posture="book"] .privacy-notice {
+  left: var(--fold-seg-left, 0px);
+  right: var(--fold-seg-right, 0px);
+  margin-inline-end: 0;
+}
+html[data-layout="split"][data-posture="book"] .spotlight-panel {
+  left: var(--fold-seg-left, 0px);
+  right: var(--fold-seg-right, 0px);
+  width: min(40rem, calc(var(--fold-seg-w, 100vw) - 2rem));
+}
+/* The top row's view switch is centred between the left edge and the top-right
+   cluster, which on a book fold puts it across the crease. It keeps to the left
+   page instead, the page the cluster leaves free, and is centred on that page. */
+html[data-layout="split"][data-posture="book"] .gallery-topbar .view-toggle-wrap {
+  left: .75em;
+  width: calc(var(--fold-x, 50vw) - 1.5em);
+  transform: none;
+  justify-content: center;
+}
+html[data-layout="split"][data-posture="book"] .gallery-footer { flex-wrap: wrap; gap: .5rem .3rem; padding-inline: .5rem; }
+html[data-layout="split"][data-posture="book"] .gallery-search-wrap { flex-basis: 100%; order: -1; }
+html[data-layout="split"][data-posture="book"] .gallery-footer > .btn,
+html[data-layout="split"][data-posture="book"] .gallery-footer > .gallery-nav-jelly { flex: 1 1 0; min-width: 0; }
+html[data-layout="split"][data-posture="book"] .gallery-footer > .btn { padding-inline: .4rem; }
+html[data-layout="split"][data-posture="book"] .gallery-footer .gallery-nav-label { display: none; }
+
 } /* @layer overrides */
 
 @layer chrome {
@@ -681,6 +715,15 @@ html[data-layout="split"][data-hand="left"]:not([dir="rtl"]):not([data-posture="
 html[data-layout="split"][dir="rtl"]:not([data-hand="left"]):not([data-posture="tabletop"]) .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
   left: calc(var(--stage-reserve-left, 0px) - var(--ldock-rail-w, 0px) + var(--sp-4)) !important;
   right: auto !important;
+}
+/* A modal dialog keeps to the page beside the controls on a reported fold
+   (lib/fold-segment.ts): centred inside that page and no wider or taller than
+   it, whatever size the dialog asks for. Important, and in this early layer, so
+   no dialog's own sizing can carry it across the hinge. */
+html[data-layout="split"]:is([data-posture="book"], [data-posture="tabletop"]) dialog:modal {
+  inset: var(--fold-seg-top, 0px) var(--fold-seg-right, 0px) var(--fold-seg-bottom, 0px) var(--fold-seg-left, 0px) !important;
+  max-width: calc(var(--fold-seg-w, 100vw) - 2rem) !important;
+  max-height: calc(var(--fold-seg-h, 100dvh) - 2rem) !important;
 }
 /* The phone sheet hides the sidebar's collapse toggle and the canvas's expand
    button with !important. In two panes they are the desk's controls again; an

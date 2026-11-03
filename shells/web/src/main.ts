@@ -30,6 +30,7 @@ import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
 import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref } from './lib/a11y-prefs.ts';
 import { hydrateHand } from './lib/hand-pref.ts';
 import { startLayoutPosture } from './lib/layout-posture.ts';
+import { startFoldSegments } from './lib/fold-segment.ts';
 import { initTrustedSites } from './lib/trusted-sites.ts';
 import { appPathname } from './lib/any-site.ts';
 import { applyIframeModeAttr, forwardDeckKeys, isIframeMode } from './lib/iframe-mode.ts';
@@ -184,6 +185,8 @@ initTheme();
 // pre-paint script already set the size-only answer; this adds the fold geometry
 // and follows every later fold, unfold and rotation.
 startLayoutPosture();
+// On a reported fold, the page that dialogs and the browse search keep to.
+startFoldSegments();
 // …then let `?theme=light|dark|brand` win for THIS page load only: a shared link or
 // a screenshot run pins the look without flipping the reader's stored preference.
 // Stamped straight onto [data-theme] rather than through applyTheme, which would

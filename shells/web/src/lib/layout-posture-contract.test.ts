@@ -266,6 +266,28 @@ test('index.html never writes data-posture or the --fold-* properties: those nee
   assert.equal(/dataset\.posture|--fold-[xywh]/.test(INDEX), false);
 });
 
+// ── On a reported fold: one page for what floats ────────────────────────────
+
+test('ON A FOLD: modal dialogs keep to the control pane\'s page, important, in the chrome layer', () => {
+  const rule = ALL_RULES.find((r) => r.rel === SPLIT_CSS && /dialog:modal/.test(r.selector));
+  assert.ok(rule, 'split.css confines dialog:modal');
+  assert.ok(rule!.at.includes('@layer chrome'), 'in the early layer, so no dialog\'s own sizing wins');
+  assert.match(rule!.selector, /data-posture="book"/, 'on a book fold');
+  assert.match(rule!.selector, /data-posture="tabletop"/, 'and on a tabletop');
+  for (const v of ['--fold-seg-top', '--fold-seg-right', '--fold-seg-bottom', '--fold-seg-left', '--fold-seg-w', '--fold-seg-h']) {
+    assert.ok(rule!.body.includes(v), `reads ${v}`);
+  }
+  assert.doesNotMatch(rule!.selector, /data-posture="flat"|:not\(\[data-posture/, 'a flat screen keeps today\'s centring');
+});
+
+test('ON A FOLD: the browse footer, its search panel and the privacy strip keep to the same page', () => {
+  for (const surface of ['.gallery-footer', '.spotlight-panel', '.privacy-notice']) {
+    const rule = ALL_RULES.find((r) => r.rel === SPLIT_CSS && arms(r.selector).some((a) => a.endsWith(surface) && /data-posture="book"/.test(a)) && /--fold-seg-left/.test(r.body));
+    assert.ok(rule, `${surface} is placed from --fold-seg-* on a book fold`);
+    assert.match(rule!.body, /--fold-seg-right/);
+  }
+});
+
 // ── Design's tool rail in two panes ─────────────────────────────────────────
 
 test('RAIL: upright on the canvas pane\'s outer edge, pinned in the chrome layer, mirrored for the left hand and RTL', () => {
