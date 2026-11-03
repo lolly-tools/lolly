@@ -103,6 +103,35 @@ To bundle the models into your own build instead, run `pnpm run models:vendor` f
 Most of the weight is history, not the working tree: catalog images such as tool previews and share cards re-rendered over time, the docs screenshots re-shot whenever the interface changes and the web app's fonts and binary assets. In October 2026, budget roughly 1.2 GB of download and 2.6 GB on disk once `node_modules` is installed. Both grow with the history, which is why the partial clone saves the most.
 :::
 
+## Write plural strings
+
+A string that shows a count needs one form per plural category, because Russian, Polish, Arabic and other languages change the noun by the number. Lolly uses the Unicode CLDR categories (`zero`, `one`, `two`, `few`, `many`, `other`) and picks the category for the active language with the platform's `Intl.PluralRules`.
+
+In source, write both English forms as literals and pass the count:
+
+```ts
+import { tn } from '../i18n.ts';
+
+label.textContent = tn('1 file', '{n} files', { n: files.length });
+```
+
+- The second form, `other`, is the catalog key. The first form, `one`, is the English text for a count of exactly 1.
+- The count is `n`, else `count`, else `total`. Use `tnRaw` where you would use `tRaw`.
+- English output stays what a reader expects: `one` for 1, `other` for everything else, including 0.
+- Do not build the sentence from pieces. Keep the whole sentence in each form, so a translator can reorder the words.
+- A string that reads the same for every count in English, such as `{n} selected`, still takes both forms with the same text, so other languages can differ.
+- A label followed by a count, as in `Assets: 14`, needs no plural form.
+
+In a locale catalog (`shells/web/src/locales/<lang>.json`), the value for the `other` key is either a plain string, used for every count, or an object with exactly the categories that language uses:
+
+```json
+"{n} files": { "one": "{n} файл", "few": "{n} файла", "many": "{n} файлов", "other": "{n} файла" }
+```
+
+`shells/web/src/locales.test.ts` fails a catalog whose object lacks a category, adds one the language does not use, empties a form or uses a placeholder the English key does not have. A form for a category that only ever means the number 1 may leave out `{n}`. Until a language has an object for a key, its existing single translation is used for every count, and a count of 1 keeps the singular translation the language already had.
+
+`node scripts/plural-work.ts` writes `plans/plural-strings/translation-work.json`, which lists each plural key, its English forms and the categories every language needs. Notes for translators and the generation prompt are in `scripts/i18n/PLURALS.md`.
+
 ## If something fails
 
 - **`pnpm install` stops with a syntax error in a `.ts` file.** Your Node is too old for type stripping. Check `node -v` against 22.18 or 24. With Homebrew, `node@22` is keg-only: add `export PATH="$(brew --prefix node@22)/bin:$PATH"` to your shell profile.

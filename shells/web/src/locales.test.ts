@@ -26,6 +26,11 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { LANG_META } from '../../../engine/src/lang.ts';
+import type { Lang } from '../../../engine/src/lang.ts';
+import { isPluralForms, pluralCategoriesFor } from './lib/plural.ts';
+import type { CatalogValue } from './lib/plural.ts';
+import { scanPluralSources } from '../../../scripts/translate.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LOCALES_DIR = join(HERE, 'locales');
@@ -271,4 +276,176 @@ test('the echo guards fail a wholly-English catalog and clear a translated one',
   const tSub = echoStats(translated, SUBSTANTIAL);
   assert.ok(!(tSub.graded >= 50 && tSub.echoed > tSub.graded * 0.25), 'the substantial-sample guard flags a translated catalog');
   assert.equal(echoStats(translated, GRADEABLE).echoed, 0, 'a translated catalog still reads as echoed - the comparison is wrong');
+});
+
+// ── Plural values, ellipsis parity, echo coverage, length budget ────────────────
+//
+// A catalog value is a string, or a forms object keyed by CLDR plural category (see
+// lib/plural.ts and docs/contributing-setup.md). Nothing above reads a forms object, so
+// these checks cover the shape and the cross-locale quality signals around forms objects.
+
+type Catalog = Record<string, CatalogValue>;
+const readCatalog = (path: string): Catalog => JSON.parse(readFileSync(path, 'utf8')) as Catalog;
+const htmlLangOf = (lang: string): string => LANG_META[lang as Lang]?.htmlLang ?? lang;
+
+/** Every string a catalog entry carries: the value itself, or each form of a forms object. */
+function formsOf(value: CatalogValue): string[] {
+  return isPluralForms(value) ? Object.values(value).filter((v): v is string => typeof v === 'string') : [value];
+}
+
+/** Problems with the plural values in one catalog: wrong category set, empty form, or a foreign placeholder. */
+function pluralShapeProblems(lang: string, cat: Catalog): string[] {
+  const want = [...pluralCategoriesFor(htmlLangOf(lang))].sort();
+  const problems: string[] = [];
+  for (const [en, value] of Object.entries(cat)) {
+    if (!isPluralForms(value)) continue;
+    const got = Object.keys(value).sort();
+    if (got.join() !== want.join()) {
+      problems.push(`${lang}: ${JSON.stringify(en.slice(0, 50))} has categories [${got}] but ${htmlLangOf(lang)} needs [${want}]`);
+      continue;
+    }
+    const allowed = new Set(en.match(PLACEHOLDER) ?? []);
+    for (const [cat2, form] of Object.entries(value)) {
+      if (typeof form !== 'string' || !form.trim()) { problems.push(`${lang}: ${JSON.stringify(en.slice(0, 50))} form ${cat2} is empty`); continue; }
+      const foreign = (form.match(PLACEHOLDER) ?? []).filter((p) => !allowed.has(p));
+      if (foreign.length) problems.push(`${lang}: ${JSON.stringify(en.slice(0, 50))} form ${cat2} uses ${foreign.join(' ')} which the English key lacks`);
+    }
+  }
+  return problems;
+}
+
+test('every plural value carries exactly the categories its locale uses', () => {
+  const problems = catalogs.flatMap(({ lang, path }) => pluralShapeProblems(lang, readCatalog(path)));
+  assert.deepEqual(problems, [], `\n${problems.slice(0, 30).join('\n')}\n`);
+});
+
+test('the plural shape check fails a wrong category set and clears a right one', () => {
+  // The 26 real catalogs hold no forms object until the translation pass is merged, so the
+  // check above is vacuous today. These fixtures keep it honest: it must fail on each of
+  // the mistakes a translator makes (an English-shaped pair for Russian, a missing
+  // category, a stray one, an emptied form) and pass a correct Russian and Japanese entry.
+  const key = '{n} files';
+  assert.equal(pluralShapeProblems('ru', { [key]: { one: 'a', few: 'b', many: 'c', other: 'd' } }).length, 0);
+  assert.equal(pluralShapeProblems('ja', { [key]: { other: '{n} 個' } }).length, 0);
+  assert.equal(pluralShapeProblems('ru', { [key]: { one: 'a', other: 'd' } }).length, 1, 'English-shaped pair for ru');
+  assert.equal(pluralShapeProblems('ru', { [key]: { one: 'a', few: 'b', other: 'd' } }).length, 1, 'missing many');
+  assert.equal(pluralShapeProblems('ja', { [key]: { one: 'a', other: 'd' } }).length, 1, 'stray one for ja');
+  assert.equal(pluralShapeProblems('ru', { [key]: { one: 'a', few: 'b', many: ' ', other: 'd' } }).length, 1, 'empty form');
+  assert.equal(pluralShapeProblems('ru', { [key]: { one: '{x}', few: 'b', many: 'c', other: 'd' } }).length, 1, 'foreign placeholder');
+});
+
+test('every migrated plural key has a plain or forms value in every catalog', () => {
+  // Plural keys come from tn()/tnRaw() call sites. Whatever state the translation pass is
+  // in, each locale must carry the key, as the plain string it had before or as forms.
+  const sources: Array<{ one: string; other: string }> = [];
+  const walk = (dir: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === 'locales') continue;
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts')) sources.push(...scanPluralSources(readFileSync(full, 'utf8')));
+    }
+  };
+  walk(HERE);
+  assert.ok(sources.length >= 30, `only ${sources.length} plural call sites found - did the scan or the migration move?`);
+  const problems: string[] = [];
+  for (const { lang, path } of catalogs) {
+    const cat = readCatalog(path);
+    const missing = sources.filter(({ other }) => !Object.hasOwn(cat, other));
+    if (missing.length) problems.push(`${lang}: ${missing.length} plural key(s) missing, e.g. ${JSON.stringify(missing[0]!.other)}`);
+  }
+  assert.deepEqual(problems, [], `\n${problems.join('\n')}\n`);
+});
+
+/** Trailing ellipsis: "…" or "...". A menu item ending in one opens a dialog, and the translation must end the same way. */
+const ELLIPSIS = /(…|\.\.\.)$/;
+
+/**
+ * Catalog entries that break ellipsis parity today, keyed `lang|English source`. Two kinds:
+ * real translation defects (de, nl, sv, zh-hant and ja entries that dropped it, and nl/sv
+ * strings that are not translations of their key at all) and the "Add from…" family, where
+ * the ellipsis sits mid-phrase or leads in the target language's word order. The list is a
+ * ratchet: new entries are failures, and fixing one means deleting its line.
+ */
+const ELLIPSIS_KNOWN: ReadonlySet<string> = new Set([
+  'de|Saved versions…',
+  'ja|Manage asset versions…',
+  'ja|Preparing download…',
+  'ja|Retry with original…',
+  'nl|Importing {n} files…',
+  'sv|Importing {n} files…',
+  'sv|What do you need?',
+  'ur|Add from…',
+  'zh-hant|Add from…',
+  'zh-hant|Back up or restore data…',
+  'zh-hant|Use this copy…',
+  'zh|Add from…',
+]);
+
+test('trailing-ellipsis parity holds for every form of every entry', () => {
+  const problems: string[] = [];
+  const stale = new Set(ELLIPSIS_KNOWN);
+  for (const { lang, path } of catalogs) {
+    for (const [en, value] of Object.entries(readCatalog(path))) {
+      const wantEllipsis = ELLIPSIS.test(en);
+      for (const form of formsOf(value)) {
+        if (typeof form !== 'string' || !form || form === en) continue;
+        if (ELLIPSIS.test(form.trim()) === wantEllipsis) continue;
+        const id = `${lang}|${en}`;
+        stale.delete(id);
+        if (!ELLIPSIS_KNOWN.has(id)) problems.push(`${id}: English ${wantEllipsis ? 'ends' : 'does not end'} in an ellipsis, translation ${JSON.stringify(form.slice(0, 50))} ${wantEllipsis ? 'does not' : 'does'}`);
+      }
+    }
+  }
+  assert.deepEqual(problems, [], `\n${problems.join('\n')}\n`);
+  assert.deepEqual([...stale], [], `\nThese ELLIPSIS_KNOWN entries are fixed now; delete them:\n${[...stale].join('\n')}\n`);
+});
+
+test('echo coverage report: per locale, how much of the catalog is still English', (t) => {
+  // Report only. The two guards above fail a wave that did not finish; this prints the
+  // numbers a reviewer wants at a glance, including how many migrated plural keys
+  // already carry a forms object (the translation pass moves that from 0 to all).
+  const lines: string[] = [];
+  for (const { lang, path } of catalogs) {
+    const cat = readCatalog(path);
+    const entries = Object.entries(cat).filter(([en]) => GRADEABLE(en));
+    const echoed = entries.filter(([en, v]) => typeof v === 'string' && v === en).length;
+    const plural = Object.values(cat).filter(isPluralForms).length;
+    lines.push(`${lang.padEnd(8)} echo ${String(echoed).padStart(4)}/${entries.length} (${((100 * echoed) / Math.max(1, entries.length)).toFixed(1)}%)  plural forms ${plural}`);
+  }
+  t.diagnostic(`\n${lines.join('\n')}`);
+  assert.equal(lines.length, catalogs.length);
+});
+
+/**
+ * Length budget for short UI strings: a source of 24 characters or fewer should not grow
+ * past `factor * length + SLACK` in translation, or it overflows buttons, tabs and chips.
+ * Calibrated on the catalogs of 2026-11-03 (95th percentile of the ratio is about 2.0 for
+ * the alphabetic scripts and under 1.0 for CJK) with margin, so today's outliers are the
+ * ones reported. Warning only: a long label is sometimes the right translation, and the
+ * fix is a wider control or a shorter word, which a person decides.
+ */
+const SHORT_SOURCE = 24;
+const LENGTH_SLACK = 4;
+const LENGTH_FACTOR_DEFAULT = 3;
+const LENGTH_FACTOR: Readonly<Record<string, number>> = { zh: 1.5, 'zh-hant': 1.5, ja: 1.8, ko: 2 };
+
+test('length-expansion budget for short strings (warning only)', (t) => {
+  const lines: string[] = [];
+  for (const { lang, path } of catalogs) {
+    const factor = LENGTH_FACTOR[lang] ?? LENGTH_FACTOR_DEFAULT;
+    const over: string[] = [];
+    let checked = 0;
+    for (const [en, value] of Object.entries(readCatalog(path))) {
+      if (en.length > SHORT_SOURCE) continue;
+      for (const form of formsOf(value)) {
+        if (typeof form !== 'string') continue;
+        checked++;
+        if (form.length > Math.ceil(en.length * factor) + LENGTH_SLACK) over.push(`${JSON.stringify(en)} -> ${JSON.stringify(form)}`);
+      }
+    }
+    lines.push(`${lang.padEnd(8)} ${String(over.length).padStart(3)} over budget (x${factor}+${LENGTH_SLACK}) of ${checked} short entries${over.length ? `, e.g. ${over.slice(0, 2).join('; ')}` : ''}`);
+  }
+  t.diagnostic(`\n${lines.join('\n')}`);
+  assert.equal(lines.length, catalogs.length);
 });

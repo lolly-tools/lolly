@@ -34,11 +34,15 @@ function findingsIn(text: string): string[] {
   return out;
 }
 
-/** Every t()/tRaw() single- or double-quoted literal in a TS source. */
+/** Every t()/tRaw() literal, plus both English forms of every tn()/tnRaw() call, in a TS source. */
 export function uiLiterals(src: string): string[] {
   const out: string[] = [];
+  const unbackslash = (s: string): string => s.replace(/\\(.)/g, '$1');
   const re = /\bt(?:Raw)?\(\s*(?:'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)")/g;
-  for (const m of src.matchAll(re)) out.push((m[1] ?? m[2] ?? '').replace(/\\(.)/g, '$1'));
+  for (const m of src.matchAll(re)) out.push(unbackslash(m[1] ?? m[2] ?? ''));
+  const q = `(?:'((?:\\\\.|[^'\\\\\\n])*)'|"((?:\\\\.|[^"\\\\\\n])*)")`;
+  const plural = new RegExp(`\\btn(?:Raw)?\\(\\s*${q}\\s*,\\s*${q}`, 'g');
+  for (const m of src.matchAll(plural)) out.push(unbackslash(m[1] ?? m[2] ?? ''), unbackslash(m[3] ?? m[4] ?? ''));
   return out;
 }
 

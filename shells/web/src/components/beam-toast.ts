@@ -198,9 +198,11 @@ const KIND_LABEL_KEYS: Record<BeamKind, keyof typeof STRINGS> = {
  * form that is right for every number. The joiner is its own key so a locale can
  * repunctuate (`资产：14`) or reorder it without touching the labels.
  *
- * The real plural rule (Intl.PluralRules over `one|few|many` catalog entries) is still
- * the eventual answer, and it is a change to the catalog FORMAT and therefore to every
- * corpus at once. This phrasing is correct in the meantime rather than agreed-upon-wrong.
+ * The shared plural mechanism now exists (`tn()` in i18n.ts, selecting a CLDR category with
+ * Intl.PluralRules through lib/plural.ts). This label-then-count phrasing stays on purpose:
+ * it is correct for every number in every language without a forms object, and moving it to
+ * `tn()` would change the English "Assets: 14" shape. A string that must read as a sentence
+ * ("14 assets received") is the case for `tn()`.
  */
 function itemsPhrase(kind: BeamKind, n: number): string {
   return tRaw(STRINGS.countLabel, { kind: tRaw(STRINGS[KIND_LABEL_KEYS[kind]]), n });
