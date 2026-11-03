@@ -3,13 +3,13 @@ import type { VisualComparisonRequest, VisualComparisonResult } from '@lolly-too
 import { renderComparisonPage } from '@lolly/engine';
 import { visualComparisonReport } from '../lib/compare-visual-report.ts';
 import { compareElement as el, compareButton as button } from './compare-elements.ts';
-import { t } from '../i18n.ts';
+import { t, tn } from '../i18n.ts';
 import { deliverBlob } from '../lib/download-recovery.ts';
 
 export function mountVisualResults(root: HTMLElement, result: VisualComparisonResult, request: VisualComparisonRequest): void {
   root.replaceChildren();
   const changed = result.summary.changed + result.summary.added + result.summary.removed;
-  const summary = el('p', result.appearance === 'different' ? (changed === 1 ? t('1 page differs') : t('{n} pages differ', { n: changed })) : result.appearance === 'undetermined' ? t('Preview comparison is incomplete. Equality could not be established.') : t('The sampled previews match with these options.'), 'compare-summary');
+  const summary = el('p', result.appearance === 'different' ? (tn('1 page differs', '{n} pages differ', { n: changed })) : result.appearance === 'undetermined' ? t('Preview comparison is incomplete. Equality could not be established.') : t('The sampled previews match with these options.'), 'compare-summary');
   summary.setAttribute('role', 'status'); root.append(summary);
   root.append(el('p', result.byteEquality === 'equal' ? t('The supplied bytes are identical.') : result.byteEquality === 'different' ? t('The supplied bytes differ.') : t('Original byte equality was not checked.')));
   if (result.completeness === 'partial') root.append(el('p', t('Partial comparison. Unrendered content may differ.'), 'compare-limit'));

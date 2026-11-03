@@ -2,7 +2,7 @@
 import type { ComparisonChange, ComparisonResult } from '@lolly-tools/core/host-v1';
 import { comparisonReport } from '../lib/compare-report.ts';
 import { compareElement as el, compareButton as button } from './compare-elements.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { deliverBlob } from '../lib/download-recovery.ts';
 
 const position = (location: ComparisonChange['before']): string => {
@@ -18,7 +18,7 @@ const position = (location: ComparisonChange['before']): string => {
 };
 export function mountComparisonResults(root: HTMLElement, result: ComparisonResult): void {
   root.replaceChildren();
-  const summary = el('p', result.equality === 'different' ? (result.summary.total === 1 ? t('1 change found') : t('{n} changes found', { n: result.summary.total }))
+  const summary = el('p', result.equality === 'different' ? (tn('1 change found', '{n} changes found', { n: result.summary.total }))
     : result.equality === 'identical-bytes' ? t('The supplied bytes are identical.')
       : result.equality === 'equivalent-content' ? t('The compared content is equivalent with these options.')
         : t('This comparison is incomplete. Equality could not be established.'), 'compare-summary');

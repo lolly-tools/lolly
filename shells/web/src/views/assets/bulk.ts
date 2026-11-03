@@ -11,7 +11,7 @@ import { getInstanceBase } from '../../lib/instance.ts';
 import { getSessionSource } from '../../lib/session-source.ts';
 import { isHiddenSlot } from '../../lib/batch-slots.ts';
 import { pruneSelection as pruneSelectionRule, selectableIds as selectableIdsRule } from '../assets-filter.ts';
-import { t, tRaw } from '../../i18n.ts';
+import { t, tRaw, tn } from '../../i18n.ts';
 import { showUndoToast } from '../../lib/undo-toast.ts';
 import { createFolderStore, folderPath } from '../../folders.ts';
 import type { FolderHost } from '../../folders.ts';
@@ -300,7 +300,7 @@ export async function duplicateSelection(cat: CatCtx): Promise<void> {
   if (!newIds.length) return;
   // Announce first: the copies are made whether or not this view is still up, and
   // the live region is body-level, so the count is announced after a navigation too.
-  announce(newIds.length === 1 ? t('1 copy made · selected') : t('{n} copies made · selected', { n: newIds.length }));
+  announce(tn('1 copy made · selected', '{n} copies made · selected', { n: newIds.length }));
   if (!cat.mounted) return;
   await cat.tiles.reload();                     // pull the new copies into allAssets / assetById
   if (!cat.mounted) return;
@@ -359,7 +359,7 @@ export async function downloadSelection(cat: CatCtx): Promise<void> {
   if (!refs.length) return;
   const members = refs.map(ref => ({ ref, appearance: cat.downloads.gridDownloadAppearance(ref) }));
   const { askExportLock } = await import('../../lib/export-lock.ts');
-  const { ok, strongPassword, zipLock } = await askExportLock(refs.length === 1 ? t('1 selected asset') : t('{n} selected assets', { n: refs.length }), true);
+  const { ok, strongPassword, zipLock } = await askExportLock(tn('1 selected asset', '{n} selected assets', { n: refs.length }), true);
   if (!ok || !cat.mounted) return;
   const job = startJob({
     title: t('Zipping assets'),

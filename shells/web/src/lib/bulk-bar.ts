@@ -21,7 +21,7 @@
  * without a re-render.
  */
 
-import { t } from '../i18n.ts';
+import { t, tn } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { fitLabels, rowOverflows } from './fit-labels.ts';
 
@@ -76,7 +76,7 @@ export function syncBulkBar(host: HTMLElement, cfg: BulkBarConfig): void {
   if (bar.classList.contains('is-busy')) return;
   bar.hidden = n === 0;
   const count = bar.querySelector(`.${cfg.prefix}-count`);
-  if (count) count.textContent = t('{n} selected', { n });
+  if (count) count.textContent = tn('{n} selected', '{n} selected', { n });
   for (const a of cfg.actions) {
     const btn = bar.querySelector<HTMLButtonElement>(`[data-bulk="${a.id}"]`);
     if (!btn) continue;

@@ -16,7 +16,7 @@
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { announce } from '../a11y.ts';
 import { childFolders, folderPath, type Folder, type FolderItem } from '../folders.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { escapeHtml } from '../lib/html.ts';
 import { icon, type IconName } from '../lib/icons.ts';
@@ -155,7 +155,7 @@ export function createProjectsTab(deps: ProjectsTabDeps): ProjectsTab {
 
   function projectCard(p: Pick<TeamProjectRef, 'id' | 'name' | 'sessionCount'>, folderId: string | null = null, name = p.name): string {
     const n = p.sessionCount ?? 0;
-    const bits = n ? (n === 1 ? t('1 item') : t('{n} items', { n })) : t('Shared project');
+    const bits = n ? (tn('1 item', '{n} items', { n })) : t('Shared project');
     return `
       <button type="button" class="asset-picker-card asset-picker-folderitem" data-shared-open="${escapeHtml(p.id)}"${folderId ? ` data-shared-folder="${escapeHtml(folderId)}"` : ''} title="${escapeHtml(name)}">
         <span class="asset-picker-thumb asset-picker-folder-thumb" aria-hidden="true">${icon('folderUsers')}</span>
@@ -182,8 +182,8 @@ export function createProjectsTab(deps: ProjectsTabDeps): ProjectsTab {
     const subs = childFolders(folders, f.id).length;
     const items = pickable(f).length;
     const bits: string[] = [];
-    if (subs) bits.push(subs === 1 ? t('1 folder') : t('{n} folders', { n: subs }));
-    if (items) bits.push(items === 1 ? t('1 item') : t('{n} items', { n: items }));
+    if (subs) bits.push(tn('1 folder', '{n} folders', { n: subs }));
+    if (items) bits.push(tn('1 item', '{n} items', { n: items }));
     return `
       <button type="button" class="asset-picker-card asset-picker-folderitem" data-folder-open="${escapeHtml(f.id)}" title="${escapeHtml(f.name)}">
         <span class="asset-picker-thumb asset-picker-folder-thumb" aria-hidden="true">${icon('folder')}</span>
@@ -270,7 +270,7 @@ export function createProjectsTab(deps: ProjectsTabDeps): ProjectsTab {
         <button type="button" class="asset-picker-card asset-picker-folderitem" data-shared-open="${escapeHtml(projectId)}" data-shared-folder="${escapeHtml(f.id)}" title="${escapeHtml(f.name)}">
           <span class="asset-picker-thumb asset-picker-folder-thumb" aria-hidden="true">${icon('folder')}</span>
           <span class="asset-picker-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</span>
-          <span class="asset-picker-sessitem-when">${escapeHtml(f.items.length === 1 ? t('1 item') : t('{n} items', { n: f.items.length }))}</span>
+          <span class="asset-picker-sessitem-when">${escapeHtml(tn('1 item', '{n} items', { n: f.items.length }))}</span>
         </button>`).join('')}</div>`);
     }
     if (sessions.length || files.length) parts.push(`<div class="asset-picker-grid">${sessions.join('')}${files.join('')}</div>`);

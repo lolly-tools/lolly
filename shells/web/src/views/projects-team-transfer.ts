@@ -27,7 +27,7 @@ import { icon } from '../lib/icons.ts';
 import { chooseTeamDestination } from '../org/team-destination-picker.ts';
 import { confirmDialog } from '../components/confirm-dialog.ts';
 import { announce } from '../a11y.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tnRaw } from '../i18n.ts';
 import { canWriteProject } from '../org/team-access.ts';
 import { teamSaveInputs } from '../org/team-save.ts';
 import { duplicateTeamFile, listTeamFiles, teamFileMessage, uploadTeamFile, type TeamFile } from '../org/team-files.ts';
@@ -154,7 +154,7 @@ function outcome(phase: 'check' | 'write' | 'archive', saved: number): string {
   if (phase === 'archive') return tRaw('Every item is saved in the shared project. Local originals are in Trash or still in place.');
   const kept = tRaw('Your local items have not changed.');
   if (!saved) return kept;
-  return `${saved === 1 ? tRaw('1 item was saved to the shared project.') : tRaw('{n} items were saved to the shared project.', { n: saved })} ${kept}`;
+  return `${tnRaw('1 item was saved to the shared project.', '{n} items were saved to the shared project.', { n: saved })} ${kept}`;
 }
 
 /**

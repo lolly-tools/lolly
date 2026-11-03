@@ -41,7 +41,7 @@ import { getInstanceBase } from '../lib/instance.ts';
 import { collectSessionAssetRefs } from '../lib/beam-pack.ts';
 import { choiceDialog } from '../components/confirm-dialog.ts';
 import { announce } from '../a11y.ts';
-import { tRaw } from '../i18n.ts';
+import { tRaw, tnRaw } from '../i18n.ts';
 import {
   activeTeamSessionOrigin, adoptTeamSessionOrigin, noteTeamSessionSaved, releaseTeamSessionOrigin, teamOriginGeneration,
   teamSessionLive, type TeamSessionOrigin,
@@ -118,9 +118,7 @@ export function sameInputs(a: unknown, b: unknown): boolean {
 /** The honest sentence about device-local files, or '' when there are none. */
 export function deviceLocalNote(count: number): string {
   if (count <= 0) return '';
-  return count === 1
-    ? tRaw('1 image or file was added on this device. It stays on this device, and others will not see that file.')
-    : tRaw('{n} images or files were added on this device. They stay on this device, and others will not see those files.', { n: count });
+  return tnRaw('1 image or file was added on this device. It stays on this device, and others will not see that file.', '{n} images or files were added on this device. They stay on this device, and others will not see those files.', { n: count });
 }
 
 /**

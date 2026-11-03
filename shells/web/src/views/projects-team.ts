@@ -11,7 +11,7 @@ import { getSessionSource, readSourceProjects, takeSourceProjectRequest } from '
 import type { TeamProjectRef } from '../lib/session-source.ts';
 import { splitOwnProjects } from '../lib/team-project-listing.ts';
 import { folderTile } from '../folder-tiles.ts';
-import { tRaw } from '../i18n.ts';
+import { tRaw, tnRaw } from '../i18n.ts';
 import { tokenize } from '../lib/search/match.ts';
 import { buildFolderHaystack, matchesHaystack } from '../lib/search/projects-source.ts';
 import { announce } from '../a11y.ts';
@@ -50,7 +50,7 @@ export function teamProjectTiles(projects: TeamProjectRef[], query = '', sort = 
     count: p.sessionCount ?? 0,
     href: `#/p?team=${encodeURIComponent(p.id)}`,
     shared: { openLabel: tRaw('Open shared project {name}', { name: p.name }), canWrite: canWriteProject(p.myRole),
-      subtitle: sharedSubtitle(p), activity: p.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: p.sessionCount ?? 0 }) },
+      subtitle: sharedSubtitle(p), activity: tnRaw('1 session', '{n} sessions', { n: p.sessionCount ?? 0 }) },
   })).join('');
 }
 
@@ -129,7 +129,7 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
       const project = linked(folder);
       const inside = folder.link?.folderId ? `&folder=${encodeURIComponent(folder.link.folderId)}` : '';
       return project ? folderTile({ ...folder, ...project, ...(folder.link ? { name: folder.name } : {}) }, { ...opts, selectable: false, href: `#/p?team=${encodeURIComponent(project.id)}${inside}`,
-        shared: { canWrite: canWriteProject(project.myRole), subtitle: folder.link ? tRaw('Shortcut') : sharedSubtitle(project), activity: project.sessionCount === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: project.sessionCount ?? 0 }), openLabel: tRaw('Open shared project {name}', { name: project.name }) } }) : folderTile(folder, opts);
+        shared: { canWrite: canWriteProject(project.myRole), subtitle: folder.link ? tRaw('Shortcut') : sharedSubtitle(project), activity: tnRaw('1 session', '{n} sessions', { n: project.sessionCount ?? 0 }), openLabel: tRaw('Open shared project {name}', { name: project.name }) } }) : folderTile(folder, opts);
     },
     rootHtml(filter: string, list: boolean, head: string, size: string, sort: string, reversed: boolean): string {
       const source = getSessionSource(); if (!source) return '';

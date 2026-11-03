@@ -7,7 +7,7 @@ import { menuItemHtml, wireTileContextMenu } from '../lib/context-menu.ts';
 import { wireTileSelect } from '../lib/tile-select.ts';
 import { mountModal } from '../components/modal.ts';
 import { confirmDialog, promptDialog } from '../components/confirm-dialog.ts';
-import { tRaw } from '../i18n.ts';
+import { tRaw, tnRaw } from '../i18n.ts';
 import { anchorSave } from '../bridge/anchor-save.ts';
 import {
   canMoveTeamItem, deleteTeamFolder, moveTeamFolder, moveTeamFolderItem, renameTeamFile, renameTeamFolder, teamFileRenameAvailable,
@@ -74,7 +74,7 @@ export function mountTeamProjectActions(o: Options): () => void {
       tile.querySelector('[data-select]')?.setAttribute('aria-pressed', String(on));
     }
     bar.hidden = selected.size === 0; o.content.classList.toggle('has-selection', !!selected.size);
-    count.textContent = tRaw('{n} selected', { n: selected.size });
+    count.textContent = tnRaw('{n} selected', '{n} selected', { n: selected.size });
     move.hidden = !organize; remove.hidden = ![...selected].every(canDelete);
     const cut = teamClipboard(o.projectId);
     for (const tile of tiles()) tile.classList.toggle('is-cut', cut?.mode === 'cut' && cut.items.some(item => item.ref === tile.dataset.ref));
@@ -129,7 +129,7 @@ export function mountTeamProjectActions(o: Options): () => void {
       else if (action === 'paste' || action === 'paste-into') void paste(action === 'paste-into' && target ? target.ref : o.folderId);
       else void run(action, target ? [target.ref] : [...selected]);
     },
-    className: 'folder-menu projects-menu', presentation: 'sheet', head: target => ({ name: target ? name(target.ref) : tRaw('{n} selected', { n: selected.size }) }),
+    className: 'folder-menu projects-menu', presentation: 'sheet', head: target => ({ name: target ? name(target.ref) : tnRaw('{n} selected', '{n} selected', { n: selected.size }) }),
   });
   if (organize) wireDrags();
   move.addEventListener('click', () => { void run('move', [...selected]); }, { signal: abort.signal });
@@ -224,7 +224,7 @@ export function mountTeamProjectActions(o: Options): () => void {
     setTeamClipboard(o.projectId, mode, topLevelTeamItems(o.folders, refs.flatMap(itemOf)));
     const n = teamClipboard(o.projectId)?.items.length ?? 0;
     setRefs(new Set());
-    o.notice(mode === 'cut' ? (n === 1 ? tRaw('1 item cut') : tRaw('{n} items cut', { n })) : (n === 1 ? tRaw('1 item copied') : tRaw('{n} items copied', { n })));
+    o.notice(mode === 'cut' ? (tnRaw('1 item cut', '{n} items cut', { n })) : (tnRaw('1 item copied', '{n} items copied', { n })));
   }
 
   /** Paste into `target`: a cut moves the items (same ids), a copy duplicates them. */
@@ -244,7 +244,7 @@ export function mountTeamProjectActions(o: Options): () => void {
           await o.duplicate(item.ref, `team-${item.kind}`, { name: item.name, folderId: target }); n++;
         }
       }
-      if (o.current()) o.reload(n === 1 ? tRaw('1 item pasted') : tRaw('{n} items pasted', { n }));
+      if (o.current()) o.reload(tnRaw('1 item pasted', '{n} items pasted', { n }));
     } catch (error) { if (o.current()) o.reload(error instanceof Error ? error.message : tRaw('Could not change these items. Refresh and try again.')); }
     finally { busy = false; if (o.current()) paint(); }
   }

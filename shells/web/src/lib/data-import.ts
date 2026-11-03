@@ -17,7 +17,7 @@
 // The import dialog is styled by the Storage sheet. Open shows the same dialog over
 // any view, so the sheet loads with this module rather than only with Settings.
 import '../styles/parts/storage.css';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { playSfx } from './sfx.ts';
 import { applyTheme } from '../theme.ts';
 import { registerUserFonts, type UserFontsHost } from '../user-fonts.ts';
@@ -132,8 +132,8 @@ export function importDialogOptions(file: File, source: DataImportSource, reader
 export function dataImportMessage(summary: DataImportSummary): { message: string; assertive: boolean } {
   // `skipped` > 0 means the bundle came from a newer app and carried parts this
   // build doesn't understand yet - surface it rather than pretend a full restore.
-  const skipNote = summary.skipped ? ` · ${summary.skipped === 1 ? t('1 newer item skipped') : t('{n} newer items skipped', { n: summary.skipped })}` : '';
-  const failNote = summary.failedAssets ? ` · ${summary.failedAssets === 1 ? t('1 image couldn’t be restored (storage full?)') : t('{n} images couldn’t be restored (storage full?)', { n: summary.failedAssets })}` : '';
+  const skipNote = summary.skipped ? ` · ${tn('1 newer item skipped', '{n} newer items skipped', { n: summary.skipped })}` : '';
+  const failNote = summary.failedAssets ? ` · ${tn('1 image couldn’t be restored (storage full?)', '{n} images couldn’t be restored (storage full?)', { n: summary.failedAssets })}` : '';
   const message = backupImportLine(summary) + skipNote + failNote;
   return { message, assertive: Boolean(summary.failedAssets || summary.failedHistory) };
 }

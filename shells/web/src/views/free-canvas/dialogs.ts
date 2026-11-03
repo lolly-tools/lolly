@@ -14,7 +14,7 @@ import type { ChoreoOrder, ShowcaseId } from '../choreograph.ts';
 import type { InputValue } from '../../../../../engine/src/inputs.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { escape as escapeText } from '../../utils.ts';
-import { t } from '../../i18n.ts';
+import { t, tn } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { CHOREO_SHOWCASES, reflectChoreographChoice } from '../choreograph-options.ts';
 import { wireChoreographPreview } from '../choreograph-preview.ts';
@@ -651,7 +651,7 @@ export function askLiftLayers(fc: FcCtx): void {
             // when it is there the row can say WHICH element of the original page this
             // layer is. Minted by the canvas, never read out of a stranger's file.
             const label = t('Layer {n}', { n: i + 1 });
-            const nodes = L.nodes === 1 ? t('1 shape') : t('{n} shapes', { n: L.nodes });
+            const nodes = tn('1 shape', '{n} shapes', { n: L.nodes });
             const from =
               typeof L.boxId === 'string' && L.boxId
                 ? ` <span class="fc-lift-n">${escapeText(L.boxId)}</span>`
