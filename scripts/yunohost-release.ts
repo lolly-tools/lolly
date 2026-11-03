@@ -196,6 +196,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   console.log(`[yunohost-release] packing ${DIST} -> ${outFile} (dropping ./models and ${locales.length} translated /info copies)`);
   // The package's own copy of the model manifest: "this server" mode fetches and
   // checks every model file against it, and it arrives under the archive's checksum.
+  if (!existsSync(MODELS_MANIFEST_SRC)) throw new Error(`${MODELS_MANIFEST_SRC} is missing - run node scripts/gen-models-manifest.ts`);
   copyFileSync(MODELS_MANIFEST_SRC, join(DIST, 'models-manifest.json'));
   packDist(DIST, outFile, tarExcludes(locales));
   const sha256 = await sha256File(outFile);

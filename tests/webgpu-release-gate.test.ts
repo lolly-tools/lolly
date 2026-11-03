@@ -140,6 +140,8 @@ test('the real YunoHost producer selects web scope while native targets remain h
     symlinkSync(join(root, 'packages/node-shell'), join(root, 'node_modules/@lolly-tools/node-shell'), 'dir');
     writeFileSync(join(root, 'profiles.json'), JSON.stringify({ default: 'lolly-start', profiles: { 'lolly-start': { tools: ['brand/tools'], catalog: 'brand/catalog' } } }));
     writeFileSync(join(root, 'shells/web/src/locales/en.json'), '{}\n');
+    // A real tree commits the model listing the package ships beside the build.
+    writeFileSync(join(root, 'shells/web/models-manifest.json'), '[]\n');
     for (const name of ['index.html', 'precache.json', 'info/index.html']) writeFileSync(join(root, 'shells/web/dist', name), 'fixture');
     const manifest = join(root, 'deploy/yunohost/manifest.toml');
     writeFileSync(manifest, `version = "0.1.0~ynh1"\nurl = "https://fixture.invalid/old.tar.gz"\nsha256 = "${'0'.repeat(64)}"\n`);
