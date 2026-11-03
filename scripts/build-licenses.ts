@@ -649,6 +649,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'storytold photocraft camera raw decoder',
+      version: '0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT',
+      copyright: 'The ArtCraft Team and the PhotoCraft contributors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/camera-raw/camera-raw.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/camera-raw/LICENSES.txt'), 'utf8'),
+      note: 'Standalone photocraft-raw crate (MIT is elected from MIT OR Apache-2.0) compiled through a bounded Lolly byte adapter. It was written from public specifications and sample files with no dcraw or LibRaw code; the caveats are in packages/node-shell/wasm/camera-raw/vendor/photocraft-raw/UPSTREAM.md. The JPEG XL decoder is left out. Source, build instructions and licences are in packages/node-shell/wasm/camera-raw/.',
+      where: 'web',
+    },
+    {
       name: 'Penpot layout kernel (compiled WASM)',
       version: PENPOT_LAYOUT_UPSTREAM.revision,
       spdx: 'MPL-2.0',

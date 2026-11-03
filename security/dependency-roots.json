@@ -122,6 +122,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "camera-raw-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/camera-raw",
+      "lockfile": "packages/node-shell/wasm/camera-raw/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "geometry-kernel-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/geometry-kernel",

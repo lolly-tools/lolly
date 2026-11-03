@@ -1270,6 +1270,19 @@
         "notes": "Pinned vectorcraft-affinity 05d5f99 (MIT OR Apache-2.0). Afread-derived with no specification and AI-assisted; the account is in its UPSTREAM.md and was accepted on 2026-11-02. Every archive entry is CRC-checked. The model JSON is bounded again by the shared TypeScript wrapper and then mapped by the pure engine module design-map-affinity.ts, which caps pages, boxes and canvas size. The reader denies panics and unsafe code."
       }
     },
+    "packages/node-shell/src/camera-raw.ts": {
+      "family": "Images and colour",
+      "fuzzTargets": [
+        "camera-raw"
+      ],
+      "details": {
+        "inputSource": "User-supplied camera raw files (.dng, .cr2, .cr3, .nef, .nrw, .arw, .raf, .orf, .rw2, .pef): an upload, a drop or a photo path on the command line. Platform file access is supplied by the shell; the decoder itself imports no host functions.",
+        "bounds": "192 MiB input, 64 megapixels, 256 MiB for any one buffer, and a refusal before development when input, sensor data and the 16-bit frame together would pass 480 MiB; 512 MiB WASM memory cap with a 1 MiB stack; 24 warnings of 400 characters; a trap retires the instance; the web shell runs it on a worker with a 3 minute budget",
+        "directTests": "`tests/camera-raw.test.ts`, `tests/camera-raw-cli.test.ts`, `shells/web/src/bridge/camera-raw-worker-client.test.ts`, the vendored crate's own `cargo test` (134 unit and 86 integration tests, including hostile-file and truncation tests), `scripts/camera-raw-corpus.ts`",
+        "fuzzCoverage": "`camera-raw` mutates small synthetic Bayer DNG and TIFF/EP files through the Node loader. Real files from `scripts/camera-raw-corpus.ts` are decoded by that script, not fuzzed.",
+        "notes": "Pinned storytold photocraft raw 97a83f07 (MIT OR Apache-2.0), clean-room caveats recorded in its UPSTREAM.md; the JPEG XL decoder is left out. DNG colour is exact; every other format is a per-file fit to the embedded JPEG and is labelled approximate colour. The decoder forbids unsafe code and denies unwrap, expect and panic."
+      }
+    },
     "packages/node-shell/src/indd.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [

@@ -52,6 +52,7 @@ const LOCKFILES = [
   'packages/node-shell/wasm/dxf/Cargo.lock',
   'packages/node-shell/wasm/audio-dsp/Cargo.lock',
   'packages/node-shell/wasm/indd/Cargo.lock',
+  'packages/node-shell/wasm/camera-raw/Cargo.lock',
   'packages/node-shell/wasm/affinity/Cargo.lock',
 ];
 

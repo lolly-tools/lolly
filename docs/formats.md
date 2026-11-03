@@ -20,6 +20,7 @@ Every file is read on your device, and nothing is uploaded.
 | **GIF, APNG and animated WebP** | Kept byte for byte with every frame, so they stay animated when placed. |
 | **AVIF** | Read wherever the browser can decode AVIF. |
 | **HEIC and HEIF** | iPhone photos decode even where the browser cannot, through a bundled decoder. |
+| **DNG and camera raw** | Photos from DNG, CR2, NEF, ARW, ORF, RW2 and uncompressed RAF files are developed on your device and stored as a normal picture. A DNG uses the matrices in the file, so its colour is exact. The other formats carry none, so Lolly fits the colour to the camera's embedded JPEG and says "approximate colour" in the import note. Canon CR3 and variants Lolly cannot decode open the camera's JPEG preview instead. See [Darkroom](/info/darkroom.html#open-a-camera-raw-photo). |
 | **SVG** | Cleaned (scripts, event handlers and `javascript:` links removed) and given a clean viewBox. |
 | **PowerPoint** | Add it through any upload area, or drop it on the gallery and choose **Add slides to your library**: each slide you pick becomes an SVG asset, with charts and SmartArt as labelled placeholders. **Edit in Design** opens the deck with editable slides, and [Rebrand a deck](/info/rebrand.html) moves it onto your design system. |
 | **PDF and Illustrator** | Dropped on an upload area, it asks which pages to keep; each page becomes an SVG asset. [Import a design](/info/design-import.html) opens it as editable layers instead. |

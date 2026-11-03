@@ -54,6 +54,7 @@ const CRATE_DIRS = [
   'packages/node-shell/wasm/dxf',
   'packages/node-shell/wasm/audio-dsp',
   'packages/node-shell/wasm/indd',
+  'packages/node-shell/wasm/camera-raw',
   'packages/node-shell/wasm/affinity',
 ];
 

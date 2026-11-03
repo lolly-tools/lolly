@@ -1156,6 +1156,46 @@
       }
     },
     {
+      "token": "DNG",
+      "name": "DNG",
+      "full": "Digital Negative (Adobe DNG)",
+      "category": "Raster",
+      "dir": "in",
+      "features": [
+        "raster",
+        "deep-color"
+      ],
+      "desc": "The open raw photo format from Adobe, and the one many phones and cameras write when they shoot raw. Lolly develops a DNG on your device with the colour matrices stored in the file, so the colour is exact rather than guessed. It reads uncompressed, Deflate, lossless JPEG and lossy JPEG DNG, Bayer and three-colour sensors, white balance, baseline exposure, crop and orientation, then stores a normal picture that opens in Darkroom and every other photo tool. It's import-only, up to 192 MB and about 50 megapixels in the 512 MB the decoder is allowed. The raw file itself is not kept, and a DNG that uses JPEG XL compression is not supported.",
+      "metadata": {
+        "reads": [
+          "exif"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Camera, lens settings and capture time are read for the import report. The developed picture is stored without them. Lolly does not write DNG."
+      }
+    },
+    {
+      "token": "Camera RAW",
+      "name": "Camera RAW",
+      "full": "Camera raw files (CR2, CR3, NEF, ARW, RAF, ORF, RW2, PEF)",
+      "category": "Raster",
+      "dir": "in",
+      "features": [
+        "raster",
+        "deep-color"
+      ],
+      "desc": "The raw files from Canon, Nikon, Sony, Fujifilm, Olympus, Panasonic and Pentax cameras. Lolly develops CR2, NEF, ARW, ORF, RW2 and uncompressed RAF files on your device and stores a normal picture. These formats carry no colour matrices, so the colour is approximate: Lolly fits it to the JPEG the camera embedded in the same file, labels the result \"approximate colour\" in the import report, and says how close the fit is. Variants it cannot decode, such as Canon CR3 and sRAW, compressed RAF and compressed PEF, open the camera's embedded JPEG preview instead, also labelled. It's import-only, up to 192 MB and about 50 megapixels. The raw file itself is not kept.",
+      "metadata": {
+        "reads": [
+          "exif"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Camera and exposure details are read for the import report. The developed picture is stored without them. Lolly does not write camera raw formats."
+      }
+    },
+    {
       "token": "PSB",
       "name": "PSB",
       "full": "Photoshop Large Document (.psb)",

@@ -2261,6 +2261,31 @@ export const inddTarget: FuzzTarget = {
     }
   },
 };
+// Camera raw decoder (packages/node-shell/wasm/camera-raw): untrusted camera files, TIFF IFD chains,
+// lossless and lossy JPEG tiles and vendor maker notes. Contract: a typed CameraRawError refusal or a
+// developed picture within the declared 512 MiB module memory; never a trap, hang or oversized
+// result. Seeds are small synthetic Bayer DNG and TIFF/EP files, so a run takes the same time everywhere.
+export const cameraRawTarget: FuzzTarget = {
+  name: 'camera-raw',
+  async seeds() {
+    const { buildDng } = await import('../camera-raw-fixtures.ts');
+    const scene = (x: number, y: number): [number, number, number] => [x / 24, y / 16, 0.4];
+    return [
+      buildDng({ width: 24, height: 16, scene, iso: 400, exposureTime: [1, 125], orientation: 6 }),
+      buildDng({ width: 24, height: 16, scene, dng: false, make: 'NIKON CORPORATION', model: 'NIKON D-TEST' }),
+    ];
+  },
+  async invoke(bytes) {
+    const { loadCameraRawKernel } = await import('../../packages/node-shell/src/camera-raw-node.ts');
+    const { CameraRawError } = await import('../../packages/node-shell/src/camera-raw.ts');
+    try { (await loadCameraRawKernel()).open(bytes, 'fast'); }
+    catch (error) {
+      if (!(error instanceof CameraRawError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+    }
+  },
+};
 // DXF reader (packages/node-shell/wasm/dxf): untrusted CAD files. Contract: a typed DxfError refusal or
 // a flat entity list that the flattener and the Design mapper then handle; never a trap, hang or
 // output over the declared limits. Seeds are synthetic ASCII, binary R13+ and binary R12 drawings.
@@ -2528,7 +2553,7 @@ export const captionsTtmlTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, inddTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, inddTarget, cameraRawTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,
