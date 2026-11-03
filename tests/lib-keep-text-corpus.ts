@@ -5,7 +5,7 @@
  * knows the font (Courier, 600 units a glyph), the image placements and the rectangles because
  * the generator wrote them, so it can say exactly what sits under a box.
  */
-import { PDFArray, PDFDict, PDFDocument, PDFName, PDFNumber, PDFRawStream, PDFRef, StandardFonts, decodePDFRawStream, rgb } from 'pdf-lib';
+import { PDFArray, PDFDict, PDFDocument, PDFName, type PDFNumber, PDFRawStream, type PDFRef, StandardFonts, decodePDFRawStream, rgb } from 'pdf-lib';
 
 export interface Bar { page: number; x: number; y: number; w: number; h: number }
 export interface Placed { x0: number; y0: number; x1: number; y1: number }

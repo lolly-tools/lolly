@@ -19,7 +19,7 @@
  * which flattens each page. A refusal never returns bytes.
  */
 import type { PdfRedactOpts, PdfRedactResult } from '@lolly-tools/core/host-v1';
-import { PDFArray, PDFDict, PDFDocument, PDFName, PDFNumber, PDFRef, StandardFonts, decodePDFRawStream } from 'pdf-lib';
+import { PDFArray, PDFDict, PDFDocument, PDFName, PDFNumber, type PDFRef, StandardFonts, decodePDFRawStream } from 'pdf-lib';
 import { findHiddenText } from '../../../engine/src/pdf-redaction.ts';
 import { extractPageText } from '../../../engine/src/pdf-text.ts';
 import type { PdfNode } from '../../../engine/src/pdf-map.ts';

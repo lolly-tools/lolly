@@ -71,7 +71,7 @@ test('keep text: a fuzzed corpus keeps no glyph, picture or drawing under any bo
   let accepted = 0, refused = 0, clear = 0, kept = 0, checkedUnder = 0, imageBoxes = 0, vectorBoxes = 0;
   for (let seed = 1; seed <= SEEDS; seed++) {
     const corpus = await makeCorpusPdf(seed);
-    let run;
+    let run: Awaited<ReturnType<typeof redactKeepText>>;
     try { run = await redactKeepText(kernel, corpus.bytes, { bars: corpus.bars } as never); } catch (e) {
       assert.ok(e instanceof PdfKeepTextError, `seed ${seed}: ${String(e)}`);
       refused++; continue;

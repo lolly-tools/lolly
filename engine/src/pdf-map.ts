@@ -1192,7 +1192,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     const showString = (codes: number[] | null): void => {
       if (!codes || !codes.length) return;
       if (!page.glyphRuns) { showStringRun(codes); return; }
-      const face = res.fonts && res.fonts[s.font];
+      const face = res.fonts?.[s.font];
       const width = face?.twoByte && !face.type3 ? 2 : 1;
       for (let i = 0; i < codes.length; i += width) {
         // The node starts where THIS glyph does, not at the text object's last move: a text
@@ -1204,7 +1204,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     };
     const showStringRun = (codes: number[] | null): void => {
       if (!codes || !codes.length) return;
-      const fi = res.fonts && res.fonts[s.font];
+      const fi = res.fonts?.[s.font];
       if (fi?.type3) { drawType3(codes, fi.type3); return; }
       // A PDF text object may change face or paint between adjacent spans.
       if (textBuf && (textFont !== s.font || textFill !== s.fill
