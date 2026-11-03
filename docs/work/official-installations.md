@@ -20,6 +20,7 @@ identify the upstream packages.
 | UpCloud | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/upcloud) plus the ready-made package | [Ubuntu 24.04 amd64 reference for 1.1.1](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md#upcloud-reference-for-111): fresh install, public HTTPS, built-in owner and member sign-in, a checked SVG, reboot and an independent application restore passed. An upgrade across versions and recovery on a second host are open. **Not ready as a module:** no recorded acceptance has used the infrastructure module to create the machine; its own checks validate the configuration only |
 | Evroc | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/evroc) | **Not ready.** A separate European foundation that passes the provider's schema checks but has not been boot-tested on Evroc. Boot and runtime acceptance stay specific to each target |
 | YunoHost | [Project package](https://github.com/lolly-tools/lolly-work_ynh/tree/v1.1.3-ynh2) | 1.1.3~ynh2 beta. On amd64, YunoHost package_check passes install, backup and restore, upgrade from 1.1.0~ynh3 and change URL on YunoHost 12.1 and 13.0, and a signed-in browser on a fresh YunoHost 13 install lists the tools. Each installation makes its own catalogue signing key. The overall run reports level 0 only because the package is not yet in YunoHost's catalogue; catalogue registration and arm64 acceptance are pending |
+| Coolify | [Project Compose recipe](https://github.com/lolly-tools/lolly-work/tree/main/deploy/coolify) | **Not ready.** The recipe is generated for Coolify's "Docker Compose Empty" import, with the proxy, generated secrets and domain variable wired, but it has not been imported into a running Coolify. It is not in Coolify's one-click catalogue, which this project does not yet qualify for |
 | Dokploy | [Upstream blueprint](https://github.com/lolly-tools/lolly-work/tree/main/deploy/dokploy) | **Not ready.** The blueprint is generated and ready to import, but it has not been imported into a running Dokploy. Runtime acceptance on a target and admission to the public catalogue are pending |
 
 The [channel record](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/CHANNELS.md)
@@ -246,6 +247,9 @@ internal issuer. Dokploy's proxy has its own certificate settings.
   image, so keep the registry available while the cluster runs. If admission control
   checks image signatures, copy the signatures too and test that check against your
   registry before relying on that check.
+- **Coolify.** The recipe uses the same images and archive address as the Dokploy
+  blueprint; edit them in the service's Source Compose. Coolify's own proxy has its
+  certificate settings.
 - **Dokploy.** The blueprint uses the same server image, PostgreSQL image and archive
   address, so make the same replacements in its Compose editor. Dokploy's own
   installation and proxy have their own download sources.

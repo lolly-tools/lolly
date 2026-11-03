@@ -170,6 +170,26 @@ Caddy container. Run the same owner, member, privacy, persistence, upgrade and
 restore checks as for a VM. Admission to Dokploy's catalogue stays pending until a
 tested submission is accepted.
 
+## Coolify
+
+Use the [project-owned Compose recipe](../deploy/coolify/README.md): in Coolify, add a
+**Docker Compose Empty** resource and paste `deploy/coolify/lolly-work/docker-compose.yml`.
+
+- Set the `server` component's domain to your HTTPS address and set
+  `LOLLY_OWNER_EMAIL`. The recipe derives `LOLLY_DOMAIN` from that domain.
+- Built-in sign-in is the default. Issue the owner's setup link in the `server`
+  component's terminal with `node scripts/password-link.ts --email OWNER_EMAIL`. For
+  single sign-on, set `LOLLY_AUTH_MODE=oidc` and the OIDC issuer and client.
+- Coolify generates the database, session, link and credential secrets and keeps them
+  across deployments. Keep them.
+
+Coolify's proxy supplies HTTPS, routing and WebSockets; the recipe opens no host ports
+and adds no Caddy container. A Coolify service is a copy of the pasted file, so a new
+release reaches it only when you copy the changed image pins and release values into
+its Source Compose and redeploy; never create a second service in its place. This
+route has not been imported into a running Coolify, and it is not in Coolify's
+one-click catalogue, which this project does not qualify for yet.
+
 ## Back up, restore and update
 
 Keep an encrypted independent copy of `.env`, the configuration, the catalogue key
