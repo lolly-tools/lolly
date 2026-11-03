@@ -49,6 +49,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - c2pa-containers: attachC2paStore(bytes, fmt, store) + embedC2paInPdf - the placement-side container walkers
  *   - url-pack      : unpackToken(token) + expandQuery(query) - the `z` param decoder (DEFLATE bomb caps)
  *   - wav           : parseWav(bytes) - the RIFF/WAVE container walker
+ *   - video-probe   : probeVideoContainer(bytes) - the MOV/MP4/MXF header probe (no decode)
  *   - depth-hint    : depthHint(bytes) - the ingest bit-depth header sniff (web shell lib)
  *   - lut-parse     : parseCubeLut / parse3dlLut - the .cube/.3dl colour-grade LUT readers
  *   - docx-read     : readDocx(parts, parseXml) + isDocx, then both doc-md serialisers
@@ -80,6 +81,7 @@ import {
 } from '../../engine/src/c2pa-extract.ts';
 import { unpackToken, expandQuery, hasPackedState, packQuery } from '../../engine/src/url-pack.ts';
 import { parseWav } from '../../engine/src/wav.ts';
+import { bytesProbeSource, probeVideoContainer, VideoProbeError } from '../../engine/src/video-container-probe.ts';
 import { parseCubeLut, parse3dlLut } from '../../engine/src/grade.ts';
 import { readPsd } from '../../engine/src/psd.ts';
 import { writePsd } from '../../engine/src/psd-write.ts';
@@ -1250,6 +1252,46 @@ export const wavTarget: FuzzTarget = {
   // desired outcome. The findings are the runner's classes: MAX_CHANNELS is the
   // only declared cap, and the frame count is derived from a declared chunk size.
   async invoke(bytes) { parseWav(bytes); },
+};
+
+// ── video-probe: the MOV/MP4/MXF container probe ──────────────────────────────
+
+function probeBox(type: string, ...body: Uint8Array[]): Uint8Array {
+  const b = concat(body);
+  return concat([u32be(8 + b.length), bytesOf(type), b]);
+}
+
+function probeMovSeed(code: string): Uint8Array {
+  const z = (n: number): Uint8Array => new Uint8Array(n);
+  const u16b = (n: number): Uint8Array => Uint8Array.of((n >>> 8) & 0xff, n & 0xff);
+  const entry = probeBox(code, z(6), u16b(1), z(16), u16b(64), u16b(48), u32be(0x480000), u32be(0x480000), z(4), u16b(1), z(32), u16b(24), u16b(0xffff));
+  const stbl = probeBox('stbl', probeBox('stsd', z(4), u32be(1), entry), probeBox('stts', z(4), u32be(1), u32be(25), u32be(1000)));
+  const trak = probeBox('trak', probeBox('mdia', probeBox('mdhd', z(8), u32be(25000), u32be(50000), z(4)), probeBox('hdlr', z(4), bytesOf('vide'), z(12)), probeBox('minf', stbl)));
+  return concat([probeBox('ftyp', bytesOf('qt  '), u32be(0), bytesOf('qt  ')), probeBox('mdat', z(8)), probeBox('moov', probeBox('mvhd', z(8), u32be(1000), u32be(2000), z(80)), trak)]);
+}
+
+function probeMxfSeed(): Uint8Array {
+  const ul = (...r: number[]): Uint8Array => Uint8Array.from([0x06, 0x0e, 0x2b, 0x34, ...r]);
+  const ber = (n: number): Uint8Array => Uint8Array.of(0x83, (n >> 16) & 255, (n >> 8) & 255, n & 255);
+  const tag = (t: number, v: Uint8Array): Uint8Array => concat([Uint8Array.of(t >> 8, t & 255, v.length >> 8, v.length & 255), v]);
+  const desc = concat([ul(0x02, 0x53, 0x01, 0x01, 0x0d, 0x01, 0x01, 0x01, 0x01, 0x01, 0x28, 0x00), ber(60),
+    tag(0x3203, u32be(1920)), tag(0x3202, u32be(1080)), tag(0x3001, concat([u32be(25), u32be(1)])),
+    tag(0x3201, ul(0x04, 0x01, 0x01, 0x0a, 0x04, 0x01, 0x02, 0x02, 0x71, 0x26, 0, 0))]);
+  const pack = concat([Uint8Array.of(0, 1, 0, 3), u32be(1), new Uint8Array(24), u32be(0), u32be(desc.length), new Uint8Array(24),
+    ul(0x04, 0x01, 0x01, 0x09, 0x0d, 0x01, 0x02, 0x01, 0x01, 0x01, 0, 0), u32be(0), u32be(16)]);
+  return concat([ul(0x02, 0x05, 0x01, 0x01, 0x0d, 0x01, 0x02, 0x01, 0x01, 0x02, 0x04, 0x00), ber(pack.length), pack, desc]);
+}
+
+export const videoProbeTarget: FuzzTarget = {
+  name: 'video-probe',
+  async seeds() {
+    return [probeMovSeed('apch'), probeMovSeed('avc1'), probeMovSeed('AVdh'), probeMxfSeed()];
+  },
+  // Contract: null for foreign bytes, a VideoProbeError for a recognised container
+  // that cannot be read. Any other throw, a hang or a runaway allocation is a finding.
+  async invoke(bytes) {
+    try { await probeVideoContainer(bytesProbeSource(bytes)); } catch (e) { if (!(e instanceof VideoProbeError)) throw e; }
+  },
 };
 
 // depthHint (shells/web/src/lib/image-sample.ts): the ingest path's bit-depth
@@ -2457,7 +2499,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   epubReadTarget, jpegStructureTarget,
   rasterDecodeTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
-  derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
+  derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget, videoProbeTarget,
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
