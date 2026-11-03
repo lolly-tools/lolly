@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 import { xmlText } from '@lolly-tools/node-shell/text-xml';
 import { parentPort, workerData } from 'node:worker_threads';
-import { runTextTool } from '@lolly/engine';
+// The text module alone, not the engine index: a fresh worker loads it in a few
+// hundred milliseconds, where the whole engine took several seconds and ran past
+// the 2 s onInput budget (text-helper timed out on every theme switch).
+import { runTextTool } from '@lolly/engine/text-tools';
 try {
   const result = await runTextTool(workerData, {
     digest: async (algorithm, bytes) =>

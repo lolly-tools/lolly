@@ -18,7 +18,8 @@
     "./brand-policy": "./src/brand-policy.ts",
     "./forensic": "./src/forensic.ts",
     "./production": "./src/production.ts",
-    "./production/types": "./src/production/types.ts"
+    "./production/types": "./src/production/types.ts",
+    "./text-tools": "./src/text-tools.ts"
   },
   "scripts": {
     "test": "node --test \"../tests/**/*.test.ts\"",
