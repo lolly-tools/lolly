@@ -590,6 +590,7 @@ const MANIFEST: {
     },
     {
       name: 'LightCraft PatchMatch inpainting and PhotoCraft origins',
+      version: 'git 07301cbd1e1cab5c152228891d9c9ed87e263003',
       spdx: 'MPL-2.0 AND MIT',
       copyright: 'The ArtCraft Team and the LightCraft and PhotoCraft contributors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/inpaint/inpaint.wasm',
