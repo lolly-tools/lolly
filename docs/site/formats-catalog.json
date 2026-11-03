@@ -232,9 +232,10 @@
     ],
     "MIDI": [
       "Score, not a recording",
-      "Rendered to on-device synth track",
+      "Rendered to on-device synth track, velocity kept as loudness",
       "Note & step counts capped",
-      "Import-only music bed"
+      "Written by Rondocode: notes, velocities, GM instruments",
+      "Synth settings, effects and samples are not in the file"
     ],
     "MOD": [
       "Tracker module with sample patterns",
@@ -1372,16 +1373,17 @@
       "name": "MIDI",
       "full": "Musical Instrument Digital Interface (.mid)",
       "category": "Audio",
-      "dir": "in",
+      "dir": "both",
       "features": [
         "audio",
         "sequenced"
       ],
-      "desc": "Not a recording but a score: MIDI stores which notes to play and when, so the file is tiny and the sound is produced on playback. Lolly converts an imported .mid into a small on-device synth track you can use as a music bed, capping note and step counts so a pathological file can't hang the tab.",
+      "desc": "Not a recording but a score: MIDI stores which notes to play and when, so the file is tiny and the sound is produced on playback. Lolly converts an imported .mid into a small on-device synth track you can use as a music bed, keeping each note's velocity as its loudness and capping note and step counts so a pathological file can't hang the tab. Rondocode writes a song's notes as a format-1 .mid with one track per synth, velocities, and General MIDI instruments where a synth's name maps to one.",
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a"
+        "preserves": "none",
+        "note": "A Standard MIDI File has no place for a Content Credential, so Rondocode writes a text event naming the song instead. Importing a .mid never rewrites it: the original bytes are kept."
       }
     },
     {

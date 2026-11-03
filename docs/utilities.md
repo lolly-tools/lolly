@@ -314,7 +314,7 @@ The grid draws only the rows in view and recycles them as you scroll, so a very 
 - **[Jump](/t/jump)** makes a one-link landing page with your links, heading, portrait and colours. The whole page lives inside the link you share.
 - **[Sandbox](/t/sandbox)** runs pasted HTML, CSS and JavaScript, or a JSX or TypeScript component, in a private offline sandbox, which suits previewing code from an AI assistant.
 - **[Prompt Card](/t/prompt-card)** typesets a long prompt into one compact image for a multimodal model, since image input often costs less than the same words as text.
-- **[Rondocode](/t/rondocode)** lets you write music as code and hear it as you type, then export the song as audio, stems or MIDI with Content Credentials, or keep its source.
+- **[Rondocode](/t/rondocode)** lets you write music as code and hear it as you type, then export the song as audio with Content Credentials, as stems, as a MIDI file of its notes, or keep its source.
 
 ---
 

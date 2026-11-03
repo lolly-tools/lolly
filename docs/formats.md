@@ -27,7 +27,7 @@ Every file is read on your device, and nothing is uploaded.
 | **Lottie and dotLottie** | Checked and placed as live vector animations (see [Lottie animations](/info/sequence-editor.html#lottie-animations)). |
 | **MP4, MOV and WebM** | Kept byte for byte, never re-encoded; dimensions are read on your device. |
 | **MP3, WAV, OGG and Opus, M4A and AAC, FLAC** | Kept byte for byte and decoded on your device, ready as a music bed under a video. |
-| **MIDI and tracker modules** | A `.mid` file becomes a small on-device synth track; MOD, XM, IT, S3M, STM and MTM modules play through a bundled player. A [Rondocode song](/info/rondocode.html) plays at any length. |
+| **MIDI and tracker modules** | A `.mid` file becomes a small on-device synth track, with each note's velocity kept as its loudness; Rondocode also writes a song as a `.mid`. MOD, XM, IT, S3M, STM and MTM modules play through a bundled player. A [Rondocode song](/info/rondocode.html) plays at any length. |
 
 Lolly also reads and checks the Content Credentials in PDF, PNG and APNG, JPG, GIF, SVG, TIFF, WebP, AVIF, MP4, WebM and MKV, MP3, WAV, M4A and OGG/Opus files; see [Verify](/verify). The **Strip Hidden Data** utility reads embedded metadata in order to remove the data.
 
