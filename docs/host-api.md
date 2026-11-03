@@ -40,7 +40,7 @@ function onInit({ model, host }) {
 | [Brand and type](#brand-and-type) | [`tokens`](#host-tokens), [`text`](#host-text), [`fonts`](#host-fonts), [`emoji`](#host-emoji), [`color`](#host-color) |
 | [Pictures and pixels](#pictures-and-pixels) | [`images`](#host-images), [`raster`](#host-raster), [`codec`](#host-codec), [`layers`](#host-layers), [`scan`](#host-scan), [`lift`](#host-lift) |
 | [Vector, layout and motion](#vector-layout-and-motion) | [`geom`](#host-geom), [`connectors`](#host-connectors), [`layout`](#host-layout), [`keyframes`](#host-keyframes) |
-| [Documents and text](#documents-and-text) | [`pdf`](#host-pdf), [`pptx`](#host-pptx), [`prepare`](#host-prepare), [`compare`](#host-compare), [`textTools`](#host-texttools) |
+| [Documents and text](#documents-and-text) | [`pdf`](#host-pdf), [`pptx`](#host-pptx), [`prepare`](#host-prepare), [`compare`](#host-compare), [`textTools`](#host-texttools), [`calc`](#host-calc) |
 | [Sound, speech and camera](#sound-speech-and-camera) | [`media`](#host-media), [`recorder`](#host-recorder), [`audio`](#host-audio), [`speech`](#host-speech), [`viz`](#host-viz) |
 | [Reaching outside the tool](#reaching-outside-the-tool) | [`net`](#host-net), [`capture`](#host-capture), [`compose`](#host-compose), [`models`](#host-models) |
 | [On-device AI models](#on-device-ai-models) | [`upscale`](#host-upscale), [`matte`](#host-matte), [`ocr`](#host-ocr) |
@@ -488,6 +488,33 @@ PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips 
 | `operations()` | `Promise<TextOperation[]>` | Every operation, with its `id`, `label`, `group` (`Edit`, `Inspect`, `Convert` or `Generate`), search keywords and options |
 | `run({ text, operation, options? })` | `Promise<{ text, format, notes, details? }>` | Run one operation. `details` holds observations, never proof of authorship or a root cause |
 | `highlight(text, language?, options?)` | `Promise<{ html, language, truncated }>` | Syntax-highlighted HTML for a code sample |
+
+### `host.calc`
+
+*Optional, added in the engine minor after 1.301.* Spreadsheet formulas, worked out on the device. The web, desktop, CLI, TUI and MCP shells provide `host.calc`. A pinned formula engine (GridCraft's calculation crates) runs as a small WebAssembly module that loads the first time a formula needs working out, and nothing is sent anywhere. Quote is the reference tool: a cell of its line-items table that starts with `=` is a formula.
+
+| Method | Returns | Notes |
+|---|---|---|
+| `evaluate({ sheets, date1904?, clock? })` | `Promise<CalcResultV1>` | Work out sheets of cells. A cell is `{ r, c, v }` for a constant or `{ r, c, f }` for a formula without its leading `=`, with 0-based `r` and `c`. Formulas can refer to other sheets as `Name!A1`. The result lists every formula cell and every cell a dynamic array spilled into, each with its value (`number`, `string`, `boolean`, `null` or `{ e: '#DIV/0!' }`). A formula that cannot be parsed is reported on its cell (`bad`) and evaluates to `#NAME?`; a request over the limits or with an invalid sheet name rejects |
+| `table({ columns, rows }, { clock? })` | `Promise<CalcTableResultV1>` | Work out a `table` input. The heading row is row 1, so the first data row is row 2 and `=B2*C2` multiplies that row's second and third cells. A lone `=` is text. Cells that read as plain numbers count as numbers. Returns the table with each formula replaced by its value as text (numbers to 15 digits, as Excel's General format shows them), the raw `values`, the cells that gave an `errors` entry, and how many `formulas` there were |
+| `functions()` | `Promise<CalcFunctionV1[]>` | Every function the engine knows, with its argument counts, category and a `volatile` mark |
+
+**Volatile functions.** `NOW`, `TODAY`, `RAND`, `RANDBETWEEN` and `RANDARRAY` change from one calculation to the next, and `OFFSET`, `INDIRECT`, `INFO` and `CELL` are treated the same way. They stay live while a person edits: a call without a `clock` reads the current time and a fresh random seed. They are frozen at export. Every result carries the `clock` (`{ now, seed }`) it read, and `volatile` says whether any formula needed one. The module imports nothing and reads neither the time nor a random source, so the same request with the same clock always returns the same values. A tool keeps what it computed and exports those values. It never evaluates again at export time, which would read a different moment. The runtime backs this up: hooks run when an input changes, and an export draws the page those hooks last produced.
+
+```js
+async function onInput({ model }) {
+  const lines = model.find((i) => i.id === 'lines').value;
+  if (!host.calc) return { rows: lines.rows };
+  const out = await host.calc.table(lines);
+  return { rows: out.table.rows, volatile: out.volatile };
+}
+```
+
+**Functions.** About 510 functions are present: 78 maths and trigonometry, 110 statistical, 55 financial, 54 engineering, 44 text, 43 compatibility, 29 lookup, 25 date and time, 16 information, 12 database, 11 logical, plus the evaluator's own (`IF`, `IFS`, `LET`, `LAMBDA`, `MAP`, `REDUCE`, `INDEX`, `OFFSET`, `INDIRECT`, `TEXT`, `SUBTOTAL`, `AGGREGATE` and the dynamic-array family such as `FILTER`, `SORT`, `UNIQUE` and `SEQUENCE`). Three are deliberately left out to keep the module small: `REGEXTEST`, `REGEXEXTRACT` and `REGEXREPLACE`, which evaluate to `#NAME?`. The engine is not conformance-tested against Excel. Lolly checks it against 16 Excel-saved workbooks (63,000 cells) with 8 known differences, listed in `scripts/data/xlsx-formula-corpus.json`.
+
+**Limits.** Up to 64 sheets, 400,000 cells and 100,000 formulas in one request, 8,192 characters per formula, and 100,000 cells in a table. An array over about 4 million cells is `#NUM!`, and a formula that makes more than 100,000 lambda calls ends in `#CALC!`. Structured table references (`Table1[Col]`) are not supported in `evaluate`.
+
+**Spreadsheet files.** `readXlsx` takes an optional `recalc` function for the same engine. With `recalcWhen: 'missing'`, which the shells use, only formulas the file saved no result for are worked out. That is what files written by libraries look like, and they arrive filled in instead of blank. Every other formula keeps the value its author saw, and the formulas that depend on it use that value. Pass `recalcWhen: 'always'` to work out every formula. Formulas saved by programs without dynamic arrays are read the way those programs did: a range where one value is wanted is cut down to its own row or column and never spills. Array formulas, data tables and formulas with table or workbook references keep their saved result. The read reports how many formulas it recomputed, how many kept their result and whether any was volatile.
 
 ## Sound, speech and camera
 

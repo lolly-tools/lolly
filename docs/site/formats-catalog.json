@@ -431,6 +431,7 @@
       "Reads one worksheet: the first in workbook.xml order by default, or the one you choose by name or position",
       "Number formats apply: dates in the 1900 and 1904 systems, currency, percentages, fractions, conditional and text sections",
       "Shared strings, inline text, numbers, booleans and formula results resolve",
+      "Formulas saved without a result are worked out (about 510 functions); formulas that have a result keep it",
       "Up to 1,000 rows; macro-enabled .xlsm is refused; import-only"
     ],
     "GZ": [
@@ -559,6 +560,7 @@
     ],
     "XLSX": [
       "Number formats follow US English: locale-specific formats show the stored value",
+      "A formula with a saved result keeps that result; only formulas saved without one are worked out, and array formulas, data tables and table or workbook references are not",
       "Import-only (round-trip out via CSV/JSON)"
     ],
     "InDesign": [
@@ -2207,7 +2209,7 @@
       "features": [
         "data-table"
       ],
-      "desc": "Excel's spreadsheet workbook. Drop one and a tool's repeating fields fill from a sheet you can choose (the first by default), up to 1,000 rows, exactly like a pasted CSV with the first row becoming the column headers. Lolly reads the cells directly (shared strings, inline text, numbers, dates and formula results) and applies their number formats, so dates, currency, percentages and fractions arrive as Excel shows them. Macro-enabled .xlsm workbooks are refused. Import-only.",
+      "desc": "Excel's spreadsheet workbook. Drop one and a tool's repeating fields fill from a sheet you can choose (the first by default), up to 1,000 rows, exactly like a pasted CSV with the first row becoming the column headers. Lolly reads the cells directly (shared strings, inline text, numbers, dates and formula results) and applies their number formats, so dates, currency, percentages and fractions arrive as Excel shows them. A formula the file saved no result for, as files written by libraries often are, is worked out on your device; every other formula keeps the value it was saved with. Macro-enabled .xlsm workbooks are refused. Import-only.",
       "metadata": {
         "reads": [],
         "writes": [],

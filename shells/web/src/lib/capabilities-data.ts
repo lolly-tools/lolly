@@ -384,7 +384,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'DTCG · Tokens Studio', desc: 'A W3C design-token file or a Tokens Studio export builds a whole brand - palette, ramps, type and themes - ready to use.' },
       ] },
       { icon: ICONS.doc, title: 'Data & animation', shot: 'auth-blocks-rows', keywords: 'csv json xlsx excel table rows paste spreadsheet html markdown md text rich lottie bodymovin dotlottie srt vtt webvtt captions subtitles', features: [
-        { name: 'CSV · JSON · XLSX', desc: 'Paste or drop a table and a tool’s repeating blocks fill from it - RFC 4180 CSV (quoted fields, embedded newlines), JSON rows/arrays, or the first sheet of an Excel workbook, up to a thousand rows. Macro-enabled workbooks are refused.' },
+        { name: 'CSV · JSON · XLSX', desc: 'Paste or drop a table and a tool’s repeating blocks fill from it - RFC 4180 CSV (quoted fields, embedded newlines), JSON rows/arrays, or the first sheet of an Excel workbook, up to a thousand rows. Formulas the file saved no result for are worked out on your device. Macro-enabled workbooks are refused.' },
         { name: 'HTML · Markdown · text', desc: 'A pasted rich-text selection or an HTML table fills a tool’s content or rows; Markdown and plain text come in as content.' },
         { name: 'SRT · WebVTT captions', desc: 'The Captions, Audiogram and Record tools take an existing caption file through Add data, so a transcript you already have needs no speech model.' },
         { name: 'Lottie (.json · .lottie)', desc: 'Bodymovin JSON and dotLottie animations validate and place as live vector animations.' },
