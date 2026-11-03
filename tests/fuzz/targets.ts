@@ -1647,7 +1647,7 @@ export const smfTarget: FuzzTarget = {
     return readdirSync(dir).filter((f) => f.endsWith('.mid')).map((f) => new Uint8Array(readFileSync(new URL(f, dir))));
   },
   async invoke(bytes) {
-    let file;
+    let file: ReturnType<typeof readSmf>;
     try { file = readSmf(bytes, { maxBytes: 1 << 20, maxEvents: 100_000 }); } catch (e) {
       if (e instanceof SmfError) throw e;
       throw new Error(`readSmf threw a non-SmfError: ${String(e)}`);

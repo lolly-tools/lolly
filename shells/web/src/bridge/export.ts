@@ -727,9 +727,7 @@ async function renderFormatDispatch(node: Element, format: string, opts: ExportO
     case 'rpm':
     case 'tar.gz':
       return await renderLinuxPackage(node, format, opts, (target, inner) => renderFormat(target, inner, opts));
-    // MIDI is written by a tool's own exportStill hook (Rondocode), which the runtime runs
-    // before this switch, so a tool without that hook reaches the refusal below.
-    case 'mid': default:
+    default:
       throw new Error(`Unsupported export format: ${format}`);
   }
 }
