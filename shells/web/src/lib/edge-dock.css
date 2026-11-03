@@ -156,3 +156,11 @@ html[data-layout="split"] .edge-dock-tab { min-height: var(--ui-size-target); }
 .edge-dock-slot > .fc-nav .fc-nav-grip,
 .edge-dock-slot > .fc-nav .fc-nav-rail,
 .edge-dock-slot > .fc-nav .fc-nav-rail-slot { display: none; }
+/* On a tabletop the pane is the deck under the hinge, the full width. */
+html[data-layout="split"][data-posture="tabletop"] .edge-dock {
+  inset: auto 0 0 0;
+  top: calc(var(--split-top, 50dvh) + var(--split-gutter, 16px));
+  width: auto;
+}
+/* Sequence open on a tabletop: the timeline is the deck, so the pane steps aside. */
+html[data-layout="split"][data-posture="tabletop"]:has(.tool-layout.is-editor .tl-panel:not([hidden])) .edge-dock { display: none; }

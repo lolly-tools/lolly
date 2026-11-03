@@ -249,6 +249,36 @@ html[data-layout="split"] .tool-layout:not(.is-editor) .export-popup::before { c
 /* Let the last input scroll clear of the open export panel. */
 html[data-layout="split"] .tool-layout:not(.is-editor).export-open .sidebar-body { padding-bottom: 45dvh; }
 
+/* ── Tool view on a tabletop ─────────────────────────────────────────────────
+   Half open with the fold across the screen: the canvas takes the top half and
+   the controls become a touch deck below the hinge, whichever the hand. */
+html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor):not([data-sidebar="hidden"]) {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: var(--split-top, 50%) var(--split-gutter, 16px) minmax(0, 1fr);
+  grid-template-areas: "canvas" "gutter" "control";
+}
+html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor)[data-sidebar="closed"] {
+  grid-template-rows: minmax(0, 1fr) 0 0;
+}
+/* The deck is wide and short: its rows sit in as many columns as fit, and a
+   section or a block list keeps the full width. */
+html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor) .tool-inputs {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  column-gap: var(--sp-7);
+}
+html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor) .tool-inputs > .input-section,
+html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor) .tool-inputs > .input-row--multiline,
+html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor) .tool-inputs > :has(.block-add, table) {
+  grid-column: 1 / -1;
+}
+html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor) .export-overlay {
+  inset-inline: 0;
+  width: auto;
+}
+html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor) .export-popup {
+  max-height: calc(100dvh - var(--split-top, 50dvh) - var(--split-gutter, 16px));
+}
+
 /* ── Design (the editor layout) ──────────────────────────────────────────────
    The right-hand column (lib/edge-dock.ts) is the control pane, styled in
    edge-dock.css; #view steps aside for it, so the stage only has to stay in the
@@ -323,6 +353,83 @@ html[data-layout="split"][data-hand="left"] .tool-layout.is-editor .export-overl
   inset-inline-end: 0;
 }
 html[data-layout="split"] .tool-layout.is-editor .export-overlay-scrim { display: none; }
+
+/* ── Design and Sequence on a tabletop ──────────────────────────────────────
+   The canvas (with its top bar and tool palette) keeps the top half; the control
+   pane (styled in edge-dock.css) is the deck below the hinge. With Sequence open
+   the timeline takes that deck instead, under the preview, and the stage stops
+   reserving a band for it. !important where the panel's own drag and the
+   editor's reserves write inline values. */
+html[data-layout="split"][data-posture="tabletop"] {
+  --design-timeline-h: 0px !important;
+}
+html[data-layout="split"][data-posture="tabletop"] #view:has(> .tool-layout.is-editor) {
+  margin-inline: 0;
+  min-height: 0;
+  height: var(--split-top, 50dvh);
+}
+html[data-layout="split"][data-posture="tabletop"] .tool-layout.is-editor {
+  min-height: 0;
+  height: var(--split-top, 50dvh);
+}
+html[data-layout="split"][data-posture="tabletop"] .tool-layout.is-editor .export-overlay {
+  inset-inline: 0;
+  width: auto;
+}
+html[data-layout="split"][data-posture="tabletop"] .tool-layout.is-editor .tool-stage {
+  --stage-reserve-bottom: 0px !important;
+  --design-panel-reserve: 0px !important;
+}
+/* The hinge sets the timeline's height, so its own resize handle has nothing to do. */
+html[data-layout="split"][data-posture="tabletop"] .tool-layout.is-editor .tl-panel .tl-handle { display: none; }
+html[data-layout="split"][data-posture="tabletop"] .tool-layout.is-editor .tl-panel:not([hidden]) {
+  position: fixed;
+  inset: auto 0 0 0;
+  top: calc(var(--split-top, 50dvh) + var(--split-gutter, 16px));
+  height: auto !important;
+  min-height: 0;
+  max-height: none;
+  border-radius: 0;
+}
+
+/* ── Presenting on a tabletop ────────────────────────────────────────────────
+   The slide keeps the top half; the deck below the hinge holds the speaker
+   notes, the next slide and the timer, with the HUD's back and next at its foot
+   (views/present-mode.ts opens the deck while the fold is on the table). */
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-frames,
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-tap {
+  bottom: auto;
+  height: var(--fold-y, 50%);
+}
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-speaker {
+  inset: auto 0 0 0;
+  top: calc(var(--fold-y, 50%) + max(var(--fold-h, 0px), 16px));
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  padding-bottom: calc(76px + var(--safe-bottom));
+  background: #0b0f18;
+}
+/* The current slide is the top half itself, so the deck drops its preview. */
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-sp-now { display: none; }
+/* Notes under the timer on the left; the next slide with its own back and next on
+   the right. The deck's buttons stay put while the HUD fades at rest. */
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-sp-aside {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "timer next" "notes next" "notes controls";
+  gap: clamp(12px, 2.4vw, 28px);
+}
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-sp-timer { grid-area: timer; }
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-sp-nextwrap { grid-area: next; }
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-sp-notes { grid-area: notes; }
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-sp-controls { grid-area: controls; }
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-sp-controls .pr-hud-btn {
+  width: var(--ui-size-target);
+  height: var(--ui-size-target);
+}
+/* The HUD rides above the deck, at its foot. */
+html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-hud { z-index: 6; }
 
 } /* @layer overrides */
 

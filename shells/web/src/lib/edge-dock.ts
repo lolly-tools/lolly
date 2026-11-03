@@ -155,11 +155,16 @@ export function edgeDockAvailable(): boolean {
   return typeof matchMedia === 'function' && !matchMedia(MOBILE_MQ).matches;
 }
 
-/** The control pane's width while the column IS the split control pane, else null. */
-function splitPaneWidth(): { pane: number; gutter: number } | null {
+/**
+ * The control pane's width while the column IS the split control pane, else null.
+ * On a tabletop the pane is the deck under the fold, full width: it reserves no
+ * inline space at all (`stack`), and split.css places it below the hinge.
+ */
+function splitPaneWidth(): { pane: number; gutter: number; stack: boolean } | null {
   if (!isSplitLayout() || !splitUsesDock()) return null;
   const g = activeSplitGeometry();
-  return g && g.mode === 'columns' ? { pane: g.control, gutter: g.gutter } : null;
+  if (!g) return null;
+  return { pane: g.mode === 'columns' ? g.control : 0, gutter: g.gutter, stack: g.mode === 'stack' };
 }
 
 function isRTL(): boolean {
@@ -491,7 +496,8 @@ function applyWidth(): void {
     : pane ? pane.pane
     : compactOnly ? COMPACT_ONLY_W
     : clamp(geom.width ?? DEFAULT_W, MIN_W, maxWidth());
-  document.documentElement.style.setProperty('--dock-w', `${pane && !geom.collapsed ? w + pane.gutter : w}px`);
+  const reserve = pane?.stack ? 0 : pane && !geom.collapsed ? w + pane.gutter : w;
+  document.documentElement.style.setProperty('--dock-w', `${reserve}px`);
   col?.style.setProperty('--dock-pane-w', `${w}px`);
   const grip = col?.querySelector<HTMLElement>('.edge-dock-grip');
   if (grip) {
