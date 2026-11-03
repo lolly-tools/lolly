@@ -408,12 +408,27 @@
    wash, because the row itself does nothing when pressed; each half is the
    control, at the full touch target. */
 .profile-view .profile-hand {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  display: flex; align-items: center; gap: 1rem;
   margin-top: .5rem;
   padding: .55rem .9rem;
   border: 1px solid hsl(var(--border)); border-radius: var(--radius);
   font-size: var(--fs-lg);
 }
+/* The glyph takes the switch's column (.feature-flag-switch is 2.4rem), so the
+   label starts where the switch rows' labels do. It shows the side the controls
+   take, and turns with the choice and with the reading direction. */
+.profile-view .profile-hand-ic {
+  flex: none; width: 2.4rem; display: grid; place-items: center;
+  color: var(--ui-color-text-muted);
+}
+.profile-view .profile-hand-ic svg {
+  width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.profile-view .profile-hand.is-left .profile-hand-ic svg,
+[dir="rtl"] .profile-view .profile-hand:not(.is-left) .profile-hand-ic svg { transform: scaleX(-1); }
+[dir="rtl"] .profile-view .profile-hand.is-left .profile-hand-ic svg { transform: none; }
+.profile-view .profile-hand > .feature-flag-label { flex: 1 1 auto; min-width: 0; }
 .profile-view .profile-hand-seg { flex: 0 0 auto; min-width: 11rem; }
 .profile-view .profile-hand-seg .view-seg-btn { min-height: var(--ui-size-target); }
 /* A named cluster inside the flag list (Connectors): a folded disclosure that

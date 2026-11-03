@@ -318,6 +318,22 @@ export function phoneLayoutQuery(win: Window = window): LayoutQuery {
 }
 
 /**
+ * After a change of class the panes have new sizes, and the browser keeps each
+ * scroller's offset only as far as the new size allows, so the field someone is
+ * typing in can end up out of view. On the next frame, once the panes are laid
+ * out, a focused text field is brought back to the nearest edge of its scroller.
+ */
+function keepFocusInView(win: Window): void {
+  const raf = win.requestAnimationFrame?.bind(win) ?? ((fn: () => void) => setTimeout(fn, 0));
+  raf(() => {
+    const el = win.document.activeElement as HTMLElement | null;
+    if (!el || el === win.document.body || !el.isConnected) return;
+    if (!el.matches('input, textarea, select, [contenteditable="true"]')) return;
+    el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  });
+}
+
+/**
  * Start following the window: decide once now, apply it, then decide again after
  * every resize burst, segment change, posture change and native fold report. Returns
  * the stop. Idempotent: a second start returns the running stop.
@@ -335,6 +351,7 @@ export function startLayoutPosture(win: Window = window): () => void {
     for (const fn of [...listeners]) {
       try { fn(next, prev); } catch { /* one listener must not stop the rest */ }
     }
+    keepFocusInView(win);
   };
   const settle = (): void => {
     if (timer) clearTimeout(timer);

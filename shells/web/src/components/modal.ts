@@ -156,15 +156,21 @@ export function mountModal<T = void>(content: string, opts: ModalOptions<T>): Mo
   // caller's initialFocus or an adopted float opens something of its own.
   if (opts.backStack !== false) back = registerOverlay(record);
 
-  if (opts.modal === false) {
-    dlg.show();
-  } else {
-    dlg.showModal();
-    // Everything outside a modal dialog is inert and below the top layer, so the
-    // body-level floating cluster (job toast + undo toasts) moves in with us -
-    // progress and Undo stay visible and interactive over the dialog.
-    adoptFloatCluster(dlg);
-  }
+  // The one place this dialog opens, modal or not, at mount and on a switch.
+  const open = (modal: boolean, isSwitch: boolean): void => {
+    if (modal) {
+      dlg.showModal();
+      // Everything outside a modal dialog is inert and below the top layer, so the
+      // body-level floating cluster (job toast + undo toasts) moves in with us -
+      // progress and Undo stay visible and interactive over the dialog.
+      adoptFloatCluster(dlg);
+    } else {
+      // In the page, the cluster is visible where it already lives.
+      if (isSwitch) releaseFloatCluster(dlg);
+      dlg.show();
+    }
+  };
+  open(opts.modal !== false, false);
   opts.initialFocus?.(dlg)?.focus();
 
   const setModal = (modal: boolean): void => {
@@ -173,8 +179,7 @@ export function mountModal<T = void>(content: string, opts: ModalOptions<T>): Mo
     const scrolls = [...dlg.querySelectorAll('*')].filter((n) => n.scrollTop).map((n) => [n, n.scrollTop] as const);
     switching++;
     dlg.close();
-    if (modal) { dlg.showModal(); adoptFloatCluster(dlg); }
-    else { releaseFloatCluster(dlg); dlg.show(); }
+    open(modal, true);
     for (const [n, top] of scrolls) n.scrollTop = top;
     if (active instanceof HTMLElement && dlg.contains(active)) active.focus({ preventScroll: true });
   };

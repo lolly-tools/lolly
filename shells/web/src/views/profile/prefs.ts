@@ -13,6 +13,7 @@ import { setA11yPref } from '../../lib/a11y-prefs.ts';
 import { currentHand, onHandChange, setHand } from '../../lib/hand-pref.ts';
 import type { Hand } from '../../lib/hand-pref.ts';
 import { segHtml } from '../../lib/seg.ts';
+import { icon } from '../../lib/icons.ts';
 import type { A11yPrefs } from '../../lib/a11y-prefs.ts';
 import { setChromeFollow } from '../../lib/chrome-follow.ts';
 import { t } from '../../i18n.ts';
@@ -99,13 +100,17 @@ export const renderSaveListHtml = (pv: ProfileViewCtx) => renderSaveRow(pv, pv.r
 // have to say which hand "on" means. The group is named by the visible label, and
 // the help text is its description, as on the switch rows above.
 export const handRowHtml = (_pv: ProfileViewCtx): string => {
+  const hand = currentHand();
   const tip = helpTip(t('With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.'));
   const seg = segHtml('hand', [
     { id: 'right', label: t('Right') },
     { id: 'left', label: t('Left') },
-  ], currentHand(), '', { labelledBy: 'hand-pref-label', attr: 'data-hand-set', extraClass: 'profile-hand-seg' });
+  ], hand, '', { labelledBy: 'hand-pref-label', attr: 'data-hand-set', extraClass: 'profile-hand-seg' });
+  // The glyph sits in the switch column, so the label lines up with the switch rows
+  // above, and it shows where the controls go: mirrored for the left hand.
   return `
-    <div class="profile-hand" id="hand-pref">
+    <div class="profile-hand${hand === 'left' ? ' is-left' : ''}" id="hand-pref">
+      <span class="profile-hand-ic" aria-hidden="true">${icon('panelLeft')}</span>
       <span class="feature-flag-label" id="hand-pref-label">${escapeText(t('Dominant hand'))}<span class="feature-flag-info a11y-pref-info help-tip-host">${tip.button}${tip.pop}</span></span>
       ${seg}
     </div>`;
@@ -113,6 +118,7 @@ export const handRowHtml = (_pv: ProfileViewCtx): string => {
 
 /** Paint the hand control's pressed half from the hand in force. */
 function paintHand(root: Element, hand: Hand): void {
+  root.classList.toggle('is-left', hand === 'left');
   for (const b of root.querySelectorAll<HTMLElement>('[data-hand-set]')) {
     b.setAttribute('aria-pressed', String(b.dataset.handSet === hand));
   }
