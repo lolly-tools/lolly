@@ -773,7 +773,7 @@ export function wireStageZoom(tview: ToolViewCtx): void {
     // styles/parts/split.css from the custom properties the module writes. Design has
     // its own control pane (the docked inspector), so it mounts its split in free-canvas.
     if (!tview.designChrome && sidebarEl) {
-      const split = mountSplitView({ id: 'tool', host: tview.host as unknown as Parameters<typeof mountSplitView>[0]['host'] });
+      const split = mountSplitView({ id: 'tool', host: tview.host });
       const swap = split.swapButton();
       sidebarEl.querySelector('.sidebar-back-row')?.append(swap);
       tview.mountLifecycle.add('split panes', () => split.destroy());

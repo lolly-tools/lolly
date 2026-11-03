@@ -436,8 +436,7 @@ function makeBlocksDropper({
 // foldable in two panes, whose controls are a full-height pane, is not a sheet).
 // Read live, never cached: a rotate, a fold or a resize crosses it without
 // remounting the tool.
-const inSheetMode = (): boolean =>
-  typeof matchMedia !== 'undefined' && isPhoneLayout();
+const inSheetMode = (): boolean => typeof matchMedia !== 'undefined' && isPhoneLayout();
 
 /**
  * Whether an input section renders unfolded. A section the user has already opened

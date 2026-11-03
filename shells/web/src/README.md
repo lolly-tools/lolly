@@ -9,8 +9,8 @@ Roughly 844,000 lines of TypeScript, tests included, and 64,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 595 files, 220,979 lines | 314 files, 99,279 lines | 12 files, 1,686 lines |
-| `lib/` | 882 files, 182,697 lines | 533 files, 104,463 lines | 13 files, 1,856 lines |
+| `views/` | 596 files, 221,031 lines | 314 files, 99,280 lines | 12 files, 1,686 lines |
+| `lib/` | 882 files, 182,700 lines | 533 files, 104,463 lines | 13 files, 1,856 lines |
 | `bridge/` | 256 files, 57,511 lines | 146 files, 29,973 lines | none |
 | `components/` | 132 files, 30,264 lines | 62 files, 15,789 lines | 24 files, 1,633 lines |
 | `org/` | 80 files, 20,372 lines | 56 files, 16,951 lines | none |
@@ -19,7 +19,7 @@ Roughly 844,000 lines of TypeScript, tests included, and 64,000 lines of CSS.
 | `catalog/` | 12 files, 2,116 lines | 10 files, 1,256 lines | none |
 | `capture/` | 5 files, 781 lines | none | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 11 files, 2,078 lines | 137 files, 57,220 lines |
+| `styles/` | none | 11 files, 2,078 lines | 137 files, 57,227 lines |
 
 Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,685 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,377 of that.
 <!-- web-src-dirs:end -->
@@ -61,7 +61,7 @@ Do not be ambushed by these. The largest source files, by line count:
 |---|---|---|
 | 6,145 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
 | 3,904 | `views/valid.ts` | `valid-verdict.test.ts` only |
-| 3,798 | `views/tool-inputs.ts` | none |
+| 3,799 | `views/tool-inputs.ts` | none |
 | 3,780 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,624 | `views/color-lab.ts` | yes |
 | 3,273 | `bridge/export-svg-walker.ts` | **none** |
@@ -77,8 +77,8 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,448 | `views/free-canvas-math.ts` | yes |
 | 2,399 | `components/color-field.ts` | yes |
 | 2,377 | `main.ts` | yes |
-| 2,285 | `views/tool/session.ts` | yes |
 | 2,281 | `lib/drop-router.ts` | yes |
+| 2,246 | `views/present-mode.ts` | yes |
 <!-- web-src-largest:end -->
 
 The pattern is consistent and worth internalising: the **pure helpers** extracted out of a big view are well covered (`free-canvas-math.ts`, `timeline-math.ts`, `valid-verdict.ts`, `export-css.ts`, `text-svg.ts`, `svg-ir.ts`, `assets-filter.ts`, `tool-history.ts`, `picker-formats.ts`), while the DOM-mounting bodies of the big views mostly are not. When you change one of the uncovered files, the cheapest way to get coverage is to extract the logic into a sibling pure module and test that, which is how the covered ones came to exist.

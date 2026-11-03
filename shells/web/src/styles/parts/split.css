@@ -247,8 +247,8 @@ html[data-layout="split"] .tool-layout:not(.is-editor) .export-popup {
   border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0;
   box-shadow: var(--ui-elevation-sheet);
   pointer-events: auto;
+  /* The slide itself, and its reduced-motion handling, are tool.css's at both widths. */
   transform: translateY(110%);
-  transition: transform var(--ui-motion-overlay) var(--ui-motion-standard);
 }
 html[data-layout="split"] .tool-layout:not(.is-editor).export-open .export-popup { transform: translateY(0); }
 html[data-layout="split"] .tool-layout:not(.is-editor) .export-popup::before { content: none; }

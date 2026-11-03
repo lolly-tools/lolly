@@ -594,7 +594,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   // Two panes (lib/split-panes.ts): the Board on the control side and the open
   // room's work beside it, placed by styles/parts/split.css. A fold, an unfold or a
   // rotation re-applies the room so the Board's own button follows the layout.
-  start.split = mountSplitView({ id: 'studio', host: start.host as unknown as Parameters<typeof mountSplitView>[0]['host'] });
+  start.split = mountSplitView({ id: 'studio', host: start.host });
   start.unsubSplit = onLayoutChange(() => start.rooms.selectRoom(start.activeArea));
 
   start.lifecycle.wireCleanup();

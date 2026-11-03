@@ -35,7 +35,8 @@ import { t } from '../i18n.ts';
 import { icon } from './icons.ts';
 import { currentLayout, onLayoutChange } from './layout-posture.ts';
 import type { LayoutState } from './layout-posture.ts';
-import { currentHand, onHandChange, setHand } from './hand-pref.ts';
+import { applyHand, currentHand, onHandChange, setHand } from './hand-pref.ts';
+import { getHostRef } from './host-ref.ts';
 import type { HandHost } from './hand-pref.ts';
 
 /** The snap points, as the control pane's share of the width the panes divide. */
@@ -380,8 +381,10 @@ export function mountSplitView(opts: SplitViewOptions): SplitViewHandle {
       b.hidden = !geom || geom.mode === 'stack';
       b.addEventListener('click', () => {
         const next = currentHand() === 'left' ? 'right' : 'left';
-        if (opts.host) void setHand(opts.host, next);
-        else import('./hand-pref.ts').then((m) => m.applyHand(next)).catch(() => {});
+        // The view's host, else the live one, so the choice reaches the profile.
+        const host = opts.host ?? getHostRef();
+        if (host) void setHand(host, next);
+        else applyHand(next);
       });
       swaps.add(b);
       return b;
