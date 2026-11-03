@@ -187,6 +187,7 @@
     "build:adobe-psd": "node scripts/build-adobe-psd.ts",
     "build:xlsx-numfmt": "node scripts/build-xlsx-numfmt.ts",
     "build:gridcraft-calc": "node scripts/build-gridcraft-calc.ts",
+    "build:inpaint": "node scripts/build-inpaint.ts",
     "build:image-trace": "node scripts/build-image-trace.ts",
     "image-trace:quality": "node scripts/image-trace-quality.ts",
     "build:pdf-a11y": "node scripts/build-pdf-a11y.ts",
