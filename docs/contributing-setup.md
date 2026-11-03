@@ -75,6 +75,21 @@ A public clone resolves to `lolly-start`, the blank brand, which is also the pro
 
 You do not need the desktop or mobile apps' own dependencies unless you work on those apps. They are separate pnpm projects (`pnpm -C shells/tauri-desktop install`, `pnpm -C shells/tauri-mobile install`), so skip them until you need them.
 
+## Check the print plates
+
+Print PDF is the one export where a wrong ink reaches paper, so a local check separates the finished file into plates and measures them. It never runs in hosted CI. It needs [Ghostscript](https://www.ghostscript.com) (`brew install ghostscript`, or your package manager) and a built web shell, because `pdf-cmyk` always takes the CLI's browser route:
+
+```bash
+pnpm --filter ./shells/web run build   # once, plus: pnpm run build:ort
+pnpm run cli install-browser          # once, or set LOLLY_BROWSER_CHANNEL=chrome
+pnpm run test:plates                   # the plate scenes only
+pnpm run test:oracles                  # the PDF oracles and the plate scenes
+```
+
+Each scene in `tests/fixtures/plate-scenes/` is a small Design document, exported through `lolly run design --export=pdf-cmyk` and separated with `gs -sDEVICE=tiffsep`. The scene lists regions of the page and the ink each plate must carry there, such as black text on the K plate alone, a brand swatch's measured CMYK, a spot colour on its own named plate, or the inks FOGRA39 gives a gradient stop. A scene with two passes also runs the file with `-dMaxSpots=0`, which makes the RIP flatten spots to their process alternate.
+
+A missing tool is a declared skip that says which tool is missing. Set `LOLLY_ORACLES_REQUIRED=1` to make a missing tool a failure, and `LOLLY_PLATES_REPORT=out.json` to write every sampled number. A scene marked `knownFailing` states the reason and is expected to fail until the exporter is fixed, at which point it turns red until you remove the marker. Ghostscript is AGPL software. Lolly runs it only as an external program and never bundles or links the program.
+
 ## What a clone leaves out
 
 Two things never download with a clone, whichever command you use:
