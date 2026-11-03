@@ -2235,5 +2235,9 @@
     "few": "{n} слова",
     "many": "{n} слів",
     "other": "{n} слова"
-  }
+  },
+  "Dominant hand": "Провідна рука",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "У двох панелях, на складному пристрої або майже квадратному планшеті, елементи керування розташовані на боці, далекому від руки, якою ви малюєте. Кнопка «Поміняти сторони» в заголовку панелі також змінює це.",
+  "Swap sides": "Поміняти сторони",
+  "Resize panes": "Змінити розмір панелей"
 }

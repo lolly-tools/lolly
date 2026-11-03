@@ -2060,5 +2060,9 @@
     "one": "{n} cuvânt",
     "few": "{n} cuvinte",
     "other": "{n} de cuvinte"
-  }
+  },
+  "Dominant hand": "Mâna dominantă",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Cu două panouri, pe un dispozitiv pliabil sau pe o tabletă aproape pătrată, comenzile stau pe partea opusă mâinii cu care desenezi. Schimbă părțile, din antetul panoului, schimbă și el asta.",
+  "Swap sides": "Schimbă părțile",
+  "Resize panes": "Redimensionează panourile"
 }

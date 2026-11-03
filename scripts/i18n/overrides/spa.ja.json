@@ -1975,5 +1975,9 @@
   },
   "Manage asset versions…": "アセットのバージョンを管理…",
   "Preparing download…": "ダウンロードを準備中…",
-  "Retry with original…": "オリジナルで再試行…"
+  "Retry with original…": "オリジナルで再試行…",
+  "Dominant hand": "利き手",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "2 つのペインで表示するとき (折りたたみ端末やほぼ正方形のタブレット)、操作パネルは描く手と反対側に置かれます。ペインの見出しにある「左右を入れ替え」でも切り替えられます。",
+  "Swap sides": "左右を入れ替え",
+  "Resize panes": "ペインのサイズを変更"
 }

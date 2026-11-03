@@ -2145,5 +2145,9 @@
   "{n} words": {
     "one": "1 kelime",
     "other": "{n} kelime"
-  }
+  },
+  "Dominant hand": "Baskın el",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "İki bölmede, katlanabilir bir cihazda ya da neredeyse kare bir tablette, denetimler çizim yaptığınız elin uzak tarafında durur. Bölme başlığındaki Tarafları değiştir de bunu değiştirir.",
+  "Swap sides": "Tarafları değiştir",
+  "Resize panes": "Bölmeleri yeniden boyutlandır"
 }

@@ -1971,5 +1971,9 @@
   },
   "{n} words": {
     "other": "{n} từ"
-  }
+  },
+  "Dominant hand": "Tay thuận",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Khi có hai khung, trên thiết bị gập hoặc máy tính bảng gần vuông, các điều khiển nằm ở phía xa tay bạn dùng để vẽ. Nút Đổi bên ở phần đầu khung cũng thay đổi điều này.",
+  "Swap sides": "Đổi bên",
+  "Resize panes": "Đổi kích thước khung"
 }

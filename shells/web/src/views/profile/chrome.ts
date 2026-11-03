@@ -233,6 +233,8 @@ export function wireCleanup(pv: ProfileViewCtx): void {
     pv.aiPolicyUnsub = null;
     pv.trustedSitesUnsub?.();
     pv.trustedSitesUnsub = null;
+    pv.handUnsub?.();
+    pv.handUnsub = null;
     pv.inboxUnsub?.();
     pv.inboxUnsub = null;
     pv.designSystemsUnsub?.();

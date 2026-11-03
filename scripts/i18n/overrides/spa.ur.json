@@ -2016,5 +2016,9 @@
   "{n} words": {
     "one": "1 لفظ",
     "other": "{n} الفاظ"
-  }
+  },
+  "Dominant hand": "غالب ہاتھ",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "دو پینز میں، فولڈ ہونے والے آلے یا تقریباً مربع ٹیبلیٹ پر، کنٹرولز آپ کے ڈرائنگ والے ہاتھ سے دور والی طرف رہتے ہیں۔ پین کے ہیڈر میں اطراف بدلیں بھی اسے بدلتا ہے۔",
+  "Swap sides": "اطراف بدلیں",
+  "Resize panes": "پینز کا سائز بدلیں"
 }

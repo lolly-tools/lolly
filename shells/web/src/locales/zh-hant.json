@@ -10737,5 +10737,9 @@
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "這是一個使用 {codec} 的 MXF 檔案。Lolly 能讀取其中的內容，但無法播放 MXF。請從你的剪輯 App 匯出 H.264、HEVC 或 AV1 副本。Lolly 會保留原始檔案。",
   "{format} from {camera}": "來自{camera}的 {format}",
   "Filling a large area. This can take a moment.": "正在填滿大面積區域。這可能需要一點時間。",
-  "Large area": "大面積"
+  "Large area": "大面積",
+  "Dominant hand": "慣用手",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "在雙窗格版面中（摺疊裝置或接近正方形的平板），控制項會位於遠離繪圖手的一側。窗格標題中的「左右互換」也可以變更此設定。",
+  "Swap sides": "左右互換",
+  "Resize panes": "調整窗格大小"
 }

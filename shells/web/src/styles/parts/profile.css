@@ -403,6 +403,19 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
   transition: transform var(--dur-1);
 }
+/* Dominant hand (lib/hand-pref.ts): the same row as a flag, holding a two-way
+   segmented control at its end instead of a switch. Not a <label> and no hover
+   wash, because the row itself does nothing when pressed; each half is the
+   control, at the full touch target. */
+.profile-view .profile-hand {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  margin-top: .5rem;
+  padding: .55rem .9rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  font-size: var(--fs-lg);
+}
+.profile-view .profile-hand-seg { flex: 0 0 auto; min-width: 11rem; }
+.profile-view .profile-hand-seg .view-seg-btn { min-height: var(--ui-size-target); }
 /* A named cluster inside the flag list (Connectors): a folded disclosure that
    starts closed, headed like a card title with its value on the right, then one
    line of scope text over its own list of toggles. */

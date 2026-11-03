@@ -1975,5 +1975,9 @@
     "other": "{n} 個字"
   },
   "Back up or restore data…": "備份或還原資料…",
-  "Use this copy…": "使用這個副本…"
+  "Use this copy…": "使用這個副本…",
+  "Dominant hand": "慣用手",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "在雙窗格版面中（摺疊裝置或接近正方形的平板），控制項會位於遠離繪圖手的一側。窗格標題中的「左右互換」也可以變更此設定。",
+  "Swap sides": "左右互換",
+  "Resize panes": "調整窗格大小"
 }

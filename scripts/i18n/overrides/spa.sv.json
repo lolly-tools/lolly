@@ -2011,5 +2011,9 @@
     "other": "{n} ord"
   },
   "Importing {n} files…": "Importerar {n} filer…",
-  "What do you need?": "Vad behöver du?"
+  "What do you need?": "Vad behöver du?",
+  "Dominant hand": "Dominant hand",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Med två paneler, på en vikbar enhet eller en nästan kvadratisk surfplatta, hamnar kontrollerna på sidan bort från handen du ritar med. Byt sida i panelens rubrik ändrar också detta.",
+  "Swap sides": "Byt sida",
+  "Resize panes": "Ändra storlek på panelerna"
 }

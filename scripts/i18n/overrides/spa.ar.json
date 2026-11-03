@@ -2332,5 +2332,9 @@
     "few": "{n} كلمات",
     "many": "{n} كلمة",
     "other": "{n} كلمة"
-  }
+  },
+  "Dominant hand": "اليد المسيطرة",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "عند العرض في لوحين، على جهاز قابل للطي أو جهاز لوحي شبه مربع، تكون عناصر التحكم في الجانب البعيد عن اليد التي ترسم بها. يغيّر زر تبديل الجانبين في رأس اللوحة هذا الإعداد أيضًا.",
+  "Swap sides": "تبديل الجانبين",
+  "Resize panes": "تغيير حجم اللوحين"
 }

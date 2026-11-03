@@ -10737,5 +10737,9 @@
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "これは {codec} の MXF ファイルです。Lolly は中身を読み取れますが、MXF を再生できません。編集アプリから H.264、HEVC、AV1 のいずれかのコピーを書き出してください。Lolly は元のファイルを保持します。",
   "{format} from {camera}": "{camera} の {format}",
   "Filling a large area. This can take a moment.": "広い領域を塗りつぶしています。しばらくお待ちください。",
-  "Large area": "広い領域"
+  "Large area": "広い領域",
+  "Dominant hand": "利き手",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "2 つのペインで表示するとき (折りたたみ端末やほぼ正方形のタブレット)、操作パネルは描く手と反対側に置かれます。ペインの見出しにある「左右を入れ替え」でも切り替えられます。",
+  "Swap sides": "左右を入れ替え",
+  "Resize panes": "ペインのサイズを変更"
 }

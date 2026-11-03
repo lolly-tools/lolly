@@ -10872,5 +10872,9 @@
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Toto je soubor MXF s {codec}. Lolly umí přečíst, co obsahuje, ale MXF přehrát neumí. Exportuj kopii v H.264, HEVC nebo AV1 ze své editační aplikace. Lolly ponechává původní soubor.",
   "{format} from {camera}": "{format} z {camera}",
   "Filling a large area. This can take a moment.": "Vyplňuje se velká plocha. Může to chvíli trvat.",
-  "Large area": "Velká plocha"
+  "Large area": "Velká plocha",
+  "Dominant hand": "Dominantní ruka",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Ve dvou panelech, na skládacím zařízení nebo téměř čtvercovém tabletu, jsou ovládací prvky na straně dál od ruky, kterou kreslíte. Totéž mění i tlačítko Prohodit strany v záhlaví panelu.",
+  "Swap sides": "Prohodit strany",
+  "Resize panes": "Změnit velikost panelů"
 }

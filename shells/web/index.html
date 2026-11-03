@@ -228,6 +228,27 @@
           if (ax.reduceMotion) document.documentElement.setAttribute('data-jelly-motion', 'reduce');
         }
       } catch (e) { /* corrupt cache - boot JS rewrites it */ }
+      // Dominant hand (lib/hand-pref.ts is canonical; this is its FOUC mirror), so
+      // the controls are on the chosen side from the first frame.
+      try {
+        if (localStorage.getItem('lolly-hand') === 'left') document.documentElement.dataset.hand = 'left';
+      } catch (e) { /* storage blocked - boot JS applies the profile */ }
+      // Two panes (lib/layout-posture.ts decides again at boot, with the fold's
+      // geometry): two viewport segments, a native fold that separates, a device
+      // folded half open, or a touch window whose short side is at least 560px, long
+      // side at most 1100px and shape between 0.62 and 1.6.
+      try {
+        var lw = innerWidth, lh = innerHeight, la = lw / lh;
+        var lseg = window.viewport && window.viewport.segments;
+        var lnf = window.__lollyFold;
+        var lpo = navigator.devicePosture;
+        if ((lseg && lseg.length >= 2)
+          || (lnf && (lnf.isSeparating || lnf.state === 'half-opened' || lnf.occlusion === 'full'))
+          || (lpo && lpo.type === 'folded')
+          || (matchMedia('(pointer: coarse)').matches && Math.min(lw, lh) >= 560 && Math.max(lw, lh) <= 1100 && la >= 0.62 && la <= 1.6)) {
+          document.documentElement.dataset.layout = 'split';
+        }
+      } catch (e) { /* the boot module decides */ }
       // A design pack's chrome and accent: brand-vars.ts's applyChromeBrandVars mirrors the
       // exact text of the chrome sheet it paints (#brand-chrome-vars), so a return visit
       // shows the pack's room from the first frame (after the a11y attributes above,

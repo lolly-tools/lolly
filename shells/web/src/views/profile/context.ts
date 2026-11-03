@@ -95,6 +95,7 @@ export interface ProfileViewCtx {
   aiPolicyUnsub: (() => void) | null;
   /** Detaches the Trusted sites card from trust and policy changes (plan 288). */
   trustedSitesUnsub: (() => void) | null;
+  handUnsub: (() => void) | null;
   /** Detaches the instance card's Inbox button from the inbox count. */
   inboxUnsub: (() => void) | null;
   /** Detaches the Design systems card from design-system switches and the page's key and press listeners. */

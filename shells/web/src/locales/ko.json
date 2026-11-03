@@ -10737,5 +10737,9 @@
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "{codec}을(를) 사용하는 MXF 파일이에요. Lolly는 내용을 읽을 수는 있지만 MXF를 재생할 수는 없어요. 편집 앱에서 H.264, HEVC 또는 AV1 사본을 내보내세요. Lolly는 원본 파일을 그대로 보관해요.",
   "{format} from {camera}": "{camera}의 {format}",
   "Filling a large area. This can take a moment.": "넓은 영역을 채우는 중이에요. 잠시 걸릴 수 있어요.",
-  "Large area": "넓은 영역"
+  "Large area": "넓은 영역",
+  "Dominant hand": "주로 쓰는 손",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "두 개의 창으로 볼 때(폴더블 기기나 거의 정사각형인 태블릿) 컨트롤은 그리는 손의 반대쪽에 놓입니다. 창 머리글의 좌우 바꾸기로도 바꿀 수 있습니다.",
+  "Swap sides": "좌우 바꾸기",
+  "Resize panes": "창 크기 조절"
 }

@@ -2017,5 +2017,9 @@
     "one": "{n} Wort",
     "other": "{n} Wörter"
   },
-  "Saved versions…": "Gespeicherte Versionen…"
+  "Saved versions…": "Gespeicherte Versionen…",
+  "Dominant hand": "Dominante Hand",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "In zwei Bereichen, auf einem faltbaren Gerät oder einem fast quadratischen Tablet, liegen die Bedienelemente auf der Seite, die von Ihrer Zeichenhand abgewandt ist. „Seiten tauschen“ im Kopf des Bereichs ändert das ebenfalls.",
+  "Swap sides": "Seiten tauschen",
+  "Resize panes": "Größe der Bereiche ändern"
 }

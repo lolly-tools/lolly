@@ -10737,5 +10737,9 @@
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Ini ialah fail MXF dengan {codec}. Lolly boleh membaca kandungannya tetapi tidak dapat memainkan MXF. Eksport salinan H.264, HEVC atau AV1 daripada apl penyuntingan anda. Lolly mengekalkan fail asal.",
   "{format} from {camera}": "{format} daripada {camera}",
   "Filling a large area. This can take a moment.": "Mengisi kawasan besar. Ini mungkin mengambil sedikit masa.",
-  "Large area": "Kawasan besar"
+  "Large area": "Kawasan besar",
+  "Dominant hand": "Tangan dominan",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Dengan dua anak tetingkap, pada peranti boleh lipat atau tablet yang hampir segi empat sama, kawalan berada di sisi yang jauh daripada tangan yang anda gunakan untuk melukis. Tukar sisi di kepala anak tetingkap juga mengubahnya.",
+  "Swap sides": "Tukar sisi",
+  "Resize panes": "Ubah saiz anak tetingkap"
 }

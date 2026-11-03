@@ -28,6 +28,8 @@ import { openDropFilePicker } from './lib/drop-file-picker.ts';
 import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welcomeSettled } from './lib/welcome-gate.ts';
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
 import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref } from './lib/a11y-prefs.ts';
+import { hydrateHand } from './lib/hand-pref.ts';
+import { startLayoutPosture } from './lib/layout-posture.ts';
 import { initTrustedSites } from './lib/trusted-sites.ts';
 import { appPathname } from './lib/any-site.ts';
 import { applyIframeModeAttr, forwardDeckKeys, isIframeMode } from './lib/iframe-mode.ts';
@@ -177,6 +179,11 @@ console.log('%c🍭 Welcome to Lolly', "font:600 13px/1.6 'SUSE',system-ui,-appl
 // Apply localStorage theme immediately - before the profile loads - so there
 // is no visible flash between the inline FOUC script and full JS boot.
 initTheme();
+// The layout class (phone, split or desktop) and any fold, decided before the first
+// view mounts so a view is born in the arrangement it will be shown in. The
+// pre-paint script already set the size-only answer; this adds the fold geometry
+// and follows every later fold, unfold and rotation.
+startLayoutPosture();
 // …then let `?theme=light|dark|brand` win for THIS page load only: a shared link or
 // a screenshot run pins the look without flipping the reader's stored preference.
 // Stamped straight onto [data-theme] rather than through applyTheme, which would
@@ -1422,6 +1429,8 @@ async function boot(): Promise<void> {
   // Accessibility prefs ride the profile the same way (localStorage is only
   // their FOUC mirror, applied by the index.html inline script) - reconcile.
   hydrateA11yPrefs(profile.a11y);
+  // The dominant hand rides the profile the same way (lib/hand-pref.ts).
+  hydrateHand((profile as { hand?: unknown }).hand);
   // Trusted sites (plan 288) are read once here; web page boxes and the Sandbox ask
   // lib/trusted-sites.ts synchronously from then on.
   void initTrustedSites(host);

@@ -10782,5 +10782,9 @@
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "यह {codec} वाली MXF फ़ाइल है। Lolly इसकी सामग्री पढ़ सकता है, लेकिन MXF चला नहीं सकता। अपने एडिटिंग ऐप से H.264, HEVC या AV1 कॉपी एक्सपोर्ट करें। Lolly मूल फ़ाइल को सुरक्षित रखता है।",
   "{format} from {camera}": "{camera} से {format}",
   "Filling a large area. This can take a moment.": "बड़े क्षेत्र को भरा जा रहा है। इसमें थोड़ा समय लग सकता है।",
-  "Large area": "बड़ा क्षेत्र"
+  "Large area": "बड़ा क्षेत्र",
+  "Dominant hand": "प्रमुख हाथ",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "दो पैन में, फ़ोल्ड होने वाले डिवाइस या लगभग वर्गाकार टैबलेट पर, नियंत्रण आपके चित्र बनाने वाले हाथ से दूर वाली तरफ़ रहते हैं। पैन के शीर्ष में मौजूद तरफ़ बदलें बटन भी इसे बदलता है।",
+  "Swap sides": "तरफ़ बदलें",
+  "Resize panes": "पैन का आकार बदलें"
 }

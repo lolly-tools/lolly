@@ -2017,5 +2017,9 @@
   "{n} words": {
     "one": "{n}টি শব্দ",
     "other": "{n}টি শব্দ"
-  }
+  },
+  "Dominant hand": "প্রধান হাত",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "দুটি প্যানে, ভাঁজযোগ্য ডিভাইস বা প্রায় বর্গাকার ট্যাবলেটে, নিয়ন্ত্রণগুলি আপনার আঁকার হাতের উল্টো দিকে থাকে। প্যানের শিরোনামে থাকা পাশ বদলান বোতামও এটি বদলায়।",
+  "Swap sides": "পাশ বদলান",
+  "Resize panes": "প্যানের আকার বদলান"
 }

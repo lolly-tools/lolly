@@ -257,6 +257,9 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
 
   pv.prefs.wireA11yRows();
 
+  pv.handUnsub = null;
+  pv.prefs.wireHandRow();
+
   pv.prefs.wireAppearanceRows();
 
   pv.prefs.wireRenderSaveRows();

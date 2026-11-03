@@ -1190,7 +1190,7 @@
     "Profile": {
       "module": "profile.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "5adf1dbcec370e763faef1373a3d510f426943e630fd2797bb56fd57aff25800"
+      "sha256": "86bea23c1848cf16cf006f0b0c940ba497651bbb8ebfb0562f579fe43a1e996d"
     },
     "RasterAPI": {
       "module": "raster.ts",

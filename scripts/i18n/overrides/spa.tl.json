@@ -2019,5 +2019,9 @@
   "{n} words": {
     "one": "{n} salita",
     "other": "{n} salita"
-  }
+  },
+  "Dominant hand": "Nangingibabaw na kamay",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Kapag dalawa ang pane, sa foldable o halos parisukat na tablet, nasa gilid na malayo sa kamay mong pangguhit ang mga kontrol. Binabago rin ito ng Pagpalitin ang mga gilid sa header ng pane.",
+  "Swap sides": "Pagpalitin ang mga gilid",
+  "Resize panes": "Baguhin ang laki ng mga pane"
 }

@@ -1971,5 +1971,9 @@
   },
   "{n} words": {
     "other": "{n} perkataan"
-  }
+  },
+  "Dominant hand": "Tangan dominan",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Dengan dua anak tetingkap, pada peranti boleh lipat atau tablet yang hampir segi empat sama, kawalan berada di sisi yang jauh daripada tangan yang anda gunakan untuk melukis. Tukar sisi di kepala anak tetingkap juga mengubahnya.",
+  "Swap sides": "Tukar sisi",
+  "Resize panes": "Ubah saiz anak tetingkap"
 }

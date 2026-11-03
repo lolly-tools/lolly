@@ -2147,5 +2147,9 @@
   "{n} words": {
     "one": "{n} ord",
     "other": "{n} ord"
-  }
+  },
+  "Dominant hand": "Dominant hånd",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Med to ruter, på en sammenleggbar enhet eller et nesten kvadratisk nettbrett, ligger kontrollene på siden bort fra hånden du tegner med. Bytt side i rutens topptekst endrer dette også.",
+  "Swap sides": "Bytt side",
+  "Resize panes": "Endre størrelse på rutene"
 }

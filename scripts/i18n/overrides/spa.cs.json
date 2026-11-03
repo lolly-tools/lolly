@@ -2101,5 +2101,9 @@
     "few": "{n} slova",
     "many": "{n} slova",
     "other": "{n} slov"
-  }
+  },
+  "Dominant hand": "Dominantní ruka",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Ve dvou panelech, na skládacím zařízení nebo téměř čtvercovém tabletu, jsou ovládací prvky na straně dál od ruky, kterou kreslíte. Totéž mění i tlačítko Prohodit strany v záhlaví panelu.",
+  "Swap sides": "Prohodit strany",
+  "Resize panes": "Změnit velikost panelů"
 }

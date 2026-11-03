@@ -10737,5 +10737,9 @@
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Đây là tệp MXF với {codec}. Lolly đọc được nội dung bên trong nhưng không phát được MXF. Hãy xuất một bản sao H.264, HEVC hoặc AV1 từ ứng dụng chỉnh sửa của bạn. Lolly giữ nguyên tệp gốc.",
   "{format} from {camera}": "{format} từ {camera}",
   "Filling a large area. This can take a moment.": "Đang lấp đầy vùng lớn. Việc này có thể mất một lúc.",
-  "Large area": "Vùng lớn"
+  "Large area": "Vùng lớn",
+  "Dominant hand": "Tay thuận",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Khi có hai khung, trên thiết bị gập hoặc máy tính bảng gần vuông, các điều khiển nằm ở phía xa tay bạn dùng để vẽ. Nút Đổi bên ở phần đầu khung cũng thay đổi điều này.",
+  "Swap sides": "Đổi bên",
+  "Resize panes": "Đổi kích thước khung"
 }

@@ -2235,5 +2235,9 @@
     "few": "{n} słowa",
     "many": "{n} słów",
     "other": "{n} słowa"
-  }
+  },
+  "Dominant hand": "Dominująca ręka",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Przy dwóch panelach, na składanym urządzeniu lub prawie kwadratowym tablecie, elementy sterujące są po stronie przeciwnej do ręki, którą rysujesz. Zamień strony w nagłówku panelu też to zmienia.",
+  "Swap sides": "Zamień strony",
+  "Resize panes": "Zmień rozmiar paneli"
 }

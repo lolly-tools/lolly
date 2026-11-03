@@ -10782,5 +10782,9 @@
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Dette er en MXF-fil med {codec}. Lolly kan lese hva den inneholder, men kan ikke spille av MXF. Eksporter en H.264-, HEVC- eller AV1-kopi fra redigeringsappen din. Lolly beholder originalfilen.",
   "{format} from {camera}": "{format} fra {camera}",
   "Filling a large area. This can take a moment.": "Fyller et stort område. Dette kan ta et øyeblikk.",
-  "Large area": "Stort område"
+  "Large area": "Stort område",
+  "Dominant hand": "Dominant hånd",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Med to ruter, på en sammenleggbar enhet eller et nesten kvadratisk nettbrett, ligger kontrollene på siden bort fra hånden du tegner med. Bytt side i rutens topptekst endrer dette også.",
+  "Swap sides": "Bytt side",
+  "Resize panes": "Endre størrelse på rutene"
 }

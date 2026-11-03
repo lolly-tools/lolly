@@ -2010,5 +2010,9 @@
     "one": "{n} woord",
     "other": "{n} woorden"
   },
-  "Importing {n} files…": "{n} bestanden importeren…"
+  "Importing {n} files…": "{n} bestanden importeren…",
+  "Dominant hand": "Dominante hand",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Met twee panelen, op een vouwbaar toestel of een bijna vierkante tablet, staan de bedieningselementen aan de kant weg van je tekenhand. Kanten wisselen in de kop van het paneel verandert dit ook.",
+  "Swap sides": "Kanten wisselen",
+  "Resize panes": "Formaat van panelen wijzigen"
 }

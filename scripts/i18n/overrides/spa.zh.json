@@ -1973,5 +1973,9 @@
   },
   "{n} words": {
     "other": "{n} 个词"
-  }
+  },
+  "Dominant hand": "惯用手",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "在双窗格布局中（折叠屏设备或近似方形的平板），控件位于远离绘画手的一侧。窗格标题中的“左右互换”也可以更改此设置。",
+  "Swap sides": "左右互换",
+  "Resize panes": "调整窗格大小"
 }

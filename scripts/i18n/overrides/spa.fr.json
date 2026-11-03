@@ -2062,5 +2062,9 @@
     "one": "{n} mot",
     "many": "{n} de mots",
     "other": "{n} mots"
-  }
+  },
+  "Dominant hand": "Main dominante",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Avec deux panneaux, sur un appareil pliable ou une tablette presque carrée, les commandes se placent du côté opposé à la main qui dessine. Inverser les côtés, dans l'en-tête du panneau, le change aussi.",
+  "Swap sides": "Inverser les côtés",
+  "Resize panes": "Redimensionner les panneaux"
 }

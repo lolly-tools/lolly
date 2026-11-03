@@ -2147,5 +2147,9 @@
   "{n} words": {
     "one": "{n} дума",
     "other": "{n} думи"
-  }
+  },
+  "Dominant hand": "Водеща ръка",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "При два панела, на сгъваемо устройство или почти квадратен таблет, контролите са от страната, далеч от ръката, с която рисувате. Бутонът „Размяна на страните“ в заглавието на панела също променя това.",
+  "Swap sides": "Размяна на страните",
+  "Resize panes": "Преоразмеряване на панелите"
 }
