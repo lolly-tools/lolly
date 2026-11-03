@@ -267,12 +267,24 @@ On a narrow screen the layout becomes one column:
 
 ![A tool on a phone-width screen - controls as a sheet up top, the generated palette filling the preview below and the render pill floating bottom-centre](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## Foldables and iPhone Duo
+
+On a foldable, an iPhone Duo or a near-square touch screen, Lolly lays a tool out in two panes, like the pages of a book:
+
+- **Controls on one side, the canvas on the other.** The controls sit away from the hand you draw with. Choose **Dominant hand** in **Settings → Accessibility**, or press **Swap sides** at the top of the controls. In a right-to-left language the sides mirror.
+- **The divider is the hinge.** When the device reports its fold, the panes meet at the fold, so no control and no artwork lies on the crease. On a continuous screen, drag the divider to a third, a half or two thirds of the width. Lolly remembers your choice for each view on this device.
+- **On the table.** Half open with the fold across the screen, the canvas takes the top half and the controls sit below the fold. When you present, the slide is on top, with your notes, the next slide and **Back** and **Next** below. In Sequence, the preview is on top and the timeline below.
+- **Design, Brand Studio and Assets.** In Design, the inspector, the layers and the export panel are tabs beside the canvas, and the tools sit along the foot of the canvas. Brand Studio keeps the Board on one side and the room you open on the other. In Assets, an asset's details open beside the library, so the next tap shows the next asset in the same place.
+- **Folding loses nothing.** Folding, unfolding or turning the device keeps your document, your selection, the zoom and the field you were typing in, with its cursor where you left the cursor.
+
+The outer screen of a foldable keeps the phone layout above, and so does a Lolly window in one half of a split screen.
+
 ## Settings, sound and comfort
 
 **Settings**, at the foot of the home screen, holds your details, your design systems, accessibility, storage and offline downloads. [Settings](/info/dashboard.html) maps every tab.
 
 - **Your details and headshot** fill in any tool built to use them, such as an email signature or a badge. [Profiles](/info/profile.html) covers them.
-- **Accessibility** has four comfort switches: **Reduce motion**, **Hide colourful previews**, **High contrast** and **Large text**. They change the app around your work, never a tool canvas or an export.
+- **Accessibility** has four comfort switches: **Reduce motion**, **Hide colourful previews**, **High contrast** and **Large text**. They change the app around your work, never a tool canvas or an export. Beside them, **Dominant hand** chooses which side the controls take in two panes.
 - **Sound** plays gentle assistive sounds for what you do, and **Neurospicy Mode** plays a calm focus track. Both are off until you turn them on, in **Settings → Accessibility** or the profile menu.
 - **Available offline** downloads the rest of the app, your tools, the catalogue and the guides before you lose the connection. Lolly is a web app you can install: use your browser's install button, or *Add to Home Screen* on a phone, for a full-screen app that updates itself when you are back online.
 - **Storage** shows what Lolly keeps on this device. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) explains what clearing removes, and the [Privacy Policy](/info/privacy.html) lists everything the app fetches or sends.

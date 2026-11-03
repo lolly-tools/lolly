@@ -27,6 +27,8 @@ Lolly follows the platform's own signals, such as system dark mode and the reduc
 
 ![The Accessibility card in Settings: four plain switches - Reduce motion, Hide colourful previews, High contrast and Large text - each with a help tip](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Da11y-section&width=430&height=900&dpi=192&waitMs=2000&scrollDepth=1300&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--a11y&dark=1&filename=incl-a11y-card)
 
+The same card holds **Dominant hand**. On a foldable, an iPhone Duo or a near-square touch screen, where Lolly shows a tool in two panes, the controls sit on the side away from the hand you draw with ([Foldables and iPhone Duo](/info/using.html#foldables-and-iphone-duo)).
+
 You can set these right now: [open your Accessibility settings](/#/settings?focus=a11y-section). The card is always visible, with no digging, so someone who can barely read the page as it is can still find the switches.
 
 Around the preferences, controls carry accessible names and pressed states, changes are announced to screen readers, overlays close on Escape, the drawing tools answer single keypresses, the arrow keys nudge whatever you have selected, and keyboard focus is visible, strengthened further under high contrast.
