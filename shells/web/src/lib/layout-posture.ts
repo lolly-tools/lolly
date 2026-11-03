@@ -207,7 +207,7 @@ export function applyLayoutState(state: LayoutState, doc: Document = document): 
   const fold = state.layout === 'split' ? state.fold : null;
   if (fold) {
     const values = [fold.x, fold.y, fold.width, fold.height];
-    FOLD_PROPS.forEach((prop, i) => root.style.setProperty(prop, `${Math.round(values[i]!)}px`));
+    FOLD_PROPS.forEach((prop, i) => { root.style.setProperty(prop, `${Math.round(values[i]!)}px`); });
   } else {
     for (const prop of FOLD_PROPS) root.style.removeProperty(prop);
   }
