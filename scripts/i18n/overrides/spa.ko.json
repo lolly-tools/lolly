@@ -730,7 +730,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "검증 기능과 애셋에서 심층 AI 텍스트 검사를 실행해요.",
   "Card size": "카드 크기",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "이 기기에서 이미지 또는 파일 1개가 추가되었습니다. 해당 파일은 이 기기에만 남으며 다른 사람에게는 보이지 않습니다.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "이 기기에서 이미지 또는 파일 {n}개가 추가되었습니다. 해당 파일은 이 기기에만 남으며 다른 사람에게는 보이지 않습니다.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "이 기기에서 이미지 또는 파일 {n}개가 추가되었어요. 해당 파일은 이 기기에만 남으며 다른 사람에게는 보이지 않아요."
+  },
   "Check the version first": "먼저 버전을 확인하세요",
   "Copy team link": "팀 링크 복사",
   "Could not create the project. Try again.": "프로젝트를 만들 수 없습니다. 다시 시도하세요.",
@@ -1307,7 +1309,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "모든 항목이 공유 프로젝트에 저장되었어요. 로컬 원본은 휴지통에 있거나 그대로 남아 있어요.",
   "Your local items have not changed.": "로컬 항목은 변경되지 않았어요.",
   "1 item was saved to the shared project.": "항목 1개가 공유 프로젝트에 저장되었어요.",
-  "{n} items were saved to the shared project.": "항목 {n}개가 공유 프로젝트에 저장되었어요.",
+  "{n} items were saved to the shared project.": {
+    "other": "항목 {n}개가 공유 프로젝트에 저장되었어요."
+  },
   "Wait for the current move to finish.": "진행 중인 이동이 끝날 때까지 기다리세요.",
   "You cannot save to that shared project.": "그 공유 프로젝트에는 저장할 수 없어요.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "{project}을(를) 열 수 있는 모든 사람이 이 항목들을 보게 돼요. 모든 항목이 저장되면 로컬 원본은 휴지통으로 이동하며, 거기서 복원할 수 있어요.",
@@ -1618,8 +1622,12 @@
   "file": "파일",
   "samples": "샘플",
   "text": "텍스트",
-  "{n} changes found": "변경 사항 {n}개를 찾았어요",
-  "{n} pages differ": "페이지 {n}개가 달라요",
+  "{n} changes found": {
+    "other": "변경 사항 {n}개를 찾았어요"
+  },
+  "{n} pages differ": {
+    "other": "페이지 {n}개가 달라요"
+  },
   "Draft": "초안",
   "Draft quality": "초안 품질",
   "Draft rule": "초안 규칙",
@@ -1971,5 +1979,128 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요. 길게 누르면 연필 (Shift C)과 스플라인 종류",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요",
   "Recipients can change the inputs": "받는 사람이 입력을 바꿀 수 있음",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "링크가 있는 사람은 누구나 입력을 바꿔 새 이미지를 받을 수 있어요. 잠긴 입력은 설정된 그대로 유지돼요."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "링크가 있는 사람은 누구나 입력을 바꿔 새 이미지를 받을 수 있어요. 잠긴 입력은 설정된 그대로 유지돼요.",
+  "{count} entries": {
+    "other": "항목 {count}개"
+  },
+  "{count} files in this folder": {
+    "other": "이 폴더의 파일 {count}개"
+  },
+  "{n} assets": {
+    "other": "애셋 {n}개"
+  },
+  "{n} assets found": {
+    "other": "애셋 {n}개를 찾았어요"
+  },
+  "{n} capabilities match": {
+    "other": "기능 {n}개가 일치해요"
+  },
+  "{n} copies made · selected": {
+    "other": "사본 {n}개 생성됨 · 선택됨"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "프로젝트에서 제거된 작업 {n}개는 여기서 계속 제거된 상태예요."
+  },
+  "{n} embedded files": {
+    "other": "포함된 파일 {n}개"
+  },
+  "{n} external references": {
+    "other": "외부 참조 {n}개"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "파일 {n}개를 압축하지 못해 제외했어요"
+  },
+  "{n} folders": {
+    "other": "폴더 {n}개"
+  },
+  "{n} font files": {
+    "other": "글꼴 파일 {n}개"
+  },
+  "{n} images": {
+    "other": "이미지 {n}개"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "이미지 {n}개를 복원하지 못했어요 (저장 공간 부족?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "이미지 {n}개는 원본 위치에 그대로 있어요 - 이미지는 한 곳에만 있을 수 있어요. 이동하려면 잘라내기를 사용하세요"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "입력값 {n}개 · 모든 디자인에 적용"
+  },
+  "{n} items": {
+    "other": "항목 {n}개"
+  },
+  "{n} items copied": {
+    "other": "항목 {n}개를 복사했어요"
+  },
+  "{n} items cut": {
+    "other": "항목 {n}개를 잘라냈어요"
+  },
+  "{n} items moved": {
+    "other": "항목 {n}개를 이동했어요"
+  },
+  "{n} items pasted": {
+    "other": "항목 {n}개를 붙여넣었어요"
+  },
+  "{n} keyframes": {
+    "other": "키프레임 {n}개"
+  },
+  "{n} logos": {
+    "other": "로고 {n}개"
+  },
+  "{n} marks found": {
+    "other": "마크 {n}개를 찾았어요"
+  },
+  "{n} newer items skipped": {
+    "other": "최신 항목 {n}개를 건너뛰었어요"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "내 작업물 중 {n}개가 동영상 또는 애니메이션이에요"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "오래된 자동 체크포인트 {n}개를 제외했어요"
+  },
+  "{n} pages": {
+    "other": "{n}페이지"
+  },
+  "{n} places": {
+    "other": "{n}곳"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "점 {n}개 - Alt를 누르면 모서리"
+  },
+  "{n} published versions": {
+    "other": "게시된 버전 {n}개"
+  },
+  "{n} results": {
+    "other": "결과 {n}개"
+  },
+  "{n} saved sessions": {
+    "other": "저장된 세션 {n}개"
+  },
+  "{n} selected": {
+    "other": "{n}개 선택됨"
+  },
+  "{n} selected assets": {
+    "other": "선택한 애셋 {n}개"
+  },
+  "{n} sessions": {
+    "other": "세션 {n}개"
+  },
+  "{n} shapes": {
+    "other": "도형 {n}개"
+  },
+  "{n} steps": {
+    "other": "단계 {n}개"
+  },
+  "{n} templates": {
+    "other": "템플릿 {n}개"
+  },
+  "{n} volume keys": {
+    "other": "볼륨 키 {n}개"
+  },
+  "{n} words": {
+    "other": "단어 {n}개"
+  }
 }

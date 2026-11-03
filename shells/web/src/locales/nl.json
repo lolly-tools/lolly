@@ -3070,7 +3070,7 @@
   "Imported {sessions} and {images}": "{sessions} en {images} geïmporteerd",
   "Importing file {current} of {total}…": "Importbestand {current} van {total}…",
   "Importing the supplied template preview. Adobe effects remain in the original MOGRT.": "Het meegeleverde sjabloonvoorbeeld wordt geïmporteerd. Adobe-effecten blijven in de originele MOGRT.",
-  "Importing {n} files…": "Invoer {n} - Dat is niet waar.",
+  "Importing {n} files…": "{n} bestanden importeren…",
   "Importing…": "Importeren…",
   "In": "In",
   "In context": "In context",
@@ -8027,10 +8027,16 @@
   "{count} controls you changed stay yours.": "{count} instellingen die je hebt gewijzigd, blijven behouden.",
   "{count} days": "{count} dagen",
   "{count} decisions from the last version still apply.": "{count} beslissingen uit de vorige versie gelden nog.",
-  "{count} entries": "{count} items",
+  "{count} entries": {
+    "one": "{count} vermelding",
+    "other": "{count} vermeldingen"
+  },
   "{count} files / variations": "{count} bestanden / varianten",
   "{count} files chosen": "{count} bestanden gekozen",
-  "{count} files in this folder": "{count} bestanden in deze map",
+  "{count} files in this folder": {
+    "one": "{count} bestand in deze map",
+    "other": "{count} bestanden in deze map"
+  },
   "{count} for {names}": "{count} voor {names}",
   "{count} for “{query}” in {scope}": "{count} voor “{query}” in {scope}",
   "{count} layouts": "{count} layouts",
@@ -8204,19 +8210,31 @@
   "{n} added to favourites": "{n} toegevoegd aan favorieten",
   "{n} added to the design system": "{n} toegevoegd aan het designsysteem",
   "{n} asset IDs": "{n} asset-ID's",
-  "{n} assets": "{n} assets",
+  "{n} assets": {
+    "one": "{n} asset",
+    "other": "{n} assets"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} De middelen konden niet worden hersteld.",
-  "{n} assets found": "{n} assets gevonden",
+  "{n} assets found": {
+    "one": "{n} asset gevonden",
+    "other": "{n} assets gevonden"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} assets gezipt · {c} met Content Credentials",
   "{n} available offline": "{n} offline beschikbaar",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} vakken. Eén klik genereert een volledige bewegingsboog - elk keyframe blijft daarna bewerkbaar.",
-  "{n} capabilities match": "{n} mogelijkheden komen overeen",
+  "{n} capabilities match": {
+    "one": "{n} mogelijkheid komt overeen",
+    "other": "{n} mogelijkheden komen overeen"
+  },
   "{n} cards are left to review.": "{n} kaarten wachten nog op beoordeling.",
   "{n} cards are still to answer.": "{n} kaarten wachten nog op antwoord.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "{n} kaarten wachten nog op antwoord. Accepteren zoals voorgesteld en openen in Design?",
   "{n} ch": "{n} ch",
   "{n} changed": "{n} gewijzigd",
-  "{n} changes found": "{n} wijzigingen gevonden",
+  "{n} changes found": {
+    "one": "{n} wijziging gevonden",
+    "other": "{n} wijzigingen gevonden"
+  },
   "{n} characters continue beyond the last frame.": "{n} tekens lopen door buiten het laatste kader.",
   "{n} checks": "{n} controles",
   "{n} clips selected": "{n} clips geselecteerd",
@@ -8231,7 +8249,10 @@
   "{n} connectors - editing all": "{n} connectors - alles bewerken",
   "{n} copies added to your projects": "{n} kopieën toegevoegd aan je projecten",
   "{n} copies in total": "{n} kopieën in totaal",
-  "{n} copies made · selected": "{n} kopieën gemaakt · geselecteerd",
+  "{n} copies made · selected": {
+    "one": "{n} kopie gemaakt · geselecteerd",
+    "other": "{n} kopieën gemaakt · geselecteerd"
+  },
   "{n} creation checkpoints": "{n} creatiecheckpoints",
   "{n} curly quotes": "{n} typografische aanhalingstekens",
   "{n} days ago": "{n} - Ja.",
@@ -8248,24 +8269,39 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} bewerkbare invoer. Niet-geselecteerde instellingen blijven vast.",
   "{n} ellipsis characters": "{n} ellipstekens",
   "{n} em-dashes": "{n} em-dashes",
-  "{n} embedded files": "{n} ingebedde bestanden",
-  "{n} external references": "{n} externe verwijzingen",
+  "{n} embedded files": {
+    "one": "{n} ingebed bestand",
+    "other": "{n} ingebedde bestanden"
+  },
+  "{n} external references": {
+    "one": "{n} externe verwijzing",
+    "other": "{n} externe verwijzingen"
+  },
   "{n} fields": "{n} velden",
   "{n} file batches": "{n} bestandsbatches",
   "{n} file operation records": "{n} bestandsbewerkingsgegevens",
   "{n} files": "{n} bestanden",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} bestanden zijn geen PowerPoint-presentaties, pdf's of Photoshop-documenten en zijn dus weggelaten.",
   "{n} files are ready to import.": "{n} bestanden zijn klaar om te importeren.",
-  "{n} files could not be packed and were left out": "{n} bestanden konden niet worden verpakt en zijn overgeslagen",
+  "{n} files could not be packed and were left out": {
+    "one": "{n} bestand kon niet worden verpakt en is overgeslagen",
+    "other": "{n} bestanden konden niet worden verpakt en zijn overgeslagen"
+  },
   "{n} files imported from the zip.": "{n} bestanden geïmporteerd uit de zip.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} bestanden geïmporteerd uit de zip; {skipped} overgeslagen.",
   "{n} files ready": "{n} bestanden klaar",
   "{n} findings": "{n} Bevindingen",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "{n} bevindingen gevonden. Bewerkbare suggesties zijn geselecteerd; Office-bevindingen die alleen te inspecteren zijn blijven ongewijzigd. Bekijk het paneel Inspectie.",
-  "{n} folders": "{n} mappen",
+  "{n} folders": {
+    "one": "{n} map",
+    "other": "{n} mappen"
+  },
   "{n} font changes": "{n} lettertypewijzigingen",
   "{n} font choices": "{n} lettertypekeuzes",
-  "{n} font files": "{n} letterbestanden",
+  "{n} font files": {
+    "one": "{n} lettertypebestand",
+    "other": "{n} lettertypebestanden"
+  },
   "{n} fonts": "{n} lettertypen",
   "{n} fonts found": "{n} lettertypen gevonden",
   "{n} fonts from the deck are set in another face.": "{n} lettertypen uit de presentatie zijn in een ander lettertype gezet.",
@@ -8277,31 +8313,67 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} verborgen - vind ze onder “Verborgen tools weergeven”",
   "{n} hidden shades stay hidden": "{n} verborgen tinten blijven verborgen",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} Het is niet mogelijk om de gegevens te herstellen.",
-  "{n} images": "{n} afbeeldingen",
-  "{n} images couldn’t be restored (storage full?)": "{n} afbeeldingen konden niet worden hersteld (opslag vol?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} afbeeldingen bleven bij het origineel - afbeeldingen hebben één plek; gebruik Knippen om ze te verplaatsen",
+  "{n} images": {
+    "one": "{n} afbeelding",
+    "other": "{n} afbeeldingen"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} afbeelding kon niet worden hersteld (opslag vol?)",
+    "other": "{n} afbeeldingen konden niet worden hersteld (opslag vol?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} afbeelding bleef bij het origineel - afbeeldingen hebben één plek; gebruik Knippen om ze te verplaatsen",
+    "other": "{n} afbeeldingen bleven bij het origineel - afbeeldingen hebben één plek; gebruik Knippen om ze te verplaatsen"
+  },
   "{n} included tools (asked before installing)": "{n} meegeleverde tools (er wordt gevraagd voor het installeren)",
   "{n} ink": "{n} inkt",
-  "{n} inputs · applies to every design": "{n} invoervelden · gelden voor elk ontwerp",
+  "{n} inputs · applies to every design": {
+    "one": "{n} invoerveld · geldt voor elk ontwerp",
+    "other": "{n} invoervelden · gelden voor elk ontwerp"
+  },
   "{n} invisible watermark(s) found": "{n} onzichtbare watermerk(en) gevonden",
   "{n} issues to review before sharing.": "{n} problemen om te bekijken voor het delen.",
-  "{n} items": "{n} items",
-  "{n} items copied": "{n} items gekopieerd",
-  "{n} items cut": "{n} items geknipt",
-  "{n} items moved": "{n} items verplaatst",
-  "{n} items pasted": "{n} items geplakt",
+  "{n} items": {
+    "one": "{n} item",
+    "other": "{n} items"
+  },
+  "{n} items copied": {
+    "one": "{n} item gekopieerd",
+    "other": "{n} items gekopieerd"
+  },
+  "{n} items cut": {
+    "one": "{n} item geknipt",
+    "other": "{n} items geknipt"
+  },
+  "{n} items moved": {
+    "one": "{n} item verplaatst",
+    "other": "{n} items verplaatst"
+  },
+  "{n} items pasted": {
+    "one": "{n} item geplakt",
+    "other": "{n} items geplakt"
+  },
   "{n} items removed": "{n} items verwijderd",
   "{n} jobs": "{n} taken",
   "{n} kept": "{n} behouden",
   "{n} kept in the tray": "{n} behouden in de lade",
-  "{n} keyframes": "{n} keyframes",
+  "{n} keyframes": {
+    "one": "{n} keyframe",
+    "other": "{n} keyframes"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} benoemde plaatshouders nemen de plaats van objecten in.",
   "{n} layers": "{n} lagen",
   "{n} layers found": "{n} lagen gevonden",
   "{n} list lines": "{n} lijstregels",
-  "{n} logos": "{n} logo's",
+  "{n} logos": {
+    "one": "{n} logo",
+    "other": "{n} logo's"
+  },
   "{n} marks became the design system mark.": "{n} merktekens werden het merkteken van het designsysteem.",
-  "{n} marks found": "{n} merken gevonden",
+  "{n} marks found": {
+    "one": "{n} merk gevonden",
+    "other": "{n} merken gevonden"
+  },
   "{n} marks sent to Logos": "{n} merken verzonden naar Logo's",
   "{n} min ago": "{n} - Ja.",
   "{n} more findings in this document.": "{n} meer bevindingen in dit document.",
@@ -8313,7 +8385,10 @@
   "{n} more slides": "nog {n} dia's",
   "{n} moved to {group}.": "{n} verplaatst naar {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} nieuwe dia's bevatten wat niet paste, dus de dianummers zijn verschoven.",
-  "{n} newer items skipped": "{n} nieuwere items overgeslagen",
+  "{n} newer items skipped": {
+    "one": "{n} nieuwer item overgeslagen",
+    "other": "{n} nieuwere items overgeslagen"
+  },
   "{n} nits": "{n} nits",
   "{n} not drawn": "{n} niet getekend",
   "{n} objects added": "{n} objecten toegevoegd",
@@ -8326,7 +8401,10 @@
   "{n} objects overlap the slide master.": "{n} objecten overlappen de dia-master.",
   "{n} objects removed": "{n} objecten verwijderd",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} objecten behouden uitsnijding of effecten als afbeeldingen. Vervang hun complete beeld om de vorm te wijzigen.",
-  "{n} of your creations are videos or animations": "{n} van je creaties zijn video's of animaties",
+  "{n} of your creations are videos or animations": {
+    "one": "{n} van je creaties is een video of animatie",
+    "other": "{n} van je creaties zijn video's of animaties"
+  },
   "{n} of {m}": "{n} van {m}",
   "{n} of {total} downloaded": "{n} van {total} gedownload",
   "{n} of {total} downloaded · {size} on disk": "{n} van {total} gedownload · {size} op schijf",
@@ -8337,57 +8415,90 @@
   "{n} off": "{n} uit",
   "{n} on": "{n} aan",
   "{n} other colourways keep their own colours: {names}": "{n} andere kleurvarianten houden eigen kleuren: {names}",
-  "{n} pages": "{n} pagina's",
+  "{n} pages": {
+    "one": "{n} pagina",
+    "other": "{n} pagina's"
+  },
   "{n} pages are pictures of their text.": "{n} pagina's zijn afbeeldingen van hun tekst.",
-  "{n} pages differ": "{n} pagina’s verschillen",
+  "{n} pages differ": {
+    "one": "{n} pagina verschilt",
+    "other": "{n} pagina's verschillen"
+  },
   "{n} pages had no size, so they were left out.": "{n} pagina's hadden geen formaat en zijn dus weggelaten.",
   "{n} pictures": "{n} afbeeldingen",
   "{n} pictures are missing.": "{n} afbeeldingen ontbreken.",
   "{n} pictures in the deck were not kept.": "{n} afbeeldingen in de presentatie zijn niet bewaard.",
-  "{n} places": "{n} plekken",
+  "{n} places": {
+    "one": "{n} plek",
+    "other": "{n} plekken"
+  },
   "{n} points": "{n} punten",
-  "{n} points - hold Alt for a corner": "{n} punten - houd Alt ingedrukt voor een hoek",
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punt - houd Alt ingedrukt voor een hoek",
+    "other": "{n} punten - houd Alt ingedrukt voor een hoek"
+  },
   "{n} preserved file": "{n} bewaard bestand",
   "{n} preserved files": "{n} bewaarde bestanden",
   "{n} print locks re-pinned": "{n} printvergrendelingen opnieuw vastgezet",
   "{n} proposed changes": "{n} voorgestelde wijzigingen",
   "{n} protected drafts": "{n} beschermde concepten",
   "{n} published version": "{n} gepubliceerde versie",
-  "{n} published versions": "{n} gepubliceerde versies",
+  "{n} published versions": {
+    "one": "{n} gepubliceerde versie",
+    "other": "{n} gepubliceerde versies"
+  },
   "{n} recorded": "{n} vastgelegd",
   "{n} removed from favourites": "{n} verwijderd uit favorieten",
   "{n} removed from offline": "{n} verwijderd uit offline",
   "{n} removed. A tool naming it will lose it.": "{n} verwijderd. Een tool die ernaar verwijst raakt het kwijt.",
   "{n} removed. A tool naming one of these will lose it.": "{n} verwijderd. Een tool die er één van benoemt raakt het kwijt.",
   "{n} renders": "{n} renders",
-  "{n} results": "{n} resultaten",
+  "{n} results": {
+    "one": "{n} resultaat",
+    "other": "{n} resultaten"
+  },
   "{n} roles re-derived": "{n} rollen opnieuw afgeleid",
   "{n} rotated runs left out": "{n} gedraaide runs weggelaten",
   "{n} saved asset versions": "{n} opgeslagen versies van activa",
   "{n} saved for offline, {m} failed - check your connection": "{n} opgeslagen voor offline, {m} mislukt - controleer je verbinding",
-  "{n} saved sessions": "{n} opgeslagen sessies",
+  "{n} saved sessions": {
+    "one": "{n} opgeslagen sessie",
+    "other": "{n} opgeslagen sessies"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "{n} opgeslagen systemen konden niet worden bekeken. Open ze via Profiel om ze te beheren.",
   "{n} scanned": "{n} gescand",
   "{n} scanned pages read.": "{n} gescande pagina's gelezen.",
   "{n} scanned pages were left unread to keep this quick.": "{n} gescande pagina's zijn ongelezen gelaten om dit snel te houden.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} gescande pagina's zijn niet gelezen omdat tekstherkenning niet op dit apparaat staat.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} gescande pagina's zijn gelezen met tekstherkenning op het apparaat, dus controles op verborgen tekens konden op die pagina's niet worden uitgevoerd.",
-  "{n} selected": "{n} geselecteerd",
-  "{n} selected assets": "{n} geselecteerde assets",
+  "{n} selected": {
+    "one": "{n} geselecteerd",
+    "other": "{n} geselecteerd"
+  },
+  "{n} selected assets": {
+    "one": "{n} geselecteerde asset",
+    "other": "{n} geselecteerde assets"
+  },
   "{n} selected files": "{n} geselecteerde bestanden",
   "{n} selected items could not be outlined and were left as they are.": "{n} geselecteerde items konden niet worden omgezet in contouren en zijn ongewijzigd gelaten.",
   "{n} selected items have no outline, so they were left as they are.": "{n} geselecteerde items hebben geen omtrek, dus ze zijn ongewijzigd gelaten.",
   "{n} selected · {size}": "{n} geselecteerd · {size}",
   "{n} sentences": "{n} zinnen",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} zinnen hebben een gestippelde onderstreping: het model op het apparaat kan een eenvoudigere versie aanbieden. Als je er een accepteert, wordt de opgeslagen kopie gemarkeerd als AI-ondersteund, en de formulering van het model draagt Lolly's openbare herformuleringswatermerk, zodat AI-geschreven tekst herkenbaar blijft in Verify.",
-  "{n} sessions": "{n} sessies",
+  "{n} sessions": {
+    "one": "{n} sessie",
+    "other": "{n} sessies"
+  },
   "{n} set": "{n} ingesteld",
   "{n} shade curves re-anchored": "{n} tintcurves opnieuw verankerd",
   "{n} shades added to your palette": "{n} tinten toegevoegd aan je palet",
   "{n} shades added. Undo is available above your palette.": "{n} tinten toegevoegd. Ongedaan maken staat boven je palet.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} tinten konden hun doel niet bereiken (begrensd op de dichtstbijzijnde toon).",
   "{n} shades rebuilt across {ramps} ramps": "{n} tinten herbouwd over {ramps} reeksen",
-  "{n} shapes": "{n} vormen",
+  "{n} shapes": {
+    "one": "{n} vorm",
+    "other": "{n} vormen"
+  },
   "{n} shapes · page {p}": "{n} vormen · pagina {p}",
   "{n} shared assets were kept.": "{n} gedeelde assets zijn bewaard.",
   "{n} slides narrated.": "{n} dia's ingesproken.",
@@ -8395,11 +8506,17 @@
   "{n} spectrum hues rebuilt": "{n} spectrumtinten herbouwd",
   "{n} stages of work": "{n} werkfasen",
   "{n} starter colours": "{n} startkleuren",
-  "{n} steps": "{n} stappen",
+  "{n} steps": {
+    "one": "{n} stap",
+    "other": "{n} stappen"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "{n} suggesties gevonden. De kopieën worden ermee voorbereid; pas ze aan in het paneel Inspectie.",
   "{n} suggestions were applied without review.": "{n} suggesties zijn zonder beoordeling toegepast.",
   "{n} swatches removed": "{n} stalen verwijderd",
-  "{n} templates": "{n} templates",
+  "{n} templates": {
+    "one": "{n} sjabloon",
+    "other": "{n} sjablonen"
+  },
   "{n} templates added": "{n} sjablonen toegevoegd",
   "{n} templates deleted": "{n} sjablonen verwijderd",
   "{n} templates saved": "{n} sjablonen opgeslagen",
@@ -8419,11 +8536,17 @@
   "{n} unsupported backup parts skipped": "{n} niet-ondersteunde reservedelen overgeslagen",
   "{n} value changes": "{n} waardewijzigingen",
   "{n} values change": "{n} waarden veranderen",
-  "{n} volume keys": "{n} volume-keyframes",
+  "{n} volume keys": {
+    "one": "{n} volumetoets",
+    "other": "{n} volumetoetsen"
+  },
   "{n} warnings.": "{n} waarschuwingen.",
   "{n} were kept - they are not this room to remove.": "{n} zijn behouden - ze horen niet bij deze ruimte om te verwijderen.",
   "{n} wording swaps are underlined in the preview.": "{n} woordwisselingen zijn onderstreept in de preview.",
-  "{n} words": "{n} woorden",
+  "{n} words": {
+    "one": "{n} woord",
+    "other": "{n} woorden"
+  },
   "{n} words cut": "{n} woorden geknipt",
   "{n} yours": "{n} van jou",
   "{n}-bit": "{n}-bit",
@@ -8814,7 +8937,10 @@
   "1 design was added to Projects, in 1 folder.": "1 ontwerp is toegevoegd aan Projecten, in 1 map.",
   "1 design was added to Projects, in {f} folders.": "1 ontwerp is toegevoegd aan Projecten, in {f} mappen.",
   "1 design was added to Projects.": "1 ontwerp is toegevoegd aan Projecten.",
-  "{n} creations removed from Projects here stayed removed.": "{n} creaties die hier uit Projecten werden verwijderd, bleven verwijderd.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} creatie die hier uit Projecten werd verwijderd, bleef verwijderd.",
+    "other": "{n} creaties die hier uit Projecten werden verwijderd, bleven verwijderd."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Deze creatie is nooit opgeslagen, dus verlaten zonder op te slaan verwijdert hem uit Projecten.",
   "This deck has no colours to change.": "Deze presentatie heeft geen kleuren om te wijzigen.",
   "This deck has no fonts to change.": "Deze presentatie heeft geen lettertypen om te wijzigen.",
@@ -8844,7 +8970,10 @@
   "This saved version could not be read.": "Deze opgeslagen versie kon niet worden gelezen.",
   "1 older automatic checkpoint left out": "1 ouder automatisch checkpoint weggelaten",
   "1 other colourway keeps its own colours: {names}": "1 andere kleurvariant houdt eigen kleuren: {names}",
-  "{n} older automatic checkpoints left out": "{n} oudere automatische checkpoints weggelaten",
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} ouder automatisch checkpoint weggelaten",
+    "other": "{n} oudere automatische checkpoints weggelaten"
+  },
   "Automatic recovery and checkpoints are on": "Automatisch herstel en checkpoints staan aan",
   "Automatic recovery is unavailable here. Save before leaving.": "Automatisch herstel is hier niet beschikbaar. Sla op voordat je weggaat.",
   "Checkpoint saved at {time} on this device": "Checkpoint opgeslagen om {time} op dit apparaat",
@@ -9027,7 +9156,10 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Om de sites te tonen die de webversie niet kan tonen, kan Lolly opnieuw laden onder een ruimer framebeleid op dit apparaat en daarna per site vragen voordat je presenteert. Je kunt dit uitzetten in je profiel, onder Vertrouwde sites.",
   "Card size": "Kaartgrootte",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Er is 1 afbeelding of bestand toegevoegd op dit apparaat. Het blijft op dit apparaat en anderen zien dat bestand niet.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Er zijn {n} afbeeldingen of bestanden toegevoegd op dit apparaat. Ze blijven op dit apparaat en anderen zien die bestanden niet.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "Er is {n} afbeelding of bestand toegevoegd op dit apparaat. Het blijft op dit apparaat en anderen zien dat bestand niet.",
+    "other": "Er zijn {n} afbeeldingen of bestanden toegevoegd op dit apparaat. Ze blijven op dit apparaat en anderen zien die bestanden niet."
+  },
   "Check the version first": "Controleer eerst de versie",
   "Copy team link": "Teamlink kopiëren",
   "Could not create the project. Try again.": "Het project kon niet worden gemaakt. Probeer het opnieuw.",
@@ -9793,7 +9925,10 @@
   "Every mode": "Elke modus",
   "Your local items have not changed.": "Je lokale items zijn niet gewijzigd.",
   "1 item was saved to the shared project.": "1 item is opgeslagen in het gedeelde project.",
-  "{n} items were saved to the shared project.": "{n} items zijn opgeslagen in het gedeelde project.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} item is opgeslagen in het gedeelde project.",
+    "other": "{n} items zijn opgeslagen in het gedeelde project."
+  },
   "Wait for the current move to finish.": "Wacht tot het huidige verplaatsen klaar is.",
   "Wait for the deck to finish reading, then choose a picture.": "Wacht tot de presentatie is uitgelezen en kies dan een afbeelding.",
   "Wait for the grid to finish rendering before moving its layers.": "Wacht tot het raster klaar is met renderen voor je de lagen verplaatst.",
@@ -10645,5 +10780,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Deze clip gebruikt {codec}, dat dit apparaat niet kan afspelen. Exporteer een H.264-, HEVC- of AV1-kopie vanuit je bewerkingsapp, of open de clip in de Lolly-desktopapp op een Mac. Lolly bewaart het originele bestand.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Deze clip gebruikt {codec}, dat dit apparaat niet kan afspelen. Exporteer een H.264-, HEVC- of AV1-kopie vanuit je bewerkingsapp. Lolly bewaart het originele bestand.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Dit is een MXF-bestand met {codec}. Lolly kan lezen wat erin zit, maar kan MXF niet afspelen. Exporteer een H.264-, HEVC- of AV1-kopie vanuit je bewerkingsapp. Lolly bewaart het originele bestand.",
-  "{format} from {camera}": "{format} van {camera}"
+  "{format} from {camera}": "{format} van {camera}",
+  "Filling a large area. This can take a moment.": "Een groot gebied wordt gevuld. Dit kan even duren.",
+  "Large area": "Groot gebied"
 }

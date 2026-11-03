@@ -8027,10 +8027,16 @@
   "{count} controls you changed stay yours.": "{count} innstillinger du endret, beholdes.",
   "{count} days": "{count} dager",
   "{count} decisions from the last version still apply.": "{count} beslutninger fra forrige versjon gjelder fortsatt.",
-  "{count} entries": "{count} oppføringer",
+  "{count} entries": {
+    "one": "{count} oppføring",
+    "other": "{count} oppføringer"
+  },
   "{count} files / variations": "{count} filer / variasjoner",
   "{count} files chosen": "{count} filer valgt",
-  "{count} files in this folder": "{count} filer i denne mappen",
+  "{count} files in this folder": {
+    "one": "{count} fil i denne mappen",
+    "other": "{count} filer i denne mappen"
+  },
   "{count} for {names}": "{count} for {names}",
   "{count} for “{query}” in {scope}": "{count} for «{query}» i {scope}",
   "{count} layouts": "{count} layouter",
@@ -8204,19 +8210,31 @@
   "{n} added to favourites": "{n} lagt til i favoritter",
   "{n} added to the design system": "{n} lagt til i designsystemet",
   "{n} asset IDs": "{n} ressurs-ID-er",
-  "{n} assets": "{n} ressurser",
+  "{n} assets": {
+    "one": "{n} ressurs",
+    "other": "{n} ressurser"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} ressurser kunne ikke gjenopprettes. Behold sikkerhetskopien din.",
-  "{n} assets found": "{n} ressurser funnet",
+  "{n} assets found": {
+    "one": "{n} ressurs funnet",
+    "other": "{n} ressurser funnet"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} ressurser zippet · {c} med Content Credentials",
   "{n} available offline": "{n} tilgjengelig offline",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} bokser. Ett klikk skriver en hel bevegelsesbue - hvert nøkkelbilde forblir redigerbart etterpå.",
-  "{n} capabilities match": "{n} evner matcher",
+  "{n} capabilities match": {
+    "one": "{n} funksjon samsvarer",
+    "other": "{n} funksjoner samsvarer"
+  },
   "{n} cards are left to review.": "{n} kort gjenstår å gjennomgå.",
   "{n} cards are still to answer.": "{n} kort gjenstår å svare på.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "{n} kort gjenstår å svare på. Godta dem som foreslått og åpne i Design?",
   "{n} ch": "{n} tgn",
   "{n} changed": "{n} endret",
-  "{n} changes found": "{n} endringer funnet",
+  "{n} changes found": {
+    "one": "{n} endring funnet",
+    "other": "{n} endringer funnet"
+  },
   "{n} characters continue beyond the last frame.": "{n} tegn fortsetter etter den siste rammen.",
   "{n} checks": "{n} sjekker",
   "{n} clips selected": "{n} klipp valgt",
@@ -8231,7 +8249,10 @@
   "{n} connectors - editing all": "{n} koblinger - redigerer alle",
   "{n} copies added to your projects": "{n} kopier lagt til i prosjektene dine",
   "{n} copies in total": "{n} kopier totalt",
-  "{n} copies made · selected": "{n} kopier laget · valgt",
+  "{n} copies made · selected": {
+    "one": "{n} kopi laget · valgt",
+    "other": "{n} kopier laget · valgt"
+  },
   "{n} creation checkpoints": "{n} creation-sjekkpunkter",
   "{n} curly quotes": "{n} krøllete anførselstegn",
   "{n} days ago": "{n} dager siden",
@@ -8248,24 +8269,39 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} redigerbare inndata. Umerkede innstillinger forblir faste.",
   "{n} ellipsis characters": "{n} ellipsetegn",
   "{n} em-dashes": "{n} lange tankestreker",
-  "{n} embedded files": "{n} innebygde filer",
-  "{n} external references": "{n} eksterne referanser",
+  "{n} embedded files": {
+    "one": "{n} innebygd fil",
+    "other": "{n} innebygde filer"
+  },
+  "{n} external references": {
+    "one": "{n} ekstern referanse",
+    "other": "{n} eksterne referanser"
+  },
   "{n} fields": "{n} felt",
   "{n} file batches": "{n} filbatcher",
   "{n} file operation records": "{n} filoperasjonsposter",
   "{n} files": "{n} filer",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} filer er ikke PowerPoint-presentasjoner, PDF-er eller Photoshop-dokumenter, så de ble utelatt.",
   "{n} files are ready to import.": "{n} filer er klare til å importeres.",
-  "{n} files could not be packed and were left out": "{n} filer kunne ikke pakkes og ble utelatt",
+  "{n} files could not be packed and were left out": {
+    "one": "{n} fil kunne ikke pakkes og ble utelatt",
+    "other": "{n} filer kunne ikke pakkes og ble utelatt"
+  },
   "{n} files imported from the zip.": "{n} filer importert fra zip-filen.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} filer importert fra zip-filen; {skipped} hoppet over.",
   "{n} files ready": "{n} filer klare",
   "{n} findings": "{n} funn",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "{n} funn funnet. Redigerbare forslag er valgt; Office-funn som bare kan inspiseres forblir uendret. Gå gjennom Inspeksjon-panelet.",
-  "{n} folders": "{n} mapper",
+  "{n} folders": {
+    "one": "{n} mappe",
+    "other": "{n} mapper"
+  },
   "{n} font changes": "{n} fontendringer",
   "{n} font choices": "{n} fontvalg",
-  "{n} font files": "{n} fontfiler",
+  "{n} font files": {
+    "one": "{n} fontfil",
+    "other": "{n} fontfiler"
+  },
   "{n} fonts": "{n} fonter",
   "{n} fonts found": "{n} skrifter funnet",
   "{n} fonts from the deck are set in another face.": "{n} fonter fra presentasjonen er satt i en annen skrifttype.",
@@ -8277,31 +8313,67 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} skjult - finn dem under «Vis skjulte verktøy»",
   "{n} hidden shades stay hidden": "{n} skjulte nyanser forblir skjult",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} historikkelementer kunne ikke gjenopprettes. Behold sikkerhetskopien din; frigjør plass eller løs motstridende versjoner før du prøver igjen.",
-  "{n} images": "{n} bilder",
-  "{n} images couldn’t be restored (storage full?)": "{n} bilder kunne ikke gjenopprettes (lagring full?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} bilder ble værende ved originalen - bilder har et hjem; bruk Klipp ut for å flytte dem",
+  "{n} images": {
+    "one": "{n} bilde",
+    "other": "{n} bilder"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} bilde kunne ikke gjenopprettes (lagring full?)",
+    "other": "{n} bilder kunne ikke gjenopprettes (lagring full?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} bilde ble værende ved originalen - bilder har ett hjem; bruk Klipp ut for å flytte det",
+    "other": "{n} bilder ble værende ved originalen - bilder har ett hjem; bruk Klipp ut for å flytte dem"
+  },
   "{n} included tools (asked before installing)": "{n} medfølgende verktøy (det spørres før installering)",
   "{n} ink": "{n} blekk",
-  "{n} inputs · applies to every design": "{n} felt · gjelder for hvert design",
+  "{n} inputs · applies to every design": {
+    "one": "{n} felt · gjelder for hvert design",
+    "other": "{n} felt · gjelder for hvert design"
+  },
   "{n} invisible watermark(s) found": "{n} usynlig(e) vannmerke(r) funnet",
   "{n} issues to review before sharing.": "{n} problemer å gjennomgå før deling.",
-  "{n} items": "{n} elementer",
-  "{n} items copied": "{n} elementer kopiert",
-  "{n} items cut": "{n} elementer klippet",
-  "{n} items moved": "{n} elementer flyttet",
-  "{n} items pasted": "{n} elementer limt inn",
+  "{n} items": {
+    "one": "{n} element",
+    "other": "{n} elementer"
+  },
+  "{n} items copied": {
+    "one": "{n} element kopiert",
+    "other": "{n} elementer kopiert"
+  },
+  "{n} items cut": {
+    "one": "{n} element klippet ut",
+    "other": "{n} elementer klippet ut"
+  },
+  "{n} items moved": {
+    "one": "{n} element flyttet",
+    "other": "{n} elementer flyttet"
+  },
+  "{n} items pasted": {
+    "one": "{n} element limt inn",
+    "other": "{n} elementer limt inn"
+  },
   "{n} items removed": "{n} elementer fjernet",
   "{n} jobs": "{n} jobber",
   "{n} kept": "{n} beholdt",
   "{n} kept in the tray": "{n} beholdt i skuffen",
-  "{n} keyframes": "{n} nøkkelbilder",
+  "{n} keyframes": {
+    "one": "{n} nøkkelbilde",
+    "other": "{n} nøkkelbilder"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} merkede erstattere tar plassen til objekter.",
   "{n} layers": "{n} lag",
   "{n} layers found": "{n} lag funnet",
   "{n} list lines": "{n} listelinjer",
-  "{n} logos": "{n} logoer",
+  "{n} logos": {
+    "one": "{n} logo",
+    "other": "{n} logoer"
+  },
   "{n} marks became the design system mark.": "{n} merker ble designsystemets merke.",
-  "{n} marks found": "{n} merker funnet",
+  "{n} marks found": {
+    "one": "{n} merke funnet",
+    "other": "{n} merker funnet"
+  },
   "{n} marks sent to Logos": "{n} merker sendt til Logoer",
   "{n} min ago": "for {n} min siden",
   "{n} more findings in this document.": "{n} flere funn i dette dokumentet.",
@@ -8313,7 +8385,10 @@
   "{n} more slides": "{n} lysbilder til",
   "{n} moved to {group}.": "{n} flyttet til {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} nye lysbilder rommer det som ikke fikk plass, så lysbildenumrene flyttet seg.",
-  "{n} newer items skipped": "{n} nyere elementer hoppet over",
+  "{n} newer items skipped": {
+    "one": "{n} nyere element hoppet over",
+    "other": "{n} nyere elementer hoppet over"
+  },
   "{n} nits": "{n} nit",
   "{n} not drawn": "{n} ikke tegnet",
   "{n} objects added": "{n} objekter lagt til",
@@ -8326,7 +8401,10 @@
   "{n} objects overlap the slide master.": "{n} objekter overlapper lysbildemasteren.",
   "{n} objects removed": "{n} objekter fjernet",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} objekter beholder beskjæring eller effekter som bilder. Erstatt hele kunstverket deres for å endre formen.",
-  "{n} of your creations are videos or animations": "{n} av kreasjonene dine er videoer eller animasjoner",
+  "{n} of your creations are videos or animations": {
+    "one": "{n} av kreasjonene dine er en video eller animasjon",
+    "other": "{n} av kreasjonene dine er videoer eller animasjoner"
+  },
   "{n} of {m}": "{n} av {m}",
   "{n} of {total} downloaded": "{n} av {total} nedlastet",
   "{n} of {total} downloaded · {size} on disk": "{n} av {total} lastet ned · {size} på disk",
@@ -8337,57 +8415,90 @@
   "{n} off": "{n} av",
   "{n} on": "{n} på",
   "{n} other colourways keep their own colours: {names}": "{n} andre fargevarianter beholder sine egne farger: {names}",
-  "{n} pages": "{n} sider",
+  "{n} pages": {
+    "one": "{n} side",
+    "other": "{n} sider"
+  },
   "{n} pages are pictures of their text.": "{n} sider er bilder av teksten sin.",
-  "{n} pages differ": "{n} sider er forskjellige",
+  "{n} pages differ": {
+    "one": "{n} side er forskjellig",
+    "other": "{n} sider er forskjellige"
+  },
   "{n} pages had no size, so they were left out.": "{n} sider hadde ingen størrelse og ble utelatt.",
   "{n} pictures": "{n} bilder",
   "{n} pictures are missing.": "{n} bilder mangler.",
   "{n} pictures in the deck were not kept.": "{n} bilder i presentasjonen ble ikke beholdt.",
-  "{n} places": "{n} steder",
+  "{n} places": {
+    "one": "{n} sted",
+    "other": "{n} steder"
+  },
   "{n} points": "{n} punkter",
-  "{n} points - hold Alt for a corner": "{n} punkter - hold Alt for et hjørne",
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punkt - hold Alt for et hjørne",
+    "other": "{n} punkter - hold Alt for et hjørne"
+  },
   "{n} preserved file": "{n} bevart fil",
   "{n} preserved files": "{n} bevarte filer",
   "{n} print locks re-pinned": "{n} trykklåser festet på nytt",
   "{n} proposed changes": "{n} forslag til endringer",
   "{n} protected drafts": "{n} beskyttede utkast",
   "{n} published version": "{n} publisert versjon",
-  "{n} published versions": "{n} publiserte versjoner",
+  "{n} published versions": {
+    "one": "{n} publisert versjon",
+    "other": "{n} publiserte versjoner"
+  },
   "{n} recorded": "{n} registrert",
   "{n} removed from favourites": "{n} fjernet fra favoritter",
   "{n} removed from offline": "{n} fjernet fra offline",
   "{n} removed. A tool naming it will lose it.": "{n} fjernet. Et verktøy som navngir den, mister den.",
   "{n} removed. A tool naming one of these will lose it.": "{n} fjernet. Et verktøy som navngir en av disse, mister den.",
   "{n} renders": "{n} rendringer",
-  "{n} results": "{n} resultater",
+  "{n} results": {
+    "one": "{n} resultat",
+    "other": "{n} resultater"
+  },
   "{n} roles re-derived": "{n} roller avledet på nytt",
   "{n} rotated runs left out": "{n} roterte tekstsegmenter utelatt",
   "{n} saved asset versions": "{n} lagrede ressursversjoner",
   "{n} saved for offline, {m} failed - check your connection": "{n} lagret for offline, {m} mislyktes - sjekk tilkoblingen din",
-  "{n} saved sessions": "{n} lagrede økter",
+  "{n} saved sessions": {
+    "one": "{n} lagret økt",
+    "other": "{n} lagrede økter"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "Kunne ikke forhåndsvise {n} lagrede systemer. Åpne dem fra Profil for å administrere dem.",
   "{n} scanned": "{n} skannet",
   "{n} scanned pages read.": "{n} skannede sider lest.",
   "{n} scanned pages were left unread to keep this quick.": "{n} skannede sider ble ikke lest for å holde dette raskt.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} skannede sider ble ikke lest fordi tekstgjenkjenning ikke er på denne enheten.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} skannede sider ble lest med tekstgjenkjenning på enheten, så kontroller for skjulte tegn kunne ikke kjøres på de sidene.",
-  "{n} selected": "{n} valgt",
-  "{n} selected assets": "{n} valgte ressurser",
+  "{n} selected": {
+    "one": "{n} valgt",
+    "other": "{n} valgt"
+  },
+  "{n} selected assets": {
+    "one": "{n} valgt ressurs",
+    "other": "{n} valgte ressurser"
+  },
   "{n} selected files": "{n} valgte filer",
   "{n} selected items could not be outlined and were left as they are.": "{n} valgte elementer kunne ikke gjøres om til konturer og ble latt som de er.",
   "{n} selected items have no outline, so they were left as they are.": "{n} valgte elementer har ingen kontur, så de ble ikke endret.",
   "{n} selected · {size}": "{n} valgt · {size}",
   "{n} sentences": "{n} setninger",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} setninger har prikket understreking: modellen på enheten kan tilby en enklere versjon. Godtar du én, merkes den lagrede kopien som AI-assistert, og modellens formuleringer bærer Lollys offentlige omskrivingsvannmerke, slik at AI-skrevet tekst kan oppdages på Verify.",
-  "{n} sessions": "{n} økter",
+  "{n} sessions": {
+    "one": "{n} økt",
+    "other": "{n} økter"
+  },
   "{n} set": "{n} angitt",
   "{n} shade curves re-anchored": "{n} nyansekurver forankret på nytt",
   "{n} shades added to your palette": "{n} nyanser lagt til i paletten din",
   "{n} shades added. Undo is available above your palette.": "{n} nyanser lagt til. Angre er tilgjengelig over paletten din.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} nyanser nådde ikke målet sitt (begrenset til nærmeste tone).",
   "{n} shades rebuilt across {ramps} ramps": "{n} nyanser bygget opp igjen over {ramps} ramper",
-  "{n} shapes": "{n} former",
+  "{n} shapes": {
+    "one": "{n} form",
+    "other": "{n} former"
+  },
   "{n} shapes · page {p}": "{n} former · side {p}",
   "{n} shared assets were kept.": "{n} delte ressurser ble beholdt.",
   "{n} slides narrated.": "{n} lysbilder innlest.",
@@ -8395,11 +8506,17 @@
   "{n} spectrum hues rebuilt": "{n} spektrumtoner bygget opp igjen",
   "{n} stages of work": "{n} arbeidstrinn",
   "{n} starter colours": "{n} startfarger",
-  "{n} steps": "{n} steg",
+  "{n} steps": {
+    "one": "{n} steg",
+    "other": "{n} steg"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "{n} forslag funnet. Kopiene klargjøres med dem valgt; juster hvilke som helst i Inspeksjon-panelet.",
   "{n} suggestions were applied without review.": "{n} forslag ble brukt uten gjennomgang.",
   "{n} swatches removed": "{n} fargeprøver fjernet",
-  "{n} templates": "{n} maler",
+  "{n} templates": {
+    "one": "{n} mal",
+    "other": "{n} maler"
+  },
   "{n} templates added": "{n} maler lagt til",
   "{n} templates deleted": "{n} maler slettet",
   "{n} templates saved": "{n} maler lagret",
@@ -8419,11 +8536,17 @@
   "{n} unsupported backup parts skipped": "{n} ikke-støttede sikkerhetskopideler hoppet over",
   "{n} value changes": "{n} verdiendringer",
   "{n} values change": "{n} verdier endres",
-  "{n} volume keys": "{n} volumnøkler",
+  "{n} volume keys": {
+    "one": "{n} volumnøkkel",
+    "other": "{n} volumnøkler"
+  },
   "{n} warnings.": "{n} advarsler.",
   "{n} were kept - they are not this room to remove.": "{n} ble beholdt - dette rommet kan ikke fjerne dem.",
   "{n} wording swaps are underlined in the preview.": "{n} ordbytter er understreket i forhåndsvisningen.",
-  "{n} words": "{n} ord",
+  "{n} words": {
+    "one": "{n} ord",
+    "other": "{n} ord"
+  },
   "{n} words cut": "{n} ord klippet",
   "{n} yours": "{n} dine",
   "{n}-bit": "{n}-bit",
@@ -8814,7 +8937,10 @@
   "1 design was added to Projects, in 1 folder.": "1 design ble lagt til i Prosjekter, i 1 mappe.",
   "1 design was added to Projects, in {f} folders.": "1 design ble lagt til i Prosjekter, i {f} mapper.",
   "1 design was added to Projects.": "1 design ble lagt til i Prosjekter.",
-  "{n} creations removed from Projects here stayed removed.": "{n} kreasjoner som ble fjernet fra Prosjekter her, forble fjernet.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} kreasjon som ble fjernet fra Prosjekter her, forble fjernet.",
+    "other": "{n} kreasjoner som ble fjernet fra Prosjekter her, forble fjernet."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Denne kreasjonen ble aldri lagret, så å forlate uten å lagre fjerner den fra Prosjekter.",
   "This deck has no colours to change.": "Denne presentasjonen har ingen farger å endre.",
   "This deck has no fonts to change.": "Denne presentasjonen har ingen fonter å endre.",
@@ -8844,7 +8970,10 @@
   "This saved version could not be read.": "Denne lagrede versjonen kunne ikke leses.",
   "1 older automatic checkpoint left out": "1 eldre automatisk kontrollpunkt utelatt",
   "1 other colourway keeps its own colours: {names}": "1 annen fargevariant beholder sine egne farger: {names}",
-  "{n} older automatic checkpoints left out": "{n} eldre automatiske kontrollpunkter utelatte",
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} eldre automatisk kontrollpunkt utelatt",
+    "other": "{n} eldre automatiske kontrollpunkter utelatt"
+  },
   "Automatic recovery and checkpoints are on": "Automatisk gjenoppretting og kontrollpunkter er på",
   "Automatic recovery is unavailable here. Save before leaving.": "Automatisk gjenoppretting er ikke tilgjengelig her. Lagre før du forlater siden.",
   "Checkpoint saved at {time} on this device": "Kontrollpunkt lagret kl. {time} på denne enheten",
@@ -9027,7 +9156,10 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "For å vise nettstedene nettversjonen ikke kan, kan Lolly laste inn på nytt med en mildere rammepolicy på denne enheten, og så spørre om hvert nettsted før du presenterer. Du kan slå dette av i profilen din, under Klarerte nettsteder.",
   "Card size": "Kortstørrelse",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 bilde eller fil ble lagt til på denne enheten. Den blir på denne enheten, og andre vil ikke se den filen.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} bilder eller filer ble lagt til på denne enheten. De blir på denne enheten, og andre vil ikke se disse filene.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "{n} bilde eller fil ble lagt til på denne enheten. Den blir på denne enheten, og andre vil ikke se den filen.",
+    "other": "{n} bilder eller filer ble lagt til på denne enheten. De blir på denne enheten, og andre vil ikke se disse filene."
+  },
   "Check the version first": "Sjekk versjonen først",
   "Copy team link": "Kopier teamlenke",
   "Could not create the project. Try again.": "Kunne ikke opprette prosjektet. Prøv igjen.",
@@ -9793,7 +9925,10 @@
   "Every mode": "Alle moduser",
   "Your local items have not changed.": "De lokale elementene dine er uendret.",
   "1 item was saved to the shared project.": "1 element ble lagret i det delte prosjektet.",
-  "{n} items were saved to the shared project.": "{n} elementer ble lagret i det delte prosjektet.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} element ble lagret i det delte prosjektet.",
+    "other": "{n} elementer ble lagret i det delte prosjektet."
+  },
   "Wait for the current move to finish.": "Vent til den pågående flyttingen er ferdig.",
   "Wait for the deck to finish reading, then choose a picture.": "Vent til presentasjonen er ferdig lest, og velg så et bilde.",
   "Wait for the grid to finish rendering before moving its layers.": "Vent til rutenettet er ferdig gjengitt før du flytter lagene.",
@@ -10645,5 +10780,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Dette klippet bruker {codec}, som denne enheten ikke kan spille av. Eksporter en H.264-, HEVC- eller AV1-kopi fra redigeringsappen din, eller åpne det i Lolly-skrivebordsappen på en Mac. Lolly beholder originalfilen.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Dette klippet bruker {codec}, som denne enheten ikke kan spille av. Eksporter en H.264-, HEVC- eller AV1-kopi fra redigeringsappen din. Lolly beholder originalfilen.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Dette er en MXF-fil med {codec}. Lolly kan lese hva den inneholder, men kan ikke spille av MXF. Eksporter en H.264-, HEVC- eller AV1-kopi fra redigeringsappen din. Lolly beholder originalfilen.",
-  "{format} from {camera}": "{format} fra {camera}"
+  "{format} from {camera}": "{format} fra {camera}",
+  "Filling a large area. This can take a moment.": "Fyller et stort område. Dette kan ta et øyeblikk.",
+  "Large area": "Stort område"
 }

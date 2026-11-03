@@ -587,7 +587,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Pinapatakbo ang mas malalim na AI-text check sa Verify at sa Mga asset.",
   "Card size": "Laki ng card",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "May 1 larawan o file na idinagdag sa device na ito. Mananatili ito sa device na ito, at hindi makikita ng iba ang file na iyon.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "May {n} larawan o file na idinagdag sa device na ito. Mananatili ang mga ito sa device na ito, at hindi makikita ng iba ang mga file na iyon.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "May {n} larawan o file na idinagdag sa device na ito. Mananatili ang mga ito sa device na ito, at hindi makikita ng iba ang mga file na iyon.",
+    "other": "May {n} larawan o file na idinagdag sa device na ito. Mananatili ang mga ito sa device na ito, at hindi makikita ng iba ang mga file na iyon."
+  },
   "Check the version first": "Tingnan muna ang bersyon",
   "Copy team link": "Kopyahin ang link ng team",
   "Could not create the project. Try again.": "Hindi nagawa ang project. Subukan ulit.",
@@ -1178,7 +1181,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Naka-save na sa shared na project ang bawat item. Nasa Trash o nasa dating lugar pa ang mga lokal na orihinal.",
   "Your local items have not changed.": "Hindi nagbago ang iyong mga lokal na item.",
   "1 item was saved to the shared project.": "Na-save ang 1 item sa shared na project.",
-  "{n} items were saved to the shared project.": "Na-save ang {n} item sa shared na project.",
+  "{n} items were saved to the shared project.": {
+    "one": "Na-save ang {n} item sa shared na project.",
+    "other": "Na-save ang {n} item sa shared na project."
+  },
   "Wait for the current move to finish.": "Hintaying matapos ang kasalukuyang paglilipat.",
   "You cannot save to that shared project.": "Hindi ka makakapag-save sa shared na project na iyon.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Makikita ng lahat ng makakabukas ng {project} ang mga item na ito. Kapag nai-save na ang bawat item doon, ililipat sa Trash ang mga lokal na orihinal, kung saan maaari mo silang ibalik.",
@@ -1489,8 +1495,14 @@
   "file": "file",
   "samples": "mga sample",
   "text": "teksto",
-  "{n} changes found": "{n} pagbabagong nahanap",
-  "{n} pages differ": "{n} pahinang magkaiba",
+  "{n} changes found": {
+    "one": "{n} pagbabago ang nahanap",
+    "other": "{n} pagbabago ang nahanap"
+  },
+  "{n} pages differ": {
+    "one": "{n} pahina ang magkaiba",
+    "other": "{n} pahina ang magkaiba"
+  },
   "Draft": "Draft",
   "Draft quality": "Kalidad ng draft",
   "Draft rule": "Draft na panuntunan",
@@ -1843,5 +1855,169 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner. I-hold para sa Lapis (Shift C) at sa spline type",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner",
   "Recipients can change the inputs": "Puwedeng baguhin ng recipients ang inputs",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Kahit sino na may link ay puwedeng magbago ng inputs nito at kumuha ng bagong larawan. Mananatili ang naka-lock na inputs ayon sa pagkakaset."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Kahit sino na may link ay puwedeng magbago ng inputs nito at kumuha ng bagong larawan. Mananatili ang naka-lock na inputs ayon sa pagkakaset.",
+  "{count} entries": {
+    "one": "{count} entry",
+    "other": "{count} entry"
+  },
+  "{count} files in this folder": {
+    "one": "{count} file sa folder na ito",
+    "other": "{count} file sa folder na ito"
+  },
+  "{n} assets": {
+    "one": "{n} asset",
+    "other": "{n} asset"
+  },
+  "{n} assets found": {
+    "one": "{n} asset ang nahanap",
+    "other": "{n} asset ang nahanap"
+  },
+  "{n} capabilities match": {
+    "one": "{n} capability ang tumugma",
+    "other": "{n} capability ang tumugma"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} kopya ang nagawa · napili",
+    "other": "{n} kopya ang nagawa · napili"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} likhang inalis sa Mga Project dito ay nanatiling inalis.",
+    "other": "{n} likhang inalis sa Mga Project dito ay nanatiling inalis."
+  },
+  "{n} embedded files": {
+    "one": "{n} file na naka-embed",
+    "other": "{n} file na naka-embed"
+  },
+  "{n} external references": {
+    "one": "{n} panlabas na sanggunian",
+    "other": "{n} panlabas na sanggunian"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} file ang hindi na-pack at naiwan",
+    "other": "{n} file ang hindi na-pack at naiwan"
+  },
+  "{n} folders": {
+    "one": "{n} folder",
+    "other": "{n} folder"
+  },
+  "{n} font files": {
+    "one": "{n} font file",
+    "other": "{n} font file"
+  },
+  "{n} images": {
+    "one": "{n} larawan",
+    "other": "{n} larawan"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} larawan ang hindi na-restore (puno na ba ang storage?)",
+    "other": "{n} larawan ang hindi na-restore (puno na ba ang storage?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} larawan ang nanatili sa orihinal - iisa lang ang tahanan ng mga larawan; gamitin ang Cut para ilipat ang mga ito",
+    "other": "{n} larawan ang nanatili sa orihinal - iisa lang ang tahanan ng mga larawan; gamitin ang Cut para ilipat ang mga ito"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} input · para sa bawat design",
+    "other": "{n} input · para sa bawat design"
+  },
+  "{n} items": {
+    "one": "{n} item",
+    "other": "{n} item"
+  },
+  "{n} items copied": {
+    "one": "{n} item ang na-copy",
+    "other": "{n} item ang na-copy"
+  },
+  "{n} items cut": {
+    "one": "{n} item ang na-cut",
+    "other": "{n} item ang na-cut"
+  },
+  "{n} items moved": {
+    "one": "{n} item ang inilipat",
+    "other": "{n} item ang inilipat"
+  },
+  "{n} items pasted": {
+    "one": "{n} item ang na-paste",
+    "other": "{n} item ang na-paste"
+  },
+  "{n} keyframes": {
+    "one": "{n} keyframe",
+    "other": "{n} keyframe"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "other": "{n} logo"
+  },
+  "{n} marks found": {
+    "one": "{n} mark ang nahanap",
+    "other": "{n} mark ang nahanap"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} mas bagong item ang nilaktawan",
+    "other": "{n} mas bagong item ang nilaktawan"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} sa mga ginawa mo ay video o animation",
+    "other": "{n} sa mga ginawa mo ay video o animation"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} mas lumang awtomatikong checkpoint ang hindi ipinapakita",
+    "other": "{n} mas lumang awtomatikong checkpoint ang hindi ipinapakita"
+  },
+  "{n} pages": {
+    "one": "{n} pahina",
+    "other": "{n} pahina"
+  },
+  "{n} places": {
+    "one": "{n} lugar",
+    "other": "{n} lugar"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} point - pindutin nang matagal ang Alt para sa corner",
+    "other": "{n} point - pindutin nang matagal ang Alt para sa corner"
+  },
+  "{n} published versions": {
+    "one": "{n} nai-publish na bersyon",
+    "other": "{n} nai-publish na bersyon"
+  },
+  "{n} results": {
+    "one": "{n} resulta",
+    "other": "{n} resulta"
+  },
+  "{n} saved sessions": {
+    "one": "{n} naka-save na session",
+    "other": "{n} naka-save na session"
+  },
+  "{n} selected": {
+    "one": "{n} napili",
+    "other": "{n} napili"
+  },
+  "{n} selected assets": {
+    "one": "{n} napiling asset",
+    "other": "{n} napiling asset"
+  },
+  "{n} sessions": {
+    "one": "{n} session",
+    "other": "{n} session"
+  },
+  "{n} shapes": {
+    "one": "{n} shape",
+    "other": "{n} shape"
+  },
+  "{n} steps": {
+    "one": "{n} hakbang",
+    "other": "{n} hakbang"
+  },
+  "{n} templates": {
+    "one": "{n} template",
+    "other": "{n} template"
+  },
+  "{n} volume keys": {
+    "one": "{n} volume key",
+    "other": "{n} volume key"
+  },
+  "{n} words": {
+    "one": "{n} salita",
+    "other": "{n} salita"
+  }
 }

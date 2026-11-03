@@ -577,7 +577,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Voert de diepere AI-tekstcontrole uit bij Verifiëren en in Assets.",
   "Card size": "Kaartgrootte",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Er is 1 afbeelding of bestand toegevoegd op dit apparaat. Het blijft op dit apparaat en anderen zien dat bestand niet.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Er zijn {n} afbeeldingen of bestanden toegevoegd op dit apparaat. Ze blijven op dit apparaat en anderen zien die bestanden niet.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "Er is {n} afbeelding of bestand toegevoegd op dit apparaat. Het blijft op dit apparaat en anderen zien dat bestand niet.",
+    "other": "Er zijn {n} afbeeldingen of bestanden toegevoegd op dit apparaat. Ze blijven op dit apparaat en anderen zien die bestanden niet."
+  },
   "Check the version first": "Controleer eerst de versie",
   "Copy team link": "Teamlink kopiëren",
   "Could not create the project. Try again.": "Het project kon niet worden gemaakt. Probeer het opnieuw.",
@@ -1168,7 +1171,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Alle items zijn opgeslagen in het gedeelde project. De lokale originelen staan in de prullenbak of nog op hun plek.",
   "Your local items have not changed.": "Je lokale items zijn niet gewijzigd.",
   "1 item was saved to the shared project.": "1 item is opgeslagen in het gedeelde project.",
-  "{n} items were saved to the shared project.": "{n} items zijn opgeslagen in het gedeelde project.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} item is opgeslagen in het gedeelde project.",
+    "other": "{n} items zijn opgeslagen in het gedeelde project."
+  },
   "Wait for the current move to finish.": "Wacht tot het huidige verplaatsen klaar is.",
   "You cannot save to that shared project.": "Je kunt niet opslaan in dat gedeelde project.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Iedereen die {project} kan openen, ziet deze items. Zodra elk item daar is opgeslagen, gaan de lokale originelen naar de prullenbak, waar je ze kunt herstellen.",
@@ -1479,8 +1485,14 @@
   "file": "bestand",
   "samples": "samples",
   "text": "tekst",
-  "{n} changes found": "{n} wijzigingen gevonden",
-  "{n} pages differ": "{n} pagina’s verschillen",
+  "{n} changes found": {
+    "one": "{n} wijziging gevonden",
+    "other": "{n} wijzigingen gevonden"
+  },
+  "{n} pages differ": {
+    "one": "{n} pagina verschilt",
+    "other": "{n} pagina's verschillen"
+  },
   "Draft": "Concept",
   "Draft quality": "Conceptkwaliteit",
   "Draft rule": "Conceptregel",
@@ -1833,5 +1845,170 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek. Houd ingedrukt voor het Potlood (Shift C) en het splinetype",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek",
   "Recipients can change the inputs": "Ontvangers mogen de invoer wijzigen",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Iedereen met de link kan de invoer wijzigen en een nieuwe afbeelding krijgen. Vergrendelde invoer blijft zoals ingesteld."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Iedereen met de link kan de invoer wijzigen en een nieuwe afbeelding krijgen. Vergrendelde invoer blijft zoals ingesteld.",
+  "{count} entries": {
+    "one": "{count} vermelding",
+    "other": "{count} vermeldingen"
+  },
+  "{count} files in this folder": {
+    "one": "{count} bestand in deze map",
+    "other": "{count} bestanden in deze map"
+  },
+  "{n} assets": {
+    "one": "{n} asset",
+    "other": "{n} assets"
+  },
+  "{n} assets found": {
+    "one": "{n} asset gevonden",
+    "other": "{n} assets gevonden"
+  },
+  "{n} capabilities match": {
+    "one": "{n} mogelijkheid komt overeen",
+    "other": "{n} mogelijkheden komen overeen"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} kopie gemaakt · geselecteerd",
+    "other": "{n} kopieën gemaakt · geselecteerd"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} creatie die hier uit Projecten werd verwijderd, bleef verwijderd.",
+    "other": "{n} creaties die hier uit Projecten werden verwijderd, bleven verwijderd."
+  },
+  "{n} embedded files": {
+    "one": "{n} ingebed bestand",
+    "other": "{n} ingebedde bestanden"
+  },
+  "{n} external references": {
+    "one": "{n} externe verwijzing",
+    "other": "{n} externe verwijzingen"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} bestand kon niet worden verpakt en is overgeslagen",
+    "other": "{n} bestanden konden niet worden verpakt en zijn overgeslagen"
+  },
+  "{n} folders": {
+    "one": "{n} map",
+    "other": "{n} mappen"
+  },
+  "{n} font files": {
+    "one": "{n} lettertypebestand",
+    "other": "{n} lettertypebestanden"
+  },
+  "{n} images": {
+    "one": "{n} afbeelding",
+    "other": "{n} afbeeldingen"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} afbeelding kon niet worden hersteld (opslag vol?)",
+    "other": "{n} afbeeldingen konden niet worden hersteld (opslag vol?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} afbeelding bleef bij het origineel - afbeeldingen hebben één plek; gebruik Knippen om ze te verplaatsen",
+    "other": "{n} afbeeldingen bleven bij het origineel - afbeeldingen hebben één plek; gebruik Knippen om ze te verplaatsen"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} invoerveld · geldt voor elk ontwerp",
+    "other": "{n} invoervelden · gelden voor elk ontwerp"
+  },
+  "{n} items": {
+    "one": "{n} item",
+    "other": "{n} items"
+  },
+  "{n} items copied": {
+    "one": "{n} item gekopieerd",
+    "other": "{n} items gekopieerd"
+  },
+  "{n} items cut": {
+    "one": "{n} item geknipt",
+    "other": "{n} items geknipt"
+  },
+  "{n} items moved": {
+    "one": "{n} item verplaatst",
+    "other": "{n} items verplaatst"
+  },
+  "{n} items pasted": {
+    "one": "{n} item geplakt",
+    "other": "{n} items geplakt"
+  },
+  "{n} keyframes": {
+    "one": "{n} keyframe",
+    "other": "{n} keyframes"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "other": "{n} logo's"
+  },
+  "{n} marks found": {
+    "one": "{n} merk gevonden",
+    "other": "{n} merken gevonden"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} nieuwer item overgeslagen",
+    "other": "{n} nieuwere items overgeslagen"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} van je creaties is een video of animatie",
+    "other": "{n} van je creaties zijn video's of animaties"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} ouder automatisch checkpoint weggelaten",
+    "other": "{n} oudere automatische checkpoints weggelaten"
+  },
+  "{n} pages": {
+    "one": "{n} pagina",
+    "other": "{n} pagina's"
+  },
+  "{n} places": {
+    "one": "{n} plek",
+    "other": "{n} plekken"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punt - houd Alt ingedrukt voor een hoek",
+    "other": "{n} punten - houd Alt ingedrukt voor een hoek"
+  },
+  "{n} published versions": {
+    "one": "{n} gepubliceerde versie",
+    "other": "{n} gepubliceerde versies"
+  },
+  "{n} results": {
+    "one": "{n} resultaat",
+    "other": "{n} resultaten"
+  },
+  "{n} saved sessions": {
+    "one": "{n} opgeslagen sessie",
+    "other": "{n} opgeslagen sessies"
+  },
+  "{n} selected": {
+    "one": "{n} geselecteerd",
+    "other": "{n} geselecteerd"
+  },
+  "{n} selected assets": {
+    "one": "{n} geselecteerde asset",
+    "other": "{n} geselecteerde assets"
+  },
+  "{n} sessions": {
+    "one": "{n} sessie",
+    "other": "{n} sessies"
+  },
+  "{n} shapes": {
+    "one": "{n} vorm",
+    "other": "{n} vormen"
+  },
+  "{n} steps": {
+    "one": "{n} stap",
+    "other": "{n} stappen"
+  },
+  "{n} templates": {
+    "one": "{n} sjabloon",
+    "other": "{n} sjablonen"
+  },
+  "{n} volume keys": {
+    "one": "{n} volumetoets",
+    "other": "{n} volumetoetsen"
+  },
+  "{n} words": {
+    "one": "{n} woord",
+    "other": "{n} woorden"
+  },
+  "Importing {n} files…": "{n} bestanden importeren…"
 }

@@ -3615,7 +3615,7 @@
   "Makes a transparent copy you can swap onto this track.": "このトラックに差し替えられる透明なコピーを作成します。",
   "Makes pictures larger with Upscale, for photos, illustrations and faces.": "アップスケールで、写真、イラスト、顔を拡大します。",
   "Manage": "管理",
-  "Manage asset versions…": "資産のバージョンを管理する",
+  "Manage asset versions…": "アセットのバージョンを管理…",
   "Manage connections": "接続を管理",
   "Manage fonts": "フォントを管理",
   "Manage instance design systems": "インスタンスのデザインシステムを管理",
@@ -4663,7 +4663,7 @@
   "Prepared scene": "準備したシーン",
   "Prepared vector appearance": "準備されたベクターの外観",
   "Preparing": "準備中",
-  "Preparing download…": "ダウンロードを準備する",
+  "Preparing download…": "ダウンロードを準備中…",
   "Preparing fonts and images…": "フォントと画像を準備中…",
   "Preparing paths…": "パスの準備中…",
   "Preparing previews…": "プレビューを準備中…",
@@ -5270,7 +5270,7 @@
   "Retry details": "詳細を再試行",
   "Retry download": "ダウンロードを再試行",
   "Retry failed copies": "失敗したコピーを再試行",
-  "Retry with original…": "オリジナルで再試す",
+  "Retry with original…": "オリジナルで再試行…",
   "Retrying failed rows": "失敗した行を再試行中",
   "Retrying…": "再試行中…",
   "Return to render choices": "レンダリングの選択肢に戻る",
@@ -8042,10 +8042,14 @@
   "{count} controls you changed stay yours.": "変更した {count} 件のコントロールはそのまま維持されます。",
   "{count} days": "{count}日",
   "{count} decisions from the last version still apply.": "前のバージョンでの決定{count}件がまだ適用されます。",
-  "{count} entries": "{count}件",
+  "{count} entries": {
+    "other": "{count}件の項目"
+  },
   "{count} files / variations": "{count}個のファイル / バリエーション",
   "{count} files chosen": "{count}個のファイルを選択",
-  "{count} files in this folder": "このフォルダ内のファイル{count}件",
+  "{count} files in this folder": {
+    "other": "このフォルダ内のファイル{count}件"
+  },
   "{count} for {names}": "{names}の{count}",
   "{count} for “{query}” in {scope}": "{scope} 内の「{query}」に一致する {count} 件",
   "{count} layouts": "レイアウト{count}件",
@@ -8219,19 +8223,27 @@
   "{n} added to favourites": "{n}件をお気に入りに追加しました",
   "{n} added to the design system": "{n}件をデザインシステムに追加しました",
   "{n} asset IDs": "アセットID {n}件",
-  "{n} assets": "{n} 件のアセット",
+  "{n} assets": {
+    "other": "{n}件のアセット"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} 資産は回復できない 備蓄を保持する",
-  "{n} assets found": "{n} 件のアセットが見つかりました",
+  "{n} assets found": {
+    "other": "{n}件のアセットが見つかりました"
+  },
   "{n} assets zipped · {c} with Content Credentials": "アセット{n}件をzip化 · {c}件に Content Credentials",
   "{n} available offline": "{n}件がオフラインで利用可能です",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n}個のボックス。ワンクリックで完全なモーションアークを作成します - すべてのキーフレームは後から編集可能なままです。",
-  "{n} capabilities match": "{n}件の機能が一致します",
+  "{n} capabilities match": {
+    "other": "{n}件の機能が一致します"
+  },
   "{n} cards are left to review.": "確認するカードが{n}枚残っています。",
   "{n} cards are still to answer.": "未回答のカードが{n}枚あります。",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "未回答のカードが{n}枚あります。提案どおりに受け入れて Design で開きますか。",
   "{n} ch": "{n} 文字",
   "{n} changed": "{n}件変更しました",
-  "{n} changes found": "{n}件の変更が見つかりました",
+  "{n} changes found": {
+    "other": "{n}件の変更が見つかりました"
+  },
   "{n} characters continue beyond the last frame.": "{n} 文字は最後のフレームを超えて続きます。",
   "{n} checks": "{n} チェック",
   "{n} clips selected": "クリップ{n}件を選択中",
@@ -8246,7 +8258,9 @@
   "{n} connectors - editing all": "{n}個のコネクタ — すべて編集中",
   "{n} copies added to your projects": "{n}件のコピーをプロジェクトに追加しました",
   "{n} copies in total": "合計{n}件のコピー",
-  "{n} copies made · selected": "{n} 件のコピーを作成・選択済み",
+  "{n} copies made · selected": {
+    "other": "{n}件のコピーを作成・選択済み"
+  },
   "{n} creation checkpoints": "作品のチェックポイント{n}件",
   "{n} curly quotes": "巻き引用符{n}件",
   "{n} days ago": "{n} 数日前",
@@ -8263,24 +8277,34 @@
   "{n} editable inputs. Unselected settings stay fixed.": "編集可能な入力{n}件。選択していない設定は固定のままです。",
   "{n} ellipsis characters": "省略記号{n}件",
   "{n} em-dashes": "emダッシュ{n}件",
-  "{n} embedded files": "{n} 埋め込みファイル",
-  "{n} external references": "{n} 外部の参照",
+  "{n} embedded files": {
+    "other": "埋め込みファイル{n}件"
+  },
+  "{n} external references": {
+    "other": "外部参照{n}件"
+  },
   "{n} fields": "{n} 個のフィールド",
   "{n} file batches": "{n} ファイルパッチ",
   "{n} file operation records": "{n} ファイル操作記録",
   "{n} files": "{n} 件のファイル",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n}件のファイルは PowerPoint デッキ、PDF、Photoshop ドキュメントのいずれでもないため、除外しました。",
   "{n} files are ready to import.": "{n}個のファイルのインポート準備ができています。",
-  "{n} files could not be packed and were left out": "{n}件のファイルをパックできず、除外しました",
+  "{n} files could not be packed and were left out": {
+    "other": "{n}件のファイルをパックできず、除外しました"
+  },
   "{n} files imported from the zip.": "zipから{n}件のファイルをインポートしました。",
   "{n} files imported from the zip; {skipped} skipped.": "zipから{n}件のファイルをインポートし、{skipped}件をスキップしました。",
   "{n} files ready": "{n} ファイル準備",
   "{n} findings": "{n} 発見",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "検出結果が{n}件見つかりました。編集可能な提案は選択済みで、検査のみの Office の検出結果は変更されません。検査パネルを確認してください。",
-  "{n} folders": "{n} 個のフォルダ",
+  "{n} folders": {
+    "other": "{n}個のフォルダ"
+  },
   "{n} font changes": "フォントの変更{n}件",
   "{n} font choices": "フォントの選択{n}件",
-  "{n} font files": "{n} フォントファイル",
+  "{n} font files": {
+    "other": "フォントファイル{n}件"
+  },
   "{n} fonts": "フォント{n}件",
   "{n} fonts found": "{n}個のフォントが見つかりました",
   "{n} fonts from the deck are set in another face.": "デッキのフォント{n}件は別の書体で設定されています。",
@@ -8292,31 +8316,55 @@
   "{n} hidden - find them under “Show hidden tools”": "{n}件を非表示中 - 「非表示のツールを表示」から確認できます",
   "{n} hidden shades stay hidden": "{n}個の非表示シェードは非表示のままです",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} 履歴項目を復元できませんでした.バックアップを保持し,空きスペースを保持し,また試す前に矛盾するバージョンを解決します.",
-  "{n} images": "{n} 枚の画像",
-  "{n} images couldn’t be restored (storage full?)": "{n} 枚の画像を復元できませんでした（ストレージ容量不足の可能性があります）",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n}件の画像は元の場所に残りました - 画像の置き場所は1つです。移動するには切り取りを使用してください",
+  "{n} images": {
+    "other": "{n}枚の画像"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n}枚の画像を復元できませんでした（ストレージ容量不足の可能性があります）"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n}件の画像は元の場所に残りました - 画像の置き場所は1つです。移動するには切り取りを使用してください"
+  },
   "{n} included tools (asked before installing)": "含まれるツール{n}件(インストール前に確認)",
   "{n} ink": "{n} インク",
-  "{n} inputs · applies to every design": "{n}件の入力項目 · すべてのデザインに適用",
+  "{n} inputs · applies to every design": {
+    "other": "{n}件の入力項目 · すべてのデザインに適用"
+  },
   "{n} invisible watermark(s) found": "{n}件の不可視透かしが見つかりました",
   "{n} issues to review before sharing.": "共有する前に確認する問題が{n}件あります。",
-  "{n} items": "{n} 件のアイテム",
-  "{n} items copied": "{n}件コピーしました",
-  "{n} items cut": "{n}件切り取りました",
-  "{n} items moved": "{n} 件のアイテムを移動しました",
-  "{n} items pasted": "{n}件貼り付けました",
+  "{n} items": {
+    "other": "{n}件のアイテム"
+  },
+  "{n} items copied": {
+    "other": "{n}件のアイテムをコピーしました"
+  },
+  "{n} items cut": {
+    "other": "{n}件のアイテムを切り取りました"
+  },
+  "{n} items moved": {
+    "other": "{n}件のアイテムを移動しました"
+  },
+  "{n} items pasted": {
+    "other": "{n}件のアイテムを貼り付けました"
+  },
   "{n} items removed": "項目{n}件を削除しました",
   "{n} jobs": "{n}件のジョブ",
   "{n} kept": "{n}件保持",
   "{n} kept in the tray": "{n}件をトレイに保持",
-  "{n} keyframes": "キーフレーム {n} 個",
+  "{n} keyframes": {
+    "other": "キーフレーム{n}個"
+  },
   "{n} labelled stand-ins take the place of objects.": "名前付きの代替{n}件がオブジェクトの代わりになります。",
   "{n} layers": "{n}レイヤー",
   "{n} layers found": "{n}件のレイヤーが見つかりました",
   "{n} list lines": "リスト{n}行",
-  "{n} logos": "{n} ロゴ",
+  "{n} logos": {
+    "other": "{n}件のロゴ"
+  },
   "{n} marks became the design system mark.": "{n}個のマークがデザインシステムのマークになりました。",
-  "{n} marks found": "{n}件のマークが見つかりました",
+  "{n} marks found": {
+    "other": "{n}件のマークが見つかりました"
+  },
   "{n} marks sent to Logos": "{n}件のマークをロゴに送信しました",
   "{n} min ago": "{n} ほんの少し前に",
   "{n} more findings in this document.": "このドキュメントにはほかに検出結果が{n}件あります。",
@@ -8328,7 +8376,9 @@
   "{n} more slides": "スライドあと{n}枚",
   "{n} moved to {group}.": "{n}件を{group}に移動しました。",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "収まらなかった内容を入れた新しいスライドが{n}枚あり、スライド番号がずれました。",
-  "{n} newer items skipped": "{n} 件の新しいアイテムをスキップしました",
+  "{n} newer items skipped": {
+    "other": "{n}件の新しいアイテムをスキップしました"
+  },
   "{n} nits": "{n}ニト",
   "{n} not drawn": "描画されず{n}件",
   "{n} objects added": "オブジェクト{n}件を追加",
@@ -8341,7 +8391,9 @@
   "{n} objects overlap the slide master.": "オブジェクト{n}件がスライドマスターと重なっています。",
   "{n} objects removed": "オブジェクト{n}件を削除",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "オブジェクト{n}件は、クリッピングやエフェクトを画像として保持しています。形を変えるには、アートワーク全体を置き換えてください。",
-  "{n} of your creations are videos or animations": "作成物のうち {n} 件が動画またはアニメーションです",
+  "{n} of your creations are videos or animations": {
+    "other": "作品のうち{n}件が動画またはアニメーションです"
+  },
   "{n} of {m}": "{m}件中{n}件",
   "{n} of {total} downloaded": "{total}件中{n}件をダウンロード済み",
   "{n} of {total} downloaded · {size} on disk": "{total}件中{n}件をダウンロード済み・ディスク使用量{size}",
@@ -8352,57 +8404,79 @@
   "{n} off": "{n}件オフ",
   "{n} on": "{n}件オン",
   "{n} other colourways keep their own colours: {names}": "ほかの{n}個のカラーウェイは独自の色を保ちます: {names}",
-  "{n} pages": "{n} ページ",
+  "{n} pages": {
+    "other": "{n}ページ"
+  },
   "{n} pages are pictures of their text.": "{n}ページがテキストの画像です。",
-  "{n} pages differ": "{n}ページが異なります",
+  "{n} pages differ": {
+    "other": "{n}ページが異なります"
+  },
   "{n} pages had no size, so they were left out.": "{n}ページにサイズがなかったため、除外しました。",
   "{n} pictures": "画像{n}枚",
   "{n} pictures are missing.": "画像{n}枚が見つかりません。",
   "{n} pictures in the deck were not kept.": "デッキ内の画像{n}枚は保持されませんでした。",
-  "{n} places": "{n} か所",
+  "{n} places": {
+    "other": "{n}か所"
+  },
   "{n} points": "{n} 点",
-  "{n} points - hold Alt for a corner": "{n} 点 - Alt を押すと角に",
+  "{n} points - hold Alt for a corner": {
+    "other": "{n}点 - Altを押したままにすると角になります"
+  },
   "{n} preserved file": "保持されたファイル{n}件",
   "{n} preserved files": "保持されたファイル{n}件",
   "{n} print locks re-pinned": "{n}件の印刷ロックを再固定しました",
   "{n} proposed changes": "{n}件の変更案",
   "{n} protected drafts": "保護された下書き{n}件",
   "{n} published version": "公開されたバージョン{n}件",
-  "{n} published versions": "公開されたバージョン{n}件",
+  "{n} published versions": {
+    "other": "公開済みバージョン{n}件"
+  },
   "{n} recorded": "{n}件記録済み",
   "{n} removed from favourites": "{n}件をお気に入りから削除しました",
   "{n} removed from offline": "{n}件をオフラインから削除しました",
   "{n} removed. A tool naming it will lose it.": "{n}件を削除しました。これを参照しているツールは失われます。",
   "{n} removed. A tool naming one of these will lose it.": "{n}件を削除しました。これらのいずれかを参照しているツールは失われます。",
   "{n} renders": "{n}件のレンダリング",
-  "{n} results": "{n} 件の結果",
+  "{n} results": {
+    "other": "{n}件の結果"
+  },
   "{n} roles re-derived": "{n}件の役割を再導出しました",
   "{n} rotated runs left out": "回転したテキスト {n} 件を除外",
   "{n} saved asset versions": "{n} 保存された資産バージョン",
   "{n} saved for offline, {m} failed - check your connection": "{n}件をオフライン用に保存、{m}件失敗 - 接続を確認してください",
-  "{n} saved sessions": "{n} 件の保存済みセッション",
+  "{n} saved sessions": {
+    "other": "保存済みセッション{n}件"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "保存済みシステム{n}件をプレビューできませんでした。プロフィールから開いて管理してください。",
   "{n} scanned": "スキャン {n} 件",
   "{n} scanned pages read.": "スキャンしたページ{n}枚を読み取りました。",
   "{n} scanned pages were left unread to keep this quick.": "処理を高速にするため、{n}ページのスキャンページは読み込まれませんでした。",
   "{n} scanned pages were not read because Text recognition is not on this device.": "スキャンしたページ{n}枚は、このデバイスにテキスト認識がないため読み取れませんでした。",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n}ページのスキャンページはオンデバイス文字認識で読み込まれたため、それらのページでは隠し文字のチェックを実行できませんでした。",
-  "{n} selected": "{n} 件選択中",
-  "{n} selected assets": "選択したアセット{n}件",
+  "{n} selected": {
+    "other": "{n}件選択中"
+  },
+  "{n} selected assets": {
+    "other": "選択したアセット{n}件"
+  },
   "{n} selected files": "選択したファイル{n}件",
   "{n} selected items could not be outlined and were left as they are.": "{n}件の選択項目はアウトライン化できず、そのまま残されました。",
   "{n} selected items have no outline, so they were left as they are.": "選択した {n} 件の項目に輪郭がないため、そのままにしました。",
   "{n} selected · {size}": "{n} 件選択中 · {size}",
   "{n} sentences": "{n}文",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n}件の文には点線の下線が付いています。オンデバイスモデルがより平易な言い換えを提案できます。提案を受け入れると、保存されたコピーはAI支援ありとしてフラグが付けられ、モデルの言い回しにはLollyの公開言い換え透かしが含まれるため、AIが書いたテキストはVerifyで検出可能なままです。",
-  "{n} sessions": "{n} 件のセッション",
+  "{n} sessions": {
+    "other": "セッション{n}件"
+  },
   "{n} set": "{n} 件設定",
   "{n} shade curves re-anchored": "{n}件のシェードカーブを再アンカーしました",
   "{n} shades added to your palette": "パレットにシェード{n}つを追加しました",
   "{n} shades added. Undo is available above your palette.": "シェードを{n}つ追加しました。パレットの上で元に戻せます。",
   "{n} shades could not reach their target (capped at the closest tone).": "{n}件のシェードが目標に到達できませんでした（最も近いトーンで上限としました）。",
   "{n} shades rebuilt across {ramps} ramps": "{ramps}個のランプにわたって{n}件のシェードを再構築しました",
-  "{n} shapes": "{n}個の図形",
+  "{n} shapes": {
+    "other": "{n}個の図形"
+  },
   "{n} shapes · page {p}": "{n} シェイプ · {p} ページ",
   "{n} shared assets were kept.": "共有アセット{n}件を保持しました。",
   "{n} slides narrated.": "{n}枚のスライドをナレーションしました。",
@@ -8410,11 +8484,15 @@
   "{n} spectrum hues rebuilt": "{n}件のスペクトル色相を再構築しました",
   "{n} stages of work": "作業の段階{n}件",
   "{n} starter colours": "スターターカラー{n}色",
-  "{n} steps": "{n} ステップ",
+  "{n} steps": {
+    "other": "{n}ステップ"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "提案が{n}件見つかりました。コピーは選択した状態で準備されます。検査パネルで調整できます。",
   "{n} suggestions were applied without review.": "提案{n}件がレビューなしで適用されました。",
   "{n} swatches removed": "{n}件のスウォッチを削除しました",
-  "{n} templates": "{n}件のテンプレート",
+  "{n} templates": {
+    "other": "{n}件のテンプレート"
+  },
   "{n} templates added": "テンプレート{n}件を追加",
   "{n} templates deleted": "テンプレート{n}件を削除",
   "{n} templates saved": "テンプレート{n}件を保存",
@@ -8434,11 +8512,15 @@
   "{n} unsupported backup parts skipped": "{n} サポートされていないバックアップ部品を飛ばした",
   "{n} value changes": "値の変更{n}件",
   "{n} values change": "値{n}件が変更されます",
-  "{n} volume keys": "{n}件の音量キー",
+  "{n} volume keys": {
+    "other": "音量キー{n}個"
+  },
   "{n} warnings.": "{n}件の警告。",
   "{n} were kept - they are not this room to remove.": "{n}件を保持しました。この部屋で削除する対象ではありません。",
   "{n} wording swaps are underlined in the preview.": "プレビューでは{n}件の言い回しの置き換えに下線が付いています。",
-  "{n} words": "{n} 語",
+  "{n} words": {
+    "other": "{n}語"
+  },
   "{n} words cut": "{n}語カット",
   "{n} yours": "あなたの{n}件",
   "{n}-bit": "{n} ビット",
@@ -8832,7 +8914,9 @@
   "1 design was added to Projects, in 1 folder.": "デザイン1件を Projects の1つのフォルダに追加しました。",
   "1 design was added to Projects, in {f} folders.": "デザイン1件を Projects の{f}個のフォルダに追加しました。",
   "1 design was added to Projects.": "デザイン1件を Projects に追加しました。",
-  "{n} creations removed from Projects here stayed removed.": "ここでプロジェクトから削除された{n}件の作品は、削除されたままです。",
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "ここでプロジェクトから削除された{n}件の作品は、削除されたままです。"
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "この作品は一度も保存されていないため、保存せずに離れるとプロジェクトから削除されます。",
   "This deck has no colours to change.": "このデッキには変更できる色がありません。",
   "This deck has no fonts to change.": "このデッキには変更できるフォントがありません。",
@@ -8862,7 +8946,9 @@
   "This saved version could not be read.": "この保存済みのバージョンを読み込めませんでした。",
   "1 older automatic checkpoint left out": "非表示の古い自動チェックポイントが1件",
   "1 other colourway keeps its own colours: {names}": "もう1つのカラーウェイは独自の色を保ちます: {names}",
-  "{n} older automatic checkpoints left out": "非表示の古い自動チェックポイントが{n}件",
+  "{n} older automatic checkpoints left out": {
+    "other": "古い自動チェックポイント{n}件を除外しました"
+  },
   "Automatic recovery and checkpoints are on": "自動復元とチェックポイントがオンです",
   "Automatic recovery is unavailable here. Save before leaving.": "ここでは自動復旧を利用できません。離れる前に保存してください。",
   "Checkpoint saved at {time} on this device": "{time}にこの端末でチェックポイントが保存されました",
@@ -9045,7 +9131,9 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Web版で表示できないサイトを表示するため、Lollyはこの端末でより緩いフレームポリシーで再読み込みし、プレゼンの前にサイトごとに確認できます。プロフィールの「信頼済みのサイト」でオフにできます。",
   "Card size": "カードのサイズ",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "このデバイスで追加された画像またはファイルが1件あります。このデバイスにのみ保存され、他の人にはそのファイルは表示されません。",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "このデバイスで追加された画像またはファイルが{n}件あります。このデバイスにのみ保存され、他の人にはそれらのファイルは表示されません。",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "このデバイスで追加された画像またはファイルが{n}件あります。このデバイスにのみ保存され、他の人にはそれらのファイルは表示されません。"
+  },
   "Check the version first": "先にバージョンを確認してください",
   "Copy team link": "チームリンクをコピー",
   "Could not create the project. Try again.": "プロジェクトを作成できませんでした。もう一度お試しください。",
@@ -9793,7 +9881,9 @@
   "Every mode": "すべてのモード",
   "Your local items have not changed.": "ローカルの項目は変更されていません。",
   "1 item was saved to the shared project.": "1 件の項目が共有プロジェクトに保存されました。",
-  "{n} items were saved to the shared project.": "{n} 件の項目が共有プロジェクトに保存されました。",
+  "{n} items were saved to the shared project.": {
+    "other": "{n}件の項目が共有プロジェクトに保存されました。"
+  },
   "Wait for the current move to finish.": "現在の移動が完了するまでお待ちください。",
   "Wait for the deck to finish reading, then choose a picture.": "デッキの読み取りが終わるのを待ってから、画像を選んでください。",
   "Wait for the grid to finish rendering before moving its layers.": "グリッドのレンダリングが終わるのを待ってから、レイヤーを移動してください。",
@@ -10645,5 +10735,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "このクリップは {codec} を使用しており、このデバイスでは再生できません。編集アプリから H.264、HEVC、AV1 のいずれかのコピーを書き出すか、Mac の Lolly デスクトップアプリで開いてください。Lolly は元のファイルを保持します。",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "このクリップは {codec} を使用しており、このデバイスでは再生できません。編集アプリから H.264、HEVC、AV1 のいずれかのコピーを書き出してください。Lolly は元のファイルを保持します。",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "これは {codec} の MXF ファイルです。Lolly は中身を読み取れますが、MXF を再生できません。編集アプリから H.264、HEVC、AV1 のいずれかのコピーを書き出してください。Lolly は元のファイルを保持します。",
-  "{format} from {camera}": "{camera} の {format}"
+  "{format} from {camera}": "{camera} の {format}",
+  "Filling a large area. This can take a moment.": "広い領域を塗りつぶしています。しばらくお待ちください。",
+  "Large area": "広い領域"
 }

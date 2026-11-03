@@ -600,7 +600,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Führt die tiefere KI-Text-Prüfung bei Verify und in Assets aus.",
   "Card size": "Kartengröße",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 Bild oder Datei wurde auf diesem Gerät hinzugefügt. Sie bleibt auf diesem Gerät, und andere sehen diese Datei nicht.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} Bilder oder Dateien wurden auf diesem Gerät hinzugefügt. Sie bleiben auf diesem Gerät, und andere sehen diese Dateien nicht.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "{n} Bild oder Datei wurde auf diesem Gerät hinzugefügt. Sie bleibt auf diesem Gerät, und andere sehen diese Datei nicht.",
+    "other": "{n} Bilder oder Dateien wurden auf diesem Gerät hinzugefügt. Sie bleiben auf diesem Gerät, und andere sehen diese Dateien nicht."
+  },
   "Check the version first": "Prüfen Sie zuerst die Version",
   "Copy team link": "Team-Link kopieren",
   "Could not create the project. Try again.": "Das Projekt konnte nicht erstellt werden. Versuchen Sie es erneut.",
@@ -1176,7 +1179,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Alle Elemente sind im geteilten Projekt gespeichert. Die lokalen Originale liegen im Papierkorb oder noch am alten Ort.",
   "Your local items have not changed.": "Ihre lokalen Elemente haben sich nicht geändert.",
   "1 item was saved to the shared project.": "1 Element wurde im geteilten Projekt gespeichert.",
-  "{n} items were saved to the shared project.": "{n} Elemente wurden im geteilten Projekt gespeichert.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} Element wurde im geteilten Projekt gespeichert.",
+    "other": "{n} Elemente wurden im geteilten Projekt gespeichert."
+  },
   "Wait for the current move to finish.": "Warten Sie, bis das aktuelle Verschieben abgeschlossen ist.",
   "You cannot save to that shared project.": "In diesem geteilten Projekt können Sie nicht speichern.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Alle, die {project} öffnen können, sehen diese Elemente. Sobald jedes Element dort gespeichert ist, wandern die lokalen Originale in den Papierkorb, wo Sie sie wiederherstellen können.",
@@ -1487,8 +1493,14 @@
   "file": "Datei",
   "samples": "Stichproben",
   "text": "Text",
-  "{n} changes found": "{n} Änderungen gefunden",
-  "{n} pages differ": "{n} Seiten weichen ab",
+  "{n} changes found": {
+    "one": "{n} Änderung gefunden",
+    "other": "{n} Änderungen gefunden"
+  },
+  "{n} pages differ": {
+    "one": "{n} Seite weicht ab",
+    "other": "{n} Seiten weichen ab"
+  },
   "Draft": "Entwurf",
   "Draft quality": "Entwurfsqualität",
   "Draft rule": "Regelentwurf",
@@ -1840,5 +1852,170 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke. Halten für den Bleistift (Shift C) und den Spline-Typ",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke",
   "Recipients can change the inputs": "Empfänger dürfen die Eingaben ändern",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Jeder mit dem Link kann die Eingaben ändern und ein neues Bild erhalten. Gesperrte Eingaben behalten ihren festgelegten Wert."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Jeder mit dem Link kann die Eingaben ändern und ein neues Bild erhalten. Gesperrte Eingaben behalten ihren festgelegten Wert.",
+  "{count} entries": {
+    "one": "{count} Eintrag",
+    "other": "{count} Einträge"
+  },
+  "{count} files in this folder": {
+    "one": "{count} Datei in diesem Ordner",
+    "other": "{count} Dateien in diesem Ordner"
+  },
+  "{n} assets": {
+    "one": "{n} Asset",
+    "other": "{n} Assets"
+  },
+  "{n} assets found": {
+    "one": "{n} Asset gefunden",
+    "other": "{n} Assets gefunden"
+  },
+  "{n} capabilities match": {
+    "one": "{n} Funktion passt",
+    "other": "{n} Funktionen passen"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} Kopie erstellt · ausgewählt",
+    "other": "{n} Kopien erstellt · ausgewählt"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} Kreation, die hier aus den Projekten entfernt wurde, blieb entfernt.",
+    "other": "{n} Kreationen, die hier aus den Projekten entfernt wurden, blieben entfernt."
+  },
+  "{n} embedded files": {
+    "one": "{n} eingebettete Datei",
+    "other": "{n} eingebettete Dateien"
+  },
+  "{n} external references": {
+    "one": "{n} externe Referenz",
+    "other": "{n} externe Referenzen"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} Datei konnte nicht gepackt werden und wurde ausgelassen",
+    "other": "{n} Dateien konnten nicht gepackt werden und wurden ausgelassen"
+  },
+  "{n} folders": {
+    "one": "{n} Ordner",
+    "other": "{n} Ordner"
+  },
+  "{n} font files": {
+    "one": "{n} Schriftdatei",
+    "other": "{n} Schriftdateien"
+  },
+  "{n} images": {
+    "one": "{n} Bild",
+    "other": "{n} Bilder"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} Bild konnte nicht wiederhergestellt werden (Speicher voll?)",
+    "other": "{n} Bilder konnten nicht wiederhergestellt werden (Speicher voll?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} Bild blieb beim Original - Bilder haben nur einen Ort; zum Verschieben Ausschneiden verwenden",
+    "other": "{n} Bilder blieben beim Original - Bilder haben nur einen Ort; zum Verschieben Ausschneiden verwenden"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} Eingabe · gilt für jedes Design",
+    "other": "{n} Eingaben · gelten für jedes Design"
+  },
+  "{n} items": {
+    "one": "{n} Element",
+    "other": "{n} Elemente"
+  },
+  "{n} items copied": {
+    "one": "{n} Element kopiert",
+    "other": "{n} Elemente kopiert"
+  },
+  "{n} items cut": {
+    "one": "{n} Element ausgeschnitten",
+    "other": "{n} Elemente ausgeschnitten"
+  },
+  "{n} items moved": {
+    "one": "{n} Element verschoben",
+    "other": "{n} Elemente verschoben"
+  },
+  "{n} items pasted": {
+    "one": "{n} Element eingefügt",
+    "other": "{n} Elemente eingefügt"
+  },
+  "{n} keyframes": {
+    "one": "{n} Keyframe",
+    "other": "{n} Keyframes"
+  },
+  "{n} logos": {
+    "one": "{n} Logo",
+    "other": "{n} Logos"
+  },
+  "{n} marks found": {
+    "one": "{n} Markierung gefunden",
+    "other": "{n} Markierungen gefunden"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} neueres Element übersprungen",
+    "other": "{n} neuere Elemente übersprungen"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} Kreation ist ein Video oder eine Animation",
+    "other": "{n} Ihrer Kreationen sind Videos oder Animationen"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} älterer automatischer Checkpoint ausgelassen",
+    "other": "{n} ältere automatische Checkpoints ausgelassen"
+  },
+  "{n} pages": {
+    "one": "{n} Seite",
+    "other": "{n} Seiten"
+  },
+  "{n} places": {
+    "one": "{n} Stelle",
+    "other": "{n} Stellen"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} Punkt - Alt gedrückt halten für eine Ecke",
+    "other": "{n} Punkte - Alt gedrückt halten für eine Ecke"
+  },
+  "{n} published versions": {
+    "one": "{n} veröffentlichte Version",
+    "other": "{n} veröffentlichte Versionen"
+  },
+  "{n} results": {
+    "one": "{n} Ergebnis",
+    "other": "{n} Ergebnisse"
+  },
+  "{n} saved sessions": {
+    "one": "{n} gespeicherte Sitzung",
+    "other": "{n} gespeicherte Sitzungen"
+  },
+  "{n} selected": {
+    "one": "{n} ausgewählt",
+    "other": "{n} ausgewählt"
+  },
+  "{n} selected assets": {
+    "one": "{n} Asset ausgewählt",
+    "other": "{n} Assets ausgewählt"
+  },
+  "{n} sessions": {
+    "one": "{n} Sitzung",
+    "other": "{n} Sitzungen"
+  },
+  "{n} shapes": {
+    "one": "{n} Form",
+    "other": "{n} Formen"
+  },
+  "{n} steps": {
+    "one": "{n} Schritt",
+    "other": "{n} Schritte"
+  },
+  "{n} templates": {
+    "one": "{n} Vorlage",
+    "other": "{n} Vorlagen"
+  },
+  "{n} volume keys": {
+    "one": "{n} Lautstärke-Keyframe",
+    "other": "{n} Lautstärke-Keyframes"
+  },
+  "{n} words": {
+    "one": "{n} Wort",
+    "other": "{n} Wörter"
+  },
+  "Saved versions…": "Gespeicherte Versionen…"
 }

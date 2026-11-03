@@ -600,7 +600,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "वेरिफ़ाई और एसेट में गहरी AI-टेक्स्ट जाँच चलाता है।",
   "Card size": "कार्ड का आकार",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "इस डिवाइस पर 1 इमेज या फ़ाइल जोड़ी गई थी। वह इसी डिवाइस पर रहती है, और दूसरे लोग उस फ़ाइल को नहीं देख पाएँगे।",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "इस डिवाइस पर {n} इमेज या फ़ाइलें जोड़ी गई थीं। वे इसी डिवाइस पर रहती हैं, और दूसरे लोग उन फ़ाइलों को नहीं देख पाएँगे।",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "इस डिवाइस पर {n} इमेज या फ़ाइल जोड़ी गई थी। वह इसी डिवाइस पर रहती है, और दूसरे लोग उस फ़ाइल को नहीं देख पाएँगे।",
+    "other": "इस डिवाइस पर {n} इमेज या फ़ाइलें जोड़ी गई थीं। वे इसी डिवाइस पर रहती हैं, और दूसरे लोग उन फ़ाइलों को नहीं देख पाएँगे।"
+  },
   "Check the version first": "पहले वर्शन जाँच लें",
   "Copy team link": "टीम लिंक कॉपी करें",
   "Could not create the project. Try again.": "प्रोजेक्ट नहीं बनाया जा सका। फिर से कोशिश करें।",
@@ -1177,7 +1180,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "सभी आइटम साझा प्रोजेक्ट में सहेज लिए गए हैं। स्थानीय मूल प्रतियाँ ट्रैश में हैं या अपनी जगह पर ही हैं।",
   "Your local items have not changed.": "आपके स्थानीय आइटम नहीं बदले हैं।",
   "1 item was saved to the shared project.": "1 आइटम साझा प्रोजेक्ट में सहेजा गया।",
-  "{n} items were saved to the shared project.": "{n} आइटम साझा प्रोजेक्ट में सहेजे गए।",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} आइटम साझा प्रोजेक्ट में सहेजा गया।",
+    "other": "{n} आइटम साझा प्रोजेक्ट में सहेजे गए।"
+  },
   "Wait for the current move to finish.": "मौजूदा मूव पूरा होने तक प्रतीक्षा करें।",
   "You cannot save to that shared project.": "आप उस साझा प्रोजेक्ट में नहीं सहेज सकते।",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "{project} खोलने वाला हर व्यक्ति ये आइटम देखेगा। हर आइटम वहाँ सहेजे जाने के बाद स्थानीय मूल प्रतियाँ ट्रैश में चली जाती हैं, जहाँ से आप उन्हें वापस ला सकते हैं।",
@@ -1488,8 +1494,14 @@
   "file": "फ़ाइल",
   "samples": "सैंपल",
   "text": "टेक्स्ट",
-  "{n} changes found": "{n} बदलाव मिले",
-  "{n} pages differ": "{n} पेज अलग हैं",
+  "{n} changes found": {
+    "one": "{n} बदलाव मिला",
+    "other": "{n} बदलाव मिले"
+  },
+  "{n} pages differ": {
+    "one": "{n} पेज अलग है",
+    "other": "{n} पेज अलग हैं"
+  },
   "Draft": "ड्राफ़्ट",
   "Draft quality": "ड्राफ़्ट गुणवत्ता",
   "Draft rule": "ड्राफ़्ट नियम",
@@ -1841,5 +1853,169 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "पेन (P) - पॉइंट रखने के लिए क्लिक करें, कर्व के लिए खींचें, कोने के लिए Alt। पेंसिल (Shift C) और स्प्लाइन टाइप के लिए दबाए रखें",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "पेन (P) - पॉइंट रखने के लिए क्लिक करें, कर्व के लिए खींचें, कोने के लिए Alt",
   "Recipients can change the inputs": "प्राप्तकर्ता इनपुट बदल सकते हैं",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "लिंक वाला कोई भी व्यक्ति इसके इनपुट बदलकर नई इमेज पा सकता है। लॉक किए गए इनपुट वैसे ही रहते हैं जैसे सेट किए गए हैं।"
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "लिंक वाला कोई भी व्यक्ति इसके इनपुट बदलकर नई इमेज पा सकता है। लॉक किए गए इनपुट वैसे ही रहते हैं जैसे सेट किए गए हैं।",
+  "{count} entries": {
+    "one": "{count} प्रविष्टि",
+    "other": "{count} प्रविष्टियां"
+  },
+  "{count} files in this folder": {
+    "one": "इस फ़ोल्डर में {count} फ़ाइल",
+    "other": "इस फ़ोल्डर में {count} फ़ाइलें"
+  },
+  "{n} assets": {
+    "one": "{n} एसेट",
+    "other": "{n} एसेट"
+  },
+  "{n} assets found": {
+    "one": "{n} एसेट मिला",
+    "other": "{n} एसेट मिले"
+  },
+  "{n} capabilities match": {
+    "one": "{n} क्षमता मेल खाती है",
+    "other": "{n} क्षमताएं मेल खाती हैं"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} कॉपी बनाई गई · चयनित",
+    "other": "{n} कॉपी बनाई गईं · चयनित"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} रचना जो यहाँ प्रोजेक्ट्स से हटाई गई थी, हटी ही रही।",
+    "other": "{n} रचनाएँ जो यहाँ प्रोजेक्ट्स से हटाई गई थीं, हटी ही रहीं।"
+  },
+  "{n} embedded files": {
+    "one": "{n} एम्बेडेड फ़ाइल",
+    "other": "{n} एम्बेडेड फ़ाइलें"
+  },
+  "{n} external references": {
+    "one": "{n} बाहरी संदर्भ",
+    "other": "{n} बाहरी संदर्भ"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} फ़ाइल पैक नहीं हो सकी और छोड़ दी गई",
+    "other": "{n} फ़ाइलें पैक नहीं हो सकीं और छोड़ दी गईं"
+  },
+  "{n} folders": {
+    "one": "{n} फ़ोल्डर",
+    "other": "{n} फ़ोल्डर"
+  },
+  "{n} font files": {
+    "one": "{n} फ़ॉन्ट फ़ाइल",
+    "other": "{n} फ़ॉन्ट फ़ाइलें"
+  },
+  "{n} images": {
+    "one": "{n} इमेज",
+    "other": "{n} इमेज"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} इमेज रीस्टोर नहीं हो सकी (स्टोरेज भर गया?)",
+    "other": "{n} इमेज रीस्टोर नहीं हो सकीं (स्टोरेज भर गया?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} इमेज मूल के साथ रही - इमेज का एक ही घर होता है; उसे ले जाने के लिए कट का उपयोग करें",
+    "other": "{n} इमेज मूल के साथ रहीं - इमेज का एक ही घर होता है; उन्हें ले जाने के लिए कट का उपयोग करें"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} इनपुट · हर डिज़ाइन पर लागू",
+    "other": "{n} इनपुट · हर डिज़ाइन पर लागू"
+  },
+  "{n} items": {
+    "one": "{n} आइटम",
+    "other": "{n} आइटम"
+  },
+  "{n} items copied": {
+    "one": "{n} आइटम कॉपी किया गया",
+    "other": "{n} आइटम कॉपी किए गए"
+  },
+  "{n} items cut": {
+    "one": "{n} आइटम कट किया गया",
+    "other": "{n} आइटम कट किए गए"
+  },
+  "{n} items moved": {
+    "one": "{n} आइटम ले जाया गया",
+    "other": "{n} आइटम ले जाए गए"
+  },
+  "{n} items pasted": {
+    "one": "{n} आइटम पेस्ट किया गया",
+    "other": "{n} आइटम पेस्ट किए गए"
+  },
+  "{n} keyframes": {
+    "one": "{n} कीफ़्रेम",
+    "other": "{n} कीफ़्रेम"
+  },
+  "{n} logos": {
+    "one": "{n} लोगो",
+    "other": "{n} लोगो"
+  },
+  "{n} marks found": {
+    "one": "{n} मार्क मिला",
+    "other": "{n} मार्क मिले"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} नया आइटम छोड़ा गया",
+    "other": "{n} नए आइटम छोड़ दिए गए"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "आपकी {n} रचना वीडियो या एनिमेशन है",
+    "other": "आपकी {n} रचनाएँ वीडियो या एनिमेशन हैं"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} पुराना स्वचालित चेकपॉइंट छोड़ा गया",
+    "other": "{n} पुराने स्वचालित चेकपॉइंट छोड़े गए"
+  },
+  "{n} pages": {
+    "one": "{n} पेज",
+    "other": "{n} पेज"
+  },
+  "{n} places": {
+    "one": "{n} जगह",
+    "other": "{n} जगहें"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} पॉइंट - कोने के लिए Alt दबाए रखें",
+    "other": "{n} पॉइंट - कोने के लिए Alt दबाए रखें"
+  },
+  "{n} published versions": {
+    "one": "{n} प्रकाशित वर्शन",
+    "other": "{n} प्रकाशित वर्शन"
+  },
+  "{n} results": {
+    "one": "{n} परिणाम",
+    "other": "{n} परिणाम"
+  },
+  "{n} saved sessions": {
+    "one": "{n} सहेजा गया सेशन",
+    "other": "{n} सहेजे गए सेशन"
+  },
+  "{n} selected": {
+    "one": "{n} चयनित",
+    "other": "{n} चयनित"
+  },
+  "{n} selected assets": {
+    "one": "{n} चुना हुआ एसेट",
+    "other": "{n} चुने गए एसेट"
+  },
+  "{n} sessions": {
+    "one": "{n} सेशन",
+    "other": "{n} सेशन"
+  },
+  "{n} shapes": {
+    "one": "{n} शेप",
+    "other": "{n} शेप"
+  },
+  "{n} steps": {
+    "one": "{n} चरण",
+    "other": "{n} चरण"
+  },
+  "{n} templates": {
+    "one": "{n} टेम्पलेट",
+    "other": "{n} टेम्पलेट"
+  },
+  "{n} volume keys": {
+    "one": "{n} वॉल्यूम कीफ़्रेम",
+    "other": "{n} वॉल्यूम कीफ़्रेम"
+  },
+  "{n} words": {
+    "one": "{n} शब्द",
+    "other": "{n} शब्द"
+  }
 }

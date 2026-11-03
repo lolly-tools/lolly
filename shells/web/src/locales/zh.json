@@ -8027,10 +8027,14 @@
   "{count} controls you changed stay yours.": "你更改的 {count} 个控件保持不变。",
   "{count} days": "{count} 天",
   "{count} decisions from the last version still apply.": "上一版本中的 {count} 项决定仍然有效。",
-  "{count} entries": "{count} 条记录",
+  "{count} entries": {
+    "other": "{count} 条记录"
+  },
   "{count} files / variations": "{count} 个文件 / 变体",
   "{count} files chosen": "已选择 {count} 个文件",
-  "{count} files in this folder": "此文件夹中有 {count} 个文件",
+  "{count} files in this folder": {
+    "other": "此文件夹中有 {count} 个文件"
+  },
   "{count} for {names}": "{count} 项，属于{names}",
   "{count} for “{query}” in {scope}": "{scope} 中“{query}”的 {count}",
   "{count} layouts": "{count} 个版式",
@@ -8204,19 +8208,27 @@
   "{n} added to favourites": "已将 {n} 个添加到收藏",
   "{n} added to the design system": "{n} 个已添加到设计系统",
   "{n} asset IDs": "{n} 个素材 ID",
-  "{n} assets": "{n} 个素材",
+  "{n} assets": {
+    "other": "{n} 个素材"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} 资产无法恢复.",
-  "{n} assets found": "找到 {n} 个素材",
+  "{n} assets found": {
+    "other": "找到 {n} 个素材"
+  },
   "{n} assets zipped · {c} with Content Credentials": "已压缩 {n} 个素材 · {c} 个带 Content Credentials",
   "{n} available offline": "{n} 个可离线使用",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} 个方框。一键写入完整运动弧线 - 之后每个关键帧仍可编辑。",
-  "{n} capabilities match": "{n} 项能力匹配",
+  "{n} capabilities match": {
+    "other": "{n} 项功能匹配"
+  },
   "{n} cards are left to review.": "还有 {n} 张卡片待审阅。",
   "{n} cards are still to answer.": "还有 {n} 张卡片待回应。",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "还有 {n} 张卡片待回应。按建议接受并在 Design 中打开？",
   "{n} ch": "{n} 字符",
   "{n} changed": "已更改 {n} 个",
-  "{n} changes found": "发现 {n} 处更改",
+  "{n} changes found": {
+    "other": "发现 {n} 处更改"
+  },
   "{n} characters continue beyond the last frame.": "{n} 个字符超出最后一个文本框。",
   "{n} checks": "{n} 检查",
   "{n} clips selected": "已选择 {n} 个片段",
@@ -8231,7 +8243,9 @@
   "{n} connectors - editing all": "{n} 条连接线——正在编辑全部",
   "{n} copies added to your projects": "已将 {n} 个副本添加到你的项目",
   "{n} copies in total": "共 {n} 个副本",
-  "{n} copies made · selected": "已生成 {n} 份副本 · 已选择",
+  "{n} copies made · selected": {
+    "other": "已生成 {n} 份副本 · 已选择"
+  },
   "{n} creation checkpoints": "{n} 个作品检查点",
   "{n} curly quotes": "{n} 个弯引号",
   "{n} days ago": "{n} 几天前",
@@ -8248,24 +8262,34 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} 个可编辑输入。未选中的设置保持固定。",
   "{n} ellipsis characters": "{n} 个省略号字符",
   "{n} em-dashes": "{n} 个破折号",
-  "{n} embedded files": "{n} 嵌入式文件",
-  "{n} external references": "{n} 外部引用",
+  "{n} embedded files": {
+    "other": "{n} 个嵌入文件"
+  },
+  "{n} external references": {
+    "other": "{n} 个外部引用"
+  },
   "{n} fields": "{n} 个字段",
   "{n} file batches": "{n} 文件批量",
   "{n} file operation records": "{n} 文件操作记录",
   "{n} files": "{n} 个文件",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "有 {n} 个文件不是 PowerPoint 演示文稿、PDF 或 Photoshop 文档，已被排除。",
   "{n} files are ready to import.": "{n} 个文件已准备好导入。",
-  "{n} files could not be packed and were left out": "{n} 个文件未能打包，已跳过",
+  "{n} files could not be packed and were left out": {
+    "other": "{n} 个文件未能打包，已跳过"
+  },
   "{n} files imported from the zip.": "已从压缩包导入 {n} 个文件。",
   "{n} files imported from the zip; {skipped} skipped.": "已从压缩包导入 {n} 个文件；跳过了 {skipped} 个。",
   "{n} files ready": "{n} 文件准备好",
   "{n} findings": "{n} 结果",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "发现 {n} 项。可编辑的建议已被选中；仅供检查的 Office 发现项保持不变。请查看“检查”面板。",
-  "{n} folders": "{n} 个文件夹",
+  "{n} folders": {
+    "other": "{n} 个文件夹"
+  },
   "{n} font changes": "{n} 处字体更改",
   "{n} font choices": "{n} 个字体选项",
-  "{n} font files": "{n} 字体文件",
+  "{n} font files": {
+    "other": "{n} 个字体文件"
+  },
   "{n} fonts": "{n} 种字体",
   "{n} fonts found": "找到 {n} 个字体",
   "{n} fonts from the deck are set in another face.": "演示文稿中有 {n} 种字体设置为另一种字体。",
@@ -8277,31 +8301,55 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} 个已隐藏 - 可在“显示隐藏工具”中查看",
   "{n} hidden shades stay hidden": "{n} 个隐藏色阶保持隐藏",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} 保存备份,空置空间或在重新尝试之前解决冲突版本.",
-  "{n} images": "{n} 张图片",
-  "{n} images couldn’t be restored (storage full?)": "{n} 张图片无法恢复(存储空间已满?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} 张图片留在了原位置 - 图片只能属于一处；如需移动请使用剪切",
+  "{n} images": {
+    "other": "{n} 张图片"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n} 张图片无法恢复（存储空间已满？）"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} 张图片留在了原位置 - 图片只能属于一处；如需移动请使用剪切"
+  },
   "{n} included tools (asked before installing)": "包含 {n} 个工具（安装前会询问）",
   "{n} ink": "{n} 种油墨",
-  "{n} inputs · applies to every design": "{n} 个输入项 · 应用于每个设计",
+  "{n} inputs · applies to every design": {
+    "other": "{n} 个输入项 · 应用于每个设计"
+  },
   "{n} invisible watermark(s) found": "发现 {n} 个隐形水印",
   "{n} issues to review before sharing.": "分享之前有 {n} 个问题需要审阅。",
-  "{n} items": "{n} 个项目",
-  "{n} items copied": "已复制 {n} 项",
-  "{n} items cut": "已剪切 {n} 项",
-  "{n} items moved": "已移动 {n} 个项目",
-  "{n} items pasted": "已粘贴 {n} 项",
+  "{n} items": {
+    "other": "{n} 个项目"
+  },
+  "{n} items copied": {
+    "other": "已复制 {n} 个项目"
+  },
+  "{n} items cut": {
+    "other": "已剪切 {n} 个项目"
+  },
+  "{n} items moved": {
+    "other": "已移动 {n} 个项目"
+  },
+  "{n} items pasted": {
+    "other": "已粘贴 {n} 个项目"
+  },
   "{n} items removed": "已移除 {n} 个项目",
   "{n} jobs": "{n} 个任务",
   "{n} kept": "保留了 {n} 个",
   "{n} kept in the tray": "{n} 个保留在托盘中",
-  "{n} keyframes": "{n} 个关键帧",
+  "{n} keyframes": {
+    "other": "{n} 个关键帧"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} 个带标签的占位符取代了对象。",
   "{n} layers": "{n} 个图层",
   "{n} layers found": "发现 {n} 个图层",
   "{n} list lines": "{n} 行列表",
-  "{n} logos": "{n} 标志",
+  "{n} logos": {
+    "other": "{n} 个标志"
+  },
   "{n} marks became the design system mark.": "{n} 个标志已成为设计系统标志。",
-  "{n} marks found": "发现 {n} 个标记",
+  "{n} marks found": {
+    "other": "发现 {n} 个标记"
+  },
   "{n} marks sent to Logos": "{n} 个标志已发送到“标志”",
   "{n} min ago": "{n} 几分钟前",
   "{n} more findings in this document.": "此文档中另有 {n} 项发现。",
@@ -8313,7 +8361,9 @@
   "{n} more slides": "还有 {n} 张幻灯片",
   "{n} moved to {group}.": "已将 {n} 个移动到{group}。",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} 张新幻灯片容纳了放不下的内容，因此幻灯片编号已移动。",
-  "{n} newer items skipped": "已跳过 {n} 个较新的项目",
+  "{n} newer items skipped": {
+    "other": "已跳过 {n} 个较新的项目"
+  },
   "{n} nits": "{n} 尼特",
   "{n} not drawn": "{n} 个未绘制",
   "{n} objects added": "已添加 {n} 个对象",
@@ -8326,7 +8376,9 @@
   "{n} objects overlap the slide master.": "{n} 个对象与幻灯片母版重叠。",
   "{n} objects removed": "已移除 {n} 个对象",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} 个对象的裁剪或效果以图片形式保留。替换其完整图稿才能改变它们的形状。",
-  "{n} of your creations are videos or animations": "你的作品中有 {n} 个是视频或动画",
+  "{n} of your creations are videos or animations": {
+    "other": "你的作品中有 {n} 个是视频或动画"
+  },
   "{n} of {m}": "{n}/{m}",
   "{n} of {total} downloaded": "已下载 {total} 个中的 {n} 个",
   "{n} of {total} downloaded · {size} on disk": "已下载 {n}/{total} 项 · 占用磁盘 {size}",
@@ -8337,57 +8389,79 @@
   "{n} off": "{n} 个关闭",
   "{n} on": "{n} 个开启",
   "{n} other colourways keep their own colours: {names}": "另有 {n} 个配色方案保留自己的颜色：{names}",
-  "{n} pages": "{n} 页",
+  "{n} pages": {
+    "other": "{n} 页"
+  },
   "{n} pages are pictures of their text.": "有 {n} 页是其文字的图片。",
-  "{n} pages differ": "{n} 个页面不同",
+  "{n} pages differ": {
+    "other": "{n} 个页面不同"
+  },
   "{n} pages had no size, so they were left out.": "有 {n} 页没有尺寸，已被排除。",
   "{n} pictures": "{n} 张图片",
   "{n} pictures are missing.": "缺少 {n} 张图片。",
   "{n} pictures in the deck were not kept.": "演示文稿中有 {n} 张图片未保留。",
-  "{n} places": "{n} 处",
+  "{n} places": {
+    "other": "{n} 处"
+  },
   "{n} points": "{n} 个点",
-  "{n} points - hold Alt for a corner": "{n} 个点 - 按住 Alt 可切换为尖角",
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} 个点 - 按住 Alt 可切换为尖角"
+  },
   "{n} preserved file": "{n} 个已保留文件",
   "{n} preserved files": "{n} 个已保留文件",
   "{n} print locks re-pinned": "{n} 个印刷锁定已重新固定",
   "{n} proposed changes": "{n} 个建议的更改",
   "{n} protected drafts": "{n} 份受保护的草稿",
   "{n} published version": "{n} 个已发布版本",
-  "{n} published versions": "{n} 个已发布版本",
+  "{n} published versions": {
+    "other": "{n} 个已发布版本"
+  },
   "{n} recorded": "{n} 项已记录",
   "{n} removed from favourites": "已将 {n} 个从收藏中移除",
   "{n} removed from offline": "已将 {n} 个从离线中移除",
   "{n} removed. A tool naming it will lose it.": "已移除 {n} 个。引用它的工具将失去它。",
   "{n} removed. A tool naming one of these will lose it.": "已移除 {n} 个。引用其中任一个的工具将失去它。",
   "{n} renders": "{n} 个渲染",
-  "{n} results": "{n} 个结果",
+  "{n} results": {
+    "other": "{n} 个结果"
+  },
   "{n} roles re-derived": "{n} 个角色已重新推导",
   "{n} rotated runs left out": "已略过 {n} 段旋转文字",
   "{n} saved asset versions": "{n} 保存的资产版本",
   "{n} saved for offline, {m} failed - check your connection": "已为离线保存 {n} 项，{m} 项失败 - 请检查网络连接",
-  "{n} saved sessions": "{n} 个已保存的会话",
+  "{n} saved sessions": {
+    "other": "{n} 个已保存的会话"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "无法预览 {n} 个已保存的系统。请从“个人资料”中打开它们进行管理。",
   "{n} scanned": "{n} 页为扫描件",
   "{n} scanned pages read.": "已读取 {n} 页扫描页。",
   "{n} scanned pages were left unread to keep this quick.": "为保持速度，{n} 张扫描页未被读取。",
   "{n} scanned pages were not read because Text recognition is not on this device.": "有 {n} 页扫描页未被读取，因为此设备上没有文字识别功能。",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} 张扫描页已通过本机文字识别读取，因此这些页面无法进行隐藏字符检查。",
-  "{n} selected": "已选择 {n} 个",
-  "{n} selected assets": "已选择 {n} 个素材",
+  "{n} selected": {
+    "other": "已选择 {n} 个"
+  },
+  "{n} selected assets": {
+    "other": "已选择 {n} 个素材"
+  },
   "{n} selected files": "已选择 {n} 个文件",
   "{n} selected items could not be outlined and were left as they are.": "{n} 个选中项无法转为轮廓，已保持原样。",
   "{n} selected items have no outline, so they were left as they are.": "所选项目中有 {n} 个没有轮廓，因此保持原样。",
   "{n} selected · {size}": "已选择 {n} 个 · {size}",
   "{n} sentences": "{n} 个句子",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} 个句子带有点状下划线：本机模型可提供更平实的表达版本。采纳后，保存的副本会标记为 AI 辅助，且模型用词带有 Lolly 的公开改写水印，因此 AI 撰写的文字在“验证”中仍可被检测到。",
-  "{n} sessions": "{n} 个会话",
+  "{n} sessions": {
+    "other": "{n} 个会话"
+  },
   "{n} set": "已设置 {n} 个",
   "{n} shade curves re-anchored": "{n} 条色阶曲线已重新锚定",
   "{n} shades added to your palette": "已向你的调色板添加 {n} 个色调",
   "{n} shades added. Undo is available above your palette.": "已添加 {n} 个色调。可在调色板上方撤销。",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} 个色阶未能达到目标（已限制在最接近的色调）。",
   "{n} shades rebuilt across {ramps} ramps": "已在 {ramps} 个色阶组中重建 {n} 个色阶",
-  "{n} shapes": "{n} 个形状",
+  "{n} shapes": {
+    "other": "{n} 个形状"
+  },
   "{n} shapes · page {p}": "{n} 个形状 · 第 {p} 页",
   "{n} shared assets were kept.": "已保留 {n} 个共享素材。",
   "{n} slides narrated.": "已为 {n} 张幻灯片配音。",
@@ -8395,11 +8469,15 @@
   "{n} spectrum hues rebuilt": "已重建 {n} 个光谱色相",
   "{n} stages of work": "{n} 个工作阶段",
   "{n} starter colours": "{n} 种初始颜色",
-  "{n} steps": "{n} 步骤",
+  "{n} steps": {
+    "other": "{n} 个步骤"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "发现 {n} 条建议。副本会在选中这些建议的情况下准备；可在“检查”面板中调整任意一条。",
   "{n} suggestions were applied without review.": "{n} 条建议未经审阅就已应用。",
   "{n} swatches removed": "已移除 {n} 个色板",
-  "{n} templates": "{n} 个模板",
+  "{n} templates": {
+    "other": "{n} 个模板"
+  },
   "{n} templates added": "已添加 {n} 个模板",
   "{n} templates deleted": "已删除 {n} 个模板",
   "{n} templates saved": "已保存 {n} 个模板",
@@ -8419,11 +8497,15 @@
   "{n} unsupported backup parts skipped": "{n} 无支持的备份零件被跳过",
   "{n} value changes": "{n} 处值更改",
   "{n} values change": "{n} 个值将更改",
-  "{n} volume keys": "{n} 个音量关键帧",
+  "{n} volume keys": {
+    "other": "{n} 个音量关键帧"
+  },
   "{n} warnings.": "{n} 条警告。",
   "{n} were kept - they are not this room to remove.": "保留了 {n} 个－它们不属于此房间，因此未被移除。",
   "{n} wording swaps are underlined in the preview.": "预览中已为 {n} 处措辞替换加下划线。",
-  "{n} words": "{n} 个词",
+  "{n} words": {
+    "other": "{n} 个词"
+  },
   "{n} words cut": "已删减 {n} 个词",
   "{n} yours": "{n} 个属于你",
   "{n}-bit": "{n} 位",
@@ -8814,7 +8896,9 @@
   "1 design was added to Projects, in 1 folder.": "已将 1 个设计添加到项目，位于 1 个文件夹。",
   "1 design was added to Projects, in {f} folders.": "已将 1 个设计添加到项目，位于 {f} 个文件夹。",
   "1 design was added to Projects.": "已将 1 个设计添加到项目。",
-  "{n} creations removed from Projects here stayed removed.": "在此从项目中移除的 {n} 件作品，仍保持移除。",
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "在此从项目中移除的 {n} 件作品，仍保持移除。"
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "此作品从未保存过，因此不保存并离开会将其从项目中移除。",
   "This deck has no colours to change.": "这份演示文稿没有可更改的颜色。",
   "This deck has no fonts to change.": "这份演示文稿没有可更改的字体。",
@@ -8844,7 +8928,9 @@
   "This saved version could not be read.": "无法读取此已保存的版本。",
   "1 older automatic checkpoint left out": "已略过 1 个较旧的自动检查点",
   "1 other colourway keeps its own colours: {names}": "另有 1 个配色方案保留自己的颜色：{names}",
-  "{n} older automatic checkpoints left out": "已略过 {n} 个较旧的自动检查点",
+  "{n} older automatic checkpoints left out": {
+    "other": "已略过 {n} 个较旧的自动检查点"
+  },
   "Automatic recovery and checkpoints are on": "自动恢复与检查点已开启",
   "Automatic recovery is unavailable here. Save before leaving.": "此处无法自动恢复。离开前请先保存。",
   "Checkpoint saved at {time} on this device": "检查点已于 {time} 保存在此设备上",
@@ -9027,7 +9113,9 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "要显示网页版无法显示的站点，Lolly 可以在此设备上以更宽松的框架策略重新加载，并在你演示前逐个询问每个站点。你可以在个人资料的“受信任的站点”中关闭此项。",
   "Card size": "卡片大小",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "此设备上添加了 1 张图片或文件。它只保留在此设备上，其他人看不到该文件。",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "此设备上添加了 {n} 张图片或文件。它们只保留在此设备上，其他人看不到这些文件。",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "此设备上添加了 {n} 张图片或文件。它们只保留在此设备上，其他人看不到这些文件。"
+  },
   "Check the version first": "请先核对版本",
   "Copy team link": "复制团队链接",
   "Could not create the project. Try again.": "无法创建项目。请重试。",
@@ -9793,7 +9881,9 @@
   "Every mode": "所有模式",
   "Your local items have not changed.": "你的本地项目未发生变化。",
   "1 item was saved to the shared project.": "1 个项目已保存到共享项目。",
-  "{n} items were saved to the shared project.": "{n} 个项目已保存到共享项目。",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} 个项目已保存到共享项目。"
+  },
   "Wait for the current move to finish.": "请等待当前移动完成。",
   "Wait for the deck to finish reading, then choose a picture.": "等待演示文稿读取完成，然后选择一张图片。",
   "Wait for the grid to finish rendering before moving its layers.": "等网格渲染完成后，再移动它的图层。",
@@ -10645,5 +10735,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "此片段使用 {codec}，这台设备无法播放。请从你的剪辑应用导出 H.264、HEVC 或 AV1 副本，或在 Mac 上用 Lolly 桌面应用打开。Lolly 会保留原始文件。",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "此片段使用 {codec}，这台设备无法播放。请从你的剪辑应用导出 H.264、HEVC 或 AV1 副本。Lolly 会保留原始文件。",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "这是一个使用 {codec} 的 MXF 文件。Lolly 能读取其中的内容，但无法播放 MXF。请从你的剪辑应用导出 H.264、HEVC 或 AV1 副本。Lolly 会保留原始文件。",
-  "{format} from {camera}": "来自{camera}的 {format}"
+  "{format} from {camera}": "来自{camera}的 {format}",
+  "Filling a large area. This can take a moment.": "正在填充大面积区域。这可能需要一点时间。",
+  "Large area": "大面积"
 }

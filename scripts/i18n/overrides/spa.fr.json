@@ -600,7 +600,11 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Lance la vérification IA-texte approfondie sur Vérifier et dans Éléments.",
   "Card size": "Taille des cartes",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 image ou fichier a été ajouté sur cet appareil. Il reste sur cet appareil, et les autres ne verront pas ce fichier.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} images ou fichiers ont été ajoutés sur cet appareil. Ils restent sur cet appareil, et les autres ne verront pas ces fichiers.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "{n} image ou fichier a été ajouté sur cet appareil. Il reste sur cet appareil, et les autres ne verront pas ce fichier.",
+    "many": "{n} d'images ou fichiers ont été ajoutés sur cet appareil. Ils restent sur cet appareil, et les autres ne verront pas ces fichiers.",
+    "other": "{n} images ou fichiers ont été ajoutés sur cet appareil. Ils restent sur cet appareil, et les autres ne verront pas ces fichiers."
+  },
   "Check the version first": "Vérifiez d'abord la version",
   "Copy team link": "Copier le lien d'équipe",
   "Could not create the project. Try again.": "Impossible de créer le projet. Réessayez.",
@@ -1176,7 +1180,11 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Chaque élément est enregistré dans le projet partagé. Les originaux locaux sont dans la Corbeille ou toujours en place.",
   "Your local items have not changed.": "Tes éléments locaux n'ont pas changé.",
   "1 item was saved to the shared project.": "1 élément a été enregistré dans le projet partagé.",
-  "{n} items were saved to the shared project.": "{n} éléments ont été enregistrés dans le projet partagé.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} élément a été enregistré dans le projet partagé.",
+    "many": "{n} d'éléments ont été enregistrés dans le projet partagé.",
+    "other": "{n} éléments ont été enregistrés dans le projet partagé."
+  },
   "Wait for the current move to finish.": "Attends la fin du déplacement en cours.",
   "You cannot save to that shared project.": "Tu ne peux pas enregistrer dans ce projet partagé.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Toutes les personnes qui peuvent ouvrir {project} verront ces éléments. Une fois chaque élément enregistré là-bas, les originaux locaux vont dans la Corbeille, d'où tu peux les restaurer.",
@@ -1487,8 +1495,16 @@
   "file": "fichier",
   "samples": "échantillons",
   "text": "texte",
-  "{n} changes found": "{n} modifications trouvées",
-  "{n} pages differ": "{n} pages diffèrent",
+  "{n} changes found": {
+    "one": "{n} modification trouvée",
+    "many": "{n} de modifications trouvées",
+    "other": "{n} modifications trouvées"
+  },
+  "{n} pages differ": {
+    "one": "{n} page diffère",
+    "many": "{n} de pages diffèrent",
+    "other": "{n} pages diffèrent"
+  },
   "Draft": "Brouillon",
   "Draft quality": "Qualité brouillon",
   "Draft rule": "Règle en brouillon",
@@ -1841,5 +1857,210 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Plume (P) - clique pour placer des points, fais glisser pour courber, Alt pour un angle. Maintiens pour le Crayon (Shift C) et le type de spline",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Plume (P) - clique pour placer des points, fais glisser pour courber, Alt pour un angle",
   "Recipients can change the inputs": "Les destinataires peuvent modifier les entrées",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Toute personne ayant le lien peut modifier ses entrées et obtenir une nouvelle image. Les entrées verrouillées restent telles que définies."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Toute personne ayant le lien peut modifier ses entrées et obtenir une nouvelle image. Les entrées verrouillées restent telles que définies.",
+  "{count} entries": {
+    "one": "{count} entrée",
+    "many": "{count} d'entrées",
+    "other": "{count} entrées"
+  },
+  "{count} files in this folder": {
+    "one": "{count} fichier dans ce dossier",
+    "many": "{count} de fichiers dans ce dossier",
+    "other": "{count} fichiers dans ce dossier"
+  },
+  "{n} assets": {
+    "one": "{n} élément",
+    "many": "{n} d'éléments",
+    "other": "{n} éléments"
+  },
+  "{n} assets found": {
+    "one": "{n} élément trouvé",
+    "many": "{n} d'éléments trouvés",
+    "other": "{n} éléments trouvés"
+  },
+  "{n} capabilities match": {
+    "one": "{n} capacité correspond",
+    "many": "{n} de capacités correspondent",
+    "other": "{n} capacités correspondent"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} copie faite · sélectionnée",
+    "many": "{n} de copies effectuées · sélectionnées",
+    "other": "{n} copies effectuées · sélectionnées"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} création retirée de Projets ici est restée retirée.",
+    "many": "{n} de créations retirées de Projets ici sont restées retirées.",
+    "other": "{n} créations retirées de Projets ici sont restées retirées."
+  },
+  "{n} embedded files": {
+    "one": "{n} fichier intégré",
+    "many": "{n} de fichiers intégrés",
+    "other": "{n} fichiers intégrés"
+  },
+  "{n} external references": {
+    "one": "{n} référence externe",
+    "many": "{n} de références externes",
+    "other": "{n} références externes"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} fichier n'a pas pu être empaqueté et a été laissé de côté",
+    "many": "{n} de fichiers n'ont pas pu être empaquetés et ont été laissés de côté",
+    "other": "{n} fichiers n'ont pas pu être empaquetés et ont été laissés de côté"
+  },
+  "{n} folders": {
+    "one": "{n} dossier",
+    "many": "{n} de dossiers",
+    "other": "{n} dossiers"
+  },
+  "{n} font files": {
+    "one": "{n} fichier de police",
+    "many": "{n} de fichiers de police",
+    "other": "{n} fichiers de police"
+  },
+  "{n} images": {
+    "one": "{n} image",
+    "many": "{n} d'images",
+    "other": "{n} images"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} image n'a pas pu être restaurée (stockage plein ?)",
+    "many": "{n} d'images n'ont pas pu être restaurées (stockage plein ?)",
+    "other": "{n} images n'ont pas pu être restaurées (stockage plein ?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} image est restée avec l'original - les images n'ont qu'un seul emplacement ; utilise Couper pour les déplacer",
+    "many": "{n} d'images sont restées avec l'original - les images n'ont qu'un seul emplacement ; utilise Couper pour les déplacer",
+    "other": "{n} images sont restées avec l'original - les images n'ont qu'un seul emplacement ; utilise Couper pour les déplacer"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} champ · s'applique à chaque design",
+    "many": "{n} de champs · s'appliquent à chaque design",
+    "other": "{n} champs · s'appliquent à chaque design"
+  },
+  "{n} items": {
+    "one": "{n} élément",
+    "many": "{n} d'éléments",
+    "other": "{n} éléments"
+  },
+  "{n} items copied": {
+    "one": "{n} élément copié",
+    "many": "{n} d'éléments copiés",
+    "other": "{n} éléments copiés"
+  },
+  "{n} items cut": {
+    "one": "{n} élément coupé",
+    "many": "{n} d'éléments coupés",
+    "other": "{n} éléments coupés"
+  },
+  "{n} items moved": {
+    "one": "{n} élément déplacé",
+    "many": "{n} d'éléments déplacés",
+    "other": "{n} éléments déplacés"
+  },
+  "{n} items pasted": {
+    "one": "{n} élément collé",
+    "many": "{n} d'éléments collés",
+    "other": "{n} éléments collés"
+  },
+  "{n} keyframes": {
+    "one": "{n} image clé",
+    "many": "{n} d'images clés",
+    "other": "{n} images clés"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "many": "{n} de logos",
+    "other": "{n} logos"
+  },
+  "{n} marks found": {
+    "one": "{n} repère trouvé",
+    "many": "{n} de repères trouvés",
+    "other": "{n} repères trouvés"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} élément plus récent ignoré",
+    "many": "{n} d'éléments plus récents ignorés",
+    "other": "{n} éléments plus récents ignorés"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} de tes créations est une vidéo ou une animation",
+    "many": "{n} de tes créations sont des vidéos ou des animations",
+    "other": "{n} de tes créations sont des vidéos ou des animations"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} point de contrôle automatique plus ancien laissé de côté",
+    "many": "{n} de points de contrôle automatiques plus anciens laissés de côté",
+    "other": "{n} points de contrôle automatiques plus anciens laissés de côté"
+  },
+  "{n} pages": {
+    "one": "{n} page",
+    "many": "{n} de pages",
+    "other": "{n} pages"
+  },
+  "{n} places": {
+    "one": "{n} occurrence",
+    "many": "{n} d'occurrences",
+    "other": "{n} occurrences"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} point - maintiens Alt pour un angle",
+    "many": "{n} de points - maintiens Alt pour un angle",
+    "other": "{n} points - maintiens Alt pour un angle"
+  },
+  "{n} published versions": {
+    "one": "{n} version publiée",
+    "many": "{n} de versions publiées",
+    "other": "{n} versions publiées"
+  },
+  "{n} results": {
+    "one": "{n} résultat",
+    "many": "{n} de résultats",
+    "other": "{n} résultats"
+  },
+  "{n} saved sessions": {
+    "one": "{n} session enregistrée",
+    "many": "{n} de sessions enregistrées",
+    "other": "{n} sessions enregistrées"
+  },
+  "{n} selected": {
+    "one": "{n} sélectionné",
+    "many": "{n} sélectionnés",
+    "other": "{n} sélectionnés"
+  },
+  "{n} selected assets": {
+    "one": "{n} élément sélectionné",
+    "many": "{n} d'éléments sélectionnés",
+    "other": "{n} éléments sélectionnés"
+  },
+  "{n} sessions": {
+    "one": "{n} session",
+    "many": "{n} de sessions",
+    "other": "{n} sessions"
+  },
+  "{n} shapes": {
+    "one": "{n} forme",
+    "many": "{n} de formes",
+    "other": "{n} formes"
+  },
+  "{n} steps": {
+    "one": "{n} étape",
+    "many": "{n} d'étapes",
+    "other": "{n} étapes"
+  },
+  "{n} templates": {
+    "one": "{n} modèle",
+    "many": "{n} de modèles",
+    "other": "{n} modèles"
+  },
+  "{n} volume keys": {
+    "one": "{n} image clé de volume",
+    "many": "{n} d'images clés de volume",
+    "other": "{n} images clés de volume"
+  },
+  "{n} words": {
+    "one": "{n} mot",
+    "many": "{n} de mots",
+    "other": "{n} mots"
+  }
 }

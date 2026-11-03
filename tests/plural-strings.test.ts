@@ -93,18 +93,18 @@ test('every singular form was already a catalog key, so no locale loses a transl
   assert.deepEqual(invented.map(s => s.one), [], 'a singular English form no catalog has; it would ship untranslated');
 });
 
-test('until the translation pass, no locale reads worse than before the migration', () => {
+test('a key still holding a plain string reads the same as before the migration, in every locale', () => {
   // Before: `n === 1 ? t(one) : t(other, { n })`, each looked up in the locale's catalog.
   // After: selectPluralTemplate with the same two catalog values. They must agree for every
   // count, in every locale, while the catalog values are still plain strings.
-  let checked = 0;
+  let checked = 0, merged = 0;
   for (const lang of LANGS) {
     if (lang === 'en') continue;
     const cat = JSON.parse(readFileSync(join(LOCALES_DIR, `${lang}.json`), 'utf8')) as Record<string, CatalogValue>;
     const locale = LANG_META[lang].htmlLang;
     for (const { one, other } of sources) {
       const entry = cat[other], legacy = cat[one];
-      if (typeof entry !== 'string') continue; // forms object: the translation pass is merged for this key
+      if (typeof entry !== 'string') { merged++; continue; } // forms object: the translation pass is merged for this key
       for (let n = 0; n <= 30; n++) {
         const before: string = n === 1 ? (typeof legacy === 'string' ? legacy : one) : entry;
         const after: string = selectPluralTemplate({ one, other, entry, legacyOne: legacy, n, locale });
@@ -113,5 +113,8 @@ test('until the translation pass, no locale reads worse than before the migratio
       }
     }
   }
-  assert.ok(checked > 10000, `only ${checked} comparisons; the loop is not reaching the catalogs`);
+  // Either plain strings remain and were compared, or every key in every locale now holds
+  // its forms object (the 2026-11-03 pass). Anything else means the loop missed the catalogs.
+  const keys = (LANGS.length - 1) * sources.length;
+  assert.ok(checked > 0 || merged === keys, `${checked} comparisons and ${merged} of ${keys} keys merged; the loop is not reaching the catalogs`);
 });

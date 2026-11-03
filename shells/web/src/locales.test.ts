@@ -361,24 +361,14 @@ test('every migrated plural key has a plain or forms value in every catalog', ()
 const ELLIPSIS = /(…|\.\.\.)$/;
 
 /**
- * Catalog entries that break ellipsis parity today, keyed `lang|English source`. Two kinds:
- * real translation defects (de, nl, sv, zh-hant and ja entries that dropped it, and nl/sv
- * strings that are not translations of their key at all) and the "Add from…" family, where
- * the ellipsis sits mid-phrase or leads in the target language's word order. The list is a
+ * Catalog entries that break ellipsis parity on purpose, keyed `lang|English source`: the
+ * "Add from…" family, where the ellipsis sits mid-phrase or leads in the target language's
+ * word order. The translation defects this list once held were fixed on 2026-11-03. The list is a
  * ratchet: new entries are failures, and fixing one means deleting its line.
  */
 const ELLIPSIS_KNOWN: ReadonlySet<string> = new Set([
-  'de|Saved versions…',
-  'ja|Manage asset versions…',
-  'ja|Preparing download…',
-  'ja|Retry with original…',
-  'nl|Importing {n} files…',
-  'sv|Importing {n} files…',
-  'sv|What do you need?',
   'ur|Add from…',
   'zh-hant|Add from…',
-  'zh-hant|Back up or restore data…',
-  'zh-hant|Use this copy…',
   'zh|Add from…',
 ]);
 

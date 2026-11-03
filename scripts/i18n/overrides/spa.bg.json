@@ -730,7 +730,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Изпълнява задълбочената проверка на ИИ текст в «Проверка» и в Активи.",
   "Card size": "Размер на картите",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 изображение или файл е добавен на това устройство. Остава на това устройство и другите няма да виждат този файл.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} изображения или файла са добавени на това устройство. Остават на това устройство и другите няма да виждат тези файлове.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "{n} изображение или файл е добавен на това устройство. Остава на това устройство и другите няма да виждат този файл.",
+    "other": "{n} изображения или файла са добавени на това устройство. Остават на това устройство и другите няма да виждат тези файлове."
+  },
   "Check the version first": "Първо проверете версията",
   "Copy team link": "Копирай линка на екипа",
   "Could not create the project. Try again.": "Проектът не можа да бъде създаден. Опитайте отново.",
@@ -1307,7 +1310,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Всеки елемент е запазен в споделения проект. Локалните оригинали са в кошчето или още са на мястото си.",
   "Your local items have not changed.": "Вашите локални елементи не са променени.",
   "1 item was saved to the shared project.": "1 елемент беше запазен в споделения проект.",
-  "{n} items were saved to the shared project.": "{n} елемента бяха запазени в споделения проект.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} елемент беше запазен в споделения проект.",
+    "other": "{n} елемента бяха запазени в споделения проект."
+  },
   "Wait for the current move to finish.": "Изчакайте текущото преместване да приключи.",
   "You cannot save to that shared project.": "Не можете да запазвате в този споделен проект.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Всеки, който може да отвори {project}, ще вижда тези елементи. След като всички елементи бъдат запазени там, локалните оригинали се преместват в кошчето, откъдето можете да ги възстановите.",
@@ -1618,8 +1624,14 @@
   "file": "файл",
   "samples": "проби",
   "text": "текст",
-  "{n} changes found": "Намерени промени: {n}",
-  "{n} pages differ": "Страници, които се различават: {n}",
+  "{n} changes found": {
+    "one": "Намерена е {n} промяна",
+    "other": "Намерени са {n} промени"
+  },
+  "{n} pages differ": {
+    "one": "{n} страница се различава",
+    "other": "{n} страници се различават"
+  },
   "Draft": "Чернова",
   "Draft quality": "Качество на чернова",
   "Draft rule": "Правило в чернова",
@@ -1971,5 +1983,169 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл. Задръж за Молив (Shift C) и типа сплайн",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл",
   "Recipients can change the inputs": "Получателите могат да променят входовете",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Всеки с линка може да променя входовете му и да получи ново изображение. Заключените входове остават каквито са зададени."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Всеки с линка може да променя входовете му и да получи ново изображение. Заключените входове остават каквито са зададени.",
+  "{count} entries": {
+    "one": "{count} запис",
+    "other": "{count} записа"
+  },
+  "{count} files in this folder": {
+    "one": "{count} файл в тази папка",
+    "other": "{count} файла в тази папка"
+  },
+  "{n} assets": {
+    "one": "{n} ресурс",
+    "other": "{n} ресурса"
+  },
+  "{n} assets found": {
+    "one": "намерен {n} ресурс",
+    "other": "намерени {n} ресурса"
+  },
+  "{n} capabilities match": {
+    "one": "{n} съвпадаща възможност",
+    "other": "{n} съвпадащи възможности"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} направено копие · избрано",
+    "other": "{n} направени копия · избрани"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} творение, премахнато от Проекти тук, остана премахнато.",
+    "other": "{n} творения, премахнати от Проекти тук, останаха премахнати."
+  },
+  "{n} embedded files": {
+    "one": "{n} вграден файл",
+    "other": "{n} вградени файла"
+  },
+  "{n} external references": {
+    "one": "{n} външна препратка",
+    "other": "{n} външни препратки"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} файл не можа да бъде опакован и беше пропуснат",
+    "other": "{n} файла не можаха да бъдат опаковани и бяха пропуснати"
+  },
+  "{n} folders": {
+    "one": "{n} папка",
+    "other": "{n} папки"
+  },
+  "{n} font files": {
+    "one": "{n} файл на шрифт",
+    "other": "{n} файла на шрифтове"
+  },
+  "{n} images": {
+    "one": "{n} изображение",
+    "other": "{n} изображения"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} изображение не можа да бъде възстановено (пълно хранилище?)",
+    "other": "{n} изображения не можаха да бъдат възстановени (пълно хранилище?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} изображение остана с оригинала - изображенията имат само един дом; за да го преместиш, използвай Изрязване",
+    "other": "{n} изображения останаха с оригинала - изображенията имат само един дом; за да ги преместиш, използвай Изрязване"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} входно поле · важи за всеки дизайн",
+    "other": "{n} входни полета · важи за всеки дизайн"
+  },
+  "{n} items": {
+    "one": "{n} елемент",
+    "other": "{n} елемента"
+  },
+  "{n} items copied": {
+    "one": "Копиран {n} елемент",
+    "other": "Копирани {n} елемента"
+  },
+  "{n} items cut": {
+    "one": "Изрязан {n} елемент",
+    "other": "Изрязани {n} елемента"
+  },
+  "{n} items moved": {
+    "one": "{n} елемент е преместен",
+    "other": "{n} елемента са преместени"
+  },
+  "{n} items pasted": {
+    "one": "Поставен {n} елемент",
+    "other": "Поставени {n} елемента"
+  },
+  "{n} keyframes": {
+    "one": "{n} ключов кадър",
+    "other": "{n} ключови кадъра"
+  },
+  "{n} logos": {
+    "one": "{n} лого",
+    "other": "{n} лога"
+  },
+  "{n} marks found": {
+    "one": "{n} намерена марка",
+    "other": "{n} намерени марки"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} по-нов елемент е пропуснат",
+    "other": "{n} по-нови елемента са пропуснати"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} творение е видео или анимация",
+    "other": "{n} от твоите творения са видеа или анимации"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} по-стара автоматична контролна точка е пропусната",
+    "other": "{n} по-стари автоматични контролни точки са пропуснати"
+  },
+  "{n} pages": {
+    "one": "{n} страница",
+    "other": "{n} страници"
+  },
+  "{n} places": {
+    "one": "{n} място",
+    "other": "{n} места"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} точка - задръж Alt за ъгъл",
+    "other": "{n} точки - задръж Alt за ъгъл"
+  },
+  "{n} published versions": {
+    "one": "{n} публикувана версия",
+    "other": "{n} публикувани версии"
+  },
+  "{n} results": {
+    "one": "{n} резултат",
+    "other": "{n} резултата"
+  },
+  "{n} saved sessions": {
+    "one": "{n} запазена сесия",
+    "other": "{n} запазени сесии"
+  },
+  "{n} selected": {
+    "one": "{n} избран",
+    "other": "{n} избрани"
+  },
+  "{n} selected assets": {
+    "one": "{n} избран ресурс",
+    "other": "{n} избрани ресурса"
+  },
+  "{n} sessions": {
+    "one": "{n} сесия",
+    "other": "{n} сесии"
+  },
+  "{n} shapes": {
+    "one": "{n} форма",
+    "other": "{n} форми"
+  },
+  "{n} steps": {
+    "one": "{n} стъпка",
+    "other": "{n} стъпки"
+  },
+  "{n} templates": {
+    "one": "{n} шаблон",
+    "other": "{n} шаблона"
+  },
+  "{n} volume keys": {
+    "one": "{n} ключ за сила на звука",
+    "other": "{n} ключа за сила на звука"
+  },
+  "{n} words": {
+    "one": "{n} дума",
+    "other": "{n} думи"
+  }
 }

@@ -8042,10 +8042,16 @@
   "{count} controls you changed stay yours.": "আপনি যে {count}টি কন্ট্রোল পরিবর্তন করেছেন, সেগুলো আপনারই থেকে যায়।",
   "{count} days": "{count}টি দিন",
   "{count} decisions from the last version still apply.": "শেষ সংস্করণের {count}টি সিদ্ধান্ত এখনও প্রযোজ্য।",
-  "{count} entries": "{count}টি এন্ট্রি",
+  "{count} entries": {
+    "one": "{count}টি এন্ট্রি",
+    "other": "{count}টি এন্ট্রি"
+  },
   "{count} files / variations": "{count}টি ফাইল / ভ্যারিয়েশন",
   "{count} files chosen": "{count}টি ফাইল বেছে নেওয়া হয়েছে",
-  "{count} files in this folder": "এই ফোল্ডারে {count}টি ফাইল",
+  "{count} files in this folder": {
+    "one": "এই ফোল্ডারে {count}টি ফাইল",
+    "other": "এই ফোল্ডারে {count}টি ফাইল"
+  },
   "{count} for {names}": "{names}-এর জন্য {count}",
   "{count} for “{query}” in {scope}": "{scope}-এ “{query}”-এর জন্য {count}",
   "{count} layouts": "{count}টি লেআউট",
@@ -8219,19 +8225,31 @@
   "{n} added to favourites": "{n}টি পছন্দে যোগ করা হয়েছে",
   "{n} added to the design system": "{n}টি ডিজাইন সিস্টেমে যোগ করা হয়েছে",
   "{n} asset IDs": "{n}টি অ্যাসেট ID",
-  "{n} assets": "{n}টি অ্যাসেট",
+  "{n} assets": {
+    "one": "{n}টি অ্যাসেট",
+    "other": "{n}টি অ্যাসেট"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} সম্পদ পুনরুদ্ধার করা সম্ভব হয়নি।",
-  "{n} assets found": "{n}টি অ্যাসেট পাওয়া গেছে",
+  "{n} assets found": {
+    "one": "{n}টি অ্যাসেট পাওয়া গেছে",
+    "other": "{n}টি অ্যাসেট পাওয়া গেছে"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n}টি অ্যাসেট জিপ হয়েছে · {c}টিতে Content Credentials আছে",
   "{n} available offline": "{n}টি অফলাইনে উপলব্ধ",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n}টি বক্স। এক ক্লিকে সম্পূর্ণ মোশন আর্ক তৈরি হয় - প্রতিটি কীফ্রেম পরেও সম্পাদনাযোগ্য থাকে।",
-  "{n} capabilities match": "{n}টি সক্ষমতা মেলে",
+  "{n} capabilities match": {
+    "one": "{n}টি ক্ষমতা মেলে",
+    "other": "{n}টি ক্ষমতা মেলে"
+  },
   "{n} cards are left to review.": "{n}টি কার্ড পর্যালোচনার জন্য বাকি।",
   "{n} cards are still to answer.": "{n}টি কার্ডের উত্তর এখনও বাকি।",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "{n}টি কার্ডের উত্তর এখনও বাকি। প্রস্তাব অনুযায়ী গ্রহণ করে Design-এ খুলবেন?",
   "{n} ch": "{n} ch",
   "{n} changed": "{n}টি বদলেছে",
-  "{n} changes found": "{n}টি পরিবর্তন পাওয়া গেছে",
+  "{n} changes found": {
+    "one": "{n}টি পরিবর্তন পাওয়া গেছে",
+    "other": "{n}টি পরিবর্তন পাওয়া গেছে"
+  },
   "{n} characters continue beyond the last frame.": "শেষ ফ্রেমের বাইরে আরও {n} অক্ষর রয়েছে।",
   "{n} checks": "{n} চেক",
   "{n} clips selected": "{n}টি ক্লিপ বেছে নেওয়া হয়েছে",
@@ -8246,7 +8264,10 @@
   "{n} connectors - editing all": "{n}টি কানেক্টর — সবগুলি সম্পাদনা হচ্ছে",
   "{n} copies added to your projects": "{n}টি কপি আপনার প্রজেক্টে যোগ করা হয়েছে",
   "{n} copies in total": "মোট {n}টি কপি",
-  "{n} copies made · selected": "{n}টি কপি তৈরি · নির্বাচিত",
+  "{n} copies made · selected": {
+    "one": "{n}টি কপি তৈরি হয়েছে · নির্বাচিত",
+    "other": "{n}টি কপি তৈরি হয়েছে · নির্বাচিত"
+  },
   "{n} creation checkpoints": "{n}টি ক্রিয়েশন চেকপয়েন্ট",
   "{n} curly quotes": "{n}টি কার্লি কোটেশন",
   "{n} days ago": "{n} কয়েকদিন আগে",
@@ -8263,24 +8284,39 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n}টি এডিটযোগ্য ইনপুট। যেগুলো বাছা হয়নি সেই সেটিংস স্থির থাকে।",
   "{n} ellipsis characters": "{n}টি এলিপসিস অক্ষর",
   "{n} em-dashes": "{n}টি এম-ড্যাশ",
-  "{n} embedded files": "{n} এম্বেড ফাইল",
-  "{n} external references": "{n} বাহ্যিক রেফারেন্স",
+  "{n} embedded files": {
+    "one": "{n}টি এম্বেড করা ফাইল",
+    "other": "{n}টি এম্বেড করা ফাইল"
+  },
+  "{n} external references": {
+    "one": "{n}টি বাহ্যিক রেফারেন্স",
+    "other": "{n}টি বাহ্যিক রেফারেন্স"
+  },
   "{n} fields": "{n}টি ফিল্ড",
   "{n} file batches": "{n} ফাইল ব্যাচ",
   "{n} file operation records": "{n} ফাইল অপারেশন রেকর্ড",
   "{n} files": "{n}টি ফাইল",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n}টি ফাইল PowerPoint ডেক, PDF বা Photoshop ডকুমেন্ট নয়, তাই বাদ দেওয়া হয়েছে।",
   "{n} files are ready to import.": "{n}টি ফাইল ইমপোর্টের জন্য প্রস্তুত।",
-  "{n} files could not be packed and were left out": "{n}টি ফাইল প্যাক করা যায়নি এবং বাদ পড়েছে",
+  "{n} files could not be packed and were left out": {
+    "one": "{n}টি ফাইল প্যাক করা যায়নি এবং বাদ পড়েছে",
+    "other": "{n}টি ফাইল প্যাক করা যায়নি এবং বাদ পড়েছে"
+  },
   "{n} files imported from the zip.": "{n}টি ফাইল zip থেকে ইম্পোর্ট করা হয়েছে।",
   "{n} files imported from the zip; {skipped} skipped.": "{n}টি ফাইল zip থেকে ইম্পোর্ট করা হয়েছে; {skipped}টি বাদ দেওয়া হয়েছে।",
   "{n} files ready": "{n} ফাইল প্রস্তুত",
   "{n} findings": "{n} ফলাফল",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "{n}টি ফলাফল পাওয়া গেছে। এডিটযোগ্য সাজেশন বেছে নেওয়া আছে; শুধু-পরিদর্শনের Office ফলাফল অপরিবর্তিত থাকে। Inspection প্যানেল দেখুন।",
-  "{n} folders": "{n}টি ফোল্ডার",
+  "{n} folders": {
+    "one": "{n}টি ফোল্ডার",
+    "other": "{n}টি ফোল্ডার"
+  },
   "{n} font changes": "{n}টি ফন্ট বদল",
   "{n} font choices": "{n}টি ফন্ট পছন্দ",
-  "{n} font files": "{n} ফন্ট ফাইল",
+  "{n} font files": {
+    "one": "{n}টি ফন্ট ফাইল",
+    "other": "{n}টি ফন্ট ফাইল"
+  },
   "{n} fonts": "{n}টি ফন্ট",
   "{n} fonts found": "{n}টি ফন্ট পাওয়া গেছে",
   "{n} fonts from the deck are set in another face.": "ডেকের {n}টি ফন্ট অন্য ফেসে সেট করা।",
@@ -8292,31 +8328,67 @@
   "{n} hidden - find them under “Show hidden tools”": "{n}টি লুকানো - এগুলো “লুকানো টুল দেখান”-এর নিচে খুঁজুন",
   "{n} hidden shades stay hidden": "{n}টি লুকানো শেড লুকানো থাকে",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} ইতিহাস আইটেম পুনরুদ্ধার করা যায়নি. আপনার ব্যাকআপ রাখুন; মুক্ত স্থান বা পুনরায় চেষ্টা করার আগে বিরোধী সংস্করণ সমাধান করুন.",
-  "{n} images": "{n}টি ছবি",
-  "{n} images couldn’t be restored (storage full?)": "{n}টি ছবি পুনরুদ্ধার করা যায়নি (স্টোরেজ ভর্তি?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n}টি ছবি মূলের সাথেই থেকে গেছে - ছবির একটাই ঠিকানা থাকে; সরাতে কাট ব্যবহার করুন",
+  "{n} images": {
+    "one": "{n}টি ছবি",
+    "other": "{n}টি ছবি"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n}টি ছবি পুনরুদ্ধার করা যায়নি (স্টোরেজ ভর্তি?)",
+    "other": "{n}টি ছবি পুনরুদ্ধার করা যায়নি (স্টোরেজ ভর্তি?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n}টি ছবি মূলের সাথেই থেকে গেছে - ছবির একটাই ঠিকানা থাকে; সরাতে কাট ব্যবহার করুন",
+    "other": "{n}টি ছবি মূলের সাথেই থেকে গেছে - ছবির একটাই ঠিকানা থাকে; সরাতে কাট ব্যবহার করুন"
+  },
   "{n} included tools (asked before installing)": "{n}টি অন্তর্ভুক্ত টুল (ইনস্টলের আগে জিজ্ঞেস করা হয়)",
   "{n} ink": "{n} কালি",
-  "{n} inputs · applies to every design": "{n}টি ইনপুট · প্রতিটি ডিজাইনে প্রযোজ্য",
+  "{n} inputs · applies to every design": {
+    "one": "{n}টি ইনপুট · প্রতিটি ডিজাইনে প্রযোজ্য",
+    "other": "{n}টি ইনপুট · প্রতিটি ডিজাইনে প্রযোজ্য"
+  },
   "{n} invisible watermark(s) found": "{n}টি অদৃশ্য ওয়াটারমার্ক পাওয়া গেছে",
   "{n} issues to review before sharing.": "শেয়ার করার আগে {n}টি সমস্যা পর্যালোচনার জন্য আছে।",
-  "{n} items": "{n}টি আইটেম",
-  "{n} items copied": "{n}টি আইটেম কপি করা হয়েছে",
-  "{n} items cut": "{n}টি আইটেম কাট করা হয়েছে",
-  "{n} items moved": "{n}টি আইটেম সরানো হয়েছে",
-  "{n} items pasted": "{n}টি আইটেম পেস্ট করা হয়েছে",
+  "{n} items": {
+    "one": "{n}টি আইটেম",
+    "other": "{n}টি আইটেম"
+  },
+  "{n} items copied": {
+    "one": "{n}টি আইটেম কপি করা হয়েছে",
+    "other": "{n}টি আইটেম কপি করা হয়েছে"
+  },
+  "{n} items cut": {
+    "one": "{n}টি আইটেম কাট করা হয়েছে",
+    "other": "{n}টি আইটেম কাট করা হয়েছে"
+  },
+  "{n} items moved": {
+    "one": "{n}টি আইটেম সরানো হয়েছে",
+    "other": "{n}টি আইটেম সরানো হয়েছে"
+  },
+  "{n} items pasted": {
+    "one": "{n}টি আইটেম পেস্ট করা হয়েছে",
+    "other": "{n}টি আইটেম পেস্ট করা হয়েছে"
+  },
   "{n} items removed": "{n}টি আইটেম সরানো হয়েছে",
   "{n} jobs": "{n}টি কাজ",
   "{n} kept": "{n}টি রাখা হয়েছে",
   "{n} kept in the tray": "{n}টি ট্রেতে রাখা হয়েছে",
-  "{n} keyframes": "{n}টি কীফ্রেম",
+  "{n} keyframes": {
+    "one": "{n}টি কীফ্রেম",
+    "other": "{n}টি কীফ্রেম"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n}টি লেবেলযুক্ত স্ট্যান্ড-ইন অবজেক্টের জায়গা নিয়েছে।",
   "{n} layers": "{n}টি লেয়ার",
   "{n} layers found": "{n}টি লেয়ার পাওয়া গেছে",
   "{n} list lines": "{n}টি তালিকা লাইন",
-  "{n} logos": "{n} লোগো",
+  "{n} logos": {
+    "one": "{n}টি লোগো",
+    "other": "{n}টি লোগো"
+  },
   "{n} marks became the design system mark.": "{n}টি মার্ক ডিজাইন সিস্টেমের মার্ক হয়েছে।",
-  "{n} marks found": "{n}টি মার্ক পাওয়া গেছে",
+  "{n} marks found": {
+    "one": "{n}টি মার্ক পাওয়া গেছে",
+    "other": "{n}টি মার্ক পাওয়া গেছে"
+  },
   "{n} marks sent to Logos": "{n}টি চিহ্ন Logos-এ পাঠানো হয়েছে",
   "{n} min ago": "{n} মিনিট আগে",
   "{n} more findings in this document.": "এই ডকুমেন্টে আরও {n}টি ফলাফল।",
@@ -8328,7 +8400,10 @@
   "{n} more slides": "আরও {n}টি স্লাইড",
   "{n} moved to {group}.": "{n}টি {group}-এ সরানো হয়েছে।",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "যা ধরেনি তা রাখতে {n}টি নতুন স্লাইড যোগ হয়েছে, তাই স্লাইড নম্বর সরে গেছে।",
-  "{n} newer items skipped": "{n}টি নতুনতর আইটেম বাদ দেওয়া হয়েছে",
+  "{n} newer items skipped": {
+    "one": "{n}টি নতুনতর আইটেম বাদ দেওয়া হয়েছে",
+    "other": "{n}টি নতুনতর আইটেম বাদ দেওয়া হয়েছে"
+  },
   "{n} nits": "{n} নিট",
   "{n} not drawn": "{n}টি আঁকা হয়নি",
   "{n} objects added": "{n}টি অবজেক্ট যোগ হয়েছে",
@@ -8341,7 +8416,10 @@
   "{n} objects overlap the slide master.": "{n}টি অবজেক্ট স্লাইড মাস্টারের সাথে ওভারল্যাপ করে।",
   "{n} objects removed": "{n}টি অবজেক্ট সরানো হয়েছে",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n}টি অবজেক্টের ক্লিপিং বা ইফেক্ট ছবি হিসেবে রয়ে গেছে। আকৃতি বদলাতে এদের সম্পূর্ণ আর্টওয়ার্ক বদলান।",
-  "{n} of your creations are videos or animations": "আপনার সৃষ্টিগুলির মধ্যে {n}টি ভিডিও বা অ্যানিমেশন",
+  "{n} of your creations are videos or animations": {
+    "one": "আপনার সৃষ্টিগুলির মধ্যে {n}টি ভিডিও বা অ্যানিমেশন",
+    "other": "আপনার সৃষ্টিগুলির মধ্যে {n}টি ভিডিও বা অ্যানিমেশন"
+  },
   "{n} of {m}": "{m}-এর মধ্যে {n}",
   "{n} of {total} downloaded": "{total}টির মধ্যে {n}টি ডাউনলোড হয়েছে",
   "{n} of {total} downloaded · {size} on disk": "{total}-এর মধ্যে {n}টি ডাউনলোড হয়েছে · ডিস্কে {size}",
@@ -8352,57 +8430,90 @@
   "{n} off": "{n}টি বন্ধ",
   "{n} on": "{n}টি চালু",
   "{n} other colourways keep their own colours: {names}": "অন্য {n}টি কালারওয়ে নিজেদের রং রাখে: {names}",
-  "{n} pages": "{n} পৃষ্ঠা",
+  "{n} pages": {
+    "one": "{n}টি পৃষ্ঠা",
+    "other": "{n}টি পৃষ্ঠা"
+  },
   "{n} pages are pictures of their text.": "{n}টি পেজ তাদের টেক্সটের ছবি।",
-  "{n} pages differ": "{n}টি পৃষ্ঠা আলাদা",
+  "{n} pages differ": {
+    "one": "{n}টি পৃষ্ঠা আলাদা",
+    "other": "{n}টি পৃষ্ঠা আলাদা"
+  },
   "{n} pages had no size, so they were left out.": "{n}টি পেজের কোনো আকার ছিল না, তাই বাদ দেওয়া হয়েছে।",
   "{n} pictures": "{n}টি ছবি",
   "{n} pictures are missing.": "{n}টি ছবি নেই।",
   "{n} pictures in the deck were not kept.": "ডেকের {n}টি ছবি রাখা হয়নি।",
-  "{n} places": "{n} জায়গা",
+  "{n} places": {
+    "one": "{n}টি জায়গা",
+    "other": "{n}টি জায়গা"
+  },
   "{n} points": "{n} পয়েন্ট",
-  "{n} points - hold Alt for a corner": "{n} পয়েন্ট - কোণের জন্য Alt চেপে ধরুন",
+  "{n} points - hold Alt for a corner": {
+    "one": "{n}টি পয়েন্ট - কোণের জন্য Alt চেপে ধরুন",
+    "other": "{n}টি পয়েন্ট - কোণের জন্য Alt চেপে ধরুন"
+  },
   "{n} preserved file": "{n}টি সংরক্ষিত ফাইল",
   "{n} preserved files": "{n}টি সংরক্ষিত ফাইল",
   "{n} print locks re-pinned": "{n}টি প্রিন্ট লক পুনরায় পিন করা হয়েছে",
   "{n} proposed changes": "{n} প্রস্তাবিত পরিবর্তন",
   "{n} protected drafts": "{n}টি সুরক্ষিত ড্রাফট",
   "{n} published version": "{n}টি প্রকাশিত ভার্সন",
-  "{n} published versions": "{n}টি প্রকাশিত ভার্সন",
+  "{n} published versions": {
+    "one": "{n}টি প্রকাশিত ভার্সন",
+    "other": "{n}টি প্রকাশিত ভার্সন"
+  },
   "{n} recorded": "{n}টি রেকর্ড করা হয়েছে",
   "{n} removed from favourites": "পছন্দ থেকে {n}টি সরানো হয়েছে",
   "{n} removed from offline": "অফলাইন থেকে {n}টি সরানো হয়েছে",
   "{n} removed. A tool naming it will lose it.": "{n}টি সরানো হয়েছে। যে টুল এটা নাম ধরে ব্যবহার করে, তা এটা হারাবে।",
   "{n} removed. A tool naming one of these will lose it.": "{n}টি সরানো হয়েছে। এগুলোর কোনোটা নাম ধরে ব্যবহার করা টুল সেটা হারাবে।",
   "{n} renders": "{n}টি রেন্ডার",
-  "{n} results": "{n}টি ফলাফল",
+  "{n} results": {
+    "one": "{n}টি ফলাফল",
+    "other": "{n}টি ফলাফল"
+  },
   "{n} roles re-derived": "{n}টি ভূমিকা পুনরায় নির্ণয় করা হয়েছে",
   "{n} rotated runs left out": "{n}টি ঘোরানো রান বাদ দেওয়া হয়েছে",
   "{n} saved asset versions": "{n} সংরক্ষিত সম্পদ সংস্করণ",
   "{n} saved for offline, {m} failed - check your connection": "{n}টি অফলাইনের জন্য সেভ হয়েছে, {m}টি ব্যর্থ হয়েছে - আপনার সংযোগ পরীক্ষা করুন",
-  "{n} saved sessions": "{n}টি সংরক্ষিত সেশন",
+  "{n} saved sessions": {
+    "one": "{n}টি সংরক্ষিত সেশন",
+    "other": "{n}টি সংরক্ষিত সেশন"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "{n}টি সেভ করা সিস্টেমের প্রিভিউ দেখানো যায়নি। পরিচালনা করতে প্রোফাইল থেকে খুলুন।",
   "{n} scanned": "{n}টি স্ক্যান করা",
   "{n} scanned pages read.": "{n}টি স্ক্যান করা পেজ পড়া হয়েছে।",
   "{n} scanned pages were left unread to keep this quick.": "এটি দ্রুত রাখতে {n}টি স্ক্যান করা পৃষ্ঠা না পড়েই রাখা হয়েছে।",
   "{n} scanned pages were not read because Text recognition is not on this device.": "এই ডিভাইসে টেক্সট শনাক্তকরণ নেই, তাই {n}টি স্ক্যান করা পেজ পড়া হয়নি।",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n}টি স্ক্যান করা পৃষ্ঠা অন-ডিভাইস টেক্সট-রিকগনিশন দিয়ে পড়া হয়েছে, তাই সেই পৃষ্ঠাগুলোতে লুকানো-অক্ষর পরীক্ষা চালানো যায়নি।",
-  "{n} selected": "{n}টি নির্বাচিত",
-  "{n} selected assets": "{n}টি অ্যাসেট বেছে নেওয়া হয়েছে",
+  "{n} selected": {
+    "one": "{n}টি নির্বাচিত",
+    "other": "{n}টি নির্বাচিত"
+  },
+  "{n} selected assets": {
+    "one": "{n}টি নির্বাচিত অ্যাসেট",
+    "other": "{n}টি নির্বাচিত অ্যাসেট"
+  },
   "{n} selected files": "{n}টি ফাইল বেছে নেওয়া হয়েছে",
   "{n} selected items could not be outlined and were left as they are.": "{n}টি নির্বাচিত আইটেম আউটলাইন করা যায়নি এবং যেমন ছিল তেমনই রাখা হয়েছে।",
   "{n} selected items have no outline, so they were left as they are.": "নির্বাচিত {n}টি আইটেমের কোনো আউটলাইন নেই, তাই সেগুলো যেমন ছিল তেমনই রাখা হয়েছে।",
   "{n} selected · {size}": "{n}টি নির্বাচিত · {size}",
   "{n} sentences": "{n}টি বাক্য",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n}টি বাক্যে ডটেড আন্ডারলাইন আছে: অন-ডিভাইস মডেল একটি সহজ সংস্করণ দিতে পারে। একটি গ্রহণ করলে সংরক্ষিত কপি AI-সহায়তাপ্রাপ্ত হিসেবে চিহ্নিত হয়, এবং মডেলের শব্দচয়নে Lolly-র পাবলিক রিওয়ার্ড ওয়াটারমার্ক থাকে যাতে AI-লিখিত লেখা Verify-তে শনাক্তযোগ্য থাকে।",
-  "{n} sessions": "{n}টি সেশন",
+  "{n} sessions": {
+    "one": "{n}টি সেশন",
+    "other": "{n}টি সেশন"
+  },
   "{n} set": "{n}টি সেট",
   "{n} shade curves re-anchored": "{n}টি শেড কার্ভ পুনরায় অ্যাঙ্কর করা হয়েছে",
   "{n} shades added to your palette": "আপনার প্যালেটে {n}টি শেড যোগ হয়েছে",
   "{n} shades added. Undo is available above your palette.": "{n}টি শেড যোগ হয়েছে। আনডু আপনার প্যালেটের উপরে আছে।",
   "{n} shades could not reach their target (capped at the closest tone).": "{n}টি শেড তাদের লক্ষ্যে পৌঁছাতে পারেনি (নিকটতম টোনে সীমাবদ্ধ)।",
   "{n} shades rebuilt across {ramps} ramps": "{ramps}টি র‍্যাম্প জুড়ে {n}টি শেড পুনর্নির্মিত হয়েছে",
-  "{n} shapes": "{n}টি শেপ",
+  "{n} shapes": {
+    "one": "{n}টি শেপ",
+    "other": "{n}টি শেপ"
+  },
   "{n} shapes · page {p}": "{n}টি আকৃতি · পৃষ্ঠা {p}",
   "{n} shared assets were kept.": "{n}টি শেয়ার করা অ্যাসেট রাখা হয়েছে।",
   "{n} slides narrated.": "{n}টি স্লাইড বর্ণনা করা হয়েছে।",
@@ -8410,11 +8521,17 @@
   "{n} spectrum hues rebuilt": "{n}টি স্পেকট্রাম হিউ পুনর্নির্মিত হয়েছে",
   "{n} stages of work": "কাজের {n}টি ধাপ",
   "{n} starter colours": "{n}টি স্টার্টার রং",
-  "{n} steps": "{n} পদক্ষেপ",
+  "{n} steps": {
+    "one": "{n}টি ধাপ",
+    "other": "{n}টি ধাপ"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "{n}টি সাজেশন পাওয়া গেছে। কপিগুলো সেগুলো বেছে নিয়ে প্রস্তুত করা হয়েছে; Inspection প্যানেলে যেকোনোটি বদলান।",
   "{n} suggestions were applied without review.": "{n}টি সাজেশন পর্যালোচনা ছাড়াই প্রয়োগ হয়েছে।",
   "{n} swatches removed": "{n}টি সোয়াচ সরানো হয়েছে",
-  "{n} templates": "{n}টি টেমপ্লেট",
+  "{n} templates": {
+    "one": "{n}টি টেমপ্লেট",
+    "other": "{n}টি টেমপ্লেট"
+  },
   "{n} templates added": "{n}টি টেমপ্লেট যোগ হয়েছে",
   "{n} templates deleted": "{n}টি টেমপ্লেট মুছে ফেলা হয়েছে",
   "{n} templates saved": "{n}টি টেমপ্লেট সেভ হয়েছে",
@@ -8434,11 +8551,17 @@
   "{n} unsupported backup parts skipped": "{n} সমর্থিত ব্যাকআপ অংশগুলি বাদ দেওয়া হয়েছে",
   "{n} value changes": "{n}টি মান বদল",
   "{n} values change": "{n}টি মান বদলায়",
-  "{n} volume keys": "{n}টি ভলিউম কিফ্রেম",
+  "{n} volume keys": {
+    "one": "{n}টি ভলিউম কীফ্রেম",
+    "other": "{n}টি ভলিউম কীফ্রেম"
+  },
   "{n} warnings.": "{n}টি সতর্কতা।",
   "{n} were kept - they are not this room to remove.": "{n}টি রাখা হয়েছে - সেগুলো সরানোর জন্য এই রুমের অংশ নয়।",
   "{n} wording swaps are underlined in the preview.": "{n}টি শব্দ পরিবর্তন প্রিভিউতে আন্ডারলাইন করা আছে।",
-  "{n} words": "{n} শব্দ",
+  "{n} words": {
+    "one": "{n}টি শব্দ",
+    "other": "{n}টি শব্দ"
+  },
   "{n} words cut": "{n}টি শব্দ কাটা",
   "{n} yours": "{n}টি আপনার",
   "{n}-bit": "{n}-বিট",
@@ -8832,7 +8955,10 @@
   "1 design was added to Projects, in 1 folder.": "1টি ডিজাইন প্রজেক্টে 1টি ফোল্ডারে যোগ হয়েছে।",
   "1 design was added to Projects, in {f} folders.": "1টি ডিজাইন প্রজেক্টে {f}টি ফোল্ডারে যোগ হয়েছে।",
   "1 design was added to Projects.": "1টি ডিজাইন প্রজেক্টে যোগ হয়েছে।",
-  "{n} creations removed from Projects here stayed removed.": "{n}টি সৃষ্টি, যেগুলো এখানে প্রজেক্ট থেকে সরানো হয়েছিল, সরানোই থেকে গেছে।",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n}টি সৃষ্টি, যেগুলো এখানে প্রজেক্ট থেকে সরানো হয়েছিল, সরানোই থেকে গেছে।",
+    "other": "{n}টি সৃষ্টি, যেগুলো এখানে প্রজেক্ট থেকে সরানো হয়েছিল, সরানোই থেকে গেছে।"
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "এই সৃষ্টিটি কখনও সংরক্ষণ করা হয়নি, তাই সেভ না করে চলে গেলে এটি প্রজেক্ট থেকে সরে যাবে।",
   "This deck has no colours to change.": "এই ডেকে বদলানোর মতো কোনো রং নেই।",
   "This deck has no fonts to change.": "এই ডেকে বদলানোর মতো কোনো ফন্ট নেই।",
@@ -8862,7 +8988,10 @@
   "This saved version could not be read.": "এই সংরক্ষিত সংস্করণ পড়া যায়নি।",
   "1 older automatic checkpoint left out": "1টি পুরনো স্বয়ংক্রিয় চেকপয়েন্ট বাদ পড়েছে",
   "1 other colourway keeps its own colours: {names}": "আরও 1টি কালারওয়ে নিজের রং রাখে: {names}",
-  "{n} older automatic checkpoints left out": "{n}টি পুরনো স্বয়ংক্রিয় চেকপয়েন্ট বাদ পড়েছে",
+  "{n} older automatic checkpoints left out": {
+    "one": "{n}টি পুরনো স্বয়ংক্রিয় চেকপয়েন্ট বাদ পড়েছে",
+    "other": "{n}টি পুরনো স্বয়ংক্রিয় চেকপয়েন্ট বাদ পড়েছে"
+  },
   "Automatic recovery and checkpoints are on": "স্বয়ংক্রিয় পুনরুদ্ধার ও চেকপয়েন্ট চালু আছে",
   "Automatic recovery is unavailable here. Save before leaving.": "এখানে স্বয়ংক্রিয় পুনরুদ্ধার পাওয়া যায় না। যাওয়ার আগে সেভ করুন।",
   "Checkpoint saved at {time} on this device": "চেকপয়েন্ট এই ডিভাইসে {time}-এ সংরক্ষিত হয়েছে",
@@ -9045,7 +9174,10 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "ওয়েব সংস্করণ যে সাইট দেখাতে পারে না সেগুলো দেখাতে Lolly এই ডিভাইসে শিথিল ফ্রেম নীতিতে আবার লোড হতে পারে, তারপর উপস্থাপনার আগে প্রতিটি সাইট সম্পর্কে জিজ্ঞাসা করে। আপনি প্রোফাইলে বিশ্বস্ত সাইট-এর অধীনে এটি বন্ধ করতে পারেন।",
   "Card size": "কার্ডের আকার",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "এই ডিভাইসে ১টি ছবি বা ফাইল যোগ করা হয়েছে। এটি এই ডিভাইসেই থাকবে, অন্যরা সেই ফাইল দেখতে পাবেন না।",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "এই ডিভাইসে {n}টি ছবি বা ফাইল যোগ করা হয়েছে। সেগুলো এই ডিভাইসেই থাকবে, অন্যরা সেই ফাইলগুলো দেখতে পাবেন না।",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "এই ডিভাইসে {n}টি ছবি বা ফাইল যোগ করা হয়েছে। সেগুলো এই ডিভাইসেই থাকবে, অন্যরা সেই ফাইলগুলো দেখতে পাবেন না।",
+    "other": "এই ডিভাইসে {n}টি ছবি বা ফাইল যোগ করা হয়েছে। সেগুলো এই ডিভাইসেই থাকবে, অন্যরা সেই ফাইলগুলো দেখতে পাবেন না।"
+  },
   "Check the version first": "আগে সংস্করণটি দেখে নিন",
   "Copy team link": "টিম লিংক কপি করুন",
   "Could not create the project. Try again.": "প্রজেক্ট তৈরি করা যায়নি। আবার চেষ্টা করুন।",
@@ -9793,7 +9925,10 @@
   "Every mode": "প্রতিটি মোড",
   "Your local items have not changed.": "আপনার স্থানীয় আইটেম বদলায়নি।",
   "1 item was saved to the shared project.": "১টি আইটেম শেয়ার করা প্রজেক্টে সংরক্ষিত হয়েছে।",
-  "{n} items were saved to the shared project.": "{n}টি আইটেম শেয়ার করা প্রজেক্টে সংরক্ষিত হয়েছে।",
+  "{n} items were saved to the shared project.": {
+    "one": "{n}টি আইটেম শেয়ার করা প্রজেক্টে সংরক্ষিত হয়েছে।",
+    "other": "{n}টি আইটেম শেয়ার করা প্রজেক্টে সংরক্ষিত হয়েছে।"
+  },
   "Wait for the current move to finish.": "বর্তমান সরানো শেষ হওয়া পর্যন্ত অপেক্ষা করুন।",
   "Wait for the deck to finish reading, then choose a picture.": "ডেক পড়া শেষ হওয়া পর্যন্ত অপেক্ষা করুন, তারপর একটি ছবি বেছে নিন।",
   "Wait for the grid to finish rendering before moving its layers.": "লেয়ার সরানোর আগে গ্রিড রেন্ডার শেষ হওয়া পর্যন্ত অপেক্ষা করুন।",
@@ -10645,5 +10780,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "এই ক্লিপ {codec} ব্যবহার করে, যা এই ডিভাইস চালাতে পারে না। আপনার এডিটিং অ্যাপ থেকে H.264, HEVC বা AV1 কপি এক্সপোর্ট করুন, অথবা Mac-এ Lolly ডেস্কটপ অ্যাপে এটি খুলুন। Lolly মূল ফাইলটি রেখে দেয়।",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "এই ক্লিপ {codec} ব্যবহার করে, যা এই ডিভাইস চালাতে পারে না। আপনার এডিটিং অ্যাপ থেকে H.264, HEVC বা AV1 কপি এক্সপোর্ট করুন। Lolly মূল ফাইলটি রেখে দেয়।",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "এটি {codec} সহ একটি MXF ফাইল। Lolly এর ভেতরের কনটেন্ট পড়তে পারে, কিন্তু MXF চালাতে পারে না। আপনার এডিটিং অ্যাপ থেকে H.264, HEVC বা AV1 কপি এক্সপোর্ট করুন। Lolly মূল ফাইলটি রেখে দেয়।",
-  "{format} from {camera}": "{camera} থেকে {format}"
+  "{format} from {camera}": "{camera} থেকে {format}",
+  "Filling a large area. This can take a moment.": "বড় এলাকা ফিল করা হচ্ছে। এতে একটু সময় লাগতে পারে।",
+  "Large area": "বড় এলাকা"
 }

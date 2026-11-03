@@ -585,7 +585,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "ویریفائی اور اثاثوں میں گہری AI-ٹیکسٹ جانچ چلاتا ہے۔",
   "Card size": "کارڈ کا سائز",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "اس ڈیوائس پر 1 تصویر یا فائل شامل کی گئی تھی۔ وہ اسی ڈیوائس پر رہتی ہے، اور دوسرے اس فائل کو نہیں دیکھ سکیں گے۔",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "اس ڈیوائس پر {n} تصاویر یا فائلیں شامل کی گئی تھیں۔ وہ اسی ڈیوائس پر رہتی ہیں، اور دوسرے ان فائلوں کو نہیں دیکھ سکیں گے۔",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "اس ڈیوائس پر 1 تصویر یا فائل شامل کی گئی تھی۔ وہ اسی ڈیوائس پر رہتی ہے، اور دوسرے اس فائل کو نہیں دیکھ سکیں گے۔",
+    "other": "اس ڈیوائس پر {n} تصاویر یا فائلیں شامل کی گئی تھیں۔ وہ اسی ڈیوائس پر رہتی ہیں، اور دوسرے ان فائلوں کو نہیں دیکھ سکیں گے۔"
+  },
   "Check the version first": "پہلے ورژن چیک کریں",
   "Copy team link": "ٹیم لنک کاپی کریں",
   "Could not create the project. Try again.": "پراجیکٹ نہیں بنایا جا سکا۔ دوبارہ کوشش کریں۔",
@@ -1176,7 +1179,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "تمام آئٹمز مشترکہ پراجیکٹ میں محفوظ ہو گئے ہیں۔ مقامی اصل آئٹمز ٹریش میں ہیں یا اپنی جگہ پر ہی ہیں۔",
   "Your local items have not changed.": "آپ کے مقامی آئٹمز میں کوئی تبدیلی نہیں ہوئی۔",
   "1 item was saved to the shared project.": "1 آئٹم مشترکہ پراجیکٹ میں محفوظ ہوا۔",
-  "{n} items were saved to the shared project.": "{n} آئٹمز مشترکہ پراجیکٹ میں محفوظ ہوئے۔",
+  "{n} items were saved to the shared project.": {
+    "one": "1 آئٹم مشترکہ پراجیکٹ میں محفوظ ہوا۔",
+    "other": "{n} آئٹمز مشترکہ پراجیکٹ میں محفوظ ہوئے۔"
+  },
   "Wait for the current move to finish.": "موجودہ منتقلی مکمل ہونے کا انتظار کریں۔",
   "You cannot save to that shared project.": "آپ اس مشترکہ پراجیکٹ میں محفوظ نہیں کر سکتے۔",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "جو بھی {project} کھول سکتا ہے وہ ان آئٹمز کو دیکھے گا۔ ہر آئٹم وہاں محفوظ ہونے کے بعد مقامی اصل آئٹمز ٹریش میں چلے جاتے ہیں، جہاں سے آپ انہیں بحال کر سکتے ہیں۔",
@@ -1487,8 +1493,14 @@
   "file": "فائل",
   "samples": "نمونے",
   "text": "متن",
-  "{n} changes found": "{n} تبدیلیاں ملیں",
-  "{n} pages differ": "{n} صفحات مختلف ہیں",
+  "{n} changes found": {
+    "one": "1 تبدیلی ملی",
+    "other": "{n} تبدیلیاں ملیں"
+  },
+  "{n} pages differ": {
+    "one": "1 صفحہ مختلف ہے",
+    "other": "{n} صفحات مختلف ہیں"
+  },
   "Draft": "مسودہ",
   "Draft quality": "مسودے کا معیار",
   "Draft rule": "مسودہ اصول",
@@ -1840,5 +1852,169 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt۔ پنسل (Shift C) اور اسپلائن کی قسم کے لیے دبائے رکھیں",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt",
   "Recipients can change the inputs": "وصول کنندگان ان پٹس تبدیل کر سکتے ہیں",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "لنک رکھنے والا کوئی بھی شخص اس کے ان پٹس تبدیل کر کے نئی تصویر حاصل کر سکتا ہے۔ لاک شدہ ان پٹس جیسے سیٹ ہیں ویسے ہی رہتے ہیں۔"
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "لنک رکھنے والا کوئی بھی شخص اس کے ان پٹس تبدیل کر کے نئی تصویر حاصل کر سکتا ہے۔ لاک شدہ ان پٹس جیسے سیٹ ہیں ویسے ہی رہتے ہیں۔",
+  "{count} entries": {
+    "one": "1 اندراج",
+    "other": "{count} اندراجات"
+  },
+  "{count} files in this folder": {
+    "one": "اس فولڈر میں 1 فائل",
+    "other": "اس فولڈر میں {count} فائلیں"
+  },
+  "{n} assets": {
+    "one": "1 اثاثہ",
+    "other": "{n} اثاثے"
+  },
+  "{n} assets found": {
+    "one": "1 اثاثہ ملا",
+    "other": "{n} اثاثے ملے"
+  },
+  "{n} capabilities match": {
+    "one": "1 صلاحیت مماثل ہے",
+    "other": "{n} صلاحیتیں مماثل ہیں"
+  },
+  "{n} copies made · selected": {
+    "one": "1 کاپی بنائی گئی · منتخب",
+    "other": "{n} کاپیاں بنائی گئیں · منتخب"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "یہاں پراجیکٹس سے ہٹائی گئی 1 تخلیق ہٹائی ہی رہی۔",
+    "other": "یہاں پراجیکٹس سے ہٹائی گئیں {n} تخلیقات ہٹائی ہی رہیں۔"
+  },
+  "{n} embedded files": {
+    "one": "1 سرایت شدہ فائل",
+    "other": "{n} سرایت شدہ فائلیں"
+  },
+  "{n} external references": {
+    "one": "1 بیرونی حوالہ",
+    "other": "{n} بیرونی حوالہ جات"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "1 فائل پیک نہیں ہو سکی اور چھوڑ دی گئی",
+    "other": "{n} فائلیں پیک نہیں ہو سکیں اور چھوڑ دی گئیں"
+  },
+  "{n} folders": {
+    "one": "1 فولڈر",
+    "other": "{n} فولڈرز"
+  },
+  "{n} font files": {
+    "one": "1 فونٹ فائل",
+    "other": "{n} فونٹ فائلیں"
+  },
+  "{n} images": {
+    "one": "1 تصویر",
+    "other": "{n} تصاویر"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "1 تصویر بحال نہیں ہو سکی (اسٹوریج بھرا ہوا ہے؟)",
+    "other": "{n} تصاویر بحال نہیں ہو سکیں (اسٹوریج بھرا ہوا ہے؟)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "1 تصویر اصل کے ساتھ ہی رہی - تصاویر کا ایک ہی گھر ہوتا ہے؛ اسے منتقل کرنے کے لیے کٹ استعمال کریں",
+    "other": "{n} تصاویر اصل کے ساتھ ہی رہیں - تصاویر کا ایک ہی گھر ہوتا ہے؛ انہیں منتقل کرنے کے لیے کٹ استعمال کریں"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "1 ان پٹ · ہر ڈیزائن پر لاگو ہوتا ہے",
+    "other": "{n} ان پٹس · ہر ڈیزائن پر لاگو ہوتے ہیں"
+  },
+  "{n} items": {
+    "one": "1 آئٹم",
+    "other": "{n} آئٹمز"
+  },
+  "{n} items copied": {
+    "one": "1 آئٹم کاپی ہو گیا",
+    "other": "{n} آئٹمز کاپی ہو گئے"
+  },
+  "{n} items cut": {
+    "one": "1 آئٹم کٹ ہو گیا",
+    "other": "{n} آئٹمز کٹ ہو گئے"
+  },
+  "{n} items moved": {
+    "one": "1 آئٹم منتقل ہو گیا",
+    "other": "{n} آئٹمز منتقل ہو گئے"
+  },
+  "{n} items pasted": {
+    "one": "1 آئٹم پیسٹ ہو گیا",
+    "other": "{n} آئٹمز پیسٹ ہو گئے"
+  },
+  "{n} keyframes": {
+    "one": "1 کی فریم",
+    "other": "{n} کی فریمز"
+  },
+  "{n} logos": {
+    "one": "1 لوگو",
+    "other": "{n} لوگو"
+  },
+  "{n} marks found": {
+    "one": "1 نشان ملا",
+    "other": "{n} نشانات ملے"
+  },
+  "{n} newer items skipped": {
+    "one": "1 نیا آئٹم نظرانداز کیا گیا",
+    "other": "{n} نئے آئٹمز نظرانداز کیے گئے"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "1 تخلیق ویڈیو یا اینیمیشن ہے",
+    "other": "آپ کی {n} تخلیقات ویڈیوز یا اینیمیشنز ہیں"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "1 پرانا خودکار چیک پوائنٹ چھوڑ دیا گیا",
+    "other": "{n} پرانے خودکار چیک پوائنٹس چھوڑ دیے گئے"
+  },
+  "{n} pages": {
+    "one": "1 صفحہ",
+    "other": "{n} صفحات"
+  },
+  "{n} places": {
+    "one": "1 جگہ",
+    "other": "{n} جگہیں"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "1 پوائنٹ - کونے کے لیے Alt دبائے رکھیں",
+    "other": "{n} پوائنٹس - کونے کے لیے Alt دبائے رکھیں"
+  },
+  "{n} published versions": {
+    "one": "1 شائع شدہ ورژن",
+    "other": "{n} شائع شدہ ورژنز"
+  },
+  "{n} results": {
+    "one": "1 نتیجہ",
+    "other": "{n} نتائج"
+  },
+  "{n} saved sessions": {
+    "one": "1 محفوظ شدہ سیشن",
+    "other": "{n} محفوظ شدہ سیشنز"
+  },
+  "{n} selected": {
+    "one": "1 منتخب",
+    "other": "{n} منتخب"
+  },
+  "{n} selected assets": {
+    "one": "1 منتخب اثاثہ",
+    "other": "{n} منتخب اثاثے"
+  },
+  "{n} sessions": {
+    "one": "1 سیشن",
+    "other": "{n} سیشنز"
+  },
+  "{n} shapes": {
+    "one": "1 شکل",
+    "other": "{n} شکلیں"
+  },
+  "{n} steps": {
+    "one": "1 مرحلہ",
+    "other": "{n} مراحل"
+  },
+  "{n} templates": {
+    "one": "1 ٹیمپلیٹ",
+    "other": "{n} ٹیمپلیٹس"
+  },
+  "{n} volume keys": {
+    "one": "1 والیوم کی فریم",
+    "other": "{n} والیوم کی فریمز"
+  },
+  "{n} words": {
+    "one": "1 لفظ",
+    "other": "{n} الفاظ"
+  }
 }

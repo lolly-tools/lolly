@@ -8027,10 +8027,18 @@
   "{count} controls you changed stay yours.": "{count} controale pe care le-ai schimbat rămân ale tale.",
   "{count} days": "{count} zile",
   "{count} decisions from the last version still apply.": "{count} decizii din ultima versiune se aplică în continuare.",
-  "{count} entries": "{count} intrări",
+  "{count} entries": {
+    "one": "{count} intrare",
+    "few": "{count} intrări",
+    "other": "{count} de intrări"
+  },
   "{count} files / variations": "{count} fișiere / variante",
   "{count} files chosen": "{count} fișiere alese",
-  "{count} files in this folder": "{count} fișiere în acest dosar",
+  "{count} files in this folder": {
+    "one": "{count} fișier în acest folder",
+    "few": "{count} fișiere în acest folder",
+    "other": "{count} de fișiere în acest folder"
+  },
   "{count} for {names}": "{count} pentru {names}",
   "{count} for “{query}” in {scope}": "{count} pentru „{query}” în {scope}",
   "{count} layouts": "{count} aspecte",
@@ -8204,19 +8212,35 @@
   "{n} added to favourites": "{n} adăugate la favorite",
   "{n} added to the design system": "{n} adăugate în sistemul de design",
   "{n} asset IDs": "{n} ID-uri de resurse",
-  "{n} assets": "{n} resurse",
+  "{n} assets": {
+    "one": "{n} resursă",
+    "few": "{n} resurse",
+    "other": "{n} de resurse"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} Afacerile nu au putut fi restabile.",
-  "{n} assets found": "{n} resurse găsite",
+  "{n} assets found": {
+    "one": "{n} resursă găsită",
+    "few": "{n} resurse găsite",
+    "other": "{n} de resurse găsite"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} resurse arhivate · {c} cu Content Credentials",
   "{n} available offline": "{n} disponibile offline",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} elemente. Un singur clic scrie un arc de mișcare complet - fiecare cadru cheie rămâne editabil după aceea.",
-  "{n} capabilities match": "{n} capabilități potrivite",
+  "{n} capabilities match": {
+    "one": "{n} capabilitate se potrivește",
+    "few": "{n} capabilități se potrivesc",
+    "other": "{n} de capabilități se potrivesc"
+  },
   "{n} cards are left to review.": "{n} carduri rămân de revizuit.",
   "{n} cards are still to answer.": "{n} carduri așteaptă încă un răspuns.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "{n} carduri așteaptă încă un răspuns. Le accepți așa cum sunt propuse și deschizi în Design?",
   "{n} ch": "{n} car.",
   "{n} changed": "{n} modificate",
-  "{n} changes found": "S-au găsit {n} modificări",
+  "{n} changes found": {
+    "one": "S-a găsit o modificare",
+    "few": "S-au găsit {n} modificări",
+    "other": "S-au găsit {n} de modificări"
+  },
   "{n} characters continue beyond the last frame.": "{n} caractere continuă în afara ultimului cadru.",
   "{n} checks": "{n} controale",
   "{n} clips selected": "{n} clipuri selectate",
@@ -8231,7 +8255,11 @@
   "{n} connectors - editing all": "{n} conectori - se editează toți",
   "{n} copies added to your projects": "{n} copii adăugate la proiectele tale",
   "{n} copies in total": "{n} copii în total",
-  "{n} copies made · selected": "{n} copii create · selectate",
+  "{n} copies made · selected": {
+    "one": "{n} copie creată · selectată",
+    "few": "{n} copii create · selectate",
+    "other": "{n} de copii create · selectate"
+  },
   "{n} creation checkpoints": "{n} puncte de control ale creației",
   "{n} curly quotes": "{n} ghilimele curbe",
   "{n} days ago": "{n} Acum câteva zile",
@@ -8248,24 +8276,44 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} intrări editabile. Setările neselectate rămân fixe.",
   "{n} ellipsis characters": "{n} caractere de puncte de suspensie",
   "{n} em-dashes": "{n} liniuțe em",
-  "{n} embedded files": "{n} fișiere încorporate",
-  "{n} external references": "{n} referințe externe",
+  "{n} embedded files": {
+    "one": "{n} fișier încorporat",
+    "few": "{n} fișiere încorporate",
+    "other": "{n} de fișiere încorporate"
+  },
+  "{n} external references": {
+    "one": "{n} referință externă",
+    "few": "{n} referințe externe",
+    "other": "{n} de referințe externe"
+  },
   "{n} fields": "{n} câmpuri",
   "{n} file batches": "{n} loturi de fișiere",
   "{n} file operation records": "{n} înregistrări ale operațiunilor de fișiere",
   "{n} files": "{n} fișiere",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} fișiere nu sunt prezentări PowerPoint, PDF-uri sau documente Photoshop, așa că au fost omise.",
   "{n} files are ready to import.": "{n} fișiere sunt gata de importat.",
-  "{n} files could not be packed and were left out": "{n} fișiere nu au putut fi arhivate și au fost lăsate deoparte",
+  "{n} files could not be packed and were left out": {
+    "one": "Un fișier nu a putut fi arhivat și a fost lăsat deoparte",
+    "few": "{n} fișiere nu au putut fi arhivate și au fost lăsate deoparte",
+    "other": "{n} de fișiere nu au putut fi arhivate și au fost lăsate deoparte"
+  },
   "{n} files imported from the zip.": "{n} fișiere importate din arhiva zip.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} fișiere importate din arhiva zip; {skipped} omise.",
   "{n} files ready": "{n} fişiere gata",
   "{n} findings": "{n} constatări",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "{n} constatări găsite. Sugestiile editabile sunt selectate; constatările Office doar de inspectat rămân neschimbate. Revizuiește panoul Inspecție.",
-  "{n} folders": "{n} foldere",
+  "{n} folders": {
+    "one": "{n} folder",
+    "few": "{n} foldere",
+    "other": "{n} de foldere"
+  },
   "{n} font changes": "{n} schimbări de font",
   "{n} font choices": "{n} alegeri de font",
-  "{n} font files": "{n} fișiere de tip",
+  "{n} font files": {
+    "one": "{n} fișier de font",
+    "few": "{n} fișiere de font",
+    "other": "{n} de fișiere de font"
+  },
   "{n} fonts": "{n} fonturi",
   "{n} fonts found": "{n} fonturi găsite",
   "{n} fonts from the deck are set in another face.": "{n} fonturi din prezentare sunt setate într-un alt font.",
@@ -8277,31 +8325,79 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} ascunse - le găsești sub „Arată instrumentele ascunse”",
   "{n} hidden shades stay hidden": "{n} nuanțe ascunse rămân ascunse",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} Nu puteți restabili elementele de istorie. păstrați rezervă; spațiu liber sau rezolvați versiunile conflictuale înainte de a încerca din nou.",
-  "{n} images": "{n} imagini",
-  "{n} images couldn’t be restored (storage full?)": "{n} imagini nu au putut fi restaurate (spațiu de stocare plin?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} imagini au rămas cu originalul - imaginile au un singur loc; folosește Taie ca să le muți",
+  "{n} images": {
+    "one": "{n} imagine",
+    "few": "{n} imagini",
+    "other": "{n} de imagini"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} imagine nu a putut fi restaurată (spațiu de stocare plin?)",
+    "few": "{n} imagini nu au putut fi restaurate (spațiu de stocare plin?)",
+    "other": "{n} de imagini nu au putut fi restaurate (spațiu de stocare plin?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "O imagine a rămas cu originalul - imaginile au un singur loc; folosește Taie ca să o muți",
+    "few": "{n} imagini au rămas cu originalul - imaginile au un singur loc; folosește Taie ca să le muți",
+    "other": "{n} de imagini au rămas cu originalul - imaginile au un singur loc; folosește Taie ca să le muți"
+  },
   "{n} included tools (asked before installing)": "{n} instrumente incluse (cu întrebare înainte de instalare)",
   "{n} ink": "{n} cerneală",
-  "{n} inputs · applies to every design": "{n} câmpuri · se aplică fiecărui design",
+  "{n} inputs · applies to every design": {
+    "one": "{n} câmp · se aplică fiecărui design",
+    "few": "{n} câmpuri · se aplică fiecărui design",
+    "other": "{n} de câmpuri · se aplică fiecărui design"
+  },
   "{n} invisible watermark(s) found": "{n} filigran(e) invizibil(e) găsite",
   "{n} issues to review before sharing.": "{n} probleme de revizuit înainte de partajare.",
-  "{n} items": "{n} elemente",
-  "{n} items copied": "{n} elemente copiate",
-  "{n} items cut": "{n} elemente tăiate",
-  "{n} items moved": "{n} elemente mutate",
-  "{n} items pasted": "{n} elemente lipite",
+  "{n} items": {
+    "one": "{n} element",
+    "few": "{n} elemente",
+    "other": "{n} de elemente"
+  },
+  "{n} items copied": {
+    "one": "{n} element copiat",
+    "few": "{n} elemente copiate",
+    "other": "{n} de elemente copiate"
+  },
+  "{n} items cut": {
+    "one": "{n} element tăiat",
+    "few": "{n} elemente tăiate",
+    "other": "{n} de elemente tăiate"
+  },
+  "{n} items moved": {
+    "one": "{n} element mutat",
+    "few": "{n} elemente mutate",
+    "other": "{n} de elemente mutate"
+  },
+  "{n} items pasted": {
+    "one": "{n} element lipit",
+    "few": "{n} elemente lipite",
+    "other": "{n} de elemente lipite"
+  },
   "{n} items removed": "{n} elemente eliminate",
   "{n} jobs": "{n} sarcini",
   "{n} kept": "{n} păstrate",
   "{n} kept in the tray": "{n} păstrate în tavă",
-  "{n} keyframes": "{n} cadre cheie",
+  "{n} keyframes": {
+    "one": "{n} cadru cheie",
+    "few": "{n} cadre cheie",
+    "other": "{n} de cadre cheie"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} înlocuitori etichetați iau locul obiectelor.",
   "{n} layers": "{n} straturi",
   "{n} layers found": "{n} straturi găsite",
   "{n} list lines": "{n} linii de listă",
-  "{n} logos": "{n} logouri",
+  "{n} logos": {
+    "one": "{n} logo",
+    "few": "{n} logouri",
+    "other": "{n} de logouri"
+  },
   "{n} marks became the design system mark.": "{n} mărci au devenit marca sistemului de design.",
-  "{n} marks found": "{n} marcaje găsite",
+  "{n} marks found": {
+    "one": "{n} marcaj găsit",
+    "few": "{n} marcaje găsite",
+    "other": "{n} de marcaje găsite"
+  },
   "{n} marks sent to Logos": "{n} mărci trimise la Logouri",
   "{n} min ago": "{n} Acum câteva minute",
   "{n} more findings in this document.": "Încă {n} constatări în acest document.",
@@ -8313,7 +8409,11 @@
   "{n} more slides": "Încă {n} diapozitive",
   "{n} moved to {group}.": "{n} mutate la {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} diapozitive noi conțin ce nu a încăput, așa că numerele diapozitivelor s-au mutat.",
-  "{n} newer items skipped": "{n} elemente mai noi omise",
+  "{n} newer items skipped": {
+    "one": "{n} element mai nou omis",
+    "few": "{n} elemente mai noi omise",
+    "other": "{n} de elemente mai noi omise"
+  },
   "{n} nits": "{n} niți",
   "{n} not drawn": "{n} nedesenate",
   "{n} objects added": "{n} obiecte adăugate",
@@ -8326,7 +8426,11 @@
   "{n} objects overlap the slide master.": "{n} obiecte se suprapun cu slide master-ul.",
   "{n} objects removed": "{n} obiecte eliminate",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} obiecte păstrează decupajul sau efectele ca imagini. Înlocuiește întreaga lor grafică pentru a le schimba forma.",
-  "{n} of your creations are videos or animations": "{n} dintre creațiile tale sunt videouri sau animații",
+  "{n} of your creations are videos or animations": {
+    "one": "O creație a ta este un videoclip sau o animație",
+    "few": "{n} dintre creațiile tale sunt videoclipuri sau animații",
+    "other": "{n} dintre creațiile tale sunt videoclipuri sau animații"
+  },
   "{n} of {m}": "{n} din {m}",
   "{n} of {total} downloaded": "{n} din {total} descărcate",
   "{n} of {total} downloaded · {size} on disk": "{n} din {total} descărcate · {size} pe disc",
@@ -8337,57 +8441,101 @@
   "{n} off": "{n} dezactivate",
   "{n} on": "{n} activate",
   "{n} other colourways keep their own colours: {names}": "{n} alte colourway-uri își păstrează culorile proprii: {names}",
-  "{n} pages": "{n} pagini",
+  "{n} pages": {
+    "one": "{n} pagină",
+    "few": "{n} pagini",
+    "other": "{n} de pagini"
+  },
   "{n} pages are pictures of their text.": "{n} pagini sunt imagini ale textului lor.",
-  "{n} pages differ": "{n} pagini diferă",
+  "{n} pages differ": {
+    "one": "O pagină diferă",
+    "few": "{n} pagini diferă",
+    "other": "{n} de pagini diferă"
+  },
   "{n} pages had no size, so they were left out.": "{n} pagini nu aveau dimensiune, așa că au fost omise.",
   "{n} pictures": "{n} imagini",
   "{n} pictures are missing.": "{n} imagini lipsesc.",
   "{n} pictures in the deck were not kept.": "{n} imagini din prezentare nu au fost păstrate.",
-  "{n} places": "{n} locuri",
+  "{n} places": {
+    "one": "{n} loc",
+    "few": "{n} locuri",
+    "other": "{n} de locuri"
+  },
   "{n} points": "{n} puncte",
-  "{n} points - hold Alt for a corner": "{n} puncte - ține apăsat Alt pentru un colț",
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punct - ține apăsat Alt pentru un colț",
+    "few": "{n} puncte - ține apăsat Alt pentru un colț",
+    "other": "{n} de puncte - ține apăsat Alt pentru un colț"
+  },
   "{n} preserved file": "{n} fișier păstrat",
   "{n} preserved files": "{n} fișiere păstrate",
   "{n} print locks re-pinned": "{n} blocări de tipar refixate",
   "{n} proposed changes": "{n} modificări propuse",
   "{n} protected drafts": "{n} ciorne protejate",
   "{n} published version": "{n} versiune publicată",
-  "{n} published versions": "{n} versiuni publicate",
+  "{n} published versions": {
+    "one": "{n} versiune publicată",
+    "few": "{n} versiuni publicate",
+    "other": "{n} de versiuni publicate"
+  },
   "{n} recorded": "{n} înregistrate",
   "{n} removed from favourites": "{n} eliminate din favorite",
   "{n} removed from offline": "{n} eliminate din offline",
   "{n} removed. A tool naming it will lose it.": "{n} eliminat. Un instrument care îl numește îl va pierde.",
   "{n} removed. A tool naming one of these will lose it.": "{n} eliminate. Un instrument care numește unul dintre acestea îl va pierde.",
   "{n} renders": "{n} randări",
-  "{n} results": "{n} rezultate",
+  "{n} results": {
+    "one": "{n} rezultat",
+    "few": "{n} rezultate",
+    "other": "{n} de rezultate"
+  },
   "{n} roles re-derived": "{n} roluri re-derivate",
   "{n} rotated runs left out": "{n} rânduri rotite omise",
   "{n} saved asset versions": "{n} versiuni de active salvate",
   "{n} saved for offline, {m} failed - check your connection": "{n} salvate pentru offline, {m} eșuate - verifică-ți conexiunea",
-  "{n} saved sessions": "{n} sesiuni salvate",
+  "{n} saved sessions": {
+    "one": "{n} sesiune salvată",
+    "few": "{n} sesiuni salvate",
+    "other": "{n} de sesiuni salvate"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "{n} sisteme salvate nu au putut fi previzualizate. Deschide-le din Profil pentru a le gestiona.",
   "{n} scanned": "{n} scanate",
   "{n} scanned pages read.": "{n} pagini scanate citite.",
   "{n} scanned pages were left unread to keep this quick.": "{n} pagini scanate au fost lăsate necitite pentru a păstra procesul rapid.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} pagini scanate nu au fost citite deoarece Recunoașterea textului nu este pe acest dispozitiv.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} pagini scanate au fost citite cu recunoaștere a textului de pe dispozitiv, deci verificările de caractere ascunse nu au putut rula pe acele pagini.",
-  "{n} selected": "{n} selectate",
-  "{n} selected assets": "{n} resurse selectate",
+  "{n} selected": {
+    "one": "{n} selectat",
+    "few": "{n} selectate",
+    "other": "{n} selectate"
+  },
+  "{n} selected assets": {
+    "one": "{n} resursă selectată",
+    "few": "{n} resurse selectate",
+    "other": "{n} de resurse selectate"
+  },
   "{n} selected files": "{n} fișiere selectate",
   "{n} selected items could not be outlined and were left as they are.": "{n} elemente selectate nu au putut fi transformate în contur și au fost lăsate așa cum sunt.",
   "{n} selected items have no outline, so they were left as they are.": "{n} elemente selectate nu au contur, așa că au fost lăsate neschimbate.",
   "{n} selected · {size}": "{n} selectate · {size}",
   "{n} sentences": "{n} propoziții",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} propoziții au o subliniere punctată: modelul de pe dispozitiv poate oferi o versiune mai simplă. Acceptarea uneia marchează copia salvată ca asistată de AI, iar formularea modelului poartă filigranul public de reformulare al Lolly, așa că textul scris de AI rămâne detectabil în Verify.",
-  "{n} sessions": "{n} sesiuni",
+  "{n} sessions": {
+    "one": "{n} sesiune",
+    "few": "{n} sesiuni",
+    "other": "{n} de sesiuni"
+  },
   "{n} set": "{n} setate",
   "{n} shade curves re-anchored": "{n} curbe de nuanță re-ancorate",
   "{n} shades added to your palette": "{n} nuanțe adăugate în paleta ta",
   "{n} shades added. Undo is available above your palette.": "{n} nuanțe adăugate. Anularea este disponibilă deasupra paletei.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} nuanțe nu au putut atinge ținta (limitate la tonul cel mai apropiat).",
   "{n} shades rebuilt across {ramps} ramps": "{n} nuanțe reconstruite pe {ramps} rampe",
-  "{n} shapes": "{n} forme",
+  "{n} shapes": {
+    "one": "{n} formă",
+    "few": "{n} forme",
+    "other": "{n} de forme"
+  },
   "{n} shapes · page {p}": "{n} forme · pagina {p}",
   "{n} shared assets were kept.": "{n} resurse partajate au fost păstrate.",
   "{n} slides narrated.": "{n} diapozitive narate.",
@@ -8395,11 +8543,19 @@
   "{n} spectrum hues rebuilt": "{n} nuanțe de spectru reconstruite",
   "{n} stages of work": "{n} etape de lucru",
   "{n} starter colours": "{n} culori de start",
-  "{n} steps": "{n} paşi",
+  "{n} steps": {
+    "one": "{n} pas",
+    "few": "{n} pași",
+    "other": "{n} de pași"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "{n} sugestii găsite. Copiile sunt pregătite cu ele selectate; ajustează oricare în panoul Inspecție.",
   "{n} suggestions were applied without review.": "{n} sugestii au fost aplicate fără revizuire.",
   "{n} swatches removed": "{n} eșantioane eliminate",
-  "{n} templates": "{n} șabloane",
+  "{n} templates": {
+    "one": "{n} șablon",
+    "few": "{n} șabloane",
+    "other": "{n} de șabloane"
+  },
   "{n} templates added": "{n} șabloane adăugate",
   "{n} templates deleted": "{n} șabloane șterse",
   "{n} templates saved": "{n} șabloane salvate",
@@ -8419,11 +8575,19 @@
   "{n} unsupported backup parts skipped": "{n} Parțiuni de rezervă neînțărțite sărit",
   "{n} value changes": "{n} schimbări de valori",
   "{n} values change": "{n} valori se schimbă",
-  "{n} volume keys": "{n} chei de volum",
+  "{n} volume keys": {
+    "one": "{n} cheie de volum",
+    "few": "{n} chei de volum",
+    "other": "{n} de chei de volum"
+  },
   "{n} warnings.": "{n} avertismente.",
   "{n} were kept - they are not this room to remove.": "{n} au fost păstrate - nu aparțin acestei camere pentru a fi eliminate.",
   "{n} wording swaps are underlined in the preview.": "{n} înlocuiri de formulare sunt subliniate în previzualizare.",
-  "{n} words": "{n} cuvinte",
+  "{n} words": {
+    "one": "{n} cuvânt",
+    "few": "{n} cuvinte",
+    "other": "{n} de cuvinte"
+  },
   "{n} words cut": "{n} cuvinte tăiate",
   "{n} yours": "{n} ale tale",
   "{n}-bit": "{n}-bit",
@@ -8814,7 +8978,11 @@
   "1 design was added to Projects, in 1 folder.": "1 design a fost adăugat în Proiecte, într-un folder.",
   "1 design was added to Projects, in {f} folders.": "1 design a fost adăugat în Proiecte, în {f} foldere.",
   "1 design was added to Projects.": "1 design a fost adăugat în Proiecte.",
-  "{n} creations removed from Projects here stayed removed.": "{n} creații eliminate din Proiecte aici au rămas eliminate.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} creație eliminată din Proiecte aici a rămas eliminată.",
+    "few": "{n} creații eliminate din Proiecte aici au rămas eliminate.",
+    "other": "{n} de creații eliminate din Proiecte aici au rămas eliminate."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Această creație nu a fost salvată niciodată, așa că, dacă ieși fără să salvezi, este eliminată din Proiecte.",
   "This deck has no colours to change.": "Această prezentare nu are culori de schimbat.",
   "This deck has no fonts to change.": "Această prezentare nu are fonturi de schimbat.",
@@ -8844,7 +9012,11 @@
   "This saved version could not be read.": "Această versiune salvată nu a putut fi citită.",
   "1 older automatic checkpoint left out": "1 punct de control automat mai vechi omis",
   "1 other colourway keeps its own colours: {names}": "1 altă variantă de culoare își păstrează culorile: {names}",
-  "{n} older automatic checkpoints left out": "{n} puncte de control automate mai vechi omise",
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} punct de control automat mai vechi omis",
+    "few": "{n} puncte de control automate mai vechi omise",
+    "other": "{n} de puncte de control automate mai vechi omise"
+  },
   "Automatic recovery and checkpoints are on": "Recuperarea automată și punctele de control sunt active",
   "Automatic recovery is unavailable here. Save before leaving.": "Recuperarea automată nu este disponibilă aici. Salvează înainte de a pleca.",
   "Checkpoint saved at {time} on this device": "Punct de control salvat la {time} pe acest dispozitiv",
@@ -9027,7 +9199,11 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Ca să arate site-urile pe care versiunea web nu le poate arăta, Lolly se poate reîncărca pe acest dispozitiv cu o politică de cadre mai permisivă, apoi te poate întreba despre fiecare site înainte de prezentare. Poți dezactiva asta în profil, la Site-uri de încredere.",
   "Card size": "Dimensiunea cardurilor",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Pe acest dispozitiv a fost adăugată o imagine sau un fișier. Rămâne pe acest dispozitiv, iar ceilalți nu vor vedea acel fișier.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Pe acest dispozitiv au fost adăugate {n} imagini sau fișiere. Rămân pe acest dispozitiv, iar ceilalți nu vor vedea acele fișiere.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "O imagine sau un fișier a fost adăugat pe acest dispozitiv. Rămâne pe acest dispozitiv, iar ceilalți nu vor vedea acel fișier.",
+    "few": "Pe acest dispozitiv au fost adăugate {n} imagini sau fișiere. Rămân pe acest dispozitiv, iar ceilalți nu vor vedea acele fișiere.",
+    "other": "Pe acest dispozitiv au fost adăugate {n} de imagini sau fișiere. Rămân pe acest dispozitiv, iar ceilalți nu vor vedea acele fișiere."
+  },
   "Check the version first": "Verifică mai întâi versiunea",
   "Copy team link": "Copiază linkul echipei",
   "Could not create the project. Try again.": "Proiectul nu a putut fi creat. Încearcă din nou.",
@@ -9793,7 +9969,11 @@
   "Every mode": "Fiecare mod",
   "Your local items have not changed.": "Elementele tale locale nu s-au schimbat.",
   "1 item was saved to the shared project.": "1 element a fost salvat în proiectul partajat.",
-  "{n} items were saved to the shared project.": "{n} elemente au fost salvate în proiectul partajat.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} element a fost salvat în proiectul partajat.",
+    "few": "{n} elemente au fost salvate în proiectul partajat.",
+    "other": "{n} de elemente au fost salvate în proiectul partajat."
+  },
   "Wait for the current move to finish.": "Așteaptă să se termine mutarea în curs.",
   "Wait for the deck to finish reading, then choose a picture.": "Așteaptă ca prezentarea să termine citirea, apoi alege o imagine.",
   "Wait for the grid to finish rendering before moving its layers.": "Așteaptă ca grila să termine randarea înainte de a-i muta straturile.",
@@ -10645,5 +10825,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Acest clip folosește {codec}, pe care acest dispozitiv nu îl poate reda. Exportă o copie H.264, HEVC sau AV1 din aplicația ta de editare sau deschide-l în aplicația Lolly pentru desktop pe un Mac. Lolly păstrează fișierul original.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Acest clip folosește {codec}, pe care acest dispozitiv nu îl poate reda. Exportă o copie H.264, HEVC sau AV1 din aplicația ta de editare. Lolly păstrează fișierul original.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Acesta este un fișier MXF cu {codec}. Lolly poate citi ce conține, dar nu poate reda MXF. Exportă o copie H.264, HEVC sau AV1 din aplicația ta de editare. Lolly păstrează fișierul original.",
-  "{format} from {camera}": "{format} de la {camera}"
+  "{format} from {camera}": "{format} de la {camera}",
+  "Filling a large area. This can take a moment.": "Se umple o zonă mare. Poate dura un moment.",
+  "Large area": "Zonă mare"
 }

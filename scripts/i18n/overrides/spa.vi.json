@@ -585,7 +585,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Chạy kiểm tra văn bản AI chuyên sâu trên Xác minh và trong Tài sản.",
   "Card size": "Kích thước thẻ",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 hình ảnh hoặc tệp đã được thêm trên thiết bị này. Tệp chỉ nằm trên thiết bị này và những người khác sẽ không thấy tệp đó.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} hình ảnh hoặc tệp đã được thêm trên thiết bị này. Các tệp chỉ nằm trên thiết bị này và những người khác sẽ không thấy các tệp đó.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "{n} hình ảnh hoặc tệp đã được thêm trên thiết bị này. Các tệp chỉ nằm trên thiết bị này và những người khác sẽ không thấy các tệp đó."
+  },
   "Check the version first": "Hãy kiểm tra phiên bản trước",
   "Copy team link": "Sao chép liên kết nhóm",
   "Could not create the project. Try again.": "Không thể tạo dự án. Hãy thử lại.",
@@ -1176,7 +1178,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Mọi mục đã được lưu trong dự án được chia sẻ. Bản gốc cục bộ nằm trong Thùng rác hoặc vẫn ở nguyên chỗ.",
   "Your local items have not changed.": "Các mục cục bộ của bạn không thay đổi.",
   "1 item was saved to the shared project.": "1 mục đã được lưu vào dự án được chia sẻ.",
-  "{n} items were saved to the shared project.": "{n} mục đã được lưu vào dự án được chia sẻ.",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} mục đã được lưu vào dự án được chia sẻ."
+  },
   "Wait for the current move to finish.": "Hãy đợi lần di chuyển hiện tại hoàn tất.",
   "You cannot save to that shared project.": "Bạn không thể lưu vào dự án được chia sẻ đó.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Mọi người có thể mở {project} sẽ thấy các mục này. Sau khi mọi mục được lưu ở đó, bản gốc cục bộ sẽ chuyển vào Thùng rác, nơi bạn có thể khôi phục chúng.",
@@ -1487,8 +1491,12 @@
   "file": "tệp",
   "samples": "mẫu",
   "text": "văn bản",
-  "{n} changes found": "Tìm thấy {n} thay đổi",
-  "{n} pages differ": "{n} trang khác nhau",
+  "{n} changes found": {
+    "other": "Tìm thấy {n} thay đổi"
+  },
+  "{n} pages differ": {
+    "other": "{n} trang khác nhau"
+  },
   "Draft": "Bản nháp",
   "Draft quality": "Chất lượng bản nháp",
   "Draft rule": "Quy tắc nháp",
@@ -1840,5 +1848,128 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc. Giữ để chọn Bút chì (Shift C) và kiểu spline",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc",
   "Recipients can change the inputs": "Người nhận có thể thay đổi đầu vào",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Bất kỳ ai có liên kết đều có thể thay đổi đầu vào và nhận hình ảnh mới. Các đầu vào đã khóa giữ nguyên như đã đặt."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Bất kỳ ai có liên kết đều có thể thay đổi đầu vào và nhận hình ảnh mới. Các đầu vào đã khóa giữ nguyên như đã đặt.",
+  "{count} entries": {
+    "other": "{count} mục"
+  },
+  "{count} files in this folder": {
+    "other": "{count} tệp trong thư mục này"
+  },
+  "{n} assets": {
+    "other": "{n} tài sản"
+  },
+  "{n} assets found": {
+    "other": "Tìm thấy {n} tài sản"
+  },
+  "{n} capabilities match": {
+    "other": "{n} khả năng khớp"
+  },
+  "{n} copies made · selected": {
+    "other": "Đã tạo {n} bản sao · đã chọn"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "{n} tác phẩm bị xóa khỏi Dự án ở đây vẫn bị xóa."
+  },
+  "{n} embedded files": {
+    "other": "{n} tệp nhúng"
+  },
+  "{n} external references": {
+    "other": "{n} tham chiếu bên ngoài"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "{n} tệp không thể đóng gói và đã bị bỏ qua"
+  },
+  "{n} folders": {
+    "other": "{n} thư mục"
+  },
+  "{n} font files": {
+    "other": "{n} tệp phông chữ"
+  },
+  "{n} images": {
+    "other": "{n} ảnh"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "Không thể khôi phục {n} ảnh (bộ nhớ đầy?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} ảnh vẫn ở vị trí gốc - ảnh chỉ có một nơi lưu; dùng Cắt để di chuyển"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "{n} mục nhập · áp dụng cho mọi thiết kế"
+  },
+  "{n} items": {
+    "other": "{n} mục"
+  },
+  "{n} items copied": {
+    "other": "Đã sao chép {n} mục"
+  },
+  "{n} items cut": {
+    "other": "Đã cắt {n} mục"
+  },
+  "{n} items moved": {
+    "other": "Đã chuyển {n} mục"
+  },
+  "{n} items pasted": {
+    "other": "Đã dán {n} mục"
+  },
+  "{n} keyframes": {
+    "other": "{n} khung hình khóa"
+  },
+  "{n} logos": {
+    "other": "{n} logo"
+  },
+  "{n} marks found": {
+    "other": "Tìm thấy {n} dấu"
+  },
+  "{n} newer items skipped": {
+    "other": "Đã bỏ qua {n} mục mới hơn"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "{n} tác phẩm của bạn là video hoặc hoạt ảnh"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "{n} điểm kiểm tra tự động cũ hơn không được hiển thị"
+  },
+  "{n} pages": {
+    "other": "{n} trang"
+  },
+  "{n} places": {
+    "other": "{n} vị trí"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} điểm - giữ Alt để tạo góc"
+  },
+  "{n} published versions": {
+    "other": "{n} phiên bản đã xuất bản"
+  },
+  "{n} results": {
+    "other": "{n} kết quả"
+  },
+  "{n} saved sessions": {
+    "other": "{n} phiên đã lưu"
+  },
+  "{n} selected": {
+    "other": "Đã chọn {n}"
+  },
+  "{n} selected assets": {
+    "other": "{n} tài sản đã chọn"
+  },
+  "{n} sessions": {
+    "other": "{n} phiên"
+  },
+  "{n} shapes": {
+    "other": "{n} hình dạng"
+  },
+  "{n} steps": {
+    "other": "{n} bước"
+  },
+  "{n} templates": {
+    "other": "{n} mẫu"
+  },
+  "{n} volume keys": {
+    "other": "{n} khóa âm lượng"
+  },
+  "{n} words": {
+    "other": "{n} từ"
+  }
 }
