@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { renderRondo } from '@lolly-tools/rondo';
 import type { RondoLimits } from '@lolly-tools/rondo/limits';
+import type { RondoNote } from '@lolly-tools/rondo';
 
 /**
  * The staging bundle's text, set at build time when this file is bundled for a
@@ -43,6 +44,7 @@ export type RondoWorkerReply =
     lang: 'js' | 'rondo';
     normalized: boolean;
     findings: { code: string; message: string; parts: string[] }[];
+    notes: RondoNote[];
     run: { executionClass: string; seed: number; upstream: string; adapter: number };
   }
   | { ok: false; code: string; message: string; diagnostics?: { message: string; line?: number; col?: number }[] };
@@ -72,6 +74,7 @@ async function main(): Promise<void> {
       lang: pcm.lang,
       normalized: pcm.normalized,
       findings: pcm.findings,
+      notes: pcm.notes,
       run: pcm.run,
     };
     for (const ch of [pcm.left, pcm.right]) {

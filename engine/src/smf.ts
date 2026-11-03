@@ -13,7 +13,7 @@
  *
  * Events are not interpreted beyond their framing. A note-on with velocity 0
  * stays a note-on; a tempo stays three bytes. {@link smfTempo} and the other
- * `smf*` helpers read a typed view of a meta event without changing it.
+ * `smf*` helpers read a typed view of a meta event and leave the event alone.
  *
  * The reader takes untrusted bytes. Every count and length is capped by
  * {@link SMF_LIMITS} (override with the `limits` argument), every offset is checked

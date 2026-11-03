@@ -346,6 +346,8 @@ export { readSmf, writeSmf, smfTimeDivision, smfTempo, smfTimeSignature, smfKeyS
 export type { SmfFile, SmfHeader, SmfEvent, SmfChannelEvent, SmfMetaEvent, SmfSysexEvent, SmfTrackChunk, SmfUnknownChunk, SmfLimits, SmfErrorCode, SmfWriteOptions, SmfTimeDivision, SmfChannelType, } from './smf.ts';
 export { notesToSmfFile, notesToMidiBytes, gmProgramFor, looksPercussive, voiceChannel, velocityToMidi } from './smf-export.ts';
 export type { MidiNote, MidiVoiceSpec, MidiExportOptions } from './smf-export.ts';
+export { rondoMusicToMidi } from './rondo-midi.ts';
+export type { RondoMusicInput } from './rondo-midi.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
 // The seed → spec draw behind `zzfxm:<seed>`. Engine-side so every shell composes
 // the SAME song from one id; the draw order is a frozen contract (see the fn).

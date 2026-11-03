@@ -73,6 +73,15 @@ export interface AudioDecodeOpts {
    * none. Recorded audio ignores it and returns the whole file.
    */
   seconds?: number;
+  /**
+   * Also write the song's notes as a Standard MIDI File, returned as
+   * `AudioDecoded.midi`. Only a rondocode song has notes to write; for any other
+   * source `midi` is absent from the result. The file is format 1: a conductor track (tempo, a 4/4
+   * time signature, `text` as a text event) and one track per synth, with note
+   * velocities and General MIDI programs where a synth's name maps to one. Synthesis
+   * parameters, effects, samples and tuning other than twelve-tone are not in the file.
+   */
+  midi?: { /** A text event written at tick 0 of the conductor track. */ text?: string; /** The conductor track's name. */ title?: string };
 }
 
 /** One part of a computed source the shell could not play, and why. */
@@ -92,6 +101,8 @@ export interface AudioDecoded {
   seconds: number;
   /** Empty when everything played. */
   findings: AudioFinding[];
+  /** The song as a Standard MIDI File, when the call set `AudioDecodeOpts.midi`. */
+  midi?: Uint8Array;
   /** How a computed source ran. Absent for recorded audio. */
   run?: {
     /** The document model's execution class: `vm` for a rondocode song. */

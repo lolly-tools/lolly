@@ -306,7 +306,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'formats', id: 'cap-formats', title: 'Export formats', icon: ICONS.image,
-    desc: '65 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
+    desc: '66 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
     cards: [
       { icon: ICONS.vector, title: 'Vector', shot: 'vt-wordmark-vector', keywords: 'svg svgz eps emf wmf dxf illustrator postscript outlines paths cut file laser cnc plotter penpot boards indesign idml', features: [
         { name: 'SVG · SVGZ', desc: 'Infinitely scalable and self-contained - text is outlined to paths (HarfBuzz-shaped) so it renders identically without the font installed. SVGZ is the same file gzip-compressed, 60 to 70% smaller.' },
@@ -334,6 +334,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
       ] },
       { icon: ICONS.film, title: 'Audio', keywords: 'mp3 m4a aac wav flac opus ogg audio soundtrack voice recorder audiogram sequence studio lossless encode download as', features: [
         { name: 'MP3 · M4A · WAV · Opus', desc: 'Recording and audio tools (the Voice Recorder, Audiogram and a Design sequence) export their soundtrack on its own - compact MP3, M4A or Opus, or full-quality lossless WAV - encoded on your device.' },
+        { name: 'MIDI', desc: 'Rondocode writes a song’s notes as a Standard MIDI File (<code>.mid</code>, format 1): a tempo track and one track per synth, with note velocities and General MIDI instruments where a synth’s name maps to one. Synth settings, effects, samples and singing are not in it, and a MIDI file has no place for Content Credentials, so a text event names the song instead.' },
         { name: 'AAC · Ogg · FLAC', desc: 'A Design sequence, and Download as on an audio file in your library, also write a bare AAC stream, Opus in an Ogg file, or lossless FLAC at the clip’s own sample rate. Ogg and FLAC carry Content Credentials; a bare AAC stream has no place for one, so choose M4A when the file should carry one.' },
       ] },
       { icon: ICONS.doc, title: 'Documents & data', keywords: 'pptx powerpoint keynote html markdown md txt json csv ics calendar vcf contact vcard docx word odt libreoffice scorm lms course srt vtt webvtt captions subtitles ttml imsc scc cea-608 broadcast', features: [
@@ -393,7 +394,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
       ] },
       { icon: ICONS.sound, title: 'Sound & music', keywords: 'mp3 m4a aac wav ogg vorbis opus flac midi mod xm it s3m tracker music soundtrack bed audio import', features: [
         { name: 'MP3 · M4A · AAC · WAV · OGG · FLAC', desc: 'Kept byte for byte and decoded on your device, ready to be a video’s music bed or to play in the ambient player.' },
-        { name: 'MIDI · tracker modules', desc: 'A <code>.mid</code> score becomes a small on-device synth track, and MOD, XM, IT, S3M, STM and MTM tracker music plays through a bundled player.' },
+        { name: 'MIDI · tracker modules', desc: 'A <code>.mid</code> score becomes a small on-device synth track that keeps each note’s velocity, Rondocode writes a song as a <code>.mid</code> of its notes, and MOD, XM, IT, S3M, STM and MTM tracker music plays through a bundled player.' },
       ] },
       { icon: ICONS.cube, title: '3D models', keywords: '3d glb gltf stl 3mf model mesh import render', features: [
         { name: 'GLB · glTF · STL · 3MF', desc: '3D Studio loads your own model on your device, never uploaded, to render as a still or a turntable. An import for rendering, not a Lolly export.' },

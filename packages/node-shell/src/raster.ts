@@ -37,12 +37,12 @@ import { catalogFile } from './content-roots.ts';
 export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dxf', 'penpot', 'lottie', 'idml', 'premiere-xml', 'jxl', 'jxl-lossless', 'bmp', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
 
 /**
- * Audio formats a tool's own `exportStill` hook writes (the Rondocode utility's
- * song exports). No DOM render can produce them, so for a tool with that hook the
+ * Audio and MIDI formats a tool's own `exportStill` hook writes (the Rondocode
+ * utility's song exports). No DOM render can produce them, so for a tool with that hook the
  * Node path runs the hook instead of sending the job to the browser tier, and the
  * hook either writes the file or refuses the format by name.
  */
-export const HOOK_OWNED_FORMATS = ['wav', 'mp3', 'm4a', 'opus'];
+export const HOOK_OWNED_FORMATS = ['wav', 'mp3', 'm4a', 'opus', 'mid'];
 
 /** True when this shell's Node path renders `format` for this tool: a DOM-free
  *  format, a Design PDF candidate, or an audio format the tool's exportStill hook owns.

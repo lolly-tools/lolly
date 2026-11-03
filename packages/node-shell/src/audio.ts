@@ -33,7 +33,7 @@ import {
   analysePcm, parseWav, packWav, cleanAudioPcm, resamplePcm, cleanAudioPreview, planRepair, repairRequested,
   renderZzfxm, isZzfxmRef, parseZzfxmRef, composeSong, generatedSongSpec,
   RONDO_ASSET_FORMAT, RONDO_MAX_SOURCE_BYTES, RondoSourceError, isRondoFileName, isRondoShareLink,
-  rondoFromBytes, rondoFromFile, rondoFromShareLink, rondoSourceBytes,
+  rondoFromBytes, rondoFromFile, rondoFromShareLink, rondoSourceBytes, rondoMusicToMidi,
 } from '@lolly/engine';
 import type { RondoSourceV1, ZzfxSong } from '@lolly/engine';
 import type {
@@ -163,7 +163,7 @@ function readSong(read: () => RondoSourceV1): RondoSourceV1 {
 }
 
 /** Render a song in its Worker and hand back the decoder's answer. */
-async function renderSong(song: RondoSourceV1, opts: NodeAudioOptions, seconds: number | undefined): Promise<AudioDecoded> {
+async function renderSong(song: RondoSourceV1, opts: NodeAudioOptions, seconds: number | undefined, midi?: AudioDecodeOpts['midi']): Promise<AudioDecoded> {
   let out: Awaited<ReturnType<typeof renderRondoSong>>;
   try {
     out = await renderRondoSong(song, {
@@ -176,7 +176,10 @@ async function renderSong(song: RondoSourceV1, opts: NodeAudioOptions, seconds: 
     throw e;
   }
   opts.onRun?.(out.report);
-  return { sampleRate: out.sampleRate, channels: out.channels, seconds: out.seconds, findings: out.findings, run: out.run };
+  return {
+    sampleRate: out.sampleRate, channels: out.channels, seconds: out.seconds, findings: out.findings, run: out.run,
+    ...(midi ? { midi: rondoMusicToMidi(out.music, { title: midi.title ?? song.name, ...(midi.text !== undefined ? { text: midi.text } : {}) }) } : {}),
+  };
 }
 
 /** Recorded (or data-only) PCM as a decoder answer: nothing ran, nothing to report. */
@@ -216,7 +219,7 @@ export async function decodeAudioSource(
 
   // A rondocode song. A share link carries the song in its fragment, so nothing is
   // fetched; a named file or a `rondo` asset is read, never fetched as audio.
-  if (isRondoShareLink(url)) return renderSong(readSong(() => rondoFromShareLink(url)), opts, decodeOpts.seconds);
+  if (isRondoShareLink(url)) return renderSong(readSong(() => rondoFromShareLink(url)), opts, decodeOpts.seconds, decodeOpts.midi);
   const fileName = fileNameOf(url) || fileNameOf(opts.sourceName ?? '');
   if (ref?.format === RONDO_ASSET_FORMAT || isRondoFileName(fileName)) {
     const bytes = await bytesOf(src, repoRoot, opts.readSource);
@@ -225,7 +228,7 @@ export async function decodeAudioSource(
     // JSON when its bytes are an object, and as rondo text otherwise.
     const asName = isRondoFileName(fileName) ? fileName
       : looksLikeJsonObject(bytes) ? 'song.rondo.json' : 'song.rondo';
-    return renderSong(readSong(() => rondoFromFile(bytes, asName)), opts, decodeOpts.seconds);
+    return renderSong(readSong(() => rondoFromFile(bytes, asName)), opts, decodeOpts.seconds, decodeOpts.midi);
   }
 
   if ((ref && ref.format === 'zzfxm') || /\.zzfxm\.json$/i.test(url)) {
@@ -244,7 +247,7 @@ export async function decodeAudioSource(
   const bytes = await bytesOf(src, repoRoot, opts.readSource);
   // A song's canonical record arriving as bare bytes or a data: URL (a design
   // timeline inlines an audio box that way) is known by its own content.
-  if (looksLikeRondoRecord(bytes)) return renderSong(readSong(() => rondoFromBytes(bytes)), opts, decodeOpts.seconds);
+  if (looksLikeRondoRecord(bytes)) return renderSong(readSong(() => rondoFromBytes(bytes)), opts, decodeOpts.seconds, decodeOpts.midi);
   // Name the container from its OWN bytes when the url could not. A design timeline
   // inlines an audio box as `data:application/octet-stream;base64,…`, which has no
   // extension for NEEDS_PLATFORM_CODEC to match, so an Ogg/Opus box used to come back

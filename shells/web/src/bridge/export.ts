@@ -722,6 +722,10 @@ async function renderFormatDispatch(node: Element, format: string, opts: ExportO
     case 'ogg':
     case 'flac':
       return await renderAudioOnly(node, format, opts);
+    // MIDI is written by a tool's own exportStill hook (Rondocode), which the runtime runs
+    // before this switch. Reaching it means the tool has no such hook for this format.
+    case 'mid':
+      throw new Error('MIDI export comes from the tool itself. This tool does not write MIDI.');
     // Linux packages (plan 197 M6): render the artefact to an inner format, then
     // seal it into an installable .rpm (or a no-root .tar.gz) at the chosen path.
     case 'rpm':

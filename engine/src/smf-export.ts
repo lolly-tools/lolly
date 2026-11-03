@@ -18,7 +18,7 @@
  * What a MIDI file cannot hold is the caller's to state: synthesis parameters, effects,
  * filters, sample choice and tuning other than twelve-tone. A fractional pitch is rounded
  * to the nearest semitone, and when it is more than a cent off a pitch bend (default
- * plus or minus 2 semitone range) is written before the note and reset after it.
+ * plus or minus 2 semitone range) is written before the note and reset after the note ends.
  *
  * Deterministic: the same notes and options always give the same bytes.
  */

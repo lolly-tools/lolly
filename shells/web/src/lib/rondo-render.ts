@@ -68,6 +68,8 @@ export interface RondoRendered {
   lang: 'js' | 'rondo';
   normalized: boolean;
   findings: RondoFinding[];
+  /** The notes the song schedules, in seconds, for a MIDI export. */
+  notes: { synth: string; time: number; duration: number; note: number; velocity: number }[];
   run: RondoRunInfo;
 }
 

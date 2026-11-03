@@ -9,7 +9,8 @@
  *
  *   - exportFile / exportStill: the song as audio (rendered by
  *     host.audio.decode, which runs the song's code in the vm execution class,
- *     never in this realm) or as its source, the canonical .rondo.json bytes;
+ *     never in this realm), as a MIDI file of its notes (the same call with
+ *     `midi`) or as its source, the canonical .rondo.json bytes;
  *   - onInit / onInput: a static card of the song for a render with no live
  *     editor (the CLI), and, in a browser, a narrow bridge the template uses to
  *     keep the editor's project library in host.state, save files, ask for the
@@ -216,6 +217,29 @@ function audioSentence(file, out, song, facts, sent) {
   if (sung.length && c.ai) return head + what + ' and declare the singing AI-generated.';
   if (sung.length) return head + what + ', but the AI-generated singing did not read back as declared.';
   return head + what + '; nothing in it is marked AI-generated.';
+}
+
+/**
+ * The song as a Standard MIDI File, made by the shell from the notes the song
+ * schedules (host.audio.decode with `midi`). It carries the same text-event
+ * statement the editor's own MIDI export does, since MIDI has no place for Content
+ * Credentials. The file holds notes, velocities and General MIDI programs, and
+ * leaves out synth settings, effects, samples and singing.
+ */
+async function renderMidi(host, v, opts) {
+  var song = songOf(v);
+  if (!host || !host.audio || typeof host.audio.decode !== 'function') {
+    throw new Error('This app cannot render songs yet.');
+  }
+  var seconds = Number(opts && opts.seconds) > 0 ? Number(opts.seconds) : Number(v.length);
+  var statement = 'Notes computed on the device from the code of the rondocode song "' + song.name + '" (vm execution class). No audio and no trained model.';
+  var decoded = await host.audio.decode(sourceBytes(song), Object.assign(seconds > 0 ? { seconds: seconds } : {}, { midi: { title: song.name, text: statement } }));
+  if (!decoded.midi || !decoded.midi.length) throw new Error('This app cannot write a song as MIDI.');
+  return {
+    bytes: decoded.midi, mime: 'audio/midi', filename: fileStem(song.name) + '.mid',
+    sentence: 'MIDI has no place for Content Credentials, so none were written; a text event in the file says it was computed from the song "' + song.name + '". '
+      + 'It holds the notes, their velocities and a General MIDI instrument where a synth name maps to one; synth settings, effects, samples and singing are not in it.',
+  };
 }
 
 /** The tool's own file for a shell's export: the song as audio, signed. */
@@ -520,6 +544,10 @@ async function exportFile(ctx) {
   var v = vals(ctx.model);
   var fmt = ctx.opts && ctx.opts.format;
   if (fmt === 'json' || fmt === 'rondo') return sourceFile(v);
+  if (fmt === 'mid' || fmt === 'midi') {
+    var m = await renderMidi(ctx.host, v, ctx.opts);
+    return { bytes: m.bytes, mime: m.mime, filename: m.filename };
+  }
   var file = await renderAudio(ctx.host, v, ctx.opts, AUDIO_MIME[fmt] ? fmt : 'wav');
   return { bytes: file.bytes, mime: file.mime, filename: file.filename };
 }
@@ -534,6 +562,16 @@ async function exportStill(ctx) {
   if (ctx.format === 'json') {
     var src = sourceFile(v);
     return { bytes: src.bytes, mime: src.mime };
+  }
+  if (ctx.format === 'mid') {
+    var made;
+    try {
+      made = await renderMidi(ctx.host, v, ctx.opts);
+    } catch (e) {
+      throw new Error('Rondocode could not write MID: ' + (e && e.message || e));
+    }
+    if (ctx.host && typeof ctx.host.log === 'function') ctx.host.log('info', made.sentence);
+    return { bytes: made.bytes, mime: made.mime };
   }
   if (!AUDIO_MIME[ctx.format]) return null;
   var file;

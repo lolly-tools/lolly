@@ -139,6 +139,8 @@ interface Decoded {
   sampleRate: number;
   findings: AudioFinding[];
   run?: AudioDecoded['run'];
+  /** The song's scheduled notes and tempo, kept for a MIDI export. */
+  music?: { cps: number; notes: { synth: string; time: number; duration: number; note: number; velocity: number }[] };
 }
 
 /**
@@ -164,6 +166,7 @@ async function rondoDecoded(song: RondoSong, seconds: number | undefined): Promi
     sampleRate: r.sampleRate,
     findings: r.findings.map((f) => ({ code: f.code, message: f.message, parts: [...f.parts] })),
     run: { executionClass: r.run.executionClass, source: 'rondocode', version: RONDO_EXTENSION.version, seed: r.run.seed },
+    music: { cps: r.cps, notes: r.notes },
   };
 }
 
@@ -324,7 +327,16 @@ export function createAudioAPI(): Required<AudioAPI> {
     async decode(src: AudioSource, opts: AudioDecodeOpts = {}): Promise<AudioDecoded> {
       const d = await decodeSource(src, opts.seconds);
       const frames = d.channels[0]?.length ?? 0;
+      let midi: Uint8Array | undefined;
+      if (opts.midi && d.music) {
+        // The render is quantised up to a half-second grid; the file stops where the call asked.
+        const end = opts.seconds ?? Number.POSITIVE_INFINITY;
+        const notes = d.music.notes.filter((n) => n.time < end).map((n) => ({ ...n, duration: Math.min(n.duration, end - n.time) }));
+        const { rondoMusicToMidi } = await import('../../../../engine/src/rondo-midi.ts');
+        midi = rondoMusicToMidi({ cps: d.music.cps, notes }, { ...(opts.midi.title !== undefined ? { title: opts.midi.title } : {}), ...(opts.midi.text !== undefined ? { text: opts.midi.text } : {}) });
+      }
       return {
+        ...(midi ? { midi } : {}),
         sampleRate: d.sampleRate,
         channels: d.channels,
         seconds: d.sampleRate > 0 ? frames / d.sampleRate : 0,
