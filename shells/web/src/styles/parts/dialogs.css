@@ -54,7 +54,10 @@
   text-align: center;
   animation: view-loading-in 160ms ease-out;
 }
-.view-loading-mark { display: block; width: 56px; height: 56px; margin: 0 auto var(--sp-4); }
+/* The swirl reads Lolly's tone at the design system's hue, like the rail mark and the
+   Ask swirl (lolly-tone-contract.test.ts), so the loader follows the active brand,
+   colourway and theme instead of the mark's built-in green. */
+.view-loading-mark { display: block; width: 56px; height: 56px; margin: 0 auto var(--sp-4); --lolly-swirl: var(--lolly-mark, var(--lolly-tone)); }
 .view-loading-mark svg { display: block; width: 100%; height: 100%; }
 .view-loading-status { margin: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--ui-color-text-muted); }
 .view-loading-mark .lolly-mark__spin-1,

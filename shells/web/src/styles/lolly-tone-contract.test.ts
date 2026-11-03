@@ -12,7 +12,8 @@
  *   1. tokens.css declares the token for light and for dark plus brand, with the
  *      values brand-vars.ts exports;
  *   2. the badge, the Design rail mark and the Ask button read
- *      var(--lolly-mark, var(--lolly-tone)) and carry no theme-scoped copy;
+ *      var(--lolly-mark, var(--lolly-tone)) and carry no theme-scoped copy, and both
+ *      loaders (the boot screen and the view-loading card) read the same chain;
  *   3. the old greens and the `--lolly-accent` name are gone from the shell;
  *   4. the job stripe and the credential panel take the tone, not a literal;
  *   5. the shutter, its flash, the theme colour, the no-script page and the
@@ -92,6 +93,19 @@ test('the badge, the Design rail mark and the Ask swirl read the token and keep 
   assert.ok(!/\[data-theme="[a-z]+"\]\s*\.lolly-badge\s*\{/.test(badge), 'no theme-scoped .lolly-badge override');
   assert.ok(!/\[data-theme="dark"\]\s*\.fc-toolbar\s*\.fc-btn\.fc-btn-lolly\s*\{/.test(rail), 'no theme-scoped rail override');
   assert.ok(!/\)\s*\.ask-send\s*\{/.test(ask), 'no theme-group override of .ask-send');
+});
+
+test('both loaders wear the same mark colour: the boot screen and the view-loading card', () => {
+  // The card's swirl took the mark's built-in green and the boot screen a fixed grey,
+  // so a branded or recoloured app showed two different loaders. Both read the token now.
+  const dialogs = read('styles/parts/dialogs.css');
+  assert.ok(ruleBody(dialogs, '.view-loading-mark')?.includes(`--lolly-swirl: ${READ}`), 'the view-loading swirl');
+  const boot = readFileSync(join(WEB_DIR, 'index.html'), 'utf8');
+  const fills = [...boot.matchAll(/fill="(var\(--boot-mark,[^"]*)"/g)].map((m) => m[1]!);
+  assert.equal(fills.length, 3, 'the boot mark keeps its three swirl paths');
+  for (const fill of fills) assert.equal(fill, 'var(--boot-mark, var(--lolly-mark, var(--lolly-tone, #008657)))', 'the boot swirl reads the token');
+  // The artwork's own shading keeps its greys; only the spiral's old grey fallback is gone.
+  assert.ok(!/var\(--boot-mark,\s*#6f6f6f\)/i.test(boot), 'no grey boot swirl');
 });
 
 test('--lolly-accent and the old Lolly greens are gone from the shell', () => {

@@ -528,7 +528,12 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // reduced motion or on first boot, collapsing to today's instant swap. commit()
   // (after the mount, or in the catch) starts the fade - or drops the snapshot if
   // superseded by a newer navigation.
-  const fade = (prevRouteName && route.name !== prevRouteName && !returning)
+  // A loader still in #view (the boot screen, or a view's own "Loading…" line) is not a
+  // view to fade or clear. A navigation that starts before the first view has painted
+  // leaves it in place until the incoming view replaces it, as a cold deep link does,
+  // so the loading card's own check sees it and one loader shows, not two.
+  const holdingLoader = view.querySelector(':scope > p.loading') !== null;
+  const fade = (prevRouteName && route.name !== prevRouteName && !returning && !holdingLoader)
     ? beginViewFade(view)
     : null;
 
@@ -553,7 +558,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // that flash can't show; the incoming mount fills the empty container. Same-name
   // updates (the gallery's post-sync refresh) keep their content so they never
   // blank, and first boot keeps the "Loading…" skeleton until the gallery lands.
-  if (prevRouteName && route.name !== prevRouteName) view.replaceChildren();
+  if (prevRouteName && route.name !== prevRouteName && !holdingLoader) view.replaceChildren();
 
   // The dashboard leans on SUSE Mono (device readouts, hex/CMYK rows, code). It
   // isn't preloaded globally - that would tax the mono-light gallery cold-load - 
