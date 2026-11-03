@@ -639,16 +639,43 @@ export function substitutePdfRgb(
     return `/${gs} gs ${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} ${fill ? 'k' : 'K'}`;
   };
   const fill = swap(true), stroke = swap(false);
-  // DeviceGray (`v g` / `v G`) is how a PDF writer usually sets black, text included,
-  // so it takes the same palette match, separation and overprint rule as RGB: a grey
-  // level is the RGB triple (v, v, v). Without this, black skipped the brand's black
-  // build and its text never overprinted. The rg/RG passes run first, and `\bg\b`
-  // cannot match inside `rg`, `gs` or a resource name.
+  // DeviceGray (`v g` / `v G`) is how a PDF writer usually sets black, text included. A
+  // grey that matches a brand swatch takes the swatch's measured build or spot, like RGB.
+  // Any other grey keeps the ink it always printed with (DeviceGray separates to
+  // K = 1 - v) and gains the overprint rule, so black text overprints the colour under
+  // it. Without this, black skipped the brand's black build and its text knocked out.
+  // The rg/RG passes run first, and `\bg\b` cannot match inside `rg`, `gs` or a name.
+  const grey = (isFill: boolean) => (v: number): string => {
+    if (pdfColorHit(v, v, v, paletteMap)) return (isFill ? fill : stroke)(v, v, v);
+    const k = Math.min(1, Math.max(0, 1 - v));
+    const gs = k >= OVERPRINT_K_MIN ? (isFill ? 'GSfo' : 'GSso') : (isFill ? 'GSfk' : 'GSsk');
+    usedGs?.add(gs);
+    return `/${gs} gs 0 0 0 ${cmykN(k)} ${isFill ? 'k' : 'K'}`;
+  };
+  const greyFill = grey(true), greyStroke = grey(false);
+  // Inside a text object (BT ... ET), pure black is 100% K and overprints, before any
+  // palette match: press convention for type, so a brand whose black is a rich build or
+  // a spot still sets its black text on the K plate alone, with no misregistration halo.
+  const kText = (isFill: boolean): string => {
+    const gs = isFill ? 'GSfo' : 'GSso';
+    usedGs?.add(gs);
+    return `/${gs} gs 0 0 0 1 ${isFill ? 'k' : 'K'}`;
+  };
+  const blackText = (segment: string): string => segment
+    .replace(new RegExp(`(?<![\\w/.])${N}${W}${N}${W}${N}${W}\\b(rg|RG)\\b`, 'g'), (m, r, g, b, op) =>
+      (+r === 0 && +g === 0 && +b === 0 ? kText(op === 'rg') : m))
+    .replace(new RegExp(`(?<![\\w/.])${N}${W}\\b([gG])\\b`, 'g'), (m, v, op) => (+v === 0 ? kText(op === 'g') : m));
   return text
+    .replace(/\bBT\b[\s\S]*?\bET\b/g, blackText)
     .replace(new RegExp(`${N}${W}${N}${W}${N}${W}\\brg\\b`, 'g'), (_, r, g, b) => fill(+r, +g, +b))
     .replace(new RegExp(`${N}${W}${N}${W}${N}${W}\\bRG\\b`, 'g'), (_, r, g, b) => stroke(+r, +g, +b))
-    .replace(new RegExp(`(?<![\\w/.])${N}${W}\\bg\\b`, 'g'), (_, v) => fill(+v, +v, +v))
-    .replace(new RegExp(`(?<![\\w/.])${N}${W}\\bG\\b`, 'g'), (_, v) => stroke(+v, +v, +v));
+    .replace(new RegExp(`(?<![\\w/.])${N}${W}\\bg\\b`, 'g'), (_, v) => greyFill(+v))
+    .replace(new RegExp(`(?<![\\w/.])${N}${W}\\bG\\b`, 'g'), (_, v) => greyStroke(+v));
+}
+
+/** Whether a content stream sets any colour the CMYK pass rewrites: RGB or DeviceGray. */
+export function hasRewritableColour(text: string): boolean {
+  return /\brg\b|\bRG\b|\d\.?\s+[gG]\b/.test(text);
 }
 
 /**

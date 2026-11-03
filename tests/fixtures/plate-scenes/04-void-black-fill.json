@@ -110,8 +110,5 @@
         }
       ]
     }
-  ],
-  "knownFailing": {
-    "reason": "The PDF writer paints a #000000 fill with the DeviceGray operator `0 g`, and the CMYK pass only rewrites `rg` and `RG`, so the Void palette hit is never reached. The fill separates to K 100 alone."
-  }
+  ]
 }
