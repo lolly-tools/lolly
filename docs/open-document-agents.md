@@ -6,11 +6,12 @@ An AI agent can work inside a document you already have open. It reads the docum
 This page covers Lolly's open-source agent relay, which any Lolly deployment can run. A Lolly Work instance invites agents under your Work identity instead, with its own access level, expiry and revocation; see [Invite an agent to a document](/info/work-document-agents.html).
 :::
 
-There are four ways in:
+There are five ways in:
 
 | Way in | Where it works | What the agent needs |
 |---|---|---|
 | [An invitation from Share](#invite-an-agent-from-share) | Any tool, on an instance with an agent relay | The Lolly plugin in ChatGPT, a remote MCP client or Lolly's local MCP server |
+| [Ask an agent](#ask-an-agent-in-the-desktop-app) | Design, in the Lolly desktop app | Claude Code or Codex installed and signed in on the same computer; no MCP setup |
 | [The desktop app](#in-the-desktop-app) | Design, in the Lolly desktop app on the same computer | Lolly's local MCP server |
 | [A pairing code](#in-a-browser-with-a-pairing-code) | Design, in a development build or a self-hosted build that allows it | Lolly's local MCP server |
 | [Site tools in the browser](#site-tools-in-the-browser-webmcp) | The page itself, in a browser that supports site tools | The browser's own agent |
@@ -35,6 +36,21 @@ How the agent connects depends on what it runs in:
 - **Lolly's local MCP server** calls `lolly_live_connect` with the invitation once, and later calls use that local connection.
 
 On an instance with no relay, Share offers **Agent instructions** instead: the Lolly skill, the tool's guidance and a link that carries the current inputs. That handoff gives the agent no access to the open document; it works from the link.
+
+## Ask an agent in the desktop app
+
+The desktop app can hand one request to an agent tool you already use in a terminal, with nothing to set up. Open Design and choose **Ask an agent** in the Lolly menu.
+
+::: timeline
+- <!--i:search--> **Lolly looks on this computer.** Opening the panel is what starts the search, for Claude Code and Codex, which Lolly can ask, and for Gemini CLI, GitHub Copilot CLI, agent apps and local model servers, which it lists but does not ask yet. Nothing is looked for before you open the panel.
+- <!--i:shieldcheck--> **Allow the agent once.** Before the first request to each agent the panel says where the request goes, under whose account and who pays: Claude Code sends it to Anthropic and Codex to OpenAI, under the account that tool is signed in with, paid by your plan with that provider.
+- <!--i:sparkle--> **Say what to change.** Lolly sends your request with the open document, as the same read model a connected agent gets, with uploaded pictures left out.
+- <!--i:check--> **Watch the change arrive.** The agent appears in People while it works. Its answer becomes one step in your history, so Undo takes it back. If you edit the document while the agent works, your edit wins and the answer is not applied.
+:::
+
+The agent runs with no tools: it cannot read your files, run commands or browse. Lolly starts it from a fixed command with your request on its input, in an empty temporary folder, with only the environment variables it needs to find its own sign-in (API keys set in the environment stay behind), and stops it after five minutes or when you press **Stop**. The answer can only add, duplicate, remove, reorder or change layers, and Lolly checks every change before the document takes any of them. If the tool is not signed in, the panel says so; sign in to it in a terminal and ask again.
+
+On a managed instance the organisation's AI policy decides whether **Ask an agent** and **Allow AI control** appear at all ([Manage organisation AI policy](/info/work-ai-policy.html)).
 
 ## In the desktop app
 

@@ -16,6 +16,10 @@ export const AI_CAPABILITIES = [
   // Rondocode's sing() (plan 301 phase F): a managed policy must name it before
   // the singing models download or reach a tool.
   'sing',
+  // Agents on this device (the desktop app's Ask an agent and Allow AI control): a
+  // managed policy must name it before Lolly looks for agent CLIs, runs one, or
+  // listens for a local agent. Unmanaged, each stays off until the person opts in.
+  'agents',
 ] as const;
 export type AiCapability = (typeof AI_CAPABILITIES)[number];
 type AiScope = AiCapability | 'unclassified';

@@ -37,3 +37,58 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ── Ask an agent (views/agent-ask.ts) ──────────────────────────────────────
+   The same overlay: a radio list of the agents that can run, the first-use
+   notice as one washed panel, the request field and a progress line. Rules that
+   set display are written :not([hidden]) so the hidden attribute still hides. */
+.agent-ask-list:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 4px 0 12px;
+}
+.agent-ask-choice:not([hidden]) {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  font-size: var(--fs-md);
+}
+.agent-ask-name { font-weight: 600; }
+.agent-ask-path {
+  flex-basis: 100%;
+  padding-left: 26px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+  overflow-wrap: anywhere;
+}
+.agent-ask-notice:not([hidden]) {
+  display: block;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.agent-ask-notice p { margin: 0 0 6px; }
+.agent-ask-notice p:last-of-type { margin-bottom: 8px; }
+.agent-ask-request {
+  width: 100%;
+  min-height: 4.5em;
+  resize: vertical;
+}
+.agent-ask-progress { margin: 8px 0 0; }
+.agent-ask-elapsed { font-variant-numeric: tabular-nums; }
+.agent-ask-detail {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+.agent-ask-others { margin: 12px 0 0; font-size: var(--fs-sm); }
+.agent-ask-others summary { cursor: pointer; color: hsl(var(--muted-foreground)); }
+.agent-ask-other { margin: 6px 0 0; }
