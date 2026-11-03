@@ -9,6 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import type { CalcSheetV1 } from '@lolly-tools/core/host-v1';
 import { createCalcAPI, createCalcEngine, isFormulaText, xlsxRecalculator, type CalcRunner } from '../engine/src/calc.ts';
 import { readXlsx } from '../engine/src/xlsx-import.ts';
 import { compileGridcraftCalc, createGridcraftCalcRunner } from '../packages/node-shell/src/gridcraft-calc.ts';
@@ -93,7 +94,7 @@ test('malformed formulas are reported on their cell and do not stop the others',
 });
 
 test('requests the module cannot accept are refused with a message', () => {
-  const sheet = (name: string, cells: unknown[] = []) => ({ name, cells });
+  const sheet = (name: string, cells: unknown[] = []) => ({ name, cells: cells as CalcSheetV1['cells'] });
   assert.throws(() => fixed.evaluate({ sheets: [] }), /between 1 and 64 sheets/);
   assert.throws(() => fixed.evaluate({ sheets: [sheet('a/b')] }), /sheet name/);
   assert.throws(() => fixed.evaluate({ sheets: [sheet('x'), sheet('X')] }), /share a name/);
