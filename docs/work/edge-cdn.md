@@ -105,9 +105,9 @@ Unknown keys are refused, so a typo cannot leave a setting silently off.
 The credential never goes in `instance.json`. Either:
 
 - set the environment variable that `credentialRef` names; Work reads it once at boot, or
-- leave `credentialRef` out and run `lw edge credential <id>`, which prompts for the key without
-  echoing it. Work reads the zone with the key first and refuses one that cannot, then stores it
-  sealed with `LW_CREDENTIAL_SECRET` (AES-256-GCM, bound to that provider). Set
+- leave `credentialRef` out and run `lw edge credential <id>`, which prompts for the key and never
+  echoes what you type. Work reads the zone with the key first and refuses a key that cannot, then
+  stores the key sealed with `LW_CREDENTIAL_SECRET` (AES-256-GCM, bound to that provider). Set
   `LW_CREDENTIAL_SECRET` before you store one.
 
 Work shows a stored credential only by its fingerprint, in `lw edge status` and the audit log. Use
