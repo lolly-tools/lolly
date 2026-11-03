@@ -1,0 +1,30 @@
+[package]
+name = "lolly-gridcraft-calc"
+version = "0.1.0"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+members = [".", "vendor/gridcraft-formula", "vendor/gridcraft-functions", "vendor/gridcraft-model", "vendor/gridcraft-calc"]
+resolver = "3"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+gridcraft-core = { path = "../xlsx-numfmt/vendor/gridcraft-core" }
+gridcraft-numfmt = { path = "../xlsx-numfmt/vendor/gridcraft-numfmt" }
+gridcraft-formula = { path = "vendor/gridcraft-formula" }
+gridcraft-functions = { path = "vendor/gridcraft-functions", default-features = false }
+gridcraft-model = { path = "vendor/gridcraft-model" }
+gridcraft-calc = { path = "vendor/gridcraft-calc" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
