@@ -47,7 +47,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string,
 }
 
 function field(label: string, control: HTMLElement): HTMLLabelElement {
-  const row = el('label', { cls: 'share-link-field' });
+  const row = el('label', { cls: 'share-through-field' });
   row.style.cssText = 'display:flex;flex-direction:column;gap:.25rem;font-size:.85rem';
   row.append(el('span', {}, label), control);
   return row;
@@ -73,7 +73,7 @@ export function shareStatement(target: Pick<SendTarget, 'kind' | 'label' | 'shar
 export function createShareLinkPanel(opts: ShareLinkPanelOpts): HTMLElement {
   const { target } = opts;
   const caps = target.shareCapabilities!();
-  const root = el('div', { cls: 'share-link-panel' });
+  const root = el('div', { cls: 'share-through-panel' });
   root.style.cssText = 'display:flex;flex-direction:column;gap:.6rem';
 
   if (!caps.audiences.length) {
