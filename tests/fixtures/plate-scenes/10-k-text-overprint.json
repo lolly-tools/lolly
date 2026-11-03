@@ -1,0 +1,74 @@
+{
+  "id": "10-k-text-overprint",
+  "title": "Black text over a colour",
+  "covers": "Press convention, and Lolly's own stated rule, is that solid black text overprints the artwork beneath: the cyan plate must run unbroken under the letters instead of being knocked out.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#00a0e0"
+    },
+    {
+      "id": "t",
+      "kind": "text",
+      "frame": "page",
+      "x": 20,
+      "y": 40,
+      "w": 360,
+      "h": 110,
+      "text": "Overprint",
+      "fg": "#000000",
+      "fontSize": 72,
+      "font": "sans",
+      "weight": "800",
+      "align": "left",
+      "valign": "top",
+      "lineHeight": 1.1
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true,
+    "overprintStates": [
+      "GSfo"
+    ]
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "tol": 3,
+      "regions": [
+        {
+          "name": "cyan plate under the letters",
+          "rect": [
+            20,
+            40,
+            360,
+            110
+          ],
+          "expect": {
+            "C": {
+              "stat": "min",
+              "from": "#00a0e0"
+            },
+            "K": {
+              "stat": "max",
+              "min": 99
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "knownFailing": {
+    "reason": "Black text is written with the DeviceGray operator `0 g`, which the CMYK pass leaves alone, so it never gets the overprint graphics state (`/GSfo gs`) that pure-K `k` operators get. The letters knock out the cyan beneath them."
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "id": "11-colour-text-knockout",
+  "title": "Coloured text knocks out",
+  "covers": "Coloured text over a different colour is a knockout: inside the letters only the text's inks print. Deep blue text on pale yellow carries more C, M and K than the ground, so those plates peak at the text's values, and the ground's yellow is gone inside the letters.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#fff3b0"
+    },
+    {
+      "id": "t",
+      "kind": "text",
+      "frame": "page",
+      "x": 20,
+      "y": 40,
+      "w": 360,
+      "h": 110,
+      "text": "Knockout",
+      "fg": "#12348a",
+      "fontSize": 72,
+      "font": "sans",
+      "weight": "800",
+      "align": "left",
+      "valign": "top",
+      "lineHeight": 1.1
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "tol": 3,
+      "regions": [
+        {
+          "name": "letters",
+          "rect": [
+            20,
+            40,
+            360,
+            110
+          ],
+          "expect": {
+            "C": {
+              "stat": "max",
+              "from": "#12348a"
+            },
+            "M": {
+              "stat": "max",
+              "from": "#12348a"
+            },
+            "K": {
+              "stat": "max",
+              "from": "#12348a"
+            },
+            "Y": {
+              "stat": "min",
+              "from": "#12348a"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

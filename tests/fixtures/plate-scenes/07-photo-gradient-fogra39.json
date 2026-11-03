@@ -1,0 +1,94 @@
+{
+  "id": "07-photo-gradient-fogra39",
+  "title": "Photo-like RGB gradient through FOGRA39",
+  "covers": "A three-stop RGB gradient (warm to blue to dark green, none a brand swatch) is converted per stop through the bundled FOGRA39 profile. The design system bakes the ramp into dense sRGB stops, so the three authored stops are sampled and each must carry the inks the profile gives it.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "grad",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 20,
+      "w": 360,
+      "h": 160,
+      "bg": "#f26b1d",
+      "grad": "lin_90_f26b1d-0_2563d6-50_143d2b-100"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "tol": 4,
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "stop 1 f26b1d",
+          "rect": [
+            22,
+            40,
+            3,
+            120
+          ],
+          "expectFrom": {
+            "rgb": "#f26b1d"
+          }
+        },
+        {
+          "name": "stop 2 2563d6",
+          "rect": [
+            199,
+            40,
+            3,
+            120
+          ],
+          "expectFrom": {
+            "rgb": "#2563d6"
+          }
+        },
+        {
+          "name": "stop 3 143d2b",
+          "rect": [
+            375,
+            40,
+            3,
+            120
+          ],
+          "expectFrom": {
+            "rgb": "#143d2b"
+          }
+        }
+      ]
+    }
+  ]
+}

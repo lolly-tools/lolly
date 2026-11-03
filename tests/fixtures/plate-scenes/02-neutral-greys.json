@@ -1,0 +1,122 @@
+{
+  "id": "02-neutral-greys",
+  "title": "Neutral greys",
+  "covers": "Neutral greys separate onto K alone, at the ink coverage their lightness implies.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "g1",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 20,
+      "w": 100,
+      "h": 160,
+      "bg": "#333333"
+    },
+    {
+      "id": "g2",
+      "kind": "box",
+      "frame": "page",
+      "x": 150,
+      "y": 20,
+      "w": 100,
+      "h": 160,
+      "bg": "#808080"
+    },
+    {
+      "id": "g3",
+      "kind": "box",
+      "frame": "page",
+      "x": 280,
+      "y": 20,
+      "w": 100,
+      "h": 160,
+      "bg": "#cccccc"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "tol": 3,
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "dark grey 333333",
+          "rect": [
+            30,
+            30,
+            80,
+            140
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 80
+          }
+        },
+        {
+          "name": "mid grey 808080",
+          "rect": [
+            160,
+            30,
+            80,
+            140
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 49.8
+          }
+        },
+        {
+          "name": "light grey cccccc",
+          "rect": [
+            290,
+            30,
+            80,
+            140
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 20
+          }
+        }
+      ]
+    }
+  ]
+}
