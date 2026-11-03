@@ -1,0 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+// Used only when this module is opened on its own. Inside the app, the
+// generated tauri.settings.gradle includes this module and tauri-android.
+include ':tauri-android'
+project(':tauri-android').projectDir = new File('./.tauri/tauri-api')

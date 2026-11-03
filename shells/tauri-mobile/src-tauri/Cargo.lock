@@ -1729,6 +1729,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-fs",
  "tauri-plugin-lolly-auth",
+ "tauri-plugin-lolly-fold",
  "tokio",
  "url",
 ]
@@ -3371,6 +3372,16 @@ name = "tauri-plugin-lolly-auth"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "tauri",
+ "tauri-plugin",
+]
+
+[[package]]
+name = "tauri-plugin-lolly-fold"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
  "tauri",
  "tauri-plugin",
 ]

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-current"
+description = "Enables the current command without any pre-configured scope."
+commands.allow = ["current"]
+
+[[permission]]
+identifier = "deny-current"
+description = "Denies the current command without any pre-configured scope."
+commands.deny = ["current"]

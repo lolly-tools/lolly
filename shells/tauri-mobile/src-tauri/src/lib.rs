@@ -240,6 +240,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_lolly_auth::init())
+        .plugin(tauri_plugin_lolly_fold::init())
         .manage(MobileEvents::default())
         // The website source for Design System Setup (plans/97 section 9)
         // was the first command of this shell's own, because it has to enforce

@@ -1,0 +1,10 @@
+# Copies of the Tauri native API, written by the Rust build script.
+/.tauri
+/android/.tauri
+# Native build output.
+/android/build
+/android/.gradle
+/ios/.build
+/ios/Package.resolved
+/target
+/Cargo.lock
