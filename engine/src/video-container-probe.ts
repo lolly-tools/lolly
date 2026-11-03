@@ -639,22 +639,12 @@ const propU = (s: MxfSet, tag: number): number | null => {
 const propI64 = (s: MxfSet, tag: number): number | null => { const v = s.props.get(tag); return v && v.length === 8 ? i64(v, 0) : null; };
 const propRational = (s: MxfSet, tag: number): number | null => {
   const v = s.props.get(tag);
-  if (!v || v.length !== 8) return null;
+  if (v?.length !== 8) return null;
   const num = i32(v, 0);
   const den = i32(v, 4);
   return num > 0 && den > 0 ? num / den : null;
 };
-const propUl = (s: MxfSet, tag: number): Uint8Array | null => { const v = s.props.get(tag); return v && v.length === 16 ? v : null; };
-const propBatch = (s: MxfSet, tag: number): string[] => {
-  const v = s.props.get(tag);
-  if (!v || v.length < 8) return [];
-  const count = u32(v, 0);
-  const item = u32(v, 4);
-  if (item !== 16 || count > 100_000 || 8 + count * 16 > v.length) return [];
-  const out: string[] = [];
-  for (let i = 0; i < count; i++) out.push(hex(v, 8 + i * 16, 24 + i * 16));
-  return out;
-};
+const propUl = (s: MxfSet, tag: number): Uint8Array | null => { const v = s.props.get(tag); return v?.length === 16 ? v : null; };
 
 const SET_PICTURE = new Set([0x27, 0x28, 0x29, 0x51]);
 const SET_SOUND = new Set([0x42, 0x47, 0x48]);
@@ -677,8 +667,8 @@ function mxfPicture(coding: Uint8Array | null, container: Uint8Array | null): Pr
       return track('prores', p ? `Apple ProRes ${p}` : 'Apple ProRes', p, id, null);
     }
     if (isPicture && coding[11] === 0x02 && coding[12] === 0x01 && (coding[13] === 0x31 || coding[13] === 0x32)) {
-      const names: Record<number, string> = { 0x10: 'Baseline', 0x20: 'Main', 0x30: 'Extended', 0x40: 'High', 0x50: 'High 10', 0x60: 'High 4:2:2', 0x70: 'High 4:4:4' };
-      const p = coding[13] === 0x32 ? 'Intra' : (names[coding[14]!] ?? null);
+      const names = ['', 'Baseline', 'Main', 'Extended', 'High', 'High 10', 'High 4:2:2', 'High 4:4:4'];
+      const p = coding[13] === 0x32 ? 'Intra' : (names[coding[14]! >> 4] || null);
       return track('h264', p ? `H.264 ${p}` : 'H.264', p, id, null);
     }
     if (isPicture && coding[11] === 0x02 && coding[12] === 0x01 && coding[13]! >= 0x01 && coding[13]! <= 0x04) return track('mpeg2', 'MPEG-2 video', null, id, null);

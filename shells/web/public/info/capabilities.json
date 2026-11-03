@@ -651,6 +651,66 @@
       }
     },
     {
+      "token": "MXF",
+      "name": "MXF",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, to name the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "ProRes",
+      "name": "Apple ProRes",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, to name the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "DNx",
+      "name": "Avid DNxHD / DNxHR",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, to name the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
       "token": "Lottie",
       "name": "Lottie",
       "category": "Motion",
