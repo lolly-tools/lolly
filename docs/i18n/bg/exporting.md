@@ -420,7 +420,7 @@ Lolly доставя един CMYK профил, напасван по данн�
 | Вектор | `svg` · `svgz` (SVG с gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (файл за рязане) |
 | Страница и документ | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (дизайн файл на Penpot) · `scorm` (пакет за курс, ZIP) |
 | Движение | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Аудио | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Аудио | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDI ноти от Rondocode) |
 | Текст и данни | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (палитра на GIMP) |
 | Пакети и комплекти | `zip` · `rpm` и `tar.gz` (рендерът, запечатан в пакет за Linux) |
 

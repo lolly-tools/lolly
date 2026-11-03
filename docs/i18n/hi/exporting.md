@@ -420,7 +420,7 @@ Lolly एक CMYK प्रोफ़ाइल के साथ आता है,
 | वेक्टर | `svg` · `svgz` (gzipped SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (कट फ़ाइल) |
 | पन्ना और दस्तावेज़ | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot design file) · `scorm` (कोर्स पैकेज, एक ZIP) |
 | मोशन | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| ऑडियो | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| ऑडियो | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDI नोट, Rondocode से) |
 | टेक्स्ट और डेटा | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | बंडल और पैकेज | `zip` · `rpm` और `tar.gz` (Linux पैकेज में सील किया रेंडर) |
 

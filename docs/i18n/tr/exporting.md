@@ -420,7 +420,7 @@ Bunlar URL `format=` parametresi ve CLI `--export=` bayrağı için değerlerdir
 | Vektör | `svg` · `svgz` (gzip'lenmiş SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (kesim dosyası) |
 | Sayfa ve belge | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot tasarım dosyası) · `scorm` (kurs paketi, bir ZIP) |
 | Hareket | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Ses | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Ses | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (Rondocode'dan MIDI notaları) |
 | Metin ve veri | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | Paketler ve bundle'lar | `zip` · `rpm` ve `tar.gz` (render, bir Linux paketine mühürlenmiş) |
 

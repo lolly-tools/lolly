@@ -12,7 +12,7 @@ Z terminálu bere `lolly mix` píseň jako celou zvukovou stopu; viz [Vykreslov�
 
 ## Napiš a exportuj píseň
 
-Otevři **Rondocode** z **Utilities**, abys napsal píseň v živém editoru rondocode a slyšel ji při psaní. Exportuj ji jako **WAV**, **MP3**, **M4A**, **Opus** nebo **FLAC**, jako ZIP stop, jako **MIDI** nebo jako nahrávku toho, co hraje. **Export length** nastavuje, kolik sekund zvukový export trvá. Samotný soubor písně (`.rondo.json`) je tvůj kód tak, jak je psán, a nenese nic přidaného.
+Otevři **Rondocode** z **Utilities**, abys napsal píseň v živém editoru rondocode a slyšel ji při psaní. Exportuj ji jako **WAV**, **MP3**, **M4A**, **Opus** nebo **FLAC**, jako ZIP stop, jako **MIDI** nebo jako nahrávku toho, co hraje. Z terminálu zapíše `lolly rondocode --export=mid` stejný soubor MIDI. **Export length** nastavuje, kolik sekund zvukový export trvá. Samotný soubor písně (`.rondo.json`) je tvůj kód tak, jak je psán, a nenese nic přidaného.
 
 Píseň může zpívat svůj text pomocí `sing()`. Zpěv vytvářejí na tvém zařízení stažené hlasové modely a soubor, který drží syntetizovaný zpěv, vždy deklaruje zpěv jako generovaný AI (viz [Funkce AI](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ Většina utilit na zařízení nezapisuje žádný credential, protože transfo
 - Hudba vypočítaná z kódu písně je algoritmické médium a není označena jako AI.
 
 Když píseň zpívá, soubor deklaruje ten zpěv jako generovaný AI ve strojově čitelné podobě. Typ digitálního zdroje credential je složené médium vytvořené s trénovanými modely, záznam vypisuje zpívané části a jedno oznámení AI C2PA na model identifikuje každý model, jímž zpěv prošel: převod textu na řeč Supertonic-3, zarovnávač fonémů wav2vec 2.0, enkodér ContentVec a hlas RVC, s repozitářem a commitem, z nichž ho Lolly hostuje. Soubor, který drží syntetizovaný zpěv, se nikdy neuloží bez této deklarace.
+
+### Co obsahuje soubor MIDI
+
+Soubor MIDI je Standard MIDI File, formát 1. První stopa obsahuje tempo a taktové označení 4/4 a po ní následuje jedna stopa pro každý syntezátor, pojmenovaná podle syntezátoru. Každá nota si zachová svůj začátek, délku a velocity. Syntezátor, jehož název zní jako nástroj, například bass, smyčce, pad nebo piano, dostane odpovídající nástroj General MIDI a název podobný bicím jde na kanál 10. Ladění, které není dvanáctitónové, se zaokrouhlí na nejbližší půltón pomocí pitch bendu.
+
+Soubor MIDI nemůže uchovat, jak píseň zní. Nastavení syntezátorů, filtry, efekty, sběrnice, samply a zpěv v něm nejsou, takže DAW přehraje noty svými vlastními nástroji. Tempo se čte z cyklů písně za sekundu, přičemž jeden cyklus je takt o čtyřech dobách, protože vlastní taktové označení písně není součástí toho, co vykreslovač vrátí.
 
 Soubor MIDI nemá místo pro credential, takže místo toho tvrzení nese textová událost v souboru a panel exportu to říká. Panel to všechno popisuje před exportem a po každém exportu editor čte uložený soubor zpět a hlásí jen to, co čtení našlo.
 

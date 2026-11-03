@@ -420,7 +420,7 @@ Lolly 附带一个 CMYK 配置文件，它按 Fogra 的 FOGRA39 特性化数据�
 | 矢量 | `svg` · `svgz`（gzip 压缩的 SVG）· `emf` · `wmf` · `eps` · `eps-cmyk`（EPS CMYK）· `dxf`（切割文件） |
 | 页面与文档 | `pdf` · `pdf-cmyk`（Print PDF）· `pptx`（PowerPoint）· `docx`（Word）· `odt`（OpenDocument Text）· `idml`（InDesign）· `penpot`（Penpot 设计文件）· `scorm`（课程包，一个 ZIP） |
 | 动态 | `gif` · `apng`（Animated PNG）· `webp-anim`（Animated WebP）· `svg-anim`（Animated SVG）· `webm` · `mp4` · `lottie`（dotLottie）· `premiere-xml`（Premiere XML + media） |
-| 音频 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| 音频 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDI 音符，来自 Rondocode) |
 | 文本与数据 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl`（GIMP palette） |
 | 捆绑包与软件包 | `zip` · `rpm` 和 `tar.gz`（封入 Linux 软件包的渲染结果） |
 

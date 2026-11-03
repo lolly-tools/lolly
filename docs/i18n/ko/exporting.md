@@ -420,7 +420,7 @@ URL `format=` 매개변수와 CLI `--export=` 플래그의 값이에요([URL 매
 | 벡터 | `svg` · `svgz` (gzip SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (절단 파일) |
 | 페이지와 문서 | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot 디자인 파일) · `scorm` (과정 패키지, ZIP) |
 | 모션 | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| 오디오 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| 오디오 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (Rondocode의 MIDI 노트) |
 | 텍스트와 데이터 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP 팔레트) |
 | 번들과 패키지 | `zip` · `rpm`과 `tar.gz` (Linux 패키지로 봉인된 렌더링) |
 

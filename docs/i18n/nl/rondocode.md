@@ -12,7 +12,7 @@ Vanaf de terminal neemt `lolly mix` een nummer als de hele soundtrack; zie [CLI 
 
 ## Een nummer schrijven en exporteren
 
-Open **Rondocode** vanuit **Utilities** om een nummer te schrijven in de live editor van rondocode en het te horen terwijl je typt. Exporteer het als **WAV**, **MP3**, **M4A**, **Opus** of **FLAC**, als een ZIP met stems, als **MIDI**, of als opname van wat wordt afgespeeld. **Export length** bepaalt hoeveel seconden een audio-export duurt. Het nummerbestand zelf (`.rondo.json`) is je code zoals geschreven en draagt niets extra's.
+Open **Rondocode** vanuit **Utilities** om een nummer te schrijven in de live editor van rondocode en het te horen terwijl je typt. Exporteer het als **WAV**, **MP3**, **M4A**, **Opus** of **FLAC**, als een ZIP met stems, als **MIDI**, of als opname van wat wordt afgespeeld. Vanaf de terminal schrijft `lolly rondocode --export=mid` hetzelfde MIDI-bestand. **Export length** bepaalt hoeveel seconden een audio-export duurt. Het nummerbestand zelf (`.rondo.json`) is je code zoals geschreven en draagt niets extra's.
 
 Een nummer kan zijn tekst zingen met `sing()`. De zang wordt op je apparaat gemaakt door gedownloade stemmodellen, en een bestand dat gesynthetiseerde zang bevat, verklaart de zang altijd als door AI gegenereerd (zie [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ De meeste hulpprogramma's op het apparaat schrijven geen credential, omdat ze ee
 - Muziek die uit de code van het nummer wordt berekend is algoritmische media en wordt niet als AI gemarkeerd.
 
 Wanneer een nummer zingt, verklaart het bestand die zang in machineleesbare vorm als door AI gegenereerd. Het digitale brontype van de credential is samengestelde media gemaakt met getrainde modellen, het record somt de gezongen delen op, en één C2PA-AI-vermelding per model identificeert elk model waar de zang doorheen ging: Supertonic-3 tekst-naar-spraak, de wav2vec 2.0-fonemenuitlijner, de ContentVec-encoder en de RVC-stem, met de repository en commit waar Lolly het vandaan host. Een bestand met gesynthetiseerde zang wordt nooit zonder die verklaring opgeslagen.
+
+### Wat het MIDI-bestand bevat
+
+Het MIDI-bestand is een Standard MIDI File, formaat 1. Het eerste spoor bevat het tempo en een maatsoort van 4/4, en daarna komt er voor elke synth één spoor, genoemd naar de synth. Elke noot behoudt zijn begin, lengte en velocity. Een synth waarvan de naam klinkt als een instrument, zoals een bas, strijkers, een pad of een piano, krijgt het bijpassende General MIDI-instrument, en een drumachtige naam gaat naar kanaal 10. Een stemming die niet twaalftonig is, wordt met een pitch bend afgerond op de dichtstbijzijnde halve toon.
+
+Een MIDI-bestand kan niet bevatten hoe een nummer klinkt. De synth-instellingen, filters, effecten, bussen, samples en zang zitten er niet in, dus een DAW speelt de noten met zijn eigen instrumenten. Het tempo wordt afgelezen uit de cycli per seconde van het nummer, waarbij één cyclus een maat van vier tellen is, omdat de eigen maatsoort van het nummer geen deel is van wat de renderer teruggeeft.
 
 Een MIDI-bestand heeft geen plek voor een credential, dus een tekstgebeurtenis in het bestand draagt de verklaring in plaats daarvan, en het exportpaneel zegt dat. Het paneel beschrijft dit alles voordat je exporteert, en na elke export leest de editor het opgeslagen bestand terug en meldt alleen wat die lezing vond.
 

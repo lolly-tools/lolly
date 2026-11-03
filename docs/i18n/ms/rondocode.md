@@ -12,7 +12,7 @@ Daripada terminal, `lolly mix` mengambil lagu sebagai keseluruhan runut bunyi; l
 
 ## Tulis dan eksport lagu
 
-Buka **Rondocode** daripada **Utilities** untuk menulis lagu dalam penyunting langsung rondocode dan mendengarnya semasa anda menaip. Eksportnya sebagai **WAV**, **MP3**, **M4A**, **Opus** atau **FLAC**, sebagai ZIP stem, sebagai **MIDI**, atau sebagai rakaman apa yang dimainkan. **Export length** menetapkan berapa saat eksport audio bertahan. Fail lagu itu sendiri (`.rondo.json`) ialah kod anda seperti yang ditulis dan tidak membawa tambahan.
+Buka **Rondocode** daripada **Utilities** untuk menulis lagu dalam penyunting langsung rondocode dan mendengarnya semasa anda menaip. Eksportnya sebagai **WAV**, **MP3**, **M4A**, **Opus** atau **FLAC**, sebagai ZIP stem, sebagai **MIDI**, atau sebagai rakaman apa yang dimainkan. Daripada terminal, `lolly rondocode --export=mid` menulis fail MIDI yang sama. **Export length** menetapkan berapa saat eksport audio bertahan. Fail lagu itu sendiri (`.rondo.json`) ialah kod anda seperti yang ditulis dan tidak membawa tambahan.
 
 Lagu boleh menyanyikan liriknya dengan `sing()`. Nyanyian dibuat pada peranti anda oleh model suara yang dimuat turun, dan fail yang memegang nyanyian sintesis sentiasa mengisytiharkan nyanyian itu sebagai dijana AI (lihat [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ Kebanyakan utiliti pada peranti tidak menulis kredensial, kerana ia mengubah fai
 - Muzik yang dikira daripada kod lagu ialah media algoritma dan tidak ditandakan sebagai AI.
 
 Apabila lagu menyanyi, fail mengisytiharkan nyanyian itu dijana AI dalam bentuk boleh dibaca mesin. Jenis sumber digital kredensial ialah media komposit yang dibuat dengan model terlatih, rekod menyenaraikan bahagian yang dinyanyikan, dan satu pendedahan AI C2PA bagi setiap model mengenal pasti setiap model yang dilalui nyanyian: teks-ke-pertuturan Supertonic-3, penjajar fonem wav2vec 2.0, pengekod ContentVec dan suara RVC, dengan repositori dan commit tempat Lolly menghoskannya. Fail yang memegang nyanyian sintesis tidak pernah disimpan tanpa pengisytiharan itu.
+
+### Kandungan fail MIDI
+
+Fail MIDI ialah Standard MIDI File, format 1. Trek pertama menyimpan tempo dan tanda masa 4/4, dan selepasnya ada satu trek bagi setiap synth, dinamakan mengikut synth itu. Setiap nota mengekalkan permulaan, panjang dan velocity-nya. Synth yang namanya dibaca sebagai instrumen, seperti bes, tali, pad atau piano, mendapat instrumen General MIDI yang sepadan, dan nama yang menyerupai dram masuk ke saluran 10. Penalaan yang bukan dua belas nada dibundarkan kepada semiton terdekat dengan pitch bend.
+
+Fail MIDI tidak dapat menyimpan bagaimana bunyi sesebuah lagu. Tetapan synth, penapis, kesan, bus, sampel dan nyanyian tiada di dalamnya, jadi DAW memainkan nota dengan instrumennya sendiri. Tempo dibaca daripada kitaran sesaat lagu itu, dengan satu kitaran sebagai satu bar empat ketukan, kerana tanda masa lagu itu sendiri bukan sebahagian daripada apa yang dikembalikan oleh perender.
 
 Fail MIDI tiada tempat untuk kredensial, jadi peristiwa teks dalam fail membawa kenyataan sebaliknya, dan panel eksport memberitahu anda. Panel menerangkan semua ini sebelum anda mengeksport, dan selepas setiap eksport penyunting membaca semula fail yang disimpan dan melaporkan hanya apa yang ditemui bacaan itu.
 

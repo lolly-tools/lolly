@@ -12,7 +12,7 @@ Z terminala `lolly mix` przyjmuje piosenkę jako całą ścieżkę dźwiękową;
 
 ## Napisz i wyeksportuj piosenkę
 
-Otwórz **Rondocode** z **Utilities**, aby napisać piosenkę w żywym edytorze rondocode i słyszeć ją w trakcie pisania. Wyeksportuj ją jako **WAV**, **MP3**, **M4A**, **Opus** lub **FLAC**, jako ZIP ze ścieżkami, jako **MIDI** albo jako nagranie tego, co gra. **Export length** ustawia, ile sekund trwa eksport audio. Sam plik piosenki (`.rondo.json`) to Twój kod tak, jak go napisałeś, i nie niesie niczego dodanego.
+Otwórz **Rondocode** z **Utilities**, aby napisać piosenkę w żywym edytorze rondocode i słyszeć ją w trakcie pisania. Wyeksportuj ją jako **WAV**, **MP3**, **M4A**, **Opus** lub **FLAC**, jako ZIP ze ścieżkami, jako **MIDI** albo jako nagranie tego, co gra. Z terminala `lolly rondocode --export=mid` zapisuje ten sam plik MIDI. **Export length** ustawia, ile sekund trwa eksport audio. Sam plik piosenki (`.rondo.json`) to Twój kod tak, jak go napisałeś, i nie niesie niczego dodanego.
 
 Piosenka może śpiewać swoje słowa przez `sing()`. Śpiew powstaje na Twoim urządzeniu przez pobrane modele głosu, a plik zawierający syntetyczny śpiew zawsze deklaruje ten śpiew jako wygenerowany przez AI (zobacz [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ Większość utility na urządzeniu nie zapisuje poświadczenia, ponieważ przek
 - Muzyka obliczona z kodu piosenki jest medium algorytmicznym i nie jest oznaczana jako AI.
 
 Gdy piosenka śpiewa, plik deklaruje ten śpiew jako wygenerowany przez AI w formie czytelnej maszynowo. Cyfrowy typ źródła poświadczenia to media złożone wykonane z użyciem wytrenowanych modeli, zapis wymienia śpiewane części, a jedno ujawnienie AI C2PA na model identyfikuje każdy model, przez który przeszedł śpiew: zamianę tekstu na mowę Supertonic-3, aligner fonemów wav2vec 2.0, koder ContentVec i głos RVC, z repozytorium i commitem, z którego Lolly je hostuje. Plik zawierający syntetyczny śpiew nigdy nie jest zapisywany bez tej deklaracji.
+
+### Co zawiera plik MIDI
+
+Plik MIDI to Standard MIDI File, format 1. Pierwsza ścieżka zawiera tempo i metrum 4/4, a po niej jest po jednej ścieżce dla każdego syntezatora, nazwanej jego nazwą. Każda nuta zachowuje swój początek, długość i velocity. Syntezator, którego nazwa brzmi jak instrument, na przykład bas, smyczki, pad czy pianino, dostaje odpowiedni instrument General MIDI, a nazwa przypominająca perkusję trafia na kanał 10. Strój, który nie jest dwunastotonowy, jest zaokrąglany do najbliższego półtonu za pomocą pitch bendu.
+
+Plik MIDI nie może zawierać tego, jak brzmi piosenka. Ustawień syntezatorów, filtrów, efektów, szyn, sampli i śpiewu w nim nie ma, więc DAW odtwarza nuty własnymi instrumentami. Tempo jest odczytywane z cykli piosenki na sekundę, przy czym jeden cykl to takt o czterech uderzeniach, ponieważ własne metrum piosenki nie jest częścią tego, co zwraca renderer.
 
 Plik MIDI nie ma miejsca na poświadczenie, więc zamiast tego oświadczenie niesie zdarzenie tekstowe w pliku, a panel eksportu o tym mówi. Panel opisuje to wszystko przed eksportem, a po każdym eksporcie edytor odczytuje zapisany plik z powrotem i zgłasza tylko to, co znalazł ten odczyt.
 

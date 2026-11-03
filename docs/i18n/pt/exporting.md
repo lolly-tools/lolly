@@ -420,7 +420,7 @@ Estes são os valores do parâmetro de URL `format=` e do sinalizador `--export=
 | Vetor | `svg` · `svgz` (SVG compactado com gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (arquivo de corte) |
 | Página e documento | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (arquivo de design Penpot) · `scorm` (pacote de curso, um ZIP) |
 | Movimento | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Áudio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Áudio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (notas MIDI, do Rondocode) |
 | Texto e dados | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paleta GIMP) |
 | Pacotes | `zip` · `rpm` e `tar.gz` (a renderização selada em um pacote Linux) |
 

@@ -420,7 +420,7 @@ Các điều khiển xuất nằm sau nút **Export** nổi, mở tấm **Export
 | Vector | `svg` · `svgz` (SVG nén gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (tệp cắt) |
 | Trang và tài liệu | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (tệp thiết kế Penpot) · `scorm` (gói khóa học, một ZIP) |
 | Chuyển động | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Âm thanh | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Âm thanh | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (nốt MIDI, từ Rondocode) |
 | Văn bản và dữ liệu | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (bảng màu GIMP) |
 | Gói và bộ đóng gói | `zip` · `rpm` và `tar.gz` (bản kết xuất được niêm phong vào gói Linux) |
 
