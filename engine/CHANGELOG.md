@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.302.0
+
+- Standard MIDI Files (new modules `smf.ts`, `smf-export.ts`, `rondo-midi.ts`): `readSmf` and `writeSmf` read and write formats 0, 1 and 2 losslessly (running status, variable-length quantities, meta and SysEx events, unknown chunks kept), so writing what was read gives back the same bytes. A notes-to-`.mid` builder writes a format-1 file with a conductor track and one track per voice, General MIDI programs where a voice maps to one and drums on channel 10; pitches off the 12-tone grid round with a pitch bend. Bounded reads refuse malformed input.
+- `midi.ts` keeps note velocity as loudness on the ZzFXM import (`velocity: false` opts out).
+- `host.audio.decode` gains an optional `midi` option and result field (additive), which is how Rondocode exports `.mid`: hooks cannot import the engine, so the shell builds the file.
+
 ## 1.301.0
 
 - Manifest `render.themeChoicesAfter` (chrome only): the id of an input after which the web shell draws the design system's choices for the document (colourway, mode and any other theme group), inside that input's section, instead of in a separate Design system section. Keyed by input id, so a translated section name cannot move it. The CLI, the TUI and MCP ignore it, like `render.sectionIcons`.
