@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
-  CAMERA_RAW_MAX_INPUT, CameraRawError, cameraRawReportLine, describeCameraRawColour, describeCameraRawError,
+  CAMERA_RAW_MAX_INPUT, CameraRawError, cameraRawCameraName, cameraRawReportLine, describeCameraRawColour, describeCameraRawError,
   hasCameraRawSignature, isCameraRawName, looksLikeCameraRaw, createCameraRawKernel,
 } from '../packages/node-shell/src/camera-raw.ts';
 import { loadCameraRawKernel } from '../packages/node-shell/src/camera-raw-node.ts';
@@ -196,6 +196,14 @@ test('truncated and corrupted files fail with a typed error, never a crash', asy
     catch (e) { assert.ok(e instanceof CameraRawError, String(e)); assert.notEqual(e.code, 'crashed'); }
   }
   assert.equal(kernel.dead, false);
+});
+
+test('a camera name does not repeat the make', () => {
+  assert.equal(cameraRawCameraName({ make: 'Canon', model: 'Canon EOS 80D' }), 'Canon EOS 80D');
+  assert.equal(cameraRawCameraName({ make: 'NIKON CORPORATION', model: 'NIKON D3200' }), 'NIKON D3200');
+  assert.equal(cameraRawCameraName({ make: 'SONY', model: 'ILCE-7M3' }), 'SONY ILCE-7M3');
+  assert.equal(cameraRawCameraName({ make: null, model: 'X' }), 'X');
+  assert.equal(cameraRawCameraName({ make: null, model: null }), '');
 });
 
 test('error wording points to a way forward', () => {

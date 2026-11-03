@@ -230,9 +230,17 @@ export function describeCameraRawColour(meta: CameraRawMeta): string {
   return 'Approximate colour: this format has no embedded colour matrices';
 }
 
+/** "Canon" and "Canon EOS 80D" read as the model alone: the model already starts with the make's first word. */
+export function cameraRawCameraName(meta: Pick<CameraRawMeta, 'make' | 'model'>): string {
+  const { make, model } = meta;
+  const brand = make?.split(/\s+/)[0]?.toLowerCase();
+  if (model && brand && model.toLowerCase().startsWith(brand)) return model.trim();
+  return [make, model].filter(Boolean).join(' ').trim();
+}
+
 /** One line for an import report: camera, size and the colour state. */
 export function cameraRawReportLine(meta: CameraRawMeta): string {
-  const camera = [meta.make, meta.model].filter(Boolean).join(' ').trim();
+  const camera = cameraRawCameraName(meta);
   const dims = `${meta.width}×${meta.height}`;
   const parts = [meta.format + (camera ? ` from ${camera}` : ''), dims, describeCameraRawColour(meta)];
   return parts.join('. ') + '.';

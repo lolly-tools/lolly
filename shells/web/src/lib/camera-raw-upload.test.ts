@@ -19,7 +19,7 @@ test('a DNG is reported as exact colour with its camera and size', () => {
 test('a fitted raw says approximate colour and how far the fit is from the camera JPEG', () => {
   const meta = withColour({ exact: false, label: 'approximate colour', method: 'embedded-jpeg-fit', deltaE: 4.24 }, { format: 'NEF', make: 'NIKON CORPORATION', model: 'NIKON D70' });
   assert.match(cameraRawColourNotice(meta), /^Approximate colour: fitted to the camera’s embedded JPEG \(mean difference 4\.2 ΔE\)\.$/);
-  assert.match(cameraRawImportReport(meta), /^NEF from NIKON CORPORATION NIKON D70, 4016×3008\. Approximate colour/);
+  assert.match(cameraRawImportReport(meta), /^NEF from NIKON D70, 4016×3008\. Approximate colour/);
 });
 
 test('a preview and a file with no fit are also labelled approximate colour', () => {

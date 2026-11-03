@@ -6,7 +6,7 @@
  * kept. The import report says whether the colour is exact (DNG matrices) or approximate.
  */
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { CameraRawError, describeCameraRawError, type CameraRawMeta } from '@lolly-tools/node-shell/camera-raw';
+import { CameraRawError, cameraRawCameraName, describeCameraRawError, type CameraRawMeta } from '@lolly-tools/node-shell/camera-raw';
 import { announce } from '../a11y.ts';
 import { showUndoToast } from './undo-toast.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -28,7 +28,7 @@ export function cameraRawColourNotice(meta: CameraRawMeta): string {
 
 /** One report line: format, camera, size and the colour state. */
 export function cameraRawImportReport(meta: CameraRawMeta): string {
-  const camera = [meta.make, meta.model].filter(Boolean).join(' ').trim();
+  const camera = cameraRawCameraName(meta);
   const head = camera ? tRaw('{format} from {camera}', { format: meta.format, camera }) : meta.format;
   return `${head}, ${meta.width}×${meta.height}. ${cameraRawColourNotice(meta)}`;
 }
