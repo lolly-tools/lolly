@@ -106,8 +106,8 @@ test('until the translation pass, no locale reads worse than before the migratio
       const entry = cat[other], legacy = cat[one];
       if (typeof entry !== 'string') continue; // forms object: the translation pass is merged for this key
       for (let n = 0; n <= 30; n++) {
-        const before = n === 1 ? (typeof legacy === 'string' ? legacy : one) : entry;
-        const after = selectPluralTemplate({ one, other, entry, legacyOne: legacy, n, locale });
+        const before: string = n === 1 ? (typeof legacy === 'string' ? legacy : one) : entry;
+        const after: string = selectPluralTemplate({ one, other, entry, legacyOne: legacy, n, locale });
         assert.equal(fill(after, n), fill(before, n), `${lang} ${JSON.stringify(other)} at ${n}`);
         checked++;
       }
