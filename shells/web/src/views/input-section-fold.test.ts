@@ -71,12 +71,13 @@ test('the section markup takes its open attribute from shouldOpenSection', () =>
     'and nothing else decides `open` on an input section');
 });
 
-test('sheet mode is the mobile-sheet breakpoint, not a second opinion', () => {
-  const mq = SRC.match(/const inSheetMode[\s\S]*?matchMedia\('([^']+)'\)/)?.[1];
-  assert.equal(mq, '(max-width: 640px)');
-  assert.ok(SHEET_SRC.includes(`'${mq}'`),
-    'the same literal lib/mobile-sheet.ts defaults to - the sheet and its fold defaults '
-    + 'must appear at the same width');
+test('sheet mode is the mobile sheet\'s own default, not a second opinion', () => {
+  // Both read the phone LAYOUT (lib/layout-posture.ts), not the raw 640px width: the
+  // sheet and its fold defaults must appear together, and neither appears in two panes.
+  assert.match(SRC, /const inSheetMode[\s\S]{0,200}?isPhoneLayout\(\)/,
+    'the fold defaults follow the phone layout');
+  assert.match(SHEET_SRC, /opts\.mq \? window\.matchMedia\(opts\.mq\) : phoneLayoutQuery\(\)/,
+    'and so does the sheet lib/mobile-sheet.ts drives by default');
 });
 
 test('scrolling to a control reveals its fold before it scrolls', () => {

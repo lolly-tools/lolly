@@ -428,6 +428,8 @@
 .profile-view .profile-hand.is-left .profile-hand-ic svg,
 [dir="rtl"] .profile-view .profile-hand:not(.is-left) .profile-hand-ic svg { transform: scaleX(-1); }
 [dir="rtl"] .profile-view .profile-hand.is-left .profile-hand-ic svg { transform: none; }
+@media (prefers-reduced-motion: reduce) { .profile-view .profile-hand-ic svg { transition: none; } }
+html[data-a11y-motion="reduce"] .profile-view .profile-hand-ic svg { transition: none; }
 .profile-view .profile-hand > .feature-flag-label { flex: 1 1 auto; min-width: 0; }
 .profile-view .profile-hand-seg { flex: 0 0 auto; min-width: 11rem; }
 .profile-view .profile-hand-seg .view-seg-btn { min-height: var(--ui-size-target); }

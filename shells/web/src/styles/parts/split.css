@@ -66,20 +66,26 @@
   width: 4px;
   height: var(--ui-size-target);
   border-radius: var(--radius-pill);
-  background: hsl(var(--muted-foreground) / .35);
+  background: color-mix(in srgb, var(--ui-color-text-muted) 40%, transparent);
   transition: background-color var(--dur-1), height var(--dur-2) var(--ease-out);
 }
 .split-divider:hover .split-divider-grip,
 .split-divider.is-dragging .split-divider-grip {
   height: 64px;
-  background: hsl(var(--primary));
+  background: var(--ui-color-action-primary);
 }
 .split-divider:focus-visible .split-divider-grip {
   height: 64px;
-  background: hsl(var(--primary));
+  background: var(--ui-color-action-primary);
   outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 3px;
 }
+/* Reduced motion (the OS or the app's own preference): the grip changes colour
+   and no longer grows. */
+@media (prefers-reduced-motion: reduce) {
+  .split-divider-grip { transition: background-color var(--dur-1); }
+}
+html[data-layout="split"][data-a11y-motion="reduce"] .split-divider-grip { transition: background-color var(--dur-1); }
 /* On a tabletop the gutter runs across the screen. */
 .split-divider[data-mode="stack"] {
   inset-inline: 0;
@@ -109,15 +115,15 @@ html.is-split-dragging .sidebar { transition: none; }
   height: var(--ui-size-target);
   padding: 0;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--ui-radius-control);
   background: transparent;
-  color: hsl(var(--muted-foreground));
+  color: var(--ui-color-text-default);
   cursor: pointer;
   transition: background-color var(--dur-1), color var(--dur-1);
 }
 .split-swap[hidden] { display: none; }
-.split-swap:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
-.split-swap:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.split-swap:hover { background: var(--ui-color-surface-muted); }
+.split-swap:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .split-swap svg { width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg); }
 
 /* ── Tool view: the sidebar is the control pane, the stage the canvas pane ────
@@ -126,14 +132,14 @@ html.is-split-dragging .sidebar { transition: none; }
    100% of its column, so the column decides. */
 html[data-layout="split"] .tool-layout:not(.is-editor):not([data-sidebar="hidden"]) {
   display: grid;
-  grid-template-columns: var(--split-control, 50%) var(--split-gutter, 16px) minmax(0, 1fr);
+  grid-template-columns: var(--split-control, calc((100% - var(--split-gutter, 16px)) / 2)) var(--split-gutter, 16px) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: "control gutter canvas";
   height: 100dvh;
   min-height: 0;
 }
 html[data-layout="split"][data-hand="left"] .tool-layout:not(.is-editor):not([data-sidebar="hidden"]) {
-  grid-template-columns: minmax(0, 1fr) var(--split-gutter, 16px) var(--split-control, 50%);
+  grid-template-columns: minmax(0, 1fr) var(--split-gutter, 16px) var(--split-control, calc((100% - var(--split-gutter, 16px)) / 2));
   grid-template-areas: "canvas gutter control";
 }
 /* Collapsed (the sidebar toggle, or a ?full link): the canvas takes the width. */
@@ -214,7 +220,7 @@ html[data-layout="split"] .tool-layout:not(.is-editor) .export-overlay {
      device with neither). */
   bottom: calc(var(--safe-bottom) + var(--vv-bottom, 0px));
   inset-inline-start: 0;
-  width: var(--split-control, 50%);
+  width: var(--split-control, calc((100% - var(--split-gutter, 16px)) / 2));
   height: auto;
   z-index: 40;
   opacity: 1;
@@ -342,7 +348,7 @@ html[data-layout="split"] .tool-layout.is-editor .export-overlay {
   inset: auto;
   bottom: calc(var(--safe-bottom) + var(--vv-bottom, 0px));
   inset-inline-start: 0;
-  width: var(--split-control, 50%);
+  width: var(--split-control, calc((100% - var(--split-gutter, 16px)) / 2));
   opacity: 1;
   visibility: visible;
   pointer-events: none;
@@ -407,7 +413,6 @@ html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .p
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   padding-bottom: calc(76px + var(--safe-bottom));
-  background: #0b0f18;
 }
 /* The current slide is the top half itself, so the deck drops its preview. */
 html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-sp-now { display: none; }
@@ -465,12 +470,12 @@ html[data-layout="split"] .start.start--studio .ds-main {
   height: 100%;
   min-height: 0;
   gap: 0;
-  grid-template-columns: var(--split-control, 50%) var(--split-gutter, 16px) minmax(0, 1fr);
+  grid-template-columns: var(--split-control, calc((100% - var(--split-gutter, 16px)) / 2)) var(--split-gutter, 16px) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: "control gutter canvas";
 }
 html[data-layout="split"][data-hand="left"] .start.start--studio .ds-main {
-  grid-template-columns: minmax(0, 1fr) var(--split-gutter, 16px) var(--split-control, 50%);
+  grid-template-columns: minmax(0, 1fr) var(--split-gutter, 16px) var(--split-control, calc((100% - var(--split-gutter, 16px)) / 2));
   grid-template-areas: "canvas gutter control";
 }
 html[data-layout="split"] .start.start--studio .ds-main > * {

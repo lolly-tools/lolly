@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { isPhoneLayout } from '../lib/layout-posture.ts';
 import { shareUrlState } from '../lib/share-privacy.ts';
 import { prepareInputPanel } from './tool-input-model.ts';
 import { flattenValue } from '../../../../engine/src/inputs.ts';
@@ -430,12 +431,13 @@ function makeBlocksDropper({
   return { accept, plural, addFiles };
 }
 
-// The controls panel is a drag-to-size snap sheet at phone widths, not a sidebar
-// (lib/mobile-sheet.ts, whose default mq this literal matches - the same breakpoint
-// views/tool.ts reads for its own mobile branches). Read live, never cached: a
-// rotate or a resize crosses it without remounting the tool.
+// The controls panel is a drag-to-size snap sheet in the phone layout, not a sidebar
+// (lib/mobile-sheet.ts, whose default query this is - the phone LAYOUT, so a 626px
+// foldable in two panes, whose controls are a full-height pane, is not a sheet).
+// Read live, never cached: a rotate, a fold or a resize crosses it without
+// remounting the tool.
 const inSheetMode = (): boolean =>
-  typeof matchMedia !== 'undefined' && matchMedia('(max-width: 640px)').matches;
+  typeof matchMedia !== 'undefined' && isPhoneLayout();
 
 /**
  * Whether an input section renders unfolded. A section the user has already opened
