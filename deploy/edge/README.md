@@ -33,6 +33,20 @@ origin credential or mTLS. An arbitrary `X-Forwarded-For`, cache tag or edge-nam
 header does not authenticate a proxy. Work's default same-origin mode requires no
 new provider credential.
 
+Managed CDNs in front of Work (Bunny, or Cloudflare on a public-only hostname)
+are configured in Work's `instance.json` under `edge`, which enforces the
+per-hostname jurisdiction rule at boot, adds the provider's purge-tag header to
+public answers only and queues purges. Its guide, "Put a CDN in front of Work"
+(`docs/work/edge-cdn.md`), lists the provider settings that must stay off, and
+`lw edge probe` checks them. For a public OSS hostname behind either provider,
+switch off Bunny Optimizer and Smart Cache, and Cloudflare Polish, Mirage, Rocket
+Loader, Email Obfuscation, Automatic HTTPS Rewrites, Always Online and image
+transformations, and add `checkTransform: true` to a probe sample so the probe
+fails while `/cdn-cgi/image/` answers. The probe treats Bunny's `CDN-Cache: HIT`
+and Cloudflare's `HIT`, `STALE`, `UPDATING` and `REVALIDATED` statuses on a
+private answer as a shared-cache hit, and `CDN-Tag` or `Edge-Cache-Tag` reaching
+the client as an exposed tag.
+
 Qualify a proposed edge with `scripts/edge-probe.ts`: errors must be private;
 identity and encoded responses must decode to the signed hash; private requests
 must not share cached bodies; public image proxy responses must follow the

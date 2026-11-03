@@ -2197,6 +2197,23 @@
       }
     },
     {
+      "slug": "work-edge-cdn",
+      "title": "Put a CDN in front of Work",
+      "src": "work/edge-cdn.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/edge-cdn",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Serve Work's public files through Bunny or Cloudflare: the per-hostname jurisdiction rule, configuration and credentials, the settings that must stay off, purges and the probe.",
+      "work": {
+        "slug": "edge-cdn",
+        "path": "edge-cdn.md",
+        "icon": "instance"
+      }
+    },
+    {
       "slug": "work-aws-compatible",
       "title": "Run Work on AWS or MulgaDC Spinifex",
       "src": "work/aws-compatible.md",

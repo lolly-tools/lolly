@@ -32,6 +32,8 @@ export interface ProbeSample {
   compress?: boolean;
   method?: 'GET' | 'HEAD';
   monitoringOnly?: boolean;
+  /** Also request this path through a provider image-transform prefix (`/cdn-cgi/image/`), which must be refused. */
+  checkTransform?: boolean;
 }
 export interface ProbeObservation {
   reader: number; coding: string; failures: string[]; status?: number;
@@ -43,6 +45,14 @@ const FIELDS = ['cache-control', 'cdn-cache-control', 'etag', 'content-encoding'
 const PRIVATE = new Set<DeliveryClass>(['link', 'instance-private', 'person-private']);
 const strong = (tag: string | null | undefined): tag is string => !!tag && /^"[^"\r\n]+"$/.test(tag);
 const secretQuery = /^(dt|token|pw|password|authorization|cookie|x-amz-.+|signature|sig)$/i;
+/** Purge-tag headers of Cloudflare, Fastly, Bunny, Akamai and the reference proxies; none may reach a client. */
+const TAG_HEADERS = ['cache-tag', 'surrogate-key', 'cdn-tag', 'edge-cache-tag', 'x-cache-tag', 'x-cache-tags'];
+/** True when a shared cache says it answered from a stored copy: Cloudflare, Bunny and generic headers. */
+export function sharedCacheHit(headers: Headers): boolean {
+  if (/^(hit|stale|updating|revalidated)$/i.test((headers.get('cf-cache-status') ?? '').trim())) return true;
+  if (/\bhit\b/i.test(headers.get('cdn-cache') ?? '')) return true;
+  return /\b(hit|cached|stored)\b/i.test([headers.get('cache-status'), headers.get('x-cache')].join(' '));
+}
 export async function probeSample(sample: ProbeSample, fetcher = fetch) {
   const url = new URL(sample.path, sample.origin);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.origin !== new URL(sample.origin).origin) throw new Error('Probe must stay on its declared origin');
@@ -63,11 +73,11 @@ export async function probeSample(sample: ProbeSample, fetcher = fetch) {
     if (headers['cdn-cache-control'] !== (sample.path === '/sw.js' ? 'no-store' : expected.cdnCacheControl)) failures.push('cdn-cache-control');
     if (headers.vary && headers.vary.toLowerCase() !== 'accept-encoding') failures.push('vary');
     if (sample.requireCors) failures.push(...modelCorsFailures(response.headers, requestOrigin, [...(sample.requireStrongETag ? ['etag'] : []), ...(sample.checkRange ? ['etag', 'content-range', 'accept-ranges'] : [])]));
-    if (['cache-tag', 'surrogate-key', 'x-cache-tag', 'x-cache-tags'].some(name => response.headers.has(name))) failures.push('exposed-cache-tags');
+    if (TAG_HEADERS.some(name => response.headers.has(name))) failures.push('exposed-cache-tags');
     if (PRIVATE.has(sample.cls) || response.status >= 400) {
       if (PRIVATE.has(sample.cls) && headers['referrer-policy'] !== 'no-referrer') failures.push('private-referrer');
       if (response.headers.has('age')) failures.push('private-age');
-      if (/\b(hit|cached|stored)\b/i.test([response.headers.get('cache-status'), response.headers.get('x-cache'), response.headers.get('cf-cache-status')].join(' '))) failures.push('private-shared-cache');
+      if (sharedCacheHit(response.headers)) failures.push('private-shared-cache');
     }
     return headers;
   };
@@ -103,6 +113,14 @@ export async function probeSample(sample: ProbeSample, fetcher = fetch) {
         }
         if (variant.headers.has('content-encoding')) problems.push('cors-identity-encoding');
         checks.push({ kind: full ? 'cors-full-bytes' : 'cors-head-metadata', origin, status: variant.status, failures: problems });
+        failures.push(...problems);
+      }
+      if (sample.checkTransform && coding === 'identity') {
+        // An open transform endpoint serves a stripped copy of any same-zone path without the origin's checks.
+        const transformed = await fetcher(new URL(`/cdn-cgi/image/width=64${url.pathname}`, url.origin), { method: 'GET', headers: { 'Accept-Encoding': 'identity' }, credentials: 'omit', redirect: 'manual', signal: AbortSignal.timeout(timeout), cache: 'no-cache' });
+        await transformed.body?.cancel().catch(() => {});
+        const problems = transformed.status >= 200 && transformed.status < 400 ? ['transform-endpoint-open'] : [];
+        checks.push({ kind: 'transform-endpoint', status: transformed.status, failures: problems });
         failures.push(...problems);
       }
       if (response.status === 200 && sample.checkConditional) {
@@ -178,7 +196,7 @@ export function modelProbeSamples(manifest: Array<{ url: string; size: number; s
 export async function main(args = process.argv.slice(2)): Promise<number> {
   const option = (name: string) => args[args.indexOf(name) + 1];
   if (args.includes('--help')) {
-    console.log('node scripts/edge-probe.ts [--samples sample.json] [--out receipt.json] [--observe]\nSamples contain origin, path, cls and optional status/sha256/size/boundedAgeSec/credentialEnv/compress/checkConditional/checkRange/stripC2pa. --models hashes immutable models and monitors alias HEAD/size on three hosts. --full-legacy --legacy-reference reference.json hashes aliases against archived {origin,path,size,sha256} records. --catalog [--catalog-origins https://lolly.tools] [--catalog-rotation N] derives hashed public samples, 304 and 404 checks from each live signed catalog; DELIVERY_CATALOG_PUBLIC_KEY_JWK pins the key, and qualification fails without it. Without --samples, the built-in lolly.tools and lolly.ing shell samples also run. Paired credentialEnv names with credentialType:cookie test distinct private readers. GET and HEAD only. --observe records failures without qualifying the target.');
+    console.log('node scripts/edge-probe.ts [--samples sample.json] [--out receipt.json] [--observe]\nSamples contain origin, path, cls and optional status/sha256/size/boundedAgeSec/credentialEnv/compress/checkConditional/checkRange/stripC2pa. --models hashes immutable models and monitors alias HEAD/size on three hosts. --full-legacy --legacy-reference reference.json hashes aliases against archived {origin,path,size,sha256} records. --catalog [--catalog-origins https://lolly.tools] [--catalog-rotation N] derives hashed public samples, 304 and 404 checks from each live signed catalog; DELIVERY_CATALOG_PUBLIC_KEY_JWK pins the key, and qualification fails without it. Without --samples, the built-in lolly.tools and lolly.ing shell samples also run. Paired credentialEnv names with credentialType:cookie test distinct private readers. checkTransform also requests the path under /cdn-cgi/image/ and fails unless it is refused. GET and HEAD only. --observe records failures without qualifying the target.');
     return 0;
   }
   const samples: ProbeSample[] = args.includes('--samples') ? JSON.parse(readFileSync(option('--samples')!, 'utf8')) : [

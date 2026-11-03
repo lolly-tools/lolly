@@ -577,6 +577,27 @@ credential and must not be reused as one.
 
 See [outbound delivery](delivery.md) for the lifecycle, API and freedom boundaries.
 
+## `edge`
+
+CDN providers in front of this instance's hostnames. No provider exists by default, and an
+instance without one sends no purge tags and makes no provider calls.
+
+| Key | Default | What it does |
+|---|---|---|
+| `jurisdiction` | `"eu-only"` | decided per hostname. Under `eu-only` a provider whose company, edge locations or logs are not EU may front only a hostname marked `publicOnly`; `"any"` lifts that |
+| `providers` | `[]` | the providers, one per set of hostnames |
+| `providers[].id` | - | stable lowercase/dash id, used in purges and the audit log |
+| `providers[].kind` | - | `bunny` or `cloudflare` |
+| `providers[].hostnames` | - | lower-case hostnames whose DNS points at the provider; one hostname has one provider |
+| `providers[].publicOnly` | `false` | the hostname answers public reads only; the instance's own hostnames cannot be `publicOnly` |
+| `providers[].credentialRef` | *unset* | environment variable holding the API key or token; unset means a sealed credential stored with `lw edge credential` |
+| `providers[].options` | - | Bunny: `pullZoneId`, `regions` (`["europe"]` or absent). Cloudflare: `zoneId`, `plan` (`free` default, `pro`, `business`, `enterprise`) |
+| `providers[].jurisdiction` | - | facts you state about the provider; they fill what Work cannot know and never contradict what it does know |
+
+A configuration that breaks the jurisdiction rule, carries an unknown key or marks the
+instance's own hostname `publicOnly` stops the server at boot. See [Put a CDN in front of Work](edge-cdn.md)
+for the rule, the settings that must stay off on each provider, purges and the probe.
+
 ## `submit`
 
 The instance-side half of catalog submit: a single optional pre-store scan hook. Everything an
@@ -829,7 +850,7 @@ instead ([hiding tags](catalog.md#hiding-tags)).
 | `LW_C2PA_SIGNING_KEY` | to sign exports | PKCS#8 private-key PEM |
 | `LW_CATALOG_SIGNING_KEY` | when the shell pins a catalog key | ECDSA P-256 private key (PKCS#8 PEM or private JWK JSON) that signs each caller's tool index, tool file digests and verified optional media resources at `/catalog/tools/index.sig.json`. Its public half is served at `GET /api/v1/catalog/public-key`, so a web app from Lolly 1.1.3 served at `/` accepts the catalogue without a rebuild ([the catalogue key](operations.md#the-catalogue-key)). Unset: the catalog is served unsigned, both paths answer 404, and the signature path does so even when the pack carries a build-time signature, because that envelope can never match the index served per caller |
 | `LW_BLOBS_S3_CREDENTIAL` | with `blobs.driver: s3` | `<accessKeyId>:<secretAccessKey>` for the blob bucket |
-| `<credentialRef>` | per config-managed provider or delivery destination | resolved at boot, never persisted |
+| `<credentialRef>` | per config-managed provider, delivery destination or edge provider | resolved at boot, never persisted |
 
 In development, `LW_SESSION_SECRET` and `LW_LINK_SECRET` fall back to ephemeral randoms, so
 sessions die on restart. In production (`NODE_ENV=production`) their absence throws.
