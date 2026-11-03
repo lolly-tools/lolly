@@ -575,7 +575,7 @@ test('ENGINE_VERSION is 1.302.0', () => {
   // 1.297.0 separates print exports through a press profile (cmyk-separation.ts); capture is unchanged.
   // 1.300.0 adds Affinity import and a fuller IDML reader; capture is unchanged.
   // 1.301.0 adds the manifest's render.themeChoicesAfter; capture is unchanged.
-  // 1.302.0 adds lossless Standard MIDI Files and .mid export; capture is unchanged.
+  // 1.302.0 adds lossless Standard MIDI Files and .mid export, spreadsheet formulas (host.calc) and a video container probe; capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.302.0');
 });
 
