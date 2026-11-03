@@ -5,7 +5,7 @@ description: "Operate the Lolly Redact tool (redact) using its declared inputs a
 
 # Redact
 
-Tool ID: `redact`. Tool version: `1.6.1`. Engine range: `^1.214.0`.
+Tool ID: `redact`. Tool version: `1.7.0`. Engine range: `^1.214.0`.
 
 Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device.
 
@@ -27,6 +27,7 @@ This is an on-device utility. File bytes require a separately permitted file rou
 | quantise | boolean |  |
 | grayscale | boolean |  |
 | svgVector | boolean |  |
+| keepText | boolean |  |
 | resign | boolean |  |
 | bars | blocks |  |
 | ocr | text |  |

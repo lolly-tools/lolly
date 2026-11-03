@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:a2110539-eda9-4e25-8abb-29bf74f3fc5c",
+  "serialNumber": "urn:uuid:852e0bdd-8866-497a-8a4c-18ef4444e86b",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-03T13:27:51.603Z",
+    "timestamp": "2026-11-03T15:25:31.494Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -7951,6 +7951,25 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/lightcraft-inpaint@0.1.0",
+      "name": "lightcraft-inpaint",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/lightcraft-inpaint@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/inpaint/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/linux-raw-sys@0.12.1",
       "name": "linux-raw-sys",
       "version": "0.12.1",
@@ -8333,6 +8352,27 @@
         {
           "name": "lolly:source",
           "value": "packages/node-shell/wasm/indd/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/lolly-inpaint@0.1.0",
+      "name": "lolly-inpaint",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/lolly-inpaint@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/inpaint/Cargo.lock"
         }
       ]
     },
@@ -10431,6 +10471,25 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/pdfcraft-annot@0.16.1",
+      "name": "pdfcraft-annot",
+      "version": "0.16.1",
+      "purl": "pkg:cargo/pdfcraft-annot@0.16.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/pdfcraft-content@0.16.1",
       "name": "pdfcraft-content",
       "version": "0.16.1",
@@ -10488,6 +10547,25 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/pdfcraft-edit@0.16.1",
+      "name": "pdfcraft-edit",
+      "version": "0.16.1",
+      "purl": "pkg:cargo/pdfcraft-edit@0.16.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/pdfcraft-filters@0.16.1",
       "name": "pdfcraft-filters",
       "version": "0.16.1",
@@ -10507,10 +10585,86 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/pdfcraft-fonts@0.16.1",
+      "name": "pdfcraft-fonts",
+      "version": "0.16.1",
+      "purl": "pkg:cargo/pdfcraft-fonts@0.16.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/pdfcraft-forms@0.16.1",
+      "name": "pdfcraft-forms",
+      "version": "0.16.1",
+      "purl": "pkg:cargo/pdfcraft-forms@0.16.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/pdfcraft-model@0.16.1",
       "name": "pdfcraft-model",
       "version": "0.16.1",
       "purl": "pkg:cargo/pdfcraft-model@0.16.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/pdfcraft-redact@0.16.1",
+      "name": "pdfcraft-redact",
+      "version": "0.16.1",
+      "purl": "pkg:cargo/pdfcraft-redact@0.16.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/pdfcraft-xfa@0.16.1",
+      "name": "pdfcraft-xfa",
+      "version": "0.16.1",
+      "purl": "pkg:cargo/pdfcraft-xfa@0.16.1",
       "scope": "required",
       "licenses": [
         {
@@ -12052,6 +12206,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/read-fonts@0.44.0",
+      "name": "read-fonts",
+      "version": "0.44.0",
+      "purl": "pkg:cargo/read-fonts@0.44.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d5a0cf4bb6cbce4c29756270d189a5e400ac05e91192161d83a0bcb6e68492e8"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
         }
       ]
     },
@@ -13780,6 +13959,31 @@
         {
           "name": "lolly:source",
           "value": "packages/node-shell/wasm/skera/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/skrifa@0.47.0",
+      "name": "skrifa",
+      "version": "0.47.0",
+      "purl": "pkg:cargo/skrifa@0.47.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "526e654b303ff4ad73a5a40b25de2b3ce3d039c5e3b6da5f89ae6e57004cb40f"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
         }
       ]
     },
