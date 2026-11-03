@@ -623,33 +623,32 @@ export function substitutePdfRgb(
   // next colour set. Fill and stroke get independent states so one can't stomp the
   // other. usedGs collects the names actually emitted, so renderCmykPdf only
   // materialises the /ExtGState dicts that are referenced.
+  const swap = (fill: boolean) => (r: number, g: number, b: number): string => {
+    const hit = pdfColorHit(r, g, b, paletteMap, used);
+    if (hit?.spot) {
+      usedSpots?.add(hit.spot.name);
+      // A finish plate overprints; an ordinary spot knocks out.
+      const gs = hit.spot.finish ? (fill ? 'GSfo' : 'GSso') : (fill ? 'GSfk' : 'GSsk');
+      usedGs?.add(gs);
+      return fill ? `/${gs} gs /${spotNames.get(hit.spot.name)} cs 1 scn` : `/${gs} gs /${spotNames.get(hit.spot.name)} CS 1 SCN`;
+    }
+    const [c, m, y, k] = hit ? hit.cmyk : separate(r, g, b);
+    const overprint = c === 0 && m === 0 && y === 0 && k >= OVERPRINT_K_MIN;
+    const gs = overprint ? (fill ? 'GSfo' : 'GSso') : (fill ? 'GSfk' : 'GSsk');
+    usedGs?.add(gs);
+    return `/${gs} gs ${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} ${fill ? 'k' : 'K'}`;
+  };
+  const fill = swap(true), stroke = swap(false);
+  // DeviceGray (`v g` / `v G`) is how a PDF writer usually sets black, text included,
+  // so it takes the same palette match, separation and overprint rule as RGB: a grey
+  // level is the RGB triple (v, v, v). Without this, black skipped the brand's black
+  // build and its text never overprinted. The rg/RG passes run first, and `\bg\b`
+  // cannot match inside `rg`, `gs` or a resource name.
   return text
-    .replace(new RegExp(`${N}${W}${N}${W}${N}${W}\\brg\\b`, 'g'), (_, r, g, b) => {
-      const hit = pdfColorHit(+r, +g, +b, paletteMap, used);
-      if (hit?.spot) {
-        usedSpots?.add(hit.spot.name);
-        const gs = hit.spot.finish ? 'GSfo' : 'GSfk';   // finish overprints; ordinary spot knocks out
-        usedGs?.add(gs);
-        return `/${gs} gs /${spotNames.get(hit.spot.name)} cs 1 scn`;
-      }
-      const [c, m, y, k] = hit ? hit.cmyk : separate(+r, +g, +b);
-      const gs = (c === 0 && m === 0 && y === 0 && k >= OVERPRINT_K_MIN) ? 'GSfo' : 'GSfk';
-      usedGs?.add(gs);
-      return `/${gs} gs ${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} k`;
-    })
-    .replace(new RegExp(`${N}${W}${N}${W}${N}${W}\\bRG\\b`, 'g'), (_, r, g, b) => {
-      const hit = pdfColorHit(+r, +g, +b, paletteMap, used);
-      if (hit?.spot) {
-        usedSpots?.add(hit.spot.name);
-        const gs = hit.spot.finish ? 'GSso' : 'GSsk';
-        usedGs?.add(gs);
-        return `/${gs} gs /${spotNames.get(hit.spot.name)} CS 1 SCN`;
-      }
-      const [c, m, y, k] = hit ? hit.cmyk : separate(+r, +g, +b);
-      const gs = (c === 0 && m === 0 && y === 0 && k >= OVERPRINT_K_MIN) ? 'GSso' : 'GSsk';
-      usedGs?.add(gs);
-      return `/${gs} gs ${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} K`;
-    });
+    .replace(new RegExp(`${N}${W}${N}${W}${N}${W}\\brg\\b`, 'g'), (_, r, g, b) => fill(+r, +g, +b))
+    .replace(new RegExp(`${N}${W}${N}${W}${N}${W}\\bRG\\b`, 'g'), (_, r, g, b) => stroke(+r, +g, +b))
+    .replace(new RegExp(`(?<![\\w/.])${N}${W}\\bg\\b`, 'g'), (_, v) => fill(+v, +v, +v))
+    .replace(new RegExp(`(?<![\\w/.])${N}${W}\\bG\\b`, 'g'), (_, v) => stroke(+v, +v, +v));
 }
 
 /**

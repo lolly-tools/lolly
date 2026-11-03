@@ -432,6 +432,26 @@ test('substitutePdfRgb: a press separation converts unmatched colours, and black
   assert.deepEqual([...usedGs].sort(), ['GSfo', 'GSsk']);
 });
 
+test('substitutePdfRgb: DeviceGray black takes the brand build, the separation and the overprint rule', () => {
+  // The print plate scenes found black written as \`0 g\` skipping all three: a brand's
+  // rich-black build was never applied, and black text knocked the colour out beneath it.
+  const press = (r: number, g: number, b: number): [number, number, number, number] =>
+    r === g && g === b ? [0, 0, 0, 1 - r] : [0.1, 0.2, 0.3, 0.4];
+  const plain = buildCmykPaletteMap([]);
+  const usedGs = new Set<string>();
+  // Pure black text and a grey stroke: K only, black overprints, the grey (K under the
+  // overprint threshold) knocks out like any other ink.
+  assert.equal(
+    substitutePdfRgb('BT 0 g (Hi) Tj ET 0.5 G', plain, assignSpotResourceNames(plain), undefined, undefined, usedGs, press),
+    'BT /GSfo gs 0 0 0 1 k (Hi) Tj ET /GSsk gs 0 0 0 0.5 K',
+  );
+  // A brand black with measured ink keeps that build (a rich black knocks out).
+  const brand = buildCmykPaletteMap([{ hex: '#000000', cmyk: [71, 60, 43, 100] }]);
+  assert.equal(substitutePdfRgb('0 g', brand, assignSpotResourceNames(brand)), '/GSfk gs 0.71 0.6 0.43 1 k');
+  // Operators and names that merely contain a g are left alone.
+  assert.equal(substitutePdfRgb('/GS1 gs /Img1 Do 12 Tg', plain, assignSpotResourceNames(plain)), '/GS1 gs /Img1 Do 12 Tg');
+});
+
 test('substitutePdfRgb: spot lock switches to the /Separation colourspace at full tint', () => {
   const map = buildCmykPaletteMap([{ hex: '#0C322C', spot: { name: 'Pine' } }]);
   const spotNames = assignSpotResourceNames(map);
