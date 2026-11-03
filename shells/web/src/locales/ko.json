@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "Lolly가 이 기기에서 에이전트를 찾았지만 아직 요청을 보낼 수 있는 에이전트는 없어요.",
   "Lolly could not look for agents: {reason}": "Lolly가 에이전트를 찾지 못했어요: {reason}",
   "Your organisation's policy does not allow AI agents on this device.": "조직의 정책에서 이 기기의 AI 에이전트를 허용하지 않아요.",
-  "Working on your request": "요청을 처리하는 중"
+  "Working on your request": "요청을 처리하는 중",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "대략적인 색상: 카메라에 내장된 JPEG에 맞췄어요(평균 차이 {de} ΔE).",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "대략적인 색상: 카메라에 내장된 JPEG에 맞췄어요.",
+  "Approximate colour: this format has no embedded colour matrices.": "대략적인 색상: 이 형식에는 내장된 색상 행렬이 없어요.",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "대략적인 색상: 센서 원본 데이터가 아니라 카메라에 내장된 JPEG 미리보기예요.",
+  "Exact colour from the matrices in the DNG file.": "DNG 파일 안의 행렬로 계산한 정확한 색상이에요.",
+  "Monochrome sensor data.": "흑백 센서 데이터예요.",
+  "Playback": "재생",
+  "Start timecode": "시작 타임코드",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "이 클립의 사운드는 {codec}을(를) 사용하는데, 이 기기에서는 재생할 수 없어요. 영상은 문제없어요. Lolly는 원본 파일을 그대로 보관해요.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "이 클립은 {codec}을(를) 사용하는데, 이 기기에서는 재생할 수 없어요. 편집 앱에서 H.264, HEVC 또는 AV1 사본을 내보내거나, Mac의 Lolly 데스크톱 앱에서 열어 보세요. Lolly는 원본 파일을 그대로 보관해요.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "이 클립은 {codec}을(를) 사용하는데, 이 기기에서는 재생할 수 없어요. 편집 앱에서 H.264, HEVC 또는 AV1 사본을 내보내세요. Lolly는 원본 파일을 그대로 보관해요.",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "{codec}을(를) 사용하는 MXF 파일이에요. Lolly는 내용을 읽을 수는 있지만 MXF를 재생할 수는 없어요. 편집 앱에서 H.264, HEVC 또는 AV1 사본을 내보내세요. Lolly는 원본 파일을 그대로 보관해요.",
+  "{format} from {camera}": "{camera}의 {format}"
 }

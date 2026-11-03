@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "Lolly na tomto zařízení našel agenty, ale zatím žádného, kterému by mohl posílat požadavky.",
   "Lolly could not look for agents: {reason}": "Lolly nemohl agenty vyhledat: {reason}",
   "Your organisation's policy does not allow AI agents on this device.": "Zásady tvé organizace nepovolují AI agenty na tomto zařízení.",
-  "Working on your request": "Pracuji na tvém požadavku"
+  "Working on your request": "Pracuji na tvém požadavku",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "Přibližná barva: přizpůsobena vloženému JPEG z fotoaparátu (střední odchylka {de} ΔE).",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "Přibližná barva: přizpůsobena vloženému JPEG z fotoaparátu.",
+  "Approximate colour: this format has no embedded colour matrices.": "Přibližná barva: tento formát neobsahuje vložené barevné matice.",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "Přibližná barva: toto je vložený náhled JPEG z fotoaparátu, ne surová data ze snímače.",
+  "Exact colour from the matrices in the DNG file.": "Přesná barva podle matic v souboru DNG.",
+  "Monochrome sensor data.": "Data z monochromatického snímače.",
+  "Playback": "Přehrávání",
+  "Start timecode": "Počáteční timecode",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "Zvuk v tomto klipu používá {codec}, který toto zařízení nepřehraje. Obraz je v pořádku. Lolly ponechává původní soubor.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Tento klip používá {codec}, který toto zařízení nepřehraje. Exportuj kopii v H.264, HEVC nebo AV1 ze své editační aplikace, nebo ho otevři v desktopové aplikaci Lolly na Macu. Lolly ponechává původní soubor.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Tento klip používá {codec}, který toto zařízení nepřehraje. Exportuj kopii v H.264, HEVC nebo AV1 ze své editační aplikace. Lolly ponechává původní soubor.",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Toto je soubor MXF s {codec}. Lolly umí přečíst, co obsahuje, ale MXF přehrát neumí. Exportuj kopii v H.264, HEVC nebo AV1 ze své editační aplikace. Lolly ponechává původní soubor.",
+  "{format} from {camera}": "{format} z {camera}"
 }

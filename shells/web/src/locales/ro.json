@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "Lolly a găsit agenți pe acest dispozitiv, dar niciunul căruia să îi poată trimite încă solicitări.",
   "Lolly could not look for agents: {reason}": "Lolly nu a putut căuta agenți: {reason}",
   "Your organisation's policy does not allow AI agents on this device.": "Politica organizației tale nu permite agenți AI pe acest dispozitiv.",
-  "Working on your request": "Se lucrează la solicitarea ta"
+  "Working on your request": "Se lucrează la solicitarea ta",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "Culoare aproximativă: potrivită cu JPEG-ul încorporat al camerei (diferență medie {de} ΔE).",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "Culoare aproximativă: potrivită cu JPEG-ul încorporat al camerei.",
+  "Approximate colour: this format has no embedded colour matrices.": "Culoare aproximativă: acest format nu are matrice de culoare încorporate.",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "Culoare aproximativă: aceasta este previzualizarea JPEG încorporată a camerei, nu datele brute ale senzorului.",
+  "Exact colour from the matrices in the DNG file.": "Culoare exactă din matricele fișierului DNG.",
+  "Monochrome sensor data.": "Date de senzor monocrom.",
+  "Playback": "Redare",
+  "Start timecode": "Timecode de început",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "Sunetul din acest clip folosește {codec}, pe care acest dispozitiv nu îl poate reda. Imaginea este în regulă. Lolly păstrează fișierul original.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Acest clip folosește {codec}, pe care acest dispozitiv nu îl poate reda. Exportă o copie H.264, HEVC sau AV1 din aplicația ta de editare sau deschide-l în aplicația Lolly pentru desktop pe un Mac. Lolly păstrează fișierul original.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Acest clip folosește {codec}, pe care acest dispozitiv nu îl poate reda. Exportă o copie H.264, HEVC sau AV1 din aplicația ta de editare. Lolly păstrează fișierul original.",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Acesta este un fișier MXF cu {codec}. Lolly poate citi ce conține, dar nu poate reda MXF. Exportă o copie H.264, HEVC sau AV1 din aplicația ta de editare. Lolly păstrează fișierul original.",
+  "{format} from {camera}": "{format} de la {camera}"
 }

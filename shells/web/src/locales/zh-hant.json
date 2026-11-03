@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "Lolly 在這台裝置上找到了代理，但目前沒有可以傳送請求的代理。",
   "Lolly could not look for agents: {reason}": "Lolly 無法尋找代理：{reason}",
   "Your organisation's policy does not allow AI agents on this device.": "你的組織政策不允許在這台裝置上使用 AI 代理。",
-  "Working on your request": "正在處理你的請求"
+  "Working on your request": "正在處理你的請求",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "近似色彩：已依相機內嵌的 JPEG 擬合（平均差異 {de} ΔE）。",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "近似色彩：已依相機內嵌的 JPEG 擬合。",
+  "Approximate colour: this format has no embedded colour matrices.": "近似色彩：此格式沒有內嵌的色彩矩陣。",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "近似色彩：這是相機內嵌的 JPEG 預覽，不是原始感光元件資料。",
+  "Exact colour from the matrices in the DNG file.": "色彩精確，來自 DNG 檔案中的矩陣。",
+  "Monochrome sensor data.": "單色感光元件資料。",
+  "Playback": "播放",
+  "Start timecode": "起始時間碼",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "此片段的聲音使用 {codec}，這台裝置無法播放。畫面正常。Lolly 會保留原始檔案。",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "此片段使用 {codec}，這台裝置無法播放。請從你的剪輯 App 匯出 H.264、HEVC 或 AV1 副本，或在 Mac 上用 Lolly 桌面 App 開啟。Lolly 會保留原始檔案。",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "此片段使用 {codec}，這台裝置無法播放。請從你的剪輯 App 匯出 H.264、HEVC 或 AV1 副本。Lolly 會保留原始檔案。",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "這是一個使用 {codec} 的 MXF 檔案。Lolly 能讀取其中的內容，但無法播放 MXF。請從你的剪輯 App 匯出 H.264、HEVC 或 AV1 副本。Lolly 會保留原始檔案。",
+  "{format} from {camera}": "來自{camera}的 {format}"
 }

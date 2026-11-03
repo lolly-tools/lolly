@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "Lolly menemui ejen pada peranti ini, tetapi belum ada yang boleh dihantar permintaan.",
   "Lolly could not look for agents: {reason}": "Lolly tidak dapat mencari ejen: {reason}",
   "Your organisation's policy does not allow AI agents on this device.": "Dasar organisasi anda tidak membenarkan ejen AI pada peranti ini.",
-  "Working on your request": "Sedang mengusahakan permintaan anda"
+  "Working on your request": "Sedang mengusahakan permintaan anda",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "Warna anggaran: dipadankan dengan JPEG terbenam kamera (purata perbezaan {de} ΔE).",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "Warna anggaran: dipadankan dengan JPEG terbenam kamera.",
+  "Approximate colour: this format has no embedded colour matrices.": "Warna anggaran: format ini tiada matriks warna terbenam.",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "Warna anggaran: ini ialah pratonton JPEG terbenam kamera, bukan data penderia mentah.",
+  "Exact colour from the matrices in the DNG file.": "Warna tepat daripada matriks dalam fail DNG.",
+  "Monochrome sensor data.": "Data penderia monokrom.",
+  "Playback": "Main balik",
+  "Start timecode": "Kod masa permulaan",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "Bunyi dalam klip ini menggunakan {codec}, yang tidak dapat dimainkan oleh peranti ini. Gambarnya tiada masalah. Lolly mengekalkan fail asal.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Klip ini menggunakan {codec}, yang tidak dapat dimainkan oleh peranti ini. Eksport salinan H.264, HEVC atau AV1 daripada apl penyuntingan anda, atau buka dalam apl desktop Lolly pada Mac. Lolly mengekalkan fail asal.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Klip ini menggunakan {codec}, yang tidak dapat dimainkan oleh peranti ini. Eksport salinan H.264, HEVC atau AV1 daripada apl penyuntingan anda. Lolly mengekalkan fail asal.",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Ini ialah fail MXF dengan {codec}. Lolly boleh membaca kandungannya tetapi tidak dapat memainkan MXF. Eksport salinan H.264, HEVC atau AV1 daripada apl penyuntingan anda. Lolly mengekalkan fail asal.",
+  "{format} from {camera}": "{format} daripada {camera}"
 }

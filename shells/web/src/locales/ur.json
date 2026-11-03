@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "Lolly کو اس ڈیوائس پر ایجنٹس ملے، لیکن ابھی کوئی ایسا نہیں جسے وہ درخواستیں بھیج سکے۔",
   "Lolly could not look for agents: {reason}": "Lolly ایجنٹس تلاش نہیں کر سکا: {reason}",
   "Your organisation's policy does not allow AI agents on this device.": "آپ کے ادارے کی پالیسی اس ڈیوائس پر AI ایجنٹس کی اجازت نہیں دیتی۔",
-  "Working on your request": "آپ کی درخواست پر کام ہو رہا ہے"
+  "Working on your request": "آپ کی درخواست پر کام ہو رہا ہے",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "تقریبی رنگ: کیمرے کے ایمبیڈڈ JPEG کے مطابق ڈھالا گیا (اوسط فرق {de} ΔE)۔",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "تقریبی رنگ: کیمرے کے ایمبیڈڈ JPEG کے مطابق ڈھالا گیا۔",
+  "Approximate colour: this format has no embedded colour matrices.": "تقریبی رنگ: اس فارمیٹ میں ایمبیڈڈ رنگی میٹرکس نہیں ہیں۔",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "تقریبی رنگ: یہ کیمرے کا ایمبیڈڈ JPEG پیش نظارہ ہے، خام سینسر ڈیٹا نہیں۔",
+  "Exact colour from the matrices in the DNG file.": "DNG فائل کے میٹرکس سے درست رنگ۔",
+  "Monochrome sensor data.": "مونوکروم سینسر ڈیٹا۔",
+  "Playback": "پلے بیک",
+  "Start timecode": "ابتدائی ٹائم کوڈ",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "اس کلپ کی آواز {codec} استعمال کرتی ہے، جسے یہ ڈیوائس نہیں چلا سکتی۔ تصویر ٹھیک ہے۔ Lolly اصل فائل محفوظ رکھتا ہے۔",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "یہ کلپ {codec} استعمال کرتا ہے، جسے یہ ڈیوائس نہیں چلا سکتی۔ اپنی ایڈیٹنگ ایپ سے H.264، HEVC یا AV1 کی کاپی ایکسپورٹ کریں، یا اسے Mac پر Lolly ڈیسک ٹاپ ایپ میں کھولیں۔ Lolly اصل فائل محفوظ رکھتا ہے۔",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "یہ کلپ {codec} استعمال کرتا ہے، جسے یہ ڈیوائس نہیں چلا سکتی۔ اپنی ایڈیٹنگ ایپ سے H.264، HEVC یا AV1 کی کاپی ایکسپورٹ کریں۔ Lolly اصل فائل محفوظ رکھتا ہے۔",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "یہ {codec} والی MXF فائل ہے۔ Lolly اس کا مواد پڑھ سکتا ہے مگر MXF نہیں چلا سکتا۔ اپنی ایڈیٹنگ ایپ سے H.264، HEVC یا AV1 کی کاپی ایکسپورٹ کریں۔ Lolly اصل فائل محفوظ رکھتا ہے۔",
+  "{format} from {camera}": "{camera} سے {format}"
 }

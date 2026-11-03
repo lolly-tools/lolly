@@ -10632,5 +10632,18 @@
   "Lolly found agents on this device, but none it can send requests to yet.": "O Lolly encontrou agentes neste dispositivo, mas nenhum para o qual ele já possa enviar solicitações.",
   "Lolly could not look for agents: {reason}": "O Lolly não conseguiu procurar agentes: {reason}",
   "Your organisation's policy does not allow AI agents on this device.": "A política da sua organização não permite agentes de IA neste dispositivo.",
-  "Working on your request": "Trabalhando na sua solicitação"
+  "Working on your request": "Trabalhando na sua solicitação",
+  "Approximate colour: fitted to the camera’s embedded JPEG (mean difference {de} ΔE).": "Cor aproximada: ajustada ao JPEG embutido da câmera (diferença média de {de} ΔE).",
+  "Approximate colour: fitted to the camera’s embedded JPEG.": "Cor aproximada: ajustada ao JPEG embutido da câmera.",
+  "Approximate colour: this format has no embedded colour matrices.": "Cor aproximada: este formato não tem matrizes de cor embutidas.",
+  "Approximate colour: this is the camera’s embedded JPEG preview, not the raw sensor data.": "Cor aproximada: esta é a visualização JPEG embutida da câmera, não os dados brutos do sensor.",
+  "Exact colour from the matrices in the DNG file.": "Cor exata a partir das matrizes do arquivo DNG.",
+  "Monochrome sensor data.": "Dados de sensor monocromático.",
+  "Playback": "Reprodução",
+  "Start timecode": "Timecode inicial",
+  "The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.": "O som deste clipe usa {codec}, que este dispositivo não consegue reproduzir. A imagem está bem. O Lolly mantém o arquivo original.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Este clipe usa {codec}, que este dispositivo não consegue reproduzir. Exporte uma cópia em H.264, HEVC ou AV1 pelo seu app de edição, ou abra-o no app Lolly para computador em um Mac. O Lolly mantém o arquivo original.",
+  "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Este clipe usa {codec}, que este dispositivo não consegue reproduzir. Exporte uma cópia em H.264, HEVC ou AV1 pelo seu app de edição. O Lolly mantém o arquivo original.",
+  "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Este é um arquivo MXF com {codec}. O Lolly consegue ler o que ele contém, mas não reproduz MXF. Exporte uma cópia em H.264, HEVC ou AV1 pelo seu app de edição. O Lolly mantém o arquivo original.",
+  "{format} from {camera}": "{format} de {camera}"
 }
