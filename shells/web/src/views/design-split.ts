@@ -18,6 +18,7 @@ import { icon } from '../lib/icons.ts';
 import { releaseDock, requestDock, setDockAccessory, showPanel } from '../lib/edge-dock.ts';
 import { isSplitLayout, onLayoutChange } from '../lib/layout-posture.ts';
 import { mountSplitView } from '../lib/split-panes.ts';
+import { watchScrollCue } from '../lib/scroll-cue.ts';
 import type { HandHost } from '../lib/hand-pref.ts';
 import type { DesignNavigatorHandle } from './design-navigator.ts';
 import type { DesignInspectorFloatHandle } from './design-inspector-float.ts';
@@ -31,6 +32,8 @@ export interface DesignSplitOptions {
   openInspector(): void;
   /** Re-sync the panels' reserves after the layers list moves. */
   syncPanels(): void;
+  /** The stage, whose tool rail stands on the canvas pane's outer edge in two panes. */
+  stage?: HTMLElement;
 }
 
 export interface DesignSplitHandle {
@@ -45,10 +48,23 @@ export function mountDesignSplit(opts: DesignSplitOptions): DesignSplitHandle {
   const view = mountSplitView({ id: 'design', dock: true, host: opts.host });
   const swapSides = view.swapButton();
   let navDocked = false;
+  // The tool rail on the canvas pane's edge scrolls when it is taller than the pane,
+  // and shows a fade with an arrow at each end that holds more (lib/scroll-cue.ts)
+  // rather than cutting the last tools off.
+  let cue: { toolbar: HTMLElement; stop: () => void } | null = null;
+  const syncRailCue = (): void => {
+    // On the edge in two columns, along the foot on a tabletop: both scroll with a cue.
+    const dock = isSplitLayout() ? opts.stage?.querySelector<HTMLElement>('.fc-toolbar-dock') : null;
+    const toolbar = dock?.querySelector<HTMLElement>(':scope > .fc-toolbar') ?? null;
+    if (cue && cue.toolbar === toolbar) return;
+    cue?.stop();
+    cue = dock && toolbar ? { toolbar, stop: watchScrollCue(toolbar, dock) } : null;
+  };
 
   const sync = (reveal = false): void => {
     const split = isSplitLayout();
     const nav = opts.navigator();
+    syncRailCue();
     setDockAccessory(split ? swapSides : null);
     if (!split || !nav) {
       if (navDocked) releaseDock('layers', 'host');
@@ -87,6 +103,8 @@ export function mountDesignSplit(opts: DesignSplitOptions): DesignSplitHandle {
     sync,
     destroy(): void {
       offLayout();
+      cue?.stop();
+      cue = null;
       setDockAccessory(null);
       if (navDocked) releaseDock('layers', 'host');
       view.destroy();

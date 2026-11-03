@@ -22,7 +22,7 @@ export function mountDesignPanels(opts: {
   // panels read the navigator through the split's view of the navigator.
   const split = mountDesignSplit({
     navigator: () => opts.navigator, inspector: () => inspector,
-    openInspector: () => { inspector.setOpen(true, 'host'); }, syncPanels: () => schedule(),
+    openInspector: () => { inspector.setOpen(true, 'host'); }, syncPanels: () => schedule(), stage,
   });
   const navigator = split.navigatorForPanels(opts.navigator);
   // The person opening the navigator brings its tab forward in two panes. Every open

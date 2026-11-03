@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Shared canvas-space policy for Design panels and compact actions. */
-import { isSplitLayout } from './layout-posture.ts';
+import { currentLayout, isSplitLayout } from './layout-posture.ts';
 
 /**
  * Compact Design: the bottom action bar and the inspector as a sheet. Never in two
@@ -20,13 +20,21 @@ export function compactDesignViewport(): boolean {
 export const TOUCH_PALETTE_QUERY = '(pointer: coarse) and (max-width: 640px), (pointer: coarse) and (max-height: 430px)';
 
 /**
- * Is the tool rail the bottom palette? On a small touch screen, and always in two
- * panes: there a vertical rail would sit on the crease side of the canvas pane and
- * cover the artwork, and the foot of the pane is where the thumbs are.
+ * Is the tool rail the bottom palette? On a small touch screen, and on a tabletop
+ * fold, where the canvas pane is short and wide and its foot is where the thumbs are.
  */
 export function toolPaletteAtFoot(): boolean {
-  if (isSplitLayout()) return true;
+  if (isSplitLayout()) return currentLayout().posture === 'tabletop';
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(TOUCH_PALETTE_QUERY).matches;
+}
+
+/**
+ * Is the tool rail pinned upright along the canvas pane's outer edge? In two side by
+ * side panes: the pane is tall, and its outer edge is under the drawing thumb and
+ * away from the crease. styles/parts/split.css places the rail.
+ */
+export function toolRailOnEdge(): boolean {
+  return isSplitLayout() && currentLayout().posture !== 'tabletop';
 }
 
 export function designPanelsFit(width: number, navigator: number, inspector: number): boolean {

@@ -265,3 +265,28 @@ test('index.html\'s size rule uses the module\'s thresholds, pointer query and n
 test('index.html never writes data-posture or the --fold-* properties: those need the module\'s geometry', () => {
   assert.equal(/dataset\.posture|--fold-[xywh]/.test(INDEX), false);
 });
+
+// ── Design's tool rail in two panes ─────────────────────────────────────────
+
+test('RAIL: upright on the canvas pane\'s outer edge, pinned in the chrome layer, mirrored for the left hand and RTL', () => {
+  const pin = ALL_RULES.filter((r) => r.rel === SPLIT_CSS && r.at.includes('@layer chrome') && /\.fc-toolbar-dock$/.test(r.selector.trim()) && /:not\(\[data-posture="tabletop"\]\)/.test(r.selector));
+  assert.ok(pin.length >= 2, 'a right-edge rule and a left-edge rule');
+  const right = pin.find((r) => /right:\s*var\(--sp-4\)\s*!important/.test(r.body));
+  assert.ok(right, 'the default is the right edge, for a right hand');
+  const left = pin.find((r) => /left:\s*calc\(var\(--stage-reserve-left/.test(r.body));
+  assert.ok(left, 'a rail on the left starts where the page navigator\'s column ends');
+  assert.match(left!.selector, /data-hand="left"\]:not\(\[dir="rtl"\]\)/, 'a left hand in a left-to-right language');
+  assert.match(left!.selector, /dir="rtl"\]:not\(\[data-hand="left"\]\)/, 'a right hand in a right-to-left one');
+});
+
+test('RAIL: it scrolls rather than clipping, and the cues are drawn for both axes', () => {
+  const upright = ALL_RULES.find((r) => r.rel === SPLIT_CSS && /:not\(\[data-posture="tabletop"\]\)/.test(r.selector) && /\.fc-toolbar$/.test(r.selector.trim()));
+  assert.ok(upright, 'the upright rail has its own rule');
+  assert.match(upright!.body, /flex-direction:\s*column/);
+  assert.match(upright!.body, /overflow-y:\s*auto/);
+  assert.match(upright!.body, /max-height:\s*100%/);
+  for (const axis of ['x', 'y']) {
+    assert.ok(ALL_RULES.some((r) => r.rel === SPLIT_CSS && r.selector.includes(`[data-cue-axis="${axis}"]`) && r.selector.includes('.scroll-cue')), `a cue for the ${axis} axis`);
+  }
+  assert.ok(ALL_RULES.some((r) => r.rel === SPLIT_CSS && r.selector.includes('[data-more~="end"]') && /display:\s*grid/.test(r.body)), 'a cue shows only at an end that holds more');
+});

@@ -300,18 +300,53 @@ html[data-layout="split"] .tool-layout.is-editor > .tool-stage {
   min-width: 0;
   height: 100%;
 }
-/* The tool rail is the palette at the foot of the canvas pane, as on a phone: a
-   vertical rail would sit on the crease side and cover the artwork, and the foot
-   is where the thumbs are (the same block as editor.css's compact touch palette,
-   so the two read alike; free-canvas/rail.ts and tool-stage-nav.ts follow it
-   through toolPaletteAtFoot). !important where the rail's own drag writes an
-   inline position. */
-html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
+/* Design's tool rail. In two columns it stands upright on the canvas pane's OUTER
+   edge, the side of the dominant hand: the right edge for a right hand, mirrored
+   for a left hand and in a right-to-left language. The pane is tall, that edge is
+   under the drawing thumb and away from the crease, and the artwork is fitted
+   beside the rail (tool-stage-nav.ts, toolRailOnEdge). A rail taller than the pane
+   scrolls, with a fade and a chevron at each end that holds more
+   (lib/scroll-cue.ts), never a silent cut. On a tabletop the canvas pane is short
+   and wide, so the rail is the phone's palette along its foot, the same block as
+   editor.css's compact touch palette. The rail's position is pinned in the chrome
+   layer at the end of this sheet, because the phone palette and the rail's own drag
+   both write it with weight. */
+html[data-layout="split"]:not([data-posture="tabletop"]) .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
+  bottom: var(--stage-reserve-bottom, 0px);
+  height: auto;
+  padding: var(--sp-4) 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+}
+html[data-layout="split"]:not([data-posture="tabletop"]) .tool-layout.is-editor .tool-stage .fc-toolbar {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  max-height: 100%;
+  margin: 0;
+  padding: 4px 7px 7px;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+}
+html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-toolbar > * { flex-shrink: 0; }
+html[data-layout="split"][data-posture="tabletop"] .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
   left: calc(8px + var(--vv-left, 0px)) !important;
   right: calc(8px + var(--vv-right, 0px));
   top: auto !important;
   bottom: calc(var(--stage-reserve-bottom, 0px) + 8px);
-  width: auto !important;
+  /* Hugs its tools, centred on the pane, and narrows to scroll; the scroll cues
+     sit at its own ends. */
+  width: fit-content !important;
+  margin-inline: auto;
   height: 60px;
   padding: 0;
   align-items: center;
@@ -320,7 +355,7 @@ html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
   background: transparent;
   border: 0;
 }
-html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-toolbar {
+html[data-layout="split"][data-posture="tabletop"] .tool-layout.is-editor .tool-stage .fc-toolbar {
   box-sizing: border-box;
   flex: 1 1 auto;
   min-width: 0;
@@ -336,9 +371,70 @@ html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-toolbar {
   box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
 }
 html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-toolbar::-webkit-scrollbar { display: none; }
+/* The rail is pinned here, so it has no drag grip; the separators go as on a phone. */
 html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-grip,
 html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-sep { display: none; }
 html[data-layout="split"] .tool-layout.is-editor .tool-stage.is-text-editing .fc-toolbar-dock { display: none; }
+
+/* The scroll cue (lib/scroll-cue.ts): a fade into the rail's own surface with a
+   chevron pointing the way, at each end that holds more. Decoration only. */
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock > .scroll-cue {
+  position: absolute;
+  z-index: 1;
+  display: none;
+  place-items: center;
+  pointer-events: none;
+  color: var(--ui-color-text-muted);
+}
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-more~="start"] > .scroll-cue--start,
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-more~="end"] > .scroll-cue--end { display: grid; }
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock > .scroll-cue svg {
+  width: var(--ui-size-icon-md);
+  height: var(--ui-size-icon-md);
+}
+/* Upright: across the top and the foot of the rail, as round as its corners. */
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="y"] > .scroll-cue {
+  inset-inline: 0;
+  height: 40px;
+}
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="y"] > .scroll-cue--start {
+  top: var(--sp-4);
+  align-items: start;
+  padding-top: var(--sp-1);
+  border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0;
+  background: linear-gradient(to bottom, var(--ui-color-surface-raised) 45%, transparent);
+}
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="y"] > .scroll-cue--start svg { transform: rotate(180deg); }
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="y"] > .scroll-cue--end {
+  bottom: var(--sp-4);
+  align-items: end;
+  padding-bottom: var(--sp-1);
+  border-radius: 0 0 var(--ui-radius-panel) var(--ui-radius-panel);
+  background: linear-gradient(to top, var(--ui-color-surface-raised) 45%, transparent);
+}
+/* Along the foot: at the inline ends of the palette. */
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="x"] > .scroll-cue {
+  inset-block: 4px;
+  width: 44px;
+}
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="x"] > .scroll-cue--start {
+  inset-inline-start: 0;
+  border-start-start-radius: var(--ui-radius-panel);
+  border-end-start-radius: var(--ui-radius-panel);
+  background: linear-gradient(to right, var(--ui-color-surface-raised) 45%, transparent);
+}
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="x"] > .scroll-cue--end {
+  inset-inline-end: 0;
+  border-start-end-radius: var(--ui-radius-panel);
+  border-end-end-radius: var(--ui-radius-panel);
+  background: linear-gradient(to left, var(--ui-color-surface-raised) 45%, transparent);
+}
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="x"] > .scroll-cue--start svg { transform: rotate(90deg); }
+html[data-layout="split"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="x"] > .scroll-cue--end svg { transform: rotate(-90deg); }
+html[data-layout="split"][dir="rtl"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="x"] > .scroll-cue--start { background: linear-gradient(to left, var(--ui-color-surface-raised) 45%, transparent); }
+html[data-layout="split"][dir="rtl"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="x"] > .scroll-cue--end { background: linear-gradient(to right, var(--ui-color-surface-raised) 45%, transparent); }
+html[data-layout="split"][dir="rtl"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="x"] > .scroll-cue--start svg { transform: rotate(-90deg); }
+html[data-layout="split"][dir="rtl"] .tool-layout.is-editor .fc-toolbar-dock[data-cue-axis="x"] > .scroll-cue--end svg { transform: rotate(90deg); }
 
 /* The export sheet is a tab of the control pane here. Its overlay is the desk's:
    no scrim and nothing that takes a tap, even while the sheet counts as open. */
@@ -414,7 +510,7 @@ html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .p
   grid-template-rows: minmax(0, 1fr);
   padding-bottom: calc(76px + var(--safe-bottom));
 }
-/* The current slide is the top half itself, so the deck drops its preview. */
+/* The current slide fills the top half, so the deck below leaves out a second copy. */
 html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-sp-now { display: none; }
 /* Notes under the timer on the left; the next slide with its own back and next on
    the right. The deck's buttons stay put while the HUD fades at rest. */
@@ -568,9 +664,27 @@ html[data-layout="split"][data-posture="book"] .tool-masonry:is([data-browse-lay
 } /* @layer overrides */
 
 @layer chrome {
+/* Design's upright rail on the canvas pane's outer edge (see the overrides block).
+   The phone palette pins its left, top and width with !important, and a dragged
+   rail writes them inline; both give way here. Physical sides, not logical ones:
+   the page navigator's column stays on the left of the stage in either direction,
+   so a rail on the left starts where that column ends (the same sum editor.css
+   uses), and the outer edge is the right for a right hand in a left-to-right
+   language or a left hand in a right-to-left one. */
+html[data-layout="split"]:not([data-posture="tabletop"]) .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
+  top: var(--stage-reserve-top, 0px) !important;
+  width: auto !important;
+  left: auto !important;
+  right: var(--sp-4) !important;
+}
+html[data-layout="split"][data-hand="left"]:not([dir="rtl"]):not([data-posture="tabletop"]) .tool-layout.is-editor .tool-stage .fc-toolbar-dock,
+html[data-layout="split"][dir="rtl"]:not([data-hand="left"]):not([data-posture="tabletop"]) .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
+  left: calc(var(--stage-reserve-left, 0px) - var(--ldock-rail-w, 0px) + var(--sp-4)) !important;
+  right: auto !important;
+}
 /* The phone sheet hides the sidebar's collapse toggle and the canvas's expand
    button with !important. In two panes they are the desk's controls again; an
-   important declaration in this earlier layer is the only thing that can say so. */
+   important declaration in this earlier layer is the only way to show them. */
 html[data-layout="split"] .tool-layout:not(.is-editor) .fullscreen-toggle { display: inline-flex !important; }
 html[data-layout="split"] .tool-layout:not(.is-editor)[data-sidebar="open"] .fullscreen-toggle-float { display: none !important; }
 html[data-layout="split"] .tool-layout:not(.is-editor)[data-sidebar="closed"] .fullscreen-toggle-float { display: flex !important; }

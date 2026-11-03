@@ -19,7 +19,7 @@
  * whole extent, which lets a hand zoom out far enough to see all of a large page.
  */
 import { mountZoomHud } from '../components/zoom-hud.ts';
-import { stageBottomReserve, stageSideReserve, toolPaletteAtFoot } from '../lib/design-panel-layout.ts';
+import { stageBottomReserve, stageSideReserve, toolPaletteAtFoot, toolRailOnEdge } from '../lib/design-panel-layout.ts';
 import type { ZoomHud } from '../components/zoom-hud.ts';
 import { deepActiveElement, isTypingTarget } from '../lib/typing-target.ts';
 import { icon } from '../lib/icons.ts';
@@ -340,13 +340,25 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
         if (rr.height > 0 && rr.top < bottom && rr.bottom > sr.top) bottom = Math.min(bottom, rr.top - 8);
       }
     }
+    // In two panes the rail stands along the canvas pane's outer edge, so the artwork
+    // is fitted in the band between the rail and the far edge of the pane.
+    let sideLeft = left;
+    let sideRight = right;
+    if (toolRailOnEdge()) {
+      const rail = stageEl.querySelector<HTMLElement>('.fc-toolbar-dock > .fc-toolbar');
+      const rr = rail?.getBoundingClientRect();
+      if (rr && rr.width > 0 && getComputedStyle(rail!.parentElement!).display !== 'none') {
+        if (rr.left + rr.width / 2 > sr.left + sr.width / 2) sideRight = Math.min(right, rr.left - 8);
+        else sideLeft = Math.max(left, rr.right + 8);
+      }
+    }
     // A stage narrower than the bands it carries (a phone with every panel open) would
     // hand back an inverted box, and a fit computed from it is nonsense. Fall back to the
     // whole stage - which is exactly what this module measured before the bands existed.
-    if (!(right - left > 0) || !(bottom - top > 0)) {
+    if (!(sideRight - sideLeft > 0) || !(bottom - top > 0)) {
       return { left: sr.left, top: sr.top, right: sr.right, bottom: sr.bottom, width: sr.width, height: sr.height };
     }
-    return { left, top, right, bottom, width: right - left, height: bottom - top };
+    return { left: sideLeft, top, right: sideRight, bottom, width: sideRight - sideLeft, height: bottom - top };
   }
 
   // Readouts that want to follow the view (the Design top bar's NN%). Scheduled from
