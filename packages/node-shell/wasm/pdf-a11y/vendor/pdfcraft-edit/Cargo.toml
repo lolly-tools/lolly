@@ -1,0 +1,18 @@
+[package]
+name = "pdfcraft-edit"
+description = "Page edits used by redaction: stamp and flatten (trimmed)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+pdfcraft-annot = { workspace = true }
+pdfcraft-cos = { workspace = true }
+pdfcraft-content = { workspace = true }
+pdfcraft-fonts = { workspace = true }
+pdfcraft-forms = { workspace = true }
+pdfcraft-model = { workspace = true }
+thiserror = { workspace = true }

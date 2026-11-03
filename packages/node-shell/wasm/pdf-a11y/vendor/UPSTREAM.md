@@ -7,8 +7,9 @@ that holds only the copyright and licence paragraph. The upstream NOTICE also co
 brand marks of the PdfCraft application. None of those are included here.
 
 Vendored crates, from `crates/` at that commit: `a11y` (the checker, trimmed), `cos` (PDF object
-layer), `crypt` (the standard security handler), `filters` (stream filters), `model` (page tree) and
-`content` (content stream operators). Their `Cargo.toml` files are rewritten as workspace members of
+layer), `crypt` (the standard security handler), `filters` (stream filters), `model` (page tree),
+`content` (content stream operators) and, for text-keeping redaction, `redact`, `annot`, `forms`,
+`fonts`, `edit` and `xfa`, all trimmed as described under "Redaction". Their `Cargo.toml` files are rewritten as workspace members of
 this module, and their `tests/` directories, examples and READMEs are left out.
 
 ## What is not here
@@ -47,6 +48,35 @@ this module, and their `tests/` directories, examples and READMEs are left out.
 The dependency crates (`cos`, `crypt`, `filters`, `model`, `content`) are otherwise unchanged. Their
 unit tests need dev dependencies (`proptest`, `weezl`, `hayro-jbig2`) that Lolly does not vendor, so
 `cargo test` in the parent directory runs the adapter and the checker only.
+
+## Redaction (operation 2)
+
+`redact` is vendored whole apart from its tests (they need `testkit`, `proptest` and bundled fonts).
+Its upstream dependencies pull in about 40,000 lines of editor, forms, annotation and XFA code, and
+bundled font files that Lolly does not ship, so those crates are cut down to what redaction reaches:
+
+- `fonts`: only `Std14` and its metrics, WinAnsi encoding, the `pdf` font-metrics reader and the small
+  helpers in `lib.rs`. The bundled Inter and script fonts, shaping, embedding and fallback modules are
+  gone. `skrifa` 0.47 stays because the metrics reader reads advance widths from embedded fonts.
+- `annot`: whole minus tests. `forms`: whole minus tests.
+- `edit`: `flatten.rs`, `place.rs` (`stamp`), a reduced `marks.rs` (`MarkKind` and the number
+  formatters) and a `lib.rs` that keeps `EditError` and `text::MAX_FORM_DEPTH`. The text editor,
+  added content, images, backdrops, header, footer and watermark code are gone.
+- `xfa`: `xfa_shape`, `strip` and `drop_usage_rights` from `pdf/strip.rs`. The XDP parser, layout engine
+  and scripting runtime are gone, so `strip` no longer counts unbound data or names packets inside an
+  XDP envelope.
+- `redact/src/sanitize.rs`: the form-field flattening branch of `remove_hidden` is switched off
+  (`let fields = false`), which keeps `flatten`, `redraw_field` and annotation drawing out of the
+  binary. Lolly's adapter only asks for metadata, attachments and private data.
+- `redact/src/interp.rs`, `glyph_hit`: a glyph is removed when a region overlaps it sideways by more than
+  0.05 points. Upstream kept a glyph that a region overlapped by up to a fifth of its width or a point,
+  which left a half-covered letter in the text. The vertical margin is upstream's.
+- The adapter in `src/lib.rs` writes the Redact marks itself instead of calling `annot::add_annotation`,
+  which keeps annotation drawing out of the binary, and saves with `write_full` only.
+
+Upstream's 157 redaction tests are not run here. Lolly's checks are `tests/redact-keep-text.test.ts`
+(including a generated corpus read by an independent oracle), the `pdf-redact-keep` fuzz target and the
+shell's own check of every result (`packages/node-shell/src/pdf-redact-keep.ts`).
 
 ## Clean-room and provenance caveats
 

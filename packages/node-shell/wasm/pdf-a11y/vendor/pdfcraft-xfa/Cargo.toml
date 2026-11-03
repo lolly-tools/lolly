@@ -1,0 +1,13 @@
+[package]
+name = "pdfcraft-xfa"
+description = "XFA detection and removal (trimmed)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+pdfcraft-cos = { workspace = true }
+thiserror = { workspace = true }
