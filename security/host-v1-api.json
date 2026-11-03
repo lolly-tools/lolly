@@ -95,7 +95,7 @@
     "AudioDecodeOpts": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "34c641e48c4610d5ce3ea0ab58240c57376ebebd5ef895d2d7505dd4b50d9f63"
+      "sha256": "5ef68b4a9d3823ad4ad6dd4ca522b2a9938ef495ff63aa557593bcf4ed6c28d5"
     },
     "AudioFinding": {
       "module": "audio.ts",
@@ -105,7 +105,7 @@
     "AudioDecoded": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "f870d1d9d72608fc4775b89142093993bbadad2764e20d9f0ba6b2dc4a25aeba"
+      "sha256": "dd33e250d283a78f0f21ad6d256a40194611ccce0317fdf25bdca254c3adbae2"
     },
     "AudioRepairOpts": {
       "module": "audio.ts",
