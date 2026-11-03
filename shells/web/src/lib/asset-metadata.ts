@@ -359,8 +359,8 @@ function addVideoProbeFields(ref: AssetRef, fields: MetaField[], push: Push): vo
   if (!probe || typeof probe !== 'object') return;
   const named = fields.some(f => f.key === 'codec');
   if (!named && typeof probe.codec === 'string') push('codec', t('Codec'), probe.codec);
-  if (typeof probe.timecode === 'string') push('timecode', 'Start timecode', probe.timecode);
-  if (typeof probe.note === 'string') push('playback', 'Playback', probe.note);
+  if (typeof probe.timecode === 'string') push('timecode', t('Start timecode'), probe.timecode);
+  if (typeof probe.note === 'string') push('playback', t('Playback'), probe.note);
 }
 
 // EXIF display rows off a parsed TIFF block.

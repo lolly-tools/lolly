@@ -23,6 +23,7 @@
  * MXF is a container no browser or WebView opens, so an MXF is never reported as
  * playable here, whatever its codec: the message says to export a proxy.
  */
+import { t } from '../i18n.ts';
 import {
   probeVideoContainer, VideoProbeError,
   type ContainerProbe, type ProbedAudioTrack, type ProbedVideoTrack,
@@ -107,21 +108,22 @@ export async function checkDevice(probe: ContainerProbe, deps: DeviceCheckDeps =
   return { video, audio };
 }
 
-const PROXY = 'Export an H.264, HEVC or AV1 copy from your editing app';
-
-/** The note for a clip the device cannot fully open. Short, plain, English only. */
+/** The note for a clip the device cannot fully open. Short and plain; each case is one
+ *  whole sentence set, so a translation can order its words freely. */
 export function explainProbe(probe: ContainerProbe, check: DeviceCheck): string | null {
   const v: ProbedVideoTrack | undefined = probe.video[0];
   if (v && check.video === false) {
     if (probe.container === 'mxf') {
-      return `This is an MXF file with ${v.label}. Lolly can read what it holds but cannot play MXF. ${PROXY}. Lolly keeps the original file.`;
+      return t('This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.', { codec: v.label });
     }
-    const mac = v.family === 'prores' ? ', or open it in the Lolly desktop app on a Mac' : '';
-    return `This clip uses ${v.label}, which this device cannot play. ${PROXY}${mac}. Lolly keeps the original file.`;
+    if (v.family === 'prores') {
+      return t('This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.', { codec: v.label });
+    }
+    return t('This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.', { codec: v.label });
   }
   const badAudio: ProbedAudioTrack | undefined = probe.audio.find((_, i) => check.audio[i] === false);
   if (v && check.video !== false && badAudio) {
-    return `The sound in this clip uses ${badAudio.label}, which this device cannot play. The picture is fine. Lolly keeps the original file.`;
+    return t('The sound in this clip uses {codec}, which this device cannot play. The picture is fine. Lolly keeps the original file.', { codec: badAudio.label });
   }
   return null;
 }

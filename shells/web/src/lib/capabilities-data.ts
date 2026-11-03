@@ -360,7 +360,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'import', id: 'cap-import', title: 'Import formats', icon: ICONS.install,
-    desc: '64 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
+    desc: '66 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
     cards: [
       { icon: ICONS.image, title: 'Images', shot: 'auth-assets-uploads', keywords: 'png jpg jpeg webp avif heic heif jxl jpeg xl bmp ico favicon iphone photo exif gps strip gif apng animated svg svgz sanitise raw dng camera raw cr2 cr3 nef arw raf orf rw2 pef darkroom develop approximate colour', features: [
         { name: 'PNG · JPG · WebP · AVIF · HEIC/HEIF', desc: 'Drop a photo or graphic into any image picker or your <strong>My images</strong> library. Stills are downscaled and stripped of EXIF/GPS on ingest; iPhone HEIC/HEIF decodes even where the browser can’t, via a bundled fallback. AVIF reads wherever the browser decodes it.' },
