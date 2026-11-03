@@ -53,7 +53,7 @@
   font-size: clamp(48px, 13vmin, 96px);
   font-weight: 200;
   letter-spacing: -0.04em;
-  color: #fff;
+  color: var(--brand-surface, #fff);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   transition: transform 0.45s ease;
@@ -65,7 +65,7 @@
 
 .ct-hint {
   font-size: clamp(10px, 1.8vmin, 13px);
-  color: rgba(255, 255, 255, 0.28);
+  color: color-mix(in srgb, var(--brand-surface, #fff) 65%, transparent);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 500;
@@ -81,7 +81,7 @@
   background: transparent;
   border: none;
   border-bottom: 2px solid color-mix(in srgb, var(--brand-primary, #30ba78) 35%, transparent);
-  color: #fff;
+  color: var(--brand-surface, #fff);
   font-family: inherit;
   font-size: clamp(48px, 13vmin, 96px);
   font-weight: 200;
@@ -118,13 +118,13 @@
 
 .ct-btn-ghost {
   background: transparent;
-  color: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: color-mix(in srgb, var(--brand-surface, #fff) 75%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand-surface, #fff) 30%, transparent);
   transition: opacity 0.15s, color 0.15s, border-color 0.15s;
 }
 .ct-btn-ghost:hover {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.38);
+  color: var(--brand-surface, #fff);
+  border-color: color-mix(in srgb, var(--brand-surface, #fff) 50%, transparent);
   opacity: 1;
 }
 

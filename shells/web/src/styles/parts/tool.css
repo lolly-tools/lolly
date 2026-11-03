@@ -3434,6 +3434,30 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   inset: auto;
   transform: none;
 }
+/* Capture controls share the canvas space reserved by the editor's panels. */
+.tool-layout.is-editor .tool-stage {
+  --capture-bottom: calc(max(var(--stage-reserve-bottom, 0px), var(--design-panel-reserve, 0px)) + var(--design-actions-h, 0px) + var(--design-viewport-inset, 0px));
+}
+.tool-layout.is-editor .tool-stage > :is(.canvas-record-btn, .canvas-screen-bar) {
+  bottom: calc(var(--capture-bottom) + 14px);
+  left: calc((100% + var(--stage-reserve-left, 0px) - var(--stage-reserve-right, 0px)) / 2);
+}
+.tool-layout.is-editor .canvas-record-mic {
+  left: calc(var(--stage-reserve-left, 0px) + 14px);
+  bottom: calc(var(--capture-bottom) + 14px);
+}
+.tool-layout.is-editor .canvas-record-flip {
+  right: calc(var(--stage-reserve-right, 0px) + 14px);
+  bottom: calc(var(--capture-bottom) + 14px);
+}
+.tool-layout.is-editor .canvas-record-help {
+  top: calc(max(var(--stage-reserve-top, 0px), var(--stage-rulers-bottom, 0px)) + 14px);
+  left: calc(var(--stage-reserve-left, 0px) + 14px);
+}
+.tool-layout.is-editor .canvas-record-timer {
+  bottom: calc(var(--capture-bottom) + 74px);
+  left: calc((100% + var(--stage-reserve-left, 0px) - var(--stage-reserve-right, 0px)) / 2);
+}
 /* Live preview of the shared surface. It reuses the video viewfinder for its fill +
    black backdrop, but a screen is not a selfie: undo the mirror, and let it letterbox
    (object-fit:contain is set inline) so a captured display is never cropped. The
@@ -3989,6 +4013,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     display: block;
     height: 100dvh;
     --sheet-h: 50dvh;                 /* default; overridden per data-sheet state */
+    --sheet-room: calc(100dvh - var(--vv-bottom, 0px) - var(--chrome-top) - var(--safe-bottom) - var(--chrome-h) - 20px);
     /* Clearance below the peek bar so the preview doesn't run up under it. Driven
        by --peek-h (the measured header height, set in setupMobileSheet) so the
        taller two-row header still fully shows in peek; 56px is the fallback.
@@ -4008,8 +4033,8 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
      the bottom of the viewport without shrinking dvh, so an unclamped 50/90dvh
      sheet would run its own bottom edge (and whatever control sits there)
      under the keyboard. min() is a no-op while --vv-bottom is 0px. */
-  .tool-layout[data-sheet="half"] { --sheet-h: min(50dvh, calc(100dvh - var(--vv-bottom, 0px) - 12px)); }
-  .tool-layout[data-sheet="full"] { --sheet-h: min(90dvh, calc(100dvh - var(--vv-bottom, 0px) - 12px)); }
+  .tool-layout[data-sheet="half"] { --sheet-h: min(50dvh, var(--sheet-room)); }
+  .tool-layout[data-sheet="full"] { --sheet-h: min(90dvh, var(--sheet-room)); }
 
   /* Controls panel - anchored at the top, grip on its bottom edge. The --vv-*
      offsets (set by the VisualViewport shim in main.js) keep it pinned to the
@@ -4061,6 +4086,19 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     transition: top 0.34s var(--ease-out); /* match the sheet's settle */
   }
   .tool-layout.is-sheet-dragging .sheet-grip { transition: none; }
+
+  /* End the scrolling controls above the grip's inward half. */
+  .sidebar-body { margin-bottom: 15px; }
+
+  /* Keep the existing canvas controls below the sheet, including its drag grip. */
+  .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > :is(.stage-nav:not([data-docked]), .canvas-record-help) {
+    top: calc(max(0px, var(--sheet-h) - var(--peek-h, calc(56px * var(--a11y-fs)))) + var(--chrome-top) - var(--safe-top) + var(--vv-top, 0px));
+  }
+  .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > .stage-nav:not([data-docked]) {
+    max-height: calc(100dvh - max(var(--sheet-h), var(--peek-h, calc(56px * var(--a11y-fs)))) - var(--chrome-top) - var(--safe-bottom) - var(--vv-bottom, 0px) - 8px);
+    overflow-y: auto;
+  }
+
   /* Neutral grey pill, matching the export sheet's grabber (.export-popup::before
      below) instead of the base .sheet-grip::before fill, which rides --primary - the same
      hue as a slider thumb, so a real range control sitting near the sheet edge
@@ -4093,6 +4131,9 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
      (.stage-nav) off-screen. There's no real top bar here, so pin top:0 and the
      fixed stage (top 0 + 100dvh) fills the viewport exactly, HUD included. */
   .tool-layout.is-editor { --preview-top: 0px; }
+  .tool-layout.is-editor:not(.is-document) .tool-stage > .stage-nav:not([data-docked]) {
+    top: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-2) + var(--vv-top, 0px));
+  }
 
   /* Track the finger 1:1 while dragging - no easing on the panel height. */
   .tool-layout.is-sheet-dragging .sidebar { transition: none; }
@@ -4143,7 +4184,8 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
      the pill sits right on top of it. Lift the record button (and its take timer) to
      stack ABOVE the pill instead. Only needed in this mobile FAB layout: on desktop the
      pill lives inside the sidebar and never shares the stage lane. */
-  .tool-stage.has-record .canvas-record-btn {
+  .tool-stage.has-record .canvas-record-btn,
+  .tool-stage.has-record .canvas-screen-bar {
     bottom: calc(66px + var(--safe-bottom) + var(--vv-bottom, 0px));
   }
   .tool-stage.has-record .canvas-record-timer {

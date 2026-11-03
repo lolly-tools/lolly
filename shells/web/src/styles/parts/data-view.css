@@ -1,6 +1,14 @@
 /* #/data spreadsheet viewer (plan 89, views/data.ts). Reuses .platform-layout /
    .plat-header chrome; adds the drop zone, sheet tabs, honest-limits banner and the
    download-as bar. The grid itself is styled by parts/data-grid.css. */
+@layer views {
+  .data-view > .platform-layout {
+    max-width: 1120px;
+    margin-inline: auto;
+    padding: calc(var(--chrome-top) + var(--chrome-h) + var(--ui-space-page)) var(--ui-space-page) var(--ui-space-section);
+  }
+}
+
 .data-drop {
   border: 2px dashed var(--ui-color-border-default);
   border-radius: var(--ui-radius-panel);

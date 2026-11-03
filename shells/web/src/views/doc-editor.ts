@@ -32,6 +32,7 @@ import DOMPurify from 'dompurify';
 import { PageBreak, mountPageGuides } from './doc-pages.ts';
 import { looksLikeMarkdown, mdToHtml } from '../lib/markdown.ts';
 import { mountColorField } from '../components/color-field.ts';
+import { mountBodyPopover } from '../components/body-popover.ts';
 import { icon } from '../lib/icons.ts';
 import { announce } from '../a11y.ts';
 import { t } from '../i18n.ts';
@@ -312,6 +313,21 @@ export function initDocEditor(opts: DocEditorOpts): { destroy(): void } {
   holder.setAttribute('aria-label', 'Document body');
   paper.appendChild(holder);
   surface.appendChild(paper);
+
+  // Read the rendered document's colours so editing and export share one look.
+  const syncAppearance = (): void => {
+    const rendered = opts.canvasEl.querySelector<HTMLElement>('.doc');
+    if (!rendered) return;
+    const style = getComputedStyle(rendered);
+    for (const name of ['accent', 'ink', 'paper', 'muted', 'table-line', 'head-bg']) {
+      paper.style.setProperty(`--doc-${name}`, style.getPropertyValue(`--${name}`));
+    }
+    paper.style.setProperty('--doc-font', style.getPropertyValue('--doc-font'));
+  };
+  const appearanceObserver = new MutationObserver(syncAppearance);
+  appearanceObserver.observe(opts.canvasEl, { childList: true, subtree: true, attributes: true });
+  cleanups.push(() => appearanceObserver.disconnect());
+  syncAppearance();
 
   // ── the editor ────────────────────────────────────────────────────────────────
   const editor = new Editor({
@@ -594,12 +610,9 @@ export function initDocEditor(opts: DocEditorOpts): { destroy(): void } {
   }
 
   // ── page setup panel (from the tool's non-blocks, non-export top inputs) ───────
-  let openPop: HTMLElement | null = null;
-  const closePop = (): void => { openPop?.remove(); openPop = null; };
   const setupInputs = opts.inputs.filter((i) => i.id !== inputId && i.group !== 'export' && i.type !== 'blocks');
-  on(bSetup, 'click', () => {
-    if (openPop) { closePop(); return; }
-    const pop = el('div', 'fc-panel'); pop.setAttribute('data-export-hide', '');
+  const setupPopover = mountBodyPopover(bSetup, (pop) => {
+    pop.setAttribute('data-export-hide', '');
     const head = el('div', 'fc-panel-head'); head.textContent = 'Page setup'; pop.appendChild(head);
     const model = runtime.getModel();
     const val = (id: string): unknown => model.find((m) => m.id === id)?.value;
@@ -619,7 +632,7 @@ export function initDocEditor(opts: DocEditorOpts): { destroy(): void } {
       } else if (spec.type === 'color') {
         ctrl = el('span', 'doc-setup-color');
         mountColorField(ctrl, `doc-setup-${spec.id}`, {
-          value: String(val(spec.id) ?? spec.default ?? '#30ba78'), float: true,
+          value: val(spec.id) ?? spec.default ?? '#30ba78', float: true,
           onChange: (v) => runtime.setInput(spec.id, v),
         });
       } else if (spec.type === 'boolean') {
@@ -631,12 +644,11 @@ export function initDocEditor(opts: DocEditorOpts): { destroy(): void } {
       }
       row.appendChild(ctrl); pop.appendChild(row);
     });
-    stageEl.appendChild(pop);
-    const ar = bSetup.getBoundingClientRect(); const sr = stageEl.getBoundingClientRect();
-    pop.style.left = (ar.right - sr.left + 8) + 'px'; pop.style.top = (ar.top - sr.top) + 'px';
-    openPop = pop;
-    const off = (e: Event): void => { if (openPop && !openPop.contains(e.target as Node) && !bSetup.contains(e.target as Node)) closePop(); };
-    setTimeout(() => on(doc, 'pointerdown', off), 0);
+    return pop.querySelector<HTMLElement>('select, input');
+  }, { className: 'fc-panel doc-setup-panel', role: 'dialog', ariaLabel: t('Page setup'), trackSize: true });
+  on(bSetup, 'click', () => {
+    if (setupPopover.isOpen()) setupPopover.close();
+    else setupPopover.open();
   });
 
   // ── toolbar state sync ────────────────────────────────────────────────────────
@@ -675,6 +687,19 @@ export function initDocEditor(opts: DocEditorOpts): { destroy(): void } {
   stageEl.appendChild(tbarDock);
   refresh();
 
+  // Wrapped ribbon rows and table controls reserve their actual height.
+  const syncRibbonSpace = (): void => {
+    const bottom = ribbonDock.offsetTop + ribbonDock.offsetHeight;
+    tbarDock.style.top = `${bottom}px`;
+    const contentTop = tbarDock.offsetHeight ? bottom + tbarDock.offsetHeight : bottom;
+    surface.style.paddingTop = `${contentTop + 16}px`;
+  };
+  const ribbonObserver = new ResizeObserver(syncRibbonSpace);
+  ribbonObserver.observe(ribbonDock);
+  ribbonObserver.observe(tbarDock);
+  cleanups.push(() => ribbonObserver.disconnect());
+  syncRibbonSpace();
+
   // Soft page-boundary guides - pages appear as content grows (infinite) and reset at any
   // explicit page break. The per-page content step is derived inside from the paper's real
   // margins, so pass the full native page height (from the height input → A4/Letter/A5).
@@ -686,7 +711,7 @@ export function initDocEditor(opts: DocEditorOpts): { destroy(): void } {
     destroy(): void {
       flushCommit();
       try { editor.destroy(); } catch { /* ignore */ }
-      closePop();
+      setupPopover.close();
       cleanups.forEach((fn) => { try { fn(); } catch { /* ignore */ } });
       surface.remove(); ribbonDock.remove(); dock.remove(); tbarDock.remove();
     },

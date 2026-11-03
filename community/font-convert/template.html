@@ -1,38 +1,60 @@
-<div class="fc">
+<div class="font-convert">
   {{#unless hasFile}}
-    <div class="fc-empty" data-file-pick>
-      <div class="fc-empty-icon" aria-hidden="true">
+    <div class="font-convert-empty" data-file-pick>
+      <div class="font-convert-empty-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M12 4v16M9 20h6"/></svg>
       </div>
       <h2>Convert a font</h2>
       <p>Drag a TrueType (.ttf), OpenType (.otf) or WOFF file anywhere onto this area, or choose one below. See its outlines, weights and character coverage, pick a target container in the sidebar, and keep every glyph or only the characters you need.</p>
-      <button type="button" class="fc-pick" data-file-pick>Choose a font…</button>
-      <p class="fc-empty-note">Everything happens on your device. Your font is never uploaded, and the glyph outlines it keeps are never changed.</p>
+      <button type="button" class="font-convert-pick" data-file-pick>Choose a font…</button>
+      <p class="font-convert-empty-note">Everything happens on your device. Your font is never uploaded, and the glyph outlines it keeps are never changed.</p>
     </div>
   {{/unless}}
 
   {{#if hasFile}}
-    <div class="fc-card">
-      <div class="fc-head">
-        <span class="fc-file" title="{{fileName}}">{{fileName}}</span>
-        <span class="fc-kind">{{currentFormat}} · {{fileSize}}</span>
-        <button type="button" class="fc-replace" data-file-pick>Replace</button>
+    <div class="font-convert-card">
+      <div class="font-convert-head">
+        <span class="font-convert-file" title="{{fileName}}">{{fileName}}</span>
+        <span class="font-convert-kind">{{currentFormat}} · {{fileSize}}</span>
+        <button type="button" class="font-convert-replace" data-file-pick>Replace</button>
       </div>
-      <div class="fc-flow" aria-hidden="true">
-        <span class="fc-badge">{{currentFormat}}</span>
-        <span class="fc-arrow">→</span>
-        <span class="fc-badge fc-badge--target">{{targetLabel}}</span>
+      <div class="font-convert-flow" aria-hidden="true">
+        <span class="font-convert-badge">{{currentFormat}}</span>
+        <span class="font-convert-arrow">→</span>
+        <span class="font-convert-badge font-convert-badge--target">{{targetLabel}}</span>
       </div>
-      <p class="fc-note">{{note}}</p>
-      {{#if subsetNote}}<p class="fc-subset">{{subsetNote}}</p>{{/if}}
+      <p class="font-convert-note">{{note}}</p>
+      <fieldset class="font-convert-settings">
+        <legend>Conversion</legend>
+        <label>Convert to
+          <select class="field-select field-select--sm" data-input-id="target">
+            <option value="ttf" {{#if (eq target "ttf")}}selected{{/if}}>TrueType (.ttf)</option>
+            <option value="otf" {{#if (eq target "otf")}}selected{{/if}}>OpenType (.otf)</option>
+            <option value="woff" {{#if (eq target "woff")}}selected{{/if}}>Web font (.woff)</option>
+          </select>
+        </label>
+        <label>Glyphs
+          <select class="field-select field-select--sm" data-input-id="subset">
+            <option value="all" {{#if (eq subset "all")}}selected{{/if}}>Keep every glyph</option>
+            <option value="latin" {{#if (eq subset "latin")}}selected{{/if}}>Basic Latin</option>
+            <option value="western" {{#if (eq subset "western")}}selected{{/if}}>Western European</option>
+            <option value="text" {{#if (eq subset "text")}}selected{{/if}}>Only the characters I type</option>
+          </select>
+        </label>
+        {{#if (eq subset "text")}}
+          <label>Characters to keep<textarea class="field-input" data-input-id="characters" maxlength="5000" rows="3">{{characters}}</textarea></label>
+        {{/if}}
+        {{#if convertible}}<button type="button" class="btn btn--primary" data-export-file data-busy-label="Converting…">Download {{targetLabel}}</button>{{/if}}
+      </fieldset>
+      {{#if subsetNote}}<p class="font-convert-subset">{{subsetNote}}</p>{{/if}}
       {{#if details}}
-        <dl class="fc-details">
+        <dl class="font-convert-details">
           {{#each details}}
-            <div class="fc-row"><dt>{{label}}</dt><dd>{{value}}</dd></div>
+            <div class="font-convert-row"><dt>{{label}}</dt><dd>{{value}}</dd></div>
           {{/each}}
         </dl>
       {{/if}}
-      {{#if detailsNote}}<p class="fc-note">{{detailsNote}}</p>{{/if}}
+      {{#if detailsNote}}<p class="font-convert-note">{{detailsNote}}</p>{{/if}}
     </div>
   {{/if}}
 </div>

@@ -49,8 +49,10 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
     <div class="platform-layout data-view">
       <header class="plat-header">
         <h1 class="plat-title">${t('Spreadsheet')}</h1>
-        <p class="plat-sub">${t('Open, read and edit a spreadsheet on your device - no internet, no Excel needed. Nothing is uploaded.')}</p>
-        <a class="btn" href="#/compare?mode=table">${t('Compare table files')}</a>
+        <div class="plat-header-text">
+          <p class="plat-sub">${t('Open, read and edit a spreadsheet on your device - no internet, no Excel needed. Nothing is uploaded.')}</p>
+          <a class="btn" href="#/compare?mode=table">${t('Compare table files')}</a>
+        </div>
       </header>
       <div class="data-drop" data-drop tabindex="0" role="button" aria-label="${t('Drop a spreadsheet to open')}">
         <p>${t('Drop an .xlsx, .csv, .tsv or .json here, or choose one.')}</p>

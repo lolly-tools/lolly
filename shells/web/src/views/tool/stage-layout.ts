@@ -137,8 +137,16 @@ export function fitCanvas(tview: ToolViewCtx): void {
   // overlay is inset to the stage's padding box, so padding would drag the toolbars in with
   // it); justify-content:center then honours the margins, floating the canvas into the band.
   const cs = getComputedStyle(stageEl);
-  const reserveTop = stageSideReserve(cs, 'top');
-  const reserveBottom = stageBottomReserve(cs);
+  const hud = stageEl.querySelector<HTMLElement>('.stage-nav')?.getBoundingClientRect();
+  const hudReserve = window.matchMedia('(max-width: 640px)').matches && hud?.width && hud.height
+    ? Math.max(0, hud.bottom - stageRect.top - topPad)
+    : 0;
+  const reserveTop = Math.max(stageSideReserve(cs, 'top'), hudReserve);
+  const pill = stageEl.parentElement?.querySelector<HTMLElement>('.render-pill')?.getBoundingClientRect();
+  const pillReserve = pill?.width && pill.height && pill.left < stageRect.right && pill.right > stageRect.left
+    ? Math.max(0, stageRect.bottom - pill.top)
+    : 0;
+  const reserveBottom = Math.max(stageBottomReserve(cs), pillReserve);
   // Left band: the free-canvas rail docks into a fixed-width left panel while the
   // timeline is open (see dockRailForTimeline). Same margin mechanism as top/bottom -
   // centring the margin box puts the canvas exactly centred in the remaining band.
