@@ -16,7 +16,10 @@
  * greedily across ZzFXM voice-channels (one note per channel per step). Notes are
  * shifted so the LOWEST note becomes ZzFXM note 1 (0/negative are rest/stop in
  * ZzFXM); the single voice's base frequency compensates, so absolute pitch is
- * preserved. Velocity/dynamics are dropped (v1).
+ * preserved. Velocity maps to ZzFXM's per-note attenuation (the fractional part of a
+ * note value): 127 is full level, lower velocities attenuate linearly, in steps of
+ * 0.01. Pass `velocity: false` to midiToSong for the flat level of v1. Release
+ * velocity, aftertouch, controllers and tempo changes are still dropped.
  *
  * Hardened for untrusted uploads: every offset is bounds-checked, malformed track
  * lengths are clamped to the buffer, and note count / step span are capped so a
@@ -37,7 +40,7 @@ export const MIDI_MAX_NOTES = 200_000;      // a real focus loop has hundreds; t
 export const MIDI_MAX_STEPS = 1 << 15;      // 32768 grid steps: caps per-voice array allocation
 export const MIDI_MAX_VOICES = 8;           // simultaneous ZzFXM channels; excess overlaps are dropped
 
-interface NoteEv { start: number; end: number; midi: number }
+interface NoteEv { start: number; end: number; midi: number; /** Note-on velocity, 1 to 127. */ velocity: number }
 
 export interface ParsedMidi { notes: NoteEv[]; division: number; bpm: number }
 
@@ -46,6 +49,8 @@ export interface MidiToSongOptions {
   name?: string;
   /** Grid resolution: steps per quarter note (4 = 16th-note grid). Default 4. */
   stepsPerQuarter?: number;
+  /** Map note velocity to ZzFXM attenuation (default true). False plays every note at full level. */
+  velocity?: boolean;
 }
 
 /** Read 4 bytes at `off` as an ASCII chunk tag ('MThd' / 'MTrk'). */
@@ -70,7 +75,7 @@ export function parseMidi(bytes: Uint8Array): ParsedMidi {
     const end = Math.min(p + len, bytes.length);   // clamp a bogus length to the real buffer
     let tick = 0;
     let status = 0;
-    const active = new Map<number, number[]>(); // (channel<<8|note) → stack of start ticks
+    const active = new Map<number, { tick: number; vel: number }[]>(); // (channel<<8|note) → stack of starts
 
     while (p < end && notes.length < MIDI_MAX_NOTES) {
       let delta = 0, b: number;
@@ -97,10 +102,13 @@ export function parseMidi(bytes: Uint8Array): ParsedMidi {
           const note = bytes[p++] ?? 0, vel = bytes[p++] ?? 0;
           const key = (ch << 8) | note;
           if (hi === 0x90 && vel > 0) {
-            (active.get(key) ?? active.set(key, []).get(key)!).push(tick);
+            (active.get(key) ?? active.set(key, []).get(key)!).push({ tick, vel });
           } else {
             const stack = active.get(key);
-            if (stack && stack.length) notes.push({ start: stack.shift()!, end: tick, midi: note });
+            if (stack && stack.length) {
+              const on = stack.shift()!;
+              notes.push({ start: on.tick, end: tick, midi: note, velocity: on.vel });
+            }
           }
         } else if (hi === 0xc0 || hi === 0xd0) { p += 1; } else { p += 2; }
       }
@@ -129,8 +137,13 @@ export function midiToSong(parsed: ParsedMidi, opts: MidiToSongOptions = {}): Zz
   const piano = [...PIANO];
   piano[2] = baseFreq;
 
+  // ZzFXM reads the fractional part of a note as attenuation (0 = full level). Capped at
+  // 0.99 so a quiet note never reads as a whole-number step up.
+  const attenuation = (vel: number): number =>
+    opts.velocity === false ? 0 : Math.min(0.99, Math.round((1 - Math.max(1, Math.min(127, vel)) / 127) * 100) / 100);
+
   const events = notes
-    .map((n) => ({ s: quant(n.start), e: Math.max(quant(n.start) + 1, quant(n.end)), z: n.midi - K }))
+    .map((n) => ({ s: quant(n.start), e: Math.max(quant(n.start) + 1, quant(n.end)), z: n.midi - K + attenuation(n.velocity) }))
     .filter((ev) => ev.s < MIDI_MAX_STEPS)       // drop notes past the step cap (hostile/huge file)
     .sort((a, b) => a.s - b.s || b.z - a.z);
   if (!events.length) throw new Error('no notes in MIDI');

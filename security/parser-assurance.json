@@ -631,6 +631,19 @@
         "notes": "Header states the hardening explicitly: every offset bounds-checked, malformed track lengths clamped to the buffer, note count and step span capped."
       }
     },
+    "engine/src/smf.ts": {
+      "family": "Audio, video and animation",
+      "fuzzTargets": [
+        "smf"
+      ],
+      "details": {
+        "inputSource": "a `.mid` a user uploaded or opened, read by the lossless Standard MIDI File reader",
+        "bounds": "`SMF_LIMITS`: 64 MiB input, 4096 tracks, 4096 unknown chunks, 1,000,000 events, 4 MiB per meta or sysex payload; variable-length quantities are at most four bytes",
+        "directTests": "`tests/smf.test.ts`, `tests/smf-corpus.test.ts`",
+        "fuzzCoverage": "`smf` (every accepted input must write back to the same bytes; every refusal must be an `SmfError`)",
+        "notes": "Chunk lengths past the end of the file are refused rather than clamped, and a meta or sysex event cancels running status, so a malformed file fails with a code and a byte offset."
+      }
+    },
     "engine/src/wav.ts": {
       "family": "Audio, video and animation",
       "fuzzTargets": [

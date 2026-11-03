@@ -342,6 +342,10 @@ export {
   parseMidi, midiToSong, midiToZzfxm,
   MIDI_MAX_NOTES, MIDI_MAX_STEPS, MIDI_MAX_VOICES,
 } from './midi.ts';
+export { readSmf, writeSmf, smfTimeDivision, smfTempo, smfTimeSignature, smfKeySignature, smfText, smfTextEvent, smfTempoEvent, smfTimeSignatureEvent, smfKeySignatureEvent, smfEndOfTrack, SmfError, SMF_LIMITS, SMF_MAX_VLQ, } from './smf.ts';
+export type { SmfFile, SmfHeader, SmfEvent, SmfChannelEvent, SmfMetaEvent, SmfSysexEvent, SmfTrackChunk, SmfUnknownChunk, SmfLimits, SmfErrorCode, SmfWriteOptions, SmfTimeDivision, SmfChannelType, } from './smf.ts';
+export { notesToSmfFile, notesToMidiBytes, gmProgramFor, looksPercussive, voiceChannel, velocityToMidi } from './smf-export.ts';
+export type { MidiNote, MidiVoiceSpec, MidiExportOptions } from './smf-export.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
 // The seed → spec draw behind `zzfxm:<seed>`. Engine-side so every shell composes
 // the SAME song from one id; the draw order is a frozen contract (see the fn).

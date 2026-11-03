@@ -32,6 +32,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - svg-readers   : colour/layer/custom-geometry/path readers over one hostile SVG string
  *   - keyframes     : parse/normalise/evaluate the URL-mode `kf` wire grammar
  *   - midi          : Standard MIDI event walker plus note-to-pattern mapping
+ *   - smf           : lossless Standard MIDI File reader, then the writer must give the same bytes back
  *   - zzfxm         : guarded procedural-song object validation and PCM rendering
  *   - rondo-source  : rondocode song files and share links (base64url + dictionary DEFLATE)
  *   - rondo-staged  : the validator between the rondocode vm and the DSP (packages/rondo)
@@ -62,7 +63,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
 import { storeZip } from '../../engine/src/zip.ts';
 import { inspectFont, glyphsForText } from '../../engine/src/font-inspect.ts';
 import { sfntToWoff } from '../../engine/src/font-convert.ts';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { readEmojiPack } from '../../engine/src/emoji-pack.ts';
 import { prepareEmojiSvg, emojiSvgMarkup } from '../../engine/src/emoji-svg.ts';
 import { emojiGraphemes, segmentEmojiText } from '../../engine/src/emoji-segment.ts';
@@ -145,6 +146,7 @@ import { parseSampleTimes, sequenceSampleTimes } from '../../engine/src/sequence
 import { parseMotionParams } from '../../engine/src/motion-sampling.ts';
 import { validRequest, validateNegotiation, validateHttpHeaders, allowedOrigin } from '../../services/mcp/src/negotiation.ts';
 import { midiToSong, parseMidi } from '../../engine/src/midi.ts';
+import { readSmf, writeSmf, SmfError } from '../../engine/src/smf.ts';
 import { renderZzfxm, type ZzfxSong } from '../../engine/src/zzfxm.ts';
 import { packRadiance, parseRadianceHeader, readRadiance } from '../../engine/src/radiance.ts';
 import { assembleSealMessage, parseSealRecords } from '../../engine/src/seal.ts';
@@ -1596,6 +1598,23 @@ export const midiTarget: FuzzTarget = {
   },
 };
 
+export const smfTarget: FuzzTarget = {
+  name: 'smf',
+  async seeds() {
+    const dir = new URL('../fixtures/smf/', import.meta.url);
+    return readdirSync(dir).filter((f) => f.endsWith('.mid')).map((f) => new Uint8Array(readFileSync(new URL(f, dir))));
+  },
+  async invoke(bytes) {
+    let file;
+    try { file = readSmf(bytes, { maxBytes: 1 << 20, maxEvents: 100_000 }); } catch (e) {
+      if (e instanceof SmfError) throw e;
+      throw new Error(`readSmf threw a non-SmfError: ${String(e)}`);
+    }
+    const back = writeSmf(file);
+    if (back.length !== bytes.length || back.some((b, i) => b !== bytes[i])) throw new Error('SMF read then write did not give the same bytes');
+  },
+};
+
 export const zzfxmTarget: FuzzTarget = {
   name: 'zzfxm',
   async seeds() {
@@ -2440,7 +2459,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
-  svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
+  svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
   geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget, imageTraceTarget,
 ];

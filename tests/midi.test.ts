@@ -90,3 +90,14 @@ test('a bogus track length is clamped, not trusted (no hang)', () => {
 test('rejects SMPTE time division (only PPQ is mapped)', () => {
   assert.throws(() => midiToSong(parseMidi(smf([0x00, 0x90, 0x3c, 0x64, 0x60, 0x80, 0x3c, 0x00, ...EOT], 0xe250))), /SMPTE/);
 });
+
+test('velocity maps to ZzFXM attenuation unless turned off', () => {
+  const quiet = smf([0x00, 0x90, 0x3c, 0x20, 0x60, 0x80, 0x3c, 0x00, ...EOT]);
+  const loud = smf([0x00, 0x90, 0x3c, 127, 0x60, 0x80, 0x3c, 0x00, ...EOT]);
+  const cell = (b: Uint8Array, o = {}): number => midiToZzfxm(b, o).patterns[0]![0]![2]!;
+  assert.equal(cell(loud), 1, 'full velocity is a whole number');
+  assert.ok(cell(quiet) > 1 && cell(quiet) < 2, 'quiet notes carry a fractional attenuation');
+  assert.equal(Math.floor(cell(quiet)), 1, 'pitch is unchanged by velocity');
+  assert.equal(cell(quiet, { velocity: false }), 1, 'opt out gives the flat level');
+  assert.equal(parseMidi(quiet).notes[0]!.velocity, 0x20);
+});
