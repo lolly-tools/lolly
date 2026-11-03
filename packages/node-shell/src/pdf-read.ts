@@ -72,12 +72,12 @@
  */
 
 import {
-  PDFDocument, PDFName, PDFDict, PDFArray, PDFNumber, PDFRef, PDFRawStream, decodePDFRawStream,
+  PDFDocument, PDFName, PDFDict, PDFArray, PDFBool, PDFNumber, PDFRef, PDFRawStream, decodePDFRawStream,
 } from 'pdf-lib';
 import type { PDFContext, PDFObject } from 'pdf-lib';
 import { Inflate, unzlibSync, Unzlib } from 'fflate';
 import {
-  interpretPdfPage, parseToUnicode, toUnicodeDecoder, pdfWordBreak, PDF_MAP_MAX_PAGE_NODES, PDF_WORD_GAP_EM,
+  interpretPdfPage, parseToUnicode, toUnicodeDecoder, pdfWordBreak, PDF_MAP_MAX_PAGE_NODES, PDF_MAP_MAX_GLYPH_NODES, PDF_WORD_GAP_EM,
   type PdfNode, type PdfFontInfo, type PdfXObject, type PdfShading, type PdfPattern, type PdfSoftMaskDef,
   type PdfGradientStop,
 } from '../../../engine/src/pdf-map.ts';
@@ -106,6 +106,12 @@ export interface PdfImageDesc {
    *  decode time. How print engines encode blurred shadows and alpha rasters:
    *  without it the base decodes as an opaque plate. */
   smask?: PdfImageDesc;
+  /** `/ImageMask true`: one bit a pixel, painting where the bit is 0 unless `/Decode` is `[1 0]`. */
+  imageMask?: boolean;
+  /** `/Decode` begins with 1. */
+  decodeInverted?: boolean;
+  /** The stream carries a `/Mask` entry (a colour key or a stencil). */
+  hasMask?: boolean;
 }
 
 /** The fully populated resource descriptor the engine interpreter takes. */
@@ -472,6 +478,11 @@ function makeImageDesc(ctx: PDFContext, ref: PdfRef, depth = 0): PdfImageDesc {
     bpc: numOf(ctx, getKey(ctx, ref, 'BitsPerComponent')) || 8,
     predictor: numOf(ctx, getKey(ctx, dictOf(ctx, getKey(ctx, ref, 'DecodeParms')), 'Predictor')),
   };
+  const maskFlag = ctx.lookup(getKey(ctx, ref, 'ImageMask') as PDFObject | undefined);
+  if (maskFlag instanceof PDFBool && maskFlag.asBoolean()) desc.imageMask = true;
+  const decode = ctx.lookup(getKey(ctx, ref, 'Decode') as PDFObject | undefined);
+  if (decode instanceof PDFArray && numOf(ctx, decode.get(0)) === 1) desc.decodeInverted = true;
+  if (getKey(ctx, ref, 'Mask')) desc.hasMask = true;
   if (depth === 0) {
     const smaskRef = getKey(ctx, ref, 'SMask');
     if (smaskRef && ctx.lookup(smaskRef as PDFObject | undefined) instanceof PDFRawStream) {
@@ -1003,6 +1014,8 @@ export interface InterpretPdfPageOpts {
    * streams, and every form, Type3 procedure and ToUnicode map the walk decodes.
    */
   maxContentChars?: number;
+  /** One text node per shown glyph, for geometry checks (see `PdfPageInput.glyphRuns`). */
+  glyphRuns?: boolean;
 }
 
 /** Thrown when a page's content is over the caller's budget, carrying the size so the caller can report it. */
@@ -1054,11 +1067,12 @@ export function interpretPdfDocPage(doc: PDFDocument, pageIndex: number, opts: I
     ocgs: resources.ocgs,
     shadings: resources.shadings,
     patterns: resources.patterns,
+    ...(opts.glyphRuns ? { glyphRuns: true } : {}),
     // The interpreter reports approximations and drops as (code, detail); the caller owns the wording.
     onWarn: (code, detail) => diag(detail ? `${code} (${detail})` : code),
   });
   // Measured before the marker nodes are stripped: a marker takes a place under the ceiling too.
-  const truncated = raw.length >= PDF_MAP_MAX_PAGE_NODES;
+  const truncated = raw.length >= (opts.glyphRuns ? PDF_MAP_MAX_GLYPH_NODES : PDF_MAP_MAX_PAGE_NODES);
 
   const hidden = new Set<PdfNode>();
   if (invisible?.shows) {

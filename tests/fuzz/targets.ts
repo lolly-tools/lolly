@@ -2264,6 +2264,31 @@ export const pdfA11yTarget: FuzzTarget = {
     try { summarisePdfAccessibility(await checkPdfAccessibility(bytes)); } catch (error) { if (!(error instanceof PdfAccessibilityError)) throw error; }
   },
 };
+// Keep text PDF redaction (packages/node-shell/wasm/pdf-a11y, operation 2, then the shell's own
+// check): rewrites an arbitrary user PDF. Contract: a typed PdfKeepTextError refusal or a result
+// the shell's check accepted; never a trap, a hang, or an answer without bytes. Seeds are
+// generated PDFs with text, pictures and drawings, mutated with the boxes held fixed.
+export const pdfRedactKeepTarget: FuzzTarget = {
+  name: 'pdf-redact-keep',
+  async seeds() {
+    const { makeCorpusPdf } = await import('../lib-keep-text-corpus.ts');
+    return [(await makeCorpusPdf(5)).bytes, (await makeCorpusPdf(9)).bytes];
+  },
+  async invoke(bytes) {
+    const { loadPdfA11yKernel } = await import('../../packages/node-shell/src/pdf-a11y-node.ts');
+    const { PdfKeepTextError } = await import('../../packages/node-shell/src/pdf-a11y.ts');
+    const { redactKeepText } = await import('../../packages/node-shell/src/pdf-redact-keep.ts');
+    const bars = [{ page: 1, x: 20, y: 40, w: 120, h: 30 }, { page: 1, x: 100, y: 200, w: 90, h: 60 }];
+    try {
+      const run = await redactKeepText(await loadPdfA11yKernel(), bytes, { bars } as never);
+      if (!(run.bytes instanceof Uint8Array) || run.bytes.length === 0) throw new Error('an accepted result had no bytes');
+    } catch (error) {
+      if (!(error instanceof PdfKeepTextError)) throw error;
+      // A trap is reported as a refusal; the fuzzer must still see it as the crash it is.
+      if (error.cause instanceof WebAssembly.RuntimeError) throw error.cause;
+    }
+  },
+};
 // INDD to IDML converter (packages/node-shell/wasm/indd): the most untrusted binary the Design
 // import touches. Contract: a typed InddError refusal or a conversion with warnings; never a
 // trap, hang or output over the declared 128 MiB limit. Seeds are a signature-only page set and,
@@ -2585,7 +2610,7 @@ export const captionsTtmlTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, inddTarget, cameraRawTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget, inpaintTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, pdfRedactKeepTarget, inddTarget, cameraRawTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget, inpaintTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,

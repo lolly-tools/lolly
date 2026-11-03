@@ -1045,12 +1045,12 @@
     "PdfRedactOpts": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "a1e8e5d56867b8b2df1d8972b24e2d1df74ed30a7c794e42a6c44f4447dc8dec"
+      "sha256": "8019fd626f06752bb286f7650efa7ca3d5f1b46db9bf4cc0ebbbc2851e763a67"
     },
     "PdfRedactResult": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "9a8a6ab758e7749d9e3f758510b273d6c43edccbb8abd810b07c68911789b529"
+      "sha256": "a2e7c1a11f5435a9ef6912d8c8d3ada753bd2ffb21c7eddfeef6761e2be7ef7b"
     },
     "PdfPageSvg": {
       "module": "pdf.ts",

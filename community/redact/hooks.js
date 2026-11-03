@@ -3021,6 +3021,7 @@ async function exportFile({ model, host }) {
   const bars = parseBars(inputs.bars);
   const quantise = inputs.quantise !== false;
   const grayscale = Boolean(inputs.grayscale);
+  const keepText = inputs.keepText === true;
   // Resolved once, waited for properly (this hook's budget is 10s): the burned
   // mark must never fall back to the neutral ink just because the brand tokens
   // were slow, or the export would not match the preview the user approved.
@@ -3065,6 +3066,7 @@ async function exportFile({ model, host }) {
       label: mark.label,
       labelColor: mark.labelInk,
       labelImage: mark.labelImage,
+      keepText,
     });
     if (!res || !res.bytes) throw new Error('PDF redaction returned no output. Nothing was downloaded.');
     // A bar aimed at a page the document does not have is silently skipped by
@@ -3079,6 +3081,11 @@ async function exportFile({ model, host }) {
       throw new Error(`Verification failed: ${res.warnings.join(' ')} Nothing was downloaded.`);
     }
     let out = res.bytes;
+    // Keep text is opt-in. A shell that does not know it flattens instead, which is safe but is
+    // not what was asked for, so say so rather than ship pictures as if the text were kept.
+    if (keepText && res.mode !== 'keep-text') {
+      throw new Error('This app cannot keep the text of a PDF while redacting it. Turn Keep text off to flatten each page. Nothing was downloaded.');
+    }
 
     // The gate runs on the UNSIGNED rebuild - a fresh Content Credential
     // legitimately appends an incremental update with its own %%EOF and /C2PA
@@ -3105,8 +3112,12 @@ async function exportFile({ model, host }) {
       // the gate. Every other label (Info fields, XMP, attachments, scripts,
       // annotations, layers, signatures) cannot exist in an image-only rebuild
       // and stays a hard failure.
+      // A Keep text result is a normal PDF, so it legitimately has fonts, links and layers. The
+      // shell has already checked what sits under the boxes; here only the file's own
+      // personal data and attachments must be gone.
+      const personal = /^(Author|Created with|Keywords|PDF producer|Subject|Title)$|attach|script|xmp|metadata/i;
       const leaks = (recheck && Array.isArray(recheck.findings) ? recheck.findings : [])
-        .filter((r) => r && r.label !== 'Pages');
+        .filter((r) => r && r.label !== 'Pages' && (!keepText || personal.test(String(r.label))));
       if (leaks.length) {
         throw new Error(`Verification failed: the rebuilt PDF still carries ${leaks[0].label}. Nothing was downloaded.`);
       }

@@ -149,6 +149,7 @@
     "./image-trace.wasm": "./wasm/image-trace/image-trace.wasm",
     "./pdf-a11y": "./src/pdf-a11y.ts",
     "./pdf-a11y-node": "./src/pdf-a11y-node.ts",
+    "./pdf-redact-keep": "./src/pdf-redact-keep.ts",
     "./pdf-a11y.wasm": "./wasm/pdf-a11y/pdf-a11y.wasm",
     "./dxf": "./src/dxf.ts",
     "./dxf-node": "./src/dxf-node.ts",

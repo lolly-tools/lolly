@@ -115,7 +115,7 @@ const fileRef = (name: string, mime: string, bytes: Uint8Array): any =>
   ({ __file: true, name, mime, size: bytes.length, bytes, url: null });
 
 // A model in the shape hooks receive: [{id, value}] for every declared input.
-function modelFor(source: any, over: Record<string, any> = {}): any[] {
+function baseModelFor(source: any, over: Record<string, any> = {}): any[] {
   const values: Record<string, any> = {
     source, bars: [], quantise: true, grayscale: false, svgVector: false, resign: false,
     // The manifest defaults, so a test exercises what a user actually gets:
@@ -525,7 +525,9 @@ test('redact: SVG with no usable size refuses vector mode with guidance', async 
 const PDF_SRC = svgBytes('%PDF-1.4\n1 0 obj\nendobj\n%%EOF\n');
 const PDF_OUT = svgBytes('%PDF-1.7\nrebuilt image-only body\n%%EOF\n');
 
-function pdfHost(over: any = {}): any {
+const modelFor = baseModelFor;
+const pdfHost = basePdfHost;
+function basePdfHost(over: any = {}): any {
   return {
     ...BARE_HOST,
     pdf: {
@@ -537,138 +539,155 @@ function pdfHost(over: any = {}): any {
   };
 }
 
-test('redact: PDF export ships the redacted bytes once every gate passes', async () => {
-  const hooks = loadHooks();
-  const res = await hooks.exportFile({
-    model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
-    host: pdfHost(),
-  });
-  assert.equal(res.mime, 'application/pdf');
-  assert.equal(res.filename, 'doc-redacted.pdf');
-  assert.deepEqual(Array.from(res.bytes), Array.from(PDF_OUT));
-});
-
-test('redact: a bar aimed past the last PDF page fails the export instead of vanishing', async () => {
-  const hooks = loadHooks();
-  await assert.rejects(
-    () => hooks.exportFile({
-      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 3, x: 10, y: 10, w: 40, h: 12 }] }),
+// Every PDF export scenario below runs twice: the default flattening mode and Keep text. The
+// Keep text run gives the hooks a host that answers like the real one (mode 'keep-text').
+for (const keepText of [false, true]) {
+const label = keepText ? 'keep text' : 'flatten';
+const modelFor = (source: any, over: Record<string, any> = {}): any[] => baseModelFor(source, { keepText, ...over });
+const pdfHost = (over: any = {}): any => {
+  const host = basePdfHost(over);
+  const inner = host.pdf.redact;
+  host.pdf = { ...host.pdf, redact: async (bytes: Uint8Array, opts: any) => {
+    assert.equal(Boolean(opts.keepText), keepText, 'the hook passes the Keep text choice to the host');
+    const res = await inner(bytes, opts);
+    return keepText ? { mode: 'keep-text', ...res } : res;
+  } };
+  return host;
+};
+  test(`redact (${label}): PDF export ships the redacted bytes once every gate passes`, async () => {
+    const hooks = loadHooks();
+    const res = await hooks.exportFile({
+      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
       host: pdfHost(),
-    }),
-    /Verification failed: a bar targets page 3 but the PDF has only 2 pages\. Nothing was downloaded\./
-  );
-});
-
-test('redact: a page-render warning from the bridge fails the export closed', async () => {
-  const hooks = loadHooks();
-  await assert.rejects(
-    () => hooks.exportFile({
-      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
-      host: pdfHost({ pdf: { redact: async () => ({ bytes: PDF_OUT, pages: 2, warnings: ['Page 2 could not be rendered. It ships as a blank page with its bars burned in.'] }) } }),
-    }),
-    /Verification failed: Page 2 could not be rendered\..*Nothing was downloaded\./
-  );
-});
-
-test('redact: analyzer findings on the rebuilt PDF fail the export', async () => {
-  const hooks = loadHooks();
-  await assert.rejects(
-    () => hooks.exportFile({
-      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
-      host: pdfHost({ pdf: { analyze: async () => ({ findings: [{ label: 'Author', detail: 'Jane', tone: 'warn' }] }), redact: async () => ({ bytes: PDF_OUT, pages: 2 }) } }),
-    }),
-    /Verification failed: the rebuilt PDF still carries Author\. Nothing was downloaded\./
-  );
-});
-
-test('redact: the structural Pages finding alone never fails the gate', async () => {
-  // The analyzer inventories the page count of EVERY valid PDF - a rebuild can
-  // never scan clean of it, so treating it as a leak made PDF export always fail.
-  const hooks = loadHooks();
-  const res = await hooks.exportFile({
-    model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
-    host: pdfHost({ pdf: { analyze: async () => ({ findings: [{ label: 'Pages', detail: '2 pages', tone: '' }] }) } }),
+    });
+    assert.equal(res.mime, 'application/pdf');
+    assert.equal(res.filename, 'doc-redacted.pdf');
+    assert.deepEqual(Array.from(res.bytes), Array.from(PDF_OUT));
   });
-  assert.deepEqual(Array.from(res.bytes), Array.from(PDF_OUT));
-});
 
-// ─── the gate against the REAL analyzer (the shipped false-positive) ─────────
-
-// A 1x1 baseline JPEG - enough for pdf-lib's embedJpg to parse dimensions.
-const TINY_JPEG = new Uint8Array(Buffer.from(
-  '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a'
-  + 'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA'
-  + 'AAAAAAAAAAAAB//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AN//Z', 'base64'));
-
-test('redact: a real rebuild through the real analyzer passes the gate', async () => {
-  // The exact pipeline Andy hit in the browser: buildImagePdf output re-scanned
-  // by analyzePdf. The only finding is the structural page count, which must pass.
-  const { buildImagePdf } = await import('../shells/web/src/bridge/pdf-redact-core.ts');
-  const { analyzePdf } = await import('../shells/web/src/bridge/pdf.ts');
-  const rebuilt = await buildImagePdf([{ jpeg: TINY_JPEG, widthPt: 612, heightPt: 792 }]);
-  const hooks = loadHooks();
-  const res = await hooks.exportFile({
-    model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
-    host: pdfHost({ pdf: { analyze: analyzePdf, redact: async () => ({ bytes: rebuilt, pages: 1 }) } }),
+  test(`redact (${label}): a bar aimed past the last PDF page fails the export instead of vanishing`, async () => {
+    const hooks = loadHooks();
+    await assert.rejects(
+      () => hooks.exportFile({
+        model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 3, x: 10, y: 10, w: 40, h: 12 }] }),
+        host: pdfHost(),
+      }),
+      /Verification failed: a bar targets page 3 but the PDF has only 2 pages\. Nothing was downloaded\./
+    );
   });
-  assert.equal(res.mime, 'application/pdf');
-  assert.deepEqual(Array.from(res.bytes), Array.from(rebuilt));
-});
 
-test('redact: the real analyzer still fails the gate on genuine metadata leaks', async () => {
-  // A "rebuild" that carries Info metadata - the class the gate exists to stop.
-  const { PDFDocument } = await import('pdf-lib');
-  const { analyzePdf } = await import('../shells/web/src/bridge/pdf.ts');
-  const doc = await PDFDocument.create();
-  doc.addPage([612, 792]);
-  doc.setAuthor('Jane Leak');
-  const leaky = await doc.save({ useObjectStreams: false });
-  const hooks = loadHooks();
-  await assert.rejects(
-    () => hooks.exportFile({
+  test(`redact (${label}): a page-render warning from the bridge fails the export closed`, async () => {
+    const hooks = loadHooks();
+    await assert.rejects(
+      () => hooks.exportFile({
+        model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+        host: pdfHost({ pdf: { redact: async () => ({ bytes: PDF_OUT, pages: 2, warnings: ['Page 2 could not be rendered. It ships as a blank page with its bars burned in.'] }) } }),
+      }),
+      /Verification failed: Page 2 could not be rendered\..*Nothing was downloaded\./
+    );
+  });
+
+  test(`redact (${label}): analyzer findings on the rebuilt PDF fail the export`, async () => {
+    const hooks = loadHooks();
+    await assert.rejects(
+      () => hooks.exportFile({
+        model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+        host: pdfHost({ pdf: { analyze: async () => ({ findings: [{ label: 'Author', detail: 'Jane', tone: 'warn' }] }), redact: async () => ({ bytes: PDF_OUT, pages: 2 }) } }),
+      }),
+      /Verification failed: the rebuilt PDF still carries Author\. Nothing was downloaded\./
+    );
+  });
+
+  test(`redact (${label}): the structural Pages finding alone never fails the gate`, async () => {
+    // The analyzer inventories the page count of EVERY valid PDF - a rebuild can
+    // never scan clean of it, so treating it as a leak made PDF export always fail.
+    const hooks = loadHooks();
+    const res = await hooks.exportFile({
       model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
-      host: pdfHost({ pdf: { analyze: analyzePdf, redact: async () => ({ bytes: leaky, pages: 1 }) } }),
-    }),
-    /Verification failed: the rebuilt PDF still carries (?!Pages)\S.*\. Nothing was downloaded\./
-  );
-});
+      host: pdfHost({ pdf: { analyze: async () => ({ findings: [{ label: 'Pages', detail: '2 pages', tone: '' }] }) } }),
+    });
+    assert.deepEqual(Array.from(res.bytes), Array.from(PDF_OUT));
+  });
 
-test('redact: resign calls host.c2pa.sign with the contract shape and ships its return value', async () => {
-  const hooks = loadHooks();
-  const SIGNED = svgBytes('%PDF-1.7\nrebuilt image-only body\n%%EOF\nsigned incremental update\n%%EOF\n');
-  let seen: any = null;
-  const host = pdfHost({
-    c2pa: {
-      sign: async (bytes: Uint8Array, format: string, opts: any) => {
-        seen = { bytes, format, opts };
-        return SIGNED;
+  // ─── the gate against the REAL analyzer (the shipped false-positive) ─────────
+
+  // A 1x1 baseline JPEG - enough for pdf-lib's embedJpg to parse dimensions.
+  const TINY_JPEG = new Uint8Array(Buffer.from(
+    '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a'
+    + 'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA'
+    + 'AAAAAAAAAAAAB//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AN//Z', 'base64'));
+
+  test(`redact (${label}): a real rebuild through the real analyzer passes the gate`, async () => {
+    // The exact pipeline Andy hit in the browser: buildImagePdf output re-scanned
+    // by analyzePdf. The only finding is the structural page count, which must pass.
+    const { buildImagePdf } = await import('../shells/web/src/bridge/pdf-redact-core.ts');
+    const { analyzePdf } = await import('../shells/web/src/bridge/pdf.ts');
+    const rebuilt = await buildImagePdf([{ jpeg: TINY_JPEG, widthPt: 612, heightPt: 792 }]);
+    const hooks = loadHooks();
+    const res = await hooks.exportFile({
+      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+      host: pdfHost({ pdf: { analyze: analyzePdf, redact: async () => ({ bytes: rebuilt, pages: 1 }) } }),
+    });
+    assert.equal(res.mime, 'application/pdf');
+    assert.deepEqual(Array.from(res.bytes), Array.from(rebuilt));
+  });
+
+  test(`redact (${label}): the real analyzer still fails the gate on genuine metadata leaks`, async () => {
+    // A "rebuild" that carries Info metadata - the class the gate exists to stop.
+    const { PDFDocument } = await import('pdf-lib');
+    const { analyzePdf } = await import('../shells/web/src/bridge/pdf.ts');
+    const doc = await PDFDocument.create();
+    doc.addPage([612, 792]);
+    doc.setAuthor('Jane Leak');
+    const leaky = await doc.save({ useObjectStreams: false });
+    const hooks = loadHooks();
+    await assert.rejects(
+      () => hooks.exportFile({
+        model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+        host: pdfHost({ pdf: { analyze: analyzePdf, redact: async () => ({ bytes: leaky, pages: 1 }) } }),
+      }),
+      /Verification failed: the rebuilt PDF still carries (?!Pages)\S.*\. Nothing was downloaded\./
+    );
+  });
+
+  test(`redact (${label}): resign calls host.c2pa.sign with the contract shape and ships its return value`, async () => {
+    const hooks = loadHooks();
+    const SIGNED = svgBytes('%PDF-1.7\nrebuilt image-only body\n%%EOF\nsigned incremental update\n%%EOF\n');
+    let seen: any = null;
+    const host = pdfHost({
+      c2pa: {
+        sign: async (bytes: Uint8Array, format: string, opts: any) => {
+          seen = { bytes, format, opts };
+          return SIGNED;
+        },
       },
-    },
-  });
-  const res = await hooks.exportFile({
-    model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }], resign: true }),
-    host,
-  });
-  assert.ok(seen, 'sign was called');
-  assert.ok(seen.bytes instanceof Uint8Array, 'sign receives bytes');
-  assert.equal(seen.format, 'pdf', 'sign receives the format KEY, not an options object');
-  assert.equal(typeof seen.opts.description, 'string');
-  // The signed bytes ship verbatim - even though signing legitimately added a
-  // second %%EOF (the gate ran on the unsigned rebuild, before signing).
-  assert.deepEqual(Array.from(res.bytes), Array.from(SIGNED));
-});
-
-test('redact: a signer that throws fails the resign export visibly', async () => {
-  const hooks = loadHooks();
-  const host = pdfHost({ c2pa: { sign: async () => { throw new Error('No signing identity is available.'); } } });
-  await assert.rejects(
-    () => hooks.exportFile({
+    });
+    const res = await hooks.exportFile({
       model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }], resign: true }),
       host,
-    }),
-    /No signing identity is available\./
-  );
-});
+    });
+    assert.ok(seen, 'sign was called');
+    assert.ok(seen.bytes instanceof Uint8Array, 'sign receives bytes');
+    assert.equal(seen.format, 'pdf', 'sign receives the format KEY, not an options object');
+    assert.equal(typeof seen.opts.description, 'string');
+    // The signed bytes ship verbatim - even though signing legitimately added a
+    // second %%EOF (the gate ran on the unsigned rebuild, before signing).
+    assert.deepEqual(Array.from(res.bytes), Array.from(SIGNED));
+  });
+
+  test(`redact (${label}): a signer that throws fails the resign export visibly`, async () => {
+    const hooks = loadHooks();
+    const host = pdfHost({ c2pa: { sign: async () => { throw new Error('No signing identity is available.'); } } });
+    await assert.rejects(
+      () => hooks.exportFile({
+        model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }], resign: true }),
+        host,
+      }),
+      /No signing identity is available\./
+    );
+  });
+
+}
 
 // ─── exportFile: SVG vector mode geometry + housekeeping-attr fidelity ───────
 

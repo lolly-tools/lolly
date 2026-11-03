@@ -70,6 +70,11 @@ export async function pdfPages(bytes: Uint8Array, opts?: { maxPages?: number; pa
 
 /** host.pdf.redact - the rasterise-and-rebuild pass. See the module header. */
 export async function redactPdf(bytes: Uint8Array, opts: PdfRedactOpts): Promise<PdfRedactResult> {
+  if (opts?.keepText) {
+    const [{ loadPdfA11yKernel }, { redactKeepText }] = await Promise.all([import('./pdf-a11y-node.ts'), import('./pdf-redact-keep.ts')]);
+    const run = await redactKeepText(await loadPdfA11yKernel(), bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes), opts);
+    return { bytes: run.bytes, pages: run.pages, mode: 'keep-text' };
+  }
   const mod = await nodeCanvas();
   if (!mod) throw new Error('PDF redaction needs a canvas, which this install does not provide.');
   const input = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
