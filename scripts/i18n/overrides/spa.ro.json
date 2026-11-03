@@ -584,7 +584,11 @@
   "“{name}” is a {size} shared design{tool}. Opening it adds a new Project and {content}; it does not replace existing work.{pace}": "„{name}” este un design partajat de {size}{tool}. Deschiderea lui adaugă un proiect nou și {content}; nu înlocuiește lucrările existente.{pace}",
   "Card size": "Dimensiunea cardurilor",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Pe acest dispozitiv a fost adăugată o imagine sau un fișier. Rămâne pe acest dispozitiv, iar ceilalți nu vor vedea acel fișier.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Pe acest dispozitiv au fost adăugate {n} imagini sau fișiere. Rămân pe acest dispozitiv, iar ceilalți nu vor vedea acele fișiere.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "O imagine sau un fișier a fost adăugat pe acest dispozitiv. Rămâne pe acest dispozitiv, iar ceilalți nu vor vedea acel fișier.",
+    "few": "Pe acest dispozitiv au fost adăugate {n} imagini sau fișiere. Rămân pe acest dispozitiv, iar ceilalți nu vor vedea acele fișiere.",
+    "other": "Pe acest dispozitiv au fost adăugate {n} de imagini sau fișiere. Rămân pe acest dispozitiv, iar ceilalți nu vor vedea acele fișiere."
+  },
   "Check the version first": "Verifică mai întâi versiunea",
   "Copy team link": "Copiază linkul echipei",
   "Could not create the project. Try again.": "Proiectul nu a putut fi creat. Încearcă din nou.",
@@ -1175,7 +1179,11 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Toate elementele sunt salvate în proiectul partajat. Originalele locale sunt în Coșul de gunoi sau încă la locul lor.",
   "Your local items have not changed.": "Elementele tale locale nu s-au schimbat.",
   "1 item was saved to the shared project.": "1 element a fost salvat în proiectul partajat.",
-  "{n} items were saved to the shared project.": "{n} elemente au fost salvate în proiectul partajat.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} element a fost salvat în proiectul partajat.",
+    "few": "{n} elemente au fost salvate în proiectul partajat.",
+    "other": "{n} de elemente au fost salvate în proiectul partajat."
+  },
   "Wait for the current move to finish.": "Așteaptă să se termine mutarea în curs.",
   "You cannot save to that shared project.": "Nu poți salva în acel proiect partajat.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Toți cei care pot deschide {project} vor vedea aceste elemente. După ce fiecare element e salvat acolo, originalele locale merg în Coșul de gunoi, unde le poți restaura.",
@@ -1486,8 +1494,16 @@
   "file": "fișier",
   "samples": "eșantioane",
   "text": "text",
-  "{n} changes found": "S-au găsit {n} modificări",
-  "{n} pages differ": "{n} pagini diferă",
+  "{n} changes found": {
+    "one": "S-a găsit o modificare",
+    "few": "S-au găsit {n} modificări",
+    "other": "S-au găsit {n} de modificări"
+  },
+  "{n} pages differ": {
+    "one": "O pagină diferă",
+    "few": "{n} pagini diferă",
+    "other": "{n} de pagini diferă"
+  },
   "Draft": "Ciornă",
   "Draft quality": "Calitate ciornă",
   "Draft rule": "Regulă în ciornă",
@@ -1839,5 +1855,210 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț. Ține apăsat pentru Creion (Shift C) și tipul de spline",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț",
   "Recipients can change the inputs": "Destinatarii pot schimba intrările",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Oricine are linkul poate schimba intrările și poate obține o imagine nouă. Intrările blocate rămân așa cum au fost setate."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Oricine are linkul poate schimba intrările și poate obține o imagine nouă. Intrările blocate rămân așa cum au fost setate.",
+  "{count} entries": {
+    "one": "{count} intrare",
+    "few": "{count} intrări",
+    "other": "{count} de intrări"
+  },
+  "{count} files in this folder": {
+    "one": "{count} fișier în acest folder",
+    "few": "{count} fișiere în acest folder",
+    "other": "{count} de fișiere în acest folder"
+  },
+  "{n} assets": {
+    "one": "{n} resursă",
+    "few": "{n} resurse",
+    "other": "{n} de resurse"
+  },
+  "{n} assets found": {
+    "one": "{n} resursă găsită",
+    "few": "{n} resurse găsite",
+    "other": "{n} de resurse găsite"
+  },
+  "{n} capabilities match": {
+    "one": "{n} capabilitate se potrivește",
+    "few": "{n} capabilități se potrivesc",
+    "other": "{n} de capabilități se potrivesc"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} copie creată · selectată",
+    "few": "{n} copii create · selectate",
+    "other": "{n} de copii create · selectate"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} creație eliminată din Proiecte aici a rămas eliminată.",
+    "few": "{n} creații eliminate din Proiecte aici au rămas eliminate.",
+    "other": "{n} de creații eliminate din Proiecte aici au rămas eliminate."
+  },
+  "{n} embedded files": {
+    "one": "{n} fișier încorporat",
+    "few": "{n} fișiere încorporate",
+    "other": "{n} de fișiere încorporate"
+  },
+  "{n} external references": {
+    "one": "{n} referință externă",
+    "few": "{n} referințe externe",
+    "other": "{n} de referințe externe"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "Un fișier nu a putut fi arhivat și a fost lăsat deoparte",
+    "few": "{n} fișiere nu au putut fi arhivate și au fost lăsate deoparte",
+    "other": "{n} de fișiere nu au putut fi arhivate și au fost lăsate deoparte"
+  },
+  "{n} folders": {
+    "one": "{n} folder",
+    "few": "{n} foldere",
+    "other": "{n} de foldere"
+  },
+  "{n} font files": {
+    "one": "{n} fișier de font",
+    "few": "{n} fișiere de font",
+    "other": "{n} de fișiere de font"
+  },
+  "{n} images": {
+    "one": "{n} imagine",
+    "few": "{n} imagini",
+    "other": "{n} de imagini"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} imagine nu a putut fi restaurată (spațiu de stocare plin?)",
+    "few": "{n} imagini nu au putut fi restaurate (spațiu de stocare plin?)",
+    "other": "{n} de imagini nu au putut fi restaurate (spațiu de stocare plin?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "O imagine a rămas cu originalul - imaginile au un singur loc; folosește Taie ca să o muți",
+    "few": "{n} imagini au rămas cu originalul - imaginile au un singur loc; folosește Taie ca să le muți",
+    "other": "{n} de imagini au rămas cu originalul - imaginile au un singur loc; folosește Taie ca să le muți"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} câmp · se aplică fiecărui design",
+    "few": "{n} câmpuri · se aplică fiecărui design",
+    "other": "{n} de câmpuri · se aplică fiecărui design"
+  },
+  "{n} items": {
+    "one": "{n} element",
+    "few": "{n} elemente",
+    "other": "{n} de elemente"
+  },
+  "{n} items copied": {
+    "one": "{n} element copiat",
+    "few": "{n} elemente copiate",
+    "other": "{n} de elemente copiate"
+  },
+  "{n} items cut": {
+    "one": "{n} element tăiat",
+    "few": "{n} elemente tăiate",
+    "other": "{n} de elemente tăiate"
+  },
+  "{n} items moved": {
+    "one": "{n} element mutat",
+    "few": "{n} elemente mutate",
+    "other": "{n} de elemente mutate"
+  },
+  "{n} items pasted": {
+    "one": "{n} element lipit",
+    "few": "{n} elemente lipite",
+    "other": "{n} de elemente lipite"
+  },
+  "{n} keyframes": {
+    "one": "{n} cadru cheie",
+    "few": "{n} cadre cheie",
+    "other": "{n} de cadre cheie"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "few": "{n} logouri",
+    "other": "{n} de logouri"
+  },
+  "{n} marks found": {
+    "one": "{n} marcaj găsit",
+    "few": "{n} marcaje găsite",
+    "other": "{n} de marcaje găsite"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} element mai nou omis",
+    "few": "{n} elemente mai noi omise",
+    "other": "{n} de elemente mai noi omise"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "O creație a ta este un videoclip sau o animație",
+    "few": "{n} dintre creațiile tale sunt videoclipuri sau animații",
+    "other": "{n} dintre creațiile tale sunt videoclipuri sau animații"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} punct de control automat mai vechi omis",
+    "few": "{n} puncte de control automate mai vechi omise",
+    "other": "{n} de puncte de control automate mai vechi omise"
+  },
+  "{n} pages": {
+    "one": "{n} pagină",
+    "few": "{n} pagini",
+    "other": "{n} de pagini"
+  },
+  "{n} places": {
+    "one": "{n} loc",
+    "few": "{n} locuri",
+    "other": "{n} de locuri"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punct - ține apăsat Alt pentru un colț",
+    "few": "{n} puncte - ține apăsat Alt pentru un colț",
+    "other": "{n} de puncte - ține apăsat Alt pentru un colț"
+  },
+  "{n} published versions": {
+    "one": "{n} versiune publicată",
+    "few": "{n} versiuni publicate",
+    "other": "{n} de versiuni publicate"
+  },
+  "{n} results": {
+    "one": "{n} rezultat",
+    "few": "{n} rezultate",
+    "other": "{n} de rezultate"
+  },
+  "{n} saved sessions": {
+    "one": "{n} sesiune salvată",
+    "few": "{n} sesiuni salvate",
+    "other": "{n} de sesiuni salvate"
+  },
+  "{n} selected": {
+    "one": "{n} selectat",
+    "few": "{n} selectate",
+    "other": "{n} selectate"
+  },
+  "{n} selected assets": {
+    "one": "{n} resursă selectată",
+    "few": "{n} resurse selectate",
+    "other": "{n} de resurse selectate"
+  },
+  "{n} sessions": {
+    "one": "{n} sesiune",
+    "few": "{n} sesiuni",
+    "other": "{n} de sesiuni"
+  },
+  "{n} shapes": {
+    "one": "{n} formă",
+    "few": "{n} forme",
+    "other": "{n} de forme"
+  },
+  "{n} steps": {
+    "one": "{n} pas",
+    "few": "{n} pași",
+    "other": "{n} de pași"
+  },
+  "{n} templates": {
+    "one": "{n} șablon",
+    "few": "{n} șabloane",
+    "other": "{n} de șabloane"
+  },
+  "{n} volume keys": {
+    "one": "{n} cheie de volum",
+    "few": "{n} chei de volum",
+    "other": "{n} de chei de volum"
+  },
+  "{n} words": {
+    "one": "{n} cuvânt",
+    "few": "{n} cuvinte",
+    "other": "{n} de cuvinte"
+  }
 }

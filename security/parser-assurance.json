@@ -1205,6 +1205,19 @@
         "notes": "The module aborts instead of unwinding, so a trap drops the instance, fails the call with a plain message and starts a fresh instance on the next call."
       }
     },
+    "packages/node-shell/src/inpaint.ts": {
+      "family": "Images and colour",
+      "fuzzTargets": [
+        "inpaint"
+      ],
+      "details": {
+        "inputSource": "Pixels and a painted mask from the Retouch dialog, taken from an image the user opened. The shell loads the WASM module.",
+        "bounds": "16,777,216 pixels per image, a request of 16 bytes plus 5 bytes per pixel, a processed window of 13,000,000 pixels, patch radius 1 to 8; 2 GiB WASM memory cap; the module imports nothing from the host",
+        "directTests": "`tests/inpaint-patchmatch.test.ts`, the adapter's `cargo test`",
+        "fuzzCoverage": "`inpaint` feeds mutated bytes as a small image and mask, and as a header whose sizes disagree with the lengths.",
+        "notes": "Pinned LightCraft PatchMatch kernel with its thread pool removed. A fixed-seed generator makes the same request give the same bytes. A mask with no unmasked pixel to copy from is refused."
+      }
+    },
     "packages/node-shell/src/pdf-a11y.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [
@@ -1437,6 +1450,19 @@
         "directTests": "`tests/font-inspect.test.ts`, `tests/font-convert-tool.test.ts`",
         "fuzzCoverage": "`font-inspect` mutates a real variable TTF, its WOFF wrapper and crafted fonts whose cmap format 4 segments and format 12 groups overlap, through `inspectFont` and `glyphsForText`",
         "notes": "Reads cmap formats 4 and 12 only; other formats report no coverage. Reading stops at the first format 4 end code that does not ascend and at the first format 12 group that overlaps or goes backwards; the spec requires both in ascending order. WOFF2 and collections are refused by name. The subset path refuses before any work on outlines other than TrueType and on restricting fsType values (font-subset-policy.ts), then re-parses the output with the same reader."
+      }
+    },
+    "packages/node-shell/src/pdf-redact-keep.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "pdf-redact-keep"
+      ],
+      "details": {
+        "inputSource": "User-picked PDFs, rewritten by the pdf-a11y module's redaction operation, and then the rewritten file read again by Lolly's own PDF reader. The boxes come from the Redact tool.",
+        "bounds": "256 MiB request, 10,000 boxes, 512 MiB WASM memory cap, the vendored reader's per-page stream budgets; the check reads at most 64 MiB of content per page and 120,000 glyph nodes, and refuses a page with more, with pictures inside its content stream, or with an unreadable picture; the module imports nothing from the host",
+        "directTests": "`tests/redact-keep-text.test.ts` (including a 120-file generated corpus read by an oracle that shares no code with the check) and the Keep text scenarios in `tests/redact.test.ts`",
+        "fuzzCoverage": "`pdf-redact-keep` mutates generated PDFs holding text, pictures and drawings with the boxes fixed, so the reader, the content rewriter, the writer and the check are all reached. A trap in the module is reported as a crash.",
+        "notes": "Fail closed: a result is returned only when the check finds no glyph, picture pixel, drawing or annotation under any box and can place every glyph near a box. Partly covered drawings are clipped rather than cut, so their outline data stays in the file. Upstream's glyph margin is narrowed (vendored UPSTREAM.md)."
       }
     },
     "engine/src/video-container-probe.ts": {

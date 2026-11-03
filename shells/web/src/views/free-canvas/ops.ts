@@ -171,7 +171,7 @@ export function vectorOperands(fc: FcCtx): { boxes: Box[]; operands: Box[]; ids:
  *
  * `empty-result` is the interesting one, and it is NOT an error: an intersection of two
  * shapes that do not overlap is legitimately empty, and so is an inward offset deeper
- * than the shape's own inradius. This REFUSES AND SAYS SO rather than deleting the
+ * than the shape's own inradius. This REFUSES WITH A MESSAGE rather than deleting the
  * operands. Deleting them is defensible - Illustrator's Intersect does exactly that -
  * but on screen an empty result and a no-op are the same picture, so the destructive
  * reading of an ambiguous gesture would remove the user's artwork and leave nothing

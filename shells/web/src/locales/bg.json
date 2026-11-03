@@ -8042,10 +8042,16 @@
   "{count} controls you changed stay yours.": "{count} контрола, които промени, остават твои.",
   "{count} days": "{count} дни",
   "{count} decisions from the last version still apply.": "{count} решения от предишната версия все още важат.",
-  "{count} entries": "{count} записа",
+  "{count} entries": {
+    "one": "{count} запис",
+    "other": "{count} записа"
+  },
   "{count} files / variations": "{count} файла / вариации",
   "{count} files chosen": "{count} избрани файла",
-  "{count} files in this folder": "{count} файла в тази папка",
+  "{count} files in this folder": {
+    "one": "{count} файл в тази папка",
+    "other": "{count} файла в тази папка"
+  },
   "{count} for {names}": "{count} за {names}",
   "{count} for “{query}” in {scope}": "{count} за „{query}“ в {scope}",
   "{count} layouts": "{count} оформления",
@@ -8219,19 +8225,31 @@
   "{n} added to favourites": "{n} добавени в любими",
   "{n} added to the design system": "{n} добавени в дизайн системата",
   "{n} asset IDs": "{n} ID на ресурси",
-  "{n} assets": "{n} актива",
+  "{n} assets": {
+    "one": "{n} ресурс",
+    "other": "{n} ресурса"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} ресурса не можаха да бъдат възстановени. Пази архива си.",
-  "{n} assets found": "намерени {n} актива",
+  "{n} assets found": {
+    "one": "намерен {n} ресурс",
+    "other": "намерени {n} ресурса"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} ресурса в zip · {c} с Content Credentials",
   "{n} available offline": "{n} налични офлайн",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} елемента. Едно кликване създава пълна анимационна дъга - всеки ключов кадър остава редактируем след това.",
-  "{n} capabilities match": "{n} съвпадащи възможности",
+  "{n} capabilities match": {
+    "one": "{n} съвпадаща възможност",
+    "other": "{n} съвпадащи възможности"
+  },
   "{n} cards are left to review.": "{n} карти остават за преглед.",
   "{n} cards are still to answer.": "{n} карти остават за отговор.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "{n} карти остават за отговор. Да ги приемеш както са предложени и да отвориш в Design?",
   "{n} ch": "{n} зн.",
   "{n} changed": "{n} променени",
-  "{n} changes found": "Намерени промени: {n}",
+  "{n} changes found": {
+    "one": "Намерена е {n} промяна",
+    "other": "Намерени са {n} промени"
+  },
   "{n} characters continue beyond the last frame.": "{n} символа продължават след последната рамка.",
   "{n} checks": "{n} проверки",
   "{n} clips selected": "{n} избрани клипа",
@@ -8246,7 +8264,10 @@
   "{n} connectors - editing all": "{n} конектора — редактират се всички",
   "{n} copies added to your projects": "{n} копия добавени към проектите ти",
   "{n} copies in total": "{n} копия общо",
-  "{n} copies made · selected": "{n} копия създадени · избрани",
+  "{n} copies made · selected": {
+    "one": "{n} направено копие · избрано",
+    "other": "{n} направени копия · избрани"
+  },
   "{n} creation checkpoints": "{n} контролни точки на творения",
   "{n} curly quotes": "{n} извити кавички",
   "{n} days ago": "преди {n} дни",
@@ -8263,24 +8284,39 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} редактируеми входа. Неизбраните настройки остават фиксирани.",
   "{n} ellipsis characters": "{n} символа за многоточие",
   "{n} em-dashes": "{n} дълги тирета",
-  "{n} embedded files": "{n} вградени файла",
-  "{n} external references": "{n} външни препратки",
+  "{n} embedded files": {
+    "one": "{n} вграден файл",
+    "other": "{n} вградени файла"
+  },
+  "{n} external references": {
+    "one": "{n} външна препратка",
+    "other": "{n} външни препратки"
+  },
   "{n} fields": "{n} полета",
   "{n} file batches": "{n} пакета с файлове",
   "{n} file operation records": "{n} записа на файлови операции",
   "{n} files": "{n} файла",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} файла не са презентации на PowerPoint, PDF или документи на Photoshop, затова бяха пропуснати.",
   "{n} files are ready to import.": "{n} файла са готови за импортиране.",
-  "{n} files could not be packed and were left out": "{n} файла не можаха да бъдат опаковани и бяха пропуснати",
+  "{n} files could not be packed and were left out": {
+    "one": "{n} файл не можа да бъде опакован и беше пропуснат",
+    "other": "{n} файла не можаха да бъдат опаковани и бяха пропуснати"
+  },
   "{n} files imported from the zip.": "{n} файла импортирани от zip архива.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} файла импортирани от zip архива; {skipped} пропуснати.",
   "{n} files ready": "{n} файла са готови",
   "{n} findings": "{n} констатации",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "Намерени са {n} констатации. Редактируемите предложения са избрани; констатациите в Office, които са само за преглед, остават непроменени. Прегледай панела Преглед.",
-  "{n} folders": "{n} папки",
+  "{n} folders": {
+    "one": "{n} папка",
+    "other": "{n} папки"
+  },
   "{n} font changes": "{n} промени на шрифт",
   "{n} font choices": "{n} избора на шрифт",
-  "{n} font files": "{n} файла на шрифтове",
+  "{n} font files": {
+    "one": "{n} файл на шрифт",
+    "other": "{n} файла на шрифтове"
+  },
   "{n} fonts": "{n} шрифта",
   "{n} fonts found": "{n} намерени шрифта",
   "{n} fonts from the deck are set in another face.": "{n} шрифта от презентацията са зададени в друго начертание.",
@@ -8292,31 +8328,67 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} скрити - намери ги под «Покажи скритите инструменти»",
   "{n} hidden shades stay hidden": "{n} скрити нюанса остават скрити",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} елемента от историята не можаха да бъдат възстановени. Пази архива си; освободи място или разреши конфликтните версии, преди да опиташ отново.",
-  "{n} images": "{n} изображения",
-  "{n} images couldn’t be restored (storage full?)": "{n} изображения не можаха да бъдат възстановени (пълно хранилище?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} изображения останаха с оригинала - изображенията имат само един дом; за да ги преместиш, използвай Изрязване",
+  "{n} images": {
+    "one": "{n} изображение",
+    "other": "{n} изображения"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} изображение не можа да бъде възстановено (пълно хранилище?)",
+    "other": "{n} изображения не можаха да бъдат възстановени (пълно хранилище?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} изображение остана с оригинала - изображенията имат само един дом; за да го преместиш, използвай Изрязване",
+    "other": "{n} изображения останаха с оригинала - изображенията имат само един дом; за да ги преместиш, използвай Изрязване"
+  },
   "{n} included tools (asked before installing)": "{n} включени инструмента (питат се преди инсталиране)",
   "{n} ink": "{n} мастило",
-  "{n} inputs · applies to every design": "{n} полета · важи за всеки дизайн",
+  "{n} inputs · applies to every design": {
+    "one": "{n} входно поле · важи за всеки дизайн",
+    "other": "{n} входни полета · важи за всеки дизайн"
+  },
   "{n} invisible watermark(s) found": "{n} невидим воден знак(и) намерени",
   "{n} issues to review before sharing.": "{n} проблема за преглед преди споделяне.",
-  "{n} items": "{n} елемента",
-  "{n} items copied": "Копирани {n} елемента",
-  "{n} items cut": "Изрязани {n} елемента",
-  "{n} items moved": "{n} елемента са преместени",
-  "{n} items pasted": "Поставени {n} елемента",
+  "{n} items": {
+    "one": "{n} елемент",
+    "other": "{n} елемента"
+  },
+  "{n} items copied": {
+    "one": "Копиран {n} елемент",
+    "other": "Копирани {n} елемента"
+  },
+  "{n} items cut": {
+    "one": "Изрязан {n} елемент",
+    "other": "Изрязани {n} елемента"
+  },
+  "{n} items moved": {
+    "one": "{n} елемент е преместен",
+    "other": "{n} елемента са преместени"
+  },
+  "{n} items pasted": {
+    "one": "Поставен {n} елемент",
+    "other": "Поставени {n} елемента"
+  },
   "{n} items removed": "{n} елемента са премахнати",
   "{n} jobs": "{n} задачи",
   "{n} kept": "{n} запазени",
   "{n} kept in the tray": "{n} запазени в тавата",
-  "{n} keyframes": "Ключови кадри: {n}",
+  "{n} keyframes": {
+    "one": "{n} ключов кадър",
+    "other": "{n} ключови кадъра"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} означени заместителя заемат мястото на обекти.",
   "{n} layers": "{n} слоя",
   "{n} layers found": "{n} намерени слоя",
   "{n} list lines": "{n} реда в списъка",
-  "{n} logos": "{n} лога",
+  "{n} logos": {
+    "one": "{n} лого",
+    "other": "{n} лога"
+  },
   "{n} marks became the design system mark.": "{n} знака станаха знак на дизайн системата.",
-  "{n} marks found": "{n} намерени маркировки",
+  "{n} marks found": {
+    "one": "{n} намерена марка",
+    "other": "{n} намерени марки"
+  },
   "{n} marks sent to Logos": "{n} марки изпратени в Логота",
   "{n} min ago": "преди {n} мин",
   "{n} more findings in this document.": "{n} още констатации в този документ.",
@@ -8328,7 +8400,10 @@
   "{n} more slides": "Още {n} слайда",
   "{n} moved to {group}.": "{n} преместени в {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} нови слайда побират онова, което не се побра, затова номерата на слайдовете се преместиха.",
-  "{n} newer items skipped": "{n} по-нови елемента са пропуснати",
+  "{n} newer items skipped": {
+    "one": "{n} по-нов елемент е пропуснат",
+    "other": "{n} по-нови елемента са пропуснати"
+  },
   "{n} nits": "{n} нита",
   "{n} not drawn": "{n} нерисувани",
   "{n} objects added": "{n} обекта добавени",
@@ -8341,7 +8416,10 @@
   "{n} objects overlap the slide master.": "{n} обекта се припокриват със слайд мастера.",
   "{n} objects removed": "{n} обекта премахнати",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} обекта запазват изрязване или ефекти като изображения. Замени цялата им графика, за да промениш формата им.",
-  "{n} of your creations are videos or animations": "{n} от твоите творения са видеа или анимации",
+  "{n} of your creations are videos or animations": {
+    "one": "{n} творение е видео или анимация",
+    "other": "{n} от твоите творения са видеа или анимации"
+  },
   "{n} of {m}": "{n} от {m}",
   "{n} of {total} downloaded": "{n} от {total} изтеглени",
   "{n} of {total} downloaded · {size} on disk": "{n} от {total} изтеглени · {size} на диска",
@@ -8352,57 +8430,90 @@
   "{n} off": "{n} изключени",
   "{n} on": "{n} включени",
   "{n} other colourways keep their own colours: {names}": "{n} други цветови варианта запазват собствените си цветове: {names}",
-  "{n} pages": "{n} страници",
+  "{n} pages": {
+    "one": "{n} страница",
+    "other": "{n} страници"
+  },
   "{n} pages are pictures of their text.": "{n} страници са картини на текста си.",
-  "{n} pages differ": "Страници, които се различават: {n}",
+  "{n} pages differ": {
+    "one": "{n} страница се различава",
+    "other": "{n} страници се различават"
+  },
   "{n} pages had no size, so they were left out.": "{n} страници нямаха размер и бяха пропуснати.",
   "{n} pictures": "{n} картини",
   "{n} pictures are missing.": "{n} картини липсват.",
   "{n} pictures in the deck were not kept.": "{n} картини в презентацията не бяха запазени.",
-  "{n} places": "{n} места",
+  "{n} places": {
+    "one": "{n} място",
+    "other": "{n} места"
+  },
   "{n} points": "{n} точки",
-  "{n} points - hold Alt for a corner": "{n} точки - задръж Alt за ъгъл",
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} точка - задръж Alt за ъгъл",
+    "other": "{n} точки - задръж Alt за ъгъл"
+  },
   "{n} preserved file": "{n} запазен файл",
   "{n} preserved files": "{n} запазени файла",
   "{n} print locks re-pinned": "{n} заключвания за печат прикрепени отново",
   "{n} proposed changes": "{n} предложени промени",
   "{n} protected drafts": "{n} защитени чернови",
   "{n} published version": "{n} публикувана версия",
-  "{n} published versions": "{n} публикувани версии",
+  "{n} published versions": {
+    "one": "{n} публикувана версия",
+    "other": "{n} публикувани версии"
+  },
   "{n} recorded": "{n} записани",
   "{n} removed from favourites": "{n} премахнати от любими",
   "{n} removed from offline": "{n} премахнати от офлайн",
   "{n} removed. A tool naming it will lose it.": "{n} премахнато. Инструмент, който го назовава, ще го изгуби.",
   "{n} removed. A tool naming one of these will lose it.": "{n} премахнати. Инструмент, който назовава един от тях, ще го изгуби.",
   "{n} renders": "{n} рендера",
-  "{n} results": "{n} резултата",
+  "{n} results": {
+    "one": "{n} резултат",
+    "other": "{n} резултата"
+  },
   "{n} roles re-derived": "{n} роли изведени отново",
   "{n} rotated runs left out": "{n} завъртени поредици изпуснати",
   "{n} saved asset versions": "{n} запазени версии на ресурси",
   "{n} saved for offline, {m} failed - check your connection": "{n} запазени офлайн, {m} неуспешни - провери връзката си",
-  "{n} saved sessions": "{n} запазени сесии",
+  "{n} saved sessions": {
+    "one": "{n} запазена сесия",
+    "other": "{n} запазени сесии"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "Не може да се покаже преглед на {n} запазени системи. Отвори ги от Профил, за да ги управляваш.",
   "{n} scanned": "{n} сканирани",
   "{n} scanned pages read.": "{n} сканирани страници са прочетени.",
   "{n} scanned pages were left unread to keep this quick.": "{n} сканирани страници останаха непрочетени, за да бъде това бързо.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} сканирани страници не бяха прочетени, защото разпознаването на текст не е на това устройство.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} сканирани страници бяха прочетени с разпознаване на текст на устройството, затова проверките за скрити знаци не можаха да се изпълнят за тези страници.",
-  "{n} selected": "{n} избрани",
-  "{n} selected assets": "{n} избрани ресурса",
+  "{n} selected": {
+    "one": "{n} избран",
+    "other": "{n} избрани"
+  },
+  "{n} selected assets": {
+    "one": "{n} избран ресурс",
+    "other": "{n} избрани ресурса"
+  },
   "{n} selected files": "{n} избрани файла",
   "{n} selected items could not be outlined and were left as they are.": "{n} избрани елемента не можаха да бъдат очертани и бяха оставени такива, каквито са.",
   "{n} selected items have no outline, so they were left as they are.": "{n} избрани елемента нямат контур, затова бяха оставени непроменени.",
   "{n} selected · {size}": "{n} избрани · {size}",
   "{n} sentences": "{n} изречения",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} изречения имат пунктирано подчертаване: моделът на устройството може да предложи по-опростен вариант. Приемането на такъв отбелязва запазеното копие като създадено с помощта на AI, а формулировките на модела носят публичния воден знак на Lolly за преформулиране, така че текст, написан от AI, остава разпознаваем във Verify.",
-  "{n} sessions": "{n} сесии",
+  "{n} sessions": {
+    "one": "{n} сесия",
+    "other": "{n} сесии"
+  },
   "{n} set": "{n} зададени",
   "{n} shade curves re-anchored": "{n} криви на нюанси закотвени отново",
   "{n} shades added to your palette": "{n} нюанса добавени към палитрата ти",
   "{n} shades added. Undo is available above your palette.": "{n} нюанса добавени. Отмяната е налична над палитрата ти.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} нюанса не успяха да достигнат целта си (ограничени до най-близкия тон).",
   "{n} shades rebuilt across {ramps} ramps": "{n} нюанса изградени наново в {ramps} скали",
-  "{n} shapes": "{n} форми",
+  "{n} shapes": {
+    "one": "{n} форма",
+    "other": "{n} форми"
+  },
   "{n} shapes · page {p}": "{n} форми · страница {p}",
   "{n} shared assets were kept.": "{n} споделени ресурса бяха запазени.",
   "{n} slides narrated.": "{n} слайда озвучени.",
@@ -8410,11 +8521,17 @@
   "{n} spectrum hues rebuilt": "{n} спектрални нюанса изградени наново",
   "{n} stages of work": "{n} етапа на работа",
   "{n} starter colours": "{n} начални цвята",
-  "{n} steps": "{n} стъпки",
+  "{n} steps": {
+    "one": "{n} стъпка",
+    "other": "{n} стъпки"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "Намерени са {n} предложения. Копията се подготвят с тях избрани; коригирай което и да е в панела Преглед.",
   "{n} suggestions were applied without review.": "{n} предложения бяха приложени без преглед.",
   "{n} swatches removed": "{n} мостри премахнати",
-  "{n} templates": "{n} шаблона",
+  "{n} templates": {
+    "one": "{n} шаблон",
+    "other": "{n} шаблона"
+  },
   "{n} templates added": "{n} шаблона добавени",
   "{n} templates deleted": "{n} шаблона изтрити",
   "{n} templates saved": "{n} шаблона запазени",
@@ -8434,11 +8551,17 @@
   "{n} unsupported backup parts skipped": "{n} неподдържани части от архива бяха пропуснати",
   "{n} value changes": "{n} промени на стойности",
   "{n} values change": "{n} стойности се променят",
-  "{n} volume keys": "{n} ключа за сила на звука",
+  "{n} volume keys": {
+    "one": "{n} ключ за сила на звука",
+    "other": "{n} ключа за сила на звука"
+  },
   "{n} warnings.": "{n} предупреждения.",
   "{n} were kept - they are not this room to remove.": "{n} бяха запазени - не са в тази стая, за да бъдат премахнати.",
   "{n} wording swaps are underlined in the preview.": "{n} замени на формулировки са подчертани в визуализацията.",
-  "{n} words": "{n} думи",
+  "{n} words": {
+    "one": "{n} дума",
+    "other": "{n} думи"
+  },
   "{n} words cut": "{n} думи отрязани",
   "{n} yours": "{n} твои",
   "{n}-bit": "{n}-битов",
@@ -8832,7 +8955,10 @@
   "1 design was added to Projects, in 1 folder.": "1 дизайн беше добавен към Проекти, в 1 папка.",
   "1 design was added to Projects, in {f} folders.": "1 дизайн беше добавен към Проекти, в {f} папки.",
   "1 design was added to Projects.": "1 дизайн беше добавен към Проекти.",
-  "{n} creations removed from Projects here stayed removed.": "{n} творения, премахнати от Проекти тук, останаха премахнати.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} творение, премахнато от Проекти тук, остана премахнато.",
+    "other": "{n} творения, премахнати от Проекти тук, останаха премахнати."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Това творение никога не е било запазено, затова излизането без запазване го премахва от Проекти.",
   "This deck has no colours to change.": "Тази презентация няма цветове за промяна.",
   "This deck has no fonts to change.": "Тази презентация няма шрифтове за промяна.",
@@ -8862,7 +8988,10 @@
   "This saved version could not be read.": "Тази запазена версия не можа да се прочете.",
   "1 older automatic checkpoint left out": "1 по-стара автоматична контролна точка изпусната",
   "1 other colourway keeps its own colours: {names}": "1 друг цветови вариант запазва собствените си цветове: {names}",
-  "{n} older automatic checkpoints left out": "{n} по-стари автоматични контролни точки изпуснати",
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} по-стара автоматична контролна точка е пропусната",
+    "other": "{n} по-стари автоматични контролни точки са пропуснати"
+  },
   "Automatic recovery and checkpoints are on": "Автоматичното възстановяване и контролните точки са включени",
   "Automatic recovery is unavailable here. Save before leaving.": "Автоматичното възстановяване не е налично тук. Запази, преди да напуснеш.",
   "Checkpoint saved at {time} on this device": "Контролна точка, запазена в {time} на това устройство",
@@ -9045,7 +9174,10 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "За да покаже сайтовете, които уеб версията не може, Lolly може да се презареди на това устройство с по-свободна политика за рамки, след което да попита за всеки сайт преди презентация. Можеш да изключиш това в профила си, под Доверени сайтове.",
   "Card size": "Размер на картите",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 изображение или файл е добавен на това устройство. Остава на това устройство и другите няма да виждат този файл.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} изображения или файла са добавени на това устройство. Остават на това устройство и другите няма да виждат тези файлове.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "{n} изображение или файл е добавен на това устройство. Остава на това устройство и другите няма да виждат този файл.",
+    "other": "{n} изображения или файла са добавени на това устройство. Остават на това устройство и другите няма да виждат тези файлове."
+  },
   "Check the version first": "Първо проверете версията",
   "Copy team link": "Копирай линка на екипа",
   "Could not create the project. Try again.": "Проектът не можа да бъде създаден. Опитайте отново.",
@@ -9793,7 +9925,10 @@
   "Every mode": "Всички режими",
   "Your local items have not changed.": "Вашите локални елементи не са променени.",
   "1 item was saved to the shared project.": "1 елемент беше запазен в споделения проект.",
-  "{n} items were saved to the shared project.": "{n} елемента бяха запазени в споделения проект.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} елемент беше запазен в споделения проект.",
+    "other": "{n} елемента бяха запазени в споделения проект."
+  },
   "Wait for the current move to finish.": "Изчакайте текущото преместване да приключи.",
   "Wait for the deck to finish reading, then choose a picture.": "Изчакай презентацията да приключи с четенето, след това избери картина.",
   "Wait for the grid to finish rendering before moving its layers.": "Изчакай решетката да приключи с рендирането, преди да местиш слоевете ѝ.",
@@ -10645,5 +10780,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Този клип използва {codec}, който това устройство не може да възпроизведе. Експортирай копие в H.264, HEVC или AV1 от приложението си за монтаж или го отвори в настолното приложение на Lolly на Mac. Lolly запазва оригиналния файл.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Този клип използва {codec}, който това устройство не може да възпроизведе. Експортирай копие в H.264, HEVC или AV1 от приложението си за монтаж. Lolly запазва оригиналния файл.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Това е MXF файл с {codec}. Lolly може да прочете какво съдържа, но не може да възпроизвежда MXF. Експортирай копие в H.264, HEVC или AV1 от приложението си за монтаж. Lolly запазва оригиналния файл.",
-  "{format} from {camera}": "{format} от {camera}"
+  "{format} from {camera}": "{format} от {camera}",
+  "Filling a large area. This can take a moment.": "Запълване на голяма област. Това може да отнеме малко.",
+  "Large area": "Голяма област"
 }

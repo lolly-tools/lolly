@@ -156,7 +156,7 @@ test('over budget: ONE lambda, applied to every layer, floored at 1, with ONE wa
   assert.equal(plan.warning.split('\n').length, 1, 'ONE line');
 });
 
-test('a budget so small that lambda floors out still stops at eff 1, and says so once', () => {
+test('a budget so small that lambda floors out still stops at eff 1, and reports that once', () => {
   const plan = planPlateBudget({
     layers: [layer({ maxEff: 3 })], scale: 1, worker: false, budgetBytes: 1,
   });

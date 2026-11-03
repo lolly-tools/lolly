@@ -715,7 +715,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Kjører den dypere AI-tekstsjekken i Verifiser og i Ressurser.",
   "Card size": "Kortstørrelse",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 bilde eller fil ble lagt til på denne enheten. Den blir på denne enheten, og andre vil ikke se den filen.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} bilder eller filer ble lagt til på denne enheten. De blir på denne enheten, og andre vil ikke se disse filene.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "{n} bilde eller fil ble lagt til på denne enheten. Den blir på denne enheten, og andre vil ikke se den filen.",
+    "other": "{n} bilder eller filer ble lagt til på denne enheten. De blir på denne enheten, og andre vil ikke se disse filene."
+  },
   "Check the version first": "Sjekk versjonen først",
   "Copy team link": "Kopier teamlenke",
   "Could not create the project. Try again.": "Kunne ikke opprette prosjektet. Prøv igjen.",
@@ -1307,7 +1310,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Alle elementene er lagret i det delte prosjektet. De lokale originalene ligger i papirkurven eller står fortsatt på plass.",
   "Your local items have not changed.": "De lokale elementene dine er uendret.",
   "1 item was saved to the shared project.": "1 element ble lagret i det delte prosjektet.",
-  "{n} items were saved to the shared project.": "{n} elementer ble lagret i det delte prosjektet.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} element ble lagret i det delte prosjektet.",
+    "other": "{n} elementer ble lagret i det delte prosjektet."
+  },
   "Wait for the current move to finish.": "Vent til den pågående flyttingen er ferdig.",
   "You cannot save to that shared project.": "Du kan ikke lagre i det delte prosjektet.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Alle som kan åpne {project}, ser disse elementene. Når hvert element er lagret der, flyttes de lokale originalene til papirkurven, der du kan gjenopprette dem.",
@@ -1618,8 +1624,14 @@
   "file": "fil",
   "samples": "prøver",
   "text": "tekst",
-  "{n} changes found": "{n} endringer funnet",
-  "{n} pages differ": "{n} sider er forskjellige",
+  "{n} changes found": {
+    "one": "{n} endring funnet",
+    "other": "{n} endringer funnet"
+  },
+  "{n} pages differ": {
+    "one": "{n} side er forskjellig",
+    "other": "{n} sider er forskjellige"
+  },
   "Draft": "Utkast",
   "Draft quality": "Utkastkvalitet",
   "Draft rule": "Utkastregel",
@@ -1971,5 +1983,169 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penn (P) - klikk for å plassere punkter, dra for å kurve, Alt for et hjørne. Hold inne for Blyant (Shift C) og splinetype",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penn (P) - klikk for å plassere punkter, dra for å kurve, Alt for et hjørne",
   "Recipients can change the inputs": "Mottakere kan endre inndata",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Alle med lenken kan endre inndataene og få et nytt bilde. Låste inndata beholder verdiene som er satt."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Alle med lenken kan endre inndataene og få et nytt bilde. Låste inndata beholder verdiene som er satt.",
+  "{count} entries": {
+    "one": "{count} oppføring",
+    "other": "{count} oppføringer"
+  },
+  "{count} files in this folder": {
+    "one": "{count} fil i denne mappen",
+    "other": "{count} filer i denne mappen"
+  },
+  "{n} assets": {
+    "one": "{n} ressurs",
+    "other": "{n} ressurser"
+  },
+  "{n} assets found": {
+    "one": "{n} ressurs funnet",
+    "other": "{n} ressurser funnet"
+  },
+  "{n} capabilities match": {
+    "one": "{n} funksjon samsvarer",
+    "other": "{n} funksjoner samsvarer"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} kopi laget · valgt",
+    "other": "{n} kopier laget · valgt"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} kreasjon som ble fjernet fra Prosjekter her, forble fjernet.",
+    "other": "{n} kreasjoner som ble fjernet fra Prosjekter her, forble fjernet."
+  },
+  "{n} embedded files": {
+    "one": "{n} innebygd fil",
+    "other": "{n} innebygde filer"
+  },
+  "{n} external references": {
+    "one": "{n} ekstern referanse",
+    "other": "{n} eksterne referanser"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} fil kunne ikke pakkes og ble utelatt",
+    "other": "{n} filer kunne ikke pakkes og ble utelatt"
+  },
+  "{n} folders": {
+    "one": "{n} mappe",
+    "other": "{n} mapper"
+  },
+  "{n} font files": {
+    "one": "{n} fontfil",
+    "other": "{n} fontfiler"
+  },
+  "{n} images": {
+    "one": "{n} bilde",
+    "other": "{n} bilder"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} bilde kunne ikke gjenopprettes (lagring full?)",
+    "other": "{n} bilder kunne ikke gjenopprettes (lagring full?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} bilde ble værende ved originalen - bilder har ett hjem; bruk Klipp ut for å flytte det",
+    "other": "{n} bilder ble værende ved originalen - bilder har ett hjem; bruk Klipp ut for å flytte dem"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} felt · gjelder for hvert design",
+    "other": "{n} felt · gjelder for hvert design"
+  },
+  "{n} items": {
+    "one": "{n} element",
+    "other": "{n} elementer"
+  },
+  "{n} items copied": {
+    "one": "{n} element kopiert",
+    "other": "{n} elementer kopiert"
+  },
+  "{n} items cut": {
+    "one": "{n} element klippet ut",
+    "other": "{n} elementer klippet ut"
+  },
+  "{n} items moved": {
+    "one": "{n} element flyttet",
+    "other": "{n} elementer flyttet"
+  },
+  "{n} items pasted": {
+    "one": "{n} element limt inn",
+    "other": "{n} elementer limt inn"
+  },
+  "{n} keyframes": {
+    "one": "{n} nøkkelbilde",
+    "other": "{n} nøkkelbilder"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "other": "{n} logoer"
+  },
+  "{n} marks found": {
+    "one": "{n} merke funnet",
+    "other": "{n} merker funnet"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} nyere element hoppet over",
+    "other": "{n} nyere elementer hoppet over"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} av kreasjonene dine er en video eller animasjon",
+    "other": "{n} av kreasjonene dine er videoer eller animasjoner"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} eldre automatisk kontrollpunkt utelatt",
+    "other": "{n} eldre automatiske kontrollpunkter utelatt"
+  },
+  "{n} pages": {
+    "one": "{n} side",
+    "other": "{n} sider"
+  },
+  "{n} places": {
+    "one": "{n} sted",
+    "other": "{n} steder"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punkt - hold Alt for et hjørne",
+    "other": "{n} punkter - hold Alt for et hjørne"
+  },
+  "{n} published versions": {
+    "one": "{n} publisert versjon",
+    "other": "{n} publiserte versjoner"
+  },
+  "{n} results": {
+    "one": "{n} resultat",
+    "other": "{n} resultater"
+  },
+  "{n} saved sessions": {
+    "one": "{n} lagret økt",
+    "other": "{n} lagrede økter"
+  },
+  "{n} selected": {
+    "one": "{n} valgt",
+    "other": "{n} valgt"
+  },
+  "{n} selected assets": {
+    "one": "{n} valgt ressurs",
+    "other": "{n} valgte ressurser"
+  },
+  "{n} sessions": {
+    "one": "{n} økt",
+    "other": "{n} økter"
+  },
+  "{n} shapes": {
+    "one": "{n} form",
+    "other": "{n} former"
+  },
+  "{n} steps": {
+    "one": "{n} steg",
+    "other": "{n} steg"
+  },
+  "{n} templates": {
+    "one": "{n} mal",
+    "other": "{n} maler"
+  },
+  "{n} volume keys": {
+    "one": "{n} volumnøkkel",
+    "other": "{n} volumnøkler"
+  },
+  "{n} words": {
+    "one": "{n} ord",
+    "other": "{n} ord"
+  }
 }

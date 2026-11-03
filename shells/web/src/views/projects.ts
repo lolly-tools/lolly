@@ -27,7 +27,7 @@ import { mountLocalProjectAsset, localProjectAssetHref, setProjectViewTitle } fr
  * dynamic import of ./pro so the Projects chunk stays light and /pro stays removable.
  */
 import { escape } from '../utils.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { learningEnabled } from '../lib/learning-feature.ts';
 import { icon } from '../lib/icons.ts';
 import { metaRow, type MetaKey } from '../lib/meta-rows.ts';
@@ -665,7 +665,7 @@ export async function mountProjects(
       return `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('No saved sessions yet for {names}', { names: escape(label) })} · ${clearBtn}</p>
         <p class="projects-empty">${t('Save a session from one of these tools and it will appear here.')}</p>`;
     }
-    const countText = ms.length === 1 ? t('1 saved session') : t('{n} saved sessions', { n: ms.length });
+    const countText = tn('1 saved session', '{n} saved sessions', { n: ms.length });
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for {names}', { count: countText, names: escape(label) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = ms.map(e => sessionTile(e, sessionTileOpts(e))).join('');
@@ -787,7 +787,7 @@ export async function mountProjects(
       <div class="projects-head">
         <a href="${backHref}" class="projects-back" aria-label="${escape(parentId ? t('Up to parent folder') : t('Back to Projects'))}">${BACK_ICON}</a>
         <h2 class="projects-title"${isUncat || searching ? '' : ` data-rename-folder="${escape(id)}" title="${escape(t('Rename folder'))}"`}>${escape(title)}</h2>
-        ${searching ? '' : `<span class="projects-count">${count === 1 ? t('1 item') : t('{n} items', { n: count })}</span>`}
+        ${searching ? '' : `<span class="projects-count">${tn('1 item', '{n} items', { n: count })}</span>`}
         <span class="projects-head-spacer"></span>
         ${searching ? '' : listCreateBtns(isUncat)}
         ${searching ? '' : batchButtonHtml()}
@@ -836,7 +836,7 @@ export async function mountProjects(
     // broad query never silently looks "complete".
     const countText = capped
       ? t('{total} results - showing the first {shown}, refine to narrow', { total: total.toLocaleString(), shown })
-      : (total === 1 ? t('1 result') : t('{n} results', { n: total }));
+      : (tn('1 result', '{n} results', { n: total }));
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for “{query}” in {scope}', { count: countText, query: escape(query), scope: escape(scope) })} · ${clearBtn}</p>`;
     const gridClass = `folder-grid projects-grid projects-search-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const tiles = [...mf.map(folderResultTile), ...ms.map(sessionResultTile)].join('');
@@ -2638,7 +2638,7 @@ export async function mountProjects(
         await applySelectionMove(dest);
         if (!mounted) return;
         await reload(); render();
-        announce(n === 1 ? t('1 item moved') : t('{n} items moved', { n }));
+        announce(tn('1 item moved', '{n} items moved', { n }));
       },
     });
   }
@@ -2690,7 +2690,7 @@ export async function mountProjects(
   const currentFolderTarget = (): string | null => (folderId && folderId !== UNCAT && folderId !== TEMPLATES) ? folderId : null;
 
   /** Put refs on the module clipboard. Images are single-home REFERENCES, so they
-   *  can be cut (moved) but never copied - a copy drops them and says so. */
+   *  can be cut (moved) but never copied - a copy drops them and reports that. */
   function setClipboard(mode: 'cut' | 'copy', refs: readonly string[]): void {
     closeMenu();
     // A template is a starting point, not a file with a home, so it never travels on the
@@ -2702,7 +2702,7 @@ export async function mountProjects(
     dropSelection();
     render();
     const n = items.length;
-    const counted = mode === 'cut' ? (n === 1 ? t('1 item cut') : t('{n} items cut', { n })) : (n === 1 ? t('1 item copied') : t('{n} items copied', { n }));
+    const counted = mode === 'cut' ? (tn('1 item cut', '{n} items cut', { n })) : (tn('1 item copied', '{n} items copied', { n }));
     announce(
       droppedImages && !n ? t('Images are references - use Cut to move them')
       : droppedImages ? `${counted}. ${t('Images are references - use Cut to move them')}`
@@ -2748,9 +2748,9 @@ export async function mountProjects(
     }
     if (!mounted) return;
     await reload(); render();
-    const pasted = n === 1 ? t('1 item pasted') : t('{n} items pasted', { n });
+    const pasted = tn('1 item pasted', '{n} items pasted', { n });
     announce(stayed
-      ? `${pasted}. ${stayed === 1 ? t('1 image stayed with the original - images have one home; use Cut to move them') : t('{n} images stayed with the original - images have one home; use Cut to move them', { n: stayed })}`
+      ? `${pasted}. ${tn('1 image stayed with the original - images have one home; use Cut to move them', '{n} images stayed with the original - images have one home; use Cut to move them', { n: stayed })}`
       : pasted);
   }
 
@@ -2832,7 +2832,7 @@ export async function mountProjects(
     const fmtWhen = (iso: string): string => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     const rows = templates.map((tp, i) => {
       const sessions = tp.tree.reduce((n, f) => n + f.items.length, 0);
-      const sub = `${sessions === 1 ? t('1 session') : t('{n} sessions', { n: sessions })} · ${tp.tree.length === 1 ? t('1 folder') : t('{n} folders', { n: tp.tree.length })} · ${escape(fmtWhen(tp.createdAt))}`;
+      const sub = `${tn('1 session', '{n} sessions', { n: sessions })} · ${tn('1 folder', '{n} folders', { n: tp.tree.length })} · ${escape(fmtWhen(tp.createdAt))}`;
       return `<li class="trash-row">
         <span class="trash-row-icon" aria-hidden="true">${FOLDER_ICON}</span>
         <span class="trash-row-meta"><span class="trash-row-name">${escape(tp.name)}</span><span class="trash-row-sub">${sub}</span></span>

@@ -35,6 +35,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "bytemuck"
+version = "1.25.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95832e849adfb21180ccb6826a99da14e5d266ae5c2e668e1602cf234f153797"
+dependencies = [
+ "bytemuck_derive",
+]
+
+[[package]]
+name = "bytemuck_derive"
+version = "1.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a1f896587b6f2c069c73d2f0913e2d590c3990285cd2f0b6aa02b786b4c679c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -126,6 +146,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "font-types"
+version = "0.12.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "835ae9d781464a79026cde387f9cbc650c9a4909d7cf7e658b127e3c35d2f35d"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
 name = "hayro-ccitt"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -167,6 +196,8 @@ version = "0.1.0"
 dependencies = [
  "pdfcraft-a11y",
  "pdfcraft-cos",
+ "pdfcraft-model",
+ "pdfcraft-redact",
  "serde",
  "serde_json",
 ]
@@ -207,11 +238,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "once_cell"
+version = "1.21.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
+
+[[package]]
 name = "pdfcraft-a11y"
 version = "0.16.1"
 dependencies = [
  "pdfcraft-content",
  "pdfcraft-cos",
+ "pdfcraft-model",
+ "thiserror",
+]
+
+[[package]]
+name = "pdfcraft-annot"
+version = "0.16.1"
+dependencies = [
+ "pdfcraft-cos",
+ "pdfcraft-fonts",
  "pdfcraft-model",
  "thiserror",
 ]
@@ -245,6 +292,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pdfcraft-edit"
+version = "0.16.1"
+dependencies = [
+ "pdfcraft-annot",
+ "pdfcraft-content",
+ "pdfcraft-cos",
+ "pdfcraft-fonts",
+ "pdfcraft-forms",
+ "pdfcraft-model",
+ "thiserror",
+]
+
+[[package]]
 name = "pdfcraft-filters"
 version = "0.16.1"
 dependencies = [
@@ -255,10 +315,52 @@ dependencies = [
 ]
 
 [[package]]
+name = "pdfcraft-fonts"
+version = "0.16.1"
+dependencies = [
+ "pdfcraft-cos",
+ "skrifa",
+]
+
+[[package]]
+name = "pdfcraft-forms"
+version = "0.16.1"
+dependencies = [
+ "pdfcraft-content",
+ "pdfcraft-cos",
+ "pdfcraft-fonts",
+ "pdfcraft-model",
+ "thiserror",
+]
+
+[[package]]
 name = "pdfcraft-model"
 version = "0.16.1"
 dependencies = [
  "pdfcraft-cos",
+]
+
+[[package]]
+name = "pdfcraft-redact"
+version = "0.16.1"
+dependencies = [
+ "pdfcraft-annot",
+ "pdfcraft-content",
+ "pdfcraft-cos",
+ "pdfcraft-edit",
+ "pdfcraft-fonts",
+ "pdfcraft-forms",
+ "pdfcraft-model",
+ "pdfcraft-xfa",
+ "thiserror",
+]
+
+[[package]]
+name = "pdfcraft-xfa"
+version = "0.16.1"
+dependencies = [
+ "pdfcraft-cos",
+ "thiserror",
 ]
 
 [[package]]
@@ -277,6 +379,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "read-fonts"
+version = "0.44.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5a0cf4bb6cbce4c29756270d189a5e400ac05e91192161d83a0bcb6e68492e8"
+dependencies = [
+ "bytemuck",
+ "font-types",
+ "once_cell",
 ]
 
 [[package]]
@@ -338,6 +451,16 @@ name = "simd-adler32"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
+
+[[package]]
+name = "skrifa"
+version = "0.47.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "526e654b303ff4ad73a5a40b25de2b3ce3d039c5e3b6da5f89ae6e57004cb40f"
+dependencies = [
+ "bytemuck",
+ "read-fonts",
+]
 
 [[package]]
 name = "stringprep"

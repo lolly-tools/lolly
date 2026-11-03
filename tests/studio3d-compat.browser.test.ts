@@ -303,7 +303,7 @@ const TOLERANCES: Record<string, { maxDelta: number; changedFraction: number; re
  */
 const CORRECTIONS: Record<string, string> = {
   stl:
-    'Q14, accepted by Andy on 2026-09-17 with the milestone 2 hand-off: an STL whose facet normals are all zero rendered as a black solid, so the file showed neither its colour nor its finish. The studio now computes the normals from the triangles when the file carries none, and says so in Source notes. The stl-lit set, whose file has real normals, is unchanged.',
+    'Q14, accepted by Andy on 2026-09-17 with the milestone 2 hand-off: an STL whose facet normals are all zero rendered as a black solid, so the file showed neither its colour nor its finish. The studio now computes the normals from the triangles when the file carries none, and reports that in Source notes. The stl-lit set, whose file has real normals, is unchanged.',
   'painted-environment':
     'Q6, accepted by Andy on 2026-09-17: painted panoramas are no longer mirrored, so reflections and the crisp background agree with the lamps',
 };

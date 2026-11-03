@@ -8,7 +8,7 @@
  * from initTimelinePanel() by scripts/split-closure.ts.
  */
 import { clipFrameRate } from '../../lib/clip-frame-rate.ts';
-import { t } from '../../i18n.ts';
+import { t, tn } from '../../i18n.ts';
 import { icon } from '../../lib/icons.ts';
 import type { IconName } from '../../lib/icons.ts';
 import { announce } from '../../a11y.ts';
@@ -119,14 +119,12 @@ export function buildCameraGroup(tp: TpCtx, id: string, box: Box): void {
   const g = inspectorGroup(tp, 'camera', t('Camera'), 'camera');
   inspector.appendChild(g.root);
   // What the segment reads at a glance: how many poses this camera holds. A camera
-  // with none is the scene default - one still shot - and says so.
+  // with none is the scene default - one still shot - and reports that.
   const n = kfBoxTrack(box, cfg).length;
   g.setSummary([
     n === 0
       ? t('Not animated')
-      : n === 1
-        ? t('1 keyframe')
-        : t('{n} keyframes', { n: String(n) }),
+      : tn('1 keyframe', '{n} keyframes', { n: String(n) }),
   ]);
 
   const moves = document.createElement('div');
@@ -933,9 +931,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
     kfG.setSummary([
       n === 0
         ? t('Not animated')
-        : n === 1
-          ? t('1 keyframe')
-          : t('{n} keyframes', { n: String(n) }),
+        : tn('1 keyframe', '{n} keyframes', { n: String(n) }),
     ]);
 
     if (n === 0 && !isCamera) {
@@ -1134,7 +1130,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
         const meta = document.createElement('span');
         meta.className = 'tl-volume-keys field-label';
         meta.textContent =
-          vCount === 1 ? t('1 volume key') : t('{n} volume keys', { n: String(vCount) });
+          tn('1 volume key', '{n} volume keys', { n: String(vCount) });
         const clearBtn = tp.helpers.btn('tl-volume-clear', t('Clear volume keys'), icon('scissors'));
         clearBtn.removeAttribute('data-tip');
         clearBtn.title = t('Clear volume keys');

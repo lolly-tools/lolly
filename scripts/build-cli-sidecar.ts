@@ -208,6 +208,7 @@ cpSync(join(REPO, 'packages/node-shell/wasm/xlsx-numfmt'), join(LIB, 'wasm/xlsx-
 cpSync(join(REPO, 'packages/node-shell/wasm/gridcraft-calc'), join(LIB, 'wasm/gridcraft-calc'), {
   recursive: true, filter: (source) => basename(source) !== 'target',
 });
+cpSync(join(REPO, 'packages/node-shell/wasm/inpaint'), join(LIB, 'wasm/inpaint'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/image-trace'), join(LIB, 'wasm/image-trace'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/pdf-a11y'), join(LIB, 'wasm/pdf-a11y'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 cpSync(join(REPO, 'packages/node-shell/wasm/dxf'), join(LIB, 'wasm/dxf'), { recursive: true, filter: (source) => basename(source) !== 'target' });

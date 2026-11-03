@@ -7,7 +7,7 @@
  * video render via the scoped Chromium tier once `lolly install-browser` has run (the
  * same Tier-B path a single ToolView export uses - exportToFile routes per format).
  * When a row's format needs the browser tier and it isn't installed, the row falls back
- * to HTML and SAYS so (BatchMember.note, surfaced in the progress log and the zip's
+ * to HTML and records a note (BatchMember.note, surfaced in the progress log and the zip's
  * lolly.txt) rather than failing the batch or degrading silently. The ZIP itself can be
  * password-locked via the engine's zip-crypto framer (buildEncryptedZip).
  *

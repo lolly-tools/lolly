@@ -241,7 +241,7 @@ Options:
   --output=<file>    where the file is written. Default: standard output. Its folder
                      must exist: a missing one is refused before a browser starts
   --s=<frame>        one frame, by id or 1-based position. A one-image format from a
-                     deck of several frames takes the first and says so
+                     deck of several frames takes the first and warns
   --c2pa=on|off      Content Credentials on or off (default: the app's own)
   --imprint=0|1      the pixel Imprint on or off (default: the app's own)
   --no-provenance    both of those off

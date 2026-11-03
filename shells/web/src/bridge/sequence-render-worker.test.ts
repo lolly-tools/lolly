@@ -590,7 +590,7 @@ test('fx cache: a picture that is this frame\'s picture is never cached', async 
   } finally { done(); }
 });
 
-test('fx cache: over the allowance a layer simply pays the filter again, and says so', async () => {
+test('fx cache: over the allowance a layer simply pays the filter again, and reports that', async () => {
   const { made, done } = useScratches();
   try {
     const budget = createFxPlateBudget(1024);            // one KB: nothing fits

@@ -533,7 +533,7 @@
       "code": ["shells/cli/src/mix.ts"],
       "evidence": [
         { "file": "tests/cli-mix-song.test.ts", "test": "a song mix is signed: the credential records the song, declares how it was made, and is not flagged as AI" },
-        { "file": "tests/cli-mix-song.test.ts", "test": "--c2pa=off writes the song mix with no credential, and says so" }
+        { "file": "tests/cli-mix-song.test.ts", "test": "--c2pa=off writes the song mix with no credential, and reports that" }
       ],
       "note": "A mix that holds a Rondocode song is signed with one source ingredient per song, read back before the terminal is told. A mix with no song is written with no credential, other clips are not recorded and no licence is evaluated."
     },

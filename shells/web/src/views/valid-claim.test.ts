@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import type {} from '../catalog/sync.ts';
 import { CLAIM_BASIS, CLAIM_LICENCES, claimRights, stripCreditNoteHtml } from './valid.ts';
 
-test('the empty option means no public licence declared, and says so', () => {
+test('the empty option means no public licence declared, and reports that', () => {
   const first = CLAIM_LICENCES[0]!;
   assert.equal(first.value, '', 'the empty value is still first');
   assert.equal(first.label, 'No public licence declared');

@@ -585,7 +585,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "在“验证”和“素材”中运行深度 AI 文本检测。",
   "Card size": "卡片大小",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "此设备上添加了 1 张图片或文件。它只保留在此设备上，其他人看不到该文件。",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "此设备上添加了 {n} 张图片或文件。它们只保留在此设备上，其他人看不到这些文件。",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "此设备上添加了 {n} 张图片或文件。它们只保留在此设备上，其他人看不到这些文件。"
+  },
   "Check the version first": "请先核对版本",
   "Copy team link": "复制团队链接",
   "Could not create the project. Try again.": "无法创建项目。请重试。",
@@ -1176,7 +1178,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "所有项目都已保存到共享项目。本地原件在回收站中或仍在原处。",
   "Your local items have not changed.": "你的本地项目未发生变化。",
   "1 item was saved to the shared project.": "1 个项目已保存到共享项目。",
-  "{n} items were saved to the shared project.": "{n} 个项目已保存到共享项目。",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} 个项目已保存到共享项目。"
+  },
   "Wait for the current move to finish.": "请等待当前移动完成。",
   "You cannot save to that shared project.": "你无法保存到该共享项目。",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "所有能打开 {project} 的人都会看到这些项目。全部保存到那里后，本地原件会移到回收站，你可以在那里还原。",
@@ -1487,8 +1491,12 @@
   "file": "文件",
   "samples": "采样",
   "text": "文本",
-  "{n} changes found": "发现 {n} 处更改",
-  "{n} pages differ": "{n} 个页面不同",
+  "{n} changes found": {
+    "other": "发现 {n} 处更改"
+  },
+  "{n} pages differ": {
+    "other": "{n} 个页面不同"
+  },
   "Draft": "草稿",
   "Draft quality": "草稿质量",
   "Draft rule": "草稿规则",
@@ -1842,5 +1850,128 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "钢笔 (P) - 点击放置节点，拖动生成曲线，按 Alt 切换尖角。长按可选铅笔 (Shift C) 和样条类型",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "钢笔 (P) - 点击放置节点，拖动生成曲线，按 Alt 切换尖角",
   "Recipients can change the inputs": "收件人可以更改输入",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "任何拿到链接的人都可以更改其输入并获得新图像。已锁定的输入保持原设置。"
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "任何拿到链接的人都可以更改其输入并获得新图像。已锁定的输入保持原设置。",
+  "{count} entries": {
+    "other": "{count} 条记录"
+  },
+  "{count} files in this folder": {
+    "other": "此文件夹中有 {count} 个文件"
+  },
+  "{n} assets": {
+    "other": "{n} 个素材"
+  },
+  "{n} assets found": {
+    "other": "找到 {n} 个素材"
+  },
+  "{n} capabilities match": {
+    "other": "{n} 项功能匹配"
+  },
+  "{n} copies made · selected": {
+    "other": "已生成 {n} 份副本 · 已选择"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "在此从项目中移除的 {n} 件作品，仍保持移除。"
+  },
+  "{n} embedded files": {
+    "other": "{n} 个嵌入文件"
+  },
+  "{n} external references": {
+    "other": "{n} 个外部引用"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "{n} 个文件未能打包，已跳过"
+  },
+  "{n} folders": {
+    "other": "{n} 个文件夹"
+  },
+  "{n} font files": {
+    "other": "{n} 个字体文件"
+  },
+  "{n} images": {
+    "other": "{n} 张图片"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n} 张图片无法恢复（存储空间已满？）"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} 张图片留在了原位置 - 图片只能属于一处；如需移动请使用剪切"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "{n} 个输入项 · 应用于每个设计"
+  },
+  "{n} items": {
+    "other": "{n} 个项目"
+  },
+  "{n} items copied": {
+    "other": "已复制 {n} 个项目"
+  },
+  "{n} items cut": {
+    "other": "已剪切 {n} 个项目"
+  },
+  "{n} items moved": {
+    "other": "已移动 {n} 个项目"
+  },
+  "{n} items pasted": {
+    "other": "已粘贴 {n} 个项目"
+  },
+  "{n} keyframes": {
+    "other": "{n} 个关键帧"
+  },
+  "{n} logos": {
+    "other": "{n} 个标志"
+  },
+  "{n} marks found": {
+    "other": "发现 {n} 个标记"
+  },
+  "{n} newer items skipped": {
+    "other": "已跳过 {n} 个较新的项目"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "你的作品中有 {n} 个是视频或动画"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "已略过 {n} 个较旧的自动检查点"
+  },
+  "{n} pages": {
+    "other": "{n} 页"
+  },
+  "{n} places": {
+    "other": "{n} 处"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} 个点 - 按住 Alt 可切换为尖角"
+  },
+  "{n} published versions": {
+    "other": "{n} 个已发布版本"
+  },
+  "{n} results": {
+    "other": "{n} 个结果"
+  },
+  "{n} saved sessions": {
+    "other": "{n} 个已保存的会话"
+  },
+  "{n} selected": {
+    "other": "已选择 {n} 个"
+  },
+  "{n} selected assets": {
+    "other": "已选择 {n} 个素材"
+  },
+  "{n} sessions": {
+    "other": "{n} 个会话"
+  },
+  "{n} shapes": {
+    "other": "{n} 个形状"
+  },
+  "{n} steps": {
+    "other": "{n} 个步骤"
+  },
+  "{n} templates": {
+    "other": "{n} 个模板"
+  },
+  "{n} volume keys": {
+    "other": "{n} 个音量关键帧"
+  },
+  "{n} words": {
+    "other": "{n} 个词"
+  }
 }

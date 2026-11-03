@@ -600,7 +600,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Menjalankan semakan teks AI yang lebih mendalam pada Pengesahan dan dalam Aset.",
   "Card size": "Saiz kad",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 imej atau fail telah ditambah pada peranti ini. Ia kekal pada peranti ini, dan orang lain tidak akan melihat fail itu.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} imej atau fail telah ditambah pada peranti ini. Ia kekal pada peranti ini, dan orang lain tidak akan melihat fail tersebut.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "{n} imej atau fail telah ditambah pada peranti ini. Ia kekal pada peranti ini, dan orang lain tidak akan melihat fail tersebut."
+  },
   "Check the version first": "Semak versi dahulu",
   "Copy team link": "Salin pautan pasukan",
   "Could not create the project. Try again.": "Projek tidak dapat dibuat. Cuba lagi.",
@@ -1176,7 +1178,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Semua item disimpan dalam projek dikongsi. Asal setempat berada dalam Tong Sampah atau masih di tempat asal.",
   "Your local items have not changed.": "Item setempat anda tidak berubah.",
   "1 item was saved to the shared project.": "1 item telah disimpan ke projek dikongsi.",
-  "{n} items were saved to the shared project.": "{n} item telah disimpan ke projek dikongsi.",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} item telah disimpan ke projek dikongsi."
+  },
   "Wait for the current move to finish.": "Tunggu sehingga pemindahan semasa selesai.",
   "You cannot save to that shared project.": "Anda tidak boleh menyimpan ke projek dikongsi itu.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Semua orang yang boleh membuka {project} akan melihat item ini. Selepas semua item disimpan di sana, asal setempat dipindahkan ke Tong Sampah, tempat anda boleh memulihkannya.",
@@ -1487,8 +1491,12 @@
   "file": "fail",
   "samples": "sampel",
   "text": "teks",
-  "{n} changes found": "{n} perubahan ditemui",
-  "{n} pages differ": "{n} halaman berbeza",
+  "{n} changes found": {
+    "other": "{n} perubahan ditemui"
+  },
+  "{n} pages differ": {
+    "other": "{n} halaman berbeza"
+  },
   "Draft": "Draf",
   "Draft quality": "Kualiti draf",
   "Draft rule": "Peraturan draf",
@@ -1840,5 +1848,128 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut. Tahan untuk Pensel (Shift C) dan jenis spline",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut",
   "Recipients can change the inputs": "Penerima boleh mengubah input",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Sesiapa yang mempunyai pautan boleh mengubah inputnya dan mendapatkan imej baharu. Input yang dikunci kekal seperti yang ditetapkan."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Sesiapa yang mempunyai pautan boleh mengubah inputnya dan mendapatkan imej baharu. Input yang dikunci kekal seperti yang ditetapkan.",
+  "{count} entries": {
+    "other": "{count} entri"
+  },
+  "{count} files in this folder": {
+    "other": "{count} fail dalam folder ini"
+  },
+  "{n} assets": {
+    "other": "{n} aset"
+  },
+  "{n} assets found": {
+    "other": "{n} aset ditemui"
+  },
+  "{n} capabilities match": {
+    "other": "{n} keupayaan sepadan"
+  },
+  "{n} copies made · selected": {
+    "other": "{n} salinan dibuat · dipilih"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "{n} ciptaan yang dialih keluar daripada Projek di sini kekal dialih keluar."
+  },
+  "{n} embedded files": {
+    "other": "{n} fail tertanam"
+  },
+  "{n} external references": {
+    "other": "{n} rujukan luaran"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "{n} fail tidak dapat dibungkus dan telah ditinggalkan"
+  },
+  "{n} folders": {
+    "other": "{n} folder"
+  },
+  "{n} font files": {
+    "other": "{n} fail fon"
+  },
+  "{n} images": {
+    "other": "{n} imej"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n} imej tidak dapat dipulihkan (storan penuh?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} imej kekal dengan yang asal - imej hanya mempunyai satu rumah; guna Potong untuk memindahkannya"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "{n} input · digunakan pada setiap reka bentuk"
+  },
+  "{n} items": {
+    "other": "{n} item"
+  },
+  "{n} items copied": {
+    "other": "{n} item disalin"
+  },
+  "{n} items cut": {
+    "other": "{n} item dipotong"
+  },
+  "{n} items moved": {
+    "other": "{n} item dipindahkan"
+  },
+  "{n} items pasted": {
+    "other": "{n} item ditampal"
+  },
+  "{n} keyframes": {
+    "other": "{n} bingkai kunci"
+  },
+  "{n} logos": {
+    "other": "{n} logo"
+  },
+  "{n} marks found": {
+    "other": "{n} tanda ditemui"
+  },
+  "{n} newer items skipped": {
+    "other": "{n} item lebih baharu dilangkau"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "{n} daripada ciptaan anda ialah video atau animasi"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "{n} checkpoint automatik yang lebih lama ditinggalkan"
+  },
+  "{n} pages": {
+    "other": "{n} halaman"
+  },
+  "{n} places": {
+    "other": "{n} tempat"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} titik - tahan Alt untuk sudut"
+  },
+  "{n} published versions": {
+    "other": "{n} versi diterbitkan"
+  },
+  "{n} results": {
+    "other": "{n} hasil"
+  },
+  "{n} saved sessions": {
+    "other": "{n} sesi disimpan"
+  },
+  "{n} selected": {
+    "other": "{n} dipilih"
+  },
+  "{n} selected assets": {
+    "other": "{n} aset dipilih"
+  },
+  "{n} sessions": {
+    "other": "{n} sesi"
+  },
+  "{n} shapes": {
+    "other": "{n} bentuk"
+  },
+  "{n} steps": {
+    "other": "{n} langkah"
+  },
+  "{n} templates": {
+    "other": "{n} templat"
+  },
+  "{n} volume keys": {
+    "other": "{n} kunci volum"
+  },
+  "{n} words": {
+    "other": "{n} perkataan"
+  }
 }

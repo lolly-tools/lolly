@@ -422,7 +422,7 @@ test('a mention chosen with the keyboard is sent, and the person is told when it
     assert.equal(f.status(), 'Some people were not notified because they cannot open this document.');
   } finally { f.destroy(); }
 });
-test('commenting too quickly keeps the reply and says so', async () => {
+test('commenting too quickly keeps the reply and reports why', async () => {
   const f = fixture({ command: async () => { throw Object.assign(new Error('slow down'), { status: 429 }); } });
   try {
     await tick(); await f.ui.locate('thread'); await tick();

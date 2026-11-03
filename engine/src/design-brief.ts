@@ -194,7 +194,7 @@ function combinationSection(doc: unknown, theme: string | undefined, themes: Arr
     };
   }
   // Nothing declared: pair the semantic slots of each theme by WCAG contrast. A derived
-  // pair is arithmetic, not a brand approval, and says so.
+  // pair is arithmetic, not a brand approval, and the report states that.
   const derived: Array<{ theme: string | null; background: { slot: string; value: string }; text: Array<{ slot: string; value: string; contrast: number }>; graphic: Array<{ slot: string; value: string; contrast: number }> }> = [];
   const sets = themes.length ? themes : [{ name: '', semantic: Object.fromEntries(swatches.filter((s) => s.path.startsWith('color.semantic.')).map((s) => [s.path.slice(15), s.value])) }];
   for (const set of sets) {

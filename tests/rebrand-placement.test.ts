@@ -14,7 +14,7 @@
  *     elsewhere.
  *
  * The SUSE master is exercised when brands/suse is on this machine; a public
- * clone checks the starter master alone and says so in a diagnostic.
+ * clone checks the starter master alone and reports that in a diagnostic.
  *
  * Run with: node --test "tests/rebrand-placement.test.ts"
  */

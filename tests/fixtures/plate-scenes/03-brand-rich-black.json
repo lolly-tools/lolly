@@ -1,0 +1,156 @@
+{
+  "id": "03-brand-rich-black",
+  "title": "Brand rich black and dark swatches",
+  "covers": "Liquorice (a rich black) and Basalt carry measured CMYK and a spot name. A RIP that keeps spots gets the named plate; one that flattens spots gets the measured CMYK exactly.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "liq",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 20,
+      "w": 170,
+      "h": 160,
+      "bg": "#09141a"
+    },
+    {
+      "id": "bas",
+      "kind": "box",
+      "frame": "page",
+      "x": 210,
+      "y": 20,
+      "w": 170,
+      "h": 160,
+      "bg": "#373e44"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true,
+    "separations": [
+      "H240_L005_C005",
+      "H250_L025_C005"
+    ]
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Liquorice",
+          "rect": [
+            30,
+            30,
+            150,
+            140
+          ],
+          "expect": {
+            "H240_L005_C005": 100,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Basalt",
+          "rect": [
+            220,
+            30,
+            150,
+            140
+          ],
+          "expect": {
+            "H250_L025_C005": 100,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "spots flattened to the process alternate",
+      "rip": [
+        "-dMaxSpots=0"
+      ],
+      "tol": 1.5,
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Liquorice 89/48/32/100",
+          "rect": [
+            30,
+            30,
+            150,
+            140
+          ],
+          "expect": {
+            "C": 89,
+            "M": 48,
+            "Y": 32,
+            "K": 100
+          }
+        },
+        {
+          "name": "Basalt 68/48/37/71",
+          "rect": [
+            220,
+            30,
+            150,
+            140
+          ],
+          "expect": {
+            "C": 68,
+            "M": 48,
+            "Y": 37,
+            "K": 71
+          }
+        }
+      ]
+    }
+  ]
+}

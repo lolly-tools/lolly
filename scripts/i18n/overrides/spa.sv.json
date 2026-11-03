@@ -577,7 +577,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Kör den djupare AI-textkontrollen i Verifiera och i Tillgångar.",
   "Card size": "Kortstorlek",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 bild eller fil lades till på den här enheten. Den stannar på den här enheten och andra ser inte filen.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} bilder eller filer lades till på den här enheten. De stannar på den här enheten och andra ser inte filerna.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "1 bild eller fil lades till på den här enheten. Den stannar på den här enheten och andra ser inte filen.",
+    "other": "{n} bilder eller filer lades till på den här enheten. De stannar på den här enheten och andra ser inte filerna."
+  },
   "Check the version first": "Kontrollera versionen först",
   "Copy team link": "Kopiera teamlänk",
   "Could not create the project. Try again.": "Det gick inte att skapa projektet. Försök igen.",
@@ -1168,7 +1171,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Alla objekt är sparade i det delade projektet. De lokala originalen ligger i papperskorgen eller kvar på sin plats.",
   "Your local items have not changed.": "Dina lokala objekt har inte ändrats.",
   "1 item was saved to the shared project.": "1 objekt sparades i det delade projektet.",
-  "{n} items were saved to the shared project.": "{n} objekt sparades i det delade projektet.",
+  "{n} items were saved to the shared project.": {
+    "one": "1 objekt sparades i det delade projektet.",
+    "other": "{n} objekt sparades i det delade projektet."
+  },
   "Wait for the current move to finish.": "Vänta tills den pågående flytten är klar.",
   "You cannot save to that shared project.": "Du kan inte spara i det delade projektet.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Alla som kan öppna {project} ser de här objekten. När varje objekt är sparat där flyttas de lokala originalen till papperskorgen, där du kan återställa dem.",
@@ -1479,8 +1485,14 @@
   "file": "fil",
   "samples": "prover",
   "text": "text",
-  "{n} changes found": "{n} ändringar hittades",
-  "{n} pages differ": "{n} sidor skiljer sig",
+  "{n} changes found": {
+    "one": "1 ändring hittades",
+    "other": "{n} ändringar hittades"
+  },
+  "{n} pages differ": {
+    "one": "1 sida skiljer sig",
+    "other": "{n} sidor skiljer sig"
+  },
   "Draft": "Utkast",
   "Draft quality": "Utkastkvalitet",
   "Draft rule": "Utkastregel",
@@ -1833,5 +1845,171 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn. Håll för Blyertspennan (Shift C) och splinetypen",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn",
   "Recipients can change the inputs": "Mottagare kan ändra indata",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Alla med länken kan ändra indata och få en ny bild. Låsta indata behåller sina inställda värden."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Alla med länken kan ändra indata och få en ny bild. Låsta indata behåller sina inställda värden.",
+  "{count} entries": {
+    "one": "1 post",
+    "other": "{count} poster"
+  },
+  "{count} files in this folder": {
+    "one": "1 fil i den här mappen",
+    "other": "{count} filer i den här mappen"
+  },
+  "{n} assets": {
+    "one": "1 tillgång",
+    "other": "{n} tillgångar"
+  },
+  "{n} assets found": {
+    "one": "1 tillgång hittades",
+    "other": "{n} tillgångar hittades"
+  },
+  "{n} capabilities match": {
+    "one": "1 funktion matchar",
+    "other": "{n} funktioner matchar"
+  },
+  "{n} copies made · selected": {
+    "one": "1 kopia gjord · vald",
+    "other": "{n} kopior gjorda · valda"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "1 skapelse som togs bort från Projekt här förblev borttagen.",
+    "other": "{n} skapelser som togs bort från Projekt här förblev borttagna."
+  },
+  "{n} embedded files": {
+    "one": "1 inbäddad fil",
+    "other": "{n} inbäddade filer"
+  },
+  "{n} external references": {
+    "one": "1 extern referens",
+    "other": "{n} externa referenser"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "1 fil kunde inte packas och uteslöts",
+    "other": "{n} filer kunde inte packas och uteslöts"
+  },
+  "{n} folders": {
+    "one": "1 mapp",
+    "other": "{n} mappar"
+  },
+  "{n} font files": {
+    "one": "1 teckensnittsfil",
+    "other": "{n} teckensnittsfiler"
+  },
+  "{n} images": {
+    "one": "1 bild",
+    "other": "{n} bilder"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "1 bild kunde inte återställas (lagringen full?)",
+    "other": "{n} bilder kunde inte återställas (lagringen full?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "1 bild stannade kvar vid originalet - bilder har ett hem; använd Klipp ut för att flytta dem",
+    "other": "{n} bilder stannade kvar vid originalet - bilder har ett hem; använd Klipp ut för att flytta dem"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "1 fält · gäller varje design",
+    "other": "{n} fält · gäller varje design"
+  },
+  "{n} items": {
+    "one": "1 objekt",
+    "other": "{n} objekt"
+  },
+  "{n} items copied": {
+    "one": "1 objekt kopierat",
+    "other": "{n} objekt kopierade"
+  },
+  "{n} items cut": {
+    "one": "1 objekt klippt",
+    "other": "{n} objekt klippta"
+  },
+  "{n} items moved": {
+    "one": "1 objekt flyttat",
+    "other": "{n} objekt flyttade"
+  },
+  "{n} items pasted": {
+    "one": "1 objekt inklistrat",
+    "other": "{n} objekt inklistrade"
+  },
+  "{n} keyframes": {
+    "one": "1 nyckelbild",
+    "other": "{n} nyckelbilder"
+  },
+  "{n} logos": {
+    "one": "1 logotyp",
+    "other": "{n} logotyper"
+  },
+  "{n} marks found": {
+    "one": "1 märke hittades",
+    "other": "{n} märken hittades"
+  },
+  "{n} newer items skipped": {
+    "one": "1 nyare objekt hoppades över",
+    "other": "{n} nyare objekt hoppades över"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "1 skapelse är en video eller animation",
+    "other": "{n} av dina skapelser är videor eller animationer"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "1 äldre automatisk kontrollpunkt utelämnad",
+    "other": "{n} äldre automatiska kontrollpunkter utelämnade"
+  },
+  "{n} pages": {
+    "one": "1 sida",
+    "other": "{n} sidor"
+  },
+  "{n} places": {
+    "one": "1 plats",
+    "other": "{n} platser"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "1 punkt - håll Alt för ett hörn",
+    "other": "{n} punkter - håll Alt för ett hörn"
+  },
+  "{n} published versions": {
+    "one": "1 publicerad version",
+    "other": "{n} publicerade versioner"
+  },
+  "{n} results": {
+    "one": "1 resultat",
+    "other": "{n} resultat"
+  },
+  "{n} saved sessions": {
+    "one": "1 sparad session",
+    "other": "{n} sparade sessioner"
+  },
+  "{n} selected": {
+    "one": "1 vald",
+    "other": "{n} valda"
+  },
+  "{n} selected assets": {
+    "one": "1 vald tillgång",
+    "other": "{n} valda tillgångar"
+  },
+  "{n} sessions": {
+    "one": "1 session",
+    "other": "{n} sessioner"
+  },
+  "{n} shapes": {
+    "one": "1 form",
+    "other": "{n} former"
+  },
+  "{n} steps": {
+    "one": "1 steg",
+    "other": "{n} steg"
+  },
+  "{n} templates": {
+    "one": "1 mall",
+    "other": "{n} mallar"
+  },
+  "{n} volume keys": {
+    "one": "1 volymnyckel",
+    "other": "{n} volymnycklar"
+  },
+  "{n} words": {
+    "one": "1 ord",
+    "other": "{n} ord"
+  },
+  "Importing {n} files…": "Importerar {n} filer…",
+  "What do you need?": "Vad behöver du?"
 }

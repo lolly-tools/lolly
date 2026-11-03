@@ -25,7 +25,7 @@
  * tool templates are fetched as text and never navigated to.
  *
  * `frame-ancestors` is dropped from the meta form: a browser ignores it when
- * delivered by <meta> and says so in the console on every boot, and inside a
+ * delivered by <meta> and logs a warning in the console on every boot, and inside a
  * WebView there is no ancestor to refuse.
  *
  * Dev (`tauri dev` / `tauri ios dev`) loads the dev server directly, where

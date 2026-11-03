@@ -373,7 +373,7 @@ Export options:
   --designv=<slug|latest>  the design-system version to render against: a published
                            version's slug, or \`latest\` for the edit head. Beats a
                            tool's own pin; a slug this catalog does not ship falls
-                           through to the pin, then the head, and says so either way
+                           through to the pin, then the head, and reports which one applied
   --verify                 for a file utility: print a per-file line when no check failed
   --rights=private         state that this render is not being delivered to anyone, so a
                            condition that applies on sharing does not apply and no

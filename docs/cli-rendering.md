@@ -20,7 +20,7 @@ The CLI renders in a headless DOM (jsdom), and those formats come straight from 
 
 Shaping reads `ttf` and `otf` fonts under the content root, from the catalog and the tool's own folder. A browser-only `woff2` face is refused with a clear error rather than shaped as blanks.
 
-`penpot` packs the brand's colours and design tokens beside the vector shapes; type styles come from the app's own font-role read, so a CLI archive carries no library typographies. An HTML-layout tool has no root `<svg>` to build from, so it goes to the paint tier and says so first.
+`penpot` packs the brand's colours and design tokens beside the vector shapes; type styles come from the app's own font-role read, so a CLI archive carries no library typographies. An HTML-layout tool has no root `<svg>` to build from, so it goes to the paint tier and reports that first.
 
 `txt` is not a data format: it is the rendered page as plain text, which is why it needs the paint tier. `jpg` and `jpeg` are one format with two spellings, and either flag works on any tool.
 

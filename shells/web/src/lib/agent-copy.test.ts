@@ -44,7 +44,7 @@ const flush = () => new Promise<void>((r) => setImmediate(r));
 const pillOf = (root: HTMLElement) => root.querySelector<HTMLElement>('[data-agent-pill]')!;
 const icon = (root: HTMLElement, action: string) => root.querySelector<HTMLElement>(`.agent-pill > .agent-pill-icons [data-agent-action="${action}"]`)!;
 
-test('a click on the pill label copies the exact text and says so', async () => {
+test('a click on the pill label copies the exact text and confirms the copy', async () => {
   const root = hero();
   const written: string[] = [];
   wireAgentCopy(root, { writeText: async (s) => { written.push(s); } });

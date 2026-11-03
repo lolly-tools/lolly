@@ -8042,10 +8042,14 @@
   "{count} controls you changed stay yours.": "{count} kontrol yang Anda ubah tetap milik Anda.",
   "{count} days": "{count} hari",
   "{count} decisions from the last version still apply.": "{count} keputusan dari versi terakhir masih berlaku.",
-  "{count} entries": "{count} entri",
+  "{count} entries": {
+    "other": "{count} entri"
+  },
   "{count} files / variations": "{count} file / variasi",
   "{count} files chosen": "{count} file dipilih",
-  "{count} files in this folder": "{count} file di folder ini",
+  "{count} files in this folder": {
+    "other": "{count} file di folder ini"
+  },
   "{count} for {names}": "{count} untuk {names}",
   "{count} for “{query}” in {scope}": "{count} untuk “{query}” di {scope}",
   "{count} layouts": "{count} tata letak",
@@ -8219,19 +8223,27 @@
   "{n} added to favourites": "{n} ditambahkan ke favorit",
   "{n} added to the design system": "{n} ditambahkan ke sistem desain",
   "{n} asset IDs": "{n} ID aset",
-  "{n} assets": "{n} aset",
+  "{n} assets": {
+    "other": "{n} aset"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} Aset tidak bisa dipulihkan.",
-  "{n} assets found": "{n} aset ditemukan",
+  "{n} assets found": {
+    "other": "{n} aset ditemukan"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} aset di-zip · {c} dengan Content Credentials",
   "{n} available offline": "{n} tersedia offline",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} kotak. Satu klik menghasilkan alur gerak lengkap - setiap keyframe tetap dapat diedit setelahnya.",
-  "{n} capabilities match": "{n} kemampuan cocok",
+  "{n} capabilities match": {
+    "other": "{n} kemampuan cocok"
+  },
   "{n} cards are left to review.": "{n} kartu tersisa untuk ditinjau.",
   "{n} cards are still to answer.": "{n} kartu masih perlu dijawab.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "{n} kartu masih perlu dijawab. Terima sesuai usulan dan buka di Design?",
   "{n} ch": "{n} kar",
   "{n} changed": "{n} berubah",
-  "{n} changes found": "{n} perubahan ditemukan",
+  "{n} changes found": {
+    "other": "{n} perubahan ditemukan"
+  },
   "{n} characters continue beyond the last frame.": "{n} karakter berlanjut di luar bingkai terakhir.",
   "{n} checks": "{n} cek",
   "{n} clips selected": "{n} klip dipilih",
@@ -8246,7 +8258,9 @@
   "{n} connectors - editing all": "{n} konektor - mengedit semua",
   "{n} copies added to your projects": "{n} salinan ditambahkan ke proyek Anda",
   "{n} copies in total": "{n} salinan total",
-  "{n} copies made · selected": "{n} salinan dibuat · dipilih",
+  "{n} copies made · selected": {
+    "other": "{n} salinan dibuat · dipilih"
+  },
   "{n} creation checkpoints": "{n} titik pemeriksaan kreasi",
   "{n} curly quotes": "{n} tanda kutip lengkung",
   "{n} days ago": "{n} beberapa hari yang lalu",
@@ -8263,24 +8277,34 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} input yang dapat disunting. Pengaturan yang tidak dipilih tetap.",
   "{n} ellipsis characters": "{n} karakter elipsis",
   "{n} em-dashes": "{n} em-dash",
-  "{n} embedded files": "{n} file tertanam",
-  "{n} external references": "{n} referensi eksternal",
+  "{n} embedded files": {
+    "other": "{n} file tertanam"
+  },
+  "{n} external references": {
+    "other": "{n} referensi eksternal"
+  },
   "{n} fields": "{n} bidang",
   "{n} file batches": "{n} kumpulan file",
   "{n} file operation records": "{n} catatan operasi file",
   "{n} files": "{n} berkas",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} file bukan deck PowerPoint, PDF, atau dokumen Photoshop, jadi dilewati.",
   "{n} files are ready to import.": "{n} file siap diimpor.",
-  "{n} files could not be packed and were left out": "{n} file tidak dapat dikemas dan tidak disertakan",
+  "{n} files could not be packed and were left out": {
+    "other": "{n} file tidak dapat dikemas dan tidak disertakan"
+  },
   "{n} files imported from the zip.": "{n} file diimpor dari zip.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} file diimpor dari zip; {skipped} dilewati.",
   "{n} files ready": "{n} file siap",
   "{n} findings": "{n} Hasil penelitian",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "{n} temuan ditemukan. Saran yang dapat disunting dipilih; temuan Office yang hanya untuk diperiksa tidak berubah. Tinjau panel Inspection.",
-  "{n} folders": "{n} folder",
+  "{n} folders": {
+    "other": "{n} folder"
+  },
   "{n} font changes": "{n} perubahan font",
   "{n} font choices": "{n} pilihan font",
-  "{n} font files": "{n} file font",
+  "{n} font files": {
+    "other": "{n} file font"
+  },
   "{n} fonts": "{n} font",
   "{n} fonts found": "{n} font ditemukan",
   "{n} fonts from the deck are set in another face.": "{n} font dari deck memakai tipe lain.",
@@ -8292,31 +8316,55 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} tersembunyi - temukan di bagian “Tampilkan tool tersembunyi”",
   "{n} hidden shades stay hidden": "{n} shade tersembunyi tetap tersembunyi",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} menyimpan cadangan; bebas ruang atau menyelesaikan versi yang bertentangan sebelum mencoba lagi.",
-  "{n} images": "{n} gambar",
-  "{n} images couldn’t be restored (storage full?)": "{n} gambar tidak dapat dipulihkan (penyimpanan penuh?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} gambar tetap di file aslinya - gambar hanya memiliki satu lokasi asal; gunakan Potong untuk memindahkannya",
+  "{n} images": {
+    "other": "{n} gambar"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n} gambar tidak dapat dipulihkan (penyimpanan penuh?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} gambar tetap di file aslinya - gambar hanya memiliki satu lokasi asal; gunakan Potong untuk memindahkannya"
+  },
   "{n} included tools (asked before installing)": "{n} alat yang disertakan (ditanya sebelum memasang)",
   "{n} ink": "{n} tinta",
-  "{n} inputs · applies to every design": "{n} input · berlaku untuk setiap desain",
+  "{n} inputs · applies to every design": {
+    "other": "{n} input · berlaku untuk setiap desain"
+  },
   "{n} invisible watermark(s) found": "{n} watermark tak terlihat ditemukan",
   "{n} issues to review before sharing.": "{n} masalah untuk ditinjau sebelum membagikan.",
-  "{n} items": "{n} item",
-  "{n} items copied": "{n} item disalin",
-  "{n} items cut": "{n} item dipotong",
-  "{n} items moved": "{n} item dipindahkan",
-  "{n} items pasted": "{n} item ditempel",
+  "{n} items": {
+    "other": "{n} item"
+  },
+  "{n} items copied": {
+    "other": "{n} item disalin"
+  },
+  "{n} items cut": {
+    "other": "{n} item dipotong"
+  },
+  "{n} items moved": {
+    "other": "{n} item dipindahkan"
+  },
+  "{n} items pasted": {
+    "other": "{n} item ditempel"
+  },
   "{n} items removed": "{n} item dihapus",
   "{n} jobs": "{n} tugas",
   "{n} kept": "{n} dipertahankan",
   "{n} kept in the tray": "{n} dipertahankan di tray",
-  "{n} keyframes": "{n} keyframe",
+  "{n} keyframes": {
+    "other": "{n} keyframe"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} pengganti berlabel menggantikan objek.",
   "{n} layers": "{n} lapisan",
   "{n} layers found": "{n} layer ditemukan",
   "{n} list lines": "{n} baris daftar",
-  "{n} logos": "{n} logo",
+  "{n} logos": {
+    "other": "{n} logo"
+  },
   "{n} marks became the design system mark.": "{n} tanda menjadi tanda sistem desain.",
-  "{n} marks found": "{n} tanda ditemukan",
+  "{n} marks found": {
+    "other": "{n} tanda ditemukan"
+  },
   "{n} marks sent to Logos": "{n} mark dikirim ke Logo",
   "{n} min ago": "{n} menit yang lalu",
   "{n} more findings in this document.": "{n} temuan lagi di dokumen ini.",
@@ -8328,7 +8376,9 @@
   "{n} more slides": "{n} slide lagi",
   "{n} moved to {group}.": "{n} dipindahkan ke {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} slide baru memuat yang tidak muat, sehingga nomor slide bergeser.",
-  "{n} newer items skipped": "{n} item lebih baru dilewati",
+  "{n} newer items skipped": {
+    "other": "{n} item lebih baru dilewati"
+  },
   "{n} nits": "{n} nit",
   "{n} not drawn": "{n} tidak digambar",
   "{n} objects added": "{n} objek ditambahkan",
@@ -8341,7 +8391,9 @@
   "{n} objects overlap the slide master.": "{n} objek tumpang tindih dengan master slide.",
   "{n} objects removed": "{n} objek dihapus",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} objek mempertahankan pemangkasan atau efek sebagai gambar. Ganti seluruh karya seninya untuk mengubah bentuknya.",
-  "{n} of your creations are videos or animations": "{n} kreasi Anda berupa video atau animasi",
+  "{n} of your creations are videos or animations": {
+    "other": "{n} kreasi Anda berupa video atau animasi"
+  },
   "{n} of {m}": "{n} dari {m}",
   "{n} of {total} downloaded": "{n} dari {total} diunduh",
   "{n} of {total} downloaded · {size} on disk": "{n} dari {total} terunduh · {size} di disk",
@@ -8352,57 +8404,79 @@
   "{n} off": "{n} nonaktif",
   "{n} on": "{n} aktif",
   "{n} other colourways keep their own colours: {names}": "{n} colourway lain mempertahankan warnanya sendiri: {names}",
-  "{n} pages": "{n} halaman",
+  "{n} pages": {
+    "other": "{n} halaman"
+  },
   "{n} pages are pictures of their text.": "{n} halaman berupa gambar teksnya.",
-  "{n} pages differ": "{n} halaman berbeda",
+  "{n} pages differ": {
+    "other": "{n} halaman berbeda"
+  },
   "{n} pages had no size, so they were left out.": "{n} halaman tidak berukuran, jadi dilewati.",
   "{n} pictures": "{n} gambar",
   "{n} pictures are missing.": "{n} gambar hilang.",
   "{n} pictures in the deck were not kept.": "{n} gambar di deck tidak dipertahankan.",
-  "{n} places": "{n} tempat",
+  "{n} places": {
+    "other": "{n} tempat"
+  },
   "{n} points": "{n} titik",
-  "{n} points - hold Alt for a corner": "{n} titik - tahan Alt untuk sudut",
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} titik - tahan Alt untuk sudut"
+  },
   "{n} preserved file": "{n} file dipertahankan",
   "{n} preserved files": "{n} file dipertahankan",
   "{n} print locks re-pinned": "{n} kunci cetak disematkan ulang",
   "{n} proposed changes": "{n} perubahan yang diusulkan",
   "{n} protected drafts": "{n} draf terlindungi",
   "{n} published version": "{n} versi terbit",
-  "{n} published versions": "{n} versi terbit",
+  "{n} published versions": {
+    "other": "{n} versi diterbitkan"
+  },
   "{n} recorded": "{n} tercatat",
   "{n} removed from favourites": "{n} dihapus dari favorit",
   "{n} removed from offline": "{n} dihapus dari offline",
   "{n} removed. A tool naming it will lose it.": "{n} dihapus. Tool yang menamainya akan kehilangannya.",
   "{n} removed. A tool naming one of these will lose it.": "{n} dihapus. Tool yang menamai salah satunya akan kehilangannya.",
   "{n} renders": "{n} render",
-  "{n} results": "{n} hasil",
+  "{n} results": {
+    "other": "{n} hasil"
+  },
   "{n} roles re-derived": "{n} peran diturunkan ulang",
   "{n} rotated runs left out": "{n} baris terputar dilewatkan",
   "{n} saved asset versions": "{n} versi aset yang disimpan",
   "{n} saved for offline, {m} failed - check your connection": "{n} disimpan untuk offline, {m} gagal - periksa koneksi Anda",
-  "{n} saved sessions": "{n} sesi tersimpan",
+  "{n} saved sessions": {
+    "other": "{n} sesi tersimpan"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "{n} sistem tersimpan tidak dapat dipratinjau. Buka dari Profile untuk mengelolanya.",
   "{n} scanned": "{n} dipindai",
   "{n} scanned pages read.": "{n} halaman pindaian dibaca.",
   "{n} scanned pages were left unread to keep this quick.": "{n} halaman hasil pindai dibiarkan tidak terbaca agar tetap cepat.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} halaman pindaian tidak dibaca karena Text recognition tidak ada di perangkat ini.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} halaman hasil pindai dibaca dengan pengenalan teks on-device, sehingga pemeriksaan karakter tersembunyi tidak dapat berjalan pada halaman tersebut.",
-  "{n} selected": "{n} dipilih",
-  "{n} selected assets": "{n} aset dipilih",
+  "{n} selected": {
+    "other": "{n} dipilih"
+  },
+  "{n} selected assets": {
+    "other": "{n} aset dipilih"
+  },
   "{n} selected files": "{n} file dipilih",
   "{n} selected items could not be outlined and were left as they are.": "{n} item terpilih tidak dapat dijadikan outline dan dibiarkan apa adanya.",
   "{n} selected items have no outline, so they were left as they are.": "{n} item yang dipilih tidak memiliki outline, jadi dibiarkan apa adanya.",
   "{n} selected · {size}": "{n} dipilih · {size}",
   "{n} sentences": "{n} kalimat",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} kalimat memiliki garis bawah putus-putus: model on-device dapat menawarkan versi yang lebih sederhana. Menerima salah satu menandai salinan tersimpan sebagai dibantu AI, dan kata-kata model membawa watermark penulisan ulang publik milik Lolly sehingga teks tulisan AI tetap dapat terdeteksi di Verify.",
-  "{n} sessions": "{n} sesi",
+  "{n} sessions": {
+    "other": "{n} sesi"
+  },
   "{n} set": "{n} diatur",
   "{n} shade curves re-anchored": "{n} kurva shade dijangkarkan ulang",
   "{n} shades added to your palette": "{n} gradasi ditambahkan ke palet Anda",
   "{n} shades added. Undo is available above your palette.": "{n} gradasi ditambahkan. Urungkan tersedia di atas palet Anda.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} shade tidak dapat mencapai targetnya (dibatasi pada corak terdekat).",
   "{n} shades rebuilt across {ramps} ramps": "{n} shade dibangun ulang di {ramps} ramp",
-  "{n} shapes": "{n} bentuk",
+  "{n} shapes": {
+    "other": "{n} bentuk"
+  },
   "{n} shapes · page {p}": "{n} bentuk · halaman {p}",
   "{n} shared assets were kept.": "{n} aset bersama dipertahankan.",
   "{n} slides narrated.": "{n} slide dinarasikan.",
@@ -8410,11 +8484,15 @@
   "{n} spectrum hues rebuilt": "{n} hue spektrum dibangun ulang",
   "{n} stages of work": "{n} tahap pekerjaan",
   "{n} starter colours": "{n} warna awal",
-  "{n} steps": "{n} langkah-langkah",
+  "{n} steps": {
+    "other": "{n} langkah"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "{n} saran ditemukan. Salinan disiapkan dengan saran terpilih; sesuaikan mana pun di panel Inspection.",
   "{n} suggestions were applied without review.": "{n} saran diterapkan tanpa ditinjau.",
   "{n} swatches removed": "{n} swatch dihapus",
-  "{n} templates": "{n} template",
+  "{n} templates": {
+    "other": "{n} template"
+  },
   "{n} templates added": "{n} templat ditambahkan",
   "{n} templates deleted": "{n} templat dihapus",
   "{n} templates saved": "{n} templat disimpan",
@@ -8434,11 +8512,15 @@
   "{n} unsupported backup parts skipped": "{n} Bagian cadangan yang tidak didukung dilewatkan",
   "{n} value changes": "{n} perubahan nilai",
   "{n} values change": "{n} nilai berubah",
-  "{n} volume keys": "{n} kunci volume",
+  "{n} volume keys": {
+    "other": "{n} kunci volume"
+  },
   "{n} warnings.": "{n} peringatan.",
   "{n} were kept - they are not this room to remove.": "{n} dipertahankan - bukan milik ruang ini untuk dihapus.",
   "{n} wording swaps are underlined in the preview.": "{n} penggantian kata digarisbawahi di pratinjau.",
-  "{n} words": "{n} kata",
+  "{n} words": {
+    "other": "{n} kata"
+  },
   "{n} words cut": "{n} kata dipotong",
   "{n} yours": "{n} milik Anda",
   "{n}-bit": "{n}-bit",
@@ -8832,7 +8914,9 @@
   "1 design was added to Projects, in 1 folder.": "1 desain ditambahkan ke Proyek, dalam 1 folder.",
   "1 design was added to Projects, in {f} folders.": "1 desain ditambahkan ke Proyek, dalam {f} folder.",
   "1 design was added to Projects.": "1 desain ditambahkan ke Proyek.",
-  "{n} creations removed from Projects here stayed removed.": "{n} kreasi yang dihapus dari Proyek di sini tetap terhapus.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "{n} kreasi yang dihapus dari Proyek di sini tetap terhapus."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Kreasi ini tidak pernah disimpan, jadi keluar tanpa menyimpan akan menghapusnya dari Proyek.",
   "This deck has no colours to change.": "Deck ini tidak punya warna untuk diubah.",
   "This deck has no fonts to change.": "Deck ini tidak punya font untuk diubah.",
@@ -8862,7 +8946,9 @@
   "This saved version could not be read.": "Versi tersimpan ini tidak dapat dibaca.",
   "1 older automatic checkpoint left out": "1 checkpoint otomatis yang lebih lama dilewatkan",
   "1 other colourway keeps its own colours: {names}": "1 colourway lain mempertahankan warnanya sendiri: {names}",
-  "{n} older automatic checkpoints left out": "{n} checkpoint otomatis yang lebih lama dilewatkan",
+  "{n} older automatic checkpoints left out": {
+    "other": "{n} checkpoint otomatis yang lebih lama dilewatkan"
+  },
   "Automatic recovery and checkpoints are on": "Pemulihan otomatis dan checkpoint aktif",
   "Automatic recovery is unavailable here. Save before leaving.": "Pemulihan otomatis tidak tersedia di sini. Simpan sebelum pergi.",
   "Checkpoint saved at {time} on this device": "Checkpoint disimpan pada {time} di perangkat ini",
@@ -9045,7 +9131,9 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Untuk menampilkan situs yang tidak dapat ditampilkan versi web, Lolly dapat dimuat ulang dengan kebijakan frame yang lebih longgar di perangkat ini, lalu bertanya soal setiap situs sebelum Anda presentasi. Anda dapat mematikannya di profil, di bagian Situs tepercaya.",
   "Card size": "Ukuran kartu",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 gambar atau berkas ditambahkan di perangkat ini. Berkas itu tetap di perangkat ini, dan orang lain tidak akan melihatnya.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} gambar atau berkas ditambahkan di perangkat ini. Berkas-berkas itu tetap di perangkat ini, dan orang lain tidak akan melihatnya.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "{n} gambar atau file ditambahkan di perangkat ini. File-file itu tetap di perangkat ini, dan orang lain tidak akan melihatnya."
+  },
   "Check the version first": "Periksa versinya dulu",
   "Copy team link": "Salin tautan tim",
   "Could not create the project. Try again.": "Tidak dapat membuat proyek. Coba lagi.",
@@ -9793,7 +9881,9 @@
   "Every mode": "Semua mode",
   "Your local items have not changed.": "Item lokal Anda tidak berubah.",
   "1 item was saved to the shared project.": "1 item disimpan ke proyek bersama.",
-  "{n} items were saved to the shared project.": "{n} item disimpan ke proyek bersama.",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} item disimpan ke proyek bersama."
+  },
   "Wait for the current move to finish.": "Tunggu pemindahan saat ini selesai.",
   "Wait for the deck to finish reading, then choose a picture.": "Tunggu deck selesai dibaca, lalu pilih gambar.",
   "Wait for the grid to finish rendering before moving its layers.": "Tunggu grid selesai dirender sebelum memindahkan lapisannya.",
@@ -10645,5 +10735,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Klip ini memakai {codec}, yang tidak dapat diputar di perangkat ini. Ekspor salinan H.264, HEVC, atau AV1 dari aplikasi penyuntingan Anda, atau buka di aplikasi desktop Lolly di Mac. Lolly menyimpan file aslinya.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Klip ini memakai {codec}, yang tidak dapat diputar di perangkat ini. Ekspor salinan H.264, HEVC, atau AV1 dari aplikasi penyuntingan Anda. Lolly menyimpan file aslinya.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Ini adalah file MXF dengan {codec}. Lolly dapat membaca isinya tetapi tidak dapat memutar MXF. Ekspor salinan H.264, HEVC, atau AV1 dari aplikasi penyuntingan Anda. Lolly menyimpan file aslinya.",
-  "{format} from {camera}": "{format} dari {camera}"
+  "{format} from {camera}": "{format} dari {camera}",
+  "Filling a large area. This can take a moment.": "Mengisi area luas. Ini mungkin perlu waktu sejenak.",
+  "Large area": "Area luas"
 }

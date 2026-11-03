@@ -730,7 +730,11 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Esegue il controllo IA-testo approfondito su Verifica e in Risorse.",
   "Card size": "Dimensione delle schede",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Su questo dispositivo è stata aggiunta 1 immagine o file. Resta su questo dispositivo e gli altri non vedranno quel file.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Su questo dispositivo sono state aggiunte {n} immagini o file. Restano su questo dispositivo e gli altri non vedranno quei file.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "Su questo dispositivo è stata aggiunta {n} immagine o file. Resta su questo dispositivo e gli altri non vedranno quel file.",
+    "many": "Su questo dispositivo sono state aggiunte {n} di immagini o file. Restano su questo dispositivo e gli altri non vedranno quei file.",
+    "other": "Su questo dispositivo sono state aggiunte {n} immagini o file. Restano su questo dispositivo e gli altri non vedranno quei file."
+  },
   "Check the version first": "Controlla prima la versione",
   "Copy team link": "Copia link del team",
   "Could not create the project. Try again.": "Impossibile creare il progetto. Riprova.",
@@ -1307,7 +1311,11 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Ogni elemento è salvato nel progetto condiviso. Gli originali locali sono nel Cestino o ancora al loro posto.",
   "Your local items have not changed.": "I tuoi elementi locali non sono cambiati.",
   "1 item was saved to the shared project.": "1 elemento è stato salvato nel progetto condiviso.",
-  "{n} items were saved to the shared project.": "{n} elementi sono stati salvati nel progetto condiviso.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} elemento è stato salvato nel progetto condiviso.",
+    "many": "{n} di elementi sono stati salvati nel progetto condiviso.",
+    "other": "{n} elementi sono stati salvati nel progetto condiviso."
+  },
   "Wait for the current move to finish.": "Attendi che lo spostamento in corso finisca.",
   "You cannot save to that shared project.": "Non puoi salvare in quel progetto condiviso.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Chiunque possa aprire {project} vedrà questi elementi. Dopo che ogni elemento è salvato lì, gli originali locali vanno nel Cestino, dove puoi ripristinarli.",
@@ -1618,8 +1626,16 @@
   "file": "file",
   "samples": "campioni",
   "text": "testo",
-  "{n} changes found": "{n} modifiche trovate",
-  "{n} pages differ": "{n} pagine diverse",
+  "{n} changes found": {
+    "one": "{n} modifica trovata",
+    "many": "{n} di modifiche trovate",
+    "other": "{n} modifiche trovate"
+  },
+  "{n} pages differ": {
+    "one": "{n} pagina è diversa",
+    "many": "{n} di pagine sono diverse",
+    "other": "{n} pagine sono diverse"
+  },
   "Draft": "Bozza",
   "Draft quality": "Qualità bozza",
   "Draft rule": "Regola in bozza",
@@ -1971,5 +1987,210 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penna (P) - clicca per posizionare i punti, trascina per curvare, Alt per un angolo. Tieni premuto per la Matita (Shift C) e il tipo di spline",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - clicca per posizionare i punti, trascina per curvare, Alt per un angolo",
   "Recipients can change the inputs": "I destinatari possono modificare gli input",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Chiunque abbia il link può modificarne gli input e ottenere una nuova immagine. Gli input bloccati restano come impostati."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Chiunque abbia il link può modificarne gli input e ottenere una nuova immagine. Gli input bloccati restano come impostati.",
+  "{count} entries": {
+    "one": "{count} voce",
+    "many": "{count} di voci",
+    "other": "{count} voci"
+  },
+  "{count} files in this folder": {
+    "one": "{count} file in questa cartella",
+    "many": "{count} di file in questa cartella",
+    "other": "{count} file in questa cartella"
+  },
+  "{n} assets": {
+    "one": "{n} risorsa",
+    "many": "{n} di risorse",
+    "other": "{n} risorse"
+  },
+  "{n} assets found": {
+    "one": "{n} risorsa trovata",
+    "many": "{n} di risorse trovate",
+    "other": "{n} risorse trovate"
+  },
+  "{n} capabilities match": {
+    "one": "{n} funzionalità corrisponde",
+    "many": "{n} di funzionalità corrispondono",
+    "other": "{n} funzionalità corrispondono"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} copia creata · selezionata",
+    "many": "{n} di copie create · selezionate",
+    "other": "{n} copie create · selezionate"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} creazione rimossa da Progetti qui non è stata ripristinata.",
+    "many": "{n} di creazioni rimosse da Progetti qui non sono state ripristinate.",
+    "other": "{n} creazioni rimosse da Progetti qui non sono state ripristinate."
+  },
+  "{n} embedded files": {
+    "one": "{n} file incorporato",
+    "many": "{n} di file incorporati",
+    "other": "{n} file incorporati"
+  },
+  "{n} external references": {
+    "one": "{n} riferimento esterno",
+    "many": "{n} di riferimenti esterni",
+    "other": "{n} riferimenti esterni"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} file non si è potuto comprimere ed è stato escluso",
+    "many": "{n} di file non si sono potuti comprimere e sono stati esclusi",
+    "other": "{n} file non si sono potuti comprimere e sono stati esclusi"
+  },
+  "{n} folders": {
+    "one": "{n} cartella",
+    "many": "{n} di cartelle",
+    "other": "{n} cartelle"
+  },
+  "{n} font files": {
+    "one": "{n} file font",
+    "many": "{n} di file font",
+    "other": "{n} file font"
+  },
+  "{n} images": {
+    "one": "{n} immagine",
+    "many": "{n} di immagini",
+    "other": "{n} immagini"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "Impossibile ripristinare {n} immagine (memoria piena?)",
+    "many": "Impossibile ripristinare {n} di immagini (memoria piena?)",
+    "other": "Impossibile ripristinare {n} immagini (memoria piena?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} immagine è rimasta con l'originale - le immagini hanno una sola casa; usa Taglia per spostarle",
+    "many": "{n} di immagini sono rimaste con l'originale - le immagini hanno una sola casa; usa Taglia per spostarle",
+    "other": "{n} immagini sono rimaste con l'originale - le immagini hanno una sola casa; usa Taglia per spostarle"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} campo · si applica a ogni design",
+    "many": "{n} di campi · si applicano a ogni design",
+    "other": "{n} campi · si applicano a ogni design"
+  },
+  "{n} items": {
+    "one": "{n} elemento",
+    "many": "{n} di elementi",
+    "other": "{n} elementi"
+  },
+  "{n} items copied": {
+    "one": "{n} elemento copiato",
+    "many": "{n} di elementi copiati",
+    "other": "{n} elementi copiati"
+  },
+  "{n} items cut": {
+    "one": "{n} elemento tagliato",
+    "many": "{n} di elementi tagliati",
+    "other": "{n} elementi tagliati"
+  },
+  "{n} items moved": {
+    "one": "{n} elemento spostato",
+    "many": "{n} di elementi spostati",
+    "other": "{n} elementi spostati"
+  },
+  "{n} items pasted": {
+    "one": "{n} elemento incollato",
+    "many": "{n} di elementi incollati",
+    "other": "{n} elementi incollati"
+  },
+  "{n} keyframes": {
+    "one": "{n} fotogramma chiave",
+    "many": "{n} di fotogrammi chiave",
+    "other": "{n} fotogrammi chiave"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "many": "{n} di loghi",
+    "other": "{n} loghi"
+  },
+  "{n} marks found": {
+    "one": "{n} marchio trovato",
+    "many": "{n} di marchi trovati",
+    "other": "{n} marchi trovati"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} elemento più recente ignorato",
+    "many": "{n} di elementi più recenti ignorati",
+    "other": "{n} elementi più recenti ignorati"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} delle tue creazioni è un video o un'animazione",
+    "many": "{n} delle tue creazioni sono video o animazioni",
+    "other": "{n} delle tue creazioni sono video o animazioni"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} punto di controllo automatico più vecchio escluso",
+    "many": "{n} di punti di controllo automatici più vecchi esclusi",
+    "other": "{n} punti di controllo automatici più vecchi esclusi"
+  },
+  "{n} pages": {
+    "one": "{n} pagina",
+    "many": "{n} di pagine",
+    "other": "{n} pagine"
+  },
+  "{n} places": {
+    "one": "{n} posizione",
+    "many": "{n} di posizioni",
+    "other": "{n} posizioni"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punto - tieni premuto Alt per un angolo",
+    "many": "{n} di punti - tieni premuto Alt per un angolo",
+    "other": "{n} punti - tieni premuto Alt per un angolo"
+  },
+  "{n} published versions": {
+    "one": "{n} versione pubblicata",
+    "many": "{n} di versioni pubblicate",
+    "other": "{n} versioni pubblicate"
+  },
+  "{n} results": {
+    "one": "{n} risultato",
+    "many": "{n} di risultati",
+    "other": "{n} risultati"
+  },
+  "{n} saved sessions": {
+    "one": "{n} sessione salvata",
+    "many": "{n} di sessioni salvate",
+    "other": "{n} sessioni salvate"
+  },
+  "{n} selected": {
+    "one": "{n} selezionato",
+    "many": "{n} selezionati",
+    "other": "{n} selezionati"
+  },
+  "{n} selected assets": {
+    "one": "{n} risorsa selezionata",
+    "many": "{n} di risorse selezionate",
+    "other": "{n} risorse selezionate"
+  },
+  "{n} sessions": {
+    "one": "{n} sessione",
+    "many": "{n} di sessioni",
+    "other": "{n} sessioni"
+  },
+  "{n} shapes": {
+    "one": "{n} forma",
+    "many": "{n} di forme",
+    "other": "{n} forme"
+  },
+  "{n} steps": {
+    "one": "{n} passaggio",
+    "many": "{n} di passaggi",
+    "other": "{n} passaggi"
+  },
+  "{n} templates": {
+    "one": "{n} modello",
+    "many": "{n} di modelli",
+    "other": "{n} modelli"
+  },
+  "{n} volume keys": {
+    "one": "{n} chiave di volume",
+    "many": "{n} di chiavi di volume",
+    "other": "{n} chiavi di volume"
+  },
+  "{n} words": {
+    "one": "{n} parola",
+    "many": "{n} di parole",
+    "other": "{n} parole"
+  }
 }

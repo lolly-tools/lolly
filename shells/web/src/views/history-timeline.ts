@@ -4,7 +4,7 @@ import { bindHistoryLink } from '../lib/history-navigation.ts';
 import { sessionOpenHref } from '../lib/search/projects-source.ts';
 import { isBatchSlot, isDiscardedSlot } from '../lib/batch-slots.ts';
 import { icon } from '../lib/icons.ts';
-import { t } from '../i18n.ts';
+import { t, tn } from '../i18n.ts';
 
 type Glyph = Parameters<typeof icon>[0];
 export const historyElement = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] => {
@@ -196,7 +196,7 @@ export function historyDay(at: string, rows: AppHistoryRow[], open: boolean): { 
   const heading = historyElement('div', undefined, 'app-history-day-heading');
   const title = historyElement('h2', historyDayLabel(at)); title.id = `history-day-${key}`;
   heading.append(title, historyElement('span', date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }), 'app-history-day-date'));
-  const count = historyElement('span', rows.length === 1 ? t('1 entry') : t('{count} entries', { count: rows.length }), 'app-history-day-count');
+  const count = historyElement('span', tn('1 entry', '{count} entries', { count: rows.length }), 'app-history-day-count');
   summary.append(historyIcon('chevronDown', 'app-history-day-chevron'), heading, count);
   const body = historyElement('div', undefined, 'app-history-day-entries'); body.setAttribute('role', 'group'); body.setAttribute('aria-labelledby', title.id);
   group.append(summary, body);

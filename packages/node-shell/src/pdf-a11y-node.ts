@@ -7,7 +7,8 @@ import { createPdfA11yKernel, type PdfA11yKernel } from './pdf-a11y.ts';
 
 let pending: Promise<PdfA11yKernel> | undefined;
 /** Load the PDF accessibility module once per process. */
-export function loadPdfA11yKernel(): Promise<PdfA11yKernel> {
+export async function loadPdfA11yKernel(): Promise<PdfA11yKernel> {
+  if (pending && (await pending.catch(() => undefined))?.retired) pending = undefined;
   pending ??= readFile(new URL('../wasm/pdf-a11y/pdf-a11y.wasm', import.meta.url))
     .catch(error => {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;

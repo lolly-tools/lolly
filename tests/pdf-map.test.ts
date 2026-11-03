@@ -562,7 +562,7 @@ test('a tiling pattern wrapping a gradient collapses to that gradient', () => {
   assert.equal(nodes[0].fill, '#00ff00');
 });
 
-test('a real repeating tile becomes its area-weighted mean colour, and says so', () => {
+test('a real repeating tile becomes its area-weighted mean colour, and reports that', () => {
   const { nodes, warns } = pageW('/P1 scn 40 200 120 60 re f', {
     patterns: { P1: { tiling: tiling('1 0 0 rg 0 0 50 100 re f 0 0 1 rg 50 0 50 100 re f') } },
   });

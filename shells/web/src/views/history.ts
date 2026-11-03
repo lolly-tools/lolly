@@ -19,7 +19,7 @@ import { isBatchSlot } from '../lib/batch-slots.ts';
 import { icon } from '../lib/icons.ts';
 import { SEARCH_DEBOUNCE_MS } from '../lib/search/match.ts';
 import { announce } from '../a11y.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { historyFilterPicker } from './history-filter-picker.ts';
 import { pruneOutcome } from './profile-storage-model.ts';
@@ -345,7 +345,7 @@ export async function mountHistory(view: HTMLElement & { _cleanup?: () => void }
       }
       foldDates.hidden = days.size < 2; updateFoldAction();
       sectionTitle.textContent = t(active === 'recent' ? 'Recent creations' : active === 'changes' ? 'Checkpoints and exports' : 'Named versions');
-      const entryCount = page.entries.length === 1 ? t('1 entry') : t('{count} entries', { count: page.entries.length });
+      const entryCount = tn('1 entry', '{count} entries', { count: page.entries.length });
       // One day already shows its own count on its divider.
       count.textContent = days.size > 1 ? entryCount : '';
       const filtered = !!(search.value || project.value || tool.value || from.value || to.value);

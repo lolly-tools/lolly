@@ -68,7 +68,7 @@ test('a large Design document keeps a pointer in the address, shares the device 
     for (const key of pointer.keys()) assert.ok(kept.has(key), `only workspace and pointer keys remain, not ${key}`);
     const slot = pointer.get('slot')!;
 
-    // Share: no link can carry it, so the field holds this device's link and says so.
+    // Share: no link can carry it, so the field holds this device's link and reports that.
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text: string) => { (window as unknown as { __copied: string }).__copied = text; } } });
     });

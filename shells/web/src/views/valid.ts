@@ -47,7 +47,7 @@ import { wireTextHandoffs } from '../lib/text-handoff.ts';
 // Aliased (not `icon`) - this file has function parameters named `icon` (fact(),
 // the change-history `section` builder) that would otherwise shadow the import.
 import { icon as glyph, type IconName } from '../lib/icons.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { inputsDigestHtml, seedValuesFromDigest } from './valid-made-from.ts';
 export { inputsDigestHtml };
 // The WP-F async-job foundation: the watermark work is heavy and long, so it runs
@@ -1329,7 +1329,7 @@ export function stepsHtml(report: VerifyReport): string {
     <details class="valid-steps valid-panel valid-panel-disclosure" open>
       <summary class="valid-panel-summary">
         <span class="valid-panel-summary-title">${svgIcon('clock')}<span>${t('Credential journey')}</span></span>
-        <span class="valid-panel-summary-meta">${acts.length === 1 ? t('1 step') : t('{n} steps', { n: acts.length })}</span>
+        <span class="valid-panel-summary-meta">${tn('1 step', '{n} steps', { n: acts.length })}</span>
         <span class="valid-disclosure-chev" aria-hidden="true">${ICON_CHEVRON}</span>
       </summary>
       <p class="valid-origin-note">${escape(journeyEvidenceLabel(report))}</p><ol class="valid-steps-list">${rows}</ol>

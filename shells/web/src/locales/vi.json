@@ -8027,10 +8027,14 @@
   "{count} controls you changed stay yours.": "{count} điều khiển bạn đã thay đổi vẫn được giữ nguyên.",
   "{count} days": "{count} ngày",
   "{count} decisions from the last version still apply.": "{count} quyết định từ phiên bản trước vẫn còn áp dụng.",
-  "{count} entries": "{count} mục",
+  "{count} entries": {
+    "other": "{count} mục"
+  },
   "{count} files / variations": "{count} tệp / biến thể",
   "{count} files chosen": "Đã chọn {count} tệp",
-  "{count} files in this folder": "{count} tệp trong thư mục này",
+  "{count} files in this folder": {
+    "other": "{count} tệp trong thư mục này"
+  },
   "{count} for {names}": "{count} cho {names}",
   "{count} for “{query}” in {scope}": "{count} cho “{query}” trong {scope}",
   "{count} layouts": "{count} bố cục",
@@ -8204,19 +8208,27 @@
   "{n} added to favourites": "đã thêm {n} vào yêu thích",
   "{n} added to the design system": "{n} đã được thêm vào hệ thống thiết kế",
   "{n} asset IDs": "{n} ID tài sản",
-  "{n} assets": "{n} tài sản",
+  "{n} assets": {
+    "other": "{n} tài sản"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} Tài sản không thể phục hồi được.",
-  "{n} assets found": "Tìm thấy {n} tài sản",
+  "{n} assets found": {
+    "other": "Tìm thấy {n} tài sản"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} tài sản đã nén zip · {c} có Content Credentials",
   "{n} available offline": "{n} khả dụng ngoại tuyến",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} hộp. Một cú nhấp tạo toàn bộ cung chuyển động - mọi khung hình chính vẫn có thể chỉnh sửa sau đó.",
-  "{n} capabilities match": "{n} khả năng khớp",
+  "{n} capabilities match": {
+    "other": "{n} khả năng khớp"
+  },
   "{n} cards are left to review.": "Còn {n} thẻ cần xem lại.",
   "{n} cards are still to answer.": "Còn {n} thẻ chưa trả lời.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "Còn {n} thẻ chưa trả lời. Chấp nhận như đề xuất và mở trong Design?",
   "{n} ch": "{n} kênh",
   "{n} changed": "{n} đã thay đổi",
-  "{n} changes found": "Tìm thấy {n} thay đổi",
+  "{n} changes found": {
+    "other": "Tìm thấy {n} thay đổi"
+  },
   "{n} characters continue beyond the last frame.": "{n} ký tự tiếp tục vượt qua khung cuối cùng.",
   "{n} checks": "{n} kiểm tra",
   "{n} clips selected": "Đã chọn {n} clip",
@@ -8231,7 +8243,9 @@
   "{n} connectors - editing all": "{n} liên kết - đang chỉnh sửa tất cả",
   "{n} copies added to your projects": "{n} bản sao đã được thêm vào dự án của bạn",
   "{n} copies in total": "{n} bản sao tổng cộng",
-  "{n} copies made · selected": "Đã tạo {n} bản sao · đã chọn",
+  "{n} copies made · selected": {
+    "other": "Đã tạo {n} bản sao · đã chọn"
+  },
   "{n} creation checkpoints": "{n} điểm kiểm tra sáng tạo",
   "{n} curly quotes": "{n} dấu ngoặc kép cong",
   "{n} days ago": "{n} vài ngày trước",
@@ -8248,24 +8262,34 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} đầu vào chỉnh sửa được. Các cài đặt không chọn vẫn cố định.",
   "{n} ellipsis characters": "{n} ký tự dấu ba chấm",
   "{n} em-dashes": "{n} dấu gạch ngang dài",
-  "{n} embedded files": "{n} các tập tin nhúng",
-  "{n} external references": "{n} Các tham chiếu bên ngoài",
+  "{n} embedded files": {
+    "other": "{n} tệp nhúng"
+  },
+  "{n} external references": {
+    "other": "{n} tham chiếu bên ngoài"
+  },
   "{n} fields": "{n} trường",
   "{n} file batches": "{n} hàng tập tin",
   "{n} file operation records": "{n} hồ sơ hoạt động tập tin",
   "{n} files": "{n} tệp",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} tệp không phải bản trình chiếu PowerPoint, PDF hay tài liệu Photoshop nên đã bị bỏ qua.",
   "{n} files are ready to import.": "{n} tệp đã sẵn sàng để nhập.",
-  "{n} files could not be packed and were left out": "{n} tệp không thể đóng gói và đã bị bỏ qua",
+  "{n} files could not be packed and were left out": {
+    "other": "{n} tệp không thể đóng gói và đã bị bỏ qua"
+  },
   "{n} files imported from the zip.": "{n} tệp đã nhập từ tệp zip.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} tệp đã nhập từ tệp zip; {skipped} bị bỏ qua.",
   "{n} files ready": "{n} tập tin sẵn sàng",
   "{n} findings": "{n} kết quả",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "Tìm thấy {n} phát hiện. Các đề xuất chỉnh sửa được đã được chọn; phát hiện Office chỉ để kiểm tra giữ nguyên. Hãy xem bảng Kiểm tra.",
-  "{n} folders": "{n} thư mục",
+  "{n} folders": {
+    "other": "{n} thư mục"
+  },
   "{n} font changes": "{n} thay đổi phông",
   "{n} font choices": "{n} lựa chọn phông",
-  "{n} font files": "{n} các tệp phông chữ",
+  "{n} font files": {
+    "other": "{n} tệp phông chữ"
+  },
   "{n} fonts": "{n} phông",
   "{n} fonts found": "{n} phông chữ tìm thấy",
   "{n} fonts from the deck are set in another face.": "{n} phông từ bản trình chiếu được đặt bằng kiểu chữ khác.",
@@ -8277,31 +8301,55 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} mục ẩn - tìm trong “Hiện công cụ ẩn”",
   "{n} hidden shades stay hidden": "{n} sắc độ ẩn vẫn được giữ ẩn",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} các mục lịch sử không thể phục hồi. Giữ sao lưu của bạn; không gian trống hoặc giải quyết các phiên bản xung đột trước khi thử lại.",
-  "{n} images": "{n} ảnh",
-  "{n} images couldn’t be restored (storage full?)": "Không thể khôi phục {n} ảnh (bộ nhớ đầy?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} ảnh vẫn ở vị trí gốc - ảnh chỉ có một nơi lưu; dùng Cắt để di chuyển",
+  "{n} images": {
+    "other": "{n} ảnh"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "Không thể khôi phục {n} ảnh (bộ nhớ đầy?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} ảnh vẫn ở vị trí gốc - ảnh chỉ có một nơi lưu; dùng Cắt để di chuyển"
+  },
   "{n} included tools (asked before installing)": "{n} công cụ đi kèm (hỏi trước khi cài)",
   "{n} ink": "{n} mực",
-  "{n} inputs · applies to every design": "{n} mục nhập · áp dụng cho mọi thiết kế",
+  "{n} inputs · applies to every design": {
+    "other": "{n} mục nhập · áp dụng cho mọi thiết kế"
+  },
   "{n} invisible watermark(s) found": "tìm thấy {n} hình mờ vô hình",
   "{n} issues to review before sharing.": "{n} vấn đề cần xem xét trước khi chia sẻ.",
-  "{n} items": "{n} mục",
-  "{n} items copied": "Đã sao chép {n} mục",
-  "{n} items cut": "Đã cắt {n} mục",
-  "{n} items moved": "Đã chuyển {n} mục",
-  "{n} items pasted": "Đã dán {n} mục",
+  "{n} items": {
+    "other": "{n} mục"
+  },
+  "{n} items copied": {
+    "other": "Đã sao chép {n} mục"
+  },
+  "{n} items cut": {
+    "other": "Đã cắt {n} mục"
+  },
+  "{n} items moved": {
+    "other": "Đã chuyển {n} mục"
+  },
+  "{n} items pasted": {
+    "other": "Đã dán {n} mục"
+  },
   "{n} items removed": "Đã xóa {n} mục",
   "{n} jobs": "{n} tác vụ",
   "{n} kept": "{n} được giữ lại",
   "{n} kept in the tray": "{n} được giữ trong khay",
-  "{n} keyframes": "{n} khung hình khóa",
+  "{n} keyframes": {
+    "other": "{n} khung hình khóa"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} phần giữ chỗ có nhãn thay cho các đối tượng.",
   "{n} layers": "{n} lớp",
   "{n} layers found": "tìm thấy {n} lớp",
   "{n} list lines": "{n} dòng danh sách",
-  "{n} logos": "{n} logo",
+  "{n} logos": {
+    "other": "{n} logo"
+  },
   "{n} marks became the design system mark.": "{n} dấu hiệu đã trở thành dấu hiệu của hệ thống thiết kế.",
-  "{n} marks found": "tìm thấy {n} dấu",
+  "{n} marks found": {
+    "other": "Tìm thấy {n} dấu"
+  },
   "{n} marks sent to Logos": "{n} biểu trưng đã gửi đến Logos",
   "{n} min ago": "{n} phút trước",
   "{n} more findings in this document.": "Còn {n} phát hiện nữa trong tài liệu này.",
@@ -8313,7 +8361,9 @@
   "{n} more slides": "thêm {n} slide",
   "{n} moved to {group}.": "{n} đã chuyển đến {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} slide mới chứa phần không vừa, nên số slide đã dịch chuyển.",
-  "{n} newer items skipped": "Đã bỏ qua {n} mục mới hơn",
+  "{n} newer items skipped": {
+    "other": "Đã bỏ qua {n} mục mới hơn"
+  },
   "{n} nits": "{n} nit",
   "{n} not drawn": "{n} không được vẽ",
   "{n} objects added": "Đã thêm {n} đối tượng",
@@ -8326,7 +8376,9 @@
   "{n} objects overlap the slide master.": "{n} đối tượng chồng lên slide master.",
   "{n} objects removed": "Đã xóa {n} đối tượng",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} đối tượng giữ cắt xén hoặc hiệu ứng dưới dạng hình ảnh. Hãy thay toàn bộ tác phẩm của chúng để đổi hình dạng.",
-  "{n} of your creations are videos or animations": "{n} tác phẩm của bạn là video hoặc hoạt ảnh",
+  "{n} of your creations are videos or animations": {
+    "other": "{n} tác phẩm của bạn là video hoặc hoạt ảnh"
+  },
   "{n} of {m}": "{n} trên {m}",
   "{n} of {total} downloaded": "Đã tải xuống {n} trên {total}",
   "{n} of {total} downloaded · {size} on disk": "{n} trên {total} đã tải xuống · {size} trên ổ đĩa",
@@ -8337,57 +8389,79 @@
   "{n} off": "{n} tắt",
   "{n} on": "{n} bật",
   "{n} other colourways keep their own colours: {names}": "{n} bảng phối màu khác giữ màu riêng: {names}",
-  "{n} pages": "{n} trang",
+  "{n} pages": {
+    "other": "{n} trang"
+  },
   "{n} pages are pictures of their text.": "{n} trang là hình ảnh của chữ.",
-  "{n} pages differ": "{n} trang khác nhau",
+  "{n} pages differ": {
+    "other": "{n} trang khác nhau"
+  },
   "{n} pages had no size, so they were left out.": "{n} trang không có kích thước nên đã bị bỏ qua.",
   "{n} pictures": "{n} hình ảnh",
   "{n} pictures are missing.": "Thiếu {n} hình ảnh.",
   "{n} pictures in the deck were not kept.": "{n} hình ảnh trong bản trình chiếu không được giữ lại.",
-  "{n} places": "{n} vị trí",
+  "{n} places": {
+    "other": "{n} vị trí"
+  },
   "{n} points": "{n} điểm",
-  "{n} points - hold Alt for a corner": "{n} điểm - giữ Alt để tạo góc",
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} điểm - giữ Alt để tạo góc"
+  },
   "{n} preserved file": "{n} tệp được giữ nguyên",
   "{n} preserved files": "{n} tệp được giữ nguyên",
   "{n} print locks re-pinned": "{n} khóa in đã được ghim lại",
   "{n} proposed changes": "{n} thay đổi đề xuất",
   "{n} protected drafts": "{n} bản nháp được bảo vệ",
   "{n} published version": "{n} phiên bản đã xuất bản",
-  "{n} published versions": "{n} phiên bản đã xuất bản",
+  "{n} published versions": {
+    "other": "{n} phiên bản đã xuất bản"
+  },
   "{n} recorded": "{n} đã ghi nhận",
   "{n} removed from favourites": "đã xóa {n} khỏi yêu thích",
   "{n} removed from offline": "đã xóa {n} khỏi ngoại tuyến",
   "{n} removed. A tool naming it will lose it.": "Đã xóa {n}. Công cụ nào tham chiếu đến nó sẽ mất nó.",
   "{n} removed. A tool naming one of these will lose it.": "Đã xóa {n}. Công cụ nào tham chiếu đến một trong số này sẽ mất nó.",
   "{n} renders": "{n} bản kết xuất",
-  "{n} results": "{n} kết quả",
+  "{n} results": {
+    "other": "{n} kết quả"
+  },
   "{n} roles re-derived": "{n} vai trò đã được suy ra lại",
   "{n} rotated runs left out": "{n} đoạn xoay bị bỏ sót",
   "{n} saved asset versions": "{n} phiên bản tài sản được lưu",
   "{n} saved for offline, {m} failed - check your connection": "{n} đã lưu để dùng ngoại tuyến, {m} thất bại - hãy kiểm tra kết nối của bạn",
-  "{n} saved sessions": "{n} phiên đã lưu",
+  "{n} saved sessions": {
+    "other": "{n} phiên đã lưu"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "Không xem trước được {n} hệ thống đã lưu. Hãy mở chúng từ Hồ sơ để quản lý.",
   "{n} scanned": "{n} đã quét",
   "{n} scanned pages read.": "Đã đọc {n} trang quét.",
   "{n} scanned pages were left unread to keep this quick.": "{n} trang quét được bỏ qua để giữ tốc độ xử lý nhanh.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} trang quét chưa được đọc vì Nhận dạng văn bản không có trên thiết bị này.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} trang quét đã được đọc bằng nhận dạng văn bản trên thiết bị, nên không thể kiểm tra ký tự ẩn trên các trang đó.",
-  "{n} selected": "Đã chọn {n}",
-  "{n} selected assets": "{n} tài sản đã chọn",
+  "{n} selected": {
+    "other": "Đã chọn {n}"
+  },
+  "{n} selected assets": {
+    "other": "{n} tài sản đã chọn"
+  },
   "{n} selected files": "{n} tệp đã chọn",
   "{n} selected items could not be outlined and were left as they are.": "{n} mục đã chọn không thể chuyển thành đường viền và được giữ nguyên.",
   "{n} selected items have no outline, so they were left as they are.": "{n} mục đã chọn không có đường viền, nên được giữ nguyên.",
   "{n} selected · {size}": "Đã chọn {n} · {size}",
   "{n} sentences": "{n} câu",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} câu có gạch chân chấm: mô hình trên thiết bị có thể đề xuất một phiên bản đơn giản hơn. Chấp nhận một câu sẽ đánh dấu bản đã lưu là có hỗ trợ AI, và cách hành văn của mô hình mang hình mờ viết lại công khai của Lolly nên văn bản do AI viết vẫn có thể phát hiện được trên Verify.",
-  "{n} sessions": "{n} phiên",
+  "{n} sessions": {
+    "other": "{n} phiên"
+  },
   "{n} set": "{n} đã đặt",
   "{n} shade curves re-anchored": "{n} đường cong sắc độ đã được neo lại",
   "{n} shades added to your palette": "Đã thêm {n} sắc độ vào bảng màu của bạn",
   "{n} shades added. Undo is available above your palette.": "Đã thêm {n} sắc độ. Có thể hoàn tác phía trên bảng màu của bạn.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} sắc độ không đạt được mục tiêu (giới hạn ở tông gần nhất).",
   "{n} shades rebuilt across {ramps} ramps": "{n} sắc độ đã xây lại trên {ramps} dải màu",
-  "{n} shapes": "{n} hình dạng",
+  "{n} shapes": {
+    "other": "{n} hình dạng"
+  },
   "{n} shapes · page {p}": "{n} hình · trang {p}",
   "{n} shared assets were kept.": "Đã giữ {n} tài sản dùng chung.",
   "{n} slides narrated.": "{n} trang chiếu đã thuyết minh.",
@@ -8395,11 +8469,15 @@
   "{n} spectrum hues rebuilt": "{n} sắc màu quang phổ đã xây lại",
   "{n} stages of work": "{n} giai đoạn công việc",
   "{n} starter colours": "{n} màu khởi đầu",
-  "{n} steps": "{n} bước",
+  "{n} steps": {
+    "other": "{n} bước"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "Tìm thấy {n} đề xuất. Các bản sao được chuẩn bị với chúng đã chọn; hãy chỉnh bất kỳ mục nào trong bảng Kiểm tra.",
   "{n} suggestions were applied without review.": "{n} đề xuất đã được áp dụng mà không xem lại.",
   "{n} swatches removed": "{n} mẫu màu đã xóa",
-  "{n} templates": "{n} mẫu",
+  "{n} templates": {
+    "other": "{n} mẫu"
+  },
   "{n} templates added": "Đã thêm {n} mẫu",
   "{n} templates deleted": "Đã xóa {n} mẫu",
   "{n} templates saved": "Đã lưu {n} mẫu",
@@ -8419,11 +8497,15 @@
   "{n} unsupported backup parts skipped": "{n} Các bộ phận dự phòng không hỗ trợ bị bỏ qua",
   "{n} value changes": "{n} thay đổi giá trị",
   "{n} values change": "{n} giá trị thay đổi",
-  "{n} volume keys": "{n} khóa âm lượng",
+  "{n} volume keys": {
+    "other": "{n} khóa âm lượng"
+  },
   "{n} warnings.": "{n} cảnh báo.",
   "{n} were kept - they are not this room to remove.": "{n} được giữ lại - chúng không thuộc khu vực này để loại bỏ.",
   "{n} wording swaps are underlined in the preview.": "{n} lượt thay đổi từ ngữ được gạch chân trong bản xem trước.",
-  "{n} words": "{n} từ",
+  "{n} words": {
+    "other": "{n} từ"
+  },
   "{n} words cut": "cắt {n} từ",
   "{n} yours": "{n} của bạn",
   "{n}-bit": "{n}-bit",
@@ -8814,7 +8896,9 @@
   "1 design was added to Projects, in 1 folder.": "1 thiết kế đã được thêm vào Dự án, trong 1 thư mục.",
   "1 design was added to Projects, in {f} folders.": "1 thiết kế đã được thêm vào Dự án, trong {f} thư mục.",
   "1 design was added to Projects.": "1 thiết kế đã được thêm vào Dự án.",
-  "{n} creations removed from Projects here stayed removed.": "{n} tác phẩm bị xóa khỏi Dự án ở đây vẫn bị xóa.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "{n} tác phẩm bị xóa khỏi Dự án ở đây vẫn bị xóa."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Tác phẩm này chưa từng được lưu, nên rời đi mà không lưu sẽ xóa nó khỏi Dự án.",
   "This deck has no colours to change.": "Bản trình chiếu này không có màu nào để đổi.",
   "This deck has no fonts to change.": "Bản trình chiếu này không có phông nào để đổi.",
@@ -8844,7 +8928,9 @@
   "This saved version could not be read.": "Không thể đọc phiên bản đã lưu này.",
   "1 older automatic checkpoint left out": "1 điểm kiểm tra tự động cũ hơn không được hiển thị",
   "1 other colourway keeps its own colours: {names}": "1 bảng phối màu khác giữ màu riêng: {names}",
-  "{n} older automatic checkpoints left out": "{n} điểm kiểm tra tự động cũ hơn không được hiển thị",
+  "{n} older automatic checkpoints left out": {
+    "other": "{n} điểm kiểm tra tự động cũ hơn không được hiển thị"
+  },
   "Automatic recovery and checkpoints are on": "Phục hồi và điểm kiểm tra tự động được bật",
   "Automatic recovery is unavailable here. Save before leaving.": "Khôi phục tự động không khả dụng ở đây. Hãy lưu trước khi rời đi.",
   "Checkpoint saved at {time} on this device": "Điểm kiểm tra đã được lưu lúc {time} trên thiết bị này",
@@ -9027,7 +9113,9 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Để hiển thị các trang mà phiên bản web không thể, Lolly có thể tải lại với chính sách khung lỏng hơn trên thiết bị này, rồi hỏi về từng trang trước khi bạn trình chiếu. Bạn có thể tắt tùy chọn này trong hồ sơ, mục Trang đáng tin cậy.",
   "Card size": "Kích thước thẻ",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 hình ảnh hoặc tệp đã được thêm trên thiết bị này. Tệp chỉ nằm trên thiết bị này và những người khác sẽ không thấy tệp đó.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} hình ảnh hoặc tệp đã được thêm trên thiết bị này. Các tệp chỉ nằm trên thiết bị này và những người khác sẽ không thấy các tệp đó.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "{n} hình ảnh hoặc tệp đã được thêm trên thiết bị này. Các tệp chỉ nằm trên thiết bị này và những người khác sẽ không thấy các tệp đó."
+  },
   "Check the version first": "Hãy kiểm tra phiên bản trước",
   "Copy team link": "Sao chép liên kết nhóm",
   "Could not create the project. Try again.": "Không thể tạo dự án. Hãy thử lại.",
@@ -9793,7 +9881,9 @@
   "Every mode": "Mọi chế độ",
   "Your local items have not changed.": "Các mục cục bộ của bạn không thay đổi.",
   "1 item was saved to the shared project.": "1 mục đã được lưu vào dự án được chia sẻ.",
-  "{n} items were saved to the shared project.": "{n} mục đã được lưu vào dự án được chia sẻ.",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} mục đã được lưu vào dự án được chia sẻ."
+  },
   "Wait for the current move to finish.": "Hãy đợi lần di chuyển hiện tại hoàn tất.",
   "Wait for the deck to finish reading, then choose a picture.": "Hãy đợi bản trình chiếu đọc xong, rồi chọn một hình ảnh.",
   "Wait for the grid to finish rendering before moving its layers.": "Hãy đợi lưới kết xuất xong trước khi di chuyển các lớp của nó.",
@@ -10645,5 +10735,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Clip này dùng {codec}, thiết bị này không phát được. Hãy xuất một bản sao H.264, HEVC hoặc AV1 từ ứng dụng chỉnh sửa của bạn, hoặc mở clip trong ứng dụng Lolly dành cho máy tính để bàn trên Mac. Lolly giữ nguyên tệp gốc.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Clip này dùng {codec}, thiết bị này không phát được. Hãy xuất một bản sao H.264, HEVC hoặc AV1 từ ứng dụng chỉnh sửa của bạn. Lolly giữ nguyên tệp gốc.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Đây là tệp MXF với {codec}. Lolly đọc được nội dung bên trong nhưng không phát được MXF. Hãy xuất một bản sao H.264, HEVC hoặc AV1 từ ứng dụng chỉnh sửa của bạn. Lolly giữ nguyên tệp gốc.",
-  "{format} from {camera}": "{format} từ {camera}"
+  "{format} from {camera}": "{format} từ {camera}",
+  "Filling a large area. This can take a moment.": "Đang lấp đầy vùng lớn. Việc này có thể mất một lúc.",
+  "Large area": "Vùng lớn"
 }

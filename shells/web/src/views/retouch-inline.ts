@@ -70,7 +70,7 @@ export interface RetouchInlineHandle {
 const FILL_RADIUS = 5;
 
 /** How a fill is made (plans/289 M4). The choice is a device preference, like the brush. */
-const METHODS: RetouchMethod[] = ['content-aware', 'proximity', 'texture', 'smooth'];
+const METHODS: RetouchMethod[] = ['content-aware', 'proximity', 'texture', 'smooth', 'large'];
 const METHOD_KEY = 'lolly-retouch-method';
 function savedMethod(): RetouchMethod {
   try {
@@ -180,6 +180,7 @@ export function mountInlineRetouch(host: RetouchHost, opts: RetouchOpts, env: Re
           <option value="proximity">${t('Proximity Match')}</option>
           <option value="texture">${t('Create Texture')}</option>
           <option value="smooth">${t('Smooth')}</option>
+          <option value="large">${t('Large area')}</option>
         </select>
       </label>
       <button type="button" class="rt-tool" data-erase aria-pressed="false" title="${escapeHtml(t('Erase strokes (E)'))}">${t('Erase')}</button>
@@ -462,7 +463,7 @@ export function mountInlineRetouch(host: RetouchHost, opts: RetouchOpts, env: Re
         progressEl.setAttribute('aria-valuenow', String(pct));
       },
     });
-    showStatus(t('Filling from the surroundings…'));
+    showStatus(method === 'large' ? t('Filling a large area. This can take a moment.') : t('Filling from the surroundings…'));
     syncButtons();
     run.done.then((out) => {
       if (exited || !workingCtx || !maskFull || !maskCtx) return;

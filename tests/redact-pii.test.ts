@@ -111,7 +111,7 @@ test('an IBAN and a postcode are recognised, a plain word pair is only ever a ma
 
   const name = pii.piiFindings('Jane Doe');
   assert.deepEqual(name.map((h) => h.kind), ['name']);
-  assert.equal(name[0]!.maybe, true, 'a capitalised pair is a guess and says so');
+  assert.equal(name[0]!.maybe, true, 'a capitalised pair is a guess and reports that');
   assert.deepEqual(kindsIn('Monday Morning'), [], 'a stoplisted word is not a surname');
 });
 

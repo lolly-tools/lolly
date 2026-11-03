@@ -382,7 +382,7 @@ test('the node ceiling binds on the seed, not just on growth', { skip: SKIP }, (
   assert.ok(seed.length >= contours.length - 1, 'coarsening must keep the contours, not drop them');
 });
 
-test('a text seed with no font falls back to a ring and says so', { skip: SKIP }, async () => {
+test('a text seed with no font falls back to a ring and reports that', { skip: SKIP }, async () => {
   const tool: any = await loadTool('growth', (p: string) => readFile(join(COMMUNITY, p), 'utf8'));
   // baseHost has no host.text, which is exactly the "no font file resolves" case.
   const rt = await createRuntime(tool, baseHost(), { seedShape: 'text', text: 'O', steps: 20 });

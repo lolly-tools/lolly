@@ -371,6 +371,14 @@ export interface PdfRedactOpts {
   labelColor?: string;
   /** Prepared label pixels, including selected emoji artwork. Painted over the opaque bar. */
   labelImage?: import('./raster.ts').RasterFrame;
+  /**
+   * Optional v1.303: remove what sits under each bar but keep the rest of each page as real text
+   * and vectors, instead of flattening pages to pictures. The host checks the result itself and
+   * rejects, returning no bytes, when it cannot show that nothing is left under a bar. `dpi`,
+   * `grayscale`, `radius` and `labelImage` do not apply. A host that does not know the field
+   * flattens, which removes more. Default false.
+   */
+  keepText?: boolean;
 }
 
 export interface PdfRedactResult {
@@ -380,6 +388,8 @@ export interface PdfRedactResult {
   pages: number;
   /** Per-page render fallbacks (a page that could not be rendered ships blank). */
   warnings?: string[];
+  /** Optional v1.303: how the pages were produced. Absent means flattened. */
+  mode?: 'flatten' | 'keep-text';
 }
 
 /** One page of a host.pdf.pages preview: a self-contained SVG document. */

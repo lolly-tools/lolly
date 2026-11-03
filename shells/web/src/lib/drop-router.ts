@@ -44,7 +44,7 @@
  * cost is one hint pill per attached root.
  */
 
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { isTauriShell } from './instance-choice.ts';
 import { NAV_EVENTS } from '../utils.ts';
 import { navigateTo } from '../nav.ts';
@@ -861,10 +861,10 @@ function previewFacts(preview: LollySessionPreview | LollyBrandPreview): string 
       : '';
   if (preview.format === 'lolly-share' && preview.kind === 'project') {
     const content = [
-      preview.sessionCount === 1 ? t('1 saved session') : t('{n} saved sessions', { n: preview.sessionCount }),
+      tn('1 saved session', '{n} saved sessions', { n: preview.sessionCount }),
       preview.folderCount === 1 ? t('1 folder') : preview.folderCount ? t('{n} folders', { n: preview.folderCount }) : null,
       preview.embeddedAssets === 1 ? t('1 embedded file') : preview.embeddedAssets ? t('{n} embedded files', { n: preview.embeddedAssets }) : null,
-      preview.referencedAssets ? (preview.referencedAssets === 1 ? t('1 external reference') : t('{n} external references', { n: preview.referencedAssets })) : null,
+      preview.referencedAssets ? (tn('1 external reference', '{n} external references', { n: preview.referencedAssets })) : null,
     ].filter(Boolean).join(' · ');
     return tRaw('“{name}” is a {size} shared project: {content}. Opening it adds its folders and sessions to Projects; it does not replace existing work.{pace}', {
       name: preview.label, size, content, pace,
@@ -873,11 +873,11 @@ function previewFacts(preview: LollySessionPreview | LollyBrandPreview): string 
   if (preview.format === 'lolly-share') {
     const templates = declaredTemplateCount(preview.manifest);
     const content = [
-      preview.embeddedAssets === 1 ? t('1 embedded file') : t('{n} embedded files', { n: preview.embeddedAssets }),
-      preview.referencedAssets ? (preview.referencedAssets === 1 ? t('1 external reference') : t('{n} external references', { n: preview.referencedAssets })) : null,
+      tn('1 embedded file', '{n} embedded files', { n: preview.embeddedAssets }),
+      preview.referencedAssets ? (tn('1 external reference', '{n} external references', { n: preview.referencedAssets })) : null,
       preview.includesDesignSystem ? t('a design system') : null,
       preview.includesTool ? t('the tool itself') : null,
-      templates === 0 ? null : templates === 1 ? t('1 template') : t('{n} templates', { n: templates }),
+      templates === 0 ? null : tn('1 template', '{n} templates', { n: templates }),
     ].filter(Boolean).join(' · ');
     const tool = preview.toolId ? tRaw(' for {tool}', { tool: preview.toolId }) : '';
     return tRaw('“{name}” is a {size} shared design{tool}. Opening it adds a new Project and {content}; it does not replace existing work.{pace}', {
@@ -886,12 +886,12 @@ function previewFacts(preview: LollySessionPreview | LollyBrandPreview): string 
   }
   const content = [
     preview.tokens ? t('tokens') : null,
-    preview.fontFiles ? (preview.fontFiles === 1 ? t('1 font file') : t('{n} font files', { n: preview.fontFiles })) : null,
-    preview.logos ? (preview.logos === 1 ? t('1 logo') : t('{n} logos', { n: preview.logos })) : null,
+    preview.fontFiles ? (tn('1 font file', '{n} font files', { n: preview.fontFiles })) : null,
+    preview.logos ? (tn('1 logo', '{n} logos', { n: preview.logos })) : null,
     preview.localSessions ? t('{n} saved sessions', { n: preview.localSessions }) : null,
     preview.localAssets ? t('{n} selected files', { n: preview.localAssets }) : null,
     preview.localTools ? t('{n} included tools (asked before installing)', { n: preview.localTools }) : null,
-    preview.versions ? (preview.versions === 1 ? t('1 published version') : t('{n} published versions', { n: preview.versions })) : null,
+    preview.versions ? (tn('1 published version', '{n} published versions', { n: preview.versions })) : null,
   ].filter(Boolean).join(' · ') || t('design-system material');
   if (preview.kind === 'instance') {
     return tRaw('“{name}” is a {size} brand workspace: {content}, {tools} tools and {assets} catalogue assets. It is added as a design system and replaces any previously loaded brand-workspace tools and catalogue.{pace}', {

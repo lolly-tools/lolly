@@ -113,7 +113,7 @@ test('hostRecogniser hands host.ocr a copy of each crop, with the model and the 
   assert.deepEqual(seen, [{ model: 'm1', aborted: false, same: false }]);
 });
 
-test('a deck that carries macros reads without running them and says so', async () => {
+test('a deck that carries macros reads without running them and reports the macros', async () => {
   const parts = unzipSync(bytesOf('multilingual.pptx'));
   parts['ppt/vbaProject.bin'] = new TextEncoder().encode('Sub AutoOpen(): End Sub');
   const out = await readExtractSource({ name: 'deck.pptm', bytes: zipSync(parts, { level: 0 }) }, { parseXml });

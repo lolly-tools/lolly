@@ -17,7 +17,7 @@
  *  - segment-granular output is not regrouped on the way in;
  *  - `auto` runs on a NEW source value and only while its boolean input is on -
  *    a repaint with the same clip never re-runs the model;
- *  - a clip with no speech clears the target and says so, and a transcript an
+ *  - a clip with no speech clears the target and reports that, and a transcript an
  *    earlier run paid for never reaches the model at all.
  */
 import { test, beforeEach } from 'node:test';

@@ -8027,10 +8027,20 @@
   "{count} controls you changed stay yours.": "{count} змінених вами елементів керування залишаються вашими.",
   "{count} days": "{count} днів",
   "{count} decisions from the last version still apply.": "рішень з минулої версії досі діють: {count}.",
-  "{count} entries": "{count} записів",
+  "{count} entries": {
+    "one": "{count} запис",
+    "few": "{count} записи",
+    "many": "{count} записів",
+    "other": "{count} запису"
+  },
   "{count} files / variations": "файлів / варіацій: {count}",
   "{count} files chosen": "вибрано файлів: {count}",
-  "{count} files in this folder": "файлів у цій теці: {count}",
+  "{count} files in this folder": {
+    "one": "{count} файл у цій теці",
+    "few": "{count} файли у цій теці",
+    "many": "{count} файлів у цій теці",
+    "other": "{count} файла у цій теці"
+  },
   "{count} for {names}": "{count} для {names}",
   "{count} for “{query}” in {scope}": "{count} за запитом «{query}» у {scope}",
   "{count} layouts": "макетів: {count}",
@@ -8204,19 +8214,39 @@
   "{n} added to favourites": "{n} додано до обраного",
   "{n} added to the design system": "{n} додано до дизайн-системи",
   "{n} asset IDs": "Ідентифікаторів ресурсів: {n}",
-  "{n} assets": "{n} ресурсів",
+  "{n} assets": {
+    "one": "{n} ресурс",
+    "few": "{n} ресурси",
+    "many": "{n} ресурсів",
+    "other": "{n} ресурсу"
+  },
   "{n} assets could not be restored. Keep your backup.": "Ресурсів не вдалося відновити: {n}. Збережіть резервну копію.",
-  "{n} assets found": "Знайдено {n} ресурсів",
+  "{n} assets found": {
+    "one": "Знайдено {n} ресурс",
+    "few": "Знайдено {n} ресурси",
+    "many": "Знайдено {n} ресурсів",
+    "other": "Знайдено {n} ресурсу"
+  },
   "{n} assets zipped · {c} with Content Credentials": "Ресурсів заархівовано: {n} · {c} із Content Credentials",
   "{n} available offline": "{n} доступно офлайн",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} блоків. Один клік записує повну дугу руху - кожен ключовий кадр після цього лишається редагованим.",
-  "{n} capabilities match": "{n} збігів можливостей",
+  "{n} capabilities match": {
+    "one": "Збігається {n} можливість",
+    "few": "Збігаються {n} можливості",
+    "many": "Збігається {n} можливостей",
+    "other": "Збігається {n} можливості"
+  },
   "{n} cards are left to review.": "Карток на розгляд: {n}.",
   "{n} cards are still to answer.": "Карток, що чекають відповіді: {n}.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "Карток, що чекають відповіді: {n}. Прийняти їх як запропоновано й відкрити в Design?",
   "{n} ch": "{n} симв.",
   "{n} changed": "{n} змінено",
-  "{n} changes found": "Знайдено змін: {n}",
+  "{n} changes found": {
+    "one": "Знайдено {n} зміну",
+    "few": "Знайдено {n} зміни",
+    "many": "Знайдено {n} змін",
+    "other": "Знайдено {n} зміни"
+  },
   "{n} characters continue beyond the last frame.": "Кількість символів за останньою рамкою: {n}.",
   "{n} checks": "Перевірок: {n}",
   "{n} clips selected": "Вибрано кліпів: {n}",
@@ -8231,7 +8261,12 @@
   "{n} connectors - editing all": "{n} з'єднувачів — редагування всіх",
   "{n} copies added to your projects": "{n} копій додано до ваших проєктів",
   "{n} copies in total": "{n} копій загалом",
-  "{n} copies made · selected": "{n} копій зроблено · вибрано",
+  "{n} copies made · selected": {
+    "one": "Зроблено {n} копію · вибрано",
+    "few": "Зроблено {n} копії · вибрано",
+    "many": "Зроблено {n} копій · вибрано",
+    "other": "Зроблено {n} копії · вибрано"
+  },
   "{n} creation checkpoints": "Контрольних точок творіння: {n}",
   "{n} curly quotes": "{n} фігурних лапок",
   "{n} days ago": "{n} дн. тому",
@@ -8248,24 +8283,49 @@
   "{n} editable inputs. Unselected settings stay fixed.": "Редагованих полів: {n}. Невибрані налаштування лишаються фіксованими.",
   "{n} ellipsis characters": "{n} символів трикрапки",
   "{n} em-dashes": "{n} довгих тире",
-  "{n} embedded files": "Вбудованих файлів: {n}",
-  "{n} external references": "Зовнішніх посилань: {n}",
+  "{n} embedded files": {
+    "one": "{n} вбудований файл",
+    "few": "{n} вбудовані файли",
+    "many": "{n} вбудованих файлів",
+    "other": "{n} вбудованого файла"
+  },
+  "{n} external references": {
+    "one": "{n} зовнішнє посилання",
+    "few": "{n} зовнішні посилання",
+    "many": "{n} зовнішніх посилань",
+    "other": "{n} зовнішнього посилання"
+  },
   "{n} fields": "{n} полів",
   "{n} file batches": "Пакетів файлів: {n}",
   "{n} file operation records": "Записів файлових операцій: {n}",
   "{n} files": "{n} файлів",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "Файлів, що не є презентаціями PowerPoint, PDF чи документами Photoshop: {n}, тому їх пропущено.",
   "{n} files are ready to import.": "{n} файлів готові до імпорту.",
-  "{n} files could not be packed and were left out": "{n} файлів не вдалося запакувати, їх пропущено",
+  "{n} files could not be packed and were left out": {
+    "one": "{n} файл не вдалося запакувати, його пропущено",
+    "few": "{n} файли не вдалося запакувати, їх пропущено",
+    "many": "{n} файлів не вдалося запакувати, їх пропущено",
+    "other": "{n} файла не вдалося запакувати, його пропущено"
+  },
   "{n} files imported from the zip.": "{n} файлів імпортовано з zip-архіву.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} файлів імпортовано з zip-архіву; {skipped} пропущено.",
   "{n} files ready": "Готових файлів: {n}",
   "{n} findings": "Знахідок: {n}",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "Знайдено знахідок: {n}. Редаговані пропозиції вибрано; знахідки Office лише для перегляду лишаються без змін. Перегляньте панель «Перегляд».",
-  "{n} folders": "{n} папок",
+  "{n} folders": {
+    "one": "{n} папка",
+    "few": "{n} папки",
+    "many": "{n} папок",
+    "other": "{n} папки"
+  },
   "{n} font changes": "Змін шрифту: {n}",
   "{n} font choices": "Виборів шрифту: {n}",
-  "{n} font files": "Файлів шрифтів: {n}",
+  "{n} font files": {
+    "one": "{n} файл шрифту",
+    "few": "{n} файли шрифту",
+    "many": "{n} файлів шрифту",
+    "other": "{n} файла шрифту"
+  },
   "{n} fonts": "Шрифтів: {n}",
   "{n} fonts found": "Знайдено {n} шрифтів",
   "{n} fonts from the deck are set in another face.": "Шрифтів із презентації, набраних іншою гарнітурою: {n}.",
@@ -8277,31 +8337,91 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} приховано - знайдіть їх у розділі «Показати приховані інструменти»",
   "{n} hidden shades stay hidden": "{n} прихованих відтінків залишаються прихованими",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "Елементів історії не вдалося відновити: {n}. Збережіть резервну копію; звільніть місце або розв’яжіть конфліктні версії, перш ніж повторити.",
-  "{n} images": "{n} зображень",
-  "{n} images couldn’t be restored (storage full?)": "{n} зображень не вдалося відновити (сховище заповнене?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} зображень лишилися з оригіналом - у зображень один дім; використайте «Вирізати», щоб перемістити",
+  "{n} images": {
+    "one": "{n} зображення",
+    "few": "{n} зображення",
+    "many": "{n} зображень",
+    "other": "{n} зображення"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} зображення не вдалося відновити (сховище заповнене?)",
+    "few": "{n} зображення не вдалося відновити (сховище заповнене?)",
+    "many": "{n} зображень не вдалося відновити (сховище заповнене?)",
+    "other": "{n} зображення не вдалося відновити (сховище заповнене?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} зображення лишилося з оригіналом - у зображень один дім; використайте «Вирізати», щоб перемістити",
+    "few": "{n} зображення лишилися з оригіналом - у зображень один дім; використайте «Вирізати», щоб перемістити",
+    "many": "{n} зображень лишилися з оригіналом - у зображень один дім; використайте «Вирізати», щоб перемістити",
+    "other": "{n} зображення лишилося з оригіналом - у зображень один дім; використайте «Вирізати», щоб перемістити"
+  },
   "{n} included tools (asked before installing)": "Включених інструментів: {n} (питання перед встановленням)",
   "{n} ink": "{n} фарб",
-  "{n} inputs · applies to every design": "{n} полів введення · застосовується до кожного дизайну",
+  "{n} inputs · applies to every design": {
+    "one": "{n} поле введення · застосовується до кожного дизайну",
+    "few": "{n} поля введення · застосовується до кожного дизайну",
+    "many": "{n} полів введення · застосовується до кожного дизайну",
+    "other": "{n} поля введення · застосовується до кожного дизайну"
+  },
   "{n} invisible watermark(s) found": "{n} невидимих водяних знаків знайдено",
   "{n} issues to review before sharing.": "Проблем для перегляду перед поширенням: {n}.",
-  "{n} items": "{n} елементів",
-  "{n} items copied": "Скопійовано {n} елементів",
-  "{n} items cut": "Вирізано {n} елементів",
-  "{n} items moved": "{n} елементів переміщено",
-  "{n} items pasted": "Вставлено {n} елементів",
+  "{n} items": {
+    "one": "{n} елемент",
+    "few": "{n} елементи",
+    "many": "{n} елементів",
+    "other": "{n} елемента"
+  },
+  "{n} items copied": {
+    "one": "Скопійовано {n} елемент",
+    "few": "Скопійовано {n} елементи",
+    "many": "Скопійовано {n} елементів",
+    "other": "Скопійовано {n} елемента"
+  },
+  "{n} items cut": {
+    "one": "Вирізано {n} елемент",
+    "few": "Вирізано {n} елементи",
+    "many": "Вирізано {n} елементів",
+    "other": "Вирізано {n} елемента"
+  },
+  "{n} items moved": {
+    "one": "Переміщено {n} елемент",
+    "few": "Переміщено {n} елементи",
+    "many": "Переміщено {n} елементів",
+    "other": "Переміщено {n} елемента"
+  },
+  "{n} items pasted": {
+    "one": "Вставлено {n} елемент",
+    "few": "Вставлено {n} елементи",
+    "many": "Вставлено {n} елементів",
+    "other": "Вставлено {n} елемента"
+  },
   "{n} items removed": "Елементів вилучено: {n}",
   "{n} jobs": "{n} завдань",
   "{n} kept": "{n} збережено",
   "{n} kept in the tray": "{n} залишено у лотку",
-  "{n} keyframes": "Ключові кадри: {n}",
+  "{n} keyframes": {
+    "one": "{n} ключовий кадр",
+    "few": "{n} ключові кадри",
+    "many": "{n} ключових кадрів",
+    "other": "{n} ключового кадру"
+  },
   "{n} labelled stand-ins take the place of objects.": "Підписаних заглушок на місці об’єктів: {n}.",
   "{n} layers": "{n} шарів",
   "{n} layers found": "{n} шарів знайдено",
   "{n} list lines": "{n} рядків списку",
-  "{n} logos": "Логотипів: {n}",
+  "{n} logos": {
+    "one": "{n} логотип",
+    "few": "{n} логотипи",
+    "many": "{n} логотипів",
+    "other": "{n} логотипа"
+  },
   "{n} marks became the design system mark.": "Знаків стали знаком дизайн-системи: {n}.",
-  "{n} marks found": "{n} міток знайдено",
+  "{n} marks found": {
+    "one": "Знайдено {n} мітку",
+    "few": "Знайдено {n} мітки",
+    "many": "Знайдено {n} міток",
+    "other": "Знайдено {n} мітки"
+  },
   "{n} marks sent to Logos": "{n} знаків надіслано до Логотипів",
   "{n} min ago": "{n} хв тому",
   "{n} more findings in this document.": "Ще знахідок у цьому документі: {n}.",
@@ -8313,7 +8433,12 @@
   "{n} more slides": "Ще слайдів: {n}",
   "{n} moved to {group}.": "{n} переміщено до {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "Нових слайдів із тим, що не вмістилося: {n}, тому номери слайдів змістилися.",
-  "{n} newer items skipped": "{n} новіших елементів пропущено",
+  "{n} newer items skipped": {
+    "one": "Пропущено {n} новіший елемент",
+    "few": "Пропущено {n} новіші елементи",
+    "many": "Пропущено {n} новіших елементів",
+    "other": "Пропущено {n} новішого елемента"
+  },
   "{n} nits": "{n} ніт",
   "{n} not drawn": "Не намальовано: {n}",
   "{n} objects added": "Об’єктів додано: {n}",
@@ -8326,7 +8451,12 @@
   "{n} objects overlap the slide master.": "Об’єктів перекриває зразок слайдів: {n}.",
   "{n} objects removed": "Об’єктів вилучено: {n}",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "Об’єкти, що зберігають обрізання чи ефекти як зображення: {n}. Замініть їхню повну ілюстрацію, щоб змінити форму.",
-  "{n} of your creations are videos or animations": "{n} ваших робіт — це відео або анімації",
+  "{n} of your creations are videos or animations": {
+    "one": "{n} з ваших робіт — це відео або анімація",
+    "few": "{n} з ваших робіт — це відео або анімація",
+    "many": "{n} з ваших робіт — це відео або анімація",
+    "other": "{n} з ваших робіт — це відео або анімація"
+  },
   "{n} of {m}": "{n} із {m}",
   "{n} of {total} downloaded": "Завантажено {n} із {total}",
   "{n} of {total} downloaded · {size} on disk": "{n} з {total} завантажено · {size} на диску",
@@ -8337,57 +8467,112 @@
   "{n} off": "{n} вимкнено",
   "{n} on": "{n} увімкнено",
   "{n} other colourways keep their own colours: {names}": "Інших колірних варіантів зберігають власні кольори ({n}): {names}",
-  "{n} pages": "{n} сторінок",
+  "{n} pages": {
+    "one": "{n} сторінка",
+    "few": "{n} сторінки",
+    "many": "{n} сторінок",
+    "other": "{n} сторінки"
+  },
   "{n} pages are pictures of their text.": "Сторінок, що є картинками свого тексту: {n}.",
-  "{n} pages differ": "Сторінок, що відрізняються: {n}",
+  "{n} pages differ": {
+    "one": "{n} сторінка відрізняється",
+    "few": "{n} сторінки відрізняються",
+    "many": "{n} сторінок відрізняється",
+    "other": "{n} сторінки відрізняються"
+  },
   "{n} pages had no size, so they were left out.": "Сторінок без розміру, тож їх пропущено: {n}.",
   "{n} pictures": "Зображень: {n}",
   "{n} pictures are missing.": "Зображень відсутні: {n}.",
   "{n} pictures in the deck were not kept.": "Зображень із презентації не збережено: {n}.",
-  "{n} places": "{n} місць",
+  "{n} places": {
+    "one": "{n} місце",
+    "few": "{n} місця",
+    "many": "{n} місць",
+    "other": "{n} місця"
+  },
   "{n} points": "{n} точок",
-  "{n} points - hold Alt for a corner": "{n} точок — утримуйте Alt для кута",
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} точка — утримуйте Alt для кута",
+    "few": "{n} точки — утримуйте Alt для кута",
+    "many": "{n} точок — утримуйте Alt для кута",
+    "other": "{n} точки — утримуйте Alt для кута"
+  },
   "{n} preserved file": "{n} збережений файл",
   "{n} preserved files": "{n} збережених файлів",
   "{n} print locks re-pinned": "{n} блокувань друку закріплено повторно",
   "{n} proposed changes": "{n} запропонованих змін",
   "{n} protected drafts": "Захищених чернеток: {n}",
   "{n} published version": "{n} опублікована версія",
-  "{n} published versions": "{n} опублікованих версій",
+  "{n} published versions": {
+    "one": "{n} опублікована версія",
+    "few": "{n} опубліковані версії",
+    "many": "{n} опублікованих версій",
+    "other": "{n} опублікованої версії"
+  },
   "{n} recorded": "{n} зафіксовано",
   "{n} removed from favourites": "{n} прибрано з обраного",
   "{n} removed from offline": "{n} вилучено з офлайну",
   "{n} removed. A tool naming it will lose it.": "{n} вилучено. Інструмент, що на нього посилається, втратить його.",
   "{n} removed. A tool naming one of these will lose it.": "{n} вилучено. Інструмент, що посилається на один із них, втратить його.",
   "{n} renders": "{n} рендерів",
-  "{n} results": "{n} результатів",
+  "{n} results": {
+    "one": "{n} результат",
+    "few": "{n} результати",
+    "many": "{n} результатів",
+    "other": "{n} результату"
+  },
   "{n} roles re-derived": "{n} ролей виведено повторно",
   "{n} rotated runs left out": "{n} повернутих рядків пропущено",
   "{n} saved asset versions": "Збережених версій ресурсів: {n}",
   "{n} saved for offline, {m} failed - check your connection": "{n} збережено офлайн, {m} не вдалося - перевірте з'єднання",
-  "{n} saved sessions": "{n} збережених сесій",
+  "{n} saved sessions": {
+    "one": "{n} збережена сесія",
+    "few": "{n} збережені сесії",
+    "many": "{n} збережених сесій",
+    "other": "{n} збереженої сесії"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "Не вдалося показати попередній перегляд {n} збережених систем. Відкрий їх у Профілі, щоб керувати ними.",
   "{n} scanned": "{n} сканованих",
   "{n} scanned pages read.": "Сканованих сторінок прочитано: {n}.",
   "{n} scanned pages were left unread to keep this quick.": "{n} сканованих сторінок залишено непрочитаними, щоб не затягувати.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "Сканованих сторінок не прочитано, бо розпізнавання тексту немає на цьому пристрої: {n}.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} сканованих сторінок прочитано розпізнаванням тексту на пристрої, тому перевірки прихованих символів на цих сторінках виконати не вдалося.",
-  "{n} selected": "{n} вибрано",
-  "{n} selected assets": "Вибраних ресурсів: {n}",
+  "{n} selected": {
+    "one": "{n} вибрано",
+    "few": "{n} вибрано",
+    "many": "{n} вибрано",
+    "other": "{n} вибрано"
+  },
+  "{n} selected assets": {
+    "one": "{n} вибраний ресурс",
+    "few": "{n} вибрані ресурси",
+    "many": "{n} вибраних ресурсів",
+    "other": "{n} вибраного ресурсу"
+  },
   "{n} selected files": "Вибраних файлів: {n}",
   "{n} selected items could not be outlined and were left as they are.": "{n} вибраних елементів не вдалося перевести в контури, їх залишено як є.",
   "{n} selected items have no outline, so they were left as they are.": "{n} вибраних елементів не мають контуру, тому їх залишили без змін.",
   "{n} selected · {size}": "{n} вибрано · {size}",
   "{n} sentences": "{n} речень",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} речень мають пунктирне підкреслення: модель на пристрої може запропонувати простіший варіант. Прийняття одного позначає збережену копію як створену з допомогою AI, а формулювання моделі несуть публічний водяний знак перефразування Lolly, щоб написаний AI текст залишався виявним у Verify.",
-  "{n} sessions": "{n} сесій",
+  "{n} sessions": {
+    "one": "{n} сесія",
+    "few": "{n} сесії",
+    "many": "{n} сесій",
+    "other": "{n} сесії"
+  },
   "{n} set": "{n} задано",
   "{n} shade curves re-anchored": "{n} кривих відтінків заякорено повторно",
   "{n} shades added to your palette": "Відтінків додано до вашої палітри: {n}",
   "{n} shades added. Undo is available above your palette.": "Відтінків додано: {n}. Скасування доступне над вашою палітрою.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} відтінків не досягли цілі (обмежено найближчим тоном).",
   "{n} shades rebuilt across {ramps} ramps": "{n} відтінків перебудовано у {ramps} рампах",
-  "{n} shapes": "{n} форм",
+  "{n} shapes": {
+    "one": "{n} форма",
+    "few": "{n} форми",
+    "many": "{n} форм",
+    "other": "{n} форми"
+  },
   "{n} shapes · page {p}": "{n} фігур · сторінка {p}",
   "{n} shared assets were kept.": "Спільних ресурсів збережено: {n}.",
   "{n} slides narrated.": "{n} слайдів озвучено.",
@@ -8395,11 +8580,21 @@
   "{n} spectrum hues rebuilt": "{n} спектральних відтінків перебудовано",
   "{n} stages of work": "Етапів роботи: {n}",
   "{n} starter colours": "Початкових кольорів: {n}",
-  "{n} steps": "Кроків: {n}",
+  "{n} steps": {
+    "one": "{n} крок",
+    "few": "{n} кроки",
+    "many": "{n} кроків",
+    "other": "{n} кроку"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "Знайдено пропозицій: {n}. Копії підготовлено з ними вибраними; змініть будь-яку на панелі «Перегляд».",
   "{n} suggestions were applied without review.": "Пропозицій застосовано без перегляду: {n}.",
   "{n} swatches removed": "{n} зразків вилучено",
-  "{n} templates": "{n} шаблонів",
+  "{n} templates": {
+    "one": "{n} шаблон",
+    "few": "{n} шаблони",
+    "many": "{n} шаблонів",
+    "other": "{n} шаблону"
+  },
   "{n} templates added": "Шаблонів додано: {n}",
   "{n} templates deleted": "Шаблонів видалено: {n}",
   "{n} templates saved": "Шаблонів збережено: {n}",
@@ -8419,11 +8614,21 @@
   "{n} unsupported backup parts skipped": "Непідтримуваних частин резервної копії пропущено: {n}",
   "{n} value changes": "Змін значень: {n}",
   "{n} values change": "Значень змінюється: {n}",
-  "{n} volume keys": "{n} ключів гучності",
+  "{n} volume keys": {
+    "one": "{n} ключ гучності",
+    "few": "{n} ключі гучності",
+    "many": "{n} ключів гучності",
+    "other": "{n} ключа гучності"
+  },
   "{n} warnings.": "{n} попереджень.",
   "{n} were kept - they are not this room to remove.": "{n} залишено - їх вилучають не в цій кімнаті.",
   "{n} wording swaps are underlined in the preview.": "{n} замін слів підкреслено у попередньому перегляді.",
-  "{n} words": "{n} слів",
+  "{n} words": {
+    "one": "{n} слово",
+    "few": "{n} слова",
+    "many": "{n} слів",
+    "other": "{n} слова"
+  },
   "{n} words cut": "Слів обрізано: {n}",
   "{n} yours": "Ваших: {n}",
   "{n}-bit": "{n}-біт",
@@ -8814,7 +9019,12 @@
   "1 design was added to Projects, in 1 folder.": "1 дизайн додано до Проєктів, в 1 теці.",
   "1 design was added to Projects, in {f} folders.": "1 дизайн додано до Проєктів, у {f} теках.",
   "1 design was added to Projects.": "1 дизайн додано до Проєктів.",
-  "{n} creations removed from Projects here stayed removed.": "{n} творінь, видалених з Проєктів тут, залишилися видаленими.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} творіння, видалене з Проєктів тут, залишилося видаленим.",
+    "few": "{n} творіння, видалені з Проєктів тут, залишилися видаленими.",
+    "many": "{n} творінь, видалених з Проєктів тут, залишилися видаленими.",
+    "other": "{n} творіння, видалені з Проєктів тут, залишилися видаленими."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Це творіння ніколи не було збережене, тому вихід без збереження вилучить його з Проєктів.",
   "This deck has no colours to change.": "У цій презентації немає кольорів для зміни.",
   "This deck has no fonts to change.": "У цій презентації немає шрифтів для зміни.",
@@ -8844,7 +9054,12 @@
   "This saved version could not be read.": "Не вдалося прочитати цю збережену версію.",
   "1 older automatic checkpoint left out": "1 старіша автоматична контрольна точка пропущено",
   "1 other colourway keeps its own colours: {names}": "1 інший колірний варіант зберігає власні кольори: {names}",
-  "{n} older automatic checkpoints left out": "{n} старіших автоматичних контрольних точок пропущено",
+  "{n} older automatic checkpoints left out": {
+    "one": "Пропущено {n} старішу автоматичну контрольну точку",
+    "few": "Пропущено {n} старіші автоматичні контрольні точки",
+    "many": "Пропущено {n} старіших автоматичних контрольних точок",
+    "other": "Пропущено {n} старішої автоматичної контрольної точки"
+  },
   "Automatic recovery and checkpoints are on": "Автоматичне відновлення та контрольні точки увімкнено",
   "Automatic recovery is unavailable here. Save before leaving.": "Автоматичне відновлення тут недоступне. Збережіть перед виходом.",
   "Checkpoint saved at {time} on this device": "Контрольну точку збережено о {time} на цьому пристрої",
@@ -9027,7 +9242,12 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Щоб показати сайти, які вебверсія не може, Lolly може перезавантажитися на цьому пристрої з вільнішою політикою фреймів, а потім питати про кожен сайт перед презентацією. Це можна вимкнути в профілі, у розділі Довірені сайти.",
   "Card size": "Розмір карток",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "На цьому пристрої додано 1 зображення або файл. Він залишається на цьому пристрої, і інші його не побачать.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "На цьому пристрої додано зображень або файлів: {n}. Вони залишаються на цьому пристрої, і інші їх не побачать.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "На цьому пристрої додано {n} зображення або файл. Він залишається на цьому пристрої, і інші його не побачать.",
+    "few": "На цьому пристрої додано {n} зображення або файли. Вони залишаються на цьому пристрої, і інші їх не побачать.",
+    "many": "На цьому пристрої додано {n} зображень або файлів. Вони залишаються на цьому пристрої, і інші їх не побачать.",
+    "other": "На цьому пристрої додано {n} зображення або файла. Він залишається на цьому пристрої, і інші його не побачать."
+  },
   "Check the version first": "Спершу перевірте версію",
   "Copy team link": "Скопіювати посилання команди",
   "Could not create the project. Try again.": "Не вдалося створити проєкт. Спробуйте ще раз.",
@@ -9793,7 +10013,12 @@
   "Every mode": "Кожен режим",
   "Your local items have not changed.": "Ваші локальні елементи не змінилися.",
   "1 item was saved to the shared project.": "1 елемент збережено у спільному проєкті.",
-  "{n} items were saved to the shared project.": "Елементів збережено у спільному проєкті: {n}.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} елемент збережено у спільному проєкті.",
+    "few": "{n} елементи збережено у спільному проєкті.",
+    "many": "{n} елементів збережено у спільному проєкті.",
+    "other": "{n} елемента збережено у спільному проєкті."
+  },
   "Wait for the current move to finish.": "Дочекайтеся завершення поточного переміщення.",
   "Wait for the deck to finish reading, then choose a picture.": "Дочекайтеся завершення читання презентації, потім виберіть картинку.",
   "Wait for the grid to finish rendering before moving its layers.": "Дочекайтеся завершення рендерингу сітки, перш ніж переміщувати її шари.",
@@ -10645,5 +10870,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Цей кліп використовує {codec}, який цей пристрій не може відтворити. Експортуйте копію H.264, HEVC або AV1 зі свого застосунку для монтажу або відкрийте кліп у настільному застосунку Lolly на Mac. Lolly зберігає оригінальний файл.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Цей кліп використовує {codec}, який цей пристрій не може відтворити. Експортуйте копію H.264, HEVC або AV1 зі свого застосунку для монтажу. Lolly зберігає оригінальний файл.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Це файл MXF із {codec}. Lolly може прочитати його вміст, але не відтворює MXF. Експортуйте копію H.264, HEVC або AV1 зі свого застосунку для монтажу. Lolly зберігає оригінальний файл.",
-  "{format} from {camera}": "{format} з камери {camera}"
+  "{format} from {camera}": "{format} з камери {camera}",
+  "Filling a large area. This can take a moment.": "Заповнення великої ділянки. Це може зайняти трохи часу.",
+  "Large area": "Велика ділянка"
 }

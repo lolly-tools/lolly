@@ -2,7 +2,7 @@
 /**
  * The automatic Performance UI switch in a real Chromium on a software adapter
  * (SwiftShader, as CI's browser lane and LOLLY_WEBGPU_TEST_ADAPTER=swiftshader give):
- * it switches at start-up and says so once the first-visit prompt is answered (never on
+ * it switches at start-up and reports that once the first-visit prompt is answered (never on
  * top of it), Keep and Undo do what they say across a reload, Settings shows when and
  * why, or after an Undo offers "Allow again", and a hand choice stops the detector.
  *

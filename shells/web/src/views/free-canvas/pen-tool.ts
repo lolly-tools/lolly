@@ -17,7 +17,7 @@ import { PEN_KINDS, alignPoints, convertKind, decodePathContours, defaultContinu
 import type { InsertResult, NodeAlignEdge, PenPointRef } from '../free-canvas-pen.ts';
 import { announce } from '../../a11y.ts';
 import { escape as escapeText } from '../../utils.ts';
-import { t, tRaw } from '../../i18n.ts';
+import { t, tRaw, tn } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { centreCtxBar, ctxTopBand } from './shared.ts';
 import type { PenPart, Point, PopItem } from './shared.ts';
@@ -1236,9 +1236,7 @@ export function buildPenCtxBar(fc: FcCtx, p: AuthoredPath): void {
     `<button type="button" class="fc-cbtn" data-pen="done" data-tip="${escapeText(drawing ? t('Finish this path (Enter)') : t('Finish editing points (Esc)'))}" aria-label="${escapeText(drawing ? t('Finish this path') : t('Finish editing points'))}">${icon(SVG.penDone)}</button>` +
     `<span class="fc-readout">${escapeText(
         drawing
-          ? p.nodes.length === 1
-            ? t('1 point - hold Alt for a corner')
-            : t('{n} points - hold Alt for a corner', { n: p.nodes.length })
+          ? tn('1 point - hold Alt for a corner', '{n} points - hold Alt for a corner', { n: p.nodes.length })
           : selN
             ? t('{k} of {n} points', { k: selN, n: p.nodes.length })
             : t('{n} points', { n: p.nodes.length })

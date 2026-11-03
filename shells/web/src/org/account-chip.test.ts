@@ -319,7 +319,7 @@ test('with recovery copies, Download saves one untagged file holding them all, r
   off();
 });
 
-test('a copy that cannot be removed after the download keeps the person signed in, and says so', async () => {
+test('a copy that cannot be removed after the download keeps the person signed in, and reports why', async () => {
   const h = harness({ slots: MINE });
   h.device.state.delete = async () => { throw new Error('storage refused'); };
   const off = mountAccountChip(slot(), h.deps);
@@ -368,7 +368,7 @@ test('settleRecoveryCopies, shared with Settings, answers go, stay or the failur
   assert.equal(await failing, 'Could not complete this action. Please try again.');
 });
 
-test('a failed sign-out stays signed in and says so', async () => {
+test('a failed sign-out stays signed in and reports why', async () => {
   const h = harness({ signOut: false });
   const off = mountAccountChip(slot(), h.deps);
   click(chip());

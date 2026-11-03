@@ -14,7 +14,7 @@
  */
 import { ENGINE_VERSION } from '@lolly/engine';
 import type { AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { announce } from '../a11y.ts';
 import { childFolders, descendantFolderIds } from '../folders.ts';
 import type { Folder, FolderItem } from '../folders.ts';
@@ -143,7 +143,7 @@ export async function downloadOriginals(view: ProjectDownloadView, label: string
     const blob = new Blob([bytes as BlobPart], { type: 'application/zip' });
     if (share) await shareFile(host.export, blob, zipName);
     else await host.export.file(blob, { filename: zipName });
-    if (skipped) announce(skipped === 1 ? t('1 file could not be packed and was left out') : t('{n} files could not be packed and were left out', { n: skipped }));
+    if (skipped) announce(tn('1 file could not be packed and was left out', '{n} files could not be packed and were left out', { n: skipped }));
     return { zipName };
   });
 }
@@ -203,7 +203,7 @@ export async function downloadProject(view: ProjectDownloadView, id: string, sha
     });
     if (share) await shareFile(host.export, blob, filename);
     else await host.export.file(blob, { filename });
-    if (skipped) announce(skipped === 1 ? t('1 file could not be packed and was left out') : t('{n} files could not be packed and were left out', { n: skipped }));
+    if (skipped) announce(tn('1 file could not be packed and was left out', '{n} files could not be packed and were left out', { n: skipped }));
     return { zipName: filename };
   });
 }

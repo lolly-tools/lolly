@@ -154,7 +154,7 @@ test('a window longer than what is left clamps instead of failing', async () => 
   assert.equal(out.channels[0]!.length, 3 * SR, 'clamped to the end of the clip');
 });
 
-test('a start past the end of the clip falls back to 0:00 and says so', async () => {
+test('a start past the end of the clip falls back to 0:00 and reports that', async () => {
   const { pcm, bytes } = wavSource(4);
   const warnings: string[] = [];
   const blob = await renderAudioExport('wav', {

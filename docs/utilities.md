@@ -74,6 +74,12 @@ In the TUI, press **P** from Tools, add file paths, inspect, choose replacements
 
 **[Strip Hidden Data](/t/strip-data)** removes selected DOCX properties, or image and PDF metadata, and lets you inspect other Office hidden content. **[Redact](/t/redact)** blacks out sensitive content by rebuilding the file, then checks the output before it downloads. Both are tools, so they save sessions like any other.
 
+#### Two ways to redact a PDF
+
+By default, Redact flattens each page of a PDF to a picture and burns the bars into the picture. Nothing readable is left, the text can no longer be selected or searched, and the file is usually larger. This is the mode to use when you are unsure.
+
+Turn on **Keep text** to remove only what sits under each bar and keep the rest of the page as real text and drawings. The glyphs, picture pixels and drawing paths under a bar are cut from the file, along with comments, links and form fields under it, and the document's metadata and attachments are removed. After the rewrite Lolly reads the new file again and looks under every bar for text, picture pixels, drawings and annotations. If anything is left, or something cannot be checked, nothing is saved and you are told to turn Keep text off. A shape that is only partly under a bar is clipped rather than cut, so its outline data stays in the file. Bars are plain rectangles in this mode, and pages with pictures inside their content, or text in a font Lolly cannot measure next to a bar, are refused.
+
 ![Strip Hidden Data: the file arrives on the canvas and the badge states plainly that nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1200&height=750&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-strip-data)
 
 ## See what changed

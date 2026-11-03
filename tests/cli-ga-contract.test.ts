@@ -466,7 +466,7 @@ test('--filename names the output file when --output is absent (B6)', async () =
   }
 });
 
-test('--output wins over --filename, and says so', async () => {
+test('--output wins over --filename, and reports that', async () => {
   const out = outPath('svg');
   const { stderr } = await run({ toolId: 'vec-tool', params: { filename: 'ignored.svg' }, outputPath: out, format: 'svg' });
   assert.equal(existsSync(out), true);
@@ -810,7 +810,7 @@ test('preflight has no --out: it refuses the flag and names the redirect (sectio
 });
 
 test('preflight honours --input.<id>= and warns on a reserved flag that shadows an input (B7)', async () => {
-  // The bare form goes to the export and says so - the same warning `run` prints.
+  // The bare form goes to the export and prints a warning - the same warning `run` prints.
   const shadowed = await cli(['preflight', 'shadow-tool', '--width=333', '--export=svg']);
   assert.match(shadowed.stderr, /--width is a reserved export flag AND an input of "shadow-tool"/);
   assert.match(shadowed.stdout.toString('utf8'), /collect\.reserved-flag-shadows-input/);

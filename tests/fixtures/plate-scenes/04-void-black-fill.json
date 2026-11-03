@@ -1,0 +1,114 @@
+{
+  "id": "04-void-black-fill",
+  "title": "Brand black fill (Void)",
+  "covers": "Lolly Demo's Void is #000000 with a measured rich build of 71/60/43/100. A solid #000000 fill is a Void swatch hit, so it should carry the named spot, or the measured build when flattened.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "void",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 20,
+      "w": 360,
+      "h": 160,
+      "bg": "#000000"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true,
+    "separations": [
+      "H000_L005_C000"
+    ]
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Void fill",
+          "rect": [
+            30,
+            30,
+            340,
+            140
+          ],
+          "expect": {
+            "H000_L005_C000": 100,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "spots flattened to the process alternate",
+      "rip": [
+        "-dMaxSpots=0"
+      ],
+      "tol": 1.5,
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Void 71/60/43/100",
+          "rect": [
+            30,
+            30,
+            340,
+            140
+          ],
+          "expect": {
+            "C": 71,
+            "M": 60,
+            "Y": 43,
+            "K": 100
+          }
+        }
+      ]
+    }
+  ]
+}

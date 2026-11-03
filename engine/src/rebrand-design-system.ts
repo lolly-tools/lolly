@@ -446,7 +446,7 @@ export interface ThemedColorsV1 {
 
 /** The options `systemForPlan` and `masterForPlan` take. */
 export interface SystemForPlanOptsV1 {
-  /** The look a `look` theme names, when the caller has it. Without it a look theme resolves to the design system's own colours and says so. */
+  /** The look a `look` theme names, when the caller has it. Without it a look theme resolves to the design system's own colours and reports that. */
   look?: DeckLookV1;
   /** The colours to theme, for a shape that was not made by `resolveRebrandDesignSystem` in this realm (a structured clone). */
   source?: ThemeSourceV1;
@@ -965,7 +965,7 @@ export interface ThemedColorsOptsV1 {
  *
  * A theme that asks for the dark mode of a pack that states none (a pack edited
  * since, or a shell that did not read the dark mode) resolves to the Dark built from
- * the primary colour's ramp (`darkFallbackRemap`) and says so, so a stored Dark is
+ * the primary colour's ramp (`darkFallbackRemap`) and reports the remap, so a stored Dark is
  * never drawn in the light colours.
  */
 export function themedColors(source: ThemeSourceV1, theme: DeckThemeV1 | null | undefined, opts: ThemedColorsOptsV1 = {}): ThemedColorsV1 {

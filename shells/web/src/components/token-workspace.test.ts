@@ -198,7 +198,7 @@ test('Use these choices hides when the system has no theme choices', () => {
   finally { readonly.workspace.teardown(); readonly.dom.window.close(); }
 });
 
-test('a review with nothing to change cannot apply and says so', () => {
+test('a review with nothing to change cannot apply and reports why', () => {
   const s = setup();
   try {
     s.find<HTMLButtonElement>('[data-tw-apply-choices]').click();
@@ -262,7 +262,7 @@ test('the type filter names types in words and keeps the raw type as the value',
   } finally { s.workspace.teardown(); s.dom.window.close(); }
 });
 
-test('an edit that changes nothing cannot apply, and says so for an edit', () => {
+test('an edit that changes nothing cannot apply, and reports why for an edit', () => {
   const s = setup();
   try {
     s.workspace.select('Ink');

@@ -138,6 +138,11 @@ export async function pdfPages(bytes: Uint8Array, opts?: { maxPages?: number; pa
 }
 
 export async function redactPdf(bytes: Uint8Array, opts: PdfRedactOpts, host?: RedactHost): Promise<PdfRedactResult> {
+  if (opts?.keepText) {
+    const [{ loadPdfA11yKernel }, { redactKeepText }] = await Promise.all([import('./pdf-a11y.ts'), import('@lolly-tools/node-shell/pdf-redact-keep')]);
+    const run = await redactKeepText(await loadPdfA11yKernel(), bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes), opts);
+    return { bytes: run.bytes, pages: run.pages, mode: 'keep-text' };
+  }
   if (!hasImageCodec() || typeof Image !== 'function' || typeof URL.createObjectURL !== 'function') {
     throw new Error('PDF redaction needs a browser canvas, which this shell does not provide.');
   }

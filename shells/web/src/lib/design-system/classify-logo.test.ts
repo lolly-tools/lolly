@@ -130,7 +130,7 @@ test('named CSS colours are read as ink', () => {
   assert.ok(c.reasons.includes('2 ink hues'), c.reasons.join(' | '));
 });
 
-test('no bounds from content falls back to the artboard and says so', () => {
+test('no bounds from content falls back to the artboard and reports that', () => {
   const c = classifyLogoSvg('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="120"></svg>');
   assertShape(c);
   assert.equal(c.orientation, 'horizontal');

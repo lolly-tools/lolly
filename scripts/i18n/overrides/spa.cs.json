@@ -593,7 +593,12 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Spouští hlubší kontrolu AI textu v Ověření a v Assetech.",
   "Card size": "Velikost karet",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "V tomto zařízení byl přidán 1 obrázek nebo soubor. Zůstává v tomto zařízení a ostatní ho neuvidí.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "V tomto zařízení bylo přidáno obrázků nebo souborů: {n}. Zůstávají v tomto zařízení a ostatní je neuvidí.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "V tomto zařízení byl přidán {n} obrázek nebo soubor. Zůstává v tomto zařízení a ostatní ho neuvidí.",
+    "few": "V tomto zařízení byly přidány {n} obrázky nebo soubory. Zůstávají v tomto zařízení a ostatní je neuvidí.",
+    "many": "V tomto zařízení bylo přidáno {n} obrázku nebo souboru. Zůstávají v tomto zařízení a ostatní je neuvidí.",
+    "other": "V tomto zařízení bylo přidáno {n} obrázků nebo souborů. Zůstávají v tomto zařízení a ostatní je neuvidí."
+  },
   "Check the version first": "Nejdřív zkontroluj verzi",
   "Copy team link": "Kopírovat odkaz týmu",
   "Could not create the project. Try again.": "Projekt se nepodařilo vytvořit. Zkus to znovu.",
@@ -1170,7 +1175,12 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Všechny položky jsou uložené ve sdíleném projektu. Místní originály jsou v koši nebo stále na svém místě.",
   "Your local items have not changed.": "Tvoje místní položky se nezměnily.",
   "1 item was saved to the shared project.": "1 položka byla uložena do sdíleného projektu.",
-  "{n} items were saved to the shared project.": "Počet položek uložených do sdíleného projektu: {n}.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} položka byla uložena do sdíleného projektu.",
+    "few": "{n} položky byly uloženy do sdíleného projektu.",
+    "many": "{n} položky bylo uloženo do sdíleného projektu.",
+    "other": "{n} položek bylo uloženo do sdíleného projektu."
+  },
   "Wait for the current move to finish.": "Počkej, až se dokončí probíhající přesun.",
   "You cannot save to that shared project.": "Do tohoto sdíleného projektu ukládat nemůžeš.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Všichni, kdo mohou otevřít {project}, uvidí tyto položky. Jakmile bude každá položka uložená, místní originály se přesunou do koše, odkud je můžeš obnovit.",
@@ -1481,8 +1491,18 @@
   "file": "soubor",
   "samples": "vzorky",
   "text": "text",
-  "{n} changes found": "Nalezeno změn: {n}",
-  "{n} pages differ": "Stránek, které se liší: {n}",
+  "{n} changes found": {
+    "one": "Nalezena {n} změna",
+    "few": "Nalezeny {n} změny",
+    "many": "Nalezeno {n} změny",
+    "other": "Nalezeno {n} změn"
+  },
+  "{n} pages differ": {
+    "one": "{n} stránka se liší",
+    "few": "{n} stránky se liší",
+    "many": "{n} stránky se liší",
+    "other": "{n} stránek se liší"
+  },
   "Draft": "Koncept",
   "Draft quality": "Kvalita konceptu",
   "Draft rule": "Pravidlo v konceptu",
@@ -1835,5 +1855,251 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh. Podrž pro Tužku (Shift C) a typ spline",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh",
   "Recipients can change the inputs": "Příjemci mohou měnit vstupy",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Kdokoli s odkazem může změnit jeho vstupy a získat nový obrázek. Uzamčené vstupy zůstanou, jak jsou nastavené."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Kdokoli s odkazem může změnit jeho vstupy a získat nový obrázek. Uzamčené vstupy zůstanou, jak jsou nastavené.",
+  "{count} entries": {
+    "one": "{count} záznam",
+    "few": "{count} záznamy",
+    "many": "{count} záznamu",
+    "other": "{count} záznamů"
+  },
+  "{count} files in this folder": {
+    "one": "{count} soubor v této složce",
+    "few": "{count} soubory v této složce",
+    "many": "{count} souboru v této složce",
+    "other": "{count} souborů v této složce"
+  },
+  "{n} assets": {
+    "one": "{n} podklad",
+    "few": "{n} podklady",
+    "many": "{n} podkladu",
+    "other": "{n} podkladů"
+  },
+  "{n} assets found": {
+    "one": "Nalezen {n} podklad",
+    "few": "Nalezeny {n} podklady",
+    "many": "Nalezeno {n} podkladu",
+    "other": "Nalezeno {n} podkladů"
+  },
+  "{n} capabilities match": {
+    "one": "{n} shodná schopnost",
+    "few": "{n} shodné schopnosti",
+    "many": "{n} shodné schopnosti",
+    "other": "{n} shodných schopností"
+  },
+  "{n} copies made · selected": {
+    "one": "Vytvořena {n} kopie · vybrána",
+    "few": "Vytvořeny {n} kopie · vybrány",
+    "many": "Vytvořeno {n} kopie · vybráno",
+    "other": "Vytvořeno {n} kopií · vybráno"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} výtvor odstraněný z Projektů tady zůstal odstraněný.",
+    "few": "{n} výtvory odstraněné z Projektů tady zůstaly odstraněné.",
+    "many": "{n} výtvoru odstraněného z Projektů tady zůstalo odstraněné.",
+    "other": "{n} výtvorů odstraněných z Projektů tady zůstalo odstraněných."
+  },
+  "{n} embedded files": {
+    "one": "{n} vložený soubor",
+    "few": "{n} vložené soubory",
+    "many": "{n} vloženého souboru",
+    "other": "{n} vložených souborů"
+  },
+  "{n} external references": {
+    "one": "{n} externí odkaz",
+    "few": "{n} externí odkazy",
+    "many": "{n} externího odkazu",
+    "other": "{n} externích odkazů"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} soubor se nepodařilo zabalit a byl vynechán",
+    "few": "{n} soubory se nepodařilo zabalit a byly vynechány",
+    "many": "{n} souboru se nepodařilo zabalit a bylo vynecháno",
+    "other": "{n} souborů se nepodařilo zabalit a bylo vynecháno"
+  },
+  "{n} folders": {
+    "one": "{n} složka",
+    "few": "{n} složky",
+    "many": "{n} složky",
+    "other": "{n} složek"
+  },
+  "{n} font files": {
+    "one": "{n} soubor písma",
+    "few": "{n} soubory písma",
+    "many": "{n} souboru písma",
+    "other": "{n} souborů písma"
+  },
+  "{n} images": {
+    "one": "{n} obrázek",
+    "few": "{n} obrázky",
+    "many": "{n} obrázku",
+    "other": "{n} obrázků"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} obrázek se nepodařilo obnovit (plné úložiště?)",
+    "few": "{n} obrázky se nepodařilo obnovit (plné úložiště?)",
+    "many": "{n} obrázku se nepodařilo obnovit (plné úložiště?)",
+    "other": "{n} obrázků se nepodařilo obnovit (plné úložiště?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} obrázek zůstal u originálu - obrázky mají jen jeden domov; k přesunu použij Vyjmout",
+    "few": "{n} obrázky zůstaly u originálu - obrázky mají jen jeden domov; k přesunu použij Vyjmout",
+    "many": "{n} obrázku zůstalo u originálu - obrázky mají jen jeden domov; k přesunu použij Vyjmout",
+    "other": "{n} obrázků zůstalo u originálu - obrázky mají jen jeden domov; k přesunu použij Vyjmout"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} vstup · platí pro každý design",
+    "few": "{n} vstupy · platí pro každý design",
+    "many": "{n} vstupu · platí pro každý design",
+    "other": "{n} vstupů · platí pro každý design"
+  },
+  "{n} items": {
+    "one": "{n} položka",
+    "few": "{n} položky",
+    "many": "{n} položky",
+    "other": "{n} položek"
+  },
+  "{n} items copied": {
+    "one": "{n} položka zkopírována",
+    "few": "{n} položky zkopírovány",
+    "many": "{n} položky zkopírováno",
+    "other": "{n} položek zkopírováno"
+  },
+  "{n} items cut": {
+    "one": "{n} položka vyjmuta",
+    "few": "{n} položky vyjmuty",
+    "many": "{n} položky vyjmuto",
+    "other": "{n} položek vyjmuto"
+  },
+  "{n} items moved": {
+    "one": "{n} položka přesunuta",
+    "few": "{n} položky přesunuty",
+    "many": "{n} položky přesunuto",
+    "other": "{n} položek přesunuto"
+  },
+  "{n} items pasted": {
+    "one": "{n} položka vložena",
+    "few": "{n} položky vloženy",
+    "many": "{n} položky vloženo",
+    "other": "{n} položek vloženo"
+  },
+  "{n} keyframes": {
+    "one": "{n} klíčový snímek",
+    "few": "{n} klíčové snímky",
+    "many": "{n} klíčového snímku",
+    "other": "{n} klíčových snímků"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "few": "{n} loga",
+    "many": "{n} loga",
+    "other": "{n} log"
+  },
+  "{n} marks found": {
+    "one": "{n} nalezená značka",
+    "few": "{n} nalezené značky",
+    "many": "{n} nalezené značky",
+    "other": "{n} nalezených značek"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} novější položka přeskočena",
+    "few": "{n} novější položky přeskočeny",
+    "many": "{n} novější položky přeskočeno",
+    "other": "{n} novějších položek přeskočeno"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} výtvor je video nebo animace",
+    "few": "{n} tvé výtvory jsou videa nebo animace",
+    "many": "{n} tvého výtvoru je video nebo animace",
+    "other": "{n} tvých výtvorů jsou videa nebo animace"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} starší automatický kontrolní bod vynechán",
+    "few": "{n} starší automatické kontrolní body vynechány",
+    "many": "{n} staršího automatického kontrolního bodu vynecháno",
+    "other": "{n} starších automatických kontrolních bodů vynecháno"
+  },
+  "{n} pages": {
+    "one": "{n} stránka",
+    "few": "{n} stránky",
+    "many": "{n} stránky",
+    "other": "{n} stránek"
+  },
+  "{n} places": {
+    "one": "{n} místo",
+    "few": "{n} místa",
+    "many": "{n} místa",
+    "other": "{n} míst"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} bod - podrž Alt pro roh",
+    "few": "{n} body - podrž Alt pro roh",
+    "many": "{n} bodu - podrž Alt pro roh",
+    "other": "{n} bodů - podrž Alt pro roh"
+  },
+  "{n} published versions": {
+    "one": "{n} publikovaná verze",
+    "few": "{n} publikované verze",
+    "many": "{n} publikované verze",
+    "other": "{n} publikovaných verzí"
+  },
+  "{n} results": {
+    "one": "{n} výsledek",
+    "few": "{n} výsledky",
+    "many": "{n} výsledku",
+    "other": "{n} výsledků"
+  },
+  "{n} saved sessions": {
+    "one": "{n} uložená relace",
+    "few": "{n} uložené relace",
+    "many": "{n} uložené relace",
+    "other": "{n} uložených relací"
+  },
+  "{n} selected": {
+    "one": "{n} vybráno",
+    "few": "{n} vybráno",
+    "many": "{n} vybráno",
+    "other": "{n} vybráno"
+  },
+  "{n} selected assets": {
+    "one": "{n} vybraný podklad",
+    "few": "{n} vybrané podklady",
+    "many": "{n} vybraného podkladu",
+    "other": "{n} vybraných podkladů"
+  },
+  "{n} sessions": {
+    "one": "{n} relace",
+    "few": "{n} relace",
+    "many": "{n} relace",
+    "other": "{n} relací"
+  },
+  "{n} shapes": {
+    "one": "{n} tvar",
+    "few": "{n} tvary",
+    "many": "{n} tvaru",
+    "other": "{n} tvarů"
+  },
+  "{n} steps": {
+    "one": "{n} krok",
+    "few": "{n} kroky",
+    "many": "{n} kroku",
+    "other": "{n} kroků"
+  },
+  "{n} templates": {
+    "one": "{n} šablona",
+    "few": "{n} šablony",
+    "many": "{n} šablony",
+    "other": "{n} šablon"
+  },
+  "{n} volume keys": {
+    "one": "{n} klíč hlasitosti",
+    "few": "{n} klíče hlasitosti",
+    "many": "{n} klíče hlasitosti",
+    "other": "{n} klíčů hlasitosti"
+  },
+  "{n} words": {
+    "one": "{n} slovo",
+    "few": "{n} slova",
+    "many": "{n} slova",
+    "other": "{n} slov"
+  }
 }

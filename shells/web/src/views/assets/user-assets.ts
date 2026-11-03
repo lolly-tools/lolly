@@ -7,7 +7,7 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
-import { t, tRaw } from '../../i18n.ts';
+import { t, tRaw, tn } from '../../i18n.ts';
 import { showUndoToast } from '../../lib/undo-toast.ts';
 import { createTrash } from '../../lib/trash.ts';
 import { showTrashUndoToast } from '../../components/trash-dialog.ts';
@@ -90,7 +90,7 @@ export function applyHiddenInPlace(cat: CatCtx, base: string, hide: boolean): bo
   // eye icon + "Show hidden (N)" is always the right pairing. Preserve the icon (setCatToggle).
   setCatToggle(toggle, CAT_ICONS.eye, t('Show hidden ({n})', { n: hiddenCount }));
   const count = assets.querySelector<HTMLElement>('.cat-count');
-  if (count) { const n = cat.filters.visibleAssets().length; count.textContent = n === 1 ? t('1 asset') : t('{n} assets', { n }); }
+  if (count) { const n = cat.filters.visibleAssets().length; count.textContent = tn('1 asset', '{n} assets', { n }); }
   if (cat.favSet.has(base)) cat.sections.refreshFavStrip();   // a hidden favourite leaves the strip
   return true;
 }

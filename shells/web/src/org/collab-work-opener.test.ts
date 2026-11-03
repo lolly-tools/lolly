@@ -243,7 +243,7 @@ test('the delivered close() hangs the provider up', async () => {
   assert.equal(r.provider!.closes, 1);
 });
 
-test('a mount that never registered parks the connection, and says so', async () => {
+test('a mount that never registered parks the connection, and reports why', async () => {
   const r = rig({ deliver: false });
   const out = await openWorkCollab({ baseParts: [], sessionId: 'ses_1' }, r.deps);
   assert.equal(out.ok, false);

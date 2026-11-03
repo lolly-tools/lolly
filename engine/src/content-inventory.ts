@@ -23,7 +23,7 @@
  * What the source does not show stays out of `text` and `pictures` (a Photoshop
  * layer switched off), listed under `objects` with `hidden` and counted in a
  * warning; a PDF's invisible text, a scan's OCR layer, is kept and marked hidden.
- * A slide the source marks flattened is one picture of its text, and says so in
+ * A slide the source marks flattened is one picture of its text, and reports that in
  * a `slide-flattened` warning with its OCR state, so an empty `text` list is not
  * read as an empty slide. A drawing reports its SVG (`opts.vectors`), with the
  * raster stand-in as `fallbackRef`. Text is folded out of the Latin ligature block.

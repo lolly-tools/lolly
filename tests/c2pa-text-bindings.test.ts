@@ -268,7 +268,7 @@ test('section A.7.1: more than one association refuses the document - never firs
   assert.equal(d.store, null, 'a decoy appended to a signed page must not win');
 });
 
-test('section A.7: an ordinary HTML page carries no credential, and says so without inventing one', () => {
+test('section A.7: an ordinary HTML page carries no credential, and reports that without inventing one', () => {
   const doc = utf8('<!DOCTYPE html><html><head><title>x</title>'
     + '<script type="application/ld+json">{"@type":"WebPage"}</script>'
     + '<script src="/app.js"></script></head><body><p>hi</p></body></html>');
@@ -886,7 +886,7 @@ async function signStructured(body: string) {
 
 // ═══ section 15.12.1.3.1 - the text data hash ════════════════════════════════════════
 
-test('section 15.12.1.3: a signed section A.8 text verifies, and says so in the spec\'s own terms', async () => {
+test('section 15.12.1.3: a signed section A.8 text verifies, and reports that in the spec\'s own terms', async () => {
   const { bytes, exclusion } = await signUnstructured('The quick brown fox jumps over the lazy dog.');
   const r = await verifyC2pa(bytes);
   assert.equal(r.format, 'text');

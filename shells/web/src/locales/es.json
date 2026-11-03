@@ -8042,10 +8042,18 @@
   "{count} controls you changed stay yours.": "{count} controles que cambiaste siguen siendo tuyos.",
   "{count} days": "{count} días",
   "{count} decisions from the last version still apply.": "{count} decisiones de la versión anterior siguen vigentes.",
-  "{count} entries": "{count} entradas",
+  "{count} entries": {
+    "one": "{count} entrada",
+    "many": "{count} de entradas",
+    "other": "{count} entradas"
+  },
   "{count} files / variations": "{count} archivos / variaciones",
   "{count} files chosen": "{count} archivos elegidos",
-  "{count} files in this folder": "{count} archivos en esta carpeta",
+  "{count} files in this folder": {
+    "one": "{count} archivo en esta carpeta",
+    "many": "{count} de archivos en esta carpeta",
+    "other": "{count} archivos en esta carpeta"
+  },
   "{count} for {names}": "{count} para {names}",
   "{count} for “{query}” in {scope}": "{count} para “{query}” en {scope}",
   "{count} layouts": "{count} maquetaciones",
@@ -8219,19 +8227,35 @@
   "{n} added to favourites": "{n} añadido a favoritos",
   "{n} added to the design system": "{n} añadidos al sistema de diseño",
   "{n} asset IDs": "{n} ID de recurso",
-  "{n} assets": "{n} recursos",
+  "{n} assets": {
+    "one": "{n} recurso",
+    "many": "{n} de recursos",
+    "other": "{n} recursos"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} Los activos no pudieron ser restaurados.",
-  "{n} assets found": "{n} recursos encontrados",
+  "{n} assets found": {
+    "one": "{n} recurso encontrado",
+    "many": "{n} de recursos encontrados",
+    "other": "{n} recursos encontrados"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} recursos comprimidos · {c} con Content Credentials",
   "{n} available offline": "{n} disponible sin conexión",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} cajas. Un clic escribe un arco de movimiento completo - cada fotograma clave se puede seguir editando.",
-  "{n} capabilities match": "{n} capacidades coinciden",
+  "{n} capabilities match": {
+    "one": "{n} capacidad coincide",
+    "many": "{n} de capacidades coinciden",
+    "other": "{n} capacidades coinciden"
+  },
   "{n} cards are left to review.": "Quedan {n} tarjetas por revisar.",
   "{n} cards are still to answer.": "Quedan {n} tarjetas por responder.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "Quedan {n} tarjetas por responder. ¿Aceptarlas tal como se proponen y abrir en Design?",
   "{n} ch": "{n} car",
   "{n} changed": "{n} cambiado",
-  "{n} changes found": "{n} cambios encontrados",
+  "{n} changes found": {
+    "one": "{n} cambio encontrado",
+    "many": "{n} de cambios encontrados",
+    "other": "{n} cambios encontrados"
+  },
   "{n} characters continue beyond the last frame.": "{n} caracteres continúan más allá del último marco.",
   "{n} checks": "{n} los cheques",
   "{n} clips selected": "{n} clips seleccionados",
@@ -8246,7 +8270,11 @@
   "{n} connectors - editing all": "{n} conectores - editando todos",
   "{n} copies added to your projects": "{n} copias añadidas a tus proyectos",
   "{n} copies in total": "{n} copias en total",
-  "{n} copies made · selected": "{n} copias hechas · seleccionadas",
+  "{n} copies made · selected": {
+    "one": "{n} copia hecha · seleccionada",
+    "many": "{n} de copias hechas · seleccionadas",
+    "other": "{n} copias hechas · seleccionadas"
+  },
   "{n} creation checkpoints": "{n} puntos de control de creación",
   "{n} curly quotes": "{n} comillas tipográficas",
   "{n} days ago": "{n} hace unos días",
@@ -8263,24 +8291,44 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} entradas editables. Los ajustes sin seleccionar quedan fijos.",
   "{n} ellipsis characters": "{n} caracteres de puntos suspensivos",
   "{n} em-dashes": "{n} rayas",
-  "{n} embedded files": "{n} archivos incrustados",
-  "{n} external references": "{n} referencias externas",
+  "{n} embedded files": {
+    "one": "{n} archivo incrustado",
+    "many": "{n} de archivos incrustados",
+    "other": "{n} archivos incrustados"
+  },
+  "{n} external references": {
+    "one": "{n} referencia externa",
+    "many": "{n} de referencias externas",
+    "other": "{n} referencias externas"
+  },
   "{n} fields": "{n} campos",
   "{n} file batches": "{n} lotes de archivos",
   "{n} file operation records": "{n} registros de operación de archivos",
   "{n} files": "{n} archivos",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} archivos no son presentaciones de PowerPoint, PDF ni documentos de Photoshop, así que se dejaron fuera.",
   "{n} files are ready to import.": "{n} archivos están listos para importar.",
-  "{n} files could not be packed and were left out": "No se pudieron empaquetar {n} archivos y se dejaron fuera",
+  "{n} files could not be packed and were left out": {
+    "one": "No se pudo empaquetar {n} archivo y se dejó fuera",
+    "many": "No se pudieron empaquetar {n} de archivos y se dejaron fuera",
+    "other": "No se pudieron empaquetar {n} archivos y se dejaron fuera"
+  },
   "{n} files imported from the zip.": "{n} archivos importados del zip.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} archivos importados del zip; {skipped} omitidos.",
   "{n} files ready": "{n} archivos listos",
   "{n} findings": "{n} resultados",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "Se encontraron {n} hallazgos. Las sugerencias editables están seleccionadas; los hallazgos de Office solo de inspección no cambian. Revisa el panel Inspección.",
-  "{n} folders": "{n} carpetas",
+  "{n} folders": {
+    "one": "{n} carpeta",
+    "many": "{n} de carpetas",
+    "other": "{n} carpetas"
+  },
   "{n} font changes": "{n} cambios de tipografía",
   "{n} font choices": "{n} opciones de tipografía",
-  "{n} font files": "{n} archivos de fuentes",
+  "{n} font files": {
+    "one": "{n} archivo de fuente",
+    "many": "{n} de archivos de fuentes",
+    "other": "{n} archivos de fuentes"
+  },
   "{n} fonts": "{n} tipografías",
   "{n} fonts found": "{n} tipografías encontradas",
   "{n} fonts from the deck are set in another face.": "{n} tipografías de la presentación están en otra familia.",
@@ -8292,31 +8340,79 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} ocultas - encuéntralas en “Mostrar herramientas ocultas”",
   "{n} hidden shades stay hidden": "{n} tonos ocultos siguen ocultos",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} No se pudo restaurar los elementos del historial. Mantenga su copia de seguridad; libre de espacio o resuelva versiones contradictorias antes de volver a intentar.",
-  "{n} images": "{n} imágenes",
-  "{n} images couldn’t be restored (storage full?)": "{n} imágenes no se pudieron restaurar (¿almacenamiento lleno?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} imágenes se quedaron con el original - las imágenes tienen un solo hogar; usa Cortar para moverlas",
+  "{n} images": {
+    "one": "{n} imagen",
+    "many": "{n} de imágenes",
+    "other": "{n} imágenes"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} imagen no se pudo restaurar (¿almacenamiento lleno?)",
+    "many": "{n} de imágenes no se pudieron restaurar (¿almacenamiento lleno?)",
+    "other": "{n} imágenes no se pudieron restaurar (¿almacenamiento lleno?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} imagen se quedó con el original - las imágenes tienen un solo hogar; usa Cortar para moverlas",
+    "many": "{n} de imágenes se quedaron con el original - las imágenes tienen un solo hogar; usa Cortar para moverlas",
+    "other": "{n} imágenes se quedaron con el original - las imágenes tienen un solo hogar; usa Cortar para moverlas"
+  },
   "{n} included tools (asked before installing)": "{n} herramientas incluidas (se pregunta antes de instalar)",
   "{n} ink": "{n} tinta",
-  "{n} inputs · applies to every design": "{n} campos · se aplican a todos los diseños",
+  "{n} inputs · applies to every design": {
+    "one": "{n} campo · se aplica a todos los diseños",
+    "many": "{n} de campos · se aplican a todos los diseños",
+    "other": "{n} campos · se aplican a todos los diseños"
+  },
   "{n} invisible watermark(s) found": "{n} marca(s) de agua invisible(s) encontrada(s)",
   "{n} issues to review before sharing.": "{n} problemas por revisar antes de compartir.",
-  "{n} items": "{n} elementos",
-  "{n} items copied": "{n} elementos copiados",
-  "{n} items cut": "{n} elementos cortados",
-  "{n} items moved": "{n} elementos movidos",
-  "{n} items pasted": "{n} elementos pegados",
+  "{n} items": {
+    "one": "{n} elemento",
+    "many": "{n} de elementos",
+    "other": "{n} elementos"
+  },
+  "{n} items copied": {
+    "one": "{n} elemento copiado",
+    "many": "{n} de elementos copiados",
+    "other": "{n} elementos copiados"
+  },
+  "{n} items cut": {
+    "one": "{n} elemento cortado",
+    "many": "{n} de elementos cortados",
+    "other": "{n} elementos cortados"
+  },
+  "{n} items moved": {
+    "one": "{n} elemento movido",
+    "many": "{n} de elementos movidos",
+    "other": "{n} elementos movidos"
+  },
+  "{n} items pasted": {
+    "one": "{n} elemento pegado",
+    "many": "{n} de elementos pegados",
+    "other": "{n} elementos pegados"
+  },
   "{n} items removed": "{n} elementos quitados",
   "{n} jobs": "{n} tareas",
   "{n} kept": "{n} conservados",
   "{n} kept in the tray": "{n} conservados en la bandeja",
-  "{n} keyframes": "{n} fotogramas clave",
+  "{n} keyframes": {
+    "one": "{n} fotograma clave",
+    "many": "{n} de fotogramas clave",
+    "other": "{n} fotogramas clave"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} marcadores etiquetados ocupan el lugar de objetos.",
   "{n} layers": "{n} capas",
   "{n} layers found": "{n} capas encontradas",
   "{n} list lines": "{n} líneas de lista",
-  "{n} logos": "{n} Los logotipos",
+  "{n} logos": {
+    "one": "{n} logotipo",
+    "many": "{n} de logotipos",
+    "other": "{n} logotipos"
+  },
   "{n} marks became the design system mark.": "{n} marcas pasaron a ser la marca del sistema de diseño.",
-  "{n} marks found": "{n} marcas encontradas",
+  "{n} marks found": {
+    "one": "{n} marca encontrada",
+    "many": "{n} de marcas encontradas",
+    "other": "{n} marcas encontradas"
+  },
   "{n} marks sent to Logos": "{n} marcas enviadas a Logotipos",
   "{n} min ago": "{n} hace un minuto",
   "{n} more findings in this document.": "{n} hallazgos más en este documento.",
@@ -8328,7 +8424,11 @@
   "{n} more slides": "{n} diapositivas más",
   "{n} moved to {group}.": "{n} movidos a {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} diapositivas nuevas contienen lo que no cupo, así que los números de diapositiva se movieron.",
-  "{n} newer items skipped": "{n} elementos más recientes omitidos",
+  "{n} newer items skipped": {
+    "one": "{n} elemento más reciente omitido",
+    "many": "{n} de elementos más recientes omitidos",
+    "other": "{n} elementos más recientes omitidos"
+  },
   "{n} nits": "{n} nits",
   "{n} not drawn": "{n} no dibujados",
   "{n} objects added": "{n} objetos añadidos",
@@ -8341,7 +8441,11 @@
   "{n} objects overlap the slide master.": "{n} objetos se superponen con el patrón de diapositivas.",
   "{n} objects removed": "{n} objetos quitados",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} objetos conservan recortes o efectos como imágenes. Reemplaza su ilustración completa para cambiar su forma.",
-  "{n} of your creations are videos or animations": "{n} de tus creaciones son videos o animaciones",
+  "{n} of your creations are videos or animations": {
+    "one": "{n} de tus creaciones es un video o una animación",
+    "many": "{n} de tus creaciones son videos o animaciones",
+    "other": "{n} de tus creaciones son videos o animaciones"
+  },
   "{n} of {m}": "{n} de {m}",
   "{n} of {total} downloaded": "{n} de {total} descargados",
   "{n} of {total} downloaded · {size} on disk": "{n} de {total} descargados · {size} en disco",
@@ -8352,57 +8456,101 @@
   "{n} off": "{n} desactivados",
   "{n} on": "{n} activados",
   "{n} other colourways keep their own colours: {names}": "{n} combinaciones de color más conservan sus propios colores: {names}",
-  "{n} pages": "{n} páginas",
+  "{n} pages": {
+    "one": "{n} página",
+    "many": "{n} de páginas",
+    "other": "{n} páginas"
+  },
   "{n} pages are pictures of their text.": "{n} páginas son imágenes de su texto.",
-  "{n} pages differ": "{n} páginas difieren",
+  "{n} pages differ": {
+    "one": "{n} página difiere",
+    "many": "{n} de páginas difieren",
+    "other": "{n} páginas difieren"
+  },
   "{n} pages had no size, so they were left out.": "{n} páginas no tenían tamaño, así que se dejaron fuera.",
   "{n} pictures": "{n} imágenes",
   "{n} pictures are missing.": "Faltan {n} imágenes.",
   "{n} pictures in the deck were not kept.": "{n} imágenes de la presentación no se conservaron.",
-  "{n} places": "{n} lugares",
+  "{n} places": {
+    "one": "{n} lugar",
+    "many": "{n} de lugares",
+    "other": "{n} lugares"
+  },
   "{n} points": "{n} puntos",
-  "{n} points - hold Alt for a corner": "{n} puntos - mantén Alt para una esquina",
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punto - mantén Alt para una esquina",
+    "many": "{n} de puntos - mantén Alt para una esquina",
+    "other": "{n} puntos - mantén Alt para una esquina"
+  },
   "{n} preserved file": "{n} archivo conservado",
   "{n} preserved files": "{n} archivos conservados",
   "{n} print locks re-pinned": "{n} bloqueos de impresión refijados",
   "{n} proposed changes": "{n} cambios propuestos",
   "{n} protected drafts": "{n} borradores protegidos",
   "{n} published version": "{n} versión publicada",
-  "{n} published versions": "{n} versiones publicadas",
+  "{n} published versions": {
+    "one": "{n} versión publicada",
+    "many": "{n} de versiones publicadas",
+    "other": "{n} versiones publicadas"
+  },
   "{n} recorded": "{n} registrados",
   "{n} removed from favourites": "{n} eliminado de favoritos",
   "{n} removed from offline": "{n} eliminado de sin conexión",
   "{n} removed. A tool naming it will lose it.": "{n} eliminado. Una herramienta que lo nombre lo perderá.",
   "{n} removed. A tool naming one of these will lose it.": "{n} eliminados. Una herramienta que nombre uno de estos lo perderá.",
   "{n} renders": "{n} renders",
-  "{n} results": "{n} resultados",
+  "{n} results": {
+    "one": "{n} resultado",
+    "many": "{n} de resultados",
+    "other": "{n} resultados"
+  },
   "{n} roles re-derived": "{n} roles recalculados",
   "{n} rotated runs left out": "{n} tramos rotados excluidos",
   "{n} saved asset versions": "{n} versiones de activos guardadas",
   "{n} saved for offline, {m} failed - check your connection": "{n} guardados sin conexión, {m} fallidos - revisa tu conexión",
-  "{n} saved sessions": "{n} sesiones guardadas",
+  "{n} saved sessions": {
+    "one": "{n} sesión guardada",
+    "many": "{n} de sesiones guardadas",
+    "other": "{n} sesiones guardadas"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "No se pudieron previsualizar {n} sistemas guardados. Ábrelos desde Perfil para gestionarlos.",
   "{n} scanned": "{n} escaneadas",
   "{n} scanned pages read.": "{n} páginas escaneadas leídas.",
   "{n} scanned pages were left unread to keep this quick.": "{n} páginas escaneadas se dejaron sin leer para que esto fuera rápido.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} páginas escaneadas no se leyeron porque el reconocimiento de texto no está en este dispositivo.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} páginas escaneadas se leyeron con reconocimiento de texto en el dispositivo, así que las comprobaciones de caracteres ocultos no se pudieron ejecutar en esas páginas.",
-  "{n} selected": "{n} seleccionados",
-  "{n} selected assets": "{n} recursos seleccionados",
+  "{n} selected": {
+    "one": "{n} seleccionado",
+    "many": "{n} seleccionados",
+    "other": "{n} seleccionados"
+  },
+  "{n} selected assets": {
+    "one": "{n} recurso seleccionado",
+    "many": "{n} de recursos seleccionados",
+    "other": "{n} recursos seleccionados"
+  },
   "{n} selected files": "{n} archivos seleccionados",
   "{n} selected items could not be outlined and were left as they are.": "{n} elementos seleccionados no se pudieron convertir a contornos y se dejaron tal cual.",
   "{n} selected items have no outline, so they were left as they are.": "{n} elementos seleccionados no tienen contorno, así que se dejaron tal cual.",
   "{n} selected · {size}": "{n} seleccionados · {size}",
   "{n} sentences": "{n} frases",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} frases tienen un subrayado punteado: el modelo en el dispositivo puede ofrecer una versión más sencilla. Aceptar una marca la copia guardada como asistida por IA, y la redacción del modelo lleva la marca de agua pública de reescritura de Lolly, así que el texto escrito por IA sigue siendo detectable en Verify.",
-  "{n} sessions": "{n} sesiones",
+  "{n} sessions": {
+    "one": "{n} sesión",
+    "many": "{n} de sesiones",
+    "other": "{n} sesiones"
+  },
   "{n} set": "{n} establecido",
   "{n} shade curves re-anchored": "{n} curvas de tono reancladas",
   "{n} shades added to your palette": "{n} tonos añadidos a tu paleta",
   "{n} shades added. Undo is available above your palette.": "{n} tonos añadidos. Deshacer está disponible encima de tu paleta.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} tonos no pudieron alcanzar su objetivo (se limitaron al tono más cercano).",
   "{n} shades rebuilt across {ramps} ramps": "{n} tonos reconstruidos en {ramps} rampas",
-  "{n} shapes": "{n} formas",
+  "{n} shapes": {
+    "one": "{n} forma",
+    "many": "{n} de formas",
+    "other": "{n} formas"
+  },
   "{n} shapes · page {p}": "{n} formas · página {p}",
   "{n} shared assets were kept.": "Se conservaron {n} recursos compartidos.",
   "{n} slides narrated.": "{n} diapositivas narradas.",
@@ -8410,11 +8558,19 @@
   "{n} spectrum hues rebuilt": "{n} matices del espectro reconstruidos",
   "{n} stages of work": "{n} etapas de trabajo",
   "{n} starter colours": "{n} colores iniciales",
-  "{n} steps": "{n} pasos",
+  "{n} steps": {
+    "one": "{n} paso",
+    "many": "{n} de pasos",
+    "other": "{n} pasos"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "Se encontraron {n} sugerencias. Las copias se preparan con ellas seleccionadas; ajusta cualquiera en el panel Inspección.",
   "{n} suggestions were applied without review.": "{n} sugerencias se aplicaron sin revisión.",
   "{n} swatches removed": "{n} muestras eliminadas",
-  "{n} templates": "{n} plantillas",
+  "{n} templates": {
+    "one": "{n} plantilla",
+    "many": "{n} de plantillas",
+    "other": "{n} plantillas"
+  },
   "{n} templates added": "{n} plantillas añadidas",
   "{n} templates deleted": "{n} plantillas eliminadas",
   "{n} templates saved": "{n} plantillas guardadas",
@@ -8434,11 +8590,19 @@
   "{n} unsupported backup parts skipped": "{n} Se omitieron las piezas de respaldo no soportadas",
   "{n} value changes": "{n} cambios de valor",
   "{n} values change": "Cambian {n} valores",
-  "{n} volume keys": "{n} claves de volumen",
+  "{n} volume keys": {
+    "one": "{n} clave de volumen",
+    "many": "{n} de claves de volumen",
+    "other": "{n} claves de volumen"
+  },
   "{n} warnings.": "{n} avisos.",
   "{n} were kept - they are not this room to remove.": "{n} se mantuvieron - no son de este espacio para quitarlos.",
   "{n} wording swaps are underlined in the preview.": "{n} cambios de redacción están subrayados en la vista previa.",
-  "{n} words": "{n} palabras",
+  "{n} words": {
+    "one": "{n} palabra",
+    "many": "{n} de palabras",
+    "other": "{n} palabras"
+  },
   "{n} words cut": "{n} palabras eliminadas",
   "{n} yours": "{n} tuyos",
   "{n}-bit": "{n} bits",
@@ -8832,7 +8996,11 @@
   "1 design was added to Projects, in 1 folder.": "Se añadió 1 diseño a Proyectos, en 1 carpeta.",
   "1 design was added to Projects, in {f} folders.": "Se añadió 1 diseño a Proyectos, en {f} carpetas.",
   "1 design was added to Projects.": "Se añadió 1 diseño a Proyectos.",
-  "{n} creations removed from Projects here stayed removed.": "{n} creaciones eliminadas de Proyectos aquí siguieron eliminadas.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} creación eliminada de Proyectos aquí siguió eliminada.",
+    "many": "{n} de creaciones eliminadas de Proyectos aquí siguieron eliminadas.",
+    "other": "{n} creaciones eliminadas de Proyectos aquí siguieron eliminadas."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Esta creación nunca se guardó, así que salir sin guardar la elimina de Proyectos.",
   "This deck has no colours to change.": "Esta presentación no tiene colores que cambiar.",
   "This deck has no fonts to change.": "Esta presentación no tiene tipografías que cambiar.",
@@ -8862,7 +9030,11 @@
   "This saved version could not be read.": "Esta versión guardada no se pudo leer.",
   "1 older automatic checkpoint left out": "1 punto de control automático más antiguo excluido",
   "1 other colourway keeps its own colours: {names}": "1 combinación de color más conserva sus propios colores: {names}",
-  "{n} older automatic checkpoints left out": "{n} puntos de control automáticos más antiguos excluidos",
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} punto de control automático más antiguo excluido",
+    "many": "{n} de puntos de control automáticos más antiguos excluidos",
+    "other": "{n} puntos de control automáticos más antiguos excluidos"
+  },
   "Automatic recovery and checkpoints are on": "La recuperación y los puntos de control automáticos están activados",
   "Automatic recovery is unavailable here. Save before leaving.": "La recuperación automática no está disponible aquí. Guarda antes de salir.",
   "Checkpoint saved at {time} on this device": "Punto de control guardado a las {time} en este dispositivo",
@@ -9045,7 +9217,11 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Para mostrar los sitios que la versión web no puede mostrar, Lolly puede recargarse con una política de marcos más flexible en este dispositivo y preguntar por cada sitio antes de que presentes. Puedes desactivarlo en tu perfil, en Sitios de confianza.",
   "Card size": "Tamaño de las tarjetas",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Se añadió 1 imagen o archivo en este dispositivo. Se queda en este dispositivo y los demás no verán ese archivo.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Se añadieron {n} imágenes o archivos en este dispositivo. Se quedan en este dispositivo y los demás no verán esos archivos.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "Se añadió {n} imagen o archivo en este dispositivo. Se queda en este dispositivo y los demás no verán ese archivo.",
+    "many": "Se añadieron {n} de imágenes o archivos en este dispositivo. Se quedan en este dispositivo y los demás no verán esos archivos.",
+    "other": "Se añadieron {n} imágenes o archivos en este dispositivo. Se quedan en este dispositivo y los demás no verán esos archivos."
+  },
   "Check the version first": "Comprueba primero la versión",
   "Copy team link": "Copiar enlace del equipo",
   "Could not create the project. Try again.": "No se pudo crear el proyecto. Inténtalo de nuevo.",
@@ -9793,7 +9969,11 @@
   "Every mode": "Todos los modos",
   "Your local items have not changed.": "Tus elementos locales no han cambiado.",
   "1 item was saved to the shared project.": "Se guardó 1 elemento en el proyecto compartido.",
-  "{n} items were saved to the shared project.": "Se guardaron {n} elementos en el proyecto compartido.",
+  "{n} items were saved to the shared project.": {
+    "one": "Se guardó {n} elemento en el proyecto compartido.",
+    "many": "Se guardaron {n} de elementos en el proyecto compartido.",
+    "other": "Se guardaron {n} elementos en el proyecto compartido."
+  },
   "Wait for the current move to finish.": "Espera a que termine el movimiento actual.",
   "Wait for the deck to finish reading, then choose a picture.": "Espera a que la presentación termine de leerse y luego elige una imagen.",
   "Wait for the grid to finish rendering before moving its layers.": "Espera a que la cuadrícula termine de renderizarse antes de mover sus capas.",
@@ -10645,5 +10825,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Este clip usa {codec}, que este dispositivo no puede reproducir. Exporta una copia en H.264, HEVC o AV1 desde tu app de edición, o ábrelo en la app de escritorio de Lolly en un Mac. Lolly conserva el archivo original.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Este clip usa {codec}, que este dispositivo no puede reproducir. Exporta una copia en H.264, HEVC o AV1 desde tu app de edición. Lolly conserva el archivo original.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Este es un archivo MXF con {codec}. Lolly puede leer lo que contiene, pero no puede reproducir MXF. Exporta una copia en H.264, HEVC o AV1 desde tu app de edición. Lolly conserva el archivo original.",
-  "{format} from {camera}": "{format} de {camera}"
+  "{format} from {camera}": "{format} de {camera}",
+  "Filling a large area. This can take a moment.": "Rellenando un área grande. Esto puede tardar un momento.",
+  "Large area": "Área grande"
 }

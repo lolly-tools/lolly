@@ -69,7 +69,7 @@ Honesty about the edges is part of the claim. These are real and intentional.
   web shell's catalog sync refuses an index whose signature does not match the
   pinned key and re-checks asset checksums on fetch
   ([`shells/web/src/catalog/sync.ts`](shells/web/src/catalog/sync.ts)). A dev
-  or self-built catalog is unsigned and says so in the console. What remains is
+  or self-built catalog is unsigned and logs that in the console. What remains is
   the anchor itself: whoever holds the signing key and the origin can still
   ship whatever they sign, so a user who trusts a catalog origin trusts its
   operator. Host the catalog yourself or trust whoever does.

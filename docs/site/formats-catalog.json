@@ -1357,7 +1357,7 @@
         "animation",
         "audio"
       ],
-      "desc": "The plain-text cut list that editing and grading apps trade. Lolly opens a CMX 3600 EDL in Sequence with its clips, gaps, In and Out points, drop-frame or non-drop timecode and audio channels. A list carries no frame rate, so Lolly asks for one (or assumes 29.97 for drop-frame lists and 24 otherwise) and says so. Dissolves, wipes, speed changes, locators and colour decisions are listed in the import report rather than applied.",
+      "desc": "The plain-text cut list that editing and grading apps trade. Lolly opens a CMX 3600 EDL in Sequence with its clips, gaps, In and Out points, drop-frame or non-drop timecode and audio channels. A list carries no frame rate, so Lolly asks for one (or assumes 29.97 for drop-frame lists and 24 otherwise) and reports the assumption. Dissolves, wipes, speed changes, locators and colour decisions are listed in the import report rather than applied.",
       "metadata": {
         "reads": [],
         "writes": [],

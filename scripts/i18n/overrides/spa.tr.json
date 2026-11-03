@@ -713,7 +713,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Doğrulama'da ve Varlıklar'da daha derin AI metin kontrolünü çalıştırır.",
   "Card size": "Kart boyutu",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Bu cihaza 1 görsel veya dosya eklendi. Bu cihazda kalır ve başkaları o dosyayı görmez.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Bu cihaza {n} görsel veya dosya eklendi. Bu cihazda kalırlar ve başkaları o dosyaları görmez.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "Bu cihaza 1 görsel veya dosya eklendi. Bu cihazda kalır ve başkaları o dosyayı görmez.",
+    "other": "Bu cihaza {n} görsel veya dosya eklendi. Bu cihazda kalırlar ve başkaları o dosyaları görmez."
+  },
   "Check the version first": "Önce sürümü kontrol edin",
   "Copy team link": "Ekip bağlantısını kopyala",
   "Could not create the project. Try again.": "Proje oluşturulamadı. Tekrar deneyin.",
@@ -1305,7 +1308,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Tüm öğeler paylaşılan projeye kaydedildi. Yerel özgün dosyalar çöp kutusunda veya hâlâ yerinde.",
   "Your local items have not changed.": "Yerel öğeleriniz değişmedi.",
   "1 item was saved to the shared project.": "1 öğe paylaşılan projeye kaydedildi.",
-  "{n} items were saved to the shared project.": "{n} öğe paylaşılan projeye kaydedildi.",
+  "{n} items were saved to the shared project.": {
+    "one": "1 öğe paylaşılan projeye kaydedildi.",
+    "other": "{n} öğe paylaşılan projeye kaydedildi."
+  },
   "Wait for the current move to finish.": "Mevcut taşıma işleminin bitmesini bekleyin.",
   "You cannot save to that shared project.": "Bu paylaşılan projeye kaydedemezsiniz.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "{project} projesini açabilen herkes bu öğeleri görecek. Tüm öğeler oraya kaydedildikten sonra yerel özgün dosyalar, geri yükleyebileceğiniz çöp kutusuna taşınır.",
@@ -1616,8 +1622,14 @@
   "file": "dosya",
   "samples": "örnekler",
   "text": "metin",
-  "{n} changes found": "{n} değişiklik bulundu",
-  "{n} pages differ": "{n} sayfa farklı",
+  "{n} changes found": {
+    "one": "1 değişiklik bulundu",
+    "other": "{n} değişiklik bulundu"
+  },
+  "{n} pages differ": {
+    "one": "1 sayfa farklı",
+    "other": "{n} sayfa farklı"
+  },
   "Draft": "Taslak",
   "Draft quality": "Taslak kalitesi",
   "Draft rule": "Taslak kural",
@@ -1969,5 +1981,169 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt. Kurşun kalem (Shift C) ve spline türü için basılı tut",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt",
   "Recipients can change the inputs": "Alıcılar girdileri değiştirebilir",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Bağlantıya sahip herkes girdileri değiştirip yeni bir görsel alabilir. Kilitli girdiler ayarlandığı gibi kalır."
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Bağlantıya sahip herkes girdileri değiştirip yeni bir görsel alabilir. Kilitli girdiler ayarlandığı gibi kalır.",
+  "{count} entries": {
+    "one": "1 giriş",
+    "other": "{count} giriş"
+  },
+  "{count} files in this folder": {
+    "one": "Bu klasörde 1 dosya",
+    "other": "Bu klasörde {count} dosya"
+  },
+  "{n} assets": {
+    "one": "1 varlık",
+    "other": "{n} varlık"
+  },
+  "{n} assets found": {
+    "one": "1 varlık bulundu",
+    "other": "{n} varlık bulundu"
+  },
+  "{n} capabilities match": {
+    "one": "1 yetenek eşleşiyor",
+    "other": "{n} yetenek eşleşiyor"
+  },
+  "{n} copies made · selected": {
+    "one": "1 kopya oluşturuldu · seçili",
+    "other": "{n} kopya oluşturuldu · seçili"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "Burada Projeler'den kaldırılan 1 tasarım kaldırılmış olarak bırakıldı.",
+    "other": "Burada Projeler'den kaldırılan {n} tasarım kaldırılmış olarak bırakıldı."
+  },
+  "{n} embedded files": {
+    "one": "1 gömülü dosya",
+    "other": "{n} gömülü dosya"
+  },
+  "{n} external references": {
+    "one": "1 harici başvuru",
+    "other": "{n} harici başvuru"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "1 dosya paketlenemediği için atlandı",
+    "other": "{n} dosya paketlenemediği için atlandı"
+  },
+  "{n} folders": {
+    "one": "1 klasör",
+    "other": "{n} klasör"
+  },
+  "{n} font files": {
+    "one": "1 yazı tipi dosyası",
+    "other": "{n} yazı tipi dosyası"
+  },
+  "{n} images": {
+    "one": "1 görsel",
+    "other": "{n} görsel"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "1 görsel geri yüklenemedi (depolama dolu mu?)",
+    "other": "{n} görsel geri yüklenemedi (depolama dolu mu?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "1 görsel orijinaliyle kaldı - görsellerin tek bir yuvası var; taşımak için Kes'i kullan",
+    "other": "{n} görsel orijinaliyle kaldı - görsellerin tek bir yuvası var; taşımak için Kes'i kullan"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "1 girdi · her tasarıma uygulanır",
+    "other": "{n} girdi · her tasarıma uygulanır"
+  },
+  "{n} items": {
+    "one": "1 öğe",
+    "other": "{n} öğe"
+  },
+  "{n} items copied": {
+    "one": "1 öğe kopyalandı",
+    "other": "{n} öğe kopyalandı"
+  },
+  "{n} items cut": {
+    "one": "1 öğe kesildi",
+    "other": "{n} öğe kesildi"
+  },
+  "{n} items moved": {
+    "one": "1 öğe taşındı",
+    "other": "{n} öğe taşındı"
+  },
+  "{n} items pasted": {
+    "one": "1 öğe yapıştırıldı",
+    "other": "{n} öğe yapıştırıldı"
+  },
+  "{n} keyframes": {
+    "one": "1 anahtar kare",
+    "other": "{n} anahtar kare"
+  },
+  "{n} logos": {
+    "one": "1 logo",
+    "other": "{n} logo"
+  },
+  "{n} marks found": {
+    "one": "1 işaret bulundu",
+    "other": "{n} işaret bulundu"
+  },
+  "{n} newer items skipped": {
+    "one": "1 daha yeni öğe atlandı",
+    "other": "{n} daha yeni öğe atlandı"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "Tasarımlarından 1 tanesi video veya animasyon",
+    "other": "Tasarımlarından {n} tanesi video veya animasyon"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "1 eski otomatik kontrol noktası atlandı",
+    "other": "{n} eski otomatik kontrol noktası atlandı"
+  },
+  "{n} pages": {
+    "one": "1 sayfa",
+    "other": "{n} sayfa"
+  },
+  "{n} places": {
+    "one": "1 yer",
+    "other": "{n} yer"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "1 nokta - köşe için Alt tuşunu basılı tut",
+    "other": "{n} nokta - köşe için Alt tuşunu basılı tut"
+  },
+  "{n} published versions": {
+    "one": "1 yayımlanmış sürüm",
+    "other": "{n} yayımlanmış sürüm"
+  },
+  "{n} results": {
+    "one": "1 sonuç",
+    "other": "{n} sonuç"
+  },
+  "{n} saved sessions": {
+    "one": "1 kayıtlı oturum",
+    "other": "{n} kayıtlı oturum"
+  },
+  "{n} selected": {
+    "one": "1 seçili",
+    "other": "{n} seçili"
+  },
+  "{n} selected assets": {
+    "one": "1 seçili varlık",
+    "other": "{n} seçili varlık"
+  },
+  "{n} sessions": {
+    "one": "1 oturum",
+    "other": "{n} oturum"
+  },
+  "{n} shapes": {
+    "one": "1 şekil",
+    "other": "{n} şekil"
+  },
+  "{n} steps": {
+    "one": "1 adım",
+    "other": "{n} adım"
+  },
+  "{n} templates": {
+    "one": "1 şablon",
+    "other": "{n} şablon"
+  },
+  "{n} volume keys": {
+    "one": "1 ses düzeyi anahtarı",
+    "other": "{n} ses düzeyi anahtarı"
+  },
+  "{n} words": {
+    "one": "1 kelime",
+    "other": "{n} kelime"
+  }
 }

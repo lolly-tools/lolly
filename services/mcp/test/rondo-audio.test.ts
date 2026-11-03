@@ -14,7 +14,7 @@
  *   - the caps are the request's: a hosted deployment gets the hosted caps, the
  *     longest song can be changed alone, and a host built outside any request
  *     still gets the hosted caps
- *   - a song past the cap is cut to it and says so; a song that does not render is
+ *   - a song past the cap is cut to it and reports the cut; a song that does not render is
  *     named in the result even when the tool's hook caught the error
  *
  * Run with: node --test services/mcp/test/rondo-audio.test.ts
@@ -94,7 +94,7 @@ test('a host built outside any request renders songs under the hosted caps', asy
   );
 });
 
-test('a song longer than the cap is cut to it and says so', async (t) => {
+test('a song longer than the cap is cut to it and reports the cut', async (t) => {
   if (!(await hasTool('audiogram'))) return t.skip('audiogram is not in this catalog');
   const query = new URLSearchParams({ audio: shareLink('Live mic', codeOf('live mic')) }).toString();
   const result = await render('audiogram', query, { format: 'html', rondo: { ...HOSTED_RONDO_CAPS, maxSeconds: 2 } });

@@ -3070,7 +3070,7 @@
   "Imported {sessions} and {images}": "Importerade {sessions} och {images}",
   "Importing file {current} of {total}…": "Importfil {current} av {total}…",
   "Importing the supplied template preview. Adobe effects remain in the original MOGRT.": "Importerar den medföljande mallförhandsvisningen. Adobe-effekter blir kvar i den ursprungliga MOGRT.",
-  "Importing {n} files…": "Import {n} - Jag har inte sett det.",
+  "Importing {n} files…": "Importerar {n} filer…",
   "Importing…": "Importerar…",
   "In": "In",
   "In context": "I sitt sammanhang",
@@ -7510,7 +7510,7 @@
   "What a tool would see, compared with {label}": "Vad ett verktyg skulle se, jämfört med {label}",
   "What are you upscaling?": "Vad skalar du upp?",
   "What changed?": "Vad har förändrats?",
-  "What do you need?": "- Vad behöver du? - En liten liten liten...",
+  "What do you need?": "Vad behöver du?",
   "What each face is <em>for</em> - the roles tools and the app read. Body and UI wear the primary; set an optional <em>display</em> face for the top headings (h1/h2), an <em>italic</em> face for emphasis, and a <em>mono</em> face for code and data. Each falls back to the primary until you assign it.": "Vad varje snitt är <em>till för</em> - rollerna som verktygen och appen läser. Brödtext och UI bär det primära; ange ett valfritt <em>display</em>-snitt för de översta rubrikerna (h1/h2), ett <em>kursivt</em> snitt för betoning och ett <em>mono</em>-snitt för kod och data. Var och en faller tillbaka på det primära tills du tilldelar den.",
   "What each mark does, with an example": "Vad varje märke gör, med ett exempel",
   "What gets checked": "Vad som kontrolleras",
@@ -8027,10 +8027,16 @@
   "{count} controls you changed stay yours.": "{count} inställningar du ändrat finns kvar.",
   "{count} days": "{count} dagar",
   "{count} decisions from the last version still apply.": "{count} beslut från senaste versionen gäller fortfarande.",
-  "{count} entries": "{count} poster",
+  "{count} entries": {
+    "one": "1 post",
+    "other": "{count} poster"
+  },
   "{count} files / variations": "{count} filer / varianter",
   "{count} files chosen": "{count} filer valda",
-  "{count} files in this folder": "{count} filer i den här mappen",
+  "{count} files in this folder": {
+    "one": "1 fil i den här mappen",
+    "other": "{count} filer i den här mappen"
+  },
   "{count} for {names}": "{count} för {names}",
   "{count} for “{query}” in {scope}": "{count} för ”{query}” i {scope}",
   "{count} layouts": "{count} layouter",
@@ -8204,19 +8210,31 @@
   "{n} added to favourites": "{n} tillagd som favorit",
   "{n} added to the design system": "{n} tillagda i designsystemet",
   "{n} asset IDs": "{n} tillgångs-ID",
-  "{n} assets": "{n} tillgångar",
+  "{n} assets": {
+    "one": "1 tillgång",
+    "other": "{n} tillgångar"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} - De kan inte återställas.",
-  "{n} assets found": "{n} tillgångar hittades",
+  "{n} assets found": {
+    "one": "1 tillgång hittades",
+    "other": "{n} tillgångar hittades"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} tillgångar zippade · {c} med Content Credentials",
   "{n} available offline": "{n} tillgängliga offline",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} bildrutor. Ett klick skriver en fullständig rörelsebåge - varje nyckelbild förblir redigerbar efteråt.",
-  "{n} capabilities match": "{n} kapabiliteter matchar",
+  "{n} capabilities match": {
+    "one": "1 funktion matchar",
+    "other": "{n} funktioner matchar"
+  },
   "{n} cards are left to review.": "{n} kort återstår att granska.",
   "{n} cards are still to answer.": "{n} kort återstår att besvara.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "{n} kort återstår att besvara. Godta dem som föreslagna och öppna i Design?",
   "{n} ch": "{n} tkn",
   "{n} changed": "{n} ändrade",
-  "{n} changes found": "{n} ändringar hittades",
+  "{n} changes found": {
+    "one": "1 ändring hittades",
+    "other": "{n} ändringar hittades"
+  },
   "{n} characters continue beyond the last frame.": "{n} tecken fortsätter utanför den sista ramen.",
   "{n} checks": "{n} Tjek",
   "{n} clips selected": "{n} klipp valda",
@@ -8231,7 +8249,10 @@
   "{n} connectors - editing all": "{n} kopplingar - redigerar alla",
   "{n} copies added to your projects": "{n} kopior tillagda i dina projekt",
   "{n} copies in total": "{n} kopior totalt",
-  "{n} copies made · selected": "{n} kopior gjorda · valda",
+  "{n} copies made · selected": {
+    "one": "1 kopia gjord · vald",
+    "other": "{n} kopior gjorda · valda"
+  },
   "{n} creation checkpoints": "{n} kontrollpunkter för verk",
   "{n} curly quotes": "{n} typografiska citattecken",
   "{n} days ago": "{n} För några dagar sedan",
@@ -8248,24 +8269,39 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} redigerbara indata. Omarkerade inställningar förblir fasta.",
   "{n} ellipsis characters": "{n} ellipstecken",
   "{n} em-dashes": "{n} tankstreck",
-  "{n} embedded files": "{n} Inbyggda filer",
-  "{n} external references": "{n} yttre hänvisningar",
+  "{n} embedded files": {
+    "one": "1 inbäddad fil",
+    "other": "{n} inbäddade filer"
+  },
+  "{n} external references": {
+    "one": "1 extern referens",
+    "other": "{n} externa referenser"
+  },
   "{n} fields": "{n} fält",
   "{n} file batches": "{n} Filparter",
   "{n} file operation records": "{n} Uppgifter om filoperationer",
   "{n} files": "{n} filer",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} filer är inga PowerPoint-presentationer, PDF eller Photoshop-dokument och lämnades därför utanför.",
   "{n} files are ready to import.": "{n} filer är redo att importeras.",
-  "{n} files could not be packed and were left out": "{n} filer kunde inte packas och uteslöts",
+  "{n} files could not be packed and were left out": {
+    "one": "1 fil kunde inte packas och uteslöts",
+    "other": "{n} filer kunde inte packas och uteslöts"
+  },
   "{n} files imported from the zip.": "{n} filer importerade från zipfilen.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} filer importerade från zipfilen; {skipped} överhoppade.",
   "{n} files ready": "{n} filer redo",
   "{n} findings": "{n} Upptäckter",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "{n} fynd hittades. Redigerbara förslag är valda; Office-fynd som bara kan granskas förblir oförändrade. Granska panelen Granskning.",
-  "{n} folders": "{n} mappar",
+  "{n} folders": {
+    "one": "1 mapp",
+    "other": "{n} mappar"
+  },
   "{n} font changes": "{n} typsnittsändringar",
   "{n} font choices": "{n} typsnittsval",
-  "{n} font files": "{n} Skriftfiler",
+  "{n} font files": {
+    "one": "1 teckensnittsfil",
+    "other": "{n} teckensnittsfiler"
+  },
   "{n} fonts": "{n} typsnitt",
   "{n} fonts found": "{n} typsnitt hittades",
   "{n} fonts from the deck are set in another face.": "{n} typsnitt från presentationen är satta i ett annat snitt.",
@@ -8277,31 +8313,67 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} dolda - hitta dem under ”Visa dolda verktyg”",
   "{n} hidden shades stay hidden": "{n} dolda nyanser förblir dolda",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} Håll säkerhetskopieringen, fri utrymme eller lösa motstridiga versioner innan du försöker igen.",
-  "{n} images": "{n} bilder",
-  "{n} images couldn’t be restored (storage full?)": "{n} bilder kunde inte återställas (lagringen full?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} bilder stannade kvar vid originalet - bilder har ett hem; använd Klipp ut för att flytta dem",
+  "{n} images": {
+    "one": "1 bild",
+    "other": "{n} bilder"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "1 bild kunde inte återställas (lagringen full?)",
+    "other": "{n} bilder kunde inte återställas (lagringen full?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "1 bild stannade kvar vid originalet - bilder har ett hem; använd Klipp ut för att flytta dem",
+    "other": "{n} bilder stannade kvar vid originalet - bilder har ett hem; använd Klipp ut för att flytta dem"
+  },
   "{n} included tools (asked before installing)": "{n} medföljande verktyg (frågar före installation)",
   "{n} ink": "{n} färg",
-  "{n} inputs · applies to every design": "{n} fält · gäller varje design",
+  "{n} inputs · applies to every design": {
+    "one": "1 fält · gäller varje design",
+    "other": "{n} fält · gäller varje design"
+  },
   "{n} invisible watermark(s) found": "{n} osynliga vattenstämplar hittades",
   "{n} issues to review before sharing.": "{n} problem att granska före delning.",
-  "{n} items": "{n} objekt",
-  "{n} items copied": "{n} objekt kopierade",
-  "{n} items cut": "{n} objekt klippta",
-  "{n} items moved": "{n} objekt flyttade",
-  "{n} items pasted": "{n} objekt inklistrade",
+  "{n} items": {
+    "one": "1 objekt",
+    "other": "{n} objekt"
+  },
+  "{n} items copied": {
+    "one": "1 objekt kopierat",
+    "other": "{n} objekt kopierade"
+  },
+  "{n} items cut": {
+    "one": "1 objekt klippt",
+    "other": "{n} objekt klippta"
+  },
+  "{n} items moved": {
+    "one": "1 objekt flyttat",
+    "other": "{n} objekt flyttade"
+  },
+  "{n} items pasted": {
+    "one": "1 objekt inklistrat",
+    "other": "{n} objekt inklistrade"
+  },
   "{n} items removed": "{n} objekt borttagna",
   "{n} jobs": "{n} jobb",
   "{n} kept": "{n} behölls",
   "{n} kept in the tray": "{n} behölls i facket",
-  "{n} keyframes": "{n} nyckelbilder",
+  "{n} keyframes": {
+    "one": "1 nyckelbild",
+    "other": "{n} nyckelbilder"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} märkta platshållare tar objekts plats.",
   "{n} layers": "{n} lager",
   "{n} layers found": "{n} lager hittades",
   "{n} list lines": "{n} listrader",
-  "{n} logos": "{n} Logotyper",
+  "{n} logos": {
+    "one": "1 logotyp",
+    "other": "{n} logotyper"
+  },
   "{n} marks became the design system mark.": "{n} märken blev designsystemets märke.",
-  "{n} marks found": "{n} markeringar hittades",
+  "{n} marks found": {
+    "one": "1 märke hittades",
+    "other": "{n} märken hittades"
+  },
   "{n} marks sent to Logos": "{n} märken skickade till Logotyper",
   "{n} min ago": "{n} För några minuter sedan",
   "{n} more findings in this document.": "{n} fynd till i det här dokumentet.",
@@ -8313,7 +8385,10 @@
   "{n} more slides": "{n} bilder till",
   "{n} moved to {group}.": "{n} flyttade till {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} nya bilder rymmer det som inte fick plats, så bildnumren har flyttats.",
-  "{n} newer items skipped": "{n} nyare objekt hoppades över",
+  "{n} newer items skipped": {
+    "one": "1 nyare objekt hoppades över",
+    "other": "{n} nyare objekt hoppades över"
+  },
   "{n} nits": "{n} nit",
   "{n} not drawn": "{n} ritas inte",
   "{n} objects added": "{n} objekt tillagda",
@@ -8326,7 +8401,10 @@
   "{n} objects overlap the slide master.": "{n} objekt överlappar bildmastern.",
   "{n} objects removed": "{n} objekt borttagna",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} objekt behåller beskärning eller effekter som bilder. Ersätt deras kompletta bildmaterial för att ändra formen.",
-  "{n} of your creations are videos or animations": "{n} av dina skapelser är videor eller animationer",
+  "{n} of your creations are videos or animations": {
+    "one": "1 skapelse är en video eller animation",
+    "other": "{n} av dina skapelser är videor eller animationer"
+  },
   "{n} of {m}": "{n} av {m}",
   "{n} of {total} downloaded": "{n} av {total} nedladdade",
   "{n} of {total} downloaded · {size} on disk": "{n} av {total} nedladdade · {size} på disk",
@@ -8337,57 +8415,90 @@
   "{n} off": "{n} av",
   "{n} on": "{n} på",
   "{n} other colourways keep their own colours: {names}": "{n} andra färgvarianter behåller sina egna färger: {names}",
-  "{n} pages": "{n} sidor",
+  "{n} pages": {
+    "one": "1 sida",
+    "other": "{n} sidor"
+  },
   "{n} pages are pictures of their text.": "{n} sidor är bilder av sin text.",
-  "{n} pages differ": "{n} sidor skiljer sig",
+  "{n} pages differ": {
+    "one": "1 sida skiljer sig",
+    "other": "{n} sidor skiljer sig"
+  },
   "{n} pages had no size, so they were left out.": "{n} sidor saknade storlek och lämnades därför utanför.",
   "{n} pictures": "{n} bilder",
   "{n} pictures are missing.": "{n} bilder saknas.",
   "{n} pictures in the deck were not kept.": "{n} bilder i presentationen behölls inte.",
-  "{n} places": "{n} platser",
+  "{n} places": {
+    "one": "1 plats",
+    "other": "{n} platser"
+  },
   "{n} points": "{n} punkter",
-  "{n} points - hold Alt for a corner": "{n} punkter - håll Alt för ett hörn",
+  "{n} points - hold Alt for a corner": {
+    "one": "1 punkt - håll Alt för ett hörn",
+    "other": "{n} punkter - håll Alt för ett hörn"
+  },
   "{n} preserved file": "{n} bevarad fil",
   "{n} preserved files": "{n} bevarade filer",
   "{n} print locks re-pinned": "{n} utskriftslås återfästa",
   "{n} proposed changes": "{n} föreslagna ändringar",
   "{n} protected drafts": "{n} skyddade utkast",
   "{n} published version": "{n} publicerad version",
-  "{n} published versions": "{n} publicerade versioner",
+  "{n} published versions": {
+    "one": "1 publicerad version",
+    "other": "{n} publicerade versioner"
+  },
   "{n} recorded": "{n} registrerade",
   "{n} removed from favourites": "{n} borttagen som favorit",
   "{n} removed from offline": "{n} borttagen från offline",
   "{n} removed. A tool naming it will lose it.": "{n} borttagen. Ett verktyg som namnger den förlorar den.",
   "{n} removed. A tool naming one of these will lose it.": "{n} borttagna. Ett verktyg som namnger en av dessa förlorar den.",
   "{n} renders": "{n} renderingar",
-  "{n} results": "{n} resultat",
+  "{n} results": {
+    "one": "1 resultat",
+    "other": "{n} resultat"
+  },
   "{n} roles re-derived": "{n} roller härledda på nytt",
   "{n} rotated runs left out": "{n} roterade rader uteslutna",
   "{n} saved asset versions": "{n} Sparaversioner av tillgångar",
   "{n} saved for offline, {m} failed - check your connection": "{n} sparade för offline, {m} misslyckades - kontrollera din anslutning",
-  "{n} saved sessions": "{n} sparade sessioner",
+  "{n} saved sessions": {
+    "one": "1 sparad session",
+    "other": "{n} sparade sessioner"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "{n} sparade system gick inte att förhandsgranska. Öppna dem från Profil för att hantera dem.",
   "{n} scanned": "{n} skannade",
   "{n} scanned pages read.": "{n} skannade sidor lästes.",
   "{n} scanned pages were left unread to keep this quick.": "{n} skannade sidor lämnades olästa för att hålla det här snabbt.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} skannade sidor lästes inte eftersom textigenkänning inte finns på den här enheten.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} skannade sidor lästes med enhetsintern textigenkänning, så kontroller av dolda tecken kunde inte köras på de sidorna.",
-  "{n} selected": "{n} valda",
-  "{n} selected assets": "{n} valda tillgångar",
+  "{n} selected": {
+    "one": "1 vald",
+    "other": "{n} valda"
+  },
+  "{n} selected assets": {
+    "one": "1 vald tillgång",
+    "other": "{n} valda tillgångar"
+  },
   "{n} selected files": "{n} valda filer",
   "{n} selected items could not be outlined and were left as they are.": "{n} valda objekt kunde inte konturskapas och lämnades som de är.",
   "{n} selected items have no outline, so they were left as they are.": "{n} markerade objekt saknar kontur, så de lämnades som de är.",
   "{n} selected · {size}": "{n} valda · {size}",
   "{n} sentences": "{n} meningar",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} meningar har en prickad understrykning: den enhetsinterna modellen kan erbjuda en enklare version. Att acceptera en flaggar den sparade kopian som AI-assisterad, och modellens formuleringar bär Lollys offentliga omskrivningsvattenstämpel, så att AI-skriven text förblir upptäckbar i Verifiera.",
-  "{n} sessions": "{n} sessioner",
+  "{n} sessions": {
+    "one": "1 session",
+    "other": "{n} sessioner"
+  },
   "{n} set": "{n} inställda",
   "{n} shade curves re-anchored": "{n} nyanskurvor förankrade på nytt",
   "{n} shades added to your palette": "{n} nyanser lades till i din palett",
   "{n} shades added. Undo is available above your palette.": "{n} nyanser lades till. Ångra finns ovanför paletten.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} nyanser kunde inte nå sitt mål (begränsades till närmaste ton).",
   "{n} shades rebuilt across {ramps} ramps": "{n} nyanser ombyggda över {ramps} ramper",
-  "{n} shapes": "{n} former",
+  "{n} shapes": {
+    "one": "1 form",
+    "other": "{n} former"
+  },
   "{n} shapes · page {p}": "{n} former · sida {p}",
   "{n} shared assets were kept.": "{n} delade tillgångar behölls.",
   "{n} slides narrated.": "{n} bilder inlästa.",
@@ -8395,11 +8506,17 @@
   "{n} spectrum hues rebuilt": "{n} spektrumnyanser ombyggda",
   "{n} stages of work": "{n} arbetssteg",
   "{n} starter colours": "{n} startfärger",
-  "{n} steps": "{n} steg",
+  "{n} steps": {
+    "one": "1 steg",
+    "other": "{n} steg"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "{n} förslag hittades. Kopiorna förbereds med dem valda; justera vilket som helst i panelen Granskning.",
   "{n} suggestions were applied without review.": "{n} förslag tillämpades utan granskning.",
   "{n} swatches removed": "{n} färgrutor borttagna",
-  "{n} templates": "{n} mallar",
+  "{n} templates": {
+    "one": "1 mall",
+    "other": "{n} mallar"
+  },
   "{n} templates added": "{n} mallar tillagda",
   "{n} templates deleted": "{n} mallar raderade",
   "{n} templates saved": "{n} mallar sparade",
@@ -8419,11 +8536,17 @@
   "{n} unsupported backup parts skipped": "{n} Ostödd reservdelar överges",
   "{n} value changes": "{n} värdeändringar",
   "{n} values change": "{n} värden ändras",
-  "{n} volume keys": "{n} volymnycklar",
+  "{n} volume keys": {
+    "one": "1 volymnyckel",
+    "other": "{n} volymnycklar"
+  },
   "{n} warnings.": "{n} varningar.",
   "{n} were kept - they are not this room to remove.": "{n} behölls - de hör inte till det här rummet att ta bort.",
   "{n} wording swaps are underlined in the preview.": "{n} ordbyten är understrukna i förhandsgranskningen.",
-  "{n} words": "{n} ord",
+  "{n} words": {
+    "one": "1 ord",
+    "other": "{n} ord"
+  },
   "{n} words cut": "{n} ord klippta",
   "{n} yours": "{n} dina",
   "{n}-bit": "{n}-bitars",
@@ -8814,7 +8937,10 @@
   "1 design was added to Projects, in 1 folder.": "1 design lades till i Projekt, i 1 mapp.",
   "1 design was added to Projects, in {f} folders.": "1 design lades till i Projekt, i {f} mappar.",
   "1 design was added to Projects.": "1 design lades till i Projekt.",
-  "{n} creations removed from Projects here stayed removed.": "{n} skapelser som togs bort från Projekt här förblev borttagna.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "1 skapelse som togs bort från Projekt här förblev borttagen.",
+    "other": "{n} skapelser som togs bort från Projekt här förblev borttagna."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Den här skapelsen sparades aldrig, så om du lämnar utan att spara tas den bort från Projekt.",
   "This deck has no colours to change.": "Den här presentationen har inga färger att ändra.",
   "This deck has no fonts to change.": "Den här presentationen har inga typsnitt att ändra.",
@@ -8844,7 +8970,10 @@
   "This saved version could not be read.": "Den här sparade versionen kunde inte läsas.",
   "1 older automatic checkpoint left out": "1 äldre automatisk kontrollpunkt utelämnad",
   "1 other colourway keeps its own colours: {names}": "1 annan färgvariant behåller sina egna färger: {names}",
-  "{n} older automatic checkpoints left out": "{n} äldre automatiska kontrollpunkter utelämnade",
+  "{n} older automatic checkpoints left out": {
+    "one": "1 äldre automatisk kontrollpunkt utelämnad",
+    "other": "{n} äldre automatiska kontrollpunkter utelämnade"
+  },
   "Automatic recovery and checkpoints are on": "Automatisk återställning och kontrollpunkter är på",
   "Automatic recovery is unavailable here. Save before leaving.": "Automatisk återställning är inte tillgänglig här. Spara innan du lämnar.",
   "Checkpoint saved at {time} on this device": "Kontrollpunkt sparad kl. {time} på den här enheten",
@@ -9027,7 +9156,10 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "För att visa de webbplatser som webbversionen inte kan visa kan Lolly läsa om med en friare ramprincip på den här enheten och sedan fråga om varje webbplats innan du presenterar. Du kan stänga av det i din profil, under Betrodda webbplatser.",
   "Card size": "Kortstorlek",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 bild eller fil lades till på den här enheten. Den stannar på den här enheten och andra ser inte filen.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} bilder eller filer lades till på den här enheten. De stannar på den här enheten och andra ser inte filerna.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "1 bild eller fil lades till på den här enheten. Den stannar på den här enheten och andra ser inte filen.",
+    "other": "{n} bilder eller filer lades till på den här enheten. De stannar på den här enheten och andra ser inte filerna."
+  },
   "Check the version first": "Kontrollera versionen först",
   "Copy team link": "Kopiera teamlänk",
   "Could not create the project. Try again.": "Det gick inte att skapa projektet. Försök igen.",
@@ -9793,7 +9925,10 @@
   "Every mode": "Varje läge",
   "Your local items have not changed.": "Dina lokala objekt har inte ändrats.",
   "1 item was saved to the shared project.": "1 objekt sparades i det delade projektet.",
-  "{n} items were saved to the shared project.": "{n} objekt sparades i det delade projektet.",
+  "{n} items were saved to the shared project.": {
+    "one": "1 objekt sparades i det delade projektet.",
+    "other": "{n} objekt sparades i det delade projektet."
+  },
   "Wait for the current move to finish.": "Vänta tills den pågående flytten är klar.",
   "Wait for the deck to finish reading, then choose a picture.": "Vänta tills presentationen lästs klart och välj sedan en bild.",
   "Wait for the grid to finish rendering before moving its layers.": "Vänta tills rutnätet renderats klart innan du flyttar dess lager.",
@@ -10645,5 +10780,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Det här klippet använder {codec}, som den här enheten inte kan spela upp. Exportera en H.264-, HEVC- eller AV1-kopia från din redigeringsapp, eller öppna det i Lollys skrivbordsapp på en Mac. Lolly behåller originalfilen.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Det här klippet använder {codec}, som den här enheten inte kan spela upp. Exportera en H.264-, HEVC- eller AV1-kopia från din redigeringsapp. Lolly behåller originalfilen.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Det här är en MXF-fil med {codec}. Lolly kan läsa vad den innehåller men kan inte spela upp MXF. Exportera en H.264-, HEVC- eller AV1-kopia från din redigeringsapp. Lolly behåller originalfilen.",
-  "{format} from {camera}": "{format} från {camera}"
+  "{format} from {camera}": "{format} från {camera}",
+  "Filling a large area. This can take a moment.": "Fyller ett stort område. Det kan ta en stund.",
+  "Large area": "Stort område"
 }

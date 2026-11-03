@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-03T10:39:16.204Z",
+  "generatedAt": "2026-11-03T15:01:00.088Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2936,7 +2936,7 @@
       "id": "redact",
       "name": "Redact",
       "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device.",
-      "version": "1.6.1",
+      "version": "1.7.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",

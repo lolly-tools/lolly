@@ -226,7 +226,7 @@ test('no attribution condition: the CC0 dedication is named, not generalised', (
   const view = rightsView(evaluate('cc0-courtesy'), null);
   assert.equal(view.headline, 'No required credit under the recorded CC0 dedication.');
   assert.deepEqual(view.cards, []);
-  // A runtime font use asks nothing of the text it set, and says so without
+  // A runtime font use asks nothing of the text it set, and reports that without
   // borrowing a dedication's name.
   assert.equal(rightsView(evaluate('ofl-font-runtime'), null).headline, 'No credit is required for this use of the recorded sources.');
 });

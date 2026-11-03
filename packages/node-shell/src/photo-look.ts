@@ -4,7 +4,7 @@
  * the shared canvas helpers (EXIF orientation applied), apply the engine's look
  * (engine/src/photo-look.ts, the same pixels the web bridge bakes), encode JPEG for a
  * JPEG source and PNG otherwise. Null when this install has no canvas, so the caller
- * serves the plain picture and says so.
+ * serves the plain picture and reports that.
  */
 import { applyPhotoLook } from '../../../engine/src/photo-look.ts';
 import type { GradeLut } from '../../../engine/src/grade.ts';

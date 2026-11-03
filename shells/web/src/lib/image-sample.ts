@@ -9,7 +9,7 @@
  * and claim that as a finding. So the destination space is negotiated first and
  * the answer is returned alongside the pixels, never assumed.
  *
- * What this still cannot do, and says so rather than pretending: an image's own
+ * What this still cannot do, and lists it rather than pretending: an image's own
  * embedded ICC profile is honoured by the BROWSER's decode into the destination
  * space, so a tagged file is handled correctly, but an UNTAGGED file is sRGB by
  * convention only. `assumed` reports which of those happened so the caller can

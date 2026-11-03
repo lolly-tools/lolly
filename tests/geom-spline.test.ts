@@ -155,7 +155,7 @@ test('hyperbezier is G1 at every smooth join, to rounding', () => {
   }
 });
 
-test('hyperbezier converges to G2, and says so', () => {
+test('hyperbezier converges to G2, and reports that', () => {
   for (const [name, nodes, closed] of [
     ['open wave', WAVE, false],
     ['closed blob', BLOB, true],

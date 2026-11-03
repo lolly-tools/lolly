@@ -47,6 +47,7 @@ const LOCKFILES = [
   'packages/node-shell/wasm/adobe-psd/Cargo.lock',
   'packages/node-shell/wasm/xlsx-numfmt/Cargo.lock',
   'packages/node-shell/wasm/gridcraft-calc/Cargo.lock',
+  'packages/node-shell/wasm/inpaint/Cargo.lock',
   'packages/node-shell/wasm/image-trace/Cargo.lock',
   'packages/node-shell/wasm/pdf-a11y/Cargo.lock',
   'packages/node-shell/wasm/dxf/Cargo.lock',

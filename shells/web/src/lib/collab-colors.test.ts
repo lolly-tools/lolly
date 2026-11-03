@@ -446,7 +446,7 @@ test('a departed collaborator does not reshuffle everyone else', () => {
   assert.equal(assignColor(COLORS.length, [COLORS[0]!.hex, COLORS[2]!.hex], COLORS)!.hex, COLORS[1]!.hex);
 });
 
-test('past capacity the colour repeats, and says so by repeating rather than inventing', () => {
+test('past capacity the colour repeats, and reports that by repeating rather than inventing', () => {
   const taken = COLORS.map(c => c.hex);
   for (let i = 0; i < 20; i++) {
     const c = assignColor(i, taken, COLORS)!;

@@ -8027,10 +8027,16 @@
   "{count} controls you changed stay yours.": "جو {count} کنٹرولز آپ نے تبدیل کیے، وہ آپ ہی کے رہتے ہیں۔",
   "{count} days": "{count} دن",
   "{count} decisions from the last version still apply.": "پچھلے ورژن کے {count} فیصلے اب بھی لاگو ہیں۔",
-  "{count} entries": "{count} اندراجات",
+  "{count} entries": {
+    "one": "1 اندراج",
+    "other": "{count} اندراجات"
+  },
   "{count} files / variations": "{count} فائلیں / تغیرات",
   "{count} files chosen": "{count} فائلیں چنی گئیں",
-  "{count} files in this folder": "اس فولڈر میں {count} فائلیں",
+  "{count} files in this folder": {
+    "one": "اس فولڈر میں 1 فائل",
+    "other": "اس فولڈر میں {count} فائلیں"
+  },
   "{count} for {names}": "{names} کے لیے {count}",
   "{count} for “{query}” in {scope}": "{scope} میں “{query}” کے لیے {count}",
   "{count} layouts": "{count} لے آؤٹس",
@@ -8204,19 +8210,31 @@
   "{n} added to favourites": "{n} پسندیدہ میں شامل ہو گیا",
   "{n} added to the design system": "{n} ڈیزائن سسٹم میں شامل ہوئے",
   "{n} asset IDs": "{n} اثاثہ IDs",
-  "{n} assets": "{n} اثاثے",
+  "{n} assets": {
+    "one": "1 اثاثہ",
+    "other": "{n} اثاثے"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} اثاثے بحال نہیں کیا جا سکتا.",
-  "{n} assets found": "{n} اثاثے ملے",
+  "{n} assets found": {
+    "one": "1 اثاثہ ملا",
+    "other": "{n} اثاثے ملے"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} اثاثے زپ ہوئے · {c} Content Credentials کے ساتھ",
   "{n} available offline": "{n} آف لائن دستیاب",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} باکسز۔ ایک کلک مکمل موشن آرک لکھتا ہے - ہر کی فریم بعد میں بھی قابلِ ترمیم رہتا ہے۔",
-  "{n} capabilities match": "{n} صلاحیتیں میچ کرتی ہیں",
+  "{n} capabilities match": {
+    "one": "1 صلاحیت مماثل ہے",
+    "other": "{n} صلاحیتیں مماثل ہیں"
+  },
   "{n} cards are left to review.": "{n} کارڈز جائزے کے لیے باقی ہیں۔",
   "{n} cards are still to answer.": "{n} کارڈز کا جواب باقی ہے۔",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "{n} کارڈز کا جواب باقی ہے۔ انہیں تجویز کے مطابق قبول کر کے Design میں کھولیں؟",
   "{n} ch": "{n} ch",
   "{n} changed": "{n} تبدیل ہو گیا",
-  "{n} changes found": "{n} تبدیلیاں ملیں",
+  "{n} changes found": {
+    "one": "1 تبدیلی ملی",
+    "other": "{n} تبدیلیاں ملیں"
+  },
   "{n} characters continue beyond the last frame.": "{n} حروف آخری فریم کے بعد جاری ہیں۔",
   "{n} checks": "{n} چیک",
   "{n} clips selected": "{n} کلپس منتخب",
@@ -8231,7 +8249,10 @@
   "{n} connectors - editing all": "{n} کنیکٹرز — سب میں ترمیم ہو رہی ہے",
   "{n} copies added to your projects": "{n} کاپیاں آپ کے پراجیکٹس میں شامل کر دی گئیں",
   "{n} copies in total": "کل {n} کاپیاں",
-  "{n} copies made · selected": "{n} کاپیاں بنائی گئیں · منتخب",
+  "{n} copies made · selected": {
+    "one": "1 کاپی بنائی گئی · منتخب",
+    "other": "{n} کاپیاں بنائی گئیں · منتخب"
+  },
   "{n} creation checkpoints": "{n} تخلیق کے چیک پوائنٹس",
   "{n} curly quotes": "{n} خم دار واوین",
   "{n} days ago": "{n} دن پہلے",
@@ -8248,24 +8269,39 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} قابلِ ترمیم ان پٹس۔ غیر منتخب سیٹنگز مقررہ رہتی ہیں۔",
   "{n} ellipsis characters": "{n} تین نقطوں والے حروف",
   "{n} em-dashes": "{n} لمبے ڈیش",
-  "{n} embedded files": "{n} داخل فائلیں",
-  "{n} external references": "{n} بیرونی حوالہ جات",
+  "{n} embedded files": {
+    "one": "1 سرایت شدہ فائل",
+    "other": "{n} سرایت شدہ فائلیں"
+  },
+  "{n} external references": {
+    "one": "1 بیرونی حوالہ",
+    "other": "{n} بیرونی حوالہ جات"
+  },
   "{n} fields": "{n} فیلڈز",
   "{n} file batches": "{n} فائلوں کے بیچ",
   "{n} file operation records": "{n} فائل آپریشن ریکارڈ",
   "{n} files": "{n} فائلیں",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} فائلیں PowerPoint ڈیکس، PDFs یا Photoshop دستاویزات نہیں ہیں، اس لیے چھوڑ دی گئیں۔",
   "{n} files are ready to import.": "{n} فائلیں امپورٹ کے لیے تیار ہیں۔",
-  "{n} files could not be packed and were left out": "{n} فائلیں پیک نہیں ہو سکیں اور چھوڑ دی گئیں",
+  "{n} files could not be packed and were left out": {
+    "one": "1 فائل پیک نہیں ہو سکی اور چھوڑ دی گئی",
+    "other": "{n} فائلیں پیک نہیں ہو سکیں اور چھوڑ دی گئیں"
+  },
   "{n} files imported from the zip.": "زپ سے {n} فائلیں امپورٹ ہوئیں۔",
   "{n} files imported from the zip; {skipped} skipped.": "زپ سے {n} فائلیں امپورٹ ہوئیں؛ {skipped} چھوڑی گئیں۔",
   "{n} files ready": "{n} فائلیں تیار ہیں",
   "{n} findings": "{n} نتائج",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "{n} نتائج ملے۔ قابلِ ترمیم تجاویز منتخب ہیں؛ صرف معائنے والے Office نتائج جیسے ہیں ویسے رہتے ہیں۔ Inspection پینل دیکھیں۔",
-  "{n} folders": "{n} فولڈرز",
+  "{n} folders": {
+    "one": "1 فولڈر",
+    "other": "{n} فولڈرز"
+  },
   "{n} font changes": "{n} فونٹ کی تبدیلیاں",
   "{n} font choices": "{n} فونٹ کے انتخاب",
-  "{n} font files": "{n} فونٹ فائلیں",
+  "{n} font files": {
+    "one": "1 فونٹ فائل",
+    "other": "{n} فونٹ فائلیں"
+  },
   "{n} fonts": "{n} فونٹس",
   "{n} fonts found": "{n} فونٹس ملے",
   "{n} fonts from the deck are set in another face.": "ڈیک کے {n} فونٹس دوسری فیس میں سیٹ ہیں۔",
@@ -8277,31 +8313,67 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} پوشیدہ - انہیں “پوشیدہ ٹولز دکھائیں” کے تحت تلاش کریں",
   "{n} hidden shades stay hidden": "{n} چھپے ہوئے شیڈز چھپے رہتے ہیں",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} تاریخ میں اشیاء کو بحال نہیں کیا جا سکا. آپ کی بیک اپ رکھیں; خالی جگہ یا متضاد ورژن کو دوبارہ کوشش کرنے سے پہلے حل.",
-  "{n} images": "{n} تصاویر",
-  "{n} images couldn’t be restored (storage full?)": "{n} تصاویر بحال نہیں ہو سکیں (اسٹوریج بھرا ہوا ہے؟)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} تصاویر اصل کے ساتھ ہی رہیں - تصاویر کا ایک ہی گھر ہوتا ہے؛ انہیں منتقل کرنے کے لیے کٹ استعمال کریں",
+  "{n} images": {
+    "one": "1 تصویر",
+    "other": "{n} تصاویر"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "1 تصویر بحال نہیں ہو سکی (اسٹوریج بھرا ہوا ہے؟)",
+    "other": "{n} تصاویر بحال نہیں ہو سکیں (اسٹوریج بھرا ہوا ہے؟)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "1 تصویر اصل کے ساتھ ہی رہی - تصاویر کا ایک ہی گھر ہوتا ہے؛ اسے منتقل کرنے کے لیے کٹ استعمال کریں",
+    "other": "{n} تصاویر اصل کے ساتھ ہی رہیں - تصاویر کا ایک ہی گھر ہوتا ہے؛ انہیں منتقل کرنے کے لیے کٹ استعمال کریں"
+  },
   "{n} included tools (asked before installing)": "{n} شامل ٹولز (انسٹال سے پہلے پوچھا جاتا ہے)",
   "{n} ink": "{n} سیاہی",
-  "{n} inputs · applies to every design": "{n} ان پٹس · ہر ڈیزائن پر لاگو ہوتا ہے",
+  "{n} inputs · applies to every design": {
+    "one": "1 ان پٹ · ہر ڈیزائن پر لاگو ہوتا ہے",
+    "other": "{n} ان پٹس · ہر ڈیزائن پر لاگو ہوتے ہیں"
+  },
   "{n} invisible watermark(s) found": "{n} پوشیدہ واٹرمارک(س) ملے",
   "{n} issues to review before sharing.": "شیئر کرنے سے پہلے {n} مسائل کا جائزہ لینا ہے۔",
-  "{n} items": "{n} آئٹمز",
-  "{n} items copied": "{n} آئٹمز کاپی ہو گئے",
-  "{n} items cut": "{n} آئٹمز کٹ ہو گئے",
-  "{n} items moved": "{n} آئٹمز منتقل ہو گئے",
-  "{n} items pasted": "{n} آئٹمز پیسٹ ہو گئے",
+  "{n} items": {
+    "one": "1 آئٹم",
+    "other": "{n} آئٹمز"
+  },
+  "{n} items copied": {
+    "one": "1 آئٹم کاپی ہو گیا",
+    "other": "{n} آئٹمز کاپی ہو گئے"
+  },
+  "{n} items cut": {
+    "one": "1 آئٹم کٹ ہو گیا",
+    "other": "{n} آئٹمز کٹ ہو گئے"
+  },
+  "{n} items moved": {
+    "one": "1 آئٹم منتقل ہو گیا",
+    "other": "{n} آئٹمز منتقل ہو گئے"
+  },
+  "{n} items pasted": {
+    "one": "1 آئٹم پیسٹ ہو گیا",
+    "other": "{n} آئٹمز پیسٹ ہو گئے"
+  },
   "{n} items removed": "{n} آئٹمز ہٹائے گئے",
   "{n} jobs": "{n} کام",
   "{n} kept": "{n} برقرار",
   "{n} kept in the tray": "{n} ٹرے میں برقرار",
-  "{n} keyframes": "{n} کی فریمز",
+  "{n} keyframes": {
+    "one": "1 کی فریم",
+    "other": "{n} کی فریمز"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} لیبل والے متبادل آبجیکٹس کی جگہ لیتے ہیں۔",
   "{n} layers": "{n} لیئرز",
   "{n} layers found": "{n} لیئرز ملیں",
   "{n} list lines": "{n} فہرست کی سطریں",
-  "{n} logos": "{n} لوگو",
+  "{n} logos": {
+    "one": "1 لوگو",
+    "other": "{n} لوگو"
+  },
   "{n} marks became the design system mark.": "{n} نشان ڈیزائن سسٹم کا نشان بن گئے۔",
-  "{n} marks found": "{n} نشانات ملے",
+  "{n} marks found": {
+    "one": "1 نشان ملا",
+    "other": "{n} نشانات ملے"
+  },
   "{n} marks sent to Logos": "{n} نشانات لوگوز کو بھیجے گئے",
   "{n} min ago": "{n} منٹ پہلے",
   "{n} more findings in this document.": "اس دستاویز میں {n} مزید نتائج۔",
@@ -8313,7 +8385,10 @@
   "{n} more slides": "{n} مزید سلائیڈز",
   "{n} moved to {group}.": "{n} {group} میں منتقل ہوئے۔",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} نئی سلائیڈز میں وہ ہے جو سما نہ سکا، اس لیے سلائیڈ نمبر آگے بڑھ گئے۔",
-  "{n} newer items skipped": "{n} نئے آئٹمز نظرانداز کیے گئے",
+  "{n} newer items skipped": {
+    "one": "1 نیا آئٹم نظرانداز کیا گیا",
+    "other": "{n} نئے آئٹمز نظرانداز کیے گئے"
+  },
   "{n} nits": "{n} نِٹ",
   "{n} not drawn": "{n} بنائے نہیں گئے",
   "{n} objects added": "{n} آبجیکٹس شامل ہوئے",
@@ -8326,7 +8401,10 @@
   "{n} objects overlap the slide master.": "{n} آبجیکٹس سلائیڈ ماسٹر سے ٹکراتے ہیں۔",
   "{n} objects removed": "{n} آبجیکٹس ہٹائے گئے",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} آبجیکٹس کلپنگ یا ایفیکٹس کو تصاویر کے طور پر رکھتے ہیں۔ ان کی شکل بدلنے کے لیے ان کا مکمل آرٹ ورک بدلیں۔",
-  "{n} of your creations are videos or animations": "{n} آپ کی تخلیقات ویڈیوز یا اینیمیشنز ہیں",
+  "{n} of your creations are videos or animations": {
+    "one": "1 تخلیق ویڈیو یا اینیمیشن ہے",
+    "other": "آپ کی {n} تخلیقات ویڈیوز یا اینیمیشنز ہیں"
+  },
   "{n} of {m}": "{n} از {m}",
   "{n} of {total} downloaded": "{total} میں سے {n} ڈاؤن لوڈ ہوئے",
   "{n} of {total} downloaded · {size} on disk": "{total} میں سے {n} ڈاؤن لوڈ ہو چکے · ڈسک پر {size}",
@@ -8337,57 +8415,90 @@
   "{n} off": "{n} بند",
   "{n} on": "{n} آن",
   "{n} other colourways keep their own colours: {names}": "{n} دوسرے کلر ویز اپنے رنگ برقرار رکھتے ہیں: {names}",
-  "{n} pages": "{n} صفحات",
+  "{n} pages": {
+    "one": "1 صفحہ",
+    "other": "{n} صفحات"
+  },
   "{n} pages are pictures of their text.": "{n} صفحات اپنے متن کی تصاویر ہیں۔",
-  "{n} pages differ": "{n} صفحات مختلف ہیں",
+  "{n} pages differ": {
+    "one": "1 صفحہ مختلف ہے",
+    "other": "{n} صفحات مختلف ہیں"
+  },
   "{n} pages had no size, so they were left out.": "{n} صفحات کا سائز نہیں تھا، اس لیے چھوڑ دیے گئے۔",
   "{n} pictures": "{n} تصاویر",
   "{n} pictures are missing.": "{n} تصاویر غائب ہیں۔",
   "{n} pictures in the deck were not kept.": "ڈیک کی {n} تصاویر برقرار نہیں رکھی گئیں۔",
-  "{n} places": "{n} جگہیں",
+  "{n} places": {
+    "one": "1 جگہ",
+    "other": "{n} جگہیں"
+  },
   "{n} points": "{n} پوائنٹس",
-  "{n} points - hold Alt for a corner": "{n} پوائنٹس - کونے کے لیے Alt دبائے رکھیں",
+  "{n} points - hold Alt for a corner": {
+    "one": "1 پوائنٹ - کونے کے لیے Alt دبائے رکھیں",
+    "other": "{n} پوائنٹس - کونے کے لیے Alt دبائے رکھیں"
+  },
   "{n} preserved file": "{n} محفوظ کردہ فائل",
   "{n} preserved files": "{n} محفوظ کردہ فائلیں",
   "{n} print locks re-pinned": "{n} پرنٹ لاکس دوبارہ پن ہوئے",
   "{n} proposed changes": "{n} پیش کی گئی تبدیلیاں",
   "{n} protected drafts": "{n} محفوظ مسودے",
   "{n} published version": "{n} شائع شدہ ورژن",
-  "{n} published versions": "{n} شائع شدہ ورژنز",
+  "{n} published versions": {
+    "one": "1 شائع شدہ ورژن",
+    "other": "{n} شائع شدہ ورژنز"
+  },
   "{n} recorded": "{n} ریکارڈ شدہ",
   "{n} removed from favourites": "{n} پسندیدہ سے ہٹا دیا گیا",
   "{n} removed from offline": "{n} آف لائن سے ہٹا دیا گیا",
   "{n} removed. A tool naming it will lose it.": "{n} ہٹا دیا گیا۔ اسے نامزد کرنے والا ٹول اسے کھو دے گا۔",
   "{n} removed. A tool naming one of these will lose it.": "{n} ہٹا دیے گئے۔ ان میں سے کسی ایک کو نامزد کرنے والا ٹول اسے کھو دے گا۔",
   "{n} renders": "{n} رینڈرز",
-  "{n} results": "{n} نتائج",
+  "{n} results": {
+    "one": "1 نتیجہ",
+    "other": "{n} نتائج"
+  },
   "{n} roles re-derived": "{n} کردار دوبارہ اخذ ہوئے",
   "{n} rotated runs left out": "{n} گھمائے گئے رنز چھوڑ دیے گئے",
   "{n} saved asset versions": "{n} محفوظ شدہ اثاثہ ورژن",
   "{n} saved for offline, {m} failed - check your connection": "{n} آف لائن کے لیے محفوظ ہوئے، {m} ناکام ہوئے - اپنا کنکشن چیک کریں",
-  "{n} saved sessions": "{n} محفوظ شدہ سیشنز",
+  "{n} saved sessions": {
+    "one": "1 محفوظ شدہ سیشن",
+    "other": "{n} محفوظ شدہ سیشنز"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "{n} محفوظ سسٹمز کا پیش منظر نہ بن سکا۔ انہیں منظم کرنے کے لیے Profile سے کھولیں۔",
   "{n} scanned": "{n} اسکین شدہ",
   "{n} scanned pages read.": "{n} اسکین شدہ صفحات پڑھے گئے۔",
   "{n} scanned pages were left unread to keep this quick.": "رفتار برقرار رکھنے کے لیے {n} اسکین شدہ صفحات بغیر پڑھے چھوڑ دیے گئے۔",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} اسکین شدہ صفحات نہیں پڑھے گئے کیونکہ اس ڈیوائس پر Text recognition نہیں۔",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} اسکین شدہ صفحات آن ڈیوائس متن شناسی سے پڑھے گئے، اس لیے ان صفحات پر چھپے حروف کی جانچ نہیں ہو سکی۔",
-  "{n} selected": "{n} منتخب",
-  "{n} selected assets": "{n} منتخب اثاثے",
+  "{n} selected": {
+    "one": "1 منتخب",
+    "other": "{n} منتخب"
+  },
+  "{n} selected assets": {
+    "one": "1 منتخب اثاثہ",
+    "other": "{n} منتخب اثاثے"
+  },
   "{n} selected files": "{n} منتخب فائلیں",
   "{n} selected items could not be outlined and were left as they are.": "{n} منتخب آئٹمز کو آؤٹ لائن نہیں کیا جا سکا اور انہیں ویسے ہی چھوڑ دیا گیا۔",
   "{n} selected items have no outline, so they were left as they are.": "{n} منتخب آئٹمز کا کوئی آؤٹ لائن نہیں، اس لیے انہیں ویسے ہی چھوڑ دیا گیا۔",
   "{n} selected · {size}": "{n} منتخب · {size}",
   "{n} sentences": "{n} جملے",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} جملوں کے نیچے نقطے دار لکیر ہے: آن ڈیوائس ماڈل سادہ نسخہ پیش کر سکتا ہے۔ کسی ایک کو قبول کرنے سے محفوظ کاپی AI کی مدد سے لکھی ہوئی نشان زد ہوتی ہے، اور ماڈل کے الفاظ Lolly کا عوامی ری ورڈ واٹرمارک رکھتے ہیں تاکہ AI سے لکھا متن Verify پر پہچانا جا سکے۔",
-  "{n} sessions": "{n} سیشنز",
+  "{n} sessions": {
+    "one": "1 سیشن",
+    "other": "{n} سیشنز"
+  },
   "{n} set": "{n} سیٹ",
   "{n} shade curves re-anchored": "{n} شیڈ کروز دوبارہ اینکر ہوئے",
   "{n} shades added to your palette": "{n} شیڈز آپ کے پیلیٹ میں شامل ہوئے",
   "{n} shades added. Undo is available above your palette.": "{n} شیڈز شامل ہوئے۔ پیلیٹ کے اوپر Undo دستیاب ہے۔",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} شیڈز اپنے ہدف تک نہ پہنچ سکے (قریب ترین ٹون پر محدود)۔",
   "{n} shades rebuilt across {ramps} ramps": "{ramps} ریمپس میں {n} شیڈز دوبارہ بنائے گئے",
-  "{n} shapes": "{n} شکلیں",
+  "{n} shapes": {
+    "one": "1 شکل",
+    "other": "{n} شکلیں"
+  },
   "{n} shapes · page {p}": "{n} شکلیں · صفحہ {p}",
   "{n} shared assets were kept.": "{n} مشترکہ اثاثے رکھے گئے۔",
   "{n} slides narrated.": "{n} سلائیڈز صوتی بیان ہوئیں۔",
@@ -8395,11 +8506,17 @@
   "{n} spectrum hues rebuilt": "{n} سپیکٹرم رنگتیں دوبارہ بنائی گئیں",
   "{n} stages of work": "کام کے {n} مراحل",
   "{n} starter colours": "{n} ابتدائی رنگ",
-  "{n} steps": "{n} اقدامات",
+  "{n} steps": {
+    "one": "1 مرحلہ",
+    "other": "{n} مراحل"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "{n} تجاویز ملیں۔ کاپیاں انہیں منتخب کر کے تیار ہیں؛ Inspection پینل میں کسی کو بھی ایڈجسٹ کریں۔",
   "{n} suggestions were applied without review.": "{n} تجاویز بغیر جائزے کے لاگو ہوئیں۔",
   "{n} swatches removed": "{n} سواچز ہٹائے گئے",
-  "{n} templates": "{n} ٹیمپلیٹس",
+  "{n} templates": {
+    "one": "1 ٹیمپلیٹ",
+    "other": "{n} ٹیمپلیٹس"
+  },
   "{n} templates added": "{n} ٹیمپلیٹس شامل ہوئے",
   "{n} templates deleted": "{n} ٹیمپلیٹس حذف ہوئے",
   "{n} templates saved": "{n} ٹیمپلیٹس محفوظ ہوئے",
@@ -8419,11 +8536,17 @@
   "{n} unsupported backup parts skipped": "{n} غیر معاون بیک اپ حصوں کو چھوڑ دیا",
   "{n} value changes": "{n} قدر کی تبدیلیاں",
   "{n} values change": "{n} قدریں بدلتی ہیں",
-  "{n} volume keys": "{n} والیوم کی فریمز",
+  "{n} volume keys": {
+    "one": "1 والیوم کی فریم",
+    "other": "{n} والیوم کی فریمز"
+  },
   "{n} warnings.": "{n} وارننگز۔",
   "{n} were kept - they are not this room to remove.": "{n} برقرار رکھے گئے - انہیں ہٹانا اس کمرے کا کام نہیں۔",
   "{n} wording swaps are underlined in the preview.": "پیش منظر میں {n} لفظی تبادلوں کے نیچے لکیر ہے۔",
-  "{n} words": "{n} الفاظ",
+  "{n} words": {
+    "one": "1 لفظ",
+    "other": "{n} الفاظ"
+  },
   "{n} words cut": "{n} الفاظ کٹے",
   "{n} yours": "{n} آپ کے",
   "{n}-bit": "{n}-بٹ",
@@ -8814,7 +8937,10 @@
   "1 design was added to Projects, in 1 folder.": "1 ڈیزائن Projects میں شامل ہوا، 1 فولڈر میں۔",
   "1 design was added to Projects, in {f} folders.": "1 ڈیزائن Projects میں شامل ہوا، {f} فولڈرز میں۔",
   "1 design was added to Projects.": "1 ڈیزائن Projects میں شامل ہوا۔",
-  "{n} creations removed from Projects here stayed removed.": "یہاں پراجیکٹس سے ہٹائی گئیں {n} تخلیقات ہٹائی ہی رہیں۔",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "یہاں پراجیکٹس سے ہٹائی گئی 1 تخلیق ہٹائی ہی رہی۔",
+    "other": "یہاں پراجیکٹس سے ہٹائی گئیں {n} تخلیقات ہٹائی ہی رہیں۔"
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "یہ تخلیق کبھی محفوظ نہیں ہوئی، اس لیے محفوظ کیے بغیر چھوڑنا اسے پراجیکٹس سے ہٹا دیتا ہے۔",
   "This deck has no colours to change.": "اس ڈیک میں بدلنے کے لیے کوئی رنگ نہیں۔",
   "This deck has no fonts to change.": "اس ڈیک میں بدلنے کے لیے کوئی فونٹ نہیں۔",
@@ -8844,7 +8970,10 @@
   "This saved version could not be read.": "یہ محفوظ شدہ ورژن پڑھا نہیں جا سکا۔",
   "1 older automatic checkpoint left out": "1 پرانا خودکار چیک پوائنٹ چھوڑ دیا گیا",
   "1 other colourway keeps its own colours: {names}": "1 دوسرا کلر وے اپنے رنگ برقرار رکھتا ہے: {names}",
-  "{n} older automatic checkpoints left out": "{n} پرانے خودکار چیک پوائنٹس چھوڑ دیے گئے",
+  "{n} older automatic checkpoints left out": {
+    "one": "1 پرانا خودکار چیک پوائنٹ چھوڑ دیا گیا",
+    "other": "{n} پرانے خودکار چیک پوائنٹس چھوڑ دیے گئے"
+  },
   "Automatic recovery and checkpoints are on": "خودکار بحالی اور چیک پوائنٹس آن ہیں",
   "Automatic recovery is unavailable here. Save before leaving.": "یہاں خودکار ریکوری دستیاب نہیں۔ جانے سے پہلے محفوظ کریں۔",
   "Checkpoint saved at {time} on this device": "چیک پوائنٹ {time} کو اس ڈیوائس پر محفوظ ہوا",
@@ -9027,7 +9156,10 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "جو سائٹس ویب ورژن نہیں دکھا سکتا انہیں دکھانے کے لیے Lolly اس ڈیوائس پر نرم فریم پالیسی کے ساتھ دوبارہ لوڈ ہو سکتا ہے، پھر پیش کرنے سے پہلے ہر سائٹ کے بارے میں پوچھتا ہے۔ آپ اسے اپنے پروفائل میں قابل اعتماد سائٹس کے تحت بند کر سکتے ہیں۔",
   "Card size": "کارڈ کا سائز",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "اس ڈیوائس پر 1 تصویر یا فائل شامل کی گئی تھی۔ وہ اسی ڈیوائس پر رہتی ہے، اور دوسرے اس فائل کو نہیں دیکھ سکیں گے۔",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "اس ڈیوائس پر {n} تصاویر یا فائلیں شامل کی گئی تھیں۔ وہ اسی ڈیوائس پر رہتی ہیں، اور دوسرے ان فائلوں کو نہیں دیکھ سکیں گے۔",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "اس ڈیوائس پر 1 تصویر یا فائل شامل کی گئی تھی۔ وہ اسی ڈیوائس پر رہتی ہے، اور دوسرے اس فائل کو نہیں دیکھ سکیں گے۔",
+    "other": "اس ڈیوائس پر {n} تصاویر یا فائلیں شامل کی گئی تھیں۔ وہ اسی ڈیوائس پر رہتی ہیں، اور دوسرے ان فائلوں کو نہیں دیکھ سکیں گے۔"
+  },
   "Check the version first": "پہلے ورژن چیک کریں",
   "Copy team link": "ٹیم لنک کاپی کریں",
   "Could not create the project. Try again.": "پراجیکٹ نہیں بنایا جا سکا۔ دوبارہ کوشش کریں۔",
@@ -9793,7 +9925,10 @@
   "Every mode": "ہر موڈ",
   "Your local items have not changed.": "آپ کے مقامی آئٹمز میں کوئی تبدیلی نہیں ہوئی۔",
   "1 item was saved to the shared project.": "1 آئٹم مشترکہ پراجیکٹ میں محفوظ ہوا۔",
-  "{n} items were saved to the shared project.": "{n} آئٹمز مشترکہ پراجیکٹ میں محفوظ ہوئے۔",
+  "{n} items were saved to the shared project.": {
+    "one": "1 آئٹم مشترکہ پراجیکٹ میں محفوظ ہوا۔",
+    "other": "{n} آئٹمز مشترکہ پراجیکٹ میں محفوظ ہوئے۔"
+  },
   "Wait for the current move to finish.": "موجودہ منتقلی مکمل ہونے کا انتظار کریں۔",
   "Wait for the deck to finish reading, then choose a picture.": "ڈیک کے پڑھنے کے مکمل ہونے کا انتظار کریں، پھر تصویر چنیں۔",
   "Wait for the grid to finish rendering before moving its layers.": "لیئرز منتقل کرنے سے پہلے گرڈ کے رینڈر ہونے کا انتظار کریں۔",
@@ -10645,5 +10780,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "یہ کلپ {codec} استعمال کرتا ہے، جسے یہ ڈیوائس نہیں چلا سکتی۔ اپنی ایڈیٹنگ ایپ سے H.264، HEVC یا AV1 کی کاپی ایکسپورٹ کریں، یا اسے Mac پر Lolly ڈیسک ٹاپ ایپ میں کھولیں۔ Lolly اصل فائل محفوظ رکھتا ہے۔",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "یہ کلپ {codec} استعمال کرتا ہے، جسے یہ ڈیوائس نہیں چلا سکتی۔ اپنی ایڈیٹنگ ایپ سے H.264، HEVC یا AV1 کی کاپی ایکسپورٹ کریں۔ Lolly اصل فائل محفوظ رکھتا ہے۔",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "یہ {codec} والی MXF فائل ہے۔ Lolly اس کا مواد پڑھ سکتا ہے مگر MXF نہیں چلا سکتا۔ اپنی ایڈیٹنگ ایپ سے H.264، HEVC یا AV1 کی کاپی ایکسپورٹ کریں۔ Lolly اصل فائل محفوظ رکھتا ہے۔",
-  "{format} from {camera}": "{camera} سے {format}"
+  "{format} from {camera}": "{camera} سے {format}",
+  "Filling a large area. This can take a moment.": "بڑا علاقہ بھرا جا رہا ہے۔ اس میں کچھ وقت لگ سکتا ہے۔",
+  "Large area": "بڑا علاقہ"
 }

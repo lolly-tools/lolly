@@ -57,7 +57,7 @@ test('shrink stops at the master\'s smallest size for the role and says what sti
   assert.ok(report.notes.some((n) => n.code === 'compose.fit.overflow' && n.path === '/slides/0' && /the smallest the master sets for body/.test(n.message)));
 });
 
-test('with no design system the ladder ends at the neutral master, and says so', async () => {
+test('with no design system the ladder ends at the neutral master, and reports that', async () => {
   const resolved = await resolveComposeMaster({ designSystem: { doc: null, origin: null } });
   assert.equal(resolved.origin, 'neutral');
   assert.equal(resolved.master.id, 'lolly/slides/neutral');

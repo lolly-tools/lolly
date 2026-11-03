@@ -1,0 +1,13 @@
+[package]
+name = "pdfcraft-fonts"
+description = "Standard-14 metrics and text encoding helpers (trimmed)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+pdfcraft-cos = { workspace = true }
+skrifa = { version = "=0.47.0", default-features = false, features = ["std"] }

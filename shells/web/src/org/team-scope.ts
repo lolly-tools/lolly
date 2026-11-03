@@ -360,7 +360,7 @@ async function save(mount: DocumentScopeMount): Promise<boolean> {
     if (result.kind === 'conflict') return await resolveConflict(mount, origin, result.current, generation, false);
     if (result.kind === 'file-error') { void toast(result.message, tRaw('Try again'), retry); return false; }
     if (result.status === 404 || result.status === 410) {
-      // The session is gone: the document is this device's again, and says so.
+      // The session is gone: the document is this device's again, and reports that.
       if (api.generation() === generation) api.detach(mount.toolId);
       announce(scopeSaveMessage(result.status), { assertive: true });
       return false;

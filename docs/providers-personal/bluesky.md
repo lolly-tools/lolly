@@ -26,7 +26,7 @@ short-lived session from it; no JWTs are kept.
 ## Limits
 
 Image posts only (`png`/`jpg`/`webp`/`gif`), and atproto caps an image blob at
-about 1 MB - Lolly checks before uploading and says so plainly. The post text
+about 1 MB - Lolly checks before uploading and refuses a larger image with a plain message. The post text
 and alt text are the export's name.
 
 ## Verify

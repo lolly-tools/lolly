@@ -1302,7 +1302,7 @@ test('one artboard in Scale mode keeps its own readout', async () => {
   } finally { f.destroy(); }
 });
 
-test('a locked layer inside an artboard stops Scale, and says so; the readout keeps its own fields', async () => {
+test('a locked layer inside an artboard stops Scale, and reports why; the readout keeps its own fields', async () => {
   const f = mount([
     { id: 'f1', kind: 'frame', x: 100, y: 100, w: 400, h: 300, order: 0 },
     { id: 'b1', kind: 'box', x: 150, y: 150, w: 100, h: 50, frame: 'f1', locked: true },

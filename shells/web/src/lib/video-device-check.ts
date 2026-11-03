@@ -4,8 +4,8 @@
  *
  * Lolly ships no decoder for a patent-pool codec (ProRes, DNx, H.264, HEVC, AAC,
  * AC-3). It reads the container (engine/src/video-container-probe.ts), asks the
- * device's own licensed decoder whether it can open the codec, and says so in
- * plain words when it cannot. The original bytes are always kept.
+ * device's own licensed decoder whether it can open the codec, and shows a plain
+ * note when it cannot. The original bytes are always kept.
  *
  * The device is asked two ways, in this order:
  *   1. WebCodecs `VideoDecoder` / `AudioDecoder.isConfigSupported` with the probed

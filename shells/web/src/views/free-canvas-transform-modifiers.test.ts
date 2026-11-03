@@ -14,7 +14,7 @@
  *   4. Move: ⌘ held mid-drag suspends snapping.
  *   5. A multi-selection has 8 resize handles: an edge resizes one axis of an
  *      axis-aligned set, and a set holding a turned member, a group or a circle keeps
- *      its proportions and says so.
+ *      its proportions and reports that.
  *   6. A selection resize snaps its dragged edge to the targets a single box snaps to,
  *      the grid included, and not with ⌘ held.
  *   7. A side thinner than the minimum size (a 1 px divider) keeps its size when a set

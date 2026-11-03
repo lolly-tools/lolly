@@ -266,7 +266,7 @@ test('deckAnim: the typewriter - a bare cut with split becomes appear + iterate'
 
 test('deckAnim: exits need a derived moment; clicks and junk are clamped or dropped', () => {
   const notes: string[] = [];
-  // An exit WITHOUT exitDelayMs is skipped, and says so.
+  // An exit WITHOUT exitDelayMs is skipped, and reports the skip.
   assert.equal(deckAnim({ exit: 'fade', exitMs: 400 }, notes), undefined);
   assert.ok(notes.some((n) => n.includes('exit without timing')));
   // With one, it maps - delayed to its own moment.

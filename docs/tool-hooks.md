@@ -200,7 +200,7 @@ Engine **v1.150**. Point at an audio or video input and a text input, and the sh
 - **`format`** - `"srt"` (the default) or `"vtt"` for numbered subtitle cue blocks or `"words"` for the plain spoken text, one cue per line with no timestamps.
 - **`auto`** - the optional id of a `boolean` input. While it is on, a freshly recorded or picked clip is processed with no click. The consent sheet still appears the first time the model is not on the device.
 
-Everything runs locally: the clip is decoded and read on the device, and nothing is uploaded. A clip with no speech writes an **empty value** and says so in the interface, never invented text. The declaration is feature-detected rather than capability-gated, so a shell without on-device speech, such as the headless CLI, mounts nothing and leaves the target input with the value the link or saved session gave. Pair it with a `template.srt` or `template.vtt` ([Data formats](/info/tool-rendering.html#data-formats-json-csv-ics-vcf)) to export the cues as a separate file.
+Everything runs locally: the clip is decoded and read on the device, and nothing is uploaded. A clip with no speech writes an **empty value** and shows a note in the interface, never invented text. The declaration is feature-detected rather than capability-gated, so a shell without on-device speech, such as the headless CLI, mounts nothing and leaves the target input with the value the link or saved session gave. Pair it with a `template.srt` or `template.vtt` ([Data formats](/info/tool-rendering.html#data-formats-json-csv-ics-vcf)) to export the cues as a separate file.
 
 ## Network access (`host.net`)
 

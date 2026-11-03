@@ -77,6 +77,16 @@
     "help": "I understand: every element a bar touches is deleted from the file and the area is painted over, and the output is still SVG, a readable text format. Marks have to be drawn on the preview so their elements can be measured."
   },
   {
+    "id": "keepText",
+    "label": "Keep text",
+    "type": "boolean",
+    "default": false,
+    "showIf": {
+      "fileKind": "PDF"
+    },
+    "help": "Off by default: each page is flattened to a picture, so nothing readable is left. On: the text and drawings under each bar are removed and the rest of the page stays real text you can select and search. Lolly then checks the result and refuses to save it if anything is left under a bar. Bars are plain rectangles, and a shape only partly under a bar is clipped, not cut."
+  },
+  {
     "id": "resign",
     "label": "Add a fresh Content Credential",
     "type": "boolean",

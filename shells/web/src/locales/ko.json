@@ -8042,10 +8042,14 @@
   "{count} controls you changed stay yours.": "변경한 컨트롤 {count}개는 그대로 유지돼요.",
   "{count} days": "{count}일",
   "{count} decisions from the last version still apply.": "지난 버전의 결정 {count}개가 여전히 적용돼요.",
-  "{count} entries": "{count}개",
+  "{count} entries": {
+    "other": "항목 {count}개"
+  },
   "{count} files / variations": "파일 / 변형 {count}개",
   "{count} files chosen": "파일 {count}개 선택됨",
-  "{count} files in this folder": "이 폴더의 파일 {count}개",
+  "{count} files in this folder": {
+    "other": "이 폴더의 파일 {count}개"
+  },
   "{count} for {names}": "{names}의 {count}",
   "{count} for “{query}” in {scope}": "{scope}에서 “{query}”에 대한 {count}",
   "{count} layouts": "레이아웃 {count}개",
@@ -8219,19 +8223,27 @@
   "{n} added to favourites": "{n}개가 즐겨찾기에 추가됨",
   "{n} added to the design system": "{n}개가 디자인 시스템에 추가됨",
   "{n} asset IDs": "자산 ID {n}개",
-  "{n} assets": "애셋 {n}개",
+  "{n} assets": {
+    "other": "애셋 {n}개"
+  },
   "{n} assets could not be restored. Keep your backup.": "자산 {n}개를 복원하지 못했어요. 백업을 보관하세요.",
-  "{n} assets found": "애셋 {n}개를 찾았어요",
+  "{n} assets found": {
+    "other": "애셋 {n}개를 찾았어요"
+  },
   "{n} assets zipped · {c} with Content Credentials": "자산 {n}개 압축됨 · {c}개에 Content Credentials 포함",
   "{n} available offline": "{n}개 오프라인 사용 가능",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "박스 {n}개. 클릭 한 번으로 완전한 모션 아크를 만들어요 - 모든 키프레임은 이후에도 계속 편집할 수 있어요.",
-  "{n} capabilities match": "{n}개 기능 일치",
+  "{n} capabilities match": {
+    "other": "기능 {n}개가 일치해요"
+  },
   "{n} cards are left to review.": "검토할 카드가 {n}장 남았어요.",
   "{n} cards are still to answer.": "답할 카드가 {n}장 남았어요.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "답할 카드가 {n}장 남았어요. 제안대로 수락하고 Design에서 열까요?",
   "{n} ch": "{n}자",
   "{n} changed": "{n}개 변경됨",
-  "{n} changes found": "변경 사항 {n}개를 찾았어요",
+  "{n} changes found": {
+    "other": "변경 사항 {n}개를 찾았어요"
+  },
   "{n} characters continue beyond the last frame.": "{n} 개의 문자는 마지막 프레임을 넘어서고 있습니다.",
   "{n} checks": "검사 {n}개",
   "{n} clips selected": "클립 {n}개 선택됨",
@@ -8246,7 +8258,9 @@
   "{n} connectors - editing all": "커넥터 {n}개 — 모두 편집 중",
   "{n} copies added to your projects": "프로젝트에 사본 {n}개를 추가했어요",
   "{n} copies in total": "총 {n}개 사본",
-  "{n} copies made · selected": "사본 {n}개 생성됨 · 선택됨",
+  "{n} copies made · selected": {
+    "other": "사본 {n}개 생성됨 · 선택됨"
+  },
   "{n} creation checkpoints": "작업 체크포인트 {n}개",
   "{n} curly quotes": "곡선 따옴표 {n}개",
   "{n} days ago": "{n}일 전",
@@ -8263,24 +8277,34 @@
   "{n} editable inputs. Unselected settings stay fixed.": "편집 가능한 입력 {n}개예요. 선택하지 않은 설정은 고정돼요.",
   "{n} ellipsis characters": "말줄임표 문자 {n}개",
   "{n} em-dashes": "줄표(em-dash) {n}개",
-  "{n} embedded files": "포함된 파일 {n}개",
-  "{n} external references": "외부 참조 {n}개",
+  "{n} embedded files": {
+    "other": "포함된 파일 {n}개"
+  },
+  "{n} external references": {
+    "other": "외부 참조 {n}개"
+  },
   "{n} fields": "필드 {n}개",
   "{n} file batches": "파일 일괄 작업 {n}개",
   "{n} file operation records": "파일 작업 기록 {n}개",
   "{n} files": "파일 {n}개",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "파일 {n}개는 PowerPoint 덱, PDF, Photoshop 문서가 아니어서 제외했어요.",
   "{n} files are ready to import.": "파일 {n}개를 가져올 준비가 됐어요.",
-  "{n} files could not be packed and were left out": "파일 {n}개를 압축하지 못해 제외했어요",
+  "{n} files could not be packed and were left out": {
+    "other": "파일 {n}개를 압축하지 못해 제외했어요"
+  },
   "{n} files imported from the zip.": "zip에서 파일 {n}개를 가져왔어요.",
   "{n} files imported from the zip; {skipped} skipped.": "zip에서 파일 {n}개를 가져왔고, {skipped}개는 건너뛰었어요.",
   "{n} files ready": "파일 {n}개 준비됨",
   "{n} findings": "발견 사항 {n}개",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "발견 사항 {n}개를 찾았어요. 편집 가능한 제안은 선택돼 있고, 검사만 가능한 Office 항목은 그대로예요. 검사 패널을 검토하세요.",
-  "{n} folders": "폴더 {n}개",
+  "{n} folders": {
+    "other": "폴더 {n}개"
+  },
   "{n} font changes": "글꼴 변경 {n}개",
   "{n} font choices": "글꼴 선택 {n}개",
-  "{n} font files": "글꼴 파일 {n}개",
+  "{n} font files": {
+    "other": "글꼴 파일 {n}개"
+  },
   "{n} fonts": "글꼴 {n}개",
   "{n} fonts found": "글꼴 {n}개 찾음",
   "{n} fonts from the deck are set in another face.": "덱의 글꼴 {n}개는 다른 서체로 설정돼요.",
@@ -8292,31 +8316,55 @@
   "{n} hidden - find them under “Show hidden tools”": "{n}개 숨김 - “숨긴 도구 표시”에서 확인하세요",
   "{n} hidden shades stay hidden": "숨겨진 색조 {n}개는 계속 숨겨져 있어요",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "기록 항목 {n}개를 복원하지 못했어요. 백업을 보관하고, 공간을 비우거나 충돌하는 버전을 해결한 뒤 다시 시도하세요.",
-  "{n} images": "이미지 {n}개",
-  "{n} images couldn’t be restored (storage full?)": "이미지 {n}개를 복원하지 못했어요 (저장 공간 부족?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "이미지 {n}개는 원본 위치에 그대로 있어요 - 이미지는 한 곳에만 있을 수 있어요. 이동하려면 잘라내기를 사용하세요",
+  "{n} images": {
+    "other": "이미지 {n}개"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "이미지 {n}개를 복원하지 못했어요 (저장 공간 부족?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "이미지 {n}개는 원본 위치에 그대로 있어요 - 이미지는 한 곳에만 있을 수 있어요. 이동하려면 잘라내기를 사용하세요"
+  },
   "{n} included tools (asked before installing)": "포함된 도구 {n}개 (설치 전에 물어봐요)",
   "{n} ink": "잉크 {n}개",
-  "{n} inputs · applies to every design": "입력값 {n}개 · 모든 디자인에 적용",
+  "{n} inputs · applies to every design": {
+    "other": "입력값 {n}개 · 모든 디자인에 적용"
+  },
   "{n} invisible watermark(s) found": "보이지 않는 워터마크 {n}개 발견",
   "{n} issues to review before sharing.": "공유하기 전에 검토할 문제 {n}개.",
-  "{n} items": "항목 {n}개",
-  "{n} items copied": "{n}개 항목을 복사했어요",
-  "{n} items cut": "{n}개 항목을 잘라냈어요",
-  "{n} items moved": "항목 {n}개를 이동했어요",
-  "{n} items pasted": "{n}개 항목을 붙여넣었어요",
+  "{n} items": {
+    "other": "항목 {n}개"
+  },
+  "{n} items copied": {
+    "other": "항목 {n}개를 복사했어요"
+  },
+  "{n} items cut": {
+    "other": "항목 {n}개를 잘라냈어요"
+  },
+  "{n} items moved": {
+    "other": "항목 {n}개를 이동했어요"
+  },
+  "{n} items pasted": {
+    "other": "항목 {n}개를 붙여넣었어요"
+  },
   "{n} items removed": "항목 {n}개 제거됨",
   "{n} jobs": "작업 {n}개",
   "{n} kept": "{n}개 유지됨",
   "{n} kept in the tray": "트레이에 {n}개 유지됨",
-  "{n} keyframes": "키프레임 {n}개",
+  "{n} keyframes": {
+    "other": "키프레임 {n}개"
+  },
   "{n} labelled stand-ins take the place of objects.": "이름표가 붙은 대체 항목 {n}개가 객체를 대신해요.",
   "{n} layers": "레이어 {n}개",
   "{n} layers found": "레이어 {n}개 발견",
   "{n} list lines": "목록 줄 {n}개",
-  "{n} logos": "로고 {n}개",
+  "{n} logos": {
+    "other": "로고 {n}개"
+  },
   "{n} marks became the design system mark.": "마크 {n}개가 디자인 시스템 마크가 되었어요.",
-  "{n} marks found": "마크 {n}개 발견",
+  "{n} marks found": {
+    "other": "마크 {n}개를 찾았어요"
+  },
   "{n} marks sent to Logos": "마크 {n}개를 로고로 보냄",
   "{n} min ago": "{n}분 전",
   "{n} more findings in this document.": "이 문서에 발견 사항이 {n}개 더 있어요.",
@@ -8328,7 +8376,9 @@
   "{n} more slides": "슬라이드 {n}개 더",
   "{n} moved to {group}.": "{n}개를 {group}(으)로 이동했어요.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "새 슬라이드 {n}개에 들어가지 않은 내용을 담아서 슬라이드 번호가 밀렸어요.",
-  "{n} newer items skipped": "최신 항목 {n}개를 건너뛰었어요",
+  "{n} newer items skipped": {
+    "other": "최신 항목 {n}개를 건너뛰었어요"
+  },
   "{n} nits": "{n}니트",
   "{n} not drawn": "그려지지 않은 항목 {n}개",
   "{n} objects added": "객체 {n}개 추가됨",
@@ -8341,7 +8391,9 @@
   "{n} objects overlap the slide master.": "객체 {n}개가 슬라이드 마스터와 겹쳐요.",
   "{n} objects removed": "객체 {n}개 제거됨",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "객체 {n}개는 클리핑이나 효과가 이미지로 남아 있어요. 모양을 바꾸려면 전체 아트워크를 교체하세요.",
-  "{n} of your creations are videos or animations": "내 작업물 중 {n}개가 동영상 또는 애니메이션이에요",
+  "{n} of your creations are videos or animations": {
+    "other": "내 작업물 중 {n}개가 동영상 또는 애니메이션이에요"
+  },
   "{n} of {m}": "{m}개 중 {n}번째",
   "{n} of {total} downloaded": "{total}개 중 {n}개 다운로드됨",
   "{n} of {total} downloaded · {size} on disk": "{total}개 중 {n}개 다운로드됨 · 디스크 사용량 {size}",
@@ -8352,57 +8404,79 @@
   "{n} off": "{n}개 꺼짐",
   "{n} on": "{n}개 켜짐",
   "{n} other colourways keep their own colours: {names}": "다른 컬러웨이 {n}개는 자체 색상을 유지해요: {names}",
-  "{n} pages": "{n}페이지",
+  "{n} pages": {
+    "other": "{n}페이지"
+  },
   "{n} pages are pictures of their text.": "페이지 {n}개는 텍스트가 이미지로 되어 있어요.",
-  "{n} pages differ": "페이지 {n}개가 달라요",
+  "{n} pages differ": {
+    "other": "페이지 {n}개가 달라요"
+  },
   "{n} pages had no size, so they were left out.": "크기가 없는 페이지 {n}개는 제외했어요.",
   "{n} pictures": "이미지 {n}개",
   "{n} pictures are missing.": "이미지 {n}개가 없어요.",
   "{n} pictures in the deck were not kept.": "덱의 이미지 {n}개는 유지되지 않았어요.",
-  "{n} places": "{n}곳",
+  "{n} places": {
+    "other": "{n}곳"
+  },
   "{n} points": "점 {n}개",
-  "{n} points - hold Alt for a corner": "점 {n}개 - Alt를 누르면 모서리",
+  "{n} points - hold Alt for a corner": {
+    "other": "점 {n}개 - Alt를 누르면 모서리"
+  },
   "{n} preserved file": "보존된 파일 {n}개",
   "{n} preserved files": "보존된 파일 {n}개",
   "{n} print locks re-pinned": "인쇄 잠금 {n}개 재고정됨",
   "{n} proposed changes": "{n} 개의 제안된 변경 사항",
   "{n} protected drafts": "보호된 초안 {n}개",
   "{n} published version": "게시된 버전 {n}개",
-  "{n} published versions": "게시된 버전 {n}개",
+  "{n} published versions": {
+    "other": "게시된 버전 {n}개"
+  },
   "{n} recorded": "{n}개 기록됨",
   "{n} removed from favourites": "즐겨찾기에서 {n}개 제거됨",
   "{n} removed from offline": "오프라인에서 {n}개 제거됨",
   "{n} removed. A tool naming it will lose it.": "{n}개 제거됨. 이를 참조하는 도구는 사용할 수 없게 돼요.",
   "{n} removed. A tool naming one of these will lose it.": "{n}개 제거됨. 이 중 하나를 참조하는 도구는 사용할 수 없게 돼요.",
   "{n} renders": "렌더링 {n}개",
-  "{n} results": "결과 {n}개",
+  "{n} results": {
+    "other": "결과 {n}개"
+  },
   "{n} roles re-derived": "역할 {n}개 재도출됨",
   "{n} rotated runs left out": "회전된 런 {n}개 제외됨",
   "{n} saved asset versions": "저장된 자산 버전 {n}개",
   "{n} saved for offline, {m} failed - check your connection": "{n}개는 오프라인용으로 저장, {m}개는 실패 - 연결을 확인하세요",
-  "{n} saved sessions": "저장된 세션 {n}개",
+  "{n} saved sessions": {
+    "other": "저장된 세션 {n}개"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "저장된 시스템 {n}개의 미리 보기를 표시하지 못했습니다. 프로필에서 열어 관리하세요.",
   "{n} scanned": "스캔 {n}개",
   "{n} scanned pages read.": "스캔한 페이지 {n}개를 읽었어요.",
   "{n} scanned pages were left unread to keep this quick.": "빠르게 처리하기 위해 스캔한 페이지 {n}개는 읽지 않고 남겨뒀어요.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "이 기기에 텍스트 인식이 없어서 스캔한 페이지 {n}개를 읽지 못했어요.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "스캔한 페이지 {n}개는 기기 내 문자 인식으로 읽었으므로, 해당 페이지에서는 숨은 문자 검사를 실행할 수 없었어요.",
-  "{n} selected": "{n}개 선택됨",
-  "{n} selected assets": "선택한 자산 {n}개",
+  "{n} selected": {
+    "other": "{n}개 선택됨"
+  },
+  "{n} selected assets": {
+    "other": "선택한 애셋 {n}개"
+  },
   "{n} selected files": "선택한 파일 {n}개",
   "{n} selected items could not be outlined and were left as they are.": "선택한 {n}개 항목은 외곽선으로 만들 수 없어 그대로 남았어요.",
   "{n} selected items have no outline, so they were left as they are.": "선택한 항목 {n}개에 외곽선이 없어서 그대로 뒀어요.",
   "{n} selected · {size}": "{n}개 선택됨 · {size}",
   "{n} sentences": "문장 {n}개",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "문장 {n}개에 점선 밑줄이 있어요: 기기 내 모델이 더 쉬운 표현을 제안할 수 있어요. 제안을 받아들이면 저장된 사본이 AI 지원으로 표시되고, 모델이 쓴 문구에는 Lolly의 공개 다시 쓰기 워터마크가 남아 있어 Verify에서 AI가 작성한 텍스트임을 계속 확인할 수 있어요.",
-  "{n} sessions": "세션 {n}개",
+  "{n} sessions": {
+    "other": "세션 {n}개"
+  },
   "{n} set": "{n}개 설정됨",
   "{n} shade curves re-anchored": "색조 커브 {n}개 재고정됨",
   "{n} shades added to your palette": "팔레트에 음영 {n}개 추가됨",
   "{n} shades added. Undo is available above your palette.": "음영 {n}개를 추가했어요. 팔레트 위에서 실행 취소할 수 있어요.",
   "{n} shades could not reach their target (capped at the closest tone).": "색조 {n}개는 목표에 도달하지 못했어요(가장 가까운 톤으로 제한됨).",
   "{n} shades rebuilt across {ramps} ramps": "램프 {ramps}개에 걸쳐 색조 {n}개가 재구성됨",
-  "{n} shapes": "도형 {n}개",
+  "{n} shapes": {
+    "other": "도형 {n}개"
+  },
   "{n} shapes · page {p}": "도형 {n}개 · {p}페이지",
   "{n} shared assets were kept.": "공유 자산 {n}개를 유지했어요.",
   "{n} slides narrated.": "슬라이드 {n}개에 내레이션을 추가했어요.",
@@ -8410,11 +8484,15 @@
   "{n} spectrum hues rebuilt": "스펙트럼 색조 {n}개 재구성됨",
   "{n} stages of work": "작업 단계 {n}개",
   "{n} starter colours": "시작 색상 {n}개",
-  "{n} steps": "단계 {n}개",
+  "{n} steps": {
+    "other": "단계 {n}개"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "제안 {n}개를 찾았어요. 사본은 모두 선택된 상태로 준비되며, 검사 패널에서 조정할 수 있어요.",
   "{n} suggestions were applied without review.": "제안 {n}개를 검토 없이 적용했어요.",
   "{n} swatches removed": "스와치 {n}개 제거됨",
-  "{n} templates": "템플릿 {n}개",
+  "{n} templates": {
+    "other": "템플릿 {n}개"
+  },
   "{n} templates added": "템플릿 {n}개 추가됨",
   "{n} templates deleted": "템플릿 {n}개 삭제됨",
   "{n} templates saved": "템플릿 {n}개 저장됨",
@@ -8434,11 +8512,15 @@
   "{n} unsupported backup parts skipped": "지원되지 않는 백업 부분 {n}개를 건너뛰었어요",
   "{n} value changes": "값 변경 {n}개",
   "{n} values change": "값 {n}개가 변경돼요",
-  "{n} volume keys": "볼륨 키 {n}개",
+  "{n} volume keys": {
+    "other": "볼륨 키 {n}개"
+  },
   "{n} warnings.": "경고 {n}개.",
   "{n} were kept - they are not this room to remove.": "{n}개는 유지됐어요 - 이 항목은 여기서 제거할 대상이 아니에요.",
   "{n} wording swaps are underlined in the preview.": "미리보기에서 문구 교체 {n}건에 밑줄이 표시돼요.",
-  "{n} words": "단어 {n}개",
+  "{n} words": {
+    "other": "단어 {n}개"
+  },
   "{n} words cut": "단어 {n}개 잘림",
   "{n} yours": "내 항목 {n}개",
   "{n}-bit": "{n}비트",
@@ -8832,7 +8914,9 @@
   "1 design was added to Projects, in 1 folder.": "디자인 1개를 프로젝트의 폴더 1개에 추가했어요.",
   "1 design was added to Projects, in {f} folders.": "디자인 1개를 프로젝트의 폴더 {f}개에 추가했어요.",
   "1 design was added to Projects.": "디자인 1개를 프로젝트에 추가했어요.",
-  "{n} creations removed from Projects here stayed removed.": "프로젝트에서 제거된 작업 {n}개는 여기서 계속 제거된 상태예요.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "프로젝트에서 제거된 작업 {n}개는 여기서 계속 제거된 상태예요."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "이 작업은 저장된 적이 없어서, 저장하지 않고 나가면 프로젝트에서 삭제돼요.",
   "This deck has no colours to change.": "이 덱에는 바꿀 색상이 없어요.",
   "This deck has no fonts to change.": "이 덱에는 바꿀 글꼴이 없어요.",
@@ -8862,7 +8946,9 @@
   "This saved version could not be read.": "이 저장된 버전을 읽을 수 없었어요.",
   "1 older automatic checkpoint left out": "표시되지 않은 오래된 자동 체크포인트 1개",
   "1 other colourway keeps its own colours: {names}": "다른 컬러웨이 1개는 자체 색상을 유지해요: {names}",
-  "{n} older automatic checkpoints left out": "표시되지 않은 오래된 자동 체크포인트 {n}개",
+  "{n} older automatic checkpoints left out": {
+    "other": "오래된 자동 체크포인트 {n}개를 제외했어요"
+  },
   "Automatic recovery and checkpoints are on": "자동 복구와 체크포인트가 켜져 있어요",
   "Automatic recovery is unavailable here. Save before leaving.": "여기서는 자동 복구를 쓸 수 없어요. 나가기 전에 저장하세요.",
   "Checkpoint saved at {time} on this device": "{time}에 이 기기에서 체크포인트가 저장됐어요",
@@ -9045,7 +9131,9 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "웹 버전에서 표시할 수 없는 사이트를 표시하기 위해 Lolly가 이 기기에서 더 느슨한 프레임 정책으로 다시 로드한 다음, 발표하기 전에 사이트마다 물어볼 수 있어요. 프로필의 신뢰하는 사이트에서 끌 수 있어요.",
   "Card size": "카드 크기",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "이 기기에서 이미지 또는 파일 1개가 추가되었습니다. 해당 파일은 이 기기에만 남으며 다른 사람에게는 보이지 않습니다.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "이 기기에서 이미지 또는 파일 {n}개가 추가되었습니다. 해당 파일은 이 기기에만 남으며 다른 사람에게는 보이지 않습니다.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "이 기기에서 이미지 또는 파일 {n}개가 추가되었어요. 해당 파일은 이 기기에만 남으며 다른 사람에게는 보이지 않아요."
+  },
   "Check the version first": "먼저 버전을 확인하세요",
   "Copy team link": "팀 링크 복사",
   "Could not create the project. Try again.": "프로젝트를 만들 수 없습니다. 다시 시도하세요.",
@@ -9793,7 +9881,9 @@
   "Every mode": "모든 모드",
   "Your local items have not changed.": "로컬 항목은 변경되지 않았어요.",
   "1 item was saved to the shared project.": "항목 1개가 공유 프로젝트에 저장되었어요.",
-  "{n} items were saved to the shared project.": "항목 {n}개가 공유 프로젝트에 저장되었어요.",
+  "{n} items were saved to the shared project.": {
+    "other": "항목 {n}개가 공유 프로젝트에 저장되었어요."
+  },
   "Wait for the current move to finish.": "진행 중인 이동이 끝날 때까지 기다리세요.",
   "Wait for the deck to finish reading, then choose a picture.": "덱을 다 읽을 때까지 기다린 뒤 이미지를 선택하세요.",
   "Wait for the grid to finish rendering before moving its layers.": "그리드 렌더가 끝날 때까지 기다린 뒤 레이어를 옮기세요.",
@@ -10645,5 +10735,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "이 클립은 {codec}을(를) 사용하는데, 이 기기에서는 재생할 수 없어요. 편집 앱에서 H.264, HEVC 또는 AV1 사본을 내보내거나, Mac의 Lolly 데스크톱 앱에서 열어 보세요. Lolly는 원본 파일을 그대로 보관해요.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "이 클립은 {codec}을(를) 사용하는데, 이 기기에서는 재생할 수 없어요. 편집 앱에서 H.264, HEVC 또는 AV1 사본을 내보내세요. Lolly는 원본 파일을 그대로 보관해요.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "{codec}을(를) 사용하는 MXF 파일이에요. Lolly는 내용을 읽을 수는 있지만 MXF를 재생할 수는 없어요. 편집 앱에서 H.264, HEVC 또는 AV1 사본을 내보내세요. Lolly는 원본 파일을 그대로 보관해요.",
-  "{format} from {camera}": "{camera}의 {format}"
+  "{format} from {camera}": "{camera}의 {format}",
+  "Filling a large area. This can take a moment.": "넓은 영역을 채우는 중이에요. 잠시 걸릴 수 있어요.",
+  "Large area": "넓은 영역"
 }

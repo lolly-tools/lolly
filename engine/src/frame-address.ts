@@ -41,7 +41,7 @@ export interface FrameAddress {
  *  - `none`     - no address was given: export every page, unchanged.
  *  - `page`     - export ONLY the page at `index`.
  *  - `unmatched`- an address was given and named nothing. The caller decides: the web
- *                 shell keeps the whole fan-out and says so, the CLI refuses. Never
+ *                 shell keeps the whole fan-out and warns, the CLI refuses. Never
  *                 silently collapse it to "the first page". */
 export type FrameSelection =
   | { kind: 'none' }

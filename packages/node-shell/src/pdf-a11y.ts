@@ -13,6 +13,7 @@ import type {
 export const PDF_A11Y_MAX_BYTES = 256 * 1024 * 1024;
 const MAX_RESULT = 20 * 1024 * 1024;
 const OP_CHECK = 1;
+const OP_REDACT = 2;
 const STATUSES = new Set<string>(['passed', 'failed', 'manual', 'skipped']);
 
 /** Why a file was not checked. */
@@ -40,9 +41,58 @@ function isApi(e: WebAssembly.Exports): e is A11yExports {
     && ['pdf_a11y_alloc', 'pdf_a11y_free', 'pdf_a11y_run', 'pdf_a11y_result_ptr', 'pdf_a11y_result_len'].every(k => typeof e[k] === 'function');
 }
 
+/** A box to remove content under, in PDF points from the top-left of the page's MediaBox. */
+export interface PdfKeepTextBar { page: number; x: number; y: number; w: number; h: number }
+
+export interface PdfKeepTextRequest {
+  bars: PdfKeepTextBar[];
+  /** Box colour as three numbers from 0 to 1. */
+  fill?: [number, number, number];
+  /** Text drawn on each box. Standard-font characters only. */
+  label?: string;
+  labelColor?: [number, number, number];
+  /** Also remove metadata, attachments and other applications' private data. */
+  sanitize?: boolean;
+}
+
+/** What the module removed. The counts are the module's own; Lolly checks the result separately. */
+export interface PdfKeepTextSummary {
+  v: 1;
+  marks: number;
+  pages: number;
+  glyphs: number;
+  images_removed: number;
+  images_cleared: number;
+  paths_removed: number;
+  paths_clipped: number;
+  forms_rewritten: number;
+  forms_removed: number;
+  annotations: number;
+  fields: number;
+  tags: number;
+  xfa_removed: boolean;
+  sanitized: [string, number][];
+}
+
+export type PdfKeepTextErrorCode = 'not-pdf' | 'encrypted' | 'damaged' | 'too-large' | 'refused' | 'bad-request';
+
+/** The module could not remove the content, or would not claim to have. Nothing was changed. */
+export class PdfKeepTextError extends Error {
+  readonly code: PdfKeepTextErrorCode;
+  constructor(code: PdfKeepTextErrorCode, message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = 'PdfKeepTextError';
+    this.code = code;
+  }
+}
+
 export interface PdfA11yKernel {
   /** Check a PDF. Throws `PdfAccessibilityError` when the file cannot be read. */
   check(bytes: Uint8Array): PdfAccessibilityReport;
+  /** Remove the content under boxes and keep the rest of the page. Throws `PdfKeepTextError`. */
+  redact(bytes: Uint8Array, request: PdfKeepTextRequest): { bytes: Uint8Array; summary: PdfKeepTextSummary };
+  /** True once the module trapped. Its memory cannot be trusted again, so a loader starts a new one. */
+  readonly retired: boolean;
 }
 
 const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -80,11 +130,13 @@ export function parsePdfAccessibilityReport(json: string): PdfAccessibilityRepor
 }
 
 const REFUSAL = /^(not-pdf|encrypted|damaged): ?(.*)$/s;
+const KEEP_TEXT_REFUSAL = /^(not-pdf|encrypted|damaged|refused|bad-request): ?(.*)$/s;
 
 export async function createPdfA11yKernel(wasm: Uint8Array): Promise<PdfA11yKernel> {
   const { instance } = await WebAssembly.instantiate(wasm as Uint8Array<ArrayBuffer>, {});
   if (!isApi(instance.exports)) throw new Error('The PDF accessibility module ABI is incompatible.');
   const api = instance.exports;
+  let retired = false;
 
   function check(bytes: Uint8Array): PdfAccessibilityReport {
     if (!(bytes instanceof Uint8Array) || bytes.length === 0) throw new PdfAccessibilityError('not-pdf', 'The file is empty, so it was not checked.');
@@ -106,5 +158,41 @@ export async function createPdfA11yKernel(wasm: Uint8Array): Promise<PdfA11yKern
       }
     } finally { api.pdf_a11y_free(pointer); }
   }
-  return { check };
+  function redact(bytes: Uint8Array, request: PdfKeepTextRequest): { bytes: Uint8Array; summary: PdfKeepTextSummary } {
+    if (retired) throw new PdfKeepTextError('refused', 'The module stopped on an earlier file and must be started again.');
+    if (!(bytes instanceof Uint8Array) || bytes.length === 0) throw new PdfKeepTextError('not-pdf', 'The file is empty.');
+    const header = new TextEncoder().encode(JSON.stringify(request));
+    const total = 4 + header.length + bytes.length;
+    if (total > PDF_A11Y_MAX_BYTES) throw new PdfKeepTextError('too-large', 'The PDF is larger than 256 MB.');
+    const pointer = api.pdf_a11y_alloc(total);
+    if (!pointer) throw new PdfKeepTextError('too-large', 'The PDF is too large to hold in memory for this.');
+    try {
+      const view = new Uint8Array(api.memory.buffer, pointer, total);
+      new DataView(api.memory.buffer, pointer, 4).setUint32(0, header.length, true);
+      view.set(header, 4);
+      view.set(bytes, 4 + header.length);
+      let status: number;
+      try { status = api.pdf_a11y_run(pointer, total, OP_REDACT); } catch (error) {
+        retired = true;
+        throw new PdfKeepTextError('refused', 'The PDF could not be processed safely.', { cause: error });
+      }
+      const length = api.pdf_a11y_result_len(), at = api.pdf_a11y_result_ptr();
+      if (length > PDF_A11Y_MAX_BYTES || at + length > api.memory.buffer.byteLength) throw new PdfKeepTextError('damaged', 'The result was larger than expected.');
+      const out = new Uint8Array(api.memory.buffer, at, length).slice();
+      if (status !== 0) {
+        const m = KEEP_TEXT_REFUSAL.exec(new TextDecoder().decode(out));
+        throw new PdfKeepTextError((m?.[1] as PdfKeepTextErrorCode | undefined) ?? 'damaged', m?.[2] || 'The PDF could not be processed.');
+      }
+      if (out.length < 4) throw new PdfKeepTextError('damaged', 'The result was cut short.');
+      const headLength = new DataView(out.buffer, out.byteOffset, 4).getUint32(0, true);
+      if (4 + headLength > out.length) throw new PdfKeepTextError('damaged', 'The result was cut short.');
+      let summary: PdfKeepTextSummary;
+      try { summary = JSON.parse(new TextDecoder().decode(out.subarray(4, 4 + headLength))) as PdfKeepTextSummary; } catch {
+        throw new PdfKeepTextError('damaged', 'The result summary could not be read.');
+      }
+      if (!isObject(summary) || summary.v !== 1) throw new PdfKeepTextError('damaged', 'The result summary could not be read.');
+      return { bytes: out.slice(4 + headLength), summary };
+    } finally { api.pdf_a11y_free(pointer); }
+  }
+  return { check, redact, get retired() { return retired; } };
 }

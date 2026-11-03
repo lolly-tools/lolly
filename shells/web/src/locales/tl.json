@@ -8027,10 +8027,16 @@
   "{count} controls you changed stay yours.": "Mananatiling sa'yo ang {count} control na binago mo.",
   "{count} days": "{count} araw",
   "{count} decisions from the last version still apply.": "{count} desisyon mula sa huling bersyon ang may bisa pa rin.",
-  "{count} entries": "{count} entry",
+  "{count} entries": {
+    "one": "{count} entry",
+    "other": "{count} entry"
+  },
   "{count} files / variations": "{count} files / variations",
   "{count} files chosen": "{count} file ang napili",
-  "{count} files in this folder": "{count} file sa folder na ito",
+  "{count} files in this folder": {
+    "one": "{count} file sa folder na ito",
+    "other": "{count} file sa folder na ito"
+  },
   "{count} for {names}": "{count} para sa {names}",
   "{count} for “{query}” in {scope}": "{count} para sa “{query}” sa {scope}",
   "{count} layouts": "{count} layout",
@@ -8204,19 +8210,31 @@
   "{n} added to favourites": "{n} naidagdag sa favourites",
   "{n} added to the design system": "{n} idinagdag sa design system",
   "{n} asset IDs": "{n} asset ID",
-  "{n} assets": "{n} asset",
+  "{n} assets": {
+    "one": "{n} asset",
+    "other": "{n} asset"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} Ang mga yaman ay hindi maaaring maibalik.",
-  "{n} assets found": "{n} asset ang nahanap",
+  "{n} assets found": {
+    "one": "{n} asset ang nahanap",
+    "other": "{n} asset ang nahanap"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} asset na naka-zip · {c} na may Content Credentials",
   "{n} available offline": "{n} available offline",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} box. Isang click ang sumusulat ng kumpletong motion arc - mananatiling maie-edit ang bawat keyframe pagkatapos.",
-  "{n} capabilities match": "{n} capabilities match",
+  "{n} capabilities match": {
+    "one": "{n} capability ang tumugma",
+    "other": "{n} capability ang tumugma"
+  },
   "{n} cards are left to review.": "{n} card ang natitirang susuriin.",
   "{n} cards are still to answer.": "{n} card ang natitirang sasagutin.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "{n} card ang natitirang sasagutin. Tanggapin ang mga ito ayon sa panukala at buksan sa Design?",
   "{n} ch": "{n} ch",
   "{n} changed": "{n} nagbago",
-  "{n} changes found": "{n} pagbabagong nahanap",
+  "{n} changes found": {
+    "one": "{n} pagbabago ang nahanap",
+    "other": "{n} pagbabago ang nahanap"
+  },
   "{n} characters continue beyond the last frame.": "{n} karakter ang nagpapatuloy lampas sa huling frame.",
   "{n} checks": "{n} mga tseke",
   "{n} clips selected": "{n} clip ang napili",
@@ -8231,7 +8249,10 @@
   "{n} connectors - editing all": "{n} connector - ine-edit lahat",
   "{n} copies added to your projects": "{n} kopya ang naidagdag sa mga proyekto mo",
   "{n} copies in total": "{n} kopya sa kabuuan",
-  "{n} copies made · selected": "{n} kopya ang nagawa · napili",
+  "{n} copies made · selected": {
+    "one": "{n} kopya ang nagawa · napili",
+    "other": "{n} kopya ang nagawa · napili"
+  },
   "{n} creation checkpoints": "{n} creation checkpoint",
   "{n} curly quotes": "{n} curly quote",
   "{n} days ago": "{n} mga araw na ang nakalilipas",
@@ -8248,24 +8269,39 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} na-eedit na input. Nananatiling fixed ang mga hindi napiling setting.",
   "{n} ellipsis characters": "{n} ellipsis character",
   "{n} em-dashes": "{n} em-dash",
-  "{n} embedded files": "{n} mga file na naka-embedded",
-  "{n} external references": "{n} panlabas na mga sanggunian",
+  "{n} embedded files": {
+    "one": "{n} file na naka-embed",
+    "other": "{n} file na naka-embed"
+  },
+  "{n} external references": {
+    "one": "{n} panlabas na sanggunian",
+    "other": "{n} panlabas na sanggunian"
+  },
   "{n} fields": "{n} field",
   "{n} file batches": "{n} mga batch ng file",
   "{n} file operation records": "{n} mga talaan ng operasyon ng file",
   "{n} files": "{n} file",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} file ay hindi PowerPoint deck, PDF o Photoshop document, kaya hindi isinama.",
   "{n} files are ready to import.": "{n} file ang handa nang i-import.",
-  "{n} files could not be packed and were left out": "{n} file ang hindi na-pack at naiwan",
+  "{n} files could not be packed and were left out": {
+    "one": "{n} file ang hindi na-pack at naiwan",
+    "other": "{n} file ang hindi na-pack at naiwan"
+  },
   "{n} files imported from the zip.": "{n} file ang na-import mula sa zip.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} file ang na-import mula sa zip; {skipped} ang nilaktawan.",
   "{n} files ready": "{n} ang mga file ay handa",
   "{n} findings": "{n} mga natuklasan",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "{n} natuklasan. Napili ang na-eedit na suhestiyon; nananatiling hindi nagbabago ang inspect-only na Office findings. Suriin ang Inspection panel.",
-  "{n} folders": "{n} folder",
+  "{n} folders": {
+    "one": "{n} folder",
+    "other": "{n} folder"
+  },
   "{n} font changes": "{n} pagbabago ng font",
   "{n} font choices": "{n} pagpili ng font",
-  "{n} font files": "{n} mga file ng font",
+  "{n} font files": {
+    "one": "{n} font file",
+    "other": "{n} font file"
+  },
   "{n} fonts": "{n} font",
   "{n} fonts found": "{n} font ang natagpuan",
   "{n} fonts from the deck are set in another face.": "{n} font mula sa deck ay naka-set sa ibang face.",
@@ -8277,31 +8313,67 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} nakatago - hanapin ang mga ito sa ilalim ng “Show hidden tools”",
   "{n} hidden shades stay hidden": "{n} nakatagong shade ang mananatiling nakatago",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} Hindi maaaring maibalik ang mga item ng kasaysayan. Panatilihin ang iyong backup; libre na espasyo o malutas ang mga nakikipag-away na bersyon bago muling subukan.",
-  "{n} images": "{n} imahe",
-  "{n} images couldn’t be restored (storage full?)": "{n} imahe ang hindi na-restore (puno na ba ang storage?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} larawan ang nanatili sa orihinal - iisa lang ang tahanan ng mga larawan; gamitin ang Cut para ilipat ang mga ito",
+  "{n} images": {
+    "one": "{n} larawan",
+    "other": "{n} larawan"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} larawan ang hindi na-restore (puno na ba ang storage?)",
+    "other": "{n} larawan ang hindi na-restore (puno na ba ang storage?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} larawan ang nanatili sa orihinal - iisa lang ang tahanan ng mga larawan; gamitin ang Cut para ilipat ang mga ito",
+    "other": "{n} larawan ang nanatili sa orihinal - iisa lang ang tahanan ng mga larawan; gamitin ang Cut para ilipat ang mga ito"
+  },
   "{n} included tools (asked before installing)": "{n} kasamang tool (magtatanong bago i-install)",
   "{n} ink": "{n} ink",
-  "{n} inputs · applies to every design": "{n} input · para sa bawat design",
+  "{n} inputs · applies to every design": {
+    "one": "{n} input · para sa bawat design",
+    "other": "{n} input · para sa bawat design"
+  },
   "{n} invisible watermark(s) found": "{n} invisible watermark ang nahanap",
   "{n} issues to review before sharing.": "{n} isyung susuriin bago mag-share.",
-  "{n} items": "{n} item",
-  "{n} items copied": "{n} item ang na-copy",
-  "{n} items cut": "{n} item ang na-cut",
-  "{n} items moved": "{n} item ang inilipat",
-  "{n} items pasted": "{n} item ang na-paste",
+  "{n} items": {
+    "one": "{n} item",
+    "other": "{n} item"
+  },
+  "{n} items copied": {
+    "one": "{n} item ang na-copy",
+    "other": "{n} item ang na-copy"
+  },
+  "{n} items cut": {
+    "one": "{n} item ang na-cut",
+    "other": "{n} item ang na-cut"
+  },
+  "{n} items moved": {
+    "one": "{n} item ang inilipat",
+    "other": "{n} item ang inilipat"
+  },
+  "{n} items pasted": {
+    "one": "{n} item ang na-paste",
+    "other": "{n} item ang na-paste"
+  },
   "{n} items removed": "{n} item ang naalis",
   "{n} jobs": "{n} job",
   "{n} kept": "{n} pinanatili",
   "{n} kept in the tray": "{n} pinanatili sa tray",
-  "{n} keyframes": "{n} na keyframe",
+  "{n} keyframes": {
+    "one": "{n} keyframe",
+    "other": "{n} keyframe"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} may label na stand-in ang pumapalit sa mga object.",
   "{n} layers": "{n} layer",
   "{n} layers found": "{n} layers ang nahanap",
   "{n} list lines": "{n} linya ng listahan",
-  "{n} logos": "{n} mga logo",
+  "{n} logos": {
+    "one": "{n} logo",
+    "other": "{n} logo"
+  },
   "{n} marks became the design system mark.": "{n} mark ang naging mark ng design system.",
-  "{n} marks found": "{n} marks ang nahanap",
+  "{n} marks found": {
+    "one": "{n} mark ang nahanap",
+    "other": "{n} mark ang nahanap"
+  },
   "{n} marks sent to Logos": "{n} mark ang ipinadala sa Logos",
   "{n} min ago": "{n} min ago",
   "{n} more findings in this document.": "{n} pang natuklasan sa dokumentong ito.",
@@ -8313,7 +8385,10 @@
   "{n} more slides": "{n} pang slide",
   "{n} moved to {group}.": "{n} inilipat sa {group}.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} bagong slide ang may laman ng hindi nagkasya, kaya lumipat ang mga numero ng slide.",
-  "{n} newer items skipped": "{n} mas bagong item ang nilaktawan",
+  "{n} newer items skipped": {
+    "one": "{n} mas bagong item ang nilaktawan",
+    "other": "{n} mas bagong item ang nilaktawan"
+  },
   "{n} nits": "{n} nit",
   "{n} not drawn": "{n} ang hindi iginuhit",
   "{n} objects added": "{n} object ang naidagdag",
@@ -8326,7 +8401,10 @@
   "{n} objects overlap the slide master.": "{n} object ang nag-o-overlap sa slide master.",
   "{n} objects removed": "{n} object ang naalis",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} object ang nagpapanatili ng clipping o effects bilang larawan. Palitan ang kumpletong artwork nila para baguhin ang hugis.",
-  "{n} of your creations are videos or animations": "{n} sa mga ginawa mo ay video o animation",
+  "{n} of your creations are videos or animations": {
+    "one": "{n} sa mga ginawa mo ay video o animation",
+    "other": "{n} sa mga ginawa mo ay video o animation"
+  },
   "{n} of {m}": "{n} sa {m}",
   "{n} of {total} downloaded": "{n} sa {total} ang na-download",
   "{n} of {total} downloaded · {size} on disk": "{n} sa {total} ang na-download · {size} sa disk",
@@ -8337,57 +8415,90 @@
   "{n} off": "{n} naka-off",
   "{n} on": "{n} naka-on",
   "{n} other colourways keep their own colours: {names}": "{n} pang colourway ang may sariling mga kulay: {names}",
-  "{n} pages": "{n} na pahina",
+  "{n} pages": {
+    "one": "{n} pahina",
+    "other": "{n} pahina"
+  },
   "{n} pages are pictures of their text.": "{n} page ay larawan ng text nila.",
-  "{n} pages differ": "{n} pahinang magkaiba",
+  "{n} pages differ": {
+    "one": "{n} pahina ang magkaiba",
+    "other": "{n} pahina ang magkaiba"
+  },
   "{n} pages had no size, so they were left out.": "{n} page ang walang laki, kaya hindi isinama.",
   "{n} pictures": "{n} larawan",
   "{n} pictures are missing.": "{n} larawan ang nawawala.",
   "{n} pictures in the deck were not kept.": "{n} larawan sa deck ang hindi itinago.",
-  "{n} places": "{n} na lugar",
+  "{n} places": {
+    "one": "{n} lugar",
+    "other": "{n} lugar"
+  },
   "{n} points": "{n} na point",
-  "{n} points - hold Alt for a corner": "{n} na point - pindutin ang Alt para sa corner",
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} point - pindutin nang matagal ang Alt para sa corner",
+    "other": "{n} point - pindutin nang matagal ang Alt para sa corner"
+  },
   "{n} preserved file": "{n} preserved file",
   "{n} preserved files": "{n} preserved files",
   "{n} print locks re-pinned": "{n} print lock ang na-pin ulit",
   "{n} proposed changes": "{n} iminungkahing pagbabago",
   "{n} protected drafts": "{n} protektadong draft",
   "{n} published version": "{n} published version",
-  "{n} published versions": "{n} published versions",
+  "{n} published versions": {
+    "one": "{n} nai-publish na bersyon",
+    "other": "{n} nai-publish na bersyon"
+  },
   "{n} recorded": "{n} naitala",
   "{n} removed from favourites": "{n} naalis sa favourites",
   "{n} removed from offline": "{n} naalis sa offline",
   "{n} removed. A tool naming it will lose it.": "{n} naalis. Mawawala ito sa tool na tumutukoy dito.",
   "{n} removed. A tool naming one of these will lose it.": "{n} naalis. Mawawala ito sa tool na tumutukoy sa isa sa mga ito.",
   "{n} renders": "{n} render",
-  "{n} results": "{n} resulta",
+  "{n} results": {
+    "one": "{n} resulta",
+    "other": "{n} resulta"
+  },
   "{n} roles re-derived": "{n} role ang muling kinalkula",
   "{n} rotated runs left out": "{n} rotated na run ang naiwan",
   "{n} saved asset versions": "{n} mga bersyon ng asset na nai-save",
   "{n} saved for offline, {m} failed - check your connection": "{n} na-save para offline, {m} nabigo - suriin ang koneksyon mo",
-  "{n} saved sessions": "{n} naka-save na session",
+  "{n} saved sessions": {
+    "one": "{n} naka-save na session",
+    "other": "{n} naka-save na session"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "{n} naka-save na system ang hindi ma-preview. Buksan ang mga ito mula sa Profile para pamahalaan.",
   "{n} scanned": "{n} na na-scan",
   "{n} scanned pages read.": "{n} na-scan na page ang nabasa.",
   "{n} scanned pages were left unread to keep this quick.": "{n} na-scan na page ang hindi binasa para mapabilis ito.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "{n} na-scan na page ang hindi nabasa dahil wala sa device na ito ang Text recognition.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} na-scan na page ang nabasa gamit ang on-device text recognition, kaya hindi natakbo ang hidden-character check sa mga page na iyon.",
-  "{n} selected": "{n} napili",
-  "{n} selected assets": "{n} napiling asset",
+  "{n} selected": {
+    "one": "{n} napili",
+    "other": "{n} napili"
+  },
+  "{n} selected assets": {
+    "one": "{n} napiling asset",
+    "other": "{n} napiling asset"
+  },
   "{n} selected files": "{n} napiling file",
   "{n} selected items could not be outlined and were left as they are.": "{n} napiling item ang hindi na-outline at naiwan nang gaya ng dati.",
   "{n} selected items have no outline, so they were left as they are.": "Walang outline ang {n} napiling item, kaya iniwan ang mga ito nang ganoon.",
   "{n} selected · {size}": "{n} napili · {size}",
   "{n} sentences": "{n} pangungusap",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "May dotted underline ang {n} pangungusap: puwedeng mag-alok ng mas simpleng bersyon ang on-device model. Ang pagtanggap sa isa ay nagma-flag sa saved copy bilang AI-assisted, at may dalang pampublikong reword watermark ng Lolly ang mga salitang ginamit ng model, kaya nananatiling madetect ang AI-written na teksto sa Verify.",
-  "{n} sessions": "{n} session",
+  "{n} sessions": {
+    "one": "{n} session",
+    "other": "{n} session"
+  },
   "{n} set": "{n} na naka-set",
   "{n} shade curves re-anchored": "{n} shade curve ang na-anchor ulit",
   "{n} shades added to your palette": "{n} shade ang naidagdag sa palette mo",
   "{n} shades added. Undo is available above your palette.": "{n} shade ang naidagdag. May Undo sa itaas ng palette mo.",
   "{n} shades could not reach their target (capped at the closest tone).": "Hindi naabot ng {n} shade ang target nila (naka-cap sa pinakamalapit na tono).",
   "{n} shades rebuilt across {ramps} ramps": "{n} shade ang naitayong muli sa {ramps} ramp",
-  "{n} shapes": "{n} shapes",
+  "{n} shapes": {
+    "one": "{n} shape",
+    "other": "{n} shape"
+  },
   "{n} shapes · page {p}": "{n} na hugis · pahina {p}",
   "{n} shared assets were kept.": "{n} shared asset ang pinanatili.",
   "{n} slides narrated.": "{n} slide ang na-narrate.",
@@ -8395,11 +8506,17 @@
   "{n} spectrum hues rebuilt": "{n} spectrum hue ang naitayong muli",
   "{n} stages of work": "{n} yugto ng trabaho",
   "{n} starter colours": "{n} starter colours",
-  "{n} steps": "{n} mga hakbang",
+  "{n} steps": {
+    "one": "{n} hakbang",
+    "other": "{n} hakbang"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "{n} suhestiyon ang nahanap. Inihahanda ang mga kopya na napili ang mga ito; ayusin ang alinman sa Inspection panel.",
   "{n} suggestions were applied without review.": "{n} suhestiyon ang inilapat nang walang review.",
   "{n} swatches removed": "{n} swatch ang inalis",
-  "{n} templates": "{n} template",
+  "{n} templates": {
+    "one": "{n} template",
+    "other": "{n} template"
+  },
   "{n} templates added": "{n} template ang naidagdag",
   "{n} templates deleted": "{n} template ang nabura",
   "{n} templates saved": "{n} template ang na-save",
@@ -8419,11 +8536,17 @@
   "{n} unsupported backup parts skipped": "{n} Hindi suportadong mga bahagi ng backup na pinalabas",
   "{n} value changes": "{n} pagbabago ng value",
   "{n} values change": "{n} value ang magbabago",
-  "{n} volume keys": "{n} volume key",
+  "{n} volume keys": {
+    "one": "{n} volume key",
+    "other": "{n} volume key"
+  },
   "{n} warnings.": "{n} warning.",
   "{n} were kept - they are not this room to remove.": "{n} ang pinanatili - hindi sila kabilang sa room na ito para alisin.",
   "{n} wording swaps are underlined in the preview.": "{n} wording swap ang may salungguhit sa preview.",
-  "{n} words": "{n} na salita",
+  "{n} words": {
+    "one": "{n} salita",
+    "other": "{n} salita"
+  },
   "{n} words cut": "{n} salita ang pinutol",
   "{n} yours": "{n} sa iyo",
   "{n}-bit": "{n}-bit",
@@ -8814,7 +8937,10 @@
   "1 design was added to Projects, in 1 folder.": "1 design ang naidagdag sa Projects, sa 1 folder.",
   "1 design was added to Projects, in {f} folders.": "1 design ang naidagdag sa Projects, sa {f} folder.",
   "1 design was added to Projects.": "1 design ang naidagdag sa Projects.",
-  "{n} creations removed from Projects here stayed removed.": "{n} likhang inalis sa Mga Project dito ay nanatiling inalis.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} likhang inalis sa Mga Project dito ay nanatiling inalis.",
+    "other": "{n} likhang inalis sa Mga Project dito ay nanatiling inalis."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Hindi kailanman na-save ang likhang ito, kaya kapag umalis ka nang hindi nagse-save, maaalis ito sa Mga Project.",
   "This deck has no colours to change.": "Walang kulay na babaguhin ang deck na ito.",
   "This deck has no fonts to change.": "Walang font na babaguhin ang deck na ito.",
@@ -8844,7 +8970,10 @@
   "This saved version could not be read.": "Hindi na mabasa ang naka-save na version na ito.",
   "1 older automatic checkpoint left out": "1 mas lumang awtomatikong checkpoint ang hindi ipinapakita",
   "1 other colourway keeps its own colours: {names}": "1 pang colourway ang may sariling mga kulay: {names}",
-  "{n} older automatic checkpoints left out": "{n} mas lumang awtomatikong checkpoint ang hindi ipinapakita",
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} mas lumang awtomatikong checkpoint ang hindi ipinapakita",
+    "other": "{n} mas lumang awtomatikong checkpoint ang hindi ipinapakita"
+  },
   "Automatic recovery and checkpoints are on": "Naka-on ang awtomatikong recovery at mga checkpoint",
   "Automatic recovery is unavailable here. Save before leaving.": "Hindi available dito ang automatic recovery. I-save bago umalis.",
   "Checkpoint saved at {time} on this device": "Na-save ang checkpoint noong {time} sa device na ito",
@@ -9027,7 +9156,10 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Para maipakita ang mga site na hindi kaya ng web na bersyon, puwedeng mag-reload ang Lolly sa mas maluwag na frame policy sa device na ito, saka magtanong tungkol sa bawat site bago ka mag-present. Puwede mo itong patayin sa profile mo, sa ilalim ng Mga pinagkakatiwalaang site.",
   "Card size": "Laki ng card",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "May 1 larawan o file na idinagdag sa device na ito. Mananatili ito sa device na ito, at hindi makikita ng iba ang file na iyon.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "May {n} larawan o file na idinagdag sa device na ito. Mananatili ang mga ito sa device na ito, at hindi makikita ng iba ang mga file na iyon.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "May {n} larawan o file na idinagdag sa device na ito. Mananatili ang mga ito sa device na ito, at hindi makikita ng iba ang mga file na iyon.",
+    "other": "May {n} larawan o file na idinagdag sa device na ito. Mananatili ang mga ito sa device na ito, at hindi makikita ng iba ang mga file na iyon."
+  },
   "Check the version first": "Tingnan muna ang bersyon",
   "Copy team link": "Kopyahin ang link ng team",
   "Could not create the project. Try again.": "Hindi nagawa ang project. Subukan ulit.",
@@ -9793,7 +9925,10 @@
   "Every mode": "Bawat mode",
   "Your local items have not changed.": "Hindi nagbago ang iyong mga lokal na item.",
   "1 item was saved to the shared project.": "Na-save ang 1 item sa shared na project.",
-  "{n} items were saved to the shared project.": "Na-save ang {n} item sa shared na project.",
+  "{n} items were saved to the shared project.": {
+    "one": "Na-save ang {n} item sa shared na project.",
+    "other": "Na-save ang {n} item sa shared na project."
+  },
   "Wait for the current move to finish.": "Hintaying matapos ang kasalukuyang paglilipat.",
   "Wait for the deck to finish reading, then choose a picture.": "Hintaying matapos basahin ang deck, saka pumili ng larawan.",
   "Wait for the grid to finish rendering before moving its layers.": "Hintaying matapos mag-render ang grid bago ilipat ang mga layer nito.",
@@ -10645,5 +10780,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Gumagamit ang clip na ito ng {codec}, na hindi kayang i-play ng device na ito. Mag-export ng H.264, HEVC o AV1 na kopya mula sa iyong editing app, o buksan ito sa Lolly desktop app sa isang Mac. Pinapanatili ng Lolly ang orihinal na file.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Gumagamit ang clip na ito ng {codec}, na hindi kayang i-play ng device na ito. Mag-export ng H.264, HEVC o AV1 na kopya mula sa iyong editing app. Pinapanatili ng Lolly ang orihinal na file.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Isa itong MXF file na may {codec}. Nababasa ng Lolly ang laman nito pero hindi nito kayang i-play ang MXF. Mag-export ng H.264, HEVC o AV1 na kopya mula sa iyong editing app. Pinapanatili ng Lolly ang orihinal na file.",
-  "{format} from {camera}": "{format} mula sa {camera}"
+  "{format} from {camera}": "{format} mula sa {camera}",
+  "Filling a large area. This can take a moment.": "Pinupunan ang malaking area. Maaaring medyo matagal ito.",
+  "Large area": "Malaking area"
 }

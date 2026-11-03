@@ -261,7 +261,7 @@ test('a slider write survives the next edit from the same room (the lost update)
   } finally { m.done(); }
 });
 
-test('Copy writes the reference and says so', async () => {
+test('Copy writes the reference and confirms the copy', async () => {
   const m = mount(colourOnly());
   try {
     const copy = m.$<HTMLButtonElement>('[data-tk-sec="color"] [data-tk-copy]')!;

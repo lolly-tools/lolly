@@ -276,7 +276,7 @@ test('the value field accepts any CSS colour, not just the active space format',
   const wide = seen.at(-1)!;
   assert.equal(wide.detail.color.space, 'display-p3');
   assert.equal(wide.detail.css, 'color(display-p3 1 0 0)');
-  assert.equal(wide.detail.baked, true, 'the emitted hex is an approximation and says so');
+  assert.equal(wide.detail.baked, true, 'the emitted hex is an approximation and is marked as one');
   assert.match(wide.value as string, /^#[0-9a-f]{6}$/, 'the emitted value is still an sRGB hex');
   // A named colour, and a perceptual one.
   type(field, 'rebeccapurple');

@@ -172,7 +172,7 @@ export async function settleRecoveryCopies(
   }
   // Downloaded or discarded, the copies leave this device before the person does: on a
   // shared device the next person's browser must not hold them. A copy that cannot be
-  // removed keeps the person signed in, and says so.
+  // removed keeps the person signed in, and reports why.
   try { for (const c of copies) await host.state.delete(c.slot); } catch { return tRaw('Could not complete this action. Please try again.'); }
   return 'go';
 }

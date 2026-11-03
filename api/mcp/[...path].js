@@ -4099,7 +4099,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.302.0";
+    ENGINE_VERSION = "1.303.0";
   }
 });
 
@@ -68620,7 +68620,7 @@ function readLayerRecord(c, end, psb, warn2, semanticBudget) {
   c.p = extraEnd;
   return { top, left, bottom, right, channels, blendKey, opacity, clipping, hidden: (flags & 2) !== 0, name, section, mask, dataAt: 0, ...blocks ? { blocks } : {} };
 }
-function decodePlane(bytes2, at, chLen, rows2, cols, depth, psb, inflate2, reserve, warn2) {
+function decodePlane(bytes2, at, chLen, rows2, cols, depth, psb, inflate3, reserve, warn2) {
   if (rows2 <= 0 || cols <= 0) return new Uint8Array(0);
   const end = Math.min(at + chLen, bytes2.length);
   if (at + 2 > end) {
@@ -68664,13 +68664,13 @@ function decodePlane(bytes2, at, chLen, rows2, cols, depth, psb, inflate2, reser
       p += rl;
     }
   } else if (comp2 === 2 || comp2 === 3) {
-    if (!inflate2) {
+    if (!inflate3) {
       warn2("channel.zip.skipped", "no inflate injected");
       return null;
     }
     let inflated2;
     try {
-      inflated2 = inflate2(bytes2.subarray(p, end), raw.length);
+      inflated2 = inflate3(bytes2.subarray(p, end), raw.length);
     } catch {
       warn2("channel.bad", "zip channel failed to inflate");
       return null;
@@ -68900,7 +68900,7 @@ function buildCmykLut(profile2, cy3, ma, ye, ke, n7, warn2) {
   }
   return lut;
 }
-function readComposite(c, width, height, depth, headerChannels, colorMode, mergedHasAlpha, icc, reserve, warn2, inflate2) {
+function readComposite(c, width, height, depth, headerChannels, colorMode, mergedHasAlpha, icc, reserve, warn2, inflate3) {
   const comp2 = c.u16();
   const bytesPerSample = depth === 16 ? 2 : 1;
   const rowBytes = width * bytesPerSample;
@@ -68951,7 +68951,7 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
       if (raw) planes.push(depth === 16 ? fold16(raw, height * width) : raw);
     }
   } else if (comp2 === 2 || comp2 === 3) {
-    if (!inflate2) {
+    if (!inflate3) {
       warn2("composite.bad", `compression ${comp2} needs inflate`);
       return void 0;
     }
@@ -76129,7 +76129,7 @@ function check(c, row) {
     evidence: { property: row.property, basis: row.basis }
   });
 }
-function sizePair(c, props, expected, actual, basis, tolerance, describe3, id3, skip) {
+function sizePair(c, props, expected, actual, basis, tolerance, describe4, id3, skip) {
   let differs = false;
   for (let i = 0; i < 2; i++) {
     const want = expected?.[i];
@@ -76151,7 +76151,7 @@ function sizePair(c, props, expected, actual, basis, tolerance, describe3, id3, 
     c.findings.push({
       id: id3,
       severity: "warn",
-      message: describe3([actual[0].value, actual[1].value], expected),
+      message: describe4([actual[0].value, actual[1].value], expected),
       evidence: { actualWidth: actual[0].value, actualHeight: actual[1].value, expectedWidth: Math.round(expected[0] * 100) / 100, expectedHeight: Math.round(expected[1] * 100) / 100, basis }
     });
   }
@@ -101135,7 +101135,7 @@ function interpretPdfPage(page3) {
       onWarn("color.cmyk.approximated");
     }
   };
-  const pageSink = { nodes, count: 0, max: PDF_MAP_MAX_PAGE_NODES };
+  const pageSink = { nodes, count: 0, max: page3.glyphRuns ? PDF_MAP_MAX_GLYPH_NODES : PDF_MAP_MAX_PAGE_NODES };
   let collapseBudget = PDF_MAP_MAX_PATTERN_EVALS;
   const collapseCache = /* @__PURE__ */ new Map();
   let softMaskUnresolved = 0;
@@ -101370,7 +101370,21 @@ function interpretPdfPage(page3) {
     };
     const showString = (codes) => {
       if (!codes || !codes.length) return;
-      const fi = res.fonts && res.fonts[s.font];
+      if (!page3.glyphRuns) {
+        showStringRun(codes);
+        return;
+      }
+      const face = res.fonts?.[s.font];
+      const width = face?.twoByte && !face.type3 ? 2 : 1;
+      for (let i = 0; i < codes.length; i += width) {
+        if (!textBuf) originSet = false;
+        showStringRun(codes.slice(i, i + width));
+        flushText();
+      }
+    };
+    const showStringRun = (codes) => {
+      if (!codes || !codes.length) return;
+      const fi = res.fonts?.[s.font];
       if (fi?.type3) {
         drawType3(codes, fi.type3);
         return;
@@ -102468,7 +102482,7 @@ function toUnicodeDecoder(map, twoByte) {
     return out;
   };
 }
-var IDENTITY5, WS, DELIM, PDF_MAP_MAX_ARRAY_DEPTH, PDF_MAP_MAX_BF_RANGE, PDF_MAP_MAX_RUN_DEPTH, PDF_MAP_MAX_PAGE_NODES, PDF_MAP_MAX_PATTERN_NODES, PDF_MAP_MAX_PATTERN_EVALS, PDF_MAP_MAX_MASK_NODES, PDF_MAP_MAX_MASK_TOTAL_NODES, PDF_MAP_MAX_MASK_EVALS, PDF_MAP_MAX_TOKENS, PDF_MAP_MAX_CONTENT_CHARS, PDF_MAP_MAX_TOTAL_CONTENT_CHARS, WIN_ANSI_HIGH, PDF_WORD_GAP_EM, PDF_RUN_WORD_GAP_EM, PDF_UNSPACED_GAP_EM, PDF_MIXED_GAP_EM, CJK, CJK_END, CJK_START, PHRASE_SPACED, PHRASE_SPACED_END, PHRASE_SPACED_START, WIN_ANSI_BYTE;
+var IDENTITY5, WS, DELIM, PDF_MAP_MAX_ARRAY_DEPTH, PDF_MAP_MAX_BF_RANGE, PDF_MAP_MAX_RUN_DEPTH, PDF_MAP_MAX_PAGE_NODES, PDF_MAP_MAX_GLYPH_NODES, PDF_MAP_MAX_PATTERN_NODES, PDF_MAP_MAX_PATTERN_EVALS, PDF_MAP_MAX_MASK_NODES, PDF_MAP_MAX_MASK_TOTAL_NODES, PDF_MAP_MAX_MASK_EVALS, PDF_MAP_MAX_TOKENS, PDF_MAP_MAX_CONTENT_CHARS, PDF_MAP_MAX_TOTAL_CONTENT_CHARS, WIN_ANSI_HIGH, PDF_WORD_GAP_EM, PDF_RUN_WORD_GAP_EM, PDF_UNSPACED_GAP_EM, PDF_MIXED_GAP_EM, CJK, CJK_END, CJK_START, PHRASE_SPACED, PHRASE_SPACED_END, PHRASE_SPACED_START, WIN_ANSI_BYTE;
 var init_pdf_map = __esm({
   "engine/src/pdf-map.ts"() {
     "use strict";
@@ -102482,6 +102496,7 @@ var init_pdf_map = __esm({
     PDF_MAP_MAX_BF_RANGE = 65536;
     PDF_MAP_MAX_RUN_DEPTH = 12;
     PDF_MAP_MAX_PAGE_NODES = 4e3;
+    PDF_MAP_MAX_GLYPH_NODES = 12e4;
     PDF_MAP_MAX_PATTERN_NODES = 256;
     PDF_MAP_MAX_PATTERN_EVALS = 512;
     PDF_MAP_MAX_MASK_NODES = 64;
@@ -107886,8 +107901,8 @@ function slideContentGroups(objects) {
       let bottom = object4.box.y + object4.box.h;
       for (const next2 of sorted) {
         if (claimed.has(next2.id) || next2.kind !== "text" || next2.box.y < object4.box.y) continue;
-        const overlap = Math.min(object4.box.x + object4.box.w, next2.box.x + next2.box.w) - Math.max(object4.box.x, next2.box.x);
-        if (overlap < Math.min(object4.box.w, next2.box.w) * 0.7) continue;
+        const overlap2 = Math.min(object4.box.x + object4.box.w, next2.box.x + next2.box.w) - Math.max(object4.box.x, next2.box.x);
+        if (overlap2 < Math.min(object4.box.w, next2.box.w) * 0.7) continue;
         const gap = next2.box.y - bottom;
         if (gap < -object4.box.h * 0.2 || gap > object4.box.h * 1.6) continue;
         const bullet = next2.text?.paras.some((p) => p.bullet && p.bullet !== "none");
@@ -110695,8 +110710,8 @@ function rowNumberingIds(frame, texts) {
       const l = box4(line.object);
       const gap = l.x - (m2.x + m2.w);
       if (gap < -0.01 || gap > ROW_MARKER_GAP) return false;
-      const overlap = Math.min(m2.y + m2.h, l.y + l.h) - Math.max(m2.y, l.y);
-      const level2 = overlap >= 0.5 * Math.min(m2.h, l.h) || Math.abs(m2.y + m2.h / 2 - (l.y + l.h / 2)) <= 0.06;
+      const overlap2 = Math.min(m2.y + m2.h, l.y + l.h) - Math.max(m2.y, l.y);
+      const level2 = overlap2 >= 0.5 * Math.min(m2.h, l.h) || Math.abs(m2.y + m2.h / 2 - (l.y + l.h / 2)) <= 0.06;
       return level2 && l.w > m2.w;
     });
   });
@@ -115276,10 +115291,10 @@ function glyphLineOf(item2, short) {
   for (const b of boxes2) {
     const last = glyphs2[glyphs2.length - 1];
     if (last) {
-      const overlap = Math.min(last.x1, b.x1) - Math.max(last.x0, b.x0);
+      const overlap2 = Math.min(last.x1, b.x1) - Math.max(last.x0, b.x0);
       const apart2 = Math.max(last.y0, b.y0) - Math.min(last.y1, b.y1);
       const near = apart2 <= Math.max(last.y1 - last.y0, b.y1 - b.y0);
-      if (near && (overlap > 0.3 * Math.min(last.x1 - last.x0, b.x1 - b.x0) || b.x0 >= last.x0 && b.x1 <= last.x1)) {
+      if (near && (overlap2 > 0.3 * Math.min(last.x1 - last.x0, b.x1 - b.x0) || b.x0 >= last.x0 && b.x1 <= last.x1)) {
         last.x0 = Math.min(last.x0, b.x0);
         last.y0 = Math.min(last.y0, b.y0);
         last.x1 = Math.max(last.x1, b.x1);
@@ -117124,9 +117139,9 @@ function rowAsText(row, master, archetypeId, tokens3) {
   if (ink) row.fg = ink;
 }
 function spanOverlap(a0, a1, b0, b1) {
-  const overlap = Math.min(a1, b1) - Math.max(a0, b0);
+  const overlap2 = Math.min(a1, b1) - Math.max(a0, b0);
   const shorter = Math.min(a1 - a0, b1 - b0);
-  return shorter > 0 && overlap > 0 ? overlap / shorter : 0;
+  return shorter > 0 && overlap2 > 0 ? overlap2 / shorter : 0;
 }
 function isLabelText(p) {
   const text13 = (p.text ?? "").trim();
@@ -122855,13 +122870,13 @@ function needsNaturalSize(picture) {
   const anchor = (p) => p === 0 || p === 50 || p === 100;
   return picture.fit === "none" || picture.fit === "scale-down" || !anchor(picture.x) || !anchor(picture.y);
 }
-async function describeDesignDrawPictures(page3, describe3) {
+async function describeDesignDrawPictures(page3, describe4) {
   const settle2 = async (op) => {
     const picture = op.picture;
     if (!picture) return true;
     let info;
     try {
-      info = await describe3(picture.ref);
+      info = await describe4(picture.ref);
     } catch {
       info = null;
     }
@@ -123735,17 +123750,17 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (id3 && !byId.has(id3)) byId.set(id3, b);
   }
   const google = new Set(Array.from(o.googleFamilies ?? [], (f) => String(f).trim().toLowerCase()));
-  const hexOf9 = (p) => p.alpha < 1 ? `${p.hex}${Math.round(p.alpha * 255).toString(16).padStart(2, "0")}` : p.hex;
+  const hexOf10 = (p) => p.alpha < 1 ? `${p.hex}${Math.round(p.alpha * 255).toString(16).padStart(2, "0")}` : p.hex;
   const color6 = (v) => {
     const s = str6(v).trim();
     if (!s) return null;
     if (/var\(/i.test(s) || s.startsWith("{")) {
       const live2 = o.resolveColor?.(s) ?? null;
       const lp = live2 ? parsePenpotColor(live2) : null;
-      if (lp) return hexOf9(lp);
+      if (lp) return hexOf10(lp);
     }
     const p = parsePenpotColor(s);
-    if (p) return hexOf9(p);
+    if (p) return hexOf10(p);
     const r5 = o.resolveColor?.(s) ?? null;
     return r5 && parsePenpotColor(r5) ? r5 : null;
   };
@@ -134775,8 +134790,8 @@ function forensicLayoutFindings(page3, method = "source-geometry") {
     if (!b || a.text.length > 100 || !a.text.trim()) continue;
     const ratio = (b.size ?? b.box.height) / Math.max(1, a.size ?? a.box.height);
     if (ratio < 1.5 || ratio > 6) continue;
-    const wa = words2(a.text), wb = words2(b.text), overlap = [...wa].filter((w) => wb.has(w)).length / Math.max(1, wa.size);
-    const redundant = overlap >= 0.6 && wa.size > 0;
+    const wa = words2(a.text), wb = words2(b.text), overlap2 = [...wa].filter((w) => wb.has(w)).length / Math.max(1, wa.size);
+    const redundant = overlap2 >= 0.6 && wa.size > 0;
     const excluded = /eyebrow|pre.heading|redundant information/i.test(page3.text);
     findings.push({
       id: `${page3.id}:eyebrow:${i}`,
@@ -134799,7 +134814,7 @@ function forensicLayoutFindings(page3, method = "source-geometry") {
       ],
       measurements: {
         sizeRatio: ratio,
-        lexicalOverlap: overlap,
+        lexicalOverlap: overlap2,
         uppercase: a.text === a.text.toUpperCase()
       }
     });
@@ -142174,8 +142189,8 @@ function eyebrowOf(texts, heading) {
   return texts.filter((i) => i !== heading && i.paras.length === 1 && i.words <= EYEBROW_WORDS).filter((i) => i.t.role === "label" || i.t.role === "caption" || i.t.plain === i.t.plain.toUpperCase()).filter((i) => {
     const b = i.t.box;
     const bottom = b.y + b.height;
-    const overlap = Math.min(b.x + b.width, h.x + h.width) - Math.max(b.x, h.x);
-    return bottom <= h.y + 0.02 && h.y - bottom <= EYEBROW_GAP && overlap > 0;
+    const overlap2 = Math.min(b.x + b.width, h.x + h.width) - Math.max(b.x, h.x);
+    return bottom <= h.y + 0.02 && h.y - bottom <= EYEBROW_GAP && overlap2 > 0;
   }).sort(byPosition).at(-1);
 }
 function piecesOf(item2, split) {
@@ -142297,8 +142312,8 @@ function foldBylines(extra, slots, refs, items2) {
       const above = boxOf6.get(value3.from);
       if (!above) return false;
       const gap = piece.box.y - (above.y + above.height);
-      const overlap = Math.min(above.x + above.width, piece.box.x + piece.box.width) - Math.max(above.x, piece.box.x);
-      return gap >= -0.02 && gap <= EYEBROW_GAP && overlap > 0;
+      const overlap2 = Math.min(above.x + above.width, piece.box.x + piece.box.width) - Math.max(above.x, piece.box.x);
+      return gap >= -0.02 && gap <= EYEBROW_GAP && overlap2 > 0;
     }) : void 0;
     if (!slot) {
       loose2.push(piece);
@@ -142761,9 +142776,9 @@ function groupsOf(items2) {
     if (item2.paras.length === 1 && item2.t.plain.length <= 90) {
       const next2 = sorted.find((o) => {
         if (claimed.has(o) || o.t.box.y < item2.t.box.y) return false;
-        const overlap = Math.min(item2.t.box.x + item2.t.box.width, o.t.box.x + o.t.box.width) - Math.max(item2.t.box.x, o.t.box.x);
+        const overlap2 = Math.min(item2.t.box.x + item2.t.box.width, o.t.box.x + o.t.box.width) - Math.max(item2.t.box.x, o.t.box.x);
         const gap = o.t.box.y - (item2.t.box.y + item2.t.box.height);
-        return overlap >= Math.min(item2.t.box.width, o.t.box.width) * 0.7 && gap >= -item2.t.box.height * 0.2 && gap <= item2.t.box.height * 1.6;
+        return overlap2 >= Math.min(item2.t.box.width, o.t.box.width) * 0.7 && gap >= -item2.t.box.height * 0.2 && gap <= item2.t.box.height * 1.6;
       });
       if (next2) {
         claimed.add(next2);
@@ -146664,7 +146679,7 @@ async function forensicModelWindows(text13, maxTokens, measure3, score2, cap = 3
     }
     measured.push({ index: index2, length: length2, tokens: tokens3 });
     if (index2 + length2 === bounded2.length) break;
-    const overlap = Math.min(200, Math.floor(length2 * 0.1)), boundary = bounded2.indexOf(" ", index2 + length2 - overlap);
+    const overlap2 = Math.min(200, Math.floor(length2 * 0.1)), boundary = bounded2.indexOf(" ", index2 + length2 - overlap2);
     index2 = boundary >= 0 && boundary < index2 + length2 ? boundary + 1 : index2 + length2;
     if (measured.length > 8192) throw new Error("Classifier planning budget exceeded.");
   }
@@ -155155,6 +155170,7 @@ import {
   PDFName,
   PDFDict,
   PDFArray,
+  PDFBool,
   PDFNumber,
   PDFRef,
   PDFRawStream,
@@ -155411,6 +155427,11 @@ function makeImageDesc(ctx, ref2, depth = 0) {
     bpc: numOf(ctx, getKey(ctx, ref2, "BitsPerComponent")) || 8,
     predictor: numOf(ctx, getKey(ctx, dictOf(ctx, getKey(ctx, ref2, "DecodeParms")), "Predictor"))
   };
+  const maskFlag = ctx.lookup(getKey(ctx, ref2, "ImageMask"));
+  if (maskFlag instanceof PDFBool && maskFlag.asBoolean()) desc.imageMask = true;
+  const decode = ctx.lookup(getKey(ctx, ref2, "Decode"));
+  if (decode instanceof PDFArray && numOf(ctx, decode.get(0)) === 1) desc.decodeInverted = true;
+  if (getKey(ctx, ref2, "Mask")) desc.hasMask = true;
   if (depth === 0) {
     const smaskRef = getKey(ctx, ref2, "SMask");
     if (smaskRef && ctx.lookup(smaskRef) instanceof PDFRawStream) {
@@ -155862,10 +155883,11 @@ function interpretPdfDocPage(doc, pageIndex, opts = {}) {
     ocgs: resources.ocgs,
     shadings: resources.shadings,
     patterns: resources.patterns,
+    ...opts.glyphRuns ? { glyphRuns: true } : {},
     // The interpreter reports approximations and drops as (code, detail); the caller owns the wording.
     onWarn: (code, detail) => diag(detail ? `${code} (${detail})` : code)
   });
-  const truncated = raw.length >= PDF_MAP_MAX_PAGE_NODES;
+  const truncated = raw.length >= (opts.glyphRuns ? PDF_MAP_MAX_GLYPH_NODES : PDF_MAP_MAX_PAGE_NODES);
   const hidden4 = /* @__PURE__ */ new Set();
   if (invisible?.shows) {
     for (const n7 of raw) {
@@ -157954,9 +157976,9 @@ function apart(lines) {
       const b = boxes2[order[j] ?? 0];
       if (!a || !b) continue;
       const shared = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
-      const overlap = a.y + a.h - b.y;
-      if (shared <= 0 || overlap <= 0 || b.y + b.h / 2 <= a.y + a.h) continue;
-      const middle = b.y + overlap / 2;
+      const overlap2 = a.y + a.h - b.y;
+      if (shared <= 0 || overlap2 <= 0 || b.y + b.h / 2 <= a.y + a.h) continue;
+      const middle = b.y + overlap2 / 2;
       a.h = Math.max(1, middle - a.y);
       b.h = Math.max(1, b.y + b.h - middle);
       b.y = middle;
@@ -166130,8 +166152,8 @@ async function imagesToPdf(images, opts = {}) {
   if (!list4.length) throw refusal2("choose at least one PNG or JPEG image");
   if (list4.length > MAX_IMAGES) throw refusal2(`a PDF can be built from at most ${MAX_IMAGES} images at a time`);
   const pageSize = opts.pageSize === "a4" || opts.pageSize === "letter" ? opts.pageSize : "image";
-  const { PDFDocument: PDFDocument4, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = await import("pdf-lib");
-  const doc = await PDFDocument4.create({ updateMetadata: false });
+  const { PDFDocument: PDFDocument5, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = await import("pdf-lib");
+  const doc = await PDFDocument5.create({ updateMetadata: false });
   let stripped = 0, trailing = 0, turned = 0;
   for (const [index2, image] of list4.entries()) {
     const input = image.bytes instanceof Uint8Array ? image.bytes : new Uint8Array(image.bytes);
@@ -166533,8 +166555,8 @@ function isoDate2(d) {
     return null;
   }
 }
-function readXmpText(doc, PDFName7) {
-  const ref2 = doc.catalog.get(PDFName7.of("Metadata"));
+function readXmpText(doc, PDFName8) {
+  const ref2 = doc.catalog.get(PDFName8.of("Metadata"));
   if (!ref2) return null;
   let stream;
   try {
@@ -166546,7 +166568,7 @@ function readXmpText(doc, PDFName7) {
   try {
     let bytes2 = typeof stream.getContents === "function" ? stream.getContents() : stream.contents;
     if (bytes2 && bytes2.length > 1024 * 1024) return "";
-    const filter = stream.dict?.get(PDFName7.of("Filter"));
+    const filter = stream.dict?.get(PDFName8.of("Filter"));
     if (filter && bytes2) {
       if (!/^\/?FlateDecode$|^\[\s*\/FlateDecode\s*\]$/.test(String(filter))) return "";
       bytes2 = unzlibSync6(bytes2, { out: new Uint8Array(1024 * 1024 + 1) });
@@ -166558,8 +166580,8 @@ function readXmpText(doc, PDFName7) {
   }
 }
 async function analyzePdf(bytes2) {
-  const { PDFDocument: PDFDocument4, PDFName: PDFName7 } = await import("pdf-lib");
-  const doc = await PDFDocument4.load(bytes2, PDF_LOAD_OPTS);
+  const { PDFDocument: PDFDocument5, PDFName: PDFName8 } = await import("pdf-lib");
+  const doc = await PDFDocument5.load(bytes2, PDF_LOAD_OPTS);
   const findings = [];
   const add3 = (label5, detail, tone = "") => {
     const d = detail == null ? "" : String(detail).trim();
@@ -166582,7 +166604,7 @@ async function analyzePdf(bytes2) {
     add3("Modified", isoDate2(doc.getModificationDate()));
   } catch {
   }
-  const xmp = readXmpText(doc, PDFName7);
+  const xmp = readXmpText(doc, PDFName8);
   if (xmp != null) {
     const who = xmpField(xmp, /<dc:creator>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/i) || xmpField(xmp, /<xmp:CreatorTool>([\s\S]*?)<\/xmp:CreatorTool>/i);
     add3("XMP metadata", who ? `XMP packet - ${who}` : "embedded XMP packet", "warn");
@@ -166603,9 +166625,9 @@ async function analyzePdf(bytes2) {
 }
 async function stripPdf(bytes2) {
   if (bytes2.byteLength > 128 * 1024 * 1024) throw new Error("PDF metadata cleaning supports files up to 128 MB.");
-  const { PDFDocument: PDFDocument4 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument5 } = await import("pdf-lib");
   const { removePdfMetadata: removePdfMetadata2 } = await Promise.resolve().then(() => (init_pdf_strip(), pdf_strip_exports));
-  const doc = await PDFDocument4.load(bytes2, { updateMetadata: false });
+  const doc = await PDFDocument5.load(bytes2, { updateMetadata: false });
   removePdfMetadata2(doc);
   const out = await doc.save({ updateFieldAppearances: false });
   return { bytes: out };
@@ -166679,8 +166701,8 @@ async function compressPdf(bytes2, opts = {}) {
   const input = bytes2 instanceof Uint8Array ? bytes2 : new Uint8Array(bytes2);
   const before = input.length;
   const params2 = compressParams(opts);
-  const { PDFDocument: PDFDocument4, PDFName: PDFName7, PDFNumber: PDFNumber4 } = await import("pdf-lib");
-  const doc = await PDFDocument4.load(input, PDF_LOAD_OPTS);
+  const { PDFDocument: PDFDocument5, PDFName: PDFName8, PDFNumber: PDFNumber5 } = await import("pdf-lib");
+  const doc = await PDFDocument5.load(input, PDF_LOAD_OPTS);
   let images = 0;
   if (hasImageCodec()) {
     const maskRefs = /* @__PURE__ */ new Set();
@@ -166688,7 +166710,7 @@ async function compressPdf(bytes2, opts = {}) {
       const d = obj3?.dict;
       if (!d?.get) continue;
       for (const key2 of ["SMask", "Mask"]) {
-        const ref2 = String(d.get(PDFName7.of(key2)) ?? "");
+        const ref2 = String(d.get(PDFName8.of(key2)) ?? "");
         if (/^\d+ \d+ R$/.test(ref2)) maskRefs.add(ref2);
       }
     }
@@ -166697,15 +166719,15 @@ async function compressPdf(bytes2, opts = {}) {
       if (!(obj3.contents instanceof Uint8Array)) continue;
       const dict = obj3.dict;
       if (!dict?.get) continue;
-      const sub = dict.get(PDFName7.of("Subtype"));
+      const sub = dict.get(PDFName8.of("Subtype"));
       if (!sub || !String(sub).includes("Image")) continue;
-      const filter = dict.get(PDFName7.of("Filter"));
+      const filter = dict.get(PDFName8.of("Filter"));
       if (!filter || String(filter) !== "/DCTDecode") continue;
-      if (!isSafeColorSpace(dict.get(PDFName7.of("ColorSpace")))) continue;
-      if (dict.get(PDFName7.of("SMask"))) continue;
-      const imageMask = dict.get(PDFName7.of("ImageMask"));
+      if (!isSafeColorSpace(dict.get(PDFName8.of("ColorSpace")))) continue;
+      if (dict.get(PDFName8.of("SMask"))) continue;
+      const imageMask = dict.get(PDFName8.of("ImageMask"));
       if (imageMask && String(imageMask) === "true") continue;
-      if (dict.get(PDFName7.of("Decode"))) continue;
+      if (dict.get(PDFName8.of("Decode"))) continue;
       const jpg = obj3.contents;
       if (jpg.length < MIN_IMAGE_BYTES) continue;
       let res;
@@ -166716,11 +166738,11 @@ async function compressPdf(bytes2, opts = {}) {
       }
       if (!res || res.bytes.length >= jpg.length) continue;
       obj3.contents = res.bytes;
-      dict.set(PDFName7.of("Width"), PDFNumber4.of(res.width));
-      dict.set(PDFName7.of("Height"), PDFNumber4.of(res.height));
-      dict.set(PDFName7.of("ColorSpace"), PDFName7.of("DeviceRGB"));
-      dict.set(PDFName7.of("BitsPerComponent"), PDFNumber4.of(8));
-      dict.set(PDFName7.of("Length"), PDFNumber4.of(res.bytes.length));
+      dict.set(PDFName8.of("Width"), PDFNumber5.of(res.width));
+      dict.set(PDFName8.of("Height"), PDFNumber5.of(res.height));
+      dict.set(PDFName8.of("ColorSpace"), PDFName8.of("DeviceRGB"));
+      dict.set(PDFName8.of("BitsPerComponent"), PDFNumber5.of(8));
+      dict.set(PDFName8.of("Length"), PDFNumber5.of(res.bytes.length));
       images++;
     }
   }
@@ -166734,10 +166756,10 @@ function pdfRefusal(message) {
   return err;
 }
 async function loadEditablePdf(bytes2) {
-  const { PDFDocument: PDFDocument4 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument5 } = await import("pdf-lib");
   let doc;
   try {
-    doc = await PDFDocument4.load(bytes2, { updateMetadata: false });
+    doc = await PDFDocument5.load(bytes2, { updateMetadata: false });
   } catch (error2) {
     const message = String(error2?.message || error2);
     if (/encrypt|password/i.test(message)) {
@@ -166806,11 +166828,11 @@ async function copyPdfInfo(source, target2) {
   copy(() => source.getModificationDate(), (value2) => target2.setModificationDate(value2));
   copy(() => source.getKeywords(), (value2) => target2.setKeywords(value2.split(/\s*,\s*/).filter(Boolean)));
   try {
-    const { PDFName: PDFName7 } = await import("pdf-lib");
-    const xmp = readXmpText(source, PDFName7);
+    const { PDFName: PDFName8 } = await import("pdf-lib");
+    const xmp = readXmpText(source, PDFName8);
     if (xmp && /^\s*(?:<\?xpacket|<x:xmpmeta|<rdf:RDF)/i.test(xmp)) {
       const stream = target2.context.stream(new TextEncoder().encode(xmp), { Type: "Metadata", Subtype: "XML" });
-      target2.catalog.set(PDFName7.of("Metadata"), target2.context.register(stream));
+      target2.catalog.set(PDFName8.of("Metadata"), target2.context.register(stream));
     }
   } catch {
   }
@@ -166821,7 +166843,7 @@ async function organizePdf(bytes2, opts) {
   if (!["reorder", "rotate", "extract", "delete", "merge", "split"].includes(operation)) {
     throw pdfRefusal(`unknown page operation "${String(operation)}"`);
   }
-  const { PDFDocument: PDFDocument4, degrees } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument5, degrees } = await import("pdf-lib");
   const primary = await loadEditablePdf(input);
   let source = primary;
   const extras = [
@@ -166847,7 +166869,7 @@ async function organizePdf(bytes2, opts) {
     }
   };
   if (extraDocs.length) {
-    const combined = await PDFDocument4.create({ updateMetadata: false });
+    const combined = await PDFDocument5.create({ updateMetadata: false });
     await copyPdfInfo(source, combined);
     for (const doc of [primary, ...extraDocs]) await copyInto(combined, doc, doc.getPageIndices());
     source = combined;
@@ -166860,7 +166882,7 @@ async function organizePdf(bytes2, opts) {
     const files = [];
     let afterBytes = 0;
     for (const group of groups) {
-      const doc = await PDFDocument4.create({ updateMetadata: false });
+      const doc = await PDFDocument5.create({ updateMetadata: false });
       await copyPdfInfo(source, doc);
       await copyInto(doc, source, group.map((n7) => n7 - 1));
       const part = await save(doc);
@@ -166926,7 +166948,7 @@ async function organizePdf(bytes2, opts) {
       throw pdfRefusal("give the new page order, for example 3,1-2");
     }
   }
-  const output = await PDFDocument4.create({ updateMetadata: false });
+  const output = await PDFDocument5.create({ updateMetadata: false });
   await copyPdfInfo(source, output);
   await copyInto(output, source, order.map((n7) => n7 - 1));
   const out = await save(output);
@@ -166944,7 +166966,7 @@ async function organizePdf(bytes2, opts) {
 }
 async function stampPdf(bytes2, opts) {
   const doc = await loadEditablePdf(bytes2);
-  const { StandardFonts, rgb: rgb3 } = await import("pdf-lib");
+  const { StandardFonts: StandardFonts2, rgb: rgb3 } = await import("pdf-lib");
   let stamps = 0;
   for (const mark of opts.images ?? []) {
     if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
@@ -166963,7 +166985,7 @@ async function stampPdf(bytes2, opts) {
     stamps++;
   }
   if (opts.texts?.length) {
-    const font = await doc.embedFont(StandardFonts.Helvetica);
+    const font = await doc.embedFont(StandardFonts2.Helvetica);
     for (const mark of opts.texts) {
       if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
         throw pdfRefusal(`text page ${mark.page} is outside this ${doc.getPageCount()}-page document`);
@@ -166989,8 +167011,8 @@ async function stampPdf(bytes2, opts) {
 }
 async function lockPdf(bytes2, password) {
   if (!password) throw pdfRefusal("a non-empty open password is required");
-  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
-  const doc = await PDFDocument4.load(bytes2, { updateMetadata: false });
+  const { PDFDocument: PDFDocument5, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict8, PDFArray: PDFArray9 } = await import("pdf-lib");
+  const doc = await PDFDocument5.load(bytes2, { updateMetadata: false });
   const ctx = doc.context;
   const rnd = (n7) => globalThis.crypto.getRandomValues(new Uint8Array(n7));
   const hex3 = (b) => [...b].map((x) => x.toString(16).padStart(2, "0")).join("").toUpperCase();
@@ -167005,7 +167027,7 @@ async function lockPdf(bytes2, password) {
     P,
     encryptMetadata: true
   });
-  const id3 = PDFArray8.withContext(ctx);
+  const id3 = PDFArray9.withContext(ctx);
   id3.push(PDFHexString3.of(hex3(rnd(16))));
   id3.push(PDFHexString3.of(hex3(rnd(16))));
   const enc6 = ctx.obj({
@@ -167026,16 +167048,16 @@ async function lockPdf(bytes2, password) {
   });
   const encString = async (value2) => PDFHexString3.of(hex3(await encryptObjectBytes(fileKey, rnd(16), value2.asBytes())));
   const walk3 = async (value2) => {
-    if (value2 instanceof PDFDict7) {
+    if (value2 instanceof PDFDict8) {
       for (const [key2, child2] of value2.entries()) {
         if (child2 instanceof PDFString3 || child2 instanceof PDFHexString3) value2.set(key2, await encString(child2));
-        else if (child2 instanceof PDFDict7 || child2 instanceof PDFArray8) await walk3(child2);
+        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk3(child2);
       }
-    } else if (value2 instanceof PDFArray8) {
+    } else if (value2 instanceof PDFArray9) {
       for (let i = 0; i < value2.size(); i++) {
         const child2 = value2.get(i);
         if (child2 instanceof PDFString3 || child2 instanceof PDFHexString3) value2.set(i, await encString(child2));
-        else if (child2 instanceof PDFDict7 || child2 instanceof PDFArray8) await walk3(child2);
+        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk3(child2);
       }
     }
   };
@@ -167044,7 +167066,7 @@ async function lockPdf(bytes2, password) {
       const encrypted = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(value2.getContents()));
       await walk3(value2.dict);
       ctx.assign(ref2, PDFRawStream5.of(value2.dict, encrypted));
-    } else if (value2 instanceof PDFDict7 || value2 instanceof PDFArray8) await walk3(value2);
+    } else if (value2 instanceof PDFDict8 || value2 instanceof PDFArray9) await walk3(value2);
     else if (value2 instanceof PDFString3 || value2 instanceof PDFHexString3) ctx.assign(ref2, await encString(value2));
   }
   ctx.trailerInfo.Encrypt = ctx.register(enc6);
@@ -168109,8 +168131,8 @@ function orderBoxesReadingOrder(boxes2) {
     const line = lines.find((ln) => {
       const ref2 = ln[0];
       if (!ref2) return false;
-      const overlap = Math.min(b.y + b.h, ref2.y + ref2.h) - Math.max(b.y, ref2.y);
-      return overlap > Math.min(b.h, ref2.h) / 2;
+      const overlap2 = Math.min(b.y + b.h, ref2.y + ref2.h) - Math.max(b.y, ref2.y);
+      return overlap2 > Math.min(b.h, ref2.h) / 2;
     });
     if (line) line.push(b);
     else lines.push([b]);
@@ -168914,20 +168936,593 @@ var init_label_artwork = __esm({
   }
 });
 
+// packages/node-shell/src/pdf-a11y.ts
+function isApi3(e) {
+  return e.memory instanceof WebAssembly.Memory && ["pdf_a11y_alloc", "pdf_a11y_free", "pdf_a11y_run", "pdf_a11y_result_ptr", "pdf_a11y_result_len"].every((k) => typeof e[k] === "function");
+}
+function readFinding(raw) {
+  if (!isObject3(raw) || typeof raw.message !== "string" || typeof raw.pattern !== "string") throw new Error("malformed finding");
+  const values = Array.isArray(raw.values) ? raw.values.filter((v) => Array.isArray(v) && typeof v[0] === "string" && typeof v[1] === "string").map(([k, v]) => [k, v]) : [];
+  const out = { message: raw.message, pattern: raw.pattern, values };
+  if (typeof raw.page === "number" && Number.isInteger(raw.page) && raw.page >= 0) out.page = raw.page + 1;
+  if (Array.isArray(raw.object) && raw.object.length === 2 && raw.object.every((n7) => Number.isInteger(n7))) out.object = [raw.object[0], raw.object[1]];
+  if (Array.isArray(raw.bbox) && raw.bbox.length === 4 && raw.bbox.every((n7) => typeof n7 === "number" && Number.isFinite(n7))) {
+    out.bbox = [raw.bbox[0], raw.bbox[1], raw.bbox[2], raw.bbox[3]];
+  }
+  return out;
+}
+function parsePdfAccessibilityReport(json) {
+  const raw = JSON.parse(json);
+  if (!isObject3(raw) || raw.v !== 1 || typeof raw.pages !== "number" || !Array.isArray(raw.rules)) throw new Error("malformed report");
+  const rules = raw.rules.map((r5) => {
+    if (!isObject3(r5) || typeof r5.id !== "string" || typeof r5.category !== "string" || typeof r5.status !== "string" || !STATUSES2.has(r5.status)) {
+      throw new Error("malformed rule");
+    }
+    return {
+      id: r5.id,
+      category: r5.category,
+      manual: r5.manual === true,
+      applies: r5.applies === true,
+      status: r5.status,
+      findings: Array.isArray(r5.findings) ? r5.findings.map(readFinding) : []
+    };
+  });
+  return { v: 1, pages: raw.pages, rules };
+}
+async function createPdfA11yKernel(wasm) {
+  const { instance } = await WebAssembly.instantiate(wasm, {});
+  if (!isApi3(instance.exports)) throw new Error("The PDF accessibility module ABI is incompatible.");
+  const api = instance.exports;
+  let retired = false;
+  function check2(bytes2) {
+    if (!(bytes2 instanceof Uint8Array) || bytes2.length === 0) throw new PdfAccessibilityError("not-pdf", "The file is empty, so it was not checked.");
+    if (bytes2.length > PDF_A11Y_MAX_BYTES) throw new PdfAccessibilityError("too-large", "The PDF is larger than 256 MB, so it was not checked.");
+    const pointer2 = api.pdf_a11y_alloc(bytes2.length);
+    if (!pointer2) throw new PdfAccessibilityError("too-large", "The PDF is too large for the accessibility check to hold in memory, so it was not checked.");
+    try {
+      new Uint8Array(api.memory.buffer, pointer2, bytes2.length).set(bytes2);
+      const status = api.pdf_a11y_run(pointer2, bytes2.length, OP_CHECK);
+      const length2 = api.pdf_a11y_result_len(), at = api.pdf_a11y_result_ptr();
+      if (length2 > MAX_RESULT2 || at + length2 > api.memory.buffer.byteLength) throw new PdfAccessibilityError("damaged", "The accessibility check returned an oversized answer, so the file was not checked.");
+      const text13 = new TextDecoder().decode(new Uint8Array(api.memory.buffer, at, length2).slice());
+      if (status !== 0) {
+        const m2 = REFUSAL.exec(text13);
+        throw new PdfAccessibilityError(m2?.[1] ?? "damaged", m2?.[2] || "The PDF could not be read, so it was not checked.");
+      }
+      try {
+        return parsePdfAccessibilityReport(text13);
+      } catch {
+        throw new PdfAccessibilityError("damaged", "The accessibility check returned an answer Lolly could not read, so the file was not checked.");
+      }
+    } finally {
+      api.pdf_a11y_free(pointer2);
+    }
+  }
+  function redact(bytes2, request2) {
+    if (retired) throw new PdfKeepTextError("refused", "The module stopped on an earlier file and must be started again.");
+    if (!(bytes2 instanceof Uint8Array) || bytes2.length === 0) throw new PdfKeepTextError("not-pdf", "The file is empty.");
+    const header = new TextEncoder().encode(JSON.stringify(request2));
+    const total = 4 + header.length + bytes2.length;
+    if (total > PDF_A11Y_MAX_BYTES) throw new PdfKeepTextError("too-large", "The PDF is larger than 256 MB.");
+    const pointer2 = api.pdf_a11y_alloc(total);
+    if (!pointer2) throw new PdfKeepTextError("too-large", "The PDF is too large to hold in memory for this.");
+    try {
+      const view = new Uint8Array(api.memory.buffer, pointer2, total);
+      new DataView(api.memory.buffer, pointer2, 4).setUint32(0, header.length, true);
+      view.set(header, 4);
+      view.set(bytes2, 4 + header.length);
+      let status;
+      try {
+        status = api.pdf_a11y_run(pointer2, total, OP_REDACT);
+      } catch (error2) {
+        retired = true;
+        throw new PdfKeepTextError("refused", "The PDF could not be processed safely.", { cause: error2 });
+      }
+      const length2 = api.pdf_a11y_result_len(), at = api.pdf_a11y_result_ptr();
+      if (length2 > PDF_A11Y_MAX_BYTES || at + length2 > api.memory.buffer.byteLength) throw new PdfKeepTextError("damaged", "The result was larger than expected.");
+      const out = new Uint8Array(api.memory.buffer, at, length2).slice();
+      if (status !== 0) {
+        const m2 = KEEP_TEXT_REFUSAL.exec(new TextDecoder().decode(out));
+        throw new PdfKeepTextError(m2?.[1] ?? "damaged", m2?.[2] || "The PDF could not be processed.");
+      }
+      if (out.length < 4) throw new PdfKeepTextError("damaged", "The result was cut short.");
+      const headLength = new DataView(out.buffer, out.byteOffset, 4).getUint32(0, true);
+      if (4 + headLength > out.length) throw new PdfKeepTextError("damaged", "The result was cut short.");
+      let summary;
+      try {
+        summary = JSON.parse(new TextDecoder().decode(out.subarray(4, 4 + headLength)));
+      } catch {
+        throw new PdfKeepTextError("damaged", "The result summary could not be read.");
+      }
+      if (!isObject3(summary) || summary.v !== 1) throw new PdfKeepTextError("damaged", "The result summary could not be read.");
+      return { bytes: out.slice(4 + headLength), summary };
+    } finally {
+      api.pdf_a11y_free(pointer2);
+    }
+  }
+  return { check: check2, redact, get retired() {
+    return retired;
+  } };
+}
+var PDF_A11Y_MAX_BYTES, MAX_RESULT2, OP_CHECK, OP_REDACT, STATUSES2, PdfAccessibilityError, PdfKeepTextError, isObject3, REFUSAL, KEEP_TEXT_REFUSAL;
+var init_pdf_a11y = __esm({
+  "packages/node-shell/src/pdf-a11y.ts"() {
+    "use strict";
+    PDF_A11Y_MAX_BYTES = 256 * 1024 * 1024;
+    MAX_RESULT2 = 20 * 1024 * 1024;
+    OP_CHECK = 1;
+    OP_REDACT = 2;
+    STATUSES2 = /* @__PURE__ */ new Set(["passed", "failed", "manual", "skipped"]);
+    PdfAccessibilityError = class extends Error {
+      code;
+      constructor(code, message) {
+        super(message);
+        this.name = "PdfAccessibilityError";
+        this.code = code;
+      }
+    };
+    PdfKeepTextError = class extends Error {
+      code;
+      constructor(code, message, options2) {
+        super(message, options2);
+        this.name = "PdfKeepTextError";
+        this.code = code;
+      }
+    };
+    isObject3 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    REFUSAL = /^(not-pdf|encrypted|damaged): ?(.*)$/s;
+    KEEP_TEXT_REFUSAL = /^(not-pdf|encrypted|damaged|refused|bad-request): ?(.*)$/s;
+  }
+});
+
+// packages/node-shell/src/pdf-a11y-node.ts
+var pdf_a11y_node_exports = {};
+__export(pdf_a11y_node_exports, {
+  checkPdfAccessibility: () => checkPdfAccessibility,
+  loadPdfA11yKernel: () => loadPdfA11yKernel
+});
+import { readFile as readFile13 } from "node:fs/promises";
+import { join as join17 } from "node:path";
+async function loadPdfA11yKernel() {
+  if (pending4 && (await pending4.catch(() => void 0))?.retired) pending4 = void 0;
+  pending4 ??= readFile13(new URL("../wasm/pdf-a11y/pdf-a11y.wasm", import.meta.url)).catch((error2) => {
+    if (error2.code !== "ENOENT") throw error2;
+    return readFile13(join17(repoRoot(), "packages/node-shell/wasm/pdf-a11y/pdf-a11y.wasm"));
+  }).then((bytes2) => createPdfA11yKernel(new Uint8Array(bytes2))).catch((error2) => {
+    pending4 = void 0;
+    throw error2;
+  });
+  return pending4;
+}
+async function checkPdfAccessibility(bytes2) {
+  return (await loadPdfA11yKernel()).check(bytes2);
+}
+var pending4;
+var init_pdf_a11y_node = __esm({
+  "packages/node-shell/src/pdf-a11y-node.ts"() {
+    "use strict";
+    init_repo_root();
+    init_pdf_a11y();
+  }
+});
+
+// packages/node-shell/src/pdf-redact-keep.ts
+var pdf_redact_keep_exports = {};
+__export(pdf_redact_keep_exports, {
+  KEEP_TEXT_INK: () => KEEP_TEXT_INK,
+  KEEP_TEXT_REFUSAL: () => KEEP_TEXT_REFUSAL2,
+  checkKeepTextOutput: () => checkKeepTextOutput,
+  inkToRgb: () => inkToRgb,
+  redactKeepText: () => redactKeepText
+});
+import { PDFArray as PDFArray7, PDFDict as PDFDict6, PDFDocument as PDFDocument3, PDFName as PDFName6, PDFNumber as PDFNumber4, StandardFonts, decodePDFRawStream as decodePDFRawStream4 } from "pdf-lib";
+function loadStandardWidths() {
+  standardWidths ??= (async () => {
+    const out = /* @__PURE__ */ new Map();
+    const doc = await PDFDocument3.create();
+    const decoder6 = new TextDecoder("windows-1252");
+    for (const name of STANDARD_NAMES) {
+      const font = await doc.embedFont(name);
+      const widths = {};
+      for (let code = 32; code < 256; code++) {
+        try {
+          widths[code] = font.widthOfTextAtSize(decoder6.decode(Uint8Array.of(code)), 1e3);
+        } catch {
+        }
+      }
+      out.set(name, widths);
+    }
+    return out;
+  })();
+  return standardWidths;
+}
+function walkFor(standard) {
+  return (ctx, images, warn2) => makePdfWalk(ctx, images, warn2, {
+    fontMetrics: (c, ref2) => {
+      const own4 = pdfFontWidths(c, ref2);
+      if (own4.widths && Object.keys(own4.widths).length) return own4;
+      const known3 = standard.get(baseFontOf(c, ref2));
+      return known3 ? { ...own4, widths: known3 } : own4;
+    }
+  }, { bounded: true });
+}
+function polygons(d) {
+  const tokens3 = d.match(/[MmLlHhVvCcQqZz]|-?\d*\.?\d+(?:[eE][-+]?\d+)?/g);
+  if (!tokens3) return null;
+  const out = [];
+  let cur = [], at = [0, 0], start = [0, 0], i = 0, cmd = "";
+  const num22 = () => Number(tokens3[i++]);
+  const flush = () => {
+    if (cur.length > 1) out.push(cur);
+    cur = [];
+  };
+  while (i < tokens3.length) {
+    const t = tokens3[i];
+    if (/[A-Za-z]/.test(t)) {
+      cmd = t;
+      i++;
+      if (cmd === "Z" || cmd === "z") {
+        at = start;
+        flush();
+      }
+      continue;
+    }
+    const rel = cmd === cmd.toLowerCase();
+    switch (cmd.toUpperCase()) {
+      case "M": {
+        const x = num22(), y = num22();
+        at = rel ? [at[0] + x, at[1] + y] : [x, y];
+        start = at;
+        flush();
+        cur = [at];
+        cmd = rel ? "l" : "L";
+        break;
+      }
+      case "L": {
+        const x = num22(), y = num22();
+        at = rel ? [at[0] + x, at[1] + y] : [x, y];
+        cur.push(at);
+        break;
+      }
+      case "H": {
+        const x = num22();
+        at = [rel ? at[0] + x : x, at[1]];
+        cur.push(at);
+        break;
+      }
+      case "V": {
+        const y = num22();
+        at = [at[0], rel ? at[1] + y : y];
+        cur.push(at);
+        break;
+      }
+      case "C": {
+        const p = [num22(), num22(), num22(), num22(), num22(), num22()].map((v, k) => rel ? v + at[k % 2] : v);
+        for (let s = 1; s <= 8; s++) {
+          const u = s / 8, v = 1 - u;
+          cur.push([v ** 3 * at[0] + 3 * v * v * u * p[0] + 3 * v * u * u * p[2] + u ** 3 * p[4], v ** 3 * at[1] + 3 * v * v * u * p[1] + 3 * v * u * u * p[3] + u ** 3 * p[5]]);
+        }
+        at = [p[4], p[5]];
+        break;
+      }
+      case "Q": {
+        const p = [num22(), num22(), num22(), num22()].map((v, k) => rel ? v + at[k % 2] : v);
+        for (let s = 1; s <= 8; s++) {
+          const u = s / 8, v = 1 - u;
+          cur.push([v * v * at[0] + 2 * v * u * p[0] + u * u * p[2], v * v * at[1] + 2 * v * u * p[1] + u * u * p[3]]);
+        }
+        at = [p[2], p[3]];
+        break;
+      }
+      default:
+        return null;
+    }
+  }
+  flush();
+  return out;
+}
+function insideClip(clip4, x, y) {
+  const rings = polygons(clip4.d);
+  if (!rings) return null;
+  let crossings = 0, winding = 0;
+  for (const ring2 of rings) {
+    for (let k = 0; k < ring2.length; k++) {
+      const [ax, ay] = ring2[k], [bx, by] = ring2[(k + 1) % ring2.length];
+      if (ay > y === by > y) continue;
+      const cutsRight = (bx - ax) * (y - ay) / (by - ay) + ax > x;
+      if (cutsRight) {
+        crossings++;
+        winding += by > ay ? 1 : -1;
+      }
+    }
+  }
+  return clip4.evenOdd ? crossings % 2 === 1 : winding !== 0;
+}
+function imageClearedUnder(desc, node, bar) {
+  if (desc.smask || desc.hasMask) return false;
+  const filters = desc.filter;
+  if (filters.length > 1 || filters.length === 1 && filters[0] !== "FlateDecode") return null;
+  const { width: W, height: H } = desc;
+  const bpc = desc.imageMask ? 1 : desc.bpc;
+  if (!(W > 0 && H > 0) || ![1, 2, 4, 8, 16].includes(bpc) || W * H > 64 << 20) return null;
+  if (Math.abs(node.rot) > 0.5 || !(node.w > 0 && node.h > 0)) return null;
+  let data;
+  try {
+    data = decodePDFRawStream4(desc.stream).decode();
+  } catch {
+    return null;
+  }
+  const comps = (desc.imageMask ? [1] : [1, 3, 4]).find((n8) => H * Math.ceil(W * n8 * bpc / 8) === data.length);
+  if (!comps) return null;
+  const rowBytes = Math.ceil(W * comps * bpc / 8);
+  const bitsPerPixel = comps * bpc;
+  const cleared = desc.imageMask && !desc.decodeInverted ? 1 : 0;
+  const n7 = rectOf(node);
+  const box4 = overlap(n7, { x0: bar.x0 + 0.05, y0: bar.y0 + 0.05, x1: bar.x1 - 0.05, y1: bar.y1 - 0.05 });
+  if (!box4) return true;
+  const sx = W / (n7.x1 - n7.x0), sy = H / (n7.y1 - n7.y0);
+  const i0 = Math.max(0, Math.floor((box4.x0 - n7.x0) * sx)), i1 = Math.min(W - 1, Math.ceil((box4.x1 - n7.x0) * sx) - 1);
+  const j0 = Math.max(0, Math.floor((box4.y0 - n7.y0) * sy)), j1 = Math.min(H - 1, Math.ceil((box4.y1 - n7.y0) * sy) - 1);
+  for (let j = j0; j <= j1; j++) {
+    for (let i = i0; i <= i1; i++) {
+      for (let bit = i * bitsPerPixel; bit < (i + 1) * bitsPerPixel; bit++) {
+        const value2 = data[j * rowBytes + (bit >> 3)] >> 7 - (bit & 7) & 1;
+        if (value2 !== cleared) return false;
+      }
+    }
+  }
+  return true;
+}
+function toRect(bar) {
+  return { x0: bar.x, y0: bar.y, x1: bar.x + bar.w, y1: bar.y + bar.h };
+}
+function takeBurnedBars(nodes, bars, fill2) {
+  const taken = /* @__PURE__ */ new Set();
+  for (const bar of bars) {
+    for (let k = nodes.length - 1; k >= 0; k--) {
+      const n7 = nodes[k];
+      if (n7.kind !== "box" || taken.has(n7) || (n7.fill ?? "").toLowerCase() !== fill2) continue;
+      const r5 = rectOf(n7);
+      if (Math.abs(r5.x0 - bar.x0) < 0.6 && Math.abs(r5.y0 - bar.y0) < 0.6 && Math.abs(r5.x1 - bar.x1) < 0.6 && Math.abs(r5.y1 - bar.y1) < 0.6) {
+        taken.add(n7);
+        break;
+      }
+    }
+  }
+  return taken;
+}
+function annotationRects(doc, index2) {
+  const page3 = doc.getPage(index2);
+  const ctx = doc.context;
+  const list4 = ctx.lookup(page3.node.get(PDFName6.of("Annots")));
+  const mb2 = page3.getMediaBox();
+  const out = [];
+  if (!(list4 instanceof PDFArray7)) return out;
+  for (let k = 0; k < list4.size(); k++) {
+    const annot = ctx.lookup(list4.get(k));
+    if (!(annot instanceof PDFDict6)) continue;
+    const rect = ctx.lookup(annot.get(PDFName6.of("Rect")));
+    if (!(rect instanceof PDFArray7) || rect.size() !== 4) {
+      out.push({ x0: -1e9, y0: -1e9, x1: 1e9, y1: 1e9 });
+      continue;
+    }
+    const v = [0, 1, 2, 3].map((q) => {
+      const n7 = ctx.lookup(rect.get(q));
+      return n7 instanceof PDFNumber4 ? n7.asNumber() : NaN;
+    });
+    if (!v.every(Number.isFinite)) {
+      out.push({ x0: -1e9, y0: -1e9, x1: 1e9, y1: 1e9 });
+      continue;
+    }
+    const xa = Math.min(v[0], v[2]), xb = Math.max(v[0], v[2]), ya = Math.min(v[1], v[3]), yb = Math.max(v[1], v[3]);
+    out.push({ x0: xa - mb2.x, y0: mb2.y + mb2.height - yb, x1: xb - mb2.x, y1: mb2.y + mb2.height - ya });
+  }
+  return out;
+}
+async function checkKeepTextOutput(output, bars, fill2) {
+  const findings = [];
+  const add3 = (page3, kind, detail) => {
+    findings.push({ page: page3, kind, detail });
+  };
+  let doc;
+  try {
+    doc = await loadPdfDocument(output);
+  } catch {
+    return [{ page: 0, kind: "unreadable", detail: "The result could not be opened again to check it." }];
+  }
+  let pageCount = 0;
+  try {
+    pageCount = doc.getPageCount();
+  } catch {
+  }
+  if (!pageCount) return [{ page: 0, kind: "unreadable", detail: "The result has no readable pages to check." }];
+  const byPage = /* @__PURE__ */ new Map();
+  for (const bar of bars) {
+    if (!Number.isInteger(bar.page) || bar.page < 1 || bar.page > pageCount) {
+      add3(bar.page, "unreadable", `A box names page ${bar.page}, which the result does not have.`);
+      continue;
+    }
+    byPage.set(bar.page, [...byPage.get(bar.page) ?? [], toRect(bar)]);
+  }
+  const walk3 = walkFor(await loadStandardWidths());
+  const burned = hexOf8(fill2);
+  for (const [pageNumber, rects] of byPage) {
+    const index2 = pageNumber - 1;
+    let normal2, glyphs2;
+    try {
+      normal2 = interpretPdfDocPage(doc, index2, { walk: walk3, maxContentChars: MAX_CONTENT_CHARS });
+      glyphs2 = interpretPdfDocPage(doc, index2, { walk: walk3, maxContentChars: MAX_CONTENT_CHARS, glyphRuns: true });
+    } catch {
+      add3(pageNumber, "unreadable", `Page ${pageNumber} could not be read again to check it.`);
+      continue;
+    }
+    if (normal2.truncated || glyphs2.truncated) {
+      add3(pageNumber, "unreadable", `Page ${pageNumber} has more content than can be checked in full.`);
+      continue;
+    }
+    if (normal2.inlineImages > 0) {
+      add3(pageNumber, "unreadable", `Page ${pageNumber} has pictures inside its content stream, which cannot be checked.`);
+      continue;
+    }
+    let textFlagged = false, unplaced = false;
+    for (const node of glyphs2.nodes) {
+      if (node.kind !== "text" || !node.text?.trim() || textFlagged && unplaced) continue;
+      const size = node.fontSize || 10;
+      const baseline = node.y + 0.8 * size;
+      const measured = !!node.lineInk && node.lineInk.some((v) => v > 0);
+      const rotated = Math.abs(node.rot) > 0.5;
+      const own4 = measured ? Math.max(...node.lineInk) : node.w;
+      const reach2 = rotated ? own4 + size : 0;
+      const box4 = rotated ? { x0: node.x - reach2, y0: baseline - reach2, x1: node.x + reach2, y1: baseline + reach2 } : { x0: node.x, y0: baseline - 0.75 * size, x1: node.x + own4, y1: baseline + 0.2 * size };
+      for (const bar of rects) {
+        if (reaches(box4, bar, REACH)) {
+          if (!textFlagged) add3(pageNumber, "text", `Text is still under a box on page ${pageNumber}.`);
+          textFlagged = true;
+          break;
+        }
+        if (!measured && !rotated && reaches(inflate2(box4, size), bar, 0)) {
+          if (!unplaced) add3(pageNumber, "unreadable", `Text in a font without width data sits next to a box on page ${pageNumber}, so its position cannot be confirmed.`);
+          unplaced = true;
+          break;
+        }
+      }
+    }
+    for (const hidden4 of findHiddenText(glyphs2.nodes)) {
+      if (rects.some((bar) => overlap(inflate2(hidden4.rect.w > 0 ? { x0: hidden4.rect.x, y0: hidden4.rect.y, x1: hidden4.rect.x + hidden4.rect.w, y1: hidden4.rect.y + hidden4.rect.h } : bar, 0), bar))) {
+        add3(pageNumber, "text", `Text is still behind a box on page ${pageNumber}.`);
+        break;
+      }
+    }
+    let lines;
+    try {
+      lines = extractPageText(normal2.nodes, { width: normal2.width, height: normal2.height }).lines;
+    } catch {
+      add3(pageNumber, "unreadable", `The text on page ${pageNumber} could not be read again.`);
+      continue;
+    }
+    for (const line of lines ?? []) {
+      const box4 = { x0: line.x, y0: line.baseline - 0.75 * line.size, x1: line.right, y1: line.baseline + 0.2 * line.size };
+      if (rects.some((bar) => box4.x0 >= bar.x0 - REACH && box4.x1 <= bar.x1 + REACH && box4.y0 >= bar.y0 - REACH && box4.y1 <= bar.y1 + REACH)) {
+        add3(pageNumber, "text", `A line of text is still inside a box on page ${pageNumber}.`);
+        break;
+      }
+    }
+    const burnedNodes = takeBurnedBars(normal2.nodes, rects, burned);
+    for (const node of normal2.nodes) {
+      if (node.kind !== "image") continue;
+      const where = rectOf(node);
+      for (const bar of rects) {
+        if (!overlap(where, bar)) continue;
+        const desc = node._imageXObject ? normal2.imageStreams.get(node._imageXObject) : void 0;
+        const cleared = desc ? imageClearedUnder(desc, node, bar) : null;
+        if (cleared === true) continue;
+        add3(pageNumber, cleared === null ? "unreadable" : "image", cleared === null ? `A picture under a box on page ${pageNumber} cannot be read to check it.` : `Part of a picture is still under a box on page ${pageNumber}.`);
+        break;
+      }
+    }
+    for (const node of normal2.nodes) {
+      if (node.kind !== "box" || burnedNodes.has(node) || (node.opacity ?? 100) <= 0) continue;
+      const where = inflate2(rectOf(node), 0.25);
+      let painted = false;
+      for (const bar of rects) {
+        const common = overlap(where, bar);
+        if (!common) continue;
+        for (let a = 0; a < GRID2 && !painted; a++) {
+          for (let b = 0; b < GRID2 && !painted; b++) {
+            const px3 = common.x0 + (a + 0.5) / GRID2 * (common.x1 - common.x0), py = common.y0 + (b + 0.5) / GRID2 * (common.y1 - common.y0);
+            painted = (node._clips ?? []).every((clip4) => insideClip(clip4, px3, py) !== false);
+          }
+        }
+        if (painted) break;
+      }
+      if (painted) {
+        add3(pageNumber, "vector", `Drawing is still under a box on page ${pageNumber}.`);
+        break;
+      }
+    }
+    for (const rect of annotationRects(doc, index2)) {
+      if (rects.some((bar) => overlap(rect, bar))) {
+        add3(pageNumber, "annotation", `A comment, link or form field is still under a box on page ${pageNumber}.`);
+        break;
+      }
+    }
+  }
+  return findings;
+}
+function inkToRgb(hex3, fallback) {
+  const m2 = typeof hex3 === "string" ? /^#?([0-9a-f]{6})$/i.exec(hex3.trim()) : null;
+  if (!m2) return fallback;
+  const n7 = parseInt(m2[1], 16);
+  return [(n7 >> 16 & 255) / 255, (n7 >> 8 & 255) / 255, (n7 & 255) / 255];
+}
+function describe2(findings) {
+  const kinds2 = new Set(findings.map((f) => f.kind));
+  const pages = [...new Set(findings.map((f) => f.page).filter((p) => p > 0))].sort((a, b) => a - b);
+  const where = pages.length ? ` on page${pages.length > 1 ? "s" : ""} ${pages.slice(0, 5).join(", ")}${pages.length > 5 ? " and more" : ""}` : "";
+  const what = kinds2.has("text") || kinds2.has("image") || kinds2.has("vector") || kinds2.has("annotation") ? "something was still under a box" : "something under a box could not be checked";
+  return `${KEEP_TEXT_REFUSAL2} (${what}${where}: ${findings[0].detail})`;
+}
+async function redactKeepText(kernel, bytes2, opts) {
+  const bars = (Array.isArray(opts.bars) ? opts.bars : []).map((b) => ({ page: Math.floor(Number(b?.page)), x: Number(b?.x), y: Number(b?.y), w: Number(b?.w), h: Number(b?.h) })).filter((b) => Number.isInteger(b.page) && b.page >= 1 && [b.x, b.y, b.w, b.h].every(Number.isFinite) && b.w > 0 && b.h > 0);
+  if (!bars.length) throw new PdfKeepTextError("bad-request", "Draw or add at least one redaction bar first.");
+  const fill2 = inkToRgb(opts.color, KEEP_TEXT_INK);
+  const label5 = String(opts.label ?? "").trim();
+  const run3 = kernel.redact(bytes2, {
+    bars,
+    fill: fill2,
+    sanitize: true,
+    ...label5 ? { label: label5, labelColor: inkToRgb(opts.labelColor, [1, 1, 1]) } : {}
+  });
+  const findings = await checkKeepTextOutput(run3.bytes, bars, fill2);
+  if (findings.length) throw new PdfKeepTextError("refused", describe2(findings));
+  const doc = await loadPdfDocument(run3.bytes);
+  return { bytes: run3.bytes, pages: doc.getPageCount(), summary: run3.summary };
+}
+var REACH, MAX_CONTENT_CHARS, GRID2, rectOf, overlap, reaches, inflate2, STANDARD_NAMES, standardWidths, baseFontOf, hexOf8, KEEP_TEXT_INK, KEEP_TEXT_REFUSAL2;
+var init_pdf_redact_keep = __esm({
+  "packages/node-shell/src/pdf-redact-keep.ts"() {
+    "use strict";
+    init_pdf_redaction();
+    init_pdf_text();
+    init_pdf_read();
+    init_pdf_a11y();
+    REACH = 0.3;
+    MAX_CONTENT_CHARS = 64 * 1024 * 1024;
+    GRID2 = 6;
+    rectOf = (n7) => ({ x0: n7.x, y0: n7.y, x1: n7.x + n7.w, y1: n7.y + n7.h });
+    overlap = (a, b) => {
+      const x0 = Math.max(a.x0, b.x0), y0 = Math.max(a.y0, b.y0), x1 = Math.min(a.x1, b.x1), y1 = Math.min(a.y1, b.y1);
+      return x1 > x0 && y1 > y0 ? { x0, y0, x1, y1 } : null;
+    };
+    reaches = (a, b, by) => Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > by && Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > by;
+    inflate2 = (r5, by) => ({ x0: r5.x0 - by, y0: r5.y0 - by, x1: r5.x1 + by, y1: r5.y1 + by });
+    STANDARD_NAMES = new Set(Object.values(StandardFonts).filter((name) => name !== StandardFonts.Symbol && name !== StandardFonts.ZapfDingbats));
+    baseFontOf = (ctx, fontRef) => {
+      const font = ctx.lookup(fontRef);
+      const dict = font instanceof PDFDict6 ? font : void 0;
+      const base = dict?.get(PDFName6.of("BaseFont"));
+      return base instanceof PDFName6 ? base.asString().replace(/^\//, "").replace(/^[A-Z]{6}\+/, "") : "";
+    };
+    hexOf8 = (fill2) => `#${fill2.map((c) => Math.round(Math.min(1, Math.max(0, c)) * 255).toString(16).padStart(2, "0")).join("")}`;
+    KEEP_TEXT_INK = [20 / 255, 22 / 255, 26 / 255];
+    KEEP_TEXT_REFUSAL2 = "Keep text could not confirm that everything under the boxes is gone, so nothing was saved. Turn Keep text off to flatten each page instead.";
+  }
+});
+
 // packages/node-shell/src/state-dir.ts
 import { homedir as homedir3 } from "node:os";
-import { join as join18 } from "node:path";
+import { join as join19 } from "node:path";
 import { existsSync as existsSync10 } from "node:fs";
 function desktopAppDataDir(env = process.env, probe = {}) {
   const platform = probe.platform ?? process.platform;
   const home = probe.home ?? homedir3();
-  if (platform === "darwin") return join18(home, "Library", "Application Support", DESKTOP_APP_IDENTIFIER);
+  if (platform === "darwin") return join19(home, "Library", "Application Support", DESKTOP_APP_IDENTIFIER);
   if (platform === "win32") {
     const appdata = env.APPDATA?.trim();
-    return appdata ? join18(appdata, DESKTOP_APP_IDENTIFIER) : null;
+    return appdata ? join19(appdata, DESKTOP_APP_IDENTIFIER) : null;
   }
   const xdg = env.XDG_DATA_HOME?.trim();
-  return join18(xdg || join18(home, ".local", "share"), DESKTOP_APP_IDENTIFIER);
+  return join19(xdg || join19(home, ".local", "share"), DESKTOP_APP_IDENTIFIER);
 }
 function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.write(m2), probe = {}) {
   const fresh = env.LOLLY_STATE_DIR?.trim();
@@ -168944,7 +169539,7 @@ function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.writ
   const app = desktopAppDataDir(env, probe);
   if (app && exists(app)) return { dir: app, explicit: false, deprecated: false, source: "app", shared: true };
   const home = probe.home ?? homedir3();
-  return { dir: join18(home, ".lolly"), explicit: false, deprecated: false, source: "default", shared: false };
+  return { dir: join19(home, ".lolly"), explicit: false, deprecated: false, source: "default", shared: false };
 }
 var deprecationNoted, DESKTOP_APP_IDENTIFIER, stateDir;
 var init_state_dir = __esm({
@@ -169865,15 +170460,15 @@ var init_geometry_clipping = __esm({
 
 // packages/node-shell/src/geometry-wasm-node.ts
 import { existsSync as existsSync11 } from "node:fs";
-import { readFile as readFile17 } from "node:fs/promises";
-import { dirname as dirname6, join as join21 } from "node:path";
+import { readFile as readFile18 } from "node:fs/promises";
+import { dirname as dirname6, join as join22 } from "node:path";
 import { fileURLToPath as fileURLToPath9 } from "node:url";
 async function readGeometryWasm(name) {
   const adjacent = fileURLToPath9(new URL(`../wasm/geometry-kernel/${name}`, import.meta.url));
-  if (existsSync11(adjacent)) return readFile17(adjacent);
+  if (existsSync11(adjacent)) return readFile18(adjacent);
   for (let dir = dirname6(adjacent); ; dir = dirname6(dir)) {
-    const candidate = join21(dir, "packages/node-shell/wasm/geometry-kernel", name);
-    if (existsSync11(candidate)) return readFile17(candidate);
+    const candidate = join22(dir, "packages/node-shell/wasm/geometry-kernel", name);
+    if (existsSync11(candidate)) return readFile18(candidate);
     if (dirname6(dir) === dir) break;
   }
   throw new Error(`The geometry kernel ${name} is not installed.`);
@@ -170134,20 +170729,20 @@ __export(fonts_exports, {
   createNodeFontsAPI: () => createNodeFontsAPI
 });
 import { existsSync as existsSync12 } from "node:fs";
-import { readFile as readFile18 } from "node:fs/promises";
-import { dirname as dirname7, join as join22 } from "node:path";
+import { readFile as readFile19 } from "node:fs/promises";
+import { dirname as dirname7, join as join23 } from "node:path";
 import { fileURLToPath as fileURLToPath10 } from "node:url";
 function skeraPath() {
   const adjacent = fileURLToPath10(new URL("../wasm/skera/skera.wasm", import.meta.url));
   if (existsSync12(adjacent)) return adjacent;
   for (let dir = dirname7(adjacent); dirname7(dir) !== dir; dir = dirname7(dir)) {
-    const candidate = join22(dir, "packages/node-shell/wasm/skera/skera.wasm");
+    const candidate = join23(dir, "packages/node-shell/wasm/skera/skera.wasm");
     if (existsSync12(candidate)) return candidate;
   }
   throw new Error("The font subset runtime is not installed.");
 }
 function skeraModule() {
-  compiled2 ??= Promise.resolve().then(() => readFile18(skeraPath())).then((bytes2) => WebAssembly.compile(bytes2)).catch((error2) => {
+  compiled2 ??= Promise.resolve().then(() => readFile19(skeraPath())).then((bytes2) => WebAssembly.compile(bytes2)).catch((error2) => {
     compiled2 = void 0;
     throw error2;
   });
@@ -170173,7 +170768,7 @@ var init_fonts2 = __esm({
 });
 
 // packages/node-shell/src/gridcraft-calc.ts
-function isApi3(e) {
+function isApi4(e) {
   return e.memory instanceof WebAssembly.Memory && ["gridcraft_calc_alloc", "gridcraft_calc_free", "gridcraft_calc_run", "gridcraft_calc_result_ptr", "gridcraft_calc_result_len"].every((k) => typeof e[k] === "function");
 }
 async function compileGridcraftCalc(wasm) {
@@ -170186,7 +170781,7 @@ function createGridcraftCalcRunner(module) {
   const instance = () => {
     if (api) return api;
     const exports = new WebAssembly.Instance(module, {}).exports;
-    if (!isApi3(exports)) throw new Error("The calculation module ABI is incompatible.");
+    if (!isApi4(exports)) throw new Error("The calculation module ABI is incompatible.");
     api = exports;
     return exports;
   };
@@ -170200,7 +170795,7 @@ function createGridcraftCalcRunner(module) {
       new Uint8Array(module2.memory.buffer, pointer2, request2.length).set(request2);
       const status = module2.gridcraft_calc_run(pointer2, request2.length, operation);
       const length2 = module2.gridcraft_calc_result_len(), at = module2.gridcraft_calc_result_ptr();
-      if (length2 > MAX_RESULT2 || at + length2 > module2.memory.buffer.byteLength) throw new Error("The calculation module returned an oversized response.");
+      if (length2 > MAX_RESULT3 || at + length2 > module2.memory.buffer.byteLength) throw new Error("The calculation module returned an oversized response.");
       const out = new Uint8Array(module2.memory.buffer, at, length2).slice();
       if (status !== 0) throw new Error(new TextDecoder().decode(out));
       return out;
@@ -170216,12 +170811,12 @@ function createGridcraftCalcRunner(module) {
     }
   };
 }
-var MAX_REQUEST2, MAX_RESULT2, MAX_RETAINED_MEMORY;
+var MAX_REQUEST2, MAX_RESULT3, MAX_RETAINED_MEMORY;
 var init_gridcraft_calc = __esm({
   "packages/node-shell/src/gridcraft-calc.ts"() {
     "use strict";
     MAX_REQUEST2 = 16 * 1024 * 1024;
-    MAX_RESULT2 = 40 * 1024 * 1024;
+    MAX_RESULT3 = 40 * 1024 * 1024;
     MAX_RETAINED_MEMORY = 256 * 1024 * 1024;
   }
 });
@@ -170234,17 +170829,17 @@ __export(gridcraft_calc_node_exports, {
   xlsxRecalc: () => xlsxRecalc
 });
 import { randomInt } from "node:crypto";
-import { readFile as readFile19 } from "node:fs/promises";
-import { join as join23 } from "node:path";
+import { readFile as readFile20 } from "node:fs/promises";
+import { join as join24 } from "node:path";
 function loadCalcEngine() {
-  pending4 ??= readFile19(new URL("../wasm/gridcraft-calc/gridcraft-calc.wasm", import.meta.url)).catch((error2) => {
+  pending5 ??= readFile20(new URL("../wasm/gridcraft-calc/gridcraft-calc.wasm", import.meta.url)).catch((error2) => {
     if (error2.code !== "ENOENT") throw error2;
-    return readFile19(join23(repoRoot(), "packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm"));
+    return readFile20(join24(repoRoot(), "packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm"));
   }).then((bytes2) => compileGridcraftCalc(new Uint8Array(bytes2))).then((module) => createCalcEngine(createGridcraftCalcRunner(module), () => ({ now: Date.now(), seed: randomInt(2 ** 32) }))).catch((error2) => {
-    pending4 = void 0;
+    pending5 = void 0;
     throw error2;
   });
-  return pending4;
+  return pending5;
 }
 function createNodeCalcAPI() {
   return {
@@ -170260,7 +170855,7 @@ async function xlsxRecalc() {
     return void 0;
   }
 }
-var pending4;
+var pending5;
 var init_gridcraft_calc_node = __esm({
   "packages/node-shell/src/gridcraft-calc-node.ts"() {
     "use strict";
@@ -170286,7 +170881,7 @@ __export(text_measure_exports, {
   textMeasureSpecOfRow: () => textMeasureSpecOfRow
 });
 import { existsSync as existsSync13, readdirSync as readdirSync2, readFileSync as readFileSync7 } from "node:fs";
-import { join as join24 } from "node:path";
+import { join as join25 } from "node:path";
 function firstFamily(value2) {
   if (typeof value2 !== "string") return void 0;
   const first = value2.split(",")[0]?.trim().replace(/^['"]|['"]$/g, "").trim();
@@ -170327,7 +170922,7 @@ function measureFontsFromTokens(doc, theme) {
 function variableFaces(root2) {
   const hit = variableCache.get(root2);
   if (hit) return hit;
-  const dir = join24(root2, "shells", "web", "public", "fonts");
+  const dir = join25(root2, "shells", "web", "public", "fonts");
   const faces = [];
   if (existsSync13(dir)) {
     for (const name of readdirSync2(dir)) {
@@ -170339,7 +170934,7 @@ function variableFaces(root2) {
   return faces;
 }
 function fontFile(url, root2) {
-  if (url.startsWith("/fonts/")) return join24(root2, "shells", "web", "public", url.slice(1));
+  if (url.startsWith("/fonts/")) return join25(root2, "shells", "web", "public", url.slice(1));
   if (url.startsWith("/catalog/")) {
     try {
       return contentUrlFile(url, contentRoots({ root: root2 }));
@@ -170537,15 +171132,15 @@ var init_layout_kernel = __esm({
 
 // packages/node-shell/src/layout-kernel-node.ts
 import { existsSync as existsSync14 } from "node:fs";
-import { readFile as readFile20 } from "node:fs/promises";
-import { dirname as dirname8, join as join25 } from "node:path";
+import { readFile as readFile21 } from "node:fs/promises";
+import { dirname as dirname8, join as join26 } from "node:path";
 import { fileURLToPath as fileURLToPath11 } from "node:url";
 async function loadLayoutKernel() {
   const adjacent = fileURLToPath11(new URL("../wasm/layout-kernel/layout-kernel.wasm", import.meta.url));
-  if (existsSync14(adjacent)) return createLayoutKernel(new Uint8Array(await readFile20(adjacent)));
+  if (existsSync14(adjacent)) return createLayoutKernel(new Uint8Array(await readFile21(adjacent)));
   for (let dir = dirname8(adjacent); ; dir = dirname8(dir)) {
-    const candidate = join25(dir, "packages/node-shell/wasm/layout-kernel/layout-kernel.wasm");
-    if (existsSync14(candidate)) return createLayoutKernel(new Uint8Array(await readFile20(candidate)));
+    const candidate = join26(dir, "packages/node-shell/wasm/layout-kernel/layout-kernel.wasm");
+    if (existsSync14(candidate)) return createLayoutKernel(new Uint8Array(await readFile21(candidate)));
     if (dirname8(dir) === dir) break;
   }
   throw new Error("The layout kernel is not installed.");
@@ -170673,21 +171268,21 @@ __export(emoji_exports, {
   EMOJI_PACK_TAG: () => EMOJI_PACK_TAG,
   createNodeEmojiAPI: () => createNodeEmojiAPI
 });
-import { readFile as readFile21, stat as stat3 } from "node:fs/promises";
+import { readFile as readFile22, stat as stat3 } from "node:fs/promises";
 import { resolve as resolve3, sep } from "node:path";
 import { gunzip as gunzip2 } from "node:zlib";
 import { promisify } from "node:util";
 async function bundleText(file) {
   try {
     if ((await stat3(file)).size > BUNDLE_MAX_BYTES) return null;
-    return await readFile21(file, "utf8");
+    return await readFile22(file, "utf8");
   } catch (error2) {
     if (error2.code !== "ENOENT") return null;
   }
   try {
     const compressed = `${file}.gz`;
     if ((await stat3(compressed)).size > BUNDLE_MAX_BYTES) return null;
-    const bytes2 = await inflateBundle(await readFile21(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
+    const bytes2 = await inflateBundle(await readFile22(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
     return bytes2.toString("utf8");
   } catch {
     return null;
@@ -170724,7 +171319,7 @@ async function jsdomParser() {
 async function createNodeEmojiAPI(options2 = {}) {
   const parseXml = options2.parseXml ?? await jsdomParser();
   const catalogDir = options2.catalogDir;
-  const loadIndex2 = async () => catalogDir ? JSON.parse(await readFile21(`${catalogDir.replace(/\/+$/, "")}/assets/index.json`, "utf8")) : readAssetIndex();
+  const loadIndex2 = async () => catalogDir ? JSON.parse(await readFile22(`${catalogDir.replace(/\/+$/, "")}/assets/index.json`, "utf8")) : readAssetIndex();
   const bundles = /* @__PURE__ */ new Map();
   let listed = null;
   async function entries() {
@@ -172470,12 +173065,12 @@ var init_design_ops_host = __esm({
 // packages/node-shell/src/pdfx.ts
 async function applyPdfX(pdfDoc, opts, intentKind, extra = {}) {
   const lib = await import("pdf-lib");
-  const { PDFName: PDFName7, PDFString: PDFString3, PDFHexString: PDFHexString3 } = lib;
+  const { PDFName: PDFName8, PDFString: PDFString3, PDFHexString: PDFHexString3 } = lib;
   const log = extra.log ?? null;
   const embed = extra.embed ?? null;
   await pdfDoc.flush?.();
   for (const page3 of pdfDoc.getPages()) {
-    if (!page3.node.get(PDFName7.of("TrimBox"))) {
+    if (!page3.node.get(PDFName8.of("TrimBox"))) {
       const mb2 = page3.getMediaBox();
       page3.setTrimBox(mb2.x, mb2.y, mb2.width, mb2.height);
     }
@@ -172487,11 +173082,11 @@ async function applyPdfX(pdfDoc, opts, intentKind, extra = {}) {
     claim = false;
     log?.("info", "PDF/X metadata written without conformance claim: the press condition is named, not embedded (no profile on this device)");
   }
-  if (spec && claim && intentSpace === "CMYK" && (hasDeviceRgbImage(pdfDoc, PDFName7) || !shadingCsOk(pdfDoc, PDFName7))) {
+  if (spec && claim && intentSpace === "CMYK" && (hasDeviceRgbImage(pdfDoc, PDFName8) || !shadingCsOk(pdfDoc, PDFName8))) {
     claim = false;
     log?.("info", "PDF/X conformance claim dropped: unmanaged RGB content (image or shading) under a CMYK output intent");
   }
-  if (spec && claim && intentSpace === "CMYK" && !groupCsOk(pdfDoc, PDFName7)) {
+  if (spec && claim && intentSpace === "CMYK" && !groupCsOk(pdfDoc, PDFName8)) {
     claim = false;
     log?.("info", "PDF/X conformance claim dropped: a transparency group is /DeviceRGB under a CMYK output intent");
   }
@@ -172503,7 +173098,7 @@ async function applyPdfX(pdfDoc, opts, intentKind, extra = {}) {
     claim = false;
     log?.("info", "PDF/X conformance claim dropped: document is AES-256 encrypted (PDF/X-4 forbids encryption)");
   }
-  if (spec) setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName7, PDFString: PDFString3, PDFHexString: PDFHexString3 });
+  if (spec) setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName8, PDFString: PDFString3, PDFHexString: PDFHexString3 });
   const now2 = /* @__PURE__ */ new Date();
   const producer = opts.meta?.software || "Lolly";
   const documentId = makeDocumentId();
@@ -172517,15 +173112,15 @@ async function applyPdfX(pdfDoc, opts, intentKind, extra = {}) {
   });
   if (!claim) xmp = xmp.replace(/[ \t]*<pdfxid:GTS_PDFXVersion>[^<]*<\/pdfxid:GTS_PDFXVersion>\n/, "");
   const meta = pdfDoc.context.stream(new TextEncoder().encode(xmp), { Type: "Metadata", Subtype: "XML" });
-  pdfDoc.catalog.set(PDFName7.of("Metadata"), pdfDoc.context.register(meta));
+  pdfDoc.catalog.set(PDFName8.of("Metadata"), pdfDoc.context.register(meta));
   const info = pdfDoc.getInfoDict();
   const pdfDate = PDFString3.of(formatPdfDate(now2));
-  info.set(PDFName7.of("Producer"), PDFString3.of(producer));
-  info.set(PDFName7.of("CreationDate"), pdfDate);
-  info.set(PDFName7.of("ModDate"), pdfDate);
-  info.set(PDFName7.of("Trapped"), PDFName7.of("False"));
-  if (claim) info.set(PDFName7.of("GTS_PDFXVersion"), PDFString3.of(PDFX_VERSION));
-  else info.delete(PDFName7.of("GTS_PDFXVersion"));
+  info.set(PDFName8.of("Producer"), PDFString3.of(producer));
+  info.set(PDFName8.of("CreationDate"), pdfDate);
+  info.set(PDFName8.of("ModDate"), pdfDate);
+  info.set(PDFName8.of("Trapped"), PDFName8.of("False"));
+  if (claim) info.set(PDFName8.of("GTS_PDFXVersion"), PDFString3.of(PDFX_VERSION));
+  else info.delete(PDFName8.of("GTS_PDFXVersion"));
   const idHex = documentId.replace(/^uuid:/, "").replace(/-/g, "");
   const id3 = PDFHexString3.of(idHex);
   pdfDoc.context.trailerInfo.ID = pdfDoc.context.obj([id3, id3]);
@@ -172547,7 +173142,7 @@ function outputIntentSpec(intentKind, embed, log) {
   }
   return pdfxOutputIntentSpec(intentKind);
 }
-function setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName7, PDFString: PDFString3, PDFHexString: PDFHexString3 }) {
+function setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName8, PDFString: PDFString3, PDFHexString: PDFHexString3 }) {
   const str11 = (s) => pdfText2(s, { PDFString: PDFString3, PDFHexString: PDFHexString3 });
   const intent = pdfDoc.context.obj({
     Type: "OutputIntent",
@@ -172556,56 +173151,56 @@ function setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName7, PDFString: PDFSt
     OutputCondition: str11(spec.info),
     Info: str11(spec.info)
   });
-  if (spec.registry) intent.set(PDFName7.of("RegistryName"), str11(spec.registry));
+  if (spec.registry) intent.set(PDFName8.of("RegistryName"), str11(spec.registry));
   if (spec.iccBytes) {
     const icc = pdfDoc.context.flateStream(spec.iccBytes, { N: spec.components });
-    intent.set(PDFName7.of("DestOutputProfile"), pdfDoc.context.register(icc));
+    intent.set(PDFName8.of("DestOutputProfile"), pdfDoc.context.register(icc));
   }
-  pdfDoc.catalog.set(PDFName7.of("OutputIntents"), pdfDoc.context.obj([intent]));
+  pdfDoc.catalog.set(PDFName8.of("OutputIntents"), pdfDoc.context.obj([intent]));
 }
 function pdfText2(s, { PDFString: PDFString3, PDFHexString: PDFHexString3 }) {
   return /^[\x20-\x7e]*$/.test(s) ? PDFString3.of(s.replace(/([\\()])/g, "\\$1")) : PDFHexString3.fromText(s);
 }
-function hasDeviceRgbImage(pdfDoc, PDFName7) {
+function hasDeviceRgbImage(pdfDoc, PDFName8) {
   for (const [, obj3] of pdfDoc.context.enumerateIndirectObjects()) {
     const dict = obj3?.dict;
     if (!dict?.get) continue;
-    const sub = dict.get(PDFName7.of("Subtype"));
+    const sub = dict.get(PDFName8.of("Subtype"));
     if (!sub || !String(sub).includes("Image")) continue;
-    const cs = dict.get(PDFName7.of("ColorSpace"));
+    const cs = dict.get(PDFName8.of("ColorSpace"));
     if (cs && String(cs).includes("DeviceRGB")) return true;
   }
   return false;
 }
-function groupCsOk(pdfDoc, PDFName7) {
+function groupCsOk(pdfDoc, PDFName8) {
   const rgbGroup = (group) => {
-    const cs = group?.get?.(PDFName7.of("CS"));
+    const cs = group?.get?.(PDFName8.of("CS"));
     return Boolean(cs && String(cs).includes("DeviceRGB"));
   };
   for (const page3 of pdfDoc.getPages()) {
-    if (rgbGroup(page3.node.get(PDFName7.of("Group")))) return false;
+    if (rgbGroup(page3.node.get(PDFName8.of("Group")))) return false;
   }
   for (const [, obj3] of pdfDoc.context.enumerateIndirectObjects()) {
     const dict = obj3?.dict ?? obj3;
     if (!dict?.get) continue;
-    if (rgbGroup(dict.get(PDFName7.of("Group")))) return false;
-    const type = dict.get(PDFName7.of("Type"));
+    if (rgbGroup(dict.get(PDFName8.of("Group")))) return false;
+    const type = dict.get(PDFName8.of("Type"));
     if (type && String(type).includes("Group") && rgbGroup(dict)) return false;
   }
   return true;
 }
-function shadingCsOk(pdfDoc, PDFName7) {
+function shadingCsOk(pdfDoc, PDFName8) {
   const ctx = pdfDoc.context;
   const rgb3 = (d) => {
-    const cs = d?.get?.(PDFName7.of("ColorSpace"));
+    const cs = d?.get?.(PDFName8.of("ColorSpace"));
     return Boolean(cs && String(cs).includes("DeviceRGB"));
   };
   const bad = (obj3, depth = 0) => {
     const dict = obj3?.dict ?? obj3;
     if (!dict?.get || depth > 4) return false;
-    if (dict.get(PDFName7.of("ShadingType")) && rgb3(dict)) return true;
+    if (dict.get(PDFName8.of("ShadingType")) && rgb3(dict)) return true;
     for (const key2 of ["Shading", "Pattern"]) {
-      const held = ctx.lookup(dict.get(PDFName7.of(key2)));
+      const held = ctx.lookup(dict.get(PDFName8.of(key2)));
       if (!held) continue;
       if (bad(held, depth + 1)) return true;
       for (const [, v] of held.entries?.() ?? []) {
@@ -172620,35 +173215,35 @@ function shadingCsOk(pdfDoc, PDFName7) {
   for (const [, obj3] of ctx.enumerateIndirectObjects()) {
     if (bad(obj3)) return false;
     const dict = obj3?.dict ?? obj3;
-    if (dict?.get && bad(ctx.lookup(dict.get(PDFName7.of("Resources"))), 1)) return false;
+    if (dict?.get && bad(ctx.lookup(dict.get(PDFName8.of("Resources"))), 1)) return false;
   }
   return true;
 }
 function usedFontsEmbedded(pdfDoc, lib) {
-  const { PDFName: PDFName7 } = lib;
+  const { PDFName: PDFName8 } = lib;
   const ctx = pdfDoc.context;
   const descriptorEmbeds = (fd) => {
     if (!fd?.get) return false;
     for (const k of ["FontFile", "FontFile2", "FontFile3"]) {
-      if (fd.get(PDFName7.of(k))) return true;
+      if (fd.get(PDFName8.of(k))) return true;
     }
     return false;
   };
   const fontOk = (dict) => {
     if (!dict?.get) return false;
-    const sub = String(dict.get(PDFName7.of("Subtype")) ?? "");
+    const sub = String(dict.get(PDFName8.of("Subtype")) ?? "");
     if (sub.includes("Type3")) return true;
     if (sub.includes("Type0")) {
-      const kids2 = ctx.lookup(dict.get(PDFName7.of("DescendantFonts")))?.asArray?.() ?? [];
+      const kids2 = ctx.lookup(dict.get(PDFName8.of("DescendantFonts")))?.asArray?.() ?? [];
       if (!kids2.length) return false;
-      return kids2.every((k) => descriptorEmbeds(ctx.lookup(ctx.lookup(k)?.get?.(PDFName7.of("FontDescriptor")))));
+      return kids2.every((k) => descriptorEmbeds(ctx.lookup(ctx.lookup(k)?.get?.(PDFName8.of("FontDescriptor")))));
     }
-    return descriptorEmbeds(ctx.lookup(dict.get(PDFName7.of("FontDescriptor"))));
+    return descriptorEmbeds(ctx.lookup(dict.get(PDFName8.of("FontDescriptor"))));
   };
   for (const { stream, resources } of contentStreams(pdfDoc, lib)) {
-    const fonts = resources?.get ? ctx.lookup(resources.get(PDFName7.of("Font"))) : null;
+    const fonts = resources?.get ? ctx.lookup(resources.get(PDFName8.of("Font"))) : null;
     for (const name of selectedFontNames(stream)) {
-      const entry2 = fonts?.get?.(PDFName7.of(name));
+      const entry2 = fonts?.get?.(PDFName8.of(name));
       if (!entry2) continue;
       if (!fontOk(ctx.lookup(entry2))) return false;
     }
@@ -172662,11 +173257,11 @@ function selectedFontNames(stream) {
   return names;
 }
 function* contentStreams(pdfDoc, lib) {
-  const { PDFName: PDFName7, decodePDFRawStream: decodePDFRawStream4 } = lib;
+  const { PDFName: PDFName8, decodePDFRawStream: decodePDFRawStream5 } = lib;
   const ctx = pdfDoc.context;
   const decode = (obj3) => {
     try {
-      const bytes2 = typeof obj3?.getUnencodedContents === "function" ? obj3.getUnencodedContents() : obj3?.dict ? decodePDFRawStream4(obj3).decode() : null;
+      const bytes2 = typeof obj3?.getUnencodedContents === "function" ? obj3.getUnencodedContents() : obj3?.dict ? decodePDFRawStream5(obj3).decode() : null;
       return bytes2 ? new TextDecoder().decode(bytes2) : "";
     } catch {
       return "";
@@ -172674,7 +173269,7 @@ function* contentStreams(pdfDoc, lib) {
   };
   for (const page3 of pdfDoc.getPages()) {
     const resources = page3.node.Resources?.() ?? null;
-    const contents = page3.node.get(PDFName7.of("Contents"));
+    const contents = page3.node.get(PDFName8.of("Contents"));
     const parts = ctx.lookup(contents)?.asArray?.() ?? [contents];
     for (const part of parts) {
       const stream = decode(ctx.lookup(part));
@@ -172684,9 +173279,9 @@ function* contentStreams(pdfDoc, lib) {
   for (const [, obj3] of ctx.enumerateIndirectObjects()) {
     const dict = obj3?.dict;
     if (!dict?.get) continue;
-    if (!String(dict.get(PDFName7.of("Subtype")) ?? "").includes("Form")) continue;
+    if (!String(dict.get(PDFName8.of("Subtype")) ?? "").includes("Form")) continue;
     const stream = decode(obj3);
-    if (stream) yield { stream, resources: ctx.lookup(dict.get(PDFName7.of("Resources"))) };
+    if (stream) yield { stream, resources: ctx.lookup(dict.get(PDFName8.of("Resources"))) };
   }
 }
 var init_pdfx2 = __esm({
@@ -172735,8 +173330,8 @@ function printGeometryForSize(trimWpt, trimHpt, opts, paletteSource, separate = 
   return computePrintGeometry({ trimWpt, trimHpt, bleedPt, marks, palette, barStyle: opts.barStyle, barRadiusPt: opts.barRadiusPt });
 }
 async function encryptPdfStrong(blob, password) {
-  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
-  const doc = await PDFDocument4.load(new Uint8Array(await blob.arrayBuffer()), { updateMetadata: false });
+  const { PDFDocument: PDFDocument5, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict8, PDFArray: PDFArray9 } = await import("pdf-lib");
+  const doc = await PDFDocument5.load(new Uint8Array(await blob.arrayBuffer()), { updateMetadata: false });
   const ctx = doc.context;
   const rnd = (n7) => globalThis.crypto.getRandomValues(new Uint8Array(n7));
   const hexU = (b) => {
@@ -172755,7 +173350,7 @@ async function encryptPdfStrong(blob, password) {
     P,
     encryptMetadata: true
   });
-  const idArr = PDFArray8.withContext(ctx);
+  const idArr = PDFArray9.withContext(ctx);
   idArr.push(PDFHexString3.of(hexU(rnd(16))));
   idArr.push(PDFHexString3.of(hexU(rnd(16))));
   const encDict = ctx.obj({
@@ -172776,16 +173371,16 @@ async function encryptPdfStrong(blob, password) {
   });
   const encStr = async (o) => PDFHexString3.of(hexU(await encryptObjectBytes(fileKey, rnd(16), o.asBytes())));
   const walk3 = async (c) => {
-    if (c instanceof PDFDict7) {
+    if (c instanceof PDFDict8) {
       for (const [k, v] of c.entries()) {
         if (v instanceof PDFString3 || v instanceof PDFHexString3) c.set(k, await encStr(v));
-        else if (v instanceof PDFDict7 || v instanceof PDFArray8) await walk3(v);
+        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk3(v);
       }
-    } else if (c instanceof PDFArray8) {
+    } else if (c instanceof PDFArray9) {
       for (let i = 0; i < c.size(); i++) {
         const v = c.get(i);
         if (v instanceof PDFString3 || v instanceof PDFHexString3) c.set(i, await encStr(v));
-        else if (v instanceof PDFDict7 || v instanceof PDFArray8) await walk3(v);
+        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk3(v);
       }
     }
   };
@@ -172794,7 +173389,7 @@ async function encryptPdfStrong(blob, password) {
       const ct = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(obj3.getContents()));
       await walk3(obj3.dict);
       ctx.assign(ref2, PDFRawStream5.of(obj3.dict, ct));
-    } else if (obj3 instanceof PDFDict7 || obj3 instanceof PDFArray8) {
+    } else if (obj3 instanceof PDFDict8 || obj3 instanceof PDFArray9) {
       await walk3(obj3);
     } else if (obj3 instanceof PDFString3 || obj3 instanceof PDFHexString3) {
       ctx.assign(ref2, await encStr(obj3));
@@ -172807,9 +173402,9 @@ async function encryptPdfStrong(blob, password) {
   return new Blob([out], { type: "application/pdf" });
 }
 async function finishPdfX(blobOrBytes, opts, { intentKind = "srgb", geo = null, geos = null, space = "rgb", labels = null, log = null } = {}) {
-  const { PDFDocument: PDFDocument4 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument5 } = await import("pdf-lib");
   const bytes2 = blobOrBytes instanceof Uint8Array ? blobOrBytes : new Uint8Array(await blobOrBytes.arrayBuffer());
-  const pdfDoc = await PDFDocument4.load(bytes2, { updateMetadata: false });
+  const pdfDoc = await PDFDocument5.load(bytes2, { updateMetadata: false });
   const perPage = geos ?? (geo ? [geo] : null);
   if (perPage) {
     const pages = pdfDoc.getPages();
@@ -172845,7 +173440,7 @@ function setPageBoxes(page3, geo) {
   page3.setArtBox(...box4(geo.boxes.trim));
 }
 async function drawPrintMarks(page3, geo, { space = "rgb", labels } = {}) {
-  const { rgb: rgb3, cmyk, degrees, StandardFonts } = await import("pdf-lib");
+  const { rgb: rgb3, cmyk, degrees, StandardFonts: StandardFonts2 } = await import("pdf-lib");
   const H = geo.page.h;
   const fy = (y) => H - y;
   const markColor = space === "cmyk" ? cmyk(1, 1, 1, 1) : rgb3(0, 0, 0);
@@ -172872,7 +173467,7 @@ async function drawPrintMarks(page3, geo, { space = "rgb", labels } = {}) {
   }
   const slots = (geo.primitives.labels ?? []).filter((l) => labels?.[l.slot]);
   if (slots.length) {
-    const font = await page3.doc.embedFont(StandardFonts.Helvetica);
+    const font = await page3.doc.embedFont(StandardFonts2.Helvetica);
     const textColor = space === "cmyk" ? cmyk(0, 0, 0, 0.7) : rgb3(0.35, 0.35, 0.35);
     for (const l of slots) {
       const text13 = labels[l.slot];
@@ -173016,120 +173611,6 @@ var init_design_ops_svg = __esm({
     init_src2();
     init_design_ops_host();
     init_export_route();
-  }
-});
-
-// packages/node-shell/src/pdf-a11y.ts
-function isApi4(e) {
-  return e.memory instanceof WebAssembly.Memory && ["pdf_a11y_alloc", "pdf_a11y_free", "pdf_a11y_run", "pdf_a11y_result_ptr", "pdf_a11y_result_len"].every((k) => typeof e[k] === "function");
-}
-function readFinding(raw) {
-  if (!isObject3(raw) || typeof raw.message !== "string" || typeof raw.pattern !== "string") throw new Error("malformed finding");
-  const values = Array.isArray(raw.values) ? raw.values.filter((v) => Array.isArray(v) && typeof v[0] === "string" && typeof v[1] === "string").map(([k, v]) => [k, v]) : [];
-  const out = { message: raw.message, pattern: raw.pattern, values };
-  if (typeof raw.page === "number" && Number.isInteger(raw.page) && raw.page >= 0) out.page = raw.page + 1;
-  if (Array.isArray(raw.object) && raw.object.length === 2 && raw.object.every((n7) => Number.isInteger(n7))) out.object = [raw.object[0], raw.object[1]];
-  if (Array.isArray(raw.bbox) && raw.bbox.length === 4 && raw.bbox.every((n7) => typeof n7 === "number" && Number.isFinite(n7))) {
-    out.bbox = [raw.bbox[0], raw.bbox[1], raw.bbox[2], raw.bbox[3]];
-  }
-  return out;
-}
-function parsePdfAccessibilityReport(json) {
-  const raw = JSON.parse(json);
-  if (!isObject3(raw) || raw.v !== 1 || typeof raw.pages !== "number" || !Array.isArray(raw.rules)) throw new Error("malformed report");
-  const rules = raw.rules.map((r5) => {
-    if (!isObject3(r5) || typeof r5.id !== "string" || typeof r5.category !== "string" || typeof r5.status !== "string" || !STATUSES2.has(r5.status)) {
-      throw new Error("malformed rule");
-    }
-    return {
-      id: r5.id,
-      category: r5.category,
-      manual: r5.manual === true,
-      applies: r5.applies === true,
-      status: r5.status,
-      findings: Array.isArray(r5.findings) ? r5.findings.map(readFinding) : []
-    };
-  });
-  return { v: 1, pages: raw.pages, rules };
-}
-async function createPdfA11yKernel(wasm) {
-  const { instance } = await WebAssembly.instantiate(wasm, {});
-  if (!isApi4(instance.exports)) throw new Error("The PDF accessibility module ABI is incompatible.");
-  const api = instance.exports;
-  function check2(bytes2) {
-    if (!(bytes2 instanceof Uint8Array) || bytes2.length === 0) throw new PdfAccessibilityError("not-pdf", "The file is empty, so it was not checked.");
-    if (bytes2.length > PDF_A11Y_MAX_BYTES) throw new PdfAccessibilityError("too-large", "The PDF is larger than 256 MB, so it was not checked.");
-    const pointer2 = api.pdf_a11y_alloc(bytes2.length);
-    if (!pointer2) throw new PdfAccessibilityError("too-large", "The PDF is too large for the accessibility check to hold in memory, so it was not checked.");
-    try {
-      new Uint8Array(api.memory.buffer, pointer2, bytes2.length).set(bytes2);
-      const status = api.pdf_a11y_run(pointer2, bytes2.length, OP_CHECK);
-      const length2 = api.pdf_a11y_result_len(), at = api.pdf_a11y_result_ptr();
-      if (length2 > MAX_RESULT3 || at + length2 > api.memory.buffer.byteLength) throw new PdfAccessibilityError("damaged", "The accessibility check returned an oversized answer, so the file was not checked.");
-      const text13 = new TextDecoder().decode(new Uint8Array(api.memory.buffer, at, length2).slice());
-      if (status !== 0) {
-        const m2 = REFUSAL.exec(text13);
-        throw new PdfAccessibilityError(m2?.[1] ?? "damaged", m2?.[2] || "The PDF could not be read, so it was not checked.");
-      }
-      try {
-        return parsePdfAccessibilityReport(text13);
-      } catch {
-        throw new PdfAccessibilityError("damaged", "The accessibility check returned an answer Lolly could not read, so the file was not checked.");
-      }
-    } finally {
-      api.pdf_a11y_free(pointer2);
-    }
-  }
-  return { check: check2 };
-}
-var PDF_A11Y_MAX_BYTES, MAX_RESULT3, OP_CHECK, STATUSES2, PdfAccessibilityError, isObject3, REFUSAL;
-var init_pdf_a11y = __esm({
-  "packages/node-shell/src/pdf-a11y.ts"() {
-    "use strict";
-    PDF_A11Y_MAX_BYTES = 256 * 1024 * 1024;
-    MAX_RESULT3 = 20 * 1024 * 1024;
-    OP_CHECK = 1;
-    STATUSES2 = /* @__PURE__ */ new Set(["passed", "failed", "manual", "skipped"]);
-    PdfAccessibilityError = class extends Error {
-      code;
-      constructor(code, message) {
-        super(message);
-        this.name = "PdfAccessibilityError";
-        this.code = code;
-      }
-    };
-    isObject3 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    REFUSAL = /^(not-pdf|encrypted|damaged): ?(.*)$/s;
-  }
-});
-
-// packages/node-shell/src/pdf-a11y-node.ts
-var pdf_a11y_node_exports = {};
-__export(pdf_a11y_node_exports, {
-  checkPdfAccessibility: () => checkPdfAccessibility,
-  loadPdfA11yKernel: () => loadPdfA11yKernel
-});
-import { readFile as readFile22 } from "node:fs/promises";
-import { join as join26 } from "node:path";
-function loadPdfA11yKernel() {
-  pending5 ??= readFile22(new URL("../wasm/pdf-a11y/pdf-a11y.wasm", import.meta.url)).catch((error2) => {
-    if (error2.code !== "ENOENT") throw error2;
-    return readFile22(join26(repoRoot(), "packages/node-shell/wasm/pdf-a11y/pdf-a11y.wasm"));
-  }).then((bytes2) => createPdfA11yKernel(new Uint8Array(bytes2))).catch((error2) => {
-    pending5 = void 0;
-    throw error2;
-  });
-  return pending5;
-}
-async function checkPdfAccessibility(bytes2) {
-  return (await loadPdfA11yKernel()).check(bytes2);
-}
-var pending5;
-var init_pdf_a11y_node = __esm({
-  "packages/node-shell/src/pdf-a11y-node.ts"() {
-    "use strict";
-    init_repo_root();
-    init_pdf_a11y();
   }
 });
 
@@ -173378,7 +173859,7 @@ async function resolveSigningIdentity(input = {}) {
   for (let i = 1; i < parsed.length; i++) {
     if (!await signedBy(parsed[i - 1], parsed[i])) {
       throw new SigningIdentityError(
-        `The certificate chain in ${certSource} does not link: certificate ${i + 1} (${describe2(parsed[i])}) did not issue certificate ${i} (${describe2(parsed[i - 1])}). A chain is ordered leaf first, then each issuer in turn. Concatenate them in that order.`,
+        `The certificate chain in ${certSource} does not link: certificate ${i + 1} (${describe3(parsed[i])}) did not issue certificate ${i} (${describe3(parsed[i - 1])}). A chain is ordered leaf first, then each issuer in turn. Concatenate them in that order.`,
         "SIGN_CHAIN_ORDER"
       );
     }
@@ -173393,7 +173874,7 @@ async function resolveSigningIdentity(input = {}) {
   const last = parsed[parsed.length - 1];
   if (!last.selfSigned) {
     warnings2.push(
-      `the chain in ${certSource} stops at ${describe2(last)}, which is not self-signed, so its issuing root is not included. That verifies only for a recipient who pins exactly that issuer. Append the issuing certificates if you want the chain to reach a root on its own.`
+      `the chain in ${certSource} stops at ${describe3(last)}, which is not self-signed, so its issuing root is not included. That verifies only for a recipient who pins exactly that issuer. Append the issuing certificates if you want the chain to reach a root on its own.`
     );
   }
   return {
@@ -173409,7 +173890,7 @@ async function resolveSigningIdentity(input = {}) {
     warnings: warnings2
   };
 }
-function describe2(c) {
+function describe3(c) {
   return c.subject.commonName || c.subject.organization || "an unnamed certificate";
 }
 function sameBytes2(a, b) {
@@ -175232,7 +175713,7 @@ __export(check_pptx_brand_exports, {
   pptxBrandFindings: () => pptxBrandFindings,
   readPptxBrand: () => readPptxBrand
 });
-function hexOf8(color6) {
+function hexOf9(color6) {
   const raw = color6 && typeof color6.hex === "string" ? color6.hex.replace(/^#/, "") : "";
   if (!/^[0-9a-f]{6}$/i.test(raw)) return null;
   const alpha = typeof color6.alpha === "number" && color6.alpha < 1 ? Math.max(0, Math.round(color6.alpha * 255)) : 255;
@@ -175248,14 +175729,14 @@ function groundOf2(slide, n7, w, h) {
   const bg = slide.background;
   if (bg?.media) ground = { slide: n7, photo: true };
   else if (bg && !bg.gradient) {
-    const hex3 = hexOf8(bg.color);
+    const hex3 = hexOf9(bg.color);
     if (hex3 && hex3.length === 7) ground = { slide: n7, hex: hex3 };
   }
   for (const node of [...slide.inherited ?? [], ...slide.nodes]) {
     if (!covers3(node, w, h)) continue;
     if (node.type === "pic") ground = { slide: n7, photo: true };
     else if ((node.type === "shape" || node.type === "text") && !node.gradient) {
-      const hex3 = hexOf8(node.fill);
+      const hex3 = hexOf9(node.fill);
       if (hex3 && hex3.length === 7) ground = { slide: n7, hex: hex3 };
     }
   }
@@ -175275,7 +175756,7 @@ async function readPptxBrand(bytes2) {
       rows2.push({ frame, ...row });
       slideOf.set(String(row.id), n7);
     };
-    rows2.push({ id: frame, kind: "frame", name: `Slide ${n7}`, x: 0, y: 0, w: 1, h: 1, ...hexOf8(slide.background?.color) && !slide.background?.gradient ? { bg: hexOf8(slide.background?.color) } : {} });
+    rows2.push({ id: frame, kind: "frame", name: `Slide ${n7}`, x: 0, y: 0, w: 1, h: 1, ...hexOf9(slide.background?.color) && !slide.background?.gradient ? { bg: hexOf9(slide.background?.color) } : {} });
     slideOf.set(frame, n7);
     grounds.push(groundOf2(slide, n7, w, h));
     [...slide.inherited ?? [], ...slide.nodes].forEach((node, j) => {
@@ -175283,15 +175764,15 @@ async function readPptxBrand(bytes2) {
       const alt = node.alt;
       const name = typeof alt === "string" && alt.trim() ? alt.trim().slice(0, 80) : `Slide ${n7} shape ${j + 1}`;
       if (node.type === "shape") {
-        const bg = node.gradient ? null : hexOf8(node.fill);
-        const stroke = node.lineGradient ? null : hexOf8(node.line);
+        const bg = node.gradient ? null : hexOf9(node.fill);
+        const stroke = node.lineGradient ? null : hexOf9(node.line);
         if (bg || stroke) add3({ id: id3, kind: "box", name, ...bg ? { bg } : {}, ...stroke ? { stroke } : {} });
       } else if (node.type === "text") {
-        const bg = node.gradient ? null : hexOf8(node.fill);
+        const bg = node.gradient ? null : hexOf9(node.fill);
         if (bg) add3({ id: `${id3}-fill`, kind: "box", name, bg });
         const seen = /* @__PURE__ */ new Map();
         for (const para of node.paras) for (const run3 of para.runs) {
-          const fg = hexOf8(run3.color);
+          const fg = hexOf9(run3.color);
           if (!fg || !run3.text.trim()) continue;
           if (!seen.has(fg)) seen.set(fg, run3.text.trim().slice(0, 40));
         }
@@ -177502,11 +177983,11 @@ __export(pdf_file_operation_exports, {
   runPdfFileOperation: () => runPdfFileOperation,
   splitPdfPages: () => splitPdfPages
 });
-import { PDFDocument as PDFDocument3, PDFDict as PDFDict6, PDFName as PDFName6, PDFArray as PDFArray7 } from "pdf-lib";
+import { PDFDocument as PDFDocument4, PDFDict as PDFDict7, PDFName as PDFName7, PDFArray as PDFArray8 } from "pdf-lib";
 async function unsignedPdf(bytes2, signal) {
   if (bytes2.byteLength > 128 * 1024 * 1024) throw new Error("PDF utilities support files up to 128 MB.");
   signal?.throwIfAborted();
-  const document2 = await PDFDocument3.load(bytes2, { updateMetadata: false });
+  const document2 = await PDFDocument4.load(bytes2, { updateMetadata: false });
   if (document2.getPageCount() > 200) throw new Error("These PDF utilities support up to 200 pages. Split the document first.");
   const seen = /* @__PURE__ */ new Set();
   let visited = 0;
@@ -177514,10 +177995,10 @@ async function unsignedPdf(bytes2, signal) {
     if (seen.has(object4)) return;
     seen.add(object4);
     if (++visited > 5e5 || depth > 32) throw new Error("PDF structure exceeds the safe inspection limit.");
-    if (object4 instanceof PDFDict6) {
-      if (object4.has(PDFName6.of("ByteRange")) || object4.get(PDFName6.of("Type")) === PDFName6.of("Sig")) throw new Error("This PDF carries a digital signature. Rewriting would invalidate it; use an unsigned source.");
+    if (object4 instanceof PDFDict7) {
+      if (object4.has(PDFName7.of("ByteRange")) || object4.get(PDFName7.of("Type")) === PDFName7.of("Sig")) throw new Error("This PDF carries a digital signature. Rewriting would invalidate it; use an unsigned source.");
       for (const [, value2] of object4.entries()) inspect(value2, depth + 1);
-    } else if (object4 instanceof PDFArray7) for (const value2 of object4.asArray()) inspect(value2, depth + 1);
+    } else if (object4 instanceof PDFArray8) for (const value2 of object4.asArray()) inspect(value2, depth + 1);
   };
   for (const [, object4] of document2.context.enumerateIndirectObjects()) inspect(object4);
   signal?.throwIfAborted();
@@ -177531,16 +178012,16 @@ async function runPdfFileOperation(bytes2, target2, signal) {
 }
 async function splitPdfPages(bytes2, signal) {
   const source = await unsignedPdf(bytes2, signal);
-  if (source.catalog.has(PDFName6.of("AcroForm")) || source.catalog.has(PDFName6.of("Names")) || source.catalog.has(PDFName6.of("OpenAction")) || source.catalog.has(PDFName6.of("AA"))) throw new Error("PDF splitting requires a static document without forms, attachments, named actions or scripts.");
+  if (source.catalog.has(PDFName7.of("AcroForm")) || source.catalog.has(PDFName7.of("Names")) || source.catalog.has(PDFName7.of("OpenAction")) || source.catalog.has(PDFName7.of("AA"))) throw new Error("PDF splitting requires a static document without forms, attachments, named actions or scripts.");
   for (const page3 of source.getPages()) {
-    const annotations = page3.node.lookup(PDFName6.of("Annots"));
-    if (annotations && (!(annotations instanceof PDFArray7) || annotations.size() > 0) || page3.node.has(PDFName6.of("AA"))) throw new Error("PDF splitting requires pages without annotations or actions. Use a static source.");
+    const annotations = page3.node.lookup(PDFName7.of("Annots"));
+    if (annotations && (!(annotations instanceof PDFArray8) || annotations.size() > 0) || page3.node.has(PDFName7.of("AA"))) throw new Error("PDF splitting requires pages without annotations or actions. Use a static source.");
   }
   const results = [];
   let total = 0;
   for (let index2 = 0; index2 < source.getPageCount(); index2++) {
     signal?.throwIfAborted();
-    const output = await PDFDocument3.create();
+    const output = await PDFDocument4.create();
     const [page3] = await output.copyPages(source, [index2]);
     output.addPage(page3);
     const result = await output.save({ useObjectStreams: true });
@@ -181660,8 +182141,8 @@ function grayscaleInPlace(data) {
 }
 async function buildImagePdf(pages) {
   if (!pages.length) throw new Error("This PDF has no pages.");
-  const { PDFDocument: PDFDocument4, PDFName: PDFName7 } = await import("pdf-lib");
-  const doc = await PDFDocument4.create();
+  const { PDFDocument: PDFDocument5, PDFName: PDFName8 } = await import("pdf-lib");
+  const doc = await PDFDocument5.create();
   for (const p of pages) {
     const img = await doc.embedJpg(p.jpeg);
     const page3 = doc.addPage([p.widthPt, p.heightPt]);
@@ -181680,7 +182161,7 @@ async function buildImagePdf(pages) {
     }
   }
   try {
-    doc.catalog.delete(PDFName7.of("Metadata"));
+    doc.catalog.delete(PDFName8.of("Metadata"));
   } catch {
   }
   return doc.save({ useObjectStreams: true, updateFieldAppearances: false });
@@ -182121,6 +182602,11 @@ async function pdfPages(bytes2, opts) {
   };
 }
 async function redactPdf(bytes2, opts) {
+  if (opts?.keepText) {
+    const [{ loadPdfA11yKernel: loadPdfA11yKernel2 }, { redactKeepText: redactKeepText2 }] = await Promise.all([Promise.resolve().then(() => (init_pdf_a11y_node(), pdf_a11y_node_exports)), Promise.resolve().then(() => (init_pdf_redact_keep(), pdf_redact_keep_exports))]);
+    const run3 = await redactKeepText2(await loadPdfA11yKernel2(), bytes2 instanceof Uint8Array ? bytes2 : new Uint8Array(bytes2), opts);
+    return { bytes: run3.bytes, pages: run3.pages, mode: "keep-text" };
+  }
   const mod = await nodeCanvas();
   if (!mod) throw new Error("PDF redaction needs a canvas, which this install does not provide.");
   const input = bytes2 instanceof Uint8Array ? bytes2 : new Uint8Array(bytes2);
@@ -182184,9 +182670,9 @@ init_canvas();
 init_session();
 init_src2();
 import { readFileSync as readFileSync6 } from "node:fs";
-import { readFile as readFile13 } from "node:fs/promises";
+import { readFile as readFile14 } from "node:fs/promises";
 import { createRequire as createRequire4 } from "node:module";
-import { isAbsolute as isAbsolute2, join as join17 } from "node:path";
+import { isAbsolute as isAbsolute2, join as join18 } from "node:path";
 import { fileURLToPath as fileURLToPath8 } from "node:url";
 
 // packages/node-shell/src/tts-blend.ts
@@ -182352,10 +182838,10 @@ var FAMILY_DIR = {
   whisper: WHISPER_MODEL_ID
 };
 function modelFilePath(modelsDir, family2, rel) {
-  return join17(modelsDir, FAMILY_DIR[family2], rel);
+  return join18(modelsDir, FAMILY_DIR[family2], rel);
 }
 function missingModelFiles(modelsDir, family2, only) {
-  return missingPinnedFiles(join17(modelsDir, FAMILY_DIR[family2]), SPEECH_MODEL_FILES[family2], only);
+  return missingPinnedFiles(join18(modelsDir, FAMILY_DIR[family2]), SPEECH_MODEL_FILES[family2], only);
 }
 function mb(bytes2) {
   return `${(bytes2 / (1024 * 1024)).toFixed(1)} MB`;
@@ -182366,7 +182852,7 @@ function missingModelError(family2, modelsDir, missing, consentBytes) {
   const head2 = bySize.slice(0, 3).join(", ");
   const more = bySize.length > 3 ? `, and ${bySize.length - 3} more` : "";
   const err = new Error(
-    `speech: the ${family2} model is not on this machine - missing ${head2}${more} under ${join17(modelsDir, FAMILY_DIR[family2])}. It is a one-time ${mb(consentBytes)} (${consentBytes} bytes) download: run  lolly models fetch ${family2}`
+    `speech: the ${family2} model is not on this machine - missing ${head2}${more} under ${join18(modelsDir, FAMILY_DIR[family2])}. It is a one-time ${mb(consentBytes)} (${consentBytes} bytes) download: run  lolly models fetch ${family2}`
   );
   return Object.assign(err, { modelMissing: family2, kind: "MODEL_NOT_STAGED" });
 }
@@ -182487,9 +182973,9 @@ async function bytesOf3(src, root2) {
     if (!res.ok) throw new Error(`speech: audio fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile13(fileURLToPath8(url)));
-  const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join17(root2, url.replace(/^\//, ""));
-  return new Uint8Array(await readFile13(path));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile14(fileURLToPath8(url)));
+  const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join18(root2, url.replace(/^\//, ""));
+  return new Uint8Array(await readFile14(path));
 }
 function resampleMono(pcm, from, to) {
   if (from === to || pcm.length === 0) return pcm;
@@ -182763,7 +183249,7 @@ function createNodeSpeechAPI(opts = {}) {
 }
 
 // packages/node-shell/src/scan.ts
-import { readFile as readFile14 } from "node:fs/promises";
+import { readFile as readFile15 } from "node:fs/promises";
 import { createRequire as createRequire5 } from "node:module";
 import { readBarcodes, prepareZXingModule } from "zxing-wasm/reader";
 var ZXING_TO_BD = {
@@ -182804,7 +183290,7 @@ function ensureModule() {
     prepared2 = (async () => {
       const require2 = createRequire5(import.meta.url);
       const wasmPath = require2.resolve("zxing-wasm/reader/zxing_reader.wasm");
-      const bytes2 = await readFile14(wasmPath);
+      const bytes2 = await readFile15(wasmPath);
       prepareZXingModule({ overrides: { wasmBinary: bytes2.buffer.slice(bytes2.byteOffset, bytes2.byteOffset + bytes2.byteLength) } });
     })().catch((e) => {
       prepared2 = null;
@@ -182872,18 +183358,18 @@ init_state_dir();
 // packages/node-shell/src/session-store.ts
 init_fs_token();
 init_session_record();
-import { mkdir as mkdir2, readdir as readdir4, readFile as readFile15, rm as rm2, writeFile as writeFile2 } from "node:fs/promises";
-import { join as join19 } from "node:path";
+import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2 } from "node:fs/promises";
+import { join as join20 } from "node:path";
 var SESSION_SUBDIR = "saved-state";
 function sessionsDir(stateDir2) {
-  return join19(stateDir2, SESSION_SUBDIR);
+  return join20(stateDir2, SESSION_SUBDIR);
 }
 function sessionFilePath(stateDir2, slot) {
-  return join19(sessionsDir(stateDir2), `${encodeFsToken(slot)}.json`);
+  return join20(sessionsDir(stateDir2), `${encodeFsToken(slot)}.json`);
 }
 async function readSessionRecord(stateDir2, slot) {
   try {
-    const raw = JSON.parse(await readFile15(sessionFilePath(stateDir2, slot), "utf8"));
+    const raw = JSON.parse(await readFile16(sessionFilePath(stateDir2, slot), "utf8"));
     return normalise4(raw);
   } catch {
     return null;
@@ -182891,7 +183377,7 @@ async function readSessionRecord(stateDir2, slot) {
 }
 async function loadSessionData(stateDir2, slot) {
   try {
-    const raw = JSON.parse(await readFile15(sessionFilePath(stateDir2, slot), "utf8"));
+    const raw = JSON.parse(await readFile16(sessionFilePath(stateDir2, slot), "utf8"));
     return migrateSessionRecord(raw);
   } catch {
     return null;
@@ -182961,13 +183447,13 @@ function normalise4(raw) {
 }
 
 // packages/node-shell/src/design-systems.ts
-import { basename as basename2, join as join20 } from "node:path";
-import { mkdir as mkdir3, readFile as readFile16, rename as rename2, writeFile as writeFile3 } from "node:fs/promises";
+import { basename as basename2, join as join21 } from "node:path";
+import { mkdir as mkdir3, readFile as readFile17, rename as rename2, writeFile as writeFile3 } from "node:fs/promises";
 init_state_dir();
 var FORMAT = 1;
 var INDEX_FILE = "design-systems.json";
 var emptyRegistry = () => ({ format: FORMAT, active: null, startSeen: false, systems: [] });
-var indexPath = () => join20(resolveStateDir().dir, INDEX_FILE);
+var indexPath = () => join21(resolveStateDir().dir, INDEX_FILE);
 function safeRegistry(value2) {
   if (!value2 || typeof value2 !== "object") return emptyRegistry();
   const v = value2;
@@ -182980,7 +183466,7 @@ function safeRegistry(value2) {
 }
 async function readRegistry() {
   try {
-    return safeRegistry(JSON.parse(await readFile16(indexPath(), "utf8")));
+    return safeRegistry(JSON.parse(await readFile17(indexPath(), "utf8")));
   } catch {
     return emptyRegistry();
   }
@@ -182993,7 +183479,7 @@ async function readActiveDesignSystemTokens() {
   const active = await activeNodeDesignSystem();
   if (!active?.tokensFile) return null;
   try {
-    return JSON.parse(await readFile16(join20(resolveStateDir().dir, active.tokensFile), "utf8"));
+    return JSON.parse(await readFile17(join21(resolveStateDir().dir, active.tokensFile), "utf8"));
   } catch {
     return null;
   }

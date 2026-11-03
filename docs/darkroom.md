@@ -24,7 +24,7 @@ Darkroom opens a raw file from your camera like any other photo: choose it, drop
 
 - **DNG** files use the colour matrices stored in the file, so the colour is exact. The import note says "exact colour".
 - **CR2, NEF, ARW, ORF, RW2 and uncompressed RAF** files store no colour matrices. Lolly fits the colour to the JPEG the camera embedded in the same file, and the import note says "approximate colour" and how far the fit is from that JPEG. Pictures with strong local tone mapping, such as Active D-Lighting, can differ most.
-- **Canon CR3 and sRAW, compressed RAF and compressed PEF** cannot be decoded yet. Lolly opens the camera's embedded JPEG preview instead and says so. A DNG that uses JPEG XL compression is not supported either, so export it as a lossless DNG first.
+- **Canon CR3 and sRAW, compressed RAF and compressed PEF** cannot be decoded yet. Lolly opens the camera's embedded JPEG preview instead, with a note that it is the preview, not the raw sensor data. A DNG that uses JPEG XL compression is not supported either, so export it as a lossless DNG first.
 
 The note appears when the file comes in, with the camera, the size and the colour state. A file larger than 192 MB, or one that would need more than the 512 MB the decoder is allowed (about 50 megapixels), is refused with a message that suggests a smaller DNG or a JPEG from your camera software. The command line develops raw photos the same way and prints the same note:
 

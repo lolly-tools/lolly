@@ -285,7 +285,7 @@ test('ladder: an unevaluable mask over an OPAQUE or CHROMATIC fill still paints,
   }
 });
 
-test('an /S /Alpha mask is emitted as mask-type="alpha", and says so', () => {
+test('an /S /Alpha mask is emitted as mask-type="alpha", and reports that', () => {
   const { nodes, warns } = run(SHADOW_PAGE, {
     extgstates: { G5: { ca: 0.2784 }, G7: { smask: { ...SHADOW_MASK, subtype: 'Alpha' } } },
   });

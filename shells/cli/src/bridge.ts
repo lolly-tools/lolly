@@ -625,7 +625,7 @@ export async function createCliBridge(
    * a pinned version reaches the preserved bytes here too.
    *
    * An unresolvable version degrades to the head rather than to a blank render,
-   * and says so: an author who typed a slug and silently got a different design
+   * and reports that: an author who typed a slug and silently got a different design
    * system has the one failure this shell refuses to be quiet about.
    */
   let releasePins: import('../../../engine/src/design-version.ts').PinnedAsset[] = [];
@@ -1317,7 +1317,7 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         const lowered = svgToPenpotDoc(svgText, { ...shared, background: opts.background, notes: why });
         // A `data:` <image> is decoded by the engine itself; anything else would need a
         // fetch, and an unresolved placeholder is simply not added - the writer drops an
-        // image shape whose media is missing and says so in its warnings.
+        // image shape whose media is missing and lists that in its warnings.
         let doc = lowered?.doc;
         if (!doc) {
           // Nothing Penpot has a construct for: keep the SVG whole as one picture on

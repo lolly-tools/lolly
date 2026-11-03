@@ -1242,7 +1242,7 @@ test('a picture with an svgBlip names its SVG part beside the raster', () => {
   assert.equal(node.svg, 'ppt/media/image1.svg', 'the drawing itself is named beside it');
 });
 
-test('an svgBlip whose relationship names nothing keeps the raster and says so', () => {
+test('an svgBlip whose relationship names nothing keeps the raster and reports that', () => {
   const pic = `<p:pic><p:nvPicPr><p:cNvPr id="5" name="vector"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr>
     <p:blipFill><a:blip r:embed="rId2"><a:extLst><a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}">
       <asvg:svgBlip xmlns:asvg="${NS_SVG_EXT}" r:embed="rId9"/></a:ext></a:extLst></a:blip></p:blipFill>

@@ -740,7 +740,7 @@
   "Back to project": "返回專案",
   "Back to slide": "返回投影片",
   "Back to {view}": "返回{view}",
-  "Back up or restore data…": "還是恢復資料.",
+  "Back up or restore data…": "備份或還原資料…",
   "Background": "背景",
   "Background (#hex or transparent)": "背景（#hex 或透明）",
   "Background colour": "背景顏色",
@@ -7358,7 +7358,7 @@
   "Use these colours": "使用這些色彩",
   "Use these rates anyway": "仍使用這些價格",
   "Use this": "使用這個",
-  "Use this copy…": "請使用這個副本.",
+  "Use this copy…": "使用這個副本…",
   "Use this face": "使用此字體樣式",
   "Use this file": "使用此檔案",
   "Use this file for the retry?": "請使用這個檔案重新試用?",
@@ -8027,10 +8027,14 @@
   "{count} controls you changed stay yours.": "你調整過的 {count} 個控制項仍會保留你的設定。",
   "{count} days": "{count} 天",
   "{count} decisions from the last version still apply.": "上一版的 {count} 項決定仍然適用。",
-  "{count} entries": "{count} 筆記錄",
+  "{count} entries": {
+    "other": "{count} 筆記錄"
+  },
   "{count} files / variations": "{count} 個檔案 / 變體",
   "{count} files chosen": "已選擇 {count} 個檔案",
-  "{count} files in this folder": "此資料夾中有 {count} 個檔案",
+  "{count} files in this folder": {
+    "other": "此資料夾中有 {count} 個檔案"
+  },
   "{count} for {names}": "{names} 的 {count}",
   "{count} for “{query}” in {scope}": "在 {scope} 中「{query}」的 {count} 筆結果",
   "{count} layouts": "{count} 個版面",
@@ -8204,19 +8208,27 @@
   "{n} added to favourites": "已將 {n} 個加入最愛",
   "{n} added to the design system": "已將 {n} 個加入設計系統",
   "{n} asset IDs": "{n} 個素材 ID",
-  "{n} assets": "{n} 項素材",
+  "{n} assets": {
+    "other": "{n} 個素材"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} 沒有任何可能恢復的資產.",
-  "{n} assets found": "找到 {n} 項素材",
+  "{n} assets found": {
+    "other": "找到 {n} 個素材"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} 個素材已壓縮 · {c} 個含 Content Credentials",
   "{n} available offline": "{n} 個可離線使用",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} 個方塊。一鍵寫入完整動作弧線 - 之後每個關鍵影格仍可編輯。",
-  "{n} capabilities match": "{n} 項功能相符",
+  "{n} capabilities match": {
+    "other": "{n} 項功能相符"
+  },
   "{n} cards are left to review.": "還有 {n} 張卡片待檢視。",
   "{n} cards are still to answer.": "還有 {n} 張卡片待回答。",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "還有 {n} 張卡片待回答。要依建議接受並在 Design 中開啟嗎？",
   "{n} ch": "{n} 字元",
   "{n} changed": "已變更 {n} 個",
-  "{n} changes found": "發現 {n} 項變更",
+  "{n} changes found": {
+    "other": "發現 {n} 項變更"
+  },
   "{n} characters continue beyond the last frame.": "{n} 個字元超出最後一個文字框。",
   "{n} checks": "{n} 檢查",
   "{n} clips selected": "已選取 {n} 個片段",
@@ -8231,7 +8243,9 @@
   "{n} connectors - editing all": "{n} 條連接線 — 正在全部編輯",
   "{n} copies added to your projects": "已新增 {n} 個複本到你的專案",
   "{n} copies in total": "共 {n} 個複本",
-  "{n} copies made · selected": "已建立 {n} 份複本 · 已選取",
+  "{n} copies made · selected": {
+    "other": "已建立 {n} 份複本 · 已選取"
+  },
   "{n} creation checkpoints": "{n} 個創作檢查點",
   "{n} curly quotes": "{n} 個彎引號",
   "{n} days ago": "{n} 數天前",
@@ -8248,24 +8262,34 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} 個可編輯的輸入項。未選取的設定維持固定。",
   "{n} ellipsis characters": "{n} 個刪節號字元",
   "{n} em-dashes": "{n} 個連接號",
-  "{n} embedded files": "{n} 嵌入式檔案",
-  "{n} external references": "{n} 外部參考",
+  "{n} embedded files": {
+    "other": "{n} 個嵌入檔案"
+  },
+  "{n} external references": {
+    "other": "{n} 個外部參考"
+  },
   "{n} fields": "{n} 個欄位",
   "{n} file batches": "{n} 文件批量",
   "{n} file operation records": "{n} 文件操作记录",
   "{n} files": "{n} 個檔案",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "有 {n} 個檔案不是 PowerPoint 簡報、PDF 或 Photoshop 文件，因此已排除。",
   "{n} files are ready to import.": "{n} 個檔案已準備好匯入。",
-  "{n} files could not be packed and were left out": "{n} 個檔案無法封裝，已略過",
+  "{n} files could not be packed and were left out": {
+    "other": "{n} 個檔案無法封裝，已略過"
+  },
   "{n} files imported from the zip.": "已從壓縮檔匯入 {n} 個檔案。",
   "{n} files imported from the zip; {skipped} skipped.": "已從壓縮檔匯入 {n} 個檔案；跳過 {skipped} 個。",
   "{n} files ready": "{n} 文件準備好",
   "{n} findings": "{n} 發現",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "發現 {n} 項發現。可編輯的建議已被選取；僅供檢查的 Office 發現項目維持不變。請檢視「檢查」面板。",
-  "{n} folders": "{n} 個資料夾",
+  "{n} folders": {
+    "other": "{n} 個資料夾"
+  },
   "{n} font changes": "{n} 項字型變更",
   "{n} font choices": "{n} 項字型選擇",
-  "{n} font files": "{n} 字體檔案",
+  "{n} font files": {
+    "other": "{n} 個字體檔案"
+  },
   "{n} fonts": "{n} 個字型",
   "{n} fonts found": "找到 {n} 個字型",
   "{n} fonts from the deck are set in another face.": "簡報中有 {n} 個字型設定為其他字體。",
@@ -8277,31 +8301,55 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} 個已隱藏 - 可在「顯示隱藏工具」中找到",
   "{n} hidden shades stay hidden": "{n} 個隱藏色調維持隱藏",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} 保存備份,空空間或在重新嘗試之前解決矛盾的版本.",
-  "{n} images": "{n} 張圖片",
-  "{n} images couldn’t be restored (storage full?)": "有 {n} 張圖片無法還原（儲存空間已滿？）",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} 張圖片留在原始位置 - 圖片只能有一個位置；請用「剪下」搬移",
+  "{n} images": {
+    "other": "{n} 張圖片"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n} 張圖片無法還原（儲存空間已滿？）"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} 張圖片留在原始位置 - 圖片只能有一個位置；請用「剪下」搬移"
+  },
   "{n} included tools (asked before installing)": "{n} 個附帶的工具（安裝前會先詢問）",
   "{n} ink": "{n} 種墨色",
-  "{n} inputs · applies to every design": "{n} 個輸入項 · 套用到每個設計",
+  "{n} inputs · applies to every design": {
+    "other": "{n} 個輸入項 · 套用到每個設計"
+  },
   "{n} invisible watermark(s) found": "找到 {n} 個隱形浮水印",
   "{n} issues to review before sharing.": "分享前有 {n} 個問題需要檢視。",
-  "{n} items": "{n} 個項目",
-  "{n} items copied": "已複製 {n} 個項目",
-  "{n} items cut": "已剪下 {n} 個項目",
-  "{n} items moved": "已移動 {n} 個項目",
-  "{n} items pasted": "已貼上 {n} 個項目",
+  "{n} items": {
+    "other": "{n} 個項目"
+  },
+  "{n} items copied": {
+    "other": "已複製 {n} 個項目"
+  },
+  "{n} items cut": {
+    "other": "已剪下 {n} 個項目"
+  },
+  "{n} items moved": {
+    "other": "已移動 {n} 個項目"
+  },
+  "{n} items pasted": {
+    "other": "已貼上 {n} 個項目"
+  },
   "{n} items removed": "已移除 {n} 個項目",
   "{n} jobs": "{n} 個工作",
   "{n} kept": "保留 {n} 個",
   "{n} kept in the tray": "{n} 個保留在暫存區",
-  "{n} keyframes": "{n} 個關鍵影格",
+  "{n} keyframes": {
+    "other": "{n} 個關鍵影格"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} 個有標籤的替代物取代了物件。",
   "{n} layers": "{n} 個圖層",
   "{n} layers found": "找到 {n} 個圖層",
   "{n} list lines": "{n} 行清單",
-  "{n} logos": "{n} 標誌",
+  "{n} logos": {
+    "other": "{n} 個標誌"
+  },
   "{n} marks became the design system mark.": "{n} 個標記已成為設計系統標記。",
-  "{n} marks found": "找到 {n} 個標記",
+  "{n} marks found": {
+    "other": "找到 {n} 個標記"
+  },
   "{n} marks sent to Logos": "{n} 個標記已送至 Logos",
   "{n} min ago": "{n} 沒有任何問題",
   "{n} more findings in this document.": "此文件中還有 {n} 項發現。",
@@ -8313,7 +8361,9 @@
   "{n} more slides": "還有 {n} 張投影片",
   "{n} moved to {group}.": "{n} 個已移至 {group}。",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "有 {n} 張新投影片容納放不下的內容，因此投影片編號已移動。",
-  "{n} newer items skipped": "已略過 {n} 個較新的項目",
+  "{n} newer items skipped": {
+    "other": "已略過 {n} 個較新的項目"
+  },
   "{n} nits": "{n} nit",
   "{n} not drawn": "{n} 個未繪製",
   "{n} objects added": "已新增 {n} 個物件",
@@ -8326,7 +8376,9 @@
   "{n} objects overlap the slide master.": "{n} 個物件與投影片母片重疊。",
   "{n} objects removed": "已移除 {n} 個物件",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} 個物件的剪裁或特效以圖片保留。請取代其完整圖稿才能改變形狀。",
-  "{n} of your creations are videos or animations": "你的作品中有 {n} 個為影片或動畫",
+  "{n} of your creations are videos or animations": {
+    "other": "你的作品中有 {n} 個為影片或動畫"
+  },
   "{n} of {m}": "{m} 個中的第 {n} 個",
   "{n} of {total} downloaded": "已下載 {total} 個中的 {n} 個",
   "{n} of {total} downloaded · {size} on disk": "已下載 {n}/{total} 項 · 佔用磁碟 {size}",
@@ -8337,57 +8389,79 @@
   "{n} off": "{n} 個關閉",
   "{n} on": "{n} 個開啟",
   "{n} other colourways keep their own colours: {names}": "另外 {n} 個配色方案保留自己的色彩：{names}",
-  "{n} pages": "{n} 頁",
+  "{n} pages": {
+    "other": "{n} 頁"
+  },
   "{n} pages are pictures of their text.": "有 {n} 頁是其文字的圖片。",
-  "{n} pages differ": "{n} 個頁面不同",
+  "{n} pages differ": {
+    "other": "{n} 個頁面不同"
+  },
   "{n} pages had no size, so they were left out.": "有 {n} 頁沒有尺寸，因此已排除。",
   "{n} pictures": "{n} 張圖片",
   "{n} pictures are missing.": "缺少 {n} 張圖片。",
   "{n} pictures in the deck were not kept.": "簡報中有 {n} 張圖片未保留。",
-  "{n} places": "{n} 處",
+  "{n} places": {
+    "other": "{n} 處"
+  },
   "{n} points": "{n} 個節點",
-  "{n} points - hold Alt for a corner": "{n} 個節點 - 按住 Alt 設為角點",
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} 個節點 - 按住 Alt 設為角點"
+  },
   "{n} preserved file": "{n} 個已保留的檔案",
   "{n} preserved files": "{n} 個已保留的檔案",
   "{n} print locks re-pinned": "{n} 個列印鎖定已重新固定",
   "{n} proposed changes": "{n} 個建議的更改",
   "{n} protected drafts": "{n} 個受保護的草稿",
   "{n} published version": "{n} 個已發佈版本",
-  "{n} published versions": "{n} 個已發佈版本",
+  "{n} published versions": {
+    "other": "{n} 個已發佈版本"
+  },
   "{n} recorded": "{n} 項已記錄",
   "{n} removed from favourites": "已將 {n} 個從最愛中移除",
   "{n} removed from offline": "已將 {n} 個從離線中移除",
   "{n} removed. A tool naming it will lose it.": "已移除 {n} 個。引用它的工具將會失去它。",
   "{n} removed. A tool naming one of these will lose it.": "已移除 {n} 個。引用其中任一項的工具將會失去它。",
   "{n} renders": "{n} 個算繪結果",
-  "{n} results": "{n} 筆結果",
+  "{n} results": {
+    "other": "{n} 筆結果"
+  },
   "{n} roles re-derived": "{n} 個角色已重新推導",
   "{n} rotated runs left out": "略過 {n} 段旋轉文字",
   "{n} saved asset versions": "{n} 保存的資產版本",
   "{n} saved for offline, {m} failed - check your connection": "已儲存 {n} 個供離線使用，{m} 個失敗 - 請檢查您的網路連線",
-  "{n} saved sessions": "{n} 個已儲存的工作階段",
+  "{n} saved sessions": {
+    "other": "{n} 個已儲存的工作階段"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "有 {n} 個已儲存的系統無法預覽。請從個人檔案開啟它們以進行管理。",
   "{n} scanned": "{n} 頁掃描",
   "{n} scanned pages read.": "已讀取 {n} 頁掃描頁面。",
   "{n} scanned pages were left unread to keep this quick.": "為了加快速度，{n} 個掃描頁面未被讀取。",
   "{n} scanned pages were not read because Text recognition is not on this device.": "有 {n} 頁掃描頁面未被讀取，因為此裝置上沒有文字辨識。",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} 個掃描頁面已透過裝置端文字辨識讀取，因此這些頁面無法執行隱藏字元檢查。",
-  "{n} selected": "已選取 {n} 個",
-  "{n} selected assets": "{n} 個所選素材",
+  "{n} selected": {
+    "other": "已選取 {n} 個"
+  },
+  "{n} selected assets": {
+    "other": "已選取 {n} 個素材"
+  },
   "{n} selected files": "{n} 個所選檔案",
   "{n} selected items could not be outlined and were left as they are.": "{n} 個所選項目無法轉為外框,已維持原樣。",
   "{n} selected items have no outline, so they were left as they are.": "所選項目中有 {n} 個沒有外框，因此維持原樣。",
   "{n} selected · {size}": "已選取 {n} 個 · {size}",
   "{n} sentences": "{n} 個句子",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} 個句子有點狀底線：裝置端模型能提供更淺白的版本。採用其中一個會將已儲存的副本標記為 AI 輔助，且模型的用字帶有 Lolly 的公開改寫浮水印，因此 AI 撰寫的文字在「Verify」中仍可被偵測到。",
-  "{n} sessions": "{n} 個工作階段",
+  "{n} sessions": {
+    "other": "{n} 個工作階段"
+  },
   "{n} set": "已設定 {n} 個",
   "{n} shade curves re-anchored": "{n} 個色調曲線已重新錨定",
   "{n} shades added to your palette": "已將 {n} 個色階加入你的色盤",
   "{n} shades added. Undo is available above your palette.": "已新增 {n} 個色階。可在你的色盤上方復原。",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} 個色調無法達到目標（已限制在最接近的色調）。",
   "{n} shades rebuilt across {ramps} ramps": "已跨 {ramps} 個色階重建 {n} 個色調",
-  "{n} shapes": "{n} 個形狀",
+  "{n} shapes": {
+    "other": "{n} 個形狀"
+  },
   "{n} shapes · page {p}": "{n} 個形狀 · 第 {p} 頁",
   "{n} shared assets were kept.": "已保留 {n} 個共用素材。",
   "{n} slides narrated.": "已為 {n} 張投影片配音。",
@@ -8395,11 +8469,15 @@
   "{n} spectrum hues rebuilt": "{n} 個頻譜色相已重建",
   "{n} stages of work": "{n} 個工作階段",
   "{n} starter colours": "{n} 種起始色彩",
-  "{n} steps": "{n} 步骤",
+  "{n} steps": {
+    "other": "{n} 個步驟"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "發現 {n} 項建議。副本已在這些建議被選取的狀態下準備好；可在「檢查」面板中調整任何一項。",
   "{n} suggestions were applied without review.": "有 {n} 項建議未經檢視就已套用。",
   "{n} swatches removed": "已移除 {n} 個色票",
-  "{n} templates": "{n} 個範本",
+  "{n} templates": {
+    "other": "{n} 個範本"
+  },
   "{n} templates added": "已新增 {n} 個範本",
   "{n} templates deleted": "已刪除 {n} 個範本",
   "{n} templates saved": "已儲存 {n} 個範本",
@@ -8419,11 +8497,15 @@
   "{n} unsupported backup parts skipped": "{n} 沒有支持的備份零件被跳過",
   "{n} value changes": "{n} 項值變更",
   "{n} values change": "{n} 個值將變更",
-  "{n} volume keys": "{n} 個音量關鍵格",
+  "{n} volume keys": {
+    "other": "{n} 個音量關鍵格"
+  },
   "{n} warnings.": "{n} 個警告。",
   "{n} were kept - they are not this room to remove.": "已保留 {n} 個 - 它們不屬於此房間，無法移除。",
   "{n} wording swaps are underlined in the preview.": "預覽中已為 {n} 個換字加上底線。",
-  "{n} words": "{n} 個字",
+  "{n} words": {
+    "other": "{n} 個字"
+  },
   "{n} words cut": "剪掉 {n} 個字",
   "{n} yours": "{n} 個是你的",
   "{n}-bit": "{n} 位元",
@@ -8814,7 +8896,9 @@
   "1 design was added to Projects, in 1 folder.": "1 個設計已加入專案，位於 1 個資料夾。",
   "1 design was added to Projects, in {f} folders.": "1 個設計已加入專案，位於 {f} 個資料夾。",
   "1 design was added to Projects.": "1 個設計已加入專案。",
-  "{n} creations removed from Projects here stayed removed.": "在此從專案中移除的 {n} 件作品，仍保持移除。",
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "在此從專案中移除的 {n} 件作品，仍保持移除。"
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "此作品從未儲存過，因此不儲存並離開會將它從專案中移除。",
   "This deck has no colours to change.": "這份簡報沒有可變更的色彩。",
   "This deck has no fonts to change.": "這份簡報沒有可變更的字型。",
@@ -8844,7 +8928,9 @@
   "This saved version could not be read.": "無法讀取此已儲存的版本。",
   "1 older automatic checkpoint left out": "已略過 1 個較舊的自動檢查點",
   "1 other colourway keeps its own colours: {names}": "另 1 個配色方案保留自己的色彩：{names}",
-  "{n} older automatic checkpoints left out": "已略過 {n} 個較舊的自動檢查點",
+  "{n} older automatic checkpoints left out": {
+    "other": "已略過 {n} 個較舊的自動檢查點"
+  },
   "Automatic recovery and checkpoints are on": "自動恢復與檢查點已開啟",
   "Automatic recovery is unavailable here. Save before leaving.": "此處無法自動復原。離開前請先儲存。",
   "Checkpoint saved at {time} on this device": "檢查點已於 {time} 儲存在此裝置上",
@@ -9027,7 +9113,9 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "要顯示網頁版無法顯示的網站，Lolly 可以在此裝置上以較寬鬆的框架政策重新載入，並在你簡報前逐一詢問每個網站。你可以在個人資料的「受信任的網站」中關閉此項。",
   "Card size": "卡片大小",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "此裝置上新增了 1 張圖片或檔案。它只會保留在此裝置上，其他人看不到該檔案。",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "此裝置上新增了 {n} 張圖片或檔案。它們只會保留在此裝置上，其他人看不到這些檔案。",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "此裝置上新增了 {n} 張圖片或檔案。它們只會保留在此裝置上，其他人看不到這些檔案。"
+  },
   "Check the version first": "請先檢查版本",
   "Copy team link": "複製團隊連結",
   "Could not create the project. Try again.": "無法建立專案。請再試一次。",
@@ -9793,7 +9881,9 @@
   "Every mode": "所有模式",
   "Your local items have not changed.": "你的本機項目未發生變化。",
   "1 item was saved to the shared project.": "1 個項目已儲存到共用專案。",
-  "{n} items were saved to the shared project.": "{n} 個項目已儲存到共用專案。",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} 個項目已儲存到共用專案。"
+  },
   "Wait for the current move to finish.": "請等待目前的移動完成。",
   "Wait for the deck to finish reading, then choose a picture.": "請等簡報讀取完成後再選擇圖片。",
   "Wait for the grid to finish rendering before moving its layers.": "請等格線算圖完成後再移動其圖層。",
@@ -10645,5 +10735,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "此片段使用 {codec}，這台裝置無法播放。請從你的剪輯 App 匯出 H.264、HEVC 或 AV1 副本，或在 Mac 上用 Lolly 桌面 App 開啟。Lolly 會保留原始檔案。",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "此片段使用 {codec}，這台裝置無法播放。請從你的剪輯 App 匯出 H.264、HEVC 或 AV1 副本。Lolly 會保留原始檔案。",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "這是一個使用 {codec} 的 MXF 檔案。Lolly 能讀取其中的內容，但無法播放 MXF。請從你的剪輯 App 匯出 H.264、HEVC 或 AV1 副本。Lolly 會保留原始檔案。",
-  "{format} from {camera}": "來自{camera}的 {format}"
+  "{format} from {camera}": "來自{camera}的 {format}",
+  "Filling a large area. This can take a moment.": "正在填滿大面積區域。這可能需要一點時間。",
+  "Large area": "大面積"
 }

@@ -5,7 +5,8 @@ import { createPdfA11yKernel, type PdfA11yKernel } from '@lolly-tools/node-shell
 
 let pending: Promise<PdfA11yKernel> | undefined;
 /** Fetch and start the PDF accessibility module the first time a PDF is checked. */
-export function loadPdfA11yKernel(): Promise<PdfA11yKernel> {
+export async function loadPdfA11yKernel(): Promise<PdfA11yKernel> {
+  if (pending && (await pending.catch(() => undefined))?.retired) pending = undefined;
   pending ??= (async () => {
     const response = await fetch(new URL('../../../../packages/node-shell/wasm/pdf-a11y/pdf-a11y.wasm', import.meta.url));
     if (!response.ok) throw new Error('The PDF accessibility module could not be loaded.');

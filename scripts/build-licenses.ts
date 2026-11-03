@@ -589,6 +589,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'LightCraft PatchMatch inpainting and PhotoCraft origins',
+      version: 'git 07301cbd1e1cab5c152228891d9c9ed87e263003',
+      spdx: 'MPL-2.0 AND MIT',
+      copyright: 'The ArtCraft Team and the LightCraft and PhotoCraft contributors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/inpaint/inpaint.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/inpaint/LICENSES.txt'), 'utf8'),
+      note: 'LightCraft lightcraft-inpaint compiled through a bounded Lolly byte adapter, with its thread-pool code removed. MIT is elected. Source, modifications and build instructions are in packages/node-shell/wasm/inpaint/.',
+      where: 'web',
+    },
+    {
       name: 'VectorCraft image tracer and Rust dependencies',
       version: '0.19.0 (05d5f99; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT AND Apache-2.0',

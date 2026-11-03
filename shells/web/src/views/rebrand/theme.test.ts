@@ -239,7 +239,7 @@ test('the column holds only the folded Background section: its flag, then the se
   assert.equal(again?.querySelectorAll('.lp-help').length, 0, 'no help line for a state that is fine');
 });
 
-test('the door opens the same popover the top bar does, and says so while it is open', async () => {
+test('the door opens the same popover the top bar does, and shows a note while it is open', async () => {
   const m = mount();
   await settle();
   m.style.querySelector<HTMLButtonElement>('.lp-sec-head')?.click();
@@ -437,7 +437,7 @@ test('a pack with no dark mode says what Dark is made of, as the Dark tile\'s ti
 
 // ─── applying ────────────────────────────────────────────────────────────────
 
-test('choosing a tile applies it through setTheme as one step and says so with Undo; Light clears the theme', async () => {
+test('choosing a tile applies it through setTheme as one step and announces the change with Undo; Light clears the theme', async () => {
   const m = mount();
   let pop = await openFromTop(m);
   tiles(pop)[1]?.click();

@@ -15,7 +15,7 @@
  * control that would be refused.
  */
 import type { TeamProjectRef, TeamRole } from '../lib/session-source.ts';
-import { loadedLang, tRaw } from '../i18n.ts';
+import { loadedLang, tRaw, tnRaw } from '../i18n.ts';
 import { relTime } from '../lib/rel-time.ts';
 
 /** The roles an invitation, or a role change, may give. Owner is never handed out. */
@@ -269,7 +269,7 @@ export function projectAudienceLabel(p: Pick<TeamProjectRef, 'via' | 'visibility
 /** "1 session" or "{n} sessions": the app's two-form plural (whole sentences in the
  *  catalog, so a translator can place the number). Plain text. */
 export function sessionCountLabel(n: number): string {
-  return n === 1 ? tRaw('1 session') : tRaw('{n} sessions', { n: String(n) });
+  return tnRaw('1 session', '{n} sessions', { n: String(n) });
 }
 
 /** What the Team section's project picker says when there is no project this person

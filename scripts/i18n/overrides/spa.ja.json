@@ -600,7 +600,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "検証機能と「アセット」で、より詳細なAIテキストチェックを実行します。",
   "Card size": "カードのサイズ",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "このデバイスで追加された画像またはファイルが1件あります。このデバイスにのみ保存され、他の人にはそのファイルは表示されません。",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "このデバイスで追加された画像またはファイルが{n}件あります。このデバイスにのみ保存され、他の人にはそれらのファイルは表示されません。",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "このデバイスで追加された画像またはファイルが{n}件あります。このデバイスにのみ保存され、他の人にはそれらのファイルは表示されません。"
+  },
   "Check the version first": "先にバージョンを確認してください",
   "Copy team link": "チームリンクをコピー",
   "Could not create the project. Try again.": "プロジェクトを作成できませんでした。もう一度お試しください。",
@@ -1176,7 +1178,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "すべての項目が共有プロジェクトに保存されました。ローカルの元データはゴミ箱にあるか、そのままです。",
   "Your local items have not changed.": "ローカルの項目は変更されていません。",
   "1 item was saved to the shared project.": "1 件の項目が共有プロジェクトに保存されました。",
-  "{n} items were saved to the shared project.": "{n} 件の項目が共有プロジェクトに保存されました。",
+  "{n} items were saved to the shared project.": {
+    "other": "{n}件の項目が共有プロジェクトに保存されました。"
+  },
   "Wait for the current move to finish.": "現在の移動が完了するまでお待ちください。",
   "You cannot save to that shared project.": "その共有プロジェクトには保存できません。",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "{project} を開けるすべての人がこれらの項目を見られるようになります。すべての項目が保存されると、ローカルの元データはゴミ箱に移動し、そこから復元できます。",
@@ -1487,8 +1491,12 @@
   "file": "ファイル",
   "samples": "サンプル",
   "text": "テキスト",
-  "{n} changes found": "{n}件の変更が見つかりました",
-  "{n} pages differ": "{n}ページが異なります",
+  "{n} changes found": {
+    "other": "{n}件の変更が見つかりました"
+  },
+  "{n} pages differ": {
+    "other": "{n}ページが異なります"
+  },
   "Draft": "下書き",
   "Draft quality": "下書き品質",
   "Draft rule": "下書きルール",
@@ -1841,5 +1849,131 @@
   "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "ペン (P) - クリックで点を配置、ドラッグで曲線、Alt で角。長押しで鉛筆 (Shift C) とスプラインの種類",
   "Pen (P) - click to place points, drag to curve, Alt for a corner": "ペン (P) - クリックで点を配置、ドラッグで曲線、Alt で角",
   "Recipients can change the inputs": "受け取る人が入力を変更できる",
-  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "リンクを知っている人は誰でも入力を変更して、新しい画像を取得できます。ロックされた入力は設定のままです。"
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "リンクを知っている人は誰でも入力を変更して、新しい画像を取得できます。ロックされた入力は設定のままです。",
+  "{count} entries": {
+    "other": "{count}件の項目"
+  },
+  "{count} files in this folder": {
+    "other": "このフォルダ内のファイル{count}件"
+  },
+  "{n} assets": {
+    "other": "{n}件のアセット"
+  },
+  "{n} assets found": {
+    "other": "{n}件のアセットが見つかりました"
+  },
+  "{n} capabilities match": {
+    "other": "{n}件の機能が一致します"
+  },
+  "{n} copies made · selected": {
+    "other": "{n}件のコピーを作成・選択済み"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "ここでプロジェクトから削除された{n}件の作品は、削除されたままです。"
+  },
+  "{n} embedded files": {
+    "other": "埋め込みファイル{n}件"
+  },
+  "{n} external references": {
+    "other": "外部参照{n}件"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "{n}件のファイルをパックできず、除外しました"
+  },
+  "{n} folders": {
+    "other": "{n}個のフォルダ"
+  },
+  "{n} font files": {
+    "other": "フォントファイル{n}件"
+  },
+  "{n} images": {
+    "other": "{n}枚の画像"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n}枚の画像を復元できませんでした（ストレージ容量不足の可能性があります）"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n}件の画像は元の場所に残りました - 画像の置き場所は1つです。移動するには切り取りを使用してください"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "{n}件の入力項目 · すべてのデザインに適用"
+  },
+  "{n} items": {
+    "other": "{n}件のアイテム"
+  },
+  "{n} items copied": {
+    "other": "{n}件のアイテムをコピーしました"
+  },
+  "{n} items cut": {
+    "other": "{n}件のアイテムを切り取りました"
+  },
+  "{n} items moved": {
+    "other": "{n}件のアイテムを移動しました"
+  },
+  "{n} items pasted": {
+    "other": "{n}件のアイテムを貼り付けました"
+  },
+  "{n} keyframes": {
+    "other": "キーフレーム{n}個"
+  },
+  "{n} logos": {
+    "other": "{n}件のロゴ"
+  },
+  "{n} marks found": {
+    "other": "{n}件のマークが見つかりました"
+  },
+  "{n} newer items skipped": {
+    "other": "{n}件の新しいアイテムをスキップしました"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "作品のうち{n}件が動画またはアニメーションです"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "古い自動チェックポイント{n}件を除外しました"
+  },
+  "{n} pages": {
+    "other": "{n}ページ"
+  },
+  "{n} places": {
+    "other": "{n}か所"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "{n}点 - Altを押したままにすると角になります"
+  },
+  "{n} published versions": {
+    "other": "公開済みバージョン{n}件"
+  },
+  "{n} results": {
+    "other": "{n}件の結果"
+  },
+  "{n} saved sessions": {
+    "other": "保存済みセッション{n}件"
+  },
+  "{n} selected": {
+    "other": "{n}件選択中"
+  },
+  "{n} selected assets": {
+    "other": "選択したアセット{n}件"
+  },
+  "{n} sessions": {
+    "other": "セッション{n}件"
+  },
+  "{n} shapes": {
+    "other": "{n}個の図形"
+  },
+  "{n} steps": {
+    "other": "{n}ステップ"
+  },
+  "{n} templates": {
+    "other": "{n}件のテンプレート"
+  },
+  "{n} volume keys": {
+    "other": "音量キー{n}個"
+  },
+  "{n} words": {
+    "other": "{n}語"
+  },
+  "Manage asset versions…": "アセットのバージョンを管理…",
+  "Preparing download…": "ダウンロードを準備中…",
+  "Retry with original…": "オリジナルで再試行…"
 }

@@ -1,0 +1,9 @@
+[package]
+name = "lightcraft-inpaint"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+description = "Content-aware hole filling: PatchMatch patch completion and membrane fill (Lolly copy, single-threaded)"
+
+[dependencies]

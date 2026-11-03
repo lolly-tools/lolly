@@ -1180,7 +1180,7 @@ test('a query point that defeats every ray direction is still inside the shape',
   // The fixture defeats all twelve at once: a 12-gon whose vertices sit exactly along the
   // module's own ray directions from the query point, so every ray leaves through a vertex.
   // The directions are reconstructed here rather than imported, which is the point - if
-  // the module's list changes, this fixture stops being adversarial and says so by the
+  // the module's list changes, this fixture stops being adversarial and reports that by the
   // count below.
   const dirs: [number, number][] = [[1, 0], [0, 1]];
   for (let k = 1; k <= 10; k++) {

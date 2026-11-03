@@ -34,7 +34,7 @@
  *    modules pull in per-view haystack code that has no business in the boot
  *    chunk main.ts pays for - same reason the views themselves lazy-load.
  */
-import { t } from '../i18n.ts';
+import { t, tn } from '../i18n.ts';
 import { escape, safeHref } from '../utils.ts';
 import { fold, tokenize } from '../lib/search/match.ts';
 import {
@@ -309,7 +309,7 @@ function renderResults(order: readonly SearchGroupId[], hitsByGroup: ReadonlyMap
   // safeHref() as well - escape()ing one is not scheme validation.
   if (list) list.innerHTML = html;
   const status = statusEl();
-  if (status) status.textContent = total === 1 ? t('1 result') : t('{n} results', { n: total });
+  if (status) status.textContent = tn('1 result', '{n} results', { n: total });
   activeIndex = -1;
   open();
   setSearchBarExpanded(true, null);

@@ -133,7 +133,7 @@ test('a foreign namespace is annotation: a provenance manifest neither draws nor
   assert.equal(items.omitted, undefined);
 });
 
-test('a file that is not an SVG yields no items and says so', () => {
+test('a file that is not an SVG yields no items and reports that', () => {
   assert.deepEqual(svgItemsOf('<html/>', parse).omitted, [{ reason: 'unsupported-element', count: 1 }]);
   assert.deepEqual(svgItemsOf('not xml at all <', parse).omitted, [{ reason: 'unsupported-element', count: 1 }]);
   assert.deepEqual(svgItemsOf('', parse).items, []);

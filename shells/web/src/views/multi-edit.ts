@@ -49,7 +49,7 @@ import { scopeCss, scopeTemplateStyles } from '../lib/scope-css.ts';
 import { syncInputs } from './tool-inputs.ts';
 import { escape } from '../utils.ts';
 import { announce } from '../a11y.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { fold, tokenize, scoreHaystack } from '../lib/search/match.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { mountProfileFab } from '../components/profile-menu.ts';
@@ -311,7 +311,7 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
             <input type="search" placeholder="${escape(t('Filter inputs…'))}" aria-label="${escape(t('Filter inputs'))}" data-me-search>
           </div>
           <details class="me-card me-card--shared" data-me-shared-card ${shared.length ? 'open' : ''} ${shared.length ? '' : 'hidden'}>
-            <summary><span class="me-card-title">${t('Shared')}</span><span class="me-card-count">${shared.length === 1 ? t('1 input · applies to every design') : t('{n} inputs · applies to every design', { n: shared.length })}</span></summary>
+            <summary><span class="me-card-title">${t('Shared')}</span><span class="me-card-count">${tn('1 input · applies to every design', '{n} inputs · applies to every design', { n: shared.length })}</span></summary>
             <div class="tool-inputs me-inputs" data-me-shared-panel></div>
           </details>
           ${members.map((m, i) => `

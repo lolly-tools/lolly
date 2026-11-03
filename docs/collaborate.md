@@ -95,7 +95,7 @@ While you wait, the screen counts down how long the current invite still works. 
 - **As a link.** The reply is a `#/join-reply?ans=...` address. Opened on the device that made the invite, it hands the reply to the waiting window, which moves on by itself. The tab that opened it says so and can be closed.
 - **As a code.** Paste it into **Paste the reply code here** on the waiting screen and press **Connect**.
 
-**You can test with two tabs on one device.** If you open your own invite in another tab, the join screen notices and says so in one line you can dismiss. The pairing is real; it just joins two windows of one browser.
+**You can test with two tabs on one device.** If you open your own invite in another tab, the join screen notices and shows a one-line message you can dismiss. The pairing is real; it just joins two windows of one browser.
 
 ::: details If the reply reaches the wrong window
 A reply pasted into the invite door is recognised as a reply, and you are told which window it belongs in. A reply link opened on a device where no window is waiting says so and leaves the code on screen to copy. A device with more than one invite waiting says so too, and leaves the code for you to paste into the right one rather than guessing.

@@ -8027,10 +8027,16 @@
   "{count} controls you changed stay yours.": "Değiştirdiğin {count} kontrol sana ait kalır.",
   "{count} days": "{count} gün",
   "{count} decisions from the last version still apply.": "Son sürümden {count} karar hâlâ geçerli.",
-  "{count} entries": "{count} giriş",
+  "{count} entries": {
+    "one": "1 giriş",
+    "other": "{count} giriş"
+  },
   "{count} files / variations": "{count} dosya / varyasyon",
   "{count} files chosen": "{count} dosya seçildi",
-  "{count} files in this folder": "Bu klasörde {count} dosya",
+  "{count} files in this folder": {
+    "one": "Bu klasörde 1 dosya",
+    "other": "Bu klasörde {count} dosya"
+  },
   "{count} for {names}": "{names} için {count}",
   "{count} for “{query}” in {scope}": "{scope} içinde “{query}” için {count}",
   "{count} layouts": "{count} yerleşim",
@@ -8204,19 +8210,31 @@
   "{n} added to favourites": "{n} favorilere eklendi",
   "{n} added to the design system": "{n} tasarım sistemine eklendi",
   "{n} asset IDs": "{n} varlık kimliği",
-  "{n} assets": "{n} varlık",
+  "{n} assets": {
+    "one": "1 varlık",
+    "other": "{n} varlık"
+  },
   "{n} assets could not be restored. Keep your backup.": "{n} varlık geri yüklenemedi. Yedeğini sakla.",
-  "{n} assets found": "{n} varlık bulundu",
+  "{n} assets found": {
+    "one": "1 varlık bulundu",
+    "other": "{n} varlık bulundu"
+  },
   "{n} assets zipped · {c} with Content Credentials": "{n} varlık zip'lendi · {c} tanesi Content Credentials'lı",
   "{n} available offline": "{n} çevrimdışı kullanılabilir",
   "{n} boxes. One click writes a full motion arc - every keyframe stays editable afterwards.": "{n} kutu. Tek tık tam bir hareket yayı yazar - her anahtar kare sonradan düzenlenebilir kalır.",
-  "{n} capabilities match": "{n} yetenek eşleşiyor",
+  "{n} capabilities match": {
+    "one": "1 yetenek eşleşiyor",
+    "other": "{n} yetenek eşleşiyor"
+  },
   "{n} cards are left to review.": "İncelenecek {n} kart kaldı.",
   "{n} cards are still to answer.": "Yanıtlanacak {n} kart kaldı.",
   "{n} cards are still to answer. Accept them as proposed and open in Design?": "Yanıtlanacak {n} kart kaldı. Önerildiği gibi kabul edip Design'da açılsın mı?",
   "{n} ch": "{n} krk",
   "{n} changed": "{n} değişti",
-  "{n} changes found": "{n} değişiklik bulundu",
+  "{n} changes found": {
+    "one": "1 değişiklik bulundu",
+    "other": "{n} değişiklik bulundu"
+  },
   "{n} characters continue beyond the last frame.": "{n} karakter son çerçeve ötesine devam ediyor.",
   "{n} checks": "{n} denetim",
   "{n} clips selected": "{n} klip seçildi",
@@ -8231,7 +8249,10 @@
   "{n} connectors - editing all": "{n} bağlayıcı - tümü düzenleniyor",
   "{n} copies added to your projects": "Projelerine {n} kopya eklendi",
   "{n} copies in total": "toplam {n} kopya",
-  "{n} copies made · selected": "{n} kopya oluşturuldu · seçili",
+  "{n} copies made · selected": {
+    "one": "1 kopya oluşturuldu · seçili",
+    "other": "{n} kopya oluşturuldu · seçili"
+  },
   "{n} creation checkpoints": "{n} çalışma kontrol noktası",
   "{n} curly quotes": "{n} kıvrık tırnak",
   "{n} days ago": "{n} gün önce",
@@ -8248,24 +8269,39 @@
   "{n} editable inputs. Unselected settings stay fixed.": "{n} düzenlenebilir girdi. Seçilmeyen ayarlar sabit kalır.",
   "{n} ellipsis characters": "{n} üç nokta karakteri",
   "{n} em-dashes": "{n} em tire",
-  "{n} embedded files": "{n} gömülü dosya",
-  "{n} external references": "{n} harici başvuru",
+  "{n} embedded files": {
+    "one": "1 gömülü dosya",
+    "other": "{n} gömülü dosya"
+  },
+  "{n} external references": {
+    "one": "1 harici başvuru",
+    "other": "{n} harici başvuru"
+  },
   "{n} fields": "{n} alan",
   "{n} file batches": "{n} dosya toplu işlemi",
   "{n} file operation records": "{n} dosya işlemi kaydı",
   "{n} files": "{n} dosya",
   "{n} files are not PowerPoint decks, PDFs or Photoshop documents, so they were left out.": "{n} dosya PowerPoint sunumu, PDF veya Photoshop belgesi olmadığı için dışarıda bırakıldı.",
   "{n} files are ready to import.": "{n} dosya içe aktarılmaya hazır.",
-  "{n} files could not be packed and were left out": "{n} dosya paketlenemediği için atlandı",
+  "{n} files could not be packed and were left out": {
+    "one": "1 dosya paketlenemediği için atlandı",
+    "other": "{n} dosya paketlenemediği için atlandı"
+  },
   "{n} files imported from the zip.": "{n} dosya zip'ten içe aktarıldı.",
   "{n} files imported from the zip; {skipped} skipped.": "{n} dosya zip'ten içe aktarıldı; {skipped} tanesi atlandı.",
   "{n} files ready": "{n} dosya hazır",
   "{n} findings": "{n} bulgu",
   "{n} findings found. Editable suggestions are selected; inspect-only Office findings remain unchanged. Review the Inspection panel.": "{n} bulgu bulundu. Düzenlenebilir öneriler seçili; yalnızca inceleme amaçlı Office bulguları değişmeden kalır. İnceleme panelini gözden geçir.",
-  "{n} folders": "{n} klasör",
+  "{n} folders": {
+    "one": "1 klasör",
+    "other": "{n} klasör"
+  },
   "{n} font changes": "{n} yazı tipi değişikliği",
   "{n} font choices": "{n} yazı tipi seçeneği",
-  "{n} font files": "{n} yazı tipi dosyası",
+  "{n} font files": {
+    "one": "1 yazı tipi dosyası",
+    "other": "{n} yazı tipi dosyası"
+  },
   "{n} fonts": "{n} yazı tipi",
   "{n} fonts found": "{n} yazı tipi bulundu",
   "{n} fonts from the deck are set in another face.": "Sunumdaki {n} yazı tipi başka bir yüzle ayarlandı.",
@@ -8277,31 +8313,67 @@
   "{n} hidden - find them under “Show hidden tools”": "{n} gizli - bunları “Gizli araçları göster” altında bul",
   "{n} hidden shades stay hidden": "{n} gizli ton gizli kalıyor",
   "{n} history items could not be restored. Keep your backup; free space or resolve conflicting versions before retrying.": "{n} geçmiş öğesi geri yüklenemedi. Yedeğini sakla; yeniden denemeden önce yer aç veya çakışan sürümleri çöz.",
-  "{n} images": "{n} görsel",
-  "{n} images couldn’t be restored (storage full?)": "{n} görsel geri yüklenemedi (depolama dolu mu?)",
-  "{n} images stayed with the original - images have one home; use Cut to move them": "{n} görsel orijinaliyle kaldı - görsellerin tek bir yuvası var; taşımak için Kes'i kullan",
+  "{n} images": {
+    "one": "1 görsel",
+    "other": "{n} görsel"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "1 görsel geri yüklenemedi (depolama dolu mu?)",
+    "other": "{n} görsel geri yüklenemedi (depolama dolu mu?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "1 görsel orijinaliyle kaldı - görsellerin tek bir yuvası var; taşımak için Kes'i kullan",
+    "other": "{n} görsel orijinaliyle kaldı - görsellerin tek bir yuvası var; taşımak için Kes'i kullan"
+  },
   "{n} included tools (asked before installing)": "{n} dahil araç (kurmadan önce sorulur)",
   "{n} ink": "{n} mürekkep",
-  "{n} inputs · applies to every design": "{n} girdi · her tasarıma uygulanır",
+  "{n} inputs · applies to every design": {
+    "one": "1 girdi · her tasarıma uygulanır",
+    "other": "{n} girdi · her tasarıma uygulanır"
+  },
   "{n} invisible watermark(s) found": "{n} görünmez filigran bulundu",
   "{n} issues to review before sharing.": "Paylaşmadan önce incelenecek {n} sorun.",
-  "{n} items": "{n} öğe",
-  "{n} items copied": "{n} öğe kopyalandı",
-  "{n} items cut": "{n} öğe kesildi",
-  "{n} items moved": "{n} öğe taşındı",
-  "{n} items pasted": "{n} öğe yapıştırıldı",
+  "{n} items": {
+    "one": "1 öğe",
+    "other": "{n} öğe"
+  },
+  "{n} items copied": {
+    "one": "1 öğe kopyalandı",
+    "other": "{n} öğe kopyalandı"
+  },
+  "{n} items cut": {
+    "one": "1 öğe kesildi",
+    "other": "{n} öğe kesildi"
+  },
+  "{n} items moved": {
+    "one": "1 öğe taşındı",
+    "other": "{n} öğe taşındı"
+  },
+  "{n} items pasted": {
+    "one": "1 öğe yapıştırıldı",
+    "other": "{n} öğe yapıştırıldı"
+  },
   "{n} items removed": "{n} öğe kaldırıldı",
   "{n} jobs": "{n} iş",
   "{n} kept": "{n} tutuldu",
   "{n} kept in the tray": "{n} tanesi tepside tutuldu",
-  "{n} keyframes": "{n} anahtar kare",
+  "{n} keyframes": {
+    "one": "1 anahtar kare",
+    "other": "{n} anahtar kare"
+  },
   "{n} labelled stand-ins take the place of objects.": "{n} etiketli yer tutucu nesnelerin yerini alır.",
   "{n} layers": "{n} katman",
   "{n} layers found": "{n} katman bulundu",
   "{n} list lines": "{n} liste satırı",
-  "{n} logos": "{n} logo",
+  "{n} logos": {
+    "one": "1 logo",
+    "other": "{n} logo"
+  },
   "{n} marks became the design system mark.": "{n} işaret tasarım sistemi işareti oldu.",
-  "{n} marks found": "{n} işaret bulundu",
+  "{n} marks found": {
+    "one": "1 işaret bulundu",
+    "other": "{n} işaret bulundu"
+  },
   "{n} marks sent to Logos": "{n} işaret Logolar'a gönderildi",
   "{n} min ago": "{n} dk önce",
   "{n} more findings in this document.": "Bu belgede {n} bulgu daha var.",
@@ -8313,7 +8385,10 @@
   "{n} more slides": "{n} slayt daha",
   "{n} moved to {group}.": "{n} tanesi {group}'a taşındı.",
   "{n} new slides hold what did not fit, so the slide numbers moved.": "{n} yeni slayt sığmayanları barındırıyor, bu yüzden slayt numaraları kaydı.",
-  "{n} newer items skipped": "{n} daha yeni öğe atlandı",
+  "{n} newer items skipped": {
+    "one": "1 daha yeni öğe atlandı",
+    "other": "{n} daha yeni öğe atlandı"
+  },
   "{n} nits": "{n} nit",
   "{n} not drawn": "{n} çizilmedi",
   "{n} objects added": "{n} nesne eklendi",
@@ -8326,7 +8401,10 @@
   "{n} objects overlap the slide master.": "{n} nesne slayt şablonuyla çakışıyor.",
   "{n} objects removed": "{n} nesne kaldırıldı",
   "{n} objects retain clipping or effects as images. Replace their complete artwork to change their shape.": "{n} nesne kırpma veya efektleri görsel olarak korur. Şekillerini değiştirmek için çizimlerinin tamamını değiştir.",
-  "{n} of your creations are videos or animations": "Tasarımlarından {n} tanesi video veya animasyon",
+  "{n} of your creations are videos or animations": {
+    "one": "Tasarımlarından 1 tanesi video veya animasyon",
+    "other": "Tasarımlarından {n} tanesi video veya animasyon"
+  },
   "{n} of {m}": "{m} içinden {n}",
   "{n} of {total} downloaded": "{total} içinden {n} indirildi",
   "{n} of {total} downloaded · {size} on disk": "{total} içinden {n} indirildi · diskte {size}",
@@ -8337,57 +8415,90 @@
   "{n} off": "{n} kapalı",
   "{n} on": "{n} açık",
   "{n} other colourways keep their own colours: {names}": "{n} diğer renk varyantı kendi renklerini korur: {names}",
-  "{n} pages": "{n} sayfa",
+  "{n} pages": {
+    "one": "1 sayfa",
+    "other": "{n} sayfa"
+  },
   "{n} pages are pictures of their text.": "{n} sayfa metinlerinin görseli.",
-  "{n} pages differ": "{n} sayfa farklı",
+  "{n} pages differ": {
+    "one": "1 sayfa farklı",
+    "other": "{n} sayfa farklı"
+  },
   "{n} pages had no size, so they were left out.": "{n} sayfanın boyutu yoktu, bu yüzden dışarıda bırakıldı.",
   "{n} pictures": "{n} görsel",
   "{n} pictures are missing.": "{n} görsel eksik.",
   "{n} pictures in the deck were not kept.": "Sunumdaki {n} görsel korunmadı.",
-  "{n} places": "{n} yer",
+  "{n} places": {
+    "one": "1 yer",
+    "other": "{n} yer"
+  },
   "{n} points": "{n} nokta",
-  "{n} points - hold Alt for a corner": "{n} nokta - köşe için Alt tuşunu basılı tut",
+  "{n} points - hold Alt for a corner": {
+    "one": "1 nokta - köşe için Alt tuşunu basılı tut",
+    "other": "{n} nokta - köşe için Alt tuşunu basılı tut"
+  },
   "{n} preserved file": "{n} korunan dosya",
   "{n} preserved files": "{n} korunan dosya",
   "{n} print locks re-pinned": "{n} baskı kilidi yeniden sabitlendi",
   "{n} proposed changes": "{n} önerilen değişiklik",
   "{n} protected drafts": "{n} korumalı taslak",
   "{n} published version": "{n} yayınlanan sürüm",
-  "{n} published versions": "{n} yayınlanan sürüm",
+  "{n} published versions": {
+    "one": "1 yayımlanmış sürüm",
+    "other": "{n} yayımlanmış sürüm"
+  },
   "{n} recorded": "{n} kayıtlı",
   "{n} removed from favourites": "{n} favorilerden kaldırıldı",
   "{n} removed from offline": "{n} çevrimdışından kaldırıldı",
   "{n} removed. A tool naming it will lose it.": "{n} kaldırıldı. Onu adlandıran bir araç bunu kaybedecek.",
   "{n} removed. A tool naming one of these will lose it.": "{n} kaldırıldı. Bunlardan birini adlandıran bir araç onu kaybedecek.",
   "{n} renders": "{n} render",
-  "{n} results": "{n} sonuç",
+  "{n} results": {
+    "one": "1 sonuç",
+    "other": "{n} sonuç"
+  },
   "{n} roles re-derived": "{n} rol yeniden türetildi",
   "{n} rotated runs left out": "{n} döndürülmüş dizi dışarıda bırakıldı",
   "{n} saved asset versions": "{n} kayıtlı varlık sürümü",
   "{n} saved for offline, {m} failed - check your connection": "{n} çevrimdışı için kaydedildi, {m} başarısız oldu - bağlantını kontrol et",
-  "{n} saved sessions": "{n} kayıtlı oturum",
+  "{n} saved sessions": {
+    "one": "1 kayıtlı oturum",
+    "other": "{n} kayıtlı oturum"
+  },
   "{n} saved systems could not be previewed. Open them from Profile to manage them.": "{n} kayıtlı sistem önizlenemedi. Yönetmek için Profil’den açın.",
   "{n} scanned": "{n} tarandı",
   "{n} scanned pages read.": "{n} taranmış sayfa okundu.",
   "{n} scanned pages were left unread to keep this quick.": "Bunu hızlı tutmak için {n} taranmış sayfa okunmadan bırakıldı.",
   "{n} scanned pages were not read because Text recognition is not on this device.": "Metin tanıma bu cihazda olmadığı için {n} taranmış sayfa okunmadı.",
   "{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.": "{n} taranmış sayfa cihaz üzerindeki metin tanımayla okundu, bu yüzden gizli karakter kontrolleri bu sayfalarda çalıştırılamadı.",
-  "{n} selected": "{n} seçili",
-  "{n} selected assets": "{n} seçili varlık",
+  "{n} selected": {
+    "one": "1 seçili",
+    "other": "{n} seçili"
+  },
+  "{n} selected assets": {
+    "one": "1 seçili varlık",
+    "other": "{n} seçili varlık"
+  },
   "{n} selected files": "{n} seçili dosya",
   "{n} selected items could not be outlined and were left as they are.": "{n} seçili öge dış hat haline getirilemedi ve olduğu gibi bırakıldı.",
   "{n} selected items have no outline, so they were left as they are.": "{n} seçili öğenin anahat çizgisi yok, bu yüzden oldukları gibi bırakıldılar.",
   "{n} selected · {size}": "{n} seçili · {size}",
   "{n} sentences": "{n} cümle",
   "{n} sentences have a dotted underline: the on-device model can offer a plainer version. Accepting one flags the saved copy as AI-assisted, and model wording carries Lolly\\'s public reword watermark so AI-written text stays detectable on Verify.": "{n} cümlenin altında noktalı bir çizgi var: cihaz üzerindeki model daha sade bir sürüm önerebilir. Birini kabul etmek, kaydedilen kopyayı yapay zekâ destekli olarak işaretler ve model ifadeleri Lolly'nin herkese açık yeniden ifade filigranını taşır, böylece yapay zekâ tarafından yazılmış metin Verify'da tespit edilebilir kalır.",
-  "{n} sessions": "{n} oturum",
+  "{n} sessions": {
+    "one": "1 oturum",
+    "other": "{n} oturum"
+  },
   "{n} set": "{n} ayarlandı",
   "{n} shade curves re-anchored": "{n} ton eğrisi yeniden sabitlendi",
   "{n} shades added to your palette": "Paletine {n} ton eklendi",
   "{n} shades added. Undo is available above your palette.": "{n} ton eklendi. Geri al, paletinin üstünde.",
   "{n} shades could not reach their target (capped at the closest tone).": "{n} ton hedefine ulaşamadı (en yakın tona sabitlendi).",
   "{n} shades rebuilt across {ramps} ramps": "{n} ton, {ramps} rampa genelinde yeniden oluşturuldu",
-  "{n} shapes": "{n} şekil",
+  "{n} shapes": {
+    "one": "1 şekil",
+    "other": "{n} şekil"
+  },
   "{n} shapes · page {p}": "{n} şekil · sayfa {p}",
   "{n} shared assets were kept.": "{n} paylaşılan varlık korundu.",
   "{n} slides narrated.": "{n} slayt seslendirildi.",
@@ -8395,11 +8506,17 @@
   "{n} spectrum hues rebuilt": "{n} spektrum tonu yeniden oluşturuldu",
   "{n} stages of work": "{n} çalışma aşaması",
   "{n} starter colours": "{n} başlangıç rengi",
-  "{n} steps": "{n} adım",
+  "{n} steps": {
+    "one": "1 adım",
+    "other": "{n} adım"
+  },
   "{n} suggestions found. The copies are prepared with them selected; adjust any of them in the Inspection panel.": "{n} öneri bulundu. Kopyalar bunlar seçili olarak hazırlanır; herhangi birini İnceleme panelinde ayarla.",
   "{n} suggestions were applied without review.": "{n} öneri incelenmeden uygulandı.",
   "{n} swatches removed": "{n} renk örneği kaldırıldı",
-  "{n} templates": "{n} şablon",
+  "{n} templates": {
+    "one": "1 şablon",
+    "other": "{n} şablon"
+  },
   "{n} templates added": "{n} şablon eklendi",
   "{n} templates deleted": "{n} şablon silindi",
   "{n} templates saved": "{n} şablon kaydedildi",
@@ -8419,11 +8536,17 @@
   "{n} unsupported backup parts skipped": "{n} desteklenmeyen yedek bölümü atlandı",
   "{n} value changes": "{n} değer değişikliği",
   "{n} values change": "{n} değer değişir",
-  "{n} volume keys": "{n} ses düzeyi anahtarı",
+  "{n} volume keys": {
+    "one": "1 ses düzeyi anahtarı",
+    "other": "{n} ses düzeyi anahtarı"
+  },
   "{n} warnings.": "{n} uyarı.",
   "{n} were kept - they are not this room to remove.": "{n} tanesi tutuldu - bu odadan değil, kaldırılamaz.",
   "{n} wording swaps are underlined in the preview.": "{n} ifade değişikliği önizlemede altı çizili olarak gösteriliyor.",
-  "{n} words": "{n} kelime",
+  "{n} words": {
+    "one": "1 kelime",
+    "other": "{n} kelime"
+  },
   "{n} words cut": "{n} sözcük kesildi",
   "{n} yours": "{n} senin",
   "{n}-bit": "{n}-bit",
@@ -8814,7 +8937,10 @@
   "1 design was added to Projects, in 1 folder.": "1 tasarım Projeler'e, 1 klasöre eklendi.",
   "1 design was added to Projects, in {f} folders.": "1 tasarım Projeler'e, {f} klasöre eklendi.",
   "1 design was added to Projects.": "1 tasarım Projeler'e eklendi.",
-  "{n} creations removed from Projects here stayed removed.": "Burada Projeler'den kaldırılan {n} tasarım kaldırılmış olarak bırakıldı.",
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "Burada Projeler'den kaldırılan 1 tasarım kaldırılmış olarak bırakıldı.",
+    "other": "Burada Projeler'den kaldırılan {n} tasarım kaldırılmış olarak bırakıldı."
+  },
   "This creation was never saved, so leaving without saving removes it from Projects.": "Bu tasarım hiç kaydedilmedi, bu yüzden kaydetmeden çıkarsan Projeler'den kaldırılır.",
   "This deck has no colours to change.": "Bu sunumda değiştirilecek renk yok.",
   "This deck has no fonts to change.": "Bu sunumda değiştirilecek yazı tipi yok.",
@@ -8844,7 +8970,10 @@
   "This saved version could not be read.": "Bu kaydedilmiş sürüm okunamadı.",
   "1 older automatic checkpoint left out": "1 eski otomatik kontrol noktası atlandı",
   "1 other colourway keeps its own colours: {names}": "1 diğer renk varyantı kendi renklerini korur: {names}",
-  "{n} older automatic checkpoints left out": "{n} eski otomatik kontrol noktası atlandı",
+  "{n} older automatic checkpoints left out": {
+    "one": "1 eski otomatik kontrol noktası atlandı",
+    "other": "{n} eski otomatik kontrol noktası atlandı"
+  },
   "Automatic recovery and checkpoints are on": "Otomatik kurtarma ve kontrol noktaları açık",
   "Automatic recovery is unavailable here. Save before leaving.": "Otomatik kurtarma burada kullanılamıyor. Ayrılmadan önce kaydet.",
   "Checkpoint saved at {time} on this device": "Kontrol noktası {time} itibarıyla bu cihazda kaydedildi",
@@ -9027,7 +9156,10 @@
   "To show the sites the web version cannot, Lolly can reload under a looser frame policy on this device, then ask about each site before you present. You can turn this off in your profile, under Trusted sites.": "Web sürümünün gösteremediği siteleri göstermek için Lolly bu cihazda daha esnek bir çerçeve politikasıyla yeniden yüklenebilir, ardından sunum yapmadan önce her site için sorar. Bunu profilinde, Güvenilen siteler altında kapatabilirsin.",
   "Card size": "Kart boyutu",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Bu cihaza 1 görsel veya dosya eklendi. Bu cihazda kalır ve başkaları o dosyayı görmez.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Bu cihaza {n} görsel veya dosya eklendi. Bu cihazda kalırlar ve başkaları o dosyaları görmez.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "Bu cihaza 1 görsel veya dosya eklendi. Bu cihazda kalır ve başkaları o dosyayı görmez.",
+    "other": "Bu cihaza {n} görsel veya dosya eklendi. Bu cihazda kalırlar ve başkaları o dosyaları görmez."
+  },
   "Check the version first": "Önce sürümü kontrol edin",
   "Copy team link": "Ekip bağlantısını kopyala",
   "Could not create the project. Try again.": "Proje oluşturulamadı. Tekrar deneyin.",
@@ -9793,7 +9925,10 @@
   "Every mode": "Tüm modlar",
   "Your local items have not changed.": "Yerel öğeleriniz değişmedi.",
   "1 item was saved to the shared project.": "1 öğe paylaşılan projeye kaydedildi.",
-  "{n} items were saved to the shared project.": "{n} öğe paylaşılan projeye kaydedildi.",
+  "{n} items were saved to the shared project.": {
+    "one": "1 öğe paylaşılan projeye kaydedildi.",
+    "other": "{n} öğe paylaşılan projeye kaydedildi."
+  },
   "Wait for the current move to finish.": "Mevcut taşıma işleminin bitmesini bekleyin.",
   "Wait for the deck to finish reading, then choose a picture.": "Sunumun okunmasının bitmesini bekle, sonra bir görsel seç.",
   "Wait for the grid to finish rendering before moving its layers.": "Katmanlarını taşımadan önce ızgaranın oluşturulmasının bitmesini bekle.",
@@ -10645,5 +10780,7 @@
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app, or open it in the Lolly desktop app on a Mac. Lolly keeps the original file.": "Bu klip, bu cihazın oynatamadığı {codec} kullanıyor. Düzenleme uygulamandan H.264, HEVC veya AV1 kopyası dışa aktar ya da klibi Mac'teki Lolly masaüstü uygulamasında aç. Lolly özgün dosyayı saklar.",
   "This clip uses {codec}, which this device cannot play. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Bu klip, bu cihazın oynatamadığı {codec} kullanıyor. Düzenleme uygulamandan H.264, HEVC veya AV1 kopyası dışa aktar. Lolly özgün dosyayı saklar.",
   "This is an MXF file with {codec}. Lolly can read what it holds but cannot play MXF. Export an H.264, HEVC or AV1 copy from your editing app. Lolly keeps the original file.": "Bu, {codec} içeren bir MXF dosyası. Lolly içindekini okuyabilir ama MXF oynatamaz. Düzenleme uygulamandan H.264, HEVC veya AV1 kopyası dışa aktar. Lolly özgün dosyayı saklar.",
-  "{format} from {camera}": "{camera} kamerasından {format}"
+  "{format} from {camera}": "{camera} kamerasından {format}",
+  "Filling a large area. This can take a moment.": "Geniş bir alan dolduruluyor. Bu biraz sürebilir.",
+  "Large area": "Geniş alan"
 }
