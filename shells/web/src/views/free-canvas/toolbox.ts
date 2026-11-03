@@ -321,7 +321,8 @@ export function buildToolbar(fc: FcCtx): void {
           run: () => fc.document.openSizeMenu(anchorEl()),
         });
     }
-    if (info || actions?.newFromTemplate || actions?.bulk || actions?.agent) {
+    const askAgent = actions?.askAgent && (actions.askAgentShown?.() ?? true) ? actions.askAgent : undefined;
+    if (info || actions?.newFromTemplate || actions?.bulk || actions?.agent || askAgent) {
       if (items.length) items.push({ sep: true });
       if (info)
         items.push({
@@ -356,6 +357,14 @@ export function buildToolbar(fc: FcCtx): void {
           icon: icon(SVG.agent),
           key: 'agent',
           run: () => actions.agent!(),
+        });
+      // An agent CLI on this device answering one request, beside the live connection.
+      if (askAgent)
+        items.push({
+          label: t('Ask an agent'),
+          icon: icon(SVG.agent),
+          key: 'ask-agent',
+          run: () => askAgent(),
         });
     }
     // Custom CSS (plan 112 M4): only for a tool that declares the `customCss` input

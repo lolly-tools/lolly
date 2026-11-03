@@ -7,17 +7,25 @@
  * through a live session, and hands the reply back with `live_reply`.
  *
  * Allow AI control is a device setting, off until the person turns it on, kept in
- * `localStorage` like the shell's other device preferences (never tool state).
+ * `localStorage` like the shell's other device preferences (never tool state). It
+ * sits under the `agents` AI capability: a managed shell treats it as off, and
+ * refuses requests, unless the organisation's policy lists that capability.
  */
 
 import { LIVE_ERRORS, liveError } from '@lolly-tools/core';
 import type { TauriInvoke } from './nearby-boot.ts';
+import { aiAllowed } from './ai-policy.ts';
 import { createLiveSession, type LiveEditor, type LiveSession, type LiveSessionOpts } from './live-agent.ts';
 
 const PREF_KEY = 'lolly-allow-ai-control';
 const POLL_MS = 20_000;
 
+/** Whether policy lets this shell offer Allow AI control at all. */
+export const aiControlPermitted = (): boolean => aiAllowed('agents');
+
+/** The person's setting, honoured only while policy permits AI control. */
 export function allowAiControl(): boolean {
+  if (!aiControlPermitted()) return false;
   try { return localStorage.getItem(PREF_KEY) === '1'; } catch { return false; }
 }
 
@@ -59,7 +67,9 @@ export function serveDesktop(invoke: TauriInvoke, editor: () => LiveEditor, opts
       // A request that arrived as the view closed still gets an answer, not a 60 s wait.
       const reply = stopped
         ? JSON.stringify(liveError(null, LIVE_ERRORS.notReady, 'The Design document was closed.'))
-        : await session.handle(req.text);
+        : !aiControlPermitted()
+          ? JSON.stringify(liveError(null, LIVE_ERRORS.refused, 'AI control is turned off by this organisation\'s policy.'))
+          : await session.handle(req.text);
       try { await invoke('live_reply', { seq: req.seq, text: reply }); } catch { /* the agent will time out */ }
     }
   })();

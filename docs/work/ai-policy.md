@@ -15,6 +15,7 @@ below.
 | `embedding` | Ask search embeddings; ordinary keyword search stays available |
 | `watermark` | neural TrustMark and ContentSeal detection, and durable watermark encoding |
 | `sing` | Rondocode singing voices: their download and the model files handed to a song |
+| `agents` | the desktop app's agents on the same computer: **Ask an agent**, which finds and runs a member's own agent command-line tool, and **Allow AI control**, which listens for a local agent |
 
 Checks run before bridge execution, before worker creation and dispatch and before any model download, including
 cached weights and offline pre-downloads. Revoking a capability ends model workers, stops guarded
@@ -76,6 +77,15 @@ capability refuses later requests; a request that already passed those checks ca
 and files the frame already holds are not recalled. Approve `sing` only for a Lolly 1.1.1 or later
 shell. An older shell refuses a lease that asks for a capability it does not know, so every AI
 capability stays off there until the shell is updated.
+
+The desktop app checks `agents` before it looks for agent tools, apps or local model servers,
+before it starts an agent and while one runs, and before Allow AI control listens. Withdrawing
+the capability stops a running agent, discards its answer and turns the listener off. An agent
+started this way uses the member's own account with that agent's provider, so its requests
+and costs belong to that account. Managed AI does not route, log or pay for them. The
+deployment's capability list can include `agents` only once both the Work release and members'
+desktop apps know the capability; an older desktop app refuses a lease that asks for it, which
+leaves every AI capability off there.
 
 ## Turn it off
 

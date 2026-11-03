@@ -1,3 +1,4 @@
+mod agents;
 mod file_custody;
 #[path = "../../../tauri-shared/native/atomic_write.rs"]
 mod atomic_write;
@@ -207,7 +208,14 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             // headless render has no person watching, so it never takes live edits.
             live_server::live_set,
             live_server::live_next,
-            live_server::live_reply
+            live_server::live_reply,
+            // Ask an agent (device agents without local MCP): find the agent CLIs,
+            // apps and local model servers on this device, and run a CLI headless
+            // from a fixed template with no tools (agents.rs). GUI only, like the
+            // listener above: a headless render has no person to ask or watch.
+            agents::agents_detect,
+            agents::agents_run,
+            agents::agents_cancel
         ]))
         // Desktop integration boot (plans/174): first-launch argv (a .lolly
         // double-clicked before the app ran, a lolly:// link that launched us),

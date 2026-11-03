@@ -521,6 +521,8 @@ export interface ToolbarActions {
   newFromTemplate?(): void; // re-open the Start template chooser mid-session (plans/142 WP-1); absent = the tool has no templates, shipped or the person's own (plans/226 WP-1)
   bulk?(): void; // hand this template to /batch (plans/147 M1); absent = the batch can't run this tool
   agent?(): void; // Connect an AI agent (plans/289 D1); absent = this tool takes no live agent
+  askAgent?(): void; // Ask an agent on this device (desktop only); absent = not offered here
+  askAgentShown?(): boolean; // read when the menu opens: policy can change, and a detection that found nothing hides the row
   canSave?: boolean; // omit the Save icon for tools that don't persist a session
   dirtyRef?: HTMLElement | null; // element whose `is-unsaved` class the Save icon mirrors
 }
