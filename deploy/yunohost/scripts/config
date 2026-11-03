@@ -12,23 +12,28 @@ validate__csp_extra_connect_src() {
 set__csp_extra_connect_src() {
     csp_extra_connect_src=$(lolly_normalize_connect_src "${csp_extra_connect_src:-}") \
         || ynh_die "Invalid extra CSP origins."
-
-    local previous_headers previous_any_site
-    previous_headers=$(mktemp)
-    previous_any_site=$(mktemp)
-    cp -p "$headers_inc" "$previous_headers"
-    cp -p "$any_site_inc" "$previous_any_site" 2>/dev/null || : > "$previous_any_site"
-    lolly_add_headers_inc
-    if ! nginx -t || ! ynh_systemctl --service=nginx --action=reload; then
-        cp -p "$previous_headers" "$headers_inc"
-        cp -p "$previous_any_site" "$any_site_inc"
-        rm -f "$previous_headers" "$previous_any_site"
-        ynh_store_file_checksum "$headers_inc"
-        ynh_store_file_checksum "$any_site_inc"
-        ynh_die "nginx could not apply the storage origins; the previous configuration was restored."
-    fi
-    rm -f "$previous_headers" "$previous_any_site"
+    lolly_apply_includes \
+        || ynh_die "nginx could not apply the storage origins; the previous configuration was restored."
     ynh_app_setting_set --key=csp_extra_connect_src --value="$csp_extra_connect_src"
+}
+
+validate__models_source() {
+    case "${models_source:-}" in
+        lolli|local) ;;
+        *) echo "Choose lolli.li or this server." ;;
+    esac
+}
+
+set__models_source() {
+    # Fetch and verify first: a failure here leaves the saved setting and nginx alone.
+    if [[ "$models_source" == local ]]; then
+        ynh_script_progression "Fetching model files into $data_dir/models (several GB, this takes a while)..."
+        models_source=local
+        lolly_fetch_models
+    fi
+    lolly_apply_includes \
+        || ynh_die "nginx could not apply the model source; the previous configuration was restored."
+    ynh_app_setting_set --key=models_source --value="$models_source"
 }
 
 ynh_app_config_run "$1"

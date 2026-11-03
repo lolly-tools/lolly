@@ -19,6 +19,7 @@ ynh_config_change_url_nginx
 if [ "$old_domain" != "$domain" ]; then
     ynh_safe_rm "/etc/nginx/conf.d/$old_domain.d/$app.headers.inc"
     ynh_safe_rm "/etc/nginx/conf.d/$old_domain.d/$app.any-site.inc"
+    ynh_safe_rm "/etc/nginx/conf.d/$old_domain.d/$app.models.inc"
 fi
 
 #=================================================

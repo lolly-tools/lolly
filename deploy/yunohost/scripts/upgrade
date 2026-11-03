@@ -4,6 +4,7 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 ynh_app_setting_set_default --key=csp_extra_connect_src --value=""
+ynh_app_setting_set_default --key=models_source --value="lolli"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -15,6 +16,16 @@ lolly_capture_immutable "$install_dir" "$lolly_retained"
 ynh_setup_source --dest_dir="$install_dir" --full_replace
 lolly_restore_immutable "$lolly_retained" "$install_dir"
 rm -rf -- "$lolly_retained"
+
+#=================================================
+# REFRESH LOCAL MODEL FILES
+#=================================================
+# A release can change the model manifest. A server that keeps its own copy fetches
+# what is new (verified files are skipped) before nginx is pointed at it.
+if [[ "${models_source:-lolli}" == local ]]; then
+    ynh_script_progression "Fetching model files for this release..."
+    lolly_fetch_models
+fi
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATION

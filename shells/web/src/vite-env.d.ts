@@ -15,6 +15,7 @@ interface ImportMetaEnv {
   // External base URL for the on-device model files (Vercel Blob); '' / undefined
   // means same-origin /models/. Read only by lib/models-base.ts.
   readonly VITE_MODELS_BASE?: string;
+  readonly VITE_MODELS_BASE_PROBE?: string;
   readonly VITE_REQUIRE_AI_POLICY?: string;
   readonly VITE_CONNECTOR_ORIGINS?: string;
   readonly VITE_CA_ENROLLMENT_TRUST_JSON?: string;

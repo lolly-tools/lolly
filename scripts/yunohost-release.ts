@@ -30,7 +30,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { createReadStream, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -44,6 +44,10 @@ export const MANIFEST = join(ROOT, 'deploy', 'yunohost', 'manifest.toml');
 export const DIST = join(ROOT, 'shells', 'web', 'dist');
 export const RELEASE_HOST = 'https://lolli.li';
 export const MODELS_BASE = 'https://lolli.li';
+/** The file the web build asks its own origin for at startup; the package's nginx
+ *  answers it (conf/models.*.inc) so an install can keep the models on its own server. */
+export const MODELS_BASE_PROBE = '/models-base.txt';
+export const MODELS_MANIFEST_SRC = join(ROOT, 'shells', 'web', 'models-manifest.json');
 
 export interface Pin { version: string; ynhRev: number; url: string; sha256: string }
 
@@ -182,7 +186,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
 
   if (args.build) {
     console.log(`[yunohost-release] release web build (profile ${profile}, models from ${MODELS_BASE})`);
-    run('pnpm', ['run', 'build:web:release'], { env: { VITE_MODELS_BASE: MODELS_BASE } });
+    run('pnpm', ['run', 'build:web:release'], { env: { VITE_MODELS_BASE: MODELS_BASE, VITE_MODELS_BASE_PROBE: MODELS_BASE_PROBE } });
   }
 
   mkdirSync(args.out, { recursive: true });
@@ -190,6 +194,9 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   const outFile = join(args.out, name);
   const locales = translatedLocales();
   console.log(`[yunohost-release] packing ${DIST} -> ${outFile} (dropping ./models and ${locales.length} translated /info copies)`);
+  // The package's own copy of the model manifest: "this server" mode fetches and
+  // checks every model file against it, and it arrives under the archive's checksum.
+  copyFileSync(MODELS_MANIFEST_SRC, join(DIST, 'models-manifest.json'));
   packDist(DIST, outFile, tarExcludes(locales));
   const sha256 = await sha256File(outFile);
   const mb = (statSync(outFile).size / 1e6).toFixed(0);
