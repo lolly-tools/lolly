@@ -35,6 +35,28 @@ sudo yunohost app config set lolly main.storage.csp_extra_connect_src --value ''
 
 Reload the Lolly page after changing the setting. The storage server must separately allow the Lolly site's origin through CORS, including preflight requests, the WebDAV methods and authorization headers it uses, and access to the `ETag` and `Last-Modified` response headers. Allowing a host in Lolly's CSP does not configure CORS on that host. After changing Lolly's domain, update that server's CORS rule too.
 
+## Keep the on-device models on this server
+
+By default browsers fetch the on-device AI models (background removal, upscaling, speech, depth and the rest) from the project's release host, `lolli.li`, the first time a tool needs them. A server that must not depend on that host can hold its own copy.
+
+```bash
+sudo yunohost app config set lolly main.models.models_source --value local
+```
+
+The change fetches every file in the release's model manifest into the app's data directory, checks its size and sha256 against the manifest and only then switches nginx. The download is several GB, so run it from the command line rather than the web admin, and make sure the data disk has room. A run that stops can be started again: verified files are skipped. Until every file checks out, the app keeps using `lolli.li`.
+
+With this server selected:
+
+- nginx serves `/models/` from `/home/yunohost.app/lolly/models/` with range support, strong `ETag` values and the same security headers as the rest of the app. Files in hash-named folders are cached as immutable.
+- The content policy no longer lists `lolli.li` in `connect-src`, so the browser cannot reach that host from Lolly.
+- The browser still checks the size and sha256 of every model it downloads, whichever host answered.
+- The model files are rebuildable, so they are not in the YunoHost backup. A restore fetches them again.
+- An upgrade fetches only the files the new manifest adds.
+
+To go back, set the value to `lolli`. The data directory keeps the files until the app is removed.
+
+How it works: the web build asks its own origin for `/models-base.txt` at startup. An empty answer means "use this server"; a 404 keeps the built-in host. The package needs a release whose build includes that probe and a `models-manifest.json`. Older releases ignore the setting.
+
 ## Upgrades
 
 `yunohost app upgrade lolly` replaces the build whole. Browsers pick up the new build on the next load (the app shell is never cached), and the offline service worker refreshes itself.

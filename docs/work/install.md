@@ -431,6 +431,15 @@ instance name, not the example's. Then repeat the checks from section 2, signing
 as an address **your** `dev.users` lists, or through your identity provider once you
 have set `idp.issuer` and switched development sign-in off.
 
+To keep blobs in an S3-compatible store of your own instead of PostgreSQL, the Compose
+folder has an optional `garage` profile that runs [Garage](https://garagehq.deuxfleurs.fr/)
+on the same private network. It is off unless you pass `--profile garage`. Add a
+`GARAGE_RPC_SECRET` to `.env`, run the one-time layout, bucket and key commands, set
+`LW_BLOBS_S3_CREDENTIAL` and switch `blobs.driver` to `s3` with the endpoint
+`http://garage:3900`. The exact steps are in `deploy/compose/README.md` of the Work
+repository. Decide this before the instance stores blobs: changing the driver later does
+not copy blobs already in PostgreSQL.
+
 The image sets `NODE_ENV=production`, so a missing secret stops it rather than
 falling back quietly. The pack and an optional built web app are mounted
 read-only, and migrations apply at startup. Nothing in this stack terminates TLS:
@@ -557,6 +566,25 @@ rest. The package keeps the API, share links, render links and the instance card
 reachable for apps that are not browsers (the `lw` command line, MCP, SCIM and a
 Lolly app connecting to this instance), because the server authenticates those
 itself.
+
+If a Nextcloud app is installed on the same YunoHost, the package finds it
+(`yunohost app list`) and prefills its address under **Configuration > Nextcloud**. The
+connection stays off until you finish it: create a dedicated Nextcloud account, share the
+brand folder with it read-only, create an app password in Nextcloud under Settings >
+Security, and paste the account's login name and that password into the panel. Switching
+it on adds two config-managed entries to `instance.json`: a
+[WebDAV catalog source](providers/webdav.md) that reads the brand folder, and a
+[WebDAV delivery destination](delivery.md#configure-a-fixed-webdav-destination) that
+writes approved exports beneath a folder you name, which must already exist. The delivery
+destination is limited to the `admins` group until you list other groups in the panel. The
+Nextcloud may also sit on another server, because the panel accepts any HTTPS address.
+Both entries read the app password from the service environment, and the server reaches
+the Nextcloud over its own address, which resolves to a private network address on a
+shared host, so the package lists that origin as an allowed private origin for providers.
+Lolly Work takes a whole domain, so a Nextcloud on the same server lives on another domain
+or subdomain. The browser-side WebDAV connection in the Lolly app is a separate feature:
+it runs from the page, so it needs that Nextcloud's CORS rules and a matching entry in the
+page's content policy.
 
 The package does not set up a Chromium render worker, so the exports on offer depend
 on the installed tool pack and renderer settings. Keep an independent protected copy

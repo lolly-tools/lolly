@@ -120,7 +120,7 @@ For the people you serve, link to [Use Lolly at your organisation](/info/organis
 | **Lolly Work** (`lolly-work_ynh`) | You want server features, sign-in with host accounts and shared projects. Recommended for most self-hosters. |
 | **Static Lolly** (`lolly_ynh`) | You only want to serve the app; people work on their own devices with no Lolly Work service or database. |
 
-The static package lives in this repository at `deploy/yunohost/` and is mirrored to [lolly-tools/lolly_ynh](https://github.com/lolly-tools/lolly_ynh). It downloads a prebuilt web archive, serves it through nginx and uses the normal YunoHost app permission. It is public by default and takes a whole domain, and on-device models load from `lolli.li` when first used. Install it only if that static setup is what you need:
+The static package lives in this repository at `deploy/yunohost/` and is mirrored to [lolly-tools/lolly_ynh](https://github.com/lolly-tools/lolly_ynh). It downloads a prebuilt web archive, serves it through nginx and uses the normal YunoHost app permission. It is public by default and takes a whole domain, and on-device models load from `lolli.li` when first used unless you choose to keep them on your server (see `deploy/yunohost/doc/ADMIN.md`). Install it only if that static setup is what you need:
 
 ```bash
 sudo yunohost app install https://github.com/lolly-tools/lolly_ynh

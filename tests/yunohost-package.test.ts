@@ -183,6 +183,23 @@ test('nginx: only placeholders YunoHost substitutes, and the .inc suffix that ke
   assert.ok(nginx.indexOf('include /etc/nginx/mime.types;') < nginx.indexOf('types {'));
 });
 
+test('models: the nginx include, probe and data dir are wired in', () => {
+  assert.match(nginx, /include \/etc\/nginx\/conf\.d\/__DOMAIN__\.d\/__APP__\.models\.inc;/);
+  assert.match(manifest, /\[resources\.data_dir\]/);
+  assert.match(read('scripts/_common.sh'), /models_inc="\/etc\/nginx\/conf\.d\/\$domain\.d\/\$app\.models\.inc"/);
+  const local = read('conf/models.local.inc');
+  assert.match(local, /location = \/models-base\.txt \{[^}]*return 200 "";/, 'an empty body tells the web build to use this origin');
+  assert.match(read('conf/models.hosted.inc'), /return 404;/, 'the default keeps the built-in host');
+  for (const inc of [local, read('conf/models.hosted.inc')]) {
+    assert.doesNotMatch(inc, /add_header/);
+    for (const m of inc.matchAll(/location\s+[^{]*\{([^{}]*)\}/g)) {
+      if (/more_set_headers/.test(m[1]!)) assert.match(m[1]!, /__APP__\.headers\.inc;/);
+    }
+  }
+  assert.match(read('config_panel.toml'), /models_source/);
+  assert.match(read('scripts/remove'), /ynh_safe_rm "\$models_inc"/);
+});
+
 test('nginx: every location that sets a header re-includes the header file', () => {
   // Walk the innermost location blocks (nested `location` inside `location /`).
   const inner = [...nginx.matchAll(/location\s+(?:=|\^~|~\*?)?\s*([^\s{]+)\s*\{([^{}]*)\}/g)]
@@ -203,7 +220,7 @@ test('/any-site: the hosted twin policy, served by a location nothing else can o
   const hosted = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as { headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }> };
   const want = hosted.headers.find(row => row.source === "/any-site(/.*)?")!.headers.find((h) => h.key === 'Content-Security-Policy')!.value;
   const inc = read('conf/any-site-headers.inc');
-  const lines = [...inc.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '').matchAll(/^more_set_headers "([A-Za-z-]+): ([^\n]*)";$/gm)];
+  const lines = [...inc.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '').replace('__LOLLY_CSP_MODELS_HOST__', ' https://lolli.li').matchAll(/^more_set_headers "([A-Za-z-]+): ([^\n]*)";$/gm)];
   assert.deepEqual(lines.map((m) => m[1]), ['Content-Security-Policy'], 'the twin file changes the CSP and nothing else');
   assert.equal(lines[0]![2], want);
   assert.match(inc, /__LOLLY_CSP_EXTRA_CONNECT_SRC__/, 'extra storage origins reach /any-site too');
@@ -219,7 +236,7 @@ test('headers: without extra origins, the headers are the hosted policy, byte fo
   const hosted = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as { headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }> };
   const want = Object.fromEntries(hosted.headers.find(row => row.source === "/((?!any-site(?:/|$)).*)")!.headers.map((h) => [h.key, h.value]));
   const got: Record<string, string> = {};
-  const defaultHeaders = headers.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '');
+  const defaultHeaders = headers.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '').replace('__LOLLY_CSP_MODELS_HOST__', ' https://lolli.li');
   for (const m of defaultHeaders.matchAll(/^more_set_headers "([A-Za-z-]+): ([^\n]*)";$/gm)) got[m[1]!] = m[2]!;
   assert.deepEqual(got, want, 'the YunoHost header set must be exactly the hosted one - YunoHost adds its own baseline (HSTS, X-Frame-Options) at server level, so nothing else belongs here');
 });
