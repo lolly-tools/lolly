@@ -182,7 +182,7 @@ test('a song mix is signed: the credential records the song, declares how it was
   assert.equal(infoTag(bytes, 'INAM'), 'Live mic');
 });
 
-test('--c2pa=off writes the song mix with no credential, and says so', async () => {
+test('--c2pa=off writes the song mix with no credential, and reports that', async () => {
   const out = join(dir, 'unsigned.wav');
   const r = await cli(['mix', liveMicFile, '--seconds=1', `--out=${out}`, '--c2pa=off', '--json']);
   assert.equal(r.code, 0, r.stderr);

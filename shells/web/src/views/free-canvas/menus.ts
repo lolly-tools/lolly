@@ -374,7 +374,7 @@ export interface ArtboardImportOpts {
  * asks for one id per page and then one per box of that page, in order, so the queue
  * answers in that order and the clip and group references are rewritten through it as
  * usual. An id that repeats or is missing falls back to minting for the WHOLE import
- * and says so - a half-kept set of ids is worse than none, because the lineage that
+ * and reports that - a half-kept set of ids is worse than none, because the lineage that
  * names them would then be right about some rows and wrong about others.
  */
 function artboardMinter(

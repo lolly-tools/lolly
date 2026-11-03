@@ -784,7 +784,7 @@ slides meant for PowerPoint.
   with `s` (`url-mode.md`): in the app, stills fan out to one file per board
   (zipped when there is more than one), and `pdf`/`pptx` make one page per board.
   `lolly run <file.lolly> --export=png` writes one still, the first board unless
-  `--s` names another, and says so on stderr: run it once per board with
+  `--s` names another, and prints a warning on stderr: run it once per board with
   `--s=<n>` for a set. Add a board with a `frame` layer and give its children that
   board's id in their `frame` field.
 - **A timed video** rides on per-layer timing: `start`, `dur` and `lane` put a

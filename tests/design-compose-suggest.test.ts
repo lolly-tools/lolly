@@ -407,7 +407,7 @@ test('the recreate fixture: an archetype per slide, every string referenced, and
     for (const v of Object.values(s.slots ?? {})) if (typeof v === 'string' && v.startsWith('photo:')) assert.ok(keys.has(v));
   }
   // Every content string is referenced by `from`, or set out where no slot can hold it
-  // (a third cover line, a table's cells), and says so.
+  // (a third cover line, a table's cells), and reports that.
   const furniture = new Set(['page-number', 'footer']);
   inv.slides.forEach((src, k) => {
     const s = spec.slides[k]!;

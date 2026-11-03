@@ -134,7 +134,7 @@ test('nothing falls back to a system font: every unresolved case says why', asyn
   assert.deepEqual(copyright.segments, [{ kind: 'text', text: '(c) © 2026' }]);
 });
 
-test('a treatment changes the placed bytes and says so in the census', async () => {
+test('a treatment changes the placed bytes and the census reports that in the census', async () => {
   const input = await fixture('twemoji');
   const { io } = loader('twemoji');
   const plain = style(input.lock.pin);

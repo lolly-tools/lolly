@@ -536,7 +536,7 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
   }
   // In gradient mode the selected thing is a STOP, so Delete removes that - deleting
   // the whole card here would be a nasty surprise mid-gradient. Falls through when the
-  // gradient is down to its last two stops (deleteGradStop refuses and says so).
+  // gradient is down to its last two stops (deleteGradStop refuses and refuses with a message).
   if ((e.key === 'Delete' || e.key === 'Backspace') && fc.gradEdit != null) {
     e.preventDefault();
     if (!fc.gradient.deleteGradStop()) announce(t('A gradient needs at least two stops.'));

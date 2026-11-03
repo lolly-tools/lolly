@@ -259,7 +259,7 @@ function toastSpy() {
  *
  * `beam-session.test.ts` already waits this way (`waitFor`), which is why the same
  * landing flow is green there. Same shape here, and the bound is generous rather than
- * tuned: a beam that has not settled in 2,000 turns is a hang, and says so.
+ * tuned: a beam that has not settled in 2,000 turns is a hang, and reports the hang.
  */
 async function until(done: () => boolean, what: string): Promise<void> {
   for (let i = 0; i < 2000; i++) {

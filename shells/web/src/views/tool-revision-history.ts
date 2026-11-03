@@ -57,7 +57,7 @@ export const PREVIEW_MAX_ELEMENTS = 400;
 export const PREVIEW_TIMING = { quietMs: 4000, idleTimeoutMs: 2000, intervalMs: 3 * 60_000 };
 
 /** The longest the emoji pins' follow-up waits for an explicit save's picture. The
- * Save action gives up on its capture after THUMB_CAPTURE_TIMEOUT_MS and says so;
+ * Save action gives up on its capture after THUMB_CAPTURE_TIMEOUT_MS and reports that;
  * the margin lets that word arrive first. Mutable so a test can shorten the wait. */
 export const SAVE_PICTURE_TIMING = { waitMs: THUMB_CAPTURE_TIMEOUT_MS + 2000 };
 

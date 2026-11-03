@@ -307,7 +307,7 @@ test('dot: edge attributes - label, style, direction and arrowhead', () => {
   assert.equal(edge(r, 'a', 'h').head, 'open');
   assert.equal(edge(r, 'a', 'h').color, '#ff0000');
   assert.equal(edge(r, 'a', 'i'), undefined, 'an invisible edge is dropped');
-  assert.equal(r.warns.length, 1, 'and says so');
+  assert.equal(r.warns.length, 1, 'one warning reported');
 });
 
 test('dot: clusters become bands, nested ones fold, plain subgraphs do not', () => {

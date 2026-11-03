@@ -586,7 +586,7 @@ function flatPlan(dir: string): string {
   return out;
 }
 
-test('plan --auto-match (bare means all) changes no layout the first pass already set, and says so', () => {
+test('plan --auto-match (bare means all) changes no layout the first pass already set, and reports that', () => {
   const dir = structuresWorkspace();
   const run = lolly('rebrand', 'plan', join(dir, 'structures.pptx'), '--auto-match', '--json');
   assert.equal(run.status === 0 || run.status === 5, true, run.stderr);

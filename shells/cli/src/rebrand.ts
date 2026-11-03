@@ -30,7 +30,7 @@
  *
  * The design system is the active content profile's (LOLLY_PROFILE), read by
  * `resolveProfileDesignSystem`; a profile with no slide master renovates against
- * the neutral master and says so. `--profile` is the press condition elsewhere in
+ * the neutral master and reports that. `--profile` is the press condition elsewhere in
  * this CLI and is not read here. Nothing on this path reaches the network, so
  * `--offline` is accepted and changes nothing.
  *

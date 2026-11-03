@@ -36,7 +36,7 @@ A redacted page is a picture of the original, so one gap matters. Text, vector s
 
 A PDF can also be redacted with `--keepText=true`, which removes only what sits under the bars and keeps the rest of each page as text. The CLI checks the result before it writes the file. See [Utilities](/info/utilities.html#strip-hidden-data-and-redact).
 
-If that canvas is not installed, or a tool needs something only a browser can do, the CLI runs the same export in the headless Chromium ([the paint tier](/info/cli-rendering.html#what-the-cli-can-render)) and says so on stderr. If the browser or the built web shell is missing, it stops and says what to install. It never writes a file that was not actually redacted.
+If that canvas is not installed, or a tool needs something only a browser can do, the CLI runs the same export in the headless Chromium ([the paint tier](/info/cli-rendering.html#what-the-cli-can-render)) and prints a note on stderr. If the browser or the built web shell is missing, it stops and says what to install. It never writes a file that was not actually redacted.
 
 ### Prepare and convert without a tool
 
@@ -165,5 +165,5 @@ voices/bf_lily.bin, tokenizer.json, and 2 more under …/models/kokoro. It is a 
 - `--yes` answers the question in advance. On a runner with no terminal and no `--yes`, the fetch downloads nothing, says how to proceed and exits `0`.
 - Every file is checked against a pinned SHA-256 **before** it is written. A mismatch writes nothing and exits `4`.
 - Each file is written as `.part` and renamed on success, so an interrupted fetch cannot leave a half-file that looks whole.
-- A model command's own refusal gives the size of the one model it needs. `lolly upscale`, for example, asks for the 4.0 MB fast model, while `lolly models fetch upscale` stages the whole 410.7 MB family and says so first.
+- A model command's own refusal gives the size of the one model it needs. `lolly upscale`, for example, asks for the 4.0 MB fast model, while `lolly models fetch upscale` stages the whole 410.7 MB family and reports that size first.
 :::

@@ -300,7 +300,7 @@ test('an achromatic pack whose primary is its Dark ground offers no Brand colour
   assert.deepEqual(deckThemeChoices(STARTER).map((one) => one.id), ['light', 'dark']);
 });
 
-test('a pack with no dark mode gets a Dark from its own ramp, and says so', () => {
+test('a pack with no dark mode gets a Dark from its own ramp, and reports that', () => {
   const source: ThemeSourceV1 = { colors: STARTER.colors, master: STARTER.master };
   const choice = buildDeckTheme('dark', source);
   assert.ok(choice);
@@ -313,7 +313,7 @@ test('a pack with no dark mode gets a Dark from its own ramp, and says so', () =
   assert.ok(contrastRatio(themed.colors['color.semantic.text'] ?? '', themed.colors['color.semantic.surface'] ?? '') >= 4.5);
 });
 
-test('a stored Dark theme over a pack that lost its dark mode is still dark, from its own ramp, and says so', () => {
+test('a stored Dark theme over a pack that lost its dark mode is still dark, from its own ramp, and reports that', () => {
   const choice = buildDeckTheme('dark', STARTER);
   assert.ok(choice);
   const lost: ThemeSourceV1 = { colors: STARTER.colors, master: STARTER.master };
@@ -356,7 +356,7 @@ test('the look theme is offered on an unlocked design system and absent on a loc
   assert.equal(look?.theme.lookId, ORCHARD.id);
 });
 
-test('a look theme with its look missing resolves to the design system and says so', () => {
+test('a look theme with its look missing resolves to the design system and reports that', () => {
   const choice = buildDeckTheme('look', STARTER, { look: ORCHARD });
   assert.ok(choice);
   const themed = themedColors(STARTER, choice.theme);

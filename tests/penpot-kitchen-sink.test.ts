@@ -521,7 +521,7 @@ test('kitchen sink: every instance is local, so the external-library census is e
   assert.ok(copies.every(s => s.componentFile === FILE_ID));
 });
 
-test('kitchen sink: this variant set has no fill-in-the-blank slots, and says so', () => {
+test('kitchen sink: this variant set has no fill-in-the-blank slots, and reports that', () => {
   const out = collectPenpotComponents(componentRecords(), shapesByPage(), { fileId: FILE_ID });
   const byId = Object.fromEntries(shapes.map(s => [String(s.id), s]));
   const lookup = (id: string): unknown => byId[id];

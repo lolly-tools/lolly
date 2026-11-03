@@ -592,7 +592,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
 
   // The logo-colour pathway (plan 320 S1): a placed mark carries the design
   // system's real colours, so its card asks which one is the main colour (or,
-  // on a still-unbranded install, applies the likeliest answer and says so).
+  // on a still-unbranded install, applies the likeliest answer and reports that).
   bedit.logoOffer = null;
   // The candidate tray (plan 97 section 8) - the HOST's, whenever it has one, because
   // two live trays over one storage key erase each other (see BrandEditorOptions

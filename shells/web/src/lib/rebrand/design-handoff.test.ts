@@ -694,7 +694,7 @@ test('keepIds lands the compiled ids, the frame links and the authored fields', 
   assert.ok(Number(c.rows()[3]!.x) > 1280);
 });
 
-test('a repeated id falls back to minting for the whole import, and says so', async () => {
+test('a repeated id falls back to minting for the whole import, and reports that', async () => {
   const c = canvas();
   const frames = compiledDeckToFrames(handBuiltDeck());
   frames[1]!.boxes[0]!.id = 'f1.title';

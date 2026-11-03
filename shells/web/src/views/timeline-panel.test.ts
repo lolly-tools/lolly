@@ -2045,7 +2045,7 @@ test('re-taking over a selected take REPLACES its asset in one commit', async ()
   } finally { h.teardown(); TAKE_TIMING.countInMs = countIn; clock.restore(); }
 });
 
-test('a denied microphone leaves no recording state and says so', async () => {
+test('a denied microphone leaves no recording state and reports the denial', async () => {
   const fake = fakeHost({ deny: true });
   const h = mount([clip('a', 0, 3)], 40, AUDIO_KINDS, { host: fake.host, capabilities: ['microphone'] });
   const painted = paintCanvasBoxes(h);

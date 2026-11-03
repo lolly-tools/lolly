@@ -108,7 +108,7 @@ test('brief spikes never switch, however many: each calm reading starts the coun
   assert.deepEqual(r.decisions, []);
 });
 
-test('a low battery that is not charging switches on, and says so', () => {
+test('a low battery that is not charging switches on, and reports that', () => {
   const r = play([{ at: 0, pressure: 'nominal' }, { at: 0, battery: true }], 2 * MIN);
   assert.deepEqual(r.decisions, [{ at: MIN, kind: 'on', reason: 'battery' }]);
 });

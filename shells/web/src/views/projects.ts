@@ -2690,7 +2690,7 @@ export async function mountProjects(
   const currentFolderTarget = (): string | null => (folderId && folderId !== UNCAT && folderId !== TEMPLATES) ? folderId : null;
 
   /** Put refs on the module clipboard. Images are single-home REFERENCES, so they
-   *  can be cut (moved) but never copied - a copy drops them and says so. */
+   *  can be cut (moved) but never copied - a copy drops them and reports that. */
   function setClipboard(mode: 'cut' | 'copy', refs: readonly string[]): void {
     closeMenu();
     // A template is a starting point, not a file with a home, so it never travels on the

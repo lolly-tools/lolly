@@ -10,7 +10,7 @@
  * `--schema` is the IMSC1.1 (or TTML2) XML Schema entry point, for example `ttml2.xsd` or
  * `imsc-text.xsd` from the W3C imsc repository. This script never downloads it: fetch the
  * schema yourself, review it, and pass its path. Without `--schema` it still checks that
- * each sample is well-formed XML and says so, so a green run is never mistaken for schema
+ * each sample is well-formed XML and reports that, so a green run is never mistaken for schema
  * validation. Exit 1 when xmllint is missing, a sample is invalid or the schema is absent.
  */
 import { execFileSync, spawnSync } from 'node:child_process';

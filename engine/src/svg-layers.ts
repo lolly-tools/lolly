@@ -210,7 +210,7 @@ export const SVG_LAYERS_MAX_REFS = 64;
  * Measured: an ordinary 1.0 MB file (one `<pattern>` holding a PNG, 24 real
  * groups) derives 24.0 MB - and the shell writes every byte of that into
  * IndexedDB on one confirm click. At the caps that is ~256 MB, silently. So the
- * enumerator prices the result and says so IN THE DIALOG, before the click.
+ * enumerator prices the result and shows the price IN THE DIALOG, before the click.
  */
 export const SVG_LAYERS_HEAVY_BYTES = 8_000_000;
 

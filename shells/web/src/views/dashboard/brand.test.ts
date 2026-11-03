@@ -244,7 +244,7 @@ test('a refresh keeps focus inside the tab when it was there', async () => {
   brand.teardown();
 });
 
-test('a copy writes the value and says so once, on the polite status line', async () => {
+test('a copy writes the value and announces the copy once, on the polite status line', async () => {
   const { panel, brand } = await mounted(DEMO);
   const hex = [...panel.querySelectorAll<HTMLButtonElement>('#dash-palette .ds-hex')].find(b => b.dataset.copy === '#033633')!;
   assert.equal(hex.getAttribute('aria-label'), 'Copy Spearmint #033633');

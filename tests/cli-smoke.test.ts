@@ -344,7 +344,7 @@ test('checkTransformOutput: non-empty, and magic bytes one of the declared forma
   assert.match((checkTransformOutput(new Uint8Array(), ['pdf']) as { error: string }).error, /empty/);
   assert.match((checkTransformOutput(pdf, ['png', 'jpg']) as { error: string }).error, /bytes are pdf/);
   assert.match((checkTransformOutput(new Uint8Array([1, 2, 3, 4]), ['pdf']) as { error: string }).error, /no magic bytes for pdf/);
-  // A tool that declares only formats with no signature passes on bytes alone, and says so.
+  // A tool that declares only formats with no signature passes on bytes alone, and reports that.
   assert.deepEqual(checkTransformOutput(enc('hello'), ['html']), { kind: 'html', checked: false });
   // Audio containers are identified, so a tool that declares both audio and video
   // formats (clean, trim) is not failed for writing audio.

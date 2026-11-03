@@ -215,7 +215,7 @@ test('a confidence floor and a budget bound a recognised file the same way as an
 
 // ─── what a file carries ─────────────────────────────────────────────────────
 
-test('a deck that carries macros is read without running them, and says so', async () => {
+test('a deck that carries macros is read without running them, and reports that', async () => {
   const parts = unzipSync(fixture('multilingual.pptx'));
   parts['ppt/vbaProject.bin'] = new TextEncoder().encode('Sub AutoOpen(): Shell "calc": End Sub');
   const bytes = zipSync(parts, { level: 0, mtime: '2026-01-01T00:00:00' });

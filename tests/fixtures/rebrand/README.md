@@ -46,7 +46,7 @@ distinction set a series belongs to.
 
 Object ids read `<slide part base name>.<p:cNvPr id>`, for example `slide3.75`;
 an object the master or a layout declares reads `slideMaster1.<id>` or
-`slideLayout1.<id>`. The pdf uses `page<N>.Im0` and says so in its own
+`slideLayout1.<id>`. The pdf uses `page<N>.Im0` and reports that in its own
 `objectIdForm`. Ids are stable as long as the builder is not reordered, and the
 test checks that every object a package addresses has a label and that no label
 names an object no package holds.

@@ -1497,7 +1497,7 @@ export async function reconstructFlattenedSlide(input: ReconstructFlattenedInput
     if (decision?.keep === 'picture') {
       // A panel kept whole carries its contents with it, so nothing inside is
       // rebuilt twice. Lines the page reading found inside it are its evidence;
-      // with none, it was not read on its own and says so.
+      // with none, it was not read on its own and reports that.
       skipUnder.add(region.id);
       const inside = page ? page.lines.filter((l) => l.text.trim() && centreIn(l.box, region.box)) : [];
       built.push(await pictureObject(`${base}.${region.id}`, region.box, inside.length ? evidenceOf(inside) : { state: unreadState }));

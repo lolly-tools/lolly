@@ -57,7 +57,7 @@
  * IT CARRIES ITS OWN STYLESHEET, injected into `<head>` on first mount, exactly like
  * `collab-overlay.ts` and `collab-pill.ts` - the lazy-chrome pattern that keeps a
  * single-player build byte-identical. `styles/parts/collab.css` owns ONLY the
- * `.collab-tile-*` family and says so in its own header; an unlayered injected sheet
+ * `.collab-tile-*` family and states that in its own header; an unlayered injected sheet
  * beats every `@layer`, so a shared `parts/*.css` rule using one of these bare class
  * names would be silently inert here and a confusing duplicate everywhere else. So
  * `.is-remote-focus` (named verbatim in the plan), `.collab-focus-chip`,

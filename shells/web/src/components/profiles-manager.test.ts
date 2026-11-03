@@ -262,7 +262,7 @@ const classedRow = (digest: string, description: string, deviceClass: string, co
   },
 });
 
-test('the panel is about profiles, not print - and says so once', async () => {
+test('the panel is about profiles, not print - and states that once', async () => {
   const { host } = fakeHost();
   open(host);
   await settle();

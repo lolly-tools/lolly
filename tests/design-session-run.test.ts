@@ -124,7 +124,7 @@ test('--s is resolved against the frames the session renders, in page order, bef
     });
   }
   assert.throws(() => sessionFrameChoice([], 'one', 'pptx', 'empty.lolly'), /it has no frames/);
-  // A one-image format from several frames takes the first by position, and says so.
+  // A one-image format from several frames takes the first by position, and reports that.
   const single = sessionFrameChoice(pages, undefined, 'png', 'deck.lolly');
   assert.equal(single.frame, '1');
   assert.match(single.note ?? '', /deck\.lolly has 3 frames and a png holds one, so this export is the first frame, first\. Pass --s=/);

@@ -228,7 +228,7 @@ test('a dashed or dotted stroke keeps its pattern, cap and join; dashes scale by
   assert.deepEqual(solid.path!.stroke, { color: '#000000', width: 3, cap: 'butt', join: 'miter', align: 'center' }, 'Photoshop\'s defaults: butt caps, mitred corners, no dashes');
 });
 
-test('a gradient or pattern stroke keeps the shape as pixels, and says so', () => {
+test('a gradient or pattern stroke keeps the shape as pixels, and reports that', () => {
   const stroke = versioned([
     ['strokeStyleVersion', D.long(2)], ['fillEnabled', D.bool(true)], ['strokeEnabled', D.bool(true)],
     ['strokeStyleLineWidth', D.untf('#Pxl', 2)], ['strokeStyleContent', D.objc([['Grad', D.objc([['Nm  ', D.text('Fade')]])]])],

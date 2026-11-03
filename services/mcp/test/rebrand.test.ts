@@ -481,7 +481,7 @@ test('the tool schema offers autoMatch as clear, likely or all, on the plan and 
   await refused({ stage: 'plan', file: structuresFile, autoMatch: 'everything' }, 'request.invalid');
 });
 
-test('plan with autoMatch changes no layout the first pass set; compile with it over plain layouts answers the plan and says so', async () => {
+test('plan with autoMatch changes no layout the first pass set; compile with it over plain layouts answers the plan and reports that', async () => {
   // The first pass already sets every clear read on this fixture, so Auto-match has nothing to change.
   const planned = await ok({ stage: 'plan', file: structuresFile, autoMatch: 'clear' });
   assert.deepEqual(planned.structuredContent.autoMatched, { bands: 'clear', clear: 0, likely: 0, none: 0, total: 0 });

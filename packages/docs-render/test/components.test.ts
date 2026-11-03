@@ -86,7 +86,7 @@ test('a component needs a title and refuses a heading in its body', () => {
   assert.doesNotThrow(() => mdToHtml('::: note Example\n```bash\n# a shell comment\n```\n:::', ctx()));
 });
 
-test('an unknown directive still renders its body, and says so at build time', (t) => {
+test('an unknown directive still renders its body, and warns at build time', (t) => {
   const warn = t.mock.method(console, 'warn', () => {});
   const html = mdToHtml('::: nota Título\nCuerpo.\n:::', ctx());
   assert.equal(html, '<p>Cuerpo.</p>');

@@ -583,7 +583,7 @@ export interface RoleRow {
   set: boolean;
   /**
    * The slot is filled, but by a colour nobody chose - the starter's, standing
-   * in (plan 182 section 4.2). The row goes muted and says so, and its picker
+   * in (plan 182 section 4.2). The row goes muted and shows why, and its picker
    * reads "Choose…" rather than naming the placeholder as if it were a choice.
    * This is the single change that answers "what is my palette": the strip stops
    * claiming the starter's ink is the person's Text colour.

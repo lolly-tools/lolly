@@ -299,7 +299,7 @@ test('cells refuse more cells than the archetype has, and an archetype without c
 
 // ─── grounds ─────────────────────────────────────────────────────────────────
 
-test('a dark ground takes the dark twin; an archetype with none is themed dark, or keeps its own and says so', () => {
+test('a dark ground takes the dark twin; an archetype with none is themed dark, or keeps its own and reports that', () => {
   const { document, report } = compose({
     slides: [
       { archetype: 'agenda', ground: 'dark', slots: { title: 'Agenda', body: '1. Tides' } },

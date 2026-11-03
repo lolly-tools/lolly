@@ -63,7 +63,7 @@ test('a named skill resolves to its id, revision and hash; an unknown name lists
   assert.ok('error' in malformed && /must be a list/.test(malformed.error));
 });
 
-test('lolly_render records the skills in the file and says so beside it', async () => {
+test('lolly_render records the skills in the file and notes the skills beside it', async () => {
   const brand = await expectedBrand();
   const r = await call('lolly_render', { toolId: 'qr-code', inputs: { url: 'https://lolly.tools' }, format: 'svg', c2pa: 'off', brandSkills: ['lolly-demo-brand'] });
   assert.ok(!r.isError, textOf(r));

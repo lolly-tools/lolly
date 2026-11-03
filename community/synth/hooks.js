@@ -376,7 +376,7 @@ var _SCENES = ['ink', 'swarm', 'field', 'camera'];
  * declared capability is a hard gate that would make every OTHER scene of this
  * tool unavailable in a shell without a camera (the CLI refuses such a tool
  * outright). A shell with no camera therefore still runs this scene; it just
- * runs it un-driven, and says so on the canvas.
+ * runs it un-driven, and shows a note on the canvas.
  *
  * The frame is sampled to a FIXED small luma grid and handed to the instrument
  * as a property on the realm - the same handoff community/growth uses for its

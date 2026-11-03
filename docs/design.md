@@ -126,7 +126,7 @@ The result is a new path you can keep editing with the pen, stored as plain Bezi
 
 Select one image, right-click it and choose **Trace image…** to turn the picture into editable shapes. Pick a preset and press **Trace**:
 
-- **Logo** finds a few flat colours and keeps crisp edges and true circles and lines. It refuses a picture with gradients or photo tones and says so.
+- **Logo** finds a few flat colours and keeps crisp edges and true circles and lines. It refuses a picture with gradients or photo tones with a message saying why.
 - **Illustration** traces several colours as filled shapes, flat art or a posterised picture.
 - **Line art** traces dark lines on a light page as black shapes.
 - **Centreline** traces dark lines as single strokes, so you can change their weight afterwards.

@@ -64,7 +64,7 @@ test('lolly_check refuses authoring it cannot lower, naming the key', async () =
   assert.equal(report.families.verify.state, 'skipped');
 });
 
-test('an authoring document passed as document is lowered by the check and says so', async () => {
+test('an authoring document passed as document is lowered by the check and the check reports the lowering', async () => {
   const result = await call('lolly_check', { document: INPUTS, browser: 'off' });
   const report = result.structuredContent as unknown as CheckReportV1;
   assert.ok(!result.isError, result.content[0]?.text ?? '');

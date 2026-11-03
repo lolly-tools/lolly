@@ -119,7 +119,7 @@ export function buildCameraGroup(tp: TpCtx, id: string, box: Box): void {
   const g = inspectorGroup(tp, 'camera', t('Camera'), 'camera');
   inspector.appendChild(g.root);
   // What the segment reads at a glance: how many poses this camera holds. A camera
-  // with none is the scene default - one still shot - and says so.
+  // with none is the scene default - one still shot - and reports that.
   const n = kfBoxTrack(box, cfg).length;
   g.setSummary([
     n === 0

@@ -277,7 +277,7 @@ test('swatch roles come from the path first and the measured colour second', () 
   });
   assert.deepEqual(swatches.map((swatch) => swatch.path), Object.keys(role).sort());
   const onPrimary = swatches.find((swatch) => swatch.path === 'color.semantic.on-primary');
-  assert.equal(onPrimary?.inkFor, 'primary', 'on-primary is ink for the primary fill, and says so');
+  assert.equal(onPrimary?.inkFor, 'primary', 'on-primary is ink for the primary fill, and reports that');
 });
 
 test('role words are read in kebab, snake and camel case, last word first, with a leading on as ink for that surface', () => {

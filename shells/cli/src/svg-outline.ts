@@ -15,7 +15,7 @@
  *   • Unlike those formats, SVG can REPRESENT live text. So an unresolvable font is a
  *     warned fallback (the run stays `<text>`, the file still renders) rather than a
  *     hard failure. `--strict` promotes the warning to an exit-4 refusal.
- *   • Anything this walk cannot place EXACTLY keeps its live `<text>` and says so:
+ *   • Anything this walk cannot place EXACTLY keeps its live `<text>` and reports that:
  *     a run with `tspan` children, a `dominant-baseline`/`alignment-baseline` shift, a
  *     `textLength`, or a `textPath`. Guessing a baseline offset would move glyphs by a
  *     few pixels in a file nobody would think to check, which is worse than a warning.

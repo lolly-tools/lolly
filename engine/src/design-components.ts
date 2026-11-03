@@ -154,7 +154,7 @@ function variantProps(v: unknown): Array<{ name: string; value: string }> {
  * does carry a componentId that also names a local component (4 of the 6 in the
  * UXDays keynote do). `fileId` is taken from `opts` when the caller has the
  * manifest; otherwise it is inferred from a master shape, which always names its
- * own file in `componentFile`. With neither, the census is empty and says so.
+ * own file in `componentFile`. With neither, the census is empty and the report states that.
  *
  * @param componentJsons parsed `files/<fid>/components/*.json` records.
  * @param shapesByPage page id → shape id → parsed shape, for every page.

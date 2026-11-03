@@ -104,6 +104,8 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: 'prose "smoke test"', re: /smoke[ -]test/i },
   { what: '"it deserves"', re: /\bit deserves\b/i },
   { what: '"say so"', re: /\bsay so\b/i },
+  // Andy, 2026-11-03.
+  { what: '"and says so" (say what it does: reports which, lists them, shows a note, refuses with a message)', re: /\band says so\b/i },
   { what: 'abstract "shape of"', re: /\bshape of\b/i },
   { what: '"where X sits/fits/stands" framing', re: /\bwhere (?:\S+ ){1,3}?(?:sits|fits|stands)\b/i },
   { what: '"in (X) terms" framing', re: /\bin \S+ terms\b/i },

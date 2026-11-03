@@ -284,7 +284,7 @@ test('setEmojiStyle re-draws the tree the pass last ran on, and tells subscriber
   assert.equal(seen.length, count, 'unsubscribing stops the notifications');
 });
 
-test('a host with no emoji API is left alone, and says so', async () => {
+test('a host with no emoji API is left alone, and reports that', async () => {
   const { host, renders } = hostDouble(undefined);
   const runtime = await createRuntime(toolDouble(), host);
 

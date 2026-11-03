@@ -7,7 +7,7 @@
  * real <path> geometry that zooms, diffs and re-renders. "12,400 paths in 41 KB" is
  * that claim in a form a reader can check against the file they were just served - 
  * and against the PNG they would otherwise have been sent. A raster baseline has no
- * such structure, and says so instead of borrowing the sentence.
+ * such structure, and reports that instead of borrowing the sentence.
  *
  * Counted with regexes over the file text, never a DOM. These files reach 500 KB
  * (one is 6.8 MB) and the docs build re-runs on every save under --watch, so parsing

@@ -15,7 +15,7 @@
  *    because the lineage names them: a minted id would leave `forward` and `backward`
  *    pointing at rows nothing can find. The import is asked for `keepIds`, which
  *    falls back to minting for the whole document when the compiled ids are not
- *    unique, and says so rather than keeping half of them. When it does fall back,
+ *    unique, and reports that rather than keeping half of them. When it does fall back,
  *    the marker records `idsKept: false` and carries no lineage at all, so no reader
  *    resolves a source object against a row that is no longer named.
  * 2. **Fields the compile wrote survive.** A row is copied over whole, so `master`,

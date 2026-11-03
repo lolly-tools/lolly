@@ -31,7 +31,7 @@ export function sameWinding(subpaths: readonly PsdSubpath[]): PsdSubpath[] {
  * rule already fills the union, but a stroke on each outline would also draw the
  * edges where they overlap, which Photoshop does not. Null when the union is too
  * complex to work out within the geometry kernel's limits; the caller keeps the
- * separate outlines and says so.
+ * separate outlines and reports that.
  */
 export function unionOutline(subpaths: readonly PsdSubpath[]): PsdSubpath[] | null {
   const geom: GeomPath = subpaths.filter(sp => sp.closed && sp.knots.length >= 2).map(sp => ({

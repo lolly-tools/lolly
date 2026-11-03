@@ -13,7 +13,7 @@
  *
  * The gate is the "damn sure" part: the original and optimised files are BOTH
  * rasterised (resvg, the repo's own renderer class, in a child process so a
- * renderer crash cannot take the run down) and pixel-compared. A breach keeps the original bytes and says so loudly - 
+ * renderer crash cannot take the run down) and pixel-compared. A breach keeps the original bytes and reports that loudly - 
  * optimisation can only ever be a no-op or a win, never a quality regression.
  */
 import { execFile } from 'node:child_process';

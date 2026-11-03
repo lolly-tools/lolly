@@ -314,7 +314,7 @@ export function numField(opts: NumFieldOpts): NumFieldHandle {
    * What the spinbutton reports, kept beside what the box shows. The unit rides in
    * `aria-valuetext` because the unit element itself is `aria-hidden`, so without it
    * "350" is announced for a width and for a duration alike; a mixed field has no
-   * number to report at all, and says so.
+   * number to report at all, and reports that.
    */
   function announce(v: number | null): void {
     if (v == null) {

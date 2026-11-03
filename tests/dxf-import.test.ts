@@ -409,7 +409,7 @@ test('Design boxes: path boxes per layer colour, groups, text boxes with the nam
   assert.equal(d.width, r.width);
 });
 
-test('Design boxes: one import never exceeds the layer limit and says so', () => {
+test('Design boxes: one import never exceeds the layer limit and reports that', () => {
   const many: ReturnType<typeof text> = [];
   for (let i = 0; i < DXF_MAX_BOXES + 50; i++) many.push(...text(i, 0, 1, `t${i}`));
   const d = dxfToDesign(imp(dxfText({ entities: many })));

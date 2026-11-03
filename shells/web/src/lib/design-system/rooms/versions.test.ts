@@ -560,7 +560,7 @@ test('a refused name is exposed to assistive tech, not just coloured', async () 
     input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
   };
   type('');
-  assert.equal(input.getAttribute('aria-invalid'), 'true', 'a blank name is a refusal, and says so');
+  assert.equal(input.getAttribute('aria-invalid'), 'true', 'a blank name is a refusal with an invalid flag');
   type('v1');
   assert.equal(input.getAttribute('aria-invalid'), 'true', 'so is a name already published');
   type('v2');

@@ -522,7 +522,7 @@ export interface SeqMixResult {
   hasClipAudio: boolean;
   hasBed: boolean;
   /** Everything left out, and why, in the order it was decided. Never thrown: a
-   *  timeline with one unreadable box still mixes the rest, and says so. */
+   *  timeline with one unreadable box still mixes the rest, and reports the box. */
   warnings: string[];
 }
 

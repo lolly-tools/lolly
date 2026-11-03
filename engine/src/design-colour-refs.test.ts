@@ -62,7 +62,7 @@ test('rows with no reference are returned untouched, the array included', () => 
   assert.equal(resolved[0], rows[0]);
 });
 
-test('an unresolved reference keeps the previous literal and says so, never the raw alias', () => {
+test('an unresolved reference keeps the previous literal and reports the miss, never the raw alias', () => {
   const issues: DesignColourRefIssue[] = [];
   const prior = withBlockTokenBinding({ id: 'a', kind: 'box', bg: '#123456' }, 'tokenLinks', 'bg', { ref: '{color.semantic.surface}', value: '#123456' });
   const rows: InputValue[] = [

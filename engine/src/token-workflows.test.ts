@@ -438,7 +438,7 @@ fixtureTest(['T5'], 'a legacy value/type sync folder assembles sets and themes a
   for (const path of ['$metadata.json', '$themes.json', 'core.json', 'theme/01-light.json', 'theme/02-dark.json']) files[path] = JSON.parse(readFileSync(new URL(path, root), 'utf8'));
   const assembled = assembleTokenSetFiles(files);
   assert.equal(assembled.source, 'token-set-files');
-  // The older Tokens Studio format (value/type) is read, and says so (plan 320 S3).
+  // The older Tokens Studio format (value/type) is read, and the report notes the format (plan 320 S3).
   assert.deepEqual(assembled.warnings, ['4 tokens in the older Tokens Studio format (value and type) read as $value and $type']);
   const doc = assembled.doc!;
   assert.deepEqual(summarizeTokensDoc(doc), { sets: ['core', 'theme/01-light', 'theme/02-dark'], themes: [{ name: 'light', group: null, id: 'd03a5c164300d1517865310f92308f337ca1d9e0' }, { name: 'dark', group: null, id: 'dc9481f8496701c998a183a804313792393dd169' }], tokenCount: 3, colorCount: 3 });

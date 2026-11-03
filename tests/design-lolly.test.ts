@@ -284,7 +284,7 @@ test('refusals carry their codes', async () => {
   await refusal(packageDesign(upload, { ...BASE, assets: hero }), 'media.missing');
 });
 
-test('allowMissingMedia writes unresolved pictures as references and says so', async () => {
+test('allowMissingMedia writes unresolved pictures as references and reports that', async () => {
   const rows = doc().map((r) => (r.id === 'a-logo' ? { ...r, image: 'brand/logo/retired' } : r));
   rows.push({ id: 'a-old', kind: 'image', frame: 'a', x: 0, y: 0, w: 10, h: 10, image: `user/media/${'3'.repeat(64)}` });
   const { bytes, report } = await packageDesign(rows, { ...BASE, allowMissingMedia: true, assets: [{ key: 'photo:spare', bytes: PNG(9) }] });

@@ -128,7 +128,7 @@ test('a hosted gateway reads requests up to LOLLY_MCP_REQUEST_MAX_BYTES; a local
   assert.equal((await post({ ...LOCAL, LOLLY_MCP_REQUEST_MAX_BYTES: '2000' }, padded)).status, 200, 'a local server reads none of the settings');
 });
 
-test('a hosted gateway answers up to LOLLY_MCP_RESPONSE_MAX_BYTES and says so past it; a local one sends any size', async () => {
+test('a hosted gateway answers up to LOLLY_MCP_RESPONSE_MAX_BYTES and reports truncation past that size; a local one sends any size', async () => {
   const roomy = await post(HOSTED, init());
   assert.equal(roomy.status, 200);
   assert.match(roomy.body, /"result"/);

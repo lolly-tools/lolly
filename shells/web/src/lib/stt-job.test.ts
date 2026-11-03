@@ -215,7 +215,7 @@ test('with nobody left to place them, the words are stashed, persisted, and anno
   assert.deepEqual(settled, ['settled'], 'the caller\'s guard is released exactly once');
 });
 
-test('a source with no record of its own still keeps the transcript for this tab, and says so', async () => {
+test('a source with no record of its own still keeps the transcript for this tab, and reports that', async () => {
   const sp = fakeSpeech();
   const assets = fakeAssets();                       // get() finds nothing to annotate
   startTranscribeJob(

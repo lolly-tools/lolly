@@ -305,7 +305,7 @@ test('variableWeightRange reads the whole wght axis off a real variable font', (
   assert.equal(variableWeightRange(outfit()), '100 900');
 });
 
-test('a static face has no axis, and says so rather than guessing one', () => {
+test('a static face has no axis, and reports that rather than guessing one', () => {
   assert.equal(variableWeightRange(renameTable(outfit(), 'fvar', 'zzzz')), null);
   assert.equal(variableWeightRange(new ArrayBuffer(0)), null);
   assert.equal(variableWeightRange(new ArrayBuffer(8)), null, 'shorter than a table directory');
