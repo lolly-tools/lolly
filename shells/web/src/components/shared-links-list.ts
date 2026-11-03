@@ -3,7 +3,7 @@
  * shared-links-list - "Links you've shared": the device-local list of links made
  * after a Send, each with a Stop sharing button where the provider can switch it
  * off. The list holds the link and the grant to remove, never a token (see
- * lib/share-links.ts), and says so.
+ * lib/share-links.ts), and a note under the heading tells the person that.
  */
 
 import { announce } from '../a11y.ts';
