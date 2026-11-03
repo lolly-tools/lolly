@@ -435,7 +435,7 @@ test('substitutePdfRgb: a press separation converts unmatched colours, and black
 test('substitutePdfRgb: DeviceGray keeps its ink, takes a brand swatch, and black overprints', () => {
   // The print plate scenes found black written as \`0 g\` skipping the brand's black
   // build and knocking the colour out under black text. A grey keeps the ink DeviceGray
-  // always printed with (K = 1 - v), even where a press separation would tone-match it.
+  // always printed with (K = 1 - v), even where a press separation would tone-match the grey.
   const press = (): [number, number, number, number] => [0, 0, 0, 0.9];
   const plain = buildCmykPaletteMap([]);
   const usedGs = new Set<string>();
@@ -447,7 +447,7 @@ test('substitutePdfRgb: DeviceGray keeps its ink, takes a brand swatch, and blac
   // A grey matching a brand swatch with measured ink keeps that build (a rich black knocks out).
   const brand = buildCmykPaletteMap([{ hex: '#000000', cmyk: [71, 60, 43, 100] }]);
   assert.equal(substitutePdfRgb('0. g', brand, assignSpotResourceNames(brand)), '/GSfk gs 0.71 0.6 0.43 1 k');
-  // Operators and names that merely contain a g are left alone.
+  // A `gs` operator, an image resource and a `Tg`-like token are not grey colours.
   assert.equal(substitutePdfRgb('/GS1 gs /Img1 Do 12 Tg', plain, assignSpotResourceNames(plain)), '/GS1 gs /Img1 Do 12 Tg');
 });
 

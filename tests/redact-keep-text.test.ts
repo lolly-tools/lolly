@@ -45,6 +45,7 @@ test('keep text: the checker finds text, pictures and drawings under a box in an
 test('keep text: a module that returns the file untouched is refused and no bytes come back', async () => {
   const corpus = await makeCorpusPdf(3);
   const lying: PdfA11yKernel = {
+    retired: false,
     check: () => { throw new Error('unused'); },
     redact: bytes => ({ bytes, summary: { v: 1, marks: 1, pages: 1, glyphs: 99, images_removed: 0, images_cleared: 0, paths_removed: 0, paths_clipped: 0, forms_rewritten: 0, forms_removed: 0, annotations: 0, fields: 0, tags: 0, xfa_removed: false, sanitized: [] } }),
   };

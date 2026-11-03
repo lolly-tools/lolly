@@ -642,8 +642,8 @@ export function substitutePdfRgb(
   // DeviceGray (`v g` / `v G`) is how a PDF writer usually sets black, text included. A
   // grey that matches a brand swatch takes the swatch's measured build or spot, like RGB.
   // Any other grey keeps the ink it always printed with (DeviceGray separates to
-  // K = 1 - v) and gains the overprint rule, so black text overprints the colour under
-  // it. Without this, black skipped the brand's black build and its text knocked out.
+  // K = 1 - v) and gains the overprint rule, so black text overprints the colour beneath.
+  // Without this, black skipped the brand's black build and its text knocked out.
   // The rg/RG passes run first, and `\bg\b` cannot match inside `rg`, `gs` or a name.
   const grey = (isFill: boolean) => (v: number): string => {
     if (pdfColorHit(v, v, v, paletteMap)) return (isFill ? fill : stroke)(v, v, v);

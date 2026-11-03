@@ -362,7 +362,7 @@ const ELLIPSIS = /(…|\.\.\.)$/;
 
 /**
  * Catalog entries that break ellipsis parity on purpose, keyed `lang|English source`: the
- * "Add from…" family, where the ellipsis sits mid-phrase or leads in the target language's
+ * "Add from…" family, whose ellipsis comes mid-phrase or first in the target language's
  * word order. The translation defects this list once held were fixed on 2026-11-03. The list is a
  * ratchet: new entries are failures, and fixing one means deleting its line.
  */
