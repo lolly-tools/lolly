@@ -511,6 +511,24 @@
       "Primary storyline, connected clips on lanes and gaps",
       "Drop-frame timecode and mixed media rates",
       "Reports compound clips, titles, transitions, effects and retiming"
+    ],
+    "MXF": [
+      "Names codec, size, rate and timecode",
+      "OP1a and OP-Atom headers read",
+      "Identified, decoded by the device where available",
+      "Original file kept as-is"
+    ],
+    "ProRes": [
+      "Profile named: Proxy to 4444 XQ",
+      "No ProRes decoder bundled",
+      "Identified, decoded by the device where available",
+      "Original file kept as-is"
+    ],
+    "DNx": [
+      "DNxHD ID or DNxHR profile named",
+      "No DNx decoder bundled",
+      "Identified, decoded by the device where available",
+      "Original file kept as-is"
     ]
   },
   "_unsupported_note": "Known gaps per format token, shown in the dialog under 'Not yet supported'. Editorial and accurate, not exhaustive: seed only what is genuinely true today. A format with no entry shows no gap list. Expand this during the format-support roadmap review.",
@@ -1191,6 +1209,63 @@
         "writes": [],
         "preserves": "n/a",
         "note": "Same BMFF reader as MP4: the XMP box, the ilst tags and the QuickTime mdta keys."
+      }
+    },
+    {
+      "token": "MXF",
+      "name": "MXF",
+      "full": "Material Exchange Format",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "desc": "The broadcast and post-production container used by cameras, Avid and archives. Lolly reads the header (SMPTE 377, OP1a and OP-Atom) to find the picture codec, size, frame rate, start timecode and sound tracks, and keeps the original file as it is. It is identified, decoded by the device where available: no browser plays MXF, so Lolly says what the file holds and asks for an H.264, HEVC or AV1 copy from your editing app. It comes in but isn't a Lolly export format.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, to name the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "ProRes",
+      "name": "Apple ProRes",
+      "full": "Apple ProRes (in a MOV)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "desc": "Apple's editing codec, in a QuickTime MOV. Lolly reads the profile (Proxy, LT, 422, 422 HQ, 4444, 4444 XQ) from the file header and ships no ProRes decoder of its own. It is identified, decoded by the device where available: Safari and the Lolly desktop app on a Mac open it with Apple's own decoder. Elsewhere Lolly keeps the original and suggests an H.264, HEVC or AV1 copy. It comes in but isn't a Lolly export format.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, to name the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "DNx",
+      "name": "Avid DNxHD / DNxHR",
+      "full": "Avid DNxHD and DNxHR (VC-3)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "desc": "Avid's editing codec (SMPTE VC-3), in an MXF or MOV. Lolly reads the DNxHD compression ID or DNxHR profile from the file header and ships no DNx decoder of its own. It is identified, decoded by the device where available; most devices have no DNx decoder, so Lolly keeps the original and suggests an H.264, HEVC or AV1 copy from your editing app. It comes in but isn't a Lolly export format.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, to name the codec, size, rate and timecode. No metadata is read from or written to the file."
       }
     },
     {

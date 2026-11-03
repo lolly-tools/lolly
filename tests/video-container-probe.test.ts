@@ -7,7 +7,7 @@
  * Optional cross-check on a machine with ffmpeg (nothing here depends on it):
  *   ffmpeg -f lavfi -i color=c=black:s=64x64:r=25 -frames:v 2 -c:v prores_ks -profile:v 3 x.mov
  *   ffmpeg -f lavfi -i color=c=black:s=64x64:r=25 -frames:v 2 -c:v dnxhd -profile:v dnxhr_hq -pix_fmt yuv422p x.mxf
- * then probeVideoContainer(bytesProbeSource(readFileSync(...))) names the same codec.
+ * then probeVideoContainer(bytesProbeSource(readFileSync(...))) gives the same codec.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

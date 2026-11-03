@@ -785,7 +785,12 @@ export async function createVideoProvider(src: Blob | string, opts: ProviderOpts
     return await make(url, opts);
   } catch (err) {
     if (revoke) { try { URL.revokeObjectURL(url); } catch { /* already gone */ } }
-    throw coded(err, 'SEQ_UNSUPPORTED_MEDIA');
+    // Say which codec the file uses and how to get a copy that opens, when the container tells.
+    const note = typeof src === 'string' ? null : (await import('../lib/video-device-check.ts')).inspectVideoFile(src).then(r => r?.note ?? null).catch(() => null);
+    const why = await note;
+    const out = coded(err, 'SEQ_UNSUPPORTED_MEDIA');
+    if (why) out.message = why;
+    throw out;
   }
 }
 

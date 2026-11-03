@@ -360,7 +360,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'import', id: 'cap-import', title: 'Import formats', icon: ICONS.install,
-    desc: '61 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
+    desc: '64 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
     cards: [
       { icon: ICONS.image, title: 'Images', shot: 'auth-assets-uploads', keywords: 'png jpg jpeg webp avif heic heif jxl jpeg xl bmp ico favicon iphone photo exif gps strip gif apng animated svg svgz sanitise', features: [
         { name: 'PNG · JPG · WebP · AVIF · HEIC/HEIF', desc: 'Drop a photo or graphic into any image picker or your <strong>My images</strong> library. Stills are downscaled and stripped of EXIF/GPS on ingest; iPhone HEIC/HEIF decodes even where the browser can’t, via a bundled fallback. AVIF reads wherever the browser decodes it.' },
@@ -389,8 +389,9 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'SRT · WebVTT captions', desc: 'The Captions, Audiogram and Record tools take an existing caption file through Add data, so a transcript you already have needs no speech model.' },
         { name: 'Lottie (.json · .lottie)', desc: 'Bodymovin JSON and dotLottie animations validate and place as live vector animations.' },
       ] },
-      { icon: ICONS.film, title: 'Video', keywords: 'mp4 mov webm footage clip verbatim transcode', features: [
+      { icon: ICONS.film, title: 'Video', keywords: 'mp4 mov webm mxf prores dnx dnxhd dnxhr footage clip verbatim transcode proxy', features: [
         { name: 'MP4 · MOV · WebM', desc: 'Video files are stored <em>verbatim</em> - never transcoded - and their dimensions probed locally, ready to place in motion tools.' },
+        { name: 'MXF · ProRes · DNx', desc: 'Lolly reads the file header to name the codec, size, rate, timecode and sound tracks, and uses your device’s own decoder where it has one. It bundles no ProRes or DNx decoder, so a clip your device cannot open says which codec it uses and how to get a copy that opens. The original is kept.' },
       ] },
       { icon: ICONS.sound, title: 'Sound & music', keywords: 'mp3 m4a aac wav ogg vorbis opus flac midi mod xm it s3m tracker music soundtrack bed audio import', features: [
         { name: 'MP3 · M4A · AAC · WAV · OGG · FLAC', desc: 'Kept byte for byte and decoded on your device, ready to be a video’s music bed or to play in the ambient player.' },

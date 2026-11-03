@@ -86,7 +86,7 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
         if (blob) {
           if (size == null) size = blob.size;
           if (type === 'audio') await addAudioFields(blob, push, size, ref);
-          else await addVideoFields(blob, push);
+          else { await addVideoFields(blob, push); addVideoProbeFields(ref, fields, push); }
         }
       } else {
         // Too big to decode safely - still surface the authored duration if any.
@@ -349,6 +349,18 @@ async function addVideoFields(blob: Blob, push: Push): Promise<void> {
   } catch {
     /* mediabunny unavailable - video props simply omitted */
   }
+}
+
+// What the container probe stored at import (views/picker.ts): the codec when the
+// demuxer above could not name it (ProRes, DNx, anything in an MXF), and the plain
+// note when this device cannot open the clip. English only.
+function addVideoProbeFields(ref: AssetRef, fields: MetaField[], push: Push): void {
+  const probe = ref.meta?.videoProbe as { codec?: unknown; timecode?: unknown; note?: unknown } | undefined;
+  if (!probe || typeof probe !== 'object') return;
+  const named = fields.some(f => f.key === 'codec');
+  if (!named && typeof probe.codec === 'string') push('codec', t('Codec'), probe.codec);
+  if (typeof probe.timecode === 'string') push('timecode', 'Start timecode', probe.timecode);
+  if (typeof probe.note === 'string') push('playback', 'Playback', probe.note);
 }
 
 // EXIF display rows off a parsed TIFF block.

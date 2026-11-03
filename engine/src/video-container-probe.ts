@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Video container probe: names what a MOV, MP4 or MXF file holds without decoding
+ * Video container probe: says what a MOV, MP4 or MXF file holds without decoding
  * a single frame.
  *
  * It reads container structure only: the sample description of each track in an
@@ -11,7 +11,7 @@
  * timecode and each audio track's codec, channels and sample rate.
  *
  * Why it exists: Lolly ships no codec implementation from a patent pool (ProRes,
- * DNx/VC-3, H.264, HEVC, AAC, AC-3). Naming the codec is container structure and
+ * DNx/VC-3, H.264, HEVC, AAC, AC-3). Identifying the codec is container structure and
  * carries no codec patent, so the app can say what a file holds and whether the
  * device's own licensed decoder can open it (see shells/web/src/lib/video-device-check.ts).
  * Nothing here decodes, and the table entries are published identifiers: sample
@@ -62,7 +62,7 @@ export interface ProbedVideoTrack {
   family: VideoFamily;
   /** Plain name with the profile, such as "Apple ProRes 422 HQ". */
   label: string;
-  /** The profile alone ("422 HQ", "High", "DNxHR HQ"), when the container states it. */
+  /** The profile alone ("422 HQ", "High", "DNxHR HQ"), when the container gives one. */
   profile: string | null;
   /** The sample entry code (MOV/MP4) or the universal label in hex (MXF). */
   identifier: string;
@@ -72,7 +72,7 @@ export interface ProbedVideoTrack {
   height: number;
   /** Frames per second, or null when the container does not give a usable rate. */
   frameRate: number | null;
-  /** Bits per component when the container states it. */
+  /** Bits per component, when the container gives a value. */
   bitDepth: number | null;
   /** True for the codecs Lolly never implements itself (ProRes, DNx, H.264, HEVC). */
   patentPool: boolean;
@@ -686,7 +686,7 @@ function mxfPicture(coding: Uint8Array | null, container: Uint8Array | null): Pr
     if (isPicture && coding[11] === 0x02 && coding[12] === 0x02) return track('dv', 'DV', null, id, null);
     if (isPicture && coding[11] === 0x01) return track('uncompressed', 'Uncompressed video', null, id, null);
   }
-  // No usable coding label: the essence container label names the mapping.
+  // No usable coding label: the essence container label gives the mapping.
   if (container && hasPrefix(container, 0, MXF_PREFIX)) {
     switch (container[13]) {
       case 0x11: return track('dnx', 'Avid DNxHD or DNxHR', null, id, null);
@@ -731,7 +731,7 @@ function operationalPattern(label: Uint8Array | null): string | null {
 
 interface MxfMeta { sets: MxfSet[]; pattern: Uint8Array | null }
 
-/** Read the partition pack at `at` and walk the header metadata that follows it. */
+/** Read the partition pack at `at` and walk the header metadata after the pack. */
 async function readMxfPartition(src: ProbeSource, at: number): Promise<MxfMeta & { footer: number }> {
   const head = await readAt(src, at, Math.min(src.size - at, 4096), 4096);
   const pack = klvAt(head, 0);
@@ -764,10 +764,10 @@ async function readMxfPartition(src: ProbeSource, at: number): Promise<MxfMeta &
 }
 
 async function probeMxf(src: ProbeSource): Promise<ContainerProbe | null> {
-  const window = await readAt(src, 0, Math.min(src.size, MXF_RUN_IN + 64), MXF_RUN_IN + 64);
+  const lead = await readAt(src, 0, Math.min(src.size, MXF_RUN_IN + 64), MXF_RUN_IN + 64);
   let at = -1;
-  for (let i = 0; i <= Math.min(window.length - 14, MXF_RUN_IN); i++) {
-    if (window[i] === 0x06 && hasPrefix(window, i, PARTITION_KEY) && window[i + 13] === 0x02) { at = i; break; }
+  for (let i = 0; i <= Math.min(lead.length - 14, MXF_RUN_IN); i++) {
+    if (lead[i] === 0x06 && hasPrefix(lead, i, PARTITION_KEY) && lead[i + 13] === 0x02) { at = i; break; }
   }
   if (at < 0) return null;
   let meta = await readMxfPartition(src, at);
