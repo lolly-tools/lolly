@@ -33,7 +33,10 @@ import { isTauriMobileShell, isTauriShell } from '../../lib/instance-choice.ts';
 import { tauriInvoke } from '../../lib/nearby-boot.ts';
 import { aiAllowed, aiPolicy, AiPolicyError } from '../../lib/ai-policy.ts';
 import { announce } from '../../a11y.ts';
-import { edgeDockCollapsed, isDocked, onDockChange } from '../../lib/edge-dock.ts';
+import { edgeDockCollapsed, isDocked, onDockChange, releaseDock, requestDock, setDockAccessory, showPanel } from '../../lib/edge-dock.ts';
+import { isSplitLayout, onLayoutChange } from '../../lib/layout-posture.ts';
+import { icon } from '../../lib/icons.ts';
+import { mountSplitView } from '../../lib/split-panes.ts';
 import { AUTO_PACK_MIN, BROWSER_TARGET, costUrlState, LINK_CONTENT_MAX } from '../../lib/url-budget.ts';
 import { makeLollyVehicle } from '../tool-lolly-vehicle.ts';
 import type { Unit } from '../../../../../engine/src/units.js';
@@ -1833,6 +1836,8 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
 
             // (b) The navigator column (slides / artboards + the active frame's layers).
             const NAV_KEY = 'lolly-design-nav';
+            // Assigned below, once the inspector exists (the two-pane block).
+            let syncSplitPanels: (reveal?: boolean) => void = () => {};
             designNav = initDesignNavigator({
               stageEl,
               canvasEl,
@@ -1850,6 +1855,8 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
               onOpenChange: (open) => {
                 if (!workspace?.adjusting) { writeColumnPref(NAV_KEY, open); updateRouteParams({ _nav: open ? '1' : '0' }); }
                 if (open) workspace?.activate('navigator');
+                // Opened by the person: in two panes the Layers tab comes to the front.
+                syncSplitPanels(open);
                 workspace?.sync();
                 designTopbar?.sync();
               },
@@ -1946,8 +1953,54 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
               },
               onSheetHeight: height => workspace?.sheetHeight(height),
             });
+            // ── Two panes (lib/split-panes.ts) ───────────────────────────────────────
+            // On a foldable or a near-square touch screen the right-hand column becomes the
+            // CONTROL PANE: the inspector, the layers list and the export sheet are its
+            // tabs, the canvas takes the other side, and the hinge is the divider. The
+            // navigator joins the column as the Layers tab only while it is open in two
+            // panes; everywhere else it is the left sidebar it has always been. Moving it
+            // is a re-parent of the same live element, so its scroll, its selection and
+            // a rename in progress survive the fold.
+            const designSplit = mountSplitView({ id: 'design', dock: true, host: tview.host as unknown as Parameters<typeof mountSplitView>[0]['host'] });
+            const swapSides = designSplit.swapButton();
+            let navDocked = false;
+            // The panels' view of the navigator: while it is a tab it takes no stage band.
+            const navForPanels = { ...designNav, width: () => (navDocked ? 0 : designNav?.width() ?? 0) };
+            syncSplitPanels = (reveal = false): void => {
+              const split = isSplitLayout();
+              setDockAccessory(split ? swapSides : null);
+              if (!split || !designNav) {
+                if (navDocked) releaseDock('layers', 'host');
+                return;
+              }
+              // The control pane always has something in it: an inspector closed on the desk
+              // (or floating) opens in the pane.
+              if (!designInspectorFloat?.isOpen()) setInspectorOpen(true);
+              else if (designInspectorFloat.mode() !== 'edge') designInspectorFloat.dock();
+              if (designNav.isOpen() && !navDocked) {
+                navDocked = requestDock('layers', designNav.el, {
+                  icon: icon('layers'),
+                  label: t('Layers'),
+                  // Restored at boot it joins quietly; opened by the person it is the tab shown.
+                  background: !reveal,
+                  onRelease: (reason) => {
+                    navDocked = false;
+                    // A person closing the tab closes the list; the app taking it back
+                    // (leaving two panes, a view change) leaves it as it was.
+                    if (reason === 'user') designNav?.setOpen(false);
+                    workspace?.sync();
+                  },
+                });
+              } else if (designNav.isOpen() && navDocked && reveal) {
+                showPanel('layers');
+              } else if (!designNav.isOpen() && navDocked) {
+                releaseDock('layers', 'host');
+              }
+              workspace?.sync();
+            };
+            const offSplitLayout = onLayoutChange(() => syncSplitPanels());
             workspace = mountDesignPanels({
-              stage: stageEl, canvas: canvasEl, design, navigator: designNav,
+              stage: stageEl, canvas: canvasEl, design, navigator: navForPanels,
               inspector: designInspectorFloat,
               more: anchor => design.openLollyMenu(anchor),
             });
@@ -1972,9 +2025,15 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
             // reader told the panel was off while it was on, and the pressed styling never
             // painted. One sync here, once all three exist, with the real state.
             tview.syncDesignIntentChrome();
+            // Two panes from the first frame when the device is already in them.
+            syncSplitPanels();
 
             const prevChromeCleanup = viewEl._cleanup;
             viewEl._cleanup = () => {
+              offSplitLayout();
+              setDockAccessory(null);
+              if (navDocked) releaseDock('layers', 'host');
+              designSplit.destroy();
               workspace?.destroy();
               actionsEl?.removeEventListener('lolly:export-open', onExportOpen);
               actionsEl?.removeEventListener('lolly:export-close', onExportOpen);

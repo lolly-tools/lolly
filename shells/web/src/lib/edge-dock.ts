@@ -43,6 +43,9 @@ import { mountTooltips } from './tooltips.ts';
 import './edge-dock.css';
 import '../components/panel-focus.css';
 import { clamp } from '@lolly/engine';
+import { isSplitLayout, onLayoutChange } from './layout-posture.ts';
+import { activeSplitGeometry, splitUsesDock, SPLIT_CHANGE_EVENT } from './split-panes.ts';
+import { keepPlace } from './keep-place.ts';
 
 const STORE_KEY = 'lolly:edge-dock';
 const MOBILE_MQ = '(max-width: 640px)';   // the shell's canonical breakpoint (mobile-sheet.ts etc.)
@@ -68,8 +71,10 @@ const WIDTH_STEP = 24;        // px per arrow key on the width grip
 // the Design inspector, the export panel, the transcript. Everything but the zoom bar is
 // a full panel: one or two of them share the resizable split, three or more become tabs.
 // The zoom bar is fixed-height and sits above all of it, out of the split and the strip.
-export type PanelId = 'zoom' | 'people' | 'neuro' | 'inspector' | 'history' | 'export' | 'share' | 'comments' | 'transcript';
-const ORDER: readonly PanelId[] = ['zoom', 'people', 'neuro', 'inspector', 'history', 'export', 'share', 'comments', 'transcript'];
+// `layers` is Design's navigator, which joins the column only in two panes, where the
+// column is the control pane (lib/split-panes.ts); on a desk it is the left sidebar.
+export type PanelId = 'zoom' | 'people' | 'neuro' | 'inspector' | 'layers' | 'history' | 'export' | 'share' | 'comments' | 'transcript';
+const ORDER: readonly PanelId[] = ['zoom', 'people', 'neuro', 'inspector', 'layers', 'history', 'export', 'share', 'comments', 'transcript'];
 
 /**
  * Why a panel left the column. `user` is a gesture that means "put this away" - the drag
@@ -119,6 +124,8 @@ interface DockGeom { width?: number; split?: number; collapsed?: boolean; tab?: 
 export type DockChangeListener = (docked: readonly PanelId[]) => void;
 
 const occupants = new Map<PanelId, Occupant>();
+/** A control that rides the column's header row (Swap sides, in two panes). */
+let accessory: HTMLElement | null = null;
 let geom: DockGeom = load();
 let col: HTMLElement | null = null;
 let body: HTMLElement | null = null;
@@ -137,9 +144,22 @@ function save(): void {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(geom)); } catch { /* best-effort */ }
 }
 
-/** Desktop resolution? Docking never exists below the mobile breakpoint. */
+/**
+ * Desktop resolution? Docking never exists below the mobile breakpoint. In the
+ * two-pane layout (lib/split-panes.ts) the column is the control pane for a view
+ * that asked for it (Design) and does not exist for any other: a tool's own sidebar
+ * is its control pane there, and a second column would cover that sidebar.
+ */
 export function edgeDockAvailable(): boolean {
+  if (isSplitLayout()) return splitUsesDock();
   return typeof matchMedia === 'function' && !matchMedia(MOBILE_MQ).matches;
+}
+
+/** The control pane's width while the column IS the split control pane, else null. */
+function splitPaneWidth(): { pane: number; gutter: number } | null {
+  if (!isSplitLayout() || !splitUsesDock()) return null;
+  const g = activeSplitGeometry();
+  return g && g.mode === 'columns' ? { pane: g.control, gutter: g.gutter } : null;
 }
 
 function isRTL(): boolean {
@@ -220,8 +240,17 @@ function activeTab(fulls: PanelId[]): PanelId | undefined {
  */
 function setGlyph(el: HTMLElement, markup: string): void { el.innerHTML = markup; }
 
-/** Rebuild the body's slots + divider from the current occupants and apply geometry. */
+/**
+ * Rebuild the body's slots + divider from the current occupants and apply geometry.
+ * Every occupant is re-parented into a fresh slot, so the person's place (a focused
+ * field with its caret, a scrolled inspector) is carried across the move.
+ */
 function relayout(): void {
+  if (!col || !body) return;
+  keepPlace([col, ...[...occupants.values()].map(o => o.el)], relayoutNow);
+}
+
+function relayoutNow(): void {
   if (!col || !body) return;
   const present = ORDER.filter(id => occupants.has(id));
   if (!present.length) { teardownColumn(); return; }
@@ -234,7 +263,8 @@ function relayout(): void {
   // crowded dock already uses.
   // The export sheet is always a tab beside anything else: it is a full workflow of its
   // own, and it is in the column whenever the column is on (lib/export-panel-float.ts).
-  const tabbed = fulls.length > 2 || (fulls.some(id => id === 'history' || id === 'share' || id === 'export' || id === 'comments') && fulls.length > 1);
+  // The layers list is the same kind of workflow as the inspector: a tab, not a half.
+  const tabbed = fulls.length > 2 || (fulls.some(id => id === 'history' || id === 'share' || id === 'export' || id === 'comments' || id === 'layers') && fulls.length > 1);
 
   body.textContent = '';
   const slots = new Map<PanelId, HTMLElement>();
@@ -259,7 +289,16 @@ function relayout(): void {
     // Past two full panels the column stops stacking and starts naming. Every panel is
     // still MOUNTED - a tab switch must not tear a panel's DOM down and lose what the
     // user had open in it - and paintTabs decides which one is visible.
-    body.appendChild(buildTabs(fulls));
+    // An accessory (Swap sides) shares the strip's row as a sibling of the tablist,
+    // never inside it, so the tabs stay a clean tab sequence.
+    if (accessory) {
+      const head = document.createElement('div');
+      head.className = 'edge-dock-head';
+      head.append(buildTabs(fulls), accessory);
+      body.appendChild(head);
+    } else {
+      body.appendChild(buildTabs(fulls));
+    }
     for (const id of fulls) {
       const slot = mountSlot(id);
       slot.setAttribute('role', 'tabpanel');
@@ -444,10 +483,16 @@ function applyWidth(): void {
   // A column holding ONLY the compact zoom bar (no full panel) is slim - a full 280px
   // panel column reserved for a row of zoom buttons would shove the canvas for nothing.
   const compactOnly = occupants.size > 0 && [...occupants.values()].every(o => o.compact);
+  // In two panes the column is the control pane: its width is the pane's, set by the
+  // split divider or the hinge, and the reserve takes the gutter too so the view
+  // starts on the far side of the gutter.
+  const pane = splitPaneWidth();
   const w = geom.collapsed ? RAIL_W
+    : pane ? pane.pane
     : compactOnly ? COMPACT_ONLY_W
     : clamp(geom.width ?? DEFAULT_W, MIN_W, maxWidth());
-  document.documentElement.style.setProperty('--dock-w', `${w}px`);
+  document.documentElement.style.setProperty('--dock-w', `${pane && !geom.collapsed ? w + pane.gutter : w}px`);
+  col?.style.setProperty('--dock-pane-w', `${w}px`);
   const grip = col?.querySelector<HTMLElement>('.edge-dock-grip');
   if (grip) {
     grip.setAttribute('aria-valuenow', String(w));
@@ -514,6 +559,17 @@ export function showPanel(id: PanelId): void {
   setCollapsed(false);
 }
 
+/**
+ * Put a control in the column's header row, beside the tab strip, or take it out with
+ * null. Design's two-pane layout hands over Swap sides; nothing else uses this.
+ */
+export function setDockAccessory(el: HTMLElement | null): void {
+  if (accessory === el) return;
+  accessory?.remove();
+  accessory = el;
+  relayout();
+}
+
 /** Is the column put away to its rail? Docked-but-collapsed is not on screen, so chrome
  *  that steps aside for a docked panel (the Design top bar's zoom cluster) has to ask. */
 export function edgeDockCollapsed(): boolean { return !!geom.collapsed; }
@@ -527,7 +583,10 @@ export function releaseDock(id: PanelId, reason: DockReleaseReason = 'user'): vo
   occupants.delete(id);
   if (occ.home) {
     const { parent, next } = occ.home;
-    try { parent.insertBefore(occ.el, next); } catch { document.body.appendChild(occ.el); }
+    // Back to where the panel came from, keeping the person's place inside the panel.
+    keepPlace([occ.el], () => {
+      try { parent.insertBefore(occ.el, next); } catch { document.body.appendChild(occ.el); }
+    });
   } else {
     // Docked from nowhere, so it goes back to nowhere: parking it on <body> would leave
     // a full panel loose at the end of the page.
@@ -744,7 +803,7 @@ function paintCollapsed(): void {
 function bindResize(): void {
   if (resizeBound) return;
   resizeBound = true;
-  window.addEventListener('resize', () => {
+  const guard = (): void => {
     // Dropped below the desktop breakpoint: undock everything back to floating.
     if (!edgeDockAvailable()) {
       // The HOST is taking these back, not the user: a window dragged narrow must not
@@ -753,7 +812,16 @@ function bindResize(): void {
       return;
     }
     // Still desktop: re-clamp the width (the viewport may have shrunk) and re-derive
-    // the split's px from its fraction.
-    if (occupants.size) { applyWidth(); relayout(); }
-  });
+    // the split's px from its fraction. Geometry only, never a rebuild: a rotation or
+    // a fold resizes the window mid-task, and a rebuild re-parents every panel.
+    if (occupants.size) { applyWidth(); applySplit(); }
+  };
+  window.addEventListener('resize', guard);
+  // The layout class (lib/layout-posture.ts) settles a beat after the resize that
+  // caused it, so the same guard runs again once it has: entering two panes for a
+  // tool with its own sidebar takes the column away.
+  onLayoutChange(guard);
+  // The split panes also move without any resize (a divider drag, Swap sides), and
+  // the column is the control pane then: its width follows.
+  window.addEventListener(SPLIT_CHANGE_EVENT, () => { if (occupants.size && edgeDockAvailable()) applyWidth(); });
 }

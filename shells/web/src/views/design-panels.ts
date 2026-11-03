@@ -3,6 +3,7 @@
 import { t } from '../i18n.ts';
 import { compactActionsHeight, compactDesignViewport, designPanelsFit } from '../lib/design-panel-layout.ts';
 import { edgeDockWidth } from '../lib/edge-dock.ts';
+import { isSplitLayout } from '../lib/layout-posture.ts';
 import type { DesignCanvasPorts } from './design-ports.ts';
 import type { DesignNavigatorHandle } from './design-navigator.ts';
 import type { DesignInspectorFloatHandle } from './design-inspector-float.ts';
@@ -43,7 +44,9 @@ export function mountDesignPanels(opts: {
     active = panel;
     if (!enforce) return;
     const compact = compactDesignViewport();
-    const exclusive = compact || !designPanelsFit(window.innerWidth, navigator.width(), Math.max(340, edgeDockWidth()));
+    // In two panes the inspector and the layers are tabs of one control pane, so
+    // opening one never has to close the other.
+    const exclusive = !isSplitLayout() && (compact || !designPanelsFit(window.innerWidth, navigator.width(), Math.max(340, edgeDockWidth())));
     if (!exclusive) return;
     adjusting = true;
     if (panel !== 'navigator') navigator.setOpen(false);

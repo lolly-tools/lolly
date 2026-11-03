@@ -46,6 +46,8 @@ import { armViewEnter } from '../../view-enter.ts';
 import type { PanelEl } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
+import { isPhoneLayout, phoneLayoutQuery } from '../../lib/layout-posture.ts';
+import { mountSplitView } from '../../lib/split-panes.ts';
 
 export function setSidebarWidth(tview: ToolViewCtx, w: number, save = true): void {
   const { SIDEBAR_MIN, fullscreenToggle, layout, sidebarEl } = tview;
@@ -123,7 +125,7 @@ export function fitCanvas(tview: ToolViewCtx): void {
   // behind it. getBoundingClientRect is the border-box (padding-independent), so
   // the scale math stays stable as we set the padding.
   let topPad = 0;
-  if (sidebarEl && window.matchMedia('(max-width: 640px)').matches) {
+  if (sidebarEl && isPhoneLayout()) {
     const sheetBottom = sidebarEl.getBoundingClientRect().bottom;
     topPad = Math.max(0, Math.min(stageRect.height, sheetBottom - stageRect.top));
   }
@@ -765,12 +767,25 @@ export function wireStageZoom(tview: ToolViewCtx): void {
     // Apply saved/initial width without triggering a save
     tview.stageLayout.setSidebarWidth(sidebarOpen ? openWidth : 0, false);
 
+    // Two panes (lib/split-panes.ts): on a foldable or a near-square touch screen the
+    // sidebar is the control pane and the stage the canvas pane, with the hinge as the
+    // divider. Nothing is re-mounted when the layout changes; the panes are placed by
+    // styles/parts/split.css from the custom properties the module writes. Design has
+    // its own control pane (the docked inspector), so it mounts its split in free-canvas.
+    if (!tview.designChrome && sidebarEl) {
+      const split = mountSplitView({ id: 'tool', host: tview.host as unknown as Parameters<typeof mountSplitView>[0]['host'] });
+      const swap = split.swapButton();
+      sidebarEl.querySelector('.sidebar-back-row')?.append(swap);
+      tview.mountLifecycle.add('split panes', () => split.destroy());
+    }
+
     // `\` hides and shows the side panels, the same key Design uses to clear its
     // chrome (free-canvas/keys.ts onPreviewKey). It only fires while nothing is
     // being typed into, so a backslash in a field stays a backslash, and it waits
     // for any open dialog. Hiding also closes an open export panel. Desktop only:
     // on a phone the sidebar is the bottom sheet, which has its own grip.
-    const mqPhone = window.matchMedia('(max-width: 640px)');
+    // The phone layout, not the raw width: a 626px foldable in two panes has no sheet.
+    const mqPhone = phoneLayoutQuery();
     const onPanelKey = (e: KeyboardEvent): void => {
       if (e.key !== '\\' || e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
       if (mqPhone.matches || isTypingTarget() || document.querySelector('dialog[open]')) return;
@@ -1055,7 +1070,9 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     actionsEl &&
     renderPill
   ) {
-    const mqMobile = window.matchMedia('(max-width: 640px)');
+    // The phone layout, not the raw width: in two panes (split) the export panel rises
+    // inside the control pane, non-modal, as it does on a desk.
+    const mqMobile = phoneLayoutQuery();
     const exportPopup = exportOverlay.querySelector<HTMLElement>('.export-popup')!;
     // The export panel is modal ONLY on mobile, where it's a full bottom sheet over a
     // scrim. On desktop it's a NON-modal panel anchored to the sidebar bottom - the

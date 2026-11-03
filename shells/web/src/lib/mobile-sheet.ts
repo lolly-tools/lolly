@@ -13,6 +13,7 @@
  * bottom, grip on its TOP edge - the drag delta and the snap thirds flip) and
  * its own names so two sheets never collide on one page.
  */
+import { phoneLayoutQuery } from './layout-posture.ts';
 
 // Classify a vertical swipe as a flick. A flick is either fast (high velocity)
 // or a long, decisive drag; small/slow moves are taps or jitter. Returns
@@ -92,7 +93,9 @@ export function setupMobileSheet(layoutEl: HTMLElement, sidebarEl: HTMLElement, 
   const dir = anchor === 'bottom' ? -1 : 1;
   const onChange = opts.onChange;
   const SNAPS: readonly SheetState[] = opts.states ?? ['peek', 'half', 'full'];
-  const mq = window.matchMedia(opts.mq ?? '(max-width: 640px)');
+  // The default is the phone LAYOUT, not the raw width: a 626px foldable in two panes
+  // (lib/layout-posture.ts) matches `max-width: 640px` and has no sheet to drag.
+  const mq = opts.mq ? window.matchMedia(opts.mq) : phoneLayoutQuery();
   let state: SheetState = opts.initial ?? 'half';
   let dragging = false, moved = false, tapMode = false, tapDir = 1, startY = 0, startH = 0;
   const cleanups: Array<() => void> = [];

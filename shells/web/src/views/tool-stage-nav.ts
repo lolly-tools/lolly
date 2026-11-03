@@ -19,7 +19,7 @@
  * whole extent, which lets a hand zoom out far enough to see all of a large page.
  */
 import { mountZoomHud } from '../components/zoom-hud.ts';
-import { stageBottomReserve, stageSideReserve } from '../lib/design-panel-layout.ts';
+import { stageBottomReserve, stageSideReserve, toolPaletteAtFoot } from '../lib/design-panel-layout.ts';
 import type { ZoomHud } from '../components/zoom-hud.ts';
 import { deepActiveElement, isTypingTarget } from '../lib/typing-target.ts';
 import { icon } from '../lib/icons.ts';
@@ -323,8 +323,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
    * free-canvas's `syncStageReserves` / `reserveBottom`), and a computed read would cost
    * a style recalc on a path a wheel tick reaches.
    */
-  const compactTouch = (): boolean => typeof matchMedia === 'function'
-    && matchMedia('(pointer: coarse) and (max-width: 640px), (pointer: coarse) and (max-height: 430px)').matches;
+  const compactTouch = (): boolean => toolPaletteAtFoot();
   function stageBox(): { left: number; top: number; right: number; bottom: number; width: number; height: number } {
     const sr = stageEl.getBoundingClientRect();
     const left = sr.left + stageSideReserve(stageEl.style, 'left');

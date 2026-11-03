@@ -1,0 +1,336 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/*
+ * The two-pane (split) layout: foldables, the iPhone Duo and near-square touch
+ * screens. lib/layout-posture.ts decides the class and lib/split-panes.ts where
+ * the panes meet; this sheet places the panes from what they write:
+ *
+ *   html[data-layout="split"]            two panes are in force
+ *   html[data-posture="book|tabletop"]   a half-open fold, and which way it runs
+ *   html[data-hand="left"]               the controls go on the inline end
+ *   --split-control, --split-gutter      the control pane's width and the gap
+ *   --split-top                          the canvas pane's height on a tabletop
+ *
+ * Every rule here is gated on one of those attributes, and every one of them is
+ * absent unless split is active, so the phone and desktop layouts are
+ * byte-identical with or without this sheet (layout-posture-contract.test.ts
+ * checks the gating). Nothing here reaches inside the tool canvas, #tool-content
+ * or an export stage: the panes move the chrome around the artwork, never the
+ * artwork.
+ *
+ * Two cascade layers, on purpose, which is why app.css imports this sheet
+ * unlayered and the blocks name their own layers:
+ *   - `overrides` holds the layout. It outranks every view sheet, so a pane is
+ *     placed the same at 626px (where the phone rules match) as at 890px.
+ *   - `chrome` holds the three declarations that undo a phone rule written with
+ *     !important. An important declaration in an EARLIER layer wins, so this is
+ *     the one place a split rule can show a control the phone sheet hid.
+ *
+ * Panes follow the inline direction: the control pane is the inline start for
+ * a right hand and the inline end for a left hand, so a right-to-left language
+ * mirrors both without a rule of its own.
+ *
+ * Andy's rules hold here as everywhere: no border on one edge of a rounded
+ * shape (the panes are separated by space, not by a line), neutral at rest and
+ * the accent only on hover, drag or focus, and 44px touch targets.
+ */
+
+@layer overrides {
+
+/* ── The divider ─────────────────────────────────────────────────────────────
+   One element in the gutter, placed by the module in physical px so it meets a
+   hinge exactly in either direction. The gutter is space; the grip is a short
+   neutral pill, and its hit area is the full touch target across the gutter. */
+.split-divider {
+  position: fixed;
+  z-index: var(--z-chrome);
+  inset-block: 0;
+  left: var(--split-divider-x, 50%);
+  width: var(--split-gutter, 16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.split-divider::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: var(--ui-size-target);
+  transform: translateX(-50%);
+}
+.split-divider-grip {
+  position: relative;
+  width: 4px;
+  height: var(--ui-size-target);
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted-foreground) / .35);
+  transition: background-color var(--dur-1), height var(--dur-2) var(--ease-out);
+}
+.split-divider:hover .split-divider-grip,
+.split-divider.is-dragging .split-divider-grip {
+  height: 64px;
+  background: hsl(var(--primary));
+}
+.split-divider:focus-visible .split-divider-grip {
+  height: 64px;
+  background: hsl(var(--primary));
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 3px;
+}
+/* On a tabletop the gutter runs across the screen. */
+.split-divider[data-mode="stack"] {
+  inset-inline: 0;
+  left: 0;
+  top: var(--split-divider-y, 50%);
+  bottom: auto;
+  width: auto;
+  height: var(--split-gutter, 16px);
+  cursor: auto;
+}
+/* A divider locked to a fold IS the hinge: nothing to grab and nothing drawn,
+   because the crease is already there. */
+.split-divider[data-locked] { display: none; }
+/* While the finger is down the panes follow it 1:1, so nothing eases. */
+html.is-split-dragging { cursor: col-resize; user-select: none; -webkit-user-select: none; }
+html.is-split-dragging .tool-stage,
+html.is-split-dragging .sidebar { transition: none; }
+
+/* ── Swap sides ──────────────────────────────────────────────────────────────
+   Offered in the control pane's header only while there are two sides. */
+.split-swap {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ui-size-target);
+  height: var(--ui-size-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: background-color var(--dur-1), color var(--dur-1);
+}
+.split-swap[hidden] { display: none; }
+.split-swap:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+.split-swap:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.split-swap svg { width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg); }
+
+/* ── Tool view: the sidebar is the control pane, the stage the canvas pane ────
+   A grid replaces both the desktop flex row and the phone's fixed sheet. The
+   sidebar's own width (an inline px value on a desk, 100% on a phone) is made
+   100% of its column, so the column decides. */
+html[data-layout="split"] .tool-layout:not(.is-editor):not([data-sidebar="hidden"]) {
+  display: grid;
+  grid-template-columns: var(--split-control, 50%) var(--split-gutter, 16px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "control gutter canvas";
+  height: 100dvh;
+  min-height: 0;
+}
+html[data-layout="split"][data-hand="left"] .tool-layout:not(.is-editor):not([data-sidebar="hidden"]) {
+  grid-template-columns: minmax(0, 1fr) var(--split-gutter, 16px) var(--split-control, 50%);
+  grid-template-areas: "canvas gutter control";
+}
+/* Collapsed (the sidebar toggle, or a ?full link): the canvas takes the width. */
+html[data-layout="split"] .tool-layout:not(.is-editor)[data-sidebar="closed"] {
+  grid-template-columns: 0 0 minmax(0, 1fr);
+}
+html[data-layout="split"][data-hand="left"] .tool-layout:not(.is-editor)[data-sidebar="closed"] {
+  grid-template-columns: minmax(0, 1fr) 0 0;
+}
+html[data-layout="split"] .tool-layout:not(.is-editor) > .sidebar {
+  grid-area: control;
+  position: relative;
+  inset: auto;
+  width: 100% !important;
+  height: 100%;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: var(--ui-elevation-sidebar);
+  overflow-x: hidden;
+  overflow-y: auto;
+  z-index: auto;
+  transition: none;
+}
+html[data-layout="split"] .tool-layout:not(.is-editor) > .sidebar::after { content: none; }
+html[data-layout="split"] .tool-layout:not(.is-editor) .sidebar-header {
+  touch-action: auto;
+  cursor: auto;
+  user-select: auto;
+  -webkit-user-select: auto;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+/* The pane is the width; the desk's frozen open width would clip the controls. */
+html[data-layout="split"] .tool-layout:not(.is-editor) .sidebar-body { min-width: 0; }
+html[data-layout="split"] .tool-layout:not(.is-editor) > .tool-stage {
+  grid-area: canvas;
+  position: relative;
+  inset: auto;
+  height: 100%;
+  min-width: 0;
+}
+/* The divider replaces the sheet grip and the desk's width handle. */
+html[data-layout="split"] .tool-layout:not(.is-editor) .sheet-grip,
+html[data-layout="split"] .tool-layout:not(.is-editor) .sidebar-drag-handle { display: none; }
+/* The canvas pane's expand button sits on the side the controls come back to. */
+html[data-layout="split"][data-hand="left"] .tool-layout:not(.is-editor) .fullscreen-toggle-float {
+  left: auto;
+  right: 10px;
+}
+
+/* The Export | Save pill: the centred footer of the control pane, as on a desk,
+   never a floating button over the hinge. */
+html[data-layout="split"] .tool-layout:not(.is-editor) .render-pill {
+  display: inline-flex;
+  position: static;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  align-self: center;
+  flex-shrink: 0;
+  margin: 6px auto 14px;
+  box-shadow: var(--ui-elevation-floating);
+}
+html[data-layout="split"] .tool-layout:not(.is-editor).export-open .render-pill { display: none; }
+html[data-layout="split"] .tool-layout:not(.is-editor)[data-sidebar="closed"] .render-pill,
+html[data-layout="split"] .tool-layout:not(.is-editor)[data-sidebar="closed"] .export-overlay { display: none; }
+
+/* The export panel rises inside the control pane, non-modal, as on a desk: no
+   scrim, the inputs above stay live, and it never crosses the gutter. */
+html[data-layout="split"] .tool-layout:not(.is-editor) .export-overlay {
+  display: block;
+  position: fixed;
+  top: auto;
+  left: auto;
+  right: auto;
+  /* Clear of the home indicator, and lifted by the soft keyboard (a 0px pair on a
+     device with neither). */
+  bottom: calc(var(--safe-bottom) + var(--vv-bottom, 0px));
+  inset-inline-start: 0;
+  width: var(--split-control, 50%);
+  height: auto;
+  z-index: 40;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  transition: none;
+}
+html[data-layout="split"][data-hand="left"] .tool-layout:not(.is-editor) .export-overlay {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+html[data-layout="split"] .tool-layout:not(.is-editor) .export-overlay-scrim { display: none; }
+html[data-layout="split"] .tool-layout:not(.is-editor) .export-popup {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-height: 72dvh;
+  padding-bottom: 0;
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 80%, transparent);
+  -webkit-backdrop-filter: blur(.5em);
+  backdrop-filter: blur(.5em);
+  border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0;
+  box-shadow: var(--ui-elevation-sheet);
+  pointer-events: auto;
+  transform: translateY(110%);
+  transition: transform var(--ui-motion-overlay) var(--ui-motion-standard);
+}
+html[data-layout="split"] .tool-layout:not(.is-editor).export-open .export-popup { transform: translateY(0); }
+html[data-layout="split"] .tool-layout:not(.is-editor) .export-popup::before { content: none; }
+/* Let the last input scroll clear of the open export panel. */
+html[data-layout="split"] .tool-layout:not(.is-editor).export-open .sidebar-body { padding-bottom: 45dvh; }
+
+/* ── Design (the editor layout) ──────────────────────────────────────────────
+   The right-hand column (lib/edge-dock.ts) is the control pane, styled in
+   edge-dock.css; #view steps aside for it, so the stage only has to stay in the
+   flow of #view rather than pinned to the whole window as on a phone. */
+html[data-layout="split"] .tool-layout.is-editor {
+  display: flex;
+  height: 100dvh;
+}
+html[data-layout="split"] .tool-layout.is-editor > .tool-stage {
+  position: relative;
+  inset: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+}
+/* The tool rail is the palette at the foot of the canvas pane, as on a phone: a
+   vertical rail would sit on the crease side and cover the artwork, and the foot
+   is where the thumbs are (the same block as editor.css's compact touch palette,
+   so the two read alike; free-canvas/rail.ts and tool-stage-nav.ts follow it
+   through toolPaletteAtFoot). !important where the rail's own drag writes an
+   inline position. */
+html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
+  left: calc(8px + var(--vv-left, 0px)) !important;
+  right: calc(8px + var(--vv-right, 0px));
+  top: auto !important;
+  bottom: calc(var(--stage-reserve-bottom, 0px) + 8px);
+  width: auto !important;
+  height: 60px;
+  padding: 0;
+  align-items: center;
+  pointer-events: none;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+}
+html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-toolbar {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  height: 52px;
+  margin: 0;
+  padding: 4px 6px;
+  flex-direction: row;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+}
+html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-toolbar::-webkit-scrollbar { display: none; }
+html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-grip,
+html[data-layout="split"] .tool-layout.is-editor .tool-stage .fc-sep { display: none; }
+html[data-layout="split"] .tool-layout.is-editor .tool-stage.is-text-editing .fc-toolbar-dock { display: none; }
+
+/* The export sheet is a tab of the control pane here. Its overlay is the desk's:
+   no scrim and nothing that takes a tap, even while the sheet counts as open. */
+html[data-layout="split"] .tool-layout.is-editor .export-overlay {
+  display: block;
+  position: fixed;
+  inset: auto;
+  bottom: calc(var(--safe-bottom) + var(--vv-bottom, 0px));
+  inset-inline-start: 0;
+  width: var(--split-control, 50%);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  z-index: 40;
+}
+html[data-layout="split"][data-hand="left"] .tool-layout.is-editor .export-overlay {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+html[data-layout="split"] .tool-layout.is-editor .export-overlay-scrim { display: none; }
+
+} /* @layer overrides */
+
+@layer chrome {
+/* The phone sheet hides the sidebar's collapse toggle and the canvas's expand
+   button with !important. In two panes they are the desk's controls again; an
+   important declaration in this earlier layer is the only thing that can say so. */
+html[data-layout="split"] .tool-layout:not(.is-editor) .fullscreen-toggle { display: inline-flex !important; }
+html[data-layout="split"] .tool-layout:not(.is-editor)[data-sidebar="open"] .fullscreen-toggle-float { display: none !important; }
+html[data-layout="split"] .tool-layout:not(.is-editor)[data-sidebar="closed"] .fullscreen-toggle-float { display: flex !important; }
+} /* @layer chrome */

@@ -651,6 +651,8 @@ const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
+  // The split layout's Swap sides button: one fixed registry icon, nothing interpolated.
+  'lib/split-panes.ts': 1,
 
   // Fixed registry icons only; sidebar labels and metadata use textContent.
   'components/asset-inspector-dock.ts': 2,
