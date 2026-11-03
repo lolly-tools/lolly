@@ -41,6 +41,8 @@ import '../styles/parts/design-system-specimen.css';
  */
 
 import '../styles/parts/start.css';
+import { onLayoutChange } from '../lib/layout-posture.ts';
+import { mountSplitView } from '../lib/split-panes.ts';
 import '../styles/parts/start-bar.css';
 import '../styles/parts/start-usage.css';
 import '../styles/parts/start-skills.css';
@@ -252,6 +254,9 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   start.urlPrefill = new URLSearchParams(params.startsWith('?') ? params.slice(1) : params).get('u') ?? '';
   if (start.urlPrefill.length > SITE_MAX_URL_CHARS) start.urlPrefill = '';
   start.activeArea = isStartArea(route.area) ? route.area : 'overview';
+  start.lastRoom = null;
+  start.split = null;
+  start.unsubSplit = null;
 
   // Rooms are peers: one flat list, no order to obey. Built at mount so every
   // label resolves against the language in force right now.
@@ -585,6 +590,12 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   start.tokens.wireTokenDrop();
 
   start.tokens.wireTokenReview();
+
+  // Two panes (lib/split-panes.ts): the Board on the control side and the open
+  // room's work beside it, placed by styles/parts/split.css. A fold, an unfold or a
+  // rotation re-applies the room so the Board's own button follows the layout.
+  start.split = mountSplitView({ id: 'studio', host: start.host as unknown as Parameters<typeof mountSplitView>[0]['host'] });
+  start.unsubSplit = onLayoutChange(() => start.rooms.selectRoom(start.activeArea));
 
   start.lifecycle.wireCleanup();
   importReady();

@@ -16,6 +16,7 @@ import type { StartArea } from '../../lib/design-system/start-route.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { mountPaletteSheet } from '../../lib/design-system/palette-sheet.ts';
 import { bindOp, type StartCtx } from './context.ts';
+import { isSplitLayout } from '../../lib/layout-posture.ts';
 
 export const syncPaletteSheet = (start: StartCtx): void => {
   const { editorRoot, shell } = start;
@@ -101,8 +102,14 @@ export const refreshFurnished = (start: StartCtx): void => {
       /* undiscoverable storage - the actions stay out of the way */
     });
 };
-export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boolean; sfx?: boolean } = {}): void => {
+export const selectRoom = (start: StartCtx, asked: StartArea, opts: { focus?: boolean; sfx?: boolean } = {}): void => {
   const { editorRoot, overviewPanel, roomBtns, versionsPanel } = start;
+  // In two panes (lib/layout-posture.ts) the Board is the control pane and stays in
+  // view, and the other pane is a room's work: asking for the Board there opens the
+  // room that was last open beside it (Colours on a first visit).
+  const split = isSplitLayout();
+  const area: StartArea = split && asked === 'overview' ? (start.lastRoom ?? 'color') : asked;
+  if (area !== 'overview') start.lastRoom = area;
   start.activeArea = area;
   start.editor?.closeOverlays(); // a popover anchored in the outgoing room must not linger
   refreshFurnished(start); // the install path runs through here too (selectRoom('color'))
@@ -114,7 +121,7 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
     if (on && opts.focus) btn.focus();
   }
   start.bar.syncStrip();
-  overviewPanel.hidden = area !== 'overview';
+  overviewPanel.hidden = !split && area !== 'overview';
   start.usagePanel.hidden = area !== 'usage';
   if (area === 'usage') {
     if (start.usage) void start.usage.refresh();
@@ -129,7 +136,7 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
   } else start.skills?.suspend();
   versionsPanel.hidden = area !== 'versions';
   editorRoot?.setAttribute('data-active-tab', area);
-  if (area === 'overview') start.overview?.refresh();
+  if (area === 'overview' || split) start.overview?.refresh();
   if (area === 'versions') start.openVersions();
   syncPaletteSheet(start);
   // Room navigation consumes import actions and keeps the current workspace.

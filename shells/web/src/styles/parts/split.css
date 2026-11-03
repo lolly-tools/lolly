@@ -358,7 +358,7 @@ html[data-layout="split"] .tool-layout.is-editor .export-overlay-scrim { display
    The canvas (with its top bar and tool palette) keeps the top half; the control
    pane (styled in edge-dock.css) is the deck below the hinge. With Sequence open
    the timeline takes that deck instead, under the preview, and the stage stops
-   reserving a band for it. !important where the panel's own drag and the
+   reserving a band for the timeline. !important where the panel's own drag and the
    editor's reserves write inline values. */
 html[data-layout="split"][data-posture="tabletop"] {
   --design-timeline-h: 0px !important;
@@ -430,6 +430,135 @@ html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .p
 }
 /* The HUD rides above the deck, at its foot. */
 html[data-layout="split"][data-posture="tabletop"] .pr-stage.pr-tabletop-deck .pr-hud { z-index: 6; }
+
+/* ── Brand Studio (#/start) ─────────────────────────────────────────────────
+   The Board on the control side, the open room's work beside the Board
+   (views/start/rooms.ts keeps the Board in view and opens the last room for its
+   button). The bar and the rooms keep the top, across both pages; the room strip
+   is never the phone's bar at the bottom edge here. The page does not scroll,
+   each pane does, and the panes run edge to edge so the gutter meets a hinge. */
+html[data-layout="split"] .start.start--studio {
+  --ds-roombar-h: 0px;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: clip;
+  padding-bottom: 0;
+}
+html[data-layout="split"] .start.start--studio > .ds-top { flex: none; margin-bottom: var(--sp-2); }
+html[data-layout="split"] .start.start--studio .ds-room-nav {
+  position: static;
+  padding: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+html[data-layout="split"] .start.start--studio .ds-rooms > li:has(> [data-ds-room="overview"]) { display: none; }
+html[data-layout="split"] .start.start--studio > .ds-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-inline: calc(-1 * var(--ds-gutter));
+}
+html[data-layout="split"] .start.start--studio .ds-main {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  gap: 0;
+  grid-template-columns: var(--split-control, 50%) var(--split-gutter, 16px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "control gutter canvas";
+}
+html[data-layout="split"][data-hand="left"] .start.start--studio .ds-main {
+  grid-template-columns: minmax(0, 1fr) var(--split-gutter, 16px) var(--split-control, 50%);
+  grid-template-areas: "canvas gutter control";
+}
+html[data-layout="split"] .start.start--studio .ds-main > * {
+  grid-area: canvas;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline: var(--ds-gutter);
+  padding-bottom: var(--sp-8);
+}
+html[data-layout="split"] .start.start--studio .ds-main > [data-ds-panel="overview"] { grid-area: control; }
+/* The editor's room and a room of the view's own share the work pane; only the
+   one in view takes it, so an empty editor never lies over Rules or Skills. */
+html[data-layout="split"] .start.start--studio .ds-main:has(> .ds-panel:not([data-ds-panel="overview"]):not([hidden])) > .start-editor-wrap { display: none; }
+/* The phone's palette mirror is a bottom sheet; in two panes the palette is in view. */
+html[data-layout="split"] .start.start--studio > .stu-sheet,
+html[data-layout="split"] .start.start--studio > .stu-sheet-grip { display: none; }
+
+/* ── Assets: the details beside the browser ──────────────────────────────────
+   lib/split-inspector.ts opens an asset's details as a non-modal pane on the
+   inline end, sized by the divider, and reserves that side with --dock-w so the
+   browser and its chrome step aside. The pane holds the preview over the facts
+   and actions, the phone's stacked card, at whatever width the pane has. */
+html[data-layout="split"] dialog.cat-details.is-split-pane {
+  position: fixed;
+  inset: 0;
+  inset-inline-start: auto;
+  margin: 0;
+  width: var(--split-pane-w, 50vw);
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  box-shadow: var(--ui-elevation-sidebar);
+  z-index: var(--z-overlay);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+html[data-layout="split"] dialog.cat-details.is-split-pane .cat-details-preview {
+  flex: none;
+  height: auto;
+  min-height: 200px;
+  max-height: 46dvh;
+  border-radius: 0;
+}
+html[data-layout="split"] dialog.cat-details.is-split-pane .cat-inspector {
+  flex: none;
+  min-height: 0;
+}
+html[data-layout="split"] dialog.cat-details.is-split-pane .cat-inspector .cat-details-body { overflow: visible; }
+/* The inspector's own grip and collapse step aside in components/asset-inspector-dock.css,
+   which is unlayered. */
+/* With the details open beside the browser, the browse footer has only the browser pane's width,
+   so it takes the phone's two rows: the search on top, the links as icons below. */
+html[data-layout="split"][data-edge-dock] .gallery-footer { flex-wrap: wrap; gap: .5rem .3rem; padding-inline: .5rem; }
+html[data-layout="split"][data-edge-dock] .gallery-search-wrap { flex-basis: 100%; order: -1; }
+html[data-layout="split"][data-edge-dock] .gallery-footer > .btn,
+html[data-layout="split"][data-edge-dock] .gallery-footer > .gallery-nav-jelly { flex: 1 1 0; min-width: 0; }
+html[data-layout="split"][data-edge-dock] .gallery-footer > .btn { padding-inline: .4rem; }
+html[data-layout="split"][data-edge-dock] .gallery-footer .gallery-nav-label { display: none; }
+
+/* ── The galleries and Projects on a book fold ──────────────────────────────
+   Two pages, both used: the browse grids take an even number of equal columns,
+   centred on the screen, so one of their gaps lies exactly on the crease, and
+   that gap widens to the hinge when the hinge has width. Each page holds two
+   cards across, as a phone of the same width would. */
+html[data-layout="split"][data-posture="book"] {
+  --fold-cols: 4;
+  --fold-gap: max(var(--grid-gap, 16px), calc(var(--fold-w, 0px) + var(--sp-6)));
+}
+html[data-layout="split"][data-posture="book"] .tool-masonry:not([data-browse-layout]),
+html[data-layout="split"][data-posture="book"] .projects-grid:not(.projects-list) {
+  grid-template-columns: repeat(var(--fold-cols), minmax(0, 1fr));
+  column-gap: var(--fold-gap);
+  justify-content: stretch;
+}
+/* The featured strip centres its front cover on the screen, which on a book fold
+   is the crease itself; the grid below holds the same tools, so the strip stands
+   down while the device is held like a book. */
+html[data-layout="split"][data-posture="book"] .featured-mount { display: none; }
+/* A card or a list row is wider: one per page. */
+html[data-layout="split"][data-posture="book"] .tool-masonry:is([data-browse-layout="card"], [data-browse-layout="list"]) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--fold-gap);
+}
 
 } /* @layer overrides */
 

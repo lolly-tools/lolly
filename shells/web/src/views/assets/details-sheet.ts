@@ -22,6 +22,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { aiSignalsChip, assetAiKind } from '../../lib/genai-pill.ts';
 import { announce } from '../../a11y.ts';
 import { mountModal } from '../../components/modal.ts';
+import { followSplitPane, inspectorPaneWanted } from '../../lib/split-inspector.ts';
 import { publishSiteInspection } from '../../lib/site-tools-context.ts';
 import { setSearchBarQuery } from '../../components/search-bar.ts';
 import { playSfx } from '../../lib/sfx.ts';
@@ -493,12 +494,16 @@ export function buildSheet(dt: DetailsCtx): void {
   dt.dlAsPopover = null;
   let clearSiteInspection: (() => void) | undefined;
   let disposeInspector: (() => void) | undefined;
+  // In two panes (lib/split-inspector.ts) the details are the pane beside the browser.
+  let stopPane: (() => void) | undefined;
   const modal = mountModal(content, {
     className: 'cat-details',
+    modal: !inspectorPaneWanted(),
     backStack: !cat.preview,
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onEscape: () => dt.sheet.dismissLayer(),
     onClose: () => {
+      stopPane?.();
       clearSiteInspection?.();
       disposeInspector?.();
       destroyModelPreview?.();
@@ -531,6 +536,7 @@ export function buildSheet(dt: DetailsCtx): void {
     },
   }); dt.modal = modal;
   const dlg = modal.el; dt.dlg = dlg;
+  stopPane = followSplitPane(modal, { id: 'assets' });
   clearSiteInspection = publishSiteInspection(() => dlg.isConnected ? dt.ref : null);
   if (ref.type === 'model') {
     const preview = dlg.querySelector<HTMLElement>('.cat-preview-content');

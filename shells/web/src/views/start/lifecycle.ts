@@ -88,6 +88,10 @@ export function wireCleanup(start: StartCtx): void {
     start.versions = null;
     start.paletteSheet?.teardown();
     start.paletteSheet = null;
+    start.unsubSplit?.();
+    start.unsubSplit = null;
+    start.split?.destroy();
+    start.split = null;
     start.editor?.teardown();
   };
 }

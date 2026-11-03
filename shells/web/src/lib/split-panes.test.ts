@@ -16,8 +16,8 @@ globalThis.window = win;
 globalThis.document = dom.window.document;
 globalThis.localStorage = dom.window.localStorage;
 globalThis.MutationObserver = dom.window.MutationObserver;
-globalThis.requestAnimationFrame = ((fn: FrameRequestCallback) => setTimeout(() => fn(0), 0)) as typeof requestAnimationFrame;
-globalThis.cancelAnimationFrame = ((id: number) => clearTimeout(id)) as typeof cancelAnimationFrame;
+globalThis.requestAnimationFrame = ((fn: FrameRequestCallback) => setTimeout(() => fn(0), 0)) as unknown as typeof requestAnimationFrame;
+globalThis.cancelAnimationFrame = ((id: number) => clearTimeout(id)) as unknown as typeof cancelAnimationFrame;
 let coarse = true;
 const mm = ((q: string) => ({
   get matches() { return q.includes('pointer: coarse') ? coarse : false; },
