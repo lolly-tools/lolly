@@ -24,7 +24,10 @@ import { t } from '../i18n.ts';
 import {
   getConnection, saveConnection, removeConnection, hasConnection,
 } from './provider-connections.ts';
-import type { SendTarget } from './send-target.ts';
+import {
+  ShareRefusedError, type SendTarget, type ShareCapabilities, type ShareLinkOutcome, type ShareOptions,
+} from './send-target.ts';
+import { expiryFromDays } from './share-links.ts';
 import type { SyncRemote, SnapshotMeta, PutOpts } from './sync-remote.ts';
 import { metaFromHeaders, preconditionHeaders, SyncConflictError } from './sync-remote.ts';
 import { providerFetch } from './provider-auth.ts';
@@ -125,9 +128,83 @@ export function nextcloudSendTarget(): SendTarget {
       return {
         url: `${cfg.baseUrl.replace(/\/+$/, '')}/apps/files/files?dir=${encodeURIComponent(dir)}`,
         label: t('Saved to {path}', { path }),
+        ref: path,
       };
     },
+    shareCapabilities: nextcloudShareCapabilities,
+    share: (ref, options) => nextcloudShare(ref, options),
+    revoke: (link) => nextcloudRevoke(link.revokeRef ?? ''),
   };
+}
+
+// ── Share links (OCS Share API) ───────────────────────────────────────────────
+//
+// A public link is one OCS call with the SAME app password the upload uses, so
+// nothing new is stored and no scope exists to widen. Only "anyone with the link"
+// exists here: Nextcloud's per-person shares need a user directory this client
+// does not have. The server decides the final expiry (an administrator can force
+// one), so the outcome reports what the server returned, not what was asked.
+// Web note: the OCS-APIRequest header makes the call a CORS preflight, which a
+// default Nextcloud does not answer; the desktop apps are the reliable path.
+
+export function nextcloudShareCapabilities(): ShareCapabilities {
+  return { audiences: ['anyone'], password: true, expiry: true, revocable: true };
+}
+
+const ocsUrl = (c: WebdavConfig, tail = ''): string =>
+  `${c.baseUrl.replace(/\/+$/, '')}/ocs/v2.php/apps/files_sharing/api/v1/shares${tail}?format=json`;
+
+interface OcsReply { ocs?: { meta?: { statuscode?: number; message?: string }; data?: { id?: string | number; url?: string; expiration?: string | null } } }
+
+/** The form body for a public link. Pure, for tests. */
+export function ocsShareBody(path: string, options: Pick<ShareOptions, 'password' | 'expiresInDays'>, now = Date.now()): string {
+  const p = new URLSearchParams({ path: `/${path.replace(/^\/+/, '')}`, shareType: '3', permissions: '1' });
+  if (options.password) p.set('password', options.password);
+  if (options.expiresInDays !== undefined) p.set('expireDate', expiryFromDays(options.expiresInDays, now).slice(0, 10));
+  return p.toString();
+}
+
+export async function nextcloudShare(ref: string, options: ShareOptions, fetchFn: typeof fetch = providerFetch): Promise<ShareLinkOutcome> {
+  const cfg = await config();
+  if (!cfg) throw new Error(t('Set up your server in Profile first'));
+  let res: Response;
+  try {
+    res = await fetchFn(ocsUrl(cfg), {
+      method: 'POST',
+      headers: { Authorization: basic(cfg), 'OCS-APIRequest': 'true', 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+      body: ocsShareBody(ref, options),
+    });
+  } catch (error) {
+    if (error instanceof ConnectorOriginError) throw error;
+    throw new Error(t('Could not reach the server - it must allow this origin (CORS), or use the desktop app'));
+  }
+  const body = (await res.json().catch(() => ({}))) as OcsReply;
+  const serverSaid = body.ocs?.meta?.message ?? '';
+  if (res.status === 403 || res.status === 401) {
+    throw new ShareRefusedError('anyone', t('Your Nextcloud will not make a public link for this file. An administrator may have turned public links off.'));
+  }
+  if (res.status === 404) throw new Error(t('Nextcloud cannot find that file any more.'));
+  if (!res.ok || !body.ocs?.data?.url) {
+    throw new Error(serverSaid ? t('Nextcloud said: {message}', { message: serverSaid.slice(0, 120) }) : t('Nextcloud could not make the link ({status})', { status: res.status }));
+  }
+  const d = body.ocs.data;
+  const expiresAt = d.expiration ? new Date(`${d.expiration.slice(0, 10)}T23:59:59Z`).toISOString() : undefined;
+  return { url: d.url!, audience: 'anyone', ...(expiresAt ? { expiresAt } : {}), revokeRef: String(d.id ?? '') };
+}
+
+/** Delete one OCS share. A share already gone (404) counts as done. */
+export async function nextcloudRevoke(shareId: string, fetchFn: typeof fetch = providerFetch): Promise<void> {
+  const cfg = await config();
+  if (!cfg) throw new Error(t('Set up your server in Profile first'));
+  if (!/^\d+$/.test(shareId)) throw new Error(t('This link cannot be switched off from here.'));
+  let res: Response;
+  try {
+    res = await fetchFn(ocsUrl(cfg, `/${shareId}`), { method: 'DELETE', headers: { Authorization: basic(cfg), 'OCS-APIRequest': 'true', Accept: 'application/json' } });
+  } catch (error) {
+    if (error instanceof ConnectorOriginError) throw error;
+    throw new Error(t('Could not reach the server - it must allow this origin (CORS), or use the desktop app'));
+  }
+  if (!res.ok && res.status !== 404) throw new Error(t('Nextcloud could not stop the sharing ({status})', { status: res.status }));
 }
 
 // ── The SyncRemote (plans/138 B1) ─────────────────────────────────────────────

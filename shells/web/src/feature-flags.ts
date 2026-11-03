@@ -74,6 +74,26 @@ export const CONNECTOR_FLAGS: readonly FeatureFlag[] = [
   { id: 'conn-linkedin', label: 'LinkedIn',            connector: 'linkedin' },
 ];
 
+// Share links - one switch per provider kind that can make a link after Send. Same
+// opt-out shape as the connectors: ON unless someone turns it off, and a link is only
+// ever made when the person asks for one. The id carries the kind and is a persisted key.
+export const SHARE_LINK_FLAGS: readonly FeatureFlag[] = [
+  { id: 'share-gdrive',   label: 'Google Drive share links',  connector: 'gdrive'   },
+  { id: 'share-dropbox',  label: 'Dropbox share links',       connector: 'dropbox'  },
+  { id: 'share-o365',     label: 'OneDrive share links',      connector: 'o365'     },
+  { id: 'share-s3',       label: 'S3 bucket share links',     connector: 's3'       },
+  { id: 'share-webdav',   label: 'Nextcloud share links',     connector: 'webdav'   },
+];
+
+const SHARE_LINK_BY_KIND = new Map(SHARE_LINK_FLAGS.map(f => [f.connector!, f]));
+
+/** May this provider kind make share links? Read at call time. A kind with no
+ *  flag is not gated here. */
+export function shareLinksEnabled(kind: string): boolean {
+  const f = SHARE_LINK_BY_KIND.get(kind);
+  return !f || isFlagOnSync(f);
+}
+
 const CONNECTOR_BY_KIND = new Map(CONNECTOR_FLAGS.map(f => [f.connector!, f]));
 
 /** May this provider kind be offered at all? The choke-point read behind every

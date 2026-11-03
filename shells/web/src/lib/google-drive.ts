@@ -43,7 +43,9 @@
  * + upload here-alike module, one registered SendTarget each.
  */
 
-import type { SendTarget } from './send-target.ts';
+import {
+  ShareRefusedError, type SendTarget, type ShareAudience, type ShareCapabilities, type ShareLinkOutcome, type ShareOptions,
+} from './send-target.ts';
 import type { SyncRemote, SnapshotMeta, PutOpts } from './sync-remote.ts';
 import { SyncConflictError } from './sync-remote.ts';
 import {
@@ -516,6 +518,7 @@ export function googleDriveSendTarget(): SendTarget {
         return {
           url: out.file.webViewLink || `https://drive.google.com/file/d/${encodeURIComponent(out.file.id)}/view`,
           label: out.converted ? t('Open in Google Drawings') : t('Open in Drive, then Open with → Google Drawings'),
+          ref: out.file.id,
         };
       }
       const filename = name.toLowerCase().endsWith(`.${format}`) ? name : `${name}.${format}`;
@@ -523,9 +526,111 @@ export function googleDriveSendTarget(): SendTarget {
       return {
         url: file.webViewLink || `https://drive.google.com/file/d/${encodeURIComponent(file.id)}/view`,
         label: t('Open in Drive'),
+        ref: file.id,
       };
     },
+    shareCapabilities: driveShareCapabilities,
+    share: (ref, options) => driveShare(ref, options),
+    revoke: (link) => driveRevoke(link.ref, link.revokeRef ?? ''),
   };
+}
+
+// ─── Share links (permissions.create) ────────────────────────────────────────
+//
+// A link is a PERMISSION on the file Lolly created, which the drive.file scope
+// already covers, so no scope changes. "Anyone" and "organisation" add one
+// permission each; "people" adds one per address, and Google emails each person
+// (the sendNotificationEmail flag is true on purpose: the wording says so).
+// Drive can expire a grant only for named people, so the dialog offers no expiry
+// here and says that. A Workspace administrator can forbid "anyone" or outside
+// addresses; that is a 403 we turn into a refusal, never into a wider or
+// narrower grant by itself.
+
+const DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files';
+const PERSONAL_DOMAINS = new Set(['gmail.com', 'googlemail.com']);
+
+export function driveShareCapabilities(): ShareCapabilities {
+  return { audiences: ['anyone', 'organisation', 'people'], password: false, expiry: false, revocable: true };
+}
+
+async function driveCall(url: string, init: RequestInit, fetchFn: typeof fetch): Promise<Response> {
+  const go = async (token: string) => fetchFn(url, {
+    ...init,
+    headers: { ...(init.headers as Record<string, string> | undefined), Authorization: `Bearer ${token}` },
+  });
+  let res = await go(await driveToken());
+  if (res.status === 401) { resetDriveToken(); res = await go(await driveToken()); }
+  return res;
+}
+
+/** The domain of the signed-in account, or null for a personal Google account. */
+async function driveAccountDomain(fetchFn: typeof fetch): Promise<string | null> {
+  const res = await driveCall(`${DRIVE_FILES_URL.replace('/files', '/about')}?fields=user(emailAddress)`, {}, fetchFn);
+  if (!res.ok) throw new Error(t('Drive answered {status}', { status: res.status }));
+  const email = ((await res.json()) as { user?: { emailAddress?: string } }).user?.emailAddress ?? '';
+  const domain = email.split('@')[1]?.toLowerCase() ?? '';
+  return !domain || PERSONAL_DOMAINS.has(domain) ? null : domain;
+}
+
+const DRIVE_BUSY = new Set(['rateLimitExceeded', 'userRateLimitExceeded', 'sharingRateLimitExceeded', 'backendError']);
+
+/** Turn a failed permissions call into the right error. A 403 that is not a rate
+ *  limit is the account or its administrator refusing this audience. */
+async function driveShareFailure(res: Response, audience: ShareAudience): Promise<Error> {
+  const body = await res.text().catch(() => '');
+  let reason = '';
+  try { reason = ((JSON.parse(body) as { error?: { errors?: Array<{ reason?: string }> } }).error?.errors?.[0]?.reason) ?? ''; } catch { /* not JSON */ }
+  if (res.status === 403 && !DRIVE_BUSY.has(reason)) {
+    return new ShareRefusedError(audience, audience === 'anyone'
+      ? t('Google Drive will not make a link anyone can open. Your administrator may have turned that off.')
+      : audience === 'organisation'
+        ? t('Google Drive will not share this with your organisation. Your administrator may have turned that off.')
+        : t('Google Drive will not share this with those people. Your administrator may only allow people inside your organisation.'));
+  }
+  return new Error(t('Drive could not make the link ({status})', { status: res.status }));
+}
+
+/** Create the permission(s) for `options.audience` on a Drive file and read its link. */
+export async function driveShare(ref: string, options: ShareOptions, fetchFn: typeof fetch = driveFetch): Promise<ShareLinkOutcome> {
+  const base = `${DRIVE_FILES_URL}/${encodeURIComponent(ref)}`;
+  const ids: string[] = [];
+  const grants: Array<{ body: object; notify: boolean }> = [];
+  if (options.audience === 'anyone') {
+    grants.push({ body: { type: 'anyone', role: 'reader', allowFileDiscovery: false }, notify: false });
+  } else if (options.audience === 'organisation') {
+    const domain = await driveAccountDomain(fetchFn);
+    if (!domain) throw new ShareRefusedError('organisation', t('This Google account is not part of a Google Workspace organisation, so there is no organisation to share with.'));
+    grants.push({ body: { type: 'domain', domain, role: 'reader', allowFileDiscovery: false }, notify: false });
+  } else {
+    for (const email of options.people ?? []) grants.push({ body: { type: 'user', role: 'reader', emailAddress: email }, notify: true });
+  }
+  for (const g of grants) {
+    // Drive refuses sendNotificationEmail on non-user grants, so it is only sent for people.
+    const res = await driveCall(
+      `${base}/permissions?fields=id${g.notify ? '&sendNotificationEmail=true' : ''}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(g.body) }, fetchFn);
+    if (!res.ok) {
+      // Take back any grant already made, so a half-finished share does not linger.
+      if (ids.length) await driveRevoke(ref, ids.join(','), fetchFn).catch(() => { /* best effort */ });
+      throw await driveShareFailure(res, options.audience);
+    }
+    ids.push(((await res.json()) as { id: string }).id);
+  }
+  const meta = await driveCall(`${base}?fields=webViewLink`, {}, fetchFn);
+  const link = meta.ok ? ((await meta.json()) as { webViewLink?: string }).webViewLink : undefined;
+  return {
+    url: link || `https://drive.google.com/file/d/${encodeURIComponent(ref)}/view`,
+    audience: options.audience,
+    revokeRef: ids.join(','),
+  };
+}
+
+/** Delete the permissions a share made. A permission already gone counts as done. */
+export async function driveRevoke(ref: string, revokeRef: string, fetchFn: typeof fetch = driveFetch): Promise<void> {
+  for (const id of revokeRef.split(',').filter(Boolean)) {
+    const res = await driveCall(`${DRIVE_FILES_URL}/${encodeURIComponent(ref)}/permissions/${encodeURIComponent(id)}`, { method: 'DELETE' }, fetchFn);
+    if (!res.ok && res.status !== 404) throw new Error(t('Drive could not stop the sharing ({status})', { status: res.status }));
+  }
 }
 
 // ── The SyncRemote (plans/138 B1) ─────────────────────────────────────────────

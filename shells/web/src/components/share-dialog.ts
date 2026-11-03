@@ -21,7 +21,7 @@ import { helpTip, linkHelpDescriptions, unwireHelpTips, wireHelpTips } from './h
 import { icon } from '../lib/icons.ts';
 import { t, tRaw } from '../i18n.ts';
 import {
-  mountShareSection, shareSectionBuilders, shareSectionOrder, shareSectionPlacement,
+  hasNetworkShareSection, mountShareSection, shareSectionBuilders, shareSectionOrder, shareSectionPlacement,
   type ShareSectionContext, type ShareSectionPlacement,
 } from '../lib/share-sections.ts';
 import { jellyActive } from '../lib/jelly.ts';
@@ -424,7 +424,7 @@ function renderShareSurface(
   // packed length once known, else readable), so length is judged on the best case,
   // never the current toggle. A control-plane deployment (or private collab) registers
   // an extra section, so we can point at "your network" only when one will mount.
-  const canShareOtherwise = shareSectionBuilders().length > 0;
+  const canShareOtherwise = hasNetworkShareSection();
   // The .lolly card (when present) gets an accent halo + a "Recommended" cue whenever the
   // verdict routes the user to it - a dropped-content link OR one so long it's impractical
   // to pass around. Toggled off again for a clean/merely-long link so it stays meaningful.
@@ -706,7 +706,7 @@ function renderShareSurface(
   if (autofocus) { field.focus(); field.select(); }
   else dialog.querySelector<HTMLElement>('.share-dialog-actions')!.hidden = true;
 
-  mountRegisteredSections(dialog, { toolId, baseParts, currentFormat: currentFmt, copy: copyToClipboard, close: () => modal.close(), ...(readDocument ? { document: readDocument } : {}) }, states);
+  mountRegisteredSections(dialog, { toolId, baseParts, currentFormat: currentFmt, copy: copyToClipboard, close: () => modal.close(), ...(readDocument ? { document: readDocument } : {}), ...(lolly ? { file: async () => { const built = await lolly.build(); return { blob: built.blob, filename: built.filename }; } } : {}) }, states);
 
   return dialog;
 }

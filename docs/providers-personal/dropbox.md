@@ -59,3 +59,21 @@ Send to Dropbox → the file lands in `Apps/<app>/` and the status link opens it
 Reload and send again: no popup - the refresh grant (production status of the
 Dropbox app can stay "development" for personal use; apply for production
 when the user count grows).
+
+## Share links need one more permission
+
+**Create a share link** (after a Send, or in the Share dialog) calls
+`sharing/create_shared_link_with_settings`, which needs the `sharing.write`
+scope. In the App Console, Permissions tab, switch on `sharing.write` and
+submit. An app-folder app may make links, so the access type stays **App
+folder**.
+
+Lolly asks for that scope only when someone first creates a link, as a second
+consent that adds to the first. Until the scope is on in the console, Dropbox
+refuses that consent and Lolly says so; ordinary Send is unaffected. A person
+who connected earlier is asked once, the first time they make a link.
+
+Dropbox Basic accounts can make a public link but not set a password or an
+expiry. An expiry that is refused is dropped and the link says so. A password
+that is refused is not dropped: no link is made. **Stop sharing** calls
+`sharing/revoke_shared_link`.
