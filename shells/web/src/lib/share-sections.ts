@@ -56,6 +56,12 @@ export interface ShareSectionContext {
    */
   document?: () => ShareDocument;
   /**
+   * Build the document as a `.lolly` file, exactly as the dialog's own download does
+   * (licensed brand content held back). Present only when the dialog offers the file,
+   * so a section that sends the document somewhere offers nothing without this reader.
+   */
+  file?: () => Promise<{ blob: Blob; filename: string }>;
+  /**
    * Where the dialog mounted this section: 'lead' when the section asked to sit above
    * the dialog's own link rows (so it can draw its divider below itself, not above).
    * Absent in the default place.
@@ -80,17 +86,23 @@ export type ShareSectionPlacement = 'lead' | 'after';
 export interface ShareSectionOptions {
   order?: number;
   placement?: ShareSectionPlacement;
+  /** False when the section does not offer the document to anyone else's network
+   *  (it sends to the person's own storage). The dialog counts only sections that
+   *  do when it words its "too large for a link" advice. Absent = true. */
+  sharesToNetwork?: boolean;
 }
 
 const builders: ShareSectionBuilder[] = [];
 const orders = new WeakMap<ShareSectionBuilder, number>();
 const leads = new WeakSet<ShareSectionBuilder>();
+const notNetwork = new WeakSet<ShareSectionBuilder>();
 
 /** Register a section builder; returns an unregister fn. */
 export function registerShareSection(builder: ShareSectionBuilder, opts: ShareSectionOptions = {}): () => void {
   builders.push(builder);
   if (typeof opts.order === 'number' && Number.isFinite(opts.order)) orders.set(builder, opts.order);
   if (opts.placement === 'lead') leads.add(builder);
+  if (opts.sharesToNetwork === false) notNetwork.add(builder);
   return () => {
     const i = builders.indexOf(builder);
     if (i >= 0) builders.splice(i, 1);
@@ -105,6 +117,11 @@ export function shareSectionOrder(builder: ShareSectionBuilder): number {
 /** Where a builder asked its section to go ('after' when it gave no placement). */
 export function shareSectionPlacement(builder: ShareSectionBuilder): ShareSectionPlacement {
   return leads.has(builder) ? 'lead' : 'after';
+}
+
+/** Does any registered section offer the document to a network? */
+export function hasNetworkShareSection(): boolean {
+  return builders.some((b) => !notNetwork.has(b));
 }
 
 /** The registered builders (a copy, so iteration is stable across un/registration),

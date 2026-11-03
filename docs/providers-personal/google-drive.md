@@ -63,3 +63,15 @@ consent (first time) → the file lands in Drive. An EMF converts into a native
 Google Drawing (the Slides journey); every other format uploads with its real
 MIME type via the Drive API - which is the one path that sets the stored type
 correctly (Drive re-types plain web uploads from its extension table).
+
+## Share links
+
+**Create a share link** adds a permission to the file Lolly created
+(`POST /drive/v3/files/{id}/permissions`): anyone with the link, your
+Workspace domain, or named people (Google emails each of them). The
+`drive.file` scope already covers files the app created, so nothing changes in
+the consent screen or the client registration. Drive can only expire a grant
+for named people, so the dialog offers no expiry. A Workspace administrator
+can forbid "anyone" or outside addresses; Lolly reports that and offers the
+narrower choices without picking one itself. **Stop sharing** deletes the
+permission.

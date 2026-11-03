@@ -11,7 +11,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { helpTip } from '../../components/help-tip.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
-import { CATEGORY_FLAGS, CONNECTOR_FLAGS, JELLY_FLAG, LEARNING_FLAG, NEUROSPICY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, applyPerfUi, flagHidden, isFlagOn, setFlagMirror, subscribePerfUi } from '../../feature-flags.ts';
+import { CATEGORY_FLAGS, CONNECTOR_FLAGS, SHARE_LINK_FLAGS, JELLY_FLAG, LEARNING_FLAG, NEUROSPICY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, applyPerfUi, flagHidden, isFlagOn, setFlagMirror, subscribePerfUi } from '../../feature-flags.ts';
 import { allowPerfUiAutoAgain, perfUiConstraintSignalsHere, readPerfUiAuto, type PerfUiAutoRecord } from '../../lib/perf-ui-auto-state.ts';
 import type { FeatureFlag } from '../../feature-flags.ts';
 import { mountPerfHud, unmountPerfHud } from '../../lib/perf-hud.ts';
@@ -222,7 +222,17 @@ export const flagListHtml = (pv: ProfileViewCtx): string => { const { jellyHidde
               <summary class="feature-flag-cluster-sum"><span class="feature-flag-group-title">${t('Connectors')}</span><span class="feature-flag-group-value" data-connectors-value>${escapeText(connectorsSummary(pv))}</span>${COLLAPSE_CHEV}</summary>
               <span class="feature-flag-group-note">${t('Where this device may send finished exports. Turning one off withdraws it from every send and share surface, and hides its row in Connected services.')}</span>
               <ul class="feature-flags">${CONNECTOR_FLAGS.map(pv.rows.flagRow).join('')}</ul>
+            </details></li>
+            <li class="feature-flag-group"><details class="feature-flag-cluster">
+              <summary class="feature-flag-cluster-sum"><span class="feature-flag-group-title">${t('Share links')}</span><span class="feature-flag-group-value">${escapeText(shareLinksSummary(pv))}</span>${COLLAPSE_CHEV}</summary>
+              <span class="feature-flag-group-note">${t('Whether Lolly may ask a provider for a link after a send. A link is only made when you press its button.')}</span>
+              <ul class="feature-flags">${SHARE_LINK_FLAGS.map(pv.rows.flagRow).join('')}</ul>
             </details></li>`; };
+/** The Share links cluster's folded value: how many providers are switched off. */
+export const shareLinksSummary = (pv: ProfileViewCtx): string => {
+  const off = SHARE_LINK_FLAGS.filter(f => !flagHidden(f.id) && !isFlagOn(pv.liveProfile, f)).length;
+  return off ? tRaw('{n} off', { n: off }) : tRaw('All on');
+};
 /** The Connectors cluster's folded value: how many connectors are switched off. */
 export const connectorsSummary = (pv: ProfileViewCtx): string => {
   const off = CONNECTOR_FLAGS.filter(f => !flagHidden(f.id) && !isFlagOn(pv.liveProfile, f)).length;

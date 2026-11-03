@@ -92,6 +92,7 @@ import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
 // listens for invites over it.
 function installCollabWiring(): void {
   void import('./lib/collab-share-private.ts');
+  void import('./lib/share-through-section.ts');
   void import('./collab/private-opener.ts');
   void import('./lib/collab-live-mount.ts').then(m => m.installLiveCollabMount());
   void import('./lib/nearby-boot.ts')
