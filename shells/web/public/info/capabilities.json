@@ -838,10 +838,10 @@
       "token": "MIDI",
       "name": "MIDI",
       "category": "Audio",
-      "dir": "in",
+      "dir": "both",
       "reads": true,
-      "writes": false,
-      "roundTrips": false,
+      "writes": true,
+      "roundTrips": true,
       "features": [
         "audio",
         "sequenced"
@@ -849,7 +849,8 @@
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a"
+        "preserves": "none",
+        "note": "A Standard MIDI File has no place for a Content Credential, so Rondocode writes a text event naming the song instead. Importing a .mid never rewrites it: the original bytes are kept."
       }
     },
     {
