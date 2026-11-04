@@ -159,7 +159,9 @@ test('local looks compare without writes, apply through recovery, and retain sea
     await page.goto(`${origin}/#/start`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const read = () => page.evaluate(async () => { const p = '/src/bridge/index.ts'; return (await (await import(p)).createBridge()).tokens.raw(); });
     const before = await read();
-    await page.getByRole('button', { name: 'Find a look', exact: true }).click();
+    // The Board's way into Find a look: a plain button on a blank Board, a Start here
+    // door on a system that came with the app.
+    await page.locator('[data-ds-door="looks"]:visible').first().click();
     let dialog = page.getByRole('dialog', { name: 'Find a look', exact: true });
     // A click previews; nothing is written until Use.
     await dialog.locator('[data-look-preview="example:playroom"]').click();
