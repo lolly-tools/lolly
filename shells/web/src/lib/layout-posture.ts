@@ -360,6 +360,13 @@ export function startLayoutPosture(win: Window = window): () => void {
   // A native report or a posture change is one event, not a burst: decide at once,
   // so the hinge and the divider meet on the same frame as the fold.
   const now = (): void => { if (timer) { clearTimeout(timer); timer = null; } decide(); };
+  // A window that can no longer hold two panes leaves them at once: a phone-width page
+  // still drawn in two panes for the settle time squeezes every pane into a sliver, a
+  // visible flash. Entering two panes, and any other change, waits for the burst to end.
+  const onResize = (): void => {
+    if (current?.layout === 'split' && computeLayout(readSignals(win)).layout !== 'split') now();
+    else settle();
+  };
   const onNative = (e: Event): void => {
     const detail = (e as CustomEvent).detail;
     // The event carries the value; keep the global in step for a reader that
@@ -370,7 +377,7 @@ export function startLayoutPosture(win: Window = window): () => void {
   const pointer = typeof win.matchMedia === 'function' ? win.matchMedia(SPLIT_POINTER_QUERY) : null;
   const folded = typeof win.matchMedia === 'function' ? win.matchMedia(FOLDED_QUERY) : null;
   const posture = (win.navigator as Navigator & PostureNavigator).devicePosture;
-  win.addEventListener('resize', settle);
+  win.addEventListener('resize', onResize);
   win.addEventListener(NATIVE_FOLD_EVENT, onNative);
   pointer?.addEventListener?.('change', settle);
   folded?.addEventListener?.('change', now);
@@ -378,7 +385,7 @@ export function startLayoutPosture(win: Window = window): () => void {
   decide();
   running = () => {
     if (timer) clearTimeout(timer);
-    win.removeEventListener('resize', settle);
+    win.removeEventListener('resize', onResize);
     win.removeEventListener(NATIVE_FOLD_EVENT, onNative);
     pointer?.removeEventListener?.('change', settle);
     folded?.removeEventListener?.('change', now);

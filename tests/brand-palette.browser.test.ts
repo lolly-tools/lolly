@@ -46,11 +46,14 @@ test('palette handles support keyboard, mouse and tablet dragging with persisten
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: touchTo.x + touchTo.width / 2, y: touchTo.y + touchTo.height / 2 }] });
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     assert.deepEqual(await keys(), swapped);
-    await page.waitForFunction(async () => {
+    // The keyboard and mouse moves already saved an order, so wait for the one this
+    // touch drag made (the group's keys in the swapped order), not for any order.
+    await page.waitForFunction(async (want: Array<string | undefined>) => {
       const path = '/src/bridge/index.ts';
       const doc = await (await (await import(path)).createBridge()).tokens.raw();
-      return Object.values(doc.$extensions ?? {}).some(value => Array.isArray((value as { paletteOrder?: unknown[] }).paletteOrder));
-    });
+      const order = Object.values(doc.$extensions ?? {}).map(value => (value as { paletteOrder?: unknown[] }).paletteOrder).find(Array.isArray);
+      return JSON.stringify((order ?? []).filter(key => want.includes(key as string))) === JSON.stringify(want);
+    }, swapped);
     await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await group.waitFor();
     assert.deepEqual(await keys(), swapped);

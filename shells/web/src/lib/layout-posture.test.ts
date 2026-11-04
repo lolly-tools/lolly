@@ -287,6 +287,25 @@ test('a resize is gathered, then decided once; a folded posture media query is r
   } finally { stop(); }
 });
 
+test('a window that can no longer hold two panes leaves them at once, with no settle', () => {
+  reset();
+  size(768, 1024);
+  coarse = true;
+  const stop = startLayoutPosture(win);
+  try {
+    assert.equal(currentLayout().layout, 'split');
+    size(390, 844);
+    win.dispatchEvent(new win.Event('resize'));
+    assert.equal(currentLayout().layout, 'phone', 'a phone-width page is never drawn in two panes');
+    assert.equal(root().hasAttribute('data-layout'), false);
+    size(1440, 1000);
+    win.dispatchEvent(new win.Event('resize'));
+    size(768, 1024);
+    win.dispatchEvent(new win.Event('resize'));
+    assert.equal(currentLayout().layout, 'phone', 'entering two panes still waits for the burst to settle');
+  } finally { stop(); }
+});
+
 test('stop() takes every attribute back off <html>', () => {
   reset();
   size(626, 890);

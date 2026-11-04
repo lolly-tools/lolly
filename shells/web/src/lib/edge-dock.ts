@@ -135,6 +135,9 @@ let resizeBound = false;
 const dockListeners = new Set<DockChangeListener>();
 let notifying = false;
 let notifyAgain = false;
+// The tab on screen when the column is tabbed, and who wants to hear when it changes.
+const tabListeners = new Set<() => void>();
+let paintedTab: PanelId | undefined;
 
 function load(): DockGeom {
   try { return { ...(JSON.parse(localStorage.getItem(STORE_KEY) || '{}') as DockGeom) }; }
@@ -412,6 +415,12 @@ function paintTabs(): void {
     slot.hidden = !on;
     slot.classList.toggle('edge-dock-slot--fill', on);
   }
+  if (active !== paintedTab) {
+    paintedTab = active;
+    for (const cb of [...tabListeners]) {
+      try { cb(); } catch { /* a listener must not break the strip */ }
+    }
+  }
 }
 
 /** Show one docked panel's tab (no-op unless the column is in tabbed mode). */
@@ -605,6 +614,38 @@ export function releaseDock(id: PanelId, reason: DockReleaseReason = 'user'): vo
 }
 
 export function isDocked(id: PanelId): boolean { return occupants.has(id); }
+
+/**
+ * Is a docked panel on screen? Docked, the column not put away, and its tab the one
+ * shown when the column is tabbed. A background tab is docked but not on screen, which
+ * a toggle reporting the panel (Design's top bar in two panes) has to tell apart.
+ */
+export function panelShown(id: PanelId): boolean {
+  if (!occupants.has(id) || geom.collapsed) return false;
+  return !body?.querySelector<HTMLElement>(`.edge-dock-slot[data-slot="${id}"]`)?.hidden;
+}
+
+/**
+ * In two panes (lib/split-panes.ts) the column is the control pane and its panels are
+ * tabs: is `id` docked there but behind another tab? Off two panes the answer is always
+ * false, so a desktop column keeps its own behaviour.
+ */
+export function behindSplitTab(id: PanelId): boolean {
+  return isSplitLayout() && occupants.has(id) && !panelShown(id);
+}
+
+/** Bring a panel that is behind another tab in two panes forward. False, and nothing done, otherwise. */
+export function revealSplitTab(id: PanelId): boolean {
+  if (!behindSplitTab(id)) return false;
+  showPanel(id);
+  return true;
+}
+
+/** Hear when the tab on screen changes, by a click on the strip or a panel arriving. */
+export function onDockTabChange(cb: () => void): () => void {
+  tabListeners.add(cb);
+  return () => { tabListeners.delete(cb); };
+}
 export function dockedCount(): number { return occupants.size; }
 /** How many FULL-height panels are docked - the compact zoom bar is not one of them. */
 export function dockedFullCount(): number { return fullPanels().length; }

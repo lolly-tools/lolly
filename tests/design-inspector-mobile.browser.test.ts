@@ -34,6 +34,10 @@ async function visit(page: Page): Promise<void> {
   // (components/view-loading.ts) keeps the page inert until then: keys pressed on
   // the timeline handle before it closes go to the card.
   await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
+  // The stage slides in (the card-in entrance) and the top bar rides inside it: a
+  // 44px control measured mid-slide reads 43.99999px. Measure the settled layout.
+  await page.locator('.tool-stage').evaluate(el => Promise.all(el.getAnimations()
+    .filter(a => Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished)));
 }
 
 test('Design keeps compact actions, panels and timeline resizing usable across the viewport matrix', { skip, timeout: 180000 }, async () => {
@@ -82,6 +86,23 @@ test('Design keeps compact actions, panels and timeline resizing usable across t
           await page.getByRole('button', { name: 'Layer/Page', exact: true }).click();
           await page.waitForSelector('.tl-panel', { state: 'hidden' });
           await page.getByRole('button', { name: 'Inspect', exact: true }).click();
+        } else if (await page.evaluate(() => document.documentElement.dataset.layout === 'split')) {
+          // Two panes (a near-square touch screen): the layers list and the inspector are
+          // tabs of one control pane. Opening the list brings its tab forward and the
+          // Inspector toggle reads off; pressing it brings the inspector back to the front
+          // while the list stays docked behind its own tab. The toggles may sit folded in
+          // the bar's More menu at this width, so their state is read, not their box.
+          await handle.blur();
+          assert.equal(await page.locator('[data-topbar="navigator"]').getAttribute('aria-pressed'), 'false');
+          await page.keyboard.press('Alt+2');
+          await page.waitForSelector('.edge-dock-tab[data-tab="layers"][aria-selected="true"]');
+          await page.waitForSelector('[data-topbar="navigator"][aria-pressed="true"]', { state: 'attached' });
+          await page.waitForSelector('[data-topbar="inspector"][aria-pressed="false"]', { state: 'attached' });
+          await page.keyboard.press('Alt+3');
+          await page.waitForSelector('.edge-dock-tab[data-tab="inspector"][aria-selected="true"]');
+          await page.waitForSelector('[data-topbar="inspector"][aria-pressed="true"]', { state: 'attached' });
+          await page.waitForSelector('[data-topbar="navigator"][aria-pressed="false"]', { state: 'attached' });
+          assert.equal(await page.locator('.edge-dock-tab[data-tab="layers"]').count(), 1, `the list stays docked behind its tab at ${width}`);
         } else {
           await handle.blur();
           if (await page.locator('[data-topbar="navigator"]').getAttribute('aria-pressed') !== 'true') await page.keyboard.press('Alt+2');
