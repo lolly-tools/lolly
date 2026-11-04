@@ -80,9 +80,11 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
     // No face is installed on this device and no mark uploaded here, so neither
     // is the person's own. The tiles still count what the system holds, never a
     // zero over material that is there, and the tag says whose it is (plan 336).
-    assert.equal(n('type'), '4');
+    // Four font tokens name three typefaces (SUSE serves text and emphasis), the
+    // number the Board shows too (design-system/counts.ts).
+    assert.equal(n('type'), '3');
     assert.equal(n('logos'), '9');
-    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 4, Starter$/);
+    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 3, Starter$/);
     assert.ok(m.$('[data-tk-jump="logos"] .tk-tag'), 'the tile says the marks are the starter’s');
     assert.equal(n('shape'), '2');
     // 93 until plans/329 seeded the motion scale: three durations, three curves, two springs.
@@ -108,8 +110,8 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
 test('Lolly Demo as the app supplies it: what it holds is its own, with no Starter tag', () => {
   const m = mount(DEMO, new Set(), { supplied: true });
   try {
-    assert.equal(m.$('[data-tk-jump="type"] .tk-tile-n')!.textContent, '4');
-    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 4$/);
+    assert.equal(m.$('[data-tk-jump="type"] .tk-tile-n')!.textContent, '3');
+    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 3$/);
     assert.equal(m.$('[data-tk-jump="logos"] .tk-tile-n')!.textContent, '9');
     assert.equal(m.$('[data-tk-overview] .tk-tag'), null, 'no tile calls a supplied system’s material the starter’s');
   } finally { m.done(); }
@@ -118,7 +120,7 @@ test('Lolly Demo as the app supplies it: what it holds is its own, with no Start
 test('a face installed on this device is the person’s own', () => {
   const m = mount(DEMO, new Set(), { fonts: ['SUSE', 'Outfit', 'SUSE Mono'] });
   try {
-    assert.equal(m.$('[data-tk-jump="type"] .tk-tile-n')!.textContent, '4');
+    assert.equal(m.$('[data-tk-jump="type"] .tk-tile-n')!.textContent, '3');
     assert.equal(m.$('[data-tk-body="type"] .tk-empty'), null);
     assert.equal(m.$('[data-tk-body="type"] .tk-group'), null, 'no Starter head when every face is theirs');
     assert.equal(m.$<HTMLAnchorElement>('[data-tk-sec="type"] .tk-sec-act')!.getAttribute('href'), '#/start?area=type');

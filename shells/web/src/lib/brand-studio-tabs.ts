@@ -28,7 +28,7 @@ import { rolePathName, swatchTile } from './swatches.ts';
 import { icon, ICON_METAPHORS, type IconName } from './icons.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
 import type { SwatchExportFormat } from './swatch-export.ts';
-import { inspectTokenDocument } from '../../../../engine/src/token-inspect.ts';
+import { colourCount, designFiles, fileBucket, fileName, isUiTokenKey, tokenCount, typefaceCount } from './design-system/counts.ts';
 import { designMaterialOf } from '../../../../engine/src/design-system.ts';
 import { tokenPreviewHtml, tokenValueText } from '../components/token-preview.ts';
 import { withRadiusToken, withSpaceToken, familyFromTokenValue } from '../user-fonts.ts';
@@ -244,7 +244,7 @@ const GROUP_PEEK = 12;
 const sentence = (s: string): string => { const w = s.replace(/[-_]+/g, ' ').trim(); return w.charAt(0).toUpperCase() + w.slice(1); };
 /** A role's row name from its key, not its description (swatches.ts rolePathName). */
 const roleRowName = (s: BrandSwatch): string => rolePathName(s.key);
-const isUiKey = (key: string): boolean => key.startsWith('lolly.') || key.startsWith('color.lolly.');
+const isUiKey = isUiTokenKey;
 
 interface ColourRow { key: string; name: string; hex: string; value: string; starter: boolean; title: string }
 interface ColourGroup { id: string; label: string; ramp: boolean; neutral: boolean; note: boolean; rows: ColourRow[] }
@@ -371,16 +371,17 @@ export function tokensRoomModel(
     if (primary?.hex && named) example = { name: rampStepName(named.name, named.key), hex: primary.hex };
   } catch { /* no example line */ }
 
-  let all = 0;
-  try { all = inspectTokenDocument(doc).tokens.length; } catch { all = set.size; }
-  const ownColours = palette.filter(s => !isStarter(s)).length + gradients.length;
-  const ownFonts = fonts.filter(f => !f.starter).length;
+  // The colour, typeface and token numbers are the Board's too (design-system/
+  // counts.ts): a gradient is listed with the colours but counted as a gradient,
+  // and a family serving two roles is one typeface.
+  const colours = colourCount(doc, starter);
+  const typefaces = typefaceCount(doc, userFonts);
   const ownLogos = logos.filter(l => !l.starter).length;
   return {
     groups, gradients, pairs: { light, dark }, fonts, logos, more, starterOnly, example,
-    counts: { color: ownColours, type: ownFonts, logos: ownLogos, shape: 2, more: more.length, all },
-    starter: { color: palette.length + gradients.length - ownColours, type: fonts.length - ownFonts, logos: logos.length - ownLogos },
-    empty: !ownColours && !ownFonts && !ownLogos,
+    counts: { color: colours.own, type: typefaces.own, logos: ownLogos, shape: 2, more: more.length, all: tokenCount(doc) },
+    starter: { color: colours.rest, type: typefaces.rest, logos: logos.length - ownLogos },
+    empty: !colours.own && !gradients.length && !typefaces.own && !ownLogos,
   };
 }
 
@@ -1511,17 +1512,6 @@ const CAT_BUCKETS: ReadonlyArray<{ key: string; label: string }> = [
   { key: 'motion', label: 'Motion' },
 ];
 
-/** Internal ids (fonts, logos, tokens, the headshot) aren't catalogue uploads. */
-const INTERNAL_ID = /^user\/(fonts|logo|tokens|headshot)/;
-
-function bucketOf(ref: { type: string; meta?: Record<string, unknown> }): string | null {
-  if (ref.type === 'vector') return 'vector';
-  if (ref.type === 'audio') return 'audio';
-  if (ref.type === 'video' || ref.type === 'lottie') return 'motion';
-  if (ref.type === 'raster') return ref.meta?.animated ? 'motion' : 'image';
-  return null;
-}
-
 export interface CataloguePanelCtx { host: HostV1; notify: () => void }
 
 export function mountCataloguePanel(mount: HTMLElement, ctx: CataloguePanelCtx): StudioPanelHandle {
@@ -1537,7 +1527,7 @@ export function mountCataloguePanel(mount: HTMLElement, ctx: CataloguePanelCtx):
   const paint = async (): Promise<void> => {
     let refs: Array<{ id: string; type: string; meta?: Record<string, unknown> }> = [];
     try { refs = await pickerHost.assets._listUserAssets(); } catch { /* fresh install - nothing yet */ }
-    const uploads = refs.filter(r => !INTERNAL_ID.test(r.id));
+    const uploads = designFiles(refs);
     if (!mount.isConnected) return;
     if (!uploads.length) {
       groupsEl.innerHTML = `<p class="be-cat-empty">${isTauriShell() ? t('Nothing yet - everything you add stays on this device.') : t('Nothing yet - everything you add stays in this browser.')}</p>`;
@@ -1545,8 +1535,8 @@ export function mountCataloguePanel(mount: HTMLElement, ctx: CataloguePanelCtx):
     }
     const byBucket = new Map<string, string[]>();
     for (const r of uploads) {
-      const b = bucketOf(r); if (!b) continue;
-      const name = String(r.meta?.name ?? r.id.split('/').pop() ?? '');
+      const b = fileBucket(r); if (!b) continue;
+      const name = fileName(r);
       (byBucket.get(b) ?? byBucket.set(b, []).get(b)!).push(name);
     }
     groupsEl.innerHTML = CAT_BUCKETS.map(({ key, label }) => {
