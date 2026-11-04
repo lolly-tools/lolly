@@ -32,11 +32,13 @@ pub struct Environment {
 pub fn updater_environment(app: tauri::AppHandle) -> Environment {
     let interactive = app.get_webview_window("main")
         .and_then(|w| w.is_visible().ok()).unwrap_or(false);
-    let (can_install, reason) = install_support();
+    let (can_install, reason) = install_support(&app);
     Environment { interactive, can_install, reason, version: app.package_info().version.to_string() }
 }
 
-fn install_support() -> (bool, &'static str) {
+fn install_support(app: &tauri::AppHandle) -> (bool, &'static str) {
+    #[cfg(not(target_os = "linux"))]
+    let _ = app;
     use tauri::utils::config::BundleType;
     #[cfg(target_os = "linux")]
     if std::env::var_os("FLATPAK_ID").is_some() || std::env::var_os("SNAP").is_some() {
@@ -45,7 +47,7 @@ fn install_support() -> (bool, &'static str) {
     match tauri::utils::platform::bundle_type() {
         Some(BundleType::App) if cfg!(target_arch = "aarch64") => (true, ""),
         Some(BundleType::AppImage) => {
-            if appimage_writable() { (true, "") } else { (false, "read-only") }
+            if appimage_writable(app) { (true, "") } else { (false, "read-only") }
         }
         Some(BundleType::Deb | BundleType::Rpm) => (true, ""),
         _ => (false, "unsupported"),
@@ -53,11 +55,19 @@ fn install_support() -> (bool, &'static str) {
 }
 
 #[cfg(target_os = "linux")]
-fn appimage_writable() -> bool {
+fn appimage_writable(app: &tauri::AppHandle) -> bool {
+    // Match the updater's original AppImage path, never its extracted executable.
+    let env = app.env();
+    replaceable_appimage(env.appimage.as_deref().map(std::path::Path::new))
+}
+
+#[cfg(target_os = "linux")]
+fn replaceable_appimage(path: Option<&std::path::Path>) -> bool {
     use std::ffi::CString;
     use std::os::unix::ffi::OsStrExt;
-    let Ok(exe) = tauri::utils::platform::current_exe() else { return false };
-    let Some(parent) = exe.parent() else { return false };
+    let Some(path) = path else { return false };
+    if !path.is_absolute() || !path.is_file() { return false; }
+    let Some(parent) = path.parent() else { return false };
     let Ok(parent) = CString::new(parent.as_os_str().as_bytes()) else { return false };
     // Replacement needs directory permissions and a writable mount, not just file mode bits.
     unsafe {
@@ -68,7 +78,7 @@ fn appimage_writable() -> bool {
     }
 }
 #[cfg(not(target_os = "linux"))]
-fn appimage_writable() -> bool { false }
+fn appimage_writable(_app: &tauri::AppHandle) -> bool { false }
 
 #[tauri::command]
 pub fn updater_arm(state: tauri::State<UpdateExit>, armed: bool) {
@@ -166,6 +176,25 @@ mod tests {
         assert!(state.protects_quit());
         state.allowed.store(true, Ordering::SeqCst);
         assert!(!state.protects_quit());
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn appimage_checks_the_original_directory_and_requires_path_evidence() {
+        use std::os::unix::fs::PermissionsExt;
+        let directory = tempfile::tempdir().unwrap();
+        let original = directory.path().join("Lolly.AppImage");
+        std::fs::write(&original, b"AppImage fixture").unwrap();
+        assert!(replaceable_appimage(Some(&original)));
+        assert!(!replaceable_appimage(None));
+        assert!(!replaceable_appimage(Some(std::path::Path::new("relative.AppImage"))));
+        assert!(!replaceable_appimage(Some(&directory.path().join("missing.AppImage"))));
+        if unsafe { libc::geteuid() } != 0 {
+            std::fs::set_permissions(directory.path(), std::fs::Permissions::from_mode(0o555)).unwrap();
+            let writable = replaceable_appimage(Some(&original));
+            std::fs::set_permissions(directory.path(), std::fs::Permissions::from_mode(0o755)).unwrap();
+            assert!(!writable);
+        }
     }
 }
 
