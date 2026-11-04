@@ -82,6 +82,16 @@ export function discardedAt(slot: string): number | null {
   return Number.isSafeInteger(at) ? at : null;
 }
 
+/**
+ * The journal of design-system edits that have not finished saving
+ * (lib/design-system/edit-journal.ts): `__dsjournal__:<system>:<tab>`. Hidden from every
+ * session list, and never carried by sync or in a backup, because an entry belongs to
+ * this device's open tabs and would read as someone else's unsaved work anywhere else.
+ */
+export const JOURNAL_SLOT_PREFIX = '__dsjournal__:';
+export const isJournalSlot = (slot: unknown): boolean =>
+  typeof slot === 'string' && slot.startsWith(JOURNAL_SLOT_PREFIX);
+
 export const isHiddenSlot = (slot: unknown): boolean =>
   isTrashedSlot(slot) || isTemplateSlot(slot) || isExportPrefsSlot(slot) || isDesignSystemSlot(slot) || isRebrandSlot(slot)
-  || isDiscardedSlot(slot) || (typeof slot === 'string' && slot.startsWith('__projectcopy__:'));
+  || isDiscardedSlot(slot) || isJournalSlot(slot) || (typeof slot === 'string' && slot.startsWith('__projectcopy__:'));
