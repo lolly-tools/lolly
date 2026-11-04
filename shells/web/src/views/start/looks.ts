@@ -18,6 +18,7 @@ import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { brandSpecimenHtml } from '../../lib/design-system/brand-specimen.ts';
 import { readLocalLooks, rankLocalLooks, lookTags, lookTagline, lookPalette, type LocalLook } from '../../lib/design-system/look-library.ts';
 import { beginRegister } from '../../lib/design-system/register.ts';
+import { applyLookDoc } from '../../lib/design-system/apply-look.ts';
 import { switchDesignSystem } from '../../lib/design-system/switch.ts';
 import { styleEvidenceHtml } from '../../lib/design-system/style-evidence-view.ts';
 import { LOLLY_NEUTRAL, palettePreviewSvgs } from '../../lib/palette-preview.ts';
@@ -178,8 +179,15 @@ export async function openLooks(start: StartCtx): Promise<void> {
       // Applying a look is a service the person asked for: the register.
       const endRegister = beginRegister(button.closest<HTMLElement>('[data-look-card], [data-looks-preview], [data-look-detail]') ?? body);
       try {
+        // A saved system is switched to, which edits nothing. An example replaces
+        // the colours of the open system, which keeps its logos, fonts and the rest
+        // (lib/design-system/apply-look.ts).
         if (look.source === 'saved') await switchDesignSystem(host, look.id, { route: 'start' });
-        else await start.tokens.install(look.doc, look.name, button, { area: 'overview', requireCheckpoint: true, onError: message => { status.textContent = message; }, onInstalled: () => modal.close() });
+        else {
+          const current = await host.tokens?.raw?.().catch(() => null) ?? null;
+          const applied = applyLookDoc(current, look.doc);
+          await start.tokens.install(applied.doc, look.name, button, { area: 'overview', requireCheckpoint: true, keepRefs: applied.keptRefs, onError: message => { status.textContent = message; }, onInstalled: () => modal.close() });
+        }
       } finally { endRegister(); }
     };
 

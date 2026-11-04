@@ -56,7 +56,7 @@ export async function install(start: StartCtx,
   doc: Record<string, unknown>,
   label: string,
   btn: HTMLButtonElement,
-  opts?: { onError?: (message: string) => void; area?: 'overview'; requireCheckpoint?: boolean; onInstalled?: () => void }
+  opts?: { onError?: (message: string) => void; area?: 'overview'; requireCheckpoint?: boolean; onInstalled?: () => void; keepRefs?: readonly string[] }
 ): Promise<void> {
   const { host, importResult, shell } = start;
   if (start.installing) return;
@@ -79,7 +79,7 @@ export async function install(start: StartCtx,
     if (adoption) {
       const snapshot = await (start.adoptionReviewBase ?? adoption.capture());
       if (snapshot instanceof Error) throw snapshot;
-      const prepared = await prepareTokenAdoption(host, snapshot, withFonts, [], { labelIfNew: label });
+      const prepared = await prepareTokenAdoption(host, snapshot, withFonts, [], { labelIfNew: label, ...(opts?.keepRefs ? { keepRefs: opts.keepRefs } : {}) });
       await adoption.commit(prepared.candidate);
     } else await installUserTokens(host, withFonts, { labelIfNew: label });
     void applyChromeBrandVars(host); // bust() cleared caches; nothing repaints chrome by itself

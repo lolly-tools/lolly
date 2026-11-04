@@ -3,8 +3,8 @@
  * views/start/looks.ts - Find a look.
  *
  * Pins: a click on a look previews it in context and writes nothing; every card
- * carries its own Use this look, which applies that look (with the register held
- * while it runs); Compare is an explicit toggle that reveals the checkboxes; the
+ * carries its own Use this look, which applies an example (with the register held
+ * while it runs) and switches to a saved system, editing nothing; Compare is an explicit toggle that reveals the checkboxes; the
  * name appears once per card and every card has a tag line.
  *
  * jsdom with a shimmed <dialog> (the surface components/modal.ts touches) and a
@@ -39,22 +39,25 @@ type StartCtx = import('./context.ts').StartCtx;
 const tick = (): Promise<void> => new Promise(r => setTimeout(r, 0));
 const settle = async (): Promise<void> => { for (let i = 0; i < 8; i++) await tick(); };
 
-/** A device with one saved system (no tags) beside the starting points. */
-function harness() {
+/** A device with one saved system (no tags) beside the starting points, and a second when asked. */
+function harness(opts: { other?: boolean } = {}) {
   const writes: string[] = [];
   const installs: Array<{ name: string; doc: unknown; busy: string | null }> = [];
   const savedDoc = { color: { semantic: { primary: { $type: 'color', $value: '#003B36' }, secondary: { $type: 'color', $value: '#50C369' } } }, font: { brand: { $type: 'fontFamily', $value: 'Crossland' } } };
-  const rows = async () => [{ id: 'mine', label: 'Lolly Demo', headId: 'mine-head', tags: [] }];
+  const rows = async () => [{ id: 'mine', label: 'Lolly Demo', headId: 'mine-head', tags: [] }, ...(opts.other ? [{ id: 'other', label: 'Harbour', headId: 'other-head', tags: [] }] : [])];
+  let active = 'mine';
   const host = {
     designSystems: {
       visible: rows, list: rows,
-      activeId: async () => 'mine',
-      setActive: async (id: string) => { writes.push(`setActive:${id}`); },
+      activeId: async () => active,
+      active: async () => ({ id: active, label: active, headId: `${active}-head`, source: { kind: 'local' } }),
+      setActive: async (id: string) => { writes.push(`setActive:${id}`); active = id; },
+      bust: () => {},
       get: async () => null,
       put: async () => { writes.push('put'); },
     },
-    assets: { _getBlob: async (id: string) => (id === 'mine-head' ? new Blob([JSON.stringify(savedDoc)]) : null) },
-    tokens: { raw: async () => savedDoc },
+    assets: { _getBlob: async (id: string) => (id === 'mine-head' || id === 'other-head' ? new Blob([JSON.stringify(savedDoc)]) : null) },
+    tokens: { raw: async () => savedDoc, bust: () => {}, colors: async () => [] },
   };
   const start = {
     looksModal: null,
@@ -120,6 +123,17 @@ test('each card has its own Use this look, which applies that look at the regist
   assert.equal(installs[0]!.name, 'Sunroom');
   assert.equal(installs[0]!.busy, 'busy', 'the register is held while the look is applied');
   assert.equal(document.querySelector('dialog.ds-looks-modal'), null, 'the dialog closes once applied');
+});
+
+test('Use on a saved system switches to that system and edits nothing', async () => {
+  const { start, writes, installs } = harness({ other: true });
+  await openLooks(start);
+  await settle();
+  click(q('[data-look-card="other"] [data-look-use]'));
+  await settle();
+  assert.ok(writes.includes('setActive:other'), 'the saved system becomes the active one');
+  assert.deepEqual(installs, [], 'nothing is written into the open system');
+  start.looksModal?.close();
 });
 
 test('Compare is an explicit toggle that reveals the checkboxes', async () => {

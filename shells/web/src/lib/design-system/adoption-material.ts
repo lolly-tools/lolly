@@ -23,7 +23,7 @@ export function adoptionOf(host: object): BrandAdoptionAPI | undefined {
 export async function prepareTokenAdoption(
   host: AdoptionHost, snapshot: AdoptionSnapshot, document: unknown,
   incoming: VersionedUserAsset[] = [],
-  options: { labelIfNew?: string; appearance?: { theme?: 'light' | 'dark' | 'brand' }; retainedVersions?: VersionIndex; selectedFontIds?: string[]; validateFile?: (row: VersionedUserAsset) => Promise<void> } = {},
+  options: { labelIfNew?: string; appearance?: { theme?: 'light' | 'dark' | 'brand' }; retainedVersions?: VersionIndex; selectedFontIds?: string[]; validateFile?: (row: VersionedUserAsset) => Promise<void>; keepRefs?: readonly string[] } = {},
 ) {
   if (!host.brandAdoption) throw new Error('This shell cannot apply a design system safely. Update Lolly and try again.');
   const doc = structuredClone(document);
@@ -43,10 +43,13 @@ export async function prepareTokenAdoption(
     if (!row.blob || row.blob.size > 8 * 1024 * 1024) throw new Error('A token version is missing or too large.');
     documents.push(JSON.parse(await row.blob.text()));
   }
+  // A reference the open system already uses (a look keeps its logos, lib/design-system/
+  // apply-look.ts) stays as it is: never fetched, copied or renamed.
+  const kept = new Set(options.keepRefs ?? []);
   const required = new Set<string>();
   for (const source of documents) {
-    for (const ref of collectAssetTokens(source)) required.add(ref.id);
-    for (const id of brandResourceAssetIds(source)) required.add(id);
+    for (const ref of collectAssetTokens(source)) if (!kept.has(ref.id)) required.add(ref.id);
+    for (const id of brandResourceAssetIds(source)) if (!kept.has(id)) required.add(id);
     for (const version of readVersionIndex(source).versions) for (const pin of version.assets ?? []) required.add(pin.frozenId ?? pin.id);
   }
   for (const id of required) {
