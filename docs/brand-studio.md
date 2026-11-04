@@ -94,7 +94,7 @@ The room grows with the design system: a first visit is one decision, and the re
 
 ### The first colour
 
-A system with no colours of its own shows the starter's neutrals, open in their own group, and at the top of the room a dashed paste and drop field: one large chip and one field. Drop an image or a list of colours anywhere on the field to read it.
+A system with no colours of its own shows the starter's neutrals, open in their own group, and at the top of the room a dashed paste and drop field: one large chip and one field. Drop an image or a list of colours anywhere on the field, and Lolly reads the colours from what you dropped.
 
 - **The chip is the picker.** Press **Pick a colour** and the studio's OKLCH card opens, seeded with whatever the field holds: the colour's name and hex first, with the colour spaces, the wheel, the four dials and alpha under **Fine-tune**, and **Cancel** and **Add colour** at the foot. Nothing reaches the system until you press **Add colour**.
 - **The field takes any notation**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` or a colour name. Paste a list and it becomes a row of chips to add one at a time or with **Add all**.
@@ -318,7 +318,7 @@ PDF and design-file imports keep their own review controls. Items in the **Tray*
 
 Open **Find a look** from the Board or from the design-system list in Settings. Browse systems saved on this device and a few reusable Lolly examples, and search by name, colour tag or declared font. **Closest to my current palette** sorts by measured colour similarity, with matching fonts breaking ties; it is not a quality score.
 
-Click a look to preview it in context. Previewing changes nothing. Each card's **Use this look** applies it: a saved system switches to it, and an example's colours go through the usual checkpoint, keeping your fonts. **Compare looks** adds a checkbox to each card, so you can choose two and compare them side by side. **Restore brand settings** recovers the previous look. Saved systems have editable **Search tags** under **Details and design context**. The examples are original Lolly colour recipes, with no scraped collection and no account.
+Click a look to preview it in context. Previewing changes nothing. Each card's **Use this look** applies that look: a saved system becomes the active one, and an example's colours go through the usual checkpoint, keeping your fonts. **Compare looks** adds a checkbox to each card, so you can choose two and compare them side by side. **Restore brand settings** recovers the previous look. Saved systems have editable **Search tags** under **Details and design context**. The examples are original Lolly colour recipes, with no scraped collection and no account.
 
 ![Compare Sunroom and Orchard side by side before applying either colour system.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
