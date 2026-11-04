@@ -4092,10 +4092,12 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 
   /* Keep the existing canvas controls below the sheet, including its drag grip. */
   .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > :is(.stage-nav:not([data-docked]), .canvas-record-help) {
-    top: calc(max(0px, var(--sheet-h) - var(--peek-h, calc(56px * var(--a11y-fs)))) + var(--chrome-top) - var(--safe-top) + var(--vv-top, 0px));
+    /* The peek height when --peek-h is unset, a token so the type multiplier scales only a declaration. */
+    --sheet-peek-default: calc(56px * var(--a11y-fs));
+    top: calc(max(0px, var(--sheet-h) - var(--peek-h, var(--sheet-peek-default))) + var(--chrome-top) - var(--safe-top) + var(--vv-top, 0px));
   }
   .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > .stage-nav:not([data-docked]) {
-    max-height: calc(100dvh - max(var(--sheet-h), var(--peek-h, calc(56px * var(--a11y-fs)))) - var(--chrome-top) - var(--safe-bottom) - var(--vv-bottom, 0px) - 8px);
+    max-height: calc(100dvh - max(var(--sheet-h), var(--peek-h, var(--sheet-peek-default))) - var(--chrome-top) - var(--safe-bottom) - var(--vv-bottom, 0px) - 8px);
     overflow-y: auto;
   }
 
