@@ -104,6 +104,7 @@ description:
       - Optional MCP server so AI agents can call tools
       - User interface in English and 26 other languages
     screenshots:
-      - docs/shots/anim-timeline-choreographed.png
-      - docs/shots/incl-neuro-player.png
-      - docs/shots/seq-sound-strip.png
+      - docs/shots/aud-gallery-landscape.svg
+      - docs/shots/design.svg
+      - docs/shots/export-panel.svg
+      - docs/shots/brand-colours.svg
