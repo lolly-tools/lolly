@@ -39,6 +39,69 @@ async function reachable(page: Page, selector: string): Promise<boolean> {
   });
 }
 
+for (const width of [1440, 390]) {
+  for (const appearance of ['light', 'dark', 'brand']) {
+    test(`Component specimens retain their production context at ${width}px in ${appearance}`, { timeout: 120_000 }, async () => {
+      const context = await browser.newContext({ viewport: { width, height: 1000 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
+      try {
+        const page = await context.newPage();
+        const errors: string[] = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.goto(`${origin}/?_appearance=${appearance}#/components`, { waitUntil: 'domcontentloaded' });
+        await page.locator('.cl-card').first().waitFor({ timeout: 60_000 });
+        await page.waitForFunction(() => !document.querySelector('#view[data-route-mounting], dialog.view-loading[open]'));
+        const result = await page.evaluate(async () => {
+          const moduleUrl = '/src/views/components-data.ts';
+          const { COMPONENT_SECTIONS }: typeof import('../shells/web/src/views/components-data.ts') = await import(moduleUrl);
+          const stages = [...document.querySelectorAll<HTMLElement>('.cl-stage')];
+          const thumb = document.querySelector<HTMLElement>('[data-cl-preview="sessionRow"] .store-sess-thumb')!;
+          const swatches = [...document.querySelectorAll<HTMLElement>('[data-cl-preview="swatchTile"] button')];
+          const cover = document.querySelector<HTMLElement>('.cl-stage > .ds-issue')!;
+          const rooms = document.querySelector<HTMLElement>('.cl-stage .ds-room-nav')!;
+          return {
+            theme: document.documentElement.dataset.theme,
+            expected: COMPONENT_SECTIONS.flatMap(section => section.items).length,
+            count: stages.length,
+            broken: document.querySelectorAll('.cl-broken').length,
+            overflow: stages.filter(el => el.scrollWidth > el.clientWidth + 2 || el.scrollHeight > el.clientHeight + 2).map(el => el.getAttribute('aria-label')),
+            pageOverflow: document.documentElement.scrollWidth > innerWidth + 2,
+            thumb: [thumb.offsetWidth, thumb.offsetHeight],
+            swatches: swatches.map(el => [el.offsetWidth, el.offsetHeight, getComputedStyle(el).backgroundImage]),
+            coverWidth: cover.offsetWidth,
+            roomsPosition: getComputedStyle(rooms).position,
+            fieldShadow: getComputedStyle(document.querySelector<HTMLElement>('.cl-stage .block-field')!).boxShadow,
+          };
+        });
+        assert.equal(result.theme, appearance);
+        assert.equal(result.count, result.expected);
+        assert.equal(result.broken, 0);
+        assert.deepEqual(result.overflow, []);
+        assert.equal(result.pageOverflow, false);
+        assert.deepEqual(result.thumb, [40, 40]);
+        assert.ok(result.swatches.every(([w, h]) => Number(w) >= 24 && Number(h) >= 24));
+        assert.ok(result.coverWidth > 250);
+        assert.notEqual(result.roomsPosition, 'fixed');
+        assert.notEqual(result.fieldShadow, 'none');
+        assert.deepEqual(errors, []);
+        const menuStage = page.locator('[data-cl-preview="bodyPopover"]');
+        await menuStage.getByRole('button').click();
+        assert.equal(await page.locator('.cl-popover-demo').isVisible(), true);
+        await page.keyboard.press('Escape');
+        assert.equal(await page.locator('.cl-popover-demo').count(), 0);
+        const hud = page.locator('[data-cl-preview="zoomHud"]').first();
+        await hud.getByRole('button', { name: 'Zoom in', exact: true }).click();
+        assert.match(await hud.textContent() ?? '', /125%/);
+        const choices = page.locator('[data-cl-preview="themeChoices"]');
+        await choices.getByRole('radio', { name: 'Orchid', exact: true }).click();
+        assert.equal(await choices.getByRole('radio', { name: 'Orchid', exact: true }).getAttribute('aria-checked'), 'true');
+        assert.equal(await page.locator('html').getAttribute('data-theme'), appearance, 'specimen choices stay local');
+      } finally {
+        await context.close();
+      }
+    });
+  }
+}
+
 test('Spreadsheet navigation clears its heading and leaves loaded data usable in every appearance', { timeout: 120_000 }, async () => {
   const context = await browser.newContext({ serviceWorkers: 'block', reducedMotion: 'reduce' });
   try {

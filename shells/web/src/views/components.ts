@@ -2,6 +2,8 @@
 import { updateRouteParams, bindDisclosureUrl } from '../lib/url-state.ts';
 import { mountCodeEditor } from '../components/code-editor.ts';
 import { mountCharacterGrid } from '../components/character-grid.ts';
+import { mountTokenWorkspace } from '../components/token-workspace.ts';
+import { wireTokenBindingExamples, wireTokenContextExample } from './components-token-examples.ts';
 import './text/text.css';
 /**
  * The browsable component library (#/components).
@@ -47,6 +49,8 @@ import '../styles/parts/tool-chrome.css';
 import '../styles/parts/storage.css';
 import '../styles/parts/profile.css';
 import '../styles/parts/start.css';
+import '../styles/parts/start-bar.css';
+import '../styles/parts/assets.css';
 import '../styles/parts/multi-edit.css';
 import '../styles/parts/valid.css';
 import '../styles/parts/editor.css'; // .stage-nav (the tool canvas's zoom HUD) - for the Zoom HUD live specimen
@@ -62,8 +66,9 @@ import '../pro/pro.css';
 import { t } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { prepareSpecimenStage } from './components-staging.ts';
 import { COMPONENT_SECTIONS as AUDIT_SECTIONS, COMPONENT_ARTWORK, type Specimen } from './components-data.ts';
-import { audioDockExample, catalogTileExample, contextMenuExample, editableWheelExample, exportFieldsExample, objectCardsExample, projectTilesExample, selectionBarExample, wireObjectCardsExample } from './components-examples.ts';
+import { toolCardExample, wireThemeChoicesExample, audioDockExample, catalogTileExample, contextMenuExample, editableWheelExample, exportFieldsExample, objectCardsExample, projectTilesExample, selectionBarExample, wireObjectCardsExample } from './components-examples.ts';
 import { featuredRowExample, wireFeaturedRowExample } from './components-featured.ts';
 import { SVG as canvasIcons, icon as canvasIcon } from './free-canvas-icons.ts';
 
@@ -125,250 +130,262 @@ function triggerButton(label: string, onClick: () => void): HTMLElement {
  *  an HTML string or a node; a `wire` runs after it's inserted. Only pure/wired
  *  components with a safe render path are here - everything else falls back to a
  *  markup sample or a source snippet. */
-const previewDisposers: Array<() => void> = [];
-const previewPopovers = new Set<BodyPopoverHandle>();
+type LivePreviews = Record<string, { render: () => string | HTMLElement; wire?: (stage: HTMLElement, host: HostV1) => void; interactive?: boolean }>;
 
-import { mountTokenWorkspace } from '../components/token-workspace.ts';
-import { wireTokenBindingExamples, wireTokenContextExample } from './components-token-examples.ts';
+function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
+  const previewDisposers: Array<() => void> = [];
+  const previewPopovers = new Set<BodyPopoverHandle>();
 
-const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: HTMLElement, host: HostV1) => void }> = {
-  tokenBinding: { render: () => '<div data-token-fields></div>', wire: stage => { previewDisposers.push(wireTokenBindingExamples(stage.querySelector<HTMLElement>('[data-token-fields]')!)); } },
-  tokenContext: { render: () => '<div data-token-context></div>', wire: stage => { previewDisposers.push(wireTokenContextExample(stage.querySelector<HTMLElement>('[data-token-context]')!)); } },
-  viewLoading: { render: () => triggerButton(t('Loading…'), () => {
-    const loading = beginViewLoading(0);
-    const timer = setTimeout(() => loading.close(), 2000);
-    previewDisposers.push(() => { clearTimeout(timer); loading.close(); });
-  }) },
-  featuredRow: { render: featuredRowExample, wire: (stage, host) => {
-    previewDisposers.push(wireFeaturedRowExample(stage, host));
-  } },
-  codeEditor: { render: () => '<div data-code-specimen style="width:100%;height:20rem"></div>', wire: stage => {
-    const editor = mountCodeEditor(stage.querySelector<HTMLElement>('[data-code-specimen]')!, { text: 'const greeting = "Hello";\n// Type here or select text.\nconsole.log(greeting);', language: 'javascript', label: 'Example code editor' });
-    previewDisposers.push(() => editor.destroy());
-  } },
-  characterGrid: { render: () => '<div data-character-specimen></div>', wire: stage => {
-    const grid = mountCharacterGrid(stage.querySelector<HTMLElement>('[data-character-specimen]')!, { onPick: value => { void navigator.clipboard.writeText(value); } });
-    grid.set([{ value: 'Æ', label: 'Latin capital ligature AE' }, { value: 'Ω', label: 'Greek capital letter omega' }, { value: '→', label: 'Rightwards arrow' }], 'var(--font-brand)');
-    previewDisposers.push(() => grid.destroy());
-  } },
-  tokenWorkspace: { render: () => '<div data-token-specimen></div>', wire: stage => {
-    let disposed = false, workspace: ReturnType<typeof mountTokenWorkspace> | undefined;
-    previewDisposers.push(() => { disposed = true; workspace?.teardown(); });
-    void fetch('/examples/beacon.tokens.json').then(response => { if (!response.ok) throw new Error('Example tokens could not be read.'); return response.json(); }).then(source => {
-      if (disposed) return;
-      let document: Record<string, unknown> = source;
-      workspace = mountTokenWorkspace(stage.querySelector<HTMLElement>('[data-token-specimen]')!, { read: () => document, label: 'Beacon example', commit: candidate => { document = candidate; } });
-    }).catch(error => { if (!disposed) stage.textContent = error.message; });
-  } },
-  objectCards: { render: objectCardsExample, wire: wireObjectCardsExample },
-  catalogTile: { render: catalogTileExample, wire: wireObjectCardsExample },
-  projectTiles: { render: projectTilesExample },
-  contextMenu: { render: contextMenuExample },
-  selectionBar: { render: selectionBarExample },
-  editableWheel: { render: editableWheelExample },
-  audioDock: { render: audioDockExample },
-  exportFields: { render: exportFieldsExample },
-  designSystems: { render: () => `<div class="cl-ds-preview">${[
-    { id: 'forest', label: 'Forest studio', colors: ['#0c322c', '#30ba78', '#90ebcd', '#fe7c3f', '#202174'] },
-    { id: 'orchid', label: 'Orchid', colors: ['#31072f', '#ad24ba', '#f7dcf2', '#a2afff', '#161319'] },
-  ].map(r => designSystemCardHtml({ id: r.id, label: r.label, ns: `user/ds/${r.id}/`, headId: `user/ds/${r.id}/tokens/brand`, source: { kind: 'local' }, locked: false, createdAt: 0, lastUsedAt: 0 }, 'forest', 6400, { font: 'var(--font-brand)', colors: r.colors })).join('')}</div>` },
-  colorField: { render: () => `<div class="cl-color-panel">${colorFieldHtml('cl-color', '#30ba78', { inline: true, palette: true })}</div>`, wire: s => wireColorField(s) },
-  colorFine: { render: () => `<div class="cl-color-panel">${colorFieldHtml('cl-color-fine', '#fe7c3f', { inline: true, dials: false })}</div>`, wire: s => wireColorField(s) },
-  colorValue: { render: () => `<div class="cl-color-panel">${colorFieldHtml('cl-color-value', '#2453ff', { inline: true, dials: false })}</div>`, wire: s => wireColorField(s) },
-  colorAdvanced: { render: () => `<div class="cl-color-advanced">${colorFieldHtml('cl-color-advanced', '#30ba78', { inline: true, modes: true })}</div>`, wire: s => wireColorField(s) },
-  colorTriggers: { render: () => `<div class="cl-color-triggers"><div><p class="cl-eyebrow">Named colours</p>${colorFieldHtml('cl-named-1', '#93290b', { name: 'Persimmon 2' })}${colorFieldHtml('cl-named-2', '#fe7c3f', { name: 'Persimmon' })}</div><div><p class="cl-eyebrow">Compact controls</p><div class="cl-color-compact">${colorFieldHtml('cl-compact-1', '#2453ff', { label: 'Fill' })}${colorFieldHtml('cl-compact-2', '#000000', { label: 'Stroke' })}</div></div></div>`, wire: s => wireColorField(s) },
-  wheel: { render: () => `<div style="width:320px;max-width:100%">${renderPaletteWheel(DEMO.map(p => ({ hex: p.hex, label: p.label })))}</div>`, wire: (s) => wirePaletteWheel(s) },
-  seal: { render: () => renderBrandSeal(sealColors(DEMO), 128) },
-  swatchCard: { render: () => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;width:100%">${swatch(DEMO[0]!)}${swatch({ ...DEMO[1]!, spot: { name: 'PANTONE 5535 C' } })}</div>` },
-  palettePreview: {
-    render: () => `<div class="cl-scenes">${palettePreviewSvgs(['#2453ff', '#30ba78', '#fe7c3f', '#e11d48']).map((scene, i) => `<div data-cl-scene="${i}"${i ? ' hidden' : ''}>${scene.svg}</div>`).join('')}${segHtml('cl-scene', [{ id: '0', label: 'Poster' }, { id: '1', label: 'Chart' }, { id: '2', label: 'UI card' }], '0', 'Palette preview')}</div>`,
-    wire: stage => stage.querySelectorAll<HTMLButtonElement>('.view-seg-btn').forEach((button, index) => { button.addEventListener('click', () => {
-      stage.querySelectorAll<HTMLElement>('[data-cl-scene]').forEach((scene, i) => { scene.hidden = i !== index; });
-      stage.querySelectorAll('.view-seg-btn').forEach((other, i) => { other.setAttribute('aria-pressed', String(i === index)); });
-    }); }),
-  },
-  genai: { render: () => `${genAiPill('full')} ${genAiPill('partial')} ${genAiPill('full', true)}` },
-  lollyBadge: { render: () => `${lollyBadge('sm')} ${lollyBadge('lg')}` },
-  viewToggle: { render: () => viewToggle('tools') },
-  // Rendered in its in-flow form (no .home-full) so the specimen sits in the stage
-  // rather than pinning itself to the viewport corner.
-  backPill: { render: () => backPillHtml({ class: '' }) },
-  themeSeg: { render: () => themeSegmentHtml() },
-  soundSwitch: { render: () => soundSwitchHtml() },
-  footerNav: { render: () => footerNav({ searchHtml: gallerySearchBox({ placeholder: t('Search'), ariaLabel: t('Search') }) }) },
-  catGlyph: { render: () => `<span style="display:inline-flex;gap:.7rem;align-items:center">${['logos', 'photos', 'swatches', 'fonts'].map(categoryGlyph).join('')}</span>` },
-  catSummary: { render: () => catalogSummaryBody([
-    { id: 'qr-code', category: 'utility', status: 'official' },
-    { id: 'brand-lockup', category: 'designer', status: 'experimental' },
-    { id: 'icon', category: 'utility', status: 'official' },
-  ], [{ type: 'vector' }, { type: 'vector' }, { type: 'palette' }, { type: 'tokens' }]) },
-  tileBadges: { render: () => `<span class="tile-badges">${fmtBadge('svg')}${dimBadge(512, 512, 'px')}${rowCountBadge(8)}</span>` },
-  dialogTriggers: {
-    render: () => {
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap';
-      wrap.append(
-        triggerButton(t('Confirm…'), () => { void confirmDialog({ title: t('Delete swatch?'), message: t('This can’t be undone.'), confirmLabel: t('Delete') }); }),
-        triggerButton(t('Choose…'), () => { void choiceDialog({ title: t('Export as'), message: t('Pick a format'), choices: [{ id: 'png', label: 'PNG' }, { id: 'svg', label: 'SVG' }] as never }); }),
-        triggerButton(t('Notice…'), () => { void noticeDialog({ title: t('Heads up'), message: t('A sample notice.') }); }),
-        triggerButton(t('Prompt…'), () => { void promptDialog({ title: t('Name this'), message: t('Give it a name'), placeholder: t('e.g. Jungle') }); }),
-      );
-      return wrap;
+  const LIVE: LivePreviews = {
+    tokenBinding: { render: () => '<div data-token-fields></div>', wire: stage => { previewDisposers.push(wireTokenBindingExamples(stage.querySelector<HTMLElement>('[data-token-fields]')!)); } },
+    tokenContext: { render: () => '<div data-token-context></div>', wire: stage => { previewDisposers.push(wireTokenContextExample(stage.querySelector<HTMLElement>('[data-token-context]')!)); } },
+    viewLoading: { interactive: true, render: () => triggerButton(t('Loading…'), () => {
+      const loading = beginViewLoading(0);
+      const timer = setTimeout(() => loading.close(), 2000);
+      previewDisposers.push(() => { clearTimeout(timer); loading.close(); });
+    }) },
+    featuredRow: { render: featuredRowExample, wire: (stage, host) => {
+      previewDisposers.push(wireFeaturedRowExample(stage, host));
+    } },
+    codeEditor: { render: () => '<div data-code-specimen style="width:100%;height:20rem"></div>', wire: stage => {
+      const editor = mountCodeEditor(stage.querySelector<HTMLElement>('[data-code-specimen]')!, { text: 'const greeting = "Hello";\n// Type here or select text.\nconsole.log(greeting);', language: 'javascript', label: 'Example code editor' });
+      previewDisposers.push(() => editor.destroy());
+    } },
+    characterGrid: { render: () => '<div data-character-specimen></div>', wire: stage => {
+      const grid = mountCharacterGrid(stage.querySelector<HTMLElement>('[data-character-specimen]')!, { onPick: value => { void navigator.clipboard.writeText(value); } });
+      grid.set([{ value: 'Æ', label: 'Latin capital ligature AE' }, { value: 'Ω', label: 'Greek capital letter omega' }, { value: '→', label: 'Rightwards arrow' }], 'var(--font-brand)');
+      previewDisposers.push(() => grid.destroy());
+    } },
+    tokenWorkspace: { render: () => '<div data-token-specimen></div>', wire: stage => {
+      let disposed = false, workspace: ReturnType<typeof mountTokenWorkspace> | undefined;
+      previewDisposers.push(() => { disposed = true; workspace?.teardown(); });
+      void fetch('/examples/beacon.tokens.json').then(response => { if (!response.ok) throw new Error('Example tokens could not be read.'); return response.json(); }).then(source => {
+        if (disposed) return;
+        let document: Record<string, unknown> = source;
+        workspace = mountTokenWorkspace(stage.querySelector<HTMLElement>('[data-token-specimen]')!, { read: () => document, label: 'Beacon example', commit: candidate => { document = candidate; } });
+      }).catch(error => { if (!disposed) stage.textContent = error.message; });
+    } },
+    themeChoices: { render: () => '<div class="cl-theme-choices"></div>', wire: stage => { previewDisposers.push(wireThemeChoicesExample(stage.querySelector<HTMLElement>('.cl-theme-choices')!)); } },
+    toolCard: { render: toolCardExample },
+    objectCards: { render: objectCardsExample, wire: wireObjectCardsExample },
+    catalogTile: { render: catalogTileExample, wire: wireObjectCardsExample },
+    projectTiles: { render: projectTilesExample },
+    contextMenu: { render: contextMenuExample },
+    selectionBar: { render: selectionBarExample },
+    editableWheel: { render: editableWheelExample },
+    audioDock: { render: audioDockExample },
+    exportFields: { render: exportFieldsExample },
+    designSystems: { render: () => `<div class="cl-ds-preview">${[
+      { id: 'forest', label: 'Forest studio', colors: ['#0c322c', '#30ba78', '#90ebcd', '#fe7c3f', '#202174'] },
+      { id: 'orchid', label: 'Orchid', colors: ['#31072f', '#ad24ba', '#f7dcf2', '#a2afff', '#161319'] },
+    ].map(r => designSystemCardHtml({ id: r.id, label: r.label, ns: `user/ds/${r.id}/`, headId: `user/ds/${r.id}/tokens/brand`, source: { kind: 'local' }, locked: false, createdAt: 0, lastUsedAt: 0 }, 'forest', 6400, { font: 'var(--font-brand)', colors: r.colors })).join('')}</div>` },
+    colorField: { render: () => `<div class="cl-color-panel">${colorFieldHtml('cl-color', '#30ba78', { inline: true, palette: true })}</div>`, wire: s => wireColorField(s) },
+    colorFine: { render: () => `<div class="cl-color-panel">${colorFieldHtml('cl-color-fine', '#fe7c3f', { inline: true, dials: false })}</div>`, wire: s => wireColorField(s) },
+    colorValue: { render: () => `<div class="cl-color-panel">${colorFieldHtml('cl-color-value', '#2453ff', { inline: true, dials: false })}</div>`, wire: s => wireColorField(s) },
+    colorAdvanced: { render: () => `<div class="cl-color-advanced">${colorFieldHtml('cl-color-advanced', '#30ba78', { inline: true, modes: true })}</div>`, wire: s => wireColorField(s) },
+    colorTriggers: { render: () => `<div class="cl-color-triggers"><div><p class="cl-eyebrow">Named colours</p>${colorFieldHtml('cl-named-1', '#93290b', { name: 'Persimmon 2' })}${colorFieldHtml('cl-named-2', '#fe7c3f', { name: 'Persimmon' })}</div><div><p class="cl-eyebrow">Compact controls</p><div class="cl-color-compact">${colorFieldHtml('cl-compact-1', '#2453ff', { label: 'Fill' })}${colorFieldHtml('cl-compact-2', '#000000', { label: 'Stroke' })}</div></div></div>`, wire: s => wireColorField(s) },
+    wheel: { render: () => `<div style="width:320px;max-width:100%">${renderPaletteWheel(DEMO.map(p => ({ hex: p.hex, label: p.label })))}</div>`, wire: (s) => wirePaletteWheel(s) },
+    seal: { render: () => renderBrandSeal(sealColors(DEMO), 128) },
+    swatchCard: { render: () => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;width:100%">${swatch(DEMO[0]!)}${swatch({ ...DEMO[1]!, spot: { name: 'PANTONE 5535 C' } })}</div>` },
+    palettePreview: {
+      render: () => `<div class="cl-scenes">${palettePreviewSvgs(['#2453ff', '#30ba78', '#fe7c3f', '#e11d48']).map((scene, i) => `<div data-cl-scene="${i}"${i ? ' hidden' : ''}>${scene.svg}</div>`).join('')}${segHtml('cl-scene', [{ id: '0', label: 'Poster' }, { id: '1', label: 'Chart' }, { id: '2', label: 'UI card' }], '0', 'Palette preview')}</div>`,
+      wire: stage => stage.querySelectorAll<HTMLButtonElement>('.view-seg-btn').forEach((button, index) => { button.addEventListener('click', () => {
+        stage.querySelectorAll<HTMLElement>('[data-cl-scene]').forEach((scene, i) => { scene.hidden = i !== index; });
+        stage.querySelectorAll('.view-seg-btn').forEach((other, i) => { other.setAttribute('aria-pressed', String(i === index)); });
+      }); }),
     },
-  },
-  shareTrigger: { render: () => triggerButton(t('Share…'), () => { openShareDialog({ toolId: 'qr-code', baseParts: ['url=https%3A%2F%2Fsuse.com'], currentFormat: 'png', title: t('Share this tool') }); }) },
-  helpTip: {
-    render: () => { const h = helpTip(t('Chroma is how vivid a colour is - grey at the centre, vivid at the rim.'), { href: '#/components', text: t('Learn more') }); return `<span class="help-tip-host" style="display:inline-flex;align-items:center;gap:.4rem">${t('Chroma')} ${h.button}${h.pop}</span>`; },
-  },
-  proControl: { render: () => `<div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">${controlHtml({ type: 'select', options: [{ value: 'a', label: 'Option A' }, { value: 'b', label: 'Option B' }] } as never, 'a' as never, '')}${controlHtml({ type: 'number' } as never, 42 as never, '')}</div>` },
-  validSteps: { render: () => stepsHtml({ history: [
-    { action: 'c2pa.created', when: '2026-07-01T09:00:00Z', softwareAgent: 'Lolly', digitalSourceType: 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation' },
-    { action: 'c2pa.color_adjustments', when: '2026-07-02T11:00:00Z', softwareAgent: 'Adobe Photoshop' },
-  ] } as never) },
-  validInputs: { render: () => inputsDigestHtml({ Background: '#1a1a2e', Headline: 'Ship it', Size: '1080×1080' }) },
+    genai: { render: () => `${genAiPill('full')} ${genAiPill('partial')} ${genAiPill('full', true)}` },
+    lollyBadge: { render: () => `${lollyBadge('sm')} ${lollyBadge('lg')}` },
+    viewToggle: { render: () => viewToggle('tools') },
+    // Rendered in its in-flow form (no .home-full) so the specimen sits in the stage
+    // rather than pinning itself to the viewport corner.
+    backPill: { render: () => backPillHtml({ class: '' }) },
+    themeSeg: { render: () => themeSegmentHtml() },
+    soundSwitch: { render: () => soundSwitchHtml() },
+    footerNav: { render: () => footerNav({ searchHtml: gallerySearchBox({ placeholder: t('Search'), ariaLabel: t('Search') }) }) },
+    catGlyph: { render: () => `<span style="display:inline-flex;gap:.7rem;align-items:center">${['logos', 'photos', 'swatches', 'fonts'].map(categoryGlyph).join('')}</span>` },
+    catSummary: { render: () => catalogSummaryBody([
+      { id: 'qr-code', category: 'utility', status: 'official' },
+      { id: 'brand-lockup', category: 'designer', status: 'experimental' },
+      { id: 'icon', category: 'utility', status: 'official' },
+    ], [{ type: 'vector' }, { type: 'vector' }, { type: 'palette' }, { type: 'tokens' }]) },
+    tileBadges: { render: () => `<span class="tile-badges">${fmtBadge('svg')}${dimBadge(512, 512, 'px')}${rowCountBadge(8)}</span>` },
+    dialogTriggers: { interactive: true,
+      render: () => {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap';
+        wrap.append(
+          triggerButton(t('Confirm…'), () => { void confirmDialog({ title: t('Delete swatch?'), message: t('This can’t be undone.'), confirmLabel: t('Delete') }); }),
+          triggerButton(t('Choose…'), () => { void choiceDialog({ title: t('Export as'), message: t('Pick a format'), choices: [{ id: 'png', label: 'PNG' }, { id: 'svg', label: 'SVG' }] as never }); }),
+          triggerButton(t('Notice…'), () => { void noticeDialog({ title: t('Heads up'), message: t('A sample notice.') }); }),
+          triggerButton(t('Prompt…'), () => { void promptDialog({ title: t('Name this'), message: t('Give it a name'), placeholder: t('e.g. Jungle') }); }),
+        );
+        return wrap;
+      },
+    },
+    shareTrigger: { interactive: true, render: () => triggerButton(t('Share…'), () => { openShareDialog({ toolId: 'qr-code', baseParts: ['url=https%3A%2F%2Fsuse.com'], currentFormat: 'png', title: t('Share this tool') }); }) },
+    helpTip: {
+      render: () => { const h = helpTip(t('Chroma is how vivid a colour is - grey at the centre, vivid at the rim.'), { href: '#/components', text: t('Learn more') }); return `<span class="help-tip-host" style="display:inline-flex;align-items:center;gap:.4rem">${t('Chroma')} ${h.button}${h.pop}</span>`; },
+    },
+    proControl: { render: () => `<div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">${controlHtml({ type: 'select', options: [{ value: 'a', label: 'Option A' }, { value: 'b', label: 'Option B' }] } as never, 'a' as never, '')}${controlHtml({ type: 'number' } as never, 42 as never, '')}</div>` },
+    validSteps: { render: () => stepsHtml({ history: [
+      { action: 'c2pa.created', when: '2026-07-01T09:00:00Z', softwareAgent: 'Lolly', digitalSourceType: 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation' },
+      { action: 'c2pa.color_adjustments', when: '2026-07-02T11:00:00Z', softwareAgent: 'Adobe Photoshop' },
+    ] } as never) },
+    validInputs: { render: () => inputsDigestHtml({ Background: '#1a1a2e', Headline: 'Ship it', Size: '1080×1080' }) },
 
-  // ── Primitives-section live renderers (component audit recs 1/5/6/8/11/12) ──
-  seg: { render: () => segHtml('cl-stored', [{ id: 'lch', label: 'LCH' }, { id: 'hex', label: 'Hex' }, { id: 'rgb', label: 'RGB' }], 'hex', t('Stored as')), wire: stage => {
-    stage.querySelectorAll<HTMLButtonElement>('.view-seg-btn').forEach(button => { button.addEventListener('click', () => {
-      stage.querySelectorAll('.view-seg-btn').forEach(other => { other.setAttribute('aria-pressed', String(other === button)); });
-    }); });
-  } },
-  icons: {
-    render: () => `<div class="cl-icon-grid">${iconNames.map(name => `<div class="cl-icon-cell">${icon(name, { size: 20 })}<span>${escape(name)}</span></div>`).join('')}</div>`,
-  },
-  zoomHud: {
-    render: () => {
-      const wrap = document.createElement('div');
-      wrap.className = 'cl-zoomhud-demo';
-      const hudEl = document.createElement('div');
-      hudEl.className = 'stage-nav';
-      wrap.appendChild(hudEl);
-      let pct = 100;
-      const hud = mountZoomHud(hudEl, {
-        ariaLabel: t('Zoom'),
-        classes: { btn: 'stage-nav-btn', pct: 'stage-nav-pct', fit: 'stage-nav-fit' },
-        onZoom: (dir) => { pct = Math.max(25, Math.min(400, pct + dir * 25)); hud.setReadout(`${pct}%`); hud.setValue(pct); },
-        onFit: () => { pct = 100; hud.setReadout(t('Fit')); hud.setValue(pct); },
-        initialReadout: '100%',
-        min: 25, max: 400,
-      });
-      return wrap;
+    // ── Primitives-section live renderers (component audit recs 1/5/6/8/11/12) ──
+    seg: { render: () => segHtml('cl-stored', [{ id: 'lch', label: 'LCH' }, { id: 'hex', label: 'Hex' }, { id: 'rgb', label: 'RGB' }], 'hex', t('Stored as')), wire: stage => {
+      stage.querySelectorAll<HTMLButtonElement>('.view-seg-btn').forEach(button => { button.addEventListener('click', () => {
+        stage.querySelectorAll('.view-seg-btn').forEach(other => { other.setAttribute('aria-pressed', String(other === button)); });
+      }); });
+    } },
+    icons: {
+      render: () => `<div class="cl-icon-grid">${iconNames.map(name => `<div class="cl-icon-cell">${icon(name, { size: 20 })}<span>${escape(name)}</span></div>`).join('')}</div>`,
     },
-  },
-  sessionRow: {
-    render: () => {
-      const entry: SessionEntry = { slot: 'qr-code:171', toolId: 'qr-code', label: t('Launch QR'), thumb: COMPONENT_ARTWORK.gradient, updatedAt: '2026-07-09T10:00:00Z' };
-      const galleryRow = sessionRow(entry, {
-        rowClass: 'saved-row', thumbClass: 'saved-thumb', metaClass: 'saved-label',
-        titleTag: 'h4', title: entry.label ?? '', subtitle: t('3 Jul 14:20'),
-        openClass: 'saved-resume', openAttrs: 'data-cl-noop', openLabel: t('Resume'),
-        deleteAttr: 'data-cl-noop', deleteClass: 'saved-delete', deleteLabel: t('Delete'),
-      });
-      const profileRow = sessionRow(entry, {
-        rowClass: 'store-sess', thumbClass: 'store-sess-thumb', metaClass: 'store-sess-meta', titleClass: 'store-sess-label',
-        title: entry.label ?? '', subtitle: t('QR Code · 2d ago'),
-        selectClass: 'store-sess-check', selectLabel: t('Select'),
-        sizeBytes: 20480,
-        deleteAttr: 'data-cl-noop', deleteClass: 'store-sess-del', deleteLabel: t('Delete'),
-      });
-      return `<ul class="saved-list" style="width:100%;max-width:340px;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem">${galleryRow}${profileRow}</ul>`;
+    zoomHud: { interactive: true,
+      render: () => {
+        const wrap = document.createElement('div');
+        wrap.className = 'cl-zoomhud-demo';
+        const hudEl = document.createElement('div');
+        hudEl.className = 'stage-nav';
+        wrap.appendChild(hudEl);
+        let pct = 100;
+        const hud = mountZoomHud(hudEl, {
+          ariaLabel: t('Zoom'),
+          outAriaLabel: t('Zoom out'), inAriaLabel: t('Zoom in'),
+          pctAriaLabel: t('Zoom level'), fitAriaLabel: t('Fit to view'),
+          classes: { btn: 'stage-nav-btn', pct: 'stage-nav-pct', fit: 'stage-nav-fit' },
+          onZoom: (dir) => { pct = Math.max(25, Math.min(400, pct + dir * 25)); hud.setReadout(`${pct}%`); hud.setValue(pct); },
+          onFit: () => { pct = 100; hud.setReadout(t('Fit')); hud.setValue(pct); },
+          initialReadout: '100%',
+          min: 25, max: 400,
+        });
+        previewDisposers.push(() => hud.destroy());
+        return wrap;
+      },
     },
-  },
-  viewTopbar: { render: () => viewTopbarHtml({ active: 'tools', profile: { firstname: 'Alex' } }) },
-  swatchTile: {
-    render: () => `<div style="display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center">
-      <div style="display:flex;gap:.4rem">${DEMO.slice(0, 4).map((p, i) => swatchTile({ label: p.label, hex: p.hex, locked: i === 1 }, { idx: i })).join('')}</div>
-      <div style="display:flex;gap:.3rem">${DEMO.slice(0, 4).map((p, i) => swatchTile({ label: p.label, hex: p.hex }, { size: 'sm', idx: i })).join('')}</div>
-    </div>`,
-  },
-  customSlider: {
-    render: () => `<div class="cl-slider-demo">${customSliderHtml({ min: 0, max: 100, step: 5, value: 40, unit: '%', label: t('Opacity') })}<output class="cl-slider-readout" aria-live="off">40%</output></div>`,
-    wire: (stage) => {
-      const el = stage.querySelector<HTMLElement>('.custom-slider');
-      const out = stage.querySelector<HTMLElement>('.cl-slider-readout');
-      if (!el || !out) return;
-      mountCustomSlider(el, { onInput: v => { out.textContent = `${v}%`; }, onCommit: v => { out.textContent = `${v}%`; } });
+    sessionRow: {
+      render: () => {
+        const entry: SessionEntry = { slot: 'qr-code:171', toolId: 'qr-code', label: t('Launch QR'), thumb: COMPONENT_ARTWORK.gradient, updatedAt: '2026-07-09T10:00:00Z' };
+        const galleryRow = sessionRow(entry, {
+          rowClass: 'saved-row', thumbClass: 'saved-thumb', metaClass: 'saved-label',
+          titleTag: 'h4', title: entry.label ?? '', subtitle: t('3 Jul 14:20'),
+          openClass: 'saved-resume', openAttrs: 'data-cl-noop', openLabel: t('Resume'),
+          deleteAttr: 'data-cl-noop', deleteClass: 'saved-delete', deleteLabel: t('Delete'),
+        });
+        const profileRow = sessionRow(entry, {
+          rowClass: 'store-sess', thumbClass: 'store-sess-thumb', metaClass: 'store-sess-meta', titleClass: 'store-sess-label',
+          title: entry.label ?? '', subtitle: t('QR Code · 2d ago'),
+          selectClass: 'store-sess-check', selectLabel: t('Select'),
+          sizeBytes: 20480,
+          deleteAttr: 'data-cl-noop', deleteClass: 'store-sess-del', deleteLabel: t('Delete'),
+        });
+        return `<ul class="saved-list" style="width:100%;max-width:340px;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem">${galleryRow}${profileRow}</ul>`;
+      },
     },
-  },
-  // The Design workspace, in the shapes its own views build (free-canvas's toolBtn,
-  // design-navigator's buildFrameRow, design-inspector's section head, the
-  // timeline's btn()) - real classes and real glyphs, laid out in flow by the
-  // stage rules in components-lib.css instead of pinned to a stage edge.
-  designToolbar: {
-    render: () => `<div class="fc-toolbar" role="toolbar" aria-label="${escape(t('Design tools'))}">
-      <button type="button" class="fc-btn is-armed" aria-label="${escape(t('Select'))}" aria-pressed="true">${canvasIcon(canvasIcons.pointer)}</button>
-      <button type="button" class="fc-btn" aria-label="${escape(t('Pen'))}">${icon('penTool', { size: 18 })}</button>
-      <button type="button" class="fc-btn" aria-label="${escape(t('Add a box'))}">${canvasIcon(canvasIcons.add)}</button>
-      <button type="button" class="fc-btn" aria-label="${escape(t('Image'))}">${icon('image', { size: 18 })}</button>
-      <span class="fc-sep" aria-hidden="true"></span>
-      <button type="button" class="fc-btn" aria-label="${escape(t('Layers'))}">${icon('layersStack', { size: 18 })}</button>
-      <button type="button" class="fc-btn" aria-label="${escape(t('Fit artboard'))}">${icon('fitArtboard', { size: 18 })}</button>
-    </div>`,
-  },
-  designColumns: {
-    render: () => `<div class="cl-design-columns">
-      <aside class="fc-nav" aria-label="${escape(t('Navigator'))}">
-        <div class="fc-nav-head"><span class="fc-nav-title">${t('Artboards')}</span></div>
-        <div class="fc-nav-list" role="listbox" aria-label="${escape(t('Artboards'))}">
-          <div class="fc-nav-row" role="option" aria-selected="true"><span class="fc-nav-thumb" aria-hidden="true"></span><span class="fc-nav-idx">1</span><span class="fc-nav-main"><span class="fc-nav-name">${t('Cover')}</span></span></div>
-          <div class="fc-nav-row" role="option" aria-selected="false"><span class="fc-nav-thumb" aria-hidden="true"></span><span class="fc-nav-idx">2</span><span class="fc-nav-main"><span class="fc-nav-name">${t('Agenda')}</span></span></div>
+    viewTopbar: { render: () => viewTopbarHtml({ active: 'tools', profile: { firstname: 'Alex' } }) },
+    swatchTile: {
+      render: () => `<div class="cl-swatch-tiles">
+        <div class="cl-swatch-grid">${DEMO.slice(0, 4).map((p, i) => swatchTile({ label: p.label, hex: p.hex, locked: i === 1 }, { idx: i })).join('')}</div>
+        <div class="tk-ramp">${DEMO.slice(0, 4).map((p, i) => swatchTile({ label: p.label, hex: p.hex }, { size: 'sm', idx: i })).join('')}</div>
+      </div>`,
+    },
+    customSlider: {
+      render: () => `<div class="cl-slider-demo">${customSliderHtml({ min: 0, max: 100, step: 5, value: 40, unit: '%', label: t('Opacity') })}<output class="cl-slider-readout" aria-live="off">40%</output></div>`,
+      wire: (stage) => {
+        const el = stage.querySelector<HTMLElement>('.custom-slider');
+        const out = stage.querySelector<HTMLElement>('.cl-slider-readout');
+        if (!el || !out) return;
+        mountCustomSlider(el, { onInput: v => { out.textContent = `${v}%`; }, onCommit: v => { out.textContent = `${v}%`; } });
+      },
+    },
+    // The Design workspace, in the shapes its own views build (free-canvas's toolBtn,
+    // design-navigator's buildFrameRow, design-inspector's section head, the
+    // timeline's btn()) - real classes and real glyphs, laid out in flow by the
+    // stage rules in components-lib.css instead of pinned to a stage edge.
+    designToolbar: {
+      render: () => `<div class="fc-toolbar" role="toolbar" aria-label="${escape(t('Design tools'))}">
+        <button type="button" class="fc-btn is-armed" aria-label="${escape(t('Select'))}" aria-pressed="true">${canvasIcon(canvasIcons.pointer)}</button>
+        <button type="button" class="fc-btn" aria-label="${escape(t('Pen'))}">${icon('penTool', { size: 18 })}</button>
+        <button type="button" class="fc-btn" aria-label="${escape(t('Add a box'))}">${canvasIcon(canvasIcons.add)}</button>
+        <button type="button" class="fc-btn" aria-label="${escape(t('Image'))}">${icon('image', { size: 18 })}</button>
+        <span class="fc-sep" aria-hidden="true"></span>
+        <button type="button" class="fc-btn" aria-label="${escape(t('Layers'))}">${icon('layersStack', { size: 18 })}</button>
+        <button type="button" class="fc-btn" aria-label="${escape(t('Fit artboard'))}">${icon('fitArtboard', { size: 18 })}</button>
+      </div>`,
+    },
+    designColumns: {
+      render: () => `<div class="cl-design-columns">
+        <aside class="fc-nav" aria-label="${escape(t('Navigator'))}">
+          <div class="fc-nav-head"><span class="fc-nav-title">${t('Artboards')}</span></div>
+          <div class="fc-nav-list" role="listbox" aria-label="${escape(t('Artboards'))}">
+            <div class="fc-nav-row" role="option" aria-selected="true"><span class="fc-nav-thumb" aria-hidden="true"></span><span class="fc-nav-idx">1</span><span class="fc-nav-main"><span class="fc-nav-name">${t('Cover')}</span></span></div>
+            <div class="fc-nav-row" role="option" aria-selected="false"><span class="fc-nav-thumb" aria-hidden="true"></span><span class="fc-nav-idx">2</span><span class="fc-nav-main"><span class="fc-nav-name">${t('Agenda')}</span></span></div>
+          </div>
+        </aside>
+        <aside class="lp fc-insp" aria-label="${escape(t('Inspector'))}">
+          <div class="lp-band"><p class="lp-band-label">${t('Layout')}</p>
+            <section class="lp-sec fc-insp-sec"><button type="button" class="lp-sec-head fc-insp-head" aria-expanded="true">${icon('move', { size: 16 })}<span class="lp-sec-name">${t('Position & size')}</span><i></i><i class="lp-caret" aria-hidden="true"></i></button>
+              <div class="lp-rows fc-insp-rows"><div class="fc-insp-chips"><span class="fc-insp-chip"><i>W</i>1080</span><span class="fc-insp-chip"><i>H</i>1080</span><span class="fc-insp-chip"><i>X</i>0</span><span class="fc-insp-chip"><i>Y</i>0</span></div></div></section>
+          </div>
+          <div class="lp-band"><p class="lp-band-label">${t('Style')}</p>
+            <section class="lp-sec fc-insp-sec"><button type="button" class="lp-sec-head fc-insp-head" aria-expanded="false">${icon('opacity', { size: 16 })}<span class="lp-sec-name">${t('Appearance')}</span><em class="lp-sec-flag">${t('In use')}</em><i class="lp-caret" aria-hidden="true"></i></button></section>
+          </div>
+        </aside>
+      </div>`,
+    },
+    timelineBar: {
+      render: () => `<section class="tl-panel" aria-label="${escape(t('Timeline'))}">
+        <div class="tl-bar">
+          <button type="button" class="tl-btn tl-play" aria-label="${escape(t('Play'))}">${icon('play', { size: 16 })}</button>
+          <span class="tl-time">00:00.0</span>
+          <button type="button" class="tl-btn tl-add" aria-label="${escape(t('Add to the timeline'))}">${icon('plus', { size: 16 })}</button>
+          <button type="button" class="tl-btn is-active" aria-pressed="true" aria-label="${escape(t('Snap'))}">${icon('keyframe', { size: 16 })}</button>
         </div>
-      </aside>
-      <aside class="lp fc-insp" aria-label="${escape(t('Inspector'))}">
-        <div class="lp-band"><p class="lp-band-label">${t('Layout')}</p>
-          <section class="lp-sec fc-insp-sec"><button type="button" class="lp-sec-head fc-insp-head" aria-expanded="true">${icon('move', { size: 16 })}<span class="lp-sec-name">${t('Position & size')}</span><i></i><i class="lp-caret" aria-hidden="true"></i></button>
-            <div class="lp-rows fc-insp-rows"><div class="fc-insp-chips"><span class="fc-insp-chip"><i>W</i>1080</span><span class="fc-insp-chip"><i>H</i>1080</span><span class="fc-insp-chip"><i>X</i>0</span><span class="fc-insp-chip"><i>Y</i>0</span></div></div></section>
-        </div>
-        <div class="lp-band"><p class="lp-band-label">${t('Style')}</p>
-          <section class="lp-sec fc-insp-sec"><button type="button" class="lp-sec-head fc-insp-head" aria-expanded="false">${icon('opacity', { size: 16 })}<span class="lp-sec-name">${t('Appearance')}</span><em class="lp-sec-flag">${t('In use')}</em><i class="lp-caret" aria-hidden="true"></i></button></section>
-        </div>
-      </aside>
-    </div>`,
-  },
-  timelineBar: {
-    render: () => `<section class="tl-panel" aria-label="${escape(t('Timeline'))}">
-      <div class="tl-bar">
-        <button type="button" class="tl-btn tl-play" aria-label="${escape(t('Play'))}">${icon('play', { size: 16 })}</button>
-        <span class="tl-time">00:00.0</span>
-        <button type="button" class="tl-btn tl-add" aria-label="${escape(t('Add to the timeline'))}">${icon('plus', { size: 16 })}</button>
-        <button type="button" class="tl-btn is-active" aria-pressed="true" aria-label="${escape(t('Snap'))}">${icon('keyframe', { size: 16 })}</button>
-      </div>
-      <div class="tl-group"><button type="button" class="tl-group-head" aria-expanded="true"><span class="tl-group-icon" aria-hidden="true">${icon('clock', { size: 14 })}</span><span class="tl-group-label">${t('Animate')}</span><i class="tl-group-caret" aria-hidden="true"></i></button>
-        <div class="tl-group-body"><div class="tl-group-chips"><span class="tl-group-chip">${t('Fade in')}</span><span class="tl-group-chip">${t('Rise')}</span></div></div></div>
-      <div class="tl-tracks"><div class="tl-tracks-inner"><div class="tl-lanes"><div class="tl-lane tl-lane-seq"><span class="tl-lane-label">Artboards</span><div class="tl-clip tl-clip-seq is-selected" data-kind="image" style="left:8%;width:38%"><span class="tl-clip-label">Cover · 4s</span></div><div class="tl-clip tl-clip-seq" data-kind="image" style="left:48%;width:44%"><span class="tl-clip-label">Agenda · 5s</span></div></div></div></div></div>
-    </section>`,
-  },
-  exportSheet: {
-    render: () => `<div class="export-popup" role="group" aria-label="${escape(t('Export'))}">
-      <div class="export-popup-head"><span class="export-popup-title">${t('Export')}</span><button type="button" class="export-popup-close" aria-label="${escape(t('Close'))}">&#x2715;</button></div>
-      <div class="export-popup-body"><div class="tool-actions"><div class="export-actions-dock"><div class="export-action-buttons"><button type="button" class="btn btn--ghost">${t('Copy')}</button><button type="button" class="btn">${t('Save')}</button><button type="button" class="btn">${t('Share')}</button></div><div class="export-action-buttons"><button type="button" class="btn btn--ghost">${t('Save as')}</button><button type="button" class="btn btn--primary" data-action="download">${t('Download')}</button></div></div>${exportFieldsExample()}</div></div>
-    </div>`,
-  },
-  bodyPopover: {
-    render: () => {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'btn btn--primary'; b.textContent = t('Open menu…');
-      let popover: BodyPopoverHandle | null = null;
-      b.addEventListener('click', () => {
-        popover ??= mountBodyPopover(b, (el) => {
-          el.innerHTML = [t('Recolour'), t('Duplicate'), t('Delete')]
-            .map(label => `<button type="button" class="cl-popover-demo-item">${escape(label)}</button>`).join('');
-          return el.querySelector<HTMLElement>('.cl-popover-demo-item');
-        }, { className: 'cl-popover-demo', ariaLabel: t('Demo menu') });
-        previewPopovers.add(popover);
-        popover.isOpen() ? popover.close() : popover.open();
-      });
-      return b;
+        <div class="tl-group"><button type="button" class="tl-group-head" aria-expanded="true"><span class="tl-group-icon" aria-hidden="true">${icon('clock', { size: 14 })}</span><span class="tl-group-label">${t('Animate')}</span><i class="tl-group-caret" aria-hidden="true"></i></button>
+          <div class="tl-group-body"><div class="tl-group-chips"><span class="tl-group-chip">${t('Fade in')}</span><span class="tl-group-chip">${t('Rise')}</span></div></div></div>
+        <div class="tl-tracks"><div class="tl-tracks-inner"><div class="tl-lanes"><div class="tl-lane tl-lane-seq"><span class="tl-lane-label">Artboards</span><div class="tl-clip tl-clip-seq is-selected" data-kind="image" style="left:8%;width:38%"><span class="tl-clip-label">Cover · 4s</span></div><div class="tl-clip tl-clip-seq" data-kind="image" style="left:48%;width:44%"><span class="tl-clip-label">Agenda · 5s</span></div></div></div></div></div>
+      </section>`,
     },
-  },
-};
+    exportSheet: {
+      render: () => `<div class="export-popup" role="group" aria-label="${escape(t('Export'))}">
+        <div class="export-popup-head"><span class="export-popup-title">${t('Export')}</span><button type="button" class="export-popup-close" aria-label="${escape(t('Close'))}">&#x2715;</button></div>
+        <div class="export-popup-body"><div class="tool-actions"><div class="export-actions-dock"><div class="export-action-buttons"><button type="button" class="btn btn--ghost">${t('Copy')}</button><button type="button" class="btn">${t('Save')}</button><button type="button" class="btn">${t('Share')}</button></div><div class="export-action-buttons"><button type="button" class="btn btn--ghost">${t('Save as')}</button><button type="button" class="btn btn--primary" data-action="download">${t('Download')}</button></div></div>${exportFieldsExample()}</div></div>
+      </div>`,
+    },
+    bodyPopover: { interactive: true,
+      render: () => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'btn btn--primary'; b.textContent = t('Open menu…');
+        let popover: BodyPopoverHandle | null = null;
+        b.addEventListener('click', () => {
+          popover ??= mountBodyPopover(b, (el) => {
+            el.innerHTML = [t('Recolour'), t('Duplicate'), t('Delete')]
+              .map(label => `<button type="button" class="cl-popover-demo-item">${escape(label)}</button>`).join('');
+            return el.querySelector<HTMLElement>('.cl-popover-demo-item');
+          }, { className: 'cl-popover-demo', ariaLabel: t('Demo menu') });
+          previewPopovers.add(popover);
+          popover.isOpen() ? popover.close() : popover.open();
+        });
+        return b;
+      },
+    },
+  };
+
+  return { renderers: LIVE, dispose: () => {
+    for (const dispose of previewDisposers.splice(0)) dispose();
+    previewPopovers.forEach(popover => { popover.close(); });
+    previewPopovers.clear();
+  } };
+}
 
 // How a specimen is actually shown - not its nature, but what the card displays,
 // so the tag never promises interaction for an unwired render function.
 // Interactive specimens have safe local wiring; host-only states are fixtures.
 type Mode = 'live' | 'sample' | 'fixture' | 'source';
-function renderMode(s: Specimen): Mode {
-  if (s.live && LIVE[s.live]) return LIVE[s.live]!.wire || ['zoomHud', 'dialogTriggers', 'shareTrigger', 'bodyPopover'].includes(s.live) ? 'live' : 'sample';
+function renderMode(s: Specimen, previews: LivePreviews): Mode {
+  if (s.live && previews[s.live]) return previews[s.live]!.wire || previews[s.live]!.interactive ? 'live' : 'sample';
   if (s.markup) return 'sample';
   if (componentFixture(s)) return 'fixture';
   return 'source';
@@ -405,9 +422,9 @@ function useCaseLink(title: string): string {
   return reference ? `<a class="cl-text-link" href="${reference[0]}" target="_blank" rel="noopener">Open ${reference[1]} ↗</a>` : '';
 }
 
-function specimenShell(s: Specimen, idx: number): string {
-  const mode = renderMode(s);
-  const wide = ['designSystems', 'colorAdvanced', 'designColumns', 'timelineBar', 'footerNav', 'icons', 'viewTopbar', 'sessionRow', 'objectCards', 'featuredRow'].includes(s.live || '');
+function specimenShell(s: Specimen, idx: number, previews: LivePreviews): string {
+  const mode = renderMode(s, previews);
+  const wide = s.wide || ['designSystems', 'colorAdvanced', 'designColumns', 'timelineBar', 'footerNav', 'icons', 'viewTopbar', 'sessionRow', 'objectCards', 'featuredRow'].includes(s.live || '');
   const summary = s.description?.split(/(?<=\.)\s/)[0] || 'A shared part of the Lolly interface.';
   return `<article class="cl-card${wide ? ' cl-card--wide' : ''}" data-cl-card="${idx}" aria-labelledby="cl-name-${idx}">
     <div class="cl-card-top"><h3 class="cl-name" id="cl-name-${idx}">${escape(displayName(s))}</h3><span class="cl-kind cl-kind--${mode}">${MODE_LABEL[mode]}</span></div>
@@ -444,7 +461,7 @@ function foundationsHtml(): string {
 }
 
 function auditHtml(): string {
-  return `<section class="cl-section cl-audit" id="cl-audit"><div class="cl-section-head"><div><p class="cl-eyebrow">03 / UI & UX audit</p><h2>Clarity, at every scale.</h2></div><span class="cl-section-kind">7 September 2026</span></div>
+  return `<section class="cl-section cl-audit" id="cl-audit"><div class="cl-section-head"><div><p class="cl-eyebrow">03 / UI & UX audit</p><h2>Clarity, at every scale.</h2></div><span class="cl-section-kind">4 November 2026</span></div>
     <p class="cl-section-intro">A review of this library’s structure, component coverage and design handoff. Implementation findings are separated from checks that still need a browser.</p>
     <div class="cl-audit-grid">
       <article><span class="cl-audit-state">Updated</span><h3>Hierarchy & density</h3><p>Long implementation notes competed with the component itself. Colour tools and the Design workspace lead the collection, with names above previews and usage notes available on demand.</p></article>
@@ -455,9 +472,9 @@ function auditHtml(): string {
     <div class="cl-audit-grid">
       <article><span class="cl-audit-state">Unified</span><h3>Object cards across four views</h3><p>Catalog, Tools, Utilities and Projects share their card surfaces, captions, preview backgrounds and selection controls. The Object cards specimen demonstrates the catalog tint and image treatment, with selection you can change by mouse or keyboard.</p></article>
       <article><span class="cl-audit-state">Unified</span><h3>One colour control, four views</h3><p>Named rows, centred compact swatches, a scrollable palette and fine-tuning now share the colour field. HSL is the default; OKLCH is one tab away. The advanced editor keeps the full colour-space registry.</p></article>
-      <article><span class="cl-audit-state cl-audit-state--open">Next to consolidate</span><h3>Triggers, tabs & popovers</h3><p>Move the remaining legacy buttons to the shared button primitive, share segment styling while preserving tab and radio semantics, and bring Projects view-options onto the shared popover lifecycle. Swatch cards and editable tiles should share colour data but retain their distinct jobs.</p></article>
+      <article><span class="cl-audit-state cl-audit-state--open">Next to consolidate</span><h3>Shared code & preview contexts</h3><p>The picker collection workflow now has one implementation. Preview contexts declare the production ancestors they need, and each library mount owns its cleanup. Continue consolidating shared media maths and PDF font metrics across shells.</p></article>
     </div>
-    <details class="cl-details cl-audit-followup"><summary>Remaining product work & export boundaries</summary><ul><li>Legacy button class families remain in production. Continue migration when their owning view is rewritten; the shared button primitive remains canonical.</li><li>The Projects view-options popover still has a separate implementation.</li><li>Static fixtures show a design state, not the host-dependent workflow. Motion, focus traps, camera and storage need integration testing in their real views.</li><li>Penpot downloads preserve editable text, surfaces and token bindings. Layout is captured at the current preview size; CSS behaviour is not a Penpot prototype. Linear and radial gradients stay editable; conic gradients become colour paths and clipped surfaces become masks. Tiled backgrounds and complex SVG effects may be simplified. Any simplifications are reported beneath the download.</li><li>Font families remain editable; custom fonts must also be available in Penpot.</li></ul></details>
+    <details class="cl-details cl-audit-followup"><summary>Remaining product work & export boundaries</summary><ul><li>Legacy button class families remain in production. Continue migration when their owning view is rewritten; the shared button primitive remains canonical.</li><li>Large view orchestrators and existing import cycles remain follow-up work. The maintainability gate prevents growth; passing the gate does not remove that debt.</li><li>Static fixtures show a design state, not the host-dependent workflow. Motion, focus traps, camera and storage need integration testing in their real views.</li><li>Penpot downloads preserve editable text, surfaces and token bindings. Layout is captured at the current preview size; CSS behaviour is not a Penpot prototype. Linear and radial gradients stay editable; conic gradients become colour paths and clipped surfaces become masks. Tiled backgrounds and complex SVG effects may be simplified. Any simplifications are reported beneath the download.</li><li>Font families remain editable; custom fonts must also be available in Penpot.</li></ul></details>
   </section>`;
 }
 
@@ -491,6 +508,8 @@ function neutralizeMarkup(html: string): string {
 export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params?: string): Promise<void> {
   document.title = 'Components - Lolly';
   let active = true;
+  const previews = createPreviews();
+  const LIVE = previews.renderers;
   let clearDownloadRecovery = (): void => {};
   const resetDownloadRecovery = (): void => {
     clearDownloadRecovery();
@@ -499,9 +518,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
     active = false;
     resetDownloadRecovery();
-    for (const dispose of previewDisposers.splice(0)) dispose();
-    previewPopovers.forEach(popover => { popover.close(); });
-    previewPopovers.clear();
+    previews.dispose();
   };
   viewEl.classList.add('cl-view', 'components-view');
 
@@ -510,12 +527,13 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
   const flat: Specimen[] = AUDIT_SECTIONS.flatMap(sec => sec.items);
   let n = 0;
   const jump = AUDIT_SECTIONS.map(sec => sectionLink(sectionId(sec.title), sec.title, sec.metaphor, sec.items.length)).join('');
-  const interactive = flat.filter(s => renderMode(s) === 'live').length;
+  const interactive = flat.filter(s => renderMode(s, LIVE) === 'live').length;
   // The cover paints the ACTIVE design system's colours in the theme on screen (home
   // takes the dark set), or Lolly's neutral when the system has none. It used the
   // colour specimens' fixed demo palette, which put one brand's colours on every profile.
   const coverTheme = document.documentElement.dataset.theme === 'dark' || document.documentElement.dataset.theme === 'brand' ? 'dark' : 'light';
   const cover = await activePalette(host.tokens, coverTheme);
+  if (!active) return;
   viewEl.innerHTML = `
     ${backHomeHtml({ class: 'home-full cl-back' })}<div class="gallery-topright"></div>
     <header class="cl-head">
@@ -533,7 +551,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
           <div class="cl-toolbar"><label class="cl-search">${icon('search', { size: 18 })}<input type="search" class="cl-search-input" placeholder="Find a component, pattern or CSS hook…" aria-label="Search components"></label><label class="cl-filter-label"><span>Preview</span><select class="cl-mode-filter" aria-label="Filter by preview type"><option value="all">All previews</option><option value="live">Interactive</option><option value="sample">Static samples</option><option value="fixture">Design fixtures</option></select></label></div>
           <p class="cl-result-count" role="status" aria-live="polite">Showing ${flat.length} components</p>
           <div class="cl-empty" hidden><h3>No components found.</h3><p>Try another name, CSS hook or preview type.</p><button class="btn cl-reset" type="button">Clear filters</button></div>
-          ${AUDIT_SECTIONS.map((sec, i) => `<section class="cl-section cl-component-section" id="${sectionId(sec.title)}"><div class="cl-section-head"><h2><span class="cl-section-number">${String(i + 1).padStart(2, '0')}</span>${escape(sec.title)}</h2><span class="cl-section-kind">${sec.items.length} specimens · ${sec.group === 'common' ? 'Shared' : 'In context'}</span>${useCaseLink(sec.title)}</div>${sec.blurb && sec.title === 'Colour tools' ? `<p class="cl-section-intro">${escape(sec.blurb)}</p>` : ''}<div class="cl-grid">${sec.items.map(item => specimenShell(item, n++)).join('')}</div></section>`).join('')}
+          ${AUDIT_SECTIONS.map((sec, i) => `<section class="cl-section cl-component-section" id="${sectionId(sec.title)}"><div class="cl-section-head"><h2><span class="cl-section-number">${String(i + 1).padStart(2, '0')}</span>${escape(sec.title)}</h2><span class="cl-section-kind">${sec.items.length} specimens · ${sec.group === 'common' ? 'Shared' : 'In context'}</span>${useCaseLink(sec.title)}</div>${sec.blurb && sec.title === 'Colour tools' ? `<p class="cl-section-intro">${escape(sec.blurb)}</p>` : ''}<div class="cl-grid">${sec.items.map(item => specimenShell(item, n++, LIVE)).join('')}</div></section>`).join('')}
         </section>
         ${foundationsHtml()}${tokenExplorerHtml()}<details class="cl-audit-disclosure"><summary>About the library & export fidelity</summary>${auditHtml()}</details>
         <footer class="cl-page-footer"><strong>Lolly, by design.</strong><span>One system. Room for expression.</span></footer>
@@ -563,31 +581,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       } else {
         stage.innerHTML = `<span class="cl-broken">no sample</span>`;
       }
-      if (item.defined?.includes('profile.ts') || item.defined?.includes('storage')) {
-        const context = document.createElement('div');
-        context.className = 'cl-preview-context profile-view';
-        context.append(...stage.childNodes);
-        stage.append(context);
-      }
-      // A custom profile may omit the gradient preview. Keep demo imagery local
-      // and useful in that case, without retrying a failed fallback indefinitely.
-      // A specimen's own headings (a fixture's <h4>, a topbar's <h1>) read to a
-      // screen reader as sections of the library itself - the outline showed an
-      // H1 "This build" and H2s "Delete swatch?", "SUSE", "Storage". The tags stay
-      // (the part sheets select on them); only the heading role goes.
-      stage.setAttribute('role', 'group');
-      stage.setAttribute('aria-label', `Preview: ${displayName(item)}`);
-      stage.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(h => { h.setAttribute('role', 'presentation'); });
-      stage.querySelectorAll<HTMLImageElement>('img').forEach(img => {
-        const fallback = (): void => {
-          if (img.getAttribute('src') === COMPONENT_ARTWORK.icon) return;
-          img.src = COMPONENT_ARTWORK.icon;
-          img.alt = 'Lolly primary icon';
-          img.classList.remove('cl-example-cover');
-        };
-        img.addEventListener('error', fallback, { once: true });
-        if (img.complete && !img.naturalWidth) fallback();
-      });
+      prepareSpecimenStage(stage, item, displayName(item));
     } catch (err) {
       stage.innerHTML = `<span class="cl-broken">render failed: ${escape(String((err as Error)?.message ?? err))}</span>`;
     }
@@ -665,7 +659,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
     cards.forEach((card, i) => {
       const s = flat[i]!;
       const haystack = [s.name, s.description, s.css, s.defined, ...(s.eg || [])].join(' ').toLowerCase();
-      card.hidden = !terms.every(term => haystack.includes(term)) || (mode.value !== 'all' && renderMode(s) !== mode.value);
+      card.hidden = !terms.every(term => haystack.includes(term)) || (mode.value !== 'all' && renderMode(s, LIVE) !== mode.value);
       if (!card.hidden) count++;
     });
     viewEl.querySelectorAll<HTMLElement>('.cl-component-section').forEach(section => { section.hidden = !section.querySelector('.cl-card:not([hidden])'); });
