@@ -160,23 +160,30 @@ test('a room popover paints over the pinned bar on a phone', { skip, timeout: 18
   });
 });
 
-test('the desk room strip fades on each end that has rooms past it', { skip, timeout: 120_000 }, async () => {
+test('the desk room strip shows a cue on each end that has rooms past it', { skip, timeout: 120_000 }, async () => {
+  // Plan 346, change 10: lib/scroll-cue.ts puts a fade and a chevron at each end
+  // with rooms past it, and marks those ends on the nav (data-more="start end").
   await withPage({ width: 700, height: 800 }, async (page) => {
     await open(page, '#/start');
     const strip = page.locator('.ds-rooms');
-    const state = (): Promise<{ scrolls: boolean; more: string; mask: string }> => strip.evaluate((el) => {
-      const cs = getComputedStyle(el);
-      return { scrolls: el.scrollWidth > el.clientWidth + 1, more: (el as HTMLElement).dataset.more ?? '', mask: cs.maskImage || cs.webkitMaskImage };
+    const nav = page.locator('.ds-room-nav');
+    const state = (): Promise<{ scrolls: boolean; more: string; end: string; start: string }> => nav.evaluate((el) => {
+      const list = el.querySelector('.ds-rooms') as HTMLElement;
+      const shown = (sel: string): string => { const cue = el.querySelector(sel); return cue ? getComputedStyle(cue).display : 'missing'; };
+      return { scrolls: list.scrollWidth > list.clientWidth + 1, more: (el as HTMLElement).dataset.more ?? '', end: shown('.scroll-cue--end'), start: shown('.scroll-cue--start') };
     });
-    const start = await state();
-    assert.ok(start.scrolls, 'eight rooms do not fit a 700px window, or this proves nothing');
-    assert.equal(start.more, 'right', 'rooms wait past the right end only');
-    assert.notEqual(start.mask, 'none', 'the strip fades where it continues');
+    const first = await state();
+    assert.ok(first.scrolls, 'eight rooms do not fit a 700px window, or this proves nothing');
+    assert.equal(first.more, 'end', 'rooms wait past the far end only');
+    assert.notEqual(first.end, 'none', 'the far end shows its cue');
+    assert.equal(first.start, 'none', 'the near end shows none');
     await strip.evaluate((el) => { el.scrollLeft = el.scrollWidth; });
-    await page.waitForFunction(() => (document.querySelector('.ds-rooms') as HTMLElement).dataset.more === 'left');
+    await page.waitForFunction(() => (document.querySelector('.ds-room-nav') as HTMLElement).dataset.more === 'start');
     await page.setViewportSize(DESK);
-    await page.waitForFunction(() => !(document.querySelector('.ds-rooms') as HTMLElement).dataset.more);
-    assert.equal((await state()).mask, 'none', 'a strip that fits has no fade');
+    await page.waitForFunction(() => !(document.querySelector('.ds-room-nav') as HTMLElement).dataset.more);
+    const fits = await state();
+    assert.equal(fits.end, 'none', 'a strip that fits shows no cue');
+    assert.equal(fits.start, 'none');
   });
 });
 
