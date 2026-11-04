@@ -1,0 +1,39 @@
+<div class="qw-page" style="--qw-accent: {{default accent "#2563eb"}}; --qw-bg: {{default background "#ffffff"}}; --qw-ink: {{default ink "#111827"}}; --qw-days: {{default dayCount "5"}};">
+  <div class="qw-sheet">
+    <header class="qw-head">
+      <div>
+        {{#if subheading}}<span class="qw-kicker">{{subheading}}</span>{{/if}}
+        <h1 class="qw-title">{{default heading "This week"}}</h1>
+      </div>
+      {{#if bookedText}}<div class="qw-booked"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>{{bookedText}}</div>{{/if}}
+    </header>
+
+    {{!-- Day columns over an hour grid. Each event's place and length (top,
+          height) are shares of the day shown, from hooks.js. --}}
+    <div class="qw-grid">
+      <div class="qw-days-head">
+        {{#each weekDays}}<div class="qw-day-name"><span>{{label}}</span>{{#if date}}<b>{{date}}</b>{{/if}}</div>{{/each}}
+      </div>
+      <div class="qw-body">
+        <div class="qw-hours">
+          {{#each hourMarks}}<span class="qw-hour" style="top: {{top}}">{{label}}</span>{{/each}}
+        </div>
+        <div class="qw-columns">
+          {{#each hourMarks}}<span class="qw-rule" style="top: {{top}}"></span>{{/each}}
+          {{#each weekDays}}
+          <div class="qw-column">
+            {{#each events}}
+            <div class="qw-event {{status}}" style="top: {{top}}; height: {{height}};">
+              <div class="qw-event-in">
+                <span class="qw-event-title">{{#if booked}}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>{{/if}}{{title}}</span>
+                <span class="qw-event-time">{{time}}{{#if statusLabel}}<span class="qw-event-status">{{statusLabel}}</span>{{/if}}</span>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

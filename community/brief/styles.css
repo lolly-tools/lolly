@@ -1,0 +1,107 @@
+/* Brief - one page that fills the canvas. The page is the query container
+   every cq unit below resolves against, and its shape picks the layout: two
+   columns of points on a page, one on a portrait sheet, and three or four on
+   a wide screen. --qb-scale (from hooks.js) sets the type smaller for a long
+   brief and larger for a short one, so the text fills the page. */
+
+.qb-page {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  container-type: size;
+  box-sizing: border-box;
+  border-top: 1.8cqmin solid var(--qb-accent, #2563eb);
+  background: var(--qb-bg, #ffffff);
+  color: var(--qb-ink, #111827);
+  font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  line-height: 1.38;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.qb-page * { box-sizing: border-box; margin: 0; }
+
+.qb-sheet {
+  --qb-fs: calc(2.5cqmin * var(--qb-scale, 1));
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--qb-fs) * 1.3);
+  padding: 5.5cqmin 6cqmin 4.5cqmin;
+  font-size: var(--qb-fs);
+}
+
+.qb-kicker {
+  display: block;
+  color: var(--qb-accent, #2563eb);
+  font-size: 2.1cqmin;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.qb-title {
+  margin-top: 0.8cqmin;
+  font-size: 5.6cqmin;
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+.qb-meta { margin-top: 1cqmin; font-size: 2.5cqmin; opacity: 0.7; }
+
+.qb-intro { font-size: calc(var(--qb-fs) * 1.08); }
+
+.qb-points {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--qb-fs) * 1.2) 4cqmin;
+  align-content: start;
+}
+.qb-point {
+  padding-top: calc(var(--qb-fs) * 0.55);
+  border-top: 0.25cqmin solid color-mix(in srgb, var(--qb-accent, #2563eb) 70%, transparent);
+  min-width: 0;
+}
+.qb-label {
+  margin-bottom: calc(var(--qb-fs) * 0.3);
+  color: var(--qb-accent, #2563eb);
+  font-size: calc(var(--qb-fs) * 0.78);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.qb-text { overflow-wrap: anywhere; }
+.qb-text p + p, .qb-text p + ul, .qb-text ul + p { margin-top: 0.4em; }
+.qb-text ul, .qb-text ol { padding-left: 1.1em; }
+.qb-text a, .qb-note a { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--qb-accent, #2563eb) 70%, transparent); text-underline-offset: 0.15em; }
+.qb-text strong { font-weight: 700; }
+
+.qb-notes {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqmin;
+  align-items: flex-start;
+  text-align: left;
+  font-size: calc(var(--qb-fs) * 0.78);
+  opacity: 0.7;
+}
+.qb-note p { display: inline; }
+
+/* Portrait: one column of points. */
+@container (max-aspect-ratio: 4 / 5) {
+  .qb-sheet { --qb-fs: calc(2.3cqmin * var(--qb-scale, 1)); }
+  .qb-points { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Wide: a screen or a slide. The page is short, so it is sized to its height
+   (cqmin), and the points run in as many columns as there are rows of them. */
+@container (min-aspect-ratio: 2 / 1) {
+  .qb-sheet {
+    --qb-fs: calc(3.4cqmin * var(--qb-scale, 1));
+    padding: 6cqmin 7cqmin 4.5cqmin;
+  }
+  .qb-kicker { font-size: 3.2cqmin; }
+  .qb-title { font-size: 8.5cqmin; }
+  .qb-meta { font-size: 3.6cqmin; }
+  .qb-points { grid-template-columns: repeat(var(--qb-cols, 3), minmax(0, 1fr)); column-gap: 5cqmin; }
+}

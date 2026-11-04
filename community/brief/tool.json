@@ -1,0 +1,46 @@
+{
+  "id": "brief",
+  "name": "Brief",
+  "description": "A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.",
+  "a11yLabel": "Brief: {{default heading \"a one-page brief\"}}",
+  "version": "1.0.0",
+  "engineVersion": "^1.82.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": ["brief", "one-pager", "account", "research", "markdown", "sales", "summary", "pdf"],
+  "render": {
+    "width": 1600,
+    "height": 1000,
+    "formats": ["pdf", "png", "svg", "jpeg", "webp"],
+    "actions": ["copy", "download", "save"],
+    "sectionIcons": { "Style": "palette" }
+  },
+  "hooks": { "onInit": true, "onInput": true },
+  "inputs": [
+    {
+      "id": "body",
+      "label": "Brief",
+      "type": "longtext",
+      "maxLength": 6000,
+      "help": "Markdown. A first line in bold, or a # heading, is the title; parts after a · become the details beneath the title. Each \"- **Label:** text\" point, or each ## heading with its paragraph, becomes a labelled point. A closing \"**Not confirmed:**\", \"**Sources:**\" or \"**Note:**\" paragraph is set small at the foot.",
+      "default": "**Alex Morgan** · Head of IT · Example Council\n\n- **In the news:** The council opened a tender for its data centre move on 14 October.\n- **Signal:** Downloaded the migration guide twice this month and asked for pricing.\n- **Account:** A customer since 2021, with 340 subscriptions and a renewal due in March.\n- **Support:** Two cases this year, both closed within a day.\n- **Watch out:** A competitor won the storage project in June.\n- **Next step:** Offer thirty minutes on the migration plan before the tender closes.\n\n**Not confirmed:** Who signs off the tender."
+    },
+    { "id": "subheading", "label": "Label", "type": "text", "default": "Brief", "maxLength": 40, "help": "The small label above the title." },
+    {
+      "id": "orientation",
+      "display": "segmented",
+      "label": "Orientation",
+      "type": "select",
+      "default": "landscape",
+      "options": [
+        { "value": "landscape", "label": "Landscape", "width": 1600, "height": 1000, "unit": "px" },
+        { "value": "portrait", "label": "Portrait", "width": 1000, "height": 1414, "unit": "px" },
+        { "value": "wide", "label": "Screen", "width": 2400, "height": 800, "unit": "px" }
+      ],
+      "section": "Style"
+    },
+    { "id": "accent", "label": "Accent", "type": "color", "default": "{color.semantic.primary}", "section": "Style" },
+    { "id": "background", "label": "Background", "type": "color", "default": "{color.semantic.surface}", "section": "Style" },
+    { "id": "ink", "label": "Text colour", "type": "color", "default": "{color.semantic.text}", "section": "Style" }
+  ]
+}

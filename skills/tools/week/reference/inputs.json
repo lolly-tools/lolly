@@ -1,0 +1,171 @@
+[
+  {
+    "id": "events",
+    "label": "Events",
+    "type": "table",
+    "urlKey": "t",
+    "help": "One event per row: the day (Mon, Thursday or a date), the start and end (10:00, 2pm), a title and a status: busy, proposed, declined, tentative or booked.",
+    "default": {
+      "columns": [
+        "Day",
+        "Start",
+        "End",
+        "Title",
+        "Status"
+      ],
+      "rows": [
+        [
+          "Mon",
+          "9:00",
+          "11:00",
+          "Team planning",
+          "busy"
+        ],
+        [
+          "Tue",
+          "13:00",
+          "15:00",
+          "Customer workshop",
+          "busy"
+        ],
+        [
+          "Tue",
+          "10:00",
+          "11:00",
+          "Intro call",
+          "declined"
+        ],
+        [
+          "Wed",
+          "14:00",
+          "15:00",
+          "Intro call",
+          "declined"
+        ],
+        [
+          "Thu",
+          "10:00",
+          "11:00",
+          "Intro call",
+          "booked"
+        ],
+        [
+          "Fri",
+          "9:30",
+          "12:00",
+          "Quarterly review",
+          "busy"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "heading",
+    "label": "Title",
+    "type": "text",
+    "default": "Find a time",
+    "maxLength": 80
+  },
+  {
+    "id": "subheading",
+    "label": "Subtitle",
+    "type": "text",
+    "default": "Intro call, one hour",
+    "maxLength": 120
+  },
+  {
+    "id": "weekOf",
+    "label": "Week of",
+    "type": "date",
+    "help": "Any date in the week; the days show their dates.",
+    "section": "Week"
+  },
+  {
+    "id": "days",
+    "display": "segmented",
+    "label": "Days",
+    "type": "select",
+    "default": "5",
+    "options": [
+      {
+        "value": "5",
+        "label": "Mon to Fri"
+      },
+      {
+        "value": "7",
+        "label": "Whole week"
+      }
+    ],
+    "section": "Week"
+  },
+  {
+    "id": "fromHour",
+    "label": "Day starts",
+    "type": "number",
+    "default": 8,
+    "min": 0,
+    "max": 23,
+    "section": "Week"
+  },
+  {
+    "id": "toHour",
+    "label": "Day ends",
+    "type": "number",
+    "default": 18,
+    "min": 1,
+    "max": 24,
+    "section": "Week"
+  },
+  {
+    "id": "orientation",
+    "display": "segmented",
+    "label": "Orientation",
+    "type": "select",
+    "default": "landscape",
+    "options": [
+      {
+        "value": "landscape",
+        "label": "Landscape",
+        "width": 1600,
+        "height": 1000,
+        "unit": "px"
+      },
+      {
+        "value": "portrait",
+        "label": "Portrait",
+        "width": 1000,
+        "height": 1414,
+        "unit": "px"
+      },
+      {
+        "value": "wide",
+        "label": "Screen",
+        "width": 2400,
+        "height": 800,
+        "unit": "px"
+      }
+    ],
+    "section": "Style"
+  },
+  {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "section": "Style"
+  },
+  {
+    "id": "background",
+    "label": "Background",
+    "type": "color",
+    "default": "{color.semantic.surface}",
+    "section": "Style"
+  },
+  {
+    "id": "ink",
+    "label": "Text colour",
+    "type": "color",
+    "default": "{color.semantic.text}",
+    "section": "Style"
+  }
+]

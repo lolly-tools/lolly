@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-03T15:01:02.300Z",
+  "generatedAt": "2026-11-04T17:07:09.308Z",
   "tools": [
     {
       "id": "3d",
@@ -15129,6 +15129,124 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 2h9l4 4v16H6z\"/><path d=\"M15 2v4h4\"/><line x1=\"9\" y1=\"10\" x2=\"16\" y2=\"10\"/><line x1=\"9\" y1=\"13.5\" x2=\"16\" y2=\"13.5\"/><line x1=\"12\" y1=\"18\" x2=\"16\" y2=\"18\"/></svg>",
       "preview": "/catalog/previews/quote.svg"
+    },
+    {
+      "id": "brief",
+      "name": "Brief",
+      "description": "A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "brief",
+        "one-pager",
+        "account",
+        "research",
+        "markdown",
+        "sales",
+        "summary",
+        "pdf"
+      ],
+      "formats": [
+        "pdf",
+        "png",
+        "svg",
+        "jpeg",
+        "webp"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"2.5\" width=\"16\" height=\"19\" rx=\"2\"/><line x1=\"8\" y1=\"7\" x2=\"16\" y2=\"7\"/><line x1=\"8\" y1=\"11\" x2=\"11\" y2=\"11\"/><line x1=\"13\" y1=\"11\" x2=\"16\" y2=\"11\"/><line x1=\"8\" y1=\"14.5\" x2=\"11\" y2=\"14.5\"/><line x1=\"13\" y1=\"14.5\" x2=\"16\" y2=\"14.5\"/><line x1=\"8\" y1=\"18\" x2=\"13\" y2=\"18\"/></svg>",
+      "preview": "/catalog/previews/brief.svg"
+    },
+    {
+      "id": "email",
+      "name": "Email",
+      "description": "An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments, as received, a draft or sent. For mock-ups, slides and walkthroughs.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "email",
+        "mail",
+        "message",
+        "inbox",
+        "mock-up",
+        "sales",
+        "outreach"
+      ],
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "jpeg",
+        "webp"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2.5\" y=\"5\" width=\"19\" height=\"14\" rx=\"2\"/><path d=\"M3 6.5l9 6.5 9-6.5\"/></svg>",
+      "preview": "/catalog/previews/email.svg"
+    },
+    {
+      "id": "scorecard",
+      "name": "Scorecard",
+      "description": "Score a deal, a vendor or a plan against your criteria: each with a bar, a score and the evidence behind it, and an overall score. Paste the rows from a spreadsheet, such as MEDDPICC for a deal.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "scorecard",
+        "meddpicc",
+        "qualification",
+        "evaluation",
+        "criteria",
+        "rating",
+        "sales",
+        "table"
+      ],
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "jpeg",
+        "webp"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"3\" y1=\"6\" x2=\"21\" y2=\"6\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"3\" y1=\"18\" x2=\"21\" y2=\"18\"/><circle cx=\"15\" cy=\"6\" r=\"2\" fill=\"currentColor\"/><circle cx=\"9\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"18\" cy=\"18\" r=\"2\" fill=\"currentColor\"/></svg>",
+      "preview": "/catalog/previews/scorecard.svg"
+    },
+    {
+      "id": "week",
+      "name": "Week",
+      "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. Paste the events as a table, for a slide or a walkthrough.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "calendar",
+        "week",
+        "schedule",
+        "meeting",
+        "availability",
+        "slots",
+        "planner"
+      ],
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "jpeg",
+        "webp"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4.5\" width=\"18\" height=\"16.5\" rx=\"2\"/><line x1=\"3\" y1=\"9\" x2=\"21\" y2=\"9\"/><line x1=\"8\" y1=\"2.5\" x2=\"8\" y2=\"6\"/><line x1=\"16\" y1=\"2.5\" x2=\"16\" y2=\"6\"/><rect x=\"10.5\" y=\"12\" width=\"4\" height=\"5\" rx=\"0.8\" fill=\"currentColor\"/></svg>",
+      "preview": "/catalog/previews/week.svg"
     }
   ]
 }
