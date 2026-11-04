@@ -41,7 +41,12 @@ window.__LOLLY_UPDATER_QUALIFICATION__ = {};
     } }));
     return reporting;
   }
-  owner.subscribe(() => { void report(); });
+  let reportTimer;
+  // Coalesce transfer progress so evidence writes cannot hold up the command loop.
+  owner.subscribe(() => {
+    if (reportTimer) return;
+    reportTimer = setTimeout(() => { reportTimer = undefined; void report(); }, 250);
+  });
   await report();
   for (;;) {
     const next = await invoke('updater_probe_poll');
@@ -71,13 +76,24 @@ window.__LOLLY_UPDATER_QUALIFICATION__ = {};
         text: document.body.innerText.slice(-20000),
         fields: [...document.querySelectorAll('input, textarea, button, select')].filter(el => el.getClientRects().length).map(el => ({ tag: el.tagName, id: el.id, name: el.name, type: el.type, value: el.value, text: el.textContent?.slice(0, 100), ariaLabel: el.getAttribute('aria-label') })),
       };
-      if (next.action === 'seed') {
+      if (next.action === 'seed' || next.action === 'save-document') {
+        result = { stage: 'saving-document' }; await report();
         await host.state.save('updater-qualification', { __toolId: 'qr-code', url: 'https://example.com/update-survival' }, null);
+      }
+      if (next.action === 'seed') {
+        result = { stage: 'seeding-profile' }; await report();
         localStorage.setItem('lolly:updater-qualification-preference', 'preserved');
-        await host.profile.set({ ...(await host.profile.get()), firstname: 'Updater qualification' });
-        await put('user-assets', { id: 'user/updater-qualification', type: 'image', format: 'svg', version: '1', blob: new Blob([bytes], { type: 'image/svg+xml' }) });
-        const keys = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
-        await put('identity', keys, 'updater-qualification');
+        const profile = await host.profile.get();
+        if (profile.firstname !== 'Updater qualification') await host.profile.set({ ...profile, firstname: 'Updater qualification' });
+        result = { stage: 'seeding-asset' }; await report();
+        if (!(await get('user-assets', 'user/updater-qualification'))) {
+          await put('user-assets', { id: 'user/updater-qualification', type: 'image', format: 'svg', version: '1', blob: new Blob([bytes], { type: 'image/svg+xml' }) });
+        }
+        result = { stage: 'seeding-credential' }; await report();
+        if (!(await get('identity', 'updater-qualification'))) {
+          const keys = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
+          await put('identity', keys, 'updater-qualification');
+        }
       }
       if (next.action === 'read') {
         const asset = await get('user-assets', 'user/updater-qualification');
@@ -89,6 +105,7 @@ window.__LOLLY_UPDATER_QUALIFICATION__ = {};
           expectedAssetSha256: await digest(bytes),
           credentialWorks: !!signature && await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, keys.publicKey, signature, bytes),
           credentialExtractable: keys?.privateKey.extractable,
+          credentialPublicSha256: keys ? await digest(await crypto.subtle.exportKey('spki', keys.publicKey)) : null,
         };
       }
     } catch (e) { error = String(e); }

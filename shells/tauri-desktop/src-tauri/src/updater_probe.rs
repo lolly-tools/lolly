@@ -40,6 +40,7 @@ fn updater_probe_poll() -> Result<Option<serde_json::Value>, String> {
 
 #[tauri::command]
 fn updater_probe_report<R: Runtime>(app: tauri::AppHandle<R>, mut value: serde_json::Value) -> Result<(), String> {
+    value["processId"] = std::process::id().into();
     value["nativeVersion"] = app.package_info().version.to_string().into();
     let binary = tauri::utils::platform::current_exe().map_err(|e| e.to_string())?;
     let parent = binary.parent().ok_or("Missing executable parent")?;
