@@ -38,15 +38,16 @@ test('an empty slot is a drop area that names its logo and draws no mark', () =>
   assert.doesNotMatch(html, /<img/, 'nothing stands in for the person\'s mark');
   assert.doesNotMatch(html, /is-filled/);
   assert.match(html, /data-file-drop/, 'the tile takes a dropped file');
-  assert.match(html, /Drop your horizontal logo/);
+  assert.match(html, /Drop a horizontal logo/);
   assert.match(html, /data-drop-label="Drop to add"/);
-  assert.equal(emptySlotPrompt('vertical-primary'), 'Drop your vertical logo');
+  assert.equal(emptySlotPrompt('vertical-primary'), 'Drop a vertical logo');
   assert.equal(emptySlotPrompt('vertical-primary-reverse'), 'Drop to add', 'the other forms do not repeat the sentence');
 });
 
-test('only the tile asked for carries the magpie\'s placeholder, and it is empty and hidden from AT', () => {
-  assert.ok(logoTileHtml('horizontal-primary', 'default', undefined, { fauna: true }).includes(MAGPIE_SLOT));
-  assert.ok(!logoTileHtml('horizontal-mono', 'default', undefined).includes('fauna-slot'));
+test('one magpie per view: the room\'s drop zone carries it, no tile does, and it is empty and hidden from AT', () => {
+  for (const v of LOGO_VARIANTS) assert.ok(!logoTileHtml(v, 'default', undefined).includes('fauna-slot'), v);
+  const markup = readFileSync(new URL('../brand-editor/derive.ts', import.meta.url), 'utf8');
+  assert.match(markup, /be-logo-intake-glyph[^\n]*\$\{MAGPIE_SLOT\}/);
   assert.match(MAGPIE_SLOT, /^<span class="fauna-slot" data-fauna="magpie" data-fauna-watch="drop" aria-hidden="true"><\/span>$/);
 });
 

@@ -90,13 +90,16 @@ export async function openLooks(start: StartCtx): Promise<void> {
   start.adoptionReviewBase = adoptionOf(start.host)?.capture().catch(error => error instanceof Error ? error : new Error(String(error)));
   const modal = mountModal(`<header class="start-import-head"><h2 class="modal-title">${t('Find a look')}</h2><button type="button" class="be-btn" data-looks-close>${t('Close')}</button></header>
     <p>${t('Preview saved design systems and a few starting points. Nothing changes until you choose Use.')}</p>
-    <p role="status" data-looks-status>${t('Loading design systems…')}</p><div data-looks-body></div>`, {
+    <p role="status" data-looks-status>${t('Loading design systems…')}</p><p class="visually-hidden" role="status" data-looks-announce></p><div data-looks-body></div>`, {
     className: 'modal start-import-modal ds-looks-modal', ariaLabel: t('Find a look'),
     onClose: () => { start.looksModal = null; },
   });
   start.looksModal = modal;
   modal.el.querySelector('[data-looks-close]')?.addEventListener('click', () => modal.close());
   const status = modal.el.querySelector<HTMLElement>('[data-looks-status]')!;
+  // The look's name is already on screen in the pane's header, so the preview is announced
+  // to assistive tech here without a second visible line.
+  const announce = modal.el.querySelector<HTMLElement>('[data-looks-announce]')!;
   try {
     const host = start.host;
     const result = await readLocalLooks(host);
@@ -105,7 +108,7 @@ export async function openLooks(start: StartCtx): Promise<void> {
     const active = result.looks.find(look => look.id === activeId);
     const body = modal.el.querySelector<HTMLElement>('[data-looks-body]')!;
     body.innerHTML = `<div class="ds-looks-filters"><label class="field-label">${t('Search looks')}<input type="search" class="field-input" maxlength="160" data-looks-search placeholder="${escapeText(t('Name, colour tag or font'))}"></label>
-      <label class="ds-reference-choice"><input type="checkbox" class="field-check" data-looks-similar>${t('Closest to my current palette')}</label>
+      <label class="ds-reference-choice"><input type="checkbox" class="field-check" data-looks-similar>${t('Closest to the current palette')}</label>
       <button type="button" class="be-btn" data-looks-compare-toggle aria-pressed="false">${t('Compare looks')}</button></div>
       <p class="ds-src-stage-note">${t('Examples use your current fonts when applied. Saved systems keep their own declared fonts.')}</p>
       <div class="ds-looks-layout"><div class="ds-looks-grid" data-looks-grid></div><section class="ds-looks-preview" data-looks-preview></section></div>
@@ -165,7 +168,7 @@ export async function openLooks(start: StartCtx): Promise<void> {
         other.classList.toggle('is-previewing', on);
         other.querySelector('[data-look-preview]')?.setAttribute('aria-pressed', String(on));
       }
-      status.textContent = tRaw('Previewing {name}', { name: look.name });
+      announce.textContent = tRaw('Previewing {name}', { name: look.name });
       // One column (a phone): the pane sits above the list, so bring it into view.
       if (card && pane.getBoundingClientRect().bottom <= card.getBoundingClientRect().top) {
         pane.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });

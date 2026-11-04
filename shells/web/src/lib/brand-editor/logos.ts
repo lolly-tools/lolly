@@ -37,8 +37,8 @@ export const showLogoErr = (bedit: BrandEditorCtx, m: string): void => {
   const { logoErr } = bedit; if (logoErr) { logoErr.textContent = m; logoErr.hidden = !m; } if (m) announce(m, { assertive: true }); };
 export const identityLabel = (_bedit: BrandEditorCtx, id: string): string => (id === 'default' ? t('The logo') : prettify(id));
 /** One tile, filled or empty, at its lockup's shape (design-system/logo-tile.ts). */
-export const logoTile = (_bedit: BrandEditorCtx, v: string, identity: string, slot: LogoSlot | undefined, label?: string, fauna = false): string =>
-  logoTileHtml(v, identity, slot, { ...(label ? { label } : {}), fauna });
+export const logoTile = (_bedit: BrandEditorCtx, v: string, identity: string, slot: LogoSlot | undefined, label?: string): string =>
+  logoTileHtml(v, identity, slot, label ? { label } : {});
 export const paintLogos = async (bedit: BrandEditorCtx): Promise<void> => {
   const { fontsHost, pendingIdentities, root } = bedit;
   const mount = bedit.ramps.$('[data-be-logos]') as HTMLElement | null; if (!mount) return;
@@ -51,8 +51,6 @@ export const paintLogos = async (bedit: BrandEditorCtx): Promise<void> => {
   const identities: string[] = ['default'];
   for (const s of slots) if (!identities.includes(s.identity)) identities.push(s.identity);
   for (const p of pendingIdentities) if (!identities.includes(p)) identities.push(p);
-  // The magpie watches one empty slot: the first one on screen.
-  let faunaLeft = true;
   const sections = identities.map(identity => {
     const mine = slots.filter(s => s.identity === identity);
     const byVariant = new Map(mine.map(s => [s.variant, s]));
@@ -63,12 +61,7 @@ export const paintLogos = async (bedit: BrandEditorCtx): Promise<void> => {
       // with no marks at all: its empty slots are where the first mark goes, so
       // they show, in their own shape, rather than a room of closed headings.
       const open = variants.some(v => byVariant.has(v)) || (o === LOGO_ORIENTATIONS[0] && mine.length === 0);
-      const tiles = variants.map(v => {
-        const empty = !byVariant.has(v);
-        const fauna = open && empty && faunaLeft;
-        if (fauna) faunaLeft = false;
-        return logoTile(bedit, v, identity, byVariant.get(v), undefined, fauna);
-      }).join('');
+      const tiles = variants.map(v => logoTile(bedit, v, identity, byVariant.get(v))).join('');
       return logoGroupHtml({
         name: escapeText(om.label), hint: escapeText(om.hint), body: tiles,
         filled: open,

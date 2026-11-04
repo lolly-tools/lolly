@@ -38,18 +38,17 @@ export function logoTileShape(variant: string): LogoTileShape {
 export function emptySlotPrompt(variant: string): string {
   const { orientation, treatment } = splitVariant(variant);
   if (treatment !== 'primary') return t('Drop to add');
-  return orientation === 'vertical' ? t('Drop your vertical logo') : t('Drop your horizontal logo');
+  return orientation === 'vertical' ? t('Drop a vertical logo') : t('Drop a horizontal logo');
 }
 
 /** The Fauna placeholder for the magpie, who watches the place a mark is dropped.
+ *  One per view: the Logos room carries it in its drop zone (brand-editor/derive.ts).
  *  Empty and hidden until components/fauna-art.ts draws the bird inside. */
 export const MAGPIE_SLOT = '<span class="fauna-slot" data-fauna="magpie" data-fauna-watch="drop" aria-hidden="true"></span>';
 
 export interface LogoTileOptions {
   /** The slot's name, when the caller has one (a custom mark's label). */
   label?: string;
-  /** Leave the magpie's placeholder in this tile (the first empty slot only). */
-  fauna?: boolean;
 }
 
 /** One tile, filled with `slot` or empty when there is none. */
@@ -66,7 +65,7 @@ export function logoTileHtml(variant: string, identity: string, slot: LogoSlot |
   // the same placement a picked file takes.
   const body = slot
     ? `<span class="be-logo-art"><img src="${escapeText(slot.url)}" alt="${escapeText(tRaw('{name} logo', { name: fullName }))}" loading="lazy"></span>`
-    : `<span class="be-logo-empty">${opts.fauna ? MAGPIE_SLOT : ''}<span class="be-logo-empty-prompt">${escapeText(emptySlotPrompt(variant))}</span></span>`;
+    : `<span class="be-logo-empty"><span class="be-logo-empty-prompt">${escapeText(emptySlotPrompt(variant))}</span></span>`;
   // The slot's file input is `visually-hidden`, never `hidden`: a display:none
   // input is not focusable, which made every logo slot mouse-only. The label
   // draws the keyboard ring on its behalf via .be-logo-drop:focus-within

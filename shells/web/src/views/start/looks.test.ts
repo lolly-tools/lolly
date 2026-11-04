@@ -86,7 +86,10 @@ test('a click previews a look in context, and nothing is written', async () => {
   // The pane draws the Colours room's scenes in Orchard's primary.
   const orchard = exampleLooks()[0]!.context.colors.find(c => c.path.endsWith('.semantic.primary'))!.value;
   assert.ok(q('.ds-looks-scenes')!.innerHTML.toLowerCase().includes(orchard.toLowerCase()));
-  assert.equal(q('[data-looks-status]')?.textContent, 'Previewing Orchard');
+  // Announced to assistive tech, not shown twice: the look's name is in the pane's header.
+  assert.equal(q('[data-looks-announce]')?.textContent, 'Previewing Orchard');
+  assert.ok(q('[data-looks-announce]')?.classList.contains('visually-hidden'));
+  assert.equal(q('[data-looks-status]')?.textContent, '');
   // A scene switch is a preview too.
   click(q('[data-looks-scene="1"]'));
   assert.deepEqual([...dialog().querySelectorAll<HTMLElement>('.ds-looks-scene')].map(f => f.hidden), [true, false, true]);
