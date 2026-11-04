@@ -28,6 +28,12 @@ test('palette handles support keyboard, mouse and tablet dragging with persisten
     const keys = () => group.locator('[data-reorder-row]').evaluateAll(cards => cards.map(card => (card as HTMLElement).dataset.reorderRow));
     const before = await keys(); assert.ok(before.length > 2);
     const handles = group.locator('[data-reorder-handle]');
+    // At rest a swatch is colour, name and hex on every width (plan 346 change 8);
+    // Select brings the checkboxes and the handles, still full touch targets.
+    assert.equal(await handles.first().isVisible(), false, 'no handle at rest on a tablet either');
+    assert.equal(await group.locator('.be-pal-check').first().isVisible(), false, 'nor a checkbox');
+    await group.locator('[data-be-pal-all]').click();
+    await handles.first().waitFor({ state: 'visible' });
     await handles.first().press('Space'); await handles.first().press('ArrowRight'); await handles.first().press('Escape');
     assert.deepEqual(await keys(), before, 'Escape leaves order intact');
     await handles.first().press('Space'); await handles.first().press('ArrowRight'); await handles.first().press('Space');
@@ -68,12 +74,12 @@ test('palette handles support keyboard, mouse and tablet dragging with persisten
     await page.evaluate(() => { document.documentElement.dataset.a11yText = 'large'; });
     await group.locator('[data-reorder-row]').first().scrollIntoViewIfNeeded();
     assert.equal(await group.evaluate(el => el.scrollWidth > el.clientWidth + 1), false);
-    assert.ok((await group.locator('.be-pal-check').first().boundingBox())!.width >= 44);
     // A phone shows four colours a row and no handle row under each at rest; Select
-    // mode brings the handles back, still a full touch target (plan 336).
+    // mode brings the checkboxes and handles back, still full touch targets (plan 336).
     assert.equal(await handles.first().isVisible(), false, 'no permanent handle row on a phone');
     await group.locator('[data-be-pal-all]').click();
     await handles.first().waitFor({ state: 'visible' });
+    assert.ok((await group.locator('.be-pal-check').first().boundingBox())!.width >= 44);
     const phoneHandle = (await handles.first().boundingBox())!;
     assert.ok(phoneHandle.width >= 44 && phoneHandle.height >= 44, 'the Select-mode handle keeps its 44px target');
     await page.screenshot({ path: '/tmp/lolly-brand-palette-phone.png', fullPage: true });

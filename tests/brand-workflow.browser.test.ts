@@ -59,12 +59,16 @@ test('Profile creates and reopens editable systems beside a locked deployment br
     await name.blur();
     await page.getByText('Design system name saved.', { exact: true }).waitFor();
     await page.locator('[data-ds-room="color"]').click();
-    // The starter neutrals start folded, so open them before editing one.
-    await page.locator('details[data-be-group="Starter colours"] .be-pal-group-label').click();
+    // With nothing of the system's own yet, the starter neutrals show open (plan 346
+    // change 18); a group someone folded is opened again before editing one.
+    const starter = page.locator('details[data-be-group="Starter colours"]');
+    if (!(await starter.evaluate(d => (d as HTMLDetailsElement).open))) await starter.locator('.be-pal-group-label').click();
     await page.locator('[data-be-tile="0"]').click();
     await page.locator('[data-be-editor-name]').fill('My edited colour');
     await page.locator('[data-be-editor-name]').press('Enter');
-    await page.getByRole('checkbox', { name: 'Select My edited colour', exact: true }).waitFor();
+    // The tick shows only in Select mode (plan 346 change 8), so wait for the renamed
+    // one to exist rather than to be visible.
+    await page.getByRole('checkbox', { name: 'Select My edited colour', exact: true, includeHidden: true }).waitFor({ state: 'attached' });
     // The Tokens room mirrors the same status, so read the Colours room's own.
     await page.locator('.be-palette [data-be-save-state]').filter({ hasText: /^Saved$/ }).waitFor();
     const edited = await read();

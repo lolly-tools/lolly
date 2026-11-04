@@ -2653,8 +2653,20 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
   pointer-events: none;
 }
 
+/* Swatch chrome only in Select mode (plan 346 change 8, the phone's plan 336
+   rule applied to every width). At rest a swatch is its colour, its name and
+   its hex: the checkbox and the drag handle used to double each colour's weight
+   and made the palette read as controls. Select (any selection: the group's
+   Select, a marquee, a modifier click or a long press) brings both back, the
+   handle still a full 44px target. Keyboard focus on a tile brings its handle
+   too, so Space, the arrows and Space still reorder without a pointer. */
+.be-pal-check, .be-pal-reorder { display: none; }
+[data-pal-selecting] .be-pal-check { display: grid; }
+[data-pal-selecting] .be-pal-reorder,
+.be-pal-card:has(:focus-visible) .be-pal-reorder { display: grid; }
+
 /* The same drag gesture as input ordering, with a separate tablet-sized handle. */
-.be-pal-reorder { grid-column: 2; grid-row: 3; justify-self: end; min-width: max(44px, var(--ui-size-target)); min-height: max(44px, var(--ui-size-target)); padding: var(--sp-3); border: 0; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted); display: grid; place-items: center; cursor: grab; touch-action: none; }
+.be-pal-reorder { grid-column: 2; grid-row: 3; justify-self: end; min-width: max(44px, var(--ui-size-target)); min-height: max(44px, var(--ui-size-target)); padding: var(--sp-3); border: 0; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted); place-items: center; cursor: grab; touch-action: none; }
 .be-pal-reorder:hover, .be-pal-reorder[aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
 .be-pal-reorder[aria-pressed="true"] { cursor: grabbing; }
 .be-pal-reorder:focus-visible, .be-pal-card.is-reorder-target { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; border-radius: var(--ui-radius-control); }
@@ -2667,9 +2679,8 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
   .be-pal-card .be-swatch { aspect-ratio: 1; }
   .be-pal-name { font-size: var(--fs-2xs); }
   .be-pal-hex { grid-column: 1 / -1; font-size: var(--fs-2xs); overflow: hidden; text-overflow: ellipsis; }
-  .be-pal-reorder { display: none; }
   [data-pal-selecting] .be-pal-reorder,
-  .be-pal-card:has(:focus-visible) .be-pal-reorder { display: grid; grid-column: 1 / -1; grid-row: 4; justify-self: stretch; }
+  .be-pal-card:has(:focus-visible) .be-pal-reorder { grid-column: 1 / -1; grid-row: 4; justify-self: stretch; }
 }
 
 .be-pal-group-head { position: relative; min-height: 44px; }
