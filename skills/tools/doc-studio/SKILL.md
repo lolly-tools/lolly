@@ -5,7 +5,7 @@ description: "Operate the Lolly Doc Studio tool (doc-studio) using its declared 
 
 # Doc Studio
 
-Tool ID: `doc-studio`. Tool version: `1.2.1`. Engine range: `^1.0.0`.
+Tool ID: `doc-studio`. Tool version: `1.2.2`. Engine range: `^1.0.0`.
 
 Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.
 

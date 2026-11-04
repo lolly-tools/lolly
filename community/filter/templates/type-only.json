@@ -1,0 +1,11 @@
+{
+  "id": "type-only",
+  "name": "Type only",
+  "category": "Geometry",
+  "description": "The picture drawn in text characters.",
+  "values": {
+    "effect": "ascii",
+    "width": 1600,
+    "height": 1200
+  }
+}

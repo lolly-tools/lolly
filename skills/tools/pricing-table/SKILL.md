@@ -5,7 +5,7 @@ description: "Operate the Lolly Pricing tool (pricing-table) using its declared 
 
 # Pricing
 
-Tool ID: `pricing-table`. Tool version: `1.1.1`. Engine range: `^1.82.0`.
+Tool ID: `pricing-table`. Tool version: `1.1.2`. Engine range: `^1.82.0`.
 
 Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.
 

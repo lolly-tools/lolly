@@ -5,7 +5,7 @@ description: "Operate the Lolly Convert Image tool (convert-image) using its dec
 
 # Convert Image
 
-Tool ID: `convert-image`. Tool version: `1.1.1`. Engine range: `^1.0.0`.
+Tool ID: `convert-image`. Tool version: `1.1.2`. Engine range: `^1.0.0`.
 
 Turn HEIC, TIFF or any photo into WebP, JPEG or PNG - on your device.
 

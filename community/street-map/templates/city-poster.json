@@ -6,17 +6,38 @@
   "values": {
     "city": "paris",
     "theme": "light",
-    "roadColor": "#1a1a2e",
-    "waterColor": "#93c5fd",
-    "background": "#faf7f2",
+    "roadColor": "{color.semantic.text}",
+    "waterColor": "{color.semantic.secondary}",
+    "background": "{color.semantic.surface}",
     "minorRoadWeight": 4.5,
     "majorRoadWeight": 8,
     "showWater": true,
     "waterWeight": 8
   },
   "presets": [
-    { "id": "paris", "name": "Paris", "description": "The classic ink poster city.", "values": { "city": "paris" } },
-    { "id": "new-york", "name": "New York", "description": "A dense grid that fills the frame.", "values": { "city": "newyork" } },
-    { "id": "rome", "name": "Rome", "description": "Winding old streets around the river.", "values": { "city": "rome" } }
+    {
+      "id": "paris",
+      "name": "Paris",
+      "description": "The classic ink poster city.",
+      "values": {
+        "city": "paris"
+      }
+    },
+    {
+      "id": "new-york",
+      "name": "New York",
+      "description": "A dense grid that fills the frame.",
+      "values": {
+        "city": "newyork"
+      }
+    },
+    {
+      "id": "rome",
+      "name": "Rome",
+      "description": "Winding old streets around the river.",
+      "values": {
+        "city": "rome"
+      }
+    }
   ]
 }

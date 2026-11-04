@@ -5,7 +5,7 @@ description: "Operate the Lolly Icon tool (icon) using its declared inputs and s
 
 # Icon
 
-Tool ID: `icon`. Tool version: `1.1.3`. Engine range: `^1.0.0`.
+Tool ID: `icon`. Tool version: `1.1.4`. Engine range: `^1.0.0`.
 
 Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip.
 

@@ -224,8 +224,6 @@
 .ag-kind {
   font-size: calc(11 * var(--ag-u));
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--ag-muted, var(--brand-muted, #6b7280));
 }
 
@@ -272,8 +270,6 @@
   color: var(--ag-on, #ffffff);
   font-size: calc(16 * var(--ag-u));
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   text-align: center;
   border-radius: calc(4 * var(--ag-u));
 }
@@ -430,8 +426,6 @@
   margin: 0 0 calc(6 * var(--ag-u));
   font-size: calc(14 * var(--ag-u));
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--ag-muted, var(--brand-muted, #6b7280));
 }
 
@@ -620,8 +614,6 @@ body[data-lolly-portable] .ag-screen {
 .ag-kicker {
   font-size: calc(var(--ag-type) * 0.44);
   font-weight: 550;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   margin-bottom: 0.45em !important;
 }
 .ag-section-label {
@@ -760,8 +752,6 @@ body[data-lolly-portable] .ag-screen {
   border-radius: 0;
 }
 .ag-look-broadcast .ag-card-meta {
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 .ag-look-broadcast .ag-screen-head {
   background: var(--ag-ink);
@@ -1092,6 +1082,11 @@ body[data-lolly-portable] .ag-screen {
 .ag-has-logo {
   padding-inline-end: calc(240px * var(--ag-scale));
 }
+/* A look can restate the head's padding, so the title keeps clear of the logo itself. */
+.ag-has-logo > h1,
+.ag-has-logo > .ag-kicker {
+  margin-inline-end: calc(200px * var(--ag-scale));
+}
 .ag-brand-logo {
   position: absolute;
   right: calc(25px * var(--ag-scale));
@@ -1333,8 +1328,6 @@ body[data-lolly-portable] .ag-screen {
 }
 .ag-look-broadcast .ag-card-title {
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
 }
 .ag-look-broadcast .ag-screen-footer > span {
   background: var(--ag-accent);

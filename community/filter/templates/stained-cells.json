@@ -1,0 +1,13 @@
+{
+  "id": "stained-cells",
+  "name": "Stained cells",
+  "category": "Geometry",
+  "description": "The picture rebuilt from coloured cells.",
+  "values": {
+    "effect": "voronoi",
+    "vo_cells": 900,
+    "width": 1600,
+    "height": 1200
+  },
+  "galleryCover": true
+}

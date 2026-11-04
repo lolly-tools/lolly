@@ -7,7 +7,7 @@
   "values": {
     "shot": {
       "source": "remote",
-      "id": "https://lolly.tools/tool/snippet.svg?code=const+future+%3D+%7B%0A++open%3A+true%2C%0A++possibilities%3A+Infinity%0A%7D%3B&scale=200&lineNumbers=false&transparentBg=true",
+      "id": "https://lolly.tools/tool/pricing-table.svg?heading=Choose+a+plan&width=1600&height=1000",
       "_unresolved": true
     },
     "background": "{color.semantic.primary}",

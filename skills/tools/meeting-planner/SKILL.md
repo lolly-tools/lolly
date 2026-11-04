@@ -5,7 +5,7 @@ description: "Operate the Lolly Meeting Planner tool (meeting-planner) using its
 
 # Meeting Planner
 
-Tool ID: `meeting-planner`. Tool version: `1.2.3`. Engine range: `^1.0.0`.
+Tool ID: `meeting-planner`. Tool version: `1.2.4`. Engine range: `^1.0.0`.
 
 Plan a global meeting and see the time for every teammate's timezone.
 

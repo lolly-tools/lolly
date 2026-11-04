@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "url-shot",
-  "toolVersion": "0.2.3",
-  "toolVersionRange": "0.2.3",
+  "toolVersion": "0.2.4",
+  "toolVersionRange": "0.2.4",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,7 +10,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "4ddf4de7961d7b3be8172b40209fcb1c9d9a6c36ffad1a4a5a0d72cf4581b8c5",
+      "sha256": "758649f4677c92ad76fbd4ff3c42d003e903b13182f6fc5a409742b68ee284be",
       "bytes": 1854
     },
     "reference/inputs.json": {

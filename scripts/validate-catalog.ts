@@ -325,6 +325,7 @@ for (const dir of toolDirs) {
       if (typeof t.id !== 'string' || !t.id) { errors.push(`[${dir}] template ${file}: missing/empty "id"`); continue; }
       if (typeof t.name !== 'string' || !t.name) errors.push(`[${dir}] template ${file}: missing/empty "name"`);
       if (t.galleryCover !== undefined && typeof t.galleryCover !== 'boolean') errors.push(`[${dir}] template ${file}: galleryCover must be a boolean`);
+      if (t.gallerySize !== undefined && !(Number(t.gallerySize?.width) > 0 && Number(t.gallerySize?.height) > 0)) errors.push(`[${dir}] templates/${file}: gallerySize needs a positive width and height`);
       if (t.galleryTheme !== undefined && !['light', 'dark'].includes(t.galleryTheme)) errors.push(`[${dir}] template ${file}: galleryTheme must be light or dark`);
       if (t.galleryCover === true) {
         for (const theme of t.galleryTheme ? [t.galleryTheme] : ['light', 'dark']) {

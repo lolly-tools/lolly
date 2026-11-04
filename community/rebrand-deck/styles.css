@@ -97,8 +97,6 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--brand-muted, #4a4a4a);
-  text-transform: uppercase;
-  letter-spacing: .04em;
   margin-bottom: 8px;
 }
 .rbd-strip { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -123,8 +121,6 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--brand-muted, #4a4a4a);
-  text-transform: uppercase;
-  letter-spacing: .04em;
   padding: 0;
   margin-bottom: 8px;
 }

@@ -12,14 +12,20 @@
     "maxLines": 2,
     "showTimecodes": false,
     "burnIn": true,
-    "time": 0
+    "time": 0,
+    "media": {
+      "id": "lolly/demo/sample-photo"
+    }
   },
   "presets": [
     {
       "id": "lower",
       "name": "Lower third",
       "description": "The same word-by-word lift, sitting where subtitles usually do.",
-      "values": { "position": "bottom", "fontSize": 60 }
+      "values": {
+        "position": "bottom",
+        "fontSize": 60
+      }
     }
   ]
 }

@@ -4,7 +4,11 @@
   "category": "Screenshot",
   "description": "A web page in a desktop window on a soft brand gradient.",
   "values": {
-    "image": { "source": "remote", "id": "https://lolly.tools/tool/gradient.svg?mode=mesh&count=4&color1=%236d5bd8&color2=%23e0679f&color3=%232fb6a3&color4=%23f6f1e7&rows=3&cols=3&curvature=60", "_unresolved": true },
+    "image": {
+      "source": "remote",
+      "id": "https://lolly.tools/tool/chart.svg?chartType=bar&chartStyle=editorial&heading=Plan+against+actual&data=Quarter%2CPlan%2CActual%0AQ1%2C40%2C44%0AQ2%2C52%2C50%0AQ3%2C60%2C71%0AQ4%2C75%2C84&width=1400&height=880",
+      "_unresolved": true
+    },
     "frame": "browser",
     "windowStyle": "nuremberg",
     "url": "https://lolly.tools",
@@ -23,13 +27,26 @@
       "id": "light",
       "name": "Light chrome",
       "description": "Pale window on a two-colour brand wash.",
-      "values": { "dark": false, "windowStyle": "nuremberg" }
+      "values": {
+        "dark": false,
+        "windowStyle": "nuremberg"
+      }
     },
     {
       "id": "night",
       "name": "Dark chrome",
       "description": "Dark window on a deep, calm ground.",
-      "values": { "image": { "source": "remote", "id": "https://lolly.tools/tool/gradient.svg?count=4&color1=%2322d3ee&color2=%23a78bfa&color3=%2310b981&color4=%230b1021&blend=screen&spread=110&blur=8&grain=60", "_unresolved": true }, "dark": true, "windowStyle": "cupertino", "backdrop": "solid", "background": "#1b2233" }
+      "values": {
+        "image": {
+          "source": "remote",
+          "id": "https://lolly.tools/tool/gradient.svg?count=4&color1=%2322d3ee&color2=%23a78bfa&color3=%2310b981&color4=%230b1021&blend=screen&spread=110&blur=8&grain=60",
+          "_unresolved": true
+        },
+        "dark": true,
+        "windowStyle": "cupertino",
+        "backdrop": "solid",
+        "background": "#1b2233"
+      }
     }
   ]
 }

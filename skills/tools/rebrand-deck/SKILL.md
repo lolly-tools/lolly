@@ -5,7 +5,7 @@ description: "Operate the Lolly Theme swap tool (rebrand-deck) using its declare
 
 # Theme swap
 
-Tool ID: `rebrand-deck`. Tool version: `1.2.0`. Engine range: `^1.58.0`.
+Tool ID: `rebrand-deck`. Tool version: `1.2.1`. Engine range: `^1.58.0`.
 
 Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.
 

@@ -14,20 +14,32 @@
     "url": "https://example.com/ana",
     "ecl": "Q",
     "padding": 4,
-    "join": true
+    "join": true,
+    "moduleShape": "dot",
+    "eyeShape": "rounded",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "frame": "label",
+    "frameText": "Save my details"
   },
   "presets": [
     {
       "id": "card",
       "name": "Business card",
       "description": "Quartile redundancy and a tight quiet zone for card-sized print.",
-      "values": { "ecl": "Q", "padding": 2 }
+      "values": {
+        "ecl": "Q",
+        "padding": 2
+      }
     },
     {
       "id": "brand",
       "name": "Brand colours",
       "description": "Modules in your brand primary on the brand surface.",
-      "values": { "color": "{color.semantic.primary}", "background": "{color.semantic.surface}" }
+      "values": {
+        "color": "{color.semantic.primary}",
+        "background": "{color.semantic.surface}"
+      }
     }
   ]
 }

@@ -1,0 +1,28 @@
+{
+  "id": "brand-stream",
+  "name": "Best month",
+  "category": "Brand",
+  "description": "A year of bars with one highlight. Paste your own table.",
+  "values": {
+    "renderMode": "vector",
+    "chartType": "bar",
+    "chartStyle": "technical",
+    "data": "Month,Sales,Best month\nJan,36,0\nFeb,44,0\nMar,41,0\nApr,52,0\nMay,58,0\nJun,55,0\nJul,66,0\nAug,72,0\nSep,69,0\nOct,0,92\nNov,78,0\nDec,84,0",
+    "colorBy": "series",
+    "palette": "ordered",
+    "stackMode": "stacked",
+    "cornerRadius": 10,
+    "heading": "",
+    "subheading": "",
+    "showAxes": false,
+    "showGrid": false,
+    "showLegend": false,
+    "showValues": false,
+    "transparentBg": false,
+    "differentiate": "colour",
+    "width": 1600,
+    "height": 1200,
+    "background": "{color.semantic.surface}"
+  },
+  "galleryCover": true
+}

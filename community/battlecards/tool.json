@@ -3,7 +3,7 @@
   "name": "Battlecards",
   "description": "Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.",
   "a11yLabel": "Battlecards: {{default title \"Battlecards\"}} - one card per table row",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "engineVersion": "^1.82.0",
   "status": "community",
   "category": "everyone",

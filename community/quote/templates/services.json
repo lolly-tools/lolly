@@ -1,0 +1,62 @@
+{
+  "id": "services",
+  "name": "Services quote",
+  "category": "Sales",
+  "description": "A complete quote: seven lines, a highlighted total and terms.",
+  "values": {
+    "heading": "Quote",
+    "customer": "Riverside Centre",
+    "number": "Q2041",
+    "date": "2026-10-14",
+    "validUntil": "2026-11-14",
+    "currency": "EUR",
+    "lines": {
+      "columns": [
+        "Item",
+        "Quantity",
+        "Unit price"
+      ],
+      "rows": [
+        [
+          "Event identity and templates",
+          "1",
+          "8400"
+        ],
+        [
+          "Stage and screen graphics",
+          "6",
+          "950"
+        ],
+        [
+          "Foyer wayfinding set",
+          "24",
+          "180"
+        ],
+        [
+          "Printed programme, 500 copies",
+          "500",
+          "4"
+        ],
+        [
+          "Name badges and lanyards",
+          "800",
+          "6"
+        ],
+        [
+          "On-site production days",
+          "3",
+          "1400"
+        ]
+      ]
+    },
+    "discount": 0,
+    "tax": 21,
+    "taxLabel": "VAT",
+    "notes": "Half on booking, half on delivery."
+  },
+  "galleryCover": true,
+  "gallerySize": {
+    "width": 1600,
+    "height": 1200
+  }
+}

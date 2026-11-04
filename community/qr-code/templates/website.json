@@ -9,8 +9,10 @@
     "padding": 4,
     "join": true,
     "color": "{color.semantic.secondary}",
-    "background": "transparent",
-    "transparentBg": true
+    "background": "{color.semantic.surface}",
+    "transparentBg": false,
+    "moduleShape": "rounded",
+    "eyeShape": "rounded"
   },
   "presets": [
     {

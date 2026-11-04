@@ -5,7 +5,7 @@ description: "Operate the Lolly Flow Chart tool (org-chart) using its declared i
 
 # Flow Chart
 
-Tool ID: `org-chart`. Tool version: `1.1.1`. Engine range: `^1.12.0`.
+Tool ID: `org-chart`. Tool version: `1.1.2`. Engine range: `^1.12.0`.
 
 Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes.
 

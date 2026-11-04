@@ -1,30 +1,33 @@
 {
   "id": "brand-starter",
-  "name": "Conversation cards",
+  "name": "Sales notes",
   "category": "Brand",
-  "description": "A short, editable set of cards for a product conversation.",
+  "description": "One conversation per card, ready to print or send.",
   "values": {
-    "title": "Open possibilities",
+    "title": "Competitive notes",
     "data": {
       "columns": [
         "Topic",
-        "Opportunity",
+        "Why they ask",
+        "What to say",
         "Next step"
       ],
       "rows": [
         [
-          "Build with confidence",
-          "Bring your ideas to life with an open foundation.",
-          "Explore what comes next."
+          "Moving from a rival",
+          "Their renewal is close and the price went up.",
+          "Keep your data, your layouts and your people. Nothing is rebuilt.",
+          "Offer a one-week trial on real work."
         ],
         [
-          "Choose your path",
-          "Keep the freedom to adapt as your needs grow.",
-          "Start a conversation."
+          "Works offline",
+          "Field teams lose signal on site.",
+          "Everything runs on the device, so the work carries on.",
+          "Show it in flight mode."
         ]
       ]
     },
-    "accent": "{color.semantic.secondary}",
+    "accent": "{color.semantic.primary}",
     "bg": "{color.semantic.surface}",
     "ink": "{color.semantic.text}"
   },

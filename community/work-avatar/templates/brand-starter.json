@@ -1,20 +1,20 @@
 {
   "id": "brand-starter",
-  "name": "Brand avatar",
+  "name": "Event avatar",
   "category": "Brand",
-  "description": "A monogram portrait framed by a clear brand ring.",
+  "description": "A round profile picture with a ring of text. Replace the sample with your own photo.",
   "galleryCover": true,
   "values": {
     "photo": {
-      "source": "remote",
-      "id": "https://lolly.tools/tool/icon.png?text=AM&shape=circle",
-      "_unresolved": true
+      "id": "lolly/demo/sample-portrait"
     },
-    "photoBackdrop": "none",
-    "text": "OPEN TOGETHER",
+    "photoBackdrop": "solid",
+    "text": "Speaking at Northwind Summit",
     "ringFade": 0,
-    "ringColor": "{color.semantic.secondary}",
+    "ringColor": "{color.semantic.primary}",
     "ringGradient": false,
-    "transparentBg": true
+    "transparentBg": true,
+    "ringStyle": "full",
+    "photoBg": "{color.semantic.secondary}"
   }
 }

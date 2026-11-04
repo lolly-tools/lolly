@@ -7,20 +7,34 @@
     "url": "https://example.com/contact",
     "ecl": "Q",
     "padding": 4,
-    "join": true
+    "join": true,
+    "moduleShape": "square",
+    "eyeShape": "circle",
+    "fill": "gradient",
+    "color": "{color.semantic.primary}",
+    "color2": "{color.semantic.secondary}",
+    "gradientType": "linear",
+    "angle": 45,
+    "background": "{color.semantic.surface}"
   },
   "presets": [
     {
       "id": "card",
       "name": "Business card",
       "description": "High redundancy and a tight quiet zone for card-sized print.",
-      "values": { "ecl": "H", "padding": 2 }
+      "values": {
+        "ecl": "H",
+        "padding": 2
+      }
     },
     {
       "id": "brand",
       "name": "Brand colours",
       "description": "Modules in your brand primary on the brand surface.",
-      "values": { "color": "{color.semantic.primary}", "background": "{color.semantic.surface}" }
+      "values": {
+        "color": "{color.semantic.primary}",
+        "background": "{color.semantic.surface}"
+      }
     }
   ]
 }

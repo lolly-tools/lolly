@@ -550,9 +550,9 @@ function layoutSlide(sc, W, H, T, ctx) {
   var chrome = { bar: 1 };
 
   if (sc.layout === 'title') {
-    // Cover (template TITLE_1_2): pine gradient, green title lower-left, white subtitle.
+    // Cover (template TITLE_1_2): dark gradient, title and subtitle in white for contrast on any brand.
     bg = { grad: { stops: [{ pos: 0, color: T.ink }, { pos: 1, color: T.pine2 }], angle: 90 } };
-    els.push(textEl(M, py(0.22), px(0.723), py(0.399), [{ runs: runsOf(sc.title, 52, green, T.font) }], 'b'));
+    els.push(textEl(M, py(0.22), px(0.723), py(0.399), [{ runs: runsOf(sc.title, 52, '#ffffff', T.font) }], 'b'));
     bindPh(els, 'ctrTitle');
     if (sc.subtitle) { els.push(textEl(M, py(0.646), px(0.932), py(0.154), [{ runs: runsOf(sc.subtitle, 20, '#ffffff', T.font) }], 't')); bindPh(els, 'subTitle', 1); }
     chrome = { cover: 1 };
@@ -726,7 +726,7 @@ function galleryLayout(name, dark, T, logos, W, H, ctx) {
   var bg, ink, titleInk;
   if (name === 'TITLE') {
     bg = { grad: { stops: [{ pos: 0, color: T.ink }, { pos: 1, color: T.pine2 }], angle: 90 } };
-    ink = '#ffffff'; titleInk = T.green;
+    ink = '#ffffff'; titleInk = '#ffffff';
   } else if (name === 'SECTION_HEADER') {
     bg = dark ? { grad: { stops: [{ pos: 0, color: T.ink }, { pos: 1, color: T.pine2 }], angle: 180 } } : T.green;
     ink = dark ? '#ffffff' : T.ink; titleInk = ink;
@@ -776,7 +776,7 @@ function galleryLayout(name, dark, T, logos, W, H, ctx) {
   var titleStyle = { font: T.font, sizePt: 28, color: titleInk, align: 'l' };
   var bodyStyle = { font: T.font, sizePt: 18, color: ink, bullet: true };
   if (name === 'TITLE') {
-    ph('ctrTitle', null, M, 0.22, 0.723, 0.399, { font: T.font, sizePt: 52, color: T.green }, 'Presentation title', 'b');
+    ph('ctrTitle', null, M, 0.22, 0.723, 0.399, { font: T.font, sizePt: 52, color: '#ffffff' }, 'Presentation title', 'b');
     ph('subTitle', 1, M, 0.646, 0.932, 0.154, { font: T.font, sizePt: 20, color: '#ffffff' }, 'Subtitle');
   } else if (name === 'SECTION_HEADER' || name === 'MAIN_POINT') {
     if (name === 'SECTION_HEADER') addStripes(els, W, H, T, 1, dark);

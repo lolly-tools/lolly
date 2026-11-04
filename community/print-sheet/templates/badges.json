@@ -10,26 +10,49 @@
     "gap": 5,
     "margin": 10,
     "ticks": true,
-    "tickShape": "rect"
+    "tickShape": "rect",
+    "fill": "repeat",
+    "cells": [
+      {
+        "art": {
+          "source": "remote",
+          "id": "https://lolly.tools/tool/stationery.svg?piece=business-card-front&firstname=Nadia&lastname=Okafor&jobTitle=Head+of+Design&company=Northline+Studio&email=nadia%40example.com&url=northline.studio",
+          "_unresolved": true
+        }
+      }
+    ]
   },
   "presets": [
     {
       "id": "four-up",
       "name": "4 up",
       "description": "Two by two - conference badge size.",
-      "values": { "rows": 2, "cols": 2, "gap": 5 }
+      "values": {
+        "rows": 2,
+        "cols": 2,
+        "gap": 5
+      }
     },
     {
       "id": "ten-up",
       "name": "10 up",
       "description": "Five rows of two - business cards.",
-      "values": { "rows": 5, "cols": 2, "gap": 4 }
+      "values": {
+        "rows": 5,
+        "cols": 2,
+        "gap": 4
+      }
     },
     {
       "id": "letter-eight-up",
       "name": "8 up on Letter",
       "description": "Four rows of two on US Letter stock.",
-      "values": { "sheet": "letter", "rows": 4, "cols": 2, "gap": 4 }
+      "values": {
+        "sheet": "letter",
+        "rows": 4,
+        "cols": 2,
+        "gap": 4
+      }
     }
   ]
 }

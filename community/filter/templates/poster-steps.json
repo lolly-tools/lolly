@@ -1,0 +1,11 @@
+{
+  "id": "poster-steps",
+  "name": "Poster steps",
+  "category": "Print",
+  "description": "A few flat tones, like a screen print.",
+  "values": {
+    "effect": "posterize",
+    "width": 1600,
+    "height": 1200
+  }
+}

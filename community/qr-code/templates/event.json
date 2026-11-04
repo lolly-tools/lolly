@@ -7,20 +7,33 @@
     "url": "https://example.com/rsvp",
     "ecl": "Q",
     "padding": 4,
-    "join": true
+    "join": true,
+    "moduleShape": "dot",
+    "eyeShape": "circle",
+    "color": "{color.semantic.primary}",
+    "background": "{color.semantic.surface}",
+    "frame": "badge",
+    "frameText": "Save your seat"
   },
   "presets": [
     {
       "id": "invite",
       "name": "Printed invite",
       "description": "Dark ink on warm white with a generous quiet zone.",
-      "values": { "color": "#1a1a2e", "background": "#faf7f2", "padding": 6 }
+      "values": {
+        "color": "#1a1a2e",
+        "background": "#faf7f2",
+        "padding": 6
+      }
     },
     {
       "id": "screen",
       "name": "On screen",
       "description": "Light modules on dark for a closing slide.",
-      "values": { "color": "#93c5fd", "background": "#0b1021" }
+      "values": {
+        "color": "#93c5fd",
+        "background": "#0b1021"
+      }
     }
   ]
 }

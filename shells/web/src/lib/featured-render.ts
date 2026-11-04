@@ -12,6 +12,7 @@
 // The variant thumbnails render post-paint (the cross-fade builds up), so it loads then.
 import { rasterToThumbnailDataUrl } from './raster-thumb.ts';
 import { previewContextSignature } from './preview-context.ts';
+import { newWorkTokenSelection, type ColourwaySeedHost } from './colourway-seed.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { PreviewsAPI } from '../bridge/previews.ts';
 
@@ -72,7 +73,15 @@ async function renderVariantAt(
   // 'template' for "New from template" previews (string template id) - the two can never
   // collide, so a template preview never disturbs a featured-variant record.
   const cacheKey = `${keyPrefix}:${toolId}:${variantIndex}:${format}`;
-  const sig = JSON.stringify(previewTimeMs === undefined ? [values, await previewContextSignature(host)] : [values, await previewContextSignature(host), previewTimeMs]);
+  // A cover opens as the person's own colourway, so it is drawn in that colourway too. The
+  // choice is left out of the signature when there is none, so every cached canonical render stays valid.
+  const tokenSelection = await newWorkTokenSelection(host as ColourwaySeedHost);
+  const signature = async (): Promise<string> => JSON.stringify([
+    values, await previewContextSignature(host),
+    ...(previewTimeMs === undefined ? [] : [previewTimeMs]),
+    ...(tokenSelection ? [tokenSelection] : []),
+  ]);
+  const sig = await signature();
   const cached = await host.previews?.get(cacheKey).catch(() => null);
   if (cached && cached.sig === sig && cached.thumb) return cached.thumb;
 
@@ -94,14 +103,14 @@ async function renderVariantAt(
     const { blob } = await renderRowToBlob(
       // values arrives as JSON (Record<string, unknown>); the render row types it as
       // InputValue - the runtime coerces per the input's declared type, so cast the row.
-      { toolId, values } as Parameters<typeof renderRowToBlob>[0],
+      { toolId, values, ...(tokenSelection ? { tokenSelection } : {}) } as Parameters<typeof renderRowToBlob>[0],
       host,
       { format, watermark: false, embedMeta: false, thumbnail: true, previewPage: true, thumbAssets: true, previewTimeMs, ...dims },
     );
     // SVG is already display-ready and resolution-independent - embed it verbatim as a
     // data-URL. A raster blob is downscaled to a gallery-weight PNG thumbnail.
     const thumb = format === 'svg' ? await blobToDataUrl(blob) : await rasterToThumbnailDataUrl(blob);
-    if (sig !== JSON.stringify(previewTimeMs === undefined ? [values, await previewContextSignature(host)] : [values, await previewContextSignature(host), previewTimeMs])) throw new Error('Preview brand changed during rendering');
+    if (sig !== await signature()) throw new Error('Preview brand changed during rendering');
     await host.previews?.put(cacheKey, { thumb, sig }).catch(() => { /* cache is best-effort */ });
     return thumb;
   })();

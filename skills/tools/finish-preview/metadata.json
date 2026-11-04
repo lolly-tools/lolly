@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "finish-preview",
-  "toolVersion": "1.1.1",
-  "toolVersionRange": "1.1.1",
+  "toolVersion": "1.1.2",
+  "toolVersionRange": "1.1.2",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "a8e79465c91982dc8947b22a6aaf883d96384267d6f2a3de0f62067d728e71dd",
+      "sha256": "9bf7ad20b83d9bb24bc37948836d339dc2d10d55e254de7b125f9835aab47634",
       "bytes": 2113
     },
     "reference/inputs.json": {

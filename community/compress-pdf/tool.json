@@ -2,7 +2,7 @@
   "id": "compress-pdf",
   "name": "Compress",
   "description": "Shrink a PDF by recompressing its images - on your device.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",

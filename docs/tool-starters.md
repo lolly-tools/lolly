@@ -41,7 +41,7 @@ With at least one template, a blank fresh open of your tool shows the **Start ch
 
 Set `"galleryCover": true` on one template to make it the tool's first gallery preview, which opens that same editable template. The other templates keep their usual order, and a tool without a cover keeps its first template or default output. Catalog validation rejects two covers for the same gallery theme.
 
-Choose a simple composition that reads at card size. Use brand tokens for colours, prefer transparency for standalone graphics and keep backgrounds that belong to the output, such as a poster or a document. A chart can lead with the visual alone and offer labels through a preset. Use real tool output with real sample inputs. Tools that export only non-image formats use an icon card.
+Choose a simple composition that reads at card size. Gallery cards are 4:3, so a cover can set `"gallerySize": { "width": 1600, "height": 1200 }` beside `values` to fill the card. The size applies to the card only, so the template still opens at the tool's own size. Use brand tokens for colours, prefer transparency for standalone graphics and keep backgrounds that belong to the output, such as a poster or a document. A chart can lead with the visual alone and offer labels through a preset. Use real tool output with real sample inputs. Tools that export only non-image formats use an icon card.
 
 For transparent lettering and logos, a template can declare `galleryTheme: "light"` or `galleryTheme: "dark"`; the dark variant also serves the brand theme. Each is a real editable template, and its gallery link opens that exact variant. Leave the field out when the artwork suits every theme. A tool can have one cover per theme, and a cover without a theme serves both.
 

@@ -6,7 +6,7 @@
   "values": {
     "image": {
       "source": "remote",
-      "id": "https://lolly.tools/tool/wordmark.png?text=Open&weight=700&color=%23000000",
+      "id": "https://lolly.tools/tool/wordmark.png?text=Foil&weight=700&color=%23000000",
       "_unresolved": true
     },
     "finish": "foil-gold",

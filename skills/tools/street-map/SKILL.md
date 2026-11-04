@@ -5,7 +5,7 @@ description: "Operate the Lolly Street Map tool (street-map) using its declared 
 
 # Street Map
 
-Tool ID: `street-map`. Tool version: `0.5.2`. Engine range: `^1.0.0`.
+Tool ID: `street-map`. Tool version: `0.5.3`. Engine range: `^1.0.0`.
 
 Clean vector street-block maps of any city. Works offline.
 

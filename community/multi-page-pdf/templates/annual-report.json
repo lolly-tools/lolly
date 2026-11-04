@@ -1,0 +1,17 @@
+{
+  "id": "annual-report",
+  "name": "Annual report",
+  "category": "Reports",
+  "description": "A picture-led cover, flowing pages and a back page.",
+  "values": {
+    "coverTitle": "Annual report 2026",
+    "coverSubtitle": "A year of building in the open",
+    "coverText": "Northline Studio",
+    "coverImage": {
+      "id": "lolly/demo/sample-photo"
+    },
+    "coverLogoSize": "large",
+    "accent": "{color.semantic.primary}"
+  },
+  "galleryCover": true
+}

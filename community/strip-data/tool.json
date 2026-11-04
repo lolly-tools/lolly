@@ -2,7 +2,7 @@
   "id": "strip-data",
   "name": "Strip Hidden Data",
   "description": "Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device.",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "engineVersion": "^1.264.0",
   "status": "official",
   "category": "utility",

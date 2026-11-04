@@ -5,7 +5,7 @@ description: "Operate the Lolly Countdown tool (countdown-timer) using its decla
 
 # Countdown
 
-Tool ID: `countdown-timer`. Tool version: `1.0.0`. Engine range: `^1.0.0`.
+Tool ID: `countdown-timer`. Tool version: `1.0.1`. Engine range: `^1.0.0`.
 
 A focused countdown with a live progress ring. Click to pause.
 

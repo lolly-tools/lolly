@@ -8,12 +8,6 @@
     "treatmentAmount": 100,
     "treatShadow": "{color.semantic.primary}",
     "treatHighlight": "{color.semantic.secondary}",
-    "filmLook": "none",
-    "image": {
-      "source": "remote",
-      "id": "https://lolly.tools/tool/gradient.png?count=3&grain=0",
-      "_unresolved": true
-    }
-  },
-  "galleryCover": true
+    "filmLook": "none"
+  }
 }

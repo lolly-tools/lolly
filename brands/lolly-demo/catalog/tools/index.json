@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-03T15:01:02.300Z",
+  "generatedAt": "2026-11-04T20:33:15.895Z",
   "tools": [
     {
       "id": "3d",
@@ -326,7 +326,7 @@
       "id": "agenda",
       "name": "Agenda",
       "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "status": "community",
       "category": "event",
       "tags": [
@@ -428,7 +428,8 @@
           "id": "keynote-spotlight",
           "name": "Keynote spotlight",
           "category": "Present and share",
-          "description": "Keynote spotlight from the same programme."
+          "description": "Keynote spotlight from the same programme.",
+          "galleryCover": true
         },
         {
           "id": "meetup",
@@ -1262,7 +1263,7 @@
       "id": "backdrop",
       "name": "Backdrop",
       "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds.",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -1372,9 +1373,9 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Brand flow",
+          "name": "Brand silk",
           "category": "Brand",
-          "description": "Generous flowing shapes in your primary and secondary brand colours.",
+          "description": "Slow folds of silk in the design system colours.",
           "galleryCover": true
         }
       ],
@@ -1489,7 +1490,7 @@
       "id": "battlecards",
       "name": "Battlecards",
       "description": "Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.",
-      "version": "1.3.2",
+      "version": "1.3.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -1524,9 +1525,9 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Conversation cards",
+          "name": "Sales notes",
           "category": "Brand",
-          "description": "A short, editable set of cards for a product conversation.",
+          "description": "One conversation per card, ready to print or send.",
           "galleryCover": true
         }
       ],
@@ -1642,7 +1643,7 @@
       "id": "booth-studio",
       "name": "Booth",
       "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "status": "experimental",
       "category": "event",
       "tags": [
@@ -1791,7 +1792,7 @@
       "id": "calendar-ics",
       "name": "Calendar",
       "description": "Turn event details into a calendar (.ics) file for any calendar app.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "official",
       "category": "event",
       "tags": [
@@ -1951,7 +1952,7 @@
       "id": "captions",
       "name": "Captions",
       "description": "Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -2032,6 +2033,7 @@
           "name": "Subtitles",
           "category": "Captions",
           "description": "Broadcast-style subtitles across the foot of the frame, two lines at most.",
+          "galleryCover": true,
           "presets": [
             {
               "id": "outline",
@@ -2157,7 +2159,7 @@
       "id": "certificate",
       "name": "Certificate",
       "description": "Completion and award certificates in the active design system and its colourway: four styles, print and social sizes, and motion for sharing - one name at a time, or a whole roster from a CSV in Bulk from rows.",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -2422,7 +2424,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.27.1",
+      "version": "1.27.2",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -2577,7 +2579,6 @@
           "name": "Brand bars",
           "category": "Brand",
           "description": "A clean palette study: colourful bars on transparency, ready for your data.",
-          "galleryCover": true,
           "presets": [
             {
               "id": "donut",
@@ -2592,6 +2593,13 @@
               "name": "With labels"
             }
           ]
+        },
+        {
+          "id": "brand-stream",
+          "name": "Best month",
+          "category": "Brand",
+          "description": "A year of bars with one highlight. Paste your own table.",
+          "galleryCover": true
         },
         {
           "id": "brand-terrain",
@@ -3682,7 +3690,7 @@
       "id": "compress-pdf",
       "name": "Compress",
       "description": "Shrink a PDF by recompressing its images - on your device.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -4039,7 +4047,7 @@
       "id": "convert-image",
       "name": "Convert Image",
       "description": "Turn HEIC, TIFF or any photo into WebP, JPEG or PNG - on your device.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "community",
       "category": "utility",
       "privacy": "on-device",
@@ -4183,7 +4191,7 @@
       "id": "countdown-timer",
       "name": "Countdown",
       "description": "A focused countdown with a live progress ring. Click to pause.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "official",
       "category": "utility",
       "tags": [
@@ -4311,7 +4319,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
-      "version": "2.5.1",
+      "version": "2.5.2",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -4452,8 +4460,7 @@
           "id": "brand-starter",
           "name": "Brand duotone",
           "category": "Brand",
-          "description": "A tonal study using your brand colours. Replace the sample with any image.",
-          "galleryCover": true
+          "description": "A tonal study using your brand colours. Replace the sample with any image."
         },
         {
           "id": "motion-clean",
@@ -4472,6 +4479,13 @@
           "name": "Motion · Warm editorial",
           "category": "Motion looks",
           "description": "Soft highlights and warm colour, with grain off for repeating clips."
+        },
+        {
+          "id": "warm-portrait",
+          "name": "Warm portrait",
+          "category": "Looks",
+          "description": "A warm film look on the sample photograph. Replace it with any image.",
+          "galleryCover": true
         }
       ],
       "i18n": {
@@ -4611,7 +4625,7 @@
       "id": "deck-studio",
       "name": "Markdown Slides",
       "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and the design system theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -4677,6 +4691,15 @@
               }
             ]
           }
+        }
+      ],
+      "templates": [
+        {
+          "id": "quarterly-review",
+          "name": "Quarterly review",
+          "category": "Slides",
+          "description": "A title, a list, a real table and a closing slide. Every part stays editable in PowerPoint.",
+          "galleryCover": true
         }
       ],
       "paged": true,
@@ -4791,7 +4814,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.52.0",
+      "version": "1.52.1",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5035,16 +5058,16 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Open possibilities",
-          "category": "Slides",
-          "description": "A clear opening slide in your brand colours.",
+          "name": "Launch poster",
+          "category": "Posters",
+          "description": "A bold headline beside a full-height picture, all in the active design system.",
           "galleryCover": true
         },
         {
           "id": "carousel",
           "name": "Carousel",
           "category": "Social",
-          "description": "Three portrait frames as a swipe-through carousel: cover, point, closing. Exports one image per page."
+          "description": "Three portrait frames as a swipe-through carousel. Exports one image per page."
         },
         {
           "id": "event-kit",
@@ -5218,17 +5241,17 @@
           "id": "meeting-background",
           "name": "Meeting background",
           "category": "Video",
-          "description": "A 1920x1080 backdrop for video calls, with the middle kept clear so nothing sits behind your head and shoulders.",
+          "description": "Weight at the edges and the middle kept clear for your head and shoulders, with a name plate.",
           "presets": [
             {
               "id": "solid",
-              "name": "Solid",
-              "description": "One flat brand colour behind the name."
+              "name": "Light",
+              "description": "A light ground for bright rooms."
             },
             {
               "id": "gradient-look",
-              "name": "Gradient look",
-              "description": "Layered translucent shapes, still clear of the centre."
+              "name": "Supporting colour",
+              "description": "A light ground with the supporting colour at the edges."
             }
           ]
         },
@@ -5316,13 +5339,13 @@
         {
           "id": "poster",
           "name": "Poster",
-          "category": "Poster",
-          "description": "One 16:9 frame - a big headline and a supporting line, in your brand colours.",
+          "category": "Posters",
+          "description": "Type as the image, with one large bleed of colour.",
           "presets": [
             {
               "id": "square",
               "name": "Square",
-              "description": "1:1 for social feeds."
+              "description": "A 1080 square for feeds."
             },
             {
               "id": "story",
@@ -5335,33 +5358,30 @@
           "id": "publishing-field-notes",
           "name": "Field notes",
           "category": "Publishing",
-          "description": "A journal page with balanced columns, paragraph styles and a generous headline.",
-          "thumb": "/tools/design/assets/publishing-field-notes.png"
+          "description": "A journal page with balanced columns, paragraph styles and a generous headline."
         },
         {
           "id": "publishing-long-read",
           "name": "The long read",
           "category": "Publishing",
-          "description": "One article flows through three linked frames across a two-page editorial spread.",
-          "thumb": "/tools/design/assets/publishing-long-read.png"
+          "description": "One article flows through three linked frames across a two-page editorial spread."
         },
         {
           "id": "publishing-type-in-orbit",
           "name": "Type in orbit",
           "category": "Publishing",
-          "description": "A typographic poster with editable circular and curved text guides.",
-          "thumb": "/tools/design/assets/publishing-type-in-orbit.png"
+          "description": "A typographic poster with editable circular and curved text guides."
         },
         {
           "id": "pull-quote",
           "name": "Pull quote",
           "category": "Slides",
-          "description": "A large quotation with attribution - spare, in your brand colours.",
+          "description": "A face, a band of colour and one line worth repeating.",
           "presets": [
             {
               "id": "square",
               "name": "Square",
-              "description": "1:1 quote card for social feeds."
+              "description": "A 1080 square for feeds."
             },
             {
               "id": "story",
@@ -5380,7 +5400,7 @@
           "id": "slide-deck",
           "name": "Slide deck",
           "category": "Slides",
-          "description": "Three frames as slides - title, content, closing. Export as PowerPoint or PDF."
+          "description": "A title, a page of figures and a closing slide. Exports as PowerPoint or PDF."
         },
         {
           "id": "social-profile-kit",
@@ -5404,17 +5424,17 @@
           "id": "title",
           "name": "Title slide",
           "category": "Slides",
-          "description": "A bold opening slide - big title and a supporting line, in your brand colours.",
+          "description": "A very large title and one bold shape on the lead colour.",
           "presets": [
             {
               "id": "square",
               "name": "Square",
-              "description": "1:1 for social feeds."
+              "description": "A 1080 square for feeds."
             },
             {
               "id": "standard",
               "name": "Standard",
-              "description": "4:3 for standard projectors."
+              "description": "A 4:3 slide."
             }
           ]
         },
@@ -5422,7 +5442,7 @@
           "id": "video",
           "name": "Video",
           "category": "Video",
-          "description": "An all-timed single-artboard sequence with a licence-free procedural music bed."
+          "description": "A full-frame picture and a timed line on a solid panel, with a licence-free music bed."
         }
       ],
       "i18n": {
@@ -5562,7 +5582,7 @@
       "id": "diagram-builder",
       "name": "Diagrams",
       "description": "Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV.",
-      "version": "1.8.2",
+      "version": "1.8.3",
       "status": "experimental",
       "category": "everyone",
       "tags": [
@@ -5675,9 +5695,9 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Open workflow",
+          "name": "Open cycle",
           "category": "Brand",
-          "description": "A simple three-step workflow on transparency.",
+          "description": "A five-step cycle that reads at a glance, on transparency.",
           "galleryCover": true
         },
         {
@@ -5842,7 +5862,7 @@
       "id": "doc-studio",
       "name": "Doc Studio",
       "description": "Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5876,6 +5896,15 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z\"/><path d=\"M14 2v5h5\"/><line x1=\"8\" y1=\"12\" x2=\"16\" y2=\"12\"/><line x1=\"8\" y1=\"16\" x2=\"14\" y2=\"16\"/></svg>",
       "preview": "/catalog/previews/doc-studio.svg",
+      "templates": [
+        {
+          "id": "field-report",
+          "name": "Field report",
+          "category": "Reports",
+          "description": "A short report with a clear title, sections and real paragraphs.",
+          "galleryCover": true
+        }
+      ],
       "paged": true,
       "i18n": {
         "ar": {
@@ -5988,7 +6017,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6119,11 +6148,41 @@
       ],
       "templates": [
         {
+          "id": "brand-duotone",
+          "name": "Brand duotone",
+          "category": "Colour",
+          "description": "Two brand colours across the whole tonal range."
+        },
+        {
           "id": "brand-starter",
-          "name": "Brand halftone",
-          "category": "Brand",
-          "description": "A halftone study generated from a brand-colour gradient.",
+          "name": "Colour halftone",
+          "category": "Print",
+          "description": "Halftone dots that keep the colours of the picture."
+        },
+        {
+          "id": "poster-steps",
+          "name": "Poster steps",
+          "category": "Print",
+          "description": "A few flat tones, like a screen print."
+        },
+        {
+          "id": "signal-glitch",
+          "name": "Signal glitch",
+          "category": "Motion",
+          "description": "Sorted pixels and displaced blocks."
+        },
+        {
+          "id": "stained-cells",
+          "name": "Stained cells",
+          "category": "Geometry",
+          "description": "The picture rebuilt from coloured cells.",
           "galleryCover": true
+        },
+        {
+          "id": "type-only",
+          "name": "Type only",
+          "category": "Geometry",
+          "description": "The picture drawn in text characters."
         }
       ],
       "i18n": {
@@ -6263,7 +6322,7 @@
       "id": "finish-preview",
       "name": "Finishes",
       "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6491,7 +6550,7 @@
       "id": "flythrough",
       "name": "Flythrough",
       "description": "Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video.",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6784,7 +6843,7 @@
       "id": "frame",
       "name": "Frame",
       "description": "Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop.",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -6886,7 +6945,7 @@
           "id": "brand-starter",
           "name": "Brand window",
           "category": "Brand",
-          "description": "A floating browser window with a brand-colour composition.",
+          "description": "A floating browser window with a page in it, on a brand ground.",
           "galleryCover": true
         },
         {
@@ -7055,7 +7114,7 @@
       "id": "gradient",
       "name": "Gradient",
       "description": "Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -7210,9 +7269,9 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Brand blend",
+          "name": "Brand folds",
           "category": "Brand",
-          "description": "A quiet blend of your primary and secondary brand colours.",
+          "description": "Soft folds of the lead and partner colours.",
           "galleryCover": true
         },
         {
@@ -7609,7 +7668,7 @@
       "id": "icon",
       "name": "Icon",
       "description": "Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip.",
-      "version": "1.1.3",
+      "version": "1.1.4",
       "status": "community",
       "category": "everyone",
       "capabilities": [
@@ -7642,7 +7701,7 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Brand monogram",
+          "name": "Monogram",
           "category": "Brand",
           "description": "A simple letterform in your brand typeface.",
           "galleryCover": true
@@ -7759,7 +7818,7 @@
       "id": "jump",
       "name": "Jump",
       "description": "A one-link landing page: your links, heading, portrait and colours on an expressive page - and the whole page lives inside the link you share.",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "status": "community",
       "category": "utility",
       "tags": [
@@ -8073,7 +8132,7 @@
       "id": "link-card",
       "name": "Link Card",
       "description": "Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -8149,6 +8208,7 @@
           "name": "Open Graph card",
           "category": "Social",
           "description": "The 1200 x 630 image a link unfurls into on most platforms - title, description, site chip and a thumbnail panel.",
+          "galleryCover": true,
           "presets": [
             {
               "id": "og-summary",
@@ -8297,7 +8357,7 @@
       "id": "logo-wall",
       "name": "Logo Wall",
       "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-      "version": "1.8.0",
+      "version": "1.8.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -8441,17 +8501,17 @@
       "templates": [
         {
           "id": "brand-starter-dark",
-          "name": "Type collection · dark",
+          "name": "Partner wall, dark",
           "category": "Brand",
-          "description": "A balanced collection of editable wordmarks in your brand typeface.",
+          "description": "The same wall for a dark ground. Sample names are fictional.",
           "galleryCover": true,
           "galleryTheme": "dark"
         },
         {
           "id": "brand-starter",
-          "name": "Type collection",
+          "name": "Partner wall",
           "category": "Brand",
-          "description": "A balanced collection of editable wordmarks in your brand typeface.",
+          "description": "Six logos evened out into one calm row-and-column wall. Sample names are fictional.",
           "galleryCover": true,
           "galleryTheme": "light"
         }
@@ -8567,7 +8627,7 @@
       "id": "lottie-digi-ad",
       "name": "Lottie Ad",
       "description": "Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -8604,7 +8664,7 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Open possibilities",
+          "name": "Short ad",
           "category": "Brand",
           "description": "A simple brand message ready for your animation.",
           "galleryCover": true
@@ -8721,7 +8781,7 @@
       "id": "meeting-planner",
       "name": "Meeting Planner",
       "description": "Plan a global meeting and see the time for every teammate's timezone.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "official",
       "category": "event",
       "tags": [
@@ -8865,7 +8925,7 @@
       "id": "multi-page-pdf",
       "name": "Booklet",
       "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
-      "version": "1.1.3",
+      "version": "1.1.4",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -8895,6 +8955,15 @@
         "order": 8,
         "blurb": "Multi-page PDFs - cover, content, back"
       },
+      "templates": [
+        {
+          "id": "annual-report",
+          "name": "Annual report",
+          "category": "Reports",
+          "description": "A picture-led cover, flowing pages and a back page.",
+          "galleryCover": true
+        }
+      ],
       "paged": true,
       "i18n": {
         "ar": {
@@ -9033,7 +9102,7 @@
       "id": "org-chart",
       "name": "Flow Chart",
       "description": "Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9215,7 +9284,7 @@
       "id": "pages",
       "name": "Pages",
       "description": "Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -9355,7 +9424,7 @@
       "id": "pricing-table",
       "name": "Pricing",
       "description": "Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9691,6 +9760,7 @@
           "name": "SaaS plans",
           "category": "Marketing",
           "description": "Three tiers, one recommended, a button under each.",
+          "galleryCover": true,
           "presets": [
             {
               "id": "yearly",
@@ -9816,7 +9886,7 @@
       "id": "print-sheet",
       "name": "Print Sheet",
       "description": "Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin.",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9930,9 +10000,9 @@
         },
         {
           "id": "brand-starter",
-          "name": "Brand stickers",
+          "name": "Business cards",
           "category": "Brand",
-          "description": "A ready-to-print sheet of six brand-colour type stickers.",
+          "description": "Ten business cards on one A4 sheet, with crop marks ready for the guillotine.",
           "galleryCover": true
         },
         {
@@ -10247,7 +10317,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
-      "version": "2.7.0",
+      "version": "2.7.1",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -10723,7 +10793,7 @@
       "id": "rebrand-deck",
       "name": "Theme swap",
       "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -11310,7 +11380,7 @@
       "id": "sandbox",
       "name": "Sandbox",
       "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "status": "official",
       "category": "utility",
       "tags": [
@@ -11462,7 +11532,7 @@
       "id": "scan-code",
       "name": "Scan",
       "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "status": "experimental",
       "category": "utility",
       "tags": [
@@ -11765,7 +11835,7 @@
       "id": "sign",
       "name": "Sign",
       "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -12803,7 +12873,7 @@
       "id": "street-map",
       "name": "Street Map",
       "description": "Clean vector street-block maps of any city. Works offline.",
-      "version": "0.5.2",
+      "version": "0.5.3",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -13070,7 +13140,7 @@
       "id": "strip-data",
       "name": "Strip Hidden Data",
       "description": "Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device.",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -13593,7 +13663,7 @@
       "id": "timezone",
       "name": "Timezone",
       "description": "Turn places and timezones into artwork that follows the design system. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "official",
       "category": "event",
       "tags": [
@@ -13633,7 +13703,7 @@
           "label": "Global webinar",
           "values": {
             "heading": "Ideas without borders.",
-            "eyebrow": "THE GLOBAL WEBINAR",
+            "eyebrow": "The global webinar",
             "annotation": "A conversation that travels with you.",
             "footer": "Save your place →",
             "timeMode": "now",
@@ -13696,7 +13766,7 @@
           "label": "Infrastructure atlas",
           "values": {
             "heading": "Always connected.",
-            "eyebrow": "GLOBAL INFRASTRUCTURE",
+            "eyebrow": "Global infrastructure",
             "annotation": "Follow the sun. Know every region.",
             "footer": "",
             "timeMode": "now",
@@ -14172,7 +14242,7 @@
       "id": "url-shot",
       "name": "URL Screenshot",
       "description": "Any web page, at any scroll depth, with custom CSS.",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "status": "official",
       "category": "utility",
       "capabilities": [
@@ -14492,7 +14562,7 @@
       "id": "wayfinding-signage",
       "name": "Wayfinding",
       "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "official",
       "category": "event",
       "tags": [
@@ -14875,7 +14945,7 @@
       "id": "work-avatar",
       "name": "Work Avatar",
       "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your design system's colours and type.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14946,9 +15016,9 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Brand avatar",
+          "name": "Event avatar",
           "category": "Brand",
-          "description": "A monogram portrait framed by a clear brand ring.",
+          "description": "A round profile picture with a ring of text. Replace the sample with your own photo.",
           "galleryCover": true
         }
       ],
@@ -15105,7 +15175,7 @@
       "id": "quote",
       "name": "Quote",
       "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -15128,7 +15198,16 @@
       "height": 1000,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 2h9l4 4v16H6z\"/><path d=\"M15 2v4h4\"/><line x1=\"9\" y1=\"10\" x2=\"16\" y2=\"10\"/><line x1=\"9\" y1=\"13.5\" x2=\"16\" y2=\"13.5\"/><line x1=\"12\" y1=\"18\" x2=\"16\" y2=\"18\"/></svg>",
-      "preview": "/catalog/previews/quote.svg"
+      "preview": "/catalog/previews/quote.svg",
+      "templates": [
+        {
+          "id": "services",
+          "name": "Services quote",
+          "category": "Sales",
+          "description": "A complete quote: seven lines, a highlighted total and terms.",
+          "galleryCover": true
+        }
+      ]
     }
   ]
 }

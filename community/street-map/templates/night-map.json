@@ -6,17 +6,38 @@
   "values": {
     "city": "tokyo",
     "theme": "dark",
-    "roadColor": "#22d3ee",
-    "waterColor": "#0e7490",
-    "background": "#0b1021",
+    "roadColor": "{color.semantic.on-primary}",
+    "waterColor": "{color.semantic.secondary}",
+    "background": "{color.semantic.primary}",
     "minorRoadWeight": 4,
     "majorRoadWeight": 6.5,
     "showWater": true,
     "waterWeight": 6
   },
   "presets": [
-    { "id": "tokyo", "name": "Tokyo", "description": "The neon original.", "values": { "city": "tokyo" } },
-    { "id": "hong-kong", "name": "Hong Kong", "description": "Harbour lights and dense streets.", "values": { "city": "hongkong" } },
-    { "id": "london", "name": "London", "description": "The Thames cutting through the glow.", "values": { "city": "london" } }
+    {
+      "id": "tokyo",
+      "name": "Tokyo",
+      "description": "The neon original.",
+      "values": {
+        "city": "tokyo"
+      }
+    },
+    {
+      "id": "hong-kong",
+      "name": "Hong Kong",
+      "description": "Harbour lights and dense streets.",
+      "values": {
+        "city": "hongkong"
+      }
+    },
+    {
+      "id": "london",
+      "name": "London",
+      "description": "The Thames cutting through the glow.",
+      "values": {
+        "city": "london"
+      }
+    }
   ]
 }

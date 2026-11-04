@@ -1,0 +1,13 @@
+{
+  "id": "signal-glitch",
+  "name": "Signal glitch",
+  "category": "Motion",
+  "description": "Sorted pixels and displaced blocks.",
+  "values": {
+    "effect": "glitch",
+    "gl_sortThreshold": 55,
+    "gl_blockAmount": 30,
+    "width": 1600,
+    "height": 1200
+  }
+}
