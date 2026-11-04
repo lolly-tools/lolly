@@ -138,3 +138,14 @@ test('manual checks refresh a pending Notify offer and clear a withdrawn release
   assert.equal(f.counts().checks, 2); assert.equal(f.counts().downloads, 0); assert.equal(f.counts().closes, 1);
   assert.equal(f.c.state.status, 'current'); assert.equal(f.c.state.version, '');
 });
+
+test('a failed download retry refreshes the feed and respects withdrawal in both modes', async () => {
+  for (const mode of ['notify', 'automatic']) {
+    const f = fixture({ mode }); f.failDownload(true); await f.c.initialize(); await f.c.check();
+    if (mode === 'notify') await f.c.download();
+    assert.equal(f.c.state.status, 'available');
+    f.newer(false); f.time(300_000); await f.c.check(mode === 'notify');
+    assert.equal(f.counts().checks, 2); assert.equal(f.counts().downloads, 1); assert.equal(f.counts().closes, 1);
+    assert.equal(f.c.state.version, ''); assert.equal(f.c.state.status, mode === 'notify' ? 'current' : 'idle');
+  }
+});

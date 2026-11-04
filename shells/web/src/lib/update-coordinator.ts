@@ -99,9 +99,6 @@ export class UpdateCoordinator {
   async check(manual = false): Promise<void> {
     if (!this.interactive || this.disposed || this.busy || this.quitting || (!manual && (this.prefs.mode === 'off' || !this.due()))) return;
     if (this.pending && this.state.status === 'ready') return;
-    if (this.pending && this.state.status === 'available' && (manual ? this.state.error === 'download' : this.prefs.mode === 'automatic' && this.prefs.failures > 0)) {
-      await this.download(manual); return;
-    }
     const previous = this.pending;
     this.busy = true; this.state.status = 'checking'; this.state.error = ''; this.emit();
     try {
