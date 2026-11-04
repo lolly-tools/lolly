@@ -304,7 +304,12 @@ describe('geometric peers share a depth, so grids stay grids', () => {
     // last 15 into one, the third group's second card among them: 64 layers on 26
     // rungs. The caption rows are still a rung of 5 and a rung of 8. The lift code
     // did not change.
-    'bs-palette-pane': { rungs: 26, biggest: 15 },
+    // Re-measured 2026-11-04 on the plan 346 recapture: at rest a swatch no longer
+    // carries its checkbox and drag handle (they show in Select mode), so the pane
+    // enumerates 59 layers, under the 64-layer cap, on 14 rungs; the swatch wells
+    // and cards of the three groups lift as one rung of 19. The lift code did not
+    // change.
+    'bs-palette-pane': { rungs: 14, biggest: 19 },
     // Re-measured 2026-09-25: the panel-system re-capture (d0f6404b0) redrew the verify
     // cards, so the block now lifts as 8 layers on 5 rungs with a biggest rung of 4.
     'cc-verify-mobile': { rungs: 5, biggest: 4 },     // the card block
