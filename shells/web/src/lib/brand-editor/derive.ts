@@ -30,6 +30,7 @@ import { helpTip } from '../../components/help-tip.ts';
 import { ROLE_IDS, readRoles, roleLabel } from '../design-system/roles.ts';
 import { leadTokenSet } from '../design-system/leads.ts';
 import { MAGPIE_SLOT } from '../design-system/logo-tile.ts';
+import { APPROVED_FAUNA, hydrateFauna } from '../../components/fauna-art.ts';
 import { CONTRASTS, DEFAULT_PRIMARY, FOREGROUNDS, INTENSITIES, PALETTE_FORMATS, RAMP_LABEL, SCHEMES, TYPE_ROLES, deriveSafe, finishLabel, mountPrintLock, previewHtml, typeRoleCardHtml } from './shared.ts';
 import type { Contrast, Fg, HarmonyKind, Scheme, Surface } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
@@ -743,6 +744,10 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
         </div>
       </div>
     </div>`;
+  // The Logos room's one animal: the magpie in the drop area. Only the intake is
+  // hydrated, so the Colours room's lorikeet place stays empty (one per view).
+  const intake = root.querySelector<HTMLElement>('[data-be-logo-intake]');
+  if (intake) hydrateFauna(intake, { only: APPROVED_FAUNA });
 }
 
 export function wireStepsSlider(bedit: BrandEditorCtx): void {

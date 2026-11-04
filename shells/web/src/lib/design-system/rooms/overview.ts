@@ -51,6 +51,7 @@ import { listLeads } from '../leads.ts';
 import { activePalette, palettePreviewSvgs, type PalettePreviewOptions } from '../../palette-preview.ts';
 import { segHtml } from '../../seg.ts';
 import { prefersReducedMotion } from '../../a11y-prefs.ts';
+import { APPROVED_FAUNA, hydrateFauna } from '../../../components/fauna-art.ts';
 
 /** The whole host; the slices this room reads are reached through the same
  *  narrow casts mountBrandEditor uses (they are web-shell extensions absent
@@ -588,8 +589,9 @@ function blankHtml(): string {
   // mixed freely. Each opens with its deciding control already up. The studio's
   // bar carries the system's name, so this heading says what to do. A logo is
   // what most people have first, so it leads; the file door is last because it
-  // is the one that needs the most explaining. The lorikeet's place watches the
-  // colour door, where the first colour arrives (Fauna, drawn later).
+  // is the one that needs the most explaining. The lorikeet perches on the
+  // colour door and watches the In context specimen, where the first colour
+  // arrives; it is the Board's one animal.
   return `
     <div class="ds-ov ds-ov--empty" data-board="blank">
       <div class="ds-ov-intro">
@@ -601,7 +603,7 @@ function blankHtml(): string {
           t('Drop a logo file and Lolly suggests its slot.'))}
         ${doorHtml('color-pick', icon('palette'), t('Pick a colour'),
           t('It becomes the primary. Shades and roles can follow.'),
-          '<span class="fauna-slot" data-fauna="lorikeet" data-fauna-watch="pick-colour" aria-hidden="true"></span>')}
+          '<span class="fauna-slot" data-fauna="lorikeet" data-fauna-watch=".ds-live-stage" aria-hidden="true"></span>')}
         ${doorHtml('type-stage', icon('font'), t('Choose a face'),
           isTauriShell() ? t('Google Fonts or a font file. Stays on this device.') : t('Google Fonts or a font file. Stays in this browser.'))}
         ${doorHtml('file', icon('upload'), t('Start from a reference'),
@@ -739,7 +741,6 @@ export function liveHtml(scenes: ReadonlyArray<{ label: string; svg: string }>, 
     </div>
     <div class="ds-live-stage" style="--ds-live-ground:${escape(groundOf(scenes[shown]?.svg ?? ''))}">
       ${scenes.map((s, i) => `<figure class="ds-live-scene" data-live-figure="${i}"${i === shown ? '' : ' hidden'}><div class="ds-live-art">${s.svg}</div><figcaption class="visually-hidden">${escape(labels[i] ?? s.label)}</figcaption></figure>`).join('')}
-      ${noir ? '<span class="fauna-slot" data-fauna="lorikeet" data-fauna-watch="specimen" aria-hidden="true"></span>' : ''}
     </div>
     ${segHtml('ds-live-scene', labels.slice(0, SCENE_COUNT).map((label, i) => ({ id: String(i), label })), String(shown), t('Preview scene'), { attr: 'data-live-scene', groupAttr: 'data-ds-live-scenes', extraClass: 'ds-live-scenes' })}
     ${noir ? `<p class="ds-live-note">${t('Starter greys until a colour is added.')}</p>` : ''}`;
@@ -772,6 +773,7 @@ export function mountOverviewRoom(el: HTMLElement, ctx: OverviewCtx): OverviewRo
 
   const paint = (model: OverviewModel | null): void => {
     el.innerHTML = overviewHtml(model);
+    hydrateFauna(el, { only: APPROVED_FAUNA });
     release(markUrls);
     markUrls = marksOf(model);
   };
@@ -813,7 +815,6 @@ export function mountOverviewRoom(el: HTMLElement, ctx: OverviewCtx): OverviewRo
       was.className = 'ds-live-was';
       was.setAttribute('aria-hidden', 'true');
       was.inert = true;
-      was.querySelector('.fauna-slot')?.remove();
       stage.append(was);
       was.addEventListener('animationend', () => was.remove(), { once: true });
       // A tab that never runs the animation must not keep the grey picture.

@@ -66,6 +66,9 @@ test('colour workspace creates empty groups, moves directly, saves on Enter, pre
     assert.ok(root.querySelector('section.be-addcolor[data-be-addcolor-drop] [data-ds-addc-input]'), 'paste and drop is a visible field at the top, not a disclosure');
     assert.equal(root.querySelector('details.be-addcolor'), null);
     assert.ok(root.querySelector('.be-addcolor .fauna-slot[data-fauna="lorikeet"][data-fauna-watch="paste"][aria-hidden="true"]'), 'the lorikeet\'s slot waits beside the field');
+    assert.equal(root.querySelector('.be-addcolor .fauna-slot')?.innerHTML, '', 'and stays empty: the Board\'s lorikeet is the one lorikeet');
+    assert.ok(root.querySelector('.be-logo-intake-drop > .fauna-slot[data-fauna="magpie"] > svg.fauna--magpie'), 'the Logos room\'s magpie is drawn in its drop area');
+    assert.equal(root.querySelectorAll('[data-be-tab-panel="logos"] .fauna-slot').length, 1, 'one animal in the Logos room');
     assert.equal(root.querySelector('[data-be-pal-download], [data-be-pal-fmt]'), null, 'export lives in the bar and the Tokens room, not the room head');
     assert.deepEqual([...root.querySelectorAll<HTMLElement>('[data-be-rolechip]')].map(el => el.dataset.beRolechip), ['primary', 'secondary', 'surface', 'text'], 'the role chips lead the room');
     assert.match($('[data-be-rolechip="primary"]').textContent ?? '', /Primary\s*Starter\s*Ink/, 'the starter ink stands in for the primary, and says so');

@@ -48,7 +48,7 @@ test('one magpie per view: the room\'s drop zone carries it, no tile does, and i
   for (const v of LOGO_VARIANTS) assert.ok(!logoTileHtml(v, 'default', undefined).includes('fauna-slot'), v);
   const markup = readFileSync(new URL('../brand-editor/derive.ts', import.meta.url), 'utf8');
   assert.match(markup, /be-logo-intake-glyph[^\n]*\$\{MAGPIE_SLOT\}/);
-  assert.match(MAGPIE_SLOT, /^<span class="fauna-slot" data-fauna="magpie" data-fauna-watch="drop" aria-hidden="true"><\/span>$/);
+  assert.match(MAGPIE_SLOT, /^<span class="fauna-slot" data-fauna="magpie" data-fauna-watch="\.be-logo-intake-drop" aria-hidden="true"><\/span>$/);
 });
 
 test('a filled slot shows the mark, solid, with a way to remove it unless it shipped', () => {

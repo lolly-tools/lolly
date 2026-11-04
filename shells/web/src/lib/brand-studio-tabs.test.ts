@@ -24,7 +24,7 @@ after(() => {
   dom.window.close();
 });
 
-const { mountTokensPanel, tokensRoomModel } = await import('./brand-studio-tabs.ts');
+const { mountCataloguePanel, mountTokensPanel, tokensRoomModel } = await import('./brand-studio-tabs.ts');
 const { walkSwatches } = await import('./brand-doc.ts');
 const { colorIdentity, isRoleKey, starterColorIds } = await import('./design-system/ownership.ts');
 type Ctx = Parameters<typeof mountTokensPanel>[1];
@@ -420,4 +420,20 @@ test('App appearance speaks of Lolly defaults and your values, and saves with Sa
     ui.querySelector<HTMLButtonElement>('[data-ui-customize]')!.click();
     assert.equal(ui.querySelector('[data-ui-save]')!.textContent, 'Save');
   } finally { m.done(); }
+});
+
+test('the empty Files room: the echidna beside the line, sniffing towards the drop zone', async () => {
+  const el = document.createElement('div');
+  document.body.append(el);
+  const host = { assets: { _listUserAssets: async () => [] } } as unknown as HostV1;
+  const panel = mountCataloguePanel(el, { host, notify: () => {} });
+  for (let i = 0; i < 4; i++) await new Promise(resolve => setTimeout(resolve, 0));
+  const slot = el.querySelector<HTMLElement>('.be-cat-empty > .fauna-slot[data-fauna="echidna"][aria-hidden="true"]');
+  assert.ok(slot, 'the echidna\'s place sits beside the empty line');
+  assert.equal(slot.dataset.faunaWatch, '[data-be-cat-dropzone]', 'and watches the drop zone');
+  assert.ok(slot.querySelector('svg.fauna--echidna'), 'the echidna is drawn');
+  assert.equal(el.querySelectorAll('.fauna-slot').length, 1, 'one animal in the room');
+  assert.match(el.querySelector('.be-cat-empty')?.textContent ?? '', /Nothing yet/);
+  panel.teardown?.();
+  el.remove();
 });

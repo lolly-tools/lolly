@@ -44,7 +44,7 @@ export function emptySlotPrompt(variant: string): string {
 /** The Fauna placeholder for the magpie, who watches the place a mark is dropped.
  *  One per view: the Logos room carries it in its drop zone (brand-editor/derive.ts).
  *  Empty and hidden until components/fauna-art.ts draws the bird inside. */
-export const MAGPIE_SLOT = '<span class="fauna-slot" data-fauna="magpie" data-fauna-watch="drop" aria-hidden="true"></span>';
+export const MAGPIE_SLOT = '<span class="fauna-slot" data-fauna="magpie" data-fauna-watch=".be-logo-intake-drop" aria-hidden="true"></span>';
 
 export interface LogoTileOptions {
   /** The slot's name, when the caller has one (a custom mark's label). */

@@ -727,12 +727,12 @@ test('CARDS: a radius that is not a plain length never reaches the style attribu
   assert.equal(/url\(x\)"/.test(html), false);
 });
 
-test('BLANK: the doors keep their order, and the lorikeet\'s place watches the colour door', () => {
+test('BLANK: the doors keep their order, and the lorikeet perches on the colour door watching the specimen', () => {
   const html = overviewHtml({ furnished: false, colors: [], colorCount: 0, fonts: [], logoCount: 0, tokenCount: 0 });
   assert.match(html, /data-board="blank"/);
   assert.match(html, /ds-ov--empty/);
   const colourDoor = /<button type="button" class="ds-ov-door" data-ds-door="color-pick">[\s\S]*?<\/button>/.exec(html)?.[0] ?? '';
-  assert.match(colourDoor, /<span class="fauna-slot" data-fauna="lorikeet" data-fauna-watch="pick-colour" aria-hidden="true"><\/span>/);
+  assert.match(colourDoor, /<span class="fauna-slot" data-fauna="lorikeet" data-fauna-watch="\.ds-live-stage" aria-hidden="true"><\/span>/);
   assert.equal([...html.matchAll(/class="fauna-slot"/g)].length, 1, 'one character per blank room');
 });
 
@@ -748,10 +748,10 @@ test('LIVE: the In context scenes, the switch and the way to Colours', () => {
   assert.equal([...noir.matchAll(/data-live-figure="\d"/g)].length, 3);
   assert.equal([...noir.matchAll(/data-live-figure="\d" hidden/g)].length, 2, 'one scene in view');
   assert.match(noir, /--ds-live-ground:#1d1d1d/, 'the stage is the scene\'s own ground');
-  assert.match(noir, /data-fauna="lorikeet" data-fauna-watch="specimen"/);
+  assert.equal(/fauna-slot/.test(noir), false, 'the Board\'s one lorikeet is on the colour door, not the specimen');
   assert.match(noir, /Starter greys until a colour is added\./);
   const owned = liveHtml(scenes, 1, false);
-  assert.equal(/fauna-slot/.test(owned), false, 'the lorikeet belongs to the first run');
+  assert.equal(/fauna-slot/.test(owned), false, 'and none once the system is owned');
   assert.equal(/Starter greys/.test(owned), false);
   assert.match(owned, /data-live-scene="1"[^>]*aria-pressed="true"|aria-pressed="true"[^>]*data-live-scene="1"/);
   assert.match(owned, /--ds-live-ground:#efefef/);
@@ -774,6 +774,8 @@ test('LIVE: the mounted room paints the live column and switches its scene', asy
   for (let i = 0; i < 8; i++) await new Promise(resolve => setTimeout(resolve, 0));
   assert.match(live.innerHTML, /ds-live-stage/);
   assert.equal(live.dataset.noir, 'true', 'nothing chosen yet: the starter\'s greys');
+  assert.ok(el.querySelector('[data-ds-door="color-pick"] > .fauna-slot > svg.fauna--lorikeet'), 'the blank Board\'s lorikeet is drawn on the colour door');
+  assert.equal(el.querySelectorAll('.fauna-slot').length + live.querySelectorAll('.fauna-slot').length, 1, 'one animal on the Board');
   live.querySelector<HTMLElement>('[data-live-scene="2"]')!.click();
   assert.equal(live.querySelector<HTMLElement>('[data-live-figure="2"]')!.hidden, false);
   assert.equal(live.querySelector<HTMLElement>('[data-live-figure="0"]')!.hidden, true);

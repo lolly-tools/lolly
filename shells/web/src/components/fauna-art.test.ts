@@ -93,8 +93,8 @@ const slot = (name: string, watch = '', key = ''): HTMLElement => {
 
 // ── The drawings ─────────────────────────────────────────────────────────────────
 
-test('there are four animals: the lorikeet, the magpie, the wombat and the koala', () => {
-  assert.deepEqual([...FAUNA_NAMES], ['lorikeet', 'magpie', 'wombat', 'koala']);
+test('there are four animals: the lorikeet, the magpie, the echidna and the koala', () => {
+  assert.deepEqual([...FAUNA_NAMES], ['lorikeet', 'magpie', 'echidna', 'koala']);
   assert.ok(isFaunaName('koala'));
   assert.ok(!isFaunaName('kangaroo'), 'the kangaroo keeps its own module');
   assert.ok(!isFaunaName('toString'), 'an inherited name is not an animal');
@@ -194,7 +194,7 @@ test('playFauna starts each drawing\'s own trigger once, and never when the syst
 });
 
 test('playFauna leaves the still where SMIL is missing (a test DOM, an old engine)', () => {
-  assert.equal(withMotion('allowed', () => playFauna(parse(faunaArt('wombat')))), false);
+  assert.equal(withMotion('allowed', () => playFauna(parse(faunaArt('echidna')))), false);
 });
 
 // ── hydrateFauna ─────────────────────────────────────────────────────────────────
@@ -280,7 +280,7 @@ test('a slot plays once per session: the same slot drawn again shows the still a
   const { started, stop } = recordStarts();
   try {
     withMotion('allowed', () => withObserver(() => {
-      const first = slot('wombat', '.files-drop');
+      const first = slot('echidna', '.files-drop');
       const root = document.createElement('div');
       root.append(first);
       hydrateFauna(root);
@@ -288,14 +288,14 @@ test('a slot plays once per session: the same slot drawn again shows the still a
       assert.equal(started.length, 1);
 
       // The view renders again: a new element for the same slot.
-      root.replaceChildren(slot('wombat', '.files-drop'));
+      root.replaceChildren(slot('echidna', '.files-drop'));
       hydrateFauna(root);
       const again = root.querySelector<HTMLElement>('.fauna-slot')!;
       assert.equal(again.dataset.faunaState, undefined, 'already played: the still, visible at once');
       assert.equal(FakeObserver.all.at(-1)?.watched.has(again) ?? false, false, 'nothing waits to play');
 
       // A different slot (its own key) still gets its first view.
-      root.replaceChildren(slot('wombat', '.files-drop', 'files-empty-2'));
+      root.replaceChildren(slot('echidna', '.files-drop', 'files-empty-2'));
       hydrateFauna(root);
       const other = root.querySelector<HTMLElement>('.fauna-slot')!;
       assert.equal(other.dataset.faunaState, 'waiting');

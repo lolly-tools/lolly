@@ -273,10 +273,10 @@ html[dir="rtl"] .start-back-row {
 .ds-ov-door-name { font-size: var(--fs-xl); font-weight: 700; }
 .ds-ov-door-note { font-size: var(--fs-md); line-height: 1.5; color: hsl(var(--muted-foreground)); }
 
-/* A Fauna character's place (plan 346 slot contract): empty and sizeless until
-   the art is drawn into it, perched on the corner of what it watches. */
-.ds-ov-door > .fauna-slot,
-.ds-live-stage > .fauna-slot {
+/* The Board's lorikeet (components/fauna-art.ts): empty and sizeless until the
+   art is drawn into it, perched on the corner of the Pick a colour door. */
+.ds-ov-door > .fauna-slot {
+  --fauna-size: calc(64px * var(--a11y-fs));
   position: absolute;
   inset-block-start: var(--sp-4);
   inset-inline-end: var(--sp-4);
@@ -496,6 +496,16 @@ html[data-a11y-motion="reduce"] .ds-ov-start-door:hover { transform: none; }
   }
   .ds-ov-door-ic { grid-row: span 2; margin-bottom: 0; }
   .ds-ov-door-name { align-self: end; }
+  /* The lorikeet takes a column of its own at the door's end, so it never sits
+     on the words of a door this narrow. */
+  .ds-ov-door:has(> .fauna-slot svg) { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .ds-ov-door > .fauna-slot {
+    --fauna-size: calc(48px * var(--a11y-fs));
+    position: static;
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
   /* The way-in line is left to the card, which is the button. */
   .ds-ov-start-door {
     display: grid;

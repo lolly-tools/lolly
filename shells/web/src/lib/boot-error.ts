@@ -3,11 +3,7 @@ import '../styles/parts/webgpu-gate.css';
 import { docsHref, t } from '../i18n.ts';
 import { isWebGpuFailure, isWebGpuMissing, webGpuFailureText, type WebGpuErrorCode } from './webgpu/device.ts';
 import { getFloatCluster } from './float-cluster.ts';
-import { hydrateFauna, type FaunaName } from '../components/fauna-art.ts';
-
-/** The Fauna drawings approved to ship (Andy, 2026-11-04). The lorikeet, magpie
- *  and wombat wait for their redraw, so their slots stay empty. */
-const APPROVED_FAUNA: readonly FaunaName[] = ['koala'];
+import { APPROVED_FAUNA, hydrateFauna } from '../components/fauna-art.ts';
 
 /** Keep the current document visible until the person clicks Reload. */
 export function showDatabaseUpdateRequired(reload: () => void = () => window.location.reload()): void {

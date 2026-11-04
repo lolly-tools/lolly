@@ -1612,6 +1612,11 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 /* ── Tokens tab: grouped rows, one editor per kind. */
 .be-tok-list { display: grid; gap: 1rem; margin-bottom: 1rem; }
 .be-tok-empty, .be-cat-empty { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+/* The empty Files room: the echidna (components/fauna-art.ts) beside the line,
+   sniffing towards the drop zone above. Sizeless until it is drawn. */
+.be-cat-empty { display: flex; align-items: center; gap: var(--sp-3); }
+.be-cat-empty > .fauna-slot { --fauna-size: calc(72px * var(--a11y-fs)); }
+.be-cat-empty > .fauna-slot:empty { display: none; }
 .be-tok-group { display: grid; gap: .4rem; }
 .be-tok-group-head { display: flex; align-items: baseline; gap: .4rem; }
 .be-tok-group-label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }

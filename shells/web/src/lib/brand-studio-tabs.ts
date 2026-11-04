@@ -46,6 +46,7 @@ import type { UiTokenKind } from '../brand-vars.ts';
 import { listLollyUiTokens, lollyUiOverride, lollyUiTokenDocument, removeLollyUiOverride, setLollyUiOverride } from './lolly-ui-tokens.ts';
 
 import { mountTokenWorkspace } from '../components/token-workspace.ts';
+import { APPROVED_FAUNA, hydrateFauna } from '../components/fauna-art.ts';
 import { webTokenConsumerSources } from './token-consumer-index.ts';
 
 export interface StudioTabCtx {
@@ -1530,7 +1531,9 @@ export function mountCataloguePanel(mount: HTMLElement, ctx: CataloguePanelCtx):
     const uploads = designFiles(refs);
     if (!mount.isConnected) return;
     if (!uploads.length) {
-      groupsEl.innerHTML = `<p class="be-cat-empty">${isTauriShell() ? t('Nothing yet - everything you add stays on this device.') : t('Nothing yet - everything you add stays in this browser.')}</p>`;
+      // The empty Files room's one animal: the echidna, sniffing towards the drop zone.
+      groupsEl.innerHTML = `<p class="be-cat-empty"><span class="fauna-slot" data-fauna="echidna" data-fauna-watch="[data-be-cat-dropzone]" aria-hidden="true"></span><span>${isTauriShell() ? t('Nothing yet - everything you add stays on this device.') : t('Nothing yet - everything you add stays in this browser.')}</span></p>`;
+      hydrateFauna(groupsEl, { only: APPROVED_FAUNA });
       return;
     }
     const byBucket = new Map<string, string[]>();
