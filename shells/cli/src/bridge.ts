@@ -253,6 +253,8 @@ interface CliExportRenderOpts extends ExportOpts {
 type IconThemeDef = ReturnType<typeof parseIconThemesDoc>[number];
 
 interface CliBridgeOpts {
+  /** Explicit catalog snapshot; an empty list supports content-free setup screens. */
+  catalogAssets?: CatalogAsset[];
   profile?: Profile;
   dom: { window: Window & typeof globalThis };
   /** The loaded manifest's `network.allowlist` - what host.net may fetch this
@@ -372,13 +374,13 @@ export function followRuntimeSelection(
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, decodeLimits, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, catalogAssets, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, decodeLimits, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
   // brand file alone: a shared asset root (an emoji pack, plan 252) is mounted outside
   // every brand catalog and belongs in the listing of every profile.
-  const assetIndex = readAssetIndex() as { assets: CatalogAsset[] };
+  const assetIndex = { assets: catalogAssets ?? (readAssetIndex() as { assets: CatalogAsset[] }).assets };
   const assetById = new Map<string, CatalogAsset>(assetIndex.assets.map((a): [string, CatalogAsset] => [a.id, a]));
 
   /** An asset format's site-absolute url (`/catalog/assets/...`) onto disk. Assets

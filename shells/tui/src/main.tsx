@@ -7,7 +7,9 @@
  */
 import { render } from 'ink';
 import { App } from './App.tsx';
-import { createTuiBridge } from './bridge.ts';
+import { createTuiBridge, captureTuiConsole } from './bridge.ts';
+import { getProfile } from './store.ts';
+import { setTerminalAppearance } from './theme.ts';
 import { loadTools } from './catalog.ts';
 import { nodeStartSeen } from '@lolly-tools/node-shell/design-systems';
 
@@ -19,17 +21,21 @@ async function main(): Promise<void> {
     process.stderr.write('lolly-tui needs an interactive terminal (TTY). Run it directly, e.g. `npm run tui`.\n');
     process.exit(1);
   }
-  const [bridge, tools, startSeen] = await Promise.all([createTuiBridge(), loadTools(), nodeStartSeen()]);
+  let catalogError: string | undefined;
+  const tools = await loadTools().catch(error => { catalogError = (error as Error).message; return []; });
+  const [bridge, startSeen, profile] = await Promise.all([createTuiBridge({}, { catalogAvailable: !catalogError }), nodeStartSeen(), getProfile()]);
+  if (profile.terminalAppearance === 'light' || profile.terminalAppearance === 'dark' || profile.terminalAppearance === 'terminal') setTerminalAppearance(profile.terminalAppearance);
 
+  const restoreConsole = captureTuiConsole(bridge.logs);
   process.stdout.write(ENTER_ALT);
   let restored = false;
-  const restore = (): void => { if (restored) return; restored = true; process.stdout.write(LEAVE_ALT); };
+  const restore = (): void => { if (restored) return; restored = true; restoreConsole(); process.stdout.write(LEAVE_ALT); };
   // Restore the main screen however we leave - clean quit, crash, or signal.
   process.on('exit', restore);
   process.on('SIGINT', () => { restore(); process.exit(0); });
   process.on('SIGTERM', () => { restore(); process.exit(0); });
 
-  const { waitUntilExit } = render(<App tools={tools} bridge={bridge} firstRun={!startSeen} />);
+  const { waitUntilExit } = render(<App catalogError={catalogError} tools={tools} bridge={bridge} firstRun={!startSeen} />, { patchConsole: false });
   await waitUntilExit();
   restore();
   // Tear down the browser render tier if it was ever launched (lazy singletons -

@@ -5,23 +5,27 @@
 // just swaps them.
 import { useState } from 'react';
 import { useApp } from 'ink';
-import { importDesignFile } from './import-design.ts';
+import { importDesignFile, ImportReviewRequired } from './import-design.ts';
+import type { ImportOptions, ImportResult } from './import-design.ts';
 import { toolLinkRoute } from './engine-render.ts';
 import { Gallery } from './views/Gallery.tsx';
 import { Projects } from './views/Projects.tsx';
 import { Profile } from './views/Profile.tsx';
 import { Assets } from './views/Assets.tsx';
 import { ToolView } from './views/ToolView.tsx';
+import { BatchQueue } from './views/BatchQueue.tsx';
 import { Prepare } from './views/Prepare.tsx';
 import { Rebrand } from './views/Rebrand.tsx';
 import { Start } from './views/Start.tsx';
 import { System } from './views/System.tsx';
 import type { SystemAction } from './views/System.tsx';
+import type { SavedSession } from './store.ts';
 import type { ToolEntry } from './catalog.ts';
 import type { NavTarget } from './nav.ts';
 import type { TuiBridge } from './bridge.ts';
 
 type Route =
+  | { name: 'batch' }
   | { name: 'prepare' }
   | { name: 'rebrand' }
   | { name: 'start' }
@@ -33,9 +37,9 @@ type Route =
   // `values` is a saved record's own input values - what reopens a session the desktop
   // app saved, which carries no URL-state (plans/202 WP3.1).
   // `fromLink`: the query came from a pasted link, so it may not point at local files.
-  | { name: 'tool'; toolId: string; query?: string; values?: Record<string, unknown>; fromLink?: boolean };
+  | { name: 'tool'; toolId: string; query?: string; values?: Record<string, unknown>; fromLink?: boolean; session?: SavedSession };
 
-export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; bridge: TuiBridge; firstRun?: boolean }) {
+export function App({ tools, bridge, firstRun = false, catalogError }: { catalogError?: string; tools: ToolEntry[]; bridge: TuiBridge; firstRun?: boolean }) {
   const { exit } = useApp();
   const [route, setRoute] = useState<Route>(firstRun ? { name: 'start' } : { name: 'gallery' });
   const nameById = new Map(tools.map(t => [t.id, t.name] as const));
@@ -62,15 +66,16 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
 
   // Import a PDF/.ai file → a saved Design session, then open it. Returns an error
   // string to surface, or null on success (navigated to the new session).
-  const importFile = async (path: string): Promise<string | null> => {
+  const importFile = async (path: string, options?: ImportOptions): Promise<ImportResult | null> => {
     try {
-      const s = await importDesignFile(path.trim(), bridge.host);
-      setRoute({ name: 'tool', toolId: s.toolId, query: s.query });
+      const s = await importDesignFile(path.trim(), bridge.host, options);
+      setRoute({ name: 'tool', toolId: s.toolId, query: s.query, values: s.data, session: s });
       return null;
-    } catch (e) { return (e as Error).message; }
+    } catch (e) { return e instanceof ImportReviewRequired ? { review: { warnings: e.warnings, page: e.page, pageCount: e.pageCount } } : { error: (e as Error).message }; }
   };
 
   switch (route.name) {
+    case 'batch': return <BatchQueue onBack={() => setRoute({ name: 'gallery' })} />;
     case 'prepare':
       return <Prepare bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
     case 'rebrand':
@@ -88,7 +93,7 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
           toolName={toolName}
           folderId={route.folderId}
           bridge={bridge}
-          onOpen={s => setRoute({ name: 'tool', toolId: s.toolId, query: s.query, values: s.data })}
+          onOpen={s => setRoute({ name: 'tool', toolId: s.toolId, query: s.query, values: s.data, session: s })}
           onOpenFolder={id => setRoute({ name: 'projects', folderId: id })}
           onNav={goNav}
           onQuit={quit}
@@ -101,8 +106,8 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
     case 'system':
       return <System onNav={goNav} onQuit={quit} initialAction={route.action} />;
     case 'tool':
-      return <ToolView toolId={route.toolId} query={route.query} values={route.values} fromLink={route.fromLink} bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
+      return <ToolView key={route.session?.slot ?? `${route.toolId}:${route.query ?? ''}`} session={route.session} toolId={route.toolId} query={route.query} values={route.values} fromLink={route.fromLink} bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
     default:
-      return <Gallery onPrepare={() => setRoute({ name: 'prepare' })} onRebrand={() => setRoute({ name: 'rebrand' })} tools={tools} onOpen={id => setRoute({ name: 'tool', toolId: id })} onOpenUrl={openToolUrl} onImportFile={importFile} onNav={goNav} onQuit={quit} />;
+      return <Gallery onBatch={() => setRoute({ name: 'batch' })} catalogError={catalogError} onPrepare={() => setRoute({ name: 'prepare' })} onRebrand={() => setRoute({ name: 'rebrand' })} tools={tools} onOpen={id => setRoute({ name: 'tool', toolId: id })} onOpenUrl={openToolUrl} onImportFile={importFile} onNav={goNav} onQuit={quit} />;
   }
 }

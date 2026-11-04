@@ -402,7 +402,7 @@
   "shells/tauri-shared/bridge-overrides/state-fs.ts": 3,
   "shells/tauri-shared/bridge-overrides/user-assets-fs.ts": 2,
   "shells/tui/src/ascii-mockup.ts": 2,
-  "shells/tui/src/batch-export.ts": 3,
+  "shells/tui/src/batch-export.ts": 2,
   "shells/tui/src/catalog.ts": 2,
   "shells/tui/src/engine-render.ts": 1,
   "shells/tui/src/folders.ts": 1,

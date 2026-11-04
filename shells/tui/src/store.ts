@@ -27,7 +27,7 @@ import { encodeFsToken } from '@lolly/engine';
 import { resolveStateDir } from '@lolly-tools/node-shell/state-dir';
 import {
   deleteSessionRecord, listSessionRecords, readSessionRecord, sessionsDir, writeSessionRecord,
-  type SessionData,
+  type SessionData, type SessionRecord,
 } from '@lolly-tools/node-shell/session-store';
 
 const DIR = resolveStateDir().dir;
@@ -53,6 +53,8 @@ export function defaultExportDir(): string {
  *  URL-state (TUI-saved sessions and migrated ones have it); `data` is the record's saved
  *  values, which is all a desktop-saved session carries. Either one reopens the tool. */
 export interface SavedSession {
+  rightsDecisions?: SessionRecord['rightsDecisions'];
+  emoji?: SessionRecord['emoji'];
   slot: string;
   toolId: string;
   label: string;
@@ -69,7 +71,7 @@ export function slug(s: string): string {
 /** One saved record as the TUI sees it. A record with no toolId is app state the web
  *  shell keeps in the same store (export preferences, the design-system tray) - not a
  *  project, so it never reaches the Projects list. */
-function toSession(record: { slot: string; toolId?: string; label?: string; data: SessionData; updatedAt: string }): SavedSession | null {
+function toSession(record: SessionRecord): SavedSession | null {
   if (!record.toolId) return null;
   const query = typeof record.data[QUERY_KEY] === 'string' ? record.data[QUERY_KEY] as string : '';
   return {
@@ -79,6 +81,8 @@ function toSession(record: { slot: string; toolId?: string; label?: string; data
     query,
     updatedAt: record.updatedAt,
     data: record.data,
+    rightsDecisions: record.rightsDecisions,
+    emoji: record.emoji,
   };
 }
 
@@ -130,15 +134,19 @@ export async function listSessions(): Promise<SavedSession[]> {
   return out;
 }
 
-export async function saveSession(s: SavedSession & { values?: Record<string, unknown> }): Promise<void> {
+export async function saveSession(s: SavedSession & { values?: Record<string, unknown>; expectedUpdatedAt?: string | null }): Promise<string> {
   await ensureMigrated();
-  await writeSessionRecord(DIR, {
+  const record = await writeSessionRecord(DIR, {
+    expectedUpdatedAt: s.expectedUpdatedAt,
+    rightsDecisions: s.rightsDecisions,
+    emoji: s.emoji,
     slot: s.slot,
     label: s.label,
     toolId: s.toolId,
     data: { ...(s.values ?? {}), __toolId: s.toolId, __label: s.label, [QUERY_KEY]: s.query },
-    updatedAt: s.updatedAt,
+    updatedAt: s.expectedUpdatedAt === undefined ? s.updatedAt : undefined,
   });
+  return record.updatedAt;
 }
 
 export async function deleteSession(slot: string): Promise<void> {

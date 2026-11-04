@@ -6,18 +6,30 @@
  * other saved session (fully re-editable). Terminal scope is PDF/.ai; IDML/Penpot stay
  * a web feature (they need a DOM/canvas the Node shell doesn't have).
  */
+import { sessionRightsDecisions, sessionEmojiStamp } from '../../../engine/src/session-record.ts';
+import { randomUUID } from 'node:crypto';
+import { readLollyFile } from '@lolly-tools/node-shell/lolly-file';
 import { readFile } from 'node:fs/promises';
 import { basename, extname } from 'node:path';
 import { homedir } from 'node:os';
 import { parsePdfBytes } from './import/pdf.ts';
 import { mountTool, currentQuery, modelValues, type Manifest } from './engine-render.ts';
+import type { SavedSession } from './store.ts';
 import { saveSession } from './store.ts';
 import type { DesignMapOptions } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 
 const expandHome = (p: string): string => (p.startsWith('~') && (p.length === 1 || p[1] === '/') ? homedir() + p.slice(1) : p);
 
-export interface ImportedSession { slot: string; label: string; query: string; toolId: string; boxes: number }
+export interface ImportedSession extends SavedSession { boxes: number }
+export interface ImportOptions { acceptLossy?: boolean; page?: number }
+export interface ImportResult { error?: string; review?: { warnings: string[]; page: number; pageCount: number } }
+export class ImportReviewRequired extends Error {
+  readonly warnings: string[];
+  readonly page: number;
+  readonly pageCount: number;
+  constructor(warnings: string[], page: number, pageCount: number) { super(warnings.join(' ')); this.warnings = warnings; this.page = page; this.pageCount = pageCount; }
+}
 
 /** Brand vocabulary for the importer (engine DesignMapOptions), derived from the
  *  target tool's OWN manifest - its font select wire values + addKinds seed colours
@@ -65,22 +77,43 @@ export function designMapFromManifest(manifest: Manifest): DesignMapOptions {
 
 /** Import a PDF/.ai file → a saved Design project. Returns the session so the
  *  caller can open it immediately. Throws a user-facing message on any failure. */
-export async function importDesignFile(path: string, host: HostV1): Promise<ImportedSession> {
+export async function importDesignFile(path: string, host: HostV1, options: ImportOptions = {}): Promise<ImportedSession> {
   const ext = extname(path).toLowerCase();
-  if (ext !== '.pdf' && ext !== '.ai') {
-    throw new Error('The terminal imports PDF and .ai files. For IDML or Penpot, use the web app.');
-  }
+  if (!['.pdf', '.ai', '.lolly', '.json'].includes(ext)) throw new Error('Open a saved .lolly/.json document, or import a PDF/.ai page.');
   const bytes = new Uint8Array(await readFile(expandHome(path)));
+  if (ext === '.lolly' || ext === '.json') {
+    const file = ext === '.lolly' ? readLollyFile(bytes) : null;
+    if (file?.manifest.assets?.some(asset => typeof asset.path === 'string') || file?.manifest.fonts?.length) throw new Error('This document carries media or fonts. Open it in the web or desktop app to import those resources.');
+    const raw: unknown = file ? file.session : JSON.parse(new TextDecoder().decode(bytes));
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('The saved document must contain an object.');
+    const record = raw as Record<string, unknown>;
+    const values = (record.data && typeof record.data === 'object' && !Array.isArray(record.data) ? record.data : record) as Record<string, unknown>;
+    const toolId = file?.manifest.tool.id ?? values.__toolId ?? record.toolId;
+    if (typeof toolId !== 'string') throw new Error('The saved document has no tool identity.');
+    const query = typeof values.__tui_query === 'string' ? values.__tui_query : '';
+    const { runtime, reserved } = await mountTool(toolId, host, query, values, { fromLink: true, untrustedValues: true, emojiStamp: sessionEmojiStamp(record) ?? undefined });
+    const decisions = sessionRightsDecisions(record);
+    if (decisions) runtime.setRightsDecisions(decisions);
+    const label = String(values.__label ?? record.label ?? basename(path));
+    const slot = `${toolId}-${randomUUID()}`;
+    const data = modelValues(runtime);
+    const savedQuery = currentQuery(runtime, { width: reserved.width, height: reserved.height, unit: reserved.unit, dpi: reserved.dpi, format: reserved.format, c2pa: reserved.c2pa?.on, c2paDays: reserved.c2pa?.days, bleed: reserved.bleed, marks: new URLSearchParams(query).get('marks'), profile: reserved.profile, filename: reserved.filename ?? undefined, madeWith: reserved.madeWith ?? undefined, imprint: reserved.imprint ?? undefined, durable: reserved.durable ?? undefined });
+    const updatedAt = await saveSession({ slot, toolId, label, query: savedQuery, values: data, rightsDecisions: runtime.rightsDecisions(), updatedAt: new Date().toISOString(), expectedUpdatedAt: null });
+    return { slot, toolId, label, query: savedQuery, data, updatedAt, boxes: 0 };
+  }
   // Mount first: the imported boxes must speak the ACTIVE profile's design
   // vocabulary (fonts/seed colours from its manifest), not the engine's neutral one.
   const { runtime, manifest } = await mountTool('design', host, '');
-  const { boxes, background } = await parsePdfBytes(bytes, undefined, designMapFromManifest(manifest));
+  const warnings: string[] = [];
+  const { boxes, background, page, pageCount } = await parsePdfBytes(bytes, message => warnings.push(message), designMapFromManifest(manifest), options.page);
+  if (warnings.length && !options.acceptLossy) throw new ImportReviewRequired(warnings, page, pageCount);
   await runtime.setInput('boxes', boxes as never);
   await runtime.setInput('background', background as never);
   const query = currentQuery(runtime);
 
   const label = `Imported ${basename(path)}`;
-  const slot = `design-${Date.now()}`;
-  await saveSession({ slot, toolId: 'design', label, query, values: modelValues(runtime), updatedAt: new Date().toISOString() });
-  return { slot, label, query, toolId: 'design', boxes: boxes.length };
+  const slot = `design-${randomUUID()}`;
+  const data = modelValues(runtime);
+  const updatedAt = await saveSession({ slot, toolId: 'design', label, query, values: data, updatedAt: new Date().toISOString() });
+  return { slot, label, query, toolId: 'design', boxes: boxes.length, updatedAt, data };
 }

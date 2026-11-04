@@ -36,6 +36,7 @@ export const REPEATABLE = new Set(['trust-anchor']);
  * inputs are NOT here: a bare `--dark` meaning true is the documented boolean form.
  */
 export const VALUE_FLAGS = new Set([
+  'root', 'jobs', 'journal', 'rows', 'expect-plan',
   'output', 'export', 'format', 'width', 'height', 'unit', 'dpi', 'depth',
   'bleed', 'marks', 'cuts', 'samples', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'filename', 'slot', 'z', 'zx',
   // `s` is the deck STATE ADDRESS (plan 112): `--s=2` / `--s=slide1` renders that one
@@ -104,7 +105,7 @@ export const RESERVED_SUBCOMMANDS = [
   'icons', 'pack',
   // `tui` starts the interactive terminal shell (plans/202 WP1.4). One install, five
   // doors: nobody should have to learn that the interactive one is a second binary.
-  'tui',
+  'projects', 'tui',
   // `rebrand` renovates a deck in three stages, plan, compile and inspect (plan 274).
   'rebrand',
   // Looking at a picture in its own coordinates, as the MCP looking tools do

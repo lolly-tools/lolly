@@ -153,3 +153,16 @@ test('sessions saved before the move are copied across once, and left where they
   assert.ok(await readFile(join(legacyHome, 'sessions', 'qr-code-1.json'), 'utf8'));
   assert.ok(await readFile(join(legacyHome, 'saved-state', 'tui-sessions-v1.marker'), 'utf8'));
 });
+
+
+test('saving an existing project preserves its identity and refuses a stale revision', async () => {
+  const initial = { slot: 'revision-fixture', toolId: 'qr-code', label: 'Original', query: 'url=one', updatedAt: new Date().toISOString() };
+  const revision = await store.saveSession({ ...initial, expectedUpdatedAt: null });
+  const next = await store.saveSession({ ...initial, query: 'url=two', expectedUpdatedAt: revision });
+  assert.notEqual(next, revision);
+  await assert.rejects(store.saveSession({ ...initial, query: 'url=stale', expectedUpdatedAt: revision }), /changed since it was opened/);
+  await assert.rejects(store.saveSession({ ...initial, expectedUpdatedAt: null }), /changed since it was opened/);
+  const rows = (await store.listSessions()).filter(row => row.slot === initial.slot);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0]?.query, 'url=two');
+});

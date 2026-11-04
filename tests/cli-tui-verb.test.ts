@@ -18,6 +18,8 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { RESERVED_SUBCOMMANDS } from '../shells/cli/src/args.ts';
 import { resolveTuiLaunch } from '../shells/cli/src/tui.ts';
 
@@ -51,4 +53,17 @@ test('`lolly tui` with no terminal exits non-zero and says a terminal is needed'
       return true;
     },
   );
+});
+
+test('source TUI mounts in a real terminal from the root and an unrelated directory', { skip: process.platform === 'win32' }, async t => {
+  try { await run('python3', ['--version']); } catch { t.skip('python3 is required for the PTY smoke'); return; }
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-tui-pty-'));
+  try {
+    for (const cwd of [REPO, dir]) {
+      await run('python3', [join(REPO, 'tests/helpers/tui-pty.py'), process.execPath, LOLLY, 'tui'], {
+        cwd, timeout: 45000,
+        env: { ...process.env, LOLLY_PROFILE: 'lolly-demo', LOLLY_STATE_DIR: join(dir, 'state'), TERM: 'xterm-256color', NO_COLOR: '1' },
+      });
+    }
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });

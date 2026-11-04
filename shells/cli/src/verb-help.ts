@@ -269,6 +269,46 @@ Exit codes:
   3  no browser tier here (install one with lolly install-browser)
 `;
 
+export const PROJECTS_HELP = `lolly projects: local saved projects shared with the TUI and desktop.
+
+Usage:
+  lolly projects list [--query=text] [--json]
+  lolly projects show <slot> [--json]
+  lolly projects export <slot> --output=project.json [--json]
+  lolly projects copy <slot> [--label=name] [--json]
+
+Export includes private document state and refuses an existing destination.
+The state directory follows LOLLY_STATE_DIR and the shared device-store resolver.
+`;
+export const TUI_HELP = `lolly tui: interactive terminal shell.
+
+Usage: lolly tui [--root=/path/to/content]
+
+Needs an interactive terminal. Five views use keys 1 through 5. Tools: / search,
+b production batch review, u open link, i open saved document or review PDF import.
+Tool view: ? actions, s save, S save as, x export, y review share, Esc back.
+For linear or screen-reader workflows use list, describe, projects and --json.
+`;
+export const BATCH_HELP = `lolly batch: produce files from CSV/TSV rows.
+
+Usage: lolly batch <rows.csv> --out-dir=./out [options]
+  --template=<tool,tool>  print a starter CSV
+  --dry-run              inspect planned outputs and dependency readiness
+  --preflight            check row content without exporting assets
+  --jobs=1..8            isolated worker processes
+  --keep-going           continue after a row fails
+  --journal=<path>       receipt path; default out/.lolly-batch.json
+  --resume               reuse successful rows with matching source/output hashes
+  --watch                watch the CSV and file inputs; terminal progress only
+  --rows=1,3             select original row numbers
+  --expect-plan=<id>     require the planId returned by dry run
+  --strict               promote warnings to failures
+  --json                 one result envelope; incompatible with --watch
+
+The default batch path is sequential. Production controls above opt into journals.
+Ctrl-C cancels queued work and workers; completed files remain available for resume.
+`;
+
 /**
  * The verb help for an argv that asks for help, or null for the global usage. `run`
  * has its own help only on a saved session file (`lolly run deck.lolly --help`).
@@ -276,6 +316,9 @@ Exit codes:
 export function verbHelp(args: readonly string[]): string | null {
   const positionals = args.filter((a) => !a.startsWith('-') && a !== 'help');
   const verb = positionals[0];
+  if (verb === 'projects') return PROJECTS_HELP;
+  if (verb === 'tui') return TUI_HELP;
+  if (verb === 'batch') return BATCH_HELP;
   if (verb === 'read') return READ_HELP;
   if (verb === 'check') return CHECK_HELP;
   if (verb === 'package') return PACKAGE_HELP;

@@ -291,6 +291,7 @@ const result = await build({
     cli: join(REPO, 'shells/cli/bin/lolly.ts'),
     tui: join(REPO, 'shells/tui/src/main.tsx'),
     'rebrand-worker': join(REPO, 'shells/cli/src/rebrand-worker.ts'),
+    'batch-worker': join(REPO, 'shells/cli/src/batch-worker.ts'),
   },
   outdir: join(PKG, 'dist'),
   bundle: true,

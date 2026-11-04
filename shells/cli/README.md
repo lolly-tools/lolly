@@ -1,6 +1,6 @@
 # lolly-cli
 
-The headless shell. It renders any tool in the catalogue to a file without a browser, and it exists for two reasons beyond convenience: it is the proof that the engine and the tools are genuinely host-agnostic, and it is the CI smoke gate.
+The headless shell. It renders tools through native, resvg and full-renderer tiers, and it exists for two reasons beyond convenience: it is the proof that the engine and the tools are genuinely host-agnostic, and it is the CI smoke gate.
 
 The design claim it defends is stated in the header of `bin/lolly.ts`: **the CLI is URL mode under a different transport.** `--foo=bar` argv pairs become the same input values the web shell parses from `?foo=bar`. The engine cannot tell which transport delivered them, so the GUI and the CLI cannot drift.
 
@@ -12,14 +12,33 @@ Lives at `shells/cli/` in the [`lolly`](https://github.com/lolly-tools/lolly) re
 
 | Invocation | Goes to |
 |---|---|
-| `lolly` | `listToolsCli()` in `src/run.ts` |
+| `lolly` | Start in an interactive terminal; list tools when piped |
 | `lolly <tool-id>` | `showToolInputsCli()` in `src/run.ts` |
 | `lolly <tool-id> --foo=bar …` | `runToolCli()` in `src/run.ts` |
 | `lolly validate <file>` | `src/validate.ts`, the same engine verifier the web `/verify` view uses |
 | `lolly install-browser` | `src/install-browser.ts`, a one-time scoped Chromium download |
 | `lolly assets [query]` | `listAssetsCli()` in `src/run.ts`, the catalogue asset listing |
-| `lolly batch …` | `src/batch.ts`, a CSV/JSON multi-row run |
+| `lolly batch …` | `src/batch.ts`, CSV/TSV rows through the single-render path |
 | `lolly smoke` | `src/smoke.ts`, renders every catalogue tool at defaults |
+
+The command families also cover `start`/`system`, `projects`, structured document
+compilation/inspection/diff/measurement/optimisation/packaging, `read`/`check`/`compose`,
+`prepare`/`files`, Rebrand, learning packages, on-device models/speech/ML, audio mixing,
+and Linux packaging. `RESERVED_SUBCOMMANDS` in `src/args.ts` is the command inventory;
+`lolly --help` lists the current flags and examples. Completion scripts derive their
+commands from that inventory and bake tool inputs/options into the generated script.
+
+`projects list|show|export|copy` reads the shared on-device session store. A JSON export
+contains private document state, uses a private file mode and refuses an existing
+output path. It can be opened by the TUI. `run --inputs=file.json` or `--inputs=-`
+accepts input values; explicit flags override those values. A share link omits
+personal/profile-bound fields unless `--include-personal` is given after review.
+
+Production batches use `src/batch-production.ts` plus isolated `batch-worker` processes:
+`--dry-run` plans dependencies/outputs, `--preflight` checks rows, `--jobs=1..8` bounds
+workers, `--resume` verifies journal fingerprints and output hashes, and `--watch`
+rebuilds after the CSV or its file inputs change. See `docs/cli-automation.md` for the
+resume limits. The default batch path remains `src/batch.ts`.
 
 `src/run.ts` is the render path: build a jsdom document, load the tool, create the runtime, hydrate the template into that DOM, then export. `src/batch.ts` handles multi-row runs and `src/raster.ts` picks the raster tier.
 
@@ -87,7 +106,7 @@ There is nothing to build. Node runs the TypeScript directly. Typechecking is `t
 - **A `zx=` link needs `--link-password`.** A missing or wrong password is an error. It never falls back to rendering the tool at its defaults, which would be a different document under the right filename.
 - **Signing can be an identity, not just an anonymous key.** `--sign-key=<key.pem> --sign-cert=<chain.pem>` (or the `$LOLLY_SIGN_*` environment) makes the Content Credential carry a real x5chain, so a verifier pinning that root reports a verified identity instead of an unidentified signer. Both flags take PATHS, and no flag anywhere takes key material or a passphrase - argv is visible in `ps` to every user on the machine. The loading + validation lives in `packages/node-shell/src/signing-identity.ts`, and every misconfiguration (key/certificate mismatch, expired certificate, chain out of order, wrong curve) is a refusal BEFORE the render, because the alternative is a well-formed file nobody can verify. See `docs/cli-signing.md`.
 - **`lolly validate` is a real verifier, not a stub.** It runs the same engine Content Credentials modules as the web `/verify` view, accepts `--trust-anchor`, and with `--deep` also does a neural pixel-watermark scan, which is Tier B and so needs the browser and the built web shell.
-- **A tool ID can never be `validate`, `install-browser`, `assets`, `batch` or `smoke`.** Those five are reserved subcommands, matched before the argv is treated as a tool ID.
+- **Tool IDs cannot shadow reserved subcommands.** `RESERVED_SUBCOMMANDS` in `src/args.ts` is the full list, matched before the argv is treated as a tool ID.
 - Tier B's Chromium is downloaded on request by `lolly install-browser` into a scope this shell owns. It is not your system Chrome and it is not fetched implicitly on first render.
 
 ## Builds inside the repository it lives in

@@ -298,7 +298,8 @@ Subcommands:
   lolly trace <file|-> [--region=x,y,w,h]   edges as lines in its own coordinates (JSON);
                       [--design-layers]    --design-layers adds Design path layers
   lolly completion bash|zsh|fish           print a shell-completion script to stdout
-  lolly tui                                start the interactive terminal shell (needs a
+  lolly projects list|show|export|copy      local saved projects and private JSON exports
+  lolly tui [--root=/path/to/content]       start the interactive terminal shell (needs a
                                            real terminal; same engine, same bytes)
 
 Global flags (valid on every command):
@@ -331,6 +332,12 @@ Export options:
   --bleed=3mm --marks=crop,reg,bars        print prep (routes through the full render tier)
   --press-profile=fogra39  CMYK press condition for pdf-cmyk / cmyk-tiff. \`--profile=\`
                            is its alias, matching URL mode's reserved \`profile\` param.
+  --jobs=<1..8>           isolated production batch workers
+  --journal=<file>        production batch receipts; --resume reuses verified outputs
+  --dry-run               plan a batch without writing files
+  --watch                 rebuild a batch when its CSV/file inputs change
+  --inputs=<file|->       read input values from JSON; explicit flags win
+  --include-personal      include reviewed personal fields in --share links
   --user-profile=<f.json>  pre-fill bindToProfile inputs from a user-profile JSON file
   --rate-card=<f.json>     load + validate a printer's rate card and confirm it (a bad
                            card warns and continues; no prices are computed)
@@ -438,7 +445,7 @@ process.stdout.on('error', (err: NodeJS.ErrnoException) => {
 // A raw argv scan is enough: `--json` has one spelling and no bare-value trap. The
 // command name is re-set accurately by main() once the parse succeeds; this pre-set is
 // only the fallback for a failure that happens before that.
-const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
 const rawFirst = args.find(a => !a.startsWith('-'));
 beginCommand(
   RAW_VERBS.has(rawFirst ?? '') ? rawFirst! : 'lolly',
@@ -520,7 +527,7 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
   beginCommand(cmd === 'adobe' || cmd === 'affinity' || cmd === 'dxf' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
@@ -743,6 +750,12 @@ async function main(): Promise<void> {
   // would use is worthless. The engine owns the rules; this shell only collects the
   // facts. Counts and findings only - there is no rate, price or currency in it.
   if (cmd === 'preflight') {
+    const batch = flags.batch ?? (/\.(csv|tsv)$/i.test(positionals[1] ?? '') ? positionals[1] : undefined);
+    if (batch) {
+      const { productionBatchCli } = await import('../src/batch-production.ts');
+      process.exitCode = await productionBatchCli(batch, { outDir: flags['out-dir'] || './out', preflight: true, json: g.json, strict: g.strict, jobs: flags.jobs === undefined ? undefined : Number(flags.jobs), keepGoing: isOn(flags['keep-going']), journal: flags.journal });
+      return;
+    }
     const rest = args.slice(args.indexOf('preflight') + 1);
     const { preflightCli } = await import('../src/preflight.ts');
     process.exitCode = await preflightCli(rest, flags);
@@ -862,7 +875,13 @@ async function main(): Promise<void> {
     const csv = positionals[1];
     if (!csv) throw usageError('usage: lolly batch <rows.csv> [--out-dir=./out] [--keep-going]   (or --template=tool,tool)', 'MISSING_ARGUMENT');
     const { runBatchCli } = await import('../src/batch.ts');
-    process.exitCode = await runBatchCli(csv, { outDir: flags['out-dir'] || './out', keepGoing: isOn(flags['keep-going']), json: g.json });
+    if (flags.rows !== undefined || flags['expect-plan'] !== undefined || isOn(flags.preflight) || isOn(flags['dry-run']) || isOn(flags.resume) || isOn(flags.watch) || flags.jobs !== undefined || flags.journal !== undefined) {
+      const { productionBatchCli } = await import('../src/batch-production.ts');
+      process.exitCode = await productionBatchCli(csv, { outDir: flags['out-dir'] || './out', keepGoing: isOn(flags['keep-going']), json: g.json,
+        jobs: flags.jobs === undefined ? undefined : Number(flags.jobs), strict: g.strict, rows: flags.rows?.split(',').map(Number), expectedPlan: flags['expect-plan'], dryRun: isOn(flags['dry-run']), preflight: isOn(flags.preflight), resume: isOn(flags.resume), watch: isOn(flags.watch), journal: flags.journal });
+    } else {
+      process.exitCode = await runBatchCli(csv, { outDir: flags['out-dir'] || './out', keepGoing: isOn(flags['keep-going']), json: g.json });
+    }
     return;
   }
 
@@ -900,6 +919,11 @@ async function main(): Promise<void> {
   // `tui`: the interactive terminal shell, from the same install (plans/202 WP1.4). It
   // runs as a child with stdio inherited, so the terminal and the exit code pass
   // through and this process still writes nothing to stdout.
+  if (cmd === 'projects') {
+    const { projectsCli } = await import('../src/projects.ts');
+    await projectsCli(positionals.slice(1), flags, g.json);
+    return;
+  }
   if (cmd === 'tui') {
     const { tuiCli } = await import('../src/tui.ts');
     process.exitCode = await tuiCli(args.slice(args.indexOf('tui') + 1));
@@ -979,6 +1003,7 @@ async function render(
   // --password-stdin (contract B15) keeps the password out of argv, where `ps` can read
   // it. It replaces the value the rest of the pipeline reads, so nothing downstream
   // needs to know which way it arrived.
+  if (params.inputs === '-' && isOn(flags['password-stdin'])) throw usageError('--inputs=- and --password-stdin cannot share stdin.', 'CONFLICTING_FLAGS');
   const password = await resolvePassword(flags, readStdin);
   if (password !== undefined) params.password = password;
   delete params['password-stdin'];

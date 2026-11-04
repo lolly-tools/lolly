@@ -1,6 +1,6 @@
 # lolly-tui
 
-An interactive terminal shell built on Ink and React. Four top-level sections switched with `1`/`2`/`3`/`4` (Tools, Projects, Profile, Assets), plus a tool view opened from the gallery, from a saved project or from a pasted lolly.tools URL.
+An interactive terminal shell built on Ink and React. Five top-level sections switched with `1` through `5` (Tools, Projects, Profile, Assets, System), plus a tool view opened from the gallery, from a saved project or from a pasted lolly.tools URL.
 
 The one-line summary is in the header of `src/bridge.ts`: **the TUI is the CLI bridge under an interactive transport.** Same Node plus jsdom render path, same filesystem assets, same engine.
 
@@ -42,6 +42,34 @@ pnpm run tui
 
 That is `pnpm --filter ./shells/tui run start`, which is `tsx src/main.tsx`. It needs an interactive terminal and exits with a clear message when stdout is not a TTY, so it will not work inside a pipe or a CI log.
 
+## Document and production workflows
+
+- `?` or `:` opens the tool action palette: help, document themes, renderer readiness,
+  recent logs, a private Bash/Zsh CLI recipe, external editing and terminal appearance.
+- Hidden inputs/options use engine conditions. Document colourways are saved with token
+  links and emoji; terminal appearance is a separate preference and respects `NO_COLOR`.
+- `s` updates an opened project; `S` saves a new copy. Changed projects prompt before
+  leaving, and a save detects a changed on-disk revision instead of overwriting quietly.
+- Password-protected links request a masked password before opening. Personal share
+  fields require review; generating a link no longer writes a backup file automatically.
+- Exporting keeps the requested format or fails. HTML is explicitly selectable. Requested
+  credentials must be present before the file is written. Export rows scroll with focus.
+- `b` from Tools opens the production queue. Plan the CSV, inspect dependency readiness
+  and paths, exclude rows, preflight, run/resume and cancel workers. The CLI owns the run
+  receipt, so the queue and scripts use the same production behavior.
+- Open `.lolly` or exported project JSON files from Tools. Carried media/fonts currently
+  need web/desktop import. PDF/AI page import reviews multipage and fidelity losses before
+  saving; left/right chooses a page. Paths/images are still placeholders in this importer.
+- Saved JSON, external editing and CLI recipes reject loaded binary file inputs;
+  retain their original path and use the CLI or export the result instead.
+- External editing uses `$VISUAL` or `$EDITOR`, a private temporary JSON file, Ink's
+  terminal suspension, validation and explicit apply. Windows editor configuration takes
+  an executable path; Bash/Zsh recipe syntax is labelled in the action.
+
+Without a tool catalog, the TUI keeps System and appropriate local file workflows
+available and explains the missing content. `lolly tui --root=/path/to/content`
+selects a checkout/materialized catalog explicitly. A design-system import adds no tools.
+
 ## Build it
 
 Nothing to build, but note that unlike every other TypeScript project here this one is run through **`tsx`** rather than Node's native type-stripping, because the sources are `.tsx` and Node does not strip JSX. Typechecking is `tsc -p shells/tui`, part of the repo's `pnpm run typecheck`.
@@ -55,7 +83,7 @@ Nothing to build, but note that unlike every other TypeScript project here this 
 
 ## Builds inside the repository it lives in
 
-This shell runs **inside the `lolly` repository** and nowhere else. It resolves `@lolly/engine` and `@lolly-tools/node-shell` through npm workspaces declared in the root `package.json`, it reads tool and catalogue content through `packages/node-shell/src/content-roots.ts`, and it imports the CLI bridge from `shells/cli`, which in turn shares the web shell's build output for raster rendering.
+Development runs from the `lolly` workspace; the standalone CLI package also ships the compiled TUI. It resolves `@lolly/engine` and `@lolly-tools/node-shell` through npm workspaces declared in the root `package.json`, it reads tool and catalogue content through `packages/node-shell/src/content-roots.ts`, and it imports the CLI bridge from `shells/cli`, which in turn shares the web shell's build output for raster rendering.
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git

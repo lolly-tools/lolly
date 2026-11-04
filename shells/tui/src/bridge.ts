@@ -13,6 +13,25 @@ import { JSDOM } from 'jsdom';
 import { createCliBridge } from '../../cli/src/bridge.ts';
 import { getProfile } from './store.ts';
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
+import { format, stripVTControlCharacters } from 'node:util';
+
+function appendLog(logs: string[], text: string): void {
+  for (const line of stripVTControlCharacters(text).split(/\r?\n/)) {
+    const readable = [...line].filter(character => { const code = character.codePointAt(0) ?? 0; return code === 9 || (code >= 32 && (code < 127 || code > 159)); }).join('').replaceAll('\t', '    ');
+    logs.push(readable);
+  }
+  if (logs.length > 200) logs.splice(0, logs.length - 200);
+}
+
+/** Keep library and hook diagnostics off Ink's managed screen. */
+export function captureTuiConsole(logs: string[]): () => void {
+  const methods = ['log', 'info', 'debug', 'warn', 'error'] as const;
+  const previous = Object.fromEntries(methods.map(method => [method, console[method]])) as Pick<Console, typeof methods[number]>;
+  for (const method of methods) console[method] = (...args: unknown[]) => {
+    appendLog(logs, `[${method}] ${format(...args)}`);
+  };
+  return () => { for (const method of methods) console[method] = previous[method]; };
+}
 
 export interface TuiBridge {
   host: HostV1;
@@ -21,7 +40,7 @@ export interface TuiBridge {
   logs: string[];
 }
 
-export async function createTuiBridge(profile: Profile = {}): Promise<TuiBridge> {
+export async function createTuiBridge(profile: Profile = {}, { catalogAvailable = true }: { catalogAvailable?: boolean } = {}): Promise<TuiBridge> {
   const dom = new JSDOM('<!DOCTYPE html><html><body><div id="canvas"></div></body></html>');
   // The engine + Handlebars reach for these globals while hydrating/exporting a
   // template (same as the CLI runner). Ink's reconciler is terminal-only and never
@@ -39,14 +58,14 @@ export async function createTuiBridge(profile: Profile = {}): Promise<TuiBridge>
 
   const logs: string[] = [];
   const keep = (line: string): void => {
-    logs.push(line);
-    if (logs.length > 200) logs.shift();
+    appendLog(logs, line);
   };
   // A rondocode song's report (plan 301) goes to the buffer too: the CLI's default
   // writes it to stderr, which would land on Ink's screen.
   const host = await createCliBridge({
     dom,
     profile,
+    ...(catalogAvailable ? {} : { catalogAssets: [] }),
     onAudioRun: (run) => {
       keep(`[info] Song "${run.name}": ${run.seconds.toFixed(2)} s rendered in the ${run.run.executionClass} execution class (${run.run.source} ${run.run.version}).`);
       for (const f of run.findings) keep(`[warn] Song "${run.name}": ${f.message}`);

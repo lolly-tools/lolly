@@ -34,7 +34,7 @@ import { unavailableHere } from './exit-codes.ts';
  * is a deny list rather than an allow list of verbs.
  */
 export const CONTENT_FREE_COMMANDS: ReadonlySet<string> = new Set([
-  'learning', 'prepare', 'files', 'start', 'system', 'completion', 'install-browser', 'help', 'version',
+  'tui', 'projects', 'learning', 'prepare', 'files', 'start', 'system', 'completion', 'install-browser', 'help', 'version',
   'adobe', 'affinity', 'dxf',
   // File-in file-out: `validate` reads Content Credentials out of bytes you already
   // have, the ML and speech commands run a local model, `mix` mixes audio sources,

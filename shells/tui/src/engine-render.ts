@@ -4,10 +4,13 @@
  * mountTool → createRuntime; renderSvg turns the current state into an SVG string
  * (for the terminal preview); exportToFile writes a real file via the Node bridge.
  */
-import { loadTool, createRuntime, canvasSizeOf, parseUrlState, serializeUrlState, expandQuery, normalizeLang, embedC2pa, C2PA_FORMATS, readFileDesignRecord, parseToolUrl } from '@lolly/engine';
+import { loadTool, createRuntime, canvasSizeOf, parseUrlState, serializeUrlState, expandQuery, normalizeLang, hasEncryptedState, unpackEncrypted, ENC_PARAM, tokenRestoreRefsOf, embedC2pa, C2PA_FORMATS, extractC2paStore, readFileDesignRecord, parseToolUrl } from '@lolly/engine';
+import { shareUrlState } from '../../../engine/src/share-privacy.ts';
+import type { SessionEmojiStamp } from '../../../engine/src/session-record.ts';
 import type { UrlState } from '../../../engine/src/url-mode.ts';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { assertFormatBytes } from '@lolly-tools/node-shell/format-sniff';
 // The DOM-free/raster format split + the resvg fast path + the export C2PA payload,
 // shared with the CLI (one implementation, no drift).
 import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize } from '@lolly-tools/node-shell/raster';
@@ -74,11 +77,11 @@ export interface MountResult { runtime: Runtime; manifest: Manifest; reserved: U
  */
 export async function mountTool(
   toolId: string, host: HostV1, query = '', values?: Record<string, unknown>,
-  opts: { fromLink?: boolean } = {},
+  opts: { fromLink?: boolean; linkPassword?: string; untrustedValues?: boolean; emojiStamp?: SessionEmojiStamp } = {},
 ): Promise<MountResult> {
   // Expand a packed `z=` share link FIRST (mirrors shells/cli/src/run.ts) - a no-op on a
   // readable or empty query. Without this the TUI silently loads a packed link at defaults.
-  const expanded = query ? await expandQuery(query) : '';
+  const expanded = query ? await openLinkQuery(query, opts.linkPassword) : '';
   // Read `lang` before loadTool so a `?lang=de` link localizes the manifest via
   // applyManifestI18n (same as the CLI's run.ts) - even a lang packed inside `z=`.
   const lang = expanded ? normalizeLang(new URLSearchParams(expanded).get('lang')) ?? undefined : undefined;
@@ -92,9 +95,12 @@ export async function mountTool(
   // dims, unit, dpi, c2pa, password, filename) seed the export panel instead of being
   // silently dropped and reset to manifest defaults.
   const reserved = parseUrlState(expanded, tool.manifest);
+  if (opts.emojiStamp && !reserved.emoji && !reserved.emojiStyle && !Object.hasOwn(values ?? {}, '__emoji')) {
+    reserved.emoji = opts.emojiStamp.emoji; reserved.emojiFx = opts.emojiStamp.emojifx; reserved.emojiStyle = opts.emojiStamp.emojistyle ?? null;
+  }
   if (opts.fromLink) {
     const { linkLocalFile } = await import('../../cli/src/block-files.ts');
-    const hit = await linkLocalFile(tool.manifest as Parameters<typeof linkLocalFile>[0], reserved.values as Record<string, unknown>);
+    const hit = await linkLocalFile(tool.manifest as Parameters<typeof linkLocalFile>[0], (opts.untrustedValues ? { ...reserved.values, ...values } : reserved.values) as Record<string, unknown>);
     if (hit) throw new LinkLocalFileError(hit);
   }
   const initial = values ? { ...reserved.values, ...values } : reserved.values;
@@ -102,6 +108,7 @@ export async function mountTool(
   // Export panel's width and height move it from there (setCanvasSizeFrom).
   const runtime = await createRuntime(tool, host, initial as Parameters<typeof createRuntime>[2], {
     canvasSize: canvasSizeOf(reserved.width, reserved.height, reserved.unit ?? 'px'),
+    tokenSelection: values?.__tokenSelection as Record<string, string> | undefined ?? reserved.tokenSelection ?? undefined,
   });
   await (await import('./document-emoji.ts')).seedEmoji(runtime,host,reserved,values);
   return { runtime, manifest: tool.manifest, reserved };
@@ -119,16 +126,39 @@ export async function setCanvasSizeFrom(runtime: Runtime, dims: { width?: number
   return runtime.canvasSize !== before;
 }
 
-/** The current state as a URL query - what a saved session stores + reopens from. */
-export function currentQuery(runtime: Runtime): string {
-  const style = runtime.emoji.style;
-  return serializeUrlState(runtime.getModel(), {emojiStyle:style ? JSON.stringify(style) : undefined});
+/** Decrypt before parsing or mounting; an unreadable link never becomes a default document. */
+export class LinkPasswordError extends Error {}
+export async function openLinkQuery(query: string, password?: string): Promise<string> {
+  const expanded = await expandQuery(query);
+  if (!hasEncryptedState(expanded)) return expanded;
+  if (!password) throw new LinkPasswordError('This link needs its password. No document was opened.');
+  const params = new URLSearchParams(expanded);
+  const plain = await unpackEncrypted(params.get(ENC_PARAM) ?? '', password);
+  if (plain === null) throw new LinkPasswordError('Wrong password or damaged link. No document was opened.');
+  params.delete(ENC_PARAM);
+  return expandQuery([plain, params.toString()].filter(Boolean).join('&'));
 }
 
-/** The current input values by id - the other half of what a saved session stores, and
- *  the half the desktop app and the web shell read. */
+/** The current state as a URL query, including document choices and export controls. */
+export function currentQuery(runtime: Runtime, options: Parameters<typeof serializeUrlState>[1] & { filename?: string } = {}, publicOnly = false): string {
+  const style = runtime.emoji.style;
+  const query = (publicOnly ? shareUrlState : serializeUrlState)(runtime.getModel(), {
+    ...options, tokenSelection: runtime.tokenSelection,
+    ...(style ? { emojiStyle: JSON.stringify(style) } : { emoji: 'none' }),
+  });
+  const params = new URLSearchParams(query);
+  if (options.filename) params.set('filename', options.filename);
+  return params.toString();
+}
+
+/** Saved values keep the markers the other shells read. */
 export function modelValues(runtime: Runtime): Record<string, unknown> {
-  return Object.fromEntries((runtime.getModel() as Array<{ id: string; value: unknown }>).map(i => [i.id, i.value]));
+  return {
+    ...Object.fromEntries(runtime.getModel().map(i => [i.id, i.value])),
+    __tokenLinks: tokenRestoreRefsOf(runtime.getModel()),
+    ...(runtime.tokenSelection ? { __tokenSelection: runtime.tokenSelection } : {}),
+    __emoji: runtime.emoji.style,
+  };
 }
 
 export function exportableFormats(manifest: Manifest): string[] {
@@ -223,7 +253,7 @@ export async function exportToFile(
   const write = async (bytes: Uint8Array, viaWebShell = false, drawn?: DrawnHere): Promise<number> => {
     // Optionally stamp Content Credentials (C2PA) as the LAST byte operation - same rule
     // as the CLI/web. NEVER on transform utilities (strip-data's whole job is to REMOVE
-    // metadata). Ephemeral on-device cert; a clean warn-and-continue on any failure.
+    // metadata). A requested credential must succeed before bytes are written.
     // The Tier-B (web shell) branch already stamped via the forwarded ?c2pa param, so it
     // passes viaWebShell=true to skip re-stamping (avoids a double credential).
     let out = bytes;
@@ -249,8 +279,10 @@ export async function exportToFile(
           ingredients: [...runtime.emojiIngredients(), ...(drawn?.pictures ?? [])],
           route: drawn?.route ?? null,
         }));
-      } catch { /* non-fatal - write the unstamped bytes */ }
+      } catch (error) { throw new Error('Could not add the requested Content Credentials: ' + (error as Error).message); }
     }
+    if (dims.c2paDays && !transform && C2PA_FORMATS.includes(fmt) && !extractC2paStore(out)) throw new Error('The requested Content Credentials are missing from the output. No file was written.');
+    if (!transform) assertFormatBytes(fmt, out);
     const buf = Buffer.from(out);
     await writeFile(outPath, buf);
     return buf.length;

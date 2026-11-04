@@ -34,7 +34,7 @@ Every view moves with `hjkl` or the arrow keys, opens with `Enter` and goes back
 
 Switch views with the number keys: **1** Tools, **2** Projects, **3** Profile, **4** Assets and **5** System. The layout follows the web app's, fitted to a terminal: a narrow terminal stacks the two-pane tool view into one column, as the web app does on a phone.
 
-**Tools** (`1`) is a card grid of every tool, with search, favourites, sorting and category filters. You can also open a pasted `lolly.tools` link already configured, or import a PDF or `.ai` file from disk, which becomes a saved, fully editable Design session (IDML and Penpot import stay in the web app). The TUI hides only the tools that need a live device the headless browser cannot open, such as microphone and camera recording.
+**Tools** (`1`) is a card grid of every tool, with search, favourites, sorting and category filters. You can also open a pasted `lolly.tools` link already configured, or import a PDF or `.ai` file from disk, with page and fidelity warnings reviewed before saving. Saved `.lolly` and exported project JSON files can also open here; documents carrying media/fonts need web or desktop import. The TUI hides only the tools that need a live device the headless browser cannot open, such as microphone and camera recording.
 
 **Projects** (`2`) holds your saved sessions in nested folders. Create folders, move sessions into them, open and delete them, and [batch](#batch) them into one `.zip`.
 
@@ -80,7 +80,9 @@ The tool view puts an **Inputs** panel beside an **Export** panel and a preview.
 | `Space` | Toggle a boolean |
 | `←` / `→` | Cycle a select, or step a number slider |
 | `x` | Export |
-| `s` | Save the session |
+| `s` | Save; update the opened project |
+| `S` | Save as a new project |
+| `?` / `:` | Find a tool action, document theme, diagnostics, CLI recipe or external editor |
 | `y` | Print or copy a share link |
 | `u` / `r` | Undo / redo |
 | `p` | Show or hide the preview |
@@ -92,13 +94,35 @@ The tool view puts an **Inputs** panel beside an **Export** panel and a preview.
 - a **file transform** (`strip-data`, `compress-pdf`) shows a result summary with the size before and after;
 - **`url-shot`** shows its capture settings: URL, size, crop and recolour.
 
+### Saving, sharing and actions
+
+The actions below are available in the current checkout; a packaged TUI needs a build
+that includes these changes.
+
+An opened project's `s` updates its saved slot; `S` makes a copy. Leaving changed
+inputs/export settings asks you to save or discard. If another app changed the record,
+reopen that record or use Save as. Export passwords stay out of saved/share queries.
+Loaded binary file inputs cannot be saved as JSON projects here; use the original
+file path with the CLI or export the transformed result. This avoids expanding bytes
+into a broken JSON representation.
+
+Encrypted links ask for a masked password before mounting the tool. Sharing personal
+fields presents a review choice; omission is the default. A generated share link is
+shown on screen without an automatic link-file write.
+
+The `?` action palette offers document colourways, help, renderer readiness and logs.
+Terminal light/dark/default appearance is separate from the document's colours.
+`NO_COLOR` removes UI colour. A private Bash/Zsh CLI recipe keeps values on stdin.
+External editing uses `VISUAL` or `EDITOR`, validates the returned JSON and shows
+changes before applying. Windows editor configuration takes an executable path.
+
 ## Prepare, Rebrand and import
 
 Two more screens open from Tools. `p` opens **Prepare for sharing**, which inspects files for hidden data and personal values, lets you choose replacements and saves cleaned copies, all on the device (see [Utilities](/info/utilities.html)). `r` opens **Rebrand**, which reads a `.pptx` or `.pdf` deck, shows the plan as a checklist where you keep, replace or remove each item, then compiles the result to a folder (see [Rebrand a deck](/info/rebrand.html)).
 
 ## Export
 
-The Export panel has **Format · Width · Height · Unit · DPI · Filename · Folder · Design system · C2PA · Imprint · Durable · Password**, with the output path worked out for you. Exports go to `~/Desktop` by default, and the folder is editable per export.
+The Export panel has **Format · Width · Height · Unit · DPI · Filename · Folder · Design system · C2PA · Imprint · Durable · Password · Bleed · Print marks · Press profile**, with the output path worked out for you. Exports go to `~/Desktop` by default, and the folder is editable per export.
 
 - **Design system** shows the exact words the export will record about its [design system and colourway](/info/exporting.html#the-design-system-record) in the chosen format, or says when the format carries no metadata. Cycle it to `off` to leave the record out.
 - **C2PA** adds a [Content Credential](/info/exporting.html) and sets its certificate lifetime.
@@ -139,7 +163,9 @@ The crop and recolour controls are ordinary tool inputs, so you edit them from t
 
 ## Batch
 
-There is no `#/batch` grid in the terminal. Instead, three sources make one zip on your Desktop, optionally password-locked:
+Press `b` from Tools for the production queue. Choose a CSV/TSV, review planned paths and renderer dependencies, exclude rows with Space, then preflight (`p`) or run/resume (`r`). `c` cancels a running job. A changed source invalidates the reviewed plan. Receipts are shared with the CLI production runner.
+
+The existing Projects export menu also takes three sources make one zip on your Desktop, optionally password-locked:
 
 - a **Projects folder** and everything under it (`e`);
 - a **ticked selection** of saved sessions across folders (`Space` to tick, `b` to run);
@@ -148,6 +174,10 @@ There is no `#/batch` grid in the terminal. Instead, three sources make one zip 
 A batch shows no **Design system** row, so its files carry no [design-system record](/info/exporting.html#the-design-system-record), and neither does the Profile view's render-everything zip. Export one file from the tool view to record the design system with the file.
 
 The Profile view's **back up and render everything** (`b`) writes two zips with a live progress panel: a portable data backup, and every saved project rendered out. Both land on your Desktop, or in your home directory if there is no Desktop folder.
+
+Exports keep the selected format or show a failure. Choose HTML explicitly when
+you want an HTML file. The dependency report in Actions is separate from content
+preflight; an installed renderer is not a guarantee that every document will render.
 
 ## Where your work is saved
 
@@ -174,7 +204,7 @@ The TUI is the CLI's host under an interactive transport. It reuses the CLI's im
 | Best for | Scripts, CI, pipelines, batch fan-out | Exploring tools, hand-tuning inputs, quick one-offs |
 | Input | `--flag=value` arguments | Keyboard, in place |
 | Engine and output | Same engine, same bytes | Same engine, same bytes |
-| State | No saved sessions; design systems on disk, shared with the TUI | Sessions, folders, profile and design systems on disk (see [Where your work is saved](#where-your-work-is-saved)) |
+| State | Design systems and explicit `projects` access to saved sessions on disk | Sessions, folders, profile and design systems on disk (see [Where your work is saved](#where-your-work-is-saved)) |
 
 If you can express a job as a URL, prefer the CLI: it is reproducible and pipeable. Reach for the TUI when you want to see and adjust a tool the way you would in the web app, from a terminal.
 

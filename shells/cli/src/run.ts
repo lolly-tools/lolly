@@ -8,6 +8,7 @@
  * CLI is just a different transport, not a different render engine.
  */
 
+import { shareUrlState, personalShareFields } from '../../../engine/src/share-privacy.ts';
 import { readFile, writeFile, stat } from 'node:fs/promises';
 import { resolve, basename, dirname, extname } from 'node:path';
 
@@ -70,6 +71,7 @@ function hookExecutorOpts(): { hookExecutor?: ReturnType<typeof createNodeHookEx
 }
 
 interface RunToolCliArgs {
+  inputValues?: Record<string, unknown>;
   toolId: string;
   params: Record<string, string>;
   /** Flags that appeared MORE THAN ONCE on the command line, with every value - how a
@@ -300,6 +302,15 @@ export function linkBorneKeys(typed: URLSearchParams, expanded: string, linkPara
 }
 
 export async function runToolCli(args: RunToolCliArgs): Promise<void> {
+  if (args.params.inputs !== undefined) {
+    const path = args.params.inputs;
+    let value: unknown;
+    try { value = JSON.parse(path === '-' ? (await readStdin()).toString('utf8') : await readFile(path, 'utf8')); }
+    catch (error) { throw usageError('Could not read --inputs JSON: ' + (error as Error).message, 'BAD_INPUT'); }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw usageError('--inputs must contain an object of input values.', 'BAD_INPUT');
+    const params = { ...args.params }; delete params.inputs;
+    args = { ...args, params, inputValues: value as Record<string, unknown> };
+  }
   refuseLinkPaths(args.linkParams);
   // `--themes=light,dark` (plan 291 M4, E24): one export per theme, each the run below
   // with that theme's `_themes` choice, written to <stem>-<theme>.<ext>.
@@ -399,7 +410,7 @@ async function designSystemForRun(
   return { runDesignSystem: null, pageDesignSystem: doc };
 }
 
-async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, linkParams, fetchFile: fetchFileOverride, browserTier = true, files = [] }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
+async function runToolCliCandidate({ toolId, inputValues, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, linkParams, fetchFile: fetchFileOverride, browserTier = true, files = [] }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
   const productionPath = params.production, productionReference = params['production-reference'], productionReport = params['production-report'];
   if (productionPath && share) throw new Error('Production verification requires rendered bytes.');
   if (!productionPath && (productionReference || productionReport)) throw new Error('Production options require --production.');
@@ -515,6 +526,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     try { return parseUrlState(query, tool.manifest); }
     catch (error) { throw usageError((error as Error).message, 'SAMPLES_INVALID'); }
   })();
+  if (inputValues) parsedUrl.values = { ...inputValues, ...parsedUrl.values } as typeof parsedUrl.values;
   const { values, format: paramFormat, width, height, unit, dpi, password, c2pa, bleed, imprint, durable, depth, hdr, filename, cuts, sampleTimes, motionBlur, sequenceRange, profile: pressProfileParam, designVersion: designvParam, slide, video, emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam, licence: licenceParam } = parsedUrl;
 
   // `lolly run design --file=<tokens.json>` (plan 291 M4): the design system the document
@@ -794,8 +806,15 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   if (share) {
     const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
     settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);
-    const q = serializeUrlState(runtime.getModel(), { cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection, ...(madeWithOff ? { madeWith: false } : {}) });
-    await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${q ? '?' + q : ''}\n`);
+    const includePersonal = isOn(params['include-personal']);
+    const omitted = includePersonal ? [] : personalShareFields(runtime.getModel());
+    if (omitted.length) note(`Share link omits personal fields: ${omitted.map(field => field.id).join(', ')}. Review them before using --include-personal.`);
+    const serialize = includePersonal ? serializeUrlState : shareUrlState;
+    const q = serialize(runtime.getModel(), { format: format ?? paramFormat, width, height, unit, dpi, bleed, marks: new URLSearchParams(rawQuery).get('marks'), profile: pressProfileParam, c2pa: c2pa?.on, c2paDays: c2pa?.days, imprint: imprint ?? undefined, durable: durable ?? undefined, cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection, ...(madeWithOff ? { madeWith: false } : {}) });
+    const sharedParams = new URLSearchParams(q);
+    if (filename) sharedParams.set('filename', filename);
+    const sharedQuery = sharedParams.toString();
+    await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${sharedQuery ? '?' + sharedQuery : ''}\n`);
     return;
   }
 
@@ -1866,8 +1885,8 @@ export function exportFailure(format: string, failure: Error, domFreeError: Erro
 
 /** Flags this shell reads itself, on top of url-mode's RESERVED set. */
 export const CLI_FLAGS = new Set([
-  'press-profile', 'user-profile', 'link-password', 'html-fallback', 'help', 'version',
-  'text', 'password-stdin', 'share', 'link', 'verify', 'rate-card', 'production', 'production-reference', 'production-report', 'production-repairs',
+  'inputs', 'press-profile', 'user-profile', 'link-password', 'html-fallback', 'help', 'version',
+  'text', 'password-stdin', 'share', 'link', 'include-personal', 'verify', 'rate-card', 'production', 'production-reference', 'production-report', 'production-repairs',
   // `--export-report=<path|->` writes the requested-versus-actual report for the finished file.
   'export-report',
   // The one-word provenance opt-out (contract section 12 O2). Consumed in the render path
@@ -2419,6 +2438,8 @@ export async function listToolsCli(opts: { json?: boolean; query?: string; limit
   // "no declared capabilities" rather than failing the whole listing: `list` is how an
   // agent discovers the catalog, and one broken tool must not blind it to the rest.
   const { NODE_FORMATS } = await import('@lolly-tools/node-shell/raster');
+  const { describeEnvironment, formatReadiness } = await import('./environment.ts');
+  const environment = await describeEnvironment();
   const tools: ToolListing[] = await Promise.all(selected.map(async (t) => {
     let capabilities: string[] = [];
     let formats = t.formats ?? [];
@@ -2441,16 +2462,16 @@ export async function listToolsCli(opts: { json?: boolean; query?: string; limit
       unmetCapabilities: unmet,
       nativeFormats: formats.filter(f => NODE_FORMATS.includes(f.toLowerCase()) || t.id === 'design' && f.toLowerCase() === 'pdf'),
       runnableHere: unmet.length === 0,
+      readiness: formatReadiness(formats, environment, formats.filter(f => NODE_FORMATS.includes(f.toLowerCase()) || t.id === 'design' && f.toLowerCase() === 'pdf')),
     };
   }));
 
-  const { describeEnvironment } = await import('./environment.ts');
   const { emitResult } = await import('./envelope.ts');
   await emitResult({
     tools,
     ...(query ? { query: opts.query } : {}),
     ...(opts.limit !== undefined ? { limit: opts.limit, total: matches.length } : {}),
-    environment: await describeEnvironment(),
+    environment,
   });
 }
 
