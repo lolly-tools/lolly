@@ -16,7 +16,9 @@ child = subprocess.Popen(sys.argv[1:], stdin=slave, stdout=slave, stderr=slave, 
 os.close(slave)
 output = bytearray()
 ready = False
-deadline = time.monotonic() + 30
+# Hosted runners mount the source TUI several times slower than a developer machine (about 7 s
+# locally), so allow 40 s, inside the 45 s the calling test gives the whole run.
+deadline = time.monotonic() + 40
 try:
     while time.monotonic() < deadline:
         if select.select([master], [], [], .1)[0]:
@@ -30,7 +32,8 @@ try:
         if child.poll() is not None:
             break
     if child.poll() is None:
-        raise RuntimeError('terminal entry timed out')
+        sys.stderr.buffer.write(output[-6000:])
+        raise RuntimeError('terminal entry timed out' + ('' if ready else ' before the home screen appeared'))
     if not ready or child.wait() != 0 or b'\x1b[?1049l' not in output:
         sys.stderr.buffer.write(output[-6000:])
         raise RuntimeError('terminal entry did not mount and restore cleanly')

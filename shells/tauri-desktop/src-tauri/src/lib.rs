@@ -114,8 +114,9 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
         // Self-update (plans/202 WP4.1). The endpoint and the signing public key
         // come from tauri.conf.json's plugins.updater block; the JS side
         // (bridge-overrides/updater.ts) drives check → download → install, and
-        // asks before each of the last two. tauri_plugin_process is here only so
-        // "Install and restart" can restart.
+        // asks before each of the last two. Restarting or exiting after an install
+        // goes through updates.rs, so the webview holds no process permission;
+        // tauri_plugin_process stays registered for the native side only.
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         // Finished-job notifications (shells/web/src/lib/job-toast.ts through
