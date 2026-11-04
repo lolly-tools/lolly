@@ -68,7 +68,8 @@ test('the stylesheet sets each shape\'s aspect, clear space and contain, never a
   const css = readFileSync(new URL('../../styles/parts/brand-studio.css', import.meta.url), 'utf8');
   assert.match(css, /\.be-logo-slot\[data-shape="wide"\]\s*\{\s*--logo-ratio:\s*2;/);
   assert.match(css, /\.be-logo-drop\s*\{[^}]*aspect-ratio:\s*var\(--logo-ratio\)/);
-  assert.match(css, /\.be-logo-art\s*\{[^}]*padding:\s*calc\(100% \/ \(6 \* var\(--logo-ratio\)\)\)/, 'a quarter of the mark\'s height on every side');
+  assert.match(css, /\.be-logo-drop\s*\{[^}]*container-type:\s*size/);
+  assert.match(css, /\.be-logo-art\s*\{[^}]*padding:\s*calc\(100cqh \/ 6\)/, 'a quarter of the mark\'s height on every side');
   assert.match(css, /\.be-logo-art img\s*\{[^}]*object-fit:\s*contain/);
   // An empty slot is a drop target, so its border is dashed; a filled one is solid.
   assert.match(css, /\.be-logo-drop\s*\{[^}]*border:\s*1\.5px dashed/);

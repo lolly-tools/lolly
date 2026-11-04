@@ -607,11 +607,11 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-logos-lead { display: block; }
 /* Four tiles a row at most, so a row of custom marks keeps the tile size of the
    rows above it instead of stretching one mark across the room. */
-.be-logo-row { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(max(170px, calc((100% - 2.4rem) / 4)), 1fr)); }
+.be-logo-row { --be-logo-gap: .8rem; display: grid; gap: var(--be-logo-gap); grid-template-columns: repeat(auto-fill, minmax(max(170px, calc((100% - 3 * var(--be-logo-gap)) / 4)), 1fr)); }
 /* A phone shows the slots two-up (plan 336): one 315px square per row made
    eight slots more than five screens of thumb. */
 @media (max-width: 640px) {
-  .be-logo-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+  .be-logo-row { --be-logo-gap: .6rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 /* A tile takes its lockup's shape (lib/design-system/logo-tile.ts): a horizontal
    lockup sits in a wide tile, a vertical one or a mark of its own in a square.
@@ -632,7 +632,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    used to grow an auto track past the tile and crop a stacked mark. */
 .be-logo-drop {
   display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); cursor: pointer; overflow: hidden;
-  aspect-ratio: var(--logo-ratio); padding: .8rem;
+  aspect-ratio: var(--logo-ratio); padding: .8rem; container-type: size;
   border: 1.5px dashed hsl(var(--border)); border-radius: var(--radius);
   background: hsl(var(--background)); transition: border-color var(--dur-1), background var(--dur-1);
 }
@@ -650,12 +650,12 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    under 4.5:1 on the wash in the light theme. */
 .be-logo-drop.is-dragover .be-logo-empty { visibility: hidden; }
 /* The ground a mark sits on, with the mark's clear space inside it: a quarter of
-   the mark's height on every side. With the ground H tall, p = (H - 2p) / 4 gives
-   p = H / 6, and H is the tile width over its ratio; padding percentages read the
-   width, so the ratio divides it. The checks show where the file is transparent. */
+   the mark's height on every side. The ground fills the tile (a size container,
+   sized by its aspect ratio), so with the ground H tall, p = (H - 2p) / 4 gives
+   p = H / 6. The checks show where the file is transparent. */
 .be-logo-art {
   display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center;
-  padding: calc(100% / (6 * var(--logo-ratio)));
+  padding: calc(100cqh / 6);
   border-radius: calc(var(--radius) * .6);
   background-image: repeating-conic-gradient(rgba(255, 255, 255, .05) 0% 25%, rgba(0, 0, 0, .05) 0% 50%);
   background-position: 50%; background-size: 1rem 1rem;
@@ -675,7 +675,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 /* An empty slot: the dashed drop area in its lockup's shape, saying which logo
    goes there, in the muted register. No mark stands in for the person's own. */
 .be-logo-empty {
-  display: grid; place-items: center; place-content: center; gap: .3rem; padding: .3rem;
+  display: grid; place-items: center; place-content: center; gap: var(--sp-2); padding: var(--sp-2);
   text-align: center; font-size: var(--fs-sm); font-weight: 500; line-height: 1.3;
   color: hsl(var(--muted-foreground) / .8); overflow-wrap: anywhere;
 }

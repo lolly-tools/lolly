@@ -33,7 +33,7 @@ export function logoTileShape(variant: string): LogoTileShape {
 }
 
 /** What an empty slot asks for, in words. The primary slot of each orientation
- *  names the logo; its other forms say only that a drop adds one, because the
+ *  asks for that logo by orientation; its other forms say only that a drop adds one, because the
  *  hint under each tile already says which form it is. */
 export function emptySlotPrompt(variant: string): string {
   const { orientation, treatment } = splitVariant(variant);
