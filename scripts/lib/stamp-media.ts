@@ -23,6 +23,13 @@
 import { embedC2pa } from '../../engine/src/index.ts';
 import { embedWatermark, LOSSLESS_STRENGTH, DEFAULT_STRENGTH } from '../../engine/src/pixel-watermark.ts';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
+import { stripProbeCredential } from './edge-probe-bytes.ts';
+
+/**
+ * The PNG encoder settings, stated rather than left to sharp's defaults (these ARE its
+ * defaults today), so a sharp upgrade that moved a default cannot rewrite every card.
+ */
+export const PNG_ENCODE = { compressionLevel: 6, adaptiveFiltering: false, palette: false, progressive: false } as const;
 
 export interface StampMeta {
   /** Short id for the artifact (tool id, view slug, doc slug) - logging + credential title fallback. */
@@ -57,6 +64,46 @@ export async function stampBitmap(
   meta: StampMeta,
   enc: StampEncodeOpts = {},
 ): Promise<Uint8Array> {
+  const marked = await markBitmap(bytes, format, meta, enc);
+  // 3. C2PA - always last (hard-binds over the final bytes). Uses the true decoded dims.
+  return stampC2pa(marked.bytes, format, meta, { width: marked.width, height: marked.height });
+}
+
+/**
+ * stampBitmap for a generated PNG that replaces a committed one, such as an OG card.
+ *
+ * The marked pixels and their encode are a pure function of the render, but the
+ * credential is not: it carries its signing time, a fresh key and signature, so two
+ * renders of the same card used to differ in every byte of the C2PA chunk, and each
+ * rebuild added the whole PNG to the pack's history again. When `previous` is the same
+ * encode of the same marked pixels with a credential attached, this returns `previous`
+ * unchanged; anything else (other pixels, another encode, a file that does not parse)
+ * gets a fresh credential. The same rule the docs shots and previews follow
+ * (scripts/lib/shot-compare.ts, preview-compare.ts), applied exactly: byte equality of
+ * everything except the credential chunk.
+ */
+export async function stampBitmapStable(bytes: Uint8Array, meta: StampMeta, previous: Uint8Array | null): Promise<Uint8Array> {
+  const marked = await markBitmap(bytes, 'png', meta);
+  if (previous && sameWithoutCredential(previous, marked.bytes)) return previous;
+  return stampC2pa(marked.bytes, 'png', meta, { width: marked.width, height: marked.height });
+}
+
+/** Is `stamped` exactly `encoded` plus a C2PA chunk? False for anything that does not parse. */
+function sameWithoutCredential(stamped: Uint8Array, encoded: Uint8Array): boolean {
+  try {
+    return Buffer.from(stripProbeCredential(stamped, 'png')).equals(Buffer.from(stripProbeCredential(encoded, 'png')));
+  } catch {
+    return false;
+  }
+}
+
+/** Steps 1 and 2 of stampBitmap: the Imprint (and the Durable mark where available), one encode. */
+async function markBitmap(
+  bytes: Uint8Array,
+  format: RasterFormat,
+  meta: StampMeta,
+  enc: StampEncodeOpts = {},
+): Promise<{ bytes: Uint8Array; width?: number; height?: number }> {
   let out = bytes;
   let width: number | undefined;
   let height: number | undefined;
@@ -95,7 +142,7 @@ export async function stampBitmap(
     const img = sharp(Buffer.from(pixels.buffer, pixels.byteOffset, pixels.byteLength), { raw: { width, height, channels: 4 } });
     const enced = format === 'jpg' || format === 'jpeg' ? img.jpeg({ quality: enc.jpegQuality ?? 95 })
       : format === 'webp' ? img.webp({ quality: enc.webpQuality ?? 100, effort: 5, smartSubsample: true })
-      : img.png();
+      : img.png(PNG_ENCODE);
     out = new Uint8Array(await enced.toBuffer());
   } catch (e) {
     console.warn(`stamp: imprint skipped for ${meta.id} - ${(e as Error).message}`);
@@ -103,9 +150,7 @@ export async function stampBitmap(
 
   // (Step 2, the Durable neural credential, is folded into step 1 above - it must
   //  mark the same full-res RGBA and share the single re-encode. See durable-node.ts.)
-
-  // 3. C2PA - always last (hard-binds over the final bytes). Uses the true decoded dims.
-  return stampC2pa(out, format, meta, { width, height });
+  return { bytes: out, width, height };
 }
 
 /** Stamp SVG / vector bytes with a C2PA credential only (no pixel-domain mark possible). */

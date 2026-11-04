@@ -22,6 +22,7 @@
  */
 import { currentLang, docsAppHref, type Lang } from '../../i18n.ts';
 import { fold, type SearchField } from './match.ts';
+import { infoLocaleBuilt } from '../info-locales.ts';
 
 /** One /info page section, as docs/build.ts's indexSections writes it. Keys are
  *  short because the file ships once per locale and is fetched by readers:
@@ -40,9 +41,11 @@ export const TITLE_WEIGHT = 3;
 export const BODY_WEIGHT = 1;
 
 /** The /info base for a locale: English is unprefixed, every other locale lives
- *  under /info/<lang>/ (mirrors i18n.ts's docsHref and the docs sidebar). */
+ *  under /info/<lang>/ (mirrors i18n.ts's docsInfoHref and the docs sidebar). A build
+ *  that leaves out `lang`'s pages (lib/info-locales.ts) searches the English index
+ *  and links its English pages, which it does serve, instead of a missing index. */
 export function docsBase(lang: Lang): string {
-  return lang === 'en' ? '/info' : `/info/${lang}`;
+  return lang === 'en' || !infoLocaleBuilt(lang) ? '/info' : `/info/${lang}`;
 }
 
 /** The /info deep-link for a record - base + '/' + p + '.html' + ('#' + a when

@@ -27,6 +27,7 @@ import type { Lang, LangSort } from '../../../engine/src/lang.ts';
 // utils.ts is a dependency-free leaf (escape/safeHref/NAV_EVENTS only), so this
 // adds nothing to the boot chunk and cannot cycle back into i18n.
 import { escape } from './utils.ts';
+import { INFO_PUBLIC_ORIGIN, infoLocaleBuilt } from './lib/info-locales.ts';
 import { isPluralForms, pluralCategory, pluralCount, selectPluralTemplate } from './lib/plural.ts';
 import type { CatalogValue } from './lib/plural.ts';
 
@@ -274,23 +275,34 @@ export async function switchLang(host: LangSwitchHost, next: Lang): Promise<void
  * directory to index.html for the literal `/info`/`/info/` root, not for a
  * `/info/<lang>/` subpath - an omitted filename there 404s through to the
  * SPA fallback instead of the docs page.
+ *
+ * A build that leaves out `lang`'s pages (LOLLY_INFO_LOCALES, lib/info-locales.ts)
+ * links to that page on the public project site, lolly.tools, which ships every
+ * locale, rather than to a local path this build does not serve.
  */
-export function docsHref(slug: string): string {
-  return docsInfoHref(slug);
+export function docsHref(slug: string, lang: Lang = currentLang()): string {
+  return infoLocaleBuilt(lang) ? docsInfoHref(slug, lang) : `${INFO_PUBLIC_ORIGIN}${infoPath(slug, lang)}`;
+}
+
+/** `/info/<file>` for English, `/info/<lang>/<file>` for every other locale. */
+function infoPath(slug: string, lang: Lang): string {
+  const file = slug === 'index' ? 'index.html' : `${slug}.html`;
+  return lang === 'en' ? `/info/${file}` : `/info/${lang}/${file}`;
 }
 
 /**
  * The built /info page path for `slug` in an explicit `lang` (defaults to the
  * active app language) - English unprefixed, every other locale under
- * `/info/<lang>/…`. This is BOTH the crawlable/share URL (what docsHref returns)
- * AND the fetch source the in-app reader (#/docs, views/docs.ts) rehosts, which
- * is why it takes an explicit lang: the reader may render a page in a language
- * pinned by the route rather than the current UI locale. Same explicit-filename
- * rule as docsHref (see its note): `index` → `index.html`, never a bare dir URL.
+ * `/info/<lang>/…`. This is the fetch source the in-app reader (#/docs,
+ * views/docs.ts) rehosts, which is why it takes an explicit lang: the reader may
+ * render a page in a language pinned by the route rather than the current UI
+ * locale. Same explicit-filename rule as docsHref (see its note): `index` →
+ * `index.html`, never a bare dir URL. Always a page this build serves: when the
+ * build leaves out `lang`'s pages, this is the English page, and docsHref is the
+ * link to the same page in `lang` on lolly.tools.
  */
 export function docsInfoHref(slug: string, lang: Lang = currentLang()): string {
-  const file = slug === 'index' ? 'index.html' : `${slug}.html`;
-  return lang === 'en' ? `/info/${file}` : `/info/${lang}/${file}`;
+  return infoPath(slug, infoLocaleBuilt(lang) ? lang : 'en');
 }
 
 /**

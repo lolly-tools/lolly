@@ -55,7 +55,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromeFingerprint, createToolCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
-import { stampBitmap } from './lib/stamp-media.ts';
+import { stampBitmapStable } from './lib/stamp-media.ts';
 import { catalogFile, toolFile } from '@lolly-tools/node-shell/content-roots';
 import { applyProfileArg } from './lib/profile-arg.ts';
 import { DEFAULT_SITE_URL, siteUrl } from './lib/site-url.ts';
@@ -105,8 +105,10 @@ const STUB_DIR = resolve(PUBLIC, 't');         // → /t/<id>.html        (exact
 // browser is available, build:web refreshes these; commit the changes like previews.
 const OG_DIR   = catalogFile('og');  // → /catalog/og/<id>.png (committed)
 // Input-hash gate: a card is re-rendered only when its render inputs change. The render
-// path is non-deterministic (Playwright + Imprint/C2PA stamp → new bytes for identical
-// input), so an ungated build churned ~21MB of PNGs every push. We persist, per tool id,
+// and the Imprint are deterministic, but the C2PA stamp is not (its time, key and
+// signature are new each time), so an ungated build churned ~21MB of PNGs every push.
+// Two guards now: stampBitmapStable keeps the committed bytes when a re-render gives the
+// same picture, and this gate skips the render altogether. We persist, per tool id,
 // a sha256 over the exact fields passed to renderer.render(), the brand chrome's
 // fingerprint (chromeFingerprint: colours, brand logo and Lolly mark) and OG_RENDER_VERSION,
 // in a COMMITTED sidecar manifest (OG_DIR/.og-sigs.json). A card whose stored sig matches
@@ -244,7 +246,7 @@ async function main(): Promise<void> {
     if (parsed && typeof parsed === 'object') sigs = parsed as Record<string, string>;
   } catch { /* no manifest yet - treat every card as stale */ }
 
-  let cards = 0, stubs = 0, withPreview = 0, overrides = 0;
+  let cards = 0, kept = 0, stubs = 0, withPreview = 0, overrides = 0;
   for (const t of tools) {
     if (!t.id || !t.name) continue;
 
@@ -275,10 +277,12 @@ async function main(): Promise<void> {
           const png = await renderer.render({ id: t.id, name: t.name, description: t.description as string, iconSvg: t.icon as string, previewDataUri: preview ?? undefined });
           // Walk the talk: stamp our own share card with the Lolly Imprint + a "made with
           // Lolly" C2PA credential before committing it (see scripts/lib/stamp-media.ts).
-          const stamped = await stampBitmap(png, 'png', { id: t.id, name: t.name });
-          writeFileSync(cardPath, stamped);
+          // The same picture keeps the committed bytes, credential included, so a rebuild
+          // whose inputs moved without changing the card rewrites nothing.
+          const previous = existsSync(cardPath) ? readFileSync(cardPath) : null;
+          const stamped = await stampBitmapStable(png, { id: t.id, name: t.name }, previous);
+          if (stamped !== previous) { writeFileSync(cardPath, stamped); cards++; } else kept++;
           sigs[t.id] = sig;
-          cards++;
         } catch (e) {
           console.log(`tool-og: ${t.id} card failed (${(e as Error).message})`);
         }
@@ -313,7 +317,7 @@ async function main(): Promise<void> {
   writeFileSync(SIGS_FILE, `${JSON.stringify(ordered, null, 2)}\n`);
 
   const total = tools.filter(t => t.id && t.name).length;
-  console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed (${withPreview} with preview, ${overrides} author override${overrides === 1 ? '' : 's'}); ${total - overrides} tools point at committed cards`);
+  console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed, ${kept} re-rendered unchanged and kept (${withPreview} with preview, ${overrides} author override${overrides === 1 ? '' : 's'}); ${total - overrides} tools point at committed cards`);
   if (!renderer) console.log('tool-og: browser unavailable - kept committed catalog/og cards (regenerate locally with build:web/dev:web).');
 }
 

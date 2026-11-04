@@ -94,6 +94,9 @@ import { buildSync } from 'esbuild';
 // The app's icon registry: pure path data with no imports, so the static build can use
 // the very glyphs the app draws (plan 277: the docs reading components).
 import { icon as appIcon } from '../shells/web/src/lib/icons.ts';
+// The /info locale list (LOLLY_INFO_LOCALES), parsed the same way the shell reads it so
+// the pages this build writes and the shell's docs links agree.
+import { parseInfoLocales } from '../shells/web/src/lib/info-locales.ts';
 // The format side-door page models (plan 116 workstream A). Pure transforms over
 // the register, factored into their own module so a unit test can import them
 // without importing build.ts (which reads the catalog + builds the site at import).
@@ -124,6 +127,16 @@ const SITE_URL = 'https://lolly.tools';
 // its own copy of the docs (scripts/lib/site-url.ts). Canonical links, the sitemap
 // and llms.txt keep SITE_URL, the public project site.
 const PREVIEW_URL = siteUrl();
+// The locales this build writes pages for. LOLLY_INFO_LOCALES (comma-separated codes)
+// narrows it for an instance that serves its own copy of the docs (lolly.ing ships
+// English only); unset, every locale is built, as lolly.tools ships them. English is
+// always built. A locale left out is linked at SITE_URL, which carries every locale.
+const BUILT_LANGS: readonly Lang[] = parseInfoLocales(process.env.LOLLY_INFO_LOCALES) ?? LANGS;
+/** The href for `slug` in `lang` from a page of this build: this site's path when the
+ *  build writes that locale, otherwise the same page on SITE_URL. */
+function localeLink(lang: Lang, slug: string): string {
+  return BUILT_LANGS.includes(lang) ? localeHref(lang, slug) : `${SITE_URL}${localeHref(lang, slug)}`;
+}
 const REPO_URL = 'https://github.com/lolly-tools/lolly';
 const CODE_LICENSE_URL = 'https://www.mozilla.org/en-US/MPL/2.0/';
 const CONTENT_LICENSE_URL = 'https://creativecommons.org/licenses/by-sa/4.0/';
@@ -5482,7 +5495,7 @@ function langPickerHtml(lang: Lang, slug: string): string {
   // speakers re-sort tie-breaks on it so an az→speakers round trip restores THIS
   // exact order (equal-speakers pairs would otherwise settle in az-relative order).
   const options = sortedLangs('speakers').map((l, i) =>
-    `<button type="button" class="lang-menu-item" data-lang="${l}" data-href="${esc(localeHref(l, slug))}" data-name="${esc(LANG_META[l].nativeName)}" data-speakers="${LANG_META[l].speakers}" data-idx="${i}" aria-pressed="${l === lang}">${flags(l)}<span class="lang-menu-name">${esc(LANG_META[l].nativeName)}</span></button>`,
+    `<button type="button" class="lang-menu-item" data-lang="${l}" data-href="${esc(localeLink(l, slug))}" data-name="${esc(LANG_META[l].nativeName)}" data-speakers="${LANG_META[l].speakers}" data-idx="${i}" aria-pressed="${l === lang}">${flags(l)}<span class="lang-menu-name">${esc(LANG_META[l].nativeName)}</span></button>`,
   ).join('');
   const sortTabs = `<div class="lang-sort-tabs" role="tablist" aria-label="${esc(t('Sort languages'))}"><button type="button" class="lang-sort-tab" role="tab" data-sort="speakers" aria-selected="true">№ ${esc(t('Speakers'))}</button><button type="button" class="lang-sort-tab" role="tab" data-sort="az" aria-selected="false">A–Z</button></div>`;
   return `<div class="lang-fab-wrap"><button type="button" class="site-fab site-fab--lang" aria-label="${esc(t('Language'))}" aria-haspopup="menu" aria-expanded="false" title="${esc(t('Language'))}">${LANG_ICON_SVG}</button><div class="lang-menu" role="group" aria-label="${esc(t('Language'))}" hidden>${sortTabs}<div class="lang-menu-list" role="menu" aria-label="${esc(t('Language'))}">${options}</div></div></div>`;
@@ -6793,7 +6806,12 @@ async function build() {
   );
   console.log(`✓  /info/capabilities.json (${sideDoorCatalog.formats.length} formats)`);
 
+  // A locale this build leaves out must not ship a tree an earlier full build left in
+  // the (gitignored) output directory: the web build copies the directory whole.
   for (const lang of LANGS) {
+    if (lang !== 'en' && !BUILT_LANGS.includes(lang)) rmSync(resolve(outDir, lang), { recursive: true, force: true });
+  }
+  for (const lang of BUILT_LANGS) {
     activeCatalog = loadSiteCatalog(lang);
     activeLang = lang;
     const localeOutDir = lang === 'en' ? outDir : resolve(outDir, lang);
@@ -6946,7 +6964,7 @@ async function build() {
 
   // Redirect stubs for retired slugs - keep inbound links + bookmarks resolving.
   // English-only: these are legacy URLs, never linked from the localized nav tree.
-  for (const lang of LANGS) for (const original of stubs) {
+  for (const lang of BUILT_LANGS) for (const original of stubs) {
     const s = lang === 'en' ? original : { slug: `${lang}/${original.slug}`, target: original.target.replace('/info/', `/info/${lang}/`) };
     const dest = esc(s.target);
     // A stub can point off-site (a runbook that moved to the repository's own guides):
@@ -6970,17 +6988,18 @@ async function build() {
     console.log(`↪  /info/${s.slug}.html → ${s.target}`);
   }
 
-  // Sitemap - every page × every locale, with hreflang alternates so search
-  // engines route each locale to the language it actually serves.
+  // Sitemap - every page × every locale this build writes, with hreflang alternates for
+  // every locale (all at SITE_URL, which carries them) so search engines route each
+  // locale to the language it actually serves.
   const urlEntries = sitemapUrls.map(({ slug }) => {
     const alternates = LANGS.map(l =>
       `      <xhtml:link rel="alternate" hreflang="${LANG_META[l].htmlLang}" href="${esc(`${SITE_URL}${localeHref(l, slug)}`)}"/>`,
     ).join('\n');
-    return LANGS.map(lang => `  <url>\n    <loc>${esc(`${SITE_URL}${localeHref(lang, slug)}`)}</loc>\n${alternates}\n  </url>`).join('\n');
+    return BUILT_LANGS.map(lang => `  <url>\n    <loc>${esc(`${SITE_URL}${localeHref(lang, slug)}`)}</loc>\n${alternates}\n  </url>`).join('\n');
   }).join('\n');
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urlEntries}\n</urlset>\n`;
   writeFileSync(resolve(outDir, 'sitemap.xml'), sitemap, 'utf-8');
-  console.log(`✓  /info/sitemap.xml (${sitemapUrls.length} pages × ${LANGS.length} locales)`);
+  console.log(`✓  /info/sitemap.xml (${sitemapUrls.length} pages × ${BUILT_LANGS.length} locales)`);
 
   writeFileSync(resolve(outDir, 'llms.txt'), buildLlmsTxt(mdBySlug), 'utf-8');
   console.log(`✓  /info/llms.txt (+${mdBySlug.size} markdown twins)`);

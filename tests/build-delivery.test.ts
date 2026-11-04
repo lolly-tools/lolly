@@ -5,7 +5,8 @@ import { mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gunzipSync, brotliDecompressSync } from 'node:zlib';
-import { precompressStaticDelivery, prepareStaticDelivery, prepareStaticDeliveryParallel, retainHashedRelease, nginxDeliveryMaps } from '../scripts/build-delivery.ts';
+import { execFileSync } from 'node:child_process';
+import { parseCodings, precompressStaticDelivery, prepareStaticDelivery, prepareStaticDeliveryParallel, retainHashedRelease, nginxDeliveryMaps } from '../scripts/build-delivery.ts';
 import { publicStaticDeliveryClass } from '../packages/core/src/delivery-v1.ts';
 
 test('build compression preserves decoded bytes and yields deterministic wire validators', () => {
@@ -66,6 +67,65 @@ test('parallel compression writes byte for byte the files and validators of the 
     prepareStaticDelivery(stale, { precompressed: made });
     prepareStaticDelivery(fresh);
     assert.deepEqual(tree(stale), tree(fresh));
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+test('a brotli-only release writes .br siblings alone, serial and parallel alike', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'lolly-delivery-br-'));
+  const tree = (dir: string): Record<string, string> => Object.fromEntries(readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile())
+    .map(entry => { const path = join(entry.parentPath, entry.name); return [path.slice(dir.length), readFileSync(path).toString('base64')]; })
+    .sort((x, y) => x[0]!.localeCompare(y[0]!)));
+  try {
+    const text = 'export const lolly = "brotli only";\n'.repeat(400);
+    const seed = (dir: string) => {
+      mkdirSync(join(dir, '_app'), { recursive: true });
+      writeFileSync(join(dir, '_app', 'app.js'), text);
+      writeFileSync(join(dir, 'index.html'), '<!doctype html><p>lolly</p>'.repeat(100));
+      // A stale gzip sibling from an earlier pass must not survive a brotli-only one.
+      writeFileSync(join(dir, 'index.html.gz'), 'stale');
+    };
+    const serial = join(root, 'serial'), parallel = join(root, 'parallel'), both = join(root, 'both');
+    seed(serial); seed(parallel); seed(both);
+    const one = prepareStaticDelivery(serial, { codings: ['br'] });
+    assert.equal(one.compressed, 2);
+    assert.deepEqual(readdirSync(serial, { recursive: true }).filter(name => /\.(gz|br)$/.test(String(name))).sort(), ['_app/app.js.br', 'index.html.br']);
+    assert.equal(brotliDecompressSync(readFileSync(join(serial, '_app', 'app.js.br'))).toString(), text);
+    const map = readFileSync(join(serial, '.delivery-etags.conf'), 'utf8');
+    assert.match(map, /app\.js:br/);
+    assert.doesNotMatch(map, /:gzip/);
+    assert.deepEqual(await prepareStaticDeliveryParallel(parallel, { codings: ['br'] }), one);
+    assert.deepEqual(tree(parallel), tree(serial));
+    // The brotli siblings are the very bytes a two-coding pass writes.
+    prepareStaticDelivery(both);
+    assert.deepEqual(readFileSync(join(serial, '_app', 'app.js.br')), readFileSync(join(both, '_app', 'app.js.br')));
+    assert.equal(existsSync(join(both, '_app', 'app.js.gz')), true);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+test('a release served by Work can leave out the nginx validator map, and an old map goes with it', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'lolly-delivery-nomap-'));
+  try {
+    writeFileSync(join(root, 'app.js'), 'const x = 1;\n'.repeat(300));
+    prepareStaticDelivery(root);
+    assert.equal(existsSync(join(root, '.delivery-etags.conf')), true);
+    prepareStaticDelivery(root, { validatorMap: false });
+    assert.equal(existsSync(join(root, '.delivery-etags.conf')), false);
+    assert.equal(existsSync(join(root, 'app.js.gz')) && existsSync(join(root, 'app.js.br')), true);
+    await prepareStaticDeliveryParallel(root, { codings: ['br'], validatorMap: false });
+    assert.equal(existsSync(join(root, '.delivery-etags.conf')), false);
+    assert.equal(existsSync(join(root, 'app.js.gz')), false);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+test('the delivery command takes --codings and --no-validator-map and refuses a bad coding list', () => {
+  assert.deepEqual(parseCodings('br'), ['br']);
+  assert.deepEqual(parseCodings('br,gzip'), ['gzip', 'br']);
+  for (const bad of ['', 'gz', 'br,br', 'deflate', ' , ']) assert.throws(() => parseCodings(bad), /--codings/);
+  const root = mkdtempSync(join(tmpdir(), 'lolly-delivery-cli-'));
+  try {
+    writeFileSync(join(root, 'app.js'), 'const y = 2;\n'.repeat(300));
+    const script = new URL('../scripts/build-delivery.ts', import.meta.url).pathname;
+    execFileSync(process.execPath, [script, '--root', root, '--codings', 'br', '--no-validator-map'], { stdio: 'pipe' });
+    assert.deepEqual(readdirSync(root).sort(), ['app.js', 'app.js.br']);
+    assert.throws(() => execFileSync(process.execPath, [script, '--root', root, '--codings', 'br', '--no-compression'], { stdio: 'pipe' }));
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 test('previous hash families survive a release and collisions cannot overwrite published bytes', () => {

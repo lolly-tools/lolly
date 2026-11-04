@@ -19,6 +19,9 @@ interface ImportMetaEnv {
   readonly VITE_REQUIRE_AI_POLICY?: string;
   readonly VITE_CONNECTOR_ORIGINS?: string;
   readonly VITE_CA_ENROLLMENT_TRUST_JSON?: string;
+  // The /info locales this build ships (LOLLY_INFO_LOCALES, set through vite.config.js's
+  // define); '' means every locale. Read only by lib/info-locales.ts.
+  readonly VITE_INFO_LOCALES?: string;
   // Deployment public key (JWK JSON) that vouches for the catalog index and any
   // loadable .lolly instance pack; unset means unsigned/dev. Read only by
   // lib/pack-store.ts (kept in sync with catalog/integrity.ts's PINNED_KEY).
