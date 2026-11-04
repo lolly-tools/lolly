@@ -35,7 +35,10 @@ async function main(): Promise<void> {
   process.on('SIGINT', () => { restore(); process.exit(0); });
   process.on('SIGTERM', () => { restore(); process.exit(0); });
 
-  const { waitUntilExit } = render(<App catalogError={catalogError} tools={tools} bridge={bridge} firstRun={!startSeen} />, { patchConsole: false });
+  // Ink turns interactive rendering off whenever it sees CI or any CI_* variable, which leaves a real
+  // terminal blank (some dev containers and task runners set CI). This entry already refuses to start
+  // without a TTY, so a TTY here means a person is watching.
+  const { waitUntilExit } = render(<App catalogError={catalogError} tools={tools} bridge={bridge} firstRun={!startSeen} />, { patchConsole: false, interactive: Boolean(process.stdout.isTTY) });
   await waitUntilExit();
   restore();
   // Tear down the browser render tier if it was ever launched (lazy singletons -
