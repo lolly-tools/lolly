@@ -1,0 +1,56 @@
+/* Lolly's spin for the register (components/lolly-spin.ts): the mark beside a
+   label while Lolly does what the person asked. The swirl reads Lolly's tone at the
+   design system's hue, like the view-loading card and the Design rail mark
+   (lolly-tone-contract.test.ts), so the spin follows the brand it serves. Each ring
+   turns about its own centre at Andy's 3 s, 6 s and 9 s cadence, and the swirl's
+   hue drifts 25 degrees either way over 6 s. The drift rides the HTML box, as the
+   export shutter's does (parts/tool.css): WebKit paints no CSS filter on an SVG
+   child, so a drift on each ring, as in Andy's CodePen, showed only in Chromium
+   and Firefox. Greys keep their value under hue-rotate, so only the swirl moves. */
+.lolly-spin {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-md);
+  line-height: 1.4;
+}
+.lolly-spin[hidden] { display: none; }
+.lolly-spin__mark {
+  display: block;
+  flex: none;
+  width: var(--lolly-spin-size, calc(36px * var(--a11y-fs)));
+  aspect-ratio: 1;
+  --lolly-swirl: var(--lolly-mark, var(--lolly-tone));
+  animation: lolly-spin-hue 6s ease-in-out infinite;
+}
+.lolly-spin__mark svg { display: block; width: 100%; height: 100%; }
+.lolly-spin__label:empty { display: none; }
+.lolly-spin__mark .lolly-mark__spin-1,
+.lolly-spin__mark .lolly-mark__spin-2,
+.lolly-spin__mark .lolly-mark__spin-3 { transform-origin: 50% 50%; transform-box: fill-box; }
+.lolly-spin__mark .lolly-mark__spin-1 { animation: lolly-spin-turn 3s linear infinite; }
+.lolly-spin__mark .lolly-mark__spin-2 { animation: lolly-spin-turn 6s linear infinite; }
+.lolly-spin__mark .lolly-mark__spin-3 { animation: lolly-spin-turn 9s linear infinite; }
+@keyframes lolly-spin-turn { to { transform: rotate(360deg); } }
+@keyframes lolly-spin-hue {
+  0%, 100% { filter: hue-rotate(25deg); }
+  50% { filter: hue-rotate(-25deg); }
+}
+/* Reduce motion: the mark stands still beside the label. The class is set when
+   the spin is shown; the system setting and the app's own attribute also stop a
+   spin already on screen. */
+.lolly-spin.is-still .lolly-spin__mark,
+.lolly-spin.is-still .lolly-mark__spin-1,
+.lolly-spin.is-still .lolly-mark__spin-2,
+.lolly-spin.is-still .lolly-mark__spin-3 { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .lolly-spin__mark,
+  .lolly-spin__mark .lolly-mark__spin-1,
+  .lolly-spin__mark .lolly-mark__spin-2,
+  .lolly-spin__mark .lolly-mark__spin-3 { animation: none; }
+}
+html[data-a11y-motion="reduce"] .lolly-spin__mark,
+html[data-a11y-motion="reduce"] .lolly-spin__mark .lolly-mark__spin-1,
+html[data-a11y-motion="reduce"] .lolly-spin__mark .lolly-mark__spin-2,
+html[data-a11y-motion="reduce"] .lolly-spin__mark .lolly-mark__spin-3 { animation: none; }

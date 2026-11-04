@@ -653,6 +653,12 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
   // The split layout's Swap sides button: one fixed registry icon, nothing interpolated.
   'lib/split-panes.ts': 1,
+  // hydrateFauna's slot fill: faunaArt() markup, built only from the module's own path
+  // constants, a minted id and a name checked against the four animals; no user text.
+  'components/fauna-art.ts': 1,
+  // The register spin's mark: the static trusted LOLLY_MARK_SVG with its ids scoped; the
+  // label is written with textContent.
+  'components/lolly-spin.ts': 1,
 
   // Fixed registry icons only; sidebar labels and metadata use textContent.
   'components/asset-inspector-dock.ts': 2,

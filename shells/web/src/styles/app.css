@@ -64,6 +64,8 @@
 @import './parts/components.css'   layer(chrome);
 @import './parts/color-field.css'  layer(chrome); /* colour picker - split out of components.css; same layer, so host overrides keep winning */
 @import './parts/dialogs.css'      layer(chrome);
+@import './parts/fauna.css'        layer(chrome); /* Fauna line drawings in the blank rooms (components/fauna-art.ts) */
+@import './parts/lolly-spin.css'   layer(chrome); /* Lolly's spin at the register (components/lolly-spin.ts) */
 @import './parts/present.css'      layer(chrome); /* presentation mode fullscreen deck (plan 112) - body-level fixed overlay, above every view */
 @import './parts/sequence.css'     layer(views);  /* `.seq-off` - the sequence applier's ONE visibility rule. In the views layer (where it lived inside timeline.css) but EAGER: the presenter and the still export both apply the class without ever mounting the timeline panel, so it cannot ride that panel's lazy chunk. See the file's own header. */
 @import './parts/job-toast.css'    layer(chrome); /* global async-job progress toast (plan 124 WP-F) - body-level fixed, outside #view, below modals */
