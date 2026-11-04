@@ -168,7 +168,8 @@ async function corpus(): Promise<Corpus[]> {
     { id: 'title', frame: 'grad', kind: 'text', x: 20, y: 170, w: 440, h: 100, text: 'Gradient page', fontSize: 48, weight: 700, align: 'left', valign: 'top', fg: '#212529' },
   ] });
   const dir = new URL('../community/design/templates/', import.meta.url);
-  for (const file of ['title.json', 'poster.json', 'pull-quote.json', 'slide-deck.json', 'social-profile-kit.json', 'meeting-background.json']) {
+  // Pull quote carries a portrait, which takes the browser route, so it is not in this corpus.
+  for (const file of ['title.json', 'poster.json', 'slide-deck.json', 'social-profile-kit.json', 'meeting-background.json']) {
     const t = JSON.parse(await readFile(new URL(file, dir), 'utf8')) as { values: { boxes: Row[] } };
     for (const f of designFrames(t.values)) list.push({ name: `template/${file.replace('.json', '')}#${f.id}`, frameId: f.id, rows: t.values.boxes, scales: [1] });
   }
