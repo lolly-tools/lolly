@@ -970,8 +970,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // every interpolated value is a t() literal, an icon() constant, or escape()d
   // (utils.ts) - the door/card helpers escape their area key, label and value,
   // the palette strip escapes each swatch hex before it reaches a style
-  // attribute, and the font list is escaped as one card value.
-  'lib/design-system/rooms/overview.ts': 1,
+  // attribute, and the font list is escaped as one card value. +1 reviewed
+  // 2026-11-04 (plan 346): the live column's repaint from the pure liveHtml(),
+  // whose scenes are lib/palette-preview.ts markup (every colour through its hex
+  // whitelist, pinned by palette-preview.test.ts) and whose labels are t()
+  // literals; the stage ground is an escaped hex. The Logos card's mark URLs are
+  // blob: object URLs the room minted, escaped all the same, and the corner
+  // radius reaches its style attribute only as a plain length (CSS_LENGTH).
+  'lib/design-system/rooms/overview.ts': 2,
   // Design System Setup's Versions panel (plan 97 section 6a, M7). Its one sink is
   // paint()'s whole-panel re-render from the pure versionsHtml(). Reviewed
   // 2026-08-09: the hostile input here is the user's own version LABEL and NOTE,
@@ -2046,7 +2052,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // control elevation tokens.
     // 247 to 243 (plan 336): the studio's glowing Add from button and its
     // breathing keyframes went with the rail; the bar's button is a plain pill.
-    pin: 243,
+    // 243 to 242 (plan 346): the Board's colour chips wear the faint edge token.
+    pin: 242,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -2063,7 +2070,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 96 → 94: the sidebar's history and language buttons took --radius-sm.
     // 92 → 91 on 2026-09-30: the Storage card's big archive button became a plain .btn.
     // 91 to 90 on 2026-10-21: the ink ribbon's 8px row left the Design system tab.
-    pin: 90,
+    // 90 to 89 (plan 346): the Board's colour chips take --radius-xs.
+    pin: 89,
     count: (t) => (t.match(/border-radius:\s*\d+(?:\.\d+)?px\s*[;}!]/g) ?? []).length,
     fix: 'use var(--radius-xs|sm|md|lg) (derived from --radius) or var(--radius) for the base panel size',
   },
@@ -2086,7 +2094,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 422 to 412 on 2026-10-21: the Settings Design system tab's hero, type
     // facts and ink ribbon went; its read sizes type with the --fs-* and
     // --ui-type-* tokens.
-    pin: 412,
+    // 412 to 409 (plan 346): the Board's title, door notes and way out read
+    // --ui-type-lead, --fs-md and --fs-sm.
+    pin: 409,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

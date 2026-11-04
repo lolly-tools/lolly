@@ -11,7 +11,7 @@ import type { ModalHandle } from '../../components/modal.ts';
 import type { BodyPopoverHandle } from '../../components/body-popover.ts';
 import type { BrandEditorHandle } from '../../lib/brand-editor.ts';
 import type { TokenRoleProposal } from '../../lib/brand-propose.ts';
-import type { OverviewRoom } from '../../lib/design-system/rooms/overview.ts';
+import type { BoardState, OverviewRoom } from '../../lib/design-system/rooms/overview.ts';
 import type { UsageRoom } from '../../lib/design-system/rooms/usage.ts';
 import type { SkillsRoom } from '../../lib/design-system/rooms/skills.ts';
 import type { VersionsRoom, mountVersionsRoom } from '../../lib/design-system/rooms/versions.ts';
@@ -74,6 +74,11 @@ export interface StartCtx {
   editorMount: HTMLElement;
   noteEl: HTMLElement | null;
   overviewPanel: HTMLElement;
+  /** The Board's live column (the In context specimen), painted by the Board. */
+  livePanel: HTMLElement;
+  /** Whose system the Board shows (rooms/overview.ts boardState), which the
+   *  bar's emphasis follows; latched once `owned`. */
+  boardState: BoardState | null;
   usagePanel: HTMLElement;
   usage: UsageRoom | null;
   /** The Skills room (plan 323): mounted the first time it is opened. */
@@ -161,6 +166,8 @@ export interface StartCtx {
   unsubBar?: (() => void) | null;
   /** The bar's More menu, so the studio's Escape can leave it to the menu. */
   moreMenu?: BodyPopoverHandle | null;
+  /** The bar's Make it yours menu, likewise. */
+  makeMenu?: BodyPopoverHandle | null;
 }
 
 /** A module function minus its leading context parameter. */

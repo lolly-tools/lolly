@@ -15,13 +15,20 @@
  *  - the ink: the current room's tinted fill, drawn once and slid between
  *    rooms. The stylesheet stops the slide under either Reduce motion switch.
  *  - the current room kept in view when the strip scrolls (always on a phone),
- *    and a fade on each end that has rooms past it, so the strip shows it
- *    scrolls on a desk too.
+ *    and a cue on each end that has rooms past it (lib/scroll-cue.ts: a fade
+ *    into the bar's own surface with a chevron pointing the way), so the strip
+ *    shows it scrolls on a phone and a narrow desk alike (plan 346, change 10).
+ *  - emphasis by ownership (plan 346, change 1). While the system is not the
+ *    person's yet, the filled action is "Make it yours", a small menu of the
+ *    first moves (Find a look, Add from…, Pick a colour), and Export is drawn in
+ *    outline. Once it is theirs, Make it yours steps aside, Add from… returns
+ *    and Export takes the fill back.
  *
  * Every exported function takes the shared `start: StartCtx` first (see context.ts).
  */
 import { mountBodyPopover } from '../../components/body-popover.ts';
 import { t } from '../../i18n.ts';
+import { watchScrollCue } from '../../lib/scroll-cue.ts';
 import { bindOp, type StartCtx } from './context.ts';
 
 /** One More-menu entry: the label it shows and the control it presses. */
@@ -74,6 +81,67 @@ export function wireMoreMenu(start: StartCtx): void {
   start.unsubBar = () => { prev?.(); trigger.removeEventListener('click', onClick); menu.close(); start.moreMenu = null; };
 }
 
+/** The first moves "Make it yours" offers, in the order the Board's Start here
+ *  row shows them. Built at open, so every label is in the current language. */
+export function makeItems(start: StartCtx): OverflowItem[] {
+  return [
+    { label: t('Find a look'), press: () => { void start.looks.openLooks(); } },
+    { label: t('Add from…'), press: () => start.sources.openImport() },
+    { label: t('Pick a colour'), press: () => { start.rooms.selectRoom('color', { focus: true, sfx: true }); start.rooms.openFocus('color', 'pick'); } },
+  ];
+}
+
+export function wireMakeMenu(start: StartCtx): void {
+  const trigger = start.shell.querySelector<HTMLButtonElement>('[data-start-make]');
+  if (!trigger) return;
+  const menu = mountBodyPopover(trigger, (el, popover) => {
+    el.replaceChildren();
+    let first: HTMLElement | null = null;
+    for (const item of makeItems(start)) {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'profile-menu-item';
+      row.setAttribute('role', 'menuitem');
+      row.textContent = item.label;
+      row.addEventListener('click', () => { popover.close(true); item.press(); });
+      el.append(row);
+      first ??= row;
+    }
+    return first;
+  }, { className: 'profile-menu ds-bar-menu', role: 'menu', ariaLabel: t('Make it yours'), menuNavigation: true });
+  start.makeMenu = menu;
+  const onClick = (): void => { if (menu.isOpen()) menu.close(true); else menu.open(); };
+  trigger.addEventListener('click', onClick);
+  const prev = start.unsubBar;
+  start.unsubBar = () => { prev?.(); trigger.removeEventListener('click', onClick); menu.close(); start.makeMenu = null; };
+}
+
+/**
+ * Draw the bar for whose system this is (rooms/overview.ts `boardState`):
+ *
+ *   blank    the Board's own doors are up, so the bar adds no first move;
+ *   unowned  "Make it yours" is filled, Add from… waits in its menu, and Export
+ *            (when it is offered at all) is outlined;
+ *   owned    Add from… and a filled Export, as the bar has always been.
+ *
+ * Export's own "offered" rule (the worth-exporting latch) is untouched: this
+ * only chooses how it is drawn.
+ */
+export function applyEmphasis(start: StartCtx): void {
+  const state = start.boardState;
+  const make = start.shell.querySelector<HTMLButtonElement>('[data-start-make]');
+  const exportBtn = start.shell.querySelector<HTMLButtonElement>('[data-start-export]');
+  const unowned = state === 'unowned';
+  if (make) make.hidden = !unowned;
+  if (!unowned) start.makeMenu?.close();
+  if (start.importBtn) start.importBtn.hidden = state !== 'owned';
+  if (exportBtn) {
+    exportBtn.classList.toggle('be-cta', !unowned);
+    exportBtn.classList.toggle('be-btn', unowned);
+  }
+  start.shell.dataset.boardState = state ?? '';
+}
+
 /** The ink element, created on first use inside the strip's own list. */
 function inkOf(start: StartCtx): HTMLElement | null {
   const list = start.railEl.querySelector<HTMLElement>('.ds-rooms');
@@ -118,27 +186,6 @@ export function syncStrip(start: StartCtx, instant = false): void {
       list.scrollBy({ left: box.left + box.width / 2 - (view.left + view.width / 2), behavior: instant ? 'auto' : 'smooth' });
     }
   }
-  if (list) syncStripEnds(list);
-}
-
-/**
- * Mark the ends of the strip that hold rooms out of view (`data-more`, "left",
- * "right" or both), which is where start-bar.css draws the fade. Read from the
- * laid-out rooms rather than scrollLeft, so it reads the same in either
- * direction of text.
- */
-function syncStripEnds(list: HTMLElement): void {
-  const view = list.getBoundingClientRect();
-  let left = Number.POSITIVE_INFINITY;
-  let right = Number.NEGATIVE_INFINITY;
-  for (const room of list.querySelectorAll<HTMLElement>('.ds-room:not([hidden])')) {
-    const box = room.getBoundingClientRect();
-    left = Math.min(left, box.left);
-    right = Math.max(right, box.right);
-  }
-  const more = [left < view.left - 1 ? 'left' : '', right > view.right + 1 ? 'right' : ''].filter(Boolean).join(' ');
-  if (more) list.dataset.more = more;
-  else delete list.dataset.more;
 }
 
 /** Arrows, Home and End walk the strip; the room opens on Enter or Space. */
@@ -162,6 +209,7 @@ function onStripKey(start: StartCtx, e: KeyboardEvent): void {
 
 export function wireBar(start: StartCtx): void {
   wireMoreMenu(start);
+  wireMakeMenu(start);
   const onKey = (e: KeyboardEvent): void => onStripKey(start, e);
   start.railEl.addEventListener('keydown', onKey);
   // The ink measures laid-out pills, so it follows anything that resizes them:
@@ -172,17 +220,20 @@ export function wireBar(start: StartCtx): void {
     : null;
   if (resize && list) resize.observe(list);
   void document.fonts?.ready.then(() => { if (start.railEl.isConnected) syncStrip(start, true); });
-  // A swipe, a drag of the scrollbar or a keyed room moves the fade along.
-  const onScroll = (): void => { if (list) syncStripEnds(list); };
-  list?.addEventListener('scroll', onScroll, { passive: true });
+  // The cue at each end with rooms past it follows a swipe, a drag, a keyed room
+  // and a room joining the strip. The nav is the cue's host: it does not scroll.
+  const stopCue = list ? watchScrollCue(list, start.railEl) : null;
   const prev = start.unsubBar;
-  start.unsubBar = () => { prev?.(); start.railEl.removeEventListener('keydown', onKey); list?.removeEventListener('scroll', onScroll); resize?.disconnect(); };
+  start.unsubBar = () => { prev?.(); start.railEl.removeEventListener('keydown', onKey); stopCue?.(); resize?.disconnect(); };
 }
 
 export function barOps(start: StartCtx) {
   return {
     overflowItems: bindOp(start, overflowItems),
     wireMoreMenu: bindOp(start, wireMoreMenu),
+    makeItems: bindOp(start, makeItems),
+    wireMakeMenu: bindOp(start, wireMakeMenu),
+    applyEmphasis: bindOp(start, applyEmphasis),
     syncStrip: bindOp(start, syncStrip),
     wireBar: bindOp(start, wireBar),
   };

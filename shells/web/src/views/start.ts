@@ -288,6 +288,8 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   const editorMount = viewEl.querySelector<HTMLElement>('[data-start-editor]')!; start.editorMount = editorMount;
   const noteEl = viewEl.querySelector<HTMLElement>('[data-start-note]'); start.noteEl = noteEl;
   const overviewPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="overview"]')!; start.overviewPanel = overviewPanel;
+  start.livePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="live"]')!;
+  start.boardState = null;
   start.usagePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="usage"]')!;
   start.usage = null;
   start.skillsPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="skills"]')!;

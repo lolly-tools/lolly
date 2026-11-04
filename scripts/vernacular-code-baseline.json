@@ -759,7 +759,7 @@
   "shells/web/src/lib/design-system/roles.test.ts": 3,
   "shells/web/src/lib/design-system/roles.ts": 9,
   "shells/web/src/lib/design-system/rooms/overview.test.ts": 2,
-  "shells/web/src/lib/design-system/rooms/overview.ts": 9,
+  "shells/web/src/lib/design-system/rooms/overview.ts": 6,
   "shells/web/src/lib/design-system/rooms/versions.test.ts": 5,
   "shells/web/src/lib/design-system/rooms/versions.ts": 12,
   "shells/web/src/lib/design-system/sources/file.ts": 6,

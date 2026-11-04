@@ -13,13 +13,24 @@
  *
  * The profile button stays where every view has it, fixed at the top right; the
  * bar holds its space free and centres it on the bar's own line.
+ *
+ * The frame (plan 346): on a wide screen the bar, the rooms and the open room
+ * share one centred column of at most --ds-frame, so the studio is composed
+ * rather than filling from the top left and stopping. The frosted band and the
+ * page's wash still run edge to edge.
  */
 
 .start.start--studio {
   --ds-gutter: 22px;
+  --ds-frame: 1440px;
   --ds-bar-h: max(56px, calc(var(--chrome-h) + 14px));
   padding-top: 0;
   padding-inline: var(--ds-gutter);
+}
+.start.start--studio > .ds-shell { width: 100%; max-width: var(--ds-frame); margin-inline: auto; }
+@media (min-width: 641px) {
+  .start.start--studio > .ds-top > .ds-bar,
+  .start.start--studio > .ds-top > .ds-room-nav { max-width: var(--ds-frame); margin-inline: auto; }
 }
 
 /* The bar and the strip pin as one block. No backdrop-filter here on a phone:
@@ -61,10 +72,11 @@ html:has(.start.start--studio > .ds-top:focus-within) { scroll-padding-block: 0;
      (it stays there in RTL too). */
   padding-right: calc(var(--chrome-h) + var(--sp-6));
 }
-/* The profile cluster sits on the bar's own line, at the bar's own gutter. */
+/* The profile cluster sits on the bar's own line, at the frame's own edge (the
+   gutter, until the window is wider than the frame). */
 .start.start--studio > .gallery-topright {
   top: calc(var(--safe-top) + (var(--ds-bar-h) - var(--chrome-h)) / 2 + var(--vv-top, 0px));
-  right: calc(var(--ds-gutter) + var(--vv-right, 0px));
+  right: calc(max(var(--ds-gutter), (100% - var(--ds-frame)) / 2) + var(--vv-right, 0px));
 }
 
 .ds-bar-exit { flex: none; display: flex; align-items: center; gap: var(--sp-4); }
@@ -128,6 +140,10 @@ html:has(.start.start--studio > .ds-top:focus-within) { scroll-padding-block: 0;
 .ds-bar-btn[hidden] { display: none; }
 .ds-bar-btn-ic { display: grid; place-items: center; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
 .ds-bar-btn-ic svg { width: 100%; height: 100%; }
+/* Make it yours opens a menu; the caret shows that. */
+.ds-bar-btn-caret { display: grid; place-items: center; width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); opacity: .8; }
+.ds-bar-btn-caret svg { width: 100%; height: 100%; }
+.ds-bar-make[aria-expanded="true"] .ds-bar-btn-caret { transform: rotate(180deg); }
 .ds-bar-more {
   flex: none;
   display: grid;
@@ -155,7 +171,7 @@ html:has(.start.start--studio > .ds-top:focus-within) { scroll-padding-block: 0;
 .ds-bar-note {
   position: absolute;
   top: 100%;
-  right: var(--ds-gutter);
+  right: max(var(--ds-gutter), calc((100% - var(--ds-frame)) / 2));
   z-index: 1;
   max-width: min(28rem, calc(100% - 2 * var(--ds-gutter)));
   margin: var(--sp-2) 0 0;
@@ -183,19 +199,45 @@ html:has(.start.start--studio > .ds-top:focus-within) { scroll-padding-block: 0;
   overscroll-behavior-x: contain;
 }
 .ds-rooms::-webkit-scrollbar { display: none; }
-/* Rooms past an end of the strip: a soft fade on that end shows the row
-   scrolls, on a desk as on a phone. bar.ts marks the ends that hold rooms
-   (data-more="left right"), so a strip that fits is drawn plain. */
-.ds-rooms[data-more] {
-  --ds-fade: calc(2 * var(--sp-7));
-  mask-image: linear-gradient(to right, transparent, #000 var(--ds-fade-l, 0px), #000 calc(100% - var(--ds-fade-r, 0px)), transparent);
+/* Rooms past an end of the strip (plan 346, change 10): at that end, a fade into
+   the bar's own surface with a chevron pointing the way, on a desk as on a
+   phone. lib/scroll-cue.ts puts the two cues in the nav and marks the ends that
+   hold rooms (data-more="start end"), so a strip that fits is drawn plain. The
+   cues are decoration: a swipe, the wheel and Tab all scroll the strip. */
+.ds-room-nav { position: relative; --ds-cue-ground: hsl(var(--background)); }
+.ds-room-nav > .scroll-cue {
+  position: absolute;
+  inset-block: 0;
+  z-index: 2;
+  display: none;
+  align-items: center;
+  width: var(--ui-size-target);
+  pointer-events: none;
+  color: var(--ui-color-text-muted);
 }
-.ds-rooms[data-more~="left"] { --ds-fade-l: var(--ds-fade); }
-.ds-rooms[data-more~="right"] { --ds-fade-r: var(--ds-fade); }
+.ds-room-nav[data-more~="start"] > .scroll-cue--start,
+.ds-room-nav[data-more~="end"] > .scroll-cue--end { display: flex; }
+.ds-room-nav > .scroll-cue svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.ds-room-nav > .scroll-cue--start {
+  inset-inline-start: 0;
+  justify-content: flex-start;
+  background: linear-gradient(to right, var(--ds-cue-ground) 40%, transparent);
+}
+.ds-room-nav > .scroll-cue--end {
+  inset-inline-end: 0;
+  justify-content: flex-end;
+  background: linear-gradient(to left, var(--ds-cue-ground) 40%, transparent);
+}
+.ds-room-nav > .scroll-cue--start svg { transform: rotate(90deg); }
+.ds-room-nav > .scroll-cue--end svg { transform: rotate(-90deg); }
+[dir="rtl"] .ds-room-nav > .scroll-cue--start { background: linear-gradient(to left, var(--ds-cue-ground) 40%, transparent); }
+[dir="rtl"] .ds-room-nav > .scroll-cue--end { background: linear-gradient(to right, var(--ds-cue-ground) 40%, transparent); }
+[dir="rtl"] .ds-room-nav > .scroll-cue--start svg { transform: rotate(-90deg); }
+[dir="rtl"] .ds-room-nav > .scroll-cue--end svg { transform: rotate(90deg); }
 /* With a mouse there is no swipe, so a strip that scrolls also shows its thin
    scrollbar to drag. */
 @media (pointer: fine) {
-  .ds-rooms[data-more] { scrollbar-width: thin; }
+  .ds-room-nav[data-more] .ds-rooms { scrollbar-width: thin; }
 }
 .ds-rooms > li { flex: none; position: relative; }
 .ds-rooms > li:has(> .ds-room[hidden]) { display: none; }
@@ -310,6 +352,7 @@ html[data-a11y-motion="reduce"] .ds-bar-more { transition: none; }
   }
   .ds-bar .start-back { width: var(--chrome-h); padding: 0; justify-content: center; }
   .ds-bar-btn { min-width: var(--chrome-h); padding-inline: var(--sp-4); }
+  .ds-bar-btn-caret { display: none; }
 
   .ds-room-nav {
     position: fixed;

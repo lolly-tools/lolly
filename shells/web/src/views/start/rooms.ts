@@ -8,7 +8,7 @@
  * from mountStart() by scripts/split-closure.ts.
  */
 import { updateRouteParams, bindDisclosureUrl, routeParams } from '../../lib/url-state.ts';
-import { mountOverviewRoom, readOverview } from '../../lib/design-system/rooms/overview.ts';
+import { boardState, mountOverviewRoom, readOverview } from '../../lib/design-system/rooms/overview.ts';
 import { mountUsageRoom } from '../../lib/design-system/rooms/usage.ts';
 import { mountSkillsRoom } from '../../lib/design-system/rooms/skills.ts';
 import { isStartArea } from '../../lib/design-system/start-route.ts';
@@ -83,16 +83,23 @@ const syncRecovery = (start: StartCtx, furnished: boolean): void => {
 };
 export const refreshFurnished = (start: StartCtx): void => {
   const { host } = start;
-  // The harder latch is set, so both are, and a system worth exporting is furnished.
-  if (start.worthExporting) { syncRecovery(start, true); syncFontPackage(start); return; }
+  // The harder latch is set, so both are, and a system worth exporting is
+  // furnished. Ownership is the other thing read here (the bar's emphasis follows
+  // it), and it latches on `owned`: nothing in a session takes a system back.
+  if (start.worthExporting && start.boardState === 'owned') { syncRecovery(start, true); syncFontPackage(start); return; }
   void readOverview(host as unknown as Parameters<typeof readOverview>[0])
     .then((model) => {
-    const { furnishedOnly, importBtn, shell } = start;
+    const { furnishedOnly, shell } = start;
       if (!shell.isConnected) return;
-      // The hero only duplicates a door while the doors are up (plans/163 F2).
-      if (model.furnished && importBtn) importBtn.hidden = false;
+      // Whose system this is decides the bar's filled action (plan 346, change
+      // 1). Add from… only duplicates a door while the doors are up (plans/163
+      // F2), and while Make it yours holds it in its menu.
+      if (start.boardState !== 'owned') {
+        start.boardState = boardState(model);
+        start.bar.applyEmphasis();
+      }
       syncRecovery(start, model.furnished);
-      if (!model.worthExporting) return;
+      if (!model.worthExporting || start.worthExporting) return;
       start.worthExporting = true;
       for (const el of furnishedOnly) if (!el.matches('[data-start-get-on-device]')) el.hidden = false;
       syncFontPackage(start);
@@ -106,9 +113,11 @@ export const selectRoom = (start: StartCtx, asked: StartArea, opts: { focus?: bo
   const { editorRoot, overviewPanel, roomBtns, versionsPanel } = start;
   // In two panes (lib/layout-posture.ts) the Board is the control pane and stays in
   // view, and the other pane is a room's work: asking for the Board there opens the
-  // room that was last open beside it (Colours on a first visit).
+  // room that was last open beside the Board. On a first visit nothing has been, and the
+  // other pane is the Board's own live column, the In context specimen (plan 346,
+  // change 15): the doors in one pane and the specimen in the other.
   const split = isSplitLayout();
-  const area: StartArea = split && asked === 'overview' ? (start.lastRoom ?? 'color') : asked;
+  const area: StartArea = split && asked === 'overview' ? (start.lastRoom ?? 'overview') : asked;
   if (area !== 'overview') start.lastRoom = area;
   start.activeArea = area;
   start.editor?.closeOverlays(); // a popover anchored in the outgoing room must not linger
@@ -122,6 +131,9 @@ export const selectRoom = (start: StartCtx, asked: StartArea, opts: { focus?: bo
   }
   start.bar.syncStrip();
   overviewPanel.hidden = !split && area !== 'overview';
+  // The live column goes with the Board: beside it on a desk, under it on a
+  // phone, the other pane in two panes until a room takes that pane.
+  start.livePanel.hidden = area !== 'overview';
   start.usagePanel.hidden = area !== 'usage';
   if (area === 'usage') {
     if (start.usage) void start.usage.refresh();
@@ -245,6 +257,7 @@ export function wireRooms(start: StartCtx): void {
   start.overview = mountOverviewRoom(overviewPanel, {
     host: host as unknown as Parameters<typeof mountOverviewRoom>[1]['host'],
     editor: () => start.editor,
+    live: start.livePanel,
     goto: (area, focus) => {
       if (!isStartArea(area)) return;
       start.rooms.selectRoom(area, { focus: true, sfx: true });

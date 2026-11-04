@@ -185,6 +185,8 @@ export interface BrandEditorHandle {
    *  nothing until a card is chosen. False when the room did not render.
    *  Additive, plan 182 section 3a. */
   openTypeStage?: (role: FontRole) => boolean;
+  /** The colours the In context scenes are painted from, in their order, so the Board's specimen is the same picture. Additive, plan 346. */
+  contextHexes?: () => string[];
 }
 
 export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts: BrandEditorOptions = {}): Promise<BrandEditorHandle> {
@@ -692,6 +694,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     },
     openWing: (key) => bedit.curveEditor.openWing(key),
     colourBeat: () => bedit.beat,
+    contextHexes: () => bedit.derive.paletteHexes(),
     openStarterGroup: (group) => {
       const name = String(group || '').trim();
       if (!name) return false;

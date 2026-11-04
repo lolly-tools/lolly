@@ -64,9 +64,18 @@ export function renderShell(start: StartCtx): void {
               <span class="ds-bar-btn-ic" aria-hidden="true">${icon('dock')}</span>
               <span class="ds-bar-btn-label">${t('Tray')}</span>
               <span class="ds-tray-toggle-n" data-start-tray-n></span></button>
+            <!-- The filled action while the system is not the person's yet (plan
+                 346, change 1): a small menu of the first moves. bar.ts shows it
+                 and hands Export the outline; once the system is theirs it steps
+                 aside and Export takes the fill back. -->
+            <button type="button" class="be-cta ds-bar-btn ds-bar-make" data-start-make aria-haspopup="menu" aria-expanded="false" hidden>
+              <span class="ds-bar-btn-ic" aria-hidden="true">${icon('heart')}</span>
+              <span class="ds-bar-btn-label">${t('Make it yours')}</span>
+              <span class="ds-bar-btn-caret" aria-hidden="true">${icon('chevronDown')}</span></button>
             <!-- Hidden while the studio is empty: the Board's own doors are showing
                  then, and "Start from a reference" opens this very modal (plans/163
-                 F2). On a phone it moves into the More menu. -->
+                 F2). Hidden too while "Make it yours" holds that action. On a phone it moves
+                 into the More menu. -->
             <button type="button" class="be-btn ds-bar-btn ds-bar-add" data-start-import aria-haspopup="dialog" hidden>
               <span class="ds-bar-btn-label">${t('Add from…')}</span></button>
             <!-- Waits for a system worth exporting (plans/137 B1, plans/163 F4): one
@@ -119,6 +128,11 @@ export function renderShell(start: StartCtx): void {
         <div class="ds-main">
           <section class="ds-panel" id="start-panel-overview" data-ds-panel="overview"
             role="region" aria-labelledby="ds-room-overview" hidden></section>
+          <!-- The Board's live column: the In context specimen, beside the Board
+               on a desk, under it on a phone and in the other pane in two panes
+               (plan 346, changes 3, 15 and 16). The Board's room paints the column. -->
+          <section class="ds-panel ds-live" id="start-panel-live" data-ds-panel="live"
+            role="region" aria-labelledby="ds-live-title" hidden></section>
           <section class="ds-panel" id="start-panel-versions" data-ds-panel="versions"
             role="region" aria-labelledby="ds-room-versions" hidden></section>
           <section class="ds-panel" id="start-panel-usage" data-ds-panel="usage"

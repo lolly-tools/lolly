@@ -30,7 +30,7 @@ const revoked: string[] = [];
 };
 (globalThis.URL as unknown as { revokeObjectURL: (u: string) => void }).revokeObjectURL = (u) => { revoked.push(u); };
 
-const { readOverview, overviewHtml, mountOverviewRoom } = await import('./overview.ts');
+const { readOverview, overviewHtml, mountOverviewRoom, boardState, liveHtml } = await import('./overview.ts');
 type OverviewHost = Parameters<typeof readOverview>[0];
 
 interface StubOpts {
@@ -666,4 +666,119 @@ test('a detached room never repaints (the view moved on mid-read)', async () => 
   await settle();
   assert.match(el.innerHTML, /ds-ov-loading/, 'the resting line stands; no repaint into a detached node');
   room.teardown();
+});
+
+// ── Emphasis follows ownership, and the frame (plan 346) ─────────────────────
+
+/** A furnished model with an ownership report, everything else quiet. */
+const furnishedModel = (extra: Record<string, unknown> = {}, ownColors = 1): NonNullable<Parameters<typeof overviewHtml>[0]> => ({
+  furnished: true, colors: ['#ff6600'], colorCount: 1, fonts: [], logoCount: 0, tokenCount: 12,
+  ownership: { colors: new Map(), faces: {}, logos: {}, radius: 'inherited', counts: { ownColors, starterColors: 0, ownFaces: 0, logos: 0 } },
+  ...extra,
+} as unknown as NonNullable<Parameters<typeof overviewHtml>[0]>);
+
+test('OWNERSHIP: blank, unowned and owned are the Overview\'s own test', () => {
+  assert.equal(boardState({ furnished: false, colors: [], colorCount: 0, fonts: [], logoCount: 0, tokenCount: 0 }), 'blank');
+  assert.equal(boardState(furnishedModel({}, 0)), 'blank', 'furnished, but nothing in it was chosen: the doors are up');
+  assert.equal(boardState(furnishedModel({ supplied: true }, 0)), 'unowned', 'it came with the app');
+  assert.equal(boardState(furnishedModel({ supplied: true }, 41)), 'unowned', 'a shipped system is the app\'s however full it is');
+  assert.equal(boardState(furnishedModel({}, 1)), 'owned', 'one colour of the person\'s own makes it theirs');
+});
+
+test('START HERE: an unowned Board leads with three doors in the welcome dialog\'s shape', () => {
+  const html = overviewHtml(furnishedModel({ supplied: true }, 0));
+  assert.match(html, /data-board="unowned"/);
+  assert.match(html, /<h3 class="ds-ov-start-title"[^>]*>Start here<\/h3>/);
+  const doors = [...html.matchAll(/class="ds-ov-start-door" data-ds-door="([^"]+)"/g)].map(m => m[1]);
+  assert.deepEqual(doors, ['looks', 'file', 'color-pick'], 'Find a look, Add from…, Pick a colour, in that order');
+  for (const part of ['ds-ov-start-ic', 'ds-ov-start-name', 'ds-ov-start-line', 'ds-ov-start-cta']) assert.match(html, new RegExp(part));
+  assert.ok(html.indexOf('ds-ov-start') < html.indexOf('ds-ov-cards'), 'the row sits above the cards');
+  assert.equal(/class="ds-ov-more"/.test(html), false, 'the small pills under the cards are gone');
+});
+
+test('START HERE: an owned Board has no first-move row, and keeps its quiet ways on', () => {
+  const html = overviewHtml(furnishedModel({}, 3));
+  assert.match(html, /data-board="owned"/);
+  assert.equal(/ds-ov-start/.test(html), false);
+  assert.match(html, /class="ds-ov-more"/);
+});
+
+test('CARDS: every card is label, value, specimen, in that order', () => {
+  const html = overviewHtml(furnishedModel({ supplied: true, fileCount: 2, newestFile: 'hero.jpg', radius: { value: '1rem', own: true },
+    typefaces: { own: 0, rest: 3, shown: 3 }, colours: { own: 1, rest: 0, shown: 1 },
+    marks: [{ url: 'blob:x/1', variant: 'horizontal-primary', reverse: false, label: 'Horizontal' }, { url: 'blob:x/2', variant: 'horizontal-primary-reverse', reverse: true, label: 'Reverse' }], logoCount: 2 }, 1));
+  const cards = [...html.matchAll(/<button type="button" class="ds-ov-card"[\s\S]*?<\/button>/g)].map(m => m[0]);
+  assert.ok(cards.length >= 5);
+  for (const card of cards) {
+    const label = card.indexOf('ds-ov-card-label'), value = card.indexOf('ds-ov-card-value'), spec = card.indexOf('ds-ov-card-spec');
+    assert.ok(label > 0 && label < value && value < spec, card);
+  }
+  assert.match(html, /3 typefaces/);
+  assert.match(html, /2 files/);
+  assert.match(html, /hero\.jpg/, 'Files shows its newest file');
+  assert.equal([...html.matchAll(/class="ds-ov-mark(?: is-reverse)?"/g)].length, 2, 'Logos draws its marks');
+  assert.match(html, /class="ds-ov-mark is-reverse"/, 'a reverse mark sits on the ink ground');
+  assert.match(html, /--ds-ov-r:1rem/, 'Tokens shows the corner radius it names');
+});
+
+test('CARDS: a radius that is not a plain length never reaches the style attribute', () => {
+  const html = overviewHtml(furnishedModel({ radius: { value: '1rem;background:url(x)', own: true } }, 1));
+  assert.equal(/--ds-ov-r/.test(html), false);
+  assert.equal(/url\(x\)"/.test(html), false);
+});
+
+test('BLANK: the doors keep their order, and the lorikeet\'s place watches the colour door', () => {
+  const html = overviewHtml({ furnished: false, colors: [], colorCount: 0, fonts: [], logoCount: 0, tokenCount: 0 });
+  assert.match(html, /data-board="blank"/);
+  assert.match(html, /ds-ov--empty/);
+  const colourDoor = /<button type="button" class="ds-ov-door" data-ds-door="color-pick">[\s\S]*?<\/button>/.exec(html)?.[0] ?? '';
+  assert.match(colourDoor, /<span class="fauna-slot" data-fauna="lorikeet" data-fauna-watch="pick-colour" aria-hidden="true"><\/span>/);
+  assert.equal([...html.matchAll(/class="fauna-slot"/g)].length, 1, 'one character per blank room');
+});
+
+test('LIVE: the In context scenes, the switch and the way to Colours', () => {
+  const scenes = [
+    { label: 'Poster', svg: '<svg><rect width="480" height="360" fill="#1d1d1d"/></svg>' },
+    { label: 'Chart', svg: '<svg><rect width="480" height="360" fill="#efefef"/></svg>' },
+    { label: 'UI card', svg: '<svg><rect width="480" height="360" fill="#efefef"/></svg>' },
+  ];
+  const noir = liveHtml(scenes, 0, true);
+  assert.match(noir, /id="ds-live-title"[^>]*>In context</);
+  assert.match(noir, /data-ds-goto="color"[^>]*>Edit in Colours</);
+  assert.equal([...noir.matchAll(/data-live-figure="\d"/g)].length, 3);
+  assert.equal([...noir.matchAll(/data-live-figure="\d" hidden/g)].length, 2, 'one scene in view');
+  assert.match(noir, /--ds-live-ground:#1d1d1d/, 'the stage is the scene\'s own ground');
+  assert.match(noir, /data-fauna="lorikeet" data-fauna-watch="specimen"/);
+  assert.match(noir, /Starter greys until a colour is added\./);
+  const owned = liveHtml(scenes, 1, false);
+  assert.equal(/fauna-slot/.test(owned), false, 'the lorikeet belongs to the first run');
+  assert.equal(/Starter greys/.test(owned), false);
+  assert.match(owned, /data-live-scene="1"[^>]*aria-pressed="true"|aria-pressed="true"[^>]*data-live-scene="1"/);
+  assert.match(owned, /--ds-live-ground:#efefef/);
+});
+
+test('LIVE: the mounted room paints the live column and switches its scene', async () => {
+  const el = document.getElementById('room') as HTMLElement;
+  el.innerHTML = '';
+  el.hidden = false;
+  const live = document.createElement('section');
+  document.body.appendChild(live);
+  const gone: string[] = [];
+  const room = mountOverviewRoom(el, {
+    host: stubHost({ installed: false }),
+    editor: () => null,
+    goto: (area) => gone.push(area),
+    openImport: () => {},
+    live,
+  });
+  for (let i = 0; i < 8; i++) await new Promise(resolve => setTimeout(resolve, 0));
+  assert.match(live.innerHTML, /ds-live-stage/);
+  assert.equal(live.dataset.noir, 'true', 'nothing chosen yet: the starter\'s greys');
+  live.querySelector<HTMLElement>('[data-live-scene="2"]')!.click();
+  assert.equal(live.querySelector<HTMLElement>('[data-live-figure="2"]')!.hidden, false);
+  assert.equal(live.querySelector<HTMLElement>('[data-live-figure="0"]')!.hidden, true);
+  live.querySelector<HTMLElement>('[data-ds-goto="color"]')!.click();
+  assert.deepEqual(gone, ['color']);
+  room.teardown();
+  live.remove();
 });

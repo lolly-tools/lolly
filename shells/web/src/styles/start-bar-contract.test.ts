@@ -9,9 +9,10 @@
  *      child of .start. Without that, the bar (z-index 20) is drawn over every
  *      popover a room raises (30 and up), and a tall swatch picker lost its name
  *      row under the bar.
- *   2. The room strip's scroll fade applies at every width. It used to sit in
- *      the phone block only, so a desk strip that did not fit cut its last rooms
- *      off with nothing to show more were there.
+ *   2. The room strip's scroll cue (a fade with a chevron, lib/scroll-cue.ts)
+ *      applies at every width. A fade used to sit in the phone block only, so a
+ *      desk strip that did not fit cut its last rooms off with nothing to show
+ *      more were there (plan 346, change 10).
  *   3. The kicker is an h1, and base.css gives every h1 the display face; the
  *      kicker takes the bar's own face back, so a design system with a display
  *      face does not restyle a chrome label.
@@ -54,12 +55,16 @@ test('the open room shares the bar\'s stacking context at every width', () => {
   assert.ok(shell.some(r => r.depth === 1 && /z-index:\s*auto/.test(r.body)), 'the shell takes z-index: auto outside any media query');
 });
 
-test('the room strip fades where rooms continue, on a desk as on a phone', () => {
-  const fade = rules('.ds-rooms[data-more]');
-  assert.ok(fade.some(r => r.depth === 1 && /mask-image:/.test(r.body)), 'the fade is a top-level rule, not a phone-only one');
-  for (const r of rules('.ds-rooms')) {
-    assert.doesNotMatch(r.body, /mask-image:/, 'a strip that fits is drawn without a fade');
-  }
+test('the room strip shows a cue where rooms continue, on a desk as on a phone', () => {
+  const shown = css.indexOf('.ds-room-nav[data-more~="end"] > .scroll-cue--end');
+  assert.ok(shown > 0 && depthAt(shown) === 1, 'the cue is a top-level rule, not a phone-only one');
+  const cue = rules('.ds-room-nav > .scroll-cue');
+  assert.ok(cue.some(r => r.depth === 1 && /display:\s*none/.test(r.body) && /pointer-events:\s*none/.test(r.body)), 'hidden until an end holds rooms, and never in the way of a tap');
+  assert.ok(rules('.ds-room-nav > .scroll-cue--end').some(r => /linear-gradient\(to left, var\(--ds-cue-ground\)/.test(r.body)), 'the end fades into the bar\'s own surface');
+  assert.ok(rules('.ds-room-nav > .scroll-cue--end svg').some(r => /rotate\(-90deg\)/.test(r.body)), 'the chevron points the way');
+  for (const r of rules('.ds-rooms')) assert.doesNotMatch(r.body, /mask-image:/, 'the strip itself is never masked');
+  const bar = readFileSync(new URL('../views/start/bar.ts', import.meta.url), 'utf8');
+  assert.match(bar, /watchScrollCue\(list, start\.railEl\)/, 'bar.ts reuses lib/scroll-cue.ts, with the nav as the cue\'s host');
 });
 
 test('the kicker keeps the bar\'s face while it is the page\'s h1', () => {

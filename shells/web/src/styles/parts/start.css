@@ -158,28 +158,78 @@ html[dir="rtl"] .start-back-row {
    padding (start-bar.css), so no room target adds a scroll margin of its own. */
 .ds-panel[hidden] { display: none; }
 
-/* ── The Overview room - counts and doors, no progress ─────────────────────── */
-.ds-ov { display: flex; flex-direction: column; gap: 14px; }
+/* ── The Board: counts, doors and the live column, no progress ──────────────
+      Plan 346. On a desk the Board and its live column (the In context
+      specimen) share one centred frame of two columns, the specimen sticky and
+      as tall as the window under the bar; on a phone the specimen follows the
+      Board as a short card; in two panes each takes a pane (styles/parts/
+      split.css places them, views/start/rooms.ts decides which shows). */
+.ds-ov { display: flex; flex-direction: column; gap: var(--sp-6); }
 .ds-ov-loading { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
-.ds-ov-title { margin: 0; font-size: calc(17px * var(--a11y-fs)); font-weight: 800; letter-spacing: -0.01em; }
+.ds-ov-title,
+.ds-live-title { margin: 0; font-family: inherit; font-size: var(--ui-type-lead); font-weight: 800; letter-spacing: var(--ui-type-tracking-tight); }
 .ds-ov-sub { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); max-width: 62ch; }
+/* The heading and its line read as one block, closer than the sections below. */
+.ds-ov-intro { display: grid; gap: var(--sp-2); }
 
+/* The frame on a desk: the Board beside its live column. Only while the Board is
+   the open room (the live column shows with it), and never in two panes, where
+   split.css lays the same two panels out as panes. */
+@media (min-width: 641px) {
+  html:not([data-layout="split"]) .start--studio .ds-main:has(> .ds-live:not([hidden])) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, var(--ds-live-share, 1fr));
+    column-gap: var(--sp-8);
+  }
+  html:not([data-layout="split"]) .start--studio .ds-main:has(> .ds-live:not([hidden])) > [data-ds-panel="overview"] { grid-column: 1; grid-row: 1; }
+  html:not([data-layout="split"]) .start--studio .ds-main > .ds-live {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    position: sticky;
+    top: var(--ds-sticky-top, 0px);
+    height: calc(100dvh - var(--ds-sticky-top, 0px) - var(--sp-6));
+    min-height: 22rem;
+  }
+  /* On a tall window the doors and cards take a share of its height, so the
+     Board grows beside a specimen as tall as the window instead of stopping
+     halfway down the window. On a 900px window the shares come to their usual
+     sizes. */
+  html:not([data-layout="split"]) .start--studio .ds-ov-door { min-height: clamp(10.5rem, 24dvh, 22rem); }
+  html:not([data-layout="split"]) .start--studio .ds-ov-card { min-height: clamp(9.5rem, 17dvh, 15rem); }
+  html:not([data-layout="split"]) .start--studio .ds-ov-start-door { min-height: clamp(8.5rem, 15dvh, 12rem); }
+  /* Every note keeps two lines, so the door names share one line across a row
+     whether a note wraps or not. */
+  html:not([data-layout="split"]) .start--studio .ds-ov-door-note { min-height: 2lh; }
+  /* The page ends where the live column does, so a Board that fits the window
+     does not scroll by the studio's usual foot room. */
+  html:not([data-layout="split"]) .start.start--studio:has(.ds-live:not([hidden])) { padding-bottom: var(--sp-6); }
+}
+/* The editor's panels are all hidden while the Board is open, so its wrapper
+   takes no place in the frame either. */
+.start--studio .ds-main:has(> .ds-live:not([hidden])) > .start-editor-wrap { display: none; }
+
+/* ── The material doors (the blank Board) ── */
 .ds-ov-doors {
   display: grid;
-  gap: 10px;
+  gap: var(--sp-4);
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
 }
 /* Four doors read as a two-by-two, never three and an orphan. */
-.ds-ov--empty .ds-ov-doors { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 52rem; }
+.ds-ov--empty .ds-ov-doors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 560px) { .ds-ov--empty .ds-ov-doors { grid-template-columns: minmax(0, 1fr); } }
 .ds-ov--empty .ds-ov-bring { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); }
 .ds-ov-door,
-.ds-ov-card {
+.ds-ov-card,
+.ds-ov-start-door {
+  position: relative;
   display: grid;
-  gap: 6px;
+  gap: var(--sp-2);
   justify-items: start;
+  align-content: start;
   text-align: start;
-  padding: 16px;
+  min-height: var(--ui-size-target);
+  padding: var(--sp-6);
   border: 0;
   box-shadow: var(--ui-edge-faint), var(--ui-elevation-control);
   border-radius: var(--ui-radius-card);
@@ -190,51 +240,121 @@ html[dir="rtl"] .start-back-row {
   transition: background var(--dur-1), box-shadow var(--dur-1), transform var(--dur-1);
 }
 .ds-ov-door:hover,
-.ds-ov-card:hover {
+.ds-ov-card:hover,
+.ds-ov-start-door:hover {
   background: hsl(var(--muted) / 0.5);
-  box-shadow: var(--ui-elevation-floating);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating);
   transform: translateY(-2px);
 }
 .ds-ov-door:focus-visible,
-.ds-ov-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+.ds-ov-card:focus-visible,
+.ds-ov-start-door:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
 /* No door is tinted: each is an equally valid first step, and a tint read as
-   "recommended" on two of the four. */
+   "recommended" on two of the four. Each glyph sits on the same soft disc, which
+   is the warmth: a place for the eye to land, the same on every door. */
+/* The glyph at the top and the words at the foot, so a door the window makes
+   tall reads as a tile, not a box with a gap inside. */
+.ds-ov-door { grid-template-rows: 1fr auto auto; gap: var(--sp-3); padding: var(--sp-7); min-height: 10.5rem; }
 .ds-ov-door-ic {
   display: grid;
   place-items: center;
-  width: calc(22px * var(--a11y-fs));
-  height: calc(22px * var(--a11y-fs));
+  width: var(--ui-size-target);
+  height: var(--ui-size-target);
+  align-self: start;
+  margin-bottom: var(--sp-2);
+  border-radius: var(--radius-round);
+  background: hsl(var(--primary) / 0.1);
   color: hsl(var(--primary));
 }
-.ds-ov-door-ic svg { width: 100%; height: 100%; }
-.ds-ov-door-name { font-size: var(--fs-lg); font-weight: 700; }
-.ds-ov-door-note { font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.ds-ov-door-ic svg { width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); }
+.ds-ov-door-name { font-size: var(--fs-xl); font-weight: 700; }
+.ds-ov-door-note { font-size: var(--fs-md); line-height: 1.5; color: hsl(var(--muted-foreground)); }
 
+/* A Fauna character's place (plan 346 slot contract): empty and sizeless until
+   the art is drawn into it, perched on the corner of what it watches. */
+.ds-ov-door > .fauna-slot,
+.ds-live-stage > .fauna-slot {
+  position: absolute;
+  inset-block-start: var(--sp-4);
+  inset-inline-end: var(--sp-4);
+  pointer-events: none;
+}
+
+/* ── Start here: the first moves on a system that came with the app ── */
+.ds-ov-start { display: grid; gap: var(--sp-3); }
+.ds-ov-start-title,
+.ds-ov-card-label {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--ui-type-tracking-label);
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.ds-ov-start-doors {
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+/* The welcome dialog's door: glyph, name, what it does, where it goes. */
+.ds-ov-start-door { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+.ds-ov-start-ic { display: grid; width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); color: hsl(var(--primary)); }
+.ds-ov-start-ic svg { width: 100%; height: 100%; }
+.ds-ov-start-name { margin-top: var(--sp-1); font-size: var(--fs-xl); font-weight: 700; }
+.ds-ov-start-line { font-size: var(--fs-sm); line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.ds-ov-start-cta { margin-top: auto; padding-top: var(--sp-2); font-size: var(--fs-sm); font-weight: 650; color: hsl(var(--primary)); }
+
+/* ── The inventory: label, value and specimen, every card the same height ── */
 .ds-ov-cards {
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  grid-auto-rows: 1fr;
 }
-.ds-ov-card-label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.ds-ov-card { grid-template-rows: auto auto 1fr; min-height: 9.5rem; }
 .ds-ov-card-value { font-size: var(--fs-lg); font-weight: 700; overflow-wrap: anywhere; }
+.ds-ov-card-spec {
+  align-self: end;
+  justify-self: stretch;
+  display: grid;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.ds-ov-card-spec:empty { display: none; }
 /* Own counts lead, the starter's follows in the muted register - the one
    grammar every room paints ownership with (plan 182 section 4.2). */
 .ds-ov-sub-value { font-size: var(--fs-sm); font-weight: 500; color: hsl(var(--muted-foreground)); }
 .ds-ov-card-note { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
-.ds-ov-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.ds-ov-strip { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+/* The palette bar: every own colour an equal share of the card's width. */
+.ds-ov-bar {
+  flex: 1 1 auto;
+  display: flex;
+  height: 28px;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--ui-edge-faint);
+}
+.ds-ov-bar > .ds-ov-chip { flex: 1 1 0; min-width: 0; }
 .ds-ov-chip {
   width: 16px;
   height: 16px;
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.12);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--ui-edge-faint);
 }
+.ds-ov-bar > .ds-ov-chip { width: auto; height: auto; border-radius: 0; box-shadow: none; }
 /* Scaffolding, not a decision: smaller and faded, behind a hairline. Never a
    dashed edge - dashed means drop target in this app. */
-.ds-ov-chip.is-starter { width: 12px; height: 12px; border-radius: var(--radius-xs); opacity: 0.5; }
-.ds-ov-strip-rule { width: 1px; height: 14px; margin: 0 2px; background: hsl(var(--border)); }
+.ds-ov-chip.is-starter { width: 12px; height: 12px; opacity: 0.5; }
+.ds-ov-strip-rule { flex: none; width: 1px; height: 14px; background: hsl(var(--border)); }
+.ds-ov-chip.is-starter { flex: none; }
 /* The room's heading and, on a system the app ships, where it came from: a
    quiet filled tag, the same register as the Settings card's source line. */
-.ds-ov-head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3) var(--sp-6); }
+/* As tall as a target, so the Board's heading and the live column's (beside its
+   Edit in Colours button) share a line. */
+.ds-ov-head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3) var(--sp-6); min-height: var(--ui-size-target); }
+.ds-ov--empty .ds-ov-intro > .ds-ov-title { display: flex; align-items: center; min-height: var(--ui-size-target); }
 .ds-ov-supplied {
   padding: var(--sp-1) var(--sp-5);
   border-radius: var(--radius-pill);
@@ -244,10 +364,12 @@ html[dir="rtl"] .start-back-row {
   font-weight: 600;
 }
 /* A face named in its own face: the Type card is a specimen as well as a count. */
+.ds-ov-faces { display: grid; gap: var(--sp-1); }
+.ds-ov-face-row { display: block; font-size: var(--fs-lg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ds-ov-face { font-weight: 650; white-space: nowrap; }
 /* The colourways as small tiles: each lead colour with "Aa" in the ink that
    reads on that colour. The hairline keeps a pale lead visible on a pale card. */
-.ds-ov-ways { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
+.ds-ov-ways { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .ds-ov-way {
   display: grid;
   place-items: center;
@@ -261,6 +383,31 @@ html[dir="rtl"] .start-back-row {
   font-weight: 700;
   box-shadow: var(--ui-edge-faint);
 }
+/* The marks, each on the ground it is drawn for (a reverse mark on the
+   system's ink), inset by clear space and never cropped. */
+.ds-ov-marks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); }
+.ds-ov-mark {
+  display: block;
+  aspect-ratio: 3 / 2;
+  padding: 14% 12%;
+  border-radius: var(--radius-sm);
+  background: var(--ds-ov-paper);
+  box-shadow: var(--ui-edge-faint);
+}
+.ds-ov-mark.is-reverse { background: var(--ds-ov-ink); }
+.ds-ov-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+/* The Tokens and Files cards' specimen line: a small sample beside its words. */
+.ds-ov-spec-line { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+.ds-ov-spec-line .ds-ov-card-note { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-ov-radius {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ds-ov-r);
+  background: hsl(var(--primary) / 0.16);
+}
+.ds-ov-file-ic { flex: none; display: grid; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.ds-ov-file-ic svg { width: 100%; height: 100%; }
 /* The empty state's one quiet line: two inline controls that read as text. */
 .ds-ov-bring { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
 .ds-ov-inline {
@@ -274,8 +421,100 @@ html[dir="rtl"] .start-back-row {
   cursor: pointer;
 }
 .ds-ov-inline:hover { color: hsl(var(--foreground)); }
-.ds-ov-more { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.ds-ov-exit { font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.ds-ov-more { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
+.ds-ov-exit { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+
+/* ── The live column: In context ── */
+.ds-live {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+.ds-live-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.ds-live-edit { min-height: var(--ui-size-target); }
+/* The stage is the scene's own ground, so the artwork sits on it without a
+   seam however tall the window makes the stage; the scene is as large as both
+   sides allow. */
+.ds-live-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--ui-radius-card);
+  background: var(--ds-live-ground, var(--ui-color-surface-muted));
+  box-shadow: var(--ui-edge-faint);
+  container-type: size;
+}
+.ds-live-scene { margin: 0; width: min(100cqw, calc(100cqh * 4 / 3)); }
+.ds-live-scene[hidden] { display: none; }
+.ds-live-scenes { justify-self: stretch; }
+.ds-live-scenes .view-seg-btn { min-height: var(--ui-size-target); }
+.ds-live-note { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+/* The first colour's arrival: the last grey picture laid over the new one,
+   fading out once. views: rooms/overview.ts adds it only when motion is allowed. */
+.ds-live-was {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--ds-live-ground, var(--ui-color-surface-muted));
+  pointer-events: none;
+  animation: ds-live-reveal calc(2 * var(--dur-3)) var(--ease-out) forwards;
+}
+@keyframes ds-live-reveal { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ds-live-was { display: none; }
+  .ds-ov-door, .ds-ov-card, .ds-ov-start-door { transition: none; }
+  .ds-ov-door:hover, .ds-ov-card:hover, .ds-ov-start-door:hover { transform: none; }
+}
+html[data-a11y-motion="reduce"] .ds-live-was { display: none; }
+html[data-a11y-motion="reduce"] .ds-ov-door,
+html[data-a11y-motion="reduce"] .ds-ov-card,
+html[data-a11y-motion="reduce"] .ds-ov-start-door { transition: none; }
+html[data-a11y-motion="reduce"] .ds-ov-door:hover,
+html[data-a11y-motion="reduce"] .ds-ov-card:hover,
+html[data-a11y-motion="reduce"] .ds-ov-start-door:hover { transform: none; }
+
+/* A phone, and a desk too narrow for two columns: the specimen is a short card
+   under the Board, its stage the scene's own shape. */
+@media (max-width: 640px) {
+  .ds-ov { gap: var(--sp-5); }
+  /* The material doors and Start here keep their order and words in less
+     height: the glyph beside the name. */
+  .ds-ov-door {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: var(--sp-5);
+    row-gap: var(--sp-1);
+    padding: var(--sp-5) var(--sp-6);
+    min-height: 0;
+  }
+  .ds-ov-door-ic { grid-row: span 2; margin-bottom: 0; }
+  .ds-ov-door-name { align-self: end; }
+  /* The way-in line is left to the card, which is the button. */
+  .ds-ov-start-door {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--sp-4);
+    row-gap: var(--sp-1);
+    padding: var(--sp-5);
+  }
+  .ds-ov-start-ic { grid-row: span 2; margin-top: var(--sp-1); }
+  .ds-ov-start-name { margin-top: 0; }
+  .ds-ov-start-cta { display: none; }
+  .ds-ov-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ds-ov-card { min-height: 8.5rem; padding: var(--sp-5); }
+  .ds-live { gap: var(--sp-3); }
+  .ds-live-stage { container-type: normal; aspect-ratio: 4 / 3; }
+  .ds-live-scene { width: 100%; }
+}
+/* Two panes: the live column is the work pane, as tall as the pane. */
+html[data-layout="split"] .start--studio .ds-main > .ds-live {
+  align-self: stretch;
+  padding-top: var(--sp-2);
+}
 
 /* ── The import card, and the modal it now opens in ──────────────────────── */
 /* The dialog: wider than the plain .modal so the five format tiles stay on one
