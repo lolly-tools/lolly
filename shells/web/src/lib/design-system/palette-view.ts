@@ -63,7 +63,7 @@ export function paletteHtml(swatches: BrandSwatch[], starter: Set<string>, opts:
     ${inherited.length ? `<details class="be-pal-group be-pal-group--starter" data-be-group="Starter colours"${opts.starterGroup || !chosen.length ? ' open' : ''}>
       <summary class="be-pal-group-head"><span class="be-pal-group-label">${t('Starter colours')}<span class="be-pal-group-n">${inherited.length}</span></span>
         ${action('data-be-pal-all', 'Starter colours', t('Select'))}<button type="button" class="be-pal-group-all" data-be-hide-starter>${t('Hide all')}</button>
-      </summary><p class="be-pal-group-note">${t('These neutrals came with the starter, so the previews have something to show. Add your own above.')}</p><div class="be-pal-grid">${cards(inherited)}</div></details>` : ''}
+      </summary><p class="be-pal-group-note">${t('These neutrals came with the starter, so the previews have something to show until colours are added above.')}</p><div class="be-pal-grid">${cards(inherited)}</div></details>` : ''}
     ${opts.hidden ? `<button type="button" class="be-pal-restore" data-be-restore>${tRaw('Restore hidden colours ({n})', { n: opts.hidden })}</button>` : ''}`;
 }
 

@@ -69,6 +69,28 @@ test('palette handles support keyboard, mouse and tablet dragging with persisten
     await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await group.waitFor();
     assert.deepEqual(await keys(), swapped);
+    // At rest, keyboard focus on a tile shows its handle as an overlay inside the
+    // tile, so the grid never changes height, and Space, an arrow and Space reorder.
+    const restHeight = (await group.boundingBox())!.height;
+    await group.locator('[data-be-tile]').first().focus();
+    await handles.first().waitFor({ state: 'visible' });
+    const tileBox = (await group.locator('[data-be-tile]').first().boundingBox())!;
+    const overlayBox = (await handles.first().boundingBox())!;
+    assert.equal((await group.boundingBox())!.height, restHeight, 'showing the focus handle moves no row');
+    assert.ok(overlayBox.x >= tileBox.x && overlayBox.y >= tileBox.y
+      && overlayBox.x + overlayBox.width <= tileBox.x + tileBox.width && overlayBox.y + overlayBox.height <= tileBox.y + tileBox.height,
+      'the handle sits inside the tile\'s own box');
+    assert.ok(overlayBox.width >= 44 && overlayBox.height >= 44, 'still a full target');
+    await page.keyboard.press('Tab');
+    assert.equal(await handles.first().evaluate(el => el === document.activeElement), true, 'Tab reaches the handle');
+    await page.keyboard.press('Space'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('Space');
+    assert.deepEqual(await keys(), before, 'the overlay handle reorders by keyboard');
+    await page.locator('.be-palette [data-be-save-state]').filter({ hasText: /^Saved$/ }).waitFor();
+    await page.keyboard.press('Space'); await page.keyboard.press('ArrowLeft'); await page.keyboard.press('Space');
+    assert.deepEqual(await keys(), swapped, 'and back again');
+    await page.locator('.be-palette [data-be-save-state]').filter({ hasText: /^Saved$/ }).waitFor();
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await handles.first().waitFor({ state: 'hidden' });
     await page.screenshot({ path: '/tmp/lolly-brand-palette-tablet.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => { document.documentElement.dataset.a11yText = 'large'; });

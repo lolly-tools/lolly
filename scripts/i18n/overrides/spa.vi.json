@@ -2000,7 +2000,7 @@
   "Get the desktop app": "Tải ứng dụng máy tính",
   "Read why": "Đọc lý do",
   "Or drop an image or a list of colours here": "Hoặc thả một hình ảnh hay danh sách màu vào đây",
-  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Các màu trung tính này đi kèm bộ khởi đầu để bản xem trước có thứ để hiển thị. Hãy thêm màu của riêng bạn ở trên.",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Các màu trung tính này đi kèm bộ khởi đầu để bản xem trước có thứ để hiển thị cho đến khi màu được thêm ở trên.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Chọn một màu",
   "Add a colour to the palette first.": "Hãy thêm một màu vào bảng màu trước."
 }

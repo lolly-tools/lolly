@@ -2176,7 +2176,7 @@
   "Get the desktop app": "Изтегли настолното приложение",
   "Read why": "Прочети защо",
   "Or drop an image or a list of colours here": "Или пусни тук изображение или списък с цветове",
-  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Тези неутрални цветове идват с началния комплект, за да има какво да показват прегледите. Добави свои отгоре.",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Тези неутрални цветове идват с началния комплект, за да има какво да показват прегледите, докато не се добавят цветове отгоре.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Избери цвят",
   "Add a colour to the palette first.": "Първо добави цвят към палитрата."
 }

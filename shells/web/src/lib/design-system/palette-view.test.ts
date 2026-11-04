@@ -89,8 +89,14 @@ test('at rest, desk and phone alike, a swatch shows no checkbox and no handle', 
   assert.match(atEveryWidth, /\.be-pal-check,\s*\.be-pal-reorder\s*\{\s*display:\s*none;\s*\}/,
     'both are hidden at rest, outside any media query');
   assert.match(atEveryWidth, /\[data-pal-selecting\]\s*\.be-pal-check\s*\{\s*display:\s*grid;\s*\}/, 'Select reveals the checkbox');
-  assert.match(atEveryWidth, /\[data-pal-selecting\]\s*\.be-pal-reorder,\s*\.be-pal-card:has\(:focus-visible\)\s*\.be-pal-reorder\s*\{\s*display:\s*grid;\s*\}/,
-    'Select, or keyboard focus on the tile, reveals the handle');
+  assert.match(atEveryWidth, /\[data-pal-selecting\]\s*\.be-pal-reorder\s*\{\s*display:\s*grid;\s*\}/, 'Select reveals the handle');
+  // Keyboard focus at rest shows the handle as an overlay inside the tile, so no
+  // row changes height; in Select mode it goes back into the card's flow.
+  const overlay = /\n\.be-pal-card:has\(:focus-visible\)\s*\.be-pal-reorder,\s*\.be-pal-card\[data-kbd-focus\]\s*\.be-pal-reorder\s*\{([^}]*)\}/.exec(atEveryWidth)?.[1] ?? '';
+  assert.match(overlay, /display:\s*grid/);
+  assert.match(overlay, /position:\s*absolute/, 'an overlay, out of the row');
+  assert.match(overlay, /grid-area:\s*auto/, 'positioned against the card (the tile\'s box), not the hex row\'s cell');
+  assert.match(atEveryWidth, /\[data-pal-selecting\]\s*\.be-pal-card:has\(:focus-visible\)\s*\.be-pal-reorder[^{]*\{[^}]*position:\s*static/, 'Select mode keeps it in flow');
   // The resting rule must win: no later unconditional rule gives either one a display.
   const handle = /\n\.be-pal-reorder\s*\{([^}]*)\}/.exec(atEveryWidth)?.[1] ?? '';
   assert.equal(/display\s*:/.test(handle), false, 'the handle\'s own rule leaves display to the Select rules');
@@ -102,4 +108,15 @@ test('the add area is a drop area: dashed, neutral at rest', () => {
   const rule = /\n\.be-addcolor\s*\{([^}]*)\}/.exec(CSS)?.[1] ?? '';
   assert.match(rule, /border:\s*1\.5px dashed hsl\(var\(--border\)\)/, 'dashed in the neutral hairline (C4)');
   assert.equal(/--primary/.test(rule), false, 'no accent at rest');
+});
+
+test('with colours of its own, the add area is one compact row, still a drop area', () => {
+  const compact = '[data-be-tab-panel="color"]:is([data-be-beat="1"], [data-be-beat="2"])';
+  const esc = (x: string): string => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const rules = [...CSS.matchAll(new RegExp(`${esc(compact)}[^{]*\\{[^}]*\\}`, 'g'))].map(m => m[0]);
+  assert.ok(rules.length >= 3, 'the compact state is stated for beats 1 and 2 only');
+  const all = rules.join('\n');
+  assert.match(all, /\.be-addcolor-head[^{]*\{[^}]*display:\s*none/, 'no separate title line');
+  assert.match(all, /\.ds-addc-row\s*\{[^}]*flex-wrap:\s*nowrap/, 'one row');
+  assert.equal(/border/.test(all), false, 'the dashed drop edge is left as it is');
 });

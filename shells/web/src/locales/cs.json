@@ -10901,7 +10901,7 @@
   "Get the desktop app": "Stáhnout desktopovou aplikaci",
   "Read why": "Přečíst proč",
   "Or drop an image or a list of colours here": "Nebo sem přetáhni obrázek nebo seznam barev",
-  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Tyto neutrální barvy jsou součástí úvodní sady, aby náhledy měly co ukázat. Své vlastní přidej výše.",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Tyto neutrální barvy jsou součástí úvodní sady, aby náhledy měly co ukázat, dokud se výše nepřidají barvy.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Vyber barvu",
   "Add a colour to the palette first.": "Nejdřív přidej do palety barvu."
 }

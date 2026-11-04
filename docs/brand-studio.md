@@ -106,7 +106,7 @@ Your first colour becomes the **primary**, and a chip confirms it, such as *"Pri
 
 ### As the palette grows
 
-Your colours sit beside an **In context** preview on a wide screen, and above it on a smaller one. The preview shows a poster, chart or interface card in your palette. Starter colours stay in their own folding group, which folds once the system has colours of its own. Export lives in the bar's **Export** and in the Tokens room, so the room's head carries none.
+Your colours sit beside an **In context** preview on a wide screen, and above it on a smaller one. The preview shows a poster, chart or interface card in your palette. Starter colours stay in their own folding group, which folds once the system has colours of its own, and the paste and drop field becomes one compact row. Export lives in the bar's **Export** and in the Tokens room, so the room's head carries none.
 
 ![The Colours room on Lolly Demo: the role chips and the paste and drop field at the top, then the palette in folding groups, each colour with its name and hex](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 

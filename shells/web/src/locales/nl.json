@@ -10811,7 +10811,7 @@
   "Get the desktop app": "Download de desktop-app",
   "Read why": "Lees waarom",
   "Or drop an image or a list of colours here": "Of sleep hier een afbeelding of een lijst met kleuren naartoe",
-  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Deze neutrale kleuren horen bij de startset, zodat de voorbeelden iets kunnen laten zien. Voeg hierboven je eigen kleuren toe.",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Deze neutrale kleuren horen bij de startset, zodat de voorbeelden iets kunnen laten zien tot er hierboven kleuren worden toegevoegd.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Kies een kleur",
   "Add a colour to the palette first.": "Voeg eerst een kleur toe aan het palet."
 }

@@ -2090,7 +2090,7 @@
   "Get the desktop app": "Baixar o app para desktop",
   "Read why": "Ler o motivo",
   "Or drop an image or a list of colours here": "Ou solte aqui uma imagem ou uma lista de cores",
-  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Estes neutros vêm com o kit inicial, para que as pré-visualizações tenham algo para mostrar. Adicione os seus acima.",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Estes neutros vêm com o kit inicial, para que as pré-visualizações tenham algo para mostrar até que sejam adicionadas cores acima.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Escolher uma cor",
   "Add a colour to the palette first.": "Primeiro adicione uma cor à paleta."
 }

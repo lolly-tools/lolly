@@ -484,9 +484,8 @@ export function wireIntakeZone(bedit: BrandEditorCtx): void {
     } catch (err) { del.disabled = false; bedit.logos.showLogoErr(String((err as { message?: unknown })?.message ?? err)); }
   });
 
-  // ── Palette download ─────────────────────────────────────────────────────
+  // ── Palette errors: the selection bar's Download reports here ───────────
   const palErr = bedit.ramps.$('[data-be-pal-err]') as HTMLElement | null; bedit.palErr = palErr;
-  const palFmtSel = bedit.ramps.$('[data-be-pal-fmt]') as HTMLSelectElement | null; bedit.palFmtSel = palFmtSel;
 }
 
 export function logoIntakeOps(bedit: BrandEditorCtx) {

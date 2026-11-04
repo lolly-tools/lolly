@@ -10811,7 +10811,7 @@
   "Get the desktop app": "ডেস্কটপ অ্যাপ নিন",
   "Read why": "কেন, পড়ুন",
   "Or drop an image or a list of colours here": "অথবা এখানে একটি ছবি বা রঙের তালিকা ছেড়ে দিন",
-  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "এই নিউট্রাল রংগুলো শুরুর সেটের সঙ্গে এসেছে, যাতে প্রিভিউতে দেখানোর কিছু থাকে। ওপরে নিজের রং যোগ করুন।",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "এই নিউট্রাল রংগুলো শুরুর সেটের সঙ্গে এসেছে, যাতে ওপরে রং যোগ না হওয়া পর্যন্ত প্রিভিউতে দেখানোর কিছু থাকে।",
   "{role}: {value}. Choose a colour": "{role}: {value}। একটি রং বেছে নিন",
   "Add a colour to the palette first.": "আগে প্যালেটে একটি রং যোগ করুন।"
 }

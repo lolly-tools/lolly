@@ -143,6 +143,10 @@ test('colour workspace creates empty groups, moves directly, saves on Enter, pre
     click('[data-be-add-shade]:not(:disabled)');
     await settle(() => walkSwatches(installed, 'light').filter(s => s.kind !== 'semantic').length === 3);
     assert.equal(walkSwatches(installed, 'light').filter(s => s.kind !== 'semantic').length, 3, 'a single shade adds exactly one swatch');
+    // A colour of its own: the add area becomes the compact row, which names itself.
+    await settle(() => $('[data-be-tab-panel="color"]').dataset.beBeat !== '0');
+    assert.notEqual($('[data-be-tab-panel="color"]').dataset.beBeat, '0');
+    assert.equal($<HTMLInputElement>('[data-ds-addc-input]').placeholder, 'Paste colours or use an image');
     click('[data-be-undo]'); await settle();
     assert.deepEqual(installed, beforeDraft);
     click('[data-be-replace-palette]'); click('[data-be-review-cancel]');

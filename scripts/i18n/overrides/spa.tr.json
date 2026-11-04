@@ -2174,7 +2174,7 @@
   "Get the desktop app": "Masaüstü uygulamasını indir",
   "Read why": "Nedenini oku",
   "Or drop an image or a list of colours here": "Ya da buraya bir görsel veya renk listesi bırak",
-  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Bu nötr renkler başlangıç paketiyle gelir, böylece önizlemelerin gösterecek bir şeyi olur. Kendi renklerini yukarıdan ekle.",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Bu nötr renkler başlangıç paketiyle gelir, böylece yukarıya renk eklenene kadar önizlemelerin gösterecek bir şeyi olur.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Bir renk seç",
   "Add a colour to the palette first.": "Önce palete bir renk ekle."
 }

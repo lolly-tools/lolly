@@ -1170,6 +1170,18 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
    the Fauna pass hydrates it, so it moves nothing now. */
 .be-addcolor-head .fauna-slot { margin-inline-start: auto; }
 .be-addcolor .be-added { margin: 0; }
+/* Once the system has colours of its own (beats 1 and 2, on the room's own
+   panel) the field steps back to one row: the value field, the eyedropper, the
+   image door and Add, with "Paste colours or use an image" as its placeholder
+   (add-color.ts syncAddPlaceholder). Still dashed, because it is still a drop
+   area; the blank system's title line, hint and big chip are for a first visit. */
+[data-be-tab-panel="color"]:is([data-be-beat="1"], [data-be-beat="2"]) .be-addcolor {
+  gap: var(--sp-3); padding: var(--sp-3); margin-block: var(--sp-4) var(--sp-6);
+}
+[data-be-tab-panel="color"]:is([data-be-beat="1"], [data-be-beat="2"]) .be-addcolor-head,
+[data-be-tab-panel="color"]:is([data-be-beat="1"], [data-be-beat="2"]) .be-addcolor .ds-addc-pick { display: none; }
+[data-be-tab-panel="color"]:is([data-be-beat="1"], [data-be-beat="2"]) .be-addcolor .ds-addc-row { flex-wrap: nowrap; }
+[data-be-tab-panel="color"]:is([data-be-beat="1"], [data-be-beat="2"]) .be-addcolor .ds-addc-input { flex: 1 1 auto; min-width: 0; }
 .be-group-form { display: flex; flex-wrap: wrap; gap: .5rem; padding-block: .5rem 1rem; }
 .be-group-form .field-input { flex: 1 1 10rem; min-width: 0; width: auto; }
 .be-editor-group { display: flex; align-items: center; gap: .75rem; padding: .5rem 1rem; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
@@ -2708,8 +2720,24 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
    too, so Space, the arrows and Space still reorder without a pointer. */
 .be-pal-check, .be-pal-reorder { display: none; }
 [data-pal-selecting] .be-pal-check { display: grid; }
-[data-pal-selecting] .be-pal-reorder,
-.be-pal-card:has(:focus-visible) .be-pal-reorder { display: grid; }
+[data-pal-selecting] .be-pal-reorder { display: grid; }
+/* At rest that focus handle is an overlay inside the tile's own box, at its
+   leading top corner (the checkbox takes the other corner in Select mode, the
+   role label the bottom), so showing it never changes a row's height. An auto
+   grid area makes the card, not the hex row's cell, its containing block.
+   `data-kbd-focus` (palette-reorder.ts) holds it on screen while Tab moves
+   focus from the tile to the handle, when for an instant nothing is focused. */
+.be-pal-card:has(:focus-visible) .be-pal-reorder,
+.be-pal-card[data-kbd-focus] .be-pal-reorder {
+  display: grid; position: absolute; grid-area: auto;
+  inset-block-start: .15rem; inset-inline-start: .15rem;
+  box-shadow: var(--ui-elevation-control);
+}
+/* In Select mode the handle sits in the card's flow, focused or not. */
+[data-pal-selecting] .be-pal-card:has(:focus-visible) .be-pal-reorder,
+[data-pal-selecting] .be-pal-card[data-kbd-focus] .be-pal-reorder {
+  position: static; grid-column: 2; grid-row: 3; box-shadow: none;
+}
 
 /* The same drag gesture as input ordering, with a separate tablet-sized handle. */
 .be-pal-reorder { grid-column: 2; grid-row: 3; justify-self: end; min-width: max(44px, var(--ui-size-target)); min-height: max(44px, var(--ui-size-target)); padding: var(--sp-3); border: 0; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted); place-items: center; cursor: grab; touch-action: none; }
@@ -2717,16 +2745,18 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
 .be-pal-reorder[aria-pressed="true"] { cursor: grabbing; }
 .be-pal-reorder:focus-visible, .be-pal-card.is-reorder-target { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; border-radius: var(--ui-radius-control); }
 /* Phones (plan 336; Andy's decision 6, applied to the phone first): four tiles a
-   row. The drag handle shows in Select mode and to keyboard focus instead of
-   adding a 44px row under every colour, so 41 colours are about four screens of
-   thumb rather than eight. The keyboard path (Space, arrows, Space) is unchanged. */
+   row. The drag handle shows in Select mode instead of adding a 44px row under
+   every colour, so 41 colours are about four screens of thumb rather than eight,
+   and keyboard focus at rest shows it inside the tile (above). The keyboard path
+   (Space, arrows, Space) is unchanged. */
 @media (max-width: 640px) {
   .be-pal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .7rem .5rem; }
   .be-pal-card .be-swatch { aspect-ratio: 1; }
   .be-pal-name { font-size: var(--fs-2xs); }
   .be-pal-hex { grid-column: 1 / -1; font-size: var(--fs-2xs); overflow: hidden; text-overflow: ellipsis; }
   [data-pal-selecting] .be-pal-reorder,
-  .be-pal-card:has(:focus-visible) .be-pal-reorder { grid-column: 1 / -1; grid-row: 4; justify-self: stretch; }
+  [data-pal-selecting] .be-pal-card:has(:focus-visible) .be-pal-reorder,
+  [data-pal-selecting] .be-pal-card[data-kbd-focus] .be-pal-reorder { grid-column: 1 / -1; grid-row: 4; justify-self: stretch; }
 }
 
 .be-pal-group-head { position: relative; min-height: 44px; }

@@ -10856,7 +10856,7 @@
   "Get the desktop app": "Scarica l’app desktop",
   "Read why": "Leggi perché",
   "Or drop an image or a list of colours here": "Oppure trascina qui un'immagine o un elenco di colori",
-  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Questi neutri arrivano con il kit iniziale, così le anteprime hanno qualcosa da mostrare. Aggiungi i tuoi qui sopra.",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Questi neutri arrivano con il kit iniziale, così le anteprime hanno qualcosa da mostrare finché non vengono aggiunti colori qui sopra.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Scegli un colore",
   "Add a colour to the palette first.": "Prima aggiungi un colore alla palette."
 }

@@ -126,16 +126,17 @@ export const addColorEntries = (bedit: BrandEditorCtx, entries: ColorEntry[], re
 /** The add row's field, the one place the pick card writes its live value. */
 export const addField = (bedit: BrandEditorCtx): HTMLInputElement | null => { const { root } = bedit; return root.querySelector<HTMLInputElement>('[data-ds-addc-input]'); };
 /**
- * Beat 0 spells the notations out in full under a 72px chip; the compact row
- * keeps the short sentence, because by then the person has done this once.
- * The example values stay untranslated (they are values, not prose).
+ * Beat 0 spells the notations out in full under the add area's own title; the
+ * compact one-row field (plan 346, a system with colours of its own) has no
+ * title, so its placeholder carries the area's name instead. The example values
+ * stay untranslated (they are values, not prose).
  */
 export function syncAddPlaceholder(bedit: BrandEditorCtx): void {
   const field = addField(bedit);
   if (!field) return;
   field.placeholder = bedit.beat === 0
     ? `${t('Paste a colour')} · ${COLOR_NOTATION_EXAMPLES}`
-    : t('Paste a colour, or a list');
+    : t('Paste colours or use an image');
 }
 // Role reads and writes from the strip take `bedit.state.editContext()`: the
 // mode the strip is reading, and therefore the ONE it may write, plus the lead.

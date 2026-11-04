@@ -264,7 +264,6 @@ export interface BrandEditorCtx {
   pendingLogosDrained: boolean;
   intakeZone: HTMLElement;
   palErr: HTMLElement | null;
-  palFmtSel: HTMLSelectElement | null;
   /** The narrow context every studio panel gets (brand-studio-tabs.ts), minus its tab's notify. */
   studioCtx: Omit<StudioTabCtx, 'notify'> & { starterIds: () => ReadonlySet<string> };
   tokensMount: HTMLElement;

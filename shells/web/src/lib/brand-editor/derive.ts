@@ -346,7 +346,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       ${/* ── Level 0: the one control. Adding a colour writes exactly one token
              (plan 97 section 7.1) - nothing is derived, suggested-into, or demanded. */''}
       <section class="be-context" aria-label="${escapeText(t('Palette previews'))}">
-        <div class="be-context-head"><h2>${t('In context')}</h2><span data-be-preview-source>${t('Your palette')}</span></div>
+        <div class="be-context-head"><h2>${t('In context')}</h2><span data-be-preview-source>${t('Palette')}</span></div>
         <div class="be-previews" data-be-previews></div>
         ${segHtml('preview-scene', [{ id: '0', label: t('Poster') }, { id: '1', label: t('Chart') }, { id: '2', label: t('UI card') }], '0', t('Preview scene'), { attr: 'data-scene', groupAttr: 'data-be-scenes' })}
       </section>
