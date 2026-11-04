@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use std::sync::OnceLock;
 static DIRECTORY: OnceLock<PathBuf> = OnceLock::new();
-use tauri::{ipc::Invoke, Runtime};
+use tauri::{ipc::Invoke, Manager, Runtime};
 
 fn directory() -> Result<PathBuf, String> {
     if let Some(path) = DIRECTORY.get() { return Ok(path.clone()); }
@@ -41,6 +41,7 @@ fn updater_probe_poll() -> Result<Option<serde_json::Value>, String> {
 #[tauri::command]
 fn updater_probe_report<R: Runtime>(app: tauri::AppHandle<R>, mut value: serde_json::Value) -> Result<(), String> {
     value["processId"] = std::process::id().into();
+    value["quitGuard"] = app.state::<crate::updates::UpdateExit>().probe();
     value["nativeVersion"] = app.package_info().version.to_string().into();
     let binary = tauri::utils::platform::current_exe().map_err(|e| e.to_string())?;
     let parent = binary.parent().ok_or("Missing executable parent")?;

@@ -242,6 +242,7 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             // The Dock icon's menu (plans/321 M1). Its rows arrive with the
             // frontend's first set_menu_data push.
             native_frame::install_dock_menu(&handle);
+            updates::install_native_quit_guard(&handle);
             if !search_provider {
                 desktop_integration::classify_argv(
                     &handle,

@@ -8,6 +8,17 @@ pub struct UpdateExit {
     allowed: AtomicBool,
 }
 
+impl UpdateExit {
+    fn protects_quit(&self) -> bool {
+        self.armed.load(Ordering::SeqCst) && !self.allowed.load(Ordering::SeqCst)
+    }
+
+    #[cfg(feature = "updater-probe")]
+    pub fn probe(&self) -> serde_json::Value {
+        serde_json::json!({ "armed": self.armed.load(Ordering::SeqCst), "allowed": self.allowed.load(Ordering::SeqCst) })
+    }
+}
+
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Environment {
@@ -61,11 +72,15 @@ fn appimage_writable() -> bool { false }
 
 #[tauri::command]
 pub fn updater_arm(state: tauri::State<UpdateExit>, armed: bool) {
+    #[cfg(feature = "updater-probe")]
+    eprintln!("[updater-probe] arm={armed} allowed={}", state.allowed.load(Ordering::SeqCst));
     state.armed.store(armed, Ordering::SeqCst);
 }
 
 #[tauri::command]
 pub fn updater_finish(app: tauri::AppHandle, state: tauri::State<UpdateExit>, restart: bool) {
+    #[cfg(feature = "updater-probe")]
+    eprintln!("[updater-probe] finish restart={restart}");
     state.allowed.store(true, Ordering::SeqCst);
     if restart { app.restart(); } else { app.exit(0); }
 }
@@ -78,7 +93,11 @@ pub fn updater_focused(app: tauri::AppHandle) -> bool {
 /// Native quit and main-window close use one frontend save decision before exit.
 pub fn handle(app: &tauri::AppHandle, event: &tauri::RunEvent) {
     let state = app.state::<UpdateExit>();
-    if !state.armed.load(Ordering::SeqCst) || state.allowed.load(Ordering::SeqCst) { return; }
+    #[cfg(feature = "updater-probe")]
+    if matches!(event, tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit | tauri::RunEvent::WindowEvent { event: tauri::WindowEvent::CloseRequested { .. }, .. }) {
+        eprintln!("[updater-probe] exit event armed={} allowed={}", state.armed.load(Ordering::SeqCst), state.allowed.load(Ordering::SeqCst));
+    }
+    if !state.protects_quit() { return; }
     match event {
         tauri::RunEvent::ExitRequested { api, .. } => {
             api.prevent_exit();
@@ -92,6 +111,48 @@ pub fn handle(app: &tauri::AppHandle, event: &tauri::RunEvent) {
     }
 }
 
+// AppKit can terminate directly without an ExitRequested event. Keep that
+// decision pending until the frontend completes its save barrier.
+#[cfg(target_os = "macos")]
+pub fn install_native_quit_guard(app: &tauri::AppHandle) {
+    use objc2::runtime::{AnyClass, AnyObject, Imp, Sel};
+    use objc2::sel;
+    use objc2_app_kit::{NSApplication, NSApplicationTerminateReply};
+    use std::sync::OnceLock;
+    static APP: OnceLock<tauri::AppHandle> = OnceLock::new();
+    let _ = APP.set(app.clone());
+    let Some(thread) = objc2::MainThreadMarker::new() else { return };
+    let application = NSApplication::sharedApplication(thread);
+    let Some(delegate) = application.delegate() else { return };
+    let delegate: &AnyObject = delegate.as_ref();
+    extern "C-unwind" fn should_terminate(_this: &AnyObject, _cmd: Sel, _sender: *mut AnyObject) -> NSApplicationTerminateReply {
+        if let Some(app) = APP.get() {
+            if app.state::<UpdateExit>().protects_quit() {
+                let _ = app.emit_to("main", "lolly-update-quit", ());
+                return NSApplicationTerminateReply::TerminateCancel;
+            }
+        }
+        NSApplicationTerminateReply::TerminateNow
+    }
+    // SAFETY: the function matches Q@:@ (NSUInteger, self, selector, object),
+    // and adds no instance state to the event loop's existing delegate class.
+    let installed = unsafe {
+        objc2::ffi::class_addMethod(
+            delegate.class() as *const AnyClass as *mut AnyClass,
+            sel!(applicationShouldTerminate:),
+            std::mem::transmute::<extern "C-unwind" fn(&AnyObject, Sel, *mut AnyObject) -> NSApplicationTerminateReply, Imp>(should_terminate),
+            c"Q@:@".as_ptr(),
+        )
+    }.as_bool();
+    #[cfg(feature = "updater-probe")]
+    eprintln!("[updater-probe] AppKit quit guard installed={installed}");
+    #[cfg(not(feature = "updater-probe"))]
+    let _ = installed;
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn install_native_quit_guard(_app: &tauri::AppHandle) {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,6 +161,11 @@ mod tests {
         let state = UpdateExit::default();
         assert!(!state.armed.load(Ordering::SeqCst));
         assert!(!state.allowed.load(Ordering::SeqCst));
+        assert!(!state.protects_quit());
+        state.armed.store(true, Ordering::SeqCst);
+        assert!(state.protects_quit());
+        state.allowed.store(true, Ordering::SeqCst);
+        assert!(!state.protects_quit());
     }
 }
 
