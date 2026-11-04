@@ -53,13 +53,17 @@ export function paletteHtml(swatches: BrandSwatch[], starter: Set<string>, opts:
       <button type="button" class="be-add" data-be-add="custom">${t('+ Add swatch')}</button>
       <button type="button" class="be-add" data-be-addgroup>${t('+ Add group')}</button>
     </div></div><div data-be-group-form></div>${body}
-    ${/* The starter neutrals stay folded until asked for (a tile, a checkbox and a
-          handle each, 27 controls before anything is chosen). The preview beside
-          the palette already shows them in use. */''}
-    ${inherited.length ? `<details class="be-pal-group be-pal-group--starter" data-be-group="Starter colours"${opts.starterGroup ? ' open' : ''}>
+    ${/* The starter neutrals (plan 346 change 18). While nothing of the person's
+          own exists they are the whole palette, so the group opens and shows
+          them: folded, its count sat over an empty space and read as a group
+          with no colours. A tile is only colour, name and hex until Select
+          (change 8), so nine tiles are nine tiles, not 27 controls. Once there
+          are colours of the person's own the group folds by default, and the
+          room keeps whatever fold the person chose (ramps.ts repaintPalette). */''}
+    ${inherited.length ? `<details class="be-pal-group be-pal-group--starter" data-be-group="Starter colours"${opts.starterGroup || !chosen.length ? ' open' : ''}>
       <summary class="be-pal-group-head"><span class="be-pal-group-label">${t('Starter colours')}<span class="be-pal-group-n">${inherited.length}</span></span>
         ${action('data-be-pal-all', 'Starter colours', t('Select'))}<button type="button" class="be-pal-group-all" data-be-hide-starter>${t('Hide all')}</button>
-      </summary><div class="be-pal-grid">${cards(inherited)}</div></details>` : ''}
+      </summary><p class="be-pal-group-note">${t('These neutrals came with the starter, so the previews have something to show. Add your own above.')}</p><div class="be-pal-grid">${cards(inherited)}</div></details>` : ''}
     ${opts.hidden ? `<button type="button" class="be-pal-restore" data-be-restore>${tRaw('Restore hidden colours ({n})', { n: opts.hidden })}</button>` : ''}`;
 }
 

@@ -100,20 +100,26 @@ export const repaintPalette = (bedit: BrandEditorCtx): void => {
   const excluded = new Set(getExcludedSwatches(bedit.doc));
   bedit.swatches = walkSwatches(bedit.doc, bedit.state.editContext(), resolve).filter(s => !excluded.has(s.key));
   if (palMount) {
-    // Keep user-folded sections folded across the innerHTML replace (every
-    // group renders `open` by default) - the same re-render/state guard the
-    // gradients panel's details carries. Session-only; no persistence.
-    const closed = new Set(
-      [...palMount.querySelectorAll<HTMLDetailsElement>('.be-pal-group:not([open])')]
+    // Keep each section's fold across the innerHTML replace - the same
+    // re-render/state guard the gradients panel's details carries. Groups
+    // render `open` by default and the starter group renders folded once there
+    // are colours of the person's own, so both directions are remembered: a
+    // starter group someone opened (or that was open when their first colour
+    // arrived) stays open. Session-only; no persistence.
+    const foldOf = (open: boolean): Set<string> => new Set(
+      [...palMount.querySelectorAll<HTMLDetailsElement>(`.be-pal-group${open ? '[open]' : ':not([open])'}`)]
         .map(d => d.dataset.beGroup ?? '').filter(Boolean),
     );
+    const closed = foldOf(false), opened = foldOf(true);
     palMount.innerHTML = paletteHtml(bedit.swatches, bedit.starterSwatches, {
       roles: roleGlyphsNow(bedit), starterGroup: bedit.revealedStarterGroup,
       groups: paletteGroups(bedit.doc), order: paletteOrder(bedit.doc), hidden: excluded.size,
     });
-    if (closed.size) {
+    if (closed.size || opened.size) {
       palMount.querySelectorAll<HTMLDetailsElement>('.be-pal-group').forEach(d => {
-        if (closed.has(d.dataset.beGroup ?? '')) d.open = false;
+        const g = d.dataset.beGroup ?? '';
+        if (closed.has(g)) d.open = false;
+        else if (opened.has(g)) d.open = true;
       });
     }
   }
