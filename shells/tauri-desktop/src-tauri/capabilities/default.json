@@ -15,7 +15,6 @@
     "fs:allow-read-dir",
     "updater:default",
     "notification:default",
-    "process:allow-restart",
     "core:webview:allow-set-webview-zoom",
     {
       "identifier": "fs:scope",

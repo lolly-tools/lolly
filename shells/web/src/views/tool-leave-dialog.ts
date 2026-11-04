@@ -42,7 +42,8 @@ let dialogs = 0;
 export function showUnsavedDialog(
   onSave: (() => Promise<void> | void) | null,
   onLeave: () => void,
-  detail?: string
+  detail?: string,
+  onCancel?: () => void
 ): void {
   // Under the jelly flag the three actions become soft-body buttons (accent
   // "Save & leave", neutral platinum for the two exits), mirroring the confirm-
@@ -82,7 +83,7 @@ export function showUnsavedDialog(
     onClose: async (result) => {
       if (result === 'save') await onSave?.();
       else if (result === 'leave') onLeave();
-      else playSfx('land'); // Cancel / Escape / backdrop - reverse-liftoff settle
+      else { onCancel?.(); playSfx('land'); } // Cancel / Escape / backdrop - reverse-liftoff settle
     },
   });
   modal.el.dataset.sfxClose = 'off'; // this dialog plays its own dismiss cue on Cancel, not the generic shoo

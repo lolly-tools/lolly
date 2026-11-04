@@ -10883,5 +10883,21 @@
   "Or drop an image or a list of colours here": "Oppure trascina qui un'immagine o un elenco di colori",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Questi neutri arrivano con il kit iniziale, così le anteprime hanno qualcosa da mostrare finché non vengono aggiunti colori qui sopra.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Scegli un colore",
-  "Add a colour to the palette first.": "Prima aggiungi un colore alla palette."
+  "Add a colour to the palette first.": "Prima aggiungi un colore alla palette.",
+  "App updates": "Aggiornamenti dell’app",
+  "Finish recording or exporting before updating.": "Termina la registrazione o l’esportazione prima di aggiornare.",
+  "Install when I quit": "Installa all’uscita",
+  "Manual download": "Download manuale",
+  "Notify": "Notifica",
+  "Ready to install: {version}": "Pronto per l’installazione: {version}",
+  "Release notes": "Note di rilascio",
+  "Restart now": "Riavvia ora",
+  "Save could not finish. Save a recovery copy before updating.": "Impossibile completare il salvataggio. Salva una copia di recupero prima di aggiornare.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Questo AppImage non può essere sostituito qui. Scarica l’app in una cartella scrivibile.",
+  "This desktop platform does not support in-app updates.": "Questa piattaforma desktop non supporta gli aggiornamenti dall’app.",
+  "This installation uses its package manager for updates.": "Questa installazione usa il proprio gestore di pacchetti per gli aggiornamenti.",
+  "Update automatically": "Aggiorna automaticamente",
+  "Update could not finish. Try again or download the app.": "Impossibile completare l’aggiornamento. Riprova o scarica l’app.",
+  "Update installation was cancelled.": "L’installazione dell’aggiornamento è stata annullata.",
+  "Update notifications": "Notifiche di aggiornamento"
 }

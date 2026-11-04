@@ -1296,6 +1296,14 @@ async function boot(): Promise<void> {
     document.head.appendChild(meta);
   }
 
+  if ('__lollyUpdater' in window && !('__LOLLY_CLI__' in window)) {
+    void import('./lib/desktop-updates.ts').then(async m => {
+      const owner = await m.startDesktopUpdates();
+      const probe = (window as { __LOLLY_UPDATER_QUALIFICATION__?: { owner?: unknown; host?: unknown } }).__LOLLY_UPDATER_QUALIFICATION__;
+      if (probe) { probe.owner = owner; probe.host = host; }
+    }).catch(error => console.warn('Desktop updates unavailable', error));
+  }
+
   // The global async-job progress toast (plans/124 WP-F). Mounted on document.body
   // OUTSIDE main#view, so it survives every router view teardown - a video/retouch
   // job keeps showing progress after the user leaves the catalog. Idempotent; owns

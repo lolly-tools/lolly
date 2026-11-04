@@ -20,16 +20,19 @@ with the UpCloud API (the token is a `ucat_` API token, sent as
 
 The secret is returned ONLY at creation and the user is capped at 2 keys.
 """
-import hashlib, os, sys
-import boto3
-from botocore.config import Config
-from boto3.s3.transfer import TransferConfig
+import hashlib, json, os, sys
+from pathlib import Path
+from urllib.request import urlopen
+from subprocess import run
+from datetime import datetime, timezone
 
 ENDPOINT = os.environ.get("LOLLI_S3_ENDPOINT", "https://dq0o8.upcloudobjects.com")
 REGION   = os.environ.get("LOLLI_S3_REGION", "europe-2")
 BUCKET   = os.environ.get("LOLLI_S3_BUCKET", "lolly")
 
 CONTENT_TYPES = {
+    ".json": "application/json; charset=utf-8",
+    ".sig": "text/plain; charset=utf-8",
     ".deb": "application/vnd.debian.binary-package",
     ".rpm": "application/x-rpm",
     ".zst": "application/zstd",
@@ -41,6 +44,8 @@ SKIP_KEYS = {"SHA256SUMS", "SHA256SUMS.txt"}
 
 
 def client():
+    import boto3
+    from botocore.config import Config
     key = os.environ.get("LOLLI_S3_ACCESS_KEY")
     sec = os.environ.get("LOLLI_S3_SECRET_KEY")
     if not key or not sec:
@@ -76,9 +81,9 @@ def cmd_put(c, args):
     local = args[0]
     key = args[1] if len(args) > 1 else os.path.basename(local)
     size = os.path.getsize(local)
-    c.upload_file(local, BUCKET, key, ExtraArgs={"ContentType": ctype(key)},
-                  Config=TransferConfig(multipart_threshold=64 << 20,
-                                        multipart_chunksize=64 << 20))
+    if key.startswith("updates/"):
+        raise ValueError("Update pointers require promote-updates")
+    upload(c, local, key)
     got = c.head_object(Bucket=BUCKET, Key=key)["ContentLength"]
     if got != size:
         sys.exit(f"FAILED {key}: uploaded {got} bytes, expected {size}")
@@ -87,15 +92,19 @@ def cmd_put(c, args):
 
 def cmd_alias(c, args):
     alias, target = args[0], args[1]
+    if alias.startswith(("updates/", "releases/")):
+        raise ValueError("Release artifacts and update pointers cannot be aliased")
     c.copy_object(Bucket=BUCKET, Key=alias,
                   CopySource={"Bucket": BUCKET, "Key": target},
-                  MetadataDirective="REPLACE", ContentType=ctype(target))
+                  MetadataDirective="REPLACE", ContentType=ctype(target), CacheControl=cache_policy(alias))
     a = c.head_object(Bucket=BUCKET, Key=alias)["ContentLength"]
     t = c.head_object(Bucket=BUCKET, Key=target)["ContentLength"]
     print(f"{alias} -> {target}  {a} bytes  match={a == t}")
 
 
 def cmd_rm(c, args):
+    if args[0].startswith(("releases/", "updates/")):
+        raise ValueError("Keep release objects; withdraw update offers through the release process")
     c.delete_object(Bucket=BUCKET, Key=args[0])
     print(f"deleted {args[0]}")
 
@@ -137,7 +146,74 @@ def cmd_sums(c, args):
         print("uploaded SHA256SUMS.txt", file=sys.stderr)
 
 
-COMMANDS = {"ls": cmd_ls, "put": cmd_put, "alias": cmd_alias, "rm": cmd_rm, "sums": cmd_sums}
+def cache_policy(key):
+    return "public, max-age=31536000, immutable" if key.startswith("releases/") else "no-cache, max-age=0, must-revalidate"
+
+
+def upload(c, local, key):
+    extra = {"IfNoneMatch": "*"} if key.startswith("releases/") else {}
+    try:
+        with open(local, "rb") as body:
+            c.put_object(Bucket=BUCKET, Key=key, Body=body, ContentType=ctype(key),
+                         CacheControl=cache_policy(key), **extra)
+    except Exception as error:
+        status = getattr(error, "response", {}).get("ResponseMetadata", {}).get("HTTPStatusCode")
+        if not extra or status != 412:
+            raise
+        # An interrupted promotion may resume only against byte-identical immutable objects.
+        remote = c.get_object(Bucket=BUCKET, Key=key)["Body"]
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: remote.read(8 << 20), b""):
+            digest.update(chunk)
+        with open(local, "rb") as body:
+            expected = hashlib.file_digest(body, "sha256").hexdigest()
+        if digest.hexdigest() != expected:
+            raise ValueError("Immutable release object already exists with different bytes") from error
+
+
+def public_hash(url):
+    h = hashlib.sha256()
+    with urlopen(url, timeout=120) as response:
+        for chunk in iter(lambda: response.read(8 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def cmd_promote(c, args):
+    """Revalidate the candidate, upload immutable artifacts, verify public bytes, then promote."""
+    plan_path = Path(args[0]).resolve()
+    plan = json.loads(plan_path.read_text())
+    # The generator rechecks trust, signatures, receipts and the platform release gates.
+    verify_script = Path(__file__).with_name("validate-promotion.ts")
+    run(["node", str(verify_script), str(plan_path)], check=True)
+    for row in plan["artifacts"]:
+        upload(c, row["path"], row["key"])
+        upload(c, row["path"] + ".sig", row["key"] + ".sig")
+        if public_hash(row["url"]) != row["sha256"]:
+            raise ValueError("Public artifact checksum mismatch; pointers unchanged")
+        signature_hash = hashlib.sha256(Path(row["path"] + ".sig").read_bytes()).hexdigest()
+        if public_hash(row["url"] + ".sig") != signature_hash:
+            raise ValueError("Public signature checksum mismatch; pointers unchanged")
+    # Keep the previous pointers before changing any of them.
+    previous = {}
+    for key in plan["manifests"]:
+        try:
+            previous[key] = c.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+        except Exception as error:
+            if getattr(error, "response", {}).get("ResponseMetadata", {}).get("HTTPStatusCode") != 404:
+                raise
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    for key, body in previous.items():
+        c.put_object(Bucket=BUCKET, Key=f"releases/{plan['version']}/previous/{stamp}/{key}",
+                     Body=body, ContentType=ctype(key), CacheControl=cache_policy("releases/"), IfNoneMatch="*")
+    for key, manifest in plan["manifests"].items():
+        body = (json.dumps(manifest, indent=2) + "\n").encode()
+        c.put_object(Bucket=BUCKET, Key=key, Body=body, ContentType=ctype(key), CacheControl=cache_policy(key))
+        if public_hash("https://lolli.li/" + key) != hashlib.sha256(body).hexdigest():
+            raise ValueError("Public pointer readback failed; inspect promotion before retrying")
+
+
+COMMANDS = {"promote-updates": cmd_promote, "ls": cmd_ls, "put": cmd_put, "alias": cmd_alias, "rm": cmd_rm, "sums": cmd_sums}
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] not in COMMANDS:

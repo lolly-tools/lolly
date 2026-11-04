@@ -234,7 +234,8 @@
       "endpoints": [
         "https://lolli.li/updates/{{target}}/{{arch}}/latest.json"
       ],
-      "pubkey": "PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE"
+      "pubkey": "PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE",
+      "requireSignedVersion": true
     }
   }
 }

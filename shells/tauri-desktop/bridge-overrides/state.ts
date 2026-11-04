@@ -1,3 +1,4 @@
+import { trackUpdateWrite } from '../../web/src/lib/update-work-state.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Filesystem-backed state for the Tauri DESKTOP shell - the platform seam only.
@@ -39,9 +40,9 @@ const appDataFs: StateFs = {
   exists: (path) => exists(path, { baseDir: BaseDirectory.AppData }),
   mkdirRecursive: (path) => mkdir(path, { baseDir: BaseDirectory.AppData, recursive: true }),
   readTextFile: (path) => readTextFile(path, { baseDir: BaseDirectory.AppData }),
-  writeTextFile: (path, text) => writeTextFile(path, text, { baseDir: BaseDirectory.AppData }),
+  writeTextFile: (path, text) => trackUpdateWrite(path, () => writeTextFile(path, text, { baseDir: BaseDirectory.AppData })),
   // Native temp-file, sync, rename: a crash mid-save keeps the previous document.
-  writeDocumentAtomic: (path, text) => invoke<void>('write_document_atomic', { path, contents: text }),
+  writeDocumentAtomic: (path, text) => trackUpdateWrite(path, () => invoke<void>('write_document_atomic', { path, contents: text })),
   readDirNames: async (path) =>
     (await readDir(path, { baseDir: BaseDirectory.AppData })).map((entry) => entry.name),
   remove: (path) => remove(path, { baseDir: BaseDirectory.AppData }),
@@ -66,9 +67,9 @@ const packFs: PackFs = {
   exists: (path) => exists(path, { baseDir: BaseDirectory.AppData }),
   mkdirRecursive: (path) => mkdir(path, { baseDir: BaseDirectory.AppData, recursive: true }),
   readFile: (path) => readFile(path, { baseDir: BaseDirectory.AppData }),
-  writeFile: (path, bytes) => writeFile(path, bytes, { baseDir: BaseDirectory.AppData }),
+  writeFile: (path, bytes) => trackUpdateWrite(path, () => writeFile(path, bytes, { baseDir: BaseDirectory.AppData })),
   readTextFile: (path) => readTextFile(path, { baseDir: BaseDirectory.AppData }),
-  writeTextFile: (path, text) => writeTextFile(path, text, { baseDir: BaseDirectory.AppData }),
+  writeTextFile: (path, text) => trackUpdateWrite(path, () => writeTextFile(path, text, { baseDir: BaseDirectory.AppData })),
   readDirNames: async (path) =>
     (await readDir(path, { baseDir: BaseDirectory.AppData })).map((entry) => entry.name),
   removeFile: (path) => remove(path, { baseDir: BaseDirectory.AppData }),

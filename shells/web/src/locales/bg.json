@@ -10838,5 +10838,21 @@
   "Or drop an image or a list of colours here": "Или пусни тук изображение или списък с цветове",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Тези неутрални цветове идват с началния комплект, за да има какво да показват прегледите, докато не се добавят цветове отгоре.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Избери цвят",
-  "Add a colour to the palette first.": "Първо добави цвят към палитрата."
+  "Add a colour to the palette first.": "Първо добави цвят към палитрата.",
+  "App updates": "Обновявания на приложението",
+  "Finish recording or exporting before updating.": "Завършете записа или експортирането преди обновяване.",
+  "Install when I quit": "Инсталиране при изход",
+  "Manual download": "Ръчно изтегляне",
+  "Notify": "Известяване",
+  "Ready to install: {version}": "Готово за инсталиране: {version}",
+  "Release notes": "Бележки по изданието",
+  "Restart now": "Рестартиране сега",
+  "Save could not finish. Save a recovery copy before updating.": "Запазването не можа да завърши. Запазете копие за възстановяване преди обновяване.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Този AppImage не може да бъде заменен тук. Изтеглете приложението в папка с права за запис.",
+  "This desktop platform does not support in-app updates.": "Тази настолна платформа не поддържа обновявания от приложението.",
+  "This installation uses its package manager for updates.": "Тази инсталация използва своя мениджър на пакети за обновявания.",
+  "Update automatically": "Автоматично обновяване",
+  "Update could not finish. Try again or download the app.": "Обновяването не можа да завърши. Опитайте отново или изтеглете приложението.",
+  "Update installation was cancelled.": "Инсталирането на обновяването е отменено.",
+  "Update notifications": "Известия за обновявания"
 }

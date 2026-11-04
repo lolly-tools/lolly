@@ -10793,5 +10793,21 @@
   "Or drop an image or a list of colours here": "Atau letakkan gambar atau daftar warna di sini",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Warna netral ini bawaan paket awal, agar pratinjau punya sesuatu untuk ditampilkan sampai warna ditambahkan di atas.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Pilih warna",
-  "Add a colour to the palette first.": "Tambahkan warna ke palet terlebih dahulu."
+  "Add a colour to the palette first.": "Tambahkan warna ke palet terlebih dahulu.",
+  "App updates": "Pembaruan aplikasi",
+  "Finish recording or exporting before updating.": "Selesaikan perekaman atau ekspor sebelum memperbarui.",
+  "Install when I quit": "Pasang saat keluar",
+  "Manual download": "Unduh manual",
+  "Notify": "Beri tahu",
+  "Ready to install: {version}": "Siap dipasang: {version}",
+  "Release notes": "Catatan rilis",
+  "Restart now": "Mulai ulang sekarang",
+  "Save could not finish. Save a recovery copy before updating.": "Penyimpanan tidak dapat diselesaikan. Simpan salinan pemulihan sebelum memperbarui.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "AppImage ini tidak dapat diganti di sini. Unduh aplikasi ke folder yang dapat ditulisi.",
+  "This desktop platform does not support in-app updates.": "Platform desktop ini tidak mendukung pembaruan dari dalam aplikasi.",
+  "This installation uses its package manager for updates.": "Instalasi ini menggunakan pengelola paketnya untuk pembaruan.",
+  "Update automatically": "Perbarui otomatis",
+  "Update could not finish. Try again or download the app.": "Pembaruan tidak dapat diselesaikan. Coba lagi atau unduh aplikasi.",
+  "Update installation was cancelled.": "Pemasangan pembaruan dibatalkan.",
+  "Update notifications": "Notifikasi pembaruan"
 }

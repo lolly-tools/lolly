@@ -2119,5 +2119,21 @@
   "Or drop an image or a list of colours here": "Ou dépose ici une image ou une liste de couleurs",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Ces neutres viennent avec le kit de départ, pour que les aperçus aient quelque chose à montrer jusqu'à ce que des couleurs soient ajoutées au-dessus.",
   "{role}: {value}. Choose a colour": "{role} : {value}. Choisir une couleur",
-  "Add a colour to the palette first.": "Ajoute d'abord une couleur à la palette."
+  "Add a colour to the palette first.": "Ajoute d'abord une couleur à la palette.",
+  "Notify": "Notifier",
+  "Update automatically": "Mettre à jour automatiquement",
+  "App updates": "Mises à jour de l’application",
+  "Update notifications": "Notifications de mise à jour",
+  "Ready to install: {version}": "Prêt à installer : {version}",
+  "Restart now": "Redémarrer maintenant",
+  "Install when I quit": "Installer à la fermeture",
+  "Release notes": "Notes de version",
+  "Manual download": "Téléchargement manuel",
+  "Update could not finish. Try again or download the app.": "La mise à jour n’a pas pu se terminer. Réessaie ou télécharge l’application.",
+  "Finish recording or exporting before updating.": "Termine l’enregistrement ou l’exportation avant la mise à jour.",
+  "Save could not finish. Save a recovery copy before updating.": "L’enregistrement n’a pas pu se terminer. Enregistre une copie de récupération avant la mise à jour.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Cet AppImage ne peut pas être remplacé ici. Télécharge l’application dans un dossier accessible en écriture.",
+  "This installation uses its package manager for updates.": "Cette installation utilise son gestionnaire de paquets pour les mises à jour.",
+  "This desktop platform does not support in-app updates.": "Cette plateforme de bureau ne prend pas en charge les mises à jour depuis l’application.",
+  "Update installation was cancelled.": "L’installation de la mise à jour a été annulée."
 }

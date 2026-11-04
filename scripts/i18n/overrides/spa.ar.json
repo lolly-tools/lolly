@@ -2388,5 +2388,21 @@
   "Or drop an image or a list of colours here": "أو أفلت صورة أو قائمة ألوان هنا",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "جاءت هذه الألوان المحايدة مع حزمة البداية لتجد المعاينات ما تعرضه إلى أن تُضاف ألوان في الأعلى.",
   "{role}: {value}. Choose a colour": "{role}: {value}. اختر لونًا",
-  "Add a colour to the palette first.": "أضف لونًا إلى لوحة الألوان أولًا."
+  "Add a colour to the palette first.": "أضف لونًا إلى لوحة الألوان أولًا.",
+  "Notify": "إشعاري",
+  "Update automatically": "التحديث تلقائيًا",
+  "App updates": "تحديثات التطبيق",
+  "Update notifications": "إشعارات التحديث",
+  "Ready to install: {version}": "جاهز للتثبيت: {version}",
+  "Restart now": "إعادة التشغيل الآن",
+  "Install when I quit": "التثبيت عند الخروج",
+  "Release notes": "ملاحظات الإصدار",
+  "Manual download": "التنزيل يدويًا",
+  "Update could not finish. Try again or download the app.": "تعذر إكمال التحديث. حاول مرة أخرى أو نزّل التطبيق.",
+  "Finish recording or exporting before updating.": "أنهِ التسجيل أو التصدير قبل التحديث.",
+  "Save could not finish. Save a recovery copy before updating.": "تعذر إكمال الحفظ. احفظ نسخة للاسترداد قبل التحديث.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "لا يمكن استبدال ملف AppImage هنا. نزّل التطبيق إلى مجلد قابل للكتابة.",
+  "This installation uses its package manager for updates.": "يستخدم هذا التثبيت مدير الحزم للتحديثات.",
+  "This desktop platform does not support in-app updates.": "لا تدعم منصة سطح المكتب هذه التحديث من داخل التطبيق.",
+  "Update installation was cancelled.": "أُلغي تثبيت التحديث."
 }

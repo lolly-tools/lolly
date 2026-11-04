@@ -2074,5 +2074,21 @@
   "Or drop an image or a list of colours here": "या यहाँ कोई इमेज या रंगों की सूची छोड़ें",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "ये न्यूट्रल रंग शुरुआती सेट के साथ आए हैं, ताकि ऊपर रंग जोड़े जाने तक प्रीव्यू में दिखाने को कुछ हो।",
   "{role}: {value}. Choose a colour": "{role}: {value}। रंग चुनें",
-  "Add a colour to the palette first.": "पहले पैलेट में एक रंग जोड़ें।"
+  "Add a colour to the palette first.": "पहले पैलेट में एक रंग जोड़ें।",
+  "Notify": "सूचित करें",
+  "Update automatically": "अपने आप अपडेट करें",
+  "App updates": "ऐप अपडेट",
+  "Update notifications": "अपडेट की सूचनाएँ",
+  "Ready to install: {version}": "इंस्टॉल करने के लिए तैयार: {version}",
+  "Restart now": "अभी फिर से शुरू करें",
+  "Install when I quit": "बंद करते समय इंस्टॉल करें",
+  "Release notes": "रिलीज़ नोट्स",
+  "Manual download": "मैन्युअल डाउनलोड",
+  "Update could not finish. Try again or download the app.": "अपडेट पूरा नहीं हो सका। फिर से कोशिश करें या ऐप डाउनलोड करें।",
+  "Finish recording or exporting before updating.": "अपडेट करने से पहले रिकॉर्डिंग या एक्सपोर्ट पूरा करें।",
+  "Save could not finish. Save a recovery copy before updating.": "सेव पूरा नहीं हो सका। अपडेट करने से पहले रिकवरी कॉपी सेव करें।",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "इस AppImage को यहाँ बदला नहीं जा सकता। ऐप को ऐसे फ़ोल्डर में डाउनलोड करें जिसमें लिखा जा सके।",
+  "This installation uses its package manager for updates.": "यह इंस्टॉलेशन अपडेट के लिए अपने पैकेज मैनेजर का उपयोग करता है।",
+  "This desktop platform does not support in-app updates.": "यह डेस्कटॉप प्लेटफ़ॉर्म ऐप के भीतर अपडेट का समर्थन नहीं करता।",
+  "Update installation was cancelled.": "अपडेट इंस्टॉल करना रद्द कर दिया गया।"
 }

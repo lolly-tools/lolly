@@ -1,3 +1,4 @@
+import { trackUpdateWrite, updateWritesLocked } from '../lib/update-work-state.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * IndexedDB schema for the web shell.
@@ -421,7 +422,16 @@ function checkEachTransaction(db: IDBPDatabase): void {
         throw new DOMException('Lolly data was cleared: this tab reloads before it uses the database again.', 'InvalidStateError');
       }
       if (databaseUpdateRequired) throw databaseUpdateError();
-      return native.apply(this, args);
+      if (args[1] === 'readwrite' && updateWritesLocked()) throw new DOMException('Update installation is in progress', 'InvalidStateError');
+      const tx = native.apply(this, args);
+      if (tx.mode === 'readwrite' && [...tx.objectStoreNames].some(name => ['profile', 'state', 'user-assets', 'identity'].includes(name))) {
+        const done = new Promise<void>((resolve, reject) => {
+          tx.addEventListener('complete', () => resolve(), { once: true });
+          tx.addEventListener('abort', () => reject(tx.error ?? new Error('Storage write aborted')), { once: true });
+        });
+        void trackUpdateWrite(`idb:${[...tx.objectStoreNames].sort().join(',')}`, done).catch(() => {});
+      }
+      return tx;
     },
   });
 }

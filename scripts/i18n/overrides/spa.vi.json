@@ -2028,5 +2028,21 @@
   "Or drop an image or a list of colours here": "Hoặc thả một hình ảnh hay danh sách màu vào đây",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Các màu trung tính này đi kèm bộ khởi đầu để bản xem trước có thứ để hiển thị cho đến khi màu được thêm ở trên.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Chọn một màu",
-  "Add a colour to the palette first.": "Hãy thêm một màu vào bảng màu trước."
+  "Add a colour to the palette first.": "Hãy thêm một màu vào bảng màu trước.",
+  "Notify": "Thông báo",
+  "Update automatically": "Tự động cập nhật",
+  "App updates": "Cập nhật ứng dụng",
+  "Update notifications": "Thông báo cập nhật",
+  "Ready to install: {version}": "Sẵn sàng cài đặt: {version}",
+  "Restart now": "Khởi động lại ngay",
+  "Install when I quit": "Cài đặt khi thoát",
+  "Release notes": "Ghi chú phát hành",
+  "Manual download": "Tải xuống thủ công",
+  "Update could not finish. Try again or download the app.": "Không thể hoàn tất cập nhật. Hãy thử lại hoặc tải ứng dụng xuống.",
+  "Finish recording or exporting before updating.": "Hoàn tất ghi âm, ghi hình hoặc xuất trước khi cập nhật.",
+  "Save could not finish. Save a recovery copy before updating.": "Không thể hoàn tất việc lưu. Hãy lưu một bản sao khôi phục trước khi cập nhật.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Không thể thay thế AppImage này tại đây. Hãy tải ứng dụng vào thư mục có quyền ghi.",
+  "This installation uses its package manager for updates.": "Bản cài đặt này dùng trình quản lý gói để cập nhật.",
+  "This desktop platform does not support in-app updates.": "Nền tảng máy tính này không hỗ trợ cập nhật trong ứng dụng.",
+  "Update installation was cancelled.": "Đã hủy cài đặt bản cập nhật."
 }

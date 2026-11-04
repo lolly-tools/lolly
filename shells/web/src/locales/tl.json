@@ -10838,5 +10838,21 @@
   "Or drop an image or a list of colours here": "O mag-drop dito ng larawan o listahan ng mga kulay",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Kasama ng starter ang mga neutral na kulay na ito para may maipakita ang mga preview hanggang may maidagdag na kulay sa itaas.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Pumili ng kulay",
-  "Add a colour to the palette first.": "Magdagdag muna ng kulay sa paleta."
+  "Add a colour to the palette first.": "Magdagdag muna ng kulay sa paleta.",
+  "App updates": "Mga update ng app",
+  "Finish recording or exporting before updating.": "Tapusin ang pag-record o pag-export bago mag-update.",
+  "Install when I quit": "I-install kapag lumabas ako",
+  "Manual download": "Manu-manong pag-download",
+  "Notify": "Abisuhan",
+  "Ready to install: {version}": "Handa nang i-install: {version}",
+  "Release notes": "Mga tala ng release",
+  "Restart now": "I-restart ngayon",
+  "Save could not finish. Save a recovery copy before updating.": "Hindi makumpleto ang pag-save. Mag-save ng kopya para sa pagbawi bago mag-update.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Hindi mapapalitan ang AppImage na ito rito. I-download ang app sa folder na maaaring sulatan.",
+  "This desktop platform does not support in-app updates.": "Hindi sinusuportahan ng desktop platform na ito ang pag-update sa loob ng app.",
+  "This installation uses its package manager for updates.": "Ginagamit ng pag-install na ito ang package manager nito para sa mga update.",
+  "Update automatically": "Awtomatikong mag-update",
+  "Update could not finish. Try again or download the app.": "Hindi makumpleto ang update. Subukan muli o i-download ang app.",
+  "Update installation was cancelled.": "Kinansela ang pag-install ng update.",
+  "Update notifications": "Mga abiso sa update"
 }

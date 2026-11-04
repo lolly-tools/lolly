@@ -2204,5 +2204,21 @@
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Disse nøytrale fargene følger med startpakken, så forhåndsvisningene har noe å vise til farger legges til ovenfor.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Velg en farge",
   "Add a colour to the palette first.": "Legg først til en farge i paletten.",
-  "Starter": "Startpakke"
+  "Starter": "Startpakke",
+  "Notify": "Varsle",
+  "Update automatically": "Oppdater automatisk",
+  "App updates": "Appoppdateringer",
+  "Update notifications": "Oppdateringsvarsler",
+  "Ready to install: {version}": "Klar til installering: {version}",
+  "Restart now": "Start på nytt nå",
+  "Install when I quit": "Installer når jeg avslutter",
+  "Release notes": "Versjonsmerknader",
+  "Manual download": "Manuell nedlasting",
+  "Update could not finish. Try again or download the app.": "Oppdateringen kunne ikke fullføres. Prøv igjen eller last ned appen.",
+  "Finish recording or exporting before updating.": "Fullfør opptaket eller eksporten før du oppdaterer.",
+  "Save could not finish. Save a recovery copy before updating.": "Lagringen kunne ikke fullføres. Lagre en gjenopprettingskopi før du oppdaterer.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Denne AppImage-filen kan ikke erstattes her. Last ned appen til en skrivbar mappe.",
+  "This installation uses its package manager for updates.": "Denne installasjonen bruker pakkebehandleren til oppdateringer.",
+  "This desktop platform does not support in-app updates.": "Denne skrivebordsplattformen støtter ikke oppdateringer fra appen.",
+  "Update installation was cancelled.": "Installeringen av oppdateringen ble avbrutt."
 }

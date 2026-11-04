@@ -10793,5 +10793,21 @@
   "Or drop an image or a list of colours here": "또는 이미지나 색상 목록을 여기에 끌어다 놓으세요",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "이 중립 색상은 시작 세트에 포함되어 있어, 위에서 색상을 추가하기 전까지 미리보기에 보여 줄 색이 있어요.",
   "{role}: {value}. Choose a colour": "{role}: {value}. 색상 선택",
-  "Add a colour to the palette first.": "먼저 팔레트에 색상을 추가하세요."
+  "Add a colour to the palette first.": "먼저 팔레트에 색상을 추가하세요.",
+  "App updates": "앱 업데이트",
+  "Finish recording or exporting before updating.": "업데이트하기 전에 녹음·녹화 또는 내보내기를 완료하세요.",
+  "Install when I quit": "종료할 때 설치",
+  "Manual download": "수동 다운로드",
+  "Notify": "알림",
+  "Ready to install: {version}": "설치 준비 완료: {version}",
+  "Release notes": "릴리스 노트",
+  "Restart now": "지금 다시 시작",
+  "Save could not finish. Save a recovery copy before updating.": "저장을 완료하지 못했습니다. 업데이트하기 전에 복구용 사본을 저장하세요.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "이 AppImage는 이 위치에서 교체할 수 없습니다. 쓰기 가능한 폴더에 앱을 다운로드하세요.",
+  "This desktop platform does not support in-app updates.": "이 데스크톱 플랫폼은 앱 내 업데이트를 지원하지 않습니다.",
+  "This installation uses its package manager for updates.": "이 설치는 패키지 관리자를 통해 업데이트합니다.",
+  "Update automatically": "자동으로 업데이트",
+  "Update could not finish. Try again or download the app.": "업데이트를 완료하지 못했습니다. 다시 시도하거나 앱을 다운로드하세요.",
+  "Update installation was cancelled.": "업데이트 설치가 취소되었습니다.",
+  "Update notifications": "업데이트 알림"
 }

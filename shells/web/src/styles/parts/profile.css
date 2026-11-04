@@ -1096,3 +1096,10 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
   .bd-modes { grid-template-columns: 1fr; }
   .bd-footer { align-items: stretch; flex-direction: column; }
 }
+
+/* Desktop updater controls share the Settings field and button primitives. */
+.profile-view #updates-row .store-manage--row { flex-wrap: wrap; padding-block: var(--sp-3); }
+.profile-view .updates-actions { justify-content: flex-start; gap: var(--sp-3); }
+.profile-view #updates-row .field-select { max-width: 100%; }
+.profile-view #updates-reason { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.profile-view #updates-notes p { white-space: pre-wrap; overflow-wrap: anywhere; }
