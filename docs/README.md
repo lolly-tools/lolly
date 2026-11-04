@@ -176,14 +176,14 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | WebDAV / Nextcloud | [work/providers/webdav.md](work/providers/webdav.md) |
 | S3 / S3-compatible | [work/providers/s3.md](work/providers/s3.md) |
 | Git raw manifest | [work/providers/git.md](work/providers/git.md) |
-| Brandfolder | [work/providers/brandfolder.md](work/providers/brandfolder.md) |
-| Optimizely CMP | [work/providers/optimizely-cmp.md](work/providers/optimizely-cmp.md) |
-| Image Relay | [work/providers/imagerelay.md](work/providers/imagerelay.md) |
-| Canto | [work/providers/canto.md](work/providers/canto.md) |
-| Acquia DAM / Widen | [work/providers/acquia-dam.md](work/providers/acquia-dam.md) |
-| IntelligenceBank | [work/providers/intelligencebank.md](work/providers/intelligencebank.md) |
-| Cloudinary | [work/providers/cloudinary.md](work/providers/cloudinary.md) |
-| Orange Logic | [work/providers/orange-logic.md](work/providers/orange-logic.md) |
+| Brandfolder integration with Lolly | [work/providers/brandfolder.md](work/providers/brandfolder.md) |
+| Optimizely CMP integration with Lolly | [work/providers/optimizely-cmp.md](work/providers/optimizely-cmp.md) |
+| Image Relay integration with Lolly | [work/providers/imagerelay.md](work/providers/imagerelay.md) |
+| Canto integration with Lolly | [work/providers/canto.md](work/providers/canto.md) |
+| Acquia DAM / Widen integration with Lolly | [work/providers/acquia-dam.md](work/providers/acquia-dam.md) |
+| IntelligenceBank integration with Lolly | [work/providers/intelligencebank.md](work/providers/intelligencebank.md) |
+| Cloudinary integration with Lolly | [work/providers/cloudinary.md](work/providers/cloudinary.md) |
+| Orange Logic integration with Lolly | [work/providers/orange-logic.md](work/providers/orange-logic.md) |
 | Penpot | [work/providers/penpot.md](work/providers/penpot.md) |
 | Dropbox | [work/providers/dropbox.md](work/providers/dropbox.md) |
 | Google Drive | [work/providers/gdrive.md](work/providers/gdrive.md) |

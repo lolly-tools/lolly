@@ -1,4 +1,4 @@
-# Canto (kind: `canto`)
+# Canto integration with Lolly (kind: `canto`)
 
 Connect a Canto DAM and its files appear in the Lolly Work catalog for the groups you choose,
 with Canto's approval states and an optional expiry date carried across. Canto stays the source:
@@ -7,6 +7,12 @@ the files into your own store when you want them there.
 
 Canto acquired Image Relay in September 2024, so this kind serves Canto tenants and Image Relay
 tenants that have moved to Canto.
+
+## Onboarding
+
+1. Confirm API access under your contract, the tenant's regional domain and the album to expose. Agree Work groups, approved states and any custom expiry field, including how records with no approval state should be handled.
+2. Obtain the App ID, Secret and refresh token described below. Use the [four-step connection](README.md#connect-a-source-in-four-steps); this kind uses a pasted credential rather than the CLI consent flow.
+3. Run the [Canto tenant check](tenant-check.md#canto) for every required file scheme. Compare originals with direct Canto downloads and test permitted and refused access before enabling the wider audience. An Image Relay migration needs the driver selection in [Leave a DAM](../offboarding.md#canto-and-image-relay-which-driver-do-you-exit-through).
 
 ## What you need from Canto
 
@@ -98,9 +104,6 @@ lw providers health acme-canto
 
 ## Off-boarding
 
-Canto can be left through the exit. Expiry comes from `mapping.availabilityFields` and approval
-from `approvedStates`, both settings in Work that survive a re-point. Coming from Image Relay,
-which driver you leave through depends on where your tenant now lives;
-[Leave a DAM](../offboarding.md) covers all four cases. Treat the first materialize as a check:
-it records a checksum for every format, and a truncated or substituted stream fails rather than
-arriving quietly.
+Canto is an exit target subject to [tenant qualification](tenant-check.md#canto): the driver has not yet been confirmed against a live tenant, including whether each scheme's download is the true original. A stored checksum alone does not prove that the source supplied an original.
+
+Prepare the destination through the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then rehearse materialize, drift and cutover with [Leave a DAM](../offboarding.md). Verify approval and mapped expiry, keep required rights and history exports separately, and test old references after cutover. For former Image Relay tenants, choose the driver that serves the files today.

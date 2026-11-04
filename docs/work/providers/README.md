@@ -53,6 +53,27 @@ How to read the columns:
 
 `mock` is a synthetic source for local development and has no guide.
 
+## DAM onboarding and offboarding
+
+Each supported DAM has its own integration page with setup, qualification and exit limits.
+Onboarding can end with a working connection and the DAM still authoritative. Offboarding is
+optional and needs separate acceptance checks.
+
+| DAM integration | Onboarding | Offboarding |
+|---|---|---|
+| [Brandfolder](brandfolder.md) | [Connect and qualify](brandfolder.md#onboarding) | [Copy and cut over](brandfolder.md#off-boarding) |
+| [Image Relay](imagerelay.md) | [Select the tenant API](imagerelay.md#onboarding) | [Choose the exit driver](imagerelay.md#off-boarding) |
+| [Canto](canto.md) | [Check access and originals](canto.md#onboarding) | [Qualify the exit](canto.md#off-boarding) |
+| [Acquia DAM / Widen](acquia-dam.md) | [Check statuses and dates](acquia-dam.md#onboarding) | [Rehearse the copy](acquia-dam.md#off-boarding) |
+| [IntelligenceBank](intelligencebank.md) | [Check workflow mappings](intelligencebank.md#onboarding) | [Verify copied governance](intelligencebank.md#off-boarding) |
+| [Cloudinary](cloudinary.md) | [Check folders and originals](cloudinary.md#onboarding) | [Conditional exit](cloudinary.md#off-boarding) |
+| [Orange Logic](orange-logic.md) | [Connect permitted renditions](orange-logic.md#onboarding) | [Originals block cutover](orange-logic.md#off-boarding) |
+| [Optimizely CMP](optimizely-cmp.md) | [Connect the web workflow](optimizely-cmp.md#onboarding) | [Retain CMP as the source](optimizely-cmp.md#off-boarding) |
+
+For a destination you control, follow the [self-hosting strategy with S3
+storage](../offboarding.md#self-host-lolly-work-with-s3-storage). It covers the Work server,
+PostgreSQL, S3-compatible blob storage, backups and the checks before a supported cutover.
+
 ## Connect a source in four steps
 
 Open **Assets & tools > Providers** at `/admin#/providers` and choose **Connect a source**.

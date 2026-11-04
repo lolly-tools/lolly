@@ -1,4 +1,4 @@
-# Cloudinary (kind: `cloudinary`)
+# Cloudinary integration with Lolly (kind: `cloudinary`)
 
 Connect one Cloudinary product environment and its media appears in the Lolly Work catalog,
 with original downloads by stable asset ID and access decided by Work groups. Cloudinary stays
@@ -10,6 +10,12 @@ the source. Members' browsers only ever see Work URLs, never a Cloudinary link o
 | Original files fetched by immutable asset ID | Public CDN links or outbound delivery |
 | Thumbnails from small raster originals | Generated thumbnails for other files |
 | Approval and dates from tags and metadata you choose | Territory, talent or channel clearance |
+
+## Onboarding
+
+1. Select the product environment, API region, exact dynamic folder and Work groups. Agree an approval tag and availability fields if required; the tag represents your own convention rather than a moderation decision.
+2. Seal the API key and secret, then follow the [four-step connection](README.md#connect-a-source-in-four-steps) and the commands in [Verify](#verify). Budget for API calls and file reads during the pilot.
+3. Run the [Cloudinary tenant check](tenant-check.md#cloudinary), including private and authenticated files, observed versions and original checksums. Test group restrictions and metadata dates before exposing a wider library.
 
 ## What you need
 
@@ -120,10 +126,9 @@ the Lolly Work repository.
 
 ## Off-boarding
 
-After the [Cloudinary check](tenant-check.md#cloudinary) proves original fidelity, leave through
-Work's usual materialize and drift steps ([Leave a DAM](../offboarding.md)). Keep the source
-metadata, and export any review, rights or history records separately: this driver does not
-migrate the DAM's configuration, and a version check in Work is not a vendor backup.
+Cloudinary is a conditional exit target. First prove original fidelity with the [Cloudinary check](tenant-check.md#cloudinary), including the resource and delivery types you need. A version check in Work does not preserve past versions.
+
+Use the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then rehearse materialize, drift and cutover with [Leave a DAM](../offboarding.md). Inventory required transformations and delivery URLs separately: the connector copies originals and does not recreate Cloudinary's delivery service. Retain required review, rights, metadata and history exports outside the connector before retiring that service.
 
 Vendor references: [Search](https://cloudinary.com/documentation/search_method),
 [Admin API](https://cloudinary.com/documentation/admin_api),

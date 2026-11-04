@@ -16,6 +16,63 @@ first thing to do once a source works, not the last step of an exit project.
 
 Connecting each kind is in [the provider guides](providers/README.md), one per kind.
 
+## Self-host Lolly Work with S3 storage
+
+A practical destination is Lolly for creating content, a self-hosted Lolly Work instance for
+sign-in, catalog metadata, shared projects and governance, and a private S3-compatible store for
+the instance's files. Choose a [Work installation path](self-host.md) with durable PostgreSQL,
+your own address and sign-in. The public demo's memory storage is not a migration destination.
+
+Choose where the bytes will live before the first materialize. PostgreSQL is the default blob
+store; AWS S3, MinIO or Ceph RGW can hold larger libraries. MinIO or Ceph lets the organisation
+run the object store too. Set this block in the destination instance's configuration:
+
+```json
+{
+  "blobs": {
+    "driver": "s3",
+    "s3": {
+      "bucket": "lolly-assets",
+      "region": "us-east-1",
+      "endpoint": "https://objects.your-host.example",
+      "prefix": "inst"
+    }
+  }
+}
+```
+
+Use your store's region and endpoint; omit `endpoint` for AWS S3. Supply the separate
+`LW_BLOBS_S3_CREDENTIAL` environment secret as `<accessKeyId>:<secretAccessKey>` through your
+deployment's secret mechanism. Follow the [blob permissions, limits and integrity
+settings](configuration.md#blob-limits-and-integrity), including multipart upload permissions
+and cleanup. This is a configuration fragment, not a complete instance configuration.
+
+Three S3 connections serve different purposes:
+
+| Connection | Purpose in a transition |
+|---|---|
+| Work's `blobs.driver: "s3"` | Writable instance storage receiving materialized assets; Work keeps their metadata and aliases in PostgreSQL |
+| The [S3 catalog source](providers/s3.md) | Read-only access to files already in a bucket; adding this source does not choose the destination for materialize |
+| An [S3 delivery destination](delivery.md) | Explicitly sends finished exports to a bucket; it does not move the source library |
+
+Keep the DAM connected while you rehearse a small, permitted copy into that store. Check
+original checksums, every required attachment, mapped approval and availability, and member
+access. Inventory unmapped metadata, taxonomy, rights evidence, history and publishing links;
+obtain separate exports or replacement processes for the records the connector does not carry.
+The [per-DAM readiness table](#exit-readiness-by-kind) determines whether cutover is supported.
+
+Back up PostgreSQL, the object store, configuration and the secrets needed for recovery together,
+then rehearse a restore with the [backup and restore guide](operations.md#backup-and-restore).
+A bucket alone cannot reconstruct the catalog, grants or old-address aliases. Changing
+`blobs.driver` later does not transfer existing blobs; plan an explicit storage migration if the
+instance already holds files.
+
+Agree a final source freeze, re-run materialize and inspect drift alongside direct file checks.
+Drift is limited by the source timestamps it receives, so a quiet report alone is insufficient.
+Run the supported cutover only after acceptance, then test old references and everyday review
+and delivery work. Keep the source and recovery evidence until the organisation accepts the
+result. [Plan a DAM transition](/info/dam-transition.html) covers ownership and team adoption.
+
 ## When to start
 
 Copy the files as soon as federation works:
@@ -33,7 +90,8 @@ Copy the files as soon as federation works:
 - **Use `lw providers drift <id>` as the signal.** It compares each copy's stored
   `sourceUpdatedAt` with today's upstream `updatedAt` and suggests the remedy without running
   that remedy. Drifted copies are worth a re-run. A provider whose assets have stopped drifting has gone
-  quiet, and a quiet upstream is when cutover is safe. Weekly suits an active exit.
+  quiet within those timestamp limits. Confirm the final copy and acceptance checks before
+  cutover. Weekly suits an active exit.
 - **If `lw providers health` starts failing for the whole tenant, copy everything at once.**
   That is the deadline arriving, not the moment to start planning.
 
@@ -50,7 +108,7 @@ logo.
 |---|---|---|
 | **Image Relay** (api.imagerelay.com still serves the tenant) | `imagerelay` | Exit before a move to Canto adds a second hop |
 | **Moved to Canto** (the tenant is `<name>.canto.com`) | `canto` | The same motion with a new driver. Folders arrive as Canto albums, and a custom expiry field carried into a Canto custom field just renames the `mapping.availabilityFields` entry |
-| **Part-way through a move** (both alive) | both, `imagerelay` first | The Image Relay tenant holds the copy your organisation curated; use `canto` for assets created after the move. The copy is idempotent per provider and remote id, so running both is safe |
+| **Part-way through a move** (both alive) | both, `imagerelay` first | Inventory both and use `canto` for assets created after the move. Copying is idempotent per provider and remote id, but does not deduplicate overlapping assets across providers |
 | **Native Canto customer** (never Image Relay) | `canto` | The ordinary exit, at contract end |
 
 Exposure slices, approval gating and the availability-field mapping are Lolly-side settings, so

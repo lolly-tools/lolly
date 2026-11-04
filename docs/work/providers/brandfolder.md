@@ -1,4 +1,4 @@
-# Brandfolder (kind: `brandfolder`)
+# Brandfolder integration with Lolly (kind: `brandfolder`)
 
 Connect a Brandfolder and its assets appear in the Lolly Work catalog, with Brandfolder's
 approval flag and availability dates carried across. Brandfolder stays the source
@@ -10,6 +10,12 @@ someone uses them.
 Successful Brandfolder integration at SUSE is reported in [How SUSE connected Brandfolder to Lolly](/info/suse-brandfolder.html), recorded from the Lolly maintainer's account on 31 October 2026. The connection helped inherit an existing system and supported administrator change management for content approvals. Migration is planned for the end of December 2026, not reported complete.
 
 That account confirms use of the integration, not every optional mapping. The two availability field names below retain their separate live-check requirement. Brandfolder outbound delivery is a different adapter and remains subject to its own [destination qualification](../delivery.md).
+
+## Onboarding
+
+1. Choose the Brandfolder, sections and Work groups for one production task. The API key can see more than those members should, so set explicit exposure groups and decide whether to require the native approval flag.
+2. Follow the [four-step connection](README.md#connect-a-source-in-four-steps) using the key and Brandfolder id below. Sync and inspect the mapped sample before an owner enables the source.
+3. Check several attachments, originals and thumbnails, then test allowed and refused member access in a Lolly tool. Qualify the availability field names on your tenant before relying on release or expiry dates; see the [tenant check](tenant-check.md).
 
 ## What you need from Brandfolder
 
@@ -72,7 +78,6 @@ A good preview prints `health ok - brandfolder` and a mapped sample (`health.ok:
 
 ## Off-boarding
 
-Brandfolder is a source you can leave through the exit. Its approval flag and its
-availability dates are read natively, so that governance travels with the copies, although the
-two availability field names still await a live check. Timing, cadence and the readiness of
-each DAM: [Leave a DAM](../offboarding.md).
+Brandfolder supports the materialize, drift and cutover sequence in [Leave a DAM](../offboarding.md). First follow the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) to choose the Work instance and durable store that will receive the copies.
+
+Rehearse with assets containing several attachments and compare every required original with a direct Brandfolder download. The driver reads approval and availability fields, but the two availability field names still need a live check. Export required history, rights evidence and unmapped metadata separately. Accept the copies, access rules and old references before retiring the source.

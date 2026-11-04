@@ -1,4 +1,4 @@
-# Orange Logic (kind: `orange-logic`)
+# Orange Logic integration with Lolly (kind: `orange-logic`)
 
 Connect an Orange Logic DAM so people can search it from Lolly Work and use the renditions it
 already publishes, such as its `TR1` and `WebHigh` images, in their designs. Orange Logic stays
@@ -16,6 +16,12 @@ connection does not use yet.
 | The renditions you list, labelled as renditions | Generating missing renditions |
 | Approval and dates from fields you choose | AI calls, uploads, metadata edits or new public shares |
 | Byte ranges for large files | A DAM cutover |
+
+## Onboarding
+
+1. Agree the exact tenant and storage origins, administrator query, rendition codes and Work groups. Label this pilot as rendition access: it does not provide protected originals.
+2. Seal the application credential or bearer token described below, map your tenant's approval and date fields, and follow the [four-step connection](README.md#connect-a-source-in-four-steps).
+3. Run the [Orange Logic tenant check](tenant-check.md#orange-logic). Check rendition labels and bytes, refusal of substituted files, mapped governance and group access in a real Lolly task before widening the source.
 
 ## What you need
 
@@ -129,12 +135,9 @@ file's fidelity nor an upstream rights clearance. Contributors changing the driv
 
 ## Off-boarding
 
-Materialize can copy the exposed renditions, and the copies keep that limitation in their
-metadata. Work refuses a DAM cutover for this source because protected originals are not
-supported. Do not plan an original-preserving exit from a good preview or a rendition copy: the
-protected-original API contract has to be obtained, built and tested first. Moving originals
-later needs that contract and byte checks for the formats you need, including SVG, PDF and
-PowerPoint. See [Leave a DAM](../offboarding.md).
+Materialize can copy exposed renditions, with that limitation retained in their metadata. **Work refuses cutover for Orange Logic** because protected originals are unavailable through this connector. A successful preview or rendition copy cannot qualify an exit that preserves originals.
+
+The [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) explains how to run the destination, but does not remove this source limitation. An original-preserving migration needs a separately obtained, implemented and tested original-export path, plus checks for every required format. Keep Orange Logic authoritative until that work and the acceptance checks in [Leave a DAM](../offboarding.md) are complete.
 
 Vendor references: [Search](https://developer.orangelogic.com/reference/search-api),
 [fields and format limits](https://developer.orangelogic.com/reference/fields-parameter),

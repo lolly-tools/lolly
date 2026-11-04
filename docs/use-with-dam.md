@@ -4,6 +4,23 @@
 
 This arrangement suits teams that already have a curated library and administrators who own its approval practices. They can introduce new production tools while keeping those responsibilities visible.
 
+## Choose your DAM integration
+
+Each supported DAM has a dedicated guide with onboarding and offboarding sections. These describe the implemented connector and the checks still needed on your tenant.
+
+| DAM | Integration guide |
+|---|---|
+| Brandfolder | [Brandfolder integration with Lolly](/info/manage/provider-brandfolder.html) |
+| Image Relay | [Image Relay integration with Lolly](/info/manage/provider-imagerelay.html) |
+| Canto | [Canto integration with Lolly](/info/manage/provider-canto.html) |
+| Acquia DAM / Widen | [Acquia DAM / Widen integration with Lolly](/info/manage/provider-acquia-dam.html) |
+| IntelligenceBank | [IntelligenceBank integration with Lolly](/info/manage/provider-intelligencebank.html) |
+| Cloudinary | [Cloudinary integration with Lolly](/info/manage/provider-cloudinary.html) |
+| Orange Logic | [Orange Logic integration with Lolly](/info/manage/provider-orange-logic.html) |
+| Optimizely CMP | [Optimizely CMP integration with Lolly](/info/manage/provider-optimizely-cmp.html) |
+
+The [source directory](/info/manage/provider-guides.html#dam-onboarding-and-offboarding) links directly to both sections for each DAM. Drives, buckets and design sources have their own guides in the same directory.
+
 ## Which system controls each decision?
 
 | Decision | Responsibility |
@@ -48,3 +65,5 @@ Only through a supported, explicitly configured write path. Brandfolder and Clou
 ## What if we later decide to move?
 
 Keep the working connection while you plan the transition. Supported materialization copies files into organisation storage; cutover can move supported identities while retaining aliases for old addresses. That does not promise a complete transfer of upstream history, rights records or workflows. [Plan a DAM transition](/info/dam-transition.html) covers the people and evidence; [Leave a DAM](/info/work-offboarding.html) covers the commands.
+
+The [self-hosting strategy with S3 storage](/info/manage/leave-a-dam.html#self-host-lolly-work-with-s3-storage) explains how Lolly, Lolly Work, PostgreSQL and an organisation-controlled object store fit together. It distinguishes a writable migration destination from a read-only S3 source or a destination for finished exports.

@@ -2474,7 +2474,7 @@
         "manage/offboarding"
       ],
       "contentLicense": "MPL-2.0",
-      "description": "Leave a DAM vendor without losing assets or links: pin early, pick the Canto or Image Relay driver, check readiness by kind, then cut over.",
+      "description": "Plan DAM offboarding to self-hosted Lolly Work with S3, MinIO or Ceph: verify originals, preserve references, rehearse recovery and cut over supported sources.",
       "work": {
         "slug": "offboarding",
         "path": "offboarding.md",
@@ -2702,7 +2702,7 @@
     },
     {
       "slug": "work-provider-brandfolder",
-      "title": "Brandfolder",
+      "title": "Brandfolder integration with Lolly",
       "src": "work/providers/brandfolder.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2710,7 +2710,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Federate a Brandfolder read-only; Brandfolder stays the source of truth.",
+      "description": "Connect Brandfolder to Lolly Work: onboarding, approved assets and attachment checks, plus offboarding to self-hosted storage with S3, MinIO or Ceph.",
       "work": {
         "slug": "provider-brandfolder",
         "path": "providers/brandfolder.md",
@@ -2719,7 +2719,7 @@
     },
     {
       "slug": "work-provider-optimizely-cmp",
-      "title": "Optimizely CMP",
+      "title": "Optimizely CMP integration with Lolly",
       "src": "work/providers/optimizely-cmp.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2727,7 +2727,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The web DAM you keep, not one you exit: federate in, and optionally publish exports back out.",
+      "description": "Connect Optimizely CMP to Lolly Work with scoped onboarding and optional export publishing. Understand offboarding limits before planning self-hosted S3 storage.",
       "work": {
         "slug": "provider-optimizely-cmp",
         "path": "providers/optimizely-cmp.md",
@@ -2736,7 +2736,7 @@
     },
     {
       "slug": "work-provider-imagerelay",
-      "title": "Image Relay",
+      "title": "Image Relay integration with Lolly",
       "src": "work/providers/imagerelay.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2744,7 +2744,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Read-only federation with mapped expiry, and which driver to leave through after a move to Canto.",
+      "description": "Connect Image Relay to Lolly Work with mapped expiry and scoped access. Plan offboarding to self-hosted S3 storage, including tenants moved to Canto.",
       "work": {
         "slug": "provider-imagerelay",
         "path": "providers/imagerelay.md",
@@ -2753,7 +2753,7 @@
     },
     {
       "slug": "work-provider-canto",
-      "title": "Canto",
+      "title": "Canto integration with Lolly",
       "src": "work/providers/canto.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2761,7 +2761,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Native Canto tenants and migrated Image Relay tenants, and how to tell which driver you exit through.",
+      "description": "Connect Canto to Lolly Work: onboarding, approval and expiry checks, original-file qualification and offboarding to self-hosted S3, MinIO or Ceph storage.",
       "work": {
         "slug": "provider-canto",
         "path": "providers/canto.md",
@@ -2770,7 +2770,7 @@
     },
     {
       "slug": "work-provider-acquia-dam",
-      "title": "Acquia DAM / Widen",
+      "title": "Acquia DAM / Widen integration with Lolly",
       "src": "work/providers/acquia-dam.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2778,7 +2778,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Widen's own release and expiry dates and approval statuses, with no custom-field mapping.",
+      "description": "Connect Acquia DAM (Widen) to Lolly Work with approval, release and expiry checks. Plan offboarding to a self-hosted library using S3-compatible storage.",
       "work": {
         "slug": "provider-acquia-dam",
         "path": "providers/acquia-dam.md",
@@ -2787,7 +2787,7 @@
     },
     {
       "slug": "work-provider-intelligencebank",
-      "title": "IntelligenceBank",
+      "title": "IntelligenceBank integration with Lolly",
       "src": "work/providers/intelligencebank.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2795,7 +2795,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The v3 Graph API only; native expiry, review dates and workflow states map straight across.",
+      "description": "Connect IntelligenceBank to Lolly Work: onboarding with workflow and availability checks, then qualified offboarding to a self-hosted library with S3 storage.",
       "work": {
         "slug": "provider-intelligencebank",
         "path": "providers/intelligencebank.md",
@@ -2804,7 +2804,7 @@
     },
     {
       "slug": "work-provider-cloudinary",
-      "title": "Cloudinary",
+      "title": "Cloudinary integration with Lolly",
       "src": "work/providers/cloudinary.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2812,7 +2812,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Read-only shared media by immutable asset ID, with original downloads and explicit tenant qualification.",
+      "description": "Connect Cloudinary to Lolly Work: onboarding with folder, metadata and original-file checks, plus conditional offboarding to self-hosted S3-compatible storage.",
       "work": {
         "slug": "provider-cloudinary",
         "path": "providers/cloudinary.md",
@@ -2821,7 +2821,7 @@
     },
     {
       "slug": "work-provider-orange-logic",
-      "title": "Orange Logic",
+      "title": "Orange Logic integration with Lolly",
       "src": "work/providers/orange-logic.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2829,7 +2829,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Public Search v4 and permitted renditions, with protected originals explicitly unavailable.",
+      "description": "Connect Orange Logic renditions to Lolly Work with scoped onboarding. Understand offboarding limits and self-hosted S3 storage; protected originals block cutover.",
       "work": {
         "slug": "provider-orange-logic",
         "path": "providers/orange-logic.md",
