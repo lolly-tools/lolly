@@ -161,6 +161,12 @@ test('local looks compare without writes, apply through recovery, and retain sea
     const before = await read();
     await page.getByRole('button', { name: 'Find a look', exact: true }).click();
     let dialog = page.getByRole('dialog', { name: 'Find a look', exact: true });
+    // A click previews; nothing is written until Use.
+    await dialog.locator('[data-look-preview="example:playroom"]').click();
+    await dialog.locator('.ds-looks-preview-name', { hasText: 'Playroom' }).waitFor();
+    assert.deepEqual(await read(), before);
+    assert.equal(await dialog.locator('[data-look-select]').count(), 0, 'the checkboxes wait for Compare');
+    await dialog.locator('[data-looks-compare-toggle]').click();
     await dialog.locator('[data-look-select="example:sunroom"]').check();
     await dialog.locator('[data-look-select="example:orchard"]').check();
     assert.equal(await dialog.locator('[data-look-detail]').count(), 2);
@@ -174,11 +180,12 @@ test('local looks compare without writes, apply through recovery, and retain sea
     assert.equal(await dialog.evaluate(el => el.scrollWidth > el.clientWidth + 1), false);
     await dialog.locator('[data-look-detail="example:sunroom"]').scrollIntoViewIfNeeded();
     await page.screenshot({ path: '/tmp/lolly-brand-looks-phone.png', fullPage: true });
-    await dialog.locator('[data-look-use="example:sunroom"]').click();
+    await dialog.locator('[data-look-detail="example:sunroom"] [data-look-use]').click();
     await dialog.waitFor({ state: 'detached' });
     assert.notDeepEqual(await read(), before);
     await page.getByRole('button', { name: 'Find a look', exact: true }).click();
     dialog = page.getByRole('dialog', { name: 'Find a look', exact: true });
+    await dialog.locator('[data-looks-compare-toggle]').click();
     const saved = dialog.locator('[data-look-select]:not([data-look-select^="example:"])').last();
     await saved.check();
     const detail = dialog.locator('[data-look-detail]:not([data-look-detail^="example:"])');
@@ -199,6 +206,7 @@ test('local looks compare without writes, apply through recovery, and retain sea
     await page.getByRole('button', { name: 'Find a look', exact: true }).click();
     dialog = page.getByRole('dialog', { name: 'Find a look', exact: true });
     await dialog.locator('[data-looks-search]').fill('school');
+    await dialog.locator('[data-looks-compare-toggle]').click();
     assert.equal(await dialog.locator('[data-look-select]').count(), 1);
     await dialog.locator('[data-look-select]').check();
     assert.equal(await dialog.locator('h4').textContent(), hostileLabel);

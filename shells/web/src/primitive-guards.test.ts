@@ -1756,7 +1756,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // Stored labels, IDs, tags and font names pass through the shared escape helper.
   // Specimens use normalized token colours and validated font stacks; their labels
   // and attributes are escaped. Source observations use styleEvidenceHtml below.
-  'views/start/looks.ts': 3,
+  // +1 2026-11-04 (plan 346): the In context pane that previews a look. Its name is
+  // escaped; its scenes are palette-preview.ts markup, built from that module's own
+  // templates with every colour through its hex whitelist (palette-preview.test.ts);
+  // font stacks pass brandFontStack's family check and are escaped into the style.
+  'views/start/looks.ts': 4,
   // The source-details sink accepts only styleEvidenceHtml output: values and
   // translated labels are escaped, properties are allowlisted, and counts and
   // viewport dimensions were bounded by readBrandStyleEvidence before rendering.
