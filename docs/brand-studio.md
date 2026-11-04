@@ -94,9 +94,9 @@ The room grows with the design system: a first visit is one decision, and the re
 
 ### The first colour
 
-A system with no colours of its own opens on one large chip and one field, with a line saying that roles, shades and print settings arrive as the system grows.
+A system with no colours of its own shows the starter's neutrals, open in their own group, and at the top of the room a dashed paste and drop field: one large chip and one field. Drop an image or a list of colours anywhere on the field to read it.
 
-- **The chip is the picker.** Press **Pick a colour** and the studio's OKLCH card opens, seeded with whatever the field holds: a name, the wheel, the four dials, alpha and **Stored as**, with **Cancel** and **Add colour** at the foot. Nothing reaches the system until you press **Add colour**.
+- **The chip is the picker.** Press **Pick a colour** and the studio's OKLCH card opens, seeded with whatever the field holds: the colour's name and hex first, with the colour spaces, the wheel, the four dials and alpha under **Fine-tune**, and **Cancel** and **Add colour** at the foot. Nothing reaches the system until you press **Add colour**.
 - **The field takes any notation**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` or a colour name. Paste a list and it becomes a row of chips to add one at a time or with **Add all**.
 - **Two more ways in.** **Pick a colour from the screen** uses the eyedropper where the browser has one, and **Take colours from an image** reads a screenshot or photo on this device.
 - **Add is never disabled.** With nothing in the field it opens the picker; text it cannot read gets a line under the field saying so.
@@ -106,13 +106,15 @@ Your first colour becomes the **primary**, and a chip confirms it, such as *"Pri
 
 ### As the palette grows
 
-Your colours sit beside an **In context** preview on a wide screen, and above it on a smaller one. The preview shows a poster, chart or interface card in your palette. Starter colours stay in their own folding group.
+Your colours sit beside an **In context** preview on a wide screen, and above it on a smaller one. The preview shows a poster, chart or interface card in your palette. Starter colours stay in their own folding group, which folds once the system has colours of its own. Export lives in the bar's **Export** and in the Tokens room, so the room's head carries none.
 
-![The Colours room on Lolly Demo: the palette in folding groups, each colour with its name and hex, and the palette download in the head](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![The Colours room on Lolly Demo: the role chips and the paste and drop field at the top, then the palette in folding groups, each colour with its name and hex](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![The Colours room after adding one colour, with its palette and a live composition preview](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### Roles: what tools read
+
+The four roles a person decides first, **Primary**, **Secondary**, **Surface** and **Text**, lead the room as chips, each showing the colour that plays the role and its name. Press a chip to choose its colour from the palette's own swatches. The full strip is in **Colour roles**, under the preview.
 
 **Roles** say which colour plays each part in every tool and export. They are optional (three loose colours and no roles is a perfectly good system), any colour can take one and the contrast readout is measured against the surface, APCA first. Each role row shows an own colour at full strength, a starter colour standing in, or **↳ follows Primary**.
 
@@ -163,9 +165,9 @@ Four folded sections sit below the preview and the roles. Each opens directly wi
 
 ### The palette and each swatch
 
-The palette lists your colours in folding groups, each with its own **+ Add**. Create and rename groups as you like. A role never makes a second tile: a tile a role points at wears a small mark instead (**P**, **S**, **Su**, **T**). **Colour chart** below the tiles shows the same colours on the OKLCH **Wheel** (drag a dot to recolour, click empty space to add a swatch) and the **Gamut** chart, which shows where the displayable range ends. `#/start?area=color&focus=chart` opens the chart directly.
+The palette lists your colours in folding groups, each with its own **+ Add**. Create and rename groups as you like. A role never makes a second tile: a tile a role points at wears the role's name instead, such as **Primary**. **Colour chart** below the tiles shows the same colours on the OKLCH **Wheel** (drag a dot to recolour, click empty space to add a swatch) and the **Gamut** chart, which shows where the displayable range ends. `#/start?area=color&focus=chart` opens the chart directly.
 
-![The palette pane, every group foldable, with the palette download in its head](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![The palette pane, every group foldable](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![The OKLCH wheel - angle is hue, distance out is chroma and the greys ride a lightness rail down the side](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -181,9 +183,9 @@ Click a swatch to open its editor:
 **Deleting a swatch** is safe. Derived shades and theme roles are hidden, so nothing that reads them breaks, while colours you added are removed.
 
 ::: details Working with many swatches
-Each swatch has a drag handle. Drag to reorder within a group, or focus the handle, press Space, use the arrow keys and press Space again to drop; Escape cancels. On a phone the palette shows four colours a row and the handles appear in Select mode, rather than as a row under every colour. To move colours between groups, use the editor's **Group** control or select several and use **Move to**.
+At rest a swatch shows its colour, its name and its hex. Select brings each swatch's checkbox and drag handle, on any screen, and a tile with keyboard focus shows its handle too. Drag a handle to reorder within a group, or focus the handle, press Space, use the arrow keys and press Space again to drop; Escape cancels. On a phone the palette shows four colours a row. To move colours between groups, use the editor's **Group** control or select several and use **Move to**.
 
-Selection needs no mode. The bar appears with the first selected tile and leaves with the last.
+Selection needs no separate switch. The bar and the checkboxes appear with the first selected tile and leave with the last.
 
 - **Drag on empty space** to draw a rectangle; every tile it touches joins the selection, across groups. A folded section adds nothing.
 - **Shift-click** takes a range in reading order, **Cmd/Ctrl-click** toggles one tile, and a plain click opens the editor.
