@@ -29,7 +29,6 @@ import type { ReactNode } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
 import TextInput from 'ink-text-input';
 import { MultilineInput } from '../components/MultilineInput.tsx';
-import { stripVTControlCharacters } from 'node:util';
 import { join, basename, dirname, extname } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { isToolUrl, parseDataRows, parseTableText, c2paDefaultOn, imprintDefaultOn, isImprintFormat, isImprintContainerFormat, designRecordWords } from '@lolly/engine';
@@ -52,7 +51,7 @@ import type { InteractiveCanvas, Focusable } from '../interactive-canvas.ts';
 import { copyToClipboard } from '../clipboard.ts';
 import { buildMockup } from '../ascii-mockup.ts';
 import { useTermSize } from '../hooks.ts';
-import { cliRecipe, editInputValues, inputValuesJson } from '../terminal-workflows.ts';
+import { cliRecipe, editInputValues, inputValuesJson, terminalReportLines } from '../terminal-workflows.ts';
 import { describeEnvironment, formatReadiness } from '../../../cli/src/environment.ts';
 import { validateDocument } from '@lolly/engine';
 import { theme, setTerminalAppearance } from '../theme.ts';
@@ -1012,11 +1011,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
   }
 
   function reportLines(lines: string[]): string[] {
-    return lines.flatMap(line => {
-      if (!line) return [''];
-      const element = bridge.dom.window.document.createElement('div'); element.textContent = stripVTControlCharacters(line);
-      return htmlToRuns(element as unknown as Parameters<typeof htmlToRuns>[0], '', Math.max(10, cols - 6)).map(runs => runs.map(run => run.text).join(''));
-    });
+    return terminalReportLines(lines, cols - 6);
   }
   function showReport(title: string, lines: string[]): void { setReport({ title, lines: reportLines(lines).map(text => ({ id: crypto.randomUUID(), text })) }); setReportScroll(0); setMode('report'); }
   async function diagnostics(): Promise<void> {

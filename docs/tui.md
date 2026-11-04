@@ -163,7 +163,7 @@ The crop and recolour controls are ordinary tool inputs, so you edit them from t
 
 ## Batch
 
-Press `b` from Tools for the production queue. Choose a CSV/TSV, review planned paths and renderer dependencies, exclude rows with Space, then preflight (`p`) or run/resume (`r`). `c` cancels a running job. A changed source invalidates the reviewed plan. Receipts are shared with the CLI production runner.
+Press `b` from Tools for the production queue. Choose a CSV/TSV, review planned paths and renderer dependencies, exclude rows with Space, then preflight (`p`) or run/resume (`r`). Press `v` for the selected row's full plan and findings; `j`/`k` scroll and `Esc` returns to the queue. `c` cancels a running job. A changed source invalidates the reviewed plan. Receipts are shared with the CLI production runner.
 
 The existing Projects export menu also takes three sources make one zip on your Desktop, optionally password-locked:
 

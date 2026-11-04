@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +9,10 @@ import { Panel } from '../components/Panel.tsx';
 import { useTermSize } from '../hooks.ts';
 import { theme } from '../theme.ts';
 import { defaultExportDir } from '../store.ts';
+import { terminalReportLines } from '../terminal-workflows.ts';
+import { Footer, footerLines } from '../components/Footer.tsx';
+
+const REPORT_SHORTCUTS = [{ key: 'j/k', label: 'scroll' }, { key: 'esc', label: 'back' }];
 
 function stopChild(child: ChildProcess | null): void {
   if (!child?.pid) return;
@@ -60,6 +64,14 @@ export function BatchQueue({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState(0);
   const [status, setStatus] = useState('Choose a CSV/TSV batch. Enter plans it without exporting.');
   const [busy, setBusy] = useState(false);
+  const [details, setDetails] = useState(false);
+  const [detailScroll, setDetailScroll] = useState(0);
+  const current = plan?.jobs[selected];
+  const result = results.find((result) => result.row === current?.row);
+  const detailLines = useMemo(() => terminalReportLines(
+    JSON.stringify({ job: current, result }, null, 2).split('\n'), cols - 6
+  ).map(text => ({ id: crypto.randomUUID(), text })), [current, result, cols]);
+  const detailHeight = Math.max(1, rows - footerLines(REPORT_SHORTCUTS, ' ', cols) - 6);
   const child = useRef<ChildProcess | null>(null);
   const alive = useRef(true);
   useEffect(() => {
@@ -151,6 +163,12 @@ export function BatchQueue({ onBack }: { onBack: () => void }) {
   }
 
   useInput((input, key) => {
+    if (details) {
+      if (key.escape || input === 'q') setDetails(false);
+      else if (key.upArrow || input === 'k') setDetailScroll(value => Math.max(0, value - 1));
+      else if (key.downArrow || input === 'j') setDetailScroll(value => Math.min(Math.max(0, detailLines.length - detailHeight), value + 1));
+      return;
+    }
     if (busy) {
       if (input === 'c' || key.escape) {
         stopChild(child.current);
@@ -186,6 +204,11 @@ export function BatchQueue({ onBack }: { onBack: () => void }) {
       void run('preflight');
       return;
     }
+    if (input === 'v' && current) {
+      setDetails(true);
+      setDetailScroll(0);
+      return;
+    }
     if (key.upArrow || input === 'k') setSelected((value) => Math.max(0, value - 1));
     if (key.downArrow || input === 'j')
       setSelected((value) => Math.min(Math.max(0, (plan?.jobs.length ?? 0) - 1), value + 1));
@@ -201,8 +224,14 @@ export function BatchQueue({ onBack }: { onBack: () => void }) {
   });
   const pageSize = Math.max(1, rows - 13);
   const start = Math.max(0, selected - pageSize + 1);
-  const current = plan?.jobs[selected];
-  const result = results.find((result) => result.row === current?.row);
+  if (details) return (
+    <Box flexDirection="column" width={cols} height={rows}>
+      <Panel title={`Row ${current?.row ?? ''}: full plan and findings`} width={cols} height={rows - footerLines(REPORT_SHORTCUTS, ' ', cols) - 1} active>
+        {detailLines.slice(detailScroll, detailScroll + detailHeight).map(line => <Text key={line.id}>{line.text || ' '}</Text>)}
+      </Panel>
+      <Footer shortcuts={REPORT_SHORTCUTS} note={`Lines ${detailScroll + 1}-${Math.min(detailLines.length, detailScroll + detailHeight)} of ${detailLines.length}`} />
+    </Box>
+  );
   return (
     <Box flexDirection="column" width={cols} height={rows}>
       <Text bold>Production batch review</Text>
@@ -269,7 +298,7 @@ export function BatchQueue({ onBack }: { onBack: () => void }) {
       <Text wrap="truncate-end">
         {busy
           ? 'c cancel / esc cancel'
-          : 'n plan / p preflight / r run/resume / space exclude / i file / o output / esc back'}
+          : 'n plan / p preflight / r run/resume / v findings / space exclude / i file / o output / esc back'}
       </Text>
     </Box>
   );

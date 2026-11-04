@@ -4,8 +4,17 @@ import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { cliRecipe, editInputValues, shellWord } from './terminal-workflows.ts';
+import { cliRecipe, editInputValues, shellWord, terminalReportLines } from './terminal-workflows.ts';
 import { terminalPalette } from './theme.ts';
+
+test('full diagnostic text wraps without interpreting markup or terminal controls', () => {
+  const lines = terminalReportLines(['\x1b[31mReview <b>literal</b> markup\x1b[0m', '', 'Last finding stays available'], 16);
+  assert.ok(lines.length > 3);
+  assert.ok(lines.includes(''));
+  assert.ok(!lines.join('').includes('\x1b'));
+  assert.match(lines.join(' '), /<b>literal<\/b>/);
+  assert.match(lines.join(' '), /Last finding stays available/);
+});
 
 test('private recipe values stay in stdin and shell metacharacters stay quoted', () => {
   const recipe = cliRecipe(

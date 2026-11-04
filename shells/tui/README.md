@@ -55,7 +55,8 @@ That is `pnpm --filter ./shells/tui run start`, which is `tsx src/main.tsx`. It 
 - Exporting keeps the requested format or fails. HTML is explicitly selectable. Requested
   credentials must be present before the file is written. Export rows scroll with focus.
 - `b` from Tools opens the production queue. Plan the CSV, inspect dependency readiness
-  and paths, exclude rows, preflight, run/resume and cancel workers. The CLI owns the run
+  and paths, exclude rows, preflight, run/resume and cancel workers. `v` opens scrollable
+  full row findings with long text wrapped to the terminal width. The CLI owns the run
   receipt, so the queue and scripts use the same production behavior.
 - Open `.lolly` or exported project JSON files from Tools. Carried media/fonts currently
   need web/desktop import. PDF/AI page import reviews multipage and fidelity losses before

@@ -11,6 +11,7 @@
     "start": "tsx src/main.tsx"
   },
   "dependencies": {
+    "@lolly-tools/core": "workspace:*",
     "@lolly-tools/node-shell": "workspace:*",
     "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
@@ -21,7 +22,7 @@
     "pdf-lib": "^1.17.1",
     "playwright-core": "^1.49.0",
     "react": "^19.3.1",
-    "@lolly-tools/core": "workspace:*"
+    "wrap-ansi": "10.0.1"
   },
   "devDependencies": {
     "@types/react": "^19.2.8",

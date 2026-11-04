@@ -4,6 +4,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { serializeUrlState } from '../../../engine/src/url-mode.ts';
+import { stripVTControlCharacters } from 'node:util';
+import wrapAnsi from 'wrap-ansi';
+
+/** Use the terminal renderer's width-aware wrapping for plain diagnostic text. */
+export function terminalReportLines(lines: string[], columns: number): string[] {
+  return lines.flatMap(line => wrapAnsi(stripVTControlCharacters(line), Math.max(10, columns), { hard: true }).split('\n'));
+}
 
 export const shellWord = (word: string): string => `'${word.replaceAll("'", "'\\''")}'`;
 
