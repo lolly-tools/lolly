@@ -126,7 +126,11 @@ async function openPalette(page: import('playwright').Page) {
   const status = page.locator('.be-palette [data-be-save-state]');
   await status.filter({ hasText: /^Saved$/ }).waitFor();
   const keys = () => group.locator('[data-reorder-row]').evaluateAll(cards => cards.map(card => (card as HTMLElement).dataset.reorderRow));
-  return { group, status, keys, handles: group.locator('[data-reorder-handle]') };
+  // The handles show in Select mode (plan 346 change 8).
+  const handles = group.locator('[data-reorder-handle]');
+  await group.locator('[data-be-pal-all]').click();
+  await handles.first().waitFor({ state: 'visible' });
+  return { group, status, keys, handles };
 }
 
 async function studioContext() {

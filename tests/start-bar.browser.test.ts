@@ -106,7 +106,13 @@ async function logosTipUnderBar(page: Page): Promise<string> {
   await tip.evaluate(btn => (btn as HTMLElement).click());
   const pop = '.ds-shell .help-tip-pop:not([hidden])';
   await page.locator(pop).waitFor();
-  // The room has to be laid out tall enough to scroll the bubble up that far.
+  // The room has to be laid out tall enough to scroll the bubble up that far. A blank
+  // Logos room (lolly-start, whose empty groups fold) is shorter than the window, so
+  // the shell gets scroll room below the room; the layering under test is unchanged.
+  await page.evaluate(() => {
+    const shell = document.querySelector<HTMLElement>('.ds-shell');
+    if (shell && document.documentElement.scrollHeight <= innerHeight + 200) shell.style.paddingBottom = '100vh';
+  });
   await page.waitForFunction(() => document.documentElement.scrollHeight > innerHeight + 200);
   await page.evaluate((sel) => {
     const bar = document.querySelector('.ds-top')!.getBoundingClientRect();
