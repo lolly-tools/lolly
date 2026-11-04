@@ -91,14 +91,17 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
   bedit.ramps.notifyPaletteObservers(); // the doc is already mutated - mirrors repaint now, not post-debounce
   const run = (): void => {
     const snapshot = structuredClone(bedit.doc);
-    bedit.saveQueue = bedit.saveQueue.then(async () => {
+    // The newest edit wins: a save that a newer one is waiting behind is skipped
+    // before it starts or before it writes (lib/latest-save-queue.ts says why).
+    void bedit.saveQueue.push(async (superseded) => {
     try {
       // The Logos room writes its tokens straight into the stored head, not into
       // this editor's copy of the document, so the stored logo groups win here,
       // read and written as one step. Without it, a colour edit after an upload
       // put back the logo tokens the studio opened with, and the new mark
       // stopped being drawn.
-      await saveWithStoredLogos(fontsHost, snapshot, doc => installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc));
+      await saveWithStoredLogos(fontsHost, snapshot, doc => superseded() ? Promise.resolve() : installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc));
+      if (superseded()) return; // the newer save reports, repaints and refreshes
       if (revision === bedit.saveRevision) for (const status of statuses) status.textContent = t('Saved');
       void applyChromeBrandVars(host);
       // Reflect the new palette in every picker without a tool remount.

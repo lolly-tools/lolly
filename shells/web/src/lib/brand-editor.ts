@@ -60,6 +60,7 @@
  * a detached editor (route changed mid-op) never writes to a dead node.
  */
 
+import { createLatestSaveQueue } from './latest-save-queue.ts';
 import '../styles/parts/brand-studio.css';
 import '../styles/parts/tool.css';
 import './oklch-slice.css';
@@ -322,7 +323,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
    * surface (palette tiles, wheel, locks, generator, the add row), so this is
    * also the one place that flags colour-tab activity to the host.
    */
-  bedit.saveQueue = Promise.resolve();
+  bedit.saveQueue = createLatestSaveQueue();
   bedit.saveRevision = 0;
 
   /** Set once the Replace-palette review card exists (it is declared far below
