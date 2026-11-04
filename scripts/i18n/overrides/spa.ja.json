@@ -1987,5 +1987,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "復元すると、その後に保存されたバージョンが置き換えられます。保存済みのバージョンを残すと、保存されていない変更はこのデバイスから削除されます。",
   "Restored your unsaved changes.": "保存されていない変更を復元しました。",
   "Kept the saved version.": "保存済みのバージョンを残しました。",
-  "Restored the changes that hadn't finished saving.": "保存が完了しなかった変更を復元しました。"
+  "Restored the changes that hadn't finished saving.": "保存が完了しなかった変更を復元しました。",
+  "{n} file": "{n} 件のファイル",
+  "It becomes the primary. Shades and roles can follow.": "これがプライマリになります。シェードと役割はあとから続けられます。",
+  "Start here": "ここから始める",
+  "Browse looks →": "ルックを見る →",
+  "Pick what you have →": "手元のものを選ぶ →",
+  "Open the picker →": "カラーピッカーを開く →",
+  "Starter greys until a colour is added.": "色を追加するまではスターターのグレーです。",
+  "Lolly can’t draw in this browser yet": "Lolly はこのブラウザーではまだ描画できません",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly は WebGPU で描画しますが、このブラウザーはまだ WebGPU に対応していません。",
+  "These work today:": "現在使えるもの:",
+  "Chrome or Edge, kept up to date": "最新の Chrome または Edge",
+  "Safari 26 or later": "Safari 26 以降",
+  "Firefox, where WebGPU is turned on": "WebGPU を有効にした Firefox",
+  "Get the desktop app": "デスクトップアプリを入手",
+  "Read why": "理由を読む"
 }

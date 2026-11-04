@@ -2029,5 +2029,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "ফিরিয়ে আনলে তারপর সেভ হওয়া সংস্করণটি বদলে যাবে। সেভ করা সংস্করণটি রাখলে সেভ না হওয়া পরিবর্তনগুলো এই ডিভাইস থেকে মুছে যাবে।",
   "Restored your unsaved changes.": "আপনার সেভ না হওয়া পরিবর্তনগুলো ফিরিয়ে আনা হয়েছে।",
   "Kept the saved version.": "সেভ করা সংস্করণটি রাখা হয়েছে।",
-  "Restored the changes that hadn't finished saving.": "যে পরিবর্তনগুলো সেভ হওয়া শেষ হয়নি, সেগুলো ফিরিয়ে আনা হয়েছে।"
+  "Restored the changes that hadn't finished saving.": "যে পরিবর্তনগুলো সেভ হওয়া শেষ হয়নি, সেগুলো ফিরিয়ে আনা হয়েছে।",
+  "{n} file": "{n}টি ফাইল",
+  "It becomes the primary. Shades and roles can follow.": "এটি প্রাইমারি হয়ে যায়। শেড ও ভূমিকা এরপর আসতে পারে।",
+  "Start here": "এখান থেকে শুরু করুন",
+  "Browse looks →": "লুক দেখুন →",
+  "Pick what you have →": "আপনার যা আছে বেছে নিন →",
+  "Open the picker →": "রং বাছাইকারী খুলুন →",
+  "Starter greys until a colour is added.": "রং যোগ না হওয়া পর্যন্ত স্টার্টার ধূসর।",
+  "Lolly can’t draw in this browser yet": "Lolly এখনও এই ব্রাউজারে আঁকতে পারে না",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly WebGPU দিয়ে আঁকে, যা এই ব্রাউজার এখনও দেয় না।",
+  "These work today:": "এগুলো আজ কাজ করে:",
+  "Chrome or Edge, kept up to date": "Chrome বা Edge, হালনাগাদ রাখা",
+  "Safari 26 or later": "Safari 26 বা পরের সংস্করণ",
+  "Firefox, where WebGPU is turned on": "Firefox, যেখানে WebGPU চালু আছে",
+  "Get the desktop app": "ডেস্কটপ অ্যাপ নিন",
+  "Read why": "কেন, পড়ুন"
 }

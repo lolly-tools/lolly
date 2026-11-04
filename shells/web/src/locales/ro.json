@@ -10839,5 +10839,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Restabilirea înlocuiește versiunea salvată de atunci. Păstrarea versiunii salvate șterge modificările nesalvate de pe acest dispozitiv.",
   "Restored your unsaved changes.": "Modificările nesalvate au fost restabilite.",
   "Kept the saved version.": "Versiunea salvată a fost păstrată.",
-  "Restored the changes that hadn't finished saving.": "Modificările care nu s-au salvat complet au fost restabilite."
+  "Restored the changes that hadn't finished saving.": "Modificările care nu s-au salvat complet au fost restabilite.",
+  "{n} file": "{n} fișier",
+  "It becomes the primary. Shades and roles can follow.": "Devine culoarea primară. Nuanțele și rolurile pot urma.",
+  "Start here": "Începe aici",
+  "Browse looks →": "Răsfoiește look-urile →",
+  "Pick what you have →": "Alege ce ai →",
+  "Open the picker →": "Deschide selectorul →",
+  "Starter greys until a colour is added.": "Griuri de pornire până când adaugi o culoare.",
+  "Lolly can’t draw in this browser yet": "Lolly nu poate desena încă în acest browser",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly desenează cu WebGPU, pe care acest browser nu îl oferă încă.",
+  "These work today:": "Acestea funcționează azi:",
+  "Chrome or Edge, kept up to date": "Chrome sau Edge, actualizate",
+  "Safari 26 or later": "Safari 26 sau mai nou",
+  "Firefox, where WebGPU is turned on": "Firefox, cu WebGPU activat",
+  "Get the desktop app": "Descarcă aplicația desktop",
+  "Read why": "Citește de ce"
 }

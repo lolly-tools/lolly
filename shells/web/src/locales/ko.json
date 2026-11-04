@@ -10749,5 +10749,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "복원하면 그 뒤에 저장된 버전을 대체해요. 저장된 버전을 유지하면 저장하지 않은 변경 사항이 이 기기에서 삭제돼요.",
   "Restored your unsaved changes.": "저장하지 않은 변경 사항을 복원했어요.",
   "Kept the saved version.": "저장된 버전을 유지했어요.",
-  "Restored the changes that hadn't finished saving.": "저장이 끝나지 않은 변경 사항을 복원했어요."
+  "Restored the changes that hadn't finished saving.": "저장이 끝나지 않은 변경 사항을 복원했어요.",
+  "{n} file": "파일 {n}개",
+  "It becomes the primary. Shades and roles can follow.": "이것이 프라이머리가 돼요. 셰이드와 역할은 뒤따를 수 있어요.",
+  "Start here": "여기서 시작",
+  "Browse looks →": "스타일 둘러보기 →",
+  "Pick what you have →": "가진 것 고르기 →",
+  "Open the picker →": "색상 선택기 열기 →",
+  "Starter greys until a colour is added.": "색을 추가하기 전까지는 스타터 회색이에요.",
+  "Lolly can’t draw in this browser yet": "Lolly가 아직 이 브라우저에서 그릴 수 없어요",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly는 WebGPU로 그리는데, 이 브라우저는 아직 WebGPU를 지원하지 않아요.",
+  "These work today:": "지금 사용할 수 있는 브라우저:",
+  "Chrome or Edge, kept up to date": "최신 Chrome 또는 Edge",
+  "Safari 26 or later": "Safari 26 이상",
+  "Firefox, where WebGPU is turned on": "WebGPU를 켠 Firefox",
+  "Get the desktop app": "데스크톱 앱 받기",
+  "Read why": "이유 읽기"
 }

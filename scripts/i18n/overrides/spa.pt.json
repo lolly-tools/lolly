@@ -2073,5 +2073,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Restaurar substitui a versão salva desde então. Manter a versão salva apaga deste dispositivo as alterações não salvas.",
   "Restored your unsaved changes.": "Suas alterações não salvas foram restauradas.",
   "Kept the saved version.": "A versão salva foi mantida.",
-  "Restored the changes that hadn't finished saving.": "As alterações que não terminaram de ser salvas foram restauradas."
+  "Restored the changes that hadn't finished saving.": "As alterações que não terminaram de ser salvas foram restauradas.",
+  "{n} file": "{n} arquivo",
+  "It becomes the primary. Shades and roles can follow.": "Ela se torna a primária. Tons e papéis podem vir em seguida.",
+  "Start here": "Comece aqui",
+  "Browse looks →": "Ver visuais →",
+  "Pick what you have →": "Escolha o que você tem →",
+  "Open the picker →": "Abrir o seletor →",
+  "Starter greys until a colour is added.": "Cinzas iniciais até uma cor ser adicionada.",
+  "Lolly can’t draw in this browser yet": "O Lolly ainda não consegue desenhar neste navegador",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "O Lolly desenha com WebGPU, que este navegador ainda não oferece.",
+  "These work today:": "Estes funcionam hoje:",
+  "Chrome or Edge, kept up to date": "Chrome ou Edge, atualizados",
+  "Safari 26 or later": "Safari 26 ou posterior",
+  "Firefox, where WebGPU is turned on": "Firefox, com o WebGPU ativado",
+  "Get the desktop app": "Baixar o app para desktop",
+  "Read why": "Ler o motivo"
 }

@@ -1987,5 +1987,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "還原會取代此後儲存的版本。保留已儲存的版本會從這部裝置刪除未儲存的變更。",
   "Restored your unsaved changes.": "已還原未儲存的變更。",
   "Kept the saved version.": "已保留已儲存的版本。",
-  "Restored the changes that hadn't finished saving.": "已還原未完成儲存的變更。"
+  "Restored the changes that hadn't finished saving.": "已還原未完成儲存的變更。",
+  "{n} file": "{n} 個檔案",
+  "It becomes the primary. Shades and roles can follow.": "它會成為主色。深淺色階與角色可以隨之而來。",
+  "Start here": "從這裡開始",
+  "Browse looks →": "瀏覽風格 →",
+  "Pick what you have →": "選擇你已有的 →",
+  "Open the picker →": "開啟取色器 →",
+  "Starter greys until a colour is added.": "加入顏色之前，這裡是入門灰色。",
+  "Lolly can’t draw in this browser yet": "Lolly 暫時無法在此瀏覽器中繪製",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly 使用 WebGPU 繪製，而此瀏覽器尚未提供 WebGPU。",
+  "These work today:": "目前可用：",
+  "Chrome or Edge, kept up to date": "保持更新的 Chrome 或 Edge",
+  "Safari 26 or later": "Safari 26 或更新版本",
+  "Firefox, where WebGPU is turned on": "已開啟 WebGPU 的 Firefox",
+  "Get the desktop app": "取得桌面應用程式",
+  "Read why": "了解原因"
 }

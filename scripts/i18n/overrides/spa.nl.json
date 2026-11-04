@@ -2022,5 +2022,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Terugzetten vervangt de versie die sindsdien is opgeslagen. Als je de opgeslagen versie behoudt, worden de niet-opgeslagen wijzigingen van dit apparaat verwijderd.",
   "Restored your unsaved changes.": "Niet-opgeslagen wijzigingen teruggezet.",
   "Kept the saved version.": "Opgeslagen versie behouden.",
-  "Restored the changes that hadn't finished saving.": "De wijzigingen die niet helemaal waren opgeslagen, zijn teruggezet."
+  "Restored the changes that hadn't finished saving.": "De wijzigingen die niet helemaal waren opgeslagen, zijn teruggezet.",
+  "{n} file": "{n} bestand",
+  "It becomes the primary. Shades and roles can follow.": "Het wordt de primaire kleur. Tinten en rollen kunnen volgen.",
+  "Start here": "Begin hier",
+  "Browse looks →": "Looks bekijken →",
+  "Pick what you have →": "Kies wat je hebt →",
+  "Open the picker →": "Kleurkiezer openen →",
+  "Starter greys until a colour is added.": "Startgrijstinten tot er een kleur bij komt.",
+  "Lolly can’t draw in this browser yet": "Lolly kan in deze browser nog niet tekenen",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly tekent met WebGPU, dat deze browser nog niet biedt.",
+  "These work today:": "Deze werken vandaag:",
+  "Chrome or Edge, kept up to date": "Chrome of Edge, bijgewerkt",
+  "Safari 26 or later": "Safari 26 of nieuwer",
+  "Firefox, where WebGPU is turned on": "Firefox, als WebGPU aanstaat",
+  "Get the desktop app": "Download de desktop-app",
+  "Read why": "Lees waarom"
 }

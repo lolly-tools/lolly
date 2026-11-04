@@ -2159,5 +2159,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Възстановяването заменя версията, запазена оттогава. Ако задържите запазената версия, незапазените промени се изтриват от това устройство.",
   "Restored your unsaved changes.": "Незапазените ви промени са възстановени.",
   "Kept the saved version.": "Запазената версия е задържана.",
-  "Restored the changes that hadn't finished saving.": "Промените, които не се запазиха докрай, са възстановени."
+  "Restored the changes that hadn't finished saving.": "Промените, които не се запазиха докрай, са възстановени.",
+  "{n} file": "{n} файл",
+  "It becomes the primary. Shades and roles can follow.": "Той става основният. Нюансите и ролите могат да последват.",
+  "Start here": "Започни оттук",
+  "Browse looks →": "Разгледай стиловете →",
+  "Pick what you have →": "Избери какво имаш →",
+  "Open the picker →": "Отвори избора на цвят →",
+  "Starter greys until a colour is added.": "Стартови сиви, докато не добавиш цвят.",
+  "Lolly can’t draw in this browser yet": "Lolly още не може да рисува в този браузър",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly рисува с WebGPU, което този браузър още не предлага.",
+  "These work today:": "Те работят днес:",
+  "Chrome or Edge, kept up to date": "Chrome или Edge, обновени",
+  "Safari 26 or later": "Safari 26 или по-нов",
+  "Firefox, where WebGPU is turned on": "Firefox с включен WebGPU",
+  "Get the desktop app": "Изтегли настолното приложение",
+  "Read why": "Прочети защо"
 }

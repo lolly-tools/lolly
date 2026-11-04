@@ -10794,5 +10794,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Om du återställer ersätts versionen som sparats sedan dess. Om du behåller den sparade versionen tas de osparade ändringarna bort från den här enheten.",
   "Restored your unsaved changes.": "Dina osparade ändringar har återställts.",
   "Kept the saved version.": "Den sparade versionen har behållits.",
-  "Restored the changes that hadn't finished saving.": "Ändringarna som inte hann sparas har återställts."
+  "Restored the changes that hadn't finished saving.": "Ändringarna som inte hann sparas har återställts.",
+  "{n} file": "{n} fil",
+  "It becomes the primary. Shades and roles can follow.": "Den blir primärfärgen. Nyanser och roller kan följa.",
+  "Start here": "Börja här",
+  "Browse looks →": "Bläddra bland looks →",
+  "Pick what you have →": "Välj det du har →",
+  "Open the picker →": "Öppna väljaren →",
+  "Starter greys until a colour is added.": "Startgrått tills en färg läggs till.",
+  "Lolly can’t draw in this browser yet": "Lolly kan inte rita i den här webbläsaren än",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly ritar med WebGPU, som den här webbläsaren inte erbjuder än.",
+  "These work today:": "Det här fungerar i dag:",
+  "Chrome or Edge, kept up to date": "Chrome eller Edge, uppdaterade",
+  "Safari 26 or later": "Safari 26 eller senare",
+  "Firefox, where WebGPU is turned on": "Firefox, med WebGPU påslaget",
+  "Get the desktop app": "Hämta skrivbordsappen",
+  "Read why": "Läs varför"
 }

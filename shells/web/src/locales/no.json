@@ -10794,5 +10794,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Gjenoppretting erstatter versjonen som er lagret siden. Hvis du beholder den lagrede versjonen, slettes de ulagrede endringene fra denne enheten.",
   "Restored your unsaved changes.": "De ulagrede endringene er gjenopprettet.",
   "Kept the saved version.": "Den lagrede versjonen er beholdt.",
-  "Restored the changes that hadn't finished saving.": "Endringene som ikke ble ferdig lagret, er gjenopprettet."
+  "Restored the changes that hadn't finished saving.": "Endringene som ikke ble ferdig lagret, er gjenopprettet.",
+  "{n} file": "{n} fil",
+  "It becomes the primary. Shades and roles can follow.": "Den blir primærfargen. Nyanser og roller kan følge.",
+  "Start here": "Start her",
+  "Browse looks →": "Bla gjennom stiler →",
+  "Pick what you have →": "Velg det du har →",
+  "Open the picker →": "Åpne fargevelgeren →",
+  "Starter greys until a colour is added.": "Startgrått til en farge legges til.",
+  "Lolly can’t draw in this browser yet": "Lolly kan ikke tegne i denne nettleseren ennå",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly tegner med WebGPU, som denne nettleseren ikke tilbyr ennå.",
+  "These work today:": "Disse fungerer i dag:",
+  "Chrome or Edge, kept up to date": "Chrome eller Edge, oppdatert",
+  "Safari 26 or later": "Safari 26 eller nyere",
+  "Firefox, where WebGPU is turned on": "Firefox, med WebGPU slått på",
+  "Get the desktop app": "Hent skrivebordsappen",
+  "Read why": "Les hvorfor"
 }

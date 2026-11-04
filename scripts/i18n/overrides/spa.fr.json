@@ -2074,5 +2074,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Restaurer remplace la version enregistrée depuis. Garder la version enregistrée supprime les modifications non enregistrées de cet appareil.",
   "Restored your unsaved changes.": "Tes modifications non enregistrées ont été restaurées.",
   "Kept the saved version.": "La version enregistrée a été gardée.",
-  "Restored the changes that hadn't finished saving.": "Les modifications dont l'enregistrement n'avait pas abouti ont été restaurées."
+  "Restored the changes that hadn't finished saving.": "Les modifications dont l'enregistrement n'avait pas abouti ont été restaurées.",
+  "{n} file": "{n} fichier",
+  "It becomes the primary. Shades and roles can follow.": "Elle devient la primaire. Les nuances et les rôles peuvent suivre.",
+  "Start here": "Commencer ici",
+  "Browse looks →": "Parcourir les looks →",
+  "Pick what you have →": "Choisir ce que tu as →",
+  "Open the picker →": "Ouvrir le sélecteur →",
+  "Starter greys until a colour is added.": "Gris de départ jusqu’à l’ajout d’une couleur.",
+  "Lolly can’t draw in this browser yet": "Lolly ne peut pas encore dessiner dans ce navigateur",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly dessine avec WebGPU, que ce navigateur ne propose pas encore.",
+  "These work today:": "Ceux-ci fonctionnent aujourd’hui :",
+  "Chrome or Edge, kept up to date": "Chrome ou Edge, à jour",
+  "Safari 26 or later": "Safari 26 ou ultérieur",
+  "Firefox, where WebGPU is turned on": "Firefox, si WebGPU est activé",
+  "Get the desktop app": "Obtenir l’app de bureau",
+  "Read why": "Lire pourquoi"
 }

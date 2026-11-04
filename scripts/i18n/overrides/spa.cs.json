@@ -2113,5 +2113,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Obnovením nahradíte verzi uloženou od té doby. Ponecháním uložené verze smažete neuložené změny z tohoto zařízení.",
   "Restored your unsaved changes.": "Neuložené změny byly obnoveny.",
   "Kept the saved version.": "Uložená verze byla ponechána.",
-  "Restored the changes that hadn't finished saving.": "Změny, které se nestihly uložit, byly obnoveny."
+  "Restored the changes that hadn't finished saving.": "Změny, které se nestihly uložit, byly obnoveny.",
+  "{n} file": "{n} soubor",
+  "It becomes the primary. Shades and roles can follow.": "Stane se primární. Odstíny a role můžou následovat.",
+  "Start here": "Začni tady",
+  "Browse looks →": "Procházet looky →",
+  "Pick what you have →": "Vyber, co máš →",
+  "Open the picker →": "Otevřít výběr barvy →",
+  "Starter greys until a colour is added.": "Startovní šedé, dokud nepřidáš barvu.",
+  "Lolly can’t draw in this browser yet": "Lolly v tomhle prohlížeči zatím neumí kreslit",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly kreslí pomocí WebGPU, které tenhle prohlížeč zatím nenabízí.",
+  "These work today:": "Dnes fungují:",
+  "Chrome or Edge, kept up to date": "Chrome nebo Edge, aktualizované",
+  "Safari 26 or later": "Safari 26 nebo novější",
+  "Firefox, where WebGPU is turned on": "Firefox se zapnutým WebGPU",
+  "Get the desktop app": "Stáhnout desktopovou aplikaci",
+  "Read why": "Přečíst proč"
 }

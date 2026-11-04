@@ -1983,5 +1983,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Memulihkan akan mengganti versi yang disimpan sejak itu. Mempertahankan versi yang tersimpan akan menghapus perubahan yang belum disimpan dari perangkat ini.",
   "Restored your unsaved changes.": "Perubahan yang belum disimpan telah dipulihkan.",
   "Kept the saved version.": "Versi yang tersimpan dipertahankan.",
-  "Restored the changes that hadn't finished saving.": "Perubahan yang belum selesai disimpan telah dipulihkan."
+  "Restored the changes that hadn't finished saving.": "Perubahan yang belum selesai disimpan telah dipulihkan.",
+  "{n} file": "{n} berkas",
+  "It becomes the primary. Shades and roles can follow.": "Ini menjadi warna primer. Corak dan peran bisa menyusul.",
+  "Start here": "Mulai di sini",
+  "Browse looks →": "Jelajahi tampilan →",
+  "Pick what you have →": "Pilih yang Anda punya →",
+  "Open the picker →": "Buka pemilih →",
+  "Starter greys until a colour is added.": "Abu-abu awal sampai sebuah warna ditambahkan.",
+  "Lolly can’t draw in this browser yet": "Lolly belum bisa menggambar di browser ini",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly menggambar dengan WebGPU, yang belum tersedia di browser ini.",
+  "These work today:": "Yang sudah berfungsi:",
+  "Chrome or Edge, kept up to date": "Chrome atau Edge versi terbaru",
+  "Safari 26 or later": "Safari 26 atau lebih baru",
+  "Firefox, where WebGPU is turned on": "Firefox, jika WebGPU diaktifkan",
+  "Get the desktop app": "Dapatkan aplikasi desktop",
+  "Read why": "Baca alasannya"
 }

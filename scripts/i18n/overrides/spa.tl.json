@@ -2031,5 +2031,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Kapag ibinalik, papalitan nito ang bersyong na-save mula noon. Kapag pinanatili ang naka-save na bersyon, buburahin sa device na ito ang mga hindi na-save na pagbabago.",
   "Restored your unsaved changes.": "Naibalik ang mga hindi na-save na pagbabago.",
   "Kept the saved version.": "Pinanatili ang naka-save na bersyon.",
-  "Restored the changes that hadn't finished saving.": "Naibalik ang mga pagbabagong hindi natapos i-save."
+  "Restored the changes that hadn't finished saving.": "Naibalik ang mga pagbabagong hindi natapos i-save.",
+  "{n} file": "{n} file",
+  "It becomes the primary. Shades and roles can follow.": "Ito ang magiging primary. Puwedeng sumunod ang mga shade at role.",
+  "Start here": "Magsimula rito",
+  "Browse looks →": "Mag-browse ng looks →",
+  "Pick what you have →": "Piliin ang mayroon ka →",
+  "Open the picker →": "Buksan ang picker →",
+  "Starter greys until a colour is added.": "Mga starter na gray hanggang may maidagdag na kulay.",
+  "Lolly can’t draw in this browser yet": "Hindi pa makakaguhit ang Lolly sa browser na ito",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Gumuguhit ang Lolly gamit ang WebGPU, na wala pa sa browser na ito.",
+  "These work today:": "Gumagana na ngayon:",
+  "Chrome or Edge, kept up to date": "Chrome o Edge na updated",
+  "Safari 26 or later": "Safari 26 o mas bago",
+  "Firefox, where WebGPU is turned on": "Firefox, kapag naka-on ang WebGPU",
+  "Get the desktop app": "Kunin ang desktop app",
+  "Read why": "Basahin kung bakit"
 }

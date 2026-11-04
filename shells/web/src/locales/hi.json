@@ -10794,5 +10794,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "वापस लाने से उसके बाद सेव किया गया वर्शन बदल जाएगा। सेव किया गया वर्शन रखने से बिना सेव किए बदलाव इस डिवाइस से हट जाएंगे।",
   "Restored your unsaved changes.": "आपके बिना सेव किए बदलाव वापस ला दिए गए।",
   "Kept the saved version.": "सेव किया गया वर्शन रखा गया।",
-  "Restored the changes that hadn't finished saving.": "जिन बदलावों का सेव होना पूरा नहीं हुआ था, उन्हें वापस ला दिया गया।"
+  "Restored the changes that hadn't finished saving.": "जिन बदलावों का सेव होना पूरा नहीं हुआ था, उन्हें वापस ला दिया गया।",
+  "{n} file": "{n} फ़ाइल",
+  "It becomes the primary. Shades and roles can follow.": "यह प्राइमरी बन जाता है। शेड्स और भूमिकाएं इसके बाद आ सकती हैं।",
+  "Start here": "यहां से शुरू करें",
+  "Browse looks →": "लुक्स देखें →",
+  "Pick what you have →": "जो आपके पास है, चुनें →",
+  "Open the picker →": "रंग चुनने वाला खोलें →",
+  "Starter greys until a colour is added.": "कोई रंग जोड़े जाने तक स्टार्टर ग्रे।",
+  "Lolly can’t draw in this browser yet": "Lolly अभी इस ब्राउज़र में ड्रॉ नहीं कर सकता",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly WebGPU से ड्रॉ करता है, जो यह ब्राउज़र अभी उपलब्ध नहीं कराता।",
+  "These work today:": "ये आज काम करते हैं:",
+  "Chrome or Edge, kept up to date": "Chrome या Edge, अप-टू-डेट",
+  "Safari 26 or later": "Safari 26 या नया",
+  "Firefox, where WebGPU is turned on": "Firefox, जहां WebGPU चालू हो",
+  "Get the desktop app": "डेस्कटॉप ऐप पाएं",
+  "Read why": "वजह पढ़ें"
 }

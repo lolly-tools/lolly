@@ -10794,5 +10794,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "بحال کرنے سے اس کے بعد محفوظ ہونے والا ورژن بدل جائے گا۔ محفوظ ورژن رکھنے سے غیر محفوظ تبدیلیاں اس ڈیوائس سے حذف ہو جائیں گی۔",
   "Restored your unsaved changes.": "آپ کی غیر محفوظ تبدیلیاں بحال کر دی گئیں۔",
   "Kept the saved version.": "محفوظ ورژن رکھا گیا۔",
-  "Restored the changes that hadn't finished saving.": "جن تبدیلیوں کا محفوظ ہونا مکمل نہیں ہوا تھا، وہ بحال کر دی گئیں۔"
+  "Restored the changes that hadn't finished saving.": "جن تبدیلیوں کا محفوظ ہونا مکمل نہیں ہوا تھا، وہ بحال کر دی گئیں۔",
+  "{n} file": "{n} فائل",
+  "It becomes the primary. Shades and roles can follow.": "یہ بنیادی رنگ بن جاتا ہے۔ شیڈز اور کردار اس کے بعد آ سکتے ہیں۔",
+  "Start here": "یہاں سے شروع کریں",
+  "Browse looks →": "لُکس دیکھیں →",
+  "Pick what you have →": "جو آپ کے پاس ہے منتخب کریں →",
+  "Open the picker →": "رنگ چننے والا کھولیں →",
+  "Starter greys until a colour is added.": "رنگ شامل ہونے تک اسٹارٹر گرے۔",
+  "Lolly can’t draw in this browser yet": "Lolly ابھی اس براؤزر میں نہیں بنا سکتا",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly WebGPU سے بناتا ہے، جو یہ براؤزر ابھی پیش نہیں کرتا۔",
+  "These work today:": "یہ آج کام کرتے ہیں:",
+  "Chrome or Edge, kept up to date": "Chrome یا Edge، تازہ ترین",
+  "Safari 26 or later": "Safari 26 یا اس سے نیا",
+  "Firefox, where WebGPU is turned on": "Firefox، جب WebGPU آن ہو",
+  "Get the desktop app": "ڈیسک ٹاپ ایپ حاصل کریں",
+  "Read why": "وجہ پڑھیں"
 }

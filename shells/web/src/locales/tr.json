@@ -10794,5 +10794,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Geri yüklemek, o zamandan beri kaydedilen sürümün yerine geçer. Kaydedilmiş sürümü tutmak, kaydedilmemiş değişiklikleri bu cihazdan siler.",
   "Restored your unsaved changes.": "Kaydedilmemiş değişikliklerin geri yüklendi.",
   "Kept the saved version.": "Kaydedilmiş sürüm tutuldu.",
-  "Restored the changes that hadn't finished saving.": "Kaydı tamamlanmayan değişiklikler geri yüklendi."
+  "Restored the changes that hadn't finished saving.": "Kaydı tamamlanmayan değişiklikler geri yüklendi.",
+  "{n} file": "{n} dosya",
+  "It becomes the primary. Shades and roles can follow.": "Bu, birincil olur. Tonlar ve roller ardından gelebilir.",
+  "Start here": "Buradan başla",
+  "Browse looks →": "Görünümlere göz at →",
+  "Pick what you have →": "Elindekini seç →",
+  "Open the picker →": "Seçiciyi aç →",
+  "Starter greys until a colour is added.": "Bir renk eklenene kadar başlangıç grileri.",
+  "Lolly can’t draw in this browser yet": "Lolly bu tarayıcıda henüz çizim yapamıyor",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly WebGPU ile çizer; bu tarayıcı henüz WebGPU sunmuyor.",
+  "These work today:": "Bugün çalışanlar:",
+  "Chrome or Edge, kept up to date": "Güncel Chrome veya Edge",
+  "Safari 26 or later": "Safari 26 veya üstü",
+  "Firefox, where WebGPU is turned on": "WebGPU açıkken Firefox",
+  "Get the desktop app": "Masaüstü uygulamasını indir",
+  "Read why": "Nedenini oku"
 }

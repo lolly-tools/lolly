@@ -2344,5 +2344,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "تؤدي الاستعادة إلى استبدال النسخة المحفوظة منذ ذلك الحين. ويؤدي الاحتفاظ بالنسخة المحفوظة إلى حذف التغييرات غير المحفوظة من هذا الجهاز.",
   "Restored your unsaved changes.": "استُعيدت تغييراتك غير المحفوظة.",
   "Kept the saved version.": "احتُفظ بالنسخة المحفوظة.",
-  "Restored the changes that hadn't finished saving.": "استُعيدت التغييرات التي لم يكتمل حفظها."
+  "Restored the changes that hadn't finished saving.": "استُعيدت التغييرات التي لم يكتمل حفظها.",
+  "{n} file": "{n} ملف",
+  "It becomes the primary. Shades and roles can follow.": "يصبح هو اللون الأساسي. ويمكن أن تتبعه الدرجات والأدوار.",
+  "Start here": "ابدأ من هنا",
+  "Browse looks →": "تصفّح المظاهر ←",
+  "Pick what you have →": "اختر ما لديك ←",
+  "Open the picker →": "افتح منتقي الألوان ←",
+  "Starter greys until a colour is added.": "درجات رمادية تمهيدية حتى يُضاف لون.",
+  "Lolly can’t draw in this browser yet": "لا يستطيع Lolly الرسم في هذا المتصفح بعد",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "يرسم Lolly باستخدام WebGPU، وهو ما لا يوفره هذا المتصفح بعد.",
+  "These work today:": "تعمل هذه اليوم:",
+  "Chrome or Edge, kept up to date": "Chrome أو Edge، مع التحديث المستمر",
+  "Safari 26 or later": "Safari 26 أو أحدث",
+  "Firefox, where WebGPU is turned on": "Firefox، عند تفعيل WebGPU",
+  "Get the desktop app": "احصل على تطبيق سطح المكتب",
+  "Read why": "اقرأ السبب"
 }

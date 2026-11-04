@@ -10749,5 +10749,20 @@
   "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Khôi phục sẽ thay thế phiên bản đã lưu kể từ đó. Giữ phiên bản đã lưu sẽ xóa các thay đổi chưa lưu khỏi thiết bị này.",
   "Restored your unsaved changes.": "Đã khôi phục các thay đổi chưa lưu.",
   "Kept the saved version.": "Đã giữ phiên bản đã lưu.",
-  "Restored the changes that hadn't finished saving.": "Đã khôi phục các thay đổi chưa lưu xong."
+  "Restored the changes that hadn't finished saving.": "Đã khôi phục các thay đổi chưa lưu xong.",
+  "{n} file": "{n} tệp",
+  "It becomes the primary. Shades and roles can follow.": "Nó trở thành màu chính. Các sắc độ và vai trò có thể theo sau.",
+  "Start here": "Bắt đầu tại đây",
+  "Browse looks →": "Xem các phong cách →",
+  "Pick what you have →": "Chọn thứ bạn đang có →",
+  "Open the picker →": "Mở bộ chọn màu →",
+  "Starter greys until a colour is added.": "Các sắc xám khởi đầu cho đến khi có màu được thêm.",
+  "Lolly can’t draw in this browser yet": "Lolly chưa thể vẽ trong trình duyệt này",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly vẽ bằng WebGPU, thứ mà trình duyệt này chưa hỗ trợ.",
+  "These work today:": "Những trình duyệt dùng được hôm nay:",
+  "Chrome or Edge, kept up to date": "Chrome hoặc Edge, luôn cập nhật",
+  "Safari 26 or later": "Safari 26 trở lên",
+  "Firefox, where WebGPU is turned on": "Firefox, khi đã bật WebGPU",
+  "Get the desktop app": "Tải ứng dụng máy tính",
+  "Read why": "Đọc lý do"
 }
