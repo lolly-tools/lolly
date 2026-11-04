@@ -41,6 +41,14 @@ test('Brief reads an assistant-written brief into a title, labelled points and n
   assert.equal(sections.read('{{#each points}}[{{label}}: {{text}}]{{/each}}'), '[Cost: Renewals rose.][Sovereignty: Data stays local.]');
 });
 
+test('Brief reads a real assistant answer: a bold title line with its details, and a sources list', async () => {
+  const b = await render('brief', { body: '**Example Port · Virtualisation**\n\n- **In the news:** A budget for renewal (October 2026).\n- **Next step:** Ask which platform they run.\n\nSources:\n- [News](https://example.com/news)\n- [Budget](https://example.com/budget)' });
+  assert.equal(b.read('{{briefTitle}}'), 'Example Port');
+  assert.equal(b.read('{{briefMeta}}'), 'Virtualisation');
+  assert.equal(b.read('{{#each points}}[{{label}}]{{/each}}'), '[In the news][Next step]', 'the sources list is not a point');
+  assert.equal(b.read('{{#each notes}}{{label}}: {{text}}{{/each}}'), 'Sources: [News](https://example.com/news) · [Budget](https://example.com/budget)');
+});
+
 test('Brief shows a label still being written as a label', async () => {
   const b = await render('brief', { body: '**Dana Reyes** · Head of Platforms\n\n- **Signal:** Asked for pricing.\n- **Acc' });
   assert.equal(b.read('{{#each points}}[{{label}}|{{text}}]{{/each}}'), '[Signal|Asked for pricing.][Acc|]');

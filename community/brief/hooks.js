@@ -23,20 +23,33 @@ function stripEmphasis(s) {
   return String(s).trim().replace(/^(\*\*|__)(.*)\1$/, '$2').replace(/^(\*|_)(.*)\1$/, '$2').trim();
 }
 
-/** "**Label:** text", "**Label**: text" or "**Label** - text" as [label, text], else null. */
+/** "**Label:** text", "**Label**: text" or "**Label** - text" as [label, text], else null.
+ *  A note's label may also stand plain ("Sources: ..."). */
 function labelled(text) {
-  var m = /^(?:\*\*|__)([^*_]{1,60}?)(?::\s*)?(?:\*\*|__)\s*[:\-–]?\s*([\s\S]*)$/.exec(String(text).trim());
-  if (!m) return null;
-  return [m[1].replace(/[:\s]+$/, '').trim(), m[2].trim()];
+  var s = String(text).trim();
+  var m = /^(?:\*\*|__)([^*_]{1,60}?)(?::\s*)?(?:\*\*|__)\s*[:\-–]?\s*([\s\S]*)$/.exec(s);
+  if (m) return [m[1].replace(/[:\s]+$/, '').trim(), m[2].trim()];
+  var plain = /^([A-Za-z][A-Za-z ]{1,30}):\s*([\s\S]*)$/.exec(s);
+  return plain && NOTE_LABEL.test(plain[1].trim()) ? [plain[1].trim(), plain[2].trim()] : null;
+}
+
+/** A title line's parts: "**Name** · Role" or "**Name · Role**" as [name, details]. */
+function titleParts(line) {
+  var s = /^(\*\*|__)[^*_]*\1$/.test(line.trim()) ? stripEmphasis(line) : line;
+  var parts = s.split(/\s+(?:·|\|)\s+/);
+  return [stripEmphasis(parts[0]), parts.slice(1).map(stripEmphasis).join(' · ')];
 }
 
 function parse(md) {
   var lines = String(md == null ? '' : md).replace(/\r\n?/g, '\n').split('\n');
   var title = '', meta = '', intro = [], points = [], notes = [];
   var para = [], section = null, item = null;
+  // A note label with nothing after it ("Sources:") takes the list that follows.
+  var openNote = null;
 
   var flushItem = function () {
     if (!item) return;
+    if (openNote) { openNote.text += (openNote.text ? ' · ' : '') + item.trim(); item = null; return; }
     // A label still being written ("- **Sig", as an answer streams in) shows as a
     // label, not as asterisks.
     var opening = /^(?:\*\*|__)([^*_]*)$/.exec(item.trim());
@@ -50,8 +63,14 @@ function parse(md) {
     var text = para.join('\n').trim();
     para = [];
     if (!text) return;
+    openNote = null;
     var lab = labelled(text);
-    if (lab && NOTE_LABEL.test(lab[0])) { notes.push({ label: lab[0], text: lab[1] }); return; }
+    if (lab && NOTE_LABEL.test(lab[0])) {
+      var note = { label: lab[0], text: lab[1] };
+      notes.push(note);
+      if (!lab[1]) openNote = note;
+      return;
+    }
     if (section) { section.parts.push(text); return; }
     // A details line under a # title ("Company · Topic") belongs with the title.
     if (title && !meta && !intro.length && !points.length && text.indexOf('\n') < 0 && /\s(?:\u00b7|\|)\s/.test(text)) {
@@ -59,9 +78,9 @@ function parse(md) {
       return;
     }
     if (!title && !points.length && !intro.length && /^(\*\*|__)/.test(text) && text.indexOf('\n') < 0 && (!lab || !lab[1] || /^(?:·|\|)/.test(lab[1]))) {
-      var parts = text.split(/\s+(?:·|\|)\s+/);
-      title = stripEmphasis(parts[0]);
-      meta = parts.slice(1).map(stripEmphasis).join(' · ');
+      var tp = titleParts(text);
+      title = tp[0];
+      meta = tp[1];
       return;
     }
     if (lab && lab[1] && points.length) { points.push({ label: lab[0], text: lab[1] }); return; }
@@ -82,10 +101,11 @@ function parse(md) {
     var bullet = /^\s*(?:[-*•]|\d+[.)])\s+(.*)$/.exec(line);
     if (heading) {
       flushItem(); flushPara();
+      openNote = null;
       if (!title && heading[1].length === 1 && !points.length) {
-        var hp = heading[2].split(/\s+(?:·|\|)\s+/);
-        title = stripEmphasis(hp[0]);
-        meta = hp.slice(1).map(stripEmphasis).join(' · ');
+        var hp = titleParts(heading[2]);
+        title = hp[0];
+        meta = hp[1];
       } else {
         flushSection();
         section = { label: stripEmphasis(heading[2]).replace(/:$/, ''), parts: [] };
