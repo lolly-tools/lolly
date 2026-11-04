@@ -72,7 +72,7 @@ for (const theme of THEMES) {
     for (const tile of document.querySelectorAll<HTMLElement>('.gtile[data-tool-id]')) {
       const slide = tile.querySelector<HTMLElement>('.gcar-slide--ex');
       const img = slide?.querySelector<HTMLImageElement>('img.gcar-img[src]');
-      if (!slide || !img || !img.naturalWidth || !img.src.startsWith('data:')) continue;
+      if (!slide || !img?.naturalWidth || !img.src.startsWith('data:')) continue;
       let webp: string | null = null;
       try {
         const scale = Math.min(1, cardWidth / img.naturalWidth, (cardWidth * 0.75) / img.naturalHeight) || 1;
