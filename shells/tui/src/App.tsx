@@ -3,11 +3,12 @@
 // Profile · Assets, switched with 1/2/3/4) plus the tool view opened from Tools, a
 // saved Project, or a pasted lolly.tools URL. Each view owns its own keys; the app
 // just swaps them.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
 import { importDesignFile, ImportReviewRequired } from './import-design.ts';
 import type { ImportOptions, ImportResult } from './import-design.ts';
 import { toolLinkRoute } from './engine-render.ts';
+import { Automation } from './views/Automation.tsx';
 import { Gallery } from './views/Gallery.tsx';
 import { Projects } from './views/Projects.tsx';
 import { Profile } from './views/Profile.tsx';
@@ -23,8 +24,12 @@ import type { SavedSession } from './store.ts';
 import type { ToolEntry } from './catalog.ts';
 import type { NavTarget } from './nav.ts';
 import type { TuiBridge } from './bridge.ts';
+import { readTerminalBrand, type TerminalBrand } from './brand-theme.ts';
+import { setTerminalBrand } from './theme.ts';
+import { selectCliBridgeTokens } from '../../cli/src/bridge.ts';
 
 type Route =
+  | { name: 'automation' }
   | { name: 'batch' }
   | { name: 'prepare' }
   | { name: 'rebrand' }
@@ -42,6 +47,19 @@ type Route =
 export function App({ tools, bridge, firstRun = false, catalogError }: { catalogError?: string; tools: ToolEntry[]; bridge: TuiBridge; firstRun?: boolean }) {
   const { exit } = useApp();
   const [route, setRoute] = useState<Route>(firstRun ? { name: 'start' } : { name: 'gallery' });
+  const [brand, setBrand] = useState<TerminalBrand | null>(null);
+  const [brandRevision, setBrandRevision] = useState(0);
+  useEffect(() => {
+    if (route.name === 'tool') return;
+    selectCliBridgeTokens(bridge.host);
+    let alive = true;
+    void readTerminalBrand(bridge.host).catch(() => null).then(next => {
+      if (!alive) return;
+      setTerminalBrand(next?.primary);
+      setBrand(next);
+    });
+    return () => { alive = false; };
+  }, [route.name, bridge.host, brandRevision]);
   const nameById = new Map(tools.map(t => [t.id, t.name] as const));
   const toolName = (id: string): string => nameById.get(id) ?? id;
   const quit = (): void => exit();
@@ -75,6 +93,7 @@ export function App({ tools, bridge, firstRun = false, catalogError }: { catalog
   };
 
   switch (route.name) {
+    case 'automation': return <Automation onBack={() => setRoute({ name: 'gallery' })} />;
     case 'batch': return <BatchQueue onBack={() => setRoute({ name: 'gallery' })} />;
     case 'prepare':
       return <Prepare bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
@@ -104,10 +123,10 @@ export function App({ tools, bridge, firstRun = false, catalogError }: { catalog
     case 'catalog':
       return <Assets onNav={goNav} onQuit={quit} onOpenTool={(toolId, query) => nameById.has(toolId) && setRoute({ name: 'tool', toolId, query })} />;
     case 'system':
-      return <System onNav={goNav} onQuit={quit} initialAction={route.action} />;
+      return <System onChanged={() => setBrandRevision(value => value + 1)} onNav={goNav} onQuit={quit} initialAction={route.action} />;
     case 'tool':
       return <ToolView key={route.session?.slot ?? `${route.toolId}:${route.query ?? ''}`} session={route.session} toolId={route.toolId} query={route.query} values={route.values} fromLink={route.fromLink} bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
     default:
-      return <Gallery onBatch={() => setRoute({ name: 'batch' })} catalogError={catalogError} onPrepare={() => setRoute({ name: 'prepare' })} onRebrand={() => setRoute({ name: 'rebrand' })} tools={tools} onOpen={id => setRoute({ name: 'tool', toolId: id })} onOpenUrl={openToolUrl} onImportFile={importFile} onNav={goNav} onQuit={quit} />;
+      return <Gallery onAutomation={() => setRoute({ name: 'automation' })} brand={brand} onBatch={() => setRoute({ name: 'batch' })} catalogError={catalogError} onPrepare={() => setRoute({ name: 'prepare' })} onRebrand={() => setRoute({ name: 'rebrand' })} tools={tools} onOpen={id => setRoute({ name: 'tool', toolId: id })} onOpenUrl={openToolUrl} onImportFile={importFile} onNav={goNav} onQuit={quit} />;
   }
 }

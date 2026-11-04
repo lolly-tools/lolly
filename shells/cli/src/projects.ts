@@ -6,9 +6,12 @@ import {
   listSessionRecords,
   readSessionRecord,
   writeSessionRecord,
+  sessionFilePath,
 } from '@lolly-tools/node-shell/session-store';
 import { emitResult } from './envelope.ts';
 import { usageError } from './exit-codes.ts';
+import { isOn } from './args.ts';
+import { writeOut } from './output.ts';
 
 /** Explicit access to this device's saved projects. Exported JSON contains private document state. */
 export async function projectsCli(
@@ -18,6 +21,8 @@ export async function projectsCli(
 ): Promise<void> {
   const dir = resolveStateDir().dir;
   const [command = 'list', slot] = args;
+  if ((isOn(flags.null) || isOn(flags.paths)) && command !== 'list') throw usageError('--null and --paths apply to projects list.', 'BAD_INPUT');
+  if (json && isOn(flags.null)) throw usageError('Choose --json or --null output.', 'BAD_INPUT');
   let result: unknown;
   if (command === 'list') {
     const query = (flags.query ?? '').toLowerCase();
@@ -27,7 +32,14 @@ export async function projectsCli(
           record.toolId &&
           `${record.slot} ${record.label ?? ''} ${record.toolId}`.toLowerCase().includes(query)
       )
-      .map(({ slot, toolId, label, updatedAt }) => ({ slot, toolId, label, updatedAt }));
+      .map(({ slot, toolId, label, updatedAt }) => ({ slot, toolId, label, updatedAt, ...(isOn(flags.paths) ? { path: sessionFilePath(dir, slot) } : {}) }));
+    if (isOn(flags.null)) {
+      const records = result as Array<{ slot: string; path?: string }>;
+      const names = records.map(record => record.path ?? record.slot);
+      if (names.some(name => name.includes('\0'))) throw usageError('A project identifier contains a NUL character.', 'BAD_INPUT');
+      await writeOut(names.map(name => name + '\0').join(''));
+      return;
+    }
   } else {
     if (!['show', 'export', 'copy'].includes(command))
       throw usageError(

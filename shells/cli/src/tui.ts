@@ -95,7 +95,8 @@ export async function tuiCli(rest: readonly string[] = []): Promise<number> {
   const root = flags.root ? resolve(flags.root) : undefined;
   if (root && !hasContentMarker(root)) throw usageError('--root must name a Lolly checkout or materialized tools/catalog directory.', 'BAD_INPUT');
   const launch = resolveTuiLaunch();
-  const child = spawn(process.execPath, [...launch.args, ...rest], { stdio: 'inherit', env: { ...process.env, ...(root ? { LOLLY_ROOT: root } : {}), ...(launch.tsconfig ? { TSX_TSCONFIG_PATH: launch.tsconfig } : {}) } });
+  const screenReader = flags['screen-reader'];
+  const child = spawn(process.execPath, [...launch.args, ...rest], { stdio: 'inherit', env: { ...process.env, ...(screenReader === undefined ? {} : { INK_SCREEN_READER: /^(0|false|off|no)$/i.test(screenReader) ? 'false' : 'true' }), ...(root ? { LOLLY_ROOT: root } : {}), ...(launch.tsconfig ? { TSX_TSCONFIG_PATH: launch.tsconfig } : {}) } });
   return new Promise<number>((resolve, reject) => {
     child.on('error', reject);
     child.on('close', (code, signal) => resolve(exitCodeFrom(code, signal)));

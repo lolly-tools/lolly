@@ -38,7 +38,7 @@ import type { AssetRow } from '../catalog.ts';
 import { filterAssets, assetEmoji, assetDetail } from '../lib/asset-list.ts';
 import { loadFavourites, loadHidden, sortFavouritesFirst } from '../lib/asset-favourites.ts';
 import { expandHome, NotAPictureError, resolveAssetRef as resolveAsset, resolveRowPictures } from '../lib/asset-ref.ts';
-import { mountTool, renderSvg, exportToFile, exportableFormats, currentQuery, modelValues, isTransform, isCaptureTool, setCanvasSizeFrom, LinkPasswordError } from '../engine-render.ts';
+import { mountTool, setDocumentTokenSelection, renderSvg, exportToFile, exportableFormats, currentQuery, modelValues, isTransform, isCaptureTool, setCanvasSizeFrom, LinkPasswordError } from '../engine-render.ts';
 import { madeWithRowText } from '../made-with-row.ts';
 import { matchedExportFormat } from '@lolly-tools/node-shell/raster';
 import type { Runtime, Manifest } from '../engine-render.ts';
@@ -52,9 +52,11 @@ import { copyToClipboard } from '../clipboard.ts';
 import { buildMockup } from '../ascii-mockup.ts';
 import { useTermSize } from '../hooks.ts';
 import { cliRecipe, editInputValues, inputValuesJson, terminalReportLines } from '../terminal-workflows.ts';
+import { readTerminalBrand, type TerminalBrand } from '../brand-theme.ts';
+import { BrandStrip } from '../components/BrandStrip.tsx';
 import { describeEnvironment, formatReadiness } from '../../../cli/src/environment.ts';
 import { validateDocument } from '@lolly/engine';
-import { theme, setTerminalAppearance } from '../theme.ts';
+import { theme, setTerminalAppearance, setTerminalBrand, setBrandAccents, brandAccentsEnabled } from '../theme.ts';
 import { Panel } from '../components/Panel.tsx';
 import { Footer, footerLines } from '../components/Footer.tsx';
 import type { Shortcut } from '../components/Footer.tsx';
@@ -208,7 +210,8 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
   const pendingEdit = useRef<{ values: Record<string, unknown>; base: string } | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [manifest, setManifest] = useState<Manifest | null>(null);
-  const [documentThemes, setDocumentThemes] = useState<Array<{ name: string; group: string | null; id?: string }>>([]);
+  const [documentThemes, setDocumentThemes] = useState<Array<{ name: string; group: string | null; id?: string; swatch?: string }>>([]);
+  const [brand, setBrand] = useState<TerminalBrand | null>(null);
   const [model, setModel] = useState<ModelItem[]>([]);
   const [focus, setFocus] = useState<Focus>('inputs');
   const [sel, setSel] = useState(0);
@@ -336,7 +339,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
     : TOOL_SHORTCUTS;
 
   const footerH = Math.max(footerLines(footerShortcuts, undefined, cols), footerLines(TOOL_SHORTCUTS, undefined, cols));
-  const bodyH = Math.max(6, rows - 2 - footerH);
+  const bodyH = Math.max(6, rows - 2 - footerH - (brand ? 1 : 0));
   const inputsW = stacked ? cols : Math.max(30, Math.min(46, Math.floor(cols * 0.44)));
   const rightW = stacked ? cols : cols - inputsW;
   // A utility shows its result even on a narrow (stacked) terminal, so the stacked column
@@ -387,7 +390,12 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
         if (!alive) return;
         if (session?.rightsDecisions) m.runtime.setRightsDecisions(session.rightsDecisions);
         setRuntime(m.runtime); setManifest(m.manifest);
-        setDocumentThemes(await bridge.host.tokens?.themes().catch(() => []) ?? []);
+        const themes = await bridge.host.tokens?.themes().catch(() => []) ?? [];
+        setDocumentThemes(await Promise.all(themes.map(async choice => {
+          const selection = { ...m.runtime.tokenSelection, [choice.group ?? '']: choice.id ?? choice.name };
+          const palette = await readTerminalBrand(bridge.host, selection).catch(() => null);
+          return { ...choice, swatch: palette?.primary };
+        })));
         if (!alive) return;
         const mdl = presentInputs(m.runtime.getModel()) as unknown as ModelItem[];
         setModel(mdl);
@@ -477,6 +485,18 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
 
   // Close the interactive canvas's jsdom when the whole view unmounts.
   useEffect(() => () => { icRef.current?.destroy(); }, []);
+  useEffect(() => () => { runtime?.destroy(); }, [runtime]);
+
+  useEffect(() => {
+    if (!runtime) return;
+    let alive = true;
+    void readTerminalBrand(bridge.host, runtime.tokenSelection ?? {}).catch(() => null).then(next => {
+      if (!alive) return;
+      setTerminalBrand(next?.primary);
+      setBrand(next);
+    });
+    return () => { alive = false; };
+  }, [runtime, rev, bridge.host]);
 
   useEffect(() => {
     setScroll(s => (sel < s ? sel : sel >= s + visibleInputs ? sel - visibleInputs + 1 : s));
@@ -597,7 +617,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
   async function restoreSnapshot(snap: Array<{ id: string; value: unknown }>, themes?: Record<string, string>): Promise<void> {
     if (!runtime) return;
     restoringRef.current = true;
-    await runtime.setTokenSelection(themes ?? {});
+    await setDocumentTokenSelection(runtime, bridge.host, themes ?? {});
     for (const { id, value } of snap) { try { await runtime.setInput(id, value as never); } catch { /* input gone */ } }
     const shown = presentInputs(runtime.getModel()) as unknown as ModelItem[];
     setSel(inputFocus(shown, model[sel]?.id, sel)); setModel(shown); setRev(r => r + 1); setShareUrl('');
@@ -1046,7 +1066,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
     for (const [id, value] of Object.entries(pending.values)) await runtime.setInput(id, value as never);
     refresh(); setStatus('Editor changes applied. Use undo to restore the previous inputs.');
   }
-  const actions: Array<{ label: string; run: () => void }> = [
+  const actions: Array<{ label: string; swatch?: string; run: () => void }> = [
     { label: 'Export document', run: doExport },
     { label: 'Save project', run: () => saveNow(saved.current?.label ?? name) },
     { label: 'Save project as', run: () => { setDraft(saved.current?.label ?? name); setMode('naming'); } },
@@ -1054,12 +1074,15 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
     { label: 'Copy private Bash/Zsh CLI recipe', run: () => { if (runtime) { try { void flushCopy(cliRecipe(toolId, modelValues(runtime), { ...documentOptions(), tokenSelection: runtime.tokenSelection, ...(runtime.emoji.style ? { emojiStyle: JSON.stringify(runtime.emoji.style) } : { emoji: 'none' }) }, outPath)); } catch (error) { setStatus((error as Error).message); } } } },
     { label: 'Edit inputs in VISUAL / EDITOR', run: () => { void editExternally(); } },
     { label: 'Renderer readiness and recent logs', run: () => { void diagnostics(); } },
+    { label: 'Inspect brand palette', run: () => showReport('Brand palette', brand ? [brand.label, ...brand.choices, ...brand.swatches.map(swatch => `${swatch.label}: ${swatch.value}`)] : ['This design system has no colour tokens.']) },
+    { label: 'Copy brand palette as JSON', run: () => { if (brand) void flushCopy(JSON.stringify(brand, null, 2)); } },
+    { label: `Terminal brand accents: ${brandAccentsEnabled() ? 'on' : 'off'} (toggle)`, run: () => { const enabled = !brandAccentsEnabled(); setBrandAccents(enabled); void getProfile().then(profile => setProfile({ ...profile, terminalBrand: enabled })); setRev(value => value + 1); } },
     { label: 'Input help', run: () => { const input = runtime?.getModel().find(input => input.id === model[sel]?.id); showReport(input?.label ?? 'Input help', [input?.help ?? 'No additional help provided.', `Input: ${input?.id ?? ''}`, `Group: ${input?.group ?? 'general'}`, input?.required ? 'Required' : 'Optional']); } },
     ...model.map((input, index) => ({ label: `Go to input: ${input.group ? input.group + ' / ' : ''}${input.label ?? input.id}`, run: () => { setSel(index); setFocus('inputs'); setBlk(null); setGrid(null); } })),
-    { label: 'Document: use default theme choices', run: () => { if (runtime) void runtime.setTokenSelection({}).then(refresh).catch(error => setStatus((error as Error).message)); } },
-    ...documentThemes.map(choice => ({ label: `Document ${choice.group || 'theme'}: ${choice.name}`, run: () => {
+    { label: 'Document: use default theme choices', run: () => { if (runtime) void setDocumentTokenSelection(runtime, bridge.host, {}).then(refresh).catch(error => setStatus((error as Error).message)); } },
+    ...documentThemes.map(choice => ({ label: `Document ${choice.group || 'theme'}: ${choice.name}`, swatch: choice.swatch, run: () => {
       if (!runtime) return;
-      void runtime.setTokenSelection({ ...runtime.tokenSelection, [choice.group ?? '']: choice.id ?? choice.name })
+      void setDocumentTokenSelection(runtime, bridge.host, { ...runtime.tokenSelection, [choice.group ?? '']: choice.id ?? choice.name })
         .then(() => { refresh(); setStatus('Document theme changed. Save to keep this choice.'); })
         .catch(error => setStatus((error as Error).message));
     } })),
@@ -1695,7 +1718,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
       <Panel title={mode === 'actions' ? 'Tool actions' : report.title} width={cols} height={Math.max(4, rows - 2)} active>
         {mode === 'actions' ? <>
           <TextInput value={actionSearch} onChange={value => { setActionSearch(value); setActionIndex(0); }} placeholder="Find an action" />
-          {matchingActions.slice(start, start + page).map((action, index) => <Text key={action.label} color={start + index === actionIndex ? theme.accentName : theme.dim} wrap="truncate-end">{start + index === actionIndex ? '> ' : '  '}{action.label}</Text>)}
+          {matchingActions.slice(start, start + page).map((action, index) => <Text key={action.label} color={start + index === actionIndex ? theme.accentName : theme.dim} wrap="truncate-end">{start + index === actionIndex ? '> ' : '  '}{action.swatch && process.env.NO_COLOR === undefined ? <Text color={action.swatch}>██ </Text> : null}{action.label}</Text>)}
         </> : report.lines.slice(reportScroll, reportScroll + page).map(line => <Text key={line.id} wrap="truncate-end">{line.text || ' '}</Text>)}
       </Panel>
       <Text>{mode === 'actions' ? 'arrows choose / enter run / esc back' : mode === 'reviewEdit' ? 'a apply / j,k scroll / esc discard' : 'j,k scroll / esc back'}</Text>
@@ -1705,6 +1728,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
   return (
     <Box flexDirection="column" width={cols} height={rows}>
       <Box height={1} paddingX={1}><Text color={theme.dim}>esc ‹ </Text><Text>Tools › </Text><Text bold color={theme.accentName}>{name}</Text><Text color={theme.dim}>{'    tab: ' + (focus === 'inputs' ? 'Inputs' : focus === 'export' ? 'Export' : interactive ? 'Live' : 'Content')}</Text></Box>
+      {brand ? <Box height={1} flexShrink={0} paddingX={1}><BrandStrip brand={brand} columns={cols - 2} /></Box> : null}
       {docFull
         ? <Box flexDirection="column" height={bodyH} overflow="hidden">{previewPanel}{exportPanel}</Box>
         : stacked

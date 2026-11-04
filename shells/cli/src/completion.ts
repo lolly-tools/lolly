@@ -49,7 +49,7 @@ import {
 export type CompletionShell = 'bash' | 'zsh' | 'fish';
 export const COMPLETION_SHELLS: readonly CompletionShell[] = ['bash', 'zsh', 'fish'];
 
-const GLOBAL_BOOL_FLAGS = ['json', 'quiet', 'verbose', 'strict', 'dry-run', 'preflight', 'resume', 'watch', 'keep-going', 'include-personal'] as const;
+const GLOBAL_BOOL_FLAGS = ['json', 'quiet', 'verbose', 'strict', 'dry-run', 'preflight', 'resume', 'watch', 'keep-going', 'include-personal', 'null', 'paths', 'screen-reader'] as const;
 
 /** Value flags whose value is a filesystem path - completed as files/dirs, never a word list. */
 const PATH_FLAGS = new Set([

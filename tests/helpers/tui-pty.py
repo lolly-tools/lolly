@@ -34,7 +34,9 @@ try:
     if child.poll() is None:
         sys.stderr.buffer.write(output[-6000:])
         raise RuntimeError('terminal entry timed out' + ('' if ready else ' before the home screen appeared'))
-    if not ready or child.wait() != 0 or b'\x1b[?1049l' not in output:
+    reader = any(arg.startswith('--screen-reader') for arg in sys.argv)
+    restored = b'\x1b[?1049l' in output if not reader else b'\x1b[?1049h' not in output
+    if not ready or child.wait() != 0 or not restored:
         sys.stderr.buffer.write(output[-6000:])
         raise RuntimeError('terminal entry did not mount and restore cleanly')
 finally:

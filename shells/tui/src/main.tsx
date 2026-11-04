@@ -9,7 +9,7 @@ import { render } from 'ink';
 import { App } from './App.tsx';
 import { createTuiBridge, captureTuiConsole } from './bridge.ts';
 import { getProfile } from './store.ts';
-import { setTerminalAppearance } from './theme.ts';
+import { setTerminalAppearance, setBrandAccents } from './theme.ts';
 import { loadTools } from './catalog.ts';
 import { nodeStartSeen } from '@lolly-tools/node-shell/design-systems';
 
@@ -17,6 +17,7 @@ const ENTER_ALT = '\x1b[?1049h\x1b[2J\x1b[H';   // alt buffer + clear + home
 const LEAVE_ALT = '\x1b[?1049l';
 
 async function main(): Promise<void> {
+  const screenReader = process.env.INK_SCREEN_READER === 'true' || process.argv.some(arg => /^--screen-reader(?:=(?:1|true|on|yes))?$/.test(arg));
   if (!process.stdout.isTTY) {
     process.stderr.write('lolly-tui needs an interactive terminal (TTY). Run it directly, e.g. `npm run tui`.\n');
     process.exit(1);
@@ -25,11 +26,12 @@ async function main(): Promise<void> {
   const tools = await loadTools().catch(error => { catalogError = (error as Error).message; return []; });
   const [bridge, startSeen, profile] = await Promise.all([createTuiBridge({}, { catalogAvailable: !catalogError }), nodeStartSeen(), getProfile()]);
   if (profile.terminalAppearance === 'light' || profile.terminalAppearance === 'dark' || profile.terminalAppearance === 'terminal') setTerminalAppearance(profile.terminalAppearance);
+  setBrandAccents(profile.terminalBrand !== false);
 
   const restoreConsole = captureTuiConsole(bridge.logs);
-  process.stdout.write(ENTER_ALT);
+  if (!screenReader) process.stdout.write(ENTER_ALT);
   let restored = false;
-  const restore = (): void => { if (restored) return; restored = true; restoreConsole(); process.stdout.write(LEAVE_ALT); };
+  const restore = (): void => { if (restored) return; restored = true; restoreConsole(); if (!screenReader) process.stdout.write(LEAVE_ALT); };
   // Restore the main screen however we leave - clean quit, crash, or signal.
   process.on('exit', restore);
   process.on('SIGINT', () => { restore(); process.exit(0); });
@@ -38,7 +40,7 @@ async function main(): Promise<void> {
   // Ink turns interactive rendering off whenever it sees CI or any CI_* variable, which leaves a real
   // terminal blank (some dev containers and task runners set CI). This entry already refuses to start
   // without a TTY, so a TTY here means a person is watching.
-  const { waitUntilExit } = render(<App catalogError={catalogError} tools={tools} bridge={bridge} firstRun={!startSeen} />, { patchConsole: false, interactive: Boolean(process.stdout.isTTY) });
+  const { waitUntilExit } = render(<App catalogError={catalogError} tools={tools} bridge={bridge} firstRun={!startSeen} />, { patchConsole: false, interactive: Boolean(process.stdout.isTTY), isScreenReaderEnabled: screenReader });
   await waitUntilExit();
   restore();
   // Tear down the browser render tier if it was ever launched (lazy singletons -
@@ -50,7 +52,6 @@ async function main(): Promise<void> {
 }
 
 main().catch(err => {
-  process.stdout.write(LEAVE_ALT);
   process.stderr.write('lolly-tui failed to start: ' + ((err as Error)?.stack ?? String(err)) + '\n');
   process.exit(1);
 });

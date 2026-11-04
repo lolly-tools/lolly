@@ -8,6 +8,8 @@ From a checkout:
 pnpm run tui
 ```
 
+For an accessible terminal renderer, use `lolly tui --screen-reader` (or `INK_SCREEN_READER=true`). This keeps the normal terminal buffer and uses Ink's screen-reader output. Plain `lolly list`, `describe`, `projects` and `--json` remain useful for linear workflows.
+
 With a standalone `lolly` binary, `lolly tui` and `lolly-tui` start the same thing. See [Install](/info/cli.html#install) for the two ways to get the command.
 
 The TUI takes over the whole screen, like `vim` or `htop`, and restores your terminal when you quit. It needs a real interactive terminal (a TTY); with its output piped, it says so and stops.
@@ -48,6 +50,7 @@ Switch views with the number keys: **1** Tools, **2** Projects, **3** Profile, *
 | View | Key | Does |
 |---|---|---|
 | Tools | `/` | Search |
+| Tools | `?` / `:` | Find a local models, conversion, learning or compose workflow |
 | Tools | `Enter` | Open the selected tool |
 | Tools | `u` | Open a pasted `lolly.tools` link, already configured |
 | Tools | `i` | Import a PDF or `.ai` as a Design session |
@@ -111,10 +114,15 @@ fields presents a review choice; omission is the default. A generated share link
 shown on screen without an automatic link-file write.
 
 The `?` action palette offers document colourways, help, renderer readiness and logs.
-Terminal light/dark/default appearance is separate from the document's colours.
-`NO_COLOR` removes UI colour. A private Bash/Zsh CLI recipe keeps values on stdin.
+Terminal light/dark/default appearance is separate from the document's colours. The active system supplies the accent, and a document's colourway follows you into its tool view. A compact palette strip shows the brand and choices; action rows show each colourway's lead colour before you choose. Low-contrast accents keep their hue while lightness adjusts for the selected terminal backdrop. Use light or dark appearance when the automatic backdrop guess differs from your terminal. Brand accents can be disabled from the action palette.
+
+The palette action lists exact colour values and can copy them as JSON. This terminal styling changes no authored colours. `NO_COLOR` removes UI colour and keeps the brand/colourway names. A private Bash/Zsh CLI recipe keeps values on stdin.
 External editing uses `VISUAL` or `EDITOR`, validates the returned JSON and shows
 changes before applying. Windows editor configuration takes an executable path.
+
+## Local workflows
+
+Press `?` from Tools to search existing terminal workflows: installed models, file inspection/conversion, document checks, learning checks/builds and slide composition. Fill in the requested paths, review the exact command, then press Enter to run. Commands run in a separate process, and their full JSON results are scrollable. `c` cancels a running operation. No model downloads start from this screen.
 
 ## Prepare, Rebrand and import
 
