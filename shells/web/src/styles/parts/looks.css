@@ -9,7 +9,8 @@
 .ds-looks-modal .field-input { min-height: 44px; max-width: 100%; }
 .ds-looks-modal button { min-height: 44px; white-space: normal; }
 .ds-looks-modal .be-cta.is-active { animation: none; }
-.ds-looks-modal [data-looks-compare] { scroll-margin-block-start: 90px; }
+.ds-looks-modal [data-looks-compare],
+.ds-looks-modal [data-looks-preview] { scroll-margin-block-start: 90px; }
 
 .ds-looks-filters { display: flex; flex-wrap: wrap; gap: var(--sp-5); align-items: end; margin-block: var(--sp-6); }
 .ds-looks-filters .field-label { flex: 1; min-width: min(240px, 100%); }
@@ -48,6 +49,7 @@
 .ds-looks-scene[hidden] { display: none; }
 .ds-looks-scene svg { display: block; width: 100%; height: auto; }
 .ds-looks-preview-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.ds-looks-preview-foot .view-seg-btn { white-space: nowrap; }
 .ds-looks-preview .ds-src-stage-note { margin: 0; }
 
 .ds-looks-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--sp-6); }

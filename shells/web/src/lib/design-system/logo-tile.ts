@@ -17,7 +17,7 @@
  */
 import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
-import { TREATMENT_META, splitVariant, type LogoSlot } from '../brand-logos.ts';
+import { TREATMENT_META, splitVariant, variantLabel, type LogoSlot } from '../brand-logos.ts';
 import { prettify } from '../brand-doc.ts';
 
 /** `wide` for a horizontal lockup, `square` for a vertical one or a mark of its own. */
@@ -32,9 +32,13 @@ export function logoTileShape(variant: string): LogoTileShape {
   return orientation === 'horizontal' ? 'wide' : 'square';
 }
 
-/** What an empty slot asks for, in words. */
+/** What an empty slot asks for, in words. The primary slot of each orientation
+ *  names the logo; its other forms say only that a drop adds one, because the
+ *  hint under each tile already says which form it is. */
 export function emptySlotPrompt(variant: string): string {
-  return splitVariant(variant).orientation === 'vertical' ? t('Drop your vertical logo') : t('Drop your horizontal logo');
+  const { orientation, treatment } = splitVariant(variant);
+  if (treatment !== 'primary') return t('Drop to add');
+  return orientation === 'vertical' ? t('Drop your vertical logo') : t('Drop your horizontal logo');
 }
 
 /** The Fauna placeholder for the magpie, who watches the place a mark is dropped.
@@ -52,13 +56,16 @@ export interface LogoTileOptions {
 export function logoTileHtml(variant: string, identity: string, slot: LogoSlot | undefined, opts: LogoTileOptions = {}): string {
   const { treatment } = splitVariant(variant);
   const tm = treatment ? TREATMENT_META[treatment] : null;
-  const name = opts.label ?? slot?.label ?? (tm ? tm.label : prettify(variant));
+  // A matrix tile sits under its orientation's heading, so its own name is the
+  // treatment alone, filled or empty. Assistive names keep the full slot name.
+  const name = opts.label ?? (tm ? tm.label : slot?.label ?? prettify(variant));
+  const fullName = opts.label ?? slot?.label ?? variantLabel(variant);
   const hint = slot ? t('Click to replace') : (tm ? tm.hint : t('A mark named its own way.'));
   // The whole tile is the file input's label and its drop target: data-file-drop
   // marks it, and logo-intake.ts wires the drop through lib/file-drop-tile.ts to
   // the same placement a picked file takes.
   const body = slot
-    ? `<span class="be-logo-art"><img src="${escapeText(slot.url)}" alt="${escapeText(tRaw('{name} logo', { name }))}" loading="lazy"></span>`
+    ? `<span class="be-logo-art"><img src="${escapeText(slot.url)}" alt="${escapeText(tRaw('{name} logo', { name: fullName }))}" loading="lazy"></span>`
     : `<span class="be-logo-empty">${opts.fauna ? MAGPIE_SLOT : ''}<span class="be-logo-empty-prompt">${escapeText(emptySlotPrompt(variant))}</span></span>`;
   // The slot's file input is `visually-hidden`, never `hidden`: a display:none
   // input is not focusable, which made every logo slot mouse-only. The label
@@ -66,10 +73,10 @@ export function logoTileHtml(variant: string, identity: string, slot: LogoSlot |
   // (brand-studio.css), the same construction the shared dropzone uses.
   return `<div class="be-logo-slot${slot ? ' is-filled' : ''}" data-be-logo="${escapeText(variant)}" data-treatment="${treatment ?? 'custom'}" data-shape="${logoTileShape(variant)}">
         <div class="be-logo-slot-head"><span class="be-logo-slot-name">${escapeText(name)}</span>
-          ${slot && !slot.shipped ? `<button type="button" class="be-logo-del" data-logo-del="${escapeText(variant)}" data-identity="${escapeText(identity)}" aria-label="${escapeText(tRaw('Remove the {name} mark', { name }))}">&#x2715;</button>` : ''}</div>
+          ${slot && !slot.shipped ? `<button type="button" class="be-logo-del" data-logo-del="${escapeText(variant)}" data-identity="${escapeText(identity)}" aria-label="${escapeText(tRaw('Remove the {name} mark', { name: fullName }))}">&#x2715;</button>` : ''}</div>
         <label class="be-logo-drop" data-file-drop data-drop-label="${escapeText(slot ? t('Drop to replace') : t('Drop to add'))}">
           ${body}
-          <input type="file" class="be-logo-file visually-hidden" data-logo-file="${escapeText(variant)}" data-identity="${escapeText(identity)}" accept="image/png,image/jpeg,image/svg+xml,image/webp" aria-label="${escapeText(tRaw('Replace the {name} mark', { name }))}">
+          <input type="file" class="be-logo-file visually-hidden" data-logo-file="${escapeText(variant)}" data-identity="${escapeText(identity)}" accept="image/png,image/jpeg,image/svg+xml,image/webp" aria-label="${escapeText(tRaw('Replace the {name} mark', { name: fullName }))}">
         </label>
         <p class="be-logo-hint">${escapeText(hint)}</p>
       </div>`;

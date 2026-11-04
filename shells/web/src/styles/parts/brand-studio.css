@@ -612,15 +612,16 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    eight slots more than five screens of thumb. */
 @media (max-width: 640px) {
   .be-logo-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
-  /* Two lines kept for every slot's name, so a name that wraps ("Horizontal ·
-     primary reverse") does not push its tile below its neighbour's. */
-  .be-logo-slot > .be-logo-slot-head { align-items: flex-start; min-height: calc(var(--fs-xs) * 2.8); }
 }
 /* A tile takes its lockup's shape (lib/design-system/logo-tile.ts): a horizontal
-   lockup sits in a wide tile, a vertical one or a mark of its own in a square. */
-.be-logo-slot { --logo-ratio: 1; display: grid; gap: .4rem; align-content: start; }
+   lockup sits in a wide tile, a vertical one or a mark of its own in a square.
+   Each slot's name, tile and hint share the row's three tracks (subgrid), so a
+   name that wraps in one language keeps every tile in the row level, with no
+   blank line reserved for it in the others. */
+.be-logo-slot { --logo-ratio: 1; display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: .4rem; }
 .be-logo-slot[data-shape="wide"] { --logo-ratio: 2; }
-.be-logo-slot-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.2rem; }
+.be-logo-row > .be-logo-addmark { grid-row: span 3; }
+.be-logo-slot-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.2rem; align-self: end; }
 .be-logo-slot-name { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
 .be-logo-del {
   border: 0; background: transparent; cursor: pointer; padding: .1rem .3rem; line-height: 1;

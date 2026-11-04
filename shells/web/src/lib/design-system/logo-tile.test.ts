@@ -40,7 +40,8 @@ test('an empty slot is a drop area that names its logo and draws no mark', () =>
   assert.match(html, /data-file-drop/, 'the tile takes a dropped file');
   assert.match(html, /Drop your horizontal logo/);
   assert.match(html, /data-drop-label="Drop to add"/);
-  assert.equal(emptySlotPrompt('vertical-primary-reverse'), 'Drop your vertical logo');
+  assert.equal(emptySlotPrompt('vertical-primary'), 'Drop your vertical logo');
+  assert.equal(emptySlotPrompt('vertical-primary-reverse'), 'Drop to add', 'the other forms do not repeat the sentence');
 });
 
 test('only the tile asked for carries the magpie\'s placeholder, and it is empty and hidden from AT', () => {
@@ -72,4 +73,12 @@ test('the stylesheet sets each shape\'s aspect, clear space and contain, never a
   // An empty slot is a drop target, so its border is dashed; a filled one is solid.
   assert.match(css, /\.be-logo-drop\s*\{[^}]*border:\s*1\.5px dashed/);
   assert.match(css, /\.be-logo-slot\.is-filled \.be-logo-drop\s*\{\s*border-style:\s*solid;/);
+});
+
+test('a matrix tile is named for its treatment, and assistive names keep the full slot', () => {
+  const html = logoTileHtml('vertical-mono-reverse', 'default', slot('vertical-mono-reverse', { label: 'Vertical · Mono reverse' }));
+  assert.match(html, /<span class="be-logo-slot-name">Mono reverse<\/span>/);
+  assert.match(html, /aria-label="Remove the Vertical · Mono reverse mark"/);
+  assert.match(logoTileHtml('vertical-mono', 'default', undefined), /<span class="be-logo-slot-name">Mono<\/span>/);
+  assert.match(logoTileHtml('icon', 'default', slot('icon', { label: 'Icon', custom: true })), /<span class="be-logo-slot-name">Icon<\/span>/);
 });

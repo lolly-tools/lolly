@@ -32,12 +32,12 @@ test('every look has a tag line: written tags first, measured words otherwise', 
   for (const look of exampleLooks()) assert.equal(lookTagline(look).length, 3, look.name);
   assert.deepEqual(lookTagline(exampleLooks()[0]!), ['calm', 'green', 'nature']);
   // A shipped or saved system with no tags (Lolly Demo, Lolly Starter) is described
-  // by its lead colour and its typeface, and never by a count.
+  // by its lead and second colours, never by a count or a typeface name.
   const deepTeal = localLook('lolly-demo', 'Lolly Demo', 'saved', {
-    color: { semantic: { primary: { $type: 'color', $value: '#003B36' } } },
+    color: { semantic: { primary: { $type: 'color', $value: '#003B36' }, secondary: { $type: 'color', $value: '#50C369' } } },
     font: { brand: { $type: 'fontFamily', $value: 'Crossland' } },
   });
-  assert.deepEqual(lookTagline(deepTeal), ['deep', 'teal', 'Crossland']);
+  assert.deepEqual(lookTagline(deepTeal), ['deep', 'teal', 'green']);
   const ink = localLook('lolly-start', 'Lolly Starter', 'saved', { color: { neutral: { 1: { $type: 'color', $value: '#1d1d1d' } } } });
   assert.deepEqual(lookTagline(ink), ['neutral']);
   const tagged = localLook('mine', 'Mine', 'saved', deepTeal.doc, ['School']);

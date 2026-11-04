@@ -43,7 +43,7 @@ const settle = async (): Promise<void> => { for (let i = 0; i < 8; i++) await ti
 function harness() {
   const writes: string[] = [];
   const installs: Array<{ name: string; doc: unknown; busy: string | null }> = [];
-  const savedDoc = { color: { semantic: { primary: { $type: 'color', $value: '#003B36' } } }, font: { brand: { $type: 'fontFamily', $value: 'Crossland' } } };
+  const savedDoc = { color: { semantic: { primary: { $type: 'color', $value: '#003B36' }, secondary: { $type: 'color', $value: '#50C369' } } }, font: { brand: { $type: 'fontFamily', $value: 'Crossland' } } };
   const rows = async () => [{ id: 'mine', label: 'Lolly Demo', headId: 'mine-head', tags: [] }];
   const host = {
     designSystems: {
@@ -110,7 +110,7 @@ test('each card has its own Use this look, which applies that look at the regist
     assert.equal(card.textContent!.split(card.querySelector('.ds-preview-caption')!.textContent!).length, 2);
     assert.ok(card.querySelector('.ds-look-tagline')!.textContent!.trim(), `${card.dataset.lookCard} has a tag line`);
   }
-  assert.equal(q('[data-look-card="mine"] .ds-look-tagline')?.textContent, 'deep · teal · Crossland');
+  assert.equal(q('[data-look-card="mine"] .ds-look-tagline')?.textContent, 'deep · teal · green');
   click(q('[data-look-card="example:sunroom"] [data-look-use]'));
   await settle();
   assert.equal(installs.length, 1);

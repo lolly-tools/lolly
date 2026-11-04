@@ -92,26 +92,26 @@ const moodWord = (mood: LookMood): string => ({ deep: t('deep'), pale: t('pale')
 export function lookLead(look: LocalLook): string | undefined {
   return look.context.colors.find(c => c.path.endsWith('.semantic.primary'))?.value ?? look.context.colors[0]?.value;
 }
-/** The look's first declared family, without quotes or fallbacks. */
-function leadFamily(look: LocalLook): string {
-  const fonts = look.context.fonts;
-  const value = (fonts.find(f => f.path === 'font.brand') ?? fonts[0])?.value ?? '';
-  return value.split(',')[0]!.trim().replace(/^['"]|['"]$/g, '');
-}
 /**
  * The words under a look's card. Tags someone wrote come first and stand alone.
  * A look with none (a shipped system, a saved one never tagged) is described by
- * what can be measured: how its lead colour sits, its colour family and its
- * typeface. No count, because the rooms already say how many colours a system
- * holds and a third number would disagree with them.
+ * what can be measured: how its lead colour sits, the lead colour's family and,
+ * when it differs, the second colour's. No count, because the rooms already say
+ * how many colours a system holds and a third number would disagree with them;
+ * and no typeface, which the specimen above the words already shows.
  */
 export function lookTagline(look: LocalLook): string[] {
   if (look.tags.length) return look.tags;
   const lead = lookLead(look);
+  const second = look.context.colors.find(c => c.path.endsWith('.semantic.secondary'))?.value;
   const hue = lead ? hueFamily(lead) : null;
   const mood = lead ? hueMood(lead) : null;
-  const family = leadFamily(look);
-  return [mood ? moodWord(mood) : '', hue ? hueWord(hue) : '', family].filter(Boolean);
+  const other = second ? hueFamily(second) : null;
+  return [
+    mood ? moodWord(mood) : '',
+    hue ? hueWord(hue) : '',
+    other && other !== hue && other !== 'neutral' ? hueWord(other) : '',
+  ].filter(Boolean);
 }
 
 /** A look's colours and roles in the shape palette-preview.ts draws its scenes
