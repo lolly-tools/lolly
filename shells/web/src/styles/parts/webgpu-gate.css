@@ -1,6 +1,5 @@
-/* Cascade layer: loaded with lib/boot-error.ts, so it sits in `views` and keeps
-   a fixed priority whenever Vite injects the chunk. */
-@layer views {
+/* Cascade layer: views, from app.css. Loaded eagerly with the app's stylesheet (not from
+   lib/boot-error.ts), because a bundle without a CSS loader must be able to import that module. */
 /*
  * The unsupported-environment card (lib/boot-error.ts webGpuGate; plan 346,
  * changes 13 and 21). A door, not an error: Lolly's own calm card on the page's
@@ -82,5 +81,4 @@
 
 @media (max-width: 640px) {
   .webgpu-gate { padding: var(--sp-7); }
-}
 }

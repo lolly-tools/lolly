@@ -68,6 +68,7 @@
 @import './parts/lolly-spin.css'   layer(chrome); /* Lolly's spin at the register (components/lolly-spin.ts) */
 @import './parts/present.css'      layer(chrome); /* presentation mode fullscreen deck (plan 112) - body-level fixed overlay, above every view */
 @import './parts/sequence.css'     layer(views);  /* `.seq-off` - the sequence applier's ONE visibility rule. In the views layer (where it lived inside timeline.css) but EAGER: the presenter and the still export both apply the class without ever mounting the timeline panel, so it cannot ride that panel's lazy chunk. See the file's own header. */
+@import './parts/webgpu-gate.css' layer(views);  /* the unsupported-environment card from lib/boot-error.ts; eager, because the gate shows before any view mounts */
 @import './parts/job-toast.css'    layer(chrome); /* global async-job progress toast (plan 124 WP-F) - body-level fixed, outside #view, below modals */
 @import './parts/css-editor.css'   layer(chrome); /* shared CSS code editor (plan 112 M4) - highlight overlay + autocomplete */
 @import './parts/saved-list.css'   layer(chrome); /* saved-session rows - history modal + drawer + /profile */

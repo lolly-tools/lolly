@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MPL-2.0
-import '../styles/parts/webgpu-gate.css';
 import { docsHref, t } from '../i18n.ts';
 import { isWebGpuFailure, isWebGpuMissing, webGpuFailureText, type WebGpuErrorCode } from './webgpu/device.ts';
 import { getFloatCluster } from './float-cluster.ts';

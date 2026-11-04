@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+/// <reference types="vite/client" />
 /**
  * Which /info locale trees a build ships.
  *
@@ -37,7 +38,7 @@ function builtLocales(): readonly Lang[] | null {
   try {
     // Cast, not a global type: the docs build typechecks this module without Vite's
     // ImportMeta. The expression stays `import.meta.env.VITE_INFO_LOCALES` for the define.
-    return parseInfoLocales((import.meta as unknown as { env?: { VITE_INFO_LOCALES?: string } }).env?.VITE_INFO_LOCALES);
+    return parseInfoLocales(import.meta.env?.VITE_INFO_LOCALES);
   } catch {
     // The docs build refuses an unknown code before Vite runs, so this only guards a
     // hand-made build: it keeps the shell's links local, as with no list at all.
