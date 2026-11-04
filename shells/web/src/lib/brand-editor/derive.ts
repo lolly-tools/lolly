@@ -29,6 +29,7 @@ import { playSfx } from '../sfx.ts';
 import { helpTip } from '../../components/help-tip.ts';
 import { ROLE_IDS, readRoles, roleLabel } from '../design-system/roles.ts';
 import { leadTokenSet } from '../design-system/leads.ts';
+import { MAGPIE_SLOT } from '../design-system/logo-tile.ts';
 import { CONTRASTS, DEFAULT_PRIMARY, FOREGROUNDS, INTENSITIES, PALETTE_FORMATS, RAMP_LABEL, SCHEMES, TYPE_ROLES, deriveSafe, finishLabel, mountPrintLock, previewHtml, typeRoleCardHtml } from './shared.ts';
 import type { Contrast, Fg, HarmonyKind, Scheme, Surface } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
@@ -262,7 +263,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
           <div class="be-logo-intake" data-be-logo-intake>
             <label class="be-logo-intake-drop">
               <input type="file" class="visually-hidden" data-be-logo-multi multiple accept="image/png,image/jpeg,image/svg+xml,image/webp" aria-label="${escapeText(t('Choose logo files'))}">
-              <span class="be-logo-intake-glyph" aria-hidden="true">${icon('uploadImage', { size: 20 })}</span>
+              <span class="be-logo-intake-glyph" aria-hidden="true">${icon('uploadImage', { size: 20 })}</span>${MAGPIE_SLOT}
               <span class="be-logo-intake-lead">${t('Drop marks here, or choose several at once')}</span>
               <span class="be-logo-intake-hint">${t('Each file is read for its shape and its ink, then offered the slot it looks like. Nothing is placed until you tap.')}</span>
             </label>

@@ -605,7 +605,9 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    pop is absolutely positioned against it (parts/tool.css .help-tip-host), and
    an inline host would anchor the pop to one line fragment of the sentence. */
 .be-logos-lead { display: block; }
-.be-logo-row { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+/* Four tiles a row at most, so a row of custom marks keeps the tile size of the
+   rows above it instead of stretching one mark across the room. */
+.be-logo-row { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(max(170px, calc((100% - 2.4rem) / 4)), 1fr)); }
 /* A phone shows the slots two-up (plan 336): one 315px square per row made
    eight slots more than five screens of thumb. */
 @media (max-width: 640px) {
@@ -614,7 +616,10 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
      primary reverse") does not push its tile below its neighbour's. */
   .be-logo-slot > .be-logo-slot-head { align-items: flex-start; min-height: calc(var(--fs-xs) * 2.8); }
 }
-.be-logo-slot { display: grid; gap: .4rem;}
+/* A tile takes its lockup's shape (lib/design-system/logo-tile.ts): a horizontal
+   lockup sits in a wide tile, a vertical one or a mark of its own in a square. */
+.be-logo-slot { --logo-ratio: 1; display: grid; gap: .4rem; align-content: start; }
+.be-logo-slot[data-shape="wide"] { --logo-ratio: 2; }
 .be-logo-slot-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.2rem; }
 .be-logo-slot-name { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
 .be-logo-del {
@@ -622,9 +627,11 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   color: hsl(var(--muted-foreground)); font-size: var(--fs-md); border-radius: var(--radius-sm);
 }
 .be-logo-del:hover { color: hsl(var(--destructive-text)); background: hsl(var(--destructive) / .1); }
+/* One fixed cell, so the artwork can never size the tile: an image's own size
+   used to grow an auto track past the tile and crop a stacked mark. */
 .be-logo-drop {
-  display: grid; place-items: center; cursor: pointer; overflow: hidden;
-  aspect-ratio: 1 / 1; padding: .8rem;
+  display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); cursor: pointer; overflow: hidden;
+  aspect-ratio: var(--logo-ratio); padding: .8rem;
   border: 1.5px dashed hsl(var(--border)); border-radius: var(--radius);
   background: hsl(var(--background)); transition: border-color var(--dur-1), background var(--dur-1);
 }
@@ -638,42 +645,42 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   outline: 2px solid hsl(var(--ring)); outline-offset: 2px;
 }
 .be-logo-drop.is-dragover { border-style: solid; border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); }
-/* The cue says "Drop to add" in place of "Not set", whose muted text would fall
+/* The cue says "Drop to add" in place of the prompt, whose muted text would fall
    under 4.5:1 on the wash in the light theme. */
 .be-logo-drop.is-dragover .be-logo-empty { visibility: hidden; }
+/* The ground a mark sits on, with the mark's clear space inside it: a quarter of
+   the mark's height on every side. With the ground H tall, p = (H - 2p) / 4 gives
+   p = H / 6, and H is the tile width over its ratio; padding percentages read the
+   width, so the ratio divides it. The checks show where the file is transparent. */
 .be-logo-art {
-  
-  background-image:
-    repeating-conic-gradient(
-      rgba(255,255,255,.05) 0% 25%,
-      rgba(0,0,0,.05) 0% 50%);
-     background-position: 50%; background-size: 1rem 1rem ;  display: grid; place-items: center; width: 100%; height: 100%; border-radius: calc(var(--radius) * .6); }
-
-
-     .be-logo-slot[data-treatment$="reverse"] .be-logo-art{
-background-image:
-    repeating-conic-gradient(
-      rgba(255,255,255,.05) 0% 25%,
-      rgba(0,0,0,.05) 0% 50%) #000c;
-     background-position: 50%; background-size: 1rem 1rem !important ;
-     background-color:#000c !important;
-
-     }
-
-
-     .be-logo-art img { max-width: 100%; max-height: 100%; object-fit: contain; }
-/* Reverse marks (primary-reverse, mono-reverse) read on dark; plain mono gets a
-   neutral card below, so a one-colour dark mark still shows. */
-.be-logo-slot[data-treatment$="reverse"] .be-logo-art { background: hsl(var(--foreground)); padding: .5rem; }
+  display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center;
+  padding: calc(100% / (6 * var(--logo-ratio)));
+  border-radius: calc(var(--radius) * .6);
+  background-image: repeating-conic-gradient(rgba(255, 255, 255, .05) 0% 25%, rgba(0, 0, 0, .05) 0% 50%);
+  background-position: 50%; background-size: 1rem 1rem;
+}
+.be-logo-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+/* Reverse marks (primary-reverse, mono-reverse) are drawn for dark grounds, so
+   their ground is dark in either scheme: the ink of a light scheme, the paper of
+   a dark one. Plain mono gets a neutral card below, so a one-colour dark mark
+   still shows. */
+.be-logo-slot[data-treatment$="reverse"] .be-logo-art { background-color: light-dark(hsl(var(--foreground)), hsl(var(--background))); }
 /* Primary and mono marks are drawn for light grounds. On a dark colour scheme (the
    dark theme, or a dark Brand theme) the slot gives them one, the way a reverse mark
    gets a dark ground above, so a dark wordmark is not lost on a dark card. The
    foreground token is the light ink of a dark scheme. */
 .be-logo-slot[data-treatment="primary"] .be-logo-art { background-color: light-dark(transparent, hsl(var(--foreground))); }
-.be-logo-slot[data-treatment="mono"] .be-logo-art { background: light-dark(hsl(var(--muted) / .5), hsl(var(--foreground))); padding: .5rem; }
-/* "Not set", in the muted register - the slot says what it is rather than
-   drawing a 1.6rem "+" that reads as an instruction (plan 182 section 4.2). */
-.be-logo-empty { font-size: var(--fs-sm); font-weight: 500; color: hsl(var(--muted-foreground) / .8); }
+.be-logo-slot[data-treatment="mono"] .be-logo-art { background-color: light-dark(hsl(var(--muted) / .5), hsl(var(--foreground))); }
+/* An empty slot: the dashed drop area in its lockup's shape, saying which logo
+   goes there, in the muted register. No mark stands in for the person's own. */
+.be-logo-empty {
+  display: grid; place-items: center; place-content: center; gap: .3rem; padding: .3rem;
+  text-align: center; font-size: var(--fs-sm); font-weight: 500; line-height: 1.3;
+  color: hsl(var(--muted-foreground) / .8); overflow-wrap: anywhere;
+}
+/* Fauna placeholders stay out of the layout until their line art is drawn. */
+.be-logo-empty .fauna-slot:empty,
+.be-logo-intake-drop .fauna-slot:empty { display: none; }
 .be-logo-hint { margin: 0; font-size: var(--fs-xs); line-height: 1.45; color: hsl(var(--muted-foreground)); }
 
 /* ── Logo intake - level 0 of the room (plan 97 section 7.3) ──────────────────────────
