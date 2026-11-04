@@ -73,12 +73,10 @@
   min-height: var(--ui-size-target);
   text-decoration: none;
 }
-/* Where the koala will sit, on the card's top edge (Fauna, drawn later). Empty
-   and sizeless until then. */
+/* The koala (components/fauna-art.ts), in flow above the heading at the card's
+   inline end, so a long heading in any language never runs under it. */
 .webgpu-gate > .fauna-slot {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-end: var(--sp-8);
+  justify-self: end;
   pointer-events: none;
 }
 
