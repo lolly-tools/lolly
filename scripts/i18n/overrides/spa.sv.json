@@ -2038,5 +2038,10 @@
   "Safari 26 or later": "Safari 26 eller senare",
   "Firefox, where WebGPU is turned on": "Firefox, med WebGPU påslaget",
   "Get the desktop app": "Hämta skrivbordsappen",
-  "Read why": "Läs varför"
+  "Read why": "Läs varför",
+  "Or drop an image or a list of colours here": "Eller släpp en bild eller en färglista här",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "De här neutrala färgerna följer med startpaketet, så att förhandsvisningarna har något att visa. Lägg till dina egna ovanför.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Välj en färg",
+  "Add a colour to the palette first.": "Lägg först till en färg i paletten.",
+  "Starter": "Startpaket"
 }

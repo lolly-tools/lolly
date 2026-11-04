@@ -10809,5 +10809,9 @@
   "Safari 26 or later": "Safari 26 или по-нов",
   "Firefox, where WebGPU is turned on": "Firefox с включен WebGPU",
   "Get the desktop app": "Изтегли настолното приложение",
-  "Read why": "Прочети защо"
+  "Read why": "Прочети защо",
+  "Or drop an image or a list of colours here": "Или пусни тук изображение или списък с цветове",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Тези неутрални цветове идват с началния комплект, за да има какво да показват прегледите. Добави свои отгоре.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Избери цвят",
+  "Add a colour to the palette first.": "Първо добави цвят към палитрата."
 }

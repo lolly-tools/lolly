@@ -10764,5 +10764,9 @@
   "Safari 26 or later": "Safari 26 以降",
   "Firefox, where WebGPU is turned on": "WebGPU を有効にした Firefox",
   "Get the desktop app": "デスクトップアプリを入手",
-  "Read why": "理由を読む"
+  "Read why": "理由を読む",
+  "Or drop an image or a list of colours here": "または画像や色のリストをここにドロップ",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "これらのニュートラルカラーはスターターに付属しており、プレビューに表示する色になります。自分の色は上で追加してください。",
+  "{role}: {value}. Choose a colour": "{role}：{value}。色を選択",
+  "Add a colour to the palette first.": "先にパレットに色を追加してください。"
 }

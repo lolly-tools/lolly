@@ -2128,5 +2128,9 @@
   "Safari 26 or later": "Safari 26 nebo novější",
   "Firefox, where WebGPU is turned on": "Firefox se zapnutým WebGPU",
   "Get the desktop app": "Stáhnout desktopovou aplikaci",
-  "Read why": "Přečíst proč"
+  "Read why": "Přečíst proč",
+  "Or drop an image or a list of colours here": "Nebo sem přetáhni obrázek nebo seznam barev",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Tyto neutrální barvy jsou součástí úvodní sady, aby náhledy měly co ukázat. Své vlastní přidej výše.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Vyber barvu",
+  "Add a colour to the palette first.": "Nejdřív přidej do palety barvu."
 }

@@ -2002,5 +2002,9 @@
   "Safari 26 or later": "Safari 26 或更新版本",
   "Firefox, where WebGPU is turned on": "已開啟 WebGPU 的 Firefox",
   "Get the desktop app": "取得桌面應用程式",
-  "Read why": "了解原因"
+  "Read why": "了解原因",
+  "Or drop an image or a list of colours here": "或將圖片或色彩清單拖放到這裡",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "這些中性色隨起始設定提供，讓預覽有內容可顯示。請在上方加入你自己的色彩。",
+  "{role}: {value}. Choose a colour": "{role}：{value}。選擇色彩",
+  "Add a colour to the palette first.": "請先在調色盤中加入一種色彩。"
 }

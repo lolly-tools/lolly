@@ -10809,5 +10809,9 @@
   "Safari 26 or later": "Safari 26 یا اس سے نیا",
   "Firefox, where WebGPU is turned on": "Firefox، جب WebGPU آن ہو",
   "Get the desktop app": "ڈیسک ٹاپ ایپ حاصل کریں",
-  "Read why": "وجہ پڑھیں"
+  "Read why": "وجہ پڑھیں",
+  "Or drop an image or a list of colours here": "یا یہاں کوئی تصویر یا رنگوں کی فہرست چھوڑیں",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "یہ نیوٹرل رنگ ابتدائی سیٹ کے ساتھ آئے ہیں تاکہ پیش نظاروں میں دکھانے کو کچھ ہو۔ اوپر اپنے رنگ شامل کریں۔",
+  "{role}: {value}. Choose a colour": "{role}: {value}۔ رنگ چنیں",
+  "Add a colour to the palette first.": "پہلے پیلیٹ میں ایک رنگ شامل کریں۔"
 }

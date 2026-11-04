@@ -2359,5 +2359,9 @@
   "Safari 26 or later": "Safari 26 أو أحدث",
   "Firefox, where WebGPU is turned on": "Firefox، عند تفعيل WebGPU",
   "Get the desktop app": "احصل على تطبيق سطح المكتب",
-  "Read why": "اقرأ السبب"
+  "Read why": "اقرأ السبب",
+  "Or drop an image or a list of colours here": "أو أفلت صورة أو قائمة ألوان هنا",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "جاءت هذه الألوان المحايدة مع حزمة البداية لتجد المعاينات ما تعرضه. أضف ألوانك في الأعلى.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. اختر لونًا",
+  "Add a colour to the palette first.": "أضف لونًا إلى لوحة الألوان أولًا."
 }

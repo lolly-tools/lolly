@@ -2129,5 +2129,9 @@
   "Safari 26 or later": "Safari 26 이상",
   "Firefox, where WebGPU is turned on": "WebGPU를 켠 Firefox",
   "Get the desktop app": "데스크톱 앱 받기",
-  "Read why": "이유 읽기"
+  "Read why": "이유 읽기",
+  "Or drop an image or a list of colours here": "또는 이미지나 색상 목록을 여기에 끌어다 놓으세요",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "이 중립 색상은 시작 세트에 포함되어 있어 미리보기에 보여 줄 색이 있어요. 위에서 직접 색상을 추가하세요.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. 색상 선택",
+  "Add a colour to the palette first.": "먼저 팔레트에 색상을 추가하세요."
 }

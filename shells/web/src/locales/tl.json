@@ -10809,5 +10809,9 @@
   "Safari 26 or later": "Safari 26 o mas bago",
   "Firefox, where WebGPU is turned on": "Firefox, kapag naka-on ang WebGPU",
   "Get the desktop app": "Kunin ang desktop app",
-  "Read why": "Basahin kung bakit"
+  "Read why": "Basahin kung bakit",
+  "Or drop an image or a list of colours here": "O mag-drop dito ng larawan o listahan ng mga kulay",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Kasama ng starter ang mga neutral na kulay na ito para may maipakita ang mga preview. Idagdag ang sarili mong mga kulay sa itaas.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Pumili ng kulay",
+  "Add a colour to the palette first.": "Magdagdag muna ng kulay sa paleta."
 }

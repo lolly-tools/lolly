@@ -2087,5 +2087,9 @@
   "Safari 26 or later": "Safari 26 sau mai nou",
   "Firefox, where WebGPU is turned on": "Firefox, cu WebGPU activat",
   "Get the desktop app": "Descarcă aplicația desktop",
-  "Read why": "Citește de ce"
+  "Read why": "Citește de ce",
+  "Or drop an image or a list of colours here": "Sau trage aici o imagine sau o listă de culori",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Aceste culori neutre vin cu setul de pornire, ca previzualizările să aibă ce arăta. Adaugă-le pe ale tale mai sus.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Alege o culoare",
+  "Add a colour to the palette first.": "Adaugă mai întâi o culoare în paletă."
 }

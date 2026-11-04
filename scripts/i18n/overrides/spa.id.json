@@ -1998,5 +1998,9 @@
   "Safari 26 or later": "Safari 26 atau lebih baru",
   "Firefox, where WebGPU is turned on": "Firefox, jika WebGPU diaktifkan",
   "Get the desktop app": "Dapatkan aplikasi desktop",
-  "Read why": "Baca alasannya"
+  "Read why": "Baca alasannya",
+  "Or drop an image or a list of colours here": "Atau letakkan gambar atau daftar warna di sini",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Warna netral ini bawaan paket awal, agar pratinjau punya sesuatu untuk ditampilkan. Tambahkan warnamu sendiri di atas.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Pilih warna",
+  "Add a colour to the palette first.": "Tambahkan warna ke palet terlebih dahulu."
 }

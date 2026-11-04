@@ -10899,5 +10899,9 @@
   "Safari 26 or later": "Safari 26 lub nowsze",
   "Firefox, where WebGPU is turned on": "Firefox z włączonym WebGPU",
   "Get the desktop app": "Pobierz aplikację na komputer",
-  "Read why": "Przeczytaj dlaczego"
+  "Read why": "Przeczytaj dlaczego",
+  "Or drop an image or a list of colours here": "Albo upuść tutaj obraz lub listę kolorów",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Te neutralne kolory są częścią zestawu startowego, żeby podglądy miały co pokazać. Dodaj własne powyżej.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Wybierz kolor",
+  "Add a colour to the palette first.": "Najpierw dodaj kolor do palety."
 }

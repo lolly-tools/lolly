@@ -6123,7 +6123,7 @@
   "Start {tool}": "Start {tool}",
   "Start {tool} with this": "Start {tool} med dette",
   "Started from “{name}”. Saving makes a new clip.": "Startet fra «{name}». Lagring lager et nytt klipp.",
-  "Starter": "Startmaler",
+  "Starter": "Startpakke",
   "Starter colours": "Startfarger",
   "Starter for the rest · {families}": "Start for resten · {families}",
   "Starter {name} stands in": "Start-{name} står inn",
@@ -10809,5 +10809,9 @@
   "Safari 26 or later": "Safari 26 eller nyere",
   "Firefox, where WebGPU is turned on": "Firefox, med WebGPU slått på",
   "Get the desktop app": "Hent skrivebordsappen",
-  "Read why": "Les hvorfor"
+  "Read why": "Les hvorfor",
+  "Or drop an image or a list of colours here": "Eller slipp et bilde eller en fargeliste her",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Disse nøytrale fargene følger med startpakken, så forhåndsvisningene har noe å vise. Legg til dine egne ovenfor.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Velg en farge",
+  "Add a colour to the palette first.": "Legg først til en farge i paletten."
 }

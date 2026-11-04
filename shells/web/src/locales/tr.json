@@ -10809,5 +10809,9 @@
   "Safari 26 or later": "Safari 26 veya üstü",
   "Firefox, where WebGPU is turned on": "WebGPU açıkken Firefox",
   "Get the desktop app": "Masaüstü uygulamasını indir",
-  "Read why": "Nedenini oku"
+  "Read why": "Nedenini oku",
+  "Or drop an image or a list of colours here": "Ya da buraya bir görsel veya renk listesi bırak",
+  "These neutrals came with the starter, so the previews have something to show. Add your own above.": "Bu nötr renkler başlangıç paketiyle gelir, böylece önizlemelerin gösterecek bir şeyi olur. Kendi renklerini yukarıdan ekle.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Bir renk seç",
+  "Add a colour to the palette first.": "Önce palete bir renk ekle."
 }
