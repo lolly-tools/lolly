@@ -217,6 +217,19 @@ test('hydrateFauna fills each empty slot with its animal and leaves unknown and 
   assert.equal(known[0]!.innerHTML, before, 'and redraws nothing');
 });
 
+test('only: a pass limited to approved animals leaves every other slot empty', () => {
+  _resetFaunaForTests();
+  const root = document.createElement('div');
+  const all = FAUNA_NAMES.map(name => slot(name));
+  root.append(...all);
+  const filled = withMotion('system', () => hydrateFauna(root, { only: ['koala'] }));
+  assert.deepEqual(filled.map(el => el.dataset.fauna), ['koala']);
+  for (const el of all) {
+    if (el.dataset.fauna === 'koala') assert.ok(el.querySelector('svg.fauna--koala'));
+    else assert.equal(el.innerHTML, '', `${el.dataset.fauna} stays an empty placeholder`);
+  }
+});
+
 test('under reduced motion the still shows at once: no waiting, no observer, no motion', () => {
   _resetFaunaForTests();
   const { started, stop } = recordStarts();

@@ -74,6 +74,7 @@ test('showBootError puts the card in the view, replacing what was there', async 
   showBootError(await missing());
   assert.equal(view.childElementCount, 1);
   assert.ok(view.querySelector('.webgpu-gate[data-webgpu-unsupported="WEBGPU_REQUIRED"]'));
+  assert.ok(view.querySelector('.webgpu-gate > .fauna-slot[data-fauna="koala"] > svg.fauna--koala'), 'the koala is drawn once the card is in the view');
   showBootError(await missing());
   assert.equal(view.querySelectorAll('.webgpu-gate').length, 1, 'a repaint replaces the card');
   showBootError(new Error('kaput'));

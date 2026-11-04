@@ -349,15 +349,18 @@ function facing(slot: HTMLElement, root: ParentNode): FaunaFace {
  * session, the drawing waits hidden (data-fauna-state="waiting", see fauna.css)
  * until the slot first comes into view, then plays once from its first pose. Under
  * reduced motion, or where IntersectionObserver is missing, the still shows at
- * once. Returns the slots it filled.
+ * once. `only` limits the pass to the animals named, so a caller hydrates just the
+ * drawings Andy has approved and every other slot stays empty. Returns the slots
+ * it filled.
  */
-export function hydrateFauna(root: ParentNode = document): HTMLElement[] {
+export function hydrateFauna(root: ParentNode = document, opts: { only?: readonly FaunaName[] } = {}): HTMLElement[] {
   const filled: HTMLElement[] = [];
   const slots = [...root.querySelectorAll<HTMLElement>('.fauna-slot[data-fauna]')];
   const waiting: HTMLElement[] = [];
   for (const slot of slots) {
     const name = slot.dataset.fauna;
     if (!isFaunaName(name) || slot.querySelector('svg.fauna')) continue;
+    if (opts.only && !opts.only.includes(name)) continue;
     slot.setAttribute('aria-hidden', 'true');
     slot.innerHTML = faunaArt(name, { face: facing(slot, root) });
     filled.push(slot);

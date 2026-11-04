@@ -5,16 +5,23 @@
  * belongs here and nowhere else, so every such wait starts and ends through this
  * one pair.
  *
- * Today it keeps the busy state the callers already had and marks the container
- * (`aria-busy`, `data-register="busy"`). components/lolly-spin.ts joins at the two
- * marked lines below: `showLollySpin(container)` as a wait starts, and
- * `hideLollySpin()` as the last one on that container ends.
+ * It keeps the busy state the callers already had, marks the container
+ * (`aria-busy`, `data-register="busy"`) and shows Lolly's spin
+ * (components/lolly-spin.ts) in it: `showLollySpin(container)` as a wait starts,
+ * and `hideLollySpin(container)` as the last one on that container ends. A wait
+ * shorter than SPIN_DELAY_MS never shows the spin, so a quick answer never
+ * flashes the spin. Under Reduce motion the spin's mark stands still.
  *
  * Nested waits on one container count, so an inner wait that finishes first does
  * not clear the state of an outer one still running.
  */
 
+import { hideLollySpin, showLollySpin } from '../../components/lolly-spin.ts';
+
 const depth = new WeakMap<HTMLElement, number>();
+
+/** How long a wait runs before the spin shows. */
+export const SPIN_DELAY_MS = 150;
 
 /** Start a wait on `container`. Returns the function that ends it; calling that
  *  more than once is harmless. */
@@ -22,7 +29,7 @@ export function beginRegister(container: HTMLElement): () => void {
   depth.set(container, (depth.get(container) ?? 0) + 1);
   container.setAttribute('aria-busy', 'true');
   container.dataset.register = 'busy';
-  // components/lolly-spin.ts: showLollySpin(container) joins here.
+  showLollySpin(container, { delayMs: SPIN_DELAY_MS });
   let ended = false;
   return () => {
     if (ended) return;
@@ -32,7 +39,7 @@ export function beginRegister(container: HTMLElement): () => void {
     depth.delete(container);
     container.removeAttribute('aria-busy');
     delete container.dataset.register;
-    // components/lolly-spin.ts: hideLollySpin() joins here.
+    hideLollySpin(container);
   };
 }
 

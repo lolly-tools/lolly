@@ -3,6 +3,11 @@ import '../styles/parts/webgpu-gate.css';
 import { docsHref, t } from '../i18n.ts';
 import { isWebGpuFailure, isWebGpuMissing, webGpuFailureText, type WebGpuErrorCode } from './webgpu/device.ts';
 import { getFloatCluster } from './float-cluster.ts';
+import { hydrateFauna, type FaunaName } from '../components/fauna-art.ts';
+
+/** The Fauna drawings approved to ship (Andy, 2026-11-04). The lorikeet, magpie
+ *  and wombat wait for their redraw, so their slots stay empty. */
+const APPROVED_FAUNA: readonly FaunaName[] = ['koala'];
 
 /** Keep the current document visible until the person clicks Reload. */
 export function showDatabaseUpdateRequired(reload: () => void = () => window.location.reload()): void {
@@ -32,7 +37,8 @@ export function showDatabaseUpdateRequired(reload: () => void = () => window.loc
  * door, not an error. Nothing here is the person's fault, so it is calm and
  * neutral, says what is missing in plain words, lists the browsers that work and
  * offers the ways forward: the desktop app, the page that explains why, and
- * Reload. The koala's place sits above the heading (Fauna, drawn later). Built
+ * Reload. The koala sits above the heading, drawn once the card is in the view
+ * (components/fauna-art.ts). Built
  * as DOM, so no string reaches a markup sink; `data-webgpu-unsupported` carries
  * the failure code so a test or a driver can tell it apart from any other boot
  * failure.
@@ -92,7 +98,9 @@ export function showBootError(error: unknown): void {
   if (!view) return;
   view.textContent = '';
   if (isWebGpuFailure(error)) {
-    view.append(webGpuGate(error));
+    const gate = webGpuGate(error);
+    view.append(gate);
+    hydrateFauna(gate, { only: APPROVED_FAUNA });
     return;
   }
   const div = document.createElement('div');
