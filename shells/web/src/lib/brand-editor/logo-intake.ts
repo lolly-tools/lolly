@@ -20,6 +20,7 @@ import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
 import { playSfx } from '../sfx.ts';
 import { bindFileDropTiles } from '../file-drop-tile.ts';
+import { beginRegister } from '../design-system/register.ts';
 import type { LogoCandidateChip } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
@@ -100,22 +101,28 @@ export const addLogoFiles = async (bedit: BrandEditorCtx, files: File[]): Promis
   if (tooBig) bedit.logos.showLogoErr(tRaw('That logo is {size} MB - the limit is 4 MB.', { size: (tooBig.size / 1024 / 1024).toFixed(1) }));
   const room = Math.max(0, LOGO_INTAKE_MAX - bedit.intake.length);
   if (usable.length > room) bedit.logos.showLogoErr(t('Place or dismiss the marks already waiting, then drop the rest.'));
-  for (const file of usable.slice(0, room)) {
-    const judged = await bedit.logos.classifyLogoFile(file);
-    if (!root.isConnected) return;
-    bedit.intake.push({
-      key: `belg${++bedit.intakeSeq}`,
-      file,
-      variant: judged ? `${judged.orientation}-${judged.treatment}` : 'horizontal-primary',
-      confidence: judged ? judged.confidence : 0,
-      reasons: judged ? judged.reasons : [t('this file could not be read')],
-      url: URL.createObjectURL(file),
-      menuOpen: !judged || judged.confidence < LOGO_CONFIRM_MIN,
-      busy: false,
-      generated: false,
-    });
-    bedit.renderIntake(); // chips appear as each file is judged, not in one late batch
-  }
+  // Reading the dropped marks is a service the person asked for: the register
+  // (design-system/register.ts) holds the drop zone busy until the last is read.
+  const zone = root.querySelector<HTMLElement>('[data-be-logo-intake]');
+  const endRegister = zone && usable.length ? beginRegister(zone) : null;
+  try {
+    for (const file of usable.slice(0, room)) {
+      const judged = await bedit.logos.classifyLogoFile(file);
+      if (!root.isConnected) return;
+      bedit.intake.push({
+        key: `belg${++bedit.intakeSeq}`,
+        file,
+        variant: judged ? `${judged.orientation}-${judged.treatment}` : 'horizontal-primary',
+        confidence: judged ? judged.confidence : 0,
+        reasons: judged ? judged.reasons : [t('this file could not be read')],
+        url: URL.createObjectURL(file),
+        menuOpen: !judged || judged.confidence < LOGO_CONFIRM_MIN,
+        busy: false,
+        generated: false,
+      });
+      bedit.renderIntake(); // chips appear as each file is judged, not in one late batch
+    }
+  } finally { endRegister?.(); }
 };
 /** The ink a generated mono mark is painted in: the design system's own text
  *  colour, read from the LIGHT theme deliberately - a mono mark is the one that
