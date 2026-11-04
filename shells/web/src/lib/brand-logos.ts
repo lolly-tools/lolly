@@ -32,6 +32,7 @@ import { installUserTokens } from '../bridge/tokens.ts';
 import { activeHeadId, activeMaterialSystem, isUserDesignSystemActive } from './design-system/active.ts';
 import { ensureOwnLogos, withLogoHeadLock, type LogoOwnershipHost } from './design-system/logo-ownership.ts';
 import { LEGACY_NS } from './design-system/namespace.ts';
+import { STARTER_TOKENS_ID } from './design-system/starter.ts';
 import type { UserFontsHost } from '../user-fonts.ts';
 import { t, tRaw } from '../i18n.ts';
 
@@ -320,10 +321,19 @@ export async function readActiveHeadDoc(host: { assets: { _getBlob(id: string): 
   return null;
 }
 
-/** The shipped design system's own document (the catalog's tokens asset), or null. */
+/**
+ * The shipped design system's own document (the catalog's tokens asset), or null.
+ *
+ * Null for the blank starter too. Its logo group points every slot at Lolly's
+ * own swirl so that a tool drawing a logo still finds one (`{asset.logo.*}`
+ * keeps resolving through the tokens bridge, silently). Those marks stand in;
+ * they are not the person's logo, so the Logos room, and every count read from
+ * this list, shows those slots empty.
+ */
 async function readShippedDoc(host: LogoHost): Promise<Rec | null> {
   try {
     const meta = await host.assets._findMetaByType?.('tokens', { catalogOnly: true });
+    if (meta?.id === STARTER_TOKENS_ID) return null;
     const blob = meta?.id ? await host.assets._getBlob?.(meta.id, { fetchIfMissing: true }) : null;
     if (blob) { const parsed = JSON.parse(await blob.text()); if (isRec(parsed)) return parsed; }
   } catch { /* no catalog document - the room shows empty slots */ }
@@ -415,7 +425,8 @@ export async function listLogos(host: LogoHost): Promise<LogoSlot[]> {
   }
   // While the shipped design system is active the person has no head document of
   // their own, so its marks are only in the catalog's document. A slot still empty
-  // after their own marks shows the shipped mark instead of "Not set".
+  // after their own marks shows the shipped mark, unless the shipped system is
+  // the blank starter, whose marks only stand in (readShippedDoc).
   if (!(await isUserDesignSystemActive(host))) {
     for (const ref of logoTokensOf(await readShippedDoc(host))) {
       const key = `${ref.identity}/${ref.variant}`;

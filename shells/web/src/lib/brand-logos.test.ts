@@ -7,6 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   withLogoToken, logoGroupOf, LOGO_VARIANTS, splitVariant, variantLabel, isReverseTreatment,
   LOGO_SLUG_RE, LOGO_DEFAULT_IDENTITY, isCanonicalVariant, logoAssetId, parseLogoAssetId,
@@ -259,6 +260,31 @@ test('installLogo refuses cross-shape collisions in the asset.logo namespace', a
   // Both originals survived untouched.
   const slots = await listLogos(host);
   assert.deepEqual(slots.map(s => `${s.identity}/${s.variant}`).sort(), ['default/crest', 'sub-brand/acme']);
+});
+
+test('the blank starter\'s stand-in marks never fill the person\'s slots, and tools keep them', async () => {
+  // The real starter document: every slot points at Lolly's swirl so a tool that
+  // draws a logo still has one (it resolves {asset.logo.*} through the tokens
+  // bridge, not through this list).
+  const starterUrl = new URL('../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url);
+  const starter = JSON.parse(readFileSync(starterUrl, 'utf8'));
+  const declared = logoGroupOf(starter);
+  assert.ok(declared && Object.keys(declared).filter(k => !k.startsWith('$')).length === 8, 'tools still find a mark in every slot');
+  const host = memoryHost();
+  const catalog = new Map<string, Blob>([
+    ['lolly/tokens/brand', new Blob([JSON.stringify(starter)])],
+    ...['primary', 'reverse', 'mono', 'mono-reverse'].map(v => [`lolly/logo/${v}`, new Blob(['<svg/>'], { type: 'image/svg+xml' })] as [string, Blob]),
+  ]);
+  const assets = host.assets as typeof host.assets & Record<string, unknown>;
+  const ownBlob = assets._getBlob as (id: string) => Promise<Blob | null>;
+  assets._findMetaByType = async (_type: string, opts?: { catalogOnly?: boolean }) => (opts?.catalogOnly ? { id: 'lolly/tokens/brand' } : null);
+  assets._getBlob = async (id: string) => (await ownBlob(id)) ?? catalog.get(id) ?? null;
+
+  assert.deepEqual(await listLogos(host), [], 'every slot reads empty: Lolly\'s mark is not the person\'s logo');
+  await installLogo(host, 'vertical-primary', png('mine.png'));
+  const mine = await listLogos(host);
+  assert.deepEqual(mine.map(s => [s.variant, s.shipped]), [['vertical-primary', undefined]], 'only the mark they placed shows');
+  for (const s of mine) URL.revokeObjectURL(s.url);
 });
 
 test('while the shipped system is active, empty slots show its catalog marks, and the person\'s own still win', async () => {
