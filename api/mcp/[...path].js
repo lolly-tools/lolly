@@ -126216,6 +126216,31 @@ var init_fs_token = __esm({
 function sessionVersionStamp() {
   return { formatVersion: SESSION_FORMAT_VERSION, engineVersion: ENGINE_VERSION };
 }
+function sessionRightsDecisions(record46) {
+  const raw = record46?.rightsDecisions;
+  if (!Array.isArray(raw)) return null;
+  const out = /* @__PURE__ */ new Map();
+  for (const entry2 of raw.slice(0, 200)) {
+    if (!entry2 || typeof entry2 !== "object") continue;
+    const { work, kind, licence, note: note2, fingerprint, recordedAt } = entry2;
+    if (typeof work !== "string" || !work.trim()) continue;
+    if (typeof kind !== "string" || !DECISION_KINDS.has(kind)) continue;
+    const decision2 = { work: work.slice(0, 300), kind };
+    if (typeof fingerprint === "string" && fingerprint) decision2.fingerprint = fingerprint.slice(0, 200);
+    if (typeof licence === "string" && licence) decision2.licence = licence.slice(0, 200);
+    if (typeof note2 === "string" && note2) decision2.note = note2.slice(0, 2e3);
+    if (typeof recordedAt === "string" && recordedAt) decision2.recordedAt = recordedAt.slice(0, 40);
+    out.set(JSON.stringify([decision2.work, decision2.kind]), decision2);
+  }
+  return out.size ? [...out.values()] : null;
+}
+function sessionEmojiStamp(record46) {
+  const stamp3 = record46?.emoji;
+  if (!stamp3 || typeof stamp3 !== "object") return null;
+  const { emoji, emojifx, emojistyle } = stamp3;
+  if (typeof emoji !== "string" || !emoji.trim()) return null;
+  return { emoji: emoji.trim(), emojifx: typeof emojifx === "string" ? emojifx.trim() : "", ...typeof emojistyle === "string" ? { emojistyle } : {} };
+}
 function migrateSessionRecord(record46, log) {
   if (!record46 || typeof record46 !== "object") return null;
   const data = record46.data;
@@ -126232,13 +126257,14 @@ function migrateSessionRecord(record46, log) {
   }
   return data;
 }
-var SESSION_FORMAT_VERSION, SESSION_READER_VERSION;
+var SESSION_FORMAT_VERSION, SESSION_READER_VERSION, DECISION_KINDS;
 var init_session_record = __esm({
   "engine/src/session-record.ts"() {
     "use strict";
     init_version();
     SESSION_FORMAT_VERSION = 4;
     SESSION_READER_VERSION = 4;
+    DECISION_KINDS = /* @__PURE__ */ new Set(["output-licence", "separate-permission", "acknowledged"]);
   }
 });
 
@@ -183358,8 +183384,9 @@ init_state_dir();
 // packages/node-shell/src/session-store.ts
 init_fs_token();
 init_session_record();
-import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2 } from "node:fs/promises";
+import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2, rename as rename2 } from "node:fs/promises";
 import { join as join20 } from "node:path";
+import { randomUUID as randomUUID2 } from "node:crypto";
 var SESSION_SUBDIR = "saved-state";
 function sessionsDir(stateDir2) {
   return join20(stateDir2, SESSION_SUBDIR);
@@ -183401,10 +183428,17 @@ async function listSessionSlots(stateDir2) {
   }
   return out;
 }
+var SessionConflictError = class extends Error {
+  constructor() {
+    super("This project changed since it was opened. Reopen it or use Save as.");
+    this.name = "SessionConflictError";
+  }
+};
 async function writeSessionRecord(stateDir2, write) {
   await mkdir2(sessionsDir(stateDir2), { recursive: true });
   const prior = await readSessionRecord(stateDir2, write.slot);
-  const now2 = (/* @__PURE__ */ new Date()).toISOString();
+  if (write.expectedUpdatedAt !== void 0 && (prior?.updatedAt ?? null) !== write.expectedUpdatedAt) throw new SessionConflictError();
+  const now2 = new Date(Math.max(Date.now(), Date.parse(prior?.updatedAt ?? "") + 1 || 0)).toISOString();
   const record46 = {
     slot: write.slot,
     toolId: write.toolId ?? write.data.__toolId,
@@ -183414,9 +183448,22 @@ async function writeSessionRecord(stateDir2, write) {
     thumb: write.thumb ?? prior?.thumb ?? null,
     updatedAt: write.updatedAt ?? now2,
     createdAt: prior?.createdAt ?? now2,
+    emoji: write.emoji === void 0 ? prior?.emoji : write.emoji ?? void 0,
+    rightsDecisions: write.rightsDecisions ?? prior?.rightsDecisions,
     ...sessionVersionStamp()
   };
-  await writeFile2(sessionFilePath(stateDir2, write.slot), JSON.stringify(record46, null, 2));
+  const path = sessionFilePath(stateDir2, write.slot);
+  const temp = `${path}.${randomUUID2()}.tmp`;
+  try {
+    await writeFile2(temp, JSON.stringify(record46, null, 2), { mode: 384, flag: "wx" });
+    if (write.expectedUpdatedAt !== void 0) {
+      const latest = await readSessionRecord(stateDir2, write.slot);
+      if ((latest?.updatedAt ?? null) !== write.expectedUpdatedAt) throw new SessionConflictError();
+    }
+    await rename2(temp, path);
+  } finally {
+    await rm2(temp, { force: true });
+  }
   return record46;
 }
 async function deleteSessionRecord(stateDir2, slot) {
@@ -183432,8 +183479,12 @@ function normalise4(raw) {
   const slot = typeof raw.slot === "string" ? raw.slot : "";
   if (!slot) return null;
   const data = raw.data && typeof raw.data === "object" ? raw.data : {};
+  const rights = sessionRightsDecisions(raw);
+  const emoji = sessionEmojiStamp(raw);
   return {
     slot,
+    ...rights ? { rightsDecisions: rights } : {},
+    ...emoji ? { emoji } : {},
     toolId: typeof raw.toolId === "string" && raw.toolId ? raw.toolId : typeof data.__toolId === "string" ? data.__toolId : void 0,
     toolVersion: typeof raw.toolVersion === "string" ? raw.toolVersion : void 0,
     label: typeof raw.label === "string" && raw.label ? raw.label : typeof data.__label === "string" ? data.__label : void 0,
@@ -183448,7 +183499,7 @@ function normalise4(raw) {
 
 // packages/node-shell/src/design-systems.ts
 import { basename as basename2, join as join21 } from "node:path";
-import { mkdir as mkdir3, readFile as readFile17, rename as rename2, writeFile as writeFile3 } from "node:fs/promises";
+import { mkdir as mkdir3, readFile as readFile17, rename as rename3, writeFile as writeFile3 } from "node:fs/promises";
 init_state_dir();
 var FORMAT = 1;
 var INDEX_FILE = "design-systems.json";
@@ -183774,9 +183825,9 @@ function followRuntimeSelection(host, runtimeSelection, linkSelection) {
   follow2(runtimeSelection);
   return true;
 }
-async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, decodeLimits, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend } = {}) {
+async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: catalogAssets2, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, decodeLimits, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend } = {}) {
   const w = dom.window;
-  const assetIndex2 = readAssetIndex();
+  const assetIndex2 = { assets: catalogAssets2 ?? readAssetIndex().assets };
   const assetById = new Map(assetIndex2.assets.map((a) => [a.id, a]));
   const assetFilePath = (url) => {
     const path = contentUrlFile(url);
@@ -193230,7 +193281,7 @@ function isFileTransform(manifest) {
 // services/mcp/src/result-files.ts
 init_file_v1();
 init_delivery_v1();
-import { createHash as createHash14, createHmac, randomUUID as randomUUID2 } from "node:crypto";
+import { createHash as createHash14, createHmac, randomUUID as randomUUID3 } from "node:crypto";
 import { mkdtemp as mkdtemp4, readFile as readFile33, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
 import { join as join34 } from "node:path";
@@ -193295,7 +193346,7 @@ var ResultFiles = class {
   async hold(owner3, bytes2, mime2, name, origin, secret) {
     await this.prune();
     const release = this.reserve(owner3, bytes2.byteLength);
-    const id3 = randomUUID2();
+    const id3 = randomUUID3();
     const path = `/api/mcp/files/${id3}`;
     let file;
     try {
@@ -194608,7 +194659,7 @@ async function readResource(uri) {
 import { mkdtemp as mkdtemp5, writeFile as writeFile8, unlink as unlink2, rm as rm7 } from "node:fs/promises";
 import { tmpdir as tmpdir6 } from "node:os";
 import { join as join36 } from "node:path";
-import { randomUUID as randomUUID3 } from "node:crypto";
+import { randomUUID as randomUUID4 } from "node:crypto";
 
 // packages/node-shell/src/file-operations.ts
 init_file_operation_v1();
@@ -194874,7 +194925,7 @@ var PrivateFileResources = class {
   }
   async save(owner3, file, role, source, report4) {
     const release = this.reserve(owner3, file.size);
-    const id3 = randomUUID3();
+    const id3 = randomUUID4();
     let path;
     try {
       this.directory ??= mkdtemp5(join36(tmpdir6(), "lolly-private-files-"));

@@ -112,6 +112,7 @@ fn is_sidecar_verb(value: &str) -> bool {
             | "install-browser"
             | "completion"
             | "models"
+            | "projects"
             | "speak"
             | "transcribe"
             | "mix"
@@ -620,7 +621,7 @@ mod tests {
             "measure", "optimize", "package", "assets", "batch", "smoke", "validate", "preflight",
             "install-browser", "completion", "help", "version", "models", "speak", "transcribe",
             "mix", "upscale", "matte", "ocr", "detect-ai", "reword", "depth", "icons", "pack",
-            "tui", "files", "prepare", "rebrand", "read", "check", "compose",
+            "tui", "files", "prepare", "rebrand", "read", "check", "compose", "projects",
         ];
         for verb in reserved {
             if answered_here.contains(&verb) {
