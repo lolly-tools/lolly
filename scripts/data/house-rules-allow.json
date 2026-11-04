@@ -250,5 +250,35 @@
     "rule": "H1",
     "selector": ".me-sidebar",
     "reason": "square column divider: the desktop sidebar has no radius; the rounded corners belong to the mobile sheet rule, which sets border-right: 0"
+  },
+  {
+    "file": "shells/web/src/styles/parts/brand-studio.css",
+    "rule": "H2",
+    "selector": ".be-addcolor",
+    "reason": "drop area: the Colours room's paste and drop field; a dropped image or list of colours goes through the add-colour intake on [data-be-addcolor-drop] (lib/brand-editor/add-color.ts)"
+  },
+  {
+    "file": "shells/web/src/styles/parts/lolly-spin.css",
+    "rule": "H4",
+    "selector": ".lolly-spin__mark",
+    "reason": "Andy's lollipop spin cadence for the register (rings at 3 s, 6 s and 9 s, a 6 s hue drift), the timing of his CodePen and the lolly/demo/lolly-spin asset; the motion tokens are interaction durations, and both Reduce motion rules stop it"
+  },
+  {
+    "file": "shells/web/src/styles/parts/lolly-spin.css",
+    "rule": "H4",
+    "selector": ".lolly-spin__mark .lolly-mark__spin-1",
+    "reason": "Andy's lollipop spin cadence for the register (rings at 3 s, 6 s and 9 s, a 6 s hue drift), the timing of his CodePen and the lolly/demo/lolly-spin asset; the motion tokens are interaction durations, and both Reduce motion rules stop it"
+  },
+  {
+    "file": "shells/web/src/styles/parts/lolly-spin.css",
+    "rule": "H4",
+    "selector": ".lolly-spin__mark .lolly-mark__spin-2",
+    "reason": "Andy's lollipop spin cadence for the register (rings at 3 s, 6 s and 9 s, a 6 s hue drift), the timing of his CodePen and the lolly/demo/lolly-spin asset; the motion tokens are interaction durations, and both Reduce motion rules stop it"
+  },
+  {
+    "file": "shells/web/src/styles/parts/lolly-spin.css",
+    "rule": "H4",
+    "selector": ".lolly-spin__mark .lolly-mark__spin-3",
+    "reason": "Andy's lollipop spin cadence for the register (rings at 3 s, 6 s and 9 s, a 6 s hue drift), the timing of his CodePen and the lolly/demo/lolly-spin asset; the motion tokens are interaction durations, and both Reduce motion rules stop it"
   }
 ]
