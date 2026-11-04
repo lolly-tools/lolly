@@ -316,7 +316,7 @@ PDF- och designfilsimporter behåller sina egna granskningskontroller. Poster i 
 
 Välj en look för att granska den, eller två för att jämföra sida vid sida. Att välja ändrar ingenting. **Use this saved system** byter till det, och **Use these colours** tillämpar ett exempels färger genom den vanliga kontrollpunkten, med dina typsnitt bevarade. **Restore brand settings** återställer den tidigare looken. Sparade system har redigerbara **Search tags** under **Details and design context**. Exemplen är originalrecept på Lolly-färger, utan skrapad samling och utan konto.
 
-![Jämför Sunroom och Orchard sida vid sida innan endera färgsystemet tillämpas.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Jämför Sunroom och Orchard sida vid sida innan endera färgsystemet tillämpas.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Behåll och flytta ditt designsystem
 

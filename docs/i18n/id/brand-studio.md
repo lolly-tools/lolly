@@ -316,7 +316,7 @@ Buka **Find a look** dari Board atau dari daftar design system di Settings. Jela
 
 Pilih satu tampilan untuk meninjaunya, atau dua untuk membandingkan berdampingan. Memilih tidak mengubah apa pun. **Use this saved system** beralih ke sana, dan **Use these colours** menerapkan warna contoh melalui checkpoint biasa, mempertahankan font Anda. **Restore brand settings** memulihkan tampilan sebelumnya. Sistem tersimpan memiliki **Search tags** yang dapat disunting di bawah **Details and design context**. Contohnya adalah resep warna asli Lolly, tanpa koleksi hasil scraping dan tanpa akun.
 
-![Bandingkan Sunroom dan Orchard berdampingan sebelum menerapkan salah satu sistem warna.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Bandingkan Sunroom dan Orchard berdampingan sebelum menerapkan salah satu sistem warna.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Simpan dan pindahkan design system Anda
 

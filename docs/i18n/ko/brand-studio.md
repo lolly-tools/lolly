@@ -316,7 +316,7 @@ Board 또는 Settings의 디자인 시스템 목록에서 **Find a look**을 여
 
 룩 하나를 선택해 검토하거나, 둘을 선택해 나란히 비교하세요. 선택은 아무것도 바꾸지 않아요. **Use this saved system**은 그것으로 전환하고, **Use these colours**는 예시의 색상을 일반 체크포인트를 거쳐 적용하며 글꼴은 유지해요. **Restore brand settings**는 이전 룩을 복구해요. 저장된 시스템에는 **Details and design context** 아래에 편집 가능한 **Search tags**가 있어요. 예시는 스크랩한 모음이나 계정 없이 만든 Lolly 고유의 색상 레시피예요.
 
-![어느 색상 시스템도 적용하기 전에 Sunroom과 Orchard를 나란히 비교하기.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![어느 색상 시스템도 적용하기 전에 Sunroom과 Orchard를 나란히 비교하기.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## 디자인 시스템 보관과 이동
 

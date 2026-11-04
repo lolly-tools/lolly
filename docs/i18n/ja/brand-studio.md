@@ -316,7 +316,7 @@ BoardまたはSettingsのデザインシステム一覧から**Find a look**を�
 
 1つの外観を選ぶとレビューでき、2つ選ぶと並べて比較できます。選択しても何も変わりません。**Use this saved system**はそれに切り替え、**Use these colours**は、通常のチェックポイントを経て例の色を適用し、フォントは保持します。**Restore brand settings**は、以前の外観を復元します。保存済みシステムには、**Details and design context**の下に編集可能な**Search tags**があります。例はLolly独自の配色レシピで、収集された素材も、アカウントもありません。
 
-![どちらのカラーシステムを適用する前に、SunroomとOrchardを並べて比較する。](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![どちらのカラーシステムを適用する前に、SunroomとOrchardを並べて比較する。](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## デザインシステムを保管して移す
 

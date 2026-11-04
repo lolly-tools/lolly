@@ -316,7 +316,7 @@ Board से या Settings में design-system सूची से **Find 
 
 समीक्षा के लिए एक लुक चुनें, या साथ-साथ तुलना के लिए दो। चुनना कुछ नहीं बदलता। **Use this saved system** उस पर स्विच करता है, और **Use these colours** उदाहरण के रंग सामान्य चेकपॉइंट से लागू करता है, आपके फ़ॉन्ट रखते हुए। **Restore brand settings** पिछला लुक लौटाता है। सहेजे सिस्टम में **Details and design context** के नीचे संपादन योग्य **Search tags** हैं। उदाहरण Lolly की मौलिक रंग रेसिपी हैं, बिना स्क्रैप किए संग्रह और बिना खाते के।
 
-![किसी भी रंग सिस्टम को लागू करने से पहले Sunroom और Orchard की साथ-साथ तुलना करें।](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![किसी भी रंग सिस्टम को लागू करने से पहले Sunroom और Orchard की साथ-साथ तुलना करें।](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## अपना design system रखें और ले जाएँ
 

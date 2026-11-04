@@ -316,7 +316,7 @@
 
 Избери един вид, за да го прегледаш, или два, за да сравниш един до друг. Изборът не променя нищо. **Use this saved system** превключва към него, а **Use these colours** прилага цветовете на пример през обичайната контролна точка, като запазва шрифтовете ти. **Restore brand settings** връща предишния вид. Запазените системи имат редактируеми **Search tags** под **Details and design context**. Примерите са оригинални цветови рецепти на Lolly, без изстъргана колекция и без акаунт.
 
-![Сравни Sunroom и Orchard едно до друго, преди да приложиш която и да е от цветовите системи.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Сравни Sunroom и Orchard едно до друго, преди да приложиш която и да е от цветовите системи.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Пази и премествай дизайн системата си
 

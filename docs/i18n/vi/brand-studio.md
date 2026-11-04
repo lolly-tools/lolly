@@ -316,7 +316,7 @@ Mở **Find a look** từ Board hoặc từ danh sách hệ thống thiết kế
 
 Chọn một diện mạo để xem, hoặc hai để so sánh cạnh nhau. Việc chọn không đổi gì. **Use this saved system** chuyển sang nó, và **Use these colours** áp dụng màu của một ví dụ qua điểm kiểm tra thông thường, giữ phông chữ của bạn. **Restore brand settings** khôi phục diện mạo trước. Các hệ thống đã lưu có **Search tags** chỉnh sửa được dưới **Details and design context**. Các ví dụ là công thức màu Lolly nguyên bản, không có bộ sưu tập cào về và không cần tài khoản.
 
-![So sánh Sunroom và Orchard cạnh nhau trước khi áp dụng một trong hai hệ thống màu.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![So sánh Sunroom và Orchard cạnh nhau trước khi áp dụng một trong hai hệ thống màu.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Giữ và chuyển hệ thống thiết kế của bạn
 

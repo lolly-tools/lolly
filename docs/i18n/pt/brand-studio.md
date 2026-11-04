@@ -316,7 +316,7 @@ Abra **Find a look** no Board ou na lista de sistemas de design em Settings. Nav
 
 Selecione um visual para revisá-lo, ou dois para compará-los lado a lado. Selecionar não muda nada. **Use this saved system** troca para ele, e **Use these colours** aplica as cores de um exemplo pelo ponto de restauração habitual, mantendo suas fontes. **Restore brand settings** recupera o visual anterior. Os sistemas salvos têm **Search tags** editáveis em **Details and design context**. Os exemplos são receitas de cor originais do Lolly, sem coleção copiada de sites e sem conta.
 
-![Compare Sunroom e Orchard lado a lado antes de aplicar qualquer um dos sistemas de cor.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Compare Sunroom e Orchard lado a lado antes de aplicar qualquer um dos sistemas de cor.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Guarde e mova o seu sistema de design
 

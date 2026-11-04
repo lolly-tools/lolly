@@ -316,7 +316,7 @@ PDF 與設計檔案匯入保留自己的審閱控制項。**Tray** 中的項目�
 
 選擇一個外觀來審閱，或選擇兩個並排比較。選取不會改變任何東西。**Use this saved system** 會切換到它，**Use these colours** 則透過通常的檢查點套用範例的色彩，並保留你的字型。**Restore brand settings** 可復原先前的外觀。已儲存的系統在 **Details and design context** 下有可編輯的 **Search tags**。這些範例是 Lolly 原創的色彩配方，沒有爬取的收藏，也不需要帳號。
 
-![並排比較 Sunroom 與 Orchard，然後再決定套用哪一套色彩系統。](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![並排比較 Sunroom 與 Orchard，然後再決定套用哪一套色彩系統。](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## 保存並搬移你的設計系統
 

@@ -316,7 +316,7 @@
 
 حدد مظهراً لمراجعته، أو اثنين للمقارنة جنباً إلى جنب. التحديد لا يغيّر شيئاً. يبدّل **Use this saved system** إليه، ويطبق **Use these colours** ألوان مثال عبر نقطة التفتيش المعتادة، مع الاحتفاظ بخطوطك. ويستعيد **Restore brand settings** المظهر السابق. للأنظمة المحفوظة **Search tags** قابلة للتحرير تحت **Details and design context**. الأمثلة وصفات ألوان أصلية من Lolly، بلا مجموعة منتزعة ولا حساب.
 
-![قارن Sunroom وOrchard جنبا إلى جنب قبل تطبيق أي من نظامي الألوان.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![قارن Sunroom وOrchard جنبا إلى جنب قبل تطبيق أي من نظامي الألوان.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## احتفظ بنظام تصميمك وانقله
 

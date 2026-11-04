@@ -316,7 +316,7 @@ Buka **Find a look** daripada Board atau daripada senarai sistem reka bentuk dal
 
 Pilih satu rupa untuk menyemaknya, atau dua untuk dibandingkan bersebelahan. Memilih tidak mengubah apa-apa. **Use this saved system** bertukar kepadanya, dan **Use these colours** menggunakan warna contoh melalui titik semak biasa, mengekalkan fon anda. **Restore brand settings** memulihkan rupa sebelumnya. Sistem tersimpan mempunyai **Search tags** boleh sunting di bawah **Details and design context**. Contoh ialah resipi warna Lolly asli, tanpa koleksi yang diraut dan tanpa akaun.
 
-![Bandingkan Sunroom dan Orchard bersebelahan sebelum menggunakan mana-mana satu sistem warna.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Bandingkan Sunroom dan Orchard bersebelahan sebelum menggunakan mana-mana satu sistem warna.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Simpan dan pindahkan sistem reka bentuk anda
 

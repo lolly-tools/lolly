@@ -145,13 +145,13 @@ The link behind the next picture holds no colour values at all. Its three colour
 ## Round-trip with Penpot
 
 ::: timeline
-- <!--i:palette--> **Export from Lolly.** In Design System Setup, open the Colours room. The download pill at the bottom of the palette offers several formats; choose **Design tokens (JSON)**. Faces you chose in the Type room (Primary, Headings, Code, Italic) travel in the same file as font tokens, and roles left on the platform default stay out of the file.
+- <!--i:palette--> **Export from Lolly.** In Design System Setup, open the Tokens room. Its format menu offers several formats; choose **Design tokens (JSON)** and press **Download**. Faces you chose in the Type room (Primary, Headings, Code, Italic) travel in the same file as font tokens, and roles left on the platform default stay out of the file.
 - <!--i:upload--> **Import into Penpot.** Open a Penpot file, switch to the Tokens panel in the left sidebar and import the JSON. Your sets appear in the panel.
 - <!--i:pentool--> **Apply them.** Apply the colours and fonts to shapes and text from Penpot's Tokens panel.
 - <!--i:convert--> **Bring them back.** Import a Penpot single file, ZIP or multi-file export (`$themes.json`, `$metadata.json` and one file per set) in Design System Setup or with `ingest:brand`.
 :::
 
-![The download pill parked at the palette's bottom edge, with the format menu that carries the same colours back out as DTCG JSON](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dcolor&width=1440&height=900&dpi=192&waitMs=1800&cropSelector=.be-pal-dock&format=svg&walker=1&dark=1&filename=bs-palette-download)
+![The Tokens room's download tools: the format menu, Download, Copy CSS and Add from…, which carry the same colours back out as DTCG JSON](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1800&cropSelector=.tk-head&format=svg&walker=1&dark=1&filename=bs-palette-download)
 
 CMYK survives Lolly-to-Lolly round trips through `$extensions`, and Penpot ignores it, as the standard intends. Two more paths go beyond the token file. Once Penpot is connected under **Settings → Connected services**, a finished render can be sent from Lolly into a Penpot project as an image. And the Lolly bridge plugin for Penpot, installed by URL from a Lolly instance, can place a working Lolly session on the Penpot canvas as editable shapes.
 
