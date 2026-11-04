@@ -9,8 +9,10 @@ logo: icon.svg
 
 platforms:
   - web
+  - linux
   - mac
   - ios
+  - android
 
 categories:
   - graphic-design
