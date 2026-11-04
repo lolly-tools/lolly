@@ -281,45 +281,44 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
            viewport-anchored by the host - see brand-studio.css). -->
       <div class="be-split-scroll" data-be-split-scroll>
       <div class="be-panel be-palette">
-        <div class="be-palette-heading"><h2>${t('Colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span>
-        <!-- Download-all, in the palette's own head (plan 336): it used to float
-             over the tiles as a pill at the pane's bottom edge. -->
-        <div class="be-pal-dock" data-be-pal-dock>
-          <select class="field-select field-select--auto field-select--sm be-pal-fmt-sel" data-be-pal-fmt aria-label="${escapeText(t('Download the palette as'))}">
-            <option value="tokens-json">${t('Design tokens (JSON)')} &middot; Penpot / Tokens Studio</option>
-            <option value="css-vars">${t('CSS variables')}</option>
-            <option value="css-classes">${t('CSS classes')}</option>
-            <option value="scss">${t('SCSS variables')}</option>
-            <option value="gpl">${t('GIMP palette (.gpl)')}</option>
-            <option value="ase">${t('Adobe Swatch Exchange (.ase)')}</option>
-          </select>
-          <button type="button" class="be-btn be-btn--sm" data-be-pal-download data-sfx="whoosh">${t('Download')}</button>
-        </div></div>
+        <div class="be-palette-heading"><h2>${t('Colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        ${/* The first decision leads the room (plan 346 change 7): which colour
+              plays each role. One chip per role; the full strip, with every slot
+              and its contrast, stays in the Colour roles wing for experts. Export
+              lives in the bar and the Tokens room, so the head carries none. */''}
+        <div class="be-rolechips-mount" data-be-rolechips></div>
+        ${/* Paste, sample or drop (plan 346 change 18): a visible field at the top
+              of the room rather than a disclosure. Dashed, because it is a drop
+              area - an image or a list of colours can be dropped anywhere on the area. */''}
+        <section class="be-addcolor" data-be-addcolor-drop aria-labelledby="be-addcolor-lead">
+          <div class="be-addcolor-head">
+            <span class="be-addcolor-lead" id="be-addcolor-lead">${t('Paste colours or use an image')}</span>
+            <span class="be-addcolor-hint">${t('Or drop an image or a list of colours here')}</span>
+            <span class="fauna-slot" data-fauna="lorikeet" data-fauna-watch="paste" aria-hidden="true"></span>
+          </div>
+          ${/* Beat 0's whole room (plan 182 section 3a): the pick row, and one
+                quiet sentence saying what arrives later and where a file goes
+                instead. */''}
+          <div data-be-addcolor></div>
+
+          ${/* The answer to one add (plan 137 C1): the colour, its name, and the two
+                things worth doing next. Static markup filled in place (textContent
+                and one custom property) so a swatch name never reaches a markup
+                sink. Styled as a suggestion row (be-suggest), the same kind of
+                row the panel has always used. */''}
+          <div class="be-suggest be-added" data-be-added hidden>
+            <span class="be-suggest-note">
+              <span class="be-suggest-sw" data-be-added-sw aria-hidden="true"></span>
+              <span data-be-added-name></span>
+            </span>
+            <button type="button" class="be-btn" data-be-added-primary>${t('Use as primary?')}</button>
+            <button type="button" class="be-btn" data-be-added-tune>${t('Fine-tune')}</button>
+            <button type="button" class="be-suggest-dismiss" data-be-added-dismiss aria-label="${escapeText(t('Dismiss'))}">&#x2715;</button>
+          </div>
+        </section>
         <div class="be-logo-colours" data-be-logo-colours="color" hidden></div>
         <div class="be-pal" data-be-pal></div>
         <button type="button" class="be-pal-restore" data-be-undo hidden>${t('Undo')}</button>
-      <details class="be-addcolor"><summary>${t("Paste colours or use an image")}</summary>
-        ${/* Beat 0's whole room (plan 182 section 3a): a title, a line, the pick
-              row, and one quiet sentence saying what arrives later and where a
-              file goes instead. It replaces the panel head rather than joining
-              it - two headings over one control is the wall this beat removes. */''}
-        <div data-be-addcolor></div>
-
-        ${/* The answer to one add (plan 137 C1): the colour, its name, and the two
-              things worth doing next. Static markup filled in place (textContent
-              and one custom property) so a swatch name never reaches a markup
-              sink. Styled as a suggestion row (be-suggest), the same kind of
-              row the panel has always used. */''}
-        <div class="be-suggest be-added" data-be-added hidden>
-          <span class="be-suggest-note">
-            <span class="be-suggest-sw" data-be-added-sw aria-hidden="true"></span>
-            <span data-be-added-name></span>
-          </span>
-          <button type="button" class="be-btn" data-be-added-primary>${t('Use as primary?')}</button>
-          <button type="button" class="be-btn" data-be-added-tune>${t('Fine-tune')}</button>
-          <button type="button" class="be-suggest-dismiss" data-be-added-dismiss aria-label="${escapeText(t('Dismiss'))}">&#x2715;</button>
-        </div>
-      </details>
 
         <!-- The colour charts, demoted to a folded card - repainted on open,
              since a hidden mount measures 0×0 (see the toggle wiring below).

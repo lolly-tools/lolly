@@ -661,7 +661,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
 
   bedit.logoIntake.wireIntakeZone();
 
-  bedit.pack.wirePaletteDownload();
+  bedit.pack.wireStudioPanels();
 
   bedit.pack.wireGradientsPanel();
 
@@ -684,7 +684,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     reload: bedit.pack.reload,
     // The host calls this on every room change, which is also when a post-add
     // chip stops being about anything the person can see.
-    closeOverlays: () => { bedit.swatchEditor.closeEditor(); bedit.addColor.clearAddedChip(); },
+    closeOverlays: () => { bedit.swatchEditor.closeEditor(); bedit.addColor.clearAddedChip(); bedit.roleChips?.close(); },
     onPalette: (cb) => { paletteObservers.add(cb); return () => { paletteObservers.delete(cb); }; },
     openColorChart: () => {
       if (!bedit.chartDetails) return false;
@@ -712,10 +712,9 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     },
     openPickCard: () => {
       // Anchored on the palette's own "+ Add swatch", which is on screen at every
-      // beat. The add row's chip sits inside the folded "Paste colours or use an
-      // image", where it measures 0x0 and the card would land at the panel's
-      // corner. On a phone the card ignores the anchor and docks to the bottom
-      // edge (see openPickCard).
+      // beat and sits right under the add area, so the card opens beside the
+      // palette it will add to. On a phone the card ignores the anchor and docks
+      // to the bottom edge (see openPickCard).
       const panel = '[data-be-tab-panel="color"]';
       const anchor = (bedit.ramps.$(`${panel} .be-pal [data-be-add="custom"]:not([data-be-add-group])`)
         ?? bedit.ramps.$(`${panel} [data-ds-addc-pick]`)) as HTMLElement | null;

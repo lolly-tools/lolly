@@ -130,6 +130,9 @@ export const onKey = (bedit: BrandEditorCtx, e: KeyboardEvent): void => {
     return;
   }
   if (e.key !== 'Escape') return;
+  // A role chip's picker is the innermost overlay while it is open: it closes on
+  // this Escape itself (body-popover), and the room's ladder waits for the next.
+  if (bedit.roleChips?.isOpen()) return;
   if (editorEl && !editorEl.hidden) { e.stopImmediatePropagation(); bedit.swatchEditor.closeEditor(); return; }
   if (reviewEl && !reviewEl.hidden) { e.stopImmediatePropagation(); bedit.replace.hideReview(); return; }
   if (bedit.openBulkPanel) { e.stopImmediatePropagation(); bedit.palSelect.closeBulkMenu(); return; }

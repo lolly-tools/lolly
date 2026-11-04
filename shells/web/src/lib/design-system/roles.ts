@@ -579,6 +579,10 @@ export interface RoleRow {
   /** The value line: the swatch's name when the role points at one, else the
    *  raw hex, else the not-set label. */
   value: string;
+  /** The colour's own name (or its hex), with none of the value line's
+   *  stand-in wording: '' when the role is unset. For a surface too narrow for
+   *  the sentence, which says "starter" some other way (the role chips). */
+  name: string;
   /** True when the slot holds something. */
   set: boolean;
   /**
@@ -685,6 +689,7 @@ export function buildRolesModel(
         : starter
           ? tRaw('Starter {name} stands in', { name })
           : (name || t('Not set')),
+      name,
       set,
       starter,
       follows,

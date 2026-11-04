@@ -1011,6 +1011,13 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // before it reaches the `--sw` style property, the APCA title and readout,
   // and every <option>/<optgroup> key, name and group heading.
   'lib/design-system/roles.ts': 1,
+  // The role chips at the top of Colours (plan 346 change 7). Two sinks: the
+  // chips from the pure roleChipsHtml() and the picker body from the pure
+  // rolePickerHtml(). Reviewed 2026-11-04: every interpolated value is a t()/
+  // tRaw() literal or escape()d (utils.ts) - the role id, label and value, the
+  // swatch keys, names and hexes (before the `--sw` style property too), the
+  // group headings and the caption - and the chevron is lib/icons.ts markup.
+  'lib/design-system/role-chips.ts': 2,
   // The candidate tray's panel (plan 97 section 8, M2). Two sinks, reviewed 2026-08-09:
   // the mount scaffold (t() literals and icon() constants, with both aria-labels
   // escape()d) and the candidate list, which is the pure trayHtml(). Everything

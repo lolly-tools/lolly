@@ -27,7 +27,6 @@ import { escape } from '../../utils.ts';
 import { segHtml } from '../seg.ts';
 import { FONT_ROLES, colorIdentity } from '../design-system/ownership.ts';
 import type { FaceState } from '../design-system/ownership.ts';
-import type { RoleId } from '../design-system/roles.ts';
 import type { LogoRoleOffer } from '../design-system/logo-roles.ts';
 
 // ── Host shape ──────────────────────────────────────────────────────────────
@@ -63,9 +62,9 @@ export const FOREGROUNDS: ReadonlyArray<{ id: Fg; label: string }> = [
   { id: 'auto', label: t('Auto') }, { id: 'light', label: t('Light') }, { id: 'dark', label: t('Dark') },
 ];
 // The palette download formats, as the bulk bar's Download menu lists them
-// (plan 182 section 5.5) - the same six lib/swatch-export.ts serves the pane's
-// download dock. The dock keeps its own <select>, whose tokens-json option
-// carries a "Penpot / Tokens Studio" note the menu has no room for.
+// (plan 182 section 5.5): the six lib/swatch-export.ts serves. The Colours
+// room's head carried a download dock of its own until plan 346 change 9; the
+// whole system's export is the bar's Export and the Tokens room's.
 export const PALETTE_FORMATS: ReadonlyArray<{ id: SwatchExportFormat; label: string }> = [
   { id: 'tokens-json', label: t('Design tokens (JSON)') },
   { id: 'css-vars', label: t('CSS variables') },
@@ -716,19 +715,6 @@ export function mountPrintLock(mount: HTMLElement, ctx: PrintLockCtx): { render:
 export function tileHtml(s: BrandSwatch, idx: number, roleGlyph?: string): string {
   return swatchTile({ label: s.name, hex: s.hex, locked: !!s.lock }, { idx, roleGlyph });
 }
-
-/**
- * The corner mark an assigned tile wears (plan 182 section 4.2).
- *
- * Two letters for Surface because S is already Secondary's, and the whole point
- * of the glyph is that it is readable at 10px on a 44px tile without a legend.
- * Untranslated on purpose - it is a mark, not a word (the `PANTONE 186 C`
- * precedent), and the Roles strip beside it carries the translated names.
- */
-// Partial: the contract has seven slots (plan 182 section 5.7) and only these
-// four earn a mark. Muted, edge and on-primary are derived company for the
-// colours above them - a tile wearing four glyphs would be a legend, not a mark.
-export const ROLE_GLYPH: Partial<Record<RoleId, string>> = { primary: 'P', secondary: 'S', surface: 'Su', text: 'T' };
 
 /** Identity of one starter swatch: its key AND its stored value. The definition
  *  and the reason both halves are needed live in lib/design-system/ownership.ts,

@@ -17,8 +17,8 @@ import type { BrandSwatch, PrintLock } from '../brand-doc.ts';
 import { t } from '../../i18n.ts';
 import { segHtml } from '../seg.ts';
 import { colourBeat } from '../design-system/beats.ts';
-import { ROLE_IDS, readRoles } from '../design-system/roles.ts';
-import { RAMP_LABEL, ROLE_GLYPH, starterId } from './shared.ts';
+import { ROLE_IDS, readRoles, roleLabel } from '../design-system/roles.ts';
+import { RAMP_LABEL, starterId } from './shared.ts';
 import type { CurveMarks } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
@@ -65,8 +65,11 @@ export const isStarterSwatch = (bedit: BrandEditorCtx, s: BrandSwatch): boolean 
  *  is decided on (plan 182 sections 3a, 4.2). Roles are skipped for the reason
  *  paletteHtml skips them: an alias is not a colour somebody added. */
 export const ownColorCount = (bedit: BrandEditorCtx): number => bedit.swatches.filter(s => s.kind !== 'semantic' && !isStarterSwatch(bedit, s)).length;
-/** Which swatch wears which role mark, read off the doc's own aliases so the
- *  glyph and the Roles strip can never disagree. */
+/** Which swatch wears which role label, read off the doc's own aliases so the
+ *  tile and the role chips can never disagree. The label is the role's own
+ *  name ("Primary"), not the old corner letter (plan 346 change 7): a "P" or an
+ *  "Su" needed a legend, and the chips above the palette now say the same thing
+ *  in words. A swatch that plays two roles shows the first of the four. */
 export const roleGlyphsNow = (bedit: BrandEditorCtx): Map<string, string> => {
   const out = new Map<string, string>();
   let resolve: ((key: string) => unknown) | undefined;
@@ -77,8 +80,7 @@ export const roleGlyphsNow = (bedit: BrandEditorCtx): Map<string, string> => {
   const held = readRoles(bedit.doc, bedit.state.editContext(), resolve);
   for (const role of ROLE_IDS) {
     const ref = held[role]?.ref;
-    const glyph = ROLE_GLYPH[role];
-    if (ref && glyph && !out.has(ref)) out.set(ref, glyph);
+    if (ref && !out.has(ref)) out.set(ref, roleLabel(role));
   }
   return out;
 };

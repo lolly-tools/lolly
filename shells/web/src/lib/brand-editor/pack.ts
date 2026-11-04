@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * brand editor: palette download, brand pack export and import.
+ * brand editor: brand pack export and import, and the studio panels' context.
  *
  * Every function takes the shared `bedit: BrandEditorCtx` first (see context.ts). Sibling
  * calls in this file are direct; anything in another module, and any function used as
@@ -8,8 +8,6 @@
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
 import type { Unzipped } from 'fflate';
-import { exportSwatches } from '../swatch-export.ts';
-import type { SwatchExportFormat } from '../swatch-export.ts';
 import { applyChromeBrandVars } from '../../brand-vars.ts';
 import { brandFontFamilies } from '../register-user-fonts.ts';
 import { mountCataloguePanel, mountGradientsPanel, mountTokensPanel } from '../brand-studio-tabs.ts';
@@ -94,20 +92,12 @@ export const importPack = async (bedit: BrandEditorCtx, source: File | Unzipped)
     announce(t('Brand loaded'));
   }
 };
-export function wirePaletteDownload(bedit: BrandEditorCtx): void {
-  const { host, palErr, palFmtSel } = bedit;
-  bedit.ramps.$('[data-be-pal-download]')?.addEventListener('click', async () => {
-    if (palErr) palErr.hidden = true;
-    try {
-      const format = (palFmtSel?.value ?? 'tokens-json') as SwatchExportFormat;
-      const fonts = format === 'tokens-json' ? await bedit.pack.exportFonts() : undefined;
-      const { blob, filename } = exportSwatches(bedit.swatches, format, undefined, fonts?.length ? { fonts } : undefined);
-      await saveBlob(blob, filename);
-      announce(tRaw('Palette downloaded as {filename}', { filename }));
-    } catch (err) {
-      if (palErr) { palErr.textContent = String((err as { message?: unknown })?.message ?? err); palErr.hidden = false; }
-    }
-  });
+export function wireStudioPanels(bedit: BrandEditorCtx): void {
+  const { host } = bedit;
+  // The Colours room's head used to carry a format select and Download for the
+  // whole palette. One export place per scope (plan 346 change 9): the bar's
+  // Export takes the whole system, the Tokens room keeps the format tools, and
+  // the selection bar downloads a selection (pal-select.ts downloadSelection).
 
   // ── The three studio panels that live outside this file ──────────────────
   // Token editors, gradients and catalogue uploads (brand-studio-tabs.ts) - 
@@ -181,7 +171,7 @@ export function packOps(bedit: BrandEditorCtx) {
     exportPack: bindOp(bedit, exportPack),
     reload: bindOp(bedit, reload),
     importPack: bindOp(bedit, importPack),
-    wirePaletteDownload: bindOp(bedit, wirePaletteDownload),
+    wireStudioPanels: bindOp(bedit, wireStudioPanels),
     wireGradientsPanel: bindOp(bedit, wireGradientsPanel),
   };
 }

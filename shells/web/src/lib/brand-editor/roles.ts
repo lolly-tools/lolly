@@ -15,6 +15,7 @@ import { playSfx } from '../sfx.ts';
 import { readStarterDoc } from '../design-system/rooms/overview.ts';
 import { starterColorIds } from '../design-system/ownership.ts';
 import { ROLE_IDS, ROLE_IDS_ALL, assignRole, clearRole, mountRolesStrip, readRoles, roleLabel } from '../design-system/roles.ts';
+import { mountRoleChips } from '../design-system/role-chips.ts';
 import type { RoleId } from '../design-system/roles.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
@@ -67,6 +68,19 @@ export const roleControl = (_bedit: BrandEditorCtx, family: string, active: bool
     : `<button type="button" class="be-btn be-font-role" ${dataAttr}="${escapeText(family)}" title="${escapeText(assignTitle)}">${assignLabel}</button>`;
 export function wireRolesStrip(bedit: BrandEditorCtx): void {
   const { editorEl, paletteHooks, rolesMount, undoStack } = bedit;
+  const resolve = (key: string): unknown => {
+    try { return leadTokenSet(bedit.doc, bedit.state.editContext()).resolve(key); }
+    catch { return null; }
+  };
+  // Both role surfaces write through here and report what actually happened: a
+  // refused write (a document the role can't land in) re-renders both, so the
+  // control snaps back to the truth rather than persisting nothing and
+  // announcing success.
+  const assign = (role: RoleId, key: string): void => {
+    if (!assignRole(bedit.doc, role, key, bedit.state.editContext())) { bedit.rolesStrip?.render(); bedit.roleChips?.render(); return; }
+    bedit.ramps.repaintPalette(); bedit.state.persist(true);
+    announce(tRaw('{role} is now {name}', { role: roleLabel(role), name: bedit.roles.nameOfKey(key) }));
+  };
   const rolesStrip = rolesMount ? mountRolesStrip(rolesMount, {
     doc: () => bedit.doc as Record<string, unknown>,
     context: bedit.state.editContext,
@@ -74,19 +88,9 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
     // (plan 182 section 5.7 step 1). Seven rows in front of somebody who has
     // just added their first colour is a form; four is a strip.
     ids: () => (bedit.beat >= 2 ? ROLE_IDS_ALL : ROLE_IDS),
-    resolve: (key) => {
-      try { return leadTokenSet(bedit.doc, bedit.state.editContext()).resolve(key); }
-      catch { return null; }
-    },
+    resolve,
     swatches: bedit.roles.roleSwatchOptions,
-    // Both callbacks report what actually happened: a refused write (a document
-    // the role can't land in) re-renders the strip so the picker snaps back to
-    // the truth, rather than persisting nothing and announcing success.
-    assign: (role, key) => {
-      if (!assignRole(bedit.doc, role, key, bedit.state.editContext())) { rolesStrip?.render(); return; }
-      bedit.ramps.repaintPalette(); bedit.state.persist(true);
-      announce(tRaw('{role} is now {name}', { role: roleLabel(role), name: bedit.roles.nameOfKey(key) }));
-    },
+    assign,
     clear: (role) => {
       // A removal: clearing `primary` deletes the token the app's own accent
       // reads, and nothing on screen holds the swatch it pointed at. Snapshot
@@ -98,6 +102,19 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
     },
   }) : null; bedit.rolesStrip = rolesStrip;
   paletteHooks.push(() => rolesStrip?.render());
+
+  // The role chips at the top of the room (plan 346 change 7): the same four
+  // first decisions, read from the same model and written through the same
+  // assign, so the chips and the strip in the wing can never disagree.
+  const chipsMount = bedit.ramps.$('[data-be-rolechips]') as HTMLElement | null;
+  const roleChips = chipsMount ? mountRoleChips(chipsMount, {
+    doc: () => bedit.doc as Record<string, unknown>,
+    context: bedit.state.editContext,
+    resolve,
+    swatches: bedit.roles.roleSwatchOptions,
+    assign,
+  }) : null; bedit.roleChips = roleChips;
+  if (roleChips) { paletteHooks.push(roleChips.render); bedit.cleanups.push(roleChips.destroy); }
 
   // The swatch popover's "Use as" row - the same assignment, reached from the
   // colour itself. A pressed button means "this swatch IS that role", so

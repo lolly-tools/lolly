@@ -21,6 +21,7 @@ import type { FaceState } from '../design-system/ownership.ts';
 import type { TypeBeat } from '../design-system/beats-type.ts';
 import type { BrandEditorOptions, Contrast, EditorHost, Fg, HarmonyKind, LogoCandidateChip, LogoOfferState, Scheme, Surface } from './shared.ts';
 import type { PaletteSelection } from '../design-system/palette-select.ts';
+import type { RoleChipsHandle } from '../design-system/role-chips.ts';
 import type { StudioPanelHandle, StudioTabCtx } from '../brand-studio-tabs.ts';
 import type { rampsOps } from './ramps.ts';
 import type { stateOps } from './state.ts';
@@ -209,6 +210,7 @@ export interface BrandEditorCtx {
   /** The Colourways row at the head of the Colour roles wing (colourways.ts). */
   leadsMount: HTMLElement | null;
   rolesStrip: { render: () => void; } | null;
+  roleChips: RoleChipsHandle | null;
   useasRow: HTMLElement | null;
   fontErr: HTMLElement | null;
   fontFamilies: UserFontFamily[];

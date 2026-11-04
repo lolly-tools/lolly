@@ -236,9 +236,10 @@ export interface SwatchTileOptions {
    *  Design System Setup's own grid always wants them; a caller reusing the 'md'
    *  shape purely for layout (none currently) can opt out. */
   editable?: boolean;
-  /** md only: the role mark this tile wears in the corner - `P`, `S`, `Su`, `T`
-   *  (plan 182 section 4.2). Decorative and aria-hidden: the Roles strip is
-   *  where roles are listed and named, and the tile's accessible label is kept
+  /** md only: the role label this tile wears in its corner - the role's own
+   *  name, "Primary" (plan 346 change 7; it was a letter, `P`, before).
+   *  Decorative and aria-hidden: the role chips and the Roles strip are where
+   *  roles are listed and named, and the tile's accessible label is kept
    *  fresh in place by the studio's own recolour paths, which know nothing about
    *  roles. Omit it and the tile is byte-identical to what it always was. The
    *  mark's ink is the tile's own call (swatchTakesDarkInk), so every caller
