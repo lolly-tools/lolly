@@ -89,21 +89,24 @@ window.__LOLLY_UPDATER_QUALIFICATION__ = {};
         if (!(await get('user-assets', 'user/updater-qualification'))) {
           await put('user-assets', { id: 'user/updater-qualification', type: 'image', format: 'svg', version: '1', blob: new Blob([bytes], { type: 'image/svg+xml' }) });
         }
-        result = { stage: 'seeding-credential' }; await report();
-        if (!(await get('identity', 'updater-qualification'))) {
-          const keys = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
-          await put('identity', keys, 'updater-qualification');
+        if (next.credentials !== false) {
+          result = { stage: 'seeding-credential' }; await report();
+          if (!(await get('identity', 'updater-qualification'))) {
+            const keys = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
+            await put('identity', keys, 'updater-qualification');
+          }
         }
       }
       if (next.action === 'read') {
         const asset = await get('user-assets', 'user/updater-qualification');
-        const keys = await get('identity', 'updater-qualification');
+        const keys = next.credentials === false ? null : await get('identity', 'updater-qualification');
         const signature = keys ? await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, keys.privateKey, bytes) : null;
         restored = { document: await host.state.load('updater-qualification'),
           preference: localStorage.getItem('lolly:updater-qualification-preference'), profile: (await host.profile.get()).firstname,
           assetSha256: asset?.blob ? await digest(await asset.blob.arrayBuffer()) : null,
           expectedAssetSha256: await digest(bytes),
-          credentialWorks: !!signature && await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, keys.publicKey, signature, bytes),
+          credentialChecked: next.credentials !== false,
+          credentialWorks: next.credentials === false ? null : !!signature && await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, keys.publicKey, signature, bytes),
           credentialExtractable: keys?.privateKey.extractable,
           credentialPublicSha256: keys ? await digest(await crypto.subtle.exportKey('spki', keys.publicKey)) : null,
         };
