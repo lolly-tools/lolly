@@ -90,6 +90,13 @@ export function webGpuFailureText(error: Error & { code: WebGpuErrorCode }, t: (
   }
 }
 
+/** True when the browser offers no usable WebGPU at all (no API, or no adapter),
+ *  as opposed to a device that fell short, an insecure page or a timeout. The
+ *  unsupported-environment card lists the browsers that work for this one. */
+export function isWebGpuMissing(error: Error & { code: WebGpuErrorCode }): boolean {
+  return error.message === REQUIRED_MESSAGE;
+}
+
 function meetsLimits(limits: GPUSupportedLimits): boolean {
   return limits.maxStorageBuffersPerShaderStage >= 3 && limits.maxComputeInvocationsPerWorkgroup >= 64
     && limits.maxComputeWorkgroupSizeX >= 64 && limits.maxStorageBufferBindingSize >= 1024 * 1024;
