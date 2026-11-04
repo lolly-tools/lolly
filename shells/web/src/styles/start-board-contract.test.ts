@@ -7,8 +7,9 @@
  *
  *   1. The studio sits in one centred column of at most 1440px on a wide screen,
  *      the bar, the rooms and the open room alike.
- *   2. On a desk the Board and its live column share two columns; the live
- *      column is sticky and as tall as the window under the bar (100dvh minus
+ *   2. On a desk the Board and its live column share two columns, both at
+ *      the top; the live column is sticky, in the scene's own shape and never
+ *      taller than the window under the bar (100dvh minus
  *      the pinned bar). Never in two panes, where split.css lays them out.
  *   3. On a phone the live column is a short card in the scene's own shape, and
  *      the doors keep their words in less height.
@@ -26,11 +27,13 @@ const sheet = (name: string): string => readFileSync(new URL(`./parts/${name}`, 
 const start = sheet('start.css');
 const bar = sheet('start-bar.css');
 
-/** The declarations of the first rule whose selector list is exactly `selector`. */
+/** The declarations of the first rule whose selector list is exactly `selector`
+ *  (at the start of a rule, so `.a {` never matches inside `.b > .a {`). */
 function body(css: string, selector: string): string {
-  const at = css.indexOf(`${selector} {`);
-  assert.ok(at >= 0, `no rule for ${selector}`);
-  const open = at + selector.length + 2;
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const found = new RegExp(`(?:^|[\\n{}])\\s*${escaped} \\{`).exec(css);
+  assert.ok(found, `no rule for ${selector}`);
+  const open = found.index + found[0].length;
   return css.slice(open, css.indexOf('}', open));
 }
 
@@ -41,7 +44,7 @@ test('FRAME: the studio is one centred column of at most 1440px', () => {
   assert.match(body(bar, '.start.start--studio > .gallery-topright'), /right:\s*calc\(max\(var\(--ds-gutter\), \(100% - var\(--ds-frame\)\) \/ 2\)/, 'the profile button stays on the frame\'s edge');
 });
 
-test('DESK: two columns while the Board is open, the live column sticky and window-tall', () => {
+test('DESK: two columns while the Board is open, the live column sticky and capped at the window', () => {
   const desk = '@media (min-width: 641px)';
   const at = start.indexOf(desk);
   assert.ok(at >= 0);
@@ -51,8 +54,13 @@ test('DESK: two columns while the Board is open, the live column sticky and wind
   const live = body(start, 'html:not([data-layout="split"]) .start--studio .ds-main > .ds-live');
   assert.match(live, /position:\s*sticky/);
   assert.match(live, /top:\s*var\(--ds-sticky-top/);
-  assert.match(live, /height:\s*calc\(100dvh - var\(--ds-sticky-top, 0px\)/);
+  assert.match(live, /max-height:\s*calc\(100dvh - var\(--ds-sticky-top, 0px\)/, 'never taller than the window under the bar');
+  assert.doesNotMatch(live, /(?:^|[;\s])height:/, 'as tall as its content, not a window-tall slab');
   assert.match(live, /align-self:\s*start/, 'shorter than its column, so it can stick');
+  const stage = body(start, 'html:not([data-layout="split"]) .start--studio .ds-main > .ds-live > .ds-live-stage');
+  assert.match(stage, /aspect-ratio:\s*4 \/ 3/, 'the stage keeps the scene\'s own shape');
+  assert.match(stage, /max-height:\s*100%/, 'and gives up height on a short window');
+  assert.doesNotMatch(start, /\.ds-ov-(?:card|door|start-door) \{ min-height: clamp\([^)]*dvh/, 'a tall window does not stretch the Board\'s cards');
   assert.ok(start.indexOf('html:not([data-layout="split"]) .start--studio .ds-main > .ds-live') > at, 'only on a desk');
   assert.match(start, /\.start--studio \.ds-main:has\(> \.ds-live:not\(\[hidden\]\)\) > \.start-editor-wrap \{ display: none; \}/, 'the editor\'s empty wrapper takes no place in the frame');
   assert.match(body(start, '.ds-live-stage'), /container-type:\s*size/, 'the scene is sized to both sides of the stage');

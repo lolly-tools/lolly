@@ -160,8 +160,9 @@ html[dir="rtl"] .start-back-row {
 
 /* ── The Board: counts, doors and the live column, no progress ──────────────
       Plan 346. On a desk the Board and its live column (the In context
-      specimen) share one centred frame of two columns, the specimen sticky and
-      as tall as the window under the bar; on a phone the specimen follows the
+      specimen) share one centred frame of two columns, both aligned to the
+      top, the specimen sticky in its own shape and never taller than the window
+      under the bar; on a phone the specimen follows the
       Board as a short card; in two panes each takes a pane (styles/parts/
       split.css places them, views/start/rooms.ts decides which shows). */
 .ds-ov { display: flex; flex-direction: column; gap: var(--sp-6); }
@@ -182,22 +183,24 @@ html[dir="rtl"] .start-back-row {
     column-gap: var(--sp-8);
   }
   html:not([data-layout="split"]) .start--studio .ds-main:has(> .ds-live:not([hidden])) > [data-ds-panel="overview"] { grid-column: 1; grid-row: 1; }
+  /* The column is as tall as its content and no taller than the window under
+     the bar: the stage keeps the scene's own shape, and on a short window it
+     gives up height (max-height: 100% of its row) while the head and the scene
+     buttons keep theirs. A tall window adds no height to either column, so the
+     Board's cards keep their content height beside it. */
   html:not([data-layout="split"]) .start--studio .ds-main > .ds-live {
     grid-column: 2;
     grid-row: 1;
     align-self: start;
     position: sticky;
     top: var(--ds-sticky-top, 0px);
-    height: calc(100dvh - var(--ds-sticky-top, 0px) - var(--sp-6));
+    max-height: calc(100dvh - var(--ds-sticky-top, 0px) - var(--sp-6));
     min-height: 22rem;
   }
-  /* On a tall window the doors and cards take a share of its height, so the
-     Board grows beside a specimen as tall as the window instead of stopping
-     halfway down the window. On a 900px window the shares come to their usual
-     sizes. */
-  html:not([data-layout="split"]) .start--studio .ds-ov-door { min-height: clamp(10.5rem, 24dvh, 22rem); }
-  html:not([data-layout="split"]) .start--studio .ds-ov-card { min-height: clamp(9.5rem, 17dvh, 15rem); }
-  html:not([data-layout="split"]) .start--studio .ds-ov-start-door { min-height: clamp(8.5rem, 15dvh, 12rem); }
+  html:not([data-layout="split"]) .start--studio .ds-main > .ds-live > .ds-live-stage {
+    aspect-ratio: 4 / 3;
+    max-height: 100%;
+  }
   /* Every note keeps two lines, so the door names share one line across a row
      whether a note wraps or not. */
   html:not([data-layout="split"]) .start--studio .ds-ov-door-note { min-height: 2lh; }
