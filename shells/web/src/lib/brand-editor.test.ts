@@ -70,6 +70,18 @@ test('colour workspace creates empty groups, moves directly, saves on Enter, pre
     assert.deepEqual([...root.querySelectorAll<HTMLElement>('[data-be-rolechip]')].map(el => el.dataset.beRolechip), ['primary', 'secondary', 'surface', 'text'], 'the role chips lead the room');
     assert.match($('[data-be-rolechip="primary"]').textContent ?? '', /Primary\s*Starter\s*Ink/, 'the starter ink stands in for the primary, and says so');
     assert.ok(root.querySelector('[data-be-editor-cancel].be-btn:not(.be-editor-del)'), 'Cancel is the neutral secondary, never the destructive style');
+    // Escape in a chip's picker closes the picker and nothing else: the studio's own
+    // Escape (a later document listener) would otherwise leave the studio.
+    const heardLater: string[] = [];
+    const studioEscape = (e: KeyboardEvent): void => { heardLater.push(e.key); };
+    document.addEventListener('keydown', studioEscape);
+    click('[data-be-rolechip="primary"]');
+    assert.ok(document.querySelector('.be-rolepick'), 'the chip opens its picker');
+    document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    document.removeEventListener('keydown', studioEscape);
+    assert.equal(document.querySelector('.be-rolepick'), null, 'Escape closes the picker');
+    assert.deepEqual(heardLater, [], 'and the studio never hears the press');
+    assert.equal(document.activeElement, $('[data-be-rolechip="primary"]'), 'focus returns to the chip');
     // A list of colours dropped on the add area goes into the field; nothing is added yet.
     const beforeDrop = structuredClone(installed);
     const drop = new dom.window.Event('drop', { bubbles: true, cancelable: true });

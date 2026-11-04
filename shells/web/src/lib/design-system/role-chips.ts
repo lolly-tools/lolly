@@ -125,7 +125,8 @@ function wireArrows(el: HTMLElement): void {
 
 export interface RoleChipsHandle {
   render: () => void;
-  close: () => void;
+  /** Close an open picker; `returnFocus` puts focus back on its chip. */
+  close: (returnFocus?: boolean) => void;
   /** True while a chip's picker is open, so the room's own Escape ladder can
    *  leave the key to the picker, the innermost overlay. */
   isOpen: () => boolean;
@@ -153,7 +154,7 @@ export function mountRoleChips(mount: HTMLElement, ctx: Omit<RolesCtx, 'clear' |
     if (focused) chipFor(focused as RoleId)?.focus();
   };
 
-  const close = (): void => { popover?.close(); };
+  const close = (returnFocus = false): void => { popover?.close(returnFocus); };
 
   const open = (role: RoleId): void => {
     popover?.close();
