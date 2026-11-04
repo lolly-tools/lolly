@@ -30,10 +30,16 @@
  * say (plans/137 A2). A route change (close(null)) is not a dismissal and
  * acknowledges nothing.
  *
- * Two pages, one dialog. The shell is a fixed size on both pages (a scrolling
+ * Two pages, one dialog. The shell keeps one size on both pages (a scrolling
  * body plus a footer that never moves - styles/parts/welcome.css), so switching
  * pages does not resize the dialog and the footer can never be clipped off the
- * bottom of a phone screen:
+ * bottom of a phone screen. On a desk that size is page 1's own (plan 346,
+ * change 14): the dialog opens at the height of its doors, with no empty band
+ * above or below them, and that height is held, so page 2 scrolls inside the
+ * same shell rather than growing the dialog. A fixed height used to leave 140px
+ * of nothing above the heading and 150px under the doors; sizing to content
+ * fixes that without adding anything to look at, where a strip of tool outputs
+ * would have filled the band with a second thing to read before the choice:
  *
  *   Page 1  the three doors above.
  *   Page 2  "Private by design" - the privacy assurance in full, with a "Got it"
@@ -207,6 +213,7 @@ export function showWelcomeDialog(profileApi?: WebProfileAPI, uploadHost?: Picke
         if (result === 'explore' || result === 'dismiss') { markWelcomeDismissed(); ackPrivacyNotice(); }
         else if (result === 'brand' || result === 'import') { markWelcomeDismissed(); }
         NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
+        window.removeEventListener('resize', onResize);
         settleOpen = null;
         openPromise = null;
         releaseGate();
@@ -221,8 +228,23 @@ export function showWelcomeDialog(profileApi?: WebProfileAPI, uploadHost?: Picke
     // second modal and never re-runs the open animation.
     const repaint = (focus: string): void => {
       modal.el.innerHTML = renderWelcomeContent(!!uploadHost, langsOpen, page);
+      if (page === 1) holdHeight();
       modal.el.querySelector<HTMLElement>(focus)?.focus();
     };
+    // A desk holds the dialog at page 1's own height (see the module note): let
+    // it size to its content, read that height, and keep it for both pages. A
+    // phone sizes to content on every page (welcome.css), so nothing is held.
+    // Re-read whenever page 1 is repainted (a language with longer words) and
+    // when the window changes while page 1 shows.
+    const desk = window.matchMedia?.('(min-width: 641px)');
+    function holdHeight(): void {
+      modal.el.style.removeProperty('block-size');
+      if (desk && !desk.matches) return;
+      modal.el.style.blockSize = `${Math.ceil(modal.el.offsetHeight)}px`;
+    }
+    const onResize = (): void => { if (page === 1) holdHeight(); };
+    holdHeight();
+    window.addEventListener('resize', onResize);
     /** Move to a page and focus its first control. No-op when already there. */
     const goToPage = (next: WelcomePage): void => {
       if (next === page) return;
