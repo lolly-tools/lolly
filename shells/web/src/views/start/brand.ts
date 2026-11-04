@@ -52,8 +52,10 @@ async function suggestedName(start: StartCtx): Promise<string> {
   let slots: Awaited<ReturnType<typeof listLogos>> = [];
   try { slots = await listLogos(start.host); } catch { return ''; }
   try {
-    const svg = slots.find(s => s.format === 'svg' && s.identity === 'default' && /primary/.test(s.variant))
-      ?? slots.find(s => s.format === 'svg');
+    // A mark kept from the shipped system was not placed by the person.
+    const placed = slots.filter(s => !s.shipped);
+    const svg = placed.find(s => s.format === 'svg' && s.identity === 'default' && /primary/.test(s.variant))
+      ?? placed.find(s => s.format === 'svg');
     return svg ? logoWords(await (await fetch(svg.url)).text()) : '';
   } catch { return ''; } finally {
     for (const s of slots) URL.revokeObjectURL(s.url);

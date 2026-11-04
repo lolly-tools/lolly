@@ -144,7 +144,8 @@ export interface LogoSlot {
   bytes: number;
   /** True for a user-named variant (not one of the 8 matrix slots). */
   custom: boolean;
-  /** The shipped design system's own mark, read from the catalog: it can be replaced,
+  /** The shipped design system's own mark, read from the catalog, whether the
+   *  shipped system is active or a copy of it keeps the mark: it can be replaced,
    *  and nothing here may delete it, because it is not the person's file. */
   shipped?: boolean;
 }
@@ -396,6 +397,12 @@ function slotOf(
  * whose token was lost still shows, so it can be replaced or removed. Rows the
  * repair pass kept beside a slot (`meta.kept`) only ever show through a token.
  * Another system's rows never show on their own account.
+ *
+ * A copy of the shipped system (the person's first edit of it, or an editable
+ * copy) keeps the shipped marks as tokens that name catalog assets. Such a token
+ * shows the catalog's mark, flagged `shipped`, where the shipped system names
+ * the same asset for the same slot. The blank starter's stand-in marks never
+ * show this way: readShippedDoc answers null for the starter.
  */
 export async function listLogos(host: LogoHost): Promise<LogoSlot[]> {
   await ownLogos(host);
@@ -403,13 +410,30 @@ export async function listLogos(host: LogoHost): Promise<LogoSlot[]> {
   const head = await readActiveHeadDoc(host);
   const records = await host.assets._exportUserAssets().catch(() => []);
   const byId = new Map(records.map(r => [r.id, r]));
+  const userActive = await isUserDesignSystemActive(host);
+  // Read once, and only when a slot needs the shipped document.
+  let shipped: Promise<Rec | null> | null = null;
+  const shippedDoc = (): Promise<Rec | null> => (shipped ??= readShippedDoc(host));
+  let shippedMarks: Map<string, string> | null = null;
   const out: LogoSlot[] = [];
   const filled = new Set<string>();
   const drawn = new Set<string>();
   for (const ref of logoTokensOf(head)) {
-    const r = byId.get(ref.id);
     const key = `${ref.identity}/${ref.variant}`;
-    if (!r?.blob || r.trashedAt || filled.has(key) || designMaterialOf(ref.id)?.kind !== 'logo') continue;
+    if (filled.has(key)) continue;
+    if (!designMaterialOf(ref.id)) {
+      // A catalog mark this copy kept from the shipped system.
+      if (!userActive) continue;
+      shippedMarks ??= new Map(logoTokensOf(await shippedDoc()).map(m => [`${m.identity}/${m.variant}`, m.id]));
+      if (shippedMarks.get(key) !== ref.id) continue;
+      const blob = await host.assets._getBlob?.(ref.id, { fetchIfMissing: true }).catch(() => null);
+      if (!blob) continue;
+      filled.add(key);
+      out.push({ ...slotOf({ id: ref.id }, ref.identity, ref.variant, blob), shipped: true });
+      continue;
+    }
+    const r = byId.get(ref.id);
+    if (!r?.blob || r.trashedAt || designMaterialOf(ref.id)?.kind !== 'logo') continue;
     filled.add(key);
     drawn.add(ref.id);
     out.push(slotOf(r, ref.identity, ref.variant, r.blob));
@@ -427,8 +451,8 @@ export async function listLogos(host: LogoHost): Promise<LogoSlot[]> {
   // their own, so its marks are only in the catalog's document. A slot still empty
   // after their own marks shows the shipped mark, unless the shipped system is
   // the blank starter, whose marks only stand in (readShippedDoc).
-  if (!(await isUserDesignSystemActive(host))) {
-    for (const ref of logoTokensOf(await readShippedDoc(host))) {
+  if (!userActive) {
+    for (const ref of logoTokensOf(await shippedDoc())) {
       const key = `${ref.identity}/${ref.variant}`;
       if (filled.has(key) || designMaterialOf(ref.id)) continue;
       const blob = await host.assets._getBlob?.(ref.id, { fetchIfMissing: true }).catch(() => null);
