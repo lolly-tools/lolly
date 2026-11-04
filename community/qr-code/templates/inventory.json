@@ -16,13 +16,21 @@
       "id": "legacy",
       "name": "Code 39 asset tag",
       "description": "For older laser scanners that only read linear codes.",
-      "values": { "payload": "code39", "value": "INV-2026-0042" }
+      "values": {
+        "payload": "code39",
+        "value": "INV-2026-0042"
+      },
+      "kind": "retired"
     },
     {
       "id": "library",
       "name": "Library Codabar",
       "description": "The classic membership and circulation symbology.",
-      "values": { "payload": "codabar", "value": "31117013206375" }
+      "values": {
+        "payload": "codabar",
+        "value": "31117013206375"
+      },
+      "kind": "retired"
     }
   ]
 }

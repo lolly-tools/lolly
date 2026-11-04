@@ -308,7 +308,8 @@
             "lineHeight": 1.0
           }
         ]
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "minimal",
@@ -614,7 +615,8 @@
             "lineHeight": 1.0
           }
         ]
-      }
+      },
+      "kind": "retired"
     }
   ],
   "values": {

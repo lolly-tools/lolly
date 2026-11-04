@@ -171,7 +171,8 @@
             "frame": "frame"
           }
         ]
-      }
+      },
+      "kind": "size"
     },
     {
       "id": "story",
@@ -258,7 +259,8 @@
             "frame": "frame"
           }
         ]
-      }
+      },
+      "kind": "size"
     }
   ]
 }

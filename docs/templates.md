@@ -123,11 +123,9 @@ A design system can arrive with some of its starters hidden already, so a team s
 - **Export as file (.json)** writes the template out in the same file format a tool's own shipped templates use. Drop it into a tool's `templates/` folder, or send it to whoever maintains that tool, and it can ship for everybody.
 - **Share template (.lolly)**, in the Templates collection, wraps it as a file you can send. Opening it on the other device adds it there as a template.
 
-## Presets
+## Sizes and paces
 
-A template that shipped with a tool can carry **presets**: named variants inside the one template, like a poster in three layouts. Each preset is a button on the template's tile in the chooser; pick the one you want.
-
-You cannot make a preset in the app. A saved template is how you keep a variant of your own: save the second layout as its own template, name it for what it is, and it appears in the chooser beside the first.
+A template that shipped with a tool can offer sizes and paces, such as a poster as a square or a story. Pick one from the chips on its tile. Each opens the same design at that size or pace, so no separate template is needed. A different look is a template of its own, and that is also how you keep a variation: save it as a template and name it for what it is.
 
 ## Share a constrained tool
 

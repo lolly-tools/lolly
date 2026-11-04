@@ -6,9 +6,9 @@
   "values": {
     "city": "tokyo",
     "theme": "dark",
-    "roadColor": "{color.semantic.on-primary}",
-    "waterColor": "{color.semantic.secondary}",
-    "background": "{color.semantic.primary}",
+    "roadColor": "{color.semantic.secondary}",
+    "waterColor": "{color.semantic.primary}",
+    "background": "{color.semantic.text}",
     "minorRoadWeight": 4,
     "majorRoadWeight": 6.5,
     "showWater": true,
@@ -21,7 +21,8 @@
       "description": "The neon original.",
       "values": {
         "city": "tokyo"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "hong-kong",
@@ -29,7 +30,8 @@
       "description": "Harbour lights and dense streets.",
       "values": {
         "city": "hongkong"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "london",
@@ -37,7 +39,8 @@
       "description": "The Thames cutting through the glow.",
       "values": {
         "city": "london"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

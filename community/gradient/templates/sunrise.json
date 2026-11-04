@@ -15,8 +15,38 @@
     "grainBlend": "soft-light"
   },
   "presets": [
-    { "id": "golden-hour", "name": "Golden hour", "description": "Deeper amber sinking into red.", "values": { "color1": "#f59e0b", "color2": "#dc2626", "color3": "#fde68a" } },
-    { "id": "dusk", "name": "Dusk", "description": "Pink fading into violet after the sun drops.", "values": { "color1": "#f472b6", "color2": "#c084fc", "color3": "#fecdd3" } },
-    { "id": "soft-glow", "name": "Soft glow", "description": "The same warmth melted into a gentle haze.", "values": { "spread": 130, "blur": 24, "grain": 8 } }
+    {
+      "id": "golden-hour",
+      "name": "Golden hour",
+      "description": "Deeper amber sinking into red.",
+      "values": {
+        "color1": "#f59e0b",
+        "color2": "#dc2626",
+        "color3": "#fde68a"
+      },
+      "kind": "retired"
+    },
+    {
+      "id": "dusk",
+      "name": "Dusk",
+      "description": "Pink fading into violet after the sun drops.",
+      "values": {
+        "color1": "#f472b6",
+        "color2": "#c084fc",
+        "color3": "#fecdd3"
+      },
+      "kind": "retired"
+    },
+    {
+      "id": "soft-glow",
+      "name": "Soft glow",
+      "description": "The same warmth melted into a gentle haze.",
+      "values": {
+        "spread": 130,
+        "blur": 24,
+        "grain": 8
+      },
+      "kind": "retired"
+    }
   ]
 }

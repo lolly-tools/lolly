@@ -822,7 +822,7 @@
         ],
         "symbology": "qr"
       },
-      "help": "Solid uses the module colour. Gradient ramps from the module colour to a second colour, blended perceptually (OKLab) and painted as crisp per-module bands so it exports identically as PNG, SVG and PDF.",
+      "help": "Solid uses the module colour. Mixed spreads three shades between two colours across the modules. Gradient ramps from the module colour to a second colour, blended perceptually (OKLab) and painted as crisp per-module bands so it exports identically as PNG, SVG and PDF.",
       "options": [
         {
           "value": "solid",
@@ -831,13 +831,17 @@
         {
           "value": "gradient",
           "label": "Gradient"
+        },
+        {
+          "value": "mix",
+          "label": "Mixed"
         }
       ]
     },
     {
       "id": "color2",
       "section": "Modules",
-      "label": "Gradient end colour",
+      "label": "Second colour",
       "type": "color",
       "default": "{color.semantic.primary}",
       "showIf": {
@@ -850,9 +854,9 @@
           "geo"
         ],
         "symbology": "qr",
-        "fill": "gradient"
+        "fill": ["gradient", "mix"]
       },
-      "help": "The colour the gradient ramps toward, from the module colour."
+      "help": "The colour the gradient or mix moves toward, from the module colour."
     },
     {
       "id": "gradientType",

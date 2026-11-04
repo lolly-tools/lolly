@@ -13,7 +13,12 @@
     "grain": 0,
     "vignette": 0,
     "width": 1600,
-    "height": 1200
+    "height": 1200,
+    "imageFraming": {
+      "zoom": 100,
+      "x": 50,
+      "y": 10
+    }
   },
   "galleryCover": true
 }

@@ -1,0 +1,20 @@
+{
+  "id": "karaoke-lower",
+  "name": "Lower third",
+  "category": "Captions",
+  "description": "The same word-by-word lift, sitting where subtitles usually do.",
+  "values": {
+    "style": "karaoke",
+    "position": "bottom",
+    "fontSize": 60,
+    "color": "{color.semantic.on-primary}",
+    "background": "{color.semantic.primary}",
+    "maxLines": 2,
+    "showTimecodes": false,
+    "burnIn": true,
+    "time": 0,
+    "media": {
+      "id": "lolly/demo/sample-landscape"
+    }
+  }
+}

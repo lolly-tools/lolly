@@ -1132,6 +1132,81 @@
       "aiGenerated": "full"
     },
     {
+      "id": "lolly/demo/sample-character",
+      "name": "Sample character",
+      "description": "A sample subject that templates can ask for under every design system: in this catalog, the Lolly Demo koala. An AI-generated illustration with its own Content Credential, kept intact. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "demo",
+        "example",
+        "placeholder",
+        "sample",
+        "mascot"
+      ],
+      "formats": [
+        {
+          "format": "webp",
+          "url": "/catalog/assets/lolly/demo/sample-character.webp",
+          "checksum": "sha256-twZxsA0cxJn3XiSkkfgoPEmMW/PCouIgrCde49eAImQ=",
+          "size": 226990,
+          "depth": 8
+        }
+      ],
+      "aiGenerated": "full"
+    },
+    {
+      "id": "lolly/demo/sample-wide",
+      "name": "Sample wide subject",
+      "description": "A sample subject that templates can ask for under every design system: in this catalog, the Lolly Demo quoll. An AI-generated illustration with its own Content Credential, kept intact. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "demo",
+        "example",
+        "placeholder",
+        "sample",
+        "mascot"
+      ],
+      "formats": [
+        {
+          "format": "webp",
+          "url": "/catalog/assets/lolly/demo/sample-wide.webp",
+          "checksum": "sha256-sRpsVJaT0WluqDwczh+KAK7//DTU1NOuX8iWWyPoqzU=",
+          "size": 180882,
+          "depth": 8
+        }
+      ],
+      "aiGenerated": "full"
+    },
+    {
+      "id": "lolly/demo/sample-landscape",
+      "name": "Sample landscape subject",
+      "description": "A sample subject that templates can ask for under every design system: in this catalog, the Lolly Demo wedge-tailed eagle. An AI-generated illustration with its own Content Credential, kept intact. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "demo",
+        "example",
+        "placeholder",
+        "sample",
+        "mascot"
+      ],
+      "formats": [
+        {
+          "format": "webp",
+          "url": "/catalog/assets/lolly/demo/sample-landscape.webp",
+          "checksum": "sha256-x9qcsMzBw0nsBEwKWqguCHImqN+2qRaX0rABnKkeDs0=",
+          "size": 287410,
+          "depth": 8
+        }
+      ],
+      "aiGenerated": "full"
+    },
+    {
       "id": "lolly/demo/app-screenshot",
       "name": "App screenshot (demo)",
       "description": "A real Lolly screenshot - the brand studio's Colours tab, captured as vector by the app's own DOM-to-SVG walker. A demo subject for flythroughs, filters and layered animation. A removable example - delete it any time.",

@@ -39,6 +39,7 @@ Required host APIs: none. Device capabilities: none.
 | sc_gapSize | number |  |
 | sc_separatePixels | boolean |  |
 | sc_everyLine | boolean |  |
+| sc_colorSource | select |  |
 | sc_highlight | color |  |
 | sc_light | color |  |
 | sc_mid | color |  |

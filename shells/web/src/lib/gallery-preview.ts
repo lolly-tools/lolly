@@ -7,6 +7,7 @@ import { instanceFetch, instancePath } from './instance.ts';
 import { renderFeaturedVariant } from './featured-render.ts';
 import { parseTemplateMotion, type TemplateMotion } from './template-motion.ts';
 import { toolSeedHref } from './seed-url.ts';
+import { bakedCover } from './gallery-covers.ts';
 
 export interface GalleryPreviewSource {
   id: string;
@@ -55,6 +56,8 @@ export async function renderGalleryLook(
   host: HostV1 & { previews?: PreviewsAPI }, tool: GalleryPreviewSource,
   index: number, look: FeaturedVariant,
 ): Promise<string> {
+  const baked = await bakedCover(host, tool, index, look.templateId);
+  if (baked) return baked;
   let values = look.values;
   let motion = look.motion;
   if (look.templateId) {

@@ -14,7 +14,7 @@
     "burnIn": true,
     "time": 0,
     "media": {
-      "id": "lolly/demo/sample-photo"
+      "id": "lolly/demo/sample-landscape"
     }
   },
   "presets": [
@@ -25,7 +25,8 @@
       "values": {
         "style": "outline",
         "fontSize": 60
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "box",
@@ -34,7 +35,8 @@
       "values": {
         "style": "box",
         "fontSize": 52
-      }
+      },
+      "kind": "retired"
     }
   ],
   "galleryCover": true

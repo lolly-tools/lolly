@@ -193,7 +193,8 @@
             "frame": "frame"
           }
         ]
-      }
+      },
+      "kind": "size"
     },
     {
       "id": "standard",
@@ -291,7 +292,8 @@
             "frame": "frame"
           }
         ]
-      }
+      },
+      "kind": "size"
     }
   ]
 }

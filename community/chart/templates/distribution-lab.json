@@ -23,7 +23,8 @@
       "description": "Keep every observation visible beneath the binned shape.",
       "values": {
         "plotType": "rug-histogram"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "ridges",
@@ -31,7 +32,8 @@
       "description": "Compare smooth distribution shapes in aligned small multiples.",
       "values": {
         "plotType": "density-ridges"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "cumulative",
@@ -40,7 +42,8 @@
       "values": {
         "plotType": "ecdf",
         "showLegend": true
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -43,7 +43,8 @@
       "values": {
         "replacementText": "ready for review",
         "typingSeconds": 2.2
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "delete-a-line",
@@ -53,7 +54,8 @@
         "selectText": "  \"status\": \"draft\",\n",
         "replacementText": "",
         "typingSeconds": 0.3
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

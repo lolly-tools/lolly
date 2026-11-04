@@ -8,6 +8,11 @@
     "treatmentAmount": 100,
     "treatShadow": "{color.semantic.primary}",
     "treatHighlight": "{color.semantic.secondary}",
-    "filmLook": "none"
+    "filmLook": "none",
+    "imageFraming": {
+      "zoom": 100,
+      "x": 50,
+      "y": 10
+    }
   }
 }

@@ -40,7 +40,8 @@
         "typingSeconds": 4.5,
         "readSeconds": 2.5,
         "ending": "close"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -39,7 +39,7 @@ export function markers(s: State, project: (p: number[]) => number[] | null, act
     if (!xy) continue;
     const [x, y] = xy.map((v) => v / layout(s).unit),
       focused = active === i;
-    out += `<g data-place-index="${i}" aria-label="${esc(p.label)}"><circle cx="${x}" cy="${y}" r="${focused ? 19 : 12}" fill="${p.color}" opacity=".16"/><circle cx="${x}" cy="${y}" r="${focused ? 7 : 4.5}" fill="${p.color}" stroke="${c.background}" stroke-width="2"/>`;
+    out += `<g data-place-index="${i}" aria-label="${esc(p.label)}"><circle cx="${x}" cy="${y}" r="${focused ? 20 : 14}" fill="${p.color}" opacity=".35"/><circle cx="${x}" cy="${y}" r="${focused ? 8 : 6}" fill="${p.color}" stroke="${c.background}" stroke-width="2"/>`;
     if (s.inputs.showLabels !== false) {
       let ly = y - 15;
       while (taken.some((a) => Math.abs(a[0] - x) < 130 && Math.abs(a[1] - ly) < size * 2.2))
@@ -50,7 +50,7 @@ export function markers(s: State, project: (p: number[]) => number[] | null, act
         goLeft = x > layout(s).map.w / layout(s).unit - width - 22,
         lx = goLeft ? x - width - 12 : x + 12;
       out +=
-        `<path d="M${x},${y} L${goLeft ? lx + width : lx},${ly + 9}" stroke="${p.color}" opacity=".65"/><rect x="${lx}" y="${ly - 17}" width="${width}" height="${size * 2.6}" rx="5" fill="${c.background}" opacity=".88"/>` +
+        `<path d="M${x},${y} L${goLeft ? lx + width : lx},${ly + 9}" stroke="${p.color}" stroke-width="1.6"/><rect x="${lx}" y="${ly - 17}" width="${width}" height="${size * 2.6}" rx="5" fill="${c.background}"/>` +
         text(lx + 10, ly, label, size, c.ink, 'font-weight="600"') +
         text(
           lx + 10,
@@ -73,18 +73,18 @@ export function mapSvg(s: State, active = -1) {
     d = (g: any) => path(g) || '';
   const shape = d(sphere);
   let out = `<path d="${shape}" fill="${c.ocean}" stroke="${c.edge}"/>`;
-  out += `<path d="${d(atlasCountries)}" fill="${c.land}" stroke="${s.inputs.showBorders === false ? 'none' : s.inputs.theme === 'minimal' ? c.edge : c.ocean}" stroke-width=".6"/>`;
+  out += `<path d="${d(atlasCountries)}" fill="${c.land}" stroke="${s.inputs.showBorders === false ? 'none' : c.edge}" stroke-width="1.2"/>`;
   const seen = new Set<string>();
   for (const place of s.places) {
     if (!place.spread || place.error || seen.has(place.timezone)) continue;
     const r = region(place.timezone);
     if (r) {
-      out += `<path d="${d(r)}" fill="${place.color}" opacity="${num(s.inputs.regionOpacity, 0.45)}" stroke="${place.color}" stroke-width=".5"/>`;
+      out += `<path d="${d(r)}" fill="${place.color}" opacity="${num(s.inputs.regionOpacity, 0.75)}" stroke="${place.color}" stroke-width="1"/>`;
       seen.add(place.timezone);
     }
   }
   if (s.inputs.showGrid !== false)
-    out += `<path d="${d(grid)}" fill="none" stroke="${c.ink}" opacity=".13" stroke-width=".65"/>`;
+    out += `<path d="${d(grid)}" fill="none" stroke="${c.ink}" opacity=".3" stroke-width="1"/>`;
   if (s.inputs.showNight !== false && s.instant)
     out += `<path d="${d(night(new Date(s.instant)))}" fill="#030910" opacity=".24"/>`;
   if (s.inputs.showConnections !== false) {
@@ -92,7 +92,7 @@ export function mapSvg(s: State, active = -1) {
       .filter((p) => !p.error && p.longitude !== null && p.latitude !== null)
       .map((p) => [p.longitude, p.latitude]);
     if (coords.length > 1)
-      out += `<path d="${d({ type: 'LineString', coordinates: coords })}" fill="none" stroke="${c.accent}" stroke-width="1.3" stroke-dasharray="4 6" opacity=".6"/>`;
+      out += `<path d="${d({ type: 'LineString', coordinates: coords })}" fill="none" stroke="${c.accent}" stroke-width="2.6" stroke-dasharray="6 7"/>`;
   }
   out += markers(s, (xy) => (d({ type: 'Point', coordinates: xy }) ? p(xy) : null), active);
   return `<svg x="${l.map.x}" y="${l.map.y}" width="${l.map.w}" height="${l.map.h}" viewBox="0 0 ${l.map.w} ${l.map.h}" overflow="hidden" class="tz-vector-map">${out}</svg>`;
@@ -112,7 +112,7 @@ export function artwork(s: State, active = -1, withMap = true) {
         s.inputs.eyebrow,
         11 * u,
         c.accent,
-        `letter-spacing="${2 * u}" font-weight="600"`
+        `font-weight="600"`
       ) +
       '</g>';
   if (l.title.length) {
@@ -194,7 +194,7 @@ export function artwork(s: State, active = -1, withMap = true) {
         text(
           x + 4 * k,
           y + 64 * k,
-          p.error ? 'CHECK PLACE' : p.localTime || '—',
+          p.error ? 'Check place' : p.localTime || '—',
           (p.error ? 16 : 32) * k,
           p.color,
           `font-family="${esc(c.mono)}" letter-spacing="${-k}"`

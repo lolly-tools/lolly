@@ -184,7 +184,8 @@
       "description": "The same day with rows sized by their words rather than by the clock.",
       "values": {
         "layout": "list"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "door-screen",
@@ -193,7 +194,8 @@
       "values": {
         "layout": "board",
         "now": ""
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

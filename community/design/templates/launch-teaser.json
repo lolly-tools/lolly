@@ -117,7 +117,8 @@
             "enterMs": 500
           }
         ]
-      }
+      },
+      "kind": "size"
     },
     {
       "id": "square",
@@ -232,7 +233,8 @@
             "enterMs": 500
           }
         ]
-      }
+      },
+      "kind": "size"
     }
   ],
   "values": {

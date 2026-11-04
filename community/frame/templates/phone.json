@@ -31,7 +31,8 @@
         "backdrop": "gradient",
         "background": "{color.semantic.secondary}",
         "color2": "{color.semantic.primary}"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "clean",
@@ -42,7 +43,8 @@
         "background": "{color.semantic.surface}",
         "padding": 110,
         "shadow": 45
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

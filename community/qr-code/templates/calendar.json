@@ -29,7 +29,8 @@
         "color": "#1a1a2e",
         "background": "#faf7f2",
         "padding": 6
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "online",
@@ -39,7 +40,8 @@
         "eventLocation": "https://example.com/join",
         "color": "#93c5fd",
         "background": "#0b1021"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

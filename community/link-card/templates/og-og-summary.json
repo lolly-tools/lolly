@@ -1,0 +1,19 @@
+{
+  "id": "og-og-summary",
+  "name": "Summary card",
+  "category": "Social",
+  "description": "The shorter 1200 x 600 crop, with the thumbnail across the top.",
+  "values": {
+    "url": "https://atlasfield.io/notes/quiet-interfaces",
+    "heading": "Quiet interfaces say more",
+    "body": "A field note on restraint and clearer defaults.",
+    "siteName": "Atlas Field",
+    "layout": "twitter-summary",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}",
+    "image": {
+      "id": "lolly/demo/sample-landscape"
+    }
+  }
+}

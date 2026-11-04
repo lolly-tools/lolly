@@ -30,7 +30,8 @@
       "values": {
         "ecl": "Q",
         "padding": 2
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "brand",
@@ -39,7 +40,8 @@
       "values": {
         "color": "{color.semantic.primary}",
         "background": "{color.semantic.surface}"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

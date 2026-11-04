@@ -136,7 +136,8 @@
             ]
           ]
         }
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "free-first",
@@ -203,7 +204,8 @@
             ]
           ]
         }
-      }
+      },
+      "kind": "retired"
     }
   ],
   "galleryCover": true,

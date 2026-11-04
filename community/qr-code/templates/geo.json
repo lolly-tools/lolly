@@ -27,7 +27,8 @@
         "background": "#faf7f2",
         "padding": 6,
         "ecl": "H"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -197,7 +197,8 @@
             "frame": "call"
           }
         ]
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "gradient-look",
@@ -297,7 +298,8 @@
             "frame": "call"
           }
         ]
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

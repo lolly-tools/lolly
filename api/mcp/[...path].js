@@ -3042,8 +3042,13 @@ var init_tool_schema = __esm({
             "id",
             "name"
           ],
-          description: "One curated variant of a template: a values overlay merged over the template base.",
+          description: "One size or pace of a template: a values overlay merged over the template base. A different look is a template of its own.",
           properties: {
+            kind: {
+              type: "string",
+              enum: ["size", "pace", "retired"],
+              description: "size and pace show as chips on the template tile. retired keeps the ?preset= address working for old links and shows nowhere in the app."
+            },
             id: {
               type: "string",
               description: "Stable id, unique within this template's `presets[]`. Addressable via the reserved `?preset=<id>` param, so treat it as a permanent contract."

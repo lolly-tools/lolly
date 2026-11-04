@@ -24,7 +24,8 @@
         "color": "#1a1a2e",
         "background": "#faf7f2",
         "padding": 6
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "screen",
@@ -33,7 +34,8 @@
       "values": {
         "color": "#93c5fd",
         "background": "#0b1021"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

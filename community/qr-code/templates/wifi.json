@@ -28,7 +28,8 @@
         "color": "#1a1a2e",
         "background": "#faf7f2",
         "padding": 6
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "hidden",
@@ -37,7 +38,8 @@
       "values": {
         "wifiHidden": true,
         "ecl": "H"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

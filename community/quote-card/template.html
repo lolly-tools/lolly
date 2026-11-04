@@ -1,0 +1,9 @@
+<div class="qc qc-{{ground}} qc-{{layout}}{{#if headshot}} qc-has-photo{{/if}}">
+  {{#if headshot}}<div class="qc-photo"><img src="{{asset headshot}}" alt=""></div>{{/if}}
+  <div class="qc-words">
+    <svg class="qc-mark" viewBox="0 0 48 36" aria-hidden="true"><path d="M0 36V20C0 9 7 2 19 0l2 6c-7 2-10 6-10 11h9v19H0Zm27 0V20C27 9 34 2 46 0l2 6c-7 2-10 6-10 11h9v19H27Z"/></svg>
+    <p class="qc-quote">{{quote}}</p>
+    {{#if name}}<p class="qc-name">{{name}}</p>{{/if}}
+    {{#if role}}<p class="qc-role">{{role}}</p>{{/if}}
+  </div>
+</div>

@@ -27,8 +27,8 @@
         "h": 1080,
         "rot": 0,
         "shape": "rect",
-        "image": "lolly/demo/sample-photo",
-        "fit": "cover",
+        "image": "lolly/demo/sample-landscape",
+        "fit": "contain",
         "frame": "scene1"
       },
       {

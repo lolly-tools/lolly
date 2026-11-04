@@ -24,7 +24,8 @@
         "plotType": "density-contour",
         "plotBandwidth": 24,
         "plotShowRaw": true
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "raw-fit",
@@ -32,7 +33,8 @@
       "description": "Return to individual observations and fit a relationship.",
       "values": {
         "plotType": "regression"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

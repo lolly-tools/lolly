@@ -593,6 +593,21 @@
       }
     },
     {
+      "id": "sc_colorSource",
+      "label": "Colour source",
+      "section": "Ink",
+      "type": "select",
+      "default": "tones",
+      "options": [
+        { "value": "tones", "label": "Five tones" },
+        { "value": "image", "label": "From image" }
+      ],
+      "help": "Five tones draws the lines in the colours below. From image keeps the colours of the picture.",
+      "showIf": {
+        "effect": "scanline"
+      }
+    },
+    {
       "id": "sc_highlight",
       "label": "Highlight",
       "section": "Ink",
@@ -600,7 +615,8 @@
       "default": "#ffffff",
       "help": "Brightest tone.",
       "showIf": {
-        "effect": "scanline"
+        "effect": "scanline",
+        "sc_colorSource": "tones"
       }
     },
     {
@@ -610,7 +626,8 @@
       "type": "color",
       "default": "#bff1ea",
       "showIf": {
-        "effect": "scanline"
+        "effect": "scanline",
+        "sc_colorSource": "tones"
       }
     },
     {
@@ -620,7 +637,8 @@
       "type": "color",
       "default": "#008878",
       "showIf": {
-        "effect": "scanline"
+        "effect": "scanline",
+        "sc_colorSource": "tones"
       }
     },
     {
@@ -630,7 +648,8 @@
       "type": "color",
       "default": "#01564a",
       "showIf": {
-        "effect": "scanline"
+        "effect": "scanline",
+        "sc_colorSource": "tones"
       }
     },
     {
@@ -641,7 +660,8 @@
       "default": "#000000",
       "help": "Darkest tone.",
       "showIf": {
-        "effect": "scanline"
+        "effect": "scanline",
+        "sc_colorSource": "tones"
       }
     },
     {

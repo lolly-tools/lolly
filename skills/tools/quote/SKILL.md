@@ -1,9 +1,9 @@
 ---
 name: lolly-quote
-description: "Operate the Lolly Quote tool (quote) using its declared inputs and supported output formats."
+description: "Operate the Lolly Sales Quote tool (quote) using its declared inputs and supported output formats."
 ---
 
-# Quote
+# Sales Quote
 
 Tool ID: `quote`. Tool version: `1.0.1`. Engine range: `^1.82.0`.
 

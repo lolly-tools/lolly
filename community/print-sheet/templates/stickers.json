@@ -31,7 +31,8 @@
         "rows": 3,
         "cols": 3,
         "gap": 6
-      }
+      },
+      "kind": "size"
     },
     {
       "id": "twenty-up",
@@ -42,7 +43,8 @@
         "cols": 4,
         "gap": 4,
         "margin": 10
-      }
+      },
+      "kind": "size"
     },
     {
       "id": "a3-thirty-up",
@@ -54,7 +56,8 @@
         "cols": 5,
         "gap": 5,
         "margin": 12
-      }
+      },
+      "kind": "size"
     }
   ]
 }

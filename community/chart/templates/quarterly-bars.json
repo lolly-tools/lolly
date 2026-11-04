@@ -16,19 +16,28 @@
       "id": "stacked",
       "name": "Stacked",
       "description": "Stack the series to show the quarterly total.",
-      "values": { "stackMode": "stacked" }
+      "values": {
+        "stackMode": "stacked"
+      },
+      "kind": "retired"
     },
     {
       "id": "share-of-total",
       "name": "Share of total",
       "description": "Normalise each quarter to 100 percent.",
-      "values": { "stackMode": "stacked100" }
+      "values": {
+        "stackMode": "stacked100"
+      },
+      "kind": "retired"
     },
     {
       "id": "horizontal",
       "name": "Horizontal",
       "description": "Turn the bars sideways for long category names.",
-      "values": { "chartType": "bar-horizontal" }
+      "values": {
+        "chartType": "bar-horizontal"
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -1692,6 +1692,7 @@ function sampleGrid(img, cols, rows, fit, hueDeg, sat, light) {
     if (a < 1) lum = lum * a + 255 * (1 - a); // composite transparency onto white
     g[i] = lum;
   }
+  g.rgba = data;
   return g;
 }
 
@@ -2054,13 +2055,27 @@ function buildSvg(args) {
   var gy = args.separatePixels ? bandH * 0.16 : 0;
   var rw = f2(cellW - gx), rh = f2(bandH - gy);
 
+  // Colours from the image: one path per quantised colour, so the file stays small and
+  // brightness and contrast act on the picture exactly as they act on the tones.
+  var fromImage = args.colorSource === 'image' && grid.rgba;
+  var imagePaths = {};
+  function adjust(v) { return Math.round(clamp(cf * (v - 128) + 128 + brightness, 0, 255) / 17) * 17; }
+  var hx = function (v) { return (v < 16 ? '0' : '') + v.toString(16); };
+
   var paths = ['', '', '', '', ''];
   for (var row = 0; row < rows; row++) {
     var y = f2(offY + row * cellH + gy / 2); // band sits at the top of its cell; gap follows below
     for (var col = 0; col < cols; col++) {
-      var b = bucket(grid[row * cols + col]);
       var x = f2(offX + col * cellW + gx / 2);
-      paths[b] += 'M' + x + ' ' + y + 'h' + rw + 'v' + rh + 'h-' + rw + 'z';
+      var cell = 'M' + x + ' ' + y + 'h' + rw + 'v' + rh + 'h-' + rw + 'z';
+      if (fromImage) {
+        var at = (row * cols + col) * 4;
+        if (grid.rgba[at + 3] < 40) continue; // a transparent part of the picture stays open
+        var key = '#' + hx(adjust(grid.rgba[at])) + hx(adjust(grid.rgba[at + 1])) + hx(adjust(grid.rgba[at + 2]));
+        imagePaths[key] = (imagePaths[key] || '') + cell;
+        continue;
+      }
+      paths[bucket(grid[row * cols + col])] += cell;
     }
   }
 
@@ -2069,6 +2084,7 @@ function buildSvg(args) {
   var out = svgOpen(W, H);
   if (bg) out += '<rect width="' + W + '" height="' + H + '" fill="' + bg + '"/>';
   for (var t = 0; t < 5; t++) if (paths[t]) out += '<path fill="' + fills[t] + '" d="' + paths[t] + '"/>';
+  for (var hexKey in imagePaths) out += '<path fill="' + treatHex(hexKey, _t) + '" d="' + imagePaths[hexKey] + '"/>';
   out += '<g id="lolly-ov-slot">' + buildOverlaySvg(W, H, args._ov || {}) + '</g>';
   out += '</svg>';
   return out;
@@ -2115,7 +2131,7 @@ async function compute(model) {
 
   var params = {
     url: url, W: W, H: H, noFilter: ovi.noFilter, rawSrc: url, ov: ov,
-    lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
+    colorSource: inputs.colorSource, lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
     highlight: inputs.highlight, light: inputs.light, mid: inputs.mid, shade: inputs.shade,
     shadow: inputs.shadow, background: inputs.background, brightness: inputs.brightness, contrast: inputs.contrast,
     hue: inputs.hue, saturation: inputs.saturation, lightness: inputs.lightness,
@@ -2187,7 +2203,7 @@ function onFrame(ctx) {
   var svg = buildSvg({
     img: src, W: W, H: H, noFilter: ovi.noFilter, rawSrc: ovi.noFilter ? src.toDataURL('image/jpeg', 0.85) : null, _ov: ov,
     maxCells: LIVE_MAX_CELLS,
-    lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels,
+    colorSource: inputs.colorSource, lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels,
     everyLine: inputs.everyLine, fit: inputs.fit, highlight: inputs.highlight, light: inputs.light,
     mid: inputs.mid, shade: inputs.shade, shadow: inputs.shadow, background: inputs.background,
     brightness: inputs.brightness, contrast: inputs.contrast,

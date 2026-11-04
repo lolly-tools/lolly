@@ -6,11 +6,11 @@
   "values": {
     "city": "paris",
     "theme": "light",
-    "roadColor": "{color.semantic.text}",
-    "waterColor": "{color.semantic.secondary}",
-    "background": "{color.semantic.surface}",
-    "minorRoadWeight": 4.5,
-    "majorRoadWeight": 8,
+    "roadColor": "{color.semantic.secondary}",
+    "waterColor": "{color.semantic.text}",
+    "background": "{color.semantic.primary}",
+    "minorRoadWeight": 3,
+    "majorRoadWeight": 6,
     "showWater": true,
     "waterWeight": 8
   },
@@ -21,7 +21,8 @@
       "description": "The classic ink poster city.",
       "values": {
         "city": "paris"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "new-york",
@@ -29,7 +30,8 @@
       "description": "A dense grid that fills the frame.",
       "values": {
         "city": "newyork"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "rome",
@@ -37,7 +39,9 @@
       "description": "Winding old streets around the river.",
       "values": {
         "city": "rome"
-      }
+      },
+      "kind": "retired"
     }
-  ]
+  ],
+  "galleryCover": true
 }

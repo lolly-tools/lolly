@@ -1,4 +1,4 @@
-# Tool templates and presets
+# Tool templates
 
 A blank canvas is a slow start. Ship a few templates with your tool and people open it on a finished example they only need to adjust, such as a poster, a story-sized variant or an event card. This page covers the template files you ship, what happens when people save their own, how a brand pack hides starters it does not want and the motion details Design templates can carry.
 
@@ -6,7 +6,7 @@ A blank canvas is a slow start. Ship a few templates with your tool and people o
 Templates are listed in each brand's generated catalog index. After adding, changing or hiding one, run `pnpm run build:catalog:all`, then `pnpm run validate:catalog:all`, so every mounted profile gets the change. [Publish to a catalog](/info/tool-publishing.html#publish-to-a-catalog) has the whole routine.
 :::
 
-## Templates & presets (`templates/`)
+## Templates (`templates/`)
 
 A tool's starting points live in `templates/`, one file per template:
 
@@ -18,7 +18,7 @@ A tool's starting points live in `templates/`, one file per template:
   "description": "One artboard, one message.",
   "values": { "<inputId>": "<value>" },
   "presets": [
-    { "id": "story", "name": "Story", "description": "9:16 for social stories.",
+    { "id": "story", "name": "Story", "kind": "size", "description": "9:16 for social stories.",
       "values": { "<inputId>": "<overlay value>" } }
   ]
 }
@@ -29,11 +29,11 @@ A tool's starting points live in `templates/`, one file per template:
 | `id` | Must equal the file name (`poster.json` holds `"id": "poster"`). It is the permanent address the `?template=` launcher and the chooser use, so never change it, as with tool ids. |
 | `name`, `category`, `description` | Short, plain words people see in the chooser. They are translated, so keep them simple. |
 | `values` | A full input seed: input ids from your manifest mapped to values of the right type. A fresh session opens with these when someone picks the template. |
-| `presets` | Variants inside the template. Each is a set of values merged over the template's own, per input id, with the preset winning. A size variant of a `blocks` composition therefore carries the whole replacement array, not a fragment. Link to one with `?template=<tid>&preset=<pid>`. |
+| `presets` | Sizes and paces of this template. Each is a set of values merged over the template's own, per input id, with the variant winning. A size of a `blocks` composition therefore carries the whole replacement array, not a fragment. Set `kind` to `size` or `pace` and it shows as a chip on the template. A different look is a template of its own, not a variant. `kind: "retired"` keeps an old `?template=<tid>&preset=<pid>` link working and shows nowhere in the app. |
 
 The synced catalog index carries only names, categories and descriptions, never `values`, so a large seed costs nothing until someone picks the template and its file is fetched. `pnpm run validate:catalog` checks the shape: ids, uniqueness and object values.
 
-With at least one template, a blank fresh open of your tool shows the **Start chooser**: search, category chips, live previews and preset chips. The gallery shows the template count on your tool's card and lists every template in its About dialog, and search finds the tool by its template and preset names. In the editor layouts, **New from template** in the Lolly menu reopens the chooser during a session. Shipped templates also appear in the Templates collection in Projects, grouped under the tool they shipped with.
+With at least one template, a blank fresh open of your tool shows the **Start chooser**: search, category chips, live previews and size and pace chips. The gallery shows the template count on your tool's card and lists every template in its About dialog, and search finds the tool by its template names. In the editor layouts, **New from template** in the Lolly menu reopens the chooser during a session. Shipped templates also appear in the Templates collection in Projects, grouped under the tool they shipped with.
 
 ![The Templates collection filtered to QR event starting points](/t/url-shot?url=%2F%23%2Fp%2F__templates__%3Ftool%3Dqr-code%26q%3Devent&width=1440&height=1000&dpi=192&waitMs=1600&waitSelector=.tpl-sec%3Anot%28%3Ahas%28img%5Bdata-tpl-preview%5D%3Anot%28%5Bdata-preview-state%3D%22ready%22%5D%29%29%29&walker=1&format=svg&dark=1&filename=templates-collection)
 
@@ -46,6 +46,8 @@ Choose a simple composition that reads at card size. Gallery cards are 4:3, so a
 For transparent lettering and logos, a template can declare `galleryTheme: "light"` or `galleryTheme: "dark"`; the dark variant also serves the brand theme. Each is a real editable template, and its gallery link opens that exact variant. Leave the field out when the artwork suits every theme. A tool can have one cover per theme, and a cover without a theme serves both.
 
 A tool that needs a person's media or a recording before it can produce a useful image sets `galleryArt: "icon"` in its manifest. The gallery then shows the tool's icon instead of running a capture, downloading a model or showing an empty editor. Tools with no image export format use their icon too.
+
+After changing a cover, run `pnpm run build:gallery-covers --url=<your dev server>` for each profile. It saves each cover, so a first visit paints at once instead of rendering live. A stale file is never shown: the gallery renders live when the tool version, design system or theme differs.
 
 ### Templates people save
 

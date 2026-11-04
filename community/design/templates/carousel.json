@@ -27,8 +27,8 @@
         "h": 780,
         "rot": 0,
         "shape": "rect",
-        "image": "lolly/demo/sample-photo",
-        "fit": "cover",
+        "image": "lolly/demo/sample-wide",
+        "fit": "contain",
         "frame": "page1"
       },
       {

@@ -31,7 +31,8 @@
         "rows": 2,
         "cols": 2,
         "gap": 5
-      }
+      },
+      "kind": "size"
     },
     {
       "id": "ten-up",
@@ -41,7 +42,8 @@
         "rows": 5,
         "cols": 2,
         "gap": 4
-      }
+      },
+      "kind": "size"
     },
     {
       "id": "letter-eight-up",
@@ -52,7 +54,8 @@
         "rows": 4,
         "cols": 2,
         "gap": 4
-      }
+      },
+      "kind": "size"
     }
   ]
 }

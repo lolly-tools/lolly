@@ -1,0 +1,461 @@
+{
+ "v": 1,
+ "contexts": {
+  "6a124fd58f2de5173722776d5f98e7b3": "light",
+  "14b782511283cdeb1ad6c0d00daf0a26": "dark"
+ },
+ "covers": {
+  "design": {
+   "version": "1.52.1",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/design.light.webp"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/design.dark.webp"
+   }
+  },
+  "darkroom": {
+   "version": "2.5.2",
+   "light": {
+    "templateId": "warm-portrait",
+    "file": "/catalog/previews/covers/darkroom.light.webp"
+   },
+   "dark": {
+    "templateId": "warm-portrait",
+    "file": "/catalog/previews/covers/darkroom.dark.webp"
+   }
+  },
+  "filter": {
+   "version": "1.5.3",
+   "light": {
+    "templateId": "colour-scanlines",
+    "file": "/catalog/previews/covers/filter.light.webp"
+   },
+   "dark": {
+    "templateId": "colour-scanlines",
+    "file": "/catalog/previews/covers/filter.dark.webp"
+   }
+  },
+  "chart": {
+   "version": "1.27.2",
+   "light": {
+    "templateId": "brand-bars",
+    "file": "/catalog/previews/covers/chart.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-bars",
+    "file": "/catalog/previews/covers/chart.dark.svg"
+   }
+  },
+  "snippet": {
+   "version": "1.7.0",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/snippet.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/snippet.dark.svg"
+   }
+  },
+  "qr-code": {
+   "version": "2.7.1",
+   "light": {
+    "templateId": "website",
+    "file": "/catalog/previews/covers/qr-code.light.svg"
+   },
+   "dark": {
+    "templateId": "website-dark",
+    "file": "/catalog/previews/covers/qr-code.dark.svg"
+   }
+  },
+  "quote-card": {
+   "version": "1.0.0",
+   "light": {
+    "templateId": "speaker",
+    "file": "/catalog/previews/covers/quote-card.light.webp"
+   },
+   "dark": {
+    "templateId": "speaker",
+    "file": "/catalog/previews/covers/quote-card.dark.webp"
+   }
+  },
+  "quote": {
+   "version": "1.0.1",
+   "light": {
+    "templateId": "services",
+    "file": "/catalog/previews/covers/quote.light.svg"
+   },
+   "dark": {
+    "templateId": "services",
+    "file": "/catalog/previews/covers/quote.dark.svg"
+   }
+  },
+  "work-avatar": {
+   "version": "1.2.4",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/work-avatar.light.webp"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/work-avatar.dark.webp"
+   }
+  },
+  "wayfinding-signage": {
+   "version": "1.2.4",
+   "light": {
+    "file": "/catalog/previews/covers/wayfinding-signage.light.svg"
+   },
+   "dark": {
+    "file": "/catalog/previews/covers/wayfinding-signage.dark.svg"
+   }
+  },
+  "timezone": {
+   "version": "1.1.2",
+   "light": {
+    "templateId": "around-the-world",
+    "file": "/catalog/previews/covers/timezone.light.webp"
+   },
+   "dark": {
+    "templateId": "around-the-world",
+    "file": "/catalog/previews/covers/timezone.dark.webp"
+   }
+  },
+  "synth": {
+   "version": "0.2.4",
+   "light": {
+    "file": "/catalog/previews/covers/synth.light.webp"
+   },
+   "dark": {
+    "file": "/catalog/previews/covers/synth.dark.webp"
+   }
+  },
+  "street-map": {
+   "version": "0.5.3",
+   "light": {
+    "templateId": "city-poster",
+    "file": "/catalog/previews/covers/street-map.light.webp"
+   },
+   "dark": {
+    "templateId": "city-poster",
+    "file": "/catalog/previews/covers/street-map.dark.webp"
+   }
+  },
+  "stationery": {
+   "version": "1.0.3",
+   "light": {
+    "templateId": "card-card-back",
+    "file": "/catalog/previews/covers/stationery.light.svg"
+   },
+   "dark": {
+    "templateId": "card-card-back",
+    "file": "/catalog/previews/covers/stationery.dark.svg"
+   }
+  },
+  "signature": {
+   "version": "1.0.0",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/signature.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter-dark",
+    "file": "/catalog/previews/covers/signature.dark.svg"
+   }
+  },
+  "print-sheet": {
+   "version": "2.0.3",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/print-sheet.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/print-sheet.dark.svg"
+   }
+  },
+  "pricing-table": {
+   "version": "1.1.2",
+   "light": {
+    "templateId": "saas",
+    "file": "/catalog/previews/covers/pricing-table.light.svg"
+   },
+   "dark": {
+    "templateId": "saas",
+    "file": "/catalog/previews/covers/pricing-table.dark.svg"
+   }
+  },
+  "org-chart": {
+   "version": "1.1.2",
+   "light": {
+    "file": "/catalog/previews/covers/org-chart.light.svg"
+   },
+   "dark": {
+    "file": "/catalog/previews/covers/org-chart.dark.svg"
+   }
+  },
+  "multi-page-pdf": {
+   "version": "1.1.4",
+   "light": {
+    "templateId": "annual-report",
+    "file": "/catalog/previews/covers/multi-page-pdf.light.webp"
+   },
+   "dark": {
+    "templateId": "annual-report",
+    "file": "/catalog/previews/covers/multi-page-pdf.dark.webp"
+   }
+  },
+  "meeting-planner": {
+   "version": "1.2.4",
+   "light": {
+    "file": "/catalog/previews/covers/meeting-planner.light.svg"
+   },
+   "dark": {
+    "file": "/catalog/previews/covers/meeting-planner.dark.svg"
+   }
+  },
+  "lottie-digi-ad": {
+   "version": "1.0.4",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/lottie-digi-ad.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/lottie-digi-ad.dark.svg"
+   }
+  },
+  "logo-wall": {
+   "version": "1.8.1",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/logo-wall.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter-dark",
+    "file": "/catalog/previews/covers/logo-wall.dark.svg"
+   }
+  },
+  "link-card": {
+   "version": "1.0.4",
+   "light": {
+    "templateId": "og",
+    "file": "/catalog/previews/covers/link-card.light.webp"
+   },
+   "dark": {
+    "templateId": "og",
+    "file": "/catalog/previews/covers/link-card.dark.webp"
+   }
+  },
+  "icon": {
+   "version": "1.1.4",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/icon.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/icon.dark.svg"
+   }
+  },
+  "growth": {
+   "version": "1.1.3",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/growth.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter-dark",
+    "file": "/catalog/previews/covers/growth.dark.svg"
+   }
+  },
+  "gradient": {
+   "version": "1.3.1",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/gradient.light.webp"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/gradient.dark.webp"
+   }
+  },
+  "frame": {
+   "version": "1.1.3",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/frame.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/frame.dark.svg"
+   }
+  },
+  "flythrough": {
+   "version": "0.2.5",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/flythrough.light.webp"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/flythrough.dark.webp"
+   }
+  },
+  "finish-preview": {
+   "version": "1.1.2",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/finish-preview.light.webp"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/finish-preview.dark.webp"
+   }
+  },
+  "doc-studio": {
+   "version": "1.2.2",
+   "light": {
+    "templateId": "field-report",
+    "file": "/catalog/previews/covers/doc-studio.light.webp"
+   },
+   "dark": {
+    "templateId": "field-report",
+    "file": "/catalog/previews/covers/doc-studio.dark.webp"
+   }
+  },
+  "diagram-builder": {
+   "version": "1.8.3",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/diagram-builder.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/diagram-builder.dark.svg"
+   }
+  },
+  "deck-studio": {
+   "version": "1.2.4",
+   "light": {
+    "templateId": "quarterly-review",
+    "file": "/catalog/previews/covers/deck-studio.light.webp"
+   },
+   "dark": {
+    "templateId": "quarterly-review",
+    "file": "/catalog/previews/covers/deck-studio.dark.webp"
+   }
+  },
+  "certificate": {
+   "version": "1.2.2",
+   "light": {
+    "templateId": "award-team-of-the-year",
+    "file": "/catalog/previews/covers/certificate.light.svg"
+   },
+   "dark": {
+    "templateId": "award-team-of-the-year",
+    "file": "/catalog/previews/covers/certificate.dark.svg"
+   }
+  },
+  "captions": {
+   "version": "1.1.1",
+   "light": {
+    "templateId": "subtitles",
+    "file": "/catalog/previews/covers/captions.light.webp"
+   },
+   "dark": {
+    "templateId": "subtitles",
+    "file": "/catalog/previews/covers/captions.dark.webp"
+   }
+  },
+  "calendar-ics": {
+   "version": "1.2.4",
+   "light": {
+    "templateId": "month",
+    "file": "/catalog/previews/covers/calendar-ics.light.svg"
+   },
+   "dark": {
+    "templateId": "month",
+    "file": "/catalog/previews/covers/calendar-ics.dark.svg"
+   }
+  },
+  "booth-studio": {
+   "version": "0.3.3",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/booth-studio.light.webp"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/booth-studio.dark.webp"
+   }
+  },
+  "battlecards": {
+   "version": "1.3.3",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/battlecards.light.svg"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/battlecards.dark.svg"
+   }
+  },
+  "backdrop": {
+   "version": "1.1.3",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/backdrop.light.webp"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/backdrop.dark.webp"
+   }
+  },
+  "audiogram": {
+   "version": "2.8.0",
+   "light": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/audiogram.light.webp"
+   },
+   "dark": {
+    "templateId": "brand-starter",
+    "file": "/catalog/previews/covers/audiogram.dark.webp"
+   }
+  },
+  "agenda": {
+   "version": "1.4.1",
+   "light": {
+    "templateId": "keynote-spotlight",
+    "file": "/catalog/previews/covers/agenda.light.svg"
+   },
+   "dark": {
+    "templateId": "keynote-spotlight",
+    "file": "/catalog/previews/covers/agenda.dark.svg"
+   }
+  },
+  "3d-studio": {
+   "version": "0.9.1",
+   "light": {
+    "templateId": "studio-object",
+    "file": "/catalog/previews/covers/3d-studio.light.webp"
+   },
+   "dark": {
+    "templateId": "studio-object",
+    "file": "/catalog/previews/covers/3d-studio.dark.webp"
+   }
+  },
+  "3d": {
+   "version": "1.3.1",
+   "light": {
+    "file": "/catalog/previews/covers/3d.light.webp"
+   },
+   "dark": {
+    "file": "/catalog/previews/covers/3d.dark.webp"
+   }
+  }
+ }
+}

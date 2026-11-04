@@ -6,11 +6,11 @@
   "values": {
     "city": "berlin",
     "theme": "light",
-    "roadColor": "{color.semantic.text}",
-    "waterColor": "{color.semantic.muted}",
+    "roadColor": "{color.semantic.secondary}",
+    "waterColor": "{color.semantic.primary}",
     "background": "{color.semantic.surface}",
-    "minorRoadWeight": 2,
-    "majorRoadWeight": 3.5,
+    "minorRoadWeight": 3,
+    "majorRoadWeight": 6,
     "showWater": true,
     "waterWeight": 4
   },
@@ -21,7 +21,8 @@
       "description": "Wide avenues that read at a glance.",
       "values": {
         "city": "berlin"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "zurich",
@@ -29,7 +30,8 @@
       "description": "A compact centre split by the river.",
       "values": {
         "city": "zurich"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "copenhagen",
@@ -37,7 +39,8 @@
       "description": "Harbour streets in crisp black and white.",
       "values": {
         "city": "copenhagen"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -15,11 +15,30 @@
     "description": "Agenda and dial-in in the invite.",
     "reminder": "15",
     "events": [
-      { "date": "2026-09-01", "time": "09:30", "title": "Quarter kick-off" },
-      { "date": "2026-09-07", "time": "11:00", "title": "Roadmap review" },
-      { "date": "2026-09-14", "title": "Design week" },
-      { "date": "2026-09-18", "time": "16:00", "title": "Demo Friday" },
-      { "date": "2026-09-30", "time": "10:00", "title": "Retro" }
+      {
+        "date": "2026-09-01",
+        "time": "09:30",
+        "title": "Quarter kick-off"
+      },
+      {
+        "date": "2026-09-07",
+        "time": "11:00",
+        "title": "Roadmap review"
+      },
+      {
+        "date": "2026-09-14",
+        "title": "Design week"
+      },
+      {
+        "date": "2026-09-18",
+        "time": "16:00",
+        "title": "Demo Friday"
+      },
+      {
+        "date": "2026-09-30",
+        "time": "10:00",
+        "title": "Retro"
+      }
     ]
   },
   "presets": [
@@ -27,13 +46,19 @@
       "id": "sunday",
       "name": "Sunday start",
       "description": "The same month with Sunday in the first column.",
-      "values": { "weekStart": "sunday" }
+      "values": {
+        "weekStart": "sunday"
+      },
+      "kind": "retired"
     },
     {
       "id": "weeks",
       "name": "With week numbers",
       "description": "Adds the ISO week column down the left edge.",
-      "values": { "showWeekNumbers": true }
+      "values": {
+        "showWeekNumbers": true
+      },
+      "kind": "retired"
     }
   ]
 }

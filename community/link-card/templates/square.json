@@ -22,7 +22,8 @@
         "color": "#241d16",
         "background": "#faf6ef",
         "accent": "#8a5a2b"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "square-event",
@@ -32,7 +33,8 @@
         "heading": "Open studio, Thursday",
         "body": "Doors from six. Come and see what the last quarter looked like before it was tidied up.",
         "url": "https://atlasfield.io/events/open-studio"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

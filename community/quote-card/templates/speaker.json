@@ -1,0 +1,14 @@
+{
+  "id": "speaker",
+  "name": "Speaker quote",
+  "category": "Social",
+  "description": "A short line beside the person who said it.",
+  "values": {
+    "headshot": {
+      "id": "lolly/demo/sample-portrait"
+    },
+    "ground": "lead",
+    "layout": "beside"
+  },
+  "galleryCover": true
+}

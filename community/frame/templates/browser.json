@@ -30,7 +30,8 @@
       "values": {
         "dark": false,
         "windowStyle": "nuremberg"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "night",
@@ -46,7 +47,8 @@
         "windowStyle": "cupertino",
         "backdrop": "solid",
         "background": "#1b2233"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

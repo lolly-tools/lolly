@@ -26,8 +26,8 @@
     {
       "version": 1,
       "toolId": "3d-studio",
-      "toolVersion": "0.9.0",
-      "toolVersionRange": "0.9.0",
+      "toolVersion": "0.9.1",
+      "toolVersionRange": "0.9.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -35,7 +35,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "558d8964bc9ee2b9d4869fa066d6ea3763addfbd471af1c057d1f7faf56d606b",
+          "sha256": "3822660b0dc9e7ad0eba3e52a7cd5f99148ca2f6a26b2b1648ab4ead8888975b",
           "bytes": 4223
         },
         "reference/inputs.json": {
@@ -644,12 +644,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "4daf9b3a52c9f912a3922693344fb6d681e63b63f699ad9a250edd0d3c6be20b",
-          "bytes": 5289
+          "sha256": "ca2143da85d28dedf559c99e81ec5768577e557b1a23e214c51923122b34ab9c",
+          "bytes": 5320
         },
         "reference/inputs.json": {
-          "sha256": "ee85c31ec04bebcb4af5714b71d54b7b1ab2e752f3fffdff074490d89041eaf6",
-          "bytes": 53029
+          "sha256": "9899724f5a0f2b0e7487a136f6abeb4f00abe6fcadc1436bbc997c084b2b881a",
+          "bytes": 53656
         },
         "reference/examples.json": {
           "sha256": "a4dc5d5805e4070d40ca07b2a857c00d8ded31da5f810c72a807f25c72f759ef",
@@ -1121,8 +1121,8 @@
           "bytes": 2870
         },
         "reference/inputs.json": {
-          "sha256": "698dfbfbf54a8bae455110c0dec10f98b18db96a34d07d4b90d3f4ff52c54e0e",
-          "bytes": 19230
+          "sha256": "33c4f6941c035b66d9dd35363137afdfb9c32888776b34f8da9da2b8b9a057be",
+          "bytes": 19397
         },
         "reference/examples.json": {
           "sha256": "d9ef3f05b657da5d09d55c1a2d56ad5e3dc955400513c6ca974a7413e1329587",
@@ -1143,8 +1143,8 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "f26eceab7076ef041e80513696a2f5c2677a6494c2a1854ae5e41c16627e6f61",
-          "bytes": 1903
+          "sha256": "73f22eff56ab485e5a40cfd3c03cc7ffea2e4bc115b207c4b64b38b414c08e8a",
+          "bytes": 1915
         },
         "reference/inputs.json": {
           "sha256": "add2c193bb7a437b7e89db220039225e828a574f5f66b60ada6cb928e1909448",
@@ -1152,6 +1152,28 @@
         }
       },
       "path": "quote/SKILL.md"
+    },
+    {
+      "version": 1,
+      "toolId": "quote-card",
+      "toolVersion": "1.0.0",
+      "toolVersionRange": "1.0.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "44084f2e39c15c9a65d9fbf8bf4e4c82086770c468aabb2e3afb0c684ffc1d77",
+          "bytes": 1631
+        },
+        "reference/inputs.json": {
+          "sha256": "b561d7dbfa3f831193c83d4e8dcb6ef14dd5465339318ee976f06ad66aca111c",
+          "bytes": 1246
+        }
+      },
+      "path": "quote-card/SKILL.md"
     },
     {
       "version": 1,
@@ -1547,7 +1569,7 @@
           "bytes": 2659
         },
         "reference/inputs.json": {
-          "sha256": "38cbbc84b405e415a9804452b8260edaae1fded080eb48e344fa9b66f8be1cfd",
+          "sha256": "a428c119f1b11bc454781c004c4ff43bea2a9990d041335f5a4d31c8d2024361",
           "bytes": 10503
         },
         "reference/examples.json": {

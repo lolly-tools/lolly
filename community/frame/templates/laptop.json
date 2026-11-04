@@ -30,7 +30,8 @@
       "values": {
         "backdrop": "solid",
         "background": "{color.semantic.primary}"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "studio",
@@ -40,7 +41,8 @@
         "backdrop": "gradient",
         "shadow": 75,
         "padding": 96
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

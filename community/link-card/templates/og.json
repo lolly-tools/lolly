@@ -13,7 +13,7 @@
     "background": "{color.semantic.surface}",
     "accent": "{color.semantic.primary}",
     "image": {
-      "id": "lolly/demo/sample-photo"
+      "id": "lolly/demo/sample-wide"
     }
   },
   "presets": [
@@ -23,7 +23,8 @@
       "description": "The shorter 1200 x 600 crop, with the thumbnail across the top.",
       "values": {
         "layout": "twitter-summary"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "og-release",
@@ -33,7 +34,8 @@
         "heading": "Release 4.2 is out",
         "body": "Faster exports, a calmer sidebar, and print sizes that are finally true to the millimetre.",
         "url": "https://atlasfield.io/releases/4-2"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "og-ink",
@@ -43,7 +45,8 @@
         "color": "#f4f6f7",
         "background": "#14181b",
         "accent": "#7fd1b9"
-      }
+      },
+      "kind": "retired"
     }
   ],
   "galleryCover": true
