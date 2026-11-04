@@ -22,9 +22,15 @@ test('public pins reject placeholders, empty, truncated and arbitrary base64 val
   }
 });
 
-test('ordinary desktop builds keep signing disabled until a release key is approved', () => {
+// The approved production updater identity (minisign key id F7E564892921B278, created 2026-11-04).
+// Every installed app trusts only this key, so a change here is a key migration, never a casual edit.
+const APPROVED_UPDATER_KEY_ID = 'F7E564892921B278';
+
+test('ordinary desktop builds pin the approved updater key and leave artifact signing to release builds', () => {
   const config = JSON.parse(readFileSync(new URL('../shells/tauri-desktop/src-tauri/tauri.conf.json', import.meta.url), 'utf8'));
   assert.equal(config.bundle.createUpdaterArtifacts, false);
-  assert.equal(config.plugins.updater.pubkey, 'PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE');
+  const decoded = Buffer.from(config.plugins.updater.pubkey, 'base64').toString('utf8');
+  assert.match(decoded.split('\n')[0] ?? '', new RegExp(`minisign public key: ${APPROVED_UPDATER_KEY_ID}$`));
+  assert.doesNotThrow(() => updaterPublicKey(config.plugins.updater.pubkey));
   assert.deepEqual(config.plugins.updater.endpoints, ['https://lolli.li/updates/{{target}}/{{arch}}/latest.json']);
 });
