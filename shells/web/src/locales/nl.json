@@ -10838,5 +10838,21 @@
   "Or drop an image or a list of colours here": "Of sleep hier een afbeelding of een lijst met kleuren naartoe",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Deze neutrale kleuren horen bij de startset, zodat de voorbeelden iets kunnen laten zien tot er hierboven kleuren worden toegevoegd.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Kies een kleur",
-  "Add a colour to the palette first.": "Voeg eerst een kleur toe aan het palet."
+  "Add a colour to the palette first.": "Voeg eerst een kleur toe aan het palet.",
+  "App updates": "App-updates",
+  "Finish recording or exporting before updating.": "Rond de opname of export af voordat je bijwerkt.",
+  "Install when I quit": "Installeren bij afsluiten",
+  "Manual download": "Handmatig downloaden",
+  "Notify": "Melden",
+  "Ready to install: {version}": "Klaar om te installeren: {version}",
+  "Release notes": "Uitgaveopmerkingen",
+  "Restart now": "Nu herstarten",
+  "Save could not finish. Save a recovery copy before updating.": "Het opslaan kon niet worden voltooid. Sla een herstelkopie op voordat je bijwerkt.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Deze AppImage kan hier niet worden vervangen. Download de app naar een beschrijfbare map.",
+  "This desktop platform does not support in-app updates.": "Dit desktopplatform ondersteunt geen updates vanuit de app.",
+  "This installation uses its package manager for updates.": "Deze installatie gebruikt de pakketbeheerder voor updates.",
+  "Update automatically": "Automatisch bijwerken",
+  "Update could not finish. Try again or download the app.": "De update kon niet worden voltooid. Probeer het opnieuw of download de app.",
+  "Update installation was cancelled.": "De installatie van de update is geannuleerd.",
+  "Update notifications": "Updatemeldingen"
 }

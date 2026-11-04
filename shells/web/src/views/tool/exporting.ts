@@ -1,3 +1,4 @@
+import { holdUpdateWork } from '../../lib/update-work-state.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * tool view: unscaled export of the live canvas.
@@ -39,7 +40,8 @@ export function exportUnscaled<T>(tview: ToolViewCtx,
   fn: (report?: ExportReport) => Promise<T>,
   opts: ExportUnscaledOpts = {}
 ): Promise<T> {
-  const run = tview.exportChain.catch(() => {}).then(() => exportUnscaledRaw(tview, fn, opts));
+  const release = holdUpdateWork();
+  const run = tview.exportChain.catch(() => {}).then(() => exportUnscaledRaw(tview, fn, opts)).finally(release);
   tview.exportChain = run.catch(() => {});
   return run;
 }

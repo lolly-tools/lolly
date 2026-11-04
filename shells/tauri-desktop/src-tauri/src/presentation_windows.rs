@@ -35,6 +35,8 @@ pub fn build(app: &App, windows: &[tauri::utils::config::WindowConfig]) -> tauri
         let builder = if config.label == "main" { crate::native_frame::main_window(builder) } else { builder };
         #[cfg(feature = "presentation-probe")]
         let builder = builder.initialization_script(include_str!("../tests/presentation-probe.js"));
+        #[cfg(feature = "updater-probe")]
+        let builder = builder.initialization_script(include_str!("../tests/updater-probe.js"));
         let window = builder
             .on_new_window(move |url, features| {
                 #[cfg(feature = "presentation-probe")]
@@ -134,6 +136,10 @@ pub fn main_commands<R: Runtime>(
         #[cfg(feature = "webgpu-probe")]
         if invoke.message.command().starts_with("webgpu_qualification_") {
             return crate::webgpu_qualification::route(invoke);
+        }
+        #[cfg(feature = "updater-probe")]
+        if invoke.message.command().starts_with("updater_probe_") {
+            return crate::updater_probe::route(invoke);
         }
         handler(invoke)
     }

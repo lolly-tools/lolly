@@ -1,3 +1,6 @@
+mod updates;
+#[cfg(feature = "updater-probe")]
+mod updater_probe;
 mod agents;
 mod file_custody;
 #[path = "../../../tauri-shared/native/atomic_write.rs"]
@@ -79,8 +82,11 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             window.visible = false;
         }
     }
+    #[cfg(feature = "updater-probe")]
+    updater_probe::validate(&context);
     let windows = presentation_windows::prepare(&mut context);
     tauri::Builder::default()
+        .manage(updates::UpdateExit::default())
         // Remember only spatial state. VISIBLE is deliberately excluded: a saved
         // visible window must never make a D-Bus --search-provider launch flash.
         // The plugin also rejects a position that intersects no current monitor.
@@ -108,8 +114,9 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
         // Self-update (plans/202 WP4.1). The endpoint and the signing public key
         // come from tauri.conf.json's plugins.updater block; the JS side
         // (bridge-overrides/updater.ts) drives check → download → install, and
-        // asks before each of the last two. tauri_plugin_process is here only so
-        // "Install and restart" can restart.
+        // asks before each of the last two. Restarting or exiting after an install
+        // goes through updates.rs, so the webview holds no process permission;
+        // tauri_plugin_process stays registered for the native side only.
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         // Finished-job notifications (shells/web/src/lib/job-toast.ts through
@@ -146,6 +153,11 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             desktop_integration::desktop_hotfolder_set,
             desktop_integration::desktop_note_export,
             desktop_integration::desktop_reveal_export,
+            updates::updater_environment,
+            updates::updater_focused,
+            updates::updater_open_download,
+            updates::updater_arm,
+            updates::updater_finish,
             menu::set_menu_data,
             // The macOS unified title bar's drag and double-click (plans/321 M1):
             // one verb the page may ask for, instead of a window permission.
@@ -231,6 +243,7 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             // The Dock icon's menu (plans/321 M1). Its rows arrive with the
             // frontend's first set_menu_data push.
             native_frame::install_dock_menu(&handle);
+            updates::install_native_quit_guard(&handle);
             if !search_provider {
                 desktop_integration::classify_argv(
                     &handle,
@@ -256,6 +269,7 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
         .build(context)
         .expect("error while building Lolly desktop")
         .run(|app, event| {
+            updates::handle(app, &event);
             // macOS hands URL and file opens to the running process as Apple Events,
             // never as argv, and Tauri surfaces them here as RunEvent::Opened - a
             // lolly:// click, or a .lolly double-clicked in Finder, cold start
@@ -311,29 +325,23 @@ mod updater_config {
     }
 
     #[test]
-    fn pubkey_is_present_and_its_placeholder_spelling_is_pinned() {
+    fn updater_trust_matches_artifact_configuration() {
+        use base64::Engine;
         let c = conf();
-        let key = c["plugins"]["updater"]["pubkey"]
-            .as_str()
-            .expect("plugins.updater.pubkey");
-        assert!(!key.is_empty(), "an empty pubkey disables signature checking");
-        if key != PUBKEY_PLACEHOLDER {
-            // A real minisign public key is base64 and comfortably longer than
-            // the placeholder. This catches a truncated or half-pasted key.
-            assert!(
-                key.len() >= 40,
-                "pubkey is neither the placeholder nor long enough to be a real key"
-            );
+        let key = c["plugins"]["updater"]["pubkey"].as_str().expect("updater public key");
+        assert_eq!(c["plugins"]["updater"]["requireSignedVersion"], true);
+        if key == PUBKEY_PLACEHOLDER {
+            assert_eq!(c["bundle"]["createUpdaterArtifacts"], false,
+                "an unconfigured build must not emit updater artifacts");
+            return;
         }
-    }
-
-    #[test]
-    fn bundle_emits_updater_artifacts() {
-        let c = conf();
-        assert_eq!(
-            c["bundle"]["createUpdaterArtifacts"].as_bool(),
-            Some(true),
-            "without this `tauri build` writes no .tar.gz and no .sig, so nothing can be published",
-        );
+        let envelope = base64::engine::general_purpose::STANDARD.decode(key).expect("public key base64");
+        let text = String::from_utf8(envelope).expect("public key text");
+        let lines: Vec<_> = text.lines().collect();
+        assert_eq!(lines.len(), 2);
+        assert!(lines[0].starts_with("untrusted comment: "));
+        let packet = base64::engine::general_purpose::STANDARD.decode(lines[1]).expect("public key packet");
+        assert_eq!(packet.len(), 42);
+        assert_eq!(&packet[..2], b"Ed");
     }
 }

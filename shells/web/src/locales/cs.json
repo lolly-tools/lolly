@@ -10928,5 +10928,21 @@
   "Or drop an image or a list of colours here": "Nebo sem přetáhni obrázek nebo seznam barev",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Tyto neutrální barvy jsou součástí úvodní sady, aby náhledy měly co ukázat, dokud se výše nepřidají barvy.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Vyber barvu",
-  "Add a colour to the palette first.": "Nejdřív přidej do palety barvu."
+  "Add a colour to the palette first.": "Nejdřív přidej do palety barvu.",
+  "App updates": "Aktualizace aplikace",
+  "Finish recording or exporting before updating.": "Před aktualizací dokončete nahrávání nebo export.",
+  "Install when I quit": "Instalovat při ukončení",
+  "Manual download": "Ruční stažení",
+  "Notify": "Upozorňovat",
+  "Ready to install: {version}": "Připraveno k instalaci: {version}",
+  "Release notes": "Poznámky k vydání",
+  "Restart now": "Restartovat nyní",
+  "Save could not finish. Save a recovery copy before updating.": "Ukládání se nepodařilo dokončit. Před aktualizací uložte kopii pro obnovení.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Tento AppImage zde nelze nahradit. Stáhněte aplikaci do složky s možností zápisu.",
+  "This desktop platform does not support in-app updates.": "Tato desktopová platforma nepodporuje aktualizace přímo v aplikaci.",
+  "This installation uses its package manager for updates.": "Tato instalace používá k aktualizacím svého správce balíčků.",
+  "Update automatically": "Aktualizovat automaticky",
+  "Update could not finish. Try again or download the app.": "Aktualizaci se nepodařilo dokončit. Zkuste to znovu nebo si aplikaci stáhněte.",
+  "Update installation was cancelled.": "Instalace aktualizace byla zrušena.",
+  "Update notifications": "Oznámení o aktualizacích"
 }

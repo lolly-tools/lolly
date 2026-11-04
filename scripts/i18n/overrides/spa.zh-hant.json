@@ -2032,5 +2032,21 @@
   "Or drop an image or a list of colours here": "或將圖片或色彩清單拖放到這裡",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "這些中性色隨起始設定提供，在上方加入色彩之前，預覽會用它們來顯示。",
   "{role}: {value}. Choose a colour": "{role}：{value}。選擇色彩",
-  "Add a colour to the palette first.": "請先在調色盤中加入一種色彩。"
+  "Add a colour to the palette first.": "請先在調色盤中加入一種色彩。",
+  "Notify": "通知",
+  "Update automatically": "自動更新",
+  "App updates": "應用程式更新",
+  "Update notifications": "更新通知",
+  "Ready to install: {version}": "已準備好安裝：{version}",
+  "Restart now": "立即重新啟動",
+  "Install when I quit": "結束時安裝",
+  "Release notes": "版本說明",
+  "Manual download": "手動下載",
+  "Update could not finish. Try again or download the app.": "無法完成更新。請重試或下載應用程式。",
+  "Finish recording or exporting before updating.": "請先完成錄製或匯出，再進行更新。",
+  "Save could not finish. Save a recovery copy before updating.": "無法完成儲存。請在更新前儲存一份復原副本。",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "無法在此位置取代此 AppImage。請將應用程式下載到可寫入的資料夾。",
+  "This installation uses its package manager for updates.": "此安裝透過套件管理員更新。",
+  "This desktop platform does not support in-app updates.": "此桌面平台不支援應用程式內更新。",
+  "Update installation was cancelled.": "已取消安裝更新。"
 }

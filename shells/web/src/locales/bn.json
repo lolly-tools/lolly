@@ -10838,5 +10838,21 @@
   "Or drop an image or a list of colours here": "অথবা এখানে একটি ছবি বা রঙের তালিকা ছেড়ে দিন",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "এই নিউট্রাল রংগুলো শুরুর সেটের সঙ্গে এসেছে, যাতে ওপরে রং যোগ না হওয়া পর্যন্ত প্রিভিউতে দেখানোর কিছু থাকে।",
   "{role}: {value}. Choose a colour": "{role}: {value}। একটি রং বেছে নিন",
-  "Add a colour to the palette first.": "আগে প্যালেটে একটি রং যোগ করুন।"
+  "Add a colour to the palette first.": "আগে প্যালেটে একটি রং যোগ করুন।",
+  "App updates": "অ্যাপের আপডেট",
+  "Finish recording or exporting before updating.": "আপডেট করার আগে রেকর্ডিং বা এক্সপোর্ট শেষ করুন।",
+  "Install when I quit": "বন্ধ করার সময় ইনস্টল করুন",
+  "Manual download": "ম্যানুয়াল ডাউনলোড",
+  "Notify": "জানান",
+  "Ready to install: {version}": "ইনস্টল করার জন্য প্রস্তুত: {version}",
+  "Release notes": "রিলিজ নোট",
+  "Restart now": "এখনই পুনরায় চালু করুন",
+  "Save could not finish. Save a recovery copy before updating.": "সেভ সম্পূর্ণ করা যায়নি। আপডেট করার আগে পুনরুদ্ধারের জন্য একটি কপি সেভ করুন।",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "এই AppImage এখানে প্রতিস্থাপন করা যায় না। লেখা যায় এমন ফোল্ডারে অ্যাপটি ডাউনলোড করুন।",
+  "This desktop platform does not support in-app updates.": "এই ডেস্কটপ প্ল্যাটফর্ম অ্যাপের ভেতর থেকে আপডেট সমর্থন করে না।",
+  "This installation uses its package manager for updates.": "এই ইনস্টলেশন আপডেটের জন্য এর প্যাকেজ ম্যানেজার ব্যবহার করে।",
+  "Update automatically": "স্বয়ংক্রিয়ভাবে আপডেট করুন",
+  "Update could not finish. Try again or download the app.": "আপডেট সম্পূর্ণ করা যায়নি। আবার চেষ্টা করুন বা অ্যাপটি ডাউনলোড করুন।",
+  "Update installation was cancelled.": "আপডেট ইনস্টল বাতিল করা হয়েছে।",
+  "Update notifications": "আপডেটের বিজ্ঞপ্তি"
 }

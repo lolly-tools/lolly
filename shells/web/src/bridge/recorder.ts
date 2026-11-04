@@ -1,3 +1,4 @@
+import { holdUpdateWork } from '../lib/update-work-state.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Web implementation of the `recorder` capability - device A/V capture + a live
@@ -510,6 +511,17 @@ function mediaRecorderEngine(stream: MediaStream, wantVideo: boolean, haveAudio:
 }
 
 async function openSession(opts: RecordOpts, supplied?: OpenSource): Promise<RecordingSession> {
+  const release = holdUpdateWork();
+  try {
+    const session = await openSessionInner(opts, supplied);
+    const stop = session.stop.bind(session), cancel = session.cancel.bind(session);
+    session.stop = async () => { try { return await stop(); } finally { release(); } };
+    session.cancel = () => { try { cancel(); } finally { release(); } };
+    return session;
+  } catch (error) { release(); throw error; }
+}
+
+async function openSessionInner(opts: RecordOpts, supplied?: OpenSource): Promise<RecordingSession> {
   const isScreen = opts.source === 'screen' && opts.video === true;
   const wantAudio = opts.audio !== false;
   // A screen take always has a video track; a device take only when asked.

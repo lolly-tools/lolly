@@ -10883,5 +10883,21 @@
   "Or drop an image or a list of colours here": "Sau trage aici o imagine sau o listă de culori",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Aceste culori neutre vin cu setul de pornire, ca previzualizările să aibă ce arăta până când se adaugă culori mai sus.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Alege o culoare",
-  "Add a colour to the palette first.": "Adaugă mai întâi o culoare în paletă."
+  "Add a colour to the palette first.": "Adaugă mai întâi o culoare în paletă.",
+  "App updates": "Actualizări ale aplicației",
+  "Finish recording or exporting before updating.": "Finalizează înregistrarea sau exportul înainte de actualizare.",
+  "Install when I quit": "Instalează la închidere",
+  "Manual download": "Descărcare manuală",
+  "Notify": "Notifică",
+  "Ready to install: {version}": "Gata de instalare: {version}",
+  "Release notes": "Note de lansare",
+  "Restart now": "Repornește acum",
+  "Save could not finish. Save a recovery copy before updating.": "Salvarea nu s-a putut finaliza. Salvează o copie de recuperare înainte de actualizare.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Acest AppImage nu poate fi înlocuit aici. Descarcă aplicația într-un dosar cu drept de scriere.",
+  "This desktop platform does not support in-app updates.": "Această platformă desktop nu acceptă actualizări din aplicație.",
+  "This installation uses its package manager for updates.": "Această instalare folosește managerul de pachete pentru actualizări.",
+  "Update automatically": "Actualizează automat",
+  "Update could not finish. Try again or download the app.": "Actualizarea nu s-a putut finaliza. Încearcă din nou sau descarcă aplicația.",
+  "Update installation was cancelled.": "Instalarea actualizării a fost anulată.",
+  "Update notifications": "Notificări de actualizare"
 }

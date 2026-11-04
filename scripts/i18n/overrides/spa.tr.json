@@ -2201,5 +2201,21 @@
   "Or drop an image or a list of colours here": "Ya da buraya bir görsel veya renk listesi bırak",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Bu nötr renkler başlangıç paketiyle gelir, böylece yukarıya renk eklenene kadar önizlemelerin gösterecek bir şeyi olur.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Bir renk seç",
-  "Add a colour to the palette first.": "Önce palete bir renk ekle."
+  "Add a colour to the palette first.": "Önce palete bir renk ekle.",
+  "Notify": "Bildir",
+  "Update automatically": "Otomatik güncelle",
+  "App updates": "Uygulama güncellemeleri",
+  "Update notifications": "Güncelleme bildirimleri",
+  "Ready to install: {version}": "Yüklemeye hazır: {version}",
+  "Restart now": "Şimdi yeniden başlat",
+  "Install when I quit": "Çıkarken yükle",
+  "Release notes": "Sürüm notları",
+  "Manual download": "Elle indir",
+  "Update could not finish. Try again or download the app.": "Güncelleme tamamlanamadı. Yeniden deneyin veya uygulamayı indirin.",
+  "Finish recording or exporting before updating.": "Güncellemeden önce kaydı veya dışa aktarmayı tamamlayın.",
+  "Save could not finish. Save a recovery copy before updating.": "Kaydetme tamamlanamadı. Güncellemeden önce bir kurtarma kopyası kaydedin.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Bu AppImage burada değiştirilemiyor. Uygulamayı yazılabilir bir klasöre indirin.",
+  "This installation uses its package manager for updates.": "Bu kurulum, güncellemeler için paket yöneticisini kullanır.",
+  "This desktop platform does not support in-app updates.": "Bu masaüstü platformu uygulama içinden güncellemeyi desteklemiyor.",
+  "Update installation was cancelled.": "Güncelleme yüklemesi iptal edildi."
 }

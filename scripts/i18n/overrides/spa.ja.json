@@ -2032,5 +2032,21 @@
   "Or drop an image or a list of colours here": "または画像や色のリストをここにドロップ",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "これらのニュートラルカラーはスターターに付属しており、上で色が追加されるまでプレビューに表示する色になります。",
   "{role}: {value}. Choose a colour": "{role}：{value}。色を選択",
-  "Add a colour to the palette first.": "先にパレットに色を追加してください。"
+  "Add a colour to the palette first.": "先にパレットに色を追加してください。",
+  "Notify": "通知する",
+  "Update automatically": "自動で更新する",
+  "App updates": "アプリの更新",
+  "Update notifications": "更新通知",
+  "Ready to install: {version}": "インストールの準備完了: {version}",
+  "Restart now": "今すぐ再起動",
+  "Install when I quit": "終了時にインストール",
+  "Release notes": "リリースノート",
+  "Manual download": "手動ダウンロード",
+  "Update could not finish. Try again or download the app.": "更新を完了できませんでした。もう一度試すか、アプリをダウンロードしてください。",
+  "Finish recording or exporting before updating.": "更新する前に録音・録画または書き出しを完了してください。",
+  "Save could not finish. Save a recovery copy before updating.": "保存を完了できませんでした。更新する前に復元用のコピーを保存してください。",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "この AppImage はここでは置き換えられません。書き込み可能なフォルダーにアプリをダウンロードしてください。",
+  "This installation uses its package manager for updates.": "このインストールでは、パッケージマネージャーで更新します。",
+  "This desktop platform does not support in-app updates.": "このデスクトップ環境では、アプリ内での更新はサポートされていません。",
+  "Update installation was cancelled.": "更新のインストールがキャンセルされました。"
 }

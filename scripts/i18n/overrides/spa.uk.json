@@ -2291,5 +2291,21 @@
   "Or drop an image or a list of colours here": "Або перетягніть сюди зображення чи список кольорів",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Ці нейтральні кольори входять до стартового набору, щоб попереднім переглядам було що показати, доки вище не додано кольори.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Виберіть колір",
-  "Add a colour to the palette first.": "Спершу додайте колір до палітри."
+  "Add a colour to the palette first.": "Спершу додайте колір до палітри.",
+  "Notify": "Сповіщати",
+  "Update automatically": "Оновлювати автоматично",
+  "App updates": "Оновлення застосунку",
+  "Update notifications": "Сповіщення про оновлення",
+  "Ready to install: {version}": "Готово до встановлення: {version}",
+  "Restart now": "Перезапустити зараз",
+  "Install when I quit": "Встановити під час виходу",
+  "Release notes": "Примітки до випуску",
+  "Manual download": "Завантажити вручну",
+  "Update could not finish. Try again or download the app.": "Не вдалося завершити оновлення. Спробуйте ще раз або завантажте застосунок.",
+  "Finish recording or exporting before updating.": "Завершіть запис або експортування перед оновленням.",
+  "Save could not finish. Save a recovery copy before updating.": "Не вдалося завершити збереження. Перед оновленням збережіть копію для відновлення.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Цей AppImage неможливо замінити тут. Завантажте застосунок у теку з правом запису.",
+  "This installation uses its package manager for updates.": "Ця інсталяція використовує свій менеджер пакунків для оновлень.",
+  "This desktop platform does not support in-app updates.": "Ця настільна платформа не підтримує оновлення із застосунку.",
+  "Update installation was cancelled.": "Встановлення оновлення скасовано."
 }

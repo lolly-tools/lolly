@@ -10838,5 +10838,21 @@
   "Or drop an image or a list of colours here": "Eller släpp en bild eller en färglista här",
   "These neutrals came with the starter, so the previews have something to show until colours are added above.": "De här neutrala färgerna följer med startpaketet, så att förhandsvisningarna har något att visa tills färger läggs till ovanför.",
   "{role}: {value}. Choose a colour": "{role}: {value}. Välj en färg",
-  "Add a colour to the palette first.": "Lägg först till en färg i paletten."
+  "Add a colour to the palette first.": "Lägg först till en färg i paletten.",
+  "App updates": "Appuppdateringar",
+  "Finish recording or exporting before updating.": "Slutför inspelningen eller exporten innan du uppdaterar.",
+  "Install when I quit": "Installera när jag avslutar",
+  "Manual download": "Manuell hämtning",
+  "Notify": "Meddela",
+  "Ready to install: {version}": "Klar att installera: {version}",
+  "Release notes": "Versionsinformation",
+  "Restart now": "Starta om nu",
+  "Save could not finish. Save a recovery copy before updating.": "Det gick inte att spara klart. Spara en återställningskopia innan du uppdaterar.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Denna AppImage kan inte ersättas här. Hämta appen till en skrivbar mapp.",
+  "This desktop platform does not support in-app updates.": "Denna skrivbordsplattform stöder inte uppdateringar inifrån appen.",
+  "This installation uses its package manager for updates.": "Denna installation använder sin pakethanterare för uppdateringar.",
+  "Update automatically": "Uppdatera automatiskt",
+  "Update could not finish. Try again or download the app.": "Uppdateringen kunde inte slutföras. Försök igen eller hämta appen.",
+  "Update installation was cancelled.": "Installationen av uppdateringen avbröts.",
+  "Update notifications": "Uppdateringsaviseringar"
 }

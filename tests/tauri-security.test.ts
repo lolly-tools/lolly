@@ -131,7 +131,9 @@ test('device agents start through three scoped commands, never a shell or proces
   const caps = json('shells/tauri-desktop/src-tauri/capabilities/default.json');
   const permissions = (caps.permissions as Array<string | { identifier?: string }>).map(p => typeof p === 'string' ? p : p.identifier ?? '');
   assert.ok(!permissions.some(p => p.startsWith('shell:')), 'no shell plugin permission');
-  assert.deepEqual(permissions.filter(p => p.startsWith('process:')), ['process:allow-restart'], 'the process plugin may only restart the app');
+  // The update coordinator restarts or exits through its own native command (src-tauri/src/updates.rs), so the
+  // webview needs no process plugin permission at all.
+  assert.deepEqual(permissions.filter(p => p.startsWith('process:')), [], 'the webview holds no process plugin permission');
   const pkg = json('shells/tauri-desktop/package.json');
   assert.ok(!('@tauri-apps/plugin-shell' in (pkg.dependencies as Record<string, string>)));
   const cargo = readFileSync(new URL('shells/tauri-desktop/src-tauri/Cargo.toml', ROOT), 'utf8');

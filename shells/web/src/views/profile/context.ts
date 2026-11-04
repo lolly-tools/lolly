@@ -42,6 +42,7 @@ export interface ProfileAccount {
 }
 
 export interface ProfileViewCtx {
+  updatesUnsub?: () => void;
   // ---- state (was: closure variables of mountProfile) ----
   viewEl: HTMLElement;
   host: ProfileHost;
