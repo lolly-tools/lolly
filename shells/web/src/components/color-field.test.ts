@@ -236,6 +236,9 @@ test('a progressive inline field keeps the first choice simple and reveals exper
   const toggle = field.querySelector<HTMLButtonElement>('[data-color-fine-toggle]')!;
   assert.ok(value, 'the editable value remains immediately available');
   assert.equal(fine.contains(value), false, 'the first choice is not hidden with expert controls');
+  // Name and hex first (plan 346 change 12): HSL and the other spaces live in Fine-tune.
+  assert.equal(value.value, '#7c3aed', 'the first thing read is the hex, not hsl(262.12 83.26% 57.84%)');
+  assert.equal(field.dataset.colorNotation, 'hex');
   assert.equal(fine.hidden, true);
   assert.ok(fine.querySelector('[role="tablist"]'), 'colour-space modes wait behind Fine-tune');
   assert.ok(fine.querySelector('.color-dials'), 'dials wait behind Fine-tune');
@@ -243,6 +246,13 @@ test('a progressive inline field keeps the first choice simple and reveals exper
   toggle.click();
   assert.equal(fine.hidden, false);
   assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+  selectSpace(field, 'oklch');
+  assert.equal(value.value, '#7c3aed', 'choosing a space in Fine-tune leaves the first field on the hex');
+});
+
+test('the ordinary inline editor still shows the active space', () => {
+  const { field } = mount('#7c3aed', { inline: true, modes: true, dials: true });
+  assert.match(valueInput(field)!.value, /^hsl\(/, 'without the progressive pose, the value reads in the open space');
 });
 
 // ── Trap 2: the dials are no longer gated on `inline` ────────────────────────

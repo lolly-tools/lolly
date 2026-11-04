@@ -1094,11 +1094,18 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   const rgbHex = isTransparent ? '#000000' : hex.slice(0, 7);
   const alphaInt = isTransparent ? 0 : Math.round(clamp01(color.alpha) * 255);
   const alphaPct = Math.round(alphaInt / 255 * 100);
+  // A first-contact inline picker should feel like choosing a colour, not
+  // opening a colour-science console - see the progressive pose below.
+  const progressiveInline = inline && progressive;
   // The value field shows the colour in the active space (with modes) or as a hex
-  // (without). An unparsable value keeps its own text - mid-edit junk is held, not
-  // silently replaced.
+  // (without). The progressive pose shows the hex too (plan 346 change 12): the
+  // first thing a newcomer reads is the colour's name and its hex, and the HSL,
+  // OKLCH and the rest of the spaces wait behind Fine-tune with their channels.
+  // An unparsable value keeps its own text - mid-edit junk is held, not silently
+  // replaced.
+  const spaceNotation = modes && !progressiveInline;
   const shown = isTransparent ? 'transparent'
-    : parsed ? (modes ? spaceText(getColorSpace(st.mode)!, color) : hex)
+    : parsed ? (spaceNotation ? spaceText(getColorSpace(st.mode)!, color) : hex)
     : empty ? ''
     : (String(rawVal) || '#000000');
   const painted = /^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(shown);
@@ -1149,12 +1156,10 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   // wireColorField re-parses it with the engine's strict parseColor, which is why
   // the hidden native input is now WRITE-ONLY - it is the OS picker's own control
   // and can only speak `#rrggbb`, so it cannot be the authority.
-  // A first-contact inline picker should feel like choosing a colour, not
-  // opening a colour-science console. Its editable value and two visual pick
-  // routes stay in sight; modes, dials and opacity wait behind Fine-tune. The
-  // ordinary inline editor remains byte-for-byte expanded unless its caller
-  // explicitly opts into this progressive pose.
-  const progressiveInline = inline && progressive;
+  // The progressive pose: its editable value (a hex) and two visual pick routes
+  // stay in sight; modes, dials and opacity wait behind Fine-tune. The ordinary
+  // inline editor remains byte-for-byte expanded unless its caller explicitly
+  // opts into this progressive pose.
   const folded = !inline || progressiveInline || palette;
   const inputRow = `<div class="color-input-wrap"${painted ? ` style="${Object.entries(colorInputPaint(shown)).map(([k, v]) => `${k}:${v}`).join(';')}"` : ''}>
       ${/* NO maxlength: this field takes any CSS colour ('rebeccapurple',
@@ -1182,7 +1187,7 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
         <span class="color-auto-label">${escape(autoActionLabel(autoSource))}</span>
       </button>`
     : '';
-  return `<div class="${cls}" data-color-field="${eid}" data-color-canon="${escape(canon)}" data-color-notation="${modes ? 'space' : 'hex'}"${label ? ` data-color-label="${escape(label)}"` : ''}${swatchSource ? ` data-swatch-source="${escape(swatchSource)}"` : ''}${autoAttrs}>
+  return `<div class="${cls}" data-color-field="${eid}" data-color-canon="${escape(canon)}" data-color-notation="${spaceNotation ? 'space' : 'hex'}"${label ? ` data-color-label="${escape(label)}"` : ''}${swatchSource ? ` data-swatch-source="${escape(swatchSource)}"` : ''}${autoAttrs}>
     ${inline ? '' : `<button type="button" class="color-trigger" data-color-trigger="${eid}" aria-haspopup="true" aria-expanded="false" aria-label="${escape(triggerLabel)}">
       <span class="color-trigger-name">${escape(name)}</span>
       <span class="${previewClass}" ${previewBg} aria-hidden="true">${auto ? autoMarkHtml() : ''}</span>

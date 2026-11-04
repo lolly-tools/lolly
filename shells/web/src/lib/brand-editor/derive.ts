@@ -736,7 +736,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
                 pressed. */''}
           <div class="be-editor-actions">
             <button type="button" class="be-editor-del" data-be-editor-del hidden>${t('Delete')}</button>
-            <button type="button" class="be-editor-del be-editor-cancel" data-be-editor-cancel hidden>${t('Cancel')}</button>
+            <button type="button" class="be-btn be-editor-cancel" data-be-editor-cancel hidden>${t('Cancel')}</button>
             <button type="button" class="be-cta be-editor-done" data-be-editor-done>${t('Save')}</button>
             <button type="button" class="be-cta be-editor-done be-editor-add" data-be-editor-add hidden>${t('Add colour')}</button>
           </div>
