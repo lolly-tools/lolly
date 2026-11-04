@@ -83,10 +83,12 @@ const syncRecovery = (start: StartCtx, furnished: boolean): void => {
 };
 export const refreshFurnished = (start: StartCtx): void => {
   const { host } = start;
-  // The harder latch is set, so both are, and a system worth exporting is
-  // furnished. Ownership is the other thing read here (the bar's emphasis follows
-  // it), and it latches on `owned`: nothing in a session takes a system back.
-  if (start.worthExporting && start.boardState === 'owned') { syncRecovery(start, true); syncFontPackage(start); return; }
+  // The harder latch is set, so both are, and a system worth exporting is furnished.
+  if (start.worthExporting) { syncRecovery(start, true); syncFontPackage(start); }
+  // Ownership is the other thing read here (the bar's emphasis follows it), and
+  // it latches on `owned`: nothing in a session takes a system back. With both
+  // latches set there is nothing left to read.
+  if (start.worthExporting && start.boardState === 'owned') return;
   void readOverview(host as unknown as Parameters<typeof readOverview>[0])
     .then((model) => {
     const { furnishedOnly, shell } = start;
@@ -96,10 +98,11 @@ export const refreshFurnished = (start: StartCtx): void => {
       // F2), and while Make it yours holds it in its menu.
       if (start.boardState !== 'owned') {
         start.boardState = boardState(model);
-        start.bar.applyEmphasis();
+        start.bar?.applyEmphasis();
       }
+      if (start.worthExporting) return;
       syncRecovery(start, model.furnished);
-      if (!model.worthExporting || start.worthExporting) return;
+      if (!model.worthExporting) return;
       start.worthExporting = true;
       for (const el of furnishedOnly) if (!el.matches('[data-start-get-on-device]')) el.hidden = false;
       syncFontPackage(start);

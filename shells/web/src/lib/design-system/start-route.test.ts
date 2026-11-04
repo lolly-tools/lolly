@@ -275,8 +275,12 @@ test('B1: the export actions wait for the system to hold something', async () =>
   // it is the room's harder answer that these three wait for.
   assert.match(src, /if \(!model\.worthExporting\) return;/,
     'the export actions wait for a system worth exporting, not merely one that exists');
-  assert.match(src, /if \(model\.furnished && importBtn\) importBtn\.hidden = false;/,
+  // Plan 346: the Overview room's ownership test decides the button. While the
+  // doors are up (blank) or the system came with the app (unowned, where Make it
+  // yours holds the action in its menu) the bar shows no separate Add from….
+  assert.match(src, /start\.importBtn\.hidden = state !== 'owned';/,
     'and the "Add from…" hero waits for the Overview room’s own doors to go (F2)');
+  assert.match(src, /start\.boardState = boardState\(model\);/, 'read from the Overview room’s own answer');
   // Called from the two paths the studio already refreshes on, so furnishing
   // mid-session does not need a reload: every room change, and every committed
   // edit (before onChange's hidden-Overview early return).
