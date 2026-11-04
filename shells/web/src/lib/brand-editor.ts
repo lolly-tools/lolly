@@ -98,6 +98,7 @@ import { compareStageOps } from './brand-editor/compare-stage.ts';
 import { logosOps } from './brand-editor/logos.ts';
 import { logoIntakeOps } from './brand-editor/logo-intake.ts';
 import { packOps } from './brand-editor/pack.ts';
+import { journalOps } from './brand-editor/journal.ts';
 export type { BrandTabKey, BrandEditorOptions } from './brand-editor/shared.ts'; // every .be-* rule - rides this module's lazy chunk
          // .help-tip-btn/-pop/-host - the shared chunk the tool
                                            // view and /profile already pull for the same primitive
@@ -204,6 +205,12 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   bedit.logos = logosOps(bedit);
   bedit.logoIntake = logoIntakeOps(bedit);
   bedit.pack = packOps(bedit);
+  bedit.journal = journalOps(bedit);
+  bedit.editJournal = null;
+  bedit.journalSlotId = '';
+  bedit.journalReplayed = false;
+  bedit.journalChoices = [];
+  bedit.journalCard = null;
   bedit.root = root;
   bedit.host = host;
   bedit.opts = opts;
@@ -655,6 +662,9 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   bedit.pack.wirePaletteDownload();
 
   bedit.pack.wireGradientsPanel();
+
+  // Last, once everything is drawn: save an edit the load put back, or ask about one it could not.
+  bedit.journal.afterMount();
 
   return {
     teardown: () => {

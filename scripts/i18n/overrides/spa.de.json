@@ -2021,5 +2021,13 @@
   "Dominant hand": "Dominante Hand",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "In zwei Bereichen, auf einem faltbaren Gerät oder einem fast quadratischen Tablet, liegen die Bedienelemente auf der Seite, die von Ihrer Zeichenhand abgewandt ist. „Seiten tauschen“ im Kopf des Bereichs ändert das ebenfalls.",
   "Swap sides": "Seiten tauschen",
-  "Resize panes": "Größe der Bereiche ändern"
+  "Resize panes": "Größe der Bereiche ändern",
+  "Changes that didn't finish saving": "Änderungen, die nicht fertig gespeichert wurden",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Sie haben diese Änderungen am {time} vorgenommen, und die Seite wurde geschlossen, bevor sie gespeichert waren. Dieses Design-System wurde seitdem erneut gespeichert, in einem anderen Tab oder durch eine Synchronisierung.",
+  "Restore your unsaved changes": "Nicht gespeicherte Änderungen wiederherstellen",
+  "Keep the saved version": "Gespeicherte Version behalten",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Beim Wiederherstellen wird die seitdem gespeicherte Version ersetzt. Wenn Sie die gespeicherte Version behalten, werden die nicht gespeicherten Änderungen von diesem Gerät gelöscht.",
+  "Restored your unsaved changes.": "Nicht gespeicherte Änderungen wiederhergestellt.",
+  "Kept the saved version.": "Gespeicherte Version behalten.",
+  "Restored the changes that hadn't finished saving.": "Die Änderungen, die nicht fertig gespeichert wurden, sind wiederhergestellt."
 }

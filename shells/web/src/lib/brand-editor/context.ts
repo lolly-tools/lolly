@@ -38,6 +38,8 @@ import type { compareStageOps } from './compare-stage.ts';
 import type { logosOps } from './logos.ts';
 import type { logoIntakeOps } from './logo-intake.ts';
 import type { packOps } from './pack.ts';
+import type { journalOps } from './journal.ts';
+import type { EditJournal, JournalEntry } from '../design-system/edit-journal.ts';
 
 export interface BrandEditorCtx {
   // ---- state (was: closure variables of mountBrandEditor) ----
@@ -109,6 +111,15 @@ export interface BrandEditorCtx {
   /** Whole-document saves, one at a time, the newest winning (lib/latest-save-queue.ts). */
   saveQueue: LatestSaveQueue;
   saveRevision: number;
+  /** This tab's journal of its unsaved edit (lib/brand-editor/journal.ts); null when off. */
+  editJournal: EditJournal | null;
+  /** The hidden state slot this tab's journal writes. */
+  journalSlotId: string;
+  /** The load replayed an edit that the mount still has to save. */
+  journalReplayed: boolean;
+  /** Entries waiting on the person's choice, and the card showing the first of them. */
+  journalChoices: Array<{ slot: string; entry: JournalEntry }>;
+  journalCard: HTMLElement | null;
   dropPendingReplacement: () => void;
   stepsSlider: HTMLInputElement | null;
   stepsVal: HTMLElement | null;
@@ -278,6 +289,7 @@ export interface BrandEditorCtx {
   logos: ReturnType<typeof logosOps>;
   logoIntake: ReturnType<typeof logoIntakeOps>;
   pack: ReturnType<typeof packOps>;
+  journal: ReturnType<typeof journalOps>;
 }
 
 /** A module function minus its leading context parameter. */

@@ -10786,5 +10786,13 @@
   "Dominant hand": "غالب ہاتھ",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "دو پینز میں، فولڈ ہونے والے آلے یا تقریباً مربع ٹیبلیٹ پر، کنٹرولز آپ کے ڈرائنگ والے ہاتھ سے دور والی طرف رہتے ہیں۔ پین کے ہیڈر میں اطراف بدلیں بھی اسے بدلتا ہے۔",
   "Swap sides": "اطراف بدلیں",
-  "Resize panes": "پینز کا سائز بدلیں"
+  "Resize panes": "پینز کا سائز بدلیں",
+  "Changes that didn't finish saving": "وہ تبدیلیاں جن کا محفوظ ہونا مکمل نہیں ہوا",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "آپ نے یہ تبدیلیاں {time} کو کی تھیں، اور محفوظ ہونے سے پہلے ہی صفحہ بند ہو گیا۔ اس کے بعد یہ ڈیزائن سسٹم دوبارہ محفوظ ہو چکا ہے، کسی دوسرے ٹیب میں یا سنک کے ذریعے۔",
+  "Restore your unsaved changes": "اپنی غیر محفوظ تبدیلیاں بحال کریں",
+  "Keep the saved version": "محفوظ ورژن رکھیں",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "بحال کرنے سے اس کے بعد محفوظ ہونے والا ورژن بدل جائے گا۔ محفوظ ورژن رکھنے سے غیر محفوظ تبدیلیاں اس ڈیوائس سے حذف ہو جائیں گی۔",
+  "Restored your unsaved changes.": "آپ کی غیر محفوظ تبدیلیاں بحال کر دی گئیں۔",
+  "Kept the saved version.": "محفوظ ورژن رکھا گیا۔",
+  "Restored the changes that hadn't finished saving.": "جن تبدیلیوں کا محفوظ ہونا مکمل نہیں ہوا تھا، وہ بحال کر دی گئیں۔"
 }

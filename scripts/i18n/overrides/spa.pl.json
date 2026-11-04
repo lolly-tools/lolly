@@ -2239,5 +2239,13 @@
   "Dominant hand": "Dominująca ręka",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Przy dwóch panelach, na składanym urządzeniu lub prawie kwadratowym tablecie, elementy sterujące są po stronie przeciwnej do ręki, którą rysujesz. Zamień strony w nagłówku panelu też to zmienia.",
   "Swap sides": "Zamień strony",
-  "Resize panes": "Zmień rozmiar paneli"
+  "Resize panes": "Zmień rozmiar paneli",
+  "Changes that didn't finish saving": "Zmiany, których zapis się nie zakończył",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Te zmiany zostały wprowadzone {time}, a strona została zamknięta, zanim je zapisano. Od tego czasu ten system projektowy został ponownie zapisany, w innej karcie lub przez synchronizację.",
+  "Restore your unsaved changes": "Przywróć niezapisane zmiany",
+  "Keep the saved version": "Zachowaj zapisaną wersję",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Przywrócenie zastępuje wersję zapisaną od tego czasu. Zachowanie zapisanej wersji usuwa niezapisane zmiany z tego urządzenia.",
+  "Restored your unsaved changes.": "Przywrócono niezapisane zmiany.",
+  "Kept the saved version.": "Zachowano zapisaną wersję.",
+  "Restored the changes that hadn't finished saving.": "Przywrócono zmiany, których zapis się nie zakończył."
 }

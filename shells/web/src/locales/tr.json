@@ -10786,5 +10786,13 @@
   "Dominant hand": "Baskın el",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "İki bölmede, katlanabilir bir cihazda ya da neredeyse kare bir tablette, denetimler çizim yaptığınız elin uzak tarafında durur. Bölme başlığındaki Tarafları değiştir de bunu değiştirir.",
   "Swap sides": "Tarafları değiştir",
-  "Resize panes": "Bölmeleri yeniden boyutlandır"
+  "Resize panes": "Bölmeleri yeniden boyutlandır",
+  "Changes that didn't finish saving": "Kaydı tamamlanmayan değişiklikler",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Bu değişiklikleri {time} tarihinde yaptın ve sayfa, değişiklikler kaydedilmeden kapandı. Bu tasarım sistemi o zamandan beri başka bir sekmede ya da bir eşitlemeyle yeniden kaydedildi.",
+  "Restore your unsaved changes": "Kaydedilmemiş değişikliklerini geri yükle",
+  "Keep the saved version": "Kaydedilmiş sürümü tut",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Geri yüklemek, o zamandan beri kaydedilen sürümün yerine geçer. Kaydedilmiş sürümü tutmak, kaydedilmemiş değişiklikleri bu cihazdan siler.",
+  "Restored your unsaved changes.": "Kaydedilmemiş değişikliklerin geri yüklendi.",
+  "Kept the saved version.": "Kaydedilmiş sürüm tutuldu.",
+  "Restored the changes that hadn't finished saving.": "Kaydı tamamlanmayan değişiklikler geri yüklendi."
 }

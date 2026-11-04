@@ -200,6 +200,10 @@ export async function mountEditor(start: StartCtx): Promise<void> {
       host as unknown as Parameters<typeof mountBrandEditor>[1],
       {
         tray,
+        // An edit a closed tab never finished saving: the choice sits under the system's
+        // name, in view whichever room is open, and a put-back edit gets a note.
+        journalSlot: () => start.viewEl.querySelector<HTMLElement>('[data-start-ds-ask-slot]'),
+        onJournalRestored: () => start.exporting.showNote(t("Restored the changes that hadn't finished saving.")),
         onChange: () => {
           if (!shell.isConnected) return;
           // The first colour, face or mark furnishes the system, so the foot's

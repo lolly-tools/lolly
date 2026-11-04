@@ -2151,5 +2151,13 @@
   "Dominant hand": "Водеща ръка",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "При два панела, на сгъваемо устройство или почти квадратен таблет, контролите са от страната, далеч от ръката, с която рисувате. Бутонът „Размяна на страните“ в заглавието на панела също променя това.",
   "Swap sides": "Размяна на страните",
-  "Resize panes": "Преоразмеряване на панелите"
+  "Resize panes": "Преоразмеряване на панелите",
+  "Changes that didn't finish saving": "Промени, които не се запазиха докрай",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Направихте тези промени на {time} и страницата се затвори, преди да бъдат запазени. Оттогава тази дизайн система е запазена отново, в друг раздел или чрез синхронизиране.",
+  "Restore your unsaved changes": "Възстановете незапазените си промени",
+  "Keep the saved version": "Задръжте запазената версия",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Възстановяването заменя версията, запазена оттогава. Ако задържите запазената версия, незапазените промени се изтриват от това устройство.",
+  "Restored your unsaved changes.": "Незапазените ви промени са възстановени.",
+  "Kept the saved version.": "Запазената версия е задържана.",
+  "Restored the changes that hadn't finished saving.": "Промените, които не се запазиха докрай, са възстановени."
 }

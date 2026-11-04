@@ -10741,5 +10741,13 @@
   "Dominant hand": "慣用手",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "在雙窗格版面中（摺疊裝置或接近正方形的平板），控制項會位於遠離繪圖手的一側。窗格標題中的「左右互換」也可以變更此設定。",
   "Swap sides": "左右互換",
-  "Resize panes": "調整窗格大小"
+  "Resize panes": "調整窗格大小",
+  "Changes that didn't finish saving": "未完成儲存的變更",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "你在 {time} 做了這些變更，頁面在儲存前就關閉了。此後，這個設計系統已在另一個分頁中或透過同步再次儲存。",
+  "Restore your unsaved changes": "還原未儲存的變更",
+  "Keep the saved version": "保留已儲存的版本",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "還原會取代此後儲存的版本。保留已儲存的版本會從這部裝置刪除未儲存的變更。",
+  "Restored your unsaved changes.": "已還原未儲存的變更。",
+  "Kept the saved version.": "已保留已儲存的版本。",
+  "Restored the changes that hadn't finished saving.": "已還原未完成儲存的變更。"
 }

@@ -10876,5 +10876,13 @@
   "Dominant hand": "Dominantní ruka",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Ve dvou panelech, na skládacím zařízení nebo téměř čtvercovém tabletu, jsou ovládací prvky na straně dál od ruky, kterou kreslíte. Totéž mění i tlačítko Prohodit strany v záhlaví panelu.",
   "Swap sides": "Prohodit strany",
-  "Resize panes": "Změnit velikost panelů"
+  "Resize panes": "Změnit velikost panelů",
+  "Changes that didn't finish saving": "Změny, které se nestihly uložit",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Tyto změny jste provedli {time} a stránka se zavřela dřív, než se uložily. Tento designový systém byl od té doby znovu uložen, na jiné kartě nebo synchronizací.",
+  "Restore your unsaved changes": "Obnovit neuložené změny",
+  "Keep the saved version": "Ponechat uloženou verzi",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Obnovením nahradíte verzi uloženou od té doby. Ponecháním uložené verze smažete neuložené změny z tohoto zařízení.",
+  "Restored your unsaved changes.": "Neuložené změny byly obnoveny.",
+  "Kept the saved version.": "Uložená verze byla ponechána.",
+  "Restored the changes that hadn't finished saving.": "Změny, které se nestihly uložit, byly obnoveny."
 }

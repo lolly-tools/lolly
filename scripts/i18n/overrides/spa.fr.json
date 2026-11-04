@@ -2066,5 +2066,13 @@
   "Dominant hand": "Main dominante",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Avec deux panneaux, sur un appareil pliable ou une tablette presque carrée, les commandes se placent du côté opposé à la main qui dessine. Inverser les côtés, dans l'en-tête du panneau, le change aussi.",
   "Swap sides": "Inverser les côtés",
-  "Resize panes": "Redimensionner les panneaux"
+  "Resize panes": "Redimensionner les panneaux",
+  "Changes that didn't finish saving": "Modifications dont l'enregistrement n'a pas abouti",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Tu as fait ces modifications le {time}, et la page s'est fermée avant leur enregistrement. Ce système de conception a été enregistré de nouveau depuis, dans un autre onglet ou par une synchronisation.",
+  "Restore your unsaved changes": "Restaurer tes modifications non enregistrées",
+  "Keep the saved version": "Garder la version enregistrée",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Restaurer remplace la version enregistrée depuis. Garder la version enregistrée supprime les modifications non enregistrées de cet appareil.",
+  "Restored your unsaved changes.": "Tes modifications non enregistrées ont été restaurées.",
+  "Kept the saved version.": "La version enregistrée a été gardée.",
+  "Restored the changes that hadn't finished saving.": "Les modifications dont l'enregistrement n'avait pas abouti ont été restaurées."
 }

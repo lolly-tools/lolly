@@ -10741,5 +10741,13 @@
   "Dominant hand": "주로 쓰는 손",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "두 개의 창으로 볼 때(폴더블 기기나 거의 정사각형인 태블릿) 컨트롤은 그리는 손의 반대쪽에 놓입니다. 창 머리글의 좌우 바꾸기로도 바꿀 수 있습니다.",
   "Swap sides": "좌우 바꾸기",
-  "Resize panes": "창 크기 조절"
+  "Resize panes": "창 크기 조절",
+  "Changes that didn't finish saving": "저장이 끝나지 않은 변경 사항",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "{time}에 이 변경 사항을 만들었는데, 저장되기 전에 페이지가 닫혔어요. 그 뒤로 이 디자인 시스템이 다른 탭에서나 동기화로 다시 저장됐어요.",
+  "Restore your unsaved changes": "저장하지 않은 변경 사항 복원",
+  "Keep the saved version": "저장된 버전 유지",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "복원하면 그 뒤에 저장된 버전을 대체해요. 저장된 버전을 유지하면 저장하지 않은 변경 사항이 이 기기에서 삭제돼요.",
+  "Restored your unsaved changes.": "저장하지 않은 변경 사항을 복원했어요.",
+  "Kept the saved version.": "저장된 버전을 유지했어요.",
+  "Restored the changes that hadn't finished saving.": "저장이 끝나지 않은 변경 사항을 복원했어요."
 }

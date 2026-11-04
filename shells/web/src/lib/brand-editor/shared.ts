@@ -819,6 +819,15 @@ export interface BrandEditorOptions {
    * the button at all.
    */
   scanImage?: (file: File) => void;
+  /**
+   * Where "Changes that didn't finish saving" appears (lib/brand-editor/journal.ts): the
+   * host's slot under the design system's name, so the choice is in view whichever room
+   * is open. Absent, the editor shows it at the top of its own root.
+   */
+  journalSlot?: () => HTMLElement | null;
+  /** Say that an edit which had not finished saving was put back and is saving now.
+   *  Absent, the note is only announced to a screen reader. */
+  onJournalRestored?: () => void;
 }
 // The colour-harmony the "Build the palette" generator suggests accents from - 
 // either a fixed SchemeKind (complement/adjacent/triad/tetrad) or the parametric

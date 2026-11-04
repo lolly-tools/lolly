@@ -2021,5 +2021,13 @@
   "Dominant hand": "প্রধান হাত",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "দুটি প্যানে, ভাঁজযোগ্য ডিভাইস বা প্রায় বর্গাকার ট্যাবলেটে, নিয়ন্ত্রণগুলি আপনার আঁকার হাতের উল্টো দিকে থাকে। প্যানের শিরোনামে থাকা পাশ বদলান বোতামও এটি বদলায়।",
   "Swap sides": "পাশ বদলান",
-  "Resize panes": "প্যানের আকার বদলান"
+  "Resize panes": "প্যানের আকার বদলান",
+  "Changes that didn't finish saving": "যে পরিবর্তনগুলো সেভ হওয়া শেষ হয়নি",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "আপনি এই পরিবর্তনগুলো {time}-এ করেছিলেন, আর সেভ হওয়ার আগেই পেজটি বন্ধ হয়ে যায়। তারপর থেকে এই ডিজাইন সিস্টেমটি আবার সেভ হয়েছে, অন্য একটি ট্যাবে বা সিঙ্ক করে।",
+  "Restore your unsaved changes": "আপনার সেভ না হওয়া পরিবর্তনগুলো ফিরিয়ে আনুন",
+  "Keep the saved version": "সেভ করা সংস্করণটি রাখুন",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "ফিরিয়ে আনলে তারপর সেভ হওয়া সংস্করণটি বদলে যাবে। সেভ করা সংস্করণটি রাখলে সেভ না হওয়া পরিবর্তনগুলো এই ডিভাইস থেকে মুছে যাবে।",
+  "Restored your unsaved changes.": "আপনার সেভ না হওয়া পরিবর্তনগুলো ফিরিয়ে আনা হয়েছে।",
+  "Kept the saved version.": "সেভ করা সংস্করণটি রাখা হয়েছে।",
+  "Restored the changes that hadn't finished saving.": "যে পরিবর্তনগুলো সেভ হওয়া শেষ হয়নি, সেগুলো ফিরিয়ে আনা হয়েছে।"
 }

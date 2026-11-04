@@ -1975,5 +1975,13 @@
   "Dominant hand": "Tangan dominan",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Dengan dua anak tetingkap, pada peranti boleh lipat atau tablet yang hampir segi empat sama, kawalan berada di sisi yang jauh daripada tangan yang anda gunakan untuk melukis. Tukar sisi di kepala anak tetingkap juga mengubahnya.",
   "Swap sides": "Tukar sisi",
-  "Resize panes": "Ubah saiz anak tetingkap"
+  "Resize panes": "Ubah saiz anak tetingkap",
+  "Changes that didn't finish saving": "Perubahan yang belum selesai disimpan",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Anda membuat perubahan ini pada {time}, dan halaman ditutup sebelum perubahan itu disimpan. Sejak itu, sistem reka bentuk ini telah disimpan semula, dalam tab lain atau melalui penyegerakan.",
+  "Restore your unsaved changes": "Pulihkan perubahan anda yang belum disimpan",
+  "Keep the saved version": "Kekalkan versi yang disimpan",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Memulihkan akan menggantikan versi yang disimpan sejak itu. Mengekalkan versi yang disimpan akan memadamkan perubahan yang belum disimpan daripada peranti ini.",
+  "Restored your unsaved changes.": "Perubahan anda yang belum disimpan telah dipulihkan.",
+  "Kept the saved version.": "Versi yang disimpan dikekalkan.",
+  "Restored the changes that hadn't finished saving.": "Perubahan yang belum selesai disimpan telah dipulihkan."
 }

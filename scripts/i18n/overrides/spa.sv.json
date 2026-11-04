@@ -2015,5 +2015,13 @@
   "Dominant hand": "Dominant hand",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Med två paneler, på en vikbar enhet eller en nästan kvadratisk surfplatta, hamnar kontrollerna på sidan bort från handen du ritar med. Byt sida i panelens rubrik ändrar också detta.",
   "Swap sides": "Byt sida",
-  "Resize panes": "Ändra storlek på panelerna"
+  "Resize panes": "Ändra storlek på panelerna",
+  "Changes that didn't finish saving": "Ändringar som inte hann sparas",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Du gjorde de här ändringarna {time} och sidan stängdes innan de sparades. Det här designsystemet har sparats igen sedan dess, i en annan flik eller genom en synkronisering.",
+  "Restore your unsaved changes": "Återställ dina osparade ändringar",
+  "Keep the saved version": "Behåll den sparade versionen",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Om du återställer ersätts versionen som sparats sedan dess. Om du behåller den sparade versionen tas de osparade ändringarna bort från den här enheten.",
+  "Restored your unsaved changes.": "Dina osparade ändringar har återställts.",
+  "Kept the saved version.": "Den sparade versionen har behållits.",
+  "Restored the changes that hadn't finished saving.": "Ändringarna som inte hann sparas har återställts."
 }

@@ -89,6 +89,7 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
   for (const status of statuses) { status.hidden = false; status.textContent = t('Saving…'); status.classList.remove('is-error'); }
   notify(bedit, 'color');
   bedit.ramps.notifyPaletteObservers(); // the doc is already mutated - mirrors repaint now, not post-debounce
+  bedit.journal.record(); // the journal has the edit at once; the save can take its time
   const run = (): void => {
     const snapshot = structuredClone(bedit.doc);
     // The newest edit wins: a save that a newer one is waiting behind is skipped
@@ -100,8 +101,14 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
       // read and written as one step. Without it, a colour edit after an upload
       // put back the logo tokens the studio opened with, and the new mark
       // stopped being drawn.
-      await saveWithStoredLogos(fontsHost, snapshot, doc => superseded() ? Promise.resolve() : installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc));
+      let written: unknown = null;
+      await saveWithStoredLogos(fontsHost, snapshot, async doc => {
+        if (superseded()) return;
+        await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc);
+        written = doc;
+      });
       if (superseded()) return; // the newer save reports, repaints and refreshes
+      if (written) void bedit.journal.saved(revision, written);
       if (revision === bedit.saveRevision) for (const status of statuses) status.textContent = t('Saved');
       void applyChromeBrandVars(host);
       // Reflect the new palette in every picker without a tool remount.
@@ -195,7 +202,9 @@ export async function loadDocument(bedit: BrandEditorCtx): Promise<void> {
   const { host, tokens } = bedit;
   // The document we edit: the installed brand if any, else a fresh derive from
   // the default primary so the palette is never empty on an unbranded install.
-  bedit.doc = (await tokens?.raw().catch(() => null)) as Record<string, unknown> | null;
+  // An edit a closed tab never finished saving is put back here, before anything shows
+  // the stored document (lib/brand-editor/journal.ts).
+  bedit.doc = await bedit.journal.prepare((await tokens?.raw().catch(() => null)) as Record<string, unknown> | null);
   const installedDoc = isRec(bedit.doc) ? bedit.doc : null; bedit.installedDoc = installedDoc as BrandEditorCtx['installedDoc']; // stable snapshot for seeding, below - never reassigned
   if (!isRec(bedit.doc)) bedit.doc = deriveBrandTokens({ primary: DEFAULT_PRIMARY, name: 'My brand' }) as Record<string, unknown>;
 

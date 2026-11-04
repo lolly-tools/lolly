@@ -2023,5 +2023,13 @@
   "Dominant hand": "Nangingibabaw na kamay",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Kapag dalawa ang pane, sa foldable o halos parisukat na tablet, nasa gilid na malayo sa kamay mong pangguhit ang mga kontrol. Binabago rin ito ng Pagpalitin ang mga gilid sa header ng pane.",
   "Swap sides": "Pagpalitin ang mga gilid",
-  "Resize panes": "Baguhin ang laki ng mga pane"
+  "Resize panes": "Baguhin ang laki ng mga pane",
+  "Changes that didn't finish saving": "Mga pagbabagong hindi natapos i-save",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Ginawa mo ang mga pagbabagong ito noong {time}, at nagsara ang page bago na-save ang mga ito. Na-save na ulit ang design system na ito mula noon, sa ibang tab o sa pamamagitan ng sync.",
+  "Restore your unsaved changes": "Ibalik ang mga hindi na-save na pagbabago",
+  "Keep the saved version": "Panatilihin ang naka-save na bersyon",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Kapag ibinalik, papalitan nito ang bersyong na-save mula noon. Kapag pinanatili ang naka-save na bersyon, buburahin sa device na ito ang mga hindi na-save na pagbabago.",
+  "Restored your unsaved changes.": "Naibalik ang mga hindi na-save na pagbabago.",
+  "Kept the saved version.": "Pinanatili ang naka-save na bersyon.",
+  "Restored the changes that hadn't finished saving.": "Naibalik ang mga pagbabagong hindi natapos i-save."
 }

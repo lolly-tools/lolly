@@ -10786,5 +10786,13 @@
   "Dominant hand": "Dominant hånd",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Med to ruter, på en sammenleggbar enhet eller et nesten kvadratisk nettbrett, ligger kontrollene på siden bort fra hånden du tegner med. Bytt side i rutens topptekst endrer dette også.",
   "Swap sides": "Bytt side",
-  "Resize panes": "Endre størrelse på rutene"
+  "Resize panes": "Endre størrelse på rutene",
+  "Changes that didn't finish saving": "Endringer som ikke ble ferdig lagret",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Du gjorde disse endringene {time}, og siden ble lukket før de ble lagret. Dette designsystemet er lagret på nytt siden da, i en annen fane eller gjennom en synkronisering.",
+  "Restore your unsaved changes": "Gjenopprett de ulagrede endringene",
+  "Keep the saved version": "Behold den lagrede versjonen",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Gjenoppretting erstatter versjonen som er lagret siden. Hvis du beholder den lagrede versjonen, slettes de ulagrede endringene fra denne enheten.",
+  "Restored your unsaved changes.": "De ulagrede endringene er gjenopprettet.",
+  "Kept the saved version.": "Den lagrede versjonen er beholdt.",
+  "Restored the changes that hadn't finished saving.": "Endringene som ikke ble ferdig lagret, er gjenopprettet."
 }

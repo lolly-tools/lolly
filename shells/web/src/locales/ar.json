@@ -10966,5 +10966,13 @@
   "Dominant hand": "اليد المسيطرة",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "عند العرض في لوحين، على جهاز قابل للطي أو جهاز لوحي شبه مربع، تكون عناصر التحكم في الجانب البعيد عن اليد التي ترسم بها. يغيّر زر تبديل الجانبين في رأس اللوحة هذا الإعداد أيضًا.",
   "Swap sides": "تبديل الجانبين",
-  "Resize panes": "تغيير حجم اللوحين"
+  "Resize panes": "تغيير حجم اللوحين",
+  "Changes that didn't finish saving": "تغييرات لم يكتمل حفظها",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "أجريت هذه التغييرات في {time}، وأُغلقت الصفحة قبل حفظها. وقد حُفظ نظام التصميم هذا مرة أخرى منذ ذلك الحين، في علامة تبويب أخرى أو عبر مزامنة.",
+  "Restore your unsaved changes": "استعادة تغييراتك غير المحفوظة",
+  "Keep the saved version": "الاحتفاظ بالنسخة المحفوظة",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "تؤدي الاستعادة إلى استبدال النسخة المحفوظة منذ ذلك الحين. ويؤدي الاحتفاظ بالنسخة المحفوظة إلى حذف التغييرات غير المحفوظة من هذا الجهاز.",
+  "Restored your unsaved changes.": "استُعيدت تغييراتك غير المحفوظة.",
+  "Kept the saved version.": "احتُفظ بالنسخة المحفوظة.",
+  "Restored the changes that hadn't finished saving.": "استُعيدت التغييرات التي لم يكتمل حفظها."
 }

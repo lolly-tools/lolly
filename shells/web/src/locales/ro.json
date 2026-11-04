@@ -10831,5 +10831,13 @@
   "Dominant hand": "Mâna dominantă",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Cu două panouri, pe un dispozitiv pliabil sau pe o tabletă aproape pătrată, comenzile stau pe partea opusă mâinii cu care desenezi. Schimbă părțile, din antetul panoului, schimbă și el asta.",
   "Swap sides": "Schimbă părțile",
-  "Resize panes": "Redimensionează panourile"
+  "Resize panes": "Redimensionează panourile",
+  "Changes that didn't finish saving": "Modificări care nu s-au salvat complet",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Ai făcut aceste modificări pe {time}, iar pagina s-a închis înainte să fie salvate. De atunci, acest sistem de proiectare a fost salvat din nou, într-o altă filă sau printr-o sincronizare.",
+  "Restore your unsaved changes": "Restabilește modificările nesalvate",
+  "Keep the saved version": "Păstrează versiunea salvată",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Restabilirea înlocuiește versiunea salvată de atunci. Păstrarea versiunii salvate șterge modificările nesalvate de pe acest dispozitiv.",
+  "Restored your unsaved changes.": "Modificările nesalvate au fost restabilite.",
+  "Kept the saved version.": "Versiunea salvată a fost păstrată.",
+  "Restored the changes that hadn't finished saving.": "Modificările care nu s-au salvat complet au fost restabilite."
 }

@@ -10741,5 +10741,13 @@
   "Dominant hand": "Tay thuận",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Khi có hai khung, trên thiết bị gập hoặc máy tính bảng gần vuông, các điều khiển nằm ở phía xa tay bạn dùng để vẽ. Nút Đổi bên ở phần đầu khung cũng thay đổi điều này.",
   "Swap sides": "Đổi bên",
-  "Resize panes": "Đổi kích thước khung"
+  "Resize panes": "Đổi kích thước khung",
+  "Changes that didn't finish saving": "Các thay đổi chưa lưu xong",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Bạn đã thực hiện các thay đổi này lúc {time}, và trang đã đóng trước khi chúng được lưu. Từ đó đến nay, hệ thống thiết kế này đã được lưu lại, trong một thẻ khác hoặc qua một lần đồng bộ.",
+  "Restore your unsaved changes": "Khôi phục các thay đổi chưa lưu",
+  "Keep the saved version": "Giữ phiên bản đã lưu",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Khôi phục sẽ thay thế phiên bản đã lưu kể từ đó. Giữ phiên bản đã lưu sẽ xóa các thay đổi chưa lưu khỏi thiết bị này.",
+  "Restored your unsaved changes.": "Đã khôi phục các thay đổi chưa lưu.",
+  "Kept the saved version.": "Đã giữ phiên bản đã lưu.",
+  "Restored the changes that hadn't finished saving.": "Đã khôi phục các thay đổi chưa lưu xong."
 }

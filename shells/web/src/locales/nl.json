@@ -10786,5 +10786,13 @@
   "Dominant hand": "Dominante hand",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Met twee panelen, op een vouwbaar toestel of een bijna vierkante tablet, staan de bedieningselementen aan de kant weg van je tekenhand. Kanten wisselen in de kop van het paneel verandert dit ook.",
   "Swap sides": "Kanten wisselen",
-  "Resize panes": "Formaat van panelen wijzigen"
+  "Resize panes": "Formaat van panelen wijzigen",
+  "Changes that didn't finish saving": "Wijzigingen die niet helemaal zijn opgeslagen",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Je hebt deze wijzigingen gemaakt op {time} en de pagina werd gesloten voordat ze waren opgeslagen. Dit ontwerpsysteem is sindsdien opnieuw opgeslagen, in een ander tabblad of door een synchronisatie.",
+  "Restore your unsaved changes": "Niet-opgeslagen wijzigingen terugzetten",
+  "Keep the saved version": "Opgeslagen versie behouden",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Terugzetten vervangt de versie die sindsdien is opgeslagen. Als je de opgeslagen versie behoudt, worden de niet-opgeslagen wijzigingen van dit apparaat verwijderd.",
+  "Restored your unsaved changes.": "Niet-opgeslagen wijzigingen teruggezet.",
+  "Kept the saved version.": "Opgeslagen versie behouden.",
+  "Restored the changes that hadn't finished saving.": "De wijzigingen die niet helemaal waren opgeslagen, zijn teruggezet."
 }

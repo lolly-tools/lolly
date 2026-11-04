@@ -2679,3 +2679,20 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
   .be-pal-group-label { flex: 1 0 100%; padding-inline-end: var(--sp-6); box-sizing: border-box; }
   .be-pal-group-head::after { position: absolute; inset-inline-end: 0; top: var(--sp-3); }
 }
+
+@layer views {
+/* Changes that didn't finish saving (lib/brand-editor/journal.ts). The studio's card
+   for a choice: a full tint and a hairline all round, never an edge rail, and no
+   accent outline at rest, like the name ask beside it. Neither button is the default,
+   so the two carry the same weight. */
+.be-journal {
+  display: grid; gap: .5rem; margin: .6rem 0 0; padding: .75rem .9rem; max-width: 40rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--primary) / .06);
+}
+.be-journal-title { margin: 0; font-size: var(--fs-sm); font-weight: 650; color: hsl(var(--foreground)); }
+.be-journal-body { margin: 0; font-size: var(--fs-sm); color: hsl(var(--foreground)); }
+.be-journal-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.be-journal-actions .be-btn { min-height: 44px; }
+.be-journal-hint { margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+}

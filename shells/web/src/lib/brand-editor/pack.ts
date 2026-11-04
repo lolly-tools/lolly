@@ -65,6 +65,7 @@ export const reload = async (bedit: BrandEditorCtx): Promise<void> => {
   const { host, tokens } = bedit;
   tokens?.bust?.();
   bedit.doc = ((await tokens?.raw().catch(() => null)) as Record<string, unknown> | null) ?? bedit.doc;
+  void bedit.journal.rebase(bedit.doc); // the journal's edits now build on what was installed
   bedit.isUserBrand = true; // every reload() caller just installed on the user's behalf
   bedit.derive.reseedFromDoc();
   bedit.ramps.repaintPalette(); await bedit.type.paintFonts(); await bedit.logos.paintLogos(); void applyChromeBrandVars(host);

@@ -10876,5 +10876,13 @@
   "Dominant hand": "Провідна рука",
   "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "У двох панелях, на складному пристрої або майже квадратному планшеті, елементи керування розташовані на боці, далекому від руки, якою ви малюєте. Кнопка «Поміняти сторони» в заголовку панелі також змінює це.",
   "Swap sides": "Поміняти сторони",
-  "Resize panes": "Змінити розмір панелей"
+  "Resize panes": "Змінити розмір панелей",
+  "Changes that didn't finish saving": "Зміни, які не встигли зберегтися",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Ви внесли ці зміни {time}, і сторінка закрилася, перш ніж їх було збережено. Відтоді цю дизайн-систему збережено знову, в іншій вкладці або через синхронізацію.",
+  "Restore your unsaved changes": "Відновити незбережені зміни",
+  "Keep the saved version": "Залишити збережену версію",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Відновлення замінить версію, збережену відтоді. Якщо залишити збережену версію, незбережені зміни буде видалено з цього пристрою.",
+  "Restored your unsaved changes.": "Незбережені зміни відновлено.",
+  "Kept the saved version.": "Збережену версію залишено.",
+  "Restored the changes that hadn't finished saving.": "Зміни, які не встигли зберегтися, відновлено."
 }
