@@ -70,6 +70,283 @@
           }
         }
       ]
+    },
+    {
+      "id": "lolly/demo/sample-photo",
+      "source": "/catalog/assets/lolly/demo/lorikeet-lollipop.jpg",
+      "credits": {
+        "title": "Sample photograph",
+        "license": "CC0-1.0"
+      },
+      "products": [
+        {
+          "v": 1,
+          "sourceSha256": "cce68cc1b65f2d2beded4f96d0e8302ed8fa245473dd0c798c8f1ad670113592",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 320,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "c5988dbda724e2d580ed857015d0a85f38c8a7023a188772e8c35f54138e04fb",
+          "file": "out.c5988dbda724e2d5.webp",
+          "width": 320,
+          "height": 516,
+          "size": 27466,
+          "credits": {
+            "title": "Sample photograph",
+            "license": "CC0-1.0"
+          }
+        },
+        {
+          "v": 1,
+          "sourceSha256": "cce68cc1b65f2d2beded4f96d0e8302ed8fa245473dd0c798c8f1ad670113592",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 640,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "9515170621523ad1490c26c5d64de445fd5b556412479997af46890f494faaa4",
+          "file": "out.9515170621523ad1.webp",
+          "width": 640,
+          "height": 1032,
+          "size": 67030,
+          "credits": {
+            "title": "Sample photograph",
+            "license": "CC0-1.0"
+          }
+        },
+        {
+          "v": 1,
+          "sourceSha256": "cce68cc1b65f2d2beded4f96d0e8302ed8fa245473dd0c798c8f1ad670113592",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 1280,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "9eb4330c95e9a7ddb0436a2fe6be23d6b2206f4fdf022bb50ef6fb7a01c30396",
+          "file": "out.9eb4330c95e9a7dd.webp",
+          "width": 1280,
+          "height": 2063,
+          "size": 202296,
+          "credits": {
+            "title": "Sample photograph",
+            "license": "CC0-1.0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lolly/demo/sample-portrait",
+      "source": "/catalog/assets/lolly/demo/sample-portrait.webp",
+      "credits": {
+        "title": "Sample portrait"
+      },
+      "products": [
+        {
+          "v": 1,
+          "sourceSha256": "7bdc1110d4abb2e008cd5ca3ccf7841bf629692a2ee89e3b6e7e4b6c21c5fe59",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 320,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "ada7a5450caa994261022d118dea35435635269ad2f5e1abd71362a9f5a9e3ad",
+          "file": "out.ada7a5450caa9942.webp",
+          "width": 320,
+          "height": 515,
+          "size": 50378,
+          "credits": {
+            "title": "Sample portrait"
+          }
+        },
+        {
+          "v": 1,
+          "sourceSha256": "7bdc1110d4abb2e008cd5ca3ccf7841bf629692a2ee89e3b6e7e4b6c21c5fe59",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 640,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "e95a6e26f40965f17409ad912bdbd78c8456aaabc1121eb26d06d22474127492",
+          "file": "out.e95a6e26f40965f1.webp",
+          "width": 640,
+          "height": 1029,
+          "size": 112508,
+          "credits": {
+            "title": "Sample portrait"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lolly/demo/sample-character",
+      "source": "/catalog/assets/lolly/demo/sample-character.webp",
+      "credits": {
+        "title": "Sample character"
+      },
+      "products": [
+        {
+          "v": 1,
+          "sourceSha256": "b70671b00d1cc499f75e24a491f8283c498c5bf3c2a2e220ac275ee3d7802264",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 320,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "8f65503fe591c9cca26762f609e8949b510c756e00c093ec8866bee1080457f7",
+          "file": "out.8f65503fe591c9cc.webp",
+          "width": 320,
+          "height": 367,
+          "size": 53902,
+          "credits": {
+            "title": "Sample character"
+          }
+        },
+        {
+          "v": 1,
+          "sourceSha256": "b70671b00d1cc499f75e24a491f8283c498c5bf3c2a2e220ac275ee3d7802264",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 640,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "9ea8f5d674cfa489e668171228d978553df81667d5d9cc47daa22878c820d831",
+          "file": "out.9ea8f5d674cfa489.webp",
+          "width": 640,
+          "height": 734,
+          "size": 90986,
+          "credits": {
+            "title": "Sample character"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lolly/demo/sample-wide",
+      "source": "/catalog/assets/lolly/demo/sample-wide.webp",
+      "credits": {
+        "title": "Sample wide subject"
+      },
+      "products": [
+        {
+          "v": 1,
+          "sourceSha256": "b11a6c549693d1696ea83c1cce1f8a00aefffc34d4d4d3ae5fc8965b23e8ab35",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 320,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "0d457f2e73453f2c60af279ee1b02c2d3d5b8cb927f91752f0722eb60be13084",
+          "file": "out.0d457f2e73453f2c.webp",
+          "width": 320,
+          "height": 195,
+          "size": 39572,
+          "credits": {
+            "title": "Sample wide subject"
+          }
+        },
+        {
+          "v": 1,
+          "sourceSha256": "b11a6c549693d1696ea83c1cce1f8a00aefffc34d4d4d3ae5fc8965b23e8ab35",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 640,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "3d39a0732d61e846845daba187dde9cfdd54209c6c8649e875405fa74d2b0cb1",
+          "file": "out.3d39a0732d61e846.webp",
+          "width": 640,
+          "height": 391,
+          "size": 63268,
+          "credits": {
+            "title": "Sample wide subject"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lolly/demo/sample-landscape",
+      "source": "/catalog/assets/lolly/demo/sample-landscape.webp",
+      "credits": {
+        "title": "Sample landscape subject"
+      },
+      "products": [
+        {
+          "v": 1,
+          "sourceSha256": "c7da9cb0ccc1c349ec044c0a5aa82e087226a8dfb6a91697d2b0019ca91e0ecd",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 320,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "c0ebe070b075008f256c119b47facc33948cf85cae8bd6fb0e30eaca57208a91",
+          "file": "out.c0ebe070b075008f.webp",
+          "width": 320,
+          "height": 154,
+          "size": 40602,
+          "credits": {
+            "title": "Sample landscape subject"
+          }
+        },
+        {
+          "v": 1,
+          "sourceSha256": "c7da9cb0ccc1c349ec044c0a5aa82e087226a8dfb6a91697d2b0019ca91e0ecd",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 640,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "e6e972331ca9a4c51ab50d641ef87bbb636429cf606cd68abceaeea078705c84",
+          "file": "out.e6e972331ca9a4c5.webp",
+          "width": 640,
+          "height": 308,
+          "size": 66332,
+          "credits": {
+            "title": "Sample landscape subject"
+          }
+        },
+        {
+          "v": 1,
+          "sourceSha256": "c7da9cb0ccc1c349ec044c0a5aa82e087226a8dfb6a91697d2b0019ca91e0ecd",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 1280,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "88c894cecb53715ac75a737915249874ac10439758dba4ebccf7073e019b0839",
+          "file": "out.88c894cecb53715a.webp",
+          "width": 1280,
+          "height": 617,
+          "size": 130580,
+          "credits": {
+            "title": "Sample landscape subject"
+          }
+        }
+      ]
     }
   ]
 }
