@@ -97,7 +97,8 @@ for that job's result.
 
 Discovery lives under `/api/v1` rather than `/.well-known/`, because on a shared origin
 `/.well-known/` belongs to the web shell, whose static `/.well-known/lolly.json` describes the
-shell.
+shell. In the same way, the list of [brand pages](design-system-administration.md#find-the-pages-on-an-instance) lives at
+`/api/v1/brand-pages/public`. The one exact path `/.well-known/lolly-brand.json` also answers, as a Lolly convention.
 
 ## Read a tool's effective schema
 
