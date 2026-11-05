@@ -388,8 +388,8 @@ function surfaceFit(tool: IntentToolFactsV1, entry: ToolIntentV1, surface: Inten
       fit: 'declared',
       overlay: { [exact.input]: exact.value },
       dims: { width: exact.width, height: exact.height, unit: exact.unit as IntentSurfaceUnitV1 },
-      // The option is the tool's own size, so the tool applies the option. Passing the same
-      // size as an export size as well lays some tools out differently.
+      // The option is the tool's own size, so the tool applies the option and a render
+      // needs no export size.
       sizeSetBy: 'input',
       message: `The tool's ${exact.input} option ${String(exact.value)} is this size.`,
     };

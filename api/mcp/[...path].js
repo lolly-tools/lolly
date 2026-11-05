@@ -104849,8 +104849,8 @@ function surfaceFit(tool, entry2, surface) {
       fit: "declared",
       overlay: { [exact.input]: exact.value },
       dims: { width: exact.width, height: exact.height, unit: exact.unit },
-      // The option is the tool's own size, so the tool applies the option. Passing the same
-      // size as an export size as well lays some tools out differently.
+      // The option is the tool's own size, so the tool applies the option and a render
+      // needs no export size.
       sizeSetBy: "input",
       message: `The tool's ${exact.input} option ${String(exact.value)} is this size.`
     };
