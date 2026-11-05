@@ -63,6 +63,10 @@ export const C2PA_CHECK = {
   assertionBmffHashMatch: 'assertion.bmffHash.match',
   /** The BMFF hard binding does not match / could not be checked. */
   assertionBmffHashMismatch: 'assertion.bmffHash.mismatch',
+  /** The parent manifest does not hash to what the active manifest's ingredient assertion
+   *  recorded. Read for a credential update that records an approval, where the reader
+   *  takes the export facts from that parent. The spec's own status code. */
+  ingredientManifestMismatch: 'ingredient.manifest.mismatch',
 
   // ── C2PA 2.4 text bindings (section A.7 HTML / section A.8 unstructured / section A.9 structured).
   // Every string below is the SPEC'S OWN status code, copied from section 15.2.2's

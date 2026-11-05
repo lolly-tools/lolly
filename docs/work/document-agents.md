@@ -40,6 +40,11 @@ MCP (Model Context Protocol) is the standard way AI clients connect to tools. Th
 belongs to your Lolly Work instance; Lolly's public [MCP server](https://lolly.tools/info/build/mcp.html)
 for rendering is a different service.
 
+Lolly Work has one more MCP endpoint: the [organisation MCP endpoint](automation-api.md#connect-an-agent-over-mcp) at
+`/api/v1/mcp`, for automation that holds a service token and works across the instance. The two do
+not share credentials. A connection key works only on this endpoint, `/api/workspace/mcp`, for one
+document or project under your own access. A service token works only on `/api/v1/mcp`.
+
 The key is shown only once, and closing the dialog clears it from the page. **Agents with
 access** lists every invitation, and you or a project manager can revoke one there. An editor
 invitation can never exceed your own current permissions.

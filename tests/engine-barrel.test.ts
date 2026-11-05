@@ -10,7 +10,10 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
-  // Additive 1.304 visual intent: what a piece has to do, resolved to a tool for each surface.
+  // Additive 1.304 approval record in Content Credentials.
+  'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',
+  'RecordApprovalOptions', 'artworkUnchanged', 'recordApprovalInCredential',
+  // Additive 1.305 visual intent: what a piece has to do, resolved to a tool for each surface.
   'INTENT_RULES_VERSION', 'IntentInvalidError', 'IntentToolSource', 'ParseToolIntentsResult', 'ParseVisualIntentResult', 'ParsedVisualIntent', 'ToolIntentIssue',
   'checkToolIntents', 'loadIntentTools', 'parseToolIntents', 'parseVisualIntent', 'resolveIntent',
   // Additive lossless Standard MIDI File reader and writer, and the notes-to-.mid export builder.
@@ -638,6 +641,7 @@ const EXPECTED: readonly string[] = [
   'LEXICON_VERSION',
   'LOLLY_CA_ROOT_PEM',
   'LOLLY_DURABLE_SCHEMA_VERSION',
+  'LOLLY_APPROVAL_ASSERTION',
   'LOLLY_EXPORT_ASSERTION',
   'LOLLY_RIGHTS_ASSERTION',
   'LOUDNESS_RATE',

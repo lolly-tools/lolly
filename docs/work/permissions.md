@@ -22,6 +22,7 @@ Each role adds to the role below. Grants sit over the roles: any matching deny w
 | `admin` | `idp.roleGroups.admin`, or by default the group `admin` | everything an author and an approver can do, plus running the catalog, policy, grants, links, telemetry, fleet, audit export, projects, server renders and invitations |
 | `owner` | `idp.roleGroups.owner`, or by default the group `owner` | the [owner-only powers](#owner-only-powers) |
 | `guest` | a guest-edit link | nothing: access comes entirely from the link |
+| `automation` | a service token with [scopes](enterprise-identity.md#service-tokens), never a person | using tools, server renders, delivering to an organisation destination, reading the catalog and audit export, each reachable only through the matching scope |
 
 A person's role comes from their effective group set (provider groups plus local groups): the
 highest match in the order `owner`, `admin`, `approver`, `author`, `member`, `viewer`, using

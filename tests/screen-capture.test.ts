@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.304.0', () => {
+test('ENGINE_VERSION is 1.305.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -577,8 +577,9 @@ test('ENGINE_VERSION is 1.304.0', () => {
   // 1.301.0 adds the manifest's render.themeChoicesAfter; capture is unchanged.
   // 1.302.0 adds lossless Standard MIDI Files and .mid export, spreadsheet formulas (host.calc) and a video container probe; capture is unchanged.
   // 1.303.0 adds text-keeping PDF redaction to host.pdf.redact and per-glyph text nodes in the PDF interpreter; capture is unchanged.
-  // 1.304.0 adds visual intent: VisualIntentV1 and the manifest's intents, resolved by the pure resolveIntent.
-  assert.equal(ENGINE_VERSION, '1.304.0');
+  // 1.304.0 adds an approval record to Content Credentials and a PDF credential update; capture is unchanged.
+  // 1.305.0 adds visual intent: VisualIntentV1 and the tool intents sidecar, resolved by the pure resolveIntent; capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.305.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
