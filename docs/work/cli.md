@@ -36,6 +36,7 @@ lw login --email admin@example.test         # the dev provider (dev.enabled only
 | Host the signed instance pack | `instance pack`, `instance pack-rm` | [Hosting the instance pack](#hosting-the-instance-pack) |
 | Let people sign in | `invite add`, `invite ls`, `invite rm` | [Invitations](#invitations) |
 | Give automation its own identity | `tokens` | [Service tokens](#service-tokens) |
+| Connect an agent with a service token | `mcp config` | [MCP settings](#mcp-settings) |
 | Render and recover renders | `renders`, `render-batches` | [Recoverable renders](#recoverable-renders) |
 | See approval requests and get a reviewed file | `approvals`, `approvals artifact` | [Approval files](#approval-files) |
 | Send finished files to a destination | `destinations`, `deliveries` | [Organization delivery](#organization-delivery) |
@@ -111,15 +112,27 @@ well. See [identity](identity.md#who-may-sign-in).
 ## Service tokens
 
 ```bash
-lw tokens create --label ci --role admin    # owner; the secret prints once - store it now
-lw tokens                                   # list (label, role, last used, revoked)
+lw tokens create --label ci --scopes render,files --tools qr-code   # owner; the secret prints once - store it now
+lw tokens create --label sync --role admin  # no scopes: all that the role can reach
+lw tokens                                   # list (label, role, scopes, tools, last used, revoked)
 lw tokens revoke <id>
 LW_TOKEN=lwt_… lw export --out governance.json    # any command, authenticated as the automation
 ```
 
 A token outranks a stored session cookie when both are present - automation acts as the
 automation, never as whoever last signed in on the machine. Tokens drive the action-gated
-API (export/apply, providers, fleet, audit); the member-workflow commands refuse them.
+API (export/apply, providers, fleet, audit); the member-workflow commands refuse them. A scoped
+token reaches only what its scopes open, and other commands answer `403 TOKEN_SCOPE`. The scopes
+are in the [automation guide](automation-api.md#before-you-start-a-token-and-a-permission).
+
+## MCP settings
+
+```bash
+lw mcp config --base https://work.example.com
+lw mcp config --name brand --token-env WORK_TOKEN --json
+```
+
+This prints settings for an MCP client to reach the [organisation MCP endpoint](automation-api.md#connect-an-agent-over-mcp). The command makes no request. The settings name an environment variable (`LW_TOKEN` unless you pass `--token-env`) and never hold the token.
 
 ## Recoverable renders
 
@@ -131,6 +144,7 @@ lw renders output <renderId> --out artwork.svg
 lw renders evidence <renderId> --out evidence.json
 lw renders cancel <renderId>
 lw renders retry <renderId> --idempotency-key campaign-v1-retry
+lw renders deliver <renderId> --destination <id> --name "Launch poster" --idempotency-key poster-v1
 ```
 
 The [render resource guide](renders.md) explains the request JSON, persisted
@@ -138,7 +152,9 @@ status, restart recovery and retained output. Retrying creates a new resource
 linked to the original. Output and evidence downloads require an explicit file
 path. [Execution evidence](renders.md#execution-evidence) records observed source,
 context and asset digests with explicit coverage limits. For new outputs the
-evidence file also holds the [render identity](renders.md#render-identity).
+evidence file also holds the [render identity](renders.md#render-identity). Add
+`--callback-url <url>` to `submit` to [be told when it finishes](renders.md#be-told-when-a-render-finishes).
+`deliver` sends the finished output to an [organisation destination](delivery.md#delivering-an-automation-output).
 
 For multiple rows with individual recovery and output receipts:
 
@@ -146,25 +162,30 @@ For multiple rows with individual recovery and output receipts:
 lw render-batches submit batch.json --idempotency-key campaign-v1 --json
 lw render-batches show <batchId> --json
 lw render-batches manifest <batchId> --out manifest.json
+lw render-batches archive <batchId> --out outputs.zip
 lw render-batches cancel <batchId>
 lw render-batches retry <batchId> --idempotency-key campaign-v1-retry --json
 ```
 
 The [batch guide](renders.md#batches-with-durable-rows) defines shared inputs and
 row keys. Retry creates a new parent and replaces only unsuccessful rows;
-successful children keep their original output. Download each child through
-`lw renders output <childRenderId> --out <file>`.
+successful children keep their original output. `archive` downloads a finished
+batch as one ZIP with a manifest of every row, or download each child through
+`lw renders output <childRenderId> --out <file>`. A request file can name a data
+source with [`bind`](renders.md#fill-the-rows-from-a-data-source) in place of `rows`,
+and `submit` takes `--callback-url <url>` here too.
 
 ## Approval files
 
 ```bash
 lw approvals                                # your requests and inbox
 lw approvals artifact <id> --out card.png   # the file an export review carries
+lw approvals artifact <id> --out card.png --reviewed   # the bytes as reviewed
 ```
 
 `artifact` works for an eligible reviewer, for someone who acted on the request, and for the
 requester once the request is approved. It checks the whole file against its recorded digest before
-writing anything. These commands need a person's session from `lw login`. A service token cannot read
+writing anything, and says whether the approval is recorded in that file. These commands need a person's session from `lw login`. A service token cannot read
 approvals, because a decision about a file is a person's act. Decide in the console, where the file
 is on screen. See [review an exported file](approvals.md#review-an-exported-file).
 

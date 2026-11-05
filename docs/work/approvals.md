@@ -104,7 +104,7 @@ me" from the same source. Inbox targeting is described in the [API reference](ap
 ## Review an exported file
 
 An export review is an approval of one exact file. A reviewer sees the file, and the approved
-download is that file.
+download is that file, with a signed record of the approval added when the requester chose one.
 
 **Set it up.** Choose an approval chain for the tool in its policy (**Approval chain for exports**
 in the console, or `enforce.escalation`). To route a group's exports through review, deny them
@@ -124,6 +124,68 @@ a large file waits until you choose to load the file.
 the file once it is approved, from the request's card or with `lw approvals artifact <id> --out <file>`.
 A rejected or withdrawn request never releases the file to the requester.
 
+**In the app.** The export bar shows where the current inputs stand, in the control Download would
+hold: **Request approval**, then **In review**, then **Download approved file**, with a line below
+that gives the file, such as "Approved Nov 5, 2026. SVG, 600 × 600." An approval covers one exact
+file. Change an input, the format, the width or the height and the control goes back to **Request
+approval**, and the line below reads "Changed since approval." with **See request**, which still
+holds the approved file. A new request at the new size shows **In review**, and going back to the
+approved size offers that file again. A rejected request says "Not approved." with **See why**.
+Download approved file fetches the stored bytes and runs no export, so the file is the one that was
+reviewed.
+
+The app can compare only what a file records: its format, width and height. Marks, bleed,
+transparency, text handling and other export settings are not on the record, so changing one of
+them does not change the control. The app does not measure a PDF's page size, so a PDF compares on
+format alone and its line gives no size.
+
+Requests you can decide and decisions on your own requests appear in the app's notifications.
+**Review** opens the file, its facts, a comment, **Approve** and **Reject**, under the same rules as
+the console, which stays the place for chains and history. A saved session with a request shows
+**In review** or **Approved** on its card in Projects and in its info sheet.
+
+The app shows this queue and sheet to anyone who holds `export.request` or `approval.act`, including
+a grant on one chain alone. This only tells the app to look: the routes still decide who may read a
+file, request or act.
+
+**Add to project** on an approved request puts the file in a project. A device folder keeps a
+reference to your own copy in Assets, and that copy links back to the request. A shared project
+receives a file copy, which does not carry the link. Neither reaches the organisation catalog.
+
+**Record the approval in the file.** When this server has a [signing identity](c2pa.md), the dialog
+offers **Record this approval in the file's Content Credentials**, ticked. The reviewed bytes stay
+frozen. When the request is approved, the approved file is those bytes plus a signed credential
+update, with the reviewed file's credential as its parent. The update records three facts: the
+approval id, the date of the decision and the reviewed file's SHA-256. It holds no names, emails,
+groups, comments or chain names. Like any credential, it also states the signer, the signing time
+and the steps opened and published. The artwork does not change: Work compares the bytes outside
+the credential before it keeps the update.
+
+Both digests stay on the record, and anyone who may read the file can still get the reviewed bytes
+with `?file=reviewed` or `lw approvals artifact <id> --out <file> --reviewed`. The update is made
+once, so a repeat download gives the same bytes. To turn recording off, untick the box for one
+request, or set `policy.approvalArtifacts.recordInCredentials` to `false` for the instance. Then
+every byte of the approved file matches the reviewed file.
+
+The record is written only when all of these hold, and the card says which one did not:
+
+| Reason on the card | What it means |
+|---|---|
+| `opted-out` | the requester unticked the box |
+| `not-offered` | the request came from an app or an instance that did not offer the choice |
+| `instance-off` | `recordInCredentials` is `false` |
+| `no-signing-identity` | this server has no signing identity |
+| `engine-unsupported` | this server's engine cannot write the record yet |
+| `too-large` | the file is over 128 MiB |
+| `no-route` | the format has no update route. PNG, JPEG, SVG and PDF do |
+| `no-credential` | the reviewed file has no Content Credentials to update, and it is not given a first one |
+| `write-failed`, `readback-failed`, `artwork-changed` | the update did not pass its own checks, so it was discarded |
+
+Work says **recorded** only after reading the update back: the credential is intact, the record says
+what was asked and the bytes outside the credential match the reviewed file. In every other case the
+approved file is the reviewed file. A PDF keeps the reviewed file as an exact prefix, with the update
+as one more incremental revision. A PDF that holds other attachments is left as reviewed.
+
 **What the record holds.**
 
 - The file's SHA-256, size, name, format and media type. The media type comes from the file's
@@ -135,15 +197,16 @@ A rejected or withdrawn request never releases the file to the requester.
   the values were too large to send, the digest is empty and the record says why.
 - The fingerprint a decision is bound to, and the actions taken.
 
-**What a request does and does not add to the file.** Work writes nothing into the file and adds
-no watermark. The file holds what the export wrote, including any Content Credentials or Lolly
-Imprint turned on at the export bar. An experimental tool keeps its usual mark, so the reviewer
-sees the file exactly as it will leave.
+**What a request does and does not add to the file.** Asking for a review adds nothing. The reviewed
+file holds what the export wrote, including any Content Credentials or Lolly Imprint turned on at the
+export bar, and Work adds no watermark. An experimental tool keeps its usual mark, so the reviewer
+sees the artwork as it will leave.
 
 **Limits.**
 
 - An approval says a person approved this file. It does not establish that the file meets a brand
-  rule, a licence or a law.
+  rule, a licence or a law. The record in the file says the same and no more: a signer recorded a
+  decision, and a viewer still has to trust that signer.
 - The inputs digest rests on what the requesting app states. It does not prove the file was made
   from those inputs.
 - A changed file is a new request. Nothing in a request can be rewritten.

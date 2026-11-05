@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.304.0
+
+- `tools.lolly.approval`: a signed record that an approval was decided, with the approval id, the decided time and the reviewed file's SHA-256, and nothing else. The writer refuses any other field, and refuses a record with no credentialed parent. `embedC2pa` takes it as the additive `approval` option; without one, output is unchanged.
+- `recordApprovalInCredential` adds the update over a reviewed file (PNG, JPEG, SVG, PDF) and reports `recorded` only after a readback confirms the record, an intact credential and unchanged artwork. Any other result is `not-recorded` with a reason, and the caller keeps the reviewed bytes. `artworkUnchanged` is the comparison it uses.
+- `verifyC2pa` reports `approval` as data beside `state`. An update's export facts (tool, inputs, author, AI declaration) are read from its parent once the parent matches the hash the update signed. A parent that does not match fails with the new `ingredient.manifest.mismatch` check.
+- `embedC2paInPdf` can repoint a PDF's own `manifest.c2pa` entry for such an update, as one more incremental revision, so the reviewed file stays an exact prefix. Without an approval it refuses an existing tree as before.
+
 ## 1.303.0
 
 - Text-keeping PDF redaction: `host.pdf.redact` takes optional `keepText` (`PdfRedactOpts`) and reports `mode` (`PdfRedactResult`). The shell removes the glyphs, picture pixels and drawings under each box, keeps the rest of the page as text, then re-reads the result with Lolly's own reader and refuses it when anything is left under a box or cannot be checked. Flattening stays the default.

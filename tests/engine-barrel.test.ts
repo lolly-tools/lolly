@@ -10,6 +10,9 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.306 approval record in Content Credentials.
+  'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',
+  'RecordApprovalOptions', 'artworkUnchanged', 'recordApprovalInCredential',
   // Additive lossless Standard MIDI File reader and writer, and the notes-to-.mid export builder.
   'MidiExportOptions', 'RondoMusicInput', 'rondoMusicToMidi', 'MidiNote', 'MidiVoiceSpec', 'SMF_LIMITS', 'SMF_MAX_VLQ', 'SmfChannelEvent', 'SmfChannelType', 'SmfError', 'SmfErrorCode', 'SmfEvent', 'SmfFile', 'SmfHeader', 'SmfLimits', 'SmfMetaEvent', 'SmfSysexEvent', 'SmfTimeDivision', 'SmfTrackChunk', 'SmfUnknownChunk', 'SmfWriteOptions', 'gmProgramFor', 'looksPercussive', 'notesToMidiBytes', 'notesToSmfFile', 'readSmf', 'smfEndOfTrack', 'smfKeySignature', 'smfKeySignatureEvent', 'smfTempo', 'smfTempoEvent', 'smfText', 'smfTextEvent', 'smfTimeDivision', 'smfTimeSignature', 'smfTimeSignatureEvent', 'velocityToMidi', 'voiceChannel', 'writeSmf',
   // Additive 1.299 broadcast captions: TTML/IMSC1.1 and SCC (CEA-608 pop-on) readers and writers, and their timecode and parity helpers.
@@ -635,6 +638,7 @@ const EXPECTED: readonly string[] = [
   'LEXICON_VERSION',
   'LOLLY_CA_ROOT_PEM',
   'LOLLY_DURABLE_SCHEMA_VERSION',
+  'LOLLY_APPROVAL_ASSERTION',
   'LOLLY_EXPORT_ASSERTION',
   'LOLLY_RIGHTS_ASSERTION',
   'LOUDNESS_RATE',

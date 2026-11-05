@@ -336,7 +336,7 @@ production domain.
 stops the render and automation runners checking for work every second; work still
 runs at startup, on submission and after each finished item. With `0`, a pending job
 callback still sets one timer for its next attempt, so the database may wake for up
-to about 45 minutes after a job with a callback settles. Use a TCP connect as the
+to about 45 minutes after a job, durable render or batch with a callback settles. Use a TCP connect as the
 container health check, because every HTTP request reads the database. Migrations run
 over `DATABASE_URL_UNPOOLED` when it is set and take a transaction-level lock, so a
 connection pooler cannot keep the lock after the runner leaves.
