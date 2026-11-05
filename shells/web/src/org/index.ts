@@ -206,7 +206,7 @@ export interface OrgConfig {
   injectables?: Injectable[];
   /** Present when this caller's request can carry its exported file, and how large
    *  that file may be. Absent ⇒ the request goes without a file, and the dialog says so. */
-  approvals?: { exportReview?: { maxFileBytes: number; partBytes: number } };
+  approvals?: { exportReview?: { maxFileBytes: number; partBytes: number; recordInCredentials?: boolean } };
   /** Fixed organisation-owned outbound targets already filtered for this
    *  caller. Provider options and credentials never enter the shell. */
   destinations?: OrgDeliveryDestination[];

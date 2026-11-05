@@ -18,4 +18,7 @@
   .approval-file-stage p { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center; overflow-wrap: anywhere; }
   .approval-file-facts { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); overflow-wrap: anywhere; }
   .approval-file-note { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
+  .approval-file-record { display: flex; align-items: flex-start; gap: var(--sp-2); font-size: var(--fs-sm); cursor: pointer; }
+  .approval-file-record .field-check { flex: none; margin-top: 2px; }
+  .approval-file-record small { display: block; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
 }
