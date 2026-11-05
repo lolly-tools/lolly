@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-04T23:17:22.801Z",
+  "generatedAt": "2026-11-05T13:17:51.118Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -8738,6 +8738,14 @@
           "description": "A clean palette study: colourful bars on transparency, ready for your data."
         },
         {
+          "id": "brand-bars-dark",
+          "name": "Brand bars, dark",
+          "category": "Brand",
+          "description": "The same bars for a dark ground: the first bar takes a colour that shows on it.",
+          "galleryCover": true,
+          "galleryTheme": "dark"
+        },
+        {
           "id": "brand-bars-donut",
           "name": "Brand donut",
           "category": "Brand",
@@ -8748,7 +8756,8 @@
           "name": "Brand bars",
           "category": "Brand",
           "description": "A clean palette study: colourful bars on transparency, ready for your data.",
-          "galleryCover": true
+          "galleryCover": true,
+          "galleryTheme": "light"
         },
         {
           "id": "brand-terrain",

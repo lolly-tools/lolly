@@ -50,5 +50,6 @@
       "kind": "retired"
     }
   ],
-  "galleryCover": true
+  "galleryCover": true,
+  "galleryTheme": "light"
 }
