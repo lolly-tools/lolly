@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-04T17:07:09.308Z",
+  "generatedAt": "2026-11-05T20:32:00.536Z",
   "tools": [
     {
       "id": "3d",
@@ -14492,7 +14492,7 @@
       "id": "wayfinding-signage",
       "name": "Wayfinding",
       "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "official",
       "category": "event",
       "tags": [
