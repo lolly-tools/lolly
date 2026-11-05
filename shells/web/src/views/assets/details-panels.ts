@@ -168,7 +168,7 @@ export const renderOrigins = (dt: DetailsCtx): void => {
 // flat lamp strip over an INLINE credential check of the asset's own
 // bytes, plus the licensing chips. The check is lazy + stale-guarded like
 // the tech panel, and cached per id+version so paging back is free.
-export const renderPassport = (dt: DetailsCtx, cred: 'checking' | 'unchecked' | { found: boolean; state: string; trusted: boolean } | null): void => {
+export const renderPassport = (dt: DetailsCtx, cred: 'checking' | 'unchecked' | { found: boolean; state: string; trusted: boolean; approval?: boolean } | null): void => {
   const { dlg, ref } = dt;
   const box = dlg.querySelector<HTMLElement>('[data-passport]');
   if (!box) return;
@@ -204,6 +204,12 @@ export const renderPassport = (dt: DetailsCtx, cred: 'checking' | 'unchecked' | 
         : { id: 'signals', label: t('Content signals'), state: 'fact', word: t('none found'), ...(sigFresh.at ? { detail: tRaw('Analysed {date}.', { date: new Date(sigFresh.at).toLocaleDateString() }) } : {}) })
       : { id: 'signals', label: t('Content signals'), state: 'unlit', word: t('not analysed') },
   ];
+  // Only when the file holds a record, as in Verify: no approval is not a finding.
+  if (cred && typeof cred === 'object' && cred.approval) {
+    lamps.push(cred.state === 'valid'
+      ? { id: 'approval', label: t('Approval'), state: 'fact', word: t('record intact'), detail: t('The file holds an approval record and its credential verifies. It says what the signer recorded, not that the work is right.') }
+      : { id: 'approval', label: t('Approval'), state: 'warn', word: t('record does not check'), detail: t('The file holds an approval record, but its credential does not verify.') });
+  }
   const chips: string[] = [];
   const license = (ref.meta as { license?: string } | undefined)?.license;
   if (license) chips.push(`<span class="chip">${escapeText(String(license))}</span>`);
