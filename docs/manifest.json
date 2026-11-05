@@ -1021,6 +1021,18 @@
       "group": "Author tools and design systems"
     },
     {
+      "slug": "visual-intent",
+      "title": "Start from what the piece has to do",
+      "src": "visual-intent.md",
+      "description": "Say what a piece has to do, where it will be seen and what it has to say. Lolly chooses the tool for each surface, says why and shows what it could not fill, with no model in the path.",
+      "section": "build",
+      "path": "build/visual-intent",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
       "slug": "glossary",
       "title": "Glossary",
       "src": "glossary.md",

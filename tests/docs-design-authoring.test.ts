@@ -220,7 +220,7 @@ test('the MCP arguments the docs describe are in the tools\' input schemas', () 
 
 test('the tool counts distinguish always-on tools from scoped file tools', () => {
   const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
-    'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two'];
+    'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three'];
   const n = TOOL_DEFS.length;
   const mcp = read('docs/mcp.md');
   assert.ok(mcp.includes(`## The ${WORDS[n]} tools`), `docs/mcp.md should head its tool list "The ${WORDS[n]} tools"`);

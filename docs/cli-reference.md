@@ -23,6 +23,7 @@ Every command answers with one code per outcome, so a pipeline can branch on the
 - `lolly check` found an error, or any warning under `--strict` (the writing score, `verify.writing-score`, never counts);
 - `lolly package` met a Lolly Design document whose pictures have no bytes or are not catalog ids, or an output that already exists;
 - `lolly compose` refused a spec (with the JSON pointer of the key) or met an output that already exists;
+- `lolly intent` refused a request, or a surface is not ready. The full answer is still on stdout;
 - a Lolly Design document's authoring keys could not be lowered (`AUTHORING_INVALID`);
 - a render whose sources still need a rights decision; it still writes its file. `learning build` does the same and lists those blocks in `result.rightsDecisionsRequired`.
 :::
@@ -203,6 +204,16 @@ lolly package document.json --output=session.lolly
 A logical asset input such as `image://brand/logo`, `catalog://lolly/logo/primary` or `library://user/upload/…` resolves through the same host bridge as an ordinary render. A CLI run on a device does not resolve credentialled `cms://` or governed `net://` references; those need Lolly Work.
 
 `measure` and `package` also take a Lolly Design document directly, and `inspect --forensic` reports located AI clues and their coverage ([AI evidence in Lolly Verify](/info/verify-ai-evidence.html)). [Rebuild a deck from the terminal](/info/cli-decks.html) covers the Lolly Design forms.
+
+## Start from what the piece has to do
+
+`lolly intent` takes a JSON file, or `-` for standard input, that says what a piece has to do, where it will be seen and what it has to say. It answers with the tool for each surface, the input values, what is missing and why. `--render` makes a file for each ready surface and writes the answer beside them as `intent-resolution.json`. [Start from what the piece has to do](/info/visual-intent.html) has the format.
+
+```bash
+lolly intent certificate.json
+lolly intent certificate.json --json
+lolly intent certificate.json --render --out-dir=./out
+```
 
 ## Look at a picture in its own coordinates
 

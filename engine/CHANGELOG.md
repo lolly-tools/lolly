@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.305.0
+
+- Visual intent (new module `intent.ts`): `resolveIntent` takes what a piece has to do (`VisualIntentV1` in `@lolly-tools/core/intent-v1`) and the tools a caller may consider, and answers with `IntentResolutionV1`: for each surface the chosen tool, its input values, gaps, unused content, candidates with reasons and refusals with reasons. Pure and deterministic, with no model in the path. A request with a `prompt` and no `purpose` is answered `purpose-needed`, carrying the purposes and tools so the calling agent can choose: the prompt is carried and digested and never read. `parseVisualIntent` refuses with stable codes, and `checkToolIntents` is the catalog validator's rule set.
+- Tool `intents.json` (optional sidecar, `schemas/tool-intents-v1.schema.json`): the purposes a tool serves, the roles it needs, role to input mapping, input values a purpose starts from and surfaces its sized options cannot already state. `parseToolIntents` and `loadIntentTools` read it through whatever content resolver a shell hands them. `loadTool` never reads the file and the manifest schema gains no key, so an older engine is unaffected and no tool's floor moves. A tool with no sidecar is not offered for an intent. Nothing is written into output bytes.
+
 ## 1.304.0
 
 - `tools.lolly.approval`: a signed record that an approval was decided, with the approval id, the decided time and the reviewed file's SHA-256, and nothing else. The writer refuses any other field, and refuses a record with no credentialed parent. `embedC2pa` takes it as the additive `approval` option; without one, output is unchanged.

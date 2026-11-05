@@ -18,7 +18,7 @@ Each server draws with the design system of its own content profile. The public 
 
 ## Choose an endpoint
 
-Every endpoint offers the same twenty-two tools. They differ in who can connect and which formats they can make, because only some run a headless browser.
+Every endpoint offers the same twenty-three tools. They differ in who can connect and which formats they can make, because only some run a headless browser.
 
 | Endpoint | Who can connect | What it makes |
 |---|---|---|
@@ -64,7 +64,7 @@ In Claude Code the same connection is one command:
 claude mcp add --transport http lolly https://lolly.tools/api/mcp
 ```
 
-In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the twenty-two tools):
+In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the twenty-three tools):
 
 ```bash
 curl -s -X POST https://lolly.tools/api/mcp \
@@ -100,7 +100,7 @@ Then ask the agent to *"list the Lolly tools"* or *"render the wordmark tool as 
 }
 ```
 
-A quick check with `curl` (expect a JSON list of the twenty-two tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
+A quick check with `curl` (expect a JSON list of the twenty-three tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
 
 ```bash
 curl -s -X POST https://mcp.lolly.tools/mcp \
@@ -133,7 +133,7 @@ Installing the plugin grants no account-wide access. Keep invitations private. D
 
 ### On your own machine
 
-From a checkout, `pnpm run mcp` starts the server over stdio, with no token. The local server lists the twenty-two tools, the six `files_*` tools and the nine live tools that join an open document ([Agents in an open document](/info/open-document-agents.html)). `pnpm run mcp:http` runs the long-lived HTTP service instead. [Run the server yourself](#run-the-server-yourself) covers hosting one for other people.
+From a checkout, `pnpm run mcp` starts the server over stdio, with no token. The local server lists the twenty-three tools, the six `files_*` tools and the nine live tools that join an open document ([Agents in an open document](/info/open-document-agents.html)). `pnpm run mcp:http` runs the long-lived HTTP service instead. [Run the server yourself](#run-the-server-yourself) covers hosting one for other people.
 
 ## How an agent uses the server
 
@@ -157,7 +157,7 @@ Formats are per tool: you can only ask for one the tool declares, and `lolly_des
 One predicate decides when a call needs the browser tier, shared by the CLI, the TUI and this server, keyed on a typed `NEEDS_BROWSER` marker rather than on the wording of an error. The open endpoint's "that needs the browser tier" refusal and the CLI's exit `3` are the same judgement.
 :::
 
-## The twenty-two tools
+## The twenty-three tools
 
 **Discover and describe:**
 
@@ -184,6 +184,12 @@ One predicate decides when a call needs the browser tier, shared by the CLI, the
 | Tool | Does |
 |---|---|
 | `lolly_inspect_tokens` | Why a design token has its value, without rendering. Writes nothing. |
+
+**Start from what the piece has to do:**
+
+| Tool | Does |
+|---|---|
+| `lolly_resolve_intent` | The tool for each surface, its input values, what is missing and why, from a stated purpose. Renders nothing and stores nothing. |
 
 **Build a link or render:**
 
@@ -216,6 +222,7 @@ On an authenticated connection with a file scope, six more tools appear for impo
 ::: details What the tool arguments take
 - **`lolly_measure_text`** returns each line with its width and a `nearEdge` flag, the height, the `scrollHeight` the canvas reports and, with `height`, whether the box clips the text. Pass `text` and `width` (plus any of the layer's fields, or a `style` id to measure it as an authored layer), or a `document` to measure every plain text layer. The same measure as `lolly measure --text --json`. It reads no file.
 - **`lolly_package`** takes `document` (a boxes array, `{boxes}` or `{values: {boxes}}`) or `toolId: "design"` with `inputs`. `assets` carries the bytes of each placeholder picture, base64, by the `image` value that draws the picture. `source` is a deck whose pictures resolve `user/media/<sha256>` references and the `photo:<12 hex>` keys `lolly_compose` suggests; `label` is the name. Every other picture must be a catalog id of the server's profile, and anything unresolved is refused unless `allowMissingMedia`. It returns the file and a report of what was carried and read back, the same report as `lolly package --json`. A compiled document of another tool is packaged as before and answers `{legacy: true, manifest}`.
+- **`lolly_resolve_intent`** takes `intent`: `version`, `purpose`, `surfaces` and `content` by role. To start from your user's first words, pass them as `prompt` with no purpose. Nothing reads meaning from a prompt, so the answer is `intent.purpose-needed` with the purposes, tools, surfaces and roles, and you choose and call again. See [Start from what the piece has to do](/info/visual-intent.html#if-you-are-writing-an-agent).
 - **`lolly_compose`** takes a `spec` (`slides`, each with an `archetype` and its `slots`) and, for `from` references and notes, the deck's `inventory` or the deck itself as `source`. It returns the document, a report of what each slide filled and dropped and which text slots clip (`fit: "shrink"` steps them down), the source wording the slides change as `edits` for `lolly_check`, and the pictures named. `mode: "list"` returns the archetypes; `mode: "suggest"` a first spec for a deck. The same composer as `lolly compose --json`.
 - **`lolly_inspect_tokens`** reports the effective theme choices (one per group, which fell to a default and the set order). It also lists issues such as missing references, cycles and unknown choices, plus a page of tokens with resolved values (`query`, `type`, `set`, `issuesOnly`, `offset`, `limit`). With `token`, it adds the authored and resolved value, the winning set and override order, the roles the document declares and a bounded trace of the tokens it reads and the tokens that read this one (`depth`, 8 by default). It reads this server's design system, the one `lolly://design-context` describes, or a `tokens` document you pass; `selection` takes a render link's `_themes` object and `theme` one theme name. Choices are a preview. The same report as the TUI's token inspector.
 - **`lolly_look`** numbers its grid in document units: for Lolly Design, the artboard pixels a layer's `x`, `y`, `w` and `h` use, so a position read off the picture can go straight into `layerPatches`.

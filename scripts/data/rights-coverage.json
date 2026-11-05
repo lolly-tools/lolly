@@ -673,6 +673,7 @@
         "shells/cli/src/envelope.ts",
         "shells/cli/src/check.ts",
         "shells/cli/src/measure-text.ts",
+        "shells/cli/src/intent.ts",
         "shells/cli/src/preflight.ts",
         "shells/cli/src/validate.ts",
         "shells/cli/src/rebuild.ts",

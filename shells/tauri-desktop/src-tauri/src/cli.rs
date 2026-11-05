@@ -92,6 +92,7 @@ fn is_sidecar_verb(value: &str) -> bool {
     matches!(
         value,
         "start"
+            | "intent"
             | "system"
             | "list"
             | "describe"

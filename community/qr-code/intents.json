@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "direct",
+      "needs": [
+        "url"
+      ],
+      "set": {
+        "payload": "url"
+      }
+    },
+    {
+      "purpose": "invite",
+      "needs": [
+        "eventName",
+        "eventStart"
+      ],
+      "set": {
+        "payload": "event"
+      }
+    }
+  ]
+}

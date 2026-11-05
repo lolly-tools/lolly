@@ -85,6 +85,25 @@ function fixtureRoot(): string {
   return root;
 }
 
+test('a tool\'s intents.json follows the per-file overlay rule and reaches a materialized tree', () => {
+  const root = fixtureRoot(), target = mkdtempSync(join(tmpdir(), 'lolly-intents-roots-'));
+  try {
+    const community = '{"version":1,"intents":[{"purpose":"offer"}]}\n';
+    const brand = '{"version":1,"intents":[{"purpose":"promote"}]}\n';
+    write(join(root, 'community/alpha/intents.json'), community);
+    const roots = contentRoots({ root, profile: 'brand-x' });
+    assert.equal(toolFile('alpha', 'intents.json', roots), join(root, 'community/alpha/intents.json'), 'an overlay without the file falls through to the base');
+    assert.ok(listToolFiles('alpha', roots).includes('intents.json'));
+    write(join(root, 'brands/x/tools/alpha/intents.json'), brand);
+    assert.equal(toolFile('alpha', 'intents.json', roots), join(root, 'brands/x/tools/alpha/intents.json'), 'the overlay\'s file wins');
+    materializeInto(target, roots);
+    assert.equal(readFileSync(join(target, 'tools/alpha/intents.json'), 'utf8'), brand, 'a materialized tree carries the resolved file');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+    rmSync(target, { recursive: true, force: true });
+  }
+});
+
 test('a tool or overlay created after the first lookup is found without a restart', () => {
   const root = fixtureRoot();
   try {
