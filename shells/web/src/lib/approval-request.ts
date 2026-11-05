@@ -13,8 +13,21 @@
  * plane registers one that opens the approval dialog (see src/org/), but the registry
  * is a standalone primitive - a test or a future feature can drive it the same way.
  * The opener is handed a small, product-neutral context (the tool id, an optional
- * subject reference, and a default title) and owns everything else.
+ * subject reference, a default title and, when the opener asked for it, the exact
+ * file the view exported) and owns everything else.
  */
+
+/** The file a request is about: the bytes the export made, untouched. */
+export interface ApprovalArtifact {
+  blob: Blob;
+  /** The file's name, with the extension the export chose. */
+  name: string;
+  /** The tool's current inputs as a URL-mode query. The instance reads them to work
+   *  out a digest and does not keep them. */
+  query?: string;
+  /** The saved session this came from, when there is one. */
+  sessionId?: string;
+}
 
 export interface ApprovalRequestContext {
   /** The tool whose output is being submitted for approval. */
@@ -24,18 +37,28 @@ export interface ApprovalRequestContext {
   subjectRef?: string;
   /** A sensible default title for the request (e.g. the tool/session name). */
   title?: string;
+  /** The exported file, when `approvalWantsArtifact` said to make one. */
+  artifact?: ApprovalArtifact;
 }
 
 /** Opens the approval-request flow for the given context. */
 export type ApprovalOpener = (ctx: ApprovalRequestContext) => void;
 
 let opener: ApprovalOpener | undefined;
+let wantsArtifact: ((toolId: string) => boolean) | undefined;
 
 /** Register the approval opener; returns an unregister fn. A later register replaces
  *  the current opener (last wins), mirroring a single-owner flow. */
-export function registerApprovalOpener(fn: ApprovalOpener): () => void {
+export function registerApprovalOpener(fn: ApprovalOpener, opts: { wantsArtifact?: (toolId: string) => boolean } = {}): () => void {
   opener = fn;
-  return () => { if (opener === fn) opener = undefined; };
+  wantsArtifact = opts.wantsArtifact;
+  return () => { if (opener === fn) { opener = undefined; wantsArtifact = undefined; } };
+}
+
+/** Whether the view should make the export first and hand it over. False when the
+ *  opener cannot take a file, so nothing is rendered for a request with no file. */
+export function approvalWantsArtifact(toolId: string): boolean {
+  try { return !!opener && !!wantsArtifact?.(toolId); } catch { return false; }
 }
 
 /**
@@ -51,4 +74,5 @@ export function openApprovalRequest(ctx: ApprovalRequestContext): boolean {
 /** TEST-ONLY: drop any registered opener, restoring the dormant default. */
 export function _clearApprovalOpenerForTests(): void {
   opener = undefined;
+  wantsArtifact = undefined;
 }

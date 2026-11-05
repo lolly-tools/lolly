@@ -37,10 +37,10 @@ PUT /api/v1/chains/:id        # policy.edit
 | `{ quorum: n }` | `n` **distinct** approvers approve |
 | `all` | every **nominee named at submit** has approved; with no nominees it behaves as `any` |
 
-Chains apply to work in two places today. Catalog submissions go through the chain that
-`policy.submit.chain` gives ([catalog](catalog.md#submitting-an-asset)), and any other approval
-sets its `chainId` when it is raised. The overlay key `enforce.escalation` is declared but not
-accepted by the write paths ([the enforce block](governance.md#the-enforce-block)).
+Chains apply to work in three places today. Catalog submissions go through the chain that
+`policy.submit.chain` gives ([catalog](catalog.md#submitting-an-asset)). A tool's exports go through
+the chain its policy names in `enforce.escalation` ([review an exported file](#review-an-exported-file)).
+Any other approval sets its `chainId` when it is raised.
 
 ### Edit chains in the console
 
@@ -68,10 +68,11 @@ GET  /api/v1/approvals              # filtered to what the caller may see
 GET  /api/v1/approvals/approvers    # who is eligible for a step, for nomination
 POST /api/v1/approvals/:id/act      # { action: 'approve' | 'reject', comment? }
 POST /api/v1/approvals/:id/withdraw
+GET  /api/v1/approvals/:id/artifact # the file an export review carries
 ```
 
-You can raise approvals with the subjects `asset`, `tool-change`, `config`, `guest-link` or
-`source-review`. The server also raises `delivery` approvals for a destination with an approval
+You can raise approvals with the subjects `asset`, `tool-change`, `config`, `guest-link`,
+`source-review` or `export-review`. The server also raises `delivery` approvals for a destination with an approval
 chain ([delivery](delivery.md#optional-human-approval)). One engine handles every kind.
 
 The chain is **snapshotted at submit**: an approval is judged by the rules it was raised under,
@@ -99,6 +100,74 @@ These are enforced in code and covered by tests:
 Acting on an approval writes to the per-person inbox, so the approver's next shell poll, and
 the console's Approvals view, shows what needs them. The console's overview shows "what needs
 me" from the same source. Inbox targeting is described in the [API reference](api.md).
+
+## Review an exported file
+
+An export review is an approval of one exact file. A reviewer sees the file, and the approved
+download is that file.
+
+**Set it up.** Choose an approval chain for the tool in its policy (**Approval chain for exports**
+in the console, or `enforce.escalation`). To route a group's exports through review, deny them
+`export.download`; a member who holds `export.request` then sees **Request approval** in place of
+Download. On this path the app is cooperating with your policy: the file is made on the person's
+own device, so this guides how work moves and does not stop someone copying what is on their screen.
+
+**Ask for a review.** **Request approval** runs the same export as Download, with the settings on
+the export bar. The dialog shows the file, its format, size and digest, and sends it to Work.
+Nothing is downloaded, saved to the library or sent to an export home.
+
+**Review.** In the console, the request's card loads the file, checks the bytes against the digest
+and shows the artwork. **Approve** stays off until that has happened. A PDF opens in a new tab, and
+a large file waits until you choose to load the file.
+
+**Get the file.** The requester sees the facts and the digest while the request is open, and gets
+the file once it is approved, from the request's card or with `lw approvals artifact <id> --out <file>`.
+A rejected or withdrawn request never releases the file to the requester.
+
+**What the record holds.**
+
+- The file's SHA-256, size, name, format and media type. The media type comes from the file's
+  opening bytes, and a file that contradicts its named format is refused.
+- The tool and the version this instance serves.
+- A digest of the input values the app reported, worked out by the server with the steps a server
+  render uses: values parsed from URL mode, locked values applied, defaults and profile fields
+  filled in. The values themselves are not stored. If the tool is not in this instance's pack, or
+  the values were too large to send, the digest is empty and the record says why.
+- The fingerprint a decision is bound to, and the actions taken.
+
+**What a request does and does not add to the file.** Work writes nothing into the file and adds
+no watermark. The file holds what the export wrote, including any Content Credentials or Lolly
+Imprint turned on at the export bar. An experimental tool's preview watermark is left off, because
+this is the file being approved.
+
+**Limits.**
+
+- An approval says a person approved this file. It does not establish that the file meets a brand
+  rule, a licence or a law.
+- The inputs digest rests on what the requesting app states. It does not prove the file was made
+  from those inputs.
+- A changed file is a new request. Nothing in a request can be rewritten.
+- Sending to a [delivery destination](delivery.md) is a separate step with its own permission
+  and optional approval.
+- Older shells still send a request with the tool's id and no file. It stays valid, and its card
+  says no file is attached.
+
+**Storage.** `policy.approvalArtifacts` sets the largest file, the total stored and how long a
+decided request keeps its file ([configuration](configuration.md#files-and-uploads)). Withdrawing
+removes the file at once. The record and digest stay after the file goes, and `GET .../artifact`
+answers `410`.
+
+**Refusals.**
+
+| Code | Status | Meaning |
+|---|---|---|
+| `ARTIFACT_NOT_RELEASED` | 403 | the requester asked for the file before approval |
+| `ARTIFACT_NOT_LOADED` | 409 | an approve came without the token the file's own response carries |
+| `ARTIFACT_SUBJECT_CHANGED` | 409 | an action did not echo the fingerprint of the frozen file |
+| `ARTIFACT_REMOVED` | 410 | the request no longer holds its file |
+| `ARTIFACT_FORMAT_MISMATCH` | 422 | the file's opening bytes contradict its named format |
+| `APPROVAL_ARTIFACT_BUDGET` | 413 | the instance has no room for another request file |
+| `CHAIN_NOT_BOUND` | 400 | the tool's policy gives a different chain |
 
 ## Review a set of source files
 
@@ -140,9 +209,8 @@ a review of one selected instance file; the API supports bounded sets.
 ## Watermarking preview output
 
 An overlay can set `enforce.watermark: 'until-approved'`, meant to pair with a chain so that
-previews carry the PREVIEW pattern while the work is unapproved. That link to approval state is
-not built yet, and approval chains do not yet bind ordinary tool exports to reviewed final
-bytes. What each watermark setting does today is in [the enforce
+server previews carry the PREVIEW pattern while the work is unapproved. That link to approval state
+is not built yet. What each watermark setting does today is in [the enforce
 block](governance.md#the-enforce-block).
 
 ## Related

@@ -46,7 +46,7 @@ import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onT
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
 import { registerProfileSection } from '../lib/profile-sections.ts';
-import { setExportPolicy } from '../lib/export-policy.ts';
+import { getExportPolicy, setExportPolicy } from '../lib/export-policy.ts';
 import { failClosedSitePolicy, setSitePolicy } from '../lib/site-policy.ts';
 import { registerApprovalOpener } from '../lib/approval-request.ts';
 import { registerCatalogSubmitter } from '../lib/catalog-submit.ts';
@@ -204,6 +204,9 @@ export interface OrgConfig {
    *  declarative UI chrome (banners). Absent ⇒ no instance opinion; each descriptor
    *  is DATA the shell renders, never code. flag/resource kinds ride other seams. */
   injectables?: Injectable[];
+  /** Present when this caller's request can carry its exported file, and how large
+   *  that file may be. Absent ⇒ the request goes without a file, and the dialog says so. */
+  approvals?: { exportReview?: { maxFileBytes: number; partBytes: number } };
   /** Fixed organisation-owned outbound targets already filtered for this
    *  caller. Provider options and credentials never enter the shell. */
   destinations?: OrgDeliveryDestination[];
@@ -1115,9 +1118,14 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       unregisterToolMount = onToolInputMount(() => applyOrgToolPolicies());
       unregisterApprovalOpener?.();
       unregisterApprovalOpener = registerApprovalOpener((rctx) => {
-        import('./approval-dialog.ts')
-          .then((m) => m.openApprovalDialog(rctx))
+        Promise.all([import('./approval-dialog.ts'), import('../styles/approval-dialog.css')])
+          .then(([m]) => m.openApprovalDialog(rctx, orgConfigState?.approvals?.exportReview))
           .catch(() => { /* additive; never break the caller */ });
+      }, {
+        // A file goes with the request only when this instance takes one and a chain
+        // is bound; the browser must also be able to hash it (a secure context).
+        wantsArtifact: (toolId) => !!orgConfigState?.approvals?.exportReview
+          && !!getExportPolicy()?.approvalChainFor(toolId) && !!globalThis.crypto?.subtle,
       });
       // "Submit to <workspace>" on the member's own uploads, templates and tools,
       // through the generic lib/catalog-submit.ts seam. `accepts` reads the live

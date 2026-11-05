@@ -37,6 +37,7 @@ lw login --email admin@example.test         # the dev provider (dev.enabled only
 | Let people sign in | `invite add`, `invite ls`, `invite rm` | [Invitations](#invitations) |
 | Give automation its own identity | `tokens` | [Service tokens](#service-tokens) |
 | Render and recover renders | `renders`, `render-batches` | [Recoverable renders](#recoverable-renders) |
+| See approval requests and get a reviewed file | `approvals`, `approvals artifact` | [Approval files](#approval-files) |
 | Send finished files to a destination | `destinations`, `deliveries` | [Organization delivery](#organization-delivery) |
 | Manage grants and policy as code | `grants`, `export`, `apply` | [Governance](#governance) |
 | Provision people from an identity provider | `scim token` | [SCIM provisioning tokens](#scim-provisioning-tokens) |
@@ -153,6 +154,19 @@ The [batch guide](renders.md#batches-with-durable-rows) defines shared inputs an
 row keys. Retry creates a new parent and replaces only unsuccessful rows;
 successful children keep their original output. Download each child through
 `lw renders output <childRenderId> --out <file>`.
+
+## Approval files
+
+```bash
+lw approvals                                # your requests and inbox
+lw approvals artifact <id> --out card.png   # the file an export review carries
+```
+
+`artifact` works for an eligible reviewer, for someone who acted on the request, and for the
+requester once the request is approved. It checks the whole file against its recorded digest before
+writing anything. These commands need a person's session from `lw login`. A service token cannot read
+approvals, because a decision about a file is a person's act. Decide in the console, where the file
+is on screen. See [review an exported file](approvals.md#review-an-exported-file).
 
 ## Organization delivery
 
