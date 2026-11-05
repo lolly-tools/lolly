@@ -102,7 +102,9 @@ section:last-child{border-bottom:0}
 h2{font:600 clamp(1.5rem,3vw,2.5rem)/1.1 var(--face-display);letter-spacing:-.01em}
 .note{color:var(--muted);max-width:44rem}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,16rem),1fr));gap:1rem}
-.tile{display:grid;gap:.625rem}
+/* A grid item's auto track grows to a large picture's own size, so each column stays the width its parent gave. */
+.tile,.slot,.swatch,.examples>figure{min-width:0}
+.tile{display:grid;grid-template-columns:minmax(0,1fr);gap:.625rem}
 .tile-art{aspect-ratio:3/2;display:flex;align-items:center;justify-content:center;padding:12%;border:1px solid var(--edge);border-radius:.75rem}
 .tile-art img{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain}
 .on-light{background:#ffffff}
@@ -117,7 +119,7 @@ h2{font:600 clamp(1.5rem,3vw,2.5rem)/1.1 var(--face-display);letter-spacing:-.01
 .slot-label{padding:.625rem .75rem;display:grid;font-size:.875rem;gap:.125rem}
 code,.mono{font-family:var(--face-mono);font-size:.875em}
 .palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,8.5rem),1fr));gap:.5rem}
-.swatch{display:grid;gap:.25rem;font-size:.8125rem}
+.swatch{display:grid;grid-template-columns:minmax(0,1fr);gap:.25rem;font-size:.8125rem}
 .swatch i{display:block;height:3.25rem;border-radius:.5rem;border:1px solid var(--edge)}
 .face{display:grid;gap:.5rem;padding:1.25rem 0;border-top:1px solid var(--edge)}
 .face:first-of-type{border-top:0;padding-top:0}
@@ -268,7 +270,7 @@ ${radios.join('\n')}
 <div class="page">
 <header class="hero${heroMark ? '' : ' hero-name-only'}">
 <div class="hero-mark">${heroMark}</div>
-<div><h1>${heading}</h1><p class="lede">${esc(f.summary)}</p></div>
+<div><h1>${heading}</h1><p class="lede">${esc(summaryBesideName(f.summary, f.name))}</p></div>
 </header>
 ${colourChips || modeChips ? `<nav class="bar" aria-label="Look">${colourChips}${modeChips}</nav>` : ''}
 <main>
@@ -402,6 +404,14 @@ export function writeAgentsMd(f: PageFactsV1): string {
 }
 
 // ── llms.txt ────────────────────────────────────────────────────────────────
+
+/** The hero sets the name right above its summary, so a summary that opens "Name, ..." drops the repeat there. */
+function summaryBesideName(summary: string, name: string): string {
+  const opening = `${name}, `;
+  if (!summary.startsWith(opening) || summary.length === opening.length) return summary;
+  const rest = summary.slice(opening.length);
+  return `${rest.charAt(0).toUpperCase()}${rest.slice(1)}`;
+}
 
 /** The v2 structure: H1, summary, then H2 file lists. Links are relative. */
 export function writeLlmsTxt(f: PageFactsV1): string {
