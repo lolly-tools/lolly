@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.308.0
+
+- Brand pages (new modules `brand-page.ts`, `brand-page-render.ts`, not re-exported from `index.ts`): `buildBrandPage` writes a folder that is a press kit and an agent kit, with `brand.json`, the page, `DESIGN.md`, `AGENTS.md`, `llms.txt`, tokens, checks and whatever rights allow. Same input, same bytes. Wire shapes are `@lolly-tools/core/brand-page-v1`.
+- DESIGN.md (new module `design-md.ts`, not re-exported): `writeDesignMd` targets the format's `alpha` version, one file per colourway and mode. `parseDesignMd` is bounded, refuses what it cannot read and returns a proposal.
+- `asset-rights.ts` (new, not re-exported): the rights readers and `redistribution()` moved down from the web shell, so a `.lolly` pack, a brand skill folder and a brand page give the same answer. Answers are unchanged.
+- `checkDesignHouseRules` takes an optional `selection`, so rules can run per colourway and mode. Absent, behaviour is unchanged.
+
 ## 1.307.0
 
 - `mapBannerbearTemplate` (`design-map-bannerbear.ts`) turns a Bannerbear V5 image template's `config.objects` into Design rows, a report of everything left out, a `DesignToolDraftV1` and a mapping entry for `lw render-api`. Layer names become stable ids. Built from public documentation, never run against a live account. Reached by the CLI's `lolly import` and Design Import, not the barrel.

@@ -4099,7 +4099,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.307.0";
+    ENGINE_VERSION = "1.308.0";
   }
 });
 
@@ -133626,8 +133626,8 @@ function textColoursOf(layout2, row) {
   }
   return out;
 }
-function combinationPolicy(doc, theme) {
-  const tokens3 = createTokenSet(doc, { theme });
+function combinationPolicy(doc, theme, selection) {
+  const tokens3 = createTokenSet(doc, { theme, ...selection ? { selection } : {} });
   const byBackground = /* @__PURE__ */ new Map();
   const names = /* @__PURE__ */ new Map();
   const groups = /* @__PURE__ */ new Set();
@@ -133675,7 +133675,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
     rows: rows2,
     hidden: hiddenTest(rows2),
     frames: new Map(rows2.filter((r5) => r5.kind === "frame" && typeof r5.id === "string").map((r5) => [r5.id, r5])),
-    tokens: createTokenSet(doc, { theme: opts.theme }),
+    tokens: createTokenSet(doc, { theme: opts.theme, ...opts.selection ? { selection: opts.selection } : {} }),
     largest: /* @__PURE__ */ new Map()
   };
   for (const row of rows2) {
@@ -133780,7 +133780,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      pairings ??= combinationPolicy(doc, opts.theme);
+      pairings ??= combinationPolicy(doc, opts.theme, opts.selection);
       if (!pairings.byBackground.size) {
         unknown2.push(rule.id);
         continue;
@@ -179395,11 +179395,84 @@ init_design_brief2();
 
 // packages/node-shell/src/brand-skills.ts
 init_src2();
+import { readFileSync as readFileSync5 } from "node:fs";
+
+// engine/src/asset-rights.ts
+init_rights_profiles();
+var SOURCE_HASH = /^sha256:[0-9a-f]{64}$/;
+function readAssetRightsRecord(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  const works = value2.works;
+  if (Array.isArray(works)) return works.length ? readAssetRightsRecord(works[0]) : null;
+  const record46 = value2;
+  if (typeof record46.id !== "string") return null;
+  const creators = Array.isArray(record46.creators) ? record46.creators.filter((party) => !!party && typeof party === "object" && typeof party.name === "string").slice(0, 32) : [];
+  const rights = Array.isArray(record46.rights) ? record46.rights.filter((evidence) => !!evidence && typeof evidence === "object" && typeof evidence.declaration === "string").slice(0, 16) : [];
+  return {
+    id: record46.id,
+    ...typeof record46.title === "string" ? { title: record46.title } : {},
+    creators,
+    ...typeof record46.sourceUrl === "string" ? { sourceUrl: record46.sourceUrl } : {},
+    // The two fields a derived file needs to bind the source's exact bytes,
+    // kept only in the shape the credential writer accepts.
+    ...typeof record46.revision === "string" && record46.revision.length <= 256 ? { revision: record46.revision } : {},
+    ...typeof record46.sourceHash === "string" && SOURCE_HASH.test(record46.sourceHash) ? { sourceHash: record46.sourceHash } : {},
+    rights
+  };
+}
+function assetLicenceDeclaration(meta) {
+  const legacy = typeof meta?.license === "string" ? meta.license.trim() : "";
+  if (legacy) return legacy;
+  const record46 = readAssetRightsRecord(meta?.rights);
+  const found = record46?.rights.find((evidence) => evidence.status !== "missing" && evidence.status !== "not-applicable" && evidence.declaration.trim());
+  return found?.declaration.trim() ?? "";
+}
+function assetRightsNotices(value2) {
+  const out = [];
+  for (const evidence of evidenceArrayOf(value2)) {
+    const notices = evidence.notices;
+    if (!Array.isArray(notices)) continue;
+    for (const notice of notices.slice(0, 8)) if (typeof notice === "string" && notice.trim()) out.push(notice.trim());
+  }
+  return out;
+}
+function evidenceArrayOf(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return [];
+  const works = value2.works;
+  if (Array.isArray(works)) return works.slice(0, 64).flatMap((work) => evidenceArrayOf(work));
+  const rights = value2.rights;
+  return Array.isArray(rights) ? rights.slice(0, 16) : [];
+}
+function redistribution(meta) {
+  const declared = assetLicenceDeclaration(meta);
+  const normalised = declared ? normaliseLicence(declared) : null;
+  const profile2 = normalised?.id ? licenceProfile(normalised.id) : null;
+  const licence = profile2?.name ?? normalised?.id ?? "";
+  const notices = assetRightsNotices(meta.rights);
+  if (meta.brandLock === true) {
+    return { travels: false, kind: "policy", reason: "this brand pack is authoritative on this device", licence, notices };
+  }
+  if (!declared) return { travels: false, kind: "unknown", reason: "licence not recorded", licence, notices };
+  if (!profile2?.reviewed) {
+    return {
+      travels: false,
+      kind: "unknown",
+      reason: normalised?.id ? `${normalised.id} is recorded and not yet interpreted` : `${declared} was not recognised`,
+      licence,
+      notices
+    };
+  }
+  if (profile2.redistributeSource !== "permitted-with-notices") {
+    return { travels: false, kind: "licence", reason: `${profile2.name} does not record permission to pass on the source file`, licence, notices };
+  }
+  return { travels: true, kind: "licence", reason: "", licence, notices };
+}
+
+// packages/node-shell/src/brand-skills.ts
 init_brand_skill_v1();
 init_content_roots();
 init_design_brief2();
 init_design_system2();
-import { readFileSync as readFileSync5 } from "node:fs";
 function rootsFor2(opts) {
   try {
     return contentRoots({
@@ -179513,13 +179586,9 @@ function profileBrandSkillLinks(skill, opts = {}) {
   })), skill.meta);
 }
 function brandSkillRedistribution(asset2) {
-  if (asset2.brandLock === true) return { travels: false, reason: "this brand pack is authoritative, so its bytes stay in the catalog" };
-  if (!asset2.license) return { travels: false, reason: "licence not recorded" };
-  const normalised = normaliseLicence(asset2.license);
-  const profile2 = normalised?.id ? licenceProfile(normalised.id) : null;
-  if (!profile2?.reviewed) return { travels: false, reason: `${normalised?.id ?? asset2.license} is recorded and not yet interpreted` };
-  if (profile2.redistributeSource !== "permitted-with-notices") return { travels: false, reason: `${profile2.name} does not record permission to pass on the source file` };
-  return { travels: true, reason: "" };
+  const answer = redistribution(asset2);
+  if (answer.kind === "policy") return { travels: false, reason: "this brand pack is authoritative, so its bytes stay in the catalog" };
+  return { travels: answer.travels, reason: answer.reason };
 }
 var fileName = (url) => (url.split(/[?#]/)[0].split("/").pop() ?? "asset").replace(/[^A-Za-z0-9._-]+/g, "-");
 async function exportProfileBrandSkill(name, opts = {}) {

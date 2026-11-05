@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/brand-page-v1.schema.json",
+  "title": "Lolly brand page manifest (brand.json)",
+  "description": "One published address for a brand: every file in the folder with its digest, what was held back and why, and a summary of what was checked. Rejects unknown keys so a reader knows what it is looking at.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "id",
+    "name",
+    "revision",
+    "generator",
+    "colourways",
+    "files",
+    "held",
+    "checks",
+    "digest"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "maxLength": 48
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "publishedVersion": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "origin": {
+      "type": "string",
+      "pattern": "^https?://",
+      "maxLength": 2000
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "engine",
+        "designMd"
+      ],
+      "properties": {
+        "name": {
+          "const": "lolly"
+        },
+        "engine": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "designMd": {
+          "const": "alpha"
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "statement": {
+          "type": "string",
+          "maxLength": 8000
+        },
+        "contact": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https?://",
+          "maxLength": 2000
+        }
+      }
+    },
+    "colourways": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "modes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "maxLength": 64
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "modes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]*$",
+              "maxLength": 64
+            }
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "role",
+          "mediaType",
+          "sha256",
+          "size"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$))[A-Za-z0-9._/-]+$",
+            "maxLength": 300
+          },
+          "role": {
+            "enum": [
+              "page",
+              "page-markdown",
+              "page-style",
+              "design-md",
+              "design-md-variant",
+              "agents",
+              "llms",
+              "checks",
+              "tokens",
+              "tokens-resolved",
+              "logo",
+              "font",
+              "skill",
+              "example"
+            ]
+          },
+          "mediaType": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "held": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item",
+          "reason",
+          "kind"
+        ],
+        "properties": {
+          "item": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "kind": {
+            "enum": [
+              "policy",
+              "licence",
+              "unknown",
+              "content",
+              "limit"
+            ]
+          }
+        }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "variants",
+        "pairs",
+        "pairsBelow3",
+        "rules",
+        "rulesWithFindings"
+      ],
+      "properties": {
+        "file": {
+          "const": "checks.json"
+        },
+        "variants": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pairs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pairsBelow3": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rules": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rulesWithFindings": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "publishedAt": {
+      "type": "string",
+      "maxLength": 40
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

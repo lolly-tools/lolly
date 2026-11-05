@@ -19,12 +19,12 @@ import { readFileSync } from 'node:fs';
 
 import {
   admitBrandSkill, baselineBrandSkill, brandSkillCoverage, brandSkillCoverageFacts, brandSkillFreshness,
-  classifyBrandSkillLinks, designBrief, exportBrandSkillFolder, licenceProfile, measureSvgFamily,
-  normaliseLicence, spreadExemplars,
+  classifyBrandSkillLinks, designBrief, exportBrandSkillFolder, measureSvgFamily, spreadExemplars,
 } from '@lolly/engine';
 import type {
   AdmittedBrandSkillV1, BrandSkillCoverageV1, BrandSkillExportModeV1, BrandSkillExportV1, BrandSkillFreshnessV1,
 } from '@lolly/engine';
+import { redistribution } from '../../../engine/src/asset-rights.ts';
 import { brandSkillIndexEntry, brandSkillMetaOf } from '@lolly-tools/core/brand-skill-v1';
 import type { BrandSkillIndexEntryV1, BrandSkillMetaV1 } from '@lolly-tools/core/brand-skill-v1';
 
@@ -170,13 +170,9 @@ export function profileBrandSkillLinks(skill: ProfileBrandSkillV1, opts: Profile
 
 /** May an asset's bytes be copied into an exported folder? The rule `.lolly` packs follow. */
 export function brandSkillRedistribution(asset: CatalogAsset): { travels: boolean; reason: string } {
-  if (asset.brandLock === true) return { travels: false, reason: 'this brand pack is authoritative, so its bytes stay in the catalog' };
-  if (!asset.license) return { travels: false, reason: 'licence not recorded' };
-  const normalised = normaliseLicence(asset.license);
-  const profile = normalised?.id ? licenceProfile(normalised.id) : null;
-  if (!profile?.reviewed) return { travels: false, reason: `${normalised?.id ?? asset.license} is recorded and not yet interpreted` };
-  if (profile.redistributeSource !== 'permitted-with-notices') return { travels: false, reason: `${profile.name} does not record permission to pass on the source file` };
-  return { travels: true, reason: '' };
+  const answer = redistribution(asset as unknown as Record<string, unknown>);
+  if (answer.kind === 'policy') return { travels: false, reason: 'this brand pack is authoritative, so its bytes stay in the catalog' };
+  return { travels: answer.travels, reason: answer.reason };
 }
 
 export interface BrandSkillExportOptsV1 extends BrandSkillReadOptsV1 {

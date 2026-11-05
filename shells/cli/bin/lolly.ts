@@ -35,9 +35,14 @@ Usage:
   lolly start                              show colour, .lolly/import and explore paths
   lolly system status                      show the active terminal design system
   lolly system init --color=#7c3aed        build and activate a system from one colour
-  lolly system import <file>                import .lolly, tokens, Penpot, token zip or SVG
+  lolly system import <file>                import .lolly, tokens, Penpot, token zip, SVG or
+                                           DESIGN.md (--dry-run reads and changes nothing)
   lolly system add <file…>                  retain logos, fonts and other source material
   lolly system export [--output=brand.lolly] export a portable system pack
+  lolly system publish --out=<dir>          write a brand page folder: the page, DESIGN.md,
+                                           AGENTS.md, llms.txt, tokens and checks. Lists what
+                                           it held back. --origin, --usage-file, --include,
+                                           --profile, --file, --no-examples
   lolly system context [--file=tokens.json] the design brief as JSON: tokens, evidence and
                                            rules, plus pairings, type per role, logos per
                                            surface, icons, media, the slide master and

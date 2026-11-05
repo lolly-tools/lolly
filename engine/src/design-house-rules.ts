@@ -56,6 +56,8 @@ export interface HouseRuleFinding {
 export interface DesignHouseRuleOpts {
   /** The token theme the document is composed in, for alias colours. */
   theme?: string;
+  /** A choice per token group, for a document composed in one colourway and mode. */
+  selection?: Record<string, string>;
   /**
    * Catalog facts (`DesignBriefCatalogV1`): the logo set stands in when a logo rule names
    * none, and a logo finding's message calls each logo by its asset `name`.
@@ -257,8 +259,8 @@ interface Pairings {
  * `$extensions["com.suse.lolly"].combinations = { text, graphic }`, names relative to the
  * background token's own group.
  */
-export function combinationPolicy(doc: unknown, theme?: string): Pairings {
-  const tokens = createTokenSet(doc, { theme });
+export function combinationPolicy(doc: unknown, theme?: string, selection?: Record<string, string>): Pairings {
+  const tokens = createTokenSet(doc, { theme, ...(selection ? { selection } : {}) });
   const byBackground: Pairings['byBackground'] = new Map();
   const names: Pairings['names'] = new Map();
   const groups = new Set<string>();
@@ -319,7 +321,7 @@ export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc:
     rows,
     hidden: hiddenTest(rows),
     frames: new Map(rows.filter((r) => r.kind === 'frame' && typeof r.id === 'string').map((r) => [r.id as string, r])),
-    tokens: createTokenSet(doc, { theme: opts.theme }),
+    tokens: createTokenSet(doc, { theme: opts.theme, ...(opts.selection ? { selection: opts.selection } : {}) }),
     largest: new Map(),
   };
   for (const row of rows) {
@@ -407,7 +409,7 @@ export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc:
       }
     } else if (rule.kind === 'color-pairing') {
       if (p.source !== undefined && p.source !== 'token-extension') { unknown.push(rule.id); continue; }
-      pairings ??= combinationPolicy(doc, opts.theme);
+      pairings ??= combinationPolicy(doc, opts.theme, opts.selection);
       if (!pairings.byBackground.size) { unknown.push(rule.id); continue; }
       checked++;
       for (const { row, index } of texts) {

@@ -4,6 +4,7 @@ import { rondoFromFile, rondoFromShareLink, rondoSourceBytes } from '../../engin
 import { parseStaged } from '../../packages/rondo/src/staged.ts';
 import { readBrandStyleEvidence, summarizeBrandStyles } from '../../engine/src/brand-evidence.ts';
 import { contextTokens } from '../../engine/src/brand-context.ts';
+import { createTokenSet } from '../../engine/src/tokens.ts';
 /**
  * Fuzz targets: the engine's untrusted-input parsers, each with a small seed
  * corpus of VALID inputs (built from the engine's own writers / real container
@@ -2635,7 +2636,25 @@ export const captionsTtmlTarget: FuzzTarget = {
   },
 };
 
+const DESIGN_MD_FENCED = '---\nname: Seed\n---\n\n## Colors\n\n```yaml\ncolors:\n  primary: "#112233"\n  accent: "{colors.primary}"\n```\n\n## Typography\n\n```yaml\ntypography:\n  body-md:\n    fontFamily: Inter\n    fontSize: 16px\n```\n';
+
+export const designMdTarget: FuzzTarget = {
+  name: 'design-md',
+  async seeds() {
+    const { writeDesignMd } = await import('../../engine/src/design-md.ts');
+    const { deriveBrandTokens } = await import('../../engine/src/brand-derive.ts');
+    const written = writeDesignMd({ doc: deriveBrandTokens({ primary: '#7c3aed', name: 'Seed' }), name: 'Seed' });
+    return [new TextEncoder().encode(written), new TextEncoder().encode(DESIGN_MD_FENCED)];
+  },
+  async invoke(bytes) {
+    const { parseDesignMd } = await import('../../engine/src/design-md.ts');
+    const parsed = parseDesignMd(new TextDecoder().decode(bytes));
+    if (parsed.ok) createTokenSet(parsed.proposal.tokens);
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
+  designMdTarget,
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
   adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, pdfRedactKeepTarget, inddTarget, cameraRawTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget, inpaintTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,

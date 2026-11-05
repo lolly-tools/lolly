@@ -316,6 +316,14 @@
       "note": "Hands out one brand skill of the active design system as a zip or as text on the clipboard. The body is the brand's text with catalog links rewritten to this instance; lolly.json and the frontmatter metadata record the source asset, revision and sha256, and generated frontmatter carries the asset's licence. Linked catalog assets travel as links, never as bytes, so no source terms are evaluated and no receipt is measured."
     },
     {
+      "id": "delivery.brand-page-publish",
+      "kind": "delivery",
+      "title": "Brand page folder (lolly system publish)",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/brand-page.ts"],
+      "note": "Writes a folder a publisher can host: the page, agent files, tokens, logos, fonts and public skills. Whether a logo or font may go in is decided by engine/src/asset-rights.ts, the same answer a session share uses. A font file needs a recorded licence and nothing overrides that; a logo with an unrecorded licence goes in only when the publisher names it. Everything held back is listed in brand.json and on the page with its reason. Source credits per file are not written yet."
+    },
+    {
       "id": "delivery.brand-pack-export",
       "kind": "delivery",
       "title": "Brand pack, design system package, tokens and font package exports",

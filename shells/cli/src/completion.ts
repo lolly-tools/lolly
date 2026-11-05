@@ -54,7 +54,7 @@ const GLOBAL_BOOL_FLAGS = ['json', 'quiet', 'verbose', 'strict', 'dry-run', 'pre
 
 /** Value flags whose value is a filesystem path - completed as files/dirs, never a word list. */
 const PATH_FLAGS = new Set([
-  'root', 'journal', 'output', 'out-dir', 'inputs', 'template', 'trust-anchor', 'sign-key', 'sign-cert', 'rebuild',
+  'root', 'journal', 'output', 'out-dir', 'out', 'usage-file', 'inputs', 'template', 'trust-anchor', 'sign-key', 'sign-cert', 'rebuild',
   // `lolly read --media=<dir>`: the folder the pictures are written to (plan 291 W2).
   'media',
   // `lolly check --file=<tokens.json>`: the design system to check against (plan 291 W1).
@@ -156,7 +156,7 @@ export function toolCompletionWords(toolIds: readonly string[]): Record<string, 
 
 const CONTEXT_COMMANDS: Record<string, string[]> = {
   projects: ['list', 'show', 'export', 'copy'], files: ['schema', 'convert'], models: ['ls', 'fetch'], learning: ['check', 'build'],
-  system: ['status', 'init', 'import', 'add', 'export', 'context', 'check', 'skills', 'skill', 'list', 'use', 'inspect', 'diff', 'generate', 'sync'],
+  system: ['status', 'init', 'import', 'add', 'export', 'publish', 'context', 'check', 'skills', 'skill', 'list', 'use', 'inspect', 'diff', 'generate', 'sync'],
 };
 
 /** Build the bare word lists a completion script needs, shared by all three shells. */

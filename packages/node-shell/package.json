@@ -34,6 +34,7 @@
     "./design-systems": "./src/design-systems.ts",
     "./design-brief": "./src/design-brief.ts",
     "./brand-skills": "./src/brand-skills.ts",
+    "./brand-page": "./src/brand-page.ts",
     "./token-report": "./src/token-report.ts",
     "./browsers": "./src/browsers.ts",
     "./transform-tool": "./src/transform-tool.ts",

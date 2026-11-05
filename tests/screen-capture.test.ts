@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.307.0', () => {
+test('ENGINE_VERSION is 1.308.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -581,7 +581,8 @@ test('ENGINE_VERSION is 1.307.0', () => {
   // 1.305.0 adds visual intent: VisualIntentV1 and the tool intents sidecar, resolved by the pure resolveIntent; capture is unchanged.
   // 1.306.0 records an intent in Content Credentials and reads the record back; capture is unchanged.
   // 1.307.0 adds the Bannerbear V5 template mapper; capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.307.0');
+  // 1.308.0 adds brand pages: buildBrandPage, DESIGN.md in and out, and the redistribution rule moved into the engine.
+  assert.equal(ENGINE_VERSION, '1.308.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

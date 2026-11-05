@@ -26,6 +26,7 @@ The machine-readable contracts a tool, an asset, a design-tokens document, a dec
 | `text-measure-v1.schema.json` | `https://lolly.tools/schemas/text-measure-v1.schema.json` | Where a plain Design text layer's lines break and how tall it is, before it is drawn: lines with their widths and a near-edge flag, the line box, `scrollHeight` and whether the box clips it (`lolly measure --text`, `lolly_measure_text`, the `text-measure` checker; plan 291 W5) |
 | `design-authoring-v1.schema.json` | `https://lolly.tools/schemas/design-authoring-v1.schema.json` | The `$` keys and layout macros an agent may write into Design rows (`$in` artboard coordinates, `$style` named text styles, `$points` and `$d` paths, `$stack`, `$grid` and `$table`), lowered to stored rows by the engine's `expandDesignAuthoring`; a row with no `$` key is a stored row (plan 291 W5) |
 | `design-compose-v1.schema.json` | `https://lolly.tools/schemas/design-compose-v1.schema.json` | A deck spec written as slide-master archetypes and slot content, the report composing it gives back (slots filled and dropped, furniture drawn, notes carried) and the compact archetype catalogue an agent picks from (`lolly compose`, `lolly_compose`, the engine's `composeDesignSlides`; plan 291 W6) |
+| `brand-page-v1.schema.json` | `https://lolly.tools/schemas/brand-page-v1.schema.json` | A brand page's `brand.json`: every file with its digest, what was held back and why, and a summary of what was checked |
 
 ## `tool.schema.json` is the authority
 
