@@ -1061,6 +1061,19 @@
         "notes": "Rational frame rates remain in the interchange model. Lolly clock conversion and unsupported effects are reported. No media path is fetched implicitly."
       }
     },
+    "engine/src/intent.ts": {
+      "family": "Lolly Design documents, links and agent requests",
+      "fuzzTargets": [
+        "intent"
+      ],
+      "details": {
+        "inputSource": "A visual intent written by a person or an agent, as JSON through the CLI or MCP.",
+        "bounds": "2 MiB serialised; prompt 2,000 characters, refused rather than cut; 200 characters of each free-text field; 32 surfaces; 64 content roles from a closed list; nesting depth 16; sizes up to 100,000 px",
+        "directTests": "`tests/intent.test.ts`, `tests/intent-cli.test.ts`, `services/mcp/test/intent.test.ts`",
+        "fuzzCoverage": "`intent` mutates a purpose request, a sized request and a prompt-only request, and serialises every answer.",
+        "notes": "Unknown keys, roles, purposes and surfaces are refused by name, and keys that could reach a prototype are refused at any depth. Nothing reads meaning from the prompt or the free text. No model in the path."
+      }
+    },
     "engine/src/captions-scc.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [

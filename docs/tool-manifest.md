@@ -208,6 +208,32 @@ A tool ships one gallery preview, but `examples` lets its tile show range: an ar
 
 The older alias `featured.variants` still renders but is deprecated. Write `examples`.
 
+## What a tool is for (`intents`)
+
+`intents` declares the purposes a tool serves, so someone can [start from what a piece has to do](/info/visual-intent.html) rather than from the tool's name. It is optional, and a tool without it is never chosen for a purpose. Declare a purpose only where the tool serves that purpose well. Render each declaration through `lolly intent --render` and look at the file: an input that reads plain text only sometimes, or falls back to a sample, passes every check here.
+
+```json
+"engineVersion": "^1.304.0",
+"intents": [
+  {
+    "purpose": "offer",
+    "needs": ["data", "recipient", "currency"],
+    "roles": { "data": "lines", "recipient": "customer" },
+    "set": { "number": "", "notes": "" }
+  }
+]
+```
+
+- `purpose` is one of the closed list on [that page](/info/visual-intent.html#the-three-things-you-say). One entry per purpose.
+- `needs` lists the roles the tool cannot serve the purpose without. A request missing one is answered with a gap, so the tool's sample content never replaces the missing value. List anything the reader would take as fact, such as the currency on a quote, because a default there reads as a claim.
+- `roles` maps a role to an input, where the input's id is not the role's own. An input called `heading` already takes the `heading` role. A role can only fill the input types it accepts, listed in the `roles` section of `schemas/canonical-inputs.json`.
+- `set` gives input values this purpose starts from. Use it to blank sample wording the caller did not supply, or a claim such as "Most popular", or to pick a mode, as QR Code does with `"payload": "event"` for `invite`. Content in the request overrides these values.
+- `surfaces` maps a named surface to the input values that draw it, for what the tool's own options cannot say. Deck Studio uses this because its `size` options state a shape but no pixels. An empty object means the tool lays itself out at that size.
+
+Most tools need no `surfaces` entry. A select option that states `width` and `height` answers for itself, and a tool that declares `render.followsCanvasSize` fits any size. A tool whose own size has the same shape as a surface fits that surface too.
+
+A tool declaring `intents` must state an `engineVersion` floor of at least `1.304.0`. An older engine refuses a key its schema has never heard of, and the floor turns that into a clear message about the version it needs. `validate:catalog` runs `checkToolIntents`, which catches what the schema cannot: a role or input that does not exist, a select value that is not on offer, an unknown surface, a repeated purpose and a required input no role can fill. Run `build:catalog:all` afterwards, because the catalog index carries the field.
+
 ## A short walkthrough (`guide`)
 
 Some tools are not finished when the render is. An email signature is finished when it is pasted into the mail app's settings, and nothing on the canvas shows that step. `guide` is a few steps for that last stretch. The shell shows them in a dialog behind a help button beside the tool's name, and opens the dialog once by itself the first time a device opens the tool.

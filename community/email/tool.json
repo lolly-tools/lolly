@@ -3,8 +3,8 @@
   "name": "Email",
   "description": "An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments, as received, a draft or sent. For mock-ups, slides and walkthroughs.",
   "a11yLabel": "Email: {{default heading \"a message\"}}",
-  "version": "1.0.0",
-  "engineVersion": "^1.82.0",
+  "version": "1.0.1",
+  "engineVersion": "^1.304.0",
   "status": "community",
   "category": "everyone",
   "tags": ["email", "mail", "message", "inbox", "mock-up", "sales", "outreach"],
@@ -16,6 +16,24 @@
     "sectionIcons": { "Style": "palette" }
   },
   "hooks": { "onInit": true, "onInput": true },
+  "intents": [
+    {
+      "purpose": "demonstrate",
+      "needs": [
+        "sender",
+        "recipient",
+        "heading",
+        "body"
+      ],
+      "roles": {
+        "sender": "from",
+        "recipient": "to"
+      },
+      "set": {
+        "sentAt": ""
+      }
+    }
+  ],
   "inputs": [
     { "id": "from", "label": "From", "type": "text", "default": "Alex Morgan <alex@example.com>", "maxLength": 120, "help": "A name, an address, or both as Name <address>." },
     { "id": "to", "label": "To", "type": "text", "default": "Sam Lee <sam@example.org>", "maxLength": 300, "help": "One or more, separated by commas." },

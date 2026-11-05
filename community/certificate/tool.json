@@ -3,8 +3,8 @@
   "name": "Certificate",
   "description": "Completion and award certificates in the active design system and its colourway: four styles, print and social sizes, and motion for sharing - one name at a time, or a whole roster from a CSV in Bulk from rows.",
   "a11yLabel": "{{default titleText \"Certificate\"}} for {{default recipientName \"a recipient\"}}",
-  "version": "1.2.1",
-  "engineVersion": "^1.293.0",
+  "version": "1.2.2",
+  "engineVersion": "^1.304.0",
   "status": "community",
   "category": "everyone",
   "tags": [
@@ -121,6 +121,22 @@
       "duration": 6
     }
   },
+  "intents": [
+    {
+      "purpose": "recognise",
+      "needs": [
+        "firstname",
+        "awardtopic"
+      ],
+      "set": {
+        "lastname": "",
+        "awarddate": "",
+        "presenter": "",
+        "presenterTitle": "",
+        "company": ""
+      }
+    }
+  ],
   "inputs": [
     {
       "id": "certKind",

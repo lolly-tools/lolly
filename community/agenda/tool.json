@@ -3,8 +3,8 @@
   "name": "Agenda",
   "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} sessions, {{trackCount}} tracks",
-  "version": "1.4.0",
-  "engineVersion": "^1.216.0",
+  "version": "1.4.1",
+  "engineVersion": "^1.304.0",
   "status": "community",
   "category": "event",
   "tags": [
@@ -80,6 +80,23 @@
     "onInput": true,
     "beforeExport": true
   },
+  "intents": [
+    {
+      "purpose": "schedule",
+      "needs": [
+        "data"
+      ],
+      "roles": {
+        "heading": "title",
+        "subheading": "subtitle",
+        "data": "sessions"
+      },
+      "set": {
+        "title": "",
+        "subtitle": ""
+      }
+    }
+  ],
   "inputs": [
     {
       "id": "title",

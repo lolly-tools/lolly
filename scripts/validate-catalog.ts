@@ -78,6 +78,7 @@ import { entryFromManifest, slimEntry } from './build-catalog-index.ts';
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.ts';
 import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.ts';
+import { checkToolIntents } from '../engine/src/intent.ts';
 // The head-vs-version asset rule and the reserved head slug (plans/97 section 6a). Imported
 // rather than re-stated: if the validator's idea of "this is a version asset" drifts
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
@@ -292,6 +293,11 @@ for (const dir of toolDirs) {
     // An allowlisted alias is recorded, not repeated on every run; the ratchet
     // is that a new one cannot ship.
     if (!CANONICAL_ALIASES.allow.includes(key)) errors.push(msg);
+  }
+  // What the schema cannot say about `intents`: roles and inputs that exist and fit,
+  // surfaces that are named, select values on offer, one entry per purpose, the engine floor.
+  for (const issue of checkToolIntents(manifest)) {
+    errors.push(`[${dir}] ${issue.path}: ${issue.message}`);
   }
   if (manifest.render?.portable && !toolFile(dir, 'presentation.js')) {
     errors.push(`[${dir}] declares a portable presentation but has no presentation.js`);

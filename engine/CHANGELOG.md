@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.304.0
+
+- Visual intent (new module `intent.ts`): `resolveIntent` takes what a piece has to do (`VisualIntentV1` in `@lolly-tools/core/intent-v1`) and the tools a caller may consider, and answers with `IntentResolutionV1`: for each surface the chosen tool, its input values, gaps, unused content, candidates with reasons and refusals with reasons. Pure and deterministic, with no model in the path. A request with a `prompt` and no `purpose` is answered `purpose-needed`, carrying the purposes and tools so the calling agent can choose: the prompt is carried and digested and never read. `parseVisualIntent` refuses with stable codes, and `checkToolIntents` is the catalog validator's rule set.
+- Manifest `intents[]` (additive): the purposes a tool serves, the roles it needs, role to input mapping, input values a purpose starts from and surfaces its sized options cannot already state. A tool declaring it states an `engineVersion` floor of at least 1.304.0. Nothing is written into output bytes.
+
 ## 1.303.0
 
 - Text-keeping PDF redaction: `host.pdf.redact` takes optional `keepText` (`PdfRedactOpts`) and reports `mode` (`PdfRedactResult`). The shell removes the glyphs, picture pixels and drawings under each box, keeps the rest of the page as text, then re-reads the result with Lolly's own reader and refuses it when anything is left under a box or cannot be checked. Flattening stays the default.

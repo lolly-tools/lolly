@@ -51,6 +51,16 @@ One precedent in the tree supports the first rule. `schemas/tool.schema.json` ma
 
 The second rule has a measured cause. `HOOK_BUDGET_MS` in `engine/src/runtime.ts` races an async hook against its budget, and the comment records what the race does not do: the hook's own code keeps executing after the wait is abandoned, because there is no preemption inside the JavaScript realm it runs in. A grant that outlives the attempt would therefore let abandoned code commit an effect for a run that already terminated.
 
+## Visual intent, an amendment of 2026-11-05
+
+Invariant 1 of the [constitution](constitution.html) asks the source to record meaning, parameters and permitted changes rather than renderer internals. A visual intent applies that invariant one step before a document exists: a caller states what a piece has to do for its reader, where it will be seen and what it has to say, and evaluation chooses the definition and the instance. This amendment records the first slice, which is built and shipped ahead of the rest of this draft. It freezes no record of this model.
+
+`VisualIntentV1` and `IntentResolutionV1` live in `packages/core/src/intent-v1.ts`, and `resolveIntent` in `engine/src/intent.ts` is pure and takes the tools it may consider. It belongs to steps 2 and 3 of the pipeline. It selects the tool and the output target for each surface and negotiates support, and it refuses at the operation boundary. It runs no document code: like step 1, it answers from declarations alone. A host may filter the tools by effective policy before calling, so the choice can never reach a tool the caller may not use.
+
+A resolution keeps three kinds of value apart, because they are treated differently wherever they are stored. Closed values are vocabulary and repository facts: purpose, surface, language, chosen tool and rules version. Free text is what a caller wrote about the circumstances: occasion, audience and region. The prompt is what a user first said to an agent. Nothing that decides reads the free text or the prompt, so neither can change a choice. A request that gives a prompt and no purpose is answered with the code `intent.purpose-needed` and the vocabulary, so the agent that can read its own user's words chooses the purpose, and no model enters this path.
+
+This slice writes nothing into an output and adds no field to a receipt. It chooses among tools, not layouts, so locale contracts, adaptive layout and the campaign resolution of plan 338 remain unbuilt, and it does not read the result to check the choice. Its rules carry their own version, `closed.rulesVersion`, and a later rule change must bump that version.
+
 ## Recording is three axes
 
 Rendering, reconstruction, capture and retention are independent properties (D11). A run declares three axes together, and replay is the one that answers for reconstruction.

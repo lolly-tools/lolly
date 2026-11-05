@@ -2,8 +2,8 @@
   "id": "stationery",
   "name": "Stationery",
   "description": "Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, ready as a print PDF.",
-  "version": "1.0.3",
-  "engineVersion": "^1.0.0",
+  "version": "1.0.4",
+  "engineVersion": "^1.304.0",
   "status": "community",
   "category": "everyone",
   "tags": [
@@ -32,6 +32,25 @@
     "onInit": true,
     "onInput": true
   },
+  "intents": [
+    {
+      "purpose": "identify",
+      "needs": [
+        "firstname"
+      ],
+      "set": {
+        "lastname": "",
+        "jobTitle": "",
+        "email": "",
+        "phone": "",
+        "company": "",
+        "url": "",
+        "address": "",
+        "tagline": "",
+        "body": ""
+      }
+    }
+  ],
   "inputs": [
     {
       "id": "brandLogo",

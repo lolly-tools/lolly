@@ -36,6 +36,7 @@ import { callCheck, checkToolDef, type CheckDesignResolver } from './check.ts';
 import { MEASURE_TEXT_TOOL_DEF, callMeasureText } from './measure-text.ts';
 import { TOKEN_INSPECT_TOOL_DEF, callInspectTokens } from './token-inspect.ts';
 import { COMPOSE_TOOL_DEF, callCompose } from './compose.ts';
+import { RESOLVE_INTENT_TOOL_DEF, callResolveIntent } from './intent.ts';
 import { callPackage, packageToolDef } from './package.ts';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { RESULT_LINK_THRESHOLD, type HoldResult } from './result-files.ts';
@@ -460,6 +461,7 @@ export const TOOL_DEFS: McpToolDef[] = [
   MEASURE_TEXT_TOOL_DEF,
   COMPOSE_TOOL_DEF,
   TOKEN_INSPECT_TOOL_DEF,
+  RESOLVE_INTENT_TOOL_DEF,
   {
     name: 'lolly_redact',
     description:
@@ -1183,6 +1185,9 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
 
       case 'lolly_compose':
         return await callCompose(args);
+
+      case 'lolly_resolve_intent':
+        return await callResolveIntent(args);
 
       case 'lolly_look':
       case 'lolly_sample_color':

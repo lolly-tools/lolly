@@ -3,8 +3,8 @@
   "name": "Brief",
   "description": "A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.",
   "a11yLabel": "Brief: {{default heading \"a one-page brief\"}}",
-  "version": "1.0.0",
-  "engineVersion": "^1.82.0",
+  "version": "1.0.1",
+  "engineVersion": "^1.304.0",
   "status": "community",
   "category": "everyone",
   "tags": ["brief", "one-pager", "account", "research", "markdown", "sales", "summary", "pdf"],
@@ -16,6 +16,20 @@
     "sectionIcons": { "Style": "palette" }
   },
   "hooks": { "onInit": true, "onInput": true },
+  "intents": [
+    {
+      "purpose": "explain",
+      "needs": [
+        "body"
+      ]
+    },
+    {
+      "purpose": "report",
+      "needs": [
+        "body"
+      ]
+    }
+  ],
   "inputs": [
     {
       "id": "body",

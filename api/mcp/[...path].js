@@ -117,6 +117,67 @@ var init_tool_schema = __esm({
           pattern: "^[a-z0-9][a-z0-9-]*$",
           description: "Optional design-system version this tool renders against (plans/97 section 6a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
         },
+        intents: {
+          type: "array",
+          minItems: 1,
+          maxItems: 13,
+          description: "The purposes this tool serves, read by the engine's resolveIntent when a caller states what a piece has to do. Curate these: declare a purpose only where the tool serves it well. A tool declaring intents states an engineVersion floor of at least 1.304.0, because an older schema refuses this key. See docs/tool-manifest.md.",
+          items: {
+            type: "object",
+            required: [
+              "purpose"
+            ],
+            additionalProperties: false,
+            properties: {
+              purpose: {
+                type: "string",
+                enum: [
+                  "announce",
+                  "compare",
+                  "demonstrate",
+                  "direct",
+                  "explain",
+                  "identify",
+                  "invite",
+                  "offer",
+                  "present",
+                  "promote",
+                  "recognise",
+                  "report",
+                  "schedule"
+                ],
+                description: "What a piece made with this tool does for its reader. Closed vocabulary, INTENT_PURPOSES in packages/core/src/intent-v1.ts."
+              },
+              needs: {
+                type: "array",
+                uniqueItems: true,
+                maxItems: 16,
+                items: {
+                  type: "string"
+                },
+                description: "Roles the tool cannot serve this purpose without. A request missing one is answered with a gap, never with the tool's sample content."
+              },
+              roles: {
+                type: "object",
+                additionalProperties: {
+                  type: "string"
+                },
+                description: "Role to input id, where the input's own id is not the role's. Roles are the `roles` section of schemas/canonical-inputs.json. An input whose id is a role needs no entry."
+              },
+              set: {
+                type: "object",
+                description: "Input values this purpose starts from, such as blanking the tool's sample wording. Content given in the request overrides them."
+              },
+              surfaces: {
+                type: "object",
+                additionalProperties: {
+                  type: "object"
+                },
+                description: "Named surface to the input values that draw it, for what the tool's sized select options cannot already say. An empty object means the tool lays itself out at that size. A select option carrying width and height needs no entry."
+              }
+            }
+          }
+        },
         tokenAxes: {
           type: "object",
           additionalProperties: false,
@@ -4099,7 +4160,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.303.0";
+    ENGINE_VERSION = "1.304.0";
   }
 });
 
@@ -8525,15 +8586,15 @@ function assertFileOperationReport(value2) {
   if (report4.state === "succeeded" && !report4.outputs.length) throw new Error("A successful file report needs an output.");
   if (["failed", "cancelled"].includes(report4.state) && report4.outputs.length) throw new Error("An unsuccessful single operation cannot claim outputs.");
 }
-async function executeFileOperationV1(input, request2, adapter, context = {}) {
-  assertFileOperationRequest(request2);
-  const report4 = { version: 1, operation: request2.operation, state: "failed", inputs: [], outputs: [], options: { ...request2.options, target: request2.target }, changes: [], findings: [], metadata: "not-checked", execution: context.execution ?? "device" };
+async function executeFileOperationV1(input, request3, adapter, context = {}) {
+  assertFileOperationRequest(request3);
+  const report4 = { version: 1, operation: request3.operation, state: "failed", inputs: [], outputs: [], options: { ...request3.options, target: request3.target }, changes: [], findings: [], metadata: "not-checked", execution: context.execution ?? "device" };
   try {
     context.signal?.throwIfAborted();
     const original = await adapter.describe(input, context.signal);
     report4.inputs = [original];
-    Object.assign(report4, adapter.effects(original, request2));
-    const output = await adapter.execute(input, request2, context.signal);
+    Object.assign(report4, adapter.effects(original, request3));
+    const output = await adapter.execute(input, request3, context.signal);
     context.signal?.throwIfAborted();
     const produced = await adapter.describe(output, context.signal);
     context.signal?.throwIfAborted();
@@ -9536,6 +9597,115 @@ var init_design_package_v1 = __esm({
       "path.invalid",
       "export.failed"
     ];
+  }
+});
+
+// packages/core/src/intent-v1.ts
+var INTENT_RESOLUTION_FORMAT, INTENT_RESOLUTION_VERSION, VISUAL_INTENT_VERSION, INTENT_VOCABULARY_VERSION, INTENT_PURPOSES, INTENT_PURPOSE_MEANINGS, INTENT_ROLES, INTENT_SURFACE_UNITS, INTENT_SURFACES, INTENT_LIMITS, INTENT_FREE_TEXT_FIELDS, INTENT_FITS, INTENT_PURPOSE_NEEDED;
+var init_intent_v1 = __esm({
+  "packages/core/src/intent-v1.ts"() {
+    "use strict";
+    INTENT_RESOLUTION_FORMAT = "lolly-intent-resolution";
+    INTENT_RESOLUTION_VERSION = 1;
+    VISUAL_INTENT_VERSION = 1;
+    INTENT_VOCABULARY_VERSION = 1;
+    INTENT_PURPOSES = [
+      "announce",
+      "compare",
+      "demonstrate",
+      "direct",
+      "explain",
+      "identify",
+      "invite",
+      "offer",
+      "present",
+      "promote",
+      "recognise",
+      "report",
+      "schedule"
+    ];
+    INTENT_PURPOSE_MEANINGS = Object.freeze({
+      announce: "Tell people that something has happened or is about to.",
+      compare: "Set options, values or results side by side so a reader can weigh them.",
+      demonstrate: "Show how something looks or works, as a mock-up or a framed example.",
+      direct: "Send a reader somewhere: to a place, a room or a link.",
+      explain: "Help a reader understand a subject or a set of numbers.",
+      identify: "Say who someone is and how to reach them.",
+      invite: "Ask a reader to attend something and give them the time and place.",
+      offer: "Say what is on offer and what it costs.",
+      present: "Carry a talk or a meeting, slide by slide.",
+      promote: "Bring a reader to a page, a product or an idea.",
+      recognise: "Honour a person, an achievement or the people behind something.",
+      report: "State results or progress over a period.",
+      schedule: "Say when things happen."
+    });
+    INTENT_ROLES = Object.freeze({
+      address: ["text"],
+      awarddate: ["date"],
+      awardtopic: ["text"],
+      bgImage: ["asset"],
+      body: ["longtext", "text"],
+      company: ["text"],
+      cta: ["text"],
+      currency: ["select"],
+      data: ["longtext", "table", "blocks"],
+      email: ["text"],
+      eventEnd: ["datetime-local"],
+      eventLocation: ["text"],
+      eventName: ["text"],
+      eventStart: ["datetime-local"],
+      firstname: ["text"],
+      heading: ["text"],
+      headshot: ["asset"],
+      image: ["asset"],
+      jobTitle: ["text"],
+      lastname: ["text"],
+      phone: ["text"],
+      recipient: ["text"],
+      sender: ["text"],
+      sourceAuthor: ["text"],
+      subheading: ["text"],
+      url: ["url", "text"]
+    });
+    INTENT_SURFACE_UNITS = ["px", "mm", "cm", "in", "pt"];
+    INTENT_SURFACES = Object.freeze([
+      { id: "slide", width: 1920, height: 1080, unit: "px", medium: "screen" },
+      { id: "screen", width: 1600, height: 1e3, unit: "px", medium: "screen" },
+      { id: "social-landscape", width: 1200, height: 628, unit: "px", medium: "screen" },
+      { id: "social-square", width: 1080, height: 1080, unit: "px", medium: "screen" },
+      { id: "social-portrait", width: 1080, height: 1350, unit: "px", medium: "screen" },
+      { id: "story", width: 1080, height: 1920, unit: "px", medium: "screen" },
+      { id: "banner", width: 1200, height: 400, unit: "px", medium: "screen" },
+      { id: "a4-portrait", width: 210, height: 297, unit: "mm", medium: "print" },
+      { id: "a4-landscape", width: 297, height: 210, unit: "mm", medium: "print" },
+      { id: "a3-portrait", width: 297, height: 420, unit: "mm", medium: "print" },
+      { id: "a3-landscape", width: 420, height: 297, unit: "mm", medium: "print" },
+      { id: "a2-portrait", width: 420, height: 594, unit: "mm", medium: "print" },
+      { id: "a2-landscape", width: 594, height: 420, unit: "mm", medium: "print" },
+      { id: "a1-portrait", width: 594, height: 841, unit: "mm", medium: "print" },
+      { id: "letter-portrait", width: 8.5, height: 11, unit: "in", medium: "print" },
+      { id: "letter-landscape", width: 11, height: 8.5, unit: "in", medium: "print" },
+      { id: "business-card", width: 85, height: 55, unit: "mm", medium: "print" }
+    ]);
+    INTENT_LIMITS = Object.freeze({
+      /** UTF-16 units in `prompt`. Enough for a request typed at an agent, not for a brief. */
+      promptChars: 2e3,
+      /** UTF-16 units in each of occasion, audience and region. */
+      freeTextChars: 200,
+      /** Entries in `surfaces`. */
+      surfaces: 32,
+      /** Keys in `content`. The vocabulary is smaller; this bounds what is read before refusing the rest. */
+      contentKeys: 64,
+      /** Nesting depth of a content value. */
+      depth: 16,
+      /** UTF-16 units of the whole request once serialised. */
+      totalChars: 2 * 1024 * 1024,
+      /** Pixels on one side of a sized surface, and its equal in other units once converted. */
+      sidePx: 1e5
+    });
+    INTENT_FREE_TEXT_FIELDS = ["occasion", "audience", "region"];
+    INTENT_FITS = ["declared", "option", "follows", "natural"];
+    INTENT_PURPOSE_NEEDED = "intent.purpose-needed";
   }
 });
 
@@ -42374,16 +42544,16 @@ var init_captions_scc = __esm({
 });
 
 // engine/src/emoji-resolve.ts
-function resolveEmoji(request2, style, packs) {
+function resolveEmoji(request3, style, packs) {
   let meaning;
-  if (request2?.kind === "unicode" && typeof request2.text === "string") {
-    if (!emojiSequenceKey(request2.text) || ![void 0, "auto", "emoji"].includes(request2.presentation)) return { status: "unresolved", issue: { code: "invalid-request", message: "Emoji input must be one bounded Unicode sequence." } };
-    if (usesTextPresentation(request2.text, request2.presentation)) return { status: "text", text: request2.text };
-    const sequence = lookupEmojiSequence(request2.text);
+  if (request3?.kind === "unicode" && typeof request3.text === "string") {
+    if (!emojiSequenceKey(request3.text) || ![void 0, "auto", "emoji"].includes(request3.presentation)) return { status: "unresolved", issue: { code: "invalid-request", message: "Emoji input must be one bounded Unicode sequence." } };
+    if (usesTextPresentation(request3.text, request3.presentation)) return { status: "text", text: request3.text };
+    const sequence = lookupEmojiSequence(request3.text);
     if (!sequence) return { status: "unresolved", issue: { code: "unsupported-sequence", message: "This complete sequence is not in the pinned emoji data." } };
     meaning = { kind: "unicode", key: sequence.key };
-  } else if (request2?.kind === "custom" && typeof request2.id === "string" && request2.id.length <= 512 && /^[a-z0-9][a-z0-9-]*(\/[a-z0-9][a-z0-9-]*)+$/.test(request2.id) && typeof request2.label === "string" && request2.label.trim().length > 0 && request2.label.length <= 4096) {
-    meaning = { kind: "custom", id: request2.id };
+  } else if (request3?.kind === "custom" && typeof request3.id === "string" && request3.id.length <= 512 && /^[a-z0-9][a-z0-9-]*(\/[a-z0-9][a-z0-9-]*)+$/.test(request3.id) && typeof request3.label === "string" && request3.label.trim().length > 0 && request3.label.length <= 4096) {
+    meaning = { kind: "custom", id: request3.id };
   } else return { status: "unresolved", issue: { code: "invalid-request", message: "Emoji input requires a Unicode sequence or a labelled custom symbol." } };
   if (style == null) return { status: "unresolved", issue: { code: "selection-required", message: "Choose an emoji set for this content." } };
   const invalid4 = validateEmojiStyle(style);
@@ -42394,7 +42564,7 @@ function resolveEmoji(request2, style, packs) {
     if (!pack) return { status: "unresolved", issue: { code: "pack-unavailable", message: "Restore the exact saved emoji set before resolving this content.", packId: pin.id } };
     const entry2 = findEmojiGlyph(pack, meaning);
     if (entry2) return { status: "resolved", value: {
-      request: structuredClone(request2),
+      request: structuredClone(request3),
       meaning,
       pack: structuredClone(pin),
       ...entry2,
@@ -42445,16 +42615,16 @@ async function prepareEmojiText(text13, style, packs, io, options2 = {}) {
       segments.push({ kind: "unresolved", text: span.text, reason: "unsupported-sequence" });
       continue;
     }
-    const resolution = resolveEmoji({ kind: "unicode", text: span.text }, style ?? null, packs);
-    if (resolution.status === "text") {
-      pushText(resolution.text);
+    const resolution2 = resolveEmoji({ kind: "unicode", text: span.text }, style ?? null, packs);
+    if (resolution2.status === "text") {
+      pushText(resolution2.text);
       continue;
     }
-    if (resolution.status === "unresolved") {
-      segments.push({ kind: "unresolved", text: span.text, reason: resolution.issue.code });
+    if (resolution2.status === "unresolved") {
+      segments.push({ kind: "unresolved", text: span.text, reason: resolution2.issue.code });
       continue;
     }
-    const value2 = resolution.value;
+    const value2 = resolution2.value;
     const record46 = await artworkFor(value2, treatment, packs, io, cache5);
     if ("reason" in record46) {
       segments.push({ kind: "unresolved", text: span.text, label: value2.glyph.label, reason: record46.reason });
@@ -42561,8 +42731,8 @@ function textInk(markup, color6) {
     return tag3;
   });
 }
-async function prepareParagraphEmoji(request2, style, packs, io, cache5) {
-  const doc = parseTextDocument(request2.document), story = doc.stories.find((story2) => story2.id === request2.storyId);
+async function prepareParagraphEmoji(request3, style, packs, io, cache5) {
+  const doc = parseTextDocument(request3.document), story = doc.stories.find((story2) => story2.id === request3.storyId);
   if (!story) throw new TextSourceError("story-missing", "The requested text story is missing.");
   const prepared3 = await prepareEmojiText(story.source, style, packs, io, { cache: cache5, prefix: "composed" }), styles = textStyleResolver(doc), artwork = [];
   const diagnostics = [];
@@ -42592,7 +42762,7 @@ async function prepareParagraphEmoji(request2, style, packs, io, cache5) {
     }
     offset += segment2.text.length;
   }
-  return { request: { ...request2, document: doc, artwork: [...request2.artwork ?? [], ...artwork] }, census: [...prepared3.census, ...story.inlines.flatMap((inline) => (inline.emojiSources ?? []).map((source) => ({ ...source, occurrences: [{ start: inline.offset, end: inline.offset + 1 }] })))], diagnostics, story };
+  return { request: { ...request3, document: doc, artwork: [...request3.artwork ?? [], ...artwork] }, census: [...prepared3.census, ...story.inlines.flatMap((inline) => (inline.emojiSources ?? []).map((source) => ({ ...source, occurrences: [{ start: inline.offset, end: inline.offset + 1 }] })))], diagnostics, story };
 }
 var init_text_emoji = __esm({
   "engine/src/text-emoji.ts"() {
@@ -43708,11 +43878,11 @@ function createEmojiToolText(api, text13, selected) {
     return bytes2;
   }, parseXml: api.parseXml };
   return {
-    async layoutRuns(request2) {
+    async layoutRuns(request3) {
       used = true;
       if (!text13?.layoutRuns) throw new Error("This engine cannot compose text paragraphs.");
       const style = selected(), { prepareParagraphEmoji: prepareParagraphEmoji2 } = await Promise.resolve().then(() => (init_text_emoji(), text_emoji_exports));
-      const prepared3 = await prepareParagraphEmoji2(request2, style, await packsFor(style), io, artwork);
+      const prepared3 = await prepareParagraphEmoji2(request3, style, await packsFor(style), io, artwork);
       const layout2 = await text13.layoutRuns(prepared3.request);
       layout2.diagnostics.push(...prepared3.diagnostics);
       const key2 = await sha256Hex(new TextEncoder().encode(JSON.stringify([prepared3.story, style])));
@@ -44078,8 +44248,8 @@ __export(text_layout_cache_exports, {
   createTextLayoutCache: () => createTextLayoutCache,
   textLayoutKey: () => textLayoutKey
 });
-function textLayoutKey(request2) {
-  return JSON.stringify([request2.document, request2.storyId, (request2.document.stories.find((story) => story.id === request2.storyId)?.frameIds ?? []).map((id3) => request2.frames.find((frame) => frame.id === id3)).map((frame) => frame ? textFrameKey(frame) : null), request2.artwork ?? [], request2.wrap ?? null]);
+function textLayoutKey(request3) {
+  return JSON.stringify([request3.document, request3.storyId, (request3.document.stories.find((story) => story.id === request3.storyId)?.frameIds ?? []).map((id3) => request3.frames.find((frame) => frame.id === id3)).map((frame) => frame ? textFrameKey(frame) : null), request3.artwork ?? [], request3.wrap ?? null]);
 }
 function createTextLayoutCache() {
   const entries = /* @__PURE__ */ new Map();
@@ -44103,8 +44273,8 @@ function createTextLayoutCache() {
       entries.set(id3, { receipt, bytes: size });
       bytes2 += size;
     },
-    peek(request2, dependency) {
-      const entry2 = entries.get(JSON.stringify([textLayoutKey(request2), dependency]));
+    peek(request3, dependency) {
+      const entry2 = entries.get(JSON.stringify([textLayoutKey(request3), dependency]));
       return entry2 ? JSON.parse(entry2.receipt) : null;
     }
   };
@@ -53667,14 +53837,14 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     renderText: async (value2) => (await toolEmojiService()).renderText(value2),
     renderSvg: async (value2) => (await toolEmojiService()).renderSvg(value2)
   } };
-  if (textApi?.layoutRuns && emojiApi) host = { ...host, text: { ...textApi, layoutRuns: async (request2) => (await toolEmojiService()).layoutRuns(request2) } };
+  if (textApi?.layoutRuns && emojiApi) host = { ...host, text: { ...textApi, layoutRuns: async (request3) => (await toolEmojiService()).layoutRuns(request3) } };
   let textLayoutCache;
   const scopedLayout = host.text?.layoutRuns;
-  if (scopedLayout) host = { ...host, text: { ...host.text, layoutRuns: async (request2) => {
+  if (scopedLayout) host = { ...host, text: { ...host.text, layoutRuns: async (request3) => {
     const cache5 = await Promise.resolve().then(() => (init_text_layout_cache(), text_layout_cache_exports));
     textLayoutCache ??= cache5.createTextLayoutCache();
-    const key2 = cache5.textLayoutKey(request2), dependency = JSON.stringify(emojiStyle);
-    const result = await scopedLayout(request2);
+    const key2 = cache5.textLayoutKey(request3), dependency = JSON.stringify(emojiStyle);
+    const result = await scopedLayout(request3);
     textLayoutCache.remember(key2, dependency, result);
     return result;
   } } };
@@ -54234,11 +54404,11 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     },
     emojiIngredients: () => emojiSourceIngredients(emojiCensus2),
     emojiCredits: () => emojiCreditsText(emojiCensus2),
-    async layoutText(request2) {
+    async layoutText(request3) {
       if (!host.text?.layoutRuns) throw new Error("This host cannot compose text paragraphs.");
-      return host.text.layoutRuns(request2);
+      return host.text.layoutRuns(request3);
     },
-    peekTextLayout: (request2) => textLayoutCache?.peek(request2, JSON.stringify(emojiStyle)) ?? null,
+    peekTextLayout: (request3) => textLayoutCache?.peek(request3, JSON.stringify(emojiStyle)) ?? null,
     rights: (context) => evaluateRights(emojiCensus2, context).evaluation,
     setRightsDecision(decision2) {
       rightsChoices = [
@@ -57903,20 +58073,20 @@ var init_zip = __esm({
 function isJxl(bytes2) {
   return bytes2[0] === 255 && bytes2[1] === 10 || bytes2.length >= 12 && [0, 0, 0, 12, 74, 88, 76, 32, 13, 10, 135, 10].every((v, i) => bytes2[i] === v);
 }
-function validateJxlRequest(request2) {
-  if (!(request2.bytes instanceof Uint8Array) || !request2.bytes.length || request2.bytes.length > JXL_LIMITS.inputBytes) throw new Error("JPEG XL operations accept nonempty inputs up to 128 MiB.");
-  if (request2.operation === "encode") {
-    const { width, height, options: options2 = {}, sample = 0, orientation = 1 } = request2;
+function validateJxlRequest(request3) {
+  if (!(request3.bytes instanceof Uint8Array) || !request3.bytes.length || request3.bytes.length > JXL_LIMITS.inputBytes) throw new Error("JPEG XL operations accept nonempty inputs up to 128 MiB.");
+  if (request3.operation === "encode") {
+    const { width, height, options: options2 = {}, sample = 0, orientation = 1 } = request3;
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > JXL_LIMITS.edge || height > JXL_LIMITS.edge || width * height > JXL_LIMITS.encodePixels) throw new Error("JPEG XL encoding is limited to 8 megapixels and 16384 pixels per edge.");
-    if (![0, 1, 2, 3].includes(sample) || request2.bytes.length !== width * height * 4 * (sample === 3 ? 2 : 2 ** sample)) throw new Error("JPEG XL pixels do not match the declared sample type and dimensions.");
+    if (![0, 1, 2, 3].includes(sample) || request3.bytes.length !== width * height * 4 * (sample === 3 ? 2 : 2 ** sample)) throw new Error("JPEG XL pixels do not match the declared sample type and dimensions.");
     if (!Number.isInteger(orientation) || orientation < 1 || orientation > 8) throw new Error("Invalid JPEG XL orientation.");
     if (options2.lossless !== void 0 && typeof options2.lossless !== "boolean") throw new Error("JPEG XL lossless must be a boolean.");
     if (!Number.isFinite(options2.quality ?? 0.9) || (options2.quality ?? 0.9) < 0.1 || (options2.quality ?? 0.9) > 1) throw new Error("JPEG XL quality must be between 0.1 and 1.");
     checkEffort(options2.effort);
-  } else if (request2.operation === "recompress") {
-    if (request2.bytes[0] !== 255 || request2.bytes[1] !== 216) throw new Error("Reversible compression requires original JPEG bytes.");
-    checkEffort(request2.effort);
-  } else if (!["probe", "decode", "decode16", "decodeFloat", "restore"].includes(request2.operation) || !isJxl(request2.bytes)) throw new Error("These bytes are not a supported JPEG XL input.");
+  } else if (request3.operation === "recompress") {
+    if (request3.bytes[0] !== 255 || request3.bytes[1] !== 216) throw new Error("Reversible compression requires original JPEG bytes.");
+    checkEffort(request3.effort);
+  } else if (!["probe", "decode", "decode16", "decodeFloat", "restore"].includes(request3.operation) || !isJxl(request3.bytes)) throw new Error("These bytes are not a supported JPEG XL input.");
 }
 function checkEffort(effort = 5) {
   if (!Number.isInteger(effort) || effort < 1 || effort > 7) throw new Error("JPEG XL effort must be between 1 and 7.");
@@ -76162,8 +76332,8 @@ function printSheet(req, size) {
   if (!(bleedPt > 0) && !Object.values(marks).some(Boolean)) return null;
   return computePrintGeometry({ trimWpt: toPoints(size.width), trimHpt: toPoints(size.height), bleedPt, marks }).page;
 }
-function compareExport(request2, facts2) {
-  const req = request2 && typeof request2 === "object" ? request2 : { format: "" };
+function compareExport(request3, facts2) {
+  const req = request3 && typeof request3 === "object" ? request3 : { format: "" };
   const c = { req, fmt: typeof req.format === "string" ? req.format.toLowerCase() : "", facts: facts2, checks: [], findings: [] };
   for (const [id3, run3] of CHECKS2) {
     const checksAt = c.checks.length, findingsAt = c.findings.length;
@@ -76193,10 +76363,10 @@ function echo(req) {
   if (req.alpha === "transparent" || req.alpha === "opaque") out.alpha = req.alpha;
   return out;
 }
-async function verifyExport(request2, bytes2, readers = {}) {
+async function verifyExport(request3, bytes2, readers = {}) {
   const input = bytes2 instanceof Uint8Array ? bytes2 : new Uint8Array(0);
   const facts2 = inspectOutput(input);
-  const { checks, findings } = compareExport(request2, facts2);
+  const { checks, findings } = compareExport(request3, facts2);
   const extraStatements = [];
   let pdfAccessibility;
   if (readers.pdfAccessibility && facts2.container === "pdf") {
@@ -76224,7 +76394,7 @@ async function verifyExport(request2, bytes2, readers = {}) {
     formatVersion: 1,
     engine: ENGINE_VERSION,
     output: { sha256: await sha256Hex(input), bytes: input.length, container: facts2.container },
-    requested: echo(request2 && typeof request2 === "object" ? request2 : { format: "" }),
+    requested: echo(request3 && typeof request3 === "object" ? request3 : { format: "" }),
     checks,
     findings,
     gaps: findings.filter((f) => !!f.needs),
@@ -97896,11 +98066,11 @@ function requestedCodePoints(text13) {
   }
   return [...seen].sort((a, b) => a - b);
 }
-async function subsetFontForText(bytes2, request2, runner) {
+async function subsetFontForText(bytes2, request3, runner) {
   const source = parse(bytes2);
   const refusal3 = source.inspection.subsetRefusal;
   if (refusal3) throw fontError(refusal3, FONT_SUBSET_REFUSALS[refusal3]);
-  const requested = requestedCodePoints(typeof request2?.text === "string" ? request2.text : "");
+  const requested = requestedCodePoints(typeof request3?.text === "string" ? request3.text : "");
   const kept2 = [], missing = [];
   for (const cp of requested) {
     const gid = source.cmap.gid(cp);
@@ -97944,7 +98114,7 @@ async function subsetFontForText(bytes2, request2, runner) {
 function createFontsAPI(runner) {
   return {
     inspect: async (bytes2) => inspectFont(bytes2),
-    subset: (bytes2, request2) => subsetFontForText(bytes2, request2, runner)
+    subset: (bytes2, request3) => subsetFontForText(bytes2, request3, runner)
   };
 }
 var MAX_INSPECT_BYTES, MAX_TEXT_UNITS, MAX_MISSING_LISTED, MAX_NAME_CHARS, u166, i162, u326, fixed, inTable, EMPTY_CMAP, BLOCKS;
@@ -98453,17 +98623,17 @@ function recalcWorkbook(store, sheets, shared, system, calculate, index2, onlyMi
   const out = { cells: /* @__PURE__ */ new Map(), report: report4 };
   try {
     if (sheets.length === 0 || sheets.length > MAX_RECALC_SHEETS) throw new Error(sheets.length ? "The workbook has too many sheets to recalculate." : "The workbook lists no sheets.");
-    const request2 = { sheets: [], date1904: system === 1904 };
+    const request3 = { sheets: [], date1904: system === 1904 };
     const counts = { formulas: 0, kept: 0 };
     sheets.forEach((s, i) => {
       const xml3 = store.text(s.path);
       if (xml3 == null) throw new Error("A sheet is missing or too large to recalculate.");
-      request2.sheets.push({ name: s.name || `Sheet ${i + 1}`, cells: typedSheetCells(xml3, shared, counts, onlyMissing) });
+      request3.sheets.push({ name: s.name || `Sheet ${i + 1}`, cells: typedSheetCells(xml3, shared, counts, onlyMissing) });
     });
     report4.formulas = counts.formulas;
     report4.kept = counts.kept;
     if (counts.formulas === counts.kept) return out;
-    const answer = calculate(request2);
+    const answer = calculate(request3);
     const mine = answer?.sheets?.[index2]?.cells;
     if (!answer || !Array.isArray(answer.sheets) || answer.sheets.length !== sheets.length || !Array.isArray(mine)) throw new Error("The calculator returned a malformed answer.");
     for (const sheet of answer.sheets) for (const c of sheet.cells) if (c.bad !== void 0) report4.unparsed++;
@@ -99496,16 +99666,16 @@ function createCalcEngine(runner, source) {
     const answer = runner(operation, encoder5.encode(JSON.stringify(body)));
     return JSON.parse(decoder6.decode(answer));
   };
-  function evaluate(request2) {
-    if (!request2 || !Array.isArray(request2.sheets)) throw new Error("A calculation needs a list of sheets.");
-    const clock = checkClock(request2.clock ?? source());
-    const sheets = request2.sheets.map((sheet) => ({
+  function evaluate(request3) {
+    if (!request3 || !Array.isArray(request3.sheets)) throw new Error("A calculation needs a list of sheets.");
+    const clock = checkClock(request3.clock ?? source());
+    const sheets = request3.sheets.map((sheet) => ({
       name: sheet.name,
       cells: sheet.cells.map(({ legacy, ...cell2 }) => legacy === true ? { ...cell2, l: true } : cell2)
     }));
-    const wire = { now: clock.now, seed: clock.seed, date1904: request2.date1904 === true, sheets };
+    const wire = { now: clock.now, seed: clock.seed, date1904: request3.date1904 === true, sheets };
     const answer = call2(CALC_OP_EVALUATE, wire);
-    if (!Array.isArray(answer.sheets) || answer.sheets.length !== request2.sheets.length) throw new Error("The calculation module returned the wrong number of sheets.");
+    if (!Array.isArray(answer.sheets) || answer.sheets.length !== request3.sheets.length) throw new Error("The calculation module returned the wrong number of sheets.");
     for (const sheet of answer.sheets) {
       if (!Array.isArray(sheet.cells)) throw new Error("The calculation module returned a malformed sheet.");
       for (const cell2 of sheet.cells) {
@@ -99568,14 +99738,14 @@ function createCalcEngine(runner, source) {
 }
 function createCalcAPI(engine) {
   return {
-    evaluate: async (request2) => engine.evaluate(request2),
+    evaluate: async (request3) => engine.evaluate(request3),
     table: async (table, options2) => engine.table(table, options2),
     functions: async () => engine.functions()
   };
 }
 function xlsxRecalculator(engine) {
-  return (request2) => {
-    const result = engine.evaluate({ sheets: request2.sheets, date1904: request2.date1904 });
+  return (request3) => {
+    const result = engine.evaluate({ sheets: request3.sheets, date1904: request3.date1904 });
     return { sheets: result.sheets, volatile: result.volatile };
   };
 }
@@ -104475,6 +104645,618 @@ var init_gamut_tier = __esm({
   }
 });
 
+// engine/src/intent.ts
+function checkValue(value2, depth) {
+  if (depth > INTENT_LIMITS.depth) return "depth";
+  if (value2 === void 0 || value2 === null || typeof value2 === "string" || typeof value2 === "boolean") return null;
+  if (typeof value2 === "number") return Number.isFinite(value2) ? null : "type";
+  if (Array.isArray(value2)) {
+    for (const item2 of value2) {
+      const problem = checkValue(item2, depth + 1);
+      if (problem) return problem;
+    }
+    return null;
+  }
+  if (isRecord2(value2)) {
+    for (const key2 of Object.keys(value2)) {
+      if (UNSAFE_KEYS.has(key2)) return "key";
+      const problem = checkValue(value2[key2], depth + 1);
+      if (problem) return problem;
+    }
+    return null;
+  }
+  return "type";
+}
+function normaliseLanguage(raw) {
+  const parts = raw.trim().split("-");
+  if (!/^[A-Za-z]{2,3}$/.test(parts[0] ?? "")) return null;
+  if (parts.slice(1).some((part) => !/^[A-Za-z0-9]{1,8}$/.test(part))) return null;
+  return [parts[0].toLowerCase(), ...parts.slice(1)].join("-");
+}
+function parseSurface(raw, path, errors) {
+  const fail6 = (code, message) => {
+    errors.push({ code, path, message });
+    return null;
+  };
+  if (!isRecord2(raw)) return fail6("intent.surfaces-invalid", "A surface is an object with an id, or a width and a height.");
+  for (const key2 of Object.keys(raw)) {
+    if (!["id", "width", "height", "unit", "format"].includes(key2)) {
+      return fail6("intent.surfaces-invalid", `A surface does not take "${key2}".`);
+    }
+  }
+  const format = raw.format;
+  if (format !== void 0 && (typeof format !== "string" || !/^[a-z0-9-]{1,32}$/.test(format))) {
+    return fail6("intent.surfaces-invalid", "format is a lower-case format name.");
+  }
+  const withFormat = (surface) => typeof format === "string" ? { ...surface, format } : surface;
+  if (raw.id !== void 0) {
+    if (raw.width !== void 0 || raw.height !== void 0 || raw.unit !== void 0) {
+      return fail6("intent.surfaces-invalid", "A named surface carries its own size. Give an id or a size, not both.");
+    }
+    const spec = typeof raw.id === "string" ? SURFACES_BY_ID.get(raw.id) : void 0;
+    if (!spec) {
+      return fail6("intent.surface-unknown", `Unknown surface. Named surfaces: ${INTENT_SURFACES.map((s) => s.id).join(", ")}.`);
+    }
+    return withFormat({ ...spec, named: true });
+  }
+  const unit2 = raw.unit ?? "px";
+  if (!INTENT_SURFACE_UNITS.includes(unit2)) {
+    return fail6("intent.surfaces-invalid", `unit is one of ${INTENT_SURFACE_UNITS.join(", ")}.`);
+  }
+  const typedUnit = unit2;
+  const { width, height } = raw;
+  const maxSide = toMm(INTENT_LIMITS.sidePx, "px");
+  if (typeof width !== "number" || !Number.isFinite(width) || width <= 0 || toMm(width, typedUnit) > maxSide || typeof height !== "number" || !Number.isFinite(height) || height <= 0 || toMm(height, typedUnit) > maxSide) {
+    return fail6("intent.surfaces-invalid", "width and height are positive numbers within the size limit.");
+  }
+  const named = INTENT_SURFACES.find((s) => s.width === width && s.height === height && s.unit === typedUnit);
+  if (named) return withFormat({ ...named, named: true });
+  return withFormat({
+    id: `${width}x${height}${typedUnit}`,
+    named: false,
+    width,
+    height,
+    unit: typedUnit,
+    medium: typedUnit === "px" ? "screen" : "print"
+  });
+}
+function parseVisualIntent(value2) {
+  const errors = [];
+  const add3 = (code, path, message) => {
+    errors.push({ code, path, message });
+  };
+  if (!isRecord2(value2)) {
+    return { ok: false, errors: [{ code: "intent.not-object", path: "", message: "An intent is a JSON object." }] };
+  }
+  const safety = checkValue(value2, 0);
+  if (safety) {
+    const message = safety === "depth" ? `An intent nests at most ${INTENT_LIMITS.depth} levels.` : safety === "key" ? "An intent cannot use a key that names a prototype." : "An intent holds JSON values only.";
+    return { ok: false, errors: [{ code: "intent.content-invalid", path: "", message }] };
+  }
+  if (canonicalJson(value2).length > INTENT_LIMITS.totalChars) {
+    return { ok: false, errors: [{ code: "intent.too-large", path: "", message: `An intent is at most ${INTENT_LIMITS.totalChars} characters.` }] };
+  }
+  for (const key2 of Object.keys(value2)) {
+    if (!TOP_KEYS.has(key2)) add3("intent.unknown-key", `/${key2}`, `An intent does not take "${key2}".`);
+  }
+  if (value2.version !== VISUAL_INTENT_VERSION) add3("intent.version", "/version", `version is ${VISUAL_INTENT_VERSION}.`);
+  let prompt = null;
+  if (value2.prompt !== void 0) {
+    if (typeof value2.prompt !== "string" || !value2.prompt.trim()) {
+      add3("intent.prompt-invalid", "/prompt", "prompt is the user's words, as a string with something in it.");
+    } else if (value2.prompt.length > INTENT_LIMITS.promptChars) {
+      add3("intent.prompt-too-long", "/prompt", `prompt is at most ${INTENT_LIMITS.promptChars} characters and this one has ${value2.prompt.length}. It is refused rather than cut.`);
+    } else prompt = value2.prompt;
+  }
+  let purpose = null;
+  if (value2.purpose !== void 0) {
+    if (INTENT_PURPOSES.includes(value2.purpose)) purpose = value2.purpose;
+    else add3("intent.purpose-unknown", "/purpose", `Unknown purpose. Purposes: ${INTENT_PURPOSES.join(", ")}.`);
+  } else if (value2.prompt === void 0) {
+    add3("intent.purpose-or-prompt", "", "An intent needs a purpose, or a prompt for the calling agent to choose a purpose from.");
+  }
+  let recordPrompt = false;
+  if (value2.recordPrompt !== void 0) {
+    if (typeof value2.recordPrompt === "boolean") recordPrompt = value2.recordPrompt;
+    else add3("intent.record-prompt-invalid", "/recordPrompt", "recordPrompt is true or false.");
+  }
+  const freeText = {};
+  for (const field2 of INTENT_FREE_TEXT_FIELDS) {
+    const text13 = value2[field2];
+    if (text13 === void 0) continue;
+    if (typeof text13 !== "string" || text13.length > INTENT_LIMITS.freeTextChars) {
+      add3("intent.free-text-invalid", `/${field2}`, `${field2} is text of at most ${INTENT_LIMITS.freeTextChars} characters.`);
+    } else if (text13.trim()) freeText[field2] = text13;
+  }
+  let language = null;
+  if (value2.language !== void 0) {
+    language = typeof value2.language === "string" ? normaliseLanguage(value2.language) : null;
+    if (!language) add3("intent.language-invalid", "/language", "language is a short tag such as de or pt-BR.");
+  }
+  let preferToolId = null;
+  if (value2.prefer !== void 0) {
+    const prefer = value2.prefer;
+    if (!isRecord2(prefer) || typeof prefer.toolId !== "string" || Object.keys(prefer).length !== 1) {
+      add3("intent.prefer-invalid", "/prefer", 'prefer is { "toolId": "<id>" }.');
+    } else preferToolId = prefer.toolId;
+  }
+  const content2 = {};
+  if (value2.content !== void 0) {
+    if (!isRecord2(value2.content) || Object.keys(value2.content).length > INTENT_LIMITS.contentKeys) {
+      add3("intent.content-invalid", "/content", `content is an object of at most ${INTENT_LIMITS.contentKeys} roles.`);
+    } else {
+      for (const role of Object.keys(value2.content).sort(byString3)) {
+        if (!Object.hasOwn(INTENT_ROLES, role)) {
+          add3("intent.role-unknown", `/content/${role}`, `Unknown role. Roles: ${Object.keys(INTENT_ROLES).join(", ")}.`);
+          continue;
+        }
+        const item2 = value2.content[role];
+        if (item2 === void 0 || item2 === null) {
+          add3("intent.content-invalid", `/content/${role}`, "Leave out a role with no value.");
+          continue;
+        }
+        content2[role] = item2;
+      }
+    }
+  }
+  const surfaces = [];
+  if (value2.surfaces === void 0) {
+    if (purpose !== null) add3("intent.surfaces-required", "/surfaces", "An intent with a purpose names at least one surface.");
+  } else if (!Array.isArray(value2.surfaces) || value2.surfaces.length > INTENT_LIMITS.surfaces || value2.surfaces.length === 0 && purpose !== null) {
+    add3("intent.surfaces-invalid", "/surfaces", `surfaces is a list of 1 to ${INTENT_LIMITS.surfaces} surfaces.`);
+  } else {
+    const seen = /* @__PURE__ */ new Set();
+    value2.surfaces.forEach((raw, index2) => {
+      const path = `/surfaces/${index2}`;
+      const surface = parseSurface(raw, path, errors);
+      if (!surface) return;
+      const key2 = `${surface.id}|${surface.format ?? ""}`;
+      if (seen.has(key2)) add3("intent.surface-duplicate", path, `Surface "${surface.id}" is listed twice with the same format.`);
+      seen.add(key2);
+      surfaces.push(surface);
+    });
+  }
+  if (errors.length) return { ok: false, errors };
+  return {
+    ok: true,
+    intent: { version: VISUAL_INTENT_VERSION, purpose, prompt, recordPrompt, freeText, language, content: content2, surfaces, preferToolId }
+  };
+}
+function sizedOptions(tool) {
+  const found = [];
+  for (const input of tool.inputs ?? []) {
+    if (input.type !== "select") continue;
+    for (const option of input.options ?? []) {
+      if (!isRecord2(option)) continue;
+      const { width, height, unit: unit2, value: value2 } = option;
+      if (typeof width === "number" && typeof height === "number") {
+        found.push({ input: input.id, value: value2, width, height, unit: typeof unit2 === "string" ? unit2 : "px" });
+      }
+    }
+  }
+  return found;
+}
+function surfaceFit(tool, entry2, surface) {
+  const { width, height, unit: unit2 } = surface;
+  const own4 = { width, height, unit: unit2 };
+  if (surface.named && entry2.surfaces && Object.hasOwn(entry2.surfaces, surface.id)) {
+    return { fit: "declared", overlay: entry2.surfaces[surface.id] ?? {}, dims: own4, message: `The tool declares surface ${surface.id}.` };
+  }
+  const options2 = sizedOptions(tool);
+  const exact = options2.find((o) => sameSize(o.width, o.height, o.unit, width, height, unit2));
+  if (exact) {
+    return {
+      fit: "declared",
+      overlay: { [exact.input]: exact.value },
+      dims: { width: exact.width, height: exact.height, unit: exact.unit },
+      message: `The tool's ${exact.input} option ${String(exact.value)} is this size.`
+    };
+  }
+  const shaped = options2.find((o) => sameShape(o.width, o.height, width, height));
+  if (shaped) {
+    return {
+      fit: "option",
+      overlay: { [shaped.input]: shaped.value },
+      dims: own4,
+      message: `The tool's ${shaped.input} option ${String(shaped.value)} is this shape, and exports at this size.`
+    };
+  }
+  if (tool.render?.followsCanvasSize === true) {
+    return { fit: "follows", overlay: {}, dims: own4, message: "The tool lays itself out for the canvas size." };
+  }
+  const naturalWidth = tool.render?.width, naturalHeight = tool.render?.height;
+  if (typeof naturalWidth === "number" && typeof naturalHeight === "number" && sameShape(naturalWidth, naturalHeight, width, height)) {
+    return { fit: "natural", overlay: {}, dims: own4, message: `The tool's own ${naturalWidth} by ${naturalHeight} is this shape.` };
+  }
+  return null;
+}
+function chooseFormat(tool, surface) {
+  const formats = tool.render?.formats ?? [];
+  if (surface.format) {
+    if (formats.includes(surface.format)) return surface.format;
+    const other = FORMAT_SYNONYMS[surface.format];
+    return other && formats.includes(other) ? other : null;
+  }
+  const usual = surface.medium === "print" ? "pdf" : "png";
+  return formats.includes(usual) ? usual : formats[0] ?? null;
+}
+function valueProblem(input, value2) {
+  switch (input.type) {
+    case "text":
+    case "longtext":
+    case "url":
+    case "date":
+    case "time":
+    case "datetime-local":
+    case "asset":
+      if (typeof value2 !== "string") return `${input.id} takes text.`;
+      if (input.type === "longtext" || input.type === "text" || input.type === "url") return null;
+      return value2.trim() ? null : `${input.id} takes a value with something in it.`;
+    case "select":
+      return (input.options ?? []).some((o) => (isRecord2(o) ? o.value : o) === value2) ? null : `${input.id} does not offer ${String(value2)}.`;
+    case "table":
+      if (typeof value2 === "string") return null;
+      if (isRecord2(value2) && Array.isArray(value2.columns) && Array.isArray(value2.rows)) return null;
+      return `${input.id} takes a table: { columns, rows } or CSV text.`;
+    case "blocks":
+      return Array.isArray(value2) && value2.every(isRecord2) ? null : `${input.id} takes a list of rows, each an object.`;
+    default:
+      return `${input.id} is a ${input.type} input, which a role cannot fill.`;
+  }
+}
+function inputForRole(tool, entry2, role) {
+  const id3 = entry2.roles && Object.hasOwn(entry2.roles, role) ? entry2.roles[role] : role;
+  const input = (tool.inputs ?? []).find((i) => i.id === id3);
+  if (!input) return null;
+  return (INTENT_ROLES[role] ?? []).includes(input.type) ? input : null;
+}
+function evaluateTool(tool, intent, purpose, surface) {
+  const refuse3 = (code, message) => ({ refusal: { toolId: tool.id, code, message } });
+  const entry2 = (tool.intents ?? []).find((i) => i.purpose === purpose);
+  if (!entry2) return refuse3("purpose-other", `Declares ${(tool.intents ?? []).map((i) => i.purpose).join(", ")}, not ${purpose}.`);
+  if (tool.deprecated === true) return refuse3("deprecated", "The tool is deprecated.");
+  if (tool.render?.export === false || !tool.render?.formats?.length) return refuse3("not-exportable", "The tool makes no exportable file.");
+  const fit = surfaceFit(tool, entry2, surface);
+  if (!fit) return refuse3("surface-no-fit", `Draws no ${surface.id} shape and would have to be stretched or letterboxed.`);
+  const format = chooseFormat(tool, surface);
+  if (!format) return refuse3("format-unsupported", `Does not export ${surface.format}. It exports ${(tool.render?.formats ?? []).join(", ")}.`);
+  const values = new Map(Object.entries(entry2.set ?? {}));
+  const unused = [];
+  const bound = /* @__PURE__ */ new Set();
+  const overlayInputs = new Set(Object.keys(fit.overlay));
+  for (const role of Object.keys(intent.content).sort(byString3)) {
+    const input = inputForRole(tool, entry2, role);
+    if (!input) {
+      unused.push({ role, code: "no-input", message: `The tool has no input for ${role}.` });
+      continue;
+    }
+    const problem = valueProblem(input, intent.content[role]);
+    if (problem) {
+      unused.push({ role, code: "value-refused", message: problem });
+      continue;
+    }
+    if (overlayInputs.has(input.id)) {
+      unused.push({ role, code: "replaced-by-surface", message: `${input.id} sets the size for this surface.` });
+      continue;
+    }
+    values.set(input.id, intent.content[role]);
+    bound.add(role);
+  }
+  for (const [id3, value2] of Object.entries(fit.overlay)) values.set(id3, value2);
+  const notes = [];
+  if (intent.language) {
+    const primary = intent.language.split("-")[0];
+    const select = (tool.inputs ?? []).find((i) => i.id === "language" && i.type === "select");
+    const offered2 = (select?.options ?? []).some((o) => (isRecord2(o) ? o.value : o) === primary);
+    if (offered2) {
+      values.set("language", primary);
+      notes.push({ code: "language-applied", message: `The tool prints in ${primary}.` });
+    } else {
+      notes.push({ code: "language-not-offered", message: `The tool has no language choice for ${primary}. The language is recorded only.` });
+    }
+  }
+  const effective = {};
+  for (const input of tool.inputs ?? []) if (input.default !== void 0) effective[input.id] = input.default;
+  for (const [id3, value2] of values) effective[id3] = value2;
+  const gaps = [];
+  for (const role of [...entry2.needs ?? []].sort(byString3)) {
+    if (bound.has(role)) continue;
+    const input = inputForRole(tool, entry2, role);
+    gaps.push({
+      code: "role-missing",
+      role,
+      ...input ? { input: input.id } : {},
+      message: `The tool cannot serve this purpose without ${role}.`
+    });
+  }
+  const gapInputs = new Set(gaps.map((gap) => gap.input));
+  const defaultsInUse = [];
+  for (const input of tool.inputs ?? []) {
+    const visible2 = matchesShowIf(input.showIf, effective);
+    if (!visible2) continue;
+    if (input.required === true && !hasValue(effective[input.id]) && !gapInputs.has(input.id)) {
+      gaps.push({ code: "input-required", input: input.id, message: `The tool requires ${input.id}.` });
+    }
+    if (values.has(input.id) || gapInputs.has(input.id) || input.group === "export") continue;
+    if (CONTENT_TYPES.has(input.type) && hasValue(input.default)) defaultsInUse.push(input.id);
+  }
+  gaps.sort((a, b) => byString3(a.role ?? a.input ?? "", b.role ?? b.input ?? ""));
+  defaultsInUse.sort(byString3);
+  const reasons = [
+    { code: "purpose", message: `Declares ${purpose}.` },
+    { code: `surface-${fit.fit}`, message: fit.message }
+  ];
+  const missing = gaps.map((gap) => gap.role ?? gap.input ?? "");
+  reasons.push(missing.length ? { code: "needs-missing", message: `Still needs ${missing.join(", ")}.` } : { code: "needs-met", message: "Has everything it needs." });
+  const offered = Object.keys(intent.content).length;
+  reasons.push({ code: "content-used", message: `Uses ${bound.size} of ${offered} content ${offered === 1 ? "role" : "roles"}.` });
+  const preferred = intent.preferToolId === tool.id;
+  if (preferred) reasons.push({ code: "preferred", message: "The request prefers this tool." });
+  const inputs = Object.fromEntries([...values.entries()].sort(([a], [b]) => byString3(a, b)));
+  return {
+    evaluated: {
+      fitRank: FIT_RANK[fit.fit],
+      candidate: { toolId: tool.id, fit: fit.fit, preferred, missing, contentUsed: bound.size, reasons },
+      choice: {
+        toolId: tool.id,
+        toolVersion: tool.version ?? null,
+        fit: fit.fit,
+        format,
+        inputs,
+        exportDims: fit.dims,
+        gaps,
+        unused,
+        defaultsInUse,
+        notes
+      }
+    }
+  };
+}
+function resolveSurface(surface, purpose, intent, tools) {
+  const refusals = [];
+  const evaluated = [];
+  for (const tool of tools) {
+    if (!tool.intents?.length) continue;
+    const answer = evaluateTool(tool, intent, purpose, surface);
+    if ("refusal" in answer) refusals.push(answer.refusal);
+    else evaluated.push(answer.evaluated);
+  }
+  evaluated.sort((a, b) => Number(b.candidate.preferred) - Number(a.candidate.preferred) || Number(a.candidate.missing.length > 0) - Number(b.candidate.missing.length > 0) || b.fitRank - a.fitRank || b.candidate.contentUsed - a.candidate.contentUsed || byString3(a.candidate.toolId, b.candidate.toolId));
+  const best = evaluated[0];
+  if (!best) {
+    const served3 = refusals.some((r5) => r5.code !== "purpose-other");
+    const formatOnly = served3 && refusals.every((r5) => r5.code === "purpose-other" || r5.code === "format-unsupported");
+    const refusal3 = formatOnly ? { code: "format-unsupported", message: `No tool serving ${purpose} exports ${surface.format} at ${surface.id}.` } : served3 ? { code: "no-tool-for-surface", message: `No tool serving ${purpose} can draw ${surface.id}.` } : { code: "no-tool-for-purpose", message: `No available tool declares ${purpose}.` };
+    return { surface, status: "refused", chosen: null, candidates: [], refusals, refusal: refusal3 };
+  }
+  const choice3 = best.choice;
+  if (intent.preferToolId && !best.candidate.preferred) {
+    choice3.notes = [...choice3.notes, { code: "prefer-not-available", message: `${intent.preferToolId} does not fit this surface or is not available.` }];
+  }
+  return {
+    surface,
+    status: best.candidate.missing.length ? "needs-content" : "ready",
+    chosen: choice3,
+    candidates: evaluated.map((e) => e.candidate),
+    refusals,
+    refusal: null
+  };
+}
+function outcomeOf(results) {
+  const count4 = (status) => results.filter((r5) => r5.status === status).length;
+  if (count4("ready") === results.length) return "ready";
+  if (count4("ready") > 0) return "partial";
+  return count4("needs-content") > 0 ? "needs-content" : "refused";
+}
+function orderedTools(tools) {
+  const seen = /* @__PURE__ */ new Set();
+  return [...tools].sort((a, b) => byString3(a.id, b.id) || byString3(canonicalJson(a), canonicalJson(b))).filter((tool) => {
+    if (seen.has(tool.id)) return false;
+    seen.add(tool.id);
+    return true;
+  });
+}
+function purposeNeeded(tools) {
+  const declaring = tools.filter((tool) => tool.intents?.length);
+  return {
+    code: INTENT_PURPOSE_NEEDED,
+    message: "Nothing here reads meaning from a prompt. Read your user's words, choose a purpose and surfaces, and call again with them.",
+    purposes: INTENT_PURPOSES.map((purpose) => ({
+      purpose,
+      meaning: INTENT_PURPOSE_MEANINGS[purpose],
+      tools: declaring.filter((tool) => tool.intents.some((i) => i.purpose === purpose)).map((tool) => tool.id)
+    })),
+    tools: declaring.map((tool) => ({
+      toolId: tool.id,
+      name: tool.name ?? null,
+      purposes: [...new Set(tool.intents.map((i) => i.purpose))].sort(byString3)
+    })),
+    surfaces: INTENT_SURFACES.map((s) => s.id),
+    roles: Object.keys(INTENT_ROLES).sort(byString3)
+  };
+}
+function digestPayload(intent) {
+  return {
+    version: intent.version,
+    ...intent.purpose ? { purpose: intent.purpose } : {},
+    ...intent.prompt !== null ? { prompt: intent.prompt } : {},
+    ...intent.recordPrompt ? { recordPrompt: true } : {},
+    ...intent.freeText,
+    ...intent.language ? { language: intent.language } : {},
+    content: intent.content,
+    surfaces: intent.surfaces.map((s) => ({ id: s.id, ...s.format ? { format: s.format } : {} })),
+    ...intent.preferToolId ? { prefer: intent.preferToolId } : {}
+  };
+}
+async function resolveIntent(request3, tools) {
+  const parsed = parseVisualIntent(request3);
+  if (!parsed.ok) throw new IntentInvalidError(parsed.errors);
+  const intent = parsed.intent;
+  const ordered = orderedTools(tools);
+  const purpose = intent.purpose;
+  const results = purpose ? intent.surfaces.map((surface) => resolveSurface(surface, purpose, intent, ordered)) : [];
+  const digest2 = await sha256Hex(new TextEncoder().encode(canonicalJson(digestPayload(intent))));
+  return {
+    format: INTENT_RESOLUTION_FORMAT,
+    formatVersion: INTENT_RESOLUTION_VERSION,
+    intentDigest: `sha256:${digest2}`,
+    closed: {
+      purpose,
+      surfaces: intent.surfaces.map((s) => s.id),
+      language: intent.language,
+      chosen: results.map((r5) => ({
+        surface: r5.surface.id,
+        toolId: r5.chosen?.toolId ?? null,
+        toolVersion: r5.chosen?.toolVersion ?? null,
+        fit: r5.chosen?.fit ?? null,
+        status: r5.status
+      })),
+      rulesVersion: INTENT_RULES_VERSION,
+      vocabularyVersion: INTENT_VOCABULARY_VERSION
+    },
+    freeText: intent.freeText,
+    prompt: intent.prompt,
+    recordPrompt: intent.recordPrompt,
+    outcome: purpose ? outcomeOf(results) : "purpose-needed",
+    surfaces: results,
+    purposeNeeded: purpose ? null : purposeNeeded(ordered),
+    toolsConsidered: ordered.length
+  };
+}
+function checkToolIntents(tool) {
+  const issues = [];
+  const entries = tool.intents ?? [];
+  if (!entries.length) return issues;
+  const add3 = (path, message) => {
+    issues.push({ path, message });
+  };
+  if (tool.render?.export === false || !tool.render?.formats?.length) add3("intents", "A tool that exports no file cannot declare an intent.");
+  if (tool.engineVersion && satisfiesRange(precedingEngine(), tool.engineVersion)) {
+    add3("engineVersion", `A tool declaring intents needs an engine floor of at least ${INTENTS_ENGINE_FLOOR}, because an older schema refuses the key.`);
+  }
+  const inputs = new Map((tool.inputs ?? []).map((input) => [input.id, input]));
+  const checkValues = (path, values) => {
+    for (const [id3, value2] of Object.entries(values)) {
+      const input = inputs.get(id3);
+      if (!input) {
+        add3(`${path}/${id3}`, `No input "${id3}".`);
+        continue;
+      }
+      if (input.type !== "select") continue;
+      const offered = (input.options ?? []).map((o) => isRecord2(o) ? o.value : o);
+      if (!offered.includes(value2)) add3(`${path}/${id3}`, `"${String(value2)}" is not an option of ${id3}.`);
+    }
+  };
+  const seen = /* @__PURE__ */ new Set();
+  entries.forEach((entry2, index2) => {
+    const at = `intents/${index2}`;
+    if (seen.has(entry2.purpose)) add3(at, `Purpose ${entry2.purpose} is declared twice.`);
+    seen.add(entry2.purpose);
+    for (const [role, id3] of Object.entries(entry2.roles ?? {})) {
+      if (!Object.hasOwn(INTENT_ROLES, role)) {
+        add3(`${at}/roles/${role}`, `Unknown role "${role}".`);
+        continue;
+      }
+      const input = inputs.get(id3);
+      if (!input) add3(`${at}/roles/${role}`, `No input "${id3}".`);
+      else if (!(INTENT_ROLES[role] ?? []).includes(input.type)) add3(`${at}/roles/${role}`, `Role ${role} cannot fill a ${input.type} input.`);
+    }
+    for (const role of entry2.needs ?? []) {
+      if (!Object.hasOwn(INTENT_ROLES, role)) add3(`${at}/needs/${role}`, `Unknown role "${role}".`);
+      else if (!inputForRole(tool, entry2, role)) add3(`${at}/needs/${role}`, `Needs ${role}, and no input takes it.`);
+    }
+    checkValues(`${at}/set`, entry2.set ?? {});
+    for (const [id3, overlay] of Object.entries(entry2.surfaces ?? {})) {
+      if (!SURFACES_BY_ID.has(id3)) add3(`${at}/surfaces/${id3}`, `Unknown surface "${id3}".`);
+      checkValues(`${at}/surfaces/${id3}`, overlay ?? {});
+    }
+    const effective = {};
+    for (const input of tool.inputs ?? []) if (input.default !== void 0) effective[input.id] = input.default;
+    Object.assign(effective, entry2.set ?? {});
+    const reachable = new Set(Object.keys(INTENT_ROLES).map((role) => inputForRole(tool, entry2, role)?.id));
+    for (const input of tool.inputs ?? []) {
+      if (input.required !== true || hasValue(effective[input.id]) || reachable.has(input.id)) continue;
+      if (matchesShowIf(input.showIf, effective)) {
+        add3(`${at}`, `Input ${input.id} is required and no role can fill it.`);
+      }
+    }
+  });
+  return issues;
+}
+function precedingEngine() {
+  const [major, minor] = INTENTS_ENGINE_FLOOR.split(".").map(Number);
+  return `${major}.${(minor ?? 1) - 1}.0`;
+}
+var INTENT_RULES_VERSION, INTENTS_ENGINE_FLOOR, SHAPE_TOLERANCE, CONTENT_TYPES, UNSAFE_KEYS, TOP_KEYS, SURFACES_BY_ID, FIT_RANK, byString3, isRecord2, IntentInvalidError, UNIT_TO_MM, toMm, sameShape, sameSize, FORMAT_SYNONYMS, hasValue;
+var init_intent = __esm({
+  "engine/src/intent.ts"() {
+    "use strict";
+    init_intent_v1();
+    init_bytes();
+    init_canonical_json();
+    init_inputs();
+    init_semver_range();
+    INTENT_RULES_VERSION = "intent-rules-2026-11-05.1";
+    INTENTS_ENGINE_FLOOR = "1.304.0";
+    SHAPE_TOLERANCE = 0.01;
+    CONTENT_TYPES = /* @__PURE__ */ new Set([
+      "text",
+      "longtext",
+      "url",
+      "date",
+      "time",
+      "datetime-local",
+      "table",
+      "blocks",
+      "asset"
+    ]);
+    UNSAFE_KEYS = /* @__PURE__ */ new Set(["__proto__", "constructor", "prototype"]);
+    TOP_KEYS = /* @__PURE__ */ new Set([
+      "version",
+      "purpose",
+      "prompt",
+      "recordPrompt",
+      "content",
+      "language",
+      "surfaces",
+      "prefer",
+      ...INTENT_FREE_TEXT_FIELDS
+    ]);
+    SURFACES_BY_ID = new Map(INTENT_SURFACES.map((s) => [s.id, s]));
+    FIT_RANK = Object.fromEntries(
+      INTENT_FITS.map((fit, index2) => [fit, INTENT_FITS.length - index2])
+    );
+    byString3 = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+    isRecord2 = (value2) => !!value2 && typeof value2 === "object" && !Array.isArray(value2);
+    IntentInvalidError = class extends Error {
+      errors;
+      constructor(errors) {
+        super(errors.map((e) => `${e.path || "/"}: ${e.message}`).join(" "));
+        this.name = "IntentInvalidError";
+        this.errors = errors;
+      }
+    };
+    UNIT_TO_MM = { px: 25.4 / 96, mm: 1, cm: 10, in: 25.4, pt: 25.4 / 72 };
+    toMm = (value2, unit2) => value2 * (UNIT_TO_MM[unit2] ?? UNIT_TO_MM.px);
+    sameShape = (aw, ah, bw, bh) => {
+      const left = aw * bh;
+      const right = bw * ah;
+      return Math.abs(left - right) <= SHAPE_TOLERANCE * right;
+    };
+    sameSize = (aw, ah, aUnit, bw, bh, bUnit) => {
+      if (aUnit === "px" !== (bUnit === "px")) return false;
+      const a = toMm(aw, aUnit), b = toMm(bw, bUnit), c = toMm(ah, aUnit), d = toMm(bh, bUnit);
+      return Math.abs(a - b) <= SHAPE_TOLERANCE * b && Math.abs(c - d) <= SHAPE_TOLERANCE * d;
+    };
+    FORMAT_SYNONYMS = { jpeg: "jpg", jpg: "jpeg" };
+    hasValue = (value2) => {
+      if (value2 === void 0 || value2 === null || value2 === "") return false;
+      if (Array.isArray(value2)) return value2.length > 0;
+      return true;
+    };
+  }
+});
+
 // engine/src/chroma-key.ts
 function rgbToOklab(r5, g2, b) {
   return linearSrgbToOklab(srgbToLinear(r5 / 255), srgbToLinear(g2 / 255), srgbToLinear(b / 255));
@@ -106204,14 +106986,14 @@ function topLevelSetIssue(doc) {
 }
 function stableStringify2(v) {
   if (Array.isArray(v)) return `[${v.map(stableStringify2).join(",")}]`;
-  if (isRecord2(v)) {
+  if (isRecord3(v)) {
     const keys2 = Object.keys(v).sort();
     return `{${keys2.map((k) => `${JSON.stringify(k)}:${stableStringify2(v[k])}`).join(",")}}`;
   }
   return JSON.stringify(v) ?? "undefined";
 }
 function fromOlderTokenFormat(node, count4, depth = 0) {
-  if (!isRecord2(node) || depth > 64) return node;
+  if (!isRecord3(node) || depth > 64) return node;
   const put = (obj3, key2, value2) => {
     Object.defineProperty(obj3, key2, { value: value2, enumerable: true, writable: true, configurable: true });
   };
@@ -106239,7 +107021,7 @@ function olderFormatWarning(n7) {
   return n7 ? [`${n7} token${n7 === 1 ? "" : "s"} in the older Tokens Studio format (value and type) read as $value and $type`] : [];
 }
 function coerceTokensDoc(json) {
-  if (!isRecord2(json)) {
+  if (!isRecord3(json)) {
     return {
       doc: null,
       warnings: [`tokens document is ${json === null ? "null" : Array.isArray(json) ? "an array" : `a ${typeof json}`}, expected an object`],
@@ -106281,7 +107063,7 @@ function assembleTokenSetFiles(files) {
       continue;
     }
     if (path === "$metadata.json") {
-      if (isRecord2(body)) {
+      if (isRecord3(body)) {
         const issue3 = structureIssue(body, structure);
         if (issue3) return { doc: null, warnings: [...warnings2, `${path}: ${issue3}`], source: "token-set-files" };
         doc.$metadata = body;
@@ -106300,7 +107082,7 @@ function assembleTokenSetFiles(files) {
       warnings2.push(`${path}: not a .json file - ignored`);
       continue;
     }
-    if (!isRecord2(body)) {
+    if (!isRecord3(body)) {
       warnings2.push(`${path}: set body is not an object - ignored`);
       continue;
     }
@@ -106376,7 +107158,7 @@ function extractPenpotProject(entries) {
   let tokenPaths = [];
   const manifest = parseEntry(entries, "manifest.json", warnings2, budget3);
   if (budget3.refused) return { doc: null, warnings: warnings2, source: "penpot-project" };
-  const manifestFiles = isRecord2(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
+  const manifestFiles = isRecord3(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
   if (manifestFiles) {
     if (manifestFiles.length > BRAND_IMPORT_MAX_ENTRIES) {
       warnings2.push(`manifest carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString("en")} file records`);
@@ -106384,7 +107166,7 @@ function extractPenpotProject(entries) {
     }
     const seen = /* @__PURE__ */ new Set();
     for (const f of manifestFiles) {
-      if (!isRecord2(f) || typeof f.id !== "string") continue;
+      if (!isRecord3(f) || typeof f.id !== "string") continue;
       const p = `files/${f.id}/tokens.json`;
       if (p in entries && !seen.has(p)) {
         tokenPaths.push(p);
@@ -106409,14 +107191,14 @@ function extractPenpotProject(entries) {
     const parsed = parseEntry(entries, path, warnings2, budget3);
     if (budget3.refused) return { doc: null, warnings: warnings2, source: "penpot-project" };
     if (parsed === void 0) continue;
-    if (!isRecord2(parsed)) {
+    if (!isRecord3(parsed)) {
       warnings2.push(`${path}: token document is not an object - ignored`);
       continue;
     }
     if (!doc) doc = /* @__PURE__ */ Object.create(null);
     for (const [key2, value2] of Object.entries(parsed)) {
       if (key2 === "$themes" || key2 === "$metadata") {
-        const meaningful3 = (v) => key2 === "$themes" ? Array.isArray(v) && v.length > 0 : isRecord2(v) && Object.keys(v).length > 0;
+        const meaningful3 = (v) => key2 === "$themes" ? Array.isArray(v) && v.length > 0 : isRecord3(v) && Object.keys(v).length > 0;
         if (!meaningful3(doc[key2])) doc[key2] = value2;
         else if (meaningful3(value2) && stableStringify2(doc[key2]) !== stableStringify2(value2)) {
           warnings2.push(`${path}: ${key2} differs from an earlier file's - keeping the first`);
@@ -106443,7 +107225,7 @@ function extractPenpotProject(entries) {
   return { doc, warnings: warnings2, source: "penpot-project" };
 }
 function pv(o, camel) {
-  if (!isRecord2(o)) return void 0;
+  if (!isRecord3(o)) return void 0;
   if (o[camel] !== void 0) return o[camel];
   const kb = kebabOf(camel);
   if (o[kb] !== void 0) return o[kb];
@@ -106455,7 +107237,7 @@ function penpotPagePaths(entries, warnings2, budget3) {
   if (budget3.refused) return [];
   const manifest = parseEntry(entries, "manifest.json", warnings2, budget3);
   if (budget3.refused) return [];
-  const manifestFiles = isRecord2(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
+  const manifestFiles = isRecord3(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
   const pagePathRe = /^files\/([^/]+)\/pages\/[^/]+\/[^/]+\.json$/;
   const candidates2 = [];
   for (const path of entryPaths) {
@@ -106478,7 +107260,7 @@ function penpotPagePaths(entries, warnings2, budget3) {
   }
   const fileOrder = /* @__PURE__ */ new Map();
   for (const [index2, file] of manifestFiles.entries()) {
-    if (isRecord2(file) && typeof file.id === "string" && !fileOrder.has(file.id)) fileOrder.set(file.id, index2);
+    if (isRecord3(file) && typeof file.id === "string" && !fileOrder.has(file.id)) fileOrder.set(file.id, index2);
   }
   return candidates2.filter((entry2) => fileOrder.has(entry2.fileId)).sort((a, b) => fileOrder.get(a.fileId) - fileOrder.get(b.fileId) || a.path.localeCompare(b.path)).map((entry2) => entry2.path);
 }
@@ -106499,12 +107281,12 @@ function scanPenpotUsage(entries) {
   };
   const gradients = /* @__PURE__ */ new Map();
   const seeGradient = (g2) => {
-    if (!isRecord2(g2)) return;
+    if (!isRecord3(g2)) return;
     const rawStops = Array.isArray(g2.stops) ? g2.stops : [];
     const stops = [];
     let usable = rawStops.length >= 2;
     for (const raw of rawStops) {
-      const st = isRecord2(raw) ? raw : null;
+      const st = isRecord3(raw) ? raw : null;
       const color6 = normHex3(st ? pv(st, "color") : void 0);
       if (color6) bump2(color6, "gradientStops");
       if (!st || !color6) {
@@ -106533,7 +107315,7 @@ function scanPenpotUsage(entries) {
   const seePaints = (list4, colorKey, gradKey, tally3) => {
     if (!Array.isArray(list4)) return;
     for (const p of list4) {
-      if (!isRecord2(p)) continue;
+      if (!isRecord3(p)) continue;
       bump2(normHex3(pv(p, colorKey)), tally3);
       seeGradient(pv(p, gradKey));
     }
@@ -106544,7 +107326,7 @@ function scanPenpotUsage(entries) {
       for (const c of n7) walkText(c);
       return;
     }
-    if (!isRecord2(n7)) return;
+    if (!isRecord3(n7)) return;
     if (pv(n7, "text") !== void 0 && Array.isArray(pv(n7, "fills"))) {
       seePaints(pv(n7, "fills"), "fillColor", "fillColorGradient", "textRuns");
     }
@@ -106553,7 +107335,7 @@ function scanPenpotUsage(entries) {
   for (const path of pagePaths) {
     const shape = parseEntry(entries, path, warnings2, budget3);
     if (budget3.refused) return { colors: [], gradients: [], fonts: [] };
-    if (!isRecord2(shape)) continue;
+    if (!isRecord3(shape)) continue;
     seePaints(pv(shape, "fills"), "fillColor", "fillColorGradient", "fills");
     seePaints(pv(shape, "strokes"), "strokeColor", "strokeColorGradient", "strokes");
     const content2 = pv(shape, "content");
@@ -106607,9 +107389,9 @@ function scanPenpotAppliedTokens(entries) {
   for (const path of penpotPagePaths(entries, warnings2, budget3)) {
     const shape = parseEntry(entries, path, warnings2, budget3);
     if (budget3.refused) return [];
-    if (!isRecord2(shape)) continue;
+    if (!isRecord3(shape)) continue;
     const applied = pv(shape, "appliedTokens");
-    if (!isRecord2(applied)) continue;
+    if (!isRecord3(applied)) continue;
     const isText2 = String(pv(shape, "type") ?? "") === "text";
     for (const [rawAttr, rawName] of Object.entries(applied)) {
       if (typeof rawName !== "string" || !rawName) continue;
@@ -106624,13 +107406,13 @@ function summarizeTokensDoc(doc) {
   const ts = createTokenSet(doc);
   return { sets, themes: ts.themes(), tokenCount: ts.size, colorCount: ts.colors().length };
 }
-var isRecord2, BRAND_IMPORT_MAX_PART_BYTES, BRAND_IMPORT_MAX_PART_CHARS, BRAND_IMPORT_MAX_JSON_UNITS, BRAND_IMPORT_MAX_ENTRIES, BRAND_IMPORT_MAX_PAGE_PARTS, BRAND_IMPORT_MAX_TOKEN_DOCS, BRAND_IMPORT_MAX_SET_FILES, BRAND_IMPORT_MAX_TOKEN_SETS, BRAND_IMPORT_MAX_NODES, BRAND_IMPORT_MAX_DEPTH, newParseBudget, decoder4, asText2, HEX6_RE, normHex3, numOr3, kebabOf, TYPE_ATTRS, GEOMETRY_ATTRS;
+var isRecord3, BRAND_IMPORT_MAX_PART_BYTES, BRAND_IMPORT_MAX_PART_CHARS, BRAND_IMPORT_MAX_JSON_UNITS, BRAND_IMPORT_MAX_ENTRIES, BRAND_IMPORT_MAX_PAGE_PARTS, BRAND_IMPORT_MAX_TOKEN_DOCS, BRAND_IMPORT_MAX_SET_FILES, BRAND_IMPORT_MAX_TOKEN_SETS, BRAND_IMPORT_MAX_NODES, BRAND_IMPORT_MAX_DEPTH, newParseBudget, decoder4, asText2, HEX6_RE, normHex3, numOr3, kebabOf, TYPE_ATTRS, GEOMETRY_ATTRS;
 var init_brand_import = __esm({
   "engine/src/brand-import.ts"() {
     "use strict";
     init_tokens2();
     init_design_map();
-    isRecord2 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
+    isRecord3 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     BRAND_IMPORT_MAX_PART_BYTES = 16 * 1024 * 1024;
     BRAND_IMPORT_MAX_PART_CHARS = 16 * 1024 * 1024;
     BRAND_IMPORT_MAX_JSON_UNITS = 64 * 1024 * 1024;
@@ -107652,10 +108434,10 @@ function exportPenpotLayout(row, children2, tracks) {
     return props;
   }
   props.layoutGridDir = row.layoutDirection || "row";
-  const request2 = designLayoutRequest(row, [...children2], tracks);
+  const request3 = designLayoutRequest(row, [...children2], tracks);
   const cells = children2.flatMap((child2, n7) => {
     if (child2.layoutAbsolute === true || child2.hidden === true) return [];
-    const cell2 = request2.items[n7].cell;
+    const cell2 = request3.items[n7].cell;
     return [{
       row: cell2[0],
       column: cell2[1],
@@ -107668,8 +108450,8 @@ function exportPenpotLayout(row, children2, tracks) {
       shapes: [String(child2.id)]
     }];
   });
-  props.layoutGridColumns = request2.columns.map((track) => ({ type: track.kind === "fr" ? "flex" : track.kind, value: track.value }));
-  props.layoutGridRows = request2.rows.map((track) => ({ type: track.kind === "fr" ? "flex" : track.kind, value: track.value }));
+  props.layoutGridColumns = request3.columns.map((track) => ({ type: track.kind === "fr" ? "flex" : track.kind, value: track.value }));
+  props.layoutGridRows = request3.rows.map((track) => ({ type: track.kind === "fr" ? "flex" : track.kind, value: track.value }));
   props.layoutGridCells = cells;
   return props;
 }
@@ -116592,7 +117374,7 @@ function sizedMaster(master, size) {
     })
   };
 }
-function outcomeOf(entry2, applyUnreviewed, applyNeedsAttention) {
+function outcomeOf2(entry2, applyUnreviewed, applyNeedsAttention) {
   const decided = entry2.decision !== void 0;
   const action = entry2.decision ?? entry2.proposal;
   const replacement = decided ? entry2.decisionReplacement ?? entry2.proposalReplacement : entry2.proposalReplacement;
@@ -118114,7 +118896,7 @@ function compileRenovated(input) {
         proposal: "keep",
         review: "unreviewed"
       };
-      const placement2 = describePlacement(object4, entry2, outcomeOf(entry2, applyUnreviewed, applyNeedsAttention), slide.index + 1);
+      const placement2 = describePlacement(object4, entry2, outcomeOf2(entry2, applyUnreviewed, applyNeedsAttention), slide.index + 1);
       const layerId = `${prefix}.${slug3(object4.id)}`;
       const produced = [];
       let code = placement2.code;
@@ -118344,7 +119126,7 @@ function compileRenovated(input) {
       const placement2 = describePlacement(
         object4,
         entry2,
-        outcomeOf(entry2, applyUnreviewed, applyNeedsAttention),
+        outcomeOf2(entry2, applyUnreviewed, applyNeedsAttention),
         slide.index + 1
       );
       return { ...placement2, reading: object4.readingIndex ?? index2, listed: listed !== void 0 };
@@ -125850,7 +126632,7 @@ function motionDurationMs(value2) {
       n7 = Number(m2[1]);
       unit2 = (m2[2] ?? "ms").toLowerCase();
     }
-  } else if (isRecord3(value2) && finite3(value2.value) && (value2.unit === "ms" || value2.unit === "s")) {
+  } else if (isRecord4(value2) && finite3(value2.value) && (value2.unit === "ms" || value2.unit === "s")) {
     n7 = value2.value;
     unit2 = value2.unit;
   }
@@ -125866,8 +126648,8 @@ function bezierEase(value2) {
 }
 function springEase(ext) {
   const own4 = ext?.[TOKEN_EXT];
-  const sp = isRecord3(own4) ? own4.spring : null;
-  if (!isRecord3(sp) || !finite3(sp.stiffness) || !(sp.stiffness > 0)) return null;
+  const sp = isRecord4(own4) ? own4.spring : null;
+  if (!isRecord4(sp) || !finite3(sp.stiffness) || !(sp.stiffness > 0)) return null;
   const mass = finite3(sp.mass) && sp.mass > 0 ? sp.mass : 1;
   let damping = null;
   if (finite3(sp.damping) && sp.damping >= 0) damping = sp.damping;
@@ -125892,7 +126674,7 @@ function readMotionTokens(set) {
     if (!e || typeof e.path !== "string") continue;
     const description = typeof e.description === "string" ? e.description : null;
     const spring = springEase(e.extensions);
-    const transition2 = e.type === "transition" && isRecord3(e.value) ? e.value : null;
+    const transition2 = e.type === "transition" && isRecord4(e.value) ? e.value : null;
     if (spring || e.type === "cubicBezier" || transition2) {
       const ease = spring ?? (transition2 ? bezierEase(transition2.timingFunction) : bezierEase(e.value));
       if (!ease || !bindable(e.path)) continue;
@@ -125927,7 +126709,7 @@ async function readHostMotionTokens(host) {
     return EMPTY2();
   }
 }
-var EMPTY2, isRecord3, finite3;
+var EMPTY2, isRecord4, finite3;
 var init_motion_tokens = __esm({
   "engine/src/motion-tokens.ts"() {
     "use strict";
@@ -125935,7 +126717,7 @@ var init_motion_tokens = __esm({
     init_keyframes2();
     init_kf_spring();
     EMPTY2 = () => ({ curves: [], durations: [] });
-    isRecord3 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
+    isRecord4 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     finite3 = (v) => typeof v === "number" && Number.isFinite(v);
   }
 });
@@ -128057,12 +128839,12 @@ function renderComparisonPage(page3, grid, alignment) {
   }
   return out;
 }
-function compareVisualSources(request2, signal) {
+function compareVisualSources(request3, signal) {
   signal?.throwIfAborted();
-  if (request2.version !== 1) throw new Error("Unsupported comparison version.");
-  const { before, after } = request2;
-  const threshold = request2.options?.threshold ?? 0;
-  const options2 = { alignment: request2.options?.alignment === "fit" ? "fit" : "native", threshold: Number.isFinite(threshold) ? Math.max(0, Math.min(255, Math.round(threshold))) : 0 };
+  if (request3.version !== 1) throw new Error("Unsupported comparison version.");
+  const { before, after } = request3;
+  const threshold = request3.options?.threshold ?? 0;
+  const options2 = { alignment: request3.options?.alignment === "fit" ? "fit" : "native", threshold: Number.isFinite(threshold) ? Math.max(0, Math.min(255, Math.round(threshold))) : 0 };
   const limitations = /* @__PURE__ */ new Set(["Previews use nearest-neighbour samples on white, at most 768 pixels per edge. Matching previews do not establish original pixel or structural equality."]);
   let partial = false;
   const limit3 = (message) => {
@@ -128641,13 +129423,13 @@ function normalizeYaml(source, signal) {
     limitations: [...source.fidelity?.limitations ?? [], read.ok ? "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison." : read.limitation]
   } };
 }
-function compareSources(request2, signal) {
+function compareSources(request3, signal) {
   signal?.throwIfAborted();
-  if (request2.version !== 1) throw new Error("Unsupported comparison version.");
-  const options2 = { ...request2.options };
+  if (request3.version !== 1) throw new Error("Unsupported comparison version.");
+  const options2 = { ...request3.options };
   const applicable = options2.mode === void 0 || options2.mode === "structure";
-  const before = applicable ? normalizeYaml(request2.before, signal) : request2.before;
-  const after = applicable ? normalizeYaml(request2.after, signal) : request2.after;
+  const before = applicable ? normalizeYaml(request3.before, signal) : request3.before;
+  const after = applicable ? normalizeYaml(request3.after, signal) : request3.after;
   const budget3 = comparisonBudget(options2, signal);
   const mode3 = options2.mode ?? (before.content.kind === after.content.kind && before.content.kind !== "yaml" ? before.content.kind : "text");
   let alignment = mode3 === "text" ? options2.granularity ?? "line" : mode3 === "table" ? "table-position" : mode3 === "document" ? "document-position" : options2.arrayAlignment === "id" ? "stable-id" : "object-keys-ordered-arrays";
@@ -128689,10 +129471,10 @@ function compareSources(request2, signal) {
   };
 }
 function createCompareAPI() {
-  return { async run(request2, options2) {
-    return compareSources(request2, options2?.signal);
-  }, async visual(request2, options2) {
-    return compareVisualSources(request2, options2?.signal);
+  return { async run(request3, options2) {
+    return compareSources(request3, options2?.signal);
+  }, async visual(request3, options2) {
+    return compareVisualSources(request3, options2?.signal);
   } };
 }
 var init_compare2 = __esm({
@@ -129465,14 +130247,14 @@ function createTextToolsAPI(env) {
     async operations() {
       return structuredClone(TEXT_OPERATIONS);
     },
-    async run(request2) {
-      return runTextTool(request2, env);
+    async run(request3) {
+      return runTextTool(request3, env);
     }
   };
 }
-async function runTextTool(request2, env) {
-  const { text: text13, operation } = request2;
-  const o = request2.options ?? {};
+async function runTextTool(request3, env) {
+  const { text: text13, operation } = request3;
+  const o = request3.options ?? {};
   if (typeof text13 !== "string" || new TextEncoder().encode(text13).length > 4 * 1024 * 1024)
     throw new Error("Use a text excerpt of 4 MiB or less.");
   const s = (key2, fallback = "") => String(o[key2] ?? fallback);
@@ -137749,10 +138531,10 @@ async function composeFrames(story, frames, prepared3, finalHeight, wrap3, cache
   if (result.overset) result.diagnostics.push({ ...result.overset, code: "overset", severity: "error", storyId: story.id, frameId: frames.at(-1).id, message: "Text continues beyond the last frame." });
   return result;
 }
-async function composeText(request2, services, cache5) {
-  const doc = parseTextDocument(request2.document), story = doc.stories.find((story2) => story2.id === request2.storyId);
+async function composeText(request3, services, cache5) {
+  const doc = parseTextDocument(request3.document), story = doc.stories.find((story2) => story2.id === request3.storyId);
   if (!story) throw new TextSourceError("story-missing", "The requested text story is missing.");
-  const frames = admitFrames(story, request2.frames);
+  const frames = admitFrames(story, request3.frames);
   if (!frames.length) {
     const result2 = emptyLayout(story);
     result2.overset = { start: 0, end: story.source.length };
@@ -137763,10 +138545,10 @@ async function composeText(request2, services, cache5) {
   const prepared3 = [], keys2 = [];
   for (const paragraph of story.paragraphs) {
     if (workspace) {
-      const value2 = await workspace.prepare(doc, story, paragraph, services, request2.artwork);
+      const value2 = await workspace.prepare(doc, story, paragraph, services, request3.artwork);
       prepared3.push(value2.prepared);
       keys2.push(value2.key);
-    } else prepared3.push(await prepareTextParagraph(doc, story, paragraph, services, request2.artwork));
+    } else prepared3.push(await prepareTextParagraph(doc, story, paragraph, services, request3.artwork));
   }
   if (frames[0].mode === "path") {
     const { composePathText: composePathText2 } = await Promise.resolve().then(() => (init_text_path(), text_path_exports));
@@ -137774,7 +138556,7 @@ async function composeText(request2, services, cache5) {
     result2.documentHash = await sha256Hex(new TextEncoder().encode(JSON.stringify(doc)));
     return result2;
   }
-  const wrap3 = prepareTextWrap(request2.wrap, frames);
+  const wrap3 = prepareTextWrap(request3.wrap, frames);
   let result = await composeFrames(story, frames, prepared3, void 0, wrap3, workspace, keys2);
   const last = frames.at(-1);
   if (!result.overset && last.columns.balance && last.columns.count > 1) {
@@ -137792,7 +138574,7 @@ async function composeText(request2, services, cache5) {
   if (shrink && (result.overset || result.diagnostics.some((notice) => notice.code === "line-width"))) {
     const resolver = textStyleResolver(doc), sizes = story.paragraphs.flatMap((paragraph) => [paragraph.start, ...story.spans.flatMap((span) => [span.start, span.end]).filter((at) => at >= paragraph.start && at < paragraph.end)].map((at) => resolver.character(story, paragraph, at).size ?? 16)), minimum = shrink.minSize / Math.min(...sizes);
     if (minimum < 1) {
-      const trial = async (factor) => composeText({ ...request2, document: scaleTextStory(doc, story.id, factor, false), frames: frames.map(({ shrink: _shrink, ...frame }) => frame), artwork: request2.artwork?.map((item2) => ({ ...item2, width: item2.width * factor, ...item2.inkWidth === void 0 ? {} : { inkWidth: item2.inkWidth * factor }, ascent: item2.ascent * factor, descent: item2.descent * factor })) }, services);
+      const trial = async (factor) => composeText({ ...request3, document: scaleTextStory(doc, story.id, factor, false), frames: frames.map(({ shrink: _shrink, ...frame }) => frame), artwork: request3.artwork?.map((item2) => ({ ...item2, width: item2.width * factor, ...item2.inkWidth === void 0 ? {} : { inkWidth: item2.inkWidth * factor }, ascent: item2.ascent * factor, descent: item2.descent * factor })) }, services);
       const fits = (layout2) => !layout2.overset && !layout2.diagnostics.some((notice) => notice.code === "line-width");
       let low = minimum, high = 1, best = await trial(low), applied = low;
       if (fits(best)) for (let attempt2 = 0; attempt2 < 12 && high - low > 1e-4; attempt2++) {
@@ -142853,11 +143635,11 @@ function extraRows(id3, pieces, ctx, dark) {
   }
   return out;
 }
-function isRecord4(value2) {
+function isRecord5(value2) {
   return typeof value2 === "object" && value2 !== null && !Array.isArray(value2);
 }
 function readerOf(census, source, view) {
-  if (!isRecord4(census) || !isRecord4(source) || !Array.isArray(source.slides) || !Array.isArray(census.layouts) || !Array.isArray(census.objects)) return () => void 0;
+  if (!isRecord5(census) || !isRecord5(source) || !Array.isArray(source.slides) || !Array.isArray(census.layouts) || !Array.isArray(census.objects)) return () => void 0;
   const deck = source;
   const cen = census;
   const byId = new Map(deck.slides.map((s) => [s.id, s]));
@@ -146991,10 +147773,10 @@ function faceCoversWeight(declared, weight) {
   const [low, high = low] = declared.trim().split(/\s+/).map(Number);
   return Number.isFinite(low) && Number.isFinite(high) && weight >= low && weight <= high;
 }
-function pinnedFaceMismatch(request2, face) {
-  const slant = request2.italic ? " italic" : "";
-  if (!face || face.family.trim().toLowerCase() !== request2.family.trim().toLowerCase()) return `No installed face for ${request2.family}${slant}. Install the font or choose another token.`;
-  if ((face.style === "italic" || face.style === "oblique") !== request2.italic || !faceCoversWeight(face.weight, request2.weight)) return `${request2.family} has no installed face at weight ${request2.weight}${slant}. Install that face or choose another token.`;
+function pinnedFaceMismatch(request3, face) {
+  const slant = request3.italic ? " italic" : "";
+  if (!face || face.family.trim().toLowerCase() !== request3.family.trim().toLowerCase()) return `No installed face for ${request3.family}${slant}. Install the font or choose another token.`;
+  if ((face.style === "italic" || face.style === "oblique") !== request3.italic || !faceCoversWeight(face.weight, request3.weight)) return `${request3.family} has no installed face at weight ${request3.weight}${slant}. Install that face or choose another token.`;
   return null;
 }
 var init_token_font_pins = __esm({
@@ -148159,10 +148941,10 @@ function readExtract(inventory2, opts = {}) {
     warnings2.push({ code: "budget-reached", message: `The ${maxChars} character budget was reached; continue from block ${next2}.` });
   }
   for (const w of inventory2.warnings) warnings2.push({ code: w.code, message: w.message });
-  const request2 = { pages, kinds: kinds2 };
-  if (maxChars !== void 0) request2.maxChars = maxChars;
-  if (minConfidence !== void 0) request2.minConfidence = minConfidence;
-  if (opts.from !== void 0) request2.from = opts.from;
+  const request3 = { pages, kinds: kinds2 };
+  if (maxChars !== void 0) request3.maxChars = maxChars;
+  if (minConfidence !== void 0) request3.minConfidence = minConfidence;
+  if (opts.from !== void 0) request3.from = opts.from;
   const source = {
     name: inventory2.source.name,
     sha256: inventory2.source.sha256,
@@ -148175,7 +148957,7 @@ function readExtract(inventory2, opts = {}) {
     version: READ_EXTRACT_VERSION,
     inventory: CONTENT_INVENTORY_VERSION,
     source,
-    request: request2,
+    request: request3,
     pages: pageEntries,
     blocks,
     chars,
@@ -150548,8 +151330,11 @@ __export(src_exports, {
   IMPRINT_CONTAINER_FORMATS: () => IMPRINT_CONTAINER_FORMATS,
   IMPRINT_FORMATS: () => IMPRINT_FORMATS,
   IMSC11_TEXT_PROFILE: () => IMSC11_TEXT_PROFILE,
+  INTENTS_ENGINE_FLOOR: () => INTENTS_ENGINE_FLOOR,
+  INTENT_RULES_VERSION: () => INTENT_RULES_VERSION,
   IN_REALM_ONLY_HOOK_NAMES: () => IN_REALM_ONLY_HOOK_NAMES,
   IcoDecodeError: () => IcoDecodeError,
+  IntentInvalidError: () => IntentInvalidError,
   JOIN_EPS: () => JOIN_EPS,
   KF_BEZIER_QUANTUM: () => KF_BEZIER_QUANTUM,
   KF_CAMERA_CHANNELS: () => KF_CAMERA_CHANNELS,
@@ -151029,6 +151814,7 @@ __export(src_exports, {
   checkFindingsFromHouseRules: () => checkFindingsFromHouseRules,
   checkLearningExportSize: () => checkLearningExportSize,
   checkLearningModule: () => checkLearningModule,
+  checkToolIntents: () => checkToolIntents,
   chromaAxisMax: () => chromaAxisMax,
   chromaKeyAlpha: () => chromaKeyAlpha,
   chromaTickStep: () => chromaTickStep,
@@ -151804,6 +152590,7 @@ __export(src_exports, {
   parseVectorPaint: () => parseVectorPaint,
   parseVersion: () => parseVersion,
   parseVideoParams: () => parseVideoParams,
+  parseVisualIntent: () => parseVisualIntent,
   parseVoiceBlend: () => parseVoiceBlend,
   parseWav: () => parseWav,
   parseZzfxmRef: () => parseZzfxmRef,
@@ -151995,6 +152782,7 @@ __export(src_exports, {
   resolveDesignPages: () => resolveDesignPages,
   resolveDesignVersion: () => resolveDesignVersion,
   resolveGamutSource: () => resolveGamutSource,
+  resolveIntent: () => resolveIntent,
   resolvePaintBindings: () => resolvePaintBindings,
   resolvePhotoLook: () => resolvePhotoLook,
   resolvePresentInteractDepth: () => resolvePresentInteractDepth,
@@ -152577,6 +153365,7 @@ var init_src2 = __esm({
     init_gamut_source();
     init_gamut_axis();
     init_gamut_tier();
+    init_intent();
     init_icc();
     init_icc_pixels();
     init_brand_schemes();
@@ -162257,7 +163046,7 @@ function outcomeCounts(plan, compiled3) {
     tray: compiled3.tray.length
   };
 }
-function outcomeOf2(plan, compiled3) {
+function outcomeOf3(plan, compiled3) {
   if (openPendingIds(plan).length > 0) return "needs-review";
   const counts = outcomeCounts(plan, compiled3);
   return counts.unresolvedObjects === 0 && counts.unresolvedColours === 0 && counts.tray === 0 ? "ready" : "needs-review";
@@ -165729,12 +166518,12 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
     await page3.unroute(matches3, handler).catch(() => {
     });
   };
-  const handler = async (route, request2) => {
+  const handler = async (route, request3) => {
     if (removed || consumed) {
       await route.fallback();
       return;
     }
-    if (request2.method() !== "GET") {
+    if (request3.method() !== "GET") {
       await route.fulfill({ status: 405, body: "", headers: { Allow: "GET", "Cache-Control": "no-store" } });
       return;
     }
@@ -165936,12 +166725,12 @@ import { existsSync as existsSync6 } from "node:fs";
 import { join as join11, dirname as dirname5 } from "node:path";
 import { fileURLToPath as fileURLToPath4 } from "node:url";
 import { Worker as Worker2 } from "node:worker_threads";
-function runJxl(request2, signal) {
-  validateJxlRequest(request2);
+function runJxl(request3, signal) {
+  validateJxlRequest(request3);
   signal?.throwIfAborted();
   if (pending2 >= 24) return Promise.reject(new Error("Too many JPEG XL operations are waiting."));
   pending2++;
-  const task = queue.then(() => runWorker(request2, signal));
+  const task = queue.then(() => runWorker(request3, signal));
   queue = task.then(() => {
   }, () => {
   }).finally(() => {
@@ -165967,11 +166756,11 @@ function workerPath() {
   }
   throw new Error("The local JPEG XL codec is not installed.");
 }
-function runWorker(request2, signal) {
-  validateJxlRequest(request2);
+function runWorker(request3, signal) {
+  validateJxlRequest(request3);
   signal?.throwIfAborted();
   return new Promise((resolve8, reject) => {
-    const worker = new Worker2(workerPath(), { workerData: request2, execArgv: [] });
+    const worker = new Worker2(workerPath(), { workerData: request3, execArgv: [] });
     let settled = false;
     const finish2 = (error2, result) => {
       if (settled) return;
@@ -167219,8 +168008,8 @@ function createTextShapeCache() {
   const entries = /* @__PURE__ */ new Map();
   let bytes2 = 0;
   return {
-    key(request2) {
-      const { start: _start, font, ...shape } = request2;
+    key(request3) {
+      const { start: _start, font, ...shape } = request3;
       return JSON.stringify([font.sha256, font.faceIndex, font.id, font.family, shape]);
     },
     read(key2, start) {
@@ -167540,10 +168329,10 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
       const entry2 = await load3(resource);
       return { ...structuredClone(entry2.info), resource: structuredClone(resource) };
     },
-    async shapeRun(request2) {
-      if (!Number.isSafeInteger(request2.start) || request2.start < 0) throw new TextSourceError("shape-options", "Invalid text source origin.");
-      const entry2 = await load3(request2.font), hb = await loadHarfBuzz2(), axes = {};
-      for (const [tag3, value2] of Object.entries(request2.axes ?? {})) {
+    async shapeRun(request3) {
+      if (!Number.isSafeInteger(request3.start) || request3.start < 0) throw new TextSourceError("shape-options", "Invalid text source origin.");
+      const entry2 = await load3(request3.font), hb = await loadHarfBuzz2(), axes = {};
+      for (const [tag3, value2] of Object.entries(request3.axes ?? {})) {
         const axis = entry2.info.axes[tag3];
         if (!axis || !Number.isFinite(value2) || value2 < axis.min || value2 > axis.max) throw new TextSourceError("font-axis", `Unsupported font axis value: ${tag3}`);
         axes[tag3] = value2;
@@ -167557,9 +168346,9 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
         if (entry2.instances.size >= 32) entry2.instances.delete(entry2.instances.keys().next().value);
         entry2.instances.set(key2, font);
       }
-      const shapeKey = request2.outline === false ? null : shapes2.key(request2), cached2 = shapeKey ? shapes2.read(shapeKey, request2.start) : void 0;
+      const shapeKey = request3.outline === false ? null : shapes2.key(request3), cached2 = shapeKey ? shapes2.read(shapeKey, request3.start) : void 0;
       if (cached2) return cached2;
-      const result = shapeTextRun(hb, font, { ...request2, identity: { id: request2.font.id, faceIndex: request2.font.faceIndex, sha256: request2.font.sha256, family: request2.font.family, axes, features: request2.features ?? {} } });
+      const result = shapeTextRun(hb, font, { ...request3, identity: { id: request3.font.id, faceIndex: request3.font.faceIndex, sha256: request3.font.sha256, family: request3.font.family, axes, features: request3.features ?? {} } });
       if (shapeKey) shapes2.remember(shapeKey, result);
       return result;
     },
@@ -167588,12 +168377,12 @@ var init_text_fonts = __esm({
 // packages/node-shell/src/text-composition.ts
 function createTextCompositionAPI(read, parseXml) {
   const shaper = createPinnedTextShaper(read), cache5 = createTextCompositionCache();
-  return { fontInfo: shaper.fontInfo, shapeRun: shaper.shapeRun, async layoutRuns(request2) {
-    const doc = parseTextDocument(request2.document);
-    const layout2 = await composeText({ ...request2, document: doc }, shaper, cache5);
-    if (request2.includeSvg) {
+  return { fontInfo: shaper.fontInfo, shapeRun: shaper.shapeRun, async layoutRuns(request3) {
+    const doc = parseTextDocument(request3.document);
+    const layout2 = await composeText({ ...request3, document: doc }, shaper, cache5);
+    if (request3.includeSvg) {
       if (!parseXml) throw new Error("This host cannot admit inline SVG artwork.");
-      const story = doc.stories.find((story2) => story2.id === request2.storyId);
+      const story = doc.stories.find((story2) => story2.id === request3.storyId);
       for (const frame of layout2.frames) frame.svg = await textLayoutSvg(layout2, story, frame.id, parseXml);
     }
     return layout2;
@@ -169024,10 +169813,10 @@ async function createPdfA11yKernel(wasm) {
       api.pdf_a11y_free(pointer2);
     }
   }
-  function redact(bytes2, request2) {
+  function redact(bytes2, request3) {
     if (retired) throw new PdfKeepTextError("refused", "The module stopped on an earlier file and must be started again.");
     if (!(bytes2 instanceof Uint8Array) || bytes2.length === 0) throw new PdfKeepTextError("not-pdf", "The file is empty.");
-    const header = new TextEncoder().encode(JSON.stringify(request2));
+    const header = new TextEncoder().encode(JSON.stringify(request3));
     const total = 4 + header.length + bytes2.length;
     if (total > PDF_A11Y_MAX_BYTES) throw new PdfKeepTextError("too-large", "The PDF is larger than 256 MB.");
     const pointer2 = api.pdf_a11y_alloc(total);
@@ -170811,15 +171600,15 @@ function createGridcraftCalcRunner(module) {
     api = exports;
     return exports;
   };
-  return (operation, request2) => {
-    if (!request2.length || request2.length > MAX_REQUEST2) throw new Error("The calculation request is too large.");
+  return (operation, request3) => {
+    if (!request3.length || request3.length > MAX_REQUEST2) throw new Error("The calculation request is too large.");
     const module2 = instance();
     let pointer2 = 0;
     try {
-      pointer2 = module2.gridcraft_calc_alloc(request2.length);
+      pointer2 = module2.gridcraft_calc_alloc(request3.length);
       if (!pointer2) throw new Error("The calculation module refused the request allocation.");
-      new Uint8Array(module2.memory.buffer, pointer2, request2.length).set(request2);
-      const status = module2.gridcraft_calc_run(pointer2, request2.length, operation);
+      new Uint8Array(module2.memory.buffer, pointer2, request3.length).set(request3);
+      const status = module2.gridcraft_calc_run(pointer2, request3.length, operation);
       const length2 = module2.gridcraft_calc_result_len(), at = module2.gridcraft_calc_result_ptr();
       if (length2 > MAX_RESULT3 || at + length2 > module2.memory.buffer.byteLength) throw new Error("The calculation module returned an oversized response.");
       const out = new Uint8Array(module2.memory.buffer, at, length2).slice();
@@ -170869,7 +171658,7 @@ function loadCalcEngine() {
 }
 function createNodeCalcAPI() {
   return {
-    evaluate: async (request2) => createCalcAPI(await loadCalcEngine()).evaluate(request2),
+    evaluate: async (request3) => createCalcAPI(await loadCalcEngine()).evaluate(request3),
     table: async (table, options2) => createCalcAPI(await loadCalcEngine()).table(table, options2),
     functions: async () => createCalcAPI(await loadCalcEngine()).functions()
   };
@@ -171124,8 +171913,8 @@ async function createLayoutKernel(bytes2) {
   if (!(api.memory instanceof WebAssembly.Memory)) throw new Error("Layout kernel lacks memory.");
   const encoder5 = new TextEncoder();
   const decoder6 = new TextDecoder("utf-8", { fatal: true });
-  return (request2) => {
-    const input = encoder5.encode(JSON.stringify(request2));
+  return (request3) => {
+    const input = encoder5.encode(JSON.stringify(request3));
     if (input.length > MAX_BYTES) throw new Error("Layout request exceeds 8 MiB.");
     const pointer2 = api.layout_alloc(input.length);
     if (!pointer2) throw new Error("Layout allocation failed.");
@@ -171139,7 +171928,7 @@ async function createLayoutKernel(bytes2) {
       const vectors = (value2, count4, width) => Array.isArray(value2) && value2.length === count4 && value2.every(
         (row) => Array.isArray(row) && row.length === width && row.every(Number.isFinite)
       );
-      if (!vectors(result.bounds, request2.items.length + 1, 8) || request2.mode === "grid" && (!vectors(result.columns, request2.columns.length, 5) || !vectors(result.rows, request2.rows.length, 5))) {
+      if (!vectors(result.bounds, request3.items.length + 1, 8) || request3.mode === "grid" && (!vectors(result.columns, request3.columns.length, 5) || !vectors(result.rows, request3.rows.length, 5))) {
         throw new Error("Layout kernel returned malformed geometry.");
       }
       return result;
@@ -171187,13 +171976,13 @@ async function createNodeLayout(tokens3) {
   const solve3 = await loadLayoutKernel();
   const contexts = /* @__PURE__ */ new Map();
   return {
-    evaluate: async (request2) => {
+    evaluate: async (request3) => {
       let fonts;
       try {
         fonts = await resolveDesignLayoutFonts(tokens3);
       } catch (error2) {
         return {
-          boxes: request2.boxes,
+          boxes: request3.boxes,
           findings: [
             {
               id: "",
@@ -171217,7 +172006,7 @@ async function createNodeLayout(tokens3) {
         if (contexts.size >= 2) contexts.delete(contexts.keys().next().value);
         contexts.set(revision, evaluate);
       }
-      return evaluate(request2.boxes, request2.tracks, revision);
+      return evaluate(request3.boxes, request3.tracks, revision);
     }
   };
 }
@@ -171244,10 +172033,10 @@ function createNodeTextTools() {
     async highlight(text13, language, options2) {
       return highlightCode(text13, language, options2);
     },
-    run(request2) {
+    run(request3) {
       return new Promise((resolve8, reject) => {
         const worker = new Worker4(new URL("./text-tools-worker.ts", import.meta.url), {
-          workerData: request2
+          workerData: request3
         });
         const timer = setTimeout(() => {
           void worker.terminate();
@@ -174673,9 +175462,9 @@ function readAdvert(file, probe) {
   if (!(probe.alive ?? processAlive)(pid)) return null;
   return { port, token: token2, pid, version: typeof value2.version === "string" ? value2.version : "", file };
 }
-function call(port, request2, timeoutMs, what = "desktop render endpoint", maxReply = MAX_REPLY_BYTES) {
+function call(port, request3, timeoutMs, what = "desktop render endpoint", maxReply = MAX_REPLY_BYTES) {
   return new Promise((resolve8, reject) => {
-    const body = Buffer.from(JSON.stringify(request2), "utf8");
+    const body = Buffer.from(JSON.stringify(request3), "utf8");
     const header = Buffer.alloc(4);
     header.writeUInt32BE(body.length, 0);
     const socket = connect({ port, host: "127.0.0.1" });
@@ -183949,7 +184738,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
     }
   };
   host.codec = (await Promise.resolve().then(() => (init_deep_codec_api(), deep_codec_api_exports))).createDeepCodec({
-    jxl: async (request2) => (await Promise.resolve().then(() => (init_jxl2(), jxl_exports))).runJxl(request2),
+    jxl: async (request3) => (await Promise.resolve().then(() => (init_jxl2(), jxl_exports))).runJxl(request3),
     async bytes(source) {
       if (source instanceof Uint8Array) return source;
       if (typeof source === "object" && "arrayBuffer" in source) return new Uint8Array(await source.arrayBuffer());
@@ -184201,9 +184990,9 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
   host.prepare = (await Promise.resolve().then(() => (init_src2(), src_exports))).createPrepareAPI();
   host.compare = (await Promise.resolve().then(() => (init_src2(), src_exports))).createCompareAPI();
   let layout2;
-  host.layout = { evaluate: async (request2) => {
+  host.layout = { evaluate: async (request3) => {
     layout2 ??= Promise.resolve().then(() => (init_layout_host_node(), layout_host_node_exports)).then((m2) => m2.createNodeLayout(host.tokens));
-    return (await layout2).evaluate(request2);
+    return (await layout2).evaluate(request3);
   } };
   host.textTools = (await Promise.resolve().then(() => (init_text_tools3(), text_tools_exports))).createNodeTextTools();
   host.emoji = await (await Promise.resolve().then(() => (init_emoji2(), emoji_exports))).createNodeEmojiAPI({
@@ -184493,7 +185282,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (opts.deepFrame) {
         if (opts.watermark || opts.durable) throw new Error("Float exports with a draft or durable mark require the web shell.");
         return (await Promise.resolve().then(() => (init_deep_export(), deep_export_exports))).exportDeepFrame(opts.deepFrame, format, { ...opts, hdr: !!opts.hdr }, {
-          jxl: async (request2) => (await Promise.resolve().then(() => (init_jxl2(), jxl_exports))).runJxl(request2)
+          jxl: async (request3) => (await Promise.resolve().then(() => (init_jxl2(), jxl_exports))).runJxl(request3)
         });
       }
       if (format !== "html") {
@@ -185593,10 +186382,10 @@ function exportOpts(o) {
   if (o.hdr) opts.hdr = { targets: [], peakNits: o.hdr.peakNits, reach: o.hdr.reach, lift: o.hdr.lift, richness: o.hdr.richness };
   return opts;
 }
-async function applyEmojiRequest(runtime, host, request2) {
-  const named = request2.emoji?.trim();
-  const fx = request2.emojifx?.trim();
-  if (!named && !fx && !request2.emojistyle) {
+async function applyEmojiRequest(runtime, host, request3) {
+  const named = request3.emoji?.trim();
+  const fx = request3.emojifx?.trim();
+  if (!named && !fx && !request3.emojistyle) {
     const style = await (await Promise.resolve().then(() => (init_emoji_default(), emoji_default_exports))).brandEmojiStyle(host);
     if (style) await runtime.setEmojiStyle(style);
     return [];
@@ -185609,13 +186398,13 @@ async function applyEmojiRequest(runtime, host, request2) {
   const { parseEmojiParams: parseEmojiParams2 } = await Promise.resolve().then(() => (init_emoji_style(), emoji_style_exports));
   const swatches = host.tokens ? await host.tokens.colors() : [];
   const parsed = parseEmojiParams2(
-    { emoji: named, emojifx: fx, emojistyle: request2.emojistyle },
+    { emoji: named, emojifx: fx, emojistyle: request3.emojistyle },
     await host.emoji.sets(),
     swatches.map((swatch) => ({ id: swatch.ref, hex: swatch.value }))
   );
   const warnings2 = parsed.issues.map((issue2) => issue2.message);
   if (!parsed.pin) {
-    if (named || request2.emojistyle) await runtime.setEmojiStyle(null);
+    if (named || request3.emojistyle) await runtime.setEmojiStyle(null);
     if (fx && !named) {
       warnings2.push(`emojifx=${fx} names a treatment but no set, so there is no artwork to treat. Add emoji=<id>@<version>.`);
     }
@@ -186431,12 +187220,12 @@ var LAYOUT_MAPS = [
 var RESERVED_KEYS = ["__proto__", "constructor", "prototype"];
 var ARCHETYPE_WORDS = `one of ${ARCHETYPE_IDS.join(", ")}, or a layout library id in lower case letters, digits and dashes`;
 var has3 = (list4, value2) => typeof value2 === "string" && list4.includes(value2);
-function isRecord5(value2) {
+function isRecord6(value2) {
   return value2 !== null && typeof value2 === "object" && !Array.isArray(value2);
 }
 function classMapProblems(field2, value2, allowed, out) {
   if (value2 === void 0) return;
-  if (!isRecord5(value2)) {
+  if (!isRecord6(value2)) {
     out.push(`"${field2}" is an object from object class to value`);
     return;
   }
@@ -186447,7 +187236,7 @@ function classMapProblems(field2, value2, allowed, out) {
 }
 function presetProblems(value2) {
   const out = [];
-  if (!isRecord5(value2)) return ["a preset is a JSON object"];
+  if (!isRecord6(value2)) return ["a preset is a JSON object"];
   for (const key2 of Object.keys(value2)) {
     if (!has3(ENGINE_FIELDS, key2) && !has3(PEOPLE_FIELDS, key2)) out.push(`"${key2}" is not a preset field`);
   }
@@ -186459,7 +187248,7 @@ function presetProblems(value2) {
   }
   classMapProblems("actions", value2.actions, PLAN_ACTIONS, out);
   classMapProblems("review", value2.review, REVIEW_STATES, out);
-  if (isRecord5(value2.actions)) {
+  if (isRecord6(value2.actions)) {
     for (const [klass, action] of Object.entries(value2.actions)) {
       if (action === "replace" && has3(OBJECT_CLASSES, klass) && !REPLACEABLE_CLASSES.includes(klass)) {
         out.push(`"actions.${klass}" is replace, and only a logo has a replacement the first pass can name`);
@@ -186468,7 +187257,7 @@ function presetProblems(value2) {
   }
   const layout2 = value2.layout;
   if (layout2 !== void 0) {
-    if (!isRecord5(layout2)) {
+    if (!isRecord6(layout2)) {
       out.push('"layout" is an object');
     } else {
       for (const key2 of Object.keys(layout2)) {
@@ -186477,7 +187266,7 @@ function presetProblems(value2) {
       for (const [field2, keyWords] of LAYOUT_MAPS) {
         const map = layout2[field2];
         if (map === void 0) continue;
-        if (!isRecord5(map)) {
+        if (!isRecord6(map)) {
           out.push(`"layout.${field2}" is an object from ${keyWords} to archetype`);
           continue;
         }
@@ -186496,7 +187285,7 @@ function presetProblems(value2) {
   }
   const logo = value2.logo;
   if (logo !== void 0) {
-    if (!isRecord5(logo)) out.push('"logo" is an object with a "policy"');
+    if (!isRecord6(logo)) out.push('"logo" is an object with a "policy"');
     else {
       if (!has3(LOGO_POLICIES, logo.policy)) out.push(`"logo.policy" takes one of ${LOGO_POLICIES.join(", ")}`);
       if (logo.variantByBackground !== void 0 && typeof logo.variantByBackground !== "boolean") out.push('"logo.variantByBackground" is true or false');
@@ -186515,7 +187304,7 @@ function presetProblems(value2) {
     if (!Array.isArray(value2.lockedColors)) out.push('"lockedColors" is a list');
     else {
       value2.lockedColors.forEach((lock, index2) => {
-        if (!isRecord5(lock) || typeof lock.useId !== "string" || !lock.useId) out.push(`"lockedColors[${index2}].useId" is a colour use id`);
+        if (!isRecord6(lock) || typeof lock.useId !== "string" || !lock.useId) out.push(`"lockedColors[${index2}].useId" is a colour use id`);
         else if (typeof lock.to !== "string" || !HEX_PATTERN.test(lock.to)) out.push(`"lockedColors[${index2}].to" is a colour written #rrggbb`);
         else if (lock.toPath !== void 0 && typeof lock.toPath !== "string") out.push(`"lockedColors[${index2}].toPath" is a token path`);
       });
@@ -186541,7 +187330,7 @@ function toRenovationPreset(entry2) {
   return out;
 }
 function entriesOf(parsed) {
-  if (!isRecord5(parsed)) return null;
+  if (!isRecord6(parsed)) return null;
   if (Array.isArray(parsed.presets)) return parsed.version === PRESET_FILE_VERSION ? parsed.presets : null;
   return typeof parsed.id === "string" ? [parsed] : null;
 }
@@ -186569,7 +187358,7 @@ function sortEntries(entries, where) {
   const bad = [];
   for (const entry2 of entries) {
     const problems = presetProblems(entry2);
-    const id3 = isRecord5(entry2) && typeof entry2.id === "string" ? entry2.id : void 0;
+    const id3 = isRecord6(entry2) && typeof entry2.id === "string" ? entry2.id : void 0;
     if (problems.length > 0) {
       bad.push({ ...where, ...id3 !== void 0 ? { id: id3 } : {}, problems });
       continue;
@@ -186588,7 +187377,7 @@ function sortEntries(entries, where) {
 }
 function packPresetFiles(roots2) {
   const index2 = readAssetIndex(roots2);
-  const assets = (index2.assets ?? []).filter((a) => isRecord5(a) && typeof a.id === "string");
+  const assets = (index2.assets ?? []).filter((a) => isRecord6(a) && typeof a.id === "string");
   return assets.filter((asset2) => asset2.deprecated !== true && asset2.type === "data" && PRESET_ASSET_TAGS.every((tag3) => Array.isArray(asset2.tags) && asset2.tags.includes(tag3))).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0).map((asset2) => {
     let file = null;
     for (const format of asset2.formats ?? []) {
@@ -188413,7 +189202,7 @@ async function planStage(args, ctx) {
   const summary = planSummary(planned.plan, planned.source, planned.census);
   const queue2 = reviewQueue(planned.plan, planned.census, planned.source);
   const counts = outcomeCounts(planned.plan, compiled3);
-  const outcome = outcomeOf2(planned.plan, compiled3);
+  const outcome = outcomeOf3(planned.plan, compiled3);
   const flattened = flattenedFacts(planned.flattened);
   const hash = planned.source.source.hash;
   const plan = deliverPlan(planned.plan, resourceUri(hash, `${deck.stem}.plan.json`), ctx);
@@ -188441,9 +189230,9 @@ async function planStage(args, ctx) {
 }
 function checkCompileRequest(deck, plan, ctx) {
   if (!isHostedServer(ctx.env)) return;
-  const request2 = REQUEST_ENVELOPE_BYTES + base64Length(deck.bytes.byteLength) + Buffer.byteLength(JSON.stringify(plan), "utf8");
-  if (request2 > ctx.limits.bodyMaxBytes) {
-    throw new RebrandToolError("source.too-large", `A compile call for ${deck.name} would carry the file and its plan in about ${request2} bytes, over the ${ctx.limits.bodyMaxBytes} bytes this server takes in one request; run lolly rebrand on the CLI for this deck.`);
+  const request3 = REQUEST_ENVELOPE_BYTES + base64Length(deck.bytes.byteLength) + Buffer.byteLength(JSON.stringify(plan), "utf8");
+  if (request3 > ctx.limits.bodyMaxBytes) {
+    throw new RebrandToolError("source.too-large", `A compile call for ${deck.name} would carry the file and its plan in about ${request3} bytes, over the ${ctx.limits.bodyMaxBytes} bytes this server takes in one request; run lolly rebrand on the CLI for this deck.`);
   }
 }
 async function designToolVersion2() {
@@ -188538,7 +189327,7 @@ async function compileStage(args, ctx) {
     }
   }
   const counts = outcomeCounts(result.plan, compiled3);
-  const outcome = outcomeOf2(result.plan, compiled3);
+  const outcome = outcomeOf3(result.plan, compiled3);
   const summary = planSummary(result.plan, read.source, read.census);
   const flattened = flattenedFacts(read.flattened);
   const structured = {
@@ -192789,6 +193578,381 @@ async function callCompose(args, env = process.env, limits = structuredLimitsFor
   }
 }
 
+// services/mcp/src/intent.ts
+init_src2();
+
+// schemas/visual-intent-v1.schema.json
+var visual_intent_v1_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://lolly.tools/schemas/visual-intent-v1.schema.json",
+  title: "visual-intent-v1",
+  description: "A request to the engine's resolveIntent: what a piece has to do for its reader, where it will be seen and what it has to say. Mirrors VisualIntentV1 in packages/core/src/intent-v1.ts. `purpose` may be left out only when `prompt` is given, and the answer then carries the purposes and tools so the calling agent can read its own user's words, choose a purpose and call again. Nothing here reads meaning from text. parseVisualIntent also bounds nesting, total size and duplicate surfaces.",
+  type: "object",
+  additionalProperties: false,
+  required: ["version"],
+  anyOf: [
+    { required: ["purpose", "surfaces"] },
+    { required: ["prompt"], not: { required: ["purpose"] } }
+  ],
+  properties: {
+    version: { const: 1 },
+    purpose: {
+      type: "string",
+      enum: ["announce", "compare", "demonstrate", "direct", "explain", "identify", "invite", "offer", "present", "promote", "recognise", "report", "schedule"],
+      description: "What the piece does for its reader."
+    },
+    prompt: {
+      type: "string",
+      minLength: 1,
+      maxLength: 2e3,
+      description: "The words the user first said to the agent. Carried and digested, and never read for meaning. Past the limit it is refused, not cut."
+    },
+    recordPrompt: {
+      type: "boolean",
+      default: false,
+      description: "Reserved for recording the prompt with a render. Records nothing yet."
+    },
+    occasion: { type: "string", maxLength: 200, description: "Free text. Recorded, and read by nothing that decides." },
+    audience: { type: "string", maxLength: 200, description: "Free text. Recorded, and read by nothing that decides." },
+    region: { type: "string", maxLength: 200, description: "Free text. Recorded, and read by nothing that decides." },
+    language: { type: "string", maxLength: 64, description: "A short language tag such as de or pt-BR. Selects where a tool offers that language." },
+    content: {
+      type: "object",
+      maxProperties: 64,
+      propertyNames: {
+        enum: ["address", "awarddate", "awardtopic", "bgImage", "body", "company", "cta", "currency", "data", "email", "eventEnd", "eventLocation", "eventName", "eventStart", "firstname", "heading", "headshot", "image", "jobTitle", "lastname", "phone", "recipient", "sender", "sourceAuthor", "subheading", "url"]
+      },
+      description: "Content by role. The `roles` section of schemas/canonical-inputs.json says what each one is."
+    },
+    surfaces: {
+      type: "array",
+      maxItems: 32,
+      items: { $ref: "#/$defs/surface" },
+      description: "Where the piece will be seen. Required with a purpose."
+    },
+    prefer: {
+      type: "object",
+      additionalProperties: false,
+      required: ["toolId"],
+      properties: { toolId: { type: "string" } },
+      description: "Rank this tool first among the ones that fit each surface."
+    }
+  },
+  $defs: {
+    surface: {
+      oneOf: [
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["id"],
+          properties: {
+            id: {
+              type: "string",
+              enum: ["slide", "screen", "social-landscape", "social-square", "social-portrait", "story", "banner", "a4-portrait", "a4-landscape", "a3-portrait", "a3-landscape", "a2-portrait", "a2-landscape", "a1-portrait", "letter-portrait", "letter-landscape", "business-card"]
+            },
+            format: { $ref: "#/$defs/format" }
+          }
+        },
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["width", "height"],
+          properties: {
+            width: { type: "number", exclusiveMinimum: 0 },
+            height: { type: "number", exclusiveMinimum: 0 },
+            unit: { type: "string", enum: ["px", "mm", "cm", "in", "pt"], default: "px" },
+            format: { $ref: "#/$defs/format" }
+          }
+        }
+      ]
+    },
+    format: { type: "string", pattern: "^[a-z0-9-]{1,32}$", description: "One output format. Must be one the chosen tool exports." }
+  }
+};
+
+// schemas/intent-resolution-v1.schema.json
+var intent_resolution_v1_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://lolly.tools/schemas/intent-resolution-v1.schema.json",
+  title: "intent-resolution-v1",
+  description: "The answer from the engine's resolveIntent. Mirrors IntentResolutionV1 in packages/core/src/intent-v1.ts. One shape for every outcome. `closed`, `freeText` and `prompt` are kept apart because they are different kinds of value: closed vocabulary and repository facts, words a caller wrote about the circumstances, and the user's own words.",
+  type: "object",
+  additionalProperties: false,
+  required: ["format", "formatVersion", "intentDigest", "closed", "freeText", "prompt", "recordPrompt", "outcome", "surfaces", "purposeNeeded", "toolsConsidered"],
+  properties: {
+    format: { const: "lolly-intent-resolution" },
+    formatVersion: { const: 1 },
+    intentDigest: { type: "string", pattern: "^sha256:[0-9a-f]{64}$" },
+    closed: { $ref: "#/$defs/closed" },
+    freeText: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        occasion: { type: "string" },
+        audience: { type: "string" },
+        region: { type: "string" }
+      }
+    },
+    prompt: { type: ["string", "null"] },
+    recordPrompt: { type: "boolean" },
+    outcome: { enum: ["ready", "partial", "needs-content", "refused", "purpose-needed"] },
+    surfaces: { type: "array", items: { $ref: "#/$defs/surfaceResult" } },
+    purposeNeeded: { oneOf: [{ type: "null" }, { $ref: "#/$defs/purposeNeeded" }] },
+    toolsConsidered: { type: "integer", minimum: 0 }
+  },
+  $defs: {
+    purpose: {
+      enum: ["announce", "compare", "demonstrate", "direct", "explain", "identify", "invite", "offer", "present", "promote", "recognise", "report", "schedule"]
+    },
+    fit: { enum: ["declared", "option", "follows", "natural"] },
+    status: { enum: ["ready", "needs-content", "refused"] },
+    unit: { enum: ["px", "mm", "cm", "in", "pt"] },
+    closed: {
+      type: "object",
+      additionalProperties: false,
+      required: ["purpose", "surfaces", "language", "chosen", "rulesVersion", "vocabularyVersion"],
+      properties: {
+        purpose: { oneOf: [{ type: "null" }, { $ref: "#/$defs/purpose" }] },
+        surfaces: { type: "array", items: { type: "string" } },
+        language: { type: ["string", "null"] },
+        chosen: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["surface", "toolId", "toolVersion", "fit", "status"],
+            properties: {
+              surface: { type: "string" },
+              toolId: { type: ["string", "null"] },
+              toolVersion: { type: ["string", "null"] },
+              fit: { oneOf: [{ type: "null" }, { $ref: "#/$defs/fit" }] },
+              status: { $ref: "#/$defs/status" }
+            }
+          }
+        },
+        rulesVersion: { type: "string" },
+        vocabularyVersion: { const: 1 }
+      }
+    },
+    coded: {
+      type: "object",
+      additionalProperties: false,
+      required: ["code", "message"],
+      properties: { code: { type: "string" }, message: { type: "string" } }
+    },
+    surface: {
+      type: "object",
+      additionalProperties: false,
+      required: ["id", "named", "width", "height", "unit", "medium"],
+      properties: {
+        id: { type: "string" },
+        named: { type: "boolean" },
+        width: { type: "number" },
+        height: { type: "number" },
+        unit: { $ref: "#/$defs/unit" },
+        medium: { enum: ["screen", "print"] },
+        format: { type: "string" }
+      }
+    },
+    choice: {
+      type: "object",
+      additionalProperties: false,
+      required: ["toolId", "toolVersion", "fit", "format", "inputs", "exportDims", "gaps", "unused", "defaultsInUse", "notes"],
+      properties: {
+        toolId: { type: "string" },
+        toolVersion: { type: ["string", "null"] },
+        fit: { $ref: "#/$defs/fit" },
+        format: { type: "string" },
+        inputs: { type: "object" },
+        exportDims: {
+          type: "object",
+          additionalProperties: false,
+          required: ["width", "height", "unit"],
+          properties: { width: { type: "number" }, height: { type: "number" }, unit: { $ref: "#/$defs/unit" } }
+        },
+        gaps: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["code", "message"],
+            properties: {
+              code: { enum: ["role-missing", "input-required"] },
+              role: { type: "string" },
+              input: { type: "string" },
+              message: { type: "string" }
+            }
+          }
+        },
+        unused: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["role", "code", "message"],
+            properties: {
+              role: { type: "string" },
+              code: { enum: ["no-input", "value-refused", "replaced-by-surface"] },
+              message: { type: "string" }
+            }
+          }
+        },
+        defaultsInUse: { type: "array", items: { type: "string" } },
+        notes: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["code", "message"],
+            properties: {
+              code: { enum: ["language-applied", "language-not-offered", "prefer-not-available"] },
+              message: { type: "string" }
+            }
+          }
+        }
+      }
+    },
+    surfaceResult: {
+      type: "object",
+      additionalProperties: false,
+      required: ["surface", "status", "chosen", "candidates", "refusals", "refusal"],
+      properties: {
+        surface: { $ref: "#/$defs/surface" },
+        status: { $ref: "#/$defs/status" },
+        chosen: { oneOf: [{ type: "null" }, { $ref: "#/$defs/choice" }] },
+        candidates: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["toolId", "fit", "preferred", "missing", "contentUsed", "reasons"],
+            properties: {
+              toolId: { type: "string" },
+              fit: { $ref: "#/$defs/fit" },
+              preferred: { type: "boolean" },
+              missing: { type: "array", items: { type: "string" } },
+              contentUsed: { type: "integer", minimum: 0 },
+              reasons: { type: "array", items: { $ref: "#/$defs/coded" } }
+            }
+          }
+        },
+        refusals: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["toolId", "code", "message"],
+            properties: {
+              toolId: { type: "string" },
+              code: { enum: ["purpose-other", "surface-no-fit", "format-unsupported", "not-exportable", "deprecated"] },
+              message: { type: "string" }
+            }
+          }
+        },
+        refusal: {
+          oneOf: [
+            { type: "null" },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: ["code", "message"],
+              properties: {
+                code: { enum: ["no-tool-for-purpose", "no-tool-for-surface", "format-unsupported"] },
+                message: { type: "string" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    purposeNeeded: {
+      type: "object",
+      additionalProperties: false,
+      required: ["code", "message", "purposes", "tools", "surfaces", "roles"],
+      properties: {
+        code: { const: "intent.purpose-needed" },
+        message: { type: "string" },
+        purposes: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["purpose", "meaning", "tools"],
+            properties: {
+              purpose: { $ref: "#/$defs/purpose" },
+              meaning: { type: "string" },
+              tools: { type: "array", items: { type: "string" } }
+            }
+          }
+        },
+        tools: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["toolId", "name", "purposes"],
+            properties: {
+              toolId: { type: "string" },
+              name: { type: ["string", "null"] },
+              purposes: { type: "array", items: { $ref: "#/$defs/purpose" } }
+            }
+          }
+        },
+        surfaces: { type: "array", items: { type: "string" } },
+        roles: { type: "array", items: { type: "string" } }
+      }
+    }
+  }
+};
+
+// services/mcp/src/intent.ts
+var INTENT_TOOL_CODES = ["request.invalid", "intent.invalid", "output.too-large", "internal"];
+var request = contractPart(visual_intent_v1_schema_default);
+var resolution = contractPart(intent_resolution_v1_schema_default);
+var RESOLVE_INTENT_OUTPUT_SCHEMA = {
+  type: "object",
+  $defs: { ...resolution.defs, intentResolution: resolution.root },
+  oneOf: [{ $ref: "#/$defs/intentResolution" }, errorOut(INTENT_TOOL_CODES)]
+};
+var RESOLVE_INTENT_TOOL_DEF = {
+  name: "lolly_resolve_intent",
+  description: "Say what a piece has to do, and get back the tool for each surface, its input values, what is missing and why. Read only: nothing is rendered or stored. No model is in this path, so it never reads meaning from text. If you are happy to carry your user's first words in the work you return, pass them as `prompt`, then read them yourself and choose the `purpose`: a prompt with no purpose comes back as outcome `purpose-needed` (code `intent.purpose-needed`) with the purposes, the tools that serve each, the surfaces and the roles, so you can call again with a purpose, surfaces and content. A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`. A surface with status `needs-content` lists the roles to supply in `gaps`; supply them from your user, never invent them. `defaultsInUse` names the tool wording that would still print.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      intent: {
+        ...request.root,
+        description: "What the piece has to do: `version` 1, `purpose`, `surfaces` and `content` by role. Optional: `occasion`, `audience` and `region` (recorded, never read), `language`, and `prompt` (your user's first words, at most 2000 characters, refused rather than cut). Give either a purpose with surfaces, or a prompt on its own to get the choices back."
+      }
+    },
+    required: ["intent"],
+    additionalProperties: false,
+    $defs: request.defs
+  },
+  outputSchema: RESOLVE_INTENT_OUTPUT_SCHEMA
+};
+async function intentTools() {
+  const { tools } = await loadIndex();
+  const declaring = tools.filter((tool) => tool.intents?.length);
+  const loaded = await Promise.all(declaring.map((tool) => loadToolCached(tool.id)));
+  return loaded.map((tool) => tool.manifest);
+}
+async function callResolveIntent(args, env = process.env, limits = structuredLimitsFor(env)) {
+  const ctx = { env, limits };
+  try {
+    const extra = Object.keys(args).find((key2) => key2 !== "intent");
+    if (extra) throw new ToolCodeError("request.invalid", `lolly_resolve_intent takes intent, not ${extra}.`);
+    if (args.intent === void 0) throw new ToolCodeError("request.invalid", "intent is required.");
+    const answer = await resolveIntent(args.intent, await intentTools());
+    const sentence = answer.purposeNeeded ? `${answer.purposeNeeded.code}: ${answer.purposeNeeded.message}` : `Intent ${answer.outcome}: ${answer.surfaces.map((s) => `${s.surface.id} ${s.status}${s.chosen ? ` (${s.chosen.toolId})` : ""}`).join(", ")}.`;
+    return success2(sentence, answer, [], ctx, "output.too-large", "Ask for fewer surfaces.");
+  } catch (err) {
+    if (err instanceof ToolCodeError) return failure3(err);
+    if (err instanceof IntentInvalidError) return failure3(new ToolCodeError("intent.invalid", err.message));
+    return failure3(new ToolCodeError("internal", err instanceof Error ? err.message : String(err)));
+  }
+}
+
 // services/mcp/src/package.ts
 init_src2();
 init_src();
@@ -193843,6 +195007,7 @@ var TOOL_DEFS = [
   MEASURE_TEXT_TOOL_DEF,
   COMPOSE_TOOL_DEF,
   TOKEN_INSPECT_TOOL_DEF,
+  RESOLVE_INTENT_TOOL_DEF,
   {
     name: "lolly_redact",
     description: "Redact regions of an image, SVG or PDF on-device. Covered content is destroyed and the file rebuilt, not drawn over: the returned file has no metadata, no trailing bytes and, for a PDF, no text layer. Instructions are the same canonical string a Lolly share link carries, so one string can be applied to every file of an identical layout. The tool re-checks its own output and returns an error with nothing attached when a check fails. Not watermarked; Content Credentials only when resign is set.",
@@ -194417,6 +195582,8 @@ ${audio}` : ""}` },
         return await callMeasureText(args);
       case "lolly_compose":
         return await callCompose(args);
+      case "lolly_resolve_intent":
+        return await callResolveIntent(args);
       case "lolly_look":
       case "lolly_sample_color":
       case "lolly_trace_edges":
@@ -194895,14 +196062,14 @@ async function describeOperationFile(file, signal) {
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes2, file.type);
   return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash15("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
-async function runNodeFileOperation(file, request2, signal, execution = "device") {
-  return executeFileOperationV1(file, request2, {
+async function runNodeFileOperation(file, request3, signal, execution = "device") {
+  return executeFileOperationV1(file, request3, {
     describe: describeOperationFile,
     effects(input) {
-      if (["jxl-recompress", "jpeg-original"].includes(request2.target)) return { metadata: "preserved", findings: conversionFindings("raster", request2.target) };
+      if (["jxl-recompress", "jpeg-original"].includes(request3.target)) return { metadata: "preserved", findings: conversionFindings("raster", request3.target) };
       const raster = ["jxl", "png", "jpeg", "jpg", "webp", "avif", "tiff", "bmp", "gif", "apng"].includes(input.format);
       const kind = input.format === "zip" && /\.xlsx$/i.test(input.name) ? "xlsx" : input.format;
-      return { metadata: request2.target === "pdf-clean" ? "changed" : raster ? "removed" : "not-checked", findings: conversionFindings(input.format === "jxl" ? "jxl" : raster ? "raster" : kind, request2.target, request2.options) };
+      return { metadata: request3.target === "pdf-clean" ? "changed" : raster ? "removed" : "not-checked", findings: conversionFindings(input.format === "jxl" ? "jxl" : raster ? "raster" : kind, request3.target, request3.options) };
     },
     async execute(source, operation) {
       if (operation.operation !== "convert") throw new Error("Supported operation: convert.");
@@ -195272,7 +196439,7 @@ async function callLiveTool(bridge, name, args) {
 // services/mcp/src/agent-connector.ts
 init_src();
 import { lookup as lookup3 } from "node:dns/promises";
-import { request } from "node:https";
+import { request as request2 } from "node:https";
 import { BlockList as BlockList2, isIP as isIP3 } from "node:net";
 import Ajv8 from "ajv";
 
@@ -195332,7 +196499,7 @@ async function requestAgentRelay(invitation, path, body) {
   const raw = JSON.stringify(body);
   if (Buffer.byteLength(raw) > LIVE_LIMITS.maxRequestBytes) throw new Error("The request exceeds 4 MB.");
   return await new Promise((resolve8, reject) => {
-    const req = request(url, {
+    const req = request2(url, {
       method: "POST",
       signal: AbortSignal.timeout(25e3),
       headers: { "content-type": "application/json", authorization: `Bearer ${invitation.token}` },

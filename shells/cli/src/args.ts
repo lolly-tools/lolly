@@ -90,6 +90,8 @@ export const VALUE_FLAGS = new Set([
 export const RESERVED_SUBCOMMANDS = [
   'learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'assets', 'batch', 'smoke', 'validate', 'preflight',
   'install-browser', 'completion', 'help', 'version',
+  // `intent` answers what a piece has to do with a tool per surface (plan 350 W4).
+  'intent',
   // The on-device model surface (plans/183): `models` owns the one command that
   // downloads a model, `speak` and `transcribe` are host.speech's two directions.
   'models', 'speak', 'transcribe',
@@ -191,6 +193,10 @@ export const COMPOSE_VALUE_FLAGS = ['inventory', 'source', 'size', 'theme', 'the
 export const COMPOSE_BOOL_FLAGS = ['list', 'suggest', 'force'] as const;
 /** `lolly compose` flags whose value is a path, for completion. */
 export const COMPOSE_PATH_FLAGS = ['inventory', 'source', 'file', 'master', 'output', 'edits-out'] as const;
+/** `lolly intent` flags that take a value (plan 350 W4). `out-dir` is where `--render` writes. */
+export const INTENT_VALUE_FLAGS = ['out-dir'] as const;
+/** `lolly intent`'s on/off flags: `render` makes the files as well as the answer. */
+export const INTENT_BOOL_FLAGS = ['render'] as const;
 /** The `--fit` values `lolly compose` takes, for its own check and for completion. */
 export const COMPOSE_FIT_VALUES = ['report', 'shrink'] as const;
 /** The `--browser` values `lolly check` takes, for its own check and for completion. */
