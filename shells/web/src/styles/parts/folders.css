@@ -131,6 +131,10 @@ a.tile-primary[data-open-team-session] > .tile-cover { pointer-events: none; }
 }
 .tile-badge--type { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
 .tile-badge--rows { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+/* A saved session's approval request (views/projects-tile-state.ts): the word carries
+   the state, and the two weights keep them apart for anyone not reading colour. */
+.tile-badge--approval { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.tile-badge--approval[data-state="approved"] { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
 
 .tile-menu-btn {
   /* The box rides the icon scale with the glyph it holds - a 15px mark growing

@@ -8,7 +8,10 @@
  * from renderActions() by scripts/split-closure.ts.
  */
 import { announce } from '../../a11y.js';
-import { t } from '../../i18n.ts';
+import { t, tRaw } from '../../i18n.ts';
+import { DeliveryResult } from '../../lib/delivery-result.ts';
+import { chooseLocationDeliver, deliverFile } from '../../lib/deliver-file.ts';
+import { mountDownloadRecovery } from '../../lib/download-recovery.ts';
 import { markSyncDirty } from '../../lib/sync-service.ts';
 import { navigateTo } from '../../nav.js';
 import { snapshotSession } from '../tool-session-snapshot.ts';
@@ -220,8 +223,33 @@ export async function quickSaveFolder(ta: ActionsCtx): Promise<string | null> {
     return null;
   }
 }
+/** Hand finished bytes to the export bar: the one delivery result and its recovery
+ *  control. The bytes are retained before the first attempt, so a failed write leaves
+ *  the same file available to retry. */
+export async function deliverToBar(ta: ActionsCtx, blob: Blob, name: string, label: string): Promise<void> {
+  const { el, host } = ta;
+  ta.deliveryUnmount?.(); ta.deliveryUnmount = null;
+  ta.deliveryResult?.dispose();
+  const result = new DeliveryResult(
+    { blob, filename: name, label },
+    (again, againName) => deliverFile(host, again, againName),
+    chooseLocationDeliver(host),
+  );
+  ta.deliveryResult = result;
+  const surface = el!.querySelector<HTMLElement>('[data-export-delivery]');
+  if (surface) {
+    surface.hidden = false;
+    ta.deliveryUnmount = mountDownloadRecovery(surface, result, {
+      ready: tRaw('{name} ready.', { name }),
+      saved: t('Saved.'),
+    });
+  }
+  await result.retry();
+}
+
 export function savingOps(ta: ActionsCtx) {
   return {
+    deliverToBar: bindOp(ta, deliverToBar),
     exportCompleted: bindOp(ta, exportCompleted),
     saveBtnHtml: bindOp(ta, saveBtnHtml),
     sessionSnapshot: bindOp(ta, sessionSnapshot),

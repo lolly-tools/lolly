@@ -14,11 +14,8 @@ import { CENTRE_LOW } from '../../bridge/audio-envelope.ts';
 import { _exportNotice, _setExportNoticeSink } from '../../bridge/export-notice.ts';
 import { linkHelpDescriptions, wireHelpTips } from '../../components/help-tip.js';
 import { t, tRaw } from '../../i18n.ts';
-import { DeliveryResult } from '../../lib/delivery-result.ts';
-import { chooseLocationDeliver, deliverFile } from '../../lib/deliver-file.ts';
-import { mountDownloadRecovery } from '../../lib/download-recovery.ts';
 import { deliverBatchFile, releaseBackgroundDelivery } from '../../lib/background-delivery.ts';
-import { openApprovalRequest } from '../../lib/approval-request.ts';
+import { approvalPdfPreview, approvalWantsArtifact, openApprovalRequest } from '../../lib/approval-request.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { stageDeckAsSequence, stagedDeckMs } from '../../lib/deck-as-sequence.ts';
 import { saveExportPrefs } from '../../lib/export-prefs.ts';
@@ -556,6 +553,7 @@ export function wireCostSlot(ta: ActionsCtx): void {
     if (!inp) return;
     const onDimChange = () => {
       ta.sizeUserSet = true;
+      ta.approvalState.sizeChanged();
       onUrlSync?.(key);
       ta.video.refreshCanvasPreview();
       invalidatePreview();
@@ -592,10 +590,18 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
   // policy withheld download but permits a request - see `affordance` above). Routes
   // through the generic opener seam (src/lib/approval-request.ts), which a control
   // plane registers to open the approval dialog; the view stays control-plane-unaware.
+  // When the opener can take a file, this runs the same export as Download with the
+  // settings on the export bar, and hands over the bytes instead of delivering them.
   el.querySelector<HTMLButtonElement>('[data-action="request-approval"]')?.addEventListener(
     'click',
-    () => {
-      openApprovalRequest({ toolId: manifest.id, title: manifest.name });
+    (e) => {
+      if (ta.approvalState.handleClick()) return;
+      const onSent = (): void => { ta.approvalState.refresh(); };
+      if (!approvalWantsArtifact(manifest.id)) { openApprovalRequest({ toolId: manifest.id, title: manifest.name, onSent }); return; }
+      void exportClick(e, (file) => openApprovalRequest({
+        toolId: manifest.id, title: manifest.name, onSent,
+        artifact: { blob: file.blob, name: file.name, query: file.query, firstPage: () => approvalPdfPreview(file.blob), ...(ta.activeSlot ? { sessionId: ta.activeSlot } : {}) },
+      }));
     }
   );
 
@@ -605,13 +611,18 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
   el.querySelector<HTMLButtonElement>('[data-action="save-as"]')?.addEventListener('click', () => {
     ta.experience.openSaveAs?.();
   });
+  ta.approvalState.wire();
 
-  el.querySelector<HTMLButtonElement>('[data-action="download"]')?.addEventListener(
-    'click',
-    async (e) => {
+  // The Download click. With `forReview`, the same export runs with the same settings
+  // and the bytes go to that callback: nothing is downloaded, saved to the library or
+  // sent to an export home, and no export-history row is written, because the file has
+  // not been released. An experimental tool keeps its usual mark: approval does not
+  // change what the tool is, and this is the file a reviewer must see.
+  const exportClick = async (e: Event, forReview?: (file: { blob: Blob; name: string; query: string }) => void): Promise<void> => {
       // Native <button> or jelly-mode <jelly-button> - disable via the attribute,
       // which both honour (jelly syncs it onto its shadow button).
       const btn = e.currentTarget as HTMLButtonElement;
+      let reviewFile: { blob: Blob; name: string } | null = null;
       const idleNodes = Array.from(btn.childNodes, node => node.cloneNode(true));
       const restoreDownload = (): void => {
         btn.replaceChildren(...idleNodes.map(node => node.cloneNode(true)));
@@ -621,6 +632,12 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       btn.setAttribute('aria-busy', 'true');
 
       const fmt = formatEl?.value ?? formats[0]!;
+      if (forReview && (fmt === 'scorm' || fmt === 'lolly')) {
+        btn.toggleAttribute('disabled', false);
+        btn.removeAttribute('aria-busy');
+        announce(t('Choose a file format to send for review.'), { assertive: true });
+        return;
+      }
       if (fmt === 'scorm') {
         btn.toggleAttribute('disabled', false);
         btn.removeAttribute('aria-busy');
@@ -1181,30 +1198,13 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         // provenance, re-encrypts a ZIP or records a revision (the history and library
         // writes further down run once, for the export, not for a retry).
         const deliver = async (blob: Blob, name: string): Promise<void> => {
+          if (forReview) { reviewFile = { blob, name }; return; }
           if (!el?.isConnected) {
             await deliverBatchFile(undefined, undefined, { blob, filename: name, label: name }, host);
             return;
           }
-          ta.deliveryUnmount?.(); ta.deliveryUnmount = null;
-          ta.deliveryResult?.dispose();
           const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const result = new DeliveryResult(
-            { blob, filename: name, label: tRaw('{name} · exported {time}', { name, time }) },
-            (again, againName) => deliverFile(host, again, againName),
-            chooseLocationDeliver(host),
-          );
-          ta.deliveryResult = result;
-          const surface = el!.querySelector<HTMLElement>('[data-export-delivery]');
-          if (surface) {
-            surface.hidden = false;
-            ta.deliveryUnmount = mountDownloadRecovery(surface, result, {
-              ready: tRaw('{name} ready.', { name }),
-              saved: t('Saved.'),
-            });
-          }
-          // Retain before attempting delivery: a failed first write must leave
-          // the same bytes available to the recovery controls.
-          await result.retry();
+          await ta.saving.deliverToBar(blob, name, tRaw('{name} · exported {time}', { name, time }));
         };
         const framePages = framePick.kind === 'page' ? [pageEls[framePick.index]!] : pageEls;
         const notesHandout =
@@ -1538,7 +1538,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
           });
         }
         // A collaboration mount suppresses private device activity.
-        if (experience.recordDeviceActivity !== false) {
+        if (experience.recordDeviceActivity !== false && !forReview) {
           const entry = { toolId: manifest.id, label: manifest.name, filename: outputBase,
             format: fmt, query: shareUrlState(runtime.getModel()), ...(ta.activeSlot ? { slot: ta.activeSlot } : {}) };
           void import('../../lib/export-activity.ts').then(({ recordExportActivity }) => recordExportActivity({
@@ -1552,7 +1552,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         // helper; large/video renders confirm first (the download is never gated).
         void (async () => {
           try {
-            if (!downloadedBlob || downloadedIsZip) return;
+            if (!downloadedBlob || downloadedIsZip || forReview) return;
             const { saveRenderToLibrary } = await import('../../lib/save-render.ts');
             const dimNum = (v: number | string | undefined): number | undefined => {
               const n = typeof v === 'string' ? Number(v) : v;
@@ -1582,7 +1582,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         void (async () => {
           const { sendTargetsReady } = ta;
           try {
-            if (!downloadedBlob) return;
+            if (!downloadedBlob || forReview) return;
             // autoSendToExportHome resolves the pinned cloud through the same
             // sendTargetsFor() registry the panel renders from, and finding nothing there
             // is indistinguishable from "not connected on this device" - it returns
@@ -1652,11 +1652,16 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       btn.removeAttribute('aria-busy');
       restoreDownload();
       btn.toggleAttribute('disabled', false);
-      announce('Export complete');
+      if (!forReview) announce('Export complete');
       // (b) A calm, visible line on the card for each degradation, honest not alarmed.
       if (degradeNote && degradedNotes.length) {
         degradeNote.textContent = degradedNotes.join(' ');
         degradeNote.hidden = false;
+      }
+      if (forReview) {
+        const made = reviewFile as { blob: Blob; name: string } | null;
+        if (made) forReview({ ...made, query: shareUrlState(runtime.getModel()) });
+        return;
       }
       ta.saving.exportCompleted();
       // Say what the file's credential records about its songs, from its bytes.
@@ -1678,8 +1683,8 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         announce(error instanceof Error ? error.message : t('The document could not be rendered.'), { assertive: true });
       } finally { documentExport?.destroy(); }
 
-    }
-  );
+  };
+  el.querySelector<HTMLButtonElement>('[data-action="download"]')?.addEventListener('click', (e) => { void exportClick(e); });
 
   el.querySelector<HTMLButtonElement>('[data-action="save"]')?.addEventListener(
     'click',

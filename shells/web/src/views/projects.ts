@@ -93,7 +93,7 @@ import { getSessionSource } from '../lib/session-source.ts';
 import { openRequestedTeamProject, openTeamProjects, createSharedProjectsView, type TeamProjectsDoor } from './projects-team.ts';
 import { projectsDropHooks } from './projects-drop.ts';
 import { onTeamMoveClick, teamMoveButtonHtml, wireLocalTeamDrops, type LocalProjectItem, type TeamTransferDeps } from './projects-team-transfer.ts';
-import { getCollabTileProvider, renderCollabBadge } from '../lib/collab-tile-state.ts';
+import { applyTileStates, approvalInfoRows, readSessionApprovals } from './projects-tile-state.ts';
 import type { HostV1, Profile, AssetRef } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
 import type { BatchFile } from '../pro/batch.ts';
@@ -269,6 +269,8 @@ export async function mountProjects(
     hasPreview: ref => !!previewForRef(ref), isFavourite: id => favourites.has(id), folderCover: f => folderCoverDataUrl(f),
   }));
   let mounted = true;        // false after the view is swapped out (guards async renders)
+  let sessionApprovals: Awaited<ReturnType<typeof readSessionApprovals>> = new Map();
+  void readSessionApprovals().then((states) => { sessionApprovals = states; if (mounted && states.size) applyTileStates(viewEl, states); });
   // The Team projects door (projects-team.ts; dormant without a session source).
   const teamDoor: TeamProjectsDoor = { host, toolName, tools: [...toolById.keys()].map(id => ({ id, name: toolName(id) })), beforeNavigate: armReturn, isMounted: () => mounted, refresh: () => { if (mounted) void reload().then(render); } };
   const shared = createSharedProjectsView(teamDoor, viewEl, opts.params || '', render);
@@ -1228,7 +1230,7 @@ export async function mountProjects(
     mountUncatRibbon(root);
     mountFavStrip(root);
     syncBulkBar();   // reflect a selection that survived this re-render
-    applyCollabBadges(root);
+    applyTileStates(root, sessionApprovals);
     tileSelect.syncRoving();   // one Tab stop for the grid (WP-13)
     // Cut items read as "leaving" until pasted (WP-7).
     for (const tile of root.querySelectorAll<HTMLElement>('.folder-tile[data-ref]')) {
@@ -1250,23 +1252,6 @@ export async function mountProjects(
       m.attachDropRouter(viewEl, picker, { ...projectsDropHooks({ host: picker, folderTarget: currentFolderTarget, addToFolder, refresh, mounted: () => mounted }),
         onStored: (ids) => { const target = currentFolderTarget(); void (async () => { if (target) for (const id of ids) await addToFolder(target, id); await refresh(); })(); } });
     });
-  }
-
-  // Live-collab badge (plan 100 section 4.6; lib/collab-tile-state.ts) - every session
-  // tile, in both the grid and the search-results list (sessionResultTile reuses
-  // the same sessionTile() shape), gets consulted against the dormant-by-default
-  // provider registry. No provider registered anywhere in this repo yet, so
-  // renderCollabBadge is always called with an empty peer list and paints
-  // nothing - the grid stays byte-identical to before this call existed
-  // (pinned by collab-tile-state.test.ts). Called once per render() (wire()'s
-  // last step), matching how the rest of this view re-derives its DOM from
-  // scratch on every data change rather than patching incrementally.
-  function applyCollabBadges(root: HTMLElement): void {
-    const provider = getCollabTileProvider();
-    for (const tile of root.querySelectorAll<HTMLElement>('.folder-tile[data-kind="session"]')) {
-      const slot = tile.dataset.ref;
-      renderCollabBadge(tile, slot && provider ? provider.peersFor(slot) : []);
-    }
   }
 
   // (Right-click + long-press → context menu is wired once per mount by the shared
@@ -1751,6 +1736,7 @@ export async function mountProjects(
         // Recorded when the web app reopens the item in a tool; left out otherwise.
         ['lastOpened', t('Last opened'), fmtIso(e.openedAt)],
         ['favourite', t('Favourite'), favourites.has(ref) ? t('Yes') : t('No')],
+        ...approvalInfoRows(sessionApprovals, ref),
       );
     }
     mountModal<void>(`<div class="trash-dialog-body"><h2>${escape(title)}</h2>

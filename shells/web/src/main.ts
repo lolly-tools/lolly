@@ -70,6 +70,7 @@ import { initInstanceBase } from './lib/instance.ts';
 // the 47 KB of gate/policy/injectable code behind it (plans/155 WP-3). Governance
 // comes from its own registry leaf for the same reason.
 import { initOrgProbeFirst } from './org/probe.ts';
+import { setApprovalPdfPreview } from './lib/approval-request.ts';
 import { initSyncAutoPush, maybeApplyNewerAtBoot } from './lib/sync-service.ts';
 import type { BackupDeps } from './lib/sync-engine.ts';
 import { initSelectPreview } from './select-preview.ts';
@@ -113,6 +114,7 @@ if (isIframeMode()) forwardDeckKeys();
 // seam the tool renders the flat photo, and with DEPTH_STAGED false the seam
 // resolves null rather than offering a download that cannot succeed.
 installDepthSeam();
+setApprovalPdfPreview((blob) => import('./views/pdf-first-page.ts').then(m => m.pdfFirstPage(blob)));
 onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/tooltips.ts')).then(m => m.mountTooltips()); });
 
 /** The web capability bridge, as produced by createBridge. */

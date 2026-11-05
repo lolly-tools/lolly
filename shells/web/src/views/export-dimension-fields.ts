@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
-import { CSS_DPI, isPhysical, parseDimension, toPixels } from '@lolly/engine';
+import { CSS_DPI, isPhysical, parseDimension, toCssPx, toPixels } from '@lolly/engine';
 import { convertLength, roundIn } from '../lib/unit-steps.ts';
 
 export interface ExportDimensionUpdate {
@@ -15,6 +15,23 @@ export interface ExportDimensionOpts {
   width?: number | string;
   height?: number | string;
   dpi?: number;
+}
+
+/**
+ * The size a file written with these dimensions records when it is measured: an image's
+ * pixels at the export dpi, and for an SVG the CSS pixels a browser reads from its width
+ * and height. A side left blank stays undefined, because the tool chooses that side.
+ */
+export function recordedFileSize(dims: ExportDimensionOpts, format: string): { width?: number; height?: number } {
+  const dpi = (dims.dpi ?? 0) > 0 ? (dims.dpi ?? 0) : 300;
+  const side = (value: number | string | undefined): number | undefined => {
+    const dim = parseDimension(value);
+    if (!dim) return undefined;
+    return format === 'svg' ? Math.round(toCssPx(dim)) : toPixels(dim, dpi);
+  };
+  const width = side(dims.width);
+  const height = side(dims.height);
+  return { ...(width !== undefined ? { width } : {}), ...(height !== undefined ? { height } : {}) };
 }
 
 /**

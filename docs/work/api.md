@@ -203,7 +203,7 @@ routes share the `auth` rate-limit bucket.
 | `GET /api/v1/users`, `GET /api/v1/users/:id` | admin/owner role | |
 | `POST /api/v1/users/:id/revoke-sessions` | `grant.edit` | sign-out-everywhere: bumps the user's session epoch, every prior cookie and token fails its next request |
 | `DELETE /api/v1/users/:id` | `instance.config` (**owner**) | erasure: deletes the row + de-attributes telemetry; `409` while they own unarchived projects, and `409 ERASE_UPLOADS_REMAIN` when some of their [uploads](#uploads) could not be removed first (run it again) |
-| `POST /api/v1/retention/run` | `instance.config` (**owner**) | apply the stated retention policy now, and remove expired unfinished project-file uploads (`projectFilesSwept`) and expired [scoped uploads](#uploads) (`uploadsSwept`). With `policy.retention.renderOutputDays` set, it also runs one pass of [output retention](renders.md#hosting-and-recovery) (`renderOutputsExpired`, `renderOutputsRemoved`) |
+| `POST /api/v1/retention/run` | `instance.config` (**owner**) | apply the stated retention policy now, and remove expired unfinished project-file uploads (`projectFilesSwept`), expired [scoped uploads](#uploads) (`uploadsSwept`) and the files of decided approval requests past their retention (`approvalArtifactsRemoved`). With `policy.retention.renderOutputDays` set, it also runs one pass of [output retention](renders.md#hosting-and-recovery) (`renderOutputsExpired`, `renderOutputsRemoved`) |
 | `GET/POST /api/v1/groups`, `DELETE /api/v1/groups/:name` | `grant.edit` | |
 | `PUT /api/v1/users/:id/local-groups` | `grant.edit` | |
 | `POST /api/v1/users/:id/disabled` | `grant.edit` | |
@@ -1308,6 +1308,7 @@ messages and comment notices arrive.
 | `GET /api/v1/approvals/approvers` | member |
 | `POST /api/v1/approvals/:id/act` | `approval.act` |
 | `POST /api/v1/approvals/:id/withdraw` | member (submitter) |
+| `GET /api/v1/approvals/:id/artifact` | an eligible reviewer or someone who acted; the requester once approved |
 | `GET /api/v1/inbox` | member - `{ messages, unread }` with `ETag: "ib-<16 hex>"` and `cache-control: private, no-cache`; a matching `If-None-Match` answers `304`, so a shell can check often for one header. `messages` holds the caller's messages and comment notices; `unread` counts both, and the tag moves when either changes |
 | `POST /api/v1/inbox/:id/ack` | member - dismisses the message for the caller. For a comment notice (`cn_…`) it deletes the caller's own notice row and nothing else, so the next reply in that thread shows a notice again |
 | `GET/POST /api/v1/messages` | `message.send` |

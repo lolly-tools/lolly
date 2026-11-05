@@ -46,7 +46,7 @@ import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onT
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
 import { registerProfileSection } from '../lib/profile-sections.ts';
-import { setExportPolicy } from '../lib/export-policy.ts';
+import { getExportPolicy, setExportPolicy } from '../lib/export-policy.ts';
 import { failClosedSitePolicy, setSitePolicy } from '../lib/site-policy.ts';
 import { registerApprovalOpener } from '../lib/approval-request.ts';
 import { registerCatalogSubmitter } from '../lib/catalog-submit.ts';
@@ -204,6 +204,9 @@ export interface OrgConfig {
    *  declarative UI chrome (banners). Absent ⇒ no instance opinion; each descriptor
    *  is DATA the shell renders, never code. flag/resource kinds ride other seams. */
   injectables?: Injectable[];
+  /** Present when this caller's request can carry its exported file, and how large
+   *  that file may be. Absent ⇒ the request goes without a file, and the dialog says so. */
+  approvals?: { exportReview?: { maxFileBytes: number; partBytes: number; match?: boolean } };
   /** Fixed organisation-owned outbound targets already filtered for this
    *  caller. Provider options and credentials never enter the shell. */
   destinations?: OrgDeliveryDestination[];
@@ -272,6 +275,13 @@ const listeners = new Set<(config: OrgConfig | null) => void>();
 /** Unregister for the Share-dialog "On this instance" section, so a re-init doesn't
  *  stack a second builder onto the generic share-sections registry. */
 let unregisterShareSection: (() => void) | null = null;
+/** Open one approval request in the shell. Lazy, like the request dialog. */
+function openApprovalRequestSheet(id: string): void {
+  Promise.all([import('./approval-review-sheet.ts'), import('../styles/approval-dialog.css')])
+    .then(([m]) => m.openApprovalSheet(id))
+    .catch(() => { /* additive; never break the caller */ });
+}
+
 /** Unregister for the approval-request opener, so a re-init replaces rather than
  *  leaks the previous registration. */
 let unregisterApprovalOpener: (() => void) | null = null;
@@ -1115,9 +1125,30 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       unregisterToolMount = onToolInputMount(() => applyOrgToolPolicies());
       unregisterApprovalOpener?.();
       unregisterApprovalOpener = registerApprovalOpener((rctx) => {
-        import('./approval-dialog.ts')
-          .then((m) => m.openApprovalDialog(rctx))
+        Promise.all([import('./approval-dialog.ts'), import('../styles/approval-dialog.css')])
+          .then(([m]) => m.openApprovalDialog(rctx, orgConfigState?.approvals?.exportReview))
           .catch(() => { /* additive; never break the caller */ });
+      }, {
+        // A file goes with the request only when this instance takes one and a chain
+        // is bound; the browser must also be able to hash it (a secure context).
+        wantsArtifact: (toolId) => !!orgConfigState?.approvals?.exportReview
+          && !!getExportPolicy()?.approvalChainFor(toolId) && !!globalThis.crypto?.subtle,
+        // A request's state, for the views. Lazy, like the dialog: a view asks only
+        // when a chain is bound, and an instance that does not answer the match route
+        // leaves the export bar as a plain request.
+        work: {
+          status: async (query, signal) => {
+            if (!orgConfigState?.approvals?.exportReview?.match) return null;
+            try { return await (await import('./approval-work.ts')).approvalStatus(query, signal); } catch { return null; }
+          },
+          files: async (id) => (await import('./approval-work.ts')).approvalFiles(id),
+          approvedFile: async (id) => (await import('./approval-work.ts')).approvedFile(id),
+          open: openApprovalRequestSheet,
+          sessions: async () => {
+            if (!orgConfigState?.approvals?.exportReview) return new Map();
+            try { return await (await import('./approval-work.ts')).approvalSessions(); } catch { return new Map(); }
+          },
+        },
       });
       // "Submit to <workspace>" on the member's own uploads, templates and tools,
       // through the generic lib/catalog-submit.ts seam. `accepts` reads the live
@@ -1274,6 +1305,12 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
           inboxModule = m;
           m.startInbox({ initialUnread: Math.max(0, Number(orgConfigState?.inboxUnread) || 0), principal, review: () => orgProfileAccount()?.inbox?.open() });
           void import('./banner.ts').then((banner) => { if (session === memberSession) banner.attachBanner(); }).catch(() => {});
+          // Requests to decide and decisions to read, in the same queue as the inbox.
+          if (orgConfigState?.approvals?.exportReview) {
+            void import('./approval-queue.ts').then((queue) => {
+              if (session === memberSession) queue.startApprovalQueue(openApprovalRequestSheet);
+            }).catch(() => {});
+          }
         })
         .catch(() => { /* the inbox is additive; never block or break boot */ });
       // Array.isArray guards a malformed (non-array) injectables value - a `.some`

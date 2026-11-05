@@ -38,6 +38,7 @@ lw login --email admin@example.test         # the dev provider (dev.enabled only
 | Give automation its own identity | `tokens` | [Service tokens](#service-tokens) |
 | Connect an agent with a service token | `mcp config` | [MCP settings](#mcp-settings) |
 | Render and recover renders | `renders`, `render-batches` | [Recoverable renders](#recoverable-renders) |
+| See approval requests and get a reviewed file | `approvals`, `approvals artifact` | [Approval files](#approval-files) |
 | Send finished files to a destination | `destinations`, `deliveries` | [Organization delivery](#organization-delivery) |
 | Manage grants and policy as code | `grants`, `export`, `apply` | [Governance](#governance) |
 | Provision people from an identity provider | `scim token` | [SCIM provisioning tokens](#scim-provisioning-tokens) |
@@ -174,6 +175,19 @@ batch as one ZIP with a manifest of every row, or download each child through
 source with [`bind`](renders.md#fill-the-rows-from-a-data-source) in place of `rows`,
 and `submit` takes `--callback-url <url>` here too.
 
+## Approval files
+
+```bash
+lw approvals                                # your requests and inbox
+lw approvals artifact <id> --out card.png   # the file an export review carries
+```
+
+`artifact` works for an eligible reviewer, for someone who acted on the request, and for the
+requester once the request is approved. It checks the whole file against its recorded digest before
+writing anything. These commands need a person's session from `lw login`. A service token cannot read
+approvals, because a decision about a file is a person's act. Decide in the console, where the file
+is on screen. See [review an exported file](approvals.md#review-an-exported-file).
+
 ## Organization delivery
 
 ```bash
@@ -224,7 +238,7 @@ the mint is the one moment you can copy the bearer. The IdP then drives `/scim/v
 ## Data lifecycle
 
 ```bash
-lw retention run            # apply the stated retention policy now (trims telemetry + audit, sweeps expired uploads)
+lw retention run            # apply the stated retention policy now (trims telemetry + audit, sweeps expired uploads, removes approval files past retention)
 lw users erase <id>         # erasure: delete the person's row + de-attribute their telemetry
 ```
 
