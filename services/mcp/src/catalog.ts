@@ -47,7 +47,6 @@ export interface CatalogEntry {
   featured?: unknown;
   tags?: string[];
   templates?: CatalogTemplate[];
-  intents?: unknown[];
 }
 
 export interface CatalogIndex {

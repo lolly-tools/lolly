@@ -11,12 +11,13 @@
  * chooses and calls again. It renders by calling `lolly_render` with what comes back.
  * Errors carry a stable code (`INTENT_TOOL_CODES`); the call never throws.
  */
-import type { IntentToolFactsV1 } from '@lolly-tools/core';
-import { IntentInvalidError, resolveIntent } from '@lolly/engine';
+import { TOOL_INTENTS_FILE, type IntentToolFactsV1 } from '@lolly-tools/core/intent-v1';
+import { IntentInvalidError, loadIntentTools, resolveIntent } from '@lolly/engine';
 // Imported, not read from disk: the bundled Vercel function carries no schemas/ directory.
 import requestSchema from '../../../schemas/visual-intent-v1.schema.json' with { type: 'json' };
 import resolutionSchema from '../../../schemas/intent-resolution-v1.schema.json' with { type: 'json' };
 import { loadIndex, loadToolCached } from './catalog.ts';
+import { fetchToolFile } from './paths.ts';
 import {
   ToolCodeError,
   contractPart,
@@ -69,12 +70,18 @@ export const RESOLVE_INTENT_TOOL_DEF = {
   outputSchema: RESOLVE_INTENT_OUTPUT_SCHEMA,
 };
 
-/** The manifests of the tools in this server's catalog that declare a purpose. */
-async function intentTools(): Promise<IntentToolFactsV1[]> {
-  const { tools } = await loadIndex();
-  const declaring = tools.filter((tool) => tool.intents?.length);
-  const loaded = await Promise.all(declaring.map((tool) => loadToolCached(tool.id)));
-  return loaded.map((tool) => tool.manifest as unknown as IntentToolFactsV1);
+let intentToolsCache: Promise<IntentToolFactsV1[]> | null = null;
+
+/** The tools in this server's catalog with an intents.json. Cached for the process, as the catalog is. */
+function intentTools(): Promise<IntentToolFactsV1[]> {
+  intentToolsCache ??= loadIndex().then(({ tools }) => loadIntentTools({
+    ids: tools.map((tool) => tool.id),
+    sidecar: (id) => fetchToolFile(`${id}/${TOOL_INTENTS_FILE}`).catch(() => null),
+    manifest: async (id) => (await loadToolCached(id)).manifest,
+    onInvalid: (id, errors) => console.error(`${id}/${TOOL_INTENTS_FILE} left out: ${errors.map((e) => e.message).join(' ')}`),
+  }));
+  intentToolsCache.catch(() => { intentToolsCache = null; });
+  return intentToolsCache;
 }
 
 export async function callResolveIntent(

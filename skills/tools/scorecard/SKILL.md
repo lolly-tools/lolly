@@ -5,7 +5,7 @@ description: "Operate the Lolly Scorecard tool (scorecard) using its declared in
 
 # Scorecard
 
-Tool ID: `scorecard`. Tool version: `1.0.1`. Engine range: `^1.304.0`.
+Tool ID: `scorecard`. Tool version: `1.0.0`. Engine range: `^1.82.0`.
 
 Score a deal, a vendor or a plan against your criteria: each with a bar, a score and the evidence behind it, and an overall score. Paste the rows from a spreadsheet, such as MEDDPICC for a deal.
 

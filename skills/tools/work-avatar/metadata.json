@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "work-avatar",
-  "toolVersion": "1.2.4",
-  "toolVersionRange": "1.2.4",
+  "toolVersion": "1.2.3",
+  "toolVersionRange": "1.2.3",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "36e9901507b717044ce599e9fc2661457ae80c4bb1a9ec1478cbdc76ecd4fd18",
+      "sha256": "f3f4035362cb29a09abf8bfd5131e038ec30cb02a6c9f3ba575cd11d4a53105d",
       "bytes": 2536
     },
     "reference/inputs.json": {

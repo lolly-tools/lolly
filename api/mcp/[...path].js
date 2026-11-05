@@ -117,67 +117,6 @@ var init_tool_schema = __esm({
           pattern: "^[a-z0-9][a-z0-9-]*$",
           description: "Optional design-system version this tool renders against (plans/97 section 6a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
         },
-        intents: {
-          type: "array",
-          minItems: 1,
-          maxItems: 13,
-          description: "The purposes this tool serves, read by the engine's resolveIntent when a caller states what a piece has to do. Curate these: declare a purpose only where the tool serves it well. A tool declaring intents states an engineVersion floor of at least 1.304.0, because an older schema refuses this key. See docs/tool-manifest.md.",
-          items: {
-            type: "object",
-            required: [
-              "purpose"
-            ],
-            additionalProperties: false,
-            properties: {
-              purpose: {
-                type: "string",
-                enum: [
-                  "announce",
-                  "compare",
-                  "demonstrate",
-                  "direct",
-                  "explain",
-                  "identify",
-                  "invite",
-                  "offer",
-                  "present",
-                  "promote",
-                  "recognise",
-                  "report",
-                  "schedule"
-                ],
-                description: "What a piece made with this tool does for its reader. Closed vocabulary, INTENT_PURPOSES in packages/core/src/intent-v1.ts."
-              },
-              needs: {
-                type: "array",
-                uniqueItems: true,
-                maxItems: 16,
-                items: {
-                  type: "string"
-                },
-                description: "Roles the tool cannot serve this purpose without. A request missing one is answered with a gap, never with the tool's sample content."
-              },
-              roles: {
-                type: "object",
-                additionalProperties: {
-                  type: "string"
-                },
-                description: "Role to input id, where the input's own id is not the role's. Roles are the `roles` section of schemas/canonical-inputs.json. An input whose id is a role needs no entry."
-              },
-              set: {
-                type: "object",
-                description: "Input values this purpose starts from, such as blanking the tool's sample wording. Content given in the request overrides them."
-              },
-              surfaces: {
-                type: "object",
-                additionalProperties: {
-                  type: "object"
-                },
-                description: "Named surface to the input values that draw it, for what the tool's sized select options cannot already say. An empty object means the tool lays itself out at that size. A select option carrying width and height needs no entry."
-              }
-            }
-          }
-        },
         tokenAxes: {
           type: "object",
           additionalProperties: false,
@@ -9601,7 +9540,7 @@ var init_design_package_v1 = __esm({
 });
 
 // packages/core/src/intent-v1.ts
-var INTENT_RESOLUTION_FORMAT, INTENT_RESOLUTION_VERSION, VISUAL_INTENT_VERSION, INTENT_VOCABULARY_VERSION, INTENT_PURPOSES, INTENT_PURPOSE_MEANINGS, INTENT_ROLES, INTENT_SURFACE_UNITS, INTENT_SURFACES, INTENT_LIMITS, INTENT_FREE_TEXT_FIELDS, INTENT_FITS, INTENT_PURPOSE_NEEDED;
+var INTENT_RESOLUTION_FORMAT, INTENT_RESOLUTION_VERSION, VISUAL_INTENT_VERSION, INTENT_VOCABULARY_VERSION, INTENT_PURPOSES, INTENT_PURPOSE_MEANINGS, INTENT_ROLES, INTENT_SURFACE_UNITS, INTENT_SURFACES, INTENT_LIMITS, INTENT_FREE_TEXT_FIELDS, TOOL_INTENTS_FILE, TOOL_INTENTS_VERSION, INTENT_FITS, INTENT_PURPOSE_NEEDED;
 var init_intent_v1 = __esm({
   "packages/core/src/intent-v1.ts"() {
     "use strict";
@@ -9700,10 +9639,14 @@ var init_intent_v1 = __esm({
       depth: 16,
       /** UTF-16 units of the whole request once serialised. */
       totalChars: 2 * 1024 * 1024,
+      /** UTF-16 units of one tool's `intents.json`. */
+      toolIntentsChars: 64 * 1024,
       /** Pixels on one side of a sized surface, and its equal in other units once converted. */
       sidePx: 1e5
     });
     INTENT_FREE_TEXT_FIELDS = ["occasion", "audience", "region"];
+    TOOL_INTENTS_FILE = "intents.json";
+    TOOL_INTENTS_VERSION = 1;
     INTENT_FITS = ["declared", "option", "follows", "natural"];
     INTENT_PURPOSE_NEEDED = "intent.purpose-needed";
   }
@@ -105128,6 +105071,59 @@ async function resolveIntent(request3, tools) {
     toolsConsidered: ordered.length
   };
 }
+function parseToolIntents(text13) {
+  const fail6 = (path, message) => ({ ok: false, errors: [{ path, message }] });
+  if (text13.length > INTENT_LIMITS.toolIntentsChars) return fail6("", `intents.json is at most ${INTENT_LIMITS.toolIntentsChars} characters.`);
+  let value2;
+  try {
+    value2 = JSON.parse(text13);
+  } catch (err) {
+    return fail6("", `intents.json is not JSON (${err.message}).`);
+  }
+  if (!isRecord2(value2)) return fail6("", "intents.json is a JSON object.");
+  if (checkValue(value2, 0)) return fail6("", "intents.json holds plain JSON, nested at most a bounded depth, with no key that names a prototype.");
+  const errors = [];
+  for (const key2 of Object.keys(value2)) {
+    if (key2 !== "version" && key2 !== "intents") errors.push({ path: key2, message: `intents.json does not take "${key2}".` });
+  }
+  if (value2.version !== TOOL_INTENTS_VERSION) errors.push({ path: "version", message: `version is ${TOOL_INTENTS_VERSION}.` });
+  const entries = value2.intents;
+  if (!Array.isArray(entries) || !entries.length || entries.length > INTENT_PURPOSES.length) {
+    errors.push({ path: "intents", message: `intents is a list of 1 to ${INTENT_PURPOSES.length} entries.` });
+    return { ok: false, errors };
+  }
+  const isStringMap = (v) => isRecord2(v) && Object.values(v).every((item2) => typeof item2 === "string");
+  entries.forEach((entry2, index2) => {
+    const at = `intents/${index2}`;
+    if (!isRecord2(entry2)) {
+      errors.push({ path: at, message: "An entry is an object." });
+      return;
+    }
+    for (const key2 of Object.keys(entry2)) {
+      if (!TOOL_INTENT_KEYS.has(key2)) errors.push({ path: `${at}/${key2}`, message: `An entry does not take "${key2}".` });
+    }
+    if (!INTENT_PURPOSES.includes(entry2.purpose)) errors.push({ path: `${at}/purpose`, message: `Unknown purpose. Purposes: ${INTENT_PURPOSES.join(", ")}.` });
+    if (entry2.needs !== void 0 && !(Array.isArray(entry2.needs) && entry2.needs.every((role) => typeof role === "string"))) errors.push({ path: `${at}/needs`, message: "needs is a list of roles." });
+    if (entry2.roles !== void 0 && !isStringMap(entry2.roles)) errors.push({ path: `${at}/roles`, message: "roles maps a role to an input id." });
+    if (entry2.set !== void 0 && !isRecord2(entry2.set)) errors.push({ path: `${at}/set`, message: "set maps an input id to a value." });
+    if (entry2.surfaces !== void 0 && !(isRecord2(entry2.surfaces) && Object.values(entry2.surfaces).every(isRecord2))) errors.push({ path: `${at}/surfaces`, message: "surfaces maps a surface to input values." });
+  });
+  return errors.length ? { ok: false, errors } : { ok: true, intents: entries };
+}
+async function loadIntentTools(source) {
+  const tools = [];
+  for (const id3 of source.ids) {
+    const text13 = await source.sidecar(id3);
+    if (text13 === null) continue;
+    const parsed = parseToolIntents(text13);
+    if (!parsed.ok) {
+      source.onInvalid?.(id3, parsed.errors);
+      continue;
+    }
+    tools.push({ ...await source.manifest(id3), intents: parsed.intents });
+  }
+  return tools;
+}
 function checkToolIntents(tool) {
   const issues = [];
   const entries = tool.intents ?? [];
@@ -105136,9 +105132,6 @@ function checkToolIntents(tool) {
     issues.push({ path, message });
   };
   if (tool.render?.export === false || !tool.render?.formats?.length) add3("intents", "A tool that exports no file cannot declare an intent.");
-  if (tool.engineVersion && satisfiesRange(precedingEngine(), tool.engineVersion)) {
-    add3("engineVersion", `A tool declaring intents needs an engine floor of at least ${INTENTS_ENGINE_FLOOR}, because an older schema refuses the key.`);
-  }
   const inputs = new Map((tool.inputs ?? []).map((input) => [input.id, input]));
   const checkValues = (path, values) => {
     for (const [id3, value2] of Object.entries(values)) {
@@ -105188,11 +105181,7 @@ function checkToolIntents(tool) {
   });
   return issues;
 }
-function precedingEngine() {
-  const [major, minor] = INTENTS_ENGINE_FLOOR.split(".").map(Number);
-  return `${major}.${(minor ?? 1) - 1}.0`;
-}
-var INTENT_RULES_VERSION, INTENTS_ENGINE_FLOOR, SHAPE_TOLERANCE, CONTENT_TYPES, UNSAFE_KEYS, TOP_KEYS, SURFACES_BY_ID, FIT_RANK, byString3, isRecord2, IntentInvalidError, UNIT_TO_MM, toMm, sameShape, sameSize, FORMAT_SYNONYMS, hasValue;
+var INTENT_RULES_VERSION, SHAPE_TOLERANCE, CONTENT_TYPES, UNSAFE_KEYS, TOP_KEYS, SURFACES_BY_ID, FIT_RANK, byString3, isRecord2, IntentInvalidError, UNIT_TO_MM, toMm, sameShape, sameSize, FORMAT_SYNONYMS, hasValue, TOOL_INTENT_KEYS;
 var init_intent = __esm({
   "engine/src/intent.ts"() {
     "use strict";
@@ -105200,9 +105189,7 @@ var init_intent = __esm({
     init_bytes();
     init_canonical_json();
     init_inputs();
-    init_semver_range();
     INTENT_RULES_VERSION = "intent-rules-2026-11-05.1";
-    INTENTS_ENGINE_FLOOR = "1.304.0";
     SHAPE_TOLERANCE = 0.01;
     CONTENT_TYPES = /* @__PURE__ */ new Set([
       "text",
@@ -105259,6 +105246,7 @@ var init_intent = __esm({
       if (Array.isArray(value2)) return value2.length > 0;
       return true;
     };
+    TOOL_INTENT_KEYS = /* @__PURE__ */ new Set(["purpose", "needs", "roles", "set", "surfaces"]);
   }
 });
 
@@ -151335,7 +151323,6 @@ __export(src_exports, {
   IMPRINT_CONTAINER_FORMATS: () => IMPRINT_CONTAINER_FORMATS,
   IMPRINT_FORMATS: () => IMPRINT_FORMATS,
   IMSC11_TEXT_PROFILE: () => IMSC11_TEXT_PROFILE,
-  INTENTS_ENGINE_FLOOR: () => INTENTS_ENGINE_FLOOR,
   INTENT_RULES_VERSION: () => INTENT_RULES_VERSION,
   IN_REALM_ONLY_HOOK_NAMES: () => IN_REALM_ONLY_HOOK_NAMES,
   IcoDecodeError: () => IcoDecodeError,
@@ -152401,6 +152388,7 @@ __export(src_exports, {
   linearToSrgb: () => linearToSrgb3,
   linkTextFrames: () => linkTextFrames,
   listXlsxSheets: () => listXlsxSheets,
+  loadIntentTools: () => loadIntentTools,
   loadTool: () => loadTool,
   lockDownAmbientCapabilities: () => lockDownAmbientCapabilities,
   logoSetInBrandOrder: () => logoSetInBrandOrder,
@@ -152588,6 +152576,7 @@ __export(src_exports, {
   parseThemedAssetId: () => parseThemedAssetId,
   parseToUnicode: () => parseToUnicode,
   parseTokenSelection: () => parseTokenSelection,
+  parseToolIntents: () => parseToolIntents,
   parseToolUrl: () => parseToolUrl,
   parseTreatedAssetId: () => parseTreatedAssetId,
   parseTtmlTime: () => parseTtmlTime,
@@ -193584,6 +193573,7 @@ async function callCompose(args, env = process.env, limits = structuredLimitsFor
 }
 
 // services/mcp/src/intent.ts
+init_intent_v1();
 init_src2();
 
 // schemas/visual-intent-v1.schema.json
@@ -193937,11 +193927,18 @@ var RESOLVE_INTENT_TOOL_DEF = {
   },
   outputSchema: RESOLVE_INTENT_OUTPUT_SCHEMA
 };
-async function intentTools() {
-  const { tools } = await loadIndex();
-  const declaring = tools.filter((tool) => tool.intents?.length);
-  const loaded = await Promise.all(declaring.map((tool) => loadToolCached(tool.id)));
-  return loaded.map((tool) => tool.manifest);
+var intentToolsCache = null;
+function intentTools() {
+  intentToolsCache ??= loadIndex().then(({ tools }) => loadIntentTools({
+    ids: tools.map((tool) => tool.id),
+    sidecar: (id3) => fetchToolFile(`${id3}/${TOOL_INTENTS_FILE}`).catch(() => null),
+    manifest: async (id3) => (await loadToolCached(id3)).manifest,
+    onInvalid: (id3, errors) => console.error(`${id3}/${TOOL_INTENTS_FILE} left out: ${errors.map((e) => e.message).join(" ")}`)
+  }));
+  intentToolsCache.catch(() => {
+    intentToolsCache = null;
+  });
+  return intentToolsCache;
 }
 async function callResolveIntent(args, env = process.env, limits = structuredLimitsFor(env)) {
   const ctx = { env, limits };

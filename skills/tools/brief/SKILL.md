@@ -5,7 +5,7 @@ description: "Operate the Lolly Brief tool (brief) using its declared inputs and
 
 # Brief
 
-Tool ID: `brief`. Tool version: `1.0.1`. Engine range: `^1.304.0`.
+Tool ID: `brief`. Tool version: `1.0.0`. Engine range: `^1.82.0`.
 
 A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.
 

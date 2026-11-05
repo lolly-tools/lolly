@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-05T06:22:02.068Z",
+  "generatedAt": "2026-11-04T17:07:09.308Z",
   "tools": [
     {
       "id": "3d",
@@ -326,24 +326,7 @@
       "id": "agenda",
       "name": "Agenda",
       "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
-      "intents": [
-        {
-          "purpose": "schedule",
-          "needs": [
-            "data"
-          ],
-          "roles": {
-            "heading": "title",
-            "subheading": "subtitle",
-            "data": "sessions"
-          },
-          "set": {
-            "title": "",
-            "subtitle": ""
-          }
-        }
-      ],
-      "version": "1.4.1",
+      "version": "1.4.0",
       "status": "community",
       "category": "event",
       "tags": [
@@ -2174,23 +2157,7 @@
       "id": "certificate",
       "name": "Certificate",
       "description": "Completion and award certificates in the active design system and its colourway: four styles, print and social sizes, and motion for sharing - one name at a time, or a whole roster from a CSV in Bulk from rows.",
-      "intents": [
-        {
-          "purpose": "recognise",
-          "needs": [
-            "firstname",
-            "awardtopic"
-          ],
-          "set": {
-            "lastname": "",
-            "awarddate": "",
-            "presenter": "",
-            "presenterTitle": "",
-            "company": ""
-          }
-        }
-      ],
-      "version": "1.2.2",
+      "version": "1.2.1",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -2455,63 +2422,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "intents": [
-        {
-          "purpose": "compare",
-          "needs": [
-            "data"
-          ],
-          "set": {
-            "chartIntent": "compare"
-          },
-          "surfaces": {
-            "slide": {},
-            "screen": {},
-            "social-landscape": {},
-            "social-square": {},
-            "social-portrait": {},
-            "story": {},
-            "banner": {}
-          }
-        },
-        {
-          "purpose": "explain",
-          "needs": [
-            "data"
-          ],
-          "set": {
-            "chartIntent": "relationship"
-          },
-          "surfaces": {
-            "slide": {},
-            "screen": {},
-            "social-landscape": {},
-            "social-square": {},
-            "social-portrait": {},
-            "story": {},
-            "banner": {}
-          }
-        },
-        {
-          "purpose": "report",
-          "needs": [
-            "data"
-          ],
-          "set": {
-            "chartIntent": "auto"
-          },
-          "surfaces": {
-            "slide": {},
-            "screen": {},
-            "social-landscape": {},
-            "social-square": {},
-            "social-portrait": {},
-            "story": {},
-            "banner": {}
-          }
-        }
-      ],
-      "version": "1.27.2",
+      "version": "1.27.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -4700,32 +4611,7 @@
       "id": "deck-studio",
       "name": "Markdown Slides",
       "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and the design system theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
-      "intents": [
-        {
-          "purpose": "present",
-          "needs": [
-            "body"
-          ],
-          "roles": {
-            "body": "spec"
-          },
-          "set": {
-            "deck": []
-          },
-          "surfaces": {
-            "slide": {
-              "size": "wide"
-            },
-            "social-square": {
-              "size": "square"
-            },
-            "story": {
-              "size": "story"
-            }
-          }
-        }
-      ],
-      "version": "1.2.4",
+      "version": "1.2.3",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -6898,18 +6784,7 @@
       "id": "frame",
       "name": "Frame",
       "description": "Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop.",
-      "intents": [
-        {
-          "purpose": "demonstrate",
-          "needs": [
-            "image"
-          ],
-          "set": {
-            "url": ""
-          }
-        }
-      ],
-      "version": "1.1.3",
+      "version": "1.1.2",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -8198,31 +8073,7 @@
       "id": "link-card",
       "name": "Link Card",
       "description": "Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
-      "intents": [
-        {
-          "purpose": "announce",
-          "needs": [
-            "url",
-            "heading"
-          ],
-          "set": {
-            "body": "",
-            "siteName": ""
-          }
-        },
-        {
-          "purpose": "promote",
-          "needs": [
-            "url",
-            "heading"
-          ],
-          "set": {
-            "body": "",
-            "siteName": ""
-          }
-        }
-      ],
-      "version": "1.0.4",
+      "version": "1.0.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -8446,18 +8297,7 @@
       "id": "logo-wall",
       "name": "Logo Wall",
       "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-      "intents": [
-        {
-          "purpose": "recognise",
-          "needs": [
-            "data"
-          ],
-          "roles": {
-            "data": "logos"
-          }
-        }
-      ],
-      "version": "1.8.1",
+      "version": "1.8.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -9515,35 +9355,7 @@
       "id": "pricing-table",
       "name": "Pricing",
       "description": "Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.",
-      "intents": [
-        {
-          "purpose": "compare",
-          "needs": [
-            "data"
-          ],
-          "set": {
-            "heading": "",
-            "subheading": "",
-            "cta": "",
-            "highlight": 0,
-            "highlightLabel": ""
-          }
-        },
-        {
-          "purpose": "offer",
-          "needs": [
-            "data"
-          ],
-          "set": {
-            "heading": "",
-            "subheading": "",
-            "cta": "",
-            "highlight": 0,
-            "highlightLabel": ""
-          }
-        }
-      ],
-      "version": "1.1.2",
+      "version": "1.1.1",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -10435,28 +10247,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
-      "intents": [
-        {
-          "purpose": "direct",
-          "needs": [
-            "url"
-          ],
-          "set": {
-            "payload": "url"
-          }
-        },
-        {
-          "purpose": "invite",
-          "needs": [
-            "eventName",
-            "eventStart"
-          ],
-          "set": {
-            "payload": "event"
-          }
-        }
-      ],
-      "version": "2.7.1",
+      "version": "2.7.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -12776,26 +12567,7 @@
       "id": "stationery",
       "name": "Stationery",
       "description": "Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, ready as a print PDF.",
-      "intents": [
-        {
-          "purpose": "identify",
-          "needs": [
-            "firstname"
-          ],
-          "set": {
-            "lastname": "",
-            "jobTitle": "",
-            "email": "",
-            "phone": "",
-            "company": "",
-            "url": "",
-            "address": "",
-            "tagline": "",
-            "body": ""
-          }
-        }
-      ],
-      "version": "1.0.4",
+      "version": "1.0.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14720,18 +14492,7 @@
       "id": "wayfinding-signage",
       "name": "Wayfinding",
       "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
-      "intents": [
-        {
-          "purpose": "direct",
-          "needs": [
-            "data"
-          ],
-          "roles": {
-            "data": "directions"
-          }
-        }
-      ],
-      "version": "1.2.4",
+      "version": "1.2.3",
       "status": "official",
       "category": "event",
       "tags": [
@@ -15114,22 +14875,7 @@
       "id": "work-avatar",
       "name": "Work Avatar",
       "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your design system's colours and type.",
-      "intents": [
-        {
-          "purpose": "identify",
-          "needs": [
-            "headshot"
-          ],
-          "roles": {
-            "headshot": "photo",
-            "heading": "text"
-          },
-          "set": {
-            "text": ""
-          }
-        }
-      ],
-      "version": "1.2.4",
+      "version": "1.2.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -15359,25 +15105,7 @@
       "id": "quote",
       "name": "Quote",
       "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.",
-      "intents": [
-        {
-          "purpose": "offer",
-          "needs": [
-            "data",
-            "recipient",
-            "currency"
-          ],
-          "roles": {
-            "data": "lines",
-            "recipient": "customer"
-          },
-          "set": {
-            "number": "",
-            "notes": ""
-          }
-        }
-      ],
-      "version": "1.0.1",
+      "version": "1.0.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -15406,21 +15134,7 @@
       "id": "brief",
       "name": "Brief",
       "description": "A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.",
-      "intents": [
-        {
-          "purpose": "explain",
-          "needs": [
-            "body"
-          ]
-        },
-        {
-          "purpose": "report",
-          "needs": [
-            "body"
-          ]
-        }
-      ],
-      "version": "1.0.1",
+      "version": "1.0.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -15450,25 +15164,7 @@
       "id": "email",
       "name": "Email",
       "description": "An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments, as received, a draft or sent. For mock-ups, slides and walkthroughs.",
-      "intents": [
-        {
-          "purpose": "demonstrate",
-          "needs": [
-            "sender",
-            "recipient",
-            "heading",
-            "body"
-          ],
-          "roles": {
-            "sender": "from",
-            "recipient": "to"
-          },
-          "set": {
-            "sentAt": ""
-          }
-        }
-      ],
-      "version": "1.0.1",
+      "version": "1.0.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -15497,35 +15193,7 @@
       "id": "scorecard",
       "name": "Scorecard",
       "description": "Score a deal, a vendor or a plan against your criteria: each with a bar, a score and the evidence behind it, and an overall score. Paste the rows from a spreadsheet, such as MEDDPICC for a deal.",
-      "intents": [
-        {
-          "purpose": "compare",
-          "needs": [
-            "data",
-            "heading"
-          ],
-          "roles": {
-            "data": "criteria"
-          },
-          "set": {
-            "subheading": ""
-          }
-        },
-        {
-          "purpose": "report",
-          "needs": [
-            "data",
-            "heading"
-          ],
-          "roles": {
-            "data": "criteria"
-          },
-          "set": {
-            "subheading": ""
-          }
-        }
-      ],
-      "version": "1.0.1",
+      "version": "1.0.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -15555,22 +15223,7 @@
       "id": "week",
       "name": "Week",
       "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. Paste the events as a table, for a slide or a walkthrough.",
-      "intents": [
-        {
-          "purpose": "schedule",
-          "needs": [
-            "data"
-          ],
-          "roles": {
-            "data": "events"
-          },
-          "set": {
-            "heading": "",
-            "subheading": ""
-          }
-        }
-      ],
-      "version": "1.0.1",
+      "version": "1.0.0",
       "status": "community",
       "category": "everyone",
       "tags": [

@@ -24,6 +24,7 @@ for (const name of [
   'read-extract-v1.schema.json',
   'design-package-v1.schema.json',
   'text-measure-v1.schema.json',
+  'tool-intents-v1.schema.json',
   'visual-intent-v1.schema.json',
   'intent-resolution-v1.schema.json',
   'design-authoring-v1.schema.json',

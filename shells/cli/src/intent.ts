@@ -18,14 +18,15 @@
  * bare flag, a missing file, a file that is not JSON); 4 refused (a request the parser
  * refuses, or a surface that is not ready, with the full answer on stdout); 1 a render failed.
  */
+import { readFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { IntentInvalidError, resolveIntent } from '@lolly/engine';
-import type { IntentResolutionV1, IntentSurfaceResultV1, IntentToolFactsV1 } from '@lolly-tools/core';
-import { readToolManifest, toolDirs } from '@lolly-tools/node-shell/content-roots';
+import { IntentInvalidError, loadIntentTools, resolveIntent } from '@lolly/engine';
+import { TOOL_INTENTS_FILE, type IntentResolutionV1, type IntentSurfaceResultV1, type IntentToolFactsV1 } from '@lolly-tools/core/intent-v1';
+import { readToolManifest, toolDirs, toolFile } from '@lolly-tools/node-shell/content-roots';
 import { emitResult } from './envelope.ts';
 import { CliError, EXIT, usageError } from './exit-codes.ts';
-import { note, writeOut } from './output.ts';
+import { note, warn, writeOut } from './output.ts';
 import { readStdin, runToolCli } from './run.ts';
 
 export interface IntentCliFlags {
@@ -63,14 +64,17 @@ async function readRequest(path: string): Promise<unknown> {
   }
 }
 
-/** Every tool in the content profile that declares a purpose. Read from the manifests, so a stale index cannot hide one. */
-function intentTools(): IntentToolFactsV1[] {
-  const tools: IntentToolFactsV1[] = [];
-  for (const id of toolDirs().keys()) {
-    const manifest = readToolManifest(id) as IntentToolFactsV1;
-    if (manifest.intents?.length) tools.push(manifest);
-  }
-  return tools;
+/** Every tool in the content profile with an intents.json, through the resolver, so a brand overlay's file wins by the usual rule. */
+function intentTools(): Promise<IntentToolFactsV1[]> {
+  return loadIntentTools({
+    ids: [...toolDirs().keys()],
+    sidecar: (id) => {
+      const path = toolFile(id, TOOL_INTENTS_FILE);
+      return path ? readFileSync(path, 'utf8') : null;
+    },
+    manifest: (id) => readToolManifest(id),
+    onInvalid: (id, errors) => warn('INTENTS_INVALID', `${id}/${TOOL_INTENTS_FILE} left out: ${errors.map((e) => e.message).join(' ')}`),
+  });
 }
 
 /** A file extension for an export format: `pdf-cmyk` and `cmyk-tiff` are still a .pdf and a .tiff. */
@@ -163,7 +167,7 @@ export async function intentCli(positionals: readonly string[], flags: IntentCli
   const request = await readRequest(path);
   let resolution: IntentResolutionV1;
   try {
-    resolution = await resolveIntent(request, intentTools());
+    resolution = await resolveIntent(request, await intentTools());
   } catch (err) {
     if (err instanceof IntentInvalidError) {
       throw new CliError(err.message, EXIT.REFUSED, 'INTENT_INVALID', JSON.stringify(err.errors));

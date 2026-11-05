@@ -3,8 +3,8 @@
   "name": "Wayfinding",
   "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
   "a11yLabel": "Wayfinding sign for {{default eventName \"the event\"}}{{#if heading}} - {{heading}}{{/if}}",
-  "version": "1.2.4",
-  "engineVersion": "^1.304.0",
+  "version": "1.2.3",
+  "engineVersion": "^1.0.0",
   "status": "official",
   "category": "event",
   "tags": ["signage", "wayfinding", "directional", "arrow", "event", "conference", "venue", "directory", "poster", "navigation"],
@@ -25,17 +25,6 @@
     "onInit": true,
     "onInput": true
   },
-  "intents": [
-    {
-      "purpose": "direct",
-      "needs": [
-        "data"
-      ],
-      "roles": {
-        "data": "directions"
-      }
-    }
-  ],
   "inputs": [
     {
       "id": "textWeight",

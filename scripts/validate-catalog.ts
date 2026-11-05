@@ -78,7 +78,8 @@ import { entryFromManifest, slimEntry } from './build-catalog-index.ts';
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.ts';
 import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.ts';
-import { checkToolIntents } from '../engine/src/intent.ts';
+import { checkToolIntents, parseToolIntents } from '../engine/src/intent.ts';
+import { TOOL_INTENTS_FILE } from '../packages/core/src/intent-v1.ts';
 // The head-vs-version asset rule and the reserved head slug (plans/97 section 6a). Imported
 // rather than re-stated: if the validator's idea of "this is a version asset" drifts
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
@@ -166,6 +167,7 @@ const slideMasterSchema = readJson('schemas/slide-master-v1.schema.json');
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateTool = ajv.compile<any>(toolSchema);
+const validateToolIntents = ajv.compile<any>(readJson('schemas/tool-intents-v1.schema.json'));
 const validateAsset = ajv.compile<any>(assetSchema);
 const validateTokens = ajv.compile<any>(tokensSchema);
 const validateRateCard = ajv.compile<any>(rateCardSchema);
@@ -195,6 +197,15 @@ const seenToolIds = new Set<string>();
 // runtime; typing it as `any` here keeps the validator faithful without
 // re-declaring every schema shape in TypeScript.
 const toolManifests = new Map<string, any>(); // id → manifest
+
+// A sidecar in a folder with no manifest belongs to no tool, and nothing would ever read the file.
+for (const root of contentRoots().toolRoots) {
+  for (const name of readdirSync(root)) {
+    if (existsSync(join(root, name, TOOL_INTENTS_FILE)) && !existsSync(join(root, name, 'tool.json'))) {
+      errors.push(`[${name}] ${TOOL_INTENTS_FILE} has no tool.json beside it, so it belongs to no known tool`);
+    }
+  }
+}
 
 for (const dir of toolDirs) {
   const manifest = readToolManifestOptional(dir);
@@ -294,10 +305,23 @@ for (const dir of toolDirs) {
     // is that a new one cannot ship.
     if (!CANONICAL_ALIASES.allow.includes(key)) errors.push(msg);
   }
-  // What the schema cannot say about `intents`: roles and inputs that exist and fit,
-  // surfaces that are named, select values on offer, one entry per purpose, the engine floor.
-  for (const issue of checkToolIntents(manifest)) {
-    errors.push(`[${dir}] ${issue.path}: ${issue.message}`);
+  // A tool's optional intents.json, overlay-aware through the resolver: the shape, then what
+  // the schema cannot say (inputs that exist and take the role, surfaces that are named,
+  // select values on offer, one entry per purpose).
+  const intentsPath = toolFile(dir, TOOL_INTENTS_FILE);
+  if (intentsPath) {
+    const intentsText = readFileSync(intentsPath, 'utf8');
+    const parsedIntents = parseToolIntents(intentsText);
+    if (!parsedIntents.ok) {
+      for (const issue of parsedIntents.errors) errors.push(`[${dir}] ${TOOL_INTENTS_FILE} ${issue.path}: ${issue.message}`);
+    } else {
+      if (!validateToolIntents(JSON.parse(intentsText))) {
+        for (const err of validateToolIntents.errors ?? []) errors.push(`[${dir}] ${TOOL_INTENTS_FILE} ${err.instancePath} ${err.message}`);
+      }
+      for (const issue of checkToolIntents({ ...manifest, intents: parsedIntents.intents })) {
+        errors.push(`[${dir}] ${TOOL_INTENTS_FILE} ${issue.path}: ${issue.message}`);
+      }
+    }
   }
   if (manifest.render?.portable && !toolFile(dir, 'presentation.js')) {
     errors.push(`[${dir}] declares a portable presentation but has no presentation.js`);

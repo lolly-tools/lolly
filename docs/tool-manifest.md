@@ -208,20 +208,22 @@ A tool ships one gallery preview, but `examples` lets its tile show range: an ar
 
 The older alias `featured.variants` still renders but is deprecated. Write `examples`.
 
-## What a tool is for (`intents`)
+## What a tool is for (`intents.json`)
 
-`intents` declares the purposes a tool serves, so someone can [start from what a piece has to do](/info/visual-intent.html) rather than from the tool's name. It is optional, and a tool without it is never chosen for a purpose. Declare a purpose only where the tool serves that purpose well. Render each declaration through `lolly intent --render` and look at the file: an input that reads plain text only sometimes, or falls back to a sample, passes every check here.
+A tool can say which purposes it serves in an optional `intents.json` beside its manifest, so someone can [start from what a piece has to do](/info/visual-intent.html) rather than from the tool's name. A tool with no such file is not offered for an intent, and everything else about the tool works as before. Declare a purpose only where the tool serves that purpose well.
 
 ```json
-"engineVersion": "^1.304.0",
-"intents": [
-  {
-    "purpose": "offer",
-    "needs": ["data", "recipient", "currency"],
-    "roles": { "data": "lines", "recipient": "customer" },
-    "set": { "number": "", "notes": "" }
-  }
-]
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "offer",
+      "needs": ["data", "recipient", "currency"],
+      "roles": { "data": "lines", "recipient": "customer" },
+      "set": { "number": "", "notes": "" }
+    }
+  ]
+}
 ```
 
 - `purpose` is one of the closed list on [that page](/info/visual-intent.html#the-three-things-you-say). One entry per purpose.
@@ -232,7 +234,9 @@ The older alias `featured.variants` still renders but is deprecated. Write `exam
 
 Most tools need no `surfaces` entry. A select option that states `width` and `height` answers for itself, and a tool that declares `render.followsCanvasSize` fits any size. A tool whose own size has the same shape as a surface fits that surface too.
 
-A tool declaring `intents` must state an `engineVersion` floor of at least `1.304.0`. An older engine refuses a key its schema has never heard of, and the floor turns that into a clear message about the version it needs. `validate:catalog` runs `checkToolIntents`, which catches what the schema cannot: a role or input that does not exist, a select value that is not on offer, an unknown surface, a repeated purpose and a required input no role can fill. Run `build:catalog:all` afterwards, because the catalog index carries the field.
+The file is separate from the manifest on purpose. Loading a tool never reads `intents.json`, so adding one needs no new manifest key and no change to `engineVersion`, and an older app simply ignores the file. A brand overlay can carry its own `intents.json`, which wins over the community file like any other overlay file. Signing covers the file with the rest of the tool.
+
+`validate:catalog` checks every `intents.json`: the shape (`schemas/tool-intents-v1.schema.json`), then what the schema cannot say, through `checkToolIntents`. That catches an input that does not exist, a select value that is not on offer, a repeated purpose, a required input no role can fill and an `intents.json` in a folder with no manifest. Render each declaration through `lolly intent --render` and look at the file as well: an input that takes plain text only sometimes, or falls back to a sample, passes every check here.
 
 ## A short walkthrough (`guide`)
 

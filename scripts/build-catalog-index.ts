@@ -68,7 +68,7 @@ const ADDED_DATES: Record<string, string> = (() => {
 // gallery's tool-info modal. `tags` is what makes a tool findable by the words a
 // designer actually types - "foil", "riso", "emboss" - rather than only by the
 // handful that happen to appear in its name or description.
-const INDEX_FIELDS = ['id', 'name', 'description', 'intents', 'version', 'status', 'category', 'capabilities', 'requires', 'privacy', 'new', 'listed', 'galleryArt', 'deprecated', 'replacedBy', 'tags'];
+const INDEX_FIELDS = ['id', 'name', 'description', 'version', 'status', 'category', 'capabilities', 'requires', 'privacy', 'new', 'listed', 'galleryArt', 'deprecated', 'replacedBy', 'tags'];
 
 /**
  * Is this .png an ANIMATED png (APNG)? A still PNG and an APNG share the extension, the

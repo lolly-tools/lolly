@@ -61,67 +61,6 @@
       "pattern": "^[a-z0-9][a-z0-9-]*$",
       "description": "Optional design-system version this tool renders against (plans/97 section 6a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
     },
-    "intents": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 13,
-      "description": "The purposes this tool serves, read by the engine's resolveIntent when a caller states what a piece has to do. Curate these: declare a purpose only where the tool serves it well. A tool declaring intents states an engineVersion floor of at least 1.304.0, because an older schema refuses this key. See docs/tool-manifest.md.",
-      "items": {
-        "type": "object",
-        "required": [
-          "purpose"
-        ],
-        "additionalProperties": false,
-        "properties": {
-          "purpose": {
-            "type": "string",
-            "enum": [
-              "announce",
-              "compare",
-              "demonstrate",
-              "direct",
-              "explain",
-              "identify",
-              "invite",
-              "offer",
-              "present",
-              "promote",
-              "recognise",
-              "report",
-              "schedule"
-            ],
-            "description": "What a piece made with this tool does for its reader. Closed vocabulary, INTENT_PURPOSES in packages/core/src/intent-v1.ts."
-          },
-          "needs": {
-            "type": "array",
-            "uniqueItems": true,
-            "maxItems": 16,
-            "items": {
-              "type": "string"
-            },
-            "description": "Roles the tool cannot serve this purpose without. A request missing one is answered with a gap, never with the tool's sample content."
-          },
-          "roles": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "description": "Role to input id, where the input's own id is not the role's. Roles are the `roles` section of schemas/canonical-inputs.json. An input whose id is a role needs no entry."
-          },
-          "set": {
-            "type": "object",
-            "description": "Input values this purpose starts from, such as blanking the tool's sample wording. Content given in the request overrides them."
-          },
-          "surfaces": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object"
-            },
-            "description": "Named surface to the input values that draw it, for what the tool's sized select options cannot already say. An empty object means the tool lays itself out at that size. A select option carrying width and height needs no entry."
-          }
-        }
-      }
-    },
     "tokenAxes": {
       "type": "object",
       "additionalProperties": false,

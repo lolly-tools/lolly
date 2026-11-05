@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "compare",
+      "needs": [
+        "data"
+      ],
+      "set": {
+        "heading": "",
+        "subheading": "",
+        "cta": "",
+        "highlight": 0,
+        "highlightLabel": ""
+      }
+    },
+    {
+      "purpose": "offer",
+      "needs": [
+        "data"
+      ],
+      "set": {
+        "heading": "",
+        "subheading": "",
+        "cta": "",
+        "highlight": 0,
+        "highlightLabel": ""
+      }
+    }
+  ]
+}

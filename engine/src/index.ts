@@ -773,8 +773,8 @@ export { peakChroma, chromaAxisMax, chromaTickStep } from './gamut-axis.ts';
 export { gamutTier, gamutTierProbe, BEYOND_TIER, GAMUT_TIER_LADDER } from './gamut-tier.ts';
 // Visual intent: what a piece has to do, resolved to a tool for each surface. Pure, no model
 // in the path; the vocabulary and result types live in @lolly-tools/core/intent-v1.
-export { INTENT_RULES_VERSION, INTENTS_ENGINE_FLOOR, IntentInvalidError, parseVisualIntent, resolveIntent, checkToolIntents } from './intent.ts';
-export type { ParsedVisualIntent, ParseVisualIntentResult, ToolIntentIssue } from './intent.ts';
+export { INTENT_RULES_VERSION, IntentInvalidError, parseVisualIntent, resolveIntent, parseToolIntents, loadIntentTools, checkToolIntents } from './intent.ts';
+export type { IntentToolSource, ParsedVisualIntent, ParseToolIntentsResult, ParseVisualIntentResult, ToolIntentIssue } from './intent.ts';
 
 // An ICC profile as a gamut: parse the bytes, then hand `iccGamutSource(p, intent)`
 // to any gamut function above. The reader is hardened (never throws, returns null

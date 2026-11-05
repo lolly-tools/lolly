@@ -359,8 +359,6 @@ export interface TemplateVariant {
  */
 export interface ToolManifest {
   openWith?: import('./asset-open-v1.ts').AssetOpenIntentV1[];
-  /** Purposes this tool serves, and how its inputs take content by role (engine `resolveIntent`). */
-  intents?: import('./intent-v1.ts').ToolIntentV1[];
   designTool?: import('./design-tool-v1.ts').DesignToolPolicyV1;
   id: string;
   name: string;

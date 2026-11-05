@@ -3,8 +3,8 @@
   "name": "Week",
   "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. Paste the events as a table, for a slide or a walkthrough.",
   "a11yLabel": "Week calendar: {{default heading \"a week\"}}",
-  "version": "1.0.1",
-  "engineVersion": "^1.304.0",
+  "version": "1.0.0",
+  "engineVersion": "^1.82.0",
   "status": "community",
   "category": "everyone",
   "tags": ["calendar", "week", "schedule", "meeting", "availability", "slots", "planner"],
@@ -16,21 +16,6 @@
     "sectionIcons": { "Week": "calendar", "Style": "palette" }
   },
   "hooks": { "onInit": true, "onInput": true },
-  "intents": [
-    {
-      "purpose": "schedule",
-      "needs": [
-        "data"
-      ],
-      "roles": {
-        "data": "events"
-      },
-      "set": {
-        "heading": "",
-        "subheading": ""
-      }
-    }
-  ],
   "inputs": [
     {
       "id": "events",

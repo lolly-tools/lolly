@@ -38,6 +38,7 @@ import {
   INTENT_SURFACES,
   INTENT_SURFACE_UNITS,
   INTENT_VOCABULARY_VERSION,
+  TOOL_INTENTS_VERSION,
   VISUAL_INTENT_VERSION,
   type IntentCandidateV1,
   type IntentChoiceV1,
@@ -64,17 +65,9 @@ import {
 import { sha256Hex } from './bytes.ts';
 import { canonicalJson } from './canonical-json.ts';
 import { matchesShowIf } from './inputs.ts';
-import { satisfiesRange } from './semver-range.ts';
 
 /** Which rules made an answer. Bumped when the order or a rule changes, so old answers stay explained. */
 export const INTENT_RULES_VERSION = 'intent-rules-2026-11-05.1';
-
-/**
- * The engine that first understood `intents` in a manifest. An older build's schema refuses
- * the key as an unknown property, so a tool declaring intents states this floor and that
- * build reports "needs a newer engine" rather than a broken tool (loader.ts).
- */
-export const INTENTS_ENGINE_FLOOR = '1.304.0';
 
 /** Two shapes count as the same when their width-to-height ratios differ by at most this. */
 const SHAPE_TOLERANCE = 0.01;
@@ -713,17 +706,90 @@ export async function resolveIntent(request: unknown, tools: readonly IntentTool
   };
 }
 
-/** A problem with a tool's `intents` declaration, for the catalog validator. */
+/** A problem with a tool's `intents.json`, for the catalog validator. */
 export interface ToolIntentIssue {
   path: string;
   message: string;
 }
 
+export type ParseToolIntentsResult =
+  | { ok: true; intents: ToolIntentV1[] }
+  | { ok: false; errors: ToolIntentIssue[] };
+
+const TOOL_INTENT_KEYS: ReadonlySet<string> = new Set(['purpose', 'needs', 'roles', 'set', 'surfaces']);
+
 /**
- * What the schema cannot say about a manifest's `intents`: roles that exist, inputs that
+ * Read the text of a tool's `intents.json`. Shape only: `checkToolIntents` holds the entries
+ * against the tool's manifest. Pure, and it never throws on bad input.
+ */
+export function parseToolIntents(text: string): ParseToolIntentsResult {
+  const fail = (path: string, message: string): ParseToolIntentsResult => ({ ok: false, errors: [{ path, message }] });
+  if (text.length > INTENT_LIMITS.toolIntentsChars) return fail('', `intents.json is at most ${INTENT_LIMITS.toolIntentsChars} characters.`);
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch (err) {
+    return fail('', `intents.json is not JSON (${(err as Error).message}).`);
+  }
+  if (!isRecord(value)) return fail('', 'intents.json is a JSON object.');
+  if (checkValue(value, 0)) return fail('', 'intents.json holds plain JSON, nested at most a bounded depth, with no key that names a prototype.');
+  const errors: ToolIntentIssue[] = [];
+  for (const key of Object.keys(value)) {
+    if (key !== 'version' && key !== 'intents') errors.push({ path: key, message: `intents.json does not take "${key}".` });
+  }
+  if (value.version !== TOOL_INTENTS_VERSION) errors.push({ path: 'version', message: `version is ${TOOL_INTENTS_VERSION}.` });
+  const entries = value.intents;
+  if (!Array.isArray(entries) || !entries.length || entries.length > INTENT_PURPOSES.length) {
+    errors.push({ path: 'intents', message: `intents is a list of 1 to ${INTENT_PURPOSES.length} entries.` });
+    return { ok: false, errors };
+  }
+  const isStringMap = (v: unknown): boolean => isRecord(v) && Object.values(v).every((item) => typeof item === 'string');
+  entries.forEach((entry: unknown, index) => {
+    const at = `intents/${index}`;
+    if (!isRecord(entry)) { errors.push({ path: at, message: 'An entry is an object.' }); return; }
+    for (const key of Object.keys(entry)) {
+      if (!TOOL_INTENT_KEYS.has(key)) errors.push({ path: `${at}/${key}`, message: `An entry does not take "${key}".` });
+    }
+    if (!(INTENT_PURPOSES as readonly unknown[]).includes(entry.purpose)) errors.push({ path: `${at}/purpose`, message: `Unknown purpose. Purposes: ${INTENT_PURPOSES.join(', ')}.` });
+    if (entry.needs !== undefined && !(Array.isArray(entry.needs) && entry.needs.every((role) => typeof role === 'string'))) errors.push({ path: `${at}/needs`, message: 'needs is a list of roles.' });
+    if (entry.roles !== undefined && !isStringMap(entry.roles)) errors.push({ path: `${at}/roles`, message: 'roles maps a role to an input id.' });
+    if (entry.set !== undefined && !isRecord(entry.set)) errors.push({ path: `${at}/set`, message: 'set maps an input id to a value.' });
+    if (entry.surfaces !== undefined && !(isRecord(entry.surfaces) && Object.values(entry.surfaces).every(isRecord))) errors.push({ path: `${at}/surfaces`, message: 'surfaces maps a surface to input values.' });
+  });
+  return errors.length ? { ok: false, errors } : { ok: true, intents: entries as ToolIntentV1[] };
+}
+
+/** Where `loadIntentTools` reads from. A shell supplies these through its own content resolver. */
+export interface IntentToolSource {
+  ids: readonly string[];
+  /** The text of the tool's `intents.json`, or null when the tool has none. */
+  sidecar(id: string): string | null | Promise<string | null>;
+  manifest(id: string): unknown;
+  /** Told about a sidecar that will not parse. That tool is left out; the others still resolve. */
+  onInvalid?(id: string, errors: readonly ToolIntentIssue[]): void;
+}
+
+/**
+ * The tools a caller can hand to `resolveIntent`: each manifest with the entries of its
+ * sidecar as `intents`. A tool with no `intents.json` is left out, so it is not offered. The
+ * manifest is only read for a tool that has a sidecar. Pure apart from the reads it is given.
+ */
+export async function loadIntentTools(source: IntentToolSource): Promise<IntentToolFactsV1[]> {
+  const tools: IntentToolFactsV1[] = [];
+  for (const id of source.ids) {
+    const text = await source.sidecar(id);
+    if (text === null) continue;
+    const parsed = parseToolIntents(text);
+    if (!parsed.ok) { source.onInvalid?.(id, parsed.errors); continue; }
+    tools.push({ ...(await source.manifest(id) as IntentToolFactsV1), intents: parsed.intents });
+  }
+  return tools;
+}
+
+/**
+ * What the schema cannot say about a tool's `intents.json`: roles that exist, inputs that
  * exist and take the role, surfaces that are named, select values that are offered, one
- * entry per purpose, a required input that can be reached, a file the tool can export, and
- * the engine floor that makes an older build say what it needs.
+ * entry per purpose, a required input that can be reached and a file the tool can export.
  */
 export function checkToolIntents(tool: IntentToolFactsV1): ToolIntentIssue[] {
   const issues: ToolIntentIssue[] = [];
@@ -731,10 +797,6 @@ export function checkToolIntents(tool: IntentToolFactsV1): ToolIntentIssue[] {
   if (!entries.length) return issues;
   const add = (path: string, message: string): void => { issues.push({ path, message }); };
   if (tool.render?.export === false || !(tool.render?.formats?.length)) add('intents', 'A tool that exports no file cannot declare an intent.');
-  // Asked as: would the last engine before the floor accept this range?
-  if (tool.engineVersion && satisfiesRange(precedingEngine(), tool.engineVersion)) {
-    add('engineVersion', `A tool declaring intents needs an engine floor of at least ${INTENTS_ENGINE_FLOOR}, because an older schema refuses the key.`);
-  }
   const inputs = new Map((tool.inputs ?? []).map((input) => [input.id, input]));
   const checkValues = (path: string, values: Record<string, unknown>): void => {
     for (const [id, value] of Object.entries(values)) {
@@ -778,10 +840,4 @@ export function checkToolIntents(tool: IntentToolFactsV1): ToolIntentIssue[] {
     }
   });
   return issues;
-}
-
-/** The engine version just before the floor: the highest one that must be refused. */
-function precedingEngine(): string {
-  const [major, minor] = INTENTS_ENGINE_FLOOR.split('.').map(Number);
-  return `${major}.${(minor ?? 1) - 1}.0`;
 }

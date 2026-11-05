@@ -6,7 +6,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import Ajv from 'ajv/dist/2020.js';
 import {
   INTENT_FREE_TEXT_FIELDS,
@@ -15,25 +17,37 @@ import {
   INTENT_PURPOSE_MEANINGS,
   INTENT_ROLES,
   INTENT_SURFACES,
+  TOOL_INTENTS_FILE,
   type IntentToolFactsV1,
 } from '../packages/core/src/intent-v1.ts';
 import {
-  INTENTS_ENGINE_FLOOR,
   INTENT_RULES_VERSION,
   IntentInvalidError,
   checkToolIntents,
+  loadIntentTools,
+  parseToolIntents,
   parseVisualIntent,
   resolveIntent,
 } from '../engine/src/intent.ts';
-import { readToolManifest, toolDirs } from '../packages/node-shell/src/content-roots.ts';
+import { loadTool } from '../engine/src/loader.ts';
+import { validateManifest } from '../engine/src/validate.ts';
+import { CATALOG_SIGNED_TOOL_FILES, verifyToolFile, sha256Hex } from '../engine/src/catalog-integrity.ts';
+import { catalogFile, readToolManifest, readToolText, toolDirs, toolFile } from '../packages/node-shell/src/content-roots.ts';
+import { catalogToolFiles } from '../scripts/materialize-catalog-delivery.ts';
 
 const json = (rel: string) => JSON.parse(readFileSync(new URL(`../${rel}`, import.meta.url), 'utf8'));
 const ajv = new (Ajv as unknown as new (opts: object) => { compile(schema: object): ((data: unknown) => boolean) & { errors?: unknown } })({ allErrors: true, strict: false });
 const validRequest = ajv.compile(json('schemas/visual-intent-v1.schema.json'));
 const validAnswer = ajv.compile(json('schemas/intent-resolution-v1.schema.json'));
+const validSidecar = ajv.compile(json('schemas/tool-intents-v1.schema.json'));
 
-const manifests = (): IntentToolFactsV1[] =>
-  [...toolDirs().keys()].map((id) => readToolManifest(id) as IntentToolFactsV1).filter((m) => m.intents?.length);
+const sidecarIds = (): string[] => [...toolDirs().keys()].filter((id) => toolFile(id, TOOL_INTENTS_FILE));
+const manifests = (): Promise<IntentToolFactsV1[]> => loadIntentTools({
+  ids: [...toolDirs().keys()],
+  sidecar: (id) => { const path = toolFile(id, TOOL_INTENTS_FILE); return path ? readFileSync(path, 'utf8') : null; },
+  manifest: (id) => readToolManifest(id),
+  onInvalid: (id, errors) => assert.fail(`${id}: ${JSON.stringify(errors)}`),
+});
 
 const tool = (over: Partial<IntentToolFactsV1> & { id: string }): IntentToolFactsV1 => ({
   version: '1.0.0',
@@ -65,30 +79,126 @@ test('the schemas name the same purposes, roles and surfaces as the constants', 
   assert.deepEqual(request.properties.content.propertyNames.enum, Object.keys(INTENT_ROLES));
   assert.deepEqual(request.$defs.surface.oneOf[0].properties.id.enum, INTENT_SURFACES.map((s) => s.id));
   assert.equal(request.properties.prompt.maxLength, INTENT_LIMITS.promptChars);
-  assert.deepEqual(json('schemas/tool.schema.json').properties.intents.items.properties.purpose.enum, [...INTENT_PURPOSES]);
+  const sidecar = json('schemas/tool-intents-v1.schema.json');
+  assert.deepEqual(sidecar.$defs.intent.properties.purpose.enum, [...INTENT_PURPOSES]);
+  assert.deepEqual(sidecar.$defs.role.enum, Object.keys(INTENT_ROLES));
+  assert.deepEqual(sidecar.$defs.surface.enum, INTENT_SURFACES.map((s) => s.id));
+  assert.equal(sidecar.properties.intents.maxItems, INTENT_PURPOSES.length);
   assert.deepEqual(json('schemas/intent-resolution-v1.schema.json').$defs.purpose.enum, [...INTENT_PURPOSES]);
 });
 
-test('every purpose has a meaning and at least one real tool, so none is a promise nothing keeps', () => {
-  const tools = manifests();
+test('every purpose has a meaning and at least one real tool, so none is a promise nothing keeps', async () => {
+  const tools = await manifests();
   for (const purpose of INTENT_PURPOSES) {
     assert.ok(INTENT_PURPOSE_MEANINGS[purpose], purpose);
     assert.ok(tools.some((t) => t.intents!.some((i) => i.purpose === purpose)), `no tool declares ${purpose}`);
   }
 });
 
-test('every curated manifest passes the rule set and states the engine floor', () => {
-  for (const t of manifests()) {
-    assert.deepEqual(checkToolIntents(t), [], t.id);
-    assert.match(t.engineVersion ?? '', /^\^1\.30[4-9]\./, t.id);
+test('every sidecar passes its schema and the rule set', async () => {
+  const ids = sidecarIds();
+  assert.ok(ids.length >= 17, `${ids.length} sidecars`);
+  for (const id of ids) {
+    assert.ok(validSidecar(JSON.parse(readFileSync(toolFile(id, TOOL_INTENTS_FILE)!, 'utf8'))), `${id}: ${JSON.stringify(validSidecar.errors)}`);
   }
-  assert.equal(INTENTS_ENGINE_FLOOR, '1.304.0');
+  for (const t of await manifests()) assert.deepEqual(checkToolIntents(t), [], t.id);
+});
+
+test('a tool with a sidecar loads under the manifest validation with no new keys, and loading never reads the sidecar', async () => {
+  const ids = sidecarIds();
+  for (const id of ids) {
+    const manifest = readToolManifest(id) as Record<string, unknown>;
+    assert.equal(Object.hasOwn(manifest, 'intents'), false, `${id}: intents belongs in ${TOOL_INTENTS_FILE}`);
+    const checked = validateManifest(manifest);
+    assert.ok(checked.valid, `${id}: ${JSON.stringify(checked.errors)}`);
+  }
+  for (const id of ['qr-code', 'certificate']) {
+    assert.ok(ids.includes(id), `${id} should carry a sidecar`);
+    const read: string[] = [];
+    const tool = await loadTool(id, async (path: string) => { read.push(path); return readToolText(path); });
+    assert.equal(tool.manifest.id, id);
+    assert.ok(read.some((path) => path.endsWith('tool.json')), 'the loader read through this function');
+    assert.deepEqual(read.filter((path) => path.endsWith(TOOL_INTENTS_FILE)), [], 'loadTool must not read the sidecar');
+  }
+});
+
+test('intents can never come back into the manifest: the schema refuses the key, in both copies, and the index carries nothing', () => {
+  for (const path of ['schemas/tool.schema.json', 'packages/core/schema/tool.schema.json']) {
+    assert.equal(json(path).properties.intents, undefined, `${path} must not declare intents: older apps would refuse every tool that used the key`);
+  }
+  const manifest = readToolManifest('qr-code') as Record<string, unknown>;
+  assert.equal(validateManifest({ ...manifest, intents: [{ purpose: 'direct' }] }).valid, false);
+  const { tools } = JSON.parse(readFileSync(catalogFile('tools/index.json'), 'utf8')) as { tools: Array<Record<string, unknown>> };
+  assert.ok(tools.length > 0);
+  assert.equal(tools.some((entry) => Object.hasOwn(entry, 'intents')), false, 'the catalog index must not carry intents');
+});
+
+test('a sidecar needs no raised engine floor', () => {
+  const tool: IntentToolFactsV1 = { id: 'old', engineVersion: '^1.0.0', inputs: [{ id: 'heading', type: 'text' }], render: { width: 10, height: 10, formats: ['png'] }, intents: [{ purpose: 'promote' }] };
+  assert.deepEqual(checkToolIntents(tool), []);
+});
+
+test('the signed catalog carries a sidecar: signing walks the tool folder, a client can verify the file, and loadTool does not ask for it', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'lolly-intents-signing-'));
+  try {
+    mkdirSync(join(root, 'x'));
+    writeFileSync(join(root, 'x', 'tool.json'), '{"id":"x"}\n');
+    const text = '{"version":1,"intents":[{"purpose":"offer"}]}\n';
+    writeFileSync(join(root, 'x', TOOL_INTENTS_FILE), text);
+    const files = catalogToolFiles(root);
+    assert.ok(files[`x/${TOOL_INTENTS_FILE}`], 'signed with the rest of the tool');
+    const bytes = new TextEncoder().encode(text);
+    const digest = await sha256Hex(bytes);
+    assert.equal(files[`x/${TOOL_INTENTS_FILE}`], digest, 'the envelope digest is the plain file digest');
+    const envelope = { files: { [`x/${TOOL_INTENTS_FILE}`]: digest } } as unknown as Parameters<typeof verifyToolFile>[0];
+    assert.equal((await verifyToolFile(envelope, 'x', TOOL_INTENTS_FILE, bytes)).ok, true);
+    assert.equal(CATALOG_SIGNED_TOOL_FILES.includes(TOOL_INTENTS_FILE), false, 'that list is what loadTool fetches, and loadTool never fetches this');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('the reader refuses a bad sidecar by path, and a tool with none, or a broken one, is simply not offered', async () => {
+  const bad = (text: string, part: string) => {
+    const parsed = parseToolIntents(text);
+    assert.equal(parsed.ok, false, text);
+    if (!parsed.ok) assert.ok(parsed.errors.some((e) => e.message.includes(part)), JSON.stringify(parsed.errors));
+  };
+  bad('not json', 'not JSON');
+  bad('[]', 'JSON object');
+  bad('{"version":2,"intents":[{"purpose":"offer"}]}', 'version');
+  bad('{"version":1,"intents":[]}', '1 to');
+  bad('{"version":1}', '1 to');
+  bad('{"version":1,"intents":[{"purpose":"offer"}],"extra":1}', 'does not take');
+  bad('{"version":1,"intents":[{"purpose":"persuade"}]}', 'Unknown purpose');
+  bad('{"version":1,"intents":[{"purpose":"constructor"}]}', 'Unknown purpose');
+  bad('{"version":1,"intents":[{"purpose":"offer","colour":"red"}]}', 'does not take');
+  bad('{"version":1,"intents":[{"purpose":"offer","needs":"data"}]}', 'needs');
+  bad('{"version":1,"intents":[{"purpose":"offer","roles":{"data":1}}]}', 'roles');
+  bad('{"version":1,"intents":[{"purpose":"offer","set":[]}]}', 'set');
+  bad('{"version":1,"intents":[{"purpose":"offer","surfaces":{"slide":1}}]}', 'surfaces');
+  bad('{"version":1,"intents":[{"purpose":"offer","set":{"__proto__":{"x":1}}}]}', 'prototype');
+  bad(`{"version":1,"intents":[{"purpose":"offer","set":{"a":"${'x'.repeat(INTENT_LIMITS.toolIntentsChars)}"}}]}`, 'at most');
+
+  const told: string[] = [];
+  const read: string[] = [];
+  const tools = await loadIntentTools({
+    ids: ['none', 'good', 'broken'],
+    sidecar: (id) => (id === 'none' ? null : id === 'good' ? '{"version":1,"intents":[{"purpose":"offer"}]}' : 'not json'),
+    manifest: (id) => { read.push(id); return { id, render: { width: 1, height: 1, formats: ['png'] } }; },
+    onInvalid: (id) => told.push(id),
+  });
+  assert.deepEqual(tools.map((t) => t.id), ['good']);
+  assert.deepEqual(tools[0]!.intents, [{ purpose: 'offer' }]);
+  assert.deepEqual(told, ['broken']);
+  assert.deepEqual(read, ['good'], 'a manifest is only read for a tool with a usable sidecar');
+  const answer = await resolveIntent({ version: 1, purpose: 'offer', surfaces: [{ width: 1, height: 1 }] }, tools);
+  assert.equal(answer.surfaces[0]!.chosen!.toolId, 'good');
 });
 
 test('the rule set finds what the schema cannot', () => {
   const bad = tool({
     id: 'bad',
-    engineVersion: '^1.0.0',
     render: { width: 1, height: 1, formats: [], export: false },
     inputs: [
       { id: 'heading', type: 'text' },
@@ -101,7 +211,7 @@ test('the rule set finds what the schema cannot', () => {
     ],
   });
   const messages = checkToolIntents(bad).map((i) => i.message).join(' | ');
-  for (const part of ['exports no file', 'engine floor', 'No input "missing"', 'cannot fill a select', 'Unknown role "nonsense"', 'no input takes', '"b" is not an option', 'No input "gone"', 'Unknown surface "nowhere"', 'declared twice', 'must is required']) {
+  for (const part of ['exports no file', 'No input "missing"', 'cannot fill a select', 'Unknown role "nonsense"', 'no input takes', '"b" is not an option', 'No input "gone"', 'Unknown surface "nowhere"', 'declared twice', 'must is required']) {
     assert.ok(messages.includes(part), `missing: ${part} in ${messages}`);
   }
   assert.deepEqual(checkToolIntents(tool({ id: 'none', intents: [] })), []);
@@ -364,7 +474,7 @@ test('an invalid request throws with its errors; every other answer is the resul
 });
 
 test('real requests over the real catalog: the answers and the schemas agree', async () => {
-  const tools = manifests();
+  const tools = await manifests();
   assert.ok(tools.length >= 17, `${tools.length} curated tools`);
   const cases: Array<[Record<string, unknown>, string, string]> = [
     [{ purpose: 'recognise', surfaces: [{ id: 'a4-landscape' }], content: { firstname: 'Sam', awardtopic: 'Rust' } }, 'certificate', 'ready'],
@@ -402,7 +512,7 @@ test('no curated tool prints its own sample wording once a purpose is served', a
     frame: [],
     quote: ['heading', 'taxLabel'],
   };
-  for (const t of manifests()) {
+  for (const t of await manifests()) {
     for (const entry of t.intents!) {
       const surface = t.inputs!.flatMap((i) => (i.options ?? []) as Array<{ width?: number; height?: number; unit?: string }>).find((o) => o?.width && o?.height);
       const request = {

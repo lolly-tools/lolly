@@ -161,6 +161,8 @@ export const INTENT_LIMITS = Object.freeze({
   depth: 16,
   /** UTF-16 units of the whole request once serialised. */
   totalChars: 2 * 1024 * 1024,
+  /** UTF-16 units of one tool's `intents.json`. */
+  toolIntentsChars: 64 * 1024,
   /** Pixels on one side of a sized surface, and its equal in other units once converted. */
   sidePx: 100000,
 });
@@ -206,7 +208,22 @@ export interface VisualIntentV1 extends IntentFreeTextV1 {
   prefer?: { toolId: string };
 }
 
-/** A tool's declaration that it serves one purpose (`tool.json` `intents[]`). */
+/** The file a tool declares its purposes in, beside its manifest. Optional: a tool with none is not offered for an intent. */
+export const TOOL_INTENTS_FILE = 'intents.json' as const;
+/** The version a tool's `intents.json` states. */
+export const TOOL_INTENTS_VERSION = 1 as const;
+
+/**
+ * A tool's `intents.json`, mirrored by schemas/tool-intents-v1.schema.json. It sits beside the
+ * manifest and not inside it on purpose: loading a tool never reads this file, so a tool that
+ * has one needs no new manifest key and no raised engine floor, and an older app is unaffected.
+ */
+export interface ToolIntentsFileV1 {
+  version: typeof TOOL_INTENTS_VERSION;
+  intents: ToolIntentV1[];
+}
+
+/** A tool's declaration that it serves one purpose (an entry of `intents.json`). */
 export interface ToolIntentV1 {
   purpose: IntentPurposeV1;
   /** Roles this tool cannot serve the purpose without. Missing ones are reported, never invented. */
@@ -224,9 +241,10 @@ export interface ToolIntentV1 {
 }
 
 /**
- * The manifest facts the resolver reads. A parsed `tool.json` satisfies it, so a caller
- * passes manifests, filtered first to what the caller may use. The resolver has no idea of
- * permission: Work narrows this list by policy before calling.
+ * The facts the resolver reads: a parsed `tool.json` with the entries of the tool's
+ * `intents.json` as `intents` (the engine's `loadIntentTools` puts the two together). A caller
+ * filters first to what the caller may use. The resolver has no idea of permission: Work
+ * narrows this list by policy before calling.
  */
 export interface IntentToolFactsV1 {
   id: string;

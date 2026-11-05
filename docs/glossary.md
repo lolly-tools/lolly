@@ -90,7 +90,7 @@ These words matter when you build tools, run Lolly or read the code. The diagram
 
 **Intent.** A statement of what a piece has to do for its reader, where it will be seen and what it has to say, resolved to a tool for each surface with the reasons recorded. Its vocabulary is closed and no model is in the path. See [Start from what the piece has to do](/info/visual-intent.html).
 
-**Role.** What a value is to the piece, whatever a tool calls its input: `heading`, `url`, `data`. An intent's content is keyed by role, and a tool's `intents` says which input takes which role.
+**Role.** What a value is to the piece, whatever a tool calls its input: `heading`, `url`, `data`. An intent's content is keyed by role, and a tool's optional `intents.json` says which input takes which role.
 
 **Surface.** Where a piece will be seen, as a named size such as `social-square` or `a4-portrait`, or as any width and height.
 

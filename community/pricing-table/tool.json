@@ -3,8 +3,8 @@
   "name": "Pricing",
   "description": "Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.",
   "a11yLabel": "Pricing table: {{default heading \"Pricing\"}}",
-  "version": "1.1.2",
-  "engineVersion": "^1.304.0",
+  "version": "1.1.1",
+  "engineVersion": "^1.82.0",
   "status": "community",
   "category": "everyone",
   "tags": ["pricing", "comparison", "table", "features", "plans", "marketing"],
@@ -118,34 +118,6 @@
     "filenameFrom": ["heading"],
     "transparentBg": false
   },
-  "intents": [
-    {
-      "purpose": "compare",
-      "needs": [
-        "data"
-      ],
-      "set": {
-        "heading": "",
-        "subheading": "",
-        "cta": "",
-        "highlight": 0,
-        "highlightLabel": ""
-      }
-    },
-    {
-      "purpose": "offer",
-      "needs": [
-        "data"
-      ],
-      "set": {
-        "heading": "",
-        "subheading": "",
-        "cta": "",
-        "highlight": 0,
-        "highlightLabel": ""
-      }
-    }
-  ],
   "inputs": [
     {
       "id": "data",

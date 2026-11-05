@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "scorecard",
-  "toolVersion": "1.0.1",
-  "toolVersionRange": "1.0.1",
+  "toolVersion": "1.0.0",
+  "toolVersionRange": "1.0.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,8 +10,8 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "0c2634f3f8f961a5e03f04d2a8b0cd11c3434cee80151c0eec7e7683d0ac5921",
-      "bytes": 1780
+      "sha256": "0d446402c1fad74b12243d5b55f98c766dbf731d62c4a62c5aa12007ddb50dc0",
+      "bytes": 1779
     },
     "reference/inputs.json": {
       "sha256": "e0738fd0f02d5d9a919b4a852eb54cc024dad4a96cfe377e8232a61631216528",

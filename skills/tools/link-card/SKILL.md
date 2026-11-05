@@ -5,7 +5,7 @@ description: "Operate the Lolly Link Card tool (link-card) using its declared in
 
 # Link Card
 
-Tool ID: `link-card`. Tool version: `1.0.4`. Engine range: `^1.304.0`.
+Tool ID: `link-card`. Tool version: `1.0.3`. Engine range: `^1.0.0`.
 
 Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size.
 

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "recognise",
+      "needs": [
+        "data"
+      ],
+      "roles": {
+        "data": "logos"
+      }
+    }
+  ]
+}

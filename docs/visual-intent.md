@@ -120,14 +120,14 @@ The prompt travels with the request and comes back in the answer, apart from the
 
 ## Limits
 
-- **The first tools are curated.** A tool serves a purpose only when someone has declared that it does, in its [manifest](/info/tool-manifest.html#what-a-tool-is-for-intents). Design has no declared purpose yet, because its layers have no fixed roles to fill. Doc Studio has none because its content is a structured document rather than text, so no purpose for how-to documents is offered yet.
+- **The first tools are curated.** A tool serves a purpose only when someone has declared that it does, in an optional [`intents.json`](/info/tool-manifest.html#what-a-tool-is-for-intentsjson) beside its manifest. A tool with no such file is not offered for an intent. Design has no declared purpose yet, because its layers have no fixed roles to fill. Doc Studio has none because its content is a structured document rather than text, so no purpose for how-to documents is offered yet.
 - **A tool may need the browser tier.** Tools that lay out HTML need a browser to render from the command line (`lolly install-browser`). The answer itself never does.
 - **A fit is about shape and size.** Lolly does not look at the result. A long heading can still crowd a small surface, so look at the file, or run [`lolly check`](/info/cli-reference.html).
 - **Nothing here is an approval.** An answer says which tool fits your request. How you review your work, and who does that, stays yours.
 
 ## Related
 
-- [Tool manifests](/info/tool-manifest.html): declaring what a tool is for
+- [Tool manifests](/info/tool-manifest.html#what-a-tool-is-for-intentsjson): declaring what a tool is for with `intents.json`
 - [MCP server](/info/mcp.html): `lolly_resolve_intent` and `lolly_render`
 - [Command line reference](/info/cli-reference.html): `lolly intent`
 - [Document model draft](/info/document-model.html): the evaluation pipeline an intent belongs to
