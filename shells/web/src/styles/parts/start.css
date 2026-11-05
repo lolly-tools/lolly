@@ -628,8 +628,6 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
 }
 .start-import-btn { cursor: pointer; }
 .start-import-folder { align-self: center; cursor: pointer; margin-top: var(--sp-4); }
-/* A phone's file picker cannot choose a folder. The zipped folder works there. */
-@media (max-width: 640px) { .start-import-folder { display: none; } }
 .ds-declared-keep { display: flex; flex-direction: column; gap: var(--sp-3); font-size: var(--fs-md); }
 .ds-declared-prose { max-height: 240px; margin: 0; padding: var(--sp-4); overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: var(--fs-sm); line-height: 1.5; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
 .ds-declared-usage { margin: 0; font-size: var(--fs-md); line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -639,6 +637,8 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
    reports which files were chosen. */
 @media (hover: none) and (pointer: coarse) {
   .start-import-drophint:not([data-page-selection]) { display: none; }
+  /* A phone's file picker cannot choose a folder. The zipped folder works there. */
+  .start-import-folder { display: none; }
 }
 .start-import-result {
   display: flex;
