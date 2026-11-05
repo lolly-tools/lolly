@@ -75,6 +75,7 @@ async function putPart(path: string, body: Blob): Promise<void> {
  *  refers to. `onProgress` reports bytes sent so far. */
 export async function sendApprovalFile(
   artifact: ApprovalArtifact, checksum: string, partBytes: number, onProgress?: (sent: number, total: number) => void,
+  scope = 'approval-artifact',
 ): Promise<string> {
   const { blob, name } = artifact;
   const parts: Array<{ size: number; checksum: string }> = [];
@@ -85,7 +86,7 @@ export async function sendApprovalFile(
   const contentType = blob.type.split(';')[0] || 'application/octet-stream';
   const begun = await send('/api/v1/uploads', {
     method: 'POST', headers: JSON_HEADERS,
-    body: JSON.stringify({ scope: 'approval-artifact', name, contentType, size: blob.size, checksum, parts }),
+    body: JSON.stringify({ scope, name, contentType, size: blob.size, checksum, parts }),
   });
   const { upload } = (await begun.json()) as { upload: { id: string } };
   const at = `/api/v1/uploads/${encodeURIComponent(upload.id)}`;

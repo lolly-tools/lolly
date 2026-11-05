@@ -30,7 +30,8 @@ import { instancePath } from '../instance.ts';
 import { t } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { metaRow, type MetaKey } from '../meta-rows.ts';
-import type { ActiveRecord } from './active.ts';
+import { activeMaterialSystem, type ActiveRecord } from './active.ts';
+import { draftSkillMeta, type DeclaredDraftSkill } from './sources/declared.ts';
 
 /** The host slice skills are read through. Structural: any caller's host fits. */
 export interface BrandSkillHost {
@@ -38,6 +39,7 @@ export interface BrandSkillHost {
     query(filter: AssetQuery): Promise<AssetRef[]>;
     get(id: string): Promise<AssetRef>;
     bytes?(target: AssetRef | string): Promise<Uint8Array>;
+    _listUserAssets?(): Promise<AssetRef[]>;
   };
   tokens?: unknown;
 }
@@ -141,7 +143,69 @@ async function activeRecordOf(host: BrandSkillHost): Promise<ActiveRecord | null
 export async function listActiveBrandSkills(host: BrandSkillHost): Promise<ActiveBrandSkill[]> {
   let refs: AssetRef[];
   try { refs = await host.assets.query({ type: 'skill' }); } catch { return []; }
-  return activeSkillsOf(refs, await activeRecordOf(host));
+  // The person's own skills live with their uploads, which a catalog query does not read.
+  const own = await host.assets._listUserAssets?.().catch(() => []) ?? [];
+  return activeSkillsOf([...refs, ...own.filter(ref => ref.type === 'skill')], await activeRecordOf(host));
+}
+
+/** What keeping a draft needs: a place to write the skill, and a way to see an id is taken. */
+export interface DraftSkillHost {
+  assets: {
+    _uploadUserAsset(record: { id: string; type: 'skill'; format: 'md'; blob: Blob; meta: Record<string, unknown> }): Promise<void>;
+    _getUserRecord?(id: string): Promise<unknown>;
+  };
+  tokens?: unknown;
+}
+
+/**
+ * Keep an imported source's words as a draft skill of the active design system. It is
+ * marked internal and unapproved, so it reaches no brand page and no one is told the
+ * brand agreed to these words. An id already in use gets a number rather than replacing what is
+ * there. Returns the new id.
+ */
+export async function keepDraftSkill(host: DraftSkillHost, draft: DeclaredDraftSkill): Promise<string> {
+  const { assets } = host;
+  const { ns } = await activeMaterialSystem(host);
+  let id = `${ns}skill/${draft.name}`;
+  for (let n = 2; await assets._getUserRecord?.(id).catch(() => null); n++) id = `${ns}skill/${draft.name}-${n}`;
+  const name = id.slice(id.lastIndexOf('/') + 1);
+  const markdown = name === draft.name ? draft.markdown : draft.markdown.replace(`name: ${draft.name}\n`, `name: ${name}\n`);
+  await assets._uploadUserAsset({
+    id, type: 'skill', format: 'md', blob: new Blob([markdown], { type: 'text/markdown' }),
+    meta: { name: draft.label, skill: { ...draftSkillMeta(draft), name } },
+  });
+  return id;
+}
+
+/**
+ * A draft held on this device that came from someone else's file. It shows in the Skills
+ * room, for the person to read. Every other surface leaves the draft out: an agent's brief,
+ * an agent's links and a brand page. A person keeping the skill is what changes that.
+ */
+export function isUnkeptDraft(skill: Pick<ActiveBrandSkill, 'ref' | 'entry'>): boolean {
+  return (skill.ref.source === 'user' || skill.ref.id.startsWith('user/')) && skill.entry.status === 'draft';
+}
+
+/** The skills an agent or a brand page may be offered: everything but unkept drafts. */
+export async function listOfferedBrandSkills(host: BrandSkillHost): Promise<ActiveBrandSkill[]> {
+  return (await listActiveBrandSkills(host)).filter(skill => !isUnkeptDraft(skill));
+}
+
+/** What keeping or deleting a draft needs from the bridge. */
+export interface DraftDecisionHost {
+  assets: {
+    _updateUserAssetMeta?(id: string, meta: Record<string, unknown>): Promise<void>;
+    _deleteUserAsset?(id: string): Promise<unknown>;
+  };
+}
+
+/**
+ * A person read a draft and keeps the words. The record then says the brand stands behind
+ * them, and it stays internal, so a brand page still leaves the text out.
+ */
+export async function keepImportedSkill(host: DraftDecisionHost, skill: Pick<ActiveBrandSkill, 'ref' | 'meta'>, today = new Date().toISOString().slice(0, 10)): Promise<void> {
+  if (!host.assets._updateUserAssetMeta) throw new Error('This host cannot keep a skill.');
+  await host.assets._updateUserAssetMeta(skill.ref.id, { ...skill.ref.meta, skill: { ...skill.meta, status: 'approved', reviewed: today } });
 }
 
 /** The brief rows for the active skills, so `designBrief` lists them without bodies. */
@@ -154,7 +218,7 @@ export function briefSkillAssets(skills: readonly ActiveBrandSkill[]): DesignBri
 
 /** The catalog facts a web brief adds: the active skills, or null when there are none. */
 export async function briefSkillCatalog(host: BrandSkillHost): Promise<{ assets: DesignBriefAssetV1[] } | null> {
-  const skills = await listActiveBrandSkills(host);
+  const skills = await listOfferedBrandSkills(host);
   return skills.length ? { assets: briefSkillAssets(skills) } : null;
 }
 
@@ -183,7 +247,7 @@ export function agentBrandSkillLinks(skills: readonly ActiveBrandSkill[], scope:
 
 /** The brand skills for one open tool, read from the active design system. */
 export async function agentBrandSkills(host: BrandSkillHost, scope: BrandSkillScopeV1): Promise<AgentBrandSkillLink[]> {
-  return agentBrandSkillLinks(await listActiveBrandSkills(host), scope);
+  return agentBrandSkillLinks(await listOfferedBrandSkills(host), scope);
 }
 
 /** Bytes from a catalog path on this instance, refusing an error response. */

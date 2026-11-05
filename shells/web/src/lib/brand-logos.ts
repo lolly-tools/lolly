@@ -307,7 +307,7 @@ export function logoTokensOf(doc: unknown): LogoTokenRef[] {
 }
 
 // ── Bridge-backed I/O ─────────────────────────────────────────────────────────
-type LogoHost = UserFontsHost & { assets: CatalogBlobs };
+export type LogoHost = UserFontsHost & { assets: CatalogBlobs };
 
 /**
  * The active design system's stored head document, or null when it has none yet.

@@ -63,6 +63,10 @@ export interface VersionsCtx extends VersionsIoCtx {
   undo?: () => Promise<boolean>;
   /** The studio's rail note. Falls back to announce() when the view has none. */
   notify?: (msg: string, isError?: boolean) => void;
+  /** Opens the Publish a brand page sheet. Absent, the row is not shown. */
+  openBrandPage?: () => void;
+  /** Opens the Connect an agent sheet. Absent, the row is not shown. */
+  openConnectAgent?: () => void;
 }
 
 export interface VersionsRoom {
@@ -98,6 +102,8 @@ export interface VersionsModel {
   restored: string | null;
   /** What publishing records: the design system's editable head and its theme choices (plan 286). */
   context?: TokenContextModel | null;
+  /** The sheets this panel can open, so a degraded studio does not show a dead row. */
+  share?: { brandPage: boolean; connectAgent: boolean };
 }
 
 /** A long diff is a scroll, not a wall: the rest is named as a count. */
@@ -324,9 +330,37 @@ export function versionsHtml(model: VersionsModel | null): string {
         </div>` : ''}
       ${model.publishable ? publishHtml(model)
         : `<p class="ds-v-nothing">${t('There is nothing to publish yet. Add colours, type or logos first, then come back.')}</p>`}
+      ${shareHtml(model)}
       ${listHtml(model)}
       ${storageHtml(model)}
     </div>`;
+}
+
+/** Beyond this device: a page for people and agents, and an agent's setup. */
+function shareHtml(model: VersionsModel): string {
+  if (!model.share?.brandPage && !model.share?.connectAgent) return '';
+  return `
+    <section class="ds-v-share" aria-labelledby="ds-v-share-title">
+      <h3 class="ds-v-title" id="ds-v-share-title">${t('Share beyond this device')}</h3>
+      <div class="ds-v-share-rows">
+      ${model.share.brandPage ? `
+      <div class="ds-v-share-row">
+        <div>
+          <h4 class="ds-v-share-name">${t('Brand page')}</h4>
+          <p class="ds-v-share-txt">${t('One address for people and for agents.')}</p>
+        </div>
+        <button type="button" class="be-btn ds-v-btn" data-ds-v-brand-page>${t('Publish a brand page')}</button>
+      </div>` : ''}
+      ${model.share.connectAgent ? `
+      <div class="ds-v-share-row">
+        <div>
+          <h4 class="ds-v-share-name">${t('Agents')}</h4>
+          <p class="ds-v-share-txt">${t('Setup to paste into an agent, and what each option can do.')}</p>
+        </div>
+        <button type="button" class="be-btn ds-v-btn" data-ds-v-connect-agent>${t('Connect an agent')}</button>
+      </div>` : ''}
+      </div>
+    </section>`;
 }
 
 // ── Mount ────────────────────────────────────────────────────────────────────
@@ -506,6 +540,7 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
       storage,
       restored,
       context: publishable ? tokenContextModel(documentSnapshot(head, { system }), { context: 'head' }) : null,
+      share: { brandPage: !!ctx.openBrandPage, connectAgent: !!ctx.openConnectAgent },
     };
   };
 
@@ -568,6 +603,9 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
 
   const onClick = (e: Event): void => {
     const target = e.target as HTMLElement;
+
+    if (target.closest('[data-ds-v-brand-page]')) { ctx.openBrandPage?.(); return; }
+    if (target.closest('[data-ds-v-connect-agent]')) { ctx.openConnectAgent?.(); return; }
 
     const publish = target.closest<HTMLElement>('[data-ds-v-publish]')?.dataset.dsVPublish;
     if (publish) {

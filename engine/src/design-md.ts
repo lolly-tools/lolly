@@ -401,9 +401,17 @@ export function parseDesignMd(text: string): DesignMdParseV1 {
 
   const fileVersion = typeof tree.version === 'string' ? tree.version : null;
   if (fileVersion !== null && fileVersion !== DESIGN_MD_TARGET) note('version', 'warning', `The file says version ${fileVersion}. This reader targets ${DESIGN_MD_TARGET}.`);
-  const name = typeof tree.name === 'string' && tree.name.trim() ? line(tree.name, 200) : null;
-  if (!name) note('missing-name', 'warning', 'The file gives no name for the design system.');
-  const description = typeof tree.description === 'string' && tree.description.trim() ? line(tree.description, 2000) : null;
+  // A name and a description become a design system's own words, and agents read those.
+  // One that reaches for permissions or code stays out, and the prose keeps it for a person.
+  const clean = (value: unknown, field: string, max: number): string | null => {
+    const text = typeof value === 'string' && value.trim() ? line(value, max) : null;
+    if (!text || !brandSkillScopeHints(text).length) return text;
+    note('scope.left-out', 'warning', `The ${field} speaks about permissions or running code, so it was left out.`);
+    return null;
+  };
+  const name = clean(tree.name, 'name', 200);
+  if (!name) note('missing-name', 'warning', 'The file gives no usable name for the design system.');
+  const description = clean(tree.description, 'description', 2000);
 
   const omitted: string[] = [];
   if (Array.isArray(tree.omitted)) {

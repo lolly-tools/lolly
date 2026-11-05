@@ -289,6 +289,13 @@ export function wireRecoveryAndVersions(start: StartCtx): void {
     // the existing name when a write does not supply one (bridge/tokens.ts).
     undo: () => studio.undo(),
     notify: start.exporting.showNote,
+    // The sheets load on the press: neither belongs on the studio's first paint.
+    openBrandPage: () => {
+      void import('../../lib/design-system/brand-page-sheet.ts').then(m => m.openBrandPageSheet(host), () => start.exporting.showNote(t('Could not open this. Please try again.'), true));
+    },
+    openConnectAgent: () => {
+      void import('../../lib/design-system/connect-agent-sheet.ts').then(m => m.openConnectAgentSheet(host), () => start.exporting.showNote(t('Could not open this. Please try again.'), true));
+    },
   }; start.versionsCtx = versionsCtx;
   start.recovery = null as StartCtx['recovery'];
   viewEl.querySelector('[data-start-recovery]')?.addEventListener('click', () => {
