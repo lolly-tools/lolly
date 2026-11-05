@@ -50,7 +50,7 @@ What Lolly Work %work{version} does, what to check on your own systems before yo
 - **Agents.** Invite an MCP agent to one document or one project, under your own identity.
   See [Invite an agent to a document](document-agents.md). Automation with a service token can
   [connect over MCP](automation-api.md#connect-an-agent-over-mcp) across the instance, for tools,
-  schemas, validation, durable renders, batches and catalog search.
+  schemas, validation, visual intents, durable renders, batches, delivery and catalog search.
 - **Setup and packaging.** A six-step guided setup in the console, container images, Compose
   and a Helm chart with an optional render-worker tier. See
   [Configure your first Lolly Work instance](customer-setup.md) and [Install Lolly Work](install.md).
@@ -119,8 +119,9 @@ when you match clients to a release.
 - **One overlay key.** `enforce.c2pa` is declared, and the write paths refuse that key.
 - **Ending one chosen session.** An admin can end all of a person's sessions, not one of
   them. See [Sign-in and sessions](identity.md#offboarding-disable-and-revocation).
-- **Delivery and approvals over the organisation MCP endpoint.** Those stay on the HTTP routes
-  and with people.
+- **Approvals over the organisation MCP endpoint.** Those stay with people.
+- **Recording a visual intent in a Work render.** [`POST /api/v1/intents/resolve`](automation-api.md#start-from-what-the-piece-has-to-do)
+  chooses the tool. Recording the intent in the file is on the command line and the public MCP server.
 - **Render dependency locking.** Receipts are partial and campaign reconciliation is not built. See
   [Render jobs and batches](renders.md#what-a-receipt-does-not-prove).
 - **General event subscriptions.** Callbacks announce the end of the job that asked for one. A feed

@@ -18,7 +18,7 @@ lolly intent certificate.json
 lolly intent certificate.json --render --out-dir=./out
 ```
 
-The answer is the same from the [command line](/info/cli-reference.html) and from the [MCP server](/info/mcp.html). `--render` makes the files through the normal render path and writes the answer beside them as `intent-resolution.json`. Lolly writes nothing from an intent into the file itself.
+The answer is the same from the [command line](/info/cli-reference.html), from the [MCP server](/info/mcp.html) and from [Lolly Work](/info/work-automation-api.html#start-from-what-the-piece-has-to-do), where it covers only the tools the caller can render on that instance. `--render` makes the files through the normal render path and writes the answer beside them as `intent-resolution.json`. Lolly writes nothing from an intent into the file itself.
 
 No model is in this path. The same request and the same tools always give the same answer, and an unchanged request gives an unchanged digest, so you can read why a choice was made and repeat the choice.
 
@@ -152,5 +152,6 @@ The prompt travels with the request and comes back in the answer, apart from the
 
 - [Tool manifests](/info/tool-manifest.html#what-a-tool-is-for-intentsjson): declaring what a tool is for with `intents.json`
 - [MCP server](/info/mcp.html): `lolly_resolve_intent` and `lolly_render`
+- [Lolly Work API](/info/work-automation-api.html#start-from-what-the-piece-has-to-do): `POST /api/v1/intents/resolve` and `resolve_intent`
 - [Command line reference](/info/cli-reference.html): `lolly intent`
 - [Document model draft](/info/document-model.html): the evaluation pipeline an intent belongs to
