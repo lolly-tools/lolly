@@ -76,6 +76,7 @@ import { DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID, designSystemHeadId,
 // The exclusion read lives in its own leaf module (not lib/brand-doc.ts, whose
 // engine-barrel import would drag studio code into this bridge's boot graph).
 import { getExcludedSwatches } from '../lib/brand-exclusions.ts';
+import { readRecordedBrandPage } from '../../../../engine/src/brand-page-address.ts';
 
 /** The catalog-asset slice discovery needs: an id to read the cached blob by,
  *  the file URL to fall back to, and the `brandLock` flag (tokens assets only).
@@ -911,7 +912,10 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
       const { restorePinnedFontFamilies } = await import('../../../../engine/src/token-font-pins.ts');
       const document = await restorePinnedFontFamilies(renderDocument, pins);
       const choices = (await import('../../../../engine/src/token-selection.ts')).resolveTokenSelection(document).choices;
-      return { document: document ?? null, ...(pins.some(p => p.font) ? { renderDocument } : {}), system, version, selection: { ...readActiveSelection(document), ...(Object.keys(choices).length ? { choices } : {}) } };
+      // The publisher's opt-in belongs to the brand, so it is read from the head and a
+      // pinned version records it too (plan 351 B5). No opt-in, no key.
+      const brandPage = readRecordedBrandPage(headDoc);
+      return { document: document ?? null, ...(pins.some(p => p.font) ? { renderDocument } : {}), system, version, selection: { ...readActiveSelection(document), ...(Object.keys(choices).length ? { choices } : {}) }, ...(brandPage ? { brandPage } : {}) };
     },
     async activeRecord() {
       return host.designSystems ? (await host.designSystems.active().catch(() => null)) : null;

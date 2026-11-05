@@ -391,6 +391,8 @@ function readXmp(text: string, out: FileMetadata): void {
     for (const t of record.themes ?? []) out.fields.push({ label: themeChoiceLabel(t), value: clip(t.name), group: 'software', source: 'XMP lolly:Themes' });
     // The brand skills an agent declared it followed (plan 323): guidance, never a check.
     for (const s of record.brandSkills ?? []) out.fields.push({ label: 'Guided by', value: clip(brandSkillLabel(s)), group: 'software', source: 'XMP lolly:BrandSkills' });
+    // Editable metadata, so Verify lists this under "Links in this file" as unverified.
+    if (record.brandPage) out.fields.push({ label: 'Brand page', value: clip(record.brandPage), group: 'software', source: 'XMP lolly:BrandPage' });
   }
 
   // dc:subject keywords - the DAM payoff (plans/144 Wave 5): a photo's own

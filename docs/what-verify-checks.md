@@ -35,6 +35,14 @@ Each panel is a statement the signer made. The panel says whether a CA verified 
 
 `lolly validate`, the terminal app and `lolly_verify` report the same facts in the same words.
 
+### Brand page
+
+A design system's publisher can [record the address of its brand page](/info/brand-page.html#lead-back-from-your-files) on exports. When a file holds one and its credential verifies, **Brand page** shows the host, such as `acme.example`. Lolly does not load the page, fetch anything from the address or show a preview. A click on the host warns you first, the same as any other link in a file.
+
+**The signer recorded this address. It does not show that the page belongs to anyone.** Anyone can publish a page that looks like a brand's own, and anyone with a signing key can record any address. Read the host, then decide.
+
+Only a plain `https` address on a named host is shown. When a credential does not verify, or the value is anything else, Lolly Verify says the file holds an address and leaves the address out. The same address in a file's own metadata is editable, so it is listed under **Links in this file** with the other unverified links. `lolly validate`, the terminal app and `lolly_verify` label the address as recorded data, and never print it as a link.
+
 ## AI-generated content
 
 When a file declares that its pixels came from a trained model, Lolly Verify raises an **AI-generated content** flag, or **Contains AI-generated content** when only part of it did. The declaration comes from one of two places, and Lolly Verify says which:

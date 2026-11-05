@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { approvedPanelHtml, madeForPanelHtml, paintAssetRecord, recordPanelsHtml, recordRowsHtml, wireRecordPanels } from './valid-record.ts';
+import { wireMetadataLinks } from './valid-links.ts';
 import { seedValuesFromDigest } from './valid-made-from.ts';
 import { verifyLampCues } from './valid-text.ts';
 import type { VerifyReport } from './valid-verdict.ts';
@@ -247,4 +248,74 @@ test('an approval lamp only when a record exists, and it warns when the record f
   assert.equal(good?.state, 'fact');
   const bad = verifyLampCues({ report: report({ state: 'invalid', approval }) as never }).find((cue) => cue.id === 'approval');
   assert.equal(bad?.state, 'warn');
+});
+
+const PAGE = 'https://acme.example/brand/acme/';
+
+test('a recorded brand page shows the host and the signer\'s words, and stays inert until clicked', () => {
+  const dom = new JSDOM(`<div id="root">${recordPanelsHtml(report({ approval, intent, brandPage: PAGE }))}</div>`);
+  const doc = dom.window.document;
+  const panels = [...doc.querySelectorAll('[data-record-panel]')].map((el) => el.getAttribute('data-record-panel'));
+  assert.deepEqual(panels, ['approval', 'intent', 'brandPage'], 'Approved, Made for, then the page');
+  const panel = doc.querySelector('[data-record-panel="brandPage"]')!;
+  assert.match(panel.querySelector('h3')!.textContent ?? '', /Brand page/);
+  assert.match(panel.textContent ?? '', /The signer recorded this address\. It does not show that the page belongs to anyone\./);
+  assert.match(panel.textContent ?? '', /\/brand\/acme\//);
+  const links = panel.querySelectorAll('a');
+  assert.equal(links.length, 1);
+  const link = links[0]!;
+  assert.match(link.textContent ?? '', /^acme\.example/);
+  assert.equal(link.getAttribute('rel'), 'noopener noreferrer');
+  assert.equal(link.getAttribute('target'), '_blank');
+  assert.equal(link.getAttribute('data-metadata-url'), PAGE);
+  assert.equal(panel.querySelector('img, iframe, object, embed, link, script'), null, 'nothing loads the page');
+});
+
+test('a click on the recorded page opens the warning first, and nothing goes to the page', () => {
+  const dom = new JSDOM(`<!doctype html><body><div id="root">${recordPanelsHtml(report({ brandPage: PAGE }))}</div></body>`, { pretendToBeVisual: true });
+  const { document: doc, MouseEvent: Click, HTMLElement: El } = dom.window;
+  Object.assign(globalThis, { document: doc, window: dom.window, HTMLElement: El, Element: dom.window.Element, MouseEvent: Click });
+  dom.window.HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) { this.open = true; };
+  const root = doc.getElementById('root') as unknown as HTMLElement;
+  wireMetadataLinks(root);
+  wireMetadataLinks(root);
+  const event = new Click('click', { bubbles: true, cancelable: true });
+  doc.querySelector('[data-record-panel="brandPage"] a')!.dispatchEvent(event);
+  assert.equal(event.defaultPrevented, true, 'the link itself does not navigate');
+  assert.equal(doc.querySelectorAll('.valid-link-dialog').length, 1, 'one warning, however often the root was wired');
+  assert.match(doc.querySelector('.valid-link-dialog')!.textContent ?? '', /Its destination and safety have not been verified\./);
+  assert.equal(doc.querySelector('.valid-link-destination')!.textContent, PAGE);
+});
+
+test('a dropped address is said out loud, and the value is nowhere on the page', () => {
+  const unverified = recordPanelsHtml(report({ state: 'invalid', brandPageDropped: 'credential' }));
+  assert.match(unverified, /its credential did not verify, so the address is left out here/);
+  assert.doesNotMatch(unverified, /<a\b/);
+  const refused = recordPanelsHtml(report({ brandPageDropped: 'address' }));
+  assert.match(refused, /not a plain https address/);
+  assert.doesNotMatch(refused, /<a\b/);
+  assert.equal(recordRowsHtml(report({ brandPageDropped: 'credential' }), false), '', 'Details has no row to show');
+});
+
+test('a value that is not an address draws nothing, whoever hands the report over', () => {
+  for (const bad of ['javascript:alert(1)', 'http://acme.example/', 'https://user:pass@acme.example/']) {
+    assert.equal(recordPanelsHtml(report({ brandPage: bad })), '');
+    assert.equal(recordRowsHtml(report({ brandPage: bad }), false), '');
+  }
+});
+
+test('the asset inspector gives the page a Details row, and its click goes through the same warning', () => {
+  const dom = new JSDOM(`<!doctype html><body><div id="sheet"><dl data-meta-list><div data-meta="id"><dt>Id</dt><dd>x</dd></div></dl></div></body>`, { pretendToBeVisual: true });
+  const { document: doc, MouseEvent: Click, HTMLElement: El } = dom.window;
+  Object.assign(globalThis, { document: doc, window: dom.window, HTMLElement: El, Element: dom.window.Element, MouseEvent: Click });
+  dom.window.HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) { this.open = true; };
+  const sheet = doc.getElementById('sheet') as unknown as HTMLElement;
+  paintAssetRecord(sheet, report({ brandPage: PAGE }));
+  const row = doc.querySelector('[data-meta="brandPage"]')!;
+  assert.match(row.querySelector('dt')!.textContent ?? '', /Brand page/);
+  assert.match(row.querySelector('dd')!.textContent ?? '', /^acme\.example/);
+  const event = new Click('click', { bubbles: true, cancelable: true });
+  row.querySelector('a')!.dispatchEvent(event);
+  assert.equal(event.defaultPrevented, true);
+  assert.equal(doc.querySelectorAll('.valid-link-dialog').length, 1);
 });

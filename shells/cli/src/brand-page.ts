@@ -15,6 +15,7 @@ import { buildBrandPage, type BrandPageExampleInputV1, type BrandPageInputV1 } f
 import type { BrandPageHeldV1, BrandPageUsageV1 } from '@lolly-tools/core/brand-page-v1';
 import { designBrief } from '@lolly/engine';
 import { redistribution } from '../../../engine/src/asset-rights.ts';
+import { brandPageAddress, withRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
 import { axisOfKind, modeAxis, readTokenAxes } from '../../../engine/src/token-axes.ts';
 import { createNodeTextAPI } from '@lolly-tools/node-shell/text';
 import { emitResult } from './envelope.ts';
@@ -60,9 +61,15 @@ async function emptyOrMissing(dir: string): Promise<boolean> {
 }
 
 export async function publishBrandPage(flags: Flags, json: boolean): Promise<void> {
-  if (!flags.out || flags.out === '1') throw usageError('usage: lolly system publish --out=<dir> [--origin=<url>] [--usage-file=<file>] [--include=<id,id>] [--profile=<name>] [--file=<tokens>] [--no-examples] [--no-made-with-link]', 'MISSING_ARGUMENT');
+  if (!flags.out || flags.out === '1') throw usageError('usage: lolly system publish --out=<dir> [--origin=<url>] [--usage-file=<file>] [--include=<id,id>] [--profile=<name>] [--file=<tokens>] [--no-examples] [--no-made-with-link] [--record-address|--no-record-address]', 'MISSING_ARGUMENT');
   for (const key of ['origin', 'usage-file', 'include', 'profile', 'file', 'name', 'id']) if (flags[key] === '1') throw usageError(`--${key} needs a value.`, 'MISSING_FLAG_VALUE');
   if (flags.origin && !/^https?:\/\//.test(flags.origin)) throw usageError('--origin must be an http or https address.', 'BAD_ORIGIN');
+  // Whether this terminal's exports name the page (plan 351 B5). Off unless asked for here.
+  const recordAddress = flags['record-address'] === '1' ? brandPageAddress(flags.origin) : null;
+  if (flags['record-address'] === '1' && !recordAddress) throw usageError('--record-address needs --origin with a plain https address on a named host.', 'BAD_ORIGIN');
+  if (flags['record-address'] === '1' && flags['no-record-address'] === '1') throw usageError('Use --record-address or --no-record-address, not both.', 'BAD_USAGE');
+  const changesRecord = flags['record-address'] === '1' || flags['no-record-address'] === '1';
+  if (changesRecord && (flags.file || flags.profile || process.env.LOLLY_PROFILE)) throw usageError('--record-address and --no-record-address change the active terminal design system, so they do not combine with --file or a content profile.', 'BAD_USAGE');
   const out = resolve(flags.out);
   if (!await emptyOrMissing(out)) throw usageError(`${flags.out} is not empty. Choose a new folder, so nothing is overwritten or left behind.`, 'OUT_NOT_EMPTY');
 
@@ -160,13 +167,24 @@ export async function publishBrandPage(flags: Flags, json: boolean): Promise<voi
     await writeFile(target, file.bytes);
   }
   const { manifest } = built;
-  if (json) { await emitResult({ out, manifest }); return; }
+  let recordedAddress: string | null | undefined;
+  if (changesRecord) {
+    const { activeNodeDesignSystem, writeNodeDesignSystemTokens } = await import('@lolly-tools/node-shell/design-systems');
+    const active = await activeNodeDesignSystem();
+    if (!active) throw usageError('There is no active terminal design system to change.', 'NO_TOKENS');
+    await writeNodeDesignSystemTokens({ id: active.id, tokens: withRecordedBrandPage(tokens, recordAddress), source: active.source });
+    recordedAddress = recordAddress;
+  }
+  if (json) { await emitResult({ out, manifest, ...(recordedAddress === undefined ? {} : { recordedBrandPage: recordedAddress }) }); return; }
   const lines = [
     `Wrote the ${manifest.name} brand page to ${flags.out}: ${manifest.files.length + 1} files.`,
     `Checked ${manifest.checks.pairs} colour pairs across ${manifest.checks.variants} colourway and mode pairs, and ${manifest.checks.rules} house rules. See checks.json.`,
     manifest.held.length ? `Held back ${manifest.held.length}:` : 'Nothing was held back.',
     ...manifest.held.map(h => `  ${h.item}: ${h.reason}`),
     'Nothing has gone public. Read the folder, then host the folder wherever you choose.',
+    ...(recordedAddress === undefined ? [] : [recordedAddress
+      ? `Exports from this design system now record the address ${recordedAddress}. Turn this on once the page is live there. --no-madewith leaves the record out of one export.`
+      : 'Exports from this design system no longer record a brand page address.']),
   ];
   await writeOut(`${lines.join('\n')}\n`);
 }

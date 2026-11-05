@@ -6,6 +6,14 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.311.0
+
+- A design system's publisher can opt in to recording its brand page's address on exports (plan 351 B5). `brand-page-address.ts` holds the rules: `brandPageAddress` accepts a plain `https` address on a named host and nothing else, and `readRecordedBrandPage` and `withRecordedBrandPage` read and write the setting in the tokens document, at `$extensions["com.suse.lolly"].exportRecord.brandPage`. Off means the key is gone.
+- `TokensSnapshot.brandPage` carries the setting, read from the working head. `ExportMeta.brandPage` and `DesignRecord.brandPage` carry the address, and the record's writers add it only when set: the `tools.lolly.export` key `brandPage`, the XMP and SVG `lolly:BrandPage` property and a PDF keyword. A brand with no address writes exactly the bytes it wrote before. The existing `madeWith` switch takes the address out with the rest of the record.
+- `C2paReport.brandPage` is read only from a credential that verifies, and only as a plain `https` address. Otherwise `C2paReport.brandPageDropped` says `credential` or `address`, and the value is removed from `environment`.
+- `publishableTokens` leaves the setting out of a brand page's tokens, so turning the setting on or off does not change the folder's bytes.
+- `designRecordWords` gains `page: false`, for a caller that prints the address on a line of its own or compares design systems only.
+
 ## 1.310.0
 
 - `brandPageOutlines` moved from node-shell into `brand-page.ts`, so the web shell and the CLI draw specimens with one implementation.

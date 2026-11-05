@@ -230,6 +230,12 @@ export interface TokensSnapshot {
    * straight to the writer so the file's active selection matches the render.
    */
   selection: { activeThemes?: string[]; activeSets?: string[]; theme?: string | null; choices?: Record<string, string> };
+  /**
+   * The published brand page address this design system's publisher chose to record
+   * on exports (v1.311, plan 351 B5). Read from the working head, because the choice
+   * belongs to the brand and not to one version. Absent until the publisher opts in.
+   */
+  brandPage?: string;
 }
 
 /**

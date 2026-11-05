@@ -47,6 +47,7 @@
  * Handlebars - fully node:test-able (globalThis.crypto only).
  */
 
+import { brandPageAddress } from './brand-page-address.ts';
 import { checkedIntentRecord, encodeCbor, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, LOLLY_INTENT_ASSERTION } from './c2pa.ts';
 import type { C2paApprovalRecord, C2paIntentRecord } from './c2pa.ts';
 // The check-code vocabulary lives in c2pa-verdict.ts (the shared verdict
@@ -412,6 +413,14 @@ export interface C2paReport {
   // to be read with `state` and `trusted`. It is not a verdict on the work, and it
   // says nothing about what the review covered.
   approval?: C2paApprovalRecord;
+  // The brand page address the signer recorded with the design-system record (plan 351
+  // B5): read only from a credential that verifies, and only as a plain https address.
+  // The signer recorded an address. It does not show that the page belongs to anyone.
+  brandPage?: string;
+  // Why a recorded address was left out: `credential` when the credential did not
+  // verify, `address` when the value is not an address Lolly accepts. The value itself
+  // is removed from `environment` as well, so no reader can reach the value.
+  brandPageDropped?: 'credential' | 'address';
 }
 
 // ─── C2PA 2.4 text bindings: read-side helpers ────────────────────────────────
@@ -1400,6 +1409,15 @@ export async function verifyC2pa(
 
   report.state = checks.every((c) => c.ok || c.code === C2PA_CHECK.signingCredentialUntrusted) ? 'valid' : 'invalid';
   if (intentRecord && report.state === 'valid') report.intent = intentRecord;
+  const recordedPage = report.environment?.brandPage;
+  if (recordedPage !== undefined) {
+    const address = report.state === 'valid' ? brandPageAddress(recordedPage) : null;
+    if (address) report.brandPage = address;
+    else {
+      delete report.environment!.brandPage;
+      report.brandPageDropped = report.state === 'valid' ? 'address' : 'credential';
+    }
+  }
   // "Genuinely made with Lolly" = the credential is intact (signature + hashes
   // + binding all verify), it records a Lolly CREATION (a c2pa.created action -
   // not merely a delivery), AND it names Lolly as the generator. Requiring the

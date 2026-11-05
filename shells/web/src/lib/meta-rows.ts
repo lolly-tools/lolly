@@ -54,7 +54,7 @@ const ROWS = {
   library: ['building', 0], sourceId: ['hash', 0], indexedVersion: ['history', 0], sourceModified: ['pen', 0], lastSync: ['refresh', 0],
   listingStatus: ['checklist', 0], availability: ['eye', 0], availableFrom: ['calendar', 0], availableUntil: ['calendar', 0],
   validFrom: ['calendar', 0], validUntil: ['calendar', 0],
-  approval: ['seal', 0], purpose: ['focus', 0], prompt: ['quote', 0], selectedFile: ['document', 0], fileRole: ['layers', 0], originalAvailability: ['download', 0],
+  approval: ['seal', 0], purpose: ['focus', 0], prompt: ['quote', 0], brandPage: ['globe', 0], selectedFile: ['document', 0], fileRole: ['layers', 0], originalAvailability: ['download', 0],
   kind: ['grid', 0], where: ['folder', 0], contains: ['layersStack', 0], created: ['calendar', 0], lastOpened: ['eye', 0], favourite: ['star', 0],
 } as const satisfies Record<string, readonly [IconName, number] | readonly [IconName, number, string]>;
 

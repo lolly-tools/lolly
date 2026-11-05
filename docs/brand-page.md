@@ -94,6 +94,24 @@ The page says which logos are owner-published, and your terms appear under "Usin
 
 This reads what your catalog states. Lolly does not check that you own a mark, and your words grant nobody anything Lolly can confirm. Write this record only for your own marks: a partner's logo needs its own licence on record, or your stated choice with `--include`. [The Lolly Demo page](https://lolly.tools/brand/lolly-demo/) publishes Lolly's marks this way.
 
+## Lead back from your files
+
+Your exports can name your page, so a file someone finds later leads back to the source. This is off until you turn it on, per design system. It records one thing, the page's address, in the [design-system record](/info/exporting.html#the-design-system-record). Nothing else in the file changes.
+
+**In the app.** **On exports**, in the same sheet, has a switch: *Record the page address in exports*. For a folder you host yourself, type the address under *Where it will live*, then turn the switch on once the page is live there. For an instance that serves pages, the switch opens after you publish, and it uses the address the instance gives back. Turn the switch off and later exports hold no address.
+
+**In a terminal.** Add `--record-address` to `lolly system publish --origin=<address>`, and `--no-record-address` removes the setting. Both change the active terminal design system.
+
+**In a tokens file.** A managed design system is read-only on people's devices, so its manager sets this in the source file, at `$extensions["com.suse.lolly"].exportRecord.brandPage`. The same goes for a file you pass with `--file` or a content profile.
+
+Only a plain `https` address on a named host can be recorded: no credentials, query or fragment, no IP address or `localhost`, and at most 512 characters.
+
+**What people see.** Each export's **Design system** card shows the address before anything is written, and unticking the card leaves the address out of that export, with the rest of the record. `_madewith=0`, `--no-madewith` and `madeWith: false` do the same. The command line and the MCP server say when the address is recorded.
+
+**What a reader sees.** [Lolly Verify](/info/what-verify-checks.html#brand-page) shows your host and says the signer recorded this address. It does not say the page is yours, because a signer can record any address and a page can be forged. Tell people which address is really yours somewhere they already trust.
+
+The setting stays out of the published folder, so turning it on or off does not change the page's files.
+
 ## Your words on use
 
 Lolly writes no licence or legal claim for you. A usage statement and a contact are your own words:
