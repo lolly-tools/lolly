@@ -10,12 +10,13 @@
     "ht_gridSize": 14,
     "ht_dotScale": 1,
     "ht_fit": "cover",
-    "ht_transparentBg": true,
-    "ht_bgColor": "transparent",
+    "ht_transparentBg": false,
+    "ht_bgColor": "{color.semantic.text}",
     "width": 1200,
     "height": 1450,
     "image": {
       "id": "lolly/demo/sample-character"
-    }
+    },
+    "ht_invert": true
   }
 }
