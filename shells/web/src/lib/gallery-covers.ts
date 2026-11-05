@@ -69,7 +69,11 @@ async function decodes(url: string): Promise<boolean> {
 }
 
 /** The build script reads the context from here, and skips any file already baked. */
-interface BakeGlobals { __lollyBakeCovers?: boolean; __lollyCoverContext?: string }
+declare global {
+  // Set by scripts/build-gallery-covers.ts, which needs the hash a bake is drawn under.
+  var __lollyBakeCovers: boolean | undefined;
+  var __lollyCoverContext: string | undefined;
+}
 
 export async function bakedCover(
   host: Pick<HostV1, 'tokens' | 'profile'>,
@@ -81,8 +85,7 @@ export async function bakedCover(
   try {
     if (await newWorkTokenSelection(host as ColourwaySeedHost)) return null;
     const hash = await coverContextHash(await previewContextSignature(host));
-    const bake = globalThis as unknown as BakeGlobals;
-    if (bake.__lollyBakeCovers) { bake.__lollyCoverContext = hash; return null; }
+    if (globalThis.__lollyBakeCovers) { globalThis.__lollyCoverContext = hash; return null; }
     const file = pickBakedCover(await loadManifest(), hash, tool, index, templateId);
     if (!file) return null;
     const url = instancePath(file);
