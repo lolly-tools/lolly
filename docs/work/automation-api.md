@@ -215,7 +215,8 @@ Jobs belong to the member or service token that created them. Repeating a reques
 ### Callbacks
 
 A job can call you back when it settles. `callbackUrl` is used only when it exactly matches the
-instance's own webhook endpoint, `notify.webhook.url` ([configuration](configuration.md#notify)).
+instance's own webhook endpoint, `notify.webhook.url` ([configuration](configuration.md#notify)), or
+uses an origin listed in [`automation.callbacks.allowedOrigins`](configuration.md#automation).
 Each callback carries `x-lolly-timestamp` and an `x-lolly-signature` header signed with
 `LW_WEBHOOK_SECRET`, and its body is `{ jobId, state, resultUrl, resultToken, deliveryId }`.
 
@@ -309,9 +310,16 @@ requirements.
   cannot reconstruct. Failed required checks return no artifact and keep
   `PRODUCTION_VERIFICATION_FAILED` diagnostics on the render record. See
   [production still checks](renders.md#production-still-checks-and-permitted-repairs).
+- **Callbacks.** `callbackUrl` on a render or batch request sends one signed `POST` when it finishes,
+  through the same outbox as job callbacks, and a batch calls back once. The URL is refused at
+  submission unless this instance accepts that URL. See [be told when a render finishes](renders.md#be-told-when-a-render-finishes).
+- **Delivery.** `POST /api/v1/renders/:id/deliveries` sends a finished output to an organisation
+  destination by reference, under the same rules as a job output
+  ([delivering an automation output](delivery.md#delivering-an-automation-output)).
 - **Render batches.** `POST /api/v1/render-batches` creates a parent and up to 200 independent
-  child renders in one atomic step. Read its ordered rows and output receipts, download a JSON manifest,
-  cancel unfinished rows, or retry a terminal batch while keeping its successful children. The
+  child renders in one atomic step, from typed rows or from a governed data source with `bind`. Read
+  its ordered rows and output receipts, download a JSON manifest or the outputs as one ZIP, cancel
+  unfinished rows, or retry a terminal batch while keeping its successful children. The
   [batch API](renders.md#batches-with-durable-rows) is separate from the `/api/v1/batch` job and
   ZIP contract.
 
@@ -341,6 +349,8 @@ links.
 | `BRAND_RULE_VIOLATION` | 422 | a render input breaks a reviewed design-system rule for that format |
 | `ROW_VALIDATION_FAILED` | 422 | a batch row does not satisfy the selected tool contract |
 | `IDEMPOTENCY_KEY_REUSED` | 409 | the caller reused an idempotency key for different request bytes |
+| `CALLBACK_URL_NOT_ALLOWED` | 403 | a durable render or batch named a callback URL this instance does not send to |
+| `OUTPUT_EXPIRED` | 410 | [output retention](renders.md#hosting-and-recovery) removed this output; its record and receipt remain |
 | `HOOKED_TOOL_NEEDS_CHROMIUM` | 501 | the tool runs scripts and no worker is configured (org-config's `render.hookedTools` is `false`) |
 | `TOOL_REQUIRES_UNMET` | 501 | the manifest's `requires` lists a `host.*` API the in-process render host lacks (`text`, `compose`, `audio`, the device APIs); route the tool through the Chromium worker |
 | `RENDER_BUSY` | 503 | the render worker is at capacity; retry after `Retry-After` seconds |
