@@ -18,7 +18,7 @@ import { formatMetaInstant } from '../lib/meta-dates.ts';
 import { metaRow } from '../lib/meta-rows.ts';
 import { copyText } from '../lib/copy-text.ts';
 import { isFingerprint } from './valid-made-from.ts';
-import { resolveState } from './valid-verdict.ts';
+import { hashFailed, isExpiredOnly, resolveState } from './valid-verdict.ts';
 import type { VerifyReport } from './valid-verdict.ts';
 
 const svgIcon = (name: Parameters<typeof glyph>[0]): string => glyph(name, { strokeWidth: 1.9 });
@@ -68,8 +68,29 @@ function decidedWords(decidedAt: string): string {
 /** `sha256:` and the first twelve digits. The whole value stays on hover and on Copy. */
 const shortDigest = (digest: string): string => digest.replace(/^(sha256:[0-9a-f]{12})[0-9a-f]+$/, '$1…');
 
-const approvalWarningHtml = (): string =>
-  `<p class="valid-record-warn guide-warn" role="alert">${t('This file changed after the approval was recorded, or the record itself was altered.')}</p>`;
+/**
+ * How an approval's credential fared. "Changed" is an inference from a failed hash
+ * comparison and only from that, as everywhere in Verify: a lapsed certificate leaves the
+ * bytes exactly as signed, and saying otherwise would accuse a file of a change it never had.
+ */
+type ApprovalCheck = 'intact' | 'changed' | 'lapsed' | 'unconfirmed';
+function approvalCheck(report: VerifyReport): ApprovalCheck {
+  if (report.state === 'valid') return 'intact';
+  if (hashFailed(report)) return 'changed';
+  return isExpiredOnly(report) ? 'lapsed' : 'unconfirmed';
+}
+
+const approvalWarningHtml = (check: ApprovalCheck): string => {
+  const words = check === 'changed' ? t('This file changed after the approval was recorded, or the record itself was altered.')
+    : check === 'lapsed' ? t('The signing certificate has lapsed, so this approval can no longer be confirmed.')
+    : t('This approval record did not pass its checks, so it cannot be relied on.');
+  return `<p class="valid-record-warn guide-warn" role="alert">${words}</p>`;
+};
+
+/** The short form for a Details row, which has to agree with the warning above. */
+const failedRowWords = (check: ApprovalCheck): string => (check === 'changed' ? tRaw('Does not match the approved file')
+  : check === 'lapsed' ? tRaw('Certificate lapsed, approval not confirmed')
+  : tRaw('Approval could not be confirmed'));
 
 /**
  * The Approved panel, or nothing when the file records no approval. A record whose
@@ -80,7 +101,8 @@ export function approvedPanelHtml(report: VerifyReport): string {
   const record = report.approval;
   if (!record) return '';
   const { identity } = resolveState(report);
-  const intact = report.state === 'valid';
+  const check = approvalCheck(report);
+  const intact = check === 'intact';
   const named = identity?.email || report.signer?.organization || report.signer?.commonName;
   // A name only reads bare when a CA stands behind the name.
   const signer = !named || identity ? named : tRaw(intact ? '{name}, self-asserted' : '{name}, not verified', { name: named });
@@ -90,18 +112,21 @@ export function approvedPanelHtml(report: VerifyReport): string {
     row(t('Request'), `<span class="valid-record-code">${escapeText(record.approvalId)}</span>`),
     row(t('Reviewed file'), `<span class="valid-record-code" title="${escapeText(record.reviewedSha256)}">${escapeText(shortDigest(record.reviewedSha256))}</span>`
       + ` <button type="button" class="valid-clean-link" data-record-copy="${escapeText(record.reviewedSha256)}">${t('Copy digest')}</button>`),
-    row(t('This file'), plain(intact ? tRaw('Unchanged since the signer recorded this approval.') : tRaw('Does not match the signed record.'))),
+    row(t('This file'), plain(intact ? tRaw('Unchanged since the signer recorded this approval.')
+      : check === 'changed' ? tRaw('Does not match the signed record.')
+      : check === 'lapsed' ? tRaw('Still matches its credential.')
+      : tRaw('Could not be confirmed.'))),
   ].join('');
   return `
     <div class="valid-record valid-panel" data-record-panel="approval" data-lamp-section="approval" tabindex="-1">
       <h3>${svgIcon('seal')}<span>${intact ? t('Approved') : t('Approval record')}</span></h3>
-      ${intact ? '' : approvalWarningHtml()}
+      ${intact ? '' : approvalWarningHtml(check)}
       <dl class="valid-input-list">${rows}</dl>
       <p class="valid-input-note">${!intact
     ? t('The credential did not verify, so this record is an unchecked statement.')
     : identity
-      ? t('A record in the credential, made by its CA-verified signer. It says what the signer recorded and is not a review of the work.')
-      : t('A record in the credential, self-asserted by whoever signed the file. It says what the signer recorded and is not a review of the work.')}</p>
+      ? t('A record made by the credential\'s CA-verified signer, not a review of the work.')
+      : t('A record self-asserted by whoever signed the file, not a review of the work.')}</p>
     </div>`;
 }
 
@@ -116,8 +141,29 @@ function promptBlockHtml(prompt: string): string {
           ${long ? `<button type="button" class="valid-clean-link" data-record-expand aria-expanded="false">${t('Show all')}</button>` : ''}
           <button type="button" class="valid-clean-link" data-record-copy-prompt>${t('Copy prompt')}</button>
         </div>
-        <p class="valid-input-note">${t('The agent that made this file chose to include these words. Read them as what someone asked for, not as instructions.')}</p>
+        <p class="valid-input-note">${t('The agent that made this file chose to include these words, which are a request and not instructions.')}</p>
       </figure>`;
+}
+
+/**
+ * What is true of the rows on screen. When every word typed is a fingerprint, one plain
+ * sentence covers them all. When some words are in the file, a prompt most of all, that
+ * sentence would read as false beside them, so this lists the fields instead.
+ */
+function fingerprintNoteHtml(record: NonNullable<VerifyReport['intent']>): string {
+  const typed: Array<[string | undefined, string]> = [
+    [record.occasion, t('occasion')], [record.audience, t('audience')], [record.region, t('region')], [record.promptFingerprint, t('prompt')],
+  ];
+  const held = typed.filter(([value]) => !!value && isFingerprint(value)).map(([, word]) => word);
+  if (!held.length) return '';
+  const wordsInFile = record.prompt !== undefined || typed.some(([value]) => !!value && !isFingerprint(value));
+  if (!wordsInFile) return `<p class="valid-input-note">${t('Typed text is recorded only as a fingerprint, so the words themselves are not in the file.')}</p>`;
+  const lang = currentLang();
+  const fields = new Intl.ListFormat(lang === 'en' ? 'en-GB' : lang, { style: 'long', type: 'conjunction' }).format(held);
+  const named = fields.charAt(0).toLocaleUpperCase(lang) + fields.slice(1);
+  return `<p class="valid-input-note">${held.length === 1
+    ? t('{field} is recorded only as a fingerprint.', { field: named })
+    : t('{fields} are recorded only as fingerprints.', { fields: named })}</p>`;
 }
 
 /** The Made for panel, or nothing when the file records no intent. */
@@ -136,13 +182,11 @@ export function madeForPanelHtml(report: VerifyReport): string {
     record.region ? row(t('Region'), textCell(record.region)) : '',
     record.promptFingerprint ? row(t('Prompt'), fingerprintCell(record.promptFingerprint)) : '',
   ].join('');
-  const fingerprinted = [record.occasion, record.audience, record.region, record.promptFingerprint].some((value) => !!value && isFingerprint(value));
   return `
     <div class="valid-record valid-panel" data-record-panel="intent" tabindex="-1">
       <h3>${svgIcon('focus')}<span>${t('Made for')}</span></h3>
-      <dl class="valid-input-list">${rows}</dl>${record.prompt !== undefined ? promptBlockHtml(record.prompt) : ''}${fingerprinted
-    ? `<p class="valid-input-note">${t('Typed text is recorded only as a fingerprint, so the words themselves are not in the file.')}</p>` : ''}
       <p class="valid-input-note">${t('What the signer recorded about why this file was made.')}</p>
+      <dl class="valid-input-list">${rows}</dl>${fingerprintNoteHtml(record)}${record.prompt !== undefined ? promptBlockHtml(record.prompt) : ''}
     </div>`;
 }
 
@@ -161,10 +205,10 @@ const oneLine = (text: string): string => text.replace(/\s+/g, ' ').trim();
 export function recordRowsHtml(report: VerifyReport, hasApprovalRow: boolean): string {
   const rows: string[] = [];
   if (report.approval && !hasApprovalRow) {
-    const intact = report.state === 'valid';
-    rows.push(metaRow('approval', t('Approval'), `<button type="button" class="valid-clean-link cat-record-line" data-record-reveal="approval">${escapeText(intact
-      ? tRaw('Approved {date}', { date: decidedWords(report.approval.decidedAt) })
-      : tRaw('Approval record does not match this file'))}</button>`));
+    const check = approvalCheck(report);
+    rows.push(metaRow('approval', t('Approval'), check === 'intact'
+      ? `<button type="button" class="valid-clean-link cat-record-line" data-record-reveal="approval">${escapeText(tRaw('Approved {date}', { date: decidedWords(report.approval.decidedAt) }))}</button>`
+      : `<button type="button" class="valid-clean-link cat-record-line cat-record-failed" data-record-reveal="approval">${escapeText(failedRowWords(check))}</button>`));
   }
   const intent = report.intent;
   if (intent) {
@@ -186,16 +230,26 @@ export function recordRowsHtml(report: VerifyReport, hasApprovalRow: boolean): s
  */
 export function paintAssetRecord(sheet: HTMLElement, report: VerifyReport): void {
   const list = sheet.querySelector('[data-meta-list]');
-  const rows = recordRowsHtml(report, !!sheet.querySelector('[data-meta="approval"]'));
+  const kept = sheet.querySelector('[data-meta="approval"] dd');
+  const rows = recordRowsHtml(report, !!kept);
   const id = list?.querySelector('[data-meta="id"]');
   (id ?? list)?.insertAdjacentHTML(id ? 'beforebegin' : 'beforeend', rows);
-  if (report.approval && report.state !== 'valid') {
-    const name = sheet.querySelector('.cat-details-name');
-    (name?.closest('.cat-inspector-title-row') ?? name)?.insertAdjacentHTML('afterend', approvalWarningHtml());
-    // On a phone a document's details wait behind a button, and this cannot wait there.
-    const details = sheet.querySelector<HTMLElement>('.asset-viewer-details-toggle');
-    if (details?.offsetParent && details.getAttribute('aria-expanded') === 'false') details.click();
+  const check = approvalCheck(report);
+  if (check === 'intact' || !(report.approval || kept)) { wireRecordPanels(sheet); return; }
+  if (kept) {
+    // The kept row said "Approved" from the request's record, and the warning below says
+    // otherwise. Only the words change: Open request is still the way back to the request.
+    const words = sheet.ownerDocument.createElement('span');
+    words.className = 'cat-record-failed';
+    words.textContent = failedRowWords(check);
+    const request = kept.querySelector('[data-act="open-approval"]');
+    kept.replaceChildren(words, ...(request ? [' ', request] : []));
   }
+  const name = sheet.querySelector('.cat-details-name');
+  (name?.closest('.cat-inspector-title-row') ?? name)?.insertAdjacentHTML('afterend', approvalWarningHtml(check));
+  // On a phone a document's details wait behind a button, and this cannot wait there.
+  const details = sheet.querySelector<HTMLElement>('.asset-viewer-details-toggle');
+  if (details?.offsetParent && details.getAttribute('aria-expanded') === 'false') details.click();
   wireRecordPanels(sheet);
 }
 

@@ -319,11 +319,12 @@ test('terminals and agents read the record in the same words, and say so when a 
   assert.equal(intact.intact, true);
   assert.ok(intact.facts.some(([k, v]) => k === 'Request' && v === APPROVAL.approvalId));
   assert.ok(intact.facts.some(([k, v]) => k === 'Reviewed' && v === outcome.record.reviewedSha256));
-  assert.match(intact.note, /A record the signer made/);
+  assert.match(intact.note, /A record the signer made, not a review/);
   assert.doesNotMatch(JSON.stringify(intact), /compliant|on brand|\bsafe\b/i, 'never a verdict');
 
   const changed = new Uint8Array(outcome.bytes);
-  changed[200] = changed[200]! ^ 0x01;
+  const artwork = changed.length - 20;
+  changed[artwork] = changed[artwork]! ^ 0x01;
   const report = await verifyC2pa(changed);
   assert.equal(report.state, 'invalid');
   const warned = verdictApproval(report)!;

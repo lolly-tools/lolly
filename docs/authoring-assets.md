@@ -114,7 +114,7 @@ A `.lolly` pack holds back catalog files whose licence is unrecorded or not yet 
 
 Open a file in Assets and its **Details** list shows what its Content Credential records. **Approval** gives the date of the decision, **Made for** gives the purpose and surface, and **Prompt** gives one line of a recorded prompt. Each row opens the matching panel under **Origins & credentials**, and these are the same panels [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records) draws. The **Checks** lamps add an **Approval** lamp when a record exists.
 
-An approved file you kept from a request has one **Approval** row, and it keeps its way back to the request. If the file no longer matches its credential, a warning appears under the file's name, outside every section.
+An approved file you kept from a request has one **Approval** row, and it keeps its way back to the request. If the file no longer matches its credential, a warning appears under the file's name, outside every section, and the row reads **Does not match the approved file** instead of the date. **Open request** stays. The `approved` tag stays too, because tags are yours to change.
 
 A PDF added through the upload area becomes editable vector assets, so its credential does not travel with them. To read a PDF's record, keep the approved file from its request or open the original in Lolly Verify.
 

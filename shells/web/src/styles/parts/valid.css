@@ -959,6 +959,7 @@
 /* ── Record panels - approval and intent, as the signer recorded them
    (views/valid-record.ts). The warning takes the house .guide-warn voice, and a prompt
    reads as a quotation: its own box, its own label, wrapping as the person wrote the words. */
+.cat-record-failed, .valid-clean-link.cat-record-failed { color: var(--ui-color-status-danger); font-weight: 600; }
 .valid-record .valid-input-row dd { font-family: inherit; flex-wrap: wrap; }
 .valid-record-code { font-family: var(--ui-type-mono-family); overflow-wrap: anywhere; }
 .valid-record-prompt { margin: 0; display: grid; gap: var(--sp-3); min-width: 0; }

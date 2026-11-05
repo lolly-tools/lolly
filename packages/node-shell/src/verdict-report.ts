@@ -88,17 +88,26 @@ export function verdictApproval(report: C2paReport): VerdictApproval | null {
   const r = report.approval;
   if (!r) return null;
   const intact = report.state === 'valid';
+  // "Changed" rests on a failed hash comparison and nothing else. A lapsed certificate
+  // leaves the bytes exactly as signed, so it must not read as a change.
+  const fails = report.checks.filter(chk => !chk.ok && chk.code !== 'signingCredential.untrusted');
+  const changed = fails.some(chk => chk.code === 'assertion.dataHash.mismatch' || chk.code === 'assertion.bmffHash.mismatch');
+  const lapsed = fails.length === 1 && fails[0]!.code === 'signingCredential.expired';
   return {
     intact,
     facts: [
       ['Request', cleanControlChars(r.approvalId)],
       ['Decided', cleanControlChars(r.decidedAt)],
       ['Reviewed', cleanControlChars(r.reviewedSha256)],
-      ['This file', intact ? 'unchanged since the signer recorded this approval' : 'does not match the signed record'],
+      ['This file', intact ? 'unchanged since the signer recorded this approval'
+        : changed ? 'does not match the signed record'
+        : lapsed ? 'still matches its credential'
+        : 'could not be confirmed'],
     ],
-    note: intact
-      ? 'A record the signer made. It says what the signer recorded and is not a review of the work.'
-      : 'This file changed after the approval was recorded, or the record itself was altered.',
+    note: intact ? 'A record the signer made, not a review of the work.'
+      : changed ? 'This file changed after the approval was recorded, or the record itself was altered.'
+      : lapsed ? 'The signing certificate has lapsed, so this approval can no longer be confirmed.'
+      : 'This approval record did not pass its checks, so it cannot be relied on.',
   };
 }
 

@@ -179798,15 +179798,18 @@ function verdictApproval(report4) {
   const r5 = report4.approval;
   if (!r5) return null;
   const intact = report4.state === "valid";
+  const fails = report4.checks.filter((chk) => !chk.ok && chk.code !== "signingCredential.untrusted");
+  const changed = fails.some((chk) => chk.code === "assertion.dataHash.mismatch" || chk.code === "assertion.bmffHash.mismatch");
+  const lapsed = fails.length === 1 && fails[0].code === "signingCredential.expired";
   return {
     intact,
     facts: [
       ["Request", cleanControlChars(r5.approvalId)],
       ["Decided", cleanControlChars(r5.decidedAt)],
       ["Reviewed", cleanControlChars(r5.reviewedSha256)],
-      ["This file", intact ? "unchanged since the signer recorded this approval" : "does not match the signed record"]
+      ["This file", intact ? "unchanged since the signer recorded this approval" : changed ? "does not match the signed record" : lapsed ? "still matches its credential" : "could not be confirmed"]
     ],
-    note: intact ? "A record the signer made. It says what the signer recorded and is not a review of the work." : "This file changed after the approval was recorded, or the record itself was altered."
+    note: intact ? "A record the signer made, not a review of the work." : changed ? "This file changed after the approval was recorded, or the record itself was altered." : lapsed ? "The signing certificate has lapsed, so this approval can no longer be confirmed." : "This approval record did not pass its checks, so it cannot be relied on."
   };
 }
 function verdictFacts(report4) {

@@ -43,7 +43,7 @@ test('an intact approval states what the signer recorded, never a verdict', () =
 test('a CA-verified signer reads bare, and the note says who stands behind the record', () => {
   const html = approvedPanelHtml(report({ approval, trusted: true, signer: { organization: 'Example Org', identity: { email: 'approvals@example.org', issuer: 'Lolly CA' } } as never }));
   assert.match(html, /<span>approvals@example.org<\/span>/);
-  assert.match(html, /made by its CA-verified signer/);
+  assert.match(html, /made by the credential.s CA-verified signer/);
   assert.doesNotMatch(html, /self-asserted/);
 });
 
@@ -53,15 +53,31 @@ test('the reviewed digest is shortened, with the whole value on hover and on Cop
   assert.match(html, new RegExp(`data-record-copy="${digest}"`));
 });
 
-test('a record that fails its check stays on the page, with a warning and no Approved', () => {
-  const html = approvedPanelHtml(report({ state: 'invalid', approval }));
+const HASH_FAILED = [{ code: 'assertion.dataHash.mismatch', ok: false }];
+const LAPSED = [{ code: 'signingCredential.expired', ok: false }];
+const SIGNATURE_FAILED = [{ code: 'claimSignature.mismatch', ok: false }];
+
+test('a file that changed stays on the page, with a warning and no Approved', () => {
+  const html = approvedPanelHtml(report({ state: 'invalid', approval, checks: HASH_FAILED as never }));
   assert.match(html, /role="alert"/);
+  assert.match(html, /guide-warn/);
   assert.match(html, /changed after the approval was recorded, or the record itself was altered/);
   assert.match(html, />Approval record</);
   assert.doesNotMatch(html, />Approved</);
   assert.match(html, /Does not match the signed record/);
-  assert.doesNotMatch(approvedPanelHtml(report({ state: 'invalid', approval, signer: { organization: 'Example Org' } as never })), /<span>Example Org<\/span>/, 'a name the check cannot back never reads bare');
   assert.doesNotMatch(html, /Unchanged since/);
+  assert.doesNotMatch(approvedPanelHtml(report({ state: 'invalid', approval, signer: { organization: 'Example Org' } as never })), /<span>Example Org<\/span>/, 'a name the check cannot back never reads bare');
+});
+
+test('"changed" is said only after a failed hash comparison', () => {
+  const lapsed = approvedPanelHtml(report({ state: 'invalid', approval, checks: LAPSED as never }));
+  assert.match(lapsed, /certificate has lapsed/);
+  assert.match(lapsed, /Still matches its credential/);
+  assert.doesNotMatch(lapsed, /changed after/);
+  const signature = approvedPanelHtml(report({ state: 'invalid', approval, checks: SIGNATURE_FAILED as never }));
+  assert.match(signature, /did not pass its checks/);
+  assert.doesNotMatch(signature, /changed after/);
+  assert.doesNotMatch(signature, /Does not match the signed record/);
 });
 
 test('a tampered intent is withheld by the reader, so nothing draws for it', () => {
@@ -75,8 +91,27 @@ test('Made for reads in words, with free text as a fingerprint', () => {
   assert.match(html, /<span>qr-code<\/span>/);
   assert.match(html, /<dt>Occasion<\/dt><dd><span class="valid-input-fingerprint"[^>]*>Text, fingerprinted/);
   assert.match(html, /<dt>Prompt<\/dt><dd><span class="valid-input-fingerprint"[^>]*>Text, fingerprinted/);
-  assert.match(html, /Typed text is recorded only as a fingerprint/);
   assert.doesNotMatch(html, /valid-record-prompt"/, 'no quoted block without recorded words');
+});
+
+test('the signer line leads the panel, and one note at most follows the quote', () => {
+  const html = madeForPanelHtml(report({ intent: { ...intent, promptFingerprint: undefined, prompt: 'A square invitation.' } }));
+  assert.ok(html.indexOf('What the signer recorded') < html.indexOf('<dl'), 'the lead line comes before the rows');
+  assert.equal((html.slice(html.indexOf('data-record-prompt')).match(/valid-input-note/g) ?? []).length, 1);
+});
+
+test('the fingerprint note says what is true of the rows on screen', () => {
+  const allFingerprints = madeForPanelHtml(report({ intent }));
+  assert.match(allFingerprints, /Typed text is recorded only as a fingerprint, so the words themselves are not in the file/);
+  const promptInFile = madeForPanelHtml(report({ intent: { purpose: 'invite', surface: 'story', tool: 'x', occasion: digest, audience: digest, prompt: 'Spring meetup' } }));
+  assert.match(promptInFile, /Occasion and audience are recorded only as fingerprints\./);
+  assert.doesNotMatch(promptInFile, /words themselves are not in the file/, 'false beside a prompt shown word for word');
+  const oneField = madeForPanelHtml(report({ intent: { purpose: 'invite', surface: 'story', tool: 'x', region: digest, prompt: 'Spring meetup' } }));
+  assert.match(oneField, /Region is recorded only as a fingerprint\./);
+  const noneHeld = madeForPanelHtml(report({ intent: { purpose: 'invite', surface: 'story', tool: 'x', prompt: 'Spring meetup' } }));
+  assert.doesNotMatch(noneHeld, /fingerprint/);
+  const bare = madeForPanelHtml(report({ intent: { purpose: 'invite', surface: 'story', tool: 'x' } }));
+  assert.doesNotMatch(bare, /fingerprint/);
 });
 
 test('an unknown purpose and a recorded size read as written', () => {
@@ -94,7 +129,7 @@ test('a recorded prompt that tries to instruct the reader stays inert text', () 
   assert.equal(doc.querySelectorAll('script, img, a').length, 0);
   assert.equal(quote.getAttribute('dir'), 'auto');
   assert.match(doc.querySelector('.valid-record-prompt-label')!.textContent ?? '', /Prompt from the person who asked/);
-  assert.match(doc.querySelector('.valid-record-prompt')!.textContent ?? '', /not as instructions/);
+  assert.match(doc.querySelector('.valid-record-prompt')!.textContent ?? '', /a request and not instructions/);
 });
 
 test('a long prompt starts clamped, and Show all lifts the clamp', () => {
@@ -154,15 +189,37 @@ test('Assets: the rows sit ahead of the id, and a kept file keeps its one approv
 
 test('Assets: a failed approval warns under the name, outside every fold', () => {
   const { doc, root } = sheet();
-  paintAssetRecord(root, report({ state: 'invalid', approval }));
+  paintAssetRecord(root, report({ state: 'invalid', approval, checks: HASH_FAILED as never }));
   const warn = doc.querySelector('.valid-record-warn')!;
   assert.equal(warn.getAttribute('role'), 'alert');
   assert.equal(warn.previousElementSibling?.className, 'cat-inspector-title-row', 'below the title row, not squeezed inside');
   assert.equal(warn.closest('details'), null);
-  assert.match(doc.querySelector('[data-meta="approval"] dd')!.textContent ?? '', /does not match this file/);
+  const row = doc.querySelector('[data-meta="approval"] dd')!;
+  assert.match(row.textContent ?? '', /Does not match the approved file/);
+  assert.ok(row.querySelector('.cat-record-failed'), 'not styled as a passing link');
   const clean = sheet();
   paintAssetRecord(clean.root, report({ approval }));
   assert.equal(clean.doc.querySelector('.valid-record-warn'), null);
+});
+
+test('Assets: a kept file that fails agrees with its warning, and keeps Open request', () => {
+  const kept = sheet('<div data-meta="approval"><dt>Approval</dt><dd>Approved Nov 5, 2026 <button type="button" data-act="open-approval">Open request</button></dd></div>');
+  paintAssetRecord(kept.root, report({ state: 'invalid', approval, checks: HASH_FAILED as never }));
+  assert.equal(kept.doc.querySelectorAll('[data-meta="approval"]').length, 1);
+  const row = kept.doc.querySelector('[data-meta="approval"] dd')!;
+  assert.doesNotMatch(row.textContent ?? '', /Approved Nov 5/);
+  assert.match(row.textContent ?? '', /Does not match the approved file/);
+  assert.equal(row.querySelector('.cat-record-failed')?.textContent, 'Does not match the approved file');
+  assert.equal(row.querySelector('[data-act="open-approval"]')?.textContent, 'Open request');
+  assert.ok(kept.doc.querySelector('.valid-record-warn'));
+
+  const lapsed = sheet('<div data-meta="approval"><dt>Approval</dt><dd>Approved Nov 5, 2026</dd></div>');
+  paintAssetRecord(lapsed.root, report({ state: 'invalid', approval, checks: LAPSED as never }));
+  assert.match(lapsed.doc.querySelector('[data-meta="approval"] dd')!.textContent ?? '', /Certificate lapsed/);
+
+  const noRecordInFile = sheet('<div data-meta="approval"><dt>Approval</dt><dd>Approved Nov 5, 2026</dd></div>');
+  paintAssetRecord(noRecordInFile.root, report({ state: 'invalid', checks: HASH_FAILED as never }));
+  assert.match(noRecordInFile.doc.querySelector('[data-meta="approval"] dd')!.textContent ?? '', /Does not match the approved file/, 'the credential failed even with no approval in it');
 });
 
 test('Assets: the prompt row opens the panel it names, with the whole prompt showing', () => {
