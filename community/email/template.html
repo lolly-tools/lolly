@@ -1,0 +1,28 @@
+<div class="qe-page {{statusClass}}" style="--qe-accent: {{default accent "#2563eb"}}; --qe-bg: {{default background "#ffffff"}}; --qe-ink: {{default ink "#111827"}}; --qe-scale: {{default scale "1"}};">
+  <div class="qe-sheet">
+    <div class="qe-head">
+      <div class="qe-avatar" aria-hidden="true">{{initials}}</div>
+      <div class="qe-who">
+        <div class="qe-from"><b>{{senderName}}</b>{{#if senderAddress}} <span class="qe-address">&lt;{{senderAddress}}&gt;</span>{{/if}}</div>
+        {{#if toText}}<div class="qe-to">To {{toText}}</div>{{/if}}
+        {{#if ccText}}<div class="qe-to">Cc {{ccText}}</div>{{/if}}
+      </div>
+      <div class="qe-when">
+        {{#if statusLabel}}<span class="qe-status">{{#if isSent}}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>{{/if}}{{statusLabel}}</span>{{/if}}
+        {{#if sentAt}}<span class="qe-date">{{sentAt}}</span>{{/if}}
+      </div>
+    </div>
+
+    <h1 class="qe-subject">{{subjectText}}</h1>
+
+    {{!-- The message is Markdown from the input, rendered and escaped by the
+          markdown helper. --}}
+    <div class="qe-body">{{markdown message}}</div>
+
+    {{#if hasFiles}}
+    <div class="qe-files">
+      {{#each files}}<span class="qe-file"><span class="qe-ext">{{ext}}</span><span class="qe-name">{{name}}</span></span>{{/each}}
+    </div>
+    {{/if}}
+  </div>
+</div>

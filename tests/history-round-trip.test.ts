@@ -30,10 +30,10 @@ import { createCliBridge } from '../shells/cli/src/bridge.ts';
 
 const suse = PACKS.find(p => p.name === 'suse')!;
 
-test('census: the community pack holds 52 document, 2 side-file, 13 file-utility and 3 recording tools', () => {
+test('census: the community pack holds 56 document, 2 side-file, 13 file-utility and 3 recording tools', () => {
   const [community] = census();
   assert.equal(community?.pack, 'community');
-  assert.deepEqual(community?.counts, { A: 52, B: 2, C: 13, D: 3 }, JSON.stringify(community?.ids));
+  assert.deepEqual(community?.counts, { A: 56, B: 2, C: 13, D: 3 }, JSON.stringify(community?.ids));
   assert.deepEqual(community?.ids.B, ['3d', 'darkroom']);
   assert.deepEqual(community?.ids.C, ['annotate', 'claim', 'clean', 'compress-pdf', 'convert-image', 'font-convert', 'pages', 'rebrand-deck', 'redact', 'scan-code', 'sign', 'strip-data', 'trim']);
   assert.deepEqual(community?.ids.D, ['record', 'screencap', 'voice-recorder']);
@@ -215,7 +215,7 @@ test('the exceptions map: every entry carries a reason and names a gated tool', 
 test('every community document and side-file tool round-trips through history, or is excepted with a reason', { timeout: 300_000 }, async () => {
   const exceptions = readExceptions();
   const verdicts = await auditTools();
-  assert.equal(verdicts.length, 54, 'the 52 document and 2 side-file tools');
+  assert.equal(verdicts.length, 58, 'the 56 document and 2 side-file tools');
   const { unlisted, stale } = compareWithExceptions(verdicts, exceptions);
   const why = (id: string): string => {
     const v = verdicts.find(x => x.id === id)!;
