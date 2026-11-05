@@ -8,7 +8,7 @@ import type { CreativeClassificationV1, CreativeUseRoleV1, UseContextV1 } from '
  * decisions a person recorded against the old rules instead of carrying them
  * forward. Bump it in the same commit as any rule or profile edit.
  */
-export const RIGHTS_RULES_VERSION = 'rights-rules-2026-10-30.1';
+export const RIGHTS_RULES_VERSION = 'rights-rules-2026-11-05.1';
 
 /** What a licence asks of one use: nothing, a credit, or a notice text kept verbatim. */
 export type RoleObligationV1 = 'none' | 'attribution' | 'notice';

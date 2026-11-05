@@ -50,7 +50,7 @@ import { attachAudioMeter } from '../../lib/audio-meter.ts';
 import { applySuggestion, buildThemedAssetId, buildTreatedAssetId, extractC2paStore, humanizeText, restyleIconTheme, rewordCandidates, verifyC2pa } from '@lolly/engine';
 import type { RewordCandidate, } from '@lolly/engine';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { licenceLabel, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
+import { licenceLabel, ownerPublished, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
 import { lollyBadge } from '../../lib/lolly-badge.ts';
 import { projectRefSubject } from '../../org/project-catalog-submit.ts';
 import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
@@ -111,7 +111,11 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   // destination that strips metadata. Plan section 7.1 gives a tile the
   // requirement and the proposed route; completion belongs to an output receipt,
   // and section 4.3 lets the finished sentence be said only after readback.
-  const using = !label
+  const owner = profile?.reviewed ? null : ownerPublished(meta.rights);
+  const using = owner
+    // The owner's own terms, in their words. This reads what the catalog states, so it is not a translation or a Lolly claim.
+    ? owner.terms
+    : !label
     ? t('Licence not recorded.')
     : !profile?.reviewed
       ? t('Conditions recorded, not yet interpreted.')

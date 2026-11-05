@@ -148,6 +148,7 @@ export async function publishBrandPage(flags: Flags, json: boolean): Promise<voi
     ...(usage?.fonts ? { fontSources: usage.fonts } : {}),
     ...(sources?.input ?? {}),
     examples, outlines, held,
+    ...(flags['no-made-with-link'] === '1' ? { madeWith: false } : {}),
     ...(flags.include ? { include: flags.include.split(',').map(s => s.trim()).filter(Boolean) } : {}),
   });
 

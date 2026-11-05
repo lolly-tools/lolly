@@ -42,7 +42,7 @@ Usage:
   lolly system publish --out=<dir>          write a brand page folder: the page, DESIGN.md,
                                            AGENTS.md, llms.txt, tokens and checks. Lists what
                                            it held back. --origin, --usage-file, --include,
-                                           --profile, --file, --no-examples
+                                           --profile, --file, --no-examples, --no-made-with-link
   lolly system context [--file=tokens.json] the design brief as JSON: tokens, evidence and
                                            rules, plus pairings, type per role, logos per
                                            surface, icons, media, the slide master and

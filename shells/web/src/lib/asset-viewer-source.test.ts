@@ -7,6 +7,12 @@ test('the descriptor retains selected file identity and the original URL', () =>
   const descriptor = assetViewerSource(ref);
   assert.equal(descriptor.groupId, 'ext/provider/asset'); assert.equal(descriptor.fileId, '012345678901234567890123'); assert.equal(descriptor.originalUrl, ref.url); assert.equal(descriptor.thumbnail, '/thumb'); assert.equal(descriptor.kind, 'pdf'); assert.equal(descriptor.revision, 'revision-2');
 });
+test('a catalog row\'s recorded licence reaches the viewer, and no record stays unstated', () => {
+  const ref = { id: 'lolly/font/outfit', type: 'font' as const, source: 'library' as const, url: '/catalog/fonts/Outfit-Variable.ttf', format: 'ttf' };
+  assert.equal(assetViewerSource({ ...ref, meta: { license: 'OFL-1.1' } } as never).licence, 'SIL Open Font License 1.1');
+  assert.equal(assetViewerSource({ ...ref, meta: { licence: 'As stated' } } as never).licence, 'As stated');
+  assert.equal(assetViewerSource({ ...ref, meta: {} } as never).licence, undefined);
+});
 test('content recognition handles generic MIME and rejects misleading extensions', () => {
   assert.equal(detectedViewerKind(new TextEncoder().encode('%PDF-1.7\n')), 'pdf');
   assert.equal(detectedViewerKind(new TextEncoder().encode('wOF2rest')), 'font');

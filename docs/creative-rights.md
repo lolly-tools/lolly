@@ -61,7 +61,7 @@ Lolly never says "copyright verified", "legally safe", "fully cleared" or "right
 **An owner's own marks.** A logo's owner rarely uses an open licence for it. A row whose rights record says `own-work`, with the owner and the terms, can travel in a `.lolly` file and on a [brand page](/info/brand-page.html#publish-your-own-marks). It travels as "Owner-published, not an open licence", with the terms beside the file. This reads what a catalog states. Lolly does not check who owns a mark. A record with no owner, blank terms or no declaration stays held back, and so does someone else's mark with no such record.
 
 ::: details The licences Lolly has reviewed
-Rules version `rights-rules-2026-10-30.1`. Each rule was read from the licence's own legal text, and the section it came from is cited here and next to the rule in `engine/src/rights-profiles.ts`. A version and a port are kept as recorded: a CC BY 3.0 declaration keeps its own version rather than being reported as 4.0 because the app's chooser prefers 4.0.
+Rules version `rights-rules-2026-11-05.1`. Each rule was read from the licence's own legal text, and the section it came from is cited here and next to the rule in `engine/src/rights-profiles.ts`. A version and a port are kept as recorded: a CC BY 3.0 declaration keeps its own version rather than being reported as 4.0 because the app's chooser prefers 4.0.
 
 | Licence | What it asks of a use Lolly can make | Read from |
 |---|---|---|

@@ -189,6 +189,19 @@ writing anything, and says whether the approval is recorded in that file. These 
 approvals, because a decision about a file is a person's act. Decide in the console, where the file
 is on screen. See [review an exported file](approvals.md#review-an-exported-file).
 
+## Brand pages
+
+`lw brand-pages` puts a brand page folder at a public address on this instance. [Host a brand page](design-system-administration.md#host-a-brand-page) has the details.
+
+```bash
+lw brand-pages publish ./brand-page               # check the folder here, then send and publish the page
+lw brand-pages list
+lw brand-pages history <id>
+lw brand-pages unpublish <id> [--remove-files]    # the address then answers 410
+```
+
+`publish` checks the digests here first, and it sends only the files `brand.json` lists. A link in the folder is refused. Run the same command again after an interruption and it sends only the missing parts. With a chain set, the revision waits for a person's approval, and only a person can publish.
+
 ## Moving from a hosted render API
 
 `lw render-api` reads a Bannerbear or Placid account, keeps references, checks a mapping and measures a

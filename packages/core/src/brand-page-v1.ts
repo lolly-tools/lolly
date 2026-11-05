@@ -116,6 +116,19 @@ export interface BrandPageChecksSummaryV1 {
   rulesWithFindings: number;
 }
 
+/** One published logo and the surface it is drawn for, so a reader can take the right one. */
+export interface BrandPageLogoV1 {
+  id: string;
+  name: string;
+  path: string;
+  surface: 'light' | 'dark' | 'any';
+  mono: boolean;
+  /** The logo this brand leads with on its surface, when the page knows one. */
+  primary?: boolean;
+  /** The licence on record, or "Owner-published, not an open licence". Absent when the publisher included the logo with nothing on record. */
+  licence?: string;
+}
+
 /** `brand.json`. */
 export interface BrandPageV1 {
   version: typeof BRAND_PAGE_VERSION;
@@ -129,6 +142,8 @@ export interface BrandPageV1 {
   usage?: BrandPageUsageV1;
   colourways: BrandPageColourwayV1[];
   files: BrandPageFileV1[];
+  /** Added after the first release of this format, so a reader treats it as optional. */
+  logos?: BrandPageLogoV1[];
   held: BrandPageHeldV1[];
   checks: BrandPageChecksSummaryV1;
   /** A host may add a publish time. It sits outside the digest, so it changes no identity. */
