@@ -140,6 +140,7 @@ To add a skill to a brand pack, put `SKILL.md` and any `references/` under `cata
 | A static build (`dist/`, lolly.tools, any statically hosted catalog) | Included | Left out, file and index entry |
 | An instance pack (`scripts/build-instance-pack.ts`) | Included | Only when the recipe sets `"skills": { "internal": true }` |
 | A hosted MCP server | Listed and served | Not listed and not served |
+| A [brand page](/info/brand-page.html) | Included, as an Agent Skills folder | Left out, not even by name |
 | The CLI, and an MCP server on your own machine | Listed and served | Listed and served |
 
 A statically hosted catalog is public whichever profile built the catalog, so `internal` is enforced by leaving files out of static output, not by hiding them. The CLI and an MCP server on your own machine read the brand pack from your disk, so they serve internal skills too. An MCP server counts as hosted when it sets `LOLLY_MCP_HOSTED=1` or `NODE_ENV=production`, or when its `LOLLY_MCP_PUBLIC_ORIGIN` is not a local address (`localhost`, `127.0.0.1` or `[::1]`). A hosted listing reports how many skills it left out as `withheld`.
@@ -264,4 +265,5 @@ The check compares the copy's SHA-256, or its catalog version when either side l
 - **[MCP Server](/info/mcp.html)**: connecting an agent, and the other resources.
 - **[Brand architectures](/info/brand-architectures.html)**: how skills behave when brands share work.
 - **[Working with partners](/info/partners.html)**: handing your skills to a partner, and giving an agent two brands' skills.
+- **[Brand pages](/info/brand-page.html)**: publish your public skills with the rest of your design system.
 - **[Authoring Assets](/info/authoring-assets.html)**: the catalog workflow a skill follows.
