@@ -6,7 +6,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { zipSync, strToU8 } from 'fflate';
+import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
+import { carriesRecordedBrandPage, readRecordedBrandPage, withRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
+import { TOKEN_EXT } from '../../../engine/src/token-ext.ts';
 import { exportBrandPack, importBrandPack, BRAND_FORMAT } from './brand-transfer.ts';
 import type { BrandTransferHost } from './brand-transfer.ts';
 import { USER_FONT_PREFIX } from './user-fonts.ts';
@@ -445,4 +447,53 @@ test('a targeted import names the system it cannot find', async () => {
     importBrandPack({ host: r.host, storage: memoryStorage() }, await sourcePack(), { target: { system: 'nope' } }),
     /no design system .nope./,
   );
+});
+
+// A recorded brand page address does not travel with a pack (plan 351 B5).
+test('a pack that carries a brand page address imports with the bytes of a pack without one', async () => {
+  const pack = (tokens: unknown) => zipSync({
+    'manifest.json': strToU8(JSON.stringify({ format: BRAND_FORMAT, formatVersion: 1, minReader: 1 })),
+    'tokens.json': strToU8(JSON.stringify(tokens)),
+  });
+  const imported = async (tokens: unknown) => {
+    const dst = memoryHost();
+    await importBrandPack({ host: dst, storage: memoryStorage() }, pack(tokens));
+    return dst.store.get('user/tokens/brand').blob.text();
+  };
+  const planted = withRecordedBrandPage(TOKENS, 'https://evil.example/brand/');
+  assert.ok(carriesRecordedBrandPage(planted));
+  const head = await imported(planted);
+  assert.equal(head, await imported(TOKENS));
+  assert.equal(carriesRecordedBrandPage(JSON.parse(head)), false);
+  const refused = await imported({ ...TOKENS, $extensions: { [TOKEN_EXT]: { exportRecord: { brandPage: 'javascript:alert(1)' } } } });
+  assert.equal(refused, await imported(TOKENS), 'a value that could never be recorded goes too');
+});
+
+test('a pack over a head with its own address clears the address, because the material was replaced', async () => {
+  const dst = await seededHost();
+  await dst.assets._uploadUserAsset({ id: 'user/tokens/brand', type: 'tokens', format: 'json', blob: new Blob([JSON.stringify(withRecordedBrandPage(TOKENS, 'https://mine.example/'))], { type: 'application/json' }) });
+  const zipped = zipSync({
+    'manifest.json': strToU8(JSON.stringify({ format: BRAND_FORMAT, formatVersion: 1, minReader: 1 })),
+    'tokens.json': strToU8(JSON.stringify(TOKENS)),
+  });
+  await importBrandPack({ host: dst, storage: memoryStorage() }, zipped);
+  assert.equal(carriesRecordedBrandPage(JSON.parse(await dst.store.get('user/tokens/brand').blob.text())), false);
+});
+
+test('a sync from a manager\'s source keeps the address the manager set', async () => {
+  const dst = memoryHost();
+  const zipped = zipSync({
+    'manifest.json': strToU8(JSON.stringify({ format: BRAND_FORMAT, formatVersion: 1, minReader: 1 })),
+    'tokens.json': strToU8(JSON.stringify(withRecordedBrandPage(TOKENS, 'https://acme.example/brand/'))),
+  });
+  await importBrandPack({ host: dst, storage: memoryStorage() }, zipped, { brandPage: 'manager' });
+  assert.equal(readRecordedBrandPage(JSON.parse(await dst.store.get('user/tokens/brand').blob.text())), 'https://acme.example/brand/');
+});
+
+test('an exported pack leaves the setting behind', async () => {
+  const src = await seededHost();
+  await src.assets._uploadUserAsset({ id: 'user/tokens/brand', type: 'tokens', format: 'json', blob: new Blob([JSON.stringify(withRecordedBrandPage(TOKENS, 'https://mine.example/'))], { type: 'application/json' }) });
+  const { blob } = await exportBrandPack({ host: src, storage: memoryStorage() });
+  const files = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+  assert.equal(carriesRecordedBrandPage(JSON.parse(strFromU8(files['tokens.json']!))), false);
 });

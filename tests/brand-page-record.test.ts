@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { createRuntime } from '../engine/src/runtime.ts';
 import {
-  BRAND_PAGE_ADDRESS_MAX, brandPageAddress, brandPageHost, readRecordedBrandPage, withRecordedBrandPage,
+  BRAND_PAGE_ADDRESS_MAX, brandPageAddress, brandPageHost, carriesRecordedBrandPage, readRecordedBrandPage, settleBrandPageWrite, withRecordedBrandPage, withoutRecordedBrandPage,
 } from '../engine/src/brand-page-address.ts';
 import {
   buildExportMeta, designRecordEnvironment, designRecordKeywords, designRecordOf, designRecordWords, designRecordXml, isEmptyDesignRecord, readDesignRecord, readDesignRecordXml,
@@ -21,6 +21,13 @@ import { extractC2paStore, verifyC2pa } from '../engine/src/c2pa-verify.ts';
 import { extractFileMetadata } from '../engine/src/file-metadata.ts';
 import { TOKEN_EXT } from '../engine/src/token-ext.ts';
 import { buildBrandPage } from '../engine/src/brand-page.ts';
+import { stripVersionIndex } from '../engine/src/design-version.ts';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { verdictBrandPage } from '../packages/node-shell/src/verdict-report.ts';
 import { designRecordText } from '../services/mcp/src/render.ts';
 import type { ExportMeta, TokensSnapshot } from '../engine/src/bridge/host-v1.ts';
@@ -244,4 +251,91 @@ test('the setting stays out of the published folder, so on and off give identica
   const on = await folder(withRecordedBrandPage(DOC, PAGE));
   assert.deepEqual(on, off);
   assert.equal(on.some(([, bytes]) => Buffer.from(bytes!, 'base64').toString('latin1').includes('exportRecord')), false);
+});
+
+test('an address enters a head by the publisher\'s act or a manager\'s source, and in no other way', () => {
+  const planted = withRecordedBrandPage(DOC, 'https://evil.example/');
+  const own = withRecordedBrandPage(DOC, PAGE);
+  // Someone else's document over a head with no address, as a pack, a copy or a fork is.
+  assert.equal(JSON.stringify(settleBrandPageWrite(planted, null)), JSON.stringify(DOC));
+  assert.equal(JSON.stringify(settleBrandPageWrite(planted, DOC)), JSON.stringify(DOC));
+  assert.equal(JSON.stringify(settleBrandPageWrite(own, DOC)), JSON.stringify(DOC), 'the same address as a publisher\'s is still not this person\'s choice');
+  // An edit of a head that holds its own.
+  assert.equal(readRecordedBrandPage(settleBrandPageWrite(DOC, own)), PAGE);
+  assert.equal(readRecordedBrandPage(settleBrandPageWrite(planted, own)), PAGE);
+  // Replaced material.
+  assert.equal(carriesRecordedBrandPage(settleBrandPageWrite(own, own, 'replaced')), false);
+  // The two acts that may set one.
+  assert.equal(readRecordedBrandPage(settleBrandPageWrite(own, DOC, 'publisher')), PAGE);
+  assert.equal(readRecordedBrandPage(settleBrandPageWrite(own, null, 'manager')), PAGE);
+  // A value that could never be recorded goes as well.
+  const bad = { ...DOC, $extensions: { [TOKEN_EXT]: { exportRecord: { brandPage: 'javascript:alert(1)' } } } };
+  assert.equal(carriesRecordedBrandPage(bad), true);
+  assert.equal(JSON.stringify(settleBrandPageWrite(bad, null)), JSON.stringify(DOC));
+  // Nothing changes for a document with no setting: the very same object.
+  assert.equal(settleBrandPageWrite(DOC, null), DOC);
+  assert.equal(withoutRecordedBrandPage(DOC), DOC);
+});
+
+test('a published version never holds the setting, which belongs to the head', () => {
+  assert.equal(carriesRecordedBrandPage(stripVersionIndex(withRecordedBrandPage(DOC, PAGE))), false);
+  assert.equal(JSON.stringify(stripVersionIndex(withRecordedBrandPage(DOC, PAGE))), JSON.stringify(stripVersionIndex(DOC)));
+});
+
+// Through the terminal: a real pack, a real import and a real file.
+const ROOT = new URL('..', import.meta.url).pathname;
+function lolly(state: string, ...args: string[]) {
+  const run = spawnSync(process.execPath, ['shells/cli/bin/lolly.ts', ...args], { cwd: ROOT, encoding: 'utf8', env: { ...process.env, LOLLY_STATE_DIR: state, LOLLY_PROFILE: '', NO_COLOR: '1' }, timeout: 120_000 });
+  assert.equal(run.status, 0, `${args.join(' ')}: ${run.stderr}`);
+  return run;
+}
+const TOKENS_FILE = new URL('../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url).pathname;
+
+test('a .lolly pack that carries the key gives exports with no address, a line with no address, and the bytes of a pack without the key', { timeout: 300_000 }, () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-page-record-'));
+  try {
+    const maker = join(dir, 'maker');
+    lolly(maker, 'system', 'import', TOKENS_FILE, '--name=Acme');
+    const packPath = join(dir, 'clean.lolly');
+    lolly(maker, 'system', 'export', `--output=${packPath}`);
+    const parts = unzipSync(new Uint8Array(readFileSync(packPath)));
+    const manifest = JSON.parse(strFromU8(parts['manifest.json']!));
+    const planted = strToU8(JSON.stringify(withRecordedBrandPage(JSON.parse(strFromU8(parts['tokens.json']!)), 'https://evil.example/brand/'), null, 2));
+    manifest.integrity['tokens.json'] = `sha256-${createHash('sha256').update(planted).digest('base64')}`;
+    const carrying = join(dir, 'carrying.lolly');
+    writeFileSync(carrying, zipSync({ ...parts, 'tokens.json': planted, 'manifest.json': strToU8(JSON.stringify(manifest)) }));
+
+    const exported = (pack: string, name: string) => {
+      const state = join(dir, name);
+      lolly(state, 'system', 'import', pack, '--name=Acme');
+      const output = join(dir, `${name}.svg`);
+      const run = lolly(state, 'qr-code', '--url=https://example.com', '--export=svg', '--no-provenance', `--output=${output}`);
+      assert.doesNotMatch(run.stderr, /Brand page|evil\.example/);
+      return readFileSync(output);
+    };
+    const withKey = exported(carrying, 'with');
+    const withoutKey = exported(packPath, 'without');
+    assert.equal(withKey.includes('BrandPage'), false);
+    assert.equal(withKey.includes('evil.example'), false);
+    assert.deepEqual(withKey, withoutKey);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('a tokens file given for one run is not an opt-in to any address it holds', { timeout: 200_000 }, () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-page-record-'));
+  try {
+    const doc = JSON.parse(readFileSync(TOKENS_FILE, 'utf8'));
+    const boxes = JSON.stringify([{ id: 'cover', kind: 'frame', x: 0, y: 0, w: 320, h: 200, bg: '#f4f1ea' }, { id: 'chip', frame: 'cover', kind: 'box', x: 20, y: 20, w: 120, h: 80, bg: '#d9480f' }]);
+    const render = (name: string, tokens: unknown) => {
+      const file = join(dir, `${name}.json`);
+      writeFileSync(file, JSON.stringify(tokens));
+      const output = join(dir, `${name}.svg`);
+      const run = lolly(join(dir, 'state'), 'design', `--boxes=${boxes}`, '--s=cover', `--file=${file}`, '--export=svg', '--no-provenance', `--output=${output}`);
+      assert.doesNotMatch(run.stderr, /Brand page|evil\.example/);
+      return readFileSync(output);
+    };
+    const carrying = render('carrying', withRecordedBrandPage(doc, 'https://evil.example/brand/'));
+    assert.equal(carrying.includes('BrandPage'), false);
+    assert.deepEqual(carrying, render('plain', doc));
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });

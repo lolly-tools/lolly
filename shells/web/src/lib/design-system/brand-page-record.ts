@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Whether this design system's exports name its brand page (plan 351 B5). The setting
- * lives in the tokens document, so it travels with the design system, and off means the
- * key is gone. A locked system's material is read-only, so its manager decides.
+ * lives in the tokens document, and off means the key is gone. It does not travel: an
+ * import, a copy or a fork clears the key, so the address never switches itself on for
+ * someone who never chose the address. A locked system's material is read-only, so its
+ * manager decides.
  */
 import { installUserTokens } from '../../bridge/tokens.ts';
 import { readRecordedBrandPage, withRecordedBrandPage } from '../../../../../engine/src/brand-page-address.ts';
@@ -24,5 +26,5 @@ export async function readBrandPageSetting(host: Pick<UsageHost, 'tokens'>): Pro
 /** One write, on one person's act: a good address, or null to turn the setting off. */
 export async function writeBrandPageSetting(host: Parameters<typeof installUserTokens>[0] & Pick<UsageHost, 'tokens'>, address: string | null, labelIfNew: string): Promise<void> {
   const doc = await host.tokens.raw?.();
-  await installUserTokens(host, withRecordedBrandPage(doc, address) as object, { labelIfNew });
+  await installUserTokens(host, withRecordedBrandPage(doc, address) as object, { labelIfNew, brandPage: 'publisher' });
 }

@@ -172,7 +172,7 @@ export async function publishBrandPage(flags: Flags, json: boolean): Promise<voi
     const { activeNodeDesignSystem, writeNodeDesignSystemTokens } = await import('@lolly-tools/node-shell/design-systems');
     const active = await activeNodeDesignSystem();
     if (!active) throw usageError('There is no active terminal design system to change.', 'NO_TOKENS');
-    await writeNodeDesignSystemTokens({ id: active.id, tokens: withRecordedBrandPage(tokens, recordAddress), source: active.source });
+    await writeNodeDesignSystemTokens({ id: active.id, tokens: withRecordedBrandPage(tokens, recordAddress), source: active.source, brandPage: 'publisher' });
     recordedAddress = recordAddress;
   }
   if (json) { await emitResult({ out, manifest, ...(recordedAddress === undefined ? {} : { recordedBrandPage: recordedAddress }) }); return; }

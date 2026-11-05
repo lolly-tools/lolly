@@ -38777,6 +38777,84 @@ var init_template = __esm({
   }
 });
 
+// engine/src/brand-page-address.ts
+function brandPageAddress(value2) {
+  if (typeof value2 !== "string") return null;
+  const raw = value2.trim();
+  if (!raw || raw.length > BRAND_PAGE_ADDRESS_MAX) return null;
+  if (/[\p{Cc}\p{Cf}\s\\]/u.test(raw) || !/^https:\/\//i.test(raw)) return null;
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) return null;
+  if (/[?#]/.test(raw)) return null;
+  const host = url.hostname;
+  if (!host.includes(".") || host.endsWith(".") || host.endsWith(".localhost")) return null;
+  if (host.startsWith("[") || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return null;
+  const address = `${url.origin}${url.pathname}`;
+  return address.length <= BRAND_PAGE_ADDRESS_MAX ? address : null;
+}
+function brandPageHost(value2) {
+  const address = brandPageAddress(value2);
+  return address ? new URL(address).host : null;
+}
+function readRecordedBrandPage(doc) {
+  if (!isRec2(doc) || !isRec2(doc.$extensions)) return null;
+  const vendor = doc.$extensions[TOKEN_EXT];
+  const record46 = isRec2(vendor) ? vendor.exportRecord : null;
+  return isRec2(record46) ? brandPageAddress(record46.brandPage) : null;
+}
+function carriesRecordedBrandPage(doc) {
+  if (!isRec2(doc) || !isRec2(doc.$extensions)) return false;
+  const vendor = doc.$extensions[TOKEN_EXT];
+  const record46 = isRec2(vendor) ? vendor.exportRecord : null;
+  return isRec2(record46) && "brandPage" in record46;
+}
+function withoutRecordedBrandPage(doc) {
+  return carriesRecordedBrandPage(doc) ? withRecordedBrandPage(doc, null) : doc;
+}
+function settleBrandPageWrite(doc, currentHead, how) {
+  if (how === "publisher" || how === "manager") return doc;
+  if (how === "replaced") return withoutRecordedBrandPage(doc);
+  const kept2 = readRecordedBrandPage(currentHead);
+  if (!kept2) return withoutRecordedBrandPage(doc);
+  return readRecordedBrandPage(doc) === kept2 ? doc : withRecordedBrandPage(doc, kept2);
+}
+function withRecordedBrandPage(doc, address) {
+  const next2 = isRec2(doc) ? JSON.parse(JSON.stringify(doc)) : {};
+  const ext = isRec2(next2.$extensions) ? next2.$extensions : null;
+  const vendor = ext && isRec2(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : null;
+  if (address === null) {
+    if (!ext || !vendor) return next2;
+    const record46 = isRec2(vendor.exportRecord) ? vendor.exportRecord : null;
+    if (record46) delete record46.brandPage;
+    if (record46 && Object.keys(record46).length === 0) delete vendor.exportRecord;
+    if (Object.keys(vendor).length === 0) delete ext[TOKEN_EXT];
+    if (Object.keys(ext).length === 0) delete next2.$extensions;
+    return next2;
+  }
+  const recorded2 = brandPageAddress(address);
+  if (!recorded2) throw new Error("A brand page address has to be a plain https address on a named host.");
+  const extensions3 = ext ?? {};
+  const own4 = vendor ?? {};
+  own4.exportRecord = { ...isRec2(own4.exportRecord) ? own4.exportRecord : {}, brandPage: recorded2 };
+  extensions3[TOKEN_EXT] = own4;
+  next2.$extensions = extensions3;
+  return next2;
+}
+var BRAND_PAGE_ADDRESS_MAX, isRec2;
+var init_brand_page_address = __esm({
+  "engine/src/brand-page-address.ts"() {
+    "use strict";
+    init_token_ext();
+    BRAND_PAGE_ADDRESS_MAX = 512;
+    isRec2 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
+  }
+});
+
 // engine/src/brand-resources.ts
 function mapBrandResourceIds(doc, map) {
   if (!record7(doc) || !record7(doc.$extensions)) return doc;
@@ -38812,18 +38890,18 @@ function readPinnedAssets(v) {
   if (!Array.isArray(v)) return void 0;
   const out = [];
   for (const raw of v) {
-    if (!isRec2(raw)) continue;
+    if (!isRec3(raw)) continue;
     const id3 = str(raw.id), version = str(raw.version), sha2563 = str(raw.sha256);
     if (!id3 || !version || !sha2563) continue;
     const frozenId = str(raw.frozenId);
-    const f = isRec2(raw.font) ? raw.font : null;
+    const f = isRec3(raw.font) ? raw.font : null;
     const font = f && str(f.family) && str(f.weight) && str(f.style) ? { family: String(f.family), weight: String(f.weight), style: String(f.style), ...str(f.unicodeRange) ? { unicodeRange: String(f.unicodeRange) } : {} } : null;
     out.push({ id: id3, version, sha256: sha2563, ...frozenId ? { frozenId } : {}, ...font ? { font } : {} });
   }
   return out.length ? out : void 0;
 }
 function readEntry(v) {
-  if (!isRec2(v)) return null;
+  if (!isRec3(v)) return null;
   const slug4 = str(v.slug);
   if (!slug4 || !isVersionSlug(slug4)) return null;
   const entry2 = {
@@ -38839,16 +38917,16 @@ function readEntry(v) {
   return entry2;
 }
 function extOf(doc) {
-  if (!isRec2(doc)) return null;
-  const ext = isRec2(doc.$extensions) ? doc.$extensions[TOKEN_EXT] : null;
-  return isRec2(ext) ? ext : null;
+  if (!isRec3(doc)) return null;
+  const ext = isRec3(doc.$extensions) ? doc.$extensions[TOKEN_EXT] : null;
+  return isRec3(ext) ? ext : null;
 }
 function readVersionIndex(doc) {
   const ext = extOf(doc);
   const empty2 = { versions: [], active: null };
   if (!ext) return empty2;
   const raw = ext.versions;
-  const listRaw = Array.isArray(raw) ? raw : isRec2(raw) ? Array.isArray(raw.list) ? raw.list : Array.isArray(raw.versions) ? raw.versions : null : null;
+  const listRaw = Array.isArray(raw) ? raw : isRec3(raw) ? Array.isArray(raw.list) ? raw.list : Array.isArray(raw.versions) ? raw.versions : null : null;
   if (!listRaw) return empty2;
   const versions = [];
   const seen = /* @__PURE__ */ new Set();
@@ -38858,11 +38936,11 @@ function readVersionIndex(doc) {
     seen.add(entry2.slug);
     versions.push(entry2);
   }
-  const activeRaw = isRec2(raw) ? str(raw.active) : str(ext.active);
+  const activeRaw = isRec3(raw) ? str(raw.active) : str(ext.active);
   return { versions, active: activeRaw && seen.has(activeRaw) ? activeRaw : null };
 }
 function withVersionIndex(doc, index2) {
-  const next2 = isRec2(doc) ? clone2(doc) : {};
+  const next2 = isRec3(doc) ? clone2(doc) : {};
   const versions = [];
   const seen = /* @__PURE__ */ new Set();
   for (const item2 of index2.versions ?? []) {
@@ -38873,8 +38951,8 @@ function withVersionIndex(doc, index2) {
   }
   const active = index2.active && seen.has(index2.active) ? index2.active : null;
   if (!versions.length) {
-    const ext2 = isRec2(next2.$extensions) ? next2.$extensions : null;
-    const ns3 = ext2 && isRec2(ext2[TOKEN_EXT]) ? ext2[TOKEN_EXT] : null;
+    const ext2 = isRec3(next2.$extensions) ? next2.$extensions : null;
+    const ns3 = ext2 && isRec3(ext2[TOKEN_EXT]) ? ext2[TOKEN_EXT] : null;
     if (ns3) {
       delete ns3.versions;
       if (Object.keys(ns3).length === 0) delete ext2[TOKEN_EXT];
@@ -38882,13 +38960,13 @@ function withVersionIndex(doc, index2) {
     }
     return next2;
   }
-  const ext = isRec2(next2.$extensions) ? next2.$extensions : next2.$extensions = {};
-  const ns2 = isRec2(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : ext[TOKEN_EXT] = {};
+  const ext = isRec3(next2.$extensions) ? next2.$extensions : next2.$extensions = {};
+  const ns2 = isRec3(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : ext[TOKEN_EXT] = {};
   ns2.versions = { list: versions, active };
   return next2;
 }
 function stripVersionIndex(doc) {
-  return withVersionIndex(doc, { versions: [], active: null });
+  return withoutRecordedBrandPage(withVersionIndex(doc, { versions: [], active: null }));
 }
 function slugifyVersion(label5) {
   const folded = label5.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -38939,7 +39017,7 @@ function frozenAssetId(sha256hex, ns2 = "user") {
 }
 function walkLeaves(doc, visit) {
   const walk3 = (node, path) => {
-    if (!isRec2(node)) return;
+    if (!isRec3(node)) return;
     if ("$value" in node) {
       visit(node, path);
       return;
@@ -38982,7 +39060,7 @@ function collectFontFamilies(doc) {
 function applyPinnedAssets(doc, pins) {
   const frozen = /* @__PURE__ */ new Map();
   for (const p of pins) if (p.frozenId) frozen.set(p.id, p.frozenId);
-  if (!frozen.size || !isRec2(doc)) return doc;
+  if (!frozen.size || !isRec3(doc)) return doc;
   const next2 = clone2(doc);
   walkLeaves(next2, (leaf) => {
     if (leaf.$type !== "asset") return;
@@ -38994,7 +39072,7 @@ function applyPinnedAssets(doc, pins) {
 }
 function canonical(v) {
   if (Array.isArray(v)) return v.map(canonical);
-  if (!isRec2(v)) return v;
+  if (!isRec3(v)) return v;
   const out = {};
   for (const k of Object.keys(v).sort()) {
     const cv = canonical(v[k]);
@@ -39022,14 +39100,15 @@ function diffTokenDocs(a, b) {
   for (const path of prev.keys()) if (!next2.has(path)) removed.push(path);
   return { added: added.sort(), changed: changed.sort(), removed: removed.sort() };
 }
-var isRec2, DESIGN_VERSION_LATEST, SLUG_RE, SLUG_MAX, isVersionSlug, str, clone2, FROZEN_KEY_LEN, canonicalJson3;
+var isRec3, DESIGN_VERSION_LATEST, SLUG_RE, SLUG_MAX, isVersionSlug, str, clone2, FROZEN_KEY_LEN, canonicalJson3;
 var init_design_version = __esm({
   "engine/src/design-version.ts"() {
     "use strict";
     init_bytes();
     init_token_ext();
+    init_brand_page_address();
     init_brand_resources();
-    isRec2 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
+    isRec3 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     DESIGN_VERSION_LATEST = "latest";
     SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
     SLUG_MAX = 48;
@@ -39088,24 +39167,24 @@ function designMaterialOf(id3) {
   return kind ? { systemId: DEFAULT_DESIGN_SYSTEM_ID, kind } : null;
 }
 function extOf2(doc) {
-  if (!isRec3(doc)) return null;
-  const ext = isRec3(doc.$extensions) ? doc.$extensions[TOKEN_EXT] : null;
-  return isRec3(ext) ? ext : null;
+  if (!isRec4(doc)) return null;
+  const ext = isRec4(doc.$extensions) ? doc.$extensions[TOKEN_EXT] : null;
+  return isRec4(ext) ? ext : null;
 }
 function readDesignSystemIdentity(doc) {
   const ext = extOf2(doc);
   const raw = ext ? ext.designSystem : null;
-  if (!isRec3(raw)) return null;
+  if (!isRec4(raw)) return null;
   const id3 = str2(raw.id);
   if (!isDesignSystemId(id3)) return null;
   return { id: id3, label: str2(raw.label) || id3 };
 }
 function withDesignSystemIdentity(doc, identity2) {
-  const next2 = isRec3(doc) ? clone3(doc) : {};
+  const next2 = isRec4(doc) ? clone3(doc) : {};
   const id3 = identity2 && isDesignSystemId(identity2.id) ? identity2.id : null;
   if (!id3) {
-    const ext2 = isRec3(next2.$extensions) ? next2.$extensions : null;
-    const ns3 = ext2 && isRec3(ext2[TOKEN_EXT]) ? ext2[TOKEN_EXT] : null;
+    const ext2 = isRec4(next2.$extensions) ? next2.$extensions : null;
+    const ns3 = ext2 && isRec4(ext2[TOKEN_EXT]) ? ext2[TOKEN_EXT] : null;
     if (ns3) {
       delete ns3.designSystem;
       if (Object.keys(ns3).length === 0) delete ext2[TOKEN_EXT];
@@ -39113,85 +39192,23 @@ function withDesignSystemIdentity(doc, identity2) {
     }
     return next2;
   }
-  const ext = isRec3(next2.$extensions) ? next2.$extensions : next2.$extensions = {};
-  const ns2 = isRec3(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : ext[TOKEN_EXT] = {};
+  const ext = isRec4(next2.$extensions) ? next2.$extensions : next2.$extensions = {};
+  const ns2 = isRec4(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : ext[TOKEN_EXT] = {};
   ns2.designSystem = { id: id3, label: identity2 && str2(identity2.label) || id3 };
   return next2;
 }
-var isRec3, str2, clone3, DESIGN_SYSTEM_ID_RE, DESIGN_SYSTEM_ID_MAX, DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID;
+var isRec4, str2, clone3, DESIGN_SYSTEM_ID_RE, DESIGN_SYSTEM_ID_MAX, DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID;
 var init_design_system = __esm({
   "engine/src/design-system.ts"() {
     "use strict";
     init_token_ext();
-    isRec3 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
+    isRec4 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     str2 = (v) => typeof v === "string" ? v : null;
     clone3 = (v) => v === void 0 ? v : JSON.parse(JSON.stringify(v));
     DESIGN_SYSTEM_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
     DESIGN_SYSTEM_ID_MAX = 48;
     DEFAULT_DESIGN_SYSTEM_ID = "default";
     SHIPPED_DESIGN_SYSTEM_ID = "shipped";
-  }
-});
-
-// engine/src/brand-page-address.ts
-function brandPageAddress(value2) {
-  if (typeof value2 !== "string") return null;
-  const raw = value2.trim();
-  if (!raw || raw.length > BRAND_PAGE_ADDRESS_MAX) return null;
-  if (/[\p{Cc}\p{Cf}\s\\]/u.test(raw) || !/^https:\/\//i.test(raw)) return null;
-  let url;
-  try {
-    url = new URL(raw);
-  } catch {
-    return null;
-  }
-  if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) return null;
-  if (/[?#]/.test(raw)) return null;
-  const host = url.hostname;
-  if (!host.includes(".") || host.endsWith(".") || host.endsWith(".localhost")) return null;
-  if (host.startsWith("[") || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return null;
-  const address = `${url.origin}${url.pathname}`;
-  return address.length <= BRAND_PAGE_ADDRESS_MAX ? address : null;
-}
-function brandPageHost(value2) {
-  const address = brandPageAddress(value2);
-  return address ? new URL(address).host : null;
-}
-function readRecordedBrandPage(doc) {
-  if (!isRec4(doc) || !isRec4(doc.$extensions)) return null;
-  const vendor = doc.$extensions[TOKEN_EXT];
-  const record46 = isRec4(vendor) ? vendor.exportRecord : null;
-  return isRec4(record46) ? brandPageAddress(record46.brandPage) : null;
-}
-function withRecordedBrandPage(doc, address) {
-  const next2 = isRec4(doc) ? JSON.parse(JSON.stringify(doc)) : {};
-  const ext = isRec4(next2.$extensions) ? next2.$extensions : null;
-  const vendor = ext && isRec4(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : null;
-  if (address === null) {
-    if (!ext || !vendor) return next2;
-    const record46 = isRec4(vendor.exportRecord) ? vendor.exportRecord : null;
-    if (record46) delete record46.brandPage;
-    if (record46 && Object.keys(record46).length === 0) delete vendor.exportRecord;
-    if (Object.keys(vendor).length === 0) delete ext[TOKEN_EXT];
-    if (Object.keys(ext).length === 0) delete next2.$extensions;
-    return next2;
-  }
-  const recorded2 = brandPageAddress(address);
-  if (!recorded2) throw new Error("A brand page address has to be a plain https address on a named host.");
-  const extensions3 = ext ?? {};
-  const own4 = vendor ?? {};
-  own4.exportRecord = { ...isRec4(own4.exportRecord) ? own4.exportRecord : {}, brandPage: recorded2 };
-  extensions3[TOKEN_EXT] = own4;
-  next2.$extensions = extensions3;
-  return next2;
-}
-var BRAND_PAGE_ADDRESS_MAX, isRec4;
-var init_brand_page_address = __esm({
-  "engine/src/brand-page-address.ts"() {
-    "use strict";
-    init_token_ext();
-    BRAND_PAGE_ADDRESS_MAX = 512;
-    isRec4 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
   }
 });
 
@@ -152253,6 +152270,7 @@ __export(src_exports, {
   capturePlanRows: () => capturePlanRows,
   captureTextFrames: () => captureTextFrames,
   captureThemeRows: () => captureThemeRows,
+  carriesRecordedBrandPage: () => carriesRecordedBrandPage,
   carryForward: () => carryForward,
   carryImageMetadata: () => carryImageMetadata,
   censusDeck: () => censusDeck,
@@ -153352,6 +153370,7 @@ __export(src_exports, {
   setSlidesArrangement: () => setSlidesArrangement,
   setSlidesIncluded: () => setSlidesIncluded,
   setSlidesLayout: () => setSlidesLayout,
+  settleBrandPageWrite: () => settleBrandPageWrite,
   sfntKind: () => sfntKind,
   sfntToWoff: () => sfntToWoff,
   sfntVerticalMetrics: () => sfntVerticalMetrics,
@@ -153609,6 +153628,7 @@ __export(src_exports, {
   withTokenSelection: () => withTokenSelection,
   withTokenSourceValue: () => withTokenSourceValue,
   withVersionIndex: () => withVersionIndex,
+  withoutRecordedBrandPage: () => withoutRecordedBrandPage,
   withoutRunRefs: () => withoutRunRefs,
   woffToSfnt: () => woffToSfnt,
   wordErrorRate: () => wordErrorRate,
@@ -185593,12 +185613,12 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
     snapshot: async () => {
       const renderDocument2 = await resolvedDoc();
       const { restorePinnedFontFamilies: restorePinnedFontFamilies2 } = await Promise.resolve().then(() => (init_token_font_pins(), token_font_pins_exports));
-      const document2 = await restorePinnedFontFamilies2(renderDocument2, releasePins);
+      const document2 = withoutRecordedBrandPage(await restorePinnedFontFamilies2(withoutRecordedBrandPage(renderDocument2), releasePins));
       const { resolveTokenSelection: resolveTokenSelection2 } = await Promise.resolve().then(() => (init_token_selection(), token_selection_exports));
       const choices2 = resolveTokenSelection2(document2, { selection: tokenSelection }).choices;
       const projected = document2 && typeof document2 === "object" ? { ...document2, $metadata: { ...document2.$metadata ?? {}, activeThemeSelection: choices2 } } : document2;
       const brandPage = readRecordedBrandPage(await tokensDoc());
-      return { document: projected, ...releasePins.some((p) => p.font) ? { renderDocument: renderDocument2 && typeof renderDocument2 === "object" ? { ...renderDocument2, $metadata: projected.$metadata } : renderDocument2 } : {}, system: await activeSystem(), version: resolveDesignVersion({ override: designVersion?.override, pin: designVersion?.pin, index: readVersionIndex(await tokensDoc()) }), selection: { choices: choices2 }, ...brandPage ? { brandPage } : {} };
+      return { document: projected, ...releasePins.some((p) => p.font) ? { renderDocument: renderDocument2 && typeof renderDocument2 === "object" ? { ...withoutRecordedBrandPage(renderDocument2), $metadata: projected.$metadata } : renderDocument2 } : {}, system: await activeSystem(), version: resolveDesignVersion({ override: designVersion?.override, pin: designVersion?.pin, index: readVersionIndex(await tokensDoc()) }), selection: { choices: choices2 }, ...brandPage ? { brandPage } : {} };
     },
     colors: async (opts = {}) => (await tokenSet(opts)).colors(),
     resolve: async (ref2, opts = {}) => (await tokenSet(opts)).resolve(ref2),

@@ -4,10 +4,16 @@
  * (plan 351 B5, approved 2026-11-05: the design-system record gains the address only when
  * the publisher opts in per brand, off until a page is published).
  *
- * The opt-in lives in the design system's own tokens document, beside its identity, so a
- * `.lolly` share, a pack or a plain DTCG file keeps the publisher's choice and every shell
- * reads the same setting. A document that never opted in holds no key at all, and
- * removing the setting prunes what it added, so such a document stays byte-identical.
+ * The opt-in lives in the design system's own tokens document, so every shell reads the
+ * same setting. A document that never opted in holds no key at all, and removing the
+ * setting prunes what it added, so such a document stays byte-identical.
+ *
+ * The setting does not travel. A record in a signed file reads as that signer's, so the
+ * address must never switch itself on for someone who never chose the address, and a hostile
+ * pack must not be able to point other people's files at a page of its choosing. Every
+ * write of a head goes through `settleBrandPageWrite`, so an address enters a head in two
+ * ways only: the publisher's own switch, and a managed system's sync from its manager's
+ * source. Any other write keeps what this head already held, or clears the setting.
  *
  * The same check runs on the way in from a person and on the way back from a file. A
  * credential is arbitrary bytes, and this value becomes something a person can click, so
@@ -59,6 +65,37 @@ export function readRecordedBrandPage(doc: unknown): string | null {
   const vendor = doc.$extensions[TOKEN_EXT];
   const record = isRec(vendor) ? vendor.exportRecord : null;
   return isRec(record) ? brandPageAddress(record.brandPage) : null;
+}
+
+/** True when the document holds the setting in any form, even one that reads as off. */
+export function carriesRecordedBrandPage(doc: unknown): boolean {
+  if (!isRec(doc) || !isRec(doc.$extensions)) return false;
+  const vendor = doc.$extensions[TOKEN_EXT];
+  const record = isRec(vendor) ? vendor.exportRecord : null;
+  return isRec(record) && 'brandPage' in record;
+}
+
+/** `doc` with the setting gone. The same object when it holds none, so nothing else changes. */
+export function withoutRecordedBrandPage<T>(doc: T): T {
+  return carriesRecordedBrandPage(doc) ? withRecordedBrandPage(doc, null) as T : doc;
+}
+
+/**
+ * How a write of a head treats the setting. `publisher` is the person's own switch and
+ * `manager` a managed system's sync from its manager's source: both write the document as
+ * given. `replaced` is material arriving from elsewhere over this head, which clears the
+ * setting. With none of these the write is an edit of this head, so the head's own setting
+ * stands, whatever the incoming document holds.
+ */
+export type BrandPageWrite = 'publisher' | 'manager' | 'replaced';
+
+/** `doc` as a device may keep it over `currentHead`. The same object when nothing changes. */
+export function settleBrandPageWrite<T>(doc: T, currentHead: unknown, how?: BrandPageWrite): T {
+  if (how === 'publisher' || how === 'manager') return doc;
+  if (how === 'replaced') return withoutRecordedBrandPage(doc);
+  const kept = readRecordedBrandPage(currentHead);
+  if (!kept) return withoutRecordedBrandPage(doc);
+  return readRecordedBrandPage(doc) === kept ? doc : withRecordedBrandPage(doc, kept) as T;
 }
 
 /**

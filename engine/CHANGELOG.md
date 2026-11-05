@@ -12,6 +12,7 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 - `TokensSnapshot.brandPage` carries the setting, read from the working head. `ExportMeta.brandPage` and `DesignRecord.brandPage` carry the address, and the record's writers add it only when set: the `tools.lolly.export` key `brandPage`, the XMP and SVG `lolly:BrandPage` property and a PDF keyword. A brand with no address writes exactly the bytes it wrote before. The existing `madeWith` switch takes the address out with the rest of the record.
 - `C2paReport.brandPage` is read only from a credential that verifies, and only as a plain `https` address. Otherwise `C2paReport.brandPageDropped` says `credential` or `address`, and the value is removed from `environment`.
 - `publishableTokens` leaves the setting out of a brand page's tokens, so turning the setting on or off does not change the folder's bytes.
+- The setting does not travel. `settleBrandPageWrite` lets an address enter a head only by the publisher's own switch or a managed system's sync from its manager's source: an edit keeps this head's own setting, material replaced from elsewhere clears the setting, and a new head holds none. `stripVersionIndex` removes the setting, and `TokensSnapshot.document` and `renderDocument` no longer hold the setting, so a file that carries the document never carries the address outside the record's switch.
 - `designRecordWords` gains `page: false`, for a caller that prints the address on a line of its own or compares design systems only.
 
 ## 1.310.0

@@ -9,9 +9,9 @@ Roughly 857,000 lines of TypeScript, tests included, and 65,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 603 files, 222,356 lines | 322 files, 100,748 lines | 12 files, 1,686 lines |
-| `lib/` | 908 files, 186,905 lines | 554 files, 107,099 lines | 13 files, 1,856 lines |
-| `bridge/` | 256 files, 57,537 lines | 146 files, 29,973 lines | none |
+| `views/` | 603 files, 222,357 lines | 322 files, 100,748 lines | 12 files, 1,686 lines |
+| `lib/` | 908 files, 186,910 lines | 554 files, 107,116 lines | 13 files, 1,856 lines |
+| `bridge/` | 256 files, 57,548 lines | 146 files, 30,101 lines | none |
 | `components/` | 134 files, 30,780 lines | 64 files, 16,298 lines | 24 files, 1,635 lines |
 | `org/` | 86 files, 21,471 lines | 59 files, 17,654 lines | none |
 | `collab/` | 20 files, 13,570 lines | 22 files, 14,247 lines | none |
@@ -21,7 +21,7 @@ Roughly 857,000 lines of TypeScript, tests included, and 65,000 lines of CSS.
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
 | `styles/` | none | 12 files, 2,183 lines | 143 files, 58,294 lines |
 
-Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,741 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,390 of that.
+Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,811 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,390 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature

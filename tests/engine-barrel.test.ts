@@ -347,7 +347,7 @@ const EXPECTED: readonly string[] = [
   'withTokenSourceValue',
   // Additive (plans/319 A7): the design-system record an export carries and reads back.
   'DesignRecord', 'MadeWithPreview', 'designRecordCarrier', 'designRecordEnvironment', 'designRecordFrom',
-  'BRAND_PAGE_ADDRESS_MAX', 'brandPageAddress', 'brandPageHost', 'readRecordedBrandPage', 'withRecordedBrandPage',
+  'BRAND_PAGE_ADDRESS_MAX', 'BrandPageWrite', 'brandPageAddress', 'brandPageHost', 'carriesRecordedBrandPage', 'readRecordedBrandPage', 'settleBrandPageWrite', 'withRecordedBrandPage', 'withoutRecordedBrandPage',
   'designRecordWords', 'pdfKeywords', 'readDesignRecord', 'readDesignRecordXml', 'readFileDesignRecord',
   'themesSelection', 'toolCredit',
   // Additive 1.282 (plan 323): the brand skills that guided an agent-made export, as words.

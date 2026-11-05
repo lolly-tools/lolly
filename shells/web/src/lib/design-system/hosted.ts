@@ -179,7 +179,7 @@ async function synthesiseFromCatalog(host: HostedHost, base: string, record: Des
     } catch { /* one logo that will not download is a gap, not a failure */ }
   }
   const local = withDesignSystemIdentity(rewriteAssetLeaves(doc, id => rekeyed.get(id) ?? id), { id: record.id, label: record.label });
-  await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], local, { system: record.id, label: record.label });
+  await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], local, { system: record.id, label: record.label, brandPage: 'manager' });
   return core.tokens.checksum ?? null;
 }
 
@@ -194,7 +194,7 @@ async function importPack(host: HostedHost, record: DesignSystemRecord, packUrl:
   const summary = await importBrandPack(
     { host: host as unknown as Parameters<typeof importBrandPack>[0]['host'], storage: storage as Parameters<typeof importBrandPack>[0]['storage'] },
     bytes,
-    { target: { system: record.id } },
+    { target: { system: record.id }, brandPage: 'manager' },
   );
   return { etag: resp.headers.get('etag'), signature: summary.packSignature ?? 'unsigned', ...(summary.theme ? { theme: summary.theme } : {}) };
 }

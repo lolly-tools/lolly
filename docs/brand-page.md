@@ -102,9 +102,18 @@ Your exports can name your page, so a file someone finds later leads back to the
 
 **In a terminal.** Add `--record-address` to `lolly system publish --origin=<address>`, and `--no-record-address` removes the setting. Both change the active terminal design system.
 
-**In a tokens file.** A managed design system is read-only on people's devices, so its manager sets this in the source file, at `$extensions["com.suse.lolly"].exportRecord.brandPage`. The same goes for a file you pass with `--file` or a content profile.
+**For a managed design system.** A managed design system is read-only on people's devices, so its manager sets this in the source tokens, at `$extensions["com.suse.lolly"].exportRecord.brandPage`. Everyone using that system then records the address, and each person's card shows the address and can leave it out. A content profile's tokens work the same way.
 
-Only a plain `https` address on a named host can be recorded: no credentials, query or fragment, no IP address or `localhost`, and at most 512 characters.
+**The setting does not travel.** A record in a signed file reads as the signer's own. If the setting moved with the design system, importing someone's pack would write their address into your signed exports, and a hostile pack could point everyone's files at a page of its choosing. So the setting stays with the design system it was turned on for:
+
+- A `.lolly` pack, a Lolly file that carries a design system, a tokens file imported or given for one run, **Try these colours**, a restored backup, and a copy or fork of a design system all arrive with the setting off, with the same bytes as a source that never held the setting. This holds for a pack made from a managed system too.
+- Importing over a design system that has the setting on turns the setting off, because the material was replaced.
+- Exported packs and tokens files leave the setting out.
+- Editing your own design system keeps your setting.
+
+To record your own page on a copy or an import, turn the switch on and type your address. Lolly does not offer the publisher's address as a starting value.
+
+**The addresses Lolly refuses.** A record travels with a file, long after anyone can explain what a private address meant, so only a plain `https` address on a named host can be recorded. Lolly refuses `http` and every other scheme, a user name or password, a query or fragment, an IP address, `localhost`, a host with no dot such as `https://brand/`, whitespace and hidden format characters, and anything over 512 characters. An instance served from an IP address or a single-label host cannot be recorded, even when its page is live.
 
 **What people see.** Each export's **Design system** card shows the address before anything is written, and unticking the card leaves the address out of that export, with the rest of the record. `_madewith=0`, `--no-madewith` and `madeWith: false` do the same. The command line and the MCP server say when the address is recorded.
 

@@ -2,6 +2,7 @@
 /** Atomic local adoption of reviewed material, with compare-and-swap and recovery. */
 import { DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID, designSystemHeadId, designSystemNamespace, isDesignSystemId } from '../../../../engine/src/design-system.ts';
 import { sha256Hex } from '../../../../engine/src/bytes.ts';
+import { settleBrandPageWrite, type BrandPageWrite } from '../../../../engine/src/brand-page-address.ts';
 import { collectAssetTokens, readVersionIndex, frozenAssetId } from '../../../../engine/src/design-version.ts';
 import { brandResourceAssetIds } from '../../../../engine/src/brand-resources.ts';
 import type { VersionedUserAsset } from './asset-history-types.ts';
@@ -102,11 +103,13 @@ export function createBrandAdoptionAPI(db: AdoptionDb, changed: () => void, quot
     return snapshot;
   }
 
-  async function prepare(snapshot: AdoptionSnapshot, input: { doc: unknown; assets?: Row[]; labelIfNew?: string; appearance?: DesignSystemRecord['appearance']; importedFonts?: string[] }): Promise<AdoptionCandidate> {
+  async function prepare(snapshot: AdoptionSnapshot, input: { doc: unknown; assets?: Row[]; labelIfNew?: string; appearance?: DesignSystemRecord['appearance']; importedFonts?: string[]; brandPage?: BrandPageWrite }): Promise<AdoptionCandidate> {
     const before = snapshots.get(snapshot);
     if (!before) throw new Error('This review expired. Open the source again.');
     if (!input.doc || typeof input.doc !== 'object' || Array.isArray(input.doc)) throw new Error('Expected a token document.');
-    const text = JSON.stringify(input.doc);
+    // Plan 351 B5: a brand page address does not arrive with someone else's material.
+    const adopted = settleBrandPageWrite(input.doc, input.brandPage ? null : await before.head?.blob?.text().then(JSON.parse).catch(() => null), input.brandPage);
+    const text = JSON.stringify(adopted);
     const documentBytes = new TextEncoder().encode(text);
     if (documentBytes.byteLength > 8 * 1024 * 1024 || (input.assets?.length ?? 0) > 512) throw new Error('This design system is too large to apply in one operation.');
     const record = structuredClone(before.target);
