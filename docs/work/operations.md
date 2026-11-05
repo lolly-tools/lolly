@@ -584,9 +584,11 @@ deployment, where the forwarding loop cannot run, a service token polling
 
 ## Retention and erasure
 
-`policy.retention` bounds the two tables that grow with use;
+`policy.retention` bounds the two tables that grow with use and says how long deleted
+documents stay before they are purged;
 [configuration](configuration.md#policy) has the keys and their rules (anchored audit
-trims, delivery before deletion, `0` keeps everything). The long-running server applies
+trims, delivery before deletion, `0` keeps everything).
+[Data lifecycle](data-lifecycle.md#deleted-documents) lists what a purge removes. The long-running server applies
 the policy at startup and daily. On serverless, schedule `lw retention run` (a service
 token works); the route and the timer run the same code.
 
