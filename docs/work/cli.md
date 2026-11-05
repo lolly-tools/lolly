@@ -36,6 +36,7 @@ lw login --email admin@example.test         # the dev provider (dev.enabled only
 | Host the signed instance pack | `instance pack`, `instance pack-rm` | [Hosting the instance pack](#hosting-the-instance-pack) |
 | Let people sign in | `invite add`, `invite ls`, `invite rm` | [Invitations](#invitations) |
 | Give automation its own identity | `tokens` | [Service tokens](#service-tokens) |
+| Connect an agent with a service token | `mcp config` | [MCP settings](#mcp-settings) |
 | Render and recover renders | `renders`, `render-batches` | [Recoverable renders](#recoverable-renders) |
 | Send finished files to a destination | `destinations`, `deliveries` | [Organization delivery](#organization-delivery) |
 | Manage grants and policy as code | `grants`, `export`, `apply` | [Governance](#governance) |
@@ -122,6 +123,15 @@ automation, never as whoever last signed in on the machine. Tokens drive the act
 API (export/apply, providers, fleet, audit); the member-workflow commands refuse them. A scoped
 token reaches only what its scopes open, and other commands answer `403 TOKEN_SCOPE`. The scopes
 are in the [automation guide](automation-api.md#before-you-start-a-token-and-a-permission).
+
+## MCP settings
+
+```bash
+lw mcp config --base https://work.example.com
+lw mcp config --name brand --token-env WORK_TOKEN --json
+```
+
+This prints settings for an MCP client to reach the [organisation MCP endpoint](automation-api.md#connect-an-agent-over-mcp). The command makes no request. The settings name an environment variable (`LW_TOKEN` unless you pass `--token-env`) and never hold the token.
 
 ## Recoverable renders
 

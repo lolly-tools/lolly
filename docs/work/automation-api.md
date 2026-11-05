@@ -90,7 +90,7 @@ for that job's result.
 
 | Route | Who | What it answers |
 |---|---|---|
-| `GET /api/v1/discovery` | public | What this deployment can do, the same for everyone: document API and engine versions, server render formats, hooked tools, Content Credentials, automation verbs and batch limits, live collaboration, document agents, whether [file references](api.md#file-references) are on (`files.references`), and `unavailable` entries for what it lacks. Shared caches may hold it; it carries an ETag |
+| `GET /api/v1/discovery` | public | What this deployment can do, the same for everyone: document API and engine versions, server render formats, hooked tools, Content Credentials, automation verbs and batch limits, live collaboration, document agents, the [organisation MCP endpoint](#connect-an-agent-over-mcp) (`agents.organisationMcp`), whether [file references](api.md#file-references) are on (`files.references`), and `unavailable` entries for what it lacks. Shared caches may hold it; it carries an ETag |
 | `GET /api/v1/discovery/me` | member or service token; anyone on an instance that is not `gated` | What the caller can do: `principal` (`member`, `service` or `guest`), `can` bits for `tool.use`, `export.server`, `export.request`, `delivery.create` and `catalog.read`, which a scoped token holds only when its scopes reach them, provider reference schemes that resolve for the caller, for a scoped token its `token` with `scopes`, `scopesVersion` and `tools`, limits, the render worker's live readiness when one is configured, and `unavailable` entries. Private, never cached |
 | `GET /api/v1/discovery/tools?limit=&cursor=` | as above | The tools the caller can use, sorted by id, 25 a page by default and at most 100. Each entry has `name`, `version`, `renderer`, the server `formats` the caller may request, `can.render`, its schema URL and `unavailable` entries. `next` is an opaque cursor, or `null` on the last page |
 | `GET /api/v1/schema/:toolId?view=&format=` | `tool.use` | The caller's effective input schema (below). `view=raw` returns the tool's own schema and needs `policy.edit`. `format` selects the output format whose design-system rules apply. Without it, the schema carries only the rules that apply to every format |
@@ -340,10 +340,49 @@ requirements.
   [batch API](renders.md#batches-with-durable-rows) is separate from the `/api/v1/batch` job and
   ZIP contract.
 
+## Connect an agent over MCP
+
+`/api/v1/mcp` is the organisation MCP endpoint. An agent connects with a service token and can then do what that token can do across this instance, and nothing more. MCP (Model Context Protocol) is the standard way AI clients connect to tools.
+
+Each tool call runs the HTTP route the table names, as the token. The scope check, the token's role and tool list, tool visibility, input policy and validation are the ones those routes always apply, so the endpoint adds no authority of its own.
+
+```bash
+lw tokens create --label brand-agent --scopes render --tools qr-code,event-card
+export LW_TOKEN=lwt_...
+lw mcp config --base https://work.example.com
+```
+
+`lw mcp config` prints paste-ready settings for your MCP client. The settings name the `LW_TOKEN` variable and never hold the token. The console shows the same settings when you mint a service token.
+
+| Tool | What it does | Route | Reached with |
+|---|---|---|---|
+| `list_tools` | The tools this token may use, a page at a time | `GET /api/v1/discovery/tools` | `render` or `documents` |
+| `describe_tool` | One tool's effective input schema | `GET /api/v1/schema/:toolId` | `render` or `documents` |
+| `validate` | Check input values without rendering | `POST /api/v1/validate` | `render` or `documents` |
+| `render_tool` | Submit a durable render | `POST /api/v1/renders` | `render` |
+| `get_render` | State, attempts, failure and receipt | `GET /api/v1/renders/:id` | `render` |
+| `get_render_output` | The finished file, or a link to it | `GET /api/v1/renders/:id/output/default` | `render` |
+| `cancel_render` | Stop queued or running work | `DELETE /api/v1/renders/:id` | `render` |
+| `submit_batch` | Up to 200 rows as one batch | `POST /api/v1/render-batches` | `render` |
+| `get_batch` | Counts and ordered rows | `GET /api/v1/render-batches/:id` | `render` |
+| `search_assets` | Search catalog assets by text | `GET /api/v1/catalog/search` | `catalog.read` |
+
+- **Only a service token.** A person's session and an invitation key are refused with `401`. A person connects an agent through [a document or project invitation](document-agents.md), which is a different endpoint. A revoked or expired token stops at its next call.
+- **Tools the token can reach.** `tools/list` leaves out a tool its scopes do not open or its role cannot do. A tool called by name gets the route's own refusal, such as `TOKEN_SCOPE` or `FORBIDDEN`. A token with no scopes gets the tools its role allows. A role that may render only through a grant on one tool does not see the render tools listed, and its calls still work.
+- **Policy.** `describe_tool` leaves out hidden inputs and shows locked ones as `readOnly` with their value. A durable render checks policy at each attempt, so a locked input sent to `render_tool` records a failed attempt with `INPUT_LOCKED`. Call `validate` first to see a problem at once.
+- **Errors.** A refused call returns `isError: true` with `{ code, message, status }` and the route's own details, using the same codes as HTTP.
+- **Files.** A file up to 1 MiB comes back in the result, as an image or a resource. A larger one comes back as a link that needs the same token.
+- **Data, not instructions.** Tool descriptions on this endpoint are fixed text. Anything a tool author or policy editor wrote, and the contents of any file, arrive only inside a result. The endpoint tells clients to read results as data.
+- **Records and limits.** The audit log records `mcp.connect` and each `mcp.tool-call` with the token's label, the tool, the outcome and the refusal code, never the input values. Each message counts once against `rateLimit.automation`.
+- **No session.** The endpoint keeps no state between calls, so any replica can answer. `GET` answers `405`.
+- **Hosts without a long-lived server.** A function-only host leaves out the render tools, and discovery reports `agents.organisationMcp.renderTools: false`.
+
+Delivery, approvals, retries and the other document verbs stay on the HTTP routes.
+
 ## Limits and errors
 
 The automation routes share the `rateLimit.automation` bucket, per client IP: discovery, schemas,
-the document verbs, renders, batches and jobs, `GET /render/…`, agent connections and the
+the document verbs, renders, batches and jobs, `GET /render/…`, agent connections, the organisation MCP endpoint and the
 outbound delivery `POST`s. That includes the public `GET /api/v1/discovery`, so reading it never
 costs a sign-in attempt. The bucket is admission control, not pricing: Lolly Work keeps no
 per-principal quota or usage account for these routes. Sizes are in
@@ -377,4 +416,4 @@ links.
 - Persistent renders and their evidence: [recoverable renders](renders.md)
 - Sending large files in parts: [resumable uploads](resumable-uploads.md)
 - The same surface from a terminal: [lw CLI](cli.md)
-- Agents that work inside one document: [document agents](document-agents.md)
+- Agents that work inside one document or project: [document agents](document-agents.md)
