@@ -301,7 +301,8 @@ Two constraints shape them:
 `instance.json` and `packs/` are mounted read-only from the repository root.
 `LW_AUTO_MIGRATE` keeps its default (`true`), so this single-node shape applies
 pending migrations at startup. The server waits for the database's `pg_isready`
-health check first, because its migration step connects once with no retry.
+health check first, because its migration step retries a refused connection for
+only about 10 seconds and a database's first start can take longer.
 
 The web app is not mounted by default, so only the console and API answer. A
 commented-out mount in `docker-compose.yml` shows how to bind a built
