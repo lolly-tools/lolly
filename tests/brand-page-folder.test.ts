@@ -153,6 +153,30 @@ test('a font file needs a recorded licence, and include never overrides that', a
   assert.match(fileOf(built, 'assets/page.css'), /@font-face\{font-family:"Acme Sans";src:url\(\.\.\/fonts\/acme-sans\.ttf\)/);
 });
 
+test('a licence text travels beside its font, and the page links to the text', async () => {
+  const built = await buildBrandPage(input({
+    fonts: [
+      { family: 'Acme Sans', format: 'ttf', weight: '100 900', style: 'italic', bytes: new Uint8Array([0, 1, 0, 0]), license: 'OFL-1.1' },
+      { family: 'Acme Sans', format: 'ttf', weight: '100 900', bytes: new Uint8Array([0, 1, 0, 0]), license: 'OFL-1.1', licenceText: new TextEncoder().encode('The licence.') },
+    ],
+  }));
+  assert.equal(fileOf(built, 'fonts/acme-sans-licence.txt'), 'The licence.');
+  const html = fileOf(built, 'index.html');
+  assert.match(html, /<a href="fonts\/acme-sans-licence\.txt">SIL Open Font License/);
+  assert.match(html, /<a href="fonts\/acme-sans-100-900\.ttf">Font file<\/a>/, 'the link names the upright file');
+  assert.match(fileOf(built, 'index.md'), /\(fonts\/acme-sans-licence\.txt\)/);
+  assert.match(fileOf(built, 'assets/page.css'), /font-weight:100 900/);
+});
+
+test('"Made with Lolly" is on unless the publisher turns it off, and the manifest lists its logos', async () => {
+  const on = await buildBrandPage(input());
+  assert.match(fileOf(on, 'index.html'), /Made with <a href="https:\/\/lolly\.tools\/"/);
+  const off = await buildBrandPage(input({ madeWith: false }));
+  assert.doesNotMatch(fileOf(off, 'index.html'), /Made with/);
+  assert.deepEqual(on.manifest.logos?.map(l => l.id), ['acme/logo/open']);
+  assert.ok(on.manifest.logos?.every(l => on.manifest.files.some(f => f.path === l.path)));
+});
+
 test('an outlined specimen shows a face whose file is held back', async () => {
   const outline = { family: 'Acme Display', role: 'specimen' as const, text: 'Aa', d: 'M0 0L10 0L10 10Z', viewBox: { x: 0, y: -10, width: 10, height: 10 } };
   const name = { family: 'Acme Display', role: 'name' as const, text: 'Acme', d: 'M0 0L20 0L20 10Z', viewBox: { x: 0, y: -10, width: 20, height: 10 } };

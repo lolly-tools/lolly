@@ -62,6 +62,8 @@ export interface BrandPageFontInputV1 {
   rights?: unknown;
   /** What the font's own `fsType` says, when the host could read the field. `restricted` holds the file back whatever the licence record says. */
   embedding?: string;
+  /** The licence's own text. It goes beside the font file, because a licence such as the OFL asks for its text to travel with each copy. */
+  licenceText?: Uint8Array;
 }
 
 export interface BrandPageSkillInputV1 {
@@ -113,6 +115,8 @@ export interface BrandPageInputV1 {
   outlines?: readonly BrandPageOutlineV1[];
   /** Design documents the house rules run on, for each colourway and mode. */
   documents?: readonly BrandPageDocumentInputV1[];
+  /** Show the "Made with Lolly" link in the page's footer. On unless the publisher turns it off. */
+  madeWith?: boolean;
   /** Asset ids the publisher chooses to publish although no licence allows it on record: their stated choice. */
   include?: readonly string[];
   /** What the host could not supply, with its reason. */
@@ -162,7 +166,7 @@ export interface PageFactsV1 {
   named: Array<{ name: string; path: string; value: string }>;
   logos: Array<{ id: string; name: string; path: string; surface: 'light' | 'dark' | 'any'; mono: boolean }>;
   heroLogos: { onDark: string | null; onLight: string | null };
-  faces: Array<{ family: string; tokens: string[]; files: string[]; licence: string | null; source: string | null; outline: BrandPageOutlineV1 | null }>;
+  faces: Array<{ family: string; tokens: string[]; files: string[]; licence: string | null; licenceFile: string | null; source: string | null; outline: BrandPageOutlineV1 | null }>;
   nameOutline: BrandPageOutlineV1 | null;
   examples: Array<{ id: string; name: string; path: string }>;
   rules: Array<{ id: string; label: string; requirement: 'required' | 'advisory'; description: string }>;
@@ -171,6 +175,7 @@ export interface PageFactsV1 {
   held: BrandPageHeldV1[];
   tokenPaths: string[];
   masterSize: { width: number; height: number } | null;
+  madeWith: boolean;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -474,7 +479,7 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     if (!family) continue;
     families.set(family, [...(families.get(family) ?? []), f.path]);
   }
-  const fontFiles = new Map<string, { paths: string[]; licence: string }>();
+  const fontFiles = new Map<string, { paths: string[]; licence: string; licenceFile: string | null }>();
   for (const font of [...(input.fonts ?? [])].sort((a, b) => `${a.family}${a.weight}${a.style}`.localeCompare(`${b.family}${b.weight}${b.style}`, 'en'))) {
     const label = [font.family, font.weight, font.style].filter(Boolean).join(' ');
     const answer = redistribution({ license: font.license, rights: font.rights });
@@ -483,8 +488,12 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     const stem = [font.family, font.weight, font.style].filter(Boolean).map(s => slug(String(s))).filter(Boolean).join('-') || 'font';
     const path = `fonts/${stem}.${pathSegment(font.format).toLowerCase()}`;
     if (!add(path, 'font', font.bytes)) continue;
-    const row = fontFiles.get(font.family) ?? { paths: [], licence: answer.licence };
+    const row = fontFiles.get(font.family) ?? { paths: [], licence: answer.licence, licenceFile: null };
     row.paths.push(path);
+    if (font.licenceText && !row.licenceFile) {
+      const licencePath = `fonts/${slug(font.family) || 'font'}-licence.txt`;
+      if (add(licencePath, 'font', font.licenceText)) row.licenceFile = licencePath;
+    }
     fontFiles.set(font.family, row);
   }
   const outlines = input.outlines ?? [];
@@ -495,8 +504,10 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     const source = input.fontSources?.[family];
     if (!file && !(input.fonts ?? []).some(f => f.family === family)) hold(`Font ${family}`, 'no font file with a recorded licence that allows passing it on', 'unknown');
     return {
-      family, tokens, files: file?.paths ?? [],
+      // Upright first, because the page's "Font file" link goes to the first file.
+      family, tokens, files: [...(file?.paths ?? [])].sort((a, b) => Number(a.includes('italic')) - Number(b.includes('italic')) || (a < b ? -1 : 1)),
       licence: file?.licence || text(source?.licence, 120) || null,
+      licenceFile: file?.licenceFile ?? null,
       source: source?.url && /^https?:\/\//.test(source.url) ? source.url.slice(0, 2000) : null,
       outline: specimenFor(family),
     };
@@ -546,7 +557,7 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   const facts: PageFactsV1 = {
     id, name, summary: overview ? firstSentence(overview) : `The ${name} design system.`, overview, usage, origin,
     colourways, modes: modes.map(m => ({ id: m.id, name: m.name })), variants, named, logos, heroLogos, faces, nameOutline, examples,
-    rules, skills, checks, held: orderedHeld, tokenPaths,
+    rules, skills, checks, held: orderedHeld, tokenPaths, madeWith: input.madeWith !== false,
     masterSize: brief.coverage.type === 'declared' && brief.master?.size ? { width: brief.master.size.width, height: brief.master.size.height } : null,
   };
 
@@ -568,7 +579,9 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     ...(origin ? { origin } : {}),
     generator: { name: 'lolly', engine: ENGINE_VERSION, designMd: DESIGN_MD_TARGET },
     ...(usage ? { usage } : {}),
-    colourways, files: listed, held: orderedHeld,
+    colourways, files: listed,
+    ...(logos.length ? { logos: logos.map(l => (l.id === brief.logos.onLight || l.id === brief.logos.onDark ? { ...l, primary: true } : l)) } : {}),
+    held: orderedHeld,
     checks: {
       file: 'checks.json', variants: checks.variants.length, pairs: pairs.length, pairsBelow3: pairs.filter(p => p.reads === 'below-3').length,
       rules: ruleChecks.length, rulesWithFindings: ruleChecks.filter(r => r.findings > 0).length,

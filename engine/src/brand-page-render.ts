@@ -61,7 +61,9 @@ export function writePageCss(f: PageFactsV1): string {
   const fontRules: string[] = [];
   for (const face of f.faces) {
     for (const file of face.files) {
-      const weight = /-(\d{3})(?:-|\.)/.exec(file)?.[1];
+      // A variable face's file name carries its range, as in `outfit-100-900.ttf`.
+      const range = /-(\d{3})-(\d{3})(?:-|\.)/.exec(file);
+      const weight = range ? `${range[1]} ${range[2]}` : /-(\d{3})(?:-|\.)/.exec(file)?.[1];
       fontRules.push(`@font-face{font-family:${JSON.stringify(face.family)};src:url(../${file});font-display:swap${weight ? `;font-weight:${weight}` : ''}${/italic/.test(file) ? ';font-style:italic' : ''}}`);
     }
   }
@@ -180,6 +182,8 @@ footer{padding:clamp(1.5rem,4vw,3rem) clamp(1.25rem,4vw,3.5rem);color:var(--mute
     out.push(`#${id}:checked ~ .page label[for=${id}]{background:var(--ink);color:var(--surface);border-color:var(--ink)}`);
     out.push(`#${id}:focus-visible ~ .page label[for=${id}]{outline:2px solid var(--ink);outline-offset:2px}`);
   }
+  // A phone gets the mark and the name together, not a screen of empty colour between them.
+  out.push('@media (max-width:40rem){.hero{min-height:0}}');
   out.push('@media print{.bar{display:none}.hero{min-height:0}}');
   return `${out.join('\n')}\n`;
 }
@@ -222,7 +226,7 @@ export function writeIndexHtml(f: PageFactsV1): string {
   if (f.faces.length) {
     sections.push(`<section id="type"><h2>Type</h2><ul>${f.faces.map(face => {
       const sample = face.outline ? outlineSvg(face.outline, 'face-sample', `${face.family}: ${face.outline.text}`) : '';
-      const file = face.files.length ? `<a href="${esc(face.files[0])}">Font file</a>${face.licence ? `, ${esc(face.licence)}` : ''}` : `Font file not included.${face.source ? ` <a href="${esc(face.source)}" rel="noopener noreferrer">Where to get ${esc(face.family)}</a>` : ''}`;
+      const file = face.files.length ? `<a href="${esc(face.files[0])}">Font file</a>${face.licence ? `, ${face.licenceFile ? `<a href="${esc(face.licenceFile)}">${esc(face.licence)}</a>` : esc(face.licence)}` : ''}` : `Font file not included.${face.source ? ` <a href="${esc(face.source)}" rel="noopener noreferrer">Where to get ${esc(face.family)}</a>` : ''}`;
       return `<li class="face">${sample}<span class="face-name">${esc(face.family)}</span><span class="tile-meta">${file}</span></li>`;
     }).join('')}</ul></section>`);
   }
@@ -270,8 +274,7 @@ ${colourChips || modeChips ? `<nav class="bar" aria-label="Look">${colourChips}$
 <main>
 ${sections.join('\n')}
 </main>
-<footer>Made with <a href="https://lolly.tools/" rel="noopener noreferrer">Lolly</a>.</footer>
-</div>
+${f.madeWith ? '<footer>Made with <a href="https://lolly.tools/" rel="noopener noreferrer">Lolly</a>.</footer>\n' : ''}</div>
 </body>
 </html>
 `;
@@ -302,7 +305,7 @@ export function writeIndexMd(f: PageFactsV1): string {
   }
   if (f.faces.length) {
     out.push('## Type', '');
-    for (const face of f.faces) out.push(`- **${mdInline(face.family)}:** ${face.files.length ? `[font file](${face.files[0]})${face.licence ? `, ${mdInline(face.licence)}` : ''}` : `font file not included${face.source ? `, [where to get it](${face.source})` : ''}`}.`);
+    for (const face of f.faces) out.push(`- **${mdInline(face.family)}:** ${face.files.length ? `[font file](${face.files[0]})${face.licence ? `, ${face.licenceFile ? `[${mdInline(face.licence)}](${face.licenceFile})` : mdInline(face.licence)}` : ''}` : `font file not included${face.source ? `, [where to get it](${face.source})` : ''}`}.`);
     out.push('');
   }
   if (f.examples.length) {

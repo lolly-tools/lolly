@@ -57,6 +57,11 @@ test('publish writes the same bytes twice, and says what it held back', async ()
     assert.equal(manifest.id, 'lolly-demo');
     assert.equal(manifest.colourways.length, 6);
     assert.ok(![...first.keys()].some(p => p.startsWith('logos/')), 'a logo with no recorded licence stays out by default');
+    assert.ok(first.has(join('fonts', 'outfit-licence.txt')), 'a font with a recorded licence travels with the text');
+    assert.match(first.get('index.html')!.toString(), /Made with/);
+    const off = await lolly(['system', 'publish', `--out=${join(s.dir, 'c')}`, '--no-examples', '--no-made-with-link'], s.env);
+    assert.equal(off.code, 0, off.stderr);
+    assert.doesNotMatch(readFileSync(join(s.dir, 'c', 'index.html'), 'utf8'), /Made with/);
   } finally { s.done(); }
 });
 
@@ -72,7 +77,8 @@ test('publish includes a named logo, takes the publisher\'s words and refuses a 
     assert.ok(files.has(join('logos', 'lolly', 'logo', 'primary.svg')));
     const html = files.get('index.html')!.toString();
     assert.match(html, /Ask before you change the mark\./);
-    assert.match(html, /href="https:\/\/example\.com\/outfit"/);
+    assert.match(html, /href="fonts\/outfit-100-900-normal\.ttf"/, 'a font file on record wins over a link to where to get the face');
+    assert.doesNotMatch(html, /href="https:\/\/example\.com\/outfit"/);
     const manifest = JSON.parse(files.get('brand.json')!.toString());
     assert.equal(manifest.origin, 'https://example.com/brand/demo');
     assert.equal(manifest.usage.contact, 'brand@example.com');

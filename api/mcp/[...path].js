@@ -4099,7 +4099,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.308.0";
+    ENGINE_VERSION = "1.309.0";
   }
 });
 

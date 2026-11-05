@@ -3894,6 +3894,151 @@
         }
       },
       "added": "2026-10-23"
+    },
+    {
+      "id": "lolly/font/outfit",
+      "name": "Outfit",
+      "description": "Lolly Demo headings. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/Outfit-Variable.ttf",
+          "checksum": "sha256-/HKHJz5mkpd24rpU8UT+aZCAvsKfYb9knXDYcUaK6t4=",
+          "size": 110884
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2021 The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts)",
+      "meta": {
+        "family": "Outfit",
+        "weight": "100 900",
+        "style": "normal",
+        "licenceFile": "/catalog/fonts/OFL-Outfit.txt",
+        "source": "https://github.com/Outfitio/Outfit-Fonts"
+      }
+    },
+    {
+      "id": "lolly/font/suse",
+      "name": "SUSE",
+      "description": "Lolly Demo text. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/SUSE-Variable.ttf",
+          "checksum": "sha256-5Y3CQN666KF30jbpd+ODTG//OIOnrWAQ8Jh3j2CQRSc=",
+          "size": 220292
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)",
+      "meta": {
+        "family": "SUSE",
+        "weight": "100 900",
+        "style": "normal",
+        "licenceFile": "/catalog/fonts/OFL-SUSE.txt",
+        "source": "https://github.com/SUSE/suse-font"
+      }
+    },
+    {
+      "id": "lolly/font/suse-italic",
+      "name": "SUSE Italic",
+      "description": "Lolly Demo text in italic. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/SUSE-Italic-Variable.ttf",
+          "checksum": "sha256-T82sZJo6FSCpUKXTyV3waVHVI8ujITfvWDEv9fGLgXw=",
+          "size": 222772
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)",
+      "meta": {
+        "family": "SUSE",
+        "weight": "100 900",
+        "style": "italic",
+        "licenceFile": "/catalog/fonts/OFL-SUSE.txt",
+        "source": "https://github.com/SUSE/suse-font"
+      }
+    },
+    {
+      "id": "lolly/font/suse-mono",
+      "name": "SUSE Mono",
+      "description": "Lolly Demo code. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/SUSEMono-Variable.ttf",
+          "checksum": "sha256-DAhO8g3EyY5OzGlee1mZHNyydayo01Da7OeClqXfMMw=",
+          "size": 87216
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)",
+      "meta": {
+        "family": "SUSE Mono",
+        "weight": "100 900",
+        "style": "normal",
+        "licenceFile": "/catalog/fonts/OFL-SUSE-Mono.txt",
+        "source": "https://github.com/SUSE/suse-font"
+      }
+    },
+    {
+      "id": "lolly/font/suse-mono-italic",
+      "name": "SUSE Mono Italic",
+      "description": "Lolly Demo code in italic. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/SUSEMono-Italic-Variable.ttf",
+          "checksum": "sha256-MPMELKaDqV9C8tjWWkpoXHE/rabnlgKku9j2sO1a8nk=",
+          "size": 85420
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)",
+      "meta": {
+        "family": "SUSE Mono",
+        "weight": "100 900",
+        "style": "italic",
+        "licenceFile": "/catalog/fonts/OFL-SUSE-Mono.txt",
+        "source": "https://github.com/SUSE/suse-font"
+      }
     }
   ]
 }

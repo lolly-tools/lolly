@@ -77,3 +77,11 @@ test('an emoji set files under Emoji sets, the section the Assets view shows it 
     assert.ok(groupsFor(asset).every((g) => g.key !== 'emoji-sets'), 'Emoji sets is never offered as a place to move an asset');
   }
 });
+
+test('a font row sits under Fonts, and nothing can be moved in or out of that group', () => {
+  const font = { id: 'lolly/font/outfit', type: 'font', meta: { tags: ['font'] } } as never;
+  assert.equal(libCategory(font), 'fonts');
+  assert.equal(libCategory(font, { 'lolly/font/outfit': 'logos' }), 'fonts');
+  assert.equal(categoryLabel('fonts'), 'Fonts');
+  assert.ok(!groupsFor(undefined).some(g => g.key === 'fonts'));
+});

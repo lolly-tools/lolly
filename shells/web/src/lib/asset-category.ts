@@ -50,6 +50,8 @@ export const LIB_GROUPS: LibGroup[] = [
   { key: 'voice',         label: 'Voice',         audio: true },
   { key: 'other-audio',   label: 'Other audio',   audio: true },
   { key: 'other',         label: 'More' },
+  // A catalog font row. Its type decides, so nothing can be moved in or out.
+  { key: 'fonts',         label: 'Fonts',         fixed: true },
   { key: 'emoji-sets',    label: 'Emoji sets',    fixed: true },
 ];
 
@@ -95,6 +97,7 @@ export function categoryLabel(key: string): string {
 export function libCategory(ref: AssetRef | undefined, overrides?: Record<string, string> | null): string {
   const t = new Set((ref?.meta?.tags as string[] | undefined) || []);
   if (t.has('emoji-pack')) return 'emoji-sets';
+  if (ref?.type === 'font') return 'fonts';
   const base = stripAssetModifiers(ref?.id ?? '');
   const over = overrides?.[base];
   if (over && LIB_GROUPS.some(g => g.key === over && !g.fixed)) return over;

@@ -357,6 +357,6 @@ test('the dropToAdd flags and the engine-added render inputs are known flags', (
     inputs: [{ id: 'logos', type: 'blocks', dropToAdd: { field: 'logo' } }],
     render: { transparentBg: true, formats: ['svg'] },
   };
-  assert.deepEqual(unknownFlags({ 'logos-file': 'a.png', 'logos-files': '-', transparentBg: '0', convertPaths: '1' }, manifest), []);
+  assert.deepEqual(unknownFlags({ 'logos-file': 'a.png', 'logos-files': '-', 'logos-from': 'page', 'logos-surface': 'dark', transparentBg: '0', convertPaths: '1' }, manifest), []);
   assert.deepEqual(unknownFlags({ 'logos-filez': 'a.png' }, manifest), ['logos-filez']);
 });
