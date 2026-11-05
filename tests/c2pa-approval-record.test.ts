@@ -286,6 +286,17 @@ test('an AI declaration in the reviewed credential still reads after the update'
   assert.equal((await verifyC2pa(outcome.bytes)).aiDisclosure?.modelName, 'Test model');
 });
 
+test('a source credit in the reviewed credential still reads after the update', async () => {
+  const signer = await signerFor();
+  const reviewed = await embedC2pa(await plain('png'), 'png', { ...ORIGIN, signer, ingredients: [{ credential: 'none', title: 'A credited drawing', relationship: 'componentOf' }] });
+  const outcome = await recordApprovalInCredential(reviewed, 'png', { ...APPROVAL, signer, dates: DATES });
+  assert.equal(outcome.status, 'recorded');
+  if (outcome.status !== 'recorded') return;
+  const records = (await verifyC2pa(outcome.bytes)).ingredients ?? [];
+  assert.ok(records.some((r) => r.title === 'A credited drawing' && r.relationship === 'componentOf' && !r.credentialed), 'the credit travels with the parent');
+  assert.ok(records.some((r) => r.relationship === 'parentOf' && r.credentialed), 'beside the parent itself');
+});
+
 for (const [format, ext] of [['png', 'png'], ['jpg', 'jpg'], ['svg', 'svg'], ['pdf', 'pdf']] as const) {
   test(`c2patool reads the ${format} update as one chain with no failure beyond trust`, { skip: hasC2patool ? false : 'c2patool not installed (brew install c2patool)' }, async () => {
     const signer = await signerFor();

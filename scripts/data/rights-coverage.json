@@ -12,6 +12,7 @@
     "_note": "Engine modules that define the rules, the credential writer and the readers. They build ingredients and evaluate rights for the paths below and are not paths themselves.",
     "files": [
       "engine/src/c2pa.ts",
+      "engine/src/c2pa-approval.ts",
       "engine/src/c2pa-extract.ts",
       "engine/src/rights-attribution.ts",
       "engine/src/rights-companion.ts",
