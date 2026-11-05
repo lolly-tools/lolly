@@ -82,11 +82,12 @@ groups: not greyed out, not hidden in the client. `*` means everyone.
 | `watermark` | `never` | Enforced: no render carries the watermark, including a render made for a share link or preview that would otherwise ask for one. |
 | `watermark` | `until-approved` | Stored, not linked to approval state yet: it behaves like no rule, so only a render made for a share link or preview carries the watermark. Set `always` if you need the watermark on every render. |
 | `defaults` | input values | Stored, not applied to a tool's initial inputs by org-config or the render paths. Locked presets do enforce values. |
-| `c2pa`, `escalation` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)), and chain binding works as [Approvals](approvals.md) describes. |
+| `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. |
+| `c2pa` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)). |
 
 The console offers **Always watermark**, **Never watermark** and **No rule** for new edits. An
 existing `until-approved` setting is kept with a warning that it is not enforced. Stored fields
-the policy writer cannot keep, such as `enforce.escalation`, block a console save with an
+the policy writer cannot keep, such as `enforce.c2pa`, block a console save with an
 explanation rather than being silently removed.
 
 ::: details Using the policy editor

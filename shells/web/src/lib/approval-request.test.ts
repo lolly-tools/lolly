@@ -11,7 +11,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  registerApprovalOpener, openApprovalRequest, _clearApprovalOpenerForTests,
+  approvalPdfPreview, approvalWork, registerApprovalOpener, openApprovalRequest, setApprovalPdfPreview, _clearApprovalOpenerForTests,
 } from './approval-request.ts';
 import type { ApprovalRequestContext } from './approval-request.ts';
 
@@ -44,4 +44,41 @@ test('a throwing opener is swallowed (never breaks the caller)', () => {
   _clearApprovalOpenerForTests();
   registerApprovalOpener(() => { throw new Error('boom'); });
   assert.equal(openApprovalRequest({ toolId: 't' }), false);
+});
+
+test('the view makes a file only when the opener asks for one, and a broken check asks for nothing', async () => {
+  const { approvalWantsArtifact } = await import('./approval-request.ts');
+  _clearApprovalOpenerForTests();
+  assert.equal(approvalWantsArtifact('tool'), false, 'no opener');
+  const off = registerApprovalOpener(() => {}, { wantsArtifact: (id) => id === 'bound' });
+  assert.equal(approvalWantsArtifact('bound'), true);
+  assert.equal(approvalWantsArtifact('other'), false);
+  off();
+  assert.equal(approvalWantsArtifact('bound'), false, 'gone with its opener');
+  registerApprovalOpener(() => {}, { wantsArtifact: () => { throw new Error('no'); } });
+  assert.equal(approvalWantsArtifact('bound'), false);
+  registerApprovalOpener(() => {});
+  assert.equal(approvalWantsArtifact('bound'), false, 'an opener that takes no file');
+  _clearApprovalOpenerForTests();
+});
+
+test('working state is dormant until registered, and goes with its opener', () => {
+  _clearApprovalOpenerForTests();
+  assert.equal(approvalWork(), undefined);
+  const work = { status: async () => null, files: async () => [], approvedFile: async () => ({ blob: new Blob([]), name: '' }), open: () => {}, sessions: async () => new Map() };
+  const off = registerApprovalOpener(() => {}, { work });
+  assert.equal(approvalWork(), work);
+  off();
+  assert.equal(approvalWork(), undefined);
+});
+
+test('the PDF preview is null with no reader, and a failing reader is null too', async () => {
+  _clearApprovalOpenerForTests();
+  assert.equal(await approvalPdfPreview(new Blob([])), null);
+  const page = new Blob(['<svg/>']);
+  setApprovalPdfPreview(async () => page);
+  assert.equal(await approvalPdfPreview(new Blob([])), page);
+  setApprovalPdfPreview(async () => { throw new Error('bad pdf'); });
+  assert.equal(await approvalPdfPreview(new Blob([])), null);
+  _clearApprovalOpenerForTests();
 });

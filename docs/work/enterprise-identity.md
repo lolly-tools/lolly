@@ -292,11 +292,25 @@ A service token gives automation an identity of its own: CI running `lw export` 
 a governance drift check or an audit poller, with no session cookies in secret stores.
 
 ```sh
-lw tokens create --label ci --role admin --days 90
+lw tokens create --label nightly-renders --scopes render --days 90
+lw tokens create --label governance-sync --role admin --days 90
 ```
 
-- A new token carries the role you choose and expires after 90 days by default; `ttlDays`
-  accepts 1 to 365.
+- Give a token scopes when you can. Scopes (`render`, `documents`, `files`, `delivery`,
+  `catalog.read`, `audit.read`) say what the token may reach and refuse every other route with
+  `403 TOKEN_SCOPE`, including routes added later. `--tools` limits it further to the tools you list. The
+  [automation guide](automation-api.md#before-you-start-a-token-and-a-permission) lists what each
+  scope opens.
+- A scope only narrows. A route must pass the scope and then the role and grants, so no scope gives
+  a token an action its role lacks. A token with scopes and no role takes the `automation` role,
+  which holds the actions the scopes need without the rest of the admin role. No person can hold
+  that role.
+- A token with no scopes needs a role, any but `guest` or `automation`, and reaches all that the role
+  allows. Use this for automation no scope covers yet, such as governance export and apply or
+  provider sync.
+- Scopes and the tool list are fixed at mint and are recorded in the audit trail. To change them,
+  mint a new token and revoke the old one.
+- A new token expires after 90 days by default; `ttlDays` accepts 1 to 365.
 - Presenting it resolves to a synthetic principal with the token's role and no groups. The
   role evaluator, grants and the audit trail treat it exactly like a person, so there is no
   second authorization model.
@@ -318,4 +332,4 @@ Earlier tokens without an end date are still accepted for compatibility. The lis
 - <!--i:lock--> After every integration has rotated, an owner may set `policy.serviceTokens.allowLegacyUnbounded: false` to refuse any remaining unbounded tokens.
 :::
 
-No cutover date or automatic invalidation is set. Narrower token scopes are not built yet.
+No cutover date or automatic invalidation is set.

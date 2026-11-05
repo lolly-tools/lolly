@@ -73,6 +73,12 @@ Inside the COSE signing step, the x5chain (label 33) becomes `signer.chain ?? [s
 
 Two passes stay safe: the chain bytes are captured once per embed, so they are byte-identical across passes; ES256 signatures are a fixed 64 bytes; and the algorithm stays hard-coded at −7, **P-256 only** by contract. `sign()` runs several times per embed (a probe, fixed-point rounds and pass 2). That is fine for a WebCrypto key; a future key that needs a person present would need dummy probe signatures.
 
+### `engine/src/c2pa-approval.ts`
+
+`recordApprovalInCredential(reviewed, format, { approvalId, decidedAt, signer })` adds a signed update over a reviewed file. The update's manifest takes the reviewed credential as its one `parentOf` ingredient, records `c2pa.opened` then `c2pa.published`, and carries the `tools.lolly.approval` assertion: `{ version: 1, approvalId, decidedAt, reviewedSha256 }`. The writer refuses any other field and refuses a record with no credentialed parent. PNG, JPEG, SVG and PDF have an update route. A PDF gets one more incremental revision, and the reviewed file stays an exact prefix.
+
+It returns `recorded` only after a readback: `verifyC2pa` finds an intact credential holding that record, and `artworkUnchanged` finds the bytes outside the credential equal. Anything else is `not-recorded` with a reason, and the caller keeps the reviewed bytes. `verifyC2pa` reports the record as `approval`, beside `state`. An update's export facts (`environment`, `author`, `rights`, AI disclosures) are read from its parent once the parent matches the hash the update signed. A parent that does not match fails `ingredient.manifest.mismatch`. `tests/c2pa-approval-record.test.ts` holds the proofs, cross-checked with `c2patool`.
+
 ### `engine/src/c2pa-verify.ts`
 
 ```js

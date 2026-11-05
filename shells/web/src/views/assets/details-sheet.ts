@@ -29,6 +29,7 @@ import { playSfx } from '../../lib/sfx.ts';
 import { destroyLottiePlayers, lottiePlayerFor, mountLottieMarker } from '../lottie-mount.ts';
 import { extractAssetMetadata, leavesOriginalUnread, metadataFromBytes, recordedMetadata } from '../../lib/asset-metadata.ts';
 import { mergeMetaRows, metaRow } from '../../lib/meta-rows.ts';
+import { approvedRow, openApprovedRequest } from './approved-row.ts';
 import { formatMetaInstant } from '../../lib/meta-dates.ts';
 import { analyzeVerifyText } from '../valid-text.ts';
 import { categoryLabel, libCategory } from '../../lib/asset-category.ts';
@@ -475,6 +476,7 @@ export function buildSheet(dt: DetailsCtx): void {
             const extra = inFolders.length > 2 ? ` +${inFolders.length - 2}` : '';
             return metaRow('projects', t('Projects'), `${names}${extra}`);
           })()}
+          ${approvedRow(ref)}
           ${metaRow('id', t('ID'), `<code>${escapeText(ref.id)}</code>`)}
         </dl>
         ${dt.rondo.rondoSectionHtml()}
@@ -1328,6 +1330,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       return;
     }
     if (act === 'add-to-project') { await cat.bulk.addToProject([ref.id], [ref]); return; }
+    if (act === 'open-approval') { openApprovedRequest(ref); return; }
     // "Download as" (text assets): a format menu anchored to its toolbar button,
     // mounted inside THIS dialog. The items carry data-act="dl-text", so their
     // clicks bubble to this same dispatcher - the menu is pure presentation.

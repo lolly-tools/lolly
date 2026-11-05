@@ -11,6 +11,7 @@ import { createHash } from 'node:crypto';
 import { buildC2paManifest, embedC2pa, encodeCbor, generateSigner, INTENT_PROMPT_NOTE, LOLLY_INTENT_ASSERTION, type C2paIntentRecord } from '../engine/src/c2pa.ts';
 import { extractC2paStore, parseC2paStore, readIntentRecord, verifyC2pa } from '../engine/src/c2pa-verify.ts';
 import { decodeCbor } from '../engine/src/c2pa-extract.ts';
+import { recordApprovalInCredential } from '../engine/src/c2pa-approval.ts';
 import { confirmIntentRecord, INTENT_RECORD_CODES, intentRecordFor, intentRecordWords } from '../engine/src/intent-record.ts';
 import { resolveIntent } from '../engine/src/intent.ts';
 import { verdictIntent } from '../packages/node-shell/src/verdict-report.ts';
@@ -206,4 +207,25 @@ test('a tool or surface that does not belong to the intent is refused with a sta
   assert.equal(await refused({}, noPurpose), 'intent.purpose-needed');
   assert.deepEqual([...INTENT_RECORD_CODES].sort(), ['intent.purpose-needed', 'intent.surface-needed', 'intent.surface-unknown', 'intent.tool-not-candidate']);
   assert.equal((await intentRecordFor(resolution, { toolId: 'link-card' })).ok, true, 'any tool that fits may answer, not only the first');
+});
+
+test('a file approved after it was made keeps its intent, and still reads the approval', async () => {
+  const signer = await generateSigner(DATES);
+  const record = await recordOf({ recordPrompt: true }, { ...INTENT, prompt: 'A badge for the launch' });
+  const reviewed = await stamped(record, signer);
+  assert.equal((await verifyC2pa(reviewed)).intent?.purpose, record.purpose);
+
+  const approved = await recordApprovalInCredential(reviewed, 'svg', {
+    approvalId: 'apr_abc12345', decidedAt: '2026-11-05T10:15:00.000Z', signer, claimGenerator: 'Lolly Work', dates: DATES,
+  });
+  assert.equal(approved.status, 'recorded', JSON.stringify(approved));
+  if (approved.status !== 'recorded') return;
+  assert.equal(assertionOf(approved.bytes), undefined, 'the update does not repeat the intent');
+
+  const report = await verifyC2pa(approved.bytes);
+  assert.equal(report.state, 'valid', JSON.stringify(report.checks ?? report));
+  assert.equal(report.approval?.approvalId, 'apr_abc12345');
+  assert.equal(report.intent?.purpose, record.purpose, 'the intent is read from the parent the update signed');
+  assert.equal(report.intent?.prompt, record.prompt);
+  assert.equal(report.intent?.promptNote, INTENT_PROMPT_NOTE);
 });
