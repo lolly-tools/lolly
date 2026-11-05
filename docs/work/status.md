@@ -33,9 +33,10 @@ What Lolly Work %work{version} does, what to check on your own systems before yo
   and managed AI. Keep the whole policy as one document. See
   [Policy and governance](governance.md).
 - **Renders and links.** Server renders in SVG and PNG, and JPG and PDF with a render worker.
-  Durable render jobs and batches that recover after a restart. Signed links that expire and
-  that you can turn off, including guest links. See [Share renders and links](sharing.md) and
-  [Render jobs and batches](renders.md).
+  Durable render jobs and batches that recover after a restart, with signed callbacks, batches
+  filled from a data source, ZIP downloads, delivery by reference and optional output retention.
+  Signed links that expire and that you can turn off, including guest links. See [Share renders and
+  links](sharing.md) and [Render jobs and batches](renders.md).
 - **Delivery.** Send finished exports to S3-compatible storage, WebDAV, a signed HTTPS
   receiver, Brandfolder or Cloudinary, with an optional approval step. See
   [Organisation delivery destinations](delivery.md).
@@ -108,9 +109,10 @@ when you match clients to a release.
   them. See [Sign-in and sessions](identity.md#offboarding-disable-and-revocation).
 - **Delivery and approvals over the organisation MCP endpoint.** Those stay on the HTTP routes
   and with people.
-- **Render dependency locking.** Receipts are partial, campaign reconciliation is not built,
-  and a durable render resource cannot yet be delivered by reference. See
+- **Render dependency locking.** Receipts are partial and campaign reconciliation is not built. See
   [Render jobs and batches](renders.md#what-a-receipt-does-not-prove).
+- **General event subscriptions.** Callbacks announce the end of the job that asked for one. A feed
+  of other events, with subscriptions and replay, is not built.
 - **Delivery operations.** A replica-safe background claimant for queued deliveries,
   retention for staged retry bytes, and destination setup in the console or CLI.
 - **Moving a project between instances.** Lolly Work previews what a move would involve; export

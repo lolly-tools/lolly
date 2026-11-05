@@ -311,8 +311,11 @@ A delivery waits for approval when its destination has a chain, then is queued, 
 ### Delivering an automation output
 
 `POST /api/v1/jobs/:id/deliveries` sends a completed `render` job owned by the same member or
-service principal. The JSON body is `{ "destinationId": "campaign-archive", "name": "Launch
-poster" }`; an optional `format` must equal the job's recorded format and cannot override that format.
+service principal, and `POST /api/v1/renders/:id/deliveries` does the same for a succeeded
+[durable render](renders.md). The JSON body is `{ "destinationId": "campaign-archive", "name": "Launch
+poster" }`; an optional `format` must equal the recorded format and cannot override that format. Both
+routes run one code path, and a durable render also checks that its owner still holds the tool and
+`export.server`.
 
 When the job completes, Lolly Work records a SHA-256 over the actual output bytes, independently of the
 storage provider (an S3 ETag is not a portable content digest). Delivery reads the stored result,
@@ -321,11 +324,11 @@ delivery's private `sourceRef` at the existing blob. There is no download and up
 and no second stored copy. Jobs completed before digests were stored must be rendered again
 before this route can deliver them.
 
-The receipt shows `sourceJobId` for correlation, never the private storage reference. The source
-job cannot be deleted while any delivery keeps its output (`409 JOB_OUTPUT_IN_USE`), even after a
-successful send, so retry and audit cannot be undermined by deleting their evidence. Durable render
-jobs from `/api/v1/renders` cannot be delivered this way yet ([Render jobs and
-batches](renders.md#hosting-and-recovery)).
+The receipt shows `sourceJobId` or `sourceRenderId` for correlation, never the private storage
+reference. The source job cannot be deleted while any delivery keeps its output (`409
+JOB_OUTPUT_IN_USE`), even after a successful send, so retry and audit cannot be undermined by deleting
+their evidence. A durable render's [output retention](renders.md#hosting-and-recovery) leaves alone
+any output a delivery points at, for the same reason.
 
 ### Optional human approval
 
@@ -360,8 +363,8 @@ lw grants add group:contractors delivery.create 'destination:campaign-archive' -
 - When a destination has an `approvalChain`, `delivery.create` allows staging and requesting
   review, not the send itself; the approval chain and its separation-of-duties rules decide that.
 - For an automation output, the same action adds no general storage authority: the caller must
-  own the job, it must be a finished `render`, its recorded format cannot change and its stored
-  bytes pass integrity and C2PA checks again.
+  own the job or durable render, it must be a finished render, its recorded format cannot change and
+  its stored bytes pass integrity and C2PA checks again.
 - Losing the permission stops new sends and retries, but does not erase the caller's own
   receipts. `delivery.create` has no authority over personal send targets.
 
