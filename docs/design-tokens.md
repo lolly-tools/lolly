@@ -155,6 +155,14 @@ The link behind the next picture holds no colour values at all. Its three colour
 
 CMYK survives Lolly-to-Lolly round trips through `$extensions`, and Penpot ignores it, as the standard intends. Two more paths go beyond the token file. Once Penpot is connected under **Settings → Connected services**, a finished render can be sent from Lolly into a Penpot project as an image. And the Lolly bridge plugin for Penpot, installed by URL from a Lolly instance, can place a working Lolly session on the Penpot canvas as editable shapes.
 
+## DESIGN.md
+
+[DESIGN.md](https://github.com/google-labs-code/design.md) is a format for describing a visual identity to coding agents, with YAML tokens and a Markdown body. It is at version `alpha`, and Lolly targets that version.
+
+**In.** `lolly system import DESIGN.md` reads the tokens into a new design system and keeps the file beside the system. `--dry-run` reads the file and changes nothing. Colours, type families, sizes, radii and spacing map to tokens. The format's component entries have no token form in Lolly, so they stay out of the tokens. The reader refuses a file it cannot read, such as one with anchors, a repeated key or no tokens, and it reports a single value it cannot read and leaves that value out. Prose stays text: nothing in the file is acted on.
+
+**Out.** A [brand page](/info/cli-reference.html#publish-a-brand-page) holds one `DESIGN.md` per colourway and mode, because the format has no theme or mode of its own. Named colours sit in a table in the body, since the format's linter treats a token no component uses as a mistake.
+
 ## Theme the app itself
 
 Your design system describes your brand. It can also dress Lolly's own interface, in two ways: `lolly.ui.*` roles that hold one value in every theme, and a `color.chrome` group that sets the app's surfaces separately for light and dark.

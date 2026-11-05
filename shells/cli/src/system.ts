@@ -20,6 +20,7 @@ import { contextTokens } from '../../../engine/src/brand-context.ts';
 import { checkBrandDesign } from '../../../engine/src/brand-check.ts';
 import { brandCheckCatalog, designBrief } from '../../../engine/src/design-brief.ts';
 import { checkDesignHouseRules } from '../../../engine/src/design-house-rules.ts';
+import { parseDesignMd } from '../../../engine/src/design-md.ts';
 import { brandSystemOf } from '../../../engine/src/brand-system.ts';
 import { emitResult } from './envelope.ts';
 import { writeOut } from './output.ts';
@@ -35,7 +36,7 @@ Start with what you have. Setup is optional, and each source can be added later.
   Explore first    lolly list
   Make something   lolly qr-code --url=https://example.com --output=qr.svg
 
-Design-system commands: lolly system status | list | use | import | add | export | inspect | diff | generate | sync | skills | skill
+Design-system commands: lolly system status | list | use | import | add | export | publish | inspect | diff | generate | sync | skills | skill
 `;
 
 type Flags = Record<string, string>;
@@ -182,6 +183,16 @@ export async function importSystemTokens(path: string): Promise<{ doc: Record<st
   const bytes = await readSource(path);
   const zip = bytes.length >= 4 && bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04;
   if (zip) return { ...tokensFromArchive(bytes), bytes };
+  if (['.md', '.markdown'].includes(extname(path).toLowerCase())) {
+    // A DESIGN.md. The parser refuses what it cannot read, and its prose stays data: the
+    // source file is kept as a resource, so a person can read the words before making a skill from them.
+    const parsed = parseDesignMd(Buffer.from(bytes).toString('utf8'));
+    if (!parsed.ok) throw usageError(`${parsed.reason}${parsed.line ? ` (line ${parsed.line})` : ''}`, parsed.code);
+    const out = coerceTokensDoc(parsed.proposal.tokens);
+    if (!out.doc) throw usageError('This DESIGN.md gave no readable tokens.', 'NO_TOKENS');
+    const notes = parsed.proposal.findings.filter(f => f.severity !== 'info').map(f => `${f.message}${f.line ? ` (line ${f.line})` : ''}`);
+    return { doc: out.doc, warnings: [...out.warnings, ...notes], kind: 'design-md', bytes, resources: [], ...(parsed.proposal.name ? { label: parsed.proposal.name } : {}) };
+  }
   if (extname(path).toLowerCase() === '.svg') {
     const colours = extractSvgColors(Buffer.from(bytes).toString('utf8'));
     if (!colours.length) throw usageError('This SVG contains no readable colour. Add it after starting a system with `lolly system add`.', 'NO_COLOUR');
@@ -361,11 +372,16 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
   }
   if (action === 'import') {
     const path = positionals[1];
-    if (!path) throw usageError('usage: lolly system import <brand.lolly|tokens.json|project.penpot|mark.svg> [--name=…]', 'MISSING_ARGUMENT');
+    if (!path) throw usageError('usage: lolly system import <brand.lolly|tokens.json|project.penpot|mark.svg|DESIGN.md> [--name=…] [--dry-run]', 'MISSING_ARGUMENT');
     const imported = await importSystemTokens(path);
     // Validate resolution now; accepting an object that cannot become a token set
     // only moves the error to the first render, where it is much harder to connect.
     createTokenSet(imported.doc);
+    if (flags['dry-run'] === '1') {
+      await emit({ dryRun: true, importedAs: imported.kind, warnings: imported.warnings, label: imported.label ?? null, tokens: imported.doc },
+        `Read ${basename(path)} as ${imported.kind}. Nothing was changed.${imported.warnings.length ? `\n${imported.warnings.map(w => `Note: ${w}`).join('\n')}` : ''}\n`, json);
+      return;
+    }
     if (flags.name === '1') throw usageError('--name needs a value.', 'MISSING_FLAG_VALUE');
     const label = flags.name || imported.label || basename(path, extname(path));
     const record = await createOrFill(label, imported.doc, { kind: 'file', name: basename(path) });
@@ -403,6 +419,11 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
       `Exported ${packed.system.label} to ${output} (${packed.bytes.byteLength} bytes).\n`, json);
     return;
   }
+  if (action === 'publish') {
+    const { publishBrandPage } = await import('./brand-page.ts');
+    await publishBrandPage(flags, json);
+    return;
+  }
   if (action === 'use') {
     const id = positionals[1];
     if (!id) throw usageError('usage: lolly system use <id>', 'MISSING_ARGUMENT');
@@ -411,7 +432,7 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
     await emit(result, `Now using ${record.label}.\n${humanStatus(result)}`, json);
     return;
   }
-  throw usageError(`Unknown system command “${action}”. Use status, list, init, import, add, export, context, check, inspect, diff, generate, sync, skills, skill or use.`, 'UNKNOWN_COMMAND');
+  throw usageError(`Unknown system command “${action}”. Use status, list, init, import, add, export, publish, context, check, inspect, diff, generate, sync, skills, skill or use.`, 'UNKNOWN_COMMAND');
 }
 
 /**

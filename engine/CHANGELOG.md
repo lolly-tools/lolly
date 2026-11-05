@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.304.0
+
+- Brand pages (new modules `brand-page.ts`, `brand-page-render.ts`, not re-exported from `index.ts`): `buildBrandPage` writes a folder that is a press kit and an agent kit, with `brand.json`, the page, `DESIGN.md`, `AGENTS.md`, `llms.txt`, tokens, checks and whatever rights allow. Same input, same bytes. Wire shapes are `@lolly-tools/core/brand-page-v1`.
+- DESIGN.md (new module `design-md.ts`, not re-exported): `writeDesignMd` targets the format's `alpha` version, one file per colourway and mode. `parseDesignMd` is bounded, refuses what it cannot read and returns a proposal.
+- `asset-rights.ts` (new, not re-exported): the rights readers and `redistribution()` moved down from the web shell, so a `.lolly` pack, a brand skill folder and a brand page give the same answer. Answers are unchanged.
+- `checkDesignHouseRules` takes an optional `selection`, so rules can run per colourway and mode. Absent, behaviour is unchanged.
+
 ## 1.303.0
 
 - Text-keeping PDF redaction: `host.pdf.redact` takes optional `keepText` (`PdfRedactOpts`) and reports `mode` (`PdfRedactResult`). The shell removes the glyphs, picture pixels and drawings under each box, keeps the rest of the page as text, then re-reads the result with Lolly's own reader and refuses it when anything is left under a box or cannot be checked. Flattening stays the default.

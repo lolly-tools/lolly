@@ -1477,6 +1477,19 @@
         "fuzzCoverage": "`video-probe` (`probeVideoContainer`) over ProRes, H.264 and DNx MOV seeds and an OP1a MXF seed",
         "notes": "Container structure only: sample entries, config records, MXF descriptors and labels. Nothing is decoded. Bytes that are none of the three containers answer null; a recognised but unreadable file throws `VideoProbeError` with a code (truncated, malformed, too-large)."
       }
+    },
+    "engine/src/design-md.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "design-md"
+      ],
+      "details": {
+        "inputSource": "A DESIGN.md the person picked with `lolly system import`, or that a design system import reads",
+        "bounds": "1 MiB of text, 40,000 lines, 4,000 tokens, YAML depth 8; anchors, aliases, repeated keys, reserved object keys and duplicate sections are refused",
+        "directTests": "`tests/design-md.test.ts`, `tests/brand-page-cli.test.ts`",
+        "fuzzCoverage": "`design-md` mutates a file the writer produced and a hand-written one with fenced token blocks",
+        "notes": "The format is alpha, so the target version is recorded. Prose is kept as text and never acted on. Scope hints are reported, and a file with no hints can still mislead a reader."
+      }
     }
   }
 }

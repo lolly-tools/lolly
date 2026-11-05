@@ -234,6 +234,27 @@ Sessions sit in `saved-state/<slot>.json` there, in the record the desktop app w
 
 Terminal design systems are kept differently. `lolly system init`, `import`, `add` and `use` store them under `design-systems/`, with the list in `design-systems.json`, in whichever directory the order above picks. A bare `lolly` in a terminal also records there that you have seen its start screen.
 
+## Publish a brand page
+
+`lolly system publish --out=<dir>` writes one folder that works as a press kit and an agent kit: `index.html` with its markdown twin `index.md`, `brand.json`, `DESIGN.md`, `AGENTS.md`, `llms.txt`, `checks.json`, tokens per colourway and mode, and the logos, fonts, public brand skills and examples that may go public. Nothing leaves your machine. You read the folder and host the folder where you choose.
+
+The source is `--file=<tokens>`, then a content profile you name with `--profile=<name>` or `LOLLY_PROFILE`, then the active terminal system. A profile is never published by default, and a pack marked as managed also needs `--manager-allows`.
+
+| Flag | What it does |
+|---|---|
+| `--out=<dir>` | The folder to write. It must be new or empty. |
+| `--origin=<url>` | The address the folder will be served from, recorded in `brand.json`. |
+| `--usage-file=<file>` | The publisher's own words. A text file is the usage statement. A JSON file may hold `statement`, `contact`, `url` and `fonts`, where each family gives a `url` and `licence`. |
+| `--include=<id,id>` | Logos to publish although no licence is recorded for them: your stated choice. |
+| `--no-examples` | Leave out the drawn examples. |
+| `--name=<name>`, `--id=<id>` | Override the name and the id. |
+
+**What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A font file needs a recorded licence that allows passing the file on, and `--include` does not change that: the page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.
+
+**What is checked.** `checks.json` holds contrast measurements of the colour pairs in every colourway and mode, and house rule checks on example documents. These measure token pairs and examples. They do not judge a finished piece.
+
+The same input gives the same bytes, so you can build twice and compare the folders.
+
 ## Shell completion (lolly completion)
 
 `lolly completion bash|zsh|fish` prints a completion script for verbs, flags and the tool ids in the active profile's catalog:
