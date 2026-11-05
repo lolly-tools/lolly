@@ -188,6 +188,8 @@ Output [retention](configuration.md#policy), when configured, also ends a URL: t
 { "renderApi": { "urlApi": { "actAs": "<service token id>" } } }
 ```
 
+These URLs keep working. If output [retention](configuration.md#policy) removes the file, or the stored file is lost, the next request makes a new render and later requests reuse that one. A failed render answers `502` for a minute, then the next request tries again. These renders run at normal priority, so under load a URL can answer `503` with `Retry-After` while the render finishes.
+
 Existing signed URLs keep working with a host change alone, if you give the template the old private token:
 
 ```json
