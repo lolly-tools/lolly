@@ -630,6 +630,10 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
 .start-import-folder { align-self: center; cursor: pointer; margin-top: var(--sp-4); }
 .ds-declared-keep { display: flex; flex-direction: column; gap: var(--sp-3); font-size: var(--fs-md); }
 .ds-declared-prose { max-height: 240px; margin: 0; padding: var(--sp-4); overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: var(--fs-sm); line-height: 1.5; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
+.ds-declared-flag-head { margin: 0; font-size: var(--fs-md); font-weight: 700; }
+.ds-declared-flags { display: flex; flex-direction: column; gap: var(--sp-3); margin: 0; padding: 0; list-style: none; font-size: var(--fs-sm); line-height: 1.45; color: hsl(var(--muted-foreground)); }
+.ds-declared-flags li { display: flex; flex-direction: column; gap: var(--sp-1); }
+.ds-declared-flags strong { font-weight: 600; color: hsl(var(--foreground)); overflow-wrap: anywhere; }
 .ds-declared-usage { margin: 0; font-size: var(--fs-md); line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .start-import-drophint { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); margin-top: -8px; overflow-wrap: anywhere; }
 /* "or drag & drop it here" is desk copy: with touch as the only pointer the button

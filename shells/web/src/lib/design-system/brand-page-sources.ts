@@ -30,7 +30,7 @@ import { readFontEmbedding } from '../font-utils.ts';
 import { fetchTemplateSeed } from '../template-source.ts';
 import { listLogos } from '../brand-logos.ts';
 import { listUserFonts, type UserFontsHost } from '../../user-fonts.ts';
-import { briefSkillAssets, listActiveBrandSkills, readBrandSkillFiles, skillBelongsTo } from './brand-skills.ts';
+import { briefSkillAssets, listOfferedBrandSkills, readBrandSkillFiles, skillBelongsTo } from './brand-skills.ts';
 import { brandExample, EXAMPLE_TEXT } from './brand-examples.ts';
 import { createDraftHost } from './draft-host.ts';
 import { usageSystem, type UsageHost } from './usage-model.ts';
@@ -176,7 +176,7 @@ async function readFonts(host: BrandPageHost, refs: readonly AssetRef[], held: B
 }
 
 async function readSkills(host: BrandPageHost, doc: unknown, name: string, held: BrandPageHeldV1[]): Promise<{ skills: BrandPageSkillInputV1[]; assets: DesignBriefAssetV1[] }> {
-  const active = await listActiveBrandSkills(host);
+  const active = await listOfferedBrandSkills(host);
   const skills: BrandPageSkillInputV1[] = [];
   for (const skill of active) {
     const { entry } = skill;

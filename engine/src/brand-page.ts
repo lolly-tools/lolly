@@ -371,9 +371,12 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   const idCandidate = slug(input.id ?? identity?.id ?? slugifyDesignSystemId(name));
   const id = (idCandidate.replace(/^-+/, '').slice(0, 48).replace(/-+$/, '')) || 'design-system';
   const raw = isRow(doc) ? doc : {};
-  const overview = text(raw.$description, 2000);
+  const stated = text(raw.$description, 2000);
+  // A description that reaches for permissions or code is not what a page leads with.
+  const overview = brandSkillScopeHints(stated).length ? '' : stated;
   const held: BrandPageHeldV1[] = (input.held ?? []).map(h => ({ item: text(h.item, 300), reason: text(h.reason, 600), kind: h.kind }));
   const hold = (item: string, reason: string, kind: BrandPageHeldKindV1): void => { held.push({ item: text(item, 300), reason: text(reason, 600), kind }); };
+  if (stated && !overview) hold('The description in the token document', 'its text speaks about permissions or running code', 'content');
 
   const files = new Map<string, BrandPageFileOutV1>();
   let total = 0;

@@ -16,7 +16,7 @@ import type { BrandSkillMetaV1 } from '@lolly-tools/core/brand-skill-v1';
 import { brandPageDigest } from '../../../../../../engine/src/brand-page.ts';
 import { bytesToHex, sha256 } from '../../../../../../engine/src/bytes.ts';
 import { parseDesignMd } from '../../../../../../engine/src/design-md.ts';
-import { coerceTokensDoc } from '@lolly/engine';
+import { brandSkillScopeHints, coerceTokensDoc } from '@lolly/engine';
 
 /** A `DESIGN.md` is hand-written text. */
 export const DESIGN_MD_MAX_BYTES = 2 * 1024 * 1024;
@@ -59,16 +59,18 @@ const kebab = (text: string): string => text.normalize('NFKD').toLowerCase().rep
 
 /**
  * The source's words as a skill record's body. The front matter is ours and the
- * words are theirs, so a heading says where they came from and the description says
- * nobody has reviewed them.
+ * words are theirs, so a heading and the description say where they came from. The
+ * record's status says nobody has kept them yet.
  */
-export function draftSkillOf(prose: string, title: string): DeclaredDraftSkill | null {
+export function draftSkillOf(prose: string, stated: string): DeclaredDraftSkill | null {
   const body = prose.trim();
   if (!body) return null;
+  // The record's own words stay ours: a file's name can say anything.
+  const title = brandSkillScopeHints(stated).length ? 'Imported source' : stated;
   const slug = kebab(title);
   const name = isAgentSkillName(`${slug}-notes`) ? `${slug}-notes` : 'imported-notes';
   const label = `${title.trim().slice(0, 80)} notes`;
-  const description = `Notes that came with ${title.trim().slice(0, 120)}. A draft nobody has reviewed yet.`;
+  const description = `Notes that came with ${title.trim().slice(0, 120)}.`;
   const markdown = `---\nname: ${name}\ndescription: ${JSON.stringify(description)}\n---\n\n# ${label.replace(/[\r\n]+/g, ' ')}\n\n${body}\n`;
   return { name, label, description, markdown };
 }
@@ -153,7 +155,15 @@ export async function readBrandPageFolder(input: Readonly<Record<string, Uint8Ar
   const designMd = listed.find(entry => entry.path === 'DESIGN.md');
   const parsed = designMd ? parseDesignMd(new TextDecoder().decode(files[designMd.path])) : null;
   const prose = parsed?.ok ? parsed.proposal.prose : '';
-  const name = typeof manifest.name === 'string' && manifest.name.trim() ? manifest.name.trim().slice(0, 120) : null;
+  const stated = typeof manifest.name === 'string' && manifest.name.trim() ? manifest.name.trim().slice(0, 120) : null;
+  const name = stated && !brandSkillScopeHints(stated).length ? stated : null;
+  // A description becomes the system's own words once applied, and agents read those.
+  const doc = { ...(extraction.doc as Record<string, unknown>) };
+  const findings = [...extraction.warnings];
+  if (typeof doc.$description === 'string' && brandSkillScopeHints(doc.$description).length) {
+    delete doc.$description;
+    findings.push('The description speaks about permissions or running code, so it was left out.');
+  }
   const usage = manifest.usage && typeof manifest.usage === 'object' ? {
     ...(typeof manifest.usage.statement === 'string' && manifest.usage.statement.trim() ? { statement: manifest.usage.statement.slice(0, 4000) } : {}),
     ...(typeof manifest.usage.contact === 'string' && manifest.usage.contact.trim() ? { contact: manifest.usage.contact.slice(0, 300) } : {}),
@@ -161,9 +171,7 @@ export async function readBrandPageFolder(input: Readonly<Record<string, Uint8Ar
   return {
     ok: true,
     source: {
-      method: 'brand-page', label, name,
-      doc: extraction.doc as Record<string, unknown>,
-      findings: extraction.warnings,
+      method: 'brand-page', label, name, doc, findings,
       prose,
       draftSkill: draftSkillOf(prose, name ?? label),
       usage: usage && Object.keys(usage).length ? usage : null,

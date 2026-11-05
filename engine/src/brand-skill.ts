@@ -85,10 +85,10 @@ const BARE_URL = /https?:\/\/[^\s`'"<>()[\]]+/g;
  * reads these as lint. They are no safety claim: a skill without them can still mislead.
  */
 const SCOPE_PATTERNS: Array<{ code: string; pattern: RegExp; message: string }> = [
-  { code: 'scope.override', pattern: /\b(ignore|disregard|forget)\b.{0,30}\b(previous|prior|above|earlier|other|system)\b.{0,20}\b(instructions?|prompts?|rules?)\b/i, message: 'Asks the reader to set aside other instructions. A brand skill speaks for brand intent only.' },
-  { code: 'scope.permission', pattern: /\b(you (are|have been) (granted|given|allowed)|grant yourself|without asking|do not ask (for )?(permission|confirmation))\b/i, message: 'Speaks about permissions. Grants decide what an agent may do; a skill cannot.' },
+  { code: 'scope.override', pattern: /\b(ignore|disregard|forget)\b.{0,30}\b(previous|prior|above|earlier|other|system)\b.{0,20}\b(instructions?|prompts?|rules?)\b|\b(ignore|disregard|forget)\b.{0,40}\b(instructions?|prompts?)\b/i, message: 'Asks the reader to set aside other instructions. A brand skill speaks for brand intent only.' },
+  { code: 'scope.permission', pattern: /\b(you (are|have been) (granted|given|allowed)|you (now )?have (full |admin |root )?(permission|access|authori[sz]ation)|you are (now )?(authori[sz]ed|permitted)|grant yourself|without asking|do not ask (for )?(permission|confirmation))\b/i, message: 'Speaks about permissions. Grants decide what an agent may do; a skill cannot.' },
   { code: 'scope.tools', pattern: /^\s*allowed-tools\s*:/i, message: 'Names allowed tools. Lolly does not grant tools from a brand skill.' },
-  { code: 'scope.execute', pattern: /\b(curl|wget)\b[^|\n]*\|\s*(ba|z)?sh\b|\b(run|execute)\s+(this|the following)\s+(command|script|code)\b/i, message: 'Asks the reader to run code. A brand skill is guidance, not a script.' },
+  { code: 'scope.execute', pattern: /\b(curl|wget)\b[^|\n]*\|\s*(ba|z)?sh\b|\b(run|execute)\s+(this|the following)\s+(command|script|code)\b|\b(run|execute)\b[^.\n]{0,40}\b(commands?|shell)\b|\b(run|execute)\s+`/i, message: 'Asks the reader to run code. A brand skill is guidance, not a script.' },
 ];
 
 export function brandSkillScopeHints(text: string): BrandSkillFindingV1[] {

@@ -5,6 +5,7 @@
  * statement. All of it is someone else's text, so it is set with `textContent` and
  * goes no further than this card unless the person keeps the words.
  */
+import { brandSkillScopeHints } from '@lolly/engine';
 import { t, tRaw } from '../../i18n.ts';
 import type { DeclaredDraftSkill, DeclaredRead, DeclaredSource } from './sources/declared.ts';
 
@@ -56,7 +57,22 @@ export function declaredReviewNodes(source: DeclaredSource, asWritten: boolean):
     label.append(box, node('span', '', t('Keep this source’s words as a draft brand skill')));
     const read = node('details', 'ds-reference-details');
     read.append(node('summary', '', t('Read the words first')));
-    read.append(node('p', 'ds-src-stage-note', t('Someone else wrote these. A draft stays internal until you change that.')));
+    read.append(node('p', 'ds-src-stage-note', t('Someone else wrote these.')));
+    read.append(node('p', 'ds-src-stage-note', t('Agents and brand pages do not see a draft until you press Keep this skill in Skills.')));
+    // The lines that reach past brand guidance, where the person reads them. Lint, not a safety claim.
+    const lines = source.prose.split('\n');
+    const hints = brandSkillScopeHints(source.prose);
+    if (hints.length) {
+      read.open = true;
+      read.append(node('p', 'ds-declared-flag-head', t('Read these lines closely:')));
+      const flags = node('ul', 'ds-declared-flags');
+      for (const hint of hints.slice(0, 20)) {
+        const row = node('li', '');
+        row.append(node('strong', '', (lines[(hint.line ?? 1) - 1] ?? '').trim().slice(0, 300)), node('span', '', hint.message));
+        flags.append(row);
+      }
+      read.append(flags);
+    }
     read.append(node('pre', 'ds-declared-prose', source.prose));
     wrap.append(label, read);
     controls.push(wrap);

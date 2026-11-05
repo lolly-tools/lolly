@@ -177,6 +177,37 @@ export async function keepDraftSkill(host: DraftSkillHost, draft: DeclaredDraftS
   return id;
 }
 
+/**
+ * A draft held on this device that came from someone else's file. It shows in the Skills
+ * room, for the person to read. Every other surface leaves the draft out: an agent's brief,
+ * an agent's links and a brand page. A person keeping the skill is what changes that.
+ */
+export function isUnkeptDraft(skill: Pick<ActiveBrandSkill, 'ref' | 'entry'>): boolean {
+  return (skill.ref.source === 'user' || skill.ref.id.startsWith('user/')) && skill.entry.status === 'draft';
+}
+
+/** The skills an agent or a brand page may be offered: everything but unkept drafts. */
+export async function listOfferedBrandSkills(host: BrandSkillHost): Promise<ActiveBrandSkill[]> {
+  return (await listActiveBrandSkills(host)).filter(skill => !isUnkeptDraft(skill));
+}
+
+/** What keeping or deleting a draft needs from the bridge. */
+export interface DraftDecisionHost {
+  assets: {
+    _updateUserAssetMeta?(id: string, meta: Record<string, unknown>): Promise<void>;
+    _deleteUserAsset?(id: string): Promise<unknown>;
+  };
+}
+
+/**
+ * A person read a draft and keeps the words. The record then says the brand stands behind
+ * them, and it stays internal, so a brand page still leaves the text out.
+ */
+export async function keepImportedSkill(host: DraftDecisionHost, skill: Pick<ActiveBrandSkill, 'ref' | 'meta'>, today = new Date().toISOString().slice(0, 10)): Promise<void> {
+  if (!host.assets._updateUserAssetMeta) throw new Error('This host cannot keep a skill.');
+  await host.assets._updateUserAssetMeta(skill.ref.id, { ...skill.ref.meta, skill: { ...skill.meta, status: 'approved', reviewed: today } });
+}
+
 /** The brief rows for the active skills, so `designBrief` lists them without bodies. */
 export function briefSkillAssets(skills: readonly ActiveBrandSkill[]): DesignBriefAssetV1[] {
   return skills.map((s) => ({
@@ -187,7 +218,7 @@ export function briefSkillAssets(skills: readonly ActiveBrandSkill[]): DesignBri
 
 /** The catalog facts a web brief adds: the active skills, or null when there are none. */
 export async function briefSkillCatalog(host: BrandSkillHost): Promise<{ assets: DesignBriefAssetV1[] } | null> {
-  const skills = await listActiveBrandSkills(host);
+  const skills = await listOfferedBrandSkills(host);
   return skills.length ? { assets: briefSkillAssets(skills) } : null;
 }
 
@@ -216,7 +247,7 @@ export function agentBrandSkillLinks(skills: readonly ActiveBrandSkill[], scope:
 
 /** The brand skills for one open tool, read from the active design system. */
 export async function agentBrandSkills(host: BrandSkillHost, scope: BrandSkillScopeV1): Promise<AgentBrandSkillLink[]> {
-  return agentBrandSkillLinks(await listActiveBrandSkills(host), scope);
+  return agentBrandSkillLinks(await listOfferedBrandSkills(host), scope);
 }
 
 /** Bytes from a catalog path on this instance, refusing an error response. */

@@ -9,6 +9,9 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 ## 1.309.0
 
 - `buildBrandPage` takes an optional `madeWith`. The page's "Made with Lolly" footer stays on unless it is `false`, and the digest follows the bytes as usual.
+- `brandPageOutlines` moved from node-shell into `brand-page.ts`, so the web shell and the CLI draw specimens with one implementation.
+- `brandSkillScopeHints` also flags "ignore every instruction", a claim of permission or access, and a request to run a command or inline code.
+- A token document's description with such a line stays off a brand page and is listed as held back. `parseDesignMd` leaves out a name or description with such a line and says so in its findings.
 
 ## 1.308.0
 
