@@ -5,7 +5,12 @@ import { mountReferencePreview } from '../../lib/design-system/reference-preview
 import { segHtml } from '../../lib/seg.ts';
 import { t, tRaw } from '../../i18n.ts';
 import type { DesignCensus } from '../../lib/design-system/census.ts';
-import { referenceLook, referenceReport, type ReferenceEvidence } from '../../lib/design-system/reference-look.ts';
+import { declaredLook, referenceLook, referenceReport, type ReferenceEvidence } from '../../lib/design-system/reference-look.ts';
+import { declaredReviewNodes, declaredRefusal } from '../../lib/design-system/declared-review.ts';
+import { keepDraftSkill } from '../../lib/design-system/brand-skills.ts';
+import { censusFromTokensDoc, docNeedsMappingReview } from '../../lib/design-system/sources/file.ts';
+import type { DeclaredRead, DeclaredSource } from '../../lib/design-system/sources/declared.ts';
+import { modeAxis, readTokenAxes } from '@lolly/engine';
 import { styleEvidenceHtml } from '../../lib/design-system/style-evidence-view.ts';
 import { saveBlob } from '../../pro/zip.ts';
 import { bindOp, type StartCtx } from './context.ts';
@@ -25,7 +30,26 @@ export function cancelReference(start: StartCtx): void {
   start.referencePreviewCancel = undefined;
 }
 
-export function reviewReference(start: StartCtx, census: DesignCensus, evidence: ReferenceEvidence): void {
+/**
+ * A `DESIGN.md` or a brand page folder, into the same review. A document that names
+ * its roles is shown and installed as written; one that names none has nothing to show
+ * as written, so the person chooses the source colour as they would for any reference.
+ */
+export function reviewDeclaredRead(start: StartCtx, read: DeclaredRead, label: string): void {
+  if (!read.ok) {
+    start.feedback.showImportError(declaredRefusal(read, label));
+    return;
+  }
+  const { source } = read;
+  start.reference.reviewReference(
+    censusFromTokensDoc(source.doc, source.label),
+    { method: source.method, label: source.label },
+    source,
+    !docNeedsMappingReview(source.doc),
+  );
+}
+
+export function reviewReference(start: StartCtx, census: DesignCensus, evidence: ReferenceEvidence, declared?: DeclaredSource, asWritten = false): void {
   const stage = start.importModal?.el.querySelector<HTMLElement>('[data-ds-stage]:not([hidden])');
   if (!stage) return;
   start.referencePreviewCancel?.();
@@ -45,20 +69,22 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
   const nameLabel = node('label', 'field-label', t('Name for a new design system'));
   const name = node('input', 'field-input');
   name.maxLength = 80;
-  name.value = (census.name || evidence.label.replace(/\.[^.]+$/, '') || t('My design system')).slice(0, 80);
+  name.value = (declared?.name || census.name || evidence.label.replace(/\.[^.]+$/, '') || t('My design system')).slice(0, 80);
   nameLabel.append(name);
   let primary: string | undefined;
   const nameValue = (): string => name.value.trim() || t('My design system');
   const preview = node('div', 'ds-reference-preview');
   const proof = mountReferencePreview(preview, start.host);
   start.referencePreviewCancel = proof.dispose;
-  let theme = census.colors.length ? referenceLook(census, nameValue(), evidence).roles.surfaceLook : 'light';
+  const statedDoc = declared && asWritten ? declared.doc : null;
+  const statedModes = statedDoc ? modeAxis(readTokenAxes(statedDoc).axes) : null;
+  let theme = statedDoc ? statedModes?.options[0]?.id ?? 'light' : census.colors.length ? referenceLook(census, nameValue(), evidence).roles.surfaceLook : 'light';
   const modes = node('div', 'ds-reference-modes');
   modes.innerHTML = segHtml('reference-mode', [{ id: 'light', label: t('Light') }, { id: 'dark', label: t('Dark') }], theme, t('Generated palette preview'));
   const contrast = node('p', 'ds-src-stage-note');
   const palette = node('div', 'ds-reference-palette');
   const paint = (): void => {
-    const look = referenceLook(census, nameValue(), evidence, primary, theme);
+    const look = statedDoc ? declaredLook(statedDoc, statedModes ? theme : undefined) : referenceLook(census, nameValue(), evidence, primary, theme);
     palette.replaceChildren();
     for (const [label, value] of [[t('Main'), look.preview.primary], [t('Background'), look.preview.surface], [t('Text'), look.preview.text], [t('On main'), look.preview.onPrimary]]) {
       const item = node('span', 'ds-reference-palette-item');
@@ -81,9 +107,11 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
     paint();
   });
 
-  if (census.colors.length) {
-    const suggested = referenceLook(census, nameValue(), evidence).roles.primary;
+  const extras = declared ? declaredReviewNodes(declared, asWritten) : null;
+  if (census.colors.length || statedDoc) {
     const choices = node('fieldset', 'ds-reference-choices');
+    if (!statedDoc) {
+    const suggested = referenceLook(census, nameValue(), evidence).roles.primary;
     choices.append(node('legend', 'field-label', t('Choose a source colour')));
     const colors = census.colors.slice(0, 12);
     const proposed = census.colors.find(c => c.hex.toLowerCase() === suggested.toLowerCase());
@@ -102,31 +130,45 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
       radio.addEventListener('change', () => { primary = color.hex; paint(); });
       choices.append(label);
     }
+    }
     const previewHead = node('div', 'ds-reference-preview-head');
-    previewHead.append(node('span', 'chip chip--flag', t('Poster preview')), modes);
+    previewHead.append(node('span', 'chip chip--flag', t('Poster preview')));
+    // A source with no modes has one look, so a Light and Dark choice would do nothing.
+    if (!statedDoc || statedModes) previewHead.append(modes);
     const workspace = node('div', 'ds-reference-workspace');
     const visual = node('div', 'ds-reference-visual');
     const controls = node('div', 'ds-reference-controls');
     visual.append(previewHead, preview);
     workspace.append(visual, controls);
     card.append(workspace);
-    controls.append(choices, node('p', 'ds-src-stage-note', t('Lolly generates light and dark palettes from your chosen colour. These modes are suggestions, not recovered brand rules.')));
+    if (statedDoc) controls.append(node('p', 'ds-src-stage-note', t('This source states its own tokens, so nothing here is generated.')));
+    else controls.append(choices, node('p', 'ds-src-stage-note', t('Lolly generates light and dark palettes from your chosen colour. These modes are suggestions, not recovered brand rules.')));
     paint();
     name.addEventListener('input', paint);
     const scope = node('div', '');
     scope.innerHTML = changeSummaryHtml(t('When you apply'), [
-      { label: t('Replace'), detail: t('Active token settings, including custom tokens, with the generated palette and default styles.') },
-      { label: t('Keep'), detail: t('Your font choices and library files.') },
+      { label: t('Replace'), detail: statedDoc ? t('Active token settings, including custom tokens, with the ones this source states.') : t('Active token settings, including custom tokens, with the generated palette and default styles.') },
+      { label: t('Keep'), detail: statedDoc ? t('Library files, and the current fonts when this source names none.') : t('Your font choices and library files.') },
       { label: t('Recover'), detail: t('Undo last import restores the previous system and its file references. Added files stay in your library.') },
     ]);
     controls.append(scope);
-    const use = node('button', 'be-cta is-active', t('Apply suggested settings'));
+    if (extras) controls.append(...extras.controls);
+    const use = node('button', 'be-cta is-active', statedDoc ? t('Apply these settings') : t('Apply suggested settings'));
     use.type = 'button';
     use.dataset.referenceApply = '';
     use.addEventListener('click', () => {
       if (use.disabled) return;
-      const look = referenceLook(census, nameValue(), evidence, primary);
-      void start.tokens.install(look.doc, nameValue(), use, { onError: error, area: 'overview', requireCheckpoint: true });
+      const doc = statedDoc ?? referenceLook(census, nameValue(), evidence, primary).doc;
+      const keep = extras?.keepDraft() ?? null;
+      void start.tokens.install(doc, nameValue(), use, {
+        onError: error, area: 'overview', requireCheckpoint: true,
+        ...(keep ? { onInstalled: () => {
+          void keepDraftSkill(start.host, keep).then(
+            () => start.exporting.showNote(tRaw('Kept {name} as a draft brand skill.', { name: keep.label })),
+            () => start.exporting.showNote(tRaw('Could not keep {name} as a draft brand skill.', { name: keep.label }), true),
+          );
+        } } : {}),
+      });
     });
     controls.append(use);
   } else {
@@ -135,8 +177,10 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
 
   const details = node('details', 'ds-reference-details');
   details.append(node('summary', '', t('Palette, source details and individual choices')));
-  if (census.colors.length) details.append(palette, nameLabel, node('p', 'ds-src-stage-note', t('The name is used only when creating a new system. Existing systems keep their name.')));
-  details.append(node('p', 'ds-src-stage-note', evidence.method === 'image'
+  if (census.colors.length || statedDoc) details.append(palette, nameLabel, node('p', 'ds-src-stage-note', t('The name is used only when creating a new system. Existing systems keep their name.')));
+  details.append(node('p', 'ds-src-stage-note', evidence.method === 'design-md' || evidence.method === 'brand-page'
+    ? t('Tokens were read from this source as written. Layout and logos were not assessed.')
+    : evidence.method === 'image'
     ? t('Colours were sampled from this image. Fonts and layout were not recognised.')
     : evidence.method === 'svg'
     ? t('Colours were read from this SVG. Fonts and layout were not assessed.')
@@ -150,7 +194,8 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
     details.append(observations);
   }
   if (census.fonts.length) {
-    details.append(node('p', 'ds-src-stage-note', t('Font names found in the source, not installed by this suggestion. The preview uses your current font. Open Type to choose or install a face.')));
+    if (statedDoc) details.append(node('p', 'ds-src-stage-note', t('The font families this source states. The design system will list them. Add the files in Type.')));
+    else details.append(node('p', 'ds-src-stage-note', t('Font names found in the source, not installed by this suggestion. The preview uses your current font. Open Type to choose or install a face.')));
     const fonts = node('ul', '');
     for (const font of census.fonts.slice(0, 12)) fonts.append(node('li', '', font.family));
     details.append(fonts);
@@ -179,7 +224,8 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
       await saveBlob(new Blob([JSON.stringify({ ...referenceReport(census, nameValue(), evidence, primary), posterPreview: proof.report() }, null, 2)], { type: 'application/json' }), 'lolly-design-context.json');
     } catch { error(t('Could not save the file. Please try again.')); }
   });
-  details.append(download);
+  if (!statedDoc) details.append(download);
+  if (extras) details.append(...extras.details);
   if (evidence.sha256) details.append(node('p', 'ds-reference-hash', tRaw('Source SHA-256: {hash}', { hash: evidence.sha256 })));
   card.append(details, status);
   const change = node('button', 'be-btn', t('Change reference'));
@@ -199,5 +245,5 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
 }
 
 export function referenceOps(start: StartCtx) {
-  return { cancelReference: bindOp(start, cancelReference), reviewReference: bindOp(start, reviewReference) };
+  return { cancelReference: bindOp(start, cancelReference), reviewReference: bindOp(start, reviewReference), reviewDeclaredRead: bindOp(start, reviewDeclaredRead) };
 }

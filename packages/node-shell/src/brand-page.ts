@@ -13,9 +13,8 @@ import { join } from 'node:path';
 
 import { createTokenSet, designBrief } from '@lolly/engine';
 import type {
-  BrandPageAssetInputV1, BrandPageDocumentInputV1, BrandPageFontInputV1, BrandPageInputV1, BrandPageOutlineV1, BrandPageSkillInputV1,
+  BrandPageAssetInputV1, BrandPageDocumentInputV1, BrandPageFontInputV1, BrandPageInputV1, BrandPageSkillInputV1,
 } from '../../../engine/src/brand-page.ts';
-import type { TextAPI } from '@lolly-tools/core/host-v1';
 
 import { contentRoots, contentUrlFile, toolFile, type ContentRoots } from './content-roots.ts';
 import { exportProfileBrandSkill, listProfileBrandSkills } from './brand-skills.ts';
@@ -34,7 +33,6 @@ const VECTOR_FIRST = ['svg', 'png', 'webp', 'jpg', 'jpeg'];
 const FONT_FORMATS = ['woff2', 'woff', 'otf', 'ttf'];
 /** The Design templates the house rules are tried on. */
 const RULE_DOCUMENTS = ['poster', 'slide-deck', 'pull-quote'] as const;
-const SPECIMEN_TEXT = 'Aa Bb Cc Dd Ee Ff Gg 0123456789';
 
 const pickFormat = (asset: CatalogAsset, order: readonly string[]): { format: string; url: string } | null => {
   for (const format of order) {
@@ -205,33 +203,4 @@ export function brandPageExampleValues(
   return { boxes };
 }
 
-const round = (n: number): number => Math.round(n * 100) / 100;
-
-async function outline(text: TextAPI, family: string, line: string, role: BrandPageOutlineV1['role'], weight: number, fontSize: number): Promise<BrandPageOutlineV1 | null> {
-  if (!text.fontUrl) return null;
-  const font = await text.fontUrl(family, { weight });
-  if (!font) return null;
-  const drawn = await text.toPath({ text: line, fontUrl: font.url, fontSize, ...(font.variations ? { variations: font.variations } : {}) });
-  if (!drawn.d || drawn.notdef || !drawn.bbox) return null;
-  const pad = fontSize * 0.04;
-  const { x1, y1, x2, y2 } = drawn.bbox;
-  return {
-    family, role, text: line, d: drawn.d,
-    viewBox: { x: round(x1 - pad), y: round(y1 - pad), width: round(x2 - x1 + pad * 2), height: round(y2 - y1 + pad * 2) },
-  };
-}
-
-/** The brand's name and one specimen line per family, drawn with `text`. A face the host cannot read is left to the page's plain text. */
-export async function brandPageOutlines(text: TextAPI, name: string, faces: ReadonlyArray<{ family: string; display?: boolean }>): Promise<BrandPageOutlineV1[]> {
-  const out: BrandPageOutlineV1[] = [];
-  const display = faces.find(f => f.display) ?? faces[0];
-  if (display) {
-    const drawn = await outline(text, display.family, name, 'name', 600, 160).catch(() => null);
-    if (drawn) out.push(drawn);
-  }
-  for (const face of faces) {
-    const drawn = await outline(text, face.family, SPECIMEN_TEXT, 'specimen', 400, 80).catch(() => null);
-    if (drawn) out.push(drawn);
-  }
-  return out;
-}
+export { brandPageOutlines } from '../../../engine/src/brand-page.ts';

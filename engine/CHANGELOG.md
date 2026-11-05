@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.309.0
+
+- `buildBrandPage` takes an optional `madeWith`. The page's "Made with Lolly" footer stays on unless it is `false`, and the digest follows the bytes as usual.
+
 ## 1.308.0
 
 - Brand pages (new modules `brand-page.ts`, `brand-page-render.ts`, not re-exported from `index.ts`): `buildBrandPage` writes a folder that is a press kit and an agent kit, with `brand.json`, the page, `DESIGN.md`, `AGENTS.md`, `llms.txt`, tokens, checks and whatever rights allow. Same input, same bytes. Wire shapes are `@lolly-tools/core/brand-page-v1`.

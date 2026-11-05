@@ -16,6 +16,7 @@
  * Pure: no DOM, no storage, no network.
  */
 import { BRAND_PAGE_VERSION, DESIGN_MD_TARGET } from '@lolly-tools/core/brand-page-v1';
+import type { TextAPI } from '@lolly-tools/core/host-v1';
 import type {
   BrandPageCheckVariantV1, BrandPageChecksV1, BrandPageColourPairV1, BrandPageColourwayV1, BrandPageFileRoleV1, BrandPageFileV1,
   BrandPageHeldKindV1, BrandPageHeldV1, BrandPagePairReadingV1, BrandPageRuleCheckV1, BrandPageUsageV1, BrandPageV1,
@@ -117,6 +118,8 @@ export interface BrandPageInputV1 {
   include?: readonly string[];
   /** What the host could not supply, with its reason. */
   held?: readonly BrandPageHeldV1[];
+  /** The "Made with Lolly" line in the page's footer. On unless this is false. */
+  madeWith?: boolean;
 }
 
 export interface BrandPageFileOutV1 {
@@ -155,6 +158,8 @@ export interface PageFactsV1 {
   overview: string;
   usage: BrandPageUsageV1 | null;
   origin: string | null;
+  /** Show the "Made with Lolly" footer. */
+  madeWith: boolean;
   colourways: BrandPageColourwayV1[];
   modes: Array<{ id: string; name: string }>;
   variants: PageVariantV1[];
@@ -212,6 +217,39 @@ const MEDIA: Readonly<Record<string, string>> = {
   woff2: 'font/woff2', woff: 'font/woff', ttf: 'font/ttf', otf: 'font/otf', json: 'application/json', md: 'text/markdown; charset=utf-8', txt: 'text/plain; charset=utf-8',
 };
 const mediaOf = (path: string): string => MEDIA[path.slice(path.lastIndexOf('.') + 1).toLowerCase()] ?? 'application/octet-stream';
+
+const SPECIMEN_TEXT = 'Aa Bb Cc Dd Ee Ff Gg 0123456789';
+
+const round = (n: number): number => Math.round(n * 100) / 100;
+
+async function outline(text: TextAPI, family: string, line: string, role: BrandPageOutlineV1['role'], weight: number, fontSize: number): Promise<BrandPageOutlineV1 | null> {
+  if (!text.fontUrl) return null;
+  const font = await text.fontUrl(family, { weight });
+  if (!font) return null;
+  const drawn = await text.toPath({ text: line, fontUrl: font.url, fontSize, ...(font.variations ? { variations: font.variations } : {}) });
+  if (!drawn.d || drawn.notdef || !drawn.bbox) return null;
+  const pad = fontSize * 0.04;
+  const { x1, y1, x2, y2 } = drawn.bbox;
+  return {
+    family, role, text: line, d: drawn.d,
+    viewBox: { x: round(x1 - pad), y: round(y1 - pad), width: round(x2 - x1 + pad * 2), height: round(y2 - y1 + pad * 2) },
+  };
+}
+
+/** The brand's name and one specimen line per family, drawn with `text`. A face the host cannot read is left to the page's plain text. */
+export async function brandPageOutlines(text: TextAPI, name: string, faces: ReadonlyArray<{ family: string; display?: boolean }>): Promise<BrandPageOutlineV1[]> {
+  const out: BrandPageOutlineV1[] = [];
+  const display = faces.find(f => f.display) ?? faces[0];
+  if (display) {
+    const drawn = await outline(text, display.family, name, 'name', 600, 160).catch(() => null);
+    if (drawn) out.push(drawn);
+  }
+  for (const face of faces) {
+    const drawn = await outline(text, face.family, SPECIMEN_TEXT, 'specimen', 400, 80).catch(() => null);
+    if (drawn) out.push(drawn);
+  }
+  return out;
+}
 
 /** Why an SVG cannot sit in a public folder, or null. Logos and examples are shown, so they must be inert. */
 export function brandPageSvgProblem(svg: string): string | null {
@@ -544,7 +582,7 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   const origin = input.origin && /^https?:\/\//.test(input.origin) ? input.origin.replace(/\/+$/, '').slice(0, 2000) : null;
   const orderedHeld = sortHeld(held);
   const facts: PageFactsV1 = {
-    id, name, summary: overview ? firstSentence(overview) : `The ${name} design system.`, overview, usage, origin,
+    id, name, summary: overview ? firstSentence(overview) : `The ${name} design system.`, overview, usage, origin, madeWith: input.madeWith !== false,
     colourways, modes: modes.map(m => ({ id: m.id, name: m.name })), variants, named, logos, heroLogos, faces, nameOutline, examples,
     rules, skills, checks, held: orderedHeld, tokenPaths,
     masterSize: brief.coverage.type === 'declared' && brief.master?.size ? { width: brief.master.size.width, height: brief.master.size.height } : null,

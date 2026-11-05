@@ -627,6 +627,12 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
   color: hsl(var(--muted-foreground));
 }
 .start-import-btn { cursor: pointer; }
+.start-import-folder { align-self: center; cursor: pointer; margin-top: var(--sp-4); }
+/* A phone's file picker cannot choose a folder. The zipped folder works there. */
+@media (max-width: 640px) { .start-import-folder { display: none; } }
+.ds-declared-keep { display: flex; flex-direction: column; gap: var(--sp-3); font-size: var(--fs-md); }
+.ds-declared-prose { max-height: 240px; margin: 0; padding: var(--sp-4); overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: var(--fs-sm); line-height: 1.5; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
+.ds-declared-usage { margin: 0; font-size: var(--fs-md); line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .start-import-drophint { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); margin-top: -8px; overflow-wrap: anywhere; }
 /* "or drag & drop it here" is desk copy: with touch as the only pointer the button
    above is the way in (plan 320 H8). The web-page hint stays, because it also
@@ -1064,6 +1070,11 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
   gap: 0.35em;
 }
 .ds-v-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ds-v-share { display: flex; flex-direction: column; gap: 8px; }
+.ds-v-share-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-4) var(--sp-5); }
+.ds-v-share-row > div { flex: 1 1 260px; min-width: 0; }
+.ds-v-share-name { margin: 0; font-size: var(--fs-md); font-weight: 700; }
+.ds-v-share-txt { margin: 2px 0 0; font-size: var(--fs-md); line-height: 1.45; color: hsl(var(--muted-foreground)); }
 
 .ds-v-err {
   margin: 0;
@@ -1094,7 +1105,7 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
 }
 
 /* ── Publish ──────────────────────────────────────────────────────────────── */
-.ds-v-publish {
+.ds-v-publish, .ds-v-share-rows {
   display: flex;
   flex-direction: column;
   gap: 10px;

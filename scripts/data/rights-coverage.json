@@ -339,6 +339,19 @@
       "note": "Fonts, logos and tokens travel. The design system package decides whether a catalog asset its sessions use may travel with the reviewed rules in lib/redistribution.ts, as a session share does: a held-back asset stays an external reference, a file picked in the checklist travels as the sender's choice, and the CREDITS.txt inside content/collection.lolly records both. A font package labels itself OFL only when every font is redistributable. The Tokens room's Download saves the tokens document (asset references, not their bytes) or the palette in a swatch format, and its Copy CSS and Copy put values and references on the clipboard. Outside that payload there is no credits file, and no receipt is measured."
     },
     {
+      "id": "delivery.brand-page",
+      "kind": "delivery",
+      "title": "Brand page folder and AGENTS.md, from Publish a brand page and Connect an agent",
+      "status": "not-assessed",
+      "code": [
+        "shells/web/src/lib/design-system/brand-page-sheet.ts",
+        "shells/web/src/lib/design-system/brand-page-sources.ts",
+        "shells/web/src/lib/design-system/connect-agent-sheet.ts",
+        "shells/web/src/org/brand-page-publish.ts"
+      ],
+      "note": "The engine's redistribution rule decides which logos and fonts go in, and the sheet lists what it held back with reasons. The folder is a press kit and carries no credential or credits file of its own: logo and font licences are recorded in brand.json. Examples are drawn with no credential or imprint."
+    },
+    {
       "id": "delivery.palette-export",
       "kind": "delivery",
       "title": "Palette swatch downloads",

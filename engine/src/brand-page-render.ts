@@ -270,8 +270,7 @@ ${colourChips || modeChips ? `<nav class="bar" aria-label="Look">${colourChips}$
 <main>
 ${sections.join('\n')}
 </main>
-<footer>Made with <a href="https://lolly.tools/" rel="noopener noreferrer">Lolly</a>.</footer>
-</div>
+${!f.madeWith ? '' : '<footer>Made with <a href="https://lolly.tools/" rel="noopener noreferrer">Lolly</a>.</footer>\n'}</div>
 </body>
 </html>
 `;

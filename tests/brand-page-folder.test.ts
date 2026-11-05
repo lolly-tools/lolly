@@ -115,6 +115,16 @@ test('a colourway file resolves to its own values', async () => {
   assert.match(fileOf(built, 'DESIGN.md'), /primary: "#c02020"/, 'the root file is the canonical colourway in the first mode');
 });
 
+test('the Made with Lolly line is on by default and the publisher can switch it off', async () => {
+  const on = await buildBrandPage({ tokens: colourwayDoc(), name: 'Acme' });
+  const off = await buildBrandPage({ tokens: colourwayDoc(), name: 'Acme', madeWith: false });
+  const page = (build: typeof on): string => decode(build.files.find(f => f.path === 'index.html')!.bytes);
+  assert.match(page(on), /Made with <a href="https:\/\/lolly\.tools\/"/);
+  assert.doesNotMatch(page(off), /Made with/);
+  assert.doesNotMatch(page(off), /<footer>/);
+  assert.notEqual(on.manifest.digest, off.manifest.digest);
+});
+
 test('a logo with no recorded licence is held back unless the publisher names it', async () => {
   const held = await buildBrandPage(input());
   assert.ok(held.manifest.files.some(f => f.path === 'logos/acme/logo/open.svg'));

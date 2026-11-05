@@ -30,7 +30,8 @@ import { instancePath } from '../instance.ts';
 import { t } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { metaRow, type MetaKey } from '../meta-rows.ts';
-import type { ActiveRecord } from './active.ts';
+import { activeMaterialSystem, type ActiveRecord } from './active.ts';
+import { draftSkillMeta, type DeclaredDraftSkill } from './sources/declared.ts';
 
 /** The host slice skills are read through. Structural: any caller's host fits. */
 export interface BrandSkillHost {
@@ -38,6 +39,7 @@ export interface BrandSkillHost {
     query(filter: AssetQuery): Promise<AssetRef[]>;
     get(id: string): Promise<AssetRef>;
     bytes?(target: AssetRef | string): Promise<Uint8Array>;
+    _listUserAssets?(): Promise<AssetRef[]>;
   };
   tokens?: unknown;
 }
@@ -141,7 +143,38 @@ async function activeRecordOf(host: BrandSkillHost): Promise<ActiveRecord | null
 export async function listActiveBrandSkills(host: BrandSkillHost): Promise<ActiveBrandSkill[]> {
   let refs: AssetRef[];
   try { refs = await host.assets.query({ type: 'skill' }); } catch { return []; }
-  return activeSkillsOf(refs, await activeRecordOf(host));
+  // The person's own skills live with their uploads, which a catalog query does not read.
+  const own = await host.assets._listUserAssets?.().catch(() => []) ?? [];
+  return activeSkillsOf([...refs, ...own.filter(ref => ref.type === 'skill')], await activeRecordOf(host));
+}
+
+/** What keeping a draft needs: a place to write the skill, and a way to see an id is taken. */
+export interface DraftSkillHost {
+  assets: {
+    _uploadUserAsset(record: { id: string; type: 'skill'; format: 'md'; blob: Blob; meta: Record<string, unknown> }): Promise<void>;
+    _getUserRecord?(id: string): Promise<unknown>;
+  };
+  tokens?: unknown;
+}
+
+/**
+ * Keep an imported source's words as a draft skill of the active design system. It is
+ * marked internal and unapproved, so it reaches no brand page and no one is told the
+ * brand agreed to these words. An id already in use gets a number rather than replacing what is
+ * there. Returns the new id.
+ */
+export async function keepDraftSkill(host: DraftSkillHost, draft: DeclaredDraftSkill): Promise<string> {
+  const { assets } = host;
+  const { ns } = await activeMaterialSystem(host);
+  let id = `${ns}skill/${draft.name}`;
+  for (let n = 2; await assets._getUserRecord?.(id).catch(() => null); n++) id = `${ns}skill/${draft.name}-${n}`;
+  const name = id.slice(id.lastIndexOf('/') + 1);
+  const markdown = name === draft.name ? draft.markdown : draft.markdown.replace(`name: ${draft.name}\n`, `name: ${name}\n`);
+  await assets._uploadUserAsset({
+    id, type: 'skill', format: 'md', blob: new Blob([markdown], { type: 'text/markdown' }),
+    meta: { name: draft.label, skill: { ...draftSkillMeta(draft), name } },
+  });
+  return id;
 }
 
 /** The brief rows for the active skills, so `designBrief` lists them without bodies. */
