@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /** One reader for the rights a catalog or user asset carries, shared by every surface that asks (plan 253). */
 import { licenceProfile, normaliseLicence, type LicenceProfileV1 } from '../../../../engine/src/rights-profiles.ts';
-import { assetLicenceDeclaration, type AssetRightsMeta } from '../../../../engine/src/asset-rights.ts';
+import { OWNER_PUBLISHED, assetLicenceDeclaration, ownerPublished, type AssetRightsMeta } from '../../../../engine/src/asset-rights.ts';
 
 // The readers moved to the engine so every shell gets the same answer.
-export { assetLicenceDeclaration, assetRightsNotices, readAssetRightsRecord } from '../../../../engine/src/asset-rights.ts';
+export { assetLicenceDeclaration, assetRightsNotices, ownerPublished, readAssetRightsRecord } from '../../../../engine/src/asset-rights.ts';
 export type { AssetRightsMeta } from '../../../../engine/src/asset-rights.ts';
 
 /** An asset's licence as words, in a short and a long form, from {@link licenceLabel}. */
@@ -38,8 +38,10 @@ export function licenceLabel(meta: AssetRightsMeta | undefined): LicenceLabel | 
   const declared = assetLicenceDeclaration(meta);
   if (!declared) return null;
   const normalised = normaliseLicence(declared);
+  const profile = normalised.id ? licenceProfile(normalised.id) : null;
+  // The same order `redistribution()` reads: a reviewed licence, then the owner's own record.
+  if (!profile?.reviewed && ownerPublished(meta?.rights)) return { short: 'Owner-published', full: OWNER_PUBLISHED, declared, profile: null };
   if (!normalised.id) return { short: declared, full: declared, declared, profile: null };
-  const profile = licenceProfile(normalised.id);
   const full = `${profile?.name ?? normalised.id}${!profile?.name && normalised.version ? ` ${normalised.version}` : ''}`;
   return { short: full.length <= normalised.id.length ? full : normalised.id, full, declared, profile };
 }
