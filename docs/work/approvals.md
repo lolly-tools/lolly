@@ -124,6 +124,34 @@ a large file waits until you choose to load the file.
 the file once it is approved, from the request's card or with `lw approvals artifact <id> --out <file>`.
 A rejected or withdrawn request never releases the file to the requester.
 
+**In the app.** The export bar shows where the current inputs stand, in the control Download would
+hold: **Request approval**, then **In review**, then **Download approved file**, with a line below
+that gives the file, such as "Approved Nov 5, 2026. SVG, 600 × 600." An approval covers one exact
+file. Change an input, the format, the width or the height and the control goes back to **Request
+approval**, and the line below reads "Changed since approval." with **See request**, which still
+holds the approved file. A new request at the new size shows **In review**, and going back to the
+approved size offers that file again. A rejected request says "Not approved." with **See why**.
+Download approved file fetches the stored bytes and runs no export, so the file is the one that was
+reviewed.
+
+The app can compare only what a file records: its format, width and height. Marks, bleed,
+transparency, text handling and other export settings are not on the record, so changing one of
+them does not change the control. The app does not measure a PDF's page size, so a PDF compares on
+format alone and its line gives no size.
+
+Requests you can decide and decisions on your own requests appear in the app's notifications.
+**Review** opens the file, its facts, a comment, **Approve** and **Reject**, under the same rules as
+the console, which stays the place for chains and history. A saved session with a request shows
+**In review** or **Approved** on its card in Projects and in its info sheet.
+
+The app shows this queue and sheet to anyone who holds `export.request` or `approval.act`, including
+a grant on one chain alone. This only tells the app to look: the routes still decide who may read a
+file, request or act.
+
+**Add to project** on an approved request puts the file in a project. A device folder keeps a
+reference to your own copy in Assets, and that copy links back to the request. A shared project
+receives a file copy, which does not carry the link. Neither reaches the organisation catalog.
+
 **What the record holds.**
 
 - The file's SHA-256, size, name, format and media type. The media type comes from the file's
