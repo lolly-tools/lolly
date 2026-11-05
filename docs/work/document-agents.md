@@ -43,7 +43,8 @@ for rendering is a different service.
 Lolly Work has one more MCP endpoint: the [organisation MCP endpoint](automation-api.md#connect-an-agent-over-mcp) at
 `/api/v1/mcp`, for automation that holds a service token and works across the instance. The two do
 not share credentials. A connection key works only on this endpoint, `/api/workspace/mcp`, for one
-document or project under your own access. A service token works only on `/api/v1/mcp`.
+document or project under your own access. A service token works only on `/api/v1/mcp`. Only the
+organisation endpoint can render and send a finished file to a destination.
 
 The key is shown only once, and closing the dialog clears it from the page. **Agents with
 access** lists every invitation, and you or a project manager can revoke one there. An editor
