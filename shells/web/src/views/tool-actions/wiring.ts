@@ -622,7 +622,8 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
   // The Download click. With `forReview`, the same export runs with the same settings
   // and the bytes go to that callback: nothing is downloaded, saved to the library or
   // sent to an export home, and no export-history row is written, because the file has
-  // not been released. It is never watermarked: it is the file being approved.
+  // not been released. An experimental tool keeps its usual mark: approval does not
+  // change what the tool is, and this is the file a reviewer must see.
   const exportClick = async (e: Event, forReview?: (file: { blob: Blob; name: string; query: string }) => void): Promise<void> => {
       // Native <button> or jelly-mode <jelly-button> - disable via the attribute,
       // which both honour (jelly syncs it onto its shadow button).
@@ -998,7 +999,6 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         } & typeof audioOpt = {
           ...exportDims,
           signal: exportAbort.signal,
-          ...(forReview ? { watermark: false } : {}),
           onProgress: (done, total) => {
             // Live take: (done, total) is a seconds countdown from the recorder. The
             // button is the one status surface guaranteed OUTSIDE the capture - the

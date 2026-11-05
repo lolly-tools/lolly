@@ -137,8 +137,8 @@ A rejected or withdrawn request never releases the file to the requester.
 
 **What a request does and does not add to the file.** Work writes nothing into the file and adds
 no watermark. The file holds what the export wrote, including any Content Credentials or Lolly
-Imprint turned on at the export bar. An experimental tool's preview watermark is left off, because
-this is the file being approved.
+Imprint turned on at the export bar. An experimental tool keeps its usual mark, so the reviewer
+sees the file exactly as it will leave.
 
 **Limits.**
 
