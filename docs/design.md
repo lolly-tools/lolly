@@ -1,5 +1,7 @@
 # Lolly Design: the free canvas
 
+<a id="design-the-free-canvas"></a>
+
 Lolly Design is the tool for layouts no template covers: a poster from scratch, a deck of slides, a motion piece with a soundtrack. Instead of a form of controls, you get a canvas of boxes you drag, resize, rotate and type into. It exports through the same render path as every other tool, so what you see on the canvas is the file you get.
 
 This page walks the canvas from the first box to a finished deck: the window, shaping boxes, drawing your own shapes, placing 3D scenes and other tools, adding time, checking the result and presenting the finished deck. [Using Lolly](/info/using.html) covers what Lolly Design shares with every tool, such as saving and sharing.

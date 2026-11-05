@@ -1,5 +1,7 @@
 # Configure your first Lolly Work instance
 
+<a id="configure-your-first-work-instance"></a>
+
 Once Lolly Work is installed, **Customer setup** at `/admin#/setup` takes the first owner
 from a fresh instance to a real owner sign-in and a downloadable, checked sample. It
 reads the running deployment and walks through the settings that need a restart. Tokens,

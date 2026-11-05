@@ -1,5 +1,7 @@
 # What Lolly Verify checks
 
+<a id="what-verify-checks"></a>
+
 Drop a file on [Lolly Verify](/#/verify) and the [Content Credential](/info/content-credentials-identity.html) is only the first thing it reads. It also looks for an AI declaration, Lolly's own invisible Imprint, other makers' watermarks, signatures from outside C2PA and data a file is quietly carrying. Each finding shows as a pip in the row under the verdict, "Verification checks at a glance", and is explained in full further down.
 
 Every check runs on your device. Two network touches can happen, and neither sends the file:

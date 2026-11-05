@@ -1,5 +1,7 @@
 # Lolly Work storage and data lifecycle
 
+<a id="work-storage-and-data-lifecycle"></a>
+
 This page is for whoever runs a Lolly Work instance and has to answer two questions: what does the service hold about people, and what happens when someone leaves or asks for their data to be removed?
 
 Lolly Work keeps shared work, uploaded files, comments, saved versions, audit records and optional usage events in its database and file storage. Each kind has its own retention rule, listed below. One command, `lw users erase`, removes a person's account and the records linked to the account. It never deletes shared work to make that possible, and it cannot reach copies on people's devices, in downloads or in backups, so plan for those separately.

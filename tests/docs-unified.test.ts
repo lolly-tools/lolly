@@ -55,7 +55,7 @@ test('public Work links resolve relative guides, assets, fragments and instance 
   const publicText = publicWorkMarkdown(markdown, provider, registry);
   assert.ok(publicText.includes(`/info/${page('work-install').path}.html?mode=demo#9-connect-a-source`));
   assert.ok(publicText.includes('/info/shots/work/provider-gdrive-setup.svg'));
-  assert.ok(publicText.includes('`/admin#/providers` on your Work instance'));
+  assert.ok(publicText.includes('`/admin#/providers` on your Lolly Work instance'));
   assert.ok(publicText.includes('[unchanged](../install.md)'));
   assert.ok(publicWorkMarkdown('[guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md#first)', page('deployment'), registry).includes(`/info/${page('work-install').path}.html#first`));
 });

@@ -1,5 +1,7 @@
 # Configure Lolly Work export signing
 
+<a id="configure-work-export-signing"></a>
+
 Give a Lolly Work deployment a signing identity and **every export the server makes**
 carries a signed C2PA Content Credential: renders, share, embed and download links,
 guest links and the Chromium worker's output. Anyone can check the credential and see if

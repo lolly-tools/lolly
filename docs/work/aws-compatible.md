@@ -1,5 +1,7 @@
 # Run Lolly Work on AWS or MulgaDC Spinifex
 
+<a id="run-work-on-aws-or-mulgadc-spinifex"></a>
+
 Lolly Work runs on Amazon Web Services and on clouds that offer the same APIs, such as
 [MulgaDC Spinifex](https://mulgadc.com), a private cloud you run on your own hardware, in
 your own data centre or at the edge. The same AWS command line tool, Terraform or Packer

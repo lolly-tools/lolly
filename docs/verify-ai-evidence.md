@@ -1,5 +1,7 @@
 # AI evidence in Lolly Verify
 
+<a id="ai-evidence-in-verify"></a>
+
 Someone sends you an article, a report or a slide deck, and you wonder whether a model wrote the words. Drop the file on [Lolly Verify](/#/verify), or paste the text. Lolly marks the places where the words or the layout look like typical generated work: the exact phrases, headings and page regions, why each one counts and what else could explain the pattern.
 
 You get evidence, not a verdict. The checks run on your device, in the app and in the command line, and start on their own when you open a file or paste text. Nothing is uploaded unless you send a file to the MCP server yourself.

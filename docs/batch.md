@@ -1,5 +1,7 @@
 # Lolly Batch and Lolly Multi-edit
 
+<a id="batch-and-multi-edit"></a>
+
 Two jobs come up once you make the same kind of file often. Sometimes you need many versions of one design: a card in a dozen languages, or every size of a banner. Sometimes you have several different saved designs and want one change to reach all of them, such as a new date or a new headline.
 
 **Lolly Batch** does the first job and **Lolly Multi-edit** does the second. Both run on your device and export through the same render path as the tools themselves.

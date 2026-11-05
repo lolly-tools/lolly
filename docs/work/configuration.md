@@ -1,5 +1,7 @@
 # Lolly Work instance configuration
 
+<a id="work-instance-configuration"></a>
+
 A Lolly Work server takes its settings from three places. Knowing which one holds a setting tells you
 whether changing it needs a restart, and whether the value is safe to keep in version control.
 

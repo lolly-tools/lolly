@@ -12,7 +12,7 @@ The home screen: four tabs along the top and the bar at the foot. A tool, once o
 
 Four tabs run along the top of the home screen: **Tools**, **Utilities**, **Assets** and **Projects**. Tools are what you make with, Utilities are workbenches for jobs such as converting, checking or cleaning up a file, Assets is your library and Projects holds what you saved.
 
-The bar at the foot holds **Open**, **Settings**, a search field, **Lolly Verify** and **What?**. It shows on Tools, Utilities, Assets, Projects, Settings and the guides you read in the app, and steps aside once a tool is open. [Lolly Search](/info/search.html) reaches your tools, saved work, assets and settings from that field. [Ask Lolly](/info/ask.html) answers a typed question with the matching section of these guides.
+The bar at the foot holds **Open**, **Settings**, a search field, a **Verify** shortcut to Lolly Verify and **What?**. It shows on Tools, Utilities, Assets, Projects, Settings and the guides you read in the app, and steps aside once a tool is open. [Lolly Search](/info/search.html) reaches your tools, saved work, assets and settings from that field. [Ask Lolly](/info/ask.html) answers a typed question with the matching section of these guides.
 
 Click a card to start something new in that tool. Saved work reopens from **Projects** instead.
 

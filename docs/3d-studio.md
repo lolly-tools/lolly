@@ -1,5 +1,7 @@
 # Lolly 3D Studio
 
+<a id="3d-studio"></a>
+
 Turn a flat logo into a lit, bevelled object for a launch slide, or loop a product model on a turntable for a social post, without learning 3D software. **Lolly 3D Studio** takes SVG artwork, 3D models and words in your design system's font and renders them as stills and loops. Start with **Guided** controls, then choose **Expert** to edit the same scene in more detail.
 
 ## Make a first image

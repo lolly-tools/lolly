@@ -1,5 +1,7 @@
 # Put a CDN in front of Lolly Work
 
+<a id="put-a-cdn-in-front-of-work"></a>
+
 A CDN can serve Lolly Work's public files from places near your visitors and take load off the
 server. This page is for the operator who wants to put Bunny or Cloudflare in front of an
 instance. Lolly Work never needs a CDN: an instance with no edge configured keeps working as before,

@@ -1,5 +1,7 @@
 # Lolly Design System Setup
 
+<a id="design-system-setup"></a>
+
 Your logo, colours and typefaces belong in one place, so every tool, page and export draws with them. That place is **Lolly Design System Setup**, at `#/start`.
 
 Start with whatever you have. Drop in a logo and Lolly reads its colours. Choose a typeface, or drop the font file your company licenses. Each change shows across the whole app straight away. Your logo, fonts and tokens stay on this device. Picking a Google Font is the one step that reaches out: Lolly asks first, then fetches the family once.

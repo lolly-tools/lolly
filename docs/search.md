@@ -11,11 +11,13 @@ ROUTES table in main.ts. Two facts to keep in step with the code:
 
 # Lolly Search
 
+<a id="search"></a>
+
 Press **Ctrl-Space** and type two letters: Lolly shows the tools, saved work, assets and settings that match. One field, always in the same place at the foot of the screen, reaches all of them.
 
 ## Open search
 
-The field sits in the middle of the bar at the foot of the window, between **Open** and **Settings** on one side and **Lolly Verify** and **What?** on the other. Press **Ctrl-Space** from any screen that shows the bar, or click the field.
+The field sits in the middle of the bar at the foot of the window, between **Open** and **Settings** on one side and the **Verify** shortcut to Lolly Verify and **What?** on the other. Press **Ctrl-Space** from any screen that shows the bar, or click the field.
 
 <!--
 SHOT NOTE (srch-footer-closed): the bar `footerNav()` writes is
@@ -23,7 +25,7 @@ SHOT NOTE (srch-footer-closed): the bar `footerNav()` writes is
 Batch moved out of this bar to the Projects top bar.
 -->
 
-![the persistent search bar at rest: Open and Settings on the left, the search field with its magnifier icon and a Ctrl-Space hint chip, Lolly Verify and What? on the right](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&cropSelector=.gallery-footer&dark=1&filename=srch-footer-closed)
+![the persistent search bar at rest: Open and Settings on the left, the search field with its magnifier icon and a Ctrl-Space hint chip, the Verify shortcut to Lolly Verify and What? on the right](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&cropSelector=.gallery-footer&dark=1&filename=srch-footer-closed)
 
 ::: cols
 ## The bar shows on

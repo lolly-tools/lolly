@@ -1,5 +1,7 @@
 # Layout in Lolly Design
 
+<a id="layout-in-design"></a>
+
 A card grid that reflows when you add a card, a page of slides you can reorder, a group you move as one: this page covers the layout features of [Lolly Design](/info/using.html). It explains dynamic layouts, groups and pages, and the number fields and view controls you use to place things precisely.
 
 ## Dynamic layouts

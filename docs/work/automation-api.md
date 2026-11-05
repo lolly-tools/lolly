@@ -1,5 +1,7 @@
 # Automate with the Lolly Work API
 
+<a id="automate-with-the-work-api"></a>
+
 Your Lolly Work server can render on-brand files for a script, a pipeline or an agent, with the same
 tools, design system and policy the Lolly apps use. This page takes you from a token to a
 finished file, then covers the rest of the automation surface: schemas, the document verbs,
