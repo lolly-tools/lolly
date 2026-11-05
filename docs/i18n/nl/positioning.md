@@ -28,7 +28,7 @@ De live samenwerking van Lolly omvat directe privécollabs tussen twee apparaten
 ## Grijp naar Lolly wanneer
 
 - Hetzelfde soort bestand telkens opnieuw nodig is: evenementtegels, badges, certificaten, meldingen, socialmediakaarten
-- Veel bestanden uit één sjabloon en een tabel met waarden komen, in [Batch](/info/batch.html#make-many-versions-of-one-design) of de CLI
+- Veel bestanden uit één sjabloon en een tabel met waarden komen, in [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) of de CLI
 - De kleuren, typografie en assets binnen het design system moeten blijven, zelfs op een open canvas
 - Een afgerond Figma-, Penpot-, Illustrator-, InDesign- of PDF-ontwerp bewerkbaar en herhaalbaar moet worden ([Een ontwerp importeren](/info/design-import.html))
 - De bestanden op je eigen apparaten of servers moeten worden gemaakt

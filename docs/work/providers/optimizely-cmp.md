@@ -7,9 +7,9 @@ onto the website.
 
 ## Onboarding
 
-1. Identify the website workflow, folders or labels and Work groups. Keep CMP authoritative for its web assets. Start read-only; enable `publish` only when the outbound workflow has been separately agreed.
+1. Identify the website workflow, folders or labels and Lolly Work groups. Keep CMP authoritative for its web assets. Start read-only; enable `publish` only when the outbound workflow has been separately agreed.
 2. Register your app, obtain the sealed OAuth credential described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Inspect public, archived and expired samples before enabling the source.
-3. Confirm the documented endpoints, fields and download bytes on your tenant using [Verify](#verify) and the [tenant-check process](tenant-check.md). Test member access in one Lolly task. If publishing is needed, separately qualify the signer, grant and upload behaviour in [Publishing](#publishing-lolly-exports-out).
+3. Confirm the documented endpoints, fields and download bytes on your tenant using [Lolly Verify](#verify) and the [tenant-check process](tenant-check.md). Test member access in one Lolly task. If publishing is needed, separately qualify the signer, grant and upload behaviour in [Publishing](#publishing-lolly-exports-out).
 
 ## What you need from Optimizely CMP
 
@@ -56,7 +56,6 @@ hand against your app. `lw providers auth` refuses this kind; see
 - A folder name or a label can scope an `includeSections` slice.
 
 ## Verify
-
 ```bash
 lw providers preview --kind optimizely-cmp --options '{}'   # dry run, nothing stored
 lw providers health acme-cmp

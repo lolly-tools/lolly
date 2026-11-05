@@ -18,7 +18,7 @@ Preferences는 옆에 **설정 레일**이 있고 레일 위에 입력하는 대
 
 - <!--i:usercheck--> **Your details**: 이름, 연락처, 프로필 사진, **Use my details to create** 스위치예요. [프로필](/info/profile.html)이 도구가 이를 쓰는 방식을 설명해요.
 - <!--i:seal--> **Content Credentials**: 내보내기에 서명하는 선택적 검증된 신원이에요. [Content Credentials](/info/content-credentials-identity.html)를 참고하세요.
-- <!--i:palette--> **Design systems**: 디자인 시스템을 전환, 추가, 숨기기 또는 제거해요. [Design System Setup](/info/brand-studio.html#manage-your-design-systems)이 각 동작을 다뤄요.
+- <!--i:palette--> **Design systems**: 디자인 시스템을 전환, 추가, 숨기기 또는 제거해요. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems)이 각 동작을 다뤄요.
 - <!--i:moon--> **Appearance**: 테마(Light, Dark, 또는 팔레트로 앱을 칠하는 Brand), 디자인 시스템이 둘 이상을 제공할 때의 **Your colourway**([나만의 컬러웨이 만들기](/info/colourways.html#make-a-colourway-your-own)), **Interface follows the design system**이에요.
 - <!--i:sparkle--> **Emoji**: 새로 시작할 때 이모지를 그리는 세트와 그 아트워크 라이선스, 팔레트가 이를 얼마나 강하게 다시 칠하는지(**Off**, **Subtle**, **Strong**, **Full**, **Mono**, **Duotone**)예요. **Keep skin tones and flags**는 피부색과 국기를 자체 색상으로 둬요. 이미 만든 작업물은 만들 때의 세트를 유지해요.
 - <!--i:eyeoff--> **Accessibility**: 편의 스위치 네 개와 Sound 및 Neurospicy Mode예요. [접근성](#accessibility)을 참고하세요.
@@ -107,7 +107,7 @@ Lolly는 방문한 화면을 캐시하지만, 이미 가 본 곳만 다뤄요. *
 - <!--i:sliders--> **Tokens**: 반경, 간격, 효과, 그라디언트예요.
 - <!--i:document--> **Print & CMYK**: 정확한 잉크에 고정된 색상과 CMYK PDF가 선언할 수 있는 인쇄 조건이에요.
 
-전환이 이 탭이 하는 유일한 변경이에요. 디자인 시스템은 표지가 연결해 주는 `#/start`의 [Design System Setup](/info/brand-studio.html)에서 편집해요. 읽기 전용 시스템은 표지에 그렇게 표시되며, 직접 만든 로컬 시스템은 계속 편집할 수 있어요. `/b`와 `/brand`는 이 탭으로 바로 가는 짧은 링크예요.
+전환이 이 탭이 하는 유일한 변경이에요. 디자인 시스템은 표지가 연결해 주는 `#/start`의 [Lolly Design System Setup](/info/brand-studio.html)에서 편집해요. 읽기 전용 시스템은 표지에 그렇게 표시되며, 직접 만든 로컬 시스템은 계속 편집할 수 있어요. `/b`와 `/brand`는 이 탭으로 바로 가는 짧은 링크예요.
 
 ## Capabilities
 
@@ -139,4 +139,4 @@ Settings의 모든 탭과 섹션에는 북마크하거나 붙여넣을 수 있�
 
 ---
 
-**관련 문서:** 내 세부 정보와 만드는 맥락은 [프로필](/info/profile.html), Design system 탭이 보여주는 것의 편집은 [Design System Setup](/info/brand-studio.html), 저장소, 백업, 기기 이동은 [작업물 찾기와 복구](/info/find-your-work.html)를 참고하세요.
+**관련 문서:** 내 세부 정보와 만드는 맥락은 [프로필](/info/profile.html), Design system 탭이 보여주는 것의 편집은 [Lolly Design System Setup](/info/brand-studio.html), 저장소, 백업, 기기 이동은 [작업물 찾기와 복구](/info/find-your-work.html)를 참고하세요.

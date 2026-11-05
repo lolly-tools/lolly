@@ -313,6 +313,13 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
       continue;
     }
 
+    // Keep existing section links when a guide gives a product its full name.
+    const legacyAnchor = /^\s*<a id="([a-z0-9][a-z0-9-]*)"><\/a>\s*$/.exec(line);
+    if (legacyAnchor) {
+      out.push(`<span id="${legacyAnchor[1]}" aria-hidden="true"></span>`);
+      i++; continue;
+    }
+
     const hm = line.match(/^(#{1,4}) (.+)/);
     if (hm) {
       const lvl = hm[1]!.length, text = hm[2]!;

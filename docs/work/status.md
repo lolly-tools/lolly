@@ -1,17 +1,17 @@
 # What Lolly Work does today
 
 Lolly Work is the server an organisation runs beside Lolly. People keep making things on
-their own devices. Work adds the parts a team shares: one sign-in, shared projects, a
+their own devices. Lolly Work adds the parts a team shares: one sign-in, shared projects, a
 governed library of brand assets, server renders, links you can turn off, approvals and an
 audit trail.
 
-The current release is Work %work{version}, paired with Lolly %work{version}. The
+The current release is Lolly Work %work{version}, paired with Lolly %work{version}. The
 [release notes](release-1-1-3.md) list the exact component versions. This page groups what
 the release does into three lists: ready to use, worth checking against your own systems
 first and not built yet.
 
 ::: figure work-status-capabilities
-What Work %work{version} does, what to check on your own systems before you rely on it and what is not built.
+What Lolly Work %work{version} does, what to check on your own systems before you rely on it and what is not built.
 :::
 
 ## Ready to use
@@ -19,7 +19,7 @@ What Work %work{version} does, what to check on your own systems before you rely
 - **Sign-in.** Your own OpenID Connect provider (one or several), GitHub, email and password,
   passkeys, a reverse proxy or a short code for the CLI and native apps. SCIM adds, changes
   and disables people from your directory. Back-channel logout from your provider ends the
-  Work sessions that came from one provider session. See [Sign-in and sessions](identity.md).
+  Lolly Work sessions that came from one provider session. See [Sign-in and sessions](identity.md).
 - **People and access.** Roles that follow your directory groups, allow and deny grants,
   invitations with personal links, requests to join and requests for access. See
   [Roles and grants](permissions.md) and [Invite people and handle requests](invitations.md).
@@ -47,7 +47,7 @@ What Work %work{version} does, what to check on your own systems before you rely
   See [Invite an agent to a document](document-agents.md).
 - **Setup and packaging.** A six-step guided setup in the console, container images, Compose
   and a Helm chart with an optional render-worker tier. See
-  [Configure your first Work instance](customer-setup.md) and [Install Lolly Work](install.md).
+  [Configure your first Lolly Work instance](customer-setup.md) and [Install Lolly Work](install.md).
 
 Try the hosted demo at lolly.work before you install. It renders for real: `GET
 /render/<toolId>.<format>` serves live output. It holds sample data that does not persist and
@@ -55,7 +55,7 @@ runs apart from private workspaces, so use it for a trial, not as a production i
 
 ## Check on your own systems first
 
-Work's tests use recorded fixtures for identity providers and DAMs. They check the code against
+Lolly Work's tests use recorded fixtures for identity providers and DAMs. They check the code against
 each vendor's published contract. They cannot show that your tenant matches that
 contract, so run these checks before you rely on an integration.
 
@@ -70,17 +70,17 @@ Brandfolder has successful integration use reported at SUSE, including administr
 - **Delivery.** The S3 adapter has been checked live against an S3-compatible host. WebDAV
   and signed HTTPS have wire tests and opt-in checks that have not yet run against a real
   receiver. Brandfolder and Cloudinary are fixture-tested.
-- **Release artifacts.** Work %work{version} ships signed server and render-worker images for Linux
+- **Release artifacts.** Lolly Work %work{version} ships signed server and render-worker images for Linux
   amd64 and arm64, and its release record does not claim native arm64 runtime
   qualification. Choose and verify the image digests, client and worker versions, registry
   access and any `imagePullSecrets` before you install.
 - **Your pack.** `inspect:pack` and Customer setup load your tools through the installed
   engine and report incompatible requirements, missing files and unsupported server formats.
   A passing engine-pin check does not establish that your clients and workers match.
-- **Employee clients.** Work's audits, SBOM and notices cover its own deployment. Review the
+- **Employee clients.** Lolly Work's audits, SBOM and notices cover its own deployment. Review the
   desktop and mobile binaries, their third-party notices and their distribution terms in the
   Lolly release you deliver.
-- **Audit anchoring.** Work logs the audit head at boot and every hour. A database superuser
+- **Audit anchoring.** Lolly Work logs the audit head at boot and every hour. A database superuser
   can still bypass the append guard or truncate the tail, so collect heads in a store that
   your database administrators cannot change. See [Audit log](audit.md).
 - **Shell and pack on Kubernetes.** Bring a built web shell on a volume you populate; brand
@@ -111,7 +111,7 @@ when you match clients to a release.
   [Render jobs and batches](renders.md#what-a-receipt-does-not-prove).
 - **Delivery operations.** A replica-safe background claimant for queued deliveries,
   retention for staged retry bytes, and destination setup in the console or CLI.
-- **Moving a project between instances.** Work previews what a move would involve; export
+- **Moving a project between instances.** Lolly Work previews what a move would involve; export
   and import are not built. See [Preview a project transfer](project-portability.md).
 - **Several server nodes for live editing.** The live-editing server runs on one node.
 - **High availability and central publication.** Trusted central pack publication, high

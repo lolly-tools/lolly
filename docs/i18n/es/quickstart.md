@@ -24,7 +24,7 @@ La primera vez que abres la galería, una breve bienvenida ofrece las mismas opc
 
 ![La sala Colours de Design System Setup en una instalación nueva: una muestra en vivo, un campo y toda la primera decisión](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-A partir de ahí, ocho salas lo llevan tan lejos como quieras, en cualquier orden: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** y **Skills**. Todas las vistas previas de la aplicación se actualizan mientras escribes. [Design System Setup](/info/brand-studio.html) cubre cada sala.
+A partir de ahí, ocho salas lo llevan tan lejos como quieras, en cualquier orden: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** y **Skills**. Todas las vistas previas de la aplicación se actualizan mientras escribes. [Lolly Design System Setup](/info/brand-studio.html) cubre cada sala.
 
 Las fuentes se guardan en tu dispositivo. Elige una Google Font y Lolly guarda el archivo como recurso de marca, de modo que tu tipografía viaja sin conexión y no se descarga nada cuando una herramienta dibuja.
 
@@ -58,7 +58,7 @@ No empiezas desde una página en blanco.
 
 **Decks.** Suelta un `.pptx` de PowerPoint en Lolly para archivar sus diapositivas como recursos, escribe un deck nuevo desde Markdown en **Markdown Slides**, o usa [Rebrand a deck](/info/rebrand.html) para pasar todo el deck a tu design system.
 
-**Datos.** Pega o suelta una tabla CSV o JSON y los campos repetibles de una herramienta se rellenan con ella, o [Batch](/info/batch.html#make-many-versions-of-one-design) crea un archivo terminado por fila.
+**Datos.** Pega o suelta una tabla CSV o JSON y los campos repetibles de una herramienta se rellenan con ella, o [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) crea un archivo terminado por fila.
 
 ### De algo puntual a una plantilla
 
@@ -72,7 +72,7 @@ Un diseño importado es una sesión de Design normal. **Share with rules** lo co
 
 - <!--i:download--> **Exportar.** Las herramientas crean SVG, PDF, PNG, JPG, WebP, vídeo y más, en los formatos que ofrece cada herramienta, a tamaños reales de impresión cuando los necesitas. Consulta [Export a file](/info/exporting.html).
 - <!--i:link--> **Compartir un enlace.** Los ajustes de una herramienta viajan en su enlace, así que el enlace reabre el mismo archivo en cualquier parte.
-- <!--i:layers--> **Crear uno por fila.** Maneja una herramienta desde una hoja de cálculo en [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Crear uno por fila.** Maneja una herramienta desde una hoja de cálculo en [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatizar.** El mismo renderizado se ejecuta desde la [CLI](/info/cli.html) y desde un [agente de IA](/info/ai-agents.html).
 
 Un enlace es una solicitud completa. Nadie dibujó el gráfico de abajo: su tipo, su título y toda su tabla de datos se escribieron en la barra de direcciones, y el mismo enlace dibuja el mismo gráfico en cualquier dispositivo.

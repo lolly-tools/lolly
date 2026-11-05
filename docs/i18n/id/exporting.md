@@ -132,9 +132,9 @@ Lolly memiliki tiga cara bekerja dalam volume, masing-masing untuk pekerjaan ber
 ## Tabel menjadi satu dokumen
 Alat dengan input tabel, seperti **Battlecards**, mengubah setiap baris menjadi halaman. Tempel tabel dari spreadsheet Anda dan dapatkan satu PDF. Perbaiki baris di spreadsheet dan tempel lagi.
 ## CSV menjadi satu file per baris
-**Batch** (`#/batch`) menerima CSV dan merender satu ekspor untuk setiap baris: tanda pengenal atau sertifikat, satu file masing-masing, dikirim dalam ZIP. Lihat [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) menerima CSV dan merender satu ekspor untuk setiap baris: tanda pengenal atau sertifikat, satu file masing-masing, dikirim dalam ZIP. Lihat [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Beberapa desain mendapat satu suntingan
-**Multi-edit** membuka beberapa sesi tersimpan berdampingan untuk sentuhan akhir yang sama di berbagai desain. Lihat [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** membuka beberapa sesi tersimpan berdampingan untuk sentuhan akhir yang sama di berbagai desain. Lihat [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Dari **Projects**, **Render folder** mengekspor setiap sesi tersimpan dalam folder dan sub-foldernya sebagai satu ZIP bersarang, dan **Render selection** melakukan hal yang sama untuk multi-pilihan mana pun; satu sesi tersimpan dirender ke file-nya sendiri. Sesi tersimpan juga dapat dibagikan lagi sebagai tautan alat dari Projects, yang membukanya kembali dengan pengaturan yang sama.
@@ -170,7 +170,7 @@ Sebagian besar alat yang mengekspor SVG juga mengekspor **file Penpot** (`.penpo
 | Seluruh desain | Komponen yang dapat dipakai ulang di panel Assets |
 | Ilustrasi rumit atau kanvas hidup | Disematkan sendiri sebagai gambar, konten yang dapat disunting di sekitarnya tidak tersentuh |
 
-Dari Design, setiap bingkai menjadi board Penpot. Warna dan tipografi design system masuk ke panel Assets dan set tokennya yang lengkap ke panel Tokens. Penpot menyimpan salinannya sendiri dari sana: token yang disunting di Penpot kembali melalui impor di [Design System Setup](/info/brand-studio.html).
+Dari Design, setiap bingkai menjadi board Penpot. Warna dan tipografi design system masuk ke panel Assets dan set tokennya yang lengkap ke panel Tokens. Penpot menyimpan salinannya sendiri dari sana: token yang disunting di Penpot kembali melalui impor di [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Panel ekspor dengan Penpot dipilih: file .penpot, dan Send to Penpot di samping unduhan](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

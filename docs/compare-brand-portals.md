@@ -6,7 +6,7 @@ If your organisation keeps its approved assets in Bynder, Frontify, Marq or Bran
 
 ## Keeping your existing portal
 
-An existing DAM can stay the source of record. Lolly Work's catalog connectors make a selected part of its library available in Lolly, where people make new files under the organisation's rules. The DAM's supported source constraints and Work's exposure rules govern access; final output review is a separate decision.
+An existing DAM can stay the source of record. Lolly Work's catalog connectors make a selected part of its library available in Lolly, where people make new files under the organisation's rules. The DAM's supported source constraints and Lolly Work's exposure rules govern access; final output review is a separate decision.
 
 [Use Lolly with your existing DAM](/info/use-with-dam.html) explains the responsibilities and limits. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful integration that supported administrator change management before a planned migration. Keeping the source connected remains a supported choice.
 
@@ -14,7 +14,7 @@ Lolly's purpose is [content sovereignty](/info/content-sovereignty.html), includ
 
 ## What an established portal does better
 
-Established portals offer managed hosting, support and extensive asset-management workflows. For example, [Frontify's enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combines asset discovery, access controls, approval workflows and distribution. The Lolly stack is younger and its approval chains are sequential rather than arbitrary branching workflows. [Work status and roadmap](/info/work-status.html) records its deployment limits.
+Established portals offer managed hosting, support and extensive asset-management workflows. For example, [Frontify's enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combines asset discovery, access controls, approval workflows and distribution. The Lolly stack is younger and its approval chains are sequential rather than arbitrary branching workflows. [Lolly Work status and roadmap](/info/work-status.html) records its deployment limits.
 
 ## Where they overlap
 

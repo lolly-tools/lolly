@@ -22,11 +22,11 @@ Assign an owner to each area. Files, historical decisions and administrative res
 
 Start with an administrator-only source slice, run the [tenant checks](/info/work-provider-tenant-check.html) and introduce one real production task. Keep the original source authoritative while administrators and creators learn where each action belongs.
 
-Map current approval responsibilities explicitly. Decide which source approvals stay upstream, which contributions need Work catalog review and which destinations need final-byte approval. Work's current chains are ordered steps, so a branching or parallel workflow needs a separately agreed process. [Approvals](/info/work-approvals.html) describes the supported rules.
+Map current approval responsibilities explicitly. Decide which source approvals stay upstream, which contributions need Lolly Work catalog review and which destinations need final-byte approval. Lolly Work's current chains are ordered steps, so a branching or parallel workflow needs a separately agreed process. [Approvals](/info/work-approvals.html) describes the supported rules.
 
 ## Rehearse the copy and verify the gaps
 
-Choose the destination before copying. The [offboarding path chooser](/info/manage/leave-a-dam.html#choose-your-offboarding-path) starts with self-hosted Work, Nextcloud and Git, then offers a separate export-and-upload route for existing hosted drives. The [S3 storage strategy](/info/manage/leave-a-dam.html#self-host-lolly-work-with-s3-storage) connects the Work installation, PostgreSQL, private object storage and a restore rehearsal. Use the [per-DAM onboarding and offboarding guides](/info/manage/provider-guides.html#dam-onboarding-and-offboarding) to check the source's specific limits.
+Choose the destination before copying. The [offboarding path chooser](/info/manage/leave-a-dam.html#choose-your-offboarding-path) starts with self-hosted Lolly Work, Nextcloud and Git, then offers a separate export-and-upload route for existing hosted drives. The [S3 storage strategy](/info/manage/leave-a-dam.html#self-host-lolly-work-with-s3-storage) connects the Lolly Work installation, PostgreSQL, private object storage and a restore rehearsal. Use the [per-DAM onboarding and offboarding guides](/info/manage/provider-guides.html#dam-onboarding-and-offboarding) to check the source's specific limits.
 
 For a supported exit source, materialize a representative permitted set into the intended durable store. Compare originals with direct source downloads, including multi-attachment assets and files with important metadata. Record failures individually and check what the copy preserves.
 
@@ -42,6 +42,6 @@ Agree acceptance checks before setting a final date. These should include requir
 
 ## Cut over with a recovery decision
 
-Supported Work cutover moves copied identities and creates aliases for old source addresses. It changes authority and disables a database-managed source; it is not a universal undo button. Preserve the source, storage backups and the mapping evidence until the organisation has accepted the result and agreed its recovery procedure.
+Supported Lolly Work cutover moves copied identities and creates aliases for old source addresses. It changes authority and disables a database-managed source; it is not a universal undo button. Preserve the source, storage backups and the mapping evidence until the organisation has accepted the result and agreed its recovery procedure.
 
 After cutover, check old references, representative originals, permissions and approval operations again. Retire the old service only after its retention, contract and recovery requirements have been addressed. If the organisation instead keeps the DAM, [the connected production workflow](/info/use-with-dam.html) remains a supported destination for the project.

@@ -2,7 +2,7 @@
 
 Skriv et spørsmål, så svarer Ask Lolly med delen av disse veiledningene som dekker det, ord for ord, med siden den kom fra oppgitt og en **Open in docs**-lenke rett til den delen. Ingenting genereres: svaret hentes, siteres og tilskrives, på enheten din.
 
-Under den siterte delen ligger stedene i appen som matcher det samme spørsmålet: et verktøy, en utility, et lagret prosjekt, en katalogressurs, en innstilling eller en side i appen. Hver rad navigerer bare. Ingenting i et svar endrer en innstilling, åpner en fil eller handler for deg, den samme regelen som [Search](/info/search.html) følger.
+Under den siterte delen ligger stedene i appen som matcher det samme spørsmålet: et verktøy, en utility, et lagret prosjekt, en katalogressurs, en innstilling eller en side i appen. Hver rad navigerer bare. Ingenting i et svar endrer en innstilling, åpner en fil eller handler for deg, den samme regelen som [Lolly Search](/info/search.html) følger.
 
 ## Å stille et spørsmål
 
@@ -60,4 +60,4 @@ Spørsmålet ditt forlater aldri enheten. Matchingen kjører lokalt mot filer he
 
 ---
 
-**Related:** [Search](/info/search.html) for linjen som overleverer spørsmål. [Using Lolly](/info/using.html) for resten av appen. [Settings](/info/dashboard.html#available-offline) for å ta dokumentasjonen med uten nett først.
+**Related:** [Lolly Search](/info/search.html) for linjen som overleverer spørsmål. [Using Lolly](/info/using.html) for resten av appen. [Lolly Settings](/info/dashboard.html#available-offline) for å ta dokumentasjonen med uten nett først.

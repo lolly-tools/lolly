@@ -152,7 +152,7 @@ Miernik pamięci pokazuje ten sam podział. Zapisane sesje, My images i File res
 
 Ta paczka tworzy kopię zapasową osobistej biblioteki urządzenia. Nie jest kopią zapasową instancji **Lolly Work**: konta organizacji, polityki dostępu, wspólne projekty, wersje katalogu, zatwierdzenia, zadania renderowania i zapisy audytu przechowuje ta usługa. Połącz się ponownie i zaloguj, aby odzyskać dostęp do wspólnej pracy; import osobistej paczki nie daje tego dostępu.
 
-Operatorzy tworzą kopie zapasowe, przechowują i usuwają dane serwera według własnych przewodników Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) i [Work storage and data lifecycle](/info/work-data-lifecycle.html). Wyczyszczenie lub eksport urządzenia nie wykonuje żadnej z tych operacji na serwerze.
+Operatorzy tworzą kopie zapasowe, przechowują i usuwają dane serwera według własnych przewodników Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) i [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Wyczyszczenie lub eksport urządzenia nie wykonuje żadnej z tych operacji na serwerze.
 
 ## W różnych powłokach
 

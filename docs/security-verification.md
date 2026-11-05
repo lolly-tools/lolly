@@ -8,11 +8,11 @@ The short version: **verification runs entirely on the device, the cryptography 
 
 The app's Verify view and the local CLI verify a file **locally and offline, with no upload**. Dropping a file on `/verify`, or running `lolly validate <file>`, parses it, walks its Content Credential, re-checks the signature and the byte-hash binding and renders a verdict, all in your browser or on your machine. The separate MCP `lolly_verify` endpoint is different: calling it sends the file to that server, and the local checks never use that endpoint.
 
-![The Verify screen - nothing but a drop target, no upload button, no account, because the check runs where the file already is](/t/url-shot?url=%2F%23%2Fverify&width=460&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop-sq)
+![The Lolly Verify screen - nothing but a drop target, no upload button, no account, because the check runs where the file already is](/t/url-shot?url=%2F%23%2Fverify&width=460&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop-sq)
 
 Here is the result for a real file: a Gemini image that Lolly opened, marked and converted to WebP. The green verdict, the intact credential, the unchanged bytes and the GEN AI flag were all worked out on the device. [Verify It Yourself](/info/verify-yourself.html) walks the same file through every badge.
 
-![The full Verify verdict for the generated storm image - the image itself, a green Made with Lolly pill, the intact-credential and unchanged-bytes badges and the provenance scorecard](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1240&height=940&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-masthead)
+![The full Lolly Verify verdict for the generated storm image - the image itself, a green Made with Lolly pill, the intact-credential and unchanged-bytes badges and the provenance scorecard](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1240&height=940&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-masthead)
 
 The engine's crypto core is **platform-agnostic and uses only `globalThis.crypto`, the WebCrypto API**. There is no bespoke crypto library, no Node-only API and **no network call anywhere in the engine**.
 
@@ -65,9 +65,9 @@ There is **no timestamp authority yet**, so an authentic but *expired* signature
 
 ## Read broad, write narrow
 
-Beyond the credential, Verify reads several signals: the Lolly Imprint, AI declarations, SEAL signatures, an opt-in deep scan for third-party pixel watermarks and hidden data. All of them run locally. [What Verify checks](/info/what-verify-checks.html) covers each one.
+Beyond the credential, Lolly Verify reads several signals: the Lolly Imprint, AI declarations, SEAL signatures, an opt-in deep scan for third-party pixel watermarks and hidden data. All of them run locally. [What Lolly Verify checks](/info/what-verify-checks.html) covers each one.
 
-Each signal is labelled with its confidence. The statistical ones (the Meta Content Seal read and LSB steganalysis) can raise false alarms, and Verify says so where it shows them. The Lolly Imprint is security through obscurity: cover against casual stripping rather than a hardened defence. It complements the credential and never replaces the credential.
+Each signal is labelled with its confidence. The statistical ones (the Meta Content Seal read and LSB steganalysis) can raise false alarms, and Lolly Verify says so where it shows them. The Lolly Imprint is security through obscurity: cover against casual stripping rather than a hardened defence. It complements the credential and never replaces the credential.
 
 Lolly reads many signals but *writes* only three: C2PA, its own Imprint and an opt-in **durable mark** in Adobe's TrustMark format, which is off by default because it needs a neural pass and a one-time model download. That keeps the attack surface on the writing side small, and it is exactly what the export panel shows: three named switches, each a separate mechanism, rather than one blanket "protect this" claim.
 
@@ -87,7 +87,8 @@ An automated test in the repository (`pnpm test`) backs every cryptographic clai
 
 The cryptography and parsers have not been independently audited. Where a contract calls for certified assurance, deploy Lolly as one layer of defence in depth.
 
-## Design boundaries
+<a id="design-boundaries"></a>
+## Lolly Design boundaries
 
 - **Content Credentials are tamper-*evident*, not tamper-*proof*.** They detect alteration cryptographically and offline. They do not prevent it, and that is what makes fully offline verification possible.
 - **The on-device signer is anonymous by design** unless you enrol a verified identity. No real credential ever leaves the device.

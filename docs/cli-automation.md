@@ -160,9 +160,10 @@ The optional `checks` list records which rules ran: each is `completed` (includi
 If your brand declares a spot ink that is really a **finish** (a foil, an emboss, a spot varnish, a cutting rule), Lolly writes it as its own named plate in every CMYK file (the CMYK PDF, the CMYK TIFF and `eps-cmyk`), with a 100% black mask as its process fallback, so a RIP that flattens spots prints an obvious mask rather than a plausible metallic. Overprint is not built anywhere in Lolly, so that plate knocks out the artwork beneath the finish. Agree with your printer how they want the finish supplied before you send the file.
 :::
 
-## Check a Design document in CI (lolly check)
+<a id="check-a-design-document-in-ci-lolly-check"></a>
+## Check a Lolly Design document in CI (lolly check)
 
-`lolly check` gives one findings list for a Design document, a `.lolly` or an export, and its exit code is the branch:
+`lolly check` gives one findings list for a Lolly Design document, a `.lolly` or an export, and its exit code is the branch:
 
 ```bash
 lolly check slides.lolly --source=old.inventory.json --json > check.json

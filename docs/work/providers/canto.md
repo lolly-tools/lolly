@@ -2,7 +2,7 @@
 
 Connect a Canto DAM and its files appear in the Lolly Work catalog for the groups you choose,
 with Canto's approval states and an optional expiry date carried across. Canto stays the source:
-Work reads through an app you register and never writes back. The same connection can copy
+Lolly Work reads through an app you register and never writes back. The same connection can copy
 the files into your own store when you want them there.
 
 Canto acquired Image Relay in September 2024, so this kind serves Canto tenants and Image Relay
@@ -10,7 +10,7 @@ tenants that have moved to Canto.
 
 ## Onboarding
 
-1. Confirm API access under your contract, the tenant's regional domain and the album to expose. Agree Work groups, approved states and any custom expiry field, including how records with no approval state should be handled.
+1. Confirm API access under your contract, the tenant's regional domain and the album to expose. Agree Lolly Work groups, approved states and any custom expiry field, including how records with no approval state should be handled.
 2. Obtain the App ID, Secret and refresh token described below. Use the [four-step connection](README.md#connect-a-source-in-four-steps); this kind uses a pasted credential rather than the CLI consent flow.
 3. Run the [Canto tenant check](tenant-check.md#canto) for every required file scheme. Compare originals with direct Canto downloads and test permitted and refused access before enabling the wider audience. An Image Relay migration needs the driver selection in [Leave a DAM](../offboarding.md#canto-and-image-relay-which-driver-do-you-exit-through).
 
@@ -74,7 +74,6 @@ the manual `catalog.expire` control is the only expiry. An Image Relay tenant th
 this keeps its settings; only the field name changes.
 
 ## Verify
-
 ```bash
 lw providers preview --kind canto --options '{"tenant":"acme"}'   # dry run, nothing stored
 lw providers health acme-canto
@@ -106,6 +105,6 @@ lw providers health acme-canto
 
 Canto is an exit target subject to [tenant qualification](tenant-check.md#canto): the driver has not yet been confirmed against a live tenant, including whether each scheme's download is the true original. A stored checksum alone does not prove that the source supplied an original.
 
-Prepare the destination through the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then rehearse materialize, drift and cutover with [Leave a DAM](../offboarding.md). Verify approval and mapped expiry, keep required rights and history exports separately, and test old references after cutover. For former Image Relay tenants, choose the driver that serves the files today.
+Prepare the destination through the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then rehearse materialize, drift and cutover with [Leave a DAM](../offboarding.md). Lolly Verify approval and mapped expiry, keep required rights and history exports separately, and test old references after cutover. For former Image Relay tenants, choose the driver that serves the files today.
 
 Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

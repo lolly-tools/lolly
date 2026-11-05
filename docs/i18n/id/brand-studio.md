@@ -4,7 +4,7 @@ Logo, warna, dan huruf Anda berada di satu tempat, agar setiap alat, halaman, da
 
 Mulai dengan apa pun yang Anda miliki. Letakkan logo dan Lolly membaca warnanya. Pilih huruf, atau letakkan file font yang dilisensikan perusahaan Anda. Setiap perubahan langsung tampak di seluruh aplikasi. Logo, font, dan token Anda tetap di perangkat ini. Memilih Google Font adalah satu-satunya langkah yang menjangkau keluar: Lolly bertanya dulu, lalu mengambil keluarga font itu sekali.
 
-Saat sudah terlihat benar, beri nama design system dan tekan **Export**. Anda mendapat satu file `.lolly` untuk disimpan, dibuka di perangkat lain, atau diserahkan kepada rekan. [Settings](/info/dashboard.html#design-system) menampilkan sistem aktif hanya-baca, dan sampulnya menaut kembali ke sini untuk menyunting.
+Saat sudah terlihat benar, beri nama design system dan tekan **Export**. Anda mendapat satu file `.lolly` untuk disimpan, dibuka di perangkat lain, atau diserahkan kepada rekan. [Lolly Settings](/info/dashboard.html#design-system) menampilkan sistem aktif hanya-baca, dan sampulnya menaut kembali ke sini untuk menyunting.
 
 ## Jadikan milik Anda dalam lima menit
 

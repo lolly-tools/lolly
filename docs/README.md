@@ -4,9 +4,9 @@ Read the complete documentation at <https://lolly.tools/info>. This directory is
 
 Edit page metadata and navigation in [manifest.json](manifest.json), then run `node scripts/sync-docs-navigation.ts` from the repository root. The generated declarations in `docs/build.ts`, this index, public search, Markdown and agent indexes all follow that manifest.
 
-Lolly Work packages a generated, version-pinned subset for its existing console and offline installations. Update the source here; do not edit the generated Work copy. [The bundle instructions](work/README.md) describe the workflow.
+Lolly Work packages a generated, version-pinned subset for its existing console and offline installations. Update the source here; do not edit the generated Lolly Work copy. [The bundle instructions](work/README.md) describe the workflow.
 
-Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain their original MPL-2.0 terms and third-party notices. See [LICENSE](LICENSE) and [work/LICENSE](work/LICENSE). The generator and code examples remain MPL-2.0.
+Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots retain their original MPL-2.0 terms and third-party notices. See [LICENSE](LICENSE) and [work/LICENSE](work/LICENSE). The generator and code examples remain MPL-2.0.
 
 ## Start
 
@@ -35,37 +35,37 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | --- | --- |
 | Create | [creators.md](creators.md) |
 | Using Lolly | [using.md](using.md) |
-| Design: the free canvas | [design.md](design.md) |
+| Lolly Design: the free canvas | [design.md](design.md) |
 | Share a design with rules | [create-a-tool.md](create-a-tool.md) |
 | Build a course | [training-creators.md](training-creators.md) |
 | Deliver and update a course | [training-delivery.md](training-delivery.md) |
 | Templates | [templates.md](templates.md) |
-| Batch and Multi-edit | [batch.md](batch.md) |
-| Design System Setup | [brand-studio.md](brand-studio.md) |
+| Lolly Batch and Lolly Multi-edit | [batch.md](batch.md) |
+| Lolly Design System Setup | [brand-studio.md](brand-studio.md) |
 | Brand architectures | [brand-architectures.md](brand-architectures.md) |
 | Colourways | [colourways.md](colourways.md) |
 | Working with partners | [partners.md](partners.md) |
-| 3D Studio | [3d-studio.md](3d-studio.md) |
+| Lolly 3D Studio | [3d-studio.md](3d-studio.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
 | Sync your devices | [sync.md](sync.md) |
-| Search | [search.md](search.md) |
+| Lolly Search | [search.md](search.md) |
 | Settings | [dashboard.md](dashboard.md) |
 | Profiles | [profile.md](profile.md) |
 | Ask Lolly | [ask.md](ask.md) |
 | Your favourites | [favourites.md](favourites.md) |
 | Import a design | [design-import.md](design-import.md) |
-| Layout in Design | [design-layout.md](design-layout.md) |
-| Darkroom | [darkroom.md](darkroom.md) |
+| Layout in Lolly Design | [design-layout.md](design-layout.md) |
+| Lolly Darkroom | [darkroom.md](darkroom.md) |
 | Rebrand a deck | [rebrand.md](rebrand.md) |
 | Formats | [formats.md](formats.md) |
-| Text in Design | [text-composition.md](text-composition.md) |
+| Text in Lolly Design | [text-composition.md](text-composition.md) |
 | Wide colour and HDR editing | [hdr-editing.md](hdr-editing.md) |
 | The sequence editor | [sequence-editor.md](sequence-editor.md) |
 | Presenting with camera | [presenting.md](presenting.md) |
 | Live pages that take the clicker | [interactive-pages.md](interactive-pages.md) |
 | Agenda screens and programmes | [agenda.md](agenda.md) |
 | Animating: keyframes, depth and a camera | [animating.md](animating.md) |
-| Rondocode songs | [rondocode.md](rondocode.md) |
+| Lolly Rondocode songs | [rondocode.md](rondocode.md) |
 | Working together | [collaborate.md](collaborate.md) |
 | Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
 | Utilities | [utilities.md](utilities.md) |
@@ -142,7 +142,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Building for iOS | [ios-build.md](ios-build.md) |
 | Data transfer | [data-transfer.md](data-transfer.md) |
 | Invite an agent | [work/document-agents.md](work/document-agents.md) |
-| Automate with the Work API | [work/automation-api.md](work/automation-api.md) |
+| Automate with the Lolly Work API | [work/automation-api.md](work/automation-api.md) |
 | Lolly Work API reference | [work/api.md](work/api.md) |
 | lw CLI: administer Lolly Work | [work/cli.md](work/cli.md) |
 | Upload large files | [work/resumable-uploads.md](work/resumable-uploads.md) |
@@ -213,15 +213,15 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Official installation routes | [work/official-installations.md](work/official-installations.md) |
 | Set up enterprise identity | [work/enterprise-identity.md](work/enterprise-identity.md) |
 | Sign-in provider recipes | [work/identity-providers.md](work/identity-providers.md) |
-| Configure your first Work instance | [work/customer-setup.md](work/customer-setup.md) |
-| How a Work deployment fits together | [work/deployment.md](work/deployment.md) |
-| Run Work on UpCloud or Evroc | [work/cloud-deployment.md](work/cloud-deployment.md) |
-| Put a CDN in front of Work | [work/edge-cdn.md](work/edge-cdn.md) |
-| Run Work on AWS or MulgaDC Spinifex | [work/aws-compatible.md](work/aws-compatible.md) |
+| Configure your first Lolly Work instance | [work/customer-setup.md](work/customer-setup.md) |
+| How a Lolly Work deployment fits together | [work/deployment.md](work/deployment.md) |
+| Run Lolly Work on UpCloud or Evroc | [work/cloud-deployment.md](work/cloud-deployment.md) |
+| Put a CDN in front of Lolly Work | [work/edge-cdn.md](work/edge-cdn.md) |
+| Run Lolly Work on AWS or MulgaDC Spinifex | [work/aws-compatible.md](work/aws-compatible.md) |
 | WebAssembly and Kubewarden choices | [work/wasm-deployment.md](work/wasm-deployment.md) |
 | Admission policy with Kubewarden | [work/admission-policy.md](work/admission-policy.md) |
-| Work instance configuration | [work/configuration.md](work/configuration.md) |
-| Configure Work export signing | [work/c2pa.md](work/c2pa.md) |
+| Lolly Work instance configuration | [work/configuration.md](work/configuration.md) |
+| Configure Lolly Work export signing | [work/c2pa.md](work/c2pa.md) |
 | Keep Lolly Work running | [work/operations.md](work/operations.md) |
 | Metrics and alerts | [work/metrics.md](work/metrics.md) |
 | Build a verified instance pack | [work/instance-pack-production.md](work/instance-pack-production.md) |
@@ -240,8 +240,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Input, not impersonation | [input-not-impersonation.md](input-not-impersonation.md) |
 | Creative rights and credits | [creative-rights.md](creative-rights.md) |
 | Content Credentials | [content-credentials-identity.md](content-credentials-identity.md) |
-| What Verify checks | [what-verify-checks.md](what-verify-checks.md) |
-| AI evidence in Verify | [verify-ai-evidence.md](verify-ai-evidence.md) |
+| What Lolly Verify checks | [what-verify-checks.md](what-verify-checks.md) |
+| AI evidence in Lolly Verify | [verify-ai-evidence.md](verify-ai-evidence.md) |
 | Content Credentials engineering | [content-credentials-engineering.md](content-credentials-engineering.md) |
 | Security & Verification | [security-verification.md](security-verification.md) |
 | Threat Model & Trust Boundaries | [threat-model.md](threat-model.md) |
@@ -257,4 +257,4 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Beatrice Warde | [beatrice-warde.md](beatrice-warde.md) |
 | Shoulders of giants | [shoulders-of-giants.md](shoulders-of-giants.md) |
 | Lolly Work security overview | [work/security-platform.md](work/security-platform.md) |
-| Work storage and data lifecycle | [work/data-lifecycle.md](work/data-lifecycle.md) |
+| Lolly Work storage and data lifecycle | [work/data-lifecycle.md](work/data-lifecycle.md) |

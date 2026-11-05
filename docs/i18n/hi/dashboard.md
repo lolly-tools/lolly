@@ -18,7 +18,7 @@ Preferences एक लंबा पेज है जिसके किनार
 
 - <!--i:usercheck--> **Your details**: आपका नाम, संपर्क ब्योरा और हेडशॉट, और **Use my details to create** स्विच। [Profiles](/info/profile.html) समझाता है कि टूल उन्हें कैसे उपयोग करते हैं।
 - <!--i:seal--> **Content Credentials**: वैकल्पिक सत्यापित पहचान जो आपके एक्सपोर्ट पर हस्ताक्षर करती है। देखें [Content Credentials](/info/content-credentials-identity.html)।
-- <!--i:palette--> **Design systems**: design system बदलें, जोड़ें, छिपाएँ या हटाएँ। [Design System Setup](/info/brand-studio.html#manage-your-design-systems) हर क्रिया कवर करता है।
+- <!--i:palette--> **Design systems**: design system बदलें, जोड़ें, छिपाएँ या हटाएँ। [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) हर क्रिया कवर करता है।
 - <!--i:moon--> **Appearance**: थीम (Light, Dark या Brand, जो ऐप को आपके पैलेट में रंगता है), **Your colourway** जब design system एक से अधिक दे ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) और **Interface follows the design system**।
 - <!--i:sparkle--> **Emoji**: वह सेट जिससे आपके इमोजी बनते हैं जब आप कुछ नया शुरू करते हैं, उसके आर्टवर्क लाइसेंस सहित, और आपका पैलेट उन्हें कितना रंगता है (**Off**, **Subtle**, **Strong**, **Full**, **Mono** या **Duotone**)। **Keep skin tones and flags** उन्हें अपने रंगों में रखता है। जो काम आप पहले बना चुके हैं वह वही सेट रखता है जिससे बना था।
 - <!--i:eyeoff--> **Accessibility**: चार आराम स्विच, साथ में Sound और Neurospicy Mode। देखें [Accessibility](#accessibility)।
@@ -107,7 +107,7 @@ Lolly स्क्रीन को आपके जाते ही कैश �
 - <!--i:sliders--> **Tokens**: त्रिज्या, स्पेसिंग, प्रभाव और ग्रेडिएंट।
 - <!--i:document--> **Print & CMYK**: ठीक इंक से बँधे रंग, और वे प्रेस स्थितियाँ जो CMYK PDF घोषित कर सकता है।
 
-बदलना ही एकमात्र परिवर्तन है जो यह टैब करता है। आप design system को `#/start` पर [Design System Setup](/info/brand-studio.html) में संपादित करते हैं, जिससे कवर जुड़ता है। केवल-पढ़ने का सिस्टम अपने कवर पर यह कहता है; आपके बनाए स्थानीय सिस्टम संपादन योग्य रहते हैं। `/b` और `/brand` सीधे इस टैब के शॉर्टलिंक हैं।
+बदलना ही एकमात्र परिवर्तन है जो यह टैब करता है। आप design system को `#/start` पर [Lolly Design System Setup](/info/brand-studio.html) में संपादित करते हैं, जिससे कवर जुड़ता है। केवल-पढ़ने का सिस्टम अपने कवर पर यह कहता है; आपके बनाए स्थानीय सिस्टम संपादन योग्य रहते हैं। `/b` और `/brand` सीधे इस टैब के शॉर्टलिंक हैं।
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Lolly स्क्रीन को आपके जाते ही कैश �
 
 ## डीप लिंक
 
-Settings के हर टैब और खंड का अपना लिंक है, जिसे आप बुकमार्क या पेस्ट कर सकते हैं। [Search](/info/search.html) अपने **Settings** परिणाम उसी रजिस्ट्री की ओर इंगित करती है जिससे Settings रेंडर होता है, इसलिए खंड का नाम खोज परिणाम के नीचे से बदला नहीं जा सकता।
+Settings के हर टैब और खंड का अपना लिंक है, जिसे आप बुकमार्क या पेस्ट कर सकते हैं। [Lolly Search](/info/search.html) अपने **Settings** परिणाम उसी रजिस्ट्री की ओर इंगित करती है जिससे Settings रेंडर होता है, इसलिए खंड का नाम खोज परिणाम के नीचे से बदला नहीं जा सकता।
 
 ::: details लिंक का हर रूप
 
@@ -139,4 +139,4 @@ Settings के हर टैब और खंड का अपना लिं�
 
 ---
 
-**संबंधित:** आपके ब्योरे और जिन संदर्भों में आप बनाते हैं उनके लिए [Profiles](/info/profile.html)। Design system टैब जो दिखाता है उसे संपादित करने के लिए [Design System Setup](/info/brand-studio.html)। स्टोरेज, बैकअप और डिवाइस बदलने के लिए [Find and recover your work](/info/find-your-work.html)।
+**संबंधित:** आपके ब्योरे और जिन संदर्भों में आप बनाते हैं उनके लिए [Profiles](/info/profile.html)। Design system टैब जो दिखाता है उसे संपादित करने के लिए [Lolly Design System Setup](/info/brand-studio.html)। स्टोरेज, बैकअप और डिवाइस बदलने के लिए [Find and recover your work](/info/find-your-work.html)।

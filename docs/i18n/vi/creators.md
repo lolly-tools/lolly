@@ -13,14 +13,14 @@ Chọn một công cụ và điền vào, hoặc dàn trang tự do trên canvas
 - **[Templates](/info/templates.html)** - bắt đầu từ một bố cục đã lưu thay vì công cụ trống.
 - **[Text in Design](/info/text-composition.html)** - tiêu đề, văn bản chảy và kiểu chữ vừa khít khung của nó.
 - **[3D Studio](/info/3d-studio.html)** - tác phẩm SVG và mô hình 3D được sắp xếp, chiếu sáng và kết xuất thành một cảnh.
-- **[Utilities](/info/utilities.html)** - sửa một tệp trên thiết bị: chia sẻ an toàn, so sánh hai phiên bản, đổi định dạng, lấy chữ ra hoặc kiểm tra một màu.
+- **[Lolly Utilities](/info/utilities.html)** - sửa một tệp trên thiết bị: chia sẻ an toàn, so sánh hai phiên bản, đổi định dạng, lấy chữ ra hoặc kiểm tra một màu.
 - **[Browser extension](/info/extension.html)** - chụp một trang web trực tiếp từ ứng dụng web, hoặc đọc một trang để bắt đầu hệ thống thiết kế.
 
 ## Biến nó thành của bạn
 
 Hệ thống thiết kế của bạn quyết định mọi công cụ trông ra sao.
 
-- **[Design System Setup](/info/brand-studio.html)** - logo, màu sắc, kiểu chữ và phần còn lại, thiết lập một lần tại `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logo, màu sắc, kiểu chữ và phần còn lại, thiết lập một lần tại `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourway trên công việc thật, và chuyển sang hệ thống thiết kế của riêng bạn.
 - **[Brand architectures](/info/brand-architectures.html)** - nhiều hệ thống thiết kế, hoặc một hệ thống với nhiều colourway, cho một tổ chức.
 - **[Working with partners](/info/partners.html)** - chia sẻ thương hiệu của bạn với đối tác, làm việc trong một thương hiệu bạn được trao và dựng một bức tường nhà tài trợ.
@@ -31,8 +31,8 @@ Hệ thống thiết kế của bạn quyết định mọi công cụ trông ra
 ## Tìm và giữ công việc của bạn
 
 - **[Find and recover your work](/info/find-your-work.html)** - một tệp đã lưu, đã tải xuống hoặc chưa lưu đã đi đâu.
-- **[Search](/info/search.html)** và **[Ask Lolly](/info/ask.html)** - một ô cho công cụ, công việc đã lưu, tài nguyên và cài đặt của bạn, cùng câu trả lời từ các hướng dẫn này.
-- **[Settings](/info/dashboard.html)** - thiết bị này làm được gì, hệ thống thiết kế của bạn ở chế độ chỉ đọc và dung lượng lưu trữ.
+- **[Lolly Search](/info/search.html)** và **[Ask Lolly](/info/ask.html)** - một ô cho công cụ, công việc đã lưu, tài nguyên và cài đặt của bạn, cùng câu trả lời từ các hướng dẫn này.
+- **[Lolly Settings](/info/dashboard.html)** - thiết bị này làm được gì, hệ thống thiết kế của bạn ở chế độ chỉ đọc và dung lượng lưu trữ.
 - **[Your favourites](/info/favourites.html)** và **[Profiles](/info/profile.html)** - công cụ gắn sao, các chi tiết mà công cụ điền sẵn và các công tắc trợ năng.
 - **[Sync your devices](/info/sync.html)** - cùng công việc trên máy tính và điện thoại, qua nơi lưu trữ bạn chọn.
 

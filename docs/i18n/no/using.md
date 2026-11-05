@@ -12,7 +12,7 @@ Startskjermen: fire faner langs toppen og linjen nederst. Et verktøy, når det 
 
 Fire faner går langs toppen av startskjermen: **Tools**, **Utilities**, **Assets** og **Projects**. Tools er det du lager med, Utilities er arbeidsbenker for jobber som å konvertere, sjekke eller rydde opp i en fil, Assets er biblioteket ditt og Projects holder det du har lagret.
 
-Linjen nederst har **Open**, **Settings**, et søkefelt, **Verify** og **What?**. Den vises på Tools, Utilities, Assets, Projects, Settings og veiledningene du leser i appen, og viker unna når et verktøy er åpnet. [Search](/info/search.html) når verktøyene, det lagrede arbeidet, ressursene og innstillingene dine fra det feltet. [Ask Lolly](/info/ask.html) svarer på et skrevet spørsmål med den passende delen av disse veiledningene.
+Linjen nederst har **Open**, **Settings**, et søkefelt, **Verify** og **What?**. Den vises på Tools, Utilities, Assets, Projects, Settings og veiledningene du leser i appen, og viker unna når et verktøy er åpnet. [Lolly Search](/info/search.html) når verktøyene, det lagrede arbeidet, ressursene og innstillingene dine fra det feltet. [Ask Lolly](/info/ask.html) svarer på et skrevet spørsmål med den passende delen av disse veiledningene.
 
 Klikk på et kort for å starte noe nytt i det verktøyet. Lagret arbeid åpnes i stedet på nytt fra **Projects**.
 
@@ -269,7 +269,7 @@ På en smal skjerm blir layouten én kolonne:
 
 ## Innstillinger, lyd og komfort
 
-**Settings**, nederst på startskjermen, holder detaljene dine, designsystemene dine, tilgjengelighet, lagring og nedlastinger for bruk uten nett. [Settings](/info/dashboard.html) kartlegger hver fane.
+**Settings**, nederst på startskjermen, holder detaljene dine, designsystemene dine, tilgjengelighet, lagring og nedlastinger for bruk uten nett. [Lolly Settings](/info/dashboard.html) kartlegger hver fane.
 
 - **Detaljene og portrettbildet ditt** fyller ut ethvert verktøy som er bygget for å bruke dem, som en e-postsignatur eller et navneskilt. [Profiles](/info/profile.html) dekker dem.
 - **Accessibility** har fire komfortbrytere: **Reduce motion**, **Hide colourful previews**, **High contrast** og **Large text**. De endrer appen rundt arbeidet ditt, aldri et verktøylerret eller en eksport.

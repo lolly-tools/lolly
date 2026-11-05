@@ -8,7 +8,7 @@ Tieni pronto l'indirizzo web che il codice deve aprire, che inizi con `https://`
 
 ## Crea il codice
 
-1. Apri [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). I controlli si trovano accanto all'anteprima, o sopra di essa su un telefono; quello che mostra l'anteprima è quello che sarà il file.
+1. Apri [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). I controlli si trovano accanto all'anteprima, o sopra di essa su un telefono; quello che mostra l'anteprima è quello che sarà il file.
 2. In **URL**, sostituisci l'indirizzo di esempio con il tuo, per intero. L'anteprima cambia mentre digiti.
 3. Per abbinare i tuoi colori, imposta **Colore dei moduli** e **Sfondo**. Mantieni un forte contrasto tra loro, altrimenti i telefoni faticano a leggere il codice.
 4. **Zona silenziosa**, sotto **Modules**, parte da 4. Mantienila a 4 o più: quel margine semplice è ciò che cerca la fotocamera di un telefono.

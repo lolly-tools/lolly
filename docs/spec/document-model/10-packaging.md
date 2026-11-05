@@ -96,7 +96,7 @@ An exact pin may travel by reference or with permitted retained bytes. A by-refe
 
 ## Editable motion and playback projections
 
-An animation made from existing Design rows needs no new container version merely because it exports an HTML player or a movie. Its saved session remains the editable source, and its referenced audio and images must travel through the existing asset closure and integrity map. A compiled render wrapper is not interchangeable with saved tool inputs: a valid archive must also reopen as editable content in the target tool.
+An animation made from existing Lolly Design rows needs no new container version merely because it exports an HTML player or a movie. Its saved session remains the editable source, and its referenced audio and images must travel through the existing asset closure and integrity map. A compiled render wrapper is not interchangeable with saved tool inputs: a valid archive must also reopen as editable content in the target tool.
 
 HTML resource closure and editable document portability are separate claims. An HTML projection can embed its resolved fonts, images and prepared audio. Today's `.lolly` font entries identify faces without carrying font bytes (`shells/web/src/lib/lolly-pack.ts`), so that HTML's ability to play offline does not prove that another editor can reconstruct the same typography without its font dependencies.
 
@@ -165,7 +165,7 @@ A typed payload record referenced from the row is the migration that respects th
 - The opaque string must keep resolving for as long as the wire order carries it, so a link shared before the migration still opens (`schemas/blocks-wire-order.json`).
 - A reader that finds both must state which one it read, and a writer must state which one it wrote, as a migration finding (R11, plus the findings rule this chapter's migration section states).
 
-The `3d` layer is the open case. The `scene` field on `design:boxes` carries the 3D Studio's own settings as a link query inside a 2D row (`community/design/tool.json`). That is a coordinate domain carried as text, and [source rows, payloads and patches](source-and-patches.html) requires a typed payload record instead. The same input shows the append pattern already: `textStory` and `textFrame` were added after `scene` and `animationEdits` rather than replacing anything (`schemas/blocks-wire-order.json`). The [proof cases](proof-cases.html) carry the migration as a case to be built.
+The `3d` layer is the open case. The `scene` field on `design:boxes` carries the Lolly 3D Studio's own settings as a link query inside a 2D row (`community/design/tool.json`). That is a coordinate domain carried as text, and [source rows, payloads and patches](source-and-patches.html) requires a typed payload record instead. The same input shows the append pattern already: `textStory` and `textFrame` were added after `scene` and `animationEdits` rather than replacing anything (`schemas/blocks-wire-order.json`). The [proof cases](proof-cases.html) carry the migration as a case to be built.
 
 ## Independent versions, one pin
 
@@ -183,7 +183,7 @@ Plan section 13 lists the contracts a migration has to account for. Each row is 
 |---|---|
 | `tool.json`, templates and hook lifecycles | Map typed inputs and operations; protocol contracts over the existing hooks; no promise of arbitrary row editing for template tools |
 | Design-generated tools | Reuse the compiler, the rules, strict execution and immutable revisions; `DesignToolDraftV1` becomes the component v0 |
-| Saved Design `boxes` and its SDK read model | The read model stays a read model; the source adapter is the row list itself |
+| Saved Lolly Design `boxes` and its SDK read model | The read model stays a read model; the source adapter is the row list itself |
 | `ChartSpecV1` | Preserved through nesting and lowering, as the `chart` layer kind |
 | `compileDocument` and `CompiledDocument` | Kept as the transient compile result; the diff repointed at the source rows |
 | `.lolly` session, tool, project and renovation payloads | Identity, inventory, integrity and reader gates preserved; the parts pattern for extensions |

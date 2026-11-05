@@ -4,7 +4,7 @@ Twoje logo, kolory i kroje pisma należą w jednym miejscu, aby każde narzędzi
 
 Zacznij od tego, co masz. Upuść logo, a Lolly odczyta jego kolory. Wybierz krój pisma albo upuść plik czcionki, którą licencjonuje Twoja firma. Każda zmiana od razu widać w całej aplikacji. Twoje logo, czcionki i tokeny zostają na tym urządzeniu. Wybór czcionki Google to jedyny krok, który sięga na zewnątrz: Lolly najpierw pyta, a potem pobiera rodzinę raz.
 
-Gdy wygląda dobrze, nazwij system projektowy i naciśnij **Export**. Dostajesz jeden plik `.lolly` do zachowania, otwarcia na innym urządzeniu lub przekazania współpracownikowi. [Settings](/info/dashboard.html#design-system) pokazuje aktywny system tylko do odczytu, a jego okładka prowadzi tu do edycji.
+Gdy wygląda dobrze, nazwij system projektowy i naciśnij **Export**. Dostajesz jeden plik `.lolly` do zachowania, otwarcia na innym urządzeniu lub przekazania współpracownikowi. [Lolly Settings](/info/dashboard.html#design-system) pokazuje aktywny system tylko do odczytu, a jego okładka prowadzi tu do edycji.
 
 ## Zrób to swoje w pięć minut
 

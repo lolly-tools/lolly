@@ -4,7 +4,7 @@ Logon, renklerin ve yazı tiplerin tek yerde durmalı ki her araç, sayfa ve dı
 
 Elinde ne varsa onunla başla. Bir logo bırak ve Lolly renklerini okur. Bir yazı tipi seç ya da şirketinin lisansladığı yazı tipi dosyasını bırak. Her değişiklik uygulamanın tamamında hemen görünür. Logon, yazı tiplerin ve token'ların bu cihazda kalır. Bir Google Font seçmek dışarıya uzanan tek adımdır: Lolly önce sorar, sonra aileyi bir kez getirir.
 
-Doğru göründüğünde tasarım sistemine bir ad ver ve **Export** düğmesine bas. Saklayacağın, başka bir cihazda açacağın ya da bir meslektaşına vereceğin tek bir `.lolly` dosyası alırsın. [Settings](/info/dashboard.html#design-system) etkin sistemi salt okunur gösterir ve kapağı düzenleme için buraya geri bağlanır.
+Doğru göründüğünde tasarım sistemine bir ad ver ve **Export** düğmesine bas. Saklayacağın, başka bir cihazda açacağın ya da bir meslektaşına vereceğin tek bir `.lolly` dosyası alırsın. [Lolly Settings](/info/dashboard.html#design-system) etkin sistemi salt okunur gösterir ve kapağı düzenleme için buraya geri bağlanır.
 
 ## Beş dakikada kendine ait yap
 

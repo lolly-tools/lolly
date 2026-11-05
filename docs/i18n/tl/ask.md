@@ -2,7 +2,7 @@
 
 Mag-type ng tanong at sasagutin ito ng Ask Lolly gamit ang seksyon ng mga gabay na ito na sumasaklaw dito, salita por salita, na may binanggit na page na pinanggalingan at **Open in docs** link diretso sa seksyong iyon. Walang binubuo: kinukuha, sinisipi at binabanggit ang pinagmulan ng sagot, sa device mo.
 
-Sa ilalim ng sinipi na seksyon ang mga lugar sa app na tugma sa parehong tanong: tool, utility, naka-save na project, catalogue asset, setting o page ng app. Ang bawat row ay nagna-navigate lang. Walang sagot na nagbabago ng setting, nagbubukas ng file o kumikilos para sa iyo, ang parehong rule na sinusunod ng [Search](/info/search.html).
+Sa ilalim ng sinipi na seksyon ang mga lugar sa app na tugma sa parehong tanong: tool, utility, naka-save na project, catalogue asset, setting o page ng app. Ang bawat row ay nagna-navigate lang. Walang sagot na nagbabago ng setting, nagbubukas ng file o kumikilos para sa iyo, ang parehong rule na sinusunod ng [Lolly Search](/info/search.html).
 
 ## Pagtatanong
 
@@ -60,4 +60,4 @@ Hindi kailanman lumalabas sa device ang tanong mo. Lokal na tumatakbo ang pagtut
 
 ---
 
-**Kaugnay:** [Search](/info/search.html) para sa bar na nagpapasa ng mga tanong. [Paggamit ng Lolly](/info/using.html) para sa natitirang bahagi ng app. [Settings](/info/dashboard.html#available-offline) para dalhin muna offline ang dokumentasyon.
+**Kaugnay:** [Lolly Search](/info/search.html) para sa bar na nagpapasa ng mga tanong. [Paggamit ng Lolly](/info/using.html) para sa natitirang bahagi ng app. [Lolly Settings](/info/dashboard.html#available-offline) para dalhin muna offline ang dokumentasyon.

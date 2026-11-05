@@ -152,7 +152,7 @@ Lagringsmätaren visar samma uppdelning. Sparade sessioner, My images och File r
 
 Den här bundlen säkerhetskopierar enhetens personliga bibliotek. Den är inte en säkerhetskopia av en **Lolly Work**-instans: organisationskonton, åtkomstpolicyer, delade projekt, katalogversioner, godkännanden, renderjobb och granskningsposter hålls av den tjänsten. Anslut igen och logga in för att få tillbaka åtkomst till delat arbete; att importera en personlig bundle ger inte den åtkomsten.
 
-Operatörer säkerhetskopierar, bevarar och raderar serverdata med Lolly Works egna guider: [Backup and restore](/info/work-operations.html#backup-and-restore) och [Work storage and data lifecycle](/info/work-data-lifecycle.html). Att rensa eller exportera en enhet gör ingen av de serveroperationerna.
+Operatörer säkerhetskopierar, bevarar och raderar serverdata med Lolly Works egna guider: [Backup and restore](/info/work-operations.html#backup-and-restore) och [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Att rensa eller exportera en enhet gör ingen av de serveroperationerna.
 
 ## Över skal
 

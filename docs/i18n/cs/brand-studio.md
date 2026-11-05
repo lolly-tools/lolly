@@ -4,7 +4,7 @@ Tvé logo, barvy a písma patří na jedno místo, aby je každý nástroj, str�
 
 Začni s tím, co máš. Vlož logo a Lolly přečte jeho barvy. Vyber písmo nebo přetáhni soubor písma, který tvá firma licencuje. Každá změna se hned projeví v celé aplikaci. Tvé logo, písma a tokeny zůstávají na tomto zařízení. Výběr Google Font je jediný krok, který sahá ven: Lolly se nejprve zeptá a pak rodinu jednou stáhne.
 
-Když to vypadá správně, dej designovému systému jméno a stiskni **Export**. Dostaneš jeden soubor `.lolly` k uchování, otevření na jiném zařízení nebo předání kolegovi. [Settings](/info/dashboard.html#design-system) ukazuje aktivní systém jen pro čtení a jeho obálka odkazuje zpět sem pro úpravy.
+Když to vypadá správně, dej designovému systému jméno a stiskni **Export**. Dostaneš jeden soubor `.lolly` k uchování, otevření na jiném zařízení nebo předání kolegovi. [Lolly Settings](/info/dashboard.html#design-system) ukazuje aktivní systém jen pro čtení a jeho obálka odkazuje zpět sem pro úpravy.
 
 ## Udělej to po svém za pět minut
 

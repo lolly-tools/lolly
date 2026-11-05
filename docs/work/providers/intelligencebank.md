@@ -2,12 +2,12 @@
 
 Connect an IntelligenceBank DAM and its assets appear in the Lolly Work catalog, with its own
 expiry and review dates and workflow states carried across. No custom-field mapping is
-needed. IntelligenceBank stays the source: Work reads through the current v3 Graph API and
+needed. IntelligenceBank stays the source: Lolly Work reads through the current v3 Graph API and
 never writes back.
 
 ## Onboarding
 
-1. Choose the supported platform URL, folder and Work groups. Explicitly configure the workflow states that should count as approved; without that list every asset federates as approved.
+1. Choose the supported platform URL, folder and Lolly Work groups. Explicitly configure the workflow states that should count as approved; without that list every asset federates as approved.
 2. Obtain the tenant API key described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). The driver discovers its v3 API address through the login handshake.
 3. Run the [IntelligenceBank tenant check](tenant-check.md#intelligencebank). Verify the login response, download bytes, publish, expiry and review dates, then test member access and a real production task before broadening the source.
 
@@ -50,7 +50,6 @@ lw providers credential acme-ib     # prompts; never argv, never shell history
   [availability window](../catalog.md#imported-availability-windows) with no mapping.
 
 ## Verify
-
 ```bash
 lw providers preview --kind intelligencebank --options '{"platformUrl":"https://acme.intelligencebank.com"}'
 lw providers health acme-ib

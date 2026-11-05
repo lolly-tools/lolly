@@ -12,7 +12,7 @@ La pantalla de inicio: cuatro pestañas arriba y la barra al pie. Una herramient
 
 Cuatro pestañas recorren la parte superior de la pantalla de inicio: **Tools**, **Utilities**, **Assets** y **Projects**. Tools es con lo que creas, Utilities son bancos de trabajo para tareas como convertir, comprobar o limpiar un archivo, Assets es tu biblioteca y Projects guarda lo que guardaste.
 
-La barra al pie contiene **Open**, **Settings**, un campo de búsqueda, **Verify** y **What?**. Se muestra en Tools, Utilities, Assets, Projects, Settings y en las guías que lees en la aplicación, y se aparta cuando se abre una herramienta. [Search](/info/search.html) llega a tus herramientas, trabajo guardado, recursos y ajustes desde ese campo. [Ask Lolly](/info/ask.html) responde una pregunta escrita con la sección correspondiente de estas guías.
+La barra al pie contiene **Open**, **Settings**, un campo de búsqueda, **Verify** y **What?**. Se muestra en Tools, Utilities, Assets, Projects, Settings y en las guías que lees en la aplicación, y se aparta cuando se abre una herramienta. [Lolly Search](/info/search.html) llega a tus herramientas, trabajo guardado, recursos y ajustes desde ese campo. [Ask Lolly](/info/ask.html) responde una pregunta escrita con la sección correspondiente de estas guías.
 
 Haz clic en una tarjeta para empezar algo nuevo con esa herramienta. El trabajo guardado se reabre desde **Projects**.
 
@@ -269,7 +269,7 @@ En una pantalla estrecha la disposición pasa a una sola columna:
 
 ## Ajustes, sonido y comodidad
 
-**Settings**, al pie de la pantalla de inicio, contiene tus datos, tus design systems, accesibilidad, almacenamiento y descargas sin conexión. [Settings](/info/dashboard.html) recorre cada pestaña.
+**Settings**, al pie de la pantalla de inicio, contiene tus datos, tus design systems, accesibilidad, almacenamiento y descargas sin conexión. [Lolly Settings](/info/dashboard.html) recorre cada pestaña.
 
 - **Tus datos y tu foto** rellenan cualquier herramienta creada para usarlos, como una firma de correo o una credencial. [Profiles](/info/profile.html) los cubre.
 - **Accessibility** tiene cuatro interruptores de comodidad: **Reduce motion**, **Hide colourful previews**, **High contrast** y **Large text**. Cambian la aplicación que rodea tu trabajo, nunca el lienzo de una herramienta ni una exportación.

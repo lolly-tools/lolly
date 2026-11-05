@@ -8,7 +8,7 @@ Kodun açması gereken, `https://` ile başlayan web adresini hazır bulundur.
 
 ## Kodu oluştur
 
-1. [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com) aracını aç. Denetimler önizlemenin yanında, telefonda ise üstünde durur; önizlemenin gösterdiği şey, dosyanın olacağı şeydir.
+1. [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com) aracını aç. Denetimler önizlemenin yanında, telefonda ise üstünde durur; önizlemenin gösterdiği şey, dosyanın olacağı şeydir.
 2. **URL** alanında, örnek adresi kendi adresinle, eksiksiz olarak değiştir. Önizleme yazdıkça değişir.
 3. Kendi renklerine uydurmak için **Module colour** ve **Arka plan**'ı ayarla. Aralarında güçlü bir kontrast tut, yoksa telefonlar kodu okumakta zorlanır.
 4. **Modules** altındaki **Quiet zone**, 4'ten başlar. Onu 4 veya üzerinde tut: bir telefon kamerasının aradığı şey o düz kenar boşluğudur.
@@ -38,8 +38,8 @@ Kaydedilmiş iş, [Sync](/info/sync.html)'i açmadıkça, kullandığın tarayı
 
 ## Diğer ilk projeler
 
-- [Audiogram](/#/tool/audiogram), bir sesli notu bir videoya dönüştürür: hareketli bir dalga formu, kapaktaki sözlerin, renklerin. Kaydı **Ses**'e bırak, bir **Başlık** ekle, ardından **MP4** olarak dışa aktar.
-- [Filter](/#/tool/filter), bir fotoğrafı bir poster için işler: basılı yarım ton noktaları, iki düz renk veya birkaç ton bloğu. Fotoğrafı **Görsel** altında seç, bir **Efekt** seç, ardından **PNG** olarak, veya *vector* rozetli bir efektte **SVG** olarak dışa aktar.
+- [Lolly Audiogram](/#/tool/audiogram), bir sesli notu bir videoya dönüştürür: hareketli bir dalga formu, kapaktaki sözlerin, renklerin. Kaydı **Ses**'e bırak, bir **Başlık** ekle, ardından **MP4** olarak dışa aktar.
+- [Lolly Filter](/#/tool/filter), bir fotoğrafı bir poster için işler: basılı yarım ton noktaları, iki düz renk veya birkaç ton bloğu. Fotoğrafı **Görsel** altında seç, bir **Efekt** seç, ardından **PNG** olarak, veya *vector* rozetli bir efektte **SVG** olarak dışa aktar.
 
 ## Sırada
 

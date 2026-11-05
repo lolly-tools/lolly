@@ -24,7 +24,7 @@ lolly.toolsは、Lolly自身のサンプルデザインシステムである**Lo
 
 ![新規インストール時のDesign System SetupのColoursルーム: ライブチップが1つ、入力欄が1つ、最初の決定のすべて](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-そこから先は、8つのルームで、好きな順序で好きなところまで進められます。**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules**、**Skills**です。アプリ内のすべてのプレビューは、入力に合わせて更新されます。各ルームについては[Design System Setup](/info/brand-studio.html)で説明しています。
+そこから先は、8つのルームで、好きな順序で好きなところまで進められます。**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules**、**Skills**です。アプリ内のすべてのプレビューは、入力に合わせて更新されます。各ルームについては[Lolly Design System Setup](/info/brand-studio.html)で説明しています。
 
 フォントはお使いのデバイスに保存されます。Googleフォントを選ぶと、Lollyはそのファイルをブランドのアセットとして保存するため、書体はオフラインでも持ち運べ、ツールが描画するときに何かを取得することはありません。
 
@@ -58,7 +58,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 **デッキ。** PowerPointの`.pptx`をLollyにドロップするとスライドがアセットとして保管され、**Markdown Slides**ではMarkdownから新しいデッキを書け、[デッキをリブランドする](/info/rebrand.html)ではデッキ全体をデザインシステムに移せます。
 
-**データ。** CSVやJSONの表を貼り付けるかドロップすると、ツールの繰り返しフィールドがそこから埋まります。[Batch](/info/batch.html#make-many-versions-of-one-design)なら、1行につき完成ファイルを1つ作ります。
+**データ。** CSVやJSONの表を貼り付けるかドロップすると、ツールの繰り返しフィールドがそこから埋まります。[Lolly Batch](/info/batch.html#make-many-versions-of-one-design)なら、1行につき完成ファイルを1つ作ります。
 
 ### 一度きりの制作物からテンプレートへ
 
@@ -72,7 +72,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 - <!--i:download--> **書き出し。** ツールは、各ツールが対応する形式で、SVG、PDF、PNG、JPG、WebP、動画などを作り、必要なら実際の印刷サイズで書き出せます。[ファイルを書き出す](/info/exporting.html)をご覧ください。
 - <!--i:link--> **リンクを共有する。** ツールの設定はそのリンクに含まれるため、リンクはどこでも同じファイルを開き直します。
-- <!--i:layers--> **1行につき1つ作る。** [Batch](/info/batch.html#make-many-versions-of-one-design)で、スプレッドシートからツールを動かします。
+- <!--i:layers--> **1行につき1つ作る。** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)で、スプレッドシートからツールを動かします。
 - <!--i:cpu--> **自動化する。** 同じレンダリングは、[CLI](/info/cli.html)からも[AIエージェント](/info/ai-agents.html)からも実行できます。
 
 リンクは完全なリクエストです。下のグラフは誰も描いていません。種類、見出し、データ表の全体がアドレスバーに入力されたもので、同じリンクはどのデバイスでも同じグラフを描きます。

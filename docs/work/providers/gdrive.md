@@ -3,7 +3,7 @@
 Connect one Google Drive folder, including a shared drive folder, and its files appear in the
 Lolly Work catalog for the groups you choose. The console walks you through it: the folder and
 groups, consent in the browser with a Google client you register, a test of one real file, then
-activation. Work reads the folder and never writes to Drive.
+activation. Lolly Work reads the folder and never writes to Drive.
 
 ## What you need from Google
 
@@ -116,7 +116,6 @@ lw providers auth acme-gdrive
 - `options.folderId` (required) is the folder's id from its Drive URL.
 
 ## Verify
-
 ```bash
 lw providers auth acme-gdrive
 lw providers health acme-gdrive
@@ -133,11 +132,11 @@ inventory.
   [shared drive guidance](https://developers.google.com/workspace/drive/api/guides/enable-shareddrives).
 - **No approval status or availability dates.** Expose a curated folder of approved files.
 - **Search matches file names, not contents.**
-- **Short-lived download links,** fetched on each request, streamed through Work and pinned to
+- **Short-lived download links,** fetched on each request, streamed through Lolly Work and pinned to
   Google's hosts.
 
 ## Use as an offboarding destination
 
-Export the permitted DAM originals and supporting records, upload ordinary files with Google Drive's own tools, then connect the selected folder using this guide. Work reads this source and does not copy a DAM library into Drive. Keep files directly in the selected folder: native Google documents and subfolders are skipped. Rebuild access, approval and expiry controls as needed and update references for the new identities.
+Export the permitted DAM originals and supporting records, upload ordinary files with Google Drive's own tools, then connect the selected folder using this guide. Lolly Work reads this source and does not copy a DAM library into Drive. Keep files directly in the selected folder: native Google documents and subfolders are skipped. Rebuild access, approval and expiry controls as needed and update references for the new identities.
 
-The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Work storage and other destinations, with open-source options first.
+The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Lolly Work storage and other destinations, with open-source options first.

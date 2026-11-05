@@ -44,7 +44,7 @@ El uso independiente mantiene los archivos en el dispositivo. Elegir proyectos c
 
 Estos límites se aplican a todas las páginas de este conjunto, así que se indican una sola vez aquí:
 
-- **Las collabs de trabajo se ejecutan hoy en un único nodo de servidor.** Su escala y su historial operativo difieren de los de productos alojados consolidados desde hace tiempo. [Work status and roadmap](/info/work-status.html) recoge los límites actuales.
+- **Las collabs de trabajo se ejecutan hoy en un único nodo de servidor.** Su escala y su historial operativo difieren de los de productos alojados consolidados desde hace tiempo. [Lolly Work status and roadmap](/info/work-status.html) recoge los límites actuales.
 - **El sitio [lolly.work](https://lolly.work) es un entorno de pruebas de demostración.** Un despliegue duradero de una organización necesita almacenamiento persistente y un operador; [Install Lolly Work](/info/work-install.html) cubre ambos.
 - **No hay cargo de licencia de software por usuario** para Lolly ni para un Lolly Work autoalojado. El alojamiento, el almacenamiento y la operación siguen costando dinero.
 - **Una firma no es un firmante de confianza.** Un verificador debe confiar en el certificado que firmó un archivo antes de mostrar al firmante como de confianza; [Content Credentials Identity](/info/content-credentials-identity.html) explica cómo.

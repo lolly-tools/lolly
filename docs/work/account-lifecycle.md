@@ -1,7 +1,7 @@
 # Account data controls
 
 Someone leaves. This page is for the owner who ends their access today, then reviews what
-they leave behind. It also covers exporting the metadata Work holds about a person, through
+they leave behind. It also covers exporting the metadata Lolly Work holds about a person, through
 the API or `lw`. Shared content, audit rows and your configured retention stay in place
 throughout; how long to keep them is a policy decision for your deployment, and these
 commands do not make that decision.

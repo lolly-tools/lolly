@@ -2,12 +2,12 @@
 
 Connect an Acquia DAM (Widen) collective and its assets appear in the Lolly Work catalog, with
 Widen's own release and expiry dates and approval statuses carried across. No
-custom-field mapping is needed. Widen stays the source: Work reads with your token and never
+custom-field mapping is needed. Widen stays the source: Lolly Work reads with your token and never
 writes back.
 
 ## Onboarding
 
-1. Choose a narrow search query, categories and Work groups. Agree which Widen statuses count as approved and whether the workflow needs release and expiry gates.
+1. Choose a narrow search query, categories and Lolly Work groups. Agree which Widen statuses count as approved and whether the workflow needs release and expiry gates.
 2. Obtain the read token described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Inspect the listing before an owner enables the source.
 3. Run the [Acquia DAM / Widen tenant check](tenant-check.md#acquia-dam-widen). Confirm native date and status fields, compare originals and test allowed and refused member access in one real Lolly task before widening the query.
 
@@ -19,7 +19,7 @@ writes back.
   **Generate User Access Token**. It is a bearer token, so treat it as a secret.
 - Optionally, **a search query** to limit what federates. Without one, the whole collective
   federates.
-- No app registration or OAuth flow. Choose what federates with Work's **exposure** settings,
+- No app registration or OAuth flow. Choose what federates with Lolly Work's **exposure** settings,
   not with the token.
 
 ## Credential shape
@@ -50,7 +50,6 @@ lw providers credential acme-widen     # prompts; never argv, never shell histor
 - Categories become sections for `includeSections`.
 
 ## Verify
-
 ```bash
 lw providers preview --kind acquia-dam --options '{}'
 lw providers health acme-widen
@@ -72,6 +71,6 @@ on means nothing matches `approvedStatuses`.
 
 Acquia DAM / Widen supports the exit sequence, subject to the [tenant check](tenant-check.md#acquia-dam-widen) for endpoints, original downloads and native date and status fields. The driver reads `embeds.original`, falling back to the download link; compare required files with direct source downloads.
 
-Use the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) to prepare Work and its durable store, then follow [Leave a DAM](../offboarding.md) for materialize, drift and cutover. Check release, expiry and approval on copied assets. Keep any required metadata, rights evidence and historical records that the driver does not map through a separate export.
+Use the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) to prepare Lolly Work and its durable store, then follow [Leave a DAM](../offboarding.md) for materialize, drift and cutover. Check release, expiry and approval on copied assets. Keep any required metadata, rights evidence and historical records that the driver does not map through a separate export.
 
 Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

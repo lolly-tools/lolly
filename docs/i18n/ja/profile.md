@@ -14,13 +14,13 @@
 | **Headshot** | 任意の写真。正方形に切り抜かれ、ローカルの画像として保持され、メール署名、引用カード、組織図などのツールで使われます。 |
 | **Use my details to create** | 1つのオプトインスイッチ(オンにすると**Using my details**と表示されます)。書き出したファイルの作者クレジットとBatch実行に、詳細を含めるかどうかを決めます。自動入力には影響しません。[ツールがプロフィールを使う方法](#how-tools-use-your-profile)をご覧ください。 |
 | **Preferences** | テーマ、各デザインシステムでのカラーウェイ、アクセシビリティ設定、**Feature flags**でオンにしたアプリの機能。 |
-| **Your work** | サムネイル付きの保存済みセッション([Projects](/info/find-your-work.html)で整理)、アップロードした画像、ローカルの活動統計。 |
+| **Your work** | サムネイル付きの保存済みセッション([Lolly Projects](/info/find-your-work.html)で整理)、アップロードした画像、ローカルの活動統計。 |
 
 必須のものはありません。空のプロフィールでも動作します。入力の手間が省けるものだけを入力してください。
 
 ![SettingsのPreferencesタブ: 設定レールと、Use my details to createスイッチ、名前・連絡先・場所のフィールドがあるYour details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-外観や絵文字からストレージやオフラインダウンロードまで、Preferencesのそれ以外のすべては[Settings](/info/dashboard.html)に整理されています。
+外観や絵文字からストレージやオフラインダウンロードまで、Preferencesのそれ以外のすべては[Lolly Settings](/info/dashboard.html)に整理されています。
 
 ## 自分、チーム、役割
 
@@ -83,7 +83,7 @@
 Settingsには互いに近い3つの項目があり、混同しやすいものです。
 
 - <!--i:people--> **プロフィール** - あなた、あなたのチーム、あるいは今担っている役割。名前、連絡先、顔写真、保存した作業。個人のもので、デバイスに保持され、ファイルとして持ち運べます。
-- <!--i:palette--> **デザインシステム** - ブランド。すべてのツールがレンダリングに使う色、フォント、設定。個人のものではなく共有され、一貫しています。[Design System Setup](/info/brand-studio.html)をご覧ください。
+- <!--i:palette--> **デザインシステム** - ブランド。すべてのツールがレンダリングに使う色、フォント、設定。個人のものではなく共有され、一貫しています。[Lolly Design System Setup](/info/brand-studio.html)をご覧ください。
 - <!--i:sliders--> **ケイパビリティ** - アプリにできること。あなたが利用できる機能とツール。
 
 プロフィールは、ファイルが誰からのものかを変え、デザインシステムはファイルの見た目を変え、ケイパビリティは何を作れるかを表します。

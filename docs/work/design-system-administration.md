@@ -31,10 +31,10 @@ A member's local edit in Lolly stays on their device. Opening the editor does no
 anything to the server, and removing a local copy does not remove mounted files, other members'
 copies, sessions or uploads.
 
-Work has no colourway setting of its own. It serves the selected source's tokens as they are,
+Lolly Work has no colourway setting of its own. It serves the selected source's tokens as they are,
 and server renders and their evidence do not record a colourway.
 
-A missing active source is shown as unavailable. Work serves an empty catalog for it and keeps
+A missing active source is shown as unavailable. Lolly Work serves an empty catalog for it and keeps
 these controls reachable, so an owner or admin can select an installed replacement. No unrelated
 source is substituted automatically.
 
@@ -87,10 +87,10 @@ lw brand apply download-review.json
 
 ## Downloads for connected apps
 
-Build instance packs with Lolly's `scripts/build-instance-pack.ts`. Work checks the instance
+Build instance packs with Lolly's `scripts/build-instance-pack.ts`. Lolly Work checks the instance
 address and the opaque tokens document against the selected source, and keeps the uploaded
 archive bytes exactly as they are: signed bytes are never rewritten. Verifying the signature is
-the importing client's job, and Work's `signed` flag only reports that `pack.sig` is present.
+the importing client's job, and Lolly Work's `signed` flag only reports that `pack.sig` is present.
 Unsigned uploads are allowed only in development mode.
 
 - Changing the default withdraws a download bound to another source or source revision. Upload a
@@ -103,7 +103,7 @@ Unsigned uploads are allowed only in development mode.
 The public instance descriptor and the authenticated org configuration carry a branding revision,
 for a neutral source too. Catalog and brand responses revalidate caches, and render keys include
 the revision. Each request and render attempt resolves one source snapshot, and Chromium workers
-must acknowledge the same revision and use this Work instance as their web origin. An older
+must acknowledge the same revision and use this Lolly Work instance as their web origin. An older
 worker, or a revision change during its fetches, fails the render; retry after upgrading or
 refreshing.
 
@@ -134,7 +134,7 @@ tool manifest. A source or mapped manifest change needs a new review. Unchanged 
 without a guide keep their previous behaviour, and future guide versions are kept with unknown
 required coverage.
 
-**How rules are enforced.** The shared engine evaluates supported rules, and Work checks actual
+**How rules are enforced.** The shared engine evaluates supported rules, and Lolly Work checks actual
 runtime input digests when an export is made; signed worker evidence must also match the fetched
 source. Facts supplied in the request cannot satisfy those checks. Your organisation's locks,
 choices, formats and permissions ([governance](governance.md)) stay authoritative: projected
@@ -169,7 +169,7 @@ the source.
 
 `instance.pack` accepts a materialized `tools/` and `catalog/` tree, a checkout with
 `profiles.json`, or the older `brands/<name>/catalog` layout. The canonical Lolly resolver handles
-content profiles, shared asset roots and tool overlays. Work creates private temporary views and
+content profiles, shared asset roots and tool overlays. Lolly Work creates private temporary views and
 never rewrites the mounted catalog or its `.lolly-profile` marker. Mounted files do not change for
 the lifetime of the process: validate and redeploy all replicas after changing their contents.
 
@@ -187,7 +187,7 @@ storage keep decisions across replicas, and the additive rules record needs no n
 
 ### Choose a tokens head
 
-Work selects one independent tokens head automatically, and published descendants of that head are
+Lolly Work selects one independent tokens head automatically, and published descendants of that head are
 excluded. Several independent heads produce a diagnostic. Set `brandTokens` in the source's asset
 index, or map sources to assets explicitly:
 
@@ -202,7 +202,7 @@ index, or map sources to assets explicitly:
 }
 ```
 
-An explicit `"brandTokens": null` in an asset index describes a neutral source. Work never assumes
+An explicit `"brandTokens": null` in an asset index describes a neutral source. Lolly Work never assumes
 that a neutral replacement is installed.
 
 ::: details Release order and the vendored resolver

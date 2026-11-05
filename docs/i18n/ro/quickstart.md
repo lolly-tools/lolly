@@ -24,7 +24,7 @@ Prima dată când deschizi galeria, o scurtă bun venit oferă aceleași alegeri
 
 ![Camera Colours din Design System Setup la o instalare nouă: un chip live, un câmp și toată prima decizie](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-De acolo, opt camere o duc cât de departe vrei, în orice ordine: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** și **Skills**. Fiecare previzualizare din aplicație se actualizează pe măsură ce tastezi. [Design System Setup](/info/brand-studio.html) acoperă fiecare cameră.
+De acolo, opt camere o duc cât de departe vrei, în orice ordine: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** și **Skills**. Fiecare previzualizare din aplicație se actualizează pe măsură ce tastezi. [Lolly Design System Setup](/info/brand-studio.html) acoperă fiecare cameră.
 
 Fonturile sunt păstrate pe dispozitivul tău. Alege un Google Font și Lolly stochează fișierul ca resursă de brand, deci tipografia ta călătorește offline și nu se preia nimic când un instrument desenează.
 
@@ -58,7 +58,7 @@ Nu pornești de la o pagină goală.
 
 **Deck-uri.** Plasează un PowerPoint `.pptx` pe Lolly ca să-i arhivezi diapozitivele ca resurse, scrie un deck nou din Markdown în **Markdown Slides** sau folosește [Rebrand a deck](/info/rebrand.html) ca să muți întregul deck pe sistemul tău de design.
 
-**Date.** Lipește sau plasează un tabel CSV sau JSON, iar câmpurile repetitive ale unui instrument se completează din el, sau [Batch](/info/batch.html#make-many-versions-of-one-design) face un fișier terminat pe rând.
+**Date.** Lipește sau plasează un tabel CSV sau JSON, iar câmpurile repetitive ale unui instrument se completează din el, sau [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) face un fișier terminat pe rând.
 
 ### De la o creație unică la un șablon
 
@@ -72,7 +72,7 @@ Un layout importat este o sesiune Design obișnuită. **Share with rules** îl t
 
 - <!--i:download--> **Exportă.** Instrumentele fac SVG, PDF, PNG, JPG, WebP, video și altele, în formatele oferite de fiecare instrument, la dimensiuni reale de tipar când ai nevoie. Vezi [Exportă un fișier](/info/exporting.html).
 - <!--i:link--> **Partajează un link.** Setările unui instrument călătoresc în link, deci linkul redeschide același fișier oriunde.
-- <!--i:layers--> **Fă unul pe rând.** Conduce un instrument dintr-o foaie de calcul în [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Fă unul pe rând.** Conduce un instrument dintr-o foaie de calcul în [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatizează.** Aceeași randare rulează din [CLI](/info/cli.html) și dintr-un [agent AI](/info/ai-agents.html).
 
 Un link este o cerere completă. Nimeni nu a desenat diagrama de mai jos: tipul, titlul și întregul tabel de date au fost tastate în bara de adrese, iar același link desenează aceeași diagramă pe orice dispozitiv.

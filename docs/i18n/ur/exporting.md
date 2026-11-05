@@ -132,9 +132,9 @@ Lolly کے پاس بڑی مقدار میں کام کے تین طریقے ہیں�
 ## جدول ایک دستاویز بنتا ہے
 جدول ان پٹ والا ٹول، جیسے **Battlecards**، ہر قطار کو صفحہ بناتا ہے۔ اپنی اسپریڈ شیٹ سے جدول پیسٹ کریں اور ایک PDF حاصل کریں۔ اسپریڈ شیٹ میں قطاریں ٹھیک کریں اور دوبارہ پیسٹ کریں۔
 ## CSV ہر قطار کے لیے ایک فائل بنتا ہے
-**Batch** (`#/batch`) CSV لیتا ہے اور ہر قطار کے لیے ایک ایکسپورٹ رینڈر کرتا ہے: نام کے بیجز یا سرٹیفکیٹس، ہر ایک الگ فائل، ZIP میں پہنچائے گئے۔ دیکھیں [Batch](/info/batch.html#make-many-versions-of-one-design)۔
+**Batch** (`#/batch`) CSV لیتا ہے اور ہر قطار کے لیے ایک ایکسپورٹ رینڈر کرتا ہے: نام کے بیجز یا سرٹیفکیٹس، ہر ایک الگ فائل، ZIP میں پہنچائے گئے۔ دیکھیں [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)۔
 ## کئی ڈیزائنز کو ایک ایڈٹ ملتی ہے
-**Multi-edit** کئی محفوظ سیشنز ساتھ ساتھ کھولتا ہے تاکہ مختلف ڈیزائنز میں وہی ٹچ اپ ہو۔ دیکھیں [Multi-edit](/info/batch.html#edit-several-saved-designs-together)۔
+**Multi-edit** کئی محفوظ سیشنز ساتھ ساتھ کھولتا ہے تاکہ مختلف ڈیزائنز میں وہی ٹچ اپ ہو۔ دیکھیں [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together)۔
 :::
 
 **Projects** سے **Render folder** فولڈر اور اس کے ذیلی فولڈرز کا ہر محفوظ سیشن ایک تہہ دار ZIP کے طور پر ایکسپورٹ کرتا ہے، اور **Render selection** کسی بھی کثیر انتخاب کے لیے یہی کرتا ہے؛ ایک محفوظ سیشن اپنی فائل میں رینڈر ہوتا ہے۔ محفوظ سیشن Projects سے ٹول لنک کے طور پر دوبارہ بھی شیئر ہو سکتا ہے، جو اسے انہی سیٹنگز کے ساتھ دوبارہ کھولتا ہے۔
@@ -170,7 +170,7 @@ PowerPoint اندر آنے کا راستہ بھی ہے: [Rebrand a deck](/info/r
 | پورا ڈیزائن | Assets پینل میں دوبارہ قابل استعمال component |
 | پیچیدہ مثال یا لائیو کینوس | اکیلا تصویر کے طور پر ایمبیڈ، اس کے گرد قابل ترمیم مواد چھوئے بغیر |
 
-Design سے ہر فریم Penpot بورڈ بنتا ہے۔ ڈیزائن سسٹم کے رنگ اور ٹائپوگرافیز Assets پینل میں اور اس کا مکمل ٹوکن سیٹ Tokens پینل میں آتے ہیں۔ وہاں سے Penpot اپنی کاپی رکھتا ہے: Penpot میں ایڈٹ کیا ٹوکن [Design System Setup](/info/brand-studio.html) میں امپورٹ کے ذریعے واپس آتا ہے۔
+Design سے ہر فریم Penpot بورڈ بنتا ہے۔ ڈیزائن سسٹم کے رنگ اور ٹائپوگرافیز Assets پینل میں اور اس کا مکمل ٹوکن سیٹ Tokens پینل میں آتے ہیں۔ وہاں سے Penpot اپنی کاپی رکھتا ہے: Penpot میں ایڈٹ کیا ٹوکن [Lolly Design System Setup](/info/brand-studio.html) میں امپورٹ کے ذریعے واپس آتا ہے۔
 
 ![ایکسپورٹ پینل جس میں Penpot منتخب ہے: `.penpot` فائل، اور ڈاؤن لوڈ کے ساتھ Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

@@ -31,7 +31,7 @@ export function publicWorkMarkdown(markdown: string, page: DocsPage, registry: D
     if (/^\s*```/.test(line)) { fenced = !fenced; return line; }
     if (fenced) return line;
     return line.replace(/(!?)\[([^\]]*)\]\(([^)\s]+)\)/g, (original, image: string, label: string, url: string) => {
-      if (page.work && !image && /^(?:\/admin(?:[#/?]|$)|\/#)/.test(url)) return `${label} (\`${url}\` on your Work instance)`;
+      if (page.work && !image && /^(?:\/admin(?:[#/?]|$)|\/#)/.test(url)) return `${label} (\`${url}\` on your Lolly Work instance)`;
       const target = resolveLink(url, Boolean(image));
       return target === url ? original : `${image}[${label}](${target})`;
     });
@@ -41,5 +41,5 @@ export function publicWorkMarkdown(markdown: string, page: DocsPage, registry: D
 
 export function workApplicability(page: DocsPage): string {
   if (!page.work) return '';
-  return `::: note Lolly Work\nThis guide covers the optional organisation service. Configuration, console and API paths refer to your Work instance. The packaged console keeps its release-matched copy of this guide.\n:::\n\n`;
+  return `::: note Lolly Work\nThis guide covers the optional organisation service. Configuration, console and API paths refer to your Lolly Work instance. The packaged console keeps its release-matched copy of this guide.\n:::\n\n`;
 }

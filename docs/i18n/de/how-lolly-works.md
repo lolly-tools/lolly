@@ -35,7 +35,7 @@ Jeder Weg führt dieselbe Engine auf demselben Tool aus; die Datei, die ein Skri
 ![URL-Parameter und Kommandozeilenargumente werden zum selben Eingabemodell und laufen durch eine gemeinsame Laufzeit und Export-Bridge](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **In der App, eine nach der anderen.** Öffnen Sie ein Tool, füllen Sie die Felder aus und drücken Sie **Export**. [Ihre erste Datei erstellen](/info/make-something.html) führt Sie durch eine.
-- <!--i:layers--> **In der App, viele auf einmal.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) nimmt eine eingefügte oder importierte Tabelle und rendert je Zeile eine fertige Datei.
+- <!--i:layers--> **In der App, viele auf einmal.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) nimmt eine eingefügte oder importierte Tabelle und rendert je Zeile eine fertige Datei.
 - <!--i:cpu--> **Aus einem Skript oder von einem KI-Agenten.** Die [CLI](/info/cli.html) führt ein Tool headless aus, und der [MCP-Server](/info/mcp.html) lässt einen Agenten Tools finden und ausführen. Auch ein Link zu einem Tool trägt seine Eingaben, ein Link ist also eine vollständige Anfrage.
 - <!--i:server--> **Über den Server Ihrer Organisation.** [Lolly Work](/info/organisation.html) rendert auf dem Server unter der Anmeldung und Tool-Richtlinie Ihrer Organisation, führt Aufträge, die es fortsetzen kann, und hält die Ausgabe zum Download oder zur freigegebenen Lieferung bereit.
 

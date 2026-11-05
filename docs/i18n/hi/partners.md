@@ -16,7 +16,7 @@
 
 | क्या भेजें | कैसे | भागीदार को क्या मिलता है | किसके लिए ठीक |
 | --- | --- | --- | --- |
-| design system फ़ाइल | [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) की ऊपरी बार में **Export** | आपके टोकन, फ़ॉन्ट, लोगो और थीम पसंद, एक design system के रूप में जिस पर वे स्विच कर सकते हैं | ऐसा भागीदार जो आपके ब्रांड में कई पीस बनाता है |
+| design system फ़ाइल | [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) की ऊपरी बार में **Export** | आपके टोकन, फ़ॉन्ट, लोगो और थीम पसंद, एक design system के रूप में जिस पर वे स्विच कर सकते हैं | ऐसा भागीदार जो आपके ब्रांड में कई पीस बनाता है |
 | दोबारा इस्तेमाल होने वाला टूल | Design में, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | एक तैयार लेआउट, जिसमें वे इनपुट होते हैं जिनकी आप अनुमति देते हैं, जैसे उनका नाम और उनका लोगो। फ़ाइल में तय किए गए रंग, फ़ॉन्ट और इमेज होती हैं, इसलिए उनका अपना design system स्थिर आर्टवर्क की शैली नहीं बदल सकता | को-ब्रांडेड फ़्लायर, बैज या बैनर जिसे हर भागीदार भरता है |
 | ब्रांड स्किल | **Skills** रूम: **Download skill (.zip)** या **Copy as one file** | आपके लिखित मानक, उनके लोगों और एजेंटों के लिए | ऊपर के दोनों में से कोई एक, जब कुछ काम एजेंट करता है |
 | टोकन | स्टूडियो के **More** मेनू में **Tokens (.json)** | सादा design-tokens दस्तावेज़, बिना फ़ॉन्ट या लोगो के | भागीदार के अपने डिज़ाइन टूल या बिल्ड |
@@ -91,7 +91,7 @@ design system फ़ाइल उस दिन के ब्रांड की 
 
 ## स्पॉन्सर और इवेंट लोगो वॉल
 
-[Logo Wall](/#/tool/logo-wall) टूल लोगो के ढेर को एक समान ग्रिड में सजाता है, स्पॉन्सर बोर्ड, भागीदार स्लाइड या प्रेस बैकड्रॉप के लिए। इवेंट में मेज़बान आम तौर पर मुख्य ब्रांड होता है: वॉल मेज़बान के design system में बनती है, और हर स्पॉन्सर का लोगो वॉल पर आर्टवर्क के रूप में रहता है।
+[Lolly Logo Wall](/#/tool/logo-wall) टूल लोगो के ढेर को एक समान ग्रिड में सजाता है, स्पॉन्सर बोर्ड, भागीदार स्लाइड या प्रेस बैकड्रॉप के लिए। इवेंट में मेज़बान आम तौर पर मुख्य ब्रांड होता है: वॉल मेज़बान के design system में बनती है, और हर स्पॉन्सर का लोगो वॉल पर आर्टवर्क के रूप में रहता है।
 
 ![गहरे हरे रंग पर तीन स्तरों वाली स्पॉन्सर वॉल, हर लोगो सफ़ेद में: दो Gold भागीदार, तीन Silver भागीदार और पाँच Community भागीदार, हर स्तर अपने शीर्षक के नीचे और हर निचला स्तर एक कदम छोटा](/t/url-shot?url=%2F%23%2Ftool%2Flogo-wall%3Flogos%3D%255B%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fyour-logo.svg%2522%252C%2522tier%2522%253A%2522Gold%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Flogo-here.svg%2522%252C%2522tier%2522%253A%2522Gold%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fcompany.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fsponsor.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fbrand-name.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fsample-co.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fexample.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Florem-ipsum.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fplaceholder.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fpartner-name.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%255D%26columns%3D3%26gap%3D64%26padding%3D96%26background%3D033633%26headingColor%3Dffffff%26vectorizeAll%3Dtrue%26inkColor%3Dffffff%26transparentBg%3Dfalse&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&format=svg&walker=1&filename=partners-logo-wall&try=1)
 
@@ -125,5 +125,5 @@ Logo Wall किसी स्पॉन्सर के नियम नहीं
 - **[ब्रांड आर्किटेक्चर](/info/brand-architectures.html)**: को-ब्रांडिंग, व्हाइट लेबल और दूसरी व्यवस्थाएँ, हर एक के लिए Lolly में क्या करना है, इसके साथ।
 - **[Share a design with rules](/info/create-a-tool.html)**: तय लेआउट और आपके चुने इनपुट वाले दोबारा इस्तेमाल होने वाले टूल।
 - **[ब्रांड स्किल](/info/brand-skills.html)**: स्किल कैसे लिखे, पढ़े और एजेंट को दिए जाते हैं।
-- **[Design System Setup](/info/brand-studio.html)**: लोगो, कस्टम मार्क, और design system को डिवाइसों के बीच ले जाना।
+- **[Lolly Design System Setup](/info/brand-studio.html)**: लोगो, कस्टम मार्क, और design system को डिवाइसों के बीच ले जाना।
 - **[Creative rights and credits](/info/creative-rights.html)**: Lolly जिन कृतियों को बनाता है उनके बारे में वह क्या दर्ज करता है।

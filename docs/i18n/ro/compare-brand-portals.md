@@ -6,7 +6,7 @@ Dacă organizația ta își ține resursele aprobate în Bynder, Frontify, Marq 
 
 ## Ce face mai bine un portal consacrat
 
-Portalurile consacrate oferă găzduire administrată, suport și fluxuri extinse de gestionare a resurselor. De exemplu, [DAM-ul enterprise Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combină descoperirea resurselor, controalele de acces, fluxurile de aprobare și distribuția. Stiva Lolly este mai tânără, iar lanțurile ei de aprobare sunt secvențiale, nu fluxuri arbitrare cu ramificare. [Starea și harta Work](/info/work-status.html) înregistrează limitele ei de instalare.
+Portalurile consacrate oferă găzduire administrată, suport și fluxuri extinse de gestionare a resurselor. De exemplu, [DAM-ul enterprise Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combină descoperirea resurselor, controalele de acces, fluxurile de aprobare și distribuția. Stiva Lolly este mai tânără, iar lanțurile ei de aprobare sunt secvențiale, nu fluxuri arbitrare cu ramificare. [Starea și harta Lolly Work](/info/work-status.html) înregistrează limitele ei de instalare.
 
 ## Unde se suprapun
 

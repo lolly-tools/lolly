@@ -13,14 +13,14 @@
 - **[範本](/info/templates.html)** - 從已儲存的版面開始，而不是空白的工具。
 - **[Design 中的文字](/info/text-composition.html)** - 標題、流動文字與符合方塊大小的字型。
 - **[3D Studio](/info/3d-studio.html)** - SVG 圖稿與 3D 模型，排列、打光並渲染成同一個場景。
-- **[Utilities](/info/utilities.html)** - 在你的裝置上修復檔案：安全地分享、比較兩個版本、更改格式、取出文字或檢查顏色。
+- **[Lolly Utilities](/info/utilities.html)** - 在你的裝置上修復檔案：安全地分享、比較兩個版本、更改格式、取出文字或檢查顏色。
 - **[瀏覽器擴充功能](/info/extension.html)** - 從網頁應用程式對即時網頁截圖，或讀取網站以開始建立設計系統。
 
 ## 讓它屬於你
 
 你的設計系統決定每個工具的外觀。
 
-- **[Design System Setup](/info/brand-studio.html)** - 標誌、色彩、字型等等，在 `#/start` 一次設定。
+- **[Lolly Design System Setup](/info/brand-studio.html)** - 標誌、色彩、字型等等，在 `#/start` 一次設定。
 - **[實際使用 Lolly Demo](/info/lolly-demo-in-use.html)** - 在真實工作上使用配色方案，並切換到你自己的設計系統。
 - **[品牌架構](/info/brand-architectures.html)** - 為一個組織提供多個設計系統，或一個帶有多種配色方案的設計系統。
 - **[與夥伴合作](/info/partners.html)** - 與夥伴分享你的品牌，在別人交給你的品牌中工作，並製作贊助商牆。
@@ -32,7 +32,7 @@
 
 - **[尋找並復原你的作品](/info/find-your-work.html)** - 已儲存、已下載或未儲存的檔案去了哪裡。
 - **[搜尋](/info/search.html)**與 **[Ask Lolly](/info/ask.html)** - 一個欄位涵蓋你的工具、已儲存的作品、素材與設定，並從這些指南中得到答案。
-- **[Settings](/info/dashboard.html)** - 這部裝置能做什麼、唯讀的設計系統，以及你的儲存空間。
+- **[Lolly Settings](/info/dashboard.html)** - 這部裝置能做什麼、唯讀的設計系統，以及你的儲存空間。
 - **[你的最愛](/info/favourites.html)**與 **[個人資料](/info/profile.html)** - 加星號的工具、工具預先填入的詳細資料，以及無障礙開關。
 - **[同步你的裝置](/info/sync.html)** - 透過你選擇的儲存空間，在電腦與手機上使用同一份作品。
 

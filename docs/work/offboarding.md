@@ -13,20 +13,20 @@ to another supported source. Start early enough to verify the result before reti
 Choose an offboarding destination. Open a path for its steps: self-host Lolly Work, use Nextcloud or Git, or upload to an existing hosted drive.
 :::
 
-The first path supports Work's materialize and cutover commands for qualified sources. The
-other paths use a separate vendor export and file transfer, followed by a read-only Work
+The first path supports Lolly Work's materialize and cutover commands for qualified sources. The
+other paths use a separate vendor export and file transfer, followed by a read-only Lolly Work
 connection. Their new source identities do not automatically inherit the old DAM's addresses.
 
 ::: details Compare transfer methods
 | Destination | How files get there | Continue with |
 |---|---|---|
-| Self-hosted Lolly Work with PostgreSQL or S3-compatible storage | Work materializes files into its own blob store; supported cutover creates aliases for copied assets | [Work-managed library](#self-host-lolly-work-with-s3-storage) |
-| Nextcloud or another WebDAV server you run | Export and copy with your own file tools, then connect Work read-only | [Nextcloud library](#move-to-nextcloud-or-another-webdav-server) |
-| Git on a self-hosted forge | Export, review and commit files plus a manifest, then connect Work read-only | [Git catalog](#keep-a-catalog-in-git) |
-| Google Drive, OneDrive / SharePoint or Dropbox | Export and upload with the drive's tools, then connect Work read-only | [Hosted drive](#move-to-a-hosted-drive) |
+| Self-hosted Lolly Work with PostgreSQL or S3-compatible storage | Lolly Work materializes files into its own blob store; supported cutover creates aliases for copied assets | [Library managed by Lolly Work](#self-host-lolly-work-with-s3-storage) |
+| Nextcloud or another WebDAV server you run | Export and copy with your own file tools, then connect Lolly Work read-only | [Nextcloud library](#move-to-nextcloud-or-another-webdav-server) |
+| Git on a self-hosted forge | Export, review and commit files plus a manifest, then connect Lolly Work read-only | [Git catalog](#keep-a-catalog-in-git) |
+| Google Drive, OneDrive / SharePoint or Dropbox | Export and upload with the drive's tools, then connect Lolly Work read-only | [Hosted drive](#move-to-a-hosted-drive) |
 :::
 
-For a supported Work-managed exit, the sequence is:
+For a supported exit into Lolly Work, the sequence is:
 
 ::: timeline
 - <!--i:link--> **Federate.** Connect the DAM as a read-only provider and confirm that `lw providers sync` returns what you expect.
@@ -41,7 +41,7 @@ Connecting each kind is in [the provider guides](providers/README.md), one per k
 
 A practical destination is Lolly for creating content, a self-hosted Lolly Work instance for
 sign-in, catalog metadata, shared projects and governance, and a private S3-compatible store for
-the instance's files. Choose a [Work installation path](self-host.md) with durable PostgreSQL,
+the instance's files. Choose a [Lolly Work installation path](self-host.md) with durable PostgreSQL,
 your own address and sign-in. The public demo's memory storage is not a migration destination.
 
 Choose where the bytes will live before the first materialize. PostgreSQL is the default blob
@@ -73,7 +73,7 @@ Three S3 connections serve different purposes:
 
 | Connection | Purpose in a transition |
 |---|---|
-| Work's `blobs.driver: "s3"` | Writable instance storage receiving materialized assets; Work keeps their metadata and aliases in PostgreSQL |
+| Lolly Work's `blobs.driver: "s3"` | Writable instance storage receiving materialized assets; Lolly Work keeps their metadata and aliases in PostgreSQL |
 | The [S3 catalog source](providers/s3.md) | Read-only access to files already in a bucket; adding this source does not choose the destination for materialize |
 | An [S3 delivery destination](delivery.md) | Explicitly sends finished exports to a bucket; it does not move the source library |
 
@@ -98,7 +98,7 @@ result. [Plan a DAM transition](/info/dam-transition.html) covers ownership and 
 ## Move to Nextcloud or another WebDAV server
 
 Choose this path when people should manage ordinary folders in a file service your organisation
-runs. Nextcloud is an open-source option. Work can read the resulting library through its
+runs. Nextcloud is an open-source option. Lolly Work can read the resulting library through its
 [WebDAV / Nextcloud source](providers/webdav.md).
 
 1. Obtain a permitted export of the DAM originals and the metadata, rights and history records
@@ -107,11 +107,11 @@ runs. Nextcloud is an open-source option. Work can read the resulting library th
    [WebDAV client](https://docs.nextcloud.com/server/latest/user_manual/en/files/access_webdav.html).
    Compare checksums and set folder permissions on the destination.
 3. Connect a narrow root through the WebDAV guide, test an original and allowed and refused
-   Work members, and check the complete inventory within the connector's walk limits.
-4. Plan replacement links and governance explicitly. Work's WebDAV source is read-only;
-   materialize writes to Work's own blob store and cannot send a DAM library to this folder.
+   Lolly Work members, and check the complete inventory within the connector's walk limits.
+4. Plan replacement links and governance explicitly. Lolly Work's WebDAV source is read-only;
+   materialize writes to Lolly Work's own blob store and cannot send a DAM library to this folder.
 
-Keep metadata exports beside the files where appropriate, but verify which fields Work actually
+Keep metadata exports beside the files where appropriate, but verify which fields Lolly Work actually
 maps. A folder copy does not reconstruct approval history or rights evidence. Back up the file
 service and test recovery before retiring the DAM.
 
@@ -121,8 +121,8 @@ A self-hosted forge such as Gitea can suit a small, curated set of logos, fonts 
 reviewed with a catalog manifest. Export the permitted files, commit them and the manifest, then
 follow the [Git source guide](providers/git.md) to connect the raw-content endpoint.
 
-This is a separate export and repository workflow; Work does not push into Git. Agree file-size
-limits, repository access, metadata mappings and replacement references. Work reads the selected
+This is a separate export and repository workflow; Lolly Work does not push into Git. Agree file-size
+limits, repository access, metadata mappings and replacement references. Lolly Work reads the selected
 branch, so Git history alone does not pin an existing design to a historical revision.
 
 ## Move to a hosted drive
@@ -133,10 +133,10 @@ the service operator as well as the files. For a hosted drive, review account ow
 region, access, retention and the ability to export again before choosing the destination.
 
 Export permitted DAM originals and supporting records first. Upload with the drive's own tools,
-then connect the new folder to Work using its provider guide. Work's drive connectors are
+then connect the new folder to Lolly Work using its provider guide. Lolly Work's drive connectors are
 read-only: there is no direct DAM-to-drive materialize, publishing or cutover writer.
 
-| Destination | Work connection and listing limits | Upload guidance |
+| Destination | Lolly Work connection and listing limits | Upload guidance |
 |---|---|---|
 | [Google Drive](providers/gdrive.md#use-as-an-offboarding-destination) | One flat folder; native Docs, Sheets and Slides are skipped; no imported approval or availability dates | [Upload files and folders](https://support.google.com/drive/answer/2424368) |
 | [OneDrive / SharePoint](providers/o365.md#use-as-an-offboarding-destination) | One folder level; subfolders are not walked; search covers the whole drive, so test exposure carefully | [Upload to a drive or library](https://support.microsoft.com/en-us/sharepoint/documents-and-library/upload-files-and-folders-to-a-library) |
@@ -146,7 +146,7 @@ Compare downloaded destination bytes with the exported originals. Keep ordinary 
 than converting originals to cloud-native documents if Lolly must use the same bytes. Rebuild
 access and required approval or expiry controls, keep unmapped metadata and historical records
 separately, and update saved designs and published links for the new source identities. The
-Work-managed cutover's old-address aliases do not apply to this separate transfer.
+Lolly Work cutover's old-address aliases do not apply to this separate transfer.
 
 ## When to start
 
@@ -191,7 +191,7 @@ pointing them at a new provider entry is an edit, not a rebuild.
 
 ## Exit readiness by kind
 
-One row per DAM kind Work ships. "What imports" is the governance a driver reads off the source:
+One row per DAM kind Lolly Work ships. "What imports" is the governance a driver reads off the source:
 where its availability window comes from ([imported availability
 windows](catalog.md#imported-availability-windows)) and how approval maps. Everything after that
 (the lifecycle fold, holds, exposure and provenance) is Lolly-side and identical for every kind.
@@ -221,7 +221,7 @@ exit goes** than where one starts. The copy works against it like any other sour
 
 ## Run the exit
 
-These commands copy into Work's own blob store. For Nextcloud, Git or hosted drives, use the
+These commands copy into Lolly Work's own blob store. For Nextcloud, Git or hosted drives, use the
 separate export and transfer steps in your [chosen path](#choose-your-offboarding-path).
 
 ```bash

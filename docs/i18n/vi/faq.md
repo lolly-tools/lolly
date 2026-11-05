@@ -98,7 +98,7 @@ Feature flag bật hoặc tắt các phần của Lolly. Khi dùng độc lập,
 
 ## Tiện ích khác với công cụ ở điểm nào?
 
-Một tiện ích làm một việc nhanh trên tệp bạn đã có, như nén PDF, chuyển đổi ảnh hoặc xóa dữ liệu ẩn, và nhiều tiện ích chạy trên thiết bị của bạn mà không tải gì lên. Chúng có để những việc mọi người thường giao cho một trang web ngẫu nhiên ở lại bên trong Lolly. Nén một hợp đồng, chuyển ảnh kỳ nghỉ còn nguyên vị trí hoặc dán một token vào trình định dạng trực tuyến không nên có nghĩa là trao tệp cho một trang với thời hạn lưu giữ, khu vực pháp lý và mô hình kinh doanh không rõ. [Utilities](/info/utilities.html) liệt kê chúng, và [The trade we never agreed to](/info/status-quo.html) kể câu chuyện đằng sau.
+Một tiện ích làm một việc nhanh trên tệp bạn đã có, như nén PDF, chuyển đổi ảnh hoặc xóa dữ liệu ẩn, và nhiều tiện ích chạy trên thiết bị của bạn mà không tải gì lên. Chúng có để những việc mọi người thường giao cho một trang web ngẫu nhiên ở lại bên trong Lolly. Nén một hợp đồng, chuyển ảnh kỳ nghỉ còn nguyên vị trí hoặc dán một token vào trình định dạng trực tuyến không nên có nghĩa là trao tệp cho một trang với thời hạn lưu giữ, khu vực pháp lý và mô hình kinh doanh không rõ. [Lolly Utilities](/info/utilities.html) liệt kê chúng, và [The trade we never agreed to](/info/status-quo.html) kể câu chuyện đằng sau.
 
 ![Màn hình Utilities: Strip Hidden Data, Compress PDF, Convert Image và các việc chạy trên thiết bị khác, tất cả ở một nơi](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

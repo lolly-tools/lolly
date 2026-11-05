@@ -2,11 +2,11 @@
 
 Connect an Orange Logic DAM so people can search it from Lolly Work and use the renditions it
 already publishes, such as its `TR1` and `WebHigh` images, in their designs. Orange Logic stays
-the source. Work reads through its public Search API and you decide which Work groups see which
+the source. Lolly Work reads through its public Search API and you decide which Lolly Work groups see which
 results.
 
 This connection works with renditions, not original files. Each file is labelled with its
-rendition code, and Work refuses a cutover that would treat a rendition as the original. Moving
+rendition code, and Lolly Work refuses a cutover that would treat a rendition as the original. Moving
 originals out of Orange Logic needs its separate Extract Original Document API, which this
 connection does not use yet.
 
@@ -19,7 +19,7 @@ connection does not use yet.
 
 ## Onboarding
 
-1. Agree the exact tenant and storage origins, administrator query, rendition codes and Work groups. Label this pilot as rendition access: it does not provide protected originals.
+1. Agree the exact tenant and storage origins, administrator query, rendition codes and Lolly Work groups. Label this pilot as rendition access: it does not provide protected originals.
 2. Seal the application credential or bearer token described below, map your tenant's approval and date fields, and follow the [four-step connection](README.md#connect-a-source-in-four-steps).
 3. Run the [Orange Logic tenant check](tenant-check.md#orange-logic). Check rendition labels and bytes, refusal of substituted files, mapped governance and group access in a real Lolly task before widening the source.
 
@@ -28,15 +28,15 @@ connection does not use yet.
 - **The exact HTTPS origin** of your Orange Logic environment, including a custom domain if you
   use one. Paths, credentials in the URL and wildcard origins are refused.
 - **A dedicated account** allowed to use bearer authentication, the Search fields and the
-  rendition formats you need. Choose an upstream subset that is right to share through Work.
-- **An administrator query** and explicit Work exposure groups. A shared service account does
+  rendition formats you need. Choose an upstream subset that is right to share through Lolly Work.
+- **An administrator query** and explicit Lolly Work exposure groups. A shared service account does
   not carry each member's own upstream permissions.
 
 Use the advanced **Providers > Orange Logic** form or `lw`.
 
 ## Credential shape
 
-JSON with `clientId` and `clientSecret` for your organisation's application account. Work
+JSON with `clientId` and `clientSecret` for your organisation's application account. Lolly Work
 exchanges them on the configured origin, keeps the token in memory in its driver instance and
 refreshes once after an HTTP 401. Alternatively, store a bearer token as plain text or as JSON
 with `bearerToken`. There is no browser consent flow or refresh-token credential for this kind.
@@ -44,7 +44,7 @@ with `bearerToken`. There is no browser consent flow or refresh-token credential
 Use the write-only credential panel or `lw providers credential orange-media`, never options,
 the command line or a source URL. A config-managed source gives, in `credentialRef`, the name of
 an environment variable holding the credential. A token bound to an IP address needs a stable
-outbound path from the Work instance.
+outbound path from the Lolly Work instance.
 
 ## instance.json
 
@@ -79,7 +79,7 @@ Fields and Criteria tools show which exist.
 | `baseUrl` (required) | | The exact HTTPS origin. |
 | `query` | none | Always combined with members' search text or id lookups; member text is escaped. |
 | `formats` | `TR1`, `WebHigh` | Up to twenty distinct rendition codes. |
-| `storageOrigins` | none | Up to twenty more exact HTTPS origins for rendition files. Storage reads carry no API token and redirects are refused. Work's egress policy still applies. |
+| `storageOrigins` | none | Up to twenty more exact HTTPS origins for rendition files. Storage reads carry no API token and redirects are refused. Lolly Work's egress policy still applies. |
 | `pageSize` | 100 | 1 to 500 per page. |
 | `minGapMs` | 250 | 0 to 60,000 ms between requests within one driver instance. |
 | `approvalField`, `approvedValues` | none | The field that marks approval and the values that count. A field needs an explicit value list. |
@@ -91,7 +91,6 @@ approved. Availability fields read the exact metadata keys returned, as ISO 8601
 not a full territory, channel or agreement rights evaluator.
 
 ## Verify
-
 ```bash
 lw providers preview --kind orange-logic --options '{"baseUrl":"https://dam.your-host.example","query":"ParentFolderIdentifier:APPROVED"}' --shape
 lw providers add orange-media --kind orange-logic --label "Campaign renditions" --options '{"baseUrl":"https://dam.your-host.example","query":"ParentFolderIdentifier:APPROVED"}'
@@ -118,7 +117,7 @@ file's fidelity nor an upstream rights clearance. Contributors changing the driv
 - **Renditions only.** A record without any requested format stays searchable with no file to
   download. A document preview does not make a PDF or PowerPoint original available.
 - **Substitutions refused.** Substituted or watermarked formats, and paths carrying warnings, are
-  left out. Before fetching, Work checks the record and the mapped policy again; a missing,
+  left out. Before fetching, Lolly Work checks the record and the mapped policy again; a missing,
   changed, substituted or disallowed file fails clearly.
 - **Public rendition links** are refreshed on access and never stored in the catalog. That does
   not make their access private, and it cannot withdraw bytes already downloaded.
@@ -126,8 +125,8 @@ file's fidelity nor an upstream rights clearance. Contributors changing the driv
   partial reply is served only when its `Content-Range` matches the request exactly and the body
   has that length; a storage origin that ignores ranges returns the whole file. See
   [Large catalogs](../catalog.md#large-catalogs).
-- **Paging and caches.** Work builds each next page itself and never follows a returned next-page
-  URL. Work's sync and page limits still report truncation, and cached or pinned copies need an
+- **Paging and caches.** Lolly Work builds each next page itself and never follows a returned next-page
+  URL. Lolly Work's sync and page limits still report truncation, and cached or pinned copies need an
   agreed freshness bound.
 - **Rate limits.** A `429` is passed back without retries. Request budgets, exact fields, token
   responses, proxies and storage origins all need checking on your tenant. An approval mapping
@@ -135,7 +134,7 @@ file's fidelity nor an upstream rights clearance. Contributors changing the driv
 
 ## Off-boarding
 
-Materialize can copy exposed renditions, with that limitation retained in their metadata. **Work refuses cutover for Orange Logic** because protected originals are unavailable through this connector. A successful preview or rendition copy cannot qualify an exit that preserves originals.
+Materialize can copy exposed renditions, with that limitation retained in their metadata. **Lolly Work refuses cutover for Orange Logic** because protected originals are unavailable through this connector. A successful preview or rendition copy cannot qualify an exit that preserves originals.
 
 The [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) explains how to run the destination, but does not remove this source limitation. An original-preserving migration needs a separately obtained, implemented and tested original-export path, plus checks for every required format. Keep Orange Logic authoritative until that work and the acceptance checks in [Leave a DAM](../offboarding.md) are complete.
 

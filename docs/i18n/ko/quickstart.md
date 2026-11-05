@@ -24,7 +24,7 @@ lolly.tools는 Lolly 자체의 샘플 디자인 시스템인 **Lolly Demo**로 �
 
 ![새로 설치한 상태의 Design System Setup의 Colours 룸: 실시간 칩 하나, 입력란 하나, 첫 결정의 전부](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-거기서부터 여덟 개의 룸이 원하는 만큼, 어떤 순서로든 이어져요. **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**, **Skills**예요. 앱의 모든 미리보기는 입력하는 대로 업데이트돼요. [Design System Setup](/info/brand-studio.html)에서 각 룸을 다뤄요.
+거기서부터 여덟 개의 룸이 원하는 만큼, 어떤 순서로든 이어져요. **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**, **Skills**예요. 앱의 모든 미리보기는 입력하는 대로 업데이트돼요. [Lolly Design System Setup](/info/brand-studio.html)에서 각 룸을 다뤄요.
 
 글꼴은 기기에 보관돼요. Google Font를 고르면 Lolly가 파일을 브랜드 에셋으로 저장하므로, 글꼴이 오프라인에서도 따라다니고 도구가 그릴 때 아무것도 가져오지 않아요.
 
@@ -58,7 +58,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 **덱.** PowerPoint `.pptx`를 Lolly에 놓아 슬라이드를 에셋으로 보관하거나, **Markdown Slides**에서 Markdown으로 새 덱을 쓰거나, [덱 리브랜드](/info/rebrand.html)로 덱 전체를 디자인 시스템으로 옮기세요.
 
-**데이터.** CSV나 JSON 표를 붙여넣거나 놓으면 도구의 반복 필드가 그것으로 채워지고, [Batch](/info/batch.html#make-many-versions-of-one-design)는 행마다 완성된 파일 하나를 만들어요.
+**데이터.** CSV나 JSON 표를 붙여넣거나 놓으면 도구의 반복 필드가 그것으로 채워지고, [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)는 행마다 완성된 파일 하나를 만들어요.
 
 ### 한 번 쓰고 마는 작업물에서 템플릿으로
 
@@ -72,7 +72,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 - <!--i:download--> **내보내기.** 도구는 SVG, PDF, PNG, JPG, WebP, 동영상 등을 각 도구가 제공하는 형식으로, 필요하면 실제 인쇄 크기로 만들어요. [파일 내보내기](/info/exporting.html)를 참고하세요.
 - <!--i:link--> **링크 공유.** 도구의 설정이 링크에 담겨 이동하므로, 링크는 어디서든 같은 파일을 다시 열어요.
-- <!--i:layers--> **행마다 하나씩 만들기.** [Batch](/info/batch.html#make-many-versions-of-one-design)에서 스프레드시트로 도구를 구동해요.
+- <!--i:layers--> **행마다 하나씩 만들기.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)에서 스프레드시트로 도구를 구동해요.
 - <!--i:cpu--> **자동화.** 같은 렌더링이 [CLI](/info/cli.html)와 [AI 에이전트](/info/ai-agents.html)에서도 실행돼요.
 
 링크는 완전한 요청이에요. 아래 차트는 아무도 그리지 않았어요. 유형, 제목, 데이터 표 전체를 주소창에 입력했을 뿐이고, 같은 링크는 어느 기기에서든 같은 차트를 그려요.

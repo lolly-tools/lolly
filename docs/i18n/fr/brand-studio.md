@@ -4,7 +4,7 @@ Ton logo, tes couleurs et tes polices vivent au même endroit, pour que chaque o
 
 Pars de ce que tu as. Dépose un logo et Lolly lit ses couleurs. Choisis une police, ou dépose le fichier de police dont ton entreprise détient la licence. Chaque changement se voit aussitôt dans toute l'application. Ton logo, tes polices et tes tokens restent sur cet appareil. Choisir une Google Font est la seule étape qui sort de l'appareil : Lolly demande d'abord, puis récupère la famille une fois.
 
-Quand le résultat te convient, donne un nom au design system et appuie sur **Export**. Tu obtiens un fichier `.lolly` à conserver, à ouvrir sur un autre appareil ou à remettre à un collègue. [Settings](/info/dashboard.html#design-system) montre le système actif en lecture seule, et sa couverture renvoie ici pour le modifier.
+Quand le résultat te convient, donne un nom au design system et appuie sur **Export**. Tu obtiens un fichier `.lolly` à conserver, à ouvrir sur un autre appareil ou à remettre à un collègue. [Lolly Settings](/info/dashboard.html#design-system) montre le système actif en lecture seule, et sa couverture renvoie ici pour le modifier.
 
 ## Fais-le tien en cinq minutes
 

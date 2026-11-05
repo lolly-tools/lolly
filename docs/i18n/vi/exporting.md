@@ -132,9 +132,9 @@ Lolly có ba cách làm việc ở khối lượng lớn, mỗi cách cho một 
 ## Một bảng thành một tài liệu
 Công cụ có đầu vào bảng, như **Battlecards**, biến mỗi hàng thành một trang. Dán một bảng từ bảng tính và nhận một PDF. Sửa các hàng trong bảng tính rồi dán lại.
 ## Một CSV thành một tệp cho mỗi hàng
-**Batch** (`#/batch`) nhận một CSV và kết xuất một bản xuất cho mỗi hàng: thẻ tên hoặc chứng nhận, mỗi cái một tệp, giao trong một ZIP. Xem [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) nhận một CSV và kết xuất một bản xuất cho mỗi hàng: thẻ tên hoặc chứng nhận, mỗi cái một tệp, giao trong một ZIP. Xem [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Nhiều thiết kế một lần chỉnh sửa
-**Multi-edit** mở nhiều phiên đã lưu cạnh nhau để chỉnh sửa y hệt trên các thiết kế khác nhau. Xem [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** mở nhiều phiên đã lưu cạnh nhau để chỉnh sửa y hệt trên các thiết kế khác nhau. Xem [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Từ **Projects**, **Render folder** xuất mọi phiên đã lưu trong một thư mục và các thư mục con của nó thành một ZIP lồng nhau, và **Render selection** làm tương tự cho mọi vùng chọn nhiều; một phiên đã lưu kết xuất ra tệp riêng của nó. Một phiên đã lưu cũng có thể được chia sẻ lại dưới dạng liên kết công cụ từ Projects, mở lại với cùng cài đặt.
@@ -170,7 +170,7 @@ Hầu hết công cụ xuất SVG cũng xuất một **tệp Penpot** (`.penpot`
 | Cả thiết kế | Một component dùng lại được trong bảng Assets |
 | Một minh họa phức tạp hoặc canvas trực tiếp | Được nhúng riêng dưới dạng ảnh, nội dung chỉnh sửa được xung quanh không bị động đến |
 
-Từ Design, mỗi khung trở thành một board Penpot. Màu và kiểu chữ của hệ thống thiết kế vào bảng Assets và toàn bộ bộ token của nó vào bảng Tokens. Từ đó Penpot giữ bản sao riêng: một token được sửa trong Penpot quay lại qua việc nhập trong [Design System Setup](/info/brand-studio.html).
+Từ Design, mỗi khung trở thành một board Penpot. Màu và kiểu chữ của hệ thống thiết kế vào bảng Assets và toàn bộ bộ token của nó vào bảng Tokens. Từ đó Penpot giữ bản sao riêng: một token được sửa trong Penpot quay lại qua việc nhập trong [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Bảng xuất với Penpot được chọn: tệp .penpot, và Send to Penpot bên cạnh nút tải xuống](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

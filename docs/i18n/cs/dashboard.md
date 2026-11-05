@@ -18,7 +18,7 @@ Preferences je jedna dlouhá stránka s **lištou nastavení** po straně a pole
 
 - <!--i:usercheck--> **Your details** - tvé jméno, kontaktní údaje a portrét a přepínač **Use my details to create**. [Profily](/info/profile.html) vysvětlují, jak je nástroje používají.
 - <!--i:seal--> **Content Credentials** - volitelná ověřená identita, která podepisuje tvé exporty. Viz [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - přepínání, přidávání, skrývání nebo odstraňování designových systémů. Každou akci pokrývá [Design System Setup](/info/brand-studio.html#manage-your-design-systems).
+- <!--i:palette--> **Design systems** - přepínání, přidávání, skrývání nebo odstraňování designových systémů. Každou akci pokrývá [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems).
 - <!--i:moon--> **Appearance** - motiv (Light, Dark nebo Brand, který aplikaci vybarví tvou paletou), **Your colourway**, když designový systém nabízí víc než jeden ([Udělej si colourway po svém](/info/colourways.html#make-a-colourway-your-own)), a **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - sada, z níž se emoji kreslí, když začneš něco nového, s licencí jejího umění a mírou, jakou je tvá paleta přebarvuje (**Off**, **Subtle**, **Strong**, **Full**, **Mono** nebo **Duotone**). **Keep skin tones and flags** ponechá ty ve vlastních barvách. Práce, kterou jsi už vytvořil, si drží sadu, s níž vznikla.
 - <!--i:eyeoff--> **Accessibility** - čtyři přepínače pohodlí plus Sound a Neurospicy Mode. Viz [Přístupnost](#accessibility).
@@ -107,7 +107,7 @@ Karta se otevře na obálce vymalované vlastními barvami systému s jeho logem
 - <!--i:sliders--> **Tokens** - poloměr, mezery, efekty a přechody.
 - <!--i:document--> **Print & CMYK** - barvy zamčené na přesnou barvu a tiskové podmínky, které CMYK PDF může deklarovat.
 
-Přepínání je jediná změna, kterou tato karta dělá. Designový systém upravuješ v [Design System Setup](/info/brand-studio.html) na `#/start`, kam obálka odkazuje. Systém jen pro čtení to na své obálce říká; místní systémy, které vytvoříš, zůstávají upravitelné. `/b` a `/brand` jsou zkratky rovnou na tuto kartu.
+Přepínání je jediná změna, kterou tato karta dělá. Designový systém upravuješ v [Lolly Design System Setup](/info/brand-studio.html) na `#/start`, kam obálka odkazuje. Systém jen pro čtení to na své obálce říká; místní systémy, které vytvoříš, zůstávají upravitelné. `/b` a `/brand` jsou zkratky rovnou na tuto kartu.
 
 ## Capabilities
 
@@ -139,4 +139,4 @@ Hluboký odkaz přepne na kartu, která cíl vlastní, otevře každou skupinu, 
 
 ---
 
-**Související:** [Profily](/info/profile.html) pro tvé údaje a kontexty, ve kterých tvoříš. [Design System Setup](/info/brand-studio.html) pro úpravu toho, co ukazuje karta Design system. [Najdi a obnov svou práci](/info/find-your-work.html) pro úložiště, zálohy a přesun zařízení.
+**Související:** [Profily](/info/profile.html) pro tvé údaje a kontexty, ve kterých tvoříš. [Lolly Design System Setup](/info/brand-studio.html) pro úpravu toho, co ukazuje karta Design system. [Najdi a obnov svou práci](/info/find-your-work.html) pro úložiště, zálohy a přesun zařízení.

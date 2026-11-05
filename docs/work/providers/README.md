@@ -2,19 +2,19 @@
 
 Your logos, photos and approved files probably live somewhere already: a Nextcloud server, a
 bucket, a Google Drive folder or a DAM. Connect that place to Lolly Work as a **source**, and
-its files appear in the Work catalog, ready to pick inside Lolly tools without downloading and
+its files appear in the Lolly Work catalog, ready to pick inside Lolly tools without downloading and
 uploading them again.
 
 An existing DAM can remain the source of record throughout this workflow. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains the division of responsibilities, and [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful use during adoption. Connection, source-field qualification and a later migration are separate decisions.
 
-The source stays in charge. Work reads from it and never edits it, and you decide which groups
+The source stays in charge. Lolly Work reads from it and never edits it, and you decide which groups
 see which files. Optimizely CMP is the one source that can also receive finished exports, and
 only when you turn that on. Penpot is a design-system source: its tokens feed a design system.
 
-When you want the files in Work's own storage, the same connection copies them across and
+When you want the files in Lolly Work's own storage, the same connection copies them across and
 checks every file. That is the exit, covered in [Leave a DAM](../offboarding.md).
 
-![A source feeds the Work catalog as read-only references. Exposure decides which groups see each file in Lolly tools, and materializing copies the files into your own store.](/info/diagrams/work-integrations/source-flow.svg)
+![A source feeds the Lolly Work catalog as read-only references. Exposure decides which groups see each file in Lolly tools, and materializing copies the files into your own store.](/info/diagrams/work-integrations/source-flow.svg)
 
 ## Choose a source
 
@@ -65,15 +65,15 @@ optional and needs separate acceptance checks.
 | [Image Relay](imagerelay.md) | [Select the tenant API](imagerelay.md#onboarding) | [Choose the exit driver](imagerelay.md#off-boarding) |
 | [Canto](canto.md) | [Check access and originals](canto.md#onboarding) | [Qualify the exit](canto.md#off-boarding) |
 | [Acquia DAM / Widen](acquia-dam.md) | [Check statuses and dates](acquia-dam.md#onboarding) | [Rehearse the copy](acquia-dam.md#off-boarding) |
-| [IntelligenceBank](intelligencebank.md) | [Check workflow mappings](intelligencebank.md#onboarding) | [Verify copied governance](intelligencebank.md#off-boarding) |
+| [IntelligenceBank](intelligencebank.md) | [Check workflow mappings](intelligencebank.md#onboarding) | [Lolly Verify copied governance](intelligencebank.md#off-boarding) |
 | [Cloudinary](cloudinary.md) | [Check folders and originals](cloudinary.md#onboarding) | [Conditional exit](cloudinary.md#off-boarding) |
 | [Orange Logic](orange-logic.md) | [Connect permitted renditions](orange-logic.md#onboarding) | [Originals block cutover](orange-logic.md#off-boarding) |
 | [Optimizely CMP](optimizely-cmp.md) | [Connect the web workflow](optimizely-cmp.md#onboarding) | [Retain CMP as the source](optimizely-cmp.md#off-boarding) |
 
 Use the [offboarding path chooser](../offboarding.md#choose-your-offboarding-path) to start
-with open-source services you can run: Work-managed storage, Nextcloud or Git. It also explains
+with open-source services you can run: storage managed by Lolly Work, Nextcloud or Git. It also explains
 the separate export-and-upload route to Google Drive, OneDrive / SharePoint or Dropbox. The
-[S3 storage strategy](../offboarding.md#self-host-lolly-work-with-s3-storage) covers the Work
+[S3 storage strategy](../offboarding.md#self-host-lolly-work-with-s3-storage) covers the Lolly Work
 server, PostgreSQL, blob storage, backups and the checks before a supported cutover.
 
 ## Connect a source in four steps
@@ -143,7 +143,7 @@ call. [Check a source on your own tenant](tenant-check.md) explains how to read 
 - **Credentials are write-only.** They are sealed at rest, and only a fingerprint is ever
   returned.
 - **Sources are read-only.** Deleting a source never touches the files at the source.
-- **Fetches are host-pinned.** Each driver talks only to its own service's hosts, so Work is
+- **Fetches are host-pinned.** Each driver talks only to its own service's hosts, so Lolly Work is
   never an open proxy.
 - **Exposure decides what federates,** not the reach of the platform credential.
 - **You bring the tokens and apps.** No client ids or keys ship with Lolly Work.
@@ -168,7 +168,7 @@ Each guide shows its own `options`. These blocks work the same way for every kin
 | `sync.ttlSeconds` | How long a synced listing is served before a background refresh (default 300). |
 | `sync.maxAssets` | The most files one sync federates (default: the instance limit, 100,000). A sync that stops there is marked as truncated, with a note. |
 
-A source written into `instance.json` under `catalogProviders` is **config-managed**. Work
+A source written into `instance.json` under `catalogProviders` is **config-managed**. Lolly Work
 creates it at boot and the console shows it read-only ("via instance.json"). Its credential
 comes from the environment variable its `credentialRef` gives. Change it in your deployment and
 redeploy.

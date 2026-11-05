@@ -28,7 +28,7 @@ A colaboração ao vivo do Lolly inclui collabs privados diretos entre dois disp
 ## Recorra ao Lolly quando
 
 - O mesmo tipo de arquivo é necessário sempre de novo: peças de eventos, crachás, certificados, alertas, cartões sociais
-- Muitos arquivos vêm de um template e de uma tabela de valores, no [Batch](/info/batch.html#make-many-versions-of-one-design) ou na CLI
+- Muitos arquivos vêm de um template e de uma tabela de valores, no [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) ou na CLI
 - As cores, a tipografia e os recursos precisam ficar dentro do sistema de design, mesmo em um canvas aberto
 - Um design pronto do Figma, Penpot, Illustrator, InDesign ou PDF deve se tornar editável e repetível ([Import a design](/info/design-import.html))
 - Os arquivos precisam ser feitos nos seus próprios dispositivos ou servidores

@@ -44,7 +44,7 @@ Folosirea de sine stătătoare păstrează fișierele pe dispozitiv. Alegerea pr
 
 Aceste limite se aplică fiecărei pagini din acest set, deci sunt enunțate o singură dată aici:
 
-- **Work collab-urile rulează astăzi pe un singur nod de server.** Scala și istoricul lor de operare diferă de produsele găzduite consacrate. [Starea și harta Work](/info/work-status.html) înregistrează limitele curente.
+- **Lolly Work collab-urile rulează astăzi pe un singur nod de server.** Scala și istoricul lor de operare diferă de produsele găzduite consacrate. [Starea și harta Lolly Work](/info/work-status.html) înregistrează limitele curente.
 - **Site-ul de la [lolly.work](https://lolly.work) este un sandbox demo.** O instalare durabilă a unei organizații are nevoie de stocare persistentă și de un operator; [Instalează Lolly Work](/info/work-install.html) le acoperă pe amândouă.
 - **Nu există taxă de licență software per loc** pentru Lolly sau un Lolly Work găzduit propriu. Găzduirea, stocarea și operarea costă totuși bani.
 - **O semnătură nu este un semnatar de încredere.** Un verificator trebuie să aibă încredere în certificatul care a semnat un fișier înainte să arate semnatarul ca de încredere; [Identitate Content Credentials](/info/content-credentials-identity.html) explică cum.

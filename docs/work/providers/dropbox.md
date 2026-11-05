@@ -1,7 +1,7 @@
 # Dropbox (kind: `dropbox`)
 
 Connect a Dropbox folder of approved files and its contents appear in the Lolly Work catalog
-for the groups you choose. Work reads the folder through a Dropbox app you register, and never
+for the groups you choose. Lolly Work reads the folder through a Dropbox app you register, and never
 writes to the folder.
 
 ## What you need from Dropbox
@@ -43,7 +43,6 @@ consent step.
 - `options.path` is the folder to federate; the default is the app folder's root.
 
 ## Verify
-
 ```bash
 lw providers auth acme-dropbox
 lw providers health acme-dropbox
@@ -59,10 +58,10 @@ A token-refresh failure means the grant was revoked; run `lw providers auth` aga
   or a move.
 - **Search matches file names, not contents.**
 - **Fresh downloads.** Each download is a new authenticated request to Dropbox
-  (`files/download`), streamed through Work and pinned to Dropbox's hosts. Nothing is stored.
+  (`files/download`), streamed through Lolly Work and pinned to Dropbox's hosts. Nothing is stored.
 
 ## Use as an offboarding destination
 
-Export permitted DAM originals and supporting records, upload them with Dropbox's own tools, then connect the folder using this guide. Work reads this source and does not write the migration into Dropbox. Listing includes subfolders, but the transfer does not recreate the DAM's approval workflow, history or old identities. Rebuild required governance and update references.
+Export permitted DAM originals and supporting records, upload them with Dropbox's own tools, then connect the folder using this guide. Lolly Work reads this source and does not write the migration into Dropbox. Listing includes subfolders, but the transfer does not recreate the DAM's approval workflow, history or old identities. Rebuild required governance and update references.
 
-The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Work storage and other destinations, with open-source options first.
+The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Lolly Work storage and other destinations, with open-source options first.

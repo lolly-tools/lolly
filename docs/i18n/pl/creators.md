@@ -13,14 +13,14 @@ Wybierz narzędzie i wypełnij je albo ułóż stronę swobodnie na kanwie Desig
 - **[Templates](/info/templates.html)** - zacznij od zapisanego układu zamiast pustego narzędzia.
 - **[Text in Design](/info/text-composition.html)** - nagłówki, tekst płynący i typografia dopasowana do swojego pola.
 - **[3D Studio](/info/3d-studio.html)** - grafika SVG i modele 3D ułożone, oświetlone i wyrenderowane jako jedna scena.
-- **[Utilities](/info/utilities.html)** - napraw plik na swoim urządzeniu: udostępnij go bezpiecznie, porównaj dwie wersje, zmień format, wydobądź słowa lub sprawdź kolor.
+- **[Lolly Utilities](/info/utilities.html)** - napraw plik na swoim urządzeniu: udostępnij go bezpiecznie, porównaj dwie wersje, zmień format, wydobądź słowa lub sprawdź kolor.
 - **[Browser extension](/info/extension.html)** - zrób zrzut ekranu żywej strony internetowej z aplikacji webowej albo odczytaj witrynę, aby zacząć system projektowy.
 
 ## Spraw, by było Twoje
 
 Twój system projektowy decyduje, jak wygląda każde narzędzie.
 
-- **[Design System Setup](/info/brand-studio.html)** - logo, kolory, typografia i reszta, ustawione raz w `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logo, kolory, typografia i reszta, ustawione raz w `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - warianty kolorystyczne na prawdziwej pracy i przełączanie na własny system projektowy.
 - **[Brand architectures](/info/brand-architectures.html)** - kilka systemów projektowych albo jeden z kilkoma wariantami kolorystycznymi dla jednej organizacji.
 - **[Współpraca z partnerami](/info/partners.html)** - udostępnij swoją markę partnerowi, pracuj w marce, którą dostałeś, i zrób ścianę sponsorów.
@@ -31,8 +31,8 @@ Twój system projektowy decyduje, jak wygląda każde narzędzie.
 ## Znajdź i zachowaj swoją pracę
 
 - **[Find and recover your work](/info/find-your-work.html)** - dokąd trafił zapisany, pobrany lub niezapisany plik.
-- **[Search](/info/search.html)** i **[Ask Lolly](/info/ask.html)** - jedno pole na Twoje narzędzia, zapisaną pracę, zasoby i ustawienia oraz odpowiedzi z tych przewodników.
-- **[Settings](/info/dashboard.html)** - co potrafi to urządzenie, Twój system projektowy tylko do odczytu i Twoja pamięć.
+- **[Lolly Search](/info/search.html)** i **[Ask Lolly](/info/ask.html)** - jedno pole na Twoje narzędzia, zapisaną pracę, zasoby i ustawienia oraz odpowiedzi z tych przewodników.
+- **[Lolly Settings](/info/dashboard.html)** - co potrafi to urządzenie, Twój system projektowy tylko do odczytu i Twoja pamięć.
 - **[Your favourites](/info/favourites.html)** i **[Profiles](/info/profile.html)** - narzędzia z gwiazdką, dane, którymi narzędzia się wstępnie wypełniają, i przełączniki dostępności.
 - **[Sync your devices](/info/sync.html)** - ta sama praca na komputerze i telefonie, przez magazyn, który wybierzesz.
 

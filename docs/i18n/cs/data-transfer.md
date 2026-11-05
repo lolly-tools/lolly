@@ -152,7 +152,7 @@ Měřič úložiště ukazuje stejné rozdělení. Uložené relace, My images a
 
 Tento balíček zálohuje osobní knihovnu zařízení. Není to záloha instance **Lolly Work**: účty organizace, politiky přístupu, sdílené projekty, verze katalogu, schvalování, úlohy vykreslení a auditní záznamy drží ta služba. Znovu se připoj a přihlas se, abys znovu získal přístup ke sdílené práci; import osobního balíčku tento přístup neuděluje.
 
-Provozovatelé zálohují, uchovávají a mažou serverová data podle vlastních průvodců Lolly Work: [Zálohování a obnova](/info/work-operations.html#backup-and-restore) a [Úložiště Work a životní cyklus dat](/info/work-data-lifecycle.html). Vymazání nebo export zařízení nic z těchto serverových operací neprovede.
+Provozovatelé zálohují, uchovávají a mažou serverová data podle vlastních průvodců Lolly Work: [Zálohování a obnova](/info/work-operations.html#backup-and-restore) a [Úložiště Lolly Work a životní cyklus dat](/info/work-data-lifecycle.html). Vymazání nebo export zařízení nic z těchto serverových operací neprovede.
 
 ## Napříč shelly
 

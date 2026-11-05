@@ -44,7 +44,7 @@ _最后核查：2026 年 9 月 28 日。_
 
 这些限制适用于这一组中的每个页面，所以在这里一次性说明：
 
-- **Work 协作目前运行在单个服务器节点上。** 它们的规模和运营历史与长期存在的托管产品不同。[Work 状态与路线图](/info/work-status.html)记录了当前的限制。
+- **Lolly Work 协作目前运行在单个服务器节点上。** 它们的规模和运营历史与长期存在的托管产品不同。[Lolly Work 状态与路线图](/info/work-status.html)记录了当前的限制。
 - **[lolly.work](https://lolly.work) 上的站点是演示沙盒。** 持久的组织部署需要持久存储和一位运营者；[安装 Lolly Work](/info/work-install.html) 涵盖两者。
 - **Lolly 或自托管的 Lolly Work 没有按席位收取的软件许可费用。** 托管、存储和运营仍然需要花钱。
 - **签名不等于受信任的签名者。** 验证者必须先信任为文件签名的证书，才会把签名者显示为受信任；[Content Credentials 身份](/info/content-credentials-identity.html)解释了方法。

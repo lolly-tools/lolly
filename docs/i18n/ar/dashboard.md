@@ -18,7 +18,7 @@ Preferences صفحة طويلة واحدة بـ **شريط إعدادات** عل
 
 - <!--i:usercheck--> **Your details** - اسمك وتفاصيل اتصالك وصورتك الشخصية ومفتاح **Use my details to create**. يشرح [الملفات الشخصية](/info/profile.html) كيف تستخدمها الأدوات.
 - <!--i:seal--> **Content Credentials** - الهوية الموثّقة الاختيارية التي توقّع تصديراتك. راجع [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - بدّل أنظمة التصميم أو أضفها أو أخفها أو أزلها. يغطي [Design System Setup](/info/brand-studio.html#manage-your-design-systems) كل إجراء.
+- <!--i:palette--> **Design systems** - بدّل أنظمة التصميم أو أضفها أو أخفها أو أزلها. يغطي [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) كل إجراء.
 - <!--i:moon--> **Appearance** - السمة (Light أو Dark أو Brand، التي تطلي التطبيق بلوحتك)، و**Your colourway** عندما يقدّم نظام التصميم أكثر من واحد ([اجعل طقم ألوان لك](/info/colourways.html#make-a-colourway-your-own)) و**Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - المجموعة التي ترسم منها الإيموجي عندما تبدأ شيئاً جديداً، مع ترخيص أعمالها الفنية، ومدى إعادة تلوينها بلوحتك (**Off** أو **Subtle** أو **Strong** أو **Full** أو **Mono** أو **Duotone**). يترك **Keep skin tones and flags** تلك بألوانها الخاصة. والعمل الذي صنعته سابقاً يحتفظ بالمجموعة التي صُنع بها.
 - <!--i:eyeoff--> **Accessibility** - أربعة مفاتيح راحة، إضافة إلى Sound وNeurospicy Mode. راجع [إمكانية الوصول](#accessibility).
@@ -107,7 +107,7 @@ Preferences صفحة طويلة واحدة بـ **شريط إعدادات** عل
 - <!--i:sliders--> **Tokens** - نصف القطر والتباعد والتأثيرات والتدرجات.
 - <!--i:document--> **Print & CMYK** - الألوان المقفلة على حبر دقيق، وظروف الطباعة التي يستطيع PDF بـ CMYK إعلانها.
 
-التبديل هو التغيير الوحيد الذي يجريه هذا التبويب. تحرر نظام التصميم في [Design System Setup](/info/brand-studio.html) على `#/start`، الذي يرتبط به الغلاف. والنظام للقراءة فقط يقول ذلك على غلافه؛ وتظل الأنظمة المحلية التي تنشئها قابلة للتحرير. `/b` و`/brand` رابطان مختصران مباشران إلى هذا التبويب.
+التبديل هو التغيير الوحيد الذي يجريه هذا التبويب. تحرر نظام التصميم في [Lolly Design System Setup](/info/brand-studio.html) على `#/start`، الذي يرتبط به الغلاف. والنظام للقراءة فقط يقول ذلك على غلافه؛ وتظل الأنظمة المحلية التي تنشئها قابلة للتحرير. `/b` و`/brand` رابطان مختصران مباشران إلى هذا التبويب.
 
 ## Capabilities
 
@@ -139,4 +139,4 @@ Preferences صفحة طويلة واحدة بـ **شريط إعدادات** عل
 
 ---
 
-**ذو صلة:** [الملفات الشخصية](/info/profile.html) لتفاصيلك والسياقات التي تنشئ فيها. [Design System Setup](/info/brand-studio.html) لتحرير ما يعرضه تبويب Design system. [اعثر على عملك واستعده](/info/find-your-work.html) للتخزين والنسخ الاحتياطية والانتقال بين الأجهزة.
+**ذو صلة:** [الملفات الشخصية](/info/profile.html) لتفاصيلك والسياقات التي تنشئ فيها. [Lolly Design System Setup](/info/brand-studio.html) لتحرير ما يعرضه تبويب Design system. [اعثر على عملك واستعده](/info/find-your-work.html) للتخزين والنسخ الاحتياطية والانتقال بين الأجهزة.

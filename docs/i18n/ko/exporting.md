@@ -132,9 +132,9 @@ Lolly에는 대량 작업을 위한 세 가지 방법이 있고 각각 다른 �
 ## 표가 문서 하나가 돼요
 **Battlecards** 같은 표 입력이 있는 도구는 모든 행을 한 페이지로 바꿔요. 스프레드시트의 표를 붙여넣으면 PDF 하나를 얻어요. 스프레드시트에서 행을 고치고 다시 붙여넣으세요.
 ## CSV가 행당 파일 하나가 돼요
-**Batch**(`#/batch`)는 CSV를 받아 행마다 내보내기 하나를 렌더링해요. 이름표나 수료증을 파일 하나씩 ZIP으로 전달해요. [Batch](/info/batch.html#make-many-versions-of-one-design)를 참고하세요.
+**Batch**(`#/batch`)는 CSV를 받아 행마다 내보내기 하나를 렌더링해요. 이름표나 수료증을 파일 하나씩 ZIP으로 전달해요. [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)를 참고하세요.
 ## 여러 디자인에 편집 하나
-**Multi-edit**은 저장된 여러 세션을 나란히 열어 서로 다른 디자인에 같은 수정을 해요. [Multi-edit](/info/batch.html#edit-several-saved-designs-together)을 참고하세요.
+**Multi-edit**은 저장된 여러 세션을 나란히 열어 서로 다른 디자인에 같은 수정을 해요. [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together)을 참고하세요.
 :::
 
 **Projects**에서 **Render folder**는 폴더와 하위 폴더의 모든 저장된 세션을 중첩된 ZIP 하나로 내보내고, **Render selection**은 모든 다중 선택에 같은 일을 해요. 저장된 세션 하나는 자체 파일로 렌더링돼요. 저장된 세션은 Projects에서 같은 설정으로 다시 여는 도구 링크로 다시 공유할 수도 있어요.
@@ -170,7 +170,7 @@ SVG를 내보내는 대부분의 도구는 Penpot에서 계속 편집할 수 있
 | 전체 디자인 | Assets 패널의 재사용 가능한 컴포넌트 |
 | 복잡한 일러스트나 라이브 캔버스 | 이미지로 단독 임베드되고 그 주변의 편집 가능한 콘텐츠는 그대로예요 |
 
-Design에서는 각 프레임이 Penpot 보드가 돼요. 디자인 시스템의 색상과 타이포그래피는 Assets 패널에, 전체 토큰 세트는 Tokens 패널에 들어가요. 그 이후 Penpot이 자체 사본을 유지하며, Penpot에서 편집한 토큰은 [Design System Setup](/info/brand-studio.html)의 가져오기로 돌아와요.
+Design에서는 각 프레임이 Penpot 보드가 돼요. 디자인 시스템의 색상과 타이포그래피는 Assets 패널에, 전체 토큰 세트는 Tokens 패널에 들어가요. 그 이후 Penpot이 자체 사본을 유지하며, Penpot에서 편집한 토큰은 [Lolly Design System Setup](/info/brand-studio.html)의 가져오기로 돌아와요.
 
 ![Penpot을 선택한 내보내기 패널: .penpot 파일과, 다운로드 옆의 Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

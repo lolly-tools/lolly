@@ -1,6 +1,6 @@
 # Design tool contract
 
-A tool made with [Share with rules](/info/create-a-tool.html) is an ordinary tool: a manifest, a template and hooks, compiled from a Design document. This page is for engineers working on that compiler, its package format or the Rules interface. It states which part owns which job, what the compiled tool guarantees and how installed revisions stay fixed.
+A tool made with [Share with rules](/info/create-a-tool.html) is an ordinary tool: a manifest, a template and hooks, compiled from a Lolly Design document. This page is for engineers working on that compiler, its package format or the Rules interface. It states which part owns which job, what the compiled tool guarantees and how installed revisions stay fixed.
 
 The pure compiler is `engine/src/design-tool/compiler.ts`, and the versioned declarations and evaluator live in `packages/core/src/design-tool-v1.ts`.
 
@@ -20,7 +20,7 @@ A `DesignToolDraftV1` contains stable input ids, ordered fields, artboards, exac
 
 A resolved `DesignToolDefinitionV1` adds a compiler version, a renderer digest, scoped CSS and dependency digests. The shell resolves the original fonts and images before invoking the compiler, which produces `tool.json`, `template.html`, `styles.css`, `hooks.js`, `compilation.json` and the dependency files. Inputs are explicit; private object arrays are never declared as reader inputs.
 
-`community/_shared/design-renderer.js` contains shared renderer regions, and `scripts/build-design-tool-renderer.ts` joins the ordered canonical regions with the declarative evaluator. Run `pnpm run build:design-renderer` after changing either source, and `pnpm run check:design-renderer` to check for drift. Ordinary Design and generated tools use the same compute helpers.
+`community/_shared/design-renderer.js` contains shared renderer regions, and `scripts/build-design-tool-renderer.ts` joins the ordered canonical regions with the declarative evaluator. Run `pnpm run build:design-renderer` after changing either source, and `pnpm run check:design-renderer` to check for drift. Ordinary Lolly Design and generated tools use the same compute helpers.
 
 Generated hooks run in the existing strict sideload worker. They rebuild a variant from its immutable definition, then apply one atomic choice and input evaluation. There is no privileged fallback in the page. Text inputs are literal: a text recipe joins declared text inputs and literal separators without evaluating code.
 
@@ -62,12 +62,12 @@ A shared tool travels as a `.lolly` package and installs as a fixed revision:
 ::: timeline
 - <!--i:box--> **Package.** `lolly-share` adds `kind: "tool"` with `minReader: 2`. It requires a complete bundled tool covered by integrity checks, and excludes `session.json`, saved templates and a design-system import.
 - <!--i:shieldcheck--> **Verify.** Both the web and Node readers work out the reader version a file needs from its verified payloads, and reject a missing or downgraded gate. Tool identity, inventory, paths and digests are checked before installation or use.
-- <!--i:folder--> **Install.** Installed Design tools use immutable cache paths under `/tools/<id>/.revisions/<digest>/`. A metadata transaction publishes the revision and the current discovery pointer after its files are staged. The same version with different bytes is refused.
+- <!--i:folder--> **Install.** Installed Lolly Design tools use immutable cache paths under `/tools/<id>/.revisions/<digest>/`. A metadata transaction publishes the revision and the current discovery pointer after its files are staged. The same version with different bytes is refused.
 - <!--i:hash--> **Pin.** Saved tool sessions carry `__toolArtifact`, and batch and folder rows carry `artifactDigest`. Loading and resharing resolve those exact bytes, not the latest pointer.
 :::
 
 ::: details Reader versions by feature
-Flat static session writers stay on reader version 1. Files with dynamic layout rules need reader version 6, and generated tools with those rules also need `host.layout` and engine 1.249. Design pages, page ownership and real nested groups need reader version 7, including values carried in projects or templates and bundled Design manifests that declare those inputs. Group opacity, blend and non-fixed sizing need reader version 8. Legacy flat group tags keep their existing reader gate.
+Flat static session writers stay on reader version 1. Files with dynamic layout rules need reader version 6, and generated tools with those rules also need `host.layout` and engine 1.249. Lolly Design pages, page ownership and real nested groups need reader version 7, including values carried in projects or templates and bundled Lolly Design manifests that declare those inputs. Group opacity, blend and non-fixed sizing need reader version 8. Legacy flat group tags keep their existing reader gate.
 :::
 
 The CLI accepts `lolly run <file.lolly> --trust-tool`. It verifies the file, checks the public inputs, imports the tool into a temporary browser context and uses the normal web export route. It never installs the tool into the person's persistent browser profile.

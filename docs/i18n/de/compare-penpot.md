@@ -18,7 +18,7 @@ Die Design-Arbeitsfläche von Lolly erzeugt bearbeitbare Assets und kann ein Lay
 
 ## Mit einer Organisation
 
-Lolly Work ergänzt Single Sign-on, SCIM-Bereitstellung, gemeinsame Kataloge und Projekte, Rollen, Freigaben, Audit-Aufzeichnungen, Work-Collabs und Server-Rendering. Beide Repositories stehen unter MPL-2.0, und eine Organisation kann beide betreiben. [Was wo läuft](/info/compare.html#what-runs-where) stellt die beiden Teile nebeneinander.
+Lolly Work ergänzt Single Sign-on, SCIM-Bereitstellung, gemeinsame Kataloge und Projekte, Rollen, Freigaben, Audit-Aufzeichnungen, Lolly Work-Collabs und Server-Rendering. Beide Repositories stehen unter MPL-2.0, und eine Organisation kann beide betreiben. [Was wo läuft](/info/compare.html#what-runs-where) stellt die beiden Teile nebeneinander.
 
 Sie können beide nutzen: Penpot für Oberflächengestaltung und Prototyping, Lolly für wiederholbare Dateien, verbunden durch gemeinsame Tokens und importierte Designs.
 

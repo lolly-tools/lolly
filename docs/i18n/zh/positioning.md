@@ -19,7 +19,7 @@ Canva 的每一行都以其最佳的家族成员评分，因为它拥有 Affinit
 
 Lolly 的 Content Credentials 得分 75，涵盖设备端签名和 Lolly Work 以已配置的组织身份进行的服务器签名；验证者仍必须信任签名者（[Content Credentials 身份](/info/content-credentials-identity.html)）。Penpot 的 50 来自 Lolly 自己的 Penpot 导出插件：同样的引擎签名，选择加入并像 Lolly 的一样披露。Penpot 在设备端渲染上得 90：浏览器画布，保存目标是它的服务器，而这个服务器可以自托管。Cloudinary 因其素材库、转换 API 和 CDN 而有自己的一列；8 月评审给它的交付签名打了 50 分。
 
-Lolly 的实时协作包括两台设备之间直接的私密协作，以及通过 Lolly Work 进行的经过认证的工作协作，带有共享编辑、光标和保存的团队会话。Partial 评分反映的是目前单节点的 Work 部署和较短的运营历史，而不是缺少团队编辑。价格估算是带日期的标价算术，用于了解量级，不是采购依据。
+Lolly 的实时协作包括两台设备之间直接的私密协作，以及通过 Lolly Work 进行的经过认证的工作协作，带有共享编辑、光标和保存的团队会话。Partial 评分反映的是目前单节点的 Lolly Work 部署和较短的运营历史，而不是缺少团队编辑。价格估算是带日期的标价算术，用于了解量级，不是采购依据。
 :::
 
 ## 什么时候选择 Lolly
@@ -28,7 +28,7 @@ Lolly 的实时协作包括两台设备之间直接的私密协作，以及通�
 ## 在以下情况选择 Lolly
 
 - 反复需要同一类文件：活动方块、证件、证书、提醒、社交卡片
-- 许多文件来自一个模板和一张值的表格，使用 [Batch](/info/batch.html#make-many-versions-of-one-design) 或 CLI
+- 许多文件来自一个模板和一张值的表格，使用 [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) 或 CLI
 - 颜色、字体和素材必须留在设计系统之内，即使在开放的画布上
 - 一份完成的 Figma、Penpot、Illustrator、InDesign 或 PDF 设计应该变得可编辑、可重复（[导入设计](/info/design-import.html)）
 - 文件必须在你自己的设备或服务器上制作

@@ -18,7 +18,7 @@ Preferences to jedna długa strona z **szyną ustawień** z boku i polem **Searc
 
 - <!--i:usercheck--> **Your details** - Twoje imię i nazwisko, dane kontaktowe i zdjęcie oraz przełącznik **Use my details to create**. [Profiles](/info/profile.html) wyjaśnia, jak narzędzia z nich korzystają.
 - <!--i:seal--> **Content Credentials** - opcjonalna zweryfikowana tożsamość podpisująca Twoje eksporty. Zobacz [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - przełączaj, dodawaj, ukrywaj lub usuwaj systemy projektowe. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) omawia każdą akcję.
+- <!--i:palette--> **Design systems** - przełączaj, dodawaj, ukrywaj lub usuwaj systemy projektowe. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) omawia każdą akcję.
 - <!--i:moon--> **Appearance** - motyw (Light, Dark lub Brand, który maluje aplikację w Twojej palecie), **Twój wariant kolorystyczny**, gdy system projektowy oferuje więcej niż jeden ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)), oraz **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - zestaw, z którego rysowane są Twoje emoji, gdy zaczynasz coś nowego, z jego licencją grafiki, oraz to, jak mocno Twoja paleta je przekolorowuje (**Off**, **Subtle**, **Strong**, **Full**, **Mono** lub **Duotone**). **Keep skin tones and flags** zostawia je w ich własnych kolorach. Praca, którą już zrobiłeś, zachowuje zestaw, w którym powstała.
 - <!--i:eyeoff--> **Accessibility** - cztery przełączniki komfortu, plus Sound i Neurospicy Mode. Zobacz [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ Karta otwiera się na okładce w kolorach samego systemu, z logo, nazwą w kroju
 - <!--i:sliders--> **Tokens** - promień, odstępy, efekty i gradienty.
 - <!--i:document--> **Print & CMYK** - kolory zablokowane na dokładną farbę oraz warunki druku, które może zadeklarować PDF CMYK.
 
-Przełączanie to jedyna zmiana, jaką ta karta robi. System projektowy edytujesz w [Design System Setup](/info/brand-studio.html) pod `#/start`, do czego prowadzi okładka. System tylko do odczytu mówi o tym na okładce; lokalne systemy, które tworzysz, pozostają edytowalne. `/b` i `/brand` to skróty prosto do tej karty.
+Przełączanie to jedyna zmiana, jaką ta karta robi. System projektowy edytujesz w [Lolly Design System Setup](/info/brand-studio.html) pod `#/start`, do czego prowadzi okładka. System tylko do odczytu mówi o tym na okładce; lokalne systemy, które tworzysz, pozostają edytowalne. `/b` i `/brand` to skróty prosto do tej karty.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Potem Twoja strona: **Your activity** liczy to, co zrobiłeś na tym urządzeniu
 
 ## Deep links
 
-Każda karta i sekcja Settings ma własny link, który możesz dodać do zakładek lub wkleić. [Search](/info/search.html) kieruje swoje wyniki **Settings** do tego samego rejestru, z którego Settings się renderuje, więc sekcji nie da się przemianować spod wyniku wyszukiwania.
+Każda karta i sekcja Settings ma własny link, który możesz dodać do zakładek lub wkleić. [Lolly Search](/info/search.html) kieruje swoje wyniki **Settings** do tego samego rejestru, z którego Settings się renderuje, więc sekcji nie da się przemianować spod wyniku wyszukiwania.
 
 ::: details Każda forma linku
 
@@ -139,4 +139,4 @@ Głęboki link przełącza na kartę, do której należy cel, otwiera każdą gr
 
 ---
 
-**Zobacz też:** [Profiles](/info/profile.html) o Twoich danych i kontekstach, w których tworzysz. [Design System Setup](/info/brand-studio.html) o edycji tego, co pokazuje karta Design system. [Find and recover your work](/info/find-your-work.html) o pamięci, kopiach zapasowych i przenoszeniu między urządzeniami.
+**Zobacz też:** [Profiles](/info/profile.html) o Twoich danych i kontekstach, w których tworzysz. [Lolly Design System Setup](/info/brand-studio.html) o edycji tego, co pokazuje karta Design system. [Find and recover your work](/info/find-your-work.html) o pamięci, kopiach zapasowych i przenoszeniu między urządzeniami.

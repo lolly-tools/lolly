@@ -44,7 +44,7 @@ Penggunaan mandiri menjaga file di perangkat. Memilih proyek bersama, work colla
 
 Batasan ini berlaku untuk setiap halaman dalam set ini, jadi dinyatakan sekali di sini:
 
-- **Work collab berjalan pada satu node server hari ini.** Skala dan riwayat operasinya berbeda dari produk hosted yang sudah lama mapan. [Work status and roadmap](/info/work-status.html) mencatat batas saat ini.
+- **Lolly Work collab berjalan pada satu node server hari ini.** Skala dan riwayat operasinya berbeda dari produk hosted yang sudah lama mapan. [Lolly Work status and roadmap](/info/work-status.html) mencatat batas saat ini.
 - **Situs di [lolly.work](https://lolly.work) adalah sandbox demo.** Deployment organisasi yang tahan lama memerlukan penyimpanan persisten dan operator; [Install Lolly Work](/info/work-install.html) membahas keduanya.
 - **Tidak ada biaya lisensi perangkat lunak per kursi** untuk Lolly atau Lolly Work yang di-host sendiri. Hosting, penyimpanan, dan operasi tetap memerlukan biaya.
 - **Tanda tangan bukan penandatangan tepercaya.** Verifier harus memercayai sertifikat yang menandatangani file sebelum menampilkan penandatangan sebagai tepercaya; [Content Credentials Identity](/info/content-credentials-identity.html) menjelaskan caranya.

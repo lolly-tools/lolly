@@ -12,7 +12,7 @@ Layar beranda: empat tab di sepanjang atas dan bilah di dasar. Alat yang sudah d
 
 Empat tab berjajar di bagian atas layar beranda: **Tools**, **Utilities**, **Assets**, dan **Projects**. Tools adalah yang Anda pakai untuk membuat, Utilities adalah meja kerja untuk tugas seperti mengonversi, memeriksa, atau membersihkan file, Assets adalah pustaka Anda, dan Projects menyimpan apa yang Anda simpan.
 
-Bilah di dasar berisi **Open**, **Settings**, field pencarian, **Verify**, dan **What?**. Bilah ini tampil di Tools, Utilities, Assets, Projects, Settings, dan panduan yang Anda baca di aplikasi, lalu menyingkir begitu alat dibuka. [Search](/info/search.html) menjangkau alat, pekerjaan tersimpan, aset, dan pengaturan Anda dari field itu. [Ask Lolly](/info/ask.html) menjawab pertanyaan yang diketik dengan bagian panduan ini yang sesuai.
+Bilah di dasar berisi **Open**, **Settings**, field pencarian, **Verify**, dan **What?**. Bilah ini tampil di Tools, Utilities, Assets, Projects, Settings, dan panduan yang Anda baca di aplikasi, lalu menyingkir begitu alat dibuka. [Lolly Search](/info/search.html) menjangkau alat, pekerjaan tersimpan, aset, dan pengaturan Anda dari field itu. [Ask Lolly](/info/ask.html) menjawab pertanyaan yang diketik dengan bagian panduan ini yang sesuai.
 
 Klik kartu untuk memulai sesuatu yang baru di alat itu. Pekerjaan tersimpan dibuka kembali dari **Projects**.
 
@@ -269,7 +269,7 @@ Pada layar sempit, tata letak menjadi satu kolom:
 
 ## Settings, suara, dan kenyamanan
 
-**Settings**, di dasar layar beranda, memuat detail Anda, design system, aksesibilitas, penyimpanan, dan unduhan offline. [Settings](/info/dashboard.html) memetakan setiap tab.
+**Settings**, di dasar layar beranda, memuat detail Anda, design system, aksesibilitas, penyimpanan, dan unduhan offline. [Lolly Settings](/info/dashboard.html) memetakan setiap tab.
 
 - **Detail dan foto profil Anda** mengisi alat apa pun yang dibuat untuk memakainya, seperti tanda tangan email atau tanda pengenal. [Profiles](/info/profile.html) membahasnya.
 - **Accessibility** memiliki empat sakelar kenyamanan: **Reduce motion**, **Hide colourful previews**, **High contrast**, dan **Large text**. Sakelar ini mengubah aplikasi di sekitar pekerjaan Anda, tidak pernah kanvas alat atau ekspor.

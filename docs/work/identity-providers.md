@@ -143,7 +143,7 @@ yet.
 ### Okta
 
 Go to Applications, Create App Integration, OIDC, Web Application, with client authentication
-"Client secret post" (Work sends the secret in the token request body, not in a Basic header)
+"Client secret post" (Lolly Work sends the secret in the token request body, not in a Basic header)
 and the sign-in redirect URI above. On the authorization server, add a `groups` claim to the
 ID token, with a filter such as "Starts with lolly-".
 
@@ -220,7 +220,7 @@ log. The token is used for two API reads and then dropped.
 ### SAML
 
 SAML is a different protocol and does not connect directly. Put a broker in front, such as an
-Auth0 SAML enterprise connection or a Keycloak SAML identity provider in your realm. Work then
+Auth0 SAML enterprise connection or a Keycloak SAML identity provider in your realm. Lolly Work then
 talks OpenID Connect to the broker as in the recipes above.
 
 ## Reverse-proxy sign-in
@@ -305,7 +305,7 @@ SSOwat authenticates against the portal, strips any `ynh_*` header and any `Auth
 Basic` a client sent, then sets `YNH_USER`, `YNH_USER_EMAIL` and `YNH_USER_FULLNAME` for a
 signed-in user. Each user's LDAP entry carries `memberOf` (YunoHost groups) and `permission`
 (the app permissions the user holds), which the two `groupMap` rules above turn into groups.
-A YunoHost group `marketing` becomes the Work group `marketing`, and the app permissions
+A YunoHost group `marketing` becomes the Lolly Work group `marketing`, and the app permissions
 `lolly-work.owner`, `.admin`, `.approver` and `.author` become the role groups. Roles are
 therefore managed in YunoHost's own Users, Groups and permissions screen, and take effect at
 the next sign-in. The YunoHost package sets all of this up, including the nginx line that

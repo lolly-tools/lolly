@@ -1,6 +1,6 @@
-# Automate with the Work API
+# Automate with the Lolly Work API
 
-Your Work server can render on-brand files for a script, a pipeline or an agent, with the same
+Your Lolly Work server can render on-brand files for a script, a pipeline or an agent, with the same
 tools, design system and policy the Lolly apps use. This page takes you from a token to a
 finished file, then covers the rest of the automation surface: schemas, the document verbs,
 background jobs, batches and provider assets.
@@ -223,14 +223,14 @@ completed job resource carries the same `resultToken`, and `null` before then.
 
 ::: note The token in the result URL is deprecated
 The token used to travel in the URL, as `resultUrl?token=…`, and a URL ends up in access, proxy
-and CDN logs. In Work 1.1.2 `resultUrl` still carries `?token=` and the result route still
+and CDN logs. In Lolly Work 1.1.2 `resultUrl` still carries `?token=` and the result route still
 accepts the query token, answering with a `Deprecation` header
 ([RFC 9745](https://www.rfc-editor.org/rfc/rfc9745)). A later release drops the query from
 `resultUrl` and refuses a query token, so move receivers to the header now.
 :::
 
 Callbacks go through a durable outbox. The write that settles a job also stores its callback,
-and any Work process sends callbacks that are due, so a callback left unanswered by a restart is
+and any Lolly Work process sends callbacks that are due, so a callback left unanswered by a restart is
 sent again afterwards.
 
 Every attempt for one job carries the same id, in `x-lolly-delivery-id` and as `deliveryId` in
@@ -241,7 +241,7 @@ attempts in all.
 
 The job reports `callback: { id, state, attempts, lastOutcome, lastStatus, nextAttemptAt }`:
 
-- `state` is `pending`, `acknowledged` (the receiver answered 2xx) or `failed`. Work never
+- `state` is `pending`, `acknowledged` (the receiver answered 2xx) or `failed`. Lolly Work never
   reports a callback as delivered, because a 2xx answer does not show what the receiver did next.
 - `lastOutcome` is `acknowledged`, `refused`, `uncertain` (the request may have reached the
   receiver) or `not-sent` (the URL is not approved, or no signing secret is configured).
@@ -318,7 +318,7 @@ requirements.
 The automation routes share the `rateLimit.automation` bucket, per client IP: discovery, schemas,
 the document verbs, renders, batches and jobs, `GET /render/…`, agent connections and the
 outbound delivery `POST`s. That includes the public `GET /api/v1/discovery`, so reading it never
-costs a sign-in attempt. The bucket is admission control, not pricing: Work keeps no
+costs a sign-in attempt. The bucket is admission control, not pricing: Lolly Work keeps no
 per-principal quota or usage account for these routes. Sizes are in
 [configuration](configuration.md#ratelimit).
 

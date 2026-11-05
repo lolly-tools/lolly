@@ -24,7 +24,7 @@ La prima volta che apri la galleria, un breve benvenuto offre le stesse scelte: 
 
 ![La stanza Colours di Design System Setup su un'installazione nuova: un chip live, un campo e tutta la prima decisione](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Da lì, otto stanze portano la configurazione fin dove vuoi, in qualsiasi ordine: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** e **Skills**. Ogni anteprima nell'app si aggiorna mentre scrivi. [Design System Setup](/info/brand-studio.html) descrive ogni stanza.
+Da lì, otto stanze portano la configurazione fin dove vuoi, in qualsiasi ordine: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** e **Skills**. Ogni anteprima nell'app si aggiorna mentre scrivi. [Lolly Design System Setup](/info/brand-studio.html) descrive ogni stanza.
 
 I font restano sul tuo dispositivo. Scegli un Google Font e Lolly salva il file come risorsa del brand, così la tua tipografia viaggia offline e nulla viene scaricato quando uno strumento disegna.
 
@@ -58,7 +58,7 @@ Non parti da una pagina bianca.
 
 **Deck.** Trascina su Lolly una presentazione PowerPoint `.pptx` per archiviarne le slide come risorse, scrivi un nuovo deck da Markdown in **Markdown Slides**, oppure usa [Rebrand a deck](/info/rebrand.html) per portare l'intero deck sul tuo design system.
 
-**Dati.** Incolla o trascina una tabella CSV o JSON e i campi ripetuti di uno strumento si compilano da essa, oppure [Batch](/info/batch.html#make-many-versions-of-one-design) crea un file finito per ogni riga.
+**Dati.** Incolla o trascina una tabella CSV o JSON e i campi ripetuti di uno strumento si compilano da essa, oppure [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) crea un file finito per ogni riga.
 
 ### Da un progetto singolo a un template
 
@@ -72,7 +72,7 @@ Un layout importato è una normale sessione Design. **Share with rules** lo tras
 
 - <!--i:download--> **Esporta.** Gli strumenti producono SVG, PDF, PNG, JPG, WebP, video e altro, nei formati che ciascuno offre, alle dimensioni reali di stampa quando servono. Vedi [Export a file](/info/exporting.html).
 - <!--i:link--> **Condividi un link.** Le impostazioni di uno strumento viaggiano nel suo link, così il link riapre lo stesso file ovunque.
-- <!--i:layers--> **Crea un file per riga.** Pilota uno strumento da un foglio di calcolo in [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Crea un file per riga.** Pilota uno strumento da un foglio di calcolo in [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatizza.** Lo stesso rendering gira dalla [CLI](/info/cli.html) e da un [agente di IA](/info/ai-agents.html).
 
 Un link è una richiesta completa. Nessuno ha disegnato il grafico qui sotto: il tipo, il titolo e l'intera tabella di dati sono stati digitati nella barra degli indirizzi, e lo stesso link disegna lo stesso grafico su qualsiasi dispositivo.

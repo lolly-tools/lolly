@@ -18,7 +18,7 @@ Preferences este o pagină lungă cu o **bară de setări** pe margine și un c�
 
 - <!--i:usercheck--> **Your details** - numele, datele de contact și fotografia ta, plus comutatorul **Use my details to create**. [Profiluri](/info/profile.html) explică cum le folosesc instrumentele.
 - <!--i:seal--> **Content Credentials** - identitatea verificată opțională care îți semnează exporturile. Vezi [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - comută, adaugă, ascunde sau elimină sisteme de design. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) acoperă fiecare acțiune.
+- <!--i:palette--> **Design systems** - comută, adaugă, ascunde sau elimină sisteme de design. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) acoperă fiecare acțiune.
 - <!--i:moon--> **Appearance** - tema (Light, Dark sau Brand, care pictează aplicația în paleta ta), **Varianta ta de culoare** când sistemul de design oferă mai multe ([Fă un colourway al tău](/info/colourways.html#make-a-colourway-your-own)) și **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - setul din care sunt desenate emoji când începi ceva nou, cu licența artei lui și cât de puternic îți recolorează paleta (**Off**, **Subtle**, **Strong**, **Full**, **Mono** sau **Duotone**). **Keep skin tones and flags** le lasă în propriile culori. Munca deja făcută păstrează setul cu care a fost făcută.
 - <!--i:eyeoff--> **Accessibility** - patru comutatoare de confort, plus Sound și Neurospicy Mode. Vezi [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ Fila se deschide pe o copertă pictată în culorile proprii ale sistemului, cu 
 - <!--i:sliders--> **Tokens** - rază, spațiere, efecte și gradienți.
 - <!--i:document--> **Print & CMYK** - culorile blocate pe o cerneală exactă și condițiile de presă pe care le poate declara un PDF CMYK.
 
-Comutarea este singura schimbare pe care o face această filă. Editezi un sistem de design în [Design System Setup](/info/brand-studio.html) la `#/start`, către care trimite coperta. Un sistem doar pentru citire spune asta pe copertă; sistemele locale pe care le creezi rămân editabile. `/b` și `/brand` sunt scurtături direct la această filă.
+Comutarea este singura schimbare pe care o face această filă. Editezi un sistem de design în [Lolly Design System Setup](/info/brand-studio.html) la `#/start`, către care trimite coperta. Un sistem doar pentru citire spune asta pe copertă; sistemele locale pe care le creezi rămân editabile. `/b` și `/brand` sunt scurtături direct la această filă.
 
 ## Capabilități
 
@@ -139,4 +139,4 @@ Un link direct comută la fila care deține ținta, deschide orice grup în care
 
 ---
 
-**Related:** [Profiluri](/info/profile.html) pentru detaliile tale și contextele în care creezi. [Design System Setup](/info/brand-studio.html) pentru editarea a ce arată fila Design system. [Găsește și recuperează-ți munca](/info/find-your-work.html) pentru stocare, copii de siguranță și mutarea pe alte dispozitive.
+**Related:** [Profiluri](/info/profile.html) pentru detaliile tale și contextele în care creezi. [Lolly Design System Setup](/info/brand-studio.html) pentru editarea a ce arată fila Design system. [Găsește și recuperează-ți munca](/info/find-your-work.html) pentru stocare, copii de siguranță și mutarea pe alte dispozitive.

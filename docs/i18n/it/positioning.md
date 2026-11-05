@@ -28,7 +28,7 @@ La collaborazione live di Lolly include collab private dirette tra due dispositi
 ## Scegli Lolly quando
 
 - Serve di continuo lo stesso tipo di file: tessere per eventi, badge, certificati, avvisi, schede social
-- Molti file nascono da un template e da una tabella di valori, in [Batch](/info/batch.html#make-many-versions-of-one-design) o dalla CLI
+- Molti file nascono da un template e da una tabella di valori, in [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) o dalla CLI
 - Colori, tipografia e risorse devono restare dentro il design system, anche su una tela aperta
 - Un design finito in Figma, Penpot, Illustrator, InDesign o PDF deve diventare modificabile e ripetibile ([Import a design](/info/design-import.html))
 - I file devono essere creati sui tuoi dispositivi o sui tuoi server

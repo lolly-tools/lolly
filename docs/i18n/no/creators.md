@@ -13,14 +13,14 @@ Velg et verktøy og fyll det ut, eller legg ut en side fritt på Design-lerretet
 - **[Templates](/info/templates.html)** - start fra en lagret layout i stedet for et tomt verktøy.
 - **[Text in Design](/info/text-composition.html)** - overskrifter, flytende tekst og skrift som passer i boksen sin.
 - **[3D Studio](/info/3d-studio.html)** - SVG-grafikk og 3D-modeller arrangert, belyst og gjengitt som én scene.
-- **[Utilities](/info/utilities.html)** - fiks en fil på enheten din: del den trygt, sammenlign to versjoner, endre formatet, hent ut ordene eller sjekk en farge.
+- **[Lolly Utilities](/info/utilities.html)** - fiks en fil på enheten din: del den trygt, sammenlign to versjoner, endre formatet, hent ut ordene eller sjekk en farge.
 - **[Browser extension](/info/extension.html)** - ta skjermbilde av en levende nettside fra nettappen, eller les et nettsted for å starte et designsystem.
 
 ## Gjør det til ditt
 
 Designsystemet ditt avgjør hvordan hvert verktøy ser ut.
 
-- **[Design System Setup](/info/brand-studio.html)** - logoer, farger, skrift og resten, satt én gang på `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logoer, farger, skrift og resten, satt én gang på `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - fargevarianter på ekte arbeid, og bytte til ditt eget designsystem.
 - **[Brand architectures](/info/brand-architectures.html)** - flere designsystemer, eller ett med flere fargevarianter, for én organisasjon.
 - **[Working with partners](/info/partners.html)** - del merkevaren din med en partner, arbeid i en merkevare du har fått og lag en sponsorvegg.
@@ -31,8 +31,8 @@ Designsystemet ditt avgjør hvordan hvert verktøy ser ut.
 ## Finn og behold arbeidet ditt
 
 - **[Find and recover your work](/info/find-your-work.html)** - hvor en lagret, nedlastet eller ulagret fil tok veien.
-- **[Search](/info/search.html)** og **[Ask Lolly](/info/ask.html)** - ett felt for verktøyene, det lagrede arbeidet, ressursene og innstillingene dine, og svar fra disse veiledningene.
-- **[Settings](/info/dashboard.html)** - hva denne enheten kan gjøre, designsystemet ditt skrivebeskyttet og lagringen din.
+- **[Lolly Search](/info/search.html)** og **[Ask Lolly](/info/ask.html)** - ett felt for verktøyene, det lagrede arbeidet, ressursene og innstillingene dine, og svar fra disse veiledningene.
+- **[Lolly Settings](/info/dashboard.html)** - hva denne enheten kan gjøre, designsystemet ditt skrivebeskyttet og lagringen din.
 - **[Your favourites](/info/favourites.html)** og **[Profiles](/info/profile.html)** - stjernemerkede verktøy, opplysningene verktøy forhåndsutfyller fra og tilgjengelighetsbryterne.
 - **[Sync your devices](/info/sync.html)** - det samme arbeidet på datamaskinen og telefonen, gjennom lagring du velger.
 

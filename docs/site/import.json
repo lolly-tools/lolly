@@ -1,7 +1,7 @@
 {
   "eyebrow": "Bring what you've already made",
   "heading": "Your design files aren't stranded",
-  "lead": "Finished work in **Figma, Penpot, Illustrator, InDesign or any SVG app** doesn't have to stay locked in one app. Open **Design**, click **Import a design** and the file opens as a living layout - not a flattened picture. Every layer becomes an editable box, ready to keep working on, mix with tools and render through the same rules.",
+  "lead": "Finished work in **Figma, Penpot, Illustrator, InDesign or any SVG app** doesn't have to stay locked in one app. Open the **Design** tool, click **Import a design** and the file opens as a living layout - not a flattened picture. Every layer becomes an editable box, ready to keep working on, mix with tools and render through the same rules.",
   "sources": [
     { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
     { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },

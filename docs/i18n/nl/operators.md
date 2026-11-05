@@ -9,7 +9,7 @@ Begin met [Lolly gebruiken bij je organisatie](/info/organisation.html) om te zi
 - [Adoption & Governance](/info/adoption-governance.html) behandelt de uitrol en de rol van merkregels.
 - [Identity and sessions](/info/work-identity.html) behandelt aanmelden en groepskoppeling. [Roles and grants](/info/work-permissions.html) legt rollen, toekenningen en de eigenaarsbeveiliging uit.
 - [Policy and governance](/info/work-governance.html) behandelt tooloverlays, vergrendelde inputs en beleid. [Manage organisation AI policy](/info/work-ai-policy.html) behandelt goedkeuringen en uitvoeringsgrenzen.
-- [Account data controls](/info/work-account-lifecycle.html) en [Work storage and data lifecycle](/info/work-data-lifecycle.html) behandelen exports, offboarding, bewaartermijnen en hun grenzen.
+- [Account data controls](/info/work-account-lifecycle.html) en [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) behandelen exports, offboarding, bewaartermijnen en hun grenzen.
 - [Profiles, brands and tool configuration](/info/configuration.html) behandelt welke tools en design systems een build van Lolly meedraagt.
 
 ## Assets koppelen en werk reviewen

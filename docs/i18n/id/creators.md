@@ -13,14 +13,14 @@ Pilih alat dan isi, atau tata halaman dengan bebas di kanvas Design.
 - **[Templates](/info/templates.html)** - mulai dari tata letak tersimpan, bukan alat kosong.
 - **[Text in Design](/info/text-composition.html)** - judul, teks mengalir, dan tipografi yang pas di kotaknya.
 - **[3D Studio](/info/3d-studio.html)** - karya SVG dan model 3D ditata, disinari, dan dirender sebagai satu adegan.
-- **[Utilities](/info/utilities.html)** - perbaiki file di perangkat Anda: bagikan dengan aman, bandingkan dua versi, ubah formatnya, ambil katanya, atau periksa warna.
+- **[Lolly Utilities](/info/utilities.html)** - perbaiki file di perangkat Anda: bagikan dengan aman, bandingkan dua versi, ubah formatnya, ambil katanya, atau periksa warna.
 - **[Browser extension](/info/extension.html)** - tangkap layar halaman web langsung dari aplikasi web, atau baca sebuah situs untuk memulai design system.
 
 ## Jadikan milik Anda
 
 Design system Anda menentukan seperti apa setiap alat tampil.
 
-- **[Design System Setup](/info/brand-studio.html)** - logo, warna, tipografi, dan sisanya, diatur sekali di `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logo, warna, tipografi, dan sisanya, diatur sekali di `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourway pada pekerjaan nyata, dan beralih ke design system Anda sendiri.
 - **[Brand architectures](/info/brand-architectures.html)** - beberapa design system, atau satu dengan beberapa colourway, untuk satu organisasi.
 - **[Working with partners](/info/partners.html)** - bagikan brand Anda kepada mitra, bekerja dalam brand yang diberikan kepada Anda, dan buat dinding sponsor.
@@ -31,8 +31,8 @@ Design system Anda menentukan seperti apa setiap alat tampil.
 ## Temukan dan simpan pekerjaan Anda
 
 - **[Find and recover your work](/info/find-your-work.html)** - ke mana file yang disimpan, diunduh, atau belum disimpan pergi.
-- **[Search](/info/search.html)** dan **[Ask Lolly](/info/ask.html)** - satu field untuk alat, pekerjaan tersimpan, aset, dan pengaturan Anda, serta jawaban dari panduan ini.
-- **[Settings](/info/dashboard.html)** - apa yang dapat dilakukan perangkat ini, design system Anda (hanya-baca), dan penyimpanan Anda.
+- **[Lolly Search](/info/search.html)** dan **[Ask Lolly](/info/ask.html)** - satu field untuk alat, pekerjaan tersimpan, aset, dan pengaturan Anda, serta jawaban dari panduan ini.
+- **[Lolly Settings](/info/dashboard.html)** - apa yang dapat dilakukan perangkat ini, design system Anda (hanya-baca), dan penyimpanan Anda.
 - **[Your favourites](/info/favourites.html)** dan **[Profiles](/info/profile.html)** - alat berbintang, detail yang diisikan otomatis oleh alat, dan sakelar aksesibilitas.
 - **[Sync your devices](/info/sync.html)** - pekerjaan yang sama di komputer dan ponsel, melalui penyimpanan yang Anda pilih.
 

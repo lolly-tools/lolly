@@ -2,7 +2,7 @@
 
 Taip soalan dan Ask Lolly menjawab dengan bahagian panduan ini yang meliputinya, perkataan demi perkataan, dengan halaman asalnya dipetik dan pautan **Open in docs** terus ke bahagian itu. Tiada apa-apa dijana: jawapan diambil, dipetik dan diatribusikan, pada peranti anda.
 
-Di bawah bahagian yang dipetik terdapat tempat dalam apl yang sepadan dengan soalan yang sama: alat, utiliti, projek tersimpan, aset katalog, tetapan atau halaman apl. Setiap baris hanya menavigasi. Tiada apa-apa dalam jawapan mengubah tetapan, membuka fail atau bertindak untuk anda, peraturan yang sama yang diikuti [Search](/info/search.html).
+Di bawah bahagian yang dipetik terdapat tempat dalam apl yang sepadan dengan soalan yang sama: alat, utiliti, projek tersimpan, aset katalog, tetapan atau halaman apl. Setiap baris hanya menavigasi. Tiada apa-apa dalam jawapan mengubah tetapan, membuka fail atau bertindak untuk anda, peraturan yang sama yang diikuti [Lolly Search](/info/search.html).
 
 ## Mengemukakan soalan
 
@@ -60,4 +60,4 @@ Soalan anda tidak pernah meninggalkan peranti. Pemadanan berjalan secara setempa
 
 ---
 
-**Berkaitan:** [Search](/info/search.html) untuk bar yang menyerahkan soalan. [Using Lolly](/info/using.html) untuk selebihnya apl. [Settings](/info/dashboard.html#available-offline) untuk membawa dokumentasi luar talian dahulu.
+**Berkaitan:** [Lolly Search](/info/search.html) untuk bar yang menyerahkan soalan. [Using Lolly](/info/using.html) untuk selebihnya apl. [Lolly Settings](/info/dashboard.html#available-offline) untuk membawa dokumentasi luar talian dahulu.

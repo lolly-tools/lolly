@@ -4,7 +4,7 @@ Je logo, kleuren en lettertypen horen op één plek, zodat elke tool, pagina en 
 
 Begin met wat je hebt. Zet een logo erin en Lolly leest de kleuren ervan. Kies een lettertype, of zet het fontbestand erin waarvoor je bedrijf een licentie heeft. Elke wijziging is meteen in de hele app te zien. Je logo, lettertypen en tokens blijven op dit apparaat. Een Google Font kiezen is de ene stap die naar buiten reikt: Lolly vraagt eerst en haalt de familie dan één keer op.
 
-Wanneer het er goed uitziet, geef je het design system een naam en druk je op **Export**. Je krijgt één `.lolly`-bestand om te bewaren, op een ander apparaat te openen of aan een collega te geven. [Settings](/info/dashboard.html#design-system) toont het actieve systeem alleen-lezen, en het omslag linkt hierheen om te bewerken.
+Wanneer het er goed uitziet, geef je het design system een naam en druk je op **Export**. Je krijgt één `.lolly`-bestand om te bewaren, op een ander apparaat te openen of aan een collega te geven. [Lolly Settings](/info/dashboard.html#design-system) toont het actieve systeem alleen-lezen, en het omslag linkt hierheen om te bewerken.
 
 ## Maak het in vijf minuten van jou
 

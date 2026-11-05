@@ -26,7 +26,7 @@ In a [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional)
 
 1. Press **Home** at the top left of the tool.
 2. Open the **Projects** tab at the top of the home screen (the folder icon on a phone).
-3. Look on the first screen. Work saved to **My library** is there, and each project is a folder. To search every folder at once, type in **Search all projects…** at the foot of the screen.
+3. Look on the first screen. Lolly Work saved to **My library** is there, and each project is a folder. To search every folder at once, type in **Search all projects…** at the foot of the screen.
 
 An item is named after the file name you typed in the export panel, or after its tool, such as **QR Code**, if you typed none. Open the item and every setting is back, ready to change and export again. To keep new work this way, see [Saving & continuing](/info/using.html#saving-continuing).
 
@@ -37,7 +37,7 @@ An item is named after the file name you typed in the export panel, or after its
 :::
 
 ::: details Working with Projects
-You can also open **Projects** from **Settings → Storage → Saved sessions → Organise in Projects**. It works like a file manager:
+You can also open the **Projects** view from **Settings → Storage → Saved sessions → Organise in Projects**. It works like a file manager:
 
 ![Projects before anything is saved: the New folder, New asset and Templates tiles, the History clock at the top right and the Search all projects bar at the foot](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ In tools that save as you work, History keeps a copy of the discarded edits. Ope
 :::
 
 ::: details Which tools save as you work
-In the web app, every tool that makes a document saves as you work: Design, Chart, QR Code, Text, Sandbox and the rest. These tools do not:
+In the web app, every tool that makes a document saves as you work: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox and the rest. These tools do not:
 
 - tools that work on a file you bring, such as Redact, Sign or Convert Image, because Lolly never keeps a copy of that file;
-- tools that record from your camera, microphone or screen, such as Record, Screen Capture and Voice Recorder;
+- tools that record from your camera, microphone or screen, such as Record, Lolly Screen Capture and Lolly Voice Recorder;
 - a tool with nothing to change, such as Countdown.
 
 In the other tools, your first change files the work in **Projects** as if you had saved, and later changes are kept as you work once the tool has finished drawing. An unsaved creation is still in Projects after you close the tab, and reopens with its changes marked unsaved.
 
 **Leave anyway** still discards those changes, and History keeps a copy of the discarded edits for 30 days. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
 
-3D and Darkroom save as you work, but they do not keep a file you load into them, such as a 3D model or a LUT. History and **Save** keep the file's name, type and size, not the file. When you open the work again, a note says which file it was, and the tool works without it until you load it again. Keep your original files.
+3D and Lolly Darkroom save as you work, but they do not keep a file you load into them, such as a 3D model or a LUT. History and **Save** keep the file's name, type and size, not the file. When you open the work again, a note says which file it was, and the tool works without it until you load it again. Keep your original files.
 
 With [Sync](/info/sync.html) on, a creation filed this way goes to your other devices like anything else in Projects. Its versions stay on the device where they were made.
 
@@ -147,14 +147,14 @@ On iPhone, iPad and Android, a new file replaces an earlier one with the same na
 
 To open an earlier version:
 
-1. Press **History**, the clock button beside **Undo** and **Redo**. In Design, **History** is in the top bar; on a phone, press **•••** and then **History**. In tools without **Undo**, such as Text and Sandbox, **History** is beside **Home** at the top left.
+1. Press **History**, the clock button beside **Undo** and **Redo**. In Lolly Design, **History** is in the top bar; on a phone, press **•••** and then **History**. In tools without **Undo**, such as Text and Lolly Sandbox, **History** is beside **Home** at the top left.
 2. Find the version by its date and time. **Automatic checkpoint** rows are taken as you work; **Saved version** rows are the times you saved.
 3. Press **Open as a copy**. The version opens as a new creation, and the one you had open stays as it was. The copy is in **Projects**, with "(copy)" after its name.
 
 To keep a version by name, press **Name version**, type a name and press **Keep milestone**. Named versions are listed on the **History** page, under **Milestones**.
 
 ::: details The History panel and the History page
-The **History** panel also lists **Recovered work** rows, and **Protected drafts** holds your latest edits between checkpoints, with **Open draft as a copy**. **Compare** and **Check assets** help you choose before you open a copy. Switch **This creation** to **All history on this device** to see every creation.
+The **History** panel also lists **Recovered work** rows, and **Protected drafts** holds your latest edits between checkpoints, with **Open draft as a copy**. **Lolly Compare** and **Check assets** help you choose before you open a copy. Switch **This creation** to **All history on this device** to see every creation.
 
 Automatic checkpoints thin out with age: one a minute for the last hour, one an hour for the last day, one a day for 30 days, then one a week. Saved versions and named versions are all kept. Deleting a creation moves its versions to **Trash** too, and **Delete forever** removes them.
 

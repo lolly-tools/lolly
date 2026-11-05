@@ -269,7 +269,7 @@ På en smal skärm blir layouten en kolumn:
 
 ## Inställningar, ljud och komfort
 
-**Settings**, längst ner på startskärmen, håller dina uppgifter, dina designsystem, tillgänglighet, lagring och offlinenedladdningar. [Settings](/info/dashboard.html) kartlägger varje flik.
+**Settings**, längst ner på startskärmen, håller dina uppgifter, dina designsystem, tillgänglighet, lagring och offlinenedladdningar. [Lolly Settings](/info/dashboard.html) kartlägger varje flik.
 
 - **Dina uppgifter och ditt porträtt** fyller i alla verktyg som byggts för att använda dem, som en e-postsignatur eller en namnbricka. [Profiler](/info/profile.html) beskriver dem.
 - **Tillgänglighet** har fyra komfortreglage: **Reduce motion**, **Hide colourful previews**, **High contrast** och **Large text**. De ändrar appen runt ditt arbete, aldrig en verktygsyta eller en export.

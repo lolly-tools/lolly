@@ -9,13 +9,13 @@ ROUTES table in main.ts. Two facts to keep in step with the code:
   standalone flags, so the page says "the feature flags", not "every feature flag".
 -->
 
-# Search
+# Lolly Search
 
 Press **Ctrl-Space** and type two letters: Lolly shows the tools, saved work, assets and settings that match. One field, always in the same place at the foot of the screen, reaches all of them.
 
 ## Open search
 
-The field sits in the middle of the bar at the foot of the window, between **Open** and **Settings** on one side and **Verify** and **What?** on the other. Press **Ctrl-Space** from any screen that shows the bar, or click the field.
+The field sits in the middle of the bar at the foot of the window, between **Open** and **Settings** on one side and **Lolly Verify** and **What?** on the other. Press **Ctrl-Space** from any screen that shows the bar, or click the field.
 
 <!--
 SHOT NOTE (srch-footer-closed): the bar `footerNav()` writes is
@@ -23,7 +23,7 @@ SHOT NOTE (srch-footer-closed): the bar `footerNav()` writes is
 Batch moved out of this bar to the Projects top bar.
 -->
 
-![the persistent search bar at rest: Open and Settings on the left, the search field with its magnifier icon and a Ctrl-Space hint chip, Verify and What? on the right](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&cropSelector=.gallery-footer&dark=1&filename=srch-footer-closed)
+![the persistent search bar at rest: Open and Settings on the left, the search field with its magnifier icon and a Ctrl-Space hint chip, Lolly Verify and What? on the right](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&cropSelector=.gallery-footer&dark=1&filename=srch-footer-closed)
 
 ::: cols
 ## The bar shows on
@@ -34,10 +34,10 @@ Batch moved out of this bar to the Projects top bar.
 
 ## The bar steps aside in
 
-- A tool's own canvas, and Multi-edit
-- Batch, Verify, Convert, Compare, Prepare for sharing, Rebrand and History
-- The spreadsheet, Colour Lab, Unpack, Read and extract, Script audio and the component library
-- Design System Setup and Ask Lolly, which has its own question field
+- A tool's own canvas, and Lolly Multi-edit
+- Batch, Lolly Verify, Convert, Lolly Compare, Prepare for sharing, Lolly Rebrand and History
+- The spreadsheet, Lolly Colour Lab, Unpack, Read and extract, Lolly Script audio and the component library
+- Lolly Design System Setup and Ask Lolly, which has its own question field
 :::
 
 Where the bar steps aside, **Ctrl-Space** does nothing; those screens keep their own controls. Outside the app, the installed apps answer `lolly://` links from a launcher, a Shortcut or a terminal, and on Linux the GNOME Shell search provider and KRunner list Lolly's tools by name; see [The lolly:// scheme](/info/url-app-links.html#the-lolly-scheme).
@@ -55,7 +55,7 @@ Matches are sorted into groups, always in the same order:
 | **Docs** | Every published page and heading of these guides. | `export` |
 | **Ask Lolly** | Always last: one row that hands what you typed to [Ask Lolly](/info/ask.html), which answers with a quoted section of the guides. | any question |
 
-Matching folds case and accents, so `cafe` finds "Café". Search does not list the app's own workbenches yet, such as Verify, Convert, Unpack, the Colour Lab and the spreadsheet; open them from the **Utilities** tab, or Verify from the bar.
+Matching folds case and accents, so `cafe` finds "Café". Search does not list the app's own workbenches yet, such as Lolly Verify, Convert, Unpack, the Lolly Colour Lab and the spreadsheet; open them from the **Utilities** tab, or Lolly Verify from the bar.
 
 ## What happens when you pick a result
 
@@ -82,4 +82,4 @@ Every result is an ordinary link you can bookmark or paste: a tool opens at `#/t
 
 ---
 
-**Related:** [Your favourites](/info/favourites.html) for keeping the tools you use in view. [Using Lolly](/info/using.html) for the gallery, Projects and Assets that search reaches. [Settings](/info/dashboard.html) for the deep links behind each settings result.
+**Related:** [Your favourites](/info/favourites.html) for keeping the tools you use in view. [Using Lolly](/info/using.html) for the gallery, Projects and Assets that search reaches. [Lolly Settings](/info/dashboard.html) for the deep links behind each settings result.

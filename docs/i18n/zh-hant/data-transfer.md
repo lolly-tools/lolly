@@ -152,7 +152,7 @@ manifest 既不列出它自己，也不列出重新產生的 `lolly.txt`。摘�
 
 這個套件備份的是裝置的個人資料庫。它不是 **Lolly Work** 實例的備份：組織帳號、存取政策、共用專案、目錄版本、核准、渲染工作與稽核記錄由該服務保存。重新連線並登入即可重新取得對共用工作的存取；匯入個人套件不會授予該存取權。
 
-營運者以 Lolly Work 自己的指南備份、保留與清除伺服器資料：[備份與還原](/info/work-operations.html#backup-and-restore)以及 [Work 儲存與資料生命週期](/info/work-data-lifecycle.html)。清除或匯出裝置並不會執行任何這些伺服器操作。
+營運者以 Lolly Work 自己的指南備份、保留與清除伺服器資料：[備份與還原](/info/work-operations.html#backup-and-restore)以及 [Lolly Work 儲存與資料生命週期](/info/work-data-lifecycle.html)。清除或匯出裝置並不會執行任何這些伺服器操作。
 
 ## 跨外殼
 

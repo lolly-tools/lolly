@@ -24,7 +24,7 @@ lolly.tools 會在 **Lolly Demo** 中開啟，這是 Lolly 自己的範例設計
 
 ![全新安裝的 Design System Setup 中的 Colours 房間：一個即時色塊、一個欄位，以及第一個決定的全部](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-從這裡開始，八個房間可依任意順序帶你走到你想要的程度：**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules** 與 **Skills**。你輸入時，應用程式中的每個預覽都會更新。[Design System Setup](/info/brand-studio.html) 涵蓋每個房間。
+從這裡開始，八個房間可依任意順序帶你走到你想要的程度：**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules** 與 **Skills**。你輸入時，應用程式中的每個預覽都會更新。[Lolly Design System Setup](/info/brand-studio.html) 涵蓋每個房間。
 
 字型保存在你的裝置上。選擇 Google Font 後，Lolly 會將檔案存為品牌素材，因此你的字型可以離線攜帶，工具繪製時也不會擷取任何內容。
 
@@ -58,7 +58,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 **簡報。** 將 PowerPoint `.pptx` 拖放到 Lolly，即可把它的投影片歸檔為素材；也可以在 **Markdown Slides** 中以 Markdown 撰寫新簡報，或用[重塑簡報品牌](/info/rebrand.html)，把整份簡報移到你的設計系統上。
 
-**資料。** 貼上或放入 CSV 或 JSON 表格，工具的重複欄位就會由它填入，或用 [Batch](/info/batch.html#make-many-versions-of-one-design) 為每一列產生一個完成的檔案。
+**資料。** 貼上或放入 CSV 或 JSON 表格，工具的重複欄位就會由它填入，或用 [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) 為每一列產生一個完成的檔案。
 
 ### 從一次性作品變成範本
 
@@ -72,7 +72,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 - <!--i:download--> **匯出。** 工具可製作 SVG、PDF、PNG、JPG、WebP、影片等，依各工具提供的格式，並在你需要時採用真實的列印尺寸。請見[匯出檔案](/info/exporting.html)。
 - <!--i:link--> **分享連結。** 工具的設定隨連結傳遞，因此連結在任何地方都會重新開啟同一個檔案。
-- <!--i:layers--> **每列做一個。** 在 [Batch](/info/batch.html#make-many-versions-of-one-design) 中以試算表驅動工具。
+- <!--i:layers--> **每列做一個。** 在 [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) 中以試算表驅動工具。
 - <!--i:cpu--> **自動化。** 相同的渲染可從 [CLI](/info/cli.html) 與 [AI 代理](/info/ai-agents.html)執行。
 
 連結就是一份完整的請求。下方的圖表不是任何人畫的：它的類型、標題與整個資料表都是輸入在網址列中，同一個連結在任何裝置上都會畫出相同的圖表。

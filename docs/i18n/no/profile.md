@@ -14,13 +14,13 @@ Profilen din holder også det du bygger opp mens du arbeider: lagrede økter, op
 | **Headshot** | Et valgfritt bilde, beskåret til en firkant og beholdt som et lokalt bilde, for verktøy som e-postsignaturer, sitatkort og organisasjonskart. |
 | **Use my details to create** | Én valgfri bryter (den leses som **Using my details** når den er på). Den avgjør om detaljene dine følger med som forfatterkreditt i eksporterte filer og på Batch-kjøringer. Den påvirker ikke forhåndsutfylling; se [How tools use your profile](#how-tools-use-your-profile). |
 | **Preferences** | Temaet ditt, fargevarianten din i hvert designsystem, tilgjengelighetsinnstillingene dine og hvilke deler av appen du slo på i **Feature flags**. |
-| **Your work** | Lagrede økter med miniatyrbildene sine, organisert i [Projects](/info/find-your-work.html), de opplastede bildene dine og den lokale aktivitetsstatistikken din. |
+| **Your work** | Lagrede økter med miniatyrbildene sine, organisert i [Lolly Projects](/info/find-your-work.html), de opplastede bildene dine og den lokale aktivitetsstatistikken din. |
 
 Ingenting av det er påkrevd. En blank profil fungerer; fyll bare ut det som sparer deg for å skrive.
 
 ![Settings på fanen Preferences: innstillingslisten, og Your details med bryteren Use my details to create og feltene for navn, kontakt og sted](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) kartlegger alt annet under Preferences, fra utseende og emoji til lagring og nedlastinger for bruk uten nett.
+[Lolly Settings](/info/dashboard.html) kartlegger alt annet under Preferences, fra utseende og emoji til lagring og nedlastinger for bruk uten nett.
 
 ## Du, et team eller en rolle
 
@@ -83,7 +83,7 @@ Verktøyforfattere: se [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) o
 Tre ting ligger nær hverandre i Settings og er lette å blande sammen:
 
 - <!--i:people--> **Profile** - du, teamet ditt eller rollen du er i: navn, kontakt, portrettbilde og lagret arbeid. Personlig, beholdt på enheten og portabel som en fil.
-- <!--i:palette--> **Design system** - merkevaren: farger, skrifter og innstillinger hvert verktøy gjengir med. Delt og konsistent i stedet for personlig; se [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - merkevaren: farger, skrifter og innstillinger hvert verktøy gjengir med. Delt og konsistent i stedet for personlig; se [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - hva appen kan gjøre: funksjonene og verktøyene som er tilgjengelige for deg.
 
 En profil endrer hvem en fil er fra; designsystemet endrer hvordan filen ser ut; kapabiliteter er det du kan lage.

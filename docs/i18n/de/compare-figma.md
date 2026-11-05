@@ -6,7 +6,7 @@ Wenn Ihre Designer in Figma arbeiten, sagt diese Seite, wie Lolly daneben steht:
 
 ## Was Figma besser kann
 
-[Figma Design](https://www.figma.com/design/) vereint Oberflächengestaltung, Komponenten, interaktive Prototypen und Übergabe an Entwickler. Seine etablierte Praxis im Produktdesign und sein Ökosystem zählen, wenn ein Team eine ganze Anwendung gestalten und spezifizieren muss, und seine Live-Bearbeitung läuft in einem Maßstab, den die Work-Collabs von Lolly nicht erreicht haben.
+[Figma Design](https://www.figma.com/design/) vereint Oberflächengestaltung, Komponenten, interaktive Prototypen und Übergabe an Entwickler. Seine etablierte Praxis im Produktdesign und sein Ökosystem zählen, wenn ein Team eine ganze Anwendung gestalten und spezifizieren muss, und seine Live-Bearbeitung läuft in einem Maßstab, den die Lolly Work-Collabs von Lolly nicht erreicht haben.
 
 ## Wo sie sich überschneiden
 
@@ -22,6 +22,6 @@ Eine [private Collab](/info/collaborate.html) verbindet zwei Geräte direkt, ohn
 
 ## Mit einer Organisation
 
-Lolly Work ergänzt authentifizierte Work-Collabs mit gemeinsamen Änderungen, Live-Cursorn und gespeicherten Team-Sitzungen, dazu Single Sign-on, gemeinsame Kataloge, Projektberechtigungen, Freigaben und Server-Rendering. [Was wo läuft](/info/compare.html#what-runs-where) stellt die beiden Teile nebeneinander.
+Lolly Work ergänzt authentifizierte Lolly Work-Collabs mit gemeinsamen Änderungen, Live-Cursorn und gespeicherten Team-Sitzungen, dazu Single Sign-on, gemeinsame Kataloge, Projektberechtigungen, Freigaben und Server-Rendering. [Was wo läuft](/info/compare.html#what-runs-where) stellt die beiden Teile nebeneinander.
 
 Figma ist eine Marke ihres Inhabers. Diese Seite beschreibt, wo sich die beiden Produkte überschneiden, und steht in keiner Verbindung zu Figma.

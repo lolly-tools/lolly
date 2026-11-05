@@ -2,7 +2,7 @@
 
 Send a large file to Lolly Work in parts that survive a dropped connection or a server restart.
 After an interruption you ask which parts arrived and send only the rest, so a long upload
-never starts over from the beginning. Work checks every part against the checksum you declared
+never starts over from the beginning. Lolly Work checks every part against the checksum you declared
 before storing the part.
 
 Three kinds of upload use the same parts:
@@ -108,7 +108,7 @@ its place could not ask which parts had arrived, and migration 0041 capped a pro
 
 The constraints that decided the protocol:
 
-- Request bodies are capped in front of Work: a serverless function host can cap a request at
+- Request bodies are capped in front of Lolly Work: a serverless function host can cap a request at
   4.5 MB, nginx defaults to 1 MB and ingress controllers set their own limits.
 - Every blob store driver stores whole objects by id (a Postgres row per blob, an S3 object per
   key). None can append, and S3 multipart parts must be at least 5 MiB except the last.
@@ -121,17 +121,17 @@ per-request checksums, termination and parallel uploads joined by concatenation.
 would have meant:
 
 - A `PATCH` carries bytes at an offset the client chooses, and a server may keep part of a body
-  when the connection drops. With whole-object drivers, Work would have to hold an incomplete
+  when the connection drops. With whole-object drivers, Lolly Work would have to hold an incomplete
   part until the rest arrived, or refuse every `PATCH` not ending on a part boundary. Either way
   the stored unit would stop being a part checked against its declared checksum.
 - The checksum extension is optional per request, and SHA-1 is the algorithm a server must
-  support. Work checks SHA-256 before it stores a byte, against a checksum declared at the begin.
+  support. Lolly Work checks SHA-256 before it stores a byte, against a checksum declared at the begin.
 - Core tus sends one `PATCH` at a time; parallel parts need the concatenation extension, a second
   resource model.
-- Its headers need CORS exposure and pass-through by every proxy in front of Work.
+- Its headers need CORS exposure and pass-through by every proxy in front of Lolly Work.
 - The shell would need a second upload client.
 
-So Work kept the parts protocol and added the resume report, taking from tus the ideas that
+So Lolly Work kept the parts protocol and added the resume report, taking from tus the ideas that
 apply: a declared length and metadata at the begin, an offset to carry on from (`offset` is what
 tus calls `Upload-Offset`), a readable expiry (`expiresAt`, like `Upload-Expires`) and
 termination by `DELETE`. Only bytes that match a declared checksum are stored, the unit stored is
@@ -147,7 +147,7 @@ same primitive.
 
 What follows from the decision:
 
-- A tus client cannot talk to Work directly. A translation layer could accept `PATCH` requests
+- A tus client cannot talk to Lolly Work directly. A translation layer could accept `PATCH` requests
   that end on part boundaries and store them as parts; none is built.
 - The resume report reads one blob stat per part, eight at a time, so reporting on a 4 GiB
   upload costs 4,096 stats.

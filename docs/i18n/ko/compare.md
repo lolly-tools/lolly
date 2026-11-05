@@ -44,7 +44,7 @@ _최종 확인일: 2026년 9월 28일._
 
 이 한계는 이 모음의 모든 페이지에 적용되므로 여기서 한 번만 밝혀요.
 
-- **업무 collab은 현재 단일 서버 노드에서 실행돼요.** 규모와 운영 이력이 오래 확립된 호스팅 제품과 달라요. [Work 상태와 로드맵](/info/work-status.html)이 현재 한계를 기록해요.
+- **업무 collab은 현재 단일 서버 노드에서 실행돼요.** 규모와 운영 이력이 오래 확립된 호스팅 제품과 달라요. [Lolly Work 상태와 로드맵](/info/work-status.html)이 현재 한계를 기록해요.
 - **[lolly.work](https://lolly.work)의 사이트는 데모 샌드박스예요.** 지속되는 조직 배포에는 영구 저장소와 운영자가 필요해요. [Lolly Work 설치](/info/work-install.html)가 둘 다 다뤄요.
 - Lolly나 직접 호스팅하는 Lolly Work에는 **좌석당 소프트웨어 라이선스 비용이 없어요.** 호스팅, 저장소, 운영에는 여전히 비용이 들어요.
 - **서명은 신뢰할 수 있는 서명자가 아니에요.** 검증자는 파일에 서명한 인증서를 신뢰해야 서명자를 신뢰됨으로 표시해요. [Content Credentials 신원](/info/content-credentials-identity.html)이 방법을 설명해요.

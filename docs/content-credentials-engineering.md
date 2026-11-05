@@ -2,7 +2,7 @@
 
 This page is for engineers and operators who integrate, audit or deploy Lolly's signing path. It covers how a device key becomes a verified signer, the engine contracts behind signing and verifying, the CA service and its protocol and the threat model.
 
-For what a reader sees, start with [Content Credentials](/info/content-credentials-identity.html) and [What Verify checks](/info/what-verify-checks.html). To deploy the CA, the canonical runbook is the [CA README](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md).
+For what a reader sees, start with [Content Credentials](/info/content-credentials-identity.html) and [What Lolly Verify checks](/info/what-verify-checks.html). To deploy the CA, the canonical runbook is the [CA README](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md).
 
 ::: note Versions and line numbers
 CA-issued signing first shipped at engine 1.11, and the capability bridge only grows, so everything here still holds. The verifier reads C2PA 1.x and 2.x claims, Lolly writes 2.x by default, and the trust list bundles the public C2PA and CAI anchors beside the Lolly root. Read the live `ENGINE_VERSION` in `engine/src/version.ts` and `engine/CHANGELOG.md` rather than a number pinned here. Source line numbers are left out because they drift: search for the named symbol.
@@ -28,7 +28,7 @@ Its companion `host.c2pa.readIngredients` (v1.104) reads every manifest a file a
 
 Lolly's engine and shells are open source. Once the code is public, "made with Lolly" can never be a *cryptographic* claim: anyone can fork the repository and emit bit-identical manifests. No certificate scheme fixes that, because the thing being attested, the software, is copyable by design.
 
-So the certificate attests **who signed, not which app signed**. Its Subject Alternative Name carries the OIDC-verified email. A fork cannot impersonate a Lolly user. It can only obtain certificates for its own users under this issuance policy, or run its own CA, whose root is not the Lolly root. The "Lolly" generator name in the manifest stays self-asserted, and Verify keeps that distinction: "Made with Lolly" is the maker's claim, while "Verified" is the cryptographic one.
+So the certificate attests **who signed, not which app signed**. Its Subject Alternative Name carries the OIDC-verified email. A fork cannot impersonate a Lolly user. It can only obtain certificates for its own users under this issuance policy, or run its own CA, whose root is not the Lolly root. The "Lolly" generator name in the manifest stays self-asserted, and Lolly Verify keeps that distinction: "Made with Lolly" is the maker's claim, while "Verified" is the cryptographic one.
 
 This follows Kerckhoffs's principle as Sigstore's Fulcio and Let's Encrypt practise it: **the repository holds no secrets, only protocol and public anchors.** The CA certificate is public, committed and served. The CA private key lives only in the host's environment store or a KMS. The device key is generated locally and cannot be exported.
 
@@ -105,9 +105,10 @@ The enrolment protocol, the managed chain and the revocation list, shared by the
 
 The default anchor set is the **Lolly CA root plus the vendored C2PA known-certificate list**, the same as the web Verify view and MCP's `lolly_verify`, so a Lolly-CA-signed export reads the same on every surface. `--no-default-anchors` drops both built-in sets for a bare-trust check, and every report prints which set produced the verdict.
 
-## Beyond C2PA: pixel and byte level Verify reads
+<a id="beyond-c2pa-pixel-and-byte-level-verify-reads"></a>
+## Beyond C2PA: pixel and byte level Lolly Verify reads
 
-The Verify view runs several checks around the credential, described for readers on [What Verify checks](/info/what-verify-checks.html). Each is a pure, DOM-free module in the engine or a shell library, fed a decoded RGBA buffer or the raw file bytes by the shell. None is a bridge capability, and none uploads anything. The opt-in deep scan's one-time model download is the only network touch, from the same origin on the web and from the model host `lolli.li` in the desktop and mobile apps, and it never sends the file.
+The Verify view runs several checks around the credential, described for readers on [What Lolly Verify checks](/info/what-verify-checks.html). Each is a pure, DOM-free module in the engine or a shell library, fed a decoded RGBA buffer or the raw file bytes by the shell. None is a bridge capability, and none uploads anything. The opt-in deep scan's one-time model download is the only network touch, from the same origin on the web and from the model host `lolli.li` in the desktop and mobile apps, and it never sends the file.
 
 Each read has its own surface in the view, catalogued in the component library next to the source that defines each surface. Here is the verdict-hero entry, with the verdict states it covers and the `valid.ts` source behind them:
 
@@ -137,7 +138,7 @@ The shell embeds it two ways: through the standalone raster encoders' `opts.impr
 
 ### Deep scan: `trustmark.ts` and `contentseal.ts`
 
-Two open pixel-watermark decoders behind a one-time consent: about 90 MB of detector models, offered by one banner per batch, after which the scan runs on each file without asking again (`shells/web/src/lib/trustmark.ts` and `contentseal.ts`, with `engine/src/contentseal.ts` for the DOM-free decode maths). TrustMark is a real decode checked by error correction. Content Seal has no error-correcting check, so it reports an amber statistical "likely", always with the caveat that Meta's proprietary Muse variant is a different watermark. [What Verify checks](/info/what-verify-checks.html#deep-scan-trustmark-and-content-seal) has the reader's detail.
+Two open pixel-watermark decoders behind a one-time consent: about 90 MB of detector models, offered by one banner per batch, after which the scan runs on each file without asking again (`shells/web/src/lib/trustmark.ts` and `contentseal.ts`, with `engine/src/contentseal.ts` for the DOM-free decode maths). TrustMark is a real decode checked by error correction. Content Seal has no error-correcting check, so it reports an amber statistical "likely", always with the caveat that Meta's proprietary Muse variant is a different watermark. [What Lolly Verify checks](/info/what-verify-checks.html#deep-scan-trustmark-and-content-seal) has the reader's detail.
 
 TrustMark's *write* side is one switch in the export panel, off by default for the same reason its scan is opt-in: a neural pass plus that one-time model download. It sits in the Content protection card shown below.
 

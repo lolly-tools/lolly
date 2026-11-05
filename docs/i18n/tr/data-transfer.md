@@ -152,7 +152,7 @@ Depolama göstergesi aynı ayrımı gösterir. Saved sessions, My images ve File
 
 Bu paket cihazın kişisel kitaplığını yedekler. Bir **Lolly Work** örneğinin yedeği değildir: kuruluş hesapları, erişim politikaları, paylaşılan projeler, katalog sürümleri, onaylar, render işleri ve denetim kayıtları o hizmet tarafından tutulur. Paylaşılan işe erişimi geri kazanmak için yeniden bağlan ve giriş yap; kişisel bir paketi içe aktarmak o erişimi vermez.
 
-İşletmeler sunucu verisini Lolly Work'ün kendi kılavuzlarıyla yedekler, saklar ve siler: [Backup and restore](/info/work-operations.html#backup-and-restore) ve [Work storage and data lifecycle](/info/work-data-lifecycle.html). Bir cihazı temizlemek veya dışa aktarmak bu sunucu işlemlerinden hiçbirini yapmaz.
+İşletmeler sunucu verisini Lolly Work'ün kendi kılavuzlarıyla yedekler, saklar ve siler: [Backup and restore](/info/work-operations.html#backup-and-restore) ve [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Bir cihazı temizlemek veya dışa aktarmak bu sunucu işlemlerinden hiçbirini yapmaz.
 
 ## Kabuklar arasında
 

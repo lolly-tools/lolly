@@ -50,10 +50,10 @@ Switch views with the number keys: **1** Tools, **2** Projects, **3** Profile, *
 | Tools | `/` | Search |
 | Tools | `Enter` | Open the selected tool |
 | Tools | `u` | Open a pasted `lolly.tools` link, already configured |
-| Tools | `i` | Import a PDF or `.ai` as a Design session |
+| Tools | `i` | Import a PDF or `.ai` as a Lolly Design session |
 | Tools | `f` / `F` | Favourite a tool / show only favourites |
 | Tools | `o` / `c` | Cycle the sort / the category filter |
-| Tools | `p` / `r` | Open Prepare for sharing / Rebrand |
+| Tools | `p` / `r` | Open Prepare for sharing / Lolly Rebrand |
 | Projects | `n` / `m` | New folder / move a session into a folder |
 | Projects | `e` | Export a whole folder |
 | Projects | `Space`, then `b` | Tick sessions, then batch the selection |
@@ -116,9 +116,10 @@ Terminal light/dark/default appearance is separate from the document's colours.
 External editing uses `VISUAL` or `EDITOR`, validates the returned JSON and shows
 changes before applying. Windows editor configuration takes an executable path.
 
-## Prepare, Rebrand and import
+<a id="prepare-rebrand-and-import"></a>
+## Prepare, Lolly Rebrand and import
 
-Two more screens open from Tools. `p` opens **Prepare for sharing**, which inspects files for hidden data and personal values, lets you choose replacements and saves cleaned copies, all on the device (see [Utilities](/info/utilities.html)). `r` opens **Rebrand**, which reads a `.pptx` or `.pdf` deck, shows the plan as a checklist where you keep, replace or remove each item, then compiles the result to a folder (see [Rebrand a deck](/info/rebrand.html)).
+Two more screens open from Tools. `p` opens **Prepare for sharing**, which inspects files for hidden data and personal values, lets you choose replacements and saves cleaned copies, all on the device (see [Lolly Utilities](/info/utilities.html)). `r` opens **Lolly Rebrand**, which reads a `.pptx` or `.pdf` deck, shows the plan as a checklist where you keep, replace or remove each item, then compiles the result to a folder (see [Rebrand a deck](/info/rebrand.html)).
 
 ## Export
 
@@ -136,7 +137,7 @@ The Export panel has **Format · Width · Height · Unit · DPI · Filename · F
 
 The TUI picks one of two tiers per format, and shares the CLI's renderer selection, so [What the CLI can render](/info/cli-rendering.html#what-the-cli-can-render) is the full list:
 
-- **No browser needed:** SVG and the other vector formats, the data formats, a Design document's Lottie, IDML and Premiere XML exports, and a PNG or JPEG XL from a tool that draws in SVG, which the TUI rasterises with resvg, Imprint included. A PNG that asks for the Durable mark, bleed or printer's marks still goes to the browser tier.
+- **No browser needed:** SVG and the other vector formats, the data formats, a Lolly Design document's Lottie, IDML and Premiere XML exports, and a PNG or JPEG XL from a tool that draws in SVG, which the TUI rasterises with resvg, Imprint included. A PNG that asks for the Durable mark, bleed or printer's marks still goes to the browser tier.
 - **The browser tier**, on demand: the other raster formats, PDF, video, live-URL capture and TXT, which is the rendered page serialised to plain text, so the page has to be laid out first. A scoped headless Chromium drives a built copy of the web app, so the bytes match a download from the app. The browser launches only when you first export one of these formats. When a Lolly desktop app is running or installed, the TUI renders through the app instead and needs no Chromium.
 
 Set the browser tier up once:
@@ -150,7 +151,8 @@ pnpm run build:web         # a built web shell for full-fidelity raster/pdf/vide
 
 Without Chromium or the built shell, those formats fail with a one-line message that gives the command to run, and the TUI falls back to writing HTML, so every tool still exports something. SVG and the data formats never need either.
 
-::: details URL Screenshot (`url-shot`) in the terminal
+<a id="url-screenshot-url-shot-in-the-terminal"></a>
+::: details Lolly URL Screenshot (`url-shot`) in the terminal
 `url-shot` captures a live web page on the browser tier. It drives Chromium straight at the URL:
 
 - **Formats:** **PNG / JPG** (a real screenshot), **PDF** (a true vector print, with selectable text and crisp at any zoom) and **SVG** (the high-DPI shot in a scalable container).

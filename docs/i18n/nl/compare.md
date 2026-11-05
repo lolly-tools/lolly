@@ -44,7 +44,7 @@ Zelfstandig gebruik houdt bestanden op het apparaat. Kiezen voor gedeelde projec
 
 Deze grenzen gelden voor elke pagina in deze set, dus ze worden hier één keer genoemd:
 
-- **Werkcollabs draaien vandaag op één servernode.** Hun schaal en operationele geschiedenis verschillen van de al langer gevestigde gehoste producten. [Work status and roadmap](/info/work-status.html) legt de huidige grenzen vast.
+- **Werkcollabs draaien vandaag op één servernode.** Hun schaal en operationele geschiedenis verschillen van de al langer gevestigde gehoste producten. [Lolly Work status and roadmap](/info/work-status.html) legt de huidige grenzen vast.
 - **De site op [lolly.work](https://lolly.work) is een demosandbox.** Een duurzame organisatie-implementatie heeft persistente opslag en een beheerder nodig; [Install Lolly Work](/info/work-install.html) behandelt beide.
 - **Er zijn geen softwarelicentiekosten per gebruiker** voor Lolly of een zelf gehoste Lolly Work. Hosting, opslag en beheer kosten nog steeds geld.
 - **Een handtekening is geen vertrouwde ondertekenaar.** Een verificator moet het certificaat vertrouwen dat een bestand ondertekende voordat hij de ondertekenaar als vertrouwd toont; [Content Credentials Identity](/info/content-credentials-identity.html) legt uit hoe.

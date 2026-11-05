@@ -1,4 +1,4 @@
-# Configure Work export signing
+# Configure Lolly Work export signing
 
 Give a Lolly Work deployment a signing identity and **every export the server makes**
 carries a signed C2PA Content Credential: renders, share, embed and download links,
@@ -135,7 +135,7 @@ API, for one, says nothing about C2PA. The catalog can **detect** that.
   (`GET /api/v1/catalog/assets/<id>`) returns the detection record.
 - It **detects and never verifies**. It records only *whether* a manifest is present and
   in which container, never a `valid` or `trusted` verdict and never a parsed claim.
-  Verify in the console's verify view, against the bytes you received. Detection reuses
+  Lolly Verify in the console's verify view, against the bytes you received. Detection reuses
   the bundled engine's container handling, so both repositories share one C2PA
   implementation, and the engine-pin check makes sure those modules stay present.
 - On **export**, provenance ingredients change from `c2pa: null` to

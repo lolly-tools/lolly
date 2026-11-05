@@ -6,7 +6,7 @@ Wenn Ihr Team heute Social-Media-Beiträge, Folien und Flyer in Canva erstellt, 
 
 ## Was Canva besser kann
 
-Canva vereint eine große Vorlagen- und Stock-Bibliothek, Apps und gehostete Team-Workflows in einem verwalteten Dienst. Dieser fertige Inhalt und diese Erfahrung helfen, wenn Sie heute einen Ausgangspunkt brauchen. Siehe [die Vorlagen von Canva](https://www.canva.com/templates/) und den [Apps-Marktplatz](https://www.canva.com/apps/). Auch seine Live-Bearbeitung hat eine lange Betriebshistorie in einem Maßstab, den die Work-Collabs von Lolly nicht erreicht haben.
+Canva vereint eine große Vorlagen- und Stock-Bibliothek, Apps und gehostete Team-Workflows in einem verwalteten Dienst. Dieser fertige Inhalt und diese Erfahrung helfen, wenn Sie heute einen Ausgangspunkt brauchen. Siehe [die Vorlagen von Canva](https://www.canva.com/templates/) und den [Apps-Marktplatz](https://www.canva.com/apps/). Auch seine Live-Bearbeitung hat eine lange Betriebshistorie in einem Maßstab, den die Lolly Work-Collabs von Lolly nicht erreicht haben.
 
 ## Wo sie sich überschneiden
 
@@ -22,6 +22,6 @@ Das eigenständige Lolly hält Erstellen und Exportieren auf dem Gerät, ohne Ko
 
 ## Mit einer Organisation
 
-Lolly Work, auf dem eigenen Server Ihrer Organisation betrieben, ergänzt Anmeldung, gemeinsame Projekte, Live-Work-Collabs, freigegebene Assets und Richtlinien. [Was wo läuft](/info/compare.html#what-runs-where) stellt die beiden Teile nebeneinander, mit den Grenzen, die jeder Vergleich teilt.
+Lolly Work, auf dem eigenen Server Ihrer Organisation betrieben, ergänzt Anmeldung, gemeinsame Projekte, Live-Lolly Work-Collabs, freigegebene Assets und Richtlinien. [Was wo läuft](/info/compare.html#what-runs-where) stellt die beiden Teile nebeneinander, mit den Grenzen, die jeder Vergleich teilt.
 
 Canva ist eine Marke ihres Inhabers. Diese Seite beschreibt, wo sich die beiden Produkte überschneiden, und steht in keiner Verbindung zu Canva.

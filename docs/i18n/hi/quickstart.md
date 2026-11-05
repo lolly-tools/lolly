@@ -24,7 +24,7 @@ lolly.tools **Lolly Demo** में खुलता है, जो Lolly का
 
 ![नई इंस्टॉल पर Design System Setup का Colours रूम: एक लाइव चिप, एक फ़ील्ड और पहले निर्णय का पूरा हिस्सा](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-वहाँ से आठ रूम इसे जितना चाहें आगे ले जाते हैं, किसी भी क्रम में: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** और **Skills**। आपके टाइप करते ही ऐप का हर प्रीव्यू अपडेट होता है। [Design System Setup](/info/brand-studio.html) हर रूम को कवर करता है।
+वहाँ से आठ रूम इसे जितना चाहें आगे ले जाते हैं, किसी भी क्रम में: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** और **Skills**। आपके टाइप करते ही ऐप का हर प्रीव्यू अपडेट होता है। [Lolly Design System Setup](/info/brand-studio.html) हर रूम को कवर करता है।
 
 फ़ॉन्ट आपके डिवाइस पर रखे जाते हैं। Google Font चुनें और Lolly फ़ाइल को ब्रांड एसेट के रूप में सहेजता है, इसलिए आपका टाइप ऑफ़लाइन साथ चलता है और टूल के बनाते समय कुछ नहीं लाया जाता।
 
@@ -58,7 +58,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 **डेक।** PowerPoint `.pptx` को Lolly पर डालें ताकि उसकी स्लाइड एसेट के रूप में दर्ज हों, **Markdown Slides** में Markdown से नया डेक लिखें, या पूरे डेक को अपने design system पर ले जाने के लिए [Rebrand a deck](/info/rebrand.html) उपयोग करें।
 
-**डेटा।** CSV या JSON तालिका पेस्ट करें या डालें और टूल के दोहराए जाने वाले फ़ील्ड उससे भर जाते हैं, या [Batch](/info/batch.html#make-many-versions-of-one-design) हर पंक्ति के लिए एक तैयार फ़ाइल बनाता है।
+**डेटा।** CSV या JSON तालिका पेस्ट करें या डालें और टूल के दोहराए जाने वाले फ़ील्ड उससे भर जाते हैं, या [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) हर पंक्ति के लिए एक तैयार फ़ाइल बनाता है।
 
 ### एक बार के काम से टेम्पलेट तक
 
@@ -72,7 +72,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 - <!--i:download--> **एक्सपोर्ट।** टूल SVG, PDF, PNG, JPG, WebP, वीडियो और अधिक बनाते हैं, हर टूल के दिए फ़ॉर्मेट में, ज़रूरत पर असली प्रिंट आकारों में। देखें [Export a file](/info/exporting.html)।
 - <!--i:link--> **लिंक साझा करें।** टूल की सेटिंग उसके लिंक में चलती हैं, इसलिए लिंक कहीं भी वही फ़ाइल दोबारा खोलता है।
-- <!--i:layers--> **हर पंक्ति के लिए एक बनाएँ।** [Batch](/info/batch.html#make-many-versions-of-one-design) में स्प्रेडशीट से टूल चलाएँ।
+- <!--i:layers--> **हर पंक्ति के लिए एक बनाएँ।** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) में स्प्रेडशीट से टूल चलाएँ।
 - <!--i:cpu--> **स्वचालित करें।** वही रेंडर [CLI](/info/cli.html) और [AI एजेंट](/info/ai-agents.html) से चलता है।
 
 लिंक एक पूरा अनुरोध है। नीचे का चार्ट किसी ने नहीं बनाया: उसका प्रकार, शीर्षक और पूरी डेटा तालिका एड्रेस बार में टाइप की गई थीं, और वही लिंक हर डिवाइस पर वही चार्ट बनाता है।

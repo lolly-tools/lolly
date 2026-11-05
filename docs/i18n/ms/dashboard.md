@@ -18,7 +18,7 @@ Preferences ialah satu halaman panjang dengan **rel tetapan** di sisi dan medan 
 
 - <!--i:usercheck--> **Your details** - nama, butiran hubungan dan gambar kepala anda, dan suis **Use my details to create**. [Profiles](/info/profile.html) menerangkan cara alat menggunakannya.
 - <!--i:seal--> **Content Credentials** - identiti disahkan pilihan yang menandatangani eksport anda. Lihat [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - tukar, tambah, sembunyi atau buang sistem reka bentuk. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) meliputi setiap tindakan.
+- <!--i:palette--> **Design systems** - tukar, tambah, sembunyi atau buang sistem reka bentuk. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) meliputi setiap tindakan.
 - <!--i:moon--> **Appearance** - tema (Light, Dark atau Brand, yang mengecat apl dalam palet anda), **Skema warna anda** apabila sistem reka bentuk menawarkan lebih daripada satu ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) dan **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - set tempat emoji anda dilukis apabila anda memulakan sesuatu yang baharu, dengan lesen karyanya, dan sekuat mana palet anda mewarnakannya semula (**Off**, **Subtle**, **Strong**, **Full**, **Mono** atau **Duotone**). **Keep skin tones and flags** membiarkan itu dalam warnanya sendiri. Kerja yang sudah anda buat mengekalkan set yang digunakan untuk membuatnya.
 - <!--i:eyeoff--> **Accessibility** - empat suis keselesaan, serta Sound dan Neurospicy Mode. Lihat [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ Tab dibuka pada kulit yang dicat dalam warna sistem itu sendiri, dengan logonya,
 - <!--i:sliders--> **Tokens** - jejari, jarak, kesan dan kecerunan.
 - <!--i:document--> **Print & CMYK** - warna yang dikunci kepada dakwat tepat, dan keadaan mesin cetak yang boleh diisytiharkan PDF CMYK.
 
-Menukar ialah satu-satunya perubahan yang dibuat tab ini. Anda menyunting sistem reka bentuk dalam [Design System Setup](/info/brand-studio.html) di `#/start`, yang dipaut oleh kulit. Sistem baca sahaja menyatakannya pada kulit; sistem setempat yang anda cipta kekal boleh sunting. `/b` dan `/brand` ialah pautan pintas terus ke tab ini.
+Menukar ialah satu-satunya perubahan yang dibuat tab ini. Anda menyunting sistem reka bentuk dalam [Lolly Design System Setup](/info/brand-studio.html) di `#/start`, yang dipaut oleh kulit. Sistem baca sahaja menyatakannya pada kulit; sistem setempat yang anda cipta kekal boleh sunting. `/b` dan `/brand` ialah pautan pintas terus ke tab ini.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Kemudian sisi anda sendiri: **Your activity** mengira apa yang telah anda buat p
 
 ## Pautan dalam
 
-Setiap tab dan bahagian Settings mempunyai pautannya sendiri, yang boleh anda tanda buku atau tampal. [Search](/info/search.html) menunjuk hasil **Settings**-nya kepada daftar yang sama yang dirender Settings, supaya bahagian tidak boleh dinamakan semula tanpa diketahui hasil carian.
+Setiap tab dan bahagian Settings mempunyai pautannya sendiri, yang boleh anda tanda buku atau tampal. [Lolly Search](/info/search.html) menunjuk hasil **Settings**-nya kepada daftar yang sama yang dirender Settings, supaya bahagian tidak boleh dinamakan semula tanpa diketahui hasil carian.
 
 ::: details Setiap bentuk pautan
 
@@ -139,4 +139,4 @@ Pautan dalam bertukar ke tab yang memiliki sasaran, membuka mana-mana kumpulan t
 
 ---
 
-**Berkaitan:** [Profiles](/info/profile.html) untuk butiran anda dan konteks tempat anda mencipta. [Design System Setup](/info/brand-studio.html) untuk menyunting apa yang ditunjukkan tab Design system. [Find and recover your work](/info/find-your-work.html) untuk storan, sandaran dan berpindah peranti.
+**Berkaitan:** [Profiles](/info/profile.html) untuk butiran anda dan konteks tempat anda mencipta. [Lolly Design System Setup](/info/brand-studio.html) untuk menyunting apa yang ditunjukkan tab Design system. [Find and recover your work](/info/find-your-work.html) untuk storan, sandaran dan berpindah peranti.

@@ -35,7 +35,7 @@ Setiap jalur menjalankan engine yang sama pada alat yang sama, sehingga file yan
 ![Parameter URL dan argumen baris perintah menjadi model input yang sama, dijalankan melalui satu runtime dan bridge ekspor bersama](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **Di aplikasi, satu per satu.** Buka alat, isi field, dan tekan **Export**. [Make your first file](/info/make-something.html) memandu Anda membuat satu.
-- <!--i:layers--> **Di aplikasi, banyak sekaligus.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) menerima tabel yang ditempel atau diimpor dan merender satu file jadi per baris.
+- <!--i:layers--> **Di aplikasi, banyak sekaligus.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) menerima tabel yang ditempel atau diimpor dan merender satu file jadi per baris.
 - <!--i:cpu--> **Dari skrip atau agen AI.** [CLI](/info/cli.html) menjalankan alat tanpa antarmuka, dan [server MCP](/info/mcp.html) memungkinkan agen menemukan dan menjalankan alat. Tautan ke sebuah alat juga membawa inputnya, jadi tautan adalah permintaan yang lengkap.
 - <!--i:server--> **Melalui server organisasi Anda.** [Lolly Work](/info/organisation.html) merender di server di bawah login dan kebijakan alat organisasi Anda, menyimpan pekerjaan yang dapat dilanjutkan, dan menahan keluaran untuk diunduh atau dikirim secara resmi.
 

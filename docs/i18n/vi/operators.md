@@ -9,7 +9,7 @@ Bắt đầu với [Use Lolly at your organisation](/info/organisation.html) đ�
 - [Adoption & Governance](/info/adoption-governance.html) đề cập việc triển khai và vai trò của quy tắc thương hiệu.
 - [Identity and sessions](/info/work-identity.html) đề cập đăng nhập và ánh xạ nhóm. [Roles and grants](/info/work-permissions.html) giải thích vai trò, quyền cấp và chốt chặn chủ sở hữu.
 - [Policy and governance](/info/work-governance.html) đề cập lớp phủ công cụ, đầu vào bị khóa và chính sách. [Manage organisation AI policy](/info/work-ai-policy.html) đề cập phê duyệt và giới hạn thực thi.
-- [Account data controls](/info/work-account-lifecycle.html) và [Work storage and data lifecycle](/info/work-data-lifecycle.html) đề cập xuất, rời tổ chức, lưu giữ và giới hạn của chúng.
+- [Account data controls](/info/work-account-lifecycle.html) và [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) đề cập xuất, rời tổ chức, lưu giữ và giới hạn của chúng.
 - [Profiles, brands and tool configuration](/info/configuration.html) đề cập những công cụ và hệ thống thiết kế mà một bản dựng Lolly mang theo.
 
 ## Kết nối tài nguyên và xem xét công việc

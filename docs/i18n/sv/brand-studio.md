@@ -4,7 +4,7 @@ Din logotyp, dina färger och dina typsnitt hör hemma på ett ställe, så att 
 
 Börja med det du har. Släpp in en logotyp så läser Lolly dess färger. Välj ett typsnitt, eller släpp in typsnittsfilen som ditt företag licensierar. Varje ändring syns genom hela appen direkt. Din logotyp, dina typsnitt och dina tokens stannar på den här enheten. Att välja ett Google Font är det enda steget som når ut: Lolly frågar först och hämtar sedan familjen en gång.
 
-När det ser rätt ut ger du designsystemet ett namn och trycker på **Export**. Du får en `.lolly`-fil att behålla, öppna på en annan enhet eller ge till en kollega. [Settings](/info/dashboard.html#design-system) visar det aktiva systemet skrivskyddat, och dess omslag länkar hit för redigering.
+När det ser rätt ut ger du designsystemet ett namn och trycker på **Export**. Du får en `.lolly`-fil att behålla, öppna på en annan enhet eller ge till en kollega. [Lolly Settings](/info/dashboard.html#design-system) visar det aktiva systemet skrivskyddat, och dess omslag länkar hit för redigering.
 
 ## Gör det till ditt på fem minuter
 

@@ -12,15 +12,15 @@ Your profile also holds what you build up while you work: saved sessions, upload
 | **Contact** | Email and phone. |
 | **Location** | City and country. |
 | **Headshot** | An optional photo, cropped to a square and kept as a local image, for tools such as email signatures, quote cards and org charts. |
-| **Use my details to create** | One opt-in switch (it reads **Using my details** once on). It decides whether your details travel as the author credit in exported files and on Batch runs. It does not affect pre-fill; see [How tools use your profile](#how-tools-use-your-profile). |
+| **Use my details to create** | One opt-in switch (it reads **Using my details** once on). It decides whether your details travel as the author credit in exported files and on Lolly Batch runs. It does not affect pre-fill; see [How tools use your profile](#how-tools-use-your-profile). |
 | **Preferences** | Your theme, your colourway in each design system, your accessibility settings and which parts of the app you turned on in **Feature flags**. |
-| **Your work** | Saved sessions with their thumbnails, organised in [Projects](/info/find-your-work.html), your uploaded images and your local activity stats. |
+| **Your work** | Saved sessions with their thumbnails, organised in [Lolly Projects](/info/find-your-work.html), your uploaded images and your local activity stats. |
 
 None of it is required. A blank profile works; fill in only what saves you typing.
 
 ![Settings on the Preferences tab: the settings rail, and Your details with the Use my details to create switch and the name, contact and location fields](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) maps everything else under Preferences, from appearance and emoji to storage and offline downloads.
+[Lolly Settings](/info/dashboard.html) maps everything else under Preferences, from appearance and emoji to storage and offline downloads.
 
 ## You, a team or a role
 
@@ -72,7 +72,7 @@ For two contexts at once, use a separate browser profile, a separate user accoun
 
 **Pre-fill.** A tool author marks an input as drawing from your profile (`bindToProfile: "firstname"`, `"email"`, `"headshot"` and so on). When the tool opens, that input fills from your profile, and you can override it for one session without changing the profile, unless an organisation policy locks the input. Pre-fill is a local convenience and happens whether or not **Use my details** is on.
 
-**Credit.** When you export, your details can travel as the author credit in the file's metadata (PNG, PDF, SVG and more), so a finished file can say who made the work. **Use my details to create** governs this, and the author on Batch runs. With it off, the export still says it was made with Lolly, and carries no personal author or contact line.
+**Credit.** When you export, your details can travel as the author credit in the file's metadata (PNG, PDF, SVG and more), so a finished file can say who made the work. **Use my details to create** governs this, and the author on Lolly Batch runs. With it off, the export still says it was made with Lolly, and carries no personal author or contact line.
 
 Tool authors: see [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) and [`host.profile`](/info/host-api.html#host-profile).
 
@@ -83,7 +83,7 @@ Tool authors: see [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) and [`
 Three things sit near each other in Settings and are easy to confuse:
 
 - <!--i:people--> **Profile** - you, your team or the role you are in: name, contact, headshot and saved work. Personal, kept on the device and portable as a file.
-- <!--i:palette--> **Design system** - the brand: colours, fonts and settings every tool renders with. Shared and consistent rather than personal; see [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - the brand: colours, fonts and settings every tool renders with. Shared and consistent rather than personal; see [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - what the app can do: the features and tools available to you.
 
 A profile changes who a file is from; the design system changes how the file looks; capabilities are what you can make.

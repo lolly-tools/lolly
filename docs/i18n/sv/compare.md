@@ -44,7 +44,7 @@ Fristående användning håller filerna på enheten. Att välja delade projekt, 
 
 De här gränserna gäller varje sida i den här uppsättningen, så de anges en gång här:
 
-- **Arbetscollabs körs i dag på en enda servernod.** Deras skala och driftshistorik skiljer sig från de sedan länge etablerade värdbaserade produkterna. [Work status and roadmap](/info/work-status.html) registrerar de aktuella gränserna.
+- **Arbetscollabs körs i dag på en enda servernod.** Deras skala och driftshistorik skiljer sig från de sedan länge etablerade värdbaserade produkterna. [Lolly Work status and roadmap](/info/work-status.html) registrerar de aktuella gränserna.
 - **Webbplatsen på [lolly.work](https://lolly.work) är en demo-sandlåda.** En varaktig organisationsinstallation behöver beständig lagring och en operatör; [Install Lolly Work](/info/work-install.html) beskriver båda.
 - **Det finns ingen programlicensavgift per plats** för Lolly eller en egen driftad Lolly Work. Hosting, lagring och drift kostar fortfarande pengar.
 - **En signatur är inte en betrodd signerare.** En verifierare måste lita på certifikatet som signerade en fil innan den visar signeraren som betrodd; [Content Credentials Identity](/info/content-credentials-identity.html) förklarar hur.

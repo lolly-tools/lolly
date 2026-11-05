@@ -1,12 +1,12 @@
 # Rebrand a deck
 
-Rebrand takes a slide deck someone else made and moves it onto your design system. It reads every slide, works out what each object on it is, and proposes each slide again on your design system's own layouts, in its colours and its typeface. Nothing is final until you decide: every change is a suggestion you can see, compare and answer before anything is written.
+Lolly Rebrand takes a slide deck someone else made and moves it onto your design system. It reads every slide, works out what each object on it is, and proposes each slide again on your design system's own layouts, in its colours and its typeface. Nothing is final until you decide: every change is a suggestion you can see, compare and answer before anything is written.
 
-Rebrand works on your device. The deck is read here and is not uploaded, and the original file is never changed.
+Lolly Rebrand works on your device. The deck is read here and is not uploaded, and the original file is never changed.
 
 ## Two ways to rebrand
 
-Rebrand offers two modes, and you choose one before you open a deck.
+Lolly Rebrand offers two modes, and you choose one before you open a deck.
 
 | Mode | What it does | When to use it |
 |---|---|---|
@@ -17,9 +17,9 @@ The review below is for Renovate the layout; [Keep the design](#keep-the-design)
 
 ## Try it with the sample deck
 
-Open **Rebrand** from **Utilities**. The first screen asks for a deck, and says which design system it will go into.
+Open the **Rebrand** view from **Utilities**. The first screen asks for a deck, and says which design system it will go into.
 
-![The Rebrand screen before a deck is chosen: the mode, the drop area with Choose a deck, and the link to the sample deck.](/t/url-shot?url=%2F%23%2Frebrand&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-intake&waitSelector=.rb-drop&cropSelector=.rb-intake-inner&css=.float-cluster%7Bdisplay%3Anone%21important%7D)
+![The Lolly Rebrand screen before a deck is chosen: the mode, the drop area with Choose a deck, and the link to the sample deck.](/t/url-shot?url=%2F%23%2Frebrand&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-intake&waitSelector=.rb-drop&cropSelector=.rb-intake-inner&css=.float-cluster%7Bdisplay%3Anone%21important%7D)
 
 No deck to hand? Choose **No deck to hand? Try the sample deck**. It opens a made-up deck, a night market's review of its season, in its own old colours, fonts and lantern logo. The screenshots on this page all use it, so you can follow along step by step.
 
@@ -27,13 +27,13 @@ No deck to hand? Choose **No deck to hand? Try the sample deck**. It opens a mad
 
 There are three ways in:
 
-- Choose **Choose a deck** on the Rebrand screen and pick a `.pptx`, PDF or Photoshop (`.psd`) file. You can pick several at once, and they are read one after another. A Photoshop document is read as one slide: its type layers become text, its shapes stay shapes, and its other layers become pictures.
-- Drop a deck anywhere in Lolly and choose **Rebrand** from the choices that appear.
-- Open a `.lolly` file that holds a Rebrand project, and choose **Open in Rebrand**.
+- Choose **Choose a deck** on the Lolly Rebrand screen and pick a `.pptx`, PDF or Photoshop (`.psd`) file. You can pick several at once, and they are read one after another. A Photoshop document is read as one slide: its type layers become text, its shapes stay shapes, and its other layers become pictures.
+- Drop a deck anywhere in Lolly and choose the **Rebrand** view from the choices that appear.
+- Open a `.lolly` file that holds a Lolly Rebrand project, and choose **Open in Lolly Rebrand**.
 
 While the deck is read, a line says what is happening, for example "Reading slide 12 of 30", and the slides fill in underneath.
 
-If your design system has no slide master of its own, the Rebrand screen adds "with the neutral slide master" and the deck goes onto a plain one instead. [Design System Setup](/info/brand-studio.html) is where a design system gets its masters, logos, colours and fonts.
+If your design system has no slide master of its own, the Lolly Rebrand screen adds "with the neutral slide master" and the deck goes onto a plain one instead. [Lolly Design System Setup](/info/brand-studio.html) is where a design system gets its masters, logos, colours and fonts.
 
 ## The review screen
 
@@ -43,7 +43,7 @@ When the deck is read, the review screen opens.
 
 It has five parts:
 
-1. **The review list**, on the left: the things Rebrand wants you to look at, one card each.
+1. **The review list**, on the left: the things Lolly Rebrand wants you to look at, one card each.
 2. **The slide**, in the middle: the **Proposed** slide, large, with the **Original** small above it.
 3. **The decision panel**, on the right: what you can do with whatever is selected.
 4. **The filmstrip**, along the bottom: every slide in the deck, in order.
@@ -51,7 +51,7 @@ It has five parts:
 
 ### Suggestions and decisions
 
-The Proposed slide already shows every suggestion applied, so you can see where the deck is heading before you change anything. A suggestion is not a decision. Nothing leaves Rebrand until you have answered each card, or chosen **Accept all suggestions** to take them all as shown.
+The Proposed slide already shows every suggestion applied, so you can see where the deck is heading before you change anything. A suggestion is not a decision. Nothing leaves Lolly Rebrand until you have answered each card, or chosen **Accept all suggestions** to take them all as shown.
 
 Every change you make is answered with **Undo**, next to the counts in the footer and in the top bar.
 
@@ -61,9 +61,9 @@ Every change you make is answered with **Undo**, next to the counts in the foote
 
 A card stands for one kind of object across the deck, so you answer the old logo once rather than on every slide: "Replace marks on 8 slides". The list has three groups:
 
-- **Needs attention**: something Rebrand is unsure of, or something that needs your choice, such as what should replace the old logo.
-- **Suggestions**: what Rebrand proposes for everything else, such as removing the old page decoration.
-- **Layouts**: the layout Rebrand suggests for slides whose shape it recognised. **Match** applies them all at once.
+- **Needs attention**: something Lolly Rebrand is unsure of, or something that needs your choice, such as what should replace the old logo.
+- **Suggestions**: what Lolly Rebrand proposes for everything else, such as removing the old page decoration.
+- **Layouts**: the layout Lolly Rebrand suggests for slides whose shape it recognised. **Match** applies them all at once.
 
 Each card is in one of three states: **Needs attention**, **Not reviewed** or **Accepted**. The tabs at the top switch between **To review**, **All slides** and **Removed**, which lists everything taken out so you can keep it after all.
 
@@ -82,10 +82,10 @@ Click any object on the slide to decide on it. The caption under the slide gives
 The decision panel's heading says what is selected, such as "Mark on slide 2" or "Slide 3 of 9". Under **Decision**:
 
 - **Keep**, **Replace** or **Remove** the object.
-- **Replace** offers what to put in its place: **Use the design system mark**, **Choose a picture** or **Add a labelled stand-in**, and for a photo **Treat with Filter** or **Treat with Darkroom**. An endorsed or co-branded deck that must keep a second mark can answer **Keep** for that card; see [Brand architectures](/info/brand-architectures.html).
+- **Replace** offers what to put in its place: **Use the design system mark**, **Choose a picture** or **Add a labelled stand-in**, and for a photo **Treat with Lolly Filter** or **Treat with Lolly Darkroom**. An endorsed or co-branded deck that must keep a second mark can answer **Keep** for that card; see [Brand architectures](/info/brand-architectures.html).
 - **Apply to** chooses between every object of this kind in the deck and only this one. Objects you have changed by hand keep your change unless you tick the box that includes them.
 
-If Rebrand read some text and is unsure of it, a **Text** field shows what it read, so you can correct it.
+If Lolly Rebrand read some text and is unsure of it, a **Text** field shows what it read, so you can correct it.
 
 Further down the panel:
 
@@ -100,11 +100,11 @@ Further down the panel:
 
 Choose **Change layout** in the decision panel, or the layout name on a slide in the filmstrip. The chooser shows:
 
-- **This slide**: the current layout, the one Rebrand suggests, others that also fit, **Original arrangement** (everything stays where it was, in the design system's colours and typeface) and **Keep as a picture** (the slide stays exactly as it was, as one picture).
+- **This slide**: the current layout, the one Lolly Rebrand suggests, others that also fit, **Original arrangement** (everything stays where it was, in the design system's colours and typeface) and **Keep as a picture** (the slide stays exactly as it was, as one picture).
 - Every other layout, grouped as **Titles**, **Text**, **Boxes**, **Pictures**, **Data** and **Steps and lists**.
 - **Search layouts**: type what you want, such as "4 boxes" or "two content".
 
-Point at a layout to preview it on the slide; click to use it. A switch counts the other slides of the same shape, for example **Also the 2 slides like this one**, and applies your choice to them too. **Match** proposes a layout for every slide Rebrand recognised in one step, and never changes a layout you chose yourself.
+Point at a layout to preview it on the slide; click to use it. A switch counts the other slides of the same shape, for example **Also the 2 slides like this one**, and applies your choice to them too. **Match** proposes a layout for every slide Lolly Rebrand recognised in one step, and never changes a layout you chose yourself.
 
 A slide with more than its new layout holds continues onto another slide. The caption then reads "Part 1 of 2", and the report lists what moved.
 
@@ -134,35 +134,36 @@ Press **?** to see every keyboard shortcut. The ones you will use most:
 | Ctrl or Cmd and Z | Undo |
 | Esc | Back to one slide |
 
-## Finish in Design
+<a id="finish-in-design"></a>
+## Finish in Lolly Design
 
-![The Rebrand report for the sample deck: what was removed, what was placed, and the counts.](/t/url-shot?url=%2F%23%2Frebrand%3Fsample%3Dharbourside-night-market&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-report&try=1&waitSelector=.rb%5Bdata-drawn%5D&drive=click%3A.rb-foot-report%3Bwait%3A1000&cropSelector=.rb-report-sheet&css=.float-cluster%7Bdisplay%3Anone%21important%7D)
+![The Lolly Rebrand report for the sample deck: what was removed, what was placed, and the counts.](/t/url-shot?url=%2F%23%2Frebrand%3Fsample%3Dharbourside-night-market&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-report&try=1&waitSelector=.rb%5Bdata-drawn%5D&drive=click%3A.rb-foot-report%3Bwait%3A1000&cropSelector=.rb-report-sheet&css=.float-cluster%7Bdisplay%3Anone%21important%7D)
 
-When the review list is empty, **Open in Design** turns into the main button. If cards are still waiting, Rebrand asks whether to accept them as proposed first. Choosing **Accept all suggestions** beforehand does the same in one step, and **Undo** takes it back.
+When the review list is empty, **Open in Design** turns into the main button. If cards are still waiting, Lolly Rebrand asks whether to accept them as proposed first. Choosing **Accept all suggestions** beforehand does the same in one step, and **Undo** takes it back.
 
-**Open in Design** opens the result as a new Design document, one artboard per slide, where you can edit anything further and export it as PowerPoint, PDF or pictures. Opening it again later makes a new revision; the first one is never overwritten.
+**Open in Design** opens the result as a new Lolly Design document, one artboard per slide, where you can edit anything further and export it as PowerPoint, PDF or pictures. Opening it again later makes a new revision; the first one is never overwritten.
 
-![The sample deck opened in Design, each slide an artboard on the design system's slide master.](/t/url-shot?url=%2F%23%2Frebrand%3Fsample%3Dharbourside-night-market&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&chrome=1&rasterDpi=96&filename=rebrand-in-design&waitSelector=.rb%5Bdata-drawn%5D&drive=click%3A.rb-foot-open%3Bwait%3A900%3Bclick%3A.modal%20%5Bdata-act%3D%22ok%22%5D%3Bwait%3A9000%3Bclick%3Atext%3DLanterns%20on%20the%20pier%3Bwait%3A600%3Bpress%3A%3D%3Bwait%3A300%3Bpress%3A%3D%3Bwait%3A300%3Bpress%3A%3D%3Bwait%3A300%3Bpress%3A%3D%3Bwait%3A600%3Bpress%3AEscape%3Bwait%3A1500&cropSelector=.tool-stage&css=.float-cluster%7Bdisplay%3Anone%21important%7D.fc-ruler%2C.fc-ruler-corner%7Bdisplay%3Anone%21important%7D%5Bdata-box-id%5E%3D%22r.ppt-slides-slide1.xml%22%5D%2C%5Bdata-box-id%5E%3D%22r.ppt-slides-slide2.xml%22%5D%2C%5Bdata-box-id%5E%3D%22r.ppt-slides-slide8.xml%22%5D%2C%5Bdata-box-id%5E%3D%22r.ppt-slides-slide9.xml%22%5D%7Bdisplay%3Anone%21important%7D)
+![The sample deck opened in Lolly Design, each slide an artboard on the design system's slide master.](/t/url-shot?url=%2F%23%2Frebrand%3Fsample%3Dharbourside-night-market&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&chrome=1&rasterDpi=96&filename=rebrand-in-design&waitSelector=.rb%5Bdata-drawn%5D&drive=click%3A.rb-foot-open%3Bwait%3A900%3Bclick%3A.modal%20%5Bdata-act%3D%22ok%22%5D%3Bwait%3A9000%3Bclick%3Atext%3DLanterns%20on%20the%20pier%3Bwait%3A600%3Bpress%3A%3D%3Bwait%3A300%3Bpress%3A%3D%3Bwait%3A300%3Bpress%3A%3D%3Bwait%3A300%3Bpress%3A%3D%3Bwait%3A600%3Bpress%3AEscape%3Bwait%3A1500&cropSelector=.tool-stage&css=.float-cluster%7Bdisplay%3Anone%21important%7D.fc-ruler%2C.fc-ruler-corner%7Bdisplay%3Anone%21important%7D%5Bdata-box-id%5E%3D%22r.ppt-slides-slide1.xml%22%5D%2C%5Bdata-box-id%5E%3D%22r.ppt-slides-slide2.xml%22%5D%2C%5Bdata-box-id%5E%3D%22r.ppt-slides-slide8.xml%22%5D%2C%5Bdata-box-id%5E%3D%22r.ppt-slides-slide9.xml%22%5D%7Bdisplay%3Anone%21important%7D)
 
-The **Report**, in the footer, accounts for every object in the original deck: the objects removed, anything not placed or not drawn, the layouts used and the counts for the rest. Anything Rebrand could not place on a slide is listed under **Not placed**, and waits on its own artboard in Design so nothing is lost.
+The **Report**, in the footer, accounts for every object in the original deck: the objects removed, anything not placed or not drawn, the layouts used and the counts for the rest. Anything Lolly Rebrand could not place on a slide is listed under **Not placed**, and waits on its own artboard in Lolly Design so nothing is lost.
 
 ## Keep the design
 
 ![Keep the design with the sample deck: the result large, the original inset, and Download .pptx beside it.](/t/url-shot?url=%2F%23%2Frebrand%3Fmode%3Dkeep%26sample%3Dharbourside-night-market&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-keep&try=1&waitSelector=.rb-keep-layout%5Bdata-status%3D%22ready%22%5D&css=.float-cluster%7Bdisplay%3Anone%21important%7D)
 
-Keep the design replaces the former **Theme swap** tool. Choose **Keep the design** on the Rebrand screen, or switch to it in the top bar. Rebrand swaps the theme, colours and fonts and says what it changed, for example "Changed 5 theme colours, 4 slide colours and 2 fonts". Compare the result with **Original**, **Result**, **Both** or **Wipe**, then choose **Download .pptx**, or **Open the result in Design**.
+Keep the design replaces the former **Theme swap** tool. Choose **Keep the design** on the Lolly Rebrand screen, or switch to it in the top bar. Lolly Rebrand swaps the theme, colours and fonts and says what it changed, for example "Changed 5 theme colours, 4 slide colours and 2 fonts". Compare the result with **Original**, **Result**, **Both** or **Wipe**, then choose **Download .pptx**, or **Open the result in Lolly Design**.
 
 Keep the design works on PowerPoint files. A PDF or a Photoshop document cannot take this path, so open it with Renovate the layout.
 
 ## Decks made of pictures
 
-Some decks are pictures of slides rather than slides: a scanned PDF, or a PowerPoint file with one picture per slide. Rebrand tells you ("All 15 slides are pictures") and offers **Read the text**, which recognises the text on each picture and rebuilds the slide from it, or **Keep as pictures**.
+Some decks are pictures of slides rather than slides: a scanned PDF, or a PowerPoint file with one picture per slide. Lolly Rebrand tells you ("All 15 slides are pictures") and offers **Read the text**, which recognises the text on each picture and rebuilds the slide from it, or **Keep as pictures**.
 
-Reading the text uses a text recognition model on your device. The first time, Rebrand offers to download it and says how large it is; the download sends nothing from your deck. The review list then holds a card such as "Rebuilt 15 slides from pictures", marked "Check each before Design", so you can check each rebuilt slide before it goes to Design.
+Reading the text uses a text recognition model on your device. The first time, Lolly Rebrand offers to download it and says how large it is; the download sends nothing from your deck. The review list then holds a card such as "Rebuilt 15 slides from pictures", marked "Check each before Lolly Design", so you can check each rebuilt slide before it goes to Lolly Design.
 
 ## Your projects
 
-Every deck you open becomes a project, saved on this device. **Recent projects** on the Rebrand screen reopens one where you left it, with every decision you made. To move a project to another device, choose **Download .lolly** from the project menu (the three dots in the top bar) and open that file there.
+Every deck you open becomes a project, saved on this device. **Recent projects** on the Lolly Rebrand screen reopens one where you left it, with every decision you made. To move a project to another device, choose **Download .lolly** from the project menu (the three dots in the top bar) and open that file there.
 
 ## From the command line
 
@@ -171,16 +172,16 @@ The same stages run from the command line and from AI agents: `lolly rebrand pla
 ::: details Words you will see
 | Word | What it means |
 |---|---|
-| Suggestion | What Rebrand would do with an object. Shown on the Proposed slide, but not final until you accept it. |
+| Suggestion | What Lolly Rebrand would do with an object. Shown on the Proposed slide, but not final until you accept it. |
 | Card | One entry in the review list. A card can stand for the same kind of object on many slides. |
-| Needs attention | Rebrand is unsure, or needs your choice before it can go on. |
+| Needs attention | Lolly Rebrand is unsure, or needs your choice before it can go on. |
 | Slide master | The set of layouts, colours and furniture a design system gives its slides. |
 | Original arrangement | The slide's objects stay where they were, in the design system's colours and typeface. |
 | Keep as a picture | The slide stays exactly as it was, as one picture. |
-| Left out | A slide that will not go to Design. It is not deleted, and Include brings it back. |
-| Not placed | Content that fits no layout. It goes to its own artboard in Design. |
+| Left out | A slide that will not go to Lolly Design. It is not deleted, and Include brings it back. |
+| Not placed | Content that fits no layout. It goes to its own artboard in Lolly Design. |
 :::
 
 ## Good to know
 
-Rebrand's suggestions, layout matches and recognised text are its best reading of the deck, not a guarantee. The review is there so you can check them, the report shows every outcome, and the original file is never changed. A deck from Keynote or Google Slides works once it is exported as PowerPoint. In a Photoshop document, layer effects and adjustment layers are not carried, and the report lists each one.
+Lolly Rebrand's suggestions, layout matches and recognised text are its best reading of the deck, not a guarantee. The review is there so you can check them, the report shows every outcome, and the original file is never changed. A deck from Keynote or Google Slides works once it is exported as PowerPoint. In a Photoshop document, layer effects and adjustment layers are not carried, and the report lists each one.

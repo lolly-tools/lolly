@@ -26,9 +26,9 @@ The [source directory](/info/manage/provider-guides.html#dam-onboarding-and-offb
 | Decision | Responsibility |
 |---|---|
 | Source record, current files and upstream approval | The connected DAM, within the selected connector's supported API |
-| Which part of that library reaches Lolly | Work's provider configuration, exposure rules and mapped availability |
-| What a person can change in a design | The Lolly tool and design system, plus Work input policies for governed operations |
-| Who can review a submission or delivery | Work's configured approval chain and grants |
+| Which part of that library reaches Lolly | Lolly Work's provider configuration, exposure rules and mapped availability |
+| What a person can change in a design | The Lolly tool and design system, plus Lolly Work input policies for governed operations |
+| Who can review a submission or delivery | Lolly Work's configured approval chain and grants |
 | Whether a particular use is licensed | The rights holder's permission and the organisation's rights process; source approval alone does not answer this |
 | What leaves through an organisation destination | The explicit delivery action, its permission checks and any configured final-byte review |
 
@@ -44,19 +44,20 @@ The flow is: **source DAM → governed catalog → Lolly tool → finished outpu
 
 [Create on-brand content from approved DAM assets](/info/dam-production.html) turns those checks into a campaign workflow. [SUSE's Brandfolder account](/info/suse-brandfolder.html) explains the adoption and change-management experience behind this approach.
 
-## Does Work preserve each person's DAM permissions?
+<a id="does-work-preserve-each-person-s-dam-permissions"></a>
+## Does Lolly Work preserve each person's DAM permissions?
 
-The current providers generally use an administrator-configured shared credential. They do not sign every member into the source under that member's upstream identity. Work exposure rules must therefore restrict the credential's wider view to the intended audience. A successful connection is not evidence that the access configuration is correct.
+The current providers generally use an administrator-configured shared credential. They do not sign every member into the source under that member's upstream identity. Lolly Work exposure rules must therefore restrict the credential's wider view to the intended audience. A successful connection is not evidence that the access configuration is correct.
 
 ## What happens when an asset expires?
 
 Supported upstream availability windows combine with local lifecycle rules, with the more restrictive constraint taking effect. Approval filtering depends on the provider's actual signal and mapping. Some sources have no native approval or expiry field.
 
-Listings can be cached, and upstream changes depend on refresh and file-access behaviour. Work cannot erase a copy someone already downloaded. Agree the acceptable refresh delay and test withdrawal for the workflow you intend to use. [Catalog and content](/info/work-catalog.html) describes these boundaries.
+Listings can be cached, and upstream changes depend on refresh and file-access behaviour. Lolly Work cannot erase a copy someone already downloaded. Agree the acceptable refresh delay and test withdrawal for the workflow you intend to use. [Catalog and content](/info/work-catalog.html) describes these boundaries.
 
 ## Does an approved source make an approved export?
 
-No. Source approval, permission for the proposed use, creative review and approval of finished bytes are separate decisions. Work supports review of exact owned source files and optional approval of staged organisation deliveries. Ordinary exports are not generally bound to reviewed final bytes. [Approvals](/info/work-approvals.html) explains the supported paths.
+No. Source approval, permission for the proposed use, creative review and approval of finished bytes are separate decisions. Lolly Work supports review of exact owned source files and optional approval of staged organisation deliveries. Ordinary exports are not generally bound to reviewed final bytes. [Approvals](/info/work-approvals.html) explains the supported paths.
 
 ## Can finished files go back to the DAM?
 

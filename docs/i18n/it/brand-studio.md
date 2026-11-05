@@ -4,7 +4,7 @@ Il tuo logo, i tuoi colori e i tuoi caratteri appartengono a un solo posto, cos√
 
 Parti da quello che hai. Trascina un logo e Lolly ne legge i colori. Scegli un carattere, o trascina il file del font di cui la tua azienda ha la licenza. Ogni modifica si vede subito in tutta l'app. Il tuo logo, i font e i token restano su questo dispositivo. Scegliere un Google Font √® l'unico passaggio che si rivolge all'esterno: Lolly lo chiede prima, poi scarica la famiglia una volta.
 
-Quando ti convince, dai un nome al design system e premi **Export**. Ottieni un unico file `.lolly` da conservare, aprire su un altro dispositivo o consegnare a un collega. [Settings](/info/dashboard.html#design-system) mostra il sistema attivo in sola lettura, e la sua copertina rimanda qui per la modifica.
+Quando ti convince, dai un nome al design system e premi **Export**. Ottieni un unico file `.lolly` da conservare, aprire su un altro dispositivo o consegnare a un collega. [Lolly Settings](/info/dashboard.html#design-system) mostra il sistema attivo in sola lettura, e la sua copertina rimanda qui per la modifica.
 
 ## Fallo tuo in cinque minuti
 

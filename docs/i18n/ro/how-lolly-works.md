@@ -35,7 +35,7 @@ Fiecare traseu rulează același motor pe același instrument, deci fișierul f�
 ![Parametrii URL și argumentele din linia de comandă devin același model de intrare, rulat printr-un singur runtime și punte de export comune](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **În aplicație, pe rând.** Deschide un instrument, completează câmpurile și apasă **Export**. [Fă primul tău fișier](/info/make-something.html) te ghidează prin unul.
-- <!--i:layers--> **În aplicație, mai multe deodată.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) ia un tabel lipit sau importat și randează un fișier terminat pe rând.
+- <!--i:layers--> **În aplicație, mai multe deodată.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) ia un tabel lipit sau importat și randează un fișier terminat pe rând.
 - <!--i:cpu--> **Dintr-un script sau de un agent AI.** [CLI](/info/cli.html) rulează un instrument fără interfață, iar [serverul MCP](/info/mcp.html) lasă un agent să descopere și să ruleze instrumente. Și un link către un instrument poartă intrările lui, deci un link este o cerere completă.
 - <!--i:server--> **Prin serverul organizației tale.** [Lolly Work](/info/organisation.html) randează pe server sub autentificarea și politica de instrumente ale organizației tale, păstrează joburi pe care le poate relua și ține rezultatul pentru descărcare sau livrare aprobată.
 

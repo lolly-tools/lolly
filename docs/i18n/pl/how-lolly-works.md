@@ -35,7 +35,7 @@ Każda droga uruchamia ten sam silnik na tym samym narzędziu, więc plik zrobio
 ![Parametry URL i argumenty wiersza poleceń stają się tym samym modelem danych wejściowych, przepuszczonym przez jedno wspólne środowisko wykonawcze i most eksportu](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **W aplikacji, po jednym.** Otwórz narzędzie, wypełnij pola i naciśnij **Export**. [Make your first file](/info/make-something.html) prowadzi Cię przez jedno.
-- <!--i:layers--> **W aplikacji, wiele naraz.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) przyjmuje wklejoną lub zaimportowaną tabelę i renderuje jeden gotowy plik na wiersz.
+- <!--i:layers--> **W aplikacji, wiele naraz.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) przyjmuje wklejoną lub zaimportowaną tabelę i renderuje jeden gotowy plik na wiersz.
 - <!--i:cpu--> **Ze skryptu lub agenta AI.** [CLI](/info/cli.html) uruchamia narzędzie bez interfejsu, a [serwer MCP](/info/mcp.html) pozwala agentowi odkrywać i uruchamiać narzędzia. Link do narzędzia niesie też jego dane wejściowe, więc link to kompletne żądanie.
 - <!--i:server--> **Przez serwer Twojej organizacji.** [Lolly Work](/info/organisation.html) renderuje na serwerze według logowania i polityki narzędzi Twojej organizacji, prowadzi zadania, które może wznowić, i przechowuje wynik do pobrania lub zatwierdzonego dostarczenia.
 

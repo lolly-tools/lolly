@@ -20,7 +20,7 @@
 
 どのツールがどう見えるかは、デザインシステムが決めます。
 
-- **[Design System Setup](/info/brand-studio.html)** - ロゴ、色、書体などを`#/start`で一度だけ設定します。
+- **[Lolly Design System Setup](/info/brand-studio.html)** - ロゴ、色、書体などを`#/start`で一度だけ設定します。
 - **[Lolly Demoを使う](/info/lolly-demo-in-use.html)** - 実際の作業でのカラーウェイと、ご自身のデザインシステムへの切り替え。
 - **[ブランドアーキテクチャ](/info/brand-architectures.html)** - 1つの組織に対する、複数のデザインシステム、または複数のカラーウェイを持つ1つのデザインシステム。
 - **[パートナーとの協業](/info/partners.html)** - 自分のブランドをパートナーと共有し、渡されたブランドで作業し、スポンサーウォールを作ります。
@@ -32,7 +32,7 @@
 
 - **[作品を探して復元する](/info/find-your-work.html)** - 保存した、ダウンロードした、未保存のファイルがどこへ行ったか。
 - **[検索](/info/search.html)**と**[Ask Lolly](/info/ask.html)** - ツール、保存した作品、アセット、設定を探す1つの入力欄と、これらのガイドからの回答。
-- **[Settings](/info/dashboard.html)** - このデバイスにできること、読み取り専用のデザインシステム、ストレージ。
+- **[Lolly Settings](/info/dashboard.html)** - このデバイスにできること、読み取り専用のデザインシステム、ストレージ。
 - **[お気に入り](/info/favourites.html)**と**[プロフィール](/info/profile.html)** - スター付きのツール、ツールが自動入力する情報、アクセシビリティのスイッチ。
 - **[デバイスを同期する](/info/sync.html)** - 選んだストレージを通して、パソコンとスマートフォンで同じ作品を使います。
 

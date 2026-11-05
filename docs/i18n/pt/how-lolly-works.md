@@ -35,7 +35,7 @@ Todo caminho roda o mesmo motor na mesma ferramenta, então o arquivo que um scr
 ![Parâmetros de URL e argumentos de linha de comando viram o mesmo modelo de entradas, executado por um único runtime e uma única ponte de exportação](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **No app, um de cada vez.** Abra uma ferramenta, preencha os campos e pressione **Export**. [Make your first file](/info/make-something.html) guia você por um.
-- <!--i:layers--> **No app, muitos de uma vez.** O [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) recebe uma tabela colada ou importada e renderiza um arquivo pronto por linha.
+- <!--i:layers--> **No app, muitos de uma vez.** O [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) recebe uma tabela colada ou importada e renderiza um arquivo pronto por linha.
 - <!--i:cpu--> **Por um script ou agente de IA.** A [CLI](/info/cli.html) executa uma ferramenta sem interface, e o [servidor MCP](/info/mcp.html) permite que um agente descubra e execute ferramentas. Um link para uma ferramenta também carrega as entradas dela, então um link é uma solicitação completa.
 - <!--i:server--> **Pelo servidor da sua organização.** O [Lolly Work](/info/organisation.html) renderiza no servidor sob o login e a política de ferramentas da sua organização, mantém trabalhos que ele pode retomar e guarda a saída para download ou entrega aprovada.
 

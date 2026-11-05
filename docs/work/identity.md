@@ -7,15 +7,15 @@ how to end their access.
 ## How a sign-in works
 
 Every sign-in answers two questions. Your identity provider answers the first: who is this?
-Work answers the second: do they belong here? Work checks its admission rules on every
-sign-in, before it writes an account. When both answers are yes, Work finds the person's
+Lolly Work answers the second: do they belong here? Lolly Work checks its admission rules on every
+sign-in, before it writes an account. When both answers are yes, Lolly Work finds the person's
 account, or creates one, and sets a session cookie.
 
 ::: figure work-identity-two-questions
-The provider proves who someone is; Work decides whether they belong, then links the account and starts a session.
+The provider proves who someone is; Lolly Work decides whether they belong, then links the account and starts a session.
 :::
 
-A session is a signed token. Work keeps no table of live sessions, only a small store of
+A session is a signed token. Lolly Work keeps no table of live sessions, only a small store of
 revoked ones (sign-outs and back-channel logouts).
 
 | Principal | Cookie | Comes from | Lasts |
@@ -92,7 +92,7 @@ and its groups join, and the sign-in joins the existing person who holds the sam
 email ([one person, several sign-ins](#one-person-several-sign-ins)), unless that person's
 only verified sign-ins are pinned to a directory. A password brings no provider groups.
 
-Work stores a password sign-in as unverified, because an admin typed the address and no
+Lolly Work stores a password sign-in as unverified, because an admin typed the address and no
 mailbox proved the address. A later sign-in through another provider therefore never joins an account
 by a password's address. A person who wants both adds the other sign-in from their profile
 while signed in with the password.
@@ -189,7 +189,7 @@ is written. A refused person gets a 403 page and leaves only an `auth.denied` au
 
 The checks run in this order, and the first one that applies decides:
 
-1. **A disabled account is refused.** Work reads every account with the same email, under
+1. **A disabled account is refused.** Lolly Work reads every account with the same email, under
    every provider, so a person disabled under one provider cannot sign in through another,
    or as a fresh account the lists or an invitation would admit. Re-enable each of their
    accounts to let them back in.
@@ -393,7 +393,7 @@ claim, never an explicit negative or malformed one.
 ```
 
 **Adding a sign-in by hand.** A signed-in person opens
-`GET /api/auth/link?idp=<id>&returnTo=<path>`. Work runs that provider with the account
+`GET /api/auth/link?idp=<id>&returnTo=<path>`. Lolly Work runs that provider with the account
 picker, because the browser is often still signed in to the account already linked, and
 links the identity it returns to the current account, whatever its email. The session that
 started the link must be the one that finishes it, and a link never starts a new session. An

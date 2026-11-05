@@ -12,13 +12,13 @@ The web address of its Lolly, or a `.lolly` setup file your organisation made. l
 
 Open the address your organisation gave you. If the page asks you to sign in, press **Sign in** and follow the sign-in page it opens. After that it works like any Lolly, with your organisation's tools and design systems.
 
-You can also start from lolly.tools: open **Settings**, and on the **Lolly instance** card press **Open a workspace**, enter the address and press **Open this instance**. The browser goes to your organisation's own address, because a browser cannot load another Lolly's tools from lolly.tools.
+You can also start from lolly.tools: open the **Settings** view, and on the **Lolly instance** card press **Open a workspace**, enter the address and press **Open this instance**. The browser goes to your organisation's own address, because a browser cannot load another Lolly's tools from lolly.tools.
 
 ![The Lolly instance card in Settings, where you open your organisation's workspace or change where the app gets its tools](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## In the desktop or mobile app
 
-The app starts with its bundled tools. To connect, open **Settings** and press **Change** on the **Lolly instance** card. The sheet asks **Where should Lolly get its tools?**
+The app starts with its bundled tools. To connect, open the **Settings** view and press **Change** on the **Lolly instance** card. The sheet asks **Where should Lolly get its tools?**
 
 1. Choose **Connect to a Lolly instance**.
 2. Enter your organisation's web address and press **Check & connect**.

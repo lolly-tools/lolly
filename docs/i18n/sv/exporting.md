@@ -132,9 +132,9 @@ Lolly har tre sätt att arbeta i volym, vart och ett för ett annat jobb:
 ## En tabell blir ett dokument
 Ett verktyg med en tabellindata, som **Battlecards**, gör varje rad till en sida. Klistra in en tabell från ditt kalkylblad och få en PDF. Rätta rader i kalkylbladet och klistra in igen.
 ## En CSV blir en fil per rad
-**Batch** (`#/batch`) tar en CSV och renderar en export för varje rad: namnbrickor eller certifikat, en fil var, levererade i en ZIP. Se [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) tar en CSV och renderar en export för varje rad: namnbrickor eller certifikat, en fil var, levererade i en ZIP. Se [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Flera designer får en redigering
-**Multi-edit** öppnar flera sparade sessioner sida vid sida för samma justering över olika designer. Se [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** öppnar flera sparade sessioner sida vid sida för samma justering över olika designer. Se [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Från **Projects** exporterar **Render folder** varje sparad session i en mapp och dess undermappar som en nästlad ZIP, och **Render selection** gör detsamma för vilket flerval som helst; en sparad session renderas till sin egen fil. En sparad session kan också delas igen som en verktygslänk från Projects, som öppnar den igen med samma inställningar.
@@ -170,7 +170,7 @@ De flesta verktyg som exporterar SVG exporterar också en **Penpot-fil** (`.penp
 | Hela designen | En återanvändbar komponent i panelen Assets |
 | En komplex illustration eller levande yta | Inbäddad för sig som en bild, med det redigerbara innehållet runt den orört |
 
-Från Design blir varje ram en Penpot-tavla. Designsystemets färger och typografier hamnar i panelen Assets och dess fullständiga tokenuppsättning i panelen Tokens. Penpot behåller sin egen kopia därifrån: en token som redigerats i Penpot kommer tillbaka genom importen i [Design System Setup](/info/brand-studio.html).
+Från Design blir varje ram en Penpot-tavla. Designsystemets färger och typografier hamnar i panelen Assets och dess fullständiga tokenuppsättning i panelen Tokens. Penpot behåller sin egen kopia därifrån: en token som redigerats i Penpot kommer tillbaka genom importen i [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Exportpanelen med Penpot valt: .penpot-filen, och Send to Penpot bredvid nedladdningen](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

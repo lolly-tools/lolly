@@ -2,9 +2,9 @@
 
 En nettside kan ikke lese pikslene til et annet nettsted, så Lolly-nettappen trenger hjelp for å ta skjermbilde av en side. I en Chromium-basert nettleser (Chrome, Edge, Brave, Arc eller Opera, fra Chrome 111) gir den gratis utvidelsen **Lolly URL Screenshot** den hjelpen, med samme opptak skrivebordsappen bruker. Med den installert:
 
-- **[URL Screenshot](/t/url-shot)** lagrer siden du komponerte som en fil;
+- **[Lolly URL Screenshot](/t/url-shot)** lagrer siden du komponerte som en fil;
 - en nettadresse limt inn i en bildeplass kan bli et skjermbilde av den siden, med **Screenshot this page**;
-- kilden **Website** i [Design System Setup](/info/brand-studio.html) kan lese én side for å starte et designsystem.
+- kilden **Website** i [Lolly Design System Setup](/info/brand-studio.html) kan lese én side for å starte et designsystem.
 
 Du godkjenner hver forespørsel, og skrivebordsappen gjør de samme jobbene uten utvidelsen.
 

@@ -1,6 +1,6 @@
-# Text in Design
+# Text in Lolly Design
 
-Set a headline, flow a long article across frames and pages, or curve a line of type around a badge, all directly on Design's canvas. The text bar holds font, size, weight, colour, emoji and paragraph controls, and the Inspector offers the same settings. A scope caption tells you whether a change affects the selected text, its paragraphs or whole stories.
+Set a headline, flow a long article across frames and pages, or curve a line of type around a badge, all directly on Lolly Design's canvas. The text bar holds font, size, weight, colour, emoji and paragraph controls, and the Inspector offers the same settings. A scope caption tells you whether a change affects the selected text, its paragraphs or whole stories.
 
 Emoji come from an emoji set (Twemoji, OpenMoji, Fluent, Noto or Blobmoji, with the default chosen under Settings → Preferences → Emoji) rather than your computer's font, so an export draws the same picture on every device, and each export credits the glyphs it uses ([Creative rights and credits](/info/creative-rights.html)).
 
@@ -10,7 +10,7 @@ Press **T**, then click for text that grows with its content, or drag to make a 
 
 Ordinary typing, paste and the emoji picker preserve your literal text. Formatting does not replace spaces, change quotes or insert hyphens into the source. **Typography cleanup** previews optional changes before applying them. **Focus text** quietens unrelated artwork while you edit.
 
-Number fields work as everywhere in Design; see [Layout in Design](/info/design-layout.html#precise-numbers-and-the-view).
+Number fields work as everywhere in Lolly Design; see [Layout in Lolly Design](/info/design-layout.html#precise-numbers-and-the-view).
 
 Use **Paragraph > Composition** to choose Standard, Best paragraph or Balanced heading. Best paragraph considers line endings across the paragraph. Balanced heading prefers similar line lengths. **Avoid short last line** discourages a lone final word. Explicit line breaks and unbreakable text still take priority. If the constraints cannot fit, the text remains available and the frame shows overflow.
 

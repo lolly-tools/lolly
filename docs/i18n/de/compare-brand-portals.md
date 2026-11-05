@@ -6,7 +6,7 @@ Wenn Ihre Organisation ihre freigegebenen Assets in Bynder, Frontify, Marq oder 
 
 ## Was ein etabliertes Portal besser kann
 
-Etablierte Portale bieten verwaltetes Hosting, Support und umfangreiche Workflows der Asset-Verwaltung. [Das Enterprise-DAM von Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombiniert zum Beispiel Asset-Suche, Zugriffskontrollen, Freigabe-Workflows und Verteilung. Der Lolly-Stack ist jünger, und seine Freigabeketten sind sequenziell statt beliebig verzweigende Workflows. [Work-Status und Roadmap](/info/work-status.html) hält seine Bereitstellungsgrenzen fest.
+Etablierte Portale bieten verwaltetes Hosting, Support und umfangreiche Workflows der Asset-Verwaltung. [Das Enterprise-DAM von Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombiniert zum Beispiel Asset-Suche, Zugriffskontrollen, Freigabe-Workflows und Verteilung. Der Lolly-Stack ist jünger, und seine Freigabeketten sind sequenziell statt beliebig verzweigende Workflows. [Lolly Work-Status und Roadmap](/info/work-status.html) hält seine Bereitstellungsgrenzen fest.
 
 ## Wo sie sich überschneiden
 

@@ -1,6 +1,6 @@
 # Live pages that take the clicker
 
-You want to show a live product demo halfway through your talk, scroll it to the pricing table with your clicker, then carry on with the deck. **Make interactive** gives a **Web page** box on a Design slide a focus step. At that step Lolly highlights the page and keeps the keyboard in the deck: Up and Down move the page, and Next continues the presentation.
+You want to show a live product demo halfway through your talk, scroll it to the pricing table with your clicker, then carry on with the deck. **Make interactive** gives a **Web page** box on a Lolly Design slide a focus step. At that step Lolly highlights the page and keeps the keyboard in the deck: Up and Down move the page, and Next continues the presentation.
 
 ::: figure interactive-pages-focus-step
 Click steps on one slide: the page appears, then takes focus; Up and Down go to the page, and Next moves on.
@@ -58,7 +58,7 @@ Up or Down stops the automation for that visit so the presenter can take over. B
 | Page | What Lolly can do |
 |---|---|
 | A same-origin Lolly page | Scroll its document or main scrolling panel, read depth and send synthetic arrow keys. |
-| A Sandbox demo | Send keys and scrolling through its isolated preview channel. |
+| A Lolly Sandbox demo | Send keys and scrolling through its isolated preview channel. |
 | A page with the receiver | Send keys, scrolling and slide events; read the depth it reports. |
 | A reveal.js or Slides.com deck | Step through its fragments and slides; show its slide number in the speaker view. |
 | Another site | Jump to named places or pan a taller page, after the author chooses a method. |

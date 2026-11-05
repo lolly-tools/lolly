@@ -4,7 +4,7 @@ Logo, warna dan muka taip anda berada di satu tempat, supaya setiap alat, halama
 
 Mulakan dengan apa sahaja yang anda ada. Letakkan logo dan Lolly membaca warnanya. Pilih muka taip, atau letakkan fail fon yang dilesenkan syarikat anda. Setiap perubahan ditunjukkan merentasi keseluruhan apl serta-merta. Logo, fon dan token anda kekal pada peranti ini. Memilih Google Font ialah satu-satunya langkah yang menjangkau keluar: Lolly bertanya dahulu, kemudian mengambil keluarga itu sekali.
 
-Apabila ia kelihatan betul, namakan sistem reka bentuk dan tekan **Export**. Anda mendapat satu fail `.lolly` untuk disimpan, dibuka pada peranti lain atau diserahkan kepada rakan sekerja. [Settings](/info/dashboard.html#design-system) menunjukkan sistem aktif baca sahaja, dan kulitnya memaut kembali ke sini untuk penyuntingan.
+Apabila ia kelihatan betul, namakan sistem reka bentuk dan tekan **Export**. Anda mendapat satu fail `.lolly` untuk disimpan, dibuka pada peranti lain atau diserahkan kepada rakan sekerja. [Lolly Settings](/info/dashboard.html#design-system) menunjukkan sistem aktif baca sahaja, dan kulitnya memaut kembali ke sini untuk penyuntingan.
 
 ## Jadikan milik anda dalam lima minit
 

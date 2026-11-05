@@ -2,9 +2,9 @@
 
 O pagină web nu poate citi pixelii altui site, deci aplicația web Lolly are nevoie de ajutor ca să facă o captură a unei pagini. Într-un browser bazat pe Chromium (Chrome, Edge, Brave, Arc sau Opera, de la Chrome 111), extensia gratuită **Lolly URL Screenshot** oferă acel ajutor, folosind aceeași captură pe care o folosește aplicația desktop. Cu ea instalată:
 
-- **[URL Screenshot](/t/url-shot)** salvează pagina compusă de tine ca fișier;
+- **[Lolly URL Screenshot](/t/url-shot)** salvează pagina compusă de tine ca fișier;
 - o adresă web lipită într-un slot de imagine poate deveni o captură a acelei pagini, cu **Screenshot this page**;
-- sursa **Website** din [Design System Setup](/info/brand-studio.html) poate citi o pagină ca să pornească un sistem de design.
+- sursa **Website** din [Lolly Design System Setup](/info/brand-studio.html) poate citi o pagină ca să pornească un sistem de design.
 
 Aprobi fiecare cerere, iar aplicația desktop face aceleași sarcini fără extensie.
 

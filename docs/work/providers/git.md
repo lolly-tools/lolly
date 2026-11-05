@@ -50,7 +50,6 @@ lw providers credential acme-git     # prompts; skip this for a public repo
 | `authHeader` | The header name for a token that is not sent as `Bearer`. |
 
 ## Verify
-
 ```bash
 lw providers preview --kind git --options '{"rawBase":"https://raw.githubusercontent.com/acme/brand/main"}'
 lw providers health acme-git
@@ -67,6 +66,6 @@ file.
 
 ## Use as an offboarding destination
 
-A self-hosted forge such as Gitea can hold a small, curated replacement catalog. Export and review permitted files, commit them with the manifest described above, then connect the raw-content endpoint. Work reads the repository and does not push the migration into Git. Plan file sizes, metadata, access and replacement references separately.
+A self-hosted forge such as Gitea can hold a small, curated replacement catalog. Export and review permitted files, commit them with the manifest described above, then connect the raw-content endpoint. Lolly Work reads the repository and does not push the migration into Git. Plan file sizes, metadata, access and replacement references separately.
 
-The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Work storage and other destinations, with open-source options first.
+The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Lolly Work storage and other destinations, with open-source options first.

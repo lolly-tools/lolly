@@ -9,7 +9,7 @@ Lolly rulează pe dispozitivul fiecărei persoane. Când o echipă are nevoie de
 - [Adopție și guvernanță](/info/adoption-governance.html) acoperă lansarea și rolul regulilor de brand.
 - [Identitate și sesiuni](/info/work-identity.html) acoperă autentificarea și maparea grupurilor. [Roluri și acordări](/info/work-permissions.html) explică rolurile, acordările și garda proprietarului.
 - [Politică și guvernanță](/info/work-governance.html) acoperă overlay-urile de instrumente, intrările blocate și politica. [Administrează politica AI a organizației](/info/work-ai-policy.html) acoperă aprobările și limitele de execuție.
-- [Controale ale datelor contului](/info/work-account-lifecycle.html) și [Stocarea Work și ciclul de viață al datelor](/info/work-data-lifecycle.html) acoperă exporturile, plecarea, păstrarea și limitele lor.
+- [Controale ale datelor contului](/info/work-account-lifecycle.html) și [Stocarea Lolly Work și ciclul de viață al datelor](/info/work-data-lifecycle.html) acoperă exporturile, plecarea, păstrarea și limitele lor.
 - [Profiluri, branduri și configurarea instrumentelor](/info/configuration.html) acoperă ce instrumente și sisteme de design poartă o versiune a Lolly.
 
 ## Conectează resurse și revizuiește munca

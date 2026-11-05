@@ -5,15 +5,15 @@ Hosting the Lolly web app, handing out the packaged app and running a Lolly Work
 ## Choose and install
 
 - [Run Lolly Work](/info/work-self-host.html): the path that matches what you have, from the public demo to Kubernetes, with downloads and checksums.
-- [How a Work deployment fits together](/info/work-deployment.html): the parts every Lolly Work deployment runs and the ones you can leave out.
+- [How a Lolly Work deployment fits together](/info/work-deployment.html): the parts every Lolly Work deployment runs and the ones you can leave out.
 - [Official installation routes](/info/work-official-installations.html): which packages exist, what each has passed and how to check a download.
 
 ## Configure the instance
 
-- [Work instance configuration](/info/work-configuration.html): every setting a Lolly Work instance reads.
-- [Configure your first Work instance](/info/work-customer-setup.html): the first settings after install.
+- [Lolly Work instance configuration](/info/work-configuration.html): every setting a Lolly Work instance reads.
+- [Configure your first Lolly Work instance](/info/work-customer-setup.html): the first settings after install.
 - [Set up enterprise identity](/info/work-enterprise-identity.html): single sign-on, SCIM and sign-out.
-- [Configure Work export signing](/info/work-c2pa.html): Content Credentials signed with your organisation's identity.
+- [Configure Lolly Work export signing](/info/work-c2pa.html): Content Credentials signed with your organisation's identity.
 - [Configure connector origins](/info/connector-origins.html): which outside services the app may reach.
 
 ## Keep it running

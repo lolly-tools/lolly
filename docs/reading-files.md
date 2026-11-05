@@ -34,8 +34,8 @@ The right answer to a bad file depends on what the caller does with the result.
 ## What this means when you open a file
 
 - A damaged or oversized file is cut off at a named limit. You get what could be read, or a message, and the app keeps running.
-- **Verify** reports a credential it cannot read as an error, rather than guess at its signature or certificate.
-- **Strip Hidden Data** refuses a file it cannot clean safely, rather than hand back the original as if it were clean.
+- **Lolly Verify** reports a credential it cannot read as an error, rather than guess at its signature or certificate.
+- **Lolly Strip Hidden Data** refuses a file it cannot clean safely, rather than hand back the original as if it were clean.
 - Office files are inspected without running their macros, and their external references are never fetched. [Privacy Policy](/info/privacy.html#utilities-that-run-on-your-device) lists what the Office inspection covers.
 - The parsers decide how a file is read. What a *tool* does with the result is a separate question, covered by [Threat Model & Trust Boundaries](/info/threat-model.html).
 

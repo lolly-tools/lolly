@@ -8,7 +8,7 @@ Sediakan alamat web yang patut dibuka oleh kod itu, bermula dengan `https://`.
 
 ## Buat kod itu
 
-1. Buka [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Kawalannya terletak di sebelah pratonton, atau di atasnya pada telefon; apa yang dipaparkan pratonton itulah yang akan menjadi fail siap.
+1. Buka [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Kawalannya terletak di sebelah pratonton, atau di atasnya pada telefon; apa yang dipaparkan pratonton itulah yang akan menjadi fail siap.
 2. Pada **URL**, gantikan alamat contoh dengan alamat anda, secara penuh. Pratonton berubah semasa anda menaip.
 3. Untuk menyepadankan dengan warna anda sendiri, tetapkan **Module colour** dan **Latar belakang**. Kekalkan kontras yang kuat antara kedua-duanya, atau telefon akan sukar membaca kod itu.
 4. **Quiet zone**, di bawah **Modules**, bermula pada 4. Kekalkan pada 4 atau lebih: sempadan kosong itulah yang dicari oleh kamera telefon.
@@ -38,8 +38,8 @@ Kerja tersimpan kekal pada peranti ini, dalam pelayar atau aplikasi tempat anda 
 
 ## Projek pertama lain
 
-- [Audiogram](/#/tool/audiogram) menukar satu nota suara menjadi video: gelombang bergerak, kata-kata anda pada kulit depan, warna anda. Lepaskan rakaman itu ke dalam **Audio**, tambah satu **Tajuk**, kemudian eksport **MP4**.
-- [Filter](/#/tool/filter) merawat satu foto untuk poster: titik halftone bercetak, dua warna rata atau beberapa blok ton. Pilih foto itu di bawah **Imej**, pilih satu **Kesan**, kemudian eksport **PNG**, atau **SVG** pada kesan yang berlencana *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) menukar satu nota suara menjadi video: gelombang bergerak, kata-kata anda pada kulit depan, warna anda. Lepaskan rakaman itu ke dalam **Audio**, tambah satu **Tajuk**, kemudian eksport **MP4**.
+- [Lolly Filter](/#/tool/filter) merawat satu foto untuk poster: titik halftone bercetak, dua warna rata atau beberapa blok ton. Pilih foto itu di bawah **Imej**, pilih satu **Kesan**, kemudian eksport **PNG**, atau **SVG** pada kesan yang berlencana *vector*.
 
 ## Seterusnya
 

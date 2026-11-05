@@ -30,11 +30,11 @@ pack, web app, collaboration gateway and render worker are present.
 |---|---|---|---|
 | Local (`node server/src/main.ts`) | development, evaluation | the server, at startup | local paths |
 | Compose (`deploy/compose/`) | one VM, a small organisation | the server, at startup | mounted from the checkout |
-| Single VM with Caddy (`deploy/vm/`) | one small team on its own domain, with live co-editing | the server, at startup, over the direct database URL | pack mounted read-only; a signed web app served by Work when configured, otherwise proxied through Caddy |
+| Single VM with Caddy (`deploy/vm/`) | one small team on its own domain, with live co-editing | the server, at startup, over the direct database URL | pack mounted read-only; a signed web app served by Lolly Work when configured, otherwise proxied through Caddy |
 | YunoHost (`deploy/yunohost/`) | a self-hosting box, signing in with its accounts | the server, at startup | copied from the web app into the app's data folder |
 | Helm (`deploy/helm/`) | Kubernetes or Rancher, one collaboration owner | a pre-install and pre-upgrade Job | volumes you mount |
 
-The Work repository also keeps an optional serverless function adapter, qualified in
+The Lolly Work repository also keeps an optional serverless function adapter, qualified in
 CI, for operators who choose that kind of target. It bundles its pack and has no
 live co-editing and no Chromium worker; its runbook is `deploy/vercel/README.md` in
 that repository.
@@ -55,7 +55,7 @@ its sockets and releases its room leases first. People see a short reconnect win
 [keep Lolly Work running](operations.md#collaboration-ownership-and-replacement)
 covers what happens to edits during that window.
 
-Separate render workers can scale once you have tested the workload. Work keeps
+Separate render workers can scale once you have tested the workload. Lolly Work keeps
 durable jobs in PostgreSQL, and a saturated render worker answers with a bounded
 `503`.
 
@@ -165,7 +165,7 @@ checks on and renew certificates at the edge.
 For a public HTTPS origin, allow DNS and public TCP 443 egress. A private HTTPS edge
 needs a declared origin and a narrow egress rule for its real address and port.
 
-To prove it, run a complete signed-in Work render and follow its durable status.
+To prove it, run a complete signed-in Lolly Work render and follow its durable status.
 Then compare the downloaded output's size and SHA-256. A direct raster request or a
 healthy worker probe does not exercise the web app's export or read tickets.
 :::
@@ -275,7 +275,7 @@ Rancher Community. Any conformant cluster works too.
 Helm keeps the application and render worker in your chosen cluster; Compose and
 systemd are the smaller shapes. UpCloud and Evroc are supported foundations for these
 operator-managed releases, and
-[Run Work on UpCloud or Evroc](cloud-deployment.md) covers their differences, boot,
+[Run Lolly Work on UpCloud or Evroc](cloud-deployment.md) covers their differences, boot,
 capacity and restore checks. The existing host provisioner supports openSUSE; another
 operating system needs equivalent host preparation.
 
@@ -311,18 +311,18 @@ applies.
 ## Single VM with Caddy
 
 `deploy/vm/` runs a private instance on one server. Caddy handles TLS and routing.
-The Work server, built from `deploy/compose/Dockerfile`, runs the live co-editing
+The Lolly Work server, built from `deploy/compose/Dockerfile`, runs the live co-editing
 gateway in its own process, and a PostgreSQL database holds the records and the
 asset bytes. For repeatable VM creation, use the
 [UpCloud and Evroc modules](cloud-deployment.md); the default VM deployment keeps an
 external database and the existing public API proxy.
 
-- With `instance.shellDir` set, Caddy sends web app requests to the Work server, which
+- With `instance.shellDir` set, Caddy sends web app requests to the Lolly Work server, which
   serves the signed web app itself. Otherwise Caddy proxies the public web app with
   the session cookie removed.
 - Public open-source API functions continue through the public API proxy until a
   standalone replacement is qualified. Control-plane paths and `/ws/collab/<session>`
-  go to the Work server.
+  go to the Lolly Work server.
 - `node scripts/build-caddyfile.ts` writes `deploy/vm/Caddyfile`, and a repository
   test checks that the Caddyfile and the serverless adapter's route table agree on
   every path except the WebSocket.

@@ -132,9 +132,9 @@ Lolly propose trois façons de travailler en volume, chacune pour un besoin diff
 ## Un tableau devient un seul document
 Un outil avec une entrée tableau, comme **Battlecards**, transforme chaque ligne en page. Colle un tableau depuis ton tableur et obtiens un PDF. Corrige les lignes dans le tableur et colle de nouveau.
 ## Un CSV devient un fichier par ligne
-**Batch** (`#/batch`) prend un CSV et rend un export pour chaque ligne : badges nominatifs ou certificats, un fichier chacun, livrés dans un ZIP. Voir [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) prend un CSV et rend un export pour chaque ligne : badges nominatifs ou certificats, un fichier chacun, livrés dans un ZIP. Voir [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Plusieurs designs reçoivent une même modification
-**Multi-edit** ouvre plusieurs sessions enregistrées côte à côte pour la même retouche sur des designs différents. Voir [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** ouvre plusieurs sessions enregistrées côte à côte pour la même retouche sur des designs différents. Voir [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Depuis **Projects**, **Render folder** exporte chaque session enregistrée d'un dossier et de ses sous-dossiers dans un seul ZIP imbriqué, et **Render selection** fait de même pour toute sélection multiple ; une session enregistrée seule se rend dans son propre fichier. Une session enregistrée peut aussi être partagée de nouveau comme lien d'outil depuis Projects, qui la rouvre avec les mêmes réglages.
@@ -170,7 +170,7 @@ La plupart des outils qui exportent du SVG exportent aussi un **fichier Penpot**
 | Le design entier | Un composant réutilisable dans le panneau Assets |
 | Une illustration complexe ou un canevas en direct | Incorporé seul comme image, le contenu modifiable autour restant intact |
 
-Depuis Design, chaque cadre devient un board Penpot. Les couleurs et typographies du design system arrivent dans le panneau Assets et son jeu complet de tokens dans le panneau Tokens. Penpot garde sa propre copie à partir de là : un token modifié dans Penpot revient via l'import dans [Design System Setup](/info/brand-studio.html).
+Depuis Design, chaque cadre devient un board Penpot. Les couleurs et typographies du design system arrivent dans le panneau Assets et son jeu complet de tokens dans le panneau Tokens. Penpot garde sa propre copie à partir de là : un token modifié dans Penpot revient via l'import dans [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Le panneau d'export avec Penpot sélectionné : le fichier .penpot, et Send to Penpot à côté du téléchargement](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

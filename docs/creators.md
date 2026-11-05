@@ -6,21 +6,21 @@ New here? Start with **[Make your first file](/info/make-something.html)**. [How
 
 ## Make
 
-Pick a tool and fill it in, or lay a page out freely on the Design canvas.
+Pick a tool and fill it in, or lay a page out freely on the Lolly Design canvas.
 
 - **[Make your first file](/info/make-something.html)** - one short lesson with nothing to set up: a QR code, downloaded and saved as an editable copy.
 - **[Using Lolly](/info/using.html)** - the canvas, the controls, saving, Projects and phone use: how the app itself behaves.
 - **[Templates](/info/templates.html)** - start from a saved layout instead of a blank tool.
-- **[Text in Design](/info/text-composition.html)** - headings, flowing text and type that fits its box.
-- **[3D Studio](/info/3d-studio.html)** - SVG artwork and 3D models arranged, lit and rendered as one scene.
-- **[Utilities](/info/utilities.html)** - fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour.
+- **[Text in Lolly Design](/info/text-composition.html)** - headings, flowing text and type that fits its box.
+- **[Lolly 3D Studio](/info/3d-studio.html)** - SVG artwork and 3D models arranged, lit and rendered as one scene.
+- **[Lolly Utilities](/info/utilities.html)** - fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour.
 - **[Browser extension](/info/extension.html)** - screenshot a live web page from the web app, or read a site to start a design system.
 
 ## Make it yours
 
 Your design system decides what every tool looks like.
 
-- **[Design System Setup](/info/brand-studio.html)** - logos, colours, type and the rest, set once at `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logos, colours, type and the rest, set once at `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourways on real work, and switching to your own design system.
 - **[Brand architectures](/info/brand-architectures.html)** - several design systems, or one with several colourways, for one organisation.
 - **[Working with partners](/info/partners.html)** - share your brand with a partner, work in a brand you were given and make a sponsor wall.
@@ -31,8 +31,8 @@ Your design system decides what every tool looks like.
 ## Find and keep your work
 
 - **[Find and recover your work](/info/find-your-work.html)** - where a saved, downloaded or unsaved file went.
-- **[Search](/info/search.html)** and **[Ask Lolly](/info/ask.html)** - one field for your tools, saved work, assets and settings, and answers from these guides.
-- **[Settings](/info/dashboard.html)** - what this device can do, your design system read-only and your storage.
+- **[Lolly Search](/info/search.html)** and **[Ask Lolly](/info/ask.html)** - one field for your tools, saved work, assets and settings, and answers from these guides.
+- **[Lolly Settings](/info/dashboard.html)** - what this device can do, your design system read-only and your storage.
 - **[Your favourites](/info/favourites.html)** and **[Profiles](/info/profile.html)** - starred tools, the details tools pre-fill from and the accessibility switches.
 - **[Sync your devices](/info/sync.html)** - the same work on your computer and your phone, through storage you choose.
 
@@ -48,7 +48,7 @@ Text that moves, scenes on a timeline and motion that stays on-brand. A motion e
 
 Record a clean take with a count-in and a level meter, or put yourself in front of your slides.
 
-- **[The Design timeline](/info/design.html#timeline-sequence)** - recording a voiceover straight onto the timeline.
+- **[The Lolly Design timeline](/info/design.html#timeline-sequence)** - recording a voiceover straight onto the timeline.
 - **[Make your first file](/info/make-something.html#other-first-projects)** - the audiogram, for when you would rather be heard than seen.
 - **[Presenting with camera](/info/presenting.html)** - your camera, logo and name over a deck or Countdown, with private controls in a separate window.
 - **[Live pages that take the clicker](/info/interactive-pages.html)** and **[Agenda screens](/info/agenda.html)** - pages and programmes for the room.

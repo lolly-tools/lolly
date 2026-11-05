@@ -16,12 +16,12 @@ Two words mean the same thing everywhere on this page. The **lead brand** is the
 
 | Send | How | The partner gets | Suits |
 | --- | --- | --- | --- |
-| A design-system file | **Export** in the bar at the top of [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Your tokens, fonts, logos and theme preference, as a design system they can switch to | A partner who makes many pieces in your brand |
-| A reusable tool | In Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | One finished layout with the inputs you allow, such as their name and their logo. The file carries the resolved colours, fonts and images, so their own design system cannot restyle the fixed artwork | A co-branded flyer, badge or banner that each partner fills in |
+| A design-system file | **Export** in the bar at the top of [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Your tokens, fonts, logos and theme preference, as a design system they can switch to | A partner who makes many pieces in your brand |
+| A reusable tool | In Lolly Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | One finished layout with the inputs you allow, such as their name and their logo. The file carries the resolved colours, fonts and images, so their own design system cannot restyle the fixed artwork | A co-branded flyer, badge or banner that each partner fills in |
 | Brand skills | The **Skills** room: **Download skill (.zip)** or **Copy as one file** | Your written standards, for their people and their agents | Either of the above, when an agent does some of the work |
 | Tokens | **Tokens (.json)** in the studio's **More** menu | The plain design-tokens document, with no fonts or logos | A partner's own design tools or build |
 
-![Design System Setup on Lolly Demo, open at the Skills room: Export in the bar, the More menu open on Tokens (.json), and Download skill (.zip) and Copy as one file beside the chosen skill](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
+![Lolly Design System Setup on Lolly Demo, open at the Skills room: Export in the bar, the More menu open on Tokens (.json), and Download skill (.zip) and Copy as one file beside the chosen skill](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
 
 Fonts you added travel inside a design-system file, so check that their licences let you pass the files on. A reusable tool asks you to confirm before it includes an image whose licence holds it back ([Preview and share](/info/create-a-tool.html#preview-and-share)).
 
@@ -29,7 +29,7 @@ Fonts you added travel inside a design-system file, so check that their licences
 
 A reusable tool keeps every partner's pieces in your layout, because a partner changes only what you allow.
 
-1. In Design, make the piece in your design system. Draw an image box where the partner's logo goes, and leave the space around the box that the layout needs.
+1. In Lolly Design, make the piece in your design system. Draw an image box where the partner's logo goes, and leave the space around the box that the layout needs.
 2. Choose **Share with rules** from the File menu. Select the image box and choose **Make editable**. In its **Rules**, allow replacement uploads, set a minimum pixel size and the upload formats you accept (SVG where you can). Set the box's own **Image fit** to **Contain (fit inside)**, which keeps a wide or a tall logo inside the box.
 3. Make the partner's name or offer editable too, with a character limit.
 4. Press **Preview** and try a very wide logo, a very tall one and a long name.
@@ -43,7 +43,7 @@ The partner drops the file into Lolly, reviews the trust prompt, fills in the in
 
 Skills are guidance for people and agents; the house rules are what Lolly checks.
 
-- In Design System Setup, open the **Skills** room (`#/start?area=skills`), choose a skill and press **Download skill (.zip)**. The folder's catalog links point at your Lolly, and its `lolly.json` records where the copy came from. **Copy as one file** puts the same text on the clipboard for a chat window.
+- In Lolly Design System Setup, open the **Skills** room (`#/start?area=skills`), choose a skill and press **Download skill (.zip)**. The folder's catalog links point at your Lolly, and its `lolly.json` records where the copy came from. **Copy as one file** puts the same text on the clipboard for a chat window.
 - From a terminal, `lolly system skill <name> --into=<dir>` writes the same folder ([In a folder for a local agent tool](/info/brand-skills.html#in-a-folder-for-a-local-agent-tool)).
 - A skill marked `internal` is listed on your own machine as well as `public` ones, so choose which to send ([Public and internal skills](/info/brand-skills.html#public-and-internal-skills)).
 - A design system without skills of its own has a baseline that Lolly writes from its tokens and house rules, and the room lists the baseline too.
@@ -53,11 +53,11 @@ Skills are guidance for people and agents; the house rules are what Lolly checks
 
 For the partner who receives a design-system file.
 
-1. **Open the file.** Drop the file on Lolly or press **Open**; **Add from…** in Design System Setup takes the file too. The preview lists what the file holds before anything is written. A design-system file adds a separate design system under the lead brand's name and makes it active, and your own design system stays on the device. A file that instead connects the app to the lead brand's own Lolly lists the effects on your whole device first; [Use Lolly at your organisation](/info/organisation.html) covers that kind of file.
-2. **Look round the brand.** In Design System Setup, the **Board** shows what the design system holds, **Logos** has its marks and **Rules** lists the house rules Lolly checks. **Skills** shows the baseline Lolly writes from the tokens and rules; the lead brand's own skills arrive as separate files, if they send them.
+1. **Open the file.** Drop the file on Lolly or press **Open**; **Add from…** in Lolly Design System Setup takes the file too. The preview lists what the file holds before anything is written. A design-system file adds a separate design system under the lead brand's name and makes it active, and your own design system stays on the device. A file that instead connects the app to the lead brand's own Lolly lists the effects on your whole device first; [Use Lolly at your organisation](/info/organisation.html) covers that kind of file.
+2. **Look round the brand.** In Lolly Design System Setup, the **Board** shows what the design system holds, **Logos** has its marks and **Rules** lists the house rules Lolly checks. **Skills** shows the baseline Lolly writes from the tokens and rules; the lead brand's own skills arrive as separate files, if they send them.
 3. **Switch between brands.** **Settings → Preferences → Design systems** switches the design system for the whole device, and **Settings → Design system** has a strip of covers to switch from. Finish one brand's piece before you switch.
 4. **Place your own mark.** Upload your logo to **Assets**, where it is offered in every design system, or add it as a **custom mark** in the lead brand's design system (**Logos** room, **Custom marks**), where it travels in that design system's file. A design system that shows a lock is read-only, so use Assets there. [Place a partner's mark](#place-a-partner-s-mark) has the checks.
-5. **Check before you export.** In Design, the export panel's **Before you export** card lists findings against the lead brand's house rules, layer by layer ([Before you export](/info/design.html#before-you-export)). The **Design system** card shows the design system the file records.
+5. **Check before you export.** In Lolly Design, the export panel's **Before you export** card lists findings against the lead brand's house rules, layer by layer ([Before you export](/info/design.html#before-you-export)). The **Design system** card shows the design system the file records.
 6. **Send the work back.** Send the exported file, or the editable design as a `.lolly` ([Sharing your work](/info/using.html#sharing-your-work)). A design opens in whichever design system is active, so the lead brand opens yours with their own design system active.
 
 A design-system file is a copy of the brand as it was on the day it was exported, and nothing updates the copy. When the lead brand sends a newer file, open the new file the same way. Then check which design system is active in **Settings → Preferences → Design systems**, and remove the older copy there when you have finished with the older one.
@@ -68,7 +68,7 @@ A design-system file is a copy of the brand as it was on the day it was exported
 
 | Way | Steps | Best for |
 | --- | --- | --- |
-| A picture in Assets | Drop the file on the upload area in **Assets**, then choose it in a tool's image field, or in Design with **Image** from the rail's add menu | One-off pieces. An upload belongs to the device, so it is offered whichever design system is active |
+| A picture in Assets | Drop the file on the upload area in **Assets**, then choose it in a tool's image field, or in Lolly Design with **Image** from the rail's add menu | One-off pieces. An upload belongs to the device, so it is offered whichever design system is active |
 | A custom mark | **Logos** room, **Custom marks**: type a name for the mark, then **Choose file…** | A partner you work with often. The mark belongs to the design system and travels in its file |
 | A finished lockup | Make the lockup from both marks in your drawing tool, then add it as a custom mark | A "with" or "in partnership with" lockup used again and again |
 
@@ -91,24 +91,24 @@ When an agent does the work, give the agent the lead brand's skills and the part
 
 ## Sponsor and event logo walls
 
-The [Logo Wall](/#/tool/logo-wall) tool arranges a pile of logos into an even grid, for a sponsor board, a partner slide or a press backdrop. At an event the host is usually the lead brand: the wall is made in the host's design system, and each sponsor's logo sits on the wall as artwork.
+The [Lolly Logo Wall](/#/tool/logo-wall) tool arranges a pile of logos into an even grid, for a sponsor board, a partner slide or a press backdrop. At an event the host is usually the lead brand: the wall is made in the host's design system, and each sponsor's logo sits on the wall as artwork.
 
 ![A sponsor wall in three tiers on dark green, every logo drawn in white: two Gold partners, three Silver partners and five Community partners, each tier under its own heading and each lower tier a step smaller](/t/url-shot?url=%2F%23%2Ftool%2Flogo-wall%3Flogos%3D%255B%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fyour-logo.svg%2522%252C%2522tier%2522%253A%2522Gold%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Flogo-here.svg%2522%252C%2522tier%2522%253A%2522Gold%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fcompany.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fsponsor.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fbrand-name.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fsample-co.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fexample.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Florem-ipsum.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fplaceholder.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fpartner-name.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%255D%26columns%3D3%26gap%3D64%26padding%3D96%26background%3D033633%26headingColor%3Dffffff%26vectorizeAll%3Dtrue%26inkColor%3Dffffff%26transparentBg%3Dfalse&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&format=svg&walker=1&filename=partners-logo-wall&try=1)
 
-1. Open Logo Wall and drop the logos on **Logos**. Each logo gets its own set of controls.
+1. Open Lolly Logo Wall and drop the logos on **Logos**. Each logo gets its own set of controls.
 2. Give each logo a **Tier**, such as "Gold partners". Each tier gets its own rows, in the order the tiers first appear, under its own heading; **Tier headings** turns the headings off. With **Tier sizes** on **Step down**, each lower tier fits one more logo per row, so higher tiers read larger. **Presence** and **Size %** still nudge one logo within its tier.
-3. Leave **Balance sizes** on. Logo Wall sizes each logo by its optical weight, so a heavy logo shrinks and a light one grows and each tier reads evenly.
+3. Leave **Balance sizes** on. Lolly Logo Wall sizes each logo by its optical weight, so a heavy logo shrinks and a light one grows and each tier reads evenly.
 4. **Trim margins** crops each logo to its artwork. Turn the option off when a logo's file already includes the clear space its owner asks for.
 5. **Remove white backgrounds** clears the white box that a logo copied from a slide often arrives in.
 6. Set **Columns**, spacing and padding under **Layout**. The **Background** starts as your design system's surface colour.
 7. For a one-colour wall, turn on **Render all as vector** and choose the **Ink colour**, or set one logo's **Filter** to **Greyscale**. Use a one-colour version only where each sponsor's guidelines allow one.
 8. For a press backdrop, choose **Grid**, **Brick** or **Checker** under **Step & repeat**, and set the number of **Rows**.
 
-Export the wall as PNG, SVG, PDF or a CMYK PDF for print. Set another size and shape in the export panel, such as a tall 1080 x 1920 story or an A4 page, and the canvas shows the wall laid out again to fill that shape, with fewer or more logos in each row. The export is the wall on the canvas. To put the wall on a poster, choose **Image** from the rail's add menu in Design, draw a frame and pick Logo Wall on the picker's **Tools** tab ([Tools inside a design](/info/design.html#tools-inside-a-design)). For captions between the logos, a **Dynamic layout** set to **grid** in Design holds one image box per logo ([Layout in Design](/info/design-layout.html#dynamic-layouts)).
+Export the wall as PNG, SVG, PDF or a CMYK PDF for print. Set another size and shape in the export panel, such as a tall 1080 x 1920 story or an A4 page, and the canvas shows the wall laid out again to fill that shape, with fewer or more logos in each row. The export is the wall on the canvas. To put the wall on a poster, choose **Image** from the rail's add menu in Lolly Design, draw a frame and pick Lolly Logo Wall on the picker's **Tools** tab ([Tools inside a design](/info/design.html#tools-inside-a-design)). For captions between the logos, a **Dynamic layout** set to **grid** in Lolly Design holds one image box per logo ([Layout in Lolly Design](/info/design-layout.html#dynamic-layouts)).
 
 In a terminal, `lolly run logo-wall logos/*.png --output=wall.svg` builds the wall from a folder of pictures, and a CSV with `logo` and `tier` columns builds a tiered wall. SVG and PNG need no browser ([A sponsor wall with tiers](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
-Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes relative to each other, not a sponsor's minimum size, and nothing checks the clear space between neighbours. Check the finished wall against each sponsor's guidelines at the size it will be printed or shown.
+Lolly Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes relative to each other, not a sponsor's minimum size, and nothing checks the clear space between neighbours. Check the finished wall against each sponsor's guidelines at the size it will be printed or shown.
 
 ## What Lolly does not do yet
 
@@ -125,5 +125,5 @@ Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes relati
 - **[Brand architectures](/info/brand-architectures.html)**: co-branding, white label and the other arrangements, with what to do in Lolly for each.
 - **[Share a design with rules](/info/create-a-tool.html)**: reusable tools with a fixed layout and the inputs you choose.
 - **[Brand skills](/info/brand-skills.html)**: how skills are written, read and handed to an agent.
-- **[Design System Setup](/info/brand-studio.html)**: logos, custom marks, and moving a design system between devices.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: logos, custom marks, and moving a design system between devices.
 - **[Creative rights and credits](/info/creative-rights.html)**: what Lolly records about the works it draws.

@@ -44,7 +44,7 @@ L'usage autonome garde les fichiers sur l'appareil. Choisir des projets partagé
 
 Ces limites s'appliquent à chaque page de cet ensemble, donc elles sont énoncées une fois ici :
 
-- **Les collabs de travail tournent aujourd'hui sur un seul nœud serveur.** Leur échelle et leur historique d'exploitation diffèrent de ceux des produits hébergés établis de longue date. [Work status and roadmap](/info/work-status.html) consigne les limites actuelles.
+- **Les collabs de travail tournent aujourd'hui sur un seul nœud serveur.** Leur échelle et leur historique d'exploitation diffèrent de ceux des produits hébergés établis de longue date. [Lolly Work status and roadmap](/info/work-status.html) consigne les limites actuelles.
 - **Le site [lolly.work](https://lolly.work) est un bac à sable de démonstration.** Un déploiement d'organisation durable demande un stockage persistant et un opérateur ; [Install Lolly Work](/info/work-install.html) couvre les deux.
 - **Il n'y a pas de frais de licence logicielle par poste** pour Lolly ni pour un Lolly Work auto-hébergé. L'hébergement, le stockage et l'exploitation coûtent quand même de l'argent.
 - **Une signature n'est pas un signataire de confiance.** Un vérificateur doit faire confiance au certificat qui a signé un fichier avant de montrer le signataire comme fiable ; [Content Credentials Identity](/info/content-credentials-identity.html) explique comment.

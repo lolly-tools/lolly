@@ -160,7 +160,7 @@ lolly battlecards --data-data=./cards.csv --output=deck.pdf
 
 ### Keyframe tracks
 
-`kf` is not an input type. It is a **sub-field of a `blocks` input**, one per box in Design, and like every other sub-field it rides the block's own encoding described under [Compact encoding](#compact-encoding-opt-in) below. The app writes it; nobody types one in practice, and hooks always parse and rewrite it rather than passing the raw field through, so an unparseable or hostile value simply makes no track.
+`kf` is not an input type. It is a **sub-field of a `blocks` input**, one per box in Lolly Design, and like every other sub-field it rides the block's own encoding described under [Compact encoding](#compact-encoding-opt-in) below. The app writes it; nobody types one in practice, and hooks always parse and rewrite it rather than passing the raw field through, so an unparseable or hostile value simply makes no track.
 
 ```
 t0_z0_b4*t1500_eo_z140_b0*t4000_eh_z140_x-60
@@ -201,7 +201,7 @@ Tools can opt into a shorter form, which the web app writes when you **copy a sh
 - **Tilde-delimited block arrays.** Instead of JSON, blocks are written as `field,field,field~field,field,field`: one `~`-separated group per item, values URL-encoded, colours without `#`.
 - **Omitted defaults.** A value equal to the input's default is left out of the link.
 
-Chart uses short keys, so a link copied from its Share button looks like the compact form rather than the long examples on this page. `?ct=radar&pl=cool&t=Short keys&lg=0` sets the chart type, palette, heading and legend:
+Lolly Chart uses short keys, so a link copied from its Share button looks like the compact form rather than the long examples on this page. `?ct=radar&pl=cool&t=Short keys&lg=0` sets the chart type, palette, heading and legend:
 
 ![A radar chart in the cool palette, drawn from four short-key params instead of their long names](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dradar%26pl%3Dcool%26t%3DShort%2520keys%26lg%3D0&width=1440&height=900&dpi=192&waitMs=2800&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-compact-shortkeys)
 

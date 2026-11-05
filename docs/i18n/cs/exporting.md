@@ -132,9 +132,9 @@ Lolly má tři způsoby práce ve velkém, každý pro jinou úlohu:
 ## Tabulka se stane jedním dokumentem
 Nástroj se vstupem tabulky, například **Battlecards**, změní každý řádek na stránku. Vlož tabulku ze své tabulky a dostaneš jedno PDF. Oprav řádky v tabulce a vlož znovu.
 ## CSV se stane jedním souborem na řádek
-**Batch** (`#/batch`) vezme CSV a vykreslí jeden export pro každý řádek: jmenovky nebo certifikáty, jeden soubor každý, doručené v ZIP. Viz [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) vezme CSV a vykreslí jeden export pro každý řádek: jmenovky nebo certifikáty, jeden soubor každý, doručené v ZIP. Viz [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Několik návrhů dostane jednu úpravu
-**Multi-edit** otevře několik uložených relací vedle sebe pro stejné doladění napříč různými návrhy. Viz [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** otevře několik uložených relací vedle sebe pro stejné doladění napříč různými návrhy. Viz [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Z **Projects** **Render folder** exportuje každou uloženou relaci ve složce a jejích podsložkách jako jedno vnořené ZIP a **Render selection** totéž udělá pro jakýkoli vícenásobný výběr; jedna uložená relace se vykreslí do vlastního souboru. Uloženou relaci lze také znovu sdílet jako odkaz na nástroj z Projects, který ji znovu otevře se stejným nastavením.
@@ -170,7 +170,7 @@ Většina nástrojů, které exportují SVG, exportuje také **soubor Penpot** (
 | Celý návrh | Opakovaně použitelná komponenta v panelu Assets |
 | Složitá ilustrace nebo živé plátno | Vloženo samostatně jako obrázek, upravitelný obsah kolem něj nedotčen |
 
-Z Design se každý rám stane plochou Penpotu. Barvy a typografie designového systému přistanou v panelu Assets a jeho úplná sada tokenů v panelu Tokens. Penpot odtud drží vlastní kopii: token upravený v Penpotu se vrací importem v [Design System Setup](/info/brand-studio.html).
+Z Design se každý rám stane plochou Penpotu. Barvy a typografie designového systému přistanou v panelu Assets a jeho úplná sada tokenů v panelu Tokens. Penpot odtud drží vlastní kopii: token upravený v Penpotu se vrací importem v [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Panel exportu s vybraným Penpotem: soubor .penpot a Send to Penpot vedle stahování](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

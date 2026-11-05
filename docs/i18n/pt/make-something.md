@@ -8,7 +8,7 @@ Tenha em mãos o endereço da web que o código deve abrir, começando com `http
 
 ## Faça o código
 
-1. Abra [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Os controles ficam ao lado da prévia, ou acima dela no celular; o que a prévia mostra é o que o arquivo será.
+1. Abra [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Os controles ficam ao lado da prévia, ou acima dela no celular; o que a prévia mostra é o que o arquivo será.
 2. Em **URL**, substitua o endereço de exemplo inteiro pelo seu. A prévia muda enquanto você digita.
 3. Para combinar com suas próprias cores, defina **Module colour** e **Background**. Mantenha um contraste forte entre eles, ou celulares terão dificuldade para ler o código.
 4. **Quiet zone**, em **Modules**, começa em 4. Mantenha em 4 ou mais: essa margem simples é o que a câmera de um celular procura.
@@ -38,8 +38,8 @@ O trabalho salvo permanece neste dispositivo, no navegador ou app que você usou
 
 ## Outros primeiros projetos
 
-- [Audiogram](/#/tool/audiogram) transforma uma nota de voz em um vídeo: uma forma de onda em movimento, suas palavras na capa, suas cores. Solte a gravação em **Áudio**, adicione um **Título**, depois exporte **MP4**.
-- [Filter](/#/tool/filter) trata uma foto para um pôster: pontos de meio-tom impressos, duas cores chapadas ou alguns blocos de tom. Escolha a foto em **Imagem**, selecione um **Efeito**, depois exporte **PNG**, ou **SVG** em um efeito com selo *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) transforma uma nota de voz em um vídeo: uma forma de onda em movimento, suas palavras na capa, suas cores. Solte a gravação em **Áudio**, adicione um **Título**, depois exporte **MP4**.
+- [Lolly Filter](/#/tool/filter) trata uma foto para um pôster: pontos de meio-tom impressos, duas cores chapadas ou alguns blocos de tom. Escolha a foto em **Imagem**, selecione um **Efeito**, depois exporte **PNG**, ou **SVG** em um efeito com selo *vector*.
 
 ## A seguir
 

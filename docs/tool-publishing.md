@@ -5,11 +5,11 @@ Once a tool works on your machine, the next job is getting it to other people. T
 ::: cols
 ## A tool with your rules
 
-[Share with rules](/info/create-a-tool.html) turns a Design document into a portable `.lolly` tool. Recipients change only the inputs you approved. The tool is compiled for you, and its fonts and images travel inside the file.
+[Share with rules](/info/create-a-tool.html) turns a Lolly Design document into a portable `.lolly` tool. Recipients change only the inputs you approved. The tool is compiled for you, and its fonts and images travel inside the file.
 
 ## An editable starting point
 
-In a [Design](/info/using.html) document, choose **Save**, then **Save as a template**. It joins that tool's **New from template** chooser on your device, with no `tool.json`, catalog build or Git. A template holds starting values for a tool people already have, and recipients can edit the whole design. Share it as a `.lolly` file, or ship it with the tool as [Templates people save](/info/tool-starters.html#templates-people-save) describes.
+In a [Lolly Design](/info/using.html) document, choose **Save**, then **Save as a template**. It joins that tool's **New from template** chooser on your device, with no `tool.json`, catalog build or Git. A template holds starting values for a tool people already have, and recipients can edit the whole design. Share it as a `.lolly` file, or ship it with the tool as [Templates people save](/info/tool-starters.html#templates-people-save) describes.
 
 ## Your own tool, as a file
 

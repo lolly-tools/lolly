@@ -232,7 +232,7 @@ En administrert enhet kan be om å tilbakekalle sitt eget sertifikat, med et aut
 |---|---|
 | Pålogging og klargjøring | Påstander fra identitetsleverandøren, konto- og gruppemedlemskap, påloggingsøkter og enhetsinformasjon. OIDC håndterer pålogging; administratorer kan klargjøre og deaktivere kontoer gjennom SCIM |
 | Delt katalog og prosjekter | Opplastede ressurser, metadata og versjoner; delte prosjekter og økter; innhold hentet fra konfigurerte bibliotekleverandører |
-| Work-collabs | Delt øktstilstand, sanntidsredigeringer og deltakernærvær sendt gjennom instansen; lagret tilstand består under lagringspolicyen |
+| Lolly Work-collabs | Delt øktstilstand, sanntidsredigeringer og deltakernærvær sendt gjennom instansen; lagret tilstand består under lagringspolicyen |
 | Administrerte delingslenker | Lenkemål og tilgangsinnstillinger, som utløp og valgfri passordbeskyttelse; forespørsler løses opp gjennom instansen og kan trekkes tilbake |
 | Gjennomgang og levering | Innsendt innhold, godkjenningsbeslutninger, valgt destinasjon, mellomlagrede filer og leveringskvitteringer |
 | Servergjengivelser og batcher | Innsendte verktøyinndata, gjengivelsesforespørsler, status og beholdte utdatafiler. Disse jobbene kjører på serveren i stedet for på enheten din |
@@ -241,9 +241,9 @@ En administrert enhet kan be om å tilbakekalle sitt eget sertifikat, med et aut
 
 Tjenesten bruker autentiseringsinformasjonskapsler, blant annet `lw_session` for påloggede medlemmer og `lw_guest` for gjestetilgang der det er aktivert, adskilt fra sertifikattjenestens informasjonskapsel. Policyoppdateringer og aktivert bruksrapportering kan sende forespørsler mens appen er i bruk, uten et eget klikk for hver. Dette er trafikk til den konfigurerte instansen, ikke en rapport til Lolly-prosjektet om installasjoner det ikke driver.
 
-**Bruks-telemetri har tre nivåer.** `off` lagrer ingen bruksbegivenheter, `aggregate` fjerner bruker-ID-er og `standard` kan tilskrive begivenheter. Standardnivået er `standard`, så en instans lagrer bruksbegivenhetene den mottar med mindre driftsansvarlig velger `off`. Standard tilskrivingspolicy er `opt-in`, som krever samtykket ditt før en bruker-ID lagres; en driftsansvarlig kan i stedet konfigurere tilskrevet rapportering med `telemetryAttribution: default`. Tillatte attributter er etiketter, aldri verdier fra verktøyinndata. Se [Work telemetry](/info/work-telemetry.html).
+**Bruks-telemetri har tre nivåer.** `off` lagrer ingen bruksbegivenheter, `aggregate` fjerner bruker-ID-er og `standard` kan tilskrive begivenheter. Standardnivået er `standard`, så en instans lagrer bruksbegivenhetene den mottar med mindre driftsansvarlig velger `off`. Standard tilskrivingspolicy er `opt-in`, som krever samtykket ditt før en bruker-ID lagres; en driftsansvarlig kan i stedet konfigurere tilskrevet rapportering med `telemetryAttribution: default`. Tillatte attributter er etiketter, aldri verdier fra verktøyinndata. Se [Lolly Work telemetry](/info/work-telemetry.html).
 
-**Revisjon er adskilt.** Styrte handlinger kan beholde en identifisert revisjonspost uansett telemetrisamtykket ditt. Å slå av telemetri slår ikke av lagring av delte økter, godkjenningsposter, lagring av gjengivelsesjobber eller revisjon. Driftsansvarlig styrer oppbevaring og sletting, inkludert eventuell pseudonymisering av revisjonsloggen; se [Work storage and data lifecycle](/info/work-data-lifecycle.html).
+**Revisjon er adskilt.** Styrte handlinger kan beholde en identifisert revisjonspost uansett telemetrisamtykket ditt. Å slå av telemetri slår ikke av lagring av delte økter, godkjenningsposter, lagring av gjengivelsesjobber eller revisjon. Driftsansvarlig styrer oppbevaring og sletting, inkludert eventuell pseudonymisering av revisjonsloggen; se [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html).
 
 | | Enheten din | Organisasjonens instans |
 |---|---|---|

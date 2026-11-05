@@ -20,7 +20,7 @@ Scegli uno strumento e compilalo, oppure impagina liberamente una pagina sulla t
 
 Il tuo design system decide l'aspetto di ogni strumento.
 
-- **[Design System Setup](/info/brand-studio.html)** - loghi, colori, tipografia e il resto, impostati una volta in `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - loghi, colori, tipografia e il resto, impostati una volta in `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourway su lavoro reale e passaggio al tuo design system.
 - **[Brand architectures](/info/brand-architectures.html)** - più design system, o uno con più colourway, per un'unica organizzazione.
 - **[Working with partners](/info/partners.html)** - condividi il tuo brand con un partner, lavora in un brand che ti è stato dato e crea un muro di sponsor.
@@ -31,8 +31,8 @@ Il tuo design system decide l'aspetto di ogni strumento.
 ## Trova e conserva il tuo lavoro
 
 - **[Find and recover your work](/info/find-your-work.html)** - dove è finito un file salvato, scaricato o non salvato.
-- **[Search](/info/search.html)** e **[Ask Lolly](/info/ask.html)** - un unico campo per i tuoi strumenti, il lavoro salvato, le risorse e le impostazioni, e risposte da queste guide.
-- **[Settings](/info/dashboard.html)** - cosa sa fare questo dispositivo, il tuo design system in sola lettura e la tua archiviazione.
+- **[Lolly Search](/info/search.html)** e **[Ask Lolly](/info/ask.html)** - un unico campo per i tuoi strumenti, il lavoro salvato, le risorse e le impostazioni, e risposte da queste guide.
+- **[Lolly Settings](/info/dashboard.html)** - cosa sa fare questo dispositivo, il tuo design system in sola lettura e la tua archiviazione.
 - **[Your favourites](/info/favourites.html)** e **[Profiles](/info/profile.html)** - strumenti preferiti, i dettagli che gli strumenti precompilano e gli interruttori di accessibilità.
 - **[Sync your devices](/info/sync.html)** - lo stesso lavoro sul computer e sul telefono, tramite l'archiviazione che scegli.
 

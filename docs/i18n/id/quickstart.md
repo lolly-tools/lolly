@@ -24,7 +24,7 @@ Saat pertama kali membuka galeri, sambutan singkat menawarkan pilihan yang sama:
 
 ![Ruangan Colours di Design System Setup pada instalasi baru: satu chip langsung, satu field, dan keseluruhan keputusan pertama](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Dari sana, delapan ruangan membawanya sejauh yang Anda mau, dalam urutan apa pun: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**, dan **Skills**. Setiap pratinjau di aplikasi diperbarui saat Anda mengetik. [Design System Setup](/info/brand-studio.html) membahas setiap ruangan.
+Dari sana, delapan ruangan membawanya sejauh yang Anda mau, dalam urutan apa pun: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**, dan **Skills**. Setiap pratinjau di aplikasi diperbarui saat Anda mengetik. [Lolly Design System Setup](/info/brand-studio.html) membahas setiap ruangan.
 
 Font disimpan di perangkat Anda. Pilih Google Font dan Lolly menyimpan filenya sebagai aset brand, sehingga tipografi Anda ikut offline dan tidak ada yang diambil saat alat menggambar.
 
@@ -58,7 +58,7 @@ Anda tidak mulai dari halaman kosong.
 
 **Deck.** Letakkan `.pptx` PowerPoint ke Lolly untuk menyimpan slide-nya sebagai aset, tulis deck baru dari Markdown di **Markdown Slides**, atau gunakan [Rebrand a deck](/info/rebrand.html) untuk memindahkan seluruh deck ke design system Anda.
 
-**Data.** Tempel atau letakkan tabel CSV atau JSON dan field berulang sebuah alat terisi darinya, atau [Batch](/info/batch.html#make-many-versions-of-one-design) membuat satu file jadi per baris.
+**Data.** Tempel atau letakkan tabel CSV atau JSON dan field berulang sebuah alat terisi darinya, atau [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) membuat satu file jadi per baris.
 
 ### Dari sekali pakai menjadi templat
 
@@ -72,7 +72,7 @@ Tata letak yang diimpor adalah sesi Design biasa. **Share with rules** mengubahn
 
 - <!--i:download--> **Ekspor.** Alat menghasilkan SVG, PDF, PNG, JPG, WebP, video, dan lainnya, dalam format yang ditawarkan tiap alat, pada ukuran cetak yang sebenarnya bila Anda perlukan. Lihat [Export a file](/info/exporting.html).
 - <!--i:link--> **Bagikan tautan.** Pengaturan sebuah alat ikut dalam tautannya, sehingga tautan membuka kembali file yang sama di mana pun.
-- <!--i:layers--> **Buat satu per baris.** Jalankan alat dari spreadsheet di [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Buat satu per baris.** Jalankan alat dari spreadsheet di [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Otomatiskan.** Render yang sama berjalan dari [CLI](/info/cli.html) dan dari [agen AI](/info/ai-agents.html).
 
 Tautan adalah permintaan yang lengkap. Tidak ada yang menggambar bagan di bawah ini: tipe, judul, dan seluruh tabel datanya diketik di bilah alamat, dan tautan yang sama menggambar bagan yang sama di perangkat mana pun.

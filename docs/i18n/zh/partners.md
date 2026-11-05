@@ -16,7 +16,7 @@
 
 | 发送 | 方式 | 合作伙伴得到 | 适合 |
 | --- | --- | --- | --- |
-| 设计系统文件 | 在 [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 顶部栏中点击 **Export** | 你的令牌、字体、徽标和主题偏好，成为一个他们可以切换使用的设计系统 | 要用你的品牌制作大量作品的合作伙伴 |
+| 设计系统文件 | 在 [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 顶部栏中点击 **Export** | 你的令牌、字体、徽标和主题偏好，成为一个他们可以切换使用的设计系统 | 要用你的品牌制作大量作品的合作伙伴 |
 | 可复用工具 | 在 Design 中点击 **Share with rules**（[分享带规则的设计](/info/create-a-tool.html)） | 一个完成的版面，以及你允许修改的输入项，例如他们的名称和徽标。文件携带已确定的颜色、字体和图片，因此他们自己的设计系统无法改变固定的图稿样式 | 每个合作伙伴各自填写的联合品牌传单、徽章或横幅 |
 | 品牌技能 | **Skills** 房间：**Download skill (.zip)** 或 **Copy as one file** | 你书面写下的标准，供他们的团队和AI 代理使用 | 上述任一方式，当有一部分工作由AI 代理完成时 |
 | 令牌 | 工作室 **More** 菜单中的 **Tokens (.json)** | 纯粹的设计令牌文档，不含字体和徽标 | 合作伙伴自己的设计工具或构建流程 |
@@ -125,5 +125,5 @@
 - **[品牌架构](/info/brand-architectures.html)**：联合品牌、白标及其他安排，以及在 Lolly 中各自该怎么做。
 - **[分享带规则的设计](/info/create-a-tool.html)**：版面固定、输入项由你选择的可复用工具。
 - **[品牌技能](/info/brand-skills.html)**：技能如何编写、阅读并交给AI 代理。
-- **[Design System Setup](/info/brand-studio.html)**：徽标、自定义标志，以及在设备之间迁移设计系统。
+- **[Lolly Design System Setup](/info/brand-studio.html)**：徽标、自定义标志，以及在设备之间迁移设计系统。
 - **[创作权益与署名](/info/creative-rights.html)**：Lolly 对所绘作品记录了哪些内容。

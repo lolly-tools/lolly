@@ -13,14 +13,14 @@ Choisis un outil et remplis-le, ou compose librement une page sur le canevas Des
 - **[Templates](/info/templates.html)** - partir d'une mise en page enregistrée plutôt que d'un outil vierge.
 - **[Text in Design](/info/text-composition.html)** - titres, texte qui s'écoule et typographie qui s'ajuste à son bloc.
 - **[3D Studio](/info/3d-studio.html)** - des illustrations SVG et des modèles 3D disposés, éclairés et rendus comme une seule scène.
-- **[Utilities](/info/utilities.html)** - répare un fichier sur ton appareil : partage-le en sécurité, compare deux versions, change son format, extrais les mots ou vérifie une couleur.
+- **[Lolly Utilities](/info/utilities.html)** - répare un fichier sur ton appareil : partage-le en sécurité, compare deux versions, change son format, extrais les mots ou vérifie une couleur.
 - **[Browser extension](/info/extension.html)** - capture une page web en direct depuis l'application web, ou lis un site pour démarrer un design system.
 
 ## Fais-le tien
 
 Ton design system décide de l'aspect de chaque outil.
 
-- **[Design System Setup](/info/brand-studio.html)** - logos, couleurs, typographie et le reste, réglés une fois à `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logos, couleurs, typographie et le reste, réglés une fois à `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - des colourways sur du vrai travail, et le passage à ton propre design system.
 - **[Brand architectures](/info/brand-architectures.html)** - plusieurs design systems, ou un seul avec plusieurs colourways, pour une même organisation.
 - **[Working with partners](/info/partners.html)** - partager ta marque avec un partenaire, travailler dans une marque qu'on t'a confiée et faire un mur de sponsors.
@@ -31,8 +31,8 @@ Ton design system décide de l'aspect de chaque outil.
 ## Retrouver et conserver ton travail
 
 - **[Find and recover your work](/info/find-your-work.html)** - où est passé un fichier enregistré, téléchargé ou non enregistré.
-- **[Search](/info/search.html)** et **[Ask Lolly](/info/ask.html)** - un seul champ pour tes outils, ton travail enregistré, tes ressources et tes réglages, et des réponses tirées de ces guides.
-- **[Settings](/info/dashboard.html)** - ce que cet appareil sait faire, ton design system en lecture seule et ton stockage.
+- **[Lolly Search](/info/search.html)** et **[Ask Lolly](/info/ask.html)** - un seul champ pour tes outils, ton travail enregistré, tes ressources et tes réglages, et des réponses tirées de ces guides.
+- **[Lolly Settings](/info/dashboard.html)** - ce que cet appareil sait faire, ton design system en lecture seule et ton stockage.
 - **[Your favourites](/info/favourites.html)** et **[Profiles](/info/profile.html)** - outils favoris, informations que les outils préremplissent et réglages d'accessibilité.
 - **[Sync your devices](/info/sync.html)** - le même travail sur ton ordinateur et ton téléphone, via un stockage que tu choisis.
 

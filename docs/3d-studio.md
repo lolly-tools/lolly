@@ -1,10 +1,10 @@
-# 3D Studio
+# Lolly 3D Studio
 
-Turn a flat logo into a lit, bevelled object for a launch slide, or loop a product model on a turntable for a social post, without learning 3D software. **3D Studio** takes SVG artwork, 3D models and words in your design system's font and renders them as stills and loops. Start with **Guided** controls, then choose **Expert** to edit the same scene in more detail.
+Turn a flat logo into a lit, bevelled object for a launch slide, or loop a product model on a turntable for a social post, without learning 3D software. **Lolly 3D Studio** takes SVG artwork, 3D models and words in your design system's font and renders them as stills and loops. Start with **Guided** controls, then choose **Expert** to edit the same scene in more detail.
 
 ## Make a first image
 
-1. Open **3D Studio** and try the two-colour sample badge.
+1. Open the **3D Studio** tool and try the two-colour sample badge.
 2. Under **Start**, choose **SVG artwork**, **A 3D model** or **Words in the brand font**. Use the asset picker to select or upload an SVG, GLB, STL or 3MF; uploads stay on this device for reuse.
 3. Under **Look**, choose a lighting studio. Keep the source materials, or apply a colour pair and choose a finish for each colour. An SVG with one or two colours, such as a two-tone icon, starts as a colour pair of its own colours, so **Colour A** and **Colour B** change its two parts.
 4. Choose **Fit object**, drag the preview to orbit, or use the arrow keys while it has focus (Shift for larger steps). **Reset camera** restores the starting view, and undo and redo recover each action.
@@ -12,7 +12,7 @@ Turn a flat logo into a lit, bevelled object for a launch slide, or loop a produ
 6. For SVG artwork, adjust **Depth** and **Bevel** under **Shape**. Small details need a smaller bevel.
 7. Choose the image contents under **Output**, then export.
 
-![The two-colour badge in 3D Studio, with guided controls and a shaded preview of its depth and bevel.](/t/url-shot?url=%2F3d-studio%3Fsource%3Dprimitive%26primitive%3Dbadge%26colorA%3D%2523238d75%26colorB%3D%2523ffc36a%26background%3D%2523f2eee5%26studio%3Dsoft%26motion%3Dstill%26outputMode%3Dscene%26backdrop%3Dsolid&width=960&height=700&dpi=96&waitMs=6000&format=svg&filename=3d-studio-guided&try=1&waitSelector=.studio-frame%5Bdata-studio-state%3D%22ready%22%5D&walker=1&rasterDpi=96)
+![The two-colour badge in Lolly 3D Studio, with guided controls and a shaded preview of its depth and bevel.](/t/url-shot?url=%2F3d-studio%3Fsource%3Dprimitive%26primitive%3Dbadge%26colorA%3D%2523238d75%26colorB%3D%2523ffc36a%26background%3D%2523f2eee5%26studio%3Dsoft%26motion%3Dstill%26outputMode%3Dscene%26backdrop%3Dsolid&width=960&height=700&dpi=96&waitMs=6000&format=svg&filename=3d-studio-guided&try=1&waitSelector=.studio-frame%5Bdata-studio-state%3D%22ready%22%5D&walker=1&rasterDpi=96)
 
 Colour A, colour B, the background and the lights start from your design system's colours, so switching design system or colourway recolours the scene.
 
@@ -163,14 +163,15 @@ Each document remembers its studio and the controls you changed afterwards. Edit
 
 For many variants, use Lolly's batch workflow with rows that keep the same lighting, material and camera values and vary `artwork` or `modelAsset`, saving a framing override where a shape needs one. **Make variants** edits several sessions side by side: its shared controls change them together, and the active cell orbits while the others stay still. Later edits to a template do not change sessions already made from that template.
 
-### Place a scene in Design
+<a id="place-a-scene-in-design"></a>
+### Place a scene in Lolly Design
 
-Choose **3D scene** from the add menu on Design's tool rail and drag out a frame; 3D Studio opens on the new box. Otherwise a scene box is an ordinary box: move it, resize it, give it a shadow, put it on a slide or the timeline.
+Choose **3D scene** from the add menu on Lolly Design's tool rail and drag out a frame; Lolly 3D Studio opens on the new box. Otherwise a scene box is an ordinary box: move it, resize it, give it a shadow, put it on a slide or the timeline.
 
-- **It keeps the recipe, not a picture.** The box stores the scene as 3D Studio's own link settings, so it re-renders at whatever size and moment the document asks for. Uploaded pictures travel by id, and a `.lolly` file carries their bytes.
+- **It keeps the recipe, not a picture.** The box stores the scene as Lolly 3D Studio's own link settings, so it re-renders at whatever size and moment the document asks for. Uploaded pictures travel by id, and a `.lolly` file carries their bytes.
 - **Edit it in the studio.** Select the box, then choose **Edit in 3D Studio** in the Inspector's **3D scene** section. Apply writes the edit back as one undo step; closing without applying changes nothing.
 - **One live scene, posters elsewhere.** Every scene box shows a still poster, drawn off screen at the box's size. The selected box is the one live scene, for looking at rather than orbiting, so a document with twenty scenes still runs one live renderer, and a document with no scene box loads no 3D code at all. A device that cannot open a floating-point graphics context keeps the poster and explains why in the box.
-- **On the timeline**, a scene box follows the playhead like a video clip: its start, clip-in and speed move through the scene's own loop, which comes from 3D Studio rather than Design's keyframes. Trimming the box shows less of the scene rather than speeding it up.
+- **On the timeline**, a scene box follows the playhead like a video clip: its start, clip-in and speed move through the scene's own loop, which comes from Lolly 3D Studio rather than Lolly Design's keyframes. Trimming the box shows less of the scene rather than speeding it up.
 - **In an export**, each scene is drawn fresh at the size the file needs, one frame per moment in a video. A scene that cannot be drawn fails the export with the studio's reason.
 - **Sharing.** A share link carries a scene's device-local upload id as it stands, so on someone else's device that picture falls back to the studio default; send a `.lolly` file to include the upload.
 

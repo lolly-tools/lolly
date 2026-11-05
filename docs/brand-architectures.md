@@ -32,16 +32,16 @@ Not sure? Start with one design system. [A colourway, a logo identity, or a desi
 
 | Block | What it holds | Where |
 | --- | --- | --- |
-| **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [Design System Setup](/info/brand-studio.html), and **Settings → Preferences → Design systems** to switch or remove |
+| **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [Lolly Design System Setup](/info/brand-studio.html), and **Settings → Preferences → Design systems** to switch or remove |
 | **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both. A tool's **Design system** section switches the look when the look changes that tool, and the open tool redraws with no reload |
-| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical. Each person can take a colourway as their own, which colours the app around them and starts their new work in that colourway; without a choice the app uses the canonical one. Tools that draw several colours at once, such as Chart and Mesh Gradient, draw on every lead together. | Made and edited in the **Colours** room: open **Colour roles**, then the **Colourways** row. Chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload, and taken as your own in **Settings → Appearance**. Rebuilding the palette keeps every colourway. See [Colourways](/info/colourways.html) |
+| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical. Each person can take a colourway as their own, which colours the app around them and starts their new work in that colourway; without a choice the app uses the canonical one. Tools that draw several colours at once, such as Lolly Chart and Mesh Gradient, draw on every lead together. | Made and edited in the **Colours** room: open **Colour roles**, then the **Colourways** row. Chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload, and taken as your own in **Settings → Appearance**. Rebuilding the palette keeps every colourway. See [Colourways](/info/colourways.html) |
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup, a partner's logo you use often. They belong to the design system and travel in its file. | **Logos** room, **Custom marks** |
-| **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | Written in the token file and listed in the studio's **Rules** room, where **Add rule** adds rules for the example pieces. `lolly check` checks house rules on a saved Design document; see [Rules](/info/brand-studio.html#rules) |
-| **Brand skills** | The brand's written standards, one skill per discipline (overall brand, photography, motion and others), for people and AI agents to read. Guidance, not checks: house rules are what Lolly checks. Each design system keeps its own skills under its own name, and colourways share them. A design system without skills of its own has a baseline that Lolly writes from its tokens and house rules. | The **Skills** room in Design System Setup, which reads each skill and downloads it for an agent; `lolly system skills` and Lolly's MCP server list them too. See [Brand skills](/info/brand-skills.html) |
-| **Versions** | Permanent named copies of a design system. A link can pin one with `designv`. | **Versions & publishing** in the **More** menu of Design System Setup's bar; after the first publish, the **Versions** room joins the rooms. See [Versions](/info/brand-studio.html#versions) |
+| **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | Written in the token file and listed in the studio's **Rules** room, where **Add rule** adds rules for the example pieces. `lolly check` checks house rules on a saved Lolly Design document; see [Rules](/info/brand-studio.html#rules) |
+| **Brand skills** | The brand's written standards, one skill per discipline (overall brand, photography, motion and others), for people and AI agents to read. Guidance, not checks: house rules are what Lolly checks. Each design system keeps its own skills under its own name, and colourways share them. A design system without skills of its own has a baseline that Lolly writes from its tokens and house rules. | The **Skills** room in Lolly Design System Setup, which reads each skill and downloads it for an agent; `lolly system skills` and Lolly's MCP server list them too. See [Brand skills](/info/brand-skills.html) |
+| **Versions** | Permanent named copies of a design system. A link can pin one with `designv`. | **Versions & publishing** in the **More** menu of Lolly Design System Setup's bar; after the first publish, the **Versions** room joins the rooms. See [Versions](/info/brand-studio.html#versions) |
 | **Several design systems** | Any number on one device, one active at a time. A design system travels as a single file. An organisation that runs its own Lolly can supply one to everyone. | **Settings → Preferences → Design systems**; [Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices) |
-| **Reusable tools** | A finished Design document turned into a tool with the inputs you choose. The `.lolly` file carries the resolved colours, fonts and images, so another person's active design system cannot restyle the fixed artwork. | In Design, **Share with rules**; see [Share a design with rules](/info/create-a-tool.html) |
+| **Reusable tools** | A finished Lolly Design document turned into a tool with the inputs you choose. The `.lolly` file carries the resolved colours, fonts and images, so another person's active design system cannot restyle the fixed artwork. | In Lolly Design, **Share with rules**; see [Share a design with rules](/info/create-a-tool.html) |
 | **Theme groups of other kinds** | A design system can declare groups such as `campaign`, `brand` or `expression`. Lolly keeps them and resolves them as plain theme choices today. | The token file; chosen from a list in a tool's **Design system** section. See [What a theme group means](/info/design-tokens.html#what-a-theme-group-means) |
 
 ## Arrangements at a glance
@@ -58,7 +58,7 @@ A common way to group arrangements is by how much of the parent brand the audien
 | Endorse | Apparent | Distinct marks that share type, grid and motion | A design system per brand, copied from a shared start and kept in step with **Review an upstream update** | A shared core the brands follow as it changes |
 | Detach | Shadow | Related brands that each define themselves | A design system per brand | A record of how they relate |
 | Detach | Discrete | Brands with no visible relationship | A design system per brand, switched per job; a saved piece offers to switch back to the design system it was made with | One artefact per brand open side by side |
-| Across | Co-branding | A partner's mark on your artwork | The lead brand's design system; the partner's logo placed as an image or a custom mark; Logo Wall for sponsor walls; each brand's skills given to an agent under their own names | The partner's own rules: clear space, minimum size |
+| Across | Co-branding | A partner's mark on your artwork | The lead brand's design system; the partner's logo placed as an image or a custom mark; Lolly Logo Wall for sponsor walls; each brand's skills given to an agent under their own names | The partner's own rules: clear space, minimum size |
 | Across | White label | One asset re-skinned for each client | A design system per client, switched per job; a reusable tool per client | Keeping clients apart automatically |
 | Across | Seasons and campaigns | A seasonal skin over the core, for a set time | A colourway for a season that changes only the lead colour; a theme group of kind `campaign` with a date window for more, chosen in the tool | Applying the window to new work; scheduling |
 
@@ -78,7 +78,7 @@ Monolithic brands in the wild: FedEx, GE, Intel and Apple.
 
 **What to do today:**
 
-1. Make **one design system** for Northwind in [Design System Setup](/info/brand-studio.html).
+1. Make **one design system** for Northwind in [Lolly Design System Setup](/info/brand-studio.html).
 2. Give each division a **colourway**. In the **Colours** room, open **Colour roles**, press **+ Add** in the **Colourways** row and choose the division's colour from the palette's colours. Choose a colourway's chip to set its roles, and press **Make default** on the colourway most work should start in.
 3. People in Freight take the Freight colourway as their own under **Settings → Appearance**. The app they work in takes on the Freight teal, and every piece they start begins in Freight. One design system still serves every division ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)).
 4. For one piece in another division's colour, pick that colourway's dot in the tool's **Design system** section, which shows the colourway dots in every tool that draws the lead colour.
@@ -121,10 +121,10 @@ Lolly Demo, Lolly's own demonstration design system, has six colourways. Spearmi
 
 1. Make **one design system** with a **colourway** for each lead colour, in the **Colours** room. Each colourway carries its own lead, the colour that sits on it, and a partner, in both light and dark; the room's **Light** and **Dark** switch chooses which look you edit.
 2. Mark one colourway canonical with **Make default**. An artefact that chooses none uses the canonical colourway, and so does the app, until a person takes another colourway as their own in **Settings → Appearance**.
-3. For a series, give each [batch](/info/batch.html#colourways-and-themes-per-row) row its colourway in the CSV's `_themes` column, such as `{"colourway":"beach"}`. Each row renders in its own colourway, and so does a tool placed inside it, such as a QR code. A saved session keeps its colourway in multi-edit, in a batch and in a Design document export.
+3. For a series, give each [Lolly batch](/info/batch.html#colourways-and-themes-per-row) row its colourway in the CSV's `_themes` column, such as `{"colourway":"beach"}`. Each row renders in its own colourway, and so does a tool placed inside it, such as a QR code. A saved session keeps its colourway in multi-edit, in a batch and in a Lolly Design document export.
 4. To export one piece in several colourways from the command line, list them on a `lolly run` command: `--themes=Spearmint,Beach --output=post.png` writes `post-Spearmint.png` and `post-Beach.png` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)).
 
-Pieces that show the whole family at once draw on every lead, canonical first: Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles)). [Verify](/verify) reads back which colourway drew each piece, from the record an export carries while its **Design system** card is ticked.
+Pieces that show the whole family at once draw on every lead, canonical first: Lolly Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles)). [Lolly Verify](/verify) reads back which colourway drew each piece, from the record an export carries while its **Design system** card is ticked.
 
 **Not yet:** no series, batch or copy flow picks colourways by a rule, and the batch grid has no control for a row's colourway. **Until then:** write each row's colourway into the CSV yourself, in turn or by speaker or product. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Rules for a series](/info/colourways.html#rules-for-a-series).
 
@@ -143,7 +143,7 @@ Driven brands in the wild: Tata, Virgin and Mitsubishi.
 **What to do today:**
 
 1. When the businesses share everything but the name, use **one design system** and write the business name as text, or add each name lockup as a **custom mark**.
-2. When a business needs its own material, give it a **design system of its own**. **Export** the parent's design system from Design System Setup's bar; the business opens the file with **Add from…**, renames the design system in the studio's bar and adds its own logos, colours and files ([Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices)).
+2. When a business needs its own material, give it a **design system of its own**. **Export** the parent's design system from Lolly Design System Setup's bar; the business opens the file with **Add from…**, renames the design system in the studio's bar and adds its own logos, colours and files ([Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices)).
 3. Keep the parent's tokens as a file too, with **Tokens (.json)** in the bar's **More** menu.
 4. An organisation that runs its own Lolly can supply the parent's design system to everyone. When its catalogue is not locked, it can also offer each business's design system beside the parent's, and each arrives as an editable copy ([Configuration](/info/configuration.html#supplied-and-local-design-systems)).
 
@@ -168,7 +168,7 @@ Appended brands in the wild: Broadcom and Meta.
 3. **Publish a version** while the endorsement runs, and give the version the period in its name, such as *Ferro by Halcyon, 2026 to 2027*.
 4. When the endorsement ends, replace the custom mark and publish a new version.
 
-An export drawn from a published version records that version, and *Recreate with these settings* in [Verify](/verify) reopens the tool in the same version. A link that you write with `designv` draws in that version on a device that holds the version; Lolly never writes `designv` into a share link ([Reserved URL parameters](/info/url-parameters.html#design-system-language-and-emoji)).
+An export drawn from a published version records that version, and *Recreate with these settings* in [Lolly Verify](/verify) reopens the tool in the same version. A link that you write with `designv` draws in that version on a device that holds the version; Lolly never writes `designv` into a share link ([Reserved URL parameters](/info/url-parameters.html#design-system-language-and-emoji)).
 
 **Not yet:** Lolly does not generate an endorsement lockup from the two marks, and a design system cannot carry the date an endorsement ends. **Until then:** the version's name records the period, and replacing the custom mark ends the endorsement for new work.
 
@@ -225,7 +225,7 @@ Discrete brands in the wild: Unilever and Procter & Gamble.
 4. Open a saved piece while another design system is active, and a notice at the top of the tool gives the design system the piece was made with, with a button to switch to it when it is on the device.
 5. A Lolly workspace supplies one design system to everyone who joins it, so each brand that needs a workspace has its own.
 
-**Not yet:** an artefact does not own its design system, so two brands cannot be open side by side, and a workspace cannot supply a different design system to different groups of people. **Until then:** finish one brand's piece, then switch. In a terminal, each command takes one design system: `lolly system use <id>` switches the terminal, and `--file=<tokens.json>` holds a design system for one Design run ([Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses)).
+**Not yet:** an artefact does not own its design system, so two brands cannot be open side by side, and a workspace cannot supply a different design system to different groups of people. **Until then:** finish one brand's piece, then switch. In a terminal, each command takes one design system: `lolly system use <id>` switches the terminal, and `--file=<tokens.json>` holds a design system for one Lolly Design run ([Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses)).
 
 ## Across the groups
 
@@ -236,8 +236,8 @@ A sponsor's or partner's mark on your event poster, a reseller's offer under the
 **What to do today:**
 
 1. Make the piece in the lead brand's design system.
-2. Put the partner's logo in **Assets**, then choose it in the tool's image field, or in Design with **Image** from the rail's add menu. For a partner you work with often, add the logo as a **custom mark**, so the logo travels with your design system.
-3. For a sponsor or partner wall, use the [Logo Wall](/#/tool/logo-wall) tool. Give each logo a tier, such as "Gold partners", and each tier gets its own rows under its own heading. At another size, such as an A4 page, the wall is laid out again to fill the page, on the canvas and in the export. The CLI builds the wall from a folder of pictures or a CSV ([A sponsor wall with tiers](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
+2. Put the partner's logo in **Assets**, then choose it in the tool's image field, or in Lolly Design with **Image** from the rail's add menu. For a partner you work with often, add the logo as a **custom mark**, so the logo travels with your design system.
+3. For a sponsor or partner wall, use the [Lolly Logo Wall](/#/tool/logo-wall) tool. Give each logo a tier, such as "Gold partners", and each tier gets its own rows under its own heading. At another size, such as an A4 page, the wall is laid out again to fill the page, on the canvas and in the export. The CLI builds the wall from a folder of pictures or a CSV ([A sponsor wall with tiers](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 4. When an agent does the work, give the agent each brand's [brand skills](/info/brand-skills.html) as they are, and say which brand leads. Each brand's skills keep their own names and ids. Lolly does not merge two brands' skills or decide which brand wins.
 
 [Working with partners](/info/partners.html) has the steps for both sides: sharing your brand with a partner, working in a brand you were given, placing a partner's mark and building a logo wall.
@@ -315,5 +315,5 @@ The logos on this page are trademarks of their owners. They appear only to show 
 
 - **[Working with partners](/info/partners.html)**: sharing your brand with a partner, working in a brand you were given and sponsor walls.
 - **[Colourways](/info/colourways.html)**: how a colourway is chosen and how to add colourways to a design system.
-- **[Design System Setup](/info/brand-studio.html)**: logos, colours, versions and copies.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: logos, colours, versions and copies.
 - **[Design Tokens](/info/design-tokens.html)**: the token model every design system is written in.

@@ -952,7 +952,7 @@
         "reads": [],
         "writes": [],
         "preserves": "none",
-        "note": "A Standard MIDI File has no place for a Content Credential, so Rondocode writes a text event naming the song instead. Importing a .mid never rewrites it: the original bytes are kept."
+        "note": "A Standard MIDI File has no place for a Content Credential, so Lolly Rondocode writes a text event naming the song instead. Importing a .mid never rewrites it: the original bytes are kept."
       }
     },
     {

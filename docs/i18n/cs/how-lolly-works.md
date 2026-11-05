@@ -35,7 +35,7 @@ Každá cesta spouští stejný engine se stejným nástrojem, takže soubor, kt
 ![Parametry URL a argumenty příkazového řádku se stanou stejným modelem vstupů, procházejícím jedním sdíleným runtime a exportním mostem](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **V aplikaci, po jednom.** Otevři nástroj, vyplň pole a stiskni **Export**. [Vytvoř svůj první soubor](/info/make-something.html) tě jím provede.
-- <!--i:layers--> **V aplikaci, mnoho najednou.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) vezme vloženou nebo importovanou tabulku a vykreslí jeden hotový soubor na řádek.
+- <!--i:layers--> **V aplikaci, mnoho najednou.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) vezme vloženou nebo importovanou tabulku a vykreslí jeden hotový soubor na řádek.
 - <!--i:cpu--> **Ze skriptu nebo od AI agenta.** [CLI](/info/cli.html) spouští nástroj bez rozhraní a [server MCP](/info/mcp.html) umožňuje agentovi nástroje objevovat a spouštět. Odkaz na nástroj nese i jeho vstupy, takže odkaz je úplný požadavek.
 - <!--i:server--> **Přes server tvé organizace.** [Lolly Work](/info/organisation.html) vykresluje na serveru pod přihlášením a politikou nástrojů tvé organizace, drží úlohy, které lze obnovit, a uchovává výstup ke stažení nebo schválenému doručení.
 
