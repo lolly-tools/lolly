@@ -5,7 +5,7 @@ description: "Operate the Lolly Quote tool (quote) using its declared inputs and
 
 # Quote
 
-Tool ID: `quote`. Tool version: `1.0.0`. Engine range: `^1.82.0`.
+Tool ID: `quote`. Tool version: `1.0.1`. Engine range: `^1.304.0`.
 
 A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.
 

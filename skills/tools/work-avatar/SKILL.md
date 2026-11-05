@@ -5,7 +5,7 @@ description: "Operate the Lolly Work Avatar tool (work-avatar) using its declare
 
 # Work Avatar
 
-Tool ID: `work-avatar`. Tool version: `1.2.3`. Engine range: `^1.214.0`.
+Tool ID: `work-avatar`. Tool version: `1.2.4`. Engine range: `^1.304.0`.
 
 A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your design system's colours and type.
 

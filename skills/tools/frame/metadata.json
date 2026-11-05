@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "frame",
-  "toolVersion": "1.1.2",
-  "toolVersionRange": "1.1.2",
+  "toolVersion": "1.1.3",
+  "toolVersionRange": "1.1.3",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,8 +11,8 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "23d217c03bbc6cb0c019fa1cadd2cd9eaba5c3359e5da8ca6a8cf96e03533f1f",
-      "bytes": 1893
+      "sha256": "1ab3d886d9d5252c72033cc118448a44993d30d5cfbf84eaef8ae9ebda4eaffd",
+      "bytes": 1895
     },
     "reference/inputs.json": {
       "sha256": "d8ac483f2cf4a2643f862938d6d804dccfd77f782b94192ab912637d0f1cea95",
