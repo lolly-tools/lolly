@@ -4,7 +4,7 @@
   "category": "Publishing",
   "description": "A journal page with balanced columns, paragraph styles and a generous headline.",
   "values": {
-    "background": "#f4f1e8",
+    "background": "{color.semantic.surface}",
     "boxes": [
       {
         "id": "page",
@@ -14,7 +14,7 @@
         "y": 0,
         "w": 960,
         "h": 1280,
-        "bg": "#f4f1e8",
+        "bg": "var(--brand-surface, #f4f1e8)",
         "clipChildren": true,
         "order": 0
       },
@@ -40,7 +40,7 @@
         "y": 101,
         "w": 720,
         "h": 35,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 17,
         "align": "left",
         "valign": "top",
@@ -59,7 +59,7 @@
         "y": 155,
         "w": 834,
         "h": 280,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 80,
         "align": "left",
         "valign": "top",
@@ -78,7 +78,7 @@
         "y": 448,
         "w": 752,
         "h": 115,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 25,
         "align": "left",
         "valign": "top",
@@ -97,7 +97,7 @@
         "y": 590,
         "w": 816,
         "h": 514,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 21,
         "align": "left",
         "valign": "top",
@@ -114,7 +114,7 @@
         "y": 1160,
         "w": 816,
         "h": 2,
-        "bg": "#182a29",
+        "bg": "var(--brand-text, #182a29)",
         "shape": "rect",
         "frame": "page"
       },
@@ -128,7 +128,7 @@
         "y": 1185,
         "w": 760,
         "h": 28,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 15,
         "align": "left",
         "valign": "top",
@@ -139,6 +139,5 @@
       }
     ],
     "textDocument": "{\"version\":1,\"fonts\":[{\"id\":\"sans\",\"family\":\"SUSE\",\"sha256\":\"e58dc240debae8a177d236e977e3834c6fff3883a7ad6010f098778f60904527\",\"faceIndex\":0,\"source\":{\"kind\":\"bundled\",\"path\":\"/fonts/SUSE[wght].ttf\"}},{\"id\":\"mono\",\"family\":\"SUSE Mono\",\"sha256\":\"0c084ef20dc4c98e4ecc695e7b59991cdcb275aca8d350daece78296a5df30cc\",\"faceIndex\":0,\"source\":{\"kind\":\"bundled\",\"path\":\"/fonts/SUSEMono[wght].ttf\"}}],\"styles\":[{\"id\":\"label\",\"name\":\"label\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"mono\",\"size\":17,\"weight\":500,\"color\":\"#182a29\"},\"lineHeight\":1.25,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"headline\",\"name\":\"headline\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":80,\"weight\":720,\"color\":\"#182a29\"},\"lineHeight\":1.03,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"standfirst\",\"name\":\"standfirst\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":25,\"weight\":450,\"color\":\"#182a29\"},\"lineHeight\":1.35,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"body\",\"name\":\"body\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":21,\"weight\":400,\"color\":\"#182a29\"},\"lineHeight\":1.38,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16},\"spaceAfter\":16}},{\"id\":\"footer\",\"name\":\"footer\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":15,\"weight\":400,\"color\":\"#182a29\"},\"lineHeight\":1.25,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}}],\"stories\":[{\"version\":1,\"id\":\"edition-story\",\"revision\":0,\"source\":\"FIELD NOTES / 01\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"edition\"],\"paragraphs\":[{\"start\":0,\"end\":16,\"id\":\"edition-p0\"}],\"defaultStyle\":\"label\"},{\"version\":1,\"id\":\"headline-story\",\"revision\":0,\"source\":\"Give ideas\\nroom to grow.\",\"breaks\":[{\"start\":10,\"length\":1,\"kind\":\"paragraph\"}],\"spans\":[],\"inlines\":[],\"frameIds\":[\"headline\"],\"paragraphs\":[{\"start\":0,\"end\":10,\"id\":\"headline-p0\"},{\"start\":11,\"end\":24,\"id\":\"headline-p1\"}],\"defaultStyle\":\"headline\"},{\"version\":1,\"id\":\"standfirst-story\",\"revision\":0,\"source\":\"A small journal about clear thinking, careful typography and the space between words.\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"standfirst\"],\"paragraphs\":[{\"start\":0,\"end\":85,\"id\":\"standfirst-p0\"}],\"defaultStyle\":\"standfirst\"},{\"version\":1,\"id\":\"article-story\",\"revision\":0,\"source\":\"A good page makes room for a reader. It offers a clear beginning, a comfortable measure and enough space to pause. The words still do the work; the layout helps someone stay with them.\\nThis journal keeps its article in one text frame with two balanced columns. Change a sentence and both columns respond. The gutter separates the reading lanes, while the shared line height gives the page a steady rhythm.\\nStart with the main idea. Put supporting detail close enough to find, and let a smaller note carry the practical information. A heading can be generous without making the body copy timid. The contrast comes from scale, weight and space.\\nEdit this story directly on the page. Try a longer opening, change the column count, or adjust the space after each paragraph. Best paragraph composition considers several lines together, and the short-last-line setting helps avoid an isolated final word.\\nThe page is a starting point. Replace this article with your field notes, an interview, a project update or a thoughtful letter to your community. Keep the useful structure, then make the voice your own.\",\"breaks\":[{\"start\":184,\"length\":1,\"kind\":\"paragraph\"},{\"start\":405,\"length\":1,\"kind\":\"paragraph\"},{\"start\":642,\"length\":1,\"kind\":\"paragraph\"},{\"start\":898,\"length\":1,\"kind\":\"paragraph\"}],\"spans\":[],\"inlines\":[],\"frameIds\":[\"article\"],\"paragraphs\":[{\"start\":0,\"end\":184,\"id\":\"article-p0\"},{\"start\":185,\"end\":405,\"id\":\"article-p1\"},{\"start\":406,\"end\":642,\"id\":\"article-p2\"},{\"start\":643,\"end\":898,\"id\":\"article-p3\"},{\"start\":899,\"end\":1102,\"id\":\"article-p4\"}],\"defaultStyle\":\"body\"},{\"version\":1,\"id\":\"footer-story\",\"revision\":0,\"source\":\"FIELD NOTES     /     A JOURNAL FOR CURIOUS PEOPLE\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"footer\"],\"paragraphs\":[{\"start\":0,\"end\":50,\"id\":\"footer-p0\"}],\"defaultStyle\":\"footer\"}]}"
-  },
-  "thumb": "/tools/design/assets/publishing-field-notes.png"
+  }
 }

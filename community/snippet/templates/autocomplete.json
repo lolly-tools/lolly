@@ -42,7 +42,8 @@
       "values": {
         "theme": "suse-light",
         "windowStyle": "nuremberg"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "close-afterwards",
@@ -50,7 +51,8 @@
       "description": "Close the window after the result has been read.",
       "values": {
         "ending": "close"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

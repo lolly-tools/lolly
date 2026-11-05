@@ -1,0 +1,15 @@
+{
+  "id": "type-only",
+  "name": "Type only",
+  "category": "Geometry",
+  "description": "The picture drawn in text characters.",
+  "values": {
+    "effect": "ascii",
+    "width": 1200,
+    "height": 1450,
+    "image": {
+      "id": "lolly/demo/sample-character"
+    },
+    "as_bgColor": "{color.semantic.surface}"
+  }
+}

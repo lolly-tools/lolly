@@ -1,0 +1,84 @@
+{
+  "id": "meetup-board",
+  "name": "Meetup door screen",
+  "category": "Meetup",
+  "description": "The same evening as a screen in the entrance.",
+  "values": {
+    "title": "Riverside Front-End Meetup",
+    "subtitle": "Thursday at the old print works",
+    "layout": "board",
+    "now": "2026-11-05T18:35",
+    "tz": "",
+    "showSpeakers": true,
+    "showRooms": false,
+    "compact": false,
+    "plenaryLabel": "",
+    "nowLabel": "",
+    "nextLabel": "",
+    "sessions": {
+      "columns": [
+        "Date",
+        "Start",
+        "End",
+        "Title",
+        "Speaker",
+        "Track",
+        "Room",
+        "Kind",
+        "Note",
+        "Session ID"
+      ],
+      "rows": [
+        [
+          "2026-11-05",
+          "18:00",
+          "18:20",
+          "Doors, pizza and hellos",
+          "",
+          "",
+          "Ground floor",
+          "social",
+          "",
+          "agenda-meetup-1"
+        ],
+        [
+          "2026-11-05",
+          "18:20",
+          "18:50",
+          "Lightning talks",
+          "Five of you, five minutes each",
+          "",
+          "Ground floor",
+          "session",
+          "Sign up on the board by the door",
+          "agenda-meetup-2"
+        ],
+        [
+          "2026-11-05",
+          "18:50",
+          "19:35",
+          "Shipping on a Friday and sleeping on Saturday",
+          "Jonas Weber",
+          "",
+          "Ground floor",
+          "session",
+          "",
+          "agenda-meetup-3"
+        ],
+        [
+          "2026-11-05",
+          "19:35",
+          "20:30",
+          "Drinks and carry on",
+          "",
+          "",
+          "Ground floor",
+          "social",
+          "",
+          "agenda-meetup-4"
+        ]
+      ]
+    },
+    "eventId": "meetup-2026"
+  }
+}

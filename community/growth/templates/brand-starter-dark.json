@@ -6,7 +6,7 @@
   "values": {
     "seedShape": "burst",
     "background": "transparent",
-    "color1": "{color.semantic.on-primary}",
+    "color1": "{color.semantic.surface}",
     "color2": "{color.semantic.secondary}",
     "color3": "{color.semantic.secondary}",
     "weight": 6,

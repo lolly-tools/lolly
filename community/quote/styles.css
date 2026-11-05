@@ -40,8 +40,6 @@
   color: var(--qt-accent, #2563eb);
   font-size: 2.3cqmin;
   font-weight: 650;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 .qt-customer {
   margin-top: 1cqmin;
@@ -52,7 +50,7 @@
   overflow-wrap: anywhere;
 }
 .qt-meta { display: flex; gap: 4cqmin; text-align: right; }
-.qt-meta dt { font-size: 1.9cqmin; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; }
+.qt-meta dt { font-size: 1.9cqmin;opacity: 0.6; }
 .qt-meta dd { font-size: 2.6cqmin; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .qt-lines {
@@ -65,8 +63,6 @@
   border-bottom: 0.3cqmin solid currentColor;
   font-size: 1.9cqmin;
   font-weight: 650;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   text-align: left;
   opacity: 0.75;
 }

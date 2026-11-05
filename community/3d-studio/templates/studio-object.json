@@ -1,0 +1,21 @@
+{
+  "id": "studio-object",
+  "name": "Object on transparency",
+  "category": "Stills",
+  "description": "An object with its soft shadow and no background, ready to place on anything.",
+  "values": {
+    "source": "primitive",
+    "primitive": "badge",
+    "materialMode": "pair",
+    "finishA": "satin",
+    "finishB": "enamel",
+    "studio": "soft",
+    "drama": 0.45,
+    "outputMode": "object-shadow",
+    "shadowOpacity": 0.4,
+    "motion": "still",
+    "cameraMotion": "still",
+    "lightMotion": "still"
+  },
+  "galleryCover": true
+}

@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "deck-studio",
-  "toolVersion": "1.2.3",
-  "toolVersionRange": "1.2.3",
+  "toolVersion": "1.2.4",
+  "toolVersionRange": "1.2.4",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "a872e4e14d01cc83c8a9e6b696a4164e6de7b48f09341628cadc6ca36e08cf9d",
+      "sha256": "a4b6e8c079aaeced9ed41d473da03b595e20bb3574bfde63b8378f5fdb2883e1",
       "bytes": 2053
     },
     "reference/inputs.json": {

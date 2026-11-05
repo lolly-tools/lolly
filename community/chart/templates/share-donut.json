@@ -17,13 +17,19 @@
       "id": "pie",
       "name": "Pie",
       "description": "Close the hole for a classic pie.",
-      "values": { "chartType": "pie" }
+      "values": {
+        "chartType": "pie"
+      },
+      "kind": "retired"
     },
     {
       "id": "sorted",
       "name": "Largest first",
       "description": "Order the slices from largest to smallest.",
-      "values": { "sort": "desc" }
+      "values": {
+        "sort": "desc"
+      },
+      "kind": "retired"
     }
   ]
 }

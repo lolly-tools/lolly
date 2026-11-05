@@ -102,8 +102,8 @@
     },
     "templates-presets-templates": {
       "slug": "tool-starters",
-      "anchor": "templates-presets-templates",
-      "label": "Templates & presets (templates/)"
+      "anchor": "templates-templates",
+      "label": "Templates (templates/)"
     },
     "templates-people-save": {
       "slug": "tool-starters",

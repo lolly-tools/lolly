@@ -5,7 +5,7 @@ description: "Operate the Lolly Calendar tool (calendar-ics) using its declared 
 
 # Calendar
 
-Tool ID: `calendar-ics`. Tool version: `1.2.3`. Engine range: `^1.0.0`.
+Tool ID: `calendar-ics`. Tool version: `1.2.4`. Engine range: `^1.0.0`.
 
 Turn event details into a calendar (.ics) file for any calendar app.
 

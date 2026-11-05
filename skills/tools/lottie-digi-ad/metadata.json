@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "lottie-digi-ad",
-  "toolVersion": "1.0.3",
-  "toolVersionRange": "1.0.3",
+  "toolVersion": "1.0.4",
+  "toolVersionRange": "1.0.4",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,7 +10,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "b4e850d85266b1dabcde65fdb656dffda6b38a459df63888f91c4b4b04b59e8a",
+      "sha256": "92d7cd6a126b2fc32713a5865ee06d918dcffdd1f71a2e624c62499b7a14cb40",
       "bytes": 1685
     },
     "reference/inputs.json": {

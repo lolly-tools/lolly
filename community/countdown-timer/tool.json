@@ -2,7 +2,7 @@
   "id": "countdown-timer",
   "name": "Countdown",
   "description": "A focused countdown with a live progress ring. Click to pause.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",

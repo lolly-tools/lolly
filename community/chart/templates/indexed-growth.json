@@ -23,7 +23,8 @@
       "values": {
         "plotMotionPreset": "stagger",
         "animSpeed": 2.2
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

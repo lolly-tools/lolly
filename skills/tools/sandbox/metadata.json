@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "sandbox",
-  "toolVersion": "1.7.0",
-  "toolVersionRange": "1.7.0",
+  "toolVersion": "1.7.1",
+  "toolVersionRange": "1.7.1",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,7 +10,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "af486efab4db3751ff921b6ce4624589ca3fc35bdf2cc6d07479868f19d3e595",
+      "sha256": "ffd33916b7e82152ab63abeb373bad8ca858a80eb5199d87d9dded1372de5dfe",
       "bytes": 1628
     },
     "reference/inputs.json": {

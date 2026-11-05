@@ -6,11 +6,15 @@
   "values": {
     "url": "https://example.com",
     "ecl": "M",
-    "padding": 4,
+    "padding": 3,
     "join": true,
     "color": "{color.semantic.secondary}",
     "background": "transparent",
-    "transparentBg": true
+    "transparentBg": true,
+    "moduleShape": "dot",
+    "eyeShape": "rounded",
+    "fill": "mix",
+    "color2": "{color.semantic.primary}"
   },
   "presets": [
     {
@@ -21,7 +25,8 @@
         "color": "{color.semantic.primary}",
         "background": "{color.semantic.surface}",
         "transparentBg": false
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "ink",
@@ -31,7 +36,8 @@
         "color": "#1a1a2e",
         "background": "#faf7f2",
         "transparentBg": false
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "night",
@@ -42,8 +48,10 @@
         "background": "#0b1021",
         "padding": 6,
         "transparentBg": false
-      }
+      },
+      "kind": "retired"
     }
   ],
-  "galleryCover": true
+  "galleryCover": true,
+  "galleryTheme": "light"
 }

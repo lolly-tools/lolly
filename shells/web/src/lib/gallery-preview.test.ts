@@ -74,3 +74,13 @@ test('preview identity follows the active palette and opted-in details, independ
   useDetails = true;
   assert.notEqual(await previewContextSignature(host), recolored);
 });
+
+test('a cover size reaches the card render without entering the template values', async () => {
+  const { withGallerySize } = await import('./gallery-preview.ts');
+  const values = { effect: 'voronoi' };
+  assert.deepEqual(withGallerySize(values, { width: 1600, height: 1200 }), { effect: 'voronoi', width: 1600, height: 1200 });
+  assert.equal(withGallerySize(values, undefined), values);
+  assert.equal(withGallerySize(values, { width: 0, height: 1200 }), values);
+  assert.equal(withGallerySize(values, { width: '1600', height: 1200 }), values);
+  assert.deepEqual(values, { effect: 'voronoi' });
+});

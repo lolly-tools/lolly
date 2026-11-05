@@ -30,7 +30,8 @@
       "description": "Give a short example more breathing room.",
       "values": {
         "lineNumbers": false
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

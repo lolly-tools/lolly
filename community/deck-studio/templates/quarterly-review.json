@@ -1,0 +1,39 @@
+{
+  "id": "quarterly-review",
+  "name": "Quarterly review",
+  "category": "Slides",
+  "description": "A title, a list, a real table and a closing slide. Every part stays editable in PowerPoint.",
+  "values": {
+    "mode": "deck",
+    "size": "wide",
+    "deck": [
+      {
+        "layout": "title",
+        "heading": "Quarterly review",
+        "subtitle": "Northline Studio, third quarter 2026",
+        "body": "",
+        "notes": "Open with why the deck exists."
+      },
+      {
+        "layout": "content",
+        "heading": "One model, many ways in",
+        "subtitle": "",
+        "body": "Type in the builder\nPaste **Markdown** - one slide per heading\n  each bullet becomes editable text\nOr paste a JSON spec",
+        "notes": "Every entry mode lands in the same deck."
+      },
+      {
+        "layout": "table",
+        "heading": "Native editable tables",
+        "data": "Metric,Q1,Q2\nRevenue,$1.2M,$1.6M\nGrowth,+18%,+33%",
+        "notes": "This is a real PowerPoint table - click to edit."
+      },
+      {
+        "layout": "split",
+        "heading": "Charts from your tools",
+        "body": "Drop a **D3** or **Flow Chart** link into the visual slot\nIt renders as a crisp vector\nNo chart engine to learn",
+        "notes": "Compose any Lolly tool as a slide visual."
+      }
+    ]
+  },
+  "galleryCover": true
+}

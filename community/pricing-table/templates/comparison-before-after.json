@@ -1,0 +1,55 @@
+{
+  "id": "comparison-before-after",
+  "name": "Before and after",
+  "category": "Marketing",
+  "description": "The old way against the new one, with the new way featured.",
+  "values": {
+    "heading": "Before and after",
+    "subheading": "How long a first asset takes, before and after.",
+    "cta": "",
+    "highlight": 2,
+    "highlightLabel": "After",
+    "layout": "cards",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}",
+    "data": {
+      "columns": [
+        "Step",
+        "Before",
+        "After"
+      ],
+      "rows": [
+        [
+          "Price",
+          "Two days",
+          "Two minutes"
+        ],
+        [
+          "Tagline",
+          "Ticket, queue, review",
+          "Type it, export it"
+        ],
+        [
+          "Brand check",
+          "By hand",
+          "yes"
+        ],
+        [
+          "Print bleed and marks",
+          "no",
+          "yes"
+        ],
+        [
+          "Works offline",
+          "no",
+          "yes"
+        ],
+        [
+          "Cost per asset",
+          "$40",
+          "$0"
+        ]
+      ]
+    }
+  }
+}

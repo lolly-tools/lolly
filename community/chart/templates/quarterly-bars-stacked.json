@@ -1,0 +1,14 @@
+{
+  "id": "quarterly-bars-stacked",
+  "name": "Stacked quarters",
+  "category": "Bars",
+  "description": "Stack the series to show the quarterly total.",
+  "values": {
+    "chartType": "bar",
+    "data": "Quarter,Product A,Product B,Product C\nQ1,42,31,18\nQ2,48,36,22\nQ3,55,40,27\nQ4,63,47,35",
+    "stackMode": "stacked",
+    "heading": "Units sold by quarter",
+    "showValues": true,
+    "cornerRadius": 4
+  }
+}

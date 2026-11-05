@@ -5,7 +5,7 @@ description: "Operate the Lolly Signature tool (signature) using its declared in
 
 # Signature
 
-Tool ID: `signature`. Tool version: `1.0.0`. Engine range: `^1.0.0`.
+Tool ID: `signature`. Tool version: `1.0.1`. Engine range: `^1.0.0`.
 
 Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a bit of paper.
 

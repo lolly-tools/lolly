@@ -41,7 +41,8 @@
       "values": {
         "ending": "hold",
         "readSeconds": 4
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "brisk",
@@ -50,7 +51,8 @@
       "values": {
         "typingSeconds": 2.5,
         "readSeconds": 1.5
-      }
+      },
+      "kind": "pace"
     }
   ]
 }

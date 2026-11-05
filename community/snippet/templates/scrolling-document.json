@@ -39,7 +39,8 @@
       "description": "Read the passage in a light window.",
       "values": {
         "theme": "suse-light"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "open-and-close",
@@ -48,7 +49,8 @@
       "values": {
         "scene": "demo",
         "ending": "close"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -5,7 +5,7 @@ description: "Operate the Lolly Jump tool (jump) using its declared inputs and s
 
 # Jump
 
-Tool ID: `jump`. Tool version: `1.2.1`. Engine range: `^1.82.0`.
+Tool ID: `jump`. Tool version: `1.2.2`. Engine range: `^1.82.0`.
 
 A one-link landing page: your links, heading, portrait and colours on an expressive page - and the whole page lives inside the link you share.
 

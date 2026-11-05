@@ -113,7 +113,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Structured inputs and canvas controls | [tool-structured-inputs.md](tool-structured-inputs.md) |
 | Assets and file utilities | [tool-files.md](tool-files.md) |
 | Templates and rendering | [tool-rendering.md](tool-rendering.md) |
-| Tool templates and presets | [tool-starters.md](tool-starters.md) |
+| Tool templates | [tool-starters.md](tool-starters.md) |
 | Tool hooks and host capabilities | [tool-hooks.md](tool-hooks.md) |
 | Composition and brand overlays | [tool-composition.md](tool-composition.md) |
 | Publish and localize a tool | [tool-publishing.md](tool-publishing.md) |

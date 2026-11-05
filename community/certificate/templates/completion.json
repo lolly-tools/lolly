@@ -33,7 +33,8 @@
         "awarddate": "2026-09-11",
         "presenter": "Jonas Weber",
         "presenterTitle": "Facilitator"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "certification",
@@ -47,7 +48,8 @@
         "presenter": "Ingrid Sorensen",
         "presenterTitle": "Head of Certification",
         "serial": "No. 2026-0413"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

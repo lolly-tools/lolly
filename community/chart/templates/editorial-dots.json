@@ -22,7 +22,8 @@
       "description": "Connect the two observations as an interval.",
       "values": {
         "plotType": "interval"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "technical",
@@ -31,7 +32,8 @@
       "values": {
         "chartStyle": "technical",
         "showGrid": true
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

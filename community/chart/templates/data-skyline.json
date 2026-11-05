@@ -32,7 +32,8 @@
         "flightBank": 2,
         "flightFov": 39,
         "animSpeed": 1.25
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "cost-route",
@@ -41,7 +42,8 @@
       "values": {
         "flightSeries": "Operating cost",
         "heading": "Operating cost through the skyline"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

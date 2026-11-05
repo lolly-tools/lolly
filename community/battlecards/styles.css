@@ -41,8 +41,6 @@
 .bc-deck {
   font-size: 2.6cqmin;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--bc-accent, #4f46e5);
 }
 .bc-pageno {
@@ -106,8 +104,6 @@
 .bc-field-label {
   font-size: 1.9cqmin;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: color-mix(in oklab, var(--bc-accent, #4f46e5) 70%, var(--bc-ink, #111827));
 }
 /* The value is the biggest text-volume slot - a full paragraph of pasted copy.

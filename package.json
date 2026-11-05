@@ -180,6 +180,7 @@
     "dev:ios": "cd shells/tauri-mobile && pnpm run dev:ios",
     "build:android": "cd shells/tauri-mobile && pnpm run build:android",
     "build:ios": "cd shells/tauri-mobile && pnpm run build:ios",
+    "build:gallery-covers": "node scripts/build-gallery-covers.ts",
     "build:timezone": "node scripts/build-timezone.ts",
     "typecheck:timezone": "tsc -p community/timezone",
     "pnpm:devPreinstall": "node scripts/check-bootstrap.ts",

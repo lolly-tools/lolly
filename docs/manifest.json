@@ -1192,7 +1192,7 @@
     },
     {
       "slug": "tool-starters",
-      "title": "Tool templates and presets",
+      "title": "Tool templates",
       "src": "tool-starters.md",
       "description": "Ship templates and presets with a tool, understand templates people save, hide starters for a brand and add motion details to Lolly Design templates.",
       "section": "build",

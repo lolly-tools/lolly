@@ -140,8 +140,22 @@ function _onColor(hex) {
 // A surface that wants the pale ink wants the reversed lockup. One decision, so
 // the logo polarity can never disagree with the type printed beside it.
 function _isDark(hex) { return _onColor(hex) === PALE_INK; }
-async function brandLogoUrl(dark) {
-  var asset = await resolveBrandLogo(dark, false);
+
+// The ink for type printed on the accent: the brand's own pairing when it has one
+// and it reads, otherwise the measured one. An accent the person chose themselves
+// may not suit the pairing, so the pairing has to earn its place each time.
+async function _inkOnAccent(accent) {
+  var measured = _onColor(accent);
+  if (!host.tokens || !host.tokens.resolve) return measured;
+  try {
+    var paired = _hex(await host.tokens.resolve('{color.semantic.on-primary}'), '');
+    return paired && _contrast(paired, accent) >= 4.5 ? paired : measured;
+  } catch (e) {
+    return measured;
+  }
+}
+async function brandLogoUrl(dark, mono) {
+  var asset = await resolveBrandLogo(dark, mono);
   return asset ? asset.url : '';
 }
 
@@ -174,7 +188,7 @@ async function _build(args) {
   // paper. Everything downstream reads `surface` / `surfaceInk`, so one branch
   // here settles the whole sheet.
   var surface = isBack ? accent : paper;
-  var surfaceInk = isBack ? _onColor(accent) : ink;
+  var surfaceInk = isBack ? await _inkOnAccent(accent) : ink;
 
   var first = _str(args.firstname);
   var last = _str(args.lastname);
@@ -197,7 +211,7 @@ async function _build(args) {
     // The `--st-paper` value the template paints .st-piece with - the only
     // place the sheet's background comes from (styles.css: background: var(--st-paper)).
     paperColor: transparent ? 'transparent' : surface,
-    accentColor: isBack ? _onColor(accent) : accent,
+    accentColor: isBack ? surfaceInk : accent,
     mutedColor: _mix(surfaceInk, surface, 0.4),
     ruleColor: _mix(surfaceInk, surface, 0.82),
 
@@ -227,7 +241,11 @@ async function _build(args) {
   };
 
   var wantLogo = args.brandLogo !== false;
-  out.logoUrl = wantLogo ? await brandLogoUrl(_isDark(surface)) : '';
+  // Pale ink wants the reversed lockup, so the logo follows the ink the type really got.
+  var reversed = _contrast(PALE_INK, surfaceInk) < _contrast(DARK_INK, surfaceInk);
+  // On the accent field a full-colour mark can vanish into its own ground, so the
+  // back asks for the one-colour lockup first.
+  out.logoUrl = wantLogo ? await brandLogoUrl(reversed, isBack) : '';
   out._logoWarning = brandLogoWarning(wantLogo && !out.logoUrl);
   out.hasLogo = Boolean(out.logoUrl);
   return out;

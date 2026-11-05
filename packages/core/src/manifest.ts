@@ -316,9 +316,11 @@ export interface ToolGuide {
 export interface TemplatePreset {
   /** Stable id, unique within the template's `presets`. Permanent, like a tool id. */
   id: string;
-  /** Display name shown on the preset chip. */
+  /** Display name shown on the chip. */
   name: string;
   description?: string;
+  /** `size` and `pace` show as chips on the template. `retired` keeps an old `?preset=` link working and shows nowhere. */
+  kind?: 'size' | 'pace' | 'retired';
   /** The overlay. Lives in the external template file; the synced index strips it. */
   values?: Record<string, unknown>;
 }

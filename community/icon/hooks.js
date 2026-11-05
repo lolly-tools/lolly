@@ -128,7 +128,7 @@ function kitPlan(a) {
 }
 
 function compute(a) {
-  var text = (a.text == null ? '' : String(a.text)).toUpperCase();
+  var text = a.text == null ? '' : String(a.text);
   var hasArt = !!(a.image && typeof a.image === 'object' && a.image.url);
 
   var trackingNum = isFinite(Number(a.tracking)) ? Number(a.tracking) : -4;

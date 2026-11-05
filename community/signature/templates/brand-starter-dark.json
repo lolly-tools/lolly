@@ -4,7 +4,7 @@
   "category": "Brand",
   "description": "A sample pen stroke in your brand ink. Draw your own to replace it.",
   "values": {
-    "color": "{color.semantic.on-primary}"
+    "color": "{color.semantic.surface}"
   },
   "galleryCover": true,
   "galleryTheme": "dark"

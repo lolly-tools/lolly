@@ -32,7 +32,8 @@
         "windowRotate": -2,
         "windowTiltX": 3,
         "windowTiltY": -8
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

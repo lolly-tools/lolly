@@ -27,7 +27,8 @@
       "description": "Fly to the final observation and return without a cut.",
       "values": {
         "animDirection": "bounce"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

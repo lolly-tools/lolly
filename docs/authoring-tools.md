@@ -83,7 +83,7 @@ Only `tool.json` and `template.html` are required. Add the others when the tool 
 | `presentation.js` | The playback runtime for a portable HTML export (`render.portable`). | [Animated HTML](/info/tool-rendering.html#animated-html) |
 | `icon.svg` | The gallery icon, drawn in `currentColor` so the app can colour the icon to match its theme. Recommended. | |
 | `card.svg`, `card.html`, `card.png` or `card.webm` | A gallery card of your own. Without one, the gallery shows a preview of the tool's output, rendered by `pnpm run previews`. | |
-| `templates/` | Curated starting points and presets. | [Tool templates and presets](/info/tool-starters.html) |
+| `templates/` | Curated starting points. | [Tool templates](/info/tool-starters.html) |
 | `i18n/<lang>.json` | Translated labels, help and options. | [Publish and localize a tool](/info/tool-publishing.html#localizing-a-tool) |
 | `SKILL.md`, `skill.json`, `skill/` | Guidance for agents that use the tool. | [Tool skills](/info/tool-skills.html) |
 | `intents.json` | The purposes the tool serves. Without this file the tool is not offered for an intent. | [Tool manifests](/info/tool-manifest.html#what-a-tool-is-for-intentsjson) |
@@ -101,7 +101,7 @@ Each guide below has a public reference tool in `community/` that you can open i
 | Repeat rows, edit on the canvas or frame an image | [Structured inputs and canvas controls](/info/tool-structured-inputs.html) | `meeting-planner`, `deck-studio`, `diagram-builder`, `org-chart`, `frame` |
 | Accept a library asset or the person's own file | [Assets and file utilities](/info/tool-files.html) | `strip-data`, `filter` |
 | Write the template, the styles and data formats | [Templates and rendering](/info/tool-rendering.html) | `wordmark`, `meeting-planner`, `snippet` |
-| Ship starting points and presets | [Tool templates and presets](/info/tool-starters.html) | `design`, `qr-code` |
+| Ship starting points | [Tool templates](/info/tool-starters.html) | `design`, `qr-code` |
 | Add logic, live media, recording or network access | [Tool hooks and host capabilities](/info/tool-hooks.html) | `qr-code`, `filter`, `voice-recorder`, `record` |
 | Embed one tool in another, pick the design system's logo or adjust a community tool for a brand | [Composition and brand overlays](/info/tool-composition.html) | `link-card`, `certificate` |
 | Test, share, publish and translate | [Publish and localize a tool](/info/tool-publishing.html) | `qr-code` |

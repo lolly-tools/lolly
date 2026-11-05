@@ -355,6 +355,7 @@ for (const dir of toolDirs) {
       if (typeof t.id !== 'string' || !t.id) { errors.push(`[${dir}] template ${file}: missing/empty "id"`); continue; }
       if (typeof t.name !== 'string' || !t.name) errors.push(`[${dir}] template ${file}: missing/empty "name"`);
       if (t.galleryCover !== undefined && typeof t.galleryCover !== 'boolean') errors.push(`[${dir}] template ${file}: galleryCover must be a boolean`);
+      if (t.gallerySize !== undefined && !(Number(t.gallerySize?.width) > 0 && Number(t.gallerySize?.height) > 0)) errors.push(`[${dir}] templates/${file}: gallerySize needs a positive width and height`);
       if (t.galleryTheme !== undefined && !['light', 'dark'].includes(t.galleryTheme)) errors.push(`[${dir}] template ${file}: galleryTheme must be light or dark`);
       if (t.galleryCover === true) {
         for (const theme of t.galleryTheme ? [t.galleryTheme] : ['light', 'dark']) {
@@ -395,6 +396,7 @@ for (const dir of toolDirs) {
           for (const p of t.presets) {
             const pid = p && typeof p === 'object' && typeof p.id === 'string' ? p.id : '';
             if (!pid) { errors.push(`[${dir}] template ${file}: a preset is missing a non-empty string "id"`); continue; }
+            if (p.kind !== undefined && !['size', 'pace', 'retired'].includes(p.kind)) errors.push(`[${dir}] template ${file}: preset "${pid}" kind must be size, pace or retired`);
             if (typeof p.name !== 'string' || !p.name) errors.push(`[${dir}] template ${file}: preset "${pid}" missing/empty "name"`);
             if (!p.values || typeof p.values !== 'object' || Array.isArray(p.values)) {
               errors.push(`[${dir}] template ${file}: preset "${pid}" "values" must be a plain object (the overlay merged over the template base)`);
@@ -2301,6 +2303,14 @@ for (const err of verifySharedRegions()) {
 }
 
 // ─── Report ─────────────────────────────────────────────────────────────────
+
+// Baked gallery covers: a stale one only costs a live render, so this reminds, never fails.
+if (existsSync(catalogFile('previews/covers.json')) && existsSync(catalogFile('tools/index.json'))) {
+  const baked = JSON.parse(readFileSync(catalogFile('previews/covers.json'), 'utf8')) as { covers?: Record<string, { version?: string }> };
+  const listed = JSON.parse(readFileSync(catalogFile('tools/index.json'), 'utf8')) as { tools?: Array<{ id: string; version?: string }> };
+  const stale = (listed.tools ?? []).filter((t) => baked.covers?.[t.id] && baked.covers[t.id]!.version !== t.version).map((t) => t.id);
+  if (stale.length) warnings.push(`catalog/previews/covers.json: ${stale.length} baked covers are stale (${stale.slice(0, 6).join(', ')}) - run \`pnpm run build:gallery-covers --url=<dev server>\``);
+}
 
 if (warnings.length) {
   console.warn(`\nWarnings (${warnings.length}):`);

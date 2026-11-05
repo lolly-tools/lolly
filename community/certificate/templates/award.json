@@ -36,7 +36,8 @@
         "awarddate": "2026-03-02",
         "presenter": "Jonas Weber",
         "presenterTitle": "Community Lead"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "team-of-the-year",
@@ -51,7 +52,8 @@
         "awarddate": "2026-12-04",
         "presenter": "Maya Lindqvist",
         "presenterTitle": "Chief Executive"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -1,11 +1,11 @@
 {
   "id": "brand-starter",
-  "name": "Brand flow",
+  "name": "Brand silk",
   "category": "Brand",
-  "description": "Generous flowing shapes in your primary and secondary brand colours.",
+  "description": "Slow folds of silk in the design system colours.",
   "values": {
-    "effect": "metaballs",
-    "count": 2,
+    "effect": "silk-flow",
+    "count": 3,
     "color1": "{color.semantic.secondary}",
     "color2": "{color.semantic.primary}",
     "color3": "{color.semantic.secondary}",
@@ -14,12 +14,16 @@
     "color6": "{color.semantic.primary}",
     "background": "{color.semantic.primary}",
     "brandInfluence": "full",
-    "intensity": 65,
-    "density": 40,
-    "scale": 200,
+    "intensity": 60,
+    "density": 45,
+    "scale": 100,
     "rotation": 0,
-    "speed": 100,
+    "speed": 70,
     "phase": 35
   },
-  "galleryCover": true
+  "galleryCover": true,
+  "gallerySize": {
+    "width": 1600,
+    "height": 1200
+  }
 }

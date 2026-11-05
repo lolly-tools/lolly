@@ -178,7 +178,20 @@ test('a declared brand logo replaces the wordmark and follows the surface', { sk
   assert.equal(resolved[0], '{asset.logo.horizontal-primary}');
   const dark = await createRuntime(tool, host, { piece: 'business-card-back', accent: '#14181b' });
   assert.equal(dark.getHydratedString('{{logoUrl}}'), 'asset:brand/logo/reverse');
-  assert.equal(resolved.at(-1), '{asset.logo.horizontal-primary-reverse}');
+  // The back asks for the one-colour lockup first: a full-colour mark can vanish
+  // into an accent field of its own colour.
+  assert.equal(resolved.at(-1), '{asset.logo.horizontal-mono-reverse}');
+});
+
+test('the card back takes the brand pairing for its ink, when that pairing reads', { skip: SKIP }, async () => {
+  const host = baseHost({
+    tokens: { resolve: async (ref: string) => (ref === '{color.semantic.on-primary}' ? '#0c322c' : ref) },
+  });
+  const paired = await createRuntime(tool, host, { piece: 'business-card-back', accent: '#30ba78' });
+  assert.equal(paired.getHydratedString('{{inkColor}}'), '#0c322c');
+  // A dark accent the person chose: pine on it would not read, so the measured ink stands.
+  const chosen = await createRuntime(tool, host, { piece: 'business-card-back', accent: '#14181b' });
+  assert.equal(chosen.getHydratedString('{{inkColor}}'), '#ffffff');
 });
 
 // WCAG contrast of two opaque #rrggbb colours - the measure the card back's ink

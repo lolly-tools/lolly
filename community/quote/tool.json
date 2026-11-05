@@ -1,9 +1,9 @@
 {
   "id": "quote",
-  "name": "Quote",
+  "name": "Sales Quote",
   "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.",
   "a11yLabel": "Quote for {{default customer \"a customer\"}}",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engineVersion": "^1.82.0",
   "status": "community",
   "category": "everyone",

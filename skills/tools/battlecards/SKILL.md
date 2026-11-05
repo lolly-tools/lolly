@@ -5,7 +5,7 @@ description: "Operate the Lolly Battlecards tool (battlecards) using its declare
 
 # Battlecards
 
-Tool ID: `battlecards`. Tool version: `1.3.2`. Engine range: `^1.82.0`.
+Tool ID: `battlecards`. Tool version: `1.3.3`. Engine range: `^1.82.0`.
 
 Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.
 

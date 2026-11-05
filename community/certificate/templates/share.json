@@ -31,7 +31,8 @@
         "style": "classic",
         "pageSize": "story",
         "motion": "reveal"
-      }
+      },
+      "kind": "size"
     },
     {
       "id": "landscape-post",
@@ -41,7 +42,8 @@
         "style": "modern",
         "pageSize": "social-landscape",
         "motion": "shimmer"
-      }
+      },
+      "kind": "size"
     }
   ]
 }

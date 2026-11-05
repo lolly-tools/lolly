@@ -93,7 +93,7 @@
 .cvt-meta { margin: 12px 0 0; font-size: 13px; color: hsl(var(--cvt-muted)); }
 
 .cvt-settings { border: none; margin: 18px 0 0; padding: 0; }
-.cvt-settings legend { font-size: 12px; font-weight: 600; color: hsl(var(--cvt-muted)); text-transform: uppercase; letter-spacing: .04em; padding: 0; margin-bottom: 8px; }
+.cvt-settings legend { font-size: 12px; font-weight: 600; color: hsl(var(--cvt-muted));padding: 0; margin-bottom: 8px; }
 
 .cvt-seg { display: flex; gap: 6px; }
 .cvt-seg-opt { flex: 1; position: relative; cursor: pointer; }

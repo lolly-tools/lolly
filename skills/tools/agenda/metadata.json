@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "agenda",
-  "toolVersion": "1.4.0",
-  "toolVersionRange": "1.4.0",
+  "toolVersion": "1.4.1",
+  "toolVersionRange": "1.4.1",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "b3df35398dfca303ffceb914c5edfd8c40910164afcdf553d86a01f8459542ad",
+      "sha256": "bd8ba7c03d0e0ec1c526af1d06d6dc3ea6f22c983130b9ffd5c273c581f8cd55",
       "bytes": 2467
     },
     "reference/inputs.json": {

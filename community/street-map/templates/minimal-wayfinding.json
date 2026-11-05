@@ -6,17 +6,41 @@
   "values": {
     "city": "berlin",
     "theme": "light",
-    "roadColor": "#111111",
-    "waterColor": "#c7d2da",
-    "background": "#ffffff",
-    "minorRoadWeight": 2,
-    "majorRoadWeight": 3.5,
+    "roadColor": "{color.semantic.secondary}",
+    "waterColor": "{color.semantic.primary}",
+    "background": "{color.semantic.surface}",
+    "minorRoadWeight": 3,
+    "majorRoadWeight": 6,
     "showWater": true,
     "waterWeight": 4
   },
   "presets": [
-    { "id": "berlin", "name": "Berlin", "description": "Wide avenues that read at a glance.", "values": { "city": "berlin" } },
-    { "id": "zurich", "name": "Zurich", "description": "A compact centre split by the river.", "values": { "city": "zurich" } },
-    { "id": "copenhagen", "name": "Copenhagen", "description": "Harbour streets in crisp black and white.", "values": { "city": "copenhagen" } }
+    {
+      "id": "berlin",
+      "name": "Berlin",
+      "description": "Wide avenues that read at a glance.",
+      "values": {
+        "city": "berlin"
+      },
+      "kind": "retired"
+    },
+    {
+      "id": "zurich",
+      "name": "Zurich",
+      "description": "A compact centre split by the river.",
+      "values": {
+        "city": "zurich"
+      },
+      "kind": "retired"
+    },
+    {
+      "id": "copenhagen",
+      "name": "Copenhagen",
+      "description": "Harbour streets in crisp black and white.",
+      "values": {
+        "city": "copenhagen"
+      },
+      "kind": "retired"
+    }
   ]
 }

@@ -25,7 +25,8 @@
       "description": "The reverse: lockup and tagline on the accent field.",
       "values": {
         "piece": "business-card-back"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "card-mono",
@@ -36,7 +37,8 @@
         "color": "#14181b",
         "background": "#ffffff",
         "accent": "#14181b"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

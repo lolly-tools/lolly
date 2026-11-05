@@ -75,12 +75,13 @@ var _memoKey = null;
 var _memoResult = null;
 var _lastOutSrc = null;                        // previous composed bitmap (template double-buffer)
 var _imgCache = { url: null, promise: null };  // decoded user image
-// First-state subject when nothing is picked: the lorikeet portrait (a real photo
-// to grade - the starter catalog's demo raster, AI-generated and declared so), then
+// First-state subject when nothing is picked: the catalog's sample photograph (the id
+// every brand pack answers to), the lorikeet portrait (a real photo to grade - the
+// starter catalog's demo raster, AI-generated and declared so), then
 // the animated Lolly swirl (an SVG, rasterised on decode like any vector) for a
 // catalog that ships without the photo. Tried in order; _defaultUrl caches the
 // first that resolves; the procedural demo scene stays as the fallback if none do.
-var DEFAULT_IMAGE_IDS = ['lolly/demo/lorikeet-lollipop', 'lolly/demo/lolly-spin'];
+var DEFAULT_IMAGE_IDS = ['lolly/demo/sample-photo', 'lolly/demo/lorikeet-lollipop', 'lolly/demo/lolly-spin'];
 var _defaultUrl = null;
 var _demoCanvas = null;                        // procedural demo scene, drawn once
 var _framedCache = { key: null, canvas: null };// cover-framed source

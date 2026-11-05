@@ -30,7 +30,8 @@
       "description": "Use your current design system colours.",
       "values": {
         "theme": "suse-dark"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

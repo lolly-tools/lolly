@@ -3,7 +3,7 @@
   "name": "Diagrams",
   "description": "Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV.",
   "a11yLabel": "{{default title \"Untitled\"}} - {{diagramType}} diagram",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "category": "everyone",

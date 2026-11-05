@@ -1,0 +1,24 @@
+{
+  "id": "warm-portrait",
+  "name": "Warm portrait",
+  "category": "Looks",
+  "description": "A warm film look on the sample photograph. Replace it with any image.",
+  "values": {
+    "filmLook": "portrait",
+    "temperature": 4,
+    "contrast": 10,
+    "highlights": -12,
+    "shadows": 10,
+    "saturation": 105,
+    "grain": 0,
+    "vignette": 0,
+    "width": 1600,
+    "height": 1200,
+    "imageFraming": {
+      "zoom": 100,
+      "x": 50,
+      "y": 10
+    }
+  },
+  "galleryCover": true
+}

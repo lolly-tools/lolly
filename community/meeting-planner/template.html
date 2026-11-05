@@ -56,13 +56,11 @@
   padding: 44px 64px 0;
 }
 .mp-title {
-  font-size: calc(22px * var(--fs)); font-weight: var(--title-weight, 700); letter-spacing: .1em; text-transform: uppercase;
-  color: var(--accent); padding-top: 4px;
+  font-size: calc(22px * var(--fs)); font-weight: var(--title-weight, 700);color: var(--accent); padding-top: 4px;
 }
 .mp-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .mp-host-city {
-  font-size: calc(22px * var(--fs)); font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
-}
+  font-size: calc(22px * var(--fs)); font-weight: 700;}
 .mp-host-city:empty { display: none; }
 .mp-meeting-time {
   font-size: calc(17px * var(--fs)); font-weight: 700; letter-spacing: .05em;
@@ -70,8 +68,7 @@
 }
 .mp-meeting-time:empty { display: none; }
 .mp-meeting-date {
-  font-size: calc(12px * var(--fs)); font-weight: 500; letter-spacing: .07em; text-transform: uppercase;
-  color: var(--muted);
+  font-size: calc(12px * var(--fs)); font-weight: 500;color: var(--muted);
 }
 .mp-meeting-date:empty { display: none; }
 
@@ -118,8 +115,7 @@
 }
 .mp-card:first-child{border-left:none;}
 .mp-card-name {
-  font-size: calc(9px * var(--fs) * 2); font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-  opacity: .55; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: calc(9px * var(--fs) * 2); font-weight: 700;opacity: .55; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .mp-card-city {
   font-size: calc(9px * var(--fs)); font-weight: 400; letter-spacing: .04em;
@@ -131,8 +127,7 @@
   white-space: nowrap; margin-top: 3px;
 }
 .mp-card-date {
-  font-size: calc(9px * var(--fs)); font-weight: 500; letter-spacing: .05em; text-transform: uppercase;
-  color: var(--muted);
+  font-size: calc(9px * var(--fs)); font-weight: 500;color: var(--muted);
 }
 
 
@@ -509,14 +504,13 @@
         /* Optional member name line (above city) */
         if (showNameInPin && memberName && !isHost) {
           addText(lg, dx, baseY - lineH,
-            memberName.toUpperCase(), nameFontSz, 'currentColor', '500', anchor)
-            .attr('letter-spacing', '.06em').attr('opacity', '.85');
+            memberName, nameFontSz, 'currentColor', '500', anchor)
+            .attr('opacity', '.85');
         }
 
         /* City / host name */
         if (cityLabel) addText(lg, dx, baseY,
-          cityLabel.toUpperCase(), cityFontSz, 'currentColor', '700', anchor)
-          .attr('letter-spacing', '.07em');
+          cityLabel, cityFontSz, 'currentColor', '500', anchor);
 
         /* Rounded bg rect behind the label group */
         try {
@@ -653,13 +647,15 @@
     mapEl.appendChild(ctrlDiv);
 
     var svgRef = svg;
-    document.getElementById('mp-zi').onclick = function() {
+    /* Looked up on the new node, not the document: a gallery preview can be torn
+       down while the map data loads, which leaves this subtree detached. */
+    ctrlDiv.querySelector('#mp-zi').onclick = function() {
       svgRef.transition().duration(250).call(zoomFn.scaleBy, 1.5);
     };
-    document.getElementById('mp-zo').onclick = function() {
+    ctrlDiv.querySelector('#mp-zo').onclick = function() {
       svgRef.transition().duration(250).call(zoomFn.scaleBy, 0.667);
     };
-    document.getElementById('mp-zr').onclick = function() {
+    ctrlDiv.querySelector('#mp-zr').onclick = function() {
       /* Reset: clear live state so the next render doesn't re-apply the old position */
       window.__mpZoom = null;
       svgRef.transition().duration(300).call(zoomFn.transform, d3.zoomIdentity);

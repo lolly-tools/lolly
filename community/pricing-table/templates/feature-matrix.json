@@ -13,16 +13,79 @@
     "background": "{color.semantic.surface}",
     "accent": "{color.semantic.primary}",
     "data": {
-      "columns": ["Feature", "Solo", "Duo", "Squad", "Studio", "Agency"],
+      "columns": [
+        "Feature",
+        "Solo",
+        "Duo",
+        "Squad",
+        "Studio",
+        "Agency"
+      ],
       "rows": [
-        ["Price", "$0", "$12", "$40", "$120", "$400"],
-        ["Tagline", "1 seat", "2 seats", "10 seats", "40 seats", "Unlimited"],
-        ["Shared brand kit", "no", "yes", "yes", "yes", "yes"],
-        ["Batch renders", "-", "100", "2,000", "20,000", "Unlimited"],
-        ["Saved templates", "3", "10", "50", "Unlimited", "Unlimited"],
-        ["Single sign-on", "no", "no", "no", "yes", "yes"],
-        ["Audit log", "no", "no", "yes", "yes", "yes"],
-        ["Support", "Community", "Email", "Email", "> Priority", "> Named contact"]
+        [
+          "Price",
+          "$0",
+          "$12",
+          "$40",
+          "$120",
+          "$400"
+        ],
+        [
+          "Tagline",
+          "1 seat",
+          "2 seats",
+          "10 seats",
+          "40 seats",
+          "Unlimited"
+        ],
+        [
+          "Shared brand kit",
+          "no",
+          "yes",
+          "yes",
+          "yes",
+          "yes"
+        ],
+        [
+          "Batch renders",
+          "-",
+          "100",
+          "2,000",
+          "20,000",
+          "Unlimited"
+        ],
+        [
+          "Saved templates",
+          "3",
+          "10",
+          "50",
+          "Unlimited",
+          "Unlimited"
+        ],
+        [
+          "Single sign-on",
+          "no",
+          "no",
+          "no",
+          "yes",
+          "yes"
+        ],
+        [
+          "Audit log",
+          "no",
+          "no",
+          "yes",
+          "yes",
+          "yes"
+        ],
+        [
+          "Support",
+          "Community",
+          "Email",
+          "Email",
+          "> Priority",
+          "> Named contact"
+        ]
       ]
     }
   },
@@ -37,18 +100,51 @@
         "highlightLabel": "Recommended",
         "cta": "Upgrade",
         "data": {
-          "columns": ["Feature", "Free", "Paid"],
+          "columns": [
+            "Feature",
+            "Free",
+            "Paid"
+          ],
           "rows": [
-            ["Price", "$0", "$12 / month"],
-            ["Tagline", "Everything on device", "Everything, plus the team"],
-            ["Shared brand kit", "no", "yes"],
-            ["Batch renders", "-", "Unlimited"],
-            ["Saved templates", "3", "Unlimited"],
-            ["Single sign-on", "no", "yes"],
-            ["Support", "Community", "> Email, next day"]
+            [
+              "Price",
+              "$0",
+              "$12 / month"
+            ],
+            [
+              "Tagline",
+              "Everything on device",
+              "Everything, plus the team"
+            ],
+            [
+              "Shared brand kit",
+              "no",
+              "yes"
+            ],
+            [
+              "Batch renders",
+              "-",
+              "Unlimited"
+            ],
+            [
+              "Saved templates",
+              "3",
+              "Unlimited"
+            ],
+            [
+              "Single sign-on",
+              "no",
+              "yes"
+            ],
+            [
+              "Support",
+              "Community",
+              "> Email, next day"
+            ]
           ]
         }
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

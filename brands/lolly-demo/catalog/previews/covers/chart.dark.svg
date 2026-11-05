@@ -1,0 +1,21 @@
+<?xml version="1.0" standalone="no"?>
+<svg id="d3-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800" style="width:100%;height:auto;display:block;" data-lolly-anno="vector bar bar3d auto grouped monotone uniform none linear auto ordered category  #ffffff bc">
+  <title>bar chart</title>
+  <desc>bar chart uses 4 data rows across 1 series, styled from Lolly Demo.</desc>
+  <defs>
+    <style>
+      /* Brand font via the injected var (community pattern - no @font-face here;
+         the shell loads the active brand's faces). 'SUSE' rides the fallback
+         tail so an already-registered face still resolves on older shells. */
+      #d3-svg text, #d3-svg tspan { font-family: var(--font-brand, 'SUSE', system-ui, -apple-system, sans-serif); }
+      /* Click-to-focus: annotated parts jump to their sidebar control on click - hint it. */
+      #d3-svg [data-canvas-input] { cursor: pointer; }
+      /* Click-to-recolour: bars/slices open a brand-swatch picker on click. */
+      #d3-svg [data-recolor] { cursor: pointer; }
+      /* Click a data label to annotate it (arrow + note). */
+      #d3-svg [data-annot] { cursor: pointer; }
+    </style>
+  </defs>
+  <rect id="d3-bg" width="1280" height="800" fill="none" pointer-events="all"/>
+  <g id="d3-plot"><g><rect x="131.35802469135803" y="426.28000000000003" width="187.56966490299826" height="313.71999999999997" fill="#008657" rx="6" ry="6" data-recolor="A"/><rect x="406.59611992945327" y="276.23999999999995" width="187.56966490299826" height="463.76000000000005" fill="#b3b3b3" rx="6" ry="6" data-recolor="B"/><rect x="681.8342151675485" y="344.44" width="187.56966490299826" height="395.56" fill="#c55123" rx="6" ry="6" data-recolor="C"/><rect x="957.0723104056437" y="92.10000000000002" width="187.56966490299826" height="647.9" fill="#da1889" rx="6" ry="6" data-recolor="D"/></g></g>
+</svg>

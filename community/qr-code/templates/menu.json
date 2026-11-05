@@ -7,26 +7,44 @@
     "url": "https://example.com/menu",
     "ecl": "H",
     "padding": 6,
-    "join": true
+    "join": true,
+    "moduleShape": "rounded",
+    "eyeShape": "leaf",
+    "color": "{color.semantic.on-primary}",
+    "background": "{color.semantic.primary}",
+    "frame": "arrow",
+    "frameText": "Menu"
   },
   "presets": [
     {
       "id": "classic",
       "name": "Classic",
       "description": "Near-black on warm white for tabletop print.",
-      "values": { "color": "#1a1a2e", "background": "#faf7f2" }
+      "values": {
+        "color": "#1a1a2e",
+        "background": "#faf7f2"
+      },
+      "kind": "retired"
     },
     {
       "id": "fresh",
       "name": "Fresh",
       "description": "Deep teal on a pale mint ground.",
-      "values": { "color": "#0f766e", "background": "#ecfdf5" }
+      "values": {
+        "color": "#0f766e",
+        "background": "#ecfdf5"
+      },
+      "kind": "retired"
     },
     {
       "id": "brand",
       "name": "Brand colours",
       "description": "Modules in your brand primary on the brand surface.",
-      "values": { "color": "{color.semantic.primary}", "background": "{color.semantic.surface}" }
+      "values": {
+        "color": "{color.semantic.primary}",
+        "background": "{color.semantic.surface}"
+      },
+      "kind": "retired"
     }
   ]
 }

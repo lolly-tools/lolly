@@ -3,7 +3,7 @@
   "name": "Captions",
   "description": "Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
   "a11yLabel": "A {{default style \"bar\"}} caption over a clip, showing the cue at {{default t 0}} seconds",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "engineVersion": ">=1.261.0 <2.0.0",
   "status": "community",
   "category": "everyone",

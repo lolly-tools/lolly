@@ -1,0 +1,21 @@
+{
+  "id": "website-dark",
+  "name": "Website link, dark",
+  "category": "Utility",
+  "description": "The same code for a dark ground.",
+  "values": {
+    "url": "https://example.com",
+    "ecl": "M",
+    "padding": 3,
+    "join": true,
+    "color": "{color.semantic.secondary}",
+    "background": "transparent",
+    "transparentBg": true,
+    "moduleShape": "dot",
+    "eyeShape": "rounded",
+    "fill": "mix",
+    "color2": "{color.semantic.surface}"
+  },
+  "galleryCover": true,
+  "galleryTheme": "dark"
+}

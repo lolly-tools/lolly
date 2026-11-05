@@ -1,0 +1,17 @@
+{
+  "id": "scene-bars-glass",
+  "name": "Glass 3-D bars",
+  "category": "3-D",
+  "description": "Use translucent brand-tinted materials.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "bar",
+    "sceneType": "bar3d",
+    "chartStyle": "glass-3d",
+    "data": "Team,First wave,Second wave,Final wave\nDesign,42,51,63\nEngineering,58,66,74\nSales,33,47,59\nSupport,27,39,52",
+    "heading": "Responses by team and wave",
+    "motionPreset": "reveal-orbit",
+    "cameraProjection": "perspective",
+    "showLegend": true
+  }
+}

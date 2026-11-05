@@ -1,0 +1,15 @@
+{
+  "id": "stained-cells",
+  "name": "Stained cells",
+  "category": "Geometry",
+  "description": "The picture rebuilt from coloured cells.",
+  "values": {
+    "effect": "voronoi",
+    "vo_cells": 900,
+    "width": 1200,
+    "height": 1450,
+    "image": {
+      "id": "lolly/demo/sample-character"
+    }
+  }
+}
