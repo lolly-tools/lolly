@@ -407,7 +407,7 @@ export const TOOL_DEFS: McpToolDef[] = [
   {
     name: 'lolly_render',
     description: 'Render a Lolly tool to an on-brand asset (PNG/SVG/PDF/…). Returns the image plus an editable lolly.tools link. '
-      + 'After lolly_resolve_intent, pass `intent`, `surface` and `c2pa` to record what the file was asked to do. The result says what was recorded, read back from the file.',
+      + 'After lolly_resolve_intent, pass `intent` and `surface` to record what the file was asked to do. That adds a Content Credential to this file unless you pass c2pa: "off". The result says what was recorded, read back from the file.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1138,7 +1138,7 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           designRecordText(result.designRecord),
           // The intent, shown at the moment of export as the approval asks, in words read
           // back from the delivered file. It says plainly when the prompt is in the file.
-          intentRecordText(!intended ? null : intended.optedOut ? { state: 'not-recorded', reason: 'opted-out' } : result.intentRecord ?? { state: 'not-recorded', reason: 'not-confirmed' }),
+          intentRecordText(!intended ? null : intended.optedOut ? { state: 'not-recorded', reason: 'opted-out' } : result.intentRecord ?? { state: 'not-recorded', reason: 'not-confirmed' }, result.credentialFromIntent === true),
         ].filter(Boolean).join('\n');
 
         const content: ContentBlock[] = [{ type: 'text', text: header }];
