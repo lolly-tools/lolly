@@ -404,6 +404,7 @@ export function openApprovalDialog(ctx: ApprovalRequestContext, limits?: ExportR
     if (result.ok) {
       announce(t('Approval request sent'));
       modal.close();
+      try { ctx.onSent?.(); } catch { /* the request is sent; a view's refresh cannot undo that */ }
       return;
     }
     // A request pointing at a used or expired upload needs the file sent again.

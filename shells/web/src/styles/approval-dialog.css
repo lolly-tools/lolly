@@ -21,4 +21,21 @@
   .approval-file-record { display: flex; align-items: flex-start; gap: var(--sp-2); font-size: var(--fs-sm); cursor: pointer; }
   .approval-file-record .field-check { flex: none; margin-top: 2px; }
   .approval-file-record small { display: block; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
+
+  /* One request in the shell (org/approval-review-sheet.ts), the file first. */
+  .approval-review { width: min(92vw, 40rem); }
+  .approval-review .approval-dialog-body { display: flex; flex-direction: column; gap: var(--sp-3); }
+  .approval-review .modal-title { margin: 0; overflow-wrap: anywhere; }
+  .approval-review .approval-file-stage img, .approval-review .approval-file-stage video { max-height: min(52vh, 30rem); }
+  .approval-review-standing { margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+  .approval-review-history { display: flex; flex-direction: column; gap: var(--sp-2); margin: 0; padding: 0; list-style: none; font-size: var(--fs-sm); }
+  .approval-review-history li { display: flex; flex-direction: column; gap: var(--sp-1); overflow-wrap: anywhere; }
+  .approval-review-who { font-weight: 600; }
+  .approval-review-history q { color: var(--ui-color-text-muted); quotes: none; white-space: pre-wrap; }
+  .approval-review-field { display: flex; flex-direction: column; gap: var(--sp-1); font-size: var(--fs-sm); font-weight: 600; }
+  /* The same mark as `.field-input:user-invalid`: a reason asked for and left empty. */
+  .approval-review-field .field-input[aria-invalid="true"] { box-shadow: var(--ui-effect-bevel), 0 0 0 2px hsl(var(--destructive) / .45); }
+  .approval-review .approval-error { margin: 0; color: hsl(var(--destructive-text)); font-size: var(--fs-sm); }
+  .approval-review .approval-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-2); }
+  .approval-review-aside { margin-inline-end: auto; }
 }

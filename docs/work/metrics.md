@@ -47,6 +47,7 @@ event on. Gauges are read when Prometheus scrapes.
 |---|---|---|---|
 | `lw_http_requests_total` | counter | `route`, `status` | Requests answered. `route` is the matched route pattern, such as `/api/v1/projects/:id`, or `unmatched`, `csrf-blocked` or `ratelimited:<surface>`. `status` is the class, `2xx` to `5xx`. Kubelet probes and scrapes count too, under `/healthz`, `/readyz` and `/metrics` |
 | `lw_rate_limited_total` | counter | `surface` | Requests the per-address limiter refused, by surface: `auth`, `telemetry`, `link` or `automation` |
+| `lw_token_scope_refused_total` | counter | `route` | Requests refused with `TOKEN_SCOPE` because a service token's scopes do not open the route, by route pattern. These also count in `lw_http_requests_total` as `4xx` |
 | `lw_rate_limit_buckets` | gauge | | Client addresses the limiter tracks in memory. When the count reaches `rateLimit.maxBuckets`, the limiter drops the oldest tenth |
 | `lw_origin_bytes_total` | counter | `class` | Response body bytes after compression, by delivery class: `public-immutable`, `public-revalidate`, `public-bounded`, `link`, `instance-private` or `person-private`. HEAD, 204 and 304 answers count nothing. A CDN can serve only the public classes |
 | `lw_process_uptime_seconds` | gauge | | Seconds since the Lolly Work process started |

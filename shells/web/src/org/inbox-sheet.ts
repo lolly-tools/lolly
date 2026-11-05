@@ -28,6 +28,7 @@
  * textContent; only the dialog's frame, built from this file's own strings, is markup.
  */
 import { announce } from '../a11y.ts';
+import { approvalWork } from '../lib/approval-request.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
@@ -298,6 +299,11 @@ export function openInboxSheet(opts: InboxSheetOptions = {}): void {
         });
         actions.append(link);
       }
+    } else if (m.data?.kind === 'export-review' && m.data.approvalId && approvalWork()) {
+      const { approvalId } = m.data;
+      const review = button(m.cta?.label ?? tRaw('Review'), 'inbox-open');
+      review.addEventListener('click', () => { approvalWork()?.open(approvalId); });
+      actions.append(review);
     } else if (m.cta?.url && safeHref(m.cta.url)) {
       const link = el('a', {
         className: 'btn btn--sm',
