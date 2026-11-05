@@ -58,9 +58,9 @@ A common way to group arrangements is by how much of the parent brand the audien
 | Endorse | Apparent | Distinct marks that share type, grid and motion | A design system per brand, copied from a shared start and kept in step with **Review an upstream update** | A shared core the brands follow as it changes |
 | Detach | Shadow | Related brands that each define themselves | A design system per brand | A record of how they relate |
 | Detach | Discrete | Brands with no visible relationship | A design system per brand, switched per job; a saved piece offers to switch back to the design system it was made with | One artefact per brand open side by side |
-| Across | Co-branding | A partner's mark on your artwork | The lead brand's design system; the partner's logo placed as an image or a custom mark; Lolly Logo Wall for sponsor walls; each brand's skills given to an agent under their own names | The partner's own rules: clear space, minimum size |
+| Across | Co-branding | A partner's mark on your artwork | The lead brand's design system; the partner's logo placed as an image or a custom mark; Lolly Logo Wall for sponsor walls, which can take a logo from a partner's [brand page](/info/brand-page.html) in a terminal; each brand's skills given to an agent under their own names | The partner's own rules: clear space, minimum size |
 | Across | White label | One asset re-skinned for each client | A design system per client, switched per job; a reusable tool per client | Keeping clients apart automatically |
-| Across | Seasons and campaigns | A seasonal skin over the core, for a set time | A colourway for a season that changes only the lead colour; a theme group of kind `campaign` with a date window for more, chosen in the tool | Applying the window to new work; scheduling |
+| Across | Seasons and campaigns | A seasonal skin over the core, for a set time | A colourway for a season that changes only the lead colour; a theme group of kind `campaign` with a date window for more, chosen in the tool; a [brand page](/info/brand-page.html) that shows each colourway | Applying the window to new work; scheduling |
 
 ## Unify: one brand, many parts
 
@@ -268,6 +268,7 @@ A holiday skin, a launch, a yearly conference theme: an overlay on the core for 
 - When it changes more than the lead colour, declare a theme group of kind `campaign` in the token file, with a date window on each option ([the format](/info/design-tokens.html#what-a-theme-group-means)), and bring the file in with **Add from…**.
 - Choose the season per artefact in the tool's **Design system** section: a colourway's dot, or the campaign from the list in every tool the campaign changes.
 - Publish a **version** to keep a record of the design system as it was.
+- Publish a [brand page](/info/brand-page.html) to show each colourway, in light and dark, at one address. Publish again when the colourways change.
 - An export records the colourway or the campaign option that drew the file.
 
 **Not yet:** nothing applies the window to new work or schedules a campaign. **Until then:** when a seasonal colourway starts, the people working on the season take the colourway as their own in **Settings → Appearance**, so their new work starts in the season's colours, and choose their usual colourway again when the season ends.

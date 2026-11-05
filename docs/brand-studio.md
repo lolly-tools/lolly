@@ -370,10 +370,15 @@ Changing what a server supplies is an administrator's task: its operator changes
 
 **Download design context** saves the token document, resolved colours, declared font families, asset ids, source evidence where recorded, coverage and explicit rules, with no font files and no proof of ownership. The command line reads the file with no server: `lolly system import` makes it the terminal's design system and `lolly system check` checks Lolly Design inputs against the saved context. [Bring your design system](/info/cli.html#bring-your-design-system) covers the import and [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) covers the check, and an MCP client reads the same brief from `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
+### Publish a brand page
+
+A [brand page](/info/brand-page.html) gives your design system one address: logos, colours, type and rules for people, with tokens, `DESIGN.md` and skills for agents in the same folder. In a terminal, `lolly system publish --out=<dir>` writes the folder and lists what it held back. Nothing goes public until you host the folder, on any static host or on [Lolly Work](/info/work-design-system-administration.html#host-a-brand-page).
+
 ## Where to go next
 
 - **[Using Lolly](/info/using.html)**: the tools, saving, sharing and Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: how divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities.
 - **[Working with partners](/info/partners.html)**: sharing your brand with a partner, and working in a brand you were given.
+- **[Brand pages](/info/brand-page.html)**: publish your design system at one address, as a press kit and an agent kit.
 - **[Design Tokens](/info/design-tokens.html)**: the token model your brand is written in.
 - **[Export a file](/info/exporting.html)**: print units, CMYK and the formats your brand renders into.
