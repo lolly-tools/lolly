@@ -64,6 +64,7 @@ behaves exactly as it does on its own.
 | SCIM provisioning | `/scim/v2/*` | your identity provider, with a SCIM token ([machine credentials](enterprise-identity.md#scim-provisioning)) |
 | Device sign-in | `/activate` | a signed-in member approving a sign-in from the CLI or a native app ([device-code sign-in](identity.md#device-code-sign-in)) |
 | Agent connections (MCP) | `/api/workspace/mcp` | document and project agents, with a connection key ([document agents](document-agents.md)) |
+| Organisation MCP | `/api/v1/mcp` | automation with a service token ([connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp)) |
 | Instance pack download | `/connect/pack.lolly` | anyone on an `open` instance, otherwise members; `404` when no pack is hosted |
 
 A connected shell polls one document, `/api/v1/org-config`. It says who the person is, which

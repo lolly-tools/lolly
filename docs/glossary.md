@@ -88,6 +88,12 @@ These words matter when you build tools, run Lolly or read the code. The diagram
 
 **Hooks.** The tool's optional `hooks.js`, the imperative escape hatch. Hooks return a plain object: keys that match a declared input update that input, and every other key goes into `extras`, values the template can read without a user-facing control. They run with the host bridge injected and are time-boxed per hook; [Tool hooks](/info/tool-hooks.html) has the rules.
 
+**Intent.** A statement of what a piece has to do for its reader, where it will be seen and what it has to say, resolved to a tool for each surface with the reasons recorded. Its vocabulary is closed and no model is in the path. See [Start from what the piece has to do](/info/visual-intent.html).
+
+**Role.** What a value is to the piece, whatever a tool calls its input: `heading`, `url`, `data`. An intent's content is keyed by role, and a tool's optional `intents.json` says which input takes which role.
+
+**Surface.** Where a piece will be seen, as a named size such as `social-square` or `a4-portrait`, or as any width and height.
+
 **Input model.** The single source of truth for what an input means, built by the engine from the manifest. Shells render it generically and never interpret manifest fields themselves, which is how web, desktop and CLI stay consistent.
 
 **URL mode.** Every input is expressible as a URL parameter, so a link is a finished asset and a repeatable render. The CLI is URL mode over a different transport: `--foo=bar` on the command line is `?foo=bar` in the browser. A short list of parameter names is reserved for the engine (`format`, `width`, `dpi`, `c2pa` and others) and cannot be input ids; [Reserved URL parameters](/info/url-parameters.html) lists them.

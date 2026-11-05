@@ -248,7 +248,7 @@ const BYPASS_PATTERNS = [
   // there with the app instead of the server's own error. None of these is an app
   // route on any deployment. lolly-work keeps the same list as
   // SHELL_SW_BYPASS_PREFIXES (scripts/vercel-routes.ts) and tests it against this one.
-  /^\/(?:activate|admin|connect|healthz|l|metrics|readyz|render|scim)(?:\/|$)/,
+  /^\/(?:activate|admin|compat|connect|healthz|l|metrics|readyz|render|scim)(?:\/|$)/,
   // /brand is the static brand standards page (public/brand/index.html), real HTML
   // with its own files beside it. Its last segment has no dot either, so without
   // this entry the navigate branch would store the page as the offline app shell.

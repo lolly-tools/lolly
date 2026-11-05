@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "schedule",
+      "needs": [
+        "data"
+      ],
+      "roles": {
+        "data": "events"
+      },
+      "set": {
+        "heading": "",
+        "subheading": ""
+      }
+    }
+  ]
+}

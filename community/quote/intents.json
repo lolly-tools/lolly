@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "offer",
+      "needs": [
+        "data",
+        "recipient",
+        "currency"
+      ],
+      "roles": {
+        "data": "lines",
+        "recipient": "customer"
+      },
+      "set": {
+        "number": "",
+        "notes": ""
+      }
+    }
+  ]
+}

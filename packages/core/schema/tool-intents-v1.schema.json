@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/tool-intents-v1.schema.json",
+  "title": "tool-intents-v1",
+  "description": "A tool's intents.json: the purposes the tool serves, read by the engine's resolveIntent when a caller states what a piece has to do. The file is optional. A tool with none is not offered for an intent, and loading a tool never reads it, so an older engine is unaffected. Mirrors ToolIntentsFileV1 in packages/core/src/intent-v1.ts. checkToolIntents also checks what a schema cannot: real input ids, select values on offer, one entry per purpose. See docs/tool-manifest.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "intents"],
+  "properties": {
+    "version": { "const": 1 },
+    "intents": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 13,
+      "items": { "$ref": "#/$defs/intent" }
+    }
+  },
+  "$defs": {
+    "role": {
+      "enum": ["address", "awarddate", "awardtopic", "bgImage", "body", "company", "cta", "currency", "data", "email", "eventEnd", "eventLocation", "eventName", "eventStart", "firstname", "heading", "headshot", "image", "jobTitle", "lastname", "phone", "recipient", "sender", "sourceAuthor", "subheading", "url"]
+    },
+    "surface": {
+      "enum": ["slide", "screen", "social-landscape", "social-square", "social-portrait", "story", "banner", "a4-portrait", "a4-landscape", "a3-portrait", "a3-landscape", "a2-portrait", "a2-landscape", "a1-portrait", "letter-portrait", "letter-landscape", "business-card"]
+    },
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["purpose"],
+      "properties": {
+        "purpose": {
+          "enum": ["announce", "compare", "demonstrate", "direct", "explain", "identify", "invite", "offer", "present", "promote", "recognise", "report", "schedule"],
+          "description": "What a piece made with this tool does for its reader."
+        },
+        "needs": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 26,
+          "items": { "$ref": "#/$defs/role" },
+          "description": "Roles the tool cannot serve this purpose without. A request missing one is answered with a gap, never with the tool's sample content."
+        },
+        "roles": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/role" },
+          "additionalProperties": { "type": "string" },
+          "description": "Role to input id, where the input's own id is not the role's. Roles are the `roles` section of schemas/canonical-inputs.json. An input whose id is a role needs no entry."
+        },
+        "set": {
+          "type": "object",
+          "description": "Input values this purpose starts from, such as blanking the tool's sample wording. Content given in the request overrides them."
+        },
+        "surfaces": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/surface" },
+          "additionalProperties": { "type": "object" },
+          "description": "Named surface to the input values that draw it, for what the tool's sized select options cannot already say. An empty object means the tool lays itself out at that size. A select option carrying width and height needs no entry."
+        }
+      }
+    }
+  }
+}

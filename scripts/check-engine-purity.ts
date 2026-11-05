@@ -94,6 +94,7 @@ const ALLOWED_PACKAGES = new Set([
   // The brand page manifest and checks: wire shapes only.
   '@lolly-tools/core/brand-page-v1',
   // Portable brand vocabulary and its static validation schema.
+  '@lolly-tools/core/intent-v1',
   '@lolly-tools/core/brand-system-v1',
   '@lolly-tools/core/schema/brand-system-v1.schema.json',
   // engine/src/validate.ts - the asset-open intent record and its pure validator.

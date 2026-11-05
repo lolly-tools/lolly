@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "compare",
+      "needs": [
+        "data",
+        "heading"
+      ],
+      "roles": {
+        "data": "criteria"
+      },
+      "set": {
+        "subheading": ""
+      }
+    },
+    {
+      "purpose": "report",
+      "needs": [
+        "data",
+        "heading"
+      ],
+      "roles": {
+        "data": "criteria"
+      },
+      "set": {
+        "subheading": ""
+      }
+    }
+  ]
+}

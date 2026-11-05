@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "explain",
+      "needs": [
+        "body"
+      ]
+    },
+    {
+      "purpose": "report",
+      "needs": [
+        "body"
+      ]
+    }
+  ]
+}

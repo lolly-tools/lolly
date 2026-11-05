@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/visual-intent-v1.schema.json",
+  "title": "visual-intent-v1",
+  "description": "A request to the engine's resolveIntent: what a piece has to do for its reader, where it will be seen and what it has to say. Mirrors VisualIntentV1 in packages/core/src/intent-v1.ts. `purpose` may be left out only when `prompt` is given, and the answer then carries the purposes and tools so the calling agent can read its own user's words, choose a purpose and call again. Nothing here reads meaning from text. parseVisualIntent also bounds nesting, total size and duplicate surfaces.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version"],
+  "anyOf": [
+    { "required": ["purpose", "surfaces"] },
+    { "required": ["prompt"], "not": { "required": ["purpose"] } }
+  ],
+  "properties": {
+    "version": { "const": 1 },
+    "purpose": {
+      "type": "string",
+      "enum": ["announce", "compare", "demonstrate", "direct", "explain", "identify", "invite", "offer", "present", "promote", "recognise", "report", "schedule"],
+      "description": "What the piece does for its reader."
+    },
+    "prompt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "The words the user first said to the agent. Carried and digested, and never read for meaning. Past the limit it is refused, not cut."
+    },
+    "recordPrompt": {
+      "type": "boolean",
+      "default": false,
+      "description": "Asks a render to record the prompt's own words in the file's credential. By default a fingerprint is recorded. A run's own answer wins."
+    },
+    "occasion": { "type": "string", "maxLength": 200, "description": "Free text. Recorded, and read by nothing that decides." },
+    "audience": { "type": "string", "maxLength": 200, "description": "Free text. Recorded, and read by nothing that decides." },
+    "region": { "type": "string", "maxLength": 200, "description": "Free text. Recorded, and read by nothing that decides." },
+    "language": { "type": "string", "maxLength": 64, "description": "A short language tag such as de or pt-BR. Selects where a tool offers that language." },
+    "content": {
+      "type": "object",
+      "maxProperties": 64,
+      "propertyNames": {
+        "enum": ["address", "awarddate", "awardtopic", "bgImage", "body", "company", "cta", "currency", "data", "email", "eventEnd", "eventLocation", "eventName", "eventStart", "firstname", "heading", "headshot", "image", "jobTitle", "lastname", "phone", "recipient", "sender", "sourceAuthor", "subheading", "url"]
+      },
+      "description": "Content by role. The `roles` section of schemas/canonical-inputs.json says what each one is."
+    },
+    "surfaces": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/surface" },
+      "description": "Where the piece will be seen. Required with a purpose."
+    },
+    "prefer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toolId"],
+      "properties": { "toolId": { "type": "string" } },
+      "description": "Rank this tool first among the ones that fit each surface."
+    }
+  },
+  "$defs": {
+    "surface": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "enum": ["slide", "screen", "social-landscape", "social-square", "social-portrait", "story", "banner", "a4-portrait", "a4-landscape", "a3-portrait", "a3-landscape", "a2-portrait", "a2-landscape", "a1-portrait", "letter-portrait", "letter-landscape", "business-card"]
+            },
+            "format": { "$ref": "#/$defs/format" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height"],
+          "properties": {
+            "width": { "type": "number", "exclusiveMinimum": 0 },
+            "height": { "type": "number", "exclusiveMinimum": 0 },
+            "unit": { "type": "string", "enum": ["px", "mm", "cm", "in", "pt"], "default": "px" },
+            "format": { "$ref": "#/$defs/format" }
+          }
+        }
+      ]
+    },
+    "format": { "type": "string", "pattern": "^[a-z0-9-]{1,32}$", "description": "One output format. Must be one the chosen tool exports." }
+  }
+}

@@ -12,6 +12,7 @@
     "_note": "Engine modules that define the rules, the credential writer and the readers. They build ingredients and evaluate rights for the paths below and are not paths themselves.",
     "files": [
       "engine/src/c2pa.ts",
+      "engine/src/c2pa-approval.ts",
       "engine/src/c2pa-extract.ts",
       "engine/src/rights-attribution.ts",
       "engine/src/rights-companion.ts",
@@ -45,6 +46,7 @@
         "shells/web/src/views/tool/render.ts",
         "shells/web/src/views/tool/exporting.ts",
         "shells/web/src/views/tool-actions/wiring.ts",
+        "shells/web/src/views/tool-actions/saving.ts",
         "shells/web/src/views/record-control.ts",
         "shells/web/src/lib/deliver-file.ts",
         "shells/web/src/lib/download-recovery.ts",
@@ -88,6 +90,7 @@
         "shells/cli/src/adobe.ts",
         "shells/cli/src/affinity.ts",
         "shells/cli/src/dxf.ts",
+        "shells/cli/src/import-design.ts",
         "shells/cli/src/document.ts",
         "shells/cli/src/read.ts",
         "services/mcp/src/tools.ts",
@@ -123,6 +126,22 @@
       "status": "not-assessed",
       "code": ["shells/web/src/views/tool-actions/copying.ts", "shells/web/src/bridge/clipboard.ts"],
       "note": "Copy image renders a PNG and writes the pixels to the clipboard. The evaluator knows a clipboard carries no credit (tests/fixtures/rights/clipboard-delivery-missing.json), but the copy actions do not tell the runtime the route is a clipboard."
+    },
+    {
+      "id": "delivery.approval-review",
+      "kind": "delivery",
+      "title": "Send an export to an instance for review",
+      "status": "not-assessed",
+      "code": ["shells/web/src/org/approval-artifact.ts", "shells/web/src/org/approval-dialog.ts"],
+      "note": "Request approval runs the ordinary export and sends those exact bytes to the person's instance, where reviewers read them. The route adds nothing to the file and evaluates no source terms of its own. Whatever the export wrote, credits and credential included, travels unchanged."
+    },
+    {
+      "id": "delivery.approved-file",
+      "kind": "delivery",
+      "title": "Fetch an approved file, or file one in a project",
+      "status": "not-assessed",
+      "code": ["shells/web/src/views/tool-actions/approval-state.ts", "shells/web/src/org/approval-review-sheet.ts", "shells/web/src/org/approval-add-to-project.ts", "shells/web/src/lib/approved-asset.ts"],
+      "note": "These routes hand over the exact bytes a reviewer saw, as the export wrote them, so whatever credits that export carried travel with the file. They add nothing and evaluate no source terms."
     },
     {
       "id": "delivery.text-clipboard",
@@ -663,6 +682,7 @@
         "shells/cli/src/envelope.ts",
         "shells/cli/src/check.ts",
         "shells/cli/src/measure-text.ts",
+        "shells/cli/src/intent.ts",
         "shells/cli/src/preflight.ts",
         "shells/cli/src/validate.ts",
         "shells/cli/src/rebuild.ts",
@@ -737,6 +757,7 @@
         "shells/web/src/views/penpot-import.ts",
         "shells/web/src/views/idml-import.ts",
         "shells/web/src/views/affinity-import.ts",
+        "shells/web/src/views/bannerbear-import.ts",
         "shells/web/src/views/lottie-import.ts",
         "shells/web/src/views/premiere-import.ts",
         "engine/src/idml-read.ts"

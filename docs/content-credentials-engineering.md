@@ -73,6 +73,12 @@ Inside the COSE signing step, the x5chain (label 33) becomes `signer.chain ?? [s
 
 Two passes stay safe: the chain bytes are captured once per embed, so they are byte-identical across passes; ES256 signatures are a fixed 64 bytes; and the algorithm stays hard-coded at −7, **P-256 only** by contract. `sign()` runs several times per embed (a probe, fixed-point rounds and pass 2). That is fine for a WebCrypto key; a future key that needs a person present would need dummy probe signatures.
 
+### `engine/src/c2pa-approval.ts`
+
+`recordApprovalInCredential(reviewed, format, { approvalId, decidedAt, signer })` adds a signed update over a reviewed file. The update's manifest takes the reviewed credential as its one `parentOf` ingredient, records `c2pa.opened` then `c2pa.published`, and carries the `tools.lolly.approval` assertion: `{ version: 1, approvalId, decidedAt, reviewedSha256 }`. The writer refuses any other field and refuses a record with no credentialed parent. PNG, JPEG, SVG and PDF have an update route. A PDF gets one more incremental revision, and the reviewed file stays an exact prefix.
+
+It returns `recorded` only after a readback: `verifyC2pa` finds an intact credential holding that record, and `artworkUnchanged` finds the bytes outside the credential equal. Anything else is `not-recorded` with a reason, and the caller keeps the reviewed bytes. `verifyC2pa` reports the record as `approval`, beside `state`. An update's export facts (`environment`, `author`, `rights`, AI disclosures) are read from its parent once the parent matches the hash the update signed. A parent that does not match fails `ingredient.manifest.mismatch`. `tests/c2pa-approval-record.test.ts` holds the proofs, cross-checked with `c2patool`.
+
 ### `engine/src/c2pa-verify.ts`
 
 ```js
@@ -94,6 +100,8 @@ How the report becomes the verdict the `/verify` view shows:
 ### `engine/src/enrollment.ts`
 
 The enrolment protocol, the managed chain and the revocation list, shared by the app, the CA service and the verifier. `createEnrollmentCsr` builds the app's empty-subject P-256 PKCS#10 CSR, and `enrollmentProofMessage` is the message its proof of possession signs. The CA checks both with `verifyEnrollmentRequest`. For managed mode, `validateEnrollmentChain` checks an issued chain against its enrolment policy (pinned issuer and roots, email, policy OID and maximum lifetime), `validateEnrollmentCrl` checks a revocation list's signature, issuer and age, and `validateManagedCredential` combines them with the parsed trust bundle (`parseEnrollmentTrustBundle`) for the verifier. `revocationProofMessage` is what a device signs to revoke its own certificate.
+
+`opts.intent` adds the `tools.lolly.intent` assertion (CBOR, version 1) for a render that started from an intent, after every other assertion, so a manifest without one keeps its exact bytes. `checkedIntentRecord` is the one definition of what it may hold, used by the writer and the reader, and it refuses any other field, so free text can only arrive as a fingerprint. `intentRecordFor` in `engine/src/intent-record.ts` builds the record from a resolution, and `confirmIntentRecord` decides "recorded" from a readback. The verifier reads the record only from a credential that verifies, and any recorded prompt words carry a `promptNote` that labels them as data. A browser-tier PDF saved without a credential has a cross-reference stream, so `classicPdfForStamp` in `packages/node-shell/src/pdf-classic.ts` saves it with a classic table before the Node stamp.
 
 ### `lolly validate`
 

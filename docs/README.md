@@ -100,6 +100,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Design Tokens | [design-tokens.md](design-tokens.md) |
 | Token workflows | [token-workflows.md](token-workflows.md) |
 | Brand skills | [brand-skills.md](brand-skills.md) |
+| Start from what the piece has to do | [visual-intent.md](visual-intent.md) |
 | Document model draft | [document-model.md](document-model.md) |
 | Constraints | [constraints.md](constraints.md) |
 | Determinism | [determinism.md](determinism.md) |

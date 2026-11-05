@@ -35,6 +35,7 @@ const EFFECTS: Readonly<Record<string, Effect>> = {
   lolly_compose: 'read',
   lolly_inspect_tokens: 'read',
   lolly_measure_text: 'read',
+  lolly_resolve_intent: 'read',
   lolly_look: 'read',
   lolly_sample_color: 'read',
   lolly_trace_edges: 'read',

@@ -47,7 +47,8 @@
  * Handlebars - fully node:test-able (globalThis.crypto only).
  */
 
-import { encodeCbor, LOLLY_EXPORT_ASSERTION } from './c2pa.ts';
+import { checkedIntentRecord, encodeCbor, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, LOLLY_INTENT_ASSERTION } from './c2pa.ts';
+import type { C2paApprovalRecord, C2paIntentRecord } from './c2pa.ts';
 // The check-code vocabulary lives in c2pa-verdict.ts (the shared verdict
 // module); every pass/fail below emits through this map so the strings can
 // never drift from what the surfaces and tests string-match. (No runtime
@@ -65,7 +66,7 @@ import { gunzip } from './gzip.ts';
 import {
   decodeCbor, parseC2paStore, sniffFormat, extractC2paFromPdf, EXTRACTORS,
   collectActionChain, aiKind, extractC2paStore, prepareC2paIngredient, prepareC2paIngredientFromStore,
-  collectIngredients, collectIngredientRecords, bmffTopBoxes, extractC2paDetailed, C2PA_TEXT_STATUS,
+  collectIngredients, collectIngredientRecords, bmffTopBoxes, extractC2paDetailed, readParentManifest, C2PA_TEXT_STATUS,
 } from './c2pa-extract.ts';
 import type {
   C2paStoreParts, SniffFormat, C2paIngredientData, C2paIngredientRecord, BmffBox,
@@ -401,6 +402,16 @@ export interface C2paReport {
   // ingredient's own manifest is also in the chain above; a source ingredient
   // (no credential of its own) appears only here.
   ingredients?: C2paIngredientRecord[];
+  // What a piece was asked to do, for a file made from an intent (`tools.lolly.intent`):
+  // read only from a credential that verifies, and absent from one that does not. A
+  // statement the signer made, not a verdict on the work. `promptNote` sits beside any
+  // recorded prompt words, because those are text someone wrote and travel with the file.
+  intent?: C2paIntentRecord & { promptNote?: string };
+  // An approval a signer recorded in this file (`tools.lolly.approval`): which request
+  // was decided, when and the digest of the file reviewed. A statement the signer made,
+  // to be read with `state` and `trusted`. It is not a verdict on the work, and it
+  // says nothing about what the review covered.
+  approval?: C2paApprovalRecord;
 }
 
 // ─── C2PA 2.4 text bindings: read-side helpers ────────────────────────────────
@@ -898,7 +909,24 @@ export async function verifyC2pa(
   // dropped silently. section 1560 also makes a version part of the label, so a future
   // `c2pa.ai-disclosure.v2` has to match, or it reads as no disclosure at all.
   const AI_DISCLOSURE_LABEL = /^c2pa\.ai-disclosure(\.v\d+)?(__\d+)?$/;
-  const disclosures = parts.assertions
+  // A credential update that records an approval adds no facts about the export: those
+  // stay in the parent, which was signed when the file was made. Read them from there,
+  // so an approved file still says what it was made from and still declares any AI use.
+  // The active claim signed the parent's hash, so a parent that fails it is a failure
+  // of this credential, and its facts are not read.
+  let factAssertions = parts.assertions;
+  const approvalAssertion = parts.assertions.find((a) => a.label === LOLLY_APPROVAL_ASSERTION);
+  if (approvalAssertion) {
+    const record = readApprovalRecord(approvalAssertion.content);
+    if (record) report.approval = record;
+    const parent = readParentManifest(extracted.manifest, parts);
+    if (parent && hexOf(await sha256(parent.payload)) === hexOf(parent.recordedHash)) {
+      factAssertions = parent.parts.assertions;
+    } else {
+      fail(C2PA_CHECK.ingredientManifestMismatch, 'the manifest this credential updates does not match the hash its claim recorded');
+    }
+  }
+  const disclosures = factAssertions
     .filter((a) => AI_DISCLOSURE_LABEL.test(a.label))
     .map((a) => readAiDisclosure(a.content))
     .filter((d): d is C2paAiDisclosure => !!d);
@@ -930,9 +958,13 @@ export async function verifyC2pa(
     }
   }
 
+  // The intent record, closed: a record that claims more than it may is not read as a smaller one.
+  const intentAssertion = factAssertions.find((a) => a.label === LOLLY_INTENT_ASSERTION);
+  const intentRecord = intentAssertion ? readIntentRecord(intentAssertion.content) : null;
+
   // Export context recorded by the writer (tool, surface, browser engine, OS…)
   // - a custom assertion; its integrity is covered by the hashed-URI check.
-  const exportAssertion = parts.assertions.find((a) => a.label === LOLLY_EXPORT_ASSERTION);
+  const exportAssertion = factAssertions.find((a) => a.label === LOLLY_EXPORT_ASSERTION);
   if (exportAssertion) {
     try {
       const decoded = decodeCbor(exportAssertion.content);
@@ -957,7 +989,7 @@ export async function verifyC2pa(
   // forbids creator fields); v1 used the schema.org CreativeWork assertion.
   // Prefer the metadata assertion, fall back to CreativeWork. Integrity of both
   // is covered by the hashed-URI check above/below.
-  const metaAssertion = parts.assertions.find((a) => a.label === 'cawg.metadata' || a.label === 'c2pa.metadata');
+  const metaAssertion = factAssertions.find((a) => a.label === 'cawg.metadata' || a.label === 'c2pa.metadata');
   if (metaAssertion) {
     try {
       const meta = JSON.parse(td.decode(metaAssertion.content));
@@ -972,7 +1004,7 @@ export async function verifyC2pa(
       if (typeof rights === 'string' && rights.trim()) report.rights = rights.trim();
     } catch { /* display nicety only */ }
   }
-  const creativeWork = parts.assertions.find((a) => a.label === 'stds.schema-org.CreativeWork');
+  const creativeWork = factAssertions.find((a) => a.label === 'stds.schema-org.CreativeWork');
   if (creativeWork && (!report.author || !report.rights)) {
     try {
       const work = JSON.parse(td.decode(creativeWork.content));
@@ -1367,6 +1399,7 @@ export async function verifyC2pa(
   }
 
   report.state = checks.every((c) => c.ok || c.code === C2PA_CHECK.signingCredentialUntrusted) ? 'valid' : 'invalid';
+  if (intentRecord && report.state === 'valid') report.intent = intentRecord;
   // "Genuinely made with Lolly" = the credential is intact (signature + hashes
   // + binding all verify), it records a Lolly CREATION (a c2pa.created action -
   // not merely a delivery), AND it names Lolly as the generator. Requiring the
@@ -1401,6 +1434,36 @@ export async function verifyC2pa(
   // Drives the "Delivered by Lolly" / authentic-official-asset verdict.
   report.delivered = report.state === 'valid' && !created && acts.some((a) => a.action === 'c2pa.published');
   return report;
+}
+
+/** The record as written, or null for any other shape. Recorded words come with their label. */
+export function readIntentRecord(content: Uint8Array): (C2paIntentRecord & { promptNote?: string }) | null {
+  let map: unknown;
+  try { map = decodeCbor(content); } catch { return null; }
+  if (!(map instanceof Map) || map.get('version') !== 1) return null;
+  const { version: _version, ...fields } = Object.fromEntries(map) as Record<string, unknown>;
+  try {
+    const record = checkedIntentRecord(fields as unknown as C2paIntentRecord);
+    return record.prompt !== undefined ? { ...record, promptNote: INTENT_PROMPT_NOTE } : record;
+  } catch {
+    return null;
+  }
+}
+
+/** The approval record's three fields, or null for any other shape. A record that
+ *  claims more than it may is not read as a smaller one. */
+function readApprovalRecord(content: Uint8Array): C2paApprovalRecord | null {
+  let map: unknown;
+  try { map = decodeCbor(content); } catch { return null; }
+  if (!(map instanceof Map)) return null;
+  const keys = [...map.keys()];
+  if (map.get('version') !== 1 || keys.length !== 4) return null;
+  const approvalId = map.get('approvalId');
+  const decidedAt = map.get('decidedAt');
+  const reviewedSha256 = map.get('reviewedSha256');
+  if (typeof approvalId !== 'string' || typeof decidedAt !== 'string' || typeof reviewedSha256 !== 'string') return null;
+  if (!/^sha256:[0-9a-f]{64}$/.test(reviewedSha256)) return null;
+  return { approvalId, decidedAt, reviewedSha256 };
 }
 
 /** @deprecated alias - verifyC2pa sniffs PDFs (and every other container). */

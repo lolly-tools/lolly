@@ -31,6 +31,7 @@ import type { markupOps } from './markup.ts';
 import type { learningOps } from './learning.ts';
 import type { rightsOps, RightsRowHandle } from './rights-row.ts';
 import type { wiringOps } from './wiring.ts';
+import type { approvalStateOps, ApprovalBar } from './approval-state.ts';
 
 export interface ActionsCtx {
   // ---- state (was: closure variables of renderActions) ----
@@ -173,6 +174,8 @@ export interface ActionsCtx {
   initialExperience: ExportExperience;
   downloadLabel: string;
   affordance: string;
+  /** This document's state with reviewers, once the instance has answered. */
+  approvalBar: ApprovalBar | null;
   requestApprovalBtn: string;
   downloadBtn: string;
   desktopExport: DesktopExportBridge | undefined;
@@ -283,6 +286,7 @@ export interface ActionsCtx {
   rights: ReturnType<typeof rightsOps>;
   wiring: ReturnType<typeof wiringOps>;
   learning: ReturnType<typeof learningOps>;
+  approvalState: ReturnType<typeof approvalStateOps>;
 }
 
 /** A module function minus its leading context parameter. */

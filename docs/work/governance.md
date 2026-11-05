@@ -80,14 +80,40 @@ groups: not greyed out, not hidden in the client. `*` means everyone.
 | `formats` | for example `["svg","png"]` | Enforced: restricts output formats. |
 | `watermark` | `always` | Enforced: every render carries the [PREVIEW watermark](sharing.md#preview-watermarking). |
 | `watermark` | `never` | Enforced: no render carries the watermark, including a render made for a share link or preview that would otherwise ask for one. |
-| `watermark` | `until-approved` | Stored, not linked to approval state yet: it behaves like no rule, so only a render made for a share link or preview carries the watermark. Set `always` if you need the watermark on every render. |
+| `watermark` | `until-approved` | Enforced on server renders: each render carries the watermark until a request for the same inputs is approved. See [follow approval](#a-watermark-that-follows-approval). |
 | `defaults` | input values | Stored, not applied to a tool's initial inputs by org-config or the render paths. Locked presets do enforce values. |
-| `c2pa`, `escalation` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)), and chain binding works as [Approvals](approvals.md) describes. |
+| `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. |
+| `c2pa` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)). |
 
-The console offers **Always watermark**, **Never watermark** and **No rule** for new edits. An
-existing `until-approved` setting is kept with a warning that it is not enforced. Stored fields
-the policy writer cannot keep, such as `enforce.escalation`, block a console save with an
+The console offers **No rule**, **Never watermark**, **Always watermark** and **Until approved**.
+Stored fields the policy writer cannot keep, such as `enforce.c2pa`, block a console save with an
 explanation rather than being silently removed.
+
+### A watermark that follows approval
+
+With `until-approved`, a server render carries the PREVIEW pattern unless an approved
+[export review](approvals.md) matches it: the same tool, the same tool version, the same format
+and the same input values. A different value, a new tool version or another format stays marked
+until someone approves that one too. A request in review, rejected or withdrawn leaves the mark on.
+A decision takes effect on the next render. An approved match lifts the mark everywhere, including
+share links and a caller asking for a preview. `always` and `never` keep their meaning.
+
+Set a chain in **Approval chain for exports** as well. Without a chain, nobody can approve the
+tool, so its renders stay marked, and the console says so.
+
+Server renders under this rule, share links included, are never stored by a browser or shared
+cache. An `x-lolly-watermark` header says how each one came out: `Marked until approved` or
+`Approved, not marked`. A durable render's output carries the same words, and its receipt gives the
+id of the approval that matched. The words are in the record, not the artwork.
+
+- **Upgrading.** Until this release `until-approved` was stored and not enforced. An instance
+  already holding the setting starts showing PREVIEW on the first render after the upgrade. Change
+  the rule first if that is not what you want.
+- **What a match rests on.** The match uses the input values the requesting app states. A member
+  could send values that do not match the file they send. The mark is a preview signal for people,
+  not a security boundary.
+- **What it covers.** The rule applies to renders Lolly Work makes. Exports a person makes on their
+  own device follow **Approval chain for exports** and their `export.download` permission instead.
 
 ::: details Using the policy editor
 - The console keeps saved format restrictions and input defaults when you edit inputs,

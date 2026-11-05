@@ -44,6 +44,7 @@ import {
   PACKAGE_VALUE_FLAGS, PACKAGE_BOOL_FLAGS, PACKAGE_PATH_FLAGS,
   MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS,
   COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, COMPOSE_PATH_FLAGS,
+  INTENT_VALUE_FLAGS, INTENT_BOOL_FLAGS,
 } from './args.ts';
 
 export type CompletionShell = 'bash' | 'zsh' | 'fish';
@@ -116,8 +117,8 @@ function rebrandWords(): RebrandWords {
   const known = new Set<string>([...VALUE_FLAGS, ...GLOBAL_BOOL_FLAGS, ...PATH_FLAGS]);
   // `lolly measure --text` and `--text-layers` (plan 291 W5).
   // `lolly compose` (plan 291 W6).
-  const bools: string[] = [...REBRAND_BOOL_FLAGS, ...READ_BOOL_FLAGS, ...CHECK_BOOL_FLAGS, ...PACKAGE_BOOL_FLAGS, ...MEASURE_BOOL_FLAGS, ...COMPOSE_BOOL_FLAGS];
-  const values: string[] = [...REBRAND_VALUE_FLAGS, ...READ_VALUE_FLAGS, ...CHECK_VALUE_FLAGS, ...PACKAGE_VALUE_FLAGS, ...MEASURE_VALUE_FLAGS, ...COMPOSE_VALUE_FLAGS];
+  const bools: string[] = [...REBRAND_BOOL_FLAGS, ...READ_BOOL_FLAGS, ...CHECK_BOOL_FLAGS, ...PACKAGE_BOOL_FLAGS, ...MEASURE_BOOL_FLAGS, ...COMPOSE_BOOL_FLAGS, ...INTENT_BOOL_FLAGS];
+  const values: string[] = [...REBRAND_VALUE_FLAGS, ...READ_VALUE_FLAGS, ...CHECK_VALUE_FLAGS, ...PACKAGE_VALUE_FLAGS, ...MEASURE_VALUE_FLAGS, ...COMPOSE_VALUE_FLAGS, ...INTENT_VALUE_FLAGS];
   const words = [...new Set([...values.filter(f => !paths.has(f)), ...bools])].filter(f => !known.has(f));
   return {
     stages: [...REBRAND_STAGES],
