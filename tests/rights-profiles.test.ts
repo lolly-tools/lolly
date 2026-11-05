@@ -19,7 +19,7 @@ import {
 } from '../engine/src/rights-profiles.ts';
 
 test('the rules version is pinned and every profile records its own version and citation', () => {
-  assert.equal(RIGHTS_RULES_VERSION, 'rights-rules-2026-10-30.1');
+  assert.equal(RIGHTS_RULES_VERSION, 'rights-rules-2026-11-05.1');
   const profiles = licenceProfiles();
   assert.deepEqual([...profiles].map((p) => p.id).sort(), profiles.map((p) => p.id), 'profiles come back sorted by id');
   for (const profile of profiles) {

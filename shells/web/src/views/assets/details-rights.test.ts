@@ -143,3 +143,19 @@ test('the Licence and Using rows read the shared licence label, word for word as
     assert.ok(html.includes(`Using this work</dt><dd>${using}</dd></div>`), `Using row for ${JSON.stringify(meta)}`);
   }
 });
+
+test('an owner-published mark shows the phrase and the owner\'s own terms', () => {
+  const terms = 'These marks belong to Acme. Show them unaltered to refer to Acme.';
+  const html = assetRightsRows(ref({
+    license: 'LicenseRef-Acme-Marks',
+    rights: { works: [{
+      id: 'acme/logo', creators: [{ name: 'Acme Ltd', role: 'owner' }],
+      rights: [{ declaration: 'LicenseRef-Acme-Marks', assertedBy: 'catalog', evidence: 'catalog-entry', status: 'unparsed' }],
+      grants: [{ kind: 'own-work', scope: terms, asserted: true }],
+    }] },
+  }), false);
+  assert.ok(html.includes('Owner-published, not an open licence'));
+  assert.ok(html.includes(terms));
+  assert.ok(html.includes('credited to Acme Ltd'));
+  assert.ok(!html.includes('not yet interpreted'));
+});

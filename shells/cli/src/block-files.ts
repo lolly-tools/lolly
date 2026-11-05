@@ -19,6 +19,11 @@
  * path as any other picture. The rows go after any the run already has
  * (`--logos=…`, `--logos-data=rows.csv`), as a drop adds to a list.
  *
+ * `--<input>-from=<page>`, repeatable, takes one row from a brand page somebody
+ * published: an address or a folder (plan 351 B4). The page's current logo for the
+ * surface goes in the row and its usage statement is reported to the person running the
+ * command. Only argv can ask for this: a link cannot make this computer fetch an address.
+ *
  * `bakeLocalBlockAssets` also reads a path written INTO a row, such as a `logo`
  * column in a CSV or `--logos='[{"logo":"./a.png"}]'`, from disk, the way a
  * top-level `--logo=./brand.png` is. Two rules keep that read to what the person
@@ -293,6 +298,103 @@ export async function appendDroppedFiles(opts: {
     const base = Array.isArray(values[input.id]) ? values[input.id] as unknown[] : [];
     values[input.id] = [...base, ...rows];
     out.push({ inputId: input.id, added: rows.length });
+  }
+  return out;
+}
+
+/** Every flag a dropToAdd input adds, so `unknownFlags` and the docs read one list. */
+export const dropFromFlags = (id: string): { from: string; surface: string } => ({ from: `${id}-from`, surface: `${id}-surface` });
+
+/** What a brand page said when one of its logos became a row. Text here is the publisher's, shown as data. */
+export interface BrandPageRowReport {
+  inputId: string;
+  source: string;
+  name: string;
+  logo: string;
+  surface: 'light' | 'dark';
+  revision: string;
+  publishedVersion?: string;
+  usage?: { statement?: string; contact?: string; url?: string };
+}
+
+const unsafeInTerminal = (code: number): boolean => (code < 0x20 && code !== 0x09 && code !== 0x0a)
+  || (code >= 0x7f && code <= 0x9f)
+  || (code >= 0x202a && code <= 0x202e)
+  || (code >= 0x2066 && code <= 0x2069);
+
+/** Publisher text on its way to a terminal: no control characters, so it cannot move the cursor or restyle anything. */
+export function terminalSafe(raw: string, max = 2000): string {
+  return Array.from(raw).filter(ch => !unsafeInTerminal(ch.codePointAt(0)!)).join('').slice(0, max);
+}
+
+/** A literal colour's reading, for choosing a logo. A token or anything else gives null. */
+function surfaceOfColour(value: unknown): 'light' | 'dark' | null {
+  const hit = typeof value === 'string' ? /^#?([0-9a-f]{6})$/i.exec(value.trim()) : null;
+  if (!hit) return null;
+  const n = Number.parseInt(hit[1]!, 16);
+  const luma = (0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+  return luma < 0.5 ? 'dark' : 'light';
+}
+
+/**
+ * Rows from published brand pages. The surface is `--<input>-surface=light|dark`, or
+ * what a literal `background` value says, or light. A token background stays light, since
+ * this runs before tokens resolve, and the flag settles it either way.
+ */
+export async function appendBrandPageLogos(opts: {
+  manifest: { id: string; inputs?: readonly DropInputLike[] };
+  params: Record<string, string>;
+  repeated?: Record<string, string[]>;
+  values: Record<string, unknown>;
+  linkParams?: ReadonlySet<string>;
+  fetchImpl?: typeof fetch;
+}): Promise<BrandPageRowReport[]> {
+  const { manifest, params, repeated = {}, values, linkParams } = opts;
+  const out: BrandPageRowReport[] = [];
+  for (const input of dropToAddInputs(manifest)) {
+    const { from, surface: surfaceFlag } = dropFromFlags(input.id);
+    const sources = repeated[from] ?? (params[from] !== undefined ? [params[from]!] : []);
+    if (!sources.length) continue;
+    if (linkParams?.has(from)) {
+      throw refused(`--${from} came from a link, and a link cannot make this computer read an address or a folder. Pass it on the command line.`, 'LINK_LOCAL_PATH');
+    }
+    const asked = params[surfaceFlag];
+    if (asked !== undefined && asked !== 'light' && asked !== 'dark') {
+      throw usageError(`--${surfaceFlag} takes light or dark, not "${asked}".`, 'BAD_FLAG_VALUE');
+    }
+    const surface = (asked as 'light' | 'dark' | undefined) ?? surfaceOfColour(params.background) ?? 'light';
+    const { readBrandPage, readBrandPageLogo, BrandPageReadError } = await import('@lolly-tools/node-shell/brand-page-read');
+    const rows: Record<string, unknown>[] = [];
+    for (const source of sources) {
+      if (!source || source === '1') throw usageError(`--${from} needs a value: the address or folder of a brand page.`, 'MISSING_FLAG_VALUE');
+      try {
+        const page = await readBrandPage(source, opts.fetchImpl ? { fetchImpl: opts.fetchImpl } : {});
+        const logo = page.logo(surface);
+        if (!logo) throw usageError(`${source} publishes no logo${page.manifest.logos ? '' : ', or was published before pages listed their logos'}, so there is nothing to take. Nothing was rendered.`, 'INPUT_UNREADABLE');
+        const bytes = await readBrandPageLogo(page, logo);
+        const name = basename(logo.path);
+        const mime = imageMime(name, bytes);
+        if (!acceptsMime(input.dropToAdd!.accept, mime)) throw usageError(`${input.id}: ${source} gave ${logo.path}, which is ${mime}, and ${input.id} does not take that.`, 'BAD_FLAG_VALUE');
+        const row = newRow(input.fields ?? []);
+        row[input.dropToAdd!.field] = await bakedImageRef(name, bytes, mime);
+        rows.push(row);
+        const { manifest: m } = page;
+        out.push({
+          inputId: input.id, source, name: terminalSafe(m.name, 200), logo: terminalSafe(logo.id, 200), surface, revision: m.revision,
+          ...(m.publishedVersion ? { publishedVersion: terminalSafe(m.publishedVersion, 200) } : {}),
+          ...(m.usage ? { usage: {
+            ...(m.usage.statement ? { statement: terminalSafe(m.usage.statement) } : {}),
+            ...(m.usage.contact ? { contact: terminalSafe(m.usage.contact, 400) } : {}),
+            ...(m.usage.url ? { url: terminalSafe(m.usage.url, 600) } : {}),
+          } } : {}),
+        });
+      } catch (error) {
+        if (error instanceof BrandPageReadError) throw usageError(`--${from}: ${error.message}. Nothing was rendered.`, 'INPUT_UNREADABLE');
+        throw error;
+      }
+    }
+    const base = Array.isArray(values[input.id]) ? values[input.id] as unknown[] : [];
+    values[input.id] = [...base, ...rows];
   }
   return out;
 }
