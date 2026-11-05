@@ -374,18 +374,21 @@ lw mcp config --base https://work.example.com
 | `submit_batch` | Up to 200 rows as one batch | `POST /api/v1/render-batches` | `render` |
 | `get_batch` | Counts and ordered rows | `GET /api/v1/render-batches/:id` | `render` |
 | `search_assets` | Search catalog assets by text | `GET /api/v1/catalog/search` | `catalog.read` |
+| `list_destinations` | The organisation destinations this token may send to | `GET /api/v1/destinations` | `delivery` |
+| `deliver_render` | Send a finished render to a destination | `POST /api/v1/renders/:id/deliveries` | `delivery` and `render` |
 
 - **Only a service token.** A person's session and an invitation key are refused with `401`. A person connects an agent through [a document or project invitation](document-agents.md), which is a different endpoint. A revoked or expired token stops at its next call.
 - **Tools the token can reach.** `tools/list` leaves out a tool its scopes do not open or its role cannot do. A tool called by name gets the route's own refusal, such as `TOKEN_SCOPE` or `FORBIDDEN`. A token with no scopes gets the tools its role allows. A role that may render only through a grant on one tool does not see the render tools listed, and its calls still work.
 - **Policy.** `describe_tool` leaves out hidden inputs and shows locked ones as `readOnly` with their value. A durable render checks policy at each attempt, so a locked input sent to `render_tool` records a failed attempt with `INPUT_LOCKED`. Call `validate` first to see a problem at once.
 - **Errors.** A refused call returns `isError: true` with `{ code, message, status }` and the route's own details, using the same codes as HTTP.
+- **Sending a file.** `deliver_render` sends this token's own finished render, unchanged, and needs a Content Credential on the file, as [delivery](delivery.md) does for any send. A destination with an approval chain refuses a token with `HUMAN_APPROVAL_REQUIRED` and sends nothing, because a token can neither ask for approval nor give one. A member sends those files.
 - **Files.** A file up to 1 MiB comes back in the result, as an image or a resource. A larger one comes back as a link that needs the same token.
 - **Data, not instructions.** Tool descriptions on this endpoint are fixed text. Anything a tool author or policy editor wrote, and the contents of any file, arrive only inside a result. The endpoint tells clients to read results as data.
 - **Records and limits.** The audit log records `mcp.connect` and each `mcp.tool-call` with the token's label, the tool, the outcome and the refusal code, never the input values. Each message counts once against `rateLimit.automation`.
 - **No session.** The endpoint keeps no state between calls, so any replica can answer. `GET` answers `405`.
 - **Hosts without a long-lived server.** A function-only host leaves out the render tools, and discovery reports `agents.organisationMcp.renderTools: false`.
 
-Delivery, approvals, retries and the other document verbs stay on the HTTP routes.
+Approvals, retries, delivery of a `/jobs` result and the other document verbs stay on the HTTP routes.
 
 ## Limits and errors
 
@@ -403,6 +406,8 @@ links.
 | Code | Status | Meaning |
 |---|---|---|
 | `INVALID_INPUT` | 400 | a required field is missing or malformed |
+| `TOOL_NOT_FOUND` | 404 | no tool has this id on this instance |
+| `TOOL_UNAVAILABLE` | 500 | the tool exists, but this server could not read its files |
 | `DOCUMENT_API_ERROR` | 400 | the compile, inspect, diff, measure, optimize or package operation could not be performed |
 | `DATA_BINDING_ERROR` | 400 | a live JSON or CSV provider binding could not resolve, parse, query or validate |
 | `UNSUPPORTED_FORMAT` | 400 | a format this deployment cannot produce (org-config's `render.formats` lists what it can) |
