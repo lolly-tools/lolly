@@ -4,7 +4,7 @@
   "category": "Publishing",
   "description": "A typographic poster with editable circular and curved text guides.",
   "values": {
-    "background": "#f4f1e8",
+    "background": "{color.semantic.surface}",
     "boxes": [
       {
         "id": "page",
@@ -14,7 +14,7 @@
         "y": 0,
         "w": 960,
         "h": 1280,
-        "bg": "#f4f1e8",
+        "bg": "var(--brand-surface, #f4f1e8)",
         "clipChildren": true,
         "order": 0
       },
@@ -28,7 +28,7 @@
         "y": 65,
         "w": 820,
         "h": 35,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 17,
         "align": "left",
         "valign": "top",
@@ -47,7 +47,7 @@
         "y": 131,
         "w": 835,
         "h": 280,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 96,
         "align": "left",
         "valign": "top",
@@ -64,9 +64,10 @@
         "y": 464,
         "w": 534,
         "h": 534,
-        "bg": "#c9e3d4",
+        "bg": "var(--brand-secondary, #c9e3d4)",
         "shape": "ellipse",
-        "frame": "page"
+        "frame": "page",
+        "opacity": 30
       },
       {
         "id": "inner-orbit",
@@ -76,7 +77,7 @@
         "y": 562,
         "w": 338,
         "h": 338,
-        "bg": "#f4f1e8",
+        "bg": "var(--brand-surface, #f4f1e8)",
         "shape": "ellipse",
         "frame": "page"
       },
@@ -88,7 +89,7 @@
         "y": 689,
         "w": 84,
         "h": 84,
-        "bg": "#182a29",
+        "bg": "var(--brand-text, #182a29)",
         "shape": "ellipse",
         "frame": "page"
       },
@@ -102,7 +103,7 @@
         "y": 395,
         "w": 672,
         "h": 672,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 35,
         "align": "left",
         "valign": "top",
@@ -121,7 +122,7 @@
         "y": 1080,
         "w": 820,
         "h": 145,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 32,
         "align": "left",
         "valign": "top",
@@ -132,6 +133,5 @@
       }
     ],
     "textDocument": "{\"version\":1,\"fonts\":[{\"id\":\"sans\",\"family\":\"SUSE\",\"sha256\":\"e58dc240debae8a177d236e977e3834c6fff3883a7ad6010f098778f60904527\",\"faceIndex\":0,\"source\":{\"kind\":\"bundled\",\"path\":\"/fonts/SUSE[wght].ttf\"}},{\"id\":\"mono\",\"family\":\"SUSE Mono\",\"sha256\":\"0c084ef20dc4c98e4ecc695e7b59991cdcb275aca8d350daece78296a5df30cc\",\"faceIndex\":0,\"source\":{\"kind\":\"bundled\",\"path\":\"/fonts/SUSEMono[wght].ttf\"}}],\"styles\":[{\"id\":\"label\",\"name\":\"label\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"mono\",\"size\":17,\"weight\":500,\"color\":\"#182a29\"},\"lineHeight\":1.25,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"headline\",\"name\":\"headline\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":96,\"weight\":750,\"color\":\"#182a29\"},\"lineHeight\":0.99,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"orbit\",\"name\":\"orbit\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":35,\"weight\":600,\"color\":\"#182a29\",\"tracking\":3},\"lineHeight\":1.25,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"wave\",\"name\":\"wave\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":32,\"weight\":550,\"color\":\"#182a29\",\"tracking\":0.4},\"lineHeight\":1.25,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"footer\",\"name\":\"footer\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":20,\"weight\":400,\"color\":\"#182a29\"},\"lineHeight\":1.3,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}}],\"stories\":[{\"version\":1,\"id\":\"edition-story\",\"revision\":0,\"source\":\"FORM / LANGUAGE / SPACE\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"edition\"],\"paragraphs\":[{\"start\":0,\"end\":23,\"id\":\"edition-p0\"}],\"defaultStyle\":\"label\"},{\"version\":1,\"id\":\"headline-story\",\"revision\":0,\"source\":\"Type in\\norbit.\",\"breaks\":[{\"start\":7,\"length\":1,\"kind\":\"paragraph\"}],\"spans\":[],\"inlines\":[],\"frameIds\":[\"headline\"],\"paragraphs\":[{\"start\":0,\"end\":7,\"id\":\"headline-p0\"},{\"start\":8,\"end\":14,\"id\":\"headline-p1\"}],\"defaultStyle\":\"headline\"},{\"version\":1,\"id\":\"circular-type-story\",\"revision\":0,\"source\":\"IDEAS IN MOTION / WORDS IN SPACE / IDEAS IN MOTION / WORDS IN SPACE /\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"circular-type\"],\"paragraphs\":[{\"start\":0,\"end\":69,\"id\":\"circular-type-p0\"}],\"defaultStyle\":\"orbit\"},{\"version\":1,\"id\":\"curved-type-story\",\"revision\":0,\"source\":\"A different way to follow a thought.\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"curved-type\"],\"paragraphs\":[{\"start\":0,\"end\":36,\"id\":\"curved-type-p0\"}],\"defaultStyle\":\"wave\"}]}"
-  },
-  "thumb": "/tools/design/assets/publishing-type-in-orbit.png"
+  }
 }

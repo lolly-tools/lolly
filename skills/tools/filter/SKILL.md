@@ -5,7 +5,7 @@ description: "Operate the Lolly Filter tool (filter) using its declared inputs a
 
 # Filter
 
-Tool ID: `filter`. Tool version: `1.5.2`. Engine range: `^1.242.0`.
+Tool ID: `filter`. Tool version: `1.5.3`. Engine range: `^1.242.0`.
 
 One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.
 
@@ -39,6 +39,7 @@ Required host APIs: none. Device capabilities: none.
 | sc_gapSize | number |  |
 | sc_separatePixels | boolean |  |
 | sc_everyLine | boolean |  |
+| sc_colorSource | select |  |
 | sc_highlight | color |  |
 | sc_light | color |  |
 | sc_mid | color |  |

@@ -9,11 +9,10 @@
     "treatShadow": "{color.semantic.primary}",
     "treatHighlight": "{color.semantic.secondary}",
     "filmLook": "none",
-    "image": {
-      "source": "remote",
-      "id": "https://lolly.tools/tool/gradient.png?count=3&grain=0",
-      "_unresolved": true
+    "imageFraming": {
+      "zoom": 100,
+      "x": 50,
+      "y": 10
     }
-  },
-  "galleryCover": true
+  }
 }

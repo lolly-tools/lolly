@@ -176,6 +176,8 @@ export interface RenderResult {
   designRecord?: DesignRecord;
   /** What the delivered file holds about its intent, read back from the bytes. Absent when no intent was passed. */
   intentRecord?: IntentRecordOutcome;
+  /** This render has a credential only because an intent asked for one: no `c2pa` setting was given. */
+  credentialFromIntent?: boolean;
 }
 
 /**
@@ -872,8 +874,8 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   if (o.depth && o.depth !== 'auto') p.set('depth', String(o.depth));
   if (Number(p.get('cuts')) > 1 || p.has('sampletimes')) p.set('c2pa', o.c2pa?.on ? String(o.c2pa.days ?? 1) : 'off');
   // An intent record goes in the credential this server stamps, so the browser writes none of
-  // its own. A PDF it stamped could not take a second one.
-  if (o.intent && o.c2pa?.on) p.set('c2pa', 'off');
+  // its own: a PDF it stamped could not take a second one, and `c2pa: "off"` means no credential.
+  if (o.intent) p.set('c2pa', 'off');
   p.set('export', '1'); // presence flag → immediate download on load
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -1148,6 +1150,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
   if (o.transparentBg !== undefined) values['transparentBg'] = o.transparentBg;
   if (o.convertPaths !== undefined) values['convertPaths'] = o.convertPaths;
 
+  const credentialFromIntent = !!o.intent && !o.c2pa && !st.c2pa;
   const merged: RenderOpts = {
     ...o,
     width: o.width ?? st.width ?? undefined,
@@ -1155,7 +1158,9 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     unit: o.unit ?? st.unit ?? undefined,
     dpi: o.dpi ?? st.dpi ?? undefined,
     password: o.password ?? st.password ?? undefined,
-    c2pa: o.c2pa ?? st.c2pa ?? null,
+    // The credential is the one place an intent record can go, so an intent turns it on for
+    // this render. An explicit setting, `c2pa: "off"` included, still wins.
+    c2pa: o.c2pa ?? st.c2pa ?? (credentialFromIntent ? { on: true, days: null } : null),
     // The `hdr=` request, the CLI/MCP's only float pixel source (see exportOpts).
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? undefined,
@@ -1310,6 +1315,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     ...(songs ? { songs } : {}),
     ...(designRecord ? { designRecord } : {}),
     ...(finished.intentRecord ? { intentRecord: finished.intentRecord } : {}),
+    ...(credentialFromIntent ? { credentialFromIntent } : {}),
   };
 }
 

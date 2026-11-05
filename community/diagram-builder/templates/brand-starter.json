@@ -1,11 +1,11 @@
 {
   "id": "brand-starter",
-  "name": "Open workflow",
+  "name": "Open cycle",
   "category": "Brand",
-  "description": "A simple three-step workflow on transparency.",
+  "description": "A five-step cycle that reads at a glance, on transparency.",
   "galleryCover": true,
   "values": {
-    "diagramType": "process",
+    "diagramType": "cycle",
     "flowDir": "down",
     "nodes": [
       {
@@ -14,27 +14,32 @@
         "shape": "rounded"
       },
       {
-        "nodeId": "build",
-        "label": "Build",
+        "nodeId": "draft",
+        "label": "Draft",
         "shape": "rounded"
       },
       {
-        "nodeId": "share",
-        "label": "Share",
+        "nodeId": "review",
+        "label": "Review",
+        "shape": "rounded"
+      },
+      {
+        "nodeId": "ship",
+        "label": "Ship",
         "shape": "rounded"
       }
     ],
     "background": "transparent",
     "gridBg": "none",
-    "labelSize": 16,
-    "cardWidth": 208,
+    "labelSize": 26,
+    "cardWidth": 240,
     "cardBorderWidth": 1,
     "cornerRadius": 12,
     "nodeStroke": "{color.semantic.secondary}",
     "edgeColor": "{color.semantic.secondary}",
     "nodeFill": "{color.semantic.surface}",
     "nodeText": "{color.semantic.text}",
-    "look": "minimal",
+    "look": "studio",
     "arrowHead": "open",
     "arrows": [
       {
@@ -45,6 +50,7 @@
         "from": "build",
         "to": "share"
       }
-    ]
+    ],
+    "title": ""
   }
 }

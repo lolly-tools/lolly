@@ -28,7 +28,8 @@
         "color": "#241d16",
         "background": "#faf6ef",
         "accent": "#8a5a2b"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "letterhead-blank",
@@ -36,7 +37,8 @@
       "description": "The same furniture with no letter - the continuation page.",
       "values": {
         "body": ""
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -7,7 +7,7 @@ import { buildBrandDocFromUsage } from '../brand-propose.ts';
 import { censusToUsage, type DesignCensus } from './census.ts';
 
 export interface ReferenceEvidence {
-  method: 'image' | 'svg' | 'website' | 'files' | 'paste';
+  method: 'image' | 'svg' | 'website' | 'files' | 'paste' | 'design-md' | 'brand-page';
   label: string;
   sha256?: string;
   files?: string[];
@@ -27,6 +27,25 @@ export function referenceLook(census: DesignCensus, name: string, evidence: Refe
     doc, roles, preview,
     contrast: { text: contrastRatio(preview.text, preview.surface), action: contrastRatio(preview.onPrimary, preview.primary) },
   };
+}
+
+/**
+ * A source that states its own tokens, shown as written. Nothing is generated: the
+ * preview paints the document the person would install, in the mode they chose.
+ */
+export function declaredLook(doc: Record<string, unknown>, theme?: string) {
+  const tokens = createTokenSet(doc, theme ? { theme } : {});
+  const colors = new Map(tokens.colors().map(c => [c.path, c.value]));
+  const color = (path: string, fallback: string): string => {
+    const value = colors.get(`color.semantic.${path}`);
+    return typeof value === 'string' ? value : fallback;
+  };
+  const surface = color('surface', '#ffffff');
+  const text = color('text', contrastRatio('#000000', surface) >= contrastRatio('#ffffff', surface) ? '#000000' : '#ffffff');
+  const primary = color('primary', text);
+  const onPrimary = color('on-primary', contrastRatio('#000000', primary) >= contrastRatio('#ffffff', primary) ? '#000000' : '#ffffff');
+  const preview = { primary, surface, text, onPrimary };
+  return { doc, preview, contrast: { text: contrastRatio(text, surface), action: contrastRatio(onPrimary, primary) } };
 }
 
 /** Portable context includes observations and proposed tokens, never the page's raw text. */

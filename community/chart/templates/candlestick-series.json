@@ -22,7 +22,8 @@
       "values": {
         "chartStyle": "poster",
         "showGrid": false
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

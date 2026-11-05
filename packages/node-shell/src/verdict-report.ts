@@ -75,6 +75,42 @@ export function verdictIntent(report: C2paReport): VerdictIntent | null {
   };
 }
 
+/** What a credential records about an approval. Scrubbed, and data throughout. */
+export interface VerdictApproval {
+  /** False when the file holds a record but its credential does not verify. */
+  intact: boolean;
+  facts: Array<[label: string, value: string]>;
+  note: string;
+}
+
+/** The approval record for a person to read, or null when the file holds none. */
+export function verdictApproval(report: C2paReport): VerdictApproval | null {
+  const r = report.approval;
+  if (!r) return null;
+  const intact = report.state === 'valid';
+  // "Changed" rests on a failed hash comparison and nothing else. A lapsed certificate
+  // leaves the bytes exactly as signed, so it must not read as a change.
+  const fails = report.checks.filter(chk => !chk.ok && chk.code !== 'signingCredential.untrusted');
+  const changed = fails.some(chk => chk.code === 'assertion.dataHash.mismatch' || chk.code === 'assertion.bmffHash.mismatch');
+  const lapsed = fails.length === 1 && fails[0]!.code === 'signingCredential.expired';
+  return {
+    intact,
+    facts: [
+      ['Request', cleanControlChars(r.approvalId)],
+      ['Decided', cleanControlChars(r.decidedAt)],
+      ['Reviewed', cleanControlChars(r.reviewedSha256)],
+      ['This file', intact ? 'unchanged since the signer recorded this approval'
+        : changed ? 'does not match the signed record'
+        : lapsed ? 'still matches its credential'
+        : 'could not be confirmed'],
+    ],
+    note: intact ? 'A record the signer made, not a review of the work.'
+      : changed ? 'This file changed after the approval was recorded, or the record itself was altered.'
+      : lapsed ? 'The signing certificate has lapsed, so this approval can no longer be confirmed.'
+      : 'This approval record did not pass its checks, so it cannot be relied on.',
+  };
+}
+
 /** Semantic tone for a rendered verdict line; each surface maps it to its palette. */
 export type VerdictTone = 'good' | 'warn' | 'bad' | 'dim';
 

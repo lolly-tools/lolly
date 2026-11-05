@@ -5,7 +5,7 @@ description: "Operate the Lolly Stationery tool (stationery) using its declared 
 
 # Stationery
 
-Tool ID: `stationery`. Tool version: `1.0.3`. Engine range: `^1.0.0`.
+Tool ID: `stationery`. Tool version: `1.0.4`. Engine range: `^1.0.0`.
 
 Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, ready as a print PDF.
 

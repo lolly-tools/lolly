@@ -79,11 +79,13 @@ groups: not greyed out, not hidden in the client. `*` means everyone.
 |---|---|---|
 | `formats` | for example `["svg","png"]` | Enforced: restricts output formats. |
 | `watermark` | `always` | Enforced: every render carries the [PREVIEW watermark](sharing.md#preview-watermarking). |
-| `watermark` | `never` | Enforced: no render carries the watermark, including a render made for a share link or preview that would otherwise ask for one. |
+| `watermark` | `never` | Enforced: no render carries the watermark. |
 | `watermark` | `until-approved` | Enforced on server renders: each render carries the watermark until a request for the same inputs is approved. See [follow approval](#a-watermark-that-follows-approval). |
 | `defaults` | input values | Stored, not applied to a tool's initial inputs by org-config or the render paths. Locked presets do enforce values. |
 | `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. |
 | `c2pa` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)). |
+
+With no `watermark` rule, a server render carries no mark. The render pipeline can take a request for the preview mark, but no Lolly Work route makes that request today, so a share link or a preview does not ask for the mark.
 
 The console offers **No rule**, **Never watermark**, **Always watermark** and **Until approved**.
 Stored fields the policy writer cannot keep, such as `enforce.c2pa`, block a console save with an
@@ -96,7 +98,7 @@ With `until-approved`, a server render carries the PREVIEW pattern unless an app
 and the same input values. A different value, a new tool version or another format stays marked
 until someone approves that one too. A request in review, rejected or withdrawn leaves the mark on.
 A decision takes effect on the next render. An approved match lifts the mark everywhere, including
-share links and a caller asking for a preview. `always` and `never` keep their meaning.
+share links. `always` and `never` keep their meaning.
 
 Set a chain in **Approval chain for exports** as well. Without a chain, nobody can approve the
 tool, so its renders stay marked, and the console says so.

@@ -179,6 +179,7 @@ function QRCode(options) {
     eyeShape: 'square',
     eyeColor: '',
     gradStops: null,         // WP-H - per-module gradient bands (null = solid)
+    gradMix: false,          // spread the bands across the modules, not along an axis
     gradType: 'linear',
     gradAngle: 45,
     logoUrl: '',             // WP-I - centre brand mark (empty = none)
@@ -421,7 +422,7 @@ function _qbScanWarnings(o) {
 function _qbIsBranded(args) {
   return _qbShape(args.moduleShape) !== 'square'
     || _qbEyeShape(args.eyeShape) !== 'square'
-    || args.fill === 'gradient'
+    || args.fill === 'gradient' || args.fill === 'mix'
     || !!args._logoUrl
     || _qbFrame(args.frame) !== 'none';
 }
@@ -478,6 +479,7 @@ function _qbRenderBranded(modules, length, xsize, ysize, options, shape, eyeShap
   var gcx = W / 2, gcy = H / 2, gmax = Math.hypot(W / 2, H / 2) || 1;
   function bandAt(cx, cy) {
     if (!grad) return 0;
+    if (grad.mix) return Math.abs((Math.round(cx) * 73856093) ^ (Math.round(cy) * 19349663)) % N;
     var t = grad.type === 'radial'
       ? Math.hypot(cx - gcx, cy - gcy) / gmax
       : (cx * gdx + cy * gdy - gmn) / gspan;
@@ -622,7 +624,7 @@ QRCode.prototype.svg = function(opt) {
   var _eyeShape = _qbEyeShape(options.eyeShape);
   var _eyeColor = (options.eyeColor != null && String(options.eyeColor) !== '') ? options.eyeColor : options.color;
   var _grad = options.gradStops && options.gradStops.length > 1
-    ? { stops: options.gradStops, type: options.gradType === 'radial' ? 'radial' : 'linear', angle: Number(options.gradAngle) || 0 }
+    ? { stops: options.gradStops, type: options.gradType === 'radial' ? 'radial' : 'linear', angle: Number(options.gradAngle) || 0, mix: options.gradMix === true }
     : null;
   var _logo = (options.logoUrl && String(options.logoUrl) !== '')
     ? { url: options.logoUrl,
@@ -966,6 +968,10 @@ function compute(args, host) {
   if (args.fill === 'gradient' && _qbHexToRgb(fg) && _qbHexToRgb(secondColor)) {
     gradStops = _qbRamp(fg, secondColor, host, 14);
   }
+  // Mixed: three shades between the two colours, spread across the modules.
+  if (args.fill === 'mix' && _qbHexToRgb(fg) && _qbHexToRgb(secondColor)) {
+    gradStops = _qbRamp(fg, secondColor, host, 3);
+  }
 
   // Brand mark (WP-I): a resolved logo forces ecl High so the ~30% redundancy
   // covers the knocked-out centre. Surfaced in qrEclRaised for the guardrail.
@@ -1007,6 +1013,7 @@ function compute(args, host) {
         eyeShape:    args.eyeShape,
         eyeColor:    eyeColor,
         gradStops:   gradStops,          // WP-H - null unless fill=gradient
+        gradMix:     args.fill === 'mix',
         gradType:    args.gradientType,
         gradAngle:   args.angle,
         logoUrl:     logoUrl,            // WP-I - '' unless a logo resolved

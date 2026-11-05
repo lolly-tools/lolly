@@ -8,6 +8,7 @@ Two words mean the same thing everywhere on this page. The **lead brand** is the
 
 - **One design system draws each piece.** The lead brand's colours, type and house rules apply. The partner's mark goes in as artwork: a picture from Assets, or a custom mark kept in a design system.
 - **A brand travels as a file.** A design-system file (`.lolly`) carries tokens, fonts and logos. A reusable tool made with **Share with rules** carries one finished layout with the inputs you allow. Brand skills travel as files of their own.
+- **A brand can also have an address.** A [brand page](/info/brand-page.html) publishes logos, colours, type and rules for a partner to read, with tokens and skills for their tools.
 - **Lolly checks the lead brand's rules only.** It does not know the partner's rules, such as clear space or minimum size, so check those against the partner's own guidelines.
 
 ## Share your brand with a partner
@@ -19,6 +20,7 @@ Two words mean the same thing everywhere on this page. The **lead brand** is the
 | A design-system file | **Export** in the bar at the top of [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Your tokens, fonts, logos and theme preference, as a design system they can switch to | A partner who makes many pieces in your brand |
 | A reusable tool | In Lolly Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | One finished layout with the inputs you allow, such as their name and their logo. The file carries the resolved colours, fonts and images, so their own design system cannot restyle the fixed artwork | A co-branded flyer, badge or banner that each partner fills in |
 | Brand skills | The **Skills** room: **Download skill (.zip)** or **Copy as one file** | Your written standards, for their people and their agents | Either of the above, when an agent does some of the work |
+| A brand page | **Publish a brand page** in Lolly Design System Setup, or `lolly system publish`, writes a folder you host ([Brand pages](/info/brand-page.html)) | Your current logos, colours, type and rules at one address, with tokens and skills for their tools. Logos and font files appear when their rights allow, and the page lists what it held back | Sharing with people you do not send files to |
 | Tokens | **Tokens (.json)** in the studio's **More** menu | The plain design-tokens document, with no fonts or logos | A partner's own design tools or build |
 
 ![Lolly Design System Setup on Lolly Demo, open at the Skills room: Export in the bar, the More menu open on Tokens (.json), and Download skill (.zip) and Copy as one file beside the chosen skill](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@ Export the wall as PNG, SVG, PDF or a CMYK PDF for print. Set another size and s
 
 In a terminal, `lolly run logo-wall logos/*.png --output=wall.svg` builds the wall from a folder of pictures, and a CSV with `logo` and `tier` columns builds a tiered wall. SVG and PNG need no browser ([A sponsor wall with tiers](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+When a sponsor publishes a [brand page](/info/brand-page.html), `lolly run logo-wall --logos-from=<address or folder>` takes their current logo for the surface and prints what their page says about use. Repeat the flag for each sponsor.
+
 Lolly Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes relative to each other, not a sponsor's minimum size, and nothing checks the clear space between neighbours. Check the finished wall against each sponsor's guidelines at the size it will be printed or shown.
 
 ## What Lolly does not do yet
@@ -119,6 +123,8 @@ Lolly Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes 
 - One design system is active for the whole device, so two brands cannot be open side by side.
 - A design-system file is a copy of the brand as it was exported, and nothing updates the copy. A design-system file exported from the app does not carry brand skills, so send those as files of their own.
 - An export records the lead brand's design system and colourway, not the partner's brand.
+- A logo taken from a brand page is a picture in its row, and the row does not remember the page. Nothing shows who published a page, so check the address yourself.
+- The hosted web app cannot fetch another brand's page, because its Content Security Policy allows named hosts only. Take the logo in a terminal, or save the file and add the file in **Assets**.
 
 ## Where to go next
 
@@ -126,4 +132,5 @@ Lolly Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes 
 - **[Share a design with rules](/info/create-a-tool.html)**: reusable tools with a fixed layout and the inputs you choose.
 - **[Brand skills](/info/brand-skills.html)**: how skills are written, read and handed to an agent.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logos, custom marks, and moving a design system between devices.
+- **[Brand pages](/info/brand-page.html)**: publish your brand at one address, and take a partner's logo from theirs.
 - **[Creative rights and credits](/info/creative-rights.html)**: what Lolly records about the works it draws.

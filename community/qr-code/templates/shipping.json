@@ -17,19 +17,29 @@
       "id": "sscc",
       "name": "Pallet SSCC",
       "description": "The serial shipping container code on its own.",
-      "values": { "value": "(00)095212345678901235" }
+      "values": {
+        "value": "(00)095212345678901235"
+      },
+      "kind": "retired"
     },
     {
       "id": "batch",
       "name": "Batch and best-before",
       "description": "GTIN with expiry date and lot number, the food and pharma trio.",
-      "values": { "value": "(01)09521234543213(17)270831(10)LOT42" }
+      "values": {
+        "value": "(01)09521234543213(17)270831(10)LOT42"
+      },
+      "kind": "retired"
     },
     {
       "id": "square",
       "name": "Small square",
       "description": "The same element string as a GS1 Data Matrix for tight labels.",
-      "values": { "gs1Carrier": "gs1datamatrix", "value": "(01)09521234543213(17)270831(10)LOT42" }
+      "values": {
+        "gs1Carrier": "gs1datamatrix",
+        "value": "(01)09521234543213(17)270831(10)LOT42"
+      },
+      "kind": "retired"
     }
   ]
 }

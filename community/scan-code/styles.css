@@ -84,8 +84,6 @@
 .sc-fmt {
   font: 11px ui-monospace, Menlo, Consolas, monospace;
   color: #6b6b6b;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .sc-value {

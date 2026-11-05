@@ -15,13 +15,19 @@
       "id": "text-pairs",
       "name": "Text pairings",
       "description": "Judged at the normal-text bars, for body copy on brand surfaces.",
-      "values": { "textSize": "normal" }
+      "values": {
+        "textSize": "normal"
+      },
+      "kind": "retired"
     },
     {
       "id": "display-pairs",
       "name": "Display pairings",
       "description": "Judged at the large-text bars, for headlines and display type.",
-      "values": { "textSize": "large" }
+      "values": {
+        "textSize": "large"
+      },
+      "kind": "retired"
     }
   ]
 }

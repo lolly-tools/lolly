@@ -1,0 +1,14 @@
+{
+  "id": "poster-steps",
+  "name": "Poster steps",
+  "category": "Print",
+  "description": "A few flat tones, like a screen print.",
+  "values": {
+    "effect": "posterize",
+    "width": 1200,
+    "height": 1450,
+    "image": {
+      "id": "lolly/demo/sample-character"
+    }
+  }
+}

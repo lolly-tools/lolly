@@ -1197,7 +1197,6 @@ html[data-webgpu-pending] .gtile-iconfill-trace svg :is(path, circle, rect, line
    object-fit:contain, so differently-shaped example looks fit within the one frame
    without cropping and without resizing the box as the strip advances. */
 .gcar {
-  background: repeating-conic-gradient(var(--ui-color-surface-muted) 0% 25%, var(--ui-color-surface-canvas) 0% 50%) 50% / 16px 16px;
   position: relative;                /* anchor for nav, dots, badge, Continue chip */
   isolation: isolate;                /* contain the .gtile-iconfill backdrop's z-index:-1 */
   width: 100%;

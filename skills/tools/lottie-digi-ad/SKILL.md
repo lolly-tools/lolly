@@ -5,7 +5,7 @@ description: "Operate the Lolly Lottie Ad tool (lottie-digi-ad) using its declar
 
 # Lottie Ad
 
-Tool ID: `lottie-digi-ad`. Tool version: `1.0.3`. Engine range: `^1.0.0`.
+Tool ID: `lottie-digi-ad`. Tool version: `1.0.4`. Engine range: `^1.0.0`.
 
 Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size.
 

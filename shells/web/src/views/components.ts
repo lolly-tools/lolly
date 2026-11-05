@@ -92,7 +92,9 @@ import { categoryGlyph } from '../lib/category-icons.ts';
 import { catalogSummaryBody } from '../lib/catalog-summary.ts';
 import { fmtBadge, dimBadge, rowCountBadge, sessionRow, type SessionEntry } from '../folder-tiles.ts';
 import { controlHtml } from '../pro/controls.ts';
-import { stepsHtml, inputsDigestHtml } from './valid.ts';
+import { stepsHtml } from './valid.ts';
+import { inputsDigestHtml } from './valid-made-from.ts';
+import { recordPanelsHtml } from './valid-record.ts';
 import type { PaletteEntry } from '../palette.ts';
 import { segHtml } from '../lib/seg.ts';
 import { icon, iconNames, ICON_METAPHORS, type IconMetaphor } from '../lib/icons.ts';
@@ -233,6 +235,11 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
       { action: 'c2pa.color_adjustments', when: '2026-07-02T11:00:00Z', softwareAgent: 'Adobe Photoshop' },
     ] } as never) },
     validInputs: { render: () => inputsDigestHtml({ Background: '#1a1a2e', Headline: 'Ship it', Size: '1080×1080' }) },
+    validRecord: { render: () => recordPanelsHtml({
+      found: true, state: 'valid', checks: [],
+      approval: { approvalId: 'apr_example', decidedAt: '2026-11-05T10:15:00Z', reviewedSha256: `sha256:${'ab'.repeat(32)}` },
+      intent: { purpose: 'invite', surface: 'social-square', tool: 'QR Code', prompt: 'A square invitation for the spring meetup, with a code for the booking page.' },
+    } as never) },
 
     // ── Primitives-section live renderers (component audit recs 1/5/6/8/11/12) ──
     seg: { render: () => segHtml('cl-stored', [{ id: 'lch', label: 'LCH' }, { id: 'hex', label: 'Hex' }, { id: 'rgb', label: 'RGB' }], 'hex', t('Stored as')), wire: stage => {

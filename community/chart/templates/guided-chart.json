@@ -16,13 +16,19 @@
       "id": "relationship",
       "name": "Ask about relationship",
       "description": "Reframe the same measures as an association and start with a statistical view.",
-      "values": { "chartIntent": "relationship" }
+      "values": {
+        "chartIntent": "relationship"
+      },
+      "kind": "retired"
     },
     {
       "id": "story",
       "name": "Tell it cinematically",
       "description": "Use row order as the route and the first measure as camera altitude.",
-      "values": { "chartIntent": "story" }
+      "values": {
+        "chartIntent": "story"
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -5,7 +5,7 @@ description: "Operate the Lolly Compress tool (compress-pdf) using its declared 
 
 # Compress
 
-Tool ID: `compress-pdf`. Tool version: `1.0.0`. Engine range: `^1.0.0`.
+Tool ID: `compress-pdf`. Tool version: `1.0.1`. Engine range: `^1.0.0`.
 
 Shrink a PDF by recompressing its images - on your device.
 

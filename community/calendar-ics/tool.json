@@ -2,7 +2,7 @@
   "id": "calendar-ics",
   "name": "Calendar",
   "description": "Turn event details into a calendar (.ics) file for any calendar app.",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "event",

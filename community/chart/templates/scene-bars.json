@@ -21,7 +21,8 @@
       "description": "Use translucent brand-tinted materials.",
       "values": {
         "chartStyle": "glass-3d"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "orthographic",
@@ -30,7 +31,8 @@
       "values": {
         "cameraProjection": "orthographic",
         "motionPreset": "reveal"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

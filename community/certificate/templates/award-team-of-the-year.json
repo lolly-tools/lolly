@@ -1,0 +1,25 @@
+{
+  "id": "award-team-of-the-year",
+  "name": "Team of the year",
+  "category": "Recognition",
+  "description": "A titled award with your own wording in place of the kind.",
+  "values": {
+    "certKind": "award",
+    "heading": "Team of the Year",
+    "firstname": "The Atlas",
+    "lastname": "Team",
+    "awardtopic": "For shipping the 2026 platform on time and in the open",
+    "awarddate": "2026-12-04",
+    "presenter": "Maya Lindqvist",
+    "presenterTitle": "Chief Executive",
+    "company": "Northwind Institute",
+    "brandLogo": true,
+    "serial": "",
+    "style": "classic",
+    "pageSize": "a4-landscape",
+    "motion": "none",
+    "color": "",
+    "background": "",
+    "accent": ""
+  }
+}

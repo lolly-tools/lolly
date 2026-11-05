@@ -2,7 +2,7 @@
   "id": "pages",
   "name": "Pages",
   "description": "Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",

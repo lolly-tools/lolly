@@ -1,0 +1,101 @@
+{
+  "id": "meeting-background-solid",
+  "name": "Light meeting background",
+  "category": "Video",
+  "description": "A light ground for bright rooms.",
+  "values": {
+    "boxes": [
+      {
+        "id": "call",
+        "kind": "frame",
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080,
+        "rot": 0,
+        "shape": "rect",
+        "bg": "var(--brand-surface, #ffffff)",
+        "clipChildren": true,
+        "name": "Meeting background"
+      },
+      {
+        "id": "bg-top",
+        "kind": "box",
+        "x": 1380,
+        "y": -320,
+        "w": 900,
+        "h": 900,
+        "rot": 0,
+        "shape": "ellipse",
+        "bg": "var(--brand-primary, #1e293b)",
+        "frame": "call"
+      },
+      {
+        "id": "bg-low",
+        "kind": "box",
+        "x": 1660,
+        "y": 760,
+        "w": 520,
+        "h": 520,
+        "rot": 0,
+        "shape": "ellipse",
+        "bg": "var(--brand-primary, #1e293b)",
+        "frame": "call",
+        "opacity": 55
+      },
+      {
+        "id": "name-plate",
+        "kind": "box",
+        "x": 72,
+        "y": 836,
+        "w": 548,
+        "h": 164,
+        "rot": 0,
+        "shape": "rounded",
+        "bg": "var(--brand-primary, #1e293b)",
+        "frame": "call",
+        "radius": 20
+      },
+      {
+        "id": "name",
+        "kind": "text",
+        "x": 112,
+        "y": 862,
+        "w": 480,
+        "h": 64,
+        "rot": 0,
+        "shape": "rect",
+        "text": "Nadia Okafor",
+        "fg": "var(--brand-on-primary, #ffffff)",
+        "fontSize": 50,
+        "align": "left",
+        "valign": "top",
+        "weight": "500",
+        "font": "display",
+        "lineHeight": 1.04,
+        "pad": 0,
+        "frame": "call"
+      },
+      {
+        "id": "role",
+        "kind": "text",
+        "x": 112,
+        "y": 932,
+        "w": 480,
+        "h": 44,
+        "rot": 0,
+        "shape": "rect",
+        "text": "Head of Design, Northline Studio",
+        "fg": "var(--brand-on-primary, #ffffff)",
+        "fontSize": 28,
+        "align": "left",
+        "valign": "top",
+        "weight": "400",
+        "font": "sans",
+        "lineHeight": 1.04,
+        "pad": 0,
+        "frame": "call"
+      }
+    ]
+  }
+}

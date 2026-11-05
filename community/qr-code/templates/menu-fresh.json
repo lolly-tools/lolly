@@ -1,0 +1,18 @@
+{
+  "id": "menu-fresh",
+  "name": "Fresh menu",
+  "category": "Utility",
+  "description": "Deep teal on a pale mint ground.",
+  "values": {
+    "url": "https://example.com/menu",
+    "ecl": "H",
+    "padding": 6,
+    "join": true,
+    "moduleShape": "rounded",
+    "eyeShape": "leaf",
+    "color": "#0f766e",
+    "background": "#ecfdf5",
+    "frame": "arrow",
+    "frameText": "Menu"
+  }
+}

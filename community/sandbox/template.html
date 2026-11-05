@@ -371,7 +371,7 @@
   display: flex; align-items: center; gap: 9px; flex: 0 0 auto;
   padding: 9px 12px; background: hsl(var(--rwc-card)); border-bottom: 1px solid hsl(var(--rwc-bd));
 }
-.rwc-preview-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: hsl(var(--rwc-muted) / .9); }
+.rwc-preview-label { font-size: 11px; font-weight: 700;color: hsl(var(--rwc-muted) / .9); }
 .rwc-live { width: 8px; height: 8px; border-radius: 999px; background: hsl(var(--rwc-bd)); flex: 0 0 auto; transition: background .2s; }
 .rwc-live.is-live { background: hsl(var(--rwc-ok)); box-shadow: 0 0 0 3px hsl(var(--rwc-ok) / .18); }
 .rwc-status { font-size: 12px; color: hsl(var(--rwc-muted)); font-family: var(--font-mono, ui-monospace, monospace); }
@@ -396,7 +396,7 @@
 .rwc-banner-list li { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono, ui-monospace, monospace); font-size: 11.5px; color: hsl(var(--rwc-muted)); min-width: 0; }
 .rwc-ext-host { color: hsl(var(--rwc-fg)); font-weight: 600; flex: 0 0 auto; }
 .rwc-ext-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rwc-ext-tag { flex: 0 0 auto; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 1px 6px; border-radius: 999px; margin-left: auto; }
+.rwc-ext-tag { flex: 0 0 auto; font-size: 9.5px; font-weight: 700;padding: 1px 6px; border-radius: 999px; margin-left: auto; }
 .rwc-ext-ok { background: hsl(var(--rwc-ok) / .16); color: color-mix(in oklab, hsl(var(--rwc-ok)), hsl(var(--rwc-fg)) 26%); }
 .rwc-ext-blocked { background: hsl(var(--rwc-warn) / .14); color: color-mix(in oklab, hsl(var(--rwc-warn)), hsl(var(--rwc-fg)) 30%); }
 .rwc-ext-trust {
@@ -426,7 +426,7 @@
 .rwc-console-grip:hover::before, .rwc-console-grip.is-drag::before { background: hsl(var(--rwc-brand)); }
 .rwc-console-head { display: flex; align-items: center; gap: 8px; padding: 7px 12px; cursor: pointer; flex: 0 0 auto; user-select: none; }
 .rwc-chevron { display: inline-block; font-size: 10px; color: hsl(var(--rwc-muted)); transition: transform .14s; }
-.rwc-console-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: hsl(var(--rwc-muted) / .9); }
+.rwc-console-title { font-size: 11px; font-weight: 700;color: hsl(var(--rwc-muted) / .9); }
 .rwc-console-count { font-size: 11px; font-weight: 700; color: hsl(var(--rwc-muted)); font-family: var(--font-mono, ui-monospace, monospace); }
 .rwc-console-count.has-err { color: color-mix(in oklab, hsl(var(--rwc-warn)), hsl(var(--rwc-fg)) 20%); }
 .rwc-linkbtn { appearance: none; border: 0; background: transparent; color: hsl(var(--rwc-muted)); font: inherit; font-size: 11.5px; cursor: pointer; text-decoration: underline; padding: 2px 4px; }
@@ -475,7 +475,7 @@
 }
 .rwc-sessbar[hidden] { display: none; }
 .rwc-sessbar-head { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-.rwc-sessbar-title { flex: 1 1 auto; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: hsl(var(--rwc-muted)); }
+.rwc-sessbar-title { flex: 1 1 auto; font-size: 11px; font-weight: 800;color: hsl(var(--rwc-muted)); }
 .rwc-sessbar-close { width: 26px; height: 26px; font-size: 18px; }
 .rwc-sessbar .rwc-sess-list { flex: 1 1 auto; max-height: none; }
 /* Active state for the header Sessions toggle while the drawer is open. */
@@ -530,8 +530,7 @@
 .rwc-rail:hover { color: hsl(var(--rwc-brand)); background: hsl(var(--rwc-brand) / .06); }
 .rwc-rail-label {
   writing-mode: vertical-rl; transform: rotate(180deg);
-  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .14em;
-}
+  font-size: 11px; font-weight: 800;}
 /* Side-by-side collapse: the collapsed panel shrinks to a rail, the split hides. */
 .rwc-body.editor-collapsed .rwc-editor,
 .rwc-body.preview-collapsed .rwc-preview { flex: 0 0 var(--rwc-rail-w, 40px); min-width: 0; }
@@ -560,7 +559,6 @@
    (the "full page, no console" view). */
 .rwc-consbtn {
   width: auto; padding: 0 10px; gap: 6px; font-size: 11px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .04em;
 }
 .rwc-consbtn[aria-pressed="true"] {
   color: hsl(var(--rwc-brand)); border-color: hsl(var(--rwc-brand) / .45); background: hsl(var(--rwc-brand) / .08);

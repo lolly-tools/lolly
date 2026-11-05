@@ -175,6 +175,9 @@ lolly run logo-wall --logos-file=acme.svg --logos-file=orbit.png --output=wall.p
 # A list of paths, one per line, on stdin or in a file
 ls logos/*.svg | lolly run logo-wall --logos-files=- --output=wall.svg
 lolly run logo-wall --logos-files=sponsors.txt --output=wall.svg
+
+# A partner's current logo from their brand page, an address or a folder
+lolly run logo-wall --logos-from=https://example.com/brand/acme/ --logos-surface=dark --output=wall.svg
 ```
 
 Files after the tool id work when the tool has exactly one such list. `--logos-file=-` reads one picture's bytes from stdin, as in `cat logo.png | lolly run logo-wall --logos-file=- --output=wall.svg`. A path list skips blank lines and lines that start with `#`. The new rows go after any the run already has from `--logos=` or `--logos-data=`: first the files after the tool id, then each `--logos-file`, then the `--logos-files` list. A file that cannot be read, or one that is not a picture, stops the run with exit `2` before anything is drawn, and so do files given to a tool with no such list.
@@ -329,6 +332,8 @@ Every reserved flag below works on `lolly run` and on the bare `lolly <tool-id>`
 | `--<inputId>-data=<file>` | Fill an input from CSV, TSV, JSON, Markdown or `.xlsx`: rows into a `blocks` input, a `table` (first row as headings) or a `text`/`longtext` field. `--<inputId>-sheet=<name\|index>` picks a sheet; without it the first is read, and the CLI says so. A path in a picture column of the rows is read from disk. |
 | `--<inputId>-file=<picture>` | Add one row with this picture to a list that takes dropped pictures, such as Lolly Logo Wall's `--logos-file`. Repeat it for more; `-` reads the picture from stdin ([Pictures into a list](#pictures-into-a-list)). |
 | `--<inputId>-files=<paths\|->` | Add one row for each path in a file, one path per line; `-` reads the list from stdin. |
+| `--<inputId>-from=<address\|folder>` | Add one row with the current logo from a published brand page, and report what the page says about use. Repeat it for more pages. A link cannot set this flag. |
+| `--<inputId>-surface=light\|dark` | The surface the logo from a brand page is for. Without it, a literal `--background` colour decides, and otherwise the logo for a light surface is used. |
 | `<picture>…` after the tool id | The same rows, for a tool with exactly one such list. |
 | `--verify` | For an on-device utility, print one line per file once its export checks ran. A failed check writes nothing and exits `1`. |
 | `--tier-b-debug` | Keep the headless page's logs and write them beside the output on failure ([When the browser tier fails](#when-the-browser-tier-fails-ask-it-why-tier-b-debug)). |

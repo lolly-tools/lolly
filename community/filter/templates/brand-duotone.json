@@ -1,0 +1,14 @@
+{
+  "id": "brand-duotone",
+  "name": "Brand duotone",
+  "category": "Colour",
+  "description": "Two brand colours across the whole tonal range.",
+  "values": {
+    "effect": "duotone",
+    "width": 1200,
+    "height": 1450,
+    "image": {
+      "id": "lolly/demo/sample-character"
+    }
+  }
+}

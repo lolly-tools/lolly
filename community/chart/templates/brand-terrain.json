@@ -21,7 +21,8 @@
       "description": "Use a softly lit opaque surface.",
       "values": {
         "chartStyle": "studio-3d"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "analytical",
@@ -31,7 +32,8 @@
         "chartStyle": "technical",
         "cameraProjection": "orthographic",
         "motionPreset": "none"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

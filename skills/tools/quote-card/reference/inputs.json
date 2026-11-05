@@ -1,0 +1,67 @@
+[
+  {
+    "id": "quote",
+    "label": "Quote",
+    "type": "longtext",
+    "required": true,
+    "default": "The best tools disappear, so the work can speak."
+  },
+  {
+    "id": "name",
+    "label": "Name",
+    "type": "text",
+    "default": "Maya Lindqvist"
+  },
+  {
+    "id": "role",
+    "label": "Role",
+    "type": "text",
+    "default": "Head of Product, Northline Studio"
+  },
+  {
+    "id": "headshot",
+    "label": "Picture",
+    "type": "asset",
+    "assetType": "image",
+    "allowUpload": true,
+    "help": "A portrait or a character. Leave it empty for a words-only card."
+  },
+  {
+    "id": "ground",
+    "label": "Ground",
+    "type": "select",
+    "default": "lead",
+    "display": "segmented",
+    "options": [
+      {
+        "value": "lead",
+        "label": "Lead colour"
+      },
+      {
+        "value": "ink",
+        "label": "Ink"
+      },
+      {
+        "value": "paper",
+        "label": "Paper"
+      }
+    ]
+  },
+  {
+    "id": "layout",
+    "label": "Layout",
+    "type": "select",
+    "default": "beside",
+    "display": "segmented",
+    "options": [
+      {
+        "value": "beside",
+        "label": "Beside a picture"
+      },
+      {
+        "value": "centred",
+        "label": "Words only"
+      }
+    ]
+  }
+]

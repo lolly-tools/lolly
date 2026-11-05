@@ -195,8 +195,6 @@
   font-size: calc(var(--t-company) * var(--ct-u));
   font-weight: 500;
   line-height: 1.25;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
   color: var(--ct-muted, #7e8890);
 }
 
@@ -298,8 +296,6 @@
   margin: calc(5 * var(--ct-u)) 0 0;
   font-size: calc(var(--t-label) * var(--ct-u));
   line-height: 1.25;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--ct-muted, #7e8890);
 }
 
@@ -510,8 +506,6 @@
   font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
   font-size: calc(var(--t-title) * 0.33 * var(--ct-u));
   font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
   color: var(--ct-accent, #8a6a2b);
 }
 
@@ -887,8 +881,6 @@
   .ct-style-celebration .ct-title {
     font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
     font-size: calc(var(--t-title) * var(--ct-u));
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
     color: var(--ct-accent, #8a6a2b);
   }
 

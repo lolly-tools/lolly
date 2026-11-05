@@ -29,7 +29,8 @@
         "sceneMaterial": "matte",
         "flightHeight": 1.35,
         "flightFov": 44
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

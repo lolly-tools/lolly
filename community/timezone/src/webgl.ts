@@ -95,19 +95,15 @@ export function createGlobe(canvas: HTMLCanvasElement, s: State) {
   draw(
     countries,
     s.palette.land,
-    s.inputs.showBorders !== false
-      ? s.inputs.theme === 'minimal'
-        ? s.palette.edge
-        : s.palette.ocean
-      : undefined,
-    0.8
+    s.inputs.showBorders !== false ? s.palette.edge : undefined,
+    1.8
   );
   const seen = new Set<string>();
   for (const p of s.places) {
     if (p.spread && !p.error && !seen.has(p.timezone)) {
       const r = region(p.timezone);
       if (r) {
-        tc.globalAlpha = num(s.inputs.regionOpacity, 0.45);
+        tc.globalAlpha = num(s.inputs.regionOpacity, 0.75);
         draw(r, p.color, p.color);
         tc.globalAlpha = 1;
         seen.add(p.timezone);
@@ -115,8 +111,8 @@ export function createGlobe(canvas: HTMLCanvasElement, s: State) {
     }
   }
   if (s.inputs.showGrid !== false) {
-    tc.globalAlpha = 0.14;
-    draw(grid, undefined, s.palette.ink, 0.75);
+    tc.globalAlpha = 0.3;
+    draw(grid, undefined, s.palette.ink, 1.2);
     tc.globalAlpha = 1;
   }
   if (s.inputs.showConnections !== false) {
@@ -125,7 +121,7 @@ export function createGlobe(canvas: HTMLCanvasElement, s: State) {
       .map((p) => [p.longitude, p.latitude]);
     if (coordinates.length > 1) {
       tc.setLineDash([6, 7]);
-      draw({ type: 'LineString', coordinates }, undefined, s.palette.accent, 1.5);
+      draw({ type: 'LineString', coordinates }, undefined, s.palette.accent, 3.2);
       tc.setLineDash([]);
     }
   }

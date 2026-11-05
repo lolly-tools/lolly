@@ -1,0 +1,101 @@
+/* Cascade layer: this lazy sheet sits in the `views` layer, like the view that opens it. */
+@layer views {
+  .brand-page-sheet {
+    width: min(1320px, calc(100vw - 32px));
+    max-width: none;
+    height: calc(100dvh - 40px);
+    max-height: none;
+    padding: 0;
+    overflow: hidden;
+    color: var(--ui-color-text-default);
+  }
+  .brand-page-sheet[open] { display: flex; flex-direction: column; }
+  .brand-page-sheet .modal-title { margin: 0; font-size: var(--ui-type-heading); line-height: 1.2; }
+  .brand-page-sheet :is(button, input, textarea, summary, pre):focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+  .bp-head { display: flex; align-items: start; justify-content: space-between; gap: var(--sp-5); padding: var(--ui-space-panel) var(--ui-space-page); }
+  .bp-intro { margin: var(--sp-2) 0 0; font-size: var(--ui-type-body); color: var(--ui-color-text-muted); }
+  .bp-close { display: grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); flex-shrink: 0; border: 0; border-radius: var(--ui-radius-control); background: none; color: inherit; cursor: pointer; }
+  .bp-close:hover { background: var(--ui-color-surface-muted); }
+
+  /* The page is the hero: everything else fits in the column beside it. */
+  .bp-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--ui-space-panel); padding: 0 var(--ui-space-page); }
+  .bp-stage { position: relative; min-height: 0; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); overflow: hidden; background: var(--ui-color-surface-canvas); }
+  .bp-frame { display: block; width: 100%; height: 100%; border: 0; background: transparent; }
+  .bp-frame[hidden] { display: none; }
+  .bp-stage-note { position: absolute; left: var(--sp-4); bottom: var(--sp-4); margin: 0; padding: var(--sp-2) var(--sp-4); border-radius: var(--ui-radius-control); font-size: var(--ui-type-caption); color: var(--ui-color-text-default); background: var(--ui-color-surface-raised); }
+  .bp-stage-note[hidden] { display: none; }
+  .bp-side { min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: var(--sp-6); padding-bottom: var(--sp-5); }
+
+  .bp-section { display: flex; flex-direction: column; gap: var(--sp-4); }
+  .bp-section[hidden] { display: none; }
+  .bp-section h3 { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin: 0; font-size: var(--ui-type-body); font-weight: 600; }
+  .bp-disclose > summary { cursor: pointer; min-height: var(--ui-size-target); display: flex; align-items: center; }
+  .bp-disclose > summary h3 { flex: 1 1 auto; }
+  .bp-count { font-size: var(--ui-type-caption); font-weight: 400; font-variant-numeric: tabular-nums; color: var(--ui-color-text-muted); white-space: nowrap; }
+  .bp-line { margin: 0; font-size: var(--ui-type-body); line-height: 1.45; }
+  .bp-note { margin: 0; font-size: var(--ui-type-caption); line-height: 1.45; color: var(--ui-color-text-muted); }
+  .bp-statement { resize: vertical; min-height: 72px; }
+  .bp-switch { min-height: var(--ui-size-target); font-size: var(--ui-type-body); }
+  .bp-more > summary { cursor: pointer; padding-block: var(--sp-2); font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
+  .bp-more[hidden] { display: none; }
+  .bp-include-box { display: flex; flex-direction: column; gap: var(--sp-2); padding-bottom: var(--sp-4); }
+  .bp-include-box[hidden] { display: none; }
+  .bp-includes { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-3); font-size: var(--ui-type-body); }
+
+  /* A flex summary loses the browser's marker, so these draw the same triangle. */
+  :is(.bp-files, .bp-disclose) > summary::before, .ca-agents .bp-more > summary::before { content: ''; flex: none; width: 0; height: 0; border-block: 4px solid transparent; border-inline-start: 6px solid currentColor; }
+  :is(.bp-files, .bp-disclose)[open] > summary::before, .ca-agents .bp-more[open] > summary::before { rotate: 90deg; }
+  :is(.bp-files, .bp-disclose) > summary, .ca-agents .bp-more > summary { list-style: none; gap: var(--sp-3); }
+  :is(.bp-files, .bp-disclose) > summary::-webkit-details-marker, .ca-agents .bp-more > summary::-webkit-details-marker { display: none; }
+  .bp-files > summary > span:first-of-type { flex: 1 1 auto; }
+
+  .bp-files { border-top: 1px solid var(--ui-color-border-default); }
+  .bp-files > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); min-height: var(--ui-size-target); cursor: pointer; font-size: var(--ui-type-body); }
+  .bp-file-list, .bp-held-list { display: flex; flex-direction: column; gap: var(--sp-3); margin: 0; padding: 0 0 var(--sp-4); list-style: none; }
+  .bp-file-list li { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); }
+  .bp-file-list code { font-size: var(--ui-type-caption); overflow-wrap: anywhere; }
+  .bp-held-list li { display: flex; flex-direction: column; gap: var(--sp-1); font-size: var(--ui-type-caption); line-height: 1.45; color: var(--ui-color-text-muted); }
+  .bp-held-list strong { font-size: var(--ui-type-body); font-weight: 500; color: var(--ui-color-text-default); overflow-wrap: anywhere; }
+
+  .bp-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-5); padding: var(--ui-space-panel) var(--ui-space-page); }
+  .bp-status { flex: 1 1 auto; min-width: 0; margin: 0; font-size: var(--ui-type-body); line-height: 1.4; color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+  .bp-status.is-error { color: hsl(var(--destructive-text)); }
+  .bp-actions { display: flex; flex-wrap: wrap; justify-content: end; gap: var(--sp-4); flex-shrink: 0; }
+  .bp-actions :is(button, a) { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-3); min-height: var(--ui-size-target); }
+  .bp-actions a { text-decoration: none; }
+  .bp-actions [hidden] { display: none; }
+
+  /* Connect an agent: a narrower sheet, because it holds text and not a page. */
+  .connect-agent-sheet { width: min(720px, calc(100vw - 32px)); height: auto; max-height: calc(100dvh - 40px); }
+  .ca-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: var(--sp-6); padding: 0 var(--ui-space-page) var(--ui-space-panel); }
+  .ca-option { display: flex; flex-direction: column; gap: var(--sp-3); }
+  .ca-option h3 { margin: 0 0 var(--sp-1); font-size: var(--ui-type-body); font-weight: 600; }
+  .ca-agents { display: flex; flex-direction: column; align-items: start; gap: var(--sp-4); margin-top: var(--sp-3); }
+  .ca-clients { margin: var(--sp-3) 0; }
+  .ca-server { display: flex; flex-direction: column; gap: var(--sp-2); padding-block: var(--sp-5); }
+  .ca-server h4 { margin: 0; font-size: var(--ui-type-body); font-weight: 500; }
+  .bp-paste { display: flex; flex-direction: column; gap: var(--sp-2); align-self: stretch; margin-top: var(--sp-3); }
+  .bp-paste-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+  .bp-paste-head .be-btn, .ca-actions .be-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-3); min-height: var(--ui-size-target); }
+  .bp-paste-where { font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+  .bp-paste-text { margin: 0; padding: var(--sp-5); max-height: 240px; overflow: auto; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); font-family: var(--font-mono); font-size: var(--ui-type-caption); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .ca-actions { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+  .ca-actions[hidden], .bp-note[hidden] { display: none; }
+  .ca-agents .bp-more { align-self: stretch; }
+  .ca-agents .bp-more > summary { min-height: var(--ui-size-target); display: flex; align-items: center; gap: var(--sp-3); }
+
+  @media (max-width: 899px) {
+    .brand-page-sheet { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; margin: 0; }
+    .connect-agent-sheet { height: 100dvh; }
+    .bp-head { padding: var(--ui-space-panel); }
+    /* The sheet scrolls as one, with the page first and the actions always in reach. */
+    .bp-body { display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--ui-space-panel); }
+    .bp-stage { flex: 0 0 62dvh; }
+    .bp-side { overflow: visible; flex: 0 0 auto; }
+    .bp-foot { flex-direction: column; align-items: stretch; padding: var(--sp-5) var(--ui-space-panel); }
+    .bp-actions { justify-content: stretch; }
+    .bp-actions :is(button, a) { flex: 1 1 0; }
+    .ca-body { padding-inline: var(--ui-space-panel); }
+  }
+}

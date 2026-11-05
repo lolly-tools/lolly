@@ -1,0 +1,10 @@
+{
+  "id": "words-only",
+  "name": "Words only",
+  "category": "Social",
+  "description": "The quotation alone, centred on ink.",
+  "values": {
+    "ground": "ink",
+    "layout": "centred"
+  }
+}

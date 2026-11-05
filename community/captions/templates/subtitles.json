@@ -12,20 +12,32 @@
     "maxLines": 2,
     "showTimecodes": false,
     "burnIn": true,
-    "time": 0
+    "time": 0,
+    "media": {
+      "id": "lolly/demo/sample-landscape"
+    }
   },
   "presets": [
     {
       "id": "outline",
       "name": "Outline",
       "description": "No plate. The words carry their own edge, so the picture stays whole.",
-      "values": { "style": "outline", "fontSize": 60 }
+      "values": {
+        "style": "outline",
+        "fontSize": 60
+      },
+      "kind": "retired"
     },
     {
       "id": "box",
       "name": "Boxed",
       "description": "A rounded plate that hugs the words rather than the frame.",
-      "values": { "style": "box", "fontSize": 52 }
+      "values": {
+        "style": "box",
+        "fontSize": 52
+      },
+      "kind": "retired"
     }
-  ]
+  ],
+  "galleryCover": true
 }

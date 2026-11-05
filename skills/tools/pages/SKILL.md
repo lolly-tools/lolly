@@ -5,7 +5,7 @@ description: "Operate the Lolly Pages tool (pages) using its declared inputs and
 
 # Pages
 
-Tool ID: `pages`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
+Tool ID: `pages`. Tool version: `1.1.1`. Engine range: `^1.0.0`.
 
 Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device.
 

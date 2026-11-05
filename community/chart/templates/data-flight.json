@@ -31,7 +31,8 @@
         "flightBank": 4,
         "flightFov": 40,
         "animSpeed": 1.2
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "capacity",
@@ -40,7 +41,8 @@
       "values": {
         "flightSeries": "Capacity",
         "heading": "Capacity catches the demand curve"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

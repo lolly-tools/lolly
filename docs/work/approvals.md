@@ -215,6 +215,12 @@ sees the artwork as it will leave.
 - Older shells still send a request with the tool's id and no file. It stays valid, and its card
   says no file is attached.
 
+**Reading the record.** [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records)
+shows a file's record as an **Approved** panel, and [Assets](/info/authoring-assets.html#approval-and-intent-in-details)
+shows the same panel from an **Approval** row in Details. `lolly validate`, the terminal app and
+`lolly_verify` report the same facts. If the file changed after the record was written, each of them
+says so and keeps the record visible.
+
 **Storage.** `policy.approvalArtifacts` sets the largest file, the total stored and how long a
 decided request keeps its file ([configuration](configuration.md#files-and-uploads)). Withdrawing
 removes the file at once. The record and digest stay after the file goes, and `GET .../artifact`

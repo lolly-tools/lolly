@@ -5,7 +5,7 @@ description: "Operate the Lolly Growth tool (growth) using its declared inputs a
 
 # Growth
 
-Tool ID: `growth`. Tool version: `1.1.3`. Engine range: `^1.214.0`.
+Tool ID: `growth`. Tool version: `1.1.4`. Engine range: `^1.214.0`.
 
 Differential growth: a line that repels itself until it folds into coral. Seed it from a ring, a burst, headline letterforms or a logo, and export the result as real, plotter-ready SVG paths.
 

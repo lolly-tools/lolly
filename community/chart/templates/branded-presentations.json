@@ -18,7 +18,8 @@
       "description": "Denser axes, grid and patterns for analytical work.",
       "values": {
         "chartStyle": "technical"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "poster",
@@ -26,7 +27,8 @@
       "description": "Bold type and direct labels for a presentation graphic.",
       "values": {
         "chartStyle": "poster"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "isometric",
@@ -34,7 +36,8 @@
       "description": "Projected vector depth that remains editable in SVG.",
       "values": {
         "chartStyle": "iso-vector"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

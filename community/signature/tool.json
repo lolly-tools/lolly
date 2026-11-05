@@ -3,7 +3,7 @@
   "name": "Signature",
   "description": "Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a bit of paper.",
   "a11yLabel": "Handwritten signature",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engineVersion": "^1.0.0",
   "status": "community",
   "category": "everyone",

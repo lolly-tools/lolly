@@ -5,7 +5,7 @@ description: "Operate the Lolly Wordmark tool (wordmark) using its declared inpu
 
 # Wordmark
 
-Tool ID: `wordmark`. Tool version: `1.0.2`. Engine range: `^1.214.0`.
+Tool ID: `wordmark`. Tool version: `1.0.3`. Engine range: `^1.214.0`.
 
 Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed.
 

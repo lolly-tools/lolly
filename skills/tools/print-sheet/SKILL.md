@@ -5,7 +5,7 @@ description: "Operate the Lolly Print Sheet tool (print-sheet) using its declare
 
 # Print Sheet
 
-Tool ID: `print-sheet`. Tool version: `2.0.2`. Engine range: `^1.0.0`.
+Tool ID: `print-sheet`. Tool version: `2.0.3`. Engine range: `^1.0.0`.
 
 Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin.
 

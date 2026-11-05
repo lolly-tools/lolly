@@ -30,7 +30,7 @@ None of these fields stay private to the repository. The About card is the manif
 - `deprecated` and `replacedBy` - retire a tool gently. The id stays a permanent contract, so saved links and sessions still open the tool. A deprecated tool must also be `listed: false`, which the validator checks, and `replacedBy` gives the successor's id, which must exist in the same profile.
 - `a11yLabel` - the accessible description of the rendered output. The preview canvas reaches screen readers as one `role="img"`, and this is its label. It is a Handlebars string filled with the current input values, so it stays accurate while the person edits: `"QR code linking to {{url}}"`. Use `{{default x "fallback"}}` for empty inputs. Without it the label is `"<name> preview"`. Keep it short and factual, because it replaces the canvas contents for a screen-reader user.
 
-`templates` and `galleryArt` are on [Tool templates and presets](/info/tool-starters.html), `extends` on [Composition and brand overlays](/info/tool-composition.html) and `designTool` on [Design tool contract](/info/design-tool-contract.html).
+`templates` and `galleryArt` are on [Tool templates](/info/tool-starters.html), `extends` on [Composition and brand overlays](/info/tool-composition.html) and `designTool` on [Design tool contract](/info/design-tool-contract.html).
 
 ### What the tool needs from the host
 

@@ -36,13 +36,17 @@ import { routeParams } from '../../url-state.ts';
 import { zipAsync } from '../../zip.ts';
 import type { ActiveRecord } from '../active.ts';
 import {
-  DISCIPLINE_LABELS, briefSkillAssets, coverageLineText, groupCoverage, listActiveBrandSkills, readBrandSkillFiles, skillAsOneFile,
+  DISCIPLINE_LABELS, briefSkillAssets, coverageLineText, groupCoverage, isUnkeptDraft, keepImportedSkill, listActiveBrandSkills, readBrandSkillFiles, skillAsOneFile,
   skillSteward, type ActiveBrandSkill, type BrandSkillHost,
 } from '../brand-skills.ts';
 
 /** The host slice the room reads. Structural: the studio passes its own host. */
 export interface SkillsRoomHost extends BrandSkillHost {
-  assets: BrandSkillHost['assets'] & { _queryMetadata?(filter: AssetQuery): Promise<AssetRef[]> };
+  assets: BrandSkillHost['assets'] & {
+    _queryMetadata?(filter: AssetQuery): Promise<AssetRef[]>;
+    _updateUserAssetMeta?(id: string, meta: Record<string, unknown>): Promise<void>;
+    _deleteUserAsset?(id: string): Promise<unknown>;
+  };
   tokens?: {
     snapshot?(): Promise<TokensSnapshot>;
     raw?(): Promise<unknown>;
@@ -165,12 +169,16 @@ export function mountSkillsRoom(el: HTMLElement, opts: SkillsRoomOpts) {
   const readerHtml = (row: Row): string => {
     const { entry } = row;
     const reading = readings.get(row.key) ?? { state: 'loading' as const };
+    const unkept = !!row.skill && isUnkeptDraft(row.skill);
+    const decide = unkept && !opts.readonly;
     const factLine = [entry.name, entry.generated ? '' : t('Revision {revision}', { revision: entry.skillRevision }), entry.audience === 'internal' ? t('Internal') : t('Public')].filter(Boolean).join(' · ');
     const note = entry.generated
       ? t('Lolly writes this from the design system’s tokens, pairings and house rules each time it is read. Where one of the brand’s own skills covers the same ground, that skill wins.')
       : entry.status === 'approved'
         ? t('Approved is the brand’s own statement about this text. Lolly has not reviewed what it says.')
-        : t('A draft. The brand has not approved this text yet.');
+        : unkept
+          ? t('Someone else wrote these words. Agents and brand pages do not see them until you keep this skill.')
+          : t('A draft. The brand has not approved this text yet.');
     const ready = reading.state === 'ready';
     const body = reading.state === 'loading'
       ? `<p class="usage-message">${t('Reading the skill…')}</p>`
@@ -185,12 +193,14 @@ export function mountSkillsRoom(el: HTMLElement, opts: SkillsRoomOpts) {
           <p class="usage-hint">${e(factLine)}</p>
         </div>
         <div class="skills-reader-actions">
+          ${decide ? `<button type="button" class="btn btn--sm btn--primary" data-skill-keep${ready && !busy ? '' : ' disabled'}>${icon('check', { size: 16 })} ${t('Keep this skill')}</button>
+          <button type="button" class="btn btn--sm" data-skill-discard${busy ? ' disabled' : ''}>${icon('trash', { size: 16 })} ${t('Delete this draft')}</button>` : ''}
           <button type="button" class="btn btn--sm" data-skill-zip${ready && !busy ? '' : ' disabled'}>${icon('download', { size: 16 })} ${t('Download skill (.zip)')}</button>
           <button type="button" class="btn btn--sm" data-skill-copy${ready && !busy ? '' : ' disabled'}>${icon('duplicate', { size: 16 })} ${t('Copy as one file')}</button>
         </div>
       </header>
       <p class="usage-hint skills-reader-note">${e(note)}</p>
-      <p class="usage-message" data-skills-status role="status" aria-live="polite"></p>
+      <p class="usage-message" data-skills-status role="status" aria-live="polite">${e(decided)}</p>
       ${body}`;
   };
 
@@ -278,7 +288,8 @@ export function mountSkillsRoom(el: HTMLElement, opts: SkillsRoomOpts) {
       record = rec;
       snapshotVersion = version;
       label = rec?.label || active?.label || t('Your design system');
-      const brief = designBrief(doc, { assets: briefSkillAssets(skills) }, { name: label, ...(theme ? { theme } : {}) });
+      // The baseline is what agents read, so words nobody has kept stay out of its brief.
+      const brief = designBrief(doc, { assets: briefSkillAssets(skills.filter(skill => !isUnkeptDraft(skill))) }, { name: label, ...(theme ? { theme } : {}) });
       facts = brandSkillCoverageFacts(brief);
       const baseline = baselineBrandSkill(brief);
       const baselineEntry: BrandSkillIndexEntryV1 = {
@@ -361,12 +372,34 @@ export function mountSkillsRoom(el: HTMLElement, opts: SkillsRoomOpts) {
     }
   };
 
+  /** A person's decision on an imported draft. Neither happens without their press. */
+  let decided = '';
+  const decide = async (kind: 'keep' | 'discard'): Promise<void> => {
+    const row = rowOf(selected);
+    if (busy || !row?.skill || !isUnkeptDraft(row.skill)) return;
+    busy = true;
+    try {
+      if (kind === 'keep') await keepImportedSkill(host, row.skill);
+      else await host.assets._deleteUserAsset?.(row.skill.ref.id);
+      readings.delete(row.key);
+      busy = false;
+      // Held for the repaint: the reader redraws once it has read the skill again.
+      decided = kind === 'keep' ? t('Kept. It stays internal, so brand pages leave the text out.') : t('Deleted the draft.');
+      await refresh();
+    } catch (error) {
+      busy = false;
+      status(error instanceof Error ? error.message : t('That did not work. Please try again.'));
+    }
+  };
+
   el.addEventListener('click', (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>('button');
     if (!button || button.disabled) return;
     if (button.dataset.skillOpen) select(button.dataset.skillOpen, true);
     else if (button.hasAttribute('data-skill-zip')) void run('zip');
     else if (button.hasAttribute('data-skill-copy')) void run('copy');
+    else if (button.hasAttribute('data-skill-keep')) void decide('keep');
+    else if (button.hasAttribute('data-skill-discard')) void decide('discard');
   });
 
   void refresh();

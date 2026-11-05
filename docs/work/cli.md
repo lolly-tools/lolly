@@ -37,6 +37,7 @@ lw login --email admin@example.test         # the dev provider (dev.enabled only
 | Let people sign in | `invite add`, `invite ls`, `invite rm` | [Invitations](#invitations) |
 | Give automation its own identity | `tokens` | [Service tokens](#service-tokens) |
 | Connect an agent with a service token | `mcp config` | [MCP settings](#mcp-settings) |
+| Choose the tool for a visual intent | `intent resolve` | [Visual intents](#visual-intents) |
 | Render and recover renders | `renders`, `render-batches` | [Recoverable renders](#recoverable-renders) |
 | See approval requests and get a reviewed file | `approvals`, `approvals artifact` | [Approval files](#approval-files) |
 | Send finished files to a destination | `destinations`, `deliveries` | [Organization delivery](#organization-delivery) |
@@ -134,6 +135,15 @@ lw mcp config --name brand --token-env WORK_TOKEN --json
 
 This prints settings for an MCP client to reach the [organisation MCP endpoint](automation-api.md#connect-an-agent-over-mcp). The command makes no request. The settings name an environment variable (`LW_TOKEN` unless you pass `--token-env`) and never hold the token.
 
+## Visual intents
+
+```bash
+lw intent resolve intent.json
+lw intent resolve - --json < intent.json
+```
+
+This sends a [visual intent](/info/visual-intent.html) to [`POST /api/v1/intents/resolve`](automation-api.md#start-from-what-the-piece-has-to-do) and prints the tool chosen for each surface, what is missing and what went unused. It renders nothing. It exits `0` when every surface is ready and `4` otherwise, with the full answer either way. The answer covers only the tools this caller can render on this instance. A refused request exits `1`.
+
 ## Recoverable renders
 
 ```bash
@@ -188,6 +198,19 @@ requester once the request is approved. It checks the whole file against its rec
 writing anything, and says whether the approval is recorded in that file. These commands need a person's session from `lw login`. A service token cannot read
 approvals, because a decision about a file is a person's act. Decide in the console, where the file
 is on screen. See [review an exported file](approvals.md#review-an-exported-file).
+
+## Brand pages
+
+`lw brand-pages` puts a brand page folder at a public address on this instance. [Host a brand page](design-system-administration.md#host-a-brand-page) has the details.
+
+```bash
+lw brand-pages publish ./brand-page               # check the folder here, then send and publish the page
+lw brand-pages list
+lw brand-pages history <id>
+lw brand-pages unpublish <id> [--remove-files]    # the address then answers 410
+```
+
+`publish` checks the digests here first, and it sends only the files `brand.json` lists. A link in the folder is refused. Run the same command again after an interruption and it sends only the missing parts. With a chain set, the revision waits for a person's approval, and only a person can publish.
 
 ## Moving from a hosted render API
 

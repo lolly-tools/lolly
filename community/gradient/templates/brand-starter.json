@@ -1,17 +1,25 @@
 {
   "id": "brand-starter",
-  "name": "Brand blend",
+  "name": "Brand folds",
   "category": "Brand",
-  "description": "A quiet blend of your primary and secondary brand colours.",
+  "description": "Soft folds of the lead and partner colours.",
   "values": {
-    "count": 3,
+    "mode": "flow",
+    "count": 4,
     "color1": "{color.semantic.primary}",
     "color2": "{color.semantic.secondary}",
     "color3": "{color.semantic.primary}",
-    "blend": "normal",
-    "spread": 100,
-    "blur": 18,
+    "color4": "{color.semantic.secondary}",
+    "flowSpeed": 24,
+    "waveScale": 100,
+    "waveAmp": 70,
+    "angle": 35,
+    "seed": 12,
     "grain": 0
   },
-  "galleryCover": true
+  "galleryCover": true,
+  "gallerySize": {
+    "width": 1600,
+    "height": 1200
+  }
 }

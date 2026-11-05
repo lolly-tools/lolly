@@ -90,6 +90,10 @@ export interface VerifyReport {
   reason?: string;
   claim?: Claim;
   environment?: (Record<string, string | number | boolean> & { inputs?: Record<string, string> }) | null;
+  /** An approval the signer recorded (`tools.lolly.approval`). Stays visible when the credential fails, for the warning. */
+  approval?: { approvalId: string; decidedAt: string; reviewedSha256: string };
+  /** What the piece was asked to do (`tools.lolly.intent`). Read only from a credential that verifies. */
+  intent?: { purpose: string; surface: string; tool: string; language?: string; occasion?: string; audience?: string; region?: string; promptFingerprint?: string; prompt?: string };
   author?: { name: string; email?: string; url?: string };
   rights?: string;
   signer?: Signer;

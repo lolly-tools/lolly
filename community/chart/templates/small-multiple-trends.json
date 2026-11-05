@@ -21,7 +21,8 @@
       "description": "Arrange the series as compact columns.",
       "values": {
         "plotFacetDirection": "columns"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "distributions",
@@ -29,7 +30,8 @@
       "description": "Compare each series as a faceted histogram.",
       "values": {
         "plotType": "distribution-facets"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

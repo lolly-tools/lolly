@@ -4,6 +4,7 @@ import { icon, type IconName } from '../lib/icons.ts';
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { wireRecordPanels } from './valid-record.ts';
 import '../styles/parts/valid-actions.css';
 
 type ActionElement = HTMLButtonElement | HTMLAnchorElement;
@@ -262,6 +263,7 @@ function reveal(element: HTMLElement): void {
 }
 
 export function wireVerifyActions(view: HTMLElement, report: HTMLElement): void {
+  wireRecordPanels(report);
   const toolbar = document.createElement('section');
   toolbar.className = 'valid-actions';
   toolbar.setAttribute('aria-label', t('Asset actions'));

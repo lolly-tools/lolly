@@ -16,6 +16,8 @@ Keep literal labels in instructions: "Open the **Design** tool" tells someone wh
 
 **Design system.** Your colours, fonts, logos and a few rules, which every tool draws with. You set it up once in Lolly Design System Setup and switch between design systems in **Settings → Preferences → Design systems**. In the code the same thing is called a brand (see *Design system and brand* below).
 
+**Brand page.** One published folder that works as a press kit and an agent kit: logos, colours, type, rules and examples for people, with tokens, `DESIGN.md` and skills for agents. Lolly Design System Setup or `lolly system publish` writes the folder. You host the folder yourself or on Lolly Work. Not to be confused with a **brand pack**, the directory a build reads. [Brand pages](/info/brand-page.html) has the details.
+
 **Lolly Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills, with Versions once a version is published. A bar across the top carries the design system's name.
 
 **Lolly Demo.** Lolly's own sample design system, the one lolly.tools opens with; its lead colour is green. [Meet Lolly Demo](/info/lolly-demo.html) shows the whole design system.

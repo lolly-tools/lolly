@@ -39,7 +39,8 @@
         "scene": "typing",
         "typingSeconds": 5,
         "readSeconds": 3
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

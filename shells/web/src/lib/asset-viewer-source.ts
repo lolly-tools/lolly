@@ -2,6 +2,7 @@
 /** The original file and its viewing representation keep separate identities. */
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
+import { licenceLabel } from './asset-rights.ts';
 import { instanceFetch } from './instance.ts';
 import { type1Container } from './font-type1.ts';
 
@@ -21,9 +22,11 @@ export function assetViewerKind(format: string): AssetViewerKind {
 export function assetViewerSource(ref: AssetRef): AssetViewerSource {
   const identity = parseFileAssetId(ref.id);
   const format = String(ref.format ?? '').toLowerCase();
+  // A catalog row records its licence as `license`, read here as the details sheet reads the field.
+  const licence = typeof ref.meta?.licence === 'string' ? ref.meta.licence : licenceLabel(ref.meta)?.full;
   return { id: ref.id, groupId: identity.baseId, fileId: identity.file, revision: String(ref.version ?? ''),
     format, kind: ref.type === 'font' ? 'font' : assetViewerKind(format), originalUrl: ref.url,
-    name: String(ref.meta?.name ?? ref.id), ...(typeof ref.meta?.licence === 'string' ? { licence: ref.meta.licence } : {}),
+    name: String(ref.meta?.name ?? ref.id), ...(licence ? { licence } : {}),
     ...(typeof ref.meta?.thumbUrl === 'string' ? { thumbnail: ref.meta.thumbUrl } : {}) };
 }
 export function detectedViewerKind(bytes: Uint8Array): AssetViewerKind {

@@ -19,7 +19,7 @@ import { MOTION_EXPORT_ARGS, motionExportSettings, type MotionExportSettings } f
 // Relative import (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // serverless bundle, same as render.ts's node-shell imports.
 import { VERDICT_SLUGS } from '@lolly-tools/node-shell/verdict-slugs';
-import { cleanControlChars, verdictFacts, verdictChecks, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
+import { cleanControlChars, verdictFacts, verdictChecks, verdictApproval, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 import type { ExportBrandSkill } from '@lolly-tools/core/host-v1';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
@@ -407,7 +407,7 @@ export const TOOL_DEFS: McpToolDef[] = [
   {
     name: 'lolly_render',
     description: 'Render a Lolly tool to an on-brand asset (PNG/SVG/PDF/…). Returns the image plus an editable lolly.tools link. '
-      + 'After lolly_resolve_intent, pass `intent`, `surface` and `c2pa` to record what the file was asked to do. The result says what was recorded, read back from the file.',
+      + 'After lolly_resolve_intent, pass `intent` and `surface` to record what the file was asked to do. That adds a Content Credential to this file unless you pass c2pa: "off". The result says what was recorded, read back from the file.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -865,6 +865,13 @@ function verifyText(name: string, report: VerifyReport, headline: string): strin
   }
   // What the file records about the creative work inside it - a separate question
   // from whether the credential verifies, and printed as one (plan 253).
+  // An approval the signer recorded, worded as the signer's statement, never as a verdict.
+  const approval = verdictApproval(report);
+  if (approval) {
+    lines.push('Approval:');
+    for (const [k, v] of approval.facts) lines.push(`  ${k.padEnd(11)} ${v}`);
+    lines.push(`  ${approval.note}`);
+  }
   // What the file says it was asked to do. Any recorded prompt is words someone wrote, so
   // it is labelled as data and quoted, and it can never read as part of this report.
   const intent = verdictIntent(report);
@@ -1138,7 +1145,7 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           designRecordText(result.designRecord),
           // The intent, shown at the moment of export as the approval asks, in words read
           // back from the delivered file. It says plainly when the prompt is in the file.
-          intentRecordText(!intended ? null : intended.optedOut ? { state: 'not-recorded', reason: 'opted-out' } : result.intentRecord ?? { state: 'not-recorded', reason: 'not-confirmed' }),
+          intentRecordText(!intended ? null : intended.optedOut ? { state: 'not-recorded', reason: 'opted-out' } : result.intentRecord ?? { state: 'not-recorded', reason: 'not-confirmed' }, result.credentialFromIntent === true),
         ].filter(Boolean).join('\n');
 
         const content: ContentBlock[] = [{ type: 'text', text: header }];

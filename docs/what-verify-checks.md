@@ -19,6 +19,22 @@ When Lolly Verify finds it, a green **Lolly Imprint** pip joins the row, marked 
 
 ![The Lolly Imprint switch in the export panel, already on, with the question mark opening what it does and does not promise](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26options%26c2pa%3D90%26imprint%3D1&width=1440&height=900&dpi=192&waitMs=2200&format=svg&css=%23tool-inputs%2C%23sidebar-utils%7Bdisplay%3Anone%7D&cropSelector=.export-imprint&walker=1&dark=1&filename=cc-export-imprint)
 
+## Approval and intent records
+
+A Content Credential can carry a record of an approval and a record of what the file was made to do. Lolly Verify shows them ahead of **Made from**, so the panels read as the file's story: approved, made for, made from, then its change history. A file with neither record shows neither panel, because an absent record says nothing about a file.
+
+**Approved** gives the signer, the date of the decision, the request and a short fingerprint of the file that was reviewed. Hover over the fingerprint for the whole value, or use **Copy digest**. **This file** says whether the credential still checks. Lolly Verify holds no copy of the reviewed file, so it cannot compare the two pictures. The writer made that comparison when it recorded the approval. To check against a file you hold, compare its digest with the one shown here.
+
+Each panel is a statement the signer made. The panel says whether a CA verified that signer or whether the signer is self-asserted. A record says a decision happened. It does not say the file meets a brand rule, a licence or a law.
+
+**When the check fails**, the record stays on the page under the heading **Approval record**, under a warning and with a red **Approval** lamp, because you need to know the claim is there and cannot be relied on. **Made for** is not shown in that case: an intent record is read only from a credential that verifies.
+
+**Made for** gives the purpose in words, the surface and the tool. Occasion, audience and region read "Text, fingerprinted", because only a fingerprint of the words is in the file.
+
+**A prompt** appears only when the agent that made the file chose to record the words ([what the record holds](/info/visual-intent.html)). It sits in a quoted block labelled as the prompt from the person who asked, as plain text with its line breaks kept. A long prompt starts collapsed, with **Show all** and **Copy prompt** below. Nothing in a prompt can run or link, and instructions written in one are only words. Read a prompt as what someone asked for. "Prompt, Text, fingerprinted" means the file holds only a fingerprint.
+
+`lolly validate`, the terminal app and `lolly_verify` report the same facts in the same words.
+
 ## AI-generated content
 
 When a file declares that its pixels came from a trained model, Lolly Verify raises an **AI-generated content** flag, or **Contains AI-generated content** when only part of it did. The declaration comes from one of two places, and Lolly Verify says which:

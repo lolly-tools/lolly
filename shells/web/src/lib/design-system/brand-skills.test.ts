@@ -12,10 +12,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import {
-  activeSkillsOf, agentBrandSkillLinks, briefSkillAssets, groupCoverage, readBrandSkillFiles, skillAsOneFile,
+  activeSkillsOf, agentBrandSkillLinks, briefSkillAssets, groupCoverage, keepDraftSkill, listActiveBrandSkills, readBrandSkillFiles, skillAsOneFile,
   skillBelongsTo, skillDetailRows, skillIndexEntryOfRef, skillSteward,
 } from './brand-skills.ts';
 import type { ActiveRecord } from './active.ts';
+import { draftSkillOf } from './sources/declared.ts';
+import { designSystemHeadId } from '../../../../../engine/src/design-system.ts';
 
 const ROOT = new URL('../../../../../', import.meta.url);
 const index = JSON.parse(readFileSync(new URL('brands/lolly-demo/catalog/assets/index.json', ROOT), 'utf8')) as { assets?: unknown[] } | unknown[];
@@ -64,6 +66,36 @@ test('a catalog skill belongs to the catalog system and the systems that stand o
   assert.equal(skillBelongsTo({ id: 'user/ds/acme/skill/voice', source: 'user' }, record({ kind: 'local' }, 'acme')), true);
   assert.equal(skillBelongsTo({ id: 'user/ds/other/skill/voice', source: 'user' }, record({ kind: 'local' }, 'acme')), false);
   assert.equal(skillBelongsTo({ id: 'user/ds/acme/skill/voice', source: 'user' }, null), false);
+});
+
+test('the person\'s own skills count too: a catalog query does not read uploads', async () => {
+  const skill = { name: 'acme-notes', description: 'A draft.', discipline: 'brand', audience: 'internal', status: 'draft', skillRevision: '1' };
+  const own: AssetRef = { id: 'user/ds/acme/skill/acme-notes', source: 'user', type: 'skill', format: 'md', url: 'blob:x', meta: { name: 'Acme notes', skill } };
+  const active = { id: 'acme', label: 'Acme', headId: 'user/ds/acme/tokens', locked: false, source: { kind: 'local' } };
+  const host = { assets: { query: async () => [], get: async () => own, _listUserAssets: async () => [own] }, tokens: { activeRecord: async () => active } };
+  const listed = await listActiveBrandSkills(host as never);
+  assert.deepEqual(listed.map(row => row.entry.name), ['acme-notes']);
+  assert.equal(listed[0]!.entry.status, 'draft');
+  assert.equal(listed[0]!.entry.audience, 'internal');
+});
+
+test('keeping a draft writes an internal skill into the active system, and never replaces one', async () => {
+  const written: Array<{ id: string; type: string; format: string; blob: Blob; meta: Record<string, unknown> }> = [];
+  const host = {
+    assets: {
+      query: async () => [],
+      _uploadUserAsset: async (record: typeof written[number]) => { written.push(record); },
+      _getUserRecord: async (id: string) => written.find(row => row.id === id) ?? null,
+    },
+    tokens: { activeRecord: async () => ({ id: 'acme', label: 'Acme', headId: designSystemHeadId('acme'), locked: false, source: { kind: 'local' } }) },
+  };
+  const draft = draftSkillOf('Blue leads.', 'Acme')!;
+  assert.equal(await keepDraftSkill(host as never, draft), 'user/ds/acme/skill/acme-notes');
+  assert.equal(await keepDraftSkill(host as never, draft), 'user/ds/acme/skill/acme-notes-2');
+  assert.equal(written[0]!.type, 'skill');
+  const meta = written[1]!.meta.skill as Record<string, unknown>;
+  assert.deepEqual([meta.name, meta.audience, meta.status], ['acme-notes-2', 'internal', 'draft']);
+  assert.match(await written[1]!.blob.text(), /^---\nname: acme-notes-2\n/);
 });
 
 test('the active list puts the overall brand skill first and keeps only usable, owned skills', () => {

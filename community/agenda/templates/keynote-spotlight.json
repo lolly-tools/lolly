@@ -33,7 +33,7 @@
           "2026-10-14",
           "09:00",
           "09:45",
-          "Opening keynote: building in the open",
+          "Opening keynote",
           "Maya Lindqvist",
           "",
           "Auditorium",
@@ -45,7 +45,7 @@
           "2026-10-14",
           "10:00",
           "10:45",
-          "Design tokens that survive a rebrand",
+          "Design tokens",
           "Ana Kovač",
           "Design",
           "Hall A",
@@ -57,7 +57,7 @@
           "2026-10-14",
           "10:00",
           "10:45",
-          "Shipping containers without the drama",
+          "Shipping containers",
           "Tomás Herrera",
           "Platform",
           "Hall B",
@@ -69,7 +69,7 @@
           "2026-10-14",
           "10:00",
           "11:30",
-          "Workshop: your first accessible component",
+          "Accessibility",
           "Priya Nair",
           "Practice",
           "Studio 1",
@@ -153,7 +153,7 @@
           "2026-10-14",
           "14:00",
           "14:45",
-          "Closing panel: what we ship next",
+          "What we ship next",
           "",
           "",
           "Auditorium",
@@ -175,8 +175,9 @@
         ]
       ]
     },
-    "style": "gallery",
-    "backdrop": "contours",
+    "style": "editorial",
+    "backdrop": "planes",
     "eventId": "northwind-2026"
-  }
+  },
+  "galleryCover": true
 }

@@ -2953,6 +2953,16 @@ var init_tool_schema = __esm({
               type: "boolean",
               description: "Use this editable template as the first gallery preview. At most one cover per theme."
             },
+            gallerySize: {
+              type: "object",
+              additionalProperties: false,
+              required: ["width", "height"],
+              properties: {
+                width: { type: "number", exclusiveMinimum: 0 },
+                height: { type: "number", exclusiveMinimum: 0 }
+              },
+              description: "The size this template is drawn at on its gallery card, usually 4:3 so it fills the card. It never changes the size the template opens at."
+            },
             id: {
               type: "string",
               description: "Stable id, unique within this tool's `templates[]`. Addressable via the reserved `?template=<id>` param, so treat it as a permanent contract like a tool/asset id."
@@ -3032,8 +3042,13 @@ var init_tool_schema = __esm({
             "id",
             "name"
           ],
-          description: "One curated variant of a template: a values overlay merged over the template base.",
+          description: "One size or pace of a template: a values overlay merged over the template base. A different look is a template of its own.",
           properties: {
+            kind: {
+              type: "string",
+              enum: ["size", "pace", "retired"],
+              description: "size and pace show as chips on the template tile. retired keeps the ?preset= address working for old links and shows nowhere in the app."
+            },
             id: {
               type: "string",
               description: "Stable id, unique within this template's `presets[]`. Addressable via the reserved `?preset=<id>` param, so treat it as a permanent contract."
@@ -4099,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.308.0";
+    ENGINE_VERSION = "1.310.0";
   }
 });
 
@@ -37153,7 +37168,7 @@ var RIGHTS_RULES_VERSION, NO_CREDIT, CC_BY_CREDIT, REVIEWED, RECOGNISED, PROFILE
 var init_rights_profiles = __esm({
   "engine/src/rights-profiles.ts"() {
     "use strict";
-    RIGHTS_RULES_VERSION = "rights-rules-2026-10-30.1";
+    RIGHTS_RULES_VERSION = "rights-rules-2026-11-05.1";
     NO_CREDIT = {
       creator: false,
       title: false,
@@ -134599,10 +134614,10 @@ var init_brand_skill = __esm({
     AUTOLINK = /<(https?:\/\/[^>\s]+)>/g;
     BARE_URL = /https?:\/\/[^\s`'"<>()[\]]+/g;
     SCOPE_PATTERNS = [
-      { code: "scope.override", pattern: /\b(ignore|disregard|forget)\b.{0,30}\b(previous|prior|above|earlier|other|system)\b.{0,20}\b(instructions?|prompts?|rules?)\b/i, message: "Asks the reader to set aside other instructions. A brand skill speaks for brand intent only." },
-      { code: "scope.permission", pattern: /\b(you (are|have been) (granted|given|allowed)|grant yourself|without asking|do not ask (for )?(permission|confirmation))\b/i, message: "Speaks about permissions. Grants decide what an agent may do; a skill cannot." },
+      { code: "scope.override", pattern: /\b(ignore|disregard|forget)\b.{0,30}\b(previous|prior|above|earlier|other|system)\b.{0,20}\b(instructions?|prompts?|rules?)\b|\b(ignore|disregard|forget)\b.{0,40}\b(instructions?|prompts?)\b/i, message: "Asks the reader to set aside other instructions. A brand skill speaks for brand intent only." },
+      { code: "scope.permission", pattern: /\b(you (are|have been) (granted|given|allowed)|you (now )?have (full |admin |root )?(permission|access|authori[sz]ation)|you are (now )?(authori[sz]ed|permitted)|grant yourself|without asking|do not ask (for )?(permission|confirmation))\b/i, message: "Speaks about permissions. Grants decide what an agent may do; a skill cannot." },
       { code: "scope.tools", pattern: /^\s*allowed-tools\s*:/i, message: "Names allowed tools. Lolly does not grant tools from a brand skill." },
-      { code: "scope.execute", pattern: /\b(curl|wget)\b[^|\n]*\|\s*(ba|z)?sh\b|\b(run|execute)\s+(this|the following)\s+(command|script|code)\b/i, message: "Asks the reader to run code. A brand skill is guidance, not a script." }
+      { code: "scope.execute", pattern: /\b(curl|wget)\b[^|\n]*\|\s*(ba|z)?sh\b|\b(run|execute)\s+(this|the following)\s+(command|script|code)\b|\b(run|execute)\b[^.\n]{0,40}\b(commands?|shell)\b|\b(run|execute)\s+`/i, message: "Asks the reader to run code. A brand skill is guidance, not a script." }
     ];
     EXECUTABLE = /\.(?:js|mjs|cjs|ts|mts|cts|jsx|tsx|py|pyc|sh|bash|zsh|fish|ps1|psm1|bat|cmd|exe|com|dll|so|dylib|rb|pl|php|lua|jar|class|wasm|bin|app|scr|vbs|applescript)$/i;
     words = (url) => {
@@ -179443,6 +179458,37 @@ function evidenceArrayOf(value2) {
   const rights = value2.rights;
   return Array.isArray(rights) ? rights.slice(0, 16) : [];
 }
+var OWNER_PUBLISHED = "Owner-published, not an open licence";
+var OWNER_HOLDER_MAX = 256;
+var OWNER_TERMS_MAX = 1024;
+function ownerPublished(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  const works = value2.works;
+  const work = Array.isArray(works) ? works[0] : value2;
+  if (!work || typeof work !== "object" || Array.isArray(work)) return null;
+  const { creators, rights, grants } = work;
+  if (!Array.isArray(creators) || !Array.isArray(rights) || !Array.isArray(grants)) return null;
+  const declared = rights.slice(0, 16).some((row) => {
+    const evidence = row;
+    return !!evidence && typeof evidence.declaration === "string" && !!evidence.declaration.trim() && evidence.status !== "missing" && evidence.status !== "not-applicable";
+  });
+  const owner3 = creators.slice(0, 64).find((party) => {
+    const row = party;
+    return !!row && row.role === "owner" && typeof row.name === "string" && !!row.name.trim();
+  });
+  const grant = grants.slice(0, 16).find((row) => {
+    const entry2 = row;
+    return !!entry2 && entry2.kind === "own-work" && entry2.asserted === true && typeof entry2.scope === "string" && !!entry2.scope.trim();
+  });
+  if (!declared || !owner3 || !grant) return null;
+  return { holder: owner3.name.trim().slice(0, OWNER_HOLDER_MAX), terms: grant.scope.trim().slice(0, OWNER_TERMS_MAX) };
+}
+function claimsOwnWork(value2) {
+  const works = value2 && typeof value2 === "object" ? value2.works : null;
+  const work = Array.isArray(works) ? works[0] : value2;
+  const grants = work && typeof work === "object" ? work.grants : null;
+  return Array.isArray(grants) && grants.slice(0, 16).some((grant) => !!grant && grant.kind === "own-work");
+}
 function redistribution(meta) {
   const declared = assetLicenceDeclaration(meta);
   const normalised = declared ? normaliseLicence(declared) : null;
@@ -179451,6 +179497,15 @@ function redistribution(meta) {
   const notices = assetRightsNotices(meta.rights);
   if (meta.brandLock === true) {
     return { travels: false, kind: "policy", reason: "this brand pack is authoritative on this device", licence, notices };
+  }
+  if (!profile2?.reviewed) {
+    const owner3 = ownerPublished(meta.rights);
+    if (owner3) {
+      return { travels: true, kind: "licence", reason: "", licence: OWNER_PUBLISHED, notices: notices.includes(owner3.terms) ? notices : [...notices, owner3.terms], owner: owner3 };
+    }
+    if (claimsOwnWork(meta.rights)) {
+      return { travels: false, kind: "unknown", reason: "the own-work record is missing its owner, its terms or its licence declaration", licence, notices };
+    }
   }
   if (!declared) return { travels: false, kind: "unknown", reason: "licence not recorded", licence, notices };
   if (!profile2?.reviewed) {
@@ -179792,6 +179847,24 @@ function verdictIntent(report4) {
     facts: raw.filter((row) => !!row[1]).map(([k, v]) => [k, cleanControlChars(v)]),
     prompt: r5.prompt === void 0 ? null : cleanControlChars(JSON.stringify(r5.prompt)),
     promptNote: r5.promptNote ?? null
+  };
+}
+function verdictApproval(report4) {
+  const r5 = report4.approval;
+  if (!r5) return null;
+  const intact = report4.state === "valid";
+  const fails = report4.checks.filter((chk) => !chk.ok && chk.code !== "signingCredential.untrusted");
+  const changed = fails.some((chk) => chk.code === "assertion.dataHash.mismatch" || chk.code === "assertion.bmffHash.mismatch");
+  const lapsed = fails.length === 1 && fails[0].code === "signingCredential.expired";
+  return {
+    intact,
+    facts: [
+      ["Request", cleanControlChars(r5.approvalId)],
+      ["Decided", cleanControlChars(r5.decidedAt)],
+      ["Reviewed", cleanControlChars(r5.reviewedSha256)],
+      ["This file", intact ? "unchanged since the signer recorded this approval" : changed ? "does not match the signed record" : lapsed ? "still matches its credential" : "could not be confirmed"]
+    ],
+    note: intact ? "A record the signer made, not a review of the work." : changed ? "This file changed after the approval was recorded, or the record itself was altered." : lapsed ? "The signing certificate has lapsed, so this approval can no longer be confirmed." : "This approval record did not pass its checks, so it cannot be relied on."
   };
 }
 function verdictFacts(report4) {
@@ -187180,7 +187253,7 @@ function exportUrl(base, toolId, query2, fmt6, o) {
   if (o.hdr) p.set("hdr", serializeHdr(o.hdr));
   if (o.depth && o.depth !== "auto") p.set("depth", String(o.depth));
   if (Number(p.get("cuts")) > 1 || p.has("sampletimes")) p.set("c2pa", o.c2pa?.on ? String(o.c2pa.days ?? 1) : "off");
-  if (o.intent && o.c2pa?.on) p.set("c2pa", "off");
+  if (o.intent) p.set("c2pa", "off");
   p.set("export", "1");
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -187387,6 +187460,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
   const values = { ...st.values };
   if (o.transparentBg !== void 0) values["transparentBg"] = o.transparentBg;
   if (o.convertPaths !== void 0) values["convertPaths"] = o.convertPaths;
+  const credentialFromIntent = !!o.intent && !o.c2pa && !st.c2pa;
   const merged = {
     ...o,
     width: o.width ?? st.width ?? void 0,
@@ -187394,7 +187468,9 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     unit: o.unit ?? st.unit ?? void 0,
     dpi: o.dpi ?? st.dpi ?? void 0,
     password: o.password ?? st.password ?? void 0,
-    c2pa: o.c2pa ?? st.c2pa ?? null,
+    // The credential is the one place an intent record can go, so an intent turns it on for
+    // this render. An explicit setting, `c2pa: "off"` included, still wins.
+    c2pa: o.c2pa ?? st.c2pa ?? (credentialFromIntent ? { on: true, days: null } : null),
     // The `hdr=` request, the CLI/MCP's only float pixel source (see exportOpts).
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? void 0,
@@ -187517,7 +187593,8 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     ...evaluation ? { rights: await rightsResult(evaluation, bytes2) } : {},
     ...songs ? { songs } : {},
     ...designRecord ? { designRecord } : {},
-    ...finished.intentRecord ? { intentRecord: finished.intentRecord } : {}
+    ...finished.intentRecord ? { intentRecord: finished.intentRecord } : {},
+    ...credentialFromIntent ? { credentialFromIntent } : {}
   };
 }
 async function rightsResult(evaluation, bytes2) {
@@ -194425,7 +194502,7 @@ var RESOLVE_INTENT_OUTPUT_SCHEMA = {
 };
 var RESOLVE_INTENT_TOOL_DEF = {
   name: "lolly_resolve_intent",
-  description: "Say what a piece has to do, and get back the tool for each surface, its input values, what is missing and why. Read only: nothing is rendered or stored. No model is in this path, so it never reads meaning from text. If you are happy to carry your user's first words in the work you return, pass them as `prompt`, then read them yourself and choose the `purpose`: a prompt with no purpose comes back as outcome `purpose-needed` (code `intent.purpose-needed`) with the purposes, the tools that serve each, the surfaces and the roles, so you can call again with a purpose, surfaces and content. A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`, plus `exportDims` as width, height and unit when `sizeSetBy` is `export`. To record the intent in the file, also pass `intent`, `surface` and `c2pa` to lolly_render. A surface with status `needs-content` lists the roles to supply in `gaps`; supply them from your user, never invent them. `defaultsInUse` names the tool wording that would still print.",
+  description: 'Say what a piece has to do, and get back the tool for each surface, its input values, what is missing and why. Read only: nothing is rendered or stored. No model is in this path, so it never reads meaning from text. If you are happy to carry your user\'s first words in the work you return, pass them as `prompt`, then read them yourself and choose the `purpose`: a prompt with no purpose comes back as outcome `purpose-needed` (code `intent.purpose-needed`) with the purposes, the tools that serve each, the surfaces and the roles, so you can call again with a purpose, surfaces and content. A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`, plus `exportDims` as width, height and unit when `sizeSetBy` is `export`. To record the intent in the file, also pass `intent` and `surface` to lolly_render, which adds a Content Credential unless you pass c2pa: "off". A surface with status `needs-content` lists the roles to supply in `gaps`; supply them from your user, never invent them. `defaultsInUse` names the tool wording that would still print.',
   inputSchema: {
     type: "object",
     properties: {
@@ -194456,7 +194533,7 @@ function intentTools() {
 var RENDER_INTENT_ARGS = {
   intent: {
     type: "object",
-    description: "The intent this file answers, the object you gave lolly_resolve_intent. The server resolves it again and works out what to record itself. Refused with code intent.tool-not-candidate when toolId does not answer it on that surface. Recorded in the Content Credential, so also pass c2pa: with no credential nothing is recorded, and the result says so. Recorded as written: purpose, surface, tool, language, the rules and vocabulary versions and the intent digest. As fingerprints only: occasion, audience, region and the prompt."
+    description: 'The intent this file answers, the object you gave lolly_resolve_intent. The server resolves it again and works out what to record itself. Refused with code intent.tool-not-candidate when toolId does not answer it on that surface. Recorded in a Content Credential, so passing intent adds one to this file: self-signed and valid for 30 days, unless c2pa sets the lifetime. With c2pa: "off" the file holds no credential and no record, and the result says so. Recorded as written: purpose, surface, tool, language, the rules and vocabulary versions and the intent digest. As fingerprints only: occasion, audience, region and the prompt.'
   },
   surface: { type: "string", maxLength: 64, description: "Which surface of `intent` this file is for. Needed when the intent names more than one." },
   recordIntent: { type: "boolean", description: "Default true when `intent` is given. False records nothing about the intent in the file." },
@@ -194492,14 +194569,15 @@ async function intentRenderSettings(args, toolId) {
   if (!chosen.ok) return { error: { code: chosen.code, message: chosen.message } };
   return recordIntent === false ? { record: null, optedOut: true } : { record: chosen.record, optedOut: false };
 }
-function intentRecordText(outcome) {
+function intentRecordText(outcome, credentialFromIntent = false) {
   if (!outcome) return "";
   const lines = intentRecordWords(outcome);
   if (outcome.state === "recorded") {
+    if (credentialFromIntent) lines.push("Passing intent added this Content Credential to the file: self-signed, valid for 30 days.");
     if (outcome.promptInFile) lines.push("Leave recordPrompt off when a prompt holds personal or confidential detail.");
-    lines.push("Pass recordIntent: false to leave the intent out.");
+    lines.push(credentialFromIntent ? 'Pass recordIntent: false to leave the intent out, or c2pa: "off" for no credential.' : "Pass recordIntent: false to leave the intent out.");
   } else if (outcome.reason === "no-credential") {
-    lines.push('Pass c2pa (for example "30") to record the intent.');
+    lines.push('Leave out c2pa: "off" to record the intent.');
   }
   return lines.join(" ");
 }
@@ -195518,7 +195596,7 @@ var TOOL_DEFS = [
   },
   {
     name: "lolly_render",
-    description: "Render a Lolly tool to an on-brand asset (PNG/SVG/PDF/\u2026). Returns the image plus an editable lolly.tools link. After lolly_resolve_intent, pass `intent`, `surface` and `c2pa` to record what the file was asked to do. The result says what was recorded, read back from the file.",
+    description: 'Render a Lolly tool to an on-brand asset (PNG/SVG/PDF/\u2026). Returns the image plus an editable lolly.tools link. After lolly_resolve_intent, pass `intent` and `surface` to record what the file was asked to do. That adds a Content Credential to this file unless you pass c2pa: "off". The result says what was recorded, read back from the file.',
     inputSchema: {
       type: "object",
       properties: {
@@ -195861,6 +195939,12 @@ function verifyText(name, report4, headline) {
     const mark = chk.mark === "ok" ? "\u2713" : chk.mark === "info" ? "\u2139" : "\u2715";
     lines.push(`  ${mark} ${chk.code} - ${chk.explanation}`);
   }
+  const approval = verdictApproval(report4);
+  if (approval) {
+    lines.push("Approval:");
+    for (const [k, v] of approval.facts) lines.push(`  ${k.padEnd(11)} ${v}`);
+    lines.push(`  ${approval.note}`);
+  }
   const intent = verdictIntent(report4);
   if (intent) {
     lines.push("Intent:");
@@ -196106,7 +196190,7 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           designRecordText(result.designRecord),
           // The intent, shown at the moment of export as the approval asks, in words read
           // back from the delivered file. It says plainly when the prompt is in the file.
-          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" })
+          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" }, result.credentialFromIntent === true)
         ].filter(Boolean).join("\n");
         const content2 = [{ type: "text", text: header }];
         if (holdResult && result.bytes.byteLength > RESULT_LINK_THRESHOLD) {

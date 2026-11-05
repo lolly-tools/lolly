@@ -5,7 +5,11 @@
     "wordmark",
     "rebrand-deck"
   ],
-  "defaultHiddenTemplates": [],
+  "defaultHiddenTemplates": [
+    "gradient:ocean",
+    "gradient:studio",
+    "gradient:sunrise"
+  ],
   "brandTokens": "lolly/tokens/demo",
   "companionDesignSystems": [
     {
@@ -80,7 +84,37 @@
           "size": 19263
         }
       ],
-      "added": "2026-08-23"
+      "added": "2026-08-23",
+      "license": "LicenseRef-Lolly-Marks",
+      "rights": {
+        "works": [
+          {
+            "id": "lolly/logo/primary",
+            "title": "Lolly Mark - Primary",
+            "creators": [
+              {
+                "name": "Andy Fitzsimon",
+                "role": "owner"
+              }
+            ],
+            "rights": [
+              {
+                "declaration": "LicenseRef-Lolly-Marks",
+                "assertedBy": "catalog",
+                "evidence": "catalog-entry",
+                "status": "unparsed"
+              }
+            ],
+            "grants": [
+              {
+                "kind": "own-work",
+                "scope": "The Lolly name and marks belong to Andy Fitzsimon. They are not under an open licence: the Mozilla Public License 2.0 on Lolly's source code grants no rights in them (section 2.3). You may show these files unaltered to refer to Lolly. For any other use, ask at https://github.com/lolly-tools/lolly/issues.",
+                "asserted": true
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "lolly/logo/reverse",
@@ -104,7 +138,37 @@
           "size": 20085
         }
       ],
-      "added": "2026-08-23"
+      "added": "2026-08-23",
+      "license": "LicenseRef-Lolly-Marks",
+      "rights": {
+        "works": [
+          {
+            "id": "lolly/logo/reverse",
+            "title": "Lolly Mark - Reverse",
+            "creators": [
+              {
+                "name": "Andy Fitzsimon",
+                "role": "owner"
+              }
+            ],
+            "rights": [
+              {
+                "declaration": "LicenseRef-Lolly-Marks",
+                "assertedBy": "catalog",
+                "evidence": "catalog-entry",
+                "status": "unparsed"
+              }
+            ],
+            "grants": [
+              {
+                "kind": "own-work",
+                "scope": "The Lolly name and marks belong to Andy Fitzsimon. They are not under an open licence: the Mozilla Public License 2.0 on Lolly's source code grants no rights in them (section 2.3). You may show these files unaltered to refer to Lolly. For any other use, ask at https://github.com/lolly-tools/lolly/issues.",
+                "asserted": true
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "lolly/logo/mono",
@@ -128,7 +192,37 @@
           "size": 17491
         }
       ],
-      "added": "2026-08-23"
+      "added": "2026-08-23",
+      "license": "LicenseRef-Lolly-Marks",
+      "rights": {
+        "works": [
+          {
+            "id": "lolly/logo/mono",
+            "title": "Lolly Mark - Mono",
+            "creators": [
+              {
+                "name": "Andy Fitzsimon",
+                "role": "owner"
+              }
+            ],
+            "rights": [
+              {
+                "declaration": "LicenseRef-Lolly-Marks",
+                "assertedBy": "catalog",
+                "evidence": "catalog-entry",
+                "status": "unparsed"
+              }
+            ],
+            "grants": [
+              {
+                "kind": "own-work",
+                "scope": "The Lolly name and marks belong to Andy Fitzsimon. They are not under an open licence: the Mozilla Public License 2.0 on Lolly's source code grants no rights in them (section 2.3). You may show these files unaltered to refer to Lolly. For any other use, ask at https://github.com/lolly-tools/lolly/issues.",
+                "asserted": true
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "lolly/logo/mono-reverse",
@@ -152,7 +246,37 @@
           "size": 15240
         }
       ],
-      "added": "2026-08-23"
+      "added": "2026-08-23",
+      "license": "LicenseRef-Lolly-Marks",
+      "rights": {
+        "works": [
+          {
+            "id": "lolly/logo/mono-reverse",
+            "title": "Lolly Mark - Mono reverse",
+            "creators": [
+              {
+                "name": "Andy Fitzsimon",
+                "role": "owner"
+              }
+            ],
+            "rights": [
+              {
+                "declaration": "LicenseRef-Lolly-Marks",
+                "assertedBy": "catalog",
+                "evidence": "catalog-entry",
+                "status": "unparsed"
+              }
+            ],
+            "grants": [
+              {
+                "kind": "own-work",
+                "scope": "The Lolly name and marks belong to Andy Fitzsimon. They are not under an open licence: the Mozilla Public License 2.0 on Lolly's source code grants no rights in them (section 2.3). You may show these files unaltered to refer to Lolly. For any other use, ask at https://github.com/lolly-tools/lolly/issues.",
+                "asserted": true
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "lolly/logo/horizontal",
@@ -177,7 +301,37 @@
           "size": 526
         }
       ],
-      "added": "2026-10-19"
+      "added": "2026-10-19",
+      "license": "LicenseRef-Lolly-Marks",
+      "rights": {
+        "works": [
+          {
+            "id": "lolly/logo/horizontal",
+            "title": "Lolly Wordmark - Horizontal",
+            "creators": [
+              {
+                "name": "Andy Fitzsimon",
+                "role": "owner"
+              }
+            ],
+            "rights": [
+              {
+                "declaration": "LicenseRef-Lolly-Marks",
+                "assertedBy": "catalog",
+                "evidence": "catalog-entry",
+                "status": "unparsed"
+              }
+            ],
+            "grants": [
+              {
+                "kind": "own-work",
+                "scope": "The Lolly name and marks belong to Andy Fitzsimon. They are not under an open licence: the Mozilla Public License 2.0 on Lolly's source code grants no rights in them (section 2.3). You may show these files unaltered to refer to Lolly. For any other use, ask at https://github.com/lolly-tools/lolly/issues.",
+                "asserted": true
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "lolly/logo/horizontal-reverse",
@@ -202,7 +356,37 @@
           "size": 526
         }
       ],
-      "added": "2026-10-19"
+      "added": "2026-10-19",
+      "license": "LicenseRef-Lolly-Marks",
+      "rights": {
+        "works": [
+          {
+            "id": "lolly/logo/horizontal-reverse",
+            "title": "Lolly Wordmark - Horizontal reverse",
+            "creators": [
+              {
+                "name": "Andy Fitzsimon",
+                "role": "owner"
+              }
+            ],
+            "rights": [
+              {
+                "declaration": "LicenseRef-Lolly-Marks",
+                "assertedBy": "catalog",
+                "evidence": "catalog-entry",
+                "status": "unparsed"
+              }
+            ],
+            "grants": [
+              {
+                "kind": "own-work",
+                "scope": "The Lolly name and marks belong to Andy Fitzsimon. They are not under an open licence: the Mozilla Public License 2.0 on Lolly's source code grants no rights in them (section 2.3). You may show these files unaltered to refer to Lolly. For any other use, ask at https://github.com/lolly-tools/lolly/issues.",
+                "asserted": true
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "lolly/logo/horizontal-on-brand",
@@ -227,7 +411,37 @@
           "size": 526
         }
       ],
-      "added": "2026-10-19"
+      "added": "2026-10-19",
+      "license": "LicenseRef-Lolly-Marks",
+      "rights": {
+        "works": [
+          {
+            "id": "lolly/logo/horizontal-on-brand",
+            "title": "Lolly Wordmark - Horizontal on brand",
+            "creators": [
+              {
+                "name": "Andy Fitzsimon",
+                "role": "owner"
+              }
+            ],
+            "rights": [
+              {
+                "declaration": "LicenseRef-Lolly-Marks",
+                "assertedBy": "catalog",
+                "evidence": "catalog-entry",
+                "status": "unparsed"
+              }
+            ],
+            "grants": [
+              {
+                "kind": "own-work",
+                "scope": "The Lolly name and marks belong to Andy Fitzsimon. They are not under an open licence: the Mozilla Public License 2.0 on Lolly's source code grants no rights in them (section 2.3). You may show these files unaltered to refer to Lolly. For any other use, ask at https://github.com/lolly-tools/lolly/issues.",
+                "asserted": true
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "lolly/palette/riso-inks",
@@ -1072,6 +1286,143 @@
       ],
       "license": "CC0-1.0",
       "aiGenerated": "full"
+    },
+    {
+      "id": "lolly/demo/sample-photo",
+      "name": "Sample photograph",
+      "description": "The sample subject photo tools open on: in this catalog, the lorikeet. It is the same file as Lorikeet with a Lolly, under the id every brand's catalog answers to, so a shared template can ask for a sample photograph without naming a brand. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "photo",
+        "demo",
+        "example",
+        "placeholder",
+        "sample"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/lolly/demo/lorikeet-lollipop.jpg",
+          "checksum": "sha256-zOaMwbZfLSvt7U+W0OgwLtj6JFRz3Qx5jI8a1nARNZI=",
+          "width": 1628,
+          "height": 2624,
+          "size": 2779330,
+          "depth": 8
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full"
+    },
+    {
+      "id": "lolly/demo/sample-portrait",
+      "name": "Sample portrait",
+      "description": "The sample face avatar and profile tools open on: in this catalog, the Lolly Demo quokka. An AI-generated illustration with its own Content Credential, kept intact. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "portrait",
+        "demo",
+        "example",
+        "placeholder",
+        "sample",
+        "mascot"
+      ],
+      "formats": [
+        {
+          "format": "webp",
+          "url": "/catalog/assets/lolly/demo/sample-portrait.webp",
+          "checksum": "sha256-e9wRENSrsuAIzVyjzPeEG/YpaSou6J47bn5LbCHF/lk=",
+          "size": 314416,
+          "depth": 8
+        }
+      ],
+      "aiGenerated": "full",
+      "license": "CC0-1.0",
+      "attribution": "Generated with Google Gemini, cut out with Lolly"
+    },
+    {
+      "id": "lolly/demo/sample-character",
+      "name": "Sample character",
+      "description": "A sample subject that templates can ask for under every design system: in this catalog, the Lolly Demo koala. An AI-generated illustration with its own Content Credential, kept intact. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "demo",
+        "example",
+        "placeholder",
+        "sample",
+        "mascot"
+      ],
+      "formats": [
+        {
+          "format": "webp",
+          "url": "/catalog/assets/lolly/demo/sample-character.webp",
+          "checksum": "sha256-twZxsA0cxJn3XiSkkfgoPEmMW/PCouIgrCde49eAImQ=",
+          "size": 226990,
+          "depth": 8
+        }
+      ],
+      "aiGenerated": "full",
+      "license": "CC0-1.0",
+      "attribution": "Generated with Google Gemini, cut out with Lolly"
+    },
+    {
+      "id": "lolly/demo/sample-wide",
+      "name": "Sample wide subject",
+      "description": "A sample subject that templates can ask for under every design system: in this catalog, the Lolly Demo quoll. An AI-generated illustration with its own Content Credential, kept intact. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "demo",
+        "example",
+        "placeholder",
+        "sample",
+        "mascot"
+      ],
+      "formats": [
+        {
+          "format": "webp",
+          "url": "/catalog/assets/lolly/demo/sample-wide.webp",
+          "checksum": "sha256-sRpsVJaT0WluqDwczh+KAK7//DTU1NOuX8iWWyPoqzU=",
+          "size": 180882,
+          "depth": 8
+        }
+      ],
+      "aiGenerated": "full",
+      "license": "CC0-1.0",
+      "attribution": "Generated with Google Gemini, cut out with Lolly"
+    },
+    {
+      "id": "lolly/demo/sample-landscape",
+      "name": "Sample landscape subject",
+      "description": "A sample subject that templates can ask for under every design system: in this catalog, the Lolly Demo wedge-tailed eagle. An AI-generated illustration with its own Content Credential, kept intact. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "demo",
+        "example",
+        "placeholder",
+        "sample",
+        "mascot"
+      ],
+      "formats": [
+        {
+          "format": "webp",
+          "url": "/catalog/assets/lolly/demo/sample-landscape.webp",
+          "checksum": "sha256-x9qcsMzBw0nsBEwKWqguCHImqN+2qRaX0rABnKkeDs0=",
+          "size": 287410,
+          "depth": 8
+        }
+      ],
+      "aiGenerated": "full",
+      "license": "CC0-1.0",
+      "attribution": "Generated with Google Gemini, cut out with Lolly"
     },
     {
       "id": "lolly/demo/app-screenshot",
@@ -3894,6 +4245,151 @@
         }
       },
       "added": "2026-10-23"
+    },
+    {
+      "id": "lolly/font/outfit",
+      "name": "Outfit",
+      "description": "Lolly Demo headings. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/Outfit-Variable.ttf",
+          "checksum": "sha256-/HKHJz5mkpd24rpU8UT+aZCAvsKfYb9knXDYcUaK6t4=",
+          "size": 110884
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2021 The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts)",
+      "meta": {
+        "family": "Outfit",
+        "weight": "100 900",
+        "style": "normal",
+        "licenceFile": "/catalog/fonts/OFL-Outfit.txt",
+        "source": "https://github.com/Outfitio/Outfit-Fonts"
+      }
+    },
+    {
+      "id": "lolly/font/suse",
+      "name": "SUSE",
+      "description": "Lolly Demo text. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/SUSE-Variable.ttf",
+          "checksum": "sha256-5Y3CQN666KF30jbpd+ODTG//OIOnrWAQ8Jh3j2CQRSc=",
+          "size": 220292
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)",
+      "meta": {
+        "family": "SUSE",
+        "weight": "100 900",
+        "style": "normal",
+        "licenceFile": "/catalog/fonts/OFL-SUSE.txt",
+        "source": "https://github.com/SUSE/suse-font"
+      }
+    },
+    {
+      "id": "lolly/font/suse-italic",
+      "name": "SUSE Italic",
+      "description": "Lolly Demo text in italic. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/SUSE-Italic-Variable.ttf",
+          "checksum": "sha256-T82sZJo6FSCpUKXTyV3waVHVI8ujITfvWDEv9fGLgXw=",
+          "size": 222772
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)",
+      "meta": {
+        "family": "SUSE",
+        "weight": "100 900",
+        "style": "italic",
+        "licenceFile": "/catalog/fonts/OFL-SUSE.txt",
+        "source": "https://github.com/SUSE/suse-font"
+      }
+    },
+    {
+      "id": "lolly/font/suse-mono",
+      "name": "SUSE Mono",
+      "description": "Lolly Demo code. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/SUSEMono-Variable.ttf",
+          "checksum": "sha256-DAhO8g3EyY5OzGlee1mZHNyydayo01Da7OeClqXfMMw=",
+          "size": 87216
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)",
+      "meta": {
+        "family": "SUSE Mono",
+        "weight": "100 900",
+        "style": "normal",
+        "licenceFile": "/catalog/fonts/OFL-SUSE-Mono.txt",
+        "source": "https://github.com/SUSE/suse-font"
+      }
+    },
+    {
+      "id": "lolly/font/suse-mono-italic",
+      "name": "SUSE Mono Italic",
+      "description": "Lolly Demo code in italic. The variable face, weights 100 to 900.",
+      "type": "font",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "font",
+        "lolly"
+      ],
+      "formats": [
+        {
+          "format": "ttf",
+          "url": "/catalog/fonts/SUSEMono-Italic-Variable.ttf",
+          "checksum": "sha256-MPMELKaDqV9C8tjWWkpoXHE/rabnlgKku9j2sO1a8nk=",
+          "size": 85420
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2025 The SUSE Project Authors (https://github.com/SUSE/suse-font)",
+      "meta": {
+        "family": "SUSE Mono",
+        "weight": "100 900",
+        "style": "italic",
+        "licenceFile": "/catalog/fonts/OFL-SUSE-Mono.txt",
+        "source": "https://github.com/SUSE/suse-font"
+      }
     }
   ]
 }

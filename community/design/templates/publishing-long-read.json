@@ -4,7 +4,7 @@
   "category": "Publishing",
   "description": "One article flows through three linked frames across a two-page editorial spread.",
   "values": {
-    "background": "#f4f1e8",
+    "background": "{color.semantic.surface}",
     "boxes": [
       {
         "id": "page-1",
@@ -14,7 +14,7 @@
         "y": 0,
         "w": 900,
         "h": 1200,
-        "bg": "#f4f1e8",
+        "bg": "var(--brand-surface, #f4f1e8)",
         "clipChildren": true,
         "order": 0
       },
@@ -26,7 +26,7 @@
         "y": 0,
         "w": 900,
         "h": 1200,
-        "bg": "#f4f1e8",
+        "bg": "var(--brand-surface, #f4f1e8)",
         "clipChildren": true,
         "order": 1
       },
@@ -40,7 +40,7 @@
         "y": 62,
         "w": 772,
         "h": 35,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 16,
         "align": "left",
         "valign": "top",
@@ -59,7 +59,7 @@
         "y": 140,
         "w": 778,
         "h": 260,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 78,
         "align": "left",
         "valign": "top",
@@ -78,7 +78,7 @@
         "y": 407,
         "w": 730,
         "h": 134,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 25,
         "align": "left",
         "valign": "top",
@@ -97,7 +97,7 @@
         "y": 597,
         "w": 772,
         "h": 482,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 22,
         "align": "left",
         "valign": "top",
@@ -117,7 +117,7 @@
         "w": 350,
         "h": 854,
         "frame": "page-2",
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 22,
         "pad": 0,
         "fitText": false,
@@ -134,7 +134,7 @@
         "w": 386,
         "h": 654,
         "frame": "page-2",
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 22,
         "pad": 0,
         "fitText": false,
@@ -150,7 +150,7 @@
         "y": 62,
         "w": 772,
         "h": 35,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 16,
         "align": "left",
         "valign": "top",
@@ -167,7 +167,7 @@
         "y": 204,
         "w": 418,
         "h": 174,
-        "bg": "#182a29",
+        "bg": "var(--brand-text, #182a29)",
         "shape": "rect",
         "frame": "page-2"
       },
@@ -181,7 +181,7 @@
         "y": 224,
         "w": 375,
         "h": 145,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 37,
         "align": "left",
         "valign": "top",
@@ -198,7 +198,7 @@
         "y": 1120,
         "w": 772,
         "h": 2,
-        "bg": "#182a29",
+        "bg": "var(--brand-text, #182a29)",
         "shape": "rect",
         "frame": "page-1"
       },
@@ -212,7 +212,7 @@
         "y": 1142,
         "w": 772,
         "h": 30,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 15,
         "align": "left",
         "valign": "top",
@@ -229,7 +229,7 @@
         "y": 1120,
         "w": 772,
         "h": 2,
-        "bg": "#182a29",
+        "bg": "var(--brand-text, #182a29)",
         "shape": "rect",
         "frame": "page-2"
       },
@@ -243,7 +243,7 @@
         "y": 1142,
         "w": 772,
         "h": 30,
-        "fg": "#182a29",
+        "fg": "var(--brand-text, #182a29)",
         "fontSize": 15,
         "align": "left",
         "valign": "top",
@@ -254,6 +254,5 @@
       }
     ],
     "textDocument": "{\"version\":1,\"fonts\":[{\"id\":\"sans\",\"family\":\"SUSE\",\"sha256\":\"e58dc240debae8a177d236e977e3834c6fff3883a7ad6010f098778f60904527\",\"faceIndex\":0,\"source\":{\"kind\":\"bundled\",\"path\":\"/fonts/SUSE[wght].ttf\"}},{\"id\":\"mono\",\"family\":\"SUSE Mono\",\"sha256\":\"0c084ef20dc4c98e4ecc695e7b59991cdcb275aca8d350daece78296a5df30cc\",\"faceIndex\":0,\"source\":{\"kind\":\"bundled\",\"path\":\"/fonts/SUSEMono[wght].ttf\"}}],\"styles\":[{\"id\":\"label\",\"name\":\"label\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"mono\",\"size\":16,\"weight\":500,\"color\":\"#182a29\"},\"lineHeight\":1.25,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"headline\",\"name\":\"headline\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":78,\"weight\":720,\"color\":\"#182a29\"},\"lineHeight\":1.01,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"standfirst\",\"name\":\"standfirst\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":25,\"weight\":450,\"color\":\"#182a29\"},\"lineHeight\":1.3,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"body\",\"name\":\"body\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":22,\"weight\":400,\"color\":\"#182a29\"},\"lineHeight\":1.33,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16},\"spaceAfter\":16}},{\"id\":\"quote\",\"name\":\"quote\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":37,\"weight\":650,\"color\":\"#f4f1e8\"},\"lineHeight\":1.12,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}},{\"id\":\"footer\",\"name\":\"footer\",\"kind\":\"paragraph\",\"paragraph\":{\"character\":{\"font\":\"sans\",\"size\":15,\"weight\":400,\"color\":\"#182a29\"},\"lineHeight\":1.25,\"composition\":\"best\",\"shortLastLine\":{\"enabled\":true,\"words\":1,\"fraction\":0.16}}}],\"stories\":[{\"version\":1,\"id\":\"edition-story\",\"revision\":0,\"source\":\"THE LONG READ / VOL. 01\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"edition\"],\"paragraphs\":[{\"start\":0,\"end\":23,\"id\":\"edition-p0\"}],\"defaultStyle\":\"label\"},{\"version\":1,\"id\":\"headline-story\",\"revision\":0,\"source\":\"Follow\\nthe thread.\",\"breaks\":[{\"start\":6,\"length\":1,\"kind\":\"paragraph\"}],\"spans\":[],\"inlines\":[],\"frameIds\":[\"headline\"],\"paragraphs\":[{\"start\":0,\"end\":6,\"id\":\"headline-p0\"},{\"start\":7,\"end\":18,\"id\":\"headline-p1\"}],\"defaultStyle\":\"headline\"},{\"version\":1,\"id\":\"standfirst-story\",\"revision\":0,\"source\":\"One story. Room to move. An editorial feature that keeps its words together as the pages change.\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"standfirst\"],\"paragraphs\":[{\"start\":0,\"end\":96,\"id\":\"standfirst-p0\"}],\"defaultStyle\":\"standfirst\"},{\"version\":1,\"id\":\"opening-story\",\"revision\":0,\"source\":\"Every long story begins with a small observation. A conversation, a pencil mark in the margin or a question that refuses to go away can become the thread that holds a feature together. The task of the page is to let that thread remain easy to follow.\\nThese pages share one story across three linked text frames. The opening frame has two columns; the next page continues in two separate frames. There is no copied paragraph to keep in sync. Add words near the beginning and the later frames take up the change.\\nA useful editorial structure starts with a promise. Tell readers what they will find here, then reward their attention with something specific. Describe the place, the decision or the detail that changed your understanding. Precision gives a page its character.\\nThe reading order belongs to the story, not to the visual position of each box. Move a frame and its place in the chain stays intact. Resize it and the words find a new home. That makes it possible to try an unexpected composition while keeping the article whole.\\nSpace carries meaning too. A short paragraph can slow the pace. A larger opening can establish a new section. A pull quote offers a second way into the same idea, giving a scanning reader a reason to return to the body copy.\\nWhen a design feels crowded, first ask what deserves attention. Reduce a competing heading, shorten a caption or give the main text more room. The best adjustment is often a small one that makes the reading order feel obvious.\\nLinked frames are useful for newsletters, interviews, case studies and event programmes. They also make revision less fragile: there is one source to edit, one chain to inspect and one place to look when the final frame reports that more text needs room.\\nReplace this feature with your own article. Try deleting a sentence in the first paragraph, widening a frame on the second page or changing the body style. Watch the later passages reflow, then use Undo to return to the starting point.\\nBefore sharing, read the whole story once at its intended size. Check the last frame for overflow and make sure the breaks still feel natural. Good typography leaves the reader with the idea, rather than the effort it took to arrange it.\",\"breaks\":[{\"start\":250,\"length\":1,\"kind\":\"paragraph\"},{\"start\":510,\"length\":1,\"kind\":\"paragraph\"},{\"start\":772,\"length\":1,\"kind\":\"paragraph\"},{\"start\":1036,\"length\":1,\"kind\":\"paragraph\"},{\"start\":1261,\"length\":1,\"kind\":\"paragraph\"},{\"start\":1488,\"length\":1,\"kind\":\"paragraph\"},{\"start\":1743,\"length\":1,\"kind\":\"paragraph\"},{\"start\":1979,\"length\":1,\"kind\":\"paragraph\"}],\"spans\":[],\"inlines\":[],\"frameIds\":[\"opening\",\"continuation\",\"closing\"],\"paragraphs\":[{\"start\":0,\"end\":250,\"id\":\"opening-p0\"},{\"start\":251,\"end\":510,\"id\":\"opening-p1\"},{\"start\":511,\"end\":772,\"id\":\"opening-p2\"},{\"start\":773,\"end\":1036,\"id\":\"opening-p3\"},{\"start\":1037,\"end\":1261,\"id\":\"opening-p4\"},{\"start\":1262,\"end\":1488,\"id\":\"opening-p5\"},{\"start\":1489,\"end\":1743,\"id\":\"opening-p6\"},{\"start\":1744,\"end\":1979,\"id\":\"opening-p7\"},{\"start\":1980,\"end\":2217,\"id\":\"opening-p8\"}],\"defaultStyle\":\"body\"},{\"version\":1,\"id\":\"running-head-story\",\"revision\":0,\"source\":\"FIELD NOTES / CONTINUED\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"running-head\"],\"paragraphs\":[{\"start\":0,\"end\":23,\"id\":\"running-head-p0\"}],\"defaultStyle\":\"label\"},{\"version\":1,\"id\":\"pull-quote-story\",\"revision\":0,\"source\":\"A clear page\\nkeeps the idea\\nin view.\",\"breaks\":[{\"start\":12,\"length\":1,\"kind\":\"paragraph\"},{\"start\":27,\"length\":1,\"kind\":\"paragraph\"}],\"spans\":[],\"inlines\":[],\"frameIds\":[\"pull-quote\"],\"paragraphs\":[{\"start\":0,\"end\":12,\"id\":\"pull-quote-p0\"},{\"start\":13,\"end\":27,\"id\":\"pull-quote-p1\"},{\"start\":28,\"end\":36,\"id\":\"pull-quote-p2\"}],\"defaultStyle\":\"quote\"},{\"version\":1,\"id\":\"page-1-folio-story\",\"revision\":0,\"source\":\"01     /     FIELD NOTES\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"page-1-folio\"],\"paragraphs\":[{\"start\":0,\"end\":24,\"id\":\"page-1-folio-p0\"}],\"defaultStyle\":\"footer\"},{\"version\":1,\"id\":\"page-2-folio-story\",\"revision\":0,\"source\":\"02     /     FIELD NOTES\",\"breaks\":[],\"spans\":[],\"inlines\":[],\"frameIds\":[\"page-2-folio\"],\"paragraphs\":[{\"start\":0,\"end\":24,\"id\":\"page-2-folio-p0\"}],\"defaultStyle\":\"footer\"}]}"
-  },
-  "thumb": "/tools/design/assets/publishing-long-read.png"
+  }
 }

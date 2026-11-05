@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-05T20:32:00.536Z",
+  "generatedAt": "2026-11-05T23:53:32.366Z",
   "tools": [
     {
       "id": "3d",
@@ -147,7 +147,7 @@
       "id": "3d-studio",
       "name": "3D Studio",
       "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls.",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -166,6 +166,7 @@
         "scene",
         "3mf"
       ],
+      "added": "2026-09-16",
       "formats": [
         "png",
         "jpg",
@@ -207,6 +208,13 @@
           "name": "Shatter reveal",
           "category": "Promotion",
           "description": "The subject breaks into its own triangles, flies apart and comes back together while the camera swings round from the side onto the finished view. Swap in your own SVG under Start."
+        },
+        {
+          "id": "studio-object",
+          "name": "Object on transparency",
+          "category": "Stills",
+          "description": "An object with its soft shadow and no background, ready to place on anything.",
+          "galleryCover": true
         },
         {
           "id": "wordmark-backdrop",
@@ -326,7 +334,7 @@
       "id": "agenda",
       "name": "Agenda",
       "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "status": "community",
       "category": "event",
       "tags": [
@@ -383,22 +391,16 @@
           "description": "Animated overview from the same programme."
         },
         {
+          "id": "conference-day-programme-list",
+          "name": "Printed programme",
+          "category": "Conference",
+          "description": "The same day with rows sized by their words rather than by the clock."
+        },
+        {
           "id": "conference-day",
           "name": "Conference day",
           "category": "Conference",
-          "description": "One day, three tracks, a keynote to open and drinks to close.",
-          "presets": [
-            {
-              "id": "programme-list",
-              "name": "Printed programme",
-              "description": "The same day with rows sized by their words rather than by the clock."
-            },
-            {
-              "id": "door-screen",
-              "name": "Door screen",
-              "description": "What is on now in each track, for a screen in the foyer."
-            }
-          ]
+          "description": "One day, three tracks, a keynote to open and drinks to close."
         },
         {
           "id": "event-close",
@@ -428,20 +430,20 @@
           "id": "keynote-spotlight",
           "name": "Keynote spotlight",
           "category": "Present and share",
-          "description": "Keynote spotlight from the same programme."
+          "description": "Keynote spotlight from the same programme.",
+          "galleryCover": true
+        },
+        {
+          "id": "meetup-board",
+          "name": "Meetup door screen",
+          "category": "Meetup",
+          "description": "The same evening as a screen in the entrance."
         },
         {
           "id": "meetup",
           "name": "Evening meetup",
           "category": "Meetup",
-          "description": "One evening, one room, four things on. No tracks to split.",
-          "presets": [
-            {
-              "id": "board",
-              "name": "On the door",
-              "description": "The same evening as a screen in the entrance."
-            }
-          ]
+          "description": "One evening, one room, four things on. No tracks to split."
         },
         {
           "id": "multi-day",
@@ -465,14 +467,7 @@
           "id": "summit",
           "name": "Two-day summit",
           "category": "Conference",
-          "description": "Two days, two tracks, and a plenary opening and closing each day.",
-          "presets": [
-            {
-              "id": "programme-list",
-              "name": "Printed programme",
-              "description": "Both days as a list, rows sized by their words."
-            }
-          ]
+          "description": "Two days, two tracks, and a plenary opening and closing each day."
         },
         {
           "id": "wide-ribbon",
@@ -1262,7 +1257,7 @@
       "id": "backdrop",
       "name": "Backdrop",
       "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds.",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -1372,9 +1367,9 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Brand flow",
+          "name": "Brand silk",
           "category": "Brand",
-          "description": "Generous flowing shapes in your primary and secondary brand colours.",
+          "description": "Slow folds of silk in the design system colours.",
           "galleryCover": true
         }
       ],
@@ -1489,7 +1484,7 @@
       "id": "battlecards",
       "name": "Battlecards",
       "description": "Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.",
-      "version": "1.3.2",
+      "version": "1.3.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -1524,9 +1519,9 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Conversation cards",
+          "name": "Sales notes",
           "category": "Brand",
-          "description": "A short, editable set of cards for a product conversation.",
+          "description": "One conversation per card, ready to print or send.",
           "galleryCover": true
         }
       ],
@@ -1642,7 +1637,7 @@
       "id": "booth-studio",
       "name": "Booth",
       "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "status": "experimental",
       "category": "event",
       "tags": [
@@ -1791,7 +1786,7 @@
       "id": "calendar-ics",
       "name": "Calendar",
       "description": "Turn event details into a calendar (.ics) file for any calendar app.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "official",
       "category": "event",
       "tags": [
@@ -1825,19 +1820,7 @@
           "id": "month",
           "name": "Month on a wall",
           "category": "Print",
-          "description": "A month grid sized for A4 landscape, with the dates already on it.",
-          "presets": [
-            {
-              "id": "sunday",
-              "name": "Sunday start",
-              "description": "The same month with Sunday in the first column."
-            },
-            {
-              "id": "weeks",
-              "name": "With week numbers",
-              "description": "Adds the ISO week column down the left edge."
-            }
-          ]
+          "description": "A month grid sized for A4 landscape, with the dates already on it."
         }
       ],
       "i18n": {
@@ -1951,7 +1934,7 @@
       "id": "captions",
       "name": "Captions",
       "description": "Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -2015,35 +1998,29 @@
       ],
       "templates": [
         {
+          "id": "karaoke-lower",
+          "name": "Lower third",
+          "category": "Captions",
+          "description": "The same word-by-word lift, sitting where subtitles usually do."
+        },
+        {
           "id": "karaoke",
           "name": "Karaoke",
           "category": "Captions",
-          "description": "One line in the middle of the frame, lighting up word by word as it is spoken.",
-          "presets": [
-            {
-              "id": "lower",
-              "name": "Lower third",
-              "description": "The same word-by-word lift, sitting where subtitles usually do."
-            }
-          ]
+          "description": "One line in the middle of the frame, lighting up word by word as it is spoken."
+        },
+        {
+          "id": "subtitles-outline",
+          "name": "Outlined subtitles",
+          "category": "Captions",
+          "description": "No plate. The words carry their own edge, so the picture stays whole."
         },
         {
           "id": "subtitles",
           "name": "Subtitles",
           "category": "Captions",
           "description": "Broadcast-style subtitles across the foot of the frame, two lines at most.",
-          "presets": [
-            {
-              "id": "outline",
-              "name": "Outline",
-              "description": "No plate. The words carry their own edge, so the picture stays whole."
-            },
-            {
-              "id": "box",
-              "name": "Boxed",
-              "description": "A rounded plate that hugs the words rather than the frame."
-            }
-          ]
+          "galleryCover": true
         }
       ],
       "i18n": {
@@ -2157,7 +2134,7 @@
       "id": "certificate",
       "name": "Certificate",
       "description": "Completion and award certificates in the active design system and its colourway: four styles, print and social sizes, and motion for sharing - one name at a time, or a whole roster from a CSV in Bulk from rows.",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -2257,40 +2234,28 @@
       ],
       "templates": [
         {
+          "id": "award-team-of-the-year",
+          "name": "Team of the year",
+          "category": "Recognition",
+          "description": "A titled award with your own wording in place of the kind."
+        },
+        {
           "id": "award",
           "name": "Award",
           "category": "Recognition",
-          "description": "An award or a thank-you, signed by whoever hands it over.",
-          "presets": [
-            {
-              "id": "appreciation",
-              "name": "Thank you",
-              "description": "Appreciation for time given, rather than a prize won, in full colour."
-            },
-            {
-              "id": "team-of-the-year",
-              "name": "Team of the year",
-              "description": "A titled award with your own wording in place of the kind."
-            }
-          ]
+          "description": "An award or a thank-you, signed by whoever hands it over."
+        },
+        {
+          "id": "completion-certification",
+          "name": "Certification pass",
+          "category": "Training",
+          "description": "An exam pass in the Modern style, with the reference line switched on."
         },
         {
           "id": "completion",
           "name": "Course completion",
           "category": "Training",
-          "description": "The classic training certificate: who, what they completed, and when.",
-          "presets": [
-            {
-              "id": "workshop",
-              "name": "Workshop attendance",
-              "description": "A one-day workshop, signed by the facilitator, in the Minimal style."
-            },
-            {
-              "id": "certification",
-              "name": "Certification pass",
-              "description": "An exam pass in the Modern style, with the reference line switched on."
-            }
-          ]
+          "description": "The classic training certificate: who, what they completed, and when."
         },
         {
           "id": "share",
@@ -2301,11 +2266,13 @@
             {
               "id": "story",
               "name": "Story",
+              "kind": "size",
               "description": "A 9:16 story that draws itself in."
             },
             {
               "id": "landscape-post",
               "name": "Landscape post",
+              "kind": "size",
               "description": "A 1.91:1 post with a colour panel and a shimmer."
             }
           ]
@@ -2422,7 +2389,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.27.1",
+      "version": "1.27.2",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -2573,66 +2540,56 @@
       ],
       "templates": [
         {
+          "id": "brand-bars-areas",
+          "name": "Brand area",
+          "category": "Brand",
+          "description": "A clean palette study: colourful bars on transparency, ready for your data."
+        },
+        {
+          "id": "brand-bars-dark",
+          "name": "Brand bars, dark",
+          "category": "Brand",
+          "description": "The same bars for a dark ground: the first bar takes a colour that shows on it.",
+          "galleryCover": true,
+          "galleryTheme": "dark"
+        },
+        {
+          "id": "brand-bars-donut",
+          "name": "Brand donut",
+          "category": "Brand",
+          "description": "A clean palette study: colourful bars on transparency, ready for your data."
+        },
+        {
           "id": "brand-bars",
           "name": "Brand bars",
           "category": "Brand",
           "description": "A clean palette study: colourful bars on transparency, ready for your data.",
           "galleryCover": true,
-          "presets": [
-            {
-              "id": "donut",
-              "name": "Donut"
-            },
-            {
-              "id": "areas",
-              "name": "Area"
-            },
-            {
-              "id": "annotated",
-              "name": "With labels"
-            }
-          ]
+          "galleryTheme": "light"
         },
         {
           "id": "brand-terrain",
           "name": "Brand terrain",
           "category": "3-D",
-          "description": "A genuine value surface whose height, colour and material come from the data and brand.",
-          "presets": [
-            {
-              "id": "matte",
-              "name": "Matte",
-              "description": "Use a softly lit opaque surface."
-            },
-            {
-              "id": "analytical",
-              "name": "Analytical",
-              "description": "Use colour-accurate material and a still orthographic camera."
-            }
-          ]
+          "description": "A genuine value surface whose height, colour and material come from the data and brand."
+        },
+        {
+          "id": "branded-presentations-isometric",
+          "name": "Isometric comparison",
+          "category": "Styles",
+          "description": "Projected vector depth that remains editable in SVG."
+        },
+        {
+          "id": "branded-presentations-poster",
+          "name": "Poster comparison",
+          "category": "Styles",
+          "description": "Bold type and direct labels for a presentation graphic."
         },
         {
           "id": "branded-presentations",
           "name": "Editorial comparison",
           "category": "Styles",
-          "description": "A quiet comparison that inherits the active brand's type, colours and surface.",
-          "presets": [
-            {
-              "id": "technical",
-              "name": "Technical",
-              "description": "Denser axes, grid and patterns for analytical work."
-            },
-            {
-              "id": "poster",
-              "name": "Poster",
-              "description": "Bold type and direct labels for a presentation graphic."
-            },
-            {
-              "id": "isometric",
-              "name": "Isometric",
-              "description": "Projected vector depth that remains editable in SVG."
-            }
-          ]
+          "description": "A quiet comparison that inherits the active brand's type, colours and surface."
         },
         {
           "id": "bullet-targets",
@@ -2644,184 +2601,91 @@
           "id": "candlestick-series",
           "name": "Candlestick series",
           "category": "Financial",
-          "description": "An honest OHLC view with brand-derived up/down colours and exact source values in the accessible table.",
-          "presets": [
-            {
-              "id": "poster",
-              "name": "Poster",
-              "description": "Increase contrast and title scale for a presentation slide."
-            }
-          ]
+          "description": "An honest OHLC view with brand-derived up/down colours and exact source values in the accessible table."
+        },
+        {
+          "id": "comparison-columns-lollipop",
+          "name": "Lollipop comparison",
+          "category": "Bars",
+          "description": "A lighter lollipop look for the same ranking."
+        },
+        {
+          "id": "comparison-columns-ranked-horizontal",
+          "name": "Ranked bars",
+          "category": "Bars",
+          "description": "Sideways bars sorted from highest to lowest."
         },
         {
           "id": "comparison-columns",
           "name": "Comparison columns",
           "category": "Bars",
-          "description": "Single series columns ranking five options side by side.",
-          "presets": [
-            {
-              "id": "ranked-horizontal",
-              "name": "Ranked horizontal",
-              "description": "Sideways bars sorted from highest to lowest."
-            },
-            {
-              "id": "lollipop",
-              "name": "Lollipop",
-              "description": "A lighter lollipop look for the same ranking."
-            }
-          ]
+          "description": "Single series columns ranking five options side by side."
         },
         {
           "id": "constellation-tour",
           "name": "Constellation tour",
           "category": "Cinematic",
-          "description": "Make every observation a spatial beacon connected by an exact data path.",
-          "presets": [
-            {
-              "id": "reverse",
-              "name": "Out and back",
-              "description": "Fly to the final observation and return without a cut."
-            }
-          ]
+          "description": "Make every observation a spatial beacon connected by an exact data path."
         },
         {
           "id": "control-band",
           "name": "Process control band",
           "category": "Statistical",
-          "description": "Separate ordinary variation from observations that deserve investigation.",
-          "presets": [
-            {
-              "id": "quiet",
-              "name": "Editorial",
-              "description": "Reduce grid emphasis for a report or article."
-            }
-          ]
+          "description": "Separate ordinary variation from observations that deserve investigation."
         },
         {
           "id": "data-flight",
           "name": "Fly through the values",
           "category": "Cinematic",
-          "description": "Turn an ordered series into a camera route: values drive altitude while category order drives the journey.",
-          "presets": [
-            {
-              "id": "calm",
-              "name": "Calm overview",
-              "description": "Rise above the route, look further ahead and use a narrower editorial lens."
-            },
-            {
-              "id": "capacity",
-              "name": "Follow capacity",
-              "description": "Keep the scene but move the point of view onto the second series."
-            }
-          ]
+          "description": "Turn an ordered series into a camera route: values drive altitude while category order drives the journey."
         },
         {
           "id": "data-skyline",
           "name": "Fly the data skyline",
           "category": "Cinematic",
-          "description": "Build a branded skyline from the values, then travel alongside the series that matters most.",
-          "presets": [
-            {
-              "id": "editorial-overview",
-              "name": "Editorial overview",
-              "description": "Use a calmer, higher camera and a narrower lens for reports and presentations."
-            },
-            {
-              "id": "cost-route",
-              "name": "Follow operating cost",
-              "description": "Keep the shared scale and city, but move the point of view to the comparison series."
-            }
-          ]
+          "description": "Build a branded skyline from the values, then travel alongside the series that matters most."
+        },
+        {
+          "id": "distribution-lab-ridges",
+          "name": "Density ridges",
+          "category": "Statistical",
+          "description": "Compare smooth distribution shapes in aligned small multiples."
         },
         {
           "id": "distribution-lab",
           "name": "Distribution explorer",
           "category": "Statistical",
-          "description": "Start with observations and switch among boxes, rugs, histograms, density ridges and cumulative distributions without repasting data.",
-          "presets": [
-            {
-              "id": "rug",
-              "name": "Histogram + rug",
-              "description": "Keep every observation visible beneath the binned shape."
-            },
-            {
-              "id": "ridges",
-              "name": "Density panels",
-              "description": "Compare smooth distribution shapes in aligned small multiples."
-            },
-            {
-              "id": "cumulative",
-              "name": "Cumulative share",
-              "description": "Read the share of observations at or below any value."
-            }
-          ]
+          "description": "Start with observations and switch among boxes, rugs, histograms, density ridges and cumulative distributions without repasting data."
         },
         {
           "id": "editorial-dots",
           "name": "Editorial dot comparison",
           "category": "Editorial",
-          "description": "A low-ink comparison that keeps every value visible and uses position, colour and symbol together.",
-          "presets": [
-            {
-              "id": "range",
-              "name": "Range",
-              "description": "Connect the two observations as an interval."
-            },
-            {
-              "id": "technical",
-              "name": "Technical",
-              "description": "Add analytical grid and denser typography."
-            }
-          ]
+          "description": "A low-ink comparison that keeps every value visible and uses position, colour and symbol together."
         },
         {
           "id": "guided-chart",
           "name": "Let Chart recommend",
           "category": "Start here",
-          "description": "Paste or replace a table and get an explained, on-brand starting form with editable field mappings.",
-          "presets": [
-            {
-              "id": "relationship",
-              "name": "Ask about relationship",
-              "description": "Reframe the same measures as an association and start with a statistical view."
-            },
-            {
-              "id": "story",
-              "name": "Tell it cinematically",
-              "description": "Use row order as the route and the first measure as camera altitude."
-            }
-          ]
+          "description": "Paste or replace a table and get an explained, on-brand starting form with editable field mappings."
+        },
+        {
+          "id": "hexbin-density-contours",
+          "name": "Density contours",
+          "category": "Statistical",
+          "description": "Use a smoothed density field with source observations underneath."
         },
         {
           "id": "hexbin-density",
           "name": "Hexbin density",
           "category": "Statistical",
-          "description": "Aggregate overlapping observations into a perceptual brand ramp instead of painting an unreadable point cloud.",
-          "presets": [
-            {
-              "id": "contours",
-              "name": "Contours",
-              "description": "Use a smoothed density field with source observations underneath."
-            },
-            {
-              "id": "raw-fit",
-              "name": "Regression",
-              "description": "Return to individual observations and fit a relationship."
-            }
-          ]
+          "description": "Aggregate overlapping observations into a perceptual brand ramp instead of painting an unreadable point cloud."
         },
         {
           "id": "indexed-growth",
           "name": "Indexed growth",
           "category": "Editorial",
-          "description": "Compare differently sized series from a shared starting point of 100.",
-          "presets": [
-            {
-              "id": "stagger",
-              "name": "Build the story",
-              "description": "Bring the marks in progressively for a presentation."
-            }
-          ]
+          "description": "Compare differently sized series from a shared starting point of 100."
         },
         {
           "id": "pareto-priorities",
@@ -2830,27 +2694,16 @@
           "description": "Rank the biggest causes and see when their cumulative share reaches 80%."
         },
         {
+          "id": "quarterly-bars-stacked",
+          "name": "Stacked quarters",
+          "category": "Bars",
+          "description": "Stack the series to show the quarterly total."
+        },
+        {
           "id": "quarterly-bars",
           "name": "Quarterly bars",
           "category": "Bars",
-          "description": "Grouped bars comparing three product lines across four quarters.",
-          "presets": [
-            {
-              "id": "stacked",
-              "name": "Stacked",
-              "description": "Stack the series to show the quarterly total."
-            },
-            {
-              "id": "share-of-total",
-              "name": "Share of total",
-              "description": "Normalise each quarter to 100 percent."
-            },
-            {
-              "id": "horizontal",
-              "name": "Horizontal",
-              "description": "Turn the bars sideways for long category names."
-            }
-          ]
+          "description": "Grouped bars comparing three product lines across four quarters."
         },
         {
           "id": "range-comparison",
@@ -2862,145 +2715,55 @@
           "id": "regression-story",
           "name": "Regression story",
           "category": "Statistical",
-          "description": "Show the observations, fitted relationship and uncertainty without surrendering brand styling.",
-          "presets": [
-            {
-              "id": "fit-only",
-              "name": "Fit only",
-              "description": "Hide observations and emphasise the estimated relationship."
-            },
-            {
-              "id": "density",
-              "name": "Density",
-              "description": "Express the same two measures as density contours."
-            }
-          ]
+          "description": "Show the observations, fitted relationship and uncertainty without surrendering brand styling."
         },
         {
           "id": "ribbon-canyon",
           "name": "Ribbon canyon",
           "category": "Cinematic",
-          "description": "Compare several branded trajectories as spatial ribbons while the camera follows one chosen route.",
-          "presets": [
-            {
-              "id": "matte",
-              "name": "Editorial matte",
-              "description": "Use quiet solid ribbons for a restrained report-film look."
-            }
-          ]
+          "description": "Compare several branded trajectories as spatial ribbons while the camera follows one chosen route."
+        },
+        {
+          "id": "scene-bars-glass",
+          "name": "Glass 3-D bars",
+          "category": "3-D",
+          "description": "Use translucent brand-tinted materials."
         },
         {
           "id": "scene-bars",
           "name": "Studio 3-D bars",
           "category": "3-D",
-          "description": "Real depth, lighting and camera motion for a multi-series comparison.",
-          "presets": [
-            {
-              "id": "glass",
-              "name": "Glass",
-              "description": "Use translucent brand-tinted materials."
-            },
-            {
-              "id": "orthographic",
-              "name": "Orthographic",
-              "description": "Remove perspective distortion for direct comparison."
-            }
-          ]
+          "description": "Real depth, lighting and camera motion for a multi-series comparison."
         },
         {
           "id": "share-donut",
           "name": "Share donut",
           "category": "Share",
-          "description": "A donut splitting a total into five segments.",
-          "presets": [
-            {
-              "id": "pie",
-              "name": "Pie",
-              "description": "Close the hole for a classic pie."
-            },
-            {
-              "id": "sorted",
-              "name": "Largest first",
-              "description": "Order the slices from largest to smallest."
-            }
-          ]
+          "description": "A donut splitting a total into five segments."
         },
         {
           "id": "small-multiple-trends",
           "name": "Small multiple trends",
           "category": "Statistical",
-          "description": "Give every series its own aligned panel so crossings and different baselines remain legible.",
-          "presets": [
-            {
-              "id": "columns",
-              "name": "Side by side",
-              "description": "Arrange the series as compact columns."
-            },
-            {
-              "id": "distributions",
-              "name": "Distributions",
-              "description": "Compare each series as a faceted histogram."
-            }
-          ]
+          "description": "Give every series its own aligned panel so crossings and different baselines remain legible."
         },
         {
           "id": "spatial-scatter",
           "name": "Spatial scatter",
           "category": "3-D",
-          "description": "Map four numeric columns to x, y, z and point size in a real scene.",
-          "presets": [
-            {
-              "id": "glass",
-              "name": "Glass",
-              "description": "Use translucent points with brand-coloured lighting."
-            },
-            {
-              "id": "still",
-              "name": "Still",
-              "description": "Choose a fixed orthographic analytical view."
-            }
-          ]
+          "description": "Map four numeric columns to x, y, z and point size in a real scene."
         },
         {
           "id": "trend-line",
           "name": "Trend line",
           "category": "Lines",
-          "description": "A 12 month line comparing this year with last year.",
-          "presets": [
-            {
-              "id": "filled-area",
-              "name": "Filled area",
-              "description": "Fill under the lines to weight the volume."
-            },
-            {
-              "id": "with-points",
-              "name": "With points",
-              "description": "Mark each month with a point."
-            },
-            {
-              "id": "moving-average",
-              "name": "Moving average",
-              "description": "Overlay a moving average to smooth the noise."
-            }
-          ]
+          "description": "A 12 month line comparing this year with last year."
         },
         {
           "id": "uncertainty-band",
           "name": "Forecast range",
           "category": "Editorial",
-          "description": "Show an expected path inside an honest low-to-high range, with the active brand setting the hierarchy.",
-          "presets": [
-            {
-              "id": "reveal",
-              "name": "Reveal",
-              "description": "Draw the forecast across the page with deterministic motion."
-            },
-            {
-              "id": "difference",
-              "name": "Compare two paths",
-              "description": "Use the first two series to emphasise the distance between them."
-            }
-          ]
+          "description": "Show an expected path inside an honest low-to-high range, with the active brand setting the hierarchy."
         }
       ],
       "i18n": {
@@ -3682,7 +3445,7 @@
       "id": "compress-pdf",
       "name": "Compress",
       "description": "Shrink a PDF by recompressing its images - on your device.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -3895,37 +3658,13 @@
           "id": "pair",
           "name": "One pair",
           "category": "Utility",
-          "description": "Check one text colour on one background, with the colour-vision strip.",
-          "presets": [
-            {
-              "id": "body-copy",
-              "name": "Body copy",
-              "description": "Normal text, so the AA bar is 4.5:1."
-            },
-            {
-              "id": "headline",
-              "name": "Headline",
-              "description": "Large text, judged at the 3:1 AA bar."
-            }
-          ]
+          "description": "Check one text colour on one background, with the colour-vision strip."
         },
         {
           "id": "palette",
           "name": "Whole palette",
           "category": "Utility",
-          "description": "Every combination of your brand colours as a pass/fail matrix.",
-          "presets": [
-            {
-              "id": "text-pairs",
-              "name": "Text pairings",
-              "description": "Judged at the normal-text bars, for body copy on brand surfaces."
-            },
-            {
-              "id": "display-pairs",
-              "name": "Display pairings",
-              "description": "Judged at the large-text bars, for headlines and display type."
-            }
-          ]
+          "description": "Every combination of your brand colours as a pass/fail matrix."
         }
       ],
       "i18n": {
@@ -4039,7 +3778,7 @@
       "id": "convert-image",
       "name": "Convert Image",
       "description": "Turn HEIC, TIFF or any photo into WebP, JPEG or PNG - on your device.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "community",
       "category": "utility",
       "privacy": "on-device",
@@ -4183,7 +3922,7 @@
       "id": "countdown-timer",
       "name": "Countdown",
       "description": "A focused countdown with a live progress ring. Click to pause.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "official",
       "category": "utility",
       "tags": [
@@ -4311,7 +4050,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
-      "version": "2.5.1",
+      "version": "2.5.2",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -4452,8 +4191,7 @@
           "id": "brand-starter",
           "name": "Brand duotone",
           "category": "Brand",
-          "description": "A tonal study using your brand colours. Replace the sample with any image.",
-          "galleryCover": true
+          "description": "A tonal study using your brand colours. Replace the sample with any image."
         },
         {
           "id": "motion-clean",
@@ -4472,6 +4210,13 @@
           "name": "Motion · Warm editorial",
           "category": "Motion looks",
           "description": "Soft highlights and warm colour, with grain off for repeating clips."
+        },
+        {
+          "id": "warm-portrait",
+          "name": "Warm portrait",
+          "category": "Looks",
+          "description": "A warm film look on the sample photograph. Replace it with any image.",
+          "galleryCover": true
         }
       ],
       "i18n": {
@@ -4611,7 +4356,7 @@
       "id": "deck-studio",
       "name": "Markdown Slides",
       "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and the design system theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -4677,6 +4422,15 @@
               }
             ]
           }
+        }
+      ],
+      "templates": [
+        {
+          "id": "quarterly-review",
+          "name": "Quarterly review",
+          "category": "Slides",
+          "description": "A title, a list, a real table and a closing slide. Every part stays editable in PowerPoint.",
+          "galleryCover": true
         }
       ],
       "paged": true,
@@ -4791,7 +4545,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.52.0",
+      "version": "1.52.1",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5035,16 +4789,16 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Open possibilities",
-          "category": "Slides",
-          "description": "A clear opening slide in your brand colours.",
+          "name": "Launch poster",
+          "category": "Posters",
+          "description": "A bold headline beside a full-height picture, all in the active design system.",
           "galleryCover": true
         },
         {
           "id": "carousel",
           "name": "Carousel",
           "category": "Social",
-          "description": "Three portrait frames as a swipe-through carousel: cover, point, closing. Exports one image per page."
+          "description": "Three portrait frames as a swipe-through carousel. Exports one image per page."
         },
         {
           "id": "event-kit",
@@ -5079,11 +4833,13 @@
             {
               "id": "calm",
               "name": "Calm",
+              "kind": "pace",
               "description": "A longer settle and reading hold."
             },
             {
               "id": "brisk",
               "name": "Brisk",
+              "kind": "pace",
               "description": "A crisp four-second delivery."
             }
           ]
@@ -5109,11 +4865,13 @@
             {
               "id": "calm",
               "name": "Calm",
+              "kind": "pace",
               "description": "A longer settle and reading hold."
             },
             {
               "id": "brisk",
               "name": "Brisk",
+              "kind": "pace",
               "description": "A crisp four-second delivery."
             }
           ]
@@ -5122,19 +4880,7 @@
           "id": "launch-kit",
           "name": "Launch kit",
           "category": "Marketing",
-          "description": "Two artboards for shipping a release: a 1280x320 README banner and a square release card with the version and three highlights.",
-          "presets": [
-            {
-              "id": "dark",
-              "name": "Dark",
-              "description": "Brand colour behind both artboards."
-            },
-            {
-              "id": "light",
-              "name": "Light",
-              "description": "Plain ground, a hairline instead of the colour panel."
-            }
-          ]
+          "description": "Two artboards for shipping a release: a 1280x320 README banner and a square release card with the version and three highlights."
         },
         {
           "id": "launch-loop",
@@ -5157,11 +4903,13 @@
             {
               "id": "calm",
               "name": "Calm",
+              "kind": "pace",
               "description": "A longer settle and reading hold."
             },
             {
               "id": "brisk",
               "name": "Brisk",
+              "kind": "pace",
               "description": "A crisp four-second delivery."
             }
           ]
@@ -5187,11 +4935,13 @@
             {
               "id": "calm",
               "name": "Calm",
+              "kind": "pace",
               "description": "A longer settle and reading hold."
             },
             {
               "id": "brisk",
               "name": "Brisk",
+              "kind": "pace",
               "description": "A crisp four-second delivery."
             }
           ]
@@ -5205,32 +4955,28 @@
             {
               "id": "story",
               "name": "Story",
+              "kind": "size",
               "description": "9:16 for reels and stories."
             },
             {
               "id": "square",
               "name": "Square",
+              "kind": "size",
               "description": "1:1 for social feeds."
             }
           ]
         },
         {
+          "id": "meeting-background-solid",
+          "name": "Light meeting background",
+          "category": "Video",
+          "description": "A light ground for bright rooms."
+        },
+        {
           "id": "meeting-background",
           "name": "Meeting background",
           "category": "Video",
-          "description": "A 1920x1080 backdrop for video calls, with the middle kept clear so nothing sits behind your head and shoulders.",
-          "presets": [
-            {
-              "id": "solid",
-              "name": "Solid",
-              "description": "One flat brand colour behind the name."
-            },
-            {
-              "id": "gradient-look",
-              "name": "Gradient look",
-              "description": "Layered translucent shapes, still clear of the centre."
-            }
-          ]
+          "description": "Weight at the edges and the middle kept clear for your head and shoulders, with a name plate."
         },
         {
           "id": "motion-editorial-loop",
@@ -5251,11 +4997,13 @@
           "presets": [
             {
               "id": "short",
-              "name": "4 second loop"
+              "name": "4 second loop",
+              "kind": "pace"
             },
             {
               "id": "long",
-              "name": "8 second loop"
+              "name": "8 second loop",
+              "kind": "pace"
             }
           ]
         },
@@ -5278,11 +5026,13 @@
           "presets": [
             {
               "id": "short",
-              "name": "4 second loop"
+              "name": "4 second loop",
+              "kind": "pace"
             },
             {
               "id": "long",
-              "name": "8 second loop"
+              "name": "8 second loop",
+              "kind": "pace"
             }
           ]
         },
@@ -5305,28 +5055,32 @@
           "presets": [
             {
               "id": "short",
-              "name": "4 second loop"
+              "name": "4 second loop",
+              "kind": "pace"
             },
             {
               "id": "long",
-              "name": "8 second loop"
+              "name": "8 second loop",
+              "kind": "pace"
             }
           ]
         },
         {
           "id": "poster",
           "name": "Poster",
-          "category": "Poster",
-          "description": "One 16:9 frame - a big headline and a supporting line, in your brand colours.",
+          "category": "Posters",
+          "description": "Type as the image, with one large bleed of colour.",
           "presets": [
             {
               "id": "square",
               "name": "Square",
-              "description": "1:1 for social feeds."
+              "kind": "size",
+              "description": "A 1080 square for feeds."
             },
             {
               "id": "story",
               "name": "Story",
+              "kind": "size",
               "description": "9:16 for social stories."
             }
           ]
@@ -5335,37 +5089,36 @@
           "id": "publishing-field-notes",
           "name": "Field notes",
           "category": "Publishing",
-          "description": "A journal page with balanced columns, paragraph styles and a generous headline.",
-          "thumb": "/tools/design/assets/publishing-field-notes.png"
+          "description": "A journal page with balanced columns, paragraph styles and a generous headline."
         },
         {
           "id": "publishing-long-read",
           "name": "The long read",
           "category": "Publishing",
-          "description": "One article flows through three linked frames across a two-page editorial spread.",
-          "thumb": "/tools/design/assets/publishing-long-read.png"
+          "description": "One article flows through three linked frames across a two-page editorial spread."
         },
         {
           "id": "publishing-type-in-orbit",
           "name": "Type in orbit",
           "category": "Publishing",
-          "description": "A typographic poster with editable circular and curved text guides.",
-          "thumb": "/tools/design/assets/publishing-type-in-orbit.png"
+          "description": "A typographic poster with editable circular and curved text guides."
         },
         {
           "id": "pull-quote",
           "name": "Pull quote",
           "category": "Slides",
-          "description": "A large quotation with attribution - spare, in your brand colours.",
+          "description": "A face, a band of colour and one line worth repeating.",
           "presets": [
             {
               "id": "square",
               "name": "Square",
-              "description": "1:1 quote card for social feeds."
+              "kind": "size",
+              "description": "A 1080 square for feeds."
             },
             {
               "id": "story",
               "name": "Story",
+              "kind": "size",
               "description": "9:16 for social stories."
             }
           ]
@@ -5380,41 +5133,31 @@
           "id": "slide-deck",
           "name": "Slide deck",
           "category": "Slides",
-          "description": "Three frames as slides - title, content, closing. Export as PowerPoint or PDF."
+          "description": "A title, a page of figures and a closing slide. Exports as PowerPoint or PDF."
         },
         {
           "id": "social-profile-kit",
           "name": "Social profile kit",
           "category": "Social",
-          "description": "Five profile artboards on one canvas: LinkedIn banner, X header, GitHub preview, YouTube banner and a square avatar. Exports one image per artboard.",
-          "presets": [
-            {
-              "id": "dark-ground",
-              "name": "Dark ground",
-              "description": "Brand colour behind every artboard."
-            },
-            {
-              "id": "minimal",
-              "name": "Minimal",
-              "description": "Name only, no accents."
-            }
-          ]
+          "description": "Five profile artboards on one canvas: LinkedIn banner, X header, GitHub preview, YouTube banner and a square avatar. Exports one image per artboard."
         },
         {
           "id": "title",
           "name": "Title slide",
           "category": "Slides",
-          "description": "A bold opening slide - big title and a supporting line, in your brand colours.",
+          "description": "A very large title and one bold shape on the lead colour.",
           "presets": [
             {
               "id": "square",
               "name": "Square",
-              "description": "1:1 for social feeds."
+              "kind": "size",
+              "description": "A 1080 square for feeds."
             },
             {
               "id": "standard",
               "name": "Standard",
-              "description": "4:3 for standard projectors."
+              "kind": "size",
+              "description": "A 4:3 slide."
             }
           ]
         },
@@ -5422,7 +5165,7 @@
           "id": "video",
           "name": "Video",
           "category": "Video",
-          "description": "An all-timed single-artboard sequence with a licence-free procedural music bed."
+          "description": "A full-frame picture and a timed line on a solid panel, with a licence-free music bed."
         }
       ],
       "i18n": {
@@ -5562,7 +5305,7 @@
       "id": "diagram-builder",
       "name": "Diagrams",
       "description": "Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV.",
-      "version": "1.8.2",
+      "version": "1.8.3",
       "status": "experimental",
       "category": "everyone",
       "tags": [
@@ -5675,9 +5418,9 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Open workflow",
+          "name": "Open cycle",
           "category": "Brand",
-          "description": "A simple three-step workflow on transparency.",
+          "description": "A five-step cycle that reads at a glance, on transparency.",
           "galleryCover": true
         },
         {
@@ -5842,7 +5585,7 @@
       "id": "doc-studio",
       "name": "Doc Studio",
       "description": "Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5876,6 +5619,15 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z\"/><path d=\"M14 2v5h5\"/><line x1=\"8\" y1=\"12\" x2=\"16\" y2=\"12\"/><line x1=\"8\" y1=\"16\" x2=\"14\" y2=\"16\"/></svg>",
       "preview": "/catalog/previews/doc-studio.svg",
+      "templates": [
+        {
+          "id": "field-report",
+          "name": "Field report",
+          "category": "Reports",
+          "description": "A short report with a clear title, sections and real paragraphs.",
+          "galleryCover": true
+        }
+      ],
       "paged": true,
       "i18n": {
         "ar": {
@@ -5988,7 +5740,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6119,11 +5871,47 @@
       ],
       "templates": [
         {
+          "id": "brand-duotone",
+          "name": "Brand duotone",
+          "category": "Colour",
+          "description": "Two brand colours across the whole tonal range."
+        },
+        {
           "id": "brand-starter",
-          "name": "Brand halftone",
-          "category": "Brand",
-          "description": "A halftone study generated from a brand-colour gradient.",
+          "name": "Colour halftone",
+          "category": "Print",
+          "description": "Halftone dots that keep the colours of the picture."
+        },
+        {
+          "id": "colour-scanlines",
+          "name": "Colour scanlines",
+          "category": "Screen",
+          "description": "Fine lines that keep the colours of the picture.",
           "galleryCover": true
+        },
+        {
+          "id": "poster-steps",
+          "name": "Poster steps",
+          "category": "Print",
+          "description": "A few flat tones, like a screen print."
+        },
+        {
+          "id": "signal-glitch",
+          "name": "Signal glitch",
+          "category": "Motion",
+          "description": "Sorted pixels and displaced blocks."
+        },
+        {
+          "id": "stained-cells",
+          "name": "Stained cells",
+          "category": "Geometry",
+          "description": "The picture rebuilt from coloured cells."
+        },
+        {
+          "id": "type-only",
+          "name": "Type only",
+          "category": "Geometry",
+          "description": "The picture drawn in text characters."
         }
       ],
       "i18n": {
@@ -6263,7 +6051,7 @@
       "id": "finish-preview",
       "name": "Finishes",
       "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6491,7 +6279,7 @@
       "id": "flythrough",
       "name": "Flythrough",
       "description": "Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video.",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6784,7 +6572,7 @@
       "id": "frame",
       "name": "Frame",
       "description": "Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop.",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -6886,62 +6674,32 @@
           "id": "brand-starter",
           "name": "Brand window",
           "category": "Brand",
-          "description": "A floating browser window with a brand-colour composition.",
+          "description": "A floating browser window with a page in it, on a brand ground.",
           "galleryCover": true
+        },
+        {
+          "id": "browser-night",
+          "name": "Dark browser window",
+          "category": "Screenshot",
+          "description": "Dark window on a deep, calm ground."
         },
         {
           "id": "browser",
           "name": "Browser window",
           "category": "Screenshot",
-          "description": "A web page in a desktop window on a soft brand gradient.",
-          "presets": [
-            {
-              "id": "light",
-              "name": "Light chrome",
-              "description": "Pale window on a two-colour brand wash."
-            },
-            {
-              "id": "night",
-              "name": "Dark chrome",
-              "description": "Dark window on a deep, calm ground."
-            }
-          ]
+          "description": "A web page in a desktop window on a soft brand gradient."
         },
         {
           "id": "laptop",
           "name": "Laptop",
           "category": "Screenshot",
-          "description": "A wide app view on a laptop, for release notes and case studies.",
-          "presets": [
-            {
-              "id": "brand",
-              "name": "Brand ground",
-              "description": "One flat brand colour behind the machine."
-            },
-            {
-              "id": "studio",
-              "name": "Studio gradient",
-              "description": "A soft two-colour wash and a deeper shadow."
-            }
-          ]
+          "description": "A wide app view on a laptop, for release notes and case studies."
         },
         {
           "id": "phone",
           "name": "Phone",
           "category": "Screenshot",
-          "description": "A portrait app screen in a phone bezel, for stores and social posts.",
-          "presets": [
-            {
-              "id": "warm",
-              "name": "Warm gradient",
-              "description": "Sunset wash behind the handset."
-            },
-            {
-              "id": "clean",
-              "name": "Clean ground",
-              "description": "One flat brand colour, more room for a caption."
-            }
-          ]
+          "description": "A portrait app screen in a phone bezel, for stores and social posts."
         }
       ],
       "i18n": {
@@ -7055,7 +6813,7 @@
       "id": "gradient",
       "name": "Gradient",
       "description": "Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -7210,79 +6968,28 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Brand blend",
+          "name": "Brand folds",
           "category": "Brand",
-          "description": "A quiet blend of your primary and secondary brand colours.",
+          "description": "Soft folds of the lead and partner colours.",
           "galleryCover": true
         },
         {
           "id": "ocean",
           "name": "Ocean",
           "category": "Background",
-          "description": "Cool blues and sea green for calm, spacious backdrops.",
-          "presets": [
-            {
-              "id": "deep-water",
-              "name": "Deep water",
-              "description": "Dark navy and teal well below the surface."
-            },
-            {
-              "id": "lagoon",
-              "name": "Lagoon",
-              "description": "Bright turquoise over pale shallows."
-            },
-            {
-              "id": "storm",
-              "name": "Storm",
-              "description": "Grey swell with a cold blue break."
-            }
-          ]
+          "description": "Cool blues and sea green for calm, spacious backdrops."
         },
         {
           "id": "studio",
           "name": "Studio",
           "category": "Background",
-          "description": "Muted neutral tones that sit quietly behind anything.",
-          "presets": [
-            {
-              "id": "paper",
-              "name": "Paper",
-              "description": "Warm off-white with a heavy toothy grain."
-            },
-            {
-              "id": "slate",
-              "name": "Slate",
-              "description": "The same calm surface in dark charcoal."
-            },
-            {
-              "id": "linen",
-              "name": "Linen",
-              "description": "Soft natural fabric tones with a light weave."
-            }
-          ]
+          "description": "Muted neutral tones that sit quietly behind anything."
         },
         {
           "id": "sunrise",
           "name": "Sunrise",
           "category": "Background",
-          "description": "Warm amber and coral light for hero banners and covers.",
-          "presets": [
-            {
-              "id": "golden-hour",
-              "name": "Golden hour",
-              "description": "Deeper amber sinking into red."
-            },
-            {
-              "id": "dusk",
-              "name": "Dusk",
-              "description": "Pink fading into violet after the sun drops."
-            },
-            {
-              "id": "soft-glow",
-              "name": "Soft glow",
-              "description": "The same warmth melted into a gentle haze."
-            }
-          ]
+          "description": "Warm amber and coral light for hero banners and covers."
         }
       ],
       "i18n": {
@@ -7396,7 +7103,7 @@
       "id": "growth",
       "name": "Growth",
       "description": "Differential growth: a line that repels itself until it folds into coral. Seed it from a ring, a burst, headline letterforms or a logo, and export the result as real, plotter-ready SVG paths.",
-      "version": "1.1.3",
+      "version": "1.1.4",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -7609,7 +7316,7 @@
       "id": "icon",
       "name": "Icon",
       "description": "Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip.",
-      "version": "1.1.3",
+      "version": "1.1.4",
       "status": "community",
       "category": "everyone",
       "capabilities": [
@@ -7642,7 +7349,7 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Brand monogram",
+          "name": "Monogram",
           "category": "Brand",
           "description": "A simple letterform in your brand typeface.",
           "galleryCover": true
@@ -7759,7 +7466,7 @@
       "id": "jump",
       "name": "Jump",
       "description": "A one-link landing page: your links, heading, portrait and colours on an expressive page - and the whole page lives inside the link you share.",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "status": "community",
       "category": "utility",
       "tags": [
@@ -8073,7 +7780,7 @@
       "id": "link-card",
       "name": "Link Card",
       "description": "Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -8145,45 +7852,23 @@
       ],
       "templates": [
         {
+          "id": "og-og-summary",
+          "name": "Summary card",
+          "category": "Social",
+          "description": "The shorter 1200 x 600 crop, with the thumbnail across the top."
+        },
+        {
           "id": "og",
           "name": "Open Graph card",
           "category": "Social",
           "description": "The 1200 x 630 image a link unfurls into on most platforms - title, description, site chip and a thumbnail panel.",
-          "presets": [
-            {
-              "id": "og-summary",
-              "name": "Summary card",
-              "description": "The shorter 1200 x 600 crop, with the thumbnail across the top."
-            },
-            {
-              "id": "og-release",
-              "name": "Release note",
-              "description": "A version announcement rather than an article."
-            },
-            {
-              "id": "og-ink",
-              "name": "Ink card",
-              "description": "Pale type on a dark card, with a mint accent."
-            }
-          ]
+          "galleryCover": true
         },
         {
           "id": "square",
           "name": "Square share card",
           "category": "Social",
-          "description": "A 1080 x 1080 card for the feeds that crop everything else - thumbnail on top, title and description under it.",
-          "presets": [
-            {
-              "id": "square-warm",
-              "name": "Warm paper",
-              "description": "Off-white stock with a brown accent."
-            },
-            {
-              "id": "square-event",
-              "name": "Event link",
-              "description": "The card for a talk or a meet-up page."
-            }
-          ]
+          "description": "A 1080 x 1080 card for the feeds that crop everything else - thumbnail on top, title and description under it."
         }
       ],
       "i18n": {
@@ -8297,7 +7982,7 @@
       "id": "logo-wall",
       "name": "Logo Wall",
       "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-      "version": "1.8.0",
+      "version": "1.8.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -8441,17 +8126,17 @@
       "templates": [
         {
           "id": "brand-starter-dark",
-          "name": "Type collection · dark",
+          "name": "Partner wall, dark",
           "category": "Brand",
-          "description": "A balanced collection of editable wordmarks in your brand typeface.",
+          "description": "The same wall for a dark ground. Sample names are fictional.",
           "galleryCover": true,
           "galleryTheme": "dark"
         },
         {
           "id": "brand-starter",
-          "name": "Type collection",
+          "name": "Partner wall",
           "category": "Brand",
-          "description": "A balanced collection of editable wordmarks in your brand typeface.",
+          "description": "Six logos evened out into one calm row-and-column wall. Sample names are fictional.",
           "galleryCover": true,
           "galleryTheme": "light"
         }
@@ -8567,7 +8252,7 @@
       "id": "lottie-digi-ad",
       "name": "Lottie Ad",
       "description": "Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -8604,7 +8289,7 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Open possibilities",
+          "name": "Short ad",
           "category": "Brand",
           "description": "A simple brand message ready for your animation.",
           "galleryCover": true
@@ -8721,7 +8406,7 @@
       "id": "meeting-planner",
       "name": "Meeting Planner",
       "description": "Plan a global meeting and see the time for every teammate's timezone.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "official",
       "category": "event",
       "tags": [
@@ -8865,7 +8550,7 @@
       "id": "multi-page-pdf",
       "name": "Booklet",
       "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
-      "version": "1.1.3",
+      "version": "1.1.4",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -8895,6 +8580,15 @@
         "order": 8,
         "blurb": "Multi-page PDFs - cover, content, back"
       },
+      "templates": [
+        {
+          "id": "annual-report",
+          "name": "Annual report",
+          "category": "Reports",
+          "description": "A picture-led cover, flowing pages and a back page.",
+          "galleryCover": true
+        }
+      ],
       "paged": true,
       "i18n": {
         "ar": {
@@ -9033,7 +8727,7 @@
       "id": "org-chart",
       "name": "Flow Chart",
       "description": "Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9215,7 +8909,7 @@
       "id": "pages",
       "name": "Pages",
       "description": "Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -9355,7 +9049,7 @@
       "id": "pricing-table",
       "name": "Pricing",
       "description": "Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9651,58 +9345,32 @@
           "id": "buy-buttons",
           "name": "Buy buttons",
           "category": "Marketing",
-          "description": "Each plan's button carries its own price and its own link.",
-          "presets": [
-            {
-              "id": "donation",
-              "name": "Pick an amount",
-              "description": "Three donation tiers, each button a real link."
-            }
-          ]
+          "description": "Each plan's button carries its own price and its own link."
+        },
+        {
+          "id": "comparison-before-after",
+          "name": "Before and after",
+          "category": "Marketing",
+          "description": "The old way against the new one, with the new way featured."
         },
         {
           "id": "comparison",
           "name": "Us and them",
           "category": "Marketing",
-          "description": "Two columns side by side, yours picked out.",
-          "presets": [
-            {
-              "id": "before-after",
-              "name": "Before and after",
-              "description": "The old way against the new one, with the new way featured."
-            }
-          ]
+          "description": "Two columns side by side, yours picked out."
         },
         {
           "id": "feature-matrix",
           "name": "Feature matrix",
           "category": "Reference",
-          "description": "A flat grid of many plans, for a docs page or a one-pager.",
-          "presets": [
-            {
-              "id": "two-plan",
-              "name": "Two plans",
-              "description": "The short version, with the paid plan featured."
-            }
-          ]
+          "description": "A flat grid of many plans, for a docs page or a one-pager."
         },
         {
           "id": "saas",
           "name": "SaaS plans",
           "category": "Marketing",
           "description": "Three tiers, one recommended, a button under each.",
-          "presets": [
-            {
-              "id": "yearly",
-              "name": "Billed yearly",
-              "description": "Two months free, with the discount in each price."
-            },
-            {
-              "id": "free-first",
-              "name": "Free tier first",
-              "description": "Opens with a free plan and features the middle tier."
-            }
-          ]
+          "galleryCover": true
         }
       ],
       "i18n": {
@@ -9816,7 +9484,7 @@
       "id": "print-sheet",
       "name": "Print Sheet",
       "description": "Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin.",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9914,25 +9582,28 @@
             {
               "id": "four-up",
               "name": "4 up",
+              "kind": "size",
               "description": "Two by two - conference badge size."
             },
             {
               "id": "ten-up",
               "name": "10 up",
+              "kind": "size",
               "description": "Five rows of two - business cards."
             },
             {
               "id": "letter-eight-up",
               "name": "8 up on Letter",
+              "kind": "size",
               "description": "Four rows of two on US Letter stock."
             }
           ]
         },
         {
           "id": "brand-starter",
-          "name": "Brand stickers",
+          "name": "Business cards",
           "category": "Brand",
-          "description": "A ready-to-print sheet of six brand-colour type stickers.",
+          "description": "Ten business cards on one A4 sheet, with crop marks ready for the guillotine.",
           "galleryCover": true
         },
         {
@@ -9944,16 +9615,19 @@
             {
               "id": "nine-up",
               "name": "9 up",
+              "kind": "size",
               "description": "Three by three - big stickers."
             },
             {
               "id": "twenty-up",
               "name": "20 up",
+              "kind": "size",
               "description": "Five rows of four - small round-cornered labels."
             },
             {
               "id": "a3-thirty-up",
               "name": "30 up on A3",
+              "kind": "size",
               "description": "Six rows of five on A3 - a full print run in one pass."
             }
           ]
@@ -10247,7 +9921,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
-      "version": "2.7.0",
+      "version": "2.7.1",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -10380,168 +10054,69 @@
           "id": "calendar",
           "name": "Calendar event",
           "category": "Utility",
-          "description": "Scan to add the date to a calendar. The event travels in the code, so it works with no network.",
-          "presets": [
-            {
-              "id": "inperson",
-              "name": "In person",
-              "description": "Dark ink on warm white for a printed invite or poster."
-            },
-            {
-              "id": "online",
-              "name": "Online",
-              "description": "The joining link as the location, light modules for a closing slide."
-            }
-          ]
+          "description": "Scan to add the date to a calendar. The event travels in the code, so it works with no network."
         },
         {
           "id": "contact",
           "name": "Contact page link",
           "category": "Utility",
-          "description": "Share your contact or profile page from a business card or badge.",
-          "presets": [
-            {
-              "id": "card",
-              "name": "Business card",
-              "description": "High redundancy and a tight quiet zone for card-sized print."
-            },
-            {
-              "id": "brand",
-              "name": "Brand colours",
-              "description": "Modules in your brand primary on the brand surface."
-            }
-          ]
+          "description": "Share your contact or profile page from a business card or badge."
         },
         {
           "id": "event",
           "name": "Event RSVP",
           "category": "Utility",
-          "description": "Point guests at your RSVP or ticket page from an invite or poster.",
-          "presets": [
-            {
-              "id": "invite",
-              "name": "Printed invite",
-              "description": "Dark ink on warm white with a generous quiet zone."
-            },
-            {
-              "id": "screen",
-              "name": "On screen",
-              "description": "Light modules on dark for a closing slide."
-            }
-          ]
+          "description": "Point guests at your RSVP or ticket page from an invite or poster."
         },
         {
           "id": "geo",
           "name": "Map location",
           "category": "Utility",
-          "description": "Scan to open a pin in the phone's maps app. For a venue, a trailhead or a meeting point.",
-          "presets": [
-            {
-              "id": "signage",
-              "name": "Wayfinding sign",
-              "description": "Dark ink, wide quiet zone, high redundancy for a code that lives outdoors."
-            }
-          ]
+          "description": "Scan to open a pin in the phone's maps app. For a venue, a trailhead or a meeting point."
         },
         {
           "id": "inventory",
           "name": "Inventory label",
           "category": "Utility",
-          "description": "A Data Matrix for archive boxes, assets and small parts - scans from a thumbnail-sized square.",
-          "presets": [
-            {
-              "id": "legacy",
-              "name": "Code 39 asset tag",
-              "description": "For older laser scanners that only read linear codes."
-            },
-            {
-              "id": "library",
-              "name": "Library Codabar",
-              "description": "The classic membership and circulation symbology."
-            }
-          ]
+          "description": "A Data Matrix for archive boxes, assets and small parts - scans from a thumbnail-sized square."
+        },
+        {
+          "id": "menu-fresh",
+          "name": "Fresh menu",
+          "category": "Utility",
+          "description": "Deep teal on a pale mint ground."
         },
         {
           "id": "menu",
           "name": "Table tent menu",
           "category": "Utility",
-          "description": "Link diners to an online menu, with extra redundancy for small print.",
-          "presets": [
-            {
-              "id": "classic",
-              "name": "Classic",
-              "description": "Near-black on warm white for tabletop print."
-            },
-            {
-              "id": "fresh",
-              "name": "Fresh",
-              "description": "Deep teal on a pale mint ground."
-            },
-            {
-              "id": "brand",
-              "name": "Brand colours",
-              "description": "Modules in your brand primary on the brand surface."
-            }
-          ]
+          "description": "Link diners to an online menu, with extra redundancy for small print."
         },
         {
           "id": "shipping",
           "name": "Logistics label",
           "category": "Utility",
-          "description": "A GS1-128 carrying an SSCC-18, the pallet and carton licence plate on shipping labels.",
-          "presets": [
-            {
-              "id": "sscc",
-              "name": "Pallet SSCC",
-              "description": "The serial shipping container code on its own."
-            },
-            {
-              "id": "batch",
-              "name": "Batch and best-before",
-              "description": "GTIN with expiry date and lot number, the food and pharma trio."
-            },
-            {
-              "id": "square",
-              "name": "Small square",
-              "description": "The same element string as a GS1 Data Matrix for tight labels."
-            }
-          ]
+          "description": "A GS1-128 carrying an SSCC-18, the pallet and carton licence plate on shipping labels."
         },
         {
           "id": "text",
           "name": "Plain text",
           "category": "Utility",
-          "description": "Scan to read a short message. Nothing opens, nothing loads, the words are in the code.",
-          "presets": [
-            {
-              "id": "label",
-              "name": "Shelf label",
-              "description": "Small print, so high redundancy and a tight quiet zone."
-            },
-            {
-              "id": "brand",
-              "name": "Brand colours",
-              "description": "Modules in your brand primary on the brand surface."
-            }
-          ]
+          "description": "Scan to read a short message. Nothing opens, nothing loads, the words are in the code."
         },
         {
           "id": "vcard",
           "name": "Contact card",
           "category": "Utility",
-          "description": "Scan to save a contact straight into the phone's address book, no page to load.",
-          "presets": [
-            {
-              "id": "card",
-              "name": "Business card",
-              "description": "Quartile redundancy and a tight quiet zone for card-sized print."
-            },
-            {
-              "id": "brand",
-              "name": "Brand colours",
-              "description": "Modules in your brand primary on the brand surface."
-            }
-          ]
+          "description": "Scan to save a contact straight into the phone's address book, no page to load."
+        },
+        {
+          "id": "website-dark",
+          "name": "Website link, dark",
+          "category": "Utility",
+          "description": "The same code for a dark ground.",
+          "galleryCover": true,
+          "galleryTheme": "dark"
         },
         {
           "id": "website",
@@ -10549,41 +10124,13 @@
           "category": "Utility",
           "description": "A clean scannable link to any web page.",
           "galleryCover": true,
-          "presets": [
-            {
-              "id": "brand",
-              "name": "Brand colours",
-              "description": "Modules in your brand primary on the brand surface."
-            },
-            {
-              "id": "ink",
-              "name": "Ink on paper",
-              "description": "Near-black on warm white for print."
-            },
-            {
-              "id": "night",
-              "name": "Night mode",
-              "description": "Light modules on a dark ground for screens and slides."
-            }
-          ]
+          "galleryTheme": "light"
         },
         {
           "id": "wifi",
           "name": "Wi-Fi network",
           "category": "Utility",
-          "description": "Scan to join the network. For the sign by the door, the reception desk or the studio wall.",
-          "presets": [
-            {
-              "id": "guest",
-              "name": "Guest network",
-              "description": "Dark ink on warm white, generous quiet zone for a printed sign."
-            },
-            {
-              "id": "hidden",
-              "name": "Hidden network",
-              "description": "For a network that does not broadcast its name."
-            }
-          ]
+          "description": "Scan to join the network. For the sign by the door, the reception desk or the studio wall."
         }
       ],
       "i18n": {
@@ -10723,7 +10270,7 @@
       "id": "rebrand-deck",
       "name": "Theme swap",
       "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -11184,6 +10731,7 @@
         "wav",
         "offline"
       ],
+      "added": "2026-10-08",
       "formats": [
         "png",
         "html",
@@ -11310,7 +10858,7 @@
       "id": "sandbox",
       "name": "Sandbox",
       "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "status": "official",
       "category": "utility",
       "tags": [
@@ -11462,7 +11010,7 @@
       "id": "scan-code",
       "name": "Scan",
       "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "status": "experimental",
       "category": "utility",
       "tags": [
@@ -11765,7 +11313,7 @@
       "id": "sign",
       "name": "Sign",
       "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -11900,7 +11448,7 @@
       "id": "signature",
       "name": "Signature",
       "description": "Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a bit of paper.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -12168,19 +11716,7 @@
           "id": "autocomplete",
           "name": "Accept a suggestion",
           "category": "Animated",
-          "description": "Type the opening, reveal a suggestion and accept the remaining text.",
-          "presets": [
-            {
-              "id": "light",
-              "name": "Light",
-              "description": "Present the same interaction in a light window."
-            },
-            {
-              "id": "close-afterwards",
-              "name": "Close afterwards",
-              "description": "Close the window after the result has been read."
-            }
-          ]
+          "description": "Type the opening, reveal a suggestion and accept the remaining text."
         },
         {
           "id": "brand-starter",
@@ -12193,76 +11729,37 @@
           "id": "dark-code",
           "name": "Dark code",
           "category": "Still",
-          "description": "A dark editor with clear syntax colours for technical slides.",
-          "presets": [
-            {
-              "id": "design-system",
-              "name": "Design system",
-              "description": "Use your current design system colours."
-            }
-          ]
+          "description": "A dark editor with clear syntax colours for technical slides."
         },
         {
           "id": "light-code",
           "name": "Light code",
           "category": "Still",
-          "description": "A bright editor window for code samples and documentation.",
-          "presets": [
-            {
-              "id": "without-numbers",
-              "name": "No line numbers",
-              "description": "Give a short example more breathing room."
-            }
-          ]
+          "description": "A bright editor window for code samples and documentation."
         },
         {
           "id": "light-note",
           "name": "Light note",
           "category": "Still",
-          "description": "A quiet window for a short message, quote or announcement.",
-          "presets": [
-            {
-              "id": "type-the-note",
-              "name": "Type the note",
-              "description": "Type each word, then leave the message visible."
-            }
-          ]
+          "description": "A quiet window for a short message, quote or announcement."
+        },
+        {
+          "id": "live-edit-delete-a-line",
+          "name": "Delete a line",
+          "category": "Animated",
+          "description": "Select and remove the status line."
         },
         {
           "id": "live-edit",
           "name": "Select and replace",
           "category": "Animated",
-          "description": "Select a draft status and type its replacement in place.",
-          "presets": [
-            {
-              "id": "longer-replacement",
-              "name": "Expand the text",
-              "description": "Replace one word with a longer phrase."
-            },
-            {
-              "id": "delete-a-line",
-              "name": "Delete a line",
-              "description": "Select and remove the status line."
-            }
-          ]
+          "description": "Select a draft status and type its replacement in place."
         },
         {
           "id": "scrolling-document",
           "name": "Scrolling document",
           "category": "Animated",
-          "description": "A longer passage types at a readable size while the window follows the caret.",
-          "presets": [
-            {
-              "id": "light",
-              "name": "Light",
-              "description": "Read the passage in a light window."
-            },
-            {
-              "id": "open-and-close",
-              "name": "Open and close",
-              "description": "Frame the passage with opening and closing gestures."
-            }
-          ]
+          "description": "A longer passage types at a readable size while the window follows the caret."
         },
         {
           "id": "terminal-session",
@@ -12274,27 +11771,13 @@
           "id": "tilted-dark",
           "name": "Tilted dark",
           "category": "Tilted",
-          "description": "A cool, dark window with perspective for a feature slide.",
-          "presets": [
-            {
-              "id": "type-the-scene",
-              "name": "Animate",
-              "description": "Open the tilted window, type and close."
-            }
-          ]
+          "description": "A cool, dark window with perspective for a feature slide."
         },
         {
           "id": "tilted-light",
           "name": "Tilted light",
           "category": "Tilted",
-          "description": "A light window with a gentle perspective and an angled baseline.",
-          "presets": [
-            {
-              "id": "subtle",
-              "name": "Subtle tilt",
-              "description": "Reduce the angle for a quieter composition."
-            }
-          ]
+          "description": "A light window with a gentle perspective and an angled baseline."
         },
         {
           "id": "typing-demo",
@@ -12303,13 +11786,9 @@
           "description": "The complete interaction: open, click, type, pause and close.",
           "presets": [
             {
-              "id": "hold-the-result",
-              "name": "Hold the result",
-              "description": "Keep the finished window on screen."
-            },
-            {
               "id": "brisk",
               "name": "Brisk",
+              "kind": "pace",
               "description": "A shorter sequence for a quick reveal."
             }
           ]
@@ -12567,7 +12046,7 @@
       "id": "stationery",
       "name": "Stationery",
       "description": "Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, ready as a print PDF.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -12638,58 +12117,34 @@
       ],
       "templates": [
         {
+          "id": "card-card-back",
+          "name": "Business card back",
+          "category": "Identity",
+          "description": "The reverse: lockup and tagline on the accent field."
+        },
+        {
           "id": "card",
           "name": "Business card",
           "category": "Identity",
-          "description": "An 85 x 55 mm card, front and back, with the brand lockup and an accent edge.",
-          "presets": [
-            {
-              "id": "card-back",
-              "name": "Card back",
-              "description": "The reverse: lockup and tagline on the accent field."
-            },
-            {
-              "id": "card-mono",
-              "name": "Mono card",
-              "description": "Ink on white, no colour - the cheapest card a printer will quote."
-            }
-          ]
+          "description": "An 85 x 55 mm card, front and back, with the brand lockup and an accent edge."
         },
         {
           "id": "comp-slip",
           "name": "Compliments slip",
           "category": "Identity",
-          "description": "A DL slip, 210 x 99 mm, to go in the envelope with everything else.",
-          "presets": [
-            {
-              "id": "comp-slip-thanks",
-              "name": "Thank you",
-              "description": "The same slip with a warmer line on it."
-            },
-            {
-              "id": "comp-slip-ink",
-              "name": "Ink slip",
-              "description": "Dark stock, pale ink, mint accent."
-            }
-          ]
+          "description": "A DL slip, 210 x 99 mm, to go in the envelope with everything else."
+        },
+        {
+          "id": "letterhead-letterhead-blank",
+          "name": "Letterhead, second sheet",
+          "category": "Identity",
+          "description": "The same furniture with no letter - the continuation page."
         },
         {
           "id": "letterhead",
           "name": "Letterhead",
           "category": "Identity",
-          "description": "An A4 sheet with the lockup, a letter, and the address in the footer.",
-          "presets": [
-            {
-              "id": "letterhead-warm",
-              "name": "Warm paper",
-              "description": "Off-white stock with a rust accent."
-            },
-            {
-              "id": "letterhead-blank",
-              "name": "Second sheet",
-              "description": "The same furniture with no letter - the continuation page."
-            }
-          ]
+          "description": "An A4 sheet with the lockup, a letter, and the address in the footer."
         }
       ],
       "i18n": {
@@ -12803,7 +12258,7 @@
       "id": "street-map",
       "name": "Street Map",
       "description": "Clean vector street-block maps of any city. Works offline.",
-      "version": "0.5.2",
+      "version": "0.5.3",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -12894,69 +12349,19 @@
           "name": "City poster",
           "category": "Poster",
           "description": "A bold ink-on-paper print of one city, made for framing.",
-          "presets": [
-            {
-              "id": "paris",
-              "name": "Paris",
-              "description": "The classic ink poster city."
-            },
-            {
-              "id": "new-york",
-              "name": "New York",
-              "description": "A dense grid that fills the frame."
-            },
-            {
-              "id": "rome",
-              "name": "Rome",
-              "description": "Winding old streets around the river."
-            }
-          ]
+          "galleryCover": true
         },
         {
           "id": "minimal-wayfinding",
           "name": "Minimal wayfinding",
           "category": "Wayfinding",
-          "description": "A clean high-contrast street grid for signage and directions.",
-          "presets": [
-            {
-              "id": "berlin",
-              "name": "Berlin",
-              "description": "Wide avenues that read at a glance."
-            },
-            {
-              "id": "zurich",
-              "name": "Zurich",
-              "description": "A compact centre split by the river."
-            },
-            {
-              "id": "copenhagen",
-              "name": "Copenhagen",
-              "description": "Harbour streets in crisp black and white."
-            }
-          ]
+          "description": "A clean high-contrast street grid for signage and directions."
         },
         {
           "id": "night-map",
           "name": "Night map",
           "category": "Poster",
-          "description": "Neon streets glowing on a deep night background.",
-          "presets": [
-            {
-              "id": "tokyo",
-              "name": "Tokyo",
-              "description": "The neon original."
-            },
-            {
-              "id": "hong-kong",
-              "name": "Hong Kong",
-              "description": "Harbour lights and dense streets."
-            },
-            {
-              "id": "london",
-              "name": "London",
-              "description": "The Thames cutting through the glow."
-            }
-          ]
+          "description": "Neon streets glowing on a deep night background."
         }
       ],
       "i18n": {
@@ -13070,7 +12475,7 @@
       "id": "strip-data",
       "name": "Strip Hidden Data",
       "description": "Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device.",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -13593,7 +12998,7 @@
       "id": "timezone",
       "name": "Timezone",
       "description": "Turn places and timezones into artwork that follows the design system. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "official",
       "category": "event",
       "tags": [
@@ -13633,7 +13038,7 @@
           "label": "Global webinar",
           "values": {
             "heading": "Ideas without borders.",
-            "eyebrow": "THE GLOBAL WEBINAR",
+            "eyebrow": "The global webinar",
             "annotation": "A conversation that travels with you.",
             "footer": "Save your place →",
             "timeMode": "now",
@@ -13696,7 +13101,7 @@
           "label": "Infrastructure atlas",
           "values": {
             "heading": "Always connected.",
-            "eyebrow": "GLOBAL INFRASTRUCTURE",
+            "eyebrow": "Global infrastructure",
             "annotation": "Follow the sun. Know every region.",
             "footer": "",
             "timeMode": "now",
@@ -14172,7 +13577,7 @@
       "id": "url-shot",
       "name": "URL Screenshot",
       "description": "Any web page, at any scroll depth, with custom CSS.",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "status": "official",
       "category": "utility",
       "capabilities": [
@@ -14492,7 +13897,7 @@
       "id": "wayfinding-signage",
       "name": "Wayfinding",
       "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
-      "version": "1.2.4",
+      "version": "1.2.5",
       "status": "official",
       "category": "event",
       "tags": [
@@ -14668,7 +14073,7 @@
       "id": "wordmark",
       "name": "Wordmark",
       "description": "Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed.",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14875,7 +14280,7 @@
       "id": "work-avatar",
       "name": "Work Avatar",
       "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your design system's colours and type.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14946,9 +14351,9 @@
       "templates": [
         {
           "id": "brand-starter",
-          "name": "Brand avatar",
+          "name": "Event avatar",
           "category": "Brand",
-          "description": "A monogram portrait framed by a clear brand ring.",
+          "description": "A round profile picture with a ring of text. Replace the sample with your own photo.",
           "galleryCover": true
         }
       ],
@@ -15103,9 +14508,9 @@
     },
     {
       "id": "quote",
-      "name": "Quote",
+      "name": "Sales Quote",
       "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -15117,6 +14522,7 @@
         "table",
         "pdf"
       ],
+      "added": "2026-11-02",
       "formats": [
         "pdf",
         "png",
@@ -15128,7 +14534,16 @@
       "height": 1000,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 2h9l4 4v16H6z\"/><path d=\"M15 2v4h4\"/><line x1=\"9\" y1=\"10\" x2=\"16\" y2=\"10\"/><line x1=\"9\" y1=\"13.5\" x2=\"16\" y2=\"13.5\"/><line x1=\"12\" y1=\"18\" x2=\"16\" y2=\"18\"/></svg>",
-      "preview": "/catalog/previews/quote.svg"
+      "preview": "/catalog/previews/quote.svg",
+      "templates": [
+        {
+          "id": "services",
+          "name": "Services quote",
+          "category": "Sales",
+          "description": "A complete quote: seven lines, a highlighted total and terms.",
+          "galleryCover": true
+        }
+      ]
     },
     {
       "id": "brief",
@@ -15247,6 +14662,52 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4.5\" width=\"18\" height=\"16.5\" rx=\"2\"/><line x1=\"3\" y1=\"9\" x2=\"21\" y2=\"9\"/><line x1=\"8\" y1=\"2.5\" x2=\"8\" y2=\"6\"/><line x1=\"16\" y1=\"2.5\" x2=\"16\" y2=\"6\"/><rect x=\"10.5\" y=\"12\" width=\"4\" height=\"5\" rx=\"0.8\" fill=\"currentColor\"/></svg>",
       "preview": "/catalog/previews/week.svg"
+    },
+    {
+      "id": "quote-card",
+      "name": "Quote",
+      "description": "A quotation card with a speaker's picture, name and role, for social posts and slides, in the active design system.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "quote",
+        "quotation",
+        "testimonial",
+        "pull quote",
+        "social",
+        "speaker"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "svg",
+        "penpot",
+        "pdf",
+        "avif",
+        "tiff"
+      ],
+      "width": 1600,
+      "height": 1200,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10 7H6a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2c0 2-1 3-3 4\" /><path d=\"M20 7h-4a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2c0 2-1 3-3 4\" /></svg>",
+      "preview": "/catalog/previews/quote-card.svg",
+      "templates": [
+        {
+          "id": "speaker",
+          "name": "Speaker quote",
+          "category": "Social",
+          "description": "A short line beside the person who said it.",
+          "galleryCover": true
+        },
+        {
+          "id": "words-only",
+          "name": "Words only",
+          "category": "Social",
+          "description": "The quotation alone, centred on ink."
+        }
+      ]
     }
   ]
 }
