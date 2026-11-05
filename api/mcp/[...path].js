@@ -10078,10 +10078,10 @@ function resolveAliases(map) {
         const tv = resolve8(target2);
         if (tv !== void 0) {
           e.value = tv;
-          const inherited3 = map.get(target2)?.extensions?.[TOKEN_EXT];
+          const inherited4 = map.get(target2)?.extensions?.[TOKEN_EXT];
           const own4 = e.extensions?.[TOKEN_EXT];
-          if (isRecord(inherited3) && inherited3.faces && (!isRecord(own4) || !own4.faces)) {
-            e.extensions = { ...e.extensions, [TOKEN_EXT]: { ...isRecord(own4) ? own4 : {}, faces: inherited3.faces } };
+          if (isRecord(inherited4) && inherited4.faces && (!isRecord(own4) || !own4.faces)) {
+            e.extensions = { ...e.extensions, [TOKEN_EXT]: { ...isRecord(own4) ? own4 : {}, faces: inherited4.faces } };
           }
           if (e.type == null) {
             const te12 = map.get(target2);
@@ -40820,18 +40820,18 @@ function replaceStoryRange(story, range, insertion, options2) {
     const id3 = existing2?.id ?? options2.paragraphId();
     if (used.has(id3)) throw new TextSourceError("duplicate-id", "A paragraph id was reused during the edit.");
     used.add(id3);
-    const inherited4 = existing2 ?? current;
+    const inherited5 = existing2 ?? current;
     const imported = insertion.paragraphs?.find((item2) => item2.start + start === bounds.start);
-    return { ...structuredClone(inherited4), ...bounds, id: id3, ...imported ? { style: void 0, paragraph: structuredClone(imported.paragraph) } : {} };
+    return { ...structuredClone(inherited5), ...bounds, id: id3, ...imported ? { style: void 0, paragraph: structuredClone(imported.paragraph) } : {} };
   });
   const candidates2 = [];
   for (const span of story.spans) if (span.start < start) candidates2.push({ ...span, end: Math.min(start, span.end) });
-  const inherited3 = options2.typing ?? (() => {
+  const inherited4 = options2.typing ?? (() => {
     const at = start === end ? Math.max(current.start, start - 1) : start;
     const span = story.spans.find((item2) => item2.start <= at && item2.end > at);
     return span ? spanStyle(span) : {};
   })();
-  const insertedSpans = insertion.spans ?? (insertion.source ? [{ start: 0, end: insertion.source.length, ...inherited3 }] : []);
+  const insertedSpans = insertion.spans ?? (insertion.source ? [{ start: 0, end: insertion.source.length, ...inherited4 }] : []);
   let previousEnd = 0;
   for (const span of insertedSpans) {
     assertTextRange(insertion.source, span);
@@ -66404,7 +66404,7 @@ function inspectTokenDocument(doc, opts = {}) {
       truncated = true;
       return;
     }
-    const inherited3 = typeof node.$type === "string" ? node.$type : type;
+    const inherited4 = typeof node.$type === "string" ? node.$type : type;
     if ("$ref" in node || "$extends" in node) diagnostics.push({ code: "unsupported", path, message: "JSON Pointer references and group inheritance are retained but not resolved." });
     for (const [key2, child2] of Object.entries(node)) {
       if (++nodes > TOKEN_INSPECTION_LIMIT) {
@@ -66416,10 +66416,10 @@ function inspectTokenDocument(doc, opts = {}) {
       const loc = `${location4}/${pointer(key2)}`;
       if ("$value" in child2) {
         const sources = definitions.get(p) ?? [];
-        sources.push({ set, location: loc, type: typeof child2.$type === "string" ? child2.$type : inherited3, value: structuredClone(child2.$value), active: set === null || selection.sets.includes(set), ...typeof child2.$description === "string" ? { description: child2.$description } : {}, ...record10(child2.$extensions) ? { extensions: structuredClone(child2.$extensions) } : {} });
+        sources.push({ set, location: loc, type: typeof child2.$type === "string" ? child2.$type : inherited4, value: structuredClone(child2.$value), active: set === null || selection.sets.includes(set), ...typeof child2.$description === "string" ? { description: child2.$description } : {}, ...record10(child2.$extensions) ? { extensions: structuredClone(child2.$extensions) } : {} });
         definitions.set(p, sources);
         if ("$ref" in child2) diagnostics.push({ code: "unsupported", path: p, message: "JSON Pointer references are retained but not resolved." });
-      } else walk3(child2, inherited3, p, loc, set, depth + 1);
+      } else walk3(child2, inherited4, p, loc, set, depth + 1);
     }
   }
   const sets = tokenSetNames(d);
@@ -75822,14 +75822,14 @@ var init_output_facts = __esm({
       const rootNum = catalog ? ref(catalog.dict, "Pages") : null;
       const sizes = [];
       let complete = rootNum !== null;
-      const visit = (num22, inherited3, depth, seen) => {
+      const visit = (num22, inherited4, depth, seen) => {
         const node = objects.get(num22);
         if (!node || seen.has(num22) || depth > 64 || sizes.length >= 1e4) {
           complete = false;
           return;
         }
         seen.add(num22);
-        const media = boxOf2(node.dict, "MediaBox", objects) ?? inherited3;
+        const media = boxOf2(node.dict, "MediaBox", objects) ?? inherited4;
         if (/\/Type\s*\/Pages\b/.test(node.dict)) {
           const kids2 = arrayAfter(node.dict, "Kids") ?? "";
           for (const k of kids2.matchAll(PDF_REF)) visit(Number(k[1]), media, depth + 1, seen);
@@ -92227,10 +92227,10 @@ function readPptx(parts, parseXml) {
         const spTree = descendantByLocal(doc.documentElement, "spTree");
         if (spTree) walkTree(spTree, ctx, slide.nodes, { depth: 0, cascade });
         const slideShowsMaster = attrByLocal(doc.documentElement, "showMasterSp") !== "0";
-        const inherited3 = [];
-        if (master && slideShowsMaster && (!layout2 || layout2.showMasterSp)) inherited3.push(...master.furniture);
-        if (layout2) inherited3.push(...layout2.furniture);
-        if (inherited3.length) slide.inherited = inherited3;
+        const inherited4 = [];
+        if (master && slideShowsMaster && (!layout2 || layout2.showMasterSp)) inherited4.push(...master.furniture);
+        if (layout2) inherited4.push(...layout2.furniture);
+        if (inherited4.length) slide.inherited = inherited4;
         const background = readBackground(doc.documentElement, relsById, deck.theme) ?? layout2?.background ?? master?.background;
         if (background) slide.background = background;
         const audio = readSlideAudio(rels);
@@ -108968,9 +108968,9 @@ function titleFor(draft, action, section, slides) {
   if (draft.shape === "one") return reviewMessage("title.one", { ...one, noun: noun.one, slide: first });
   if (draft.shape === "several") return reviewMessage("title.several", { ...many, nouns: noun.many, count: count4, slide: first });
   if (slides.length < 2) return reviewMessage(`title.several.${action}`, { ...many, nouns: noun.many, count: count4, slide: first });
-  const inherited3 = draft.members.every((member) => member.object?.origin === "master" || member.object?.origin === "layout");
+  const inherited4 = draft.members.every((member) => member.object?.origin === "master" || member.object?.origin === "layout");
   const describes = draft.klass === "template-furniture" || draft.klass === "recurring-text" || draft.klass === "footer";
-  if (section === "attention" && inherited3 && describes) {
+  if (section === "attention" && inherited4 && describes) {
     const fromLayout = draft.members.every((member) => member.object?.origin === "layout");
     return reviewMessage(fromLayout ? "title.layout" : "title.master", { ...one, noun: noun.one, slides: slides.length });
   }
@@ -110560,7 +110560,7 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
       return near !== void 0 && (samePlace(box4, near) || lockup && sideBySide(box4, near));
     });
   });
-  const inherited3 = (group) => group.members.every((id3) => {
+  const inherited4 = (group) => group.members.every((id3) => {
     const origin = rowById.get(id3)?.origin;
     return origin === "master" || origin === "layout";
   });
@@ -110569,7 +110569,7 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
     return box4 && box4.h > 0 ? box4.w / box4.h : 0;
   };
   const inheritedCopy = (a, b) => {
-    if (inherited3(a) === inherited3(b)) return false;
+    if (inherited4(a) === inherited4(b)) return false;
     const x = aspectOf(a);
     const y = aspectOf(b);
     return x > 0 && y > 0 && Math.abs(x - y) <= MARK_ASPECT_SAME * Math.max(x, y);
@@ -110615,7 +110615,7 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
         const enough = (n7) => n7 >= 2 && n7 >= MARK_MERGE_SHARE * Math.min(mine2.size, theirs.size);
         if (!enough(shared) && !(enough([...theirs.keys()].filter((id3) => mine2.has(id3)).length) && inheritedCopy(keeper, other)))
           continue;
-        if (inherited3(keeper) && !inherited3(other)) keeper.exemplar = other.exemplar;
+        if (inherited4(keeper) && !inherited4(other)) keeper.exemplar = other.exemplar;
         adopt(keeper, other.members);
         if (other.unverified?.length)
           keeper.unverified = [
@@ -123527,13 +123527,13 @@ function penpotTokensJson(doc, selection) {
   const isTokenLeaf = (v) => isRec6(v) && ("$value" in v || "value" in v);
   const sets = /* @__PURE__ */ Object.create(null);
   const reserved = /* @__PURE__ */ new Set(["$themes", "$metadata", "$description", "$extensions", "$type", "$schema"]);
-  const convert = (node, inherited3) => {
+  const convert = (node, inherited4) => {
     const out2 = /* @__PURE__ */ Object.create(null);
     let kept2 = 0;
     for (const [k, v] of Object.entries(node)) {
       if (k.startsWith("$")) continue;
       if (isTokenLeaf(v)) {
-        const rawType = typeof v.$type === "string" ? v.$type : typeof v.type === "string" ? v.type : inherited3;
+        const rawType = typeof v.$type === "string" ? v.$type : typeof v.type === "string" ? v.type : inherited4;
         const mapped = rawType ? TOKEN_TYPE_MAP[rawType] : void 0;
         if (typeof mapped !== "string") continue;
         const leaf = { $value: "$value" in v ? v.$value : v.value, $type: mapped };
@@ -123542,7 +123542,7 @@ function penpotTokensJson(doc, selection) {
         out2[k] = leaf;
         kept2++;
       } else if (isRec6(v)) {
-        const groupType = typeof v.$type === "string" ? v.$type : inherited3;
+        const groupType = typeof v.$type === "string" ? v.$type : inherited4;
         const sub = convert(v, groupType);
         if (sub) {
           out2[k] = sub;
@@ -139944,13 +139944,13 @@ function firstPass(input) {
       if (presetAction !== void 0) plan3.author = "preset";
       else if (review === "accepted" && presetReview === void 0) plan3.author = "rule";
       if (groupId && (klass === "logo-candidate" || klass === "known-logo")) plan3.scope = groupId;
-      const inherited3 = carriedByObject.get(object4.id);
-      if (inherited3) {
-        plan3.decision = inherited3.action;
-        if (inherited3.replacement) plan3.decisionReplacement = inherited3.replacement;
+      const inherited4 = carriedByObject.get(object4.id);
+      if (inherited4) {
+        plan3.decision = inherited4.action;
+        if (inherited4.replacement) plan3.decisionReplacement = inherited4.replacement;
         plan3.review = "accepted";
-        plan3.author = inherited3.author;
-        if (inherited3.scope !== void 0) plan3.scope = inherited3.scope;
+        plan3.author = inherited4.author;
+        if (inherited4.scope !== void 0) plan3.scope = inherited4.scope;
       }
       if (base.replacement && proposal !== "remove") plan3.proposalReplacement = base.replacement;
       const action = plan3.decision ?? proposal;
@@ -146966,10 +146966,10 @@ function mapFontFamilies(source, aliases) {
   const doc = structuredClone(source);
   let nodes = 0;
   const family2 = (v) => typeof v === "string" ? aliases.get(v.toLowerCase()) ?? v : Array.isArray(v) ? v.map(family2) : v;
-  function walk3(v, inherited3, depth) {
+  function walk3(v, inherited4, depth) {
     if (++nodes > 2e4 || depth > 48) throw new Error("The font projection exceeded its scan limit.");
     if (!v || typeof v !== "object" || Array.isArray(v)) return;
-    const obj3 = v, type = obj3.$type ?? inherited3;
+    const obj3 = v, type = obj3.$type ?? inherited4;
     if ("$value" in obj3) {
       if (type === "fontFamily") obj3.$value = family2(obj3.$value);
       if (type === "typography" && obj3.$value && typeof obj3.$value === "object") {
@@ -175928,7 +175928,7 @@ function passiveForensicSvg(source, parse2 = (source2) => new DOMParser().parseF
   const originX = vb.length === 4 ? vb[0] : 0, originY = vb.length === 4 ? vb[1] : 0;
   root2.setAttribute("width", String(width));
   root2.setAttribute("height", String(height));
-  function inherited3(el, key2, fallback) {
+  function inherited4(el, key2, fallback) {
     for (let e = el; e; e = e.parentElement) {
       const v = e.getAttribute(key2);
       if (v !== null) return v;
@@ -175964,7 +175964,7 @@ function passiveForensicSvg(source, parse2 = (source2) => new DOMParser().parseF
     return Object.values(b).every(Number.isFinite) ? b : null;
   }
   const lines = [];
-  const hidden4 = (el) => !!el.closest("defs, clipPath") || inherited3(el, "clip-path", "") !== "" || inherited3(el, "display", "") === "none" || inherited3(el, "visibility", "") === "hidden" || Number(inherited3(el, "opacity", "1")) === 0;
+  const hidden4 = (el) => !!el.closest("defs, clipPath") || inherited4(el, "clip-path", "") !== "" || inherited4(el, "display", "") === "none" || inherited4(el, "visibility", "") === "hidden" || Number(inherited4(el, "opacity", "1")) === 0;
   for (const el of root2.querySelectorAll("text")) {
     if (hidden4(el)) continue;
     const text13 = el.textContent?.trim() ?? "";
@@ -175978,7 +175978,7 @@ function passiveForensicSvg(source, parse2 = (source2) => new DOMParser().parseF
     const runs2 = spans.length ? spans : [el];
     const sizes = /* @__PURE__ */ new Map();
     for (const run3 of runs2) {
-      const size2 = Number.parseFloat(inherited3(run3, "font-size", "16"));
+      const size2 = Number.parseFloat(inherited4(run3, "font-size", "16"));
       if (Number.isFinite(size2) && size2 > 0)
         sizes.set(size2, (sizes.get(size2) ?? 0) + (run3.textContent?.length ?? 0));
     }
@@ -175989,13 +175989,13 @@ function passiveForensicSvg(source, parse2 = (source2) => new DOMParser().parseF
   }
   const rects = [...root2.querySelectorAll("rect")].flatMap((el) => {
     const number11 = (key2) => Number.parseFloat(el.getAttribute(key2) ?? "0");
-    if (hidden4(el) || !parseColorToSrgb8(inherited3(el, "fill", "#000"))) return [];
+    if (hidden4(el) || !parseColorToSrgb8(inherited4(el, "fill", "#000"))) return [];
     const b = box4(el, number11("x"), number11("y"), number11("width"), number11("height"));
     return b && b.width > 0 && b.height > 0 ? [
       {
         box: b,
         radius: Math.max(number11("rx"), number11("ry")),
-        fill: inherited3(el, "fill", "#000")
+        fill: inherited4(el, "fill", "#000")
       }
     ] : [];
   });
@@ -179204,8 +179204,8 @@ function parseStyleAttr(el) {
   }
   return out;
 }
-function prop2(el, style, name, inherited3) {
-  return style[name] ?? el.getAttribute?.(name) ?? inherited3?.[name];
+function prop2(el, style, name, inherited4) {
+  return style[name] ?? el.getAttribute?.(name) ?? inherited4?.[name];
 }
 function len(v, total = 0) {
   if (v == null) return 0;
@@ -179419,7 +179419,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     return parsed;
   };
   const warn2 = (m2) => host?.log?.("warn", `${LABEL2.toLowerCase()}: ${m2}`);
-  async function visit(el, t, inherited3) {
+  async function visit(el, t, inherited4) {
     if (!el.tagName) return;
     const tag3 = el.tagName.toLowerCase().replace(/^svg:/, "");
     if (SKIP2.has(tag3)) return;
@@ -179435,12 +179435,12 @@ async function svgDomToIr(svgEl, ctx = {}) {
     if (tag3 === "g" || tag3 === "a" || tag3 === "svg") {
       const style2 = parseStyleAttr(el);
       const inh = {
-        fill: prop2(el, style2, "fill", inherited3),
-        stroke: prop2(el, style2, "stroke", inherited3),
-        "fill-opacity": prop2(el, style2, "fill-opacity", inherited3),
-        "stroke-opacity": prop2(el, style2, "stroke-opacity", inherited3),
-        "fill-rule": prop2(el, style2, "fill-rule", inherited3),
-        "stroke-width": prop2(el, style2, "stroke-width", inherited3),
+        fill: prop2(el, style2, "fill", inherited4),
+        stroke: prop2(el, style2, "stroke", inherited4),
+        "fill-opacity": prop2(el, style2, "fill-opacity", inherited4),
+        "stroke-opacity": prop2(el, style2, "stroke-opacity", inherited4),
+        "fill-rule": prop2(el, style2, "fill-rule", inherited4),
+        "stroke-width": prop2(el, style2, "stroke-width", inherited4),
         opacity: void 0
         // group opacity does not inherit as a property; applied per-leaf
       };
@@ -179507,22 +179507,22 @@ async function svgDomToIr(svgEl, ctx = {}) {
       warn2("use elements are not supported (skipped)");
       return;
     } else {
-      for (const child2 of el.children || []) await visit(child2, t, inherited3);
+      for (const child2 of el.children || []) await visit(child2, t, inherited4);
       return;
     }
     if (!d.trim()) return;
-    const fillStr = forceStrokeOnly ? "none" : prop2(el, style, "fill", inherited3) ?? "black";
-    const strokeStr = prop2(el, style, "stroke", inherited3) ?? "none";
-    const fillOp = elemOpacity * parseFloat(prop2(el, style, "fill-opacity", inherited3) ?? "1");
-    const strkOp = elemOpacity * parseFloat(prop2(el, style, "stroke-opacity", inherited3) ?? "1");
+    const fillStr = forceStrokeOnly ? "none" : prop2(el, style, "fill", inherited4) ?? "black";
+    const strokeStr = prop2(el, style, "stroke", inherited4) ?? "none";
+    const fillOp = elemOpacity * parseFloat(prop2(el, style, "fill-opacity", inherited4) ?? "1");
+    const strkOp = elemOpacity * parseFloat(prop2(el, style, "stroke-opacity", inherited4) ?? "1");
     let fillRgb = fillOp >= 0.01 ? parseColor2(fillStr) : null;
     let strokeRgb = strkOp >= 0.01 ? parseColor2(strokeStr) : null;
     if (!fillRgb && !strokeRgb) return;
     if (fillRgb) fillRgb = flatten3(fillRgb, fillOp, bg);
     if (strokeRgb) strokeRgb = flatten3(strokeRgb, strkOp, bg);
-    const nonScaling = prop2(el, style, "vector-effect", inherited3) === "non-scaling-stroke";
+    const nonScaling = prop2(el, style, "vector-effect", inherited4) === "non-scaling-stroke";
     const strokeMul = (nonScaling ? 1 : gAvg) * rAvg;
-    const strokeWidth = parseFloat(prop2(el, style, "stroke-width", inherited3) ?? "1") * strokeMul;
+    const strokeWidth = parseFloat(prop2(el, style, "stroke-width", inherited4) ?? "1") * strokeMul;
     const subpaths = parseSvgPath(d).map((sub) => ({
       closed: sub.closed,
       segments: sub.segments.map((seg5) => mapSeg(seg5, mapPt))
@@ -179568,7 +179568,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
       subpaths,
       fill: fillRgb ? rgbObj(fillRgb) : null,
       stroke: strokeRgb ? { ...rgbObj(strokeRgb), width: Math.max(1, strokeWidth) } : null,
-      fillRule: prop2(el, style, "fill-rule", inherited3) === "evenodd" ? "evenodd" : "nonzero"
+      fillRule: prop2(el, style, "fill-rule", inherited4) === "evenodd" ? "evenodd" : "nonzero"
     });
   }
   function liveTextPrim(el, style, m2, r5) {
@@ -179721,6 +179721,85 @@ function gdiFaceName(stack) {
 
 // shells/cli/src/bridge.ts
 init_raster3();
+
+// packages/node-shell/src/svg-css.ts
+var PAINT_ATTRIBUTES = [
+  "fill",
+  "stroke",
+  "color",
+  "stop-color",
+  "flood-color",
+  "lighting-color",
+  "opacity",
+  "fill-opacity",
+  "stroke-opacity",
+  "stroke-width",
+  "font-family",
+  "font-size"
+];
+function inherited3(element, name) {
+  for (let current = element; current; current = current.parentElement) {
+    const style = current.style;
+    const value2 = style?.getPropertyValue(name).trim();
+    if (value2) return value2;
+  }
+  return void 0;
+}
+function variables(value2, element, seen = /* @__PURE__ */ new Set()) {
+  if (seen.size > 32 || !value2.includes("var(")) return value2;
+  let cursor = 0, result = "";
+  while (cursor < value2.length) {
+    const at = value2.indexOf("var(", cursor);
+    if (at < 0) return result + value2.slice(cursor);
+    result += value2.slice(cursor, at);
+    let end = at + 4, depth = 1, quote2 = "";
+    for (; end < value2.length; end++) {
+      const character = value2[end];
+      if (character === "\\") {
+        end++;
+        continue;
+      }
+      if (quote2) {
+        if (character === quote2) quote2 = "";
+        continue;
+      }
+      if (character === '"' || character === "'") {
+        quote2 = character;
+        continue;
+      }
+      if (character === "(") depth++;
+      if (character === ")" && --depth === 0) break;
+    }
+    if (depth) return result + value2.slice(at);
+    const body = value2.slice(at + 4, end), comma = body.indexOf(",");
+    const name = (comma < 0 ? body : body.slice(0, comma)).trim();
+    const bound = /^--[\w-]+$/.test(name) && !seen.has(name) ? inherited3(element, name) : void 0;
+    const fallback = comma < 0 ? void 0 : body.slice(comma + 1).trim();
+    const next2 = bound ?? fallback;
+    result += next2 === void 0 ? value2.slice(at, end + 1) : variables(next2, element, /* @__PURE__ */ new Set([...seen, name]));
+    cursor = end + 1;
+  }
+  return result;
+}
+function materializeSvgVariables(svg) {
+  if (!svg.outerHTML.includes("var(")) return;
+  for (const element of [svg, ...svg.querySelectorAll("*")]) {
+    for (const attribute of PAINT_ATTRIBUTES) {
+      const value2 = element.getAttribute(attribute);
+      if (value2?.includes("var(")) element.setAttribute(attribute, variables(value2, element));
+    }
+    const style = element.style;
+    if (!style) continue;
+    for (const property4 of Array.from({ length: style.length }, (_, index2) => style.item(index2))) {
+      if (property4.startsWith("--")) continue;
+      const value2 = style.getPropertyValue(property4);
+      if (value2.includes("var("))
+        style.setProperty(property4, variables(value2, element), style.getPropertyPriority(property4));
+    }
+  }
+}
+
+// shells/cli/src/bridge.ts
 init_repo_root();
 init_content_roots();
 
@@ -184416,6 +184495,10 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
         return (await Promise.resolve().then(() => (init_deep_export(), deep_export_exports))).exportDeepFrame(opts.deepFrame, format, { ...opts, hdr: !!opts.hdr }, {
           jxl: async (request2) => (await Promise.resolve().then(() => (init_jxl2(), jxl_exports))).runJxl(request2)
         });
+      }
+      if (format !== "html") {
+        const svg = rootSvgOf(node);
+        if (svg) materializeSvgVariables(svg);
       }
       if (format === "lottie") return (await Promise.resolve().then(() => (init_design_lottie(), design_lottie_exports))).exportDesignLottie(opts, host);
       if (format === "idml") return (await Promise.resolve().then(() => (init_design_idml(), design_idml_exports))).exportDesignIdml(opts, host);
