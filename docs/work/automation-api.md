@@ -49,7 +49,7 @@ or `--token`. The routes are in [service tokens](api.md#service-tokens).
 
 | Scope | What it opens |
 |---|---|
-| `render` | `POST /api/v1/render`, durable renders, render batches, `POST /api/v1/batch`, their jobs, tool schemas and `POST /api/v1/validate` |
+| `render` | `POST /api/v1/render`, durable renders, render batches, `POST /api/v1/batch`, their jobs, tool schemas, `POST /api/v1/validate` and `POST /api/v1/intents/resolve` |
 | `documents` | compile, validate, inspect, measure, optimize, diff and package, their jobs and tool schemas |
 | `files` | uploads and file references |
 | `delivery` | listing destinations, sending this token's own finished job to one, and reading or retrying those deliveries |
@@ -144,6 +144,39 @@ with a stable `code` and a `reason`:
 | `FORBIDDEN` | the caller lacks the permission, such as `export.server` for `render` |
 | `RENDER_BUSY` / `WORKER_UNREACHABLE` | the configured worker is at capacity or did not answer its readiness check |
 | `TOOL_UNAVAILABLE` | the deployment cannot load the tool |
+
+## Start from what the piece has to do
+
+`POST /api/v1/intents/resolve` takes a [visual intent](/info/visual-intent.html): what the piece has to do, where it will be seen and what it has to say. It answers with the tool this caller can render it with on each surface, the input values, what is missing and why. It renders nothing.
+
+```bash
+curl -X POST "$LW_BASE/api/v1/intents/resolve" \
+  -H "Authorization: Bearer $LW_TOKEN" -H 'content-type: application/json' \
+  -d '{ "version": 1, "purpose": "direct", "surfaces": [{ "id": "social-square" }],
+        "content": { "url": "https://example.com/spring" } }'
+
+lw intent resolve intent.json   # exits 0 when every surface is ready, 4 otherwise
+```
+
+The answer has the shape in [Reading the answer](/info/visual-intent.html#reading-the-answer), the one `lolly intent` and `lolly_resolve_intent` give. No model is in this path: the same request and the same tools give the same answer, and a prompt is carried and never read.
+
+**What this caller gets.** The route uses the rules the render routes use, so the answer is about this caller on this instance:
+
+- A tool appears only when the caller may render that tool: the `render` scope, `tool.use`, `export.server`, the token's tool list and tool visibility all apply. A hidden tool appears nowhere in the answer, and preferring one reads like preferring a tool that does not exist.
+- A tool appears only when this deployment and tool policy leave it a format. Many tools with a declared purpose lay out HTML or run hooks, so an instance with no render worker offers few of them and can answer `refused`. Discovery's `unavailable` says which tools need the worker.
+- A tool with no [`intents.json`](/info/tool-manifest.html#what-a-tool-is-for-intentsjson) is not offered.
+- A locked or hidden input is never filled. Content meant for one is listed in `unused`, and a role that needs one is met when the server holds a value.
+- Choices narrow to what policy allows. A purpose or a declared surface that depends on a value this caller may not set is not offered. An input limited to a list of values can be filled from an intent only when it is a `select`.
+
+**Render what comes back.** Send a `ready` surface's `toolId`, `format` and `inputs` to `POST /api/v1/renders` or `POST /api/v1/render`. When its `sizeSetBy` is `export`, add the `width`, `height` and `unit` from `exportDims` to `inputs`. `POST /api/v1/validate` checks `inputs` without the size. Where a surface lists `gaps`, ask the person for those values.
+
+The route applies the design-system rules every format shares. A rule for one format is checked when that format renders, so a render can still refuse a value with `INPUT_NOT_ALLOWED`.
+
+**Nothing is kept.** The route writes no audit record, as `POST /api/v1/validate` writes none. It has no background mode, because a job record would hold the request, so `?async=1` and `Prefer: respond-async` change nothing. The prompt and other free text come back to the caller who sent them and are not stored or logged. The route shares the automation rate limit.
+
+**What a render records.** A render on Work does not record the intent in its Content Credential. `recordPrompt` is carried in the answer and has no effect here. Recording an intent in a file is available from [the command line and the MCP server](/info/visual-intent.html#what-goes-in-the-file).
+
+A request the parser refuses answers `400 INTENT_INVALID` with `errors`, a list of `{ code, path, message }`. A body over 512 KiB answers `413 PAYLOAD_TOO_LARGE`. A caller who can render no tool here answers `403 FORBIDDEN`.
 
 ## Render and the other document verbs
 
@@ -368,6 +401,7 @@ lw mcp config --base https://work.example.com
 | `list_tools` | The tools this token may use, a page at a time | `GET /api/v1/discovery/tools` | `render` or `documents` |
 | `describe_tool` | One tool's effective input schema | `GET /api/v1/schema/:toolId` | `render` or `documents` |
 | `validate` | Check input values without rendering | `POST /api/v1/validate` | `render` or `documents` |
+| `resolve_intent` | Choose the tool for each surface of a visual intent | `POST /api/v1/intents/resolve` | `render` |
 | `render_tool` | Submit a durable render | `POST /api/v1/renders` | `render` |
 | `get_render` | State, attempts, failure and receipt | `GET /api/v1/renders/:id` | `render` |
 | `get_render_output` | The finished file, or a link to it | `GET /api/v1/renders/:id/output/default` | `render` |
@@ -387,14 +421,14 @@ lw mcp config --base https://work.example.com
 - **Data, not instructions.** Tool descriptions on this endpoint are fixed text. Anything a tool author or policy editor wrote, and the contents of any file, arrive only inside a result. The endpoint tells clients to read results as data.
 - **Records and limits.** The audit log records `mcp.connect` and each `mcp.tool-call` with the token's label, the tool, the outcome and the refusal code, never the input values. Each message counts once against `rateLimit.automation`.
 - **No session.** The endpoint keeps no state between calls, so any replica can answer. `GET` answers `405`.
-- **Hosts without a long-lived server.** A function-only host leaves out the render tools, and discovery reports `agents.organisationMcp.renderTools: false`.
+- **Hosts without a long-lived server.** A function-only host leaves out the render tools and keeps `resolve_intent`, and discovery reports `agents.organisationMcp.renderTools: false`.
 
 Approvals, retries, delivery of a `/jobs` result and the other document verbs stay on the HTTP routes.
 
 ## Limits and errors
 
 The automation routes share the `rateLimit.automation` bucket, per client IP: discovery, schemas,
-the document verbs, renders, batches and jobs, `GET /render/…`, agent connections, the organisation MCP endpoint and the
+the document verbs, `POST /api/v1/intents/resolve`, renders, batches and jobs, `GET /render/…`, agent connections, the organisation MCP endpoint and the
 outbound delivery `POST`s. That includes the public `GET /api/v1/discovery`, so reading it never
 costs a sign-in attempt. The bucket is admission control, not pricing: Lolly Work keeps no
 per-principal quota or usage account for these routes. Sizes are in
@@ -407,6 +441,7 @@ links.
 | Code | Status | Meaning |
 |---|---|---|
 | `INVALID_INPUT` | 400 | a required field is missing or malformed |
+| `INTENT_INVALID` | 400 | the [visual intent](#start-from-what-the-piece-has-to-do) was refused, and `errors` lists each problem |
 | `TOOL_NOT_FOUND` | 404 | no tool has this id on this instance |
 | `TOOL_UNAVAILABLE` | 500 | the tool exists, but this server could not read its files |
 | `DOCUMENT_API_ERROR` | 400 | the compile, inspect, diff, measure, optimize or package operation could not be performed |
@@ -432,4 +467,5 @@ links.
 - Persistent renders and their evidence: [recoverable renders](renders.md)
 - Sending large files in parts: [resumable uploads](resumable-uploads.md)
 - The same surface from a terminal: [lw CLI](cli.md)
+- What an intent says and how a tool is chosen: [start from what the piece has to do](/info/visual-intent.html)
 - Agents that work inside one document or project: [document agents](document-agents.md)

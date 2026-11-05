@@ -37,6 +37,7 @@ lw login --email admin@example.test         # the dev provider (dev.enabled only
 | Let people sign in | `invite add`, `invite ls`, `invite rm` | [Invitations](#invitations) |
 | Give automation its own identity | `tokens` | [Service tokens](#service-tokens) |
 | Connect an agent with a service token | `mcp config` | [MCP settings](#mcp-settings) |
+| Choose the tool for a visual intent | `intent resolve` | [Visual intents](#visual-intents) |
 | Render and recover renders | `renders`, `render-batches` | [Recoverable renders](#recoverable-renders) |
 | See approval requests and get a reviewed file | `approvals`, `approvals artifact` | [Approval files](#approval-files) |
 | Send finished files to a destination | `destinations`, `deliveries` | [Organization delivery](#organization-delivery) |
@@ -133,6 +134,15 @@ lw mcp config --name brand --token-env WORK_TOKEN --json
 ```
 
 This prints settings for an MCP client to reach the [organisation MCP endpoint](automation-api.md#connect-an-agent-over-mcp). The command makes no request. The settings name an environment variable (`LW_TOKEN` unless you pass `--token-env`) and never hold the token.
+
+## Visual intents
+
+```bash
+lw intent resolve intent.json
+lw intent resolve - --json < intent.json
+```
+
+This sends a [visual intent](/info/visual-intent.html) to [`POST /api/v1/intents/resolve`](automation-api.md#start-from-what-the-piece-has-to-do) and prints the tool chosen for each surface, what is missing and what went unused. It renders nothing. It exits `0` when every surface is ready and `4` otherwise, with the full answer either way. The answer covers only the tools this caller can render on this instance. A refused request exits `1`.
 
 ## Recoverable renders
 
