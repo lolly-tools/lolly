@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.305.0
+
+- `mapBannerbearTemplate` (`design-map-bannerbear.ts`) turns a Bannerbear V5 image template's `config.objects` into Design rows, a report of everything left out, a `DesignToolDraftV1` and a mapping entry for `lw render-api`. Layer names become stable ids. Built from public documentation, never run against a live account. Reached by the CLI's `lolly import` and Design Import, not the barrel.
+- `@lolly-tools/core/design-tool-v1` exports `isDesignToolInputId`, the rule `validateDesignTool` already applied.
+
 ## 1.303.0
 
 - Text-keeping PDF redaction: `host.pdf.redact` takes optional `keepText` (`PdfRedactOpts`) and reports `mode` (`PdfRedactResult`). The shell removes the glyphs, picture pixels and drawings under each box, keeps the rest of the page as text, then re-reads the result with Lolly's own reader and refuses it when anything is left under a box or cannot be checked. Flattening stays the default.

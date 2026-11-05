@@ -104,6 +104,9 @@ Usage:
   lolly dxf <drawing.dxf> [--output=.svg|.json] [--layers=A,B]
                                            read an AutoCAD DXF floor plan or drawing on this
                                            device; dxf --help for details
+  lolly import <template.json> [--output=.json] [--mapping=.json]
+                                           a Bannerbear V5 template as a Design document;
+                                           import --help for details
   lolly affinity <file.af|.afdesign|.afphoto|.afpub> [--preview=.png] [--output=.json]
                                            read a native Affinity file on this device;
                                            affinity --help for details
@@ -462,6 +465,7 @@ try {
   // the token as a tool id (`lolly --help` used to print "Tool not found: --help").
   if (args.some(a => a === '--help' || a === '-h' || a === 'help')) {
     if (rawFirst === 'dxf') { const { DXF_HELP } = await import('../src/dxf.ts'); await writeOut(DXF_HELP); }
+    else if (rawFirst === 'import') { const { IMPORT_HELP } = await import('../src/import-design.ts'); await writeOut(IMPORT_HELP); }
     else if (rawFirst === 'affinity') { const { AFFINITY_HELP } = await import('../src/affinity.ts'); await writeOut(AFFINITY_HELP); }
     else if (rawFirst === 'adobe') { const { ADOBE_HELP } = await import('../src/adobe.ts'); await writeOut(ADOBE_HELP); }
     else if (rawFirst === 'prepare') { const { prepareCli } = await import('../src/prepare.ts'); await prepareCli([], { help: '1' }); }
@@ -530,7 +534,7 @@ async function main(): Promise<void> {
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
   const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
-  beginCommand(cmd === 'adobe' || cmd === 'affinity' || cmd === 'dxf' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
+  beginCommand(cmd === 'adobe' || cmd === 'affinity' || cmd === 'dxf' || cmd === 'import' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
   // A command that needs them says so here, once, with the routes to a root - instead
@@ -538,6 +542,9 @@ async function main(): Promise<void> {
   if (needsContentRoot(cmd)) assertContentRoot();
 
   // ── explicit verbs ────────────────────────────────────────────────────────
+  if (cmd === 'import') {
+    const { importCli } = await import('../src/import-design.ts'); await importCli(positionals.slice(1), flags, g.json); return;
+  }
   if (cmd === 'affinity') {
     const { affinityCli } = await import('../src/affinity.ts'); await affinityCli(positionals.slice(1), flags, g.json); return;
   }

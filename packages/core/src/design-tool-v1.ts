@@ -113,6 +113,10 @@ const propertyTypes: Record<DesignPropertyV1, string[]> = {
 const badKeys = new Set(['__proto__', 'prototype', 'constructor']);
 const internal = new Set(['boxes', 'layoutTracks', 'layoutReceipt', 'layoutBoxesJson', 'layoutSourceJson', 'layoutGridsJson', 'textDocument', 'exportVisibleText', 'customCss', 'background', 'transparentBg', 'font', 'fontSize', 'boxStyle', 'textStyle', 'mediaHtml', 'textHtml', 'designRows', 'designWidth', 'designHeight', 'designBackground', 'designIssues']);
 const idPattern = /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/;
+/** Whether an id can name a tool input. Importers use this to choose ids a tool can publish. */
+export function isDesignToolInputId(id: string, reserved: readonly string[] = []): boolean {
+  return idPattern.test(id) && !badKeys.has(id) && !internal.has(id) && !reserved.includes(id) && !id.startsWith('__');
+}
 const own = (o: object, k: string): boolean => Object.hasOwn(o, k);
 const keyOf = (t: DesignTargetV1): string => `${t.variantId}/${t.layerId}/${t.property}`;
 
@@ -158,7 +162,7 @@ export function validateDesignTool(d: DesignToolDraftV1, reserved: readonly stri
   };
   for (const f of d.inputs) {
     const i = f.input;
-    if (!idPattern.test(i.id) || badKeys.has(i.id) || internal.has(i.id) || reserved.includes(i.id) || i.id.startsWith('__')) add('input-id', 'Use a unique input id that is not a reserved setting.', i.id);
+    if (!isDesignToolInputId(i.id, reserved)) add('input-id', 'Use a unique input id that is not a reserved setting.', i.id);
     if (!['text', 'longtext', 'number', 'select', 'color', 'asset', 'vector', ...(d.sourceTool ? ['boolean','url','date','time','datetime-local'] : [])].includes(i.type)) add('input-type', 'This input type is not supported in a locked tool.', i.id);
     if (i.type === 'select' && (!i.options?.length || i.options.some(o => !o.value || !o.label) || new Set(i.options.map(o => o.value)).size !== i.options.length)) add('options', 'Give each option a label and a unique value.', i.id);
     if (i.type === 'number' && (![i.min, i.max, i.step, i.default].every(n => typeof n === 'number' && Number.isFinite(n)) || Number(i.min) > Number(i.max) || Number(i.step) <= 0)) add('range', 'Set a finite minimum, maximum, default and positive step.', i.id);

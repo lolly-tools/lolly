@@ -68,6 +68,7 @@ import { strFromU8 } from 'fflate';
 import { unzipAsync } from '../lib/zip.ts';
 import { isInddSignature, describeInddError } from '@lolly-tools/node-shell/indd';
 import { isAffinity } from './affinity-import.ts';
+import { importBannerbear, readBannerbearTemplate } from './bannerbear-import.ts';
 import { isDxf, parseDxfAsDesign } from './dxf-import.ts';
 // Figma .fig decode: a canvas.fig is a Kiwi binary (self-describing schema + data).
 // The schema chunk is raw-DEFLATE (native DecompressionStream); the data chunk is zstd
@@ -164,6 +165,12 @@ export async function parseDesignFile(
     throw new Error(`This file is too large to import (over ${Math.round(MAX_IMPORT_BYTES / 1024 / 1024)} MB).`);
   }
   const buf = new Uint8Array(await file.arrayBuffer());
+
+  const bannerbear = readBannerbearTemplate(buf);
+  if (bannerbear) {
+    const { frame } = importBannerbear(bannerbear, { warn, map });
+    return { boxes: frame.boxes, width: frame.width, height: frame.height, background: frame.background };
+  }
 
   if (detectTimelineFormat(new TextDecoder().decode(buf.subarray(0, 65536)))) {
     const { importPremiereFile } = await import('./premiere-import.ts');
@@ -301,6 +308,12 @@ export async function parseDesignArtboards(
     background: res.background || '#ffffff',
     ...(res.map ? { map: res.map } : {}),
   });
+
+  const bannerbear = readBannerbearTemplate(buf);
+  if (bannerbear) {
+    const { frame } = importBannerbear(bannerbear, { warn, map });
+    return { frames: [{ name: frame.name, width: frame.width, height: frame.height, boxes: frame.boxes }], background: frame.background || '#ffffff' };
+  }
 
   if ((buf.length >= 4 && buf[0] === 0x38 && buf[1] === 0x42 && buf[2] === 0x50 && buf[3] === 0x53)
     || (buf.length >= 9 && String.fromCharCode(...buf.subarray(0, 9)) === 'gimp xcf ')) {

@@ -536,7 +536,7 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
   const fileEl = document.createElement('input');
   fileEl.type = 'file';
   fileEl.accept =
-    '.fig,.svg,.penpot,.zip,.psd,.psb,.ai,.pdf,.pptx,.idml,.indd,.af,.afdesign,.afphoto,.afpub,.aftemplate,.dxf,.xml,.fcpxml,.otio,.edl,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    '.fig,.svg,.penpot,.zip,.psd,.psb,.ai,.pdf,.pptx,.idml,.indd,.af,.afdesign,.afphoto,.afpub,.aftemplate,.dxf,.xml,.fcpxml,.otio,.edl,.json,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
   fileEl.style.display = 'none';
   panel.appendChild(fileEl);
   chooseBtn.addEventListener('click', (e) => {
