@@ -12,20 +12,36 @@
     "eventDetails": "Doors at six. Drinks, short talks, and the new work on the walls.",
     "ecl": "Q",
     "padding": 4,
-    "join": true
+    "join": true,
+    "moduleShape": "rounded",
+    "eyeShape": "circle",
+    "color": "{color.semantic.secondary}",
+    "background": "{color.semantic.surface}",
+    "frame": "label",
+    "frameText": "Add to calendar"
   },
   "presets": [
     {
       "id": "inperson",
       "name": "In person",
       "description": "Dark ink on warm white for a printed invite or poster.",
-      "values": { "color": "#1a1a2e", "background": "#faf7f2", "padding": 6 }
+      "values": {
+        "color": "#1a1a2e",
+        "background": "#faf7f2",
+        "padding": 6
+      },
+      "kind": "retired"
     },
     {
       "id": "online",
       "name": "Online",
       "description": "The joining link as the location, light modules for a closing slide.",
-      "values": { "eventLocation": "https://example.com/join", "color": "#93c5fd", "background": "#0b1021" }
+      "values": {
+        "eventLocation": "https://example.com/join",
+        "color": "#93c5fd",
+        "background": "#0b1021"
+      },
+      "kind": "retired"
     }
   ]
 }

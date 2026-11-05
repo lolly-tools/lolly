@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "growth",
-  "toolVersion": "1.1.3",
-  "toolVersionRange": "1.1.3",
+  "toolVersion": "1.1.4",
+  "toolVersionRange": "1.1.4",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "4e0cc72147ef95d31517616266bc294a49f2474138d45899b21a33aae22d1b46",
+      "sha256": "18f6c881732768418b8e967578d8b9be781d53784bc17d2086c98037a6b7d24e",
       "bytes": 2044
     },
     "reference/inputs.json": {

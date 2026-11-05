@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "org-chart",
-  "toolVersion": "1.1.1",
-  "toolVersionRange": "1.1.1",
+  "toolVersion": "1.1.2",
+  "toolVersionRange": "1.1.2",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,12 +10,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "8ad1db9eca62f94f65134e65bf2d8e4be66a9d529f32214d5f61439a4900c752",
+      "sha256": "6fa304da078e4f1d5b523d78c1f88d44987f1cc85ab38035f5cba9f0097103f5",
       "bytes": 1575
     },
     "reference/inputs.json": {
-      "sha256": "0f8b46ef46b60272f102f744a0c0c9fc7742965ebada05f99d5df8213155c171",
-      "bytes": 27920
+      "sha256": "4d7bd1bcce96ac533acdd8fb050c983925ac72069a8b0152081a168f62fa5650",
+      "bytes": 28454
     }
   }
 }

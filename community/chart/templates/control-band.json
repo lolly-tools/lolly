@@ -23,7 +23,8 @@
       "values": {
         "chartStyle": "editorial",
         "showGrid": false
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

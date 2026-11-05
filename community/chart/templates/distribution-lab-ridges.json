@@ -1,0 +1,19 @@
+{
+  "id": "distribution-lab-ridges",
+  "name": "Density ridges",
+  "category": "Statistical",
+  "description": "Compare smooth distribution shapes in aligned small multiples.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "box",
+    "plotType": "density-ridges",
+    "chartStyle": "technical",
+    "data": "Observation,New flow,Current flow\n01,41,52\n02,44,61\n03,46,55\n04,47,69\n05,49,58\n06,50,72\n07,52,63\n08,53,77\n09,55,66\n10,57,81\n11,59,70\n12,62,84",
+    "heading": "The new flow is faster and more consistent",
+    "subheading": "Task completion time in seconds",
+    "xTitle": "Seconds",
+    "plotShowRaw": true,
+    "showGrid": true,
+    "showLegend": false
+  }
+}

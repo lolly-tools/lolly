@@ -1,6 +1,6 @@
 {
   "id": "brand-starter",
-  "name": "Open possibilities",
+  "name": "Short ad",
   "category": "Brand",
   "description": "A simple brand message ready for your animation.",
   "galleryCover": true,
@@ -10,12 +10,17 @@
       {
         "bgColor": "{color.semantic.primary}",
         "fgColor": "{color.semantic.on-primary}",
-        "headline": "Open possibilities.",
-        "caption": "Build what comes next.",
+        "headline": "Say it once. Move everyone.",
+        "caption": "A short ad in every standard size.",
         "animSize": "large",
         "hold": 3,
         "transition": "inherit"
       }
-    ]
+    ],
+    "size": "landscape"
+  },
+  "gallerySize": {
+    "width": 1200,
+    "height": 900
   }
 }

@@ -11,20 +11,35 @@
     "wifiHidden": false,
     "ecl": "Q",
     "padding": 4,
-    "join": true
+    "join": true,
+    "moduleShape": "fluid",
+    "eyeShape": "rounded",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "frame": "label",
+    "frameText": "Join the Wi-Fi"
   },
   "presets": [
     {
       "id": "guest",
       "name": "Guest network",
       "description": "Dark ink on warm white, generous quiet zone for a printed sign.",
-      "values": { "color": "#1a1a2e", "background": "#faf7f2", "padding": 6 }
+      "values": {
+        "color": "#1a1a2e",
+        "background": "#faf7f2",
+        "padding": 6
+      },
+      "kind": "retired"
     },
     {
       "id": "hidden",
       "name": "Hidden network",
       "description": "For a network that does not broadcast its name.",
-      "values": { "wifiHidden": true, "ecl": "H" }
+      "values": {
+        "wifiHidden": true,
+        "ecl": "H"
+      },
+      "kind": "retired"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "id": "3d-studio",
   "name": "3D Studio",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "engineVersion": ">=1.205.0",
   "status": "official",
   "singleInstance": true,

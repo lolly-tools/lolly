@@ -116,6 +116,10 @@
   text-align: center;
 }
 
+/* The logo's max-width is a percentage, so its parent needs a width of its own:
+   a shrink-to-fit flex item collapses the logo to nothing. */
+.st-back .st-mark { width: 100%; }
+
 .st-back .st-logo {
   max-height: 18cqmin;
   object-position: center;
@@ -123,6 +127,10 @@
 }
 
 .st-back .st-wordmark { font-size: 11cqmin; }
+
+/* The only line of type on the back, on a saturated field: full ink, not the
+   muted mix the paper pieces use for their secondary text. */
+.st-back .st-tagline { color: var(--st-ink, #17232b); }
 
 /* The back IS the accent field, so the shared edge bar would only be a strip of
    ink across it. */

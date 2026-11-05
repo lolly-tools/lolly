@@ -16,19 +16,29 @@
       "id": "filled-area",
       "name": "Filled area",
       "description": "Fill under the lines to weight the volume.",
-      "values": { "chartType": "area", "fillOpacity": 35 }
+      "values": {
+        "chartType": "area",
+        "fillOpacity": 35
+      },
+      "kind": "retired"
     },
     {
       "id": "with-points",
       "name": "With points",
       "description": "Mark each month with a point.",
-      "values": { "showPoints": true }
+      "values": {
+        "showPoints": true
+      },
+      "kind": "retired"
     },
     {
       "id": "moving-average",
       "name": "Moving average",
       "description": "Overlay a moving average to smooth the noise.",
-      "values": { "trend": "movavg" }
+      "values": {
+        "trend": "movavg"
+      },
+      "kind": "retired"
     }
   ]
 }

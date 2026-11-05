@@ -1,0 +1,20 @@
+{
+  "id": "subtitles-outline",
+  "name": "Outlined subtitles",
+  "category": "Captions",
+  "description": "No plate. The words carry their own edge, so the picture stays whole.",
+  "values": {
+    "style": "outline",
+    "position": "bottom",
+    "fontSize": 60,
+    "color": "{color.semantic.on-primary}",
+    "background": "{color.semantic.primary}",
+    "maxLines": 2,
+    "showTimecodes": false,
+    "burnIn": true,
+    "time": 0,
+    "media": {
+      "id": "lolly/demo/sample-landscape"
+    }
+  }
+}

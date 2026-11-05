@@ -153,11 +153,11 @@
     font-size: var(--body-size);
   }
   .mpdf-back-details > div { display: flex; flex-direction: column; min-width: 0; }
-  .mpdf-back-details dt { font-size: var(--caption-size); text-transform: uppercase; letter-spacing: .08em; color: var(--back-muted); }
+  .mpdf-back-details dt { font-size: var(--caption-size);color: var(--back-muted); }
   .mpdf-back-details dd { margin: 0; color: var(--back-ink); font-weight: 500; word-break: break-word; }
   /* About block, sitting beneath the contact columns. */
   .mpdf-back-about { margin: 0 0 var(--margin-y); max-width: 100%; }
-  .mpdf-back-about-heading { font-size: var(--caption-size); text-transform: uppercase; letter-spacing: .08em; color: var(--back-muted); margin: 0 0 .45em; }
+  .mpdf-back-about-heading { font-size: var(--caption-size);color: var(--back-muted); margin: 0 0 .45em; }
   .mpdf-back-about-text { font-size: var(--caption-size); line-height: 1.5; color: var(--back-ink); opacity: .92; }
   /* Definite box + object-fit:contain, same reasoning as .mpdf-cover-logo - keeps
      SVG logos deterministic so the export matches the preview and can't overflow. */
@@ -219,8 +219,7 @@
   .mpdf-cell-body h4, .mpdf-cover-text h4, .mpdf-back-text h4, .mpdf-back-about-text h4 { font-size: 1.02em; }
   .mpdf-cell-body h5, .mpdf-cover-text h5, .mpdf-back-text h5, .mpdf-back-about-text h5,
   .mpdf-cell-body h6, .mpdf-cover-text h6, .mpdf-back-text h6, .mpdf-back-about-text h6 {
-    font-size: .92em; text-transform: uppercase; letter-spacing: .06em;
-  }
+    font-size: .92em;  }
 </style>
 
 <div class="mpdf-doc" data-lolly-anno="{{theme}}" style="{{{docStyle}}};--body-weight:{{default bodyWeight 400}};--heading-weight:{{default headingWeight 700}}">

@@ -1,14 +1,14 @@
 {
   "id": "brand-starter",
-  "name": "Brand stickers",
+  "name": "Business cards",
   "category": "Brand",
-  "description": "A ready-to-print sheet of six brand-colour type stickers.",
+  "description": "Ten business cards on one A4 sheet, with crop marks ready for the guillotine.",
   "values": {
     "sheet": "a4",
-    "rows": 3,
+    "rows": 5,
     "cols": 2,
-    "gap": 7,
-    "margin": 14,
+    "gap": 6,
+    "margin": 12,
     "ticks": true,
     "tickShape": "rect",
     "fill": "repeat",
@@ -16,7 +16,7 @@
       {
         "art": {
           "source": "remote",
-          "id": "https://lolly.tools/tool/icon.svg?text=Open&shape=rounded",
+          "id": "https://lolly.tools/tool/stationery.svg?piece=business-card-front&firstname=Nadia&lastname=Okafor&jobTitle=Head+of+Design&email=nadia%40example.com&phone=%2B44+20+7946+0142&company=Northline+Studio&url=northline.studio&background=%7Bcolor.semantic.primary%7D&color=%7Bcolor.semantic.on-primary%7D&accent=%7Bcolor.semantic.secondary%7D",
           "_unresolved": true
         }
       }

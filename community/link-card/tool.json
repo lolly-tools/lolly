@@ -3,7 +3,7 @@
   "name": "Link Card",
   "description": "Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
   "a11yLabel": "Link card for {{siteLabel}}: {{headingLabel}}",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "engineVersion": "^1.0.0",
   "status": "community",
   "category": "everyone",

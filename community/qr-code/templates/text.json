@@ -8,20 +8,32 @@
     "text": "Kiln 3 fires Tuesday at 7am. Load by Monday 5pm.",
     "ecl": "M",
     "padding": 4,
-    "join": true
+    "join": true,
+    "moduleShape": "dot",
+    "eyeShape": "leaf",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}"
   },
   "presets": [
     {
       "id": "label",
       "name": "Shelf label",
       "description": "Small print, so high redundancy and a tight quiet zone.",
-      "values": { "ecl": "H", "padding": 2 }
+      "values": {
+        "ecl": "H",
+        "padding": 2
+      },
+      "kind": "retired"
     },
     {
       "id": "brand",
       "name": "Brand colours",
       "description": "Modules in your brand primary on the brand surface.",
-      "values": { "color": "{color.semantic.primary}", "background": "{color.semantic.surface}" }
+      "values": {
+        "color": "{color.semantic.primary}",
+        "background": "{color.semantic.surface}"
+      },
+      "kind": "retired"
     }
   ]
 }

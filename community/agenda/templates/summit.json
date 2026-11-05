@@ -233,7 +233,8 @@
       "values": {
         "layout": "list",
         "compact": true
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

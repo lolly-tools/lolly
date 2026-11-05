@@ -249,7 +249,10 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
           if (!p || typeof p !== 'object') return [];
           const pr = p as Record<string, unknown>;
           if (typeof pr.id !== 'string' || !pr.id || typeof pr.name !== 'string' || !pr.name) return [];
+          // A retired variant keeps its ?preset= address in the template file and leaves the app.
+          if (pr.kind === 'retired') return [];
           const pm: Record<string, unknown> = { id: pr.id, name: pr.name };
+          if (pr.kind !== undefined) pm.kind = pr.kind;
           if (pr.description !== undefined) pm.description = pr.description;
           return [pm];
         });

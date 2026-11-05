@@ -1,0 +1,25 @@
+{
+  "id": "completion-certification",
+  "name": "Certification pass",
+  "category": "Training",
+  "description": "An exam pass in the Modern style, with the reference line switched on.",
+  "values": {
+    "certKind": "achievement",
+    "heading": "",
+    "firstname": "Ana",
+    "lastname": "Kovač",
+    "awardtopic": "Certified Platform Administrator",
+    "awarddate": "2026-04-30",
+    "presenter": "Ingrid Sorensen",
+    "presenterTitle": "Head of Certification",
+    "company": "Northwind Institute",
+    "brandLogo": true,
+    "serial": "No. 2026-0413",
+    "style": "modern",
+    "pageSize": "a4-landscape",
+    "motion": "none",
+    "color": "",
+    "background": "",
+    "accent": ""
+  }
+}

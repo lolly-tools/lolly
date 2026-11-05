@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "jump",
-  "toolVersion": "1.2.1",
-  "toolVersionRange": "1.2.1",
+  "toolVersion": "1.2.2",
+  "toolVersionRange": "1.2.2",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "d3da8c033566bb9907b802dcc2085819864a9e49b8ff88c709451e5fd3929afc",
+      "sha256": "7c5a487e87a66e5926ed3239b16f234c6b0ab5b16ce98b13ad32df10e266ea06",
       "bytes": 1846
     },
     "reference/inputs.json": {

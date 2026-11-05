@@ -9,14 +9,26 @@
     "lng": 138.6,
     "ecl": "M",
     "padding": 4,
-    "join": true
+    "join": true,
+    "moduleShape": "fluid",
+    "eyeShape": "circle",
+    "color": "{color.semantic.primary}",
+    "background": "{color.semantic.surface}",
+    "frame": "label",
+    "frameText": "Find us"
   },
   "presets": [
     {
       "id": "signage",
       "name": "Wayfinding sign",
       "description": "Dark ink, wide quiet zone, high redundancy for a code that lives outdoors.",
-      "values": { "color": "#1a1a2e", "background": "#faf7f2", "padding": 6, "ecl": "H" }
+      "values": {
+        "color": "#1a1a2e",
+        "background": "#faf7f2",
+        "padding": 6,
+        "ecl": "H"
+      },
+      "kind": "retired"
     }
   ]
 }

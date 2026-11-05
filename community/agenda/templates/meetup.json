@@ -89,7 +89,8 @@
       "values": {
         "layout": "board",
         "now": "2026-11-05T18:35"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

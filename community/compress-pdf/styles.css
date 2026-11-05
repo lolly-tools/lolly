@@ -91,7 +91,7 @@
 .cmp-replace:hover { border-color: hsl(var(--cmp-brand)); color: hsl(var(--cmp-brand)); }
 
 .cmp-settings { border: none; margin: 18px 0 0; padding: 0; }
-.cmp-settings legend { font-size: 12px; font-weight: 600; color: hsl(var(--cmp-muted)); text-transform: uppercase; letter-spacing: .04em; padding: 0; margin-bottom: 8px; }
+.cmp-settings legend { font-size: 12px; font-weight: 600; color: hsl(var(--cmp-muted));padding: 0; margin-bottom: 8px; }
 
 .cmp-seg { display: flex; gap: 6px; }
 .cmp-seg-opt { flex: 1; position: relative; cursor: pointer; }

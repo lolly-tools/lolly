@@ -1,0 +1,25 @@
+{
+  "id": "browser-night",
+  "name": "Dark browser window",
+  "category": "Screenshot",
+  "description": "Dark window on a deep, calm ground.",
+  "values": {
+    "image": {
+      "source": "remote",
+      "id": "https://lolly.tools/tool/gradient.svg?count=4&color1=%2322d3ee&color2=%23a78bfa&color3=%2310b981&color4=%230b1021&blend=screen&spread=110&blur=8&grain=60",
+      "_unresolved": true
+    },
+    "frame": "browser",
+    "windowStyle": "cupertino",
+    "url": "https://lolly.tools",
+    "title": "",
+    "backdrop": "solid",
+    "background": "#1b2233",
+    "color2": "{color.semantic.secondary}",
+    "padding": 72,
+    "scale": 78,
+    "radius": 16,
+    "shadow": 55,
+    "dark": true
+  }
+}

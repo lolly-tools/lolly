@@ -320,7 +320,7 @@ test('every example, template and preset seed hydrates with no error note', { sk
   for (const ex of manifest.examples) seeds.push([`example "${ex.label}"`, ex.values]);
 
   const files = readdirSync(join(PKG, 'templates')).filter(f => f.endsWith('.json')).sort();
-  assert.deepEqual(files, ['award.json', 'completion.json', 'share.json']);
+  assert.deepEqual(files, ['award-team-of-the-year.json', 'award.json', 'completion-certification.json', 'completion.json', 'share.json']);
   for (const file of files) {
     const t = await readJson(join('templates', file));
     assert.equal(t.id, file.replace(/\.json$/, ''), `${file}: template id must match its basename`);

@@ -14,19 +14,19 @@ const looks = [
   { id: 'motion-mono', name: 'Motion · Editorial mono', description: 'Black and white with open shadows and no moving grain.', values: { filmLook: 'bw', contrast: 12, highlights: -10, shadows: 10, saturation: 100, grain: 0, vignette: 0 } },
 ];
 const photoUrl = 'https://lolly.tools/tool/darkroom.png?' + new URLSearchParams(Object.entries(looks[0]!.values).map(([k, v]) => [k, String(v)])).toString();
-const text = (id: string, x: number, y: number, w: number, h: number, size: number, copy: string): Row => ({ id, kind: 'text', x, y, w, h, text: copy, font: 'display', fontSize: size, weight: '600', fg: 'var(--brand-text, #17201c)', bg: 'transparent', fitText: true, lineHeight: 1.05, pad: 0 });
+const text = (id: string, x: number, y: number, w: number, h: number, size: number, copy: string): Row => ({ id, kind: 'text', x, y, w, h, text: copy, font: 'display', fontSize: size, weight: '500', fg: 'var(--brand-text, #17201c)', bg: 'transparent', align: 'left', fitText: true, lineHeight: 1.05, pad: 0 });
 const base = (id: string): Row[] => JSON.parse(readFileSync(new URL(`design/templates/${id}.json`, root), 'utf8')).values.boxes.map((row: Row) => {
   const { kf, lane, start, dur, ...still } = row;
   return still;
 });
 const editorial = base('launch-editorial');
-for (const row of editorial) if (row.text) row.text = ({ eyebrow: 'STUDIO NOTES  /  ISSUE 01', 'headline-a': 'Keep the look.', 'headline-b': 'Give it motion.', support: 'A clear message.\nA little room to breathe.', closing: 'Your next chapter starts here.' } as Record<string, string>)[String(row.id)] ?? String(row.text);
+for (const row of editorial) if (row.text) row.text = ({ eyebrow: 'Studio notes  /  Issue 01', 'headline-a': 'Keep the look.', 'headline-b': 'Give it motion.', support: 'A clear message.\nA little room to breathe.', closing: 'Your next chapter starts here.' } as Record<string, string>)[String(row.id)] ?? String(row.text);
 const features = base('launch-cascade');
-for (const row of features) if (row.text) row.text = ({ eyebrow: 'THREE THINGS TO KNOW', headline: 'One idea. Three reasons.', 'benefit-0': 'Made to fit.', 'benefit-1': 'Easy to change.', 'benefit-2': 'Ready to share.', closing: 'Discover the details.' } as Record<string, string>)[String(row.id)] ?? String(row.text);
+for (const row of features) if (row.text) row.text = ({ eyebrow: 'Three things to know', headline: 'One idea. Three reasons.', 'benefit-0': 'Made to fit.', 'benefit-1': 'Easy to change.', 'benefit-2': 'Ready to share.', closing: 'Discover the details.' } as Record<string, string>)[String(row.id)] ?? String(row.text);
 const photo: Row[] = [
   { id: 'ground', kind: 'box', x: 0, y: 0, w: 1920, h: 1080, bg: 'var(--brand-surface, #ffffff)', locked: true },
   { id: 'photo', kind: 'image', x: 1060, y: 80, w: 780, h: 920, image: { id: photoUrl }, fit: 'cover' },
-  text('eyebrow', 100, 120, 840, 64, 32, 'IN THE FRAME'),
+  text('eyebrow', 100, 120, 840, 64, 32, 'In the frame'),
   text('headline', 100, 320, 860, 380, 144, 'A look worth\nkeeping.'),
   text('support', 100, 820, 800, 110, 40, 'Change the image. Keep the rhythm.'),
   { id: 'rule', kind: 'box', x: 100, y: 245, w: 120, h: 12, bg: 'var(--brand-primary, #286447)', shape: 'pill' },

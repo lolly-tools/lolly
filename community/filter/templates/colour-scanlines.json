@@ -1,0 +1,20 @@
+{
+  "id": "colour-scanlines",
+  "name": "Colour scanlines",
+  "category": "Screen",
+  "description": "Fine lines that keep the colours of the picture.",
+  "values": {
+    "effect": "scanline",
+    "sc_colorSource": "image",
+    "sc_lineSize": 9,
+    "sc_gapSize": 3,
+    "sc_fit": "contain",
+    "sc_background": "",
+    "width": 1600,
+    "height": 1200,
+    "image": {
+      "id": "lolly/demo/sample-photo"
+    }
+  },
+  "galleryCover": true
+}

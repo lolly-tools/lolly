@@ -25,7 +25,8 @@
       "description": "The same slip with a warmer line on it.",
       "values": {
         "tagline": "Thank you"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "comp-slip-ink",
@@ -35,7 +36,8 @@
         "color": "#f4f6f7",
         "background": "#14181b",
         "accent": "#7fd1b9"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

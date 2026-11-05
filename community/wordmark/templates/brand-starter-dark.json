@@ -6,7 +6,7 @@
   "values": {
     "text": "Open possibilities",
     "weight": 600,
-    "color": "{color.semantic.on-primary}",
+    "color": "{color.semantic.surface}",
     "tracking": -2
   },
   "galleryCover": true,

@@ -66,7 +66,8 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `pricing-table` | Pricing | everyone | png, svg, penpot, pdf, csv, json, jpg, webp, avif | - | - | Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one. |
 | `print-sheet` | Print Sheet | everyone | pdf, pdf-cmyk, svg, penpot, png, cmyk-tiff | - | - | Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop… |
 | `qr-code` | QR Code | everyone | svg, penpot, png, jpeg, webp, avif, tiff, pdf, pdf-cmyk, cmyk-tiff, eps, eps-cmyk, dxf, emf | - | - | Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locati… |
-| `quote` | Quote | everyone | pdf, png, svg, jpeg, webp | - | - | A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked… |
+| `quote` | Sales Quote | everyone | pdf, png, svg, jpeg, webp | - | - | A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked… |
+| `quote-card` | Quote | everyone | png, jpg, webp, svg, penpot, pdf, avif, tiff | - | - | A quotation card with a speaker's picture, name and role, for social posts and slides, in the active design system. |
 | `record` | Record | everyone | mp4, webm, srt, vtt, gif, webp-anim | - | camera, microphone | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
 | `scorecard` | Scorecard | everyone | png, svg, pdf, jpeg, webp | - | - | Score a deal, a vendor or a plan against your criteria: each with a bar, a score and the evidence behind it, and an o… |
 | `signature` | Signature | everyone | svg, penpot, png, webp, avif, pdf | - | - | Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a… |

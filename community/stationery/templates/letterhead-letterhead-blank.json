@@ -1,0 +1,22 @@
+{
+  "id": "letterhead-letterhead-blank",
+  "name": "Letterhead, second sheet",
+  "category": "Identity",
+  "description": "The same furniture with no letter - the continuation page.",
+  "values": {
+    "piece": "letterhead",
+    "firstname": "Nadia",
+    "lastname": "Okafor",
+    "jobTitle": "Head of Design",
+    "email": "nadia@example.com",
+    "phone": "+44 20 7946 0142",
+    "company": "Northline Studio",
+    "url": "northline.studio",
+    "address": "12 Barrow Lane, Bristol BS1 4QD",
+    "tagline": "Design that keeps its promises.",
+    "body": "",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}"
+  }
+}

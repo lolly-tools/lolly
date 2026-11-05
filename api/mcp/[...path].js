@@ -2953,6 +2953,16 @@ var init_tool_schema = __esm({
               type: "boolean",
               description: "Use this editable template as the first gallery preview. At most one cover per theme."
             },
+            gallerySize: {
+              type: "object",
+              additionalProperties: false,
+              required: ["width", "height"],
+              properties: {
+                width: { type: "number", exclusiveMinimum: 0 },
+                height: { type: "number", exclusiveMinimum: 0 }
+              },
+              description: "The size this template is drawn at on its gallery card, usually 4:3 so it fills the card. It never changes the size the template opens at."
+            },
             id: {
               type: "string",
               description: "Stable id, unique within this tool's `templates[]`. Addressable via the reserved `?template=<id>` param, so treat it as a permanent contract like a tool/asset id."
@@ -3032,8 +3042,13 @@ var init_tool_schema = __esm({
             "id",
             "name"
           ],
-          description: "One curated variant of a template: a values overlay merged over the template base.",
+          description: "One size or pace of a template: a values overlay merged over the template base. A different look is a template of its own.",
           properties: {
+            kind: {
+              type: "string",
+              enum: ["size", "pace", "retired"],
+              description: "size and pace show as chips on the template tile. retired keeps the ?preset= address working for old links and shows nowhere in the app."
+            },
             id: {
               type: "string",
               description: "Stable id, unique within this template's `presets[]`. Addressable via the reserved `?preset=<id>` param, so treat it as a permanent contract."

@@ -505,9 +505,10 @@ test('the two migrated Video templates ship in both packs, in the Video category
   // painted the same teal in every brand; feature-tour gained the same bar plus the
   // THIRD highlight its own description has always promised ("three timed highlights"),
   // which the file shipped with two of. Both still fit render.video.duration (12s).
+  // Each then gained one shape in the gallery cover pass, so the frame holds a composition. No beat changed.
   const EXPECTED: Record<string, { name: string; boxes: number }> = {
-    'launch-teaser': { name: 'Launch teaser', boxes: 5 },
-    'feature-tour': { name: 'Feature tour', boxes: 7 },
+    'launch-teaser': { name: 'Launch teaser', boxes: 6 },
+    'feature-tour': { name: 'Feature tour', boxes: 8 },
   };
   for (const brand of BRANDS) {
     for (const [tid, want] of Object.entries(EXPECTED)) {

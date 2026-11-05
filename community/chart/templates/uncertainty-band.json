@@ -23,7 +23,8 @@
       "values": {
         "plotMotionPreset": "reveal",
         "animSpeed": 2.5
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "difference",
@@ -33,7 +34,8 @@
         "plotType": "difference-area",
         "data": "Month,Plan,Actual\nJan,34,32\nFeb,39,42\nMar,45,48\nApr,52,49\nMay,58,64\nJun,66,72\nJul,73,81\nAug,80,91",
         "heading": "Actual demand has pulled ahead of plan"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

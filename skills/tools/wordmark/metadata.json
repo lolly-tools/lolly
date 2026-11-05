@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "wordmark",
-  "toolVersion": "1.0.2",
-  "toolVersionRange": "1.0.2",
+  "toolVersion": "1.0.3",
+  "toolVersionRange": "1.0.3",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "67661ec7a869f1ec7daf8ea6e680e92a23c80f2ecf2745d3185e7bb7d77e8541",
+      "sha256": "17bbbf50b95a2cbe30798eb0c0c6e65509da3c0954faf731d0c42360f6d1a571",
       "bytes": 1819
     },
     "reference/inputs.json": {

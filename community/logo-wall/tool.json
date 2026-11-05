@@ -2,7 +2,7 @@
   "id": "logo-wall",
   "name": "Logo Wall",
   "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "engineVersion": "^1.293.0",
   "status": "official",
   "category": "designer",

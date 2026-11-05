@@ -7,6 +7,7 @@ import { instanceFetch, instancePath } from './instance.ts';
 import { renderFeaturedVariant } from './featured-render.ts';
 import { parseTemplateMotion, type TemplateMotion } from './template-motion.ts';
 import { toolSeedHref } from './seed-url.ts';
+import { bakedCover } from './gallery-covers.ts';
 
 export interface GalleryPreviewSource {
   id: string;
@@ -34,6 +35,15 @@ export function galleryPreviewLooks(tool: GalleryPreviewSource): FeaturedVariant
     : [{ values: {} }];
 }
 
+/**
+ * The size a cover is drawn at on its gallery card. A template's `values` hold only
+ * declared inputs, so the card's shape travels beside them and never changes what opens.
+ */
+export function withGallerySize(values: Record<string, unknown>, size: unknown): Record<string, unknown> {
+  const { width, height } = (size && typeof size === 'object' ? size : {}) as { width?: unknown; height?: unknown };
+  return typeof width === 'number' && width > 0 && typeof height === 'number' && height > 0 ? { ...values, width, height } : values;
+}
+
 export async function galleryLookHref(toolId: string, look?: FeaturedVariant): Promise<string> {
   return look?.templateId
     ? `#/tool/${encodeURIComponent(toolId)}?template=${encodeURIComponent(look.templateId)}`
@@ -46,14 +56,16 @@ export async function renderGalleryLook(
   host: HostV1 & { previews?: PreviewsAPI }, tool: GalleryPreviewSource,
   index: number, look: FeaturedVariant,
 ): Promise<string> {
+  const baked = await bakedCover(host, tool, index, look.templateId);
+  if (baked) return baked;
   let values = look.values;
   let motion = look.motion;
   if (look.templateId) {
     const response = await instanceFetch(instancePath(`/tools/${encodeURIComponent(tool.id)}/templates/${encodeURIComponent(look.templateId)}.json`));
     if (response.ok) {
-      const file = await response.json() as { values?: Record<string, unknown>; motion?: TemplateMotion };
+      const file = await response.json() as { values?: Record<string, unknown>; motion?: TemplateMotion; gallerySize?: unknown };
       if (!file.values || typeof file.values !== 'object' || Array.isArray(file.values)) throw new Error('Invalid template values');
-      values = file.values; motion = parseTemplateMotion(file.motion);
+      values = withGallerySize(file.values, file.gallerySize); motion = parseTemplateMotion(file.motion);
     } else if (!Object.keys(values).length) throw new Error(`Template ${look.templateId} is unavailable`);
   }
   return renderFeaturedVariant(host, tool.id, tool.formats, look.templateId ?? index, values, `gallery@${tool.version ?? 'current'}`, motion?.posterMs);

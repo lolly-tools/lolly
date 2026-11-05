@@ -28,7 +28,8 @@
         "chartType": "donut",
         "donutRadius": 0.62,
         "sliceGap": 2
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "areas",
@@ -36,7 +37,8 @@
       "values": {
         "chartType": "area",
         "showPoints": false
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "annotated",
@@ -44,8 +46,10 @@
       "values": {
         "showAxes": true,
         "showValues": true
-      }
+      },
+      "kind": "retired"
     }
   ],
-  "galleryCover": true
+  "galleryCover": true,
+  "galleryTheme": "light"
 }

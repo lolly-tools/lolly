@@ -1,0 +1,27 @@
+{
+  "id": "brand-bars-dark",
+  "name": "Brand bars, dark",
+  "category": "Brand",
+  "description": "The same bars for a dark ground: the first bar takes a colour that shows on it.",
+  "values": {
+    "renderMode": "vector",
+    "chartType": "bar",
+    "chartStyle": "technical",
+    "data": "Category,Value\nA,46\nB,68\nC,58\nD,95",
+    "colorBy": "category",
+    "palette": "ordered",
+    "heading": "",
+    "subheading": "",
+    "showAxes": false,
+    "showGrid": false,
+    "showLegend": false,
+    "showValues": false,
+    "transparentBg": true,
+    "cornerRadius": 6,
+    "differentiate": "colour",
+    "palette1": "{color.semantic.secondary}",
+    "palette2": "{color.semantic.surface}"
+  },
+  "galleryCover": true,
+  "galleryTheme": "dark"
+}

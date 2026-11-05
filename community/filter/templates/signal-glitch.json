@@ -1,0 +1,16 @@
+{
+  "id": "signal-glitch",
+  "name": "Signal glitch",
+  "category": "Motion",
+  "description": "Sorted pixels and displaced blocks.",
+  "values": {
+    "effect": "glitch",
+    "gl_sortThreshold": 55,
+    "gl_blockAmount": 30,
+    "width": 1200,
+    "height": 1450,
+    "image": {
+      "id": "lolly/demo/sample-character"
+    }
+  }
+}

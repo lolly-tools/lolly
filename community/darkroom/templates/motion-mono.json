@@ -9,7 +9,12 @@
     "shadows": 10,
     "saturation": 100,
     "grain": 0,
-    "vignette": 0
+    "vignette": 0,
+    "imageFraming": {
+      "zoom": 100,
+      "x": 50,
+      "y": 10
+    }
   },
   "category": "Motion looks"
 }

@@ -539,7 +539,7 @@ var LIVE_MAX_CELLS = MAX_CELLS;
 // shows a real halftone on first paint. A Lolly tool URL works too (e.g. pose-geeko
 // rendered to a PNG on the SUSE profile), resolved lazily via host.compose - the
 // resolver below branches on whether this is a URL (see compute()).
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 
 // Decoded-image cache (keyed by URL). Holds the in-flight PROMISE, not just the
 // resolved image, so re-renders during the first decode share one load instead
@@ -1344,7 +1344,7 @@ async function compute(model) {
         // through host.compose; a plain catalog id resolves via host.assets.
         var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
           ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-          : await host.assets.get(DEFAULT_IMAGE_ID);
+          : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
         _defaultUrl = def && def.url;
       } catch (e) {
         if (host.log) host.log('warn', 'filter-halftone: default image unavailable', { error: String(e) });
@@ -1530,7 +1530,7 @@ function dimW(inputs) { return clamp(Math.round(n(inputs.width, VIEW)), 1, MAX_E
 function dimH(inputs) { return clamp(Math.round(n(inputs.height, VIEW)), 1, MAX_EDGE); }
 // Default source image until the user picks one: the shared lolly/demo/lolly-spin
 // catalog asset. A Lolly tool URL works too, resolved via host.compose (see resolver below).
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 
 var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
@@ -1692,6 +1692,7 @@ function sampleGrid(img, cols, rows, fit, hueDeg, sat, light) {
     if (a < 1) lum = lum * a + 255 * (1 - a); // composite transparency onto white
     g[i] = lum;
   }
+  g.rgba = data;
   return g;
 }
 
@@ -2054,13 +2055,27 @@ function buildSvg(args) {
   var gy = args.separatePixels ? bandH * 0.16 : 0;
   var rw = f2(cellW - gx), rh = f2(bandH - gy);
 
+  // Colours from the image: one path per quantised colour, so the file stays small and
+  // brightness and contrast act on the picture exactly as they act on the tones.
+  var fromImage = args.colorSource === 'image' && grid.rgba;
+  var imagePaths = {};
+  function adjust(v) { return Math.round(clamp(cf * (v - 128) + 128 + brightness, 0, 255) / 17) * 17; }
+  var hx = function (v) { return (v < 16 ? '0' : '') + v.toString(16); };
+
   var paths = ['', '', '', '', ''];
   for (var row = 0; row < rows; row++) {
     var y = f2(offY + row * cellH + gy / 2); // band sits at the top of its cell; gap follows below
     for (var col = 0; col < cols; col++) {
-      var b = bucket(grid[row * cols + col]);
       var x = f2(offX + col * cellW + gx / 2);
-      paths[b] += 'M' + x + ' ' + y + 'h' + rw + 'v' + rh + 'h-' + rw + 'z';
+      var cell = 'M' + x + ' ' + y + 'h' + rw + 'v' + rh + 'h-' + rw + 'z';
+      if (fromImage) {
+        var at = (row * cols + col) * 4;
+        if (grid.rgba[at + 3] < 40) continue; // a transparent part of the picture stays open
+        var key = '#' + hx(adjust(grid.rgba[at])) + hx(adjust(grid.rgba[at + 1])) + hx(adjust(grid.rgba[at + 2]));
+        imagePaths[key] = (imagePaths[key] || '') + cell;
+        continue;
+      }
+      paths[bucket(grid[row * cols + col])] += cell;
     }
   }
 
@@ -2069,6 +2084,7 @@ function buildSvg(args) {
   var out = svgOpen(W, H);
   if (bg) out += '<rect width="' + W + '" height="' + H + '" fill="' + bg + '"/>';
   for (var t = 0; t < 5; t++) if (paths[t]) out += '<path fill="' + fills[t] + '" d="' + paths[t] + '"/>';
+  for (var hexKey in imagePaths) out += '<path fill="' + treatHex(hexKey, _t) + '" d="' + imagePaths[hexKey] + '"/>';
   out += '<g id="lolly-ov-slot">' + buildOverlaySvg(W, H, args._ov || {}) + '</g>';
   out += '</svg>';
   return out;
@@ -2095,7 +2111,7 @@ async function compute(model) {
         // Tool URL → render via compose; plain catalog id → host.assets.
         var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
           ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-          : await host.assets.get(DEFAULT_IMAGE_ID);
+          : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
         _defaultUrl = def && def.url;
       }
       catch (e) { if (host.log) host.log('warn', 'filter-scanline: default image unavailable', { error: String(e) }); }
@@ -2115,7 +2131,7 @@ async function compute(model) {
 
   var params = {
     url: url, W: W, H: H, noFilter: ovi.noFilter, rawSrc: url, ov: ov,
-    lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
+    colorSource: inputs.colorSource, lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
     highlight: inputs.highlight, light: inputs.light, mid: inputs.mid, shade: inputs.shade,
     shadow: inputs.shadow, background: inputs.background, brightness: inputs.brightness, contrast: inputs.contrast,
     hue: inputs.hue, saturation: inputs.saturation, lightness: inputs.lightness,
@@ -2187,7 +2203,7 @@ function onFrame(ctx) {
   var svg = buildSvg({
     img: src, W: W, H: H, noFilter: ovi.noFilter, rawSrc: ovi.noFilter ? src.toDataURL('image/jpeg', 0.85) : null, _ov: ov,
     maxCells: LIVE_MAX_CELLS,
-    lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels,
+    colorSource: inputs.colorSource, lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels,
     everyLine: inputs.everyLine, fit: inputs.fit, highlight: inputs.highlight, light: inputs.light,
     mid: inputs.mid, shade: inputs.shade, shadow: inputs.shadow, background: inputs.background,
     brightness: inputs.brightness, contrast: inputs.contrast,
@@ -2254,7 +2270,7 @@ var FX_posterize = (function () {
 // The shared lolly/demo/lolly-spin catalog asset - matches the sibling filters so
 // every filter opens on the same demo graphic. A Lolly tool URL also works,
 // resolved via host.compose.renderUrl (resolveDefault branches on '://').
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 var _defaultUrl = null;
 
 // Sampling grid is capped so a high quality on a big photo can't blow up tracing
@@ -3069,7 +3085,7 @@ async function resolveDefault() {
   try {
     var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
       ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-      : await host.assets.get(DEFAULT_IMAGE_ID);
+      : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
     _defaultUrl = def && def.url;
   } catch (e) { if (host.log) host.log('warn', 'filter-posterize: default image unavailable', { error: String(e) }); }
   return _defaultUrl;
@@ -3401,7 +3417,7 @@ var FX_voronoi = (function () {
  * mesh. resolveDefault still branches on '://', so a tool URL would also work.
  */
 
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 var _defaultUrl = null;
 
 // Colour-sample resolution (longest edge). One decode feeds every cell's point
@@ -4043,7 +4059,7 @@ async function resolveDefault() {
   try {
     var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
       ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-      : await host.assets.get(DEFAULT_IMAGE_ID);
+      : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
     _defaultUrl = def && def.url;
   } catch (e) { if (host.log) host.log('warn', 'filter-voronoi: default image unavailable', { error: String(e) }); }
   return _defaultUrl;
@@ -4257,7 +4273,7 @@ var LIVE_MAX = 960;   // live: OKLab per-pixel is heavier than a smear, so trade
 
 // Default source image until the user picks one: the shared lolly/demo/lolly-spin
 // catalog asset. Same default as the sibling effects, kept in sync.
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 
 var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
@@ -4891,7 +4907,7 @@ async function compute(model) {
       try {
         var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
           ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-          : await host.assets.get(DEFAULT_IMAGE_ID);
+          : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
         _defaultUrl = def && def.url;
       } catch (e) { if (host.log) host.log('warn', 'filter colour-treatment: default image unavailable', { error: String(e) }); }
     }
@@ -5036,7 +5052,7 @@ var LIVE_MAX = 1080;  // raster output, so keep the live working canvas near the
 // Default source image until the user picks one: the shared lolly/demo/lolly-spin
 // catalog asset (see resolver below - a Lolly tool URL also works via host.compose).
 // Same default as the sibling filter-* tools, kept in sync deliberately.
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 
 var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
@@ -5616,7 +5632,7 @@ async function compute(model) {
         // Tool URL → render via compose; plain catalog id → host.assets.
         var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
           ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-          : await host.assets.get(DEFAULT_IMAGE_ID);
+          : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
         _defaultUrl = def && def.url;
       }
       catch (e) { if (host.log) host.log('warn', 'filter-pixel-stretch: default image unavailable', { error: String(e) }); }
@@ -5793,7 +5809,7 @@ var VIEW = 1000;
 var MAX_EDGE = 8000;   // upper bound on either canvas edge (matches width/height inputs' max)
 // The default source image shown until the user picks one (a Lolly tool URL,
 // resolved lazily via host.compose - same demo source as the sibling filters).
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 
 var _defaultUrl = null;   // resolved demo-image URL, cached
 var _memoKey = null;      // one-entry memo of the last rendered SVG
@@ -6539,7 +6555,7 @@ async function compute(model) {
       try {
         var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
           ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-          : await host.assets.get(DEFAULT_IMAGE_ID);
+          : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
         _defaultUrl = def && def.url;
       } catch (e) {
         if (host.log) host.log('warn', 'filter-imperfections: default image unavailable', { error: String(e) });
@@ -6701,7 +6717,7 @@ var MAX_EDGE = 8000;
 // getting finer instead of plateauing (task 8).
 var MAX_CELLS = 120000;
 
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
 var _memoKey = null;
@@ -7529,7 +7545,7 @@ async function compute(model) {
       try {
         var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
           ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-          : await host.assets.get(DEFAULT_IMAGE_ID);
+          : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
         _defaultUrl = def && def.url;
       } catch (e) { if (host.log) host.log('warn', 'filter dither: default image unavailable', { error: String(e) }); }
     }
@@ -7755,7 +7771,7 @@ var RAMPS = {
 // Selectable glyph weights → their numeric font-weight (task: as_fontWeight).
 var FONT_WEIGHTS = { '300': '300', '400': '400', '500': '500', '700': '700' };
 
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
 var _memoKey = null;
@@ -8301,7 +8317,7 @@ async function compute(model) {
       try {
         var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
           ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-          : await host.assets.get(DEFAULT_IMAGE_ID);
+          : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
         _defaultUrl = def && def.url;
       } catch (e) { if (host.log) host.log('warn', 'filter ascii: default image unavailable', { error: String(e) }); }
     }
@@ -8517,7 +8533,7 @@ var LIVE_MAX = 1024;  // live camera: the glitch passes are heavier per pixel th
 // block corruption is chaotic per seed, so a stepped seed reads as datamosh jitter.
 var GL_ANIM_STEPS = 24;
 
-var DEFAULT_IMAGE_ID = 'lolly/demo/lolly-spin';
+var DEFAULT_IMAGE_ID = 'lolly/demo/sample-photo';
 var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
 var _memoKey = null;
@@ -9133,7 +9149,7 @@ async function compute(model) {
       try {
         var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
           ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
-          : await host.assets.get(DEFAULT_IMAGE_ID);
+          : (await host.assets.get(DEFAULT_IMAGE_ID).catch(function () { return null; })) || await host.assets.get('lolly/demo/lolly-spin');
         _defaultUrl = def && def.url;
       } catch (e) { if (host.log) host.log('warn', 'filter glitch: default image unavailable', { error: String(e) }); }
     }

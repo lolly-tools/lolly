@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "captions",
-  "toolVersion": "1.1.0",
-  "toolVersionRange": "1.1.0",
+  "toolVersion": "1.1.1",
+  "toolVersionRange": "1.1.1",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "f4b6d996555c756b3d625cc6fe3f2e2d7eac2e00164cd6486b41c2534da90ac5",
+      "sha256": "d255dde7da526cba826a773454c4e272ae48742ad1814458556a840597eba097",
       "bytes": 1952
     },
     "reference/inputs.json": {

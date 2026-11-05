@@ -148,8 +148,6 @@
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--brand-text, #111);
   background: var(--brand-surface, #efefef);
   border: 1px solid var(--brand-edge, #d6d6d6);

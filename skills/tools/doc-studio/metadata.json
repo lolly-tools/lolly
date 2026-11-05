@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "doc-studio",
-  "toolVersion": "1.2.1",
-  "toolVersionRange": "1.2.1",
+  "toolVersion": "1.2.2",
+  "toolVersionRange": "1.2.2",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,7 +10,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "ab64e5fdcdbf3a53af252ae30ff87c9a13c4671c86772ba91323a6a24eb0c568",
+      "sha256": "05ad16b4171c59cd5ca7c4f5a508d992e8cf501fe68b0ef5c0a5b2ed60bc5ee5",
       "bytes": 1776
     },
     "reference/inputs.json": {

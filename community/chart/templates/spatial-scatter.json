@@ -21,7 +21,8 @@
       "description": "Use translucent points with brand-coloured lighting.",
       "values": {
         "chartStyle": "glass-3d"
-      }
+      },
+      "kind": "retired"
     },
     {
       "id": "still",
@@ -31,7 +32,8 @@
         "chartStyle": "technical",
         "cameraProjection": "orthographic",
         "motionPreset": "none"
-      }
+      },
+      "kind": "retired"
     }
   ]
 }

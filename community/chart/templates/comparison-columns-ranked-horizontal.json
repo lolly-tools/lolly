@@ -1,0 +1,16 @@
+{
+  "id": "comparison-columns-ranked-horizontal",
+  "name": "Ranked bars",
+  "category": "Bars",
+  "description": "Sideways bars sorted from highest to lowest.",
+  "values": {
+    "chartType": "bar-horizontal",
+    "data": "Option,Score\nProduct A,78\nProduct B,64\nProduct C,57\nProduct D,49\nProduct E,36",
+    "colorBy": "category",
+    "heading": "Evaluation scores",
+    "showValues": true,
+    "showLegend": false,
+    "cornerRadius": 4,
+    "sort": "desc"
+  }
+}

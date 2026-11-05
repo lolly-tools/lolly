@@ -127,8 +127,6 @@
   font-family: var(--font-mono, "SUSE Mono", monospace);
   font-size: 11px;
   color: hsl(var(--ex-muted));
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .exif-summary {

@@ -2,7 +2,7 @@
   "id": "convert-image",
   "name": "Convert Image",
   "description": "Turn HEIC, TIFF or any photo into WebP, JPEG or PNG - on your device.",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "engineVersion": "^1.0.0",
   "status": "community",
   "category": "utility",

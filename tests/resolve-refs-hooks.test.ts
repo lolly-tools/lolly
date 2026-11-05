@@ -119,7 +119,8 @@ test('QR Code: the Website link starter paints its modules in the design system 
   await rt.applyPatch(starter.values);
   await rt.resolveRefs();
   const svg = rt.getHydratedString('{{{svgContent}}}') as string;
-  assert.match(svg, /fill:#008657/, 'the modules take the resolved secondary colour');
-  assert.doesNotMatch(svg, /fill:#111111/, 'not the fallback paint an unresolved link gets');
+  // The starter's rounded modules paint through a fill attribute, square ones through style.
+  assert.match(svg, /fill(:|=")#008657/, 'the modules take the resolved secondary colour');
+  assert.doesNotMatch(svg, /fill(:|=")#111111/, 'not the fallback paint an unresolved link gets');
   rt.destroy?.();
 });

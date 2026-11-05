@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "rebrand-deck",
-  "toolVersion": "1.2.0",
-  "toolVersionRange": "1.2.0",
+  "toolVersion": "1.2.1",
+  "toolVersionRange": "1.2.1",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,7 +10,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "758575ae89741922dc1cf387dfafbbdcb76fa02a607b59ec668904435065cfa0",
+      "sha256": "01effe47b308e97688dec2dc8aefd16442cb8acab42ec8a6c933741e1cfe2416",
       "bytes": 1683
     },
     "reference/inputs.json": {
