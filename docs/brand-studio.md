@@ -292,7 +292,7 @@ A build that ships with a fixed brand shows the same rules and examples read-onl
 
 **Add from…** in the bar opens a picker that asks what you have, not what format it is:
 
-- **Design tokens or a design file**: DTCG or Tokens Studio JSON, a Penpot project, a zip of token sets, a Lolly design system pack or an SVG.
+- **Design tokens or a design file**: DTCG or Tokens Studio JSON, a Penpot project, a zip of token sets, a Lolly design system pack, an SVG, a `DESIGN.md` or a brand page folder.
 - **PDF**: a deck or a guidelines file, read on this device for its colours, marks and embedded typefaces.
 - **Logo or screenshot**: an image becomes a suggested palette, read on this device. It reads colours, not the typeface or layout.
 - **Saved web page**: one HTML file and its CSS files, or pasted HTML or CSS, up to 20 files and 2 MB. Only the text you supply is read: linked resources are not fetched and scripts do not run.
@@ -307,6 +307,10 @@ Choose the design-file source and the next card lists the accepted formats as ic
 - A **Penpot** export (`.penpot`) brings its design tokens.
 - A **Design Tokens** (W3C DTCG) or **Tokens Studio** file (`.json`) brings its tokens.
 - A **plain SVG** is scanned for colours you pick from, the first becoming your primary.
+- A **`DESIGN.md`** (`.md`) goes to **Try these colours** with its tokens as written. Its prose can be kept as a draft brand skill, and the card flags lines that ask a reader to ignore instructions, claim permissions or run code. Agents and brand pages do not see a draft until you press **Keep this skill** in the Skills room, and a kept skill stays internal.
+- A **brand page folder**, picked as a folder, dropped, or zipped, goes to the same review. Every file is checked against the folder's `brand.json`, and one that does not match refuses the whole folder. It adds the tokens. Logos and fonts stay in the folder.
+
+Lolly reads a brand page from files you supply. It does not fetch another site's address.
 
 ### Review a reference
 
@@ -348,6 +352,27 @@ A published version is a **permanent, named copy** kept on this device. It never
 
 **Publish only** keeps a version without changing what tools follow; **Publish and make active** makes tools and the app follow that version. **Follow the latest again** puts every edit live the moment you make the edit.
 
+### Publish a brand page
+
+A brand page is one address for people and for agents: a page that shows the logos, colours, type and examples, with the same facts in files beside the page. **Publish a brand page**, under Versions & publishing, shows the live page and, beside the page:
+
+- **Goes public**: every file, grouped, with its size.
+- **Held back**: what stayed out, and why. A logo with no recorded licence stays out until you tick the logo's name. A font file needs a recorded licence that allows passing it on, and the page shows an outlined specimen when the file stays out. Internal brand skills never appear.
+- **What was checked**: colour pairs per colourway and mode, and the house rules. These are measurements, not a verdict.
+- **In your words**: a usage statement and a contact. The page prints what you write and Lolly adds no licence or legal claim. A switch turns off the "Made with Lolly" line in the footer.
+
+**Download folder** saves the folder as a ZIP for you to host wherever you choose, and nothing goes public until you do. An instance that serves brand pages also offers **Publish to** its address, which is one explicit press, and goes through its approval chain when it has one. A managed design system publishes only when its manager allows.
+
+### Connect an agent
+
+**Connect an agent**, in the same place, gives you text to paste and says what each option can do:
+
+- **`AGENTS.md`** in a project: agents read the system's names and rules. It draws nothing and needs no server.
+- **Lolly's public server**: draws with Lolly Demo, whichever system you have open here. It needs no key.
+- **Your instance**: draws with the systems the instance holds, and reads a service token from an environment variable. The sheet gives the variable's name and never shows a token.
+
+When no hosted server draws with your system, the sheet says so.
+
 ## Manage your design systems
 
 Open **Settings → Preferences → Design systems** to switch, add or remove systems. **Open** selects a system and opens it here; **Make a new one** creates a local system and opens it with its name field ready. One system is active at a time, for the whole device. [Brand architectures](/info/brand-architectures.html) helps decide when a brand needs a design system of its own.
@@ -370,10 +395,15 @@ Changing what a server supplies is an administrator's task: its operator changes
 
 **Download design context** saves the token document, resolved colours, declared font families, asset ids, source evidence where recorded, coverage and explicit rules, with no font files and no proof of ownership. The command line reads the file with no server: `lolly system import` makes it the terminal's design system and `lolly system check` checks Lolly Design inputs against the saved context. [Bring your design system](/info/cli.html#bring-your-design-system) covers the import and [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) covers the check, and an MCP client reads the same brief from `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
+### Publish a brand page
+
+A [brand page](/info/brand-page.html) gives your design system one address: logos, colours, type and rules for people, with tokens, `DESIGN.md` and skills for agents in the same folder. In a terminal, `lolly system publish --out=<dir>` writes the folder and lists what it held back. Nothing goes public until you host the folder, on any static host or on [Lolly Work](/info/work-design-system-administration.html#host-a-brand-page).
+
 ## Where to go next
 
 - **[Using Lolly](/info/using.html)**: the tools, saving, sharing and Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: how divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities.
 - **[Working with partners](/info/partners.html)**: sharing your brand with a partner, and working in a brand you were given.
+- **[Brand pages](/info/brand-page.html)**: publish your design system at one address, as a press kit and an agent kit.
 - **[Design Tokens](/info/design-tokens.html)**: the token model your brand is written in.
 - **[Export a file](/info/exporting.html)**: print units, CMYK and the formats your brand renders into.

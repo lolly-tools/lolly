@@ -21,6 +21,7 @@ import { buildBrandDocFromUsage, proposeBrandRoles, proposeFonts, proposeFontsFr
 import { censusFromSvgColors } from '../../lib/design-system/census.ts';
 import { applyMappingChoice, censusFromTokensDoc, chooserRows, colorTokenRows, designFileLimit, docNeedsMappingReview, followRoles, routeDesignFile } from '../../lib/design-system/sources/file.ts';
 import type { DesignFileRoute, RoleFollow } from '../../lib/design-system/sources/file.ts';
+import { PAGE_FOLDER_MAX_BYTES, PAGE_FOLDER_MAX_FILES, readBrandPageFolder, readDesignMdSource } from '../../lib/design-system/sources/declared.ts';
 import { openLollyFile } from '../../lib/drop-router.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { applyTheme } from '../../theme.ts';
@@ -240,6 +241,14 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
 
   if (fileRoute.kind === 'refused') {
     start.feedback.showImportError(refusalText(start, fileRoute, file.name));
+    return;
+  }
+
+  // A source that states its own design system goes to the same review as a reference.
+  if (fileRoute.kind === 'design-md' || fileRoute.kind === 'brand-page') {
+    start.reference.reviewDeclaredRead(fileRoute.kind === 'design-md'
+      ? readDesignMdSource(fileRoute.text, file.name)
+      : await readBrandPageFolder(fileRoute.files, fileRoute.label), file.name);
     return;
   }
 
@@ -642,12 +651,57 @@ export const syncColorActions = (start: StartCtx, anyChecked: boolean): void => 
   if (installBtn) installBtn.disabled = !anyChecked;
   if (trayBtn) trayBtn.disabled = !anyChecked;
 };
+/** A picked or dropped folder, read within the same bounds a zipped one gets. */
+async function readPickedFiles(files: readonly File[]): Promise<Record<string, Uint8Array>> {
+  if (files.length > PAGE_FOLDER_MAX_FILES || files.reduce((sum, file) => sum + file.size, 0) > PAGE_FOLDER_MAX_BYTES) throw new Error('too large');
+  const out: Record<string, Uint8Array> = {};
+  for (const file of files) out[file.webkitRelativePath || file.name] = new Uint8Array(await file.arrayBuffer());
+  return out;
+}
+
+/** Walk a dropped folder's entries. Links and anything else that is not a plain file are skipped. */
+async function readFolderEntry(root: FileSystemDirectoryEntry): Promise<Record<string, Uint8Array>> {
+  const files: Array<{ path: string; file: File }> = [];
+  const walk = async (dir: FileSystemDirectoryEntry, prefix: string): Promise<void> => {
+    const reader = dir.createReader();
+    for (;;) {
+      const batch = await new Promise<FileSystemEntry[]>((resolve, reject) => reader.readEntries(resolve, reject));
+      if (!batch.length) return;
+      for (const entry of batch) {
+        if (files.length > PAGE_FOLDER_MAX_FILES) throw new Error('too large');
+        const path = `${prefix}${entry.name}`;
+        if (entry.isDirectory) await walk(entry as FileSystemDirectoryEntry, `${path}/`);
+        else if (entry.isFile) files.push({ path, file: await new Promise<File>((resolve, reject) => (entry as FileSystemFileEntry).file(resolve, reject)) });
+      }
+    }
+  };
+  await walk(root, '');
+  if (files.reduce((sum, row) => sum + row.file.size, 0) > PAGE_FOLDER_MAX_BYTES) throw new Error('too large');
+  const out: Record<string, Uint8Array> = {};
+  for (const { path, file } of files) out[path] = new Uint8Array(await file.arrayBuffer());
+  return out;
+}
+
+async function reviewFolder(start: StartCtx, files: Record<string, Uint8Array>, name: string): Promise<void> {
+  start.sources.showStage('file');
+  start.reference.reviewDeclaredRead(await readBrandPageFolder(files, name), name);
+}
+
 export function wireTokenDrop(start: StartCtx): void {
   const { importFile, importPanel } = start;
   importFile.addEventListener('change', async () => {
     const file = importFile.files?.[0];
     importFile.value = ''; // so re-picking the same file re-fires change
     if (file) await start.tokens.handleImportFile(file);
+  });
+
+  const folderInput = importPanel.querySelector<HTMLInputElement>('[data-start-import-folder]');
+  folderInput?.addEventListener('change', () => {
+    const files = [...(folderInput.files ?? [])];
+    folderInput.value = '';
+    if (!files.length) return;
+    const name = files[0]!.webkitRelativePath.split('/')[0] || t('Brand page folder');
+    void readPickedFiles(files).then(read => reviewFolder(start, read, name), () => start.feedback.showImportError(tRaw('Couldn’t read {filename}.', { filename: name })));
   });
 
   // Drag & drop uses the same routing as the picker - the card is one
@@ -668,6 +722,10 @@ export function wireTokenDrop(start: StartCtx): void {
     // without this the same file would be handled twice.
     e.stopPropagation();
     dropEl.classList.remove('is-dragover');
+    // A dropped brand page folder has no bytes of its own: only its entry can be walked.
+    const entries = [...(e.dataTransfer?.items ?? [])].map(item => item.webkitGetAsEntry?.() ?? null);
+    const folder = entries.find((entry): entry is FileSystemDirectoryEntry => !!entry?.isDirectory);
+    if (folder) { void readFolderEntry(folder).then(files => reviewFolder(start, files, folder.name), () => start.feedback.showImportError(tRaw('Couldn’t read {filename}.', { filename: folder.name }))); return; }
     const file = e.dataTransfer?.files?.[0];
     // The SAME router the drag-anywhere drop uses. The card advertises design
     // files, but a photo or a font is often dropped here (it is the biggest

@@ -43,6 +43,7 @@ import { withRoleAliases } from '../../brand-propose.ts';
 import type { TokenRoleProposal } from '../../brand-propose.ts';
 import { unzipAsync } from '../../zip.ts';
 import { censusHex } from '../census.ts';
+import { DESIGN_MD_MAX_BYTES, pageFolderFiles } from './declared.ts';
 import type { CensusColor, CensusFont, DesignCensus } from '../census.ts';
 
 // ── Size policy ──────────────────────────────────────────────────────────────
@@ -99,6 +100,8 @@ interface RouteBase {
  */
 export type DesignFileRoute =
   | (RouteBase & { kind: 'svg' })
+  | (RouteBase & { kind: 'design-md'; text: string })
+  | (RouteBase & { kind: 'brand-page'; files: Unzipped })
   | (RouteBase & { kind: 'pack'; files: Unzipped })
   | (RouteBase & { kind: 'penpot'; files: Unzipped })
   | (RouteBase & { kind: 'tokens'; extraction: TokensExtraction })
@@ -106,6 +109,7 @@ export type DesignFileRoute =
 
 const SVG_NAME = /\.svg$/i;
 const ZIP_NAME = /\.(zip|penpot)$/i;
+const MD_NAME = /\.(md|markdown)$/i;
 const EXT = /\.[^./\\]+$/;
 
 const stripExt = (name: string): string => name.replace(EXT, '');
@@ -132,6 +136,7 @@ function looksLikeSvg(bytes: Uint8Array): boolean {
  */
 export function designFileLimit(name: string, type?: string): number {
   if (isSvgFile(name, type)) return SVG_MAX_BYTES;
+  if (MD_NAME.test(name) || type === 'text/markdown') return DESIGN_MD_MAX_BYTES;
   if (ZIP_NAME.test(name) || type === 'application/zip') return ZIP_MAX_BYTES;
   return TOKENS_MAX_BYTES;
 }
@@ -247,6 +252,12 @@ export async function routeDesignFile(
   const label = stripExt(name) || name;
   const type = opts.type;
 
+  if (MD_NAME.test(name) || type === 'text/markdown') {
+    return bytes.length > DESIGN_MD_MAX_BYTES
+      ? { kind: 'refused', reason: 'too-large', limit: DESIGN_MD_MAX_BYTES }
+      : { kind: 'design-md', label, text: strFromU8(bytes) };
+  }
+
   if (isSvgFile(name, type) || (!ZIP_NAME.test(name) && !hasZipMagic(bytes) && looksLikeSvg(bytes))) {
     return bytes.length > SVG_MAX_BYTES
       ? { kind: 'refused', reason: 'too-large', limit: SVG_MAX_BYTES }
@@ -264,6 +275,8 @@ export async function routeDesignFile(
     const manifest = readManifest(files);
     if (manifest?.format === 'lolly-brand') return { kind: 'pack', label, files };
     if (manifest?.type === 'penpot/export-files') return { kind: 'penpot', label, files };
+    // A brand page folder, zipped: its brand.json decides, at the top or one folder down.
+    if (pageFolderFiles(files)) return { kind: 'brand-page', label, files };
     // Neither manifest - the plain zip of loose token-set files.
     const extraction = tokenSetFilesFromZip(files);
     return extraction.doc

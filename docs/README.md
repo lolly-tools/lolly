@@ -43,6 +43,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Lolly Batch and Lolly Multi-edit | [batch.md](batch.md) |
 | Lolly Design System Setup | [brand-studio.md](brand-studio.md) |
 | Brand architectures | [brand-architectures.md](brand-architectures.md) |
+| Brand pages | [brand-page.md](brand-page.md) |
 | Colourways | [colourways.md](colourways.md) |
 | Working with partners | [partners.md](partners.md) |
 | Lolly 3D Studio | [3d-studio.md](3d-studio.md) |

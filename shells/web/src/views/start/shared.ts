@@ -54,6 +54,8 @@ export const IMPORT_FORMATS: ReadonlyArray<{ icon: string; name: string; ext: st
   { icon: icon('tokens', { size: 26 }), name: 'Design Tokens', ext: '.json' },
   { icon: TOKENS_ICON, name: 'Token Studio', ext: '.json' },
   { icon: SVG_ICON, name: 'Plain SVG', ext: '.svg' },
+  { icon: icon('document', { size: 26 }), name: 'DESIGN.md', ext: '.md' },
+  { icon: icon('globe', { size: 26 }), name: 'Brand page', ext: 'folder, .zip' },
 ];
 
 /** The rail's glyphs, from the one registry (lib/icons.ts). Every AREA, not just

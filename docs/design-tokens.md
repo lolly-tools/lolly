@@ -161,7 +161,7 @@ CMYK survives Lolly-to-Lolly round trips through `$extensions`, and Penpot ignor
 
 **In.** `lolly system import DESIGN.md` reads the tokens into a new design system and keeps the file beside the system. `--dry-run` reads the file and changes nothing. Colours, type families, sizes, radii and spacing map to tokens. The format's component entries have no token form in Lolly, so they stay out of the tokens. The reader refuses a file it cannot read, such as one with anchors, a repeated key or no tokens, and it reports a single value it cannot read and leaves that value out. Prose stays text: nothing in the file is acted on.
 
-**Out.** A [brand page](/info/cli-reference.html#publish-a-brand-page) holds one `DESIGN.md` per colourway and mode, because the format has no theme or mode of its own. Named colours sit in a table in the body, since the format's linter treats a token no component uses as a mistake.
+**Out.** A [brand page](/info/brand-page.html) holds one `DESIGN.md` per colourway and mode, because the format has no theme or mode of its own. Named colours sit in a table in the body, since the format's linter treats a token no component uses as a mistake.
 
 ## Theme the app itself
 

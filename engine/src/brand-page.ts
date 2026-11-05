@@ -16,6 +16,7 @@
  * Pure: no DOM, no storage, no network.
  */
 import { BRAND_PAGE_VERSION, DESIGN_MD_TARGET } from '@lolly-tools/core/brand-page-v1';
+import type { TextAPI } from '@lolly-tools/core/host-v1';
 import type {
   BrandPageCheckVariantV1, BrandPageChecksV1, BrandPageColourPairV1, BrandPageColourwayV1, BrandPageFileRoleV1, BrandPageFileV1,
   BrandPageHeldKindV1, BrandPageHeldV1, BrandPagePairReadingV1, BrandPageRuleCheckV1, BrandPageUsageV1, BrandPageV1,
@@ -218,6 +219,39 @@ const MEDIA: Readonly<Record<string, string>> = {
 };
 const mediaOf = (path: string): string => MEDIA[path.slice(path.lastIndexOf('.') + 1).toLowerCase()] ?? 'application/octet-stream';
 
+const SPECIMEN_TEXT = 'Aa Bb Cc Dd Ee Ff Gg 0123456789';
+
+const round = (n: number): number => Math.round(n * 100) / 100;
+
+async function outline(text: TextAPI, family: string, line: string, role: BrandPageOutlineV1['role'], weight: number, fontSize: number): Promise<BrandPageOutlineV1 | null> {
+  if (!text.fontUrl) return null;
+  const font = await text.fontUrl(family, { weight });
+  if (!font) return null;
+  const drawn = await text.toPath({ text: line, fontUrl: font.url, fontSize, ...(font.variations ? { variations: font.variations } : {}) });
+  if (!drawn.d || drawn.notdef || !drawn.bbox) return null;
+  const pad = fontSize * 0.04;
+  const { x1, y1, x2, y2 } = drawn.bbox;
+  return {
+    family, role, text: line, d: drawn.d,
+    viewBox: { x: round(x1 - pad), y: round(y1 - pad), width: round(x2 - x1 + pad * 2), height: round(y2 - y1 + pad * 2) },
+  };
+}
+
+/** The brand's name and one specimen line per family, drawn with `text`. A face the host cannot read is left to the page's plain text. */
+export async function brandPageOutlines(text: TextAPI, name: string, faces: ReadonlyArray<{ family: string; display?: boolean }>): Promise<BrandPageOutlineV1[]> {
+  const out: BrandPageOutlineV1[] = [];
+  const display = faces.find(f => f.display) ?? faces[0];
+  if (display) {
+    const drawn = await outline(text, display.family, name, 'name', 600, 160).catch(() => null);
+    if (drawn) out.push(drawn);
+  }
+  for (const face of faces) {
+    const drawn = await outline(text, face.family, SPECIMEN_TEXT, 'specimen', 400, 80).catch(() => null);
+    if (drawn) out.push(drawn);
+  }
+  return out;
+}
+
 /** Why an SVG cannot sit in a public folder, or null. Logos and examples are shown, so they must be inert. */
 export function brandPageSvgProblem(svg: string): string | null {
   if (svg.length > MAX_SVG_BYTES) return 'the file is larger than the 8 MiB limit for SVG';
@@ -338,9 +372,12 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   const idCandidate = slug(input.id ?? identity?.id ?? slugifyDesignSystemId(name));
   const id = (idCandidate.replace(/^-+/, '').slice(0, 48).replace(/-+$/, '')) || 'design-system';
   const raw = isRow(doc) ? doc : {};
-  const overview = text(raw.$description, 2000);
+  const stated = text(raw.$description, 2000);
+  // A description that reaches for permissions or code is not what a page leads with.
+  const overview = brandSkillScopeHints(stated).length ? '' : stated;
   const held: BrandPageHeldV1[] = (input.held ?? []).map(h => ({ item: text(h.item, 300), reason: text(h.reason, 600), kind: h.kind }));
   const hold = (item: string, reason: string, kind: BrandPageHeldKindV1): void => { held.push({ item: text(item, 300), reason: text(reason, 600), kind }); };
+  if (stated && !overview) hold('The description in the token document', 'its text speaks about permissions or running code', 'content');
 
   const files = new Map<string, BrandPageFileOutV1>();
   let total = 0;
