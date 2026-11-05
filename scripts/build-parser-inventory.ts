@@ -32,7 +32,7 @@ export const PARSER_FAMILY_ORDER = [
   'Audio, video and animation',
   'Provenance, watermarks and checks',
   'Emoji',
-  'Design documents, links and agent requests',
+  'Lolly Design documents, links and agent requests',
 ];
 const TABLE_HEAD = [
   '| Module | Input source | Bounds enforced | Direct test file | Fuzz target | Notes |',
@@ -73,7 +73,9 @@ export function renderParserTable(registry: ParserAssuranceRegistry): string {
     : `${count}: ${fuzzed} ${fuzzed === 1 ? 'reaches' : 'reach'} a fuzz target and ${waived} ${waived === 1 ? 'carries' : 'carry'} an owned, expiring waiver. Open a family to see its parsers.`;
   const blocks = families.flatMap((family) => {
     const rows = groups.get(family)!;
-    return [`::: details ${family} (${rows.length})`, ...TABLE_HEAD, ...rows, ':::', ''];
+    const legacyAnchor = family === 'Lolly Design documents, links and agent requests'
+      ? ['<a id="design-documents-links-and-agent-requests-13"></a>'] : [];
+    return [...legacyAnchor, `::: details ${family} (${rows.length})`, ...TABLE_HEAD, ...rows, ':::', ''];
   });
   return ['## The parsers', '', GENERATED_NOTICE, '', summary, '', ...blocks].join('\n').trimEnd() + '\n';
 }

@@ -6,7 +6,7 @@ Si tu organización guarda sus recursos aprobados en Bynder, Frontify, Marq o Br
 
 ## Lo que un portal consolidado hace mejor
 
-Los portales consolidados ofrecen alojamiento gestionado, soporte y amplios flujos de gestión de recursos. Por ejemplo, el [DAM empresarial de Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combina descubrimiento de recursos, controles de acceso, flujos de aprobación y distribución. La pila de Lolly es más joven y sus cadenas de aprobación son secuenciales, no flujos arbitrarios con ramificaciones. [Work status and roadmap](/info/work-status.html) recoge sus límites de despliegue.
+Los portales consolidados ofrecen alojamiento gestionado, soporte y amplios flujos de gestión de recursos. Por ejemplo, el [DAM empresarial de Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combina descubrimiento de recursos, controles de acceso, flujos de aprobación y distribución. La pila de Lolly es más joven y sus cadenas de aprobación son secuenciales, no flujos arbitrarios con ramificaciones. [Lolly Work status and roadmap](/info/work-status.html) recoge sus límites de despliegue.
 
 ## Dónde coinciden
 

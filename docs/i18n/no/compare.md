@@ -44,7 +44,7 @@ Frittstående bruk holder filene på enheten. Å velge delte prosjekter, en work
 
 Disse grensene gjelder for hver side i dette settet, så de oppgis én gang her:
 
-- **Work collabs kjører på én enkelt servernode i dag.** Skalaen og driftshistorikken deres er annerledes enn de veletablerte vertsbaserte produktene. [Work status and roadmap](/info/work-status.html) registrerer de gjeldende grensene.
+- **Lolly Work collabs kjører på én enkelt servernode i dag.** Skalaen og driftshistorikken deres er annerledes enn de veletablerte vertsbaserte produktene. [Lolly Work status and roadmap](/info/work-status.html) registrerer de gjeldende grensene.
 - **Nettstedet på [lolly.work](https://lolly.work) er en demosandkasse.** En varig organisasjonsinstallasjon trenger vedvarende lagring og en driftsansvarlig; [Install Lolly Work](/info/work-install.html) dekker begge.
 - **Det er ingen programvarelisens per bruker** for Lolly eller en selvhostet Lolly Work. Hosting, lagring og drift koster fortsatt penger.
 - **En signatur er ikke en klarert signerer.** En verifiserer må stole på sertifikatet som signerte en fil før den viser signereren som klarert; [Content Credentials Identity](/info/content-credentials-identity.html) forklarer hvordan.

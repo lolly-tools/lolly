@@ -8,7 +8,7 @@ Zorg dat je het webadres bij de hand hebt dat de code moet openen, beginnend met
 
 ## De code maken
 
-1. Open [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). De bedieningselementen staan naast de voorvertoning, of erboven op een telefoon; wat de voorvertoning toont, is wat het bestand zal zijn.
+1. Open [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). De bedieningselementen staan naast de voorvertoning, of erboven op een telefoon; wat de voorvertoning toont, is wat het bestand zal zijn.
 2. Vervang bij **URL** het hele voorbeeldadres door het jouwe. De voorvertoning verandert terwijl je typt.
 3. Om bij je eigen kleuren aan te sluiten, stel je **Module colour** en **Background** in. Houd een sterk contrast tussen beide aan, anders hebben telefoons moeite om de code te lezen.
 4. **Quiet zone**, onder **Modules**, begint op 4. Houd het op 4 of hoger: die vlakke marge is waar een telefooncamera naar zoekt.
@@ -38,8 +38,8 @@ Opgeslagen werk blijft op dit apparaat, in de browser of app die je gebruikte, t
 
 ## Andere eerste projecten
 
-- [Audiogram](/#/tool/audiogram) verandert een spraakmemo in een video: een bewegende waveform, je woorden op de cover, je kleuren. Zet de opname in **Audio**, voeg een **Titel** toe en exporteer dan **MP4**.
-- [Filter](/#/tool/filter) bewerkt een foto voor een poster: gedrukte halftoonpunten, twee vlakke kleuren of een paar tinten. Kies de foto onder **Afbeelding**, kies een **Effect**, en exporteer dan **PNG**, of **SVG** bij een effect met het label *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) verandert een spraakmemo in een video: een bewegende waveform, je woorden op de cover, je kleuren. Zet de opname in **Audio**, voeg een **Titel** toe en exporteer dan **MP4**.
+- [Lolly Filter](/#/tool/filter) bewerkt een foto voor een poster: gedrukte halftoonpunten, twee vlakke kleuren of een paar tinten. Kies de foto onder **Afbeelding**, kies een **Effect**, en exporteer dan **PNG**, of **SVG** bij een effect met het label *vector*.
 
 ## Hierna
 

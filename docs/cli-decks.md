@@ -5,7 +5,7 @@ An old deck needs to become your design system's own, and you want a script or a
 There are two routes:
 
 - **Renovate in place** with `lolly rebrand`. Colours, fonts and the logo snap to the design system, decoration and page furniture come out and the content carries over. Choose this to keep the deck's own layout.
-- **Rebuild in Design.** Read what the old deck holds, compose new slides from the design system's slide master, then package, check and export them. Choose this when the deck should look like your other new decks.
+- **Rebuild in Lolly Design.** Read what the old deck holds, compose new slides from the design system's slide master, then package, check and export them. Choose this when the deck should look like your other new decks.
 
 ::: figure cli-decks-routes
 Both routes start from the old deck and end in a file the app opens.
@@ -44,10 +44,11 @@ Each deck ends `ready`, `needs-review` or `failed`. `compile` exits `5` when eve
 - `--preset=<id|file.json>` applies a renovation preset: a design system's or a person's default decisions. It resolves from the content profile first and then from `rebrand-presets.json` in the state directory; `lolly rebrand presets` lists what resolves.
 - `--dry-run` runs every stage and writes nothing. `--ocr` reads slides that are pictures of slides, using the text recognition model already on this machine.
 
-Every stage reads the content profile's design system (`LOLLY_PROFILE`) and touches no network. The full stage reference, the object classes and the plan-editing rules for an agent are in the [agent skill's Rebrand reference](/info/skills/lolly/reference/rebrand.md), and [Rebrand a deck](/info/rebrand.html) explains the ideas the CLI and the app share.
+Every stage reads the content profile's design system (`LOLLY_PROFILE`) and touches no network. The full stage reference, the object classes and the plan-editing rules for an agent are in the [agent skill's Lolly Rebrand reference](/info/skills/lolly/reference/rebrand.md), and [Rebrand a deck](/info/rebrand.html) explains the ideas the CLI and the app share.
 :::
 
-## Rebuild in Design: the seven commands
+<a id="rebuild-in-design-the-seven-commands"></a>
+## Rebuild in Lolly Design: the seven commands
 
 These commands take an old deck to a checked, exported PowerPoint file. The sections below explain each step.
 
@@ -92,7 +93,7 @@ The app's Read and extract view (`#/extract`) runs the same extract on the devic
 
 ## Which design system a command uses
 
-The Design verbs on this page (`system context`, `compose`, `measure`, `package`, `check` and `run design`) look for a design system in the same three places, in this order:
+The Lolly Design verbs on this page (`system context`, `compose`, `measure`, `package`, `check` and `run design`) look for a design system in the same three places, in this order:
 
 1. `--file=<tokens.json>`;
 2. the active terminal system (`lolly system use`);
@@ -111,12 +112,12 @@ The slide master, logos, icons and media come from the content profile's catalog
 
 The page holds the system in memory for that one job. Nothing is installed in its store, and a `.lolly` never carries a design system. So when any layer links a colour, `lolly package --file` (or `package` under an active terminal system) adds a `design-system.not-carried` note to its report, and its suggested next commands keep the `--file`. The app opens a `.lolly` in its own active design system, so someone who should see the file as authored adds the tokens file as a design system in the app and switches to it first.
 
-The desktop app renders in its own design system, so a Design render with one of these goes to Chromium first and falls back to the app, with a note, only when Chromium is not there. `--file` belongs to Design: another tool refuses the flag, and so does `--share`, because a link cannot carry a design system.
+The desktop app renders in its own design system, so a Lolly Design render with one of these goes to Chromium first and falls back to the app, with a note, only when Chromium is not there. `--file` belongs to Lolly Design: another tool refuses the flag, and so does `--share`, because a link cannot carry a design system.
 :::
 
 ## Compose slides from the slide master
 
-Placing every layer by hand is the long way round. `lolly compose` lays out each slide from an archetype of the design system's slide master, the way **New slide from layout** does in the app, and writes the Design document that `package`, `check` and `run design --document` take.
+Placing every layer by hand is the long way round. `lolly compose` lays out each slide from an archetype of the design system's slide master, the way **New slide from layout** does in the app, and writes the Lolly Design document that `package`, `check` and `run design --document` take.
 
 ```bash
 lolly compose --list
@@ -128,7 +129,7 @@ lolly compose spec.json --source=old.pptx --output=deck.json --edits-out=edits.j
 
 **`--suggest --source=<deck>`** (or `--inventory=<inventory.json>`) writes a first spec: an archetype for each slide with the reason it was chosen, the slots filled with `from` references to the deck's text, the pictures as placeholder keys (`photo:` and the first 12 hex digits of the picture's SHA-256), and each slide's `source` and notes. Treat it as a draft to edit slide by slide.
 
-**`compose <spec.json|->`** composes a spec (`schemas/design-compose-v1.schema.json`): a list of `slides`, each with an `archetype` and its `slots`. A slot takes Design text markup, `null` to leave it out or an object with `from` (an inventory object id), `text` or `image`, plus any layer field to set over the master's. `lolly compose --help` prints every key, and the agent skill's [Design reference](/info/skills/lolly/reference/design.md) explains each.
+**`compose <spec.json|->`** composes a spec (`schemas/design-compose-v1.schema.json`): a list of `slides`, each with an `archetype` and its `slots`. A slot takes Lolly Design text markup, `null` to leave it out or an object with `from` (an inventory object id), `text` or `image`, plus any layer field to set over the master's. `lolly compose --help` prints every key, and the agent skill's [Lolly Design reference](/info/skills/lolly/reference/design.md) explains each.
 
 ::: details Every key a spec can carry
 A slide can also carry `cells` for the repeated cells of a columns or steps archetype, `source` (the 1-based source slide whose text `from` reads and whose notes are carried), `ground`, `notes`, `furniture` (`omit`, `footer`, `logo`), `emphasis` and `case`, plus `under` and `over` rows written with the authoring keys, painted before and after the archetype's layers.
@@ -162,14 +163,14 @@ Compose a whole deck, one slide per source slide. The fidelity check pairs artbo
 
 ## Write and fit the text
 
-You can also write a Design document by hand, or edit the one compose wrote. Its rows may carry **authoring keys**, which start with `$`:
+You can also write a Lolly Design document by hand, or edit the one compose wrote. Its rows may carry **authoring keys**, which start with `$`:
 
 - `$in` writes a layer's position relative to its artboard;
 - `$style` sets its text by a named style from the design brief or the document's own `$styles`;
 - `$points` and `$d` draw a path in px;
 - `$stack`, `$grid` and `$table` lay out repeated rows.
 
-Before anything else reads the document, these are lowered to ordinary layers in canvas coordinates, with every text field written out; they are never stored. Text styles take their sizes and colours from the design system the command uses. A key that cannot be lowered is refused with exit `4` and the JSON pointer of the key, and `lolly check` reports it as `design.authoring.invalid`. The keys, the style rules and the layouts are in the agent skill's [Design reference](/info/skills/lolly/reference/design.md); the schema is `schemas/design-authoring-v1.schema.json`.
+Before anything else reads the document, these are lowered to ordinary layers in canvas coordinates, with every text field written out; they are never stored. Text styles take their sizes and colours from the design system the command uses. A key that cannot be lowered is refused with exit `4` and the JSON pointer of the key, and `lolly check` reports it as `design.authoring.invalid`. The keys, the style rules and the layouts are in the agent skill's [Lolly Design reference](/info/skills/lolly/reference/design.md); the schema is `schemas/design-authoring-v1.schema.json`.
 
 Every verb here accepts an authoring document: `run design --document=<file|->`, `compile design --inputs=<file>`, `validate design --inputs=<file> --document`, `check`, `measure --text-layers` and `package`.
 
@@ -205,18 +206,18 @@ The last two also resolve a key ending in the first hex digits of a picture's SH
 
 `--label=<name>` is the name the app shows and exports under, kept as typed; a character a file name cannot hold is replaced only when a file is saved. `--theme` and `--file` choose the design system the authoring styles resolve in. An existing output is refused unless you pass `--force`. The file is read back after it is written, and the report lists the layers, the pictures by hash and the catalog references checked (`schemas/design-package-v1.schema.json`; `--json` needs `--output`). The zip times are the UTC time of `SOURCE_DATE_EPOCH` when it is set, so one document written by the same Lolly version gives the same bytes in any time zone.
 
-**`lolly run <file.lolly> --export=<format>`** exports a saved Design session with the app's own exporter, so the PPTX, PDF or image is the one the app writes. Formats are `pptx`, `pdf`, `png` (the default), `svg`, `jpg` and `webp`.
+**`lolly run <file.lolly> --export=<format>`** exports a saved Lolly Design session with the app's own exporter, so the PPTX, PDF or image is the one the app writes. Formats are `pptx`, `pdf`, `png` (the default), `svg`, `jpg` and `webp`.
 
 - `--output=<file>` writes there and reports the byte count. `run` always replaces an existing file, and accepts `--force` as `compose` and `package` do; a folder that does not exist is refused with exit `2` before a browser starts.
 - `--s=<slide>` picks one slide. On `lolly run design --document` and on a saved session, `--s` takes a 1-based slide number in presentation order (`--s=2`) or a frame id (`--s=s2`). A frame's name is not an address, and an `--s` that matches no slide exits `2` with nothing written.
 - A `png`, `svg`, `jpg` or `webp` from a deck of several frames with no `--s` is the first frame, and stderr says so. A one-slide picture paints that slide's own background.
 - `--no-provenance`, `--c2pa`, `--imprint` and `--no-madewith` work as on any other render.
 
-This needs the browser tier, as every Design export does: a built web shell (`pnpm run build:web`), or `LOLLY_WEB_BASE` set to the address of one you run (`pnpm run dev:web`) under the same `LOLLY_PROFILE` as the CLI ([Render with the CLI](/info/cli-rendering.html#what-the-cli-can-render)). A reusable tool `.lolly` keeps its `--trust-tool` path; `--trust-tool` on a saved session is refused, because a session carries no code to trust.
+This needs the browser tier, as every Lolly Design export does: a built web shell (`pnpm run build:web`), or `LOLLY_WEB_BASE` set to the address of one you run (`pnpm run dev:web`) under the same `LOLLY_PROFILE` as the CLI ([Render with the CLI](/info/cli-rendering.html#what-the-cli-can-render)). A reusable tool `.lolly` keeps its `--trust-tool` path; `--trust-tool` on a saved session is refused, because a session carries no code to trust.
 
 ### One document, every theme
 
-A Design document follows the theme it is drawn in when its colours are token references (`{color.semantic.text}`), its logos and icons are written as `<id>?theme=auto` and its photographs carry a brand look (`user/media/<sha256>?treatment=<look id>`).
+A Lolly Design document follows the theme it is drawn in when its colours are token references (`{color.semantic.text}`), its logos and icons are written as `<id>?theme=auto` and its photographs carry a brand look (`user/media/<sha256>?treatment=<look id>`).
 
 `--themes=<a,b|all>` exports once per theme, to `<stem>-<theme>.<ext>` beside `--output`:
 
@@ -229,10 +230,11 @@ The names are the themes the design system declares, and `all` takes every look 
 
 `--themes` needs `--output`, refuses a name the design system does not declare (and lists the ones it does), and cannot be combined with `--_themes`, `--share` or `--production-repairs`. Standard input is read once and given to every theme. For one file in one theme under the exact name you give, use `--theme=<name>` (or `--_themes=<json>`, the URL parameter `_themes`): `--theme=light --output=light.pptx` writes `light.pptx`, where `--themes=light` would write `light-light.pptx`. A photo look is baked into the picture's pixels; on a CLI without `@napi-rs/canvas` the plain picture is used and a warning says so.
 
-::: details How a Design document reaches the browser
+<a id="how-a-design-document-reaches-the-browser"></a>
+::: details How a Lolly Design document reaches the browser
 `lolly run design --document`, a saved session and the `render` family of `lolly check` all reach the web shell as a saved session through its `#/open` route. The file is served once, from a random path on the same local server, to one GET of up to 64 MB, so a document with full-resolution pictures never has to fit in an address.
 
-The desktop renderer keeps the address. Under `LOLLY_RENDERER=auto` (the default) or `desktop`, a running or installed Lolly app renders a Design document from its address when that address is under the app's 1 MiB request limit, and Chromium takes the session when no app is there. An address over 1 MiB goes to Chromium as a session, with a note when an app was there to take the job. On every path, `--durable` checks that the served web shell has the TrustMark encoder model before a browser starts.
+The desktop renderer keeps the address. Under `LOLLY_RENDERER=auto` (the default) or `desktop`, a running or installed Lolly app renders a Lolly Design document from its address when that address is under the app's 1 MiB request limit, and Chromium takes the session when no app is there. An address over 1 MiB goes to Chromium as a session, with a note when an app was there to take the job. On every path, `--durable` checks that the served web shell has the TrustMark encoder model before a browser starts.
 :::
 
 ## Check the recreation
@@ -241,16 +243,16 @@ The desktop renderer keeps the address. Under `LOLLY_RENDERER=auto` (the default
 lolly check review.lolly --source=old.inventory.json --json > check.json
 ```
 
-`lolly check <file>` runs every check Lolly has on a Design document (`.json`), a `.lolly` or an export (`.pdf`, `.pptx`, `.png`, `.jpg`, `.webp`, `.svg`) and returns one findings list. Each finding has a stable dotted code, a severity (`error`, `warn` or `info`), the layer and artboard where there is one, the message the app shows and a fix where one is safe to apply. With `--json` the `result` follows `schemas/check-report-v1.schema.json`.
+`lolly check <file>` runs every check Lolly has on a Lolly Design document (`.json`), a `.lolly` or an export (`.pdf`, `.pptx`, `.png`, `.jpg`, `.webp`, `.svg`) and returns one findings list. Each finding has a stable dotted code, a severity (`error`, `warn` or `info`), the layer and artboard where there is one, the message the app shows and a fix where one is safe to apply. With `--json` the `result` follows `schemas/check-report-v1.schema.json`.
 
 The checks come in five families:
 
 | Family | What it checks |
 |---|---|
 | `structure` | Layer ids, artboards and layers outside their artboard. A picture drawn at more than twice its pixel size is `design.image.low-resolution`, read from the picture's own bytes; an SVG is never judged. |
-| `render` | What the Design editor checks on the painted page: clipped text, contrast and font coverage, with the pictures painted. Text over a photograph is measured against the pixels under its lines: failing over nearly all of them is `design.text.contrast-low`, and a partly light, partly dark picture is `design.text.contrast-review`. Needs the browser tier; without one this family is `unavailable`, with the reason, and the others still run. |
-| `brand` | Colours, fonts and asset ids against the design system, and its house rules: headline weight, alignment, approved colour pairings, accent edges on rounded shapes, dashed lines, logo per surface. A layer Design does not draw (hidden, on a hidden artboard or inside a hidden group) is not checked. A logo-per-surface finding gives each logo's catalog name in `message` and keeps the asset ids in `evidence` and `suggestion`. A palette colour with an alpha channel counts as that colour; any other translucent colour is `brand.color.unknown`. Uploaded pictures are not reviewed. On a `.pptx` it reads the colours the slides paint in the `--theme` given: an off-palette colour is `brand.color.review`, and a slide ground that is not the theme's surface, primary or secondary colour is `brand.ground.theme`. Other exports have no brand family. |
-| `verify` | The Verify layout clues (a coloured edge on a rounded card, an eyebrow above a heading, decorative numbering), from the layers or, for an export, from the file. Text recognition is off unless you pass `--ocr`, so two machines give the same answer. A document also gets one `verify.writing-score` finding: the writing score Verify shows for its visible text, hidden layers left out, as a note below the strong band and a warning at it, never an error. The score is a signal, not a verdict. |
+| `render` | What the Lolly Design editor checks on the painted page: clipped text, contrast and font coverage, with the pictures painted. Text over a photograph is measured against the pixels under its lines: failing over nearly all of them is `design.text.contrast-low`, and a partly light, partly dark picture is `design.text.contrast-review`. Needs the browser tier; without one this family is `unavailable`, with the reason, and the others still run. |
+| `brand` | Colours, fonts and asset ids against the design system, and its house rules: headline weight, alignment, approved colour pairings, accent edges on rounded shapes, dashed lines, logo per surface. A layer Lolly Design does not draw (hidden, on a hidden artboard or inside a hidden group) is not checked. A logo-per-surface finding gives each logo's catalog name in `message` and keeps the asset ids in `evidence` and `suggestion`. A palette colour with an alpha channel counts as that colour; any other translucent colour is `brand.color.unknown`. Uploaded pictures are not reviewed. On a `.pptx` it reads the colours the slides paint in the `--theme` given: an off-palette colour is `brand.color.review`, and a slide ground that is not the theme's surface, primary or secondary colour is `brand.ground.theme`. Other exports have no brand family. |
+| `verify` | The Lolly Verify layout clues (a coloured edge on a rounded card, an eyebrow above a heading, decorative numbering), from the layers or, for an export, from the file. Text recognition is off unless you pass `--ocr`, so two machines give the same answer. A document also gets one `verify.writing-score` finding: the writing score Lolly Verify shows for its visible text, hidden layers left out, as a note below the strong band and a warning at it, never an error. The score is a signal, not a verdict. |
 | `fidelity` | With `--source=<deck or inventory.json>`: every source string is in the result or listed as an edit, every speaker note is carried over and the slide count and order match. A change of case or spelling is listed for review. A string repeated on several slides must appear on each of their artboards; one found only on another artboard is reported as moved. `--edits=<edits.json>` (a JSON array of `{ "source", "result", "reason" }`, or the file `compose --edits-out` writes) records wording changed on purpose: those findings stay as notes marked excepted, listed under `fidelity.excepted`, never as passed. |
 
 A check never reads as clean on what it did not read. An export page with no text layer, read without `--ocr`, is a `verify.text.unread` warning, and pages past the cap are a `verify.pages-capped` warning.
@@ -258,11 +260,11 @@ A check never reads as clean on what it did not read. An export page with no tex
 `check` exits `0` when nothing needs attention (notes are allowed), `5` when there are warnings to review, `4` on an error finding, `3` with `--browser=require` when a document has no browser tier to render it, `2` on a usage error and `1` when a family itself failed or no page of an export could be decoded. An export has no render family, so `--browser=require` does not apply to one, and one command line can check documents and their PDF exports together. The writing score never changes the exit code, with `--strict` or without: a document whose only warning is a strong writing score exits `0`. Read the house-rule findings and the writing score as feedback, revise the layers they name and check again.
 
 ::: details The other check flags
-- `--strict` turns weak Verify clues into errors and refuses on any warning. The writing score stays a note or a warning and is never counted.
+- `--strict` turns weak Lolly Verify clues into errors and refuses on any warning. The writing score stays a note or a warning and is never counted.
 - `--browser=off` skips the render family.
 - `--theme=<name>` is the token theme the document is checked in; a theme the design system does not declare is a usage error.
-- `--themes=<a,b|all>` checks in several themes in one report. The render, brand and Verify families run once per theme and each finding carries `theme`. Structure and fidelity run once. A link that does not resolve in a theme is `brand.token-link.unresolved`. `--theme` and `--themes` together are refused.
-- `--page-cap=<n>` limits how many artboards or pages Verify reads (1 to 100).
+- `--themes=<a,b|all>` checks in several themes in one report. The render, brand and Lolly Verify families run once per theme and each finding carries `theme`. Structure and fidelity run once. A link that does not resolve in a theme is `brand.token-link.unresolved`. `--theme` and `--themes` together are refused.
+- `--page-cap=<n>` limits how many artboards or pages Lolly Verify reads (1 to 100).
 - On a standalone CLI with no design system, the brand family is `unavailable`.
 :::
 

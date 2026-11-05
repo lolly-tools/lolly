@@ -6,7 +6,7 @@ _最後核查：2026 年 9 月 28 日。_
 
 ## 成熟的入口網站做得更好的地方
 
-成熟的入口網站提供託管、支援與廣泛的素材管理工作流程。例如，[Frontify 的企業 DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) 結合了素材探索、存取控制、核准工作流程與發布。Lolly 這套堆疊較年輕，其核准鏈是循序的，而非任意分支的工作流程。[Work 狀態與路線圖](/info/work-status.html)記錄了其部署限制。
+成熟的入口網站提供託管、支援與廣泛的素材管理工作流程。例如，[Frontify 的企業 DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) 結合了素材探索、存取控制、核准工作流程與發布。Lolly 這套堆疊較年輕，其核准鏈是循序的，而非任意分支的工作流程。[Lolly Work 狀態與路線圖](/info/work-status.html)記錄了其部署限制。
 
 ## 重疊之處
 

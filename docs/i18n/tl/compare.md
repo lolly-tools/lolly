@@ -44,7 +44,7 @@ Pinananatili ng standalone na paggamit ang mga file sa device. Ang pagpili ng sh
 
 Naaangkop ang mga limitasyong ito sa bawat page sa hanay na ito, kaya minsan lang nakasaad dito:
 
-- **Tumatakbo ang mga work collab sa iisang server node ngayon.** Iba ang laki at kasaysayan ng operasyon nila sa mga matagal nang hosted na produkto. Itinatala ng [Work status at roadmap](/info/work-status.html) ang kasalukuyang mga limitasyon.
+- **Tumatakbo ang mga work collab sa iisang server node ngayon.** Iba ang laki at kasaysayan ng operasyon nila sa mga matagal nang hosted na produkto. Itinatala ng [Lolly Work status at roadmap](/info/work-status.html) ang kasalukuyang mga limitasyon.
 - **Demo sandbox ang site sa [lolly.work](https://lolly.work).** Ang matibay na deployment ng organisasyon ay nangangailangan ng persistent storage at operator; sinasaklaw ng [Install Lolly Work](/info/work-install.html) ang pareho.
 - **Walang per-seat na bayad sa software licence** para sa Lolly o sa self-hosted na Lolly Work. Nagkakahalaga pa rin ang hosting, storage at operasyon.
 - **Ang signature ay hindi pinagkakatiwalaang pumirma.** Dapat pagkatiwalaan ng verifier ang certificate na pumirma sa file bago ipakitang pinagkakatiwalaan ang pumirma; ipinapaliwanag ng [Content Credentials Identity](/info/content-credentials-identity.html) kung paano.

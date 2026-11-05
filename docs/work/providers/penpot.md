@@ -2,7 +2,7 @@
 
 Connect a Penpot instance you host, and its design tokens flow into a Lolly Work design system
 while your designers keep working in Penpot. Boards stay in Penpot until a curator picks the
-ones worth keeping. Penpot remains the source of truth, and Work never writes to Penpot.
+ones worth keeping. Penpot remains the source of truth, and Lolly Work never writes to Penpot.
 
 ![Penpot files split into two lanes: token sets federate on each sync into a design system that inherits them read-only, while boards are found by search and imported as catalog assets.](/info/diagrams/work-integrations/penpot-lanes.svg)
 
@@ -60,7 +60,6 @@ lw providers credential design-penpot     # prompts; never argv, never shell his
 | `mapping.typeMap` (required) | Maps Penpot's two types into the catalog: `tokens` to `tokens` (the design-system feed) and `board` to `image` (imported media). The console's Penpot card fills this in. |
 
 ## Verify
-
 ```bash
 lw providers preview --kind penpot --options '{"baseUrl":"https://design.your-host.example"}'
 lw providers health design-penpot

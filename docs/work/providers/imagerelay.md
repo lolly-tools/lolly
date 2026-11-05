@@ -1,12 +1,18 @@
-# Image Relay (kind: `imagerelay`)
+# Image Relay integration with Lolly (kind: `imagerelay`)
 
 Connect an Image Relay DAM and its files appear in the Lolly Work catalog for the groups you
 choose, with an expiry date if you keep one in a custom field. Image Relay stays the source:
-Work reads through an app you register and never writes back.
+Lolly Work reads through an app you register and never writes back.
 
 Canto acquired Image Relay in September 2024. If your tenant has moved to Canto, use the
 [Canto source](canto.md). If you are not sure which applies, read [Off-boarding](#off-boarding)
 first.
+
+## Onboarding
+
+1. Confirm that the tenant still uses Image Relay's API. If it now lives on Canto, use the [Canto guide](canto.md). Select a curated folder and Lolly Work groups; this driver has no upstream approval signal, so leave `requireApproved` off.
+2. Register your app, obtain the sealed OAuth credential described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Map your expiry field if you use one.
+3. Run the [Image Relay tenant check](tenant-check.md#image-relay), compare required originals and test group access and expiry in a real Lolly task before expanding the source.
 
 ## What you need from Image Relay
 
@@ -57,7 +63,6 @@ once by hand against your app. `lw providers auth` refuses this kind; see
   nothing federates.
 
 ## Verify
-
 ```bash
 lw providers preview --kind imagerelay --options '{"folderId":"1234"}'   # dry run, nothing stored
 lw providers health acme-imagerelay
@@ -82,8 +87,8 @@ lw providers health acme-imagerelay
 
 ## Off-boarding
 
-Image Relay can be left through the exit. Which driver you leave through depends on where
-your tenant now lives: a legacy tenant through this one, a migrated `<name>.canto.com` tenant
-through [`canto`](canto.md), and a tenant with both alive through `imagerelay` first.
-[Leave a DAM](../offboarding.md) covers all four cases, with timing and cadence. The expiry
-mapping carries over to `canto` with only the field name changed.
+Choose the exit driver by the API serving your tenant: `imagerelay` for the legacy tenant and [`canto`](canto.md#off-boarding) after a move to Canto. When both remain active, inventory both sets and reconcile overlap; materialization is idempotent within a provider, not a promise to deduplicate two providers.
+
+Use the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then follow [Leave a DAM](../offboarding.md) for materialize, drift and cutover. Preserve the mapped expiry dates and separately export required approval, rights and history records. Confirm field names and original fidelity on your own tenant before fixing a cutover date.
+
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

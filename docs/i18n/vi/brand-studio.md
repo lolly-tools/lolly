@@ -4,7 +4,7 @@ Logo, màu sắc và kiểu chữ của bạn thuộc về một nơi, để m�
 
 Bắt đầu với bất cứ gì bạn có. Thả một logo vào và Lolly đọc màu của nó. Chọn một kiểu chữ, hoặc thả tệp phông chữ mà công ty bạn có giấy phép. Mỗi thay đổi hiện khắp ứng dụng ngay. Logo, phông chữ và token của bạn ở lại trên thiết bị này. Chọn một Google Font là bước duy nhất với ra ngoài: Lolly hỏi trước, rồi tải họ phông chữ một lần.
 
-Khi nó trông đúng, đặt tên cho hệ thống thiết kế và nhấn **Export**. Bạn nhận một tệp `.lolly` để giữ, để mở trên thiết bị khác hoặc đưa cho đồng nghiệp. [Settings](/info/dashboard.html#design-system) hiện hệ thống đang dùng ở chế độ chỉ đọc, và bìa của nó liên kết về đây để chỉnh sửa.
+Khi nó trông đúng, đặt tên cho hệ thống thiết kế và nhấn **Export**. Bạn nhận một tệp `.lolly` để giữ, để mở trên thiết bị khác hoặc đưa cho đồng nghiệp. [Lolly Settings](/info/dashboard.html#design-system) hiện hệ thống đang dùng ở chế độ chỉ đọc, và bìa của nó liên kết về đây để chỉnh sửa.
 
 ## Biến nó thành của bạn trong năm phút
 

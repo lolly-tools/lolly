@@ -14,13 +14,13 @@ Profil anda juga memegang apa yang anda bina semasa bekerja: sesi tersimpan, ime
 | **Headshot** | Foto pilihan, dipotong kepada segi empat sama dan disimpan sebagai imej setempat, untuk alat seperti tandatangan e-mel, kad petikan dan carta organisasi. |
 | **Use my details to create** | Satu suis ikut serta (ia berbunyi **Using my details** sebaik dihidupkan). Ia menentukan sama ada butiran anda dibawa sebagai kredit pengarang dalam fail yang dieksport dan pada larian Batch. Ia tidak menjejaskan pengisian awal; lihat [How tools use your profile](#how-tools-use-your-profile). |
 | **Preferences** | Tema anda, colourway anda dalam setiap sistem reka bentuk, tetapan kebolehcapaian anda dan bahagian apl yang anda hidupkan dalam **Feature flags**. |
-| **Your work** | Sesi tersimpan dengan lakaran kecilnya, disusun dalam [Projects](/info/find-your-work.html), imej yang anda muat naik dan statistik aktiviti setempat anda. |
+| **Your work** | Sesi tersimpan dengan lakaran kecilnya, disusun dalam [Lolly Projects](/info/find-your-work.html), imej yang anda muat naik dan statistik aktiviti setempat anda. |
 
 Tiada yang wajib. Profil kosong berfungsi; isi hanya apa yang menjimatkan penaipan anda.
 
 ![Settings pada tab Preferences: rel tetapan, dan Your details dengan suis Use my details to create serta medan nama, hubungan dan lokasi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) memetakan segala yang lain di bawah Preferences, daripada penampilan dan emoji hingga storan dan muat turun luar talian.
+[Lolly Settings](/info/dashboard.html) memetakan segala yang lain di bawah Preferences, daripada penampilan dan emoji hingga storan dan muat turun luar talian.
 
 ## Anda, pasukan atau peranan
 
@@ -83,7 +83,7 @@ Pengarang alat: lihat [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) da
 Tiga perkara terletak berhampiran dalam Settings dan mudah keliru:
 
 - <!--i:people--> **Profile** - anda, pasukan anda atau peranan anda: nama, hubungan, gambar kepala dan kerja tersimpan. Peribadi, disimpan pada peranti dan mudah alih sebagai fail.
-- <!--i:palette--> **Design system** - jenama: warna, fon dan tetapan yang dirender oleh setiap alat. Dikongsi dan konsisten dan bukan peribadi; lihat [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - jenama: warna, fon dan tetapan yang dirender oleh setiap alat. Dikongsi dan konsisten dan bukan peribadi; lihat [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - apa yang boleh dilakukan apl: ciri dan alat yang tersedia untuk anda.
 
 Profil mengubah fail itu daripada siapa; sistem reka bentuk mengubah rupa fail; keupayaan ialah apa yang boleh anda buat.

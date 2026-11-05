@@ -18,7 +18,7 @@ Preferences é uma página longa com uma **barra de configurações** na lateral
 
 - <!--i:usercheck--> **Your details** - seu nome, dados de contato e foto, e a chave **Use my details to create**. [Profiles](/info/profile.html) explica como as ferramentas os usam.
 - <!--i:seal--> **Content Credentials** - a identidade verificada opcional que assina suas exportações. Veja [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - alterne, adicione, oculte ou remova sistemas de design. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) cobre cada ação.
+- <!--i:palette--> **Design systems** - alterne, adicione, oculte ou remova sistemas de design. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) cobre cada ação.
 - <!--i:moon--> **Appearance** - o tema (Light, Dark ou Brand, que pinta o app com a sua paleta), **Your colourway** quando o sistema de design oferece mais de uma ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) e **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - o conjunto do qual seus emoji são desenhados quando você começa algo novo, com a licença da arte dele, e quanto a sua paleta os recolore (**Off**, **Subtle**, **Strong**, **Full**, **Mono** ou **Duotone**). **Keep skin tones and flags** deixa esses nas próprias cores. O trabalho que você já fez mantém o conjunto com que foi feito.
 - <!--i:eyeoff--> **Accessibility** - quatro opções de conforto, além de Sound e Neurospicy Mode. Veja [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ A aba abre em uma capa pintada com as cores do próprio sistema, com seu logotip
 - <!--i:sliders--> **Tokens** - raio, espaçamento, efeitos e gradientes.
 - <!--i:document--> **Print & CMYK** - as cores presas a uma tinta exata e as condições de impressão que um PDF CMYK pode declarar.
 
-Trocar é a única alteração que esta aba faz. Você edita um sistema de design no [Design System Setup](/info/brand-studio.html), em `#/start`, para onde a capa leva. Um sistema somente leitura avisa isso na capa; os sistemas locais que você cria continuam editáveis. `/b` e `/brand` são atalhos direto para esta aba.
+Trocar é a única alteração que esta aba faz. Você edita um sistema de design no [Lolly Design System Setup](/info/brand-studio.html), em `#/start`, para onde a capa leva. Um sistema somente leitura avisa isso na capa; os sistemas locais que você cria continuam editáveis. `/b` e `/brand` são atalhos direto para esta aba.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Depois o seu lado: **Your activity** conta o que você criou neste dispositivo, 
 
 ## Links diretos
 
-Toda aba e seção de Settings tem um link próprio, que você pode guardar nos favoritos ou colar. A [Search](/info/search.html) aponta seus resultados de **Settings** para o mesmo registro a partir do qual Settings é renderizado, então uma seção não pode ser renomeada por baixo de um resultado de busca.
+Toda aba e seção de Settings tem um link próprio, que você pode guardar nos favoritos ou colar. A [Lolly Search](/info/search.html) aponta seus resultados de **Settings** para o mesmo registro a partir do qual Settings é renderizado, então uma seção não pode ser renomeada por baixo de um resultado de busca.
 
 ::: details Todas as formas de link
 
@@ -139,4 +139,4 @@ Um link direto troca para a aba dona do destino, abre qualquer grupo em que ele 
 
 ---
 
-**Relacionado:** [Profiles](/info/profile.html) para seus dados e os contextos em que você cria. [Design System Setup](/info/brand-studio.html) para editar o que a aba Design system mostra. [Find and recover your work](/info/find-your-work.html) para armazenamento, backups e troca de dispositivos.
+**Relacionado:** [Profiles](/info/profile.html) para seus dados e os contextos em que você cria. [Lolly Design System Setup](/info/brand-studio.html) para editar o que a aba Design system mostra. [Find and recover your work](/info/find-your-work.html) para armazenamento, backups e troca de dispositivos.

@@ -2,15 +2,15 @@
 
 The ready-made package is the shortest route to a shared Lolly Work instance on one
 Linux server. One command on your workstation writes a private installation
-folder. Copy it to the server and run `docker compose up`. You then have Work,
+folder. Copy it to the server and run `docker compose up`. You then have Lolly Work,
 PostgreSQL, the matching Lolly web app and automatic HTTPS, with email and password
 sign-in for the first owner.
 
 It suits a fresh VM, an UpCloud server, a private server or a Dokploy host. It
 carries no private brand pack and no production-instance configuration.
 
-The package pins Work 1.1.1 and the matching Lolly 1.1.1 web app. The web app has the
-publisher's catalogue key built in, while Work signs each person's catalogue with a key
+The package pins Lolly Work 1.1.1 and the matching Lolly 1.1.1 web app. The web app has the
+publisher's catalogue key built in, while Lolly Work signs each person's catalogue with a key
 this installation creates. On first start, setup gives the installed web app the
 installation's key instead, so a signed-in browser lists the tools. Before this step
 the web app refused the catalogue and showed no tools.
@@ -21,7 +21,7 @@ Which upstream sources the package uses, and which architectures have passed, is
 ## Prepare the server
 
 You need a Linux host that runs Docker Compose and a domain that points to it, with
-TCP 80 and TCP and UDP 443 open. Keep the Work, PostgreSQL and worker ports private.
+TCP 80 and TCP and UDP 443 open. Keep the Lolly Work, PostgreSQL and worker ports private.
 No existing Lolly production instance is a qualification target.
 
 For UpCloud, use the [infrastructure module](../deploy/upcloud/README.md) with your
@@ -68,7 +68,7 @@ or mail service. The first policy admits that address and invitations, with expl
 privileged-role mapping; change admission and role rules later through a reviewed
 configuration.
 
-From the Work source checkout on your workstation:
+From the Lolly Work source checkout on your workstation:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -138,7 +138,7 @@ A healthy API alone does not finish the job. Before anyone stores work:
 - <!--i:folder--> **A project.** Create and save a project, then reload the page and open the project again.
 - <!--i:people--> **A member.** Invite a second member and check a sample output.
 - <!--i:lock--> **Privacy.** Confirm a request that is not signed in cannot fetch the gated catalogue or a private project.
-- <!--i:clock--> **A restart.** Restart Work and check the saved content and both people again.
+- <!--i:clock--> **A restart.** Restart Lolly Work and check the saved content and both people again.
 - <!--i:document--> **A record.** Write down the architecture, source and digests, host and network facts and the results.
 :::
 

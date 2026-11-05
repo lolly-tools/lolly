@@ -1,0 +1,137 @@
+/* Week - one week that fills the canvas. The page is the query container
+   every cq unit below resolves against. Day columns stand over an hour grid;
+   each event sits at its time (top and height from hooks.js) and its status
+   sets its look: busy time is a quiet block, a proposed slot is outlined, a
+   declined one is struck through, a tentative one is dashed and the booked
+   meeting is filled with the accent. */
+
+.qw-page {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  container-type: size;
+  box-sizing: border-box;
+  border-top: 1.8cqmin solid var(--qw-accent, #2563eb);
+  background: var(--qw-bg, #ffffff);
+  color: var(--qw-ink, #111827);
+  font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  line-height: 1.25;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.qw-page * { box-sizing: border-box; margin: 0; }
+
+.qw-sheet {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3cqmin;
+  padding: 5cqmin 5.5cqmin 4.5cqmin;
+  font-size: 2.2cqmin;
+}
+
+.qw-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 4cqmin; }
+.qw-kicker {
+  display: block;
+  color: var(--qw-accent, #2563eb);
+  font-size: 2.1cqmin;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.qw-title { margin-top: 0.8cqmin; font-size: 5.2cqmin; font-weight: 750; line-height: 1.05; letter-spacing: -0.015em; }
+.qw-booked {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 1cqmin;
+  padding: 1cqmin 2.4cqmin;
+  border-radius: 99cqmin;
+  background: var(--qw-accent, #2563eb);
+  color: var(--qw-bg, #ffffff);
+  font-size: 2.4cqmin;
+  font-weight: 700;
+}
+.qw-booked svg { width: 2.8cqmin; height: 2.8cqmin; }
+
+.qw-grid {
+  --qw-gutter: 7cqmin;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2cqmin;
+}
+.qw-days-head {
+  display: grid;
+  grid-template-columns: repeat(var(--qw-days, 5), minmax(0, 1fr));
+  gap: 1cqmin;
+  margin-left: var(--qw-gutter);
+}
+.qw-day-name { display: flex; align-items: baseline; gap: 0.8cqmin; font-size: 2.2cqmin; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
+.qw-day-name b { font-size: 3cqmin; letter-spacing: 0; font-weight: 700; }
+
+.qw-body { flex: 1; min-height: 0; display: flex; position: relative; }
+.qw-hours { position: relative; width: var(--qw-gutter); flex: none; }
+.qw-hour { position: absolute; right: 1.4cqmin; transform: translateY(-50%); font-size: 1.7cqmin; opacity: 0.55; font-variant-numeric: tabular-nums; }
+.qw-columns {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--qw-days, 5), minmax(0, 1fr));
+  gap: 1cqmin;
+}
+.qw-rule { position: absolute; left: 0; right: 0; height: 0; border-top: 0.15cqmin solid color-mix(in srgb, currentColor 14%, transparent); }
+.qw-column { position: relative; }
+
+/* Each event is a size container of its own, so one too short for two lines
+   sets its title and time on one line. Inside it, sizes are in em: a cq unit
+   there would measure the event, not the page. */
+.qw-event {
+  position: absolute;
+  left: 0;
+  right: 0;
+  container-type: size;
+  padding: 0.8cqmin 1.2cqmin;
+  border-radius: 1cqmin;
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 14%, var(--qw-bg, #ffffff));
+}
+.qw-event-in { display: flex; flex-direction: column; gap: 0.15em; min-width: 0; }
+.qw-event-title { display: flex; align-items: center; gap: 0.3em; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qw-event-time { font-size: 0.82em; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qw-event svg { flex: none; width: 1.1em; height: 1.1em; }
+.qw-event-status::before { content: " \00b7  "; }
+@container (max-height: 2.6em) {
+  .qw-event-in { flex-direction: row; align-items: baseline; gap: 0.6em; }
+  .qw-event-title { flex: 0 1 auto; min-width: 0; }
+  .qw-event-time { flex: none; }
+  .qw-event-status { display: none; }
+}
+
+.qw-event.is-busy .qw-event-title { font-weight: 500; opacity: 0.85; }
+.qw-event.is-proposed { background: color-mix(in srgb, var(--qw-accent, #2563eb) 14%, var(--qw-bg, #ffffff)); box-shadow: inset 0 0 0 0.3cqmin var(--qw-accent, #2563eb); }
+.qw-event.is-tentative { background: var(--qw-bg, #ffffff); border: 0.25cqmin dashed var(--qw-accent, #2563eb); }
+.qw-event.is-declined { background: var(--qw-bg, #ffffff); border: 0.25cqmin solid color-mix(in srgb, currentColor 30%, var(--qw-bg, #ffffff)); color: color-mix(in srgb, currentColor 60%, var(--qw-bg, #ffffff)); }
+.qw-event.is-declined .qw-event-title { text-decoration: line-through; text-decoration-thickness: 0.2cqmin; }
+.qw-event.is-booked { background: var(--qw-accent, #2563eb); color: var(--qw-bg, #ffffff); }
+.qw-event.is-booked .qw-event-time { opacity: 0.85; }
+
+/* Portrait: the header stacks. */
+@container (max-aspect-ratio: 4 / 5) {
+  .qw-head { flex-direction: column; align-items: flex-start; }
+}
+
+/* Wide: a screen or a slide, sized to the page's height (cqmin). */
+@container (min-aspect-ratio: 2 / 1) {
+  .qw-sheet { padding: 5.5cqmin 7cqmin 4.5cqmin; font-size: 3cqmin; }
+  .qw-kicker { font-size: 3cqmin; }
+  .qw-title { font-size: 7cqmin; }
+  .qw-booked { font-size: 3.4cqmin; padding: 1.4cqmin 3.2cqmin; }
+  .qw-booked svg { width: 3.8cqmin; height: 3.8cqmin; }
+  .qw-grid { --qw-gutter: 9cqmin; }
+  .qw-day-name { font-size: 3cqmin; }
+  .qw-day-name b { font-size: 4cqmin; }
+  .qw-hour { font-size: 2.4cqmin; }
+  .qw-columns, .qw-days-head { gap: 1.8cqmin; }
+}

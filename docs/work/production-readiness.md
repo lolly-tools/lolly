@@ -47,7 +47,7 @@ evidence. The checks it runs automatically are:
   unanswered scans and runs locally or over HTTPS. A missing setting, or audit retention under 180 days, stays
   `unverified` rather than failing.
 - **Rendered manifests.** Every image is pinned by SHA-256 digest. There are no
-  Secret resources and no inline credential values. Exactly one Work server reads
+  Secret resources and no inline credential values. Exactly one Lolly Work server reads
   the assessed configuration from a read-only mount and runs as non-root with a
   read-only root filesystem, no privilege escalation and all capabilities
   dropped. It uses `/healthz` and `/readyz` for its probes. Every ingress host
@@ -60,7 +60,7 @@ that check. Judge each difference for your own deployment.
 
 Network probes use GET only, normal TLS validation, a timeout and a response-size
 limit. They send no credentials and do not follow redirects. `/healthz` must
-return Work JSON identifying gated access; `/readyz` must identify PostgreSQL.
+return Lolly Work JSON identifying gated access; `/readyz` must identify PostgreSQL.
 Anonymous requests to the users, projects and audit routes must return 401/403.
 A redirect to an identity provider is recorded as unverified; a 200 login page
 does not pass as application readiness. For a disposable local rehearsal only,

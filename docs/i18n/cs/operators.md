@@ -9,7 +9,7 @@ Začni stránkou [Používej Lolly ve své organizaci](/info/organisation.html),
 - [Adoption & Governance](/info/adoption-governance.html) pokrývá zavádění a roli pravidel značky.
 - [Identita a relace](/info/work-identity.html) pokrývají přihlášení a mapování skupin. [Role a oprávnění](/info/work-permissions.html) vysvětlují role, oprávnění a ochranu vlastníka.
 - [Politika a řízení](/info/work-governance.html) pokrývají překryvy nástrojů, zamčené vstupy a politiku. [Správa politiky AI organizace](/info/work-ai-policy.html) pokrývá schvalování a limity provádění.
-- [Kontroly dat účtu](/info/work-account-lifecycle.html) a [Úložiště Work a životní cyklus dat](/info/work-data-lifecycle.html) pokrývají exporty, odchod, uchovávání a jejich meze.
+- [Kontroly dat účtu](/info/work-account-lifecycle.html) a [Úložiště Lolly Work a životní cyklus dat](/info/work-data-lifecycle.html) pokrývají exporty, odchod, uchovávání a jejich meze.
 - [Profily, značky a konfigurace nástrojů](/info/configuration.html) pokrývají, které nástroje a designové systémy sestavení Lolly nese.
 
 ## Připoj assety a revidujte práci

@@ -1,0 +1,119 @@
+/* Scorecard - one page that fills the canvas. The page is the query
+   container every cq unit below resolves against. The rows run in two
+   columns on a page and a wide screen and in one on a portrait sheet; the
+   bars are filled to each score, and a criterion with no score shows an
+   empty, dashed track. */
+
+.qs-page {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  container-type: size;
+  box-sizing: border-box;
+  border-top: 1.8cqmin solid var(--qs-accent, #2563eb);
+  background: var(--qs-bg, #ffffff);
+  color: var(--qs-ink, #111827);
+  font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  line-height: 1.35;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.qs-page * { box-sizing: border-box; margin: 0; }
+
+.qs-sheet {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3.4cqmin;
+  padding: 5.5cqmin 6cqmin 5cqmin;
+  font-size: 2.4cqmin;
+}
+
+.qs-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 4cqmin; }
+.qs-kicker {
+  display: block;
+  color: var(--qs-accent, #2563eb);
+  font-size: 2.1cqmin;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.qs-title { margin-top: 0.8cqmin; font-size: 5.4cqmin; font-weight: 750; line-height: 1.05; letter-spacing: -0.015em; }
+
+.qs-overall {
+  flex: none;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  gap: 0.4cqmin 2cqmin;
+  min-width: 26cqmin;
+}
+.qs-overall-label { font-size: 2cqmin; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.65; }
+.qs-overall-value { justify-self: end; font-size: 6cqmin; font-weight: 750; line-height: 1; font-variant-numeric: tabular-nums; color: var(--qs-accent, #2563eb); }
+.qs-overall-bar { grid-column: 1 / -1; }
+.qs-overall-note { grid-column: 1 / -1; font-size: 1.9cqmin; opacity: 0.6; }
+
+.qs-rows {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(var(--qs-per-col, 4), auto);
+  grid-auto-flow: column;
+  gap: 2.4cqmin 5cqmin;
+  align-content: start;
+}
+.qs-row { display: flex; gap: 2cqmin; align-items: flex-start; min-width: 0; }
+.qs-initial {
+  flex: none;
+  width: 6cqmin;
+  height: 6cqmin;
+  border-radius: 1.2cqmin;
+  display: grid;
+  place-items: center;
+  background: var(--qs-accent, #2563eb);
+  color: var(--qs-bg, #ffffff);
+  font-size: 3.2cqmin;
+  font-weight: 750;
+}
+.is-unknown .qs-initial { background: transparent; color: var(--qs-accent, #2563eb); box-shadow: inset 0 0 0 0.3cqmin currentColor; }
+.qs-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.8cqmin; }
+.qs-line { display: flex; justify-content: space-between; gap: 2cqmin; }
+.qs-name { font-weight: 700; }
+.qs-score { flex: none; font-weight: 700; font-variant-numeric: tabular-nums; }
+.is-unknown .qs-score { font-weight: 400; opacity: 0.6; }
+
+.qs-bar, .qs-overall-bar {
+  display: block;
+  height: 1.1cqmin;
+  border-radius: 1cqmin;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  overflow: hidden;
+}
+.qs-bar > span, .qs-overall-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--qs-accent, #2563eb); }
+.is-mid .qs-bar > span { background: color-mix(in srgb, var(--qs-accent, #2563eb) 72%, var(--qs-bg, #ffffff)); }
+.is-low .qs-bar > span { background: color-mix(in srgb, var(--qs-accent, #2563eb) 45%, var(--qs-bg, #ffffff)); }
+.is-unknown .qs-bar { background: transparent; border: 0.2cqmin dashed color-mix(in srgb, currentColor 35%, transparent); }
+
+.qs-evidence { font-size: 0.88em; opacity: 0.75; overflow-wrap: anywhere; }
+.qs-evidence strong { font-weight: 700; }
+
+/* Portrait: one column of rows. */
+@container (max-aspect-ratio: 4 / 5) {
+  .qs-head { flex-direction: column; align-items: stretch; }
+  .qs-rows { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-flow: row; }
+}
+
+/* Wide: a screen or a slide, sized to the page's height (cqmin). */
+@container (min-aspect-ratio: 2 / 1) {
+  .qs-sheet { padding: 6cqmin 7cqmin 5cqmin; font-size: 3.4cqmin; gap: 4cqmin; }
+  .qs-kicker { font-size: 3cqmin; }
+  .qs-title { font-size: 7.6cqmin; }
+  .qs-overall { min-width: 40cqmin; }
+  .qs-overall-label { font-size: 2.8cqmin; }
+  .qs-overall-value { font-size: 9cqmin; }
+  .qs-overall-note { font-size: 2.6cqmin; }
+  .qs-rows { gap: 3cqmin 9cqmin; }
+  .qs-initial { width: 8cqmin; height: 8cqmin; font-size: 4.4cqmin; }
+  .qs-bar, .qs-overall-bar { height: 1.5cqmin; }
+}

@@ -198,7 +198,7 @@ const leads = family.length >= 2 ? family.map((m) => m.value) : [];
 
 Put the leads ahead of the colours you would otherwise draw, never in their place. A design system with two colourways and no spectrum of its own still needs a full categorical palette, and two leads alone would repeat from the third series on. For chart series, prefer the brand's own `color.spectrum.*` tokens from `host.tokens.colors()` (they carry measured print inks), top up with [`host.color.distinct()`](#host-color) anchored on `{color.semantic.primary}` and keep your shipped palette as the fallback; `chart` is the reference.
 
-The web shell, the CLI and the hook Worker answer `family()` and `axes()` with the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A colourway or look switch re-points the slots without running `onInit`, so a hook that keeps colours it read there reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) describes. A hook can also compare `{color.semantic.primary}`, and any other slot it depends on, on each `onInput` and read again when the value changed, which catches an edit to the design system too. Chart, Mesh Gradient and Filter do both.
+The web shell, the CLI and the hook Worker answer `family()` and `axes()` with the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A colourway or look switch re-points the slots without running `onInit`, so a hook that keeps colours it read there reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) describes. A hook can also compare `{color.semantic.primary}`, and any other slot it depends on, on each `onInput` and read again when the value changed, which catches an edit to the design system too. Lolly Chart, Mesh Gradient and Filter do both.
 
 ### `host.text`
 
@@ -311,7 +311,7 @@ An animated source flattens to its first frame. Read the *result's* `mime`, `wid
 
 ### `host.raster`
 
-*Optional, v1.105.* The sibling of `host.images` for tools that composite, sample or change pixels *themselves* (Darkroom, the Filter tool, the logo composers, Redact). Where `images` converts bytes to bytes with no pixel access, this hands back drawable pixels. Fall back to your placeholder where it is absent. The headless CLI provides it when the optional Skia canvas (`@napi-rs/canvas`) resolves, which is what lets `lolly redact` repaint pixels locally; on a lean install without it the member stays undefined.
+*Optional, v1.105.* The sibling of `host.images` for tools that composite, sample or change pixels *themselves* (Lolly Darkroom, the Filter tool, the logo composers, Redact). Where `images` converts bytes to bytes with no pixel access, this hands back drawable pixels. Fall back to your placeholder where it is absent. The headless CLI provides it when the optional Skia canvas (`@napi-rs/canvas`) resolves, which is what lets `lolly redact` repaint pixels locally; on a lean install without it the member stays undefined.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -324,7 +324,7 @@ An animated source flattens to its first frame. Read the *result's* `mime`, `wid
 
 ### `host.codec`
 
-*Optional, v1.100.* Encode a float pixel frame into finished image bytes at real bit depth. It is the counterpart of `host.export.render`, which rasterises the DOM to 8-bit. A tool that computes its own high-precision pixels, such as a float grading pipeline or a renderer with real headroom, hands over a linear Float32 RGBA frame and gets back a 16-bit PNG, an OpenEXR or Radiance HDR master or an error-diffused 8-bit PNG, depths the browser's 8-bit canvas cannot originate. Fall back to the ordinary 8-bit export where it is absent. Darkroom is the reference consumer.
+*Optional, v1.100.* Encode a float pixel frame into finished image bytes at real bit depth. It is the counterpart of `host.export.render`, which rasterises the DOM to 8-bit. A tool that computes its own high-precision pixels, such as a float grading pipeline or a renderer with real headroom, hands over a linear Float32 RGBA frame and gets back a 16-bit PNG, an OpenEXR or Radiance HDR master or an error-diffused 8-bit PNG, depths the browser's 8-bit canvas cannot originate. Fall back to the ordinary 8-bit export where it is absent. Lolly Darkroom is the reference consumer.
 
 ::: details `host.codec` members
 A **`CodecFrame`** is `{ width, height, data: Float32Array, space? }`. `data` is RGBA interleaved, linear light, un-premultiplied and unbounded. `space` carries the working primaries with the buffer: `'srgb-linear'` (the default), `'display-p3-linear'` or `'rec2020-linear'`. The maths is the engine's own writers, so the shell only forwards, and web and CLI produce byte-identical output from the same frame.
@@ -368,7 +368,7 @@ A **`ScanHit`** is `{ format, rawValue, rawBytes?, corners? }`. `rawValue` is un
 
 ### `host.lift`
 
-*Optional, v1.123.* `svg(source)` fetches and sanitises an SVG named by URL (a catalog asset, a `blob:` or a `data:` URL) and returns its layers in paint order as standalone SVG documents with their ink boxes, plus the source viewBox. A source that is not an SVG, or has fewer than two layers, comes back with `layers: []`; the method throws only on a fetch or parse failure. Turning layers into depth is the caller's job. The web and desktop shells provide it; the Node shells do not. Flythrough is the reference tool.
+*Optional, v1.123.* `svg(source)` fetches and sanitises an SVG named by URL (a catalog asset, a `blob:` or a `data:` URL) and returns its layers in paint order as standalone SVG documents with their ink boxes, plus the source viewBox. A source that is not an SVG, or has fewer than two layers, comes back with `layers: []`; the method throws only on a fetch or parse failure. Turning layers into depth is the caller's job. The web and desktop shells provide it; the Node shells do not. Lolly Flythrough is the reference tool.
 
 ## Vector, layout and motion
 
@@ -429,7 +429,7 @@ The currency both ways is an **SVG path-data string**, which already lives in yo
 
 ### `host.keyframes`
 
-*Optional, v1.124.* `sample(kf, count)` evaluates a `kf` track (the format the Design tool's camera and every keyframed input use) at `count` evenly spaced times across its own span, and returns each pose as a channel-to-value map (`x`, `y`, `z`, `rx`, `ry`, …). The engine owns the parsing, interpolation and easing, so a template's motion matches the Design tool's; the template decides how the channels map onto its own scene. An empty or unreadable track returns `[]`. The web and desktop shells provide it; the Node shells do not. Flythrough is the reference tool.
+*Optional, v1.124.* `sample(kf, count)` evaluates a `kf` track (the format the Design tool's camera and every keyframed input use) at `count` evenly spaced times across its own span, and returns each pose as a channel-to-value map (`x`, `y`, `z`, `rx`, `ry`, …). The engine owns the parsing, interpolation and easing, so a template's motion matches the Design tool's; the template decides how the channels map onto its own scene. An empty or unreadable track returns `[]`. The web and desktop shells provide it; the Node shells do not. Lolly Flythrough is the reference tool.
 
 ## Documents and text
 
@@ -463,7 +463,7 @@ PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips 
 
 ### `host.prepare`
 
-*Optional.* Inspect files for hidden data and personal values, then write copies with the replacements the person chose. Working values stay in memory, and the report leaves private values out. The web, desktop, CLI and TUI shells provide the API. Strip Hidden Data is the reference tool.
+*Optional.* Inspect files for hidden data and personal values, then write copies with the replacements the person chose. Working values stay in memory, and the report leaves private values out. The web, desktop, CLI and TUI shells provide the API. Lolly Strip Hidden Data is the reference tool.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -603,7 +603,7 @@ An **`AudioLevel`** is the audio counterpart to `MediaFrame` (all amplitudes `0.
 
 `AudioFrames` is **struct-of-arrays**, indexed by frame (a minute at 60fps is 3,600 frames, and a draw loop wants flat typed arrays, not 3,600 objects): `count`, `bands`, `samples`, then `t`, `rms`, `peak`, `bass`, `mid`, `treb`, `centroid` and `flux` (one entry per frame) and `magnitude`, `wave`, `waveL` and `waveR` (`count` consecutive rows; row *i* of the spectrum starts at `i * bands`).
 
-Design around three behaviours:
+Lolly Design around three behaviours:
 
 - Everything is normalised `0..1` across the analysed window **except `peak`**, which stays absolute so you can still tell that a source clipped. Normalisation is what lets a quiet voice memo and a mastered single both fill the frame.
 - `bass` / `mid` / `treb` share **one** scale, so they read as a balance. Normalised separately, a bass-only clip would report treble pinned at 1.0.

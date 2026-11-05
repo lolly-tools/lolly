@@ -20,7 +20,7 @@ Pumili ng tool at punan ito, o malayang mag-layout ng page sa Design canvas.
 
 Ang design system mo ang nagpapasya kung ano ang itsura ng bawat tool.
 
-- **[Design System Setup](/info/brand-studio.html)** - mga logo, kulay, type at iba pa, itakda nang minsan sa `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - mga logo, kulay, type at iba pa, itakda nang minsan sa `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - mga colourway sa totoong gawa, at paglipat sa sarili mong design system.
 - **[Brand architectures](/info/brand-architectures.html)** - ilang design system, o isa na may ilang colourway, para sa isang organisasyon.
 - **[Pakikipagtulungan sa mga partner](/info/partners.html)** - ibahagi ang brand mo sa partner, magtrabaho sa brand na ibinigay sa iyo at gumawa ng sponsor wall.
@@ -31,8 +31,8 @@ Ang design system mo ang nagpapasya kung ano ang itsura ng bawat tool.
 ## Hanapin at itago ang gawa mo
 
 - **[Hanapin at bawiin ang gawa mo](/info/find-your-work.html)** - kung saan napunta ang naka-save, na-download o hindi pa na-save na file.
-- **[Search](/info/search.html)** at **[Ask Lolly](/info/ask.html)** - isang field para sa mga tool, naka-save na gawa, asset at setting mo, at mga sagot mula sa mga gabay na ito.
-- **[Settings](/info/dashboard.html)** - ang kaya ng device na ito, ang design system mo na read-only at ang storage mo.
+- **[Lolly Search](/info/search.html)** at **[Ask Lolly](/info/ask.html)** - isang field para sa mga tool, naka-save na gawa, asset at setting mo, at mga sagot mula sa mga gabay na ito.
+- **[Lolly Settings](/info/dashboard.html)** - ang kaya ng device na ito, ang design system mo na read-only at ang storage mo.
 - **[Mga paborito mo](/info/favourites.html)** at **[Mga profile](/info/profile.html)** - mga naka-star na tool, ang mga detalyeng pre-fill ng mga tool at ang mga accessibility switch.
 - **[Sync your devices](/info/sync.html)** - parehong gawa sa computer at phone mo, sa pamamagitan ng storage na pinili mo.
 

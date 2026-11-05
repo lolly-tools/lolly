@@ -14,13 +14,13 @@ Tvůj profil také drží to, co při práci nashromáždíš: uložené relace,
 | **Headshot** | Volitelná fotka, oříznutá na čtverec a uložená jako místní obrázek, pro nástroje jako e-mailové podpisy, citační karty a organizační schémata. |
 | **Use my details to create** | Jeden volitelný přepínač (po zapnutí se jmenuje **Using my details**). Rozhoduje, zda tvé údaje putují jako autorské uvedení v exportovaných souborech a při během úloh Batch. Neovlivňuje předvyplňování; viz [Jak nástroje používají tvůj profil](#how-tools-use-your-profile). |
 | **Preferences** | Tvůj motiv, tvůj colourway v každém designovém systému, nastavení přístupnosti a které části aplikace sis zapnul v **Feature flags**. |
-| **Your work** | Uložené relace s miniaturami, uspořádané v [Projects](/info/find-your-work.html), tvé nahrané obrázky a místní statistiky aktivity. |
+| **Your work** | Uložené relace s miniaturami, uspořádané v [Lolly Projects](/info/find-your-work.html), tvé nahrané obrázky a místní statistiky aktivity. |
 
 Nic z toho není povinné. Prázdný profil funguje; vyplň jen to, co ti ušetří psaní.
 
 ![Settings na kartě Preferences: lišta nastavení a Your details s přepínačem Use my details to create a poli jména, kontaktu a polohy](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) mapuje vše ostatní pod Preferences, od vzhledu a emoji po úložiště a offline stahování.
+[Lolly Settings](/info/dashboard.html) mapuje vše ostatní pod Preferences, od vzhledu a emoji po úložiště a offline stahování.
 
 ## Ty, tým nebo role
 
@@ -83,7 +83,7 @@ Autoři nástrojů: viz [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) 
 Tři věci leží v Settings blízko sebe a snadno se pletou:
 
 - <!--i:people--> **Profile** - ty, tvůj tým nebo role, ve které jsi: jméno, kontakt, portrét a uložená práce. Osobní, uchovaný na zařízení a přenosný jako soubor.
-- <!--i:palette--> **Design system** - značka: barvy, písma a nastavení, s nimiž se vykresluje každý nástroj. Sdílený a konzistentní, ne osobní; viz [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - značka: barvy, písma a nastavení, s nimiž se vykresluje každý nástroj. Sdílený a konzistentní, ne osobní; viz [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - co aplikace umí: funkce a nástroje, které máš k dispozici.
 
 Profil mění, od koho soubor je; designový systém mění, jak soubor vypadá; schopnosti jsou to, co můžeš vytvořit.

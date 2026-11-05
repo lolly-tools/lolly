@@ -2,9 +2,9 @@
 
 Hindi mababasa ng web page ang mga pixel ng ibang website, kaya kailangan ng Lolly web app ng tulong para mag-screenshot ng page. Sa Chromium-based na browser (Chrome, Edge, Brave, Arc o Opera, mula Chrome 111), ang libreng **Lolly URL Screenshot** extension ang nagbibigay ng tulong na iyon, gamit ang parehong capture na ginagamit ng desktop app. Kapag naka-install ito:
 
-- Sine-save ng **[URL Screenshot](/t/url-shot)** ang page na binuo mo bilang file;
+- Sine-save ng **[Lolly URL Screenshot](/t/url-shot)** ang page na binuo mo bilang file;
 - ang web address na na-paste sa image slot ay maaaring maging screenshot ng page na iyon, gamit ang **Screenshot this page**;
-- ang **Website** source sa [Design System Setup](/info/brand-studio.html) ay maaaring magbasa ng isang page para magsimula ng design system.
+- ang **Website** source sa [Lolly Design System Setup](/info/brand-studio.html) ay maaaring magbasa ng isang page para magsimula ng design system.
 
 Aaprubahan mo ang bawat request, at ginagawa ng desktop app ang parehong trabaho nang walang extension.
 

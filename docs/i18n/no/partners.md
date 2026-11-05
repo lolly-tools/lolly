@@ -16,7 +16,7 @@ To ord betyr det samme overalt på denne siden. **Hovedmerkevaren** er merkevare
 
 | Send | Hvordan | Partneren får | Passer for |
 | --- | --- | --- | --- |
-| En designsystemfil | **Export** i linjen øverst i [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Tokens, skrifter, logoer og temainnstilling fra deg, som et designsystem partneren kan bytte til | En partner som lager mange produkter i merkevaren din |
+| En designsystemfil | **Export** i linjen øverst i [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Tokens, skrifter, logoer og temainnstilling fra deg, som et designsystem partneren kan bytte til | En partner som lager mange produkter i merkevaren din |
 | Et gjenbrukbart verktøy | I Design, **Share with rules** ([Del et design med regler](/info/create-a-tool.html)) | Én ferdig layout med inndataene du tillater, for eksempel navnet og logoen deres. Filen inneholder de løste fargene, skriftene og bildene, så partnerens eget designsystem kan ikke endre stilen på den faste grafikken | Et felles flygeblad, navneskilt eller banner som hver partner fyller ut |
 | Merkevareferdigheter | Rommet **Skills**: **Download skill (.zip)** eller **Copy as one file** | De skriftlige standardene dine, for partnerens folk og agenter | Et av de to alternativene over, når en agent gjør deler av jobben |
 | Tokens | **Tokens (.json)** i **More**-menyen i studioet | Selve design-token-dokumentet, uten skrifter og logoer | Partnerens egne designverktøy eller byggeprosess |
@@ -125,5 +125,5 @@ Logovegg kjenner ingen sponsors regler. Tier og Presence setter størrelser i fo
 - **[Merkevarearkitekturer](/info/brand-architectures.html)**: samarbeid mellom to merkevarer, white label og de andre ordningene, med hva du gjør i Lolly for hver.
 - **[Del et design med regler](/info/create-a-tool.html)**: gjenbrukbare verktøy med fast layout og inndataene du velger.
 - **[Merkevareferdigheter](/info/brand-skills.html)**: hvordan ferdigheter skrives, leses og gis til en agent.
-- **[Design System Setup](/info/brand-studio.html)**: logoer, tilpassede merker og flytting av et designsystem mellom enheter.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: logoer, tilpassede merker og flytting av et designsystem mellom enheter.
 - **[Kreative rettigheter og kreditering](/info/creative-rights.html)**: hva Lolly registrerer om verkene den tegner.

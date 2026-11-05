@@ -6,6 +6,36 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.308.0
+
+- Brand pages (new modules `brand-page.ts`, `brand-page-render.ts`, not re-exported from `index.ts`): `buildBrandPage` writes a folder that is a press kit and an agent kit, with `brand.json`, the page, `DESIGN.md`, `AGENTS.md`, `llms.txt`, tokens, checks and whatever rights allow. Same input, same bytes. Wire shapes are `@lolly-tools/core/brand-page-v1`.
+- DESIGN.md (new module `design-md.ts`, not re-exported): `writeDesignMd` targets the format's `alpha` version, one file per colourway and mode. `parseDesignMd` is bounded, refuses what it cannot read and returns a proposal.
+- `asset-rights.ts` (new, not re-exported): the rights readers and `redistribution()` moved down from the web shell, so a `.lolly` pack, a brand skill folder and a brand page give the same answer. Answers are unchanged.
+- `checkDesignHouseRules` takes an optional `selection`, so rules can run per colourway and mode. Absent, behaviour is unchanged.
+
+## 1.307.0
+
+- `mapBannerbearTemplate` (`design-map-bannerbear.ts`) turns a Bannerbear V5 image template's `config.objects` into Design rows, a report of everything left out, a `DesignToolDraftV1` and a mapping entry for `lw render-api`. Layer names become stable ids. Built from public documentation, never run against a live account. Reached by the CLI's `lolly import` and Design Import, not the barrel.
+- `@lolly-tools/core/design-tool-v1` exports `isDesignToolInputId`, the rule `validateDesignTool` already applied.
+
+## 1.306.0
+
+- Intent in Content Credentials: `EmbedOptions.intent` writes a `tools.lolly.intent` assertion (`LOLLY_INTENT_ASSERTION`, `C2paIntentRecord`), after every other assertion, so a manifest without one keeps its exact bytes. The shape is closed: closed values read as themselves, and occasion, audience, region and the prompt are `sha256:` fingerprints unless the run asks for the prompt's words.
+- `C2paReport.intent` reads the record from a credential that verifies, with `promptNote` (`INTENT_PROMPT_NOTE`) beside any recorded prompt words, because they are text someone wrote.
+- New module `intent-record.ts`: `intentRecordFor` builds the record from a resolution with stable refusals (`INTENT_RECORD_CODES`), `confirmIntentRecord` decides "recorded" from a readback, and `intentRecordWords` gives every surface the same words.
+
+## 1.305.0
+
+- Visual intent (new module `intent.ts`): `resolveIntent` takes what a piece has to do (`VisualIntentV1` in `@lolly-tools/core/intent-v1`) and the tools a caller may consider, and answers with `IntentResolutionV1`: for each surface the chosen tool, its input values, gaps, unused content, candidates with reasons and refusals with reasons. Pure and deterministic, with no model in the path. A request with a `prompt` and no `purpose` is answered `purpose-needed`, carrying the purposes and tools so the calling agent can choose: the prompt is carried and digested and never read. `parseVisualIntent` refuses with stable codes, and `checkToolIntents` is the catalog validator's rule set.
+- Tool `intents.json` (optional sidecar, `schemas/tool-intents-v1.schema.json`): the purposes a tool serves, the roles it needs, role to input mapping, input values a purpose starts from and surfaces its sized options cannot already state. `parseToolIntents` and `loadIntentTools` read it through whatever content resolver a shell hands them. `loadTool` never reads the file and the manifest schema gains no key, so an older engine is unaffected and no tool's floor moves. A tool with no sidecar is not offered for an intent. Nothing is written into output bytes.
+
+## 1.304.0
+
+- `tools.lolly.approval`: a signed record that an approval was decided, with the approval id, the decided time and the reviewed file's SHA-256, and nothing else. The writer refuses any other field, and refuses a record with no credentialed parent. `embedC2pa` takes it as the additive `approval` option; without one, output is unchanged.
+- `recordApprovalInCredential` adds the update over a reviewed file (PNG, JPEG, SVG, PDF) and reports `recorded` only after a readback confirms the record, an intact credential and unchanged artwork. Any other result is `not-recorded` with a reason, and the caller keeps the reviewed bytes. `artworkUnchanged` is the comparison it uses.
+- `verifyC2pa` reports `approval` as data beside `state`. An update's export facts (tool, inputs, author, AI declaration) are read from its parent once the parent matches the hash the update signed. A parent that does not match fails with the new `ingredient.manifest.mismatch` check.
+- `embedC2paInPdf` can repoint a PDF's own `manifest.c2pa` entry for such an update, as one more incremental revision, so the reviewed file stays an exact prefix. Without an approval it refuses an existing tree as before.
+
 ## 1.303.0
 
 - Text-keeping PDF redaction: `host.pdf.redact` takes optional `keepText` (`PdfRedactOpts`) and reports `mode` (`PdfRedactResult`). The shell removes the glyphs, picture pixels and drawings under each box, keeps the rest of the page as text, then re-reads the result with Lolly's own reader and refuses it when anything is left under a box or cannot be checked. Flattening stays the default.

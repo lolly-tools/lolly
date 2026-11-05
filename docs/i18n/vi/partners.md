@@ -16,7 +16,7 @@ Hai thuật ngữ có nghĩa như nhau ở mọi nơi trong trang này. **Thươ
 
 | Gửi | Cách làm | Đối tác nhận được | Phù hợp với |
 | --- | --- | --- | --- |
-| Tệp hệ thống thiết kế | **Export** trên thanh ở đầu [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Token, phông chữ, logo và tùy chọn giao diện của bạn, dưới dạng một hệ thống thiết kế họ có thể chuyển sang dùng | Đối tác làm nhiều sản phẩm trong thương hiệu của bạn |
+| Tệp hệ thống thiết kế | **Export** trên thanh ở đầu [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Token, phông chữ, logo và tùy chọn giao diện của bạn, dưới dạng một hệ thống thiết kế họ có thể chuyển sang dùng | Đối tác làm nhiều sản phẩm trong thương hiệu của bạn |
 | Một công cụ dùng lại được | Trong Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Một bố cục hoàn chỉnh cùng các đầu vào bạn cho phép, chẳng hạn tên và logo của họ. Tệp mang theo màu, phông chữ và hình ảnh đã được chốt, nên hệ thống thiết kế riêng của họ không thể đổi kiểu cho phần hình cố định | Tờ rơi, huy hiệu hoặc banner đồng thương hiệu mà mỗi đối tác tự điền |
 | Kỹ năng thương hiệu | Phòng **Skills**: **Download skill (.zip)** hoặc **Copy as one file** | Các tiêu chuẩn bằng văn bản của bạn, dành cho nhân sự và agent của họ | Một trong hai cách trên, khi agent làm một phần việc |
 | Token | **Tokens (.json)** trong menu **More** của studio | Tài liệu design token thuần túy, không có phông chữ hay logo | Công cụ thiết kế hoặc quy trình build riêng của đối tác |
@@ -125,5 +125,5 @@ Tường logo không biết quy tắc của bất kỳ nhà tài trợ nào. Tie
 - **[Kiến trúc thương hiệu](/info/brand-architectures.html)**: đồng thương hiệu, white label và các cách sắp xếp khác, kèm việc cần làm trong Lolly cho từng cách.
 - **[Share a design with rules](/info/create-a-tool.html)**: công cụ dùng lại được với bố cục cố định và các đầu vào do bạn chọn.
 - **[Kỹ năng thương hiệu](/info/brand-skills.html)**: kỹ năng được viết, đọc và giao cho agent thế nào.
-- **[Design System Setup](/info/brand-studio.html)**: logo, biểu trưng tùy chỉnh, và chuyển hệ thống thiết kế giữa các thiết bị.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: logo, biểu trưng tùy chỉnh, và chuyển hệ thống thiết kế giữa các thiết bị.
 - **[Creative rights and credits](/info/creative-rights.html)**: Lolly ghi lại điều gì về các tác phẩm mà nó vẽ.

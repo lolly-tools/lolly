@@ -5,9 +5,9 @@ provider, with logout, optional assurance claims and machine credentials. Use it
 [Install](install.md) and [Operations](operations.md). What the settings mean for the people
 signing in is on [Sign-in and sessions](identity.md).
 
-Work owns organisation sign-in, admission and revocation. Serve the Lolly web shell and Work on
+Lolly Work owns organisation sign-in, admission and revocation. Serve the Lolly web shell and Lolly Work on
 the same HTTPS origin. The optional Lolly Content Credentials CA has its own provider
-registration and trust policy; a Work session does not sign a person into that CA.
+registration and trust policy; a Lolly Work session does not sign a person into that CA.
 
 ::: timeline
 - <!--i:server--> **Prepare the deployment.** Final address, secrets, database and network access.
@@ -47,7 +47,7 @@ Create an Authorization Code client with PKCE S256 and these exact URLs, replaci
 | Back-channel logout URI, primary provider | `https://work.example.com/api/auth/backchannel-logout/primary` |
 | Back-channel logout URI, additional provider | `https://work.example.com/api/auth/backchannel-logout/<id>` |
 | Scopes | `openid profile email`, plus any provider scopes needed for groups |
-| ID token algorithm | RS256 by default; ES256 or PS256 only with matching Work configuration |
+| ID token algorithm | RS256 by default; ES256 or PS256 only with matching Lolly Work configuration |
 
 Use a confidential client where possible. Match `tokenEndpointAuthMethod` to the
 registration: `client_secret_basic`, `client_secret_post` or `none` for a public PKCE client.
@@ -61,7 +61,7 @@ for **both ID tokens and logout tokens to contain `sid`**. The provider must rea
 back-channel route directly, without an interactive proxy login.
 
 ::: details How the back-channel route checks a logout
-- It verifies signed logout tokens and needs no Work cookie.
+- It verifies signed logout tokens and needs no Lolly Work cookie.
 - It shares the configurable per-IP `auth` rate-limit bucket with sign-in. Qualify provider
   retries for HTTP 429 and 503, and size that bucket for logout bursts.
 - It accepts form-encoded POSTs, requires the logout event, issuer, audience, issue time and
@@ -114,13 +114,13 @@ example, after checking your issuer's actual claim vocabulary:
 - `acrValues` accepts any one listed `acr`. `amrValues` requires every listed method in `amr`.
   These strings have issuer-specific meanings.
 - `maxAgeSeconds` requires `auth_time` and allows up to sixty seconds of clock difference.
-- Work sends `acr_values` and `max_age` and verifies the returned claims. Request hints alone
+- Lolly Work sends `acr_values` and `max_age` and verifies the returned claims. Request hints alone
   do not enforce MFA.
 - The policy governs that provider's new sign-ins. It does not impose MFA on other providers,
   password, proxy or passkey sign-ins, and it does not invalidate cookies already issued.
   Review those paths separately before claiming an organisation-wide MFA requirement.
 
-Work requires signed `iss`, nonempty `sub`, `aud`, `exp` and `iat`, plus the transaction
+Lolly Work requires signed `iss`, nonempty `sub`, `aud`, `exp` and `iat`, plus the transaction
 nonce. The audience must include this client and no other audience unless it is listed in
 `trustedAudiences`. When present, `azp` must equal this client. Leave extra audiences unset
 unless the provider requires them and you have reviewed their trust boundary. Algorithms,
@@ -148,20 +148,20 @@ Use a candidate environment with the same ingress and provider policy as product
 2. Test every provider and configured assurance failure, including missing claims. Confirm
    that a refused callback creates no usable session and that the audit trail explains the
    failure without recording tokens or secrets.
-3. Use ordinary **Sign out**. Confirm that only the local browser leaves Work and that another
+3. Use ordinary **Sign out**. Confirm that only the local browser leaves Lolly Work and that another
    application at the provider stays signed in.
 4. Use **Sign out of identity provider** from the browser profile or console, and confirm the
-   warning. Check provider sign-out and the registered return URL. Work sends `client_id` and
+   warning. Check provider sign-out and the registered return URL. Lolly Work sends `client_id` and
    a subject `logout_hint`; it does not keep an `id_token_hint`. Providers may prompt again or
    need a different logout integration. A provider without a discovered
    `end_session_endpoint` reports that sign-out is unavailable, and local sign-out still works.
    Native and device clients use the browser for provider sign-out.
 5. Create two independent provider sessions for one person. Send a real logout event for one
-   `sid`: only that session, and devices and renewals derived from it, should lose Work access.
+   `sid`: only that session, and devices and renewals derived from it, should lose Lolly Work access.
    Repeat the event and check that it succeeds without duplicate audit rows. Test through each
    replica and the collaboration endpoint. This checks access on the next authenticated
    operation; it does not erase data already downloaded.
-6. Disable the person through SCIM or the Work admin interface. Confirm that every sign-in and
+6. Disable the person through SCIM or the Lolly Work admin interface. Confirm that every sign-in and
    device loses access, including linked personal identities. Re-enable only once you have
    confirmed the person should regain access.
 7. Rotate a provider signing key in the candidate. A new `kid` should trigger an early JWKS
@@ -201,7 +201,7 @@ Upgrade all replicas before depending on the new checks. Older cookies have no p
 session binding or standing deadline, so they cannot gain these protections through renewal.
 Let them expire under the previous maximum lifetime, or revoke accounts' existing sessions and
 require fresh sign-in for a bounded cutover. Deploy the updated Lolly shell to show the
-provider sign-out action in Settings; the updated Work console offers the same action on its
+provider sign-out action in Settings; the updated Lolly Work console offers the same action on its
 own.
 
 **Rollback.** Keep the new tables; do not automatically reverse database migrations. An older
@@ -211,7 +211,7 @@ been revoked. Test the previous image against the migrated database in the candi
 environment before you need a rollback. Reverting an assurance setting affects future
 sign-ins; it does not rebuild sessions that were refused.
 
-**Secret and issuer changes.** Follow [secret rotation](operations.md) for Work's session and
+**Secret and issuer changes.** Follow [secret rotation](operations.md) for Lolly Work's session and
 link keys and their previous-key overlap. Rotate client credentials at the provider and in
 the secret manager with provider-supported overlap, then roll all replicas and verify a new
 sign-in. JWKS keys are fetched automatically and cached for ten minutes, with early refresh for
@@ -245,7 +245,7 @@ membership. Passwords, bulk, sort and ETags are declared unsupported in
 
 SCIM is another writer of the one identity model, never a second one:
 
-- A SCIM **User** is a Work account. Its `externalId` receives the configured connector
+- A SCIM **User** is a Lolly Work account. Its `externalId` receives the configured connector
   subject prefix that OpenID Connect sign-in uses, so a person the provider provisions and the
   same person signing in resolve to **one account**. The groups SCIM set survive that sign-in,
   because they are stored as local groups (durable), not as provider groups (re-synced at each
@@ -284,7 +284,7 @@ assigned to another connector cannot be reassigned by this route. Earlier tokens
 date, and resources without an assignment, stay unavailable to SCIM.
 
 SAML is not implemented. A broker such as Keycloak bridges a SAML-only provider to the OpenID
-Connect that Work already speaks ([SAML recipe](identity-providers.md#saml)).
+Connect that Lolly Work already speaks ([SAML recipe](identity-providers.md#saml)).
 
 ### Service tokens
 
@@ -292,11 +292,25 @@ A service token gives automation an identity of its own: CI running `lw export` 
 a governance drift check or an audit poller, with no session cookies in secret stores.
 
 ```sh
-lw tokens create --label ci --role admin --days 90
+lw tokens create --label nightly-renders --scopes render --days 90
+lw tokens create --label governance-sync --role admin --days 90
 ```
 
-- A new token carries the role you choose and expires after 90 days by default; `ttlDays`
-  accepts 1 to 365.
+- Give a token scopes when you can. Scopes (`render`, `documents`, `files`, `delivery`,
+  `catalog.read`, `audit.read`) say what the token may reach and refuse every other route with
+  `403 TOKEN_SCOPE`, including routes added later. `--tools` limits it further to the tools you list. The
+  [automation guide](automation-api.md#before-you-start-a-token-and-a-permission) lists what each
+  scope opens.
+- A scope only narrows. A route must pass the scope and then the role and grants, so no scope gives
+  a token an action its role lacks. A token with scopes and no role takes the `automation` role,
+  which holds the actions the scopes need without the rest of the admin role. No person can hold
+  that role.
+- A token with no scopes needs a role, any but `guest` or `automation`, and reaches all that the role
+  allows. Use this for automation no scope covers yet, such as governance export and apply or
+  provider sync.
+- Scopes and the tool list are fixed at mint and are recorded in the audit trail. To change them,
+  mint a new token and revoke the old one.
+- A new token expires after 90 days by default; `ttlDays` accepts 1 to 365.
 - Presenting it resolves to a synthetic principal with the token's role and no groups. The
   role evaluator, grants and the audit trail treat it exactly like a person, so there is no
   second authorization model.
@@ -318,4 +332,4 @@ Earlier tokens without an end date are still accepted for compatibility. The lis
 - <!--i:lock--> After every integration has rotated, an owner may set `policy.serviceTokens.allowLegacyUnbounded: false` to refuse any remaining unbounded tokens.
 :::
 
-No cutover date or automatic invalidation is set. Narrower token scopes are not built yet.
+No cutover date or automatic invalidation is set.

@@ -1,13 +1,13 @@
 # Wide colour and HDR editing
 
-You shot a sunset in HDR, or your brand green only looks right on a wide-gamut screen, and you do not want an 8-bit editing step to flatten either. **Wide colour** means a wider range of colours than ordinary sRGB, such as Display P3 or Rec.2020. **HDR** also allows brightness above ordinary white. Lolly can keep both through editing in Design, Darkroom and Sequence, then write an HDR file or an ordinary SDR copy from the same document.
+You shot a sunset in HDR, or your brand green only looks right on a wide-gamut screen, and you do not want an 8-bit editing step to flatten either. **Wide colour** means a wider range of colours than ordinary sRGB, such as Display P3 or Rec.2020. **HDR** also allows brightness above ordinary white. Lolly can keep both through editing in Lolly Design, Lolly Darkroom and Sequence, then write an HDR file or an ordinary SDR copy from the same document.
 
 This is not the export panel's **HDR** card, which brightens ordinary artwork for HDR screens; that card is described in [Export a file](/info/exporting.html#hdr-bright-colours).
 
 ## Turn it on
 
-- **Design**: open **Canvas size** or **Artboard size** and set **Colour** to **Wide colour / HDR**.
-- **Darkroom**: set **Editing range** to **HDR**.
+- **Lolly Design**: open **Canvas size** or **Artboard size** and set **Colour** to **Wide colour / HDR**.
+- **Lolly Darkroom**: set **Editing range** to **HDR**.
 
 Standard editing stays the default. The choice is saved with the document, and Sequence follows it for video.
 
@@ -19,8 +19,8 @@ Choose an image through the image picker. PNG, JPEG XL, TIFF, OpenEXR and Radian
 
 What each part edits in float:
 
-- **Darkroom** grades exposure, colour, framing, image layers and supported creative treatments.
-- **Design** composes flat layers, text, vectors, original images and supported blend modes.
+- **Lolly Darkroom** grades exposure, colour, framing, image layers and supported creative treatments.
+- **Lolly Design** composes flat layers, text, vectors, original images and supported blend modes.
 - **Sequence** reads decoded video planes directly, including PQ and HLG sources, and applies clip timing and composition before encoding.
 
 Internal diffuse white is 203 nits, and HLG uses a 1,000-nit display interpretation. The image preview and histogram are tone-mapped SDR views, so they do not prove what an HDR monitor will show.
@@ -55,7 +55,7 @@ Float images and video frames are limited to 8,388,608 pixels, including UHD, wi
 :::
 
 ::: details What the float path refuses
-This release supports flat Design artboards and affine Sequence camera moves. Perspective, 3D scene boxes, slide scene capture, blur and filter effects and depth shadows are refused in the float export path. HDR image layers can animate scale but not their box dimensions yet. Export one Design artboard at a time, and remove Design still clip paths first. Darkroom perspective correction, live camera HDR and before and after comparison are not available.
+This release supports flat Lolly Design artboards and affine Sequence camera moves. Perspective, 3D scene boxes, slide scene capture, blur and filter effects and depth shadows are refused in the float export path. HDR image layers can animate scale but not their box dimensions yet. Export one Lolly Design artboard at a time, and remove Lolly Design still clip paths first. Lolly Darkroom perspective correction, live camera HDR and before and after comparison are not available.
 
 These refusals keep the source intact rather than quietly reducing it to an 8-bit intermediate. HDR display calibration and checks on physical mobile devices are still outstanding.
 :::

@@ -24,7 +24,7 @@ Første gang du åpner galleriet, tilbyr en kort velkomst de samme valgene: **Ma
 
 ![Rommet Colours i Design System Setup på en ny installasjon: ett levende fargefelt, ett inndatafelt og hele den første beslutningen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Derfra tar åtte rom deg så langt du vil, i hvilken som helst rekkefølge: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** og **Skills**. Hver forhåndsvisning i appen oppdateres mens du skriver. [Design System Setup](/info/brand-studio.html) dekker hvert rom.
+Derfra tar åtte rom deg så langt du vil, i hvilken som helst rekkefølge: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** og **Skills**. Hver forhåndsvisning i appen oppdateres mens du skriver. [Lolly Design System Setup](/info/brand-studio.html) dekker hvert rom.
 
 Skrifter lagres på enheten din. Velg en Google Font, så lagrer Lolly filen som en merkevareressurs, slik at skriften din følger med uten nett og ingenting hentes når et verktøy tegner.
 
@@ -58,7 +58,7 @@ Du starter ikke fra en blank side.
 
 **Presentasjoner.** Slipp en PowerPoint `.pptx` på Lolly for å arkivere lysbildene som ressurser, skriv en ny presentasjon fra Markdown i **Markdown Slides**, eller bruk [Rebrand a deck](/info/rebrand.html) for å flytte hele presentasjonen over på designsystemet ditt.
 
-**Data.** Lim inn eller slipp en CSV- eller JSON-tabell, så fylles et verktøys repeterende felt fra den, eller [Batch](/info/batch.html#make-many-versions-of-one-design) lager én ferdig fil per rad.
+**Data.** Lim inn eller slipp en CSV- eller JSON-tabell, så fylles et verktøys repeterende felt fra den, eller [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) lager én ferdig fil per rad.
 
 ### Fra engangsjobb til mal
 
@@ -72,7 +72,7 @@ En importert layout er en vanlig Design-økt. **Share with rules** gjør den til
 
 - <!--i:download--> **Eksporter.** Verktøy lager SVG, PDF, PNG, JPG, WebP, video og mer, i formatene hvert verktøy tilbyr, i ekte trykkstørrelser når du trenger det. Se [Export a file](/info/exporting.html).
 - <!--i:link--> **Del en lenke.** Et verktøys innstillinger følger med i lenken, så lenken åpner den samme filen igjen overalt.
-- <!--i:layers--> **Lag én per rad.** Styr et verktøy fra et regneark i [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Lag én per rad.** Styr et verktøy fra et regneark i [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatiser.** Den samme gjengivelsen kjører fra [CLI](/info/cli.html) og fra en [AI-agent](/info/ai-agents.html).
 
 En lenke er en komplett forespørsel. Ingen tegnet diagrammet nedenfor: typen, overskriften og hele datatabellen ble skrevet inn i adressefeltet, og den samme lenken tegner det samme diagrammet på alle enheter.

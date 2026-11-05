@@ -130,7 +130,7 @@ Signed in to an instance, the Share dialog offers a **Team** section:
   revision it was opened at.
 - **Copy team link** copies the session's [team link](#team-links).
 
-A session body may be up to 4 MiB, enough for a large Design document; a larger one is refused
+A session body may be up to 4 MiB, enough for a large Lolly Design document; a larger one is refused
 with `413`. Images uploaded on one device are stored on that device. Where shared files are on,
 saving to a team project copies the images a session uses into the project's files, so the
 session opens elsewhere with them. Where they are off, the session opens elsewhere without
@@ -238,5 +238,5 @@ thread. The link grants nothing: someone who cannot open the session sees the us
 and can [ask for access](invitations.md#asking-for-access), and the thread opens once access is
 approved.
 
-Before moving a project to another Work instance, [Preview a project
+Before moving a project to another Lolly Work instance, [Preview a project
 transfer](project-portability.md) lists everything the move would involve.

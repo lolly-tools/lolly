@@ -180,15 +180,20 @@ export interface C2paStoreParts {
  * Parse a C2PA JUMBF store into its named parts. Throws with a specific
  * message when the structure isn't a store this verifier understands.
  */
-export function parseC2paStore(store: Uint8Array): C2paStoreParts {
+export function parseC2paStore(store: Uint8Array, manifestLabel?: string): C2paStoreParts {
   const top = walkBoxes(store, 0, store.length);
   if (!top.length) throw new Error('empty manifest store');
   const s = parseSuperbox(store, top[0]!);
   if (s.label !== 'c2pa') throw new Error(`store label is '${s.label}', expected 'c2pa'`);
   if (!s.children.length) throw new Error('store has no manifest');
   // A store may hold several manifests (ingredients); the ACTIVE manifest is
-  // the last superbox (C2PA 1.x section "active manifest").
-  const manifest = parseSuperbox(store, s.children[s.children.length - 1]!);
+  // the last superbox (C2PA 1.x section "active manifest"). A caller reading an
+  // ingredient's own manifest passes its label.
+  const chosen = manifestLabel === undefined
+    ? parseSuperbox(store, s.children[s.children.length - 1]!)
+    : s.children.map((box) => parseSuperbox(store, box)).find((m) => m.label === manifestLabel);
+  if (!chosen) throw new Error(`store has no manifest labelled '${manifestLabel}'`);
+  const manifest = chosen;
   const parts: {
     manifestLabel: string;
     assertions: C2paAssertion[];
@@ -1960,6 +1965,34 @@ export function collectIngredientRecords(store: Uint8Array): C2paIngredientRecor
     }
   }
   return out;
+}
+
+/**
+ * The manifest the active one names as its parent (its parentOf ingredient), with the
+ * hash the active claim recorded for it and the bytes that hash covers. Null when the
+ * active manifest has no credentialed parent, or the named manifest is not in the store.
+ * The caller compares the two: this only reads.
+ */
+export function readParentManifest(store: Uint8Array, active: C2paStoreParts): { parts: C2paStoreParts; recordedHash: Uint8Array; payload: Uint8Array } | null {
+  for (const assertion of active.assertions) {
+    if (!INGREDIENT_LABEL.test(assertion.label)) continue;
+    let map: unknown;
+    try { map = decodeCbor(assertion.content); } catch { continue; }
+    if (!(map instanceof Map) || map.get('relationship') !== 'parentOf') continue;
+    const ref = map.get('activeManifest') ?? map.get('c2pa_manifest');
+    const url = ref instanceof Map ? ref.get('url') : null;
+    const recordedHash = ref instanceof Map ? ref.get('hash') : null;
+    const label = typeof url === 'string' && url.startsWith('self#jumbf=/c2pa/') ? url.slice('self#jumbf=/c2pa/'.length) : null;
+    if (!label || !(recordedHash instanceof Uint8Array)) return null;
+    try {
+      const root = parseSuperbox(store, walkBoxes(store, 0, store.length)[0]!);
+      const box = root.children.find((child) => parseSuperbox(store, child).label === label);
+      if (!box) return null;
+      // Hashed URIs cover the superbox payload, after the 8-byte header.
+      return { parts: parseC2paStore(store, label), recordedHash, payload: store.slice(box.start + 8, box.end) };
+    } catch { return null; }
+  }
+  return null;
 }
 
 function ingredientRecord(manifest: string, label: string, map: Map<unknown, unknown>): C2paIngredientRecord {

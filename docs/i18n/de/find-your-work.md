@@ -19,7 +19,7 @@ Wo Ihre Arbeit liegt: Der eigene Speicher des Browsers enthält Projects, Histor
 ::: details Gemeinsame Arbeit in Lolly Work finden (optional)
 Öffnen Sie das Lolly Ihrer Organisation und melden Sie sich an, und schauen Sie dann in **Projects → Team projects**. Gemeinsame Sitzungen werden von dieser Instanz gehalten und erscheinen entsprechend Ihrem Zugriff. Die Anmeldung kann den Zugriff auf diese Sitzungen auf einem anderen Gerät wiederherstellen; Ihre persönliche Bibliothek oder das Geräte-Backup stellt sie nicht wieder her.
 
-Warten Sie in einer [Work-Collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) auf **Saved to work**, bevor Sie gehen. Fehlt ein gemeinsames Projekt, prüfen Sie, ob Sie mit der richtigen Instanz verbunden sind, und fragen Sie deren Betreiber nach Zugriff oder Aufbewahrung. Das Löschen der Browserdaten entfernt lokale Kopien, nicht die Serverkopie der Organisation. Siehe [Lolly in Ihrer Organisation nutzen](/info/organisation.html).
+Warten Sie in einer [Lolly Work-Collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) auf **Saved to work**, bevor Sie gehen. Fehlt ein gemeinsames Projekt, prüfen Sie, ob Sie mit der richtigen Instanz verbunden sind, und fragen Sie deren Betreiber nach Zugriff oder Aufbewahrung. Das Löschen der Browserdaten entfernt lokale Kopien, nicht die Serverkopie der Organisation. Siehe [Lolly in Ihrer Organisation nutzen](/info/organisation.html).
 :::
 
 ## Etwas finden, das Sie gespeichert haben

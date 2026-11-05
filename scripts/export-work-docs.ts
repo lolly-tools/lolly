@@ -66,9 +66,9 @@ export function buildWorkBundle(root = DOCS_ROOT): WorkBundle {
 
 The complete documentation lives at <https://lolly.tools/info>. These generated guides are bundled for the console at \`/admin#/docs\` and offline installations. Existing console slugs and relative guide links remain available.
 
-Edit the [canonical source](https://github.com/lolly-tools/lolly/tree/main/docs/work), then follow the [bundle update instructions](https://github.com/lolly-tools/lolly/blob/main/docs/work/README.md). Do not edit this generated copy. The repository's \`docs-pin.json\` records the selected canonical commit and all file hashes; run \`pnpm run verify:docs-pin\` to verify the bundle. Keep the selected documentation appropriate for the Work release.
+Edit the [canonical source](https://github.com/lolly-tools/lolly/tree/main/docs/work), then follow the [bundle update instructions](https://github.com/lolly-tools/lolly/blob/main/docs/work/README.md). Do not edit this generated copy. The repository's \`docs-pin.json\` records the selected canonical commit and all file hashes; run \`pnpm run verify:docs-pin\` to verify the bundle. Keep the selected documentation appropriate for the Lolly Work release.
 
-` + manifest.sections.map(section => `## ${section.title}\n\n` + section.docs.map(page => `- [${page.title}](${page.path})`).join('\n')).join('\n\n') + '\n\nWork prose and screenshot credentials retain MPL-2.0 and any third-party notices. See [LICENSE](LICENSE).\n');
+` + manifest.sections.map(section => `## ${section.title}\n\n` + section.docs.map(page => `- [${page.title}](${page.path})`).join('\n')).join('\n\n') + '\n\nLolly Work prose and screenshot credentials retain MPL-2.0 and any third-party notices. See [LICENSE](LICENSE).\n');
   sourcePaths['README.md'] = 'scripts/export-work-docs.ts';
   return { files, sourcePaths, manifestSha256: sha256(readFileSync(resolve(root, 'docs/manifest.json'))) };
 }

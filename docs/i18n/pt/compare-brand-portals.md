@@ -6,7 +6,7 @@ Se a sua organização mantém os recursos aprovados no Bynder, Frontify, Marq o
 
 ## O que um portal consolidado faz melhor
 
-Os portais consolidados oferecem hospedagem gerenciada, suporte e extensos fluxos de gestão de recursos. Por exemplo, o [DAM corporativo do Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combina descoberta de recursos, controles de acesso, fluxos de aprovação e distribuição. A pilha do Lolly é mais jovem e suas cadeias de aprovação são sequenciais, e não fluxos de trabalho com ramificação arbitrária. [Work status and roadmap](/info/work-status.html) registra os limites de implantação dela.
+Os portais consolidados oferecem hospedagem gerenciada, suporte e extensos fluxos de gestão de recursos. Por exemplo, o [DAM corporativo do Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combina descoberta de recursos, controles de acesso, fluxos de aprovação e distribuição. A pilha do Lolly é mais jovem e suas cadeias de aprovação são sequenciais, e não fluxos de trabalho com ramificação arbitrária. [Lolly Work status and roadmap](/info/work-status.html) registra os limites de implantação dela.
 
 ## Onde eles se sobrepõem
 

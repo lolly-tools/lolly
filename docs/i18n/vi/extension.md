@@ -2,9 +2,9 @@
 
 Một trang web không đọc được điểm ảnh của trang web khác, nên ứng dụng web Lolly cần trợ giúp để chụp ảnh một trang. Trong trình duyệt nền Chromium (Chrome, Edge, Brave, Arc hoặc Opera, từ Chrome 111), tiện ích **Lolly URL Screenshot** miễn phí cung cấp trợ giúp đó, dùng cùng cách chụp mà ứng dụng máy tính dùng. Khi đã cài:
 
-- **[URL Screenshot](/t/url-shot)** lưu trang bạn đã soạn thành một tệp;
+- **[Lolly URL Screenshot](/t/url-shot)** lưu trang bạn đã soạn thành một tệp;
 - một địa chỉ web dán vào ô ảnh có thể trở thành ảnh chụp của trang đó, bằng **Screenshot this page**;
-- nguồn **Website** trong [Design System Setup](/info/brand-studio.html) có thể đọc một trang để bắt đầu hệ thống thiết kế.
+- nguồn **Website** trong [Lolly Design System Setup](/info/brand-studio.html) có thể đọc một trang để bắt đầu hệ thống thiết kế.
 
 Bạn phê duyệt mọi yêu cầu, và ứng dụng máy tính làm cùng các việc đó mà không cần tiện ích.
 

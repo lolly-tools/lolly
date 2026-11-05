@@ -28,7 +28,7 @@ Współpraca na żywo w Lolly obejmuje bezpośrednie prywatne collaby dwóch urz
 ## Sięgnij po Lolly, gdy
 
 - Ten sam rodzaj pliku jest potrzebny raz po raz: kafle wydarzeń, identyfikatory, certyfikaty, alerty, karty do mediów społecznościowych
-- Wiele plików powstaje z jednego szablonu i tabeli wartości, w [Batch](/info/batch.html#make-many-versions-of-one-design) lub CLI
+- Wiele plików powstaje z jednego szablonu i tabeli wartości, w [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) lub CLI
 - Kolory, typografia i zasoby muszą pozostać w obrębie systemu projektowego, nawet na otwartej kanwie
 - Gotowy projekt z Figmy, Penpot, Illustratora, InDesign lub PDF ma stać się edytowalny i powtarzalny ([Import a design](/info/design-import.html))
 - Pliki muszą powstawać na Twoich własnych urządzeniach lub serwerach

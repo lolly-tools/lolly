@@ -116,7 +116,7 @@ export const RENDER_GET_BYTE_STABLE: readonly string[] = ['svg', 'emf', 'eps', '
 export const MCP_TOOLS: readonly string[] = [
   'lolly_compile', 'lolly_inspect', 'lolly_measure', 'lolly_validate', 'lolly_diff', 'lolly_package',
   'lolly_list_tools', 'lolly_describe_tool', 'lolly_build_url', 'lolly_render',
-  'lolly_transform', 'lolly_rebrand', 'lolly_read', 'lolly_check', 'lolly_measure_text', 'lolly_compose', 'lolly_inspect_tokens', 'lolly_redact', 'lolly_verify',
+  'lolly_transform', 'lolly_rebrand', 'lolly_read', 'lolly_check', 'lolly_measure_text', 'lolly_compose', 'lolly_inspect_tokens', 'lolly_resolve_intent', 'lolly_redact', 'lolly_verify',
   'lolly_look', 'lolly_sample_color', 'lolly_trace_edges',
 ];
 
@@ -224,10 +224,10 @@ getting started, creation, automation, organisation management, operations and t
 - Use the public render MCP and the \`lolly\` creative CLI to make files from tools.
 - A Work document invitation grants scoped access to a document on the inviter's instance:
   ${twinUrl(o, 'work-document-agents')}. It does not grant infrastructure access.
-- The \`lw\` CLI administers a Work instance with its own authenticated permissions:
+- The \`lw\` CLI administers a Lolly Work instance with its own authenticated permissions:
   ${twinUrl(o, 'work-cli')}. Instance setup: ${twinUrl(o, 'work-install')}.
 - Content profiles and brand configuration: ${twinUrl(o, 'configuration')}.
-  Work server configuration: ${twinUrl(o, 'work-configuration')}.
+  Lolly Work server configuration: ${twinUrl(o, 'work-configuration')}.
 - Packaged Work help is pinned to that installation's selected documentation revision.
   Check the installed server version before applying instructions from a newer guide.
 

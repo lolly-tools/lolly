@@ -6,7 +6,7 @@ _最后核查：2026 年 9 月 28 日。_
 
 ## 成熟的门户做得更好的地方
 
-成熟的门户提供托管服务、支持和丰富的素材管理工作流。例如，[Frontify 的企业 DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management)结合了素材发现、访问控制、审批工作流和分发。Lolly 这套产品更年轻，它的审批链是顺序式的，而不是任意分支的工作流。[Work 状态与路线图](/info/work-status.html)记录了它的部署限制。
+成熟的门户提供托管服务、支持和丰富的素材管理工作流。例如，[Frontify 的企业 DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management)结合了素材发现、访问控制、审批工作流和分发。Lolly 这套产品更年轻，它的审批链是顺序式的，而不是任意分支的工作流。[Lolly Work 状态与路线图](/info/work-status.html)记录了它的部署限制。
 
 ## 重叠之处
 

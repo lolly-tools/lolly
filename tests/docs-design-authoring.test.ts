@@ -163,7 +163,7 @@ test('the docs describe what plan 291 M3b shipped and drop the limits it fixed',
   }
   // The CLI and MCP pages name the deck-level keys and join.
   const cli = sectionOf(read('docs/cli-decks.md'), /^## Compose slides from the slide master$/m);
-  const mcp = sectionOf(read('docs/mcp.md'), /^### Compose, measure and package a Design document$/m);
+  const mcp = sectionOf(read('docs/mcp.md'), /^### Compose, measure and package a Lolly Design document$/m);
   for (const [page, text] of [['docs/cli-decks.md', cli], ['docs/mcp.md', mcp]] as const) {
     assert.ok(text, `${page} lost its compose section`);
     for (const key of ['furniture', 'emphasis', 'case', 'join']) assert.ok(text.includes(`\`${key}\``), `${page}'s compose section does not name \`${key}\``);
@@ -220,7 +220,7 @@ test('the MCP arguments the docs describe are in the tools\' input schemas', () 
 
 test('the tool counts distinguish always-on tools from scoped file tools', () => {
   const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
-    'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two'];
+    'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three'];
   const n = TOOL_DEFS.length;
   const mcp = read('docs/mcp.md');
   assert.ok(mcp.includes(`## The ${WORDS[n]} tools`), `docs/mcp.md should head its tool list "The ${WORDS[n]} tools"`);
@@ -340,7 +340,7 @@ test('the docs do not promise a themed Design render on the public render route,
   for (const page of ['skills/lolly/reference/surfaces.md', 'docs/mcp.md', 'docs/url-parameters.md']) {
     const text = read(page).replace(/\s+/g, ' ');
     assert.ok(!/renders a document whose colours are token references in that theme/.test(text), `${page} says the render route draws a token-referenced document in a theme`);
-    assert.match(text, /refuses a Design document in any theme/, `${page} should say the public route refuses Design in any theme`);
+    assert.match(text, /refuses a (?:Lolly )?Design document in any theme/, `${page} should say the public route refuses Design in any theme`);
   }
 });
 
@@ -381,10 +381,10 @@ test('the docs say --themes paints the page in every theme, as lolly check does'
   for (const page of pages) {
     const text = read(page).replace(/\s+/g, ' ');
     assert.ok(!/(?:render|the painted page)[^.;]*run once, in the first theme/i.test(text), `${page} says the render family runs once under --themes; it runs in each theme`);
-    assert.ok(!/brand and Verify (?:findings|finding|families)/.test(text) || /render, brand and Verify/.test(text), `${page} names only the brand and Verify families as per theme`);
+    assert.ok(!/brand and (?:Lolly )?Verify (?:findings|finding|families)/.test(text) || /render, brand and (?:Lolly )?Verify/.test(text), `${page} names only the brand and Verify families as per theme`);
   }
   for (const page of ['skills/lolly/reference/design.md', 'skills/lolly/reference/recreate.md', 'skills/lolly/reference/surfaces.md', 'docs/cli-decks.md', 'docs/mcp.md']) {
-    assert.match(read(page).replace(/\s+/g, ' '), /render, brand and Verify/, `${page} should say the render family runs in each theme`);
+    assert.match(read(page).replace(/\s+/g, ' '), /render, brand and (?:Lolly )?Verify/, `${page} should say the render family runs in each theme`);
   }
 });
 

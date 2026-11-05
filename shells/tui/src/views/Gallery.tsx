@@ -20,6 +20,8 @@ import { Panel } from '../components/Panel.tsx';
 import { Footer, footerLines } from '../components/Footer.tsx';
 import type { Shortcut } from '../components/Footer.tsx';
 import { Tabs } from '../components/Tabs.tsx';
+import { BrandStrip } from '../components/BrandStrip.tsx';
+import type { TerminalBrand } from '../brand-theme.ts';
 import { fmtEmoji, catEmoji, toolIcon } from '../emoji.ts';
 import { isBrowserOnly } from '../tool-support.ts';
 
@@ -36,13 +38,13 @@ const GALLERY_SHORTCUTS: Shortcut[] = [
           { key: 'F', label: 'favs' },
           { key: 'u', label: 'url' },
           { key: 'i', label: 'import' },
-          { key: 'b', label: 'batch' }, { key: 'p', label: 'prepare' },
+          { key: '?', label: 'workflows' }, { key: 'b', label: 'batch' }, { key: 'p', label: 'prepare' },
           { key: 'r', label: 'rebrand' },
           { key: '2/3/4/5', label: 'proj/prof/cat/sys' },
           { key: 'q', label: 'quit' },
 ];
 
-export function Gallery({ catalogError, onBatch, tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit, onPrepare, onRebrand }: { onBatch: () => void; catalogError?: string; tools: ToolEntry[]; onPrepare: () => void; onRebrand: () => void; onOpen: (id: string) => void; onOpenUrl: (url: string) => string | null; onImportFile: (path: string, options?: ImportOptions) => Promise<ImportResult | null>; onNav: (t: NavTarget) => void; onQuit: () => void }) {
+export function Gallery({ onAutomation, brand, catalogError, onBatch, tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit, onPrepare, onRebrand }: { onAutomation: () => void; brand?: TerminalBrand | null; onBatch: () => void; catalogError?: string; tools: ToolEntry[]; onPrepare: () => void; onRebrand: () => void; onOpen: (id: string) => void; onOpenUrl: (url: string) => string | null; onImportFile: (path: string, options?: ImportOptions) => Promise<ImportResult | null>; onNav: (t: NavTarget) => void; onQuit: () => void }) {
   const { cols, rows } = useTermSize();
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -102,7 +104,7 @@ export function Gallery({ catalogError, onBatch, tools, onOpen, onOpenUrl, onImp
   // window so the selection stays visible on a short terminal. Cards keep their full
   // CARD_H (flexShrink:0 below) so the name line can never collapse into the format line.
   const [scrollRow, setScrollRow] = useState(0);
-  const visibleCardRows = Math.max(1, Math.floor((rows - (compactHeader ? 3 : 2) - (catalogError ? 1 : 0) - footerLines(GALLERY_SHORTCUTS, ' ', cols)) / CARD_H));   // tabs+search+footer
+  const visibleCardRows = Math.max(1, Math.floor((rows - (compactHeader ? 3 : 2) - (catalogError ? 1 : 0) - (brand ? 1 : 0) - footerLines(GALLERY_SHORTCUTS, ' ', cols)) / CARD_H));   // tabs+search+footer
   const totalRows = Math.max(1, Math.ceil(filtered.length / gridCols));
   const selRow = Math.floor(clamped / gridCols);
   useEffect(() => {
@@ -135,6 +137,7 @@ export function Gallery({ catalogError, onBatch, tools, onOpen, onOpenUrl, onImp
       if (key.escape) setSearching(false);
       return; // TextInput owns the rest
     }
+    if (input === '?' || input === ':') return onAutomation();
     if (input === 'b') return onBatch();
     if (input === 'p') return onPrepare();
     if (input === 'r') return onRebrand();
@@ -193,6 +196,7 @@ export function Gallery({ catalogError, onBatch, tools, onOpen, onOpenUrl, onImp
         </Box>}
       </Box>
 
+      {brand ? <Box height={1} flexShrink={0} paddingX={1}><BrandStrip brand={brand} columns={cols - 2} /></Box> : null}
       {catalogError ? <Box height={1} flexShrink={0} paddingX={1}><Text color={theme.warn} wrap="truncate-end">No catalog. Use --root=/path. System and files still work.</Text></Box> : null}
       {compactHeader ? <Box paddingX={1}><Text color={theme.dim}>
         {filtered.length} tool{filtered.length === 1 ? '' : 's'}

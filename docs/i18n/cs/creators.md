@@ -20,7 +20,7 @@ Vyber nástroj a vyplň ho, nebo rozvrhni stránku volně na plátně Design.
 
 Tvůj designový systém určuje, jak vypadá každý nástroj.
 
-- **[Design System Setup](/info/brand-studio.html)** - loga, barvy, písmo a zbytek, nastavené jednou na `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - loga, barvy, písmo a zbytek, nastavené jednou na `#/start`.
 - **[Lolly Demo v praxi](/info/lolly-demo-in-use.html)** - colourways na skutečné práci a přepnutí na vlastní designový systém.
 - **[Architektury značek](/info/brand-architectures.html)** - několik designových systémů, nebo jeden s několika colourways, pro jednu organizaci.
 - **[Společná práce s partnery](/info/partners.html)** - sdílej svou značku s partnerem, pracuj ve značce, kterou jsi dostal, a vytvoř stěnu sponzorů.
@@ -32,7 +32,7 @@ Tvůj designový systém určuje, jak vypadá každý nástroj.
 
 - **[Najdi a obnov svou práci](/info/find-your-work.html)** - kam zmizel uložený, stažený nebo neuložený soubor.
 - **[Hledání](/info/search.html)** a **[Ask Lolly](/info/ask.html)** - jedno pole pro tvé nástroje, uloženou práci, assety a nastavení a odpovědi z těchto průvodců.
-- **[Settings](/info/dashboard.html)** - co toto zařízení umí, tvůj designový systém jen pro čtení a tvé úložiště.
+- **[Lolly Settings](/info/dashboard.html)** - co toto zařízení umí, tvůj designový systém jen pro čtení a tvé úložiště.
 - **[Tvé oblíbené](/info/favourites.html)** a **[Profily](/info/profile.html)** - nástroje s hvězdičkou, údaje, které nástroje předvyplňují, a přepínače přístupnosti.
 - **[Synchronizace zařízení](/info/sync.html)** - stejná práce na počítači i telefonu, přes úložiště, které si zvolíš.
 

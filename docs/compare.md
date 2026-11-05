@@ -11,7 +11,7 @@ _Last checked: 28 September 2026._
 - [Lolly and Figma](/info/compare-figma.html) - design, live collaboration and reusable asset production.
 - [Lolly and Penpot](/info/compare-penpot.html) - open-source design, shared tokens and organisation work.
 - [Lolly and brand portals](/info/compare-brand-portals.html) - approved libraries, locked templates, identity, review and reporting.
-- [Lolly and rendering APIs](/info/compare-render-apis.html) - automated generation on your device, in CI or on a Lolly Work server.
+- [Lolly and rendering APIs](/info/compare-render-apis.html) - automated generation on your device, in CI or on your own server, and [how to move](/info/work-move-from-render-api.html) from Bannerbear or Placid.
 - [Lolly and online file converters](/info/compare-converters.html) - format conversion on your own device.
 
 For the capability-by-capability view, see [How Lolly compares](/info/positioning.html). Each comparison is dated; a claim that no longer matches either product needs correcting.
@@ -44,7 +44,7 @@ Standalone use keeps files on the device. Choosing shared projects, a work colla
 
 These limits apply to every page in this set, so they are stated once here:
 
-- **Work collabs run on a single server node today.** Their scale and operating history differ from the long-established hosted products. [Work status and roadmap](/info/work-status.html) records the current limits.
+- **Lolly Work collabs run on a single server node today.** Their scale and operating history differ from the long-established hosted products. [Lolly Work status and roadmap](/info/work-status.html) records the current limits.
 - **The site at [lolly.work](https://lolly.work) is a demo sandbox.** A durable organisation deployment needs persistent storage and an operator; [Install Lolly Work](/info/work-install.html) covers both.
 - **There is no per-seat software licence charge** for Lolly or a self-hosted Lolly Work. Hosting, storage and operations still cost money.
 - **A signature is not a trusted signer.** A verifier must trust the certificate that signed a file before it shows the signer as trusted; [Content Credentials Identity](/info/content-credentials-identity.html) explains how.

@@ -14,7 +14,7 @@ never rides along in a profile export either.
 
 Put the handful of tools you actually use at the top of the gallery. Star a tool (or, on Utilities, a utility card) and a big tile for it appears in a strip above the grid, one star at a time.
 
-Until you star your first thing, the strip shows a short starter set: up to six featured tools on the Tools gallery, and Verify & Inspect, Jump, Sandbox and Unpack on Utilities. Nothing is written to your profile for that set. Your first star replaces it with your own list, and if you later unstar everything, the strip goes away rather than bringing the starter set back.
+Until you star your first thing, the strip shows a short starter set: up to six featured tools on the Tools gallery, and Lolly Verify, Jump, Lolly Sandbox and Unpack on Utilities. Nothing is written to your profile for that set. Your first star replaces it with your own list, and if you later unstar everything, the strip goes away rather than bringing the starter set back.
 
 ![The Tools gallery with two favourited tools drifting past in the strip above the grid](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A%5Bdata-tool-id%3D%22qr-code%22%5D%7Cright%3Bclick%3A.folder-menu%20%5Bdata-act%3D%22fav%22%5D%3Bclick%3A%5Bdata-tool-id%3D%22battlecards%22%5D%7Cright%3Bclick%3A.folder-menu%20%5Bdata-act%3D%22fav%22%5D%3Bpress%3AHome%7Con%3Dbody%3Bwait%3A800&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&cropSelector=.featured&filename=fav-strip-gallery)
 <!--
@@ -45,9 +45,9 @@ SHOT NOTE (fav-star-toggle): tool cards carry no star of their own any more; fav
 lives in the card's right-click menu and the selection bar, so the shot opens that menu.
 -->
 
-The same star works on a **utility** card in the Utilities view - Verify & Inspect, Colour Lab, Unpack, Spreadsheet and the rest. They aren't tools (no saved sessions, nothing to keep offline), but the strip treats a starred one exactly the same way: a tile of its own, icon-led since there's no preview to show.
+The same star works on a **utility** card in the Utilities view - Lolly Verify, Lolly Colour Lab, Unpack, Spreadsheet and the rest. They aren't tools (no saved sessions, nothing to keep offline), but the strip treats a starred one exactly the same way: a tile of its own, icon-led since there's no preview to show.
 
-> Not the strip you're after? The **★ Favourites** pill under **View options → Filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top - useful if you'd rather scan a plain list.
+> Not the strip you're after? The **★ Favourites** pill under **View options → Lolly Filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top - useful if you'd rather scan a plain list.
 
 **One star, two lists.** The star on an **asset** ([Assets](/info/using.html#assets-your-library)) is a separate list: it pins that logo, image or colour to the top of every asset picker. Starring a tool never touches your pinned assets, and pinning an asset never adds a tool.
 
@@ -106,4 +106,4 @@ The choice between **Gallery** and **Cover Flow** is kept in this browser only a
 
 ---
 
-**Related:** [Search](/info/search.html) for the other way back to something quickly. [Using Lolly](/info/using.html) for the gallery, hiding tools you never use and the rest of the app. [Profiles](/info/profile.html) for what else rides on that on-device record.
+**Related:** [Lolly Search](/info/search.html) for the other way back to something quickly. [Using Lolly](/info/using.html) for the gallery, hiding tools you never use and the rest of the app. [Profiles](/info/profile.html) for what else rides on that on-device record.

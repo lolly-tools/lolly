@@ -88,7 +88,7 @@ Elemente tragen den Dateinamen, den Sie im Export-Panel eingetippt haben, oder s
 Persönliche Speicherstände bleiben auf diesem Gerät, in dem Browser oder der App, aus der Sie gespeichert haben, es sei denn, Sie schalten [Sync](/info/sync.html) ein. Wenn etwas nicht dort ist, wo Sie es erwarten, behandelt [Ihre Arbeit finden und wiederherstellen](/info/find-your-work.html) jeden Fall, vom geschlossenen Tab bis zu gelöschten Browserdaten.
 
 ::: details Team-Projekte mit Lolly Work (optional)
-Wenn Ihre [Organisation Lolly Work nutzt](/info/organisation.html), melden Sie sich an ihrer Instanz an und öffnen Sie **Projects → Team projects** für Sitzungen, die mit Ihnen geteilt wurden. Die Organisation legt Zugriff und Aufbewahrung fest, und ihr Lolly-Work-Dienst speichert diese Sitzungen. Eine geteilte Sitzung tritt ihrer Live-Collab beim Öffnen bei, wenn Ihre Organisation Live-Bearbeitung erlaubt; [Zusammenarbeiten](/info/collaborate.html#work-collabs-with-lolly-work-optional) erklärt die Schritte.
+Wenn Ihre [Organisation Lolly Work nutzt](/info/organisation.html), melden Sie sich an ihrer Instanz an und öffnen Sie **Projects → Team projects** für Sitzungen, die mit Ihnen geteilt wurden. Die Organisation legt Zugriff und Aufbewahrung fest, und ihr Lolly-Lolly Work-Dienst speichert diese Sitzungen. Eine geteilte Sitzung tritt ihrer Live-Collab beim Öffnen bei, wenn Ihre Organisation Live-Bearbeitung erlaubt; [Zusammenarbeiten](/info/collaborate.html#work-collabs-with-lolly-work-optional) erklärt die Schritte.
 
 Ihre persönliche Bibliothek bleibt getrennt. Die Anmeldung auf einem anderen Gerät gibt Ihnen Team-Arbeit, während persönliche Speicherstände weiterhin Sync oder ein Backup brauchen, um zu wandern.
 :::
@@ -169,7 +169,7 @@ Ein Dokument, das auf iOS oder Android von einer anderen App übergeben wird, is
 Nach Ihrer Bestätigung entpackt und prüft Lolly das Bundle einmal. Assets gehen in Ihre Bibliothek, per Prüfsumme abgeglichen, sodass eine Datei, die schon auf dem Gerät liegt, wiederverwendet wird. Sitzungen gehen mit neuen IDs nach Projects, sodass dieselbe Datei zweimal geöffnet werden kann; eine Sitzung, deren Tool fehlt, wartet dort. Dateien über 100 MB werden als groß gekennzeichnet, und die Vorschau warnt, wenn der Browserspeicher weniger freien Platz meldet, als die Datei braucht. Jeder durch Integrität abgedeckte Teil wird geprüft, bevor irgendetwas übernommen wird, und eine beschädigte Kopie wird abgelehnt, ohne dass etwas zurückbleibt.
 :::
 
-Ein Link und eine Datei übergeben beide eine Momentaufnahme. Für Live-Bearbeitung behandelt [Zusammenarbeiten](/info/collaborate.html) private Collabs zwischen zwei Geräten und optionale Work-Collabs über Lolly Work.
+Ein Link und eine Datei übergeben beide eine Momentaufnahme. Für Live-Bearbeitung behandelt [Zusammenarbeiten](/info/collaborate.html) private Collabs zwischen zwei Geräten und optionale Lolly Work-Collabs über Lolly Work.
 
 ## Assets - Ihre Bibliothek
 

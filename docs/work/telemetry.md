@@ -1,6 +1,6 @@
 # Telemetry and dashboards
 
-Work counts what people do in Lolly so admins can see which tools are used and what gets
+Lolly Work counts what people do in Lolly so admins can see which tools are used and what gets
 exported. It never records what anyone typed or made. Each event carries a short, fixed list of
 labels, such as a tool id or a file format. Anything else is dropped before it is stored, and so
 is any label longer than 200 characters.
@@ -15,7 +15,7 @@ Every event passes the same checks at ingest, in this order, before anything is 
 
 ## The rules at the door
 
-Work enforces three rules when an event arrives, not later in the query layer, where a mistake
+Lolly Work enforces three rules when an event arrives, not later in the query layer, where a mistake
 would already have stored the data:
 
 1. **No input values, ever.** Each event type has a closed allowlist of labels; anything else is
@@ -39,7 +39,7 @@ would already have stored the data:
 | `telemetry: "standard"`, `telemetryAttribution: "default"` | events with the user id |
 
 Consent is per person, through `POST /api/v1/telemetry/consent`. The person's Lolly app asks
-them, and Work honours the answer. Both keys are in
+them, and Lolly Work honours the answer. Both keys are in
 [configuration](configuration.md#telemetry-activity-and-retention).
 
 ## What is recorded

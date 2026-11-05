@@ -132,9 +132,9 @@ Lolly има три начина да работиш в обем, всеки з�
 ## Таблица става един документ
 Инструмент с вход таблица, като **Battlecards**, превръща всеки ред в страница. Постави таблица от електронната си таблица и получи един PDF. Поправи редове в електронната таблица и постави отново.
 ## CSV става един файл на ред
-**Batch** (`#/batch`) приема CSV и рендерира по един експорт за всеки ред: баджове с имена или сертификати, по един файл, доставени в ZIP. Вж. [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) приема CSV и рендерира по един експорт за всеки ред: баджове с имена или сертификати, по един файл, доставени в ZIP. Вж. [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Няколко дизайна получават една редакция
-**Multi-edit** отваря няколко запазени сесии един до друг за същата поправка в различни дизайни. Вж. [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** отваря няколко запазени сесии един до друг за същата поправка в различни дизайни. Вж. [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 От **Projects** **Render folder** експортира всяка запазена сесия в папка и подпапките ѝ като един вложен ZIP, а **Render selection** прави същото за всеки множествен избор; една запазена сесия се рендерира в собствения си файл. Запазена сесия може да се сподели отново като връзка към инструмент от Projects, която я отваря с същите настройки.
@@ -170,7 +170,7 @@ PowerPoint е и път навътре: [Rebrand a deck](/info/rebrand.html) п�
 | Целият дизайн | Многократно използваем компонент в панела Assets |
 | Сложна илюстрация или живо платно | Вградено самостоятелно като изображение, а редактируемото съдържание около него е недокоснато |
 
-От Design всяка рамка става платно в Penpot. Цветовете и типографиите на дизайн системата попадат в панела Assets, а пълният ѝ набор токени в панела Tokens. Оттам Penpot пази собствено копие: токен, редактиран в Penpot, се връща през импорта в [Design System Setup](/info/brand-studio.html).
+От Design всяка рамка става платно в Penpot. Цветовете и типографиите на дизайн системата попадат в панела Assets, а пълният ѝ набор токени в панела Tokens. Оттам Penpot пази собствено копие: токен, редактиран в Penpot, се връща през импорта в [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Панелът за експорт с избран Penpot: файлът .penpot и Send to Penpot до бутона за изтегляне](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

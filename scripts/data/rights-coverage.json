@@ -12,6 +12,7 @@
     "_note": "Engine modules that define the rules, the credential writer and the readers. They build ingredients and evaluate rights for the paths below and are not paths themselves.",
     "files": [
       "engine/src/c2pa.ts",
+      "engine/src/c2pa-approval.ts",
       "engine/src/c2pa-extract.ts",
       "engine/src/rights-attribution.ts",
       "engine/src/rights-companion.ts",
@@ -45,6 +46,7 @@
         "shells/web/src/views/tool/render.ts",
         "shells/web/src/views/tool/exporting.ts",
         "shells/web/src/views/tool-actions/wiring.ts",
+        "shells/web/src/views/tool-actions/saving.ts",
         "shells/web/src/views/record-control.ts",
         "shells/web/src/lib/deliver-file.ts",
         "shells/web/src/lib/download-recovery.ts",
@@ -88,6 +90,7 @@
         "shells/cli/src/adobe.ts",
         "shells/cli/src/affinity.ts",
         "shells/cli/src/dxf.ts",
+        "shells/cli/src/import-design.ts",
         "shells/cli/src/document.ts",
         "shells/cli/src/read.ts",
         "services/mcp/src/tools.ts",
@@ -123,6 +126,22 @@
       "status": "not-assessed",
       "code": ["shells/web/src/views/tool-actions/copying.ts", "shells/web/src/bridge/clipboard.ts"],
       "note": "Copy image renders a PNG and writes the pixels to the clipboard. The evaluator knows a clipboard carries no credit (tests/fixtures/rights/clipboard-delivery-missing.json), but the copy actions do not tell the runtime the route is a clipboard."
+    },
+    {
+      "id": "delivery.approval-review",
+      "kind": "delivery",
+      "title": "Send an export to an instance for review",
+      "status": "not-assessed",
+      "code": ["shells/web/src/org/approval-artifact.ts", "shells/web/src/org/approval-dialog.ts"],
+      "note": "Request approval runs the ordinary export and sends those exact bytes to the person's instance, where reviewers read them. The route adds nothing to the file and evaluates no source terms of its own. Whatever the export wrote, credits and credential included, travels unchanged."
+    },
+    {
+      "id": "delivery.approved-file",
+      "kind": "delivery",
+      "title": "Fetch an approved file, or file one in a project",
+      "status": "not-assessed",
+      "code": ["shells/web/src/views/tool-actions/approval-state.ts", "shells/web/src/org/approval-review-sheet.ts", "shells/web/src/org/approval-add-to-project.ts", "shells/web/src/lib/approved-asset.ts"],
+      "note": "These routes hand over the exact bytes a reviewer saw, as the export wrote them, so whatever credits that export carried travel with the file. They add nothing and evaluate no source terms."
     },
     {
       "id": "delivery.text-clipboard",
@@ -295,6 +314,14 @@
       "status": "not-assessed",
       "code": ["shells/web/src/lib/design-system/rooms/skills.ts"],
       "note": "Hands out one brand skill of the active design system as a zip or as text on the clipboard. The body is the brand's text with catalog links rewritten to this instance; lolly.json and the frontmatter metadata record the source asset, revision and sha256, and generated frontmatter carries the asset's licence. Linked catalog assets travel as links, never as bytes, so no source terms are evaluated and no receipt is measured."
+    },
+    {
+      "id": "delivery.brand-page-publish",
+      "kind": "delivery",
+      "title": "Brand page folder (lolly system publish)",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/brand-page.ts"],
+      "note": "Writes a folder a publisher can host: the page, agent files, tokens, logos, fonts and public skills. Whether a logo or font may go in is decided by engine/src/asset-rights.ts, the same answer a session share uses. A font file needs a recorded licence and nothing overrides that; a logo with an unrecorded licence goes in only when the publisher names it. Everything held back is listed in brand.json and on the page with its reason. Source credits per file are not written yet."
     },
     {
       "id": "delivery.brand-pack-export",
@@ -655,16 +682,18 @@
         "shells/cli/src/envelope.ts",
         "shells/cli/src/check.ts",
         "shells/cli/src/measure-text.ts",
+        "shells/cli/src/intent.ts",
         "shells/cli/src/preflight.ts",
         "shells/cli/src/validate.ts",
         "shells/cli/src/rebuild.ts",
         "shells/cli/src/models.ts",
         "shells/cli/src/smoke.ts",
         "shells/cli/src/projects.ts",
+        "shells/cli/src/reports.ts",
         "shells/tui/src/folders.ts",
         "shells/tui/src/terminal-workflows.ts"
       ],
-      "note": "The standard output writer and JSON envelope every command uses; check, measure, preflight and validation reports; the reproducibility receipt; model downloads; the catalog render gate's check renders; lolly projects, which lists and exports this device's saved project records as JSON; the TUI's folder list; and the TUI's private temporary file of the person's own input values for an external editor. None is a creative delivery, and a command that writes a work is registered under its own path."
+      "note": "The standard output writer and JSON envelope every command uses; check, measure, preflight and validation reports; the reproducibility receipt; model downloads; the catalog render gate's check renders; lolly projects, which lists and exports this device's saved project records as JSON; lolly reports, which turns saved check results into JSON lines, JUnit or SARIF; the TUI's folder list; and the TUI's private temporary file of the person's own input values for an external editor. None is a creative delivery, and a command that writes a work is registered under its own path."
     },
     {
       "id": "delivery.native-save",
@@ -728,6 +757,7 @@
         "shells/web/src/views/penpot-import.ts",
         "shells/web/src/views/idml-import.ts",
         "shells/web/src/views/affinity-import.ts",
+        "shells/web/src/views/bannerbear-import.ts",
         "shells/web/src/views/lottie-import.ts",
         "shells/web/src/views/premiere-import.ts",
         "engine/src/idml-read.ts"

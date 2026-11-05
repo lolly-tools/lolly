@@ -18,7 +18,7 @@ Preferences 是一个长页面，侧边有一条**设置栏**，栏上方的 **S
 
 - <!--i:usercheck--> **Your details** - 你的姓名、联系方式和头像，以及 **Use my details to create** 开关。[个人资料](/info/profile.html)解释了工具如何使用它们。
 - <!--i:seal--> **Content Credentials** - 为你的导出签名的可选已验证身份。参见 [Content Credentials](/info/content-credentials-identity.html)。
-- <!--i:palette--> **Design systems** - 切换、添加、隐藏或移除设计系统。[Design System Setup](/info/brand-studio.html#manage-your-design-systems) 介绍了每个操作。
+- <!--i:palette--> **Design systems** - 切换、添加、隐藏或移除设计系统。[Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) 介绍了每个操作。
 - <!--i:moon--> **Appearance** - 主题（Light、Dark 或用你的调色板为应用着色的 Brand）、当设计系统提供多种配色方案时的 **Your colourway**（[让配色方案成为你自己的](/info/colourways.html#make-a-colourway-your-own)）以及 **Interface follows the design system**。
 - <!--i:sparkle--> **Emoji** - 你开始新作品时 emoji 所取自的集合及其素材许可协议，以及你的调色板为它们重新着色的强度（**Off**、**Subtle**、**Strong**、**Full**、**Mono** 或 **Duotone**）。**Keep skin tones and flags** 让这些保持自己的颜色。你已经完成的作品保留制作时所用的集合。
 - <!--i:eyeoff--> **Accessibility** - 四个舒适度开关，外加 Sound 和 Neurospicy Mode。参见[无障碍](#accessibility)。
@@ -107,7 +107,7 @@ Lolly 会在你访问时缓存界面，但这只涵盖你已经去过的地方�
 - <!--i:sliders--> **Tokens** - 圆角、间距、效果和渐变。
 - <!--i:document--> **Print & CMYK** - 锁定为确切油墨的颜色，以及 CMYK PDF 可以声明的印刷条件。
 
-切换是这个标签页唯一会做的更改。你在 `#/start` 的 [Design System Setup](/info/brand-studio.html) 中编辑设计系统，封面链接到那里。只读系统会在封面上注明；你创建的本地系统保持可编辑。`/b` 和 `/brand` 是直达这个标签页的短链接。
+切换是这个标签页唯一会做的更改。你在 `#/start` 的 [Lolly Design System Setup](/info/brand-studio.html) 中编辑设计系统，封面链接到那里。只读系统会在封面上注明；你创建的本地系统保持可编辑。`/b` 和 `/brand` 是直达这个标签页的短链接。
 
 ## Capabilities
 
@@ -139,4 +139,4 @@ Settings 的每个标签页和部分都有自己的链接，你可以收藏或�
 
 ---
 
-**相关内容：**[个人资料](/info/profile.html)，了解你的详细信息以及你创作时所处的情境。[Design System Setup](/info/brand-studio.html)，用于编辑 Design system 标签页所显示的内容。[查找和恢复你的作品](/info/find-your-work.html)，了解存储、备份和更换设备。
+**相关内容：**[个人资料](/info/profile.html)，了解你的详细信息以及你创作时所处的情境。[Lolly Design System Setup](/info/brand-studio.html)，用于编辑 Design system 标签页所显示的内容。[查找和恢复你的作品](/info/find-your-work.html)，了解存储、备份和更换设备。

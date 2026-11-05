@@ -4,11 +4,11 @@ A design token is one named brand value, such as a colour, a radius or a typefac
 
 ![One colour token feeds a tool's render, the swatches in the colour picker and a Penpot export, so a single edit reaches all three.](/info/diagrams/concepts/token-three-places.svg)
 
-Lolly stores tokens in the [W3C Design Tokens (DTCG)](https://www.designtokens.org/TR/drafts/format/) format, the same format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/), so a brand defined in Lolly round-trips with Penpot and Tokens Studio. Tokens carry the brand's values both ways. A finished Figma or Penpot file comes in through Design's [Import a design](/info/design-import.html) instead.
+Lolly stores tokens in the [W3C Design Tokens (DTCG)](https://www.designtokens.org/TR/drafts/format/) format, the same format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/), so a brand defined in Lolly round-trips with Penpot and Tokens Studio. Tokens carry the brand's values both ways. A finished Figma or Penpot file comes in through Lolly Design's [Import a design](/info/design-import.html) instead.
 
 ## Where your tokens come from
 
-**Design System Setup** (`#/start`) is where you make and edit tokens. Its Colours, Type and Tokens rooms write colour, typography and dimension tokens (radius, spacing, sizing, stroke, opacity, rotation and shadows), and its import reads W3C DTCG, Tokens Studio and Penpot files. You can also hydrate a pack from a token file with [`ingest:brand`](/info/configuration.html#brand-packs).
+**Lolly Design System Setup** (`#/start`) is where you make and edit tokens. Its Colours, Type and Tokens rooms write colour, typography and dimension tokens (radius, spacing, sizing, stroke, opacity, rotation and shadows), and its import reads W3C DTCG, Tokens Studio and Penpot files. You can also hydrate a pack from a token file with [`ingest:brand`](/info/configuration.html#brand-packs).
 
 ![The Tokens room on a fresh system - a card with the ways to start, the shape and spacing sliders, More tokens and the two advanced folds](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1600&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-tokens&format=svg&walker=1&dark=1&filename=bs-token-editor)
 
@@ -114,7 +114,7 @@ A keyframe follows a curve or spring by its token path, so the path has to fit i
 Tools reach tokens three ways:
 
 - **Inputs, through the platform.** The colour field takes its swatches from `host.tokens.colors()` for the active theme, labelled and grouped by token. Choosing a token swatch stores a reference, not a frozen hex, so a later token edit reaches every linked value.
-- **Hooks, through `host.tokens`.** A hook can read the token set, resolve a reference or list every colourway's lead with `family()`. Chart, Mesh Gradient, Filter and Wordmark are among the community tools that do. When the document's theme or colourway changes, the runtime runs `onInput` once with the id `__tokens`, so a hook that keeps colours it read can read them again.
+- **Hooks, through `host.tokens`.** A hook can read the token set, resolve a reference or list every colourway's lead with `family()`. Lolly Chart, Mesh Gradient, Filter and Wordmark are among the community tools that do. When the document's theme or colourway changes, the runtime runs `onInput` once with the id `__tokens`, so a hook that keeps colours it read can read them again.
 - **Templates and styles, through canvas variables.** The canvas carries the design system's semantic colours as CSS custom properties (`--brand-primary` and the rest), plus `--brand-lead-1` onwards when the design system has two or more colourways. [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) lists them.
 
 Handing the resolved token tree to a template's context, through the `extras` mechanism and opted into from the manifest, is not built yet. Fields other than colour link through each field's **Input actions** menu; [Token workflows](/info/token-workflows.html#link-a-field-to-a-token) covers that.
@@ -145,15 +145,23 @@ The link behind the next picture holds no colour values at all. Its three colour
 ## Round-trip with Penpot
 
 ::: timeline
-- <!--i:palette--> **Export from Lolly.** In Design System Setup, open the Tokens room. Its format menu offers several formats; choose **Design tokens (JSON)** and press **Download**. Faces you chose in the Type room (Primary, Headings, Code, Italic) travel in the same file as font tokens, and roles left on the platform default stay out of the file.
+- <!--i:palette--> **Export from Lolly.** In Lolly Design System Setup, open the Tokens room. Its format menu offers several formats; choose **Design tokens (JSON)** and press **Download**. Faces you chose in the Type room (Primary, Headings, Code, Italic) travel in the same file as font tokens, and roles left on the platform default stay out of the file.
 - <!--i:upload--> **Import into Penpot.** Open a Penpot file, switch to the Tokens panel in the left sidebar and import the JSON. Your sets appear in the panel.
 - <!--i:pentool--> **Apply them.** Apply the colours and fonts to shapes and text from Penpot's Tokens panel.
-- <!--i:convert--> **Bring them back.** Import a Penpot single file, ZIP or multi-file export (`$themes.json`, `$metadata.json` and one file per set) in Design System Setup or with `ingest:brand`.
+- <!--i:convert--> **Bring them back.** Import a Penpot single file, ZIP or multi-file export (`$themes.json`, `$metadata.json` and one file per set) in Lolly Design System Setup or with `ingest:brand`.
 :::
 
 ![The Tokens room's download tools: the format menu, Download, Copy CSS and Add from…, which carry the same colours back out as DTCG JSON](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1800&cropSelector=.tk-head&format=svg&walker=1&dark=1&filename=bs-palette-download)
 
 CMYK survives Lolly-to-Lolly round trips through `$extensions`, and Penpot ignores it, as the standard intends. Two more paths go beyond the token file. Once Penpot is connected under **Settings → Connected services**, a finished render can be sent from Lolly into a Penpot project as an image. And the Lolly bridge plugin for Penpot, installed by URL from a Lolly instance, can place a working Lolly session on the Penpot canvas as editable shapes.
+
+## DESIGN.md
+
+[DESIGN.md](https://github.com/google-labs-code/design.md) is a format for describing a visual identity to coding agents, with YAML tokens and a Markdown body. It is at version `alpha`, and Lolly targets that version.
+
+**In.** `lolly system import DESIGN.md` reads the tokens into a new design system and keeps the file beside the system. `--dry-run` reads the file and changes nothing. Colours, type families, sizes, radii and spacing map to tokens. The format's component entries have no token form in Lolly, so they stay out of the tokens. The reader refuses a file it cannot read, such as one with anchors, a repeated key or no tokens, and it reports a single value it cannot read and leaves that value out. Prose stays text: nothing in the file is acted on.
+
+**Out.** A [brand page](/info/cli-reference.html#publish-a-brand-page) holds one `DESIGN.md` per colourway and mode, because the format has no theme or mode of its own. Named colours sit in a table in the body, since the format's linter treats a token no component uses as a mistake.
 
 ## Theme the app itself
 

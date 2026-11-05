@@ -35,7 +35,7 @@ Her yol aynı aracın üzerinde aynı motoru çalıştırır; bu yüzden bir bet
 ![URL parametreleri ve komut satırı argümanları aynı girdi modeline dönüşür; tek bir paylaşılan çalışma zamanı ve dışa aktarma köprüsünden geçer](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **Uygulamada, tek tek.** Bir aracı aç, alanları doldur ve **Export** düğmesine bas. [İlk dosyanı yap](/info/make-something.html) seni bir tanesinde yönlendirir.
-- <!--i:layers--> **Uygulamada, hepsi bir arada.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) yapıştırılmış veya içe aktarılmış bir tabloyu alır ve her satır için bitmiş bir dosya render eder.
+- <!--i:layers--> **Uygulamada, hepsi bir arada.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) yapıştırılmış veya içe aktarılmış bir tabloyu alır ve her satır için bitmiş bir dosya render eder.
 - <!--i:cpu--> **Bir betikten veya yapay zekâ ajanından.** [CLI](/info/cli.html) bir aracı arayüzsüz çalıştırır ve [MCP sunucusu](/info/mcp.html) bir ajanın araçları keşfedip çalıştırmasını sağlar. Bir araca giden bağlantı girdilerini de taşır; yani bir bağlantı eksiksiz bir istektir.
 - <!--i:server--> **Kuruluşunun sunucusu üzerinden.** [Lolly Work](/info/organisation.html), kuruluşunun girişi ve araç politikası altında sunucuda render eder, sürdürülebilir işleri tutar ve çıktıyı indirme veya onaylı teslimat için saklar.
 

@@ -309,6 +309,19 @@ test('the started inbox feeds its attached banner exactly once', async () => {
   assert.equal(gets(), 1, 'starting again does nothing');
 });
 
+test('a message about a request with a file stays out of the queue, which has its own row for that request', async () => {
+  const { notificationEntries } = await import('../lib/notifications.ts');
+  const review = msg('rev1', { kind: 'approval', severity: 'action', title: 'Approval requested: Card', cta: { label: 'Review', url: '/admin#/approvals' },
+    data: { kind: 'export-review', approvalId: 'apr_1' } });
+  const older = msg('old1', { kind: 'approval', severity: 'action', title: 'Approval requested: Badge', cta: { label: 'Review', url: '/admin#/approvals' } });
+  router = () => json({ messages: [review, older] });
+  startInbox({ initialUnread: 1 });
+  await settle();
+  const queued = (id: string) => notificationEntries().find(row => row.id.endsWith(`:${id}`));
+  assert.equal(queued('rev1'), undefined);
+  assert.ok(queued('old1'), 'a request with no file keeps its row and its link');
+});
+
 test('a comment notice reaches the queue and the announcement in the app language, not in the instance English', async () => {
   const { setActiveLang } = await import('../i18n.ts');
   const { notificationEntries } = await import('../lib/notifications.ts');

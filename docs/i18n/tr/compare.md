@@ -44,7 +44,7 @@ Bağımsız kullanım dosyaları cihazda tutar. Paylaşılan projeler, bir work 
 
 Bu sınırlar bu kümedeki her sayfa için geçerlidir; bu yüzden burada bir kez belirtilir:
 
-- **Work collab'lar bugün tek bir sunucu düğümünde çalışır.** Ölçekleri ve işletim geçmişleri köklü barındırılan ürünlerden farklıdır. [Work status and roadmap](/info/work-status.html) güncel sınırları kaydeder.
+- **Lolly Work collab'lar bugün tek bir sunucu düğümünde çalışır.** Ölçekleri ve işletim geçmişleri köklü barındırılan ürünlerden farklıdır. [Lolly Work status and roadmap](/info/work-status.html) güncel sınırları kaydeder.
 - **[lolly.work](https://lolly.work) sitesi bir demo kum havuzudur.** Kalıcı bir kuruluş dağıtımı kalıcı depolama ve bir işletme gerektirir; ikisini de [Install Lolly Work](/info/work-install.html) kapsar.
 - Lolly veya kendi sunucusunda barındırılan bir Lolly Work için **koltuk başına yazılım lisansı ücreti yoktur**. Barındırma, depolama ve işletme yine de para tutar.
 - **Bir imza güvenilen bir imzalayan değildir.** Bir doğrulayıcı, imzalayanı güvenilen olarak göstermeden önce bir dosyayı imzalayan sertifikaya güvenmelidir; nasıl olduğunu [Content Credentials Identity](/info/content-credentials-identity.html) açıklar.

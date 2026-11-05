@@ -13,14 +13,14 @@ Bir araç seç ve doldur ya da bir sayfayı Design tuvalinde serbestçe düzenle
 - **[Templates](/info/templates.html)** - boş bir araç yerine kaydedilmiş bir düzenden başla.
 - **[Text in Design](/info/text-composition.html)** - başlıklar, akan metin ve kutusuna sığan yazı.
 - **[3D Studio](/info/3d-studio.html)** - SVG çalışmaları ve 3D modeller tek sahne olarak düzenlenir, aydınlatılır ve render edilir.
-- **[Utilities](/info/utilities.html)** - bir dosyayı cihazında düzelt: güvenle paylaş, iki sürümü karşılaştır, biçimini değiştir, sözcükleri çıkar veya bir rengi denetle.
+- **[Lolly Utilities](/info/utilities.html)** - bir dosyayı cihazında düzelt: güvenle paylaş, iki sürümü karşılaştır, biçimini değiştir, sözcükleri çıkar veya bir rengi denetle.
 - **[Browser extension](/info/extension.html)** - web uygulamasından canlı bir web sayfasının ekran görüntüsünü al ya da bir tasarım sistemi başlatmak için bir siteyi oku.
 
 ## Kendine ait yap
 
 Tasarım sistemin, her aracın nasıl göründüğüne karar verir.
 
-- **[Design System Setup](/info/brand-studio.html)** - logolar, renkler, yazı ve gerisi, `#/start` adresinde bir kez ayarlanır.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logolar, renkler, yazı ve gerisi, `#/start` adresinde bir kez ayarlanır.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - gerçek işlerde colourway'ler ve kendi tasarım sistemine geçiş.
 - **[Brand architectures](/info/brand-architectures.html)** - bir kuruluş için birkaç tasarım sistemi ya da birkaç colourway'li tek bir sistem.
 - **[Ortaklarla çalışma](/info/partners.html)** - markanı bir ortakla paylaş, sana verilmiş bir markada çalış ve sponsor duvarı yap.
@@ -31,8 +31,8 @@ Tasarım sistemin, her aracın nasıl göründüğüne karar verir.
 ## İşini bul ve sakla
 
 - **[Find and recover your work](/info/find-your-work.html)** - kaydedilmiş, indirilmiş veya kaydedilmemiş bir dosyanın nereye gittiği.
-- **[Search](/info/search.html)** ve **[Ask Lolly](/info/ask.html)** - araçların, kayıtlı işlerin, varlıkların ve ayarların için tek bir alan ve bu kılavuzlardan yanıtlar.
-- **[Settings](/info/dashboard.html)** - bu cihazın neler yapabildiği, salt okunur tasarım sistemin ve depolaman.
+- **[Lolly Search](/info/search.html)** ve **[Ask Lolly](/info/ask.html)** - araçların, kayıtlı işlerin, varlıkların ve ayarların için tek bir alan ve bu kılavuzlardan yanıtlar.
+- **[Lolly Settings](/info/dashboard.html)** - bu cihazın neler yapabildiği, salt okunur tasarım sistemin ve depolaman.
 - **[Your favourites](/info/favourites.html)** ve **[Profiles](/info/profile.html)** - yıldızlı araçlar, araçların önceden doldurduğu bilgiler ve erişilebilirlik anahtarları.
 - **[Sync your devices](/info/sync.html)** - seçtiğin depolama üzerinden bilgisayarında ve telefonunda aynı iş.
 

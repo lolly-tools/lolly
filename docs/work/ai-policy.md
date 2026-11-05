@@ -14,7 +14,7 @@ below.
 | `reword`, `ai-detect` | local rewriting, its tokenizer-based watermark check and text detection |
 | `embedding` | Ask search embeddings; ordinary keyword search stays available |
 | `watermark` | neural TrustMark and ContentSeal detection, and durable watermark encoding |
-| `sing` | Rondocode singing voices: their download and the model files handed to a song |
+| `sing` | Lolly Rondocode singing voices: their download and the model files handed to a song |
 | `agents` | the desktop app's agents on the same computer: **Ask an agent**, which finds and runs a member's own agent command-line tool, and **Allow AI control**, which listens for a local agent |
 
 Checks run before bridge execution, before worker creation and dispatch and before any model download, including
@@ -71,7 +71,7 @@ capability or shipping a reviewed replacement.
   as by a timer, so a suspended background tab cannot use a stale lease when it wakes. Signing
   out, or losing the session, stops renewal.
 
-Rondocode runs its singing models inside its own editor frame. The shell checks `sing` when a song
+Lolly Rondocode runs its singing models inside its own editor frame. The shell checks `sing` when a song
 asks for the model files, and again before it downloads any that are missing. Withdrawing the
 capability refuses later requests; a request that already passed those checks can still finish,
 and files the frame already holds are not recalled. Approve `sing` only for a Lolly 1.1.1 or later
@@ -83,7 +83,7 @@ before it starts an agent and while one runs, and before Allow AI control listen
 the capability stops a running agent, discards its answer and turns the listener off. An agent
 started this way uses the member's own account with that agent's provider, so its requests
 and costs belong to that account. Managed AI does not route, log or pay for them. The
-deployment's capability list can include `agents` only once both the Work release and members'
+deployment's capability list can include `agents` only once both the Lolly Work release and members'
 desktop apps know the capability; an older desktop app refuses a lease that asks for it, which
 leaves every AI capability off there.
 
@@ -107,7 +107,7 @@ suitable network restrictions are still needed.
   supported shell AI paths and blocks model asset requests. Keep
   `render.allowHooksInFastPath=false` in the first production profile.
 - The matching Lolly MCP service leaves model-backed APIs out of its headless host, turns AI off
-  in browser-render contexts and rejects model asset requests. Turning on Work's AI flag does not
+  in browser-render contexts and rejects model asset requests. Turning on Lolly Work's AI flag does not
   turn on MCP AI.
 - Standalone CLI and TUI use keeps its own behaviour and needs a separate endpoint policy if it is
   in scope.
@@ -122,12 +122,12 @@ model inventory and assessments your organisation requires.
 Build the matching Lolly web shell with `VITE_REQUIRE_AI_POLICY=true`. For the repository's
 Dockerfile, pass `--build-arg VITE_REQUIRE_AI_POLICY=true` together with the reviewed profile and
 catalog signing secrets. This is a **build setting**: setting it on a running nginx container
-cannot change a shell that is already built. It protects the first boot when Work is absent,
+cannot change a shell that is already built. It protects the first boot when Lolly Work is absent,
 unreachable or misrouted. Public and standalone builds keep their ordinary behaviour. An updated
-shell that has detected Work also remembers that its origin is managed, but that best-effort
+shell that has detected Lolly Work also remembers that its origin is managed, but that best-effort
 device marker does not replace the managed build setting.
 
-Deploy the updated shell and Work together. Older shells do not implement this contract, and older
-Work responses carry no AI policy, so updated managed shells keep AI off against them. Review open
+Deploy the updated shell and Lolly Work together. Older shells do not implement this contract, and older
+Lolly Work responses carry no AI policy, so updated managed shells keep AI off against them. Review open
 tabs, service-worker updates and packaged clients when you promote or withdraw a release.
 :::

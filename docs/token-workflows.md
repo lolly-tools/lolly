@@ -2,7 +2,7 @@
 
 Once your design system is in Lolly, the everyday questions change. Where does this colour come from? What moves if I change that colour? Can this one poster be dark, in the Beach colourway, without changing the system? This page is for the person who looks after a design system, and it answers those questions in the app, in the terminal and over MCP.
 
-Start in the Tokens room of Design System Setup (`#/start?area=tokens`). Pick any token to see its value as written and as resolved, which set it came from and every token that reads the value. Opening a token changes nothing. Changes go through a review you apply, and you can undo them.
+Start in the Tokens room of Lolly Design System Setup (`#/start?area=tokens`). Pick any token to see its value as written and as resolved, which set it came from and every token that reads the value. Opening a token changes nothing. Changes go through a review you apply, and you can undo them.
 
 To follow along, download the [Beacon example system](/examples/beacon.tokens.json). It has independent appearance and density choices, custom vocabulary and semantic aliases. Its `border.exampleOutline` changes colour and stroke style with appearance, and width with density.
 
@@ -16,11 +16,12 @@ The Tokens room lists every definition the design system keeps, including custom
 
 Declared brand roles and consumer slots appear apart from those dependents, because a declaration is not proof that anything uses the token, and not a rule check. A read-only system offers the same inspection. The list shows 100 tokens a page.
 
-Design System Setup reads the editable head. A document reads its render version, which can differ from the head when a published version is active.
+Lolly Design System Setup reads the editable head. A document reads its render version, which can differ from the head when a published version is active.
 
-### In Design
+<a id="in-design"></a>
+### In Lolly Design
 
-In Design, open the inspector's **Canvas** tab. Its **Style & look** section shows a context strip above the theme rows: **Mode** for light and dark, **Colourway** when the design system has colourways, and a row for any other theme group. The strip says which design system and render version the document draws with, and where the system came from. It reads **Chosen for this document** when the document made its own theme choices, and **Follows the design system** when it has none.
+In Lolly Design, open the inspector's **Canvas** tab. Its **Style & look** section shows a context strip above the theme rows: **Mode** for light and dark, **Colourway** when the design system has colourways, and a row for any other theme group. The strip says which design system and render version the document draws with, and where the system came from. It reads **Chosen for this document** when the document made its own theme choices, and **Follows the design system** when it has none.
 
 **Source and fallbacks** lists every theme choice, marks a read-only system and lists any choice this design system does not offer, with the default used in its place. **Inspect tokens** opens the render version with the document's choices. Trying another choice there is labelled **Preview**, and **Return to render choices** restores the captured ones; the inspector edits neither the document nor the design system. **Follow the design system** removes the document's own choices, so its linked values follow the design system's stored choices again.
 
@@ -50,10 +51,10 @@ Counts in the Tokens room, the TUI and MCP cover token references and declared r
 
 Each imported theme group has its own control, using the source's group names and theme ids, or the theme name when the source has no id. A choice can belong to the design system or to one document.
 
-- **For the design system.** Preview a choice in the Tokens room; previewing writes nothing. **Use these choices for this system** creates a review, and **Apply reviewed change** commits the choices through Design System Setup's usual saving and undo.
-- **For one document.** A Design document's theme rows change only that document. The choice is saved with it as `__tokenSelection`, travels in its link as `_themes` and comes back when it reopens. The design system's stored choices stay as they were, and other documents keep their own.
+- **For the design system.** Preview a choice in the Tokens room; previewing writes nothing. **Use these choices for this system** creates a review, and **Apply reviewed change** commits the choices through Lolly Design System Setup's usual saving and undo.
+- **For one document.** A Lolly Design document's theme rows change only that document. The choice is saved with it as `__tokenSelection`, travels in its link as `_themes` and comes back when it reopens. The design system's stored choices stay as they were, and other documents keep their own.
 
-A session's choices go wherever the session is drawn: a [multi-edit](/info/batch.html#edit-several-saved-designs-together) card, a [batch](/info/batch.html#make-many-versions-of-one-design) row and the batch CSV's `_themes` column, a Design document export and every tool link [composed](/info/url-mode.html#tool-composition-portable-embed-url) inside the document. [Colourways](/info/colourways.html) covers choosing a lead colour for a piece.
+A session's choices go wherever the session is drawn: a [Lolly multi-edit](/info/batch.html#edit-several-saved-designs-together) card, a [Lolly batch](/info/batch.html#make-many-versions-of-one-design) row and the batch CSV's `_themes` column, a Lolly Design document export and every tool link [composed](/info/url-mode.html#tool-composition-portable-embed-url) inside the document. [Colourways](/info/colourways.html) covers choosing a lead colour for a piece.
 
 ```sh
 lolly system inspect --file=beacon.tokens.json --_themes='{"appearance":"night","density":"roomy"}' --json
@@ -81,23 +82,24 @@ Undo and redo keep the right remembered link for each custom value. **Edit sourc
 
 A number field accepts number tokens and absolute dimensions converted at CSS 96 DPI; relative units need a reference size, so this adapter refuses them. Select controls keep their own list of allowed choices.
 
-**In Design,** select a layer and expand **Token links** inside its property group. Choose a property, then **Link a token**. The usual number, colour or font editor stays the place to adjust the value, and editing a linked value makes a local override. Opening or filtering a picker changes nothing, and each link or custom action has its own undo step.
+**In Lolly Design,** select a layer and expand **Token links** inside its property group. Choose a property, then **Link a token**. The usual number, colour or font editor stays the place to adjust the value, and editing a linked value makes a local override. Opening or filtering a picker changes nothing, and each link or custom action has its own undo step.
 
 For several selected layers, common paint and compatible text groups offer the same actions. Linking applies one chosen value to the whole selection. **Make custom** keeps each layer's own value, and **Restore link** appears when every selected layer remembers the same token. Geometry follows the inspector's single-layer rules.
 
 | Consumer | What can link today |
 | --- | --- |
 | Tool inputs | Number, text, long text and compatible select or font-family inputs. Colour controls keep their own picker. |
-| Design geometry | Declared position, size and rotation in a single-layer selection. |
-| Design paint and effects | Colour, opacity, corner radius, stroke width and each number in a shadow. Colour links use the document's SDR or wide-gamut colour face. |
-| Design text | Font family and declared size, spacing and padding. **Whole typography** sets family, size, weight, tracking and line height in one undo step. |
-| Design composites | One shadow with zero spread and no inset; a gradient of 2 to 12 resolved sRGB stops, written as a rightward linear gradient. Layered shadows and unsupported gradients are refused. |
-| Design borders | Whole borders: colour, absolute width and solid, dashed or dotted style in one undo step. Custom stroke styles and relative widths are refused. |
-| Design motion | Duration tokens convert to the field's seconds or milliseconds; easing tokens become checked cubic Bezier curves. A zero-delay transition links Enter duration and easing for one layer that is not a frame. |
+| Lolly Design geometry | Declared position, size and rotation in a single-layer selection. |
+| Lolly Design paint and effects | Colour, opacity, corner radius, stroke width and each number in a shadow. Colour links use the document's SDR or wide-gamut colour face. |
+| Lolly Design text | Font family and declared size, spacing and padding. **Whole typography** sets family, size, weight, tracking and line height in one undo step. |
+| Lolly Design composites | One shadow with zero spread and no inset; a gradient of 2 to 12 resolved sRGB stops, written as a rightward linear gradient. Layered shadows and unsupported gradients are refused. |
+| Lolly Design borders | Whole borders: colour, absolute width and solid, dashed or dotted style in one undo step. Custom stroke styles and relative widths are refused. |
+| Lolly Design motion | Duration tokens convert to the field's seconds or milliseconds; easing tokens become checked cubic Bezier curves. A zero-delay transition links Enter duration and easing for one layer that is not a frame. |
 | Composed paragraphs | Line height, the space before and after and the start, end and first-line indents, at the caret, range or story. **Whole typography** sets font, size, weight, tracking and line height together. |
 | Not yet | Transition delay, Exit and frame or deck consumers. |
 
-::: details Linking typography, borders and motion in Design
+<a id="linking-typography-borders-and-motion-in-design"></a>
+::: details Linking typography, borders and motion in Lolly Design
 **Composites keep separate links.** A whole composite keeps its own reference and adapter on each property, so editing one property keeps the other links. A missing or incompatible source value keeps its last value. Composed paragraphs store their links with the paragraph settings, and linking across paragraphs keeps their other links.
 
 **Whole typography on composed text records the exact face.** Linking finds an installed face for the token's family at its exact weight, and an italic face too when the text has italic runs, then stores those faces with the text by their content digest. When a design version with published fonts is active, the faces come from that version's pinned files. A nearer weight or another family is never substituted, even for a brand font that ships one file per weight: the link is refused and the field says which face is missing.
@@ -108,7 +110,7 @@ Linking clears size, weight, tracking and font overrides inside the linked parag
 
 **Motion.** In a layer's **Motion** group, choose **Enter transition** inside **Token links**, pick a candidate and check its status, then **Link token** applies duration and easing in one undo step. The transition needs zero delay, a duration within the Enter field's 100 to 3000 ms and a valid cubic Bezier curve. Candidates that do not qualify stay visible with the reason and a disabled Link action, and selecting one changes nothing. The curve governs the Enter preset's geometry; opacity keeps the preset's own behaviour, and timeline placement stays separate. Editing one linked field makes that field custom, and a valid easing link can still refresh while duration stays custom. If any active part is incompatible or unresolved, every active property keeps its cached value. **Restore link** for the whole transition checks both fields and applies them together; an unsupported source leaves the layer unchanged.
 
-**Where links are kept.** Design keeps links in an appended metadata field beside the ordinary properties. Links, custom values and remembered links survive saved URLs, sessions and portable document snapshots. Opening through the engine refreshes linked properties and keeps intentional overrides and cached values.
+**Where links are kept.** Lolly Design keeps links in an appended metadata field beside the ordinary properties. Links, custom values and remembered links survive saved URLs, sessions and portable document snapshots. Opening through the engine refreshes linked properties and keeps intentional overrides and cached values.
 
 **Token formats.** Typography, shadow, border, transition and gradient composites accept bounded nested aliases in the [supported composite fields](https://www.designtokens.org/tr/2025.10/format/#composite-types). An incompatible reference type stays visible in the inspector. Unknown token types, `$ref` and `$extends` are kept as source data and reported where unsupported.
 :::
@@ -117,7 +119,7 @@ Linking clears size, weight, tracking and font overrides inside the linked parag
 
 ## Link many documents at once
 
-Batch and Multi-edit can link one token across many rows or sessions. In Batch, open a column's **Fill** popover; number, text and choice columns have a **Design token** section beside the fill value. In Multi-edit, each session card has the same **Input actions** menu as a tool sidebar and acts on that session only, and the **Shared** card's menu reaches every session that declares the input.
+Batch and Lolly Multi-edit can link one token across many rows or sessions. In Lolly Batch, open a column's **Fill** popover; number, text and choice columns have a **Design token** section beside the fill value. In Lolly Multi-edit, each session card has the same **Input actions** menu as a tool sidebar and acts on that session only, and the **Shared** card's menu reaches every session that declares the input.
 
 Choosing a token opens a review before anything changes. Each row or session shows its current value and the value it would get, resolved in that document's own theme choices and checked against its own input.
 
@@ -139,7 +141,7 @@ In the Batch grid, a linked cell is shaded and its accessible name includes the 
 
 Source edits, generated scales and upstream comparisons capture the document as it is. The review shows the changes you wrote and the resolved values that change because of them. A token edit, a system switch or a change to a referenced resource in the meantime makes **Apply** unavailable.
 
-When a production host is available, the review can render one existing poster, title slide, content slide or Chart before and after. Renders run one at a time, with a cancel and a deadline, and the shared comparison controls handle alignment and the noise threshold. A result describes those two outputs, not every theme combination or every document.
+When a production host is available, the review can render one existing poster, title slide, content slide or Lolly Chart before and after. Renders run one at a time, with a cancel and a deadline, and the shared comparison controls handle alignment and the noise threshold. A result describes those two outputs, not every theme combination or every document.
 
 Registered recipes generate colour ramps, pixel spacing scales and modular type scales. A recipe's settings, version, outputs and overrides travel in the Lolly extension, and its outputs stay ordinary DTCG tokens that older readers can use. Regenerating keeps recorded local overrides and refuses to overwrite a hand-made token.
 
@@ -161,7 +163,7 @@ Missing or changed bytes for these pins fail visibly. Portable snapshots keep th
 
 The inspector's **Used by** list covers references inside the token document. Below the list, **Check saved work and tools** looks for the selected token in two more places on this device: saved sessions in this browser, and the tool manifests in the mounted catalog. One check covers every token in the workspace, so choosing another token shows its results without checking again. The check runs only when you ask, can be cancelled and writes nothing.
 
-- **A saved session counts** when one of its inputs, Design layer properties, rich-text run colours or composed paragraph settings links the token. A session that keeps a custom value but remembers the link is counted separately. Sessions in the Trash, project templates and discarded drafts are left out.
+- **A saved session counts** when one of its inputs, Lolly Design layer properties, rich-text run colours or composed paragraph settings links the token. A session that keeps a custom value but remembers the link is counted separately. Sessions in the Trash, project templates and discarded drafts are left out.
 - **A tool counts** when the token is the default of a colour or number input or block field, or a value in one of its examples.
 
 Counts cover direct links only: a session that links another token which reads the selected one is counted under that other token, which **Used by** shows. Each count says how many sessions or tools were read, and anything that could not be read, or fell past the size limits, is reported as not counted rather than as zero.

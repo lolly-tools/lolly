@@ -2,7 +2,7 @@
 
 Every promise on this site can be checked, with no account. Most checks need only a browser; the rest need a terminal and a copy of the source. If a check below does not give the result shown, that is a bug or a broken promise, and we want to hear about it: see [If a check fails](#if-a-check-fails).
 
-Start with the quickest one: drop a file on Verify. Then go further: watch the network while you use a tool, pull the plug and keep working, count the cookies and read the source.
+Start with the quickest one: drop a file on Lolly Verify. Then go further: watch the network while you use a tool, pull the plug and keep working, count the cookies and read the source.
 
 These checks cover Lolly on its own. If your organisation runs Lolly Work, it adds sign-in, shared content, configured telemetry and audit records; check those against [Server Surface](/info/server-surface.html) and the [organisation section of the privacy policy](/info/privacy.html#organisation-services-with-lolly-work).
 
@@ -10,7 +10,7 @@ These checks cover Lolly on its own. If your organisation runs Lolly Work, it ad
 
 Open [`/verify`](/#/verify) and drop a file on the page. There is no upload, no account and no wait for a server. Here it checks the [generated Queensland storm](/info/ai-stance.html) from Our AI Stance: an image Gemini generated, which Lolly opened, marked and converted. Every badge was worked out on the device, from the file's own bytes.
 
-![Verify on a phone-width screen - the storm image, a green Made with Lolly verdict and the credential-intact and bytes-unchanged badges stacked beneath it](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
+![Lolly Verify on a phone-width screen - the storm image, a green Made with Lolly verdict and the credential-intact and bytes-unchanged badges stacked beneath it](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 
 The verdict is a small pile of badges, each an independent fact:
 
@@ -19,16 +19,16 @@ The verdict is a small pile of badges, each an independent fact:
 - <!--i:hash--> **The bytes have not changed**: the file's hash still matches what was signed. Alter one pixel and this badge flips.
 - <!--i:sparkle--> **GEN AI**: a machine made these pixels, and the file says so. Lolly reads that declaration back out rather than hiding the fact.
 
-The whole history travels with the file. Nine steps survive here: five Google recorded as it generated and watermarked the image, then four Lolly recorded as it opened, marked and converted the copy on this page. Verify reads them straight out of the bytes and draws them as a timeline.
+The whole history travels with the file. Nine steps survive here: five Google recorded as it generated and watermarked the image, then four Lolly recorded as it opened, marked and converted the copy on this page. Lolly Verify reads them straight out of the bytes and draws them as a timeline.
 
-![The change history Verify reads back out of the storm image - five steps recorded by Google, then four by Lolly, ending in the WebP on this page](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
+![The change history Lolly Verify reads back out of the storm image - five steps recorded by Google, then four by Lolly, ending in the WebP on this page](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
 That is the demo. The checks below are the guarantees underneath it, and each one is reproducible. [Content Credentials](/info/content-credentials-identity.html) explains every verdict.
 
 ## In your browser, no tools required
 
 ::: timeline
-- <!--i:globe--> **1. Watch the network.** Open [lolly.tools](https://lolly.tools), open your browser's DevTools (F12), switch to **Network** and use a tool: type a web address into [QR Code](/t/qr-code), change colours, export a PNG. Every request stays on `lolly.tools`: the app shell, the tool's own files and catalog assets. There is no analytics host, no CDN beacon, no font service and no error-reporting endpoint. What you type into a tool appears in **no request at all**, because rendering is local.
+- <!--i:globe--> **1. Watch the network.** Open [lolly.tools](https://lolly.tools), open your browser's DevTools (F12), switch to **Network** and use a tool: type a web address into [Lolly QR Code](/t/qr-code), change colours, export a PNG. Every request stays on `lolly.tools`: the app shell, the tool's own files and catalog assets. There is no analytics host, no CDN beacon, no font service and no error-reporting endpoint. What you type into a tool appears in **no request at all**, because rendering is local.
 - <!--i:eyeoff--> **2. Pull the plug.** Load the app and open a tool or two, then go offline (airplane mode, or DevTools → Network → Offline) and reload. The gallery and every tool you opened keep working, including rendering and export in the formats you used. A tool's files and a format's encoder are cached the first time you use them, so use a tool once online before testing it offline. This is the strongest single check on this page: software that phones home does not survive its cord being cut.
 - <!--i:check--> **3. Count the cookies.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. The list is empty: the app sets no cookies. Paste `document.cookie` into the console and you get `""`. The optional CA enrolment sets a short-lived `HttpOnly` cookie, `lolly_ca_state`, scoped to `/api/ca`, which `document.cookie` cannot show. A Lolly Work instance uses its own sign-in cookies; compare them with [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 - <!--i:layers--> **4. Read your own storage.** In the same panel, everything Lolly keeps is in front of you: a couple of dozen plain `localStorage` keys (theme, language, sidebar width, sound and view settings, and a cached copy of the public tool catalog index) and your own documents in IndexedDB. Every value is a readable string or JSON, with nothing obfuscated. Clearing site data removes these local records, but not a Sync backup or records held by a Lolly Work instance. **Settings → Storage → Clear all my data** does the same from inside the app, and you can watch the stores and caches empty.
@@ -38,11 +38,11 @@ That is the demo. The checks below are the guarantees underneath it, and each on
 ::: details What else you may see in the Network tab
 Some features reach the network only when you use them, and each is visible in the same tab:
 
-- adding a **Google Font** in Design System Setup fetches that one family from Google, after a consent dialog that says so, once, before the first fetch;
+- adding a **Google Font** in Lolly Design System Setup fetches that one family from Google, after a consent dialog that says so, once, before the first fetch;
 - clicking an **ICC press-profile preset** fetches that profile from the ICC's public registry at color.org;
 - playing the optional built-in **radio** streams from the station;
 - entering a location in **Meeting Planner** looks that place up at open-meteo's geocoding service for its coordinates and time zone, once per city (answers are saved on your device), and the field says so where you type;
-- **URL Screenshot** loads the address you typed, because that is its job, and you watch it happen.
+- **Lolly URL Screenshot** loads the address you typed, because that is its job, and you watch it happen.
 
 A tool that declares a network capability may fetch only from the hosts its manifest allowlists, and that check fails closed. No tool shipped today declares one, so the browser-enforced Content-Security-Policy is what holds the list above to its hosts. The [privacy policy](/info/privacy.html) keeps the canonical table of all of these, including managed-instance traffic such as policy refreshes and enabled reporting.
 :::
@@ -85,7 +85,7 @@ grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html'
 
 This scan looks for third-party tracking SDKs. It does not show the absence of first-party usage reporting: Lolly Work supports organisation telemetry and a separate audit log, with their own policy and tests.
 
-**9. No third-party DNS resolver.** Verify's SEAL check never sends a lookup through a DNS-over-HTTPS provider, because the app has no resolver:
+**9. No third-party DNS resolver.** Lolly Verify's SEAL check never sends a lookup through a DNS-over-HTTPS provider, because the app has no resolver:
 
 ```bash
 grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \

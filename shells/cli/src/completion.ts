@@ -44,16 +44,17 @@ import {
   PACKAGE_VALUE_FLAGS, PACKAGE_BOOL_FLAGS, PACKAGE_PATH_FLAGS,
   MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS,
   COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, COMPOSE_PATH_FLAGS,
+  INTENT_VALUE_FLAGS, INTENT_BOOL_FLAGS,
 } from './args.ts';
 
 export type CompletionShell = 'bash' | 'zsh' | 'fish';
 export const COMPLETION_SHELLS: readonly CompletionShell[] = ['bash', 'zsh', 'fish'];
 
-const GLOBAL_BOOL_FLAGS = ['json', 'quiet', 'verbose', 'strict', 'dry-run', 'preflight', 'resume', 'watch', 'keep-going', 'include-personal'] as const;
+const GLOBAL_BOOL_FLAGS = ['json', 'quiet', 'verbose', 'strict', 'dry-run', 'preflight', 'resume', 'watch', 'keep-going', 'include-personal', 'null', 'paths', 'screen-reader'] as const;
 
 /** Value flags whose value is a filesystem path - completed as files/dirs, never a word list. */
 const PATH_FLAGS = new Set([
-  'root', 'journal', 'output', 'out-dir', 'inputs', 'template', 'trust-anchor', 'sign-key', 'sign-cert', 'rebuild',
+  'root', 'journal', 'output', 'out-dir', 'out', 'usage-file', 'inputs', 'template', 'trust-anchor', 'sign-key', 'sign-cert', 'rebuild',
   // `lolly read --media=<dir>`: the folder the pictures are written to (plan 291 W2).
   'media',
   // `lolly check --file=<tokens.json>`: the design system to check against (plan 291 W1).
@@ -116,8 +117,8 @@ function rebrandWords(): RebrandWords {
   const known = new Set<string>([...VALUE_FLAGS, ...GLOBAL_BOOL_FLAGS, ...PATH_FLAGS]);
   // `lolly measure --text` and `--text-layers` (plan 291 W5).
   // `lolly compose` (plan 291 W6).
-  const bools: string[] = [...REBRAND_BOOL_FLAGS, ...READ_BOOL_FLAGS, ...CHECK_BOOL_FLAGS, ...PACKAGE_BOOL_FLAGS, ...MEASURE_BOOL_FLAGS, ...COMPOSE_BOOL_FLAGS];
-  const values: string[] = [...REBRAND_VALUE_FLAGS, ...READ_VALUE_FLAGS, ...CHECK_VALUE_FLAGS, ...PACKAGE_VALUE_FLAGS, ...MEASURE_VALUE_FLAGS, ...COMPOSE_VALUE_FLAGS];
+  const bools: string[] = [...REBRAND_BOOL_FLAGS, ...READ_BOOL_FLAGS, ...CHECK_BOOL_FLAGS, ...PACKAGE_BOOL_FLAGS, ...MEASURE_BOOL_FLAGS, ...COMPOSE_BOOL_FLAGS, ...INTENT_BOOL_FLAGS];
+  const values: string[] = [...REBRAND_VALUE_FLAGS, ...READ_VALUE_FLAGS, ...CHECK_VALUE_FLAGS, ...PACKAGE_VALUE_FLAGS, ...MEASURE_VALUE_FLAGS, ...COMPOSE_VALUE_FLAGS, ...INTENT_VALUE_FLAGS];
   const words = [...new Set([...values.filter(f => !paths.has(f)), ...bools])].filter(f => !known.has(f));
   return {
     stages: [...REBRAND_STAGES],
@@ -155,7 +156,7 @@ export function toolCompletionWords(toolIds: readonly string[]): Record<string, 
 
 const CONTEXT_COMMANDS: Record<string, string[]> = {
   projects: ['list', 'show', 'export', 'copy'], files: ['schema', 'convert'], models: ['ls', 'fetch'], learning: ['check', 'build'],
-  system: ['status', 'init', 'import', 'add', 'export', 'context', 'check', 'skills', 'skill', 'list', 'use', 'inspect', 'diff', 'generate', 'sync'],
+  system: ['status', 'init', 'import', 'add', 'export', 'publish', 'context', 'check', 'skills', 'skill', 'list', 'use', 'inspect', 'diff', 'generate', 'sync'],
 };
 
 /** Build the bare word lists a completion script needs, shared by all three shells. */

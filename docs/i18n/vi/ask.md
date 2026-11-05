@@ -2,7 +2,7 @@
 
 Gõ một câu hỏi và Ask Lolly trả lời bằng phần của các hướng dẫn này đề cập đến nó, nguyên văn, kèm trang nguồn được trích dẫn và liên kết **Open in docs** thẳng tới phần đó. Không có gì được sinh ra: câu trả lời được truy xuất, trích dẫn và ghi nguồn, ngay trên thiết bị của bạn.
 
-Dưới phần được trích là những nơi trong ứng dụng khớp với cùng câu hỏi: một công cụ, một tiện ích, một dự án đã lưu, một tài nguyên danh mục, một cài đặt hoặc một trang của ứng dụng. Mỗi hàng chỉ điều hướng. Không có gì trong câu trả lời đổi cài đặt, mở tệp hay hành động thay bạn, cùng quy tắc mà [Search](/info/search.html) tuân theo.
+Dưới phần được trích là những nơi trong ứng dụng khớp với cùng câu hỏi: một công cụ, một tiện ích, một dự án đã lưu, một tài nguyên danh mục, một cài đặt hoặc một trang của ứng dụng. Mỗi hàng chỉ điều hướng. Không có gì trong câu trả lời đổi cài đặt, mở tệp hay hành động thay bạn, cùng quy tắc mà [Lolly Search](/info/search.html) tuân theo.
 
 ## Đặt câu hỏi
 
@@ -60,4 +60,4 @@ Câu hỏi của bạn không bao giờ rời thiết bị. Việc khớp chạy
 
 ---
 
-**Liên quan:** [Search](/info/search.html) cho thanh chuyển câu hỏi sang. [Using Lolly](/info/using.html) cho phần còn lại của ứng dụng. [Settings](/info/dashboard.html#available-offline) để đưa tài liệu ngoại tuyến trước.
+**Liên quan:** [Lolly Search](/info/search.html) cho thanh chuyển câu hỏi sang. [Using Lolly](/info/using.html) cho phần còn lại của ứng dụng. [Lolly Settings](/info/dashboard.html#available-offline) để đưa tài liệu ngoại tuyến trước.

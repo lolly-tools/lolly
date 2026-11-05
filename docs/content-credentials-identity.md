@@ -4,13 +4,13 @@ Every file Lolly makes can carry a Content Credential: a signed [C2PA](https://c
 
 You get this without an account. By default Lolly signs each export with a key made for that one file, so the record is intact but anonymous. If you want your files to name you, enrol once in **Settings**.
 
-To check any file, open **Verify** (the shield in the bottom bar) and drop it in. The check runs on your device and nothing is uploaded, not the file and not the result.
+To check any file, open the **Verify** tool (the shield in the bottom bar) and drop it in. The check runs on your device and nothing is uploaded, not the file and not the result.
 
 ## Check a file
 
-![The Verify screen with nothing but a drop target - no upload button, no account, because the check runs where the file already is](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop)
+![The Lolly Verify screen with nothing but a drop target - no upload button, no account, because the check runs where the file already is](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop)
 
-Verify (the route is `/verify`; `/valid` and `/v` open it too) reads the whole C2PA manifest store. That includes credentials written by other tools: it reads C2PA 1.x and 2.x claims, so files from cameras, Adobe apps, Gemini and other generators verify too. The result is one verdict, chosen from the states below.
+Lolly Verify (the route is `/verify`; `/valid` and `/v` open it too) reads the whole C2PA manifest store. That includes credentials written by other tools: it reads C2PA 1.x and 2.x claims, so files from cameras, Adobe apps, Gemini and other generators verify too. The result is one verdict, chosen from the states below.
 
 ::: figure content-credentials-verdicts
 Green means the file is what its credential signed. Amber is an honest middle ground. Red means it changed. Grey means there was nothing to compare.
@@ -29,21 +29,21 @@ Green means the file is what its credential signed. Amber is an honest middle gr
 | **Not all of this file is covered by its credential** | The bytes the credential covers match, but its declared exclusion reaches beyond its own manifest, so part of the file was never signed and could have changed unnoticed. |
 | **Credential broken** | The file carries Content Credentials, but they no longer match its bytes: it was modified after signing, or the manifest is damaged. |
 | **No Content Credentials** | The file carries no C2PA manifest. It is still inspected for a Lolly Imprint, metadata and hidden data. |
-| **Credential stored elsewhere** | The file points at a credential kept somewhere else. Verify fetches nothing, so these bytes were not checked against that credential. |
+| **Credential stored elsewhere** | The file points at a credential kept somewhere else. Lolly Verify fetches nothing, so these bytes were not checked against that credential. |
 | **Not inspected as text** | The file is past the size limit for on-device text inspection, so its text was never searched for a manifest. Nothing is claimed either way. |
 :::
 
-Below the verdict, Verify shows the recorded edit history, the ingredients a file was made from and, when present, the CA-verified signer's email and issuer. The [Verify It Yourself](/info/verify-yourself.html) page walks one real file through the whole check.
+Below the verdict, Lolly Verify shows the recorded edit history, the ingredients a file was made from and, when present, the CA-verified signer's email and issuer. The [Verify It Yourself](/info/verify-yourself.html) page walks one real file through the whole check.
 
 ![The Change history panel, where every step shows the software that made it and Lolly's own leg of the history reads green](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
 The same check runs from the terminal with `lolly validate <file>`, and in any third-party C2PA validator pointed at the public Lolly root (`c2patool --trust_anchors lolly-root.pem`).
 
-Verify also looks past the credential: an AI declaration, Lolly's invisible pixel Imprint, other makers' watermarks, SEAL signatures and data hidden in the bytes. [What Verify checks](/info/what-verify-checks.html) covers each one.
+Lolly Verify also looks past the credential: an AI declaration, Lolly's invisible pixel Imprint, other makers' watermarks, SEAL signatures and data hidden in the bytes. [What Lolly Verify checks](/info/what-verify-checks.html) covers each one.
 
 ## Put your name on your files
 
-Enrol once in **Settings**, with a sign-in provider your deployment offers (for example GitHub or Google). From then on your exports are signed by a short-lived certificate that names you. Verifiers that trust the Lolly root show you as the signer instead of an anonymous key. In Lolly's own Verify, your export keeps its **Made with Lolly** verdict and gains the line **Signed by \<your email\> - identity verified by \<issuer\>**.
+Enrol once in **Settings**, with a sign-in provider your deployment offers (for example GitHub or Google). From then on your exports are signed by a short-lived certificate that names you. Verifiers that trust the Lolly root show you as the signer instead of an anonymous key. In Lolly Verify, your export keeps its **Made with Lolly** verdict and gains the line **Signed by \<your email\> - identity verified by \<issuer\>**.
 
 ::: warning Your email travels with every file
 While you are enrolled, your email address is written into every file you export. It stays in every copy you share and cannot be removed later, even after the certificate expires. For a team, consider enrolling a shared role address rather than a personal mailbox.
@@ -87,6 +87,6 @@ A CLI render is credentialed by default, exactly like an export from the app. `-
 
 ## For organisations and operators
 
-Organisation sign-in through **Lolly Work** is separate from this on-device signing enrolment. Its SSO gives access to the instance, and server renders use the service's configured signing identity when one is set. See [Use Lolly at your organisation](/info/organisation.html) and [Configure Work export signing](/info/work-c2pa.html).
+Organisation sign-in through **Lolly Work** is separate from this on-device signing enrolment. Its SSO gives access to the instance, and server renders use the service's configured signing identity when one is set. See [Use Lolly at your organisation](/info/organisation.html) and [Configure Lolly Work export signing](/info/work-c2pa.html).
 
 To run the optional CA yourself, follow the [hosted identity deployment procedure](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#deploy-and-maintain-hosted-identity) in the CA's README: provider registration, a strict verified-email policy, client secrets, upgrades and signing-key rotation. [Content Credentials engineering](/info/content-credentials-engineering.html) covers the architecture, the engine contracts, the CA protocol and the threat model.

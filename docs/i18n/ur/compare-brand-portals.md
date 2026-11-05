@@ -6,7 +6,7 @@ _آخری جانچ: 28 ستمبر 2026۔_
 
 ## قائم شدہ پورٹل کیا بہتر کرتا ہے
 
-قائم شدہ پورٹلز منظم ہوسٹنگ، سپورٹ اور وسیع asset-management ورک فلوز پیش کرتے ہیں۔ مثلاً [Frontify کا enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) ایسیٹ کی دریافت، رسائی کنٹرولز، منظوری کے ورک فلوز اور تقسیم کو ملاتا ہے۔ Lolly اسٹیک نیا ہے اور اس کی منظوری کی زنجیریں من مانے شاخ دار ورک فلوز کے بجائے ترتیب وار ہیں۔ [Work status and roadmap](/info/work-status.html) اس کی تعیناتی کی حدیں ریکارڈ کرتا ہے۔
+قائم شدہ پورٹلز منظم ہوسٹنگ، سپورٹ اور وسیع asset-management ورک فلوز پیش کرتے ہیں۔ مثلاً [Frontify کا enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) ایسیٹ کی دریافت، رسائی کنٹرولز، منظوری کے ورک فلوز اور تقسیم کو ملاتا ہے۔ Lolly اسٹیک نیا ہے اور اس کی منظوری کی زنجیریں من مانے شاخ دار ورک فلوز کے بجائے ترتیب وار ہیں۔ [Lolly Work status and roadmap](/info/work-status.html) اس کی تعیناتی کی حدیں ریکارڈ کرتا ہے۔
 
 ## جہاں یہ ایک دوسرے سے ملتے ہیں
 

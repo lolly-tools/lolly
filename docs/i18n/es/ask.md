@@ -2,7 +2,7 @@
 
 Escribe una pregunta y Ask Lolly responde con la sección de estas guías que la cubre, palabra por palabra, citando la página de la que procede y con un enlace **Open in docs** directo a esa sección. No se genera nada: la respuesta se recupera, se cita y se atribuye, en tu dispositivo.
 
-Bajo la sección citada están los lugares de la aplicación que coinciden con la misma pregunta: una herramienta, una utilidad, un proyecto guardado, un recurso del catálogo, un ajuste o una página de la aplicación. Cada fila solo navega. Nada de una respuesta cambia un ajuste, abre un archivo ni actúa por ti, la misma regla que sigue [Search](/info/search.html).
+Bajo la sección citada están los lugares de la aplicación que coinciden con la misma pregunta: una herramienta, una utilidad, un proyecto guardado, un recurso del catálogo, un ajuste o una página de la aplicación. Cada fila solo navega. Nada de una respuesta cambia un ajuste, abre un archivo ni actúa por ti, la misma regla que sigue [Lolly Search](/info/search.html).
 
 ## Hacer una pregunta
 
@@ -60,4 +60,4 @@ Tu pregunta nunca sale del dispositivo. La coincidencia se ejecuta en local cont
 
 ---
 
-**Relacionado:** [Search](/info/search.html) para la barra que entrega las preguntas. [Using Lolly](/info/using.html) para el resto de la aplicación. [Settings](/info/dashboard.html#available-offline) para llevar primero la documentación a modo sin conexión.
+**Relacionado:** [Lolly Search](/info/search.html) para la barra que entrega las preguntas. [Using Lolly](/info/using.html) para el resto de la aplicación. [Lolly Settings](/info/dashboard.html#available-offline) para llevar primero la documentación a modo sin conexión.

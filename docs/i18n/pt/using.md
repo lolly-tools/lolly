@@ -12,7 +12,7 @@ A tela inicial: quatro abas no topo e a barra no rodapé. Uma ferramenta, depois
 
 Quatro abas percorrem o topo da tela inicial: **Tools**, **Utilities**, **Assets** e **Projects**. Tools são o que você usa para criar, Utilities são bancadas para tarefas como converter, verificar ou limpar um arquivo, Assets é a sua biblioteca e Projects guarda o que você salvou.
 
-A barra no rodapé tem **Open**, **Settings**, um campo de busca, **Verify** e **What?**. Ela aparece em Tools, Utilities, Assets, Projects, Settings e nos guias que você lê no app, e sai de cena quando uma ferramenta é aberta. A [Search](/info/search.html) alcança suas ferramentas, trabalhos salvos, recursos e configurações a partir desse campo. O [Ask Lolly](/info/ask.html) responde a uma pergunta digitada com a seção correspondente destes guias.
+A barra no rodapé tem **Open**, **Settings**, um campo de busca, **Verify** e **What?**. Ela aparece em Tools, Utilities, Assets, Projects, Settings e nos guias que você lê no app, e sai de cena quando uma ferramenta é aberta. A [Lolly Search](/info/search.html) alcança suas ferramentas, trabalhos salvos, recursos e configurações a partir desse campo. O [Ask Lolly](/info/ask.html) responde a uma pergunta digitada com a seção correspondente destes guias.
 
 Clique em um cartão para começar algo novo nessa ferramenta. Os trabalhos salvos são reabertos em **Projects**.
 
@@ -269,7 +269,7 @@ Em uma tela estreita, o layout vira uma única coluna:
 
 ## Configurações, som e conforto
 
-**Settings**, no rodapé da tela inicial, reúne seus dados, seus sistemas de design, acessibilidade, armazenamento e downloads offline. [Settings](/info/dashboard.html) mapeia todas as abas.
+**Settings**, no rodapé da tela inicial, reúne seus dados, seus sistemas de design, acessibilidade, armazenamento e downloads offline. [Lolly Settings](/info/dashboard.html) mapeia todas as abas.
 
 - **Seus dados e sua foto de perfil** preenchem qualquer ferramenta feita para usá-los, como uma assinatura de e-mail ou um crachá. [Profiles](/info/profile.html) trata deles.
 - **Accessibility** tem quatro opções de conforto: **Reduce motion**, **Hide colourful previews**, **High contrast** e **Large text**. Elas mudam o app ao redor do seu trabalho, nunca o canvas de uma ferramenta nem uma exportação.

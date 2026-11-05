@@ -24,7 +24,7 @@ lolly.tools **Lolly Demo** میں کھلتا ہے، جو Lolly کا اپنا ن�
 
 ![نئی انسٹالیشن پر Design System Setup کا Colours روم: ایک لائیو چپ، ایک فیلڈ اور پہلے فیصلے کا پورا حصہ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-وہاں سے آٹھ روم اسے جتنا آپ چاہیں آگے لے جاتے ہیں، کسی بھی ترتیب میں: **Board**، **Colours**، **Type**، **Logos**، **Tokens**، **Files**، **Rules** اور **Skills**۔ ایپ میں ہر پری ویو آپ کے ٹائپ کرتے ہی اپ ڈیٹ ہوتا ہے۔ [Design System Setup](/info/brand-studio.html) ہر روم کا احاطہ کرتا ہے۔
+وہاں سے آٹھ روم اسے جتنا آپ چاہیں آگے لے جاتے ہیں، کسی بھی ترتیب میں: **Board**، **Colours**، **Type**، **Logos**، **Tokens**، **Files**، **Rules** اور **Skills**۔ ایپ میں ہر پری ویو آپ کے ٹائپ کرتے ہی اپ ڈیٹ ہوتا ہے۔ [Lolly Design System Setup](/info/brand-studio.html) ہر روم کا احاطہ کرتا ہے۔
 
 فونٹس آپ کی ڈیوائس پر رکھے جاتے ہیں۔ Google Font چنیں اور Lolly فائل کو برانڈ ایسیٹ کے طور پر محفوظ کرتا ہے، اس لیے آپ کی ٹائپ آف لائن ساتھ چلتی ہے اور ٹول کے ڈرا کرتے وقت کچھ حاصل نہیں ہوتا۔
 
@@ -58,7 +58,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 **ڈیکس۔** PowerPoint کی `.pptx` کو Lolly پر ڈالیں تاکہ اس کی سلائیڈز ایسیٹس کے طور پر فائل ہوں، **Markdown Slides** میں Markdown سے نیا ڈیک لکھیں، یا پورے ڈیک کو اپنے ڈیزائن سسٹم پر لانے کے لیے [Rebrand a deck](/info/rebrand.html) استعمال کریں۔
 
-**ڈیٹا۔** CSV یا JSON جدول پیسٹ کریں یا ڈالیں اور ٹول کے دہرائے جانے والے فیلڈز اس سے بھر جاتے ہیں، یا [Batch](/info/batch.html#make-many-versions-of-one-design) ہر قطار کے لیے ایک مکمل فائل بناتا ہے۔
+**ڈیٹا۔** CSV یا JSON جدول پیسٹ کریں یا ڈالیں اور ٹول کے دہرائے جانے والے فیلڈز اس سے بھر جاتے ہیں، یا [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) ہر قطار کے لیے ایک مکمل فائل بناتا ہے۔
 
 ### ایک بار کے ڈیزائن سے ٹیمپلیٹ تک
 
@@ -72,7 +72,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 - <!--i:download--> **ایکسپورٹ۔** ٹولز SVG، PDF، PNG، JPG، WebP، ویڈیو اور مزید بناتے ہیں، ان فارمیٹس میں جو ہر ٹول پیش کرے، ضرورت ہو تو حقیقی پرنٹ سائزوں پر۔ دیکھیں [فائل ایکسپورٹ کریں](/info/exporting.html)۔
 - <!--i:link--> **لنک شیئر کریں۔** ٹول کی سیٹنگز اس کے لنک میں سفر کرتی ہیں، اس لیے لنک کہیں بھی وہی فائل دوبارہ کھولتا ہے۔
-- <!--i:layers--> **ہر قطار کے لیے ایک بنائیں۔** [Batch](/info/batch.html#make-many-versions-of-one-design) میں اسپریڈ شیٹ سے ٹول چلائیں۔
+- <!--i:layers--> **ہر قطار کے لیے ایک بنائیں۔** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) میں اسپریڈ شیٹ سے ٹول چلائیں۔
 - <!--i:cpu--> **خودکار بنائیں۔** یہی رینڈر [CLI](/info/cli.html) اور [AI ایجنٹ](/info/ai-agents.html) سے چلتا ہے۔
 
 لنک مکمل درخواست ہے۔ نیچے کا چارٹ کسی نے نہیں بنایا: اس کی قسم، عنوان اور پورا ڈیٹا جدول ایڈریس بار میں ٹائپ کیا گیا تھا، اور وہی لنک کسی بھی ڈیوائس پر وہی چارٹ بناتا ہے۔

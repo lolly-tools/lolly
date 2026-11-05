@@ -35,7 +35,7 @@ Pinapatakbo ng bawat ruta ang parehong engine sa parehong tool, kaya tugma ang f
 ![Ang mga URL parameter at command-line argument ay nagiging iisang input model, dumadaan sa isang shared na runtime at export bridge](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **Sa app, isa-isa.** Magbukas ng tool, punan ang mga field at pindutin ang **Export**. Ginagabayan ka ng [Gawin ang una mong file](/info/make-something.html) sa isa.
-- <!--i:layers--> **Sa app, sabay-sabay ang marami.** Ang [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) ay kumukuha ng na-paste o na-import na table at nagre-render ng isang tapos na file bawat row.
+- <!--i:layers--> **Sa app, sabay-sabay ang marami.** Ang [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) ay kumukuha ng na-paste o na-import na table at nagre-render ng isang tapos na file bawat row.
 - <!--i:cpu--> **Mula sa script o AI agent.** Pinapatakbo ng [CLI](/info/cli.html) ang tool nang headless, at hinahayaan ng [MCP server](/info/mcp.html) ang agent na tumuklas at magpatakbo ng mga tool. Dala rin ng link papunta sa tool ang mga input nito, kaya kumpletong request ang link.
 - <!--i:server--> **Sa pamamagitan ng server ng organisasyon mo.** Nagre-render ang [Lolly Work](/info/organisation.html) sa server sa ilalim ng sign-in at tool policy ng organisasyon mo, may mga job na kayang ipagpatuloy, at hawak ang output para sa download o aprubadong delivery.
 

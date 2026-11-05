@@ -1,0 +1,156 @@
+[
+  {
+    "id": "criteria",
+    "label": "Criteria",
+    "type": "table",
+    "urlKey": "t",
+    "help": "One criterion per row: its name, a score and the evidence. A score can be 0.8, 80%, 4/5 or a number on the scale below. Leave the score empty for one not yet known.",
+    "default": {
+      "columns": [
+        "Criterion",
+        "Score",
+        "Evidence"
+      ],
+      "rows": [
+        [
+          "Metrics",
+          "0.8",
+          "Cut hosting cost by a third within a year."
+        ],
+        [
+          "Economic buyer",
+          "0.6",
+          "The finance director signs; met once."
+        ],
+        [
+          "Decision criteria",
+          "0.7",
+          "Open source, local support, a two-site setup."
+        ],
+        [
+          "Decision process",
+          "0.5",
+          "A pilot first, then the board in March."
+        ],
+        [
+          "Paper process",
+          "",
+          "Not discussed yet."
+        ],
+        [
+          "Identify pain",
+          "0.9",
+          "Licence costs rose sharply this year."
+        ],
+        [
+          "Champion",
+          "0.7",
+          "The infrastructure lead asked for the pilot."
+        ],
+        [
+          "Competition",
+          "0.4",
+          "The incumbent offered a discount."
+        ]
+      ]
+    }
+  },
+  {
+    "id": "heading",
+    "label": "Title",
+    "type": "text",
+    "default": "Deal qualification",
+    "maxLength": 80
+  },
+  {
+    "id": "subheading",
+    "label": "Subject",
+    "type": "text",
+    "default": "Example Council, platform renewal",
+    "maxLength": 120
+  },
+  {
+    "id": "scale",
+    "label": "Scores out of",
+    "type": "select",
+    "default": "1",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 (0 to 1)"
+      },
+      {
+        "value": "5",
+        "label": "5"
+      },
+      {
+        "value": "10",
+        "label": "10"
+      },
+      {
+        "value": "100",
+        "label": "100 (percent)"
+      }
+    ],
+    "section": "Scores"
+  },
+  {
+    "id": "overall",
+    "label": "Show the overall score",
+    "type": "boolean",
+    "default": true,
+    "section": "Scores"
+  },
+  {
+    "id": "orientation",
+    "display": "segmented",
+    "label": "Orientation",
+    "type": "select",
+    "default": "landscape",
+    "options": [
+      {
+        "value": "landscape",
+        "label": "Landscape",
+        "width": 1600,
+        "height": 1000,
+        "unit": "px"
+      },
+      {
+        "value": "portrait",
+        "label": "Portrait",
+        "width": 1000,
+        "height": 1414,
+        "unit": "px"
+      },
+      {
+        "value": "wide",
+        "label": "Screen",
+        "width": 2400,
+        "height": 800,
+        "unit": "px"
+      }
+    ],
+    "section": "Style"
+  },
+  {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "section": "Style"
+  },
+  {
+    "id": "background",
+    "label": "Background",
+    "type": "color",
+    "default": "{color.semantic.surface}",
+    "section": "Style"
+  },
+  {
+    "id": "ink",
+    "label": "Text colour",
+    "type": "color",
+    "default": "{color.semantic.text}",
+    "section": "Style"
+  }
+]

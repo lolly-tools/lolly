@@ -2,28 +2,28 @@
 
 Lolly Work is for an organisation that wants its people to share one sign-in, one governed
 library and one set of rules, while each person keeps making things on their own device.
-Lolly still renders on the device. Every service that has to be hosted lives in Work:
+Lolly still renders on the device. Every service that has to be hosted lives in Lolly Work:
 identity, provisioning, governance, the shared catalog, server renders and links, telemetry
-and audit. Work serves the Lolly web shell, the governed catalog and the admin console from
+and audit. Lolly Work serves the Lolly web shell, the governed catalog and the admin console from
 one origin.
 
-Work supports [content sovereignty](/info/content-sovereignty.html): the organisation chooses how content is produced, governed, stored and moved. An existing DAM can remain the source of record while Work connects its selected assets to Lolly tools. Read [Use Lolly with your existing DAM](/info/use-with-dam.html) for that arrangement.
+Lolly Work supports [content sovereignty](/info/content-sovereignty.html): the organisation chooses how content is produced, governed, stored and moved. An existing DAM can remain the source of record while Lolly Work connects its selected assets to Lolly tools. Read [Use Lolly with your existing DAM](/info/use-with-dam.html) for that arrangement.
 
 ## Source, production and delivery responsibilities
 
-The connected path is **source DAM → governed Work catalog → Lolly production → chosen delivery destination**. Each step has its own authority:
+The connected path is **source DAM → governed Lolly Work catalog → Lolly production → chosen delivery destination**. Each step has its own authority:
 
 | Part | Controls |
 |---|---|
 | Source DAM | The upstream record, current files and supported source approval and availability facts |
-| Work catalog | The configured source slice, member exposure and local lifecycle constraints |
-| Lolly tool and Work policy | Declared editable inputs, design-system rules and policy on governed operations |
+| Lolly Work catalog | The configured source slice, member exposure and local lifecycle constraints |
+| Lolly tool and Lolly Work policy | Declared editable inputs, design-system rules and policy on governed operations |
 | Review and delivery | The configured approval subject and destination authority; a supported delivery review binds staged final bytes |
 
 A read credential does not grant write authority. Source approval does not approve every use or output. Shared provider credentials do not reproduce each member's upstream identity. The [catalog](catalog.md), [approvals](approvals.md) and [delivery](delivery.md) guides describe the exact boundaries.
 
 ::: figure work-overview-two-halves
-What stays on a person's device, what Work holds and what crosses the network between them.
+What stays on a person's device, what Lolly Work holds and what crosses the network between them.
 :::
 
 The idea behind the split: open source gives an individual freedom, and open source with a
@@ -41,15 +41,16 @@ identity. Hover the imprint in a shot's corner to read what its file claims, the
 | | Lolly (open source, MPL-2.0) | Lolly Work (open source, MPL-2.0) |
 |---|---|---|
 | What | Engine, tool catalog, shells (web, desktop, mobile, CLI, TUI, extension) | Server, admin console, render worker |
-| Docs | `/info/` on any Lolly deployment | the Work guides, also in the console at `/admin#/docs` |
+| Docs | `/info/` on any Lolly deployment | the Lolly Work guides, also in the console at `/admin#/docs` |
 | Runs | On the person's device | On your infrastructure |
 
-Work consumes the open-source engine pinned and unmodified (`vendor/@lolly/engine`,
+Lolly Work consumes the open-source engine pinned and unmodified (`vendor/@lolly/engine`,
 `vendor/@lolly-tools/core`, with the pin recorded in `engine-pin.json`). The parts of a shell
-that talk to Work are additive and dormant by default: a shell with no Work server configured
+that talk to Lolly Work are additive and dormant by default: a shell with no Lolly Work server configured
 behaves exactly as it does on its own.
 
-## What Work serves
+<a id="what-work-serves"></a>
+## What Lolly Work serves
 
 | Surface | Path | Who |
 |---|---|---|
@@ -63,6 +64,7 @@ behaves exactly as it does on its own.
 | SCIM provisioning | `/scim/v2/*` | your identity provider, with a SCIM token ([machine credentials](enterprise-identity.md#scim-provisioning)) |
 | Device sign-in | `/activate` | a signed-in member approving a sign-in from the CLI or a native app ([device-code sign-in](identity.md#device-code-sign-in)) |
 | Agent connections (MCP) | `/api/workspace/mcp` | document and project agents, with a connection key ([document agents](document-agents.md)) |
+| Organisation MCP | `/api/v1/mcp` | automation with a service token ([connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp)) |
 | Instance pack download | `/connect/pack.lolly` | anyone on an `open` instance, otherwise members; `404` when no pack is hosted |
 
 A connected shell polls one document, `/api/v1/org-config`. It says who the person is, which

@@ -35,7 +35,7 @@ Hver rute kjører den samme motoren på det samme verktøyet, så filen et skrip
 ![URL-parametere og kommandolinjeargumenter blir den samme inndatamodellen, kjørt gjennom én felles kjøretid og eksportbro](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **I appen, én om gangen.** Åpne et verktøy, fyll ut feltene og trykk **Export**. [Make your first file](/info/make-something.html) tar deg gjennom en.
-- <!--i:layers--> **I appen, mange samtidig.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) tar en innlimt eller importert tabell og lager én ferdig fil per rad.
+- <!--i:layers--> **I appen, mange samtidig.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) tar en innlimt eller importert tabell og lager én ferdig fil per rad.
 - <!--i:cpu--> **Fra et skript eller en AI-agent.** [CLI](/info/cli.html) kjører et verktøy uten grensesnitt, og [MCP-serveren](/info/mcp.html) lar en agent oppdage og kjøre verktøy. En lenke til et verktøy bærer også inndataene, så en lenke er en komplett forespørsel.
 - <!--i:server--> **Gjennom organisasjonens server.** [Lolly Work](/info/organisation.html) gjengir på serveren under organisasjonens pålogging og verktøypolicy, har jobber den kan gjenoppta og holder resultatet klart for nedlasting eller godkjent levering.
 

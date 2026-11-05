@@ -98,7 +98,7 @@ lolly.tools 在 [Lolly Demo](/info/lolly-demo.html) 中開啟，這是 Lolly 自
 
 ## 工具程式和工具差在哪裡？
 
-Utility 對你已有的檔案做一件快速的工作，例如壓縮 PDF、轉換照片或移除隱藏資料，其中許多在你的裝置上執行，不會上傳任何內容。它們的存在，是為了讓人們通常交給隨便某個網站的工作留在 Lolly 之內。壓縮合約、轉換仍帶有位置資訊的度假照片，或把權杖貼進線上格式化工具，都不該意味著把檔案交給一個保留期限、司法管轄與商業模式都不明的網站。[Utilities](/info/utilities.html) 列出它們，[我們從未同意的交易](/info/status-quo.html)則講述它們背後的故事。
+Utility 對你已有的檔案做一件快速的工作，例如壓縮 PDF、轉換照片或移除隱藏資料，其中許多在你的裝置上執行，不會上傳任何內容。它們的存在，是為了讓人們通常交給隨便某個網站的工作留在 Lolly 之內。壓縮合約、轉換仍帶有位置資訊的度假照片，或把權杖貼進線上格式化工具，都不該意味著把檔案交給一個保留期限、司法管轄與商業模式都不明的網站。[Lolly Utilities](/info/utilities.html) 列出它們，[我們從未同意的交易](/info/status-quo.html)則講述它們背後的故事。
 
 ![Utilities 檢視：Strip Hidden Data、Compress PDF、Convert Image 與其他裝置端工作，全都集中在一處](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

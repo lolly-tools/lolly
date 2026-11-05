@@ -6,7 +6,7 @@ Pokud tvá organizace drží schválené assety v Bynder, Frontify, Marq nebo Br
 
 ## Co zavedený portál dělá lépe
 
-Zavedené portály nabízejí spravovaný hosting, podporu a rozsáhlé pracovní postupy správy assetů. Například [podnikové DAM Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombinuje objevování assetů, řízení přístupu, schvalovací pracovní postupy a distribuci. Stack Lolly je mladší a jeho schvalovací řetězce jsou sekvenční, ne libovolně větvené pracovní postupy. [Stav a plán Work](/info/work-status.html) zaznamenává jeho limity nasazení.
+Zavedené portály nabízejí spravovaný hosting, podporu a rozsáhlé pracovní postupy správy assetů. Například [podnikové DAM Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombinuje objevování assetů, řízení přístupu, schvalovací pracovní postupy a distribuci. Stack Lolly je mladší a jeho schvalovací řetězce jsou sekvenční, ne libovolně větvené pracovní postupy. [Stav a plán Lolly Work](/info/work-status.html) zaznamenává jeho limity nasazení.
 
 ## Kde se překrývají
 

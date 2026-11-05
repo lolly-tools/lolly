@@ -358,7 +358,7 @@ Wählen Sie **Remove** im Menü eines Systems; die Bestätigung sagt, welches Sy
 
 Das Entfernen eines gelieferten Systems blendet es nur aus: Seine Katalog-Assets bleiben, **Bring back** zeigt es wieder, und es kehrt von selbst zurück, wenn Sie alles andere entfernen. Das Entfernen einer importierten oder bearbeiteten Kopie entfernt weder das gelieferte System noch seine Logos oder Schriften, und war die Kopie aktiv, wird das gelieferte System wieder aktiv. Das Entfernen einer aktiven gehosteten Kopie löscht nur die Verbindung dieser Kopie; eine getrennt gewählte Instanz bleibt ausgewählt.
 
-Das Ändern dessen, was ein Server liefert, ist Aufgabe der Administration: Ihr Betreiber ändert den Quellkatalog und stellt neu bereit, oder eine Lolly-Work-Administratorin prüft und übernimmt eine Serveränderung. Bearbeitungen hier bleiben lokal. Siehe [Ein Katalog-Designsystem entfernen](/info/configuration.html#removing-a-catalogue-design-system) und [Konfiguration](/info/configuration.html#supplied-and-local-design-systems).
+Das Ändern dessen, was ein Server liefert, ist Aufgabe der Administration: Ihr Betreiber ändert den Quellkatalog und stellt neu bereit, oder eine Lolly-Lolly Work-Administratorin prüft und übernimmt eine Serveränderung. Bearbeitungen hier bleiben lokal. Siehe [Ein Katalog-Designsystem entfernen](/info/configuration.html#removing-a-catalogue-design-system) und [Konfiguration](/info/configuration.html#supplied-and-local-design-systems).
 
 ## Den Design-Kontext außerhalb der App nutzen
 

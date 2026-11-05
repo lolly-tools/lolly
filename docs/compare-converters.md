@@ -12,7 +12,7 @@ Some converter sites handle formats Lolly does not, and need nothing set up firs
 
 A browser-based converter may upload a file for processing or convert locally. Lolly's conversion utilities process the file locally, with no account, ads or trackers, and add no Lolly watermark or Content Credentials. Once the assets a conversion needs are saved, they work offline. File size is bounded by the device's memory and the particular format reader.
 
-![The Utilities view: Strip Hidden Data, Compress PDF, Convert Image and the other on-device jobs in one place](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![The Utilities view: Lolly Strip Hidden Data, Compress PDF, Convert Image and the other on-device jobs in one place](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Every format Lolly can open and make](/info/formats.html) lists the supported conversions and their limits, including HEIC to JPG, PNG to SVG and PDF to images.
 

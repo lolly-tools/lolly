@@ -65,7 +65,7 @@ An array of such objects renders when any one of them matches, for the condition
 
 A `select` option can carry its own `showIf` with the same shape, so a choice the current mode cannot honour is not offered. The option that is currently selected always stays offered, marked not applicable, so a saved session or a shared link never changes meaning when the sidebar is rebuilt.
 
-All of this is a visibility overlay on the sidebar. URL params, hooks, the CLI and validation see every input and every option regardless, and a hidden input keeps its value. Chart is the reference: its render modes park the previous mode's type, so most of its controls gate on both. `validate:catalog` checks that every id a `showIf` names is a declared input.
+All of this is a visibility overlay on the sidebar. URL params, hooks, the CLI and validation see every input and every option regardless, and a hidden input keeps its value. Lolly Chart is the reference: its render modes park the previous mode's type, so most of its controls gate on both. `validate:catalog` checks that every id a `showIf` names is a declared input.
 
 ### `bindToProfile`
 

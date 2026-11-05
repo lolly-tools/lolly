@@ -9,7 +9,7 @@ Mulai dengan [Use Lolly at your organisation](/info/organisation.html) untuk mel
 - [Adoption & Governance](/info/adoption-governance.html) membahas peluncuran dan peran aturan brand.
 - [Identity and sessions](/info/work-identity.html) membahas login dan pemetaan grup. [Roles and grants](/info/work-permissions.html) menjelaskan peran, pemberian akses, dan penjaga pemilik.
 - [Policy and governance](/info/work-governance.html) membahas overlay alat, input terkunci, dan kebijakan. [Manage organisation AI policy](/info/work-ai-policy.html) membahas persetujuan dan batas eksekusi.
-- [Account data controls](/info/work-account-lifecycle.html) dan [Work storage and data lifecycle](/info/work-data-lifecycle.html) membahas ekspor, offboarding, retensi, dan batasannya.
+- [Account data controls](/info/work-account-lifecycle.html) dan [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) membahas ekspor, offboarding, retensi, dan batasannya.
 - [Profiles, brands and tool configuration](/info/configuration.html) membahas alat dan design system mana yang dibawa build Lolly.
 
 ## Hubungkan aset dan tinjau pekerjaan

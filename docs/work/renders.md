@@ -30,6 +30,7 @@ lw renders output <renderId> --out qr.svg
 lw renders evidence <renderId> --out evidence.json
 lw renders cancel <renderId>
 lw renders retry <renderId> --idempotency-key campaign-qr-retry --json
+lw renders deliver <renderId> --destination campaign-archive --name "Launch QR"
 ```
 
 `submit` returns the job's id at once. `show` reports its state, the number of attempts and a
@@ -51,6 +52,7 @@ A job is queued, then running, then succeeded, failed or cancelled. A retry is a
 - **Retry.** A manual retry creates a new job with `retryOf` pointing at its predecessor, and
   the original history stays intact.
 - **Cancel.** Cancelling keeps the job and stops an active attempt from publishing its result.
+- **Callback.** Add `callbackUrl`, or `lw renders submit render.json --callback-url <url>`, to be told when the job finishes ([callbacks](#be-told-when-a-render-finishes)).
 
 ### HTTP
 
@@ -59,10 +61,11 @@ A job is queued, then running, then succeeded, failed or cancelled. A retry is a
 | `POST /api/v1/renders` | The request above; `202` for a new job, `200` for an idempotent replay |
 | `GET /api/v1/renders?limit=50&offset=0` | Caller-owned jobs the caller may still see; `nextOffset` for paging; limit 1 to 100 |
 | `GET /api/v1/renders/:id` | Request, state, attempts and output receipt |
-| `GET /api/v1/renders/:id/output/default` | The stored bytes; `409` before success or on an integrity failure, `410` if missing |
+| `GET /api/v1/renders/:id/output/default` | The stored bytes; `409` before success or on an integrity failure, `410 OUTPUT_EXPIRED` after [retention](#hosting-and-recovery) removed them, `410 OUTPUT_UNAVAILABLE` if they are otherwise missing |
 | `GET /api/v1/renders/:id/evidence` | The execution receipt and render identity; `409` before success, on a receipt or identity integrity failure, or for an identity version this server cannot check; `404 EVIDENCE_UNAVAILABLE` for older outputs with no evidence |
 | `DELETE /api/v1/renders/:id` | Cancel queued or running work; completed history is kept and returns `409` |
 | `POST /api/v1/renders/:id/retry` | A new job from a failed or cancelled predecessor; accepts `Idempotency-Key` |
+| `POST /api/v1/renders/:id/deliveries` | Sends the finished output to an organisation destination by reference ([delivering an automation output](delivery.md#delivering-an-automation-output)); `Idempotency-Key` accepted |
 
 Authentication is required even on an open instance. Creating, running and reading a job check
 current tool visibility, `tool.use` and `export.server`. Each attempt reads the current member or
@@ -92,6 +95,7 @@ lw render-batches submit batch.json --idempotency-key campaign-qr-v1 --json
 lw render-batches list --json
 lw render-batches show <batchId> --json
 lw render-batches manifest <batchId> --out manifest.json
+lw render-batches archive <batchId> --out outputs.zip
 lw render-batches cancel <batchId>
 lw render-batches retry <batchId> --idempotency-key campaign-qr-v1-retry --json
 lw renders output <childRenderId> --out qr.svg
@@ -111,8 +115,9 @@ lw renders output <childRenderId> --out qr.svg
 `show` and `manifest` read a consistent snapshot of the parent and its children: counts per state,
 and ordered rows with the row key, render id, request, attempt, failure and, after success, the
 output URL and SHA-256 receipt. The downloadable JSON adds `manifestVersion: 1`. It is a status
-snapshot, not an approved release or a ZIP archive: fetch each output through its child render
-URL. Successful rows stay downloadable even when another row fails.
+snapshot, not an approved release. Fetch each output through its child render URL, or download
+them together from the [archive](#download-a-batch-as-one-zip). Successful rows stay downloadable
+even when another row fails.
 
 A batch starts `queued` and becomes `running` when any row starts or finishes. Once every row has
 finished, the batch is `failed` if any row failed, otherwise `cancelled` if any row was cancelled,
@@ -139,6 +144,7 @@ replacements.
 | `GET /api/v1/render-batches?limit=10&offset=0` | Caller-owned summaries and `nextOffset`; limit 1 to 20 |
 | `GET /api/v1/render-batches/:id` | Parent and ordered child status |
 | `GET /api/v1/render-batches/:id/manifest` | Download the current JSON manifest |
+| `GET /api/v1/render-batches/:id/archive` | Download a finished batch as one ZIP; `409` until every row has finished or when no row has output |
 | `DELETE /api/v1/render-batches/:id` | Cancel unfinished rows; `409` if already finished with no cancelled rows |
 | `POST /api/v1/render-batches/:id/retry` | A new parent keeping successes; accepts `Idempotency-Key` |
 
@@ -146,6 +152,88 @@ Batch idempotency keys are scoped to the submitting principal and separate from 
 keys. Creating, reading and retrying check current tool grants, and the owner can still cancel
 after a grant is removed. These routes also share `rateLimit.automation`. The older
 `/api/v1/batch` job and ZIP contract is separate and does not create these child jobs.
+
+### Fill the rows from a data source
+
+Send `bind` in place of `rows` to read the rows from a governed JSON or CSV source, with the same
+source, `query` and `as` rules as [`/api/v1/batch`](automation-api.md#make-many-files-at-once):
+
+```json
+{
+  "toolId": "qr-code",
+  "format": "svg",
+  "bind": { "source": "cms://products/current.csv", "keyField": "sku" }
+}
+```
+
+`keyField` is the column that holds each row's key, and that column is not passed to the tool as an
+input. Without one the rows are named `row-1`, `row-2` and so on, in source order. A source that
+cannot be read, has an unusable or repeated key, or does not hold 1 to 200 rows answers
+`400 DATA_BINDING_ERROR` and creates nothing. Each row then passes the same input checks as a typed
+row.
+
+The source is read once, at submission, by a caller who holds the grants, and the rows are kept on
+the batch. An idempotent replay identifies the batch by its source, so it returns the original batch
+and reads nothing. A retry reruns the rows the batch already has, even if the source has changed
+since.
+
+### Download a batch as one ZIP
+
+`GET /api/v1/render-batches/:id/archive` answers a finished batch with a ZIP, streamed so it does not
+wait for the whole archive. Members are named `<row key>.<format>`, and each is checked against its
+receipt before any of it is written.
+
+`manifest.json`, the last member, holds an entry per row: its key, render id, state and whether the
+row is in the archive, with the file name, size and SHA-256 when it is, and a reason when it is not.
+The reason is `NOT_SUCCEEDED`, `OUTPUT_EXPIRED`, `OUTPUT_UNAVAILABLE` or `OUTPUT_INTEGRITY`, and a row
+that failed also carries its error.
+
+An archive holds at most 2 GiB, and a larger batch answers `413 ARCHIVE_TOO_LARGE` before any byte is
+sent: download those rows from their own output URLs. If something breaks after streaming has
+started, the connection closes, and the truncated file has no central directory for an extractor to
+read.
+
+## Be told when a render finishes
+
+Add `callbackUrl` to a render or batch request, and Work sends one signed `POST` when the job
+finishes, whether it succeeded, failed or was cancelled. A batch calls back once, when its last row
+finishes, and its rows send nothing of their own.
+
+The URL must exactly match `notify.webhook.url` or use an origin listed in
+[`automation.callbacks.allowedOrigins`](configuration.md#automation). Anything else answers
+`403 CALLBACK_URL_NOT_ALLOWED` at submission, and is checked again before each send. A redirect from
+the receiver counts as a failed attempt.
+
+These callbacks use the same outbox as [job callbacks](automation-api.md#callbacks): the same
+`x-lolly-signature` and `x-lolly-timestamp` headers, the same `x-lolly-delivery-id` on every attempt,
+the same retries over about 45 minutes and the same recorded outcomes. The stored entry is written by
+the call that finishes the record, so a restart cannot lose one.
+
+| Render body | Meaning |
+|---|---|
+| `renderId`, `state`, `statusUrl`, `deliveryId` | The job, how it ended, where to read it and the idempotency key |
+| `outputUrl`, `outputSha256`, `outputToken` | After success: the file, its digest and a token that reads the file. `null` otherwise |
+| `error` | `{ code, message }` after a failure |
+
+| Batch body | Meaning |
+|---|---|
+| `batchId`, `state`, `progress`, `statusUrl`, `deliveryId` | The batch, how it ended, its counts, where to read it and the idempotency key |
+| `manifestUrl`, `archiveUrl` | The manifest, and the archive when any row succeeded |
+| `outputToken` | A token to read the manifest and archive |
+
+`outputToken` lasts 24 hours. Send it as the `x-lw-render-token` header, and the receiver needs no
+account of its own. It reads that render's output and evidence, or that batch's manifest and archive,
+and nothing else, and it reads under the owner's current grants, so removing a grant stops it too. It
+travels only in the signed body and the header, never in a URL.
+
+`GET /api/v1/renders/:id` and `GET /api/v1/render-batches/:id` report `callback`, with its `id`,
+`state`, `attempts`, `lastOutcome`, `lastStatus` and `nextAttemptAt`, once the job has finished. A 2xx
+answer is recorded as `acknowledged`, which says the receiver answered and not what it did next.
+
+The URL is part of the request for idempotency, so the same key with another URL answers
+`409 IDEMPOTENCY_KEY_REUSED`. It is not part of the [render identity](#render-identity), because where
+a result is announced says nothing about what was rendered. A manual retry keeps the URL, and the new
+job makes its own call.
 
 ## Verify the produced file
 
@@ -180,7 +268,7 @@ detector version.
 |---|---|---|
 | SVG | XML root and namespace; explicit absolute viewport dimensions, with CSS units converted at 96 px/in | 2 MiB; DTDs unsupported; no rendering, linked-resource or visibility check; percentages and viewBox-only dimensions stay unknown |
 | PNG, JPEG | Recognised container and a complete pixel decode; pixel dimensions | 32 MiB and 16 million pixels; one frame; decoding limited to 10 seconds |
-| PDF | Container signature | No independent PDF decoder in Work; readability and dimensions stay undetermined |
+| PDF | Container signature | No independent PDF decoder in Lolly Work; readability and dimensions stay undetermined |
 
 A required check must return `pass`. Missing, failed and undetermined checks stop a verified
 render with `OUTPUT_VERIFICATION_FAILED`; the failed record keeps `error.inspection`, and no
@@ -213,7 +301,7 @@ The output descriptor links to `/api/v1/renders/:id/evidence` and reports the re
 | Policy and catalog versions | yes | catalog version |
 | Design-system revision and a digest of the effective policy | yes | yes |
 | Format, pixel dimensions, watermark, renderer, rasterizer, signing-certificate digest | yes | yes |
-| Catalog and provider assets read through Work's bridges: id, format, declared version, actual byte digest and size | yes | id, format, declared version and digest |
+| Catalog and provider assets read through Lolly Work's bridges: id, format, declared version, actual byte digest and size | yes | id, format, declared version and digest |
 | For the local runtime: hashes of initialized inputs and hydrated markup, hook-error and dropped-asset counts | yes | no |
 | Output SHA-256 and a digest of the whole receipt | yes | no |
 
@@ -272,7 +360,7 @@ stored. Outputs made before identities existed, and outputs without a receipt, h
 - **Coverage is partial.** The pinned engine does not yet emit a canonical dependency graph.
   Template and global resource reads, fonts, composition and historical replay are not fully
   attested, and every receipt carries explicit `limitations` for these boundaries.
-- **A worker render is attested less.** Its receipt records the tool loaded for Work's own
+- **A worker render is attested less.** Its receipt records the tool loaded for Lolly Work's own
   validation and the prepared context; the worker's actual engine, inputs, profile, tool, asset
   and font environment are not attested, and it has no local-runtime section.
 - **An empty asset list** means no bridge reads were recorded, not that the output is proven free
@@ -282,7 +370,7 @@ stored. Outputs made before identities existed, and outputs without a receipt, h
   lockfile for every font, asset, token, engine and policy version, and neither proves a
   historical reconstruction.
 - **It is not a signed attestation**, cache-reuse authority or an automatic stale or current
-  decision. Work does not reuse outputs by identity.
+  decision. Lolly Work does not reuse outputs by identity.
 - **It is not approval.** A render identity says which bytes a render read, not whether anyone
   approved them, and a passing file check does not establish brand compliance, protected copy or
   chart preservation, correct fonts, matching appearance, accessibility, print readiness or
@@ -314,16 +402,24 @@ content.
   background promise in a short-lived request does not give reliable recovery. The `/render` and
   `/jobs` interfaces stay available under their own contracts.
 
-**Storage.** Finished requests and outputs are kept with no automatic expiry or deletion, so
+**Storage.** Finished requests and outputs are kept with no automatic expiry or deletion unless you
+set [`policy.retention.renderOutputDays`](configuration.md#telemetry-activity-and-retention), so
 include them in storage sizing and backups. Losing attempts normally delete their unreferenced
 blobs; an ambiguous database commit or a failed cleanup may leave an orphan for later collection.
 Changes to jobs are audited.
 
-**Not built yet.** Dependency snapshots, campaign reconciliation, a transactional lifecycle event
-outbox and collection-wide approval and promotion. Organisation delivery accepts completed
-`/jobs` render outputs ([delivering an automation
-output](delivery.md#delivering-an-automation-output)); delivering one of these durable render
-jobs by reference is not built, and a successful render alone publishes nothing to a destination.
+**Output retention.** With `renderOutputDays` set, a daily sweep on the long-lived server marks each
+output older than that many days as expired, and removes its bytes on a later pass. From the moment
+it is marked, the output answers `410 OUTPUT_EXPIRED` and its descriptor reports `expiredAt`. The
+record, the receipt and the identity stay, so `lw renders evidence` keeps working. Each expiry is
+audited as `render.output.expire`. A delivery that points at a render keeps its output for as long as the
+delivery exists. A batch retry renders an expired row again rather than reusing it, and an archive
+lists that row as `OUTPUT_EXPIRED`.
+
+**Not built yet.** Dependency snapshots, campaign reconciliation, a general event feed with
+subscriptions and collection-wide approval and promotion. Callbacks announce the end of the job that
+asked for one, and no other event. A successful render alone publishes nothing to a destination, so
+[send the output](delivery.md#delivering-an-automation-output) when it is ready to leave.
 
 ## Production still checks and permitted repairs
 
@@ -332,9 +428,9 @@ and the additional `lolly/production-still-v1` engine profile checks explicit re
 final file. It can also try a bounded set of input alternatives you permit, to repair a failed
 check.
 
-The engine also offers `lolly/production-motion-v1` to Lolly's CLI and MCP. Work's governed
+The engine also offers `lolly/production-motion-v1` to Lolly's CLI and MCP. Lolly Work's governed
 renderer accepts only the still profile and refuses a motion contract when it parses the request,
-so updating the engine pin does not add video rendering to Work.
+so updating the engine pin does not add video rendering to Lolly Work.
 
 ```json
 {
@@ -366,7 +462,7 @@ so updating the engine pin does not add video rendering to Work.
 ```
 
 - The tool must actually declare these inputs and offer those alternatives: no layout, legal
-  copy or new input is invented, and each candidate runs through normal Work policy enforcement.
+  copy or new input is invented, and each candidate runs through normal Lolly Work policy enforcement.
 - Repairs bind exact input snapshots, reports and finding fingerprints. They stop when a passing
   check regresses or nothing improves, and never exceed eight attempts.
 - `lw renders submit` accepts this JSON unchanged, and batch expansion and retry keep the same
@@ -393,8 +489,8 @@ SVG and included in the signed worker response, and the client checks that every
 requested. Conflicting observations, missing collectors and older web shells stay undetermined.
 The report keeps hashes, within a 1 MiB combined JSON observation budget.
 
-For Chart, protect the exact CSV `data`, field mappings, number format, units in axis titles,
-`yScaleType`, `yZero` and `yMax` that the approved brief requires. Reusable Design tools use their
+For Lolly Chart, protect the exact CSV `data`, field mappings, number format, units in axis titles,
+`yScaleType`, `yZero` and `yMax` that the approved brief requires. Reusable Lolly Design tools use their
 declared copy and data inputs. JSON types and array order are kept. A contract-protected input
 cannot become a repair target even if a repair plan lists that input. These checks establish source
 identity; visible labels, chart geometry and clipping need separate output checks, and shell
@@ -424,6 +520,6 @@ export uses the actual SVG viewport instead of Chromium's default paper size.
 :::
 
 A successful measurement is not a human approval, permission to deliver or a claim of complete
-reproducibility. Local review files cannot grant Work permissions, and destination approval
+reproducibility. Local review files cannot grant Lolly Work permissions, and destination approval
 chains, current grants and delivery integrity checks keep their authority. The exact bytes and
 the contract can be checked again offline. No new storage migration is needed.

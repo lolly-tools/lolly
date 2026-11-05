@@ -1,6 +1,6 @@
 # Tool templates
 
-A blank canvas is a slow start. Ship a few templates with your tool and people open it on a finished example they only need to adjust, such as a poster, a story-sized variant or an event card. This page covers the template files you ship, what happens when people save their own, how a brand pack hides starters it does not want and the motion details Design templates can carry.
+A blank canvas is a slow start. Ship a few templates with your tool and people open it on a finished example they only need to adjust, such as a poster, a story-sized variant or an event card. This page covers the template files you ship, what happens when people save their own, how a brand pack hides starters it does not want and the motion details Lolly Design templates can carry.
 
 ::: note After editing a template
 Templates are listed in each brand's generated catalog index. After adding, changing or hiding one, run `pnpm run build:catalog:all`, then `pnpm run validate:catalog:all`, so every mounted profile gets the change. [Publish to a catalog](/info/tool-publishing.html#publish-to-a-catalog) has the whole routine.
@@ -70,9 +70,10 @@ Each entry is `"<toolId>:<templateId>"`: the tool's id, then the template file's
 
 The list seeds a fresh profile and then steps aside. Once someone hides or restores a template themselves, their own choices count and the brand's list is no longer merged in, the same rule `defaultHiddenTools` follows. Hidden is not deleted: the template stays in the catalog, a `?template=` link still opens it and the person can bring it back from the chooser's **Hidden** group. Every brand pack ships the key with an empty list, so the place to add one is already there.
 
-### Curated Design motion
+<a id="curated-design-motion"></a>
+### Curated Lolly Design motion
 
-Design templates can carry optional `motion` details beside `values`:
+Lolly Design templates can carry optional `motion` details beside `values`:
 
 ```json
 "motion": {
@@ -86,4 +87,4 @@ Design templates can carry optional `motion` details beside `values`:
 
 The catalog carries this short description, while the animation itself stays in the ordinary `boxes` keyframes and clips. The gallery and the template chooser show the poster frame at `posterMs` and offer a live preview on the same sequence clock export uses. People who prefer reduced motion see the poster until they choose to play the preview. Picking an example opens an editable document at its poster frame, and pace presets scale that opening position with their duration. An explicit `_t=` link still wins.
 
-Durations must be 800 to 30,000 ms, with the poster inside that range and one to eight short beat descriptions. Motion details currently enable live previews for Design only. Use semantic brand colours and font roles, leave enough reading time after the last entrance and keep every part of a compound card aligned throughout its move. The four Launch templates come in a 6-second base, a 7.5-second Calm and a 4.2-second Brisk treatment, and their Choreograph recipes expand to ordinary editable tracks.
+Durations must be 800 to 30,000 ms, with the poster inside that range and one to eight short beat descriptions. Motion details currently enable live previews for Lolly Design only. Use semantic brand colours and font roles, leave enough reading time after the last entrance and keep every part of a compound card aligned throughout its move. The four Launch templates come in a 6-second base, a 7.5-second Calm and a 4.2-second Brisk treatment, and their Choreograph recipes expand to ordinary editable tracks.

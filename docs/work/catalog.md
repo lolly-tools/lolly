@@ -6,7 +6,7 @@ available and how to retire an asset. The catalog holds tools, brand assets, tok
 logos from three sources, and every source passes through the same governance before it
 reaches a member.
 
-An existing DAM can remain the source of record. Work connects its selected assets to Lolly production while the organisation retains the choice to keep the connection or plan a transition. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains the responsibilities; [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful integration and administrator change management.
+An existing DAM can remain the source of record. Lolly Work connects its selected assets to Lolly production while the organisation retains the choice to keep the connection or plan a transition. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains the responsibilities; [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful integration and administrator change management.
 
 ::: figure work-catalog-sources
 The pack, connected providers and member submissions pass through exposure, lifecycle and tag rules into each person's feed.
@@ -75,7 +75,7 @@ live the moment it is stored. To require review, set `policy.submit.chain` to an
 chain. A submission then waits in state `submitted`, invisible in the feed, unservable at
 `/catalog/*` and not linkable, until an approver publishes the asset. If `policy.submit.chain` gives a
 chain this instance does not have (a rename, a deletion, a first boot in the wrong order),
-submissions are refused with `503 SUBMIT_CHAIN_MISSING`, giving the chain to fix. Work never
+submissions are refused with `503 SUBMIT_CHAIN_MISSING`, giving the chain to fix. Lolly Work never
 falls back to publishing without review.
 
 What happens to the file, in order:
@@ -138,7 +138,7 @@ document, so a reviewer approves exactly what the feed will serve. A user tool's
 only as a short glyph such as an emoji, because markup one member submitted would otherwise
 draw inside every other member's app.
 
-The review queue shows what each one seeds ("Template for Design (design), 12 values") where a
+The review queue shows what each one seeds ("Template for Lolly Design (design), 12 values") where a
 file would show a thumbnail, and keeps its type: a reviewer can rename or retag it but not turn
 it into an image. Once live, it appears in the feed as an asset of type `template` or
 `user-tool` with one `json` format, and its entry's `meta` carries `toolId` (or `baseToolId`)
@@ -270,7 +270,7 @@ An asset can also be found by the words printed on the file. The text is read **
 submits or curates the asset; the server never runs a recognition model for this workflow.
 
 The Assets inspector can offer locally extracted image, SVG and PDF text for a curator to
-review. Reading a file writes nothing to Work. A curator saves a reviewed excerpt explicitly
+review. Reading a file writes nothing to Lolly Work. A curator saves a reviewed excerpt explicitly
 with `PUT /api/v1/catalog/text-index/<assetId>`, sending `text`, `sourceRevision`, `fileId` and
 `method` (`ocr` or `digital`).
 
@@ -698,7 +698,7 @@ The path is narrow. The provider must declare the `publish` capability (`optimiz
 bytes must carry Lolly's **C2PA export assertion**, verified on the server, so a federated or
 pack asset can never be pushed out. Each publish is audited with the export's provenance chain,
 and exports arrive in the web DAM already carrying their signed Content Credential ([Configure
-Work export signing](c2pa.md)). To send finished exports to storage or a DAM that is not a
+Lolly Work export signing](c2pa.md)). To send finished exports to storage or a DAM that is not a
 catalog source, use [organisation delivery destinations](delivery.md).
 
 <a id="the-exit---materialize-a-source-into-your-own-store"></a>
@@ -794,7 +794,7 @@ the `ETag`, which costs no bytes while the entry is unchanged. They are never ca
 immutable: they sit behind access checks, so a person who loses access must not keep a valid copy.
 
 **Ranges.** A viewer can read a large federated file in parts with an HTTP `Range` header, and
-Work answers `206 Partial Content` with one range. Each part is a separate request that passes
+Lolly Work answers `206 Partial Content` with one range. Each part is a separate request that passes
 every visibility, source and lifecycle check again, so revoking access, disabling the source or
 expiring the asset stops the next part. A whole response says `Accept-Ranges: bytes` when parts
 are available: from a small file in the memory cache, or from a source whose driver forwards
@@ -807,7 +807,7 @@ because a pinned copy is read from the store from its first byte.
 
 ### Cache versions and exact source references
 
-An asset group can hold several files, including two with the same format. Work selects a file by
+An asset group can hold several files, including two with the same format. Lolly Work selects a file by
 its attachment identity, not by extension or list position, and a thumbnail and a selected
 original stay separate resources.
 
@@ -840,12 +840,12 @@ revocation against a fragment that is already cached.
 
 ### Where instance bytes live
 
-Work's own stored bytes (materialized and submitted assets and their versions, project files and
+Lolly Work's own stored bytes (materialized and submitted assets and their versions, project files and
 uploads, render outputs and delivery staging) live in a **BlobStore** chosen by `blobs.driver`:
 
 | Driver | When |
 |---|---|
-| `pg` (default) | no extra services: PostgreSQL works everywhere Work runs, including a single node. Each blob is held whole in memory and is at most 500 MiB |
+| `pg` (default) | no extra services: PostgreSQL works everywhere Lolly Work runs, including a single node. Each blob is held whole in memory and is at most 500 MiB |
 | `s3` | any S3-compatible store (AWS, MinIO, Ceph RGW) for media-sized estates and air-gapped installs: a configuration change, not an architecture change. Blobs upload in 8 MiB parts |
 
 ```jsonc
@@ -867,4 +867,4 @@ driver's size limits, memory use, checksums and the S3 permissions and lifecycle
 - Restricting tools and inputs: [governance](governance.md)
 - Sharing what the catalog holds: [Share renders and links](sharing.md)
 - Where provenance for federated assets comes from: [provenance](sharing.md#provenance) and
-  [Configure Work export signing](c2pa.md)
+  [Configure Lolly Work export signing](c2pa.md)

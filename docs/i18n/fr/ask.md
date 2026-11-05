@@ -2,7 +2,7 @@
 
 Saisis une question et Ask Lolly répond avec la section de ces guides qui la couvre, mot pour mot, avec la page d'origine citée et un lien **Open in docs** directement vers cette section. Rien n'est généré : la réponse est retrouvée, citée et attribuée, sur ton appareil.
 
-Sous la section citée figurent les endroits de l'application qui correspondent à la même question : un outil, un utilitaire, un projet enregistré, une ressource du catalogue, un réglage ou une page de l'application. Chaque ligne ne fait que naviguer. Rien dans une réponse ne change un réglage, n'ouvre un fichier ni n'agit à ta place, la même règle que suit [Search](/info/search.html).
+Sous la section citée figurent les endroits de l'application qui correspondent à la même question : un outil, un utilitaire, un projet enregistré, une ressource du catalogue, un réglage ou une page de l'application. Chaque ligne ne fait que naviguer. Rien dans une réponse ne change un réglage, n'ouvre un fichier ni n'agit à ta place, la même règle que suit [Lolly Search](/info/search.html).
 
 ## Poser une question
 
@@ -60,4 +60,4 @@ Ta question ne quitte jamais l'appareil. La correspondance s'exécute en local s
 
 ---
 
-**Voir aussi :** [Search](/info/search.html) pour la barre qui transmet les questions. [Using Lolly](/info/using.html) pour le reste de l'application. [Settings](/info/dashboard.html#available-offline) pour emporter d'abord la documentation hors ligne.
+**Voir aussi :** [Lolly Search](/info/search.html) pour la barre qui transmet les questions. [Using Lolly](/info/using.html) pour le reste de l'application. [Lolly Settings](/info/dashboard.html#available-offline) pour emporter d'abord la documentation hors ligne.

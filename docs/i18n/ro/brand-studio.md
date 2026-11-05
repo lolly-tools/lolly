@@ -4,7 +4,7 @@ Logoul, culorile și fonturile tale aparțin unui singur loc, ca fiecare instrum
 
 Începe cu ce ai. Plasează un logo și Lolly îi citește culorile. Alege un font sau plasează fișierul de font licențiat de compania ta. Fiecare schimbare apare imediat în toată aplicația. Logoul, fonturile și tokenurile tale rămân pe acest dispozitiv. Alegerea unui Google Font este singurul pas care iese afară: Lolly întreabă mai întâi, apoi preia familia o dată.
 
-Când arată bine, dă un nume sistemului de design și apasă **Export**. Primești un singur fișier `.lolly` de păstrat, de deschis pe alt dispozitiv sau de dat unui coleg. [Settings](/info/dashboard.html#design-system) arată sistemul activ doar pentru citire, iar coperta lui trimite înapoi aici pentru editare.
+Când arată bine, dă un nume sistemului de design și apasă **Export**. Primești un singur fișier `.lolly` de păstrat, de deschis pe alt dispozitiv sau de dat unui coleg. [Lolly Settings](/info/dashboard.html#design-system) arată sistemul activ doar pentru citire, iar coperta lui trimite înapoi aici pentru editare.
 
 ## Fă-l al tău în cinci minute
 

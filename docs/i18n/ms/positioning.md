@@ -28,7 +28,7 @@ Kolaborasi langsung Lolly termasuk collab peribadi dua peranti terus dan collab 
 ## Pilih Lolly apabila
 
 - Jenis fail yang sama diperlukan berulang kali: jubin acara, lencana, sijil, amaran, kad sosial
-- Banyak fail datang daripada satu templat dan jadual nilai, dalam [Batch](/info/batch.html#make-many-versions-of-one-design) atau CLI
+- Banyak fail datang daripada satu templat dan jadual nilai, dalam [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) atau CLI
 - Warna, tipografi dan aset mesti kekal dalam sistem reka bentuk, walaupun pada kanvas terbuka
 - Reka bentuk Figma, Penpot, Illustrator, InDesign atau PDF yang siap harus menjadi boleh sunting dan boleh diulang ([Import a design](/info/design-import.html))
 - Fail mesti dibuat pada peranti atau pelayan anda sendiri

@@ -8,7 +8,7 @@ Miej gotowy adres internetowy, który ma otwierać kod, zaczynający się od `ht
 
 ## Zrób kod
 
-1. Otwórz [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Elementy sterujące znajdują się obok podglądu, a na telefonie nad nim; to, co pokazuje podgląd, jest tym, czym będzie plik.
+1. Otwórz [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Elementy sterujące znajdują się obok podglądu, a na telefonie nad nim; to, co pokazuje podgląd, jest tym, czym będzie plik.
 2. W polu **URL** zastąp cały przykładowy adres swoim. Podgląd zmienia się w miarę pisania.
 3. Aby dopasować własne kolory, ustaw **Kolor modułu** i **Tło**. Zachowaj mocny kontrast między nimi, inaczej telefony będą miały problem z odczytaniem kodu.
 4. **Strefa ciszy**, w sekcji **Moduły**, zaczyna się od 4. Zachowaj wartość 4 lub więcej: ten pusty margines jest tym, czego szuka aparat telefonu.
@@ -38,8 +38,8 @@ Zapisana praca pozostaje na tym urządzeniu, w przeglądarce lub aplikacji, któ
 
 ## Inne pierwsze projekty
 
-- [Audiogram](/#/tool/audiogram) zamienia notatkę głosową w wideo: poruszający się przebieg fali, twoje słowa na okładce, twoje kolory. Upuść nagranie w polu **Audio**, dodaj **Tytuł**, a potem wyeksportuj **MP4**.
-- [Filter](/#/tool/filter) przetwarza zdjęcie na potrzeby plakatu: drukowane punkty rastra, dwa płaskie kolory lub kilka bloków tonalnych. Wybierz zdjęcie w polu **Obraz**, wybierz **Efekt**, a potem wyeksportuj **PNG** lub **SVG** przy efekcie oznaczonym jako *wektorowy*.
+- [Lolly Audiogram](/#/tool/audiogram) zamienia notatkę głosową w wideo: poruszający się przebieg fali, twoje słowa na okładce, twoje kolory. Upuść nagranie w polu **Audio**, dodaj **Tytuł**, a potem wyeksportuj **MP4**.
+- [Lolly Filter](/#/tool/filter) przetwarza zdjęcie na potrzeby plakatu: drukowane punkty rastra, dwa płaskie kolory lub kilka bloków tonalnych. Wybierz zdjęcie w polu **Obraz**, wybierz **Efekt**, a potem wyeksportuj **PNG** lub **SVG** przy efekcie oznaczonym jako *wektorowy*.
 
 ## Dalej
 

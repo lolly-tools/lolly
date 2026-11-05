@@ -39,6 +39,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `backdrop` | Backdrop | everyone | png, jpg, webp, avif, webm, mp4, gif, tiff, webp-anim | - | - | Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid cont… |
 | `battlecards` | Battlecards | everyone | pdf, svg, penpot, pdf-cmyk, emf, png, webp, avif, jpeg, tiff, cmyk-tiff | - | - | Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. |
 | `booth-studio` | Booth | event | png, jpg, webp, webm, mp4, gif, avif, tiff, webp-anim | - | - | Dress a 3D event booth with sponsor artwork. |
+| `brief` | Brief | everyone | pdf, png, svg, jpeg, webp | - | - | A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. |
 | `calendar-ics` | Calendar | event | ics, png, svg, penpot, pdf, jpg, webp | - | - | Turn event details into a calendar (.ics) file for any calendar app. |
 | `captions` | Captions | everyone | png, svg, penpot, srt, vtt, ttml, scc, json, jpg, webp | - | - | Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export bur… |
 | `certificate` | Certificate | everyone | pdf, pdf-cmyk, svg, penpot, png, jpg, webp, tiff, cmyk-tiff, mp4, webm, gif, apng, webp-anim | - | - | Completion and award certificates in the active design system and its colourway: four styles, print and social sizes,… |
@@ -48,6 +49,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `design` | Design | designer | png, svg, penpot, pdf, pdf-cmyk, cmyk-tiff, jpg, webp, mp4, webm, gif, apng, wav, mp3, m4a, opus, pptx, scorm, avif, tiff, emf, webp-anim, lottie, idml, premiere-xml, html | - | - | An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to… |
 | `diagram-builder` | Diagrams | everyone | svg, penpot, pdf, dxf, png, jpg, webp, avif, emf, pdf-cmyk, pptx | - | - | Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV. |
 | `doc-studio` | Doc Studio | designer | pdf, pptx, svg, penpot, md, docx, odt, html | - | - | Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pag… |
+| `email` | Email | everyone | png, svg, pdf, jpeg, webp | - | - | An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments, as received, a draf… |
 | `filter` | Filter | designer | svg, penpot, pdf, pdf-cmyk, emf, png, jpg, webp, avif, tiff, cmyk-tiff, gif, apng, webp-anim, webm, mp4, txt, md | - | - | One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pix… |
 | `finish-preview` | Finishes | designer | svg, penpot, pdf, pdf-cmyk, png, jpg, webp, avif, tiff, cmyk-tiff, gif, apng, webp-anim, webm, mp4 | - | - | Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. |
 | `flythrough` | Flythrough | designer | png, jpg, webp, webm, mp4, gif, avif, tiff, webp-anim | - | - | Fly a real 3D camera through a screenshot. |
@@ -67,6 +69,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `quote` | Sales Quote | everyone | pdf, png, svg, jpeg, webp | - | - | A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked… |
 | `quote-card` | Quote | everyone | png, jpg, webp, svg, penpot, pdf, avif, tiff | - | - | A quotation card with a speaker's picture, name and role, for social posts and slides, in the active design system. |
 | `record` | Record | everyone | mp4, webm, srt, vtt, gif, webp-anim | - | camera, microphone | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
+| `scorecard` | Scorecard | everyone | png, svg, pdf, jpeg, webp | - | - | Score a deal, a vendor or a plan against your criteria: each with a bar, a score and the evidence behind it, and an o… |
 | `signature` | Signature | everyone | svg, penpot, png, webp, avif, pdf | - | - | Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a… |
 | `snippet` | Snippet | everyone | png, svg, penpot, jpg, webp, pdf, mp4, webm, gif, webp-anim, html | textTools | - | Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete an… |
 | `spatial-photo` | Spatial Photo | designer | png, jpg, webp, webm, mp4, gif, avif, tiff, webp-anim | - | - | Drop in one photo and move a camera through it: depth is read on your device, so a flat picture becomes a scene with… |
@@ -75,6 +78,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `synth` | Synth | designer | png, jpg, webp, webm, mp4, gif, apng, avif, tiff, webp-anim | - | - | A visual instrument you play. |
 | `timezone` | Timezone | event | svg, png, pdf, webp, jpeg, webm, mp4, gif, json, csv, md, ics | - | - | Turn places and timezones into artwork that follows the design system. |
 | `wayfinding-signage` | Wayfinding | event | pdf, pdf-cmyk, svg, penpot, dxf, png, jpg, webp, avif, tiff, cmyk-tiff, emf | - | - | Directional event signs - destinations, each with an arrow. |
+| `week` | Week | everyone | png, svg, pdf, jpeg, webp | - | - | A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. |
 | `wordmark` | Wordmark | everyone | svg, penpot, emf, eps, eps-cmyk, dxf, pdf, pdf-cmyk, cmyk-tiff, tiff, png, jpeg, webp, avif | - | - | Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed. |
 | `work-avatar` | Work Avatar | everyone | png, jpg, webp, avif, svg, pdf | - | - | A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place you… |
 <!-- /GEN:tools-main -->

@@ -632,6 +632,18 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   overflow-wrap: anywhere;
 }
 
+/* Where the document stands with reviewers (tool-actions/approval-state.ts): one line
+   under the control, with a way to open the request. */
+.export-approval-status {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2);
+  margin: .2rem 0 0;
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.export-approval-status[hidden] { display: none; }
+
 /* In a short landscape sheet the primary-action dock can be taller than the
    remaining scroller. Keeping it sticky then lets it cover the filename/format
    row and intercept the very tap that opens this picker. Everything remains in

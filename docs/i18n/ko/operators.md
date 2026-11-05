@@ -9,7 +9,7 @@ Lolly는 각자의 기기에서 실행돼요. 팀에 로그인, 공유 프로젝
 - [도입 및 거버넌스](/info/adoption-governance.html)는 롤아웃과 브랜드 규칙의 역할을 다뤄요.
 - [신원과 세션](/info/work-identity.html)은 로그인과 그룹 매핑을 다뤄요. [역할과 권한](/info/work-permissions.html)은 역할, 권한, 소유자 보호를 설명해요.
 - [정책과 거버넌스](/info/work-governance.html)는 도구 오버레이, 잠긴 입력, 정책을 다뤄요. [조직 AI 정책 관리](/info/work-ai-policy.html)는 승인과 실행 한도를 다뤄요.
-- [계정 데이터 제어](/info/work-account-lifecycle.html)와 [Work 저장소와 데이터 수명 주기](/info/work-data-lifecycle.html)는 내보내기, 오프보딩, 보관, 그 한계를 다뤄요.
+- [계정 데이터 제어](/info/work-account-lifecycle.html)와 [Lolly Work 저장소와 데이터 수명 주기](/info/work-data-lifecycle.html)는 내보내기, 오프보딩, 보관, 그 한계를 다뤄요.
 - [프로필, 브랜드, 도구 구성](/info/configuration.html)은 Lolly 빌드가 어떤 도구와 디자인 시스템을 담는지 다뤄요.
 
 ## 에셋 연결과 작업 검토

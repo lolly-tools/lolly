@@ -35,7 +35,7 @@ Lolly 도구는 한 종류의 파일에 대한 규칙, 즉 레이아웃, 글꼴,
 ![URL 매개변수와 명령줄 인수가 같은 입력 모델이 되어 하나의 공유 런타임과 내보내기 브리지를 거쳐요](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **앱에서 한 번에 하나씩.** 도구를 열고, 필드를 채운 뒤 **Export**를 눌러요. [첫 파일 만들기](/info/make-something.html)에서 하나를 안내해요.
-- <!--i:layers--> **앱에서 한꺼번에 많이.** [Batch](/info/batch.html#make-many-versions-of-one-design)(`#/batch`)는 붙여넣거나 가져온 표를 받아 행마다 완성된 파일 하나를 렌더링해요.
+- <!--i:layers--> **앱에서 한꺼번에 많이.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)(`#/batch`)는 붙여넣거나 가져온 표를 받아 행마다 완성된 파일 하나를 렌더링해요.
 - <!--i:cpu--> **스크립트나 AI 에이전트에서.** [CLI](/info/cli.html)는 도구를 헤드리스로 실행하고, [MCP 서버](/info/mcp.html)는 에이전트가 도구를 찾고 실행하게 해요. 도구 링크에도 입력값이 담기므로 링크는 완전한 요청이에요.
 - <!--i:server--> **조직의 서버를 통해.** [Lolly Work](/info/organisation.html)는 조직의 로그인과 도구 정책에 따라 서버에서 렌더링하고, 이어서 실행할 수 있는 작업을 유지하며, 출력물을 다운로드나 승인된 전달을 위해 보관해요.
 

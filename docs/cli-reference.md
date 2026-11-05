@@ -21,9 +21,10 @@ Every command answers with one code per outcome, so a pipeline can branch on the
 - the bytes were not the format claimed, or a credential is present but broken;
 - `--strict` promoted a gate-class warning, or `--depth=float` was asked of an 8-bit render;
 - `lolly check` found an error, or any warning under `--strict` (the writing score, `verify.writing-score`, never counts);
-- `lolly package` met a Design document whose pictures have no bytes or are not catalog ids, or an output that already exists;
+- `lolly package` met a Lolly Design document whose pictures have no bytes or are not catalog ids, or an output that already exists;
 - `lolly compose` refused a spec (with the JSON pointer of the key) or met an output that already exists;
-- a Design document's authoring keys could not be lowered (`AUTHORING_INVALID`);
+- `lolly intent` refused a request, or a surface is not ready. The full answer is still on stdout;
+- a Lolly Design document's authoring keys could not be lowered (`AUTHORING_INVALID`);
 - a render whose sources still need a rights decision; it still writes its file. `learning build` does the same and lists those blocks in `result.rightsDecisionsRequired`.
 :::
 
@@ -31,7 +32,7 @@ Messages go to stderr; `--verbose` (or `DEBUG=1`) adds stack traces. An input th
 
 ## The --json envelope
 
-`--json` puts **one JSON document on stdout and nothing else**; every human line moves to stderr. It works on `list`, `describe`, `assets`, `validate`, `smoke`, `batch`, `preflight`, `models`, `mix`, `speak`, `transcribe`, `ocr`, `detect-ai`, `reword`, `rebrand`, `read`, `check`, `compose`, `look` (with `--output`), `sample`, `trace`, `system`, `start`, `files`, `prepare` and `learning`, and on `measure --text`, `measure --text-layers` and `package` of a Design document.
+`--json` puts **one JSON document on stdout and nothing else**; every human line moves to stderr. It works on `list`, `describe`, `assets`, `validate`, `smoke`, `batch`, `preflight`, `models`, `mix`, `speak`, `transcribe`, `ocr`, `detect-ai`, `reword`, `rebrand`, `read`, `check`, `compose`, `look` (with `--output`), `sample`, `trace`, `system`, `start`, `files`, `prepare` and `learning`, and on `measure --text`, `measure --text-layers` and `package` of a Lolly Design document.
 
 It is **not** available on a render, because a render's stdout is the file; asking for both is a usage error. `lolly speak --out=- --json` is refused for the same reason.
 
@@ -202,7 +203,25 @@ lolly package document.json --output=session.lolly
 
 A logical asset input such as `image://brand/logo`, `catalog://lolly/logo/primary` or `library://user/upload/…` resolves through the same host bridge as an ordinary render. A CLI run on a device does not resolve credentialled `cms://` or governed `net://` references; those need Lolly Work.
 
-`measure` and `package` also take a Design document directly, and `inspect --forensic` reports located AI clues and their coverage ([AI evidence in Verify](/info/verify-ai-evidence.html)). [Rebuild a deck from the terminal](/info/cli-decks.html) covers the Design forms.
+`measure` and `package` also take a Lolly Design document directly, and `inspect --forensic` reports located AI clues and their coverage ([AI evidence in Lolly Verify](/info/verify-ai-evidence.html)). [Rebuild a deck from the terminal](/info/cli-decks.html) covers the Lolly Design forms.
+
+## Start from what the piece has to do
+
+`lolly intent` takes a JSON file, or `-` for standard input, that says what a piece has to do, where it will be seen and what it has to say. It answers with the tool for each surface, the input values, what is missing and why. `--render` makes a file for each ready surface and writes the answer beside them as `intent-resolution.json`. [Start from what the piece has to do](/info/visual-intent.html) has the format.
+
+```bash
+lolly intent certificate.json
+lolly intent certificate.json --json
+lolly intent certificate.json --render --out-dir=./out
+lolly intent certificate.json --render --record-prompt
+lolly intent certificate.json --render --no-record-intent
+```
+
+With `--render`, each file's Content Credential records the purpose, surface, tool, language, rules and vocabulary versions and the intent digest, with occasion, audience, region and the prompt as fingerprints only. `--record-prompt` records the prompt's own words instead of its fingerprint. `--no-record-intent` records nothing about the intent. `--c2pa=off` writes no credential, or `--c2pa=<days>` sets its lifetime. Each run says what it recorded, read back from the finished file, and `--json` gives the same as `intentRecord` on each entry in `rendered`. [What goes in the file](/info/visual-intent.html#what-goes-in-the-file) has the detail.
+
+## Bring a design in from another service (lolly import)
+
+`lolly import <template.json>` turns a Bannerbear V5 image template into a Design document on this device and prints what was left out, one note per line. `--output=<file>` writes the frames and report, `--mapping=<file>` writes the entry `lw render-api` reads, and `--json` prints the whole result. See [Bannerbear templates](/info/design-import.html#bannerbear-templates). Bannerbear V2 and Placid return no design, so `lolly import` refuses them. Built from public documentation and not run against a live account.
 
 ## Look at a picture in its own coordinates
 
@@ -215,9 +234,9 @@ lolly sample poster.svg --points="120,80;640,400" --radius=3
 lolly trace photo.jpg --max-lines=20 --design-layers --json
 ```
 
-- `look` draws the picture, or one region enlarged, with a grid numbered in the picture's own units: the SVG's viewBox (for Design, the artboard pixels a layer's x, y, w and h use) or a raster's pixels. With `--json` it needs `--output`, because the picture and the envelope cannot share stdout.
+- `look` draws the picture, or one region enlarged, with a grid numbered in the picture's own units: the SVG's viewBox (for Lolly Design, the artboard pixels a layer's x, y, w and h use) or a raster's pixels. With `--json` it needs `--output`, because the picture and the envelope cannot share stdout.
 - `sample` gives the colour at each point, averaged over a small disc, with the nearest colour of the active design system and its distance (ΔE in OKLab).
-- `trace` gives the picture's edges as lines in the same units, longest first; `--design-layers` adds each line as a Design path layer.
+- `trace` gives the picture's edges as lines in the same units, longest first; `--design-layers` adds each line as a Lolly Design path layer.
 
 ## Where saved sessions live
 
@@ -233,6 +252,27 @@ Sessions sit in `saved-state/<slot>.json` there, in the record the desktop app w
 `lolly` writes a tool's saved state to disk only when rung 1 or 2 sets the directory, so a headless render leaves no files that nobody asked for in your home directory or the app's store. Name a directory and a state-saving tool becomes scriptable across runs.
 
 Terminal design systems are kept differently. `lolly system init`, `import`, `add` and `use` store them under `design-systems/`, with the list in `design-systems.json`, in whichever directory the order above picks. A bare `lolly` in a terminal also records there that you have seen its start screen.
+
+## Publish a brand page
+
+`lolly system publish --out=<dir>` writes one folder that works as a press kit and an agent kit: `index.html` with its markdown twin `index.md`, `brand.json`, `DESIGN.md`, `AGENTS.md`, `llms.txt`, `checks.json`, tokens per colourway and mode, and the logos, fonts, public brand skills and examples that may go public. Nothing leaves your machine. You read the folder and host the folder where you choose.
+
+The source is `--file=<tokens>`, then a content profile you name with `--profile=<name>` or `LOLLY_PROFILE`, then the active terminal system. A profile is never published by default, and a pack marked as managed also needs `--manager-allows`.
+
+| Flag | What it does |
+|---|---|
+| `--out=<dir>` | The folder to write. It must be new or empty. |
+| `--origin=<url>` | The address the folder will be served from, recorded in `brand.json`. |
+| `--usage-file=<file>` | The publisher's own words. A text file is the usage statement. A JSON file may hold `statement`, `contact`, `url` and `fonts`, where each family gives a `url` and `licence`. |
+| `--include=<id,id>` | Logos to publish although no licence is recorded for them: your stated choice. |
+| `--no-examples` | Leave out the drawn examples. |
+| `--name=<name>`, `--id=<id>` | Override the name and the id. |
+
+**What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A font file needs a recorded licence that allows passing the file on, and `--include` does not change that: the page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.
+
+**What is checked.** `checks.json` holds contrast measurements of the colour pairs in every colourway and mode, and house rule checks on example documents. These measure token pairs and examples. They do not judge a finished piece.
+
+The same input gives the same bytes, so you can build twice and compare the folders.
 
 ## Shell completion (lolly completion)
 

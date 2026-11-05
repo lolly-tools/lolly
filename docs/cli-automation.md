@@ -104,6 +104,36 @@ in the TUI. Projects are read from the device's shared session directory.
 stderr. `--include-personal` explicitly includes those fields after review. Requested
 size and format travel with the link. Export passwords do not travel with that link.
 
+## Convert check results for local automation
+
+Save a command's normal JSON envelope, then convert that result without rerunning the check:
+
+```bash
+lolly check design.json --browser=off --json > check.json
+lolly reports check.json --to=junit --output=checks.xml
+lolly reports check.json --to=sarif --output=checks.sarif
+lolly reports checks.jsonl --to=junit --output=combined.xml
+cat check.json | lolly reports - --to=jsonl
+lolly projects list --query=conference --null | xargs -0 -I '{}' lolly projects show '{}'
+lolly projects list --null --paths
+```
+
+`reports` accepts check/preflight/learning findings and production batch receipts. JSONL
+input holds one original report per line; `--input-format=jsonl` selects that input on
+stdin. JSONL output holds one normalized finding or row outcome per line. This is report
+transport; ordinary batch rendering still takes its existing CSV/TSV transport.
+
+JUnit retains failures and skipped/unavailable coverage. SARIF retains document pointers,
+layer/page/theme context and stable finding fingerprints. A physical source location appears
+only when the original finding supplied a file and line; document coordinates do not become
+invented source lines. Unknown report shapes refuse. Existing output files are refused.
+Conversion success means the report was written; the original command's verdict still
+belongs to its saved envelope. Nothing is uploaded and no CI job starts.
+
+Project `--null` output carries stable slot IDs, including names with spaces or newlines.
+`--paths` selects the actual session files instead. `--json` and `--null` are separate output
+choices; default project discovery keeps its existing JSON shape.
+
 ## Render-check the catalog (lolly smoke)
 
 ```bash
@@ -160,9 +190,10 @@ The optional `checks` list records which rules ran: each is `completed` (includi
 If your brand declares a spot ink that is really a **finish** (a foil, an emboss, a spot varnish, a cutting rule), Lolly writes it as its own named plate in every CMYK file (the CMYK PDF, the CMYK TIFF and `eps-cmyk`), with a 100% black mask as its process fallback, so a RIP that flattens spots prints an obvious mask rather than a plausible metallic. Overprint is not built anywhere in Lolly, so that plate knocks out the artwork beneath the finish. Agree with your printer how they want the finish supplied before you send the file.
 :::
 
-## Check a Design document in CI (lolly check)
+<a id="check-a-design-document-in-ci-lolly-check"></a>
+## Check a Lolly Design document in CI (lolly check)
 
-`lolly check` gives one findings list for a Design document, a `.lolly` or an export, and its exit code is the branch:
+`lolly check` gives one findings list for a Lolly Design document, a `.lolly` or an export, and its exit code is the branch:
 
 ```bash
 lolly check slides.lolly --source=old.inventory.json --json > check.json

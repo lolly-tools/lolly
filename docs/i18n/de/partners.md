@@ -16,7 +16,7 @@ Zwei Begriffe bedeuten auf dieser Seite überall dasselbe. Die **führende Marke
 
 | Senden | Wie | Der Partner erhält | Eignet sich für |
 | --- | --- | --- | --- |
-| Eine Designsystem-Datei | **Export** in der Leiste oben in [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Ihre Tokens, Schriften, Logos und die Themenwahl, als Designsystem, zu dem er wechseln kann | Einen Partner, der viele Stücke in Ihrer Marke erstellt |
+| Eine Designsystem-Datei | **Export** in der Leiste oben in [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Ihre Tokens, Schriften, Logos und die Themenwahl, als Designsystem, zu dem er wechseln kann | Einen Partner, der viele Stücke in Ihrer Marke erstellt |
 | Ein wiederverwendbares Tool | In Design **Share with rules** ([Ein Design mit Regeln teilen](/info/create-a-tool.html)) | Ein fertiges Layout mit den Eingaben, die Sie erlauben, etwa sein Name und sein Logo. Die Datei enthält die aufgelösten Farben, Schriften und Bilder, sodass sein eigenes Designsystem das feste Artwork nicht umgestalten kann | Einen gemeinsamen Flyer, ein Badge oder ein Banner, das jeder Partner selbst ausfüllt |
 | Marken-Skills | Der Raum **Skills**: **Download skill (.zip)** oder **Copy as one file** | Ihre schriftlichen Standards, für seine Leute und seine Agenten | Eine der beiden anderen Varianten, wenn ein Agent einen Teil der Arbeit übernimmt |
 | Tokens | **Tokens (.json)** im Menü **More** des Studios | Das schlichte Design-Tokens-Dokument, ohne Schriften und Logos | Die eigenen Design-Werkzeuge oder den eigenen Build eines Partners |
@@ -125,5 +125,5 @@ Logo Wall kennt die Regeln keines Sponsors. Tiers und Presence legen Größen im
 - **[Markenarchitekturen](/info/brand-architectures.html)**: Co-Branding, White Label und die anderen Anordnungen, mit dem, was Sie jeweils in Lolly tun können.
 - **[Ein Design mit Regeln teilen](/info/create-a-tool.html)**: wiederverwendbare Tools mit festem Layout und den Eingaben, die Sie wählen.
 - **[Marken-Skills](/info/brand-skills.html)**: wie Skills geschrieben, gelesen und an einen Agenten übergeben werden.
-- **[Design System Setup](/info/brand-studio.html)**: Logos, benutzerdefinierte Marken und das Verschieben eines Designsystems zwischen Geräten.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: Logos, benutzerdefinierte Marken und das Verschieben eines Designsystems zwischen Geräten.
 - **[Kreativrechte und Credits](/info/creative-rights.html)**: was Lolly über die Werke festhält, die es zeichnet.

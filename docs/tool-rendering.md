@@ -74,7 +74,7 @@ Certificate declares one, so a print file never catches a moment of its reveal. 
 - **It poses your tool first.** The shell sets the flag and calls the clock once, with `t` 0 and no size, before anything else in the export runs, your `beforeExport` hook included, so the hook already sees the finished pose. A capture the shell makes outside a tool's export, such as the docs pipeline's page capture, has no hook to run and makes the same call before it reads the page.
 - **It keeps your tool still until the file is written.** The flag stays set while the export reads the page and is cleared afterwards, so your own loop cannot move a part under the export.
 
-Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those formats never call the clock or set the flag, and they read the page as your own loop left the page.
+Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and Lolly Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those formats never call the clock or set the flag, and they read the page as your own loop left the page.
 
 **Not held, declared or not:** clips (GIF, APNG, animated WebP, animated SVG, WebM and MP4, which drive the clock frame by frame), sound, Lottie, IDML, Premiere XML and data files (JSON, CSV, calendar, contact, subtitle, stylesheet and palette files, and Markdown from a `template.md`). A ZIP or a Linux package holds each file inside under that file's own format. A sequence stage's still is the frame at its playhead, so the shell leaves the stage alone.
 
@@ -147,7 +147,7 @@ The `penpot` format keeps this same vector set, as editable Penpot shapes instea
 
 ### Letting the document bring its own CSS
 
-A tool can also give the person using it a stylesheet - Design does, as its `customCss`
+A tool can also give the person using it a stylesheet - Lolly Design does, as its `customCss`
 input. Three rules make that safe, and a tool that offers user CSS is expected to follow
 all three (`community/design/hooks.js` is the reference; `tests/design-custom-css.test.ts`
 is the test to copy):
@@ -159,7 +159,7 @@ is the test to copy):
 2. **Emit, then let the shell scope.** The shell re-scopes template `<style>` to the tool
    canvas (`scopeTemplateStyles`), and its scoper handles top-level `@keyframes` correctly,
    so real animations belong at the document level rather than nested per element.
-3. **Give the CSS something to aim at.** Free-text rules need stable handles: Design stamps
+3. **Give the CSS something to aim at.** Free-text rules need stable handles: Lolly Design stamps
    `data-frame-id` on each artboard, sanitised `data-frame-state` tokens from a per-frame
    `state` field, and a per-box `cls` field whose tokens join the element's class list
    (`.callout { … }`). Those pass through the same parse-and-re-serialise treatment as any
@@ -217,12 +217,12 @@ stage.__lollyPlayback = {
 
 `seek` must draw a frame directly, forwards or backwards, without starting another clock. `portableMarkup` supplies the authored markup with any prepared emoji artwork; leave out transient selection, caret and animation writes. Omit the method when the freshly filled template is enough. `animated: false` produces a still with no transport controls. Snippet's presentation runtime is a working example.
 
-The shell bundles the shared Sequence evaluator into the player when it builds, and the export embeds that code in the HTML, so playback needs no app server. Tools keep their own scene evaluation; they do not implement another transport or copy Design's keyframe maths. The CLI uses its browser render tier for trusted tools that declare portable presentations, as it does for Design's HTML export.
+The shell bundles the shared Sequence evaluator into the player when it builds, and the export embeds that code in the HTML, so playback needs no app server. Tools keep their own scene evaluation; they do not implement another transport or copy Lolly Design's keyframe maths. The CLI uses its browser render tier for trusted tools that declare portable presentations, as it does for Lolly Design's HTML export.
 
 ::: details What people get from an HTML export
-Design and Snippet offer HTML in the export format menu. The file embeds its fonts, images and playback code, and opens paused with play, replay, seek and fullscreen controls; a Design soundtrack adds mute and volume. Space or K toggles playback, the arrow keys seek, M toggles sound and F toggles fullscreen. Playback works offline.
+Lolly Design and Snippet offer HTML in the export format menu. The file embeds its fonts, images and playback code, and opens paused with play, replay, seek and fullscreen controls; a Lolly Design soundtrack adds mute and volume. Space or K toggles playback, the arrow keys seek, M toggles sound and F toggles fullscreen. Playback works offline.
 
-Design supports native layers, mixed audio and several timed artboards as scenes. Each scene has its own camera and child animation window, the player offers a scene menu and Page Up and Page Down jump between scenes. Artboards of different sizes fit inside the output size with the same proportions the movie exporter uses. Cuts, fades and bounded custom fades follow the movie transition policy; slide, morph and flight transitions become dissolves for now.
+Lolly Design supports native layers, mixed audio and several timed artboards as scenes. Each scene has its own camera and child animation window, the player offers a scene menu and Page Up and Page Down jump between scenes. Artboards of different sizes fit inside the output size with the same proportions the movie exporter uses. Cuts, fades and bounded custom fades follow the movie transition policy; slide, morph and flight transitions become dissolves for now.
 
-Timeline's **Place in order** arranges artboards as timed scenes. Dragging a scene in the sequence moves its members' start times and leaves their local keys unchanged. Audio assigned to an artboard stops at that scene's bounds, and an audio layer outside any frame can span the whole film. An untimed deck gets five seconds per page during export without changing the saved document. A still Design exports without transport controls. Embedded video, Lottie and 3D produce an explicit HTML export error, because their playback adapters are separate work.
+Timeline's **Place in order** arranges artboards as timed scenes. Dragging a scene in the sequence moves its members' start times and leaves their local keys unchanged. Audio assigned to an artboard stops at that scene's bounds, and an audio layer outside any frame can span the whole film. An untimed deck gets five seconds per page during export without changing the saved document. A still Lolly Design exports without transport controls. Embedded video, Lottie and 3D produce an explicit HTML export error, because their playback adapters are separate work.
 :::

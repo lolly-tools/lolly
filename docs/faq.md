@@ -39,7 +39,7 @@ lolly.tools opens in [Lolly Demo](/info/lolly-demo.html), Lolly's own sample des
 
 ## Can I use my own brand?
 
-Yes. **Design System Setup** (`#/start`) builds a design system from one colour, a design tokens file or a finished design, and every tool then draws with your design system. [Start](/info/quickstart.html#put-your-brand-in) walks through the three routes.
+Yes. **Lolly Design System Setup** (`#/start`) builds a design system from one colour, a design tokens file or a finished design, and every tool then draws with your design system. [Start](/info/quickstart.html#put-your-brand-in) walks through the three routes.
 
 A design system your organisation or your build supplies is managed: it shows a lock and stays read-only, and you can make an editable copy to change.
 
@@ -80,9 +80,9 @@ The web app draws with WebGPU, a graphics feature of current browsers, and it ch
 
 ## Can Lolly edit and render my Figma, Penpot, Illustrator or InDesign files?
 
-Yes. Open **Design** and click **Import a design**: it accepts a native Figma **.fig** (Save local copy), a Penpot **.penpot** export, an Illustrator **.ai** or **.pdf**, an InDesign **.idml** (File → Export → InDesign Markup) or **any SVG**. You need no account, no plugin and no design app licence.
+Yes. Open the **Design** tool and click **Import a design**: it accepts a native Figma **.fig** (Save local copy), a Penpot **.penpot** export, an Illustrator **.ai** or **.pdf**, an InDesign **.idml** (File → Export → InDesign Markup) or **any SVG**. You need no account, no plugin and no design app licence.
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Layers arrive as editable boxes: text stays retypable, shapes stay shapes and images join your own library. Save it, and **Share with rules** can turn the layout into a tool anyone with Lolly can refill. See [Import a design](/info/design-import.html).
 
@@ -98,9 +98,9 @@ Feature flags turn parts of Lolly on or off. In standalone use, you choose your 
 
 ## What makes utilities different from tools?
 
-A utility does one quick job on a file you already have, such as compressing a PDF, converting a photo or stripping hidden data, and many of them run on your device with nothing uploaded. They exist so the jobs people usually hand to a random website stay inside Lolly. Compressing a contract, converting holiday photos with their location still inside or pasting a token into an online formatter should not mean giving the file to a site with unknown retention, jurisdiction and business model. [Utilities](/info/utilities.html) lists them, and [The trade we never agreed to](/info/status-quo.html) tells the story behind them.
+A utility does one quick job on a file you already have, such as compressing a PDF, converting a photo or stripping hidden data, and many of them run on your device with nothing uploaded. They exist so the jobs people usually hand to a random website stay inside Lolly. Compressing a contract, converting holiday photos with their location still inside or pasting a token into an online formatter should not mean giving the file to a site with unknown retention, jurisdiction and business model. [Lolly Utilities](/info/utilities.html) lists them, and [The trade we never agreed to](/info/status-quo.html) tells the story behind them.
 
-![The Utilities view: Strip Hidden Data, Compress PDF, Convert Image and the other on-device jobs, all in one place](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![The Utilities view: Lolly Strip Hidden Data, Compress PDF, Convert Image and the other on-device jobs, all in one place](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Can our organisation use SSO, shared projects and approvals?
 
@@ -110,7 +110,7 @@ Yes, with **Lolly Work**, the organisation server of the same open-source projec
 
 ## What hurdles could I expect adopting Lolly?
 
-Mostly change on the producing side rather than technology. A team that wants a governed set of tools needs someone to author its design system and the first templates, although anyone can start making their own tools in Design on day one, with no git required. And existing processes keep working even when their output is off-brand, so converting one visible output well, before and after side by side, makes the case faster than a plan.
+Mostly change on the producing side rather than technology. A team that wants a governed set of tools needs someone to author its design system and the first templates, although anyone can start making their own tools in Lolly Design on day one, with no git required. And existing processes keep working even when their output is off-brand, so converting one visible output well, before and after side by side, makes the case faster than a plan.
 
 [Adoption & Governance](/info/adoption-governance.html) covers onboarding by role, how to measure a pilot and what a governance process can look like.
 

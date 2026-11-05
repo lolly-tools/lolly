@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "direct",
+      "needs": [
+        "data"
+      ],
+      "roles": {
+        "data": "directions"
+      }
+    }
+  ]
+}

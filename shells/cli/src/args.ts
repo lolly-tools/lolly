@@ -36,7 +36,7 @@ export const REPEATABLE = new Set(['trust-anchor']);
  * inputs are NOT here: a bare `--dark` meaning true is the documented boolean form.
  */
 export const VALUE_FLAGS = new Set([
-  'root', 'jobs', 'journal', 'rows', 'expect-plan',
+  'root', 'jobs', 'journal', 'rows', 'expect-plan', 'input-format',
   'output', 'export', 'format', 'width', 'height', 'unit', 'dpi', 'depth',
   'bleed', 'marks', 'cuts', 'samples', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'filename', 'slot', 'z', 'zx',
   // `s` is the deck STATE ADDRESS (plan 112): `--s=2` / `--s=slide1` renders that one
@@ -90,6 +90,8 @@ export const VALUE_FLAGS = new Set([
 export const RESERVED_SUBCOMMANDS = [
   'learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'assets', 'batch', 'smoke', 'validate', 'preflight',
   'install-browser', 'completion', 'help', 'version',
+  // `intent` answers what a piece has to do with a tool per surface (plan 350 W4).
+  'intent',
   // The on-device model surface (plans/183): `models` owns the one command that
   // downloads a model, `speak` and `transcribe` are host.speech's two directions.
   'models', 'speak', 'transcribe',
@@ -105,7 +107,7 @@ export const RESERVED_SUBCOMMANDS = [
   'icons', 'pack',
   // `tui` starts the interactive terminal shell (plans/202 WP1.4). One install, five
   // doors: nobody should have to learn that the interactive one is a second binary.
-  'projects', 'tui',
+  'reports', 'projects', 'tui',
   // `rebrand` renovates a deck in three stages, plan, compile and inspect (plan 274).
   'rebrand',
   // Looking at a picture in its own coordinates, as the MCP looking tools do
@@ -191,6 +193,10 @@ export const COMPOSE_VALUE_FLAGS = ['inventory', 'source', 'size', 'theme', 'the
 export const COMPOSE_BOOL_FLAGS = ['list', 'suggest', 'force'] as const;
 /** `lolly compose` flags whose value is a path, for completion. */
 export const COMPOSE_PATH_FLAGS = ['inventory', 'source', 'file', 'master', 'output', 'edits-out'] as const;
+/** `lolly intent` flags that take a value (plan 350 W4). `out-dir` is where `--render` writes, `c2pa` is URL mode's credential setting. */
+export const INTENT_VALUE_FLAGS = ['out-dir', 'c2pa'] as const;
+/** `lolly intent`'s on/off flags: `render` makes the files as well as the answer, and the other two say what goes in their credentials. */
+export const INTENT_BOOL_FLAGS = ['render', 'no-record-intent', 'record-prompt'] as const;
 /** The `--fit` values `lolly compose` takes, for its own check and for completion. */
 export const COMPOSE_FIT_VALUES = ['report', 'shrink'] as const;
 /** The `--browser` values `lolly check` takes, for its own check and for completion. */

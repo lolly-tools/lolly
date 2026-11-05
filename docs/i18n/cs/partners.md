@@ -16,7 +16,7 @@ Dvě slova znamenají na celé stránce totéž. **Hlavní značka** je značka,
 
 | Co poslat | Jak | Co partner dostane | Hodí se pro |
 | --- | --- | --- | --- |
-| Soubor designového systému | **Export** v liště nahoře v [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Tvé tokeny, písma, loga a volbu motivu jako designový systém, na který může přepnout | Partnera, který ve tvé značce vytváří mnoho kousků |
+| Soubor designového systému | **Export** v liště nahoře v [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Tvé tokeny, písma, loga a volbu motivu jako designový systém, na který může přepnout | Partnera, který ve tvé značce vytváří mnoho kousků |
 | Opakovaně použitelný nástroj | V Design **Share with rules** ([Sdílej návrh s pravidly](/info/create-a-tool.html)) | Jedno hotové rozvržení se vstupy, které povolíš, například jeho jméno a logo. Soubor nese vyřešené barvy, písma a obrázky, takže jeho vlastní designový systém pevnou grafiku nepřestyluje | Společný leták, visačku nebo banner, který si každý partner vyplní sám |
 | Dovednosti značky | Místnost **Skills**: **Download skill (.zip)** nebo **Copy as one file** | Tvé psané standardy pro jeho lidi a jeho agenty | Kteroukoli z předchozích možností, když část práce dělá agent |
 | Tokeny | **Tokens (.json)** v nabídce **More** ve studiu | Prostý dokument designových tokenů, bez písem a log | Partnerovy vlastní designové nástroje nebo build |
@@ -125,5 +125,5 @@ Logo Wall nezná pravidla žádného sponzora. Tiers a Presence určují velikos
 - **[Architektury značky](/info/brand-architectures.html)**: co-branding, white label a další uspořádání, s tím, co v Lolly udělat u každého z nich.
 - **[Sdílej návrh s pravidly](/info/create-a-tool.html)**: opakovaně použitelné nástroje s pevným rozvržením a vstupy, které zvolíš.
 - **[Dovednosti značky](/info/brand-skills.html)**: jak se dovednosti píší, čtou a předávají agentovi.
-- **[Design System Setup](/info/brand-studio.html)**: loga, vlastní znaky a přesun designového systému mezi zařízeními.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: loga, vlastní znaky a přesun designového systému mezi zařízeními.
 - **[Tvůrčí práva a kredity](/info/creative-rights.html)**: co Lolly zaznamenává o dílech, která kreslí.

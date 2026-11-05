@@ -152,7 +152,7 @@ Meter storan menunjukkan pembahagian yang sama. Saved sessions, My images dan Fi
 
 Bundle ini menyandarkan pustaka peribadi peranti. Ia bukan sandaran instans **Lolly Work**: akaun organisasi, dasar akses, projek dikongsi, versi katalog, kelulusan, tugasan render dan rekod audit dipegang oleh perkhidmatan itu. Sambung semula dan log masuk untuk mendapatkan semula akses kepada kerja dikongsi; mengimport bundle peribadi tidak memberikan akses itu.
 
-Pengendali menyandarkan, mengekalkan dan memadam data pelayan dengan panduan Lolly Work sendiri: [Backup and restore](/info/work-operations.html#backup-and-restore) dan [Work storage and data lifecycle](/info/work-data-lifecycle.html). Mengosongkan atau mengeksport peranti tidak melakukan mana-mana operasi pelayan itu.
+Pengendali menyandarkan, mengekalkan dan memadam data pelayan dengan panduan Lolly Work sendiri: [Backup and restore](/info/work-operations.html#backup-and-restore) dan [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Mengosongkan atau mengeksport peranti tidak melakukan mana-mana operasi pelayan itu.
 
 ## Merentasi shell
 

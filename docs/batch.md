@@ -1,8 +1,10 @@
-# Batch and Multi-edit
+# Lolly Batch and Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Two jobs come up once you make the same kind of file often. Sometimes you need many versions of one design: a card in a dozen languages, or every size of a banner. Sometimes you have several different saved designs and want one change to reach all of them, such as a new date or a new headline.
 
-**Batch** does the first job and **Multi-edit** does the second. Both run on your device and export through the same render path as the tools themselves.
+**Lolly Batch** does the first job and **Lolly Multi-edit** does the second. Both run on your device and export through the same render path as the tools themselves.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Two jobs come up once you make the same kind of file often. Sometimes you need m
 - One template, many rows. Each row is one set of inputs and makes one file.
 - Fill the rows by typing, pasting from a spreadsheet or importing a CSV.
 - No limit on rows; 50 show per page.
-- Opens from **Batch** in the Projects header (`#/batch`).
+- Opens from **Lolly Batch** in the Projects header (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Two to eight different saved designs, side by side as live cards.
 - One sidebar edits the inputs they share, then each card's own.
@@ -22,7 +25,7 @@ Two jobs come up once you make the same kind of file often. Sometimes you need m
 
 ## Make many versions of one design
 
-Open **Projects** and press **Batch** in its header. The grid starts with one row: choose a template in it, then duplicate the row or paste data from your spreadsheet. Opened from inside a folder, Batch returns you to that folder.
+Open the **Projects** view and press **Batch** in its header. The grid starts with one row: choose a template in it, then duplicate the row or paste data from your spreadsheet. Opened from inside a folder, Batch returns you to that folder.
 
 ![Batch on a new grid: the file name and the row tools across the top, and the first row's template list open on the tools you can choose](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -52,7 +55,7 @@ A tool that prints its own wording, such as Certificate, can take a `language` c
 
 ### Batch, or Render folder
 
-Batch makes many variants of one template. To re-render sessions you have already saved, select them in Projects and use **Render selection**, or **Render folder** for a whole folder; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) covers both.
+Lolly Batch makes many variants of one template. To re-render sessions you have already saved, select them in Projects and use **Render selection**, or **Render folder** for a whole folder; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) covers both.
 
 ## Edit several saved designs together
 
@@ -73,7 +76,7 @@ Each card draws in its own session's theme choices, including a tool placed insi
 - **Eight at most.** Every card mounts its own live runtime, and eight is the number that stays responsive. A link asking for more, or for a session that no longer exists, says so rather than half-loading.
 - **The link is local.** It names your own saved slots, so it reopens that set on this device. It is not a share link.
 - **For anything bigger,** choose **Edit as sheet** in the same selection bar. It opens the whole selection as rows in the batch grid (`#/batch?s=…`), with no size limit and no same-tool rule. Folders stay out of both: open a folder in the grid with **Sessions → Folders…**, or render one with **Render folder** in Projects.
-- **Search does not reach Multi-edit.** It is the one view the search bar does not know about.
+- **Search does not reach Lolly Multi-edit.** It is the one view the search bar does not know about.
 
 ## Where to go next
 

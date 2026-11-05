@@ -50,7 +50,7 @@ Copied agent instructions embed the actual compatible guidance and say which ver
 
 In the app, **Share** lets a person name an agent and copy instructions for that agent. A tool without a supported live connection offers a guidance handoff instead: an editable link plus the compatible pair of skills. Inviting an agent into a shared document is a Lolly Work feature, covered on [Document agent invitations](/info/work-document-agents.html), and [AI agents](/info/ai-agents.html) covers connecting an agent to Lolly.
 
-For live editing, the agent uses the adapter and capabilities the open editor reports. A Design layer adapter supports layer operations, and an input adapter supports the declared JSON input values. File bytes and device actions need their own supported routes. A read-only grant refuses changes at the operation boundary. The agent reads the current revision, checks the document's identity and inspects the result after each permitted change. The live context supplies the open editor's effective design system.
+For live editing, the agent uses the adapter and capabilities the open editor reports. A Lolly Design layer adapter supports layer operations, and an input adapter supports the declared JSON input values. File bytes and device actions need their own supported routes. A read-only grant refuses changes at the operation boundary. The agent reads the current revision, checks the document's identity and inspects the result after each permitted change. The live context supplies the open editor's effective design system.
 
 A design system's own guidance is a separate layer: the brand's standards, one skill per discipline, carried with the design system. See [Brand skills](/info/brand-skills.html).
 

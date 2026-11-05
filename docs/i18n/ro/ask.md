@@ -60,4 +60,4 @@ Fără ele, jumătatea de documentație a unui răspuns pur și simplu nu apare,
 
 ---
 
-**Related:** [Căutare](/info/search.html) pentru bara care predă întrebările. [Folosirea Lolly](/info/using.html) pentru restul aplicației. [Settings](/info/dashboard.html#available-offline) pentru a lua mai întâi documentația offline.
+**Related:** [Căutare](/info/search.html) pentru bara care predă întrebările. [Folosirea Lolly](/info/using.html) pentru restul aplicației. [Lolly Settings](/info/dashboard.html#available-offline) pentru a lua mai întâi documentația offline.

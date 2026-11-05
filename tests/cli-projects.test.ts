@@ -33,6 +33,11 @@ test('project discovery, private export and explicit copy use the shared records
   assert.equal(listed.result.length, 1);
   assert.ok(!JSON.stringify(listed.result).includes('Private fixture'));
   const shown = await run(['show', 'fixture/with spaces']);
+  const nul = await exec(process.execPath, [entry, 'projects', 'list', '--null', '--query=conference'], { env });
+  assert.equal(nul.stdout, 'fixture/with spaces\0');
+  const files = await exec(process.execPath, [entry, 'projects', 'list', '--null', '--paths', '--query=conference'], { env });
+  assert.ok(files.stdout.endsWith('.json\0'));
+  assert.equal(JSON.parse(await readFile(files.stdout.slice(0, -1), 'utf8')).slot, 'fixture/with spaces');
   assert.equal(shown.result.data.label, 'Private fixture');
   const path = join(root, 'private project.json');
   await run(['export', 'fixture/with spaces', `--output=${path}`]);

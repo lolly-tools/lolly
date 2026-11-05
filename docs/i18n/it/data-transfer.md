@@ -152,7 +152,7 @@ Il misuratore dell'archiviazione mostra la stessa suddivisione. Saved sessions, 
 
 Questo bundle esegue il backup della libreria personale del dispositivo. Non è un backup di un'istanza **Lolly Work**: account dell'organizzazione, policy di accesso, progetti condivisi, versioni del catalogo, approvazioni, lavori di rendering e record di audit sono conservati da quel servizio. Ricollegati e accedi per riottenere l'accesso al lavoro condiviso; importare un bundle personale non concede quell'accesso.
 
-Gli operatori eseguono backup, conservazione e cancellazione dei dati del server con le guide di Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) e [Work storage and data lifecycle](/info/work-data-lifecycle.html). Cancellare o esportare un dispositivo non esegue nessuna di quelle operazioni sul server.
+Gli operatori eseguono backup, conservazione e cancellazione dei dati del server con le guide di Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) e [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Cancellare o esportare un dispositivo non esegue nessuna di quelle operazioni sul server.
 
 ## Tra le shell
 

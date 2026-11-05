@@ -58,7 +58,7 @@ import { verifyC2pa, resolveVerdict, defaultTrustAnchors, c2paTrustAnchors, LOLL
 import type { DeepScanResult } from '@lolly-tools/node-shell/webshell-render';
 import type { Inspection } from '@lolly-tools/node-shell/inspect';
 import { verdictSlug } from '@lolly-tools/node-shell/verdict-slugs';
-import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictSources } from '@lolly-tools/node-shell/verdict-report';
+import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
 import { expandHome, splitAnchorList, describeAnchorSet } from '@lolly-tools/node-shell/trust-anchors';
 import { EXIT, usageError } from './exit-codes.ts';
 import { useColor } from './output.ts';
@@ -298,6 +298,17 @@ export async function validateFile(
     for (const chk of verdictChecks(report)) {
       const mark = chk.mark === 'ok' ? paint(GREEN, '✓') : chk.mark === 'info' ? paint(DIM, 'ℹ') : paint(RED, '✕');
       process.stdout.write(`  ${mark} ${chk.code} ${paint(DIM, ' - ' + chk.explanation)}\n`);
+    }
+    // What the file says it was asked to do. Any recorded prompt is words someone wrote,
+    // so it is labelled as data and printed quoted, never as a line of this report.
+    const intent = verdictIntent(report);
+    if (intent) {
+      process.stdout.write(`  ${paint(DIM, 'Intent')}\n`);
+      for (const [k, val] of intent.facts) process.stdout.write(`    ${paint(DIM, k.padEnd(11))} ${val}\n`);
+      if (intent.prompt) {
+        process.stdout.write(paint(DIM, `    ${intent.promptNote}\n`));
+        process.stdout.write(`    ${paint(DIM, 'Prompt'.padEnd(11))} ${intent.prompt}\n`);
+      }
     }
     // What the file records about the creative work inside it. A separate
     // question from whether the credential verifies, so it gets its own block in

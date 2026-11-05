@@ -132,9 +132,9 @@ May tatlong paraan ang Lolly sa paggawa nang maramihan, bawat isa para sa magkai
 ## Ang table ay nagiging isang dokumento
 Ang tool na may table input, tulad ng **Battlecards**, ay ginagawang page ang bawat row. Mag-paste ng table mula sa spreadsheet mo at makakuha ng isang PDF. Ayusin ang mga row sa spreadsheet at mag-paste muli.
 ## Ang CSV ay nagiging isang file bawat row
-Ang **Batch** (`#/batch`) ay kumukuha ng CSV at nagre-render ng isang export para sa bawat row: mga name badge o sertipiko, isang file bawat isa, inihahatid sa ZIP. Tingnan ang [Batch](/info/batch.html#make-many-versions-of-one-design).
+Ang **Batch** (`#/batch`) ay kumukuha ng CSV at nagre-render ng isang export para sa bawat row: mga name badge o sertipiko, isang file bawat isa, inihahatid sa ZIP. Tingnan ang [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Ilang design, isang edit
-Ang **Multi-edit** ay nagbubukas ng ilang naka-save na session nang magkatabi para sa parehong ayos sa iba't ibang design. Tingnan ang [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+Ang **Multi-edit** ay nagbubukas ng ilang naka-save na session nang magkatabi para sa parehong ayos sa iba't ibang design. Tingnan ang [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Mula sa **Projects**, ine-export ng **Render folder** ang bawat naka-save na session sa folder at mga sub-folder nito bilang isang naka-nest na ZIP, at ginagawa ng **Render selection** ang pareho para sa anumang multi-selection; ang isang naka-save na session ay nagre-render sa sarili nitong file. Ang naka-save na session ay maaari ring ibahagi muli bilang tool link mula sa Projects, na muling nagbubukas nito na may parehong setting.
@@ -170,7 +170,7 @@ Karamihan ng tool na nag-e-export ng SVG ay nag-e-export din ng **Penpot file** 
 | Ang buong design | Magagamit muling component sa Assets panel |
 | Kumplikadong ilustrasyon o live canvas | Naka-embed nang mag-isa bilang larawan, hindi ginagalaw ang mae-edit na nilalaman sa paligid nito |
 
-Mula sa Design, ang bawat frame ay nagiging Penpot board. Ang mga kulay at typography ng design system ay napupunta sa Assets panel at ang buong token set nito sa Tokens panel. Nag-iingat ang Penpot ng sarili nitong kopya mula roon: ang token na na-edit sa Penpot ay bumabalik sa pamamagitan ng import sa [Design System Setup](/info/brand-studio.html).
+Mula sa Design, ang bawat frame ay nagiging Penpot board. Ang mga kulay at typography ng design system ay napupunta sa Assets panel at ang buong token set nito sa Tokens panel. Nag-iingat ang Penpot ng sarili nitong kopya mula roon: ang token na na-edit sa Penpot ay bumabalik sa pamamagitan ng import sa [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Ang export panel na napili ang Penpot: ang .penpot file, at ang Send to Penpot sa tabi ng download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

@@ -32,9 +32,16 @@ try:
         if child.poll() is not None:
             break
     if child.poll() is None:
-        sys.stderr.buffer.write(output[-6000:])
-        raise RuntimeError('terminal entry timed out' + ('' if ready else ' before the home screen appeared'))
-    if not ready or child.wait() != 0 or b'\x1b[?1049l' not in output:
+        # On Linux the terminal closes (EIO on read) a moment before the process is reaped, so
+        # wait out the rest of the deadline instead of judging the exit on one poll.
+        try:
+            child.wait(timeout=max(0.5, deadline - time.monotonic()))
+        except subprocess.TimeoutExpired:
+            sys.stderr.buffer.write(output[-6000:])
+            raise RuntimeError('terminal entry timed out' + ('' if ready else ' before the home screen appeared'))
+    reader = any(arg.startswith('--screen-reader') for arg in sys.argv)
+    restored = b'\x1b[?1049l' in output if not reader else b'\x1b[?1049h' not in output
+    if not ready or child.wait() != 0 or not restored:
         sys.stderr.buffer.write(output[-6000:])
         raise RuntimeError('terminal entry did not mount and restore cleanly')
 finally:

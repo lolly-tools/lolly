@@ -28,7 +28,7 @@ Lolly'nin canlı iş birliği, doğrudan iki cihazlı özel collab'ları ve Loll
 ## Lolly'ye şu durumlarda uzan
 
 - Aynı tür dosya tekrar tekrar gerekiyor: etkinlik karoları, rozetler, sertifikalar, uyarılar, sosyal medya kartları
-- Çok sayıda dosya bir şablondan ve bir değer tablosundan geliyor; [Batch](/info/batch.html#make-many-versions-of-one-design) veya CLI ile
+- Çok sayıda dosya bir şablondan ve bir değer tablosundan geliyor; [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) veya CLI ile
 - Renkler, yazı ve varlıklar, açık bir tuvalde bile tasarım sisteminin içinde kalmalı
 - Bitmiş bir Figma, Penpot, Illustrator, InDesign veya PDF tasarımı düzenlenebilir ve tekrarlanabilir olmalı ([Import a design](/info/design-import.html))
 - Dosyalar kendi cihazlarında veya sunucularında yapılmalı

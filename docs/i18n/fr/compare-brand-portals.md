@@ -6,7 +6,7 @@ Si ton organisation garde ses ressources approuvées dans Bynder, Frontify, Marq
 
 ## Ce qu'un portail établi fait mieux
 
-Les portails établis offrent un hébergement géré, du support et des flux de gestion de ressources étendus. Par exemple, le [DAM d'entreprise de Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combine la découverte de ressources, les contrôles d'accès, les flux d'approbation et la distribution. La pile Lolly est plus jeune et ses chaînes d'approbation sont séquentielles plutôt que des flux de travail à ramifications arbitraires. [Work status and roadmap](/info/work-status.html) consigne ses limites de déploiement.
+Les portails établis offrent un hébergement géré, du support et des flux de gestion de ressources étendus. Par exemple, le [DAM d'entreprise de Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combine la découverte de ressources, les contrôles d'accès, les flux d'approbation et la distribution. La pile Lolly est plus jeune et ses chaînes d'approbation sont séquentielles plutôt que des flux de travail à ramifications arbitraires. [Lolly Work status and roadmap](/info/work-status.html) consigne ses limites de déploiement.
 
 ## Où ils se recoupent
 

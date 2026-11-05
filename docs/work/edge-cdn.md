@@ -1,18 +1,20 @@
-# Put a CDN in front of Work
+# Put a CDN in front of Lolly Work
+
+<a id="put-a-cdn-in-front-of-work"></a>
 
 A CDN can serve Lolly Work's public files from places near your visitors and take load off the
 server. This page is for the operator who wants to put Bunny or Cloudflare in front of an
-instance. Work never needs a CDN: an instance with no edge configured keeps working as before,
+instance. Lolly Work never needs a CDN: an instance with no edge configured keeps working as before,
 air-gapped included.
 
 A CDN sees more than it stores. It answers every request on the hostname it fronts, so it decrypts
 sign-ins, session cookies, tokens and private files on their way through, even when it caches
-none of them. Work therefore decides which provider may front which hostname before anything else,
+none of them. Lolly Work therefore decides which provider may front which hostname before anything else,
 and refuses to start when a configuration breaks that rule.
 
 ## What a CDN may cache
 
-Work labels every response with a delivery class. A CDN may store only the public classes, and only
+Lolly Work labels every response with a delivery class. A CDN may store only the public classes, and only
 for a request that carried no credential of any kind (no cookie, no `Authorization` header, no
 `x-lw-*` header and no install token):
 
@@ -49,14 +51,14 @@ what to change.
 
 A `publicOnly` hostname, such as `assets.example.org`, answers public reads and nothing else:
 
-- Work removes every credential from requests that arrive there, so nobody can act as a person
+- Lolly Work removes every credential from requests that arrive there, so nobody can act as a person
   through that hostname;
 - a route that is never public answers `404 PUBLIC_HOST_ONLY` without running;
 - any other answer that turns out not to be public is replaced by the same empty refusal before
   a byte of it leaves the server;
 - writes answer `405`.
 
-Work recognises the hostname from the request's `Host` header. Keep the provider forwarding the
+Lolly Work recognises the hostname from the request's `Host` header. Keep the provider forwarding the
 original `Host`, which is Cloudflare's default; an origin rule that rewrites it to the instance
 hostname defeats this check, and `lw edge probe` reports that.
 
@@ -96,7 +98,7 @@ and Cloudflare in front of a public assets hostname:
 | `publicOnly` | `true` makes the hostname answer public reads only (see above). |
 | `credentialRef` | The environment variable that holds the API key or token. Leave it out to store a sealed credential instead. |
 | `options` | Bunny: `pullZoneId` and optionally `regions: ["europe"]`. Cloudflare: `zoneId` and optionally `plan` (`free`, `pro`, `business` or `enterprise`, default `free`), which sets the purge budget. |
-| `jurisdiction` | Facts you state about the provider. A statement may fill in what Work cannot know (Bunny's log location), never contradict what it does know: Cloudflare cannot be declared an EU company. |
+| `jurisdiction` | Facts you state about the provider. A statement may fill in what Lolly Work cannot know (Bunny's log location), never contradict what it does know: Cloudflare cannot be declared an EU company. |
 
 Unknown keys are refused, so a typo cannot leave a setting silently off.
 
@@ -104,21 +106,21 @@ Unknown keys are refused, so a typo cannot leave a setting silently off.
 
 The credential never goes in `instance.json`. Either:
 
-- set the environment variable that `credentialRef` names; Work reads it once at boot, or
+- set the environment variable that `credentialRef` names; Lolly Work reads it once at boot, or
 - leave `credentialRef` out and run `lw edge credential <id>`, which prompts for the key and never
-  echoes what you type. Work reads the zone with the key first and refuses a key that cannot, then
+  echoes what you type. Lolly Work reads the zone with the key first and refuses a key that cannot, then
   stores the key sealed with `LW_CREDENTIAL_SECRET` (AES-256-GCM, bound to that provider). Set
   `LW_CREDENTIAL_SECRET` before you store one.
 
-Work shows a stored credential only by its fingerprint, in `lw edge status` and the audit log. Use
+Lolly Work shows a stored credential only by its fingerprint, in `lw edge status` and the audit log. Use
 a key with the least access the provider offers: for Cloudflare, an API token with Cache Purge and
 Zone Settings Read on that zone only. Bunny's account API key reaches the whole account, so keep it
-to the server that runs Work.
+to the server that runs Lolly Work.
 
 ## Settings that must stay off
 
 These features rewrite bytes, strip Content Credentials, break the Content Security Policy or serve
-files without Work's checks. `lw edge probe` reads each one through the provider's API and fails
+files without Lolly Work's checks. `lw edge probe` reads each one through the provider's API and fails
 when one is on.
 
 Bunny:
@@ -137,14 +139,14 @@ Cloudflare:
 - **Polish**, **Mirage** (retired by Cloudflare in 2025), **Rocket Loader**, **Email Address
   Obfuscation**, **Automatic HTTPS Rewrites** and **Always Online** off.
 - **Image transformations** off, including "resize from any origin". With them on, anyone can ask
-  `/cdn-cgi/image/<options>/<any path>` for a transformed copy of a file without Work's checks.
+  `/cdn-cgi/image/<options>/<any path>` for a transformed copy of a file without Lolly Work's checks.
 - No **cache rule** that overrides the origin's edge cache time. A rule that sets "Ignore cache-control
-  header and use this TTL" can store responses Work marks private.
-- Files above 512 MB are not cached on Free, Pro and Business plans; they pass through to Work.
+  header and use this TTL" can store responses Lolly Work marks private.
+- Files above 512 MB are not cached on Free, Pro and Business plans; they pass through to Lolly Work.
 
 ## Tags and purges
 
-With a provider configured, Work adds purge tags to public answers: `CDN-Tag` for Bunny and
+With a provider configured, Lolly Work adds purge tags to public answers: `CDN-Tag` for Bunny and
 `Cache-Tag` for Cloudflare, comma separated. Tags are opaque digests, never names:
 
 | Tag | Stands for |
@@ -158,7 +160,7 @@ With a provider configured, Work adds purge tags to public answers: `CDN-Tag` fo
 A private or signed-in answer never carries a tag, and without a configured provider no answer
 does.
 
-Work queues a purge when public bytes change meaning: a brand change (`b_` of the old revision), a
+Lolly Work queues a purge when public bytes change meaning: a brand change (`b_` of the old revision), a
 new or withdrawn connect pack (`h_` of the old pack), and a tool's visibility changing through the
 policy editor or a governance apply (`t_` and the card's URL). Purges wait in an outbox, go out in
 batches within each provider's documented budget (Cloudflare Free allows 5 tag purges a minute;
@@ -175,7 +177,7 @@ lw edge purge --tag o_<instance>            # everything this instance put on th
 
 ## Check the edge
 
-Run the probe after every change to the provider, its zone or Work's configuration:
+Run the probe after every change to the provider, its zone or Lolly Work's configuration:
 
 ```sh
 lw edge probe work.example.org --origin https://origin.example.org

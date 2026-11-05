@@ -16,15 +16,15 @@ lolly.tools opens in **Lolly Demo**, Lolly's own sample design system; [Meet Lol
 
 Choose the route that matches what you have:
 
-- <!--i:palette--> **One colour.** Open **Design System Setup** (`#/start`), give your design system a name and pick a primary colour. Lolly derives a complete, accessible palette from it, with light and dark surfaces, text and accents. Pick a font and you have a working brand.
-- <!--i:upload--> **A tokens file.** **Add from…**, in the bar at the top of Design System Setup, takes a DTCG, Tokens Studio or Penpot tokens file, an SVG or a `LollyBrand` pack. Drop it in and the palette fills. While the design system is still empty, **Start from a reference** on the Board opens the same picker.
-- <!--i:pentool--> **A finished design.** In Design, choose **Import a design** and drop a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file. See [Bring in what you already have](#bring-in-what-you-already-have) below.
+- <!--i:palette--> **One colour.** Open the **Design System Setup** view (`#/start`), give your design system a name and pick a primary colour. Lolly derives a complete, accessible palette from it, with light and dark surfaces, text and accents. Pick a font and you have a working brand.
+- <!--i:upload--> **A tokens file.** **Add from…**, in the bar at the top of Lolly Design System Setup, takes a DTCG, Tokens Studio or Penpot tokens file, an SVG or a `LollyBrand` pack. Drop it in and the palette fills. While the design system is still empty, **Start from a reference** on the Board opens the same picker.
+- <!--i:pentool--> **A finished design.** In Lolly Design, choose **Import a design** and drop a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file. See [Bring in what you already have](#bring-in-what-you-already-have) below.
 
-The first time you open the gallery, a short welcome offers the same choices: **Make it yours** opens Design System Setup, **Bring your design** opens a file picker for a design and **Explore the community tools** closes the welcome.
+The first time you open the gallery, a short welcome offers the same choices: **Make it yours** opens Lolly Design System Setup, **Bring your design** opens a file picker for a design and **Explore the community tools** closes the welcome.
 
-![The Colours room of Design System Setup on a fresh install: one live chip, one field and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![The Colours room of Lolly Design System Setup on a fresh install: one live chip, one field and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-From there, eight rooms take it as far as you like, in any order: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** and **Skills**. Every preview in the app updates as you type. [Design System Setup](/info/brand-studio.html) covers each room.
+From there, eight rooms take it as far as you like, in any order: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** and **Skills**. Every preview in the app updates as you type. [Lolly Design System Setup](/info/brand-studio.html) covers each room.
 
 Fonts are kept on your device. Pick a Google Font and Lolly stores the file as a brand asset, so your type travels offline and nothing is fetched when a tool draws.
 
@@ -54,17 +54,17 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 You do not start from a blank page.
 
-**Design files.** Finished work from Figma, Penpot, Illustrator, InDesign or any SVG app opens in Design as a living layout: text stays retypable, shapes stay shapes and images land in your library. The file is read in your browser and nothing is uploaded. [Import a design](/info/design-import.html) lists each format and what carries over.
+**Lolly Design files.** Finished work from Figma, Penpot, Illustrator, InDesign or any SVG app opens in Lolly Design as a living layout: text stays retypable, shapes stay shapes and images land in your library. The file is read in your browser and nothing is uploaded. [Import a design](/info/design-import.html) lists each format and what carries over.
 
-**Decks.** Drop a PowerPoint `.pptx` on Lolly to file its slides as assets, write a new deck from Markdown in **Markdown Slides**, or use [Rebrand a deck](/info/rebrand.html) to move the whole deck onto your design system.
+**Decks.** Drop a PowerPoint `.pptx` on Lolly to file its slides as assets, write a new deck from Markdown in **Lolly Markdown Slides**, or use [Rebrand a deck](/info/rebrand.html) to move the whole deck onto your design system.
 
-**Data.** Paste or drop a CSV or JSON table and a tool's repeating fields fill from it, or [Batch](/info/batch.html#make-many-versions-of-one-design) makes one finished file per row.
+**Data.** Paste or drop a CSV or JSON table and a tool's repeating fields fill from it, or [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) makes one finished file per row.
 
 ### From a one-off to a template
 
-An imported layout is an ordinary Design session. **Share with rules** turns it into a tool: you choose which parts other people may change, and they fill in only those.
+An imported layout is an ordinary Lolly Design session. **Share with rules** turns it into a tool: you choose which parts other people may change, and they fill in only those.
 
-![Keep the Design master, choose inputs and limits in an authoring copy, then share a reusable .lolly tool that recipients fill in](/info/diagrams/concepts/share-with-rules.svg)
+![Keep the Lolly Design master, choose inputs and limits in an authoring copy, then share a reusable .lolly tool that recipients fill in](/info/diagrams/concepts/share-with-rules.svg)
 
 [Share a design with rules](/info/create-a-tool.html) walks through each step.
 
@@ -72,7 +72,7 @@ An imported layout is an ordinary Design session. **Share with rules** turns it 
 
 - <!--i:download--> **Export.** Tools make SVG, PDF, PNG, JPG, WebP, video and more, in the formats each tool offers, at true print sizes when you need them. See [Export a file](/info/exporting.html).
 - <!--i:link--> **Share a link.** A tool's settings travel in its link, so the link reopens the same file anywhere.
-- <!--i:layers--> **Make one per row.** Drive a tool from a spreadsheet in [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Make one per row.** Drive a tool from a spreadsheet in [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automate.** The same render runs from the [CLI](/info/cli.html) and from an [AI agent](/info/ai-agents.html).
 
 A link is a complete request. Nobody drew the chart below: its type, its heading and its whole data table were typed into the address bar, and the same link draws the same chart on any device.

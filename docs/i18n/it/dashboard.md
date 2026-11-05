@@ -18,7 +18,7 @@ Preferences è una lunga pagina con una **settings rail** sul lato e un campo **
 
 - <!--i:usercheck--> **Your details** - il tuo nome, i dati di contatto e la foto, e l'interruttore **Use my details to create**. [Profiles](/info/profile.html) spiega come li usano gli strumenti.
 - <!--i:seal--> **Content Credentials** - l'identità verificata facoltativa che firma le tue esportazioni. Vedi [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - cambia, aggiungi, nascondi o rimuovi design system. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) tratta ogni azione.
+- <!--i:palette--> **Design systems** - cambia, aggiungi, nascondi o rimuovi design system. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) tratta ogni azione.
 - <!--i:moon--> **Appearance** - il tema (Light, Dark o Brand, che colora l'app con la tua palette), **Your colourway** quando il design system ne offre più di una ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) e **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - il set da cui vengono disegnate le tue emoji quando inizi qualcosa di nuovo, con la sua licenza dell'artwork, e quanto fortemente la tua palette le ricolora (**Off**, **Subtle**, **Strong**, **Full**, **Mono** o **Duotone**). **Keep skin tones and flags** le lascia nei loro colori. Il lavoro che hai già fatto mantiene il set con cui è stato creato.
 - <!--i:eyeoff--> **Accessibility** - quattro interruttori di comfort, più Sound e Neurospicy Mode. Vedi [Accessibilità](#accessibility).
@@ -107,7 +107,7 @@ La scheda si apre su una copertina dipinta con i colori del sistema stesso, con 
 - <!--i:sliders--> **Tokens** - raggio, spaziatura, effetti e gradienti.
 - <!--i:document--> **Print & CMYK** - i colori bloccati su un inchiostro esatto e le condizioni di stampa che un PDF CMYK può dichiarare.
 
-Cambiare sistema è l'unica modifica che questa scheda fa. Modifichi un design system in [Design System Setup](/info/brand-studio.html) a `#/start`, a cui rimanda la copertina. Un sistema in sola lettura lo dice sulla sua copertina; i sistemi locali che crei restano modificabili. `/b` e `/brand` sono scorciatoie dirette a questa scheda.
+Cambiare sistema è l'unica modifica che questa scheda fa. Modifichi un design system in [Lolly Design System Setup](/info/brand-studio.html) a `#/start`, a cui rimanda la copertina. Un sistema in sola lettura lo dice sulla sua copertina; i sistemi locali che crei restano modificabili. `/b` e `/brand` sono scorciatoie dirette a questa scheda.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Poi il tuo lato: **Your activity** conta ciò che hai creato su questo dispositi
 
 ## Link diretti
 
-Ogni scheda e sezione di Settings ha un proprio link, che puoi salvare nei preferiti o incollare. [Search](/info/search.html) punta i suoi risultati **Settings** allo stesso registro da cui Settings si disegna, così una sezione non può essere rinominata alle spalle di un risultato di ricerca.
+Ogni scheda e sezione di Settings ha un proprio link, che puoi salvare nei preferiti o incollare. [Lolly Search](/info/search.html) punta i suoi risultati **Settings** allo stesso registro da cui Settings si disegna, così una sezione non può essere rinominata alle spalle di un risultato di ricerca.
 
 ::: details Ogni forma di link
 
@@ -139,4 +139,4 @@ Un link diretto passa alla scheda che possiede la destinazione, apre l'eventuale
 
 ---
 
-**Correlati:** [Profiles](/info/profile.html) per i tuoi dati e i contesti in cui crei. [Design System Setup](/info/brand-studio.html) per modificare ciò che mostra la scheda Design system. [Find and recover your work](/info/find-your-work.html) per archiviazione, backup e cambio di dispositivo.
+**Correlati:** [Profiles](/info/profile.html) per i tuoi dati e i contesti in cui crei. [Lolly Design System Setup](/info/brand-studio.html) per modificare ciò che mostra la scheda Design system. [Find and recover your work](/info/find-your-work.html) per archiviazione, backup e cambio di dispositivo.

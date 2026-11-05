@@ -2,9 +2,9 @@
 
 Strona internetowa nie może odczytać pikseli innej witryny, więc aplikacja internetowa Lolly potrzebuje pomocy, aby zrobić zrzut strony. W przeglądarce opartej na Chromium (Chrome, Edge, Brave, Arc lub Opera, od Chrome 111) darmowe rozszerzenie **Lolly URL Screenshot** daje tę pomoc, używając tego samego przechwytywania co aplikacja komputerowa. Po jego zainstalowaniu:
 
-- **[URL Screenshot](/t/url-shot)** zapisuje skomponowaną stronę jako plik;
+- **[Lolly URL Screenshot](/t/url-shot)** zapisuje skomponowaną stronę jako plik;
 - adres internetowy wklejony do slotu obrazu może stać się zrzutem tej strony przez **Screenshot this page**;
-- źródło **Website** w [Design System Setup](/info/brand-studio.html) może odczytać jedną stronę, aby zacząć system projektowy.
+- źródło **Website** w [Lolly Design System Setup](/info/brand-studio.html) może odczytać jedną stronę, aby zacząć system projektowy.
 
 Zatwierdzasz każde żądanie, a aplikacja komputerowa wykonuje te same zadania bez rozszerzenia.
 

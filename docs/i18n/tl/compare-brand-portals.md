@@ -6,7 +6,7 @@ Kung iniingatan ng organisasyon mo ang mga aprubadong asset nito sa Bynder, Fron
 
 ## Ang mas mahusay na ginagawa ng itinatag na portal
 
-Ang mga itinatag na portal ay nag-aalok ng managed hosting, suporta at malawak na asset-management workflow. Halimbawa, pinagsasama ng [enterprise DAM ng Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) ang asset discovery, access control, approval workflow at distribution. Mas bata ang Lolly stack at sunud-sunod ang mga approval chain nito sa halip na arbitraryong branching workflow. Itinatala ng [Work status at roadmap](/info/work-status.html) ang mga limitasyon ng deployment nito.
+Ang mga itinatag na portal ay nag-aalok ng managed hosting, suporta at malawak na asset-management workflow. Halimbawa, pinagsasama ng [enterprise DAM ng Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) ang asset discovery, access control, approval workflow at distribution. Mas bata ang Lolly stack at sunud-sunod ang mga approval chain nito sa halip na arbitraryong branching workflow. Itinatala ng [Lolly Work status at roadmap](/info/work-status.html) ang mga limitasyon ng deployment nito.
 
 ## Kung saan sila nagtatagpo
 

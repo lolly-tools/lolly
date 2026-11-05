@@ -91,7 +91,10 @@ const ALLOWED_PACKAGES = new Set([
   '@lolly-tools/core/skill-frontmatter-v1',
   // Portable Design rules and pure value evaluation, shared with packaged hooks.
   '@lolly-tools/core/design-tool-v1',
+  // The brand page manifest and checks: wire shapes only.
+  '@lolly-tools/core/brand-page-v1',
   // Portable brand vocabulary and its static validation schema.
+  '@lolly-tools/core/intent-v1',
   '@lolly-tools/core/brand-system-v1',
   '@lolly-tools/core/schema/brand-system-v1.schema.json',
   // engine/src/validate.ts - the asset-open intent record and its pure validator.

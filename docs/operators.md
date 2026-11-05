@@ -9,7 +9,7 @@ Start with [Use Lolly at your organisation](/info/organisation.html) to see what
 - [Adoption & Governance](/info/adoption-governance.html) covers the rollout and the role of brand rules.
 - [Identity and sessions](/info/work-identity.html) covers sign-in and group mapping. [Roles and grants](/info/work-permissions.html) explains roles, grants and the owner guard.
 - [Policy and governance](/info/work-governance.html) covers tool overlays, locked inputs and policy. [Manage organisation AI policy](/info/work-ai-policy.html) covers approvals and execution limits.
-- [Account data controls](/info/work-account-lifecycle.html) and [Work storage and data lifecycle](/info/work-data-lifecycle.html) cover exports, offboarding, retention and their limits.
+- [Account data controls](/info/work-account-lifecycle.html) and [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) cover exports, offboarding, retention and their limits.
 - [Profiles, brands and tool configuration](/info/configuration.html) covers which tools and design systems a build of Lolly carries.
 
 ## Connect assets and review work

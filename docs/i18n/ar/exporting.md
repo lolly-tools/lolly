@@ -132,9 +132,9 @@ Frames: 4 يقطع التسلسل إلى أربع شرائح متساوية وي
 ## جدول يصبح مستنداً واحداً
 تحوّل أداة بمدخل جدول، مثل **Battlecards**، كل صف إلى صفحة. الصق جدولاً من جدول بياناتك واحصل على PDF واحد. أصلح الصفوف في جدول البيانات والصق مجدداً.
 ## CSV يصبح ملفاً لكل صف
-يأخذ **Batch** (`#/batch`) ملف CSV ويعرض تصديراً لكل صف: شارات أسماء أو شهادات، ملفاً لكل منها، تُسلَّم في ZIP. راجع [Batch](/info/batch.html#make-many-versions-of-one-design).
+يأخذ **Batch** (`#/batch`) ملف CSV ويعرض تصديراً لكل صف: شارات أسماء أو شهادات، ملفاً لكل منها، تُسلَّم في ZIP. راجع [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## عدة تصاميم تحصل على تعديل واحد
-يفتح **Multi-edit** عدة جلسات محفوظة جنباً إلى جنب للمسة نفسها عبر تصاميم مختلفة. راجع [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+يفتح **Multi-edit** عدة جلسات محفوظة جنباً إلى جنب للمسة نفسها عبر تصاميم مختلفة. راجع [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 من **Projects**، يصدّر **Render folder** كل جلسة محفوظة في مجلد ومجلداته الفرعية في ZIP متداخل واحد، ويفعل **Render selection** الشيء نفسه لأي تحديد متعدد؛ وتُعرض جلسة محفوظة واحدة إلى ملفها الخاص. ويمكن أيضاً مشاركة جلسة محفوظة مجدداً رابط أداة من Projects، يعيد فتحها بالإعدادات نفسها.
@@ -170,7 +170,7 @@ PowerPoint أيضاً طريق دخول: ينقل [إعادة تعليم عرض]
 | التصميم كله | مكوّن قابل لإعادة الاستخدام في لوحة Assets |
 | رسم توضيحي معقد أو لوحة حية | يُضمَّن وحده صورة، والمحتوى القابل للتحرير حوله لا يُمس |
 
-من Design، يصبح كل إطار لوحة (board) في Penpot. تهبط ألوان نظام التصميم وطباعاته في لوحة Assets ومجموعة رموزه الكاملة في لوحة Tokens. ويحتفظ Penpot بنسخته الخاصة من هناك: يعود رمز عُدِّل في Penpot عبر الاستيراد في [Design System Setup](/info/brand-studio.html).
+من Design، يصبح كل إطار لوحة (board) في Penpot. تهبط ألوان نظام التصميم وطباعاته في لوحة Assets ومجموعة رموزه الكاملة في لوحة Tokens. ويحتفظ Penpot بنسخته الخاصة من هناك: يعود رمز عُدِّل في Penpot عبر الاستيراد في [Lolly Design System Setup](/info/brand-studio.html).
 
 ![لوحة التصدير مع اختيار Penpot: ملف .penpot، وخيار Send to Penpot بجانب التنزيل](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

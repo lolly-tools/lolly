@@ -1,4 +1,6 @@
-# Configure your first Work instance
+# Configure your first Lolly Work instance
+
+<a id="configure-your-first-work-instance"></a>
 
 Once Lolly Work is installed, **Customer setup** at `/admin#/setup` takes the first owner
 from a fresh instance to a real owner sign-in and a downloadable, checked sample. It
@@ -137,9 +139,9 @@ with the provider's verified subject. Audit retention can remove old events, so 
 event does not prove the action never happened. Group changes apply on signed-in requests,
 and a SCIM disable also ends existing sessions.
 
-Service tokens take a role, expire after 90 days by default, show their last use and can be
-revoked. Scopes narrower than the role are not built yet; [service tokens](enterprise-identity.md#service-tokens)
-describes the current credential contract.
+Service tokens take scopes or a role, expire after 90 days by default, show their last use and can
+be revoked. [Service tokens](enterprise-identity.md#service-tokens) describes the credential
+contract.
 
 ## 4. Brand and assets
 
@@ -219,7 +221,7 @@ callback, then download `lolly-setup.json` for an instance-file deployment or
 `lolly-setup.helm.json` for Helm. The files hold non-secret configuration; handle them as
 deployment files.
 
-For an instance JSON file, run from the Work checkout:
+For an instance JSON file, run from the Lolly Work checkout:
 
 ```sh
 pnpm setup:apply ./instance.json ./lolly-setup.json

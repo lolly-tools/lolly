@@ -16,7 +16,7 @@
 
 | 傳送 | 方式 | 夥伴得到 | 適合 |
 | --- | --- | --- | --- |
-| 設計系統檔案 | 在 [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 頂端列中點選 **Export** | 你的權杖、字體、標誌和主題偏好，成為一個他們可以切換使用的設計系統 | 要用你的品牌製作大量作品的夥伴 |
+| 設計系統檔案 | 在 [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 頂端列中點選 **Export** | 你的權杖、字體、標誌和主題偏好，成為一個他們可以切換使用的設計系統 | 要用你的品牌製作大量作品的夥伴 |
 | 可重複使用工具 | 在 Design 中點選 **Share with rules**（[分享附帶規則的設計](/info/create-a-tool.html)） | 一個完成的版面，以及你允許修改的輸入項，例如他們的名稱和標誌。檔案攜帶已確定的顏色、字體和圖片，因此他們自己的設計系統無法改變固定的圖稿樣式 | 每個夥伴各自填寫的聯名傳單、徽章或橫幅 |
 | 品牌技能 | **Skills** 房間：**Download skill (.zip)** 或 **Copy as one file** | 你書面寫下的標準，供他們的團隊和 AI 代理使用 | 上述任一方式，當有一部分工作由 AI 代理完成時 |
 | 權杖 | 工作室 **More** 選單中的 **Tokens (.json)** | 純粹的設計權杖文件，不含字體和標誌 | 夥伴自己的設計工具或建置流程 |
@@ -125,5 +125,5 @@
 - **[品牌架構](/info/brand-architectures.html)**：聯名品牌、白標及其他安排，以及在 Lolly 中各自該怎麼做。
 - **[分享附帶規則的設計](/info/create-a-tool.html)**：版面固定、輸入項由你選擇的可重複使用工具。
 - **[品牌技能](/info/brand-skills.html)**：技能如何撰寫、閱讀並交給 AI 代理。
-- **[Design System Setup](/info/brand-studio.html)**：標誌、自訂標記，以及在裝置之間搬移設計系統。
+- **[Lolly Design System Setup](/info/brand-studio.html)**：標誌、自訂標記，以及在裝置之間搬移設計系統。
 - **[創作權益與署名](/info/creative-rights.html)**：Lolly 對所繪作品記錄了哪些內容。

@@ -22,7 +22,7 @@ Application Collection subscription is required.
   `v*` release. The %work{version} images are public and need no registry credentials. Pin
   their digests for production; the
   [1.1.3 release notes](release-1-1-3.md#images-and-qualification) say where they are recorded.
-- **One collaboration owner.** Work keeps one writable collaboration owner, so run
+- **One collaboration owner.** Lolly Work keeps one writable collaboration owner, so run
   one application replica. Separate render workers can scale once you have tested
   the workload. A redundant cluster does not route rooms or fail over the
   application by itself; [how a deployment fits together](deployment.md) explains
@@ -233,7 +233,7 @@ After that check:
   host. It does not adopt an existing instance.
 - **RKE2.** Install the host through your platform team's reviewed Rancher process or
   the official RKE2 process.
-- **Then the chart.** The Work chart is the same on both.
+- **Then the chart.** The Lolly Work chart is the same on both.
 
 The [platform-team workflow](https://github.com/lolly-tools/lolly-work/blob/main/deploy/suse/PLATFORM-TEAMS.md)
 walks through provider and network review, the pinned K3s install, Helm values review
@@ -243,7 +243,7 @@ separates implemented automation, actual qualification and reference-only steps.
 
 ## Cloud and on-premises choices
 
-The Work repository has tested OpenTofu and Terraform foundations for
+The Lolly Work repository has tested OpenTofu and Terraform foundations for
 [UpCloud and Evroc](cloud-deployment.md). On-premises hardware, OVHcloud, Hetzner and
 other European or global providers can supply the same VM or Kubernetes interfaces.
 Each still needs its own qualified host image, network, storage, quotas and restore
@@ -252,10 +252,10 @@ evidence: a shared interface does not mean that provider has been tested.
 A few boundaries hold on every target:
 
 - Run the public web app, MCP and CA services in separate namespaces, with separate
-  credentials, from the private Work instance.
-- Work uses PostgreSQL for live collaboration, jobs and, optionally, uploaded asset
+  credentials, from the private Lolly Work instance.
+- Lolly Work uses PostgreSQL for live collaboration, jobs and, optionally, uploaded asset
   bytes. Application Collection PostgreSQL is an optional, separately managed
-  dependency. Keep Redis out of Work's PostgreSQL job path; Redis for public admission
+  dependency. Keep Redis out of Lolly Work's PostgreSQL job path; Redis for public admission
   is a separate choice for the public services.
 - K3s and RKE2 bring their own containerd and need no second Podman runtime. Rootless
   Podman image builds are documented; a complete Podman and Quadlet runtime is not
@@ -267,5 +267,5 @@ and the [application update guide](https://github.com/lolly-tools/lolly-work/blo
 Optional WebAssembly policy and worker tracks are in
 [WebAssembly and Kubewarden choices](wasm-deployment.md); neither adds a requirement
 to a private install. A cluster that enforces admission policy with Kubewarden can
-apply the [policy set for Work's pods](admission-policy.md), and a cluster with
+apply the [policy set for Lolly Work's pods](admission-policy.md), and a cluster with
 Prometheus can install the [suggested alerts and dashboard](metrics.md).

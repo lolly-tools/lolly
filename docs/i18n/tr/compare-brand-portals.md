@@ -6,7 +6,7 @@ Kuruluşun onaylı varlıklarını Bynder, Frontify, Marq veya Brandfolder'da tu
 
 ## Köklü bir portalın daha iyi yaptığı
 
-Köklü portallar yönetilen barındırma, destek ve kapsamlı varlık yönetimi iş akışları sunar. Örneğin [Frontify'ın kurumsal DAM'i](https://www.frontify.com/en/solution/enterprise-digital-asset-management) varlık keşfini, erişim denetimlerini, onay iş akışlarını ve dağıtımı birleştirir. Lolly yığını daha gençtir ve onay zincirleri keyfi dallanan iş akışları değil sıralıdır. [Work status and roadmap](/info/work-status.html) dağıtım sınırlarını kaydeder.
+Köklü portallar yönetilen barındırma, destek ve kapsamlı varlık yönetimi iş akışları sunar. Örneğin [Frontify'ın kurumsal DAM'i](https://www.frontify.com/en/solution/enterprise-digital-asset-management) varlık keşfini, erişim denetimlerini, onay iş akışlarını ve dağıtımı birleştirir. Lolly yığını daha gençtir ve onay zincirleri keyfi dallanan iş akışları değil sıralıdır. [Lolly Work status and roadmap](/info/work-status.html) dağıtım sınırlarını kaydeder.
 
 ## Örtüştükleri alanlar
 

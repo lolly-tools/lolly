@@ -1,8 +1,8 @@
 # Lolly Work API reference
 
-The routes the Work console, the `lw` CLI and the Lolly apps call, grouped by job, with the
+The routes the Lolly Work console, the `lw` CLI and the Lolly apps call, grouped by job, with the
 permission each one needs. To render files from a script, start with
-[Automate with the Work API](automation-api.md): it covers discovery, schemas, the document
+[Automate with the Lolly Work API](automation-api.md): it covers discovery, schemas, the document
 verbs, jobs and batches, and this page holds everything else.
 
 Errors are `{ error: { code, message } }` with an HTTP status that matches the error. In the
@@ -24,9 +24,9 @@ reach at all. The action in each table then decides what that caller may do ther
 | Caller | How it identifies itself | What it can reach |
 |---|---|---|
 | A person | the `lw_session` cookie, from signing in on the instance or approving a device sign-in | every route their role and grants allow |
-| A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | routes gated by an action its role holds: automation (but not `GET /render/…`), uploads and file references, catalog submissions of bytes or uploads, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals, deliveries to a destination that needs approval, live collaboration, telemetry consent, comments, versions, history, access requests, project file uploads and submitting a project file to the catalog |
+| A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | a scoped token reaches only the routes its scopes open and the action there allows; a token with no scopes reaches routes gated by an action its role holds: automation (but not `GET /render/…`), uploads and file references, catalog submissions of bytes or uploads, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals, deliveries to a destination that needs approval, live collaboration, telemetry consent, comments, versions, history, access requests, project file uploads and submitting a project file to the catalog |
 | A guest | the `lw_guest` cookie, from joining through a guest-edit link | only what the link grants: the document and tool it opens (that tool's files under `/tools/*`, a catalog that lists only that tool and `GET /render/…` for it), its own session and telemetry |
-| An agent | `Authorization: Bearer <key>` on `/api/workspace/mcp` only: `POST` for MCP calls, `DELETE` to disconnect ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API |
+| An agent | `Authorization: Bearer <key>` on `/api/workspace/mcp` only: `POST` for MCP calls, `DELETE` to disconnect ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API. A service token uses [`/api/v1/mcp`](#organisation-mcp) instead |
 | An identity provider | a SCIM bearer on `/scim/v2/*` only ([SCIM](#scim-provisioning)) | the SCIM protocol routes |
 | A signed link | the `?s=` signature on `/l/:id`, plus the `lw_link_<id>` cookie for a password link | that link's target |
 | A job receiver | the `x-lw-job-token` header on `GET /api/v1/jobs/:id/result` | that one job's result, for 24 hours |
@@ -43,6 +43,7 @@ a per-person limit, given in their rows. The sizes are in
 |---|---|---|
 | `UNAUTHORIZED` | 401 | no session, or this deployment is sign-in gated |
 | `FORBIDDEN` | 403 | the required action is missing |
+| `TOKEN_SCOPE` | 403 | a scoped service token called a route its scopes do not open |
 | `OWNER_ONLY_ACTION` | 403 | an owner-only escalation was attempted |
 | `GUEST_LINKS_DISABLED` | 403 | guest links are off on this deployment |
 | `BAD_SIGNATURE` | 403 | link signature invalid |
@@ -183,7 +184,7 @@ credentials that act without a person.
 | `GET /api/auth/dev?email=…` | public | dev provider only; `404` when `dev.enabled` is false |
 | `GET /api/auth/session` | member/guest | the current principal |
 | `POST /api/auth/logout` | any | clears both cookies |
-| `GET/POST /api/auth/logout-provider` | member signed in through an OIDC provider | sign out of the identity provider as well: the `GET` page asks to confirm, and its form's `POST` ends this browser's Work sessions and answers `303` to the provider's end-session endpoint. `401 NO_OIDC_SESSION` without an OIDC sign-in, `409 NO_PROVIDER_LOGOUT` when the provider offers no end-session endpoint. See [enterprise identity](enterprise-identity.md) |
+| `GET/POST /api/auth/logout-provider` | member signed in through an OIDC provider | sign out of the identity provider as well: the `GET` page asks to confirm, and its form's `POST` ends this browser's Lolly Work sessions and answers `303` to the provider's end-session endpoint. `401 NO_OIDC_SESSION` without an OIDC sign-in, `409 NO_PROVIDER_LOGOUT` when the provider offers no end-session endpoint. See [enterprise identity](enterprise-identity.md) |
 | `POST /api/v1/auth/device` | public | start device sign-in: `{deviceCode, userCode, verificationUri, interval, expiresIn}` |
 | `POST /api/v1/auth/device/token` | public | the device's poll: `{status}` of `pending`/`denied`/`expired`, or `approved` + the session cookie (single read). The cookie continues the approving browser's chain and ends no later than its `authAt + sessionMaxHours` (`sessionTtlHours` from that sign-in while renewal is off); once that chain has ended the answer is `denied`, audited `auth.denied` with `reason: 'session-max'` |
 | `GET/POST /activate` | member (page) | where a person types and confirms a device code - approval binds the approver's identity, so it lives here and nowhere else |
@@ -202,7 +203,7 @@ routes share the `auth` rate-limit bucket.
 | `GET /api/v1/users`, `GET /api/v1/users/:id` | admin/owner role | |
 | `POST /api/v1/users/:id/revoke-sessions` | `grant.edit` | sign-out-everywhere: bumps the user's session epoch, every prior cookie and token fails its next request |
 | `DELETE /api/v1/users/:id` | `instance.config` (**owner**) | erasure: deletes the row + de-attributes telemetry; `409` while they own unarchived projects, and `409 ERASE_UPLOADS_REMAIN` when some of their [uploads](#uploads) could not be removed first (run it again) |
-| `POST /api/v1/retention/run` | `instance.config` (**owner**) | apply the stated retention policy now, and remove expired unfinished project-file uploads (`projectFilesSwept`) and expired [scoped uploads](#uploads) (`uploadsSwept`) |
+| `POST /api/v1/retention/run` | `instance.config` (**owner**) | apply the stated retention policy now, including the purge of documents deleted longer ago than `policy.retention.deletedDocumentsDays` (`documentsPurged`, present when that is set), and remove expired unfinished project-file uploads (`projectFilesSwept`), expired [scoped uploads](#uploads) (`uploadsSwept`) and the files of decided approval requests past their retention (`approvalArtifactsRemoved`). With `policy.retention.renderOutputDays` set, it also runs one pass of [output retention](renders.md#hosting-and-recovery) (`renderOutputsExpired`, `renderOutputsRemoved`) |
 | `GET/POST /api/v1/groups`, `DELETE /api/v1/groups/:name` | `grant.edit` | |
 | `PUT /api/v1/users/:id/local-groups` | `grant.edit` | |
 | `POST /api/v1/users/:id/disabled` | `grant.edit` | |
@@ -390,15 +391,28 @@ stores nothing, so its subject is `request`). A note is recorded only as its len
 
 | Route | Action | Notes |
 |---|---|---|
-| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint: body `{ label, role, ttlDays? }`. `label` says which automation holds the token (up to 80 characters), `role` is any role but `guest`, and `ttlDays` is a whole number from 1 to 365 (90 by default). `201` with the token record and `token`, the secret (`lwt_…`), which appears in this response and never again |
-| `GET /api/v1/tokens` | `token.manage` (**owner**) | list with expiry, last-used and revocation state - never secrets |
+| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint: body `{ label, role?, scopes?, tools?, ttlDays? }`. `label` says which automation holds the token (up to 80 characters). `scopes` lists `render`, `documents`, `files`, `delivery`, `catalog.read` or `audit.read`, and a route no listed scope opens answers `403 TOKEN_SCOPE`. With `scopes` and no `role` the token takes the `automation` role; with no `scopes`, `role` is required and is any role but `guest` or `automation`. `tools` lists up to 64 tool ids and needs the `render` or `documents` scope. `ttlDays` is a whole number from 1 to 365 (90 by default). `201` with the token record and `token`, the secret (`lwt_…`), which appears in this response and never again |
+| `GET /api/v1/tokens` | `token.manage` (**owner**) | `{ tokens, legacyUnboundedCount, scopeVocabulary }`: each token's role, `scopes`, `tools` (`null` when it has none), expiry, last-used and revocation state, never secrets, and every scope with a plain-language `label` and `description` |
 | `DELETE /api/v1/tokens/:id` | `token.manage` (**owner**) | revoke: `200 { ok: true }`, or `404` for a token that is unknown or already revoked; the very next use gets `401` |
 
 A minted token rides `Authorization: Bearer lwt_…` and resolves to a synthetic
 principal carrying the token's role (no groups): permissions, grants and audit see it like any
-member (`user:svc_<id>` actor). [Who can call what](#who-can-call-what) lists where a token is
-accepted and refused, and [Automate with the Work API](automation-api.md) shows a first call.
+member (`user:svc_<id>` actor). Scopes are checked first and only narrow: the route's own action
+check still runs. [Who can call what](#who-can-call-what) lists where a token is accepted and
+refused, and [Automate with the Lolly Work API](automation-api.md) lists the scopes and shows a
+first call.
 See [service tokens](enterprise-identity.md#service-tokens).
+
+### Organisation MCP
+
+| Route | Auth | Notes |
+|---|---|---|
+| `POST /api/v1/mcp` | service token | MCP over Streamable HTTP, with no session. Each tool call runs the route it mirrors as the token |
+| `GET /api/v1/mcp` | service token | `405`, because the endpoint has no server-to-client stream |
+
+A person's session gets `401 SERVICE_TOKEN_REQUIRED`, and a request from another origin gets
+`403 ORIGIN_REFUSED`. [Connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp) lists the
+tools and the route each one runs.
 
 ### SCIM provisioning
 
@@ -569,7 +583,7 @@ A wrong password is `401 PASSWORD_INCORRECT`. Ten wrong passwords from one addre
 minutes lock the link for that address (`429 PASSWORD_LOCKED` with `Retry-After`).
 
 ::: note `&pw=` on a link is deprecated
-`&pw=…` on the `GET` is deprecated as of Work 1.1.2, which still accepts the parameter: the
+`&pw=…` on the `GET` is deprecated as of Lolly Work 1.1.2, which still accepts the parameter: the
 answer carries a `Deprecation` header and sets the same cookie, and the server logs one warning
 per link. A later release refuses `&pw=`.
 :::
@@ -859,9 +873,9 @@ Project keys authenticate only `POST /api/workspace/mcp`, using `Authorization: 
 
 ### Document agent invitations
 
-A document key admits an agent to one Design document. These routes need a signed-in
+A document key admits an agent to one Lolly Design document. These routes need a signed-in
 person who can open the document and holds `collab.join`. A document the caller cannot
-open, or one that is not a Design document, answers `404`.
+open, or one that is not a Lolly Design document, answers `404`.
 
 | Route | Access and response |
 |---|---|
@@ -1053,7 +1067,7 @@ scope `file` instead and send it in parts; `lw upload <file> --scope file` does 
 `role` is `original` unless the bytes are the `output` of an operation done elsewhere. An
 output may name `derivedFrom: { id, checksum }`, one of the caller's own references, and
 carry a `report`: a `FileOperationReportV1` from `@lolly-tools/core/file-operation-v1`, at most
-64 KiB of JSON, that passes that contract's check. Work keeps the report the owner supplied
+64 KiB of JSON, that passes that contract's check. Lolly Work keeps the report the owner supplied
 and labels it so; it does not check the claims in the report.
 
 A `file` is `{ id, name, contentType, size, checksum, role, derivedFrom, reportedBy, createdAt,
@@ -1118,7 +1132,7 @@ audited. [Discovery](automation-api.md#find-out-what-you-can-do) reports `files.
 ## Catalog and design system
 
 The assets members browse and place, how new ones are submitted and reviewed, the external
-sources Work federates, the destinations it delivers to and the design-system rules renders are
+sources Lolly Work federates, the destinations it delivers to and the design-system rules renders are
 checked against.
 
 ### Catalog
@@ -1167,7 +1181,7 @@ The [design-system administration contract](design-system-administration.md#revi
 | `POST /api/v1/catalog/submissions/:id/act` | member (the approvals engine gates it) | `approve` publishes, `reject` returns with the comment |
 
 ::: details Submitting a project file
-Project-source intake requires the observed whole-file SHA-256. Work verifies every stored part
+Project-source intake requires the observed whole-file SHA-256. Lolly Work verifies every stored part
 and the complete file, then checks source access again after scanning. The source file stays
 unchanged. `groups=` selects library exposure independently of project membership; omitted
 groups mean every workspace member. Only groups the submitter belongs to are accepted. `type`,
@@ -1245,6 +1259,7 @@ source. Google Drive is the only browser-consent kind in this version.
 | `GET /api/v1/destinations` | authenticated; results filtered by `delivery.create` per target | safe fixed-target descriptors visible to this caller; never endpoints, bucket names, prefixes or credential refs |
 | `POST /api/v1/destinations/:id/deliveries?name=…&format=…` | `delivery.create` on `destination:<id>` | verified Lolly export as the raw body; `201` after immediate delivery, or `202 awaiting-approval` when the target binds a chain |
 | `POST /api/v1/destinations/:id/deliveries?projectId=…&fileId=…&checksum=…` | signed-in person + current project viewer access + `delivery.create` | empty body; verified shared original, only with explicit `projectFiles` on a DAM destination |
+| `POST /api/v1/renders/:id/deliveries` | render owner with the tool and `export.server` + `delivery.create` on the body’s `destinationId` | deliver a succeeded durable render's retained output by reference, under the same rules as the job route below |
 | `POST /api/v1/jobs/:id/deliveries` | job owner + `delivery.create` on the body’s `destinationId` | deliver a completed render job’s retained output by reference; JSON `{destinationId,name,format?}` |
 | `GET /api/v1/deliveries` | authenticated | caller's own delivery history remains readable after permission loss |
 | `GET /api/v1/deliveries/:id` | authenticated | caller's own delivery receipt; another principal receives 404 |
@@ -1293,6 +1308,8 @@ messages and comment notices arrive.
 | `GET /api/v1/approvals/approvers` | member |
 | `POST /api/v1/approvals/:id/act` | `approval.act` |
 | `POST /api/v1/approvals/:id/withdraw` | member (submitter) |
+| `GET /api/v1/approvals/:id/artifact` | an eligible reviewer or someone who acted; the requester once approved. An approved request answers with the approved file and `x-lolly-approval-record`; `?file=reviewed` answers with the bytes as reviewed |
+| `POST /api/v1/approvals/match` | member; the [state of a request](approvals.md#check-the-state-of-a-request) for these inputs |
 | `GET /api/v1/inbox` | member - `{ messages, unread }` with `ETag: "ib-<16 hex>"` and `cache-control: private, no-cache`; a matching `If-None-Match` answers `304`, so a shell can check often for one header. `messages` holds the caller's messages and comment notices; `unread` counts both, and the tag moves when either changes |
 | `POST /api/v1/inbox/:id/ack` | member - dismisses the message for the caller. For a comment notice (`cn_…`) it deletes the caller's own notice row and nothing else, so the next reply in that thread shows a notice again |
 | `GET/POST /api/v1/messages` | `message.send` |

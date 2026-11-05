@@ -14,10 +14,10 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 import {
-  CHECK_BOOL_FLAGS, CHECK_VALUE_FLAGS, MEASURE_BOOL_FLAGS, MEASURE_VALUE_FLAGS, PACKAGE_BOOL_FLAGS, PACKAGE_VALUE_FLAGS, READ_BOOL_FLAGS, READ_VALUE_FLAGS,
+  CHECK_BOOL_FLAGS, CHECK_VALUE_FLAGS, INTENT_BOOL_FLAGS, INTENT_VALUE_FLAGS, MEASURE_BOOL_FLAGS, MEASURE_VALUE_FLAGS, PACKAGE_BOOL_FLAGS, PACKAGE_VALUE_FLAGS, READ_BOOL_FLAGS, READ_VALUE_FLAGS,
 } from '../shells/cli/src/args.ts';
 import { SESSION_RUN_FLAGS } from '../shells/cli/src/design-session.ts';
-import { CHECK_HELP, MEASURE_HELP, PACKAGE_HELP, READ_HELP, SESSION_RUN_HELP, verbHelp } from '../shells/cli/src/verb-help.ts';
+import { CHECK_HELP, INTENT_HELP, MEASURE_HELP, PACKAGE_HELP, READ_HELP, SESSION_RUN_HELP, verbHelp } from '../shells/cli/src/verb-help.ts';
 
 const root = resolve(import.meta.dirname, '..');
 const GLOBAL = new Set(['quiet', 'verbose', 'strict', 'json']);
@@ -27,6 +27,7 @@ const VERBS: Array<{ name: string; help: string; flags: readonly string[]; head:
   { name: 'check', help: CHECK_HELP, flags: [...CHECK_VALUE_FLAGS, ...CHECK_BOOL_FLAGS, 'strict', 'json'], head: /^lolly check: /, argv: ['check', '--help'] },
   { name: 'package', help: PACKAGE_HELP, flags: [...PACKAGE_VALUE_FLAGS, ...PACKAGE_BOOL_FLAGS, 'json'], head: /^lolly package: /, argv: ['package', '-h'] },
   { name: 'measure', help: MEASURE_HELP, flags: [...MEASURE_VALUE_FLAGS, ...MEASURE_BOOL_FLAGS, 'json'], head: /^lolly measure: /, argv: ['measure', '--text', '--help'] },
+  { name: 'intent', help: INTENT_HELP, flags: [...INTENT_VALUE_FLAGS, ...INTENT_BOOL_FLAGS, 'json'], head: /^lolly intent: /, argv: ['intent', '--help'] },
   { name: 'run <session.lolly>', help: SESSION_RUN_HELP, flags: [...SESSION_RUN_FLAGS].filter((f) => !GLOBAL.has(f)), head: /^lolly run <session\.lolly>: /, argv: ['run', 'deck.lolly', '--help'] },
 ];
 

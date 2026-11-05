@@ -17,7 +17,7 @@ A template is a saved starting point for a tool. Open the tool on one and every 
 ::: cols
 ## A saved session
 
-One document you come back to: reopen it, change the date, save it again. It lives in [Projects](/info/find-your-work.html#find-something-you-saved).
+One document you come back to: reopen it, change the date, save it again. It lives in [Lolly Projects](/info/find-your-work.html#find-something-you-saved).
 
 ## A template
 
@@ -33,12 +33,12 @@ Your saved templates, and your choices about shipped ones, are kept on your [pro
 ## Save one from a tool
 
 ::: timeline
-- <!--i:check--> Press **Save as**, beside **Download** in the export panel. In **Design**, **Save as a template…** in the Lolly menu opens the dialog with the template card ready.
+- <!--i:check--> Press **Save as**, beside **Download** in the export panel. In **Lolly Design**, **Save as a template…** in the Lolly menu opens the dialog with the template card ready.
 - <!--i:document--> Of the two cards, **Save to a project** keeps this one document and **Save as a template** keeps a starting point for new ones.
 - <!--i:pentool--> Name it, add a line of description if that will help you recognise it in six months and save.
 :::
 
-The template card also carries a checkbox labelled with the tool you are in, such as **Start new Chart documents with this**. Tick it and every blank open of that tool begins from this template instead of asking; [Start with](#start-with) has the details.
+The template card also carries a checkbox labelled with the tool you are in, such as **Start new Lolly Chart documents with this**. Tick it and every blank open of that tool begins from this template instead of asking; [Start with](#start-with) has the details.
 
 The quick **Save**, the tick beside **Export** on the render pill, stores the session you are working in with one click and no dialog. **Save as** is the one that asks which kind of save you meant.
 
@@ -74,13 +74,13 @@ Three things it never changes:
 
 ### In the chooser
 
-The chooser opens on a blank open when the answer is **Ask me every time**, and from inside a tool whenever you want it: Design's **Lolly** menu has **New from template**, and every other tool has a **Templates** button above the controls.
+The chooser opens on a blank open when the answer is **Ask me every time**, and from inside a tool whenever you want it: Lolly Design's **Lolly** menu has **New from template**, and every other tool has a **Templates** button above the controls.
 
 Every tile carries a menu, on right-click, long-press, or the **…** that appears when you point at it:
 
 - **Use** it, the same as clicking the tile.
 - **Share with rules**, described under [Share a constrained tool](#share-a-constrained-tool).
-- **Start Chart with this** (again naming the tool you are in), or **Ask me every time** if this one is already the starting point.
+- **Start Lolly Chart with this** (again naming the tool you are in), or **Ask me every time** if this one is already the starting point.
 - **Rename** and **Edit description**, on one of yours.
 - **Update from this document**, on one of yours, when you opened the chooser from inside a tool. The template takes the settings of the document you are working on.
 - **Make a copy**, on one that shipped, so you have your own version to change.
@@ -89,7 +89,7 @@ Every tile carries a menu, on right-click, long-press, or the **…** that appea
 
 ### The Templates collection
 
-Open **Projects** and choose the **Templates** tile. Inside a folder, the **Templates** chip in the rail opens the same collection. It lists templates across every tool in three groups: **Yours**, **Shipped with** each tool, and **Hidden**. There is a chip per tool to narrow it down, the search box works here as it does everywhere else in Projects, and every tile has the chooser's menu, with **Share template (.lolly)** added on one of yours and without **Update from this document**.
+Open the **Projects** view and choose the **Templates** tile. Inside a folder, the **Templates** chip in the rail opens the same collection. It lists templates across every tool in three groups: **Yours**, **Shipped with** each tool, and **Hidden**. There is a chip per tool to narrow it down, the search box works here as it does everywhere else in Projects, and every tile has the chooser's menu, with **Share template (.lolly)** added on one of yours and without **Update from this document**.
 
 It is a view, not a folder: nothing can be dragged into it, and it has no rename or delete of its own.
 
@@ -129,7 +129,7 @@ A template that shipped with a tool can offer sizes and paces, such as a poster 
 
 ## Share a constrained tool
 
-A saved template is a starting point in its original tool. To give recipients only selected inputs, choose **Share with rules** from a template's menu, or from a saved tool session in Projects. This opens a separate authoring copy and leaves the source intact. Design offers object rules; other supported still tools offer an ordered list of editable inputs over their existing renderer. The resulting `.lolly` installs a separate tool with fixed settings and explicit controls. [Share a design with rules](/info/create-a-tool.html) covers the supported inputs and the preview and checking steps.
+A saved template is a starting point in its original tool. To give recipients only selected inputs, choose **Share with rules** from a template's menu, or from a saved tool session in Projects. This opens a separate authoring copy and leaves the source intact. Lolly Design offers object rules; other supported still tools offer an ordered list of editable inputs over their existing renderer. The resulting `.lolly` installs a separate tool with fixed settings and explicit controls. [Share a design with rules](/info/create-a-tool.html) covers the supported inputs and the preview and checking steps.
 
 ---
 

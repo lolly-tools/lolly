@@ -269,7 +269,7 @@ Pe un ecran îngust, layoutul devine o singură coloană:
 
 ## Setări, sunet și confort
 
-**Settings**, la baza ecranului principal, conține detaliile tale, sistemele de design, accesibilitatea, stocarea și descărcările offline. [Settings](/info/dashboard.html) cartografiază fiecare filă.
+**Settings**, la baza ecranului principal, conține detaliile tale, sistemele de design, accesibilitatea, stocarea și descărcările offline. [Lolly Settings](/info/dashboard.html) cartografiază fiecare filă.
 
 - **Detaliile și fotografia ta** completează orice instrument făcut să le folosească, precum o semnătură de email sau un ecuson. [Profiluri](/info/profile.html) le acoperă.
 - **Accessibility** are patru comutatoare de confort: **Reduce motion**, **Hide colourful previews**, **High contrast** și **Large text**. Ele schimbă aplicația din jurul muncii tale, niciodată canvasul unui instrument sau un export.

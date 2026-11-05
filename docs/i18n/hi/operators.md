@@ -9,7 +9,7 @@ Lolly हर व्यक्ति के डिवाइस पर चलता
 - [Adoption & Governance](/info/adoption-governance.html) रोलआउट और ब्रांड नियमों की भूमिका कवर करता है।
 - [Identity and sessions](/info/work-identity.html) साइन-इन और समूह मैपिंग कवर करता है। [Roles and grants](/info/work-permissions.html) भूमिकाएँ, अनुदान और ओनर गार्ड समझाता है।
 - [Policy and governance](/info/work-governance.html) टूल ओवरले, लॉक इनपुट और नीति कवर करता है। [Manage organisation AI policy](/info/work-ai-policy.html) अनुमोदन और निष्पादन सीमाएँ कवर करता है।
-- [Account data controls](/info/work-account-lifecycle.html) और [Work storage and data lifecycle](/info/work-data-lifecycle.html) एक्सपोर्ट, ऑफ़बोर्डिंग, प्रतिधारण और उनकी सीमाएँ कवर करते हैं।
+- [Account data controls](/info/work-account-lifecycle.html) और [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) एक्सपोर्ट, ऑफ़बोर्डिंग, प्रतिधारण और उनकी सीमाएँ कवर करते हैं।
 - [Profiles, brands and tool configuration](/info/configuration.html) कवर करता है कि Lolly का बिल्ड कौन से टूल और design system रखता है।
 
 ## एसेट जोड़ें और काम की समीक्षा करें

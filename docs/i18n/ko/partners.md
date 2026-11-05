@@ -16,7 +16,7 @@
 
 | 보낼 것 | 방법 | 파트너가 받는 것 | 적합한 경우 |
 | --- | --- | --- | --- |
-| 디자인 시스템 파일 | [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 상단 바의 **Export** | 내 토큰, 글꼴, 로고, 테마 설정. 파트너가 전환해서 쓸 수 있는 디자인 시스템으로 전달돼요 | 내 브랜드로 제작물을 많이 만드는 파트너 |
+| 디자인 시스템 파일 | [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 상단 바의 **Export** | 내 토큰, 글꼴, 로고, 테마 설정. 파트너가 전환해서 쓸 수 있는 디자인 시스템으로 전달돼요 | 내 브랜드로 제작물을 많이 만드는 파트너 |
 | 재사용 도구 | Design에서 **Share with rules**([Share a design with rules](/info/create-a-tool.html)) | 완성된 레이아웃 하나와 허용한 입력 항목(예: 파트너의 이름과 로고). 파일에는 확정된 색상, 글꼴, 이미지가 담기므로 파트너의 디자인 시스템이 고정된 아트워크의 스타일을 바꿀 수 없어요 | 각 파트너가 채워 넣는 공동 브랜드 전단, 배지, 배너 |
 | 브랜드 스킬 | **Skills** 룸: **Download skill (.zip)** 또는 **Copy as one file** | 문서로 정리된 내 기준. 파트너의 사람과 에이전트를 위한 것이에요 | 에이전트가 작업 일부를 맡을 때, 위 둘 중 하나와 함께 |
 | 토큰 | 스튜디오 **More** 메뉴의 **Tokens (.json)** | 글꼴이나 로고 없이 디자인 토큰만 담은 문서 | 파트너 자신의 디자인 도구나 빌드 |
@@ -125,5 +125,5 @@ Logo Wall은 어떤 스폰서의 규칙도 알지 못해요. Tier와 Presence는
 - **[브랜드 아키텍처](/info/brand-architectures.html)**: 공동 브랜딩, 화이트 라벨, 그 밖의 방식과 각각에서 Lolly로 할 일.
 - **[Share a design with rules](/info/create-a-tool.html)**: 고정된 레이아웃과 직접 고른 입력 항목을 가진 재사용 도구.
 - **[브랜드 스킬](/info/brand-skills.html)**: 스킬을 작성하고 읽고 에이전트에게 넘기는 방법.
-- **[Design System Setup](/info/brand-studio.html)**: 로고, 사용자 지정 마크, 기기 간 디자인 시스템 이동.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: 로고, 사용자 지정 마크, 기기 간 디자인 시스템 이동.
 - **[크리에이티브 권리와 크레딧](/info/creative-rights.html)**: Lolly가 그리는 작품에 대해 기록하는 내용.

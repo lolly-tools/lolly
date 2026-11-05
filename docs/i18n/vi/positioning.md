@@ -28,7 +28,7 @@ Cộng tác trực tiếp của Lolly gồm collab riêng tư giữa hai thiết
 ## Hãy dùng Lolly khi
 
 - Cần lặp đi lặp lại cùng loại tệp: ô sự kiện, thẻ tên, chứng nhận, cảnh báo, thẻ mạng xã hội
-- Nhiều tệp đến từ một mẫu và một bảng giá trị, trong [Batch](/info/batch.html#make-many-versions-of-one-design) hoặc CLI
+- Nhiều tệp đến từ một mẫu và một bảng giá trị, trong [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) hoặc CLI
 - Màu sắc, kiểu chữ và tài nguyên phải ở trong hệ thống thiết kế, kể cả trên canvas mở
 - Một thiết kế Figma, Penpot, Illustrator, InDesign hoặc PDF đã hoàn chỉnh cần trở nên chỉnh sửa và lặp lại được ([Import a design](/info/design-import.html))
 - Các tệp phải được tạo trên thiết bị hoặc máy chủ của chính bạn

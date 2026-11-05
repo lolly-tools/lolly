@@ -12,7 +12,7 @@ export function mountLockedActions(view: HTMLElement, actions: HTMLElement, form
   for (const value of formats) { const option = document.createElement('option'); option.value = value; option.textContent = value.toUpperCase(); format.append(option); }
   const sync = (): void => {
     format.value = sourceFormat?.value || formats[0] || '';
-    primary.textContent = original?.hasAttribute('aria-busy') ? original.textContent : original?.dataset.action === 'request-approval' ? t('Request approval') : t('Download {format}', { format: format.value.toUpperCase() });
+    primary.textContent = original?.hasAttribute('aria-busy') ? original.textContent : original?.dataset.action === 'request-approval' ? (original.dataset.approvalLabel ?? t('Request approval')) : t('Download {format}', { format: format.value.toUpperCase() });
     primary.disabled = !original || original.hasAttribute('disabled') || original.getAttribute('aria-disabled') === 'true';
     primary.setAttribute('aria-busy', String(original?.getAttribute('aria-busy') === 'true'));
   };
@@ -44,7 +44,7 @@ export function mountLockedActions(view: HTMLElement, actions: HTMLElement, form
   const feedback = document.createElement('div'); feedback.className = 'locked-delivery'; feedback.setAttribute('role', 'status'); bar.append(feedback);
   const refresh = (): void => {
     sync();
-    const source = actions.querySelector<HTMLElement>('[data-export-delivery]:not([hidden]),.export-blocked-note');
+    const source = actions.querySelector<HTMLElement>('[data-export-delivery]:not([hidden]),.export-blocked-note,[data-approval-status]:not([hidden])');
     if (feedback.textContent !== source?.textContent) {
       feedback.replaceChildren();
       if (source) {

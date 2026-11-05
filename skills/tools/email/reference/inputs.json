@@ -1,0 +1,121 @@
+[
+  {
+    "id": "from",
+    "label": "From",
+    "type": "text",
+    "default": "Alex Morgan <alex@example.com>",
+    "maxLength": 120,
+    "help": "A name, an address, or both as Name <address>."
+  },
+  {
+    "id": "to",
+    "label": "To",
+    "type": "text",
+    "default": "Sam Lee <sam@example.org>",
+    "maxLength": 300,
+    "help": "One or more, separated by commas."
+  },
+  {
+    "id": "heading",
+    "label": "Subject",
+    "type": "text",
+    "default": "Your migration plan for next year",
+    "maxLength": 160
+  },
+  {
+    "id": "body",
+    "label": "Message",
+    "type": "longtext",
+    "maxLength": 6000,
+    "help": "Markdown. When the subject or recipients are empty, \"Subject:\" and \"To:\" lines at the top of the message fill them.",
+    "default": "Hi Sam,\n\nThanks for the time last week. Three questions before we meet:\n\n1. Which workloads would you move first?\n2. What does a renewal cost you if nothing changes?\n3. Who needs to see the plan before it goes ahead?\n\nBest,\nAlex"
+  },
+  {
+    "id": "sentAt",
+    "label": "Date",
+    "type": "text",
+    "default": "Today, 09:14",
+    "maxLength": 40
+  },
+  {
+    "id": "attachments",
+    "label": "Attachments",
+    "type": "text",
+    "default": "",
+    "maxLength": 300,
+    "help": "File names, separated by commas."
+  },
+  {
+    "id": "status",
+    "display": "segmented",
+    "label": "Status",
+    "type": "select",
+    "default": "received",
+    "options": [
+      {
+        "value": "received",
+        "label": "Received"
+      },
+      {
+        "value": "draft",
+        "label": "Draft"
+      },
+      {
+        "value": "sent",
+        "label": "Sent"
+      }
+    ]
+  },
+  {
+    "id": "orientation",
+    "display": "segmented",
+    "label": "Orientation",
+    "type": "select",
+    "default": "landscape",
+    "options": [
+      {
+        "value": "landscape",
+        "label": "Landscape",
+        "width": 1600,
+        "height": 1000,
+        "unit": "px"
+      },
+      {
+        "value": "portrait",
+        "label": "Portrait",
+        "width": 1000,
+        "height": 1414,
+        "unit": "px"
+      },
+      {
+        "value": "wide",
+        "label": "Screen",
+        "width": 2400,
+        "height": 800,
+        "unit": "px"
+      }
+    ],
+    "section": "Style"
+  },
+  {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "section": "Style"
+  },
+  {
+    "id": "background",
+    "label": "Background",
+    "type": "color",
+    "default": "{color.semantic.surface}",
+    "section": "Style"
+  },
+  {
+    "id": "ink",
+    "label": "Text colour",
+    "type": "color",
+    "default": "{color.semantic.text}",
+    "section": "Style"
+  }
+]

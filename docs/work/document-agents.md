@@ -1,6 +1,6 @@
 # Invite an agent
 
-You can let an AI agent read or edit a shared Design document, or a whole shared project, on
+You can let an AI agent read or edit a shared Lolly Design document, or a whole shared project, on
 your behalf. The agent works with your permissions for a period you choose, from one hour to
 seven days, and you can revoke it at any time. It never gets an account of its own.
 
@@ -28,7 +28,7 @@ it makes. Admins can review all agent activity under **Agents** in the console.
 
 ## Invite an agent to a document
 
-1. In a shared Design document, open **Collaboration settings** (the sliders button in the live
+1. In a shared Lolly Design document, open **Collaboration settings** (the sliders button in the live
    room bar) and choose **Invite agent**. The **People with access** sheet has the same button.
 2. Give the agent a name, choose **Viewer** (reads the document) or **Editor** (makes changes
    alongside its collaborators) and pick when it expires: 1 hour, 24 hours or 7 days.
@@ -37,8 +37,14 @@ it makes. Admins can review all agent activity under **Agents** in the console.
    into the agent's private MCP settings.
 
 MCP (Model Context Protocol) is the standard way AI clients connect to tools. This endpoint
-belongs to your Work instance; Lolly's public [MCP server](https://lolly.tools/info/build/mcp.html)
+belongs to your Lolly Work instance; Lolly's public [MCP server](https://lolly.tools/info/build/mcp.html)
 for rendering is a different service.
+
+Lolly Work has one more MCP endpoint: the [organisation MCP endpoint](automation-api.md#connect-an-agent-over-mcp) at
+`/api/v1/mcp`, for automation that holds a service token and works across the instance. The two do
+not share credentials. A connection key works only on this endpoint, `/api/workspace/mcp`, for one
+document or project under your own access. A service token works only on `/api/v1/mcp`. Only the
+organisation endpoint can render and send a finished file to a destination.
 
 The key is shown only once, and closing the dialog clears it from the page. **Agents with
 access** lists every invitation, and you or a project manager can revoke one there. An editor
@@ -53,7 +59,7 @@ invitation can never exceed your own current permissions.
    to your agent. The connection key is shown only now.
 
 A project invitation covers the project and all its subfolders. A viewer browses sessions and
-verified asset files. An editor can also create sessions, edit shared Design documents, upload
+verified asset files. An editor can also create sessions, edit shared Lolly Design documents, upload
 files and organise outputs in folders. Each invitation acts under its inviter's current
 account, project access and permissions, and it cannot change membership or reach another
 project.
@@ -93,7 +99,7 @@ This part is for whoever sets up the agent's MCP client.
 - **Authentication.** Each request sends `Authorization: Bearer <connection key>`. Cookies alone
   do not admit an agent. The endpoint checks any `Origin` header and limits request size and
   rate.
-- **The key.** Work stores only a SHA-256 hash of the random key; the plaintext is returned once
+- **The key.** Lolly Work stores only a SHA-256 hash of the random key; the plaintext is returned once
   and never listed again. HTTP `DELETE` on the endpoint disconnects the agent's live room
   connection; revoking the invitation invalidates the key.
 - **Idle connections.** An idle agent leaves the room after two minutes, and its key stays
@@ -127,7 +133,7 @@ uncertain response, and `fileLimits` reports the upload allowance. Asset entries
   `requestId`. Retry with the same arguments: creation and its receipt commit together, so a
   retry returns the original session id without replacing later edits, and changed arguments
   with that id are refused. Each invitation can create at most 1,000 sessions. `read_session`
-  returns the saved state. For Design, pass `sessionId` to `read_document` and
+  returns the saved state. For Lolly Design, pass `sessionId` to `read_document` and
   `apply_document_ops`; the same room, locks, claims and receipts apply.
 - **Folders.** `create_folder` and `move_project_item` organise sessions and finished files. A
   null `folderId` returns an item to the project root. These tools cannot rename, delete or move
@@ -143,7 +149,7 @@ uncertain response, and `fileLimits` reports the upload allowance. Asset entries
   for people ([Upload large files](resumable-uploads.md)).
 
 Project and file tools work on hosts without a live collaboration gateway; editing a shared
-Design document needs the gateway. Document invitations made before project invitations keep
+Lolly Design document needs the gateway. Document invitations made before project invitations keep
 their original scope and gain no project tools. The project routes need database migration
 `0050_project_agents.sql`.
 

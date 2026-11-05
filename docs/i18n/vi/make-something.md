@@ -8,7 +8,7 @@ Chuẩn bị sẵn địa chỉ web mà mã QR sẽ mở, bắt đầu bằng `h
 
 ## Tạo mã
 
-1. Mở [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Các điều khiển nằm cạnh bản xem trước, hoặc phía trên nó trên điện thoại; những gì bản xem trước hiển thị chính là tệp sẽ được tạo ra.
+1. Mở [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Các điều khiển nằm cạnh bản xem trước, hoặc phía trên nó trên điện thoại; những gì bản xem trước hiển thị chính là tệp sẽ được tạo ra.
 2. Trong **URL**, thay toàn bộ địa chỉ mẫu bằng địa chỉ của bạn. Bản xem trước thay đổi khi bạn gõ.
 3. Để khớp với màu của riêng bạn, đặt **Module colour** và **Background**. Giữ độ tương phản mạnh giữa hai màu, nếu không điện thoại sẽ khó đọc mã.
 4. **Quiet zone**, dưới **Modules**, bắt đầu ở mức 4. Giữ nó ở mức 4 trở lên: khoảng lề trống đó là thứ camera điện thoại tìm kiếm.
@@ -38,8 +38,8 @@ Công việc đã lưu ở lại trên thiết bị này, trong trình duyệt h
 
 ## Các dự án đầu tiên khác
 
-- [Audiogram](/#/tool/audiogram) biến một ghi chú giọng nói thành một video: một dạng sóng chuyển động, lời của bạn trên trang bìa, màu sắc của bạn. Thả bản ghi vào **Âm thanh**, thêm một **Tiêu đề**, rồi xuất **MP4**.
-- [Filter](/#/tool/filter) xử lý một bức ảnh cho một áp phích: các chấm halftone khi in, hai màu phẳng hoặc vài mảng tông màu. Chọn ảnh trong mục **Hình ảnh**, chọn một **Hiệu ứng**, rồi xuất **PNG**, hoặc **SVG** với một hiệu ứng gắn nhãn *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) biến một ghi chú giọng nói thành một video: một dạng sóng chuyển động, lời của bạn trên trang bìa, màu sắc của bạn. Thả bản ghi vào **Âm thanh**, thêm một **Tiêu đề**, rồi xuất **MP4**.
+- [Lolly Filter](/#/tool/filter) xử lý một bức ảnh cho một áp phích: các chấm halftone khi in, hai màu phẳng hoặc vài mảng tông màu. Chọn ảnh trong mục **Hình ảnh**, chọn một **Hiệu ứng**, rồi xuất **PNG**, hoặc **SVG** với một hiệu ứng gắn nhãn *vector*.
 
 ## Tiếp theo
 

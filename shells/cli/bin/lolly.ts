@@ -22,7 +22,7 @@ import { argv } from 'node:process';
 import { readFile } from 'node:fs/promises';
 import { parseToolUrl, normalizeLang } from '@lolly/engine';
 import { runToolCli, listToolsCli, showToolInputsCli, listAssetsCli, readStdin } from '../src/run.ts';
-import { parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS, READ_VALUE_FLAGS, CHECK_VALUE_FLAGS, READ_BOOL_FLAGS, CHECK_BOOL_FLAGS, MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS, COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, refuseUnknownFlags } from '../src/args.ts';
+import { INTENT_BOOL_FLAGS, INTENT_VALUE_FLAGS, parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS, READ_VALUE_FLAGS, CHECK_VALUE_FLAGS, READ_BOOL_FLAGS, CHECK_BOOL_FLAGS, MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS, COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, refuseUnknownFlags } from '../src/args.ts';
 import { EXIT, exitCodeFor, usageError } from '../src/exit-codes.ts';
 import { configureOutput, strictExitCode, note, writeOut, keepConsoleOffStdout } from '../src/output.ts';
 import { beginCommand, emitError, jsonRequested, envelopeEmitted } from '../src/envelope.ts';
@@ -35,9 +35,14 @@ Usage:
   lolly start                              show colour, .lolly/import and explore paths
   lolly system status                      show the active terminal design system
   lolly system init --color=#7c3aed        build and activate a system from one colour
-  lolly system import <file>                import .lolly, tokens, Penpot, token zip or SVG
+  lolly system import <file>                import .lolly, tokens, Penpot, token zip, SVG or
+                                           DESIGN.md (--dry-run reads and changes nothing)
   lolly system add <file…>                  retain logos, fonts and other source material
   lolly system export [--output=brand.lolly] export a portable system pack
+  lolly system publish --out=<dir>          write a brand page folder: the page, DESIGN.md,
+                                           AGENTS.md, llms.txt, tokens and checks. Lists what
+                                           it held back. --origin, --usage-file, --include,
+                                           --profile, --file, --no-examples
   lolly system context [--file=tokens.json] the design brief as JSON: tokens, evidence and
                                            rules, plus pairings, type per role, logos per
                                            surface, icons, media, the slide master and
@@ -57,6 +62,8 @@ Usage:
   lolly system diff <tokens.json>           compare authored and resolved token changes
   lolly system generate --recipe=<file>     review a portable colour, spacing or type scale
   lolly system sync <file> --base=<file> --revision=<id>  review an upstream update
+  lolly reports <report.json|-> --to=junit|sarif|jsonl [--output=new-file]
+                                           convert saved check results locally
   lolly list [--q=words] [--limit=1..100]  list or scope tools (explicit spelling)
   lolly describe <tool-id> [--all]         show essential inputs; --all shows every input
   lolly run <tool-id> [--flags]            render
@@ -102,6 +109,9 @@ Usage:
   lolly dxf <drawing.dxf> [--output=.svg|.json] [--layers=A,B]
                                            read an AutoCAD DXF floor plan or drawing on this
                                            device; dxf --help for details
+  lolly import <template.json> [--output=.json] [--mapping=.json]
+                                           a Bannerbear V5 template as a Design document;
+                                           import --help for details
   lolly affinity <file.af|.afdesign|.afphoto|.afpub> [--preview=.png] [--output=.json]
                                            read a native Affinity file on this device;
                                            affinity --help for details
@@ -209,6 +219,11 @@ Usage:
                         [--ocr]            let Verify read text in pictures
                                            Exit 0 clean, 5 to review, 4 an error finding
                                            (or any warning under --strict)
+  lolly intent <intent.json|-> [--json]    say what a piece has to do; Lolly chooses the tool
+                                           for each surface, says why and lists what is missing
+  lolly intent <file> --render [--out-dir] make the files as well
+                        [--no-record-intent] record nothing about the intent in the files
+                        [--record-prompt]  record the prompt's own words, not a fingerprint
   lolly compose <spec.json|-> [--json]     slides laid out from the slide master's
                                            archetypes, as a Design document for
                                            package, check and run design --document
@@ -445,7 +460,7 @@ process.stdout.on('error', (err: NodeJS.ErrnoException) => {
 // A raw argv scan is enough: `--json` has one spelling and no bare-value trap. The
 // command name is re-set accurately by main() once the parse succeeds; this pre-set is
 // only the fallback for a failure that happens before that.
-const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+const RAW_VERBS = new Set(['intent', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
 const rawFirst = args.find(a => !a.startsWith('-'));
 beginCommand(
   RAW_VERBS.has(rawFirst ?? '') ? rawFirst! : 'lolly',
@@ -460,6 +475,7 @@ try {
   // the token as a tool id (`lolly --help` used to print "Tool not found: --help").
   if (args.some(a => a === '--help' || a === '-h' || a === 'help')) {
     if (rawFirst === 'dxf') { const { DXF_HELP } = await import('../src/dxf.ts'); await writeOut(DXF_HELP); }
+    else if (rawFirst === 'import') { const { IMPORT_HELP } = await import('../src/import-design.ts'); await writeOut(IMPORT_HELP); }
     else if (rawFirst === 'affinity') { const { AFFINITY_HELP } = await import('../src/affinity.ts'); await writeOut(AFFINITY_HELP); }
     else if (rawFirst === 'adobe') { const { ADOBE_HELP } = await import('../src/adobe.ts'); await writeOut(ADOBE_HELP); }
     else if (rawFirst === 'prepare') { const { prepareCli } = await import('../src/prepare.ts'); await prepareCli([], { help: '1' }); }
@@ -527,7 +543,7 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+  const VERBS = new Set(['import', 'intent', 'learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
   beginCommand(cmd === 'adobe' || cmd === 'affinity' || cmd === 'dxf' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
@@ -536,6 +552,9 @@ async function main(): Promise<void> {
   if (needsContentRoot(cmd)) assertContentRoot();
 
   // ── explicit verbs ────────────────────────────────────────────────────────
+  if (cmd === 'import') {
+    const { importCli } = await import('../src/import-design.ts'); await importCli(positionals.slice(1), flags, g.json); return;
+  }
   if (cmd === 'affinity') {
     const { affinityCli } = await import('../src/affinity.ts'); await affinityCli(positionals.slice(1), flags, g.json); return;
   }
@@ -553,6 +572,11 @@ async function main(): Promise<void> {
     if (!positionals[1]) throw usageError('inspect --motion requires a delivered media file.');
     const report = await inspectMotionBytes(new Uint8Array(await readFile(positionals[1])));
     process.stdout.write(JSON.stringify(report, null, 2) + '\n');
+    return;
+  }
+  if (cmd === 'reports') {
+    const { reportsCli } = await import('../src/reports.ts');
+    await reportsCli(positionals.slice(1), flags, g.json);
     return;
   }
   if (cmd === 'learning') {
@@ -613,6 +637,22 @@ async function main(): Promise<void> {
     refuseUnknownFlags('check', flags, [...CHECK_VALUE_FLAGS, ...CHECK_BOOL_FLAGS]);
     const { checkCli } = await import('../src/check.ts');
     process.exitCode = await checkCli(positionals.slice(1), flags, { json: g.json, strict: g.strict });
+    return;
+  }
+
+  // `intent`: what a piece has to do, answered with a tool per surface and the reasons (plan
+  // 350 W4). Its value flag is refused bare and a flag it does not take is refused by name.
+  if (cmd === 'intent') {
+    const bare = args.find(arg => arg === '--out-dir' || arg === '--c2pa');
+    if (bare) throw usageError(`${bare} needs a value: write ${bare}=<value>.`, 'MISSING_FLAG_VALUE');
+    refuseUnknownFlags('intent', flags, [...INTENT_VALUE_FLAGS, ...INTENT_BOOL_FLAGS]);
+    const { intentCli } = await import('../src/intent.ts');
+    process.exitCode = await intentCli(positionals.slice(1), {
+      render: isOn(flags.render), json: g.json, ...(flags['out-dir'] !== undefined ? { outDir: flags['out-dir'] } : {}),
+      ...(isOn(flags['no-record-intent']) ? { recordIntent: false } : {}),
+      ...(isOn(flags['record-prompt']) ? { recordPrompt: true } : {}),
+      ...(flags.c2pa !== undefined ? { c2pa: flags.c2pa } : {}),
+    });
     return;
   }
 

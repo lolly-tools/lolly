@@ -4,7 +4,7 @@ Seu logotipo, suas cores e suas fontes pertencem a um só lugar, para que todas 
 
 Comece com o que você tiver. Solte um logotipo e o Lolly lê as cores dele. Escolha uma fonte, ou solte o arquivo de fonte que a sua empresa licencia. Cada mudança aparece no app inteiro na hora. Seu logotipo, suas fontes e seus tokens ficam neste dispositivo. Escolher uma Google Font é a única etapa que sai do dispositivo: o Lolly pergunta antes e depois busca a família uma vez.
 
-Quando estiver bom, dê um nome ao sistema de design e pressione **Export**. Você recebe um arquivo `.lolly` para guardar, abrir em outro dispositivo ou entregar a um colega. [Settings](/info/dashboard.html#design-system) mostra o sistema ativo somente leitura, e a capa dele leva de volta para cá para edição.
+Quando estiver bom, dê um nome ao sistema de design e pressione **Export**. Você recebe um arquivo `.lolly` para guardar, abrir em outro dispositivo ou entregar a um colega. [Lolly Settings](/info/dashboard.html#design-system) mostra o sistema ativo somente leitura, e a capa dele leva de volta para cá para edição.
 
 ## Deixe com a sua cara em cinco minutos
 

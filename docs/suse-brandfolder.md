@@ -12,7 +12,7 @@ At SUSE, the Brandfolder integration helped Lolly inherit that existing system d
 
 ## What the connector provides
 
-The public [Brandfolder source guide](/info/work-provider-brandfolder.html) describes the implementation: assets enter the Work catalog as references, selected by exposure rules, and Brandfolder remains the source of record while connected. Current attachments keep their file identities when selected in Lolly.
+The public [Brandfolder source guide](/info/work-provider-brandfolder.html) describes the implementation: assets enter the Lolly Work catalog as references, selected by exposure rules, and Brandfolder remains the source of record while connected. Current attachments keep their file identities when selected in Lolly.
 
 That technical contract explains the supported integration. It does not establish which optional field or action the SUSE deployment exercised. The maintainer's account confirms successful use and its role in adoption; the two Brandfolder availability-field mappings still have a separate live-check requirement in the guide. Outbound Brandfolder delivery is a different adapter with its own qualification requirements.
 

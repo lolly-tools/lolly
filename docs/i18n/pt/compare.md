@@ -44,7 +44,7 @@ O uso autônomo mantém os arquivos no dispositivo. Escolher projetos compartilh
 
 Estes limites valem para todas as páginas deste conjunto, então são declarados uma vez aqui:
 
-- **Os collabs de trabalho rodam hoje em um único nó de servidor.** A escala e o histórico de operação deles diferem dos produtos hospedados consolidados. [Work status and roadmap](/info/work-status.html) registra os limites atuais.
+- **Os collabs de trabalho rodam hoje em um único nó de servidor.** A escala e o histórico de operação deles diferem dos produtos hospedados consolidados. [Lolly Work status and roadmap](/info/work-status.html) registra os limites atuais.
 - **O site em [lolly.work](https://lolly.work) é um sandbox de demonstração.** Uma implantação durável de organização precisa de armazenamento persistente e de um operador; [Install Lolly Work](/info/work-install.html) cobre ambos.
 - **Não há cobrança de licença de software por usuário** para o Lolly nem para um Lolly Work auto-hospedado. Hospedagem, armazenamento e operações ainda custam dinheiro.
 - **Uma assinatura não é um signatário confiável.** Um verificador precisa confiar no certificado que assinou um arquivo antes de mostrar o signatário como confiável; [Content Credentials Identity](/info/content-credentials-identity.html) explica como.

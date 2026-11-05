@@ -14,7 +14,7 @@ Ihr Profil enthält auch, was Sie bei der Arbeit aufbauen: gespeicherte Sitzunge
 | **Headshot** | Ein optionales Foto, auf ein Quadrat zugeschnitten und als lokales Bild behalten, für Tools wie E-Mail-Signaturen, Zitatkarten und Organigramme. |
 | **Use my details to create** | Ein Opt-in-Schalter (er heißt **Using my details**, sobald er an ist). Er entscheidet, ob Ihre Angaben als Urheberhinweis in exportierten Dateien und bei Batch-Läufen mitreisen. Das Vorausfüllen beeinflusst er nicht; siehe [Wie Tools Ihr Profil nutzen](#how-tools-use-your-profile). |
 | **Preferences** | Ihr Design, Ihre Farbvariante in jedem Designsystem, Ihre Einstellungen zur Barrierefreiheit und welche Teile der App Sie in **Feature flags** eingeschaltet haben. |
-| **Your work** | Gespeicherte Sitzungen mit ihren Vorschaubildern, geordnet in [Projects](/info/find-your-work.html), Ihre hochgeladenen Bilder und Ihre lokalen Aktivitätsstatistiken. |
+| **Your work** | Gespeicherte Sitzungen mit ihren Vorschaubildern, geordnet in [Lolly Projects](/info/find-your-work.html), Ihre hochgeladenen Bilder und Ihre lokalen Aktivitätsstatistiken. |
 
 Nichts davon ist erforderlich. Ein leeres Profil funktioniert; füllen Sie nur aus, was Ihnen Tipparbeit spart.
 
@@ -45,7 +45,7 @@ Eine Eventmanagerin will an drei Tagen im Jahr das Event-Postfach und die Event-
 ::: details Profile in einer Organisation mit Lolly Work
 Wenn Sie sich am [Lolly einer Organisation](/info/organisation.html) anmelden, kann Lolly Work verifizierte Profilfelder von seinem Identitätsanbieter liefern und Felder oder Einstellungen nach der Richtlinie der Organisation festlegen. Ein verwaltetes Feld ist in der App gekennzeichnet.
 
-Diese Anmeldung steuert auch den Zugriff auf gemeinsame Projekte und Assets. Eine Teamprofil-Datei bleibt eine lokale Datei: Sie gewährt keine Mitgliedschaft in der Organisation und ersetzt kein Work-Konto. **Use my details to create** steuert den Urheberhinweis in Ihren Exporten, nicht die Anmelde- oder Audit-Aufzeichnungen der Organisation. Siehe [Datenschutz](/info/privacy.html#organisation-services-with-lolly-work).
+Diese Anmeldung steuert auch den Zugriff auf gemeinsame Projekte und Assets. Eine Teamprofil-Datei bleibt eine lokale Datei: Sie gewährt keine Mitgliedschaft in der Organisation und ersetzt kein Lolly Work-Konto. **Use my details to create** steuert den Urheberhinweis in Ihren Exporten, nicht die Anmelde- oder Audit-Aufzeichnungen der Organisation. Siehe [Datenschutz](/info/privacy.html#organisation-services-with-lolly-work).
 :::
 
 ## Mehrere behalten, eines nutzen
@@ -83,7 +83,7 @@ Für Tool-Autoren: siehe [`bindToProfile`](/info/tool-inputs.html#bindtoprofile)
 Drei Dinge stehen in Settings nahe beieinander und lassen sich leicht verwechseln:
 
 - <!--i:people--> **Profile** - Sie, Ihr Team oder die Rolle, in der Sie sind: Name, Kontakt, Porträtfoto und gespeicherte Arbeit. Persönlich, auf dem Gerät gehalten und als Datei portabel.
-- <!--i:palette--> **Design system** - die Marke: Farben, Schriften und Einstellungen, mit denen jedes Tool rendert. Geteilt und einheitlich statt persönlich; siehe [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - die Marke: Farben, Schriften und Einstellungen, mit denen jedes Tool rendert. Geteilt und einheitlich statt persönlich; siehe [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - was die App kann: die Funktionen und Tools, die Ihnen zur Verfügung stehen.
 
 Ein Profil ändert, von wem eine Datei stammt; das Designsystem ändert, wie die Datei aussieht; Capabilities sind das, was Sie erstellen können.
@@ -94,4 +94,4 @@ Das Wort hat in Lolly drei weitere Bedeutungen. Ein **Content-Profil** ist eine 
 
 ## Datenschutz
 
-Ihr persönliches Profil wird lokal gespeichert. Ihre Angaben können in einem Backup oder einer Sync-Kopie, in Inhalten, die Sie teilen oder exportieren, und bei der optionalen Registrierung für Content Credentials mitreisen. Auf einer Lolly-Work-Instanz sind Anmeldung, gemeinsame Arbeit, Telemetrie-Richtlinie und Audit-Aufzeichnungen von diesem lokalen Profil getrennt. **Settings → Preferences → Clear all my data** leert dieses Gerät; es löscht keine Kopien, die Ihr Speicheranbieter oder Ihre Organisation hält. Siehe die [Datenschutzrichtlinie](/info/privacy.html).
+Ihr persönliches Profil wird lokal gespeichert. Ihre Angaben können in einem Backup oder einer Sync-Kopie, in Inhalten, die Sie teilen oder exportieren, und bei der optionalen Registrierung für Content Credentials mitreisen. Auf einer Lolly-Lolly Work-Instanz sind Anmeldung, gemeinsame Arbeit, Telemetrie-Richtlinie und Audit-Aufzeichnungen von diesem lokalen Profil getrennt. **Settings → Preferences → Clear all my data** leert dieses Gerät; es löscht keine Kopien, die Ihr Speicheranbieter oder Ihre Organisation hält. Siehe die [Datenschutzrichtlinie](/info/privacy.html).

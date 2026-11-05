@@ -95,6 +95,7 @@ export function reflectArtboardDims(ta: ActionsCtx): void {
   wEl.value = ta.dims.dispDim(tgt.w);
   hEl.value = ta.dims.dispDim(tgt.h);
   ta.preflight.refreshPreflight();
+  ta.approvalState.sizeChanged();
 }
 // Preview the export aspect ratio on the canvas, then re-fit to the stage.
 export function refreshCanvasPreview(ta: ActionsCtx): void {

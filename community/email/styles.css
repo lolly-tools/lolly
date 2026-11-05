@@ -1,0 +1,143 @@
+/* Email - one message that fills the canvas. The page is the query container
+   every cq unit below resolves against. On a page or a portrait sheet the
+   message reads top to bottom; on a wide screen the header, subject and
+   attachments stand in a column beside the message. --qe-scale (from
+   hooks.js) sets a long message smaller and a short one larger. */
+
+.qe-page {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  container-type: size;
+  box-sizing: border-box;
+  background: var(--qe-bg, #ffffff);
+  color: var(--qe-ink, #111827);
+  font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  line-height: 1.42;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.qe-page * { box-sizing: border-box; margin: 0; }
+
+.qe-sheet {
+  --qe-fs: calc(2.7cqmin * var(--qe-scale, 1));
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3cqmin;
+  padding: 5.5cqmin 6cqmin;
+  font-size: var(--qe-fs);
+}
+
+.qe-head { display: flex; align-items: center; gap: 2.4cqmin; }
+.qe-avatar {
+  flex: none;
+  width: 8cqmin;
+  height: 8cqmin;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--qe-accent, #2563eb);
+  color: var(--qe-bg, #ffffff);
+  font-size: 3.2cqmin;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.qe-who { flex: 1; min-width: 0; font-size: 2.5cqmin; }
+.qe-from b { font-weight: 700; }
+.qe-address, .qe-to { opacity: 0.65; }
+.qe-from, .qe-to { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qe-when { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 0.8cqmin; font-size: 2.3cqmin; }
+.qe-date { opacity: 0.65; }
+.qe-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6cqmin;
+  padding: 0.5cqmin 1.6cqmin;
+  border-radius: 99cqmin;
+  border: 0.25cqmin solid currentColor;
+  font-size: 2cqmin;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.is-sent .qe-status { border-color: var(--qe-accent, #2563eb); background: var(--qe-accent, #2563eb); color: var(--qe-bg, #ffffff); opacity: 1; }
+.qe-status svg { width: 2.4cqmin; height: 2.4cqmin; }
+
+.qe-subject {
+  padding-bottom: 2.4cqmin;
+  border-bottom: 0.2cqmin solid color-mix(in srgb, currentColor 18%, transparent);
+  font-size: 4.6cqmin;
+  font-weight: 750;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.qe-body { flex: 1; min-height: 0; overflow: hidden; overflow-wrap: anywhere; }
+.qe-body p + p, .qe-body p + ul, .qe-body p + ol, .qe-body ul + p, .qe-body ol + p { margin-top: 0.75em; }
+.qe-body ul, .qe-body ol { padding-left: 1.3em; display: flex; flex-direction: column; gap: 0.35em; }
+.qe-body ol { list-style: none; padding-left: 0; }
+.qe-body .md-index { display: inline-block; min-width: 1.4em; color: var(--qe-accent, #2563eb); font-weight: 700; }
+.qe-body a { color: var(--qe-accent, #2563eb); }
+.qe-body strong { font-weight: 700; }
+
+.qe-files { display: flex; flex-wrap: wrap; gap: 1.6cqmin; }
+.qe-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.2cqmin;
+  max-width: 100%;
+  padding: 1cqmin 2cqmin 1cqmin 1cqmin;
+  border-radius: 1.2cqmin;
+  border: 0.2cqmin solid color-mix(in srgb, currentColor 22%, transparent);
+  font-size: 2.2cqmin;
+}
+.qe-ext {
+  flex: none;
+  padding: 0.6cqmin 1cqmin;
+  border-radius: 0.6cqmin;
+  background: var(--qe-accent, #2563eb);
+  color: var(--qe-bg, #ffffff);
+  font-size: 1.7cqmin;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+}
+.qe-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Portrait: the date and status drop under the sender. */
+@container (max-aspect-ratio: 4 / 5) {
+  .qe-sheet { --qe-fs: calc(2.5cqmin * var(--qe-scale, 1)); }
+  .qe-head { flex-wrap: wrap; }
+  .qe-when { flex-direction: row; align-items: center; width: 100%; justify-content: space-between; }
+}
+
+/* Wide: a screen or a slide. Sized to the page's height (cqmin); the header,
+   subject and attachments stand in a column beside the message. */
+@container (min-aspect-ratio: 2 / 1) {
+  .qe-sheet {
+    --qe-fs: calc(3.6cqmin * var(--qe-scale, 1));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.75fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas: "head body" "subject body" "files body";
+    gap: 3.5cqmin 8cqmin;
+    padding: 7cqmin 7cqmin 6cqmin;
+  }
+  .qe-head { grid-area: head; flex-wrap: wrap; align-items: flex-start; }
+  .qe-avatar { width: 11cqmin; height: 11cqmin; font-size: 4.4cqmin; }
+  .qe-who { font-size: 3.4cqmin; }
+  .qe-when { width: 100%; flex-direction: row; align-items: center; justify-content: space-between; font-size: 3cqmin; }
+  .qe-status { font-size: 2.8cqmin; padding: 0.8cqmin 2.4cqmin; }
+  .qe-status svg { width: 3.4cqmin; height: 3.4cqmin; }
+  .qe-subject { grid-area: subject; font-size: 6.4cqmin; border-bottom: 0; padding-bottom: 0; }
+  .qe-files { grid-area: files; align-self: end; flex-direction: column; align-items: flex-start; }
+  .qe-file { font-size: 3cqmin; }
+  .qe-ext { font-size: 2.3cqmin; }
+  .qe-body {
+    grid-area: body;
+    padding-left: 7cqmin;
+    border-left: 0.3cqmin solid color-mix(in srgb, var(--qe-accent, #2563eb) 60%, transparent);
+  }
+}

@@ -8,7 +8,7 @@ Ihanda ang web address na dapat buksan ng code, nagsisimula sa `https://`.
 
 ## Gumawa ng code
 
-1. Buksan ang [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Nasa tabi ng preview ang mga control, o sa itaas nito sa telepono; ang ipinapakita ng preview ang magiging file.
+1. Buksan ang [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Nasa tabi ng preview ang mga control, o sa itaas nito sa telepono; ang ipinapakita ng preview ang magiging file.
 2. Sa **URL**, palitan ang buong halimbawang address ng sarili mo. Nagbabago ang preview habang nagta-type ka.
 3. Para itugma ang sarili mong mga kulay, itakda ang **Kulay ng module** at **Background**. Panatilihing malakas ang contrast sa pagitan nila, o mahihirapang basahin ng mga telepono ang code.
 4. **Tahimik na sona**, sa ilalim ng **Modules**, nagsisimula sa 4. Panatilihin itong 4 o higit pa: iyon ang plain margin na hinahanap ng camera ng telepono.
@@ -38,8 +38,8 @@ Nananatili ang naka-save na gawa sa device na ito, sa browser o app na ginamit m
 
 ## Iba pang unang project
 
-- Ginagawang video ng [Audiogram](/#/tool/audiogram) ang isang voice note: isang gumagalaw na waveform, ang mga salita mo sa cover, ang mga kulay mo. Ilagay ang recording sa **Audio**, magdagdag ng **Pamagat**, pagkatapos ay mag-export ng **MP4**.
-- Ginagawan ng [Filter](/#/tool/filter) ang isang larawan para sa isang poster: naka-print na halftone dots, dalawang flat na kulay o ilang blocks ng tono. Piliin ang larawan sa ilalim ng **Larawan**, pumili ng **Epekto**, pagkatapos ay mag-export ng **PNG**, o **SVG** sa isang effect na may badge na *vector*.
+- Ginagawang video ng [Lolly Audiogram](/#/tool/audiogram) ang isang voice note: isang gumagalaw na waveform, ang mga salita mo sa cover, ang mga kulay mo. Ilagay ang recording sa **Audio**, magdagdag ng **Pamagat**, pagkatapos ay mag-export ng **MP4**.
+- Ginagawan ng [Lolly Filter](/#/tool/filter) ang isang larawan para sa isang poster: naka-print na halftone dots, dalawang flat na kulay o ilang blocks ng tono. Piliin ang larawan sa ilalim ng **Larawan**, pumili ng **Epekto**, pagkatapos ay mag-export ng **PNG**, o **SVG** sa isang effect na may badge na *vector*.
 
 ## Susunod
 

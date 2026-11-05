@@ -6,7 +6,7 @@ Nếu tổ chức của bạn giữ tài nguyên đã duyệt trong Bynder, Fron
 
 ## Một cổng thông tin lâu đời làm tốt hơn điều gì
 
-Các cổng lâu đời cung cấp lưu trữ được quản lý, hỗ trợ và quy trình quản lý tài nguyên phong phú. Chẳng hạn, [DAM doanh nghiệp của Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kết hợp khám phá tài nguyên, kiểm soát truy cập, quy trình phê duyệt và phân phối. Bộ Lolly còn non trẻ hơn và chuỗi phê duyệt của nó tuần tự thay vì quy trình rẽ nhánh tùy ý. [Work status and roadmap](/info/work-status.html) ghi các giới hạn triển khai của nó.
+Các cổng lâu đời cung cấp lưu trữ được quản lý, hỗ trợ và quy trình quản lý tài nguyên phong phú. Chẳng hạn, [DAM doanh nghiệp của Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kết hợp khám phá tài nguyên, kiểm soát truy cập, quy trình phê duyệt và phân phối. Bộ Lolly còn non trẻ hơn và chuỗi phê duyệt của nó tuần tự thay vì quy trình rẽ nhánh tùy ý. [Lolly Work status and roadmap](/info/work-status.html) ghi các giới hạn triển khai của nó.
 
 ## Điểm giao nhau
 

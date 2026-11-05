@@ -28,7 +28,7 @@ Lollys live samarbeid omfatter direkte private collabs mellom to enheter og aute
 ## Velg Lolly når
 
 - Den samme typen fil trengs om og om igjen: arrangementsfliser, navneskilt, sertifikater, varsler, sosiale kort
-- Mange filer kommer fra én mal og en tabell med verdier, i [Batch](/info/batch.html#make-many-versions-of-one-design) eller CLI-et
+- Mange filer kommer fra én mal og en tabell med verdier, i [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) eller CLI-et
 - Fargene, skriften og ressursene må holde seg innenfor designsystemet, selv på et åpent lerret
 - Et ferdig Figma-, Penpot-, Illustrator-, InDesign- eller PDF-design skal bli redigerbart og repeterbart ([Import a design](/info/design-import.html))
 - Filene må lages på dine egne enheter eller servere

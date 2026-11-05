@@ -34,7 +34,7 @@ Most formats come straight from the engine. The rest need a paint tier: a Lolly 
 - PNG from those same tools, rasterised by resvg
 - HTML and the text and data formats: JSON, CSV, ICS, VCF and Markdown
 - `.penpot`, dotLottie, IDML, Premiere XML and JPEG XL, where a tool offers them
-- Outlined static Design PDFs, with `--export=pdf --text=outline`
+- Outlined static Lolly Design PDFs, with `--export=pdf --text=outline`
 
 ## Needs Chromium or the desktop app
 

@@ -206,7 +206,7 @@ Interaction distinguishes four things that are often conflated: user intent, dev
 
 ## Motion requirements before a shared timeline type
 
-The animation expansion pilot (plan 281) uses existing Design rows, `start`/`dur`, compact `kf` tracks, split text, a camera and an audio asset. Those are a source adapter for present behaviour, not an implementation of `TimelineV1`. A standalone HTML player can evaluate that source through the same Sequence evaluator without adding a second authored timeline. The following requirements extend the draft; nested composition remains unimplemented.
+The animation expansion pilot (plan 281) uses existing Lolly Design rows, `start`/`dur`, compact `kf` tracks, split text, a camera and an audio asset. Those are a source adapter for present behaviour, not an implementation of `TimelineV1`. A standalone HTML player can evaluate that source through the same Sequence evaluator without adding a second authored timeline. The following requirements extend the draft; nested composition remains unimplemented.
 
 - **Hierarchy has separate meanings.** An organisational group, a transform parent, a clipping group and a timed composition must be distinguishable. A composition must declare its coordinate domain, pivot and parent transform order. Parentage must be acyclic. Moving a parent must not require rewriting every child's intrinsic geometry.
 - **Time maps must be explicit.** Project presentation time maps to composition-local time and then to media time through declared offsets, trims and rates. Bounds, looping, reverse playback and sample intervals need defined behaviour. Seeking to a sample must give the same pose after forward playback, backward seeking or a fresh load. A transport at the end may display a declared final sample without inventing an extra movie frame.
@@ -218,7 +218,7 @@ These requirements are tested by cases 26 to 28 in [Proof cases](proof-cases.htm
 
 ### Bounded scenes in the current adapter
 
-Timed Design artboards now provide a bounded scene adapter. Membership uses the existing frame id. A child's geometry is relative to its artboard, while its stored start remains in project time. Moving a scene shifts its members' explicit starts; their clip-local keyframes remain unchanged. This storage convention is compatible with current Design files but is not the proposed intrinsic local-time model for nested compositions.
+Timed Lolly Design artboards now provide a bounded scene adapter. Membership uses the existing frame id. A child's geometry is relative to its artboard, while its stored start remains in project time. Moving a scene shifts its members' explicit starts; their clip-local keyframes remain unchanged. This storage convention is compatible with current Lolly Design files but is not the proposed intrinsic local-time model for nested compositions.
 
 Each scene evaluates its camera using its own dimensions and member layers. Scene audio intersects the parent's interval, advancing the source trim and gain track when the beginning is clipped. Unframed audio can span the project independently. During a dissolve, an outgoing scene holds its last in-bounds visual sample; its audio ends at the scene boundary. The HTML player and movie share the existing transition lowering and contain-fit policy.
 

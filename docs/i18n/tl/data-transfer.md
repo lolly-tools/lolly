@@ -152,7 +152,7 @@ Ipinapakita ng storage meter ang parehong paghahati. Ang mga naka-save na sessio
 
 Ang bundle na ito ay nagba-back up ng personal na library ng device. Hindi ito backup ng **Lolly Work** instance: ang mga account ng organisasyon, access policy, shared project, bersyon ng catalog, approval, render job at audit record ay hawak ng serbisyong iyon. Kumonekta muli at mag-sign in para mabawi ang access sa shared work; ang pag-import ng personal na bundle ay hindi nagbibigay ng access na iyon.
 
-Ang mga operator ang nagba-back up, nag-iingat at nagbubura ng server data gamit ang sariling mga gabay ng Lolly Work: [Backup at restore](/info/work-operations.html#backup-and-restore) at [Work storage at data lifecycle](/info/work-data-lifecycle.html). Ang pag-clear o pag-export ng device ay hindi gumagawa ng alinman sa mga server operation na iyon.
+Ang mga operator ang nagba-back up, nag-iingat at nagbubura ng server data gamit ang sariling mga gabay ng Lolly Work: [Backup at restore](/info/work-operations.html#backup-and-restore) at [Lolly Work storage at data lifecycle](/info/work-data-lifecycle.html). Ang pag-clear o pag-export ng device ay hindi gumagawa ng alinman sa mga server operation na iyon.
 
 ## Sa iba't ibang shell
 

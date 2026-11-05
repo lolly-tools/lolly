@@ -14,13 +14,13 @@ Tu perfil también guarda lo que acumulas mientras trabajas: sesiones guardadas,
 | **Headshot** | Una foto opcional, recortada a un cuadrado y guardada como imagen local, para herramientas como firmas de correo, tarjetas de cita y organigramas. |
 | **Use my details to create** | Un interruptor de aceptación (se lee **Using my details** una vez activado). Decide si tus datos viajan como crédito de autoría en los archivos exportados y en las ejecuciones de Batch. No afecta al rellenado previo; consulta [How tools use your profile](#how-tools-use-your-profile). |
 | **Preferences** | Tu tema, tu colourway en cada design system, tus ajustes de accesibilidad y qué partes de la aplicación activaste en **Feature flags**. |
-| **Your work** | Sesiones guardadas con sus miniaturas, organizadas en [Projects](/info/find-your-work.html), tus imágenes subidas y tus estadísticas locales de actividad. |
+| **Your work** | Sesiones guardadas con sus miniaturas, organizadas en [Lolly Projects](/info/find-your-work.html), tus imágenes subidas y tus estadísticas locales de actividad. |
 
 Nada es obligatorio. Un perfil en blanco funciona; rellena solo lo que te ahorre escribir.
 
 ![Settings en la pestaña Preferences: el carril de ajustes, y Your details con el interruptor Use my details to create y los campos de nombre, contacto y ubicación](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) recoge todo lo demás de Preferences, desde la apariencia y los emojis hasta el almacenamiento y las descargas sin conexión.
+[Lolly Settings](/info/dashboard.html) recoge todo lo demás de Preferences, desde la apariencia y los emojis hasta el almacenamiento y las descargas sin conexión.
 
 ## Tú, un equipo o un rol
 
@@ -83,7 +83,7 @@ Autores de herramientas: consultad [`bindToProfile`](/info/tool-inputs.html#bind
 Tres cosas están cerca en Settings y es fácil confundirlas:
 
 - <!--i:people--> **Profile** - tú, tu equipo o el rol en el que estás: nombre, contacto, foto y trabajo guardado. Personal, guardado en el dispositivo y portátil como archivo.
-- <!--i:palette--> **Design system** - la marca: los colores, fuentes y ajustes con los que se renderiza cada herramienta. Compartido y coherente más que personal; consulta [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - la marca: los colores, fuentes y ajustes con los que se renderiza cada herramienta. Compartido y coherente más que personal; consulta [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - lo que puede hacer la aplicación: las funciones y herramientas a tu disposición.
 
 Un perfil cambia de quién es un archivo; el design system cambia cómo se ve el archivo; las capacidades son lo que puedes crear.

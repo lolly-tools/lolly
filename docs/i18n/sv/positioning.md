@@ -28,7 +28,7 @@ Lollys levande samarbete inkluderar direkta privata collabs mellan två enheter 
 ## Ta till Lolly när
 
 - Samma sorts fil behövs om och om igen: eventrutor, namnbrickor, certifikat, larm, sociala kort
-- Många filer kommer från en mall och en tabell med värden, i [Batch](/info/batch.html#make-many-versions-of-one-design) eller CLI
+- Många filer kommer från en mall och en tabell med värden, i [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) eller CLI
 - Färgerna, typografin och tillgångarna måste hålla sig inom designsystemet, även på en öppen yta
 - En färdig Figma-, Penpot-, Illustrator-, InDesign- eller PDF-design ska bli redigerbar och upprepbar ([Importera en design](/info/design-import.html))
 - Filerna måste göras på dina egna enheter eller servrar

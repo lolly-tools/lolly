@@ -6,7 +6,7 @@ how to keep all of it as one reviewable document. A typical rule: sales can chan
 headline, but not the logo.
 
 Governance is data, held on the server, edited live and exportable as one document. It never
-forks the pack's `tool.json`: the open-source tool definition stays untouched, and Work lays
+forks the pack's `tool.json`: the open-source tool definition stays untouched, and Lolly Work lays
 its rules over that definition. Everything here is live-editable in the console (**This Deploy → Tools**,
 **This Deploy → Feature flags** and **Grants**) and reaches connected shells on their next
 poll.
@@ -26,7 +26,7 @@ the audit log and clears the render cache for exactly the affected renders.
 rule whose groups match the person wins, and no match means `editable`.
 
 ::: figure work-governance-rule-order
-Work reads one input's rules from the top and stops at the first group that matches.
+Lolly Work reads one input's rules from the top and stops at the first group that matches.
 :::
 
 | Level | Effect |
@@ -80,14 +80,40 @@ groups: not greyed out, not hidden in the client. `*` means everyone.
 | `formats` | for example `["svg","png"]` | Enforced: restricts output formats. |
 | `watermark` | `always` | Enforced: every render carries the [PREVIEW watermark](sharing.md#preview-watermarking). |
 | `watermark` | `never` | Enforced: no render carries the watermark, including a render made for a share link or preview that would otherwise ask for one. |
-| `watermark` | `until-approved` | Stored, not linked to approval state yet: it behaves like no rule, so only a render made for a share link or preview carries the watermark. Set `always` if you need the watermark on every render. |
+| `watermark` | `until-approved` | Enforced on server renders: each render carries the watermark until a request for the same inputs is approved. See [follow approval](#a-watermark-that-follows-approval). |
 | `defaults` | input values | Stored, not applied to a tool's initial inputs by org-config or the render paths. Locked presets do enforce values. |
-| `c2pa`, `escalation` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Work export signing](c2pa.md)), and chain binding works as [Approvals](approvals.md) describes. |
+| `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. |
+| `c2pa` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)). |
 
-The console offers **Always watermark**, **Never watermark** and **No rule** for new edits. An
-existing `until-approved` setting is kept with a warning that it is not enforced. Stored fields
-the policy writer cannot keep, such as `enforce.escalation`, block a console save with an
+The console offers **No rule**, **Never watermark**, **Always watermark** and **Until approved**.
+Stored fields the policy writer cannot keep, such as `enforce.c2pa`, block a console save with an
 explanation rather than being silently removed.
+
+### A watermark that follows approval
+
+With `until-approved`, a server render carries the PREVIEW pattern unless an approved
+[export review](approvals.md) matches it: the same tool, the same tool version, the same format
+and the same input values. A different value, a new tool version or another format stays marked
+until someone approves that one too. A request in review, rejected or withdrawn leaves the mark on.
+A decision takes effect on the next render. An approved match lifts the mark everywhere, including
+share links and a caller asking for a preview. `always` and `never` keep their meaning.
+
+Set a chain in **Approval chain for exports** as well. Without a chain, nobody can approve the
+tool, so its renders stay marked, and the console says so.
+
+Server renders under this rule, share links included, are never stored by a browser or shared
+cache. An `x-lolly-watermark` header says how each one came out: `Marked until approved` or
+`Approved, not marked`. A durable render's output carries the same words, and its receipt gives the
+id of the approval that matched. The words are in the record, not the artwork.
+
+- **Upgrading.** Until this release `until-approved` was stored and not enforced. An instance
+  already holding the setting starts showing PREVIEW on the first render after the upgrade. Change
+  the rule first if that is not what you want.
+- **What a match rests on.** The match uses the input values the requesting app states. A member
+  could send values that do not match the file they send. The mark is a preview signal for people,
+  not a security boundary.
+- **What it covers.** The rule applies to renders Lolly Work makes. Exports a person makes on their
+  own device follow **Approval chain for exports** and their `export.download` permission instead.
 
 ::: details Using the policy editor
 - The console keeps saved format restrictions and input defaults when you edit inputs,
@@ -133,7 +159,7 @@ keeps every field your organisation has no opinion about.
 
 ## Feature flags
 
-Work governs the shell's per-person feature toggles it knows about, with two settings per
+Lolly Work governs the shell's per-person feature toggles it knows about, with two settings per
 flag for the whole instance and the same two settings for any group you choose:
 
 | Setting | Values | Meaning |
@@ -151,7 +177,7 @@ Governable today (the ids are the shell's own):
 | `jelly-effects` | on | a soft squish on chrome controls; respects reduced motion and never touches output |
 | `strip-upload-metadata` | off | strips EXIF and GPS from uploaded images (Content Credentials are kept either way) |
 | `export-preflight` | off | the export panel's prepress card: bleed, resolution, ink coverage and plate counts |
-| `private-collab` | on | the device-to-device invite and accept for editing together; force it off and hide it to route collaboration through Work only |
+| `private-collab` | on | the device-to-device invite and accept for editing together; force it off and hide it to route collaboration through Lolly Work only |
 | `nearby-discovery` | on | mDNS discovery of nearby Lolly devices for handing over collab invites (native shells only) |
 
 `GET /api/v1/policy/flags` and `PUT /api/v1/policy/flags/:flagId` use the same `policy.edit`
@@ -169,7 +195,7 @@ everyone. Use one to let a team pilot a feature: set the flag Off and Hidden for
 then add a rule that sets it On and Shown for the pilot group. Nobody else sees a switch, and
 the pilot team can turn the feature off for themselves.
 
-For one person, Work works out each setting in this order:
+For one person, Lolly Work works out each setting in this order:
 
 1. A rule for a group the person is in wins over the setting for everyone.
 2. When several of the person's groups have rules, Off wins over On and Hidden wins over
@@ -179,7 +205,7 @@ For one person, Work works out each setting in this order:
    default.
 
 A rule may set only the default or only the toggle; the setting it leaves out stays the one
-for everyone. Group names match exactly as the identity provider or Work holds them,
+for everyone. Group names match exactly as the identity provider or Lolly Work holds them,
 including letter case, and `*` is not a group. Each flag holds up to 100 rules, one per group.
 
 In the console, open **Group rules** on a flag's card to add, change or remove a rule. Known
@@ -200,8 +226,8 @@ flag's `groups`.
 With `featureFlags.ofrep` set in `instance.json`, your organisation's flag service decides
 the default of the flags it lists, through OpenFeature (OFREP). It sees only the person's
 groups and role. The settings on this page are then the fallback whenever the service does
-not answer, and the toggle setting always stays Work's. The shell keeps reading one value per
-flag from Work, so it never contacts the flag service. The console shows a **Flag service**
+not answer, and the toggle setting always stays Lolly Work's. The shell keeps reading one value per
+flag from Lolly Work, so it never contacts the flag service. The console shows a **Flag service**
 card with the service's address, its request and fallback counts and its last answer, and
 marks each flag the service decides. [Configuration](configuration.md#featureflags) lists
 what is sent and how failures are handled.
