@@ -204,6 +204,8 @@ Lolly can seal a **Content Credential** into your exports, so anyone can check o
 
 The credential and the file's metadata also record the [design system and colourway](/info/exporting.html#the-design-system-record) that drew the export: the design system's id and name, its published version and the colourway. A design system's name is text its owners typed and can be a client's name, so the export panel's **Design system** card shows the exact words before you export. Untick the card, or pass `_madewith=0` or `--no-madewith`, to leave them out.
 
+A file made from an [intent](/info/visual-intent.html#what-goes-in-the-file) also records what it was asked to do: the purpose, surface, tool, language and a digest of the request. Occasion, audience, region and any prompt are fingerprints only. A prompt's own words go in only when the person or agent running that render asks, and the run says so, because anyone a file reaches can read them. The record can be left out, and no other export carries one.
+
 The one *optional* step on top of that is enrolling a verified identity, so your exports say "Verified - signed by \<your email\>" instead of naming an anonymous key. **If you skip enrolment, the certificate service receives no enrolment data from you.**
 
 ![The Verified identity card in Settings, phone-width: the certificate lifetime picker and the enrolment step beneath it, dormant until you start it yourself](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)

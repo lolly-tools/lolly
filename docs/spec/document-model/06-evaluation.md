@@ -59,7 +59,9 @@ Invariant 1 of the [constitution](constitution.html) asks the source to record m
 
 A resolution keeps three kinds of value apart, because they are treated differently wherever they are stored. Closed values are vocabulary and repository facts: purpose, surface, language, chosen tool and rules version. Free text is what a caller wrote about the circumstances: occasion, audience and region. The prompt is what a user first said to an agent. Nothing that decides reads the free text or the prompt, so neither can change a choice. A request that gives a prompt and no purpose is answered with the code `intent.purpose-needed` and the vocabulary, so the agent that can read its own user's words chooses the purpose, and no model enters this path.
 
-This slice writes nothing into an output and adds no field to a receipt. It chooses among tools, not layouts, so locale contracts, adaptive layout and the campaign resolution of plan 338 remain unbuilt, and it does not read the result to check the choice. Its rules carry their own version, `closed.rulesVersion`, and a later rule change must bump that version.
+A render that starts from an intent may record it in the artifact, as the `tools.lolly.intent` assertion in its Content Credential. Closed values read as themselves. Free text and the prompt are `sha256:` fingerprints, unless that run asks to record the prompt's words. The record states what was asked for and which tool answered, and a run reports it only from a readback of the finished file.
+
+This slice adds no field to a receipt. It chooses among tools, not layouts, so locale contracts, adaptive layout and the campaign resolution of plan 338 remain unbuilt, and it does not read the result to check the choice. Its rules carry their own version, `closed.rulesVersion`, and a later rule change must bump that version.
 
 ## Recording is three axes
 

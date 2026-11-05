@@ -197,7 +197,7 @@ export interface VisualIntentV1 extends IntentFreeTextV1 {
   purpose?: IntentPurposeV1;
   /** The user's first words to an agent, at most `INTENT_LIMITS.promptChars`. Never read for meaning. */
   prompt?: string;
-  /** Reserved for recording the prompt with a render. Boolean, default false. Records nothing yet. */
+  /** Asks a render to record the prompt's own words in the file's credential. Default false: a fingerprint. A run's own answer wins. */
   recordPrompt?: boolean;
   /** Content by role: keys are `INTENT_ROLES`. */
   content?: Record<string, unknown>;
@@ -482,7 +482,7 @@ export interface IntentResolutionV1 {
   freeText: IntentFreeTextV1;
   /** The user's words as given, or null. Carried, never read. */
   prompt: string | null;
-  /** The request's reserved flag. Records nothing yet. */
+  /** The request's own answer on recording the prompt's words. A run's own answer wins. */
   recordPrompt: boolean;
   outcome: IntentOutcomeV1;
   /** Empty on `purpose-needed`. */

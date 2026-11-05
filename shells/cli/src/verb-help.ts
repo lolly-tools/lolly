@@ -332,7 +332,8 @@ says why and shows what it could not fill.
 
 Usage:
   lolly intent <intent.json|-> [--json]
-  lolly intent <intent.json|-> --render [--out-dir=<dir>] [--json]
+  lolly intent <intent.json|-> --render [--out-dir=<dir>] [--no-record-intent]
+                                        [--record-prompt] [--c2pa=<off|days>] [--json]
 
 Input:
   A JSON file, or - to read standard input (schemas/visual-intent-v1.schema.json):
@@ -349,8 +350,19 @@ Options:
                      and write the answer beside them as intent-resolution.json. A tool
                      that needs a browser needs the browser tier (lolly install-browser)
   --out-dir=<dir>    where --render writes. Default ./out
+  --no-record-intent leave the intent out of each file's Content Credential
+  --record-prompt    record the prompt's own words in the credential. Without this it is
+                     a fingerprint. Files travel, so leave it off for personal or
+                     confidential detail
+  --c2pa=<off|days>  the credential's lifetime, or off for none. With no credential the
+                     intent is not recorded, and the run says so
   --json             one JSON envelope on standard output; the result is the resolution
                      (schemas/intent-resolution-v1.schema.json) and any files made
+
+What goes in each file:
+  Purpose, surface, tool, language, the rules and vocabulary versions and the intent digest,
+  as themselves. Occasion, audience, region and the prompt as fingerprints only. Each run
+  says what it recorded, read back from the finished file.
 
 Exit codes:
   0 every surface is ready, and made with --render

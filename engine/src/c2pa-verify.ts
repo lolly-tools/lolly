@@ -47,7 +47,8 @@
  * Handlebars - fully node:test-able (globalThis.crypto only).
  */
 
-import { encodeCbor, LOLLY_EXPORT_ASSERTION } from './c2pa.ts';
+import { checkedIntentRecord, encodeCbor, INTENT_PROMPT_NOTE, LOLLY_EXPORT_ASSERTION, LOLLY_INTENT_ASSERTION } from './c2pa.ts';
+import type { C2paIntentRecord } from './c2pa.ts';
 // The check-code vocabulary lives in c2pa-verdict.ts (the shared verdict
 // module); every pass/fail below emits through this map so the strings can
 // never drift from what the surfaces and tests string-match. (No runtime
@@ -401,6 +402,11 @@ export interface C2paReport {
   // ingredient's own manifest is also in the chain above; a source ingredient
   // (no credential of its own) appears only here.
   ingredients?: C2paIngredientRecord[];
+  // What a piece was asked to do, for a file made from an intent (`tools.lolly.intent`):
+  // read only from a credential that verifies, and absent from one that does not. A
+  // statement the signer made, not a verdict on the work. `promptNote` sits beside any
+  // recorded prompt words, because those are text someone wrote and travel with the file.
+  intent?: C2paIntentRecord & { promptNote?: string };
 }
 
 // ─── C2PA 2.4 text bindings: read-side helpers ────────────────────────────────
@@ -930,6 +936,10 @@ export async function verifyC2pa(
     }
   }
 
+  // The intent record, closed: a record that claims more than it may is not read as a smaller one.
+  const intentAssertion = parts.assertions.find((a) => a.label === LOLLY_INTENT_ASSERTION);
+  const intentRecord = intentAssertion ? readIntentRecord(intentAssertion.content) : null;
+
   // Export context recorded by the writer (tool, surface, browser engine, OS…)
   // - a custom assertion; its integrity is covered by the hashed-URI check.
   const exportAssertion = parts.assertions.find((a) => a.label === LOLLY_EXPORT_ASSERTION);
@@ -1367,6 +1377,7 @@ export async function verifyC2pa(
   }
 
   report.state = checks.every((c) => c.ok || c.code === C2PA_CHECK.signingCredentialUntrusted) ? 'valid' : 'invalid';
+  if (intentRecord && report.state === 'valid') report.intent = intentRecord;
   // "Genuinely made with Lolly" = the credential is intact (signature + hashes
   // + binding all verify), it records a Lolly CREATION (a c2pa.created action -
   // not merely a delivery), AND it names Lolly as the generator. Requiring the
@@ -1401,6 +1412,20 @@ export async function verifyC2pa(
   // Drives the "Delivered by Lolly" / authentic-official-asset verdict.
   report.delivered = report.state === 'valid' && !created && acts.some((a) => a.action === 'c2pa.published');
   return report;
+}
+
+/** The record as written, or null for any other shape. Recorded words come with their label. */
+export function readIntentRecord(content: Uint8Array): (C2paIntentRecord & { promptNote?: string }) | null {
+  let map: unknown;
+  try { map = decodeCbor(content); } catch { return null; }
+  if (!(map instanceof Map) || map.get('version') !== 1) return null;
+  const { version: _version, ...fields } = Object.fromEntries(map) as Record<string, unknown>;
+  try {
+    const record = checkedIntentRecord(fields as unknown as C2paIntentRecord);
+    return record.prompt !== undefined ? { ...record, promptNote: INTENT_PROMPT_NOTE } : record;
+  } catch {
+    return null;
+  }
 }
 
 /** @deprecated alias - verifyC2pa sniffs PDFs (and every other container). */

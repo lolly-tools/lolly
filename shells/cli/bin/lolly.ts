@@ -214,6 +214,8 @@ Usage:
   lolly intent <intent.json|-> [--json]    say what a piece has to do; Lolly chooses the tool
                                            for each surface, says why and lists what is missing
   lolly intent <file> --render [--out-dir] make the files as well
+                        [--no-record-intent] record nothing about the intent in the files
+                        [--record-prompt]  record the prompt's own words, not a fingerprint
   lolly compose <spec.json|-> [--json]     slides laid out from the slide master's
                                            archetypes, as a Design document for
                                            package, check and run design --document
@@ -629,12 +631,15 @@ async function main(): Promise<void> {
   // `intent`: what a piece has to do, answered with a tool per surface and the reasons (plan
   // 350 W4). Its value flag is refused bare and a flag it does not take is refused by name.
   if (cmd === 'intent') {
-    const bare = args.find(arg => arg === '--out-dir');
+    const bare = args.find(arg => arg === '--out-dir' || arg === '--c2pa');
     if (bare) throw usageError(`${bare} needs a value: write ${bare}=<value>.`, 'MISSING_FLAG_VALUE');
     refuseUnknownFlags('intent', flags, [...INTENT_VALUE_FLAGS, ...INTENT_BOOL_FLAGS]);
     const { intentCli } = await import('../src/intent.ts');
     process.exitCode = await intentCli(positionals.slice(1), {
       render: isOn(flags.render), json: g.json, ...(flags['out-dir'] !== undefined ? { outDir: flags['out-dir'] } : {}),
+      ...(isOn(flags['no-record-intent']) ? { recordIntent: false } : {}),
+      ...(isOn(flags['record-prompt']) ? { recordPrompt: true } : {}),
+      ...(flags.c2pa !== undefined ? { c2pa: flags.c2pa } : {}),
     });
     return;
   }

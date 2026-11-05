@@ -213,7 +213,11 @@ A logical asset input such as `image://brand/logo`, `catalog://lolly/logo/primar
 lolly intent certificate.json
 lolly intent certificate.json --json
 lolly intent certificate.json --render --out-dir=./out
+lolly intent certificate.json --render --record-prompt
+lolly intent certificate.json --render --no-record-intent
 ```
+
+With `--render`, each file's Content Credential records the purpose, surface, tool, language, rules and vocabulary versions and the intent digest, with occasion, audience, region and the prompt as fingerprints only. `--record-prompt` records the prompt's own words instead of its fingerprint. `--no-record-intent` records nothing about the intent. `--c2pa=off` writes no credential, or `--c2pa=<days>` sets its lifetime. Each run says what it recorded, read back from the finished file, and `--json` gives the same as `intentRecord` on each entry in `rendered`. [What goes in the file](/info/visual-intent.html#what-goes-in-the-file) has the detail.
 
 ## Look at a picture in its own coordinates
 
