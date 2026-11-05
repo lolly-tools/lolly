@@ -54,7 +54,7 @@ export const RESOLVE_INTENT_TOOL_DEF = {
     'If you are happy to carry your user\'s first words in the work you return, pass them as `prompt`, then read them yourself and choose the `purpose`: ' +
     'a prompt with no purpose comes back as outcome `purpose-needed` (code `intent.purpose-needed`) with the purposes, the tools that serve each, the surfaces and the roles, so you can call again with a purpose, surfaces and content. ' +
     'A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`, plus `exportDims` as width, height and unit when `sizeSetBy` is `export`. ' +
-    'To record the intent in the file, also pass `intent`, `surface` and `c2pa` to lolly_render. ' +
+    'To record the intent in the file, also pass `intent` and `surface` to lolly_render, which adds a Content Credential unless you pass c2pa: "off". ' +
     'A surface with status `needs-content` lists the roles to supply in `gaps`; supply them from your user, never invent them. `defaultsInUse` names the tool wording that would still print.',
   inputSchema: {
     type: 'object',
@@ -93,7 +93,8 @@ export const RENDER_INTENT_ARGS = {
     description:
       'The intent this file answers, the object you gave lolly_resolve_intent. The server resolves it again and works out what to record itself. '
       + 'Refused with code intent.tool-not-candidate when toolId does not answer it on that surface. '
-      + 'Recorded in the Content Credential, so also pass c2pa: with no credential nothing is recorded, and the result says so. '
+      + 'Recorded in a Content Credential, so passing intent adds one to this file: self-signed and valid for 30 days, unless c2pa sets the lifetime. '
+      + 'With c2pa: "off" the file holds no credential and no record, and the result says so. '
       + 'Recorded as written: purpose, surface, tool, language, the rules and vocabulary versions and the intent digest. '
       + 'As fingerprints only: occasion, audience, region and the prompt.',
   },
@@ -147,14 +148,15 @@ export async function intentRenderSettings(args: Record<string, unknown>, toolId
 }
 
 /** The lines a `lolly_render` result prints about the intent, at the moment the file is made. */
-export function intentRecordText(outcome: IntentRecordOutcome | null | undefined): string {
+export function intentRecordText(outcome: IntentRecordOutcome | null | undefined, credentialFromIntent = false): string {
   if (!outcome) return '';
   const lines = intentRecordWords(outcome);
   if (outcome.state === 'recorded') {
+    if (credentialFromIntent) lines.push('Passing intent added this Content Credential to the file: self-signed, valid for 30 days.');
     if (outcome.promptInFile) lines.push('Leave recordPrompt off when a prompt holds personal or confidential detail.');
-    lines.push('Pass recordIntent: false to leave the intent out.');
+    lines.push(credentialFromIntent ? 'Pass recordIntent: false to leave the intent out, or c2pa: "off" for no credential.' : 'Pass recordIntent: false to leave the intent out.');
   } else if (outcome.reason === 'no-credential') {
-    lines.push('Pass c2pa (for example "30") to record the intent.');
+    lines.push('Leave out c2pa: "off" to record the intent.');
   }
   return lines.join(' ');
 }
