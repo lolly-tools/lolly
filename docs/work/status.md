@@ -40,8 +40,9 @@ What Lolly Work %work{version} does, what to check on your own systems before yo
   receiver, Brandfolder or Cloudinary, with an optional approval step. See
   [Organisation delivery destinations](delivery.md).
 - **Approvals.** Ordered chains with `any`, quorum and `all` rules. Separation of duties.
-  Review of a frozen set of source files, and of one exact exported file, whose approved download
-  is the file reviewed. See [Approvals](approvals.md).
+  Review of a frozen set of source files, and of one exact exported file. The approved download is
+  the file reviewed, plus a signed record of the approval in its Content Credentials when the
+  requester chose one and this server can sign. See [Approvals](approvals.md).
 - **Records.** Content Credentials signing, a hash-chained audit log, telemetry dashboards and
   SIEM forwarding. See [Audit log](audit.md) and [Telemetry and dashboards](telemetry.md).
 - **Agents.** Invite an MCP agent to one document or one project, under your own identity.
