@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-05T19:52:28.171Z",
+  "generatedAt": "2026-11-05T20:34:41.811Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2340,7 +2340,7 @@
       "id": "wordmark",
       "name": "Wordmark",
       "description": "Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed.",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -7691,7 +7691,7 @@
       "id": "signature",
       "name": "Signature",
       "description": "Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a bit of paper.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -7880,7 +7880,7 @@
       "id": "growth",
       "name": "Growth",
       "description": "Differential growth: a line that repels itself until it folds into coral. Seed it from a ring, a burst, headline letterforms or a logo, and export the result as real, plotter-ready SVG paths.",
-      "version": "1.1.3",
+      "version": "1.1.4",
       "status": "community",
       "category": "designer",
       "tags": [

@@ -647,13 +647,15 @@
     mapEl.appendChild(ctrlDiv);
 
     var svgRef = svg;
-    document.getElementById('mp-zi').onclick = function() {
+    /* Looked up on the new node, not the document: a gallery preview can be torn
+       down while the map data loads, which leaves this subtree detached. */
+    ctrlDiv.querySelector('#mp-zi').onclick = function() {
       svgRef.transition().duration(250).call(zoomFn.scaleBy, 1.5);
     };
-    document.getElementById('mp-zo').onclick = function() {
+    ctrlDiv.querySelector('#mp-zo').onclick = function() {
       svgRef.transition().duration(250).call(zoomFn.scaleBy, 0.667);
     };
-    document.getElementById('mp-zr').onclick = function() {
+    ctrlDiv.querySelector('#mp-zr').onclick = function() {
       /* Reset: clear live state so the next render doesn't re-apply the old position */
       window.__mpZoom = null;
       svgRef.transition().duration(300).call(zoomFn.transform, d3.zoomIdentity);

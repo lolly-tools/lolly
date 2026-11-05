@@ -3,7 +3,7 @@
   "name": "Wordmark",
   "description": "Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed.",
   "a11yLabel": "Wordmark reading {{default text \"Wordmark\"}}",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engineVersion": "^1.214.0",
   "status": "community",
   "category": "everyone",

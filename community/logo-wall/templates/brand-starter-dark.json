@@ -9,7 +9,7 @@
       {
         "logo": {
           "source": "remote",
-          "id": "https://lolly.tools/tool/wordmark.svg?text=Northline&weight=600&color=%7Bcolor.semantic.on-primary%7D",
+          "id": "https://lolly.tools/tool/wordmark.svg?text=Northline&weight=600&color=%7Bcolor.semantic.surface%7D",
           "_unresolved": true
         },
         "presence": "normal",
@@ -19,7 +19,7 @@
       {
         "logo": {
           "source": "remote",
-          "id": "https://lolly.tools/tool/wordmark.svg?text=Atlas+Field&weight=500&color=%7Bcolor.semantic.on-primary%7D",
+          "id": "https://lolly.tools/tool/wordmark.svg?text=Atlas+Field&weight=500&color=%7Bcolor.semantic.surface%7D",
           "_unresolved": true
         },
         "presence": "normal",
@@ -29,7 +29,7 @@
       {
         "logo": {
           "source": "remote",
-          "id": "https://lolly.tools/tool/wordmark.svg?text=Tidewater&weight=700&color=%7Bcolor.semantic.on-primary%7D",
+          "id": "https://lolly.tools/tool/wordmark.svg?text=Tidewater&weight=700&color=%7Bcolor.semantic.surface%7D",
           "_unresolved": true
         },
         "presence": "normal",
@@ -39,7 +39,7 @@
       {
         "logo": {
           "source": "remote",
-          "id": "https://lolly.tools/tool/wordmark.svg?text=Halden&weight=800&color=%7Bcolor.semantic.on-primary%7D",
+          "id": "https://lolly.tools/tool/wordmark.svg?text=Halden&weight=800&color=%7Bcolor.semantic.surface%7D",
           "_unresolved": true
         },
         "presence": "normal",
@@ -49,7 +49,7 @@
       {
         "logo": {
           "source": "remote",
-          "id": "https://lolly.tools/tool/wordmark.svg?text=Meridian+%26+Co&weight=500&color=%7Bcolor.semantic.on-primary%7D",
+          "id": "https://lolly.tools/tool/wordmark.svg?text=Meridian+%26+Co&weight=500&color=%7Bcolor.semantic.surface%7D",
           "_unresolved": true
         },
         "presence": "normal",
@@ -59,7 +59,7 @@
       {
         "logo": {
           "source": "remote",
-          "id": "https://lolly.tools/tool/wordmark.svg?text=Quarry&weight=700&color=%7Bcolor.semantic.on-primary%7D",
+          "id": "https://lolly.tools/tool/wordmark.svg?text=Quarry&weight=700&color=%7Bcolor.semantic.surface%7D",
           "_unresolved": true
         },
         "presence": "normal",

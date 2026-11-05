@@ -7,7 +7,7 @@
     "renderMode": "vector",
     "chartType": "bar",
     "chartStyle": "technical",
-    "data": "Category,Value\nA,36\nB,58\nC,45\nD,82\nE,68\nF,95",
+    "data": "Category,Value\nA,46\nB,68\nC,58\nD,95",
     "colorBy": "category",
     "palette": "ordered",
     "heading": "",
@@ -19,7 +19,8 @@
     "transparentBg": true,
     "cornerRadius": 6,
     "differentiate": "colour",
-    "palette1": "{color.semantic.secondary}"
+    "palette1": "{color.semantic.secondary}",
+    "palette2": "{color.semantic.surface}"
   },
   "galleryCover": true,
   "galleryTheme": "dark"
