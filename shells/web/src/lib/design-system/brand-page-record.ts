@@ -15,7 +15,7 @@ export interface BrandPageSetting {
   locked: boolean;
 }
 
-export async function readBrandPageSetting(host: UsageHost): Promise<BrandPageSetting> {
+export async function readBrandPageSetting(host: Pick<UsageHost, 'tokens'>): Promise<BrandPageSetting> {
   const tokens = host.tokens;
   const [doc, locked] = await Promise.all([tokens.raw?.().catch(() => null) ?? null, tokens.isLocked?.().catch(() => true) ?? true]);
   return { address: readRecordedBrandPage(doc), locked };
