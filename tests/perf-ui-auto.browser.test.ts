@@ -14,6 +14,10 @@
  * switch, since on SwiftShader that switch would otherwise decide at start-up, and
  * divide the temporary switch's timings by TIMESCALE so a run takes seconds.
  *
+ * Dividing the timings puts them within reach of a long task on the page's own thread,
+ * so the spike, the one step that needs a switch not to happen, runs on the page's fake
+ * clock. See the comment there.
+ *
  * An automated browser never runs the detector on its own, so every page here opts in
  * with the probe key (lib/perf-ui-auto.ts PERF_UI_AUTO_PROBE_KEY). The decision maths
  * is covered with synthetic frames in shells/web/src/lib/perf-ui-auto-detect.test.ts,
@@ -217,14 +221,53 @@ async function pressure(page: Page): Promise<(state: 'nominal' | 'fair' | 'serio
   return set;
 }
 
-/** The probe's latest line from the temporary switch: its own summary, never stored. */
-function probeLog(page: Page): () => Record<string, unknown> | null {
-  let last: Record<string, unknown> | null = null;
+/** A line from the temporary switch: its own summary, never stored. */
+interface ProbeLine { on: boolean; now: 'constrained' | 'calm' | 'unknown'; constrainedMs: number; calmMs: number }
+
+/** Waits for the switch to report a reading. It logs one each time a reading reaches the
+ *  page, however long the page's thread kept that reading waiting. */
+function probeLog(page: Page): (now: ProbeLine['now']) => Promise<ProbeLine> {
+  let last: ProbeLine | null = null;
+  const waiting = new Set<() => void>();
   page.on('console', msg => {
     const text = msg.text();
-    if (text.startsWith('[perf-ui-auto:temporary]')) last = JSON.parse(text.slice(text.indexOf('{')));
+    if (!text.startsWith('[perf-ui-auto:temporary]')) return;
+    last = JSON.parse(text.slice(text.indexOf('{'))) as ProbeLine;
+    for (const check of [...waiting]) check();
   });
-  return () => last;
+  return now => new Promise((resolve, reject) => {
+    const check = (): void => {
+      if (last?.now !== now) return;
+      waiting.delete(check);
+      clearTimeout(timer);
+      resolve(last);
+    };
+    const timer = setTimeout(() => {
+      waiting.delete(check);
+      reject(new Error(`the switch never read "${now}"; its last line was ${JSON.stringify(last)}`));
+    }, 60_000);
+    waiting.add(check);
+    check();
+  });
+}
+
+/** The page's own time, which the switch's record uses. It differs from the test's once the
+ *  fake clock has been paused. */
+const pageNow = (page: Page): Promise<number> => page.evaluate(() => Date.now());
+
+/**
+ * Waits for the look to come on, moving the pointer meanwhile. Constrained time counts only
+ * with nothing busy, and the switch looks again at the next reading or input. A person
+ * supplies that input and a test has to: a gallery preview can read as busy for half a
+ * second as it hydrates, and a reading that arrives then would otherwise wait for good.
+ */
+async function lookComesOn(page: Page, timeout = 30_000): Promise<void> {
+  const giveUp = Date.now() + timeout;
+  for (let x = 100; !await perfUi(page); x = x === 100 ? 120 : 100) {
+    assert.ok(Date.now() < giveUp, 'the look never came on');
+    await page.mouse.move(x, 100);
+    await page.waitForTimeout(250);
+  }
 }
 
 test('CPU pressure switches the look on for a while, and calm switches it back', { skip, timeout: 240_000 }, async t => {
@@ -233,31 +276,43 @@ test('CPU pressure switches the look on for a while, and calm switches it back',
     const ctx = await constrainedContext(browser);
     const page = await ctx.newPage();
     const set = await pressure(page);
-    const summary = probeLog(page);
+    const reads = probeLog(page);
+    await page.clock.install(); // it keeps real time until the spike pauses it
     await open(page);
     if (await softwareAdapter(page) === null) { t.skip(NO_ADAPTER); return; }
     await page.bringToFront(); // the browser reports pressure to a focused page only
     await answerFirstVisitPrompt(page);
     await page.waitForFunction(() => document.documentElement.hasAttribute('data-perf-ui') === false);
-    await page.waitForTimeout(1500);
-    assert.equal(summary()?.now, 'calm', 'nominal reads as calm');
+    await reads('calm'); // nominal reads as calm
 
-    // A brief spike does nothing: a quarter of the two seconds a constraint needs here.
+    // A brief spike does nothing: a quarter of the two seconds a constraint needs here. The
+    // time is the page's fake clock, stopped between steps. On real time a long task on the
+    // page's thread holds the 'nominal' reading back while the switch's timer comes due, and
+    // the timer runs first: on a software adapter the gallery's 3D Studio cover holds that
+    // thread for four seconds or more, about when this step runs, and two seconds of
+    // 'serious' is all the switch needs at this timescale. The timings a real device gets
+    // are thirty times that.
+    await page.clock.pauseAt(await pageNow(page) + 60_000);
     await set('serious');
-    await page.waitForTimeout(500);
+    await reads('constrained');
+    await page.clock.runFor(500);
     await set('nominal');
-    await page.waitForTimeout(4000);
+    const spike = await reads('calm');
+    // Less when the reading arrived in a busy moment, which does not count.
+    assert.ok(spike.constrainedMs <= 500, `the spike counted for no longer than it lasted: ${JSON.stringify(spike)}`);
+    await page.clock.runFor(4000);
     assert.equal(await perfUi(page), false, 'a spike never switches');
     assert.equal((await record(page))?.on, undefined);
+    await page.clock.resume();
 
     // Sustained 'serious' switches on, for a while, and the notice says so. Every time in
     // the state is read from the product's own record: `on.at` when it switched on and
     // `backAt` when it switched back. The test sees each change only when its next poll
     // runs, and a busy runner can hold that poll back for seconds after the switch.
-    const before = Date.now();
+    const before = await pageNow(page);
     await set('serious');
-    await page.waitForFunction(() => document.documentElement.hasAttribute('data-perf-ui'), undefined, { timeout: 20_000 });
-    const seenOn = Date.now();
+    await lookComesOn(page);
+    const seenOn = await pageNow(page);
     const switched = await record(page);
     assert.deepEqual({ kind: on(switched).kind, reason: on(switched).reason }, { kind: 'temporary', reason: 'pressure' });
     const onAt = on(switched).at;
@@ -281,10 +336,10 @@ test('CPU pressure switches the look on for a while, and calm switches it back',
 
     // Calm switches it back: after ten seconds of calm here, once twenty have passed since it
     // went on. Calm cannot start before the 'nominal' reading is sent, so it counts from then.
-    const calmFrom = Date.now();
+    const calmFrom = await pageNow(page);
     await set('nominal');
     await page.waitForFunction(() => !document.documentElement.hasAttribute('data-perf-ui'), undefined, { timeout: 60_000 });
-    const seenMs = Date.now() - seenOn;
+    const seenMs = await pageNow(page) - seenOn;
     const back = await record(page);
     assert.equal(back?.on, undefined);
     assert.equal(typeof back?.backAt, 'number', 'the time it switched back, for the next dwell');
@@ -313,7 +368,7 @@ test('Keep makes a temporary switch lasting; Undo stops temporary switching on t
       await page.bringToFront();
       await answerFirstVisitPrompt(page);
       await set('serious');
-      await page.waitForFunction(() => document.documentElement.hasAttribute('data-perf-ui'), undefined, { timeout: 20_000 });
+      await lookComesOn(page);
       const toast = page.locator('.undo-toast--wrap');
       await toast.waitFor({ timeout: 10_000 });
       await toast.getByRole('button', { name: choice }).click();
