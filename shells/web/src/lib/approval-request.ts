@@ -41,6 +41,41 @@ export interface ApprovalRequestContext {
   title?: string;
   /** The exported file, when `approvalWantsArtifact` said to make one. */
   artifact?: ApprovalArtifact;
+  /** Called once the request has been accepted, so a view can show its new state. */
+  onSent?: () => void;
+}
+
+/** Where a tool's current inputs stand with the instance's reviewers. */
+export type ApprovalState = 'none' | 'in_review' | 'approved' | 'rejected' | 'changed';
+
+/** The instance's answer for one tool, format and set of inputs. */
+export interface ApprovalStatus {
+  state: ApprovalState;
+  approvalId?: string;
+  fingerprint?: string;
+  title?: string;
+  decidedAt?: string;
+}
+
+/** A saved session's request, for the views that list sessions. */
+export interface SessionApproval {
+  state: 'in_review' | 'approved';
+  approvalId: string;
+  title: string;
+  decidedAt?: string;
+}
+
+/** What a registered approval flow can tell and fetch for a view. Every method is
+ *  optional work for the view: it holds no knowledge of where the answers come from. */
+export interface ApprovalWork {
+  /** The state of these inputs, or null when this instance does not say. */
+  status(query: { toolId: string; format: string; query: string }, signal?: AbortSignal): Promise<ApprovalStatus | null>;
+  /** The approved file's exact bytes. Rejects when they are not released to this person. */
+  approvedFile(approvalId: string): Promise<{ blob: Blob; name: string }>;
+  /** Open the request, with its file and its history. */
+  open(approvalId: string): void;
+  /** The newest request for each saved session this person raised. */
+  sessions(signal?: AbortSignal): Promise<ReadonlyMap<string, SessionApproval>>;
 }
 
 /** Opens the approval-request flow for the given context. */
@@ -48,13 +83,33 @@ export type ApprovalOpener = (ctx: ApprovalRequestContext) => void;
 
 let opener: ApprovalOpener | undefined;
 let wantsArtifact: ((toolId: string) => boolean) | undefined;
+let work: ApprovalWork | undefined;
+let pdfPreview: ((blob: Blob) => Promise<Blob | null>) | undefined;
 
 /** Register the approval opener; returns an unregister fn. A later register replaces
  *  the current opener (last wins), mirroring a single-owner flow. */
-export function registerApprovalOpener(fn: ApprovalOpener, opts: { wantsArtifact?: (toolId: string) => boolean } = {}): () => void {
+export function registerApprovalOpener(fn: ApprovalOpener, opts: { wantsArtifact?: (toolId: string) => boolean; work?: ApprovalWork } = {}): () => void {
   opener = fn;
   wantsArtifact = opts.wantsArtifact;
-  return () => { if (opener === fn) { opener = undefined; wantsArtifact = undefined; } };
+  work = opts.work;
+  return () => { if (opener === fn) { opener = undefined; wantsArtifact = undefined; work = undefined; } };
+}
+
+/** The registered flow's working state, or undefined when there is none: the view
+ *  then shows the plain request and asks nothing. */
+export function approvalWork(): ApprovalWork | undefined {
+  return work;
+}
+
+/** Supply the picture of a PDF's first page. The reader lives with the views, above
+ *  this layer, so the app registers it once. */
+export function setApprovalPdfPreview(fn: (blob: Blob) => Promise<Blob | null>): void {
+  pdfPreview = fn;
+}
+
+/** A PDF's first page as a picture, or null when no reader is registered or it fails. */
+export async function approvalPdfPreview(blob: Blob): Promise<Blob | null> {
+  try { return (await pdfPreview?.(blob)) ?? null; } catch { return null; }
 }
 
 /** Whether the view should make the export first and hand it over. False when the
@@ -77,4 +132,6 @@ export function openApprovalRequest(ctx: ApprovalRequestContext): boolean {
 export function _clearApprovalOpenerForTests(): void {
   opener = undefined;
   wantsArtifact = undefined;
+  work = undefined;
+  pdfPreview = undefined;
 }

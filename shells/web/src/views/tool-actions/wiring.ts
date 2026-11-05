@@ -14,11 +14,8 @@ import { CENTRE_LOW } from '../../bridge/audio-envelope.ts';
 import { _exportNotice, _setExportNoticeSink } from '../../bridge/export-notice.ts';
 import { linkHelpDescriptions, wireHelpTips } from '../../components/help-tip.js';
 import { t, tRaw } from '../../i18n.ts';
-import { DeliveryResult } from '../../lib/delivery-result.ts';
-import { chooseLocationDeliver, deliverFile } from '../../lib/deliver-file.ts';
-import { mountDownloadRecovery } from '../../lib/download-recovery.ts';
 import { deliverBatchFile, releaseBackgroundDelivery } from '../../lib/background-delivery.ts';
-import { approvalWantsArtifact, openApprovalRequest } from '../../lib/approval-request.ts';
+import { approvalPdfPreview, approvalWantsArtifact, openApprovalRequest } from '../../lib/approval-request.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { stageDeckAsSequence, stagedDeckMs } from '../../lib/deck-as-sequence.ts';
 import { saveExportPrefs } from '../../lib/export-prefs.ts';
@@ -586,13 +583,6 @@ export function wireCostRows(ta: ActionsCtx): void {
   );
 }
 
-/** A PDF's first page as a picture, for the requester's own dialog, or null. */
-async function pdfFirstPage(blob: Blob): Promise<Blob | null> {
-  const { openPdfFile } = await import('../pdf-import.ts');
-  const page = await (await openPdfFile(blob)).pageToSvg(0, { warn: () => {} });
-  return page?.svg && page.elementCount ? new Blob([page.svg], { type: 'image/svg+xml' }) : null;
-}
-
 export function wireApprovalAndActions(ta: ActionsCtx): void {
   const { canvasEl: liveCanvasEl, desktopExport, el, experience, exportDefaults, exportUnscaled, formatEl, formats, hasToolAudioInput, host, isDesignTool, manifest, pkgInner, runtime: liveRuntime } = ta;
   // The "Request approval" CTA (present in place of Download only when the export
@@ -604,10 +594,12 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
   el.querySelector<HTMLButtonElement>('[data-action="request-approval"]')?.addEventListener(
     'click',
     (e) => {
-      if (!approvalWantsArtifact(manifest.id)) { openApprovalRequest({ toolId: manifest.id, title: manifest.name }); return; }
+      if (ta.approvalState.handleClick()) return;
+      const onSent = (): void => { ta.approvalState.refresh(); };
+      if (!approvalWantsArtifact(manifest.id)) { openApprovalRequest({ toolId: manifest.id, title: manifest.name, onSent }); return; }
       void exportClick(e, (file) => openApprovalRequest({
-        toolId: manifest.id, title: manifest.name,
-        artifact: { blob: file.blob, name: file.name, query: file.query, firstPage: () => pdfFirstPage(file.blob), ...(ta.activeSlot ? { sessionId: ta.activeSlot } : {}) },
+        toolId: manifest.id, title: manifest.name, onSent,
+        artifact: { blob: file.blob, name: file.name, query: file.query, firstPage: () => approvalPdfPreview(file.blob), ...(ta.activeSlot ? { sessionId: ta.activeSlot } : {}) },
       }));
     }
   );
@@ -618,6 +610,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
   el.querySelector<HTMLButtonElement>('[data-action="save-as"]')?.addEventListener('click', () => {
     ta.experience.openSaveAs?.();
   });
+  ta.approvalState.wire();
 
   // The Download click. With `forReview`, the same export runs with the same settings
   // and the bytes go to that callback: nothing is downloaded, saved to the library or
@@ -1209,26 +1202,8 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             await deliverBatchFile(undefined, undefined, { blob, filename: name, label: name }, host);
             return;
           }
-          ta.deliveryUnmount?.(); ta.deliveryUnmount = null;
-          ta.deliveryResult?.dispose();
           const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const result = new DeliveryResult(
-            { blob, filename: name, label: tRaw('{name} · exported {time}', { name, time }) },
-            (again, againName) => deliverFile(host, again, againName),
-            chooseLocationDeliver(host),
-          );
-          ta.deliveryResult = result;
-          const surface = el!.querySelector<HTMLElement>('[data-export-delivery]');
-          if (surface) {
-            surface.hidden = false;
-            ta.deliveryUnmount = mountDownloadRecovery(surface, result, {
-              ready: tRaw('{name} ready.', { name }),
-              saved: t('Saved.'),
-            });
-          }
-          // Retain before attempting delivery: a failed first write must leave
-          // the same bytes available to the recovery controls.
-          await result.retry();
+          await ta.saving.deliverToBar(blob, name, tRaw('{name} · exported {time}', { name, time }));
         };
         const framePages = framePick.kind === 'page' ? [pageEls[framePick.index]!] : pageEls;
         const notesHandout =

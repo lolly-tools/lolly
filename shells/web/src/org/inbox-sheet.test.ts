@@ -173,6 +173,27 @@ test('commentNoticeBody gives the app sentence for a thread with nothing to quot
   assert.equal(commentNoticeBody(undefined), undefined);
 });
 
+test('a request with a file opens here when an approval flow is registered, and links to the console otherwise', async () => {
+  const { registerApprovalOpener, _clearApprovalOpenerForTests } = await import('../lib/approval-request.ts');
+  const message = msg('rev1', { kind: 'approval', severity: 'action', title: 'Approval requested: Card', cta: { label: 'Review', url: '/admin#/approvals' },
+    data: { kind: 'export-review', approvalId: 'apr_1' } });
+  await reset([message]);
+  openInboxSheet({});
+  await settle();
+  assert.equal(row('rev1').querySelector('a[data-act="inbox-open"]')?.getAttribute('href'), '/admin#/approvals');
+  await reset([message]);
+  const opened: string[] = [];
+  registerApprovalOpener(() => {}, { work: { status: async () => null, approvedFile: async () => ({ blob: new Blob([]), name: '' }), open: (id) => { opened.push(id); }, sessions: async () => new Map() } });
+  openInboxSheet({});
+  await settle();
+  assert.equal(row('rev1').querySelector('a[data-act="inbox-open"]'), null);
+  const review = row('rev1').querySelector<HTMLButtonElement>('button[data-act="inbox-open"]')!;
+  assert.equal(review.textContent, 'Review');
+  review.click();
+  assert.deepEqual(opened, ['apr_1']);
+  _clearApprovalOpenerForTests();
+});
+
 test('answerText gives each outcome its sentence', () => {
   assert.equal(answerText({ kind: 'done', verb: 'approve', role: 'manager' }), 'Approved as Manager.');
   assert.equal(answerText({ kind: 'done', verb: 'decline' }), 'Declined.');

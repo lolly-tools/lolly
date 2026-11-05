@@ -124,6 +124,21 @@ a large file waits until you choose to load the file.
 the file once it is approved, from the request's card or with `lw approvals artifact <id> --out <file>`.
 A rejected or withdrawn request never releases the file to the requester.
 
+**In the app.** The export bar shows where the current inputs stand, in the control Download would
+hold: **Request approval**, then **In review**, then **Download approved file**. Change an input or
+the format and it goes back to **Request approval**, with "Changed since approval." under it. A
+rejected request says "Not approved." with **See why**. Download approved file fetches the stored
+bytes and runs no export, so the file is the one that was reviewed.
+
+Requests you can decide and decisions on your own requests appear in the app's notifications.
+**Review** opens the file, its facts, a comment, **Approve** and **Reject**, under the same rules as
+the console, which stays the place for chains and history. A saved session with a request shows
+**In review** or **Approved** on its card in Projects and in its info sheet.
+
+**Add to project** on an approved request puts the file in a project. A device folder keeps a
+reference to your own copy in Assets, and that copy links back to the request. A shared project
+receives a file copy, which does not carry the link. Neither reaches the organisation catalog.
+
 **What the record holds.**
 
 - The file's SHA-256, size, name, format and media type. The media type comes from the file's

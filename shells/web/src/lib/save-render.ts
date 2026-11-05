@@ -62,7 +62,7 @@ export function renderSavePolicy(kind: RenderKind, size: number): 'auto' | 'conf
 }
 
 /** The AssetRef record type a stored render carries. */
-function recordType(kind: RenderKind, format: string): string {
+export function recordType(kind: RenderKind, format: string): string {
   if (kind === 'video') return 'video';
   if (kind === 'audio') return 'audio';
   const f = String(format || '').toLowerCase();
