@@ -48,6 +48,8 @@ location = /brand/acme { absolute_redirect off; return 308 /brand/acme/$is_args$
 
 Serve `.md` as `text/markdown` and `.ttf` as `font/ttf`.
 
+On Lolly Work, an administrator can turn brand pages on, and then `lw brand-pages publish ./brand-page` sends the folder to the instance. The feature is off by default, and a published page is public even on a sign-in gated instance. [Host a brand page](/info/work-design-system-administration.html#host-a-brand-page) has the permissions, the optional approval step and what the server checks.
+
 ## What goes public
 
 The rights recorded in your catalog decide which bytes go in the folder. Everything left out is listed with its reason, on the page and in `brand.json`.
@@ -175,7 +177,6 @@ To draw with the brand rather than read about the brand, use [Lolly's MCP server
 ## What is not built yet
 
 - **Publishing from the app.** Publishing is a terminal command today.
-- **Hosting on Lolly Work.** Work does not serve brand pages yet, so host the folder yourself.
 - **A signed page.** See [what the digest does not tell you](#take-a-logo-from-someones-page).
 - **A file that leads back to its page.** Nothing in an exported file records a page's address.
 - **Partner rules in a page.** Clear space, minimum size and allowed treatments are not fields yet. [Working with partners](/info/partners.html) covers what to do today.

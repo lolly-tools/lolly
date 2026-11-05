@@ -48,7 +48,8 @@ A brand page is one published folder that works as a press kit and an agent kit.
 **To publish:** `lolly system publish --out=<dir> [--origin=<url>]
 [--usage-file=<file>] [--include=<id,id>] [--no-examples] [--no-made-with-link]`.
 The command only writes a folder, so nothing goes public until someone hosts the
-folder. Report what it held back with each reason. A logo whose rights record says
+folder, on any static host or with `lw brand-pages publish <dir>` on a Lolly Work
+instance that has brand pages turned on. Report what it held back with each reason. A logo whose rights record says
 `own-work`, with its owner and terms, travels as "Owner-published, not an open
 licence". Never write that record for a mark that is not the publisher's own.
 `--include` is the publisher's own stated choice for a logo with no licence on

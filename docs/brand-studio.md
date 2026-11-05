@@ -372,7 +372,7 @@ Changing what a server supplies is an administrator's task: its operator changes
 
 ### Publish a brand page
 
-A [brand page](/info/brand-page.html) gives your design system one address: logos, colours, type and rules for people, with tokens, `DESIGN.md` and skills for agents in the same folder. In a terminal, `lolly system publish --out=<dir>` writes the folder and lists what it held back. Nothing goes public until you host the folder.
+A [brand page](/info/brand-page.html) gives your design system one address: logos, colours, type and rules for people, with tokens, `DESIGN.md` and skills for agents in the same folder. In a terminal, `lolly system publish --out=<dir>` writes the folder and lists what it held back. Nothing goes public until you host the folder, on any static host or on [Lolly Work](/info/work-design-system-administration.html#host-a-brand-page).
 
 ## Where to go next
 
