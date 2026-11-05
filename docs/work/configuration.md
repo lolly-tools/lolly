@@ -295,6 +295,11 @@ default, and suggests the password tick for `example.com` addresses:
 | `uploads.uploadTtlHours` | `24` | the longest an unfinished upload stays open; at most 720. It expires sooner, 15 minutes after its begin or its last accepted part |
 | `uploads.readyTtlHours` | `24` | how long a finished upload can be named after it finished; at most 720. A catalog submission removes its upload sooner |
 | `uploads.fileTtlHours` | `168` | how long a finished file reference can be read and named after it finished (a week); at most 720. Its owner can delete it sooner |
+| `approvalArtifacts.enabled` | `true` | whether an [approval request can carry its file](approvals.md#review-an-exported-file). Nothing is stored until a chain is bound to a tool and someone asks for a review. Off, shells send a request with the tool's id and no file |
+| `approvalArtifacts.maxFileBytes` | `67108864` | largest file one request can carry (64 MiB); at most `536870912` (512 MiB). Over it: `413 UPLOAD_TOO_LARGE` |
+| `approvalArtifacts.instanceBudgetBytes` | `1073741824` | bytes all stored request files may hold (1 GiB). Over it: `413 APPROVAL_ARTIFACT_BUDGET` |
+| `approvalArtifacts.closedRetentionDays` | `30` | days a rejected request keeps its file; `0` keeps the file with the record. A withdrawn request's file goes at once |
+| `approvalArtifacts.approvedRetentionDays` | `0` | days an approved request keeps its file; `0` keeps the file with the record |
 
 Both blocks take whole numbers above zero, and the caps nest:
 `maxFileBytes` no larger than `projectBudgetBytes` (or `ownerBudgetBytes`), and that no larger

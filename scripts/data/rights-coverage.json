@@ -125,6 +125,14 @@
       "note": "Copy image renders a PNG and writes the pixels to the clipboard. The evaluator knows a clipboard carries no credit (tests/fixtures/rights/clipboard-delivery-missing.json), but the copy actions do not tell the runtime the route is a clipboard."
     },
     {
+      "id": "delivery.approval-review",
+      "kind": "delivery",
+      "title": "Send an export to an instance for review",
+      "status": "not-assessed",
+      "code": ["shells/web/src/org/approval-artifact.ts", "shells/web/src/org/approval-dialog.ts"],
+      "note": "Request approval runs the ordinary export and sends those exact bytes to the person's instance, where reviewers read them. The route adds nothing to the file and evaluates no source terms of its own. Whatever the export wrote, credits and credential included, travels unchanged."
+    },
+    {
       "id": "delivery.text-clipboard",
       "kind": "delivery",
       "title": "Copy table values as text (table inputs, Batch cells)",

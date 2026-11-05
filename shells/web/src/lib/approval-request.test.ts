@@ -45,3 +45,19 @@ test('a throwing opener is swallowed (never breaks the caller)', () => {
   registerApprovalOpener(() => { throw new Error('boom'); });
   assert.equal(openApprovalRequest({ toolId: 't' }), false);
 });
+
+test('the view makes a file only when the opener asks for one, and a broken check asks for nothing', async () => {
+  const { approvalWantsArtifact } = await import('./approval-request.ts');
+  _clearApprovalOpenerForTests();
+  assert.equal(approvalWantsArtifact('tool'), false, 'no opener');
+  const off = registerApprovalOpener(() => {}, { wantsArtifact: (id) => id === 'bound' });
+  assert.equal(approvalWantsArtifact('bound'), true);
+  assert.equal(approvalWantsArtifact('other'), false);
+  off();
+  assert.equal(approvalWantsArtifact('bound'), false, 'gone with its opener');
+  registerApprovalOpener(() => {}, { wantsArtifact: () => { throw new Error('no'); } });
+  assert.equal(approvalWantsArtifact('bound'), false);
+  registerApprovalOpener(() => {});
+  assert.equal(approvalWantsArtifact('bound'), false, 'an opener that takes no file');
+  _clearApprovalOpenerForTests();
+});

@@ -16,7 +16,8 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 
 // ── Pure helpers (DOM-free) ─────────────────────────────────────────────────
-import { filterApprovers, buildApprovalBody, subjectRefFor } from './approval-dialog.ts';
+import { filterApprovers, buildApprovalBody, buildExportReviewBody, subjectRefFor } from './approval-dialog.ts';
+import { artifactFormat } from './approval-artifact.ts';
 
 test('filterApprovers: empty query returns all; case-insensitive substring narrows', () => {
   const list = [{ id: 'u1', name: 'Alice Ng' }, { id: 'u2', name: 'Bob Fraser' }, { id: 'u3', name: 'Carol Ng' }];
@@ -37,6 +38,23 @@ test('buildApprovalBody assembles the documented POST shape (single nominee)', (
     buildApprovalBody({ subjectRef: 'tool:event-badge', title: 'Q3 badge', chainId: 'brand-signoff', nominee: 'u2' }),
     { subjectType: 'asset', subjectRef: 'tool:event-badge', title: 'Q3 badge', chainId: 'brand-signoff', nominees: ['u2'] },
   );
+});
+
+test('buildExportReviewBody names the sent file, reports the values and states no digest of them', () => {
+  const blob = new Blob(['x'], { type: 'image/png' });
+  const body = buildExportReviewBody({ uploadId: 'upl_a', checksum: 'c'.repeat(64), toolId: 'event-badge', title: 'Q3', chainId: 'brand', nominee: 'u2',
+    artifact: { blob, name: 'q3 badge.PNG', query: 'name=Ana', sessionId: 's1' }, widthPx: 800, heightPx: 600 });
+  assert.deepEqual(body, { subjectType: 'export-review', title: 'Q3', chainId: 'brand', nominees: ['u2'], exportReview: {
+    uploadId: 'upl_a', checksum: 'c'.repeat(64), toolId: 'event-badge', format: 'png', name: 'q3 badge.PNG', query: 'name=Ana', sessionId: 's1', widthPx: 800, heightPx: 600 } });
+  assert.ok(!('inputsDigest' in body.exportReview), 'the instance works the digest out for itself');
+  const big = buildExportReviewBody({ uploadId: 'upl_a', checksum: 'c'.repeat(64), toolId: 't', title: 'T', chainId: 'c', nominee: 'u', artifact: { blob, name: 'a.png', query: 'x'.repeat(300 * 1024) } });
+  assert.equal(big.exportReview.query, undefined, 'values too large for a request stay out');
+});
+
+test('artifactFormat reads the extension the export wrote', () => {
+  assert.equal(artifactFormat('deck.ZIP'), 'zip');
+  assert.equal(artifactFormat('card.final.jpg'), 'jpg');
+  assert.equal(artifactFormat('noextension'), 'bin');
 });
 
 test('subjectRefFor: own ref wins, else tool-scoped default, else generic', () => {
@@ -179,4 +197,89 @@ test('no bound chain → friendly notice, no approvers fetch', async () => {
   assert.ok(dlg, 'a notice dialog is shown');
   assert.match(dlg.textContent || '', /isn.t set up/i);
   assert.equal(dlg.querySelector('[data-act="submit"]'), null, 'notice has no submit - nothing to file');
+});
+
+// ── The file goes with the request ─────────────────────────────────────────
+
+test('a request with a file shows it, sends it in parts and names it; the older path says it is not attached', async () => {
+  reset();
+  const { ARTIFACT_RETRY_DELAYS_MS } = await import('./approval-artifact.ts');
+  ARTIFACT_RETRY_DELAYS_MS.length = 0;
+
+  let revoked = 0;
+  (globalThis.URL as unknown as { createObjectURL: (b: unknown) => string }).createObjectURL = () => 'blob:file';
+  (globalThis.URL as unknown as { revokeObjectURL: (u: string) => void }).revokeObjectURL = () => { revoked++; };
+
+  setExportPolicy({ canDownload: false, canRequestApproval: true, chains: { 'event-badge': 'brand-signoff' } });
+  const puts: string[] = [];
+  router = (target, init) => {
+    const method = (init?.method || 'GET').toUpperCase();
+    if (target.includes('/api/v1/approvals/approvers')) return json(APPROVERS);
+    if (target.endsWith('/api/v1/uploads') && method === 'POST') return json({ upload: { id: 'upl_1' }, partBytes: 4 }, 201);
+    if (/\/api\/v1\/uploads\/upl_1\/parts\/\d+$/.test(target) && method === 'PUT') { puts.push(target); return new Response(null, { status: 204 }); }
+    if (target.endsWith('/api/v1/uploads/upl_1/finalize')) return json({ upload: { id: 'upl_1', ready: true } });
+    if (target.endsWith('/api/v1/approvals') && method === 'POST') return new Response('{}', { status: 201 });
+    return new Response('', { status: 404 });
+  };
+  const blob = new Blob(['0123456789'], { type: 'image/png' });
+  openApprovalDialog({ toolId: 'event-badge', title: 'Badge', artifact: { blob, name: 'badge.png', query: 'name=Ana' } }, { maxFileBytes: 1024, partBytes: 4 });
+  await tick(); await tick();
+  const dialogEl = document.querySelector('dialog')!;
+  assert.ok(dialogEl.querySelector('[data-file-stage] img'), 'the file is the first thing in the dialog');
+  for (let i = 0; i < 20 && !/SHA-256/.test(dialogEl.querySelector('[data-file-facts]')!.textContent ?? ''); i++) await tick();
+  assert.match(dialogEl.querySelector('[data-file-facts]')!.textContent ?? '', /^PNG · 10 B · SHA-256 [a-f0-9]{12}…$/);
+  dialogEl.querySelector<HTMLElement>('[data-approver-id]')!.click();
+  dialogEl.querySelector<HTMLButtonElement>('[data-act="submit"]')!.click();
+  for (let i = 0; i < 40 && document.querySelector('dialog'); i++) await tick();
+  assert.equal(document.querySelector('dialog'), null, 'sent and closed');
+  assert.equal(puts.length, 3, 'ten bytes in four-byte parts');
+  const begin = postBodies.find((b) => (b as { scope?: string }).scope === 'approval-artifact') as { size: number; parts: unknown[] };
+  assert.equal(begin.size, 10);
+  assert.equal(begin.parts.length, 3);
+  const request = postBodies.find((b) => (b as { subjectType?: string }).subjectType === 'export-review') as { exportReview: Record<string, unknown>; nominees: string[]; chainId: string };
+  assert.equal(request.chainId, 'brand-signoff');
+  assert.equal(request.exportReview.uploadId, 'upl_1');
+  assert.equal(request.exportReview.format, 'png');
+  assert.equal(request.exportReview.query, 'name=Ana');
+  assert.ok(revoked >= 1, 'the picture is released with the dialog');
+
+  // The older path: the instance takes no file.
+  reset();
+  servingApprovers();
+  openApprovalDialog({ toolId: 'event-badge', title: 'Badge' });
+  await tick(); await tick();
+  assert.match(document.querySelector('dialog')!.textContent ?? '', /The file is not attached, so reviewers see only the title\./);
+  document.querySelector<HTMLButtonElement>('dialog [data-act="cancel"]')!.click();
+});
+
+test('a file over the limit says so and cannot be sent', async () => {
+  reset();
+  (globalThis.URL as unknown as { createObjectURL: (b: unknown) => string }).createObjectURL = () => 'blob:file';
+  (globalThis.URL as unknown as { revokeObjectURL: (u: string) => void }).revokeObjectURL = () => {};
+  servingApprovers();
+  openApprovalDialog({ toolId: 'event-badge', artifact: { blob: new Blob(['0123456789'], { type: 'image/png' }), name: 'badge.png' } }, { maxFileBytes: 4, partBytes: 4 });
+  await tick(); await tick();
+  const dialogEl = document.querySelector('dialog')!;
+  assert.match(dialogEl.querySelector('[data-error]')!.textContent ?? '', /This file is 10 B\. This workspace takes up to 4 B for review\./);
+  dialogEl.querySelector<HTMLElement>('[data-approver-id]')!.click();
+  assert.equal(dialogEl.querySelector<HTMLButtonElement>('[data-act="submit"]')!.disabled, true);
+  dialogEl.querySelector<HTMLButtonElement>('[data-act="cancel"]')!.click();
+});
+
+test('a PDF shows its name, then the first page the view can draw', async () => {
+  reset();
+  (globalThis.URL as unknown as { createObjectURL: (b: unknown) => string }).createObjectURL = () => 'blob:page';
+  (globalThis.URL as unknown as { revokeObjectURL: (u: string) => void }).revokeObjectURL = () => {};
+  servingApprovers();
+  let finish: (page: Blob | null) => void = () => {};
+  const firstPage = () => new Promise<Blob | null>((resolve) => { finish = resolve; });
+  openApprovalDialog({ toolId: 'event-badge', artifact: { blob: new Blob(['%PDF-1.7'], { type: 'application/pdf' }), name: 'badge.pdf', firstPage } }, { maxFileBytes: 1024, partBytes: 4 });
+  await tick();
+  const dialogEl = document.querySelector('dialog')!;
+  const stage = dialogEl.querySelector('[data-file-stage]')!;
+  assert.equal(stage.textContent, 'badge.pdf');
+  finish(new Blob(['<svg/>'], { type: 'image/svg+xml' }));
+  await tick(); await tick();
+  assert.equal(stage.querySelector('img')?.getAttribute('src'), 'blob:page');
+  dialogEl.querySelector<HTMLButtonElement>('[data-act="cancel"]')!.click();
 });

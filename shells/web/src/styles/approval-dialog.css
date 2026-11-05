@@ -1,0 +1,21 @@
+/* "Request approval" (org/approval-dialog.ts): the file on its way to review is the hero. */
+@layer views {
+  .approval-dialog:has(.approval-file) { width: min(92vw, 34rem); }
+  .approval-file { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .approval-file-stage {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 120px; padding: var(--sp-3);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--ui-radius-control);
+    background: hsl(var(--muted));
+    overflow: hidden;
+  }
+  .approval-file-stage img, .approval-file-stage video {
+    display: block; max-width: 100%; max-height: min(40vh, 22rem); height: auto;
+    border-radius: calc(var(--ui-radius-control) / 2);
+  }
+  .approval-file-stage audio { width: 100%; }
+  .approval-file-stage p { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center; overflow-wrap: anywhere; }
+  .approval-file-facts { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+  .approval-file-note { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
+}

@@ -36,7 +36,10 @@ lw upload ./keynote.mp4 --project prj_ab12        # a shared file in a project
 lw upload ./master.tif --scope catalog-submission  # an original to submit to the catalog
 ```
 
-`--scope` takes `catalog-submission`, `automation-input` or `file`. `lw upload` reads the file
+`--scope` takes `catalog-submission`, `automation-input` or `file`. A fourth scope,
+`approval-artifact`, carries the file of an [export review](approvals.md#review-an-exported-file): the
+web app uses it, it follows `policy.approvalArtifacts` rather than `policy.uploads`, only a signed-in
+person with `export.request` can use it, and the request takes the bytes when it is created. `lw upload` reads the file
 one part at a time and keeps each unfinished upload's id under `~/.config/lolly-work/uploads/`.
 If it stops, run the same command again and it carries on. Every option is on the
 [`lw` CLI page](cli.md#resumable-uploads).
