@@ -996,7 +996,7 @@ default, and while uploads are off every route here answers `404 NOT_FOUND` with
 | Route | Who | Answer |
 |---|---|---|
 | `GET /api/v1/uploads` | a member or a service token | `200 { uploads, limits }`: the caller's own uploads that have not expired, newest first, at most 50 |
-| `POST /api/v1/uploads` | `catalog.submit` for scope `catalog-submission`, `tool.use` for `automation-input` and `file`; a member or a service token, never a guest | `201 { upload, partBytes }`: the upload is reserved |
+| `POST /api/v1/uploads` | `catalog.submit` for scope `catalog-submission`, `tool.use` for `automation-input` and `file`, `brand.page.publish` for `brand-page`; a member or a service token, never a guest. A token limited to scopes cannot begin a `brand-page` upload | `201 { upload, partBytes }`: the upload is reserved |
 | `GET /api/v1/uploads/:id` | the owner | `200 { upload }` |
 | `GET /api/v1/uploads/:id/parts` | the owner | `200`: the [parts report](#the-parts-protocol) |
 | `PUT /api/v1/uploads/:id/parts/:n` | the owner | `204`; the body is part `n`'s bytes |
@@ -1280,6 +1280,32 @@ C2PA export assertion. See
 | `POST /api/v1/brand/rules` | `policy.edit` | Apply the reviewed mappings with `revision` and `reviewToken`; audited, stale-safe and durable outside development |
 
 See [managed production rules](design-system-administration.md#managed-production-rules) for scope and draft handling. Render input checks do not certify output appearance. Durable output metadata includes `brandRules` with disposition, scope and revision; synchronous and durable downloads expose `x-lolly-brand-check`.
+
+### Brand pages
+
+[Brand pages](design-system-administration.md#host-a-brand-page) are off by default. While `brandPages.enabled` is off, these routes answer `404`, and `/brand/<id>/` goes to the web shell when one is mounted.
+
+To publish, send a ZIP of the folder through [the parts protocol](#the-parts-protocol) in the upload scope `brand-page`, with `brand.json` at its root. Then name the finished upload.
+
+| Route | Who | Answer |
+|---|---|---|
+| `POST /api/v1/brand-pages` | `brand.page.publish` | Body `{ uploadId, checksum }`. `201 { page }` when live, `202 { page, approvalId }` when a chain is set, `200 { page, unchanged: true }` when this digest is already live. The server removes the upload once the files are stored |
+| `GET /api/v1/brand-pages` | `brand.page.publish` | `200 { pages, publicIndex, limits, approvalChain }` |
+| `GET /api/v1/brand-pages/:slug/revisions` | `brand.page.publish` | `200 { page, revisions }`, newest first. Each has `n`, `state`, `digest`, `size`, `fileCount`, who published it, and `preview` while it holds its files |
+| `GET /api/v1/brand-pages/:slug/revisions/:n` | `brand.page.publish`, or `approval.act` on its request | `200 { revision, held, checks, usage, colourways, files }` |
+| `GET /api/v1/brand-pages/:slug/revisions/:n/preview/*` | as above | One revision's files, with the page's headers. Never stored by a shared cache. `410` once its files are removed |
+| `POST /api/v1/brand-pages/:slug/unpublish` | `brand.page.publish` | Optional body `{ removeFiles: true }`. `200 { page, changed, removedRevisions }`. Audited |
+| `GET`, `HEAD /brand/:slug/`, `/brand/:slug/*` | anyone | The current revision's files. `/brand/:slug` redirects with `308`. `410` once unpublished. The class is `public-revalidate` |
+| `POST /brand/:slug/mcp` | anyone | The read-only MCP endpoint. `GET` answers `405` |
+| `GET`, `HEAD /api/v1/brand-pages/public`, `/.well-known/lolly-brand.json` | anyone | `200 { convention, version, note, pages, truncated }`. The second address is a Lolly convention |
+
+A refused bundle answers `422`, or `413` over a limit, with one of these codes: `MANIFEST_INVALID`, `BUNDLE_NOT_A_ZIP`, `BUNDLE_NOT_SUPPORTED`, `BUNDLE_MANIFEST_MISSING`, `BUNDLE_MANIFEST_DIGEST`, `BUNDLE_DIGEST_MISMATCH`, `BUNDLE_FILE_MISSING`, `BUNDLE_UNLISTED_FILE`, `BUNDLE_PATH_REFUSED`, `BUNDLE_ROLE_REFUSED`, `BUNDLE_MEDIA_TYPE_REFUSED`, `BUNDLE_FILE_TOO_LARGE`, `BUNDLE_TOO_LARGE`, `BUNDLE_TOO_MANY_FILES`. `BRAND_PAGE_BUDGET` answers `413` when the instance has no room, `BRAND_PAGE_PENDING` answers `409` while a revision waits for a decision and `CHAIN_NOT_FOUND` answers `409` when the configured chain does not exist.
+
+The public routes accept a token with any scope, so a client that sends one keeps working. The publishing routes are not in the scope table, so a token limited to scopes is refused there. Publishing places files at a public address, which stays with people and unscoped tokens.
+
+With a chain set, a decision on the approval must carry `brandPageDigest`, the `digest` from its `brandPage` block, or it answers `409 BRAND_PAGE_SUBJECT_CHANGED`. `brandPage` appears on the approval with `slug`, `revision`, `digest`, `name`, `files`, `size`, `held` and `preview`. A request cannot be raised by hand for this subject.
+
+`GET /api/v1/org-config` gains `brandPages { maxBundleBytes, maxFileBytes, partBytes, approval }` and `can['brand.page.publish']` for a caller who may publish on an instance with the feature on. `GET /api/v1/discovery` gains `brandPages { enabled, index, convention }`.
 
 ## Governance, approvals and inbox
 

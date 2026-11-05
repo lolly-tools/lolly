@@ -40,7 +40,7 @@ sessions](identity.md#groups-role).
 - **`approver`**: member, plus `approval.act`.
 - **`admin`**: author and approver, plus `catalog.publish`, `catalog.expire`, `catalog.hold`,
   `catalog.scan`, `catalog.edit`, `catalog.collection.manage`, `catalog.provider.read`,
-  `catalog.provider.manage`, `brand.switch`, `catalog.injectable.manage`, `policy.edit`,
+  `catalog.provider.manage`, `brand.switch`, `brand.page.publish`, `catalog.injectable.manage`, `policy.edit`,
   `grant.edit`, `link.revoke`, `link.create-guest`, `message.send`, `telemetry.view`,
   `fleet.view`, `fleet.manage`, `audit.export`, `project.manage`, `project.archive`,
   `approval.assign`, `export.server`, `user.invite`.

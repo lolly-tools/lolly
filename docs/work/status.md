@@ -93,6 +93,11 @@ Brandfolder has successful integration use reported at SUSE, including administr
   packs are bring-your-own too (`pack.type` defaults to `none`). A wrong shell path fails at
   boot rather than serving an ungoverned app.
 
+- **Brand pages.** Publishing, the checks against `brand.json`, unpublishing, the approval chain and the read-only MCP
+  endpoint have tests on memory and Postgres. A real folder from `lolly system publish` was served under its policy in
+  Chromium, with no blocked request, and a hostile bundle ran nothing. Other browsers and a live instance behind a CDN
+  have not been checked. Off by default. See [Host a brand page](design-system-administration.md#host-a-brand-page).
+
 ![The client fleet view: which shell and engine versions are talking to this deployment](shots/client-fleet.svg)
 
 The console's Fleet view lists the Lolly versions that talk to your server, which helps
