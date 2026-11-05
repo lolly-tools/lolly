@@ -110,15 +110,18 @@ well. See [identity](identity.md#who-may-sign-in).
 ## Service tokens
 
 ```bash
-lw tokens create --label ci --role admin    # owner; the secret prints once - store it now
-lw tokens                                   # list (label, role, last used, revoked)
+lw tokens create --label ci --scopes render,files --tools qr-code   # owner; the secret prints once - store it now
+lw tokens create --label sync --role admin  # no scopes: all that the role can reach
+lw tokens                                   # list (label, role, scopes, tools, last used, revoked)
 lw tokens revoke <id>
 LW_TOKEN=lwt_… lw export --out governance.json    # any command, authenticated as the automation
 ```
 
 A token outranks a stored session cookie when both are present - automation acts as the
 automation, never as whoever last signed in on the machine. Tokens drive the action-gated
-API (export/apply, providers, fleet, audit); the member-workflow commands refuse them.
+API (export/apply, providers, fleet, audit); the member-workflow commands refuse them. A scoped
+token reaches only what its scopes open, and other commands answer `403 TOKEN_SCOPE`. The scopes
+are in the [automation guide](automation-api.md#before-you-start-a-token-and-a-permission).
 
 ## Recoverable renders
 

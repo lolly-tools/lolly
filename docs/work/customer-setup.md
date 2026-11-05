@@ -139,9 +139,9 @@ with the provider's verified subject. Audit retention can remove old events, so 
 event does not prove the action never happened. Group changes apply on signed-in requests,
 and a SCIM disable also ends existing sessions.
 
-Service tokens take a role, expire after 90 days by default, show their last use and can be
-revoked. Scopes narrower than the role are not built yet; [service tokens](enterprise-identity.md#service-tokens)
-describes the current credential contract.
+Service tokens take scopes or a role, expire after 90 days by default, show their last use and can
+be revoked. [Service tokens](enterprise-identity.md#service-tokens) describes the credential
+contract.
 
 ## 4. Brand and assets
 

@@ -13,7 +13,7 @@ Every other route the console, the `lw` CLI and the apps call is in the
 ## Render your first file
 
 ::: timeline
-- <!--i:lock--> **Get a token.** An owner mints one for the script: `lw tokens create --label ci --role admin`. The secret, `lwt_…`, is shown once.
+- <!--i:lock--> **Get a token.** An owner mints one for the script, with only the reach it needs: `lw tokens create --label ci --scopes render`. The secret, `lwt_…`, is shown once.
 - <!--i:search--> **Ask what the token may do.** `GET /api/v1/discovery/me` answers with the formats this server renders and whether the token may render at all.
 - <!--i:document--> **Read the tool's inputs.** `GET /api/v1/schema/qr-code` returns the inputs this caller may set, after policy and design-system rules.
 - <!--i:download--> **Render.** `POST /api/v1/render` with the tool, the format and the inputs returns the file.
@@ -40,15 +40,40 @@ then a render that answers with the file or with a job.
 ## Before you start: a token and a permission
 
 **The token.** Service tokens are minted by owners (`token.manage`), from the console or
-`lw tokens create --label <name> --role <role> [--days <n>]`. The label says which automation
-holds the token, up to 80 characters. The role is any role but `guest`. A token lasts 90 days
-unless you choose 1 to 365. Send it as `Authorization: Bearer lwt_…`; the `lw` CLI reads it from
-`LW_TOKEN` or `--token`. The routes are in [service tokens](api.md#service-tokens).
+`lw tokens create --label <name> --scopes <scope,...> [--tools <id,...>] [--days <n>]`. The label
+says which automation holds the token, up to 80 characters. A token lasts 90 days unless you
+choose 1 to 365. Send it as `Authorization: Bearer lwt_…`; the `lw` CLI reads it from `LW_TOKEN`
+or `--token`. The routes are in [service tokens](api.md#service-tokens).
+
+**The scopes.** Scopes say which routes a token may reach:
+
+| Scope | What it opens |
+|---|---|
+| `render` | `POST /api/v1/render`, durable renders, render batches, `POST /api/v1/batch`, their jobs, tool schemas and `POST /api/v1/validate` |
+| `documents` | compile, validate, inspect, measure, optimize, diff and package, their jobs and tool schemas |
+| `files` | uploads and file references |
+| `delivery` | listing destinations, sending this token's own finished job to one, and reading or retrying those deliveries |
+| `catalog.read` | catalog files, tool files, catalog fields and catalog search |
+| `audit.read` | the audit trail and its head |
+
+Every scoped token can read `GET /api/v1/discovery`, `GET /api/v1/discovery/me` and
+`GET /api/auth/session`. Any other route answers `403 TOKEN_SCOPE`, and new routes stay closed
+until a release adds them to a scope. `--tools` limits the token to the tools you list, wherever a
+request gives a tool id: schemas, renders, batches, jobs and the document verbs. Scopes and the tool list are
+fixed when the token is minted, so a change means a new token.
+
+**The role.** A token with scopes and no `--role` takes the `automation` role, which holds
+`tool.use`, `export.server`, `delivery.create`, `catalog.read` and `audit.export`, so a `render`
+token needs no admin authority. No person can hold this role. You can also combine scopes with
+another role, and then a route must pass both: a `viewer` token with the `render` scope still
+cannot render, because a scope only narrows. A token with no scopes reaches all that its role
+allows, as before, and needs `--role`, which is any role but `guest` or `automation`.
 
 **The permission.** Rendering on the server needs `tool.use` for the tool and `export.server`.
-Admins hold `export.server` by default and a grant can give it to anyone else, so a token with
-the `member` role cannot render until someone grants that permission. The other verbs need
-`tool.use` for any tool they name.
+Admins and the `automation` role hold `export.server` by default and a grant can give it to anyone
+else, so a token with the `member` role cannot render until someone grants that permission. The
+other verbs need `tool.use` for any tool they name. A deny grant on `user:svc_<id>` applies to a
+scoped token as it does to any other.
 
 **What a token is.** A token acts as its own account, with its role and no groups. Its jobs and
 [file references](api.md#file-references) belong to the token, not to the owner who minted the
@@ -66,7 +91,7 @@ for that job's result.
 | Route | Who | What it answers |
 |---|---|---|
 | `GET /api/v1/discovery` | public | What this deployment can do, the same for everyone: document API and engine versions, server render formats, hooked tools, Content Credentials, automation verbs and batch limits, live collaboration, document agents, whether [file references](api.md#file-references) are on (`files.references`), and `unavailable` entries for what it lacks. Shared caches may hold it; it carries an ETag |
-| `GET /api/v1/discovery/me` | member or service token; anyone on an instance that is not `gated` | What the caller can do: `principal` (`member`, `service` or `guest`), `can` bits for `tool.use`, `export.server`, `export.request`, `delivery.create` and `catalog.read`, provider reference schemes that resolve for the caller, limits, the render worker's live readiness when one is configured, and `unavailable` entries. Private, never cached |
+| `GET /api/v1/discovery/me` | member or service token; anyone on an instance that is not `gated` | What the caller can do: `principal` (`member`, `service` or `guest`), `can` bits for `tool.use`, `export.server`, `export.request`, `delivery.create` and `catalog.read`, which a scoped token holds only when its scopes reach them, provider reference schemes that resolve for the caller, for a scoped token its `token` with `scopes`, `scopesVersion` and `tools`, limits, the render worker's live readiness when one is configured, and `unavailable` entries. Private, never cached |
 | `GET /api/v1/discovery/tools?limit=&cursor=` | as above | The tools the caller can use, sorted by id, 25 a page by default and at most 100. Each entry has `name`, `version`, `renderer`, the server `formats` the caller may request, `can.render`, its schema URL and `unavailable` entries. `next` is an opaque cursor, or `null` on the last page |
 | `GET /api/v1/schema/:toolId?view=&format=` | `tool.use` | The caller's effective input schema (below). `view=raw` returns the tool's own schema and needs `policy.edit`. `format` selects the output format whose design-system rules apply. Without it, the schema carries only the rules that apply to every format |
 
@@ -335,6 +360,7 @@ links.
 | `DATA_BINDING_ERROR` | 400 | a live JSON or CSV provider binding could not resolve, parse, query or validate |
 | `UNSUPPORTED_FORMAT` | 400 | a format this deployment cannot produce (org-config's `render.formats` lists what it can) |
 | `FORMAT_NOT_ALLOWED` | 403 | the format exists here, but this tool's overlay policy excludes that format |
+| `TOKEN_SCOPE` | 403 | the service token's scopes do not cover this route; `requiredScopes` lists the scopes that open it, when any do |
 | `INPUT_LOCKED` | 422 | a locked input was supplied by the caller |
 | `INPUT_HIDDEN` | 422 | the caller supplied an input that policy hides from them |
 | `INPUT_NOT_ALLOWED` | 422 | the value is not one of those a choice rule allows |
