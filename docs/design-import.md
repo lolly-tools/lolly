@@ -26,6 +26,7 @@ Every frame becomes a scene on the timeline, ready for timing, music and a voice
 | **`.indd`** or **`.indt`** | InDesign, saved as a document or a template (a preview) | Converted to IDML on your device, then read like an `.idml` (see [InDesign files](#indesign-files)). |
 | **`.dxf`** | AutoCAD, or any CAD or floor-plan program that saves DXF | Layers become groups of line and curve paths, with text as text boxes (see [DXF drawings](#dxf-drawings-and-floor-plans)). |
 | **`.af`**, **`.afdesign`**, **`.afphoto`** or **`.afpub`** | Affinity, saved as a document | Artboards or pages become frames; shapes, curves, text and pictures become editable layers (see [Affinity files](#affinity-files)). |
+| **`.json`** | A Bannerbear V5 image template, as `GET /v5/image_templates/{uid}` returns it | Text, rectangles, circles and image containers become editable layers. SVG shapes become plain boxes, and pictures are listed rather than fetched (see [Bannerbear templates](#bannerbear-templates)). |
 | **`.psd`** or **`.psb`** | Photoshop | Text, shapes and paths stay editable; other layers come in as pictures in place (see [Photoshop files](#photoshop-files)). |
 | **`.pptx`** | PowerPoint | One slide on the board (a longer deck asks which), or every slide as an artboard or a timed scene. |
 | **`.xml`** | Premiere (Final Cut Pro 7 XML), or a Lolly XML + media ZIP | Choose **Replace the board**; the clips open in Sequence (see [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange)). |
@@ -88,6 +89,17 @@ If the layers cannot be read, Lolly Design opens Affinity's own embedded preview
 Limits: the file can be up to 96 MB, decoded pixel layers up to 32 million pixels and the returned pictures up to 128 MB. A file over a limit, a library of assets, brushes or styles, and a file cut short each stop with a plain message. The reader works in a background worker, so a large file does not freeze the page.
 
 There is no published specification for the format. The reader was written from a public description and checked against public documents, with no Affinity software involved, and it is AI-assisted. A file from a build or platform outside the tested set can fail or fall back to its preview. Its [source and provenance](https://github.com/lolly-tools/lolly/tree/main/packages/node-shell/wasm/affinity/vendor/vectorcraft-affinity) are published beside the module. When the result matters, export SVG or PDF from Affinity and import that instead.
+
+
+## Bannerbear templates
+
+Bannerbear's V5 API returns a template's full layer design, so a template can come in as an editable document with no Bannerbear session. Download the template's JSON, or let [`lw render-api inventory`](/info/work-move-from-render-api.html) keep a copy of each one, then open the file here or run `lolly import template.json` in a terminal.
+
+- **What comes in.** Text, rectangles, circles and rectangle and circle image containers keep their position, size, rotation, opacity and the styling Design can hold. Layer names become stable ids, so old requests can reach the same layers by name.
+- **What is approximated.** An SVG shape becomes a plain box at the same place, for you to replace with the artwork.
+- **What stays out, and is listed.** Pictures are named with their addresses and are not fetched. Fonts are named and not copied. QR codes, bar codes, ratings, Lottie, audio waves, animated backgrounds and groups are left out, because their properties could not be confirmed from public documentation. So are hidden layers, and anchored or responsive layers with no fixed box.
+
+Bannerbear V2 and Placid return field names and a preview, not a design, so those templates are rebuilt against a reference instead. This import was built from Bannerbear's public documentation and has not been run against a live account: compare the result with the template's preview.
 
 ## What happens to the layers
 

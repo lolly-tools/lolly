@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.307.0
+
+- `mapBannerbearTemplate` (`design-map-bannerbear.ts`) turns a Bannerbear V5 image template's `config.objects` into Design rows, a report of everything left out, a `DesignToolDraftV1` and a mapping entry for `lw render-api`. Layer names become stable ids. Built from public documentation, never run against a live account. Reached by the CLI's `lolly import` and Design Import, not the barrel.
+- `@lolly-tools/core/design-tool-v1` exports `isDesignToolInputId`, the rule `validateDesignTool` already applied.
+
 ## 1.306.0
 
 - Intent in Content Credentials: `EmbedOptions.intent` writes a `tools.lolly.intent` assertion (`LOLLY_INTENT_ASSERTION`, `C2paIntentRecord`), after every other assertion, so a manifest without one keeps its exact bytes. The shape is closed: closed values read as themselves, and occasion, audience, region and the prompt are `sha256:` fingerprints unless the run asks for the prompt's words.

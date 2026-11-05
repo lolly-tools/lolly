@@ -219,6 +219,10 @@ lolly intent certificate.json --render --no-record-intent
 
 With `--render`, each file's Content Credential records the purpose, surface, tool, language, rules and vocabulary versions and the intent digest, with occasion, audience, region and the prompt as fingerprints only. `--record-prompt` records the prompt's own words instead of its fingerprint. `--no-record-intent` records nothing about the intent. `--c2pa=off` writes no credential, or `--c2pa=<days>` sets its lifetime. Each run says what it recorded, read back from the finished file, and `--json` gives the same as `intentRecord` on each entry in `rendered`. [What goes in the file](/info/visual-intent.html#what-goes-in-the-file) has the detail.
 
+## Bring a design in from another service (lolly import)
+
+`lolly import <template.json>` turns a Bannerbear V5 image template into a Design document on this device and prints what was left out, one note per line. `--output=<file>` writes the frames and report, `--mapping=<file>` writes the entry `lw render-api` reads, and `--json` prints the whole result. See [Bannerbear templates](/info/design-import.html#bannerbear-templates). Bannerbear V2 and Placid return no design, so `lolly import` refuses them. Built from public documentation and not run against a live account.
+
 ## Look at a picture in its own coordinates
 
 The MCP server's looking tools are CLI verbs too, over the same code, so a script sees what an agent sees. Each takes an SVG, PNG, JPEG, GIF or WebP file, or `-` for standard input:

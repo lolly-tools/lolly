@@ -35,7 +35,7 @@ import { unavailableHere } from './exit-codes.ts';
  */
 export const CONTENT_FREE_COMMANDS: ReadonlySet<string> = new Set([
   'reports', 'tui', 'projects', 'learning', 'prepare', 'files', 'start', 'system', 'completion', 'install-browser', 'help', 'version',
-  'adobe', 'affinity', 'dxf',
+  'adobe', 'affinity', 'dxf', 'import',
   // File-in file-out: `validate` reads Content Credentials out of bytes you already
   // have, the ML and speech commands run a local model, `mix` mixes audio sources,
   // and `icons`/`pack` build a Linux package from files named on the command line.

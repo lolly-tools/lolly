@@ -4099,7 +4099,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.306.0";
+    ENGINE_VERSION = "1.307.0";
   }
 });
 
@@ -12086,6 +12086,9 @@ var init_tool_token_axes = __esm({
 });
 
 // packages/core/src/design-tool-v1.ts
+function isDesignToolInputId(id3, reserved = []) {
+  return idPattern.test(id3) && !badKeys.has(id3) && !internal.has(id3) && !reserved.includes(id3) && !id3.startsWith("__");
+}
 function designToolPolicy(d) {
   return {
     schemaVersion: 1,
@@ -12136,7 +12139,7 @@ function validateDesignTool(d, reserved = []) {
   };
   for (const f of d.inputs) {
     const i = f.input;
-    if (!idPattern.test(i.id) || badKeys.has(i.id) || internal.has(i.id) || reserved.includes(i.id) || i.id.startsWith("__")) add3("input-id", "Use a unique input id that is not a reserved setting.", i.id);
+    if (!isDesignToolInputId(i.id, reserved)) add3("input-id", "Use a unique input id that is not a reserved setting.", i.id);
     if (!["text", "longtext", "number", "select", "color", "asset", "vector", ...d.sourceTool ? ["boolean", "url", "date", "time", "datetime-local"] : []].includes(i.type)) add3("input-type", "This input type is not supported in a locked tool.", i.id);
     if (i.type === "select" && (!i.options?.length || i.options.some((o) => !o.value || !o.label) || new Set(i.options.map((o) => o.value)).size !== i.options.length)) add3("options", "Give each option a label and a unique value.", i.id);
     if (i.type === "number" && (![i.min, i.max, i.step, i.default].every((n7) => typeof n7 === "number" && Number.isFinite(n7)) || Number(i.min) > Number(i.max) || Number(i.step) <= 0)) add3("range", "Set a finite minimum, maximum, default and positive step.", i.id);
