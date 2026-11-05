@@ -29,6 +29,7 @@ import { designPagesPdf, designPageSvg, type DesignPageSvgHost } from '../engine
 import { designDrawPdf } from '../engine/src/design-draw-pdf.ts';
 import { toCssLength } from '../engine/src/units.ts';
 import { decorationInk, type DecorationRegion, type DecorationInk } from './helpers/decoration-fidelity.ts';
+import { settledScreenshot } from './helpers/settled-screenshot.ts';
 
 /** A pixel differs when a channel moves by more than this; CSS and SVG edge anti-aliasing measured at most 21. */
 const THRESHOLD = 24;
@@ -163,6 +164,10 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
     strikeMetrics: (url, variations) => nodeStrikeMetrics(url, variations, repoRoot()),
     picture: async (ref) => (pictures[ref] ? { bytes: new Uint8Array(Buffer.from(pictures[ref].url.slice(pictures[ref].url.indexOf(',') + 1), 'base64')) } : null),
   };
+  // Each capture waits for a presented frame, because a fresh page can have none yet and
+  // Chromium then refuses the capture. Only that refusal is retried, and the run records it
+  // (helpers/settled-screenshot.ts).
+  const retried = (label: string) => ({ onRetry: (attempt: number, error: Error) => t.diagnostic(`${label}: capture ${attempt} refused: ${error.message.split('\n')[0]}`) });
   let controlled = false;
   for (const page of fidelityPages()) {
     // The pure tool APIs every shell installs before a mount (`installToolApis`).
@@ -175,11 +180,11 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
     await design.setContent(`<!doctype html><style>html,body{margin:0;background:#ffffff}${fonts}</style><style>${tool.styles ?? ''}</style>`
       + `<div id="tool-canvas" style="position:relative;width:${page.width}px;height:${page.height}px;overflow:hidden">${runtime.getHydrated()}</div>`);
     await design.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map((img) => img.decode().catch(() => undefined))); });
-    const designPng = await design.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
+    const designPng = await settledScreenshot(design, { clip: { x: 0, y: 0, width: page.width, height: page.height } }, retried(`${page.name}/design`));
     let undecorated: Buffer | undefined;
     if (DECORATED.has(page.name)) {
       const reset = await design.addStyleTag({ content: '* { text-decoration: none !important; }' });
-      undecorated = await design.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
+      undecorated = await settledScreenshot(design, { clip: { x: 0, y: 0, width: page.width, height: page.height } }, retried(`${page.name}/undecorated`));
       await reset.evaluate((node) => node.parentNode?.removeChild(node));
     }
     // The walker's export of the same live page, judged below with the same regions.
@@ -263,7 +268,7 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
       const shoot = async (drawing: typeof draw | string) => {
         await compiled.setContent(`<!doctype html><style>html,body{margin:0;background:#ffffff}svg{display:block}${fonts}</style>${typeof drawing === 'string' ? drawing : designDrawSvg(drawing, { ...emit, title: name })}`);
         await compiled.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map((img) => img.decode().catch(() => undefined))); });
-        return compiled.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
+        return settledScreenshot(compiled, { clip: { x: 0, y: 0, width: page.width, height: page.height } }, retried(`${page.name}/compiled`));
       };
       const compiledPng = await shoot(exported ?? draw);
       // Outlined words are judged by their ink against the same page with the words removed.

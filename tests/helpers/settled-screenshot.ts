@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Reference screenshots for the WebGPU fidelity tests, which open many short-lived pages
- * beside a long-lived SwiftShader probe page in one browser.
+ * Reference screenshots for the fidelity tests, which open many short-lived pages in one
+ * browser, in the WebGPU tests beside a long-lived SwiftShader probe page.
  *
  * Chromium answers Page.captureScreenshot with "Unable to capture screenshot" only when its
  * copy of the compositor surface comes back empty (ScreenshotCaptured in
