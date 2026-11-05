@@ -81,3 +81,5 @@ A good preview prints `health ok - brandfolder` and a mapped sample (`health.ok:
 Brandfolder supports the materialize, drift and cutover sequence in [Leave a DAM](../offboarding.md). First follow the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) to choose the Work instance and durable store that will receive the copies.
 
 Rehearse with assets containing several attachments and compare every required original with a direct Brandfolder download. The driver reads approval and availability fields, but the two availability field names still need a live check. Export required history, rights evidence and unmapped metadata separately. Accept the copies, access rules and old references before retiring the source.
+
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

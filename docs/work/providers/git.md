@@ -64,3 +64,9 @@ file.
 - **No server-side search and no expiring links.** Each file is fetched over raw HTTP and
   streamed on request, pinned to the `rawBase` host.
 - **The exit works,** though a catalog kept in git is usually kept there.
+
+## Use as an offboarding destination
+
+A self-hosted forge such as Gitea can hold a small, curated replacement catalog. Export and review permitted files, commit them with the manifest described above, then connect the raw-content endpoint. Work reads the repository and does not push the migration into Git. Plan file sizes, metadata, access and replacement references separately.
+
+The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Work storage and other destinations, with open-source options first.

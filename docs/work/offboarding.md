@@ -2,10 +2,31 @@
 
 Leaving is an optional stage of a connected workflow. A DAM can remain the source of record for as long as the organisation chooses. Start with [Use Lolly with your existing DAM](/info/use-with-dam.html) if you are connecting a library; use [Plan a DAM transition](/info/dam-transition.html) to agree responsibilities, acceptance and recovery before running the commands below.
 
-This page is for the brand operations lead who plans to leave a DAM vendor without losing
-assets or breaking links. Lolly Work copies the files into a store you own, then moves each
-asset's identity over, and every old address keeps resolving. Start early: the copy is the
-first thing to do once a source works, not the last step of an exit project.
+Choose where the library should live before planning the copy. Prefer open-source services
+your organisation can operate, with control over the hosting location, access, keys and
+recovery. Lolly Work can manage the replacement library, or connect to files you have moved
+to another supported source. Start early enough to verify the result before retiring the DAM.
+
+## Choose your offboarding path
+
+::: figure work-offboarding-paths
+Choose an offboarding destination. Open a path for its steps: self-host Lolly Work, use Nextcloud or Git, or upload to an existing hosted drive.
+:::
+
+The first path supports Work's materialize and cutover commands for qualified sources. The
+other paths use a separate vendor export and file transfer, followed by a read-only Work
+connection. Their new source identities do not automatically inherit the old DAM's addresses.
+
+::: details Compare transfer methods
+| Destination | How files get there | Continue with |
+|---|---|---|
+| Self-hosted Lolly Work with PostgreSQL or S3-compatible storage | Work materializes files into its own blob store; supported cutover creates aliases for copied assets | [Work-managed library](#self-host-lolly-work-with-s3-storage) |
+| Nextcloud or another WebDAV server you run | Export and copy with your own file tools, then connect Work read-only | [Nextcloud library](#move-to-nextcloud-or-another-webdav-server) |
+| Git on a self-hosted forge | Export, review and commit files plus a manifest, then connect Work read-only | [Git catalog](#keep-a-catalog-in-git) |
+| Google Drive, OneDrive / SharePoint or Dropbox | Export and upload with the drive's tools, then connect Work read-only | [Hosted drive](#move-to-a-hosted-drive) |
+:::
+
+For a supported Work-managed exit, the sequence is:
 
 ::: timeline
 - <!--i:link--> **Federate.** Connect the DAM as a read-only provider and confirm that `lw providers sync` returns what you expect.
@@ -24,8 +45,9 @@ the instance's files. Choose a [Work installation path](self-host.md) with durab
 your own address and sign-in. The public demo's memory storage is not a migration destination.
 
 Choose where the bytes will live before the first materialize. PostgreSQL is the default blob
-store; AWS S3, MinIO or Ceph RGW can hold larger libraries. MinIO or Ceph lets the organisation
-run the object store too. Set this block in the destination instance's configuration:
+store and needs no separate object-storage service. For larger libraries, Ceph RGW or MinIO
+lets the organisation run the object store too. A hosted S3-compatible service, including
+AWS S3, is another option. Set this block in the destination instance's configuration:
 
 ```json
 {
@@ -72,6 +94,59 @@ Drift is limited by the source timestamps it receives, so a quiet report alone i
 Run the supported cutover only after acceptance, then test old references and everyday review
 and delivery work. Keep the source and recovery evidence until the organisation accepts the
 result. [Plan a DAM transition](/info/dam-transition.html) covers ownership and team adoption.
+
+## Move to Nextcloud or another WebDAV server
+
+Choose this path when people should manage ordinary folders in a file service your organisation
+runs. Nextcloud is an open-source option. Work can read the resulting library through its
+[WebDAV / Nextcloud source](providers/webdav.md).
+
+1. Obtain a permitted export of the DAM originals and the metadata, rights and history records
+   you need. Keep a mapping from old asset and attachment ids to the exported files.
+2. Copy those files into the selected folder with Nextcloud's upload or sync tools, or a
+   [WebDAV client](https://docs.nextcloud.com/server/latest/user_manual/en/files/access_webdav.html).
+   Compare checksums and set folder permissions on the destination.
+3. Connect a narrow root through the WebDAV guide, test an original and allowed and refused
+   Work members, and check the complete inventory within the connector's walk limits.
+4. Plan replacement links and governance explicitly. Work's WebDAV source is read-only;
+   materialize writes to Work's own blob store and cannot send a DAM library to this folder.
+
+Keep metadata exports beside the files where appropriate, but verify which fields Work actually
+maps. A folder copy does not reconstruct approval history or rights evidence. Back up the file
+service and test recovery before retiring the DAM.
+
+## Keep a catalog in Git
+
+A self-hosted forge such as Gitea can suit a small, curated set of logos, fonts and other files
+reviewed with a catalog manifest. Export the permitted files, commit them and the manifest, then
+follow the [Git source guide](providers/git.md) to connect the raw-content endpoint.
+
+This is a separate export and repository workflow; Work does not push into Git. Agree file-size
+limits, repository access, metadata mappings and replacement references. Work reads the selected
+branch, so Git history alone does not pin an existing design to a historical revision.
+
+## Move to a hosted drive
+
+Google Drive, OneDrive / SharePoint and Dropbox are optional destinations when the organisation
+already uses those vendor-operated services. The self-hosted paths above offer control over
+the service operator as well as the files. For a hosted drive, review account ownership, hosting
+region, access, retention and the ability to export again before choosing the destination.
+
+Export permitted DAM originals and supporting records first. Upload with the drive's own tools,
+then connect the new folder to Work using its provider guide. Work's drive connectors are
+read-only: there is no direct DAM-to-drive materialize, publishing or cutover writer.
+
+| Destination | Work connection and listing limits | Upload guidance |
+|---|---|---|
+| [Google Drive](providers/gdrive.md#use-as-an-offboarding-destination) | One flat folder; native Docs, Sheets and Slides are skipped; no imported approval or availability dates | [Upload files and folders](https://support.google.com/drive/answer/2424368) |
+| [OneDrive / SharePoint](providers/o365.md#use-as-an-offboarding-destination) | One folder level; subfolders are not walked; search covers the whole drive, so test exposure carefully | [Upload to a drive or library](https://support.microsoft.com/en-us/sharepoint/documents-and-library/upload-files-and-folders-to-a-library) |
+| [Dropbox](providers/dropbox.md#use-as-an-offboarding-destination) | Recursive listing includes subfolders; file ids survive renames and moves | Use the service's upload or sync tools, then follow the provider guide |
+
+Compare downloaded destination bytes with the exported originals. Keep ordinary files rather
+than converting originals to cloud-native documents if Lolly must use the same bytes. Rebuild
+access and required approval or expiry controls, keep unmapped metadata and historical records
+separately, and update saved designs and published links for the new source identities. The
+Work-managed cutover's old-address aliases do not apply to this separate transfer.
 
 ## When to start
 
@@ -145,6 +220,9 @@ organisation runs itself, so there is no vendor to leave, and it is far more oft
 exit goes** than where one starts. The copy works against it like any other source.
 
 ## Run the exit
+
+These commands copy into Work's own blob store. For Nextcloud, Git or hosted drives, use the
+separate export and transfer steps in your [chosen path](#choose-your-offboarding-path).
 
 ```bash
 lw providers add acme-ir --kind imagerelay --label "Image Relay" --options '{"folderId":"…"}'

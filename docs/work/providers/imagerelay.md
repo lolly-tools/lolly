@@ -91,3 +91,5 @@ lw providers health acme-imagerelay
 Choose the exit driver by the API serving your tenant: `imagerelay` for the legacy tenant and [`canto`](canto.md#off-boarding) after a move to Canto. When both remain active, inventory both sets and reconcile overlap; materialization is idempotent within a provider, not a promise to deduplicate two providers.
 
 Use the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then follow [Leave a DAM](../offboarding.md) for materialize, drift and cutover. Preserve the mapped expiry dates and separately export required approval, rights and history records. Confirm field names and original fidelity on your own tenant before fixing a cutover date.
+
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

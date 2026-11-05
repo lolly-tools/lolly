@@ -2474,7 +2474,7 @@
         "manage/offboarding"
       ],
       "contentLicense": "MPL-2.0",
-      "description": "Plan DAM offboarding to self-hosted Lolly Work with S3, MinIO or Ceph: verify originals, preserve references, rehearse recovery and cut over supported sources.",
+      "description": "Choose a DAM offboarding path: self-host Lolly Work, Nextcloud or Git, or export to a hosted drive. Compare transfer steps, originals, links and recovery.",
       "work": {
         "slug": "offboarding",
         "path": "offboarding.md",
@@ -2659,7 +2659,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Guided Nextcloud or generic WebDAV setup: exact groups, an original checksum, credential sealing and sync before activation.",
+      "description": "Connect a self-hosted Nextcloud or WebDAV library to Lolly Work. Guided setup, original checks and a separate file-transfer route for DAM offboarding.",
       "work": {
         "slug": "provider-webdav",
         "path": "providers/webdav.md",
@@ -2693,7 +2693,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "A catalog manifest kept in a git repository and read over raw HTTP from the branch you choose.",
+      "description": "Connect a catalog manifest and files from a Git repository, including a self-hosted forge. Review and commit a curated DAM export before connecting Work.",
       "work": {
         "slug": "provider-git",
         "path": "providers/git.md",
@@ -2863,7 +2863,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "A Dropbox folder federated read-only over the registered PKCE consent flow.",
+      "description": "Connect a Dropbox folder to Lolly Work, including files exported from a DAM. Read-only access, recursive listing and stable file identities.",
       "work": {
         "slug": "provider-dropbox",
         "path": "providers/dropbox.md",
@@ -2880,7 +2880,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Guided folder/group configuration, registered browser consent, saved-file testing, activation and connection recovery.",
+      "description": "Connect a Google Drive folder to Lolly Work, including files exported from a DAM. Guided setup, original-file checks and flat-folder limits.",
       "work": {
         "slug": "provider-gdrive",
         "path": "providers/gdrive.md",
@@ -2897,7 +2897,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "A SharePoint library or OneDrive federated read-only through Microsoft Graph.",
+      "description": "Connect OneDrive or SharePoint to Lolly Work, including a separate DAM export and upload. Check folder listing, drive-wide search and member access.",
       "work": {
         "slug": "provider-o365",
         "path": "providers/o365.md",

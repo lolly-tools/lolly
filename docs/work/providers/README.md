@@ -70,9 +70,11 @@ optional and needs separate acceptance checks.
 | [Orange Logic](orange-logic.md) | [Connect permitted renditions](orange-logic.md#onboarding) | [Originals block cutover](orange-logic.md#off-boarding) |
 | [Optimizely CMP](optimizely-cmp.md) | [Connect the web workflow](optimizely-cmp.md#onboarding) | [Retain CMP as the source](optimizely-cmp.md#off-boarding) |
 
-For a destination you control, follow the [self-hosting strategy with S3
-storage](../offboarding.md#self-host-lolly-work-with-s3-storage). It covers the Work server,
-PostgreSQL, S3-compatible blob storage, backups and the checks before a supported cutover.
+Use the [offboarding path chooser](../offboarding.md#choose-your-offboarding-path) to start
+with open-source services you can run: Work-managed storage, Nextcloud or Git. It also explains
+the separate export-and-upload route to Google Drive, OneDrive / SharePoint or Dropbox. The
+[S3 storage strategy](../offboarding.md#self-host-lolly-work-with-s3-storage) covers the Work
+server, PostgreSQL, blob storage, backups and the checks before a supported cutover.
 
 ## Connect a source in four steps
 

@@ -130,6 +130,8 @@ Cloudinary is a conditional exit target. First prove original fidelity with the 
 
 Use the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then rehearse materialize, drift and cutover with [Leave a DAM](../offboarding.md). Inventory required transformations and delivery URLs separately: the connector copies originals and does not recreate Cloudinary's delivery service. Retain required review, rights, metadata and history exports outside the connector before retiring that service.
 
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.
+
 Vendor references: [Search](https://cloudinary.com/documentation/search_method),
 [Admin API](https://cloudinary.com/documentation/admin_api),
 [download by asset ID](https://cloudinary.com/documentation/image_upload_api_reference#download_by_asset_id),

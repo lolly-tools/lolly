@@ -60,3 +60,9 @@ A token-refresh failure means the grant was revoked; run `lw providers auth` aga
 - **Search matches file names, not contents.**
 - **Fresh downloads.** Each download is a new authenticated request to Dropbox
   (`files/download`), streamed through Work and pinned to Dropbox's hosts. Nothing is stored.
+
+## Use as an offboarding destination
+
+Export permitted DAM originals and supporting records, upload them with Dropbox's own tools, then connect the folder using this guide. Work reads this source and does not write the migration into Dropbox. Listing includes subfolders, but the transfer does not recreate the DAM's approval workflow, history or old identities. Rebuild required governance and update references.
+
+The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Work storage and other destinations, with open-source options first.

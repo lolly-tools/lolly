@@ -187,3 +187,9 @@ lw providers preview --kind webdav --shape --options '{"baseUrl":"https://cloud.
 - **A destination as much as a source.** You run this server yourself, so there is no vendor
   to leave. It is more often where an [exit](../offboarding.md#exit-readiness-by-kind) copies
   files to than where one starts.
+
+## Use as an offboarding destination
+
+Nextcloud or another WebDAV server you run can hold the files after a DAM exit. Export permitted originals and supporting records, copy them with your file service's upload or sync tools, then connect a narrow root using this guide. Work's source is read-only; materialize cannot write a DAM library into this folder. Verify the inventory within the walk limits and plan replacement references and governance.
+
+The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Work storage and other destinations, with open-source options first.

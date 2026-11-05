@@ -73,3 +73,5 @@ on means nothing matches `approvedStatuses`.
 Acquia DAM / Widen supports the exit sequence, subject to the [tenant check](tenant-check.md#acquia-dam-widen) for endpoints, original downloads and native date and status fields. The driver reads `embeds.original`, falling back to the download link; compare required files with direct source downloads.
 
 Use the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) to prepare Work and its durable store, then follow [Leave a DAM](../offboarding.md) for materialize, drift and cutover. Check release, expiry and approval on copied assets. Keep any required metadata, rights evidence and historical records that the driver does not map through a separate export.
+
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

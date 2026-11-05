@@ -75,3 +75,5 @@ A `login <status>` error means the platform URL or the API key is wrong.
 IntelligenceBank supports the exit sequence after its [tenant check](tenant-check.md#intelligencebank). Qualify `publish_date`, `expiry_date`, `review_date` and the configured approved workflow states; those mappings do not recreate the vendor's review history or complete rights records.
 
 Prepare the destination with the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then use [Leave a DAM](../offboarding.md) for materialize, drift and cutover. Compare originals, inspect mapped governance on the copies and separately retain required history and unmapped metadata before retiring the tenant.
+
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

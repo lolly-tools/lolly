@@ -135,3 +135,9 @@ inventory.
 - **Search matches file names, not contents.**
 - **Short-lived download links,** fetched on each request, streamed through Work and pinned to
   Google's hosts.
+
+## Use as an offboarding destination
+
+Export the permitted DAM originals and supporting records, upload ordinary files with Google Drive's own tools, then connect the selected folder using this guide. Work reads this source and does not copy a DAM library into Drive. Keep files directly in the selected folder: native Google documents and subfolders are skipped. Rebuild access, approval and expiry controls as needed and update references for the new identities.
+
+The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Work storage and other destinations, with open-source options first.

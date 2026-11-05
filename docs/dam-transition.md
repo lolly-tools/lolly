@@ -26,7 +26,7 @@ Map current approval responsibilities explicitly. Decide which source approvals 
 
 ## Rehearse the copy and verify the gaps
 
-Choose the destination before copying. The [self-hosting strategy with S3 storage](/info/manage/leave-a-dam.html#self-host-lolly-work-with-s3-storage) connects the Work installation, PostgreSQL, private object storage and a restore rehearsal. Use the [per-DAM onboarding and offboarding guides](/info/manage/provider-guides.html#dam-onboarding-and-offboarding) to check the source's specific limits.
+Choose the destination before copying. The [offboarding path chooser](/info/manage/leave-a-dam.html#choose-your-offboarding-path) starts with self-hosted Work, Nextcloud and Git, then offers a separate export-and-upload route for existing hosted drives. The [S3 storage strategy](/info/manage/leave-a-dam.html#self-host-lolly-work-with-s3-storage) connects the Work installation, PostgreSQL, private object storage and a restore rehearsal. Use the [per-DAM onboarding and offboarding guides](/info/manage/provider-guides.html#dam-onboarding-and-offboarding) to check the source's specific limits.
 
 For a supported exit source, materialize a representative permitted set into the intended durable store. Compare originals with direct source downloads, including multi-attachment assets and files with important metadata. Record failures individually and check what the copy preserves.
 

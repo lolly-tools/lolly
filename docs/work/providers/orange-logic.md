@@ -139,6 +139,8 @@ Materialize can copy exposed renditions, with that limitation retained in their 
 
 The [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) explains how to run the destination, but does not remove this source limitation. An original-preserving migration needs a separately obtained, implemented and tested original-export path, plus checks for every required format. Keep Orange Logic authoritative until that work and the acceptance checks in [Leave a DAM](../offboarding.md) are complete.
 
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.
+
 Vendor references: [Search](https://developer.orangelogic.com/reference/search-api),
 [fields and format limits](https://developer.orangelogic.com/reference/fields-parameter),
 [authentication](https://developer.orangelogic.com/reference/authenticate).

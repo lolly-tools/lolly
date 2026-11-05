@@ -1,0 +1,7 @@
+{
+  "generator": { "name": "Codex" },
+  "model": { "name": "GPT-6", "identifier": "gpt-6", "vendor": "OpenAI" },
+  "oversight": "prompt_guided",
+  "source": "trainedAlgorithmicMedia",
+  "author": { "name": "Andy Fitzsimon" }
+}
