@@ -4,7 +4,7 @@ Ang logo, mga kulay at typeface mo ay nabibilang sa iisang lugar, para gumuhit a
 
 Magsimula sa anumang meron ka. Mag-drop ng logo at babasahin ng Lolly ang mga kulay nito. Pumili ng typeface, o i-drop ang font file na nilisensyahan ng kumpanya mo. Ipinapakita sa buong app ang bawat pagbabago agad. Nananatili sa device na ito ang logo, mga font at token mo. Ang pagpili ng Google Font ang nag-iisang hakbang na umaabot sa labas: nagtatanong muna ang Lolly, saka kinukuha ang family nang minsan.
 
-Kapag maayos na ang itsura, pangalanan ang design system at pindutin ang **Export**. Makakakuha ka ng isang `.lolly` file na itatago, bubuksan sa ibang device o ibibigay sa kasamahan. Ipinapakita ng [Settings](/info/dashboard.html#design-system) ang aktibong system na read-only, at ang cover nito ay nagli-link pabalik dito para sa pag-edit.
+Kapag maayos na ang itsura, pangalanan ang design system at pindutin ang **Export**. Makakakuha ka ng isang `.lolly` file na itatago, bubuksan sa ibang device o ibibigay sa kasamahan. Ipinapakita ng [Lolly Settings](/info/dashboard.html#design-system) ang aktibong system na read-only, at ang cover nito ay nagli-link pabalik dito para sa pag-edit.
 
 ## Gawing iyo sa limang minuto
 

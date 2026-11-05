@@ -9,7 +9,7 @@ Lolly ہر شخص کی ڈیوائس پر چلتا ہے۔ جب ٹیم کو سائ
 - [Adoption & Governance](/info/adoption-governance.html) رول آؤٹ اور برانڈ اصولوں کے کردار کا احاطہ کرتا ہے۔
 - [Identity and sessions](/info/work-identity.html) سائن اِن اور گروپ میپنگ کا احاطہ کرتا ہے۔ [Roles and grants](/info/work-permissions.html) کردار، گرانٹس اور owner guard سمجھاتا ہے۔
 - [Policy and governance](/info/work-governance.html) ٹول اوور لیز، مقفل ان پٹس اور پالیسی کا احاطہ کرتا ہے۔ [Manage organisation AI policy](/info/work-ai-policy.html) منظوریاں اور عمل کی حدیں بیان کرتا ہے۔
-- [Account data controls](/info/work-account-lifecycle.html) اور [Work storage and data lifecycle](/info/work-data-lifecycle.html) ایکسپورٹس، رخصتی، برقرار رکھنے اور ان کی حدوں کا احاطہ کرتے ہیں۔
+- [Account data controls](/info/work-account-lifecycle.html) اور [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) ایکسپورٹس، رخصتی، برقرار رکھنے اور ان کی حدوں کا احاطہ کرتے ہیں۔
 - [Profiles, brands and tool configuration](/info/configuration.html) بتاتا ہے کہ Lolly کا بلڈ کون سے ٹولز اور ڈیزائن سسٹمز رکھتا ہے۔
 
 ## ایسیٹس جوڑیں اور کام کا ریویو کریں

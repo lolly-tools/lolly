@@ -28,7 +28,7 @@
 ## 在浏览器中,无需任何工具
 
 ::: timeline
-- <!--i:globe--> **1. 观察网络。** 打开 [lolly.tools](https://lolly.tools)，打开浏览器的 DevTools（F12），切换到 **Network** 并使用一个工具：在 [QR Code](/t/qr-code) 中输入网址、更改颜色、导出 PNG。每个请求都留在 `lolly.tools` 上：应用外壳、工具自己的文件和目录素材。没有分析主机，没有 CDN 信标，没有字体服务，也没有错误上报端点。你在工具中输入的内容**不会出现在任何请求中**，因为渲染是在本地进行的。
+- <!--i:globe--> **1. 观察网络。** 打开 [lolly.tools](https://lolly.tools)，打开浏览器的 DevTools（F12），切换到 **Network** 并使用一个工具：在 [Lolly QR Code](/t/qr-code) 中输入网址、更改颜色、导出 PNG。每个请求都留在 `lolly.tools` 上：应用外壳、工具自己的文件和目录素材。没有分析主机，没有 CDN 信标，没有字体服务，也没有错误上报端点。你在工具中输入的内容**不会出现在任何请求中**，因为渲染是在本地进行的。
 - <!--i:eyeoff--> **2. 拔掉网线。** 加载应用并打开一两个工具，然后断开网络（飞行模式，或 DevTools → Network → Offline）并重新加载。图库和你打开过的每个工具都继续工作，包括你用过的格式的渲染和导出。工具的文件和格式的编码器会在你第一次使用时缓存，所以在离线测试之前，请先在联网时使用一次该工具。这是本页上最有力的单项检查：向外回传数据的软件，被切断连线后就活不下去。
 - <!--i:check--> **3. 数一数 Cookie。** DevTools → **Application**（Firefox：**Storage**）→ Cookies → `https://lolly.tools`。列表是空的：应用不设置 Cookie。把 `document.cookie` 粘贴到控制台，得到的是 `""`。可选的 CA 注册会设置一个短期的 `HttpOnly` Cookie `lolly_ca_state`，范围限定为 `/api/ca`，`document.cookie` 看不到它。Lolly Work 实例使用它自己的登录 Cookie；请与[隐私](/info/privacy.html#organisation-services-with-lolly-work)对照。
 - <!--i:layers--> **4. 读取你自己的存储。** 在同一个面板中，Lolly 保存的一切都摆在你面前：二十几个普通的 `localStorage` 键（主题、语言、侧栏宽度、声音和视图设置，以及公共工具目录索引的缓存副本）和你在 IndexedDB 中的文档。每个值都是可读的字符串或 JSON，没有任何混淆。清除网站数据会移除这些本地记录，但不会移除 Sync 备份或 Lolly Work 实例持有的记录。**Settings → Storage → Clear all my data** 在应用内部做同样的事，你可以看着存储和缓存被清空。

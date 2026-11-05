@@ -16,7 +16,7 @@ Both let you arrange type, shapes and images on a canvas and work with other peo
 
 Lolly turns a design into a [reusable tool with rules](/info/create-a-tool.html). The tool runs in the browser or the CLI and takes its inputs from a link, a script or a batch grid, so one template serves a person editing one file and a team making many.
 
-![Design's open canvas, with Import a design in the toolbar's Lolly menu](/info/shots/design.svg)
+![Lolly Design's open canvas, with Import a design in the toolbar's Lolly menu](/info/shots/design.svg)
 
 A [private collab](/info/collaborate.html) pairs two devices directly, with no account and no internet needed on a shared network. Standalone Lolly renders offline. Content Credentials are on by default for supported exports, and you can turn them off.
 

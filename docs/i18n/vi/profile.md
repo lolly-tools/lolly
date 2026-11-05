@@ -14,13 +14,13 @@ Hồ sơ của bạn cũng chứa những gì bạn tích lũy khi làm việc: 
 | **Headshot** | Một ảnh tùy chọn, cắt vuông và giữ làm ảnh cục bộ, cho các công cụ như chữ ký email, thẻ trích dẫn và sơ đồ tổ chức. |
 | **Use my details to create** | Một công tắc tham gia (khi bật nó đọc **Using my details**). Nó quyết định thông tin của bạn có đi cùng làm ghi công tác giả trong tệp xuất và trong các lượt chạy Batch hay không. Nó không ảnh hưởng đến điền sẵn; xem [How tools use your profile](#how-tools-use-your-profile). |
 | **Preferences** | Chủ đề, colourway của bạn trong mỗi hệ thống thiết kế, cài đặt trợ năng và những phần của ứng dụng bạn đã bật trong **Feature flags**. |
-| **Your work** | Các phiên đã lưu cùng hình thu nhỏ, sắp xếp trong [Projects](/info/find-your-work.html), ảnh đã tải lên và số liệu hoạt động cục bộ. |
+| **Your work** | Các phiên đã lưu cùng hình thu nhỏ, sắp xếp trong [Lolly Projects](/info/find-your-work.html), ảnh đã tải lên và số liệu hoạt động cục bộ. |
 
 Không cái nào bắt buộc. Một hồ sơ trống vẫn dùng được; chỉ điền những gì giúp bạn đỡ gõ.
 
 ![Settings ở thẻ Preferences: thanh cài đặt, và Your details với công tắc Use my details to create cùng các trường tên, liên hệ và vị trí](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) vẽ ra mọi thứ khác dưới Preferences, từ giao diện và emoji đến lưu trữ và tải xuống ngoại tuyến.
+[Lolly Settings](/info/dashboard.html) vẽ ra mọi thứ khác dưới Preferences, từ giao diện và emoji đến lưu trữ và tải xuống ngoại tuyến.
 
 ## Bạn, một đội hoặc một vai trò
 
@@ -83,7 +83,7 @@ Tác giả công cụ: xem [`bindToProfile`](/info/tool-inputs.html#bindtoprofil
 Ba thứ nằm gần nhau trong Settings và dễ nhầm:
 
 - <!--i:people--> **Profile** - bạn, đội của bạn hoặc vai trò bạn đang đảm nhận: tên, liên hệ, ảnh chân dung và công việc đã lưu. Cá nhân, giữ trên thiết bị và khả chuyển dưới dạng tệp.
-- <!--i:palette--> **Design system** - thương hiệu: màu sắc, phông chữ và cài đặt mà mọi công cụ dùng để kết xuất. Dùng chung và nhất quán hơn là cá nhân; xem [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - thương hiệu: màu sắc, phông chữ và cài đặt mà mọi công cụ dùng để kết xuất. Dùng chung và nhất quán hơn là cá nhân; xem [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - ứng dụng làm được gì: các tính năng và công cụ dành cho bạn.
 
 Hồ sơ đổi việc tệp đến từ ai; hệ thống thiết kế đổi việc tệp trông ra sao; khả năng là những gì bạn có thể làm.

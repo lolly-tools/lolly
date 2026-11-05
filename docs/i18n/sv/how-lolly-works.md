@@ -35,7 +35,7 @@ Varje väg kör samma motor på samma verktyg, så filen som ett skript gör mat
 ![URL-parametrar och kommandoradsargument blir samma indatamodell, körs genom en gemensam körmiljö och exportbrygga](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **I appen, en i taget.** Öppna ett verktyg, fyll i fälten och tryck på **Export**. [Gör din första fil](/info/make-something.html) tar dig igenom en.
-- <!--i:layers--> **I appen, många på en gång.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) tar en inklistrad eller importerad tabell och renderar en färdig fil per rad.
+- <!--i:layers--> **I appen, många på en gång.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) tar en inklistrad eller importerad tabell och renderar en färdig fil per rad.
 - <!--i:cpu--> **Från ett skript eller en AI-agent.** [CLI](/info/cli.html) kör ett verktyg utan gränssnitt, och [MCP-servern](/info/mcp.html) låter en agent upptäcka och köra verktyg. En länk till ett verktyg bär också dess indata, så en länk är en komplett begäran.
 - <!--i:server--> **Via din organisations server.** [Lolly Work](/info/organisation.html) renderar på servern under din organisations inloggning och verktygspolicy, behåller jobb som kan återupptas och håller utdatan för nedladdning eller godkänd leverans.
 

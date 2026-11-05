@@ -3,7 +3,7 @@
 Lolly Work exports Prometheus metrics on `GET /metrics`. This page lists every metric,
 the alerts the Helm chart can install and the Grafana dashboard that comes with them.
 The alerts and the dashboard are for a platform team that already runs Prometheus and
-Grafana, and both are off by default. Without them, Work still raises its own console
+Grafana, and both are off by default. Without them, Lolly Work still raises its own console
 alerts for blob offload and credential expiry
 ([keep Lolly Work running](operations.md#blob-offload-trigger)).
 
@@ -49,16 +49,16 @@ event on. Gauges are read when Prometheus scrapes.
 | `lw_rate_limited_total` | counter | `surface` | Requests the per-address limiter refused, by surface: `auth`, `telemetry`, `link` or `automation` |
 | `lw_rate_limit_buckets` | gauge | | Client addresses the limiter tracks in memory. When the count reaches `rateLimit.maxBuckets`, the limiter drops the oldest tenth |
 | `lw_origin_bytes_total` | counter | `class` | Response body bytes after compression, by delivery class: `public-immutable`, `public-revalidate`, `public-bounded`, `link`, `instance-private` or `person-private`. HEAD, 204 and 304 answers count nothing. A CDN can serve only the public classes |
-| `lw_process_uptime_seconds` | gauge | | Seconds since the Work process started |
-| `lw_process_resident_memory_bytes` | gauge | | Resident memory of the Work process |
-| `lw_org_config_poll_total` | counter | | Configuration polls from Lolly apps that Work answered (200 and 304): how often the fleet checks in |
-| `lw_org_config_poll_errors_total` | counter | | Configuration polls Work could not answer |
+| `lw_process_uptime_seconds` | gauge | | Seconds since the Lolly Work process started |
+| `lw_process_resident_memory_bytes` | gauge | | Resident memory of the Lolly Work process |
+| `lw_org_config_poll_total` | counter | | Configuration polls from Lolly apps that Lolly Work answered (200 and 304): how often the fleet checks in |
+| `lw_org_config_poll_errors_total` | counter | | Configuration polls Lolly Work could not answer |
 
 ### Audit and SIEM
 
 | Metric | Type | Labels | Meaning |
 |---|---|---|---|
-| `lw_audit_chain_intact` | gauge | | `1` when the [audit](audit.md) hash chain verifies end to end, `0` when it is broken. Work verifies the chain at most once every 10 seconds, however often Prometheus scrapes |
+| `lw_audit_chain_intact` | gauge | | `1` when the [audit](audit.md) hash chain verifies end to end, `0` when it is broken. Lolly Work verifies the chain at most once every 10 seconds, however often Prometheus scrapes |
 | `lw_siem_lag` | gauge | | Audit events the SIEM receiver has not confirmed. Present only when `siem.url` is set ([SIEM forwarding](operations.md#siem-forwarding)) |
 
 ### Files
@@ -85,7 +85,7 @@ One series per source and metric.
 |---|---|---|---|
 | `lw_notify_total` | counter | `channel`, `outcome` | Notification deliveries, by `smtp` or `webhook` and `sent` or `failed` ([notifications](operations.md#notifications)) |
 | `lw_ofrep_requests_total` | counter | `flag` | Flag evaluations sent to your flag service over OFREP |
-| `lw_ofrep_evaluation_errors_total` | counter | `flag`, `reason` | Evaluations that fell back to the value Work governs. `reason` is one of `timeout`, `network`, `unauthorized`, `not_found`, `rate_limited`, `targeting_key_missing`, `invalid_request`, `server`, `status`, `bad_response` or `type_mismatch` |
+| `lw_ofrep_evaluation_errors_total` | counter | `flag`, `reason` | Evaluations that fell back to the value Lolly Work governs. `reason` is one of `timeout`, `network`, `unauthorized`, `not_found`, `rate_limited`, `targeting_key_missing`, `invalid_request`, `server`, `status`, `bad_response` or `type_mismatch` |
 | `lw_otlp_exported_total` | counter | `signal` | Spans, data points or log records the OTLP receiver accepted. Present only while [OpenTelemetry export](operations.md#opentelemetry-export) is on |
 | `lw_otlp_dropped_total` | counter | `signal`, `reason` | Items lost to a full queue (`queue_full`) or a failed export (`export_failed`). Present only while OpenTelemetry export is on |
 
@@ -112,7 +112,7 @@ metrics:
 |---|---|---|---|
 | `LollyWorkAuditChainBroken` | critical | The audit chain has not verified for a minute | `lw_audit_chain_intact` |
 | `LollyWorkNotReady` | critical | Every `/readyz` check in two minutes answered 503, for five minutes | `lw_http_requests_total` |
-| `LollyWorkMetricsAbsent` | warning | Prometheus has had no Work series for ten minutes | `lw_process_uptime_seconds` |
+| `LollyWorkMetricsAbsent` | warning | Prometheus has had no Lolly Work series for ten minutes | `lw_process_uptime_seconds` |
 | `LollyWorkHighErrorRate` | warning | Over 5% of requests answered 5xx for ten minutes, leaving out health checks, scrapes and renders, at three requests a minute or more | `lw_http_requests_total` |
 | `LollyWorkRenderFailures` | warning | Over 10% of server renders (`/api/v1/render` and `/render/:spec`) answered 5xx in 15 minutes, with five renders or more | `lw_http_requests_total` |
 | `LollyWorkSiemLagGrowing` | warning | The SIEM backlog has not reached zero and has kept growing for 30 minutes | `lw_siem_lag` |
@@ -130,12 +130,12 @@ check first. Some limits to know:
   (503 `RENDER_BUSY`) and a hooked tool on an instance without a worker (501) apart,
   because the metric records only the status class. The `error.code` of the response
   and the worker's log can.
-- The two offload alerts fire at 90% of the thresholds at which Work raises its own
+- The two offload alerts fire at 90% of the thresholds at which Lolly Work raises its own
   console alert. The read alert uses the last day's rate rather than a 30-day
   increase, because Prometheus often keeps less than 30 days, so it needs a day of
   samples before it can fire.
 - `LollyWorkRateLimitBucketsHigh` reads `rateLimit.maxBuckets` from the chart's
-  `config` (inline or `--set-file`), or uses Work's default of 50,000.
+  `config` (inline or `--set-file`), or uses Lolly Work's default of 50,000.
 - No alert ships for `lw_ofrep_evaluation_errors_total` or `lw_otlp_dropped_total`.
   If you use your own flag service or OpenTelemetry export, alert on their `rate()`
   staying above zero.
@@ -155,7 +155,7 @@ check first. Some limits to know:
 Every expression selects this release's series with `job` and `namespace`. By default
 they are the labels the chart's ServiceMonitor produces: `job` is the release's
 Service name (`lolly-work` for a release called `lolly-work`) and `namespace` is the
-release namespace. If your own scrape job collects Work's metrics, set
+release namespace. If your own scrape job collects Lolly Work's metrics, set
 `metrics.prometheusRule.seriesSelector` to matchers for its series, for example
 `job="lolly-work-prod"`.
 
@@ -197,7 +197,7 @@ job, and five rows:
 
 ## Qualification
 
-On 2026-10-27, Work 1.1.2 ran on K3s 1.35 with kube-prometheus-stack 92.14.0 and
+On 2026-10-27, Lolly Work 1.1.2 ran on K3s 1.35 with kube-prometheus-stack 92.14.0 and
 Grafana 13.2.4. The ServiceMonitor scrape was up with the bearer token, Prometheus
 loaded all twelve rules with no errors, every metric the rules read had a live series
 (the failure-only series aside, which have their paired success series), and the

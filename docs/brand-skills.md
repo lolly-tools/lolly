@@ -23,8 +23,8 @@ Lolly Demo, Lolly's own example brand, carries three public skills. They are the
 | Asset id | Name | Discipline | For |
 | --- | --- | --- | --- |
 | `lolly/skill/brand` | `lolly-demo-brand` | `brand` | Every piece of work: voice, the Opal palette, type, logo use and layout |
-| `lolly/skill/photography` | `lolly-demo-photography` | `photography` | Darkroom and Filter, and the `lolly/luts/` colour looks |
-| `lolly/skill/motion` | `lolly-demo-motion` | `motion` | Design and Lottie Ad; video and audio exports; the `lolly/loops/` and `lolly/songs/` music |
+| `lolly/skill/photography` | `lolly-demo-photography` | `photography` | Lolly Darkroom and Filter, and the `lolly/luts/` colour looks |
+| `lolly/skill/motion` | `lolly-demo-motion` | `motion` | Lolly Design and Lottie Ad; video and audio exports; the `lolly/loops/` and `lolly/songs/` music |
 
 List them from a checkout with the Lolly Demo content profile:
 
@@ -197,7 +197,7 @@ The design brief (`lolly://design-context`, or `lolly system context --json`) ca
 
 An agent reads the index first, then the overall brand skill, then the skill for the discipline at hand. Skills speak for brand intent only. They never grant an agent permissions, tools or access to a document, and the Lolly skill tells agents the same.
 
-In the web app, Design System Setup lists the active design system's skills in its **Skills** room (`#/start?area=skills`). **Download skill (.zip)** writes the folder described below, and **Copy as one file** puts the same text on the clipboard for a chat window.
+In the web app, Lolly Design System Setup lists the active design system's skills in its **Skills** room (`#/start?area=skills`). **Download skill (.zip)** writes the folder described below, and **Copy as one file** puts the same text on the clipboard for a chat window.
 
 ### In a folder for a local agent tool
 

@@ -1,8 +1,8 @@
-# Cloudinary (kind: `cloudinary`)
+# Cloudinary integration with Lolly (kind: `cloudinary`)
 
 Connect one Cloudinary product environment and its media appears in the Lolly Work catalog,
-with original downloads by stable asset ID and access decided by Work groups. Cloudinary stays
-the source. Members' browsers only ever see Work URLs, never a Cloudinary link or secret.
+with original downloads by stable asset ID and access decided by Lolly Work groups. Cloudinary stays
+the source. Members' browsers only ever see Lolly Work URLs, never a Cloudinary link or secret.
 
 | You get | Not included |
 |---|---|
@@ -11,17 +11,23 @@ the source. Members' browsers only ever see Work URLs, never a Cloudinary link o
 | Thumbnails from small raster originals | Generated thumbnails for other files |
 | Approval and dates from tags and metadata you choose | Territory, talent or channel clearance |
 
+## Onboarding
+
+1. Select the product environment, API region, exact dynamic folder and Lolly Work groups. Agree an approval tag and availability fields if required; the tag represents your own convention rather than a moderation decision.
+2. Seal the API key and secret, then follow the [four-step connection](README.md#connect-a-source-in-four-steps) and the commands in [Lolly Verify](#verify). Budget for API calls and file reads during the pilot.
+3. Run the [Cloudinary tenant check](tenant-check.md#cloudinary), including private and authenticated files, observed versions and original checksums. Test group restrictions and metadata dates before exposing a wider library.
+
 ## What you need
 
 - Your **cloud name**, the **API region** (`us`, `eu` or `ap`) and an **API key and secret** that
   your organisation owns.
 - Access to the Search and Admin APIs, and to downloads by asset ID for the delivery types you
   need.
-- An agreed subset and the Work groups that should see the files. `assetFolder` selects one exact
+- An agreed subset and the Lolly Work groups that should see the files. `assetFolder` selects one exact
   dynamic folder, without its subfolders. Leave it out only when you mean to expose everything
   the credential can see. Legacy fixed-folder restrictions are not supported.
 
-Use the advanced **Providers > Cloudinary** form or `lw`. Work exposure decides who sees what,
+Use the advanced **Providers > Cloudinary** form or `lw`. Lolly Work exposure decides who sees what,
 because a shared service credential does not carry each member's own folder permissions.
 
 ## Credential shape
@@ -79,7 +85,6 @@ matching Search entitlement. Use ISO 8601 dates: an invalid date fails the mappi
 removing the gate.
 
 ## Verify
-
 ```bash
 lw providers preview --kind cloudinary --options '{"cloudName":"your-cloud","assetFolder":"Brand/Approved","minGapMs":7500}' --shape
 lw providers add cloud-media --kind cloudinary --label "Approved media" --options '{"cloudName":"your-cloud","assetFolder":"Brand/Approved","minGapMs":7500}'
@@ -101,7 +106,7 @@ the Lolly Work repository.
   tested. The driver accepts uploaded `image`, `video` and `raw` resources with `upload`,
   `private` or `authenticated` delivery; external delivery types are skipped with a count and a
   note.
-- **References follow the observed version.** Each file reference records the version Work saw,
+- **References follow the observed version.** Each file reference records the version Lolly Work saw,
   and opening it checks identity, folder, version, approval and dates again. A changed file
   needs a refresh. For a fixed local snapshot, materialize the source; this is not a backup of
   past versions.
@@ -109,7 +114,7 @@ the Lolly Work repository.
   thumbnail transformation is requested. Larger images, documents, SVG, audio and video have no
   generated thumbnail. Previews still use bandwidth.
 - **Freshness.** Cloudinary sends no change notifications, so agree how stale a synced listing or
-  cached file may be. A fresh read checks the mapped policy again, and Work's membership and
+  cached file may be. A fresh read checks the mapped policy again, and Lolly Work's membership and
   lifecycle gates protect every served URL.
 - **Costs.** API calls and downloads can be charged. Budget for search, health, detail, sync and
   file reads together. A `429` is passed back without retries. The 7,500 ms gap in the example
@@ -120,10 +125,11 @@ the Lolly Work repository.
 
 ## Off-boarding
 
-After the [Cloudinary check](tenant-check.md#cloudinary) proves original fidelity, leave through
-Work's usual materialize and drift steps ([Leave a DAM](../offboarding.md)). Keep the source
-metadata, and export any review, rights or history records separately: this driver does not
-migrate the DAM's configuration, and a version check in Work is not a vendor backup.
+Cloudinary is a conditional exit target. First prove original fidelity with the [Cloudinary check](tenant-check.md#cloudinary), including the resource and delivery types you need. A version check in Lolly Work does not preserve past versions.
+
+Use the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then rehearse materialize, drift and cutover with [Leave a DAM](../offboarding.md). Inventory required transformations and delivery URLs separately: the connector copies originals and does not recreate Cloudinary's delivery service. Retain required review, rights, metadata and history exports outside the connector before retiring that service.
+
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.
 
 Vendor references: [Search](https://cloudinary.com/documentation/search_method),
 [Admin API](https://cloudinary.com/documentation/admin_api),

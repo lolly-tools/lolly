@@ -18,7 +18,7 @@ Preferences är en lång sida med en **inställningsrail** längs sidan och ett 
 
 - <!--i:usercheck--> **Your details** - ditt namn, dina kontaktuppgifter och ditt porträtt, och reglaget **Use my details to create**. [Profiler](/info/profile.html) förklarar hur verktyg använder dem.
 - <!--i:seal--> **Content Credentials** - den valfria verifierade identiteten som signerar dina exporter. Se [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - byt, lägg till, dölj eller ta bort designsystem. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) beskriver varje åtgärd.
+- <!--i:palette--> **Design systems** - byt, lägg till, dölj eller ta bort designsystem. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) beskriver varje åtgärd.
 - <!--i:moon--> **Appearance** - temat (Light, Dark eller Brand, som målar appen i din palett), **Your colourway** när designsystemet erbjuder fler än en ([Gör en färgvariant till din egen](/info/colourways.html#make-a-colourway-your-own)) och **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - uppsättningen dina emoji ritas från när du börjar något nytt, med dess konstlicens, och hur starkt din palett färgar om dem (**Off**, **Subtle**, **Strong**, **Full**, **Mono** eller **Duotone**). **Keep skin tones and flags** låter dem behålla sina egna färger. Arbete du redan gjort behåller uppsättningen det gjordes med.
 - <!--i:eyeoff--> **Accessibility** - fyra komfortreglage, plus Sound och Neurospicy Mode. Se [Tillgänglighet](#accessibility).
@@ -107,7 +107,7 @@ Fliken öppnas på ett omslag målat i systemets egna färger, med dess logotyp,
 - <!--i:sliders--> **Tokens** - radie, avstånd, effekter och gradienter.
 - <!--i:document--> **Print & CMYK** - färgerna låsta till en exakt färg, och tryckförhållandena en CMYK-PDF kan deklarera.
 
-Att byta är den enda ändring den här fliken gör. Du redigerar ett designsystem i [Design System Setup](/info/brand-studio.html) på `#/start`, som omslaget länkar till. Ett skrivskyddat system säger det på sitt omslag; lokala system du skapar förblir redigerbara. `/b` och `/brand` är genvägar direkt till den här fliken.
+Att byta är den enda ändring den här fliken gör. Du redigerar ett designsystem i [Lolly Design System Setup](/info/brand-studio.html) på `#/start`, som omslaget länkar till. Ett skrivskyddat system säger det på sitt omslag; lokala system du skapar förblir redigerbara. `/b` och `/brand` är genvägar direkt till den här fliken.
 
 ## Capabilities
 
@@ -139,4 +139,4 @@ En djuplänk byter till fliken som äger målet, öppnar varje grupp den ligger 
 
 ---
 
-**Relaterat:** [Profiler](/info/profile.html) för dina uppgifter och sammanhangen du skapar i. [Design System Setup](/info/brand-studio.html) för att redigera det fliken Design system visar. [Hitta och återställ ditt arbete](/info/find-your-work.html) för lagring, säkerhetskopior och byte av enhet.
+**Relaterat:** [Profiler](/info/profile.html) för dina uppgifter och sammanhangen du skapar i. [Lolly Design System Setup](/info/brand-studio.html) för att redigera det fliken Design system visar. [Hitta och återställ ditt arbete](/info/find-your-work.html) för lagring, säkerhetskopior och byte av enhet.

@@ -1,9 +1,11 @@
-# Release 1.1.2: Lolly and Work
+# Release 1.1.2: Lolly and Lolly Work
 
-The current release is [1.1.3](release-1-1-3.md). Work 1.1.2 pairs the Work server and render worker with
+<a id="release-1-1-2-lolly-and-work"></a>
+
+The current release is [1.1.3](release-1-1-3.md). Lolly Work 1.1.2 pairs the Lolly Work server and render worker with
 [Lolly 1.1.2](https://github.com/lolly-tools/lolly/releases/tag/v1.1.2), built from
 Lolly source `fe27a843813b0a653c648e6db078ae8f982b2654`. It is published as
-[Work v1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2).
+[Lolly Work v1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2).
 Installation and production acceptance are tracked separately.
 
 Start with the tagged [installation guide](https://github.com/lolly-tools/lolly-work/blob/v1.1.2/docs/install.md),
@@ -15,8 +17,8 @@ and [documentation index](https://github.com/lolly-tools/lolly-work/blob/v1.1.2/
 | Component | Version or source |
 |---|---|
 | Lolly product version | 1.1.2 |
-| Work application | 1.1.2 |
-| Work Helm chart | 0.3.3 in the source, never published under that number; appVersion 1.1.2. The chart now carries the release version and is first published as 1.1.3 |
+| Lolly Work application | 1.1.2 |
+| Lolly Work Helm chart | 0.3.3 in the source, never published under that number; appVersion 1.1.2. The chart now carries the release version and is first published as 1.1.3 |
 | Lolly source | fe27a843813b0a653c648e6db078ae8f982b2654 |
 | Engine | 1.281.0 |
 | Tool-author core | 1.5.0 |
@@ -26,27 +28,27 @@ Engine and core versions describe their own contracts and are not reset to the
 product version. `engine-pin.json` and `content-resolver-pin.json` record the
 Lolly source above. The maintained producers generated both.
 
-Work 1.1.1 carried engine 1.261.0 and core 1.4.0. Design 1.51.0 needs engine 1.263.0
-or later and Strip Hidden Data 1.4.0 needs engine 1.264.0 or later wherever they
-render, so a Work 1.1.1 server refuses to load either tool. Engine 1.281.0 is the
+Lolly Work 1.1.1 carried engine 1.261.0 and core 1.4.0. Lolly Design 1.51.0 needs engine 1.263.0
+or later and Lolly Strip Hidden Data 1.4.0 needs engine 1.264.0 or later wherever they
+render, so a Lolly Work 1.1.1 server refuses to load either tool. Engine 1.281.0 is the
 release commit's engine: its last change, from Lolly #431, carries wide colours, CMYK
-builds and spot inks into the app's palette downloads, which no Work route calls.
+builds and spot inks into the app's palette downloads, which no Lolly Work route calls.
 
 ## What Lolly 1.1.2 needs from this release
 
-Lolly 1.1.2 lists these features as needing Lolly Work. Against a Work 1.1.1 server
+Lolly 1.1.2 lists these features as needing Lolly Work. Against a Lolly Work 1.1.1 server
 they stay hidden or fail as described in the Lolly notes.
 
-| Lolly 1.1.2 feature | What Work 1.1.2 adds |
+| Lolly 1.1.2 feature | What Lolly Work 1.1.2 adds |
 |---|---|
 | Shared library browsing | Shared scope, type and taxonomy filters and each source's sync status on the asset list |
 | Reviewed search text | A stored, reviewed text entry per asset, bound to the source revision |
 | Shared project files into the library | Submitting a file straight from a shared project, with checksums |
 | Source review | Approvals for frozen instance-owned originals |
 | Live shared sessions in the desktop and mobile apps | A one-use socket ticket for each room |
-| App sign-in to a private Work server | The device code kept through the browser sign-in round trip |
+| App sign-in to a private Lolly Work server | The device code kept through the browser sign-in round trip |
 | Guest landing | A page without scripts for guest edit links, with name and password fields |
-| Model downloads through Work | A `/models/` route that answers from the web app folder or a model origin |
+| Model downloads through Lolly Work | A `/models/` route that answers from the web app folder or a model origin |
 | Collaboration claims for Scale and keyframes | Core 1.5.0 claim rules in the collaboration gateway |
 
 ::: details The API detail behind each feature
@@ -66,17 +68,17 @@ they stay hidden or fail as described in the Lolly notes.
   asset the caller can see. It needs `catalog.edit`. Longer text is refused, not cut,
   and `text: null` clears the entry. The text is bound to the source revision and
   file it was read from; once either changes, it stops matching browse and search. A
-  stale revision answers `409 SOURCE_CHANGED`. Work never runs text recognition
+  stale revision answers `409 SOURCE_CHANGED`. Lolly Work never runs text recognition
   itself. Editing organisation metadata (`catalog.edit`) was already in 1.1.1.
 - **Shared project files into the library.** `POST /api/v1/catalog/submit` with
   `projectId`, `fileId` and `checksum` submits a file from a shared project. It needs
   `catalog.submit` and current access to the project; service tokens are refused.
   `groups` sets the library audience: left out, every member of the workspace;
-  otherwise only groups the submitter belongs to. Work checks the SHA-256 of every
+  otherwise only groups the submitter belongs to. Lolly Work checks the SHA-256 of every
   stored part and of the whole file, then runs the usual scan, quota and review
   steps. Listing projects and copying a file into a project use routes from 1.1.1.
 - **Source review.** `POST /api/v1/approvals` accepts `subjectType: "source-review"`
-  for 1 to 32 instance-owned originals, with a purpose and a target. Work reads the
+  for 1 to 32 instance-owned originals, with a purpose and a target. Lolly Work reads the
   bytes again and checks them (64 MiB per file, 128 MiB in all), and an approval
   chain must exist. Version history advertises `sourceReviewCapability`
   (`frozen-instance-originals-v1`) only for instance-owned assets with no provider
@@ -89,8 +91,8 @@ they stay hidden or fail as described in the Lolly notes.
   collaboration gateway runs, such as the serverless function adapter, it answers
   `501 UNAVAILABLE`. Tickets are held in memory, so the ticket request and the socket
   upgrade must reach the same process.
-- **App sign-in to a private Work server.** The device sign-in routes are unchanged
-  from 1.1.1. Lolly 1.1.2 fixes the lost session in the apps themselves. Work 1.1.2
+- **App sign-in to a private Lolly Work server.** The device sign-in routes are unchanged
+  from 1.1.1. Lolly 1.1.2 fixes the lost session in the apps themselves. Lolly Work 1.1.2
   keeps the `/activate?code=` code through the browser sign-in round trip.
 - **Guest landing.** A browser that opens a guest edit link (`GET /l/:id?s=`) now
   gets a page without scripts that shows the inviter, the tool and the end time in
@@ -101,19 +103,19 @@ they stay hidden or fail as described in the Lolly notes.
   limits the guest to that link's tool. A link whose guest links are turned off, or
   whose maker can no longer create them, answers `403 GUEST_LINK_UNAVAILABLE`.
   Clients that do not ask for HTML keep the JSON answers.
-- **Model downloads through Work.** When Work serves the shell (`instance.shellDir`),
+- **Model downloads through Lolly Work.** When Lolly Work serves the shell (`instance.shellDir`),
   `GET` and `HEAD` for `/models/<family>[@<hash>]/<file>` are answered from the shell
   directory first and otherwise streamed from `instance.modelOrigin`. The default is
   `https://lolli.li`; `null` turns the proxy off. Only an exact HTTPS origin is
   accepted, or a loopback `http://` origin for testing. Ranges and validators pass
-  through, hash-addressed paths are cached as immutable, and Work keeps no copy. The
-  route has no size limit, type list or sign-in check, so by default Work makes
+  through, hash-addressed paths are cached as immutable, and Lolly Work keeps no copy. The
+  route has no size limit, type list or sign-in check, so by default Lolly Work makes
   outbound requests to lolli.li for any visitor. Set `null`, or a mirror you run, on
   installations that restrict outbound traffic. See [configuration](configuration.md).
-- **Collaboration claims for Scale and keyframes.** Work's collaboration gateway
+- **Collaboration claims for Scale and keyframes.** Lolly Work's collaboration gateway
   checks claims with the vendored core. Core 1.5.0 lets a move or scale claim cover
   an object's keyframe track and the content fields a Scale writes, and adds the
-  `'scale'` preview kind. A Work 1.1.1 server, built with core 1.4.0, sees Scale
+  `'scale'` preview kind. A Lolly Work 1.1.1 server, built with core 1.4.0, sees Scale
   previews as resizes.
 :::
 
@@ -155,7 +157,7 @@ they stay hidden or fail as described in the Lolly notes.
   person; `/api/v1/discovery/me` and `/api/v1/discovery/tools` are private to the
   caller. `GET /api/v1/schema/:toolId` now returns the caller's effective schema:
   hidden inputs removed, locked inputs read-only, and choice inputs listed.
-- **Durable callbacks.** A job's callback is stored with the job and sent by any Work
+- **Durable callbacks.** A job's callback is stored with the job and sent by any Lolly Work
   process, up to six attempts over about 45 minutes, each with a fresh signature and
   the same `x-lolly-delivery-id`. Receivers should drop repeated ids.
 - **Render identity.** New durable outputs record the facts their attempt resolved.
@@ -243,10 +245,10 @@ history now has 66 files.
   Hub annotations, a Rancher `questions.yaml`, a licence, an icon and a README. The
   default image tags follow appVersion 1.1.2. `values-official-release.yaml` is
   generated from `deploy/marketplaces/release.json` and still pins the qualified
-  1.1.1 images. Chart publication through `publish-helm.yml` is a separate,
+  1.1.1 images. Lolly Chart publication through `publish-helm.yml` is a separate,
   reviewed step and has not run yet.
 - **Neutral VM and Dokploy package.** `deploy/marketplaces` and `deploy/dokploy` pin
-  a qualified release cohort, still Work 1.1.1. In a browser, the neutral 1.1.1 shell
+  a qualified release cohort, still Lolly Work 1.1.1. In a browser, the neutral 1.1.1 shell
   refuses the installation's per-caller catalogue, so browser use of that package is
   not qualified.
 - **Release workflow.** The server image builds natively on amd64 and arm64 and is
@@ -255,7 +257,7 @@ history now has 66 files.
 
 ## Prepare and qualify
 
-This section is for Work maintainers cutting the release.
+This section is for Lolly Work maintainers cutting the release.
 
 ::: details Maintainer commands
 The commands are the same as for 1.1.1, with `vendor/lolly` at the Lolly source
@@ -275,23 +277,23 @@ node scripts/sync-docs-bundle.ts --source=/path/to/lolly --commit=<full-commit-s
 pnpm run verify:docs-pin
 ```
 
-Before tagging or publishing images, the exact final Work commit needs ordinary
+Before tagging or publishing images, the exact final Lolly Work commit needs ordinary
 CI, including the native server image checks and the real Chromium worker checks
 with the matched signed shell. The tagged server and worker images must come from
-that same Work commit.
+that same Lolly Work commit.
 :::
 
 ## YunoHost packaging
 
-Lolly 1.1.2 publishes no new web archive, so a Work YunoHost package for 1.1.2 keeps
+Lolly 1.1.2 publishes no new web archive, so a Lolly Work YunoHost package for 1.1.2 keeps
 the Lolly 1.1.1 web archive `https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz` (SHA-256
 above). That shell carries engine 1.261.0 and none of the Lolly 1.1.2 features above,
 and nothing checks the pairing. The `1.1.2~ynh1` package is cut:
-`deploy/yunohost/manifest.toml` at the `v1.1.2` tag gives that version, and its Work archive
+`deploy/yunohost/manifest.toml` at the `v1.1.2` tag gives that version, and its Lolly Work archive
 `lolly-work-1.1.2-ynh1.tar.gz` is in the release's `SHA256SUMS`. It is not yet
 mirrored to `lolly-work_ynh` and has no `yunohost-runtime.yml` run, so the
 installable package there is still `1.1.1~ynh1`. The maintained producer cuts the
-package on the final Work commit:
+package on the final Lolly Work commit:
 
 ```text
 node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz --shell-sha256 bc78012aa407983ecc818e63be98ae1b45ed7db1dcad3f4c8d4ffe0c371116c1 --out ABS_NEW_ARTIFACT_DIRECTORY

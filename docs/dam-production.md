@@ -6,9 +6,9 @@ The example is a sequence to run with your own assets, not a claim that every so
 
 ## Prepare the event card
 
-You need a permitted event image and logo, your design system, a Lolly tool for the card and a Work instance if the catalog or delivery is shared. A template owner decides which fields may change, such as the event title, date and image. Legal copy and other protected content need explicit constraints and review.
+You need a permitted event image and logo, your design system, a Lolly tool for the card and a Lolly Work instance if the catalog or delivery is shared. A template owner decides which fields may change, such as the event title, date and image. Legal copy and other protected content need explicit constraints and review.
 
-Build the layout in Design and use [Share with rules](/info/create-a-tool.html), or choose an existing tool. Test the tool with long titles, missing images and the actual fonts before giving it to the team.
+Build the layout in Lolly Design and use [Share with rules](/info/create-a-tool.html), or choose an existing tool. Test the tool with long titles, missing images and the actual fonts before giving it to the team.
 
 ## 1. Expose the right sources
 
@@ -24,13 +24,13 @@ Check that the selected asset is permitted for the intended audience and use. A 
 
 ## 3. Produce the required sizes
 
-Make the first card and check its copy and layout. If the tool supports the needed variants, reuse the tool for each size or use [Batch](/info/batch.html) for rows of inputs. Keep protected copy and data fixed while changing permitted layout choices.
+Make the first card and check its copy and layout. If the tool supports the needed variants, reuse the tool for each size or use [Lolly Batch](/info/batch.html) for rows of inputs. Keep protected copy and data fixed while changing permitted layout choices.
 
 Record the output requirements before checking the file. Optional [production checks](/info/production-checks.html) can measure supported facts such as dimensions, exact text or differences against a reference. An unchecked fact is not a pass, and those measurements do not replace creative or rights review.
 
 ## 4. Review the file that will leave
 
-Decide whether ordinary local export or an organisation delivery is the required path. A local export does not automatically acquire Work approval. For a supported organisation destination with a chain, Work stages exact bytes and routes that delivery for review. Approval of a source is separate from approval of this staged file.
+Decide whether ordinary local export or an organisation delivery is the required path. A local export does not automatically acquire Lolly Work approval. For a supported organisation destination with a chain, Lolly Work stages exact bytes and routes that delivery for review. Approval of a source is separate from approval of this staged file.
 
 Check the actual configuration with [Approvals](/info/work-approvals.html) and [Organisation delivery destinations](/info/work-delivery.html). Do not promise an approval-controlled release for export paths that do not enforce one.
 

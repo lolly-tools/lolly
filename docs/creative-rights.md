@@ -22,7 +22,7 @@ Choosing a set is never blocked, and the set control shows the licence where you
 
 ## What you see, and what to do
 
-The same words appear in the export panel, Verify, the command line and the machine result, roughly in order of how often you will meet them.
+The same words appear in the export panel, Lolly Verify, the command line and the machine result, roughly in order of how often you will meet them.
 
 | What you see | What it means |
 |---|---|
@@ -51,11 +51,11 @@ Lolly never says "copyright verified", "legally safe", "fully cleared" or "right
 
 - **In the catalog.** A work's sheet shows its source and creator, the canonical licence name with the original label kept underneath, a copyable credit where one is recorded and one line saying what using it asks for. A tile states the requirement; it never claims an export was completed.
 - **In the export panel.** A Source credits card appears inside Content protection once a render uses recorded work, next to the Licence you choose for your own export. It shows the state, the credit text behind Details, a Copy credit button and an inline card when a decision is owed. A decision is never a blocking dialog: a download with an action left still proceeds.
-- **In the file.** An export that placed recorded work writes one Content Credentials source ingredient per distinct work, bound to the original bytes at their public address, and carrying the creator, the licence and its link, the source, the revision and the changes. Lolly signs what it observed. It never signs a claim on the upstream artist's behalf, and Verify says which of the two happened.
+- **In the file.** An export that placed recorded work writes one Content Credentials source ingredient per distinct work, bound to the original bytes at their public address, and carrying the creator, the licence and its link, the source, the revision and the changes. Lolly signs what it observed. It never signs a claim on the upstream artist's behalf, and Lolly Verify says which of the two happened.
 - **In a package.** A download that cannot hold a credential, such as a `.lottie` animation, carries the credits as `CREDITS.txt` and `credits.json` inside the package. Those are read back after writing, and no signed credential is claimed for them.
 - **After writing.** The delivered bytes are read back before anything says credits are included. A credential that did not verify does not count as a credit delivered.
 - **In an editable `.lolly` file.** Bytes travel only when a reviewed licence records permission to pass the source on. The pack's `CREDITS.txt` lists what travelled, under which licence and what was held back with the reason. An unrecorded licence is held back. You can still include held-back content deliberately, and the credits file records that it was your choice.
-- **In Verify.** A Sources panel lists every source a file records, with a computed summary, the credit, a Copy credit button, an Open source link that opens only when you ask and the stated limits of what was inspected. A Check for this use question appears only when you pick a use, and nothing is fetched to answer the question.
+- **In Lolly Verify.** A Sources panel lists every source a file records, with a computed summary, the credit, a Copy credit button, an Open source link that opens only when you ask and the stated limits of what was inspected. A Check for this use question appears only when you pick a use, and nothing is fetched to answer the question.
 - **When you remove metadata.** Stripping tells you how many source credits the file no longer carries, offers the credit text and offers a clean file with the credits in a separate file. Stripped bytes are never restamped.
 
 ::: details The licences Lolly has reviewed
@@ -120,7 +120,7 @@ Five engine modules, all pure: no network, no clock, no filesystem. The rule dat
 | `engine/src/rights-evaluate.ts` | Classification, issues, the attribution plan and the fingerprint. Deterministic: the same facts in a different order give the same answer. |
 | `engine/src/rights-attribution.ts` | Readable credits, the companion files, the source ingredients and the receipt measured after writing. |
 | `engine/src/rights-companion.ts` | The readback of package credits (`CREDITS.txt` and `credits.json` inside a ZIP-based download), which confirms the credits without claiming a signed credential. |
-| `engine/src/rights-report.ts` | A verified credential read back as the three questions Verify asks. |
+| `engine/src/rights-report.ts` | A verified credential read back as the three questions Lolly Verify asks. |
 
 The expectation files in `tests/fixtures/rights/` were written from the licence texts rather than from the evaluator's output, and their README cites the section behind each expectation.
 :::

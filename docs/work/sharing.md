@@ -1,7 +1,7 @@
 # Share renders and links
 
 This page is for anyone who hands Lolly output to someone else: a colleague, a partner or an
-agency. Work can render a tool on the server, then wrap the result, a library asset or a whole
+agency. Lolly Work can render a tool on the server, then wrap the result, a library asset or a whole
 collection in a signed link that expires and that you can turn off at any time. Your
 organisation's input locks apply before anything renders, so a locked logo stays locked in
 every shared file.
@@ -172,8 +172,8 @@ inputs, renders, optionally watermarks, optionally embeds provenance or signs, t
   [new asset version](catalog.md#versions) invalidates exactly the affected renders.
 - **Hooked tools.** A tool with `hooks.js` does not run in the in-process jsdom fast path
   unless `render.allowHooksInFastPath` is on. With a Chromium worker configured it goes there;
-  without one it is refused with `501 HOOKED_TOOL_NEEDS_CHROMIUM`. Policy stays in Work either
-  way: the worker returns SVG, and watermarking, provenance and rasterisation happen in Work.
+  without one it is refused with `501 HOOKED_TOOL_NEEDS_CHROMIUM`. Policy stays in Lolly Work either
+  way: the worker returns SVG, and watermarking, provenance and rasterisation happen in Lolly Work.
 - The engine, jsdom and resvg load only when needed, so a deployment that never renders never
   loads them.
 
@@ -201,7 +201,7 @@ Both survive ordinary copying and can be read with `exiftool` or `pngcheck`. Eac
 so "«filename» from «provider» was used" still travels with the export, labelled as unsigned.
 
 With a signing identity configured, exports carry a real, signed C2PA Content Credential
-instead of the unsigned island. Setting one up is one command: [Configure Work export
+instead of the unsigned island. Setting one up is one command: [Configure Lolly Work export
 signing](c2pa.md).
 
 ## Related

@@ -18,7 +18,7 @@ Preferences adalah satu halaman panjang dengan **rel pengaturan** di sisi dan fi
 
 - <!--i:usercheck--> **Your details** - nama, detail kontak, dan foto profil Anda, serta sakelar **Use my details to create**. [Profiles](/info/profile.html) menjelaskan bagaimana alat memakainya.
 - <!--i:seal--> **Content Credentials** - identitas terverifikasi opsional yang menandatangani ekspor Anda. Lihat [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - beralih, tambah, sembunyikan, atau hapus design system. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) membahas setiap aksi.
+- <!--i:palette--> **Design systems** - beralih, tambah, sembunyikan, atau hapus design system. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) membahas setiap aksi.
 - <!--i:moon--> **Appearance** - tema (Light, Dark, atau Brand, yang mewarnai aplikasi dengan palet Anda), **Your colourway** bila design system menawarkan lebih dari satu ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)), dan **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - set tempat emoji Anda digambar saat memulai sesuatu yang baru, beserta lisensi karyanya, dan seberapa kuat palet Anda mewarnai ulang emoji (**Off**, **Subtle**, **Strong**, **Full**, **Mono**, atau **Duotone**). **Keep skin tones and flags** membiarkan keduanya dalam warna aslinya. Pekerjaan yang sudah Anda buat mempertahankan set yang dipakai saat dibuat.
 - <!--i:eyeoff--> **Accessibility** - empat sakelar kenyamanan, ditambah Sound dan Neurospicy Mode. Lihat [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ Tab terbuka pada sampul yang dicat dengan warna sistem itu sendiri, dengan logo,
 - <!--i:sliders--> **Tokens** - radius, jarak, efek, dan gradien.
 - <!--i:document--> **Print & CMYK** - warna yang dikunci pada tinta persis, dan kondisi cetak yang dapat dideklarasikan PDF CMYK.
 
-Berpindah adalah satu-satunya perubahan yang dibuat tab ini. Anda menyunting design system di [Design System Setup](/info/brand-studio.html) di `#/start`, yang ditautkan dari sampul. Sistem hanya-baca menyatakannya di sampulnya; sistem lokal yang Anda buat tetap dapat disunting. `/b` dan `/brand` adalah tautan pintas langsung ke tab ini.
+Berpindah adalah satu-satunya perubahan yang dibuat tab ini. Anda menyunting design system di [Lolly Design System Setup](/info/brand-studio.html) di `#/start`, yang ditautkan dari sampul. Sistem hanya-baca menyatakannya di sampulnya; sistem lokal yang Anda buat tetap dapat disunting. `/b` dan `/brand` adalah tautan pintas langsung ke tab ini.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Lalu sisi Anda sendiri: **Your activity** menghitung apa yang telah Anda buat di
 
 ## Deep links
 
-Setiap tab dan bagian Settings memiliki tautannya sendiri, yang dapat Anda tandai atau tempel. [Search](/info/search.html) mengarahkan hasil **Settings**-nya ke registri yang sama dengan yang dirender Settings, sehingga bagian tidak dapat diganti namanya dari bawah hasil pencarian.
+Setiap tab dan bagian Settings memiliki tautannya sendiri, yang dapat Anda tandai atau tempel. [Lolly Search](/info/search.html) mengarahkan hasil **Settings**-nya ke registri yang sama dengan yang dirender Settings, sehingga bagian tidak dapat diganti namanya dari bawah hasil pencarian.
 
 ::: details Setiap bentuk tautan
 
@@ -139,4 +139,4 @@ Tautan dalam berpindah ke tab yang memiliki targetnya, membuka grup apa pun temp
 
 ---
 
-**Terkait:** [Profiles](/info/profile.html) untuk detail Anda dan konteks tempat Anda membuat. [Design System Setup](/info/brand-studio.html) untuk menyunting apa yang ditampilkan tab Design system. [Find and recover your work](/info/find-your-work.html) untuk penyimpanan, cadangan, dan berpindah perangkat.
+**Terkait:** [Profiles](/info/profile.html) untuk detail Anda dan konteks tempat Anda membuat. [Lolly Design System Setup](/info/brand-studio.html) untuk menyunting apa yang ditampilkan tab Design system. [Find and recover your work](/info/find-your-work.html) untuk penyimpanan, cadangan, dan berpindah perangkat.

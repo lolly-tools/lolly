@@ -12,7 +12,7 @@ La schermata iniziale: quattro schede in alto e la barra in basso. Uno strumento
 
 In alto nella schermata iniziale corrono quattro schede: **Tools**, **Utilities**, **Assets** e **Projects**. Gli strumenti sono ciò con cui crei, le Utility sono banchi di lavoro per compiti come convertire, controllare o ripulire un file, Assets è la tua libreria e Projects contiene ciò che hai salvato.
 
-La barra in basso contiene **Open**, **Settings**, un campo di ricerca, **Verify** e **What?**. Compare in Tools, Utilities, Assets, Projects, Settings e nelle guide che leggi nell'app, e si fa da parte quando uno strumento è aperto. [Search](/info/search.html) raggiunge da quel campo i tuoi strumenti, il lavoro salvato, le risorse e le impostazioni. [Ask Lolly](/info/ask.html) risponde a una domanda scritta con la sezione corrispondente di queste guide.
+La barra in basso contiene **Open**, **Settings**, un campo di ricerca, **Verify** e **What?**. Compare in Tools, Utilities, Assets, Projects, Settings e nelle guide che leggi nell'app, e si fa da parte quando uno strumento è aperto. [Lolly Search](/info/search.html) raggiunge da quel campo i tuoi strumenti, il lavoro salvato, le risorse e le impostazioni. [Ask Lolly](/info/ask.html) risponde a una domanda scritta con la sezione corrispondente di queste guide.
 
 Fai clic su una scheda per iniziare qualcosa di nuovo in quello strumento. Il lavoro salvato si riapre invece da **Projects**.
 
@@ -269,7 +269,7 @@ Su uno schermo stretto il layout diventa a una colonna:
 
 ## Impostazioni, suono e comfort
 
-**Settings**, in fondo alla schermata iniziale, contiene i tuoi dati, i tuoi design system, l'accessibilità, l'archiviazione e i download offline. [Settings](/info/dashboard.html) mappa ogni scheda.
+**Settings**, in fondo alla schermata iniziale, contiene i tuoi dati, i tuoi design system, l'accessibilità, l'archiviazione e i download offline. [Lolly Settings](/info/dashboard.html) mappa ogni scheda.
 
 - **I tuoi dati e la tua foto** compilano qualsiasi strumento pensato per usarli, come una firma email o un badge. [Profiles](/info/profile.html) li descrive.
 - **Accessibility** ha quattro interruttori di comfort: **Reduce motion**, **Hide colourful previews**, **High contrast** e **Large text**. Cambiano l'app attorno al tuo lavoro, mai la tela di uno strumento né un'esportazione.

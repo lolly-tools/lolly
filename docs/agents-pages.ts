@@ -224,10 +224,10 @@ getting started, creation, automation, organisation management, operations and t
 - Use the public render MCP and the \`lolly\` creative CLI to make files from tools.
 - A Work document invitation grants scoped access to a document on the inviter's instance:
   ${twinUrl(o, 'work-document-agents')}. It does not grant infrastructure access.
-- The \`lw\` CLI administers a Work instance with its own authenticated permissions:
+- The \`lw\` CLI administers a Lolly Work instance with its own authenticated permissions:
   ${twinUrl(o, 'work-cli')}. Instance setup: ${twinUrl(o, 'work-install')}.
 - Content profiles and brand configuration: ${twinUrl(o, 'configuration')}.
-  Work server configuration: ${twinUrl(o, 'work-configuration')}.
+  Lolly Work server configuration: ${twinUrl(o, 'work-configuration')}.
 - Packaged Work help is pinned to that installation's selected documentation revision.
   Check the installed server version before applying instructions from a newer guide.
 

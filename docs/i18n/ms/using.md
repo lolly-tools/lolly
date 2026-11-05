@@ -12,7 +12,7 @@ Skrin utama: empat tab di bahagian atas dan bar di bahagian bawah. Alat, apabila
 
 Empat tab terletak di sepanjang bahagian atas skrin utama: **Tools**, **Utilities**, **Assets** dan **Projects**. Tools ialah apa yang anda gunakan untuk membuat, Utilities ialah meja kerja untuk tugas seperti menukar, menyemak atau membersihkan fail, Assets ialah pustaka anda dan Projects menyimpan apa yang anda simpan.
 
-Bar di bahagian bawah mengandungi **Open**, **Settings**, medan carian, **Verify** dan **What?**. Ia muncul pada Tools, Utilities, Assets, Projects, Settings dan panduan yang anda baca dalam apl, dan beralih ke tepi apabila alat dibuka. [Search](/info/search.html) mencapai alat, kerja tersimpan, aset dan tetapan anda daripada medan itu. [Ask Lolly](/info/ask.html) menjawab soalan yang ditaip dengan bahagian panduan ini yang sepadan.
+Bar di bahagian bawah mengandungi **Open**, **Settings**, medan carian, **Verify** dan **What?**. Ia muncul pada Tools, Utilities, Assets, Projects, Settings dan panduan yang anda baca dalam apl, dan beralih ke tepi apabila alat dibuka. [Lolly Search](/info/search.html) mencapai alat, kerja tersimpan, aset dan tetapan anda daripada medan itu. [Ask Lolly](/info/ask.html) menjawab soalan yang ditaip dengan bahagian panduan ini yang sepadan.
 
 Klik kad untuk memulakan sesuatu yang baharu dalam alat itu. Kerja tersimpan dibuka semula daripada **Projects**.
 
@@ -269,7 +269,7 @@ Pada skrin sempit, reka letak menjadi satu lajur:
 
 ## Settings, bunyi dan keselesaan
 
-**Settings**, di kaki skrin utama, menyimpan butiran anda, sistem reka bentuk anda, kebolehcapaian, storan dan muat turun luar talian. [Settings](/info/dashboard.html) memetakan setiap tab.
+**Settings**, di kaki skrin utama, menyimpan butiran anda, sistem reka bentuk anda, kebolehcapaian, storan dan muat turun luar talian. [Lolly Settings](/info/dashboard.html) memetakan setiap tab.
 
 - **Butiran dan gambar kepala anda** mengisi mana-mana alat yang dibina untuk menggunakannya, seperti tandatangan e-mel atau lencana. [Profiles](/info/profile.html) meliputinya.
 - **Kebolehcapaian** mempunyai empat suis keselesaan: **Reduce motion**, **Hide colourful previews**, **High contrast** dan **Large text**. Ia mengubah apl di sekeliling kerja anda, tidak pernah kanvas alat atau eksport.

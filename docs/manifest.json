@@ -236,9 +236,9 @@
     },
     {
       "slug": "design",
-      "title": "Design: the free canvas",
+      "title": "Lolly Design: the free canvas",
       "src": "design.md",
-      "description": "Build layouts, decks and motion on Design's free canvas: shape boxes, draw paths, place 3D scenes and tools, add a timeline, check the result and present it.",
+      "description": "Build layouts, decks and motion on Lolly Design's free canvas: shape boxes, draw paths, place 3D scenes and tools, add a timeline, check the result and present it.",
       "section": "create",
       "path": "create/design",
       "icon": "pentool",
@@ -384,7 +384,7 @@
       "slug": "create-a-tool",
       "title": "Share a design with rules",
       "src": "create-a-tool.md",
-      "description": "Turn a Design document into a portable tool: choose editable inputs and limits, connect names across assets, offer themes and layouts, then share it.",
+      "description": "Turn a Lolly Design document into a portable tool: choose editable inputs and limits, connect names across assets, offer themes and layouts, then share it.",
       "section": "create",
       "path": "create/create-a-tool",
       "icon": "pentool",
@@ -466,9 +466,9 @@
     },
     {
       "slug": "batch",
-      "title": "Batch and Multi-edit",
+      "title": "Lolly Batch and Lolly Multi-edit",
       "src": "batch.md",
-      "description": "Make many versions of one design from rows or a spreadsheet with Batch, or edit up to eight saved designs side by side with Multi-edit.",
+      "description": "Make many versions of one design from rows or a spreadsheet with Lolly Batch, or edit up to eight saved designs side by side with Lolly Multi-edit.",
       "section": "create",
       "path": "create/batch",
       "icon": "layers",
@@ -478,7 +478,7 @@
     },
     {
       "slug": "brand-studio",
-      "title": "Design System Setup",
+      "title": "Lolly Design System Setup",
       "src": "brand-studio.md",
       "section": "create",
       "path": "create/brand-studio",
@@ -526,7 +526,7 @@
     },
     {
       "slug": "3d-studio",
-      "title": "3D Studio",
+      "title": "Lolly 3D Studio",
       "src": "3d-studio.md",
       "description": "Stage SVG artwork and meshes with materials, lighting, depth of field and transparent shadows.",
       "section": "create",
@@ -562,7 +562,7 @@
     },
     {
       "slug": "search",
-      "title": "Search",
+      "title": "Lolly Search",
       "src": "search.md",
       "section": "create",
       "path": "create/search",
@@ -624,7 +624,7 @@
       "slug": "design-import",
       "title": "Import a design",
       "src": "design-import.md",
-      "description": "Open a Figma, Penpot, Illustrator, InDesign, Photoshop or SVG file in Design as editable layers, on your device, on your design system.",
+      "description": "Open a Figma, Penpot, Illustrator, InDesign, Photoshop or SVG file in Lolly Design as editable layers, on your device, on your design system.",
       "section": "create",
       "path": "create/design-import",
       "icon": "upload",
@@ -635,9 +635,9 @@
     },
     {
       "slug": "design-layout",
-      "title": "Layout in Design",
+      "title": "Layout in Lolly Design",
       "src": "design-layout.md",
-      "description": "Flex and grid layouts, groups, pages and precise number fields in Design.",
+      "description": "Flex and grid layouts, groups, pages and precise number fields in Lolly Design.",
       "section": "create",
       "path": "create/design-layout",
       "icon": "layers",
@@ -647,7 +647,7 @@
     },
     {
       "slug": "darkroom",
-      "title": "Darkroom",
+      "title": "Lolly Darkroom",
       "src": "darkroom.md",
       "description": "Grade photos and video with film looks, LUTs, Adobe presets and your design system colours, then reuse the look.",
       "section": "create",
@@ -661,7 +661,7 @@
       "slug": "rebrand",
       "title": "Rebrand a deck",
       "src": "rebrand.md",
-      "description": "Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Rebrand suggests for each slide, decide, and open the result in Design.",
+      "description": "Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Lolly Rebrand suggests for each slide, decide, and open the result in Lolly Design.",
       "section": "create",
       "path": "create/rebrand",
       "icon": "convert",
@@ -684,7 +684,7 @@
     },
     {
       "slug": "text-composition",
-      "title": "Text in Design",
+      "title": "Text in Lolly Design",
       "src": "text-composition.md",
       "description": "Edit text on canvas, flow articles through frames, compose typography and retain editable source.",
       "section": "create",
@@ -740,7 +740,7 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting",
-      "description": "Cut a video in Design's timeline: split, trim, cross-fade, mix sound, mark a range, edit Lottie animations and hand off to Premiere."
+      "description": "Cut a video in Lolly Design's timeline: split, trim, cross-fade, mix sound, mark a range, edit Lottie animations and hand off to Premiere."
     },
     {
       "slug": "presenting",
@@ -792,7 +792,7 @@
     },
     {
       "slug": "rondocode",
-      "title": "Rondocode songs",
+      "title": "Lolly Rondocode songs",
       "src": "rondocode.md",
       "description": "Play music written as code under a video, write and export a song, and see what its Content Credentials record.",
       "section": "create",
@@ -1170,7 +1170,7 @@
       "slug": "tool-starters",
       "title": "Tool templates and presets",
       "src": "tool-starters.md",
-      "description": "Ship templates and presets with a tool, understand templates people save, hide starters for a brand and add motion details to Design templates.",
+      "description": "Ship templates and presets with a tool, understand templates people save, hide starters for a brand and add motion details to Lolly Design templates.",
       "section": "build",
       "path": "build/tool-starters",
       "icon": "wrench",
@@ -1338,7 +1338,7 @@
       "slug": "cli-decks",
       "title": "Rebuild a deck from the terminal",
       "src": "cli-decks.md",
-      "description": "Renovate an old deck with lolly rebrand, or read, compose, package, check and export it in Design from a script or an agent.",
+      "description": "Renovate an old deck with lolly rebrand, or read, compose, package, check and export it in Lolly Design from a script or an agent.",
       "section": "build",
       "path": "build/cli-decks",
       "icon": "layers",
@@ -1350,7 +1350,7 @@
       "slug": "production-checks",
       "title": "Production checks",
       "src": "production-checks.md",
-      "description": "Check a finished file against agreed requirements in Verify, the CLI or MCP, compare it with a reference and try permitted repairs.",
+      "description": "Check a finished file against agreed requirements in Lolly Verify, the CLI or MCP, compare it with a reference and try permitted repairs.",
       "section": "build",
       "path": "build/production-checks",
       "icon": "check",
@@ -1439,7 +1439,7 @@
       "slug": "extension",
       "title": "Browser extension",
       "src": "extension.md",
-      "description": "Screenshot web pages and read a site for Design System Setup from the Lolly web app in a Chromium-based browser, approving every request in the extension.",
+      "description": "Screenshot web pages and read a site for Lolly Design System Setup from the Lolly web app in a Chromium-based browser, approving every request in the extension.",
       "section": "create",
       "path": "create/extension",
       "icon": "globe",
@@ -1638,7 +1638,7 @@
       "slug": "content-credentials-identity",
       "title": "Content Credentials",
       "src": "content-credentials-identity.md",
-      "description": "What a Content Credential tells you, what each Verify verdict means, and how to put your verified name on the files you export.",
+      "description": "What a Content Credential tells you, what each Lolly Verify verdict means, and how to put your verified name on the files you export.",
       "section": "trust",
       "path": "trust/content-credentials-identity",
       "icon": "seal",
@@ -1648,7 +1648,7 @@
     },
     {
       "slug": "what-verify-checks",
-      "title": "What Verify checks",
+      "title": "What Lolly Verify checks",
       "src": "what-verify-checks.md",
       "description": "Beyond the credential: the Lolly Imprint, AI declarations, makers' watermarks, the deep scan, SEAL signatures and hidden data, and where each check runs.",
       "section": "trust",
@@ -1660,7 +1660,7 @@
     },
     {
       "slug": "verify-ai-evidence",
-      "title": "AI evidence in Verify",
+      "title": "AI evidence in Lolly Verify",
       "src": "verify-ai-evidence.md",
       "description": "Located text and visual clues, coverage, review notes and the limits of authorship probability.",
       "section": "trust",
@@ -1977,7 +1977,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The current release: Work 1.1.3 paired with Lolly 1.1.3, what Lolly 1.1.3 needs from Work, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.",
+      "description": "The current release: Lolly Work 1.1.3 paired with Lolly 1.1.3, what Lolly 1.1.3 needs from Lolly Work, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.",
       "work": {
         "slug": "release-1-1-3",
         "path": "release-1-1-3.md",
@@ -1994,7 +1994,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Work, changes since 1.1.1, migrations, images and YunoHost packaging.",
+      "description": "Lolly Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Lolly Work, changes since 1.1.1, migrations, images and YunoHost packaging.",
       "work": {
         "slug": "release-1-1-2",
         "path": "release-1-1-2.md",
@@ -2016,7 +2016,7 @@
         "operate/release-1-1-0"
       ],
       "contentLicense": "MPL-2.0",
-      "description": "Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.",
+      "description": "Lolly Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.",
       "work": {
         "slug": "past-releases",
         "path": "past-releases.md",
@@ -2067,7 +2067,7 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "One Docker Compose folder with Work, PostgreSQL, the matching web app and automatic HTTPS, for a fresh VM, UpCloud, Dokploy or Coolify, with backup, restore and update steps.",
+      "description": "One Docker Compose folder with Lolly Work, PostgreSQL, the matching web app and automatic HTTPS, for a fresh VM, UpCloud, Dokploy or Coolify, with backup, restore and update steps.",
       "work": {
         "slug": "ready-made-package",
         "path": "ready-made-package.md",
@@ -2147,7 +2147,7 @@
     },
     {
       "slug": "work-customer-setup",
-      "title": "Configure your first Work instance",
+      "title": "Configure your first Lolly Work instance",
       "src": "work/customer-setup.md",
       "section": "operate",
       "group": "Instance configuration, SSO and signing",
@@ -2164,7 +2164,7 @@
     },
     {
       "slug": "work-deployment",
-      "title": "How a Work deployment fits together",
+      "title": "How a Lolly Work deployment fits together",
       "src": "work/deployment.md",
       "section": "operate",
       "group": "Hosting and installation",
@@ -2181,7 +2181,7 @@
     },
     {
       "slug": "work-cloud-deployment",
-      "title": "Run Work on UpCloud or Evroc",
+      "title": "Run Lolly Work on UpCloud or Evroc",
       "src": "work/cloud-deployment.md",
       "section": "operate",
       "group": "Hosting and installation",
@@ -2198,7 +2198,7 @@
     },
     {
       "slug": "work-edge-cdn",
-      "title": "Put a CDN in front of Work",
+      "title": "Put a CDN in front of Lolly Work",
       "src": "work/edge-cdn.md",
       "section": "operate",
       "group": "Hosting and installation",
@@ -2206,7 +2206,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Serve Work's public files through Bunny or Cloudflare: the per-hostname jurisdiction rule, configuration and credentials, the settings that must stay off, purges and the probe.",
+      "description": "Serve Lolly Work's public files through Bunny or Cloudflare: the per-hostname jurisdiction rule, configuration and credentials, the settings that must stay off, purges and the probe.",
       "work": {
         "slug": "edge-cdn",
         "path": "edge-cdn.md",
@@ -2215,7 +2215,7 @@
     },
     {
       "slug": "work-aws-compatible",
-      "title": "Run Work on AWS or MulgaDC Spinifex",
+      "title": "Run Lolly Work on AWS or MulgaDC Spinifex",
       "src": "work/aws-compatible.md",
       "section": "operate",
       "group": "Hosting and installation",
@@ -2257,7 +2257,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "What Work pods need from an admission policy, a ready Kubewarden policy set pinned by digest, a preflight check and how the set was qualified.",
+      "description": "What Lolly Work pods need from an admission policy, a ready Kubewarden policy set pinned by digest, a preflight check and how the set was qualified.",
       "work": {
         "slug": "admission-policy",
         "path": "admission-policy.md",
@@ -2283,7 +2283,7 @@
     },
     {
       "slug": "work-configuration",
-      "title": "Work instance configuration",
+      "title": "Lolly Work instance configuration",
       "src": "work/configuration.md",
       "section": "operate",
       "group": "Instance configuration, SSO and signing",
@@ -2474,7 +2474,7 @@
         "manage/offboarding"
       ],
       "contentLicense": "MPL-2.0",
-      "description": "Leave a DAM vendor without losing assets or links: pin early, pick the Canto or Image Relay driver, check readiness by kind, then cut over.",
+      "description": "Choose a DAM offboarding path: self-host Lolly Work, Nextcloud or Git, or export to a hosted drive. Lolly Compare transfer steps, originals, links and recovery.",
       "work": {
         "slug": "offboarding",
         "path": "offboarding.md",
@@ -2573,7 +2573,7 @@
     },
     {
       "slug": "work-c2pa",
-      "title": "Configure Work export signing",
+      "title": "Configure Lolly Work export signing",
       "src": "work/c2pa.md",
       "section": "operate",
       "group": "Instance configuration, SSO and signing",
@@ -2613,7 +2613,7 @@
     },
     {
       "slug": "work-data-lifecycle",
-      "title": "Work storage and data lifecycle",
+      "title": "Lolly Work storage and data lifecycle",
       "src": "work/data-lifecycle.md",
       "section": "trust",
       "group": "Privacy, data and trust boundaries",
@@ -2659,7 +2659,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Guided Nextcloud or generic WebDAV setup: exact groups, an original checksum, credential sealing and sync before activation.",
+      "description": "Connect a self-hosted Nextcloud or WebDAV library to Lolly Work. Guided setup, original checks and a separate file-transfer route for DAM offboarding.",
       "work": {
         "slug": "provider-webdav",
         "path": "providers/webdav.md",
@@ -2693,7 +2693,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "A catalog manifest kept in a git repository and read over raw HTTP from the branch you choose.",
+      "description": "Connect a catalog manifest and files from a Git repository, including a self-hosted forge. Review and commit a curated DAM export before connecting Lolly Work.",
       "work": {
         "slug": "provider-git",
         "path": "providers/git.md",
@@ -2702,7 +2702,7 @@
     },
     {
       "slug": "work-provider-brandfolder",
-      "title": "Brandfolder",
+      "title": "Brandfolder integration with Lolly",
       "src": "work/providers/brandfolder.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2710,7 +2710,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Federate a Brandfolder read-only; Brandfolder stays the source of truth.",
+      "description": "Connect Brandfolder to Lolly Work: onboarding, approved assets and attachment checks, plus offboarding to self-hosted storage with S3, MinIO or Ceph.",
       "work": {
         "slug": "provider-brandfolder",
         "path": "providers/brandfolder.md",
@@ -2719,7 +2719,7 @@
     },
     {
       "slug": "work-provider-optimizely-cmp",
-      "title": "Optimizely CMP",
+      "title": "Optimizely CMP integration with Lolly",
       "src": "work/providers/optimizely-cmp.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2727,7 +2727,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The web DAM you keep, not one you exit: federate in, and optionally publish exports back out.",
+      "description": "Connect Optimizely CMP to Lolly Work with scoped onboarding and optional export publishing. Understand offboarding limits before planning self-hosted S3 storage.",
       "work": {
         "slug": "provider-optimizely-cmp",
         "path": "providers/optimizely-cmp.md",
@@ -2736,7 +2736,7 @@
     },
     {
       "slug": "work-provider-imagerelay",
-      "title": "Image Relay",
+      "title": "Image Relay integration with Lolly",
       "src": "work/providers/imagerelay.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2744,7 +2744,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Read-only federation with mapped expiry, and which driver to leave through after a move to Canto.",
+      "description": "Connect Image Relay to Lolly Work with mapped expiry and scoped access. Plan offboarding to self-hosted S3 storage, including tenants moved to Canto.",
       "work": {
         "slug": "provider-imagerelay",
         "path": "providers/imagerelay.md",
@@ -2753,7 +2753,7 @@
     },
     {
       "slug": "work-provider-canto",
-      "title": "Canto",
+      "title": "Canto integration with Lolly",
       "src": "work/providers/canto.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2761,7 +2761,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Native Canto tenants and migrated Image Relay tenants, and how to tell which driver you exit through.",
+      "description": "Connect Canto to Lolly Work: onboarding, approval and expiry checks, original-file qualification and offboarding to self-hosted S3, MinIO or Ceph storage.",
       "work": {
         "slug": "provider-canto",
         "path": "providers/canto.md",
@@ -2770,7 +2770,7 @@
     },
     {
       "slug": "work-provider-acquia-dam",
-      "title": "Acquia DAM / Widen",
+      "title": "Acquia DAM / Widen integration with Lolly",
       "src": "work/providers/acquia-dam.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2778,7 +2778,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Widen's own release and expiry dates and approval statuses, with no custom-field mapping.",
+      "description": "Connect Acquia DAM (Widen) to Lolly Work with approval, release and expiry checks. Plan offboarding to a self-hosted library using S3-compatible storage.",
       "work": {
         "slug": "provider-acquia-dam",
         "path": "providers/acquia-dam.md",
@@ -2787,7 +2787,7 @@
     },
     {
       "slug": "work-provider-intelligencebank",
-      "title": "IntelligenceBank",
+      "title": "IntelligenceBank integration with Lolly",
       "src": "work/providers/intelligencebank.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2795,7 +2795,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The v3 Graph API only; native expiry, review dates and workflow states map straight across.",
+      "description": "Connect IntelligenceBank to Lolly Work: onboarding with workflow and availability checks, then qualified offboarding to a self-hosted library with S3 storage.",
       "work": {
         "slug": "provider-intelligencebank",
         "path": "providers/intelligencebank.md",
@@ -2804,7 +2804,7 @@
     },
     {
       "slug": "work-provider-cloudinary",
-      "title": "Cloudinary",
+      "title": "Cloudinary integration with Lolly",
       "src": "work/providers/cloudinary.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2812,7 +2812,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Read-only shared media by immutable asset ID, with original downloads and explicit tenant qualification.",
+      "description": "Connect Cloudinary to Lolly Work: onboarding with folder, metadata and original-file checks, plus conditional offboarding to self-hosted S3-compatible storage.",
       "work": {
         "slug": "provider-cloudinary",
         "path": "providers/cloudinary.md",
@@ -2821,7 +2821,7 @@
     },
     {
       "slug": "work-provider-orange-logic",
-      "title": "Orange Logic",
+      "title": "Orange Logic integration with Lolly",
       "src": "work/providers/orange-logic.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2829,7 +2829,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Public Search v4 and permitted renditions, with protected originals explicitly unavailable.",
+      "description": "Connect Orange Logic renditions to Lolly Work with scoped onboarding. Understand offboarding limits and self-hosted S3 storage; protected originals block cutover.",
       "work": {
         "slug": "provider-orange-logic",
         "path": "providers/orange-logic.md",
@@ -2846,7 +2846,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Design tokens from a Penpot you host feed a Work design system; boards are imported one at a time.",
+      "description": "Design tokens from a Penpot you host feed a Lolly Work design system; boards are imported one at a time.",
       "work": {
         "slug": "provider-penpot",
         "path": "providers/penpot.md",
@@ -2863,7 +2863,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "A Dropbox folder federated read-only over the registered PKCE consent flow.",
+      "description": "Connect a Dropbox folder to Lolly Work, including files exported from a DAM. Read-only access, recursive listing and stable file identities.",
       "work": {
         "slug": "provider-dropbox",
         "path": "providers/dropbox.md",
@@ -2880,7 +2880,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Guided folder/group configuration, registered browser consent, saved-file testing, activation and connection recovery.",
+      "description": "Connect a Google Drive folder to Lolly Work, including files exported from a DAM. Guided setup, original-file checks and flat-folder limits.",
       "work": {
         "slug": "provider-gdrive",
         "path": "providers/gdrive.md",
@@ -2897,7 +2897,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "A SharePoint library or OneDrive federated read-only through Microsoft Graph.",
+      "description": "Connect OneDrive or SharePoint to Lolly Work, including a separate DAM export and upload. Check folder listing, drive-wide search and member access.",
       "work": {
         "slug": "provider-o365",
         "path": "providers/o365.md",
@@ -2979,7 +2979,7 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Every metric Work exports on /metrics with its type and labels, the suggested Prometheus alerts and the Grafana dashboard the Helm chart can install.",
+      "description": "Every metric Lolly Work exports on /metrics with its type and labels, the suggested Prometheus alerts and the Grafana dashboard the Helm chart can install.",
       "work": {
         "slug": "metrics",
         "path": "metrics.md",
@@ -2996,7 +2996,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Derive raw Work packs from signed releases while preserving asset addresses, renditions and release custody.",
+      "description": "Derive raw Lolly Work packs from signed releases while preserving asset addresses, renditions and release custody.",
       "work": {
         "slug": "instance-pack-production",
         "path": "instance-pack-production.md",
@@ -3037,7 +3037,7 @@
         "operate/application-release-classification"
       ],
       "contentLicense": "MPL-2.0",
-      "description": "Publish a qualified Lolly web app build to a private Work instance without rebuilding its image: prepare the request, then run and resume the deployment.",
+      "description": "Publish a qualified Lolly web app build to a private Lolly Work instance without rebuilding its image: prepare the request, then run and resume the deployment.",
       "work": {
         "slug": "shell-deployment-workflow",
         "path": "shell-deployment-workflow.md",
@@ -3104,7 +3104,7 @@
     },
     {
       "slug": "work-automation-api",
-      "title": "Automate with the Work API",
+      "title": "Automate with the Lolly Work API",
       "src": "work/automation-api.md",
       "section": "build",
       "group": "Agents, APIs and integrations",

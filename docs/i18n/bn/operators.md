@@ -9,7 +9,7 @@ Lolly প্রতিটি মানুষের নিজের ডিভা�
 - [Adoption & Governance](/info/adoption-governance.html) রোলআউট এবং ব্র্যান্ড নিয়মের ভূমিকা নিয়ে।
 - [Identity and sessions](/info/work-identity.html) সাইন-ইন ও গ্রুপ ম্যাপিং নিয়ে। [Roles and grants](/info/work-permissions.html) রোল, গ্রান্ট ও মালিক গার্ড ব্যাখ্যা করে।
 - [Policy and governance](/info/work-governance.html) টুল ওভারলে, লক করা ইনপুট ও নীতি নিয়ে। [Manage organisation AI policy](/info/work-ai-policy.html) অনুমোদন ও এক্সিকিউশনের সীমা নিয়ে।
-- [Account data controls](/info/work-account-lifecycle.html) এবং [Work storage and data lifecycle](/info/work-data-lifecycle.html) এক্সপোর্ট, অফবোর্ডিং, সংরক্ষণ ও তাদের সীমা নিয়ে।
+- [Account data controls](/info/work-account-lifecycle.html) এবং [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) এক্সপোর্ট, অফবোর্ডিং, সংরক্ষণ ও তাদের সীমা নিয়ে।
 - [Profiles, brands and tool configuration](/info/configuration.html) Lolly-র একটি বিল্ডে কোন টুল ও ডিজাইন সিস্টেম থাকে তা নিয়ে।
 
 ## অ্যাসেট সংযুক্ত করুন ও কাজ পর্যালোচনা করুন

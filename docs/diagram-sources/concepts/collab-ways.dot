@@ -7,7 +7,7 @@ digraph collab_ways {
   org [label="Organisation\nruns Lolly Work"]
   private [label="Private collab\ninvite and reply"]
   shared [label="Private collab\nover shared cloud"]
-  work [label="Work collab\nthrough the instance"]
+  work [label="Lolly Work collab\nthrough the instance"]
   pair -> network
   pair -> cloud
   pair -> org

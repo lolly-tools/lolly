@@ -44,7 +44,7 @@ Samostatné používání drží soubory na zařízení. Volba sdílených proje
 
 Tyto limity platí pro každou stránku v této sadě, takže jsou uvedeny jednou zde:
 
-- **Pracovní kolaborace dnes běží na jednom serverovém uzlu.** Jejich měřítko a provozní historie se liší od dlouho zavedených hostovaných produktů. [Stav a plán Work](/info/work-status.html) zaznamenává aktuální limity.
+- **Pracovní kolaborace dnes běží na jednom serverovém uzlu.** Jejich měřítko a provozní historie se liší od dlouho zavedených hostovaných produktů. [Stav a plán Lolly Work](/info/work-status.html) zaznamenává aktuální limity.
 - **Web na [lolly.work](https://lolly.work) je demo pískoviště.** Trvalé nasazení v organizaci potřebuje trvalé úložiště a provozovatele; obojí pokrývá [Instalace Lolly Work](/info/work-install.html).
 - **Pro Lolly ani samostatně hostované Lolly Work neexistuje poplatek za softwarovou licenci na uživatele.** Hosting, úložiště a provoz stále stojí peníze.
 - **Podpis není důvěryhodný podepisovatel.** Ověřovatel musí důvěřovat certifikátu, který soubor podepsal, než ukáže podepisovatele jako důvěryhodného; vysvětluje to [Content Credentials Identity](/info/content-credentials-identity.html).

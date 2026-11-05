@@ -180,7 +180,7 @@ detector version.
 |---|---|---|
 | SVG | XML root and namespace; explicit absolute viewport dimensions, with CSS units converted at 96 px/in | 2 MiB; DTDs unsupported; no rendering, linked-resource or visibility check; percentages and viewBox-only dimensions stay unknown |
 | PNG, JPEG | Recognised container and a complete pixel decode; pixel dimensions | 32 MiB and 16 million pixels; one frame; decoding limited to 10 seconds |
-| PDF | Container signature | No independent PDF decoder in Work; readability and dimensions stay undetermined |
+| PDF | Container signature | No independent PDF decoder in Lolly Work; readability and dimensions stay undetermined |
 
 A required check must return `pass`. Missing, failed and undetermined checks stop a verified
 render with `OUTPUT_VERIFICATION_FAILED`; the failed record keeps `error.inspection`, and no
@@ -213,7 +213,7 @@ The output descriptor links to `/api/v1/renders/:id/evidence` and reports the re
 | Policy and catalog versions | yes | catalog version |
 | Design-system revision and a digest of the effective policy | yes | yes |
 | Format, pixel dimensions, watermark, renderer, rasterizer, signing-certificate digest | yes | yes |
-| Catalog and provider assets read through Work's bridges: id, format, declared version, actual byte digest and size | yes | id, format, declared version and digest |
+| Catalog and provider assets read through Lolly Work's bridges: id, format, declared version, actual byte digest and size | yes | id, format, declared version and digest |
 | For the local runtime: hashes of initialized inputs and hydrated markup, hook-error and dropped-asset counts | yes | no |
 | Output SHA-256 and a digest of the whole receipt | yes | no |
 
@@ -272,7 +272,7 @@ stored. Outputs made before identities existed, and outputs without a receipt, h
 - **Coverage is partial.** The pinned engine does not yet emit a canonical dependency graph.
   Template and global resource reads, fonts, composition and historical replay are not fully
   attested, and every receipt carries explicit `limitations` for these boundaries.
-- **A worker render is attested less.** Its receipt records the tool loaded for Work's own
+- **A worker render is attested less.** Its receipt records the tool loaded for Lolly Work's own
   validation and the prepared context; the worker's actual engine, inputs, profile, tool, asset
   and font environment are not attested, and it has no local-runtime section.
 - **An empty asset list** means no bridge reads were recorded, not that the output is proven free
@@ -282,7 +282,7 @@ stored. Outputs made before identities existed, and outputs without a receipt, h
   lockfile for every font, asset, token, engine and policy version, and neither proves a
   historical reconstruction.
 - **It is not a signed attestation**, cache-reuse authority or an automatic stale or current
-  decision. Work does not reuse outputs by identity.
+  decision. Lolly Work does not reuse outputs by identity.
 - **It is not approval.** A render identity says which bytes a render read, not whether anyone
   approved them, and a passing file check does not establish brand compliance, protected copy or
   chart preservation, correct fonts, matching appearance, accessibility, print readiness or
@@ -332,9 +332,9 @@ and the additional `lolly/production-still-v1` engine profile checks explicit re
 final file. It can also try a bounded set of input alternatives you permit, to repair a failed
 check.
 
-The engine also offers `lolly/production-motion-v1` to Lolly's CLI and MCP. Work's governed
+The engine also offers `lolly/production-motion-v1` to Lolly's CLI and MCP. Lolly Work's governed
 renderer accepts only the still profile and refuses a motion contract when it parses the request,
-so updating the engine pin does not add video rendering to Work.
+so updating the engine pin does not add video rendering to Lolly Work.
 
 ```json
 {
@@ -366,7 +366,7 @@ so updating the engine pin does not add video rendering to Work.
 ```
 
 - The tool must actually declare these inputs and offer those alternatives: no layout, legal
-  copy or new input is invented, and each candidate runs through normal Work policy enforcement.
+  copy or new input is invented, and each candidate runs through normal Lolly Work policy enforcement.
 - Repairs bind exact input snapshots, reports and finding fingerprints. They stop when a passing
   check regresses or nothing improves, and never exceed eight attempts.
 - `lw renders submit` accepts this JSON unchanged, and batch expansion and retry keep the same
@@ -393,8 +393,8 @@ SVG and included in the signed worker response, and the client checks that every
 requested. Conflicting observations, missing collectors and older web shells stay undetermined.
 The report keeps hashes, within a 1 MiB combined JSON observation budget.
 
-For Chart, protect the exact CSV `data`, field mappings, number format, units in axis titles,
-`yScaleType`, `yZero` and `yMax` that the approved brief requires. Reusable Design tools use their
+For Lolly Chart, protect the exact CSV `data`, field mappings, number format, units in axis titles,
+`yScaleType`, `yZero` and `yMax` that the approved brief requires. Reusable Lolly Design tools use their
 declared copy and data inputs. JSON types and array order are kept. A contract-protected input
 cannot become a repair target even if a repair plan lists that input. These checks establish source
 identity; visible labels, chart geometry and clipping need separate output checks, and shell
@@ -424,6 +424,6 @@ export uses the actual SVG viewport instead of Chromium's default paper size.
 :::
 
 A successful measurement is not a human approval, permission to deliver or a claim of complete
-reproducibility. Local review files cannot grant Work permissions, and destination approval
+reproducibility. Local review files cannot grant Lolly Work permissions, and destination approval
 chains, current grants and delivery integrity checks keep their authority. The exact bytes and
 the contract can be checked again offline. No new storage migration is needed.

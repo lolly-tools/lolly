@@ -132,9 +132,9 @@ Lolly'nin hacimli çalışmak için üç yolu vardır; her biri farklı bir iş 
 ## Bir tablo tek bir belge olur
 **Battlecards** gibi tablo girdili bir araç her satırı bir sayfaya çevirir. Elektronik tablondan bir tablo yapıştır ve tek bir PDF al. Satırları elektronik tabloda düzelt ve yeniden yapıştır.
 ## Bir CSV satır başına bir dosya olur
-**Batch** (`#/batch`) bir CSV alır ve her satır için bir dışa aktarma render eder: isim rozetleri veya sertifikalar, her biri bir dosya, bir ZIP içinde teslim edilir. Bkz. [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) bir CSV alır ve her satır için bir dışa aktarma render eder: isim rozetleri veya sertifikalar, her biri bir dosya, bir ZIP içinde teslim edilir. Bkz. [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Birkaç tasarım tek düzenleme alır
-**Multi-edit**, farklı tasarımlarda aynı rötuşu yapmak için birkaç kayıtlı oturumu yan yana açar. Bkz. [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit**, farklı tasarımlarda aynı rötuşu yapmak için birkaç kayıtlı oturumu yan yana açar. Bkz. [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 **Projects** içinden **Render folder**, bir klasördeki ve alt klasörlerindeki her kayıtlı oturumu iç içe tek bir ZIP olarak dışa aktarır ve **Render selection** herhangi bir çoklu seçim için aynısını yapar; tek bir kayıtlı oturum kendi dosyasına render edilir. Kayıtlı bir oturum ayrıca Projects içinden, aynı ayarlarla yeniden açan bir araç bağlantısı olarak yeniden paylaşılabilir.
@@ -170,7 +170,7 @@ SVG dışa aktaran araçların çoğu ayrıca Penpot'ta düzenlemeye devam etmey
 | Tüm tasarım | Assets panelinde yeniden kullanılabilir bir bileşen |
 | Karmaşık bir çizim veya canlı tuval | Kendi başına bir görsel olarak gömülür; çevresindeki düzenlenebilir içeriğe dokunulmaz |
 
-Design'dan her çerçeve bir Penpot panosu olur. Tasarım sisteminin renkleri ve tipografileri Assets paneline, tam token kümesi Tokens paneline iner. Penpot oradan kendi kopyasını tutar: Penpot'ta düzenlenen bir token, [Design System Setup](/info/brand-studio.html) içindeki içe aktarma yoluyla geri gelir.
+Design'dan her çerçeve bir Penpot panosu olur. Tasarım sisteminin renkleri ve tipografileri Assets paneline, tam token kümesi Tokens paneline iner. Penpot oradan kendi kopyasını tutar: Penpot'ta düzenlenen bir token, [Lolly Design System Setup](/info/brand-studio.html) içindeki içe aktarma yoluyla geri gelir.
 
 ![Penpot seçiliyken dışa aktarma paneli: .penpot dosyası ve indirmenin yanında Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

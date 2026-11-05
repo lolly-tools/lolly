@@ -2,7 +2,7 @@
 
 Digite uma pergunta e o Ask Lolly responde com a seção destes guias que a cobre, palavra por palavra, com a página de onde veio citada e um link **Open in docs** direto para essa seção. Nada é gerado: a resposta é recuperada, citada e atribuída, no seu dispositivo.
 
-Sob a seção citada ficam os lugares do app que combinam com a mesma pergunta: uma ferramenta, um utilitário, um projeto salvo, um recurso do catálogo, uma configuração ou uma página do app. Cada linha apenas navega. Nada em uma resposta altera uma configuração, abre um arquivo ou age por você, a mesma regra que a [Search](/info/search.html) segue.
+Sob a seção citada ficam os lugares do app que combinam com a mesma pergunta: uma ferramenta, um utilitário, um projeto salvo, um recurso do catálogo, uma configuração ou uma página do app. Cada linha apenas navega. Nada em uma resposta altera uma configuração, abre um arquivo ou age por você, a mesma regra que a [Lolly Search](/info/search.html) segue.
 
 ## Fazer uma pergunta
 
@@ -60,4 +60,4 @@ Sua pergunta nunca sai do dispositivo. A correspondência roda localmente sobre 
 
 ---
 
-**Relacionado:** [Search](/info/search.html) para a barra que repassa as perguntas. [Using Lolly](/info/using.html) para o resto do app. [Settings](/info/dashboard.html#available-offline) para levar a documentação offline antes.
+**Relacionado:** [Lolly Search](/info/search.html) para a barra que repassa as perguntas. [Using Lolly](/info/using.html) para o resto do app. [Lolly Settings](/info/dashboard.html#available-offline) para levar a documentação offline antes.

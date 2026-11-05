@@ -152,7 +152,7 @@ Le compteur de stockage montre la même répartition. Les sessions enregistrées
 
 Ce bundle sauvegarde la bibliothèque personnelle de l'appareil. Ce n'est pas une sauvegarde d'une instance **Lolly Work** : les comptes de l'organisation, les politiques d'accès, les projets partagés, les versions de catalogue, les approbations, les tâches de rendu et les enregistrements d'audit sont détenus par ce service. Reconnecte-toi et connecte-toi pour retrouver l'accès au travail partagé ; importer un bundle personnel n'accorde pas cet accès.
 
-Les opérateurs sauvegardent, conservent et effacent les données du serveur avec les guides propres de Lolly Work : [Backup and restore](/info/work-operations.html#backup-and-restore) et [Work storage and data lifecycle](/info/work-data-lifecycle.html). Effacer ou exporter un appareil ne fait aucune de ces opérations côté serveur.
+Les opérateurs sauvegardent, conservent et effacent les données du serveur avec les guides propres de Lolly Work : [Backup and restore](/info/work-operations.html#backup-and-restore) et [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Effacer ou exporter un appareil ne fait aucune de ces opérations côté serveur.
 
 ## À travers les shells
 

@@ -132,9 +132,9 @@ Lolly 有三种批量处理的方式，各自适用于不同的任务：
 ## 一张表格变成一份文档
 带有表格输入项的工具，例如 **Battlecards**，会把每一行变成一页。从你的电子表格粘贴一张表格，就得到一份 PDF。在电子表格中修正各行，再粘贴一次。
 ## 一份 CSV 变成每行一个文件
-**Batch**（`#/batch`）读取 CSV，并为每一行渲染一次导出：姓名牌或证书，每人一个文件，以 ZIP 交付。参见 [Batch](/info/batch.html#make-many-versions-of-one-design)。
+**Batch**（`#/batch`）读取 CSV，并为每一行渲染一次导出：姓名牌或证书，每人一个文件，以 ZIP 交付。参见 [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)。
 ## 多个设计一次编辑
-**Multi-edit** 把多个已保存的会话并排打开，对不同设计做同样的修饰。参见 [Multi-edit](/info/batch.html#edit-several-saved-designs-together)。
+**Multi-edit** 把多个已保存的会话并排打开，对不同设计做同样的修饰。参见 [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together)。
 :::
 
 在 **Projects** 中，**Render folder** 会把文件夹及其子文件夹中每个已保存的会话导出为一个嵌套的 ZIP，**Render selection** 对任何多选执行同样的操作；单个已保存的会话则渲染为它自己的文件。已保存的会话还可以在 Projects 中再次作为工具链接分享，它会用相同的设置重新打开。
@@ -170,7 +170,7 @@ PowerPoint 也是一个入口：[重塑演示稿品牌](/info/rebrand.html)把�
 | 整个设计 | Assets 面板中可复用的组件 |
 | 复杂的插画或实时画布 | 单独作为图片嵌入，其周围的可编辑内容不受影响 |
 
-从 Design 导出时，每个画框都变成一个 Penpot 画板。设计系统的颜色和字体样式进入 Assets 面板，其完整的令牌集合进入 Tokens 面板。Penpot 从此保留自己的副本：在 Penpot 中编辑的令牌会通过 [Design System Setup](/info/brand-studio.html) 中的导入回来。
+从 Design 导出时，每个画框都变成一个 Penpot 画板。设计系统的颜色和字体样式进入 Assets 面板，其完整的令牌集合进入 Tokens 面板。Penpot 从此保留自己的副本：在 Penpot 中编辑的令牌会通过 [Lolly Design System Setup](/info/brand-studio.html) 中的导入回来。
 
 ![选中 Penpot 的导出面板:.penpot 文件,以及下载按钮旁的“发送到 Penpot”](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

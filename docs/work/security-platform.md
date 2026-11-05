@@ -8,7 +8,7 @@ The [lolly.work](https://lolly.work) demo's landing page shows an interactive ve
 
 | Workflow | On the device | Across the network |
 | --- | --- | --- |
-| Work locally | Inputs, rendering and the export | No Work connection is needed for a prepared local workflow. Online features and new downloads are separate. |
+| Lolly Work locally | Inputs, rendering and the export | No Lolly Work connection is needed for a prepared local workflow. Online features and new downloads are separate. |
 | Apply organisation rules | The selected render and export | Sign-in, approved tools, policy requests and permitted usage labels. Syncing content is a separate choice. |
 | Use shared services | The work a person chooses to keep locally | Selected inputs, shared sessions, collaboration changes or server-rendered outputs, according to the service used. |
 
@@ -22,7 +22,7 @@ Offline work needs the app, the tool and every asset or model it uses to be on t
 
 **The app and host bridge** connect portable tools to device features. In the current Lolly web app, untrusted tool scripts run in strict Workers with a limited bridge and execution deadlines, and if that isolation fails to start, the tool is refused. Verified built-in scripts can still run in the page. Review the catalog and its signing keys, and assess the exact shell and release you deploy, because a shared host API does not guarantee the same isolation on the web, the desktop and the command line.
 
-**The engine** loads the tool and its inputs and makes the output through the host app, and Work also uses it for server rendering. Catalog signatures authenticate tool files, and Content Credentials record an output's provenance. Neither proves code safe or content true. Read [Content Credentials](c2pa.md) and [server rendering](sharing.md).
+**The engine** loads the tool and its inputs and makes the output through the host app, and Lolly Work also uses it for server rendering. Catalog signatures authenticate tool files, and Content Credentials record an output's provenance. Neither proves code safe or content true. Read [Content Credentials](c2pa.md) and [server rendering](sharing.md).
 
 **Files and keys** have a lifecycle wherever they live. Device encryption is the endpoint's job, and browser storage is not a promise of disk encryption. Shared sessions, server records, stored files, downloaded copies and backups each need their own retention decision. Read [data lifecycle](data-lifecycle.md).
 
@@ -39,4 +39,4 @@ Offline work needs the app, the tool and every asset or model it uses to be on t
 
 [Audit](audit.md), [operations](operations.md) and [production evidence](production-readiness.md) give the detailed checks. A configured control is not evidence that the control works in your deployment.
 
-Work runs on a pinned Lolly engine, so check the engine version your instance pins and the shell release you ship when you apply this page. For the app and engine boundaries in detail, read Lolly's [Threat Model & Trust Boundaries](https://lolly.tools/info/trust/threat-model.html).
+Lolly Work runs on a pinned Lolly engine, so check the engine version your instance pins and the shell release you ship when you apply this page. For the app and engine boundaries in detail, read Lolly's [Threat Model & Trust Boundaries](https://lolly.tools/info/trust/threat-model.html).

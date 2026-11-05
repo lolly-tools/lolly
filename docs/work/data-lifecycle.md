@@ -1,4 +1,6 @@
-# Work storage and data lifecycle
+# Lolly Work storage and data lifecycle
+
+<a id="work-storage-and-data-lifecycle"></a>
 
 This page is for whoever runs a Lolly Work instance and has to answer two questions: what does the service hold about people, and what happens when someone leaves or asks for their data to be removed?
 
@@ -121,7 +123,7 @@ Open a group to see its stores. Each row gives what the store holds and how it i
 |---|---|---|
 | Browser IndexedDB, Cache Storage, local preferences | Profile and state, uploads and versions, previews, derived media, model files, exports, packs, queued file operations and local identity | The device profile has export and storage-removal controls. Device data, sync history and downloads need their own scope review; server erasure and turning AI off cannot remotely erase every copy. |
 | Native shells, local exports, downloads, external delivery recipients | Independent local work and copies outside the service | The server cannot reach these copies. Your organisation decides whether these clients and flows are allowed, and how copies on devices and with recipients are handled. |
-| Optional certificate and MCP services | Enrolment and identity claims, certificates, OAuth state and MCP private file handles | Confirm which services are in scope and their configured stores. MCP file handles use a one-hour access lifetime with cleanup on later operations or shutdown, which does not guarantee physical deletion at the exact expiry time. Review temporary files, credentials, issued certificates, logs and receivers separately from Work. |
+| Optional certificate and MCP services | Enrolment and identity claims, certificates, OAuth state and MCP private file handles | Confirm which services are in scope and their configured stores. MCP file handles use a one-hour access lifetime with cleanup on later operations or shutdown, which does not guarantee physical deletion at the exact expiry time. Review temporary files, credentials, issued certificates, logs and receivers separately from Lolly Work. |
 | Backups, snapshots, restore destinations and exported evidence | Recoverable copies of the stores above | Agree access, location, retention, holds and restore restrictions. Record completed erasures outside the restored data, and apply them again before a recovered service accepts traffic. |
 :::
 

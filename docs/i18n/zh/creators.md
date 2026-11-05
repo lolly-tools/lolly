@@ -20,7 +20,7 @@
 
 你的设计系统决定每个工具的外观。
 
-- **[Design System Setup](/info/brand-studio.html)** - 徽标、颜色、字体及其他一切，在 `#/start` 一次设定。
+- **[Lolly Design System Setup](/info/brand-studio.html)** - 徽标、颜色、字体及其他一切，在 `#/start` 一次设定。
 - **[实际使用 Lolly Demo](/info/lolly-demo-in-use.html)** - 在真实作品上使用配色方案，以及切换到你自己的设计系统。
 - **[品牌架构](/info/brand-architectures.html)** - 一个组织使用多个设计系统，或一个带有多种配色方案的设计系统。
 - **[与合作伙伴协作](/info/partners.html)** - 与合作伙伴分享你的品牌，在别人交给你的品牌中工作，并制作赞助商墙。

@@ -1,4 +1,6 @@
-# Configure your first Work instance
+# Configure your first Lolly Work instance
+
+<a id="configure-your-first-work-instance"></a>
 
 Once Lolly Work is installed, **Customer setup** at `/admin#/setup` takes the first owner
 from a fresh instance to a real owner sign-in and a downloadable, checked sample. It
@@ -219,7 +221,7 @@ callback, then download `lolly-setup.json` for an instance-file deployment or
 `lolly-setup.helm.json` for Helm. The files hold non-secret configuration; handle them as
 deployment files.
 
-For an instance JSON file, run from the Work checkout:
+For an instance JSON file, run from the Lolly Work checkout:
 
 ```sh
 pnpm setup:apply ./instance.json ./lolly-setup.json

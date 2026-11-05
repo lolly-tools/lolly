@@ -14,13 +14,13 @@ Hawak din ng profile mo ang naiipon mo habang gumagawa: mga naka-save na session
 | **Headshot** | Opsyonal na litrato, ginupit na parisukat at iniingatan bilang lokal na larawan, para sa mga tool tulad ng email signature, quote card at org chart. |
 | **Use my details to create** | Isang opt-in na switch (nakasulat itong **Using my details** kapag naka-on). Pinapasya nito kung sumasama ang mga detalye mo bilang author credit sa mga na-export na file at sa mga Batch run. Hindi nito naaapektuhan ang pre-fill; tingnan ang [Paano ginagamit ng mga tool ang profile mo](#how-tools-use-your-profile). |
 | **Preferences** | Ang theme mo, ang colourway mo sa bawat design system, mga accessibility setting at kung aling bahagi ng app ang in-on mo sa **Feature flags**. |
-| **Your work** | Mga naka-save na session na may thumbnail, nakaayos sa [Projects](/info/find-your-work.html), mga na-upload mong larawan at lokal mong activity stats. |
+| **Your work** | Mga naka-save na session na may thumbnail, nakaayos sa [Lolly Projects](/info/find-your-work.html), mga na-upload mong larawan at lokal mong activity stats. |
 
 Walang kinakailangan sa mga ito. Gumagana ang blangkong profile; punan lang ang makakatipid sa pagta-type mo.
 
 ![Ang Settings sa Preferences tab: ang settings rail, at Your details na may Use my details to create switch at ang mga field ng pangalan, contact at lokasyon](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-Minamapa ng [Settings](/info/dashboard.html) ang lahat ng iba pa sa ilalim ng Preferences, mula sa appearance at emoji hanggang storage at offline download.
+Minamapa ng [Lolly Settings](/info/dashboard.html) ang lahat ng iba pa sa ilalim ng Preferences, mula sa appearance at emoji hanggang storage at offline download.
 
 ## Ikaw, isang team o isang papel
 
@@ -83,7 +83,7 @@ Mga may-akda ng tool: tingnan ang [`bindToProfile`](/info/tool-inputs.html#bindt
 Tatlong bagay ang magkakalapit sa Settings at madaling mapagkamalan:
 
 - <!--i:people--> **Profile** - ikaw, ang team mo o ang papel na ginagampanan mo: pangalan, contact, headshot at naka-save na gawa. Personal, nasa device at portable bilang file.
-- <!--i:palette--> **Design system** - ang brand: mga kulay, font at setting na ginagamit ng bawat tool sa pag-render. Shared at pare-pareho sa halip na personal; tingnan ang [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - ang brand: mga kulay, font at setting na ginagamit ng bawat tool sa pag-render. Shared at pare-pareho sa halip na personal; tingnan ang [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - ang kaya ng app: ang mga feature at tool na magagamit mo.
 
 Binabago ng profile kung kanino galing ang file; binabago ng design system kung ano ang itsura ng file; ang capabilities ay ang kaya mong gawin.

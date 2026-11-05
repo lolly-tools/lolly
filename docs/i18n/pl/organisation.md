@@ -61,7 +61,7 @@ W aplikacjach komputerowych i mobilnych ekran logowania oferuje też krótki kod
 
 ## Co dodaje Lolly Work
 
-Serwer Twojej organizacji uruchamia **Lolly Work**, oprogramowanie organizacyjne tego samego projektu open source. Aplikacja nie potrzebuje ani konta Work, ani Lolly Work, gdy używasz jej samodzielnie.
+Serwer Twojej organizacji uruchamia **Lolly Work**, oprogramowanie organizacyjne tego samego projektu open source. Aplikacja nie potrzebuje ani konta Lolly Work, ani Lolly Work, gdy używasz jej samodzielnie.
 
 ::: details Co może dodać Lolly Work
 Twoja organizacja hostuje [Lolly Work](https://github.com/lolly-tools/lolly-work) obok Lolly i wybiera, które funkcje włączyć:

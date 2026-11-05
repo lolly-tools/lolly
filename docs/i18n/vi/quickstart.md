@@ -24,7 +24,7 @@ Lần đầu bạn mở thư viện, một lời chào ngắn đưa ra cùng cá
 
 ![Phòng Colours của Design System Setup trên bản cài mới: một chip trực tiếp, một ô nhập và toàn bộ quyết định đầu tiên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Từ đó, tám phòng đưa nó đi xa tùy ý bạn, theo thứ tự nào cũng được: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** và **Skills**. Mọi bản xem trước trong ứng dụng cập nhật khi bạn gõ. [Design System Setup](/info/brand-studio.html) giới thiệu từng phòng.
+Từ đó, tám phòng đưa nó đi xa tùy ý bạn, theo thứ tự nào cũng được: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** và **Skills**. Mọi bản xem trước trong ứng dụng cập nhật khi bạn gõ. [Lolly Design System Setup](/info/brand-studio.html) giới thiệu từng phòng.
 
 Phông chữ được giữ trên thiết bị của bạn. Chọn một Google Font và Lolly lưu tệp như một tài nguyên thương hiệu, nên kiểu chữ của bạn đi cùng ngoại tuyến và không có gì được tải khi một công cụ vẽ.
 
@@ -58,7 +58,7 @@ Bạn không phải bắt đầu từ trang trống.
 
 **Bộ trình chiếu.** Thả một tệp PowerPoint `.pptx` vào Lolly để lưu các trang chiếu của nó thành tài nguyên, viết bộ trình chiếu mới từ Markdown trong **Markdown Slides**, hoặc dùng [Rebrand a deck](/info/rebrand.html) để chuyển cả bộ trình chiếu sang hệ thống thiết kế của bạn.
 
-**Dữ liệu.** Dán hoặc thả một bảng CSV hay JSON và các trường lặp của công cụ sẽ điền từ đó, hoặc [Batch](/info/batch.html#make-many-versions-of-one-design) tạo một tệp hoàn chỉnh cho mỗi hàng.
+**Dữ liệu.** Dán hoặc thả một bảng CSV hay JSON và các trường lặp của công cụ sẽ điền từ đó, hoặc [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) tạo một tệp hoàn chỉnh cho mỗi hàng.
 
 ### Từ một bản làm một lần thành một mẫu
 
@@ -72,7 +72,7 @@ Một bố cục đã nhập là một phiên Design bình thường. **Share wi
 
 - <!--i:download--> **Xuất.** Các công cụ tạo SVG, PDF, PNG, JPG, WebP, video và nhiều hơn nữa, theo các định dạng mỗi công cụ cung cấp, ở kích thước in thật khi bạn cần. Xem [Export a file](/info/exporting.html).
 - <!--i:link--> **Chia sẻ một liên kết.** Cài đặt của công cụ đi cùng trong liên kết, nên liên kết mở lại đúng tệp đó ở bất cứ đâu.
-- <!--i:layers--> **Tạo một bản cho mỗi hàng.** Điều khiển công cụ từ bảng tính trong [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Tạo một bản cho mỗi hàng.** Điều khiển công cụ từ bảng tính trong [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Tự động hóa.** Cùng một lần kết xuất chạy được từ [CLI](/info/cli.html) và từ một [tác tử AI](/info/ai-agents.html).
 
 Một liên kết là một yêu cầu hoàn chỉnh. Không ai vẽ biểu đồ bên dưới: loại, tiêu đề và toàn bộ bảng dữ liệu của nó được gõ vào thanh địa chỉ, và cùng liên kết đó vẽ cùng biểu đồ trên mọi thiết bị.

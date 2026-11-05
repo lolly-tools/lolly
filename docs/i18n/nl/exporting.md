@@ -132,9 +132,9 @@ Lolly heeft drie manieren om op volume te werken, elk voor een andere klus:
 ## Een tabel wordt één document
 Een tool met een tabelinvoer, zoals **Battlecards**, maakt van elke rij een pagina. Plak een tabel uit je spreadsheet en krijg één PDF. Corrigeer rijen in de spreadsheet en plak opnieuw.
 ## Een CSV wordt één bestand per rij
-**Batch** (`#/batch`) neemt een CSV en rendert een export voor elke rij: naambadges of certificaten, elk een bestand, geleverd in een ZIP. Zie [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) neemt een CSV en rendert een export voor elke rij: naambadges of certificaten, elk een bestand, geleverd in een ZIP. Zie [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Meerdere ontwerpen krijgen één bewerking
-**Multi-edit** opent meerdere opgeslagen sessies naast elkaar voor dezelfde bijwerking over verschillende ontwerpen. Zie [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** opent meerdere opgeslagen sessies naast elkaar voor dezelfde bijwerking over verschillende ontwerpen. Zie [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Vanuit **Projects** exporteert **Render folder** elke opgeslagen sessie in een map en haar submappen als één geneste ZIP, en **Render selection** doet hetzelfde voor elke meervoudige selectie; één opgeslagen sessie rendert naar zijn eigen bestand. Een opgeslagen sessie kan vanuit Projects ook opnieuw worden gedeeld als toollink, die haar met dezelfde instellingen heropent.
@@ -170,7 +170,7 @@ De meeste tools die SVG exporteren, exporteren ook een **Penpot-bestand** (`.pen
 | Het hele ontwerp | Een herbruikbare component in het paneel Assets |
 | Een complexe illustratie of live canvas | Op zichzelf ingesloten als afbeelding, de bewerkbare inhoud eromheen onaangeroerd |
 
-Vanuit Design wordt elk kader een Penpot-board. De kleuren en typografieën van het design system komen in het paneel Assets en de volledige tokenset in het paneel Tokens. Penpot houdt vanaf daar een eigen kopie: een token dat in Penpot is bewerkt komt terug via de import in [Design System Setup](/info/brand-studio.html).
+Vanuit Design wordt elk kader een Penpot-board. De kleuren en typografieën van het design system komen in het paneel Assets en de volledige tokenset in het paneel Tokens. Penpot houdt vanaf daar een eigen kopie: een token dat in Penpot is bewerkt komt terug via de import in [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Het exportpaneel met Penpot gekozen: het .penpot-bestand, en Send to Penpot naast de download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

@@ -152,7 +152,7 @@ Pengukur penyimpanan menampilkan pemisahan yang sama. Saved sessions, My images,
 
 Bundel ini mencadangkan pustaka pribadi perangkat. Ini bukan cadangan instans **Lolly Work**: akun organisasi, kebijakan akses, proyek bersama, versi katalog, persetujuan, pekerjaan render, dan catatan audit disimpan oleh layanan itu. Sambungkan kembali dan login untuk mendapatkan kembali akses ke pekerjaan bersama; mengimpor bundel pribadi tidak memberi akses itu.
 
-Operator mencadangkan, menyimpan, dan menghapus data server dengan panduan Lolly Work sendiri: [Backup and restore](/info/work-operations.html#backup-and-restore) dan [Work storage and data lifecycle](/info/work-data-lifecycle.html). Membersihkan atau mengekspor perangkat tidak melakukan operasi server mana pun.
+Operator mencadangkan, menyimpan, dan menghapus data server dengan panduan Lolly Work sendiri: [Backup and restore](/info/work-operations.html#backup-and-restore) dan [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Membersihkan atau mengekspor perangkat tidak melakukan operasi server mana pun.
 
 ## Lintas shell
 

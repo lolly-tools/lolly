@@ -132,9 +132,9 @@ Lollyには、量をこなす方法が3つあり、それぞれ別の作業向�
 ## 表が1つのドキュメントになる
 **Battlecards**のように表の入力を持つツールは、すべての行を1ページにします。スプレッドシートから表を貼り付けると、1つのPDFが得られます。行はスプレッドシートで直して、もう一度貼り付けます。
 ## CSVが1行につき1ファイルになる
-**Batch**(`#/batch`)はCSVを受け取り、行ごとに1つの書き出しをレンダリングします。名札や証明書を1枚ずつのファイルで、ZIPにまとめて受け取れます。[Batch](/info/batch.html#make-many-versions-of-one-design)をご覧ください。
+**Batch**(`#/batch`)はCSVを受け取り、行ごとに1つの書き出しをレンダリングします。名札や証明書を1枚ずつのファイルで、ZIPにまとめて受け取れます。[Lolly Batch](/info/batch.html#make-many-versions-of-one-design)をご覧ください。
 ## 複数のデザインに1つの編集
-**Multi-edit**は、複数の保存済みセッションを並べて開き、異なるデザインにわたって同じ微修正を行います。[Multi-edit](/info/batch.html#edit-several-saved-designs-together)をご覧ください。
+**Multi-edit**は、複数の保存済みセッションを並べて開き、異なるデザインにわたって同じ微修正を行います。[Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together)をご覧ください。
 :::
 
 **Projects**の**Render folder**は、フォルダとそのサブフォルダ内のすべての保存済みセッションを、入れ子になった1つのZIPに書き出し、**Render selection**は、任意の複数選択に対して同じことを行います。保存済みセッション1つは、そのままそれ自身のファイルにレンダリングされます。保存済みセッションは、Projectsからツールのリンクとして再び共有することもでき、同じ設定で開き直されます。
@@ -170,7 +170,7 @@ SVGを書き出すほとんどのツールは、Penpotで編集を続けられ�
 | デザイン全体 | Assetsパネルの再利用可能なコンポーネント |
 | 複雑なイラストやライブキャンバス | 単独で画像として埋め込まれ、その周りの編集可能な内容には手を付けない |
 
-Designからは、各フレームがPenpotのボードになります。デザインシステムの色とタイポグラフィはAssetsパネルに、完全なトークンセットはTokensパネルに入ります。そこからはPenpotが独自のコピーを保持し、Penpotで編集したトークンは、[Design System Setup](/info/brand-studio.html)のインポートを通して戻ってきます。
+Designからは、各フレームがPenpotのボードになります。デザインシステムの色とタイポグラフィはAssetsパネルに、完全なトークンセットはTokensパネルに入ります。そこからはPenpotが独自のコピーを保持し、Penpotで編集したトークンは、[Lolly Design System Setup](/info/brand-studio.html)のインポートを通して戻ってきます。
 
 ![Penpotを選択したエクスポートパネル：.penpotファイルと、ダウンロードの隣にあるSend to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

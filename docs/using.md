@@ -12,7 +12,7 @@ The home screen: four tabs along the top and the bar at the foot. A tool, once o
 
 Four tabs run along the top of the home screen: **Tools**, **Utilities**, **Assets** and **Projects**. Tools are what you make with, Utilities are workbenches for jobs such as converting, checking or cleaning up a file, Assets is your library and Projects holds what you saved.
 
-The bar at the foot holds **Open**, **Settings**, a search field, **Verify** and **What?**. It shows on Tools, Utilities, Assets, Projects, Settings and the guides you read in the app, and steps aside once a tool is open. [Search](/info/search.html) reaches your tools, saved work, assets and settings from that field. [Ask Lolly](/info/ask.html) answers a typed question with the matching section of these guides.
+The bar at the foot holds **Open**, **Settings**, a search field, a **Verify** shortcut to Lolly Verify and **What?**. It shows on Tools, Utilities, Assets, Projects, Settings and the guides you read in the app, and steps aside once a tool is open. [Lolly Search](/info/search.html) reaches your tools, saved work, assets and settings from that field. [Ask Lolly](/info/ask.html) answers a typed question with the matching section of these guides.
 
 Click a card to start something new in that tool. Saved work reopens from **Projects** instead.
 
@@ -22,7 +22,7 @@ Each tool is a split view: **controls** on one side and a live **preview** on th
 
 ![A tool's split view - the control stack on the left, and the live grouped bar chart it draws on the right](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** is the exception. It opens as a free canvas of boxes you drag, resize and type into, with its own top bar, timeline and deck controls. [Design: the free canvas](/info/design.html) is its guide.
+**Lolly Design** is the exception. It opens as a free canvas of boxes you drag, resize and type into, with its own top bar, timeline and deck controls. [Lolly Design: the free canvas](/info/design.html) is its guide.
 
 ## Change what the tool lets you change
 
@@ -36,7 +36,7 @@ A tool shows only the inputs meant to vary. Its author has already fixed the col
 
 **Design system choices.** When your design system offers more than one colourway, a light and a dark look or another theme choice, a **Design system** section under the controls holds them. A choice appears only when it changes this tool, so a file utility shows no section at all. Each colourway is a dot in its own colours, light and dark are two buttons and any other choice is a list.
 
-The choice belongs to this piece. It travels in the link and the saved session, every colour linked to the design system follows it and the app's own colours stay as they are. Design shows the same choices in the Inspector's **Canvas** tab. A tool whose colours are its content can stay on the canonical colourway, and then offers no colourway dots. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
+The choice belongs to this piece. It travels in the link and the saved session, every colour linked to the design system follows it and the app's own colours stay as they are. Lolly Design shows the same choices in the Inspector's **Canvas** tab. A tool whose colours are its content can stay on the canonical colourway, and then offers no colourway dots. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
 
 ### Zoom and pan the preview
 
@@ -47,7 +47,7 @@ The preview always shows exactly what will export.
 - **Touch:** pinch to zoom, drag to pan and double-tap to fit.
 - **Zoom HUD:** press and hold the Lolly swirl in the corner to unfold `−`, **Fit** and `+`. A short tap on the swirl still opens your profile menu.
 
-In Design, **Fit all** includes artboards and loose layers. Manual zooming can go below 20% until the whole page fills half the view. The hard stop is the lower of 5% of the plain Fit scale and 2% absolute zoom.
+In Lolly Design, **Fit all** includes artboards and loose layers. Manual zooming can go below 20% until the whole page fills half the view. The hard stop is the lower of 5% of the plain Fit scale and 2% absolute zoom.
 
 A change of output size always snaps the view back to a clean fit.
 
@@ -55,7 +55,7 @@ A change of output size always snaps the view back to a clean fit.
 
 ### Undo and redo
 
-**Cmd/Ctrl-Z** steps back and **Cmd/Ctrl-Shift-Z** (or **Cmd/Ctrl-Y**) steps forward. The same pair sits as **Undo** and **Redo** buttons above the controls (in Design they are in the top bar), and each greys out when there is nothing left to take back. A message says which input each undo restored, with a **Redo** button in the message.
+**Cmd/Ctrl-Z** steps back and **Cmd/Ctrl-Shift-Z** (or **Cmd/Ctrl-Y**) steps forward. The same pair sits as **Undo** and **Redo** buttons above the controls (in Lolly Design they are in the top bar), and each greys out when there is nothing left to take back. A message says which input each undo restored, with a **Redo** button in the message.
 
 - **A drag is one step.** Repeated changes to one control within half a second merge, so pulling a slider across its range is a single undo.
 - **The last 100 steps are kept.** A fresh edit after an undo clears the forward stack.
@@ -72,7 +72,7 @@ The **Filter** tool's effects (Halftone, Scanline, Posterize, Voronoi, Duotone, 
 
 To keep your work, press **Save**, the tick beside **Export** on the render pill. New work goes to **My library**, work you saved before is updated where it is and nothing downloads. The export panel has the same **Save** button.
 
-To choose where it goes, press **Save as**, beside **Download** in the export panel. Under **Save to a project**, leave **My library** selected or choose a project (**＋ New project…** makes one), then press **Save**; **Save as a template** keeps the design as a [template](/info/templates.html), a starting point for new documents. In Design, **Save as** is in the Lolly menu; on a phone, press **•••**, then **File menu**, then **Save as**.
+To choose where it goes, press **Save as**, beside **Download** in the export panel. Under **Save to a project**, leave **My library** selected or choose a project (**＋ New project…** makes one), then press **Save**; **Save as a template** keeps the design as a [template](/info/templates.html), a starting point for new documents. In Lolly Design, **Save as** is in the Lolly menu; on a phone, press **•••**, then **File menu**, then **Save as**.
 
 ![The two-half render pill: Export, with an up arrow that opens the export panel, and Save, with a tick that saves in place](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ A full device backup is not a `.lolly`. It stays a `LollyTools-….zip` (format 
 
 A `.lolly` is an ordinary zip. Rename it `.zip` to look inside: your own images are under `assets/uploads/`, catalogue art under `assets/catalog/`, `manifest.json` lists every file, and a README says what the file is.
 
-macOS, Windows, Linux, iOS and Android all register the format, desktop file managers show it as a Lolly document and GNOME Files can show a saved session's own thumbnail. Opening from Design System Setup recommends the design-system action when a shared design carries one, but never hides **Open shared design**.
+macOS, Windows, Linux, iOS and Android all register the format, desktop file managers show it as a Lolly document and GNOME Files can show a saved session's own thumbnail. Opening from Lolly Design System Setup recommends the design-system action when a shared design carries one, but never hides **Open shared design**.
 
 A document handed in from another app on iOS or Android is capped at 48 MB, because the hand-off copies its bytes across the app boundary, and the app says so. **Open** inside Lolly has no such cap, so use it for a larger bundle.
 
@@ -173,7 +173,7 @@ A link and a file both hand over a snapshot. For live editing, [Working together
 
 ## Assets - your library
 
-**Assets** (`#/a`) gathers everything your tools can draw on: brand logos, images, audio and motion, grouped by kind, together with your own files. Your uploads are stored on your device. An organisation using Lolly Work can also supply a shared catalogue under its own access rules; see [Use Lolly at your organisation](/info/organisation.html).
+**Lolly Assets** (`#/a`) gathers everything your tools can draw on: brand logos, images, audio and motion, grouped by kind, together with your own files. Your uploads are stored on your device. An organisation using Lolly Work can also supply a shared catalogue under its own access rules; see [Use Lolly at your organisation](/info/organisation.html).
 
 ![Assets, with the brand's swatches and fonts and your own uploads](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -274,7 +274,7 @@ On a foldable, an iPhone Duo or a near-square touch screen, Lolly lays a tool ou
 - **Controls on one side, the canvas on the other.** The controls sit away from the hand you draw with. Choose **Dominant hand** in **Settings → Accessibility**, or press **Swap sides** at the top of the controls. In a right-to-left language the sides mirror.
 - **The divider is the hinge.** When the device reports its fold, the panes meet at the fold, so no control and no artwork lies on the crease. On a continuous screen, drag the divider to a third, a half or two thirds of the width. Lolly remembers your choice for each view on this device.
 - **On the table.** Half open with the fold across the screen, the canvas takes the top half and the controls sit below the fold. When you present, the slide is on top, with your notes, the next slide and **Back** and **Next** below. In Sequence, the preview is on top and the timeline below.
-- **Design, Brand Studio and Assets.** In Design, the inspector, the layers and the export panel are tabs beside the canvas, and the tools stand along the canvas's outer edge, under your drawing hand. When there are more tools than fit, the column scrolls and a fade with an arrow shows which way the rest are. On the table, the tools run along the foot of the canvas instead. Brand Studio keeps the Board on one side and the room you open on the other. In Assets, an asset's details open beside the library, so the next tap shows the next asset in the same place.
+- **Lolly Design, Brand Studio and Assets.** In Lolly Design, the inspector, the layers and the export panel are tabs beside the canvas, and the tools stand along the canvas's outer edge, under your drawing hand. When there are more tools than fit, the column scrolls and a fade with an arrow shows which way the rest are. On the table, the tools run along the foot of the canvas instead. Brand Studio keeps the Board on one side and the room you open on the other. In Assets, an asset's details open beside the library, so the next tap shows the next asset in the same place.
 - **Nothing on the crease.** On a reported fold, a dialog opens on the page that holds the controls, and so do the search box at the foot of the home screen and its results. A flat screen keeps them in the middle.
 - **Folding loses nothing.** Folding, unfolding or turning the device keeps your document, your selection, the zoom and the field you were typing in, with its cursor where you left the cursor.
 
@@ -282,7 +282,7 @@ The outer screen of a foldable keeps the phone layout above, and so does a Lolly
 
 ## Settings, sound and comfort
 
-**Settings**, at the foot of the home screen, holds your details, your design systems, accessibility, storage and offline downloads. [Settings](/info/dashboard.html) maps every tab.
+**Settings**, at the foot of the home screen, holds your details, your design systems, accessibility, storage and offline downloads. [Lolly Settings](/info/dashboard.html) maps every tab.
 
 - **Your details and headshot** fill in any tool built to use them, such as an email signature or a badge. [Profiles](/info/profile.html) covers them.
 - **Accessibility** has four comfort switches: **Reduce motion**, **Hide colourful previews**, **High contrast** and **Large text**. They change the app around your work, never a tool canvas or an export. Beside them, **Dominant hand** chooses which side the controls take in two panes.
@@ -296,10 +296,10 @@ A blank panel or a "failed to fetch" message right after an update usually clear
 
 ## Where to go next
 
-- **[Design: the free canvas](/info/design.html)**: the canvas, shapes, the timeline and presenting a deck.
-- **[Batch and Multi-edit](/info/batch.html)**: many versions of one design, or several saved designs edited together.
+- **[Lolly Design: the free canvas](/info/design.html)**: the canvas, shapes, the timeline and presenting a deck.
+- **[Batch and Lolly Multi-edit](/info/batch.html)**: many versions of one design, or several saved designs edited together.
 - **[Export a file](/info/exporting.html)**: choosing a format, size, print units, transparency and video.
-- **[Import a design](/info/design-import.html)**: bring a Figma, Penpot, Illustrator or InDesign file into Design and keep editing.
+- **[Import a design](/info/design-import.html)**: bring a Figma, Penpot, Illustrator or InDesign file into Lolly Design and keep editing.
 - **[Templates](/info/templates.html)**: saved starting points for a tool.
-- **[Wide Colour and HDR](/info/hdr-editing.html)**: keep original image precision in Design and Darkroom.
+- **[Wide Colour and HDR](/info/hdr-editing.html)**: keep original image precision in Lolly Design and Lolly Darkroom.
 - **[Find and recover your work](/info/find-your-work.html)**: where everything is, and how to move it to another device.

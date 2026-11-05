@@ -60,4 +60,4 @@
 
 ---
 
-**相關：**[搜尋](/info/search.html)，把問題交過來的那個列。[使用 Lolly](/info/using.html)，了解應用程式的其餘部分。[Settings](/info/dashboard.html#available-offline)，先把文件帶到離線。
+**相關：**[搜尋](/info/search.html)，把問題交過來的那個列。[使用 Lolly](/info/using.html)，了解應用程式的其餘部分。[Lolly Settings](/info/dashboard.html#available-offline)，先把文件帶到離線。

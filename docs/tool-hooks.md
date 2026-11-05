@@ -62,11 +62,11 @@ When a hook overruns, the runtime applies nothing at first, but the hook keeps r
 
 ## Reacting to the view and the design system
 
-**View changes.** Engine v1.255 adds an optional `ctx.view` for local presentation choices. Design uses `ctx.view.pageId` to render the page the viewer chose while `ctx.model` keeps the whole document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; the patch from this run can update computed extras but cannot write declared inputs. View state stays out of saved sessions, links, undo and collaboration. A one-shot document render leaves `pageId` absent and renders every page.
+**View changes.** Engine v1.255 adds an optional `ctx.view` for local presentation choices. Lolly Design uses `ctx.view.pageId` to render the page the viewer chose while `ctx.model` keeps the whole document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; the patch from this run can update computed extras but cannot write declared inputs. View state stays out of saved sessions, links, undo and collaboration. A one-shot document render leaves `pageId` absent and renders every page.
 
 ### When the theme or colourway changes
 
-A person can switch a mounted tool to another theme or colourway from the sidebar's **Design system** section or Design's inspector, and the tool redraws in place. The shell calls `runtime.setTokenSelection()`. The runtime resolves every input linked to the design system again, runs `onInput` for each one whose colour moved, then runs `onInput` once more with `id: '__tokens'`, whether or not the tool links anything. `onInit` does not run again, because that would reset the person's inputs. As with `'__view'`, the patch from the `'__tokens'` run can update computed extras but cannot write declared inputs.
+A person can switch a mounted tool to another theme or colourway from the sidebar's **Design system** section or Lolly Design's inspector, and the tool redraws in place. The shell calls `runtime.setTokenSelection()`. The runtime resolves every input linked to the design system again, runs `onInput` for each one whose colour moved, then runs `onInput` once more with `id: '__tokens'`, whether or not the tool links anything. `onInit` does not run again, because that would reset the person's inputs. As with `'__view'`, the patch from the `'__tokens'` run can update computed extras but cannot write declared inputs.
 
 Colours that reach the template through a linked input or a `var(--brand-*)` variable follow the switch with no work from the hook. A hook that read colours from `host.tokens` and kept them, such as a palette, a paper colour or a set of treatment seeds, drops what it kept when `id` is `'__tokens'` and reads again:
 
@@ -100,7 +100,7 @@ function onInit({ model, canvasSize }) { return layout(model, canvasSize); }
 function onInput({ model, canvasSize }) { return layout(model, canvasSize); }
 ```
 
-Do not declare hidden `width` and `height` inputs to get the size. The web shell writes into inputs with those ids, but the size then travels in links and undo, and the CLI warns that `--width` and `--height` shadow them. The export hooks see `ctx.canvasSize` too, beside `ctx.opts.width` and `ctx.opts.height`, the export's own size, which can differ: a batch row or a caller can ask for a size the canvas was never set to. [Logo Wall](/#/tool/logo-wall) is the reference tool: it lays the wall out for the canvas's shape and lays it out again in `beforeExport` only when the export's shape differs.
+Do not declare hidden `width` and `height` inputs to get the size. The web shell writes into inputs with those ids, but the size then travels in links and undo, and the CLI warns that `--width` and `--height` shadow them. The export hooks see `ctx.canvasSize` too, beside `ctx.opts.width` and `ctx.opts.height`, the export's own size, which can differ: a batch row or a caller can ask for a size the canvas was never set to. [Lolly Logo Wall](/#/tool/logo-wall) is the reference tool: it lays the wall out for the canvas's shape and lays it out again in `beforeExport` only when the export's shape differs.
 
 ### Showing what an empty colour input draws
 
@@ -116,7 +116,7 @@ return {
 };
 ```
 
-`value` is the colour the tool draws while that input is empty, worked out as if the input were empty even when the person has set a colour, so the picker's "Follow the design system" choice shows the colour the input returns to. `source: 'design-system'` makes the field read "Design system" and announce "Ink: follows the design system (Liquorice)"; without the key the field reads "Automatic". Leave `value` out when the template decides the colour later, as Chart's palette slots do, and the field keeps the neutral pattern. `autoColors` is an ordinary extra: the template never needs to read the value, and other shells ignore the key. [Certificate](/#/tool/certificate) is the reference tool.
+`value` is the colour the tool draws while that input is empty, worked out as if the input were empty even when the person has set a colour, so the picker's "Follow the design system" choice shows the colour the input returns to. `source: 'design-system'` makes the field read "Design system" and announce "Ink: follows the design system (Liquorice)"; without the key the field reads "Automatic". Leave `value` out when the template decides the colour later, as Lolly Chart's palette slots do, and the field keeps the neutral pattern. `autoColors` is an ordinary extra: the template never needs to read the value, and other shells ignore the key. [Lolly Certificate](/#/tool/certificate) is the reference tool.
 
 ## Live input
 

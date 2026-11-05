@@ -28,7 +28,7 @@ La colaboración en vivo de Lolly incluye collabs privadas directas entre dos di
 ## Recurre a Lolly cuando
 
 - Se necesita una y otra vez el mismo tipo de archivo: mosaicos de eventos, credenciales, certificados, alertas, tarjetas sociales
-- Muchos archivos salen de una plantilla y una tabla de valores, en [Batch](/info/batch.html#make-many-versions-of-one-design) o en la CLI
+- Muchos archivos salen de una plantilla y una tabla de valores, en [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) o en la CLI
 - Los colores, la tipografía y los recursos deben quedarse dentro del design system, incluso en un lienzo abierto
 - Un diseño terminado de Figma, Penpot, Illustrator, InDesign o PDF debe volverse editable y repetible ([Import a design](/info/design-import.html))
 - Los archivos deben crearse en tus propios dispositivos o servidores

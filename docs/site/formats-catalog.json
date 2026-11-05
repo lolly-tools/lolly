@@ -159,7 +159,7 @@
       "Text stays editable",
       "Images extracted",
       "Brand-conformed editable session",
-      "Writes .idml from a Design document: one page per artboard"
+      "Writes .idml from a Lolly Design document: one page per artboard"
     ],
     "Figma": [
       "Decodes .fig entirely in-browser",
@@ -234,7 +234,7 @@
       "Score, not a recording",
       "Rendered to on-device synth track, velocity kept as loudness",
       "Note & step counts capped",
-      "Written by Rondocode: notes, velocities, GM instruments",
+      "Written by Lolly Rondocode: notes, velocities, GM instruments",
       "Synth settings, effects and samples are not in the file"
     ],
     "MOD": [
@@ -289,7 +289,7 @@
       "Text outlined to paths",
       "Nearest AutoCAD Color Index (ACI)",
       "Line-art only, rasters dropped",
-      "Reads ASCII and binary DXF (R12 to 2018) into Design",
+      "Reads ASCII and binary DXF (R12 to 2018) into Lolly Design",
       "Records its source (999 comment)"
     ],
     "CMYK TIFF": [
@@ -481,12 +481,12 @@
     "STL": [
       "Triangle mesh, geometry only",
       "Read on device, never uploaded",
-      "Rendered by 3D Studio as a still or turntable"
+      "Rendered by Lolly 3D Studio as a still or turntable"
     ],
     "3MF": [
       "Zipped 3D-printing package",
       "Read on device, never uploaded",
-      "Rendered by 3D Studio as a still or turntable"
+      "Rendered by Lolly 3D Studio as a still or turntable"
     ],
     "RPM": [
       "RPM v4, noarch, unsigned",
@@ -819,7 +819,7 @@
         "lossless",
         "lossy"
       ],
-      "desc": "A still-image format with lossy and lossless coding. Lolly keeps imported originals and prepares an oriented 8-bit sRGB view for editing, including an SDR view of deeper or HDR sources. New renders encode those 8-bit pixels. Convert can also wrap an original JPEG and restore its complete bytes, including metadata, after verification. Animation and extra channels are refused. JPEG XL output does not carry signed Content Credentials.",
+      "desc": "A still-image format with lossy and lossless coding. Lolly keeps imported originals and prepares an oriented 8-bit sRGB view for editing, including an SDR view of deeper or HDR sources. New renders encode those 8-bit pixels. Lolly Convert can also wrap an original JPEG and restore its complete bytes, including metadata, after verification. Animation and extra channels are refused. JPEG XL output does not carry signed Content Credentials.",
       "metadata": {
         "reads": [
           "xmp"
@@ -907,7 +907,7 @@
         "audio",
         "lossy"
       ],
-      "desc": "The everywhere audio format for music and voice: compressed to a small file that plays in any app or device. Lolly's Voice Recorder saves your mic take as MP3 by default (transcoded on your device), and MP3 audio you bring in can become the music bed under a video.",
+      "desc": "The everywhere audio format for music and voice: compressed to a small file that plays in any app or device. Lolly's Lolly Voice Recorder saves your mic take as MP3 by default (transcoded on your device), and MP3 audio you bring in can become the music bed under a video.",
       "metadata": {
         "reads": [],
         "writes": [
@@ -929,7 +929,7 @@
         "lossy",
         "provenance"
       ],
-      "desc": "An audio-only MP4 file, usually holding AAC-encoded sound, the format Apple devices and many browsers record natively. It sounds a little better than MP3 at the same size. Lolly's Voice Recorder can save your take as M4A, and imported M4A audio can drive a video's music bed. As an MP4-family file it carries a Content Credential over the same binding as MP4 - so a synthetic or AI-voiced clip stays attributable.",
+      "desc": "An audio-only MP4 file, usually holding AAC-encoded sound, the format Apple devices and many browsers record natively. It sounds a little better than MP3 at the same size. Lolly's Lolly Voice Recorder can save your take as M4A, and imported M4A audio can drive a video's music bed. As an MP4-family file it carries a Content Credential over the same binding as MP4 - so a synthetic or AI-voiced clip stays attributable.",
       "metadata": {
         "reads": [
           "xmp"
@@ -997,7 +997,7 @@
         "animation",
         "provenance"
       ],
-      "desc": "The course-package format every learning management system imports: Moodle, Canvas, Blackboard, SAP SuccessFactors and the rest. From a Design deck, Lolly writes a zip with the SCORM 1.2 manifest every LMS imports, a launch page that steps through the slides and reports completion to the LMS, the slides themselves (as vector where the artboards allow it), and the narrated film with its caption track - speaker notes read by an on-device voice. Export-only, and built in the browser: the desktop and web apps make it, the CLI does not.",
+      "desc": "The course-package format every learning management system imports: Moodle, Canvas, Blackboard, SAP SuccessFactors and the rest. From a Lolly Design deck, Lolly writes a zip with the SCORM 1.2 manifest every LMS imports, a launch page that steps through the slides and reports completion to the LMS, the slides themselves (as vector where the artboards allow it), and the narrated film with its caption track - speaker notes read by an on-device voice. Export-only, and built in the browser: the desktop and web apps make it, the CLI does not.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1050,7 +1050,7 @@
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "The export bundle from Penpot, the open-source design tool. It imports as an editable Lolly session with text and shapes intact, and Lolly writes one back: a Design's frames become boards, boxes become editable shapes and text, any other tool's vector render becomes shapes or one picture, and the brand's colours, typographies and design tokens ride inside the file. Penpot is where brand tokens round-trip both ways, since Lolly's palette uses the same DTCG design-token format Penpot reads and writes natively.",
+      "desc": "The export bundle from Penpot, the open-source design tool. It imports as an editable Lolly session with text and shapes intact, and Lolly writes one back: a Lolly Design's frames become boards, boxes become editable shapes and text, any other tool's vector render becomes shapes or one picture, and the brand's colours, typographies and design tokens ride inside the file. Penpot is where brand tokens round-trip both ways, since Lolly's palette uses the same DTCG design-token format Penpot reads and writes natively.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1088,7 +1088,7 @@
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). An .idml from InDesign's File → Export → InDesign Markup comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. Named paragraph, character and object styles, master page items and tables carry over, and the import report lists what was approximated or dropped. A native .indd or .indt is converted to IDML on the device first, as a preview, up to 128 MB. Lolly writes one back from a Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
+      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). An .idml from InDesign's File → Export → InDesign Markup comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. Named paragraph, character and object styles, master page items and tables carry over, and the import report lists what was approximated or dropped. A native .indd or .indt is converted to IDML on the device first, as a preview, up to 128 MB. Lolly writes one back from a Lolly Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1126,7 +1126,7 @@
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "Native Affinity files: .af from Affinity 3 and .afdesign, .afphoto and .afpub from Affinity 1 and 2. They open in Design on the device, in the browser and in the command line, with no upload and no Affinity software. Each artboard (or page) becomes a frame; groups, rectangles, curves, text, tables and pictures become editable layers, and effects, adjustments and anything approximated are listed in the import report. If the layers cannot be read, Affinity's own embedded preview opens as one picture instead. Import only, up to 96 MB; the layout was learned without a published specification, so a file from an untested Affinity build can fall back to its preview.",
+      "desc": "Native Affinity files: .af from Affinity 3 and .afdesign, .afphoto and .afpub from Affinity 1 and 2. They open in Lolly Design on the device, in the browser and in the command line, with no upload and no Affinity software. Each artboard (or page) becomes a frame; groups, rectangles, curves, text, tables and pictures become editable layers, and effects, adjustments and anything approximated are listed in the import report. If the layers cannot be read, Affinity's own embedded preview opens as one picture instead. Import only, up to 96 MB; the layout was learned without a published specification, so a file from an untested Affinity build can fall back to its preview.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1165,7 +1165,7 @@
         "raster",
         "deep-color"
       ],
-      "desc": "The open raw photo format from Adobe, and the one many phones and cameras write when they shoot raw. Lolly develops a DNG on your device with the colour matrices stored in the file, so the colour is exact rather than guessed. It reads uncompressed, Deflate, lossless JPEG and lossy JPEG DNG, Bayer and three-colour sensors, white balance, baseline exposure, crop and orientation, then stores a normal picture that opens in Darkroom and every other photo tool. It's import-only, up to 192 MB and about 50 megapixels in the 512 MB the decoder is allowed. The raw file itself is not kept, and a DNG that uses JPEG XL compression is not supported.",
+      "desc": "The open raw photo format from Adobe, and the one many phones and cameras write when they shoot raw. Lolly develops a DNG on your device with the colour matrices stored in the file, so the colour is exact rather than guessed. It reads uncompressed, Deflate, lossless JPEG and lossy JPEG DNG, Bayer and three-colour sensors, white balance, baseline exposure, crop and orientation, then stores a normal picture that opens in Lolly Darkroom and every other photo tool. It's import-only, up to 192 MB and about 50 megapixels in the 512 MB the decoder is allowed. The raw file itself is not kept, and a DNG that uses JPEG XL compression is not supported.",
       "metadata": {
         "reads": [
           "exif"
@@ -1339,7 +1339,7 @@
         "audio",
         "multi-file-bundle"
       ],
-      "desc": "The XML sequence format Adobe Premiere Pro reads and writes for moving an edit between apps. Lolly opens a sequence.xml, or a zip holding one with its Media folder, as a timed Design sequence, relinking the media you select or leaving labelled placeholders. From a Design sequence of unprocessed video, audio and image clips, Lolly writes a zip with sequence.xml, the original media bytes and readable credits, on the web and in the CLI. Titles, effects and anything else that needs rendering go out as video instead.",
+      "desc": "The XML sequence format Adobe Premiere Pro reads and writes for moving an edit between apps. Lolly opens a sequence.xml, or a zip holding one with its Media folder, as a timed Lolly Design sequence, relinking the media you select or leaving labelled placeholders. From a Design sequence of unprocessed video, audio and image clips, Lolly writes a zip with sequence.xml, the original media bytes and readable credits, on the web and in the CLI. Titles, effects and anything else that needs rendering go out as video instead.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1495,12 +1495,12 @@
         "audio",
         "sequenced"
       ],
-      "desc": "Not a recording but a score: MIDI stores which notes to play and when, so the file is tiny and the sound is produced on playback. Lolly converts an imported .mid into a small on-device synth track you can use as a music bed, keeping each note's velocity as its loudness and capping note and step counts so a pathological file can't hang the tab. Rondocode writes a song's notes as a format-1 .mid with one track per synth, velocities, and General MIDI instruments where a synth's name maps to one.",
+      "desc": "Not a recording but a score: MIDI stores which notes to play and when, so the file is tiny and the sound is produced on playback. Lolly converts an imported .mid into a small on-device synth track you can use as a music bed, keeping each note's velocity as its loudness and capping note and step counts so a pathological file can't hang the tab. Lolly Rondocode writes a song's notes as a format-1 .mid with one track per synth, velocities, and General MIDI instruments where a synth's name maps to one.",
       "metadata": {
         "reads": [],
         "writes": [],
         "preserves": "none",
-        "note": "A Standard MIDI File has no place for a Content Credential, so Rondocode writes a text event naming the song instead. Importing a .mid never rewrites it: the original bytes are kept."
+        "note": "A Standard MIDI File has no place for a Content Credential, so Lolly Rondocode writes a text event naming the song instead. Importing a .mid never rewrites it: the original bytes are kept."
       }
     },
     {
@@ -1561,7 +1561,7 @@
       "features": [
         "3d"
       ],
-      "desc": "The plain triangle-mesh format of 3D printing and CAD, with geometry only and no colour or texture. 3D Studio loads your own .stl on your device, never uploaded, to render as a still or a turntable. An input for 3D Studio, not a Lolly export format.",
+      "desc": "The plain triangle-mesh format of 3D printing and CAD, with geometry only and no colour or texture. Lolly 3D Studio loads your own .stl on your device, never uploaded, to render as a still or a turntable. An input for Lolly 3D Studio, not a Lolly export format.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1577,7 +1577,7 @@
       "features": [
         "3d"
       ],
-      "desc": "The zipped XML successor to STL that 3D-printing tools use, able to carry colour and several objects in one file. 3D Studio loads your own .3mf on your device, never uploaded, to render as a still or a turntable. An input for 3D Studio, not a Lolly export format.",
+      "desc": "The zipped XML successor to STL that 3D-printing tools use, able to carry colour and several objects in one file. Lolly 3D Studio loads your own .3mf on your device, never uploaded, to render as a still or a turntable. An input for Lolly 3D Studio, not a Lolly export format.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1678,7 +1678,7 @@
         "text-as-paths",
         "print"
       ],
-      "desc": "The file a cutting machine reads: laser cutters, vinyl plotters and CNC/CAD software all speak DXF. Lolly also opens DXF floor plans and drawings in Design: each layer becomes a group of line and curve paths with text as text boxes, scaled from the file's own units, and the import report lists external references, paper space, SHX fonts and anything not drawn. Lolly writes outline paths in real millimetres (curves smoothed to a fine tolerance, text outlined, colours mapped to the nearest AutoCAD Color Index that usually picks the cutting operation). It's line-art only, so photographic or filtered regions are dropped with a warning.",
+      "desc": "The file a cutting machine reads: laser cutters, vinyl plotters and CNC/CAD software all speak DXF. Lolly also opens DXF floor plans and drawings in Lolly Design: each layer becomes a group of line and curve paths with text as text boxes, scaled from the file's own units, and the import report lists external references, paper space, SHX fonts and anything not drawn. Lolly writes outline paths in real millimetres (curves smoothed to a fine tolerance, text outlined, colours mapped to the nearest AutoCAD Color Index that usually picks the cutting operation). It's line-art only, so photographic or filtered regions are dropped with a warning.",
       "metadata": {
         "reads": [],
         "writes": [],

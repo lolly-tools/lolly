@@ -1,7 +1,7 @@
 # Roles and grants
 
 This page is for the admin deciding who can do what in Lolly Work, and for anyone checking why
-a person can or cannot do something. Work has two layers: a small fixed set of roles that
+a person can or cannot do something. Lolly Work has two layers: a small fixed set of roles that
 follow your directory groups, and grants that adjust a role for one group, one person or one
 resource. When they disagree, deny wins.
 

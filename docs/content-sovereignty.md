@@ -9,7 +9,7 @@ Lolly is an open-source creative platform built around content sovereignty. Peop
 | Question | What to look for | What Lolly provides |
 |---|---|---|
 | Can we keep making the work? | Available software, tools, fonts and permitted source files | Local rendering with prepared resources, open-source software and portable tools |
-| Who sets the rules? | Explicit responsibilities for source access, permitted edits and release | Design-system rules and tool inputs; Work adds groups, grants and approval chains |
+| Who sets the rules? | Explicit responsibilities for source access, permitted edits and release | Design-system rules and tool inputs; Lolly Work adds groups, grants and approval chains |
 | Where does processing happen? | A choice supported by the actual workflow | Local production, plus optional shared services and server renders on organisation infrastructure |
 | Can we keep editing? | Editable source and dependencies, rather than only a flattened download | Saved sessions and portable `.lolly` packages, subject to dependency availability and redistribution rights |
 | Can we change systems? | Documented exports, mappings and a tested transition | Connected sources, permitted materialization and supported cutover paths with old-address aliases |

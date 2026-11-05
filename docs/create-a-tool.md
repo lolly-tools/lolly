@@ -1,27 +1,27 @@
 # Share a design with rules
 
-Turn a finished Design document into a small tool that other people can personalise without breaking the layout. You choose the inputs, limits, imagery and layouts. They enter their content and export a finished PNG, SVG or PDF.
+Turn a finished Lolly Design document into a small tool that other people can personalise without breaking the layout. You choose the inputs, limits, imagery and layouts. They enter their content and export a finished PNG, SVG or PDF.
 
 The shared `.lolly` contains one reusable tool with its fonts and images.
 
-![Keep the Design master, choose inputs and limits in an authoring copy, then share a reusable .lolly tool. Recipients use its allowed inputs to export finished PNG, SVG or PDF files.](/info/diagrams/concepts/share-with-rules.svg)
+![Keep the Lolly Design master, choose inputs and limits in an authoring copy, then share a reusable .lolly tool. Recipients use its allowed inputs to export finished PNG, SVG or PDF files.](/info/diagrams/concepts/share-with-rules.svg)
 
-::: note Keep the Design master
-Sharing a tool never replaces the Design document it came from. Save the master with the normal **Save** action, and save it again after publishing, so its rules and publication record are there when you revise the tool.
+::: note Keep the Lolly Design master
+Sharing a tool never replaces the Lolly Design document it came from. Save the master with the normal **Save** action, and save it again after publishing, so its rules and publication record are there when you revise the tool.
 :::
 
 ## Bring the design
 
-Open **Design** and build the artwork, or drop a Canva PDF or a PDF-compatible Illustrator `.ai` onto Lolly and choose **Share with rules**. For an existing document, open the File menu and choose **Share with rules**.
+Open the **Design** tool and build the artwork, or drop a Canva PDF or a PDF-compatible Illustrator `.ai` onto Lolly and choose **Share with rules**. For an existing document, open the File menu and choose **Share with rules**.
 
 When you import, choose pages from the thumbnail picker; each selected page becomes an artboard, and the source file name becomes the tool's first name. Dropping a new source starts new rules and a new revision history, while **Replace source file** keeps your existing rules. The import keeps the source's font names, so check the result before you expose any inputs.
 
 ::: details Fixing an imported PDF or Illustrator file
-**Compare with source** lines up the source page and Design at the same zoom when the imported file is at most 30 MB. The source preview is rebuilt from the PDF, so use **Open original file** for the final fidelity check. The original stays with your saved authoring session and is left out of the reusable tool. A larger source keeps its conversion notes without embedding the PDF in the master; review the original in the app that made the file.
+**Compare with source** lines up the source page and Lolly Design at the same zoom when the imported file is at most 30 MB. The source preview is rebuilt from the PDF, so use **Open original file** for the final fidelity check. The original stays with your saved authoring session and is left out of the reusable tool. A larger source keeps its conversion notes without embedding the PDF in the master; review the original in the app that made the file.
 
 - **Missing font:** open **Source and fonts → Review fonts**. Choose a replacement for each source family, or use its **Add font** button to install a complete face. An upload replaces only the family you chose. Review the artwork before applying. A PDF's embedded subset may cover its original words without supporting new names.
-- **Fragmented text:** select the runs within one artboard and choose **Combine as text**. Review the assembled copy; the replacement uses the first object's style. Check mixed styles and spacing in Design.
-- **Outlined letters:** select only the letter shapes, then use **Replace selected artwork with text**. This removes those shapes and creates one text box. Review its font and spacing in Design; Undo restores the original objects.
+- **Fragmented text:** select the runs within one artboard and choose **Combine as text**. Review the assembled copy; the replacement uses the first object's style. Check mixed styles and spacing in Lolly Design.
+- **Outlined letters:** select only the letter shapes, then use **Replace selected artwork with text**. This removes those shapes and creates one text box. Review its font and spacing in Lolly Design; Undo restores the original objects.
 - **Flattened text in an image:** prepare a clean background in the source app. Adding editable text over a bitmap cannot remove the old words.
 - **Unsupported `.ai`:** save with PDF compatibility turned on, or export a PDF or SVG from Illustrator.
 - **Motion, linked tools and custom CSS:** prepare still artwork and apply styles to objects before making a portable tool. The first release exports still assets.
@@ -35,7 +35,7 @@ PDF text uses the source character widths to join compatible fragments into whol
 
 ### Start from the design system
 
-For new artwork, choose the design system before you compose, then use its fonts, colour tokens, assets and any templates or imported components in Design. Once placed, their text and image objects can become inputs like any other. For imported artwork, **Source and fonts → Apply design system** previews replacement fonts and offers an explicit colour-to-token mapping before applying. The published tool captures the finished appearance; it does not add a separate component editor or replace the recipient's design system.
+For new artwork, choose the design system before you compose, then use its fonts, colour tokens, assets and any templates or imported components in Lolly Design. Once placed, their text and image objects can become inputs like any other. For imported artwork, **Source and fonts → Apply design system** previews replacement fonts and offers an explicit colour-to-token mapping before applying. The published tool captures the finished appearance; it does not add a separate component editor or replace the recipient's design system.
 
 ## Choose the inputs
 
@@ -74,7 +74,7 @@ Choose **First name**, **Last name** or another **Common input** meaning. The vi
 
 For a single full-name object, choose **Build text from first and last name**. Pick the order and separator, then enter example values in the two new fields. Lolly does not guess how to split an existing name.
 
-In Batch, add the related tools and choose **Shared inputs** to enter values once for that set of assets. The brief controls let you use a different value for one output and relink it later. Each output keeps its own layout limits, so a long value can fit a slide while needing correction on a badge.
+In Lolly Batch, add the related tools and choose **Shared inputs** to enter values once for that set of assets. The brief controls let you use a different value for one output and relink it later. Each output keeps its own layout limits, so a long value can fit a slide while needing correction on a badge.
 
 ## Make themes and layouts
 
@@ -90,7 +90,7 @@ Use **Add choice** for coordinated themes. In **Edit options**:
 
 For each existing input, choose **Keep recipient content**, **Editable after choosing** or **Controlled by this choice**. Editable defaults apply to fields the reader has not touched, and text a reader changed stays when they switch options. A controlled property has no reader override of its own. Conflicting owners are reported before sharing.
 
-Return to Design to change object geometry, and return to Rules to refresh the authored artboards and review their bindings. Changing Lolly's interface theme is separate from choosing a theme inside a published tool.
+Return to Lolly Design to change object geometry, and return to Rules to refresh the authored artboards and review their bindings. Changing Lolly's interface theme is separate from choosing a theme inside a published tool.
 
 ## Arrange the reader experience
 
@@ -110,24 +110,24 @@ Drag input handles to set the order. With a keyboard, focus a handle, press Spac
 | ? | Open Rules shortcuts |
 | Escape | Close the active overlay, return from Preview or clear selection |
 
-Typing, input controls and open dialogs keep their normal shortcuts. To move or resize artwork, switch to Design.
+Typing, input controls and open dialogs keep their normal shortcuts. To move or resize artwork, switch to Lolly Design.
 :::
 
 ## Preview and share
 
 **Preview** runs the actual compiled tool in the same isolated runtime recipients use. Try replacement text, size limits, images and every layout. Samples survive mode changes. **Sample controls** holds **Test limits**, **Reset samples**, **Reset to theme** and **Use as defaults**; only **Use as defaults** changes the master's defaults.
 
-Choose **Share .lolly**, name the tool, add instructions for recipients and choose the allowed output formats. **Check file** shows the compiled artwork, the ordered input labels, the file size and the version before download, and each issue button returns to the affected rule, object or font. Closing the sheet cancels preparation. Before writing the file, Lolly checks the rules, font embedding, glyph coverage, image availability and text layout across every combination of choices. Unsupported sources need repair in Design.
+Choose **Share .lolly**, name the tool, add instructions for recipients and choose the allowed output formats. **Check file** shows the compiled artwork, the ordered input labels, the file size and the version before download, and each issue button returns to the affected rule, object or font. Closing the sheet cancels preparation. Before writing the file, Lolly checks the rules, font embedding, glyph coverage, image availability and text layout across every combination of choices. Unsupported sources need repair in Lolly Design.
 
 Approved image credits travel with the package. For a held source, the share dialog shows the asset and asks you to confirm that you have permission to include it; otherwise, replace that source before sharing. The file carries the resolved design-system values and dependencies, so another person's active brand cannot restyle the fixed artwork.
 
-After download, **Save Design master** opens the usual save flow; a failed or cancelled save leaves the master open to retry. **Try downloaded file** runs the actual package in a separate preview while the master stays open.
+After download, **Save Lolly Design master** opens the usual save flow; a failed or cancelled save leaves the master open to retry. **Try downloaded file** runs the actual package in a separate preview while the master stays open.
 
 Sharing changed content creates a new version, and an unchanged download reuses the version. Recipients choose when to install a new one. Saved outputs pin their installed revision, and resharing an older saved output carries that revision's tool files. Reusing a version number for different contents is refused. Keep the original `.lolly` if you may need to restore a revision after removing the tool from the device.
 
 ## Use the finished tool
 
-Recipients drop the `.lolly` into Lolly, review its trust prompt and install it if they trust its source. They read the instructions and edit the declared inputs. On a phone, **Preview** closes the input sheet and **Edit inputs** brings the fields back. An allowed format sits beside **Download**, and **More** holds export options, saved variants, history and reset controls where available. An input's action menu can reset that field, with Undo. Outputs save as ordinary tool sessions. The installed tool has no Design layer editor.
+Recipients drop the `.lolly` into Lolly, review its trust prompt and install it if they trust its source. They read the instructions and edit the declared inputs. On a phone, **Preview** closes the input sheet and **Edit inputs** brings the fields back. An allowed format sits beside **Download**, and **More** holds export options, saved variants, history and reset controls where available. An input's action menu can reset that field, with Undo. Outputs save as ordinary tool sessions. The installed tool has no Lolly Design layer editor.
 
 Once Lolly and the tool are available offline, editing and export use local resources only. The package does not need the sender's account, project or asset cache.
 
@@ -146,16 +146,16 @@ This needs Lolly's browser renderer and a current web build. `--trust-tool` acce
 
 **From a saved session or template.** In **Projects**, open a saved tool session's menu and choose **Share with rules**; the **Templates** collection and the template chooser offer the same action. Lolly opens a separate authoring copy and leaves the saved source as it was. An open tool also offers **Save as → Share with rules → Choose inputs**, the Share dialog offers **Share as a reusable tool** and a single setting's **Input actions** menu offers **Use as a tool input**. Save the authoring session to keep its rules for later revisions.
 
-A Design session opens the object-based Rules workspace described above. Other supported still tools open an input list over their existing renderer:
+A Lolly Design session opens the object-based Rules workspace described above. Other supported still tools open an input list over their existing renderer:
 
 1. Select the inputs recipients may edit. **Find an input** locates a setting. Settings for other content types stay hidden until requested, and **Show editable inputs only** keeps the chosen controls together.
-2. Open **Settings** to name a control, lower a text limit, narrow a numeric range or restrict a list of choices. Unselected settings stay fixed at their captured values. Approved choices show their default beside the allowed list. **Placement → More options** puts a control in a closed secondary section without changing its validation rules.
+2. Open the **Settings** view to name a control, lower a text limit, narrow a numeric range or restrict a list of choices. Unselected settings stay fixed at their captured values. Approved choices show their default beside the allowed list. **Placement → More options** puts a control in a closed secondary section without changing its validation rules.
 3. Drag handles to arrange the inputs, or use the keyboard as in [Arrange the reader experience](#arrange-the-reader-experience).
 4. Choose a sidebar or an **Edit inputs** button, then **Preview** and **Share .lolly**. The share dialog checks the actual portable renderer and its included dependencies.
 
 For example, start with a QR Code session, expose only the URL, label it Destination and keep the colours, code style and size fixed. The resulting tool still generates a new code for each destination.
 
-This route supports text, links, dates, numbers, switches, lists, colours and still images. Structured content and font choices stay fixed. Live tools, composition, custom file exporters and renderers that need browser code or unavailable dependencies report what needs repair. Use Design when you need object-level fitting, linked inputs or artboard choices.
+This route supports text, links, dates, numbers, switches, lists, colours and still images. Structured content and font choices stay fixed. Live tools, composition, custom file exporters and renderers that need browser code or unavailable dependencies report what needs repair. Use Lolly Design when you need object-level fitting, linked inputs or artboard choices.
 
 ::: cols
 ## Save as a template

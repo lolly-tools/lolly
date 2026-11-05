@@ -4,10 +4,11 @@
   },
   "model": {
     "name": "GPT-6",
+    "identifier": "gpt-6",
     "vendor": "OpenAI"
   },
   "oversight": "prompt_guided",
-  "source": "trainedAlgorithmicMedia",
+  "source": "compositeWithTrainedAlgorithmicMedia",
   "author": {
     "name": "Andy Fitzsimon"
   }

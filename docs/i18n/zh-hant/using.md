@@ -269,7 +269,7 @@ storage-seeding hook.
 
 ## 設定、聲音與舒適度
 
-首頁底部的 **Settings** 包含你的詳細資料、設計系統、無障礙、儲存空間與離線下載。[Settings](/info/dashboard.html) 對應每個分頁。
+首頁底部的 **Settings** 包含你的詳細資料、設計系統、無障礙、儲存空間與離線下載。[Lolly Settings](/info/dashboard.html) 對應每個分頁。
 
 - **你的詳細資料與大頭照**會填入任何設計為使用它們的工具，例如電子郵件簽名檔或名牌。[個人資料](/info/profile.html)涵蓋它們。
 - **無障礙**有四個舒適度開關：**Reduce motion**、**Hide colourful previews**、**High contrast** 與 **Large text**。它們改變的是你作品周圍的應用程式，絕不改變工具畫布或匯出內容。

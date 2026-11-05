@@ -28,7 +28,7 @@ Ang live collaboration ng Lolly ay kasama ang direktang two-device na pribadong 
 ## Abutin ang Lolly kapag
 
 - Paulit-ulit na kailangan ang parehong uri ng file: event tile, badge, sertipiko, alerto, social card
-- Maraming file ang galing sa isang template at table ng mga value, sa [Batch](/info/batch.html#make-many-versions-of-one-design) o sa CLI
+- Maraming file ang galing sa isang template at table ng mga value, sa [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) o sa CLI
 - Ang mga kulay, type at asset ay dapat manatili sa loob ng design system, kahit sa bukas na canvas
 - Ang tapos na Figma, Penpot, Illustrator, InDesign o PDF na design ay dapat maging mae-edit at maulit ([Import a design](/info/design-import.html))
 - Ang mga file ay dapat gawin sa sarili mong mga device o server

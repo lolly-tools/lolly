@@ -18,7 +18,7 @@ Preferences là một trang dài với **thanh cài đặt** dọc bên cạnh v
 
 - <!--i:usercheck--> **Your details** - tên, thông tin liên hệ và ảnh chân dung của bạn, cùng công tắc **Use my details to create**. [Profiles](/info/profile.html) giải thích cách công cụ dùng chúng.
 - <!--i:seal--> **Content Credentials** - danh tính đã xác minh tùy chọn ký các bản xuất của bạn. Xem [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - chuyển, thêm, ẩn hoặc gỡ hệ thống thiết kế. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) đề cập từng hành động.
+- <!--i:palette--> **Design systems** - chuyển, thêm, ẩn hoặc gỡ hệ thống thiết kế. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) đề cập từng hành động.
 - <!--i:moon--> **Appearance** - chủ đề (Light, Dark hoặc Brand, tô ứng dụng bằng bảng màu của bạn), **Your colourway** khi hệ thống thiết kế có nhiều hơn một ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) và **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - bộ mà emoji của bạn được vẽ từ đó khi bạn bắt đầu việc mới, kèm giấy phép tác phẩm, và mức bảng màu của bạn nhuộm lại chúng (**Off**, **Subtle**, **Strong**, **Full**, **Mono** hoặc **Duotone**). **Keep skin tones and flags** để những thứ đó giữ màu riêng. Công việc bạn đã làm giữ bộ nó được làm ra.
 - <!--i:eyeoff--> **Accessibility** - bốn công tắc thoải mái, cộng Sound và Neurospicy Mode. Xem [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ Thẻ mở trên một bìa tô bằng màu riêng của hệ thống, với log
 - <!--i:sliders--> **Tokens** - bán kính, khoảng cách, hiệu ứng và chuyển sắc.
 - <!--i:document--> **Print & CMYK** - các màu khóa vào một loại mực chính xác, và các điều kiện in mà một PDF CMYK có thể khai báo.
 
-Chuyển đổi là thay đổi duy nhất thẻ này thực hiện. Bạn chỉnh sửa một hệ thống thiết kế trong [Design System Setup](/info/brand-studio.html) tại `#/start`, nơi bìa liên kết tới. Một hệ thống chỉ đọc nói rõ điều đó trên bìa; các hệ thống cục bộ bạn tạo vẫn chỉnh sửa được. `/b` và `/brand` là đường tắt thẳng tới thẻ này.
+Chuyển đổi là thay đổi duy nhất thẻ này thực hiện. Bạn chỉnh sửa một hệ thống thiết kế trong [Lolly Design System Setup](/info/brand-studio.html) tại `#/start`, nơi bìa liên kết tới. Một hệ thống chỉ đọc nói rõ điều đó trên bìa; các hệ thống cục bộ bạn tạo vẫn chỉnh sửa được. `/b` và `/brand` là đường tắt thẳng tới thẻ này.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Sau đó là phía của bạn: **Your activity** đếm những gì bạn đã 
 
 ## Liên kết sâu
 
-Mọi thẻ và phần của Settings đều có liên kết riêng, bạn có thể đánh dấu hoặc dán. [Search](/info/search.html) trỏ các kết quả **Settings** của nó tới cùng sổ đăng ký mà Settings kết xuất từ đó, nên một phần không thể bị đổi tên khỏi một kết quả tìm kiếm.
+Mọi thẻ và phần của Settings đều có liên kết riêng, bạn có thể đánh dấu hoặc dán. [Lolly Search](/info/search.html) trỏ các kết quả **Settings** của nó tới cùng sổ đăng ký mà Settings kết xuất từ đó, nên một phần không thể bị đổi tên khỏi một kết quả tìm kiếm.
 
 ::: details Mọi dạng liên kết
 
@@ -139,4 +139,4 @@ Một liên kết sâu chuyển sang thẻ sở hữu đích, mở mọi nhóm n
 
 ---
 
-**Liên quan:** [Profiles](/info/profile.html) cho thông tin của bạn và các bối cảnh bạn sáng tạo. [Design System Setup](/info/brand-studio.html) để chỉnh những gì thẻ Design system hiển thị. [Find and recover your work](/info/find-your-work.html) cho lưu trữ, sao lưu và chuyển thiết bị.
+**Liên quan:** [Profiles](/info/profile.html) cho thông tin của bạn và các bối cảnh bạn sáng tạo. [Lolly Design System Setup](/info/brand-studio.html) để chỉnh những gì thẻ Design system hiển thị. [Find and recover your work](/info/find-your-work.html) cho lưu trữ, sao lưu và chuyển thiết bị.

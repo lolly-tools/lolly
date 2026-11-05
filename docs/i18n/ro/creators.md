@@ -20,7 +20,7 @@ Alege un instrument și completează-l sau așază liber o pagină pe canvasul D
 
 Sistemul tău de design decide cum arată fiecare instrument.
 
-- **[Design System Setup](/info/brand-studio.html)** - logouri, culori, tipografie și restul, setate o dată la `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logouri, culori, tipografie și restul, setate o dată la `#/start`.
 - **[Lolly Demo în uz](/info/lolly-demo-in-use.html)** - colourway-uri pe muncă reală și trecerea la propriul tău sistem de design.
 - **[Arhitecturi de brand](/info/brand-architectures.html)** - mai multe sisteme de design sau unul cu mai multe colourway-uri, pentru o organizație.
 - **[Working with partners](/info/partners.html)** - partajează-ți brandul cu un partener, lucrează într-un brand primit și construiește un perete de sponsori.
@@ -32,7 +32,7 @@ Sistemul tău de design decide cum arată fiecare instrument.
 
 - **[Găsește și recuperează-ți munca](/info/find-your-work.html)** - unde a ajuns un fișier salvat, descărcat sau nesalvat.
 - **[Căutare](/info/search.html)** și **[Ask Lolly](/info/ask.html)** - un singur câmp pentru instrumentele, munca salvată, resursele și setările tale, plus răspunsuri din aceste ghiduri.
-- **[Settings](/info/dashboard.html)** - ce poate face acest dispozitiv, sistemul tău de design doar pentru citire și stocarea ta.
+- **[Lolly Settings](/info/dashboard.html)** - ce poate face acest dispozitiv, sistemul tău de design doar pentru citire și stocarea ta.
 - **[Favoritele tale](/info/favourites.html)** și **[Profiluri](/info/profile.html)** - instrumente cu stea, detaliile cu care se completează instrumentele și comutatoarele de accesibilitate.
 - **[Sincronizează-ți dispozitivele](/info/sync.html)** - aceeași muncă pe computer și pe telefon, printr-un spațiu de stocare ales de tine.
 

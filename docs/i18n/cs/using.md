@@ -269,7 +269,7 @@ Na úzké obrazovce se rozvržení změní na jeden sloupec:
 
 ## Nastavení, zvuk a pohodlí
 
-**Settings** dole na domovské obrazovce drží tvé údaje, designové systémy, přístupnost, úložiště a offline stahování. [Settings](/info/dashboard.html) mapuje každou kartu.
+**Settings** dole na domovské obrazovce drží tvé údaje, designové systémy, přístupnost, úložiště a offline stahování. [Lolly Settings](/info/dashboard.html) mapuje každou kartu.
 
 - **Tvé údaje a portrét** vyplní každý nástroj, který je k tomu určen, například e-mailový podpis nebo jmenovku. Pokrývají je [Profily](/info/profile.html).
 - **Přístupnost** má čtyři přepínače pohodlí: **Reduce motion**, **Hide colourful previews**, **High contrast** a **Large text**. Mění aplikaci kolem tvé práce, nikdy plátno nástroje ani export.

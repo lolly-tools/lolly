@@ -24,7 +24,7 @@ De eerste keer dat je de galerij opent, biedt een korte welkomstboodschap dezelf
 
 ![De kamer Colours van Design System Setup bij een verse installatie: één live chip, één veld en de hele eerste beslissing](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Vanaf daar brengen acht kamers het zo ver als je wilt, in elke volgorde: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** en **Skills**. Elk voorbeeld in de app wordt bijgewerkt terwijl je typt. [Design System Setup](/info/brand-studio.html) behandelt elke kamer.
+Vanaf daar brengen acht kamers het zo ver als je wilt, in elke volgorde: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** en **Skills**. Elk voorbeeld in de app wordt bijgewerkt terwijl je typt. [Lolly Design System Setup](/info/brand-studio.html) behandelt elke kamer.
 
 Lettertypen blijven op je apparaat. Kies een Google Font en Lolly bewaart het bestand als merkasset, zodat je typografie offline meereist en er niets wordt opgehaald wanneer een tool tekent.
 
@@ -58,7 +58,7 @@ Je begint niet op een blanco pagina.
 
 **Decks.** Zet een PowerPoint-`.pptx` op Lolly om de dia's als assets op te bergen, schrijf een nieuw deck vanuit Markdown in **Markdown Slides**, of gebruik [Rebrand a deck](/info/rebrand.html) om het hele deck over te zetten naar je design system.
 
-**Gegevens.** Plak of zet een CSV- of JSON-tabel erin en de herhalende velden van een tool vullen zich ermee, of [Batch](/info/batch.html#make-many-versions-of-one-design) maakt één afgerond bestand per rij.
+**Gegevens.** Plak of zet een CSV- of JSON-tabel erin en de herhalende velden van een tool vullen zich ermee, of [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) maakt één afgerond bestand per rij.
 
 ### Van eenmalig ontwerp naar template
 
@@ -72,7 +72,7 @@ Een geïmporteerde lay-out is een gewone Design-sessie. **Share with rules** maa
 
 - <!--i:download--> **Exporteer.** Tools maken SVG, PDF, PNG, JPG, WebP, video en meer, in de formaten die elke tool biedt, op echte drukformaten wanneer je dat nodig hebt. Zie [Export a file](/info/exporting.html).
 - <!--i:link--> **Deel een link.** De instellingen van een tool reizen mee in zijn link, zodat de link overal hetzelfde bestand heropent.
-- <!--i:layers--> **Maak er één per rij.** Stuur een tool aan vanuit een spreadsheet in [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Maak er één per rij.** Stuur een tool aan vanuit een spreadsheet in [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatiseer.** Dezelfde render draait vanuit de [CLI](/info/cli.html) en vanuit een [AI-agent](/info/ai-agents.html).
 
 Een link is een volledig verzoek. Niemand tekende de grafiek hieronder: het type, de kop en de hele gegevenstabel werden in de adresbalk getypt, en dezelfde link tekent op elk apparaat dezelfde grafiek.

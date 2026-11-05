@@ -169,7 +169,7 @@ lw deliveries publish <completedRenderJobId> \
 `destinations` prints only the safe descriptors available to the current principal: label,
 kind, formats, byte ceiling and public/private result visibility. It cannot read or edit an
 endpoint, bucket, prefix or credential. `deliveries publish` sends a job id and destination id,
-not the output bytes: Work consumes that principal's retained render result directly, checks
+not the output bytes: Lolly Work consumes that principal's retained render result directly, checks
 its digest and Content Credential again, and records the relationship on the receipt. An
 optional `--format` is an equality assertion against the completed render, never a conversion
 or override. See [outbound delivery](delivery.md).

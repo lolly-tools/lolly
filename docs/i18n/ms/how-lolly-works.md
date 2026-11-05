@@ -35,7 +35,7 @@ Setiap laluan menjalankan enjin yang sama pada alat yang sama, jadi fail yang di
 ![Parameter URL dan hujah baris perintah menjadi model input yang sama, dijalankan melalui satu masa jalan dan jambatan eksport dikongsi](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **Dalam apl, satu demi satu.** Buka alat, isi medan dan tekan **Export**. [Buat fail pertama anda](/info/make-something.html) membimbing anda melalui satu.
-- <!--i:layers--> **Dalam apl, banyak sekali gus.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) mengambil jadual yang ditampal atau diimport dan merender satu fail siap bagi setiap baris.
+- <!--i:layers--> **Dalam apl, banyak sekali gus.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) mengambil jadual yang ditampal atau diimport dan merender satu fail siap bagi setiap baris.
 - <!--i:cpu--> **Daripada skrip atau ejen AI.** [CLI](/info/cli.html) menjalankan alat tanpa kepala, dan [pelayan MCP](/info/mcp.html) membolehkan ejen menemui dan menjalankan alat. Pautan kepada alat turut membawa inputnya, jadi pautan ialah permintaan yang lengkap.
 - <!--i:server--> **Melalui pelayan organisasi anda.** [Lolly Work](/info/organisation.html) merender pada pelayan di bawah log masuk dan dasar alat organisasi anda, menyimpan tugasan yang boleh disambung semula dan memegang output untuk muat turun atau penghantaran yang diluluskan.
 

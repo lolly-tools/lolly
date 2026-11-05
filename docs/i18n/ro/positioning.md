@@ -28,7 +28,7 @@ Colaborarea live a Lolly include collab-uri private directe între două dispozi
 ## Alege Lolly când
 
 - Același fel de fișier este necesar iar și iar: plăci de eveniment, ecusoane, certificate, alerte, carduri sociale
-- Multe fișiere vin dintr-un singur șablon și un tabel de valori, în [Batch](/info/batch.html#make-many-versions-of-one-design) sau CLI
+- Multe fișiere vin dintr-un singur șablon și un tabel de valori, în [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) sau CLI
 - Culorile, fonturile și resursele trebuie să rămână în sistemul de design, chiar și pe un canvas deschis
 - Un design terminat din Figma, Penpot, Illustrator, InDesign sau PDF trebuie să devină editabil și repetabil ([Importă un design](/info/design-import.html))
 - Fișierele trebuie făcute pe propriile tale dispozitive sau servere

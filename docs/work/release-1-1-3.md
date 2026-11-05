@@ -1,9 +1,11 @@
-# Release 1.1.3: Lolly and Work
+# Release 1.1.3: Lolly and Lolly Work
 
-This is the current release. Work 1.1.3 pairs the Work server and render worker with
+<a id="release-1-1-3-lolly-and-work"></a>
+
+This is the current release. Lolly Work 1.1.3 pairs the Lolly Work server and render worker with
 [Lolly 1.1.3](https://github.com/lolly-tools/lolly/releases/tag/v1.1.3), built from
 Lolly source `e3a35cc883a9f240bacfb1854fd47b12044dfa71`. It is published as
-[Work v1.1.3](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.3).
+[Lolly Work v1.1.3](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.3).
 Installation and production acceptance are tracked separately.
 
 Start with the tagged [installation guide](https://github.com/lolly-tools/lolly-work/blob/v1.1.3/docs/install.md),
@@ -11,7 +13,7 @@ Start with the tagged [installation guide](https://github.com/lolly-tools/lolly-
 and [documentation index](https://github.com/lolly-tools/lolly-work/blob/v1.1.3/docs/README.md).
 
 1.1.3 is the first release where everything people install carries the same number: the
-Work server and render worker images, the admission adapter, the Helm chart, the YunoHost
+Lolly Work server and render worker images, the admission adapter, the Helm chart, the YunoHost
 package, the appliance image and the ready-made package all follow the Lolly release.
 
 ## Matching components
@@ -19,9 +21,9 @@ package, the appliance image and the ready-made package all follow the Lolly rel
 | Component | Version or source |
 |---|---|
 | Lolly product version | 1.1.3 |
-| Work application | 1.1.3 |
+| Lolly Work application | 1.1.3 |
 | Render worker and admission adapter | 1.1.3 |
-| Work Helm chart | 1.1.3, with appVersion 1.1.3. The first published chart |
+| Lolly Work Helm chart | 1.1.3, with appVersion 1.1.3. The first published chart |
 | Lolly source | e3a35cc883a9f240bacfb1854fd47b12044dfa71 |
 | Engine | 1.285.0 |
 | Tool-author core | 1.5.0 |
@@ -31,25 +33,25 @@ Engine and core versions describe their own contracts and are not reset to the
 product version. `engine-pin.json` and `content-resolver-pin.json` record the
 Lolly source above. The maintained producers generated both.
 
-Work 1.1.2 carried engine 1.281.0. Engine 1.285.0 adds brand skills, creation
-feedback and the house-rule fixes described in the Lolly 1.1.3 notes; no Work route
+Lolly Work 1.1.2 carried engine 1.281.0. Engine 1.285.0 adds brand skills, creation
+feedback and the house-rule fixes described in the Lolly 1.1.3 notes; no Lolly Work route
 needed a change for them.
 
 ## What Lolly 1.1.3 needs from this release
 
-| Lolly 1.1.3 feature | What Work 1.1.3 adds |
+| Lolly 1.1.3 feature | What Lolly Work 1.1.3 adds |
 |---|---|
-| A published web app served by Work shows its tools | `GET /api/v1/catalog/public-key`, the installation's catalogue key, which the web app accepts from the same origin only |
+| A published web app served by Lolly Work shows its tools | `GET /api/v1/catalog/public-key`, the installation's catalogue key, which the web app accepts from the same origin only |
 | Shared originals sent to organisation delivery targets | Brandfolder and Cloudinary write adapters, with provider progress kept across retries |
 
 **The API detail behind each feature**
 
 - **The installation's catalogue key.** A release web app pins the publisher's catalogue
-  key, while Work signs each person's catalogue with the installation's own key
-  (`LW_CATALOG_SIGNING_KEY`). Work now answers `GET /api/v1/catalog/public-key` with
+  key, while Lolly Work signs each person's catalogue with the installation's own key
+  (`LW_CATALOG_SIGNING_KEY`). Lolly Work now answers `GET /api/v1/catalog/public-key` with
   `{ version: 1, alg, keyId, publicKey }`. Lolly 1.1.3 asks for this key only when a
   catalogue envelope was signed with a key other than the pinned one, only from the origin that
-  served the web app, and only to verify an envelope signed with that key. A Work
+  served the web app, and only to verify an envelope signed with that key. A Lolly Work
   server without signing answers 404, and the web app keeps the pinned key alone.
 - **Shared-original deliveries.** A shared project's original can go to a Brandfolder
   or Cloudinary destination that opts in. Each delivery keeps its source provenance and
@@ -66,14 +68,14 @@ needed a change for them.
 - **Faster collaboration commits.** The PostgreSQL store writes a collaboration batch's
   receipts in one statement instead of one per operation.
 - **S3 stores that drop metadata.** At startup the driver checks the store once. On a
-  store that drops content types and `x-amz-meta-*`, Work keeps that metadata itself, so
+  store that drops content types and `x-amz-meta-*`, Lolly Work keeps that metadata itself, so
   uploads keep their types and checksums.
 - **Readiness.** `/readyz` says which check failed.
 - **Service tokens.** A member service token (`Authorization: Bearer lwt_…`) can read
   `/catalog/*` and name itself, so an unattended check needs no session cookie.
 - **Feature flags.** Optional per-group flag rules, and an OpenFeature (OFREP) flag
   service as a resolver. Both are off unless configured.
-- **OpenTelemetry.** Work can export traces, metrics and logs over OTLP/HTTP to your own
+- **OpenTelemetry.** Lolly Work can export traces, metrics and logs over OTLP/HTTP to your own
   collector. Export is off unless an OTLP endpoint is set.
 - **Render dispatch.** An opt-in pull dispatch for render workers
   (`render.worker.dispatch: "pull"`), with queue metrics on `/metrics`. Push stays the
@@ -123,7 +125,7 @@ has 67 files.
 
 ## Prepare and qualify
 
-This section is for Work maintainers cutting the release.
+This section is for Lolly Work maintainers cutting the release.
 
 **Maintainer commands**
 
@@ -144,16 +146,16 @@ node scripts/sync-docs-bundle.ts --source=/path/to/lolly --commit=<full-commit-s
 pnpm run verify:docs-pin
 ```
 
-Before tagging or publishing images, the exact final Work commit needs ordinary
+Before tagging or publishing images, the exact final Lolly Work commit needs ordinary
 CI, including the native server image checks and the real Chromium worker checks
 with the matched signed shell. The tagged server and worker images must come from
-that same Work commit.
+that same Lolly Work commit.
 
 ## YunoHost packaging
 
-Lolly 1.1.3 publishes a new web archive, and the Work YunoHost package pins the
+Lolly 1.1.3 publishes a new web archive, and the Lolly Work YunoHost package pins the
 `lolly-web-1.1.3-ynh1.tar.gz` archive above. The maintained producer cuts the package on
-the final Work commit:
+the final Lolly Work commit:
 
 ```text
 node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.1.3-ynh1.tar.gz --shell-sha256 1ff9a26889d10984ce377e6890283859a9ba7bca2981d8df1e49e572e792925d --out ABS_NEW_ARTIFACT_DIRECTORY

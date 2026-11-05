@@ -132,9 +132,9 @@ Lolly 有三種大量處理的方式，各有不同用途：
 ## 表格變成一份文件
 有表格輸入的工具（例如 **Battlecards**）會把每一列變成一頁。從你的試算表貼上表格，就得到一份 PDF。在試算表中修正列，再貼上一次。
 ## CSV 變成每列一個檔案
-**Batch**（`#/batch`）接受 CSV 並為每一列渲染一個匯出：名牌或證書，每個一個檔案，以 ZIP 交付。請見 [Batch](/info/batch.html#make-many-versions-of-one-design)。
+**Batch**（`#/batch`）接受 CSV 並為每一列渲染一個匯出：名牌或證書，每個一個檔案，以 ZIP 交付。請見 [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)。
 ## 數份設計一次編輯
-**Multi-edit** 並排開啟數個已儲存的工作階段，對不同設計進行相同的修飾。請見 [Multi-edit](/info/batch.html#edit-several-saved-designs-together)。
+**Multi-edit** 並排開啟數個已儲存的工作階段，對不同設計進行相同的修飾。請見 [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together)。
 :::
 
 在 **Projects** 中，**Render folder** 會把資料夾及其子資料夾中的每個已儲存工作階段匯出為一個巢狀 ZIP，**Render selection** 對任何多重選取做同樣的事；單一已儲存的工作階段則渲染成它自己的檔案。已儲存的工作階段也可以從 Projects 再次以工具連結分享，以相同設定重新開啟它。
@@ -170,7 +170,7 @@ PowerPoint 也是一條進入的路：[重塑簡報品牌](/info/rebrand.html)�
 | 整份設計 | Assets 面板中可重複使用的元件 |
 | 複雜的插圖或即時畫布 | 單獨以圖片嵌入，周圍可編輯的內容不受影響 |
 
-從 Design 匯出時，每個框架都成為 Penpot 看板。設計系統的色彩與字體排印進入 Assets 面板，其完整 token 集合進入 Tokens 面板。Penpot 從那裡保有自己的副本：在 Penpot 中編輯的 token 會經由 [Design System Setup](/info/brand-studio.html) 的匯入帶回來。
+從 Design 匯出時，每個框架都成為 Penpot 看板。設計系統的色彩與字體排印進入 Assets 面板，其完整 token 集合進入 Tokens 面板。Penpot 從那裡保有自己的副本：在 Penpot 中編輯的 token 會經由 [Lolly Design System Setup](/info/brand-studio.html) 的匯入帶回來。
 
 ![已選擇 Penpot 的匯出面板:.penpot 檔案,以及下載按鈕旁的 Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

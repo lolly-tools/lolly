@@ -10,12 +10,12 @@ WebAssembly components.
 
 | Role | Approach to use | What Lolly provides now |
 |---|---|---|
-| Kubernetes admission policy | Rancher-managed Kubewarden, with signed policies distributed as OCI artifacts | What Work's pods need, as data, and a [ready policy set](admission-policy.md) you apply. Lolly installs no controller and the chart enforces no policy |
+| Kubernetes admission policy | Rancher-managed Kubewarden, with signed policies distributed as OCI artifacts | What Lolly Work's pods need, as data, and a [ready policy set](admission-policy.md) you apply. Lolly installs no controller and the chart enforces no policy |
 | Portable application tool | The WebAssembly Component Model, WIT interfaces and a pinned WASI version | Not built. The browser Wasm files Lolly ships today are not deployable WASI components |
-| Component hosting on Kubernetes | A qualified SpinKube install, or a containerd and runwasi handler with an explicit RuntimeClass and node selection | A platform reference only; the Work chart has no Wasm RuntimeClass setting |
+| Component hosting on Kubernetes | A qualified SpinKube install, or a containerd and runwasi handler with an explicit RuntimeClass and node selection | A platform reference only; the Lolly Work chart has no Wasm RuntimeClass setting |
 | Component hosting on a small Linux machine | A bounded host worker with explicit capabilities | Not built |
 
-Kubewarden evaluates Kubernetes admission requests. It does not run the Work server,
+Kubewarden evaluates Kubernetes admission requests. It does not run the Lolly Work server,
 PostgreSQL or the browser render worker, so keep the policy decision separate from the
 application runtime decision.
 
@@ -32,7 +32,7 @@ Start in audit mode, with curated image verification policies:
 - the [secure supply chain guidance](https://docs.kubewarden.io/admission-controller/1.38/en/howtos/security-hardening/secure-supply-chain.html)
   for policy and image provenance;
 - Lolly's own publisher identity, configured separately from the Application Collection
-  publisher. The [Kubewarden policy set for Work](admission-policy.md) carries it, with
+  publisher. The [Kubewarden policy set for Lolly Work](admission-policy.md) carries it, with
   the pod requirements and a preflight check.
 
 Before you enforce anything, show that a qualified release is accepted and that an
@@ -59,7 +59,7 @@ RKE2 each configure containerd their own way:
 [K3s](https://docs.k3s.io/advanced#configuring-containerd) and
 [RKE2](https://docs.rke2.io/advanced#configuring-containerd). Keep the normal OCI handler
 as the default. Stage a separate runtime handler and explicit node selection before any
-application canary, and do not replace the runtime of existing Work, database or render
+application canary, and do not replace the runtime of existing Lolly Work, database or render
 pods.
 
 Wasm still uses host memory, CPU and storage, and a Kubernetes worker may still be a

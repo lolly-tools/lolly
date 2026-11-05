@@ -6,7 +6,7 @@ how to keep all of it as one reviewable document. A typical rule: sales can chan
 headline, but not the logo.
 
 Governance is data, held on the server, edited live and exportable as one document. It never
-forks the pack's `tool.json`: the open-source tool definition stays untouched, and Work lays
+forks the pack's `tool.json`: the open-source tool definition stays untouched, and Lolly Work lays
 its rules over that definition. Everything here is live-editable in the console (**This Deploy → Tools**,
 **This Deploy → Feature flags** and **Grants**) and reaches connected shells on their next
 poll.
@@ -26,7 +26,7 @@ the audit log and clears the render cache for exactly the affected renders.
 rule whose groups match the person wins, and no match means `editable`.
 
 ::: figure work-governance-rule-order
-Work reads one input's rules from the top and stops at the first group that matches.
+Lolly Work reads one input's rules from the top and stops at the first group that matches.
 :::
 
 | Level | Effect |
@@ -82,7 +82,7 @@ groups: not greyed out, not hidden in the client. `*` means everyone.
 | `watermark` | `never` | Enforced: no render carries the watermark, including a render made for a share link or preview that would otherwise ask for one. |
 | `watermark` | `until-approved` | Stored, not linked to approval state yet: it behaves like no rule, so only a render made for a share link or preview carries the watermark. Set `always` if you need the watermark on every render. |
 | `defaults` | input values | Stored, not applied to a tool's initial inputs by org-config or the render paths. Locked presets do enforce values. |
-| `c2pa`, `escalation` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Work export signing](c2pa.md)), and chain binding works as [Approvals](approvals.md) describes. |
+| `c2pa`, `escalation` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)), and chain binding works as [Approvals](approvals.md) describes. |
 
 The console offers **Always watermark**, **Never watermark** and **No rule** for new edits. An
 existing `until-approved` setting is kept with a warning that it is not enforced. Stored fields
@@ -133,7 +133,7 @@ keeps every field your organisation has no opinion about.
 
 ## Feature flags
 
-Work governs the shell's per-person feature toggles it knows about, with two settings per
+Lolly Work governs the shell's per-person feature toggles it knows about, with two settings per
 flag for the whole instance and the same two settings for any group you choose:
 
 | Setting | Values | Meaning |
@@ -151,7 +151,7 @@ Governable today (the ids are the shell's own):
 | `jelly-effects` | on | a soft squish on chrome controls; respects reduced motion and never touches output |
 | `strip-upload-metadata` | off | strips EXIF and GPS from uploaded images (Content Credentials are kept either way) |
 | `export-preflight` | off | the export panel's prepress card: bleed, resolution, ink coverage and plate counts |
-| `private-collab` | on | the device-to-device invite and accept for editing together; force it off and hide it to route collaboration through Work only |
+| `private-collab` | on | the device-to-device invite and accept for editing together; force it off and hide it to route collaboration through Lolly Work only |
 | `nearby-discovery` | on | mDNS discovery of nearby Lolly devices for handing over collab invites (native shells only) |
 
 `GET /api/v1/policy/flags` and `PUT /api/v1/policy/flags/:flagId` use the same `policy.edit`
@@ -169,7 +169,7 @@ everyone. Use one to let a team pilot a feature: set the flag Off and Hidden for
 then add a rule that sets it On and Shown for the pilot group. Nobody else sees a switch, and
 the pilot team can turn the feature off for themselves.
 
-For one person, Work works out each setting in this order:
+For one person, Lolly Work works out each setting in this order:
 
 1. A rule for a group the person is in wins over the setting for everyone.
 2. When several of the person's groups have rules, Off wins over On and Hidden wins over
@@ -179,7 +179,7 @@ For one person, Work works out each setting in this order:
    default.
 
 A rule may set only the default or only the toggle; the setting it leaves out stays the one
-for everyone. Group names match exactly as the identity provider or Work holds them,
+for everyone. Group names match exactly as the identity provider or Lolly Work holds them,
 including letter case, and `*` is not a group. Each flag holds up to 100 rules, one per group.
 
 In the console, open **Group rules** on a flag's card to add, change or remove a rule. Known
@@ -200,8 +200,8 @@ flag's `groups`.
 With `featureFlags.ofrep` set in `instance.json`, your organisation's flag service decides
 the default of the flags it lists, through OpenFeature (OFREP). It sees only the person's
 groups and role. The settings on this page are then the fallback whenever the service does
-not answer, and the toggle setting always stays Work's. The shell keeps reading one value per
-flag from Work, so it never contacts the flag service. The console shows a **Flag service**
+not answer, and the toggle setting always stays Lolly Work's. The shell keeps reading one value per
+flag from Lolly Work, so it never contacts the flag service. The console shows a **Flag service**
 card with the service's address, its request and fallback counts and its last answer, and
 marks each flag the service decides. [Configuration](configuration.md#featureflags) lists
 what is sent and how failures are handled.

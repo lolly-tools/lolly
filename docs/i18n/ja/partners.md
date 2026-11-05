@@ -16,7 +16,7 @@
 
 | 送るもの | 方法 | パートナーが受け取るもの | 向いているケース |
 | --- | --- | --- | --- |
-| デザインシステムファイル | [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 上部のバーの **Export** | トークン、フォント、ロゴ、テーマ設定。パートナーが切り替えて使えるデザインシステムとして届きます | 御社のブランドで多くの制作物を作るパートナー |
+| デザインシステムファイル | [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 上部のバーの **Export** | トークン、フォント、ロゴ、テーマ設定。パートナーが切り替えて使えるデザインシステムとして届きます | 御社のブランドで多くの制作物を作るパートナー |
 | 再利用可能なツール | Design の **Share with rules**([Share a design with rules](/info/create-a-tool.html)) | 完成した1つのレイアウトと、許可した入力項目(パートナーの名前やロゴなど)。ファイルには確定した色、フォント、画像が入っているため、パートナー自身のデザインシステムで固定のアートワークの見た目が変わることはありません | 各パートナーが記入する、共同ブランドのチラシ、バッジ、バナー |
 | ブランドスキル | **Skills** ルーム:**Download skill (.zip)** または **Copy as one file** | 御社の文書化された基準。パートナーの担当者とエージェント向け | 上記のどちらかと併せて、作業の一部をエージェントが行う場合 |
 | トークン | スタジオの **More** メニューの **Tokens (.json)** | フォントやロゴを含まない、プレーンなデザイントークンの文書 | パートナー独自のデザインツールやビルド |
@@ -125,5 +125,5 @@ Logo Wall はスポンサーのルールを一切知りません。Tier と Pres
 - **[ブランドアーキテクチャ](/info/brand-architectures.html)**:共同ブランディング、ホワイトラベル、そのほかの形態と、それぞれで Lolly で行うこと。
 - **[Share a design with rules](/info/create-a-tool.html)**:固定レイアウトと、選んだ入力項目を持つ再利用可能なツール。
 - **[ブランドスキル](/info/brand-skills.html)**:スキルの書き方、読み方、エージェントへの渡し方。
-- **[Design System Setup](/info/brand-studio.html)**:ロゴ、カスタムマーク、デザインシステムの端末間での移動。
+- **[Lolly Design System Setup](/info/brand-studio.html)**:ロゴ、カスタムマーク、デザインシステムの端末間での移動。
 - **[クリエイティブの権利とクレジット](/info/creative-rights.html)**:Lolly が描画する作品について記録する内容。

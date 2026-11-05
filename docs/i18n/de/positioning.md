@@ -19,7 +19,7 @@ Canva wird in jeder Zeile an seinem besten Familienmitglied bewertet, da es Affi
 
 Lollys Bewertung von 75 bei Content Credentials umfasst das Signieren auf dem Gerät und das Server-Signieren von Lolly Work mit einer konfigurierten Organisationsidentität; ein Verifizierer muss dem Unterzeichner weiterhin vertrauen ([Content-Credentials-Identität](/info/content-credentials-identity.html)). Die 50 von Penpot kommen über Lollys eigenes Export-Plug-in für Penpot: dieselbe Signatur der Engine, als Opt-in und als die von Lolly offengelegt. Penpot erhält bei On-Device-Rendering 90: eine Browser-Arbeitsfläche mit einem Speicherziel auf seinem Server, der selbst gehostet werden kann. Cloudinary erhält eine eigene Spalte für seine Asset-Bibliothek, seine Transform-API und sein CDN; die Prüfung vom August bewertete das Signieren seiner Auslieferung mit 50.
 
-Lollys Live-Zusammenarbeit umfasst direkte private Collabs zwischen zwei Geräten und authentifizierte Work-Collabs über Lolly Work, mit gemeinsamen Änderungen, Cursorn und gespeicherten Team-Sitzungen. Die Bewertung Partial spiegelt die aktuelle Work-Bereitstellung mit einem Knoten und die kurze Betriebshistorie wider, nicht das Fehlen von Team-Bearbeitung. Preisschätzungen sind datierte Listenpreis-Rechnungen zur Größenordnung, keine Beschaffung.
+Lollys Live-Zusammenarbeit umfasst direkte private Collabs zwischen zwei Geräten und authentifizierte Lolly Work-Collabs über Lolly Work, mit gemeinsamen Änderungen, Cursorn und gespeicherten Team-Sitzungen. Die Bewertung Partial spiegelt die aktuelle Lolly Work-Bereitstellung mit einem Knoten und die kurze Betriebshistorie wider, nicht das Fehlen von Team-Bearbeitung. Preisschätzungen sind datierte Listenpreis-Rechnungen zur Größenordnung, keine Beschaffung.
 :::
 
 ## Wann Sie zu Lolly greifen
@@ -28,7 +28,7 @@ Lollys Live-Zusammenarbeit umfasst direkte private Collabs zwischen zwei Geräte
 ## Greifen Sie zu Lolly, wenn
 
 - dieselbe Art von Datei immer wieder gebraucht wird: Event-Kacheln, Namensschilder, Zertifikate, Hinweise, Social-Media-Karten
-- viele Dateien aus einer Vorlage und einer Wertetabelle entstehen, in [Batch](/info/batch.html#make-many-versions-of-one-design) oder der CLI
+- viele Dateien aus einer Vorlage und einer Wertetabelle entstehen, in [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) oder der CLI
 - Farben, Schrift und Assets auch auf einer offenen Arbeitsfläche im Designsystem bleiben müssen
 - ein fertiges Design aus Figma, Penpot, Illustrator, InDesign oder PDF bearbeitbar und wiederholbar werden soll ([Ein Design importieren](/info/design-import.html))
 - die Dateien auf Ihren eigenen Geräten oder Servern entstehen müssen

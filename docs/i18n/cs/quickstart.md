@@ -24,7 +24,7 @@ Při prvním otevření galerie krátké uvítání nabídne stejné volby: **Ma
 
 ![Místnost Colours v Design System Setup na čerstvé instalaci: jeden živý čip, jedno pole a celé první rozhodnutí](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Odtud tě osm místností dovede tak daleko, jak chceš, v libovolném pořadí: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** a **Skills**. Každý náhled v aplikaci se aktualizuje při psaní. Každou místnost popisuje [Design System Setup](/info/brand-studio.html).
+Odtud tě osm místností dovede tak daleko, jak chceš, v libovolném pořadí: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** a **Skills**. Každý náhled v aplikaci se aktualizuje při psaní. Každou místnost popisuje [Lolly Design System Setup](/info/brand-studio.html).
 
 Písma se uchovávají na tvém zařízení. Vyber Google Font a Lolly uloží soubor jako asset značky, takže tvé písmo cestuje offline a při kreslení nástroje se nic nestahuje.
 
@@ -58,7 +58,7 @@ Nezačínáš od prázdné stránky.
 
 **Prezentace.** Přetáhni na Lolly PowerPoint `.pptx`, aby se jeho snímky založily jako assety, napiš novou prezentaci z Markdownu v **Markdown Slides** nebo použij [Rebrand prezentace](/info/rebrand.html), abys celou prezentaci přenesl do svého designového systému.
 
-**Data.** Vlož nebo přetáhni tabulku CSV či JSON a opakující se pole nástroje se z ní vyplní, nebo [Batch](/info/batch.html#make-many-versions-of-one-design) vytvoří jeden hotový soubor na řádek.
+**Data.** Vlož nebo přetáhni tabulku CSV či JSON a opakující se pole nástroje se z ní vyplní, nebo [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) vytvoří jeden hotový soubor na řádek.
 
 ### Od jednorázovky k šabloně
 
@@ -72,7 +72,7 @@ Importované rozvržení je běžná relace Design. **Share with rules** z něj 
 
 - <!--i:download--> **Export.** Nástroje vytvářejí SVG, PDF, PNG, JPG, WebP, video a další, ve formátech, které každý nástroj nabízí, ve skutečných tiskových velikostech, když je potřebuješ. Viz [Export souboru](/info/exporting.html).
 - <!--i:link--> **Sdílej odkaz.** Nastavení nástroje putuje v jeho odkazu, takže odkaz kdekoli znovu otevře stejný soubor.
-- <!--i:layers--> **Jeden na řádek.** Řiď nástroj z tabulky v [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Jeden na řádek.** Řiď nástroj z tabulky v [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatizuj.** Stejné vykreslení běží z [CLI](/info/cli.html) i od [AI agenta](/info/ai-agents.html).
 
 Odkaz je úplný požadavek. Graf níže nikdo nenakreslil: jeho typ, nadpis i celá tabulka dat byly napsány do adresního řádku a stejný odkaz nakreslí stejný graf na jakémkoli zařízení.

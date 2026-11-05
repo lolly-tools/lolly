@@ -1,10 +1,12 @@
-# Design System Setup
+# Lolly Design System Setup
 
-Your logo, colours and typefaces belong in one place, so every tool, page and export draws with them. That place is **Design System Setup**, at `#/start`.
+<a id="design-system-setup"></a>
+
+Your logo, colours and typefaces belong in one place, so every tool, page and export draws with them. That place is **Lolly Design System Setup**, at `#/start`.
 
 Start with whatever you have. Drop in a logo and Lolly reads its colours. Choose a typeface, or drop the font file your company licenses. Each change shows across the whole app straight away. Your logo, fonts and tokens stay on this device. Picking a Google Font is the one step that reaches out: Lolly asks first, then fetches the family once.
 
-When it looks right, give the design system a name and press **Export**. You get one `.lolly` file to keep, to open on another device or to hand to a colleague. [Settings](/info/dashboard.html#design-system) shows the active system read-only, and its cover links back here for editing.
+When it looks right, give the design system a name and press **Export**. You get one `.lolly` file to keep, to open on another device or to hand to a colleague. [Lolly Settings](/info/dashboard.html#design-system) shows the active system read-only, and its cover links back here for editing.
 
 ## Make it yours in five minutes
 
@@ -261,18 +263,18 @@ Drop the files your brand keeps, apart from logos: **vector**, **image**, **audi
 
 **Rules** puts your brand's choices to work: what people can change, what stays fixed and what Lolly can check.
 
-![Rules on Lolly Demo: four house rules, each marked Checked in Design and Required or Advisory, then Try your design system in use with its examples ready to render](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules on Lolly Demo: four house rules, each marked Checked in Lolly Design and Required or Advisory, then Try your design system in use with its examples ready to render](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** lists your rules. **Add rule** (or **Add your first rule**) opens a short form:
 
 - a **Rule name** in your own words, such as *Beacon accents*;
 - the **Check**: **Colour choices**, **Font choices**, **Fixed artwork** or **Text length**, with the brand role it uses, under your own name for the role;
-- the **Example** it applies to (Poster, Title slide, Content slide or Chart), the **Mode** and whether it is **Required** or **Advisory**;
+- the **Example** it applies to (Poster, Title slide, Content slide or Lolly Chart), the **Mode** and whether it is **Required** or **Advisory**;
 - **Reviewed by**, then **Save draft** or **Approve & save**.
 
 Approval records your own decision on this device. Approved required rules constrain the reusable poster, and checks cover the example PNGs only; they change no other tool.
 
-Rules a design system brings with it in its token file, such as approved colour pairings, text weight and alignment or a logo per surface, are listed here as **Checked in Design**. Design checks them layer by layer in the export panel's **Before you export** card, and `lolly check` does the same for a saved Design document ([Before you export](/info/design.html#before-you-export)). A rule this build has no checker for is kept as supplied and marked **Unchecked**.
+Rules a design system brings with it in its token file, such as approved colour pairings, text weight and alignment or a logo per surface, are listed here as **Checked in Lolly Design**. Lolly Design checks them layer by layer in the export panel's **Before you export** card, and `lolly check` does the same for a saved Lolly Design document ([Before you export](/info/design.html#before-you-export)). A rule this build has no checker for is kept as supplied and marked **Unchecked**.
 
 Lolly Demo brings four approved house rules. Headlines are never set in capitals: that rule is required, so `lolly check` reports a headline in capitals as an error. The other three are advisory. Body text is left-aligned. Primary marks sit on light surfaces and reverse marks on dark ones. Dashed lines mean drop here.
 
@@ -320,7 +322,7 @@ Open **Find a look** from the Board or from the design-system list in Settings. 
 
 Click a look to preview it in context. Previewing changes nothing. Each card's **Use this look** uses that look. A saved system becomes the active one, which edits nothing. An example's colours go through the usual checkpoint into the open design system, whose logos, fonts and everything else the example does not define stay as they are. **Compare looks** adds a checkbox to each card, so you can choose two and compare them side by side. **Restore brand settings** recovers the previous look. Saved systems have editable **Search tags** under **Details and design context**. The examples are original Lolly colour recipes, with no scraped collection and no account.
 
-![Compare Sunroom and Orchard side by side before applying either colour system.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Lolly Compare Sunroom and Orchard side by side before applying either colour system.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Keep and move your design system
 
@@ -352,7 +354,7 @@ Open **Settings → Preferences → Design systems** to switch, add or remove sy
 
 **Where a system comes from.** The system a deployment's catalogue supplies reads **Came with this app**, or **From this instance** in an app connected to one. Expand **Catalogue source** to see who supplies it, its tokens asset and namespace and its known version or checksum; if a refresh fails, cached material is labelled.
 
-**Managed systems are read-only.** A system reads **Managed by this instance** (or **Managed by this app** in the desktop app with no instance) when its catalogue locks the system. You can use and download it, and opening it here shows a read-only note with **Make an editable copy** and **Switch**. Your own local systems stay editable, even when the managed one came first. A build with one fixed brand opens Design System Setup on *This brand is set*, with the brand's tokens and usage rules to read.
+**Managed systems are read-only.** A system reads **Managed by this instance** (or **Managed by this app** in the desktop app with no instance) when its catalogue locks the system. You can use and download it, and opening it here shows a read-only note with **Make an editable copy** and **Switch**. Your own local systems stay editable, even when the managed one came first. A build with one fixed brand opens Lolly Design System Setup on *This brand is set*, with the brand's tokens and usage rules to read.
 
 **Every other supplied system is yours** to hide, edit and reset, including Lolly Demo and Lolly Starter on lolly.tools. Editing one keeps its name and marks the row **Edited here**, and **Reset to original** in its menu discards the changes made on this device. The blank starter is the exception: a first change there starts a design system of your own, so Lolly asks once what to call the new system. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) shows what your own system replaces.
 
@@ -366,7 +368,7 @@ Changing what a server supplies is an administrator's task: its operator changes
 
 ## Use design context outside the app
 
-**Download design context** saves the token document, resolved colours, declared font families, asset ids, source evidence where recorded, coverage and explicit rules, with no font files and no proof of ownership. The command line reads the file with no server: `lolly system import` makes it the terminal's design system and `lolly system check` checks Design inputs against the saved context. [Bring your design system](/info/cli.html#bring-your-design-system) covers the import and [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) covers the check, and an MCP client reads the same brief from `lolly://design-context` ([MCP Server](/info/mcp.html)).
+**Download design context** saves the token document, resolved colours, declared font families, asset ids, source evidence where recorded, coverage and explicit rules, with no font files and no proof of ownership. The command line reads the file with no server: `lolly system import` makes it the terminal's design system and `lolly system check` checks Lolly Design inputs against the saved context. [Bring your design system](/info/cli.html#bring-your-design-system) covers the import and [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) covers the check, and an MCP client reads the same brief from `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
 ## Where to go next
 

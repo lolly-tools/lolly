@@ -68,7 +68,7 @@ pnpm run ingest:brand <source> --name <brand> [--label "Label"] [--register|--ac
 - Ingest also derives the pack's photo-treatment and icon-theme palette documents under `catalog/assets/<ns>/palette/`, so uploaded photos get on-brand washes and themable icons get colour pairings from the start. Icon themes are skipped when the palette has no accent.
 - `--register` adds the pack to `profiles.json`. `--activate` also builds and validates its catalog and prints the `LOLLY_PROFILE=<brand>` line that selects it; nothing is switched globally. `--out` picks another destination and `--force` overwrites an existing pack.
 
-[Design Tokens](/info/design-tokens.html) covers the token model. People set up their own design system in the app with [Design System Setup](/info/brand-studio.html).
+[Design Tokens](/info/design-tokens.html) covers the token model. People set up their own design system in the app with [Lolly Design System Setup](/info/brand-studio.html).
 
 ### Brand lock
 
@@ -119,9 +119,9 @@ A shell that cannot provide a capability **disables** the tool rather than letti
 
 `screen` is display capture the person grants in the browser's own picker (a screen, window or tab, through `host.recorder`). It differs from `capture`, which rasterises a web address the tool itself gives. `network` access is also **allowlisted**: a tool declares which hosts it may reach, and `host.net` refuses every other host.
 
-URL Screenshot declares `capture`, which a plain browser cannot provide alone, so its tile offers the add-on instead of vanishing:
+Lolly URL Screenshot declares `capture`, which a plain browser cannot provide alone, so its tile offers the add-on instead of vanishing:
 
-![The URL Screenshot tile in the Utilities gallery, carrying an Add-on badge because its capture capability is unmet in a plain browser](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2000&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22url-shot%22%5D&tolerance=0.03&dark=1&filename=fq-capability-addon-badge)
+![The Lolly URL Screenshot tile in the Utilities gallery, carrying an Add-on badge because its capture capability is unmet in a plain browser](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2000&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22url-shot%22%5D&tolerance=0.03&dark=1&filename=fq-capability-addon-badge)
 
 ## Curating what people see
 

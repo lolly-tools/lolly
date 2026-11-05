@@ -232,7 +232,7 @@ Yönetilen bir cihaz, cihazın kimliği doğrulanmış bir kanıtıyla kendi ser
 |---|---|
 | Giriş ve hesap sağlama | Kimlik sağlayıcı talepleri, hesap ve grup üyeliği, oturum açma oturumları ve cihaz bilgisi. Girişi OIDC yönetir; yöneticiler SCIM aracılığıyla hesap sağlayıp devre dışı bırakabilir |
 | Paylaşılan katalog ve projeler | Yüklenen varlıklar, meta veriler ve sürümler; paylaşılan projeler ve oturumlar; yapılandırılmış kitaplık sağlayıcılarından alınan içerik |
-| Work collab'ları | Örnek üzerinden gönderilen paylaşılan oturum durumu, canlı düzenlemeler ve katılımcı varlığı; kaydedilen durum, depolama politikası uyarınca kalıcıdır |
+| Lolly Work collab'ları | Örnek üzerinden gönderilen paylaşılan oturum durumu, canlı düzenlemeler ve katılımcı varlığı; kaydedilen durum, depolama politikası uyarınca kalıcıdır |
 | Yönetilen paylaşım bağlantıları | Bağlantı hedefi ve süre sonu ile isteğe bağlı parola koruması gibi erişim ayarları; istekler örnek üzerinden çözülür ve iptal edilebilir |
 | İnceleme ve teslim | Gönderilen içerik, onay kararları, seçilen hedef, hazırlanan dosyalar ve teslim makbuzları |
 | Sunucu render'ları ve toplu işler | Gönderilen araç girdileri, render istekleri, durum ve tutulan çıktı dosyaları. Bu işler cihazında değil sunucuda çalışır |
@@ -241,9 +241,9 @@ Yönetilen bir cihaz, cihazın kimliği doğrulanmış bir kanıtıyla kendi ser
 
 Hizmet, sertifika hizmetinin çerezinden ayrı olarak, oturum açmış üyeler için `lw_session` ve etkin olduğunda konuk erişimi için `lw_guest` dahil kimlik doğrulama çerezleri kullanır. Politika yenilemeleri ve etkin kullanım raporlaması, uygulama kullanılırken her biri için ayrı bir tıklama olmadan istek yapabilir. Bu, yapılandırılmış örneğe giden trafiktir; Lolly projesine, işletmediği dağıtımlar hakkında bir rapor değildir.
 
-**Kullanım telemetrisinin üç düzeyi vardır.** `off` hiçbir kullanım olayı saklamaz, `aggregate` kullanıcı kimliklerini çıkarır ve `standard` olayları ilişkilendirebilir. Varsayılan düzey `standard`'dır; bu yüzden işletmesi `off` seçmedikçe bir örnek aldığı kullanım olaylarını saklar. Varsayılan ilişkilendirme politikası `opt-in`'dir; bir kullanıcı kimliği saklanmadan önce onayını gerektirir; bir işletme bunun yerine `telemetryAttribution: default` ile ilişkilendirilmiş raporlamayı yapılandırabilir. İzin verilen öznitelikler etikettir, asla araç girdi değerleri değildir. Bkz. [Work telemetry](/info/work-telemetry.html).
+**Kullanım telemetrisinin üç düzeyi vardır.** `off` hiçbir kullanım olayı saklamaz, `aggregate` kullanıcı kimliklerini çıkarır ve `standard` olayları ilişkilendirebilir. Varsayılan düzey `standard`'dır; bu yüzden işletmesi `off` seçmedikçe bir örnek aldığı kullanım olaylarını saklar. Varsayılan ilişkilendirme politikası `opt-in`'dir; bir kullanıcı kimliği saklanmadan önce onayını gerektirir; bir işletme bunun yerine `telemetryAttribution: default` ile ilişkilendirilmiş raporlamayı yapılandırabilir. İzin verilen öznitelikler etikettir, asla araç girdi değerleri değildir. Bkz. [Lolly Work telemetry](/info/work-telemetry.html).
 
-**Denetim ayrıdır.** Yönetilen eylemler, telemetri onayın ne olursa olsun kimliği belli bir denetim kaydı tutabilir. Telemetriyi kapatmak paylaşılan oturum depolamasını, onay kayıtlarını, render işi depolamasını veya denetimi kapatmaz. İşletme, denetim günlüğünün takma adlandırılması dahil saklamayı ve silmeyi denetler; bkz. [Work storage and data lifecycle](/info/work-data-lifecycle.html).
+**Denetim ayrıdır.** Yönetilen eylemler, telemetri onayın ne olursa olsun kimliği belli bir denetim kaydı tutabilir. Telemetriyi kapatmak paylaşılan oturum depolamasını, onay kayıtlarını, render işi depolamasını veya denetimi kapatmaz. İşletme, denetim günlüğünün takma adlandırılması dahil saklamayı ve silmeyi denetler; bkz. [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html).
 
 | | Cihazın | Kuruluşunun örneği |
 |---|---|---|

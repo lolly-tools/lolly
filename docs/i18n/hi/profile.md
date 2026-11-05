@@ -14,13 +14,13 @@
 | **Headshot** | वैकल्पिक फ़ोटो, वर्ग में कटी और स्थानीय इमेज के रूप में रखी, ईमेल सिग्नेचर, कोट कार्ड और संगठन चार्ट जैसे टूल के लिए। |
 | **Use my details to create** | एक opt-in स्विच (एक बार चालू होने पर वह **Using my details** पढ़ता है)। यह तय करता है कि आपका ब्योरा एक्सपोर्ट की फ़ाइलों में और Batch रन पर लेखक श्रेय के रूप में जाए या नहीं। यह पहले से भरने को प्रभावित नहीं करता; देखें [How tools use your profile](#how-tools-use-your-profile)। |
 | **Preferences** | आपकी थीम, हर design system में आपका colourway, आपकी एक्सेसिबिलिटी सेटिंग और ऐप के वे हिस्से जो आपने **Feature flags** में चालू किए। |
-| **Your work** | थंबनेल सहित सहेजे सत्र, [Projects](/info/find-your-work.html) में व्यवस्थित, आपकी अपलोड की इमेज और आपके स्थानीय गतिविधि आँकड़े। |
+| **Your work** | थंबनेल सहित सहेजे सत्र, [Lolly Projects](/info/find-your-work.html) में व्यवस्थित, आपकी अपलोड की इमेज और आपके स्थानीय गतिविधि आँकड़े। |
 
 इनमें से कुछ अनिवार्य नहीं। खाली प्रोफ़ाइल काम करती है; केवल वही भरें जो आपका टाइप करना बचाए।
 
 ![Preferences टैब पर Settings: सेटिंग रेल, और Your details जिसमें Use my details to create स्विच और नाम, संपर्क व स्थान फ़ील्ड हैं](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) Preferences के नीचे बाकी सब का नक्शा देता है, दिखावट और इमोजी से स्टोरेज और ऑफ़लाइन डाउनलोड तक।
+[Lolly Settings](/info/dashboard.html) Preferences के नीचे बाकी सब का नक्शा देता है, दिखावट और इमोजी से स्टोरेज और ऑफ़लाइन डाउनलोड तक।
 
 ## आप, एक टीम या एक भूमिका
 
@@ -83,7 +83,7 @@
 Settings में तीन चीज़ें पास-पास हैं और उलझाना आसान है:
 
 - <!--i:people--> **Profile**: आप, आपकी टीम या वह भूमिका जिसमें आप हैं: नाम, संपर्क, हेडशॉट और सहेजा काम। निजी, डिवाइस पर रखी और फ़ाइल के रूप में पोर्टेबल।
-- <!--i:palette--> **Design system**: ब्रांड, यानी रंग, फ़ॉन्ट और सेटिंग जिनसे हर टूल रेंडर करता है। निजी के बजाय साझा और एकरूप; देखें [Design System Setup](/info/brand-studio.html)।
+- <!--i:palette--> **Design system**: ब्रांड, यानी रंग, फ़ॉन्ट और सेटिंग जिनसे हर टूल रेंडर करता है। निजी के बजाय साझा और एकरूप; देखें [Lolly Design System Setup](/info/brand-studio.html)।
 - <!--i:sliders--> **Capabilities**: ऐप क्या कर सकता है, यानी आपके लिए उपलब्ध सुविधाएँ और टूल।
 
 प्रोफ़ाइल बदलती है कि फ़ाइल किसकी ओर से है; design system बदलता है कि फ़ाइल कैसी दिखे; क्षमताएँ वे हैं जो आप बना सकते हैं।

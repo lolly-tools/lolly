@@ -2,9 +2,9 @@
 
 Halaman web tidak boleh membaca piksel laman web lain, jadi apl web Lolly memerlukan bantuan untuk menangkap skrin halaman. Dalam pelayar berasaskan Chromium (Chrome, Edge, Brave, Arc atau Opera, dari Chrome 111), sambungan percuma **Lolly URL Screenshot** memberikan bantuan itu, menggunakan tangkapan yang sama dengan yang digunakan apl desktop. Dengannya dipasang:
 
-- **[URL Screenshot](/t/url-shot)** menyimpan halaman yang anda gubah sebagai fail;
+- **[Lolly URL Screenshot](/t/url-shot)** menyimpan halaman yang anda gubah sebagai fail;
 - alamat web yang ditampal ke dalam slot imej boleh menjadi tangkapan skrin halaman itu, dengan **Screenshot this page**;
-- sumber **Website** dalam [Design System Setup](/info/brand-studio.html) boleh membaca satu halaman untuk memulakan sistem reka bentuk.
+- sumber **Website** dalam [Lolly Design System Setup](/info/brand-studio.html) boleh membaca satu halaman untuk memulakan sistem reka bentuk.
 
 Anda meluluskan setiap permintaan, dan apl desktop melakukan tugas yang sama tanpa sambungan.
 

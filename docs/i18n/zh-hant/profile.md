@@ -14,13 +14,13 @@
 | **Headshot** | 選用的照片，裁切成正方形並保存為本機圖片，供電子郵件簽名檔、引言卡與組織圖等工具使用。 |
 | **Use my details to create** | 一個選擇加入的開關（開啟後顯示為 **Using my details**）。它決定你的詳細資料是否作為作者署名隨匯出的檔案與 Batch 執行一起傳遞。它不影響預先填入；請見[工具如何使用你的個人資料](#how-tools-use-your-profile)。 |
 | **Preferences** | 你的主題、你在每個設計系統中的配色方案、你的無障礙設定，以及你在 **Feature flags** 中開啟了應用程式的哪些部分。 |
-| **Your work** | 附有縮圖的已儲存工作階段（整理在 [Projects](/info/find-your-work.html) 中）、你上傳的圖片，以及你本機的活動統計。 |
+| **Your work** | 附有縮圖的已儲存工作階段（整理在 [Lolly Projects](/info/find-your-work.html) 中）、你上傳的圖片，以及你本機的活動統計。 |
 
 其中沒有任何一項是必填的。空白的個人資料也能運作；只填入能讓你少打字的部分就好。
 
 ![Settings 的 Preferences 分頁：設定列，以及 Your details，含 Use my details to create 開關與姓名、聯絡、位置欄位](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) 對應 Preferences 之下的其他一切，從外觀與表情符號到儲存空間與離線下載。
+[Lolly Settings](/info/dashboard.html) 對應 Preferences 之下的其他一切，從外觀與表情符號到儲存空間與離線下載。
 
 ## 你、團隊或角色
 
@@ -83,7 +83,7 @@
 Settings 中有三樣東西彼此靠近，容易混淆：
 
 - <!--i:people--> **Profile** - 你、你的團隊或你所處的角色：姓名、聯絡資料、大頭照與已儲存的作品。屬於個人，保存在裝置上，並可作為檔案攜帶。
-- <!--i:palette--> **Design system** - 品牌：每個工具渲染時使用的色彩、字型與設定。共用且一致，而非個人的；請見 [Design System Setup](/info/brand-studio.html)。
+- <!--i:palette--> **Design system** - 品牌：每個工具渲染時使用的色彩、字型與設定。共用且一致，而非個人的；請見 [Lolly Design System Setup](/info/brand-studio.html)。
 - <!--i:sliders--> **Capabilities** - 應用程式能做什麼：提供給你的功能與工具。
 
 個人資料改變檔案來自誰；設計系統改變檔案的外觀；能力則是你能製作什麼。

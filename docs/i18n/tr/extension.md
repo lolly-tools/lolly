@@ -2,9 +2,9 @@
 
 Bir web sayfası başka bir web sitesinin piksellerini okuyamaz; bu yüzden Lolly web uygulamasının bir sayfanın ekran görüntüsünü alması için yardıma ihtiyacı vardır. Chromium tabanlı bir tarayıcıda (Chrome 111'den itibaren Chrome, Edge, Brave, Arc veya Opera) ücretsiz **Lolly URL Screenshot** uzantısı, masaüstü uygulamasının kullandığı aynı yakalamayı kullanarak bu yardımı sağlar. Kurulduğunda:
 
-- **[URL Screenshot](/t/url-shot)**, oluşturduğun sayfayı bir dosya olarak kaydeder;
+- **[Lolly URL Screenshot](/t/url-shot)**, oluşturduğun sayfayı bir dosya olarak kaydeder;
 - bir görsel yuvasına yapıştırılan bir web adresi, **Screenshot this page** ile o sayfanın ekran görüntüsüne dönüşebilir;
-- [Design System Setup](/info/brand-studio.html) içindeki **Website** kaynağı, bir tasarım sistemi başlatmak için bir sayfayı okuyabilir.
+- [Lolly Design System Setup](/info/brand-studio.html) içindeki **Website** kaynağı, bir tasarım sistemi başlatmak için bir sayfayı okuyabilir.
 
 Her isteği sen onaylarsın ve masaüstü uygulaması aynı işleri uzantı olmadan yapar.
 

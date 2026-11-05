@@ -1,8 +1,8 @@
 # Lolly Work API reference
 
-The routes the Work console, the `lw` CLI and the Lolly apps call, grouped by job, with the
+The routes the Lolly Work console, the `lw` CLI and the Lolly apps call, grouped by job, with the
 permission each one needs. To render files from a script, start with
-[Automate with the Work API](automation-api.md): it covers discovery, schemas, the document
+[Automate with the Lolly Work API](automation-api.md): it covers discovery, schemas, the document
 verbs, jobs and batches, and this page holds everything else.
 
 Errors are `{ error: { code, message } }` with an HTTP status that matches the error. In the
@@ -183,7 +183,7 @@ credentials that act without a person.
 | `GET /api/auth/dev?email=…` | public | dev provider only; `404` when `dev.enabled` is false |
 | `GET /api/auth/session` | member/guest | the current principal |
 | `POST /api/auth/logout` | any | clears both cookies |
-| `GET/POST /api/auth/logout-provider` | member signed in through an OIDC provider | sign out of the identity provider as well: the `GET` page asks to confirm, and its form's `POST` ends this browser's Work sessions and answers `303` to the provider's end-session endpoint. `401 NO_OIDC_SESSION` without an OIDC sign-in, `409 NO_PROVIDER_LOGOUT` when the provider offers no end-session endpoint. See [enterprise identity](enterprise-identity.md) |
+| `GET/POST /api/auth/logout-provider` | member signed in through an OIDC provider | sign out of the identity provider as well: the `GET` page asks to confirm, and its form's `POST` ends this browser's Lolly Work sessions and answers `303` to the provider's end-session endpoint. `401 NO_OIDC_SESSION` without an OIDC sign-in, `409 NO_PROVIDER_LOGOUT` when the provider offers no end-session endpoint. See [enterprise identity](enterprise-identity.md) |
 | `POST /api/v1/auth/device` | public | start device sign-in: `{deviceCode, userCode, verificationUri, interval, expiresIn}` |
 | `POST /api/v1/auth/device/token` | public | the device's poll: `{status}` of `pending`/`denied`/`expired`, or `approved` + the session cookie (single read). The cookie continues the approving browser's chain and ends no later than its `authAt + sessionMaxHours` (`sessionTtlHours` from that sign-in while renewal is off); once that chain has ended the answer is `denied`, audited `auth.denied` with `reason: 'session-max'` |
 | `GET/POST /activate` | member (page) | where a person types and confirms a device code - approval binds the approver's identity, so it lives here and nowhere else |
@@ -397,7 +397,7 @@ stores nothing, so its subject is `request`). A note is recorded only as its len
 A minted token rides `Authorization: Bearer lwt_…` and resolves to a synthetic
 principal carrying the token's role (no groups): permissions, grants and audit see it like any
 member (`user:svc_<id>` actor). [Who can call what](#who-can-call-what) lists where a token is
-accepted and refused, and [Automate with the Work API](automation-api.md) shows a first call.
+accepted and refused, and [Automate with the Lolly Work API](automation-api.md) shows a first call.
 See [service tokens](enterprise-identity.md#service-tokens).
 
 ### SCIM provisioning
@@ -569,7 +569,7 @@ A wrong password is `401 PASSWORD_INCORRECT`. Ten wrong passwords from one addre
 minutes lock the link for that address (`429 PASSWORD_LOCKED` with `Retry-After`).
 
 ::: note `&pw=` on a link is deprecated
-`&pw=…` on the `GET` is deprecated as of Work 1.1.2, which still accepts the parameter: the
+`&pw=…` on the `GET` is deprecated as of Lolly Work 1.1.2, which still accepts the parameter: the
 answer carries a `Deprecation` header and sets the same cookie, and the server logs one warning
 per link. A later release refuses `&pw=`.
 :::
@@ -859,9 +859,9 @@ Project keys authenticate only `POST /api/workspace/mcp`, using `Authorization: 
 
 ### Document agent invitations
 
-A document key admits an agent to one Design document. These routes need a signed-in
+A document key admits an agent to one Lolly Design document. These routes need a signed-in
 person who can open the document and holds `collab.join`. A document the caller cannot
-open, or one that is not a Design document, answers `404`.
+open, or one that is not a Lolly Design document, answers `404`.
 
 | Route | Access and response |
 |---|---|
@@ -1053,7 +1053,7 @@ scope `file` instead and send it in parts; `lw upload <file> --scope file` does 
 `role` is `original` unless the bytes are the `output` of an operation done elsewhere. An
 output may name `derivedFrom: { id, checksum }`, one of the caller's own references, and
 carry a `report`: a `FileOperationReportV1` from `@lolly-tools/core/file-operation-v1`, at most
-64 KiB of JSON, that passes that contract's check. Work keeps the report the owner supplied
+64 KiB of JSON, that passes that contract's check. Lolly Work keeps the report the owner supplied
 and labels it so; it does not check the claims in the report.
 
 A `file` is `{ id, name, contentType, size, checksum, role, derivedFrom, reportedBy, createdAt,
@@ -1118,7 +1118,7 @@ audited. [Discovery](automation-api.md#find-out-what-you-can-do) reports `files.
 ## Catalog and design system
 
 The assets members browse and place, how new ones are submitted and reviewed, the external
-sources Work federates, the destinations it delivers to and the design-system rules renders are
+sources Lolly Work federates, the destinations it delivers to and the design-system rules renders are
 checked against.
 
 ### Catalog
@@ -1167,7 +1167,7 @@ The [design-system administration contract](design-system-administration.md#revi
 | `POST /api/v1/catalog/submissions/:id/act` | member (the approvals engine gates it) | `approve` publishes, `reject` returns with the comment |
 
 ::: details Submitting a project file
-Project-source intake requires the observed whole-file SHA-256. Work verifies every stored part
+Project-source intake requires the observed whole-file SHA-256. Lolly Work verifies every stored part
 and the complete file, then checks source access again after scanning. The source file stays
 unchanged. `groups=` selects library exposure independently of project membership; omitted
 groups mean every workspace member. Only groups the submitter belongs to are accepted. `type`,

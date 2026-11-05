@@ -28,7 +28,7 @@ Lolly का लाइव सहयोग डिवाइसों के बी
 ## Lolly तब उपयोग करें जब
 
 - एक ही तरह की फ़ाइल बार-बार चाहिए: इवेंट टाइल, बैज, प्रमाणपत्र, अलर्ट, सोशल कार्ड
-- कई फ़ाइलें एक टेम्पलेट और मानों की तालिका से आती हैं, [Batch](/info/batch.html#make-many-versions-of-one-design) या CLI में
+- कई फ़ाइलें एक टेम्पलेट और मानों की तालिका से आती हैं, [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) या CLI में
 - रंग, टाइप और एसेट design system के भीतर रहने चाहिए, खुले कैनवास पर भी
 - Figma, Penpot, Illustrator, InDesign या PDF का तैयार डिज़ाइन संपादन योग्य और दोहराने योग्य बनना चाहिए ([Import a design](/info/design-import.html))
 - फ़ाइलें आपके अपने डिवाइस या सर्वर पर बननी चाहिए

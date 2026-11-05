@@ -1,4 +1,6 @@
-# Run Work on AWS or MulgaDC Spinifex
+# Run Lolly Work on AWS or MulgaDC Spinifex
+
+<a id="run-work-on-aws-or-mulgadc-spinifex"></a>
 
 Lolly Work runs on Amazon Web Services and on clouds that offer the same APIs, such as
 [MulgaDC Spinifex](https://mulgadc.com), a private cloud you run on your own hardware, in
@@ -15,19 +17,19 @@ of Amazon's.
 
 All four shapes passed the same acceptance on Spinifex: the first owner signs in, members
 see the tool catalogue, a project is created, renders finish with their evidence, and the
-instance comes back after a restart. On 29 October **One VM** passed again with Work 1.1.3,
+instance comes back after a restart. On 29 October **One VM** passed again with Lolly Work 1.1.3,
 both as a new installation and as an update in place from the 1.1.1 package, and the browser
 listed the tools and drew a QR code.
 
 | Shape | What runs where | Choose it when |
 |---|---|---|
-| **One VM** | An EC2 virtual machine runs the [ready-made package](ready-made-package.md): Work, PostgreSQL, the web app and Caddy in Docker Compose | You want the fewest moving parts |
+| **One VM** | An EC2 virtual machine runs the [ready-made package](ready-made-package.md): Lolly Work, PostgreSQL, the web app and Caddy in Docker Compose | You want the fewest moving parts |
 | **One VM with managed services** | The same VM, with the database on RDS PostgreSQL and files on S3 | You want database backups and file storage handled by the cloud |
-| **Kubernetes** | The [Work chart](platform-deployment.md) on an EKS cluster, with RDS and S3 | You already run Kubernetes, or want render workers that scale |
-| **Lolly appliance** (preview) | openSUSE Leap 16.1 Immutable with K3s, Work and its own PostgreSQL, imported as your own machine image | You want a host that updates itself in snapshots and rolls back |
+| **Kubernetes** | The [Lolly Work chart](platform-deployment.md) on an EKS cluster, with RDS and S3 | You already run Kubernetes, or want render workers that scale |
+| **Lolly appliance** (preview) | openSUSE Leap 16.1 Immutable with K3s, Lolly Work and its own PostgreSQL, imported as your own machine image | You want a host that updates itself in snapshots and rolls back |
 
 Render output was byte-for-byte identical between the Kubernetes and appliance runs, and
-between the two VM shapes, although each pair ran different Work builds.
+between the two VM shapes, although each pair ran different Lolly Work builds.
 
 ## Point the AWS tools at Spinifex
 
@@ -76,7 +78,7 @@ the file.
    40 GB of disk. Allow TCP 80 and TCP and UDP 443 in its security group, and SSH only from
    your administrators' addresses.
 2. Install Docker.
-3. Follow [Install the ready-made package](ready-made-package.md) from **Write the
+3. Follow [Install the ready-made package](ready-made-package.md) from **Lolly Write the
    installation folder** onwards.
 
 ## One VM with managed services
@@ -98,7 +100,7 @@ Leave out `--publicly-accessible`. Spinifex refuses the flag, because the databa
 a private address in the VPC. In the re-run the database was available about four minutes
 after the request.
 
-Work connects with full certificate verification. Put the Spinifex certificate authority
+Lolly Work connects with full certificate verification. Put the Spinifex certificate authority
 where the server container can read the file, and set the connection to verify the host name:
 
 ```text
@@ -106,7 +108,7 @@ DATABASE_URL=postgres://lollyadmin:<password>@<database endpoint>:5432/lolly?ssl
 NODE_EXTRA_CA_CERTS=/app/spinifex-ca.pem
 ```
 
-In the first run, Work applied all 64 migrations on the managed database over TLS 1.3.
+In the first run, Lolly Work applied all 64 migrations on the managed database over TLS 1.3.
 
 **Files.** Create a bucket and a user that can reach that bucket only:
 
@@ -125,7 +127,7 @@ In the first run, Work applied all 64 migrations on the managed database over TL
 }
 ```
 
-Give Work the bucket in `instance.json` and the user's key as the secret
+Give Lolly Work the bucket in `instance.json` and the user's key as the secret
 `LW_BLOBS_S3_CREDENTIAL`, written `<access key id>:<secret access key>`:
 
 ```json
@@ -136,16 +138,16 @@ Give Work the bucket in `instance.json` and the user's key as the secret
 }
 ```
 
-On AWS, leave out `endpoint`. Work checks the store when it starts and logs what it found.
+On AWS, leave out `endpoint`. Lolly Work checks the store when it starts and logs what it found.
 Spinifex keeps an object's content type and metadata, so the log reads
 `the store keeps content types and metadata`. In the re-run, uploaded PNG and SVG files came
 back byte for byte with their own content types. For a store that drops them,
-[Stores that drop object metadata](configuration.md#blobs) explains how Work keeps them in
+[Stores that drop object metadata](configuration.md#blobs) explains how Lolly Work keeps them in
 records of its own.
 
 ## Put a load balancer in front
 
-An Application Load Balancer can end HTTPS for Work with a certificate from ACM. The re-run
+An Application Load Balancer can end HTTPS for Lolly Work with a certificate from ACM. The re-run
 put one in front of **One VM with managed services**.
 
 1. **Certificate.** Import your certificate, its key and its chain into ACM. The runs used
@@ -157,7 +159,7 @@ put one in front of **One VM with managed services**.
    ```
 
 2. **A plain HTTP port for the load balancer.** In the installation folder, add a site to the
-   `Caddyfile` that serves Work over HTTP on its own port, publish that port in `compose.yaml`
+   `Caddyfile` that serves Lolly Work over HTTP on its own port, publish that port in `compose.yaml`
    (`- 8080:8080` under the `caddy` service's `ports`), and allow port 8080 into the instance
    only from the load balancer's security group:
 
@@ -168,7 +170,7 @@ put one in front of **One VM with managed services**.
    ```
 
 3. **Load balancer, target group and listener.** A single subnet was accepted on the sandbox.
-   Check the target with Work's `/healthz`:
+   Check the target with Lolly Work's `/healthz`:
 
    ```bash
    aws elbv2 create-load-balancer --name lolly-work --type application \
@@ -182,7 +184,7 @@ put one in front of **One VM with managed services**.
    ```
 
 4. **The address.** Point your domain at the load balancer's DNS name, and use that domain as
-   Work's domain when you write the installation folder.
+   Lolly Work's domain when you write the installation folder.
 
 In the re-run the listener served TLS 1.3 and HTTP/2 with the imported certificate, and the
 target was healthy within seconds. Live collaboration worked through the load balancer: two
@@ -191,8 +193,8 @@ edit reached the other seat in 173 ms (median of 20, measured from outside the c
 the sockets stayed open through 90 idle seconds.
 
 **Client addresses.** The load balancer adds the client's address to `X-Forwarded-For`.
-With Caddy between the load balancer and Work, add the VPC range to Caddy's
-`trusted_proxies` and set `trustedProxyHops` to `2`, so Work's per-address
+With Caddy between the load balancer and Lolly Work, add the VPC range to Caddy's
+`trusted_proxies` and set `trustedProxyHops` to `2`, so Lolly Work's per-address
 [rate limits](configuration.md#ratelimit) apply to each person rather than to everyone at
 once.
 
@@ -235,7 +237,7 @@ the rate limit rather than the server.
 2. **Let the nodes reach the database.** Allow port 5432 into the database's security group
    from the node group's security group. Without that rule the chart's migration Job times
    out.
-3. **Choose where images come from.** Nodes with internet access pull Work's signed images
+3. **Choose where images come from.** Nodes with internet access pull Lolly Work's signed images
    from GitHub's registry by digest; nothing more is needed. To use your own ECR registry,
    copy each image together with its signature, then refer to it as
    `<repositoryUri>@<digest>`:
@@ -249,7 +251,7 @@ the rate limit rather than the server.
 
    `oras cp -r` copies the signature with the image, so `cosign verify` passes against your
    registry; `cosign copy` does not copy the current signature format, on AWS ECR either. The
-   copy of the Work server image took about 10 seconds and verified.
+   copy of the Lolly Work server image took about 10 seconds and verified.
 4. **Install the chart.** Follow [Install on Kubernetes](platform-deployment.md) with an
    external database. Mount the Spinifex certificate authority as described in the chart's
    [PostgreSQL certificate verification](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/POSTGRES-TLS.md),
@@ -259,20 +261,20 @@ the rate limit rather than the server.
    production mode with the image's demo pack, `catalogPublicationGeneration: 1` and a
    catalogue signing key in `LW_CATALOG_SIGNING_KEY` was ready 35 seconds after
    `helm install` started.
-5. **Check readiness.** `kubectl -n lolly get pods` should show Work ready. If Work is not
+5. **Check readiness.** `kubectl -n lolly get pods` should show Lolly Work ready. If Lolly Work is not
    ready, `/readyz` answers with `checks` that say which condition is holding readiness back.
 
 ## Lolly appliance (preview)
 
 The [Lolly appliance](https://github.com/lolly-tools/lolly-work/tree/main/deploy/appliance)
-is a disk image that boots into a working Work: openSUSE Leap 16.1 Immutable, K3s, Work in
+is a disk image that boots into a working Lolly Work: openSUSE Leap 16.1 Immutable, K3s, Lolly Work in
 production mode, its own PostgreSQL, HTTPS with the machine's own certificate and Cockpit for
 the host. It is built on the Leap 16.1 release candidate. Spinifex does not offer
 `ImportImage` or `ImportSnapshot`, so bring the image in through a volume and a snapshot:
 
 1. **Get the x86_64 raw disk.** Build `lolly-appliance-<version>-x86_64.raw` with the
    appliance's `build.sh` on an x86_64 Linux host, or take the compressed raw disk from
-   Work's CI build, and check it against `SHA256SUMS`.
+   Lolly Work's CI build, and check it against `SHA256SUMS`.
 2. **Write the disk onto a new 20 GiB volume** from any Linux instance in the same zone. On a
    new volume, `conv=sparse` skips the empty blocks; in the re-run that wrote the disk in under
    a minute, where writing every block ran at about 30 MB/s:
@@ -300,16 +302,16 @@ the host. It is built on the Leap 16.1 release candidate. Spinifex does not offe
 5. **Sign in.** `lolly-appliance owner-link` over SSH prints the owner's one-time setup link.
    Cockpit answers only from local networks, so reach port 9090 through an SSH tunnel.
 
-In the re-run, root SSH answered 61 seconds after launch and Work's `/readyz` about 150
-seconds after launch (138 seconds after the kernel started). After a reboot Work was ready 91
+In the re-run, root SSH answered 61 seconds after launch and Lolly Work's `/readyz` about 150
+seconds after launch (138 seconds after the kernel started). After a reboot Lolly Work was ready 91
 seconds after the kernel started. The machine used 1.5 GiB of its 3.8 GiB of memory. K3s set
 its container network's MTU to 1392 by itself, so the appliance needs no MTU setting. The
-first run built the same stack by hand from the plain Leap image and Work's
+first run built the same stack by hand from the plain Leap image and Lolly Work's
 [K3s kit](https://github.com/lolly-tools/lolly-work/tree/main/deploy/suse); the appliance
 now does those steps at first boot.
 
 ## Not tested yet
 
-The Chromium render worker and render workers scaling under load, several Work replicas,
+The Chromium render worker and render workers scaling under load, several Lolly Work replicas,
 restoring the managed database from a backup, certificates issued by ACM, network load
 balancers and GPU capacity.

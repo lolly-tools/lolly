@@ -3,7 +3,7 @@
 This page is for a platform team that runs [Kubewarden](https://www.kubewarden.io/)
 and wants admission policy for Lolly Work's pods. Lolly Work publishes what its pods
 need as data and a ready policy set built from published Kubewarden policies. Nothing
-is installed with the Helm chart: a cluster without Kubewarden runs Work unchanged, and
+is installed with the Helm chart: a cluster without Kubewarden runs Lolly Work unchanged, and
 the set applies only to namespaces you label. For running Kubewarden itself, and for
 rehearsing in audit mode first, see
 [WebAssembly and Kubewarden choices](wasm-deployment.md#evaluate-kubewarden).
@@ -12,13 +12,14 @@ Three files in the lolly-work repository make up the set:
 
 | File | What it holds |
 |---|---|
-| [`deploy/kubewarden/lolly-work-requirements.json`](https://github.com/lolly-tools/lolly-work/blob/main/deploy/kubewarden/lolly-work-requirements.json) | What Work's pods need, generated from the Helm chart's templates, the render worker's egress rule and the release workflow |
+| [`deploy/kubewarden/lolly-work-requirements.json`](https://github.com/lolly-tools/lolly-work/blob/main/deploy/kubewarden/lolly-work-requirements.json) | What Lolly Work's pods need, generated from the Helm chart's templates, the render worker's egress rule and the release workflow |
 | [`deploy/kubewarden/policies.yaml`](https://github.com/lolly-tools/lolly-work/blob/main/deploy/kubewarden/policies.yaml) | 13 `ClusterAdmissionPolicy` objects that admit those pods and refuse everything else |
 | [`deploy/kubewarden/options/render-worker-user-namespace.yaml`](https://github.com/lolly-tools/lolly-work/blob/main/deploy/kubewarden/options/render-worker-user-namespace.yaml) | Applied on top, only when the render worker runs in its own user namespace |
 
-## What Work's pods need
+<a id="what-work-s-pods-need"></a>
+## What Lolly Work's pods need
 
-Work has up to five kinds of container: the control plane, the migration Job, the
+Lolly Work has up to five kinds of container: the control plane, the migration Job, the
 optional render worker, and the optional copy steps that fill the pack and web app
 volumes from your images. With the chart's defaults, each of them:
 
@@ -37,7 +38,7 @@ volumes from your images. With the chart's defaults, each of them:
 
 Some chart values change that list:
 
-| Chart value | What changes |
+| Lolly Chart value | What changes |
 |---|---|
 | `renderWorker.seccompProfile: { type: Localhost, localhostProfile: lolly/chromium.json }` | The worker uses the [reviewed Chromium seccomp profile](https://github.com/lolly-tools/lolly-work/blob/main/deploy/seccomp/README.md) installed on the node |
 | `renderWorker.appArmorProfile: { type: Localhost, localhostProfile: lolly-chromium }` | On AppArmor nodes, the worker uses the [reviewed AppArmor profile](https://github.com/lolly-tools/lolly-work/blob/main/deploy/apparmor/README.md) |
@@ -89,7 +90,7 @@ The requirements file lists every range.
 | `lolly-work-readonly-root` | `readonly-root-filesystem-psp` v1.0.15 | A read-only root filesystem in every container |
 | `lolly-work-seccomp` | `seccomp-psp` v1.0.16 | `RuntimeDefault`, or `Localhost` with `lolly/chromium.json` |
 | `lolly-work-apparmor` | `cel-policy` v1.6.5 | Unset, `RuntimeDefault`, or `Localhost` with `lolly-chromium`, in the field and in the older annotation |
-| `lolly-work-image-sources` | `trusted-repos` v2.1.6 | Only the two Work images |
+| `lolly-work-image-sources` | `trusted-repos` v2.1.6 | Only the two Lolly Work images |
 | `lolly-work-image-signatures` | `verify-image-signatures` v1.0.13 | Both images carry a signature from the release workflow; each pod runs the digest that was verified |
 
 Every module is pinned by tag and digest in `policies.yaml`. Two policies mutate pods:
@@ -99,7 +100,7 @@ others only admit or refuse.
 
 ## Apply the set
 
-Label the namespace Work runs in, apply the policies and wait for them:
+Label the namespace Lolly Work runs in, apply the policies and wait for them:
 
 ```sh
 kubectl label namespace lolly-work lolly.tools/policy-set=lolly-work
@@ -128,7 +129,7 @@ With `--probes` it also sends nine copies of the control-plane pod, each breakin
 rule: a privileged container, an added capability, the root user, a writable root
 filesystem, the host network, a `hostPath` volume, an unconfined seccomp profile, an
 unsigned image and an image outside the list. It prints `ADMITTED` or `REFUSED` with
-the policy's message for each, and exits with status 1 when a Work pod is refused or
+the policy's message for each, and exits with status 1 when a Lolly Work pod is refused or
 a probe is admitted.
 
 ### Options
@@ -158,7 +159,7 @@ Qualifying the set turned up four things about the published policies that shape
   `refs/tags/v` therefore matches nothing, so the set uses
   `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/`.
 - `apparmor-psp` reads only the `container.apparmor.security.beta.kubernetes.io/`
-  annotation. Kubernetes 1.30 and later, and Work's chart, set
+  annotation. Kubernetes 1.30 and later, and Lolly Work's chart, set
   `securityContext.appArmorProfile`, which that policy admitted unchecked, so the set
   uses a CEL rule instead.
 - `user-group-psp` v1.1.5 with `validate_only: true` refuses `MustRunAs` even when the
@@ -171,7 +172,7 @@ Qualifying the set turned up four things about the published policies that shape
 ## Qualification
 
 On 2026-10-27 the set ran on Kubewarden 1.38.2 (`admission-controller` chart 6.1.0)
-with K3s 1.35.5 in k3d, on arm64. Work 1.1.2 and its render worker, pinned by digest,
+with K3s 1.35.5 in k3d, on arm64. Lolly Work 1.1.2 and its render worker, pinned by digest,
 were installed with PostgreSQL 17 in a separate namespace and the worker on the
 `Localhost` seccomp profile.
 
@@ -179,7 +180,7 @@ were installed with PostgreSQL 17 in a separate namespace and the worker on the
 |---|---|
 | Migration Job, control plane and render worker | Admitted; both Deployments became ready, and the worker's readiness requires a launched, sandboxed Chromium |
 | A privileged pod, created for real | Refused by `lolly-work-privileged` |
-| Work's own pod with the unsigned `lolly-work-server:0.2.0` image, created for real | Refused by `lolly-work-image-signatures` |
+| Lolly Work's own pod with the unsigned `lolly-work-server:0.2.0` image, created for real | Refused by `lolly-work-image-signatures` |
 | A signature from the release workflow, against a policy expecting another workflow | Refused |
 | The nine preflight probes | Each refused, by the policy for its rule |
 | An unreviewed AppArmor profile on the worker | Refused by `lolly-work-apparmor` |

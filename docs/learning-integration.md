@@ -121,7 +121,7 @@ A saved session can draw on work that asks for a credit, such as an emoji set un
 
 A future custom-platform adapter can reuse the module, compiled payload, completion reducer and player. It must define authenticated launch, learner and attempt identity, release pinning, server read/write semantics, conflict handling, retries, expiry and a verified finish acknowledgement. The receiving platform owns consent and retention rules for its records. Versioned capability negotiation must be additive; static export must continue to work without that adapter.
 
-Cross-origin hosting will need a separately versioned message protocol with an explicit allowed origin and validated messages. Do not use wildcard destinations for learner records or place permanent secrets in the package. Shared authorship, review and retained artifacts in Lolly Work are separate from learner delivery and do not require Work to become an LMS.
+Cross-origin hosting will need a separately versioned message protocol with an explicit allowed origin and validated messages. Do not use wildcard destinations for learner records or place permanent secrets in the package. Shared authorship, review and retained artifacts in Lolly Work are separate from learner delivery and do not require Lolly Work to become an LMS.
 
 ## Package verification
 

@@ -28,7 +28,7 @@ Skóre 75 u Content Credentials Lolly pokrývá podepisování na zařízení a 
 ## Sáhni po Lolly, když
 
 - Stejný druh souboru je potřeba pořád dokola: dlaždice akcí, jmenovky, certifikáty, upozornění, sociální karty
-- Mnoho souborů vzniká z jedné šablony a tabulky hodnot, v [Batch](/info/batch.html#make-many-versions-of-one-design) nebo CLI
+- Mnoho souborů vzniká z jedné šablony a tabulky hodnot, v [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) nebo CLI
 - Barvy, písmo a assety musí zůstat uvnitř designového systému, i na otevřeném plátně
 - Hotový návrh z Figmy, Penpotu, Illustratoru, InDesignu nebo PDF má být upravitelný a opakovatelný ([Import návrhu](/info/design-import.html))
 - Soubory musí vznikat na tvých vlastních zařízeních nebo serverech

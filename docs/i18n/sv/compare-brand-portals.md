@@ -6,7 +6,7 @@ Om din organisation förvarar sina godkända tillgångar i Bynder, Frontify, Mar
 
 ## Vad en etablerad portal gör bättre
 
-Etablerade portaler erbjuder hanterad hosting, support och omfattande arbetsflöden för tillgångshantering. [Frontifys enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombinerar till exempel tillgångsupptäckt, åtkomstkontroller, godkännandearbetsflöden och distribution. Lolly-stacken är yngre och dess godkännandekedjor är sekventiella snarare än godtyckligt förgrenade arbetsflöden. [Work status and roadmap](/info/work-status.html) registrerar dess driftgränser.
+Etablerade portaler erbjuder hanterad hosting, support och omfattande arbetsflöden för tillgångshantering. [Frontifys enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombinerar till exempel tillgångsupptäckt, åtkomstkontroller, godkännandearbetsflöden och distribution. Lolly-stacken är yngre och dess godkännandekedjor är sekventiella snarare än godtyckligt förgrenade arbetsflöden. [Lolly Work status and roadmap](/info/work-status.html) registrerar dess driftgränser.
 
 ## Där de överlappar
 

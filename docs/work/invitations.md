@@ -1,14 +1,14 @@
 # Invite people and handle requests
 
 This page is for admins and project managers who bring people into Lolly Work, and for
-anyone who answers a request to join or a request for access. Work sends no email: it gives
+anyone who answers a request to join or a request for access. Lolly Work sends no email: it gives
 you a personal link and a ready-to-send message, and you send them yourself by chat or email.
 
 ::: timeline
 - <!--i:usercheck--> **Invite an address.** From the console's People view for the whole workspace, or from a project's People panel in Lolly.
 - <!--i:link--> **Send the link.** Copy the invite link, or the ready-to-send message, and send it yourself.
 - <!--i:globe--> **They open the link.** The page says who invited them and to what. It also shows the address to sign in with.
-- <!--i:check--> **They sign in with that address.** Work accepts the invitation and opens the project, or the workspace.
+- <!--i:check--> **They sign in with that address.** Lolly Work accepts the invitation and opens the project, or the workspace.
 :::
 
 ## Two ways to invite
@@ -23,7 +23,7 @@ you a personal link and a ready-to-send message, and you send them yourself by c
 Both write one invitation per address. An address has at most one active invitation, and
 every project that invites it is added to that same invitation.
 
-**Which account holds an address.** Work treats an address as an account's only when the
+**Which account holds an address.** Lolly Work treats an address as an account's only when the
 account has shown it holds the address: a sign-in whose provider verified it, a source the operator
 vouches for (the reverse proxy, or a provider set to `emailVerification: "trusted"`), or an
 accepted invitation for that address. A project invite also counts an account provisioned with no

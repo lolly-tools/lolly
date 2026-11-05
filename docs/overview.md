@@ -72,7 +72,7 @@ The same tool at phone width needs no second layout: the controls become a sheet
 
 ![An audiogram on a 430px-wide screen: the controls sheet above, the finished square artwork below and the floating export pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-The web app also ships **Batch** (`#/batch`, `shells/web/src/pro/`), a spreadsheet-style grid that renders many rows at once across one or many tools; [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design) covers Batch. **Settings → Capabilities** maps everything the platform declares it can do.
+The web app also ships **Batch** (`#/batch`, `shells/web/src/pro/`), a spreadsheet-style grid that renders many rows at once across one or many tools; [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) covers Batch. **Settings → Capabilities** maps everything the platform declares it can do.
 
 ![Batch on a fresh install: one empty row waiting for a tool, with the spreadsheet surface and its Render button in place before any data arrives](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ An input declares a `type`: `text`, `longtext`, `number`, `boolean`, `color`, `s
 
 - **`asset`**, with `filter` and `allowUpload`, is the bridge to the asset system. `allowUpload: false` limits a slot to library assets, and user uploads share the library's `AssetRef` shape.
 - **`blocks`** is a repeating field group edited in a side panel, used by Meeting Planner, Wayfinding, Diagrams and others. Clicking a rendered block focuses its row.
-- **`file`** holds the user's own file in memory for on-device utilities such as Strip Hidden Data and Compress, and **`vector`** groups a fixed set of numbers into one control.
+- **`file`** holds the user's own file in memory for on-device utilities such as Lolly Strip Hidden Data and Compress, and **`vector`** groups a fixed set of numbers into one control.
 
 ### 9. Templates are logic-less
 
@@ -149,7 +149,7 @@ Templates are Handlebars, chosen so non-developers can write them: `{{x}}` escap
 
 ### 10. Tools compose tools
 
-A tool can embed another tool's render with no tool-to-tool imports; the engine resolves the composition. A manifest can declare `composes: [{ id, tool, inputs }]` and place the child with `{{asset <id>}}`, and a portable embed URL (`https://lolly.tools/tool/<id>.svg?…`) renders the child locally, which is how Design places a live QR code or chart. An SVG child stays vector in an SVG or PDF parent. Children are intermediates, never watermarked or stamped, and a shell that cannot render one leaves the slot empty while the parent still renders. [Composition and brand overlays](/info/tool-composition.html) has the details.
+A tool can embed another tool's render with no tool-to-tool imports; the engine resolves the composition. A manifest can declare `composes: [{ id, tool, inputs }]` and place the child with `{{asset <id>}}`, and a portable embed URL (`https://lolly.tools/tool/<id>.svg?…`) renders the child locally, which is how Lolly Design places a live QR code or chart. An SVG child stays vector in an SVG or PDF parent. Children are intermediates, never watermarked or stamped, and a shell that cannot render one leaves the slot empty while the parent still renders. [Composition and brand overlays](/info/tool-composition.html) has the details.
 
 ## What we chose not to do
 

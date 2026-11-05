@@ -17,7 +17,7 @@ Follow one campaign card through an organisation and three pairs of hands appear
 ![A designer sets the rules once in a tool; a developer runs it from a script and anyone can fill in its fields; both make finished files](/info/diagrams/concepts/asset-relay.svg)
 
 ::: timeline
-- <!--i:pentool--> **A designer sets the rules.** They lay out the card in Design with the brand's type and colours, then choose which fields stay open. They do this once, so nobody hand-localises the card again.
+- <!--i:pentool--> **A designer sets the rules.** They lay out the card in Lolly Design with the brand's type and colours, then choose which fields stay open. They do this once, so nobody hand-localises the card again.
 - <!--i:code--> **A developer scales the tool.** The same tool runs in a nightly script through the command line, so a fresh chart or a new language version arrives without anyone reopening the design.
 - <!--i:people--> **Anyone fills it in.** A sales rep on a plane, with no network and no design training, opens the tool and makes the card for tomorrow's meeting.
 :::
@@ -35,7 +35,7 @@ Every route runs the same engine on the same tool, so the file a script makes ma
 ![URL parameters and command-line arguments become the same input model, run through one shared runtime and export bridge](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **In the app, one at a time.** Open a tool, fill in the fields and press **Export**. [Make your first file](/info/make-something.html) walks you through one.
-- <!--i:layers--> **In the app, many at once.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) takes a pasted or imported table and renders one finished file per row.
+- <!--i:layers--> **In the app, many at once.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) takes a pasted or imported table and renders one finished file per row.
 - <!--i:cpu--> **From a script or an AI agent.** The [CLI](/info/cli.html) runs a tool headless, and the [MCP server](/info/mcp.html) lets an agent discover and run tools. A link to a tool carries its inputs too, so a link is a complete request.
 - <!--i:server--> **Through your organisation's server.** [Lolly Work](/info/organisation.html) renders on the server under your organisation's sign-in and tool policy, keeps jobs it can resume and holds the output for download or approved delivery.
 

@@ -12,7 +12,7 @@ Ekran główny: cztery karty u góry i pasek na dole. Otwarte narzędzie pokazuj
 
 Cztery karty biegną wzdłuż góry ekranu głównego: **Tools**, **Utilities**, **Assets** i **Projects**. Tools to to, czym tworzysz, Utilities to stanowiska do zadań takich jak konwersja, sprawdzanie lub porządkowanie pliku, Assets to Twoja biblioteka, a Projects przechowuje to, co zapisałeś.
 
-Pasek na dole zawiera **Open**, **Settings**, pole wyszukiwania, **Verify** i **What?**. Widać go w Tools, Utilities, Assets, Projects, Settings i w przewodnikach czytanych w aplikacji, a znika, gdy otwarte jest narzędzie. [Search](/info/search.html) z tego pola dociera do Twoich narzędzi, zapisanej pracy, zasobów i ustawień. [Ask Lolly](/info/ask.html) odpowiada na wpisane pytanie odpowiednią sekcją tych przewodników.
+Pasek na dole zawiera **Open**, **Settings**, pole wyszukiwania, **Verify** i **What?**. Widać go w Tools, Utilities, Assets, Projects, Settings i w przewodnikach czytanych w aplikacji, a znika, gdy otwarte jest narzędzie. [Lolly Search](/info/search.html) z tego pola dociera do Twoich narzędzi, zapisanej pracy, zasobów i ustawień. [Ask Lolly](/info/ask.html) odpowiada na wpisane pytanie odpowiednią sekcją tych przewodników.
 
 Kliknij kartę, aby zacząć coś nowego w tym narzędziu. Zapisana praca otwiera się ponownie z **Projects**.
 
@@ -269,7 +269,7 @@ Na wąskim ekranie układ staje się jedną kolumną:
 
 ## Settings, dźwięk i komfort
 
-**Settings** na dole ekranu głównego zawiera Twoje dane, systemy projektowe, dostępność, pamięć i pobrania offline. [Settings](/info/dashboard.html) mapuje każdą kartę.
+**Settings** na dole ekranu głównego zawiera Twoje dane, systemy projektowe, dostępność, pamięć i pobrania offline. [Lolly Settings](/info/dashboard.html) mapuje każdą kartę.
 
 - **Twoje dane i zdjęcie** wypełniają każde narzędzie zbudowane, by z nich korzystać, takie jak podpis e-mail lub identyfikator. [Profiles](/info/profile.html) je opisuje.
 - **Dostępność** ma cztery przełączniki komfortu: **Reduce motion**, **Hide colourful previews**, **High contrast** i **Large text**. Zmieniają aplikację wokół Twojej pracy, nigdy kanwę narzędzia ani eksport.

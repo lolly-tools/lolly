@@ -11,7 +11,7 @@ Assets are global, versioned and controlled by the design system's owner. The `t
 ::: cols
 ## From the app, with no Git
 
-Drag files onto [Assets](/info/using.html#assets-your-library) or the **Files** room in Design System Setup, and they are in every tool's picker at once, on your device. Most people only ever need this route.
+Drag files onto [Assets](/info/using.html#assets-your-library) or the **Files** room in Lolly Design System Setup, and they are in every tool's picker at once, on your device. Most people only ever need this route.
 
 ## Into a shared catalog
 
@@ -20,7 +20,7 @@ Add the file and an index entry to a brand pack's catalog, rebuild and deploy. E
 
 **Add from URL** takes the same files by web address: paste an image link, or a Lolly tool link that renders on your device, in the uploads section of Assets or a tool's asset picker, and it joins your uploads the same way. The web app may fetch only from its own origin, so a remote image is fetched for you by a small pass-through on the app's own origin; the desktop apps fetch it directly. Nothing is stored but the image, and the [privacy policy](/info/privacy.html) covers that in its own words.
 
-![The Files room in Design System Setup - a drop area and the assets already ingested, the no-Git route into the same picker every tool reads](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dcatalogue&width=1440&height=900&dpi=192&waitMs=2000&css=.start-head%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.be-cat&dark=1&filename=at2-brand-catalogue-tab)
+![The Files room in Lolly Design System Setup - a drop area and the assets already ingested, the no-Git route into the same picker every tool reads](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dcatalogue&width=1440&height=900&dpi=192&waitMs=2000&css=.start-head%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.be-cat&dark=1&filename=at2-brand-catalogue-tab)
 
 Files added in the app live under the `user/` namespace and do not enter a shared catalog by themselves. For an organisation-managed library, optional **Lolly Work** adds uploads, metadata, collections, versions and approval workflows, and can federate assets from existing storage or DAM services; its [catalog guide](/info/work-catalog.html) covers that, and provider-backed assets stay governed by their source. [Use Lolly at your organisation](/info/organisation.html) explains the difference from the person's side.
 
@@ -177,7 +177,7 @@ An icon tagged `themable` is an SVG that sets its two colours only through class
 
 - **Platform faces.** The shell serves SUSE and SUSE Mono (variable, upright and italic, SIL OFL 1.1) and Outfit from `/fonts/` on every brand pack (`shells/web/src/styles/fonts.css`). They are the defaults when a design system sets no font.
 - **A design system's fonts.** The tokens document gives the families in `font.brand` and `font.mono`, and the app and the community tools follow them through `var(--font-brand)` and `var(--font-mono)`. A brand pack can also ship font files under `catalog/fonts/`, beside `catalog/assets/`. Those are plain static files, so `index.json` does not version or checksum them the way it does catalog entries.
-- **A person's own fonts.** Font files dropped into the **Type** room in Design System Setup, and Google Fonts fetched once, stay on the device as user font assets.
+- **A person's own fonts.** Font files dropped into the **Type** room in Lolly Design System Setup, and Google Fonts fetched once, stay on the device as user font assets.
 
 When a vector export outlines its text (`host.text`), the shell looks for a font file in that order: the brand pack's own files, then the person's fonts, then the platform faces.
 
@@ -280,7 +280,7 @@ Serving a signed image, including a preview, OG card or documentation shot,
 must preserve its decoded bytes. Compression of a response is allowed when
 decompression returns those same bytes. Edge image optimisers, metadata stripping,
 resizing and transcoding must be off for these files. Verify a rendition's own
-credential and its parent in [Verify](/info/verify-yourself.html), then check that
+credential and its parent in [Lolly Verify](/info/verify-yourself.html), then check that
 an export using the asset still embeds the original.
 
 ## Shared libraries from Lolly Work
@@ -294,15 +294,15 @@ Selections survive page and filter changes, so the selection bar can include fil
 
 Shared source status explains pending syncs, cached listings and incomplete counts. The source facts panel shows the indexed version, sync status, mapped approval and availability windows, and unknown values stay unknown. Source approval does not grant permission for every channel or use, and access to files is checked when they are opened.
 
-Work must advertise support for the filters requested and provide the bounded startup inventory, so update Work before shipping this version of the app. An older server is refused with an update message rather than ignoring a filter silently.
+Lolly Work must advertise support for the filters requested and provide the bounded startup inventory, so update Lolly Work before shipping this version of the app. An older server is refused with an update message rather than ignoring a filter silently.
 :::
 
 ::: details Organisation metadata
-Organisation metadata belongs to Lolly Work. The asset inspector's **Organisation metadata** section shows the Work fields, kept as organisation overlays separate from the upstream source's facts. A curator with `catalog.edit` can change the configured text, select, date and URL fields; other members see the values without edit controls. These fields never change names, descriptions or tags in the upstream library, and Work owns the field definitions and audits every change.
+Organisation metadata belongs to Lolly Work. The asset inspector's **Organisation metadata** section shows the Lolly Work fields, kept as organisation overlays separate from the upstream source's facts. A curator with `catalog.edit` can change the configured text, select, date and URL fields; other members see the values without edit controls. These fields never change names, descriptions or tags in the upstream library, and Lolly Work owns the field definitions and audits every change.
 :::
 
 ::: details Read text into shared search
-For an image, SVG or PDF, choose **Read text**, then review the extracted words. Extraction runs on your device and uploads nothing. **Add reviewed text to shared search** sends the reviewed excerpt to Work. Only curators can publish or remove indexed text. The index accepts up to 8192 characters and records the selected file, the indexed revision, the extraction method, the reviewer and the time. It does not show that every page or every word was read.
+For an image, SVG or PDF, choose **Read text**, then review the extracted words. Extraction runs on your device and uploads nothing. **Add reviewed text to shared search** sends the reviewed excerpt to Lolly Work. Only curators can publish or remove indexed text. The index accepts up to 8192 characters and records the selected file, the indexed revision, the extraction method, the reviewer and the time. It does not show that every page or every word was read.
 
 When that source revision changes, its reviewed words stop matching shared search: open the current asset and read it again. Asset details show the stale state and offer **Remove indexed text**. Older text records without a source revision stay searchable for compatibility and are labelled unverified. A revision records the current catalog snapshot; upstream revocation and source changes become known through the existing sync and file-resolution paths.
 :::

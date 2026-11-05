@@ -132,9 +132,9 @@ Lolly में बड़े पैमाने पर काम के ती�
 ## तालिका एक दस्तावेज़ बनती है
 तालिका इनपुट वाला टूल, जैसे **Battlecards**, हर पंक्ति को एक पन्ना बनाता है। अपनी स्प्रेडशीट से तालिका पेस्ट करें और एक PDF पाएँ। स्प्रेडशीट में पंक्तियाँ ठीक करें और फिर पेस्ट करें।
 ## CSV हर पंक्ति के लिए एक फ़ाइल बनती है
-**Batch** (`#/batch`) CSV लेता है और हर पंक्ति के लिए एक एक्सपोर्ट रेंडर करता है: नेम बैज या प्रमाणपत्र, हर एक की एक फ़ाइल, ZIP में दी गई। देखें [Batch](/info/batch.html#make-many-versions-of-one-design)।
+**Batch** (`#/batch`) CSV लेता है और हर पंक्ति के लिए एक एक्सपोर्ट रेंडर करता है: नेम बैज या प्रमाणपत्र, हर एक की एक फ़ाइल, ZIP में दी गई। देखें [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)।
 ## कई डिज़ाइन को एक संपादन
-**Multi-edit** अलग-अलग डिज़ाइन में एक ही सुधार के लिए कई सहेजे सत्र साथ-साथ खोलता है। देखें [Multi-edit](/info/batch.html#edit-several-saved-designs-together)।
+**Multi-edit** अलग-अलग डिज़ाइन में एक ही सुधार के लिए कई सहेजे सत्र साथ-साथ खोलता है। देखें [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together)।
 :::
 
 **Projects** से **Render folder** फ़ोल्डर और उसके उप-फ़ोल्डरों के हर सहेजे सत्र को एक नेस्टेड ZIP के रूप में एक्सपोर्ट करता है, और **Render selection** किसी भी बहु-चयन के लिए वही करता है; एक सहेजा सत्र अपनी फ़ाइल में रेंडर होता है। सहेजे सत्र को Projects से टूल लिंक के रूप में फिर साझा भी किया जा सकता है, जो उसे उन्हीं सेटिंग के साथ दोबारा खोलता है।
@@ -170,7 +170,7 @@ SVG एक्सपोर्ट करने वाले ज़्यादा�
 | पूरा डिज़ाइन | Assets पैनल में दोबारा उपयोग होने वाला कंपोनेंट |
 | जटिल चित्रण या लाइव कैनवास | अकेले इमेज के रूप में एम्बेड, उसके आसपास की संपादन योग्य सामग्री अछूती |
 
-Design से हर फ़्रेम Penpot बोर्ड बनता है। design system के रंग और टाइपोग्राफ़ी Assets पैनल में और उसका पूरा टोकन सेट Tokens पैनल में आते हैं। वहाँ से Penpot अपनी प्रति रखता है: Penpot में संपादित टोकन [Design System Setup](/info/brand-studio.html) में इम्पोर्ट से वापस आता है।
+Design से हर फ़्रेम Penpot बोर्ड बनता है। design system के रंग और टाइपोग्राफ़ी Assets पैनल में और उसका पूरा टोकन सेट Tokens पैनल में आते हैं। वहाँ से Penpot अपनी प्रति रखता है: Penpot में संपादित टोकन [Lolly Design System Setup](/info/brand-studio.html) में इम्पोर्ट से वापस आता है।
 
 ![एक्सपोर्ट पैनल जिसमें Penpot चुना गया है: .penpot फ़ाइल, और डाउनलोड के बगल में Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

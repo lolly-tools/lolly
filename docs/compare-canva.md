@@ -14,9 +14,9 @@ Both let someone start from a template and produce a finished graphic without be
 
 ## How Lolly does the overlapping job
 
-A Lolly tool encodes the changes people may make, and the same tool runs in the browser, the desktop app or the CLI. A layout made on the Design canvas can become a [tool with rules](/info/create-a-tool.html), and one tool can make many files from a table of values.
+A Lolly tool encodes the changes people may make, and the same tool runs in the browser, the desktop app or the CLI. A layout made on the Lolly Design canvas can become a [tool with rules](/info/create-a-tool.html), and one tool can make many files from a table of values.
 
-![Design's free canvas, where the colours, faces and assets on offer are the design system's own](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Lolly Design's free canvas, where the colours, faces and assets on offer are the design system's own](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Standalone Lolly keeps making and exporting on the device, with no account, and works offline once its assets are saved. Two people can edit live in a [private collab](/info/collaborate.html), device to device. Content Credentials are on by default for supported exports, and you can turn them off.
 

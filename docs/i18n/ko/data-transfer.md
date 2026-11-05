@@ -152,7 +152,7 @@ Lolly는 개인 라이브러리를 기기에 보관해요. 백업 번들은 그 
 
 이 번들은 기기의 개인 라이브러리를 백업해요. **Lolly Work** 인스턴스의 백업이 아니에요. 조직 계정, 접근 정책, 공유 프로젝트, 카탈로그 버전, 승인, 렌더 작업, 감사 기록은 해당 서비스가 보관해요. 공유 작업에 다시 접근하려면 다시 연결하고 로그인하세요. 개인 번들을 가져와도 그 접근 권한은 부여되지 않아요.
 
-운영자는 Lolly Work의 자체 가이드인 [백업과 복원](/info/work-operations.html#backup-and-restore)과 [Work 저장소와 데이터 수명 주기](/info/work-data-lifecycle.html)로 서버 데이터를 백업, 보관, 삭제해요. 기기를 지우거나 내보내도 그런 서버 작업은 일어나지 않아요.
+운영자는 Lolly Work의 자체 가이드인 [백업과 복원](/info/work-operations.html#backup-and-restore)과 [Lolly Work 저장소와 데이터 수명 주기](/info/work-data-lifecycle.html)로 서버 데이터를 백업, 보관, 삭제해요. 기기를 지우거나 내보내도 그런 서버 작업은 일어나지 않아요.
 
 ## 셸 간
 

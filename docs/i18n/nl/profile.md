@@ -14,13 +14,13 @@ Je profiel bevat ook wat je opbouwt terwijl je werkt: opgeslagen sessies, geüpl
 | **Headshot** | Een optionele foto, bijgesneden tot een vierkant en bewaard als lokale afbeelding, voor tools zoals e-mailhandtekeningen, citaatkaarten en organigrammen. |
 | **Use my details to create** | Eén opt-in-schakelaar (na het aanzetten staat er **Using my details**). Ze bepaalt of je gegevens meereizen als auteursvermelding in geëxporteerde bestanden en bij Batch-runs. Ze heeft geen invloed op vooraf invullen; zie [Hoe tools je profiel gebruiken](#how-tools-use-your-profile). |
 | **Preferences** | Je thema, je colourway in elk design system, je toegankelijkheidsinstellingen en welke delen van de app je aanzette in **Feature flags**. |
-| **Your work** | Opgeslagen sessies met hun miniaturen, geordend in [Projects](/info/find-your-work.html), je geüploade afbeeldingen en je lokale activiteitsstatistieken. |
+| **Your work** | Opgeslagen sessies met hun miniaturen, geordend in [Lolly Projects](/info/find-your-work.html), je geüploade afbeeldingen en je lokale activiteitsstatistieken. |
 
 Niets ervan is verplicht. Een leeg profiel werkt; vul alleen in wat je typwerk bespaart.
 
 ![Settings op het tabblad Preferences: de instellingenbalk, en Your details met de schakelaar Use my details to create en de velden voor naam, contact en locatie](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) brengt al het andere onder Preferences in kaart, van uiterlijk en emoji tot opslag en offline downloads.
+[Lolly Settings](/info/dashboard.html) brengt al het andere onder Preferences in kaart, van uiterlijk en emoji tot opslag en offline downloads.
 
 ## Jij, een team of een rol
 
@@ -83,7 +83,7 @@ Toolmakers: zie [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) en [`hos
 Drie dingen staan in Settings dicht bij elkaar en zijn makkelijk te verwarren:
 
 - <!--i:people--> **Profile** - jij, je team of de rol waarin je zit: naam, contactgegevens, pasfoto en opgeslagen werk. Persoonlijk, bewaard op het apparaat en draagbaar als bestand.
-- <!--i:palette--> **Design system** - het merk: kleuren, lettertypen en instellingen waarmee elke tool rendert. Gedeeld en consistent in plaats van persoonlijk; zie [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - het merk: kleuren, lettertypen en instellingen waarmee elke tool rendert. Gedeeld en consistent in plaats van persoonlijk; zie [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - wat de app kan: de functies en tools die voor jou beschikbaar zijn.
 
 Een profiel verandert van wie een bestand is; het design system verandert hoe het bestand eruitziet; capabilities zijn wat je kunt maken.

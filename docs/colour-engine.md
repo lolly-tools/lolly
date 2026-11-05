@@ -35,7 +35,7 @@ The output is narrower than the input, because a file has to be readable by any 
 | Print formats | **CMYK** against a named press condition |
 | The export panel's HDR card | **Rec.2100 PQ** |
 
-A wide-gamut colour that reaches an ordinary export is mapped into sRGB rather than mislabelled. A Design document set to **Wide colour / HDR** works differently: it keeps its wider swatches and float pixels through its own raster and video exports, as [Wide colour and HDR editing](/info/hdr-editing.html) describes.
+A wide-gamut colour that reaches an ordinary export is mapped into sRGB rather than mislabelled. A Lolly Design document set to **Wide colour / HDR** works differently: it keeps its wider swatches and float pixels through its own raster and video exports, as [Wide colour and HDR editing](/info/hdr-editing.html) describes.
 
 A gradient authored in OKLab is baked into plain sRGB stops on the way out. Extra stops are inserted only where sRGB would visibly drift from the perceptual curve, because an SVG `<linearGradient>` and a PDF axial shading have no setting for the interpolation space. One authored value gives the same gradient in the preview, the SVG and the PDF.
 

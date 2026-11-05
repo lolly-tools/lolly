@@ -8,7 +8,7 @@ Aie sous la main l'adresse web que le code doit ouvrir, commençant par `https:/
 
 ## Créer le code
 
-1. Ouvre [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Les contrôles se trouvent à côté de l'aperçu, ou au-dessus sur un téléphone ; ce que montre l'aperçu est ce que sera le fichier.
+1. Ouvre [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Les contrôles se trouvent à côté de l'aperçu, ou au-dessus sur un téléphone ; ce que montre l'aperçu est ce que sera le fichier.
 2. Dans **URL**, remplace toute l'adresse d'exemple par la tienne. L'aperçu change au fur et à mesure que tu tapes.
 3. Pour reprendre tes propres couleurs, règle **Module colour** et **Background**. Garde un fort contraste entre les deux, sinon les téléphones ont du mal à lire le code.
 4. **Quiet zone**, sous **Modules**, commence à 4. Garde-le à 4 ou plus : cette marge unie est ce qu'une caméra de téléphone recherche.
@@ -38,8 +38,8 @@ Le travail enregistré reste sur cet appareil, dans le navigateur ou l'applicati
 
 ## Autres premiers projets
 
-- [Audiogram](/#/tool/audiogram) transforme une note vocale en vidéo : une forme d'onde animée, tes mots sur la couverture, tes couleurs. Dépose l'enregistrement dans **Audio**, ajoute un **Titre**, puis exporte en **MP4**.
-- [Filter](/#/tool/filter) traite une photo pour une affiche : points de trame imprimés, deux couleurs plates ou quelques blocs de ton. Choisis la photo sous **Image**, choisis un **Effet**, puis exporte en **PNG**, ou en **SVG** sur un effet marqué *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) transforme une note vocale en vidéo : une forme d'onde animée, tes mots sur la couverture, tes couleurs. Dépose l'enregistrement dans **Audio**, ajoute un **Titre**, puis exporte en **MP4**.
+- [Lolly Filter](/#/tool/filter) traite une photo pour une affiche : points de trame imprimés, deux couleurs plates ou quelques blocs de ton. Choisis la photo sous **Image**, choisis un **Effet**, puis exporte en **PNG**, ou en **SVG** sur un effet marqué *vector*.
 
 ## Où aller ensuite
 

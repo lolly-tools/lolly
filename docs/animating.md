@@ -5,7 +5,7 @@ Make a headline drift in, lift a card off the page or fly a camera across a post
 Everything here runs on your device. Nothing plays on its own: the preview moves when you press play or drag the playhead.
 
 ::: timeline
-- <!--i:pentool--> Select a box on Design's canvas.
+- <!--i:pentool--> Select a box on Lolly Design's canvas.
 - <!--i:clock--> Open the timeline, park the playhead at 0 s and choose **+Keyframe** under **More tools**, or press `Shift+K`.
 - <!--i:clock--> Move the playhead to 2 s.
 - <!--i:layers--> Drag the box to its new place and press **+Keyframe** again. Press play: the box moves between the two poses.
@@ -118,7 +118,7 @@ The Keyframes popup carries the same edits for the keyboard and screen readers. 
 
 ## Key one property at a time
 
-Every field in the Keyframes popup ends in a small diamond, and so do **Fill**, **Stroke**, **Stroke width** and **Corner radius** in the Design inspector while the timeline is open. The diamond keys that property alone, at the playhead:
+Every field in the Keyframes popup ends in a small diamond, and so do **Fill**, **Stroke**, **Stroke width** and **Corner radius** in the Lolly Design inspector while the timeline is open. The diamond keys that property alone, at the playhead:
 
 - **Hollow and grey**: the property is not animated.
 - **Hollow and coloured**: the property is animated, but not at this instant.
@@ -128,7 +128,7 @@ Press a hollow diamond and the property's current value is written into the keyf
 
 Because each property interpolates only between the keyframes that hold it, a colour can change over the first second while a position moves over three, each with its own curve.
 
-In the Design inspector, a property with no keyframes is an ordinary field: change the fill and the box changes. Once the property is animated, the playhead decides. Parked on a keyframe, an edit writes that keyframe; anywhere else the field shows the value the keyframes give at that moment and refuses an edit, because no keyframe there would hold the change.
+In the Lolly Design inspector, a property with no keyframes is an ordinary field: change the fill and the box changes. Once the property is animated, the playhead decides. Parked on a keyframe, an edit writes that keyframe; anywhere else the field shows the value the keyframes give at that moment and refuses an edit, because no keyframe there would hold the change.
 
 ### Which strokes can be animated
 
@@ -249,7 +249,7 @@ Between its entrance and its exit a box usually sits still. **While on screen** 
 
 ## Start from a motion starter
 
-Design's template picker has a **Motion** collection of finished loops to adapt: **Editorial loop** (readable type and a geometric mark with gentle movement), **Feature cards** (three grouped cards assemble, hold and return) and **Photo title** (a graded [Darkroom](/info/darkroom.html) image beside editable type). Each is a 6 second loop with 4 and 8 second variants. Replace the artwork, or the photo with your own upload or an edited Darkroom share link, and keep the timing.
+Lolly Design's template picker has a **Motion** collection of finished loops to adapt: **Editorial loop** (readable type and a geometric mark with gentle movement), **Feature cards** (three grouped cards assemble, hold and return) and **Photo title** (a graded [Lolly Darkroom](/info/darkroom.html) image beside editable type). Each is a 6 second loop with 4 and 8 second variants. Replace the artwork, or the photo with your own upload or an edited Lolly Darkroom share link, and keep the timing.
 
 ## Exporting a move
 

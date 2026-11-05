@@ -1,6 +1,6 @@
 # Presenting with camera
 
-You are giving a talk on a video call and want your audience to see your slides with your face, your logo and a name caption, not a cluttered screen share. **Present with camera** puts your camera, a logo and a lower third over a Design deck or the Countdown tool. The audience gets one clean 16:9 picture, and a separate private window holds your controls and speaker notes.
+You are giving a talk on a video call and want your audience to see your slides with your face, your logo and a name caption, not a cluttered screen share. **Present with camera** puts your camera, a logo and a lower third over a Lolly Design deck or the Countdown tool. The audience gets one clean 16:9 picture, and a separate private window holds your controls and speaker notes.
 
 Presentation media stays on your device until you share it in a call or choose to record. No Lolly Work server is needed.
 
@@ -11,7 +11,7 @@ The audience window is what you share in the call; the private window stays on y
 ## Start a presentation
 
 ::: timeline
-- <!--i:monitor--> Open your Design deck, open **Present options** and choose **Present with camera**. In Countdown, choose **Present with camera** above the tool.
+- <!--i:monitor--> Open your Lolly Design deck, open **Present options** and choose **Present with camera**. In Countdown, choose **Present with camera** above the tool.
 - <!--i:layers--> Allow the private controls window to open. The original window becomes the audience output. Keep both windows open.
 - <!--i:clock--> In **Camera**, choose a **Camera device**, then **Start camera**, and allow camera access if asked. The camera stays off until you choose Start camera.
 - <!--i:sliders--> Set up the layout and graphics below, then choose **Apply scene**.
@@ -72,7 +72,7 @@ Scenes store the layout, camera framing, logo reference and caption text, but no
 
 ## During the talk
 
-The private window shows the current slide, the next slide and speaker notes when the deck has them. Countdown shows its duration, start, pause and reset controls instead.
+The private window shows the current slide, the next slide and speaker notes when the deck has them. Lolly Countdown shows its duration, start, pause and reset controls instead.
 
 | Action | Control |
 |---|---|
@@ -99,7 +99,7 @@ A take stops at 30 minutes or 512 MiB, whichever comes first. Lolly uses tempora
 ::: details Use OBS Studio as a virtual camera (experimental)
 Lolly does not install a virtual camera of its own, and a trial from OBS Studio into a call has not been completed for Lolly yet.
 
-Create a separate OBS Studio scene for the Lolly audience window and frame just its 16:9 picture. On macOS, the **macOS Screen Capture** source offers a **Window Capture** method; select the audience window and check that the private controls and window borders are left out. See [OBS's macOS capture guide](https://obsproject.com/kb/macos-screen-capture-source).
+Create a separate OBS Studio scene for the Lolly audience window and frame just its 16:9 picture. On macOS, the **macOS Lolly Screen Capture** source offers a **Window Capture** method; select the audience window and check that the private controls and window borders are left out. See [OBS's macOS capture guide](https://obsproject.com/kb/macos-screen-capture-source).
 
 Select that scene in OBS's virtual-camera settings and choose **Start Virtual Camera**. Choose the OBS camera in the call application, keep its microphone selected separately, and check the received picture, including text, crop and mirroring, before you present. OBS describes its output choices in the [Virtual Camera guide](https://obsproject.com/kb/virtual-camera-guide).
 :::

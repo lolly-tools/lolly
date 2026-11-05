@@ -28,7 +28,7 @@ Lolly کی لائیو collaboration میں دو ڈیوائس کے براہ را�
 ## Lolly کی طرف جائیں جب
 
 - ایک ہی قسم کی فائل بار بار چاہیے: ایونٹ ٹائلیں، بیجز، سرٹیفکیٹس، الرٹس، سوشل کارڈز
-- بہت سی فائلیں ایک ٹیمپلیٹ اور قدروں کے جدول سے آتی ہیں، [Batch](/info/batch.html#make-many-versions-of-one-design) یا CLI میں
+- بہت سی فائلیں ایک ٹیمپلیٹ اور قدروں کے جدول سے آتی ہیں، [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) یا CLI میں
 - رنگ، ٹائپ اور ایسیٹس ڈیزائن سسٹم کے اندر رہیں، کھلے کینوس پر بھی
 - مکمل Figma، Penpot، Illustrator، InDesign یا PDF ڈیزائن قابل ترمیم اور قابل تکرار بننا چاہیے ([Import a design](/info/design-import.html))
 - فائلیں آپ کی اپنی ڈیوائسز یا سرورز پر بنیں

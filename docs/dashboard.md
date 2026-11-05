@@ -18,12 +18,12 @@ Preferences is one long page with a **settings rail** down the side and a **Sear
 
 - <!--i:usercheck--> **Your details** - your name, contact details and headshot, and the **Use my details to create** switch. [Profiles](/info/profile.html) explains how tools use them.
 - <!--i:seal--> **Content Credentials** - the optional verified identity that signs your exports. See [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - switch, add, hide or remove design systems. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) covers each action.
+- <!--i:palette--> **Design systems** - switch, add, hide or remove design systems. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) covers each action.
 - <!--i:moon--> **Appearance** - the theme (Light, Dark or Brand, which paints the app in your palette), **Your colourway** when the design system offers more than one ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) and **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - the set your emoji are drawn from when you start something new, with its artwork licence, and how strongly your palette recolours them (**Off**, **Subtle**, **Strong**, **Full**, **Mono** or **Duotone**). **Keep skin tones and flags** leaves those in their own colours. Work you already made keeps the set it was made with.
 - <!--i:eyeoff--> **Accessibility** - four comfort switches, plus Sound and Neurospicy Mode. See [Accessibility](#accessibility).
 - <!--i:link--> **Connected services** - storage you connect, such as Dropbox, Google Drive, OneDrive, Nextcloud or S3, and **Sync across devices**. See [Sync your devices](/info/sync.html).
-- <!--i:globe--> **Trusted sites** - the sites a Design web-page box or a Sandbox demo may contact without asking, and, where the server offers it, **Allow pages from any site**. The [Privacy Policy](/info/privacy.html) lists what each request sends.
+- <!--i:globe--> **Trusted sites** - the sites a Lolly Design web-page box or a Lolly Sandbox demo may contact without asking, and, where the server offers it, **Allow pages from any site**. The [Privacy Policy](/info/privacy.html) lists what each request sends.
 - <!--i:download--> **Your renders** - **Save my renders to my library** keeps a copy of each image, audio clip and video you download in Assets, under a Renders tag.
 - <!--i:database--> **Storage** - what Lolly keeps on this device, and the buttons that clear or carry your data. See [Storage](#storage).
 - <!--i:cpu--> **Available offline** - download what you need before you lose the connection. See [Available offline](#available-offline).
@@ -69,7 +69,7 @@ Under the meter:
 Lolly caches screens as you visit them, which only covers where you have already been. **Available offline** is for the trip you can see coming: download the parts you will need and watch one progress bar, and everything you took keeps working with no connection.
 
 - <!--i:monitor--> **App, catalogue and guides** - **The app** (every view, editor and font, including screens you have never opened), the **Catalogue** (all of it, or **Choose by tag**) and **Guides & docs** (this documentation in your language, screenshots included).
-- <!--i:cpu--> **AI models** - each on-device model on its own row with its size: Speech voices, Upscaling models, Background removal, Text recognition, Verify deep scan, Durable credential, Rewriter model, Ask matching model, AI text detector and Singing voices. A model over 50 MB is marked **large download**.
+- <!--i:cpu--> **AI models** - each on-device model on its own row with its size: Speech voices, Upscaling models, Background removal, Text recognition, Lolly Verify deep scan, Durable credential, Rewriter model, Ask matching model, AI text detector and Singing voices. A model over 50 MB is marked **large download**.
 - <!--i:wrench--> **Tools** - each tool downloads on its own, or **Download all** takes every tool. A tick means ready offline.
 
 **Download everything** at the top takes the app, the catalogue scope you chose, the guides and all the tools. Tick **Include all the AI models** to add the models, or download a model by its own row; the singing voices are only ever downloaded from their own row. An organisation's policy can turn AI downloads off, and the rows then tell you.
@@ -107,7 +107,7 @@ The tab opens on a cover painted in the system's own colours, with its logo, its
 - <!--i:sliders--> **Tokens** - radius, spacing, effects and gradients.
 - <!--i:document--> **Print & CMYK** - the colours locked to an exact ink, and the press conditions a CMYK PDF can declare.
 
-Switching is the only change this tab makes. You edit a design system in [Design System Setup](/info/brand-studio.html) at `#/start`, which the cover links to. A read-only system says so on its cover; local systems you create stay editable. `/b` and `/brand` are shortlinks straight to this tab.
+Switching is the only change this tab makes. You edit a design system in [Lolly Design System Setup](/info/brand-studio.html) at `#/start`, which the cover links to. A read-only system says so on its cover; local systems you create stay editable. `/b` and `/brand` are shortlinks straight to this tab.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Then your own side: **Your activity** counts what you have made on this device, 
 
 ## Deep links
 
-Every tab and section of Settings has its own link, which you can bookmark or paste. [Search](/info/search.html) points its **Settings** results at the same registry Settings renders from, so a section cannot be renamed out from under a search result.
+Every tab and section of Settings has its own link, which you can bookmark or paste. [Lolly Search](/info/search.html) points its **Settings** results at the same registry Settings renders from, so a section cannot be renamed out from under a search result.
 
 ::: details Every form of link
 
@@ -139,4 +139,4 @@ A deep link switches to the tab that owns the target, opens any group it is fold
 
 ---
 
-**Related:** [Profiles](/info/profile.html) for your details and the contexts you create in. [Design System Setup](/info/brand-studio.html) for editing what the Design system tab shows. [Find and recover your work](/info/find-your-work.html) for storage, backups and moving devices.
+**Related:** [Profiles](/info/profile.html) for your details and the contexts you create in. [Lolly Design System Setup](/info/brand-studio.html) for editing what the Design system tab shows. [Find and recover your work](/info/find-your-work.html) for storage, backups and moving devices.

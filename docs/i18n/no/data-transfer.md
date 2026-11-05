@@ -152,7 +152,7 @@ Lagringsmåleren viser den samme delingen. Lagrede økter, My images og File res
 
 Denne bundlen sikkerhetskopierer enhetens personlige bibliotek. Den er ikke en sikkerhetskopi av en **Lolly Work**-instans: organisasjonskontoer, tilgangspolicyer, delte prosjekter, katalogversjoner, godkjenninger, gjengivelsesjobber og revisjonsposter holdes av den tjenesten. Koble til på nytt og logg på for å få tilgang til delt arbeid igjen; å importere en personlig bundle gir ikke den tilgangen.
 
-Driftsansvarlige sikkerhetskopierer, beholder og sletter serverdata med Lolly Works egne veiledninger: [Backup and restore](/info/work-operations.html#backup-and-restore) og [Work storage and data lifecycle](/info/work-data-lifecycle.html). Å tømme eller eksportere en enhet gjør ingen av disse serveroperasjonene.
+Driftsansvarlige sikkerhetskopierer, beholder og sletter serverdata med Lolly Works egne veiledninger: [Backup and restore](/info/work-operations.html#backup-and-restore) og [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Å tømme eller eksportere en enhet gjør ingen av disse serveroperasjonene.
 
 ## På tvers av skall
 

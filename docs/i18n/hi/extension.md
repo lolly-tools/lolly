@@ -2,9 +2,9 @@
 
 वेब पेज दूसरी वेबसाइट के पिक्सेल नहीं पढ़ सकता, इसलिए Lolly वेब ऐप को पेज का स्क्रीनशॉट लेने के लिए मदद चाहिए। Chromium-आधारित ब्राउज़र (Chrome, Edge, Brave, Arc या Opera, Chrome 111 से) में मुफ़्त **Lolly URL Screenshot** एक्सटेंशन वह मदद देता है, उसी कैप्चर से जो डेस्कटॉप ऐप उपयोग करता है। इसके इंस्टॉल होने पर:
 
-- **[URL Screenshot](/t/url-shot)** आपके बनाए पेज को फ़ाइल के रूप में सहेजता है;
+- **[Lolly URL Screenshot](/t/url-shot)** आपके बनाए पेज को फ़ाइल के रूप में सहेजता है;
 - इमेज स्लॉट में पेस्ट किया वेब पता **Screenshot this page** से उस पेज का स्क्रीनशॉट बन सकता है;
-- [Design System Setup](/info/brand-studio.html) में **Website** स्रोत design system शुरू करने के लिए एक पेज पढ़ सकता है।
+- [Lolly Design System Setup](/info/brand-studio.html) में **Website** स्रोत design system शुरू करने के लिए एक पेज पढ़ सकता है।
 
 आप हर अनुरोध स्वीकृत करते हैं, और डेस्कटॉप ऐप वही काम एक्सटेंशन के बिना करता है।
 

@@ -60,4 +60,4 @@ Tvá otázka nikdy neopustí zařízení. Párování běží lokálně nad soub
 
 ---
 
-**Související:** [Hledání](/info/search.html) pro lištu, která předává otázky. [Používání Lolly](/info/using.html) pro zbytek aplikace. [Settings](/info/dashboard.html#available-offline) pro stažení dokumentace offline jako první.
+**Související:** [Hledání](/info/search.html) pro lištu, která předává otázky. [Používání Lolly](/info/using.html) pro zbytek aplikace. [Lolly Settings](/info/dashboard.html#available-offline) pro stažení dokumentace offline jako první.

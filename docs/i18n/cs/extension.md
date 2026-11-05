@@ -2,9 +2,9 @@
 
 Webová stránka nemůže číst pixely jiného webu, takže webová aplikace Lolly potřebuje pomoc, aby stránku zachytila. V prohlížeči založeném na Chromiu (Chrome, Edge, Brave, Arc nebo Opera, od Chrome 111) tuto pomoc poskytuje bezplatné rozšíření **Lolly URL Screenshot**, které používá stejné zachycení jako desktopová aplikace. Když je nainstalováno:
 
-- **[URL Screenshot](/t/url-shot)** uloží stránku, kterou jsi složil, jako soubor;
+- **[Lolly URL Screenshot](/t/url-shot)** uloží stránku, kterou jsi složil, jako soubor;
 - webová adresa vložená do slotu obrázku se může stát snímkem té stránky pomocí **Screenshot this page**;
-- zdroj **Website** v [Design System Setup](/info/brand-studio.html) umí přečíst jednu stránku pro založení designového systému.
+- zdroj **Website** v [Lolly Design System Setup](/info/brand-studio.html) umí přečíst jednu stránku pro založení designového systému.
 
 Každý požadavek schvaluješ ty a desktopová aplikace dělá stejné úlohy bez rozšíření.
 

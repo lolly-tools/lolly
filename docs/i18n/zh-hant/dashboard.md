@@ -18,7 +18,7 @@ Preferences 是一個長頁面，側邊有**設定列**，列上方有 **Search 
 
 - <!--i:usercheck--> **Your details** - 你的姓名、聯絡資料與大頭照，以及 **Use my details to create** 開關。[個人資料](/info/profile.html)說明工具如何使用它們。
 - <!--i:seal--> **Content Credentials** - 為你的匯出簽署的選用已驗證身分。請見 [Content Credentials](/info/content-credentials-identity.html)。
-- <!--i:palette--> **Design systems** - 切換、新增、隱藏或移除設計系統。[Design System Setup](/info/brand-studio.html#manage-your-design-systems) 涵蓋每個動作。
+- <!--i:palette--> **Design systems** - 切換、新增、隱藏或移除設計系統。[Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) 涵蓋每個動作。
 - <!--i:moon--> **Appearance** - 主題（Light、Dark 或 Brand，後者以你的調色盤繪製應用程式），當設計系統提供不只一種時的 **Your colourway**（[讓配色方案成為你的](/info/colourways.html#make-a-colourway-your-own)），以及 **Interface follows the design system**。
 - <!--i:sparkle--> **Emoji** - 你開始新作品時用來繪製表情符號的組合及其圖稿授權，以及你的調色盤為它們重新著色的強度（**Off**、**Subtle**、**Strong**、**Full**、**Mono** 或 **Duotone**）。**Keep skin tones and flags** 讓這些保持自己的顏色。你已經做好的作品會保留製作時所用的組合。
 - <!--i:eyeoff--> **Accessibility** - 四個舒適度開關，加上 Sound 與 Neurospicy Mode。請見[無障礙](#accessibility)。
@@ -107,7 +107,7 @@ Lolly 會在你造訪畫面時快取它們，但這只涵蓋你已去過的地�
 - <!--i:sliders--> **Tokens** - 圓角、間距、效果與漸層。
 - <!--i:document--> **Print & CMYK** - 鎖定為確切油墨的色彩，以及 CMYK PDF 可以宣告的印刷條件。
 
-切換是這個分頁唯一做的更動。你在 `#/start` 的 [Design System Setup](/info/brand-studio.html) 編輯設計系統，封面上有連結。唯讀的系統會在封面上說明；你建立的本機系統則保持可編輯。`/b` 與 `/brand` 是直達這個分頁的短連結。
+切換是這個分頁唯一做的更動。你在 `#/start` 的 [Lolly Design System Setup](/info/brand-studio.html) 編輯設計系統，封面上有連結。唯讀的系統會在封面上說明；你建立的本機系統則保持可編輯。`/b` 與 `/brand` 是直達這個分頁的短連結。
 
 ## Capabilities
 
@@ -139,4 +139,4 @@ Settings 的每個分頁和區段都有自己的連結，你可以加入書籤�
 
 ---
 
-**相關：**[個人資料](/info/profile.html)，了解你的詳細資料與你創作時的情境。[Design System Setup](/info/brand-studio.html)，編輯 Design system 分頁所顯示的內容。[尋找並復原你的作品](/info/find-your-work.html)，了解儲存空間、備份與搬移裝置。
+**相關：**[個人資料](/info/profile.html)，了解你的詳細資料與你創作時的情境。[Lolly Design System Setup](/info/brand-studio.html)，編輯 Design system 分頁所顯示的內容。[尋找並復原你的作品](/info/find-your-work.html)，了解儲存空間、備份與搬移裝置。

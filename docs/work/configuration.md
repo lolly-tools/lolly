@@ -1,6 +1,8 @@
-# Work instance configuration
+# Lolly Work instance configuration
 
-A Work server takes its settings from three places. Knowing which one holds a setting tells you
+<a id="work-instance-configuration"></a>
+
+A Lolly Work server takes its settings from three places. Knowing which one holds a setting tells you
 whether changing it needs a restart, and whether the value is safe to keep in version control.
 
 ::: figure work-configuration-layers
@@ -21,7 +23,7 @@ The file and the environment are read when the server starts; governance changes
 
 ![Feature-flag governance in the console: each flag's default state and whether people may change it](shots/feature-flags.svg)
 
-Unset keys take the defaults on this page. `instance.example.json` in the Work repository is a
+Unset keys take the defaults on this page. `instance.example.json` in the Lolly Work repository is a
 working starting point, and `server/src/config/instance.ts` is the authority.
 
 ## A starting file
@@ -144,7 +146,7 @@ acceptance checks and lifecycle procedures.
 |---|---|---|
 | `tokenEndpointAuthMethod` | `client_secret_post` with a secret, otherwise `none` | `client_secret_basic`, `client_secret_post` or `none`; must match provider registration and advertised metadata |
 | `signingAlgorithm` | `RS256` | Exactly one of `RS256`, `ES256`, `PS256`; other algorithms are refused |
-| `trustedAudiences` | absent | Explicit additional audience strings; the Work client must still be present and `azp`, when present, must match the Work client |
+| `trustedAudiences` | absent | Explicit additional audience strings; the Lolly Work client must still be present and `azp`, when present, must match the Lolly Work client |
 | `assurance.acrValues` | absent | Nonempty string list; returned `acr` must equal one entry |
 | `assurance.amrValues` | absent | Nonempty string list; returned `amr` must include every entry |
 | `assurance.maxAgeSeconds` | absent | Integer 0-86400; requires `auth_time` within this age, with sixty seconds of tolerance |
@@ -207,9 +209,9 @@ by job. Lolly reads the limits it needs from org-config.
 | `ai.capabilities` | `[]` | explicit capability list; required and nonempty when enabling AI. Unknown or duplicate capabilities are rejected. |
 
 A shorter `sessionTtlHours` bounds token lifetime while a directory change has not yet reached
-Work. With `sessionMaxHours` set, a cookie in use is renewed up to that cap, but each renewal
+Lolly Work. With `sessionMaxHours` set, a cookie in use is renewed up to that cap, but each renewal
 checks the account, its session epoch and admission again first, so a person who left the lists
-stops at the end of their current cookie. Once Work receives a group or role change,
+stops at the end of their current cookie. Once Lolly Work receives a group or role change,
 authorization uses the live record on each request. Disabling an account or bumping its session
 epoch revokes existing member tokens on their next authenticated request. Token expiry does not
 replace the offboarding integration.
@@ -395,7 +397,7 @@ continues to authenticate the control plane. TLS certificates and trust mounts
 need their own deployment qualification.
 
 Every tool in the committed `packs/demo` ships hooks, so `instance.example.json` and
-`values-eval.yaml` both set `allowHooksInFastPath: true`: that pack is curated in the Work
+`values-eval.yaml` both set `allowHooksInFastPath: true`: that pack is curated in the Lolly Work
 repository end to end. Point `instance.pack` at a pack you do not fully control and set it back
 to `false`, with a Chromium worker for the hooked tools.
 
@@ -496,16 +498,16 @@ thresholds and alerts administrators when one is reached: see
 
 | Driver | How a blob is written and read | Limits |
 |---|---|---|
-| `pg` | One `bytea` value per blob. Every write and read holds the whole blob in Work's memory, and a read briefly needs several times the blob's size because PostgreSQL returns `bytea` as hex text. | At most 500 MiB per blob, because PostgreSQL could store a larger value but not return a blob of that size. Blobs share the database's storage, backups and a pool of four connections, so large files slow the database for everyone. |
+| `pg` | One `bytea` value per blob. Every write and read holds the whole blob in Lolly Work's memory, and a read briefly needs several times the blob's size because PostgreSQL returns `bytea` as hex text. | At most 500 MiB per blob, because PostgreSQL could store a larger value but not return a blob of that size. Blobs share the database's storage, backups and a pool of four connections, so large files slow the database for everyone. |
 | `s3` | Streams in 8 MiB parts. A blob that fits in one part is a single `PUT`; a larger one is a multipart upload. A failed or refused upload is aborted, and the object already under that key stays until an upload completes. Reads stream from the store. | 10,000 parts per upload. When the caller gives the length in advance, parts grow past 8 MiB so the blob still fits. A part that fails with a server error or a dropped connection is retried twice. |
 
 ::: details How S3 uploads are checked, and the permissions to grant
 Each S3 request signs the SHA-256 of its own body, so the store refuses a part that changed in
-transit. Work also computes the SHA-256 of the whole blob as the parts go out, and records it on
+transit. Lolly Work also computes the SHA-256 of the whole blob as the parts go out, and records it on
 the object as `x-amz-meta-sha256` when it is known before the object is created: always for a
 single `PUT` or a blob already in memory, and for a streamed multipart upload whose caller
-declared the digest, which Work checks before completing the upload. Objects written by earlier
-versions have no recorded digest. For those, Work reports the S3 ETag, which is not a content
+declared the digest, which Lolly Work checks before completing the upload. Objects written by earlier
+versions have no recorded digest. For those, Lolly Work reports the S3 ETag, which is not a content
 digest, and reads the bytes back wherever it needs the SHA-256.
 
 Every caller in this release hands the driver a file it already holds in memory, within that
@@ -525,7 +527,7 @@ for them, until they are removed.
 
 Some S3-compatible stores keep neither an object's content type nor its `x-amz-meta-*` headers,
 and serve every object as `application/octet-stream`; Predastore releases before v1.21 are one
-example. Browsers then refuse to display uploaded images. When it starts, Work writes a small
+example. Browsers then refuse to display uploaded images. When it starts, Lolly Work writes a small
 object under the prefix (`<prefix>/.lolly-probe-<uuid>`), reads the object back, deletes the probe
 and logs the result; if that probe cannot run, the first write tries again. On such a store each blob gets a small JSON record
 beside the blob, at `<prefix>/.lolly-meta/<blobId>`, holding its size, SHA-256, content type and ETag.
@@ -592,10 +594,10 @@ instance without one sends no purge tags and makes no provider calls.
 | `providers[].publicOnly` | `false` | the hostname answers public reads only; the instance's own hostnames cannot be `publicOnly` |
 | `providers[].credentialRef` | *unset* | environment variable holding the API key or token; unset means a sealed credential stored with `lw edge credential` |
 | `providers[].options` | - | Bunny: `pullZoneId`, `regions` (`["europe"]` or absent). Cloudflare: `zoneId`, `plan` (`free` default, `pro`, `business`, `enterprise`) |
-| `providers[].jurisdiction` | - | facts you state about the provider; they fill what Work cannot know and never contradict what it does know |
+| `providers[].jurisdiction` | - | facts you state about the provider; they fill what Lolly Work cannot know and never contradict what it does know |
 
 A configuration that breaks the jurisdiction rule, carries an unknown key or marks the
-instance's own hostname `publicOnly` stops the server at boot. See [Put a CDN in front of Work](edge-cdn.md)
+instance's own hostname `publicOnly` stops the server at boot. See [Put a CDN in front of Lolly Work](edge-cdn.md)
 for the rule, the settings that must stay off on each provider, purges and the probe.
 
 ## `submit`
@@ -712,12 +714,12 @@ see [account lifecycle operations](account-lifecycle.md#siem-projection-format).
 
 ## `featureFlags`
 
-Unset by default. Work's own governance then decides every feature flag
+Unset by default. Lolly Work's own governance then decides every feature flag
 ([feature flags](governance.md#feature-flags)), and nothing about flags leaves the instance.
 `ofrep` connects your organisation's flag service through the OpenFeature Remote Evaluation
 Protocol (OFREP). That service then decides the default of the flags it lists, person by
-person, and Work's own settings become the fallback. The web app still reads one resolved
-value per flag from Work and never contacts the flag service, so the app needs no vendor
+person, and Lolly Work's own settings become the fallback. The web app still reads one resolved
+value per flag from Lolly Work and never contacts the flag service, so the app needs no vendor
 software.
 
 ```json
@@ -734,37 +736,37 @@ software.
 
 | Key | Default | What it does |
 |---|---|---|
-| `url` | required | the service's base URL; Work posts to `<url>/ofrep/v1/evaluate/flags/<key>`. HTTPS in production; plain HTTP only to a loopback address on an evaluation instance |
+| `url` | required | the service's base URL; Lolly Work posts to `<url>/ofrep/v1/evaluate/flags/<key>`. HTTPS in production; plain HTTP only to a loopback address on an evaluation instance |
 | `flags` | every flag but `ai` | the governed flag ids the service decides. Managed AI is never offered to a flag service |
-| `keyPrefix` | none | text put before the flag id to form the service's flag key: with `lolly.`, Work asks for `lolly.export-preflight` |
+| `keyPrefix` | none | text put before the flag id to form the service's flag key: with `lolly.`, Lolly Work asks for `lolly.export-preflight` |
 | `timeoutMs` | `500` | time allowed for one request, from 50 to 5000 milliseconds |
 | `cacheSeconds` | `30` | how long one answer is reused for the same flag, groups and role, from 1 to 3600 |
-| `contextGroups` | every group | when set, only these group names are sent; a person's other groups stay in Work |
-| `targetingKey` | `"none"` | `"cohort"` adds a `targetingKey` for a service that requires one; **What Work sends** explains the key |
+| `contextGroups` | every group | when set, only these group names are sent; a person's other groups stay in Lolly Work |
+| `targetingKey` | `"none"` | `"cohort"` adds a `targetingKey` for a service that requires one; **What Lolly Work sends** explains the key |
 | `auth` | `"bearer"` | how `LW_OFREP_TOKEN` travels: `Authorization: Bearer`, or `X-API-Key` with `"api-key"` |
 
-An unknown key, a flag id Work does not govern or a value out of range stops the server at
+An unknown key, a flag id Lolly Work does not govern or a value out of range stops the server at
 start, so a typo cannot leave a flag quietly ungoverned.
 
-**What Work sends.** One `POST` per flag, with this body and nothing else about the person:
+**What Lolly Work sends.** One `POST` per flag, with this body and nothing else about the person:
 
 ```json
 { "context": { "groups": ["design", "pilot"], "role": "author" } }
 ```
 
 `groups` are the person's groups, sorted and narrowed by `contextGroups`; `role` is their
-Work role. No email address, name, account id or session travels. Some services refuse an
-evaluation without a `targetingKey`. With `targetingKey: "cohort"`, Work sends a key made
+Lolly Work role. No email address, name, account id or session travels. Some services refuse an
+evaluation without a `targetingKey`. With `targetingKey: "cohort"`, Lolly Work sends a key made
 from a hash of the same groups and role. Everyone with that combination shares the key, so
 the key identifies no person, and a percentage rollout splits people by combination rather
 than one by one.
 
-**When the service fails.** Each of these leaves the flag on Work's own setting: a timeout,
+**When the service fails.** Each of these leaves the flag on Lolly Work's own setting: a timeout,
 a refused connection, an error status, an unknown flag, a refused credential, an answer that
-is not `true` or `false`, and an answer that cannot be read. Work's setting means the
+is not `true` or `false`, and an answer that cannot be read. Lolly Work's setting means the
 person's group rules, then the setting for everyone, then the app's built-in default. An
-answer with no value, or with reason `DISABLED`, also keeps Work's setting without counting
-as an error. After a timeout, a connection failure or a server error Work asks again in 5
+answer with no value, or with reason `DISABLED`, also keeps Lolly Work's setting without counting
+as an error. After a timeout, a connection failure or a server error Lolly Work asks again in 5
 seconds, or after the service's `Retry-After` up to one minute; every other answer is reused
 for `cacheSeconds`. `lw_ofrep_evaluation_errors_total{flag,reason}` counts each fallback and
 `lw_ofrep_requests_total{flag}` counts requests ([monitoring](operations.md#monitoring)). The
@@ -772,7 +774,7 @@ console's Feature flags page shows the service, the flags it decides and its las
 
 **Which services.** flagd and GO Feature Flag support OFREP. For another service, check that
 the service, or a relay in front of the service, answers
-`POST /ofrep/v1/evaluate/flags/{key}`. The Work test suite includes a check against flagd
+`POST /ofrep/v1/evaluate/flags/{key}`. The Lolly Work test suite includes a check against flagd
 0.18.1.
 
 ## `catalogProviders`
@@ -857,7 +859,7 @@ sessions die on restart. In production (`NODE_ENV=production`) their absence thr
 
 ::: details Optional media proofs
 Optional media proofs come from the mounted publisher's verified catalog
-envelope. Original bytes must match its full SHA-256 digest before Work signs a
+envelope. Original bytes must match its full SHA-256 digest before Lolly Work signs a
 caller-scoped resource map. Visible tool and asset entries and the verified,
 deterministically filtered preview bundle select that map. Hidden entries never
 enter its bundle or tool file map; guest tool metadata is limited to the shared

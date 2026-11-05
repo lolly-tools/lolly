@@ -8,7 +8,7 @@ Ha webbadressen koden ska öppna redo, som börjar med `https://`.
 
 ## Skapa koden
 
-1. Öppna [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Kontrollerna sitter bredvid förhandsgranskningen, eller ovanför den på en telefon; det förhandsgranskningen visar är det filen blir.
+1. Öppna [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Kontrollerna sitter bredvid förhandsgranskningen, eller ovanför den på en telefon; det förhandsgranskningen visar är det filen blir.
 2. I **URL**, ersätt exempeladressen med din egen, i sin helhet. Förhandsgranskningen ändras medan du skriver.
 3. För att matcha dina egna färger, ställ in **Module colour** och **Bakgrund**. Håll en stark kontrast mellan dem, annars har telefoner svårt att läsa koden.
 4. **Quiet zone**, under **Modules**, börjar på 4. Håll den på 4 eller mer: den tomma marginalen är det en telefonkamera letar efter.
@@ -38,8 +38,8 @@ Sparat arbete finns kvar på den här enheten, i webbläsaren eller appen du anv
 
 ## Andra första projekt
 
-- [Audiogram](/#/tool/audiogram) gör om en röstanteckning till en video: en rörlig vågform, dina ord på omslaget, dina färger. Släpp inspelningen i **Ljud**, lägg till en **Titel**, exportera sedan **MP4**.
-- [Filter](/#/tool/filter) behandlar ett foto för en affisch: tryckta halvtonspunkter, två plana färger eller några få tonblock. Välj fotot under **Bild**, välj en **Effekt**, exportera sedan **PNG**, eller **SVG** för en effekt märkt *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) gör om en röstanteckning till en video: en rörlig vågform, dina ord på omslaget, dina färger. Släpp inspelningen i **Ljud**, lägg till en **Titel**, exportera sedan **MP4**.
+- [Lolly Filter](/#/tool/filter) behandlar ett foto för en affisch: tryckta halvtonspunkter, två plana färger eller några få tonblock. Välj fotot under **Bild**, välj en **Effekt**, exportera sedan **PNG**, eller **SVG** för en effekt märkt *vector*.
 
 ## Nästa
 

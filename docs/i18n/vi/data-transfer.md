@@ -152,7 +152,7 @@ Khôi phục không phải một giao dịch duy nhất qua các kho hồ sơ, p
 
 Gói này sao lưu thư viện cá nhân của thiết bị. Nó không phải bản sao lưu của một phiên bản **Lolly Work**: tài khoản tổ chức, chính sách truy cập, dự án chung, phiên bản danh mục, phê duyệt, tác vụ kết xuất và bản ghi kiểm toán do dịch vụ đó giữ. Hãy kết nối lại và đăng nhập để lấy lại quyền truy cập công việc chung; nhập một gói cá nhân không cấp quyền đó.
 
-Đơn vị vận hành sao lưu, lưu giữ và xóa dữ liệu máy chủ bằng các hướng dẫn riêng của Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) và [Work storage and data lifecycle](/info/work-data-lifecycle.html). Xóa hoặc xuất một thiết bị không thực hiện thao tác máy chủ nào trong số đó.
+Đơn vị vận hành sao lưu, lưu giữ và xóa dữ liệu máy chủ bằng các hướng dẫn riêng của Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) và [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Xóa hoặc xuất một thiết bị không thực hiện thao tác máy chủ nào trong số đó.
 
 ## Qua các shell
 

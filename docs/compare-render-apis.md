@@ -16,7 +16,7 @@ Both turn a template plus inputs into media. Lolly takes the inputs from a [link
 
 The same tool renders on a laptop, in a CI job or on a server, from the same inputs. Local and CI rendering need no service at all.
 
-![Batch export settings: file name, default format, units, DPI and the number of rows to render](/info/shots/use-batch-toolbar.svg)
+![Lolly Batch export settings: file name, default format, units, DPI and the number of rows to render](/info/shots/use-batch-toolbar.svg)
 
 On a server, [Lolly Work](/info/compare.html#what-runs-where) runs the Lolly engine behind an API and applies tool visibility and input policies. Its [recoverable render service](/info/work-renders.html) supports single jobs and batches, idempotent submission, status, bounded retries, cancellation and retained outputs, and interrupted work resumes after a restart when persistent storage is configured.
 

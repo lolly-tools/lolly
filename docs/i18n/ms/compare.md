@@ -44,7 +44,7 @@ Penggunaan kendiri mengekalkan fail pada peranti. Memilih projek dikongsi, colla
 
 Had ini terpakai pada setiap halaman dalam set ini, jadi ia dinyatakan sekali di sini:
 
-- **Collab kerja berjalan pada satu nod pelayan hari ini.** Skala dan sejarah operasinya berbeza daripada produk terhos yang sudah lama bertapak. [Work status and roadmap](/info/work-status.html) merekodkan had semasa.
+- **Collab kerja berjalan pada satu nod pelayan hari ini.** Skala dan sejarah operasinya berbeza daripada produk terhos yang sudah lama bertapak. [Lolly Work status and roadmap](/info/work-status.html) merekodkan had semasa.
 - **Tapak di [lolly.work](https://lolly.work) ialah kotak pasir demo.** Penempatan organisasi tahan lama memerlukan storan berterusan dan pengendali; [Install Lolly Work](/info/work-install.html) meliputi kedua-duanya.
 - **Tiada caj lesen perisian bagi setiap tempat duduk** untuk Lolly atau Lolly Work yang dihos sendiri. Pengehosan, storan dan operasi masih berkos.
 - **Tandatangan bukan penandatangan yang dipercayai.** Pengesah mesti mempercayai sijil yang menandatangani fail sebelum ia menunjukkan penandatangan sebagai dipercayai; [Content Credentials Identity](/info/content-credentials-identity.html) menerangkan caranya.

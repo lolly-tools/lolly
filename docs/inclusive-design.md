@@ -1,4 +1,6 @@
-# Inclusive Design
+# Inclusive Lolly Design
+
+<a id="inclusive-design"></a>
 
 *Last updated: 23 October 2026*
 

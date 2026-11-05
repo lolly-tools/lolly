@@ -14,14 +14,16 @@ test('every moved section bookmark has a real destination heading and a no-scrip
     const html = movedSectionLinks(source,slug=>`/info/${slug}.html`);
     for (const [anchor,target] of Object.entries(moves)) {
       const md = readFileSync(new URL(`../docs/${SOURCES.get(target.slug) ?? `${target.slug}.md`}`,import.meta.url),'utf8');
-      let fenced = false; const headings:string[]=[];
+      let fenced = false; const headings:string[]=[]; const aliases:string[]=[];
       for (const line of md.split('\n')) {
         if (/^\s*```/.test(line)) fenced=!fenced;
         if (fenced) continue;
+        const alias = /^\s*<a id="([a-z0-9][a-z0-9-]*)"><\/a>\s*$/.exec(line);
+        if (alias) aliases.push(alias[1]!);
         const heading = /^#{1,4} (.*)$/.exec(line);
         if (heading) headings.push(headingId(heading[1]!,headings.length));
       }
-      assert.ok(headings.includes(target.anchor),`${source}#${anchor} points to a missing heading in ${target.slug}`);
+      assert.ok(headings.includes(target.anchor) || aliases.includes(target.anchor),`${source}#${anchor} points to a missing section in ${target.slug}`);
       assert.ok(html.includes(`id="${anchor}"`),`${source}#${anchor} has no fallback anchor`);
       assert.ok(html.includes(`href="/info/${target.slug}.html#${target.anchor}"`));
     }

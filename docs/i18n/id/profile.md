@@ -14,13 +14,13 @@ Profil Anda juga menyimpan apa yang Anda kumpulkan saat bekerja: sesi tersimpan,
 | **Headshot** | Foto opsional, dipotong persegi dan disimpan sebagai gambar lokal, untuk alat seperti tanda tangan email, kartu kutipan, dan bagan organisasi. |
 | **Use my details to create** | Satu sakelar ikut serta (berbunyi **Using my details** setelah dinyalakan). Ia menentukan apakah detail Anda ikut sebagai kredit pembuat dalam file ekspor dan pada proses Batch. Ia tidak memengaruhi pengisian otomatis; lihat [How tools use your profile](#how-tools-use-your-profile). |
 | **Preferences** | Tema, colourway Anda di setiap design system, pengaturan aksesibilitas Anda, dan bagian aplikasi yang Anda aktifkan di **Feature flags**. |
-| **Your work** | Sesi tersimpan beserta thumbnail-nya, diatur di [Projects](/info/find-your-work.html), gambar yang Anda unggah, dan statistik aktivitas lokal Anda. |
+| **Your work** | Sesi tersimpan beserta thumbnail-nya, diatur di [Lolly Projects](/info/find-your-work.html), gambar yang Anda unggah, dan statistik aktivitas lokal Anda. |
 
 Tidak ada yang wajib. Profil kosong berfungsi; isi hanya apa yang menghemat ketikan Anda.
 
 ![Settings pada tab Preferences: rel pengaturan, dan Your details dengan sakelar Use my details to create serta field nama, kontak, dan lokasi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) memetakan semua hal lain di bawah Preferences, dari tampilan dan emoji hingga penyimpanan dan unduhan offline.
+[Lolly Settings](/info/dashboard.html) memetakan semua hal lain di bawah Preferences, dari tampilan dan emoji hingga penyimpanan dan unduhan offline.
 
 ## Anda, tim, atau peran
 
@@ -83,7 +83,7 @@ Pembuat alat: lihat [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) dan 
 Tiga hal berdekatan di Settings dan mudah tertukar:
 
 - <!--i:people--> **Profil** - Anda, tim Anda, atau peran yang sedang Anda jalani: nama, kontak, foto profil, dan pekerjaan tersimpan. Pribadi, disimpan di perangkat, dan portabel sebagai file.
-- <!--i:palette--> **Design system** - brand: warna, font, dan pengaturan yang dipakai setiap alat untuk merender. Bersama dan konsisten, bukan pribadi; lihat [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - brand: warna, font, dan pengaturan yang dipakai setiap alat untuk merender. Bersama dan konsisten, bukan pribadi; lihat [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - apa yang dapat dilakukan aplikasi: fitur dan alat yang tersedia bagi Anda.
 
 Profil mengubah dari siapa sebuah file; design system mengubah tampilan file; capabilities adalah apa yang dapat Anda buat.

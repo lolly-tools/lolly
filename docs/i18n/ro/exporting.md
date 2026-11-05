@@ -132,9 +132,9 @@ Lolly are trei moduri de a lucra în volum, fiecare pentru altă sarcină:
 ## Un tabel devine un document
 Un instrument cu o intrare de tip tabel, precum **Battlecards**, transformă fiecare rând într-o pagină. Lipește un tabel din foaia ta de calcul și primești un PDF. Corectează rânduri în foaia de calcul și lipește din nou.
 ## Un CSV devine un fișier pe rând
-**Batch** (`#/batch`) ia un CSV și randează un export pentru fiecare rând: ecusoane sau certificate, câte un fișier, livrate într-un ZIP. Vezi [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) ia un CSV și randează un export pentru fiecare rând: ecusoane sau certificate, câte un fișier, livrate într-un ZIP. Vezi [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Mai multe designuri primesc o editare
-**Multi-edit** deschide mai multe sesiuni salvate unul lângă altul pentru același retuș pe designuri diferite. Vezi [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** deschide mai multe sesiuni salvate unul lângă altul pentru același retuș pe designuri diferite. Vezi [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Din **Projects**, **Render folder** exportă fiecare sesiune salvată dintr-un dosar și din subdosarele lui ca un singur ZIP imbricat, iar **Render selection** face același lucru pentru orice selecție multiplă; o sesiune salvată se randează în propriul fișier. O sesiune salvată poate fi partajată din nou ca link de instrument din Projects, care o redeschide cu aceleași setări.
@@ -170,7 +170,7 @@ Cele mai multe instrumente care exportă SVG exportă și un **fișier Penpot** 
 | Întregul design | O componentă reutilizabilă în panoul Assets |
 | O ilustrație complexă sau un canvas viu | Încorporat singur ca imagine, cu conținutul editabil din jur neatins |
 
-Din Design, fiecare cadru devine o placă Penpot. Culorile și tipografiile sistemului de design ajung în panoul Assets, iar setul lui complet de tokenuri în panoul Tokens. De acolo Penpot își păstrează propria copie: un token editat în Penpot revine prin importul din [Design System Setup](/info/brand-studio.html).
+Din Design, fiecare cadru devine o placă Penpot. Culorile și tipografiile sistemului de design ajung în panoul Assets, iar setul lui complet de tokenuri în panoul Tokens. De acolo Penpot își păstrează propria copie: un token editat în Penpot revine prin importul din [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Panoul de export cu Penpot selectat: fișierul .penpot, și Send to Penpot lângă butonul de descărcare](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

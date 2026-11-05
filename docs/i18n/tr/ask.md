@@ -2,7 +2,7 @@
 
 Bir soru yaz; Ask Lolly, bu kılavuzların onu kapsayan bölümüyle, kelimesi kelimesine, geldiği sayfa belirtilerek ve doğrudan o bölüme giden bir **Open in docs** bağlantısıyla yanıtlar. Hiçbir şey üretilmez: yanıt cihazında alınır, alıntılanır ve kaynağı belirtilir.
 
-Alıntılanan bölümün altında, aynı soruyla eşleşen uygulama içi yerler durur: bir araç, bir yardımcı araç, kayıtlı bir proje, bir katalog varlığı, bir ayar veya uygulamanın bir sayfası. Her satır yalnızca gezinir. Bir yanıttaki hiçbir şey bir ayarı değiştirmez, bir dosya açmaz veya senin adına işlem yapmaz; [Search](/info/search.html) de aynı kuralı izler.
+Alıntılanan bölümün altında, aynı soruyla eşleşen uygulama içi yerler durur: bir araç, bir yardımcı araç, kayıtlı bir proje, bir katalog varlığı, bir ayar veya uygulamanın bir sayfası. Her satır yalnızca gezinir. Bir yanıttaki hiçbir şey bir ayarı değiştirmez, bir dosya açmaz veya senin adına işlem yapmaz; [Lolly Search](/info/search.html) de aynı kuralı izler.
 
 ## Soru sorma
 
@@ -60,4 +60,4 @@ Sorun cihazından hiç çıkmaz. Eşleştirme, adla getirilen dosyalara karşı 
 
 ---
 
-**İlgili:** soruları devreden çubuk için [Search](/info/search.html). Uygulamanın geri kalanı için [Using Lolly](/info/using.html). Önce belgelemeyi çevrimdışı almak için [Settings](/info/dashboard.html#available-offline).
+**İlgili:** soruları devreden çubuk için [Lolly Search](/info/search.html). Uygulamanın geri kalanı için [Using Lolly](/info/using.html). Önce belgelemeyi çevrimdışı almak için [Lolly Settings](/info/dashboard.html#available-offline).

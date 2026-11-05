@@ -13,7 +13,7 @@ What Lolly generates says so. Synthetic speech, upscaling, kept rewordings and s
 
 ## Verified
 
-Drop any file on [Verify](/#/verify) and its declarations come back on your device: the verdict, the history and a GEN AI flag.
+Drop any file on [Lolly Verify](/#/verify) and its declarations come back on your device: the verdict, the history and a GEN AI flag.
 :::
 
 How each one works, and why removing a background is not marked while upscaling is, is on [Generated once, rendered the same](/info/ai-features.html).

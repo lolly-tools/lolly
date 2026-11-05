@@ -152,7 +152,7 @@ El medidor de almacenamiento muestra la misma división. Saved sessions, My imag
 
 Este paquete hace copia de seguridad de la biblioteca personal del dispositivo. No es una copia de seguridad de una instancia de **Lolly Work**: las cuentas de la organización, las políticas de acceso, los proyectos compartidos, las versiones del catálogo, las aprobaciones, los trabajos de renderizado y los registros de auditoría los guarda ese servicio. Reconéctate e inicia sesión para recuperar el acceso al trabajo compartido; importar un paquete personal no concede ese acceso.
 
-Los operadores hacen copia de seguridad, conservan y borran los datos del servidor con las guías propias de Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) y [Work storage and data lifecycle](/info/work-data-lifecycle.html). Borrar o exportar un dispositivo no hace ninguna de esas operaciones del servidor.
+Los operadores hacen copia de seguridad, conservan y borran los datos del servidor con las guías propias de Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) y [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Borrar o exportar un dispositivo no hace ninguna de esas operaciones del servidor.
 
 ## Entre shells
 

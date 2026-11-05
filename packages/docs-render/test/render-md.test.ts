@@ -39,6 +39,17 @@ test('a minimal document renders to the exact golden string', () => {
   assert.equal(html, '<h1 id="hi">Hi</h1>\n<p>A <strong>bold</strong> word.</p>');
 });
 
+test('a literal section anchor preserves bookmarks without admitting arbitrary HTML', () => {
+  const html = mdToHtml('<a id="work-storage"></a>\n\n## Lolly Work storage', mockContext());
+  assert.match(html, /<span id="work-storage" aria-hidden="true"><\/span>/);
+  assert.match(html, /<h2 id="lolly-work-storage">/);
+  for (const markup of ['<a id="unsafe" onclick="alert(1)"></a>', '<a id="bad id"></a>', '<a href="javascript:alert(1)"></a>']) {
+    const refused = mdToHtml(markup, mockContext());
+    assert.ok(!refused.includes('<a '));
+    assert.ok(!refused.includes('<span '));
+  }
+});
+
 test('a fuller document emits every structural block', () => {
   const ctx = mockContext();
   const md = [

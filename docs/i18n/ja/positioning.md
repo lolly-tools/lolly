@@ -28,7 +28,7 @@ Lollyのライブコラボレーションには、2台のデバイス間の直�
 ## Lollyを選ぶ場面
 
 - 同じ種類のファイルが何度も必要になる: イベントのタイル、バッジ、証明書、通知、SNSカード
-- 1つのテンプレートと値の表から多くのファイルを作る場合に、[Batch](/info/batch.html#make-many-versions-of-one-design)またはCLIで
+- 1つのテンプレートと値の表から多くのファイルを作る場合に、[Lolly Batch](/info/batch.html#make-many-versions-of-one-design)またはCLIで
 - 自由なキャンバスであっても、色、書体、アセットがデザインシステムの範囲内に収まる必要がある
 - 完成したFigma、Penpot、Illustrator、InDesign、PDFのデザインを、編集可能で繰り返し使えるものにしたい([デザインを取り込む](/info/design-import.html))
 - ファイルを、ご自身のデバイスまたはサーバーで作る必要がある

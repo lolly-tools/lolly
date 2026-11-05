@@ -152,7 +152,7 @@ Indicatorul de stocare arată aceeași împărțire. Saved sessions, My images �
 
 Acest bundle salvează biblioteca personală a dispozitivului. Nu este o copie de siguranță a unei instanțe **Lolly Work**: conturile organizației, politicile de acces, proiectele comune, versiunile de catalog, aprobările, joburile de randare și înregistrările de audit sunt ținute de acel serviciu. Reconectează-te și autentifică-te ca să recapeți accesul la munca comună; importul unui bundle personal nu acordă acel acces.
 
-Operatorii salvează, păstrează și șterg datele de pe server cu ghidurile proprii ale Lolly Work: [Backup și restaurare](/info/work-operations.html#backup-and-restore) și [Stocarea Work și ciclul de viață al datelor](/info/work-data-lifecycle.html). Ștergerea sau exportul unui dispozitiv nu face niciuna dintre acele operațiuni pe server.
+Operatorii salvează, păstrează și șterg datele de pe server cu ghidurile proprii ale Lolly Work: [Backup și restaurare](/info/work-operations.html#backup-and-restore) și [Stocarea Lolly Work și ciclul de viață al datelor](/info/work-data-lifecycle.html). Ștergerea sau exportul unui dispozitiv nu face niciuna dintre acele operațiuni pe server.
 
 ## Între shell-uri
 

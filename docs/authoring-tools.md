@@ -6,7 +6,7 @@ From that folder Lolly builds the sidebar, draws the canvas and offers the expor
 
 ![tool.json, template.html and the optional hooks.js feed one engine, which builds the sidebar controls, draws the live canvas and writes the exported files.](/info/diagrams/concepts/tool-lifecycle.svg)
 
-You do not need code to make a tool. If you already have a finished design, [Share with rules](/info/create-a-tool.html) turns a Design document into a tool when you choose the parts people may edit. Those tools are ordinary tool folders too, compiled for you and run by the strict sideload runtime; [Design tool contract](/info/design-tool-contract.html) covers how.
+You do not need code to make a tool. If you already have a finished design, [Share with rules](/info/create-a-tool.html) turns a Lolly Design document into a tool when you choose the parts people may edit. Those tools are ordinary tool folders too, compiled for you and run by the strict sideload runtime; [Design tool contract](/info/design-tool-contract.html) covers how.
 
 This guide is for writing the folder yourself. Start with the two-file tool below, then use the reference pages for each part.
 

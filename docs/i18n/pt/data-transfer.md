@@ -152,7 +152,7 @@ O medidor de armazenamento mostra a mesma divisão. Sessões salvas, My images e
 
 Este pacote faz backup da biblioteca pessoal do dispositivo. Não é um backup de uma instância do **Lolly Work**: contas da organização, políticas de acesso, projetos compartilhados, versões do catálogo, aprovações, trabalhos de renderização e registros de auditoria ficam com esse serviço. Reconecte e faça login para recuperar o acesso ao trabalho compartilhado; importar um pacote pessoal não concede esse acesso.
 
-Os operadores fazem backup, retêm e apagam os dados do servidor com os guias do próprio Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) e [Work storage and data lifecycle](/info/work-data-lifecycle.html). Limpar ou exportar um dispositivo não executa nenhuma dessas operações no servidor.
+Os operadores fazem backup, retêm e apagam os dados do servidor com os guias do próprio Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) e [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Limpar ou exportar um dispositivo não executa nenhuma dessas operações no servidor.
 
 ## Entre shells
 

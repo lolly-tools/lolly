@@ -24,7 +24,7 @@
 
 ![غرفة Colours في Design System Setup على تثبيت جديد: شريحة حية واحدة وحقل واحد والقرار الأول كاملاً](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-ومن هناك، تأخذه ثماني غرف إلى أي مدى تريد، بأي ترتيب: **Board** و**Colours** و**Type** و**Logos** و**Tokens** و**Files** و**Rules** و**Skills**. تتحدث كل معاينة في التطبيق أثناء الكتابة. يغطي [Design System Setup](/info/brand-studio.html) كل غرفة.
+ومن هناك، تأخذه ثماني غرف إلى أي مدى تريد، بأي ترتيب: **Board** و**Colours** و**Type** و**Logos** و**Tokens** و**Files** و**Rules** و**Skills**. تتحدث كل معاينة في التطبيق أثناء الكتابة. يغطي [Lolly Design System Setup](/info/brand-studio.html) كل غرفة.
 
 تُحفظ الخطوط على جهازك. اختر خطاً من Google Fonts فيخزّن Lolly الملف أصلاً من أصول العلامة، فيسافر خطك دون اتصال ولا يُجلب شيء عندما ترسم أداة.
 
@@ -58,7 +58,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 **العروض التقديمية.** أفلت ملف PowerPoint بصيغة `.pptx` على Lolly لحفظ شرائحه أصولاً، أو اكتب عرضاً جديداً من Markdown في **Markdown Slides**، أو استخدم [إعادة تعليم عرض](/info/rebrand.html) لنقل العرض كله إلى نظام تصميمك.
 
-**البيانات.** الصق جدول CSV أو JSON أو أفلته فتمتلئ الحقول المتكررة في أداة منه، أو يصنع [Batch](/info/batch.html#make-many-versions-of-one-design) ملفاً منجزاً لكل صف.
+**البيانات.** الصق جدول CSV أو JSON أو أفلته فتمتلئ الحقول المتكررة في أداة منه، أو يصنع [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) ملفاً منجزاً لكل صف.
 
 ### من عمل لمرة واحدة إلى قالب
 
@@ -72,7 +72,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 - <!--i:download--> **التصدير.** تصنع الأدوات SVG وPDF وPNG وJPG وWebP وفيديو وغيرها، بالصيغ التي تقدمها كل أداة، وبأحجام الطباعة الحقيقية عند الحاجة. راجع [تصدير ملف](/info/exporting.html).
 - <!--i:link--> **شارك رابطاً.** تسافر إعدادات الأداة في رابطها، فيعيد الرابط فتح الملف نفسه في أي مكان.
-- <!--i:layers--> **اصنع ملفاً لكل صف.** شغّل أداة من جدول بيانات في [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **اصنع ملفاً لكل صف.** شغّل أداة من جدول بيانات في [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **أتمت.** يعمل العرض نفسه من [CLI](/info/cli.html) ومن [وكيل ذكاء اصطناعي](/info/ai-agents.html).
 
 الرابط طلب كامل. لم يرسم أحد المخطط أدناه: كُتب نوعه وعنوانه وجدول بياناته كله في شريط العنوان، ويرسم الرابط نفسه المخطط نفسه على أي جهاز.
@@ -84,5 +84,5 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 - <!--i:people--> **[أنشئ](/info/creators.html)**: الصنع والتحريك والتسجيل والمشاركة والتصدير.
 - <!--i:code--> **[أتمت](/info/builders.html)**: أنظمة التصميم وتأليف الأدوات وسطر الأوامر والروابط والوكلاء.
 - <!--i:usercheck--> **[أدِر](/info/operators.html)**: تشغيل Lolly لفريق مع Lolly Work.
-- <!--i:server--> **[انشر](/info/operate.html)**: استضافة Lolly وLolly Work.
+- <!--i:server--> **[انشر](/info/operate.html)**: استضافة Lolly وLolly Lolly Work.
 - <!--i:shieldcheck--> **[ثقة](/info/trust.html)**: الخصوصية والأمان والتحقق من ملف بنفسك.

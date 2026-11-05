@@ -44,7 +44,7 @@ _最後核查：2026 年 9 月 28 日。_
 
 這些限制適用於這個系列中的每一頁，所以在這裡說明一次：
 
-- **工作協作目前在單一伺服器節點上運行。** 它們的規模與營運歷史不同於歷史悠久的託管產品。[Work 狀態與路線圖](/info/work-status.html)記錄了目前的限制。
+- **工作協作目前在單一伺服器節點上運行。** 它們的規模與營運歷史不同於歷史悠久的託管產品。[Lolly Work 狀態與路線圖](/info/work-status.html)記錄了目前的限制。
 - **[lolly.work](https://lolly.work) 上的網站是示範沙箱。** 持久的組織部署需要持久的儲存與營運者；[安裝 Lolly Work](/info/work-install.html) 涵蓋兩者。
 - Lolly 或自行託管的 Lolly Work **沒有每個席位的軟體授權費**。託管、儲存與營運仍然需要花錢。
 - **簽章不等於受信任的簽署者。** 驗證者必須信任簽署檔案的憑證，才會把簽署者顯示為受信任；[Content Credentials 身分](/info/content-credentials-identity.html)說明了做法。

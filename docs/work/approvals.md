@@ -112,7 +112,7 @@ Each file gives `assetId`, an integer `version`, `format`, a lowercase hex `sha2
 `representation: "original"`. Directly owned `inst/*` originals are supported. Materialized
 provider files and previews need their own qualification and are refused.
 
-- Work verifies the actual bytes and freezes the purpose, target and complete membership under
+- Lolly Work verifies the actual bytes and freezes the purpose, target and complete membership under
   one fingerprint.
 - The request and decision record whether a member session or an agent acting through
   delegated authority made them; neither is an automated-rule approval.

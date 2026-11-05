@@ -16,7 +16,7 @@ Dwa słowa znaczą na tej stronie wszędzie to samo. **Marka wiodąca** to marka
 
 | Wyślij | Jak | Partner dostaje | Pasuje do |
 | --- | --- | --- | --- |
-| Plik systemu projektowego | **Export** na pasku u góry w [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Twoje tokeny, czcionki, logo i preferencję motywu jako system projektowy, na który może się przełączyć | Partnera, który robi wiele materiałów w Twojej marce |
+| Plik systemu projektowego | **Export** na pasku u góry w [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Twoje tokeny, czcionki, logo i preferencję motywu jako system projektowy, na który może się przełączyć | Partnera, który robi wiele materiałów w Twojej marce |
 | Narzędzie wielokrotnego użytku | W Design **Share with rules** ([Udostępnij projekt z regułami](/info/create-a-tool.html)) | Jeden gotowy układ z danymi wejściowymi, na które pozwalasz, takimi jak nazwa i logo partnera. Plik niesie rozwiązane kolory, czcionki i obrazy, więc własny system projektowy partnera nie może zmienić stylu stałej grafiki | Wspólną ulotkę, identyfikator lub baner, które każdy partner uzupełnia |
 | Umiejętności marki | Pokój **Skills**: **Download skill (.zip)** lub **Copy as one file** | Twoje spisane standardy, dla ludzi partnera i jego agentów | Każdą z powyższych opcji, gdy część pracy robi agent |
 | Tokeny | **Tokens (.json)** w menu **More** studia | Zwykły dokument tokenów projektowych, bez czcionek i logo | Własne narzędzia projektowe partnera lub jego proces budowania |
@@ -125,5 +125,5 @@ W terminalu `lolly run logo-wall logos/*.png --output=wall.svg` buduje ścianę 
 - **[Architektury marek](/info/brand-architectures.html)**: współpraca marek, white label i inne układy, z tym, co zrobić w Lolly dla każdego z nich.
 - **[Udostępnij projekt z regułami](/info/create-a-tool.html)**: narzędzia wielokrotnego użytku ze stałym układem i danymi wejściowymi, które wybierasz.
 - **[Umiejętności marki](/info/brand-skills.html)**: jak umiejętności są pisane, czytane i przekazywane agentowi.
-- **[Design System Setup](/info/brand-studio.html)**: logo, znaki niestandardowe i przenoszenie systemu projektowego między urządzeniami.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: logo, znaki niestandardowe i przenoszenie systemu projektowego między urządzeniami.
 - **[Prawa twórcze i podziękowania](/info/creative-rights.html)**: co Lolly zapisuje o dziełach, które rysuje.

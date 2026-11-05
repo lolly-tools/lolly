@@ -2,9 +2,9 @@
 
 웹 페이지는 다른 웹사이트의 픽셀을 읽을 수 없으므로 Lolly 웹 앱이 페이지를 스크린샷으로 찍으려면 도움이 필요해요. Chromium 기반 브라우저(Chrome 111부터의 Chrome, Edge, Brave, Arc, Opera)에서 무료 **Lolly URL Screenshot** 확장 프로그램이 데스크톱 앱이 쓰는 것과 같은 캡처로 이 도움을 줘요. 설치하면 다음이 가능해요.
 
-- **[URL Screenshot](/t/url-shot)**이 구성한 페이지를 파일로 저장해요.
+- **[Lolly URL Screenshot](/t/url-shot)**이 구성한 페이지를 파일로 저장해요.
 - 이미지 슬롯에 붙여넣은 웹 주소를 **Screenshot this page**로 해당 페이지의 스크린샷으로 바꿀 수 있어요.
-- [Design System Setup](/info/brand-studio.html)의 **Website** 소스가 페이지 하나를 읽어 디자인 시스템을 시작할 수 있어요.
+- [Lolly Design System Setup](/info/brand-studio.html)의 **Website** 소스가 페이지 하나를 읽어 디자인 시스템을 시작할 수 있어요.
 
 모든 요청을 사용자가 승인하며, 데스크톱 앱은 확장 프로그램 없이도 같은 작업을 해요.
 

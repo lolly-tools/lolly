@@ -24,7 +24,7 @@ Första gången du öppnar galleriet erbjuder en kort välkomstdialog samma val:
 
 ![Rummet Colours i Design System Setup på en ny installation: ett levande färgchip, ett fält och hela det första beslutet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Därifrån tar åtta rum dig så långt du vill, i valfri ordning: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** och **Skills**. Varje förhandsvisning i appen uppdateras medan du skriver. [Design System Setup](/info/brand-studio.html) går igenom varje rum.
+Därifrån tar åtta rum dig så långt du vill, i valfri ordning: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** och **Skills**. Varje förhandsvisning i appen uppdateras medan du skriver. [Lolly Design System Setup](/info/brand-studio.html) går igenom varje rum.
 
 Typsnitt sparas på din enhet. Välj ett Google Font så lagrar Lolly filen som en varumärkestillgång, så att din typografi följer med offline och inget hämtas när ett verktyg ritar.
 
@@ -58,7 +58,7 @@ Du börjar inte från en tom sida.
 
 **Presentationer.** Släpp en PowerPoint-`.pptx` på Lolly för att arkivera dess bilder som tillgångar, skriv en ny presentation från Markdown i **Markdown Slides**, eller använd [Rebrand a deck](/info/rebrand.html) för att flytta hela presentationen till ditt designsystem.
 
-**Data.** Klistra in eller släpp en CSV- eller JSON-tabell så fylls ett verktygs upprepade fält från den, eller så gör [Batch](/info/batch.html#make-many-versions-of-one-design) en färdig fil per rad.
+**Data.** Klistra in eller släpp en CSV- eller JSON-tabell så fylls ett verktygs upprepade fält från den, eller så gör [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) en färdig fil per rad.
 
 ### Från engångsjobb till mall
 
@@ -72,7 +72,7 @@ En importerad layout är en vanlig Design-session. **Share with rules** gör den
 
 - <!--i:download--> **Exportera.** Verktyg skapar SVG, PDF, PNG, JPG, WebP, video och mer, i de format varje verktyg erbjuder, i verkliga tryckstorlekar när du behöver det. Se [Exportera en fil](/info/exporting.html).
 - <!--i:link--> **Dela en länk.** Ett verktygs inställningar följer med i dess länk, så länken öppnar samma fil var som helst.
-- <!--i:layers--> **Gör en per rad.** Styr ett verktyg från ett kalkylblad i [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Gör en per rad.** Styr ett verktyg från ett kalkylblad i [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatisera.** Samma rendering körs från [CLI](/info/cli.html) och från en [AI-agent](/info/ai-agents.html).
 
 En länk är en komplett begäran. Ingen ritade diagrammet nedan: dess typ, rubrik och hela datatabell skrevs in i adressfältet, och samma länk ritar samma diagram på vilken enhet som helst.

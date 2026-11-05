@@ -44,7 +44,7 @@ L'uso standalone mantiene i file sul dispositivo. Scegliere progetti condivisi, 
 
 Questi limiti valgono per ogni pagina di questa serie, quindi sono dichiarati una volta qui:
 
-- **Le collab di lavoro oggi girano su un solo nodo server.** La loro scala e la loro storia operativa differiscono da quelle dei prodotti ospitati consolidati da tempo. [Work status and roadmap](/info/work-status.html) registra i limiti attuali.
+- **Le collab di lavoro oggi girano su un solo nodo server.** La loro scala e la loro storia operativa differiscono da quelle dei prodotti ospitati consolidati da tempo. [Lolly Work status and roadmap](/info/work-status.html) registra i limiti attuali.
 - **Il sito [lolly.work](https://lolly.work) è una sandbox dimostrativa.** Un'installazione durevole per un'organizzazione richiede archiviazione persistente e un operatore; [Install Lolly Work](/info/work-install.html) tratta entrambi.
 - **Non c'è alcun costo di licenza software per utente** per Lolly o per un Lolly Work self-hosted. Hosting, archiviazione e gestione costano comunque denaro.
 - **Una firma non è un firmatario attendibile.** Un verificatore deve fidarsi del certificato che ha firmato un file prima di mostrare il firmatario come attendibile; [Content Credentials Identity](/info/content-credentials-identity.html) spiega come.

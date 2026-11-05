@@ -61,7 +61,7 @@ Sie entscheiden, wie viel mitreist. Ihr Name und Ihre Angaben kommen nur hinein,
 
 Ihre Angaben in **Settings** füllen die Tools vor, die danach fragen, etwa einen Namen auf einem Namensschild. Sie bleiben auf diesem Gerät. Wenn Sie zusätzlich die Zustimmung einschalten, werden die Angaben, die Sie wählen, in das eingebettet, was Sie erstellen, und nennen Sie als Quelle. Nichts wird aufgenommen, solange Sie nicht wählen, Ihre Angaben aufzunehmen.
 
-Teilen und Sync senden nur die Inhalte, die Sie wählen. Auf der Lolly-Work-Instanz einer Organisation gehen auch geteilte Sitzungen und gesteuerte Arbeit an diesen Server. Siehe [Datenschutz](/info/privacy.html).
+Teilen und Sync senden nur die Inhalte, die Sie wählen. Auf der Lolly-Lolly Work-Instanz einer Organisation gehen auch geteilte Sitzungen und gesteuerte Arbeit an diesen Server. Siehe [Datenschutz](/info/privacy.html).
 
 ## Wie bekomme ich die Apps für Mobilgeräte oder den Desktop?
 
@@ -88,7 +88,7 @@ Ebenen kommen als bearbeitbare Boxen an: Text bleibt neu tippbar, Formen bleiben
 
 ## Können zwei Personen ohne Internet am selben Design arbeiten?
 
-Ja. Eine Person teilt eine Einladung als Link, QR-Code oder kurzen Code, und die andere nimmt sie an. Beide Geräte halten dann dieselbe Sitzung live, samt Anwesenheit und Fokusringen. Es funktioniert in jedem gemeinsamen Netzwerk, auch an einem Smartphone-Hotspot in einem Keller, weil kein Server dazwischen steht. Siehe [Zusammenarbeiten](/info/collaborate.html). Für Kolleginnen und Kollegen in verschiedenen Netzwerken bietet die Lolly-Work-Instanz einer Organisation authentifizierte Work-Collabs.
+Ja. Eine Person teilt eine Einladung als Link, QR-Code oder kurzen Code, und die andere nimmt sie an. Beide Geräte halten dann dieselbe Sitzung live, samt Anwesenheit und Fokusringen. Es funktioniert in jedem gemeinsamen Netzwerk, auch an einem Smartphone-Hotspot in einem Keller, weil kein Server dazwischen steht. Siehe [Zusammenarbeiten](/info/collaborate.html). Für Kolleginnen und Kollegen in verschiedenen Netzwerken bietet die Lolly-Lolly Work-Instanz einer Organisation authentifizierte Lolly Work-Collabs.
 
 ## Was sind die Feature-Flags?
 
@@ -98,13 +98,13 @@ Feature-Flags schalten Teile von Lolly ein oder aus. Bei eigenständiger Nutzung
 
 ## Was unterscheidet Utilities von Tools?
 
-Ein Utility erledigt eine schnelle Aufgabe an einer Datei, die Sie schon haben, etwa ein PDF komprimieren, ein Foto umwandeln oder versteckte Daten entfernen, und viele laufen auf Ihrem Gerät, ohne dass etwas hochgeladen wird. Sie existieren, damit die Aufgaben, die Leute sonst einer beliebigen Website überlassen, in Lolly bleiben. Einen Vertrag zu komprimieren, Urlaubsfotos mit noch darin steckendem Standort umzuwandeln oder ein Token in einen Online-Formatierer einzufügen, sollte nicht heißen, die Datei einer Website mit unbekannter Aufbewahrung, Rechtsordnung und unbekanntem Geschäftsmodell zu geben. [Utilities](/info/utilities.html) listet sie auf, und [Der Handel, dem wir nie zugestimmt haben](/info/status-quo.html) erzählt die Geschichte dahinter.
+Ein Utility erledigt eine schnelle Aufgabe an einer Datei, die Sie schon haben, etwa ein PDF komprimieren, ein Foto umwandeln oder versteckte Daten entfernen, und viele laufen auf Ihrem Gerät, ohne dass etwas hochgeladen wird. Sie existieren, damit die Aufgaben, die Leute sonst einer beliebigen Website überlassen, in Lolly bleiben. Einen Vertrag zu komprimieren, Urlaubsfotos mit noch darin steckendem Standort umzuwandeln oder ein Token in einen Online-Formatierer einzufügen, sollte nicht heißen, die Datei einer Website mit unbekannter Aufbewahrung, Rechtsordnung und unbekanntem Geschäftsmodell zu geben. [Lolly Utilities](/info/utilities.html) listet sie auf, und [Der Handel, dem wir nie zugestimmt haben](/info/status-quo.html) erzählt die Geschichte dahinter.
 
 ![Die Ansicht Utilities: Strip Hidden Data, Compress PDF, Convert Image und die anderen Aufgaben auf dem Gerät, alle an einem Ort](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Kann unsere Organisation SSO, gemeinsame Projekte und Freigaben nutzen?
 
-Ja, mit **Lolly Work**, dem Organisationsserver desselben Open-Source-Projekts. Er läuft getrennt und ergänzt Single Sign-on über Ihren Identitätsanbieter, SCIM-Bereitstellung, Gruppenberechtigungen, gemeinsame Projekte und Assets, Live-Work-Collabs, Freigaben und Audit-Aufzeichnungen. Die Alltags-App funktioniert weiterhin allein.
+Ja, mit **Lolly Work**, dem Organisationsserver desselben Open-Source-Projekts. Er läuft getrennt und ergänzt Single Sign-on über Ihren Identitätsanbieter, SCIM-Bereitstellung, Gruppenberechtigungen, gemeinsame Projekte und Assets, Live-Lolly Work-Collabs, Freigaben und Audit-Aufzeichnungen. Die Alltags-App funktioniert weiterhin allein.
 
 [Lolly in Ihrer Organisation nutzen](/info/organisation.html) behandelt Anmeldung und das Finden gemeinsamer Arbeit, und [Bereitstellung](/info/deployment.html#organisation-services-with-lolly-work) behandelt die Einrichtung. Gemeinsame Inhalte und Organisationsaufzeichnungen folgen den Datenschutz- und Aufbewahrungsrichtlinien dieser Instanz.
 

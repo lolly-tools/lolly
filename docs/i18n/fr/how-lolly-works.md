@@ -35,7 +35,7 @@ Chaque chemin fait tourner le même moteur sur le même outil, donc le fichier q
 ![Les paramètres d'URL et les arguments de ligne de commande deviennent le même modèle d'entrées, traité par un runtime et un pont d'export communs](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **Dans l'application, un à la fois.** Ouvre un outil, remplis les champs et appuie sur **Export**. [Make your first file](/info/make-something.html) t'en guide un.
-- <!--i:layers--> **Dans l'application, plusieurs à la fois.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) prend un tableau collé ou importé et produit un fichier terminé par ligne.
+- <!--i:layers--> **Dans l'application, plusieurs à la fois.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) prend un tableau collé ou importé et produit un fichier terminé par ligne.
 - <!--i:cpu--> **Depuis un script ou un agent IA.** La [CLI](/info/cli.html) exécute un outil sans interface, et le [serveur MCP](/info/mcp.html) permet à un agent de découvrir et de lancer des outils. Un lien vers un outil porte aussi ses entrées, donc un lien est une requête complète.
 - <!--i:server--> **Via le serveur de ton organisation.** [Lolly Work](/info/organisation.html) rend sur le serveur selon la connexion et la politique d'outils de ton organisation, garde des tâches qu'il peut reprendre et conserve la sortie pour téléchargement ou livraison approuvée.
 

@@ -13,14 +13,14 @@ Wählen Sie ein Tool und füllen Sie es aus, oder legen Sie eine Seite frei auf 
 - **[Vorlagen](/info/templates.html)** - mit einem gespeicherten Layout statt einem leeren Tool beginnen.
 - **[Text in Design](/info/text-composition.html)** - Überschriften, Fließtext und Schrift, die in ihre Box passt.
 - **[3D Studio](/info/3d-studio.html)** - SVG-Grafiken und 3D-Modelle als eine Szene angeordnet, beleuchtet und gerendert.
-- **[Utilities](/info/utilities.html)** - eine Datei auf Ihrem Gerät reparieren: sicher teilen, zwei Versionen vergleichen, das Format ändern, die Worte herausholen oder eine Farbe prüfen.
+- **[Lolly Utilities](/info/utilities.html)** - eine Datei auf Ihrem Gerät reparieren: sicher teilen, zwei Versionen vergleichen, das Format ändern, die Worte herausholen oder eine Farbe prüfen.
 - **[Browser-Erweiterung](/info/extension.html)** - eine Live-Webseite aus der Web-App abfotografieren oder eine Website lesen, um ein Designsystem zu beginnen.
 
 ## Machen Sie es zu Ihrem
 
 Ihr Designsystem bestimmt, wie jedes Tool aussieht.
 
-- **[Design System Setup](/info/brand-studio.html)** - Logos, Farben, Schrift und der Rest, einmal festgelegt unter `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - Logos, Farben, Schrift und der Rest, einmal festgelegt unter `#/start`.
 - **[Lolly Demo im Einsatz](/info/lolly-demo-in-use.html)** - Farbvarianten an echter Arbeit und der Wechsel zu Ihrem eigenen Designsystem.
 - **[Marken-Architekturen](/info/brand-architectures.html)** - mehrere Designsysteme oder eines mit mehreren Farbvarianten für eine Organisation.
 - **[Zusammenarbeit mit Partnern](/info/partners.html)** - Ihre Marke mit einem Partner teilen, in einer Marke arbeiten, die man Ihnen gegeben hat, und eine Sponsorenwand erstellen.
@@ -57,7 +57,7 @@ Nehmen Sie einen sauberen Take mit Einzählung und Pegelanzeige auf, oder stelle
 
 Zwei Menschen, zwei Geräte, ein Design, live bearbeitet, ohne Konto und ohne Server dazwischen.
 
-- **[Zusammenarbeiten](/info/collaborate.html)** - private Collabs zwischen Geräten und Work-Collabs über das Lolly Work Ihrer Organisation.
+- **[Zusammenarbeiten](/info/collaborate.html)** - private Collabs zwischen Geräten und Lolly Work-Collabs über das Lolly Work Ihrer Organisation.
 - **[Lolly nutzen](/info/using.html#sharing-your-work)** - ein Share-Link, der den ganzen Zustand trägt, oder eine einzelne `.lolly`-Datei.
 - **[Lolly in Ihrer Organisation nutzen](/info/organisation.html)** - Anmeldung, Team-Projekte und verwaltete Einstellungen, wenn Ihre Organisation Lolly Work betreibt.
 

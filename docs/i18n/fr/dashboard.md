@@ -18,7 +18,7 @@ Preferences est une longue page avec un **settings rail** sur le côté et un ch
 
 - <!--i:usercheck--> **Your details** - ton nom, tes coordonnées et ta photo, et l'interrupteur **Use my details to create**. [Profiles](/info/profile.html) explique comment les outils les utilisent.
 - <!--i:seal--> **Content Credentials** - l'identité vérifiée facultative qui signe tes exports. Voir [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - changer, ajouter, masquer ou supprimer des design systems. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) couvre chaque action.
+- <!--i:palette--> **Design systems** - changer, ajouter, masquer ou supprimer des design systems. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) couvre chaque action.
 - <!--i:moon--> **Appearance** - le thème (Light, Dark ou Brand, qui peint l'application dans ta palette), **Your colourway** quand le design system en propose plus d'un ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) et **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - le jeu dans lequel tes emoji sont dessinés quand tu commences quelque chose de nouveau, avec sa licence d'illustration, et l'intensité avec laquelle ta palette les recolore (**Off**, **Subtle**, **Strong**, **Full**, **Mono** ou **Duotone**). **Keep skin tones and flags** les laisse dans leurs propres couleurs. Le travail déjà créé garde le jeu avec lequel il a été fait.
 - <!--i:eyeoff--> **Accessibility** - quatre interrupteurs de confort, plus Sound et Neurospicy Mode. Voir [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ L'onglet s'ouvre sur une couverture peinte aux couleurs propres du système, ave
 - <!--i:sliders--> **Tokens** - rayon, espacement, effets et dégradés.
 - <!--i:document--> **Print & CMYK** - les couleurs verrouillées sur une encre exacte, et les conditions d'impression qu'un PDF CMJN peut déclarer.
 
-Changer de système est la seule modification que fait cet onglet. Tu modifies un design system dans [Design System Setup](/info/brand-studio.html) à `#/start`, vers lequel renvoie la couverture. Un système en lecture seule le dit sur sa couverture ; les systèmes locaux que tu crées restent modifiables. `/b` et `/brand` sont des raccourcis directs vers cet onglet.
+Changer de système est la seule modification que fait cet onglet. Tu modifies un design system dans [Lolly Design System Setup](/info/brand-studio.html) à `#/start`, vers lequel renvoie la couverture. Un système en lecture seule le dit sur sa couverture ; les systèmes locaux que tu crées restent modifiables. `/b` et `/brand` sont des raccourcis directs vers cet onglet.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Puis ton propre côté : **Your activity** compte ce que tu as créé sur cet ap
 
 ## Deep links
 
-Chaque onglet et chaque section de Settings a son propre lien, que tu peux mettre en favori ou coller. [Search](/info/search.html) dirige ses résultats **Settings** vers le même registre dont Settings se sert pour s'afficher, donc une section ne peut pas être renommée sous un résultat de recherche.
+Chaque onglet et chaque section de Settings a son propre lien, que tu peux mettre en favori ou coller. [Lolly Search](/info/search.html) dirige ses résultats **Settings** vers le même registre dont Settings se sert pour s'afficher, donc une section ne peut pas être renommée sous un résultat de recherche.
 
 ::: details Toutes les formes de lien
 
@@ -139,4 +139,4 @@ Un lien profond bascule vers l'onglet qui possède la cible, ouvre tout groupe d
 
 ---
 
-**Voir aussi :** [Profiles](/info/profile.html) pour tes informations et les contextes dans lesquels tu crées. [Design System Setup](/info/brand-studio.html) pour modifier ce que montre l'onglet Design system. [Find and recover your work](/info/find-your-work.html) pour le stockage, les sauvegardes et le changement d'appareil.
+**Voir aussi :** [Profiles](/info/profile.html) pour tes informations et les contextes dans lesquels tu crées. [Lolly Design System Setup](/info/brand-studio.html) pour modifier ce que montre l'onglet Design system. [Find and recover your work](/info/find-your-work.html) pour le stockage, les sauvegardes et le changement d'appareil.

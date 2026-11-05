@@ -4,7 +4,7 @@ Logoen, fargene og skriftene dine hører hjemme på ett sted, så hvert verktøy
 
 Start med det du har. Slipp inn en logo, så leser Lolly fargene dens. Velg en skrift, eller slipp inn skriftfilen bedriften din har lisens på. Hver endring vises over hele appen med en gang. Logoen, skriftene og tokenene dine blir på denne enheten. Å velge en Google Font er det ene trinnet som rekker ut: Lolly spør først, og henter deretter familien én gang.
 
-Når det ser riktig ut, gi designsystemet et navn og trykk **Export**. Du får én `.lolly`-fil å beholde, åpne på en annen enhet eller gi til en kollega. [Settings](/info/dashboard.html#design-system) viser det aktive systemet skrivebeskyttet, og omslaget lenker tilbake hit for redigering.
+Når det ser riktig ut, gi designsystemet et navn og trykk **Export**. Du får én `.lolly`-fil å beholde, åpne på en annen enhet eller gi til en kollega. [Lolly Settings](/info/dashboard.html#design-system) viser det aktive systemet skrivebeskyttet, og omslaget lenker tilbake hit for redigering.
 
 ## Gjør det til ditt på fem minutter
 

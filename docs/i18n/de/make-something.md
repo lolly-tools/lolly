@@ -8,7 +8,7 @@ Halten Sie die Webadresse bereit, die der Code öffnen soll, beginnend mit `http
 
 ## Den Code erstellen
 
-1. Öffnen Sie [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Die Steuerelemente sitzen neben der Vorschau, auf dem Smartphone darüber; was die Vorschau zeigt, ist das, was die Datei sein wird.
+1. Öffnen Sie [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Die Steuerelemente sitzen neben der Vorschau, auf dem Smartphone darüber; was die Vorschau zeigt, ist das, was die Datei sein wird.
 2. Ersetzen Sie unter **URL** die gesamte Beispieladresse durch Ihre eigene. Die Vorschau ändert sich, während Sie tippen.
 3. Um Ihre eigenen Farben zu verwenden, stellen Sie **Module colour** und **Background** ein. Halten Sie zwischen beiden einen starken Kontrast, sonst haben Smartphones Mühe, den Code zu lesen.
 4. **Quiet zone**, unter **Modules**, beginnt bei 4. Belassen Sie es bei 4 oder mehr: Dieser schlichte Rand ist es, wonach eine Handykamera sucht.
@@ -38,8 +38,8 @@ Gespeicherte Arbeit bleibt auf diesem Gerät, in dem Browser oder der App, die S
 
 ## Weitere erste Projekte
 
-- [Audiogram](/#/tool/audiogram) verwandelt eine Sprachnotiz in ein Video: eine bewegte Wellenform, Ihre Worte auf dem Cover, Ihre Farben. Legen Sie die Aufnahme in **Audio** ab, fügen Sie einen **Titel** hinzu und exportieren Sie dann **MP4**.
-- [Filter](/#/tool/filter) bereitet ein Foto für ein Poster auf: gedruckte Rasterpunkte, zwei Volltonfarben oder ein paar Tonblöcke. Wählen Sie das Foto unter **Bild**, wählen Sie einen **Effekt** und exportieren Sie dann **PNG** oder, bei einem mit *vector* gekennzeichneten Effekt, **SVG**.
+- [Lolly Audiogram](/#/tool/audiogram) verwandelt eine Sprachnotiz in ein Video: eine bewegte Wellenform, Ihre Worte auf dem Cover, Ihre Farben. Legen Sie die Aufnahme in **Audio** ab, fügen Sie einen **Titel** hinzu und exportieren Sie dann **MP4**.
+- [Lolly Filter](/#/tool/filter) bereitet ein Foto für ein Poster auf: gedruckte Rasterpunkte, zwei Volltonfarben oder ein paar Tonblöcke. Wählen Sie das Foto unter **Bild**, wählen Sie einen **Effekt** und exportieren Sie dann **PNG** oder, bei einem mit *vector* gekennzeichneten Effekt, **SVG**.
 
 ## Wie es weitergeht
 

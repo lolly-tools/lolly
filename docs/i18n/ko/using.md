@@ -269,7 +269,7 @@ storage-seeding hook.
 
 ## Settings, 소리, 편안함
 
-홈 화면 하단의 **Settings**에는 내 정보, 디자인 시스템, 접근성, 저장소, 오프라인 다운로드가 있어요. [Settings](/info/dashboard.html)가 모든 탭을 안내해요.
+홈 화면 하단의 **Settings**에는 내 정보, 디자인 시스템, 접근성, 저장소, 오프라인 다운로드가 있어요. [Lolly Settings](/info/dashboard.html)가 모든 탭을 안내해요.
 
 - **내 정보와 프로필 사진**은 이메일 서명이나 배지처럼 이를 쓰도록 만들어진 모든 도구에 채워져요. [프로필](/info/profile.html)에서 다뤄요.
 - **접근성**에는 네 가지 편의 스위치가 있어요. **Reduce motion**, **Hide colourful previews**, **High contrast**, **Large text**예요. 작업물 주변의 앱을 바꾸며 도구 캔버스나 내보내기는 절대 바꾸지 않아요.

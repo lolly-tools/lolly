@@ -2,13 +2,21 @@
 
 Lolly uses a small set of words with exact meanings, and a few of them (profile, template, utility, room) also have everyday meanings that get in the way. The first half of this page is the words you meet in the app. The second half is for people who build tools or work on Lolly itself; the [architecture page](/info/overview.html) puts those words together.
 
+## Product and feature names in documentation
+
+Use **Lolly Work** for the organisation server in prose, headings, captions and link labels. Keep **work** for the ordinary activity or the material someone creates. This documentation uses the two-word product name consistently; **LollyWork** is also an unambiguous form.
+
+Give named tools, utilities and views the same context. Write **Lolly Design**, **Lolly Darkroom** or **Lolly Verify**, or use a description such as **the Design tool**, **the Scan utility** or **the Projects view** when that reads more naturally. The `/verify` view is **Lolly Verify** in prose; **Verify & Inspect** remains its exact interface label.
+
+Keep literal labels in instructions: "Open the **Design** tool" tells someone which label to choose. Generic terms such as **design system**, **tool manifest** and **utility category** retain their ordinary meanings. Tool ids, routes, commands and quoted program output keep their exact spelling.
+
 ## Words you will see in the app
 
 **Content sovereignty.** Control over how your content is created, governed, stored and moved across the systems you choose. In Lolly this includes local production, editable work, portable tools and optional organisation-controlled services. An existing DAM can remain the source of record. These controls do not override source licences or guarantee exact future renders; see [What is content sovereignty?](/info/content-sovereignty.html).
 
-**Design system.** Your colours, fonts, logos and a few rules, which every tool draws with. You set it up once in Design System Setup and switch between design systems in **Settings → Preferences → Design systems**. In the code the same thing is called a brand (see *Design system and brand* below).
+**Design system.** Your colours, fonts, logos and a few rules, which every tool draws with. You set it up once in Lolly Design System Setup and switch between design systems in **Settings → Preferences → Design systems**. In the code the same thing is called a brand (see *Design system and brand* below).
 
-**Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills, with Versions once a version is published. A bar across the top carries the design system's name.
+**Lolly Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills, with Versions once a version is published. A bar across the top carries the design system's name.
 
 **Lolly Demo.** Lolly's own sample design system, the one lolly.tools opens with; its lead colour is green. [Meet Lolly Demo](/info/lolly-demo.html) shows the whole design system.
 
@@ -22,13 +30,13 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Brand skill.** A brand's standards for one discipline (the overall brand, photography, motion, iconography and so on), written as an Agent Skill: a Markdown file, with optional text references, that people and AI agents read. It is a catalog asset of type `skill` with a permanent id such as `lolly/skill/photography`, carried with the design system it belongs to, and Lolly never rewrites its text. Each skill is `public` or `internal`, and internal skills stay out of every static catalog. A skill is guidance and never gives a pass or a fail; the design system's house rules are what Lolly checks. Not the Lolly skill, which says how to operate Lolly, and not a tool skill, which says how to operate one tool. See [Brand skills](/info/brand-skills.html).
 
-**Tool.** One kind of thing Lolly makes, such as QR Code, Chart or Certificate, with the fields you fill in. The tool holds the layout and rules; you supply the words, pictures or data. Design is the tool with an open canvas.
+**Tool.** One kind of thing Lolly makes, such as Lolly QR Code, Lolly Chart or Lolly Certificate, with the fields you fill in. The tool holds the layout and rules; you supply the words, pictures or data. Lolly Design is the tool with an open canvas.
 
-**Utility.** A tool in the `utility` category, listed in the app's **Utilities** tab (`#/u`) for one quick job, such as Strip Hidden Data, Scan or Countdown. Many utilities are *on-device*: they take your own file in and give a file back without uploading anything (strip data, compress a PDF, convert an image). The engine never watermarks an on-device tool's output or adds Content Credentials to it; Sign and Rondocode write a credential through their own export code.
+**Utility.** A tool in the `utility` category, listed in the app's **Utilities** tab (`#/u`) for one quick job, such as Lolly Strip Hidden Data, Lolly Scan or Lolly Countdown. Many utilities are *on-device*: they take your own file in and give a file back without uploading anything (strip data, compress a PDF, convert an image). The engine never watermarks an on-device tool's output or adds Content Credentials to it; Lolly Sign and Lolly Rondocode write a credential through their own export code.
 
-**Utility view.** A workbench built into the app with no manifest, such as Compare or Verify & Inspect, with a card in the same Utilities tab (see [Utilities](/info/utilities.html)). Neither word is a loose name for any tool.
+**Utility view.** A workbench built into the app with no manifest, such as Lolly Compare or Lolly Verify, with a card in the same Utilities tab (see [Lolly Utilities](/info/utilities.html)). Neither word is a loose name for any tool.
 
-**Saved session.** One tool with its inputs, saved with **Save** or **Save as** and listed in **Projects**. It stays in the browser or app you saved it in, unless you turn on Sync.
+**Saved session.** One tool with its inputs, saved with **Save** or **Save as** and listed in the **Projects** view. It stays in the browser or app you saved it in, unless you turn on Sync.
 
 **Project.** The Projects view groups saved sessions, renders and imported files for one piece of work.
 
@@ -38,9 +46,9 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **`.lolly` file.** One file holding a design, the images it uses and, if you choose, the tool itself. Lolly also uses a `.lolly` file to pass on a tool made with **Share with rules**, and an organisation can send one that connects the app to its instance.
 
-**Batch.** Making one tool many times from a table of values, one file per row, at `#/batch`. **Multi-edit** (`#/multi`) is different: one person editing several saved sessions at once.
+**Lolly Batch.** Making one tool many times from a table of values, one file per row, at `#/batch`. **Lolly Multi-edit** (`#/multi`) is different: one person editing several saved sessions at once.
 
-**Collab.** Live editing by several people. A *private collab* is direct, device to device, with no server; a *work collab* runs through an organisation's Lolly Work instance. Two Ls, not "colab", and a collab is never called a room (rooms are the areas of Design System Setup).
+**Collab.** Live editing by several people. A *private collab* is direct, device to device, with no server; a *work collab* runs through an organisation's Lolly Work instance. Two Ls, not "colab", and a collab is never called a room (rooms are the areas of Lolly Design System Setup).
 
 **Settings.** Everything about the app on this device, at `#/settings`: **Preferences**, **This device**, **Design system**, **Capabilities** and **Activity & stats**.
 
@@ -92,7 +100,7 @@ These words matter when you build tools, run Lolly or read the code. The diagram
 
 **Compose.** One tool rendering another tool inside itself, either authored in the manifest (`composes`) or at run time when a user pastes a Lolly tool link into an asset picker and it becomes an image.
 
-**Design-generated tool.** An ordinary tool compiled from a Design document through **Share with rules**. Its public inputs describe the changes recipients may make, and the rest of its artwork is fixed through the supported tool interface. The `.lolly` tool file carries its dependencies and no saved session. See [Share a design with rules](/info/create-a-tool.html).
+**Design-generated tool.** An ordinary tool compiled from a Lolly Design document through **Share with rules**. Its public inputs describe the changes recipients may make, and the rest of its artwork is fixed through the supported tool interface. The `.lolly` tool file carries its dependencies and no saved session. See [Share a design with rules](/info/create-a-tool.html).
 
 ### Content and catalogs
 

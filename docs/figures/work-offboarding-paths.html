@@ -1,0 +1,100 @@
+<!--
+  Choose a destination for a DAM exit. Work storage is the automated identity-preserving path;
+  Nextcloud, Git and hosted drives use a separate export and copy before read-only federation.
+  Native disclosures keep every choice usable without JavaScript. Theme tokens, scoped styles,
+  root-relative navigation and no motion. Source: docs/work/offboarding.md and its provider guides.
+  Authored with Codex (OpenAI, GPT-6), directed by Andy Fitzsimon, 2026-11-05.
+-->
+<style>
+.dop{--dop-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--dop-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));--dop-paper:hsl(var(--card,0 0% 100%));--dop-accent:hsl(var(--primary,176.5 89.5% 11.2%));--dop-on:hsl(var(--primary-foreground,0 0% 100%));--dop-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .16);--dop-wash:color-mix(in oklab,var(--dop-accent) 7%,var(--dop-paper));color:var(--dop-ink);background:var(--dop-wash);border:1px solid var(--dop-line);border-radius:20px;padding:clamp(14px,3vw,24px);font:inherit;font-family:var(--ui-type-ui-family,var(--font-brand,inherit));font-size:1rem;line-height:1.5;container-type:inline-size;text-align:start}
+.dop *{box-sizing:border-box}
+.dop p,.dop ul,.dop ol{margin:0}
+.dop .dop-intro{display:grid;gap:7px;margin-block-end:20px}
+.dop .dop-eyebrow{font-family:var(--ui-type-mono-family,var(--font-mono,inherit));color:var(--dop-accent);font-size:.75em;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.dop .dop-title{font-size:1.35em;font-weight:650;line-height:1.25;text-wrap:balance}
+.dop .dop-muted{color:var(--dop-muted);font-size:.88em}
+.dop .dop-options{display:grid;gap:10px}
+.dop details{border:1px solid var(--dop-line);border-radius:13px;background:var(--dop-paper);overflow:hidden}
+.dop details[open]{border-color:var(--dop-accent)}
+.dop summary{display:grid;grid-template-columns:36px minmax(0,1fr) 20px;align-items:center;gap:12px;list-style:none;cursor:pointer;padding:15px;min-height:74px}
+.dop summary::-webkit-details-marker{display:none}
+.dop summary::after{content:'+';font-size:1.4em;line-height:1;text-align:center;color:var(--dop-accent)}
+.dop details[open]>summary::after{content:'−'}
+.dop summary:focus-visible{outline:3px solid var(--dop-accent);outline-offset:-4px;border-radius:12px}
+.dop .dop-number{font-family:var(--ui-type-mono-family,var(--font-mono,inherit));display:grid;place-items:center;width:36px;height:36px;border:1px solid var(--dop-line);border-radius:10px;color:var(--dop-accent);font-size:.82em;font-weight:650}
+.dop details[open] .dop-number{background:var(--dop-accent);border-color:var(--dop-accent);color:var(--dop-on)}
+.dop .dop-name{display:block;font-size:1em;font-weight:650;line-height:1.35}
+.dop .dop-fit{display:block;color:var(--dop-muted);font-size:.82em;margin-block-start:2px;line-height:1.4}
+.dop .dop-recommended{display:inline-block;margin-inline-start:7px;color:var(--dop-accent);font-size:.72em;font-weight:650;white-space:nowrap}
+.dop .dop-body{display:grid;gap:12px;padding:0 18px 18px 63px;font-size:.88em}
+.dop .dop-body ol{padding-inline-start:19px}
+.dop .dop-body li+li{margin-block-start:4px}
+.dop .dop-note{padding-inline-start:11px;border-inline-start:2px solid var(--dop-line);color:var(--dop-muted)}
+.dop.dop a{color:var(--dop-accent);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.dop.dop a:focus-visible{outline:3px solid var(--dop-accent);outline-offset:4px}
+.dop.dop .dop-next{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px;padding:10px 13px;border:1px solid var(--dop-line);border-radius:8px;text-decoration:none;font-weight:650;background:var(--dop-wash)}
+.dop.dop .dop-next::after{content:'→';font-size:1.25em;flex:none}
+.dop.dop .dop-next:hover{text-decoration:underline}
+.dop .dop-hosted{margin-block-start:20px}
+.dop .dop-hosted>p{margin-block-end:9px}
+.dop .dop-hosted details{background:transparent}
+.dop .dop-hosted .dop-number{font-size:1.1em}
+.dop .dop-drive-list{display:grid;gap:8px;list-style:none;padding:0}
+.dop .dop-drive-list li{margin:0}
+.dop .dop-drive-list .dop-fit{font-weight:400}
+.dop .dop-footer{margin-block-start:16px;color:var(--dop-muted);font-size:.78em}
+@container (max-width:450px){.dop summary{grid-template-columns:30px minmax(0,1fr) 16px;gap:9px;padding:12px}.dop .dop-number{width:30px;height:30px}.dop .dop-body{padding:0 13px 15px;font-size:.88em}.dop .dop-recommended{display:block;margin:3px 0 0}.dop .dop-title{font-size:1.18em}}
+</style>
+<div class="dop" role="group" aria-label="Choose an offboarding destination">
+  <div class="dop-intro">
+    <p class="dop-eyebrow">Your library, your choice</p>
+    <p class="dop-title">Where should your assets live next?</p>
+    <p class="dop-muted">Start with open-source services you can run. Choose a path to see the steps and what carries across.</p>
+  </div>
+  <div class="dop-options">
+    <details name="dop-destination" open>
+      <summary><span class="dop-number" aria-hidden="true">01</span><span><span class="dop-name">Self-host Lolly Work <span class="dop-recommended">Recommended</span></span><span class="dop-fit">A governed library, with a supported cutover for old links</span></span></summary>
+      <div class="dop-body">
+        <p>Run Lolly Work and PostgreSQL on infrastructure you control. Keep smaller libraries in PostgreSQL, or use your own Ceph, MinIO or other S3-compatible store for the files.</p>
+        <ol><li>Set up the instance, storage and a tested restore.</li><li>Materialize permitted originals and check every required file.</li><li>Cut over supported sources after acceptance; Lolly Work creates aliases for copied assets.</li></ol>
+        <p class="dop-note">Source limits still apply. Orange Logic cannot cut over; CMP remains a connected source.</p>
+        <a class="dop-next" href="/info/manage/leave-a-dam.html#self-host-lolly-work-with-s3-storage">Plan a library in Lolly Work</a>
+      </div>
+    </details>
+    <details name="dop-destination">
+      <summary><span class="dop-number" aria-hidden="true">02</span><span><span class="dop-name">Nextcloud / WebDAV</span><span class="dop-fit">A shared file library on a server your organisation runs</span></span></summary>
+      <div class="dop-body">
+        <p>Keep the files in Nextcloud or another WebDAV server and connect that folder to Lolly Work as a read-only source.</p>
+        <ol><li>Export permitted originals and metadata from the DAM.</li><li>Copy the files using your server's upload or file tools.</li><li>Verify the copy, then connect and test Lolly Work access.</li></ol>
+        <p class="dop-note">This is a separate export and copy. Lolly Work's materialize command does not write to a WebDAV source or create aliases to its new file identities.</p>
+        <a class="dop-next" href="/info/manage/leave-a-dam.html#move-to-nextcloud-or-another-webdav-server">Plan a Nextcloud library</a>
+      </div>
+    </details>
+    <details name="dop-destination">
+      <summary><span class="dop-number" aria-hidden="true">03</span><span><span class="dop-name">Git on your own forge</span><span class="dop-fit">A curated catalog of files reviewed and versioned together</span></span></summary>
+      <div class="dop-body">
+        <p>Use a self-hosted forge such as Gitea for a small, curated catalog with a manifest. Lolly Work reads the files from its raw-content endpoint.</p>
+        <ol><li>Export and review the files you can keep.</li><li>Commit the files and a catalog manifest to your repository.</li><li>Connect the Git source and verify every listed file.</li></ol>
+        <p class="dop-note">Lolly Work does not push a DAM library into Git. Plan file sizes, metadata and replacement links separately.</p>
+        <a class="dop-next" href="/info/manage/leave-a-dam.html#keep-a-catalog-in-git">Plan a Git catalog</a>
+      </div>
+    </details>
+  </div>
+  <div class="dop-hosted">
+    <p class="dop-muted">Already have a hosted drive?</p>
+    <details name="dop-destination">
+      <summary><span class="dop-number" aria-hidden="true">+</span><span><span class="dop-name">Google Drive, OneDrive or Dropbox</span><span class="dop-fit">An optional export-and-upload route using a vendor-operated service</span></span></summary>
+      <div class="dop-body">
+        <p>Export the DAM files, upload them with the drive's own tools, then connect the destination to Lolly Work. These connectors read files; Lolly Work has no direct migration writer for these drives.</p>
+        <ul class="dop-drive-list">
+          <li><a class="dop-next" href="/info/manage/provider-gdrive.html#use-as-an-offboarding-destination"><span>Google Drive<span class="dop-fit">One flat folder; native Google documents are skipped</span></span></a></li>
+          <li><a class="dop-next" href="/info/manage/provider-o365.html#use-as-an-offboarding-destination"><span>OneDrive / SharePoint<span class="dop-fit">One folder level; no recursive listing</span></span></a></li>
+          <li><a class="dop-next" href="/info/manage/provider-dropbox.html#use-as-an-offboarding-destination"><span>Dropbox<span class="dop-fit">Recursive listing, including subfolders</span></span></a></li>
+        </ul>
+        <p class="dop-note">Set access rules again and plan new references. A drive upload does not carry DAM history, approval workflows or old-address aliases.</p>
+      </div>
+    </details>
+  </div>
+  <p class="dop-footer">For every path: keep required rights and history records, compare original files, and test access before retiring the DAM.</p>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ1Wp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAmvanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo4NDg0ZTA2YS01MmY5LTRjOTMtYTBkZC05MmJiNTE0YTY1YjcAAAAEKmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUNqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAESY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDJBdXRob3JlZCB3aXRoIENvZGV4IGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4zMDMuMGR3aGVudDIwMjYtMTEtMDVUMDI6MTM6NTJaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBklQmZsZW5ndGgZDX5kbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIP8Hq7Y8jRM1pVzyp3R6/8JSVlEl1NitJG3QvrpElkDpY3BhZEgAAAAAAAAAAAAAAM1qdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACZY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x2d29yay1vZmZib2FyZGluZy1wYXRoc2RkYXRleBgyMDI2LTExLTA1VDAyOjEzOjUyLjM1N1poYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmVDb2RleGttb2RlbFZlbmRvcmZPcGVuQUkAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAACwanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAfGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZWVHUFQtNm9tb2RlbElkZW50aWZpZXJlZ3B0LTZuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAtRqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACpWNib3KmaGRjOnRpdGxldndvcmstb2ZmYm9hcmRpbmctcGF0aHNqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6OGRmZmU2ZTAtMjdjOC00NTQ0LTlmMzUtMGVmZjQ0ZTM5YWJldGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4zMDMuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCDmmZ1Q4EkiOmHArC/5rS/uniUHIAtR0K6XfWl0zVoaU6JjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCAKiq3QG9i35E6Cco+UCVD6LV5MpPZOlR7Z96TPHeXgOaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggMFWcwMdDoyf7MyMjUuBAx4jTwm6DYH/1oEA0N9aHQwSiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggvwA+ymaevCxyhCYwE925d8GZEjXIp6bxrwiwCWKsXaxpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJianVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIyY2JvctKEWQHhogEmGCGBWQHYMIIB1DCCAXmgAwIBAgIJQxVEt+BgpbJHMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjExMDUwMjEyNTJaFw0zNjExMDIwMjEzNTJaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABIP4YgTkP8cTqFbvwkajpfh6hH7kmzmP8qMcJp8Wsr7CCGf9AUazw4cHwBB5JJnseAcpAPRdCg6wxKa93dwhWlejcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBTlZ/PYQroOA1iL3SEZJrtiVNSexTAfBgNVHSMEGDAWgBTlZ/PYQroOA1iL3SEZJrtiVNSexTAKBggqhkjOPQQDAgNJADBGAiEAuy1bQdOWBX4j239JfjruYP+irA7sAEVoMP6tN6/f7M8CIQCqJpLE+AK8eCeq9fos3l0LS9/Fmklqyx65m2g9HWZweaD2WEClYEk+wf9cNlZtpZkbAvrK/VF2qKhqYrD7/v3f5xvOwPDEDr4VNUkrxYxsHFdD1g2OBDFUFrihcV2Aaz/d9t+P -----END C2PA MANIFEST----- -->
