@@ -271,10 +271,31 @@ a review of one selected instance file; the API supports bounded sets.
 
 ## Watermarking preview output
 
-An overlay can set `enforce.watermark: 'until-approved'`, meant to pair with a chain so that
-server previews carry the PREVIEW pattern while the work is unapproved. That link to approval state
-is not built yet. What each watermark setting does today is in [the enforce
-block](governance.md#the-enforce-block).
+An overlay can set `enforce.watermark: 'until-approved'` and pair it with a chain. Server renders of
+that tool then carry the PREVIEW pattern until a request for the same tool version, format and input
+values is approved. An approved match lifts the pattern everywhere, including share links. Work adds
+no PREVIEW pattern to the file under review itself, because that is the file being approved. [A watermark that follows approval](governance.md#a-watermark-that-follows-approval)
+has the rule and its limits.
+
+## Check the state of a request
+
+`POST /api/v1/approvals/match` tells a signed-in person the state of a tool, a format and a set of
+input values, so an app can show the right action on its export bar. Send
+`{ toolId, format, query }`, with the inputs as a URL-mode query. The answer holds no file and no
+values, and Work keeps none of the values you send.
+
+| `state` | Meaning |
+|---|---|
+| `none` | no request you may read covers this |
+| `in_review` | a request for these inputs is waiting for a decision |
+| `approved` | a request for these inputs and this tool version was approved |
+| `rejected` | a request for these inputs was rejected |
+| `changed` | you have a request for this tool and format, under other inputs or an older tool version |
+
+Beside `state` come `approvalId`, `fingerprint`, `title` and, once decided, `decidedAt`. The answer
+covers your own requests and those you may read as a reviewer or someone who acted. Someone else's
+approved request that you may not read answers `none`, even though a server render of those inputs
+is unmarked. The route needs a person's session.
 
 ## Related
 
