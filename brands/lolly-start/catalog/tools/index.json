@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-05T20:34:41.811Z",
+  "generatedAt": "2026-11-05T21:18:50.398Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -6704,7 +6704,7 @@
       "id": "stationery",
       "name": "Stationery",
       "description": "Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, ready as a print PDF.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "status": "community",
       "category": "everyone",
       "tags": [

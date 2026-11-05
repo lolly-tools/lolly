@@ -14,6 +14,13 @@
     "accent": "{color.semantic.primary}",
     "image": {
       "id": "lolly/demo/sample-landscape"
+    },
+    "imageFraming": {
+      "zoom": 100,
+      "x": 50,
+      "y": 0,
+      "rotate": 0,
+      "pitch": 0
     }
   }
 }

@@ -181,7 +181,7 @@
    }
   },
   "stationery": {
-   "version": "1.0.3",
+   "version": "1.0.4",
    "light": {
     "templateId": "card-card-back",
     "file": "/catalog/previews/covers/stationery.light.svg"

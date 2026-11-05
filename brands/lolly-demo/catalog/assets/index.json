@@ -1129,7 +1129,9 @@
           "depth": 8
         }
       ],
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "license": "CC0-1.0",
+      "attribution": "Generated with Google Gemini, cut out with Lolly"
     },
     {
       "id": "lolly/demo/sample-character",
@@ -1154,7 +1156,9 @@
           "depth": 8
         }
       ],
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "license": "CC0-1.0",
+      "attribution": "Generated with Google Gemini, cut out with Lolly"
     },
     {
       "id": "lolly/demo/sample-wide",
@@ -1179,7 +1183,9 @@
           "depth": 8
         }
       ],
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "license": "CC0-1.0",
+      "attribution": "Generated with Google Gemini, cut out with Lolly"
     },
     {
       "id": "lolly/demo/sample-landscape",
@@ -1204,7 +1210,9 @@
           "depth": 8
         }
       ],
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "license": "CC0-1.0",
+      "attribution": "Generated with Google Gemini, cut out with Lolly"
     },
     {
       "id": "lolly/demo/app-screenshot",

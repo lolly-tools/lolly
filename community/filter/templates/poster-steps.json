@@ -5,8 +5,8 @@
   "description": "A few flat tones, like a screen print.",
   "values": {
     "effect": "posterize",
-    "width": 1600,
-    "height": 1200,
+    "width": 1200,
+    "height": 1450,
     "image": {
       "id": "lolly/demo/sample-character"
     }

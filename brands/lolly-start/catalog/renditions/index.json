@@ -145,45 +145,51 @@
       "id": "lolly/demo/sample-portrait",
       "source": "/catalog/assets/lolly/demo/sample-portrait.webp",
       "credits": {
-        "title": "Sample portrait"
+        "title": "Sample portrait",
+        "attribution": "Generated with Google Gemini, cut out with Lolly",
+        "license": "CC0-1.0"
       },
       "products": [
         {
           "v": 1,
           "sourceSha256": "7bdc1110d4abb2e008cd5ca3ccf7841bf629692a2ee89e3b6e7e4b6c21c5fe59",
-          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.308.0:sharp:0.35.5:rendition:1",
           "spec": {
             "w": 320,
             "fit": "inside",
             "format": "webp",
             "q": 80
           },
-          "sha256": "ada7a5450caa994261022d118dea35435635269ad2f5e1abd71362a9f5a9e3ad",
-          "file": "out.ada7a5450caa9942.webp",
+          "sha256": "e1249c82ca04ddc85c077d3b79709659382aea68fbcfd02fa6a0667b19765894",
+          "file": "out.e1249c82ca04ddc8.webp",
           "width": 320,
           "height": 515,
-          "size": 50378,
+          "size": 50810,
           "credits": {
-            "title": "Sample portrait"
+            "title": "Sample portrait",
+            "attribution": "Generated with Google Gemini, cut out with Lolly",
+            "license": "CC0-1.0"
           }
         },
         {
           "v": 1,
           "sourceSha256": "7bdc1110d4abb2e008cd5ca3ccf7841bf629692a2ee89e3b6e7e4b6c21c5fe59",
-          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.308.0:sharp:0.35.5:rendition:1",
           "spec": {
             "w": 640,
             "fit": "inside",
             "format": "webp",
             "q": 80
           },
-          "sha256": "e95a6e26f40965f17409ad912bdbd78c8456aaabc1121eb26d06d22474127492",
-          "file": "out.e95a6e26f40965f1.webp",
+          "sha256": "894a570cc86031e98d2f8e056c20c3cdf1e294d1d01d89f9398ab5295ec0f1b8",
+          "file": "out.894a570cc86031e9.webp",
           "width": 640,
           "height": 1029,
-          "size": 112508,
+          "size": 112940,
           "credits": {
-            "title": "Sample portrait"
+            "title": "Sample portrait",
+            "attribution": "Generated with Google Gemini, cut out with Lolly",
+            "license": "CC0-1.0"
           }
         }
       ]
@@ -192,45 +198,51 @@
       "id": "lolly/demo/sample-character",
       "source": "/catalog/assets/lolly/demo/sample-character.webp",
       "credits": {
-        "title": "Sample character"
+        "title": "Sample character",
+        "attribution": "Generated with Google Gemini, cut out with Lolly",
+        "license": "CC0-1.0"
       },
       "products": [
         {
           "v": 1,
           "sourceSha256": "b70671b00d1cc499f75e24a491f8283c498c5bf3c2a2e220ac275ee3d7802264",
-          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.308.0:sharp:0.35.5:rendition:1",
           "spec": {
             "w": 320,
             "fit": "inside",
             "format": "webp",
             "q": 80
           },
-          "sha256": "8f65503fe591c9cca26762f609e8949b510c756e00c093ec8866bee1080457f7",
-          "file": "out.8f65503fe591c9cc.webp",
+          "sha256": "2eccf6915bb38f7a2808a9a8408edd2ce238294d7ad3c8935c5359933287b023",
+          "file": "out.2eccf6915bb38f7a.webp",
           "width": 320,
           "height": 367,
-          "size": 53902,
+          "size": 54334,
           "credits": {
-            "title": "Sample character"
+            "title": "Sample character",
+            "attribution": "Generated with Google Gemini, cut out with Lolly",
+            "license": "CC0-1.0"
           }
         },
         {
           "v": 1,
           "sourceSha256": "b70671b00d1cc499f75e24a491f8283c498c5bf3c2a2e220ac275ee3d7802264",
-          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.308.0:sharp:0.35.5:rendition:1",
           "spec": {
             "w": 640,
             "fit": "inside",
             "format": "webp",
             "q": 80
           },
-          "sha256": "9ea8f5d674cfa489e668171228d978553df81667d5d9cc47daa22878c820d831",
-          "file": "out.9ea8f5d674cfa489.webp",
+          "sha256": "4e31ef94a8ac724aa224ebd7f60801dfc0885cc98c0fc341596f5ff4e4e5f2bd",
+          "file": "out.4e31ef94a8ac724a.webp",
           "width": 640,
           "height": 734,
-          "size": 90986,
+          "size": 91418,
           "credits": {
-            "title": "Sample character"
+            "title": "Sample character",
+            "attribution": "Generated with Google Gemini, cut out with Lolly",
+            "license": "CC0-1.0"
           }
         }
       ]
@@ -239,45 +251,51 @@
       "id": "lolly/demo/sample-wide",
       "source": "/catalog/assets/lolly/demo/sample-wide.webp",
       "credits": {
-        "title": "Sample wide subject"
+        "title": "Sample wide subject",
+        "attribution": "Generated with Google Gemini, cut out with Lolly",
+        "license": "CC0-1.0"
       },
       "products": [
         {
           "v": 1,
           "sourceSha256": "b11a6c549693d1696ea83c1cce1f8a00aefffc34d4d4d3ae5fc8965b23e8ab35",
-          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.308.0:sharp:0.35.5:rendition:1",
           "spec": {
             "w": 320,
             "fit": "inside",
             "format": "webp",
             "q": 80
           },
-          "sha256": "0d457f2e73453f2c60af279ee1b02c2d3d5b8cb927f91752f0722eb60be13084",
-          "file": "out.0d457f2e73453f2c.webp",
+          "sha256": "7574550c334ce22af4cfb56ceedb121a4b7383dfa49ed23a04a25b1845677294",
+          "file": "out.7574550c334ce22a.webp",
           "width": 320,
           "height": 195,
-          "size": 39572,
+          "size": 40004,
           "credits": {
-            "title": "Sample wide subject"
+            "title": "Sample wide subject",
+            "attribution": "Generated with Google Gemini, cut out with Lolly",
+            "license": "CC0-1.0"
           }
         },
         {
           "v": 1,
           "sourceSha256": "b11a6c549693d1696ea83c1cce1f8a00aefffc34d4d4d3ae5fc8965b23e8ab35",
-          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.308.0:sharp:0.35.5:rendition:1",
           "spec": {
             "w": 640,
             "fit": "inside",
             "format": "webp",
             "q": 80
           },
-          "sha256": "3d39a0732d61e846845daba187dde9cfdd54209c6c8649e875405fa74d2b0cb1",
-          "file": "out.3d39a0732d61e846.webp",
+          "sha256": "5fdb7a4fad3e6f431c3d897d7ba4176516c43d04d6b0f11fc1877e324024f529",
+          "file": "out.5fdb7a4fad3e6f43.webp",
           "width": 640,
           "height": 391,
-          "size": 63268,
+          "size": 63700,
           "credits": {
-            "title": "Sample wide subject"
+            "title": "Sample wide subject",
+            "attribution": "Generated with Google Gemini, cut out with Lolly",
+            "license": "CC0-1.0"
           }
         }
       ]
@@ -286,64 +304,72 @@
       "id": "lolly/demo/sample-landscape",
       "source": "/catalog/assets/lolly/demo/sample-landscape.webp",
       "credits": {
-        "title": "Sample landscape subject"
+        "title": "Sample landscape subject",
+        "attribution": "Generated with Google Gemini, cut out with Lolly",
+        "license": "CC0-1.0"
       },
       "products": [
         {
           "v": 1,
           "sourceSha256": "c7da9cb0ccc1c349ec044c0a5aa82e087226a8dfb6a91697d2b0019ca91e0ecd",
-          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.308.0:sharp:0.35.5:rendition:1",
           "spec": {
             "w": 320,
             "fit": "inside",
             "format": "webp",
             "q": 80
           },
-          "sha256": "c0ebe070b075008f256c119b47facc33948cf85cae8bd6fb0e30eaca57208a91",
-          "file": "out.c0ebe070b075008f.webp",
+          "sha256": "33398aa07e30fdd1a28c5228e3de826aeb86d01f6659a653202357cd8ebcf3b9",
+          "file": "out.33398aa07e30fdd1.webp",
           "width": 320,
           "height": 154,
-          "size": 40602,
+          "size": 41034,
           "credits": {
-            "title": "Sample landscape subject"
+            "title": "Sample landscape subject",
+            "attribution": "Generated with Google Gemini, cut out with Lolly",
+            "license": "CC0-1.0"
           }
         },
         {
           "v": 1,
           "sourceSha256": "c7da9cb0ccc1c349ec044c0a5aa82e087226a8dfb6a91697d2b0019ca91e0ecd",
-          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.308.0:sharp:0.35.5:rendition:1",
           "spec": {
             "w": 640,
             "fit": "inside",
             "format": "webp",
             "q": 80
           },
-          "sha256": "e6e972331ca9a4c51ab50d641ef87bbb636429cf606cd68abceaeea078705c84",
-          "file": "out.e6e972331ca9a4c5.webp",
+          "sha256": "af73e1cda82e7646813eea1ff0e71a0bafbfc99124a39f94d64f46b2dac79d67",
+          "file": "out.af73e1cda82e7646.webp",
           "width": 640,
           "height": 308,
-          "size": 66332,
+          "size": 66764,
           "credits": {
-            "title": "Sample landscape subject"
+            "title": "Sample landscape subject",
+            "attribution": "Generated with Google Gemini, cut out with Lolly",
+            "license": "CC0-1.0"
           }
         },
         {
           "v": 1,
           "sourceSha256": "c7da9cb0ccc1c349ec044c0a5aa82e087226a8dfb6a91697d2b0019ca91e0ecd",
-          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.303.0:sharp:0.35.5:rendition:1",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.308.0:sharp:0.35.5:rendition:1",
           "spec": {
             "w": 1280,
             "fit": "inside",
             "format": "webp",
             "q": 80
           },
-          "sha256": "88c894cecb53715ac75a737915249874ac10439758dba4ebccf7073e019b0839",
-          "file": "out.88c894cecb53715a.webp",
+          "sha256": "c5cc1f5b76a77faf24a10791158555f500999d1119000546fa2c86486b9828ee",
+          "file": "out.c5cc1f5b76a77faf.webp",
           "width": 1280,
           "height": 617,
-          "size": 130580,
+          "size": 131012,
           "credits": {
-            "title": "Sample landscape subject"
+            "title": "Sample landscape subject",
+            "attribution": "Generated with Google Gemini, cut out with Lolly",
+            "license": "CC0-1.0"
           }
         }
       ]

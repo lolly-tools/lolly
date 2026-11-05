@@ -7,8 +7,8 @@
     "effect": "glitch",
     "gl_sortThreshold": 55,
     "gl_blockAmount": 30,
-    "width": 1600,
-    "height": 1200,
+    "width": 1200,
+    "height": 1450,
     "image": {
       "id": "lolly/demo/sample-character"
     }
