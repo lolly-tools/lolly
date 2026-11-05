@@ -37,10 +37,10 @@ PUT /api/v1/chains/:id        # policy.edit
 | `{ quorum: n }` | `n` **distinct** approvers approve |
 | `all` | every **nominee named at submit** has approved; with no nominees it behaves as `any` |
 
-Chains apply to work in two places today. Catalog submissions go through the chain that
-`policy.submit.chain` gives ([catalog](catalog.md#submitting-an-asset)), and any other approval
-sets its `chainId` when it is raised. The overlay key `enforce.escalation` is declared but not
-accepted by the write paths ([the enforce block](governance.md#the-enforce-block)).
+Chains apply to work in three places today. Catalog submissions go through the chain that
+`policy.submit.chain` gives ([catalog](catalog.md#submitting-an-asset)). A tool's exports go through
+the chain its policy names in `enforce.escalation` ([review an exported file](#review-an-exported-file)).
+Any other approval sets its `chainId` when it is raised.
 
 ### Edit chains in the console
 
@@ -68,10 +68,11 @@ GET  /api/v1/approvals              # filtered to what the caller may see
 GET  /api/v1/approvals/approvers    # who is eligible for a step, for nomination
 POST /api/v1/approvals/:id/act      # { action: 'approve' | 'reject', comment? }
 POST /api/v1/approvals/:id/withdraw
+GET  /api/v1/approvals/:id/artifact # the file an export review carries
 ```
 
-You can raise approvals with the subjects `asset`, `tool-change`, `config`, `guest-link` or
-`source-review`. The server also raises `delivery` approvals for a destination with an approval
+You can raise approvals with the subjects `asset`, `tool-change`, `config`, `guest-link`,
+`source-review` or `export-review`. The server also raises `delivery` approvals for a destination with an approval
 chain ([delivery](delivery.md#optional-human-approval)). One engine handles every kind.
 
 The chain is **snapshotted at submit**: an approval is judged by the rules it was raised under,
@@ -99,6 +100,137 @@ These are enforced in code and covered by tests:
 Acting on an approval writes to the per-person inbox, so the approver's next shell poll, and
 the console's Approvals view, shows what needs them. The console's overview shows "what needs
 me" from the same source. Inbox targeting is described in the [API reference](api.md).
+
+## Review an exported file
+
+An export review is an approval of one exact file. A reviewer sees the file, and the approved
+download is that file, with a signed record of the approval added when the requester chose one.
+
+**Set it up.** Choose an approval chain for the tool in its policy (**Approval chain for exports**
+in the console, or `enforce.escalation`). To route a group's exports through review, deny them
+`export.download`; a member who holds `export.request` then sees **Request approval** in place of
+Download. On this path the app is cooperating with your policy: the file is made on the person's
+own device, so this guides how work moves and does not stop someone copying what is on their screen.
+
+**Ask for a review.** **Request approval** runs the same export as Download, with the settings on
+the export bar. The dialog shows the file, its format, size and digest, and sends it to Work.
+Nothing is downloaded, saved to the library or sent to an export home.
+
+**Review.** In the console, the request's card loads the file, checks the bytes against the digest
+and shows the artwork. **Approve** stays off until that has happened. A PDF opens in a new tab, and
+a large file waits until you choose to load the file.
+
+**Get the file.** The requester sees the facts and the digest while the request is open, and gets
+the file once it is approved, from the request's card or with `lw approvals artifact <id> --out <file>`.
+A rejected or withdrawn request never releases the file to the requester.
+
+**In the app.** The export bar shows where the current inputs stand, in the control Download would
+hold: **Request approval**, then **In review**, then **Download approved file**, with a line below
+that gives the file, such as "Approved Nov 5, 2026. SVG, 600 × 600." An approval covers one exact
+file. Change an input, the format, the width or the height and the control goes back to **Request
+approval**, and the line below reads "Changed since approval." with **See request**, which still
+holds the approved file. A new request at the new size shows **In review**, and going back to the
+approved size offers that file again. A rejected request says "Not approved." with **See why**.
+Download approved file fetches the stored bytes and runs no export, so the file is the one that was
+reviewed.
+
+The app can compare only what a file records: its format, width and height. Marks, bleed,
+transparency, text handling and other export settings are not on the record, so changing one of
+them does not change the control. The app does not measure a PDF's page size, so a PDF compares on
+format alone and its line gives no size.
+
+Requests you can decide and decisions on your own requests appear in the app's notifications.
+**Review** opens the file, its facts, a comment, **Approve** and **Reject**, under the same rules as
+the console, which stays the place for chains and history. A saved session with a request shows
+**In review** or **Approved** on its card in Projects and in its info sheet.
+
+The app shows this queue and sheet to anyone who holds `export.request` or `approval.act`, including
+a grant on one chain alone. This only tells the app to look: the routes still decide who may read a
+file, request or act.
+
+**Add to project** on an approved request puts the file in a project. A device folder keeps a
+reference to your own copy in Assets, and that copy links back to the request. A shared project
+receives a file copy, which does not carry the link. Neither reaches the organisation catalog.
+
+**Record the approval in the file.** When this server has a [signing identity](c2pa.md), the dialog
+offers **Record this approval in the file's Content Credentials**, ticked. The reviewed bytes stay
+frozen. When the request is approved, the approved file is those bytes plus a signed credential
+update, with the reviewed file's credential as its parent. The update records three facts: the
+approval id, the date of the decision and the reviewed file's SHA-256. It holds no names, emails,
+groups, comments or chain names. Like any credential, it also states the signer, the signing time
+and the steps opened and published. The artwork does not change: Work compares the bytes outside
+the credential before it keeps the update.
+
+Both digests stay on the record, and anyone who may read the file can still get the reviewed bytes
+with `?file=reviewed` or `lw approvals artifact <id> --out <file> --reviewed`. The update is made
+once, so a repeat download gives the same bytes. To turn recording off, untick the box for one
+request, or set `policy.approvalArtifacts.recordInCredentials` to `false` for the instance. Then
+every byte of the approved file matches the reviewed file.
+
+The record is written only when all of these hold, and the card says which one did not:
+
+| Reason on the card | What it means |
+|---|---|
+| `opted-out` | the requester unticked the box |
+| `not-offered` | the request came from an app or an instance that did not offer the choice |
+| `instance-off` | `recordInCredentials` is `false` |
+| `no-signing-identity` | this server has no signing identity |
+| `engine-unsupported` | this server's engine cannot write the record yet |
+| `too-large` | the file is over 128 MiB |
+| `no-route` | the format has no update route. PNG, JPEG, SVG and PDF do |
+| `no-credential` | the reviewed file has no Content Credentials to update, and it is not given a first one |
+| `write-failed`, `readback-failed`, `artwork-changed` | the update did not pass its own checks, so it was discarded |
+
+Work says **recorded** only after reading the update back: the credential is intact, the record says
+what was asked and the bytes outside the credential match the reviewed file. In every other case the
+approved file is the reviewed file. A PDF keeps the reviewed file as an exact prefix, with the update
+as one more incremental revision. A PDF that holds other attachments is left as reviewed.
+
+**What the record holds.**
+
+- The file's SHA-256, size, name, format and media type. The media type comes from the file's
+  opening bytes, and a file that contradicts its named format is refused.
+- The tool and the version this instance serves.
+- A digest of the input values the app reported, worked out by the server with the steps a server
+  render uses: values parsed from URL mode, locked values applied, defaults and profile fields
+  filled in. The values themselves are not stored. If the tool is not in this instance's pack, or
+  the values were too large to send, the digest is empty and the record says why.
+- The fingerprint a decision is bound to, and the actions taken.
+
+**What a request does and does not add to the file.** Asking for a review adds nothing. The reviewed
+file holds what the export wrote, including any Content Credentials or Lolly Imprint turned on at the
+export bar, and Work adds no watermark. An experimental tool keeps its usual mark, so the reviewer
+sees the artwork as it will leave.
+
+**Limits.**
+
+- An approval says a person approved this file. It does not establish that the file meets a brand
+  rule, a licence or a law. The record in the file says the same and no more: a signer recorded a
+  decision, and a viewer still has to trust that signer.
+- The inputs digest rests on what the requesting app states. It does not prove the file was made
+  from those inputs.
+- A changed file is a new request. Nothing in a request can be rewritten.
+- Sending to a [delivery destination](delivery.md) is a separate step with its own permission
+  and optional approval.
+- Older shells still send a request with the tool's id and no file. It stays valid, and its card
+  says no file is attached.
+
+**Storage.** `policy.approvalArtifacts` sets the largest file, the total stored and how long a
+decided request keeps its file ([configuration](configuration.md#files-and-uploads)). Withdrawing
+removes the file at once. The record and digest stay after the file goes, and `GET .../artifact`
+answers `410`.
+
+**Refusals.**
+
+| Code | Status | Meaning |
+|---|---|---|
+| `ARTIFACT_NOT_RELEASED` | 403 | the requester asked for the file before approval |
+| `ARTIFACT_NOT_LOADED` | 409 | an approve came without the token the file's own response carries |
+| `ARTIFACT_SUBJECT_CHANGED` | 409 | an action did not echo the fingerprint of the frozen file |
+| `ARTIFACT_REMOVED` | 410 | the request no longer holds its file |
+| `ARTIFACT_FORMAT_MISMATCH` | 422 | the file's opening bytes contradict its named format |
+| `APPROVAL_ARTIFACT_BUDGET` | 413 | the instance has no room for another request file |
+| `CHAIN_NOT_BOUND` | 400 | the tool's policy gives a different chain |
 
 ## Review a set of source files
 
@@ -139,11 +271,31 @@ a review of one selected instance file; the API supports bounded sets.
 
 ## Watermarking preview output
 
-An overlay can set `enforce.watermark: 'until-approved'`, meant to pair with a chain so that
-previews carry the PREVIEW pattern while the work is unapproved. That link to approval state is
-not built yet, and approval chains do not yet bind ordinary tool exports to reviewed final
-bytes. What each watermark setting does today is in [the enforce
-block](governance.md#the-enforce-block).
+An overlay can set `enforce.watermark: 'until-approved'` and pair it with a chain. Server renders of
+that tool then carry the PREVIEW pattern until a request for the same tool version, format and input
+values is approved. An approved match lifts the pattern everywhere, including share links. Work adds
+no PREVIEW pattern to the file under review itself, because that is the file being approved. [A watermark that follows approval](governance.md#a-watermark-that-follows-approval)
+has the rule and its limits.
+
+## Check the state of a request
+
+`POST /api/v1/approvals/match` tells a signed-in person the state of a tool, a format and a set of
+input values, so an app can show the right action on its export bar. Send
+`{ toolId, format, query }`, with the inputs as a URL-mode query. The answer holds no file and no
+values, and Work keeps none of the values you send.
+
+| `state` | Meaning |
+|---|---|
+| `none` | no request you may read covers this |
+| `in_review` | a request for these inputs is waiting for a decision |
+| `approved` | a request for these inputs and this tool version was approved |
+| `rejected` | a request for these inputs was rejected |
+| `changed` | you have a request for this tool and format, under other inputs or an older tool version |
+
+Beside `state` come `approvalId`, `fingerprint`, `title` and, once decided, `decidedAt`. The answer
+covers your own requests and those you may read as a reviewer or someone who acted. Someone else's
+approved request that you may not read answers `none`, even though a server render of those inputs
+is unmarked. The route needs a person's session.
 
 ## Related
 

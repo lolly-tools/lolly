@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "identify",
+      "needs": [
+        "headshot"
+      ],
+      "roles": {
+        "headshot": "photo",
+        "heading": "text"
+      },
+      "set": {
+        "text": ""
+      }
+    }
+  ]
+}

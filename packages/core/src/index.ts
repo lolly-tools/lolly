@@ -270,6 +270,24 @@ export type {
   TextMeasureBoxV1, TextMeasureOverflowV1, TextMeasureToleranceV1, TextMeasureV1,
 } from './text-measure-v1.ts';
 
+// intent-v1 - plan 350 W4: what a piece has to do, resolved to a tool for each surface by
+// the engine's resolveIntent. Types and constants only.
+export {
+  INTENT_RESOLUTION_FORMAT, INTENT_RESOLUTION_VERSION, VISUAL_INTENT_VERSION, INTENT_VOCABULARY_VERSION,
+  INTENT_PURPOSES, INTENT_PURPOSE_MEANINGS, INTENT_ROLES, INTENT_SURFACES, INTENT_SURFACE_UNITS, INTENT_LIMITS,
+  INTENT_FREE_TEXT_FIELDS, INTENT_FITS, INTENT_REFUSAL_CODES, INTENT_SURFACE_REFUSAL_CODES, INTENT_GAP_CODES,
+  INTENT_UNUSED_CODES, INTENT_NOTE_CODES, INTENT_ERROR_CODES, INTENT_PURPOSE_NEEDED,
+  TOOL_INTENTS_FILE, TOOL_INTENTS_VERSION,
+} from './intent-v1.ts';
+export type {
+  IntentPurposeV1, IntentSurfaceUnitV1, IntentMediumV1, IntentSurfaceSpecV1, IntentFreeTextV1, IntentSurfaceRequestV1,
+  VisualIntentV1, ToolIntentV1, ToolIntentsFileV1, IntentToolFactsV1, IntentFitV1, IntentSurfaceStatusV1, IntentOutcomeV1, IntentRefusalCodeV1,
+  IntentSurfaceRefusalCodeV1, IntentGapCodeV1, IntentUnusedCodeV1, IntentNoteCodeV1, IntentErrorCodeV1, IntentErrorV1,
+  IntentResolvedSurfaceV1, IntentReasonV1, IntentGapV1, IntentUnusedV1, IntentNoteV1, IntentExportDimsV1, IntentChoiceV1,
+  IntentCandidateV1, IntentRefusalV1, IntentSurfaceResultV1, IntentChosenFactV1, IntentClosedFactsV1, IntentPurposeNeededV1,
+  IntentResolutionV1,
+} from './intent-v1.ts';
+
 // design-authoring-v1 - plan 291 W5: the `$` keys and layout macros an agent may write
 // into Design rows, lowered to stored rows by the engine's expandDesignAuthoring.
 // Types and constants only.

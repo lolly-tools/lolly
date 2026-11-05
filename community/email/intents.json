@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "demonstrate",
+      "needs": [
+        "sender",
+        "recipient",
+        "heading",
+        "body"
+      ],
+      "roles": {
+        "sender": "from",
+        "recipient": "to"
+      },
+      "set": {
+        "sentAt": ""
+      }
+    }
+  ]
+}

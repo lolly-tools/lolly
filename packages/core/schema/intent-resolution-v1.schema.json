@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/intent-resolution-v1.schema.json",
+  "title": "intent-resolution-v1",
+  "description": "The answer from the engine's resolveIntent. Mirrors IntentResolutionV1 in packages/core/src/intent-v1.ts. One shape for every outcome. `closed`, `freeText` and `prompt` are kept apart because they are different kinds of value: closed vocabulary and repository facts, words a caller wrote about the circumstances, and the user's own words.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "formatVersion", "intentDigest", "closed", "freeText", "prompt", "recordPrompt", "outcome", "surfaces", "purposeNeeded", "toolsConsidered"],
+  "properties": {
+    "format": { "const": "lolly-intent-resolution" },
+    "formatVersion": { "const": 1 },
+    "intentDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "closed": { "$ref": "#/$defs/closed" },
+    "freeText": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "occasion": { "type": "string" },
+        "audience": { "type": "string" },
+        "region": { "type": "string" }
+      }
+    },
+    "prompt": { "type": ["string", "null"] },
+    "recordPrompt": { "type": "boolean" },
+    "outcome": { "enum": ["ready", "partial", "needs-content", "refused", "purpose-needed"] },
+    "surfaces": { "type": "array", "items": { "$ref": "#/$defs/surfaceResult" } },
+    "purposeNeeded": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/purposeNeeded" }] },
+    "toolsConsidered": { "type": "integer", "minimum": 0 }
+  },
+  "$defs": {
+    "purpose": {
+      "enum": ["announce", "compare", "demonstrate", "direct", "explain", "identify", "invite", "offer", "present", "promote", "recognise", "report", "schedule"]
+    },
+    "fit": { "enum": ["declared", "option", "follows", "natural"] },
+    "status": { "enum": ["ready", "needs-content", "refused"] },
+    "unit": { "enum": ["px", "mm", "cm", "in", "pt"] },
+    "closed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["purpose", "surfaces", "language", "chosen", "rulesVersion", "vocabularyVersion"],
+      "properties": {
+        "purpose": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/purpose" }] },
+        "surfaces": { "type": "array", "items": { "type": "string" } },
+        "language": { "type": ["string", "null"] },
+        "chosen": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["surface", "toolId", "toolVersion", "fit", "status"],
+            "properties": {
+              "surface": { "type": "string" },
+              "toolId": { "type": ["string", "null"] },
+              "toolVersion": { "type": ["string", "null"] },
+              "fit": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/fit" }] },
+              "status": { "$ref": "#/$defs/status" }
+            }
+          }
+        },
+        "rulesVersion": { "type": "string" },
+        "vocabularyVersion": { "const": 1 }
+      }
+    },
+    "coded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": { "code": { "type": "string" }, "message": { "type": "string" } }
+    },
+    "surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "named", "width", "height", "unit", "medium"],
+      "properties": {
+        "id": { "type": "string" },
+        "named": { "type": "boolean" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "unit": { "$ref": "#/$defs/unit" },
+        "medium": { "enum": ["screen", "print"] },
+        "format": { "type": "string" }
+      }
+    },
+    "choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toolId", "toolVersion", "fit", "format", "inputs", "exportDims", "sizeSetBy", "gaps", "unused", "defaultsInUse", "notes"],
+      "properties": {
+        "toolId": { "type": "string" },
+        "toolVersion": { "type": ["string", "null"] },
+        "fit": { "$ref": "#/$defs/fit" },
+        "format": { "type": "string" },
+        "inputs": { "type": "object" },
+        "exportDims": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height", "unit"],
+          "properties": { "width": { "type": "number" }, "height": { "type": "number" }, "unit": { "$ref": "#/$defs/unit" } }
+        },
+        "sizeSetBy": { "enum": ["input", "export"], "description": "input: an input in `inputs` sets the size, so pass no export size. export: pass exportDims as width, height and unit." },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "enum": ["role-missing", "input-required"] },
+              "role": { "type": "string" },
+              "input": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        },
+        "unused": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "code", "message"],
+            "properties": {
+              "role": { "type": "string" },
+              "code": { "enum": ["no-input", "value-refused", "replaced-by-surface"] },
+              "message": { "type": "string" }
+            }
+          }
+        },
+        "defaultsInUse": { "type": "array", "items": { "type": "string" } },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "enum": ["language-applied", "language-not-offered", "prefer-not-available"] },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "surfaceResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface", "status", "chosen", "candidates", "refusals", "refusal"],
+      "properties": {
+        "surface": { "$ref": "#/$defs/surface" },
+        "status": { "$ref": "#/$defs/status" },
+        "chosen": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/choice" }] },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["toolId", "fit", "preferred", "missing", "contentUsed", "reasons"],
+            "properties": {
+              "toolId": { "type": "string" },
+              "fit": { "$ref": "#/$defs/fit" },
+              "preferred": { "type": "boolean" },
+              "missing": { "type": "array", "items": { "type": "string" } },
+              "contentUsed": { "type": "integer", "minimum": 0 },
+              "reasons": { "type": "array", "items": { "$ref": "#/$defs/coded" } }
+            }
+          }
+        },
+        "refusals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["toolId", "code", "message"],
+            "properties": {
+              "toolId": { "type": "string" },
+              "code": { "enum": ["purpose-other", "surface-no-fit", "format-unsupported", "not-exportable", "deprecated"] },
+              "message": { "type": "string" }
+            }
+          }
+        },
+        "refusal": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["code", "message"],
+              "properties": {
+                "code": { "enum": ["no-tool-for-purpose", "no-tool-for-surface", "format-unsupported"] },
+                "message": { "type": "string" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "purposeNeeded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "purposes", "tools", "surfaces", "roles"],
+      "properties": {
+        "code": { "const": "intent.purpose-needed" },
+        "message": { "type": "string" },
+        "purposes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["purpose", "meaning", "tools"],
+            "properties": {
+              "purpose": { "$ref": "#/$defs/purpose" },
+              "meaning": { "type": "string" },
+              "tools": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["toolId", "name", "purposes"],
+            "properties": {
+              "toolId": { "type": "string" },
+              "name": { "type": ["string", "null"] },
+              "purposes": { "type": "array", "items": { "$ref": "#/$defs/purpose" } }
+            }
+          }
+        },
+        "surfaces": { "type": "array", "items": { "type": "string" } },
+        "roles": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

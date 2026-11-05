@@ -157,6 +157,7 @@ tools/<id>/
 ├── template.html    # required - Handlebars markup
 ├── styles.css       # optional - auto-scoped to the tool canvas
 ├── hooks.js         # optional - imperative escape hatch (only if manifest declares `hooks`)
+├── intents.json     # optional - purposes the tool serves; without it the tool is not offered for an intent. Loading a tool never reads it
 ├── thumb.png        # optional - gallery thumbnail
 └── assets/          # optional - tool-local assets (not in the global catalog)
 ```

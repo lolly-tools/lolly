@@ -963,6 +963,7 @@ export function paintBar(ta: ActionsCtx): void {
       <p class="export-outcome-summary" data-export-outcome${initialExperience.summary ? '' : ' hidden'}>${escapeText(initialExperience.summary ?? '')}</p>
       ${manifest.status === 'experimental' ? `<p class="export-experimental-note" role="note">${escapeText(t('This tool is experimental, so every export carries a watermark.'))}</p>` : ''}
       ${downloadRow}
+      ${ta.affordance === 'request-approval' ? `<p class="export-approval-status" data-approval-status role="status" hidden></p>` : ''}
       ${secondaryRow}
       ${actions.includes('download') ? `<div class="export-song-note-slot" data-song-note role="status" hidden></div>` : ''}
       ${actions.includes('download') ? `<p class="export-degraded-note" data-export-degraded role="status" hidden style="margin:.2rem 0 0;color:hsl(var(--muted-foreground));font-size:12px;text-align:center"></p>` : ''}

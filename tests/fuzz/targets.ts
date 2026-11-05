@@ -2593,6 +2593,33 @@ export const captionsSccTarget: FuzzTarget = {
     cuesToScc(cues, { onUnsupported: 'replace' });
   },
 };
+export const intentTarget: FuzzTarget = {
+  name: 'intent',
+  async seeds() {
+    const direct = { version: 1, purpose: 'direct', surfaces: [{ id: 'social-square', format: 'svg' }], content: { url: 'https://example.com' }, occasion: 'Launch' };
+    const sized = { version: 1, purpose: 'offer', surfaces: [{ width: 210, height: 297, unit: 'mm' }], content: { data: { columns: ['a'], rows: [['1']] }, heading: 'H' }, language: 'de-DE', prefer: { toolId: 'b' } };
+    const prompt = { version: 1, prompt: 'A card for the spring launch', recordPrompt: false };
+    const sidecar = { version: 1, intents: [{ purpose: 'offer', needs: ['data'], roles: { data: 'rows' }, set: { rows: '' }, surfaces: { slide: {} } }] };
+    return [direct, sized, prompt, sidecar].map((value) => new TextEncoder().encode(JSON.stringify(value)));
+  },
+  async invoke(bytes) {
+    const { resolveIntent, parseToolIntents, IntentInvalidError } = await import('../../engine/src/intent.ts');
+    parseToolIntents(new TextDecoder().decode(bytes));
+    const tools = [
+      { id: 'a', version: '1', inputs: [{ id: 'url', type: 'url', required: true }, { id: 'heading', type: 'text', default: 'Sample' }], render: { width: 600, height: 600, formats: ['svg', 'png'] }, intents: [{ purpose: 'direct' as const, needs: ['url'] }] },
+      { id: 'b', version: '1', inputs: [{ id: 'rows', type: 'table' }, { id: 'heading', type: 'text' }, { id: 'size', type: 'select', options: [{ value: 'a4', width: 210, height: 297, unit: 'mm' }] }, { id: 'language', type: 'select', options: [{ value: 'de' }] }], render: { width: 794, height: 1123, formats: ['pdf'], followsCanvasSize: true }, intents: [{ purpose: 'offer' as const, roles: { data: 'rows' } }] },
+    ];
+    let value: unknown;
+    try { value = JSON.parse(new TextDecoder().decode(bytes)); } catch { return; }
+    try {
+      const answer = await resolveIntent(value, tools);
+      // The answer must survive what every caller does with it next.
+      JSON.stringify(answer);
+    } catch (err) {
+      if (!(err instanceof IntentInvalidError)) throw err;
+    }
+  },
+};
 export const captionsTtmlTarget: FuzzTarget = {
   name: 'captions-ttml',
   async seeds() {
@@ -2626,6 +2653,6 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget, imageTraceTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget, imageTraceTarget, intentTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

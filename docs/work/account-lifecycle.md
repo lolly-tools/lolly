@@ -71,7 +71,7 @@ a credential's owner is a separate, explicit action.
 
 `GET /api/v1/users/:id/subject-export` needs an owner, and each successful read is recorded in
 the audit log. It returns the account plus one category of direct metadata: `identities`,
-`projects`, `credentials`, `links`, `telemetry`, `fleet` or `audit`. Choose a category with
+`projects`, `credentials`, `links`, `approvals`, `telemetry`, `fleet` or `audit`. Choose a category with
 `?category=credentials`. Pages default to 100 rows and accept a `limit` from 1 to 200.
 
 ```sh
@@ -88,6 +88,8 @@ What the pages leave out:
 
 - Credential and link pages exclude token hashes, signed URLs, password hashes and render
   parameters.
+- Approval pages list the requests this account raised, with each file's name, format, size and
+  digest. They exclude the file's bytes.
 - Audit pages contain the source sequence and hash references with time and action, without
   payloads.
 - Values are bounded, and a page reports `metadataValuesOmitted` when the size limits omit
