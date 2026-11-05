@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { after, before, test } from 'node:test';
 
+import { OWNER_PUBLISHED, redistribution } from '../engine/src/asset-rights.ts';
 import { checkBrandPageFolder, lollyMarkIds } from '../scripts/build-brand-page.ts';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -65,10 +66,33 @@ test('every font travels on its recorded licence, with the text beside it', () =
   }
 });
 
-test('Lolly\'s own marks are published, and "Made with Lolly" is on', () => {
+const MARKS_STATEMENT = "The Lolly name and marks belong to Andy Fitzsimon. They are not under an open licence: the Mozilla Public License 2.0 on Lolly's source code grants no rights in them (section 2.3). You may show these files unaltered to refer to Lolly. For any other use, ask at https://github.com/lolly-tools/lolly/issues.";
+
+test('each Lolly mark records its owner and terms, not an open licence', () => {
+  const index = JSON.parse(read('brands/lolly-demo/catalog/assets/index.json')) as { assets: Array<Record<string, unknown> & { id: string }> };
+  const marks = index.assets.filter(a => a.id.startsWith('lolly/logo/'));
+  assert.equal(marks.length, 7);
+  for (const mark of marks) {
+    assert.equal(mark.license, 'LicenseRef-Lolly-Marks', mark.id);
+    const answer = redistribution(mark);
+    assert.equal(answer.travels, true, mark.id);
+    assert.equal(answer.licence, OWNER_PUBLISHED, mark.id);
+    assert.deepEqual(answer.owner, { holder: 'Andy Fitzsimon', terms: MARKS_STATEMENT }, mark.id);
+    assert.ok(answer.notices.includes(MARKS_STATEMENT), mark.id);
+  }
+});
+
+test('Lolly\'s own marks are published with their terms and no --include, and "Made with Lolly" is on', () => {
   const manifest = JSON.parse(readFileSync(join(page, 'brand.json'), 'utf8'));
   assert.equal(lollyMarkIds().length, 7);
-  for (const id of lollyMarkIds()) assert.ok(manifest.logos.some((l: { id: string }) => l.id === id), id);
+  for (const id of lollyMarkIds()) assert.ok(manifest.logos.some((l: { id: string; licence?: string }) => l.id === id && l.licence === OWNER_PUBLISHED), id);
+  assert.ok(!manifest.held.some((h: { item: string }) => h.item.startsWith('lolly/logo/')), 'no mark is held back');
+  assert.equal(manifest.usage.statement, MARKS_STATEMENT);
+  assert.ok(!read('scripts/build-brand-page.ts').includes('--include'), 'the build states no include');
+  const html = readFileSync(join(page, 'index.html'), 'utf8');
+  assert.match(html, /<section id="usage"><h2>Using this brand<\/h2>/);
+  assert.ok(html.includes(MARKS_STATEMENT.replaceAll("'", '&#39;')) || html.includes(MARKS_STATEMENT), 'the page shows the exact statement');
+  assert.match(html, /Owner-published, not an open licence\. <a href="#usage">/);
   const primaries = manifest.logos.filter((l: { primary?: boolean }) => l.primary).map((l: { id: string }) => l.id).sort();
   assert.deepEqual(primaries, ['lolly/logo/horizontal', 'lolly/logo/horizontal-reverse'], 'a reader takes the logo the brand declares for each surface');
   assert.match(readFileSync(join(page, 'index.html'), 'utf8'), /Made with <a href="https:\/\/lolly\.tools\/"/);

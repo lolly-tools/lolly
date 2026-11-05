@@ -26,6 +26,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { OWNER_PUBLISHED } from '../engine/src/asset-rights.ts';
 import { contentRoots } from '../packages/node-shell/src/content-roots.ts';
 import { readBrandPage } from '../packages/node-shell/src/brand-page-read.ts';
 
@@ -34,7 +35,7 @@ const PROFILE = 'lolly-demo';
 const TARGET = join(ROOT, 'shells/web/public/brand', PROFILE);
 const ORIGIN = `https://lolly.tools/brand/${PROFILE}`;
 
-/** The ids of Lolly's own marks, which the build publishes as the owner's stated choice. */
+/** The ids of Lolly's own marks. The rights record on each row decides whether the file travels. */
 export function lollyMarkIds(root = ROOT): string[] {
   const index = JSON.parse(readFileSync(join(root, 'brands', PROFILE, 'catalog/assets/index.json'), 'utf8')) as { assets: Array<{ id: string; deprecated?: boolean }> };
   return index.assets.filter(a => !a.deprecated && a.id.startsWith('lolly/logo/')).map(a => a.id);
@@ -50,6 +51,10 @@ export async function checkBrandPageFolder(dir: string): Promise<string[]> {
   const count = (role: string): number => manifest.files.filter(f => f.role === role).length;
   if (!count('example')) problems.push('no drawn examples: this machine could not draw them');
   if (!count('logo')) problems.push('no logos');
+  for (const id of lollyMarkIds()) {
+    if (!manifest.logos?.some(l => l.id === id && l.licence === OWNER_PUBLISHED)) problems.push(`${id} is not published as "${OWNER_PUBLISHED}"`);
+  }
+  if (!manifest.usage?.statement?.includes('not under an open licence')) problems.push('the page does not show the terms of the Lolly marks');
   for (const family of ['outfit', 'suse', 'suse-mono']) {
     if (!manifest.files.some(f => f.role === 'font' && f.path.startsWith(`fonts/${family}-`) && !f.path.endsWith('.txt'))) problems.push(`no font file for ${family}`);
     if (!manifest.files.some(f => f.path === `fonts/${family}-licence.txt`)) problems.push(`no licence text beside the ${family} font`);
@@ -96,7 +101,6 @@ async function main(): Promise<void> {
   try {
     const run = spawnSync(process.execPath, [
       join(ROOT, 'shells/cli/bin/lolly.ts'), 'system', 'publish', `--profile=${PROFILE}`, `--out=${out}`, `--origin=${ORIGIN}`,
-      `--include=${lollyMarkIds().join(',')}`,
     ], { cwd: ROOT, encoding: 'utf8', env: { ...process.env, LOLLY_PROFILE: PROFILE }, maxBuffer: 16 * 1024 * 1024 });
     if (run.status !== 0) throw new Error(`lolly system publish failed: ${run.stderr || run.stdout}`);
     const problems = await checkBrandPageFolder(out);

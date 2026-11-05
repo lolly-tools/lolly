@@ -59,7 +59,7 @@ Lolly nunca dice "copyright verified", "legally safe", "fully cleared" ni "right
 - **Cuando eliminas metadatos.** Eliminar te dice cuántos créditos de fuente ya no lleva el archivo, ofrece el texto del crédito y ofrece un archivo limpio con los créditos en un archivo aparte. Los bytes eliminados nunca se vuelven a estampar.
 
 ::: details Las licencias que Lolly ha revisado
-Versión de reglas `rights-rules-2026-10-30.1`. Cada regla se leyó del propio texto legal de la licencia, y la sección de la que procede se cita aquí y junto a la regla en `engine/src/rights-profiles.ts`. Una versión y una adaptación regional se conservan como se registraron: una declaración CC BY 3.0 conserva su propia versión en lugar de notificarse como 4.0 porque el selector de la aplicación prefiere 4.0.
+Versión de reglas `rights-rules-2026-11-05.1`. Cada regla se leyó del propio texto legal de la licencia, y la sección de la que procede se cita aquí y junto a la regla en `engine/src/rights-profiles.ts`. Una versión y una adaptación regional se conservan como se registraron: una declaración CC BY 3.0 conserva su propia versión en lugar de notificarse como 4.0 porque el selector de la aplicación prefiere 4.0.
 
 | Licencia | Qué pide de un uso que Lolly puede hacer | Leído de |
 |---|---|---|

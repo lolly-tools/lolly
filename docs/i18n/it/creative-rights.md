@@ -59,7 +59,7 @@ Lolly non dice mai "diritto d'autore verificato", "legalmente sicuro", "completa
 - **Quando rimuovi i metadati.** La rimozione ti dice quanti crediti delle fonti il file non porta più, offre il testo del credito e offre un file pulito con i crediti in un file separato. I byte ripuliti non vengono mai rimarcati.
 
 ::: details Le licenze che Lolly ha rivisto
-Versione delle regole `rights-rules-2026-10-30.1`. Ogni regola è stata letta dal testo legale della licenza stessa, e la sezione da cui proviene è citata qui e accanto alla regola in `engine/src/rights-profiles.ts`. Una versione e un port sono mantenuti come registrati: una dichiarazione CC BY 3.0 mantiene la propria versione anziché essere riportata come 4.0 perché il selettore dell'app preferisce la 4.0.
+Versione delle regole `rights-rules-2026-11-05.1`. Ogni regola è stata letta dal testo legale della licenza stessa, e la sezione da cui proviene è citata qui e accanto alla regola in `engine/src/rights-profiles.ts`. Una versione e un port sono mantenuti come registrati: una dichiarazione CC BY 3.0 mantiene la propria versione anziché essere riportata come 4.0 perché il selettore dell'app preferisce la 4.0.
 
 | Licenza | Cosa chiede per un uso che Lolly può fare | Letto da |
 |---|---|---|

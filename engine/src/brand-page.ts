@@ -164,7 +164,7 @@ export interface PageFactsV1 {
   variants: PageVariantV1[];
   /** The named colours, resolved in the canonical variant. */
   named: Array<{ name: string; path: string; value: string }>;
-  logos: Array<{ id: string; name: string; path: string; surface: 'light' | 'dark' | 'any'; mono: boolean }>;
+  logos: Array<{ id: string; name: string; path: string; surface: 'light' | 'dark' | 'any'; mono: boolean; licence?: string }>;
   heroLogos: { onDark: string | null; onLight: string | null };
   faces: Array<{ family: string; tokens: string[]; files: string[]; licence: string | null; licenceFile: string | null; source: string | null; outline: BrandPageOutlineV1 | null }>;
   nameOutline: BrandPageOutlineV1 | null;
@@ -453,6 +453,8 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   // Logos. Sorted so input order cannot change the bytes.
   const include = new Set(input.include ?? []);
   const logos: PageFactsV1['logos'] = [];
+  // An owner's terms go on the page with the marks they cover, beside any words of the publisher's.
+  const ownerTerms: string[] = [];
   for (const logo of [...(input.logos ?? [])].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))) {
     const label = text(logo.name, 200) || logo.id;
     const answer = redistribution({ license: logo.license, rights: logo.rights, attribution: logo.attribution, brandLock: logo.brandLock });
@@ -464,7 +466,8 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     }
     const path = `logos/${logo.id.split('/').map(pathSegment).filter(Boolean).join('/')}.${format}`;
     if (!add(path, 'logo', logo.bytes)) continue;
-    logos.push({ id: logo.id, name: label, path, ...surfaceOfLogo(brief, logo.id) });
+    logos.push({ id: logo.id, name: label, path, ...surfaceOfLogo(brief, logo.id), ...(answer.licence ? { licence: answer.licence } : {}) });
+    if (answer.owner && !ownerTerms.includes(answer.owner.terms)) ownerTerms.push(answer.owner.terms);
   }
   const logoFor = (want: unknown, surface: 'light' | 'dark'): string | null => {
     const hit = logos.find(l => l.id === want) ?? logos.find(l => l.surface === surface && !l.mono) ?? logos.find(l => l.surface === surface);
@@ -551,7 +554,7 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
 
   const tokenPaths = createTokenSet(doc, { selection: canonical.selection }).query().map(e => e.path);
   const colourways: BrandPageColourwayV1[] = colourwayRows.map(c => ({ id: c.id, name: c.name, modes: modes.map(m => m.id) }));
-  const usage = cleanUsage(input.usage);
+  const usage = cleanUsage(withOwnerTerms(input.usage, ownerTerms));
   const origin = input.origin && /^https?:\/\//.test(input.origin) ? input.origin.replace(/\/+$/, '').slice(0, 2000) : null;
   const orderedHeld = sortHeld(held);
   const facts: PageFactsV1 = {
@@ -591,6 +594,14 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   const manifestFile: BrandPageFileOutV1 = { path: 'brand.json', role: 'manifest', mediaType: MEDIA.json!, bytes: ENCODER.encode(pretty(manifest)) };
   const out = [...sorted, manifestFile].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
   return { manifest, checks, files: out };
+}
+
+/** The publisher's words first, then each owner's terms the words do not already hold. */
+function withOwnerTerms(usage: BrandPageUsageV1 | undefined, terms: readonly string[]): BrandPageUsageV1 | undefined {
+  if (!terms.length) return usage;
+  const statement = typeof usage?.statement === 'string' ? usage.statement.trim() : '';
+  const missing = terms.filter(term => !statement.includes(term));
+  return { ...usage, statement: [statement, ...missing].filter(Boolean).join('\n\n') };
 }
 
 function cleanUsage(usage: BrandPageUsageV1 | undefined): BrandPageUsageV1 | null {

@@ -44,7 +44,6 @@ test('publish writes the same bytes twice, and says what it held back', async ()
     const a = await lolly(['system', 'publish', `--out=${join(s.dir, 'a')}`, '--no-examples'], s.env);
     assert.equal(a.code, 0, a.stderr);
     assert.match(a.stdout, /Held back/);
-    assert.match(a.stdout, /lolly\/logo\/primary: licence not recorded/);
     assert.match(a.stdout, /Nothing has gone public/);
     const b = await lolly(['system', 'publish', `--out=${join(s.dir, 'b')}`, '--no-examples'], s.env);
     assert.equal(b.code, 0, b.stderr);
@@ -56,7 +55,9 @@ test('publish writes the same bytes twice, and says what it held back', async ()
     const manifest = JSON.parse(first.get('brand.json')!.toString());
     assert.equal(manifest.id, 'lolly-demo');
     assert.equal(manifest.colourways.length, 6);
-    assert.ok(![...first.keys()].some(p => p.startsWith('logos/')), 'a logo with no recorded licence stays out by default');
+    assert.ok(first.has(join('logos', 'lolly', 'logo', 'primary.svg')), 'an owner-published mark needs no --include');
+    assert.equal(manifest.logos.find((l: { id: string }) => l.id === 'lolly/logo/primary').licence, 'Owner-published, not an open licence');
+    assert.match(first.get('index.html')!.toString(), /belong to Andy Fitzsimon/);
     assert.ok(first.has(join('fonts', 'outfit-licence.txt')), 'a font with a recorded licence travels with the text');
     assert.match(first.get('index.html')!.toString(), /Made with/);
     const off = await lolly(['system', 'publish', `--out=${join(s.dir, 'c')}`, '--no-examples', '--no-made-with-link'], s.env);
@@ -65,18 +66,19 @@ test('publish writes the same bytes twice, and says what it held back', async ()
   } finally { s.done(); }
 });
 
-test('publish includes a named logo, takes the publisher\'s words and refuses a folder in use', async () => {
+test('publish takes the publisher\'s words beside an owner\'s terms and refuses a folder in use', async () => {
   const s = scratch();
   try {
     const usage = join(s.dir, 'usage.json');
     writeFileSync(usage, JSON.stringify({ statement: 'Ask before you change the mark.', contact: 'brand@example.com', fonts: { Outfit: { url: 'https://example.com/outfit', licence: 'OFL-1.1' } } }));
     const out = join(s.dir, 'page');
-    const run = await lolly(['system', 'publish', `--out=${out}`, '--no-examples', '--include=lolly/logo/primary', `--usage-file=${usage}`, '--origin=https://example.com/brand/demo', '--json'], s.env);
+    const run = await lolly(['system', 'publish', `--out=${out}`, '--no-examples', `--usage-file=${usage}`, '--origin=https://example.com/brand/demo', '--json'], s.env);
     assert.equal(run.code, 0, run.stderr);
     const files = filesOf(out);
     assert.ok(files.has(join('logos', 'lolly', 'logo', 'primary.svg')));
     const html = files.get('index.html')!.toString();
     assert.match(html, /Ask before you change the mark\./);
+    assert.match(html, /belong to Andy Fitzsimon/, 'the words of a usage file do not replace the terms on the marks');
     assert.match(html, /href="fonts\/outfit-100-900-normal\.ttf"/, 'a font file on record wins over a link to where to get the face');
     assert.doesNotMatch(html, /href="https:\/\/example\.com\/outfit"/);
     const manifest = JSON.parse(files.get('brand.json')!.toString());

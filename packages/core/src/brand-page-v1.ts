@@ -125,6 +125,8 @@ export interface BrandPageLogoV1 {
   mono: boolean;
   /** The logo this brand leads with on its surface, when the page knows one. */
   primary?: boolean;
+  /** The licence on record, or "Owner-published, not an open licence". Absent when the publisher included the logo with nothing on record. */
+  licence?: string;
 }
 
 /** `brand.json`. */

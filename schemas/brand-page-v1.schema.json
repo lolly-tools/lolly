@@ -211,6 +211,10 @@
           },
           "primary": {
             "type": "boolean"
+          },
+          "licence": {
+            "type": "string",
+            "maxLength": 200
           }
         }
       }

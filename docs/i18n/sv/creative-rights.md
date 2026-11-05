@@ -59,7 +59,7 @@ Lolly säger aldrig "copyright verified", "legally safe", "fully cleared" eller 
 - **När du tar bort metadata.** Rensning talar om hur många källkrediter filen inte längre bär, erbjuder kredittexten och erbjuder en ren fil med krediterna i en separat fil. Rensade byte stämplas aldrig om.
 
 ::: details Licenserna Lolly har granskat
-Regelversion `rights-rules-2026-10-30.1`. Varje regel lästes ur licensens egen rättstext, och avsnittet den kom från anges här och bredvid regeln i `engine/src/rights-profiles.ts`. En version och en port behålls som registrerade: en CC BY 3.0-deklaration behåller sin egen version i stället för att rapporteras som 4.0 för att appens väljare föredrar 4.0.
+Regelversion `rights-rules-2026-11-05.1`. Varje regel lästes ur licensens egen rättstext, och avsnittet den kom från anges här och bredvid regeln i `engine/src/rights-profiles.ts`. En version och en port behålls som registrerade: en CC BY 3.0-deklaration behåller sin egen version i stället för att rapporteras som 4.0 för att appens väljare föredrar 4.0.
 
 | Licens | Vad den kräver av en användning Lolly kan göra | Läst ur |
 |---|---|---|

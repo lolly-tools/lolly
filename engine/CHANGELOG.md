@@ -11,6 +11,8 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 - `buildBrandPage`: `brand.json` gains an optional `logos` list (id, name, path, surface, mono) so a reader can take the logo for a surface. A page from 1.308.0 has none, and a reader treats the field as optional.
 - `BrandPageFontInputV1.licenceText` puts a font's licence text beside the file, and the page links to the text. A variable face named with its range (`outfit-100-900.ttf`) now states the range in its `@font-face`.
 - `BrandPageInputV1.madeWith`: the footer's "Made with Lolly" link stays on unless the publisher sets this to false.
+- `redistribution()` gains rule `owner-published-v1`, rules version `rights-rules-2026-11-05.1`. A row whose own work has a licence declaration, a party with the role `owner` and an asserted `own-work` grant holding the terms travels as "Owner-published, not an open licence", with the terms as a notice. It reaches every caller of the shared rule, including `.lolly` packs. A reviewed licence still answers first, a brand lock still holds, and a blank or partial record stays held back with its reason. `owner` on the answer carries the holder and the terms. The rule reads what a catalog states and does not show ownership.
+- `buildBrandPage`: `logos[]` in `brand.json` gains an optional `licence`, an owner's terms join the usage statement, and the page says which logos are owner-published.
 
 ## 1.308.0
 
