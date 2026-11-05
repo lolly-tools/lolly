@@ -533,8 +533,8 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
-  beginCommand(cmd === 'adobe' || cmd === 'affinity' || cmd === 'dxf' || cmd === 'import' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
+  const VERBS = new Set(['import', 'learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+  beginCommand(cmd === 'adobe' || cmd === 'affinity' || cmd === 'dxf' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
   // A command that needs them says so here, once, with the routes to a root - instead
