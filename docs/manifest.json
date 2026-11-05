@@ -916,7 +916,7 @@
       "slug": "compare-render-apis",
       "title": "Lolly and rendering APIs",
       "src": "compare-render-apis.md",
-      "description": "Generating many on-brand images from data: where Lolly and a hosted rendering API like Bannerbear or Placid overlap.",
+      "description": "Running your own image production instead of a hosted rendering API like Bannerbear or Placid: what each does better, how the jobs line up, and what carries across.",
       "section": "create",
       "path": "create/compare-render-apis",
       "icon": "checklist",
@@ -2531,6 +2531,23 @@
       "work": {
         "slug": "team-projects",
         "path": "team-projects.md",
+        "icon": "grants"
+      }
+    },
+    {
+      "slug": "work-move-from-render-api",
+      "title": "Move from a hosted render API",
+      "src": "work/move-from-render-api.md",
+      "section": "manage",
+      "group": "Jobs, sharing and delivery",
+      "path": "manage/move-from-render-api",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Move image production from Bannerbear or Placid to your own server, one template at a time: read the account, import or rebuild designs, keep your request shapes, and compare before you cut over.",
+      "work": {
+        "slug": "move-from-render-api",
+        "path": "move-from-render-api.md",
         "icon": "grants"
       }
     },

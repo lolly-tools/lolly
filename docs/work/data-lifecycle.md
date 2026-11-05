@@ -106,6 +106,7 @@ Open a group to see its stores. Each row gives what the store holds and how it i
 | Store or source | Data and purpose | Lifecycle and limits |
 |---|---|---|
 | `links`, `approvals`, messages and acknowledgements | Shared targets, review titles and state, communications and identity references | Revoke access and resolve retained records under their lifecycle. These can prevent identity-row deletion. External recipients may keep copies. |
+| `render_api_records` | One row per request on the migration API: its owner, template, renders, `metadata` or `passthrough`, webhook URL and the request fields a vendor's response repeats | Kept until deleted with `DELETE /compat/requests/:id`. Deleting a row ends its result URLs and leaves the renders in history |
 | Renders, batches, automation jobs and deliveries | Queries, inputs, outputs, manifests, idempotency and execution records and destination receipts | Review job and output retention, business purpose, blobs and external destinations. Account erasure does not sweep these records. |
 | `automation_callbacks` | For an automation job with a callback: the callback URL, the principal that started the job, delivery state, attempt count and the last status or error | Deleted with its job. Account erasure does not sweep these records. |
 :::

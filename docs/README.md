@@ -169,6 +169,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Approvals | [work/approvals.md](work/approvals.md) |
 | Share renders and links | [work/sharing.md](work/sharing.md) |
 | Team projects | [work/team-projects.md](work/team-projects.md) |
+| Move from a hosted render API | [work/move-from-render-api.md](work/move-from-render-api.md) |
 | Render jobs and batches | [work/renders.md](work/renders.md) |
 | Organisation delivery destinations | [work/delivery.md](work/delivery.md) |
 | Manage organisation AI policy | [work/ai-policy.md](work/ai-policy.md) |

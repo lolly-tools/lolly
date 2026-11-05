@@ -154,6 +154,22 @@ row keys. Retry creates a new parent and replaces only unsuccessful rows;
 successful children keep their original output. Download each child through
 `lw renders output <childRenderId> --out <file>`.
 
+## Moving from a hosted render API
+
+`lw render-api` reads a Bannerbear or Placid account, keeps references, checks a mapping and measures a
+render against a reference. [Move from a hosted render API](move-from-render-api.md) has the stages.
+
+```bash
+lw render-api inventory --from placid --token-env PLACID_KEY --out ./move
+lw render-api sample --from placid --template <id> --token-env PLACID_KEY --values request.json --out ./refs --spend-credits
+lw render-api check --mapping mapping.json
+lw render-api compare --from placid --mapping mapping.json --template <id> --reference ./refs/<id>.png --values request.json
+```
+
+`inventory` and `sample` need no Work server. `sample` spends credits on your vendor account and refuses
+to run without `--spend-credits`. A vendor key is read from the variable `--token-env` names and is never
+printed. `check` and `compare` exit `2` when a template cannot run or a render differs.
+
 ## Organization delivery
 
 ```bash
