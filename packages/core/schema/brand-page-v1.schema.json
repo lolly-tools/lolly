@@ -172,6 +172,53 @@
         }
       }
     },
+    "logos": {
+      "type": "array",
+      "maxItems": 4096,
+      "description": "Each published logo and the surface it is drawn for. Optional: a page from before this field has none.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "path",
+          "surface",
+          "mono"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 400
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 400
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "surface": {
+            "enum": [
+              "light",
+              "dark",
+              "any"
+            ]
+          },
+          "mono": {
+            "type": "boolean"
+          },
+          "primary": {
+            "type": "boolean"
+          },
+          "licence": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      }
+    },
     "held": {
       "type": "array",
       "maxItems": 4096,

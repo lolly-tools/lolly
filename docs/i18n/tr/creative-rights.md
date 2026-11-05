@@ -59,7 +59,7 @@ Lolly asla "copyright verified", "legally safe", "fully cleared" veya "rights cl
 - **Meta veriyi kaldırdığında.** Temizleme, dosyanın artık kaç kaynak atfı taşımadığını söyler, atıf metnini sunar ve atıfların ayrı bir dosyada olduğu temiz bir dosya sunar. Temizlenen baytlar asla yeniden damgalanmaz.
 
 ::: details Lolly'nin incelediği lisanslar
-Kural sürümü `rights-rules-2026-10-30.1`. Her kural lisansın kendi hukuki metninden okundu ve geldiği bölüm burada ve `engine/src/rights-profiles.ts` içindeki kuralın yanında belirtilir. Bir sürüm ve bir port kaydedildiği gibi tutulur: bir CC BY 3.0 beyanı, uygulamanın seçicisi 4.0'ı tercih ediyor diye 4.0 olarak bildirilmek yerine kendi sürümünü korur.
+Kural sürümü `rights-rules-2026-11-05.1`. Her kural lisansın kendi hukuki metninden okundu ve geldiği bölüm burada ve `engine/src/rights-profiles.ts` içindeki kuralın yanında belirtilir. Bir sürüm ve bir port kaydedildiği gibi tutulur: bir CC BY 3.0 beyanı, uygulamanın seçicisi 4.0'ı tercih ediyor diye 4.0 olarak bildirilmek yerine kendi sürümünü korur.
 
 | Lisans | Lolly'nin yapabileceği bir kullanımdan ne ister | Okunduğu yer |
 |---|---|---|

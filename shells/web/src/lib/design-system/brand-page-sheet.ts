@@ -15,6 +15,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { icon } from '../icons.ts';
 import { fmtBytes } from '../format.ts';
 import { zipAsync } from '../zip.ts';
+import { OWNER_PUBLISHED } from '../../../../../engine/src/asset-rights.ts';
 import { connectedInstance, type BrandPageHostingV1 } from '../brand-page-hosting.ts';
 import { brandPagePreviewHtml } from './brand-page-preview.ts';
 import {
@@ -175,6 +176,7 @@ export async function openBrandPageSheet(host: BrandPageHost): Promise<void> {
         </section>
         <section class="bp-section">
           <h3><span data-bp-public-title>${t('Goes public')}</span> <span class="bp-count" data-bp-total></span></h3>
+          <p class="bp-note" data-bp-owner-note hidden>${t('Owner-published logos go out on the terms their record states, and the page prints those terms.')}</p>
           <div data-bp-files></div>
         </section>
         <details class="bp-section bp-disclose" data-bp-held-box open hidden>
@@ -271,6 +273,7 @@ export async function openBrandPageSheet(host: BrandPageHost): Promise<void> {
     const rows = fileRows(build);
     for (const row of rows) if (opened.has(row.querySelector('summary span')?.textContent ?? '')) (row as HTMLDetailsElement).open = true;
     $('[data-bp-files]').replaceChildren(...rows);
+    $('[data-bp-owner-note]').hidden = !build.manifest.logos?.some(logo => logo.licence === OWNER_PUBLISHED);
     // A logo the publisher can tick is shown once, in the ticks above the list.
     const held = build.manifest.held;
     $('[data-bp-held-box]').hidden = held.length === 0 && candidates.length === 0;

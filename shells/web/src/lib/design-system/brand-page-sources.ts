@@ -27,6 +27,7 @@ import { resolveVectorFont } from '../../bridge/font-registry.ts';
 import { brandFontStack } from '../../brand-vars.ts';
 import { getTool, renderRowToBlob } from '../../pro/render-export.ts';
 import { readFontEmbedding } from '../font-utils.ts';
+import { instanceFetch, instancePath } from '../instance.ts';
 import { fetchTemplateSeed } from '../template-source.ts';
 import { listLogos } from '../brand-logos.ts';
 import { listUserFonts, type UserFontsHost } from '../../user-fonts.ts';
@@ -139,6 +140,15 @@ function fontFacts(bytes: Uint8Array): { embedding?: string } {
   return permission === 'unknown' ? {} : { embedding: permission };
 }
 
+/** The licence text a catalog font names, to sit beside its file. A failed read leaves the file's own licence line. */
+async function readLicenceText(meta: Record<string, unknown>): Promise<Uint8Array | null> {
+  if (typeof meta.licenceFile !== 'string') return null;
+  try {
+    const response = await instanceFetch(instancePath(meta.licenceFile));
+    return response.ok ? new Uint8Array(await response.arrayBuffer()) : null;
+  } catch { return null; }
+}
+
 async function readFonts(host: BrandPageHost, refs: readonly AssetRef[], held: BrandPageHeldV1[]): Promise<BrandPageFontInputV1[]> {
   const { assets } = host;
   const out: BrandPageFontInputV1[] = [];
@@ -149,8 +159,9 @@ async function readFonts(host: BrandPageHost, refs: readonly AssetRef[], held: B
     if (!family) continue;
     try {
       const bytes = await assets.bytes(ref);
+      const licenceText = await readLicenceText(meta);
       out.push({
-        family, format: ref.format, bytes, ...fontFacts(bytes), ...rightsOf(meta),
+        family, format: ref.format, bytes, ...fontFacts(bytes), ...rightsOf(meta), ...(licenceText ? { licenceText } : {}),
         ...(typeof meta.weight === 'string' || typeof meta.weight === 'number' ? { weight: String(meta.weight) } : {}),
         ...(typeof meta.style === 'string' ? { style: meta.style } : {}),
       });

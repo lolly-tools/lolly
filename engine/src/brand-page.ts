@@ -63,6 +63,8 @@ export interface BrandPageFontInputV1 {
   rights?: unknown;
   /** What the font's own `fsType` says, when the host could read the field. `restricted` holds the file back whatever the licence record says. */
   embedding?: string;
+  /** The licence's own text. It goes beside the font file, because a licence such as the OFL asks for its text to travel with each copy. */
+  licenceText?: Uint8Array;
 }
 
 export interface BrandPageSkillInputV1 {
@@ -114,12 +116,12 @@ export interface BrandPageInputV1 {
   outlines?: readonly BrandPageOutlineV1[];
   /** Design documents the house rules run on, for each colourway and mode. */
   documents?: readonly BrandPageDocumentInputV1[];
+  /** Show the "Made with Lolly" link in the page's footer. On unless the publisher turns it off. */
+  madeWith?: boolean;
   /** Asset ids the publisher chooses to publish although no licence allows it on record: their stated choice. */
   include?: readonly string[];
   /** What the host could not supply, with its reason. */
   held?: readonly BrandPageHeldV1[];
-  /** The "Made with Lolly" line in the page's footer. On unless this is false. */
-  madeWith?: boolean;
 }
 
 export interface BrandPageFileOutV1 {
@@ -158,16 +160,14 @@ export interface PageFactsV1 {
   overview: string;
   usage: BrandPageUsageV1 | null;
   origin: string | null;
-  /** Show the "Made with Lolly" footer. */
-  madeWith: boolean;
   colourways: BrandPageColourwayV1[];
   modes: Array<{ id: string; name: string }>;
   variants: PageVariantV1[];
   /** The named colours, resolved in the canonical variant. */
   named: Array<{ name: string; path: string; value: string }>;
-  logos: Array<{ id: string; name: string; path: string; surface: 'light' | 'dark' | 'any'; mono: boolean }>;
+  logos: Array<{ id: string; name: string; path: string; surface: 'light' | 'dark' | 'any'; mono: boolean; licence?: string }>;
   heroLogos: { onDark: string | null; onLight: string | null };
-  faces: Array<{ family: string; tokens: string[]; files: string[]; licence: string | null; source: string | null; outline: BrandPageOutlineV1 | null }>;
+  faces: Array<{ family: string; tokens: string[]; files: string[]; licence: string | null; licenceFile: string | null; source: string | null; outline: BrandPageOutlineV1 | null }>;
   nameOutline: BrandPageOutlineV1 | null;
   examples: Array<{ id: string; name: string; path: string }>;
   rules: Array<{ id: string; label: string; requirement: 'required' | 'advisory'; description: string }>;
@@ -176,6 +176,7 @@ export interface PageFactsV1 {
   held: BrandPageHeldV1[];
   tokenPaths: string[];
   masterSize: { width: number; height: number } | null;
+  madeWith: boolean;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -489,6 +490,8 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   // Logos. Sorted so input order cannot change the bytes.
   const include = new Set(input.include ?? []);
   const logos: PageFactsV1['logos'] = [];
+  // An owner's terms go on the page with the marks they cover, beside any words of the publisher's.
+  const ownerTerms: string[] = [];
   for (const logo of [...(input.logos ?? [])].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))) {
     const label = text(logo.name, 200) || logo.id;
     const answer = redistribution({ license: logo.license, rights: logo.rights, attribution: logo.attribution, brandLock: logo.brandLock });
@@ -500,7 +503,8 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     }
     const path = `logos/${logo.id.split('/').map(pathSegment).filter(Boolean).join('/')}.${format}`;
     if (!add(path, 'logo', logo.bytes)) continue;
-    logos.push({ id: logo.id, name: label, path, ...surfaceOfLogo(brief, logo.id) });
+    logos.push({ id: logo.id, name: label, path, ...surfaceOfLogo(brief, logo.id), ...(answer.licence ? { licence: answer.licence } : {}) });
+    if (answer.owner && !ownerTerms.includes(answer.owner.terms)) ownerTerms.push(answer.owner.terms);
   }
   const logoFor = (want: unknown, surface: 'light' | 'dark'): string | null => {
     const hit = logos.find(l => l.id === want) ?? logos.find(l => l.surface === surface && !l.mono) ?? logos.find(l => l.surface === surface);
@@ -515,7 +519,7 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     if (!family) continue;
     families.set(family, [...(families.get(family) ?? []), f.path]);
   }
-  const fontFiles = new Map<string, { paths: string[]; licence: string }>();
+  const fontFiles = new Map<string, { paths: string[]; licence: string; licenceFile: string | null }>();
   for (const font of [...(input.fonts ?? [])].sort((a, b) => `${a.family}${a.weight}${a.style}`.localeCompare(`${b.family}${b.weight}${b.style}`, 'en'))) {
     const label = [font.family, font.weight, font.style].filter(Boolean).join(' ');
     const answer = redistribution({ license: font.license, rights: font.rights });
@@ -524,8 +528,12 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     const stem = [font.family, font.weight, font.style].filter(Boolean).map(s => slug(String(s))).filter(Boolean).join('-') || 'font';
     const path = `fonts/${stem}.${pathSegment(font.format).toLowerCase()}`;
     if (!add(path, 'font', font.bytes)) continue;
-    const row = fontFiles.get(font.family) ?? { paths: [], licence: answer.licence };
+    const row = fontFiles.get(font.family) ?? { paths: [], licence: answer.licence, licenceFile: null };
     row.paths.push(path);
+    if (font.licenceText && !row.licenceFile) {
+      const licencePath = `fonts/${slug(font.family) || 'font'}-licence.txt`;
+      if (add(licencePath, 'font', font.licenceText)) row.licenceFile = licencePath;
+    }
     fontFiles.set(font.family, row);
   }
   const outlines = input.outlines ?? [];
@@ -536,8 +544,10 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     const source = input.fontSources?.[family];
     if (!file && !(input.fonts ?? []).some(f => f.family === family)) hold(`Font ${family}`, 'no font file with a recorded licence that allows passing it on', 'unknown');
     return {
-      family, tokens, files: file?.paths ?? [],
+      // Upright first, because the page's "Font file" link goes to the first file.
+      family, tokens, files: [...(file?.paths ?? [])].sort((a, b) => Number(a.includes('italic')) - Number(b.includes('italic')) || (a < b ? -1 : 1)),
       licence: file?.licence || text(source?.licence, 120) || null,
+      licenceFile: file?.licenceFile ?? null,
       source: source?.url && /^https?:\/\//.test(source.url) ? source.url.slice(0, 2000) : null,
       outline: specimenFor(family),
     };
@@ -581,13 +591,13 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
 
   const tokenPaths = createTokenSet(doc, { selection: canonical.selection }).query().map(e => e.path);
   const colourways: BrandPageColourwayV1[] = colourwayRows.map(c => ({ id: c.id, name: c.name, modes: modes.map(m => m.id) }));
-  const usage = cleanUsage(input.usage);
+  const usage = cleanUsage(withOwnerTerms(input.usage, ownerTerms));
   const origin = input.origin && /^https?:\/\//.test(input.origin) ? input.origin.replace(/\/+$/, '').slice(0, 2000) : null;
   const orderedHeld = sortHeld(held);
   const facts: PageFactsV1 = {
-    id, name, summary: overview ? firstSentence(overview) : `The ${name} design system.`, overview, usage, origin, madeWith: input.madeWith !== false,
+    id, name, summary: overview ? firstSentence(overview) : `The ${name} design system.`, overview, usage, origin,
     colourways, modes: modes.map(m => ({ id: m.id, name: m.name })), variants, named, logos, heroLogos, faces, nameOutline, examples,
-    rules, skills, checks, held: orderedHeld, tokenPaths,
+    rules, skills, checks, held: orderedHeld, tokenPaths, madeWith: input.madeWith !== false,
     masterSize: brief.coverage.type === 'declared' && brief.master?.size ? { width: brief.master.size.width, height: brief.master.size.height } : null,
   };
 
@@ -609,7 +619,9 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     ...(origin ? { origin } : {}),
     generator: { name: 'lolly', engine: ENGINE_VERSION, designMd: DESIGN_MD_TARGET },
     ...(usage ? { usage } : {}),
-    colourways, files: listed, held: orderedHeld,
+    colourways, files: listed,
+    ...(logos.length ? { logos: logos.map(l => (l.id === brief.logos.onLight || l.id === brief.logos.onDark ? { ...l, primary: true } : l)) } : {}),
+    held: orderedHeld,
     checks: {
       file: 'checks.json', variants: checks.variants.length, pairs: pairs.length, pairsBelow3: pairs.filter(p => p.reads === 'below-3').length,
       rules: ruleChecks.length, rulesWithFindings: ruleChecks.filter(r => r.findings > 0).length,
@@ -619,6 +631,14 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   const manifestFile: BrandPageFileOutV1 = { path: 'brand.json', role: 'manifest', mediaType: MEDIA.json!, bytes: ENCODER.encode(pretty(manifest)) };
   const out = [...sorted, manifestFile].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
   return { manifest, checks, files: out };
+}
+
+/** The publisher's words first, then each owner's terms the words do not already hold. */
+function withOwnerTerms(usage: BrandPageUsageV1 | undefined, terms: readonly string[]): BrandPageUsageV1 | undefined {
+  if (!terms.length) return usage;
+  const statement = typeof usage?.statement === 'string' ? usage.statement.trim() : '';
+  const missing = terms.filter(term => !statement.includes(term));
+  return { ...usage, statement: [statement, ...missing].filter(Boolean).join('\n\n') };
 }
 
 function cleanUsage(usage: BrandPageUsageV1 | undefined): BrandPageUsageV1 | null {

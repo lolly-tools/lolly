@@ -38,7 +38,7 @@
     "bench:geometry:hosts": "node scripts/bench-geometry-operation-scope.ts --host",
     "bench:geometry:hosts:browser": "node scripts/verify-geometry-engines.ts --benchmark",
     "profile:geometry": "node scripts/profile-geometry-stages.ts --mode=profile",
-    "build:web": "pnpm run build:ort && pnpm run build:info && node scripts/build-tool-og.ts && node scripts/build-view-og.ts && pnpm --filter ./shells/web run build",
+    "build:web": "pnpm run build:ort && pnpm run build:info && node scripts/build-tool-og.ts && node scripts/build-view-og.ts && node scripts/build-brand-page.ts && pnpm --filter ./shells/web run build",
     "build:web:release": "node scripts/build-release-web.ts web",
     "build:desktop:frontend:release": "node scripts/build-release-web.ts tauri-desktop",
     "build:mobile:frontend:release": "node scripts/build-release-web.ts tauri-mobile",

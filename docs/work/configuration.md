@@ -473,13 +473,14 @@ Authelia, oauth2-proxy) states who the person is in request headers. See
 
 | Key | Default | What it does |
 |---|---|---|
-| `enabled` | `true` | per-IP token buckets on the auth, telemetry, link and automation surfaces; other routes are not throttled here |
+| `enabled` | `true` | per-IP token buckets on the auth, telemetry, link, automation and brand page surfaces; other routes are not throttled here |
 | `trustedProxyHops` | `0` | how many reverse proxies to trust in `X-Forwarded-For`. `0` reads only the socket peer. Behind one ingress, set `1` |
 | `maxBuckets` | `50000` | bucket table cap |
 | `auth` | `capacity 10, refillPerSec 0.2` | sign-in attempts (`/api/auth/login`, the callback, linking a sign-in, passkeys, proxy sign-in, device sign-in and provider logout), including each email and password guess and each use of a password link, the invite page's and refusal page's forms (`/api/auth/invite`, `/api/auth/request`), and the instance card (`GET /api/v1/instance`) |
 | `telemetry` | `capacity 120, refillPerSec 4` | event ingest |
 | `link` | `capacity 30, refillPerSec 1` | signed-link resolution, including invite and join pages (`/l/invite/`, `/l/join/`), and the instance pack download (`/connect/pack.lolly`) |
 | `automation` | `capacity 120, refillPerSec 2` | the automation API (discovery, schemas, the document verbs, `/api/v1/render`, durable renders, render batches, `/api/v1/batch` and jobs), `GET /render/…`, agent connections (`/api/workspace/mcp`) and the outbound delivery `POST`s |
+| `brandPage` | `capacity 240, refillPerSec 8` | a published brand page's files and the list of pages. One view asks for many files. The read-only MCP endpoint at `/brand/<id>/mcp` uses `automation` |
 
 ## `blobs`
 
@@ -620,6 +621,21 @@ route then answers `404`. [Move from a hosted render API](move-from-render-api.m
 | `templates` | `[]` | the same mappings inline |
 | `resultUrls.signedDays` | `30` | how long a result URL works after its render finished, 0 to 3650. `0` means result URLs need the bearer token. Above `0` needs `LW_RENDER_API_URL_SECRET` |
 | `urlApi.actAs` | *unset* | the service token Placid URL API renders act as |
+
+## `brandPages`
+
+[Brand pages](design-system-administration.md#host-a-brand-page). Off by default. A published page is public, even on a sign-in gated instance.
+
+| Key | Default | What it does |
+|---|---|---|
+| `enabled` | `false` | turn on the routes. While off, `/brand/<id>/` goes to the web shell if one is mounted, and every other route answers `404` |
+| `maxBundleBytes` | `67108864` (64 MiB) | the largest bundle, and the most that its files may add up to |
+| `maxFileBytes` | `33554432` (32 MiB) | the largest single file, at most `maxBundleBytes` |
+| `instanceBudgetBytes` | `1073741824` (1 GiB) | what all revisions of all pages may hold, at least `maxBundleBytes` |
+| `keepRevisions` | `10` | how many revisions of each page keep their files, from 1 to 1000. Older ones stay in the history with their digests |
+| `approvalChain` | *unset* | a chain id. Set, each revision waits for that chain, and a publish is refused if the chain does not exist |
+
+An unknown key or an impossible limit stops the server at boot.
 
 ## `submit`
 

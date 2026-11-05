@@ -780,7 +780,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // asset field is read from disk, then files given as arguments, `--<id>-file` or
   // a `--<id>-files` list each become one row of a dropToAdd input, as a drop does.
   {
-    const { appendDroppedFiles, bakeLocalBlockAssets } = await import('./block-files.ts');
+    const { appendBrandPageLogos, appendDroppedFiles, bakeLocalBlockAssets } = await import('./block-files.ts');
     const dataDirs: Record<string, string> = {};
     for (const input of tool.manifest.inputs ?? []) {
       const dataPath = params[`${input.id}-data`];
@@ -789,6 +789,14 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     await bakeLocalBlockAssets(tool.manifest, values as Record<string, unknown>, { dataDirs, fromLink });
     for (const { inputId, added } of await appendDroppedFiles({ manifest: tool.manifest, params, repeated, positionals: files, values: values as Record<string, unknown>, readStdin })) {
       note(`✓ Added ${added} picture${added === 1 ? '' : 's'} to --${inputId}`);
+    }
+    for (const row of await appendBrandPageLogos({ manifest: tool.manifest, params, repeated, values: values as Record<string, unknown>, linkParams: linkKeys })) {
+      note(`✓ Added ${row.logo} from ${row.name}'s brand page (${row.source}), revision ${row.revision.slice(0, 12)}, for a ${row.surface} surface, to --${row.inputId}`);
+      // The publisher's own words, reported as they wrote them. Lolly does not read them as permission.
+      const { statement, contact, url } = row.usage ?? {};
+      note(statement ? `  ${row.name} says about use: ${statement}` : `  ${row.name}'s page states no usage terms.`);
+      if (contact) note(`  Contact: ${contact}`);
+      if (url) note(`  More: ${url}`);
     }
   }
 
@@ -2152,6 +2160,8 @@ export function unknownFlags(
     if (i.type === 'blocks' && i.dropToAdd) {
       known.add(`${i.id}-file`);        // --<blocks>-file=<picture>, repeatable (block-files.ts)
       known.add(`${i.id}-files`);       // --<blocks>-files=<path list|->
+      known.add(`${i.id}-from`);        // --<blocks>-from=<brand page>, repeatable (block-files.ts)
+      known.add(`${i.id}-surface`);     // --<blocks>-surface=light|dark
     }
   }
   const prefixes = inputs.map(i => `${i.id}.`);   // --<vector>.<field>=<number>
@@ -2661,7 +2671,7 @@ function syntaxHint(id: string, type: string, dropToAdd?: unknown): string {
     case 'asset':   return 'a catalog id (see `lolly assets`), a local image file, or a lolly.tools tool URL';
     case 'blocks':  return `a JSON array --${id}='[{…}]', tilde rows --${id}='label,val,#hex~…', or a data file --${id}-data=rows.csv`
       // A list that takes dropped pictures takes local files too (block-files.ts).
-      + (dropToAdd ? `; or pictures, one row each: files after the tool id, --${id}-file=<picture> (repeat it) or --${id}-files=<paths.txt|->` : '');
+      + (dropToAdd ? `; or pictures, one row each: files after the tool id, --${id}-file=<picture> (repeat it) or --${id}-files=<paths.txt|->; or a logo from a published brand page: --${id}-from=<address|folder>` : '');
     case 'vector':  return `one flag per field, e.g. --${id}.<field>=<number>`;
     case 'file':    return 'a path to your file (read locally, never uploaded)';
     case 'color':   return '#RRGGBB (the # is optional) or a token path';

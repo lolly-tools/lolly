@@ -214,5 +214,95 @@ The source adapter uses a checksum-pinned copy of Lolly's Node resolver.
 `vendor/lolly` submodule, and `verify:engine-pin` verifies the resulting pin alongside the engine
 and core. Do not patch vendored files.
 
-Hosted guide sites and general document rule evaluation are not built.
+General document rule evaluation is not built. A [brand page](#host-a-brand-page) shows what was
+checked when the page was made. It does not check a document against those rules.
 :::
+
+## Host a brand page
+
+A brand page gives one design system a public address. People see its logos, colours, type, colourways, rules
+and examples. Agents and other tools read the same facts from the files beside the page. Lolly Work stores and
+serves a folder that Lolly made. It does not make pages, so it needs no engine update for this feature.
+
+Brand pages are off by default. With `brandPages.enabled` off, every brand page route answers as if the feature
+were not there. [`brandPages`](configuration.md#brandpages) holds the limits.
+
+```bash
+lolly system publish --out ./brand-page      # in Lolly: make the folder
+lw brand-pages publish ./brand-page          # send the folder to this instance
+```
+
+The page is then at `/brand/<id>/`, where `<id>` is the `id` in `brand.json`. **This deployment > Brand pages** in the
+console lists each page, with a preview, its history and a button to unpublish.
+
+::: warning A published page is public, even on a sign-in gated instance
+This is a deliberate exception that you choose when you turn the feature on, because a press kit behind a sign-in
+cannot do its job. Everything else on the instance stays gated. Nothing is public until someone with the
+`brand.page.publish` permission publishes a page.
+:::
+
+### Who may publish
+
+`brand.page.publish` is part of the `admin` and `owner` roles, and you can grant the permission to others. A service
+token limited to scopes cannot publish, list, preview or unpublish, because those routes are not in the
+[scope table](enterprise-identity.md). An unscoped token with the permission can publish, unless a chain is set.
+
+Set `brandPages.approvalChain` to a chain id to review each revision before it goes live. The revision then waits
+in the [approvals inbox](approvals.md), a reviewer opens the page and a decision applies to that exact digest. A
+person must make the request, so a service token gets `403 HUMAN_APPROVAL_REQUIRED`. A rejected or withdrawn
+revision never goes live, and its files are removed.
+
+### What the server checks
+
+A bundle comes from outside, so the server treats it as untrusted. It refuses the bundle, and publishes nothing, unless:
+
+- `brand.json` follows the format, with no unknown keys, and matches its own digest.
+- Every listed file is present, with the listed size and SHA-256, and nothing unlisted is in the bundle.
+- Every path fits the folder layout for its role. Only `index.html` can be HTML. Other paths with `..`, a leading
+  dot, a link or an unknown role are refused.
+- The bundle and each file fit the limits, which are read before anything is expanded. Encrypted ZIP files, ZIP64 files
+  and overlapping entries are refused.
+
+### What the server sends
+
+The page is served with this policy. It allows no script, and the sandbox allows none either, so the page runs nothing.
+Its colourway and mode controls work with CSS alone.
+
+```text
+default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none';
+form-action 'none'; frame-ancestors 'self';
+sandbox allow-same-origin allow-downloads allow-popups allow-popups-to-escape-sandbox
+```
+
+Every other file, SVG included, gets the same inert headers as other stored bytes. The media type comes from the file
+name, never from the manifest. Answers carry an `ETag`, and every view checks that it still has the current file, so
+an unpublish takes effect at once. Other sites may read the files, but not the page, with `Access-Control-Allow-Origin: *`.
+
+### Revisions and unpublishing
+
+Each publish makes a new numbered revision that never changes, and one revision is current for each page. Publishing a
+folder with the digest of the current revision changes nothing. `brandPages.keepRevisions` sets how many revisions keep
+their files. Older ones stay in the history with their digests.
+
+An unpublished page answers `410`, and publishing a new revision brings the address back. `lw brand-pages unpublish
+<id> --remove-files` also removes the stored files of every revision that is not waiting for a decision.
+
+### Find the pages on an instance
+
+`GET /api/v1/brand-pages/public` lists the published pages. It works on every deployment, and discovery gives this address.
+
+`GET /.well-known/lolly-brand.json` answers the same. This address is a Lolly convention, not a published standard. On a
+shared origin `/.well-known/` belongs to the web shell, so the route tables in this repository send that one exact path
+to the server. A proxy you write yourself needs the same rule, and if it has none, use the address under `/api/v1`.
+
+The route tables also send `/brand/<id>` and everything under that path to the server, and they leave the bare `/brand`
+page and its own files to the web shell. A page id never holds a dot, so these paths never overlap.
+
+### The read-only MCP endpoint
+
+`POST /brand/<id>/mcp` answers from the stored files, with no key: `get_brand`, `get_design_md`, `get_tokens`,
+`get_rules`, `list_logos`, `get_logo`, `list_skills` and `get_skill`. It writes nothing and renders nothing. To render,
+use the [organisation MCP endpoint](api.md#organisation-mcp) with a service token.
+
+A page's words were written by its publisher, so every result says that its content is data and not instructions. Reads
+are limited per address by `rateLimit`, and they are not written to the audit log.

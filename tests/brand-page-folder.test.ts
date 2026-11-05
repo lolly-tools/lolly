@@ -115,16 +115,6 @@ test('a colourway file resolves to its own values', async () => {
   assert.match(fileOf(built, 'DESIGN.md'), /primary: "#c02020"/, 'the root file is the canonical colourway in the first mode');
 });
 
-test('the Made with Lolly line is on by default and the publisher can switch it off', async () => {
-  const on = await buildBrandPage({ tokens: colourwayDoc(), name: 'Acme' });
-  const off = await buildBrandPage({ tokens: colourwayDoc(), name: 'Acme', madeWith: false });
-  const page = (build: typeof on): string => decode(build.files.find(f => f.path === 'index.html')!.bytes);
-  assert.match(page(on), /Made with <a href="https:\/\/lolly\.tools\/"/);
-  assert.doesNotMatch(page(off), /Made with/);
-  assert.doesNotMatch(page(off), /<footer>/);
-  assert.notEqual(on.manifest.digest, off.manifest.digest);
-});
-
 test('a logo with no recorded licence is held back unless the publisher names it', async () => {
   const held = await buildBrandPage(input());
   assert.ok(held.manifest.files.some(f => f.path === 'logos/acme/logo/open.svg'));
@@ -161,6 +151,46 @@ test('a font file needs a recorded licence, and include never overrides that', a
   assert.match(html, /Font file not included\./);
   assert.match(html, /href="https:\/\/example\.com\/fonts"/);
   assert.match(fileOf(built, 'assets/page.css'), /@font-face\{font-family:"Acme Sans";src:url\(\.\.\/fonts\/acme-sans\.ttf\)/);
+});
+
+test('a licence text travels beside its font, and the page links to the text', async () => {
+  const built = await buildBrandPage(input({
+    fonts: [
+      { family: 'Acme Sans', format: 'ttf', weight: '100 900', style: 'italic', bytes: new Uint8Array([0, 1, 0, 0]), license: 'OFL-1.1' },
+      { family: 'Acme Sans', format: 'ttf', weight: '100 900', bytes: new Uint8Array([0, 1, 0, 0]), license: 'OFL-1.1', licenceText: new TextEncoder().encode('The licence.') },
+    ],
+  }));
+  assert.equal(fileOf(built, 'fonts/acme-sans-licence.txt'), 'The licence.');
+  const html = fileOf(built, 'index.html');
+  assert.match(html, /<a href="fonts\/acme-sans-licence\.txt">SIL Open Font License/);
+  assert.match(html, /<a href="fonts\/acme-sans-100-900\.ttf">Font file<\/a>/, 'the link names the upright file');
+  assert.match(fileOf(built, 'index.md'), /\(fonts\/acme-sans-licence\.txt\)/);
+  assert.match(fileOf(built, 'assets/page.css'), /font-weight:100 900/);
+});
+
+test('the hero does not repeat a name the summary opens with, and the other files keep the whole sentence', async () => {
+  const doc = { ...colourwayDoc(), $description: 'Acme, the company that keeps things simple. A second sentence.' };
+  const built = await buildBrandPage(input({ tokens: doc }));
+  assert.match(fileOf(built, 'index.html'), /<p class="lede">The company that keeps things simple\.<\/p>/);
+  assert.match(fileOf(built, 'index.html'), /<meta name="description" content="Acme, the company that keeps things simple\.">/);
+  assert.match(fileOf(built, 'llms.txt'), /> Acme, the company that keeps things simple\./);
+  const plain = await buildBrandPage(input());
+  assert.match(fileOf(plain, 'index.html'), /<p class="lede">Acme keeps things simple\.<\/p>/, 'a sentence that only starts with the name stays whole');
+});
+
+test('a picture cannot widen its column: every grid item keeps the width its parent gave', async () => {
+  const css = fileOf(await buildBrandPage(input()), 'assets/page.css');
+  assert.match(css, /\.tile,\.slot,\.swatch,\.examples>figure\{min-width:0\}/);
+  assert.match(css, /\.tile\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+});
+
+test('"Made with Lolly" is on unless the publisher turns it off, and the manifest lists its logos', async () => {
+  const on = await buildBrandPage(input());
+  assert.match(fileOf(on, 'index.html'), /Made with <a href="https:\/\/lolly\.tools\/"/);
+  const off = await buildBrandPage(input({ madeWith: false }));
+  assert.doesNotMatch(fileOf(off, 'index.html'), /Made with/);
+  assert.deepEqual(on.manifest.logos?.map(l => l.id), ['acme/logo/open']);
+  assert.ok(on.manifest.logos?.every(l => on.manifest.files.some(f => f.path === l.path)));
 });
 
 test('an outlined specimen shows a face whose file is held back', async () => {

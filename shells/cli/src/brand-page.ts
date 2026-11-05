@@ -60,7 +60,7 @@ async function emptyOrMissing(dir: string): Promise<boolean> {
 }
 
 export async function publishBrandPage(flags: Flags, json: boolean): Promise<void> {
-  if (!flags.out || flags.out === '1') throw usageError('usage: lolly system publish --out=<dir> [--origin=<url>] [--usage-file=<file>] [--include=<id,id>] [--profile=<name>] [--file=<tokens>] [--no-examples] [--no-made-with]', 'MISSING_ARGUMENT');
+  if (!flags.out || flags.out === '1') throw usageError('usage: lolly system publish --out=<dir> [--origin=<url>] [--usage-file=<file>] [--include=<id,id>] [--profile=<name>] [--file=<tokens>] [--no-examples] [--no-made-with-link]', 'MISSING_ARGUMENT');
   for (const key of ['origin', 'usage-file', 'include', 'profile', 'file', 'name', 'id']) if (flags[key] === '1') throw usageError(`--${key} needs a value.`, 'MISSING_FLAG_VALUE');
   if (flags.origin && !/^https?:\/\//.test(flags.origin)) throw usageError('--origin must be an http or https address.', 'BAD_ORIGIN');
   const out = resolve(flags.out);
@@ -144,11 +144,11 @@ export async function publishBrandPage(flags: Flags, json: boolean): Promise<voi
     tokens, catalog, name,
     ...(flags.id ? { id: flags.id } : {}),
     ...(flags.origin ? { origin: flags.origin } : {}),
-    ...(flags['no-made-with'] === '1' ? { madeWith: false } : {}),
     ...(usage ? { usage: { ...(usage.statement ? { statement: usage.statement } : {}), ...(usage.contact ? { contact: usage.contact } : {}), ...(usage.url ? { url: usage.url } : {}) } } : {}),
     ...(usage?.fonts ? { fontSources: usage.fonts } : {}),
     ...(sources?.input ?? {}),
     examples, outlines, held,
+    ...(flags['no-made-with-link'] === '1' ? { madeWith: false } : {}),
     ...(flags.include ? { include: flags.include.split(',').map(s => s.trim()).filter(Boolean) } : {}),
   });
 

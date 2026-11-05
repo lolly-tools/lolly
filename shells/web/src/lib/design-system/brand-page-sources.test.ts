@@ -5,9 +5,11 @@
  * Run: node --import ./tests/css-stub.mjs --test shells/web/src/lib/design-system/brand-page-sources.test.ts
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { brandSkillScopeHints } from '@lolly/engine';
+import { OWNER_PUBLISHED } from '../../../../../engine/src/asset-rights.ts';
 import { buildBrandPage } from '../../../../../engine/src/brand-page.ts';
 import { designSystemHeadId } from '../../../../../engine/src/design-system.ts';
 import { assembleBrandPage, EMPTY_CHOICES, includableLogos, readBrandPageSources } from './brand-page-sources.ts';
@@ -217,4 +219,19 @@ test('a brand page folder with a hostile description: the review drops the words
   assert.ok(read.ok);
   assert.equal(read.source.doc.$description, undefined);
   assert.ok(read.source.findings.some(line => /left out/.test(line)));
+});
+
+test('Lolly Demo\'s own marks and fonts go public on the record\'s terms, with nothing to tick', async () => {
+  const catalog = JSON.parse(readFileSync(new URL('../../../../../brands/lolly-demo/catalog/assets/index.json', import.meta.url), 'utf8')) as { assets: Array<Record<string, unknown>> };
+  const refs: AssetRef[] = catalog.assets
+    .filter(row => (row.tags as string[] | undefined)?.includes('logo'))
+    .map(row => logo(String(row.id), { name: row.name, tags: row.tags, license: row.license, rights: row.rights }));
+  assert.ok(refs.length > 0);
+  const { host } = hostWith(refs, SHIPPED);
+  const sources = (await readBrandPageSources(host))!;
+  assert.deepEqual(includableLogos(sources.logos), [], 'a recorded owner-published mark needs no tick');
+  const page = await assembleBrandPage(sources, EMPTY_CHOICES);
+  assert.equal(page.files.filter(file => file.role === 'logo').length, refs.length);
+  assert.ok(page.manifest.logos?.every(row => row.licence === OWNER_PUBLISHED));
+  assert.match(page.manifest.usage?.statement ?? '', /not under an open licence/, 'the owner\'s terms are on the page');
 });

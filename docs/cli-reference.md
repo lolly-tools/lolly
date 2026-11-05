@@ -266,7 +266,7 @@ The source is `--file=<tokens>`, then a content profile you name with `--profile
 | `--usage-file=<file>` | The publisher's own words. A text file is the usage statement. A JSON file may hold `statement`, `contact`, `url` and `fonts`, where each family gives a `url` and `licence`. |
 | `--include=<id,id>` | Logos to publish although no licence is recorded for them: your stated choice. |
 | `--no-examples` | Leave out the drawn examples. |
-| `--no-made-with` | Leave out the "Made with Lolly" line in the page's footer. It is on by default. |
+| `--no-made-with-link` | Leave out the "Made with Lolly" link in the page's footer. It is on by default. |
 | `--name=<name>`, `--id=<id>` | Override the name and the id. |
 
 **What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A font file needs a recorded licence that allows passing the file on, and `--include` does not change that: the page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.

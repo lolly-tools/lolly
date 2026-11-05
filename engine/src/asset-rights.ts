@@ -97,6 +97,59 @@ function evidenceArrayOf(value: unknown): unknown[] {
   return Array.isArray(rights) ? rights.slice(0, 16) : [];
 }
 
+/** The one phrase for a mark its owner publishes, so a held list, credits and a details sheet agree. */
+export const OWNER_PUBLISHED = 'Owner-published, not an open licence';
+
+const OWNER_HOLDER_MAX = 256;
+const OWNER_TERMS_MAX = 1024;
+
+/** Who published their own work, and on what terms, in the words of the record. */
+export interface OwnerPublishedV1 {
+  holder: string;
+  terms: string;
+}
+
+/**
+ * Rule `owner-published-v1`: an owner may pass on their own work on their own terms.
+ *
+ * The record must say all of it, on the asset's own work: a licence declaration that is
+ * not blank, a party with the role `owner`, and an asserted `own-work` grant whose `scope`
+ * holds the terms. Anything less is not this record, so the bytes stay held back.
+ *
+ * This reads what a catalog states. It does not show that the party owns the work, and
+ * it grants nobody anything beyond the terms the record carries.
+ */
+export function ownerPublished(value: unknown): OwnerPublishedV1 | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const works = (value as { works?: unknown }).works;
+  const work = Array.isArray(works) ? works[0] : value;
+  if (!work || typeof work !== 'object' || Array.isArray(work)) return null;
+  const { creators, rights, grants } = work as { creators?: unknown; rights?: unknown; grants?: unknown };
+  if (!Array.isArray(creators) || !Array.isArray(rights) || !Array.isArray(grants)) return null;
+  const declared = rights.slice(0, 16).some((row) => {
+    const evidence = row as Partial<RightsEvidenceV1> | null;
+    return !!evidence && typeof evidence.declaration === 'string' && !!evidence.declaration.trim() && evidence.status !== 'missing' && evidence.status !== 'not-applicable';
+  });
+  const owner = creators.slice(0, 64).find((party) => {
+    const row = party as Partial<CreativePartyV1> | null;
+    return !!row && row.role === 'owner' && typeof row.name === 'string' && !!row.name.trim();
+  }) as CreativePartyV1 | undefined;
+  const grant = grants.slice(0, 16).find((row) => {
+    const entry = row as { kind?: unknown; scope?: unknown; asserted?: unknown } | null;
+    return !!entry && entry.kind === 'own-work' && entry.asserted === true && typeof entry.scope === 'string' && !!entry.scope.trim();
+  }) as { scope: string } | undefined;
+  if (!declared || !owner || !grant) return null;
+  return { holder: owner.name.trim().slice(0, OWNER_HOLDER_MAX), terms: grant.scope.trim().slice(0, OWNER_TERMS_MAX) };
+}
+
+/** Whether a record tried to be an own-work record and left something out. */
+function claimsOwnWork(value: unknown): boolean {
+  const works = value && typeof value === 'object' ? (value as { works?: unknown }).works : null;
+  const work = Array.isArray(works) ? works[0] : value;
+  const grants = work && typeof work === 'object' ? (work as { grants?: unknown }).grants : null;
+  return Array.isArray(grants) && grants.slice(0, 16).some((grant) => !!grant && (grant as { kind?: unknown }).kind === 'own-work');
+}
+
 /** Whether an asset's own bytes may travel, and why not. */
 export interface Redistribution {
   travels: boolean;
@@ -114,6 +167,8 @@ export interface Redistribution {
   licence: string;
   /** Notice texts the licence asks to travel with the bytes. */
   notices: string[];
+  /** Present when the bytes travel under `owner-published-v1`. `kind` stays `licence`, because it only sorts what holds bytes back. */
+  owner?: OwnerPublishedV1;
 }
 
 /**
@@ -141,6 +196,16 @@ export function redistribution(meta: Record<string, unknown>): Redistribution {
   const notices = assetRightsNotices(meta.rights);
   if (meta.brandLock === true) {
     return { travels: false, kind: 'policy', reason: 'this brand pack is authoritative on this device', licence, notices };
+  }
+  // A reviewed licence answers for itself. The owner's own record speaks only where no reviewed rule does.
+  if (!profile?.reviewed) {
+    const owner = ownerPublished(meta.rights);
+    if (owner) {
+      return { travels: true, kind: 'licence', reason: '', licence: OWNER_PUBLISHED, notices: notices.includes(owner.terms) ? notices : [...notices, owner.terms], owner };
+    }
+    if (claimsOwnWork(meta.rights)) {
+      return { travels: false, kind: 'unknown', reason: 'the own-work record is missing its owner, its terms or its licence declaration', licence, notices };
+    }
   }
   if (!declared) return { travels: false, kind: 'unknown', reason: 'licence not recorded', licence, notices };
   if (!profile?.reviewed) {
