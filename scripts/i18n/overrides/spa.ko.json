@@ -591,13 +591,38 @@
   "Choose one HTML page at a time, along with its CSS files.": "HTML 페이지를 한 번에 하나씩 해당 CSS 파일과 함께 선택하세요.",
   "Choose one HTML page with its CSS files, or CSS on its own. Up to 20 files, 2 MB in total.": "HTML 페이지 하나와 해당 CSS 파일을 선택하거나 CSS만 선택하세요. 최대 20개 파일, 총 2 MB까지 가능합니다.",
   "Choose up to 20 HTML and CSS files.": "HTML 및 CSS 파일을 최대 20개 선택하세요.",
-  "Closest to my current palette": "현재 팔레트와 가장 가까움",
+  "Closest to the current palette": "현재 팔레트와 가장 가까움",
   "Colour preview": "색상 미리 보기",
   "Colour {position} of {count}.": "{count}개 중 {position}번째 색상.",
   "Colours and font names were read from declared styles. Layout and motion were not assessed.": "선언된 스타일에서 색상과 글꼴 이름을 읽었습니다. 레이아웃과 움직임은 평가하지 않았습니다.",
   "Colours were read from this SVG. Fonts and layout were not assessed.": "이 SVG에서 색상을 읽었습니다. 글꼴과 레이아웃은 평가하지 않았습니다.",
   "Colours were sampled from this image. Fonts and layout were not recognised.": "이 이미지에서 색상을 추출했습니다. 글꼴과 레이아웃은 인식하지 못했습니다.",
   "Compare looks": "스타일 비교",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "저장된 디자인 시스템과 몇 가지 시작점을 미리 보세요. 사용을 선택하기 전에는 아무것도 바뀌지 않습니다.",
+  "Use this look": "이 스타일 사용",
+  "Previewing {name}": "{name} 미리 보는 중",
+  "Choose up to two looks to compare.": "비교할 스타일을 최대 두 개까지 선택하세요.",
+  "Drop a horizontal logo": "가로 로고를 여기에 놓으세요",
+  "Drop a vertical logo": "세로 로고를 여기에 놓으세요",
+  "calm": "차분함",
+  "nature": "자연",
+  "playful": "경쾌함",
+  "creative": "창의적",
+  "warm": "따뜻함",
+  "editorial": "에디토리얼",
+  "neutral": "무채색",
+  "red": "빨강",
+  "orange": "주황",
+  "yellow": "노랑",
+  "green": "초록",
+  "teal": "청록",
+  "blue": "파랑",
+  "purple": "보라",
+  "pink": "분홍",
+  "deep": "진한",
+  "pale": "연한",
+  "vivid": "선명한",
+  "muted": "톤다운",
   "Compare saved design systems and a few starting points. Nothing changes until you choose Use.": "저장된 디자인 시스템과 몇 가지 시작점을 비교하세요. 사용을 선택하기 전에는 아무것도 바뀌지 않습니다.",
   "Compare these two looks": "이 두 스타일 비교",
   "Compare two looks at a time. Deselect one to choose another.": "한 번에 두 스타일을 비교하세요. 다른 스타일을 선택하려면 하나를 선택 해제하세요.",
@@ -730,7 +755,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "검증 기능과 애셋에서 심층 AI 텍스트 검사를 실행해요.",
   "Card size": "카드 크기",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "이 기기에서 이미지 또는 파일 1개가 추가되었습니다. 해당 파일은 이 기기에만 남으며 다른 사람에게는 보이지 않습니다.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "이 기기에서 이미지 또는 파일 {n}개가 추가되었습니다. 해당 파일은 이 기기에만 남으며 다른 사람에게는 보이지 않습니다.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "이 기기에서 이미지 또는 파일 {n}개가 추가되었어요. 해당 파일은 이 기기에만 남으며 다른 사람에게는 보이지 않아요."
+  },
   "Check the version first": "먼저 버전을 확인하세요",
   "Copy team link": "팀 링크 복사",
   "Could not create the project. Try again.": "프로젝트를 만들 수 없습니다. 다시 시도하세요.",
@@ -1307,7 +1334,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "모든 항목이 공유 프로젝트에 저장되었어요. 로컬 원본은 휴지통에 있거나 그대로 남아 있어요.",
   "Your local items have not changed.": "로컬 항목은 변경되지 않았어요.",
   "1 item was saved to the shared project.": "항목 1개가 공유 프로젝트에 저장되었어요.",
-  "{n} items were saved to the shared project.": "항목 {n}개가 공유 프로젝트에 저장되었어요.",
+  "{n} items were saved to the shared project.": {
+    "other": "항목 {n}개가 공유 프로젝트에 저장되었어요."
+  },
   "Wait for the current move to finish.": "진행 중인 이동이 끝날 때까지 기다리세요.",
   "You cannot save to that shared project.": "그 공유 프로젝트에는 저장할 수 없어요.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "{project}을(를) 열 수 있는 모든 사람이 이 항목들을 보게 돼요. 모든 항목이 저장되면 로컬 원본은 휴지통으로 이동하며, 거기서 복원할 수 있어요.",
@@ -1618,8 +1647,12 @@
   "file": "파일",
   "samples": "샘플",
   "text": "텍스트",
-  "{n} changes found": "변경 사항 {n}개를 찾았어요",
-  "{n} pages differ": "페이지 {n}개가 달라요",
+  "{n} changes found": {
+    "other": "변경 사항 {n}개를 찾았어요"
+  },
+  "{n} pages differ": {
+    "other": "페이지 {n}개가 달라요"
+  },
   "Draft": "초안",
   "Draft quality": "초안 품질",
   "Draft rule": "초안 규칙",
@@ -1928,5 +1961,218 @@
   "Headlines - 36px, or 24px bold": "제목 - 36px 또는 굵은 24px",
   "Icons and borders only": "아이콘과 테두리만",
   "Not usable": "사용할 수 없음",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA는 sRGB 기준으로 정의되어 있어서, 넓은 색 영역의 색은 sRGB로 표현한 값으로 점수를 매겨요."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA는 sRGB 기준으로 정의되어 있어서, 넓은 색 영역의 색은 sRGB로 표현한 값으로 점수를 매겨요.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "이 기기는 그래픽 가속 없이 화면을 그리기 때문에 Lolly가 더 단순하고 빠른 화면으로 바꿨어요.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "이 기기가 버거워하고 있어서 Lolly가 더 단순하고 빠른 화면으로 바꿨어요.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "이 기기는 그래픽 가속 없이 화면을 그리기 때문에 {date}에 자동으로 켜졌어요.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "이 기기가 인터페이스를 그리는 데 어려움을 겪어서 {date}에 자동으로 켜졌어요.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "{date}에 실행 취소를 선택해서 이 기기에서는 자동 전환이 꺼져 있어요.",
+  "Allow again": "다시 허용",
+  "Automatic switching is allowed again from the next time you open Lolly.": "다음에 Lolly를 열 때부터 자동 전환이 다시 허용돼요.",
+  "Board": "보드",
+  "Choose for {role}": "{role} 선택",
+  "Change {role}": "{role} 변경",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "브랜드의 안내서로, 사람과 에이전트를 위해 쓰였어요. 에이전트는 브랜드 스킬을 먼저 읽고, 그다음 작업에 맞는 스킬을 읽어요. 스킬은 작업을 안내하고, 규칙의 하우스 룰은 Lolly가 검사하는 대상이에요.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "이 기기가 바쁜 동안 Lolly가 더 단순하고 빠른 화면으로 바꿨어요. 상황이 안정되면 다시 돌아와요.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "배터리가 부족한 동안 Lolly가 더 단순하고 빠른 화면으로 바꿨어요. 이 기기를 충전하면 다시 돌아와요.",
+  "On for now because this device is busy. It switches back when things calm down.": "이 기기가 바빠서 잠시 켜져 있어요. 상황이 안정되면 다시 돌아와요.",
+  "On for now because the battery is low. It switches back when this device is charging.": "배터리가 부족해서 잠시 켜져 있어요. 이 기기를 충전하면 다시 돌아와요.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "이 기기가 바빴던 {date}에 자동으로 켜졌어요. 유지를 선택하셨어요.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "배터리가 부족했던 {date}에 자동으로 켜졌어요. 유지를 선택하셨어요.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "{date}에 실행 취소를 선택해서 Lolly는 여기서 느린 기기 때문에 자동으로 전환하지 않아요.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "{date}에 실행 취소를 선택해서 Lolly는 이 기기가 바쁘거나 배터리가 부족해도 자동으로 전환하지 않아요.",
+  "Use the automatic colour": "자동 색상 사용",
+  "follows the design system ({colour})": "디자인 시스템을 따름 ({colour})",
+  "follows the design system": "디자인 시스템을 따름",
+  "automatic ({colour})": "자동 ({colour})",
+  "automatic": "자동",
+  "{name} spring": "{name} 스프링",
+  "{name} (not in this design system)": "{name} (이 디자인 시스템에 없음)",
+  "Curves": "곡선",
+  "Springs": "스프링",
+  "Gentle": "부드럽게",
+  "Quick": "빠르게",
+  "Bouncy": "통통 튀게",
+  "Custom spring": "사용자 지정 스프링",
+  "Stiffness": "강성",
+  "Damping": "감쇠",
+  "Mass": "질량",
+  "Settles in {t} s": "{t}초 후 멈춤",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "스프링이 멈추기 전에 다음 키프레임이 옵니다. 나머지 움직임은 구간 전체에 나뉘어 적용됩니다.",
+  "From the design system: {name}": "디자인 시스템에서: {name}",
+  "Editing the curve detaches it from the design system.": "곡선을 편집하면 디자인 시스템과의 연결이 끊깁니다.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요. 길게 누르면 연필 (Shift C)과 스플라인 종류",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요",
+  "Recipients can change the inputs": "받는 사람이 입력을 바꿀 수 있음",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "링크가 있는 사람은 누구나 입력을 바꿔 새 이미지를 받을 수 있어요. 잠긴 입력은 설정된 그대로 유지돼요.",
+  "{count} entries": {
+    "other": "항목 {count}개"
+  },
+  "{count} files in this folder": {
+    "other": "이 폴더의 파일 {count}개"
+  },
+  "{n} assets": {
+    "other": "애셋 {n}개"
+  },
+  "{n} assets found": {
+    "other": "애셋 {n}개를 찾았어요"
+  },
+  "{n} capabilities match": {
+    "other": "기능 {n}개가 일치해요"
+  },
+  "{n} copies made · selected": {
+    "other": "사본 {n}개 생성됨 · 선택됨"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "프로젝트에서 제거된 작업 {n}개는 여기서 계속 제거된 상태예요."
+  },
+  "{n} embedded files": {
+    "other": "포함된 파일 {n}개"
+  },
+  "{n} external references": {
+    "other": "외부 참조 {n}개"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "파일 {n}개를 압축하지 못해 제외했어요"
+  },
+  "{n} folders": {
+    "other": "폴더 {n}개"
+  },
+  "{n} font files": {
+    "other": "글꼴 파일 {n}개"
+  },
+  "{n} images": {
+    "other": "이미지 {n}개"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "이미지 {n}개를 복원하지 못했어요 (저장 공간 부족?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "이미지 {n}개는 원본 위치에 그대로 있어요 - 이미지는 한 곳에만 있을 수 있어요. 이동하려면 잘라내기를 사용하세요"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "입력값 {n}개 · 모든 디자인에 적용"
+  },
+  "{n} items": {
+    "other": "항목 {n}개"
+  },
+  "{n} items copied": {
+    "other": "항목 {n}개를 복사했어요"
+  },
+  "{n} items cut": {
+    "other": "항목 {n}개를 잘라냈어요"
+  },
+  "{n} items moved": {
+    "other": "항목 {n}개를 이동했어요"
+  },
+  "{n} items pasted": {
+    "other": "항목 {n}개를 붙여넣었어요"
+  },
+  "{n} keyframes": {
+    "other": "키프레임 {n}개"
+  },
+  "{n} logos": {
+    "other": "로고 {n}개"
+  },
+  "{n} marks found": {
+    "other": "마크 {n}개를 찾았어요"
+  },
+  "{n} newer items skipped": {
+    "other": "최신 항목 {n}개를 건너뛰었어요"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "내 작업물 중 {n}개가 동영상 또는 애니메이션이에요"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "오래된 자동 체크포인트 {n}개를 제외했어요"
+  },
+  "{n} pages": {
+    "other": "{n}페이지"
+  },
+  "{n} places": {
+    "other": "{n}곳"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "점 {n}개 - Alt를 누르면 모서리"
+  },
+  "{n} published versions": {
+    "other": "게시된 버전 {n}개"
+  },
+  "{n} results": {
+    "other": "결과 {n}개"
+  },
+  "{n} saved sessions": {
+    "other": "저장된 세션 {n}개"
+  },
+  "{n} selected": {
+    "other": "{n}개 선택됨"
+  },
+  "{n} selected assets": {
+    "other": "선택한 애셋 {n}개"
+  },
+  "{n} sessions": {
+    "other": "세션 {n}개"
+  },
+  "{n} shapes": {
+    "other": "도형 {n}개"
+  },
+  "{n} steps": {
+    "other": "단계 {n}개"
+  },
+  "{n} templates": {
+    "other": "템플릿 {n}개"
+  },
+  "{n} volume keys": {
+    "other": "볼륨 키 {n}개"
+  },
+  "{n} words": {
+    "other": "단어 {n}개"
+  },
+  "Dominant hand": "주로 쓰는 손",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "두 개의 창으로 볼 때(폴더블 기기나 거의 정사각형인 태블릿) 컨트롤은 그리는 손의 반대쪽에 놓입니다. 창 머리글의 좌우 바꾸기로도 바꿀 수 있습니다.",
+  "Swap sides": "좌우 바꾸기",
+  "Resize panes": "창 크기 조절",
+  "Changes that didn't finish saving": "저장이 끝나지 않은 변경 사항",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "{time}에 이 변경 사항을 만들었는데, 저장되기 전에 페이지가 닫혔어요. 그 뒤로 이 디자인 시스템이 다른 탭에서나 동기화로 다시 저장됐어요.",
+  "Restore your unsaved changes": "저장하지 않은 변경 사항 복원",
+  "Keep the saved version": "저장된 버전 유지",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "복원하면 그 뒤에 저장된 버전을 대체해요. 저장된 버전을 유지하면 저장하지 않은 변경 사항이 이 기기에서 삭제돼요.",
+  "Restored your unsaved changes.": "저장하지 않은 변경 사항을 복원했어요.",
+  "Kept the saved version.": "저장된 버전을 유지했어요.",
+  "Restored the changes that hadn't finished saving.": "저장이 끝나지 않은 변경 사항을 복원했어요.",
+  "{n} file": "파일 {n}개",
+  "It becomes the primary. Shades and roles can follow.": "이것이 프라이머리가 돼요. 셰이드와 역할은 뒤따를 수 있어요.",
+  "Start here": "여기서 시작",
+  "Browse looks →": "스타일 둘러보기 →",
+  "Pick what you have →": "가진 것 고르기 →",
+  "Open the picker →": "색상 선택기 열기 →",
+  "Starter greys until a colour is added.": "색을 추가하기 전까지는 스타터 회색이에요.",
+  "Lolly can’t draw in this browser yet": "Lolly가 아직 이 브라우저에서 그릴 수 없어요",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly는 WebGPU로 그리는데, 이 브라우저는 아직 WebGPU를 지원하지 않아요.",
+  "These work today:": "지금 사용할 수 있는 브라우저:",
+  "Chrome or Edge, kept up to date": "최신 Chrome 또는 Edge",
+  "Safari 26 or later": "Safari 26 이상",
+  "Firefox, where WebGPU is turned on": "WebGPU를 켠 Firefox",
+  "Get the desktop app": "데스크톱 앱 받기",
+  "Read why": "이유 읽기",
+  "Or drop an image or a list of colours here": "또는 이미지나 색상 목록을 여기에 끌어다 놓으세요",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "이 중립 색상은 시작 세트에 포함되어 있어, 위에서 색상을 추가하기 전까지 미리보기에 보여 줄 색이 있어요.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. 색상 선택",
+  "Add a colour to the palette first.": "먼저 팔레트에 색상을 추가하세요.",
+  "Notify": "알림",
+  "Update automatically": "자동으로 업데이트",
+  "App updates": "앱 업데이트",
+  "Update notifications": "업데이트 알림",
+  "Ready to install: {version}": "설치 준비 완료: {version}",
+  "Restart now": "지금 다시 시작",
+  "Install when I quit": "종료할 때 설치",
+  "Release notes": "릴리스 노트",
+  "Manual download": "수동 다운로드",
+  "Update could not finish. Try again or download the app.": "업데이트를 완료하지 못했습니다. 다시 시도하거나 앱을 다운로드하세요.",
+  "Finish recording or exporting before updating.": "업데이트하기 전에 녹음·녹화 또는 내보내기를 완료하세요.",
+  "Save could not finish. Save a recovery copy before updating.": "저장을 완료하지 못했습니다. 업데이트하기 전에 복구용 사본을 저장하세요.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "이 AppImage는 이 위치에서 교체할 수 없습니다. 쓰기 가능한 폴더에 앱을 다운로드하세요.",
+  "This installation uses its package manager for updates.": "이 설치는 패키지 관리자를 통해 업데이트합니다.",
+  "This desktop platform does not support in-app updates.": "이 데스크톱 플랫폼은 앱 내 업데이트를 지원하지 않습니다.",
+  "Update installation was cancelled.": "업데이트 설치가 취소되었습니다."
 }

@@ -1,0 +1,13 @@
+LightCraft
+Copyright (c) 2026 ArtCraft Team and the LightCraft contributors.
+Licensed under the MIT License or the Apache License, Version 2.0, at your option
+(LICENSE-MIT, LICENSE-APACHE).
+
+crates/inpaint (lightcraft-inpaint) ports the inpainting (PatchMatch completion) and Poisson membrane
+fill code of PhotoCraft (https://github.com/storytold/photocraft, crates/algo/src/inpaint.rs and
+poisson.rs), Copyright the PhotoCraft contributors, licensed under the MIT License or the Apache
+License 2.0, at your option. The port was modified by the LightCraft contributors (2026); each
+ported file says so.
+
+The upstream NOTICE also names the ArtCraft trademarks and the fonts, photographs, models and data
+that the LightCraft application ships. None of that is included here: only this crate's source is.

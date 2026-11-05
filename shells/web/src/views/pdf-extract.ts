@@ -39,7 +39,7 @@ import type { IconName } from '../lib/icons.ts';
 import { wireTabs } from '../lib/tabs.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { announce } from '../a11y.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { armViewEnter } from '../view-enter.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
@@ -139,9 +139,9 @@ const wordCount = (p: PageText): number => (p.text.match(/\S+/g) ?? []).length;
 // Counts. Two whole keys per phrase behind a ternary - the app-wide convention
 // (see assets.ts / gallery.ts), because a translator needs the whole sentence,
 // not "{n}" glued to a noun that inflects differently at one.
-const nPages = (n: number): string => (n === 1 ? t('1 page') : t('{n} pages', { n }));
-const nWords = (n: number): string => (n === 1 ? t('1 word') : t('{n} words', { n }));
-const nPlaces = (n: number): string => (n === 1 ? t('1 place') : t('{n} places', { n }));
+const nPages = (n: number): string => (tn('1 page', '{n} pages', { n }));
+const nWords = (n: number): string => (tn('1 word', '{n} words', { n }));
+const nPlaces = (n: number): string => (tn('1 place', '{n} places', { n }));
 
 // ── rendering ─────────────────────────────────────────────────────────────────
 
@@ -625,7 +625,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
       </header>
 
       <div class="pdfx-drop" data-drop tabindex="0" role="button" aria-label="${escape(t('Choose or drop a design file to take apart'))}">
-        <input type="file" accept=".pdf,.ai,.svg,.html,.htm,.idml,.penpot,.fig,.pptx,.psd,.psb,.xcf,application/pdf,image/svg+xml" hidden>
+        <input type="file" accept=".pdf,.ai,.svg,.html,.htm,.idml,.af,.afdesign,.afphoto,.afpub,.penpot,.fig,.pptx,.psd,.psb,.xcf,application/pdf,image/svg+xml" hidden>
         <span class="pdfx-drop-icon" aria-hidden="true">${icon('document', { size: 32 })}</span>
         <strong>${t('Drop a design file here')}</strong>
         <span>${t('pdf · svg · idml · penpot · fig · pptx · psd · nothing leaves your device')}</span>

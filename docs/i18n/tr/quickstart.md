@@ -17,14 +17,14 @@ lolly.tools, Lolly'nin kendi örnek tasarım sistemi olan **Lolly Demo** ile aç
 Elindekine uyan yolu seç:
 
 - <!--i:palette--> **Tek bir renk.** **Design System Setup** (`#/start`) uygulamasını aç, tasarım sistemine bir ad ver ve bir ana renk seç. Lolly ondan açık ve koyu yüzeyler, metin ve vurgularla eksiksiz, erişilebilir bir palet türetir. Bir yazı tipi seç ve çalışan bir markan olur.
-- <!--i:upload--> **Bir token dosyası.** Design System Setup'taki oda rayının altındaki **Add from…**, bir DTCG, Tokens Studio veya Penpot token dosyasını, bir SVG'yi ya da bir `LollyBrand` paketini alır. İçine bırak ve palet dolsun. Tasarım sistemi hâlâ boşken Overview odasındaki **Start from a reference** aynı seçiciyi açar.
+- <!--i:upload--> **Bir token dosyası.** Design System Setup çubuğundaki **Add from…**, bir DTCG, Tokens Studio veya Penpot token dosyasını, bir SVG'yi ya da bir `LollyBrand` paketini alır. İçine bırak ve palet dolsun. Tasarım sistemi hâlâ boşken Board odasındaki **Start from a reference** aynı seçiciyi açar.
 - <!--i:pentool--> **Bitmiş bir tasarım.** Design içinde **Import a design** seçeneğini seç ve bir `.fig`, `.penpot`, `.ai`, `.idml` veya SVG dosyası bırak. Aşağıdaki [Elindekini içeri al](#bring-in-what-you-already-have) bölümüne bak.
 
 Galeriyi ilk açtığında kısa bir karşılama aynı seçenekleri sunar: **Make it yours** Design System Setup'ı açar, **Bring your design** bir tasarım için dosya seçici açar ve **Explore the community tools** karşılamayı kapatır.
 
 ![Yeni kurulumda Design System Setup'ın Colours odası: bir canlı çip, bir alan ve ilk kararın tamamı](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Oradan yedi oda, istediğin kadar ileri, istediğin sırayla götürür: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** ve **Usage & rules**. Uygulamadaki her önizleme yazdıkça güncellenir. [Design System Setup](/info/brand-studio.html) her odayı kapsar.
+Oradan sekiz oda, istediğin kadar ileri, istediğin sırayla götürür: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** ve **Skills**. Uygulamadaki her önizleme yazdıkça güncellenir. [Lolly Design System Setup](/info/brand-studio.html) her odayı kapsar.
 
 Yazı tipleri cihazında tutulur. Bir Google Font seç; Lolly dosyayı bir marka varlığı olarak saklar, böylece yazın çevrimdışı da seninle gelir ve bir araç çizerken hiçbir şey getirilmez.
 
@@ -58,7 +58,7 @@ Boş bir sayfadan başlamıyorsun.
 
 **Sunumlar.** Slaytlarını varlık olarak dosyalamak için bir PowerPoint `.pptx` dosyasını Lolly'ye bırak, **Markdown Slides** içinde Markdown'dan yeni bir sunum yaz veya tüm sunumu tasarım sistemine taşımak için [Rebrand a deck](/info/rebrand.html) kullan.
 
-**Veri.** Bir CSV veya JSON tablosunu yapıştır ya da bırak; bir aracın yinelenen alanları ondan dolar. Ya da [Batch](/info/batch.html#make-many-versions-of-one-design) her satır için bitmiş bir dosya üretir.
+**Veri.** Bir CSV veya JSON tablosunu yapıştır ya da bırak; bir aracın yinelenen alanları ondan dolar. Ya da [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) her satır için bitmiş bir dosya üretir.
 
 ### Tek seferlik bir işten şablona
 
@@ -72,7 +72,7 @@ Boş bir sayfadan başlamıyorsun.
 
 - <!--i:download--> **Dışa aktar.** Araçlar, her aracın sunduğu biçimlerde, gerektiğinde gerçek baskı boyutlarında SVG, PDF, PNG, JPG, WebP, video ve daha fazlasını üretir. Bkz. [Export a file](/info/exporting.html).
 - <!--i:link--> **Bir bağlantı paylaş.** Bir aracın ayarları bağlantısında taşınır; böylece bağlantı aynı dosyayı her yerde yeniden açar.
-- <!--i:layers--> **Her satır için bir tane yap.** Bir aracı [Batch](/info/batch.html#make-many-versions-of-one-design) içinde elektronik tablodan sür.
+- <!--i:layers--> **Her satır için bir tane yap.** Bir aracı [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) içinde elektronik tablodan sür.
 - <!--i:cpu--> **Otomatikleştir.** Aynı render [CLI](/info/cli.html) üzerinden ve bir [yapay zekâ ajanı](/info/ai-agents.html) üzerinden çalışır.
 
 Bir bağlantı eksiksiz bir istektir. Aşağıdaki grafiği kimse çizmedi: türü, başlığı ve veri tablosunun tamamı adres çubuğuna yazıldı ve aynı bağlantı aynı grafiği her cihazda çizer.

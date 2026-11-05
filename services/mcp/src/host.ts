@@ -10,6 +10,8 @@
  *   2. jsdom globals are set per render and restored, and renders are serialized
  *      through a mutex (jsdom mutates shared globalThis). This is safe, but not
  *      maximally concurrent. Worker-thread pooling is a later optimization (roadmap).
+ * Like the CLI, each render's jsdom gets the real 2D canvas when @napi-rs/canvas is
+ * installed (never in the Vercel function, whose bundle leaves the package out).
  *
  * NOTE (roadmap): depending on shells/cli couples a service to a shell. Before
  * splitting this package out, extract createCliBridge into a shared node-host
@@ -21,6 +23,7 @@ import { createCliBridge } from '../../../shells/cli/src/bridge.ts';
 export { followRuntimeSelection } from '../../../shells/cli/src/bridge.ts';
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 import { DEFAULT_SCOPE_CAPS, currentAudioScope } from './audio-runs.ts';
+import { isHostedServer } from './hosted.ts';
 
 /** The DOM one render runs in. Exported so a helper that takes both halves of a
  *  `withHost` call (the render path's shared hydrate-and-draw) can name it. */
@@ -38,12 +41,19 @@ function safeJson(v: unknown): string {
   try { return JSON.stringify(v); } catch { return String(v); }
 }
 
+/** What one `withHost` render learned besides its result. */
+export interface HostRun {
+  /** What the render's decode limits refused, one sentence per limit giving how
+   *  many pictures were left out and which (hosted only; read after the render). */
+  decodeRefusals: () => string[];
+}
+
 /**
  * Run `fn` with a fresh jsdom DOM + a headless host bound to `profile`. Globals
  * are installed for the duration and restored afterward. Serialized process-wide.
  */
 export function withHost<T>(
-  profile: Profile, fn: (dom: Jsdom, host: HostV1) => Promise<T>,
+  profile: Profile, fn: (dom: Jsdom, host: HostV1, run: HostRun) => Promise<T>,
   /** The theme choice per token group (url-mode `_themes`) the host's tokens resolve in. */
   opts: { tokenSelection?: Record<string, string> } = {},
 ): Promise<T> {
@@ -56,6 +66,19 @@ export function withHost<T>(
     g['document'] = dom.window.document;
     g['Element'] = (dom.window as unknown as { Element: unknown }).Element;
     try {
+      // A real 2D canvas behind this jsdom, the CLI's own (shells/cli/src/run.ts), so a
+      // hook that reads pixels (Logo Wall's Balance sizes, Trim margins and tracing)
+      // runs on a local or self-hosted server instead of skipping those steps. The
+      // Vercel function's bundle aliases the canvas import to a module that refuses
+      // to load (scripts/build-mcp-fn.ts), so there this installs nothing and the
+      // hooks degrade as they always have. Per render: each one has a fresh window.
+      // On a hosted server every picture a render decodes is bounded by its stated
+      // size, before anything is allocated (canvas.ts DecodeLimits): a few hundred
+      // bytes of SVG can declare a canvas of gigabytes. One set per render, shared
+      // by host.raster and the realm's Image and createImageBitmap.
+      const { installNodeCanvas, hostedDecodeLimits, decodeRefusalWarnings } = await import('@lolly-tools/node-shell/canvas');
+      const decodeLimits = isHostedServer() ? hostedDecodeLimits() : undefined;
+      await installNodeCanvas(dom.window as unknown as { HTMLCanvasElement?: { prototype: Record<string, unknown> } }, undefined, decodeLimits ? { limits: decodeLimits } : {});
       // A hosted process: a hook's host.capture.page may only reach public http(s)
       // pages, never the worker's own network (cloud metadata, localhost, RFC 1918).
       // A rondocode song renders under the request's caps and shared time budget,
@@ -64,6 +87,7 @@ export function withHost<T>(
       const audio = currentAudioScope();
       const host = await createCliBridge({
         dom: dom as never, profile, capturePublicOnly: true, publicOnlyAssets: true, aiEnabled: false,
+        ...(decodeLimits ? { decodeLimits } : {}),
         ...(opts.tokenSelection ? { tokenSelection: opts.tokenSelection } : {}),
         rondo: audio?.caps ?? DEFAULT_SCOPE_CAPS,
         ...(audio ? { rondoBudget: audio.budget } : {}),
@@ -74,7 +98,7 @@ export function withHost<T>(
       (host as { log: HostV1['log'] }).log = (level, msg, ctx) => {
         process.stderr.write(`[mcp:${level}] ${msg}${ctx ? ' ' + safeJson(ctx) : ''}\n`);
       };
-      return await fn(dom, host);
+      return await fn(dom, host, { decodeRefusals: () => decodeRefusalWarnings(decodeLimits) });
     } finally {
       g['window'] = prev.window;
       g['document'] = prev.document;

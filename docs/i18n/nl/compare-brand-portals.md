@@ -6,7 +6,7 @@ Als je organisatie haar goedgekeurde assets in Bynder, Frontify, Marq of Brandfo
 
 ## Wat een gevestigd portaal beter doet
 
-Gevestigde portalen bieden beheerde hosting, support en uitgebreide workflows voor assetbeheer. [Frontify's enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combineert bijvoorbeeld het ontdekken van assets, toegangsbeheer, goedkeuringsworkflows en distributie. De Lolly-stack is jonger en zijn goedkeuringsketens zijn sequentieel in plaats van willekeurig vertakkende workflows. [Work status and roadmap](/info/work-status.html) legt zijn implementatiegrenzen vast.
+Gevestigde portalen bieden beheerde hosting, support en uitgebreide workflows voor assetbeheer. [Frontify's enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combineert bijvoorbeeld het ontdekken van assets, toegangsbeheer, goedkeuringsworkflows en distributie. De Lolly-stack is jonger en zijn goedkeuringsketens zijn sequentieel in plaats van willekeurig vertakkende workflows. [Lolly Work status and roadmap](/info/work-status.html) legt zijn implementatiegrenzen vast.
 
 ## Waar ze overlappen
 

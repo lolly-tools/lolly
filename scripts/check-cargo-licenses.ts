@@ -45,6 +45,16 @@ const LOCKFILES = [
   'shells/tauri-mobile/src-tauri/Cargo.lock',
   'packages/node-shell/wasm/skera/Cargo.lock',
   'packages/node-shell/wasm/adobe-psd/Cargo.lock',
+  'packages/node-shell/wasm/xlsx-numfmt/Cargo.lock',
+  'packages/node-shell/wasm/gridcraft-calc/Cargo.lock',
+  'packages/node-shell/wasm/inpaint/Cargo.lock',
+  'packages/node-shell/wasm/image-trace/Cargo.lock',
+  'packages/node-shell/wasm/pdf-a11y/Cargo.lock',
+  'packages/node-shell/wasm/dxf/Cargo.lock',
+  'packages/node-shell/wasm/audio-dsp/Cargo.lock',
+  'packages/node-shell/wasm/indd/Cargo.lock',
+  'packages/node-shell/wasm/camera-raw/Cargo.lock',
+  'packages/node-shell/wasm/affinity/Cargo.lock',
 ];
 
 // Parse a Cargo.lock for its [[package]] name/version pairs. Cargo.lock is TOML,

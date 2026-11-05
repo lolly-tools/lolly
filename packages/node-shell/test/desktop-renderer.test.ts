@@ -113,7 +113,7 @@ test('auto starts an installed app when none is running', async () => {
   assert.equal(launched, 1);
 });
 
-test('auto falls all the way to chromium, in order, and says so at each step', async () => {
+test('auto falls all the way to chromium, in order, and reports each step at each step', async () => {
   const d = drivers({
     runningServer: () => SERVER,
     installed: () => true,

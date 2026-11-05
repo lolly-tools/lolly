@@ -87,7 +87,7 @@ Report each result with one of six words: `complete`, `partial`, `approximate`, 
 
 A few more habits help:
 
-- **Read the feedback on a Design document and revise.** `lolly_check` (or `lolly check`) lists the design system's house rules that a layer does not follow and gives a writing score for the visible text as `verify.writing-score`. In an open document, `lolly_apply_document_changes` returns the same feedback after each change and `lolly_check_document` returns the whole report. Revise the layers the feedback names, then check again. The writing score is a signal, not a verdict: it never changes the exit code, and nothing in the feedback blocks a render.
+- **Read the feedback on a Lolly Design document and revise.** `lolly_check` (or `lolly check`) lists the design system's house rules that a layer does not follow and gives a writing score for the visible text as `verify.writing-score`. In an open document, `lolly_apply_document_changes` returns the same feedback after each change and `lolly_check_document` returns the whole report. Revise the layers the feedback names, then check again. The writing score is a signal, not a verdict: it never changes the exit code, and nothing in the feedback blocks a render.
 - **Validate links you build yourself.** MCP compile, build and render calls refuse unknown fields and bad values with exact paths. A hand-written URL is read leniently for older links, so check one with `lolly_validate` before you share the link.
 - **`_v` records a version; it does not pin one.** A newer tool still renders the link, and the CLI warns that it ignores `_v`. To catch a change from a tool update, render the same inputs again and compare.
 - **Use catalog assets, not uploads.** A picture someone uploaded lives on their device and cannot travel in a link. Reference catalog assets by id; the MCP resource `lolly://assets` lists them.
@@ -97,7 +97,7 @@ A few more habits help:
 
 ## When a tool will not hand back a file
 
-- **Utilities that show rather than export.** `countdown-timer`, `strip-data`, `text-helper` and `compress-pdf` set `render.export: false`, so `&export` and `&copy` do nothing. `color-palette` is not one of them: the community Palette Lab exports images, PDF, palette files and data. A brand pack can narrow any community tool's formats, so read the manifest or `lolly_describe_tool` rather than assuming.
+- **Utilities that show rather than export.** `countdown-timer`, `strip-data`, `text-helper` and `compress-pdf` set `render.export: false`, so `&export` and `&copy` do nothing. `color-palette` is not one of them: the community Lolly Palette Lab exports images, PDF, palette files and data. A brand pack can narrow any community tool's formats, so read the manifest or `lolly_describe_tool` rather than assuming.
 - **Experimental tools** (`status: "experimental"` in the manifest) watermark their exports by default until they are promoted. On-device utilities are exempt.
 - **Tools that take your own file**, such as `strip-data`, transform bytes in memory. A file cannot travel in a URL, so use `lolly_transform` on the MCP server or the CLI.
 
@@ -124,7 +124,7 @@ Each deployment publishes the same set of files for agents, at the site root and
 | [`/openapi.json`](/openapi.json) | The HTTP surface in OpenAPI 3.1: the hot-link render route with its refusals, the catalog and manifest reads and the MCP endpoint's transport. |
 | [`/info/capabilities.json`](/info/capabilities.json) | What Lolly reads and writes per format, and what each format's own metadata carries. |
 | [`/catalog/tools/index.json`](/catalog/tools/index.json) | The generated tool index; `/tools/<id>/tool.json` is one tool's manifest with every input, default and format. |
-| [`/info/skills/lolly/SKILL.md`](/info/skills/lolly/SKILL.md) | The agent skill: one page an agent loads to drive Lolly on every surface, with references for URL mode, the surfaces, the whole catalogue, the three document tools (chart, design, deck) and Rebrand. |
+| [`/info/skills/lolly/SKILL.md`](/info/skills/lolly/SKILL.md) | The agent skill: one page an agent loads to drive Lolly on every surface, with references for URL mode, the surfaces, the whole catalogue, the three document tools (chart, design, deck) and Lolly Rebrand. |
 
 The docs build generates each file from the same sources as the pages people read.
 :::

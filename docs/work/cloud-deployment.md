@@ -1,11 +1,11 @@
 # Run Lolly Work on UpCloud or Evroc
 
-UpCloud and Evroc are the two European clouds the Work repository has infrastructure
+UpCloud and Evroc are the two European clouds the Lolly Work repository has infrastructure
 modules for. The modules in `deploy/upcloud/` and `deploy/evroc/` create the virtual
 machine, disk, address and firewall with OpenTofu or Terraform, so a new host is
 repeatable. They create no database and do not move an existing deployment.
 
-Once the machine exists, Work runs on it the same way it runs anywhere: a Node server,
+Once the machine exists, Lolly Work runs on it the same way it runs anywhere: a Node server,
 PostgreSQL and a reverse proxy, with the render worker as a separate container that has
 its own resources and render credential. Pick the install path at
 [Run Lolly Work](self-host.md); the [ready-made package](ready-made-package.md) has an
@@ -45,7 +45,7 @@ separate guest and service overhead, but not the cloud's compute charges.
 | Root disk | 80 GB by default, encrypted storage flag, protected VM | 80 GB by default, protected disk, VM and address; no encryption field in the provider schema |
 | Database | Managed PostgreSQL is available; a local database is opt-in | A reviewed outside PostgreSQL or the opt-in local database; no managed product assumed |
 | Object storage | Qualify bucket access, recovery and endpoint behaviour | Qualify the documented S3 feature compatibility, bucket access and recovery |
-| Application release | Signed web app, configured Work, worker and relay, database migrations, smoke checks | The same files, configuration, migration and acceptance contracts |
+| Application release | Signed web app, configured Lolly Work, worker and relay, database migrations, smoke checks | The same files, configuration, migration and acceptance contracts |
 
 A provider mock checks configuration against the schema; it cannot prove an image is
 available, or quota, compliance or performance. Both targets need real boot, SSH and
@@ -55,7 +55,7 @@ image.
 
 Keep public and private apart on either provider. Public APIs must not publish private
 packs, uploaded assets or member cookies, and the public CA, MCP and Penpot containers
-receive no private Work secrets.
+receive no private Lolly Work secrets.
 
 ## Custom instance domain
 
@@ -171,8 +171,8 @@ and its versions separately. See [backup and restore](operations.md#backup-and-r
 
 ## What your instance serves at /info
 
-A Work instance that serves a signed web app also serves that web app's public
-documentation, ahead of the app itself, on either provider. Work answers `/info/`,
+A Lolly Work instance that serves a signed web app also serves that web app's public
+documentation, ahead of the app itself, on either provider. Lolly Work answers `/info/`,
 literal `/info/` articles, `/docs` aliases, `/robots.txt` and the sitemap, and also
 offers article addresses without the `.html` extension. It serves only files inside the
 signed release, unchanged, and a missing article returns 404 rather than an app page
@@ -185,7 +185,7 @@ HEAD returns the same public headers and file size as GET, without the body. The
 `https://lolly.tools` addresses, search index and sitemap, so mirroring it does not
 create a second canonical site or publish your own documentation.
 
-The public documentation needs no sign-in. Work's own Markdown API, `/api/v1/docs`, stays
+The public documentation needs no sign-in. Lolly Work's own Markdown API, `/api/v1/docs`, stays
 members-only on a governed instance, as do private catalogs, uploads, projects and render
 routes. Robots instructions are only hints: sign-in and route policy enforce the private
 boundary.

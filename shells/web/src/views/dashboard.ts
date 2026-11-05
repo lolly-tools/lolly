@@ -28,7 +28,7 @@ import { bindDisclosureUrl, updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/platform.css'; // shared dashboard chrome (.plat-* / .cap-*)
 import '../styles/parts/dashboard.css'; // this view's layout + signature pieces
 import { escape } from '../utils.ts';
-import { t, tRaw, loadNamespace } from '../i18n.ts';
+import { t, tRaw, loadNamespace, tn } from '../i18n.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { armViewEnter } from '../view-enter.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
@@ -643,7 +643,7 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
       if (countEl) {
         countEl.hidden = !active;
         countEl.textContent = active
-          ? (hits === 1 ? t('1 capability matches') : t('{n} capabilities match', { n: hits }))
+          ? (tn('1 capability matches', '{n} capabilities match', { n: hits }))
           : '';
       }
       if (emptyEl) emptyEl.hidden = !(active && hits === 0);

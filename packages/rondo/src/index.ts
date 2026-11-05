@@ -12,7 +12,7 @@
  */
 import { RONDO_LIMITS, type RondoLimits } from './limits.ts';
 import { parseStaged } from './staged.ts';
-import { findingsFor, renderStagedSong, type RondoFinding } from './render.ts';
+import { findingsFor, notesOf, renderStagedSong, type RondoFinding, type RondoNote } from './render.ts';
 import { stageInVm, EXECUTION_CLASS, VM_SEED, type PreparedSong } from './vm.ts';
 import { ADAPTER_REVISION, UPSTREAM_COMMIT } from './extension.ts';
 
@@ -20,7 +20,7 @@ export { RONDO_LIMITS } from './limits.ts';
 export { RONDO_EXTENSION, UPSTREAM_COMMIT, ADAPTER_REVISION } from './extension.ts';
 export { VmError, SongError, EXECUTION_CLASS, VM_SEED, quickjs } from './vm.ts';
 export { StagedError } from './staged.ts';
-export { RenderError, type RondoFinding } from './render.ts';
+export { RenderError, type RondoFinding, type RondoNote } from './render.ts';
 
 export interface RondoRenderRequest {
   /** The song's source text. */
@@ -51,6 +51,8 @@ export interface RondoPcm {
   lang: 'js' | 'rondo';
   normalized: boolean;
   findings: RondoFinding[];
+  /** The notes the song schedules, for a MIDI export. */
+  notes: RondoNote[];
   /** What ran it, for a receipt or a C2PA ingredient. */
   run: RondoRun;
 }
@@ -115,6 +117,7 @@ export async function renderRondo(req: RondoRenderRequest, env: RondoEnv): Promi
     cps: staged.prepared.cps,
     lang: staged.prepared.lang,
     findings: [...extra, ...findingsFor(song, staged.prepared)],
+    notes: notesOf(song, staged.seconds),
     run: { executionClass: EXECUTION_CLASS, seed: VM_SEED, upstream: UPSTREAM_COMMIT, adapter: ADAPTER_REVISION },
   };
 }

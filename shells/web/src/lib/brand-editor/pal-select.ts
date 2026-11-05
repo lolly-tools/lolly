@@ -55,7 +55,7 @@ export const syncPalSelect = (bedit: BrandEditorCtx): void => {
   const n = palSel.size();
   bedit.previewSelection = selectedSwatches(bedit).map(s => s.key);
   const source = bedit.ramps.$('[data-be-preview-source]');
-  if (source) source.textContent = n ? tRaw('{n} selected', { n }) : t('Your palette');
+  if (source) source.textContent = n ? tRaw('{n} selected', { n }) : t('Palette');
   bedit.derive.renderPreviews();
   const order = ownOrder(bedit);
   if (bedit.palFocusKey && !order.includes(bedit.palFocusKey)) bedit.palFocusKey = null;

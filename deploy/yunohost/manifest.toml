@@ -76,6 +76,11 @@ ram.runtime = "50M"
     # Static files served by nginx: the default resource group is www-data because
     # conf/nginx.conf carries a `root` directive.
 
+    [resources.data_dir]
+    # Holds the model weights when the admin keeps them on this server (the
+    # configuration panel's model source). Empty otherwise. Rebuildable, so it is not
+    # part of the backup archive.
+
     [resources.permissions]
     main.url = "/"
     # Nothing server-side reads an identity, so SSOwat should not spend time

@@ -1,4 +1,4 @@
 # Lolly - Kopya ng landing page
 
-Mga libreng creative tool, sa sarili mong mga patakaran.
-Gumawa ng mga media file na kasing-husay ng studio: walang account, walang card, pribado at open source.
+Gumawa ng mga tapos na file. Hawak mo ang iyong content.
+Graphics, dokumento, video at print sa sarili mong mga kulay at font: walang account, walang card, pribado at open source.

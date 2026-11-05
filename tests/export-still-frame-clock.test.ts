@@ -90,7 +90,9 @@ async function withNeutralGlobals(run: () => Promise<void>) {
 // node's own box nor anything a default could produce by accident.
 const STILLS: Array<[string, string]> = [
   ['png', 'renderRaster'],
+  ['jpg', 'renderRaster'],
   ['webp', 'renderBitmap'],
+  ['avif', 'renderBitmap'],
   ['tiff', 'renderTiff'],
   ['bmp', 'renderBmp'],
   ['cmyk-tiff', 'renderCmykTiff'],

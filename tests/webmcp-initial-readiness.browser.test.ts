@@ -38,7 +38,11 @@ test('WebMCP document actions wait for the initial clean Design paint', { timeou
     document.addEventListener('lolly-canvas-painted', () => { state.cleanPaints++; }, true);
     const sample = async (): Promise<void> => {
       const tool = state.readinessTools.get('lolly_read_context');
-      if (tool) state.documentReady = ((await tool.execute({})) as { capabilities: { document: boolean } }).capabilities.document;
+      // A read that meets a remount is refused with "Read context again"; an agent
+      // reads again, and so does the sampler, on the next frame.
+      try {
+        if (tool) state.documentReady = ((await tool.execute({})) as { capabilities: { document: boolean } }).capabilities.document;
+      } catch { state.documentReady = false; }
       requestAnimationFrame(() => { void sample(); });
     };
     requestAnimationFrame(() => { void sample(); });

@@ -317,6 +317,14 @@
   border-bottom: 1px solid hsl(var(--border, 220 13% 90%));
   box-shadow: 0 6px 20px -14px rgba(0, 0, 0, 0.4);
 }
+@media (max-width: 640px) {
+  .deck-bar {
+    top: calc(max(0px, var(--sheet-h) - var(--peek-h, 56px)) + var(--chrome-top) - var(--safe-top));
+    left: 8px;
+    right: 72px;
+  }
+  .deck-strip { bottom: calc(66px + var(--safe-bottom) + var(--vv-bottom, 0px)); }
+}
 /* Related controls cluster into a soft group, matching the freeform toolbar's .deck-free__grp. */
 .deck-bar__grp {
   display: inline-flex;

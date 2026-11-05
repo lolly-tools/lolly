@@ -1,7 +1,7 @@
 # Shell deployment workflow
 
-This page is for an operator who serves the Lolly web app from a private Work instance
-and wants to publish a newer, qualified build of it without rebuilding the Work image.
+This page is for an operator who serves the Lolly web app from a private Lolly Work instance
+and wants to publish a newer, qualified build of it without rebuilding the Lolly Work image.
 The accepted image, engine pin, pack and public key stay as they are; only the web app
 moves forward. The deployment is resumable, so an interrupted run picks up where it
 stopped without repeating a change it already made.
@@ -38,9 +38,9 @@ runners do not have production access. This workflow prepares a request; a green
 workflow does not mean the site was published.
 
 The caller lives in Lolly so its temporary read token can read Lolly's CI artifact.
-It calls Work's reusable workflow and checks out the helper at the same pinned
-Work commit. This avoids adding a cross-repository personal access token. Keep
-both Work commit references together when updating the caller.
+It calls Lolly Work's reusable workflow and checks out the helper at the same pinned
+Lolly Work commit. This avoids adding a cross-repository personal access token. Keep
+both Lolly Work commit references together when updating the caller.
 
 For a local equivalent with an authenticated GitHub CLI:
 
@@ -79,7 +79,7 @@ referenced file's actual bytes:
 ```
 
 Create the lock directory with mode `0700`. All operators for the same cluster
-and Work Deployment must use the same directory. The lock identity uses the
+and Lolly Work Deployment must use the same directory. The lock identity uses the
 cluster UID, namespace and Deployment UID, so changing profile files cannot
 create a second publication owner. The lock is released automatically when the
 process exits; an interrupted process does not leave a stale PID lock. This is a
@@ -124,10 +124,11 @@ complete source change against the retained engine baseline, so a request limite
 web app cannot carry a dependency change, and the fast CI check does not override build
 compatibility.
 
-## Publishing without a Work restart
+<a id="publishing-without-a-work-restart"></a>
+## Publishing without a Lolly Work restart
 
 The [immutable shell-pointer mode](../deploy/helm/IMMUTABLE-SHELL-RELEASES.md) is a
 separate opt-in server capability. Its one-time image, configuration and volume
 migration still requires full backend qualification. Only after that migration
-can subsequent frontend publications avoid Work Pod rollouts. Keep the current
+can subsequent frontend publications avoid Lolly Work Pod rollouts. Keep the current
 guarded PVC path until that migration is accepted.

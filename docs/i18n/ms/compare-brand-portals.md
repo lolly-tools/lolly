@@ -6,7 +6,7 @@ Jika organisasi anda menyimpan aset yang diluluskan dalam Bynder, Frontify, Marq
 
 ## Apa yang portal mantap lakukan dengan lebih baik
 
-Portal mantap menawarkan pengehosan terurus, sokongan dan aliran kerja pengurusan aset yang luas. Sebagai contoh, [DAM perusahaan Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) menggabungkan penemuan aset, kawalan akses, aliran kerja kelulusan dan pengedaran. Tindanan Lolly lebih muda dan rantaian kelulusannya berjujukan dan bukan aliran kerja bercabang sewenang-wenangnya. [Work status and roadmap](/info/work-status.html) merekodkan had penempatannya.
+Portal mantap menawarkan pengehosan terurus, sokongan dan aliran kerja pengurusan aset yang luas. Sebagai contoh, [DAM perusahaan Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) menggabungkan penemuan aset, kawalan akses, aliran kerja kelulusan dan pengedaran. Tindanan Lolly lebih muda dan rantaian kelulusannya berjujukan dan bukan aliran kerja bercabang sewenang-wenangnya. [Lolly Work status and roadmap](/info/work-status.html) merekodkan had penempatannya.
 
 ## Di mana kedua-duanya bertindih
 

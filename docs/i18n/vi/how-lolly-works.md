@@ -35,7 +35,7 @@ Mọi lộ trình chạy cùng một engine trên cùng một công cụ, nên t
 ![Tham số URL và đối số dòng lệnh trở thành cùng một mô hình đầu vào, chạy qua một runtime và cầu xuất dùng chung](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **Trong ứng dụng, từng tệp một.** Mở một công cụ, điền các trường và nhấn **Export**. [Make your first file](/info/make-something.html) hướng dẫn bạn làm một tệp.
-- <!--i:layers--> **Trong ứng dụng, nhiều tệp cùng lúc.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) nhận một bảng dán hoặc nhập vào và kết xuất một tệp hoàn chỉnh cho mỗi hàng.
+- <!--i:layers--> **Trong ứng dụng, nhiều tệp cùng lúc.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) nhận một bảng dán hoặc nhập vào và kết xuất một tệp hoàn chỉnh cho mỗi hàng.
 - <!--i:cpu--> **Từ một tập lệnh hoặc tác tử AI.** [CLI](/info/cli.html) chạy một công cụ không giao diện, và [máy chủ MCP](/info/mcp.html) cho phép tác tử khám phá và chạy công cụ. Liên kết tới một công cụ cũng mang đầu vào của nó, nên một liên kết là một yêu cầu hoàn chỉnh.
 - <!--i:server--> **Qua máy chủ của tổ chức bạn.** [Lolly Work](/info/organisation.html) kết xuất trên máy chủ theo đăng nhập và chính sách công cụ của tổ chức, giữ các tác vụ có thể tiếp tục và giữ đầu ra để tải xuống hoặc bàn giao đã được duyệt.
 

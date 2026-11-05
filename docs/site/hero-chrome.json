@@ -1,11 +1,12 @@
 {
   "lead": "Lolly",
   "cycle": [
-    { "word": "is sovereign", "slug": "trust" },
-    { "word": "is inclusive", "slug": "inclusive-design" },
-    { "word": "is ethical AI", "slug": "ai-stance" },
+    { "word": "is yours", "slug": "trust" },
     { "word": "is private", "slug": "privacy" },
-    { "word": "is free", "slug": "faq" }
+    { "word": "is free", "slug": "faq" },
+    { "word": "is inclusive", "slug": "inclusive-design" },
+    { "word": "is open", "slug": "about" },
+    { "word": "is honest about AI", "slug": "ai-stance" }
   ],
   "ctas": [
     { "href": "/", "label": "Launch App", "class": "hero-btn btn-primary" },

@@ -14,7 +14,7 @@
 | **Headshot** | 可选的照片，裁剪为方形并作为本地图片保存，供电子邮件签名、引语卡片和组织架构图等工具使用。 |
 | **Use my details to create** | 一个选择加入的开关（开启后显示为 **Using my details**）。它决定你的详细信息是否作为作者署名随导出的文件和 Batch 运行一起传出。它不影响预填；参见[工具如何使用你的个人资料](#how-tools-use-your-profile)。 |
 | **Preferences** | 你的主题、你在每个设计系统中的配色方案、无障碍设置，以及你在 **Feature flags** 中开启了应用的哪些部分。 |
-| **Your work** | 已保存的会话及其缩略图，整理在 [Projects](/info/find-your-work.html) 中，还有你上传的图片和本地活动统计。 |
+| **Your work** | 已保存的会话及其缩略图，整理在 [Lolly Projects](/info/find-your-work.html) 中，还有你上传的图片和本地活动统计。 |
 
 这些都不是必需的。空白的个人资料也能用；只填写能让你少打字的内容。
 
@@ -83,7 +83,7 @@
 有三样东西在 Settings 中彼此相邻，很容易混淆：
 
 - <!--i:people--> **Profile** - 你、你的团队或你所处的角色：姓名、联系方式、头像和已保存的作品。个人的，保存在设备上，可作为文件迁移。
-- <!--i:palette--> **Design system** - 品牌：每个工具渲染所用的颜色、字体和设置。共享且一致，而不是个人的；参见 [Design System Setup](/info/brand-studio.html)。
+- <!--i:palette--> **Design system** - 品牌：每个工具渲染所用的颜色、字体和设置。共享且一致，而不是个人的；参见 [Lolly Design System Setup](/info/brand-studio.html)。
 - <!--i:sliders--> **Capabilities** - 应用能做什么：提供给你的功能和工具。
 
 个人资料改变文件来自谁；设计系统改变文件看起来如何；能力是你可以制作什么。

@@ -85,4 +85,36 @@
 .ease-ed-dot { fill: hsl(var(--primary)); }
 .ease-ed-dot--ghost { fill: hsl(var(--primary)); }
 
+/*
+ * The spring editor (components/spring-editor.ts, plans/329): the plot and strip above,
+ * a thin upright line where the spring comes to rest, a line saying when, and one row
+ * per parameter - a slider for the useful travel and a number for the whole range.
+ */
+.spring-ed-rest {
+  stroke: hsl(var(--muted-foreground) / 0.6);
+  stroke-width: 1;
+}
+.spring-ed-settle {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+.spring-ed-settle[hidden] { display: none; }
+.spring-ed-row { gap: 8px; align-items: center; }
+.spring-ed-row > .field-label { flex: 0 0 6.5em; min-width: 0; }
+.spring-ed-slider {
+  flex: 1 1 90px;
+  min-width: 64px;
+  accent-color: hsl(var(--primary));
+}
+/* 9ch: a number input keeps room for its spinner inside the box, and a stiffness of
+   1000 must read whole. */
+.spring-ed-num {
+  flex: 0 0 auto;
+  width: 9ch;
+  padding: 4px 6px;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
 }

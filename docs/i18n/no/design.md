@@ -10,9 +10,9 @@ Denne siden går gjennom lerretet fra den første boksen til en ferdig presentas
 
 **Toppmenyen** starter med **Home**, **File menu** og dokumentets navn (klikk på navnet for å gi dokumentet nytt navn). Midten har **Undo**, **Redo**, **History**, zoomkontrollene (med **Fit all** og **Fit artboard**) og brytere for **Timeline**, **Navigator** og **Inspector**. Til høyre ligger **Share**, **Present** og **Export**. På en telefon flyttes de mindre brukte knappene inn i **More actions**.
 
-**Verktøylinjen** nedover siden har Lolly-menyen og verktøyene du tegner med: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, deretter knappene Timeline, Artboards og Auto-arrange.
+**Verktøylinjen** nedover siden har Lolly-menyen og verktøyene du tegner med: **Pointer**, **Add a box**, **Pen** (**Pencil** deler knappen med den), **Edit points**, **Line**, deretter knappene Timeline, Artboards og Auto-arrange.
 
-![Verktøylinjen på det frie canvaset: et draghåndtak, Lolly-menyen, så Peker, Legg til en boks, Penn, Blyant, Rediger punkter, Linje, Tidslinje, Tegnebrett og Auto-ordne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Verktøylinjen på det frie canvaset: et draghåndtak, Lolly-menyen, så Peker, Legg til en boks, Penn, Rediger punkter, Linje, Tidslinje, Tegnebrett og Auto-ordne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Lerretet fungerer som en designers arbeidsflate rundt tegnebrettet:
 
@@ -79,7 +79,7 @@ Bokser, sirkler og avrundede rammer dekker de fleste layouter. For en hvilken so
 
 **Fortsett på en åpen bane.** Med Pen på trykker du på en av endene av en åpen bane, og da tegner du den banen videre: hvert klikk legger til et punkt etter den enden, eller foran det første punktet når du startet fra begynnelsen. Enter beholder resultatet, og Escape lar banen stå nøyaktig som den var. Banen forblir den samme boksen, med fyll, strek og pilspisser, og én angring setter den tilbake. Delete tar tilbake bare punktene du la til. En lukket form, en linje festet til en boks og en bane med flere deler har ingen fri ende å fortsette på.
 
-**Tegn frihånd med Pencil.** Knappen **Pencil** på linjen (eller `Shift C`) tar opp streken din mens du drar. Når du slipper, glatter Lolly streken til noen få punkter med Bezier-håndtak, beholder de skarpe svingene som hjørner og holder kurven innenfor et par skjermpiksler fra der hånden din gikk. En strek som ender nær starten, lukkes. Resultatet er en vanlig bane, med samme maling som en penn-bane, og du kan redigere punktene etterpå.
+**Tegn frihånd med Pencil.** Trykk `Shift C`, eller trykk og hold **Pen**-knappen på linjen (eller høyreklikk på knappen) og velg **Pencil**; knappen viser deretter Pencil til du velger Pen igjen. Pencil tar opp streken din mens du drar. Når du slipper, glatter Lolly streken til noen få punkter med Bezier-håndtak, beholder de skarpe svingene som hjørner og holder kurven innenfor et par skjermpiksler fra der hånden din gikk. En strek som ender nær starten, lukkes. Resultatet er en vanlig bane, med samme maling som en penn-bane, og du kan redigere punktene etterpå.
 
 Resultatet er en vanlig boks. Flytt, endre størrelse på, roter, grupper, juster, endre stablerekkefølge for, fyll, skygg eller tone ut banen som en hvilken som helst annen boks. Den første banen får fyllet og streken merkevaren din gir en bane, og hver nye bane etter det får det du brukte sist. I et verktøy der merkevaren ikke setter noe for baner, får en ny bane strek i fargen du tegnet med, så formen aldri er usynlig.
 
@@ -121,6 +121,25 @@ Tre til virker på én enkelt form. **Outline stroke…** gjør en strek om til 
 ![En halvmåne og en ring med et ekte hull, begge laget med Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Resultatet er en ny bane du kan fortsette å redigere med pennen, lagret som vanlige Bezier-kurver, så den opprinnelige splinetypen følger ikke med. Hull er ekte hull: kontrollen **Fill rule** i strekpanelet avgjør om overlappende konturer fylles (*non-zero*) eller stanses ut (*even-odd*). Operasjonene nekter heller enn å ødelegge: be om å skjære to former som ikke overlapper, og ingenting endres. Tekst- og bildebokser har ingen kontur, så de lades i fred.
+
+## Vektoriser et bilde
+
+Velg ett bilde, høyreklikk på det og velg **Vektoriser bilde…** for å gjøre bildet om til redigerbare former. Velg en forhåndsinnstilling og trykk **Vektoriser**:
+
+- **Logo** finner noen få flate farger og beholder skarpe kanter og ekte sirkler og linjer. Den avviser et bilde med fargeoverganger eller fototoner og sier fra om det.
+- **Illustrasjon** vektoriserer flere farger som fylte former, for flat grafikk eller et posterisert bilde.
+- **Strektegning** vektoriserer mørke linjer på en lys side som svarte former.
+- **Midtlinje** vektoriserer mørke linjer som enkeltstreker, slik at du kan endre tykkelsen etterpå.
+
+Formene legges til som en gruppe rett over bildet, som blir værende der det er. Skjul eller slett bildet for å se bare banene. Vektoriseringen kjører på enheten din som en bakgrunnsjobb med en Avbryt-knapp, og ingenting lastes opp. Et bilde på 1500 piksler tar vanligvis fra ett til flere sekunder, og et detaljrikt fotografi tar lenger tid.
+
+Vektoriseringen følger det boksen viser, så et beskåret (Cover) bilde vektoriseres bare der det er synlig. Disse grensene gjelder:
+
+- Bilder skaleres ned til høyst 1500 piksler på den lange siden før vektorisering, så kantene plasseres med en brøkdel av den størrelsen, ikke av originalen.
+- Én vektorisering lager høyst 1500 former og 60 000 punkter. Et fotografi går vanligvis over dette, og Design sier fra uten å endre noe. Prøv Logo eller Strektegning, eller et enklere bilde.
+- Fargeoverganger blir bånd av flat farge, og myke skygger blir former med harde kanter.
+- Hjørneradius, formmaske og effekter på bildeboksen brukes ikke på banene.
+- Samme bilde og samme forhåndsinnstilling gir alltid de samme formene.
 
 ## Streker
 
@@ -195,9 +214,9 @@ Der det finnes et konkret forslag til farge eller skrift, endrer knappen det ene
 
 ### Interne regler og skrivesignalet
 
-Kortet i eksportpanelet sjekker også de interne reglene designsystemet ditt har med seg, som tekstvekt og justering, godkjente fargepar eller en logo per flate, lag for lag. Hvert funn er en advarsel med lagets navn over regelen. En regel dette bygget ikke har noen kontroll for, listes som ikke sjekket, aldri som fulgt. [Usage & rules](/info/brand-studio.html#usage-rules) lister reglene, og `lolly check` bruker de samme på et lagret dokument.
+Kortet i eksportpanelet sjekker også de interne reglene designsystemet ditt har med seg, som tekstvekt og justering, godkjente fargepar eller en logo per flate, lag for lag. Hvert funn er en advarsel med lagets navn over regelen. En regel dette bygget ikke har noen kontroll for, listes som ikke sjekket, aldri som fulgt. [Rules](/info/brand-studio.html#rules) lister reglene, og `lolly check` bruker de samme på et lagret dokument.
 
-Det samme kortet viser skrivesignalet for teksten dokumentet tegner: båndet (none, weak, notable eller strong), deretter Verifys egen setning med poengsummen av 100 og opptil tre flaggede fraser, hver med laget som holder dem. **Open the text in Verify** tar den teksten til [Verify](/#/verify) for den fulle avlesningen; [AI evidence in Verify](/info/verify-ai-evidence.html) forklarer hva poengsummen veier. Poengsummen er et signal, ikke en dom: den teller mønstre som er vanlige i generert skriving og kan ikke si hvem som skrev ordene. Skjulte lag utelates fra begge sjekkene, og kortet sier hvor mange.
+Det samme kortet viser skrivesignalet for teksten dokumentet tegner: båndet (none, weak, notable eller strong), deretter Verifys egen setning med poengsummen av 100 og opptil tre flaggede fraser, hver med laget som holder dem. **Open the text in Verify** tar den teksten til [Lolly Verify](/#/verify) for den fulle avlesningen; [AI evidence in Verify](/info/verify-ai-evidence.html) forklarer hva poengsummen veier. Poengsummen er et signal, ikke en dom: den teller mønstre som er vanlige i generert skriving og kan ikke si hvem som skrev ordene. Skjulte lag utelates fra begge sjekkene, og kortet sier hvor mange.
 
 Funn mot interne regler og et sterkt skrivesignal teller med i kortets "to fix"-sum, så de er lette å finne. De informerer og blokkerer aldri: Download forblir tilgjengelig, og det er ingenting å avvise eller registrere som unntak. En agent som arbeider i det åpne dokumentet, får den samme rapporten gjennom nettstedsverktøyene sine ([Agents in an open document](/info/open-document-agents.html)).
 

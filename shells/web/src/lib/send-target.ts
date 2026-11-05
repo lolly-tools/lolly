@@ -34,7 +34,7 @@
  * export-home auto-send, which all resolve through here - with no reload.
  */
 
-import { connectorEnabled } from '../feature-flags.ts';
+import { connectorEnabled, shareLinksEnabled } from '../feature-flags.ts';
 
 /** One finished export, as handed to a target. */
 export interface SendPayload {
@@ -55,6 +55,96 @@ export interface SendOutcome {
   url?: string;
   /** Short, already-localised link/status label ("Open in Google Drawings"). */
   label: string;
+  /** Opaque provider handle for the file that was uploaded (a Drive file id, a
+   *  Nextcloud path, an S3 key, ...). Only the target that issued it reads it;
+   *  a surface hands it back to `share` to make a link now or later. */
+  ref?: string;
+}
+
+/** Who can open a share link, from widest to narrowest. */
+export type ShareAudience = 'anyone' | 'organisation' | 'people';
+
+/** The audiences in order, widest first: the order "next narrower" follows. */
+export const SHARE_AUDIENCES: readonly ShareAudience[] = ['anyone', 'organisation', 'people'];
+
+/** What a target can do when asked for a link. A feature a provider cannot do is
+ *  absent here, so the UI never offers that feature. */
+export interface ShareCapabilities {
+  /** Audiences the provider supports, in any order. */
+  audiences: readonly ShareAudience[];
+  /** A link can be protected with a password. */
+  password: boolean;
+  /** A link can be given an expiry date. */
+  expiry: boolean;
+  /** The longest expiry the provider allows, in days. */
+  maxExpiryDays?: number;
+  /** An expiry is required (a presigned link always expires). */
+  expiryRequired?: boolean;
+  /** The link can be switched off before it expires. */
+  revocable: boolean;
+}
+
+export interface ShareOptions {
+  audience: ShareAudience;
+  /** Only when `ShareCapabilities.password`. */
+  password?: string;
+  /** Days from now; only when `ShareCapabilities.expiry`. */
+  expiresInDays?: number;
+  /** Email addresses for the `people` audience. */
+  people?: readonly string[];
+  /** The file name, for wording and for providers that need the name. */
+  name?: string;
+}
+
+/** A link a target made. Holds no token: `revokeRef` identifies the grant to remove. */
+export interface ShareLinkOutcome {
+  url: string;
+  /** The audience actually granted (never wider than asked). */
+  audience: ShareAudience;
+  /** ISO time the link stops working, when it does. */
+  expiresAt?: string;
+  /** Opaque handle `revoke` needs; absent when the link cannot be revoked. */
+  revokeRef?: string;
+  /** Already-localised notes to show beside the link (a setting the provider dropped). */
+  notes?: readonly string[];
+}
+
+/** One link kept in the device-local "Links you've shared" list. No tokens. */
+export interface SharedLinkRecord {
+  id: string;
+  kind: string;
+  /** The target's registry id (its kind for personal drivers). */
+  targetId: string;
+  providerLabel: string;
+  fileName: string;
+  ref: string;
+  url: string;
+  audience: ShareAudience;
+  expiresAt?: string;
+  revokeRef?: string;
+  createdAt: string;
+}
+
+/** A provider or an administrator refused one audience. The caller says so and
+ *  offers the next narrower one; it never falls back by itself. */
+export class ShareRefusedError extends Error {
+  readonly audience: ShareAudience;
+  constructor(audience: ShareAudience, message: string) {
+    super(message);
+    this.name = 'ShareRefusedError';
+    this.audience = audience;
+  }
+}
+
+/** Sharing cannot be done from here at all for this connection (the token is not
+ *  allowed to). `handoffUrl` is the provider's own sharing page, when there is one. */
+export class ShareUnavailableError extends Error {
+  readonly handoffUrl?: string;
+  constructor(message: string, handoffUrl?: string) {
+    super(message);
+    this.name = 'ShareUnavailableError';
+    if (handoffUrl) this.handoffUrl = handoffUrl;
+  }
 }
 
 export type SendSource = 'export' | 'asset';
@@ -110,6 +200,14 @@ export interface SendTarget {
   /** Perform the send. May run an interactive OAuth popup. Rejects with a
    *  user-presentable message on failure (including a cancelled sign-in). */
   send(payload: SendPayload): Promise<SendOutcome>;
+  /** Share links (optional; a target without these behaves exactly as before).
+   *  What this target can do when asked for a link. Cheap and synchronous. */
+  shareCapabilities?(): ShareCapabilities;
+  /** Make a link to a file this target sent, from its `SendOutcome.ref`. Rejects
+   *  with ShareRefusedError, ShareUnavailableError or a user-presentable Error. */
+  share?(ref: string, options: ShareOptions): Promise<ShareLinkOutcome>;
+  /** Switch a link off (the `revokeRef` it returned). */
+  revoke?(link: Pick<SharedLinkRecord, 'ref' | 'revokeRef' | 'url'>): Promise<void>;
 }
 
 const targets = new Map<string, SendTarget>();
@@ -141,4 +239,16 @@ export function sendTargetsFor(format: string, source: SendSource = 'export', pr
     (source !== 'asset' || !t.sendProjectFile || !!projectFile) &&
     (!t.sources || t.sources.includes(source)) &&
     (!t.formats || t.formats.includes(f)));
+}
+
+/** A target that can make links right now: it has `share`, its provider is on,
+ *  and the person has not switched share links off for it in Feature flags. */
+export function canShare(t: SendTarget): boolean {
+  return !!t.share && !!t.shareCapabilities && shareLinksEnabled(t.kind);
+}
+
+/** The registered destination with this stable id, whatever its availability.
+ *  Used to reach `revoke` for a link made earlier. */
+export function findSendTarget(id: string): SendTarget | undefined {
+  return targets.get(id);
 }

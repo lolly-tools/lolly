@@ -8,6 +8,35 @@ import { renderBrandWheel } from '../lib/palette-wheel.ts';
 import { icon } from '../lib/icons.ts';
 import { COMPONENT_ARTWORK } from './components-data.ts';
 import { formatTriggerHtml } from './export-format-picker.ts';
+import { cardMarkup } from './gallery-tiles.ts';
+import { mountThemeChoices } from '../components/theme-choices.ts';
+import type { DocumentThemeGroup } from '../lib/document-theme.ts';
+
+export function toolCardExample(): string {
+  return `<div class="gallery cl-object-context">${cardMarkup({
+    id: 'qr-code', name: 'QR Code', description: 'Scannable codes for your next launch.',
+    category: 'utility', status: 'official', icon: icon('code'),
+  }, undefined, undefined)}</div>`;
+}
+
+/** The production colourway and mode controls, backed by specimen-local choices. */
+export function wireThemeChoicesExample(stage: HTMLElement): () => void {
+  const groups: DocumentThemeGroup[] = [
+    { id: 'colourway', label: 'Colourway', kind: 'colourway', canonical: 'forest', active: 'forest', options: [
+      { id: 'forest', label: 'Forest', canonical: true, swatch: { lead: '#033633', partner: '#50c369' } },
+      { id: 'orchid', label: 'Orchid', canonical: false, swatch: { lead: '#ad24ba', partner: '#f7dcf2' } },
+      { id: 'ocean', label: 'Ocean', canonical: false, swatch: { lead: '#2453ff', partner: '#90ebcd' } },
+    ] },
+    { id: 'mode', label: 'Mode', kind: 'mode', canonical: 'light', active: 'light', options: [
+      { id: 'light', label: 'Light', canonical: true }, { id: 'dark', label: 'Dark', canonical: false },
+    ] },
+  ];
+  const choices = mountThemeChoices(stage, {
+    groups: () => groups,
+    choose: async (id, option) => { const group = groups.find(group => group.id === id); if (group) group.active = option; },
+  });
+  return () => choices.destroy();
+}
 
 export function exportFieldsExample(): string {
   return `<div class="cl-export-fields"><div class="filename-extension"><input class="export-filename" value="colour-study" aria-label="Filename">${formatTriggerHtml('png', format => format.toUpperCase())}</div><div class="export-dims"><div class="dim-field">${icon('arrowsH', { className: 'dim-icon' })}<input type="number" data-action="export-width" value="1080" aria-label="Width"></div><div class="dim-field">${icon('arrowsV', { className: 'dim-icon' })}<input type="number" data-action="export-height" value="1080" aria-label="Height"></div><select class="dim-unit" aria-label="Units"><option>px</option><option>mm</option></select></div></div>`;

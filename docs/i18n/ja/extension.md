@@ -2,9 +2,9 @@
 
 Webページは他のウェブサイトのピクセルを読み取れないため、LollyのWebアプリがページのスクリーンショットを撮るには助けが必要です。Chromiumベースのブラウザ(Chrome 111以降のChrome、Edge、Brave、Arc、Opera)では、無料の拡張機能**Lolly URL Screenshot**が、デスクトップアプリが使うのと同じキャプチャでその助けを提供します。インストールすると、次のことができます。
 
-- **[URL Screenshot](/t/url-shot)**は、作成したページをファイルとして保存します。
+- **[Lolly URL Screenshot](/t/url-shot)**は、作成したページをファイルとして保存します。
 - 画像スロットに貼り付けたWebアドレスは、**Screenshot this page**で、そのページのスクリーンショットにできます。
-- [Design System Setup](/info/brand-studio.html)の**Website**ソースは、1ページを読み取って、デザインシステムを始められます。
+- [Lolly Design System Setup](/info/brand-studio.html)の**Website**ソースは、1ページを読み取って、デザインシステムを始められます。
 
 すべてのリクエストをお客様が承認し、デスクトップアプリは拡張機能なしで同じ作業を行います。
 

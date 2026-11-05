@@ -57,7 +57,7 @@
  * IT CARRIES ITS OWN STYLESHEET, injected into `<head>` on first mount - the
  * `music-player.ts`/`neuro-dock.ts`/`collab-pill.ts` pattern for lazy chrome that
  * must cost a single-player build nothing. `styles/parts/collab.css` deliberately
- * owns only the `.collab-tile-*` family and says so in its own header: a shared
+ * owns only the `.collab-tile-*` family and states that in its own header: a shared
  * `parts/*.css` rule using one of these bare class names would be silently inert
  * wherever this component is mounted (an unlayered injected sheet beats every
  * `@layer`), and confusingly duplicate it everywhere else. So `.collab-canvas-layer`,

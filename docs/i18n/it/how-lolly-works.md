@@ -35,7 +35,7 @@ Ogni percorso esegue lo stesso engine sullo stesso strumento, quindi il file pro
 ![I parametri URL e gli argomenti da riga di comando diventano lo stesso modello di input, eseguito attraverso un unico runtime e un unico bridge di esportazione](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **Nell'app, uno alla volta.** Apri uno strumento, compila i campi e premi **Export**. [Crea il tuo primo file](/info/make-something.html) ti guida a farne uno.
-- <!--i:layers--> **Nell'app, molti insieme.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) prende una tabella incollata o importata e produce un file finito per ogni riga.
+- <!--i:layers--> **Nell'app, molti insieme.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) prende una tabella incollata o importata e produce un file finito per ogni riga.
 - <!--i:cpu--> **Da uno script o da un agente di IA.** La [CLI](/info/cli.html) esegue uno strumento in modalità headless e il [server MCP](/info/mcp.html) permette a un agente di scoprire ed eseguire gli strumenti. Anche il link a uno strumento porta i suoi input, quindi un link è una richiesta completa.
 - <!--i:server--> **Tramite il server della tua organizzazione.** [Lolly Work](/info/organisation.html) renderizza sul server con l'accesso e la policy degli strumenti della tua organizzazione, mantiene lavori che può riprendere e conserva l'output per il download o per una consegna approvata.
 

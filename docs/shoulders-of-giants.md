@@ -83,7 +83,8 @@ The assumptions Lolly is built on (render on your own device, keep your files yo
 Lolly ships as openSUSE RPMs and a Flatpak and registers with the desktop's own search, so the platform that taught this project its values is also one of its homes.
 
 <!--lb:penpot inkscape blender-->
-## Design in the open: Penpot, Inkscape and Blender
+<a id="design-in-the-open-penpot-inkscape-and-blender"></a>
+## Lolly Design in the open: Penpot, Inkscape and Blender
 
 For most of the history of desktop computing, the tools professional designers and animators worked in were closed and expensive. Three open projects did a great deal to change that.
 
@@ -93,7 +94,7 @@ Its file format is open, which is why Lolly can [open a .penpot file as an edita
 
 [Inkscape](https://inkscape.org) is older, and its family tree reaches back further still. It began in 1999 as Gill, the GNOME Illustrator, written by [Raph Levien](https://levien.com/); Lauris Kaplinski led its successor, Sodipodi; and in 2003 four Sodipodi developers, Bryce Harrington, MenTaLguY, Nathan Hurst and Ted Gould, started [Inkscape](https://wiki.inkscape.org/wiki/InkscapeHistory), whose [source](https://gitlab.com/inkscape/inkscape) is on GitLab. Version 1.0 arrived in May 2020.
 
-For more than twenty years it has kept SVG a format working designers use every day rather than a specification on a shelf. Every SVG Lolly writes opens in Inkscape with its paths intact, Lolly's GIMP palette export loads straight into it, and when you inspect an SVG in Lolly's [Verify](/#/verify), the Inkscape version that made it is one of the things it reports.
+For more than twenty years it has kept SVG a format working designers use every day rather than a specification on a shelf. Every SVG Lolly writes opens in Inkscape with its paths intact, Lolly's GIMP palette export loads straight into it, and when you inspect an SVG in [Lolly Verify](/#/verify), the Inkscape version that made it is one of the things it reports.
 
 [Blender](https://www.blender.org) nearly did not survive. Ton Roosendaal started the Dutch animation studio NeoGeo in 1989 and wrote the first source files called Blender on 2 January 1994, a date still counted as Blender's birthday. He later founded a company, Not a Number, to develop it, and when that company closed in early 2002, development stopped and the code belonged to its investors.
 
@@ -198,8 +199,8 @@ The story above had room for only some of the names. Here are the rest, grouped 
 - **[libvips](https://www.libvips.org/)**, John Cupitt's image library, began around 1990 imaging paintings for the National Gallery in London; through **[sharp](https://sharp.pixelplumbing.com/)** (Lovell Fuller) it does the heavy image work in Lolly's build toolchain and Node shells.
 - **[jsPDF](https://github.com/parallax/jsPDF)** (James Hall) has been writing PDFs inside browsers for a decade and a half; with **[pdf-lib](https://pdf-lib.js.org/)** (Andrew Dillon) beside it, Lolly writes, reads, merges and strips PDFs on your device.
 - **[DOMPurify](https://github.com/cure53/DOMPurify)**, from Mario Heiderich and the security firm Cure53, has been the standard answer to HTML sanitisation since 2014; every SVG and HTML upload passes through it before touching the page.
-- **[resvg](https://github.com/linebender/resvg)** (Yevhenii Reizner) rasterises SVG in the command line's fast tier. **[libheif](https://github.com/strukturag/libheif)** (Dirk Farin) opens iPhone HEIC photos. **[three.js](https://threejs.org/)**, started by Ricardo Cabello in 2010, renders the 3D and Flythrough tools. **[lottie-web](https://github.com/airbnb/lottie-web)** plays Lottie animations, **gifenc** (Matt DesLauriers) encodes animated GIFs, and **html2canvas** and **dom-to-image-more** are the raster capture fallbacks.
-- The Gradient tool's flow mode runs **[webgl-noise](https://github.com/ashima/webgl-noise)**, Ian McEwan and Stefan Gustavson's simplex noise shaders from 2011; the Backdrop tool runs **[Paper Shaders](https://github.com/paper-design/shaders)** by Paper Design; the Darkroom's film looks come from **FilmSim**, Sébastien Guyader's public-domain emulations of classic film stocks.
+- **[resvg](https://github.com/linebender/resvg)** (Yevhenii Reizner) rasterises SVG in the command line's fast tier. **[libheif](https://github.com/strukturag/libheif)** (Dirk Farin) opens iPhone HEIC photos. **[three.js](https://threejs.org/)**, started by Ricardo Cabello in 2010, renders the 3D and Lolly Flythrough tools. **[lottie-web](https://github.com/airbnb/lottie-web)** plays Lottie animations, **gifenc** (Matt DesLauriers) encodes animated GIFs, and **html2canvas** and **dom-to-image-more** are the raster capture fallbacks.
+- The Gradient tool's flow mode runs **[webgl-noise](https://github.com/ashima/webgl-noise)**, Ian McEwan and Stefan Gustavson's simplex noise shaders from 2011; the Backdrop tool runs **[Paper Shaders](https://github.com/paper-design/shaders)** by Paper Lolly Design; the Lolly Darkroom's film looks come from **FilmSim**, Sébastien Guyader's public-domain emulations of classic film stocks.
 
 :::
 
@@ -216,14 +217,14 @@ The story above had room for only some of the names. Here are the rest, grouped 
 - **[ONNX Runtime](https://onnxruntime.ai/)** (Microsoft) and **[transformers.js](https://huggingface.co/docs/transformers.js)** (Joshua Lochner's project, now at Hugging Face) are the two runtimes every model below rides on; the desktop app also runs ONNX natively in Rust.
 - **[Kokoro](https://huggingface.co/hexgrad/Kokoro-82M)** (hexgrad, 2025), the text-to-speech voice, with eSpeak NG working out its pronunciation.
 - **[Whisper](https://github.com/openai/whisper)** (OpenAI, 2022), speech to text with word-level timing.
-- Rondocode's singing runs four models in a row: **[Supertonic-3](https://huggingface.co/Supertone/supertonic-3)** (Supertone, OpenRAIL-M) speaks the lyrics, a **[wav2vec 2.0](https://huggingface.co/facebook/wav2vec2-lv-60-espeak-cv-ft)** phoneme recogniser from Meta AI times each syllable to the beat, and **[ContentVec](https://github.com/auspicious3000/contentvec)** (Kaizhi Qian and colleagues) with a voice from the **[RVC](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)** project turns the speech into a singing voice. The three voices come from rondocode's own model collection, which states no licence or origin for them.
+- Lolly Rondocode's singing runs four models in a row: **[Supertonic-3](https://huggingface.co/Supertone/supertonic-3)** (Supertone, OpenRAIL-M) speaks the lyrics, a **[wav2vec 2.0](https://huggingface.co/facebook/wav2vec2-lv-60-espeak-cv-ft)** phoneme recogniser from Meta AI times each syllable to the beat, and **[ContentVec](https://github.com/auspicious3000/contentvec)** (Kaizhi Qian and colleagues) with a voice from the **[RVC](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)** project turns the speech into a singing voice. The three voices come from rondocode's own model collection, which states no licence or origin for them.
 - **[all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)** (the sentence-transformers project), the embeddings under Ask's search.
 - **[SmolLM2](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct)** (Hugging Face), on-device rewording.
 - **[U2-Net](https://github.com/xuebinqin/U-2-Net)** (Xuebin Qin and colleagues) and **[MODNet](https://github.com/ZHKKKe/MODNet)** (Zhanghan Ke), background removal, general and portrait.
 - **[PP-OCRv5](https://github.com/PaddlePaddle/PaddleOCR)** (PaddlePaddle), reading text out of images.
 - **[Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2)** Small (Lihe Yang and colleagues), the depth estimate behind the Spatial Photo tool.
 - **[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)** (Xintao Wang) with **[GFPGAN](https://github.com/TencentARC/GFPGAN)** (Tencent ARC) and **BlazeFace** (Google), upscaling and face restoration.
-- **[TrustMark](https://github.com/adobe/trustmark)** (Adobe), the deep scan for invisible watermarks in Verify.
+- **[TrustMark](https://github.com/adobe/trustmark)** (Adobe), the deep scan for invisible watermarks in Lolly Verify.
 - An AI-text detector fine-tuned on e5-small by May Zhou.
 
 :::

@@ -1,5 +1,31 @@
 {
   "Copy saved on this device.": "コピーをこのデバイスに保存しました。",
+  "Closest to the current palette": "現在のパレットに最も近い",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "保存済みのデザインシステムといくつかの出発点をプレビューします。「使用」を選ぶまで何も変わりません。",
+  "Use this look": "このルックを使用",
+  "Previewing {name}": "{name}をプレビュー中",
+  "Choose up to two looks to compare.": "比較するルックを2つまで選んでください。",
+  "Drop a horizontal logo": "横向きのロゴをここにドロップ",
+  "Drop a vertical logo": "縦向きのロゴをここにドロップ",
+  "calm": "穏やか",
+  "nature": "自然",
+  "playful": "遊び心",
+  "creative": "クリエイティブ",
+  "warm": "ウォーム",
+  "editorial": "エディトリアル",
+  "neutral": "ニュートラル",
+  "red": "赤",
+  "orange": "オレンジ",
+  "yellow": "黄",
+  "green": "緑",
+  "teal": "ティール",
+  "blue": "青",
+  "purple": "紫",
+  "pink": "ピンク",
+  "deep": "濃い",
+  "pale": "淡い",
+  "vivid": "鮮やか",
+  "muted": "くすんだ",
   "In a project you can edit": "編集できるプロジェクト",
   "Make copy": "コピーを作成",
   "Save a copy on this device": "このデバイスにコピーを保存",
@@ -600,7 +626,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "検証機能と「アセット」で、より詳細なAIテキストチェックを実行します。",
   "Card size": "カードのサイズ",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "このデバイスで追加された画像またはファイルが1件あります。このデバイスにのみ保存され、他の人にはそのファイルは表示されません。",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "このデバイスで追加された画像またはファイルが{n}件あります。このデバイスにのみ保存され、他の人にはそれらのファイルは表示されません。",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "このデバイスで追加された画像またはファイルが{n}件あります。このデバイスにのみ保存され、他の人にはそれらのファイルは表示されません。"
+  },
   "Check the version first": "先にバージョンを確認してください",
   "Copy team link": "チームリンクをコピー",
   "Could not create the project. Try again.": "プロジェクトを作成できませんでした。もう一度お試しください。",
@@ -1176,7 +1204,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "すべての項目が共有プロジェクトに保存されました。ローカルの元データはゴミ箱にあるか、そのままです。",
   "Your local items have not changed.": "ローカルの項目は変更されていません。",
   "1 item was saved to the shared project.": "1 件の項目が共有プロジェクトに保存されました。",
-  "{n} items were saved to the shared project.": "{n} 件の項目が共有プロジェクトに保存されました。",
+  "{n} items were saved to the shared project.": {
+    "other": "{n}件の項目が共有プロジェクトに保存されました。"
+  },
   "Wait for the current move to finish.": "現在の移動が完了するまでお待ちください。",
   "You cannot save to that shared project.": "その共有プロジェクトには保存できません。",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "{project} を開けるすべての人がこれらの項目を見られるようになります。すべての項目が保存されると、ローカルの元データはゴミ箱に移動し、そこから復元できます。",
@@ -1487,8 +1517,12 @@
   "file": "ファイル",
   "samples": "サンプル",
   "text": "テキスト",
-  "{n} changes found": "{n}件の変更が見つかりました",
-  "{n} pages differ": "{n}ページが異なります",
+  "{n} changes found": {
+    "other": "{n}件の変更が見つかりました"
+  },
+  "{n} pages differ": {
+    "other": "{n}ページが異なります"
+  },
   "Draft": "下書き",
   "Draft quality": "下書き品質",
   "Draft rule": "下書きルール",
@@ -1798,5 +1832,221 @@
   "Headlines - 36px, or 24px bold": "見出し - 36px、または太字の24px",
   "Icons and borders only": "アイコンと枠線のみ",
   "Not usable": "使用不可",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCAはsRGB向けに定義されているため、広色域の色はsRGBでの表現で評価されます。"
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCAはsRGB向けに定義されているため、広色域の色はsRGBでの表現で評価されます。",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "このデバイスはグラフィックスアクセラレーションなしで描画しているため、Lollyはよりシンプルで高速な表示に切り替えました。",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "このデバイスの動作が重くなっていたため、Lollyはよりシンプルで高速な表示に切り替えました。",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "このデバイスはグラフィックスアクセラレーションなしで描画しているため、{date}に自動でオンになりました。",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "このデバイスでインターフェースの描画が重くなっていたため、{date}に自動でオンになりました。",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "{date}に「元に戻す」を選んだため、このデバイスでは自動切り替えをオフにしています。",
+  "Allow again": "もう一度許可する",
+  "Automatic switching is allowed again from the next time you open Lolly.": "次回Lollyを開いたときから、自動切り替えが再び許可されます。",
+  "Board": "ボード",
+  "Choose for {role}": "{role}を選択",
+  "Change {role}": "{role}を変更",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "ブランドのガイダンスを、人とエージェント向けに書いたもの。エージェントはまずブランドスキルを読み、次に作業に合ったスキルを読みます。スキルは作業を導くもので、Lolly がチェックするのは「ルール」のハウスルールです。",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "このデバイスがビジー状態の間、Lollyはよりシンプルで高速な表示に切り替えました。落ち着いたら元に戻ります。",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "バッテリー残量が少ない間、Lollyはよりシンプルで高速な表示に切り替えました。このデバイスを充電すると元に戻ります。",
+  "On for now because this device is busy. It switches back when things calm down.": "このデバイスがビジー状態のため、一時的にオンになっています。落ち着いたら元に戻ります。",
+  "On for now because the battery is low. It switches back when this device is charging.": "バッテリー残量が少ないため、一時的にオンになっています。このデバイスを充電すると元に戻ります。",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "このデバイスがビジー状態だったため、{date}に自動でオンになりました。「保持」を選んだので、そのままオンです。",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "バッテリー残量が少なかったため、{date}に自動でオンになりました。「保持」を選んだので、そのままオンです。",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "{date}に「元に戻す」を選んだため、Lollyはここでは動作の遅いデバイス向けの自動切り替えを行いません。",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "{date}に「元に戻す」を選んだため、Lollyはこのデバイスがビジー状態の間やバッテリー残量が少ない間は自動切り替えを行いません。",
+  "Use the automatic colour": "自動カラーを使う",
+  "follows the design system ({colour})": "デザインシステムに従っています ({colour})",
+  "follows the design system": "デザインシステムに従っています",
+  "automatic ({colour})": "自動 ({colour})",
+  "automatic": "自動",
+  "{name} spring": "{name}スプリング",
+  "{name} (not in this design system)": "{name}（このデザインシステムにはありません）",
+  "Curves": "カーブ",
+  "Springs": "スプリング",
+  "Gentle": "ゆったり",
+  "Quick": "すばやい",
+  "Bouncy": "弾む",
+  "Custom spring": "カスタムスプリング",
+  "Stiffness": "剛性",
+  "Damping": "減衰",
+  "Mass": "質量",
+  "Settles in {t} s": "{t} 秒で静止",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "スプリングが静止する前に次のキーフレームが来ます。残りの動きは区間全体に振り分けられます。",
+  "From the design system: {name}": "デザインシステムから：{name}",
+  "Editing the curve detaches it from the design system.": "カーブを編集するとデザインシステムとのリンクが外れます。",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "ペン (P) - クリックで点を配置、ドラッグで曲線、Alt で角。長押しで鉛筆 (Shift C) とスプラインの種類",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "ペン (P) - クリックで点を配置、ドラッグで曲線、Alt で角",
+  "Recipients can change the inputs": "受け取る人が入力を変更できる",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "リンクを知っている人は誰でも入力を変更して、新しい画像を取得できます。ロックされた入力は設定のままです。",
+  "{count} entries": {
+    "other": "{count}件の項目"
+  },
+  "{count} files in this folder": {
+    "other": "このフォルダ内のファイル{count}件"
+  },
+  "{n} assets": {
+    "other": "{n}件のアセット"
+  },
+  "{n} assets found": {
+    "other": "{n}件のアセットが見つかりました"
+  },
+  "{n} capabilities match": {
+    "other": "{n}件の機能が一致します"
+  },
+  "{n} copies made · selected": {
+    "other": "{n}件のコピーを作成・選択済み"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "ここでプロジェクトから削除された{n}件の作品は、削除されたままです。"
+  },
+  "{n} embedded files": {
+    "other": "埋め込みファイル{n}件"
+  },
+  "{n} external references": {
+    "other": "外部参照{n}件"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "{n}件のファイルをパックできず、除外しました"
+  },
+  "{n} folders": {
+    "other": "{n}個のフォルダ"
+  },
+  "{n} font files": {
+    "other": "フォントファイル{n}件"
+  },
+  "{n} images": {
+    "other": "{n}枚の画像"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n}枚の画像を復元できませんでした（ストレージ容量不足の可能性があります）"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n}件の画像は元の場所に残りました - 画像の置き場所は1つです。移動するには切り取りを使用してください"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "{n}件の入力項目 · すべてのデザインに適用"
+  },
+  "{n} items": {
+    "other": "{n}件のアイテム"
+  },
+  "{n} items copied": {
+    "other": "{n}件のアイテムをコピーしました"
+  },
+  "{n} items cut": {
+    "other": "{n}件のアイテムを切り取りました"
+  },
+  "{n} items moved": {
+    "other": "{n}件のアイテムを移動しました"
+  },
+  "{n} items pasted": {
+    "other": "{n}件のアイテムを貼り付けました"
+  },
+  "{n} keyframes": {
+    "other": "キーフレーム{n}個"
+  },
+  "{n} logos": {
+    "other": "{n}件のロゴ"
+  },
+  "{n} marks found": {
+    "other": "{n}件のマークが見つかりました"
+  },
+  "{n} newer items skipped": {
+    "other": "{n}件の新しいアイテムをスキップしました"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "作品のうち{n}件が動画またはアニメーションです"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "古い自動チェックポイント{n}件を除外しました"
+  },
+  "{n} pages": {
+    "other": "{n}ページ"
+  },
+  "{n} places": {
+    "other": "{n}か所"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "{n}点 - Altを押したままにすると角になります"
+  },
+  "{n} published versions": {
+    "other": "公開済みバージョン{n}件"
+  },
+  "{n} results": {
+    "other": "{n}件の結果"
+  },
+  "{n} saved sessions": {
+    "other": "保存済みセッション{n}件"
+  },
+  "{n} selected": {
+    "other": "{n}件選択中"
+  },
+  "{n} selected assets": {
+    "other": "選択したアセット{n}件"
+  },
+  "{n} sessions": {
+    "other": "セッション{n}件"
+  },
+  "{n} shapes": {
+    "other": "{n}個の図形"
+  },
+  "{n} steps": {
+    "other": "{n}ステップ"
+  },
+  "{n} templates": {
+    "other": "{n}件のテンプレート"
+  },
+  "{n} volume keys": {
+    "other": "音量キー{n}個"
+  },
+  "{n} words": {
+    "other": "{n}語"
+  },
+  "Manage asset versions…": "アセットのバージョンを管理…",
+  "Preparing download…": "ダウンロードを準備中…",
+  "Retry with original…": "オリジナルで再試行…",
+  "Dominant hand": "利き手",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "2 つのペインで表示するとき (折りたたみ端末やほぼ正方形のタブレット)、操作パネルは描く手と反対側に置かれます。ペインの見出しにある「左右を入れ替え」でも切り替えられます。",
+  "Swap sides": "左右を入れ替え",
+  "Resize panes": "ペインのサイズを変更",
+  "Changes that didn't finish saving": "保存が完了しなかった変更",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "{time}に行ったこれらの変更は、保存される前にページが閉じられました。その後、このデザインシステムは別のタブまたは同期によって再び保存されています。",
+  "Restore your unsaved changes": "保存されていない変更を復元",
+  "Keep the saved version": "保存済みのバージョンを残す",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "復元すると、その後に保存されたバージョンが置き換えられます。保存済みのバージョンを残すと、保存されていない変更はこのデバイスから削除されます。",
+  "Restored your unsaved changes.": "保存されていない変更を復元しました。",
+  "Kept the saved version.": "保存済みのバージョンを残しました。",
+  "Restored the changes that hadn't finished saving.": "保存が完了しなかった変更を復元しました。",
+  "{n} file": "{n} 件のファイル",
+  "It becomes the primary. Shades and roles can follow.": "これがプライマリになります。シェードと役割はあとから続けられます。",
+  "Start here": "ここから始める",
+  "Browse looks →": "ルックを見る →",
+  "Pick what you have →": "手元のものを選ぶ →",
+  "Open the picker →": "カラーピッカーを開く →",
+  "Starter greys until a colour is added.": "色を追加するまではスターターのグレーです。",
+  "Lolly can’t draw in this browser yet": "Lolly はこのブラウザーではまだ描画できません",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly は WebGPU で描画しますが、このブラウザーはまだ WebGPU に対応していません。",
+  "These work today:": "現在使えるもの:",
+  "Chrome or Edge, kept up to date": "最新の Chrome または Edge",
+  "Safari 26 or later": "Safari 26 以降",
+  "Firefox, where WebGPU is turned on": "WebGPU を有効にした Firefox",
+  "Get the desktop app": "デスクトップアプリを入手",
+  "Read why": "理由を読む",
+  "Or drop an image or a list of colours here": "または画像や色のリストをここにドロップ",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "これらのニュートラルカラーはスターターに付属しており、上で色が追加されるまでプレビューに表示する色になります。",
+  "{role}: {value}. Choose a colour": "{role}：{value}。色を選択",
+  "Add a colour to the palette first.": "先にパレットに色を追加してください。",
+  "Notify": "通知する",
+  "Update automatically": "自動で更新する",
+  "App updates": "アプリの更新",
+  "Update notifications": "更新通知",
+  "Ready to install: {version}": "インストールの準備完了: {version}",
+  "Restart now": "今すぐ再起動",
+  "Install when I quit": "終了時にインストール",
+  "Release notes": "リリースノート",
+  "Manual download": "手動ダウンロード",
+  "Update could not finish. Try again or download the app.": "更新を完了できませんでした。もう一度試すか、アプリをダウンロードしてください。",
+  "Finish recording or exporting before updating.": "更新する前に録音・録画または書き出しを完了してください。",
+  "Save could not finish. Save a recovery copy before updating.": "保存を完了できませんでした。更新する前に復元用のコピーを保存してください。",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "この AppImage はここでは置き換えられません。書き込み可能なフォルダーにアプリをダウンロードしてください。",
+  "This installation uses its package manager for updates.": "このインストールでは、パッケージマネージャーで更新します。",
+  "This desktop platform does not support in-app updates.": "このデスクトップ環境では、アプリ内での更新はサポートされていません。",
+  "Update installation was cancelled.": "更新のインストールがキャンセルされました。"
 }

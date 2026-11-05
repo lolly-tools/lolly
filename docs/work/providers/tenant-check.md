@@ -1,7 +1,7 @@
 # Check a source on your own tenant
 
 Several Lolly Work sources were built from public documentation, without a live account to test
-against. Before you rely on one, run a short check on your own tenant. It confirms that Work
+against. Before you rely on one, run a short check on your own tenant. It confirms that Lolly Work
 reads the fields it expects, that the files it serves are the real originals and that only the
 right people see them. Nothing in the check writes to the source. Allow about half an hour.
 
@@ -29,7 +29,7 @@ Microsoft 365) carry no checklist in their drivers.
 - A tenant you may test against under your own contract, and its credential.
 - A few files you can also download from the source's own interface, one per file type you
   plan to use.
-- On the Work instance: `catalog.provider.manage` for most steps, `catalog.provider.read` for
+- On the Lolly Work instance: `catalog.provider.manage` for most steps, `catalog.provider.read` for
   drift and `catalog.provider.credential` (owners) to seal the credential, enable the source and
   disable it again.
 
@@ -37,14 +37,14 @@ Microsoft 365) carry no checklist in their drivers.
 
 ::: timeline
 - **Sign in.** `lw login` prints a short code; approve it in a browser where you are signed in
-  to Work.
+  to Lolly Work.
 - **Dry run.** `lw providers preview` checks health and maps a sample without saving anything.
   Exit code `2` means health failed; the guide's error table says why.
 - **Shape report.** Add `--shape` (with `--remote-id <id>` for kinds with a detail call) and save
   the output. It lists field names and types, never values.
 - **A real source for admins only.** Add the source with `"groups":["admin"]`, seal the
   credential, enable and sync. Read the count, the sections and every note.
-- **Check the bytes.** Materialize one file, fetch it through Work and compare its checksum with
+- **Check the bytes.** Materialize one file, fetch it through Lolly Work and compare its checksum with
   the same file downloaded from the source.
 - **Check access and change.** Look at the source as two members in different groups, then
   rename, move and remove a file upstream and run `lw providers drift`.
@@ -86,7 +86,7 @@ that carries the download link; it fetches information about one file, never its
 `lw providers materialize <id> --remote-id <remoteId> --json` copies files through the same path
 an exit uses and records a checksum for each. Every failure prints as `<remoteId>: <message>`.
 `--remote-id` filters the walk rather than skipping it, so keep the source's folder or query
-narrow. Then fetch the same file through Work:
+narrow. Then fetch the same file through Lolly Work:
 
 ```bash
 curl -sS -b "$(cat ~/.config/lolly-work/session)" \
@@ -95,7 +95,7 @@ shasum -a 256 /tmp/work-copy.bin
 ```
 
 Download the same file from the source's own interface as the original and checksum that too.
-A match means Work serves the true original. A smaller file, other pixel dimensions or missing
+A match means Lolly Work serves the true original. A smaller file, other pixel dimensions or missing
 EXIF or ICC data means the link served a rendition: report it, because materialize stores
 whatever it is given. A failure on this route shows as `502 PROVIDER_UNAVAILABLE`; the reason is
 in the materialize output.
@@ -208,7 +208,7 @@ the exact text of any error and the product version.
 - Save the source disabled, seal the credential, sync and check groups and exposure before
   enabling. A file with no approval metadata must not appear as approved. Test date boundaries
   and timezones.
-- Fetch an original through Work and compare SHA-256 and byte count with Cloudinary's original,
+- Fetch an original through Lolly Work and compare SHA-256 and byte count with Cloudinary's original,
   for private, authenticated and raw files too. Inspect any credentials in the bytes yourself.
 - Rename and move an asset: its id must stay the same, and moving it out of the configured
   folder must stop new reads. Overwrite a file and check that the old selected version fails
@@ -235,7 +235,7 @@ the exact text of any error and the product version.
 - Check client credentials, token lifetime, IP binding and one expired-token recovery. Failures
   must not reveal source values or credentials. Agree a shared request budget, including
   parallel callers and retries outside the driver.
-- Test an image, a document, audio, video and a metadata-only record. Compare the Work bytes with
+- Test an image, a document, audio, video and a metadata-only record. Compare the Lolly Work bytes with
   the exact rendition: format, dimensions and any watermark. A missing rendition must not be
   generated, and a substitute must not be accepted. Request one byte range of a large document
   and compare it; note whether the storage host answers `206` or ignores ranges.
@@ -243,10 +243,10 @@ the exact text of any error and the product version.
   Redirects, even to the same origin, are refused: use the documented origin rather than
   weakening the guard.
 - Set real approval and date fields and test missing values, refusal, expiry and a future
-  release. Check that labels still say these are renditions, across two Work groups.
+  release. Check that labels still say these are renditions, across two Lolly Work groups.
 - Change a record, revoke access and remove a record. Test stale references, fresh lookups and
   caching delay, and agree the freshness bound. A public link received elsewhere is not
-  withdrawn by Work.
+  withdrawn by Lolly Work.
 - Materialize a rendition sample and check the metadata. A cutover attempt must fail before any
   identity, grant, alias or activation changes.
 :::
@@ -271,7 +271,7 @@ the exact text of any error and the product version.
 - **Penpot** has no shape report either. Run a preview and a sync, confirm the token sets appear
   on the console's **Design system** tab, and import one board through **Search & import**.
 - **Brandfolder**: give one asset availability dates in Brandfolder and confirm an availability
-  window appears for it in Work.
+  window appears for it in Lolly Work.
 :::
 
 ## Qualifying a source for a new kind of task

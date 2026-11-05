@@ -1,5 +1,31 @@
 {
   "Copy saved on this device.": "Kopie byla uložena na tomto zařízení.",
+  "Closest to the current palette": "Nejblíže současné paletě",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Prohlédni si uložené design systémy a pár výchozích bodů. Nic se nezmění, dokud nezvolíš Použít.",
+  "Use this look": "Použít tento look",
+  "Previewing {name}": "Náhled: {name}",
+  "Choose up to two looks to compare.": "Vyber k porovnání nejvýš dva looky.",
+  "Drop a horizontal logo": "Pusť sem vodorovné logo",
+  "Drop a vertical logo": "Pusť sem svislé logo",
+  "calm": "klidný",
+  "nature": "příroda",
+  "playful": "hravý",
+  "creative": "kreativní",
+  "warm": "teplý",
+  "editorial": "redakční",
+  "neutral": "neutrální",
+  "red": "červená",
+  "orange": "oranžová",
+  "yellow": "žlutá",
+  "green": "zelená",
+  "teal": "modrozelená",
+  "blue": "modrá",
+  "purple": "fialová",
+  "pink": "růžová",
+  "deep": "tmavá",
+  "pale": "bledá",
+  "vivid": "sytá",
+  "muted": "tlumená",
   "In a project you can edit": "Do projektu, který můžete upravovat",
   "Make copy": "Vytvořit kopii",
   "Save a copy on this device": "Uložit kopii na tomto zařízení",
@@ -593,7 +619,12 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Spouští hlubší kontrolu AI textu v Ověření a v Assetech.",
   "Card size": "Velikost karet",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "V tomto zařízení byl přidán 1 obrázek nebo soubor. Zůstává v tomto zařízení a ostatní ho neuvidí.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "V tomto zařízení bylo přidáno obrázků nebo souborů: {n}. Zůstávají v tomto zařízení a ostatní je neuvidí.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "V tomto zařízení byl přidán {n} obrázek nebo soubor. Zůstává v tomto zařízení a ostatní ho neuvidí.",
+    "few": "V tomto zařízení byly přidány {n} obrázky nebo soubory. Zůstávají v tomto zařízení a ostatní je neuvidí.",
+    "many": "V tomto zařízení bylo přidáno {n} obrázku nebo souboru. Zůstávají v tomto zařízení a ostatní je neuvidí.",
+    "other": "V tomto zařízení bylo přidáno {n} obrázků nebo souborů. Zůstávají v tomto zařízení a ostatní je neuvidí."
+  },
   "Check the version first": "Nejdřív zkontroluj verzi",
   "Copy team link": "Kopírovat odkaz týmu",
   "Could not create the project. Try again.": "Projekt se nepodařilo vytvořit. Zkus to znovu.",
@@ -1170,7 +1201,12 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Všechny položky jsou uložené ve sdíleném projektu. Místní originály jsou v koši nebo stále na svém místě.",
   "Your local items have not changed.": "Tvoje místní položky se nezměnily.",
   "1 item was saved to the shared project.": "1 položka byla uložena do sdíleného projektu.",
-  "{n} items were saved to the shared project.": "Počet položek uložených do sdíleného projektu: {n}.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} položka byla uložena do sdíleného projektu.",
+    "few": "{n} položky byly uloženy do sdíleného projektu.",
+    "many": "{n} položky bylo uloženo do sdíleného projektu.",
+    "other": "{n} položek bylo uloženo do sdíleného projektu."
+  },
   "Wait for the current move to finish.": "Počkej, až se dokončí probíhající přesun.",
   "You cannot save to that shared project.": "Do tohoto sdíleného projektu ukládat nemůžeš.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Všichni, kdo mohou otevřít {project}, uvidí tyto položky. Jakmile bude každá položka uložená, místní originály se přesunou do koše, odkud je můžeš obnovit.",
@@ -1481,8 +1517,18 @@
   "file": "soubor",
   "samples": "vzorky",
   "text": "text",
-  "{n} changes found": "Nalezeno změn: {n}",
-  "{n} pages differ": "Stránek, které se liší: {n}",
+  "{n} changes found": {
+    "one": "Nalezena {n} změna",
+    "few": "Nalezeny {n} změny",
+    "many": "Nalezeno {n} změny",
+    "other": "Nalezeno {n} změn"
+  },
+  "{n} pages differ": {
+    "one": "{n} stránka se liší",
+    "few": "{n} stránky se liší",
+    "many": "{n} stránky se liší",
+    "other": "{n} stránek se liší"
+  },
   "Draft": "Koncept",
   "Draft quality": "Kvalita konceptu",
   "Draft rule": "Pravidlo v konceptu",
@@ -1792,5 +1838,341 @@
   "Headlines - 36px, or 24px bold": "Nadpisy - 36px, nebo 24px tučně",
   "Icons and borders only": "Jen pro ikony a okraje",
   "Not usable": "Nepoužitelné",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA je definována pro sRGB, takže barva se širokým gamutem se hodnotí podle svého zobrazení v sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA je definována pro sRGB, takže barva se širokým gamutem se hodnotí podle svého zobrazení v sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly přepnulo na jednodušší a rychlejší vzhled, protože toto zařízení kreslí bez grafické akcelerace.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly přepnulo na jednodušší a rychlejší vzhled, protože toto zařízení zápasilo s výkonem.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Zapnuto automaticky dne {date}, protože toto zařízení kreslí bez grafické akcelerace.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Zapnuto automaticky dne {date}, protože toto zařízení zápasilo s vykreslováním rozhraní.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Automatické přepínání je na tomto zařízení vypnuté, protože jsi dne {date} zvolil Zpět.",
+  "Allow again": "Povolit znovu",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Automatické přepínání je znovu povoleno od příštího otevření Lolly.",
+  "Board": "Nástěnka",
+  "Choose for {role}": "Vybrat pro: {role}",
+  "Change {role}": "Změnit: {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Pokyny tvé značky, psané pro lidi i agenty. Agenti čtou nejdřív dovednost značky, pak tu pro danou práci. Dovednosti práci vedou; Lolly kontroluje interní pravidla v části Pravidla.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly přepnulo na jednodušší a rychlejší vzhled, dokud je toto zařízení vytížené. Až se situace uklidní, přepne zpět.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly přepnulo na jednodušší a rychlejší vzhled, dokud je baterie téměř vybitá. Přepne zpět, až se toto zařízení bude nabíjet.",
+  "On for now because this device is busy. It switches back when things calm down.": "Zapnuto prozatím, protože je toto zařízení vytížené. Až se situace uklidní, přepne zpět.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Zapnuto prozatím, protože je baterie téměř vybitá. Přepne zpět, až se toto zařízení bude nabíjet.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Zapnuto automaticky dne {date}, když bylo toto zařízení vytížené. Zvolil jsi Ponechat.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Zapnuto automaticky dne {date}, když byla baterie téměř vybitá. Zvolil jsi Ponechat.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly tady nebude přepínat kvůli pomalému zařízení, protože jsi dne {date} zvolil Zpět.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly nebude přepínat, dokud je toto zařízení vytížené nebo má málo baterie, protože jsi dne {date} zvolil Zpět.",
+  "Use the automatic colour": "Použij automatickou barvu",
+  "follows the design system ({colour})": "řídí se design systémem ({colour})",
+  "follows the design system": "řídí se design systémem",
+  "automatic ({colour})": "automatická ({colour})",
+  "automatic": "automatická",
+  "{name} spring": "Pružina {name}",
+  "{name} (not in this design system)": "{name} (v tomto systému designu není)",
+  "Curves": "Křivky",
+  "Springs": "Pružiny",
+  "Gentle": "Jemná",
+  "Quick": "Rychlá",
+  "Bouncy": "Skákavá",
+  "Custom spring": "Vlastní pružina",
+  "Stiffness": "Tuhost",
+  "Damping": "Tlumení",
+  "Mass": "Hmotnost",
+  "Settles in {t} s": "Ustálí se za {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Další klíčový snímek přijde dřív, než se pružina ustálí. Zbytek pohybu se rozloží na celý úsek.",
+  "From the design system: {name}": "Ze systému designu: {name}",
+  "Editing the curve detaches it from the design system.": "Úpravou křivky ji odpojíte od systému designu.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh. Podrž pro Tužku (Shift C) a typ spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pero (P) - klikni pro umístění bodů, přetažením zakřiv, Alt pro roh",
+  "Recipients can change the inputs": "Příjemci mohou měnit vstupy",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Kdokoli s odkazem může změnit jeho vstupy a získat nový obrázek. Uzamčené vstupy zůstanou, jak jsou nastavené.",
+  "{count} entries": {
+    "one": "{count} záznam",
+    "few": "{count} záznamy",
+    "many": "{count} záznamu",
+    "other": "{count} záznamů"
+  },
+  "{count} files in this folder": {
+    "one": "{count} soubor v této složce",
+    "few": "{count} soubory v této složce",
+    "many": "{count} souboru v této složce",
+    "other": "{count} souborů v této složce"
+  },
+  "{n} assets": {
+    "one": "{n} podklad",
+    "few": "{n} podklady",
+    "many": "{n} podkladu",
+    "other": "{n} podkladů"
+  },
+  "{n} assets found": {
+    "one": "Nalezen {n} podklad",
+    "few": "Nalezeny {n} podklady",
+    "many": "Nalezeno {n} podkladu",
+    "other": "Nalezeno {n} podkladů"
+  },
+  "{n} capabilities match": {
+    "one": "{n} shodná schopnost",
+    "few": "{n} shodné schopnosti",
+    "many": "{n} shodné schopnosti",
+    "other": "{n} shodných schopností"
+  },
+  "{n} copies made · selected": {
+    "one": "Vytvořena {n} kopie · vybrána",
+    "few": "Vytvořeny {n} kopie · vybrány",
+    "many": "Vytvořeno {n} kopie · vybráno",
+    "other": "Vytvořeno {n} kopií · vybráno"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} výtvor odstraněný z Projektů tady zůstal odstraněný.",
+    "few": "{n} výtvory odstraněné z Projektů tady zůstaly odstraněné.",
+    "many": "{n} výtvoru odstraněného z Projektů tady zůstalo odstraněné.",
+    "other": "{n} výtvorů odstraněných z Projektů tady zůstalo odstraněných."
+  },
+  "{n} embedded files": {
+    "one": "{n} vložený soubor",
+    "few": "{n} vložené soubory",
+    "many": "{n} vloženého souboru",
+    "other": "{n} vložených souborů"
+  },
+  "{n} external references": {
+    "one": "{n} externí odkaz",
+    "few": "{n} externí odkazy",
+    "many": "{n} externího odkazu",
+    "other": "{n} externích odkazů"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} soubor se nepodařilo zabalit a byl vynechán",
+    "few": "{n} soubory se nepodařilo zabalit a byly vynechány",
+    "many": "{n} souboru se nepodařilo zabalit a bylo vynecháno",
+    "other": "{n} souborů se nepodařilo zabalit a bylo vynecháno"
+  },
+  "{n} folders": {
+    "one": "{n} složka",
+    "few": "{n} složky",
+    "many": "{n} složky",
+    "other": "{n} složek"
+  },
+  "{n} font files": {
+    "one": "{n} soubor písma",
+    "few": "{n} soubory písma",
+    "many": "{n} souboru písma",
+    "other": "{n} souborů písma"
+  },
+  "{n} images": {
+    "one": "{n} obrázek",
+    "few": "{n} obrázky",
+    "many": "{n} obrázku",
+    "other": "{n} obrázků"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} obrázek se nepodařilo obnovit (plné úložiště?)",
+    "few": "{n} obrázky se nepodařilo obnovit (plné úložiště?)",
+    "many": "{n} obrázku se nepodařilo obnovit (plné úložiště?)",
+    "other": "{n} obrázků se nepodařilo obnovit (plné úložiště?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} obrázek zůstal u originálu - obrázky mají jen jeden domov; k přesunu použij Vyjmout",
+    "few": "{n} obrázky zůstaly u originálu - obrázky mají jen jeden domov; k přesunu použij Vyjmout",
+    "many": "{n} obrázku zůstalo u originálu - obrázky mají jen jeden domov; k přesunu použij Vyjmout",
+    "other": "{n} obrázků zůstalo u originálu - obrázky mají jen jeden domov; k přesunu použij Vyjmout"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} vstup · platí pro každý design",
+    "few": "{n} vstupy · platí pro každý design",
+    "many": "{n} vstupu · platí pro každý design",
+    "other": "{n} vstupů · platí pro každý design"
+  },
+  "{n} items": {
+    "one": "{n} položka",
+    "few": "{n} položky",
+    "many": "{n} položky",
+    "other": "{n} položek"
+  },
+  "{n} items copied": {
+    "one": "{n} položka zkopírována",
+    "few": "{n} položky zkopírovány",
+    "many": "{n} položky zkopírováno",
+    "other": "{n} položek zkopírováno"
+  },
+  "{n} items cut": {
+    "one": "{n} položka vyjmuta",
+    "few": "{n} položky vyjmuty",
+    "many": "{n} položky vyjmuto",
+    "other": "{n} položek vyjmuto"
+  },
+  "{n} items moved": {
+    "one": "{n} položka přesunuta",
+    "few": "{n} položky přesunuty",
+    "many": "{n} položky přesunuto",
+    "other": "{n} položek přesunuto"
+  },
+  "{n} items pasted": {
+    "one": "{n} položka vložena",
+    "few": "{n} položky vloženy",
+    "many": "{n} položky vloženo",
+    "other": "{n} položek vloženo"
+  },
+  "{n} keyframes": {
+    "one": "{n} klíčový snímek",
+    "few": "{n} klíčové snímky",
+    "many": "{n} klíčového snímku",
+    "other": "{n} klíčových snímků"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "few": "{n} loga",
+    "many": "{n} loga",
+    "other": "{n} log"
+  },
+  "{n} marks found": {
+    "one": "{n} nalezená značka",
+    "few": "{n} nalezené značky",
+    "many": "{n} nalezené značky",
+    "other": "{n} nalezených značek"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} novější položka přeskočena",
+    "few": "{n} novější položky přeskočeny",
+    "many": "{n} novější položky přeskočeno",
+    "other": "{n} novějších položek přeskočeno"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} výtvor je video nebo animace",
+    "few": "{n} tvé výtvory jsou videa nebo animace",
+    "many": "{n} tvého výtvoru je video nebo animace",
+    "other": "{n} tvých výtvorů jsou videa nebo animace"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} starší automatický kontrolní bod vynechán",
+    "few": "{n} starší automatické kontrolní body vynechány",
+    "many": "{n} staršího automatického kontrolního bodu vynecháno",
+    "other": "{n} starších automatických kontrolních bodů vynecháno"
+  },
+  "{n} pages": {
+    "one": "{n} stránka",
+    "few": "{n} stránky",
+    "many": "{n} stránky",
+    "other": "{n} stránek"
+  },
+  "{n} places": {
+    "one": "{n} místo",
+    "few": "{n} místa",
+    "many": "{n} místa",
+    "other": "{n} míst"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} bod - podrž Alt pro roh",
+    "few": "{n} body - podrž Alt pro roh",
+    "many": "{n} bodu - podrž Alt pro roh",
+    "other": "{n} bodů - podrž Alt pro roh"
+  },
+  "{n} published versions": {
+    "one": "{n} publikovaná verze",
+    "few": "{n} publikované verze",
+    "many": "{n} publikované verze",
+    "other": "{n} publikovaných verzí"
+  },
+  "{n} results": {
+    "one": "{n} výsledek",
+    "few": "{n} výsledky",
+    "many": "{n} výsledku",
+    "other": "{n} výsledků"
+  },
+  "{n} saved sessions": {
+    "one": "{n} uložená relace",
+    "few": "{n} uložené relace",
+    "many": "{n} uložené relace",
+    "other": "{n} uložených relací"
+  },
+  "{n} selected": {
+    "one": "{n} vybráno",
+    "few": "{n} vybráno",
+    "many": "{n} vybráno",
+    "other": "{n} vybráno"
+  },
+  "{n} selected assets": {
+    "one": "{n} vybraný podklad",
+    "few": "{n} vybrané podklady",
+    "many": "{n} vybraného podkladu",
+    "other": "{n} vybraných podkladů"
+  },
+  "{n} sessions": {
+    "one": "{n} relace",
+    "few": "{n} relace",
+    "many": "{n} relace",
+    "other": "{n} relací"
+  },
+  "{n} shapes": {
+    "one": "{n} tvar",
+    "few": "{n} tvary",
+    "many": "{n} tvaru",
+    "other": "{n} tvarů"
+  },
+  "{n} steps": {
+    "one": "{n} krok",
+    "few": "{n} kroky",
+    "many": "{n} kroku",
+    "other": "{n} kroků"
+  },
+  "{n} templates": {
+    "one": "{n} šablona",
+    "few": "{n} šablony",
+    "many": "{n} šablony",
+    "other": "{n} šablon"
+  },
+  "{n} volume keys": {
+    "one": "{n} klíč hlasitosti",
+    "few": "{n} klíče hlasitosti",
+    "many": "{n} klíče hlasitosti",
+    "other": "{n} klíčů hlasitosti"
+  },
+  "{n} words": {
+    "one": "{n} slovo",
+    "few": "{n} slova",
+    "many": "{n} slova",
+    "other": "{n} slov"
+  },
+  "Dominant hand": "Dominantní ruka",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Ve dvou panelech, na skládacím zařízení nebo téměř čtvercovém tabletu, jsou ovládací prvky na straně dál od ruky, kterou kreslíte. Totéž mění i tlačítko Prohodit strany v záhlaví panelu.",
+  "Swap sides": "Prohodit strany",
+  "Resize panes": "Změnit velikost panelů",
+  "Changes that didn't finish saving": "Změny, které se nestihly uložit",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Tyto změny jste provedli {time} a stránka se zavřela dřív, než se uložily. Tento designový systém byl od té doby znovu uložen, na jiné kartě nebo synchronizací.",
+  "Restore your unsaved changes": "Obnovit neuložené změny",
+  "Keep the saved version": "Ponechat uloženou verzi",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Obnovením nahradíte verzi uloženou od té doby. Ponecháním uložené verze smažete neuložené změny z tohoto zařízení.",
+  "Restored your unsaved changes.": "Neuložené změny byly obnoveny.",
+  "Kept the saved version.": "Uložená verze byla ponechána.",
+  "Restored the changes that hadn't finished saving.": "Změny, které se nestihly uložit, byly obnoveny.",
+  "{n} file": "{n} soubor",
+  "It becomes the primary. Shades and roles can follow.": "Stane se primární. Odstíny a role můžou následovat.",
+  "Start here": "Začni tady",
+  "Browse looks →": "Procházet looky →",
+  "Pick what you have →": "Vyber, co máš →",
+  "Open the picker →": "Otevřít výběr barvy →",
+  "Starter greys until a colour is added.": "Startovní šedé, dokud nepřidáš barvu.",
+  "Lolly can’t draw in this browser yet": "Lolly v tomhle prohlížeči zatím neumí kreslit",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly kreslí pomocí WebGPU, které tenhle prohlížeč zatím nenabízí.",
+  "These work today:": "Dnes fungují:",
+  "Chrome or Edge, kept up to date": "Chrome nebo Edge, aktualizované",
+  "Safari 26 or later": "Safari 26 nebo novější",
+  "Firefox, where WebGPU is turned on": "Firefox se zapnutým WebGPU",
+  "Get the desktop app": "Stáhnout desktopovou aplikaci",
+  "Read why": "Přečíst proč",
+  "Or drop an image or a list of colours here": "Nebo sem přetáhni obrázek nebo seznam barev",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Tyto neutrální barvy jsou součástí úvodní sady, aby náhledy měly co ukázat, dokud se výše nepřidají barvy.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Vyber barvu",
+  "Add a colour to the palette first.": "Nejdřív přidej do palety barvu.",
+  "Notify": "Upozorňovat",
+  "Update automatically": "Aktualizovat automaticky",
+  "App updates": "Aktualizace aplikace",
+  "Update notifications": "Oznámení o aktualizacích",
+  "Ready to install: {version}": "Připraveno k instalaci: {version}",
+  "Restart now": "Restartovat nyní",
+  "Install when I quit": "Instalovat při ukončení",
+  "Release notes": "Poznámky k vydání",
+  "Manual download": "Ruční stažení",
+  "Update could not finish. Try again or download the app.": "Aktualizaci se nepodařilo dokončit. Zkuste to znovu nebo si aplikaci stáhněte.",
+  "Finish recording or exporting before updating.": "Před aktualizací dokončete nahrávání nebo export.",
+  "Save could not finish. Save a recovery copy before updating.": "Ukládání se nepodařilo dokončit. Před aktualizací uložte kopii pro obnovení.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Tento AppImage zde nelze nahradit. Stáhněte aplikaci do složky s možností zápisu.",
+  "This installation uses its package manager for updates.": "Tato instalace používá k aktualizacím svého správce balíčků.",
+  "This desktop platform does not support in-app updates.": "Tato desktopová platforma nepodporuje aktualizace přímo v aplikaci.",
+  "Update installation was cancelled.": "Instalace aktualizace byla zrušena."
 }

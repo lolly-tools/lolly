@@ -59,7 +59,11 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
   root.innerHTML = `<details class="design-token-links"><summary>${t('Token links')}${linked ? ` · ${t('In use')}` : ''}</summary><p class="fc-insp-hint">${ids.size === 1 ? t('Changes apply to this layer.') : t('Changes apply to all {n} selected layers in one undo step.', { n: ids.size })}</p><label>${t('Property')}<select class="field-select" data-design-token-property>${fields.map(field => `<option value="${esc(field.id)}">${esc(t(field.label ?? field.id))}</option>`).join('')}</select></label><div data-design-token-field></div></details>`;
   let disposed = false, generation = 0, pending = 0;
   const isCurrent = (): boolean => !disposed && root.isConnected && options.isCurrent?.() !== false;
-  let disposeField: (() => void) | undefined;
+  // A rebuild of the inspector mounts a fresh field with the token list shut, so a list
+  // the person is still choosing from would close under them. The inspector waits while
+  // the field reports `choosing()`, as it waits for a caret, and rebuilds once a token is
+  // linked or focus leaves the list.
+  let disposeField: ReturnType<typeof mountTokenBindingField> | undefined;
   const picker = root.querySelector<HTMLSelectElement>('[data-design-token-property]')!;
   const fieldRoot = root.querySelector<HTMLElement>('[data-design-token-field]')!;
   const disclosure = root.querySelector<HTMLDetailsElement>('details')!;
@@ -123,5 +127,5 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
     }
   }
   picker.addEventListener('change', render); render();
-  return Object.assign(() => { disposed = true; remember(); disposeField?.(); disclosure.removeEventListener('toggle', remember); picker.removeEventListener('change', render); root.replaceChildren(); }, { busy: () => pending > 0 });
+  return Object.assign(() => { disposed = true; remember(); disposeField?.(); disclosure.removeEventListener('toggle', remember); picker.removeEventListener('change', render); root.replaceChildren(); }, { busy: () => pending > 0 || !!disposeField?.choosing() });
 }

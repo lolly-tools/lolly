@@ -5,13 +5,13 @@ description: "Operate the Lolly Certificate tool (certificate) using its declare
 
 # Certificate
 
-Tool ID: `certificate`. Tool version: `1.0.5`. Engine range: `^1.0.0`.
+Tool ID: `certificate`. Tool version: `1.2.1`. Engine range: `^1.293.0`.
 
-Completion and award certificates from the active design system - one name at a time, or a whole roster from a CSV in Bulk from rows.
+Completion and award certificates in the active design system and its colourway: four styles, print and social sizes, and motion for sharing - one name at a time, or a whole roster from a CSV in Bulk from rows.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
-Declared output formats: pdf, pdf-cmyk, svg, penpot, png, jpg, webp, tiff, cmyk-tiff, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
+Declared output formats: pdf, pdf-cmyk, svg, penpot, png, jpg, webp, tiff, cmyk-tiff, mp4, webm, gif, apng, webp-anim, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
 
 Required host APIs: none. Device capabilities: none.
 
@@ -20,20 +20,25 @@ Required host APIs: none. Device capabilities: none.
 | ID | Type | URL alias |
 | --- | --- | --- |
 | certKind | select | k |
-| pageSize | select | ps |
-| heading | text |  |
 | firstname | text |  |
 | lastname | text |  |
 | awardtopic | text |  |
 | awarddate | date |  |
+| style | select | st |
+| pageSize | select | ps |
+| motion | select | mo |
 | presenter | text |  |
 | presenterTitle | text |  |
 | company | text |  |
 | brandLogo | boolean |  |
+| logoStyle | select | lv |
+| seal | boolean | se |
 | serial | text |  |
+| accent | color |  |
 | color | color |  |
 | background | color |  |
-| accent | color |  |
+| language | select | ln |
+| heading | text |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

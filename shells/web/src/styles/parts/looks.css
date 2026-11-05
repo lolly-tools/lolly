@@ -1,0 +1,63 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Find a look (views/start/looks.ts): the list of looks, the In context pane that
+   previews one, and the Compare view. In the `views` layer, ordered there by
+   specificity rather than by when this chunk loads. */
+@layer views {
+.ds-looks-modal.start-import-modal { width: min(1200px, calc(100vw - 24px)); }
+.ds-looks-modal .start-import-head { position: sticky; top: -22px; background: var(--ui-color-surface-raised); z-index: 3; padding-block: var(--sp-4); }
+.ds-looks-modal .field-label { display: flex; flex-direction: column; gap: var(--sp-3); }
+.ds-looks-modal .field-input { min-height: 44px; max-width: 100%; }
+.ds-looks-modal button { min-height: 44px; white-space: normal; }
+.ds-looks-modal .be-cta.is-active { animation: none; }
+.ds-looks-modal [data-looks-compare],
+.ds-looks-modal [data-looks-preview] { scroll-margin-block-start: 90px; }
+
+.ds-looks-filters { display: flex; flex-wrap: wrap; gap: var(--sp-5); align-items: end; margin-block: var(--sp-6); }
+.ds-looks-filters .field-label { flex: 1; min-width: min(240px, 100%); }
+.ds-looks-filters [aria-pressed="true"] { background: var(--ui-color-selection-surface); }
+
+/* The list beside the pane that previews one of it. The pane stays in view while
+   the list scrolls. One column on a phone, with the pane first, so a tap on a
+   look shows it right above the list. */
+.ds-looks-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); align-items: start; gap: var(--sp-7); }
+.ds-looks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: var(--sp-6); }
+.ds-looks-preview { position: sticky; top: var(--sp-8); display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+.ds-looks-preview[hidden] { display: none; }
+@media (max-width: 760px) {
+  .ds-looks-layout { grid-template-columns: minmax(0, 1fr); }
+  .ds-looks-preview { position: static; order: -1; }
+}
+
+/* One look: the specimen is the button that previews it, then its tag line and
+   its own Use. Previewing is a tinted fill, never an accent outline. */
+.ds-look-card { display: flex; flex-direction: column; min-width: 0; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); background: var(--ui-color-surface-raised); transition: background-color var(--dur-1) var(--ease-out); }
+.ds-look-card.is-previewing { background: var(--ui-color-selection-surface); }
+.ds-look-pick { display: block; width: 100%; padding: 0; border: 0; border-radius: 0; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.ds-look-pick:focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: -3px; }
+.ds-looks-modal .ds-look-pick .ds-row-preview { min-height: 180px; border-radius: 0; }
+.ds-look-tagline { margin: 0; padding: var(--sp-4) var(--sp-4) 0; min-height: calc(1.4em + var(--sp-4)); font-size: var(--fs-sm); line-height: 1.4; color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
+.ds-look-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin-block-start: auto; padding: var(--sp-4); }
+.ds-look-actions [data-look-use] { margin-inline-start: auto; }
+.ds-look-compare { display: inline-flex; align-items: center; gap: var(--sp-3); min-height: 44px; cursor: pointer; }
+
+/* The In context pane: the Colours room's three scenes in the previewed look. */
+.ds-looks-preview-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sp-3); }
+.ds-looks-preview-head h3 { margin: 0; font-size: var(--fs-md); }
+.ds-looks-preview-name { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
+.ds-looks-scenes { display: grid; min-width: 0; border-radius: var(--radius-lg); overflow: hidden; background: hsl(var(--background)); }
+.ds-looks-scene { margin: 0; }
+.ds-looks-scene[hidden] { display: none; }
+.ds-looks-scene svg { display: block; width: 100%; height: auto; }
+.ds-looks-preview-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.ds-looks-preview-foot .view-seg-btn { white-space: nowrap; }
+.ds-looks-preview .ds-src-stage-note { margin: 0; }
+
+.ds-looks-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--sp-6); }
+.ds-looks-comparison article { min-width: 0; border: 1px solid hsl(var(--border)); padding: var(--sp-6); border-radius: var(--radius-lg); overflow-wrap: anywhere; }
+.ds-looks-comparison .ds-row-preview { min-height: 180px; }
+.ds-looks-selection:not([hidden]) { position: sticky; bottom: -22px; display: flex; justify-content: center; padding: var(--sp-5); background: var(--ui-color-surface-raised); border-block-start: 1px solid hsl(var(--border)); z-index: 3; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-look-card { transition: none; }
+}
+}

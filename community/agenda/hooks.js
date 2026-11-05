@@ -1140,7 +1140,7 @@ async function compute(model, lang) {
     if (typeof host !== 'undefined' && host.profile) args.lang = lang || (await host.profile.get()).lang || 'en';
     _lang = args.lang || 'en';
     // A time zone is only honoured when this device can actually resolve it;
-    // an unknown name falls back to floating times and says so rather than
+    // an unknown name falls back to floating times and reports the fallback rather than
     // writing a calendar file full of the wrong moments.
     var tz = str(args.tz);
     if (tz) {

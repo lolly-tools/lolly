@@ -1,0 +1,260 @@
+//! pdfcraft-fonts — font metrics and encodings for generated appearances (L2).
+//!
+//! Standard-14 advance widths are exact (`Std14`, ISO 32000-2 Annex D). What remains approximate
+//! is everything that needs a font *program*: this crate reads font dictionaries, never embedded
+//! programs, so it has no glyph outlines for document fonts and cannot subset or re-embed. That
+//! is phase F 4.2 in docs/plan/execution-plan.md.
+
+#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
+
+mod encodings;
+pub mod pdf;
+mod std14;
+mod std14_metrics;
+pub use std14::Std14;
+
+/// Advance of `s` in Helvetica at `size` points, using the exact standard-14 metrics.
+///
+/// Kept as a free function because generated appearances overwhelmingly use Helvetica; reach for
+/// [`Std14`] directly for any other face, and never for a scaled approximation of this one.
+pub fn helvetica_width(s: &str, size: f64) -> f64 {
+    Std14::Helvetica.text_width(s, size)
+}
+
+/// Approximate advance of `s` at `size` points in a CJK font: full-width characters take one
+/// em, half-width forms half of one, and everything else is measured as Helvetica.
+pub fn cjk_width(s: &str, size: f64) -> f64 {
+    let mut buf = [0u8; 4];
+    s.chars()
+        .map(|c| match c {
+            '\u{ff61}'..='\u{ffdc}' | '\u{ffe8}'..='\u{ffee}' => size * 0.5,
+            _ if is_wide(c) => size,
+            _ => helvetica_width(c.encode_utf8(&mut buf), size),
+        })
+        .sum()
+}
+
+
+/// East Asian wide and full-width characters (Unicode UAX #11 W and F, by block).
+fn is_wide(c: char) -> bool {
+    matches!(c,
+        '\u{1100}'..='\u{115f}' // Hangul Jamo initials
+        | '\u{2e80}'..='\u{303e}' // CJK radicals, Kangxi, ideographic description, CJK symbols
+        | '\u{3041}'..='\u{33ff}' // kana, Bopomofo, Hangul compatibility, Kanbun, CJK compatibility
+        | '\u{3400}'..='\u{4dbf}' // CJK extension A
+        | '\u{4e00}'..='\u{9fff}' // CJK unified ideographs
+        | '\u{a000}'..='\u{a4cf}' // Yi
+        | '\u{ac00}'..='\u{d7a3}' // Hangul syllables
+        | '\u{f900}'..='\u{faff}' // CJK compatibility ideographs
+        | '\u{fe30}'..='\u{fe4f}' // CJK compatibility forms
+        | '\u{ff00}'..='\u{ff60}' // full-width forms
+        | '\u{ffe0}'..='\u{ffe6}'
+        | '\u{20000}'..='\u{3fffd}' // supplementary ideographic planes
+    )
+}
+
+/// Greedy line breaking within `width` points (paragraphs split on line breaks, where CRLF counts as one; words longer
+/// than a line are broken by character).
+pub fn wrap(text: &str, size: f64, width: f64) -> Vec<String> {
+    wrap_with(text, size, width, helvetica_width)
+}
+
+/// [`wrap`], measuring with `measure` (for example [`cjk_width`]).
+///
+/// A line measures as the sum of its words, the spaces between them and the characters of a broken
+/// word, each measured once, so the work stays linear in `text` however much fits on a line.
+pub fn wrap_with(text: &str, size: f64, width: f64, measure: impl Fn(&str, f64) -> f64) -> Vec<String> {
+    let mut lines = Vec::new();
+    let space = measure(" ", size);
+    let mut buf = [0u8; 4];
+    // A CRLF pair is one break, a lone CR or LF is one break each.
+    for para in text.replace("\r\n", "\n").split(['\n', '\r']) {
+        let mut line = String::new();
+        let mut line_width = 0.0;
+        // No word is on the line yet; an empty word (a leading space) still starts it.
+        let mut fresh = true;
+        for word in para.split(' ') {
+            let word_width = measure(word, size);
+            let candidate = if fresh { word_width } else { line_width + space + word_width };
+            if candidate <= width {
+                if !fresh {
+                    line.push(' ');
+                }
+                line.push_str(word);
+                line_width = candidate;
+                fresh = false;
+                continue;
+            }
+            // Indentation alone is not a line: drop it before an over-long word.
+            if line.trim().is_empty() {
+                line.clear();
+            } else {
+                lines.push(std::mem::take(&mut line));
+            }
+            line_width = 0.0;
+            for ch in word.chars() {
+                let ch_width = measure(ch.encode_utf8(&mut buf), size);
+                if !line.is_empty() && line_width + ch_width > width {
+                    lines.push(std::mem::take(&mut line));
+                    line_width = 0.0;
+                }
+                line.push(ch);
+                line_width += ch_width;
+            }
+            fresh = line.is_empty();
+        }
+        lines.push(line);
+    }
+    lines
+}
+
+/// The WinAnsiEncoding (ISO 32000-2 Annex D) code for `c`, if the encoding has one.
+///
+/// Codes 0x80–0x9F come from the same table the text extractor decodes with, so encoding and
+/// decoding agree (Š š Ž ž Œ œ Ÿ ƒ † ‡ ˆ ˜ ‰ ‹ › as well as quotes, dashes, € and ™).
+pub fn win_ansi_byte(c: char) -> Option<u8> {
+    match c {
+        '\u{20}'..='\u{7e}' | '\u{a0}'..='\u{ff}' => u8::try_from(u32::from(c)).ok(),
+        _ => {
+            let high = encodings::WIN_ANSI.get(0x80..0xa0)?;
+            let i = high.iter().position(|&u| u != 0 && u == u32::from(c))?;
+            u8::try_from(0x80 + i).ok()
+        }
+    }
+}
+
+/// Encode text in WinAnsiEncoding (ISO 32000-2 Annex D); tabs become spaces and unmappable
+/// characters become `?`.
+pub fn win_ansi(s: &str) -> Vec<u8> {
+    s.chars().map(|c| if c == '\t' { b' ' } else { win_ansi_byte(c).unwrap_or(b'?') }).collect()
+}
+
+/// The character encoding of a predefined Unicode CMap (`UniJIS-UTF16-H`, `UniGB-UCS2-H`, …;
+/// ISO 32000-2 §9.7.5.2), which maps Unicode text straight to codes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum UnicodeCMap {
+    Ucs2,
+    Utf16,
+    Utf8,
+    Utf32,
+}
+
+impl UnicodeCMap {
+    /// The encoding of the predefined CMap `name`, if it is a horizontal Unicode one. Vertical
+    /// (`-V`) CMaps are refused: field appearances are laid out horizontally, so their glyphs
+    /// would be drawn stacked down the field instead of across it.
+    pub fn from_name(name: &[u8]) -> Option<Self> {
+        let name = std::str::from_utf8(name).ok()?;
+        if !name.starts_with("Uni") || !name.ends_with("-H") {
+            return None;
+        }
+        name.split('-').find_map(|part| match part {
+            "UCS2" => Some(Self::Ucs2),
+            "UTF16" => Some(Self::Utf16),
+            "UTF8" => Some(Self::Utf8),
+            "UTF32" => Some(Self::Utf32),
+            _ => None,
+        })
+    }
+
+    /// The first character of `s` this encoding can't hold, which [`Self::encode`] would write as
+    /// `?`: a character beyond U+FFFF in UCS-2 (`𠀋`). UTF-16, UTF-8 and UTF-32 hold every one.
+    pub fn first_unencodable(self, s: &str) -> Option<char> {
+        match self {
+            Self::Ucs2 => s.chars().find(|c| u16::try_from(u32::from(*c)).is_err()),
+            Self::Utf16 | Self::Utf8 | Self::Utf32 => None,
+        }
+    }
+
+    /// Encode `s`; tabs become spaces, and characters UCS-2 can't hold become `?` (check them
+    /// first with [`Self::first_unencodable`]: PdfCraft refuses such text rather than write `?`).
+    pub fn encode(self, s: &str) -> Vec<u8> {
+        let mut out = Vec::with_capacity(s.len().saturating_mul(2));
+        let mut units = [0u16; 2];
+        let mut buf = [0u8; 4];
+        for c in s.chars() {
+            let c = if c == '\t' { ' ' } else { c };
+            match self {
+                Self::Ucs2 => {
+                    let unit = u16::try_from(u32::from(c)).unwrap_or(u16::from(b'?'));
+                    out.extend_from_slice(&unit.to_be_bytes());
+                }
+                Self::Utf16 => {
+                    for unit in c.encode_utf16(&mut units) {
+                        out.extend_from_slice(&unit.to_be_bytes());
+                    }
+                }
+                Self::Utf8 => out.extend_from_slice(c.encode_utf8(&mut buf).as_bytes()),
+                Self::Utf32 => out.extend_from_slice(&u32::from(c).to_be_bytes()),
+            }
+        }
+        out
+    }
+}
+
+/// Whether [`win_ansi`] keeps `c` rather than writing `?` (a tab becomes a space).
+pub fn win_ansi_encodable(c: char) -> bool {
+    c == '\t' || win_ansi_byte(c).is_some()
+}
+
+/// The first character of `s` that [`win_ansi`] can't encode and would write as `?`.
+pub fn first_non_win_ansi(s: &str) -> Option<char> {
+    s.chars().find(|c| !win_ansi_encodable(*c))
+}
+
+/// The first character of `s` the standard fonts (Helvetica and the rest of the standard 14, in
+/// WinAnsiEncoding) can't draw, so that a generated appearance would show it as `?`. Line breaks
+/// don't count: appearances lay lines out themselves. PdfCraft refuses such text with
+/// [`undrawable_message`] instead of writing `?` (AGENTS.md §4: never lose work silently).
+pub fn first_undrawable(s: &str) -> Option<char> {
+    s.chars().find(|c| !matches!(c, '\n' | '\r') && !win_ansi_encodable(*c))
+}
+
+/// The error for text the standard fonts can't draw ([`first_undrawable`]): which character, in
+/// what (`"the comment"`, `"the reason"`), and what can be written instead. One wording for every
+/// path that writes text in the standard fonts, so agents and users can act on it the same way.
+pub fn undrawable_message(what: &str, c: char) -> String {
+    format!(
+        "the standard fonts can't draw \"{}\" (U+{:04X}) in {what}; only Western European characters can be written there for now",
+        c.escape_debug(),
+        u32::from(c)
+    )
+}
+
+/// The private key on an annotation (a comment or a form field's widget) whose appearance PdfCraft
+/// drew with `?` in place of characters its fonts can't draw: a text string holding the first
+/// such character. The text itself (a field's `/V`, a comment's `/Contents`) is stored as typed;
+/// the mark lets flattening refuse to make that `?` permanent, lets an edit report it, and tells
+/// such an appearance apart from one another program drew with a font that has those characters.
+pub const UNDRAWN_MARK: &[u8] = b"PCUndrawn";
+
+/// The character [`UNDRAWN_MARK`] records on `d`, if PdfCraft drew its appearance with `?`.
+pub fn undrawn_mark(d: &pdfcraft_cos::Dict) -> Option<char> {
+    d.get(UNDRAWN_MARK).and_then(pdfcraft_cos::Object::as_string).and_then(|s| s.to_text().chars().next())
+}
+
+/// Record (`Some`) or clear (`None`) [`UNDRAWN_MARK`] on `d`, for the appearance just drawn.
+pub fn set_undrawn_mark(d: &mut pdfcraft_cos::Dict, c: Option<char>) {
+    match c {
+        Some(c) => d.set(UNDRAWN_MARK.to_vec(), pdfcraft_cos::PdfString::text(&c.to_string())),
+        None => {
+            d.remove(UNDRAWN_MARK);
+        }
+    }
+}
+
+/// Bytes as a PDF literal string, `(` … `)`, with delimiters escaped.
+pub fn literal(bytes: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(bytes.len() + 2);
+    out.push(b'(');
+    for &b in bytes {
+        match b {
+            b'(' | b')' | b'\\' => out.extend_from_slice(&[b'\\', b]),
+            b'\r' => out.extend_from_slice(b"\\r"),
+            b'\n' => out.extend_from_slice(b"\\n"),
+            _ => out.push(b),
+        }
+    }
+    out.push(b')');
+    out
+}

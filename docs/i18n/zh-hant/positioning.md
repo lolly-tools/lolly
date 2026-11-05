@@ -28,7 +28,7 @@ Lolly 的即時協作包括直接的雙裝置私人協作，以及透過 Lolly W
 ## 選擇 Lolly，當
 
 - 需要一次又一次地製作同類檔案：活動圖塊、名牌、證書、警示、社群卡片
-- 許多檔案來自一個範本和一張值的表格，在 [Batch](/info/batch.html#make-many-versions-of-one-design) 或 CLI 中
+- 許多檔案來自一個範本和一張值的表格，在 [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) 或 CLI 中
 - 色彩、字型與素材必須留在設計系統之內，即使在開放的畫布上也一樣
 - 完成的 Figma、Penpot、Illustrator、InDesign 或 PDF 設計應該變成可編輯且可重複製作（[匯入設計](/info/design-import.html)）
 - 檔案必須在你自己的裝置或伺服器上製作

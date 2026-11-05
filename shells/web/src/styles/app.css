@@ -64,14 +64,18 @@
 @import './parts/components.css'   layer(chrome);
 @import './parts/color-field.css'  layer(chrome); /* colour picker - split out of components.css; same layer, so host overrides keep winning */
 @import './parts/dialogs.css'      layer(chrome);
+@import './parts/fauna.css'        layer(chrome); /* Fauna line drawings in the blank rooms (components/fauna-art.ts) */
+@import './parts/lolly-spin.css'   layer(chrome); /* Lolly's spin at the register (components/lolly-spin.ts) */
 @import './parts/present.css'      layer(chrome); /* presentation mode fullscreen deck (plan 112) - body-level fixed overlay, above every view */
 @import './parts/sequence.css'     layer(views);  /* `.seq-off` - the sequence applier's ONE visibility rule. In the views layer (where it lived inside timeline.css) but EAGER: the presenter and the still export both apply the class without ever mounting the timeline panel, so it cannot ride that panel's lazy chunk. See the file's own header. */
+@import './parts/webgpu-gate.css' layer(views);  /* the unsupported-environment card from lib/boot-error.ts; eager, because the gate shows before any view mounts */
 @import './parts/job-toast.css'    layer(chrome); /* global async-job progress toast (plan 124 WP-F) - body-level fixed, outside #view, below modals */
 @import './parts/css-editor.css'   layer(chrome); /* shared CSS code editor (plan 112 M4) - highlight overlay + autocomplete */
 @import './parts/saved-list.css'   layer(chrome); /* saved-session rows - history modal + drawer + /profile */
 @import './parts/notfound.css'     layer(chrome);
 @import './parts/overrides.css'    layer(overrides); /* cross-cutting overrides (top-right FAB/profile cluster) */
 @import './parts/iframe-mode.css'  layer(overrides); /* ?iframe: a framed tool draws its output only (lib/iframe-mode.ts) */
+@import './parts/split.css'; /* the two-pane layout for foldables (lib/split-panes.ts). Imported UNLAYERED because its blocks name their own layers: the layout in overrides, and three declarations in chrome that undo a phone !important. Every rule is gated on html[data-layout="split"], absent everywhere else */
 @import './parts/native-titlebar.css'; /* macOS desktop app: the web top row shares the band with the window buttons. UNLAYERED, because the Design bar's sheet is unlayered and a layered rule can never beat it. Gated on html[data-native-titlebar], absent everywhere else */
 @import './parts/a11y.css'         layer(a11y);
 @import './parts/rtl.css'          layer(a11y); /* RTL correctness rules (Arabic) - accessibility layer, wins over views */

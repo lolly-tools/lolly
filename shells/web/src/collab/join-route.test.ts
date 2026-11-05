@@ -1055,7 +1055,7 @@ test('the invite stamp is the dialog\'s own, and outlives the screen that shows 
   assert.equal(dialogInvite(inviter.el), inviteToken(), 'the answer does not change because the human clicked Next');
 });
 
-test('an ACCEPTOR dialog minted nothing, and says so', async () => {
+test('an ACCEPTOR dialog minted nothing, and reports that', async () => {
   const dialog = trackedOpen({ role: 'acceptor', effects: plainEffects(), copy: () => {} });
   assert.equal(dialogInvite(dialog.el), '', 'no invite is nobody\'s own invite');
 });

@@ -35,7 +35,7 @@ Cada ruta ejecuta el mismo motor sobre la misma herramienta, así que el archivo
 ![Los parámetros de URL y los argumentos de línea de comandos se convierten en el mismo modelo de entradas, ejecutado por un único runtime y puente de exportación](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **En la aplicación, de una en una.** Abre una herramienta, rellena los campos y pulsa **Export**. [Make your first file](/info/make-something.html) te guía por una.
-- <!--i:layers--> **En la aplicación, muchas a la vez.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) toma una tabla pegada o importada y crea un archivo terminado por fila.
+- <!--i:layers--> **En la aplicación, muchas a la vez.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) toma una tabla pegada o importada y crea un archivo terminado por fila.
 - <!--i:cpu--> **Desde un script o un agente de IA.** La [CLI](/info/cli.html) ejecuta una herramienta sin interfaz, y el [servidor MCP](/info/mcp.html) permite que un agente descubra y ejecute herramientas. Un enlace a una herramienta también lleva sus entradas, así que un enlace es una solicitud completa.
 - <!--i:server--> **A través del servidor de tu organización.** [Lolly Work](/info/organisation.html) renderiza en el servidor con el inicio de sesión y la política de herramientas de tu organización, mantiene trabajos que puede reanudar y conserva el resultado para descargarlo o entregarlo de forma aprobada.
 

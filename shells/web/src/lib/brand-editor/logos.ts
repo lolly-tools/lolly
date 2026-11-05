@@ -11,7 +11,8 @@ import { colorToHex, extractSvgColors } from '@lolly/engine';
 import { nameColor } from '../color-namer.ts';
 import { addSwatch, prettify, walkSwatches } from '../brand-doc.ts';
 import { serializeColor } from '../color-formats.ts';
-import { LOGO_ORIENTATIONS, LOGO_TREATMENTS, ORIENTATION_META, TREATMENT_META, installLogo, listLogos, splitVariant } from '../brand-logos.ts';
+import { LOGO_ORIENTATIONS, LOGO_TREATMENTS, ORIENTATION_META, installLogo, listLogos } from '../brand-logos.ts';
+import { logoTileHtml } from '../design-system/logo-tile.ts';
 import type { LogoSlot, LogoVariant } from '../brand-logos.ts';
 import { classifyLogoRasterStats, classifyLogoSvg } from '../design-system/classify-logo.ts';
 import type { LogoClassification } from '../design-system/classify-logo.ts';
@@ -35,33 +36,9 @@ import { bindOp, type BrandEditorCtx } from './context.ts';
 export const showLogoErr = (bedit: BrandEditorCtx, m: string): void => {
   const { logoErr } = bedit; if (logoErr) { logoErr.textContent = m; logoErr.hidden = !m; } if (m) announce(m, { assertive: true }); };
 export const identityLabel = (_bedit: BrandEditorCtx, id: string): string => (id === 'default' ? t('The logo') : prettify(id));
-export const logoTile = (_bedit: BrandEditorCtx, v: string, identity: string, slot: LogoSlot | undefined, label?: string): string => {
-  const { treatment } = splitVariant(v);
-  const tm = treatment ? TREATMENT_META[treatment] : null;
-  const name = label ?? slot?.label ?? (tm ? tm.label : prettify(v));
-  const hint = slot ? t('Click to replace') : (tm ? tm.hint : t('A mark named its own way.'));
-  // An empty slot says what it IS - "Not set", in the muted register - rather
-  // than showing a bare "+" that reads as an instruction (plan 182 section
-  // 4.2). The whole tile is the file input's label and its drop target:
-  // data-file-drop marks it, and logo-intake.ts wires the drop through
-  // lib/file-drop-tile.ts to the same placement a picked file takes.
-  const body = slot
-    ? `<span class="be-logo-art"><img src="${escapeText(slot.url)}" alt="${escapeText(tRaw('{name} logo', { name }))}" loading="lazy"></span>`
-    : `<span class="be-logo-empty">${t('Not set')}</span>`;
-  // The slot's file input is `visually-hidden`, never `hidden`: a display:none
-  // input is not focusable, which made every logo slot mouse-only. The label
-  // draws the keyboard ring on its behalf via .be-logo-drop:focus-within
-  // (brand-studio.css) - the same construction the shared dropzone uses.
-  return `<div class="be-logo-slot${slot ? ' is-filled' : ''}" data-be-logo="${escapeText(v)}" data-treatment="${treatment ?? 'custom'}">
-        <div class="be-logo-slot-head"><span class="be-logo-slot-name">${escapeText(name)}</span>
-          ${slot && !slot.shipped ? `<button type="button" class="be-logo-del" data-logo-del="${escapeText(v)}" data-identity="${escapeText(identity)}" aria-label="${escapeText(tRaw('Remove the {name} mark', { name }))}">&#x2715;</button>` : ''}</div>
-        <label class="be-logo-drop" data-file-drop data-drop-label="${escapeText(slot ? t('Drop to replace') : t('Drop to add'))}">
-          ${body}
-          <input type="file" class="be-logo-file visually-hidden" data-logo-file="${escapeText(v)}" data-identity="${escapeText(identity)}" accept="image/png,image/jpeg,image/svg+xml,image/webp" aria-label="${escapeText(tRaw('Replace the {name} mark', { name }))}">
-        </label>
-        <p class="be-logo-hint">${escapeText(hint)}</p>
-      </div>`;
-};
+/** One tile, filled or empty, at its lockup's shape (design-system/logo-tile.ts). */
+export const logoTile = (_bedit: BrandEditorCtx, v: string, identity: string, slot: LogoSlot | undefined, label?: string): string =>
+  logoTileHtml(v, identity, slot, label ? { label } : {});
 export const paintLogos = async (bedit: BrandEditorCtx): Promise<void> => {
   const { fontsHost, pendingIdentities, root } = bedit;
   const mount = bedit.ramps.$('[data-be-logos]') as HTMLElement | null; if (!mount) return;
@@ -80,10 +57,14 @@ export const paintLogos = async (bedit: BrandEditorCtx): Promise<void> => {
     const groups = LOGO_ORIENTATIONS.map(o => {
       const om = ORIENTATION_META[o];
       const variants = LOGO_TREATMENTS.map(tr => `${o}-${tr}` as LogoVariant);
+      // An empty group folds (plan 137 C4), except the default lockup of a logo
+      // with no marks at all: its empty slots are where the first mark goes, so
+      // they show, in their own shape, rather than a room of closed headings.
+      const open = variants.some(v => byVariant.has(v)) || (o === LOGO_ORIENTATIONS[0] && mine.length === 0);
       const tiles = variants.map(v => logoTile(bedit, v, identity, byVariant.get(v))).join('');
       return logoGroupHtml({
         name: escapeText(om.label), hint: escapeText(om.hint), body: tiles,
-        filled: variants.some(v => byVariant.has(v)),
+        filled: open,
       });
     }).join('');
     const customs = mine.filter(s => s.custom);

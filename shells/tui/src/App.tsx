@@ -3,25 +3,34 @@
 // Profile · Assets, switched with 1/2/3/4) plus the tool view opened from Tools, a
 // saved Project, or a pasted lolly.tools URL. Each view owns its own keys; the app
 // just swaps them.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from 'ink';
-import { parseToolUrl } from '@lolly/engine';
-import { importDesignFile } from './import-design.ts';
+import { importDesignFile, ImportReviewRequired } from './import-design.ts';
+import type { ImportOptions, ImportResult } from './import-design.ts';
+import { toolLinkRoute } from './engine-render.ts';
+import { Automation } from './views/Automation.tsx';
 import { Gallery } from './views/Gallery.tsx';
 import { Projects } from './views/Projects.tsx';
 import { Profile } from './views/Profile.tsx';
 import { Assets } from './views/Assets.tsx';
 import { ToolView } from './views/ToolView.tsx';
+import { BatchQueue } from './views/BatchQueue.tsx';
 import { Prepare } from './views/Prepare.tsx';
 import { Rebrand } from './views/Rebrand.tsx';
 import { Start } from './views/Start.tsx';
 import { System } from './views/System.tsx';
 import type { SystemAction } from './views/System.tsx';
+import type { SavedSession } from './store.ts';
 import type { ToolEntry } from './catalog.ts';
 import type { NavTarget } from './nav.ts';
 import type { TuiBridge } from './bridge.ts';
+import { readTerminalBrand, type TerminalBrand } from './brand-theme.ts';
+import { setTerminalBrand } from './theme.ts';
+import { selectCliBridgeTokens } from '../../cli/src/bridge.ts';
 
 type Route =
+  | { name: 'automation' }
+  | { name: 'batch' }
   | { name: 'prepare' }
   | { name: 'rebrand' }
   | { name: 'start' }
@@ -32,11 +41,25 @@ type Route =
   | { name: 'system'; action?: SystemAction }
   // `values` is a saved record's own input values - what reopens a session the desktop
   // app saved, which carries no URL-state (plans/202 WP3.1).
-  | { name: 'tool'; toolId: string; query?: string; values?: Record<string, unknown> };
+  // `fromLink`: the query came from a pasted link, so it may not point at local files.
+  | { name: 'tool'; toolId: string; query?: string; values?: Record<string, unknown>; fromLink?: boolean; session?: SavedSession };
 
-export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; bridge: TuiBridge; firstRun?: boolean }) {
+export function App({ tools, bridge, firstRun = false, catalogError }: { catalogError?: string; tools: ToolEntry[]; bridge: TuiBridge; firstRun?: boolean }) {
   const { exit } = useApp();
   const [route, setRoute] = useState<Route>(firstRun ? { name: 'start' } : { name: 'gallery' });
+  const [brand, setBrand] = useState<TerminalBrand | null>(null);
+  const [brandRevision, setBrandRevision] = useState(0);
+  useEffect(() => {
+    if (route.name === 'tool') return;
+    selectCliBridgeTokens(bridge.host);
+    let alive = true;
+    void readTerminalBrand(bridge.host).catch(() => null).then(next => {
+      if (!alive) return;
+      setTerminalBrand(next?.primary);
+      setBrand(next);
+    });
+    return () => { alive = false; };
+  }, [route.name, bridge.host, brandRevision]);
   const nameById = new Map(tools.map(t => [t.id, t.name] as const));
   const toolName = (id: string): string => nameById.get(id) ?? id;
   const quit = (): void => exit();
@@ -51,25 +74,27 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
   // Open a tool from a pasted lolly.tools URL with its settings pre-filled - the same
   // parseToolUrl → mountTool(query) path the web share links use. Returns an error
   // string for the caller to surface, or null on success (navigated).
+  // The link's state was written by someone else, so the route carries `fromLink`.
   const openToolUrl = (url: string): string | null => {
-    const ref = parseToolUrl(url);
-    if (!ref) return 'Not a recognised lolly.tools URL';
-    if (!nameById.has(ref.toolId)) return `This build has no tool “${ref.toolId}”`;
-    setRoute({ name: 'tool', toolId: ref.toolId, query: ref.query });
+    const opened = toolLinkRoute(url, (id) => nameById.has(id));
+    if ('error' in opened) return opened.error;
+    setRoute({ name: 'tool', ...opened });
     return null;
   };
 
   // Import a PDF/.ai file → a saved Design session, then open it. Returns an error
   // string to surface, or null on success (navigated to the new session).
-  const importFile = async (path: string): Promise<string | null> => {
+  const importFile = async (path: string, options?: ImportOptions): Promise<ImportResult | null> => {
     try {
-      const s = await importDesignFile(path.trim(), bridge.host);
-      setRoute({ name: 'tool', toolId: s.toolId, query: s.query });
+      const s = await importDesignFile(path.trim(), bridge.host, options);
+      setRoute({ name: 'tool', toolId: s.toolId, query: s.query, values: s.data, session: s });
       return null;
-    } catch (e) { return (e as Error).message; }
+    } catch (e) { return e instanceof ImportReviewRequired ? { review: { warnings: e.warnings, page: e.page, pageCount: e.pageCount } } : { error: (e as Error).message }; }
   };
 
   switch (route.name) {
+    case 'automation': return <Automation onBack={() => setRoute({ name: 'gallery' })} />;
+    case 'batch': return <BatchQueue onBack={() => setRoute({ name: 'gallery' })} />;
     case 'prepare':
       return <Prepare bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
     case 'rebrand':
@@ -87,7 +112,7 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
           toolName={toolName}
           folderId={route.folderId}
           bridge={bridge}
-          onOpen={s => setRoute({ name: 'tool', toolId: s.toolId, query: s.query, values: s.data })}
+          onOpen={s => setRoute({ name: 'tool', toolId: s.toolId, query: s.query, values: s.data, session: s })}
           onOpenFolder={id => setRoute({ name: 'projects', folderId: id })}
           onNav={goNav}
           onQuit={quit}
@@ -98,10 +123,10 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
     case 'catalog':
       return <Assets onNav={goNav} onQuit={quit} onOpenTool={(toolId, query) => nameById.has(toolId) && setRoute({ name: 'tool', toolId, query })} />;
     case 'system':
-      return <System onNav={goNav} onQuit={quit} initialAction={route.action} />;
+      return <System onChanged={() => setBrandRevision(value => value + 1)} onNav={goNav} onQuit={quit} initialAction={route.action} />;
     case 'tool':
-      return <ToolView toolId={route.toolId} query={route.query} values={route.values} bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
+      return <ToolView key={route.session?.slot ?? `${route.toolId}:${route.query ?? ''}`} session={route.session} toolId={route.toolId} query={route.query} values={route.values} fromLink={route.fromLink} bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
     default:
-      return <Gallery onPrepare={() => setRoute({ name: 'prepare' })} onRebrand={() => setRoute({ name: 'rebrand' })} tools={tools} onOpen={id => setRoute({ name: 'tool', toolId: id })} onOpenUrl={openToolUrl} onImportFile={importFile} onNav={goNav} onQuit={quit} />;
+      return <Gallery onAutomation={() => setRoute({ name: 'automation' })} brand={brand} onBatch={() => setRoute({ name: 'batch' })} catalogError={catalogError} onPrepare={() => setRoute({ name: 'prepare' })} onRebrand={() => setRoute({ name: 'rebrand' })} tools={tools} onOpen={id => setRoute({ name: 'tool', toolId: id })} onOpenUrl={openToolUrl} onImportFile={importFile} onNav={goNav} onQuit={quit} />;
   }
 }

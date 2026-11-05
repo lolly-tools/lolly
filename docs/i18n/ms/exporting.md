@@ -82,6 +82,7 @@ Logotaip yang ditetapkan dalam muka sistem reka bentuk anda dieksport sebagai SV
 | Penyerahan Premiere | **Premiere XML + media** | Klip bermasa dan media asal untuk Premiere (Design) |
 | Video untuk sosial dan perkongsian | **MP4** atau **WebM** | Kualiti terbaik untuk saiz fail (lihat [Video](#video)) |
 | Kapsyen | **SRT** atau **VTT** | Teks bermasa untuk pemain video (Captions, Audiogram dan Record) |
+| Sari kata penyiaran | **TTML** atau **SCC** | Teks bermasa IMSC1.1, atau sari kata pop-on CEA-608 (Captions; lihat [Sari kata penyiaran](#broadcast-captions)) |
 | Kursus latihan | **SCORM (LMS)** | Laman web berversi, pakej SCORM atau xAPI (lihat [SCORM](#scorm-course-packages)) |
 | Teks kaya atau tandatangan e-mel | **HTML** | Ditampal berformat ke dalam klien mel |
 | Kandungan biasa | **MD** atau **TXT** | Teks sahaja |
@@ -131,9 +132,9 @@ Lolly mempunyai tiga cara bekerja dalam kuantiti, masing-masing untuk tugas berb
 ## Jadual menjadi satu dokumen
 Alat dengan input jadual, seperti **Battlecards**, menukar setiap baris menjadi halaman. Tampal jadual daripada hamparan anda dan dapatkan satu PDF. Baiki baris dalam hamparan dan tampal semula.
 ## CSV menjadi satu fail bagi setiap baris
-**Batch** (`#/batch`) mengambil CSV dan merender satu eksport bagi setiap baris: lencana nama atau sijil, satu fail setiap satu, dihantar dalam ZIP. Lihat [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) mengambil CSV dan merender satu eksport bagi setiap baris: lencana nama atau sijil, satu fail setiap satu, dihantar dalam ZIP. Lihat [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Beberapa reka bentuk mendapat satu suntingan
-**Multi-edit** membuka beberapa sesi tersimpan bersebelahan untuk sentuhan akhir yang sama merentasi reka bentuk berbeza. Lihat [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** membuka beberapa sesi tersimpan bersebelahan untuk sentuhan akhir yang sama merentasi reka bentuk berbeza. Lihat [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Daripada **Projects**, **Render folder** mengeksport setiap sesi tersimpan dalam folder dan sub-foldernya sebagai satu ZIP bersarang, dan **Render selection** melakukan perkara yang sama untuk sebarang pilihan berbilang; satu sesi tersimpan dirender ke failnya sendiri. Sesi tersimpan juga boleh dikongsi semula sebagai pautan alat daripada Projects, yang membukanya semula dengan tetapan yang sama.
@@ -169,7 +170,7 @@ Kebanyakan alat yang mengeksport SVG juga mengeksport **fail Penpot** (`.penpot`
 | Keseluruhan reka bentuk | Komponen boleh guna semula dalam panel Assets |
 | Ilustrasi kompleks atau kanvas langsung | Dibenamkan sendiri sebagai imej, kandungan boleh sunting di sekelilingnya tidak disentuh |
 
-Daripada Design, setiap bingkai menjadi papan Penpot. Warna dan tipografi sistem reka bentuk mendarat dalam panel Assets dan set token penuhnya dalam panel Tokens. Penpot menyimpan salinannya sendiri dari situ: token yang disunting dalam Penpot kembali melalui import dalam [Design System Setup](/info/brand-studio.html).
+Daripada Design, setiap bingkai menjadi papan Penpot. Warna dan tipografi sistem reka bentuk mendarat dalam panel Assets dan set token penuhnya dalam panel Tokens. Penpot menyimpan salinannya sendiri dari situ: token yang disunting dalam Penpot kembali melalui import dalam [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Panel eksport dengan Penpot dipilih: fail .penpot, dan Send to Penpot di sebelah muat turun](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Kemudian pilih **Export course** daripada alat yang disokong, folder projek atau
 
 Pakej memegang kandungan siapnya dan tidak memerlukan akaun Lolly. Letakkan ZIP Website pada hos HTTP(S); import ZIP LMS tanpa perubahan. Uji destinasi sebelum anda berkongsi kursus. Untuk kursus yang dibina daripada beberapa ciptaan tersimpan, lihat [Create a training course](/info/training-creators.html).
 
+### Sari kata penyiaran
+
+Alat Captions juga boleh mengeksport **TTML** dan **SCC**. Kedua-duanya ditulis daripada senarai isyarat yang sama dengan fail SRT dan VTT, jadi perkataan dan masanya sepadan.
+
+- **TTML** ialah IMSC1.1 Text Profile, dengan masa jam media dan satu rantau di tengah bawah. Ia tidak membawa warna, fon atau kedudukan bagi setiap sari kata, kerana sari kata Lolly hanya menyimpan permulaan, penamat dan teks.
+- **SCC** membawa sari kata pop-on CEA-608 pada saluran 1 pada 29.97 bingkai sesaat dengan kod masa drop-frame. Ia menyokong aksara asas Amerika Utara serta aksara khas dan lanjutan. Jika sesuatu sari kata mengandungi aksara yang tidak dapat dibawa oleh set itu, eksport berhenti dan memberitahu anda aksara yang mana, jadi tiada apa-apa digugurkan tanpa pemberitahuan. Setiap sari kata dibungkus pada 32 lajur dan paling banyak 15 baris. Sari kata yang tidak sempat dimuatkan sebelum masa permulaannya ditangguhkan beberapa bingkai.
+- Sari kata roll-up dan paint-on tidak ditulis.
+
+Output SCC belum disemak dengan alat penyiaran sebenar atau penyahkod perkakasan. Uji fail dalam saluran paip anda sendiri sebelum penghantaran.
+
 ### DXF (fail potong)
 
 Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding dan Wordmark mengeksport **DXF**, format pertukaran AutoCAD R12 yang dibaca pemotong laser, plotter vinil dan perisian CNC. Geometri ditulis sebagai laluan garis luar dalam milimeter, teks digariskan luar dan warna dipetakan kepada AutoCAD Color Index terdekat, yang biasanya memacu operasi pemotong. DXF hanyalah seni garis: kawasan fotografi atau bertapis tiada laluan potong dan digugurkan, dengan amaran. Gunakan SVG atau PDF untuk mengekalkan kandungan raster.
@@ -214,7 +225,7 @@ Tatal, dan kamera menarik diri kembali melalui geometri sebenar: tujuh laluan, t
 
 ## Cetakan
 
-**Print PDF** menulis CMYK terhadap keadaan mesin cetak bernama, **Coated FOGRA39** secara lalai. Swatch jenama dengan nilai dakwat yang diukur ditukar dengan tepat; warna lain menggunakan penukaran peranti piawai. **Print TIFF** menulis piksel DeviceCMYK untuk RIP dan merekodkan keadaan mesin cetak yang sama dalam metadata TIFF-nya. Kawalan Colour profile memacu kedua-duanya; [Colour profiles](#colour-profiles) mempunyai butirannya.
+**Print PDF** menulis CMYK terhadap keadaan mesin cetak bernama, **Coated FOGRA39** secara lalai. Swatch jenama dengan nilai dakwat yang diukur mengekalkan nilai tersebut. Warna lain ditukar melalui profil mesin cetak: profil Coated FOGRA39 milik Lolly secara lalai, atau profil anda sendiri apabila anda memilih baris **Embed**-nya. Kelabu dan hitam kekal pada plat hitam sahaja, jadi teks kecil tidak tersasar daftar. FOGRA51, SWOP dan GRACoL menggunakan penukaran peranti piawai. **Print TIFF** menulis piksel DeviceCMYK untuk RIP dan merekodkan keadaan mesin cetak yang sama dalam metadata TIFF-nya. Kawalan Colour profile memacu kedua-duanya; [Colour profiles](#colour-profiles) mempunyai butirannya.
 
 **Print marks & bleed** mempunyai kadnya sendiri pada format cetakan: bleed dalam milimeter serta Crop, Registration, Bleed, Colour bars dan Stamp details.
 
@@ -223,6 +234,15 @@ Sesetengah alat membina **PDF berbilang halaman**: muka depan, kandungan yang me
 **Before you export.** Kad **Before you export** di kaki panel menyatakan apa yang kedai cetak akan lihat: format, saiz dan bleed, kawasan trim dan bleed, litupan dakwat, bilangan plat dan bilangan halaman, dengan keputusan di sebelah tajuknya. Ia tidak pernah menyekat eksport. Design sentiasa menunjukkan kad dengan semakannya sendiri, termasuk peraturan dalaman sistem reka bentuk lapisan demi lapisan dan isyarat penulisan bagi teks dokumen ([Before you export](/info/design.html#before-you-export)), dan menambah semakan cetakan ini apabila **Print preflight** hidup. Dalam alat lain, hidupkan **Print preflight** di bawah Settings → Preferences → Feature flags; ia mati secara lalai, dan penempatan Lolly Work boleh menghidupkannya untuk ahlinya.
 
 **After you export.** Setelah fail sedia, Lolly membacanya semula dan membandingkannya dengan apa yang anda pilih: format, saiz piksel atau halaman, panjang klip, latar telus, warna CMYK, HDR, Content Credentials dan kata laluan PDF atau ZIP. Apa-apa yang berbeza ditulis pada kad eksport. Setiap ukuran datang daripada fail, tidak pernah daripada tetapan, dan sifat yang tidak dapat dijawab fail tidak dikira sebagai padanan. Baris perintah menulis perbandingan penuh dengan `--export-report` (lihat [Render with the CLI](/info/cli-rendering.html)).
+
+**Semakan kebolehcapaian PDF.** Untuk PDF, baris perintah turut menyenaraikan 32 semakan kebolehcapaian dalam fail `--export-report`, di bawah `pdfAccessibility`. Setiap semakan mempunyai id, huraian ringkas, keputusan dan lokasi dalam fail tempat masalah ditemui:
+
+- **Lulus**: semakan melihat sesuatu dan tidak menemui sebarang masalah.
+- **Gagal**: semakan menemui masalah. Nombor halaman atau teg-nya disenaraikan.
+- **Tidak berkenaan**: fail tidak mempunyai apa-apa jenis itu untuk dilihat, seperti semakan jadual dalam fail tanpa jadual. Ini tidak menyatakan apa-apa tentang fail itu.
+- **Perlukan manusia**: enam semakan tidak dapat dinilai oleh program (susunan bacaan, kontras warna, kelipan, skrip, had masa dan pautan berulang).
+
+Senarai ini bukan keputusan muktamad. Ia tidak menyatakan bahawa sesuatu PDF memenuhi PDF/UA atau bahawa orang yang menggunakan teknologi bantuan boleh menggunakannya, dan seseorang masih perlu menyemak fail itu dengan pembaca skrin. PDF Lolly sendiri gagal dalam semakan penandaan pada masa ini, kerana pengeksport belum menulis teg. Semakan ini membaca fail pada peranti anda dan tidak mengubah apa-apa. Fail yang memerlukan kata laluan dinamakan sebagai tidak disemak, bukan lulus. Untuk menyemak PDF yang dihantar kepada anda, letakkannya ke dalam [Strip Hidden Data](/info/utilities.html), yang menunjukkan senarai yang sama di bawah **PDF accessibility checks**.
 
 Semakan inspektor Design dan perbandingan jenama dalam Design System Setup ialah semakan berasingan: ia melihat reka bentuk, manakala dua kad ini melihat fail.
 
@@ -280,7 +300,7 @@ Eksport ditandakan dengan profil warna, supaya apl terurus warna seperti kedai c
 - **SVG**, **EMF**, **EPS** dan **DXF** ialah vektor tanpa profil terbenam: warna SVG ialah sRGB, EMF dan EPS menggunakan RGB peranti, **EPS (CMYK)** menulis DeviceCMYK dan DXF menggunakan AutoCAD Color Index. SVG, EPS dan DXF menggariskan luar teks kepada laluan. EMF mengekalkan teks langsung dan boleh disunting dalam Office dan Google Slides, kembali kepada garis luar hanya untuk larian yang tidak dapat diungkapkan format; pilihan **Outline fonts** panel eksport memaksa laluan di mana-mana. SVG juga menghasilkan semula bayang kotak CSS, dalam dan luar.
 
 ::: details PDF/X-4 dan profil mesin cetak anda sendiri
-Tiada profil CMYK dihantar bersama Lolly. Keadaan mesin cetak bernama menulis niat output tanpa mendakwa pematuhan PDF/X-4, kerana PDF/X-4 mahu profil dibenamkan.
+Lolly menyertakan satu profil CMYK, disesuaikan dengan data pencirian FOGRA39 Fogra dan dikeluarkan di bawah CC0, dan menukar warna melaluinya untuk keadaan mesin cetak lalai. Profil itu tidak dibenamkan, kerana ia ICC versi 4.3 dan PDF/X-4 menerima versi sehingga 4.2. Keadaan mesin cetak bernama oleh itu menulis output intent tanpa mendakwa pematuhan PDF/X-4.
 
 Muatkan profil CMYK anda sendiri dan pilih baris **Embed**-nya dalam kawalan Colour profile. Ia dibenamkan sebagai *DestOutputProfile* fail, dan PDF mendakwa PDF/X-4 apabila selebihnya fail membenarkan. Keadaan mesin cetak yang diisytiharkannya dibaca daripada profil itu: nama berdaftar di mana profil membuktikan satu, atau `Custom` di bawah nama profil sendiri.
 
@@ -400,8 +420,8 @@ Ini ialah nilai untuk parameter URL `format=` dan bendera CLI `--export=` (lihat
 | Vektor | `svg` · `svgz` (SVG digzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (fail potong) |
 | Halaman dan dokumen | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (fail reka bentuk Penpot) · `scorm` (pakej kursus, ZIP) |
 | Gerakan | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Teks dan data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (palet GIMP) |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (nota MIDI, daripada Rondocode) |
+| Teks dan data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (palet GIMP) |
 | Bundle dan pakej | `zip` · `rpm` dan `tar.gz` (render dimeteraikan ke dalam pakej Linux) |
 
 Beberapa id datang daripada kod eksport alat sendiri: `ase` (Adobe Swatch Exchange, daripada Palette Lab) dan `exr` serta `hdr` (raster julat dinamik tinggi, daripada Darkroom). **Convert Font** menulis `ttf`, `otf` dan `woff` daripada fail fon yang anda bekalkan, jadi pautan kosong tiada apa-apa untuk dirender.

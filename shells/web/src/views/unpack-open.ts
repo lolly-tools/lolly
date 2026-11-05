@@ -55,6 +55,12 @@ function isIndd(buf: Uint8Array, name?: unknown): boolean {
   return typeof name === 'string' && /\.indd$/i.test(name.trim());
 }
 
+/** An Affinity container opens with 00 FF 'K' 'A'; the file name stands in when the bytes are not at hand. */
+function isAffinity(buf: Uint8Array, name?: unknown): boolean {
+  if (buf.length >= 16 && buf[0] === 0x00 && buf[1] === 0xff && buf[2] === 0x4b && buf[3] === 0x41) return true;
+  return typeof name === 'string' && /\.(af|afdesign|afphoto|afpub|aftemplate)$/i.test(name.trim());
+}
+
 /** Photoshop PSD/PSB ("8BPS") or GIMP XCF ("gimp xcf ") - layered bitmaps. */
 function isLayeredBitmap(buf: Uint8Array): boolean {
   return (buf.length >= 4 && buf[0] === 0x38 && buf[1] === 0x42 && buf[2] === 0x50 && buf[3] === 0x53)
@@ -118,9 +124,28 @@ export async function openDesignFile(file: File | Blob): Promise<UnpackHandle> {
     }
   }
 
-  // Raw InDesign .indd has no open parser - guide the user to IDML instead.
+  // A native InDesign .indd is converted to IDML on this device, then taken apart like an .idml.
   if (isIndd(buf, name)) {
-    throw new Error(t('A raw .indd file cannot be read directly. In InDesign choose File then Export then InDesign Markup (.idml) and open the .idml.'));
+    const { inddToIdmlParts } = await importOr(() => import('./design-import.ts'));
+    let files: Record<string, Uint8Array>;
+    try { files = await inddToIdmlParts(buf, file, () => {}); }
+    catch (err) {
+      throw Object.assign(new Error(t('That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.')), { cause: err });
+    }
+    const { openIdmlFile } = await importOr(() => import('./idml-import.ts'));
+    try { return await openIdmlFile(files); }
+    catch (err) {
+      throw Object.assign(new Error(t('That InDesign file could not be opened. Export it from InDesign as IDML and try again.')), { cause: err });
+    }
+  }
+
+  // A native Affinity file is read on this device: page pictures, text, palette and font names.
+  if (isAffinity(buf, name)) {
+    const { openAffinityFile } = await importOr(() => import('./affinity-unpack.ts'));
+    try { return await openAffinityFile(buf, String(name || 'document.af')); }
+    catch (err) {
+      throw Object.assign(new Error(t('That Affinity file could not be opened. Export it from Affinity as SVG or PDF and try again.')), { cause: err });
+    }
   }
 
   // Layered bitmaps (Photoshop PSD/PSB, GIMP XCF): every layer + the composite.

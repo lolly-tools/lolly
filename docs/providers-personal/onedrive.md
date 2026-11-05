@@ -64,3 +64,14 @@ Export a small file (goes straight to Graph) and a video over 4 MB (goes
 through an upload session in 3.75 MB chunks - the chunk PUTs carry NO
 Authorization header by Graph's contract). Reload and send again: no popup -
 Microsoft rotates refresh tokens and Lolly re-saves the new one each time.
+
+## Share links
+
+**Create a share link** calls Graph `createLink` on the file with the
+`Files.ReadWrite.AppFolder` token Lolly already holds. Microsoft lists
+`Files.ReadWrite` as the least-privileged scope for that call, so the app
+folder scope may be refused. Lolly never widens the scope to try again: it
+remembers that this connection cannot make links and offers "Open OneDrive to
+share" for the file instead. Test this with a real registration before
+promising links. Passwords are OneDrive Personal only and are not offered.
+**Stop sharing** deletes the link's permission.

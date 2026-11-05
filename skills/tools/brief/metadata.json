@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "brief",
+  "toolVersion": "1.0.0",
+  "toolVersionRange": "1.0.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "73824aa0bbcd91a73151b13c394352295b4786f2d68f541d3a786b02fc2648f2",
+      "bytes": 1636
+    },
+    "reference/inputs.json": {
+      "sha256": "128eb81fe3054e20d82ebe6f4298db2cfadf2fbf3982cf83c864b9073d61b872",
+      "bytes": 2229
+    }
+  }
+}

@@ -42,7 +42,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromeFingerprint, createViewCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
-import { stampBitmap } from './lib/stamp-media.ts';
+import { stampBitmapStable } from './lib/stamp-media.ts';
 import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 import { applyProfileArg } from './lib/profile-arg.ts';
 import { DEFAULT_SITE_URL, siteUrl } from './lib/site-url.ts';
@@ -67,8 +67,9 @@ applyProfileArg();
 
 const OG_DIR   = catalogFile('og/views');  // → /catalog/og/views/<slug>.png (committed)
 // Input-hash gate (see build-tool-og.ts for the full rationale): a card is re-rendered
-// only when its render inputs change, so the non-deterministic render path (Playwright +
-// Imprint/C2PA stamp) stops churning identical-looking PNGs every push. We persist, per
+// only when its render inputs change, and stampBitmapStable keeps the committed bytes when
+// a re-render gives the same picture, so the C2PA stamp (new time, key and signature each
+// time) no longer churns identical PNGs every push. We persist, per
 // view slug, a sha256 over the card's render inputs, the brand chrome's fingerprint
 // (chromeFingerprint) and OG_RENDER_VERSION in a COMMITTED sidecar (OG_DIR/.og-sigs.json);
 // a card whose sig matches AND whose file exists is skipped. BUMP OG_RENDER_VERSION after any card template / stamp change.
@@ -302,7 +303,7 @@ async function main(): Promise<void> {
     if (parsed && typeof parsed === 'object') sigs = parsed as Record<string, string>;
   } catch { /* no manifest yet - treat every card as stale */ }
 
-  let cards = 0, stubs = 0;
+  let cards = 0, kept = 0, stubs = 0;
   for (const v of VIEWS) {
     // Refresh the committed card when the browser is available (local build:web / dev:web).
     // With --preserve, keep an existing committed card and skip the re-render. Also skip
@@ -319,11 +320,12 @@ async function main(): Promise<void> {
       try {
         const png = await renderer.render({ title: v.title, description: v.description, iconSvg: v.icon, slug: v.slug });
         // Stamp our own share card with the Lolly Imprint + "made with Lolly" C2PA
-        // before committing (see scripts/lib/stamp-media.ts).
-        const stamped = await stampBitmap(png, 'png', { id: v.slug, name: v.title });
-        writeFileSync(cardPath, stamped);
+        // before committing (see scripts/lib/stamp-media.ts). The same picture keeps the
+        // committed bytes, credential included, so a rebuild rewrites nothing.
+        const previous = existsSync(cardPath) ? readFileSync(cardPath) : null;
+        const stamped = await stampBitmapStable(png, { id: v.slug, name: v.title }, previous);
+        if (stamped !== previous) { writeFileSync(cardPath, stamped); cards++; } else kept++;
         sigs[v.slug] = sig;
-        cards++;
       } catch (e) {
         console.log(`view-og: ${v.slug} card failed (${(e as Error).message})`);
       }
@@ -352,7 +354,7 @@ async function main(): Promise<void> {
   for (const slug of Object.keys(sigs).sort()) ordered[slug] = sigs[slug] as string;
   writeFileSync(SIGS_FILE, `${JSON.stringify(ordered, null, 2)}\n`);
 
-  console.log(`✓ view-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed`);
+  console.log(`✓ view-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed, ${kept} re-rendered unchanged and kept`);
   if (!renderer && !process.env.VERCEL) console.log('view-og: browser unavailable - kept committed catalog/og/views cards (regenerate locally with build:web/dev:web).');
 }
 

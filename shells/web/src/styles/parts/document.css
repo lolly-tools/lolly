@@ -124,6 +124,12 @@
    specificity - was stranding it on the old outlined generation. Fixed at source
    instead: that rule now carries `:not(.field-input)` and yields to the primitive.) */
 .doc-setup-row .doc-setup-color { flex: 1; min-width: 0; display: flex; }
+.doc-setup-panel {
+  position: fixed;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+}
 
 /* Touch: keep the ribbon compact and always visible. */
 @media (pointer: coarse) {
@@ -154,10 +160,10 @@
      shrink below its content height and spill text past the white background. Keep the
      paper at its natural (content) height so the document grows and the surface scrolls. */
   flex-shrink: 0;
-  background: #ffffff; color: #10231f;
+  background: var(--doc-paper, #ffffff); color: var(--doc-ink, #10231f);
   box-shadow: 0 6px 28px rgba(0, 0, 0, .16);
   padding: 72px 67px;
-  font-family: 'SUSE', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--doc-font, 'SUSE'), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 .doc-tt-holder { outline: none; }
 .doc-tt-holder .ProseMirror { outline: none; min-height: 50vh; white-space: pre-wrap; word-wrap: break-word; }
@@ -170,22 +176,22 @@
 }
 .doc-tt-holder > h1:first-child, .doc-tt-holder > h2:first-child,
 .doc-tt-holder > h3:first-child, .doc-tt-holder > h4:first-child { margin-top: 0; }
-.doc-tt-holder h1 { font-size: 2.1em; padding-bottom: .18em; border-bottom: 2px solid hsl(var(--primary)); }
-.doc-tt-holder h2 { font-size: 1.6em; padding-bottom: .16em; border-bottom: 2px solid hsl(var(--primary)); }
+.doc-tt-holder h1 { font-size: 2.1em; padding-bottom: .18em; border-bottom: 2px solid var(--doc-accent, hsl(var(--primary))); }
+.doc-tt-holder h2 { font-size: 1.6em; padding-bottom: .16em; border-bottom: 2px solid var(--doc-accent, hsl(var(--primary))); }
 .doc-tt-holder h3 { font-size: 1.28em; }
 .doc-tt-holder h4 { font-size: 1.08em; }
 .doc-tt-holder ul, .doc-tt-holder ol { font-size: 15px; line-height: 1.5; margin: .3em 0 .6em; padding-left: 1.5em; }
 .doc-tt-holder ul { list-style: none; }
 .doc-tt-holder ul > li { position: relative; }
-.doc-tt-holder ul > li::before { content: ""; position: absolute; left: -1em; top: .62em; width: .34em; height: .34em; border-radius: var(--radius-round); background: hsl(var(--primary)); }
+.doc-tt-holder ul > li::before { content: ""; position: absolute; left: -1em; top: .62em; width: .34em; height: .34em; border-radius: var(--radius-round); background: var(--doc-accent, hsl(var(--primary))); }
 .doc-tt-holder ol { list-style: decimal; }
-.doc-tt-holder ol > li::marker { color: hsl(var(--primary)); font-weight: 700; }
+.doc-tt-holder ol > li::marker { color: var(--doc-accent, hsl(var(--primary))); font-weight: 700; }
 .doc-tt-holder li { margin: 0 0 .2em; }
 .doc-tt-holder li > p { margin: 0; }
-.doc-tt-holder blockquote { margin: .5em 0; padding-left: .9em; border-left: 3px solid hsl(var(--primary)); color: #5b6b66; }
-.doc-tt-holder pre { font-family: var(--font-mono); font-size: 13.5px; background: hsl(var(--primary) / .08); padding: .7em .9em; border-radius: var(--radius-sm); overflow-x: auto; }
+.doc-tt-holder blockquote { margin: .5em 0; padding-left: .9em; border-left: 3px solid var(--doc-accent, hsl(var(--primary))); color: var(--doc-muted, #5b6b66); }
+.doc-tt-holder pre { font-family: var(--font-mono); font-size: 13.5px; background: var(--doc-head-bg, hsl(var(--primary) / .08)); padding: .7em .9em; border-radius: var(--radius-sm); overflow-x: auto; }
 .doc-tt-holder code { font-family: var(--font-mono); }
-.doc-tt-holder hr { border: none; border-top: 1px solid rgba(16, 35, 31, .18); margin: 1em 0; }
+.doc-tt-holder hr { border: none; border-top: 1px solid var(--doc-table-line, rgba(16, 35, 31, .18)); margin: 1em 0; }
 .doc-tt-holder img { max-width: 100%; height: auto; border-radius: 4px; display: block; }
 .doc-tt-holder .ProseMirror-selectednode { outline: 2px solid #2d7ff9; }
 /* Resizable image (ResizableImage NodeView): the wrap carries the width; a corner
@@ -204,8 +210,8 @@
 /* Tables (prosemirror-tables base + brand skin). */
 .doc-tt-holder .tableWrapper { overflow-x: auto; margin: .6em 0; }
 .doc-tt-holder table { border-collapse: collapse; table-layout: fixed; width: 100%; }
-.doc-tt-holder td, .doc-tt-holder th { min-width: 2em; border: 1px solid rgba(16, 35, 31, .2); padding: .38em .55em; vertical-align: top; box-sizing: border-box; position: relative; font-size: 14px; }
-.doc-tt-holder th { font-weight: 700; background: hsl(var(--primary) / .1); text-align: left; }
+.doc-tt-holder td, .doc-tt-holder th { min-width: 2em; border: 1px solid var(--doc-table-line, rgba(16, 35, 31, .2)); padding: .38em .55em; vertical-align: top; box-sizing: border-box; position: relative; font-size: 14px; }
+.doc-tt-holder th { font-weight: 700; background: var(--doc-head-bg, hsl(var(--primary) / .1)); text-align: left; }
 /* Border + padding presets mirror the hook's export. The DocTable ProseMirror plugin
    stamps a doc-tb- and doc-pad- class on each table's node-view DOM (the .tableWrapper, since
    a resizable table's DOM is owned by the column-resize node view and ignores data-* attrs),
@@ -220,10 +226,13 @@
 .doc-tt-holder .ProseMirror-gapcursor::after { content: ''; display: block; position: absolute; top: -2px; width: 20px; border-top: 1px solid currentColor; }
 
 /* Placeholder (empty first paragraph). */
-.doc-tt-holder .is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: rgba(16, 35, 31, .34); pointer-events: none; height: 0; }
+.doc-tt-holder .is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: var(--doc-muted, rgba(16, 35, 31, .34)); pointer-events: none; height: 0; }
 
 /* Table controls - a second ribbon row, shown only when the caret is in a table. */
 .doc-tablebar-dock { top: 56px; }
+@media (max-width: 1000px) {
+  .doc-ribbon-dock { top: calc(var(--chrome-top) + var(--chrome-h)); }
+}
 /* Cell-fill swatch reads as a filled square (not the text-colour "A"). */
 .doc-cellfill::after { content: ""; width: 15px; height: 12px; border: 1px solid hsl(var(--border)); border-radius: 2px; background: var(--sw, #e8f6ee); padding: 0; }
 

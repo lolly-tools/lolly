@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import type { ViteDevServer } from 'vite';
+import { settledUrl } from './helpers/settled-address.ts';
 
 test('Design webcam starts explicitly, keeps its feed across edits and captures a portable poster', { timeout: 180_000 }, async t => {
   let server: ViteDevServer | undefined;
@@ -64,6 +65,9 @@ test('Design webcam starts explicitly, keeps its feed across edits and captures 
   await page.getByRole('button', { name: 'Start camera', exact: true }).waitFor();
   assert.equal(await page.evaluate(() => (window as unknown as { cameraStream: MediaStream }).cameraStream.getVideoTracks()[0]!.readyState), 'ended');
   assert.equal(await page.locator('[data-live-camera-video]').count(), 0);
+  // The captured poster reaches the address about 400 ms after the last paint
+  // (lib/url-state.ts). A reload before that write reopens the document without the poster.
+  await settledUrl(page);
   await page.reload();
   await page.getByRole('button', { name: 'Start camera', exact: true }).waitFor();
   assert.equal(await page.evaluate(() => (window as unknown as { cameraCalls: number }).cameraCalls), 0);

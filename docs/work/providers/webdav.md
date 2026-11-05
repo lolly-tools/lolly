@@ -1,7 +1,7 @@
 # WebDAV / Nextcloud (kind: `webdav`)
 
 Share one folder from a file server you run, such as Nextcloud, and its files appear in the
-Lolly Work catalog for the groups you choose. Work reads the folder and never writes to it, so
+Lolly Work catalog for the groups you choose. Lolly Work reads the folder and never writes to it, so
 the server stays the place where files are added and approved.
 
 The kind is the protocol, not a vendor. Nextcloud is the documented path; ownCloud, Apache
@@ -62,14 +62,14 @@ with `flavor: "generic"`.
    or when the panel closes. Nothing goes into browser storage.
 4. Choose **Test files and original**. The preview lists a sample of the folder and reads one
    original, showing its byte count, content type and SHA-256. Compare that checksum with a
-   copy of the same file you trust. The preview's limits are under [Verify](#verify).
+   copy of the same file you trust. The preview's limits are under [Lolly Verify](#verify).
 5. An owner chooses **Save source and seal credential**. This creates a disabled source and
    checks the credential again before sealing the credential; the server needs
    `LW_CREDENTIAL_SECRET` set first. If sealing fails, the panel keeps the disabled source and
    offers **Retry credential**. Closing the panel leaves the saved source disabled; carry on
    from its row. After a lost response or a reload, check that row before creating the same id
    again.
-6. Choose **Sync and enable source** when the folder and groups are right. Work runs a full
+6. Choose **Sync and enable source** when the folder and groups are right. Lolly Work runs a full
    sync first and leaves the source disabled if listing fails or finds no exposed files. Then
    it checks health again and enables the source.
 
@@ -137,7 +137,6 @@ the namespace prefix (`embargo-until`, not `x:embargo-until`). Setting it switch
 to `<d:allprop/>` so the custom property comes back, which is a more expensive call.
 
 ## Verify
-
 ```bash
 lw providers preview --kind webdav --options '{"baseUrl":"https://cloud.example","flavor":"nextcloud","username":"lolly-federation","root":"Brand"}'
 lw providers credential acme-nextcloud
@@ -175,7 +174,7 @@ lw providers preview --kind webdav --shape --options '{"baseUrl":"https://cloud.
   look at. Contributors changing the driver follow its
   [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/webdav.md) in the Lolly Work repository.
 - **No search, thumbnails or expiring links.** Nextcloud's SEARCH method is not used and there
-  is no rendition endpoint. Files stream through Work on each request.
+  is no rendition endpoint. Files stream through Lolly Work on each request.
 - **A rename arrives as a new file.** The catalog id is the file's path under the root, so
   moving or renaming a file upstream creates a new entry. Nextcloud's `oc:fileid` survives a
   rename but cannot fetch bytes, so the driver does not use that property.
@@ -187,3 +186,9 @@ lw providers preview --kind webdav --shape --options '{"baseUrl":"https://cloud.
 - **A destination as much as a source.** You run this server yourself, so there is no vendor
   to leave. It is more often where an [exit](../offboarding.md#exit-readiness-by-kind) copies
   files to than where one starts.
+
+## Use as an offboarding destination
+
+Nextcloud or another WebDAV server you run can hold the files after a DAM exit. Export permitted originals and supporting records, copy them with your file service's upload or sync tools, then connect a narrow root using this guide. Lolly Work's source is read-only; materialize cannot write a DAM library into this folder. Verify the inventory within the walk limits and plan replacement references and governance.
+
+The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Lolly Work storage and other destinations, with open-source options first.

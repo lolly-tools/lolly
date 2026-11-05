@@ -5,6 +5,7 @@
   "permissions": [
     "core:default",
     "lolly-auth:default",
+    "lolly-fold:default",
     "fs:allow-exists",
     "fs:allow-read-file",
     "fs:allow-write-file",

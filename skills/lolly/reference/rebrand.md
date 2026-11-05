@@ -41,7 +41,7 @@ server. The web shell shares only the source reader
 the engine modules; it does not call the pipeline functions above.
 `resolveProfileDesignSystem` resolves the active content profile's slide
 master, palette and fonts once; a profile with no slide master renovates
-against a neutral master and says so in the design-system facts
+against a neutral master and records that in the design-system facts
 (`designSystem.neutralMaster`).
 
 ## The object classes and their evidence

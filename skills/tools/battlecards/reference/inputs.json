@@ -24,13 +24,15 @@
         "value": "landscape",
         "label": "Landscape",
         "width": 1200,
-        "height": 900
+        "height": 900,
+        "unit": "px"
       },
       {
         "value": "portrait",
         "label": "Portrait",
         "width": 900,
-        "height": 1200
+        "height": 1200,
+        "unit": "px"
       }
     ],
     "help": "The card layout adapts: fields flow as a grid in landscape and stack in portrait."

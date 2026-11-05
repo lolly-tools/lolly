@@ -68,7 +68,7 @@ pnpm run ingest:brand <source> --name <brand> [--label "Label"] [--register|--ac
 - Ingest also derives the pack's photo-treatment and icon-theme palette documents under `catalog/assets/<ns>/palette/`, so uploaded photos get on-brand washes and themable icons get colour pairings from the start. Icon themes are skipped when the palette has no accent.
 - `--register` adds the pack to `profiles.json`. `--activate` also builds and validates its catalog and prints the `LOLLY_PROFILE=<brand>` line that selects it; nothing is switched globally. `--out` picks another destination and `--force` overwrites an existing pack.
 
-[Design Tokens](/info/design-tokens.html) covers the token model. People set up their own design system in the app with [Design System Setup](/info/brand-studio.html).
+[Design Tokens](/info/design-tokens.html) covers the token model. People set up their own design system in the app with [Lolly Design System Setup](/info/brand-studio.html).
 
 ### Brand lock
 
@@ -119,9 +119,9 @@ A shell that cannot provide a capability **disables** the tool rather than letti
 
 `screen` is display capture the person grants in the browser's own picker (a screen, window or tab, through `host.recorder`). It differs from `capture`, which rasterises a web address the tool itself gives. `network` access is also **allowlisted**: a tool declares which hosts it may reach, and `host.net` refuses every other host.
 
-URL Screenshot declares `capture`, which a plain browser cannot provide alone, so its tile offers the add-on instead of vanishing:
+Lolly URL Screenshot declares `capture`, which a plain browser cannot provide alone, so its tile offers the add-on instead of vanishing:
 
-![The URL Screenshot tile in the Utilities gallery, carrying an Add-on badge because its capture capability is unmet in a plain browser](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2000&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22url-shot%22%5D&tolerance=0.03&dark=1&filename=fq-capability-addon-badge)
+![The Lolly URL Screenshot tile in the Utilities gallery, carrying an Add-on badge because its capture capability is unmet in a plain browser](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2000&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22url-shot%22%5D&tolerance=0.03&dark=1&filename=fq-capability-addon-badge)
 
 ## Curating what people see
 
@@ -149,6 +149,25 @@ Turning a connector off withdraws that destination everywhere it is offered. Nea
 **Strip metadata from uploads** scrubs EXIF, location (GPS) and other embedded metadata from images uploaded to Assets. Content Credentials are always kept either way, so a signed or AI-generated image keeps its credential whether the switch is on or off.
 
 **Print preflight** puts the *Before you export* prepress card (bleed, resolution, ink coverage, plate counts) above the Download button. It stays off by default so someone exporting a PNG for a chat message never meets prepress findings, and the card never blocks an export. It also honours the older `export.preflight` instance capability, which reads as governance defaulting the switch on, so members of an instance that granted it keep the card until they choose.
+
+**Performance UI** gives the app a simpler look that is cheaper to draw: no background blur, shadows or blend modes in the chrome, no decorative motion, and previews that play only when asked. Tool canvases and exports are identical either way. Lolly can also switch the look on by itself, in two ways.
+
+For a device that struggles to draw the interface, Lolly switches once and for good:
+
+- **At start-up**, when the graphics check finds no hardware acceleration (a software renderer such as SwiftShader, llvmpipe or Microsoft Basic Render Driver). The renderer's name is read on the device and never stored.
+- **During use**, when drawing the chrome stays slow for most of the time someone browses the gallery, Assets, Projects, Settings or the docs, spread over at least half a minute. In Chromium-based browsers two kinds of slow frame count, against the same numbers: frames spent mostly in style, layout and paint (never frames spent in script), and frames that arrive 50 ms or more apart while the page's own thread is idle. The second kind is how a graphics chip that cannot keep up with blur and shadows shows itself, since that drawing happens away from the page's own thread. Other browsers use a stricter frame-rate test. Tools, editors, exports, playback, the first seconds after loading and a hidden tab never count.
+
+For a device whose resources are short for now, such as a powerful laptop that is hot, busy with another app or low on battery, Lolly switches for a while:
+
+- **Processor pressure**, when the browser reports the processor under serious or critical pressure for a whole minute without a break while someone browses those same screens. Lolly's own work raises pressure too, so the same moments never count: tools, editors, exports, playback, the first seconds after loading, and a tab that is hidden or not focused.
+- **Battery**, when the battery is at 20% or less and not charging: where Windows battery saver and Chrome's Energy Saver turn on by default.
+- **Data Saver** (the browser's Save-Data setting) never switches the look on its own. With Data Saver on, a constraint needs to last only half as long.
+
+The look switches back after five minutes of calm without a break: pressure fair or nominal, and the battery charging or above 20%. Calm counts on every screen, since nothing Lolly does makes a busy device read calm. Whatever the readings do, the look changes at most once in ten minutes, and never while someone is scrolling or dragging. Only Chromium-based browsers (Chrome, Edge, Opera) report processor pressure, the battery and Data Saver to a page. Safari and Firefox report none of them, and no browser reports a system low-power mode, so in those browsers the first two rules are the only ones.
+
+A notice says what happened, with **Undo** and **Keep**. For the temporary kind it says so: "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down." **Keep** makes a temporary switch last; letting the notice go by leaves the switch temporary. **Undo** turns the look off and stops that kind of automatic switching on that device, each kind separately: an Undo on a temporary switch stops temporary switching, and an Undo on the other kind stops switching for a slow device. While a first-run prompt is on screen, such as "Add your details to what you make?" or the welcome, the notice waits, and it appears once that prompt is answered or dismissed.
+
+**Settings → Feature flags** shows under the switch whether the look is on for good or for now and why, and which kind of automatic switching an Undo has turned off, with **Allow again**. Allow again clears every Undo but leaves the look as it is: Lolly checks again from the next time it starts. Lolly never switches the look at all once someone has set the switch by hand. The decisions are a preference on that device only (`lolly:perfUiAuto` in local storage), so they do not travel with the profile to another device. They hold what was decided, the reason and when, and never a pressure reading or a battery level.
 
 An optional organisation control plane, [Lolly Work](/info/work-governance.html), can govern the switches marked Yes. It sets the default used when a person has not chosen, and it can hide the switch entirely; a hidden switch's governed default wins over a stored personal value.
 

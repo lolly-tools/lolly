@@ -22,7 +22,7 @@ import { argv } from 'node:process';
 import { readFile } from 'node:fs/promises';
 import { parseToolUrl, normalizeLang } from '@lolly/engine';
 import { runToolCli, listToolsCli, showToolInputsCli, listAssetsCli, readStdin } from '../src/run.ts';
-import { parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS, READ_VALUE_FLAGS, CHECK_VALUE_FLAGS, READ_BOOL_FLAGS, CHECK_BOOL_FLAGS, MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS, COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, refuseUnknownFlags } from '../src/args.ts';
+import { INTENT_BOOL_FLAGS, INTENT_VALUE_FLAGS, parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS, READ_VALUE_FLAGS, CHECK_VALUE_FLAGS, READ_BOOL_FLAGS, CHECK_BOOL_FLAGS, MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS, COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, refuseUnknownFlags } from '../src/args.ts';
 import { EXIT, exitCodeFor, usageError } from '../src/exit-codes.ts';
 import { configureOutput, strictExitCode, note, writeOut, keepConsoleOffStdout } from '../src/output.ts';
 import { beginCommand, emitError, jsonRequested, envelopeEmitted } from '../src/envelope.ts';
@@ -57,6 +57,8 @@ Usage:
   lolly system diff <tokens.json>           compare authored and resolved token changes
   lolly system generate --recipe=<file>     review a portable colour, spacing or type scale
   lolly system sync <file> --base=<file> --revision=<id>  review an upstream update
+  lolly reports <report.json|-> --to=junit|sarif|jsonl [--output=new-file]
+                                           convert saved check results locally
   lolly list [--q=words] [--limit=1..100]  list or scope tools (explicit spelling)
   lolly describe <tool-id> [--all]         show essential inputs; --all shows every input
   lolly run <tool-id> [--flags]            render
@@ -99,6 +101,12 @@ Usage:
   lolly prepare <file…>                   inspect and prepare private files locally
   lolly adobe <operation> <file>          PSD preservation, IDML, photo preset or
                                            timeline inspection; adobe --help for details
+  lolly dxf <drawing.dxf> [--output=.svg|.json] [--layers=A,B]
+                                           read an AutoCAD DXF floor plan or drawing on this
+                                           device; dxf --help for details
+  lolly affinity <file.af|.afdesign|.afphoto|.afpub> [--preview=.png] [--output=.json]
+                                           read a native Affinity file on this device;
+                                           affinity --help for details
   lolly inspect <file> --forensic          inspect located AI clues and coverage
   lolly diff <a.json> <b.json>              semantic document diff
   lolly optimize <document.json>            run named immutable stages
@@ -203,6 +211,11 @@ Usage:
                         [--ocr]            let Verify read text in pictures
                                            Exit 0 clean, 5 to review, 4 an error finding
                                            (or any warning under --strict)
+  lolly intent <intent.json|-> [--json]    say what a piece has to do; Lolly chooses the tool
+                                           for each surface, says why and lists what is missing
+  lolly intent <file> --render [--out-dir] make the files as well
+                        [--no-record-intent] record nothing about the intent in the files
+                        [--record-prompt]  record the prompt's own words, not a fingerprint
   lolly compose <spec.json|-> [--json]     slides laid out from the slide master's
                                            archetypes, as a Design document for
                                            package, check and run design --document
@@ -292,7 +305,8 @@ Subcommands:
   lolly trace <file|-> [--region=x,y,w,h]   edges as lines in its own coordinates (JSON);
                       [--design-layers]    --design-layers adds Design path layers
   lolly completion bash|zsh|fish           print a shell-completion script to stdout
-  lolly tui                                start the interactive terminal shell (needs a
+  lolly projects list|show|export|copy      local saved projects and private JSON exports
+  lolly tui [--root=/path/to/content]       start the interactive terminal shell (needs a
                                            real terminal; same engine, same bytes)
 
 Global flags (valid on every command):
@@ -325,6 +339,12 @@ Export options:
   --bleed=3mm --marks=crop,reg,bars        print prep (routes through the full render tier)
   --press-profile=fogra39  CMYK press condition for pdf-cmyk / cmyk-tiff. \`--profile=\`
                            is its alias, matching URL mode's reserved \`profile\` param.
+  --jobs=<1..8>           isolated production batch workers
+  --journal=<file>        production batch receipts; --resume reuses verified outputs
+  --dry-run               plan a batch without writing files
+  --watch                 rebuild a batch when its CSV/file inputs change
+  --inputs=<file|->       read input values from JSON; explicit flags win
+  --include-personal      include reviewed personal fields in --share links
   --user-profile=<f.json>  pre-fill bindToProfile inputs from a user-profile JSON file
   --rate-card=<f.json>     load + validate a printer's rate card and confirm it (a bad
                            card warns and continues; no prices are computed)
@@ -367,7 +387,7 @@ Export options:
   --designv=<slug|latest>  the design-system version to render against: a published
                            version's slug, or \`latest\` for the edit head. Beats a
                            tool's own pin; a slug this catalog does not ship falls
-                           through to the pin, then the head, and says so either way
+                           through to the pin, then the head, and reports which one applied
   --verify                 for a file utility: print a per-file line when no check failed
   --rights=private         state that this render is not being delivered to anyone, so a
                            condition that applies on sharing does not apply and no
@@ -432,7 +452,7 @@ process.stdout.on('error', (err: NodeJS.ErrnoException) => {
 // A raw argv scan is enough: `--json` has one spelling and no bare-value trap. The
 // command name is re-set accurately by main() once the parse succeeds; this pre-set is
 // only the fallback for a failure that happens before that.
-const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+const RAW_VERBS = new Set(['intent', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
 const rawFirst = args.find(a => !a.startsWith('-'));
 beginCommand(
   RAW_VERBS.has(rawFirst ?? '') ? rawFirst! : 'lolly',
@@ -446,7 +466,9 @@ try {
   // --help / -h / --version / -v are recognised ANYWHERE in argv, before anything treats
   // the token as a tool id (`lolly --help` used to print "Tool not found: --help").
   if (args.some(a => a === '--help' || a === '-h' || a === 'help')) {
-    if (rawFirst === 'adobe') { const { ADOBE_HELP } = await import('../src/adobe.ts'); await writeOut(ADOBE_HELP); }
+    if (rawFirst === 'dxf') { const { DXF_HELP } = await import('../src/dxf.ts'); await writeOut(DXF_HELP); }
+    else if (rawFirst === 'affinity') { const { AFFINITY_HELP } = await import('../src/affinity.ts'); await writeOut(AFFINITY_HELP); }
+    else if (rawFirst === 'adobe') { const { ADOBE_HELP } = await import('../src/adobe.ts'); await writeOut(ADOBE_HELP); }
     else if (rawFirst === 'prepare') { const { prepareCli } = await import('../src/prepare.ts'); await prepareCli([], { help: '1' }); }
     else if (rawFirst === 'compose') { const { COMPOSE_HELP } = await import('../src/compose.ts'); await writeOut(COMPOSE_HELP); }
     else {
@@ -512,8 +534,8 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
-  beginCommand(cmd === 'adobe' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
+  const VERBS = new Set(['intent', 'learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+  beginCommand(cmd === 'adobe' || cmd === 'affinity' || cmd === 'dxf' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
   // A command that needs them says so here, once, with the routes to a root - instead
@@ -521,6 +543,12 @@ async function main(): Promise<void> {
   if (needsContentRoot(cmd)) assertContentRoot();
 
   // ── explicit verbs ────────────────────────────────────────────────────────
+  if (cmd === 'affinity') {
+    const { affinityCli } = await import('../src/affinity.ts'); await affinityCli(positionals.slice(1), flags, g.json); return;
+  }
+  if (cmd === 'dxf') {
+    const { dxfCli } = await import('../src/dxf.ts'); await dxfCli(positionals.slice(1), flags, g.json); return;
+  }
   if (cmd === 'adobe') {
     const { adobeCli } = await import('../src/adobe.ts'); await adobeCli(positionals.slice(1), flags); return;
   }
@@ -532,6 +560,11 @@ async function main(): Promise<void> {
     if (!positionals[1]) throw usageError('inspect --motion requires a delivered media file.');
     const report = await inspectMotionBytes(new Uint8Array(await readFile(positionals[1])));
     process.stdout.write(JSON.stringify(report, null, 2) + '\n');
+    return;
+  }
+  if (cmd === 'reports') {
+    const { reportsCli } = await import('../src/reports.ts');
+    await reportsCli(positionals.slice(1), flags, g.json);
     return;
   }
   if (cmd === 'learning') {
@@ -592,6 +625,22 @@ async function main(): Promise<void> {
     refuseUnknownFlags('check', flags, [...CHECK_VALUE_FLAGS, ...CHECK_BOOL_FLAGS]);
     const { checkCli } = await import('../src/check.ts');
     process.exitCode = await checkCli(positionals.slice(1), flags, { json: g.json, strict: g.strict });
+    return;
+  }
+
+  // `intent`: what a piece has to do, answered with a tool per surface and the reasons (plan
+  // 350 W4). Its value flag is refused bare and a flag it does not take is refused by name.
+  if (cmd === 'intent') {
+    const bare = args.find(arg => arg === '--out-dir' || arg === '--c2pa');
+    if (bare) throw usageError(`${bare} needs a value: write ${bare}=<value>.`, 'MISSING_FLAG_VALUE');
+    refuseUnknownFlags('intent', flags, [...INTENT_VALUE_FLAGS, ...INTENT_BOOL_FLAGS]);
+    const { intentCli } = await import('../src/intent.ts');
+    process.exitCode = await intentCli(positionals.slice(1), {
+      render: isOn(flags.render), json: g.json, ...(flags['out-dir'] !== undefined ? { outDir: flags['out-dir'] } : {}),
+      ...(isOn(flags['no-record-intent']) ? { recordIntent: false } : {}),
+      ...(isOn(flags['record-prompt']) ? { recordPrompt: true } : {}),
+      ...(flags.c2pa !== undefined ? { c2pa: flags.c2pa } : {}),
+    });
     return;
   }
 
@@ -729,6 +778,12 @@ async function main(): Promise<void> {
   // would use is worthless. The engine owns the rules; this shell only collects the
   // facts. Counts and findings only - there is no rate, price or currency in it.
   if (cmd === 'preflight') {
+    const batch = flags.batch ?? (/\.(csv|tsv)$/i.test(positionals[1] ?? '') ? positionals[1] : undefined);
+    if (batch) {
+      const { productionBatchCli } = await import('../src/batch-production.ts');
+      process.exitCode = await productionBatchCli(batch, { outDir: flags['out-dir'] || './out', preflight: true, json: g.json, strict: g.strict, jobs: flags.jobs === undefined ? undefined : Number(flags.jobs), keepGoing: isOn(flags['keep-going']), journal: flags.journal });
+      return;
+    }
     const rest = args.slice(args.indexOf('preflight') + 1);
     const { preflightCli } = await import('../src/preflight.ts');
     process.exitCode = await preflightCli(rest, flags);
@@ -848,7 +903,13 @@ async function main(): Promise<void> {
     const csv = positionals[1];
     if (!csv) throw usageError('usage: lolly batch <rows.csv> [--out-dir=./out] [--keep-going]   (or --template=tool,tool)', 'MISSING_ARGUMENT');
     const { runBatchCli } = await import('../src/batch.ts');
-    process.exitCode = await runBatchCli(csv, { outDir: flags['out-dir'] || './out', keepGoing: isOn(flags['keep-going']), json: g.json });
+    if (flags.rows !== undefined || flags['expect-plan'] !== undefined || isOn(flags.preflight) || isOn(flags['dry-run']) || isOn(flags.resume) || isOn(flags.watch) || flags.jobs !== undefined || flags.journal !== undefined) {
+      const { productionBatchCli } = await import('../src/batch-production.ts');
+      process.exitCode = await productionBatchCli(csv, { outDir: flags['out-dir'] || './out', keepGoing: isOn(flags['keep-going']), json: g.json,
+        jobs: flags.jobs === undefined ? undefined : Number(flags.jobs), strict: g.strict, rows: flags.rows?.split(',').map(Number), expectedPlan: flags['expect-plan'], dryRun: isOn(flags['dry-run']), preflight: isOn(flags.preflight), resume: isOn(flags.resume), watch: isOn(flags.watch), journal: flags.journal });
+    } else {
+      process.exitCode = await runBatchCli(csv, { outDir: flags['out-dir'] || './out', keepGoing: isOn(flags['keep-going']), json: g.json });
+    }
     return;
   }
 
@@ -886,6 +947,11 @@ async function main(): Promise<void> {
   // `tui`: the interactive terminal shell, from the same install (plans/202 WP1.4). It
   // runs as a child with stdio inherited, so the terminal and the exit code pass
   // through and this process still writes nothing to stdout.
+  if (cmd === 'projects') {
+    const { projectsCli } = await import('../src/projects.ts');
+    await projectsCli(positionals.slice(1), flags, g.json);
+    return;
+  }
   if (cmd === 'tui') {
     const { tuiCli } = await import('../src/tui.ts');
     process.exitCode = await tuiCli(args.slice(args.indexOf('tui') + 1));
@@ -911,7 +977,8 @@ async function main(): Promise<void> {
     // own `format=` param (kept in the params, read by runToolCli) or the path-segment
     // format wins. An explicit CLI `--export=svg` is non-empty and still overrides.
     const toleratedUrlKeys = new Set(Object.keys(urlParams).filter(key => !(key in flags)));
-    await render(ref.toolId, merged, ref.format ?? undefined, repeated, toleratedUrlKeys, positionals.slice(1));
+    // The same keys are the link's own choices, which never pick a file on this computer.
+    await render(ref.toolId, merged, ref.format ?? undefined, repeated, toleratedUrlKeys, positionals.slice(1), toleratedUrlKeys);
     return;
   }
 
@@ -945,6 +1012,7 @@ async function render(
   repeated: Record<string, string[]> = {},
   toleratedUnknown: ReadonlySet<string> = new Set(),
   files: readonly string[] = [],
+  linkParams?: ReadonlySet<string>,
 ): Promise<void> {
   if (isOn(flags.json)) {
     // `--json` on a render is deliberately absent at GA (contract section 3): run's stdout IS
@@ -963,6 +1031,7 @@ async function render(
   // --password-stdin (contract B15) keeps the password out of argv, where `ps` can read
   // it. It replaces the value the rest of the pipeline reads, so nothing downstream
   // needs to know which way it arrived.
+  if (params.inputs === '-' && isOn(flags['password-stdin'])) throw usageError('--inputs=- and --password-stdin cannot share stdin.', 'CONFLICTING_FLAGS');
   const password = await resolvePassword(flags, readStdin);
   if (password !== undefined) params.password = password;
   delete params['password-stdin'];
@@ -981,6 +1050,7 @@ async function render(
     rejectUnknown: true,
     toleratedUnknown,
     files,
+    ...(linkParams ? { linkParams } : {}),
   });
 }
 

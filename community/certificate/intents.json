@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "recognise",
+      "needs": [
+        "firstname",
+        "awardtopic"
+      ],
+      "set": {
+        "lastname": "",
+        "awarddate": "",
+        "presenter": "",
+        "presenterTitle": "",
+        "company": ""
+      }
+    }
+  ]
+}

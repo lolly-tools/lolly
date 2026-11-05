@@ -31,6 +31,7 @@ import { mountHomeFab } from '../../components/home-fab.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { isTauriMobileShell, isTauriShell } from '../../lib/instance-choice.ts';
 import { tauriInvoke } from '../../lib/nearby-boot.ts';
+import { aiAllowed, aiPolicy, AiPolicyError } from '../../lib/ai-policy.ts';
 import { announce } from '../../a11y.ts';
 import { edgeDockCollapsed, isDocked, onDockChange } from '../../lib/edge-dock.ts';
 import { AUTO_PACK_MIN, BROWSER_TARGET, costUrlState, LINK_CONTENT_MAX } from '../../lib/url-budget.ts';
@@ -1313,7 +1314,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
         })));
         const startDesktopServing = async (): Promise<void> => {
           const invoke = tauriInvoke();
-          if (!invoke || desktopServing || !viewEl.isConnected) return;
+          if (!invoke || desktopServing || !viewEl.isConnected || !aiAllowed('agents')) return;
           const [{ serveDesktop, setListener }, { mountAgentPill }, editor] = await Promise.all([
             import('../../lib/live-agent-desktop.ts'), import('../agent-connect.ts'), liveEditorFactory(),
           ]);
@@ -1335,7 +1336,36 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
         };
         if (desktopAgents && toolId === 'design' && !isPresent) {
           void import('../../lib/live-agent-desktop.ts').then(({ allowAiControl }) => { if (allowAiControl()) void startDesktopServing().catch(() => {}); });
+          // Allow AI control sits under the `agents` policy: a withdrawal stops the
+          // listener at once, and a later grant restarts it if the person had it on.
+          const offPolicy = aiPolicy.subscribe(() => {
+            void import('../../lib/live-agent-desktop.ts').then(async ({ aiControlPermitted, allowAiControl, setListener }) => {
+              if (!viewEl.isConnected) return;
+              if (!aiControlPermitted() && desktopServing) {
+                desktopServing.stop();
+                desktopServing = null;
+                desktopPill?.remove();
+                desktopPill = null;
+                const invoke = tauriInvoke();
+                if (invoke) await setListener(invoke, false).catch(() => {});
+              } else if (allowAiControl() && !desktopServing) {
+                void startDesktopServing().catch(() => {});
+              }
+            });
+          });
+          mountLifecycle.add('agent-policy', offPolicy);
         }
+        // Ask an agent (device agents without local MCP): the desktop app's own agent
+        // CLIs, one request at a time. Detection runs when the panel opens; one that
+        // finds nothing hides the row until this document is opened again.
+        let askAgentNothingFound = false;
+        const openAskAgent = async (): Promise<void> => {
+          const invoke = tauriInvoke();
+          if (!invoke || !aiAllowed('agents')) return;
+          const { openAgentAsk } = await import('../agent-ask.ts');
+          if (!viewEl.isConnected) return;
+          openAgentAsk({ viewEl, invoke, editor: liveEditorFactory, onNothingFound: () => { askAgentNothingFound = true; } });
+        };
         agentInvitationsReady = mountToolAgentInvitations(tview, liveEditorFactory);
         const openAgentLink = async (): Promise<void> => {
           const { agentRelayBase } = await import('../../lib/agent-invitation-host.ts');
@@ -1351,9 +1381,11 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
             if (!viewEl.isConnected) return;
             openAgentControl({
               allowed: allowAiControl,
+              permitted: () => aiAllowed('agents'),
               async setAllowed(on) {
                 const invoke = tauriInvoke();
                 if (!invoke) throw new Error(t('This build cannot listen for agents.'));
+                if (on && !aiAllowed('agents')) throw new AiPolicyError();
                 if (on) { setAllowAiControlPref(true); await startDesktopServing(); return; }
                 setAllowAiControlPref(false);
                 desktopServing?.stop();
@@ -1544,6 +1576,12 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                   void openAgentLink();
                 }
               : undefined,
+            askAgent: toolId === 'design' && !isPresent && desktopAgents
+              ? () => {
+                  void openAskAgent();
+                }
+              : undefined,
+            askAgentShown: () => aiAllowed('agents') && !askAgentNothingFound,
             canSave: canSaveSession,
             dirtyRef: tview.renderSaveBtn,
           },

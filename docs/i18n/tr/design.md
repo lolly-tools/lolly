@@ -10,9 +10,9 @@ Bu sayfa tuvali ilk kutudan bitmiş bir sunuma kadar gezdirir: pencere, kutular�
 
 **Üst çubuk**, **Home**, **File menu** ve belgenin adıyla başlar (belgeyi yeniden adlandırmak için ada tıkla). Orta kısım **Undo**, **Redo**, **History**, yakınlaştırma denetimleri (**Fit all** ve **Fit artboard** ile) ve **Timeline**, **Navigator** ile **Inspector** anahtarlarını tutar. Sağda **Share**, **Present** ve **Export** durur. Bir telefonda daha az kullanılan düğmeler **More actions** içine taşınır.
 
-Yanda aşağı doğru uzanan **araç rayı**, Lolly menüsünü ve çizim yaptığın araçları tutar: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, sonra Timeline, Artboards ve Auto-arrange düğmeleri.
+Yanda aşağı doğru uzanan **araç rayı**, Lolly menüsünü ve çizim yaptığın araçları tutar: **Pointer**, **Add a box**, **Pen** (**Pencil** onunla aynı düğmeyi paylaşır), **Edit points**, **Line**, sonra Timeline, Artboards ve Auto-arrange düğmeleri.
 
-![Serbest kanvas araç rayı: bir sürükleme tutamacı, Lolly menüsü, ardından İşaretçi, Bir kutu ekle, Kalem, Kurşun kalem, Noktaları düzenle, Çizgi, Zaman çizelgesi, Çalışma alanları ve Otomatik düzenle](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Serbest kanvas araç rayı: bir sürükleme tutamacı, Lolly menüsü, ardından İşaretçi, Bir kutu ekle, Kalem, Noktaları düzenle, Çizgi, Zaman çizelgesi, Çalışma alanları ve Otomatik düzenle](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Tuval, çalışma alanının etrafında bir tasarımcının masası gibi çalışır:
 
@@ -79,7 +79,7 @@ Kutular, daireler ve yuvarlatılmış çerçeveler düzenlerin çoğunu kapsar. 
 
 **Açık bir yola devam et.** Pen açıkken açık bir yolun iki ucundan birine bas; o yolu yeniden çiziyorsun demektir: her tıklama o uçtan sonra, başlangıçtan başladıysan ilk noktanın önüne bir nokta ekler. Enter sonucu korur, Escape yolu tam olduğu gibi bırakır. Yol aynı kutu olarak kalır; dolgusu, konturu ve ok uçları değişmez ve tek bir geri alma onu eski hâline getirir. Delete yalnızca senin eklediğin noktaları geri alır. Kapalı bir şeklin, bir kutuya bağlı bir çizginin ve birkaç parçalı bir yolun devam ettirilecek serbest ucu yoktur.
 
-**Kurşun kalemle serbest çiz.** Raydaki **Pencil** düğmesi (veya `Shift C`) sürüklerken çizgini kaydeder. Bıraktığında Lolly çizgiyi Bezier tutamaklı birkaç noktaya yumuşatır, keskin dönüşleri köşe olarak korur ve eğriyi elinin gittiği yerden birkaç ekran pikseli içinde tutar. Başlangıcına yakın biten bir çizgi kapanır. Sonuç, bir pen yoluyla aynı boyaya sahip sıradan bir yoldur ve noktalarını sonradan düzenleyebilirsin.
+**Kurşun kalemle serbest çiz.** `Shift C` tuşuna bas ya da raydaki **Pen** düğmesine basılı tut (veya düğmeye sağ tıkla) ve **Pencil** seç; düğme bundan sonra yeniden Pen seçene kadar Pencil'ı gösterir. Pencil sürüklerken çizgini kaydeder. Bıraktığında Lolly çizgiyi Bezier tutamaklı birkaç noktaya yumuşatır, keskin dönüşleri köşe olarak korur ve eğriyi elinin gittiği yerden birkaç ekran pikseli içinde tutar. Başlangıcına yakın biten bir çizgi kapanır. Sonuç, bir pen yoluyla aynı boyaya sahip sıradan bir yoldur ve noktalarını sonradan düzenleyebilirsin.
 
 Sonuç sıradan bir kutudur. Yolu diğer her kutu gibi taşı, yeniden boyutlandır, döndür, grupla, hizala, yeniden sırala, doldur, gölgele veya soldur. İlk yol, markanın bir yola verdiği dolguyu ve çizgiyi alır ve sonraki her yeni yol en son kullandığını alır. Markasının yollar için hiçbir şey ayarlamadığı bir araçta yeni bir yol çizdiğin renkle çizilir; böylece şekil asla görünmez olmaz.
 
@@ -121,6 +121,25 @@ Her nokta ayrıca şekliyle gösterilen bir süreklilik kuralı taşır: **Corne
 ![İkisi de Subtract ile üretilmiş, bir hilal ve gerçek bir deliği olan bir halka](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Sonuç, kalemle düzenlemeye devam edebileceğin, düz Bezier eğrileri olarak saklanan yeni bir yoldur; bu yüzden özgün spline türü taşınmaz. Delikler gerçek deliklerdir: çizgi panelindeki **Fill rule** denetimi, örtüşen konturların doldurulup doldurulmayacağına (*non-zero*) ya da delinip delinmeyeceğine (*even-odd*) karar verir. İşlemler yok etmek yerine reddeder: örtüşmeyen iki şekli kesiştirmeyi istersen hiçbir şey değişmez. Metin ve görsel kutularının çerçevesi yoktur, bu yüzden dokunulmaz.
+
+## Bir görseli izleme
+
+Bir görsel seç, sağ tıkla ve resmi düzenlenebilir şekillere dönüştürmek için **Görseli izle…** seçeneğini seç. Bir ön ayar seç ve **İzle** düğmesine bas:
+
+- **Logo** birkaç düz renk bulur; keskin kenarları ve gerçek daireleri ile çizgileri korur. Degrade ya da fotoğraf tonları olan bir resmi reddeder ve bunu söyler.
+- **İllüstrasyon** birkaç rengi dolu şekiller olarak izler; düz çizimleri ya da posterize edilmiş bir resmi.
+- **Çizgi sanatı** açık bir sayfadaki koyu çizgileri siyah şekiller olarak izler.
+- **Orta çizgi** koyu çizgileri tek tek vuruşlar olarak izler, böylece kalınlıklarını sonradan değiştirebilirsin.
+
+Şekiller, görselin hemen üstüne bir grup olarak eklenir; görsel olduğu yerde kalır. Yalnızca yolları görmek için görseli gizle veya sil. İzleme cihazında, İptal düğmeli bir arka plan işinde çalışır ve hiçbir şey yüklenmez. 1500 piksellik bir görsel genellikle bir ile birkaç saniye arasında sürer; karmaşık bir fotoğraf daha uzun sürer.
+
+İzleme kutunun gösterdiğini izler; bu yüzden kırpılmış (Cover) bir görselde yalnızca görünen kısım izlenir. Şu sınırlar geçerlidir:
+
+- Görseller izlemeden önce uzun kenarda en fazla 1500 piksele küçültülür; bu yüzden kenarlar özgün boyutun değil, bu boyutun bir kesri hassasiyetinde yerleştirilir.
+- Bir izleme en fazla 1.500 şekil ve 60.000 nokta üretir. Bir fotoğraf genellikle bunu aşar ve Design hiçbir şeyi değiştirmeden bunu söyler. Logo veya Çizgi sanatını ya da daha basit bir resmi dene.
+- Degradeler düz renk bantlarına, yumuşak gölgeler sert kenarlı şekillere dönüşür.
+- Köşe yarıçapı, şekil maskesi ve görsel kutusundaki efekt yollara uygulanmaz.
+- Aynı resim ve aynı ön ayar her zaman aynı şekilleri verir.
 
 ## Konturlar
 
@@ -195,9 +214,9 @@ Somut bir renk veya yazı tipi önerisi bulunduğunda, düğmesi yalnızca o kat
 
 ### Kurumsal stil kuralları ve yazım sinyali
 
-Dışa aktarma panelindeki kart ayrıca tasarım sistemin ile gelen kurumsal stil kurallarını, yani metin ağırlığı ve hizalama, onaylı renk eşleşmeleri veya yüzey başına bir logo gibi kuralları katman katman denetler. Her bulgu, kuralın üstünde katmanın adıyla bir uyarıdır. Bu sürümün denetleyicisi olmayan bir kural, asla izlenmiş olarak değil denetlenmemiş olarak listelenir. [Usage & rules](/info/brand-studio.html#usage-rules) kuralları listeler ve `lolly check` aynı kuralları kayıtlı bir belgeye uygular.
+Dışa aktarma panelindeki kart ayrıca tasarım sistemin ile gelen kurumsal stil kurallarını, yani metin ağırlığı ve hizalama, onaylı renk eşleşmeleri veya yüzey başına bir logo gibi kuralları katman katman denetler. Her bulgu, kuralın üstünde katmanın adıyla bir uyarıdır. Bu sürümün denetleyicisi olmayan bir kural, asla izlenmiş olarak değil denetlenmemiş olarak listelenir. [Rules](/info/brand-studio.html#rules) kuralları listeler ve `lolly check` aynı kuralları kayıtlı bir belgeye uygular.
 
-Aynı kart, belgenin çizdiği metin için yazım sinyalini gösterir: bandı (none, weak, notable veya strong), sonra 100 üzerinden puanla Verify'ın kendi cümlesi ve her biri onları tutan katmanla birlikte en fazla üç işaretli ifade. **Open the text in Verify** o metni tam okuma için [Verify](/#/verify) sayfasına götürür; [AI evidence in Verify](/info/verify-ai-evidence.html) puanın neyi tarttığını açıklar. Puan bir sinyaldir, hüküm değil: üretilmiş yazıda yaygın örüntüleri sayar ve sözcükleri kimin yazdığını söyleyemez. Gizli katmanlar iki denetimin de dışında bırakılır ve kart kaç tane olduğunu söyler.
+Aynı kart, belgenin çizdiği metin için yazım sinyalini gösterir: bandı (none, weak, notable veya strong), sonra 100 üzerinden puanla Verify'ın kendi cümlesi ve her biri onları tutan katmanla birlikte en fazla üç işaretli ifade. **Open the text in Verify** o metni tam okuma için [Lolly Verify](/#/verify) sayfasına götürür; [AI evidence in Verify](/info/verify-ai-evidence.html) puanın neyi tarttığını açıklar. Puan bir sinyaldir, hüküm değil: üretilmiş yazıda yaygın örüntüleri sayar ve sözcükleri kimin yazdığını söyleyemez. Gizli katmanlar iki denetimin de dışında bırakılır ve kart kaç tane olduğunu söyler.
 
 Kurumsal stil kuralı bulguları ve güçlü bir yazım sinyali, kartın "to fix" toplamına sayılır; böylece bulunmaları kolaydır. Bilgilendirirler ve asla engellemezler: Download kullanılabilir kalır ve reddedilecek ya da istisna olarak kaydedilecek bir şey yoktur. Açık belgede çalışan bir ajan aynı raporu site araçları üzerinden alır ([Agents in an open document](/info/open-document-agents.html)).
 

@@ -9,25 +9,25 @@ import '../styles/parts/design-system-specimen.css';
  * Profile. Five of the six rooms are lib/brand-editor.ts's panels, mounted once
  * with everything wired; this view owns what sits around them:
  *
- *   - the RAIL of rooms (Overview · Colours · Type · Logos · Tokens · Files) -
- *     independent areas, not steps: nothing is numbered, nothing gates on
- *     anything else, and arriving anywhere is legitimate. The editor renders
+ *   - the BAR (plan 336 P1): the way back, the design system's name as an
+ *     inline editable, and the actions that work on the whole system - "Add
+ *     from…" (the source picker: a design file, a PDF, an image, a font file),
+ *     Export, and a More menu holding the quieter ones (tokens JSON, the Linux
+ *     font package, the first publish, restore, switch). They act on the whole
+ *     design system rather than the open room, which is why they sit in the
+ *     chrome and not in a room;
+ *   - the ROOMS (P2): Board · Colours · Type · Logos · Tokens · Files · Rules ·
+ *     Skills, plus Versions once something is published or asked for by name.
+ *     Independent areas, not steps: nothing is numbered, nothing gates on
+ *     anything else, and arriving anywhere is legitimate. One strip under the
+ *     bar on a desk, a bar at the bottom edge on a phone. The editor renders
  *     all five of its panels and this view flips `data-active-tab` on it, so
- *     changing room never re-mounts anything. `overview` is not one of the
- *     editor's panels - parking that key on the same attribute hides all five,
- *     which is exactly what the Overview room wants. On a phone the rail
- *     becomes a horizontal chip strip pinned under the header;
- *   - the RAIL FOOT: "Add from…" (the source picker - a design file: a
- *     W3C/Tokens-Studio JSON, a Penpot file, an SVG's colours or a Lolly brand
- *     file; a PDF, read here for its colours, marks and embedded faces; an image;
- *     a font file), Export, and Versions (plan 97 section 6a - publish, activate,
- *     restore; hidden until the studio has something of its own to publish, and
- *     mounted the first time it is opened). All three act on the whole design
- *     system rather than the open room, which is why they sit in the chrome and
- *     not in a room;
- *   - the OVERVIEW room itself (lib/design-system/rooms/overview.ts) - the hub
- *     and the completion state. There is no finish card: Overview is always
- *     reachable and always reflects exactly what exists.
+ *     changing room never re-mounts anything. `overview` (the Board) is not one
+ *     of the editor's panels - parking that key on the same attribute hides all
+ *     five, which is exactly what the Board wants;
+ *   - the BOARD itself (lib/design-system/rooms/overview.ts) - the hub and the
+ *     completion state. There is no finish card: the Board is always reachable
+ *     and always reflects exactly what exists.
  *
  * Everything persists to the one `user/tokens/brand` install via the bridge's
  * single write chokepoint (installUserTokens → bust); a source install takes a
@@ -41,6 +41,9 @@ import '../styles/parts/design-system-specimen.css';
  */
 
 import '../styles/parts/start.css';
+import { onLayoutChange } from '../lib/layout-posture.ts';
+import { mountSplitView } from '../lib/split-panes.ts';
+import '../styles/parts/start-bar.css';
 import '../styles/parts/start-usage.css';
 import '../styles/parts/start-skills.css';
 import { mountUsageRoom } from '../lib/design-system/rooms/usage.ts';
@@ -82,6 +85,7 @@ import '../styles/parts/start-reference.css';
 import { sourcesOps } from './start/sources.ts';
 import { tokensOps } from './start/tokens.ts';
 import { lifecycleOps } from './start/lifecycle.ts';
+import { barOps } from './start/bar.ts';
 
 
 // Compile-time pin: every room but Overview IS one of the editor's panel keys,
@@ -117,6 +121,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   start.sources = sourcesOps(start);
   start.tokens = tokensOps(start);
   start.lifecycle = lifecycleOps(start);
+  start.bar = barOps(start);
   start.viewEl = viewEl;
   start.host = host;
   start.params = params;
@@ -249,17 +254,22 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   start.urlPrefill = new URLSearchParams(params.startsWith('?') ? params.slice(1) : params).get('u') ?? '';
   if (start.urlPrefill.length > SITE_MAX_URL_CHARS) start.urlPrefill = '';
   start.activeArea = isStartArea(route.area) ? route.area : 'overview';
+  start.lastRoom = null;
+  start.split = null;
+  start.unsubSplit = null;
 
   // Rooms are peers: one flat list, no order to obey. Built at mount so every
   // label resolves against the language in force right now.
+  // "Board" and "Rules" are the room names Andy accepted for plan 336; the
+  // room keys behind them are permanent contracts and stay as they were.
   const ROOM_LABELS: Record<StartArea, string> = {
-    overview: t('Overview'),
+    overview: t('Board'),
     color: t('Colours'),
     type: t('Type'),
     logos: t('Logos'),
     tokens: t('Tokens'),
     catalogue: t('Files'),
-    usage: t('Usage & rules'),
+    usage: t('Rules'),
     skills: t('Skills'),
     versions: t('Versions'),
   }; start.ROOM_LABELS = ROOM_LABELS;
@@ -278,6 +288,8 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   const editorMount = viewEl.querySelector<HTMLElement>('[data-start-editor]')!; start.editorMount = editorMount;
   const noteEl = viewEl.querySelector<HTMLElement>('[data-start-note]'); start.noteEl = noteEl;
   const overviewPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="overview"]')!; start.overviewPanel = overviewPanel;
+  start.livePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="live"]')!;
+  start.boardState = null;
   start.usagePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="usage"]')!;
   start.usage = null;
   start.skillsPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="skills"]')!;
@@ -285,7 +297,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   const versionsPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="versions"]')!; start.versionsPanel = versionsPanel;
   const versionsBtn = viewEl.querySelector<HTMLButtonElement>('[data-ds-room="versions"]'); start.versionsBtn = versionsBtn;
   const versionsLink = viewEl.querySelector<HTMLButtonElement>('[data-ds-versions-link]'); start.versionsLink = versionsLink;
-  const railEl = viewEl.querySelector<HTMLElement>('.ds-rail')!; start.railEl = railEl;
+  const railEl = viewEl.querySelector<HTMLElement>('.ds-room-nav')!; start.railEl = railEl;
 
   start.brand.wireRegistry();
   const roomBtns = [...viewEl.querySelectorAll<HTMLButtonElement>('[data-ds-room]')]; start.roomBtns = roomBtns;
@@ -398,6 +410,8 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   };
 
   start.rooms.wireRooms();
+  start.bar.wireBar();
+  start.bar.syncStrip(true);
 
   // Deep-link: `#/start?area=color&wheel` opens the OKLCH Colour chart on mount -
   // the same folded card the Colours room reveals on click. Reuses the editor's
@@ -578,6 +592,12 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   start.tokens.wireTokenDrop();
 
   start.tokens.wireTokenReview();
+
+  // Two panes (lib/split-panes.ts): the Board on the control side and the open
+  // room's work beside it, placed by styles/parts/split.css. A fold, an unfold or a
+  // rotation re-applies the room so the Board's own button follows the layout.
+  start.split = mountSplitView({ id: 'studio', host: start.host });
+  start.unsubSplit = onLayoutChange(() => start.rooms.selectRoom(start.activeArea));
 
   start.lifecycle.wireCleanup();
   importReady();

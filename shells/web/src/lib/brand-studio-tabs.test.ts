@@ -24,7 +24,7 @@ after(() => {
   dom.window.close();
 });
 
-const { mountTokensPanel, tokensRoomModel } = await import('./brand-studio-tabs.ts');
+const { mountCataloguePanel, mountTokensPanel, tokensRoomModel } = await import('./brand-studio-tabs.ts');
 const { walkSwatches } = await import('./brand-doc.ts');
 const { colorIdentity, isRoleKey, starterColorIds } = await import('./design-system/ownership.ts');
 type Ctx = Parameters<typeof mountTokensPanel>[1];
@@ -37,7 +37,7 @@ const neutralDoc = (): Record<string, unknown> => ({
 });
 const colourOnly = (): Record<string, unknown> => ({ color: { brand: { teal: { $type: 'color', $value: '#127a7a', $description: 'Teal' } } } });
 
-function mount(initial: Record<string, unknown>, starter: ReadonlySet<string> = new Set(), opts: { fonts?: string[]; clipboardRefuses?: boolean } = {}) {
+function mount(initial: Record<string, unknown>, starter: ReadonlySet<string> = new Set(), opts: { fonts?: string[]; clipboardRefuses?: boolean; supplied?: boolean } = {}) {
   let doc = structuredClone(initial);
   const calls = { setDoc: 0, persist: [] as boolean[], notify: 0, undo: [] as string[], clipboard: [] as string[] };
   const host = {
@@ -57,6 +57,7 @@ function mount(initial: Record<string, unknown>, starter: ReadonlySet<string> = 
     swatches: () => walkSwatches(doc, 'light'),
     starterIds: () => starter,
     userFontFamilies: () => opts.fonts ?? [],
+    supplied: () => !!opts.supplied,
   };
   const el = document.createElement('div');
   el.className = 'be-tokens';
@@ -77,13 +78,17 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
     assert.equal(n('color'), String(palette));
     assert.equal(n('color'), '41');
     // No face is installed on this device and no mark uploaded here, so neither
-    // is the person's own: the Type room tags SUSE Starter and the Logos room is empty.
-    assert.equal(n('type'), '0');
-    assert.equal(n('logos'), '0');
-    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 0, Starter$/);
+    // is the person's own. The tiles still count what the system holds, never a
+    // zero over material that is there, and the tag says whose it is (plan 336).
+    // Four font tokens name three typefaces (SUSE serves text and emphasis), the
+    // number the Board shows too (design-system/counts.ts).
+    assert.equal(n('type'), '3');
+    assert.equal(n('logos'), '9');
+    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 3, Starter$/);
     assert.ok(m.$('[data-tk-jump="logos"] .tk-tag'), 'the tile says the marks are the starter’s');
     assert.equal(n('shape'), '2');
-    assert.equal(n('all'), '93');
+    // 93 until plans/329 seeded the motion scale: three durations, three curves, two springs.
+    assert.equal(n('all'), '101');
     for (const id of ['color', 'type', 'logos', 'shape', 'more']) assert.ok(m.$(`[data-tk-sec="${id}"]`), id);
     assert.match(m.$('[data-tk-body="type"] .tk-empty')!.textContent!, /No typeface of your own yet\. Tools use the starter faces below until you choose one\./);
     assert.equal(m.el.querySelectorAll('[data-tk-body="type"] .tk-group .tk-row').length, 4, 'the four faces sit under the Starter head');
@@ -102,10 +107,20 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
   } finally { m.done(); }
 });
 
+test('Lolly Demo as the app supplies it: what it holds is its own, with no Starter tag', () => {
+  const m = mount(DEMO, new Set(), { supplied: true });
+  try {
+    assert.equal(m.$('[data-tk-jump="type"] .tk-tile-n')!.textContent, '3');
+    assert.match(m.$('[data-tk-jump="type"]')!.getAttribute('aria-label')!, /^Type: 3$/);
+    assert.equal(m.$('[data-tk-jump="logos"] .tk-tile-n')!.textContent, '9');
+    assert.equal(m.$('[data-tk-overview] .tk-tag'), null, 'no tile calls a supplied system’s material the starter’s');
+  } finally { m.done(); }
+});
+
 test('a face installed on this device is the person’s own', () => {
   const m = mount(DEMO, new Set(), { fonts: ['SUSE', 'Outfit', 'SUSE Mono'] });
   try {
-    assert.equal(m.$('[data-tk-jump="type"] .tk-tile-n')!.textContent, '4');
+    assert.equal(m.$('[data-tk-jump="type"] .tk-tile-n')!.textContent, '3');
     assert.equal(m.$('[data-tk-body="type"] .tk-empty'), null);
     assert.equal(m.$('[data-tk-body="type"] .tk-group'), null, 'no Starter head when every face is theirs');
     assert.equal(m.$<HTMLAnchorElement>('[data-tk-sec="type"] .tk-sec-act')!.getAttribute('href'), '#/start?area=type');
@@ -197,7 +212,8 @@ test('only the starter neutrals: the starter group with its note, no pairs, and 
     assert.equal(m.el.querySelectorAll('[data-tk-sec="color"] .stu-chip').length, 9);
     assert.equal(m.$('[data-tk-pairs]'), null);
     assert.equal(m.$<HTMLAnchorElement>('[data-tk-sec="color"] .tk-sec-act')!.getAttribute('href'), '#/start?area=color&group=neutral');
-    assert.equal(m.$('[data-tk-jump="color"] .tk-tile-n')!.textContent, '0');
+    assert.equal(m.$('[data-tk-jump="color"] .tk-tile-n')!.textContent, '9', 'the tile counts the neutrals it holds');
+    assert.ok(m.$('[data-tk-jump="color"] .tk-tag'), 'and says they are the starter’s');
     assert.equal(tokensRoomModel(neutralDoc(), starter).starterOnly, true);
   } finally { m.done(); }
 });
@@ -247,7 +263,7 @@ test('a slider write survives the next edit from the same room (the lost update)
   } finally { m.done(); }
 });
 
-test('Copy writes the reference and says so', async () => {
+test('Copy writes the reference and confirms the copy', async () => {
   const m = mount(colourOnly());
   try {
     const copy = m.$<HTMLButtonElement>('[data-tk-sec="color"] [data-tk-copy]')!;
@@ -404,4 +420,20 @@ test('App appearance speaks of Lolly defaults and your values, and saves with Sa
     ui.querySelector<HTMLButtonElement>('[data-ui-customize]')!.click();
     assert.equal(ui.querySelector('[data-ui-save]')!.textContent, 'Save');
   } finally { m.done(); }
+});
+
+test('the empty Files room: the echidna beside the line, sniffing towards the drop zone', async () => {
+  const el = document.createElement('div');
+  document.body.append(el);
+  const host = { assets: { _listUserAssets: async () => [] } } as unknown as HostV1;
+  const panel = mountCataloguePanel(el, { host, notify: () => {} });
+  for (let i = 0; i < 4; i++) await new Promise(resolve => setTimeout(resolve, 0));
+  const slot = el.querySelector<HTMLElement>('.be-cat-empty > .fauna-slot[data-fauna="echidna"][aria-hidden="true"]');
+  assert.ok(slot, 'the echidna\'s place sits beside the empty line');
+  assert.equal(slot.dataset.faunaWatch, '[data-be-cat-dropzone]', 'and watches the drop zone');
+  assert.ok(slot.querySelector('svg.fauna--echidna'), 'the echidna is drawn');
+  assert.equal(el.querySelectorAll('.fauna-slot').length, 1, 'one animal in the room');
+  assert.match(el.querySelector('.be-cat-empty')?.textContent ?? '', /Nothing yet/);
+  panel.teardown?.();
+  el.remove();
 });

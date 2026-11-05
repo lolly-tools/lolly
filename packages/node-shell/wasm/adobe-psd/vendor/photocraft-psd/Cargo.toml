@@ -1,6 +1,6 @@
 [package]
 name = "photocraft-psd"
-version = "0.2.0"
+version = "0.18.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.95"
@@ -10,6 +10,7 @@ description = "Pinned PhotoCraft PSD/PSB format library"
 name = "photocraft_psd"
 
 [features]
+corpus = []
 default = []
 serde = ["dep:serde"]
 testgen = []
@@ -18,3 +19,17 @@ testgen = []
 thiserror = "2"
 flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
 serde = { version = "1", features = ["derive"], optional = true }
+
+[dev-dependencies]
+proptest = "1"
+photocraft-psd = { path = ".", features = ["testgen"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+cognitive_complexity = "deny"
+too_many_arguments = "deny"
+wildcard_imports = "deny"
+dbg_macro = "warn"
+todo = "warn"

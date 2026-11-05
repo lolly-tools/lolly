@@ -24,11 +24,11 @@ import { EXIT } from '../shells/cli/src/exit-codes.ts';
 const EMPTY = mkdtempSync(join(tmpdir(), 'lolly-no-content-'));
 
 test('the commands that need tools and a catalog are the ones that render', () => {
-  for (const cmd of ['list', 'describe', 'run', 'assets', 'batch', 'smoke', 'preflight', 'tui', 'qr-code', undefined]) {
+  for (const cmd of ['list', 'describe', 'run', 'assets', 'batch', 'smoke', 'preflight', 'qr-code', undefined]) {
     assert.equal(needsContentRoot(cmd), true, `${cmd} needs content`);
   }
   // File-in file-out and the design-system store work on a bare install.
-  for (const cmd of ['prepare', 'validate', 'system', 'start', 'completion', 'models', 'speak', 'ocr', 'pack', 'read', 'check', 'compose']) {
+  for (const cmd of ['tui', 'projects', 'prepare', 'validate', 'system', 'start', 'completion', 'models', 'speak', 'ocr', 'pack', 'read', 'check', 'compose']) {
     assert.equal(needsContentRoot(cmd), false, `${cmd} must run with no catalog`);
   }
 });

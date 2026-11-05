@@ -35,6 +35,24 @@ export interface TierReport {
   [k: string]: unknown;
 }
 
+export interface FormatReadiness {
+  format: string;
+  state: 'available' | 'conditional' | 'unavailable';
+  tier: 'native' | 'resvg' | 'renderer';
+  reason: string;
+}
+
+/** Dependency readiness is separate from document preflight and device capabilities. */
+export function formatReadiness(formats: readonly string[], environment: EnvironmentReport, nativeFormats: readonly string[] = environment.nativeFormats): FormatReadiness[] {
+  return formats.map(format => {
+    const lower = format.toLowerCase();
+    if (nativeFormats.includes(lower)) return { format, state: 'conditional', tier: 'native', reason: 'Native path installed; document content and export settings are checked at render time.' };
+    if (environment.renderer !== 'none') return { format, state: 'available', tier: 'renderer', reason: `Renderer: ${environment.renderer}. Document validation still applies.` };
+    if (lower === 'png' && environment.tiers.raster.available) return { format, state: 'conditional', tier: 'resvg', reason: 'resvg is installed for SVG-native output without durable/print settings. Other PNG jobs need a full renderer.' };
+    return { format, state: 'unavailable', tier: 'renderer', reason: environment.tiers.browser.reason ?? environment.tiers.desktop.reason ?? 'No full renderer is available. Configure the desktop app or run lolly install-browser and pnpm run build:web.' };
+  });
+}
+
 export interface EnvironmentReport {
   engine: string;
   cli: string;

@@ -61,6 +61,41 @@ test('colour workspace creates empty groups, moves directly, saves on Enter, pre
     editor = await mountBrandEditor(root, host); await settle();
     assert.equal(root.querySelectorAll('.be-pal-group--starter [data-be-tile]').length, 2);
     assert.equal($('.be-pal-count').textContent, '2 starter colours');
+    // The Colours room's blank state and head (plan 346 changes 7, 9, 12 and 18).
+    assert.equal(root.querySelector<HTMLDetailsElement>('.be-pal-group--starter')?.open, true, 'with nothing of its own, the starter group is open and shows its colours');
+    assert.ok(root.querySelector('section.be-addcolor[data-be-addcolor-drop] [data-ds-addc-input]'), 'paste and drop is a visible field at the top, not a disclosure');
+    assert.equal(root.querySelector('details.be-addcolor'), null);
+    assert.ok(root.querySelector('.be-addcolor .fauna-slot[data-fauna="lorikeet"][data-fauna-watch="paste"][aria-hidden="true"]'), 'the lorikeet\'s slot waits beside the field');
+    assert.equal(root.querySelector('.be-addcolor .fauna-slot')?.innerHTML, '', 'and stays empty: the Board\'s lorikeet is the one lorikeet');
+    assert.ok(root.querySelector('.be-logo-intake-drop > .fauna-slot[data-fauna="magpie"] > svg.fauna--magpie'), 'the Logos room\'s magpie is drawn in its drop area');
+    assert.equal(root.querySelectorAll('[data-be-tab-panel="logos"] .fauna-slot').length, 1, 'one animal in the Logos room');
+    assert.equal(root.querySelector('[data-be-pal-download], [data-be-pal-fmt]'), null, 'export lives in the bar and the Tokens room, not the room head');
+    assert.deepEqual([...root.querySelectorAll<HTMLElement>('[data-be-rolechip]')].map(el => el.dataset.beRolechip), ['primary', 'secondary', 'surface', 'text'], 'the role chips lead the room');
+    assert.match($('[data-be-rolechip="primary"]').textContent ?? '', /Primary\s*Starter\s*Ink/, 'the starter ink stands in for the primary, and says so');
+    assert.ok(root.querySelector('[data-be-editor-cancel].be-btn:not(.be-editor-del)'), 'Cancel is the neutral secondary, never the destructive style');
+    // Escape in a chip's picker closes the picker and nothing else: the studio's own
+    // Escape (a later document listener) would otherwise leave the studio.
+    const heardLater: string[] = [];
+    const studioEscape = (e: KeyboardEvent): void => { heardLater.push(e.key); };
+    document.addEventListener('keydown', studioEscape);
+    click('[data-be-rolechip="primary"]');
+    assert.ok(document.querySelector('.be-rolepick'), 'the chip opens its picker');
+    document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    document.removeEventListener('keydown', studioEscape);
+    assert.equal(document.querySelector('.be-rolepick'), null, 'Escape closes the picker');
+    assert.deepEqual(heardLater, [], 'and the studio never hears the press');
+    assert.equal(document.activeElement, $('[data-be-rolechip="primary"]'), 'focus returns to the chip');
+    // A list of colours dropped on the add area goes into the field; nothing is added yet.
+    const beforeDrop = structuredClone(installed);
+    const drop = new dom.window.Event('drop', { bubbles: true, cancelable: true });
+    Object.defineProperty(drop, 'dataTransfer', { value: { types: ['text/plain'], files: [], getData: () => '#ff0000, #00aa00' } });
+    $('[data-be-addcolor-drop]').dispatchEvent(drop);
+    assert.equal(drop.defaultPrevented, true, 'the drop is the add area\'s, not the page\'s');
+    assert.equal($<HTMLInputElement>('[data-ds-addc-input]').value, '#ff0000, #00aa00');
+    assert.equal($<HTMLElement>('[data-ds-addc-found]').hidden, false, 'and the row offers what it found');
+    await settle();
+    assert.deepEqual(installed, beforeDrop, 'a drop adds nothing until Add all or Add selected');
+    input('[data-ds-addc-input]', '');
     const order = (): string[] => [...root.querySelectorAll<HTMLElement>('[data-reorder-row]')].map(el => el.dataset.reorderRow!);
     const originalOrder = order();
     const reorder = (): void => {
@@ -111,6 +146,10 @@ test('colour workspace creates empty groups, moves directly, saves on Enter, pre
     click('[data-be-add-shade]:not(:disabled)');
     await settle(() => walkSwatches(installed, 'light').filter(s => s.kind !== 'semantic').length === 3);
     assert.equal(walkSwatches(installed, 'light').filter(s => s.kind !== 'semantic').length, 3, 'a single shade adds exactly one swatch');
+    // A colour of its own: the add area becomes the compact row, which names itself.
+    await settle(() => $('[data-be-tab-panel="color"]').dataset.beBeat !== '0');
+    assert.notEqual($('[data-be-tab-panel="color"]').dataset.beBeat, '0');
+    assert.equal($<HTMLInputElement>('[data-ds-addc-input]').placeholder, 'Paste colours or use an image');
     click('[data-be-undo]'); await settle();
     assert.deepEqual(installed, beforeDraft);
     click('[data-be-replace-palette]'); click('[data-be-review-cancel]');

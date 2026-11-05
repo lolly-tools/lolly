@@ -1,60 +1,395 @@
 {{!-- Certificate.
-     The sheet is HTML so the copy wraps and centres itself at any page size,
-     with one plain <svg> layer for the border rules: geometry every exporter
-     walks the same way, rather than a decorated CSS border the vector export
-     cannot recover. Every size in styles.css is a multiple of --ct-u, a
-     thousandth of the sheet's own width in container units, so A4, US Letter
-     and the screen size share one layout at whatever pixel size the sheet is
-     being painted. Colours arrive as custom properties the hook resolved. --}}
-<div class="ct-root" style="--ct-name-size:{{nameSizeU}};--ct-course-size:{{courseSizeU}};--ct-ink:{{inkColor}};--ct-paper:{{paperColor}};--ct-accent:{{accentColor}};--ct-muted:{{mutedColor}};--ct-rule-soft:{{ruleSoftColor}}">
-  {{#if _logoWarning}}<p data-export-hide role="status" style="position:absolute;z-index:10;top:8px;left:8px;right:8px;margin:0;padding:10px 14px;border:1px solid #b45309;border-radius:6px;background:#fffbeb;color:#78350f;font:14px/1.4 sans-serif">{{_logoWarning}}</p>{{/if}}
+     One markup for every style and sheet: styles.css places the parts with
+     grid areas per style, and re-lays them out for the sheet's proportion with
+     container queries, so a banner, a story and an A4 page are each composed
+     for their shape rather than letterboxed. Every length is a multiple of
+     --ct-u, a thousandth of the sheet's width (or of its design box), and every
+     colour arrives as a custom property the hook resolved from the colourway.
+     The frame, the panel and the ornaments are plain boxes and the seal is one
+     small inline <svg>, so the vector export walks them as geometry. --}}
+<div class="ct-root ct-style-{{style}}{{#if hasSeal}} ct-has-seal{{/if}}{{#if hasMotion}} ct-has-motion{{/if}}" lang="{{printLang}}" dir="{{dir}}" data-ct-motion="{{motion}}" style="--ct-name-size:{{nameSizeU}};--ct-name-lines:{{nameLines}};--ct-course-size:{{courseSizeU}};--ct-course-lines:{{courseLines}};--ct-paper:{{paperColor}};--ct-ground:{{groundColor}};--ct-ink:{{inkColor}};--ct-accent:{{accentColor}};--ct-second:{{secondColor}};--ct-muted:{{mutedColor}};--ct-rule:{{ruleColor}};--ct-edge:{{edgeColor}};--ct-panel:{{panelColor}};--ct-panel-ink:{{panelInk}};--ct-sheen:{{sheenColor}}">
+  {{#if _logoWarning}}<p data-export-hide role="status" style="position:absolute;z-index:10;top:8px;left:8px;right:8px;margin:0;padding:10px 14px;border:1px solid #b45309;border-radius:6px;background:#fffbeb;color:#78350f;font:14px/1.4 var(--font-brand, sans-serif)">{{_logoWarning}}</p>{{/if}}
 
-  <svg class="ct-frame" viewBox="0 0 1000 {{vbH}}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-    <rect x="26" y="26" width="948" height="{{frameH}}" fill="none" stroke="{{accentColor}}" stroke-width="5"/>
-    <rect x="40" y="40" width="920" height="{{innerH}}" fill="none" stroke="{{ruleSoftColor}}" stroke-width="1.5"/>
-    <g fill="{{accentColor}}">
-      <path transform="translate(40 40)" d="M0 -8 L8 0 L0 8 L-8 0 Z"/>
-      <path transform="translate(960 40)" d="M0 -8 L8 0 L0 8 L-8 0 Z"/>
-      <path transform="translate(40 {{innerBottom}})" d="M0 -8 L8 0 L0 8 L-8 0 Z"/>
-      <path transform="translate(960 {{innerBottom}})" d="M0 -8 L8 0 L0 8 L-8 0 Z"/>
-    </g>
-  </svg>
+  {{#if hasFrame}}
+  <div class="ct-frame" aria-hidden="true">
+    <div class="ct-rules ct-rules--outer">
+      <span class="ct-bar ct-bar--t"></span><span class="ct-bar ct-bar--r"></span><span class="ct-bar ct-bar--b"></span><span class="ct-bar ct-bar--l"></span>
+    </div>
+    {{#if hasInnerRule}}
+    <div class="ct-rules ct-rules--inner">
+      <span class="ct-bar ct-bar--t"></span><span class="ct-bar ct-bar--r"></span><span class="ct-bar ct-bar--b"></span><span class="ct-bar ct-bar--l"></span>
+      <span class="ct-corner ct-corner--tl"></span><span class="ct-corner ct-corner--tr"></span><span class="ct-corner ct-corner--br"></span><span class="ct-corner ct-corner--bl"></span>
+    </div>
+    {{/if}}
+  </div>
+  {{/if}}
+
+  {{#if ornaments.length}}
+  <div class="ct-ornaments" aria-hidden="true">
+    {{#each ornaments}}<span class="ct-orn ct-orn--{{kind}}" style="left:{{x}}%;top:{{y}}%;--s:{{size}};--r:{{rot}}deg;--c:{{color}}"></span>{{/each}}
+  </div>
+  {{/if}}
 
   <div class="ct-body">
     {{#if error}}
     <p class="ct-error">{{error}}</p>
     {{else}}
+    {{#if hasPanel}}<div class="ct-panel" data-ct-part="panel" aria-hidden="true"></div>{{/if}}
 
-    <header class="ct-issuer">
+    <header class="ct-issuer" data-ct-part="issuer">
       {{#if hasLogo}}<img class="ct-logo" src="{{logoUrl}}" alt="">{{/if}}
-      {{#if companyText}}<p class="ct-company">{{companyText}}</p>{{/if}}
+      {{#if companyText}}<p class="ct-company" dir="auto">{{companyText}}</p>{{/if}}
     </header>
 
-    <h1 class="ct-title">{{titleText}}</h1>
-    <p class="ct-lead">{{leadText}}</p>
-    <p class="ct-name">{{recipientName}}</p>
-    <div class="ct-name-rule"></div>
-    <p class="ct-cite">{{citeText}}</p>
-    <p class="ct-course">{{courseText}}</p>
+    <h1 class="ct-title" data-ct-part="title" dir="auto">{{titleText}}</h1>
 
-    <div class="ct-sign">
+    <div class="ct-main">
+      <p class="ct-lead" data-ct-part="lead">{{leadText}}</p>
+      <p class="ct-name" data-ct-part="name" dir="auto">{{recipientName}}</p>
+      <div class="ct-name-rule" data-ct-part="rule"></div>
+      <p class="ct-cite" data-ct-part="cite">{{citeText}}</p>
+      <p class="ct-course" data-ct-part="course" dir="auto">{{courseText}}</p>
+    </div>
+
+    {{#if hasSign}}
+    <div class="ct-sign" data-ct-part="sign">
       {{#if hasDate}}
-      <div class="ct-sign-col">
+      <div class="ct-sign-col ct-sign-col--date">
         <div class="ct-sign-rule"></div>
-        <p class="ct-sign-value">{{dateText}}</p>
-        <p class="ct-sign-label">Date</p>
+        <p class="ct-sign-value" dir="auto">{{dateText}}</p>
+        <p class="ct-sign-label">{{dateLabel}}</p>
       </div>
       {{/if}}
       {{#if hasPresenter}}
-      <div class="ct-sign-col">
+      <div class="ct-sign-col ct-sign-col--presenter">
         <div class="ct-sign-rule"></div>
-        <p class="ct-sign-value">{{presenterText}}</p>
-        <p class="ct-sign-label">{{presenterTitleText}}</p>
+        <p class="ct-sign-value" dir="auto">{{presenterText}}</p>
+        <p class="ct-sign-label" dir="auto">{{presenterTitleText}}</p>
       </div>
       {{/if}}
     </div>
+    {{/if}}
 
-    {{#if serialText}}<p class="ct-serial">{{serialText}}</p>{{/if}}
+    {{#if hasSeal}}
+    <div class="ct-seal" data-ct-part="seal" aria-hidden="true">
+      <svg class="ct-seal-svg" viewBox="0 0 120 {{sealViewH}}" xmlns="http://www.w3.org/2000/svg" focusable="false">
+        {{#if sealRibbons}}
+        <path d="M45 90 L29 146 L40 139 L49.5 148 L61 98 Z" fill="{{ribbonColor}}"/>
+        <path d="M75 90 L91 146 L80 139 L70.5 148 L59 98 Z" fill="{{ribbonColor}}"/>
+        {{/if}}
+        {{#if sealScallop}}
+        <path d="{{sealEdge}}" fill="{{sealColor}}"/>
+        <circle cx="60" cy="60" r="43" fill="{{sealInner}}"/>
+        <circle cx="60" cy="60" r="47.5" fill="none" stroke="{{sealInk}}" stroke-width="1.2" stroke-dasharray="1.6 2.4" opacity="0.7"/>
+        <circle cx="60" cy="60" r="38.5" fill="none" stroke="{{sealInk}}" stroke-width="1" opacity="0.55"/>
+        {{else}}{{#if sealRing}}
+        <circle cx="60" cy="60" r="55" fill="none" stroke="{{sealColor}}" stroke-width="2.5"/>
+        <circle cx="60" cy="60" r="47" fill="none" stroke="{{sealColor}}" stroke-width="1" stroke-dasharray="1.6 2.6"/>
+        {{else}}
+        <circle cx="60" cy="60" r="56" fill="{{sealColor}}"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="{{sealInk}}" stroke-width="1.4" opacity="0.6"/>
+        {{/if}}{{/if}}
+        {{#if sealStroke}}
+        <path d="{{sealGlyph}}" fill="none" stroke="{{#if sealRing}}{{sealColor}}{{else}}{{sealInk}}{{/if}}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        {{else}}
+        <path d="{{sealGlyph}}" fill="{{#if sealRing}}{{sealColor}}{{else}}{{sealInk}}{{/if}}"/>
+        {{/if}}
+      </svg>
+    </div>
+    {{/if}}
+
+    {{#if serialText}}<p class="ct-serial" data-ct-part="serial" dir="auto">{{serialText}}</p>{{/if}}
     {{/if}}
   </div>
+
+  {{#if hasMotion}}
+  {{#if confetti.length}}
+  <div class="ct-confetti" aria-hidden="true">
+    {{#each confetti}}<span class="ct-confetto ct-confetto--{{kind}}" style="left:{{x}}%;--s:{{size}};--c:{{color}}"></span>{{/each}}
+  </div>
+  {{/if}}
+  <div class="ct-sheen" aria-hidden="true"></div>
+  {{!-- Export frame clock. The motion pipeline seeks through a deterministic
+        clock it finds on a <canvas> descendant (bridge/frame-clock.ts), so this
+        0 x 0 one carries __lollyFrameRender and paints nothing. --}}
+  <canvas class="ct-clock" width="0" height="0" aria-hidden="true"></canvas>
+  <button type="button" class="ct-play" data-export-hide>{{playLabel}}</button>
+  {{/if}}
+  <script type="application/json" class="ct-motion-data">{{{motionJson}}}</script>
+  <script>
+  (function () {
+    /* Re-runs on every paint, so `var` only and nothing on window. The sheet's
+       own root carries an epoch, which retires an older paint's timers. */
+    var cs = document.currentScript;
+    var ROOT = cs && cs.parentNode && cs.parentNode.closest ? cs.parentNode.closest('.ct-root') : null;
+    if (!ROOT) return;
+    ROOT.__ctEpoch = (ROOT.__ctEpoch || 0) + 1;
+    var EP = ROOT.__ctEpoch;
+    function alive() { return ROOT.__ctEpoch === EP && ROOT.isConnected; }
+    var data = {};
+    try { data = JSON.parse((ROOT.querySelector('.ct-motion-data') || {}).textContent || '{}') || {}; } catch (e) { data = {}; }
+
+    // ct-motion-start
+    /* Each preset is a list of steps: the part, when it starts and how long it
+       takes (seconds), and what it does. Everything rests at its printed pose
+       once its step ends, so the last frame of a clip is the finished sheet. */
+    var CT_REVEAL = [
+      ['frame', 0, 1.4, 'draw'], ['panel', 0, 0.8, 'wipe'], ['ornaments', 0.2, 1.2, 'pop'],
+      ['issuer', 0.35, 0.7, 'rise'], ['title', 0.55, 0.7, 'rise'], ['lead', 0.9, 0.6, 'rise'],
+      ['name', 1.1, 1.0, 'write'], ['rule', 1.75, 0.6, 'grow'], ['cite', 1.9, 0.6, 'rise'],
+      ['course', 2.05, 0.7, 'rise'], ['sign', 2.35, 0.7, 'rise'], ['seal', 2.6, 0.6, 'stamp'],
+      ['serial', 2.95, 0.45, 'fade']
+    ];
+    var CT_MOTIONS = {
+      fade: { end: 2.2, steps: [
+        ['frame', 0, 0.9, 'fade'], ['panel', 0, 0.9, 'fade'], ['ornaments', 0.1, 1, 'fade'],
+        ['issuer', 0.15, 0.8, 'rise'], ['title', 0.3, 0.8, 'rise'], ['lead', 0.45, 0.8, 'rise'],
+        ['name', 0.6, 0.9, 'rise'], ['rule', 0.75, 0.8, 'fade'], ['cite', 0.85, 0.8, 'rise'],
+        ['course', 0.95, 0.8, 'rise'], ['sign', 1.1, 0.8, 'rise'], ['seal', 1.2, 0.8, 'fade'],
+        ['serial', 1.35, 0.7, 'fade']
+      ] },
+      reveal: { end: 3.4, steps: CT_REVEAL },
+      shimmer: { end: 4.7, steps: CT_REVEAL, sheen: [3.5, 1.1] },
+      confetti: { end: 5.8, steps: CT_REVEAL, confetti: 2.7 }
+    };
+    function ctOut(p) { return 1 - Math.pow(1 - p, 3); }
+    function ctInOut(p) { return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
+    function ctBack(p) { var c = 1.70158; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); }
+    function ctClamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+    var CT_REST = { o: 1, y: 0, s: 1, r: 0, clip: 1, grow: 1, draw: 1 };
+    /* The pose of one effect at progress p in [0, 1]: opacity, rise in layout
+       units, scale, rotation in degrees, and three reveal fractions. */
+    function ctEffect(kind, p) {
+      if (p >= 1) return CT_REST;
+      var e = ctOut(p);
+      switch (kind) {
+        case 'fade': return { o: e, y: 0, s: 1, r: 0, clip: 1, grow: 1, draw: 1 };
+        case 'rise': return { o: e, y: (1 - e) * 16, s: 1, r: 0, clip: 1, grow: 1, draw: 1 };
+        case 'write': return { o: ctClamp(p * 2.5), y: 0, s: 1, r: 0, clip: ctInOut(p), grow: 1, draw: 1 };
+        case 'grow': return { o: p > 0 ? 1 : 0, y: 0, s: 1, r: 0, clip: 1, grow: e, draw: 1 };
+        case 'draw': return { o: p > 0 ? 1 : 0, y: 0, s: 1, r: 0, clip: 1, grow: 1, draw: ctInOut(p) };
+        case 'wipe': return { o: 1, y: 0, s: 1, r: 0, clip: e, grow: 1, draw: 1 };
+        case 'pop': return { o: e, y: 0, s: 0.4 + 0.6 * ctBack(p), r: 0, clip: 1, grow: 1, draw: 1 };
+        case 'stamp': return { o: ctClamp(p * 3), y: 0, s: 1 + 0.9 * (1 - ctBack(p)), r: -12 * (1 - e), clip: 1, grow: 1, draw: 1 };
+        default: return CT_REST;
+      }
+    }
+    /* Clip time to scene time: a clip shorter than the preset plays it faster,
+       so its last frame is always the finished sheet. The live preview passes
+       no clip and plays at the preset's own pace. */
+    function ctScene(preset, seconds, clipSec) {
+      var m = CT_MOTIONS[preset];
+      if (!m || !(clipSec > 0)) return seconds;
+      return seconds * Math.max(1, m.end / Math.max(0.5, clipSec - 0.25));
+    }
+    /* The pose of one part at scene time t. A part the preset does not move is at rest. */
+    function ctPose(preset, t, part) {
+      var m = CT_MOTIONS[preset];
+      if (!m) return CT_REST;
+      for (var i = 0; i < m.steps.length; i++) {
+        var st = m.steps[i];
+        if (st[0] === part) return ctEffect(st[3], ctClamp((t - st[1]) / st[2]));
+      }
+      return CT_REST;
+    }
+    /* One falling piece of confetti at scene time t: where it is as a fraction of
+       the sheet, how far it has turned, and whether it shows. */
+    function ctConfetto(preset, t, c) {
+      var m = CT_MOTIONS[preset];
+      if (!m || m.confetti === undefined) return null;
+      var p = (t - m.confetti - c[1]) / c[2];
+      if (p <= 0 || p >= 1) return null;
+      return { x: c[3] * Math.sin(p * 5 + c[4]), y: -8 + 116 * (0.35 * p * p + 0.65 * p), r: c[6] + c[5] * p, o: p > 0.85 ? (1 - p) / 0.15 : 1 };
+    }
+    /* The sheen's travel across the sheet, -1 before it starts, else 0 to 1. */
+    function ctSheen(preset, t) {
+      var m = CT_MOTIONS[preset];
+      if (!m || !m.sheen) return -1;
+      var p = (t - m.sheen[0]) / m.sheen[1];
+      return p <= 0 || p >= 1 ? -1 : ctInOut(p);
+    }
+    // ct-motion-end
+
+    var preset = CT_MOTIONS[data.motion] ? data.motion : '';
+    var parts = {};
+    ROOT.querySelectorAll('[data-ct-part]').forEach(function (el) { parts[el.getAttribute('data-ct-part')] = el; });
+    var frameBars = ROOT.querySelectorAll('.ct-frame .ct-bar');
+    var corners = ROOT.querySelectorAll('.ct-frame .ct-corner');
+    var orns = ROOT.querySelectorAll('.ct-orn');
+    var confettiLayer = ROOT.querySelector('.ct-confetti');
+    var confetti = confettiLayer ? confettiLayer.querySelectorAll('.ct-confetto') : [];
+    var sheen = ROOT.querySelector('.ct-sheen');
+    var clock = ROOT.querySelector('.ct-clock');
+    var play = ROOT.querySelector('.ct-play');
+    var touched = [];
+    function set(el, prop, value) {
+      if (!el) return;
+      el.style[prop] = value;
+      if (touched.indexOf(el) < 0) touched.push(el);
+    }
+    function u(n) { return 'calc(var(--ct-u) * ' + (Math.round(n * 100) / 100) + ')'; }
+    function rtl(el) { return getComputedStyle(el).direction === 'rtl'; }
+
+    /* Every part back at its printed pose: what still exports and print use. */
+    function settle() {
+      for (var i = 0; i < touched.length; i++) {
+        var s = touched[i].style;
+        s.opacity = ''; s.translate = ''; s.scale = ''; s.rotate = ''; s.clipPath = ''; s.display = '';
+      }
+      touched = [];
+    }
+    function posePart(name, t) {
+      var el = parts[name];
+      if (!el) return;
+      var q = ctPose(preset, t, name);
+      set(el, 'opacity', q.o === 1 ? '' : String(Math.round(q.o * 1000) / 1000));
+      set(el, 'translate', q.y ? '0 ' + u(q.y) : '');
+      set(el, 'scale', name === 'rule' ? (q.grow < 1 ? q.grow + ' 1' : '') : (q.s !== 1 ? String(q.s) : ''));
+      set(el, 'rotate', q.r ? q.r + 'deg' : '');
+      var clip = '';
+      if (q.clip < 1) {
+        var hidden = Math.round((1 - q.clip) * 1000) / 10 + '%';
+        if (name === 'panel' && el.offsetWidth < el.offsetHeight * 0.9) clip = rtl(el) ? 'inset(0 0 0 ' + hidden + ')' : 'inset(0 ' + hidden + ' 0 0)';
+        else if (name === 'panel') clip = 'inset(0 0 ' + hidden + ' 0)';
+        else clip = rtl(el) ? 'inset(-30% 0 -30% ' + hidden + ')' : 'inset(-30% ' + hidden + ' -30% 0)';
+      }
+      set(el, 'clipPath', clip);
+    }
+    function render(t) {
+      for (var name in parts) posePart(name, t);
+      var f = ctPose(preset, t, 'frame');
+      // The frame draws itself clockwise: top, right, bottom, left.
+      for (var i = 0; i < frameBars.length; i++) {
+        var side = i % 4;
+        var k = ctClamp(f.draw * 4 - side);
+        var horizontal = side === 0 || side === 2;
+        set(frameBars[i], 'scale', k >= 1 ? '' : horizontal ? k + ' 1' : '1 ' + k);
+        set(frameBars[i], 'opacity', f.o === 1 ? '' : String(f.o));
+      }
+      for (var j = 0; j < corners.length; j++) {
+        var c = ctClamp((f.draw - 0.8) / 0.2);
+        set(corners[j], 'opacity', c >= 1 ? '' : String(Math.round(c * 1000) / 1000));
+      }
+      for (var n = 0; n < orns.length; n++) {
+        var lag = ctPose(preset, t - n * 0.03, 'ornaments');
+        set(orns[n], 'opacity', lag.o >= 1 ? '' : String(Math.round(lag.o * 1000) / 1000));
+        set(orns[n], 'scale', lag.s === 1 ? '' : String(Math.round(lag.s * 1000) / 1000));
+      }
+      if (confettiLayer) {
+        var any = false;
+        for (var q = 0; q < confetti.length; q++) {
+          var piece = ctConfetto(preset, t, data.confetti[q] || [0, 0, 1, 0, 0, 0, 0]);
+          if (!piece) {
+            set(confetti[q], 'display', ''); set(confetti[q], 'translate', '');
+            set(confetti[q], 'rotate', ''); set(confetti[q], 'opacity', '');
+            continue;
+          }
+          any = true;
+          set(confetti[q], 'display', 'block');
+          set(confetti[q], 'translate', (Math.round(piece.x * 100) / 100) + 'cqw ' + (Math.round(piece.y * 100) / 100) + 'cqh');
+          set(confetti[q], 'rotate', Math.round(piece.r) + 'deg');
+          set(confetti[q], 'opacity', piece.o >= 1 ? '' : String(Math.round(piece.o * 1000) / 1000));
+        }
+        set(confettiLayer, 'display', any ? 'block' : '');
+      }
+      if (sheen) {
+        var g = ctSheen(preset, t);
+        set(sheen, 'display', g < 0 ? '' : 'block');
+        set(sheen, 'translate', g < 0 ? '' : (Math.round((-60 + g * 220) * 10) / 10) + 'cqw 0');
+      }
+    }
+
+    /* The name and the course, measured once laid out, shrink until they fit
+       their line budget. The hook's estimate is usually right; this catches a
+       face wider than it guessed. Nothing happens where there is no layout. */
+    function fit(el, sizeVar, linesVar) {
+      if (!el || !el.clientWidth) return;
+      var size = parseFloat(ROOT.style.getPropertyValue(sizeVar)) || 0;
+      var lines = parseFloat(ROOT.style.getPropertyValue(linesVar)) || 1;
+      for (var i = 0; i < 14 && size > 8; i++) {
+        var lh = parseFloat(getComputedStyle(el).lineHeight) || el.offsetHeight;
+        if (el.scrollWidth <= el.clientWidth + 1 && el.offsetHeight <= lh * lines + 2) return;
+        size = Math.floor(size * 0.93 * 10) / 10;
+        el.style.setProperty(sizeVar, String(size));
+      }
+    }
+    function fitAll() {
+      if (!alive()) return;
+      fit(parts.name, '--ct-name-size', '--ct-name-lines');
+      fit(parts.course, '--ct-course-size', '--ct-course-lines');
+    }
+    fitAll();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
+
+    if (!preset || !clock) {
+      if (clock) delete clock.__lollyFrameRender;
+      return;
+    }
+
+    /* Live preview: plays once when the motion, style or size changes, never on
+       a keystroke, only in the tool view, and never by itself when the person
+       asked for reduced motion. The play button replays it on request. */
+    var stage = ROOT.parentNode;
+    var key = String(data.key || preset);
+    var raf = 0;
+    var started = 0;
+    var playing = false;
+    var end = CT_MOTIONS[preset].end;
+    function reduced() {
+      try {
+        return matchMedia('(prefers-reduced-motion: reduce)').matches ||
+          document.documentElement.getAttribute('data-a11y-motion') === 'reduce';
+      } catch (e) { return false; }
+    }
+    function tick(now) {
+      if (!alive() || !playing) { playing = false; return; }
+      if (clock.__lollyFrameDriven) { raf = requestAnimationFrame(tick); return; }
+      var t = (now - started) / 1000;
+      if (t >= end + 0.15) { playing = false; settle(); return; }
+      render(t);
+      raf = requestAnimationFrame(tick);
+    }
+    function start() {
+      if (!alive()) return;
+      cancelAnimationFrame(raf);
+      playing = true;
+      started = performance.now();
+      render(0);
+      raf = requestAnimationFrame(tick);
+    }
+
+    /* Export: t in [0, 1) of a clip `clipSec` long. A still (no clip length)
+       always gets the finished sheet, so a PDF or PNG never catches a moment.
+       stillPose declares that to the shell, which then poses and freezes the
+       sheet for the stills that read the page (PDF, SVG, Penpot) as well as
+       for the rasters. */
+    var release = 0;
+    function watchRelease() {
+      clearTimeout(release);
+      release = setTimeout(function check() {
+        if (!alive()) return;
+        if (clock.__lollyFrameDriven) { release = setTimeout(check, 250); return; }
+        if (!playing) settle();
+      }, 250);
+    }
+    clock.__lollyFrameRender = function (t, clipSec) {
+      if (!alive()) return;
+      playing = false;
+      cancelAnimationFrame(raf);
+      if (!(clipSec > 0)) settle();
+      else render(ctScene(preset, ctClamp(t) * clipSec, clipSec));
+      watchRelease();
+    };
+    clock.__lollyFrameRender.stillPose = true;
+
+    if (play) play.addEventListener('click', function () { if (stage) stage.__ctPlayed = key; start(); });
+    var inView = !!ROOT.closest('#tool-canvas, #tool-content');
+    if (inView && stage && stage.__ctPlayed !== key && !reduced()) {
+      stage.__ctPlayed = key;
+      start();
+    } else if (stage && inView) {
+      stage.__ctPlayed = key;
+    }
+  })();
+  </script>
 </div>

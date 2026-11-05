@@ -128,3 +128,39 @@
   html[data-edge-dock] #view { transition: margin-inline-end var(--ui-motion-navigation) var(--ui-motion-standard); }
   html[data-edge-dock][data-a11y-motion="reduce"] #view { transition: none; }
 }
+
+/* ── Two panes (lib/split-panes.ts): the column is the CONTROL PANE ───────────
+   In the split layout, for a view that asked for it (Design), this column is the
+   control pane: its width is the pane's (--dock-pane-w, set from the divider or the
+   hinge, while --dock-w also reserves the gutter), it sits away from the dominant
+   hand, and the split divider replaces its own grip. Unlayered like the rest of
+   this sheet. Every rule is gated on html[data-layout="split"], absent elsewhere. */
+html[data-layout="split"] .edge-dock {
+  width: var(--dock-pane-w, var(--dock-w, 340px));
+  box-shadow: var(--ui-elevation-sidebar);
+}
+html[data-layout="split"]:not([data-hand="left"]) .edge-dock { inset-inline-end: auto; inset-inline-start: 0; }
+/* The view steps aside on the side the pane is on. */
+html[data-layout="split"]:not([data-hand="left"]) #view { margin-inline-end: 0; margin-inline-start: var(--dock-w, 0px); }
+html[data-layout="split"] .edge-dock-grip,
+html[data-layout="split"] .edge-dock-collapse { display: none; }
+/* The pane header: the tabs and Swap sides on one row. */
+.edge-dock-head { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-1); }
+.edge-dock-head > .edge-dock-tabs { flex: 1 1 auto; min-width: 0; margin-block-end: 0; }
+.edge-dock-head { margin-block-end: var(--ui-space-control-inline); }
+/* Tabs are touch targets in two panes. */
+html[data-layout="split"] .edge-dock-tab { min-height: var(--ui-size-target); }
+/* The layers list as a tab: the same live column, without the column's own edge,
+   grip and dot rail, which belong to its life as the desk's left sidebar. */
+.edge-dock-slot > .fc-nav { box-shadow: none; }
+.edge-dock-slot > .fc-nav .fc-nav-grip,
+.edge-dock-slot > .fc-nav .fc-nav-rail,
+.edge-dock-slot > .fc-nav .fc-nav-rail-slot { display: none; }
+/* On a tabletop the pane is the deck under the hinge, the full width. */
+html[data-layout="split"][data-posture="tabletop"] .edge-dock {
+  inset: auto 0 0 0;
+  top: calc(var(--split-top, 50dvh) + var(--split-gutter, 16px));
+  width: auto;
+}
+/* Sequence open on a tabletop: the timeline is the deck, so the pane steps aside. */
+html[data-layout="split"][data-posture="tabletop"]:has(.tool-layout.is-editor .tl-panel:not([hidden])) .edge-dock { display: none; }

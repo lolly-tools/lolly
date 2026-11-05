@@ -35,7 +35,7 @@ Lolly 工具保存了一種檔案的規則：版面、字型、色彩，以及�
 ![URL 參數與命令列引數成為相同的輸入模型，經由同一個共用的執行階段與匯出橋接執行](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **在應用程式中，一次一個。** 開啟工具、填寫欄位，然後按下 **Export**。[製作你的第一個檔案](/info/make-something.html)會帶你做一個。
-- <!--i:layers--> **在應用程式中，一次很多個。** [Batch](/info/batch.html#make-many-versions-of-one-design)（`#/batch`）接受貼上或匯入的表格，為每一列渲染一個完成的檔案。
+- <!--i:layers--> **在應用程式中，一次很多個。** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)（`#/batch`）接受貼上或匯入的表格，為每一列渲染一個完成的檔案。
 - <!--i:cpu--> **從指令碼或 AI 代理。** [CLI](/info/cli.html) 以無頭方式執行工具，[MCP 伺服器](/info/mcp.html)讓代理探索並執行工具。工具的連結也帶有它的輸入，所以連結就是一份完整的請求。
 - <!--i:server--> **經由你組織的伺服器。** [Lolly Work](/info/organisation.html) 在伺服器上依你組織的登入與工具政策渲染，保留可繼續的工作，並保管輸出以供下載或核准的交付。
 

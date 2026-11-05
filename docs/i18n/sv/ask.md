@@ -60,4 +60,4 @@ Din fråga lämnar aldrig enheten. Matchningen körs lokalt mot filer som hämta
 
 ---
 
-**Relaterat:** [Sök](/info/search.html) för fältet som lämnar över frågor. [Använda Lolly](/info/using.html) för resten av appen. [Settings](/info/dashboard.html#available-offline) för att först ta dokumentationen offline.
+**Relaterat:** [Sök](/info/search.html) för fältet som lämnar över frågor. [Använda Lolly](/info/using.html) för resten av appen. [Lolly Settings](/info/dashboard.html#available-offline) för att först ta dokumentationen offline.

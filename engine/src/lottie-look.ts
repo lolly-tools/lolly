@@ -28,6 +28,7 @@
  */
 import { evaluateKf, kfChannelsUsed, kfEasePoints, KF_HOLD_EASE, type KfChannel, type KfTrack } from './keyframes.ts';
 import { kfOklabToSrgb8, KF_FILL_CHANNELS, KF_STROKE_CHANNELS } from './kf-look.ts';
+import { kfExportKeys } from './kf-bake.ts';
 import type { LottieObject } from './lottie-model.ts';
 
 /** What `animateLottieLook` needs to know about the layer it decorates. */
@@ -62,18 +63,20 @@ export function lookFeatureName(ch: KfChannel): string {
 
 /** One channel's keys, written one for one: the editor's own curve between each pair. */
 function channelKeys(track: KfTrack, ch: KfChannel, fps: number, startMs: number, map: (v: number) => number): LottieObject {
-  const keys = track.filter((k) => typeof k.v[ch] === 'number');
-  if (keys.length === 1) return fixed(map(keys[0]!.v[ch]!));
+  // A spring segment arrives baked into frame keys and a design-system ease resolved
+  // (plans/329); every other key is the authored one.
+  const keys = kfExportKeys(track, ch, fps, startMs);
+  if (keys.length === 1) return fixed(map(keys[0]!.v));
   return {
     a: 1,
     k: keys.map((key, i) => {
       const next = keys[i + 1];
       const pts = kfEasePoints(key.ease) ?? [0, 0, 1, 1];
       return {
-        t: ((startMs + key.t) * fps) / 1000,
-        s: [map(key.v[ch]!)],
+        t: key.f,
+        s: [map(key.v)],
         ...(next
-          ? { e: [map(next.v[ch]!)], ...(key.ease === KF_HOLD_EASE ? { h: 1 } : { o: { x: pts[0], y: pts[1] }, i: { x: pts[2], y: pts[3] } }) }
+          ? { e: [map(next.v)], ...(key.ease === KF_HOLD_EASE ? { h: 1 } : { o: { x: pts[0], y: pts[1] }, i: { x: pts[2], y: pts[3] } }) }
           : {}),
       };
     }),

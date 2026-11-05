@@ -82,6 +82,7 @@ Wordmark złożony krojem Twojego systemu projektowego eksportuje się jako SVG 
 | Przekazanie do Premiere | **Premiere XML + media** | Klipy z czasem i oryginalne media dla Premiere (Design) |
 | Wideo do mediów społecznościowych i udostępniania | **MP4** lub **WebM** | Najlepsza jakość przy rozmiarze pliku (zobacz [Video](#video)) |
 | Napisy | **SRT** lub **VTT** | Tekst z czasem dla odtwarzacza wideo (Captions, Audiogram i Record) |
+| Napisy telewizyjne | **TTML** lub **SCC** | Tekst z czasem IMSC1.1 lub napisy pop-on CEA-608 (Captions; zobacz [Napisy telewizyjne](#broadcast-captions)) |
 | Kurs szkoleniowy | **SCORM (LMS)** | Wersjonowana witryna, pakiet SCORM lub xAPI (zobacz [SCORM](#scorm-course-packages)) |
 | Tekst sformatowany lub podpis e-mail | **HTML** | Wkleja się sformatowany do klientów poczty |
 | Zwykła treść | **MD** lub **TXT** | Tylko tekst |
@@ -131,9 +132,9 @@ Lolly ma trzy sposoby pracy w dużej skali, każdy do innego zadania:
 ## Tabela staje się jednym dokumentem
 Narzędzie z danymi wejściowymi typu tabela, takie jak **Battlecards**, zamienia każdy wiersz w stronę. Wklej tabelę z arkusza kalkulacyjnego i dostań jeden PDF. Popraw wiersze w arkuszu i wklej ponownie.
 ## CSV staje się jednym plikiem na wiersz
-**Batch** (`#/batch`) przyjmuje CSV i renderuje jeden eksport dla każdego wiersza: identyfikatory lub certyfikaty, po jednym pliku, dostarczone w ZIP. Zobacz [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) przyjmuje CSV i renderuje jeden eksport dla każdego wiersza: identyfikatory lub certyfikaty, po jednym pliku, dostarczone w ZIP. Zobacz [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Kilka projektów dostaje jedną edycję
-**Multi-edit** otwiera kilka zapisanych sesji obok siebie dla tej samej poprawki w różnych projektach. Zobacz [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** otwiera kilka zapisanych sesji obok siebie dla tej samej poprawki w różnych projektach. Zobacz [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Z **Projects** **Render folder** eksportuje każdą zapisaną sesję w folderze i jego podfolderach jako jeden zagnieżdżony ZIP, a **Render selection** robi to samo dla dowolnego zaznaczenia wielokrotnego; jedna zapisana sesja renderuje się do własnego pliku. Zapisaną sesję można też ponownie udostępnić jako link narzędzia z Projects, który otwiera ją z tymi samymi ustawieniami.
@@ -169,7 +170,7 @@ Większość narzędzi eksportujących SVG eksportuje też **plik Penpot** (`.pe
 | Cały projekt | Komponent wielokrotnego użytku w panelu Assets |
 | Złożona ilustracja lub żywa kanwa | Osadzona osobno jako obraz, a edytowalna treść wokół niej nietknięta |
 
-Z Design każda ramka staje się planszą Penpot. Kolory i typografie systemu projektowego trafiają do panelu Assets, a jego pełny zestaw tokenów do panelu Tokens. Stamtąd Penpot trzyma własną kopię: token edytowany w Penpot wraca przez import w [Design System Setup](/info/brand-studio.html).
+Z Design każda ramka staje się planszą Penpot. Kolory i typografie systemu projektowego trafiają do panelu Assets, a jego pełny zestaw tokenów do panelu Tokens. Stamtąd Penpot trzyma własną kopię: token edytowany w Penpot wraca przez import w [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Panel eksportu z wybranym Penpot: plik .penpot oraz Send to Penpot obok pobierania](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Potem wybierz **Export course** z obsługiwanego narzędzia, folderu projektu lu
 
 Pakiet zawiera gotową treść i nie wymaga konta Lolly. Umieść ZIP Website na hoście HTTP(S); zaimportuj ZIP LMS bez zmian. Przetestuj miejsce docelowe, zanim udostępnisz kurs. Dla kursu zbudowanego z kilku zapisanych prac zobacz [Create a training course](/info/training-creators.html).
 
+### Napisy telewizyjne
+
+Narzędzie Captions może też eksportować **TTML** i **SCC**. Oba są zapisywane z tej samej listy wierszy co pliki SRT i VTT, więc słowa i czasy się zgadzają.
+
+- **TTML** to IMSC1.1 Text Profile, z czasami zegarowymi w czasie multimediów i jednym regionem na dole pośrodku. Nie zawiera koloru, kroju pisma ani położenia dla pojedynczych napisów, ponieważ napisy w Lolly mają tylko początek, koniec i tekst.
+- **SCC** zawiera napisy pop-on CEA-608 na kanale 1 przy 29,97 klatki na sekundę z kodem czasowym drop-frame. Obsługuje podstawowe znaki północnoamerykańskie oraz znaki specjalne i rozszerzone. Jeśli napis zawiera znak, którego zestaw nie może przenieść, eksport zatrzymuje się i mówi, który to znak, więc nic nie ginie bez ostrzeżenia. Każdy napis jest zawijany po 32 kolumnach i w co najwyżej 15 wierszach. Napis, którego nie da się załadować przed czasem rozpoczęcia, jest opóźniany o kilka klatek.
+- Napisy roll-up i paint-on nie są zapisywane.
+
+Wynik SCC nie został sprawdzony w prawdziwym narzędziu telewizyjnym ani dekoderze sprzętowym. Przetestuj plik we własnym potoku przed dostarczeniem.
+
 ### DXF (pliki do cięcia)
 
 Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding i Wordmark eksportują **DXF**, format wymiany AutoCAD R12, który czytają wycinarki laserowe, plotery winylowe i oprogramowanie CNC. Geometria jest zapisywana jako ścieżki konturów w milimetrach, tekst jest obrysowany, a kolor mapuje się na najbliższy AutoCAD Color Index, który zwykle steruje operacją maszyny. DXF to tylko grafika liniowa: obszar fotograficzny lub filtrowany nie ma ścieżki cięcia i jest pomijany z ostrzeżeniem. Użyj SVG lub PDF, aby zachować treść rastrową.
@@ -214,7 +225,7 @@ Przewiń, a kamera oddala się przez rzeczywistą geometrię: siedem ścieżek, 
 
 ## Druk
 
-**Print PDF** zapisuje CMYK względem nazwanych warunków druku, domyślnie **Coated FOGRA39**. Próbki marki ze zmierzonymi wartościami farb konwertują się dokładnie; inne kolory używają standardowej konwersji urządzenia. **Print TIFF** zapisuje piksele DeviceCMYK dla RIP i zapisuje te same warunki druku w metadanych TIFF. Kontrolka Colour profile steruje obydwoma; [Colour profiles](#colour-profiles) podaje szczegóły.
+**Print PDF** zapisuje CMYK względem nazwanych warunków druku, domyślnie **Coated FOGRA39**. Próbki marki ze zmierzonymi wartościami farb zachowują te wartości. Pozostałe kolory są konwertowane przez profil druku: domyślnie własny profil Coated FOGRA39 od Lolly albo Twój profil, gdy wybierzesz jego wiersz **Embed**. Szarości i czerń zostają tylko na formie czarnej, więc mały tekst nie wypada z pasowania. FOGRA51, SWOP i GRACoL używają standardowej konwersji urządzenia. **Print TIFF** zapisuje piksele DeviceCMYK dla RIP i zapisuje te same warunki druku w metadanych TIFF. Kontrolka Colour profile steruje obydwoma; [Colour profiles](#colour-profiles) podaje szczegóły.
 
 **Print marks & bleed** ma własną kartę w formatach druku: spad w milimetrach plus Crop, Registration, Bleed, Colour bars i Stamp details.
 
@@ -223,6 +234,15 @@ Niektóre narzędzia budują **wielostronicowy PDF**: okładkę, treść, która
 **Przed eksportem.** Karta **Before you export** na dole panelu mówi, co za chwilę zobaczy drukarnia: format, rozmiar i spad, obszary cięcia i spadu, pokrycie farbą, liczbę płyt i liczbę stron, z werdyktem obok nagłówka. Nigdy nie blokuje eksportu. Design zawsze pokazuje kartę z własnymi kontrolami, w tym reguły organizacji systemu projektowego warstwa po warstwie i sygnał pisania dla tekstu dokumentu ([Before you export](/info/design.html#before-you-export)), i dodaje te kontrole druku, gdy **Print preflight** jest włączone. W innych narzędziach włącz **Print preflight** w Settings → Preferences → Feature flags; domyślnie jest wyłączone, a wdrożenie Lolly Work może je włączyć dla swoich członków.
 
 **Po eksporcie.** Gdy plik jest gotowy, Lolly odczytuje go z powrotem i porównuje z tym, co wybrałeś: format, rozmiar w pikselach lub stronie, długość klipu, przezroczyste tło, kolor CMYK, HDR, Content Credentials oraz hasło PDF lub ZIP. Wszystko, co się różni, jest zapisane na karcie eksportu. Każdy pomiar pochodzi z pliku, nigdy z ustawienia, a właściwość, na którą plik nie potrafi odpowiedzieć, nie jest liczona jako zgodna. Wiersz poleceń zapisuje pełne porównanie przez `--export-report` (zobacz [Render with the CLI](/info/cli-rendering.html)).
+
+**Kontrole dostępności PDF.** W przypadku PDF wiersz poleceń wypisuje też 32 kontrole dostępności w pliku `--export-report`, w sekcji `pdfAccessibility`. Każda kontrola ma identyfikator, prosty opis, wynik i miejsce w pliku, w którym znalazła problem:
+
+- **Zaliczone**: kontrola sprawdziła coś i nie znalazła nic złego.
+- **Niezaliczone**: kontrola znalazła problem. Podane są numery stron lub tagi.
+- **Nie dotyczy**: plik nie zawierał niczego tego rodzaju do sprawdzenia, na przykład kontroli tabel w pliku bez tabel. To nic nie mówi o pliku.
+- **Wymaga człowieka**: sześciu kontroli nie może ocenić program (kolejność czytania, kontrast kolorów, migotanie, skrypty, limity czasu i powtarzające się linki).
+
+Lista nie jest werdyktem. Nie mówi, że PDF spełnia wymagania PDF/UA ani że osoby korzystające z technologii asystujących mogą go używać, a człowiek nadal musi sprawdzić plik za pomocą czytnika ekranu. Własne pliki PDF z Lolly nie przechodzą dziś kontroli tagowania, ponieważ eksportery nie zapisują jeszcze tagów. Kontrola odczytuje plik na Twoim urządzeniu i niczego nie zmienia. Pliki wymagające hasła są oznaczane jako niesprawdzone, a nie zaliczone. Aby sprawdzić otrzymany PDF, upuść go w [Strip Hidden Data](/info/utilities.html), które pokazuje tę samą listę w sekcji **PDF accessibility checks**.
 
 Kontrole inspektora Design i porównanie marki w Design System Setup to osobne kontrole: patrzą na projekt, a te dwie karty patrzą na plik.
 
@@ -280,7 +300,7 @@ Eksporty są oznaczane profilem kolorów, aby aplikacje z zarządzaniem kolorem,
 - **SVG**, **EMF**, **EPS** i **DXF** to wektory bez osadzonego profilu: kolory SVG to sRGB, EMF i EPS używają device RGB, **EPS (CMYK)** zapisuje DeviceCMYK, a DXF używa AutoCAD Color Index. SVG, EPS i DXF obrysowują tekst do ścieżek. EMF zachowuje tekst żywy i edytowalny w Office i Prezentacjach Google, wracając do konturów tylko dla fragmentów, których format nie potrafi wyrazić; opcja **Outline fonts** w panelu eksportu wymusza ścieżki wszędzie. SVG odtwarza też cienie pól CSS, wewnętrzne i zewnętrzne.
 
 ::: details PDF/X-4 i własny profil druku
-Lolly nie dostarcza żadnego profilu CMYK. Nazwane warunki druku zapisują zamierzenie wyjściowe bez deklarowania zgodności z PDF/X-4, ponieważ PDF/X-4 wymaga osadzonego profilu.
+Lolly zawiera jeden profil CMYK, dopasowany do danych charakteryzacji FOGRA39 z Fogra i udostępniony na licencji CC0, i konwertuje przez niego kolory dla domyślnych warunków druku. Profil nie jest osadzany, ponieważ ma wersję ICC 4.3, a PDF/X-4 akceptuje wersje do 4.2. Nazwane warunki druku zapisują więc output intent bez deklarowania zgodności z PDF/X-4.
 
 Wczytaj własny profil CMYK i wybierz jego wiersz **Embed** w kontrolce Colour profile. Jest osadzany jako *DestOutputProfile* pliku, a PDF deklaruje PDF/X-4, gdy tylko reszta pliku na to pozwala. Warunki druku, które deklaruje, są odczytywane z tego profilu: zarejestrowana nazwa tam, gdzie profil ją potwierdza, albo `Custom` pod własną nazwą profilu.
 
@@ -400,8 +420,8 @@ To wartości parametru URL `format=` i flagi CLI `--export=` (zobacz [URL parame
 | Wektor | `svg` · `svgz` (SVG po gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (plik do cięcia) |
 | Strona i dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (plik projektu Penpot) · `scorm` (pakiet kursu, ZIP) |
 | Ruch | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Tekst i dane | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (paleta GIMP) |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (nuty MIDI z Rondocode) |
+| Tekst i dane | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paleta GIMP) |
 | Paczki i pakiety | `zip` · `rpm` i `tar.gz` (render zapieczętowany w pakiecie Linux) |
 
 Kilka identyfikatorów pochodzi z własnego kodu eksportu narzędzia: `ase` (Adobe Swatch Exchange, z Palette Lab) oraz `exr` i `hdr` (rastry o wysokim zakresie dynamicznym, z Darkroom). **Convert Font** zapisuje `ttf`, `otf` i `woff` z dostarczonego pliku czcionki, więc goły link nie ma czego dla niego renderować.

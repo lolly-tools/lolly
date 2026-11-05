@@ -40,7 +40,7 @@ None of these fields stay private to the repository. The About card is the manif
 - `hooks` - boolean flags for `onInit`, `onInput`, `onFrame`, `onLevel`, `beforeExport`, `afterExport`, `exportFile` and `exportStill`. Any `true` flag means `hooks.js` must define that function. The list is closed: the schema rejects any other hook name. [Tool hooks and host capabilities](/info/tool-hooks.html) covers each hook.
 - `privacy` - `"on-device"` marks a utility that processes the person's own file entirely on the device. The tool shows the **Runs on your device - nothing is uploaded** badge, may never be `experimental` and exports no provenance metadata and no watermark. [Assets and file utilities](/info/tool-files.html#producing-output-the-exportfile-hook-privacy-on-device) owns the details.
 - `isolate` - boolean. Asks the shell to run a built-in tool's hooks in a Worker. See [Run hooks in a Worker](/info/tool-hooks.html#run-hooks-in-a-worker-isolate).
-- `singleInstance` - boolean. Set `true` when only one copy of the tool can run on a page, for example a tool that holds a WebGL context or keeps a handle on `window` (the 3D viewers, `spatial-photo`, `synth`). Multi-edit then shows its cells as still previews one after another instead of live copies. The single-tool view, URL mode and the CLI are unaffected.
+- `singleInstance` - boolean. Set `true` when only one copy of the tool can run on a page, for example a tool that holds a WebGL context or keeps a handle on `window` (the 3D viewers, `spatial-photo`, `synth`). Lolly Multi-edit then shows its cells as still previews one after another instead of live copies. The single-tool view, URL mode and the CLI are unaffected.
 - `composes` - embed another tool's render as an image. Requires the `compose` capability. See [Composition and brand overlays](/info/tool-composition.html).
 
 ### Design-system behaviour
@@ -67,6 +67,7 @@ Most of what `render` declares reaches people in one place: the export popup. Fo
 - `transparentBg` - default `false`. Adds a **No BG** toggle to the export bar. The engine adds it to the input model, so hooks can react in `onInit` and `onInput` (`chart`).
 - `c2pa` - default `true`: Content Credentials are on unless someone turns them off. The card in the export popup starts ticked for every format that can carry one (`pdf`, `png`, `apng`, `jpg`, `gif`, `svg`, `tiff`, `cmyk-tiff`, `webp`, `mp4`, `webm` and zip members). The file is signed on the device, so viewers report an unverified credential unless the person has [enrolled an identity](/info/content-credentials-identity.html). Set `false` to opt the tool out; `privacy: "on-device"` tools are always off. A `?c2pa=` link or saved value overrides this for one export.
 - `aspectWarning` - `{ min?, max?, message }`. An amber caution in the export popup when the chosen page aspect (`width ÷ height`) falls outside the bounds. It guards against a size that breaks the layout and never appears in the output. `multi-page-pdf` declares `{ "max": 1, "message": "…" }` for portrait only.
+- `followsCanvasSize` - default `false`, engine v1.293. The tool lays itself out for the canvas size: when someone picks another export size, the runtime runs `onInput` with `id: '__canvasSize'` and repaints, so the canvas shows the layout the export writes. Hooks read the size as `ctx.canvasSize` and templates as `@canvasSize` ([When the canvas size changes](/info/tool-hooks.html#when-the-canvas-size-changes)). Raise `engineVersion` to `^1.293.0` with it (`logo-wall`).
 - `preview` - `{ format?, auto? }`. For a tool whose live canvas is a placeholder until an explicit, expensive render runs, such as a capture tool that screenshots a page in `beforeExport`. The shell adds a `[data-preview]` control, and `auto: true` renders one frame on load. `url-shot` declares one.
 - `video` - `{ wait?, duration? }` in seconds, default `1` and `5`. Capture timing when `webm`, `mp4`, `gif` or `apng` is among the formats (`lottie-digi-ad`).
 
@@ -201,10 +202,41 @@ A tool ships one gallery preview, but `examples` lets its tile show range: an ar
 - `label` records the look's intent and is not shown to people. `theme` (`light` or `dark`) is only for looks that draw ink on a **transparent** background, such as a reverse logo; the clashing theme leaves that look out of the strip. Leave it out when the look draws its own background.
 - `width` and `height` in `values` set that example's preview size, even when the tool declares no such inputs.
 - An `asset` value must be a **reference object**, never a bare string: `{ "source": "library", "id": "your/asset/id", "_unresolved": true }`, optionally with a `?theme=` suffix on a themable icon id. A `blocks` value is an array of row objects keyed by the block's field ids.
+- A look that needs pictures of its own, such as placeholder logos, can ship them in the tool's `assets/` folder and name each one by its path: `{ "source": "remote", "id": "/tools/your-tool/assets/sample.svg", "_unresolved": true }`. The file must sit directly in that folder and end in `.svg`, `.png`, `.jpg` or `.webp`. Every shell reads it from the tool's own files, and the catalog index carries only the path. A `data:` URL works too, but its bytes then ride in the catalog index, the gallery's first-paint index and the preview bundle. Lolly Logo Wall's example look is the reference.
 
-`pnpm run validate:catalog` checks every look. `values` keys must be declared input ids, with a pointed error that gives the right id when a `urlKey` is used. Catalog asset references must exist, and a `?theme=` suffix must be a real icon theme. Blocks row keys must be declared fields. The validator also warns when a tool declares looks but no format the gallery can show (`svg`, `png`, `jpg`, `jpeg`, `webp`), and when a strip has more than 8 looks: each look is a live render, so keep to a handful of different ones.
+`pnpm run validate:catalog` checks every look. `values` keys must be declared input ids, with a pointed error that gives the right id when a `urlKey` is used. Catalog asset references must exist, a tool asset path must name a file in the tool's own `assets/` folder, and a `?theme=` suffix must be a real icon theme. Blocks row keys must be declared fields. The validator also warns when a tool declares looks but no format the gallery can show (`svg`, `png`, `jpg`, `jpeg`, `webp`), and when a strip has more than 8 looks: each look is a live render, so keep to a handful of different ones.
 
 The older alias `featured.variants` still renders but is deprecated. Write `examples`.
+
+## What a tool is for (`intents.json`)
+
+A tool can say which purposes it serves in an optional `intents.json` beside its manifest, so someone can [start from what a piece has to do](/info/visual-intent.html) rather than from the tool's name. A tool with no such file is not offered for an intent, and everything else about the tool works as before. Declare a purpose only where the tool serves that purpose well.
+
+```json
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "offer",
+      "needs": ["data", "recipient", "currency"],
+      "roles": { "data": "lines", "recipient": "customer" },
+      "set": { "number": "", "notes": "" }
+    }
+  ]
+}
+```
+
+- `purpose` is one of the closed list on [that page](/info/visual-intent.html#the-three-things-you-say). One entry per purpose.
+- `needs` lists the roles the tool cannot serve the purpose without. A request missing one is answered with a gap, so the tool's sample content never replaces the missing value. List anything the reader would take as fact, such as the currency on a quote, because a default there reads as a claim.
+- `roles` maps a role to an input, where the input's id is not the role's own. An input called `heading` already takes the `heading` role. A role can only fill the input types it accepts, listed in the `roles` section of `schemas/canonical-inputs.json`.
+- `set` gives input values this purpose starts from. Use it to blank sample wording the caller did not supply, or a claim such as "Most popular", or to pick a mode, as QR Code does with `"payload": "event"` for `invite`. Content in the request overrides these values.
+- `surfaces` maps a named surface to the input values that draw it, for what the tool's own options cannot say. Deck Studio uses this because its `size` options state a shape but no pixels. An empty object means the tool lays itself out at that size.
+
+Most tools need no `surfaces` entry. A select option that states `width` and `height` answers for itself, and a tool that declares `render.followsCanvasSize` fits any size. A tool whose own size has the same shape as a surface fits that surface too.
+
+The file is separate from the manifest on purpose. Loading a tool never reads `intents.json`, so adding one needs no new manifest key and no change to `engineVersion`, and an older app simply ignores the file. A brand overlay can carry its own `intents.json`, which wins over the community file like any other overlay file. Signing covers the file with the rest of the tool.
+
+`validate:catalog` checks every `intents.json`: the shape (`schemas/tool-intents-v1.schema.json`), then what the schema cannot say, through `checkToolIntents`. That catches an input that does not exist, a select value that is not on offer, a repeated purpose, a required input no role can fill and an `intents.json` in a folder with no manifest. Render each declaration through `lolly intent --render` and look at the file as well: an input that takes plain text only sometimes, or falls back to a sample, passes every check here.
 
 ## A short walkthrough (`guide`)
 

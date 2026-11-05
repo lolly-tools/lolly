@@ -333,7 +333,7 @@ test('a set chosen after the probe gave up starts the grid again', async () => {
   run.stop();
 });
 
-test('a pass with no revert cannot redraw, and says so by doing nothing', async () => {
+test('a pass with no revert cannot redraw, and reports that by doing nothing', async () => {
   const { dom } = mountDom();
   const { drawPackArtwork } = await import('./emoji-picker.ts');
   const picker = await mountPicker(dom);

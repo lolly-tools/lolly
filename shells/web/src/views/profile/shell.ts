@@ -181,6 +181,7 @@ export function renderShell(pv: ProfileViewCtx): void {
         <p class="profile-appearance-sub">${t('Comfort settings for the app around your work. Each one is off until you turn it on, and none of them touch your designs or your exports.')}</p>
         <ul class="feature-flags profile-a11y-prefs" id="a11y-prefs">${pv.prefs.a11yListHtml()}
         </ul>
+        ${pv.prefs.handRowHtml()}
         ${/* Sound + focus music live IN the comfort card (plans/142 A11y-1/2,
             Andy's call): the same switches that used to sit beside the headshot.
             One home for every stimulation control - visual prefs above, audio

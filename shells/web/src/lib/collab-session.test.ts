@@ -508,7 +508,7 @@ test("colours: a peer's own broadcast colour is honoured, an unknown one is re-d
     now: clock.now, setTimer: clock.setTimer, clearTimer: clock.clearTimer,
   });
 
-  // P1 paints itself blue and says so; P2 is on a different brand pack, so its hex
+  // P1 paints itself blue and reports that; P2 is on a different brand pack, so its hex
   // is not one of ours at all (section 11.16) and has to be re-derived locally.
   w.deliver({ from: 'P1', seq: 1, state: peerState({ userId: 'P1', color: '#0000AA' }) });
   w.deliver({ from: 'P2', seq: 1, state: peerState({ userId: 'P2', color: '#123456' }) });

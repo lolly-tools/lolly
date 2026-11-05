@@ -1,5 +1,31 @@
 {
   "Speakers": "使用者",
+  "Closest to the current palette": "最接近目前的色盤",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "預覽已儲存的設計系統和幾個起點。在你選擇「使用」之前不會有任何改變。",
+  "Use this look": "使用此風格",
+  "Previewing {name}": "正在預覽 {name}",
+  "Choose up to two looks to compare.": "最多選擇兩個風格來比較。",
+  "Drop a horizontal logo": "將水平標誌拖放到這裡",
+  "Drop a vertical logo": "將垂直標誌拖放到這裡",
+  "calm": "沉靜",
+  "nature": "自然",
+  "playful": "活潑",
+  "creative": "創意",
+  "warm": "溫暖",
+  "editorial": "編輯感",
+  "neutral": "中性",
+  "red": "紅",
+  "orange": "橙",
+  "yellow": "黃",
+  "green": "綠",
+  "teal": "藍綠",
+  "blue": "藍",
+  "purple": "紫",
+  "pink": "粉紅",
+  "deep": "深",
+  "pale": "淡",
+  "vivid": "鮮豔",
+  "muted": "柔和",
   "Sort languages": "語言排序",
   "Lolly Imprint": "Lolly Imprint",
   "Hides the Lolly Imprint - a durable, invisible watermark - in the image pixels. It survives re-encoding and screenshots, so any copy of the file can be recognised later.": "將 Lolly Imprint（一種持久的隱形浮水印）隱藏在影像像素中。它能經受重新編碼與截圖，因此檔案的任何副本日後都能被辨識出來。",
@@ -585,7 +611,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "在「驗證」與「素材」中執行深入的 AI 文字檢查。",
   "Card size": "卡片大小",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "此裝置上新增了 1 張圖片或檔案。它只會保留在此裝置上，其他人看不到該檔案。",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "此裝置上新增了 {n} 張圖片或檔案。它們只會保留在此裝置上，其他人看不到這些檔案。",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "此裝置上新增了 {n} 張圖片或檔案。它們只會保留在此裝置上，其他人看不到這些檔案。"
+  },
   "Check the version first": "請先檢查版本",
   "Copy team link": "複製團隊連結",
   "Could not create the project. Try again.": "無法建立專案。請再試一次。",
@@ -1176,7 +1204,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "所有項目都已儲存到共用專案。本機原件在垃圾桶中或仍在原處。",
   "Your local items have not changed.": "你的本機項目未發生變化。",
   "1 item was saved to the shared project.": "1 個項目已儲存到共用專案。",
-  "{n} items were saved to the shared project.": "{n} 個項目已儲存到共用專案。",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} 個項目已儲存到共用專案。"
+  },
   "Wait for the current move to finish.": "請等待目前的移動完成。",
   "You cannot save to that shared project.": "你無法儲存到該共用專案。",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "所有能開啟 {project} 的人都會看到這些項目。全部儲存到那裡後，本機原件會移到垃圾桶，你可以在那裡還原。",
@@ -1487,8 +1517,12 @@
   "file": "檔案",
   "samples": "取樣",
   "text": "文字",
-  "{n} changes found": "發現 {n} 項變更",
-  "{n} pages differ": "{n} 個頁面不同",
+  "{n} changes found": {
+    "other": "發現 {n} 項變更"
+  },
+  "{n} pages differ": {
+    "other": "{n} 個頁面不同"
+  },
   "Draft": "草稿",
   "Draft quality": "草稿品質",
   "Draft rule": "草稿規則",
@@ -1799,5 +1833,220 @@
   "Headlines - 36px, or 24px bold": "標題 - 36px，或 24px 粗體",
   "Icons and borders only": "僅限圖示與邊框",
   "Not usable": "無法使用",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA 是針對 sRGB 定義的，因此廣色域色彩會以其 sRGB 呈現結果評分。"
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA 是針對 sRGB 定義的，因此廣色域色彩會以其 sRGB 呈現結果評分。",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "這部裝置沒有圖形加速就進行繪製，所以 Lolly 已切換為更簡單、更快的外觀。",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "這部裝置運作吃力，所以 Lolly 已切換為更簡單、更快的外觀。",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "已於 {date} 自動開啟，因為這部裝置沒有圖形加速就進行繪製。",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "已於 {date} 自動開啟，因為這部裝置繪製介面時運作吃力。",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "由於你在 {date} 選了「復原」，這部裝置已關閉自動切換。",
+  "Allow again": "再次允許",
+  "Automatic switching is allowed again from the next time you open Lolly.": "從下次開啟 Lolly 起，會再次允許自動切換。",
+  "Board": "看板",
+  "Choose for {role}": "為{role}選擇",
+  "Change {role}": "變更{role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "你品牌的指引，為人和代理而寫。代理先讀品牌技能，再讀手邊工作所用的技能。技能引導工作；Lolly 檢查的是「規則」中的內部規則。",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "這部裝置忙碌期間，Lolly 已切換為更簡單、更快的外觀。等情況平穩後會自動切換回來。",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "電量偏低期間，Lolly 已切換為更簡單、更快的外觀。這部裝置開始充電後會自動切換回來。",
+  "On for now because this device is busy. It switches back when things calm down.": "暫時開啟，因為這部裝置正忙碌。等情況平穩後會自動切換回來。",
+  "On for now because the battery is low. It switches back when this device is charging.": "暫時開啟，因為電量偏低。這部裝置開始充電後會自動切換回來。",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "已於 {date} 在這部裝置忙碌時自動開啟。你選了「保留」。",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "已於 {date} 在電量偏低時自動開啟。你選了「保留」。",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "由於你在 {date} 選了「復原」，Lolly 不會在這裡因裝置運作緩慢而自動切換。",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "由於你在 {date} 選了「復原」，Lolly 不會在這部裝置忙碌或電量偏低時自動切換。",
+  "Use the automatic colour": "使用自動色彩",
+  "follows the design system ({colour})": "跟隨設計系統（{colour}）",
+  "follows the design system": "跟隨設計系統",
+  "automatic ({colour})": "自動（{colour}）",
+  "automatic": "自動",
+  "{name} spring": "{name}彈簧",
+  "{name} (not in this design system)": "{name}（不在此設計系統中）",
+  "Curves": "曲線",
+  "Springs": "彈簧",
+  "Gentle": "柔和",
+  "Quick": "快速",
+  "Bouncy": "彈跳",
+  "Custom spring": "自訂彈簧",
+  "Stiffness": "剛度",
+  "Damping": "阻尼",
+  "Mass": "質量",
+  "Settles in {t} s": "{t} 秒後靜止",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "彈簧靜止之前就到了下一個關鍵影格。剩餘的動作會平均分配到整個片段。",
+  "From the design system: {name}": "來自設計系統：{name}",
+  "Editing the curve detaches it from the design system.": "編輯曲線會使其與設計系統中斷連結。",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "鋼筆 (P) - 點按放置節點，拖曳成曲線，Alt 設為角點。長按可選鉛筆 (Shift C) 和曲線類型",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "鋼筆 (P) - 點按放置節點，拖曳成曲線，Alt 設為角點",
+  "Recipients can change the inputs": "收件者可變更輸入項",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "任何持有連結的人都可以變更其輸入項並取得新影像。已鎖定的輸入項會維持原設定。",
+  "{count} entries": {
+    "other": "{count} 筆記錄"
+  },
+  "{count} files in this folder": {
+    "other": "此資料夾中有 {count} 個檔案"
+  },
+  "{n} assets": {
+    "other": "{n} 個素材"
+  },
+  "{n} assets found": {
+    "other": "找到 {n} 個素材"
+  },
+  "{n} capabilities match": {
+    "other": "{n} 項功能相符"
+  },
+  "{n} copies made · selected": {
+    "other": "已建立 {n} 份複本 · 已選取"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "在此從專案中移除的 {n} 件作品，仍保持移除。"
+  },
+  "{n} embedded files": {
+    "other": "{n} 個嵌入檔案"
+  },
+  "{n} external references": {
+    "other": "{n} 個外部參考"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "{n} 個檔案無法封裝，已略過"
+  },
+  "{n} folders": {
+    "other": "{n} 個資料夾"
+  },
+  "{n} font files": {
+    "other": "{n} 個字體檔案"
+  },
+  "{n} images": {
+    "other": "{n} 張圖片"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n} 張圖片無法還原（儲存空間已滿？）"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} 張圖片留在原始位置 - 圖片只能有一個位置；請用「剪下」搬移"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "{n} 個輸入項 · 套用到每個設計"
+  },
+  "{n} items": {
+    "other": "{n} 個項目"
+  },
+  "{n} items copied": {
+    "other": "已複製 {n} 個項目"
+  },
+  "{n} items cut": {
+    "other": "已剪下 {n} 個項目"
+  },
+  "{n} items moved": {
+    "other": "已移動 {n} 個項目"
+  },
+  "{n} items pasted": {
+    "other": "已貼上 {n} 個項目"
+  },
+  "{n} keyframes": {
+    "other": "{n} 個關鍵影格"
+  },
+  "{n} logos": {
+    "other": "{n} 個標誌"
+  },
+  "{n} marks found": {
+    "other": "找到 {n} 個標記"
+  },
+  "{n} newer items skipped": {
+    "other": "已略過 {n} 個較新的項目"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "你的作品中有 {n} 個為影片或動畫"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "已略過 {n} 個較舊的自動檢查點"
+  },
+  "{n} pages": {
+    "other": "{n} 頁"
+  },
+  "{n} places": {
+    "other": "{n} 處"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} 個節點 - 按住 Alt 設為角點"
+  },
+  "{n} published versions": {
+    "other": "{n} 個已發佈版本"
+  },
+  "{n} results": {
+    "other": "{n} 筆結果"
+  },
+  "{n} saved sessions": {
+    "other": "{n} 個已儲存的工作階段"
+  },
+  "{n} selected": {
+    "other": "已選取 {n} 個"
+  },
+  "{n} selected assets": {
+    "other": "已選取 {n} 個素材"
+  },
+  "{n} sessions": {
+    "other": "{n} 個工作階段"
+  },
+  "{n} shapes": {
+    "other": "{n} 個形狀"
+  },
+  "{n} steps": {
+    "other": "{n} 個步驟"
+  },
+  "{n} templates": {
+    "other": "{n} 個範本"
+  },
+  "{n} volume keys": {
+    "other": "{n} 個音量關鍵格"
+  },
+  "{n} words": {
+    "other": "{n} 個字"
+  },
+  "Back up or restore data…": "備份或還原資料…",
+  "Use this copy…": "使用這個副本…",
+  "Dominant hand": "慣用手",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "在雙窗格版面中（摺疊裝置或接近正方形的平板），控制項會位於遠離繪圖手的一側。窗格標題中的「左右互換」也可以變更此設定。",
+  "Swap sides": "左右互換",
+  "Resize panes": "調整窗格大小",
+  "Changes that didn't finish saving": "未完成儲存的變更",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "你在 {time} 做了這些變更，頁面在儲存前就關閉了。此後，這個設計系統已在另一個分頁中或透過同步再次儲存。",
+  "Restore your unsaved changes": "還原未儲存的變更",
+  "Keep the saved version": "保留已儲存的版本",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "還原會取代此後儲存的版本。保留已儲存的版本會從這部裝置刪除未儲存的變更。",
+  "Restored your unsaved changes.": "已還原未儲存的變更。",
+  "Kept the saved version.": "已保留已儲存的版本。",
+  "Restored the changes that hadn't finished saving.": "已還原未完成儲存的變更。",
+  "{n} file": "{n} 個檔案",
+  "It becomes the primary. Shades and roles can follow.": "它會成為主色。深淺色階與角色可以隨之而來。",
+  "Start here": "從這裡開始",
+  "Browse looks →": "瀏覽風格 →",
+  "Pick what you have →": "選擇你已有的 →",
+  "Open the picker →": "開啟取色器 →",
+  "Starter greys until a colour is added.": "加入顏色之前，這裡是入門灰色。",
+  "Lolly can’t draw in this browser yet": "Lolly 暫時無法在此瀏覽器中繪製",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly 使用 WebGPU 繪製，而此瀏覽器尚未提供 WebGPU。",
+  "These work today:": "目前可用：",
+  "Chrome or Edge, kept up to date": "保持更新的 Chrome 或 Edge",
+  "Safari 26 or later": "Safari 26 或更新版本",
+  "Firefox, where WebGPU is turned on": "已開啟 WebGPU 的 Firefox",
+  "Get the desktop app": "取得桌面應用程式",
+  "Read why": "了解原因",
+  "Or drop an image or a list of colours here": "或將圖片或色彩清單拖放到這裡",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "這些中性色隨起始設定提供，在上方加入色彩之前，預覽會用它們來顯示。",
+  "{role}: {value}. Choose a colour": "{role}：{value}。選擇色彩",
+  "Add a colour to the palette first.": "請先在調色盤中加入一種色彩。",
+  "Notify": "通知",
+  "Update automatically": "自動更新",
+  "App updates": "應用程式更新",
+  "Update notifications": "更新通知",
+  "Ready to install: {version}": "已準備好安裝：{version}",
+  "Restart now": "立即重新啟動",
+  "Install when I quit": "結束時安裝",
+  "Release notes": "版本說明",
+  "Manual download": "手動下載",
+  "Update could not finish. Try again or download the app.": "無法完成更新。請重試或下載應用程式。",
+  "Finish recording or exporting before updating.": "請先完成錄製或匯出，再進行更新。",
+  "Save could not finish. Save a recovery copy before updating.": "無法完成儲存。請在更新前儲存一份復原副本。",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "無法在此位置取代此 AppImage。請將應用程式下載到可寫入的資料夾。",
+  "This installation uses its package manager for updates.": "此安裝透過套件管理員更新。",
+  "This desktop platform does not support in-app updates.": "此桌面平台不支援應用程式內更新。",
+  "Update installation was cancelled.": "已取消安裝更新。"
 }

@@ -14,13 +14,13 @@ Profilin ayrıca çalışırken biriktirdiklerini de tutar: kayıtlı oturumlar,
 | **Headshot** | E-posta imzaları, alıntı kartları ve organizasyon şemaları gibi araçlar için kareye kırpılmış ve yerel görsel olarak tutulan isteğe bağlı bir fotoğraf. |
 | **Use my details to create** | Tek bir isteğe bağlı anahtar (açıldığında **Using my details** yazar). Ayrıntılarının dışa aktarılan dosyalarda ve Batch çalıştırmalarında yazar atfı olarak gidip gitmeyeceğine karar verir. Önceden doldurmayı etkilemez; bkz. [Araçlar profilini nasıl kullanır](#how-tools-use-your-profile). |
 | **Preferences** | Temanın, her tasarım sistemindeki colourway'in, erişilebilirlik ayarların ve **Feature flags** içinde açtığın uygulama bölümleri. |
-| **Your work** | Küçük resimleriyle kayıtlı oturumlar, [Projects](/info/find-your-work.html) içinde düzenlenmiş, yüklenen görsellerin ve yerel etkinlik istatistiklerin. |
+| **Your work** | Küçük resimleriyle kayıtlı oturumlar, [Lolly Projects](/info/find-your-work.html) içinde düzenlenmiş, yüklenen görsellerin ve yerel etkinlik istatistiklerin. |
 
 Hiçbiri zorunlu değildir. Boş bir profil çalışır; yalnızca yazmaktan seni kurtaranı doldur.
 
 ![Preferences sekmesinde Settings: ayarlar rayı ve Use my details to create anahtarı ile ad, iletişim ve konum alanlarının bulunduğu Your details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html), Preferences altındaki diğer her şeyi, görünümden ve emojiden depolamaya ve çevrimdışı indirmelere kadar haritalar.
+[Lolly Settings](/info/dashboard.html), Preferences altındaki diğer her şeyi, görünümden ve emojiden depolamaya ve çevrimdışı indirmelere kadar haritalar.
 
 ## Sen, bir ekip veya bir rol
 
@@ -83,7 +83,7 @@ Araç yazarları: bkz. [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) v
 Settings içinde birbirine yakın duran ve karıştırılması kolay üç şey var:
 
 - <!--i:people--> **Profile** - sen, ekibin veya içinde bulunduğun rol: ad, iletişim, profil fotoğrafı ve kayıtlı işler. Kişisel, cihazda tutulur ve bir dosya olarak taşınabilir.
-- <!--i:palette--> **Design system** - marka: her aracın render ettiği renkler, yazı tipleri ve ayarlar. Kişisel değil, ortak ve tutarlı; bkz. [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - marka: her aracın render ettiği renkler, yazı tipleri ve ayarlar. Kişisel değil, ortak ve tutarlı; bkz. [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - uygulamanın neler yapabildiği: sana sunulan özellikler ve araçlar.
 
 Bir profil bir dosyanın kimden olduğunu değiştirir; tasarım sistemi dosyanın nasıl göründüğünü değiştirir; yetenekler ise yapabileceğin şeylerdir.

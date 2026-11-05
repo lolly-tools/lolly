@@ -26,7 +26,7 @@ The gallery holds many more: QR codes, certificates, diagrams, decks, audiograms
 
 ## Where the look comes from
 
-The colours, fonts and logos come from a **design system**, set once. lolly.tools starts in **Lolly Demo**, Lolly's own sample design system, which is why everything is green at first. [Meet Lolly Demo](/info/lolly-demo.html) shows what it contains. **Design System Setup** (`#/start`) is where you make your own, and [Start](/info/quickstart.html) walks you through the choices.
+The colours, fonts and logos come from a **design system**, set once. lolly.tools starts in **Lolly Demo**, Lolly's own sample design system, which is why everything is green at first. [Meet Lolly Demo](/info/lolly-demo.html) shows what it contains. **Lolly Design System Setup** (`#/start`) is where you make your own, and [Start](/info/quickstart.html) walks you through the choices.
 
 Because the rules live in the tool, the tenth file looks as right as the first, and so does the file a colleague makes from the same tool.
 
@@ -40,7 +40,7 @@ Use it in a browser at [lolly.tools](/), or [install the app](/info/install.html
 
 An organisation can add **Lolly Work**, an open-source server it runs itself, for sign-in, shared projects, approvals and server jobs. [Use Lolly at your organisation](/info/organisation.html) explains what changes for you. Everyday use never needs Lolly Work.
 
-Your existing digital asset management system can stay the source of record for approved assets. Work connects a selected part of that library to Lolly tools, with access rules and supported source constraints. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains how the two fit together.
+Your existing digital asset management system can stay the source of record for approved assets. Lolly Work connects a selected part of that library to Lolly tools, with access rules and supported source constraints. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains how the two fit together.
 
 ## Find your way
 

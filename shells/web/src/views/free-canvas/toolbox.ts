@@ -12,7 +12,7 @@ import { LOLLY_MARK_SVG } from '../../lib/lolly-mark.ts';
 import { t } from '../../i18n.ts';
 import { wireColorField } from '../../components/color-field.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
-import type { PopItem } from './shared.ts';
+import { slotGlyphs, type PopItem } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 export function closePopover(fc: FcCtx, restoreFocus = false): void {
@@ -321,7 +321,8 @@ export function buildToolbar(fc: FcCtx): void {
           run: () => fc.document.openSizeMenu(anchorEl()),
         });
     }
-    if (info || actions?.newFromTemplate || actions?.bulk || actions?.agent) {
+    const askAgent = actions?.askAgent && (actions.askAgentShown?.() ?? true) ? actions.askAgent : undefined;
+    if (info || actions?.newFromTemplate || actions?.bulk || actions?.agent || askAgent) {
       if (items.length) items.push({ sep: true });
       if (info)
         items.push({
@@ -356,6 +357,14 @@ export function buildToolbar(fc: FcCtx): void {
           icon: icon(SVG.agent),
           key: 'agent',
           run: () => actions.agent!(),
+        });
+      // An agent CLI on this device answering one request, beside the live connection.
+      if (askAgent)
+        items.push({
+          label: t('Ask an agent'),
+          icon: icon(SVG.agent),
+          key: 'ask-agent',
+          run: () => askAgent(),
         });
     }
     // Custom CSS (plan 112 M4): only for a tool that declares the `customCss` input
@@ -528,7 +537,7 @@ export function buildToolbar(fc: FcCtx): void {
   // and name, and editor.css shows the variant's glyph.
   modeBtns.select = toolBtn(fc, 
     t('Pointer - select and move (V). Hold for Scale (K)'),
-    `<g class="fc-slot-pointer">${SVG.pointer}</g><g class="fc-slot-scale">${SVG.scaleMode}</g>`,
+    slotGlyphs({ pointer: SVG.pointer, scale: SVG.scaleMode }),
     () => fc.scaleMode.pickSlot(),
     'fc-btn-pointer',
     (b) => fc.scaleMode.openMenu(b)
@@ -540,27 +549,20 @@ export function buildToolbar(fc: FcCtx): void {
   // no pen). The tooltip carries the corner modifier, which is otherwise undiscoverable;
   // Alt is free here because a pen click returns long before `selectionForHit`, where Alt
   // means "drill into the group".
+  // The slot also holds the Pencil (Penpot's curve tool, Shift+C), the pen's freehand twin,
+  // as the pointer's slot holds Scale: a hold or a right-click offers both and the Pen's
+  // spline types, the slot shows the one in use or used last, and a click picks that one.
+  // The slot carries both glyphs; fc.pencil sets the slot's variant and name, and
+  // editor.css shows the variant's glyph.
   if (cv.pathField) {
-    modeBtns.pen = toolBtn(fc, 
-      t('Pen - click to place points, drag to curve, Alt for a corner. Hold for the spline type'),
-      SVG.pen,
-      () => {
-        fc.mode === 'pen' ? fc.modes.toPointer() : fc.modes.setMode('pen');
-      },
+    modeBtns.pen = toolBtn(fc,
+      t('Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type'),
+      slotGlyphs({ pen: SVG.pen, pencil: SVG.freehand }),
+      () => fc.pencil.pickSlot(),
       'fc-btn-pen',
-      (b) => fc.penTool.openPenKindMenu(b)
+      (b) => fc.pencil.openSlotMenu(b)
     );
-    // Pencil (Penpot's curve tool, Shift+C): the pen's freehand twin, beside it for the same
-    // reason the Line tool is. A drag draws, the release fits the stroke into an ordinary
-    // editable path box.
-    modeBtns.pencil = toolBtn(fc,
-      t('Pencil (Shift C) - drag to draw a freehand path you can edit afterwards'),
-      SVG.freehand,
-      () => {
-        fc.mode === 'pencil' ? fc.modes.toPointer() : fc.modes.setMode('pencil');
-      },
-      'fc-btn-pencil'
-    );
+    fc.pencil.syncSlot();
     // Node tool (Inkscape's N): click a shape to edit its points directly.
     fc.nodeToolBtn = toolBtn(fc, 
       t('Edit points (N) - click a shape to edit its nodes directly'),
@@ -749,6 +751,9 @@ export function fillPopover(fc: FcCtx, el: HTMLElement, items: PopItem[]): void 
     if (it.sep) {
       const s = document.createElement('div');
       s.className = 'fc-pop-sep';
+      // A rule a screen reader hears as one, so two sets of radio rows on either side of it
+      // (the pen slot's tools and its spline types) are two groups, each with one checked.
+      s.setAttribute('role', 'separator');
       el.appendChild(s);
       continue;
     }

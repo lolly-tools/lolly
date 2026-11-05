@@ -89,16 +89,11 @@
 }
 .color-trigger-name:empty { display: none; }   /* custom colours have no name → just the circle */
 
-/* A tool sidebar row FLOATS its label over the control (tool.css, the
-   `:has(input…)` floating-label rule - which a colour row matches because the popover
-   carries a hex input, even though the row's own control is a button). The label is
-   absolutely positioned at the left, OUT OF FLOW, so the trigger cannot see it: a long
-   name grew leftward underneath it, and even the swatch circle landed on the label's
-   last letter. Reserve the label's side of the row so both stay clear of it.
-   45% measured with headroom - the English labels here end at 34-38% of the trigger,
-   and the reserve has to survive translation (German runs longer).
-   Named colours use the reserved region; compact dots centre independently. */
-.input-row .color-trigger { padding-inline-start: 45%; }
+/* A sidebar row's label sits above its control (tool.css, plans/273), so the trigger
+   keeps no reserve on its leading side. It used to hold 45% clear for a label that
+   floated over the row; with that label gone the reserve only cut names short, and at
+   the large-text setting it ellipsised "Design system" on an automatic field. A name
+   still clamps (min-width: 0 above) when it is longer than the whole trigger. */
 
 /* Narrow inputs hide the name and centre their dot in the button itself. Absolute
    centring is independent of padding: a dot must not overflow the left edge when
@@ -111,11 +106,119 @@
 .color-trigger:has(.color-trigger-name:empty) .color-trigger-preview {
   position: absolute; left: 50%; margin: 0; transform: translateX(-50%);
 }
-/* In a sidebar row the label owns the first 45% (above), so an unnamed colour's
-   dot sits at the trailing edge like a named colour's does, instead of centred
-   over a label that a long translation or a narrow sidebar runs under. */
+/* In a sidebar row an unnamed colour's dot sits at the trailing edge like a named
+   colour's does, so a column of colour rows lines its chips up. */
 .input-row .color-trigger:has(.color-trigger-name:empty) .color-trigger-preview {
   position: static; transform: none;
+}
+
+/* ─── Automatic: an empty field that follows the design system ───────────────
+   (ColorFieldAuto in components/color-field.ts.) The chip paints the colour the
+   tool draws, or a neutral hatch when the host cannot read one, and a small link
+   mark on its corner says the colour is not set here. Never black: an empty value
+   is not a colour. The mark is a filled disc with a hairline ring, the same edge
+   on every side, so it reads on any chip in either theme. */
+.color-trigger-preview--auto,
+.color-auto-chip {
+  position: relative;
+}
+/* A hairline ring in the chrome's own ink, all the way round: a dark design-system
+   colour on a dark sidebar (Ink on the dark theme) still shows where its chip is. */
+.color-trigger-preview--auto {
+  box-shadow: var(--shadow-1), var(--edge-strong);
+}
+.color-trigger-preview--unknown,
+.color-auto-chip--unknown {
+  background-color: hsl(var(--card));
+  background-image: repeating-linear-gradient(
+    135deg,
+    hsl(var(--muted-foreground) / .45) 0 1.5px,
+    transparent 1.5px 5px
+  );
+}
+.color-auto-mark {
+  display: none;
+  position: absolute;
+  right: calc(var(--sp-2) * -1);
+  bottom: calc(var(--sp-2) * -1);
+  place-items: center;
+  width: calc(14px * var(--a11y-fs));
+  height: calc(14px * var(--a11y-fs));
+  border-radius: var(--radius-round);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: var(--edge);
+}
+.color-trigger-preview--auto .color-auto-mark,
+.color-auto-chip .color-auto-mark { display: grid; }
+.color-auto-mark svg {
+  width: calc(9px * var(--a11y-fs));
+  height: calc(9px * var(--a11y-fs));
+}
+/* The narrow trigger centres its chip absolutely (the container query above); the
+   automatic chip keeps that, and is still the box its mark is placed in. */
+@container colortrig (max-width: 120px) {
+  .color-trigger-preview--auto { position: absolute; }
+}
+
+/* The way back to automatic, leading the popover. A full-width row with the chip
+   it restores; pressed while the field already follows. */
+.color-auto-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  width: 100%;
+  min-height: 32px;
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: none;
+  color: hsl(var(--foreground));
+  font-size: var(--fs-sm);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-1), border-color var(--dur-1);
+}
+.color-auto-option:hover { background: hsl(var(--muted)); }
+.color-auto-option:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.color-auto-option[aria-pressed="true"] {
+  border-color: hsl(var(--ring));
+  background: hsl(var(--muted));
+  cursor: default;
+}
+.color-auto-chip {
+  flex-shrink: 0;
+  width: calc(20px * var(--a11y-fs));
+  height: calc(20px * var(--a11y-fs));
+  border-radius: var(--radius-round);
+  box-shadow: var(--edge-strong);
+}
+.color-auto-chip .color-auto-mark {
+  width: calc(12px * var(--a11y-fs));
+  height: calc(12px * var(--a11y-fs));
+  right: calc(var(--sp-2) * -1);
+  bottom: calc(var(--sp-2) * -1);
+}
+.color-auto-chip .color-auto-mark svg {
+  width: calc(8px * var(--a11y-fs));
+  height: calc(8px * var(--a11y-fs));
+}
+.color-auto-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (pointer: coarse) {
+  .color-auto-option { min-height: var(--ui-size-target); }
+}
+/* Windows High Contrast and other forced palettes: keep the chip's own colour (it
+   is the information) and draw the mark and the pressed row in system colours. */
+@media (forced-colors: active) {
+  .color-trigger-preview--auto,
+  .color-auto-chip { forced-color-adjust: none; }
+  .color-auto-mark { forced-color-adjust: none; background: Canvas; color: CanvasText; outline: 1px solid CanvasText; }
+  .color-auto-option[aria-pressed="true"] { border-color: Highlight; }
 }
 
 .color-popover {

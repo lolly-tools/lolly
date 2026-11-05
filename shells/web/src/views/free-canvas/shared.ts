@@ -521,6 +521,8 @@ export interface ToolbarActions {
   newFromTemplate?(): void; // re-open the Start template chooser mid-session (plans/142 WP-1); absent = the tool has no templates, shipped or the person's own (plans/226 WP-1)
   bulk?(): void; // hand this template to /batch (plans/147 M1); absent = the batch can't run this tool
   agent?(): void; // Connect an AI agent (plans/289 D1); absent = this tool takes no live agent
+  askAgent?(): void; // Ask an agent on this device (desktop only); absent = not offered here
+  askAgentShown?(): boolean; // read when the menu opens: policy can change, and a detection that found nothing hides the row
   canSave?: boolean; // omit the Save icon for tools that don't persist a session
   dirtyRef?: HTMLElement | null; // element whose `is-unsaved` class the Save icon mirrors
 }
@@ -597,6 +599,27 @@ export interface PopAction {
   check?: boolean;
 }
 export type PopItem = PopSep | PopGrid | PopAction;
+
+// ── rail slots ────────────────────────────────────────────────────────────────
+// A rail slot is one button that holds two tools, as Figma's Move and Scale share one
+// toolbar slot: the pointer and Scale (scale-mode.ts), the Pen and the Pencil (pencil.ts).
+// The slot carries a glyph for each tool and editor.css draws the one its `data-variant`
+// names. A click picks the tool the slot shows, and a hold or a right-click (toolBtn's
+// `hold`) opens the slot's menu, which offers both. One button per slot is what keeps the
+// rail at ten buttons, so the navigator's tool grid fills whole rows.
+/** A slot's glyphs: one `<g class="fc-slot-glyph fc-slot-<variant>">` per tool, in order. */
+export function slotGlyphs(glyphs: Record<string, string>): string {
+  return Object.entries(glyphs)
+    .map(([variant, svg]) => `<g class="fc-slot-glyph fc-slot-${variant}">${svg}</g>`)
+    .join('');
+}
+/** Show one of a slot's tools, written in place (the rail is built once): its glyph,
+ *  through `data-variant`, and its name as the slot's label and tooltip. */
+export function showSlotTool(slot: HTMLElement, variant: string, label: string): void {
+  slot.dataset.variant = variant;
+  slot.setAttribute('aria-label', label);
+  slot.setAttribute('data-tip', label);
+}
 
 /** The fields of a pointer event a gesture frame reads. A modifier key pressed or
  *  released mid-drag re-runs the last frame with the new modifier state, so this is

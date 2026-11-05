@@ -3,9 +3,11 @@
 import { t } from '../i18n.ts';
 import { compactActionsHeight, compactDesignViewport, designPanelsFit } from '../lib/design-panel-layout.ts';
 import { edgeDockWidth } from '../lib/edge-dock.ts';
+import { isSplitLayout } from '../lib/layout-posture.ts';
 import type { DesignCanvasPorts } from './design-ports.ts';
 import type { DesignNavigatorHandle } from './design-navigator.ts';
 import type { DesignInspectorFloatHandle } from './design-inspector-float.ts';
+import { mountDesignSplit } from './design-split.ts';
 
 type Panel = 'navigator' | 'inspector' | 'timeline';
 export function mountDesignPanels(opts: {
@@ -13,8 +15,19 @@ export function mountDesignPanels(opts: {
   navigator: DesignNavigatorHandle; inspector: DesignInspectorFloatHandle;
   more(anchor: HTMLElement): void;
 }) {
-  const { stage, canvas, design, navigator, inspector } = opts;
+  const { stage, canvas, design, inspector } = opts;
   let adjusting = false, disposed = false, scheduled = false;
+  // Two panes (views/design-split.ts): the right-hand column is the control pane and
+  // the navigator joins it as the Layers tab, where it takes no stage band. The
+  // panels read the navigator through the split's view of the navigator.
+  const split = mountDesignSplit({
+    navigator: () => opts.navigator, inspector: () => inspector,
+    openInspector: () => { inspector.setOpen(true, 'host'); }, syncPanels: () => schedule(), stage,
+  });
+  const navigator = split.navigatorForPanels(opts.navigator);
+  // The person opening the navigator brings its tab forward in two panes. Every open
+  // change reaches sync() below, so that is where the transition is caught.
+  let navWasOpen = navigator.isOpen();
   let active: Panel = design.isTimelineOpen() ? 'timeline' : navigator.isOpen() ? 'navigator' : 'inspector';
   let wasEditing = false;
   let timelineOpen = design.isTimelineOpen();
@@ -43,7 +56,9 @@ export function mountDesignPanels(opts: {
     active = panel;
     if (!enforce) return;
     const compact = compactDesignViewport();
-    const exclusive = compact || !designPanelsFit(window.innerWidth, navigator.width(), Math.max(340, edgeDockWidth()));
+    // In two panes the inspector and the layers are tabs of one control pane, so
+    // opening one never has to close the other.
+    const exclusive = !isSplitLayout() && (compact || !designPanelsFit(window.innerWidth, navigator.width(), Math.max(340, edgeDockWidth())));
     if (!exclusive) return;
     adjusting = true;
     if (panel !== 'navigator') navigator.setOpen(false);
@@ -70,6 +85,7 @@ export function mountDesignPanels(opts: {
       if (design.isTimelineOpen()) design.toggleTimeline();
     }
     wasEditing = editing;
+    if (navigator.isOpen() !== navWasOpen) { navWasOpen = navigator.isOpen(); split.sync(navWasOpen); }
     layers.setAttribute('aria-pressed', String(navigator.isOpen()));
     inspect.setAttribute('aria-pressed', String(inspector.isOpen()));
     const currentTimeline = design.isTimelineOpen();
@@ -108,12 +124,13 @@ export function mountDesignPanels(opts: {
   window.visualViewport?.addEventListener('resize', schedule);
   window.visualViewport?.addEventListener('scroll', schedule);
   sync();
+  split.sync();
   return {
     get adjusting() { return adjusting; },
     activate, sync: schedule,
     sheetHeight(height: number) { sheetHeight = height; schedule(); },
     destroy() {
-      disposed = true; observer.disconnect(); resize?.disconnect(); actions.remove();
+      disposed = true; observer.disconnect(); resize?.disconnect(); actions.remove(); split.destroy();
       stage.removeEventListener('focusin', onTimelineInteraction);
       stage.removeEventListener('pointerdown', onTimelineInteraction, true);
       canvas.removeEventListener('canvas-resize', schedule);

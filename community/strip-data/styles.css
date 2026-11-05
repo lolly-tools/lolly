@@ -270,3 +270,9 @@
   border-radius: 4px;
   color: hsl(var(--ex-muted));
 }
+
+/* PDF accessibility checks: the list is always open, because the wording is the point. */
+.exif-a11y { margin-top: 1rem; }
+.exif-a11y h3 { margin: 0 0 .25rem; font-size: 1rem; }
+.exif-a11y .exif-finding-detail { display: block; white-space: normal; text-align: left; max-width: 100%; font-family: inherit; }
+.exif-finding.fail .exif-finding-label { color: color-mix(in oklab, hsl(var(--ex-warn)), hsl(var(--ex-fg)) 30%); }

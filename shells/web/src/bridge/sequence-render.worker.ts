@@ -70,7 +70,7 @@ import {
   type PcmSource,
   type StreamingMux,
 } from './video-encode-core.ts';
-import { parseClipShape, projectLayer } from '@lolly/engine';
+import { parseClipShape, projectLayer, setKfEaseTokens } from '@lolly/engine';
 // The two blur lanes (plans/104 section 5.5, section 11 S1). DOM-free at import, so the executor
 // keeps its own DOM-free contract; the probe inside decides which lane a context gets.
 import {
@@ -1302,6 +1302,12 @@ export interface SeqWorkerStart {
   pick: EncodePick;
   bitrate: number;
   audio: SeqWorkerAudio | null;
+  /**
+   * The design system's motion tokens as the main thread has them installed (plans/329),
+   * so a keyframe bound to a token plays the same curve here as in the preview. Absent
+   * from an older sender; the worker then plays each binding's stored fallback.
+   */
+  easeTokens?: Record<string, string>;
 }
 /** The main thread's answer to `need-live`; `bitmap` null means "use the static plate". */
 export interface SeqWorkerLive { type: 'live'; id: number; token: number; bitmap: ImageBitmap | null }
@@ -1525,6 +1531,7 @@ if (inWorkerScope()) {
       return;
     }
     // 'start'
+    setKfEaseTokens(m.easeTokens ?? null);
     void handleStart(m, port, registry.begin(m.id))
       .catch((err) => {
         const coded = toCodedError(err);

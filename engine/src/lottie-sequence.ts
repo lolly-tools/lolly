@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Compile a frozen, resolved linear sequence without a player or a DOM. */
-import { evaluateKf, kfChannelsUsed, kfEasePoints, kfPathCurves, parseKf, type KfChannel, type KfTrack } from './keyframes.ts';
+import { evaluateKf, kfChannelsUsed, kfEaseIsSpring, kfEasePoints, kfPathCurves, parseKf, type KfChannel, type KfTrack } from './keyframes.ts';
+import { kfExportKeys } from './kf-bake.ts';
 import { isKfLookChannel } from './kf-look.ts';
 import { lookFeatureName } from './lottie-look.ts';
 import { admitLottieAnimation, lottieNumber, lottieObject, type LottieAnimation, type LottieObject, type LottieValue } from './lottie-model.ts';
@@ -64,15 +65,17 @@ export function retimeLottie(source: LottieAnimation, fps: number, prefix: strin
   return copy;
 }
 function channel(track: KfTrack, key: KfChannel, fps: number, startMs: number, base: number, multiplier = 1, replace = false): LottieObject {
-  const keys = track.filter(item => item.v[key] !== undefined);
+  // Springs are baked into frame keys and design-system eases resolved (plans/329); every
+  // other key is the authored one, at the same frame as before.
+  const keys = kfExportKeys(track, key, fps, startMs);
   if (!keys.length) return lottieStatic(base);
   const value = (n: number) => replace ? n * multiplier : base + n * multiplier;
   return { a: 1, k: keys.map((item, index) => {
     const next = keys[index + 1];
     const points = key === 'o' ? [0, 0, 1, 1] : kfEasePoints(item.ease) ?? [0, 0, 1, 1];
     return {
-      t: (startMs + item.t) * fps / 1000, s: [value(item.v[key]!)],
-      ...(next ? { e: [value(next.v[key]!)], ...(item.ease === 'eh' ? { h: 1 } : { o: { x: points[0]!, y: points[1]! }, i: { x: points[2]!, y: points[3]! } }) } : {}),
+      t: item.f, s: [value(item.v)],
+      ...(next ? { e: [value(next.v)], ...(item.ease === 'eh' ? { h: 1 } : { o: { x: points[0]!, y: points[1]! }, i: { x: points[2]!, y: points[3]! } }) } : {}),
     };
   }) };
 }
@@ -83,7 +86,9 @@ function channel(track: KfTrack, key: KfChannel, fps: number, startMs: number, b
  * name. A straight segment carries no tangents, so it interpolates per axis exactly as the
  * separate properties did. Players walk a curve by arc length and hold at its ends, so a
  * curved segment whose ease leaves the 0 to 1 range is written one key per frame instead,
- * the way a keyed colour is: the file then carries Lolly's own travel frame by frame.
+ * the way a keyed colour is: the file then carries Lolly's own travel frame by frame. A
+ * spring segment (plans/329), curved or straight, is written frame by frame the same way,
+ * since no bezier carries it; a design-system ease writes the curve its token has now.
  */
 function pathPosition(layer: LottieSequenceLayer, track: KfTrack, fps: number): LottieObject {
   const bx = layer.x + layer.w / 2, by = layer.y + layer.h / 2;
@@ -106,7 +111,7 @@ function pathPosition(layer: LottieSequenceLayer, track: KfTrack, fps: number): 
     if (key.ease === 'eh') { out.push({ t: frame(key.t), s, e, h: 1 }); return; }
     const points = kfEasePoints(key.ease) ?? [0, 0, 1, 1];
     const curved = curves.get(index) === next.index;
-    if (curved && [points[1]!, points[3]!].some(y => y < 0 || y > 1)) {
+    if (kfEaseIsSpring(key.ease) || (curved && [points[1]!, points[3]!].some(y => y < 0 || y > 1))) {
       const times = [key.t];
       for (let f = Math.floor(frame(key.t)) + 1; f < frame(next.key.t); f++) times.push(f * 1000 / fps - layer.startMs);
       times.forEach((ms, j) => {

@@ -10,9 +10,9 @@ Esta página recorre el lienzo desde el primer cuadro hasta un deck terminado: l
 
 La **barra superior** empieza con **Home**, el **File menu** y el nombre del documento (haz clic en el nombre para renombrar el documento). En el centro están **Undo**, **Redo**, **History**, los controles de zoom (con **Fit all** y **Fit artboard**) y los interruptores de la **Timeline**, el **Navigator** y el **Inspector**. A la derecha están **Share**, **Present** y **Export**. En un teléfono, los botones menos usados pasan a **More actions**.
 
-El **carril de herramientas** a un lado contiene el menú de Lolly y las herramientas con las que dibujas: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, y luego los botones de Timeline, Artboards y Auto-arrange.
+El **carril de herramientas** a un lado contiene el menú de Lolly y las herramientas con las que dibujas: **Pointer**, **Add a box**, **Pen** (el **Pencil** comparte su botón), **Edit points**, **Line**, y luego los botones de Timeline, Artboards y Auto-arrange.
 
-![La barra de herramientas del lienzo libre: un asa de arrastre, el menú de Lolly y luego Puntero, Añadir un cuadro, Pluma, Lápiz, Editar puntos, Línea, Línea de tiempo, Áreas de diseño y Organizar automáticamente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![La barra de herramientas del lienzo libre: un asa de arrastre, el menú de Lolly y luego Puntero, Añadir un cuadro, Pluma, Editar puntos, Línea, Línea de tiempo, Áreas de diseño y Organizar automáticamente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 El lienzo funciona como la mesa de trabajo de un diseñador alrededor de la mesa de arte:
 
@@ -79,7 +79,7 @@ Los cuadros, círculos y marcos redondeados cubren la mayoría de los diseños. 
 
 **Continúa un trazado abierto.** Con el Pen activo, pulsa en cualquiera de los extremos de un trazado abierto y vuelves a dibujar ese trazado: cada clic añade un punto después de ese extremo, o delante del primer punto si empezaste desde el principio. Enter conserva el resultado y Escape deja el trazado exactamente como estaba. El trazado sigue siendo el mismo cuadro, con su relleno, trazo y puntas de flecha, y un solo deshacer lo devuelve. Delete retira solo los puntos que añadiste. Una forma cerrada, una línea unida a un cuadro y un trazado con varias partes no tienen un extremo libre para continuar.
 
-**Dibuja a mano alzada con el Pencil.** El botón **Pencil** del carril (o `Shift C`) graba tu trazo mientras arrastras. Al soltar, Lolly suaviza el trazo en unos pocos puntos con tiradores Bezier, conserva los giros bruscos como vértices y mantiene la curva a un par de píxeles de pantalla de por dónde fue tu mano. Un trazo que termina cerca de su inicio se cierra. El resultado es un trazado normal, con la misma pintura que un trazado de pluma, y después puedes editar sus puntos.
+**Dibuja a mano alzada con el Pencil.** Pulsa `Shift C`, o mantén pulsado el botón **Pen** del carril (o haz clic derecho en el botón) y elige **Pencil**; el botón muestra entonces el Pencil hasta que vuelvas a elegir el Pen. El Pencil graba tu trazo mientras arrastras. Al soltar, Lolly suaviza el trazo en unos pocos puntos con tiradores Bezier, conserva los giros bruscos como vértices y mantiene la curva a un par de píxeles de pantalla de por dónde fue tu mano. Un trazo que termina cerca de su inicio se cierra. El resultado es un trazado normal, con la misma pintura que un trazado de pluma, y después puedes editar sus puntos.
 
 El resultado es un cuadro normal. Mueve, redimensiona, gira, agrupa, alinea, reordena, rellena, sombrea o desvanece el trazado como cualquier otro cuadro. El primer trazado toma el relleno y el trazo que tu marca da a un trazado, y cada trazado nuevo toma lo último que usaste. En una herramienta cuya marca no define nada para los trazados, un trazado nuevo se perfila con el color con el que dibujaste, así que la forma nunca es invisible.
 
@@ -121,6 +121,25 @@ Otras tres funcionan sobre una sola forma. **Outline stroke…** convierte un tr
 ![Una media luna y un anillo con un agujero real, ambos producidos con Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 El resultado es un trazado nuevo que puedes seguir editando con el pen, guardado como curvas Bézier simples, por lo que el tipo de spline original no se conserva. Los agujeros son agujeros reales: el control **Fill rule** del panel de trazo decide si los contornos superpuestos se rellenan (*non-zero*) o se perforan (*even-odd*). Las operaciones se niegan antes que destruir: si pides intersecar dos formas que no se superponen, no cambia nada. Los cuadros de texto e imagen no tienen contorno, así que se dejan como están.
+
+## Calcar una imagen
+
+Selecciona una imagen, haz clic derecho sobre ella y elige **Calcar imagen…** para convertirla en formas editables. Elige un preset y pulsa **Calcar**:
+
+- **Logotipo** encuentra unos pocos colores planos y mantiene bordes nítidos, círculos y líneas exactos. Rechaza una imagen con degradados o tonos fotográficos y te lo dice.
+- **Ilustración** calca varios colores como formas rellenas, arte plano o una imagen posterizada.
+- **Arte lineal** calca líneas oscuras sobre una página clara como formas negras.
+- **Línea central** calca líneas oscuras como trazos sueltos, para que puedas cambiar su grosor después.
+
+Las formas se añaden como un grupo justo encima de la imagen, que se queda donde está. Oculta o elimina la imagen para ver solo los trazados. El calcado se ejecuta en tu dispositivo, en una tarea en segundo plano con un botón Cancelar, y no se sube nada. Una imagen de 1500 píxeles suele tardar entre uno y varios segundos, y una fotografía muy cargada tarda más.
+
+El calcado sigue lo que muestra el cuadro, así que una imagen recortada (Cover) calca solo la parte visible. Se aplican estos límites:
+
+- Las imágenes se reducen a 1500 píxeles como máximo en el lado largo antes de calcar, así que los bordes se colocan con una precisión de una fracción de ese tamaño, no del original.
+- Un calcado genera como máximo 1500 formas y 60 000 puntos. Una fotografía suele pasarse de ese límite, y Design lo indica sin cambiar nada. Prueba con Logotipo o Arte lineal, o con una imagen más sencilla.
+- Los degradados se convierten en bandas de color plano y las sombras suaves en formas de borde duro.
+- El radio de esquina, una máscara de forma y un efecto en el cuadro de imagen no se aplican a los trazados.
+- La misma imagen y el mismo preset dan siempre las mismas formas.
 
 ## Trazos
 
@@ -195,9 +214,9 @@ Donde existe una sugerencia concreta de color o fuente, su botón cambia esa ún
 
 ### Normas internas y la señal de redacción
 
-La tarjeta del panel de exportación también comprueba las normas internas que trae tu design system, como el grosor y la alineación del texto, las combinaciones de colores aprobadas o un logotipo por superficie, capa por capa. Cada hallazgo es una advertencia con el nombre de la capa sobre la regla. Una regla para la que esta compilación no tiene comprobador se enumera como no comprobada, nunca como cumplida. [Usage & rules](/info/brand-studio.html#usage-rules) enumera las reglas, y `lolly check` aplica las mismas a un documento guardado.
+La tarjeta del panel de exportación también comprueba las normas internas que trae tu design system, como el grosor y la alineación del texto, las combinaciones de colores aprobadas o un logotipo por superficie, capa por capa. Cada hallazgo es una advertencia con el nombre de la capa sobre la regla. Una regla para la que esta compilación no tiene comprobador se enumera como no comprobada, nunca como cumplida. [Rules](/info/brand-studio.html#rules) enumera las reglas, y `lolly check` aplica las mismas a un documento guardado.
 
-La misma tarjeta muestra la señal de redacción del texto que dibuja el documento: su banda (none, weak, notable o strong), y luego la propia frase de Verify con la puntuación sobre 100 y hasta tres frases señaladas, cada una con la capa que las contiene. **Open the text in Verify** lleva ese texto a [Verify](/#/verify) para la lectura completa; [AI evidence in Verify](/info/verify-ai-evidence.html) explica qué pondera la puntuación. La puntuación es una señal, no un veredicto: cuenta patrones comunes en la escritura generada y no puede decir quién escribió las palabras. Las capas ocultas quedan fuera de ambas comprobaciones, y la tarjeta indica cuántas.
+La misma tarjeta muestra la señal de redacción del texto que dibuja el documento: su banda (none, weak, notable o strong), y luego la propia frase de Verify con la puntuación sobre 100 y hasta tres frases señaladas, cada una con la capa que las contiene. **Open the text in Verify** lleva ese texto a [Lolly Verify](/#/verify) para la lectura completa; [AI evidence in Verify](/info/verify-ai-evidence.html) explica qué pondera la puntuación. La puntuación es una señal, no un veredicto: cuenta patrones comunes en la escritura generada y no puede decir quién escribió las palabras. Las capas ocultas quedan fuera de ambas comprobaciones, y la tarjeta indica cuántas.
 
 Los hallazgos de normas internas y una señal de redacción fuerte cuentan para el total "to fix" de la tarjeta para que sean fáciles de encontrar. Informan y nunca bloquean: Download sigue disponible, y no hay nada que descartar ni que registrar como excepción. Un agente que trabaja en el documento abierto recibe el mismo informe mediante sus herramientas del sitio ([Agents in an open document](/info/open-document-agents.html)).
 

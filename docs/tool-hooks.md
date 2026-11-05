@@ -37,7 +37,7 @@ Async results are time-boxed. The budget in each step below is how long the runt
 ::: timeline
 - <!--i:star--> **The tool opens: `onInit`, 5 seconds.** Runs once and seeds computed values.
 - <!--i:sliders--> **Each edit: `onInput`, 2 seconds.** Runs after every input change, with the changed input's `id` and `value`.
-- <!--i:download--> **An export starts: `beforeExport`, 5 seconds.** Adjust the node or call host APIs before the file is drawn. Receives `{ node, format, opts, host }`.
+- <!--i:download--> **An export starts: `beforeExport`, 5 seconds.** Adjust the node or call host APIs before the file is drawn. Receives `{ node, format, opts, host }`. If your template's frame clock declares `stillPose`, an SVG, PDF or other still that reads the page has already posed the tool at `t` 0 and frozen its loop when this hook runs; a raster calls the clock after this hook ([the frame clock](/info/tool-rendering.html#canvas-tools-readiness-the-frame-clock-and-gpu-rendering)).
 - <!--i:document--> **The tool makes the file itself: `exportStill` or `exportFile`, 10 seconds.** `exportStill` owns a raster still the 8-bit page render cannot make, such as a 16-bit or HDR PNG, OpenEXR or Radiance; it receives `opts` with depth, HDR, size and DPI, and returns `{ bytes, mime }`, or `null` to let the normal path draw that format. `exportFile` is the transform path for on-device utilities ([Assets and file utilities](/info/tool-files.html#producing-output-the-exportfile-hook-privacy-on-device)).
 - <!--i:check--> **The export ends: `afterExport`, 5 seconds.** Runs after the file is made, for cleanup and chaining. Receives `{ node, format, blob, host }`.
 :::
@@ -54,18 +54,19 @@ When a hook overruns, the runtime applies nothing at first, but the hook keeps r
 | `host` | The host bridge. |
 | `lang` | The language the tool is rendering in, such as `de`; `en` when none is set. |
 | `view` | Local presentation choices, when the shell sets any (below). |
+| `canvasSize` | The size the tool is being made at, `{ width, height }` in CSS pixels (engine v1.293, [below](#when-the-canvas-size-changes)). |
 | `report(patch, { ready })` | `onInit` and `onInput` only: publish an intermediate patch before the hook finishes. A report is ignored once a newer run has started. In `onInit`, `{ ready: true }` tells a view that shows partial renders that the document can be shown as it stands (engine v1.228). |
 | `progressive` | `onInit` only: `true` when a view is showing reported patches as they arrive, so a partial render is worth sending. |
 
-`onInput` also gets `id` and `value`, the input that changed. Three reserved ids mark runs the runtime starts itself: `'__view'` (a view change, below), `'__tokens'` (a theme or colourway change, below) and `'__emoji'`, which runs when the emoji set changes for a tool that drew emoji itself through `host.emoji.renderSvg`, `host.emoji.renderText` or `host.text.layoutRuns`.
+`onInput` also gets `id` and `value`, the input that changed. Four reserved ids mark runs the runtime starts itself: `'__view'` (a view change, below), `'__tokens'` (a theme or colourway change, below), `'__canvasSize'` (a change of canvas size, below) and `'__emoji'`, which runs when the emoji set changes for a tool that drew emoji itself through `host.emoji.renderSvg`, `host.emoji.renderText` or `host.text.layoutRuns`.
 
 ## Reacting to the view and the design system
 
-**View changes.** Engine v1.255 adds an optional `ctx.view` for local presentation choices. Design uses `ctx.view.pageId` to render the page the viewer chose while `ctx.model` keeps the whole document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; the patch from this run can update computed extras but cannot write declared inputs. View state stays out of saved sessions, links, undo and collaboration. A one-shot document render leaves `pageId` absent and renders every page.
+**View changes.** Engine v1.255 adds an optional `ctx.view` for local presentation choices. Lolly Design uses `ctx.view.pageId` to render the page the viewer chose while `ctx.model` keeps the whole document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; the patch from this run can update computed extras but cannot write declared inputs. View state stays out of saved sessions, links, undo and collaboration. A one-shot document render leaves `pageId` absent and renders every page.
 
 ### When the theme or colourway changes
 
-A person can switch a mounted tool to another theme or colourway from the sidebar's **Design system** section or Design's inspector, and the tool redraws in place. The shell calls `runtime.setTokenSelection()`. The runtime resolves every input linked to the design system again, runs `onInput` for each one whose colour moved, then runs `onInput` once more with `id: '__tokens'`, whether or not the tool links anything. `onInit` does not run again, because that would reset the person's inputs. As with `'__view'`, the patch from the `'__tokens'` run can update computed extras but cannot write declared inputs.
+A person can switch a mounted tool to another theme or colourway from the sidebar's **Design system** section or Lolly Design's inspector, and the tool redraws in place. The shell calls `runtime.setTokenSelection()`. The runtime resolves every input linked to the design system again, runs `onInput` for each one whose colour moved, then runs `onInput` once more with `id: '__tokens'`, whether or not the tool links anything. `onInit` does not run again, because that would reset the person's inputs. As with `'__view'`, the patch from the `'__tokens'` run can update computed extras but cannot write declared inputs.
 
 Colours that reach the template through a linked input or a `var(--brand-*)` variable follow the switch with no work from the hook. A hook that read colours from `host.tokens` and kept them, such as a palette, a paper colour or a set of treatment seeds, drops what it kept when `id` is `'__tokens'` and reads again:
 
@@ -80,6 +81,42 @@ async function onInput({ id, model, host }) {
 ```
 
 An isolated hook sees the new choice too: before any hook runs under it, the runtime hands the Worker a fresh copy of the design system through the executor's `tokensChanged`. Return a computed colour under a name of its own, never under the id of a declared colour input. Writing that id replaces the input's design-system link with a fixed colour, and the next switch leaves the colour behind. `tests/tool-theme-switch.test.ts` mounts every community tool, switches it live and checks that the render matches a fresh mount in the new choice.
+
+### When the canvas size changes
+
+People choose the size of what they make: a 1080 x 1920 story, an A4 page, a 3:1 banner. Engine v1.293 tells every hook that size as `ctx.canvasSize`, a `{ width, height }` in CSS pixels at 96 per inch, so an A4 page arrives as 793.7 x 1122.5. When nobody asked for a size it is the manifest's `render.width` x `render.height`. The web app reads it from the export size fields, the CLI from `--width`, `--height` and `--unit`, the TUI from its Export panel and the MCP server from the request, and each converts with the engine's `canvasSizeOf`, so every shell hands a tool the same numbers for the same request. Templates read the same size as `{{@canvasSize.width}}` and `{{@canvasSize.height}}` ([Templates and rendering](/info/tool-rendering.html#the-template-template-html)).
+
+A tool whose layout follows the shape declares `"render": { "followsCanvasSize": true }`. When the size changes, the runtime runs `onInput` with `id: '__canvasSize'`, then repaints, so the live canvas shows the layout the export writes. As with `'__view'` and `'__tokens'`, the patch from that run can update computed extras but cannot write declared inputs, so the size never reaches the saved inputs, undo, links or collaboration. A tool without the key keeps rendering exactly as before: the runtime records the size for the next run the tool gets for its own reasons, and nothing re-runs or repaints. Declaring the key needs `"engineVersion": "^1.293.0"`.
+
+```js
+function layout(model, size) {
+  // size is absent on an engine older than 1.293: fall back to the manifest's size.
+  var w = size ? size.width : 1280, h = size ? size.height : 720;
+  return { cols: w >= h ? 4 : 2, frameW: w, frameH: h };
+}
+
+function onInit({ model, canvasSize }) { return layout(model, canvasSize); }
+// Every edit, and '__canvasSize' when the size changes, lays out again.
+function onInput({ model, canvasSize }) { return layout(model, canvasSize); }
+```
+
+Do not declare hidden `width` and `height` inputs to get the size. The web shell writes into inputs with those ids, but the size then travels in links and undo, and the CLI warns that `--width` and `--height` shadow them. The export hooks see `ctx.canvasSize` too, beside `ctx.opts.width` and `ctx.opts.height`, the export's own size, which can differ: a batch row or a caller can ask for a size the canvas was never set to. [Lolly Logo Wall](/#/tool/logo-wall) is the reference tool: it lays the wall out for the canvas's shape and lays it out again in `beforeExport` only when the export's shape differs.
+
+### Showing what an empty colour input draws
+
+A colour input whose `default` is empty can be left empty, and the tool then picks the colour itself: Certificate's Ink follows the design system's text colour, Timezone's Text override follows the theme. In the web app's sidebar an empty colour input shows as automatic, with a neutral pattern and the word **Automatic**, and its picker offers the way back to empty. A hook can say which colour the tool draws there by returning `autoColors`, keyed by input id:
+
+```js
+return {
+  inkColor: ink,            // what the template uses
+  autoColors: {
+    color: { value: inkWithoutOverride, source: 'design-system' },
+    background: { value: themeBackground },   // no source: the tool's own rule
+  },
+};
+```
+
+`value` is the colour the tool draws while that input is empty, worked out as if the input were empty even when the person has set a colour, so the picker's "Follow the design system" choice shows the colour the input returns to. `source: 'design-system'` makes the field read "Design system" and announce "Ink: follows the design system (Liquorice)"; without the key the field reads "Automatic". Leave `value` out when the template decides the colour later, as Lolly Chart's palette slots do, and the field keeps the neutral pattern. `autoColors` is an ordinary extra: the template never needs to read the value, and other shells ignore the key. [Lolly Certificate](/#/tool/certificate) is the reference tool.
 
 ## Live input
 
@@ -163,7 +200,7 @@ Engine **v1.150**. Point at an audio or video input and a text input, and the sh
 - **`format`** - `"srt"` (the default) or `"vtt"` for numbered subtitle cue blocks or `"words"` for the plain spoken text, one cue per line with no timestamps.
 - **`auto`** - the optional id of a `boolean` input. While it is on, a freshly recorded or picked clip is processed with no click. The consent sheet still appears the first time the model is not on the device.
 
-Everything runs locally: the clip is decoded and read on the device, and nothing is uploaded. A clip with no speech writes an **empty value** and says so in the interface, never invented text. The declaration is feature-detected rather than capability-gated, so a shell without on-device speech, such as the headless CLI, mounts nothing and leaves the target input with the value the link or saved session gave. Pair it with a `template.srt` or `template.vtt` ([Data formats](/info/tool-rendering.html#data-formats-json-csv-ics-vcf)) to export the cues as a separate file.
+Everything runs locally: the clip is decoded and read on the device, and nothing is uploaded. A clip with no speech writes an **empty value** and shows a note in the interface, never invented text. The declaration is feature-detected rather than capability-gated, so a shell without on-device speech, such as the headless CLI, mounts nothing and leaves the target input with the value the link or saved session gave. Pair it with a `template.srt` or `template.vtt` ([Data formats](/info/tool-rendering.html#data-formats-json-csv-ics-vcf)) to export the cues as a separate file.
 
 ## Network access (`host.net`)
 

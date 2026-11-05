@@ -134,7 +134,7 @@ test('a design system with a master resolves to plain input and a summary', asyn
   assert.deepEqual(info.fonts.slice(0, 2), ['Stub Sans', 'Stub Mono']);
 });
 
-test('a design system with no master gets the neutral one and says so', async () => {
+test('a design system with no master gets the neutral one and reports that', async () => {
   const read = await readActiveDesignSystem(stubHost({ master: null }));
   assert.ok(read);
   const { input, info } = read.resolved;

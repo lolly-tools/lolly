@@ -1,0 +1,204 @@
+[
+  {
+    "id": "lines",
+    "label": "Line items",
+    "type": "table",
+    "urlKey": "t",
+    "help": "One line per row: an item, a quantity and a unit price. Leave a price empty for an item priced later. A quantity of ? marks a number still to be decided, and the totals wait until it is set. A cell that starts with = is a formula where the shell can work one out: the heading row is row 1, so =B2*0.9 takes ten percent off the first line's quantity. NOW and RAND stay live while you edit, and an export keeps the numbers on the page.",
+    "default": {
+      "columns": [
+        "Item",
+        "Quantity",
+        "Unit price"
+      ],
+      "rows": [
+        [
+          "Platform subscription",
+          "10",
+          "1200"
+        ],
+        [
+          "Onboarding workshop",
+          "1",
+          "2500"
+        ],
+        [
+          "Support hours",
+          "20",
+          "150"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "heading",
+    "label": "Title",
+    "type": "text",
+    "default": "Quote",
+    "maxLength": 60
+  },
+  {
+    "id": "customer",
+    "label": "Customer",
+    "type": "text",
+    "default": "Example Customer",
+    "maxLength": 80
+  },
+  {
+    "id": "number",
+    "label": "Quote number",
+    "type": "text",
+    "default": "Q-0001",
+    "maxLength": 40
+  },
+  {
+    "id": "date",
+    "label": "Date",
+    "type": "date"
+  },
+  {
+    "id": "validUntil",
+    "label": "Valid until",
+    "type": "date"
+  },
+  {
+    "id": "currency",
+    "label": "Currency",
+    "type": "select",
+    "default": "EUR",
+    "options": [
+      {
+        "value": "EUR",
+        "label": "Euro (EUR)"
+      },
+      {
+        "value": "USD",
+        "label": "US dollar (USD)"
+      },
+      {
+        "value": "GBP",
+        "label": "Pound sterling (GBP)"
+      },
+      {
+        "value": "CHF",
+        "label": "Swiss franc (CHF)"
+      },
+      {
+        "value": "JPY",
+        "label": "Japanese yen (JPY)"
+      },
+      {
+        "value": "AUD",
+        "label": "Australian dollar (AUD)"
+      },
+      {
+        "value": "CAD",
+        "label": "Canadian dollar (CAD)"
+      },
+      {
+        "value": "SEK",
+        "label": "Swedish krona (SEK)"
+      },
+      {
+        "value": "INR",
+        "label": "Indian rupee (INR)"
+      }
+    ]
+  },
+  {
+    "id": "discount",
+    "label": "Discount (%)",
+    "type": "number",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "section": "Totals"
+  },
+  {
+    "id": "tax",
+    "label": "Tax (%)",
+    "type": "number",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "section": "Totals"
+  },
+  {
+    "id": "taxLabel",
+    "label": "Tax name",
+    "type": "text",
+    "default": "VAT",
+    "maxLength": 20,
+    "section": "Totals"
+  },
+  {
+    "id": "highlight",
+    "label": "Picked-out line",
+    "type": "number",
+    "default": 0,
+    "min": 0,
+    "max": 50,
+    "help": "The number of a line to pick out, such as the one being decided. 0 picks out none.",
+    "section": "Totals"
+  },
+  {
+    "id": "notes",
+    "label": "Terms",
+    "type": "longtext",
+    "default": "Prices exclude tax unless stated.",
+    "maxLength": 400,
+    "section": "Totals"
+  },
+  {
+    "id": "orientation",
+    "display": "segmented",
+    "label": "Orientation",
+    "type": "select",
+    "default": "landscape",
+    "options": [
+      {
+        "value": "landscape",
+        "label": "Landscape",
+        "width": 1600,
+        "height": 1000,
+        "unit": "px"
+      },
+      {
+        "value": "portrait",
+        "label": "Portrait",
+        "width": 1000,
+        "height": 1414,
+        "unit": "px"
+      },
+      {
+        "value": "wide",
+        "label": "Screen",
+        "width": 2400,
+        "height": 800,
+        "unit": "px"
+      }
+    ],
+    "section": "Style"
+  },
+  {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "default": "{color.semantic.primary}",
+    "section": "Style"
+  },
+  {
+    "id": "background",
+    "label": "Background",
+    "type": "color",
+    "default": "{color.semantic.surface}",
+    "section": "Style"
+  },
+  {
+    "id": "ink",
+    "label": "Text colour",
+    "type": "color",
+    "default": "{color.semantic.text}",
+    "section": "Style"
+  }
+]

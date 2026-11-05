@@ -10,9 +10,9 @@ Diese Seite führt über die Arbeitsfläche von der ersten Box bis zu einem fert
 
 Die **obere Leiste** beginnt mit **Home**, dem **File menu** und dem Namen des Dokuments (klicken Sie auf den Namen, um das Dokument umzubenennen). In der Mitte sitzen **Undo**, **Redo**, **History**, die Zoom-Steuerung (mit **Fit all** und **Fit artboard**) und Schalter für **Timeline**, **Navigator** und **Inspector**. Rechts folgen **Share**, **Present** und **Export**. Auf einem Smartphone wandern die seltener genutzten Schaltflächen in **More actions**.
 
-Die **Werkzeugleiste** an der Seite enthält das Lolly-Menü und die Werkzeuge, mit denen Sie zeichnen: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, dann die Schaltflächen für Timeline, Artboards und Auto-arrange.
+Die **Werkzeugleiste** an der Seite enthält das Lolly-Menü und die Werkzeuge, mit denen Sie zeichnen: **Pointer**, **Add a box**, **Pen** (dieselbe Schaltfläche wie **Pencil**), **Edit points**, **Line**, dann die Schaltflächen für Timeline, Artboards und Auto-arrange.
 
-![Die Werkzeugleiste der freien Zeichenfläche: ein Ziehgriff, das Lolly-Menü, dann Zeiger, Box hinzufügen, Stift, Bleistift, Punkte bearbeiten, Linie, Zeitleiste, Artboards und Automatisch anordnen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Die Werkzeugleiste der freien Zeichenfläche: ein Ziehgriff, das Lolly-Menü, dann Zeiger, Box hinzufügen, Stift, Punkte bearbeiten, Linie, Zeitleiste, Artboards und Automatisch anordnen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Die Arbeitsfläche funktioniert wie der Montagetisch eines Designers rund um das Artboard:
 
@@ -79,7 +79,7 @@ Boxen, Kreise und abgerundete Rahmen decken die meisten Layouts ab. Für jede an
 
 **Einen offenen Pfad fortsetzen.** Ist der Pen aktiv, drücken Sie auf ein Ende eines offenen Pfads, und Sie zeichnen diesen Pfad weiter: Jeder Klick fügt einen Punkt nach diesem Ende hinzu, oder vor dem ersten Punkt, wenn Sie am Anfang begonnen haben. Enter behält das Ergebnis, und Escape lässt den Pfad genau, wie er war. Der Pfad bleibt dieselbe Box, mit Füllung, Kontur und Pfeilspitzen, und ein Undo stellt ihn wieder her. Delete nimmt nur die Punkte zurück, die Sie hinzugefügt haben. Eine geschlossene Form, eine an eine Box gebundene Linie und ein Pfad mit mehreren Teilen haben kein freies Ende zum Fortsetzen.
 
-**Freihand mit dem Pencil zeichnen.** Die Schaltfläche **Pencil** der Leiste (oder `Shift C`) zeichnet Ihren Strich auf, während Sie ziehen. Lassen Sie los, glättet Lolly den Strich zu wenigen Punkten mit Bezier-Griffen, behält die scharfen Wendungen als Ecken und hält die Kurve auf wenige Bildschirmpixel genau an der Bewegung Ihrer Hand. Ein Strich, der nahe seinem Anfang endet, schließt sich. Das Ergebnis ist ein gewöhnlicher Pfad mit derselben Farbgebung wie ein Pen-Pfad, dessen Punkte Sie danach bearbeiten können.
+**Freihand mit dem Pencil zeichnen.** Drücken Sie `Shift C` oder halten Sie die Schaltfläche **Pen** in der Leiste gedrückt (oder klicken Sie sie mit der rechten Maustaste) und wählen **Pencil**; die Schaltfläche zeigt dann den Pencil, bis Sie wieder den Pen wählen. Der Pencil zeichnet Ihren Strich auf, während Sie ziehen. Lassen Sie los, glättet Lolly den Strich zu wenigen Punkten mit Bezier-Griffen, behält die scharfen Wendungen als Ecken und hält die Kurve auf wenige Bildschirmpixel genau an der Bewegung Ihrer Hand. Ein Strich, der nahe seinem Anfang endet, schließt sich. Das Ergebnis ist ein gewöhnlicher Pfad mit derselben Farbgebung wie ein Pen-Pfad, dessen Punkte Sie danach bearbeiten können.
 
 Das Ergebnis ist eine gewöhnliche Box. Verschieben, skalieren, drehen, gruppieren, ausrichten, umstapeln, füllen, schattieren oder verblassen Sie den Pfad wie jede andere Box. Der erste Pfad übernimmt Füllung und Strich, die Ihre Marke einem Pfad gibt, und jeder weitere neue Pfad übernimmt, was Sie zuletzt verwendet haben. In einem Tool, dessen Marke für Pfade nichts festlegt, erhält ein neuer Pfad einen Strich in der Farbe, mit der Sie gezeichnet haben, sodass die Form nie unsichtbar ist.
 
@@ -121,6 +121,25 @@ Drei weitere wirken auf eine einzelne Form. **Outline stroke…** verwandelt ein
 ![Eine Mondsichel und ein Ring mit einem echten Loch, beide durch Subtract erzeugt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Das Ergebnis ist ein neuer Pfad, den Sie mit dem Pen weiterbearbeiten können, gespeichert als einfache Bezier-Kurven, sodass der ursprüngliche Spline-Typ nicht erhalten bleibt. Löcher sind echte Löcher: Das Steuerelement **Fill rule** im Strich-Panel entscheidet, ob sich überlappende Konturen füllen (*non-zero*) oder durchstanzen (*even-odd*). Die Operationen lehnen lieber ab, als etwas zu zerstören: Verlangen Sie den Schnitt zweier Formen, die sich nicht überlappen, ändert sich nichts. Text- und Bildboxen haben keine Kontur und bleiben unberührt.
+
+## Ein Bild nachzeichnen
+
+Wählen Sie ein Bild aus, klicken Sie mit der rechten Maustaste darauf und wählen Sie **Bild nachzeichnen…**, um das Bild in bearbeitbare Formen zu verwandeln. Wählen Sie ein Preset und klicken Sie auf **Nachzeichnen**:
+
+- **Logo** findet wenige flache Farben und behält scharfe Kanten sowie echte Kreise und Linien. Ein Bild mit Verläufen oder Fototönen lehnt es ab und sagt das auch.
+- **Illustration** zeichnet mehrere Farben als gefüllte Formen nach, flache Grafik oder ein posterisiertes Bild.
+- **Strichzeichnung** zeichnet dunkle Linien auf hellem Grund als schwarze Formen nach.
+- **Mittellinie** zeichnet dunkle Linien als einzelne Konturen nach, sodass Sie deren Stärke danach ändern können.
+
+Die Formen werden als Gruppe direkt über dem Bild eingefügt, das an seinem Platz bleibt. Blenden Sie das Bild aus oder löschen Sie es, um nur die Pfade zu sehen. Das Nachzeichnen läuft auf Ihrem Gerät als Hintergrundauftrag mit einer Schaltfläche „Abbrechen“, und nichts wird hochgeladen. Ein Bild mit 1500 Pixeln braucht meist zwischen einer und mehreren Sekunden, ein detailreiches Foto länger.
+
+Das Nachzeichnen folgt dem, was die Box zeigt, daher wird bei einem zugeschnittenen Bild (Cover) nur der sichtbare Teil nachgezeichnet. Es gelten diese Grenzen:
+
+- Bilder werden vor dem Nachzeichnen auf höchstens 1500 Pixel an der langen Seite verkleinert, die Kanten sitzen also auf einen Bruchteil dieser Größe genau, nicht des Originals.
+- Eine Nachzeichnung erzeugt höchstens 1.500 Formen und 60.000 Punkte. Ein Foto überschreitet das meist, und Design sagt es, ohne etwas zu verändern. Probieren Sie Logo oder Strichzeichnung oder ein einfacheres Bild.
+- Verläufe werden zu Bändern aus flacher Farbe, weiche Schatten zu hartkantigen Formen.
+- Eckenradius, eine Formmaske und ein Effekt auf der Bild-Box werden nicht auf die Pfade angewendet.
+- Dasselbe Bild und dasselbe Preset ergeben immer dieselben Formen.
 
 ## Konturen
 
@@ -195,9 +214,9 @@ Wo es einen konkreten Vorschlag für Farbe oder Schrift gibt, ändert seine Scha
 
 ### Hausregeln und das Schreibsignal
 
-Die Karte im Export-Panel prüft außerdem die Hausregeln, die Ihr Designsystem mitbringt, etwa Textstärke und Ausrichtung, freigegebene Farbpaare oder ein Logo je Fläche, Ebene für Ebene. Jeder Befund ist eine Warnung mit dem Namen der Ebene über der Regel. Eine Regel, für die dieser Build keine Prüfung hat, wird als nicht geprüft aufgeführt, nie als eingehalten. [Usage & rules](/info/brand-studio.html#usage-rules) listet die Regeln auf, und `lolly check` wendet dieselben auf ein gespeichertes Dokument an.
+Die Karte im Export-Panel prüft außerdem die Hausregeln, die Ihr Designsystem mitbringt, etwa Textstärke und Ausrichtung, freigegebene Farbpaare oder ein Logo je Fläche, Ebene für Ebene. Jeder Befund ist eine Warnung mit dem Namen der Ebene über der Regel. Eine Regel, für die dieser Build keine Prüfung hat, wird als nicht geprüft aufgeführt, nie als eingehalten. [Rules](/info/brand-studio.html#rules) listet die Regeln auf, und `lolly check` wendet dieselben auf ein gespeichertes Dokument an.
 
-Dieselbe Karte zeigt das Schreibsignal für den Text, den das Dokument zeichnet: sein Band (none, weak, notable oder strong), dann Verifys eigenen Satz mit dem Wert von 100 und bis zu drei markierten Formulierungen, jede mit der Ebene, die sie enthält. **Open the text in Verify** bringt diesen Text zu [Verify](/#/verify) für die volle Auswertung; [KI-Hinweise in Verify](/info/verify-ai-evidence.html) erklärt, was der Wert gewichtet. Der Wert ist ein Signal, kein Urteil: Er zählt Muster, die in erzeugtem Text häufig sind, und kann nicht sagen, wer die Worte geschrieben hat. Ausgeblendete Ebenen bleiben in beiden Prüfungen außen vor, und die Karte nennt, wie viele.
+Dieselbe Karte zeigt das Schreibsignal für den Text, den das Dokument zeichnet: sein Band (none, weak, notable oder strong), dann Verifys eigenen Satz mit dem Wert von 100 und bis zu drei markierten Formulierungen, jede mit der Ebene, die sie enthält. **Open the text in Verify** bringt diesen Text zu [Lolly Verify](/#/verify) für die volle Auswertung; [KI-Hinweise in Verify](/info/verify-ai-evidence.html) erklärt, was der Wert gewichtet. Der Wert ist ein Signal, kein Urteil: Er zählt Muster, die in erzeugtem Text häufig sind, und kann nicht sagen, wer die Worte geschrieben hat. Ausgeblendete Ebenen bleiben in beiden Prüfungen außen vor, und die Karte nennt, wie viele.
 
 Befunde zu Hausregeln und ein starkes Schreibsignal zählen zur Summe "to fix" der Karte, damit sie leicht zu finden sind. Sie informieren und blockieren nie: Download bleibt verfügbar, und es gibt nichts zu verwerfen oder als Ausnahme zu erfassen. Ein Agent, der im geöffneten Dokument arbeitet, erhält denselben Bericht über seine Site-Tools ([Agenten in einem geöffneten Dokument](/info/open-document-agents.html)).
 

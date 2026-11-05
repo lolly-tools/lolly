@@ -18,6 +18,8 @@ tauri = { version = "2.12", features = ["devtools"] }
 tauri-plugin-fs = "2"
 # System browser sign-in sheet for provider OAuth (plans/138 Tier D, WP-M1.2).
 tauri-plugin-lolly-auth = { path = "../plugins/lolly-auth" }
+# Fold and hinge signal from Jetpack WindowManager (plans/345, P4).
+tauri-plugin-lolly-fold = { path = "../plugins/lolly-fold" }
 # Native HTTPS is exposed only through the bounded `remote_fetch` and
 # `site_fetch` commands; there is deliberately no raw HTTP plugin/ACL surface.
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "charset"] }

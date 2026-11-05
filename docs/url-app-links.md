@@ -1,6 +1,6 @@
 # App links and deep links
 
-Tool links open a tool. The rest of the app answers to links too: a shelf of Assets, a Projects folder, a room of Design System Setup or one card in Settings. Use these links in a launcher, a bookmark, a bug report or an automation that has to find the app in a known state with no clicking. Every screenshot in these docs is a Lolly link handed to `url-shot`.
+Tool links open a tool. The rest of the app answers to links too: a shelf of Assets, a Projects folder, a room of Lolly Design System Setup or one card in Settings. Use these links in a launcher, a bookmark, a bug report or an automation that has to find the app in a known state with no clicking. Every screenshot in these docs is a Lolly link handed to `url-shot`.
 
 ## The `lolly://` scheme
 
@@ -90,7 +90,7 @@ These rules change only what a generated link holds. A link that sets a personal
 | `lang` | Interface language for this session, on any route (`#/a?lang=ja`, `#/settings?lang=ar`). The same values and the same "this session only" rule as the [tool-route `lang`](/info/url-parameters.html#design-system-language-and-emoji). |
 | `theme` | `light`, `dark` or `brand` for this page load only, never saved to the profile or the browser, so a link cannot permanently change someone's theme. App views only: on a tool link (`/t/<id>`, `#/tool/<id>`, `/design`) it is left alone, because several tools have a `theme` input of their own. |
 | `_appearance` | The app's appearance, tool routes included. Takes the same values as `theme` and wins over `theme`. Written by the appearance control and left out of a content Share link. |
-| `_open=<id>,<id>` | Open disclosure cards in Settings, Components and Design System Setup. An empty `_open=` closes every addressable card. |
+| `_open=<id>,<id>` | Open disclosure cards in Settings, Components and Lolly Design System Setup. An empty `_open=` closes every addressable card. |
 
 ### Gallery (`#/`, and `#/u` for utilities)
 
@@ -132,17 +132,19 @@ Search, type, sorting, asset focus and sections keep one another in the address.
 
 `view`, `sort` and `rev` override both the device-wide and the per-folder saved preference on arrival. Changing the controls updates the address.
 
-### Batch and Multi-edit
+<a id="batch-and-multi-edit"></a>
+### Batch and Lolly Multi-edit
 
 `#/batch?s=<slot>,<slot>` opens those saved sessions as rows in the grid, which is what **Edit as sheet** builds. `#/pro` was the route's name before 2026-08-20 and still redirects here with its query, as does the `/pro` path.
 
 `#/multi?s=<slot>,<slot>` opens those sessions side by side, and `_active=<slot>` records the active cell. These session ids resolve through this device's storage.
 
-### Design System Setup (`#/start`)
+<a id="design-system-setup-start"></a>
+### Lolly Design System Setup (`#/start`)
 
 | Param | Description |
 |---|---|
-| `area` | Which room: `overview`, `color`, `type`, `logos`, `tokens`, `catalogue` (labelled **Files**), `usage` (**Usage & rules**) or `versions`. |
+| `area` | Which room, by its key: `overview` (**Board**), `color` (**Colours**), `type` (**Type**), `logos` (**Logos**), `tokens` (**Tokens**), `catalogue` (**Files**), `usage` (**Rules**), `skills` (**Skills**) or `versions` (**Versions**, which this link opens even before a first publish adds the room to the strip). |
 | `focus` | A wing of the colour room: `generate`, `curves`, `contrast`, `print` or `chart`. Three more open a first decision: `pick` (the Colours room's colour picker), `stage` (the Type room's face stage) and `looks` (**Find a look**, ready-made colours and type). |
 | `seed=<hex>` | Sets the Generate wing's primary colour before it opens. |
 | `wheel` | Presence flag: opens the OKLCH colour chart, the same as `focus=chart`. |
@@ -169,7 +171,7 @@ Settings navigation writes `focus`, card toggles write `_open` and the settings 
 | `#/open` | `lolly=<path>` opens a `.lolly` served by this site (an absolute same-origin path starting with a single `/`) or a `blob:` URL the same page made. `data:`, `javascript:`, `//host` and every other origin are refused before anything is fetched. The address becomes a bare `#/open` before the fetch, so a reload never imports the file twice. A plain saved design opens straight into the editor; a file that carries a tool, a design system, templates, a renovation or a project still asks first, as a drop does, and nothing in the link grants trust. The route is for automation (`lolly run <file.lolly> --export=…` uses it) and is not a `lolly://` route. |
 | `#/docs/<slug>` | Renders in the app's current language; `#/docs/<lang>/<slug>` or `?lang=` picks one. `?h=<heading>` jumps to a heading. |
 | `#/ask` | `?q=<question>` fills in the question box. |
-| `#/lab` | `?c=<any CSS colour>` opens the Colour Lab on that colour. |
+| `#/lab` | `?c=<any CSS colour>` opens the Lolly Colour Lab on that colour. |
 | `#/components` | `q`, `mode` and `section` restore its search, mode filter and section focus. |
 | `#/history` | Filter keys keep their current values; `_detail=<slot>` opens the versions sheet for that local session. |
 | `#/learning` | `slot` opens a local learning module; `_lesson` and `_blocks` restore the selected lesson and blocks. |
@@ -181,4 +183,4 @@ Most of the flags that live on a tool link are in [Reserved URL parameters](/inf
 
 Canvas editors keep EDITOR state in `_sel=<id>,<id>`, `_t=<seconds>`, `_panel=choreograph` or `_ui=`. The first three select boxes, seek the timeline and open Choreograph. The object form is base64url UTF-8 JSON, for example `{ "v": 1, "sel": ["a", "b"], "t": 2.5, "page": "page-1", "timeline": true }`. Fields are optional; unknown keys are ignored and shorthands win on conflict. Selection, page, playhead and timeline visibility update the address through `_ui`; an empty selection and `timeline:false` are explicit state. `window.lolly.ui.getState()` and `apply(state)` use the same object, as does a trusted embedding page's `postMessage({ type: 'lolly:ui', state })`.
 
-The shell also writes three more workspace keys: `_view` for the stage viewport, `_dialog=share` while the Share dialog is open and `_nav` with `_inspector` for Design's columns. These workspace keys stay outside packed content, so a delayed pack cannot overwrite newer view state, and they never enter a content Share link. `share` remains an arrival alias for opening that dialog. The engine reserves the `_` namespace, so tool inputs cannot collide with these keys.
+The shell also writes three more workspace keys: `_view` for the stage viewport, `_dialog=share` while the Share dialog is open and `_nav` with `_inspector` for Lolly Design's columns. These workspace keys stay outside packed content, so a delayed pack cannot overwrite newer view state, and they never enter a content Share link. `share` remains an arrival alias for opening that dialog. The engine reserves the `_` namespace, so tool inputs cannot collide with these keys.

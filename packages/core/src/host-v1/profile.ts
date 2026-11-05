@@ -87,6 +87,12 @@ export interface Profile {
     /** Larger app-chrome type (never scales the tool canvas or exports). */
     largeText?: boolean;
   };
+  /** The dominant hand, for a shell that lays its controls out in two panes
+   *  (a foldable or a near-square tablet). Optional: absent means right-handed,
+   *  which puts the controls on the left so the drawing hand keeps the canvas.
+   *  Chrome only, like `a11y`: a tool's render never reads the field. Shells mirror it
+   *  to their own device storage for the pre-paint restore. */
+  hand?: 'left' | 'right';
   /** How the app itself dresses - the shell's OWN use of the design system,
    *  which is secondary to what a design system is for (tools and exports).
    *  Additive + optional: absent means the defaults below, so a profile without

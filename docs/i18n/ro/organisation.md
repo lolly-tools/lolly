@@ -61,7 +61,7 @@ Ca să comuți mai târziu, folosește din nou **Change** sau **Leave** pe acela
 
 ## Ce adaugă Lolly Work
 
-Serverul organizației tale rulează **Lolly Work**, software-ul pentru organizații al aceluiași proiect open source. Aplicația nu are nevoie nici de cont Work, nici de Lolly Work când o folosești singur.
+Serverul organizației tale rulează **Lolly Work**, software-ul pentru organizații al aceluiași proiect open source. Aplicația nu are nevoie nici de cont Lolly Work, nici de Lolly Work când o folosești singur.
 
 ::: details Ce poate adăuga Lolly Work
 Organizația ta găzduiește [Lolly Work](https://github.com/lolly-tools/lolly-work) alături de Lolly și alege ce funcții activează:

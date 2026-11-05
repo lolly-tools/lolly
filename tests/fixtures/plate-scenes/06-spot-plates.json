@@ -1,0 +1,134 @@
+{
+  "id": "06-spot-plates",
+  "title": "Named spot plates",
+  "covers": "A spot swatch writes a named /Separation plate at full tint and leaves the four process plates empty under it. Two spots and a process K bar share the page.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "s1",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 20,
+      "w": 160,
+      "h": 110,
+      "bg": "#008657"
+    },
+    {
+      "id": "s2",
+      "kind": "box",
+      "frame": "page",
+      "x": 220,
+      "y": 20,
+      "w": 160,
+      "h": 110,
+      "bg": "#fac044"
+    },
+    {
+      "id": "bar",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 150,
+      "w": 360,
+      "h": 30,
+      "bg": "#4d4d4d"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true,
+    "separations": [
+      "H160_L050_C045",
+      "H080_L080_C070"
+    ]
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Bunyapine spot",
+          "rect": [
+            30,
+            30,
+            140,
+            90
+          ],
+          "expect": {
+            "H160_L050_C045": 100,
+            "H080_L080_C070": 0,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Honey spot",
+          "rect": [
+            230,
+            30,
+            140,
+            90
+          ],
+          "expect": {
+            "H080_L080_C070": 100,
+            "H160_L050_C045": 0,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "process K bar",
+          "rect": [
+            30,
+            155,
+            340,
+            20
+          ],
+          "expect": {
+            "H160_L050_C045": 0,
+            "H080_L080_C070": 0,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": {
+              "value": 69.8,
+              "tol": 3
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

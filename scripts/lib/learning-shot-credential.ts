@@ -22,7 +22,7 @@ const row = (id: string, type: string, value: unknown): Record<string, unknown> 
 
 /**
  * The same bytes, with Content Credentials attached. A signing failure returns the
- * bytes unchanged and says so, exactly as the shots pipeline does: a missing
+ * bytes unchanged and reports that, exactly as the shots pipeline does: a missing
  * credential is reported by its own test, and is never worth losing the shot over.
  */
 export async function stampLearningShot(bytes: Uint8Array, origin: string): Promise<Uint8Array> {

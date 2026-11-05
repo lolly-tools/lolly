@@ -8,7 +8,7 @@ Měj připravenou webovou adresu, kterou má kód otevírat, začínající na `
 
 ## Vytvoř kód
 
-1. Otevři [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Ovládací prvky jsou vedle náhledu, na mobilu nad ním; to, co ukazuje náhled, je to, čím soubor bude.
+1. Otevři [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Ovládací prvky jsou vedle náhledu, na mobilu nad ním; to, co ukazuje náhled, je to, čím soubor bude.
 2. V **URL** nahraď celou ukázkovou adresu tou svou. Náhled se mění, jak píšeš.
 3. Aby seděly tvé vlastní barvy, nastav **Barvu modulů** a **Pozadí**. Udržuj mezi nimi silný kontrast, jinak mají telefony problém kód přečíst.
 4. **Klidová zóna** pod **Moduly** začíná na 4. Nech ji na 4 nebo víc: tenhle prázdný okraj je to, co hledá fotoaparát telefonu.
@@ -38,8 +38,8 @@ Uložená práce zůstává na tomto zařízení, v prohlížeči nebo aplikaci,
 
 ## Další první projekty
 
-- [Audiogram](/#/tool/audiogram) promění hlasovou nahrávku ve video: pohybující se křivka zvuku, tvá slova na obálce, tvé barvy. Přetáhni nahrávku do pole **Audio**, přidej **Název**, pak exportuj **MP4**.
-- [Filter](/#/tool/filter) upraví fotku pro plakát: tištěné rastrové body, dvě plné barvy nebo pár tónových bloků. Vyber fotku pod **Obrázek**, zvol **Efekt**, pak exportuj **PNG**, nebo **SVG** u efektu označeného jako *vektorový*.
+- [Lolly Audiogram](/#/tool/audiogram) promění hlasovou nahrávku ve video: pohybující se křivka zvuku, tvá slova na obálce, tvé barvy. Přetáhni nahrávku do pole **Audio**, přidej **Název**, pak exportuj **MP4**.
+- [Lolly Filter](/#/tool/filter) upraví fotku pro plakát: tištěné rastrové body, dvě plné barvy nebo pár tónových bloků. Vyber fotku pod **Obrázek**, zvol **Efekt**, pak exportuj **PNG**, nebo **SVG** u efektu označeného jako *vektorový*.
 
 ## Dále
 

@@ -1,3 +1,7 @@
+import { navigateTo } from '../nav.ts';
+import { registerUpdateDocument, type UpdateDocument } from '../lib/update-work-state.ts';
+import { showUnsavedDialog } from './tool-leave-dialog.ts';
+import { discardUnsavedWork } from './tool-leave.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Tool view - mounts one tool.
@@ -504,6 +508,32 @@ async function mountToolInto(
     document: () => readToolDocument(tview.runtime, tview.actionsEl, tview.tool.manifest),
     unsaved: () => tview.userHasMadeChanges && !tview.exportedSinceEdit,
     saveOnDevice: async () => (await tview.actionsApi?.save?.(null, { device: true })) === true });
+  let durable = { pending: 0, message: '' };
+  const stopDurable = tview.collabHandle?.saveIn?.subscribe(state => { durable = state; });
+  let updateSaveFailed = false;
+  let updateDiscarded = false;
+  const updateDocument: UpdateDocument = {
+    saveFailed: () => updateSaveFailed,
+    recover: async () => {
+      const { makeLollyVehicle } = await import('./tool-lolly-vehicle.ts');
+      const vehicle = makeLollyVehicle(tview.host, toolId, tview.tool.manifest, tview.actionsApi?.sessionState, tview.canvasEl);
+      if (vehicle) { const copy = await vehicle.build({}); await vehicle.save(copy.blob, copy.filename); }
+    },
+    unsaved: () => !updateDiscarded && tview.userHasMadeChanges && !tview.exportedSinceEdit,
+    busy: () => !!tview.actionsEl?.querySelector('[aria-busy="true"]'),
+    save: async () => (await tview.actionsApi?.save?.()) === true,
+    discard: async () => {
+      await discardUnsavedWork({ host: tview.host, controller: tview.actionsApi?.history, slot: () => tview.actionsApi?.getSlot?.() ?? null });
+      updateDiscarded = true;
+      navigateTo('#/p');
+    },
+    flush: async () => { await tview.actionsApi?.history?.flush(); return updateDiscarded || (!durable.pending && (tview.collabHandle?.saveIn?.settled?.() ?? true)); },
+  };
+  updateDocument.choose = () => new Promise(resolve => showUnsavedDialog(
+    async () => { document.body.inert = true; try { const saved = await updateDocument.save(); updateSaveFailed = !saved; resolve(saved); } catch { updateSaveFailed = true; resolve(false); } },
+    () => { document.body.inert = true; void updateDocument.discard().then(() => resolve(true), () => { updateSaveFailed = true; resolve(false); }); },
+    undefined, () => resolve(false)));
+  const stopUpdate = registerUpdateDocument(updateDocument);
   const cleanup = viewEl._cleanup;
   viewEl._cleanup = () => {
     // A connected-session remount leaves the old DOM in place while hydrating.
@@ -511,6 +541,8 @@ async function mountToolInto(
     if (tview.designChrome && tview.canvasEl) tview.canvasEl.style.visibility = 'hidden';
     stopReady();
     stopScope();
+    stopUpdate();
+    stopDurable?.();
     cleanup?.();
   };
 }

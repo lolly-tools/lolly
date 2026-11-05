@@ -20,7 +20,7 @@ Välj ett verktyg och fyll i det, eller lägg ut en sida fritt på Design-ytan.
 
 Ditt designsystem avgör hur varje verktyg ser ut.
 
-- **[Design System Setup](/info/brand-studio.html)** - logotyper, färger, typografi och resten, inställt en gång på `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logotyper, färger, typografi och resten, inställt en gång på `#/start`.
 - **[Lolly Demo i bruk](/info/lolly-demo-in-use.html)** - färgvarianter på verkligt arbete, och byte till ditt eget designsystem.
 - **[Varumärkesarkitekturer](/info/brand-architectures.html)** - flera designsystem, eller ett med flera färgvarianter, för en organisation.
 - **[Samarbeta med partners](/info/partners.html)** - dela ditt varumärke med en partner, arbeta i ett varumärke du fått och bygg en sponsorvägg.
@@ -32,7 +32,7 @@ Ditt designsystem avgör hur varje verktyg ser ut.
 
 - **[Hitta och återställ ditt arbete](/info/find-your-work.html)** - vart en sparad, nedladdad eller osparad fil tog vägen.
 - **[Sök](/info/search.html)** och **[Fråga Lolly](/info/ask.html)** - ett fält för dina verktyg, sparade arbete, tillgångar och inställningar, och svar från de här guiderna.
-- **[Settings](/info/dashboard.html)** - vad den här enheten kan göra, ditt designsystem skrivskyddat och din lagring.
+- **[Lolly Settings](/info/dashboard.html)** - vad den här enheten kan göra, ditt designsystem skrivskyddat och din lagring.
 - **[Dina favoriter](/info/favourites.html)** och **[Profiler](/info/profile.html)** - stjärnmärkta verktyg, uppgifterna som verktyg fyller i på förhand och tillgänglighetsreglagen.
 - **[Synkronisera dina enheter](/info/sync.html)** - samma arbete på din dator och din telefon, via lagring du väljer.
 

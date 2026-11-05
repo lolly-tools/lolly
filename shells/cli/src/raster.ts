@@ -15,7 +15,7 @@
  */
 import type { JSDOM } from 'jsdom';
 import { serializeUrlState, serializeHdr, HDR_DEFAULTS, isToolUrl } from '@lolly/engine';
-import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims } from '@lolly-tools/node-shell/raster';
+import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims, svgExportSize } from '@lolly-tools/node-shell/raster';
 import type { DeepHdrRequest } from '@lolly-tools/node-shell/raster';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
@@ -134,7 +134,7 @@ export async function renderRaster(opts: {
   // page geometry (PRINT_PREP_FORMATS), so this should be unreachable - it stays so the
   // silent no-op cannot come back if that allowlist ever widens.
   if (!sampled && !floatEditing && eligibleForResvgPng(fmt, dims)) {
-    const svg = await tryRenderSvg(runtime, dom, dims.slide);
+    const svg = await tryRenderSvg(runtime, dom, dims.slide, dims);
     if (svg) {
       // Shared Tier-A rasteriser (node-shell): imprint + physical-unit DPI, identical to the
       // TUI. `imprinted` reflects whether the mark was actually embedded - the imprinted path
@@ -258,8 +258,15 @@ export function restoreToolLinks(model: readonly ModelItem[], initial: Record<st
  * one-slide filter run.ts applied to the DOM-free path has to be applied again here, or a
  * `--s=2 --export=png` of an SVG-native paged tool would quietly rasterise every slide.
  * An address that names nothing throws out of pickFramePage, as it does on the other path.
+ *
+ * `dims` is the size the PNG will be drawn at. It reaches the SVG export as the width
+ * and height an `--export=svg` of the same size gets, so a tool that lays itself out
+ * for the export's shape in beforeExport (Logo Wall) draws the same picture into the
+ * PNG as into the SVG. Only when the drawn root <svg> has a viewBox: without one the
+ * SVG export would make a viewBox of the requested size, where the PNG has always
+ * scaled the tool's own width and height (sizeSvg), and that would change the picture.
  */
-async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null): Promise<string | null> {
+async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null, dims?: RenderDims): Promise<string | null> {
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) return null;
   try {
@@ -273,8 +280,9 @@ async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null)
   // OUTSIDE the try: a bad `--s=` is a usage error the caller must see, not a reason to
   // fall through to the browser tier and render the whole document there.
   const picked = pickFramePage(canvas, slide);
+  const root = picked?.node ?? canvas;
   try {
-    const blob = await runtime.export(picked?.node ?? canvas, 'svg', {});
+    const blob = await runtime.export(root, 'svg', svgExportSize(root, dims));
     return await blob.text();
   } catch {
     return null;
@@ -319,7 +327,7 @@ async function renderHdrStill(opts: {
 
   let frame: { data: Uint8Array; width: number; height: number };
   let usedBrowser = false;
-  const svg = await tryRenderSvg(runtime, dom, dims.slide);
+  const svg = await tryRenderSvg(runtime, dom, dims.slide, dims);
   if (svg) {
     const { width, height } = pxDims(dims, manifest);
     frame = await rasterizeSvgToRgba(svg, width, height);

@@ -82,6 +82,7 @@ QR Code 링크를 담은 Design 이미지 박스처럼 디자인이 다른 도�
 | Premiere 인계 | **Premiere XML + media** | Premiere용 타이밍이 있는 클립과 원본 미디어(Design) |
 | 소셜과 공유용 동영상 | **MP4** 또는 **WebM** | 파일 크기 대비 최고 품질([동영상](#video) 참고) |
 | 자막 | **SRT** 또는 **VTT** | 동영상 플레이어용 타이밍이 있는 텍스트(Captions, Audiogram, Record) |
+| 방송용 자막 | **TTML** 또는 **SCC** | IMSC1.1 타이밍 텍스트 또는 CEA-608 팝온 자막(Captions, [방송용 자막](#broadcast-captions) 참고) |
 | 교육 과정 | **SCORM (LMS)** | 버전이 있는 웹사이트, SCORM 또는 xAPI 패키지([SCORM](#scorm-course-packages) 참고) |
 | 서식 있는 텍스트 또는 이메일 서명 | **HTML** | 서식이 유지된 채 메일 클라이언트에 붙여넣어져요 |
 | 일반 콘텐츠 | **MD** 또는 **TXT** | 텍스트만 |
@@ -131,9 +132,9 @@ Lolly에는 대량 작업을 위한 세 가지 방법이 있고 각각 다른 �
 ## 표가 문서 하나가 돼요
 **Battlecards** 같은 표 입력이 있는 도구는 모든 행을 한 페이지로 바꿔요. 스프레드시트의 표를 붙여넣으면 PDF 하나를 얻어요. 스프레드시트에서 행을 고치고 다시 붙여넣으세요.
 ## CSV가 행당 파일 하나가 돼요
-**Batch**(`#/batch`)는 CSV를 받아 행마다 내보내기 하나를 렌더링해요. 이름표나 수료증을 파일 하나씩 ZIP으로 전달해요. [Batch](/info/batch.html#make-many-versions-of-one-design)를 참고하세요.
+**Batch**(`#/batch`)는 CSV를 받아 행마다 내보내기 하나를 렌더링해요. 이름표나 수료증을 파일 하나씩 ZIP으로 전달해요. [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)를 참고하세요.
 ## 여러 디자인에 편집 하나
-**Multi-edit**은 저장된 여러 세션을 나란히 열어 서로 다른 디자인에 같은 수정을 해요. [Multi-edit](/info/batch.html#edit-several-saved-designs-together)을 참고하세요.
+**Multi-edit**은 저장된 여러 세션을 나란히 열어 서로 다른 디자인에 같은 수정을 해요. [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together)을 참고하세요.
 :::
 
 **Projects**에서 **Render folder**는 폴더와 하위 폴더의 모든 저장된 세션을 중첩된 ZIP 하나로 내보내고, **Render selection**은 모든 다중 선택에 같은 일을 해요. 저장된 세션 하나는 자체 파일로 렌더링돼요. 저장된 세션은 Projects에서 같은 설정으로 다시 여는 도구 링크로 다시 공유할 수도 있어요.
@@ -169,7 +170,7 @@ SVG를 내보내는 대부분의 도구는 Penpot에서 계속 편집할 수 있
 | 전체 디자인 | Assets 패널의 재사용 가능한 컴포넌트 |
 | 복잡한 일러스트나 라이브 캔버스 | 이미지로 단독 임베드되고 그 주변의 편집 가능한 콘텐츠는 그대로예요 |
 
-Design에서는 각 프레임이 Penpot 보드가 돼요. 디자인 시스템의 색상과 타이포그래피는 Assets 패널에, 전체 토큰 세트는 Tokens 패널에 들어가요. 그 이후 Penpot이 자체 사본을 유지하며, Penpot에서 편집한 토큰은 [Design System Setup](/info/brand-studio.html)의 가져오기로 돌아와요.
+Design에서는 각 프레임이 Penpot 보드가 돼요. 디자인 시스템의 색상과 타이포그래피는 Assets 패널에, 전체 토큰 세트는 Tokens 패널에 들어가요. 그 이후 Penpot이 자체 사본을 유지하며, Penpot에서 편집한 토큰은 [Lolly Design System Setup](/info/brand-studio.html)의 가져오기로 돌아와요.
 
 ![Penpot을 선택한 내보내기 패널: .penpot 파일과, 다운로드 옆의 Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Settings → Preferences → Feature flags에서 **Training and courses**를 켜
 
 패키지는 완성된 콘텐츠를 담고 있으며 Lolly 계정이 필요 없어요. Website ZIP은 HTTP(S) 호스트에 올리고, LMS ZIP은 그대로 가져오세요. 과정을 공유하기 전에 대상을 테스트하세요. 저장된 여러 작품으로 만든 과정은 [교육 과정 만들기](/info/training-creators.html)를 참고하세요.
 
+### 방송용 자막
+
+Captions 도구는 **TTML**과 **SCC**로도 내보낼 수 있어요. 둘 다 SRT, VTT 파일과 같은 큐 목록에서 만들어지므로 단어와 시간이 일치해요.
+
+- **TTML**은 IMSC1.1 Text Profile이에요. 미디어 시간 클록 타임을 쓰고, 아래 가운데에 영역 하나만 있어요. Lolly의 자막은 시작, 끝, 텍스트만 가지고 있어서 자막별 색, 글꼴, 위치는 담지 않아요.
+- **SCC**는 1번 채널의 CEA-608 팝온 자막을 초당 29.97프레임, 드롭 프레임 타임코드로 담아요. 기본 북미 문자와 특수 문자, 확장 문자를 지원해요. 자막에 이 문자 세트로 담을 수 없는 문자가 있으면 내보내기가 멈추고 어떤 문자인지 알려 줘서, 모르는 사이에 빠지는 일이 없어요. 각 자막은 32열, 최대 15행으로 줄바꿈돼요. 시작 시간 전에 불러올 수 없는 자막은 몇 프레임 늦춰져요.
+- 롤업과 페인트온 자막은 쓰지 않아요.
+
+SCC 출력은 실제 방송 도구나 하드웨어 디코더로 확인하지 않았어요. 납품하기 전에 내 파이프라인에서 파일을 테스트하세요.
+
 ### DXF (절단 파일)
 
 Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding, Wordmark는 레이저 커터, 비닐 플로터, CNC 소프트웨어가 읽는 AutoCAD R12 교환 형식인 **DXF**를 내보내요. 도형은 밀리미터 단위의 윤곽선 경로로 쓰이고, 텍스트는 윤곽선이 되며, 색상은 가장 가까운 AutoCAD Color Index에 대응되어 보통 커터의 작업을 정해요. DXF는 선화만 지원해요. 사진이나 필터가 적용된 영역에는 절단 경로가 없어 경고와 함께 제외돼요. 래스터 콘텐츠를 유지하려면 SVG나 PDF를 쓰세요.
@@ -214,7 +225,7 @@ Street Map이 가장 분명한 경우예요. 디자인 전체가 이미 선이�
 
 ## 인쇄
 
-**Print PDF**는 이름 붙은 인쇄 조건(기본값 **Coated FOGRA39**)에 맞춰 CMYK를 써요. 측정된 잉크 값이 있는 브랜드 견본은 정확히 변환되고, 다른 색상은 표준 장치 변환을 써요. **Print TIFF**는 RIP용 DeviceCMYK 픽셀을 쓰고 같은 인쇄 조건을 TIFF 메타데이터에 기록해요. Colour profile 컨트롤이 둘 다 제어하며 [색상 프로필](#colour-profiles)에 자세한 내용이 있어요.
+**Print PDF**는 이름 붙은 인쇄 조건(기본값 **Coated FOGRA39**)에 맞춰 CMYK를 써요. 측정된 잉크 값이 있는 브랜드 견본은 그 값을 그대로 유지해요. 다른 색상은 인쇄 프로필을 거쳐 변환돼요. 기본값은 Lolly 자체의 Coated FOGRA39 프로필이고, **Embed** 행을 선택하면 직접 준비한 프로필이에요. 회색과 검정은 검정 판에만 남아서 작은 글자도 정합이 틀어지지 않아요. FOGRA51, SWOP, GRACoL은 표준 장치 변환을 써요. **Print TIFF**는 RIP용 DeviceCMYK 픽셀을 쓰고 같은 인쇄 조건을 TIFF 메타데이터에 기록해요. Colour profile 컨트롤이 둘 다 제어하며 [색상 프로필](#colour-profiles)에 자세한 내용이 있어요.
 
 **Print marks & bleed**는 인쇄 형식에 자체 카드가 있어요. 밀리미터 단위의 도련과 Crop, Registration, Bleed, Colour bars, Stamp 세부 항목이에요.
 
@@ -223,6 +234,15 @@ Street Map이 가장 분명한 경우예요. 디자인 전체가 이미 선이�
 **내보내기 전에.** 패널 하단의 **Before you export** 카드는 인쇄소가 보게 될 것을 알려줘요. 형식, 크기, 도련, 재단과 도련 영역, 잉크 커버리지, 판 수, 페이지 수가 있고 제목 옆에 판정이 있어요. 내보내기를 막지는 않아요. Design은 디자인 시스템의 조직 규칙을 레이어별로 확인하는 것과 문서 텍스트의 글쓰기 신호를 포함한 자체 검사와 함께 항상 이 카드를 보여주며([내보내기 전에](/info/design.html#before-you-export)), **Print preflight**가 켜져 있으면 이 인쇄 검사를 추가해요. 다른 도구에서는 Settings → Preferences → Feature flags에서 **Print preflight**를 켜세요. 기본값은 꺼짐이며 Lolly Work 배포가 구성원에게 켤 수 있어요.
 
 **내보낸 후.** 파일이 준비되면 Lolly가 파일을 다시 읽어 선택한 것과 비교해요. 형식, 픽셀 또는 페이지 크기, 클립 길이, 투명 배경, CMYK 색상, HDR, Content Credentials, PDF 또는 ZIP 비밀번호예요. 다른 것은 내보내기 카드에 표시돼요. 각 측정값은 설정이 아니라 파일에서 오며, 파일이 답할 수 없는 속성은 일치로 계산되지 않아요. 명령줄은 `--export-report`로 전체 비교를 써요([CLI로 렌더링하기](/info/cli-rendering.html) 참고).
+
+**PDF 접근성 검사.** PDF의 경우 명령줄에서도 `--export-report` 파일의 `pdfAccessibility` 아래에 접근성 검사 32개를 나열해요. 각 검사에는 ID, 쉬운 설명, 결과, 그리고 파일에서 문제를 찾은 위치가 담겨 있어요.
+
+- **통과**: 검사가 어떤 대상을 살펴봤고 문제가 없었어요.
+- **실패**: 검사가 문제를 찾았어요. 해당 페이지 번호나 태그가 나열돼요.
+- **해당 없음**: 표가 없는 파일의 표 검사처럼, 파일에 살펴볼 대상이 없었어요. 파일에 대해 아무것도 말해 주지 않아요.
+- **사람이 확인해야 함**: 검사 여섯 개는 프로그램이 판단할 수 없어요(읽기 순서, 색상 대비, 깜박임, 스크립트, 시간 제한, 반복되는 링크).
+
+이 목록은 판정이 아니에요. PDF가 PDF/UA를 충족한다거나 보조 기술을 쓰는 사람이 사용할 수 있다는 뜻이 아니며, 사람이 스크린 리더로 파일을 확인해야 해요. 내보내기 기능이 아직 태그를 쓰지 않아서, 현재 Lolly 자체 PDF는 태그 검사에 실패해요. 이 검사는 기기에서 파일을 읽으며 아무것도 바꾸지 않아요. 비밀번호가 필요한 파일은 통과가 아니라 검사하지 않음으로 표시돼요. 받은 PDF를 검사하려면 [Strip Hidden Data](/info/utilities.html)에 끌어다 놓으세요. **PDF accessibility checks** 아래에 같은 목록이 표시돼요.
 
 Design 인스펙터의 검사와 Design System Setup의 브랜드 비교는 별개의 검사예요. 이들은 디자인을 보고, 이 두 카드는 파일을 봐요.
 
@@ -280,7 +300,7 @@ Lolly는 모든 최신 CSS 색상을 읽고, 색상 연산을 지각 기반으�
 - **SVG**, **EMF**, **EPS**, **DXF**는 임베드된 프로필이 없는 벡터예요. SVG의 색상은 sRGB, EMF와 EPS는 장치 RGB를 쓰고, **EPS (CMYK)**는 DeviceCMYK를 쓰고, DXF는 AutoCAD Color Index를 써요. SVG, EPS, DXF는 텍스트를 경로로 윤곽선 처리해요. EMF는 Office와 Google Slides에서 텍스트를 라이브로 편집 가능하게 유지하며 형식이 표현할 수 없는 런만 윤곽선으로 대체해요. 내보내기 패널의 **Outline fonts** 옵션은 모든 곳에서 경로를 강제해요. SVG는 CSS 박스 그림자도 안팎으로 재현해요.
 
 ::: details PDF/X-4와 자체 인쇄 프로필
-Lolly에는 CMYK 프로필이 포함되어 있지 않아요. 이름 붙은 인쇄 조건은 PDF/X-4 준수를 주장하지 않은 채 출력 의도를 써요. PDF/X-4는 프로필이 임베드되어 있어야 하기 때문이에요.
+Lolly에는 CMYK 프로필이 하나 포함되어 있어요. Fogra의 FOGRA39 특성 데이터에 맞춰 만들어졌고 CC0로 공개되어 있으며, 기본 인쇄 조건에서는 이 프로필을 거쳐 색상을 변환해요. 이 프로필은 ICC 버전 4.3이고 PDF/X-4는 4.2까지의 버전만 받아들이므로 임베드되지 않아요. 그래서 이름 붙은 인쇄 조건은 PDF/X-4 적합성을 주장하지 않고 출력 의도를 써요.
 
 자체 CMYK 프로필을 불러오고 Colour profile 컨트롤에서 그 **Embed** 행을 선택하세요. 파일의 *DestOutputProfile*로 임베드되며, 파일의 나머지가 허용하면 PDF가 PDF/X-4를 주장해요. 선언하는 인쇄 조건은 그 프로필에서 읽어요. 프로필이 증명하는 등록된 이름, 또는 프로필 자체 이름 아래의 `Custom`이에요.
 
@@ -400,8 +420,8 @@ URL `format=` 매개변수와 CLI `--export=` 플래그의 값이에요([URL 매
 | 벡터 | `svg` · `svgz` (gzip SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (절단 파일) |
 | 페이지와 문서 | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot 디자인 파일) · `scorm` (과정 패키지, ZIP) |
 | 모션 | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| 오디오 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| 텍스트와 데이터 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP 팔레트) |
+| 오디오 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (Rondocode의 MIDI 노트) |
+| 텍스트와 데이터 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP 팔레트) |
 | 번들과 패키지 | `zip` · `rpm`과 `tar.gz` (Linux 패키지로 봉인된 렌더링) |
 
 일부 ID는 도구 자체의 내보내기 코드에서 와요. `ase`(Palette Lab의 Adobe Swatch Exchange), `exr`과 `hdr`(Darkroom의 하이 다이내믹 레인지 래스터)예요. **Convert Font**는 제공한 글꼴 파일로 `ttf`, `otf`, `woff`를 쓰므로 단순 링크로는 렌더링할 것이 없어요.

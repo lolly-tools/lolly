@@ -11,7 +11,7 @@ import { assetListHead } from './layout.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { buildSearchHaystack, favItems as favItemsRule, matchesQuery as matchesQueryRule, matchesType as matchesTypeRule, sortAssets, visibleAssets as visibleAssetsRule } from '../assets-filter.ts';
 import type { TypeFilter } from '../assets-filter.ts';
-import { t, tRaw } from '../../i18n.ts';
+import { t, tRaw, tn } from '../../i18n.ts';
 import { LIB_GROUPS, categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId } from '../../lib/asset-favourites.ts';
 import { isModuleFormat } from '../../lib/mod-render.ts';
@@ -274,8 +274,8 @@ export function assetsSectionHtml(cat: CatCtx): string {
       <div class="cat-toolbar">
         ${filterSeg}
         <span class="cat-count" style="min-width:${countCh}ch">${cat.query
-          ? (visible.length === 1 ? t('1 asset found') : t('{n} assets found', { n: visible.length }))
-          : (visible.length === 1 ? t('1 asset') : t('{n} assets', { n: visible.length }))}</span>
+          ? (tn('1 asset found', '{n} assets found', { n: visible.length }))
+          : (tn('1 asset', '{n} assets', { n: visible.length }))}</span>
         ${cat.query ? '' : `<button type="button" class="cat-showhidden cat-collapse-all" aria-label="${escapeText(collapseLabel)}" title="${escapeText(collapseLabel)}">${anyExpanded ? CAT_ICONS.collapse : CAT_ICONS.expand}<span class="cat-btn-label">${collapseLabel}</span></button>`}
         ${hiddenItems.length && !cat.query ? `<button type="button" class="cat-showhidden${cat.showHidden ? ' is-on' : ''}" aria-pressed="${cat.showHidden}" aria-label="${escapeText(showHiddenLabel)}" title="${escapeText(showHiddenLabel)}">${cat.showHidden ? CAT_ICONS.eyeOff : CAT_ICONS.eye}<span class="cat-btn-label">${showHiddenLabel}</span></button>` : ''}
       </div>`;

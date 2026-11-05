@@ -75,6 +75,21 @@ A public clone resolves to `lolly-start`, the blank brand, which is also the pro
 
 You do not need the desktop or mobile apps' own dependencies unless you work on those apps. They are separate pnpm projects (`pnpm -C shells/tauri-desktop install`, `pnpm -C shells/tauri-mobile install`), so skip them until you need them.
 
+## Check the print plates
+
+Print PDF is the one export where a wrong ink reaches paper, so a local check separates the finished file into plates and measures them. It never runs in hosted CI. It needs [Ghostscript](https://www.ghostscript.com) (`brew install ghostscript`, or your package manager) and a built web shell, because `pdf-cmyk` always takes the CLI's browser route:
+
+```bash
+pnpm --filter ./shells/web run build   # once, plus: pnpm run build:ort
+pnpm run cli install-browser          # once, or set LOLLY_BROWSER_CHANNEL=chrome
+pnpm run test:plates                   # the plate scenes only
+pnpm run test:oracles                  # the PDF oracles and the plate scenes
+```
+
+Each scene in `tests/fixtures/plate-scenes/` is a small Lolly Design document, exported through `lolly run design --export=pdf-cmyk` and separated with `gs -sDEVICE=tiffsep`. The scene lists regions of the page and the ink each plate must carry there, such as black text on the K plate alone, a brand swatch's measured CMYK, a spot colour on its own named plate, or the inks FOGRA39 gives a gradient stop. A scene with two passes also runs the file with `-dMaxSpots=0`, which makes the RIP flatten spots to their process alternate.
+
+A missing tool is a declared skip that says which tool is missing. Set `LOLLY_ORACLES_REQUIRED=1` to make a missing tool a failure, and `LOLLY_PLATES_REPORT=out.json` to write every sampled number. A scene marked `knownFailing` states the reason and is expected to fail until the exporter is fixed, at which point it turns red until you remove the marker. Ghostscript is AGPL software. Lolly runs it only as an external program and never bundles or links the program.
+
 ## What a clone leaves out
 
 Two things never download with a clone, whichever command you use:
@@ -87,6 +102,35 @@ To bundle the models into your own build instead, run `pnpm run models:vendor` f
 ::: details Why the repository is large
 Most of the weight is history, not the working tree: catalog images such as tool previews and share cards re-rendered over time, the docs screenshots re-shot whenever the interface changes and the web app's fonts and binary assets. In October 2026, budget roughly 1.2 GB of download and 2.6 GB on disk once `node_modules` is installed. Both grow with the history, which is why the partial clone saves the most.
 :::
+
+## Write plural strings
+
+A string that shows a count needs one form per plural category, because Russian, Polish, Arabic and other languages change the noun by the number. Lolly uses the Unicode CLDR categories (`zero`, `one`, `two`, `few`, `many`, `other`) and picks the category for the active language with the platform's `Intl.PluralRules`.
+
+In source, write both English forms as literals and pass the count:
+
+```ts
+import { tn } from '../i18n.ts';
+
+label.textContent = tn('1 file', '{n} files', { n: files.length });
+```
+
+- The second form, `other`, is the catalog key. The first form, `one`, is the English text for a count of exactly 1.
+- The count is `n`, else `count`, else `total`. Use `tnRaw` where you would use `tRaw`.
+- English output stays what a reader expects: `one` for 1, `other` for everything else, including 0.
+- Do not build the sentence from pieces. Keep the whole sentence in each form, so a translator can reorder the words.
+- A string that reads the same for every count in English, such as `{n} selected`, still takes both forms with the same text, so other languages can differ.
+- A label followed by a count, as in `Assets: 14`, needs no plural form.
+
+In a locale catalog (`shells/web/src/locales/<lang>.json`), the value for the `other` key is either a plain string, used for every count, or an object with exactly the categories that language uses:
+
+```json
+"{n} files": { "one": "{n} файл", "few": "{n} файла", "many": "{n} файлов", "other": "{n} файла" }
+```
+
+`shells/web/src/locales.test.ts` fails a catalog whose object lacks a category, adds one the language does not use, empties a form or uses a placeholder the English key does not have. A form for a category that only ever means the number 1 may leave out `{n}`. Until a language has an object for a key, its existing single translation is used for every count, and a count of 1 keeps the singular translation the language already had.
+
+`node scripts/plural-work.ts` writes `plans/plural-strings/translation-work.json`, which lists each plural key, its English forms and the categories every language needs. Notes for translators and the generation prompt are in `scripts/i18n/PLURALS.md`.
 
 ## If something fails
 

@@ -18,6 +18,7 @@ import { playSfx } from '../../lib/sfx.ts';
 import { installGoogleFont } from '../../user-fonts.ts';
 import type { UserFontsHost } from '../../user-fonts.ts';
 import { bindOp, type StartCtx } from './context.ts';
+import { handFocusBack } from './shared.ts';
 
 /**
  * One token per colour, through the Colours room's own write (plan 97 section 2b).
@@ -134,13 +135,17 @@ export function wireTray(start: StartCtx): void {
         // only when focus was actually dropped, so this can never be a steal.
         // Queried here, not captured: this fires long after mount either way.
         if (!open && trayToggle?.hidden && document.activeElement === document.body) {
-          // The hero is itself hidden on an empty studio (plans/163 F2), and
-          // focus() on a hidden element does nothing - so fall back to the rail.
-          const back =
-            importBtn?.hidden === false
-              ? importBtn
-              : railEl.querySelector<HTMLElement>('[data-ds-room]');
-          back?.focus();
+          // "Add from…" is hidden on an empty studio (plans/163 F2) and not
+          // drawn on a phone, where the More menu holds it; focus() on either
+          // does nothing. So each target is tried in turn until one takes
+          // focus: "Add from…", then More (its home on a phone), then the room
+          // strip's own stop.
+          handFocusBack([
+            importBtn,
+            shell.querySelector<HTMLElement>('[data-ds-more]'),
+            railEl.querySelector<HTMLElement>('[data-ds-room][tabindex="0"]'),
+            railEl.querySelector<HTMLElement>('[data-ds-room]'),
+          ]);
         }
       },
     });

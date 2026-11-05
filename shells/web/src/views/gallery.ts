@@ -23,7 +23,7 @@ import { cssEscape } from '../lib/util/escape.ts';
 import { presentApis } from '@lolly-tools/core/host-v1';
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { noteSessionOpen } from '../lib/open-intent.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { icon } from '../lib/icons.ts';
 import { claimSearchBar, clearSearchBar, setSearchBarValue } from '../components/search-bar.ts';
@@ -45,6 +45,7 @@ import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.ts';
 import { personalizeNudgeMarkup, mountPersonalizeNudge } from './personalize-nudge.ts';
 import { offlineNudgeMarkup, mountOfflineNudge } from './offline-nudge.ts';
+import { holdFirstRunBanner, settleFirstRunBanner } from '../lib/first-run-prompts.ts';
 import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
 import { mountFeaturedRow, resolveExamples } from '../components/featured-row.ts';
 import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
@@ -867,9 +868,9 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
   // Hidden until the ladder reveals it (see revealFirstRunBanner) - and hidden
   // from the accessibility tree with it, so a screen reader isn't told about a
-  // banner this visit may never show.
-  const firstRunEl = viewEl.querySelector<HTMLElement>('.privacy-notice, .personalize-nudge');
-  if (firstRunEl) firstRunEl.hidden = true;
+  // banner this visit may never show. Pending until the ladder decides, so a waiting
+  // notice (lib/first-run-prompts.ts) cannot appear over the banner.
+  const firstRunEl = holdFirstRunBanner(viewEl.querySelector<HTMLElement>('.privacy-notice, .personalize-nudge'));
 
   /** Show the one banner this visit is allowed, if there is one. Each mount is a
    *  no-op when its own markup isn't the one that won the slot.
@@ -1630,7 +1631,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     }
     noResults.hidden = shown > 0;
     if (searchStatus) {
-      searchStatus.textContent = query ? (shown === 1 ? t('1 result') : t('{n} results', { n: shown })) : '';
+      searchStatus.textContent = query ? (tn('1 result', '{n} results', { n: shown })) : '';
     }
   }
 
@@ -2082,7 +2083,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       unavailable ? '' : menuItemHtml('open', OPEN_ICON, t('Open')),
       menuItemHtml('fav', STAR_ICON, fav ? t('Remove from favourites') : t('Add to favourites')),
       unavailable ? '' : menuItemHtml('pin', DOWNLOAD_ICON, pinnedTools.has(ref) ? t('Remove from offline') : t('Available offline')),
-      n > 0 ? menuItemHtml('history', HISTORY_ICON, n === 1 ? t('1 saved session') : t('{n} saved sessions', { n })) : '',
+      n > 0 ? menuItemHtml('history', HISTORY_ICON, tn('1 saved session', '{n} saved sessions', { n })) : '',
       collabStart ? menuItemHtml('collab', USERS_ICON, t('Start a collab')) : '',
       menuItemHtml('copylink', LINK_ICON, t('Copy link')),
       menuItemHtml('info', INFO_ICON, t('About')),
@@ -2209,7 +2210,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       return;
     }
     revealFirstRunBanner();
-  })().finally(() => previewQueue.setPaused(false));
+  })().finally(() => { previewQueue.setPaused(false); settleFirstRunBanner(firstRunEl); });
 
 
 }
@@ -2631,7 +2632,7 @@ function defaultText(input: Record<string, unknown>): { text: string; swatch?: s
       const hit = opts.find(o => (o && typeof o === 'object' ? o.value : o) === d);
       return { text: String((hit && typeof hit === 'object' && hit.label) || d) };
     }
-    case 'blocks': return { text: Array.isArray(d) ? (d.length === 1 ? t('1 item') : t('{n} items', { n: d.length })) : '-' };
+    case 'blocks': return { text: Array.isArray(d) ? (tn('1 item', '{n} items', { n: d.length })) : '-' };
     case 'vector': return { text: Array.isArray(d) ? d.join(' × ') : String(d) };
     case 'number': return { text: String(d) + (input.unit ? ` ${input.unit}` : '') };
     default: {
@@ -2700,7 +2701,7 @@ interface ShowHistoryDialogOpts {
 function showHistoryDialog(tool: GalleryTool | undefined, entries: SavedEntry[], sizes: Record<string, number>, host: GalleryHost, { onDelete, onRestore, onClose }: ShowHistoryDialogOpts = {}): void {
   if (!tool) return;
   const dismissUrl = recordGalleryDialog(tool.id, true);
-  const countText = (n: number) => (n === 1 ? t('1 saved session') : t('{n} saved sessions', { n }));
+  const countText = (n: number) => (tn('1 saved session', '{n} saved sessions', { n }));
   // Defer the gallery re-render until the dialog closes: rebuilding the masonry
   // (and the (h) trigger button) mid-dialog would break the UA's focus restore.
   let changed = false;

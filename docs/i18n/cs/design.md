@@ -10,9 +10,9 @@ Tato stránka provádí plátnem od prvního pole po hotovou sadu snímků: okno
 
 **Horní lišta** začíná tlačítky **Home**, **File menu** a názvem dokumentu (kliknutím na název dokument přejmenuješ). Uprostřed jsou **Undo**, **Redo**, **History**, ovládání zvětšení (s **Fit all** a **Fit artboard**) a přepínače **Timeline**, **Navigator** a **Inspector**. Vpravo jsou **Share**, **Present** a **Export**. Na telefonu se méně používaná tlačítka přesunou do **More actions**.
 
-**Lišta nástrojů** po straně drží nabídku Lolly a nástroje, kterými kreslíš: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, pak tlačítka Timeline, Artboards a Auto-arrange.
+**Lišta nástrojů** po straně drží nabídku Lolly a nástroje, kterými kreslíš: **Pointer**, **Add a box**, **Pen** (jeho tlačítko sdílí **Pencil**), **Edit points**, **Line**, pak tlačítka Timeline, Artboards a Auto-arrange.
 
-![Lišta nástrojů volného plátna: úchyt pro tažení, nabídka Lolly, pak Ukazatel, Přidat rámeček, Pero, Tužka, Upravit body, Čára, Časová osa, Kresebné plochy a Automaticky uspořádat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Lišta nástrojů volného plátna: úchyt pro tažení, nabídka Lolly, pak Ukazatel, Přidat rámeček, Pero, Upravit body, Čára, Časová osa, Kresebné plochy a Automaticky uspořádat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Plátno funguje jako návrhářův stůl kolem kreslicí plochy:
 
@@ -79,7 +79,7 @@ Pole, kruhy a zaoblené rámy pokrývají většinu rozvržení. Pro jakýkoli j
 
 **Pokračuj v otevřené cestě.** S zapnutým Pen stiskni kterýkoli konec otevřené cesty a kreslíš tu cestu znovu: každé kliknutí přidá bod za ten konec, nebo před první bod, když jsi začal od začátku. Enter výsledek zachová a Escape nechá cestu přesně tak, jak byla. Cesta zůstane tímž polem, s výplní, čárou a hroty šipek, a jedno Zpět ji vrátí. Delete vezme zpět jen body, které jsi přidal. Uzavřený tvar, čára připojená k poli a cesta s více částmi nemají volný konec, na kterém by šlo pokračovat.
 
-**Kresli od ruky tužkou.** Tlačítko **Pencil** na liště (nebo `Shift C`) zaznamenává tvůj tah, dokud táhneš. Když pustíš, Lolly tah vyhladí na několik bodů s Bézierovými úchyty, ostré zlomy ponechá jako rohy a křivku drží do několika obrazovkových pixelů od místa, kudy šla tvá ruka. Tah, který skončí poblíž svého začátku, se uzavře. Výsledkem je běžná cesta, se stejnou barvou jako cesta z pera, a její body můžeš poté upravovat.
+**Kresli od ruky tužkou.** Stiskni `Shift C`, nebo stiskni a podrž tlačítko **Pen** na liště (nebo na něj klikni pravým tlačítkem) a zvol **Pencil**; tlačítko pak ukazuje Pencil, dokud znovu nezvolíš Pen. Pencil zaznamenává tvůj tah, dokud táhneš. Když pustíš, Lolly tah vyhladí na několik bodů s Bézierovými úchyty, ostré zlomy ponechá jako rohy a křivku drží do několika obrazovkových pixelů od místa, kudy šla tvá ruka. Tah, který skončí poblíž svého začátku, se uzavře. Výsledkem je běžná cesta, se stejnou barvou jako cesta z pera, a její body můžeš poté upravovat.
 
 Výsledkem je běžné pole. Cestu přesouvej, měň jí velikost, otáčej, seskupuj, zarovnávej, přeskládávej, vyplňuj, stínuj nebo vyblednuj jako jakékoli jiné pole. První cesta převezme výplň a čáru, které tvá značka cestě dává, a každá další převezme to, co jsi naposledy použil. V nástroji, jehož značka pro cesty nic nenastavuje, je nová cesta vykreslena barvou, kterou jsi kreslil, takže tvar nikdy není neviditelný.
 
@@ -121,6 +121,25 @@ Další tři fungují na jediném tvaru. **Outline stroke…** změní čáru na
 ![Půlměsíc a prstenec se skutečnou dírou, oba vytvořené pomocí Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Výsledkem je nová cesta, kterou můžeš dál upravovat perem, uložená jako prosté Bézierovy křivky, takže původní typ splinu se nepřenáší. Díry jsou skutečné díry: ovládací prvek **Fill rule** na panelu čáry rozhoduje, zda se překrývající kontury vyplní (*non-zero*), nebo prorazí (*even-odd*). Operace raději odmítnou, než by něco zničily: požádáš-li o průnik dvou tvarů, které se nepřekrývají, nic se nezmění. Textová a obrázková pole nemají obrys, takže zůstanou nedotčena.
+
+## Trasování obrázku
+
+Vyber jeden obrázek, klikni na něj pravým tlačítkem a zvol **Trasovat obrázek…**, aby se z něj staly upravitelné tvary. Vyber předvolbu a stiskni **Trasovat**:
+
+- **Logo** najde pár plochých barev a zachová ostré hrany, skutečné kruhy a čáry. Obrázek s přechody nebo fotografickými tóny odmítne a řekne ti to.
+- **Ilustrace** trasuje několik barev jako vyplněné tvary, plochou grafiku nebo posterizovaný obrázek.
+- **Perokresba** trasuje tmavé čáry na světlé stránce jako černé tvary.
+- **Středová čára** trasuje tmavé čáry jako jednotlivé obrysy, takže jejich sílu můžeš potom změnit.
+
+Tvary se přidají jako skupina těsně nad obrázek, který zůstane na místě. Skryj nebo smaž obrázek, aby zůstaly vidět jen cesty. Trasování běží na tvém zařízení jako úloha na pozadí s tlačítkem Zrušit a nic se nenahrává. Obrázek o 1500 pixelech obvykle trvá od jedné do několika sekund, rušná fotografie trvá déle.
+
+Trasování sleduje to, co ukazuje rámeček, takže oříznutý obrázek (Cover) trasuje jen viditelnou část. Platí tato omezení:
+
+- Obrázky se před trasováním zmenší na nejvýše 1500 pixelů na delší straně, takže hrany jsou umístěny s přesností na zlomek této velikosti, ne originálu.
+- Jedno trasování vytvoří nejvýše 1500 tvarů a 60 000 bodů. Fotografie to obvykle přesáhne a Design to řekne, aniž by cokoli změnil. Zkus Logo nebo Perokresbu, nebo jednodušší obrázek.
+- Přechody se změní na pásy ploché barvy a měkké stíny na tvary s tvrdými hranami.
+- Poloměr rohů, maska tvaru a efekt na rámečku obrázku se na cesty nepoužijí.
+- Stejný obrázek a stejná předvolba vždy dají stejné tvary.
 
 ## Strokes
 
@@ -195,9 +214,9 @@ Kde existuje konkrétní návrh barvy nebo písma, jeho tlačítko změní tu je
 
 ### Interní pravidla a signál psaní
 
-Karta v panelu exportu také kontroluje interní pravidla, která tvůj designový systém přináší, například tloušťku a zarovnání textu, schválené dvojice barev nebo logo pro každou plochu, vrstvu po vrstvě. Každý nález je varování s názvem vrstvy nad pravidlem. Pravidlo, pro které toto sestavení nemá kontrolu, je uvedeno jako nezkontrolované, nikdy jako dodržené. [Usage & rules](/info/brand-studio.html#usage-rules) pravidla vypisuje a `lolly check` uplatňuje tatáž na uložený dokument.
+Karta v panelu exportu také kontroluje interní pravidla, která tvůj designový systém přináší, například tloušťku a zarovnání textu, schválené dvojice barev nebo logo pro každou plochu, vrstvu po vrstvě. Každý nález je varování s názvem vrstvy nad pravidlem. Pravidlo, pro které toto sestavení nemá kontrolu, je uvedeno jako nezkontrolované, nikdy jako dodržené. [Rules](/info/brand-studio.html#rules) pravidla vypisuje a `lolly check` uplatňuje tatáž na uložený dokument.
 
-Stejná karta ukazuje signál psaní pro text, který dokument kreslí: jeho pásmo (none, weak, notable nebo strong), pak větu samotného Verify se skóre ze 100 a až třemi označenými frázemi, každou s vrstvou, která je drží. **Open the text in Verify** odnese ten text do [Verify](/#/verify) pro úplné čtení; [Důkazy AI ve Verify](/info/verify-ai-evidence.html) vysvětlují, co skóre váží. Skóre je signál, ne verdikt: počítá vzorce běžné v generovaném psaní a nepozná, kdo slova napsal. Skryté vrstvy jsou z obou kontrol vynechány a karta říká kolik.
+Stejná karta ukazuje signál psaní pro text, který dokument kreslí: jeho pásmo (none, weak, notable nebo strong), pak větu samotného Verify se skóre ze 100 a až třemi označenými frázemi, každou s vrstvou, která je drží. **Open the text in Verify** odnese ten text do [Lolly Verify](/#/verify) pro úplné čtení; [Důkazy AI ve Verify](/info/verify-ai-evidence.html) vysvětlují, co skóre váží. Skóre je signál, ne verdikt: počítá vzorce běžné v generovaném psaní a nepozná, kdo slova napsal. Skryté vrstvy jsou z obou kontrol vynechány a karta říká kolik.
 
 Nálezy interních pravidel a silný signál psaní se počítají do součtu "to fix" na kartě, aby byly snadno k nalezení. Informují a nikdy neblokují: Download zůstává dostupné a není co odmítnout ani zaznamenat jako výjimku. Agent pracující v otevřeném dokumentu dostane stejnou zprávu přes své nástroje webu ([Agenti v otevřeném dokumentu](/info/open-document-agents.html)).
 

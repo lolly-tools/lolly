@@ -40,7 +40,7 @@ function onInit({ model, host }) {
 | [Brand and type](#brand-and-type) | [`tokens`](#host-tokens), [`text`](#host-text), [`fonts`](#host-fonts), [`emoji`](#host-emoji), [`color`](#host-color) |
 | [Pictures and pixels](#pictures-and-pixels) | [`images`](#host-images), [`raster`](#host-raster), [`codec`](#host-codec), [`layers`](#host-layers), [`scan`](#host-scan), [`lift`](#host-lift) |
 | [Vector, layout and motion](#vector-layout-and-motion) | [`geom`](#host-geom), [`connectors`](#host-connectors), [`layout`](#host-layout), [`keyframes`](#host-keyframes) |
-| [Documents and text](#documents-and-text) | [`pdf`](#host-pdf), [`pptx`](#host-pptx), [`prepare`](#host-prepare), [`compare`](#host-compare), [`textTools`](#host-texttools) |
+| [Documents and text](#documents-and-text) | [`pdf`](#host-pdf), [`pptx`](#host-pptx), [`prepare`](#host-prepare), [`compare`](#host-compare), [`textTools`](#host-texttools), [`calc`](#host-calc) |
 | [Sound, speech and camera](#sound-speech-and-camera) | [`media`](#host-media), [`recorder`](#host-recorder), [`audio`](#host-audio), [`speech`](#host-speech), [`viz`](#host-viz) |
 | [Reaching outside the tool](#reaching-outside-the-tool) | [`net`](#host-net), [`capture`](#host-capture), [`compose`](#host-compose), [`models`](#host-models) |
 | [On-device AI models](#on-device-ai-models) | [`upscale`](#host-upscale), [`matte`](#host-matte), [`ocr`](#host-ocr) |
@@ -198,7 +198,7 @@ const leads = family.length >= 2 ? family.map((m) => m.value) : [];
 
 Put the leads ahead of the colours you would otherwise draw, never in their place. A design system with two colourways and no spectrum of its own still needs a full categorical palette, and two leads alone would repeat from the third series on. For chart series, prefer the brand's own `color.spectrum.*` tokens from `host.tokens.colors()` (they carry measured print inks), top up with [`host.color.distinct()`](#host-color) anchored on `{color.semantic.primary}` and keep your shipped palette as the fallback; `chart` is the reference.
 
-The web shell, the CLI and the hook Worker answer `family()` and `axes()` with the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A colourway or look switch re-points the slots without running `onInit`, so a hook that keeps colours it read there reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) describes. A hook can also compare `{color.semantic.primary}`, and any other slot it depends on, on each `onInput` and read again when the value changed, which catches an edit to the design system too. Chart, Mesh Gradient and Filter do both.
+The web shell, the CLI and the hook Worker answer `family()` and `axes()` with the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A colourway or look switch re-points the slots without running `onInit`, so a hook that keeps colours it read there reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) describes. A hook can also compare `{color.semantic.primary}`, and any other slot it depends on, on each `onInput` and read again when the value changed, which catches an edit to the design system too. Lolly Chart, Mesh Gradient and Filter do both.
 
 ### `host.text`
 
@@ -311,7 +311,7 @@ An animated source flattens to its first frame. Read the *result's* `mime`, `wid
 
 ### `host.raster`
 
-*Optional, v1.105.* The sibling of `host.images` for tools that composite, sample or change pixels *themselves* (Darkroom, the Filter tool, the logo composers, Redact). Where `images` converts bytes to bytes with no pixel access, this hands back drawable pixels. Fall back to your placeholder where it is absent. The headless CLI provides it when the optional Skia canvas (`@napi-rs/canvas`) resolves, which is what lets `lolly redact` repaint pixels locally; on a lean install without it the member stays undefined.
+*Optional, v1.105.* The sibling of `host.images` for tools that composite, sample or change pixels *themselves* (Lolly Darkroom, the Filter tool, the logo composers, Redact). Where `images` converts bytes to bytes with no pixel access, this hands back drawable pixels. Fall back to your placeholder where it is absent. The headless CLI provides it when the optional Skia canvas (`@napi-rs/canvas`) resolves, which is what lets `lolly redact` repaint pixels locally; on a lean install without it the member stays undefined.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -324,7 +324,7 @@ An animated source flattens to its first frame. Read the *result's* `mime`, `wid
 
 ### `host.codec`
 
-*Optional, v1.100.* Encode a float pixel frame into finished image bytes at real bit depth. It is the counterpart of `host.export.render`, which rasterises the DOM to 8-bit. A tool that computes its own high-precision pixels, such as a float grading pipeline or a renderer with real headroom, hands over a linear Float32 RGBA frame and gets back a 16-bit PNG, an OpenEXR or Radiance HDR master or an error-diffused 8-bit PNG, depths the browser's 8-bit canvas cannot originate. Fall back to the ordinary 8-bit export where it is absent. Darkroom is the reference consumer.
+*Optional, v1.100.* Encode a float pixel frame into finished image bytes at real bit depth. It is the counterpart of `host.export.render`, which rasterises the DOM to 8-bit. A tool that computes its own high-precision pixels, such as a float grading pipeline or a renderer with real headroom, hands over a linear Float32 RGBA frame and gets back a 16-bit PNG, an OpenEXR or Radiance HDR master or an error-diffused 8-bit PNG, depths the browser's 8-bit canvas cannot originate. Fall back to the ordinary 8-bit export where it is absent. Lolly Darkroom is the reference consumer.
 
 ::: details `host.codec` members
 A **`CodecFrame`** is `{ width, height, data: Float32Array, space? }`. `data` is RGBA interleaved, linear light, un-premultiplied and unbounded. `space` carries the working primaries with the buffer: `'srgb-linear'` (the default), `'display-p3-linear'` or `'rec2020-linear'`. The maths is the engine's own writers, so the shell only forwards, and web and CLI produce byte-identical output from the same frame.
@@ -368,7 +368,7 @@ A **`ScanHit`** is `{ format, rawValue, rawBytes?, corners? }`. `rawValue` is un
 
 ### `host.lift`
 
-*Optional, v1.123.* `svg(source)` fetches and sanitises an SVG named by URL (a catalog asset, a `blob:` or a `data:` URL) and returns its layers in paint order as standalone SVG documents with their ink boxes, plus the source viewBox. A source that is not an SVG, or has fewer than two layers, comes back with `layers: []`; the method throws only on a fetch or parse failure. Turning layers into depth is the caller's job. The web and desktop shells provide it; the Node shells do not. Flythrough is the reference tool.
+*Optional, v1.123.* `svg(source)` fetches and sanitises an SVG named by URL (a catalog asset, a `blob:` or a `data:` URL) and returns its layers in paint order as standalone SVG documents with their ink boxes, plus the source viewBox. A source that is not an SVG, or has fewer than two layers, comes back with `layers: []`; the method throws only on a fetch or parse failure. Turning layers into depth is the caller's job. The web and desktop shells provide it; the Node shells do not. Lolly Flythrough is the reference tool.
 
 ## Vector, layout and motion
 
@@ -429,7 +429,7 @@ The currency both ways is an **SVG path-data string**, which already lives in yo
 
 ### `host.keyframes`
 
-*Optional, v1.124.* `sample(kf, count)` evaluates a `kf` track (the format the Design tool's camera and every keyframed input use) at `count` evenly spaced times across its own span, and returns each pose as a channel-to-value map (`x`, `y`, `z`, `rx`, `ry`, …). The engine owns the parsing, interpolation and easing, so a template's motion matches the Design tool's; the template decides how the channels map onto its own scene. An empty or unreadable track returns `[]`. The web and desktop shells provide it; the Node shells do not. Flythrough is the reference tool.
+*Optional, v1.124.* `sample(kf, count)` evaluates a `kf` track (the format the Design tool's camera and every keyframed input use) at `count` evenly spaced times across its own span, and returns each pose as a channel-to-value map (`x`, `y`, `z`, `rx`, `ry`, …). The engine owns the parsing, interpolation and easing, so a template's motion matches the Design tool's; the template decides how the channels map onto its own scene. An empty or unreadable track returns `[]`. The web and desktop shells provide it; the Node shells do not. Lolly Flythrough is the reference tool.
 
 ## Documents and text
 
@@ -449,6 +449,7 @@ Inspect a PDF, remove its metadata and make it smaller. The metadata and structu
 | `fromImages(images, opts?)` *(optional, v1.262)* | `Promise<PdfImagesResult>` | A new PDF with one PNG or JPEG per page. JPEG data is embedded without re-encoding and its metadata is left out |
 | `stamp(bytes, opts)` *(optional)* | `Promise<PdfStampResult>` | Place PNG or JPEG stamps at top-left PDF-point coordinates |
 | `lock(bytes, password)` *(optional)* | `Promise<{ bytes }>` | Apply an AES-256 open password as the last step |
+| `accessibility(bytes)` *(optional)* | `Promise<PdfAccessibilitySummary>` | Run 32 PDF accessibility checks and list which passed, failed, did not apply or need a person, in Lolly's words. Read-only: nothing is tagged or fixed. It is a list of checks, not a PDF/UA verdict. Rejects with a `code` of `not-pdf`, `encrypted`, `damaged` or `too-large` when the file cannot be read |
 :::
 
 ### `host.pptx`
@@ -462,7 +463,7 @@ PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips 
 
 ### `host.prepare`
 
-*Optional.* Inspect files for hidden data and personal values, then write copies with the replacements the person chose. Working values stay in memory, and the report leaves private values out. The web, desktop, CLI and TUI shells provide the API. Strip Hidden Data is the reference tool.
+*Optional.* Inspect files for hidden data and personal values, then write copies with the replacements the person chose. Working values stay in memory, and the report leaves private values out. The web, desktop, CLI and TUI shells provide the API. Lolly Strip Hidden Data is the reference tool.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -487,6 +488,33 @@ PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips 
 | `operations()` | `Promise<TextOperation[]>` | Every operation, with its `id`, `label`, `group` (`Edit`, `Inspect`, `Convert` or `Generate`), search keywords and options |
 | `run({ text, operation, options? })` | `Promise<{ text, format, notes, details? }>` | Run one operation. `details` holds observations, never proof of authorship or a root cause |
 | `highlight(text, language?, options?)` | `Promise<{ html, language, truncated }>` | Syntax-highlighted HTML for a code sample |
+
+### `host.calc`
+
+*Optional, added in the engine minor after 1.301.* Spreadsheet formulas, worked out on the device. The web, desktop, CLI, TUI and MCP shells provide `host.calc`. A pinned formula engine (GridCraft's calculation crates) runs as a small WebAssembly module that loads the first time a formula needs working out, and nothing is sent anywhere. Quote is the reference tool: a cell of its line-items table that starts with `=` is a formula.
+
+| Method | Returns | Notes |
+|---|---|---|
+| `evaluate({ sheets, date1904?, clock? })` | `Promise<CalcResultV1>` | Work out sheets of cells. A cell is `{ r, c, v }` for a constant or `{ r, c, f }` for a formula without its leading `=`, with 0-based `r` and `c`. Formulas can refer to other sheets as `Name!A1`. The result lists every formula cell and every cell a dynamic array spilled into, each with its value (`number`, `string`, `boolean`, `null` or `{ e: '#DIV/0!' }`). A formula that cannot be parsed is reported on its cell (`bad`) and evaluates to `#NAME?`; a request over the limits or with an invalid sheet name rejects |
+| `table({ columns, rows }, { clock? })` | `Promise<CalcTableResultV1>` | Work out a `table` input. The heading row is row 1, so the first data row is row 2 and `=B2*C2` multiplies that row's second and third cells. A lone `=` is text. Cells that read as plain numbers count as numbers. Returns the table with each formula replaced by its value as text (numbers to 15 digits, as Excel's General format shows them), the raw `values`, the cells that gave an `errors` entry, and how many `formulas` there were |
+| `functions()` | `Promise<CalcFunctionV1[]>` | Every function the engine knows, with its argument counts, category and a `volatile` mark |
+
+**Volatile functions.** `NOW`, `TODAY`, `RAND`, `RANDBETWEEN` and `RANDARRAY` change from one calculation to the next, and `OFFSET`, `INDIRECT`, `INFO` and `CELL` are treated the same way. They stay live while a person edits: a call without a `clock` reads the current time and a fresh random seed. They are frozen at export. Every result carries the `clock` (`{ now, seed }`) it read, and `volatile` says whether any formula needed one. The module imports nothing and reads neither the time nor a random source, so the same request with the same clock always returns the same values. A tool keeps what it computed and exports those values. It never evaluates again at export time, which would read a different moment. The runtime backs this up: hooks run when an input changes, and an export draws the page those hooks last produced.
+
+```js
+async function onInput({ model }) {
+  const lines = model.find((i) => i.id === 'lines').value;
+  if (!host.calc) return { rows: lines.rows };
+  const out = await host.calc.table(lines);
+  return { rows: out.table.rows, volatile: out.volatile };
+}
+```
+
+**Functions.** About 510 functions are present: 78 maths and trigonometry, 110 statistical, 55 financial, 54 engineering, 44 text, 43 compatibility, 29 lookup, 25 date and time, 16 information, 12 database, 11 logical, plus the evaluator's own (`IF`, `IFS`, `LET`, `LAMBDA`, `MAP`, `REDUCE`, `INDEX`, `OFFSET`, `INDIRECT`, `TEXT`, `SUBTOTAL`, `AGGREGATE` and the dynamic-array family such as `FILTER`, `SORT`, `UNIQUE` and `SEQUENCE`). Three are deliberately left out to keep the module small: `REGEXTEST`, `REGEXEXTRACT` and `REGEXREPLACE`, which evaluate to `#NAME?`. The engine is not conformance-tested against Excel. Lolly checks it against 16 Excel-saved workbooks (63,000 cells) with 8 known differences, listed in `scripts/data/xlsx-formula-corpus.json`.
+
+**Limits.** Up to 64 sheets, 400,000 cells and 100,000 formulas in one request, 8,192 characters per formula, and 100,000 cells in a table. An array over about 4 million cells is `#NUM!`, and a formula that makes more than 100,000 lambda calls ends in `#CALC!`. Structured table references (`Table1[Col]`) are not supported in `evaluate`.
+
+**Spreadsheet files.** `readXlsx` takes an optional `recalc` function for the same engine. With `recalcWhen: 'missing'`, which the shells use, only formulas the file saved no result for are worked out. That is what files written by libraries look like, and they arrive filled in instead of blank. Every other formula keeps the value its author saw, and the formulas that depend on it use that value. Pass `recalcWhen: 'always'` to work out every formula. Formulas saved by programs without dynamic arrays are read the way those programs did: a range where one value is wanted is cut down to its own row or column and never spills. Array formulas, data tables and formulas with table or workbook references keep their saved result. The read reports how many formulas it recomputed, how many kept their result and whether any was volatile.
 
 ## Sound, speech and camera
 
@@ -563,7 +591,9 @@ An **`AudioLevel`** is the audio counterpart to `MediaFrame` (all amplitudes `0.
 | `isAvailable()` | `boolean`: a decoder exists here. Does **not** promise a given file decodes |
 | `analyse(src, opts?)` | `Promise<AudioAnalysis>`: decode and analyse; rejects on unfetchable bytes or a missing codec |
 | `decode(src, opts?)` | `Promise<AudioDecoded>`: optional, v1.246. PCM for a recorded clip, or the rendered audio of a computed one |
-| `clean(src, opts?)` | `Promise<AudioCleanResult>`: optional. Decode, clean and re-encode a clip on the device: `denoise`, `normalize` to a loudness target, `trimSilence` and an `output` format. The result reports loudness before and after, true peak and the operations applied. The Node shells read and write WAV only; a container a shell cannot handle is refused by name |
+| `clean(src, opts?)` | `Promise<AudioCleanResult>`: optional. Decode, clean and re-encode a clip on the device: `denoise` (the on-device speech model), `repair` (plain signal processing with no model: `noise`, `hum`, `deEss`, `declick`, `dereverb`), `normalize` to a loudness target, `trimSilence` and an `output` format. The result reports loudness before and after, true peak and the operations applied. When the shell has the audio module it also carries `report`, the full EBU R128 readings of the input and the output, and `truePeakDb` is then the true peak in dBTP. The Node shells read and write WAV only; a container a shell cannot handle is refused by name |
+| `loudness(src, opts?)` | `Promise<AudioLoudness>`: optional. EBU R128 (BS.1770-4) readings of a clip: integrated, momentary, short-term, loudness range, sample peak and true peak, plus a reading every 100 ms with `series: true`. A mono file is measured as heard on both speakers. Needs the audio module; a shell without it leaves this undefined |
+| `align(a, b, opts?)` | `Promise<AudioAlignment \| null>`: optional. Where recording `b` starts relative to recording `a` when both captured one event, by GCC-PHAT correlation: `offsetSeconds`, `offsetSamples`, `confidence`, `reliable`, `inverted`. Resolves null when they share too little sound; show a result with `reliable: false` as a guess. Each clip is read up to its first 4 minutes (`truncated` says so) |
 
 `src` is a URL (including `blob:` / `data:`), an `AssetRef` or raw encoded bytes; the last lets a `file` input's in-memory upload be analysed without being stored first.
 
@@ -573,7 +603,7 @@ An **`AudioLevel`** is the audio counterpart to `MediaFrame` (all amplitudes `0.
 
 `AudioFrames` is **struct-of-arrays**, indexed by frame (a minute at 60fps is 3,600 frames, and a draw loop wants flat typed arrays, not 3,600 objects): `count`, `bands`, `samples`, then `t`, `rms`, `peak`, `bass`, `mid`, `treb`, `centroid` and `flux` (one entry per frame) and `magnitude`, `wave`, `waveL` and `waveR` (`count` consecutive rows; row *i* of the spectrum starts at `i * bands`).
 
-Design around three behaviours:
+Lolly Design around three behaviours:
 
 - Everything is normalised `0..1` across the analysed window **except `peak`**, which stays absolute so you can still tell that a source clipped. Normalisation is what lets a quiet voice memo and a mastered single both fill the frame.
 - `bass` / `mid` / `treb` share **one** scale, so they read as a balance. Normalised separately, a bass-only clip would report treble pinned at 1.0.

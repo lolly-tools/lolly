@@ -181,3 +181,27 @@ test('Save to Assets: the song goes in as its canonical .rondo.json, a render wi
   const refusing = { ...host, assets: { async add() { throw Object.assign(new Error('Too many saves in a short time.'), { code: 'assets.add.rate' }); } } };
   await assert.rejects(hooks.exportSong(refusing, { format: 'json', song: SONG, sung: [], voices: [], silent: [], dest: 'assets' }, VERSION), /Not saved to Assets: Too many saves in a short time\. \(assets\.add\.rate\)/);
 });
+
+test('--export=mid asks the shell for a MIDI file of the song and hands its bytes back', async () => {
+  const hooks = compile();
+  const asked: unknown[] = [];
+  const logs: string[] = [];
+  const midi = new Uint8Array(new Uint8Array(smf()));
+  const host = {
+    audio: { async decode(_src: unknown, o: unknown) { asked.push(o); return { midi, channels: [], sampleRate: 48000, seconds: 0, findings: [] }; } },
+    log(_level: string, m: string) { logs.push(m); },
+  };
+  const model = [{ id: 'code', value: 'synth a\n  saw\nplay a\n  0 1 2' }, { id: 'language', value: 'rondo' }, { id: 'name', value: 'Tiny' }, { id: 'length', value: 4 }];
+  const out = await hooks.exportStill({ format: 'mid', host, model, opts: {} });
+  assert.deepEqual(out?.bytes, midi);
+  assert.equal(out?.mime, 'audio/midi');
+  const o = asked[0] as { seconds: number; midi: { title: string; text: string } };
+  assert.equal(o.seconds, 4);
+  assert.equal(o.midi.title, 'Tiny');
+  assert.match(o.midi.text, /Tiny/);
+  assert.match(logs[0]!, /no place for Content Credentials/);
+
+  // A shell whose decode returns no MIDI is refused by name, not given an empty file.
+  const bare = { audio: { async decode() { return { channels: [], sampleRate: 48000, seconds: 0, findings: [] }; } } };
+  await assert.rejects(hooks.exportStill({ format: 'mid', host: bare, model, opts: {} }), /cannot write a song as MIDI/);
+});

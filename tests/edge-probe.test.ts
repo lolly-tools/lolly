@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { cachePolicy } from '../packages/core/src/delivery-v1.ts';
-import { probeSample, modelProbeSamples, modelProbeOrigins } from '../scripts/edge-probe.ts';
+import { probeSample, modelProbeSamples, modelProbeOrigins, sharedCacheHit } from '../scripts/edge-probe.ts';
 import { createHash } from 'node:crypto';
 import { stripProbeCredential } from '../scripts/lib/edge-probe-bytes.ts';
 
@@ -143,4 +143,33 @@ test('daily legacy CORS checks remain HEAD metadata observations with unchanged 
   assert.equal(result.passed, true); assert.equal(result.monitoringOnly, true);
   assert.equal(result.observations[0]!.decodedSha256, undefined);
   assert.ok(result.observations[0]!.checks?.every(check => check.kind === 'cors-head-metadata'));
+});
+test('Cloudflare and Bunny cache hits and purge-tag headers fail a private sample', async () => {
+  const p = cachePolicy('person-private', { status: 401 });
+  const base = { 'Cache-Control': p.cacheControl, 'CDN-Cache-Control': p.cdnCacheControl, 'Referrer-Policy': 'no-referrer' };
+  for (const [name, value, failure] of [
+    ['CF-Cache-Status', 'REVALIDATED', 'private-shared-cache'], ['CF-Cache-Status', 'STALE', 'private-shared-cache'],
+    ['CDN-Cache', 'HIT', 'private-shared-cache'], ['CDN-Tag', 'b_0123456789abcdef', 'exposed-cache-tags'], ['Edge-Cache-Tag', 't_x', 'exposed-cache-tags'],
+  ] as const) {
+    const result = await probeSample({ origin: 'https://example.invalid', path: '/api/auth/session', cls: 'person-private', status: 401 },
+      async () => new Response('{}', { status: 401, headers: { ...base, [name]: value } }));
+    assert.ok(result.observations[0]!.failures.includes(failure), `${name}: ${value}`);
+  }
+  for (const value of ['MISS', 'DYNAMIC', 'BYPASS', 'EXPIRED']) assert.equal(sharedCacheHit(new Headers({ 'cf-cache-status': value })), false, value);
+  assert.equal(sharedCacheHit(new Headers({ 'cdn-cache': 'MISS' })), false);
+});
+test('an open /cdn-cgi/image/ transform endpoint fails qualification', async () => {
+  const p = cachePolicy('public-revalidate');
+  const seen: string[] = [];
+  const respond = (open: boolean) => async (input: string | URL | Request) => {
+    const path = new URL(String(input)).pathname;
+    seen.push(path);
+    if (path.startsWith('/cdn-cgi/image/')) return new Response(open ? 'png' : 'no', { status: open ? 200 : 404 });
+    return new Response('x', { headers: { 'Cache-Control': p.cacheControl, 'CDN-Cache-Control': p.cdnCacheControl } });
+  };
+  const open = await probeSample({ origin: 'https://example.invalid', path: '/catalog/og/qr-code.png', cls: 'public-revalidate', checkTransform: true }, respond(true));
+  assert.ok(open.observations[0]!.failures.includes('transform-endpoint-open'));
+  assert.ok(seen.includes('/cdn-cgi/image/width=64/catalog/og/qr-code.png'));
+  const closed = await probeSample({ origin: 'https://example.invalid', path: '/catalog/og/qr-code.png', cls: 'public-revalidate', checkTransform: true }, respond(false));
+  assert.equal(closed.passed, true, JSON.stringify(closed.observations));
 });

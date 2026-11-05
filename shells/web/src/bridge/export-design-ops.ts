@@ -140,7 +140,7 @@ const findingList = (findings: ReadonlyArray<{ feature: string; id: string }>): 
 export async function designOpsSvg(node: Element, opts: ExportOpts): Promise<Blob | null> {
   const doc = opts.sourceDocument;
   if (doc?.toolId !== 'design') return null;
-  if (exportRouteChoice() === 'legacy') return walkerBecause(opts, 'the compatibility route is forced');
+  if ((await exportRouteChoice()) === 'legacy') return walkerBecause(opts, 'the compatibility route is forced');
   const frameId = node.getAttribute('data-frame-id');
   if (!frameId) return walkerBecause(opts, 'the export is not a single frame');
   // The watermark is an overlay the export adds to the live page, which the walker draws.
@@ -174,7 +174,7 @@ export async function designOpsPdf(pageEls: readonly Element[], opts: ExportOpts
   const doc = opts.sourceDocument;
   if (doc?.toolId !== 'design') return null;
   const why = (reason: string) => { recordRoute(opts, 'compatibility'); log(`Design PDF export: drawn by the DOM walker because ${reason}.`); return null; };
-  if (exportRouteChoice() === 'legacy') return why('the compatibility route is forced');
+  if ((await exportRouteChoice()) === 'legacy') return why('the compatibility route is forced');
   const ids = pageEls.map((el) => el.getAttribute('data-frame-id'));
   if (!ids.length || ids.some((id) => !id)) return why('a page is not a Design frame');
   if (opts.watermark) return why('the export carries a watermark');

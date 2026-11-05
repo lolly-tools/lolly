@@ -408,7 +408,7 @@ test('a project list that arrives late does not replace the New project form', a
   await settle();
 });
 
-test('a session that cannot be opened keeps the dialog up and says so on screen', async () => {
+test('a session that cannot be opened keeps the dialog up and shows a message on screen', async () => {
   reset('#/p');
   await settle();
   registerSessionSource(createInstanceSessionSource('Acme'));
@@ -547,7 +547,7 @@ test('no access, requests off: the sentence says who can help, and no form', asy
   _resetOrgForTests();
 });
 
-test('Use a different account signs out first, and says so when that fails', async () => {
+test('Use a different account signs out first, and reports that when that fails', async () => {
   await member({ requests: { project: true } }, (url) => {
     if (url === '/api/v1/projects/p1/sessions') return json({ error: {} }, 403);
     if (url.startsWith('/api/v1/access-requests/mine')) return json({ requests: [] });

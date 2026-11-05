@@ -20,13 +20,16 @@
  * lists correctly.
  */
 
-import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import type { RightsDecisionV1 } from '@lolly-tools/core/rights-v1';
+import type { SessionEmojiStamp } from '../../../engine/src/session-record.ts';
 
 // Deep relative imports, not the `@lolly/engine` barrel: the CLI bridge reaches this
 // module and the MCP function bundle follows every import from there.
 import { decodeFsToken, encodeFsToken } from '../../../engine/src/fs-token.ts';
-import { migrateSessionRecord, sessionVersionStamp } from '../../../engine/src/session-record.ts';
+import { migrateSessionRecord, sessionVersionStamp, sessionRightsDecisions, sessionEmojiStamp } from '../../../engine/src/session-record.ts';
 
 /** The directory the shells share, under the resolved state directory. */
 export const SESSION_SUBDIR = 'saved-state';
@@ -45,6 +48,8 @@ export interface SessionData {
  * record is JSON someone else wrote, and older records predate the version stamps.
  */
 export interface SessionRecord {
+  rightsDecisions?: RightsDecisionV1[];
+  emoji?: SessionEmojiStamp;
   slot: string;
   toolId?: string;
   toolVersion?: string;
@@ -140,7 +145,15 @@ export async function listSessionSlots(stateDir: string): Promise<string[]> {
 }
 
 /** What a caller supplies to save; the stamps and timestamps are filled in here. */
+export class SessionConflictError extends Error {
+  constructor() { super('This project changed since it was opened. Reopen it or use Save as.'); this.name = 'SessionConflictError'; }
+}
+
 export interface SessionWrite {
+  emoji?: SessionEmojiStamp | null;
+  rightsDecisions?: RightsDecisionV1[];
+  /** Omit for unconditional writes; null requires a new slot. */
+  expectedUpdatedAt?: string | null;
   slot: string;
   data: SessionData;
   thumb?: string | null;
@@ -161,7 +174,8 @@ export interface SessionWrite {
 export async function writeSessionRecord(stateDir: string, write: SessionWrite): Promise<SessionRecord> {
   await mkdir(sessionsDir(stateDir), { recursive: true });
   const prior = await readSessionRecord(stateDir, write.slot);
-  const now = new Date().toISOString();
+  if (write.expectedUpdatedAt !== undefined && (prior?.updatedAt ?? null) !== write.expectedUpdatedAt) throw new SessionConflictError();
+  const now = new Date(Math.max(Date.now(), Date.parse(prior?.updatedAt ?? '') + 1 || 0)).toISOString();
   const record: SessionRecord = {
     slot: write.slot,
     toolId: write.toolId ?? write.data.__toolId,
@@ -171,9 +185,20 @@ export async function writeSessionRecord(stateDir: string, write: SessionWrite):
     thumb: write.thumb ?? prior?.thumb ?? null,
     updatedAt: write.updatedAt ?? now,
     createdAt: prior?.createdAt ?? now,
+    emoji: write.emoji === undefined ? prior?.emoji : write.emoji ?? undefined,
+    rightsDecisions: write.rightsDecisions ?? prior?.rightsDecisions,
     ...sessionVersionStamp(),
   };
-  await writeFile(sessionFilePath(stateDir, write.slot), JSON.stringify(record, null, 2));
+  const path = sessionFilePath(stateDir, write.slot);
+  const temp = `${path}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temp, JSON.stringify(record, null, 2), { mode: 0o600, flag: 'wx' });
+    if (write.expectedUpdatedAt !== undefined) {
+      const latest = await readSessionRecord(stateDir, write.slot);
+      if ((latest?.updatedAt ?? null) !== write.expectedUpdatedAt) throw new SessionConflictError();
+    }
+    await rename(temp, path);
+  } finally { await rm(temp, { force: true }); }
   return record;
 }
 
@@ -193,8 +218,12 @@ function normalise(raw: ParsedRecord | null): SessionRecord | null {
   const slot = typeof raw.slot === 'string' ? raw.slot : '';
   if (!slot) return null;
   const data = raw.data && typeof raw.data === 'object' ? (raw.data as SessionData) : {};
+  const rights = sessionRightsDecisions(raw);
+  const emoji = sessionEmojiStamp(raw);
   return {
     slot,
+    ...(rights ? { rightsDecisions: rights } : {}),
+    ...(emoji ? { emoji } : {}),
     toolId: typeof raw.toolId === 'string' && raw.toolId ? raw.toolId : (typeof data.__toolId === 'string' ? data.__toolId : undefined),
     toolVersion: typeof raw.toolVersion === 'string' ? raw.toolVersion : undefined,
     label: typeof raw.label === 'string' && raw.label ? raw.label : (typeof data.__label === 'string' ? data.__label : undefined),

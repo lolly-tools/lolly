@@ -275,7 +275,7 @@ test('Ungroup again dissolves the tag - the peel repeats, one write each', async
   } finally { f.destroy(); }
 });
 
-test('a single-shape SVG writes nothing, and says so', async () => {
+test('a single-shape SVG writes nothing, and reports that', async () => {
   (globalThis as Record<string, unknown>).__ungroupSvg = LONE;
   uploads.length = 0;
   const f = mount([box({ image: svgRef() })]);

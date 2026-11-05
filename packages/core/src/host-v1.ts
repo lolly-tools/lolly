@@ -7,6 +7,7 @@ export * from './host-v1/asset-ref.ts';
 export * from './host-v1/assets.ts';
 export * from './host-v1/audio.ts';
 export * from './host-v1/c2pa.ts';
+export * from './host-v1/calc.ts';
 export * from './host-v1/capture.ts';
 export * from './host-v1/clipboard.ts';
 export * from './host-v1/codec.ts';

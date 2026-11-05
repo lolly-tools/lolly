@@ -1,14 +1,14 @@
 {
   "generator": {
-    "name": "Claude Code"
+    "name": "Codex"
   },
   "model": {
-    "name": "Claude Opus 5.5",
-    "identifier": "claude-opus-5-5",
-    "vendor": "Anthropic"
+    "name": "GPT-6",
+    "identifier": "gpt-6",
+    "vendor": "OpenAI"
   },
   "oversight": "prompt_guided",
-  "source": "trainedAlgorithmicMedia",
+  "source": "compositeWithTrainedAlgorithmicMedia",
   "author": {
     "name": "Andy Fitzsimon"
   }

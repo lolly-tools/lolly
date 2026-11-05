@@ -14,7 +14,7 @@ When the course is ready, [Deliver and update a course](/info/training-delivery.
 
 ## Start from your project
 
-1. Open **Projects**, then the folder that holds your course material.
+1. Open the **Projects** view, then the folder that holds your course material.
 2. Choose **Export course** and review the folder's content, nested folders included. Imported files, saved tool creations and batch rows appear together. Existing learning modules contribute their lessons, and **Open existing module** exports a module without copying the module.
 3. Use the checkboxes to choose content and **Move up** or **Move down** to set the teaching order. Unavailable content stays listed: replace it, unselect it or choose **Exclude unavailable items**. For a long selection, **Find content** locates an item; clear the search before reordering. **Select all** and **Clear selection** apply to the whole list. Enter a course title and choose **Create course from selection**.
 4. The course opens in the editor. Review the assembled outline, add explanations, adjust the required lessons or use **Add lesson** for another step. Folder names become section labels. Every imported item starts as required, so review that choice.
@@ -73,7 +73,7 @@ Content shows source names, available images, saved thumbnails and media control
 
 | Material | Format | How to use it |
 | --- | --- | --- |
-| Saved Design creation or another saved tool creation | The renditions that tool can export on this device | Pick it from Projects or saved creations. Lolly captures its current inputs. |
+| Saved Lolly Design creation or another saved tool creation | The renditions that tool can export on this device | Pick it from Projects or saved creations. Lolly captures its current inputs. |
 | Static slides or a multipage design | Still pages | Keep **Render as: Still pages**. Every exported page appears in that content block, in source order. |
 | Animation or a moving design | Video | Select **Render as: Video with motion**. Lolly exports the authored sequence as video, silent animations included. |
 | Imported image | PNG, JPEG or WebP; SVG is converted to PNG for the player | Pick or upload the file. |

@@ -9,7 +9,7 @@ Lolly работи на устройството на всеки човек. К�
 - [Adoption & Governance](/info/adoption-governance.html) обхваща внедряването и ролята на правилата на марката.
 - [Identity and sessions](/info/work-identity.html) обхваща входа и съпоставянето на групи. [Roles and grants](/info/work-permissions.html) обяснява ролите, предоставянията и защитата на собственика.
 - [Policy and governance](/info/work-governance.html) обхваща наслагванията върху инструменти, заключените входове и политиката. [Manage organisation AI policy](/info/work-ai-policy.html) обхваща одобренията и ограниченията за изпълнение.
-- [Account data controls](/info/work-account-lifecycle.html) и [Work storage and data lifecycle](/info/work-data-lifecycle.html) обхващат експортите, напускането, съхранението и техните граници.
+- [Account data controls](/info/work-account-lifecycle.html) и [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) обхващат експортите, напускането, съхранението и техните граници.
 - [Profiles, brands and tool configuration](/info/configuration.html) обхваща кои инструменти и дизайн системи носи изданието на Lolly.
 
 ## Свържи ресурси и прегледай работа

@@ -35,7 +35,8 @@
  * function without a lot more plumbing than a small tool catalog is worth.
  */
 import { readFile } from 'node:fs/promises';
-import { catalogFile } from '@lolly-tools/node-shell/content-roots';
+import { RESERVED } from '@lolly/engine';
+import { catalogFile, readToolManifest, readAssetIndex } from '@lolly-tools/node-shell/content-roots';
 import {
   RESERVED_SUBCOMMANDS, VALUE_FLAGS,
   REBRAND_STAGES, REBRAND_VALUE_FLAGS, REBRAND_PATH_FLAGS, REBRAND_BOOL_FLAGS,
@@ -43,16 +44,17 @@ import {
   PACKAGE_VALUE_FLAGS, PACKAGE_BOOL_FLAGS, PACKAGE_PATH_FLAGS,
   MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS,
   COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, COMPOSE_PATH_FLAGS,
+  INTENT_VALUE_FLAGS, INTENT_BOOL_FLAGS,
 } from './args.ts';
 
 export type CompletionShell = 'bash' | 'zsh' | 'fish';
 export const COMPLETION_SHELLS: readonly CompletionShell[] = ['bash', 'zsh', 'fish'];
 
-const GLOBAL_BOOL_FLAGS = ['json', 'quiet', 'verbose', 'strict'] as const;
+const GLOBAL_BOOL_FLAGS = ['json', 'quiet', 'verbose', 'strict', 'dry-run', 'preflight', 'resume', 'watch', 'keep-going', 'include-personal', 'null', 'paths', 'screen-reader'] as const;
 
 /** Value flags whose value is a filesystem path - completed as files/dirs, never a word list. */
 const PATH_FLAGS = new Set([
-  'output', 'out-dir', 'inputs', 'template', 'trust-anchor', 'sign-key', 'sign-cert', 'rebuild',
+  'root', 'journal', 'output', 'out-dir', 'inputs', 'template', 'trust-anchor', 'sign-key', 'sign-cert', 'rebuild',
   // `lolly read --media=<dir>`: the folder the pictures are written to (plan 291 W2).
   'media',
   // `lolly check --file=<tokens.json>`: the design system to check against (plan 291 W1).
@@ -101,6 +103,7 @@ interface RebrandWords {
   pathFlags: string[];
   /** The values `--browser=` takes on `lolly check`. */
   browser: string[];
+  toolWords?: Record<string, string[]>;
 }
 
 /**
@@ -114,8 +117,8 @@ function rebrandWords(): RebrandWords {
   const known = new Set<string>([...VALUE_FLAGS, ...GLOBAL_BOOL_FLAGS, ...PATH_FLAGS]);
   // `lolly measure --text` and `--text-layers` (plan 291 W5).
   // `lolly compose` (plan 291 W6).
-  const bools: string[] = [...REBRAND_BOOL_FLAGS, ...READ_BOOL_FLAGS, ...CHECK_BOOL_FLAGS, ...PACKAGE_BOOL_FLAGS, ...MEASURE_BOOL_FLAGS, ...COMPOSE_BOOL_FLAGS];
-  const values: string[] = [...REBRAND_VALUE_FLAGS, ...READ_VALUE_FLAGS, ...CHECK_VALUE_FLAGS, ...PACKAGE_VALUE_FLAGS, ...MEASURE_VALUE_FLAGS, ...COMPOSE_VALUE_FLAGS];
+  const bools: string[] = [...REBRAND_BOOL_FLAGS, ...READ_BOOL_FLAGS, ...CHECK_BOOL_FLAGS, ...PACKAGE_BOOL_FLAGS, ...MEASURE_BOOL_FLAGS, ...COMPOSE_BOOL_FLAGS, ...INTENT_BOOL_FLAGS];
+  const values: string[] = [...REBRAND_VALUE_FLAGS, ...READ_VALUE_FLAGS, ...CHECK_VALUE_FLAGS, ...PACKAGE_VALUE_FLAGS, ...MEASURE_VALUE_FLAGS, ...COMPOSE_VALUE_FLAGS, ...INTENT_VALUE_FLAGS];
   const words = [...new Set([...values.filter(f => !paths.has(f)), ...bools])].filter(f => !known.has(f));
   return {
     stages: [...REBRAND_STAGES],
@@ -124,6 +127,37 @@ function rebrandWords(): RebrandWords {
     browser: [...CHECK_BROWSER_VALUES],
   };
 }
+
+/** Bake manifest input names and simple enum values into the script; Tab never starts Lolly. */
+export function toolCompletionWords(toolIds: readonly string[]): Record<string, string[]> {
+  const result: Record<string, string[]> = {};
+  let assets: string[] = [];
+  try { assets = ((readAssetIndex() as { assets?: Array<{ id?: string }> }).assets ?? []).flatMap(asset => typeof asset.id === 'string' ? [asset.id] : []).slice(0, 100); } catch { /* Catalog-free completion stays available. */ }
+  const safe = (value: string) => /^[a-zA-Z0-9_./#:=+-]+$/.test(value);
+  for (const id of toolIds) {
+    if (!safe(id)) continue;
+    try {
+      const manifest = readToolManifest(id) as { inputs?: Array<{ id: string; type: string; options?: Array<{ value: string }> }>; presets?: Array<{ id?: string }> };
+      const words: string[] = [];
+      for (const input of manifest.inputs ?? []) {
+        if (!safe(input.id)) continue;
+        const flag = `--${RESERVED.has(input.id) ? 'input.' : ''}${input.id}`;
+        words.push(`${flag}=`);
+        for (const option of input.options ?? []) if (typeof option.value === 'string' && safe(option.value)) words.push(`${flag}=${option.value}`);
+        if (input.type === 'asset') for (const asset of assets) if (safe(asset)) words.push(`${flag}=${asset}`);
+        if (input.type === 'boolean') words.push(`${flag}=true`, `${flag}=false`);
+      }
+      for (const preset of Array.isArray(manifest.presets) ? manifest.presets : []) if (preset.id && safe(preset.id)) words.push(`--preset=${preset.id}`);
+      result[id] = words;
+    } catch { /* A missing manifest keeps the static command fallback. */ }
+  }
+  return result;
+}
+
+const CONTEXT_COMMANDS: Record<string, string[]> = {
+  projects: ['list', 'show', 'export', 'copy'], files: ['schema', 'convert'], models: ['ls', 'fetch'], learning: ['check', 'build'],
+  system: ['status', 'init', 'import', 'add', 'export', 'context', 'check', 'skills', 'skill', 'list', 'use', 'inspect', 'diff', 'generate', 'sync'],
+};
 
 /** Build the bare word lists a completion script needs, shared by all three shells. */
 function completionWords(toolIds: string[], rebrand: RebrandWords) {
@@ -155,6 +189,24 @@ _lolly_complete() {
   local tools="${w.tools.join(' ')}"
   local flags="${w.flags.join(' ')}"
   local pathflags="${w.pathFlags.join(' ')}"
+  local target="\${COMP_WORDS[1]}"
+  [[ "\${target}" == run || "\${target}" == describe ]] && target="\${COMP_WORDS[2]}"
+  local toolflags=""
+  case "\${target}" in
+${Object.entries(rebrand.toolWords ?? {}).map(([id, words]) => `    ${id}) toolflags="${words.join(' ')}" ;;`).join('\n')}
+  esac
+  flags="\${flags} \${toolflags}"
+  if [[ "\${prev}" == "=" && "\${COMP_WORDS[COMP_CWORD-2]}" == --* && -n "\${toolflags}" ]]; then
+    local prefix="\${COMP_WORDS[COMP_CWORD-2]}=" candidate values=""
+    for candidate in \${toolflags}; do [[ "\${candidate}" == "\${prefix}"* ]] && values="\${values} \${candidate#"\${prefix}"}"; done
+    COMPREPLY=( $(compgen -W "\${values}" -- "\${cur}") )
+    return 0
+  fi
+  if [[ \${COMP_CWORD} -eq 2 ]]; then
+    case "\${COMP_WORDS[1]}" in
+${Object.entries(CONTEXT_COMMANDS).map(([id, words]) => `      ${id}) COMPREPLY=( $(compgen -W "${words.join(' ')}" -- "\${cur}") ); return 0 ;;`).join('\n')}
+    esac
+  fi
   case "\${prev}" in
     ${pathCases})
       COMPREPLY=( $(compgen -f -- "\${cur}") )
@@ -205,6 +257,18 @@ _lolly() {
   tools=(${w.tools.map(t => `'${t}'`).join(' ')})
   flags=(${w.flags.map(f => `'${f}'`).join(' ')})
   pathflags=(${w.pathFlags.map(f => `'${f}'`).join(' ')})
+  local target="\${words[2]}"
+  [[ "\${target}" == run || "\${target}" == describe ]] && target="\${words[3]}"
+  local -a toolflags
+  case "\${target}" in
+${Object.entries(rebrand.toolWords ?? {}).map(([id, words]) => `    ${id}) toolflags=(${words.map(word => `'${word}'`).join(' ')}) ;;`).join('\n')}
+  esac
+  if [[ "\${words[CURRENT]}" == -* && \${#toolflags} -gt 0 ]]; then compadd -- "\${toolflags[@]}"; fi
+  if (( CURRENT == 3 )); then
+    case "\${words[2]}" in
+${Object.entries(CONTEXT_COMMANDS).map(([id, words]) => `      ${id}) compadd ${words.join(' ')}; return ;;`).join('\n')}
+    esac
+  fi
 
   if [[ "\${words[CURRENT-1]}" == @(${pathFlagsAlt}) ]]; then
     _files
@@ -261,6 +325,12 @@ function fishScript(toolIds: string[], rebrand: RebrandWords): string {
   for (const f of w.pathFlags) {
     lines.push(`complete -c lolly -l "${f.replace(/^--/, '')}" -r -F`);
   }
+  for (const [tool, words] of Object.entries(rebrand.toolWords ?? {})) {
+    const choices = new Map<string, string[]>();
+    for (const word of words) { const [flag, value = ''] = word.slice(2).split('='); const values = choices.get(flag!) ?? []; if (value) values.push(value); choices.set(flag!, values); }
+    for (const [flag, values] of choices) lines.push(`complete -c lolly -n "__fish_seen_subcommand_from ${tool}" -l "${flag}" -r -a "${values.join(' ')}"`);
+  }
+  for (const [command, choices] of Object.entries(CONTEXT_COMMANDS)) lines.push(`complete -c lolly -n "__fish_seen_subcommand_from ${command}" -a "${choices.join(' ')}"`);
   const stages = w.stages.join(' ');
   lines.push(`complete -c lolly -n "__fish_seen_subcommand_from rebrand; and not __fish_seen_subcommand_from ${stages}" -a "${stages}"`);
   const inputStages = w.stages.filter(stage => stage !== NO_INPUT_STAGE).join(' ');
@@ -273,6 +343,7 @@ function fishScript(toolIds: string[], rebrand: RebrandWords): string {
 export async function generateCompletion(shell: CompletionShell): Promise<string> {
   const toolIds = await catalogToolIds();
   const rebrand = rebrandWords();
+  rebrand.toolWords = toolCompletionWords(toolIds);
   switch (shell) {
     case 'bash': return bashScript(toolIds, rebrand);
     case 'zsh': return zshScript(toolIds, rebrand);

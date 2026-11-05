@@ -82,6 +82,7 @@ Wordmark sázený v písmu tvého designového systému se exportuje jako SVG s 
 | Předání do Premiere | **Premiere XML + media** | Časované klipy a původní média pro Premiere (Design) |
 | Video pro sociální sítě a sdílení | **MP4** nebo **WebM** | Nejlepší kvalita na velikost souboru (viz [Video](#video)) |
 | Titulky | **SRT** nebo **VTT** | Časovaný text pro přehrávač videa (Captions, Audiogram a Record) |
+| Vysílací titulky | **TTML** nebo **SCC** | Časovaný text IMSC1.1 nebo titulky pop-on CEA-608 (Captions; viz [Vysílací titulky](#broadcast-captions)) |
 | Školicí kurz | **SCORM (LMS)** | Verzovaný web, balíček SCORM nebo xAPI (viz [SCORM](#scorm-course-packages)) |
 | Formátovaný text nebo e-mailový podpis | **HTML** | Vloží se formátovaně do e-mailových klientů |
 | Prostý obsah | **MD** nebo **TXT** | Jen text |
@@ -131,9 +132,9 @@ Lolly má tři způsoby práce ve velkém, každý pro jinou úlohu:
 ## Tabulka se stane jedním dokumentem
 Nástroj se vstupem tabulky, například **Battlecards**, změní každý řádek na stránku. Vlož tabulku ze své tabulky a dostaneš jedno PDF. Oprav řádky v tabulce a vlož znovu.
 ## CSV se stane jedním souborem na řádek
-**Batch** (`#/batch`) vezme CSV a vykreslí jeden export pro každý řádek: jmenovky nebo certifikáty, jeden soubor každý, doručené v ZIP. Viz [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) vezme CSV a vykreslí jeden export pro každý řádek: jmenovky nebo certifikáty, jeden soubor každý, doručené v ZIP. Viz [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Několik návrhů dostane jednu úpravu
-**Multi-edit** otevře několik uložených relací vedle sebe pro stejné doladění napříč různými návrhy. Viz [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** otevře několik uložených relací vedle sebe pro stejné doladění napříč různými návrhy. Viz [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Z **Projects** **Render folder** exportuje každou uloženou relaci ve složce a jejích podsložkách jako jedno vnořené ZIP a **Render selection** totéž udělá pro jakýkoli vícenásobný výběr; jedna uložená relace se vykreslí do vlastního souboru. Uloženou relaci lze také znovu sdílet jako odkaz na nástroj z Projects, který ji znovu otevře se stejným nastavením.
@@ -169,7 +170,7 @@ Většina nástrojů, které exportují SVG, exportuje také **soubor Penpot** (
 | Celý návrh | Opakovaně použitelná komponenta v panelu Assets |
 | Složitá ilustrace nebo živé plátno | Vloženo samostatně jako obrázek, upravitelný obsah kolem něj nedotčen |
 
-Z Design se každý rám stane plochou Penpotu. Barvy a typografie designového systému přistanou v panelu Assets a jeho úplná sada tokenů v panelu Tokens. Penpot odtud drží vlastní kopii: token upravený v Penpotu se vrací importem v [Design System Setup](/info/brand-studio.html).
+Z Design se každý rám stane plochou Penpotu. Barvy a typografie designového systému přistanou v panelu Assets a jeho úplná sada tokenů v panelu Tokens. Penpot odtud drží vlastní kopii: token upravený v Penpotu se vrací importem v [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Panel exportu s vybraným Penpotem: soubor .penpot a Send to Penpot vedle stahování](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Pak zvol **Export course** z podporovaného nástroje, složky projektu nebo vý
 
 Balíček drží svůj hotový obsah a nepotřebuje účet Lolly. Website ZIP umísti na hostitele HTTP(S); ZIP pro LMS importuj beze změny. Cíl otestuj, než kurz sdílíš. Pro kurz vytvořený z několika uložených tvorb viz [Vytvoř školicí kurz](/info/training-creators.html).
 
+### Vysílací titulky
+
+Nástroj Captions umí exportovat také **TTML** a **SCC**. Oba se zapisují ze stejného seznamu titulků jako soubory SRT a VTT, takže slova a časy se shodují.
+
+- **TTML** je IMSC1.1 Text Profile s časy hodin podle času média a jednou oblastí dole uprostřed. Nenese barvu, písmo ani pozici jednotlivých titulků, protože titulky v Lolly mají jen začátek, konec a text.
+- **SCC** nese titulky pop-on podle CEA-608 na kanálu 1 při 29,97 snímcích za sekundu s časovým kódem drop-frame. Podporuje základní severoamerické znaky plus speciální a rozšířené. Pokud titulek obsahuje znak, který sada nepodporuje, export se zastaví a řekne ti který, takže se nic neztratí bez upozornění. Každý titulek se zalamuje na 32 sloupců a nejvýše 15 řádků. Titulek, který se nestihne načíst před svým začátkem, se o pár snímků zpozdí.
+- Titulky roll-up a paint-on se nezapisují.
+
+Výstup SCC nebyl ověřen se skutečným vysílacím nástrojem ani hardwarovým dekodérem. Soubor si před dodáním vyzkoušej ve vlastním pipeline.
+
 ### DXF (soubory pro řezání)
 
 Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding a Wordmark exportují **DXF**, výměnný formát AutoCAD R12, který čtou laserové řezačky, plotry vinylu a software CNC. Geometrie se zapisuje jako obrysové cesty v milimetrech, text je převeden na obrysy a barva se mapuje na nejbližší AutoCAD Color Index, který obvykle řídí operaci řezačky. DXF je jen perokresba: fotografická nebo filtrovaná oblast nemá cestu řezu a vypouští se s varováním. Pro zachování rastrového obsahu použij SVG nebo PDF.
@@ -214,7 +225,7 @@ Přejeď a kamera se vzdálí skrz skutečnou geometrii: sedm cest, nikde žádn
 
 ## Tisk
 
-**Print PDF** zapisuje CMYK proti pojmenované tiskové podmínce, ve výchozím stavu **Coated FOGRA39**. Vzorky značky se změřenými hodnotami inkoustu se převádějí přesně; ostatní barvy používají standardní převod zařízení. **Print TIFF** zapisuje pixely DeviceCMYK pro RIP a zaznamenává stejnou tiskovou podmínku do metadat TIFF. Obojí řídí ovládání Colour profile; podrobnosti jsou v [Barevné profily](#colour-profiles).
+**Print PDF** zapisuje CMYK proti pojmenované tiskové podmínce, ve výchozím stavu **Coated FOGRA39**. Vzorky značky se změřenými hodnotami inkoustu si tyto hodnoty ponechají. Ostatní barvy se převádějí přes tiskový profil: výchozí je vlastní profil Coated FOGRA39 od Lolly, nebo tvůj vlastní profil, když zvolíš jeho řádek **Embed**. Šedé a černé zůstávají jen na černé desce, takže drobné písmo se nemůže rozjet. FOGRA51, SWOP a GRACoL používají standardní převod zařízení. **Print TIFF** zapisuje pixely DeviceCMYK pro RIP a stejnou tiskovou podmínku zaznamenává do metadat TIFF. Obojí řídí ovládání Colour profile; podrobnosti jsou v [Barevné profily](#colour-profiles).
 
 **Print marks & bleed** má vlastní kartu na tiskových formátech: spadávka v milimetrech plus Crop, Registration, Bleed, Colour bars a Stamp details.
 
@@ -223,6 +234,15 @@ Některé nástroje sestavují **vícestránkové PDF**: obálku, obsah, který 
 **Před exportem.** Karta **Before you export** dole v panelu říká, co se tiskárna chystá uvidět: formát, velikost a spadávku, oblasti ořezu a spadávky, pokrytí inkoustem, počty desek a počet stránek, s verdiktem vedle nadpisu. Nikdy export neblokuje. Design kartu ukazuje vždy s vlastními kontrolami, včetně interních pravidel designového systému vrstvu po vrstvě a signálu psaní pro text dokumentu ([Před exportem](/info/design.html#before-you-export)), a tyto tiskové kontroly přidá, když je **Print preflight** zapnuto. V ostatních nástrojích zapni **Print preflight** v Settings → Preferences → Feature flags; ve výchozím stavu je vypnuto a nasazení Lolly Work jej může pro své členy zapnout.
 
 **Po exportu.** Jakmile je soubor hotový, Lolly jej přečte zpět a porovná s tím, co jsi zvolil: formát, velikost v pixelech nebo stránkách, délku klipu, průhledné pozadí, barvu CMYK, HDR, Content Credentials a heslo PDF nebo ZIP. Cokoli, co se liší, se zapíše na exportní kartu. Každé měření pochází ze souboru, nikdy z nastavení, a vlastnost, na kterou soubor nedokáže odpovědět, se nepočítá jako shoda. Příkazový řádek zapíše úplné porovnání pomocí `--export-report` (viz [Vykreslování pomocí CLI](/info/cli-rendering.html)).
+
+**Kontroly přístupnosti PDF.** U PDF příkazový řádek také uvádí 32 kontrol přístupnosti v souboru `--export-report`, pod `pdfAccessibility`. Každá kontrola má id, srozumitelný popis, výsledek a místo v souboru, kde našla problém:
+
+- **Prošlo**: kontrola se na něco podívala a nenašla nic špatného.
+- **Neúspěšné**: kontrola našla problém. Uvedena jsou čísla stránek nebo značky.
+- **Netýká se**: soubor neobsahoval nic, na co by se kontrola mohla podívat, například kontroly tabulek v souboru bez tabulek. O souboru to nic neříká.
+- **Potřebuje člověka**: šest kontrol program posoudit nedokáže (pořadí čtení, barevný kontrast, blikání, skripty, časové limity a opakované odkazy).
+
+Seznam není verdikt. Neříká, že PDF splňuje PDF/UA nebo že ho lidé s asistivními technologiemi mohou používat, a soubor musí stále zkontrolovat člověk se čtečkou obrazovky. Vlastní PDF z Lolly dnes v kontrolách značení neprojdou, protože exportéry zatím nezapisují žádné značky. Kontrola čte soubor na tvém zařízení a nic nemění. Soubory vyžadující heslo jsou uvedeny jako nezkontrolované, ne jako prošlé. Chceš-li zkontrolovat PDF, které ti někdo poslal, přetáhni ho do [Strip Hidden Data](/info/utilities.html), který zobrazí stejný seznam pod **Kontroly přístupnosti PDF**.
 
 Kontroly inspektoru Design a porovnání se značkou v Design System Setup jsou samostatné kontroly: dívají se na návrh, zatímco tyto dvě karty se dívají na soubor.
 
@@ -280,7 +300,7 @@ Exporty jsou označeny barevným profilem, takže aplikace se správou barev, ja
 - **SVG**, **EMF**, **EPS** a **DXF** jsou vektory bez vloženého profilu: barvy SVG jsou sRGB, EMF a EPS používají zařízení RGB, **EPS (CMYK)** zapisuje DeviceCMYK a DXF používá AutoCAD Color Index. SVG, EPS a DXF převádějí text na cesty. EMF drží text živý a upravitelný v Office a Google Slides, s náhradou obrysy jen pro úseky, které formát nevyjádří; volba **Outline fonts** v panelu exportu vynutí cesty všude. SVG také reprodukuje stíny polí CSS, uvnitř i vně.
 
 ::: details PDF/X-4 a tvůj vlastní tiskový profil
-Žádný profil CMYK se s Lolly nedodává. Pojmenovaná tisková podmínka zapíše výstupní záměr bez tvrzení o souladu s PDF/X-4, protože PDF/X-4 chce profil vložený.
+Lolly dodává jeden profil CMYK, přizpůsobený charakterizačním datům FOGRA39 od Fogra a vydaný pod CC0, a převádí přes něj barvy pro výchozí tiskovou podmínku. Profil není vložen, protože je ve verzi ICC 4.3 a PDF/X-4 přijímá verze nejvýše 4.2. Pojmenovaná tisková podmínka proto zapíše výstupní záměr, aniž by tvrdila shodu s PDF/X-4.
 
 Načti vlastní profil CMYK a zvol jeho řádek **Embed** v ovládání Colour profile. Vloží se jako *DestOutputProfile* souboru a PDF tvrdí PDF/X-4, kdykoli to zbytek souboru dovolí. Tisková podmínka, kterou deklaruje, se čte z toho profilu: registrované jméno, kde ho profil dokazuje, nebo `Custom` pod vlastním jménem profilu.
 
@@ -400,8 +420,8 @@ Toto jsou hodnoty pro parametr URL `format=` a příznak CLI `--export=` (viz [P
 | Vektor | `svg` · `svgz` (SVG v gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (soubor pro řezání) |
 | Stránka a dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (návrhový soubor Penpot) · `scorm` (balíček kurzu, ZIP) |
 | Pohyb | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Zvuk | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Text a data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (paleta GIMP) |
+| Zvuk | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (noty MIDI z Rondocode) |
+| Text a data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paleta GIMP) |
 | Balíky a balíčky | `zip` · `rpm` a `tar.gz` (vykreslení zapečetěné do balíčku Linuxu) |
 
 Několik id pochází z vlastního exportního kódu nástroje: `ase` (Adobe Swatch Exchange, z Palette Lab) a `exr` a `hdr` (rastry s vysokým dynamickým rozsahem, z Darkroom). **Convert Font** zapisuje `ttf`, `otf` a `woff` ze souboru písma, který dodáš, takže holý odkaz nemá co vykreslit.

@@ -27,6 +27,7 @@
 // (DOMPurify on ingest). Scripts never run and never reach disk.
 
 import { storeUserUpload } from './picker.ts';
+import { detectTimelineFormat } from '../../../../engine/src/timeline-import.ts';
 import {
   importPenpotLayouts,
   penpotSvgLayoutFindings,
@@ -65,6 +66,9 @@ import type { UnpackHandle } from './unpack-open.ts';
 import type { PdfPageSvg, EmbeddedFont, EmbeddedImage, EmbeddedImageScan, ExtractedVector } from './pdf-import.ts';
 import { strFromU8 } from 'fflate';
 import { unzipAsync } from '../lib/zip.ts';
+import { isInddSignature, describeInddError } from '@lolly-tools/node-shell/indd';
+import { isAffinity } from './affinity-import.ts';
+import { isDxf, parseDxfAsDesign } from './dxf-import.ts';
 // Figma .fig decode: a canvas.fig is a Kiwi binary (self-describing schema + data).
 // The schema chunk is raw-DEFLATE (native DecompressionStream); the data chunk is zstd
 // (fzstd - pure JS, by the fflate author). kiwi-schema is Evan Wallace's official decoder.
@@ -151,8 +155,8 @@ const SKIP_TAGS = new Set([
  */
 export async function parseDesignFile(
   file: File | Blob,
-  { host, log, interactive, map, preserveHierarchy }: {
-    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; preserveHierarchy?: boolean;
+  { host, log, interactive, map, preserveHierarchy, signal }: {
+    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; preserveHierarchy?: boolean; signal?: AbortSignal;
   } = {},
 ): Promise<DesignImportResult> {
   const warn: (msg: string) => void = typeof log === 'function' ? log : () => {};
@@ -161,7 +165,7 @@ export async function parseDesignFile(
   }
   const buf = new Uint8Array(await file.arrayBuffer());
 
-  if (/^\s*(?:<\?xml[^>]*>\s*)?(?:<!DOCTYPE\s+xmeml\s*>\s*)?<xmeml[\s>]/i.test(new TextDecoder().decode(buf.subarray(0, 1024)))) {
+  if (detectTimelineFormat(new TextDecoder().decode(buf.subarray(0, 65536)))) {
     const { importPremiereFile } = await import('./premiere-import.ts');
     return importPremiereFile(file, { host, interactive, warn });
   }
@@ -187,11 +191,25 @@ export async function parseDesignFile(
     return parsePdfFile(file, { host: host as HostV1, warn, interactive, map });
   }
 
-  // Raw InDesign .indd is a proprietary binary database with no open parser - guide the
-  // user to InDesign's open interchange format (IDML) instead of failing opaquely.
+  // A native InDesign .indd is converted to IDML on this device, then follows the IDML path.
   if (isIndd(buf, file && (file as File).name)) {
-    throw new Error('A raw .indd file can’t be read directly. In InDesign choose File → Export → InDesign Markup (.idml) and import the .idml.');
+    const files = await inddToIdmlParts(buf, file, warn, signal);
+    const { parseIdmlZip } = await import('./idml-import.ts');
+    return parseIdmlZip(files, { host, warn, map, interactive });
   }
+
+  // A native Affinity file is read on this device: editable layers, or Affinity's own preview.
+  if (isAffinity(buf, file && (file as File).name)) {
+    const { importAffinity } = await import('./affinity-import.ts');
+    const res = await importAffinity(buf, file, { host: host as never, warn, map, signal });
+    const first = res.frames[0]!;
+    if (res.frames.length > 1) warn(`Opened the first of ${res.frames.length} artboards. Import as artboards or scenes to keep all of them.`);
+    return { boxes: first.boxes, width: first.width, height: first.height, background: first.background } as DesignImportResult;
+  }
+
+  // AutoCAD DXF (ASCII or binary): layers become groups of native paths and text boxes, and the
+  // import report lists what was not drawn (XREFs, paper space, SHX fonts, hatches).
+  if (isDxf(buf, file && (file as File).name)) return parseDxfAsDesign(buf, { warn, map });
 
   // Sniff: Penpot exports, Figma .fig and InDesign .idml are all ZIPs (magic "PK\x03\x04").
   // Unzip once and route by contents.
@@ -269,8 +287,8 @@ export interface DesignArtboardsResult {
  */
 export async function parseDesignArtboards(
   file: File | Blob,
-  { host, log, interactive, map, pages }: {
-    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; pages?: number[];
+  { host, log, interactive, map, pages, signal }: {
+    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; pages?: number[]; signal?: AbortSignal;
   } = {},
 ): Promise<DesignArtboardsResult> {
   const warn: (msg: string) => void = typeof log === 'function' ? log : () => {};
@@ -303,8 +321,18 @@ export async function parseDesignArtboards(
   }
 
   if (isIndd(buf, file && (file as File).name)) {
-    throw new Error('A raw .indd file can’t be read directly. In InDesign choose File → Export → InDesign Markup (.idml) and import the .idml.');
+    const files = await inddToIdmlParts(buf, file, warn, signal);
+    const { parseIdmlSpreads } = await import('./idml-import.ts');
+    return { frames: await parseIdmlSpreads(files, { host, warn, map, interactive }), background: '#ffffff' };
   }
+
+  if (isAffinity(buf, file && (file as File).name)) {
+    const { importAffinity } = await import('./affinity-import.ts');
+    const res = await importAffinity(buf, file, { host: host as never, warn, map, signal });
+    return { frames: res.frames.map(f => ({ name: f.name, width: f.width, height: f.height, boxes: f.boxes, background: f.background })), background: '#ffffff' };
+  }
+
+  if (isDxf(buf, file && (file as File).name)) return one(await parseDxfAsDesign(buf, { warn, map }) as DesignImportResult, baseName((file as File).name, 'drawing'));
 
   const isZip = buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04;
   if (isZip) {
@@ -378,11 +406,39 @@ function isPdf(buf: Uint8Array): boolean {
 }
 
 // InDesign .indd documents open with a fixed 16-byte master-page GUID. Match that (or the
-// filename as a fallback) so we can point the user at IDML instead of choking on binary.
+// filename as a fallback) so a file that is not a readable INDD gets a clear message.
 const INDD_MAGIC = [0x06, 0x06, 0xed, 0xf5, 0xd8, 0x1d, 0x46, 0xe5, 0xbd, 0x31, 0xef, 0xe7, 0xfe, 0x74, 0xb7, 0x1d];
 function isIndd(buf: Uint8Array, name?: unknown): boolean {
   if (buf.length >= 16 && INDD_MAGIC.every((b, i) => buf[i] === b)) return true;
   return typeof name === 'string' && /\.indd$/i.test(name.trim());
+}
+
+const MAX_INDD_WARNINGS_SHOWN = 20;
+const INDD_PREVIEW_NOTE = 'This InDesign file was converted to IDML on your device. It is a preview: some formatting may differ from InDesign, so check the result against your original.';
+
+// Convert native INDD bytes to IDML on the device, on a worker, and return the unzipped package parts for the
+// shared IDML path. The converter's warnings go to the same report as the IDML reader's own.
+export async function inddToIdmlParts(buf: Uint8Array, file: File | Blob, warn: (msg: string) => void, signal?: AbortSignal): Promise<Record<string, Uint8Array>> {
+  if (!isInddSignature(buf)) {
+    throw new Error('This file isn’t an InDesign document that Lolly can read. Files saved by InDesign 2.0 or later open here. Otherwise export an IDML from InDesign (File, Export, InDesign Markup).');
+  }
+  const name = String((file as File).name || 'document.indd');
+  warn('Converting the InDesign file on your device…');
+  const { convertInddOffThread } = await import('../bridge/indd.ts');
+  let converted: { idml: Uint8Array; warnings: string[] };
+  try { converted = await convertInddOffThread(buf, name, signal); }
+  catch (error) {
+    if (signal?.aborted) throw error;
+    throw new Error(describeInddError(error));
+  }
+  warn(INDD_PREVIEW_NOTE);
+  for (const w of converted.warnings.slice(0, MAX_INDD_WARNINGS_SHOWN)) warn(`InDesign conversion: ${w}`);
+  if (converted.warnings.length > MAX_INDD_WARNINGS_SHOWN) warn(`InDesign conversion: ${converted.warnings.length - MAX_INDD_WARNINGS_SHOWN} more notes were left out.`);
+  return unzipAsync(converted.idml, {
+    maxEntryBytes: MAX_ZIP_ENTRY_BYTES,
+    maxTotalBytes: MAX_ZIP_TOTAL_BYTES,
+    tooLarge: part => `The converted InDesign document expands too large to import (${part}).`,
+  });
 }
 
 // An IDML package is a ZIP with a root `designmap.xml` (and a `mimetype` naming the format).
@@ -1660,8 +1716,8 @@ const MAX_EXPORT_MARKS = 60;
  */
 export async function parseDesignScenes(
   file: File | Blob,
-  { host, log, interactive, map }: {
-    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions;
+  { host, log, interactive, map, signal }: {
+    host?: HostV1; log?: (msg: string) => void; interactive?: boolean; map?: DesignMapOptions; signal?: AbortSignal;
   } = {},
 ): Promise<DesignScenesResult> {
   const warn: (msg: string) => void = typeof log === 'function' ? log : () => {};
@@ -1679,7 +1735,32 @@ export async function parseDesignScenes(
   }
 
   if (isIndd(buf, file && (file as File).name)) {
-    throw new Error('A raw .indd file can’t be read directly. In InDesign choose File → Export → InDesign Markup (.idml) and import the .idml.');
+    const files = await inddToIdmlParts(buf, file, warn, signal);
+    const { parseIdmlSpreads } = await import('./idml-import.ts');
+    const scenes: { name: string; asset: AssetRef }[] = [];
+    for (const res of await parseIdmlSpreads(files, { host, warn, map, interactive })) {
+      const asset = await bakeSceneAsset(host, warn, res.name, res.boxes, res.width, res.height);
+      if (asset) scenes.push({ name: res.name, asset });
+    }
+    return { scenes };
+  }
+
+  if (isAffinity(buf, file && (file as File).name)) {
+    const { importAffinity } = await import('./affinity-import.ts');
+    const res = await importAffinity(buf, file, { host: host as never, warn, map, signal });
+    const scenes: { name: string; asset: AssetRef }[] = [];
+    for (const frame of res.frames) {
+      const asset = await bakeSceneAsset(host, warn, frame.name, frame.boxes, frame.width, frame.height);
+      if (asset) scenes.push({ name: frame.name, asset });
+    }
+    return { scenes };
+  }
+
+  if (isDxf(buf, file && (file as File).name)) {
+    const res = await parseDxfAsDesign(buf, { warn, map });
+    const name = baseName((file as File).name, 'drawing');
+    const asset = await bakeSceneAsset(host, warn, name, res.boxes, res.width, res.height);
+    return { scenes: asset ? [{ name, asset }] : [] };
   }
 
   const isZip = buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04;

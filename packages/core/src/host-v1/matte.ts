@@ -84,6 +84,14 @@ export interface MatteOpts {
    */
   refine?: false | { radius?: number; epsilon?: number; shift?: number; contrast?: number };
   /**
+   * Clean the colour of the cut-out's soft edge (off by default). Fringe pixels
+   * keep some of the old background's colour, a green halo from a green screen
+   * for one; this swaps in the colour of the solid subject beside the edge.
+   * Only the RGB of semi-transparent edge pixels changes, and alpha never does.
+   * A shell from before this field ignores it and returns the input's RGB.
+   */
+  cleanEdgeColour?: boolean;
+  /**
    * Abort a long run: the promise rejects promptly (AbortError). Aborting during
    * the first-use download rejects promptly but the download completes in the
    * background and is cached (like `upscale`/`speech`).

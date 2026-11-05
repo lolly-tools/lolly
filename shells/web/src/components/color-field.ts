@@ -30,7 +30,9 @@
  *
  * What is EMITTED is unchanged: `onChange(id, value)`'s `value` is still a
  * lowercase `#rrggbb` / `#rrggbbaa` / `'transparent'` (or `{ref, value}` for a
- * token swatch). The canonical colour rides along in an additive third argument,
+ * token swatch). One addition, for a host that passes `auto` (an input that may be
+ * left empty): its "Follow the design system" choice emits `''`, so the input goes
+ * back to empty and the tool picks the colour again. The canonical colour rides along in an additive third argument,
  * `detail`, so consumers upgrade one at a time. Widening the emitted string would
  * corrupt data today: `engine/src/url-mode.ts` prefixes a non-`#` colour param
  * with `'#'` on every compact-URL round trip, and three consumers silently
@@ -47,7 +49,7 @@ import type { CssColor } from '@lolly/engine';
 import { PALETTE } from '../palette.ts';
 import { swatchInk, swatchGround, SWATCH_INK } from '../brand-vars.ts';
 import { escape } from '../utils.ts';
-import { t } from '../i18n.ts';
+import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { nameColor } from '../lib/color-namer.ts';
 import { clamp01 } from '../lib/util/number.ts';
@@ -107,6 +109,21 @@ export interface WireColorFieldOpts {
   onChange?(id: string, value: ColorFieldValue, detail: ColorChangeDetail): void;
   onInteractStart?(): void;
   onInteractEnd?(): void;
+}
+
+/**
+ * What an EMPTY value means, for a host whose input may be left empty: a tool colour
+ * input whose default is empty, such as Certificate's Ink or Chart's Colour 1. The tool
+ * then draws a colour of its own choosing. An empty field used to paint a black chip
+ * named "#000000", which read as "this is black"; with `auto` it shows the colour the
+ * tool draws (or a neutral pattern when the host cannot read one), marked as automatic,
+ * and the popover offers the way back to empty.
+ */
+export interface ColorFieldAuto {
+  /** The colour the tool draws while the field is empty, when the host can read that colour. */
+  color?: string | null;
+  /** 'design-system' when that colour comes from the design system; otherwise the tool's own rule. */
+  source?: 'design-system' | 'tool' | null;
 }
 
 // The swatch source the picker renders. Defaults to the built-in brand palette
@@ -943,6 +960,89 @@ function colorModesHtml(eid: string, seed: CssColor, lastHue: number, active: Co
 const noteHtml = (eid: string): string =>
   `<p class="color-space-note" data-color-note="${eid}" id="${eid}-note" role="status" aria-live="polite" hidden></p>`;
 
+// ── Automatic (empty) state ──────────────────────────────────────────────────
+
+/** The small link mark that says "this colour is not set here, it follows something". */
+const autoMarkHtml = (): string => `<span class="color-auto-mark" aria-hidden="true">${icon('link', { size: 10 })}</span>`;
+
+type AutoSource = 'design-system' | 'tool';
+const autoSourceOf = (field: HTMLElement): AutoSource => (field.dataset.colorAuto === 'design-system' ? 'design-system' : 'tool');
+
+/** The short name the trigger shows while the field is empty. */
+const autoName = (source: AutoSource): string => (source === 'design-system' ? tRaw('Design system') : tRaw('Automatic'));
+
+/** The popover choice that empties the field again. */
+const autoActionLabel = (source: AutoSource): string =>
+  source === 'design-system' ? tRaw('Follow the design system') : tRaw('Use the automatic colour');
+
+/** The colour's own name for the accessible name, when the chip has a readable colour. */
+function autoColourName(chip: string): string {
+  if (!chip) return '';
+  const parsed = parseColor(chip);
+  return parsed ? swatchName(colorToHexString(parsed).toLowerCase().slice(0, 7)) : '';
+}
+
+/** "Ink: follows the design system (Liquorice)". Text sinks only (an attribute set
+ *  through the DOM, or escaped by the caller), so the colour name is not escaped here. */
+function autoAria(label: string, source: AutoSource, colourName: string): string {
+  const state = source === 'design-system'
+    ? (colourName ? tRaw('follows the design system ({colour})', { colour: colourName }) : tRaw('follows the design system'))
+    : (colourName ? tRaw('automatic ({colour})', { colour: colourName }) : tRaw('automatic'));
+  return `${label || 'Colour'}: ${state}`;
+}
+
+/** The chip's paint: the colour the tool draws, or the neutral pattern class when unknown. */
+const autoChipStyle = (chip: string): string => (chip ? ` style="background:${escape(chip)}"` : '');
+
+/**
+ * Paint a field's empty state from its `data-color-auto*` attributes: the trigger's
+ * chip, name and accessible name, and the popover choice's chip and pressed state.
+ * Idempotent; never emits. A field that holds a colour is left alone.
+ */
+function paintAuto(field: HTMLElement): void {
+  const source = autoSourceOf(field);
+  const chip = safeCssColor(field.dataset.colorAutoColor ?? '');
+  const empty = field.hasAttribute('data-color-empty');
+  const option = field.querySelector<HTMLElement>('[data-color-auto-option]');
+  if (option) {
+    option.setAttribute('aria-pressed', String(empty));
+    const optChip = option.querySelector<HTMLElement>('.color-auto-chip');
+    if (optChip) {
+      optChip.style.background = chip;
+      optChip.classList.toggle('color-auto-chip--unknown', !chip);
+    }
+  }
+  if (!empty) return;
+  const preview = field.querySelector<HTMLElement>('.color-trigger-preview');
+  if (preview) {
+    preview.classList.remove('color-swatch--transparent');
+    preview.classList.add('color-trigger-preview--auto');
+    preview.classList.toggle('color-trigger-preview--unknown', !chip);
+    preview.style.background = chip;
+  }
+  const nameText = field.querySelector<HTMLElement>('.color-trigger-name');
+  if (nameText) nameText.textContent = autoName(source);
+  field.querySelector('.color-trigger')?.setAttribute('aria-label', autoAria(field.dataset.colorLabel || '', source, autoColourName(chip)));
+}
+
+/**
+ * Tell an `auto` field what the tool draws while it is empty, after the field was
+ * rendered: the host reads the colour from the tool after each change (a colourway
+ * switch, a style that moves Ink to the lead colour) and the chip follows. A field
+ * that holds a colour keeps its colour; the popover's chip still updates.
+ */
+export function setColorFieldAuto(field: HTMLElement, auto: ColorFieldAuto): void {
+  if (!field.hasAttribute('data-color-auto')) return;
+  const chip = safeCssColor(auto.color ?? '');
+  const source: AutoSource = auto.source === 'design-system' ? 'design-system' : 'tool';
+  if (field.dataset.colorAutoColor === chip && autoSourceOf(field) === source) return;
+  field.dataset.colorAutoColor = chip;
+  field.dataset.colorAuto = source;
+  const label = field.querySelector('[data-color-auto-option] .color-auto-label');
+  if (label) label.textContent = autoActionLabel(source);
+  paintAuto(field);
+}
+
 /**
  * The trigger's accessible name.
  *
@@ -962,8 +1062,13 @@ function triggerAria(label: string, name: string, hex: string): string {
   return label ? `${label}: ${value}` : `Colour: ${value}`;
 }
 
-export function colorFieldHtml(id: string, value: unknown, { float = false, swatchesOnly = false, block = false, inline = false, modes = false, palette = false, dials, progressive = false, name: nameOverride, label = '', initialMode, swatchSource }: { float?: boolean; swatchesOnly?: boolean; block?: boolean; inline?: boolean; modes?: boolean; palette?: boolean; dials?: boolean; progressive?: boolean; name?: string; label?: string; initialMode?: ColorMode; swatchSource?: string } = {}): string {
+export function colorFieldHtml(id: string, value: unknown, { float = false, swatchesOnly = false, block = false, inline = false, modes = false, palette = false, dials, progressive = false, name: nameOverride, label = '', initialMode, swatchSource, auto }: { float?: boolean; swatchesOnly?: boolean; block?: boolean; inline?: boolean; modes?: boolean; palette?: boolean; dials?: boolean; progressive?: boolean; name?: string; label?: string; initialMode?: ColorMode; swatchSource?: string; auto?: ColorFieldAuto | null } = {}): string {
   const rawVal = toHex(value) ?? '';
+  // Empty, on a host that allows empty: the tool's own colour, marked as automatic
+  // (see ColorFieldAuto). Without `auto` an empty value keeps its old rendering.
+  const autoSource: AutoSource = auto?.source === 'design-system' ? 'design-system' : 'tool';
+  const autoChip = auto ? safeCssColor(auto.color ?? '') : '';
+  const empty = !!auto && String(rawVal).trim() === '';
   const isTransparent = String(rawVal).trim().toLowerCase() === 'transparent';
   // Seeding is strictly WIDENED: anything the engine's parseColor accepts (hex,
   // named, rgb(), hsl(), hwb(), lab(), lch(), oklab(), oklch(), color(<space> …))
@@ -989,19 +1094,30 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   const rgbHex = isTransparent ? '#000000' : hex.slice(0, 7);
   const alphaInt = isTransparent ? 0 : Math.round(clamp01(color.alpha) * 255);
   const alphaPct = Math.round(alphaInt / 255 * 100);
+  // A first-contact inline picker should feel like choosing a colour, not
+  // opening a colour-science console - see the progressive pose below.
+  const progressiveInline = inline && progressive;
   // The value field shows the colour in the active space (with modes) or as a hex
-  // (without). An unparsable value keeps its own text - mid-edit junk is held, not
-  // silently replaced.
+  // (without). The progressive pose shows the hex too (plan 346 change 12): the
+  // first thing a newcomer reads is the colour's name and its hex, and the HSL,
+  // OKLCH and the rest of the spaces wait behind Fine-tune with their channels.
+  // An unparsable value keeps its own text - mid-edit junk is held, not silently
+  // replaced.
+  const spaceNotation = modes && !progressiveInline;
   const shown = isTransparent ? 'transparent'
-    : parsed ? (modes ? spaceText(getColorSpace(st.mode)!, color) : hex)
+    : parsed ? (spaceNotation ? spaceText(getColorSpace(st.mode)!, color) : hex)
+    : empty ? ''
     : (String(rawVal) || '#000000');
   const painted = /^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(shown);
   // The trigger preview paints the BAKED hex, matching what updateTrigger writes
   // on every later edit - a wide-gamut colour previews as the colour a screen can
   // actually show, in one notation, rather than as `color(srgb …)` here and a hex
   // a moment later.
-  const previewBg = isTransparent ? '' : `style="background:${escape(safeCssColor(parsed ? hex : String(rawVal)) || '#000000')}"`;
-  const previewClass = `color-trigger-preview${isTransparent ? ' color-swatch--transparent' : ''}`;
+  const previewBg = empty ? autoChipStyle(autoChip).trim()
+    : isTransparent ? '' : `style="background:${escape(safeCssColor(parsed ? hex : String(rawVal)) || '#000000')}"`;
+  const previewClass = empty
+    ? `color-trigger-preview color-trigger-preview--auto${autoChip ? '' : ' color-trigger-preview--unknown'}`
+    : `color-trigger-preview${isTransparent ? ' color-swatch--transparent' : ''}`;
   const eid = escape(id);
   // `name` overrides the computed one for a host that knows something the value alone
   // cannot say - a token-backed fill seeds the field with the RESOLVED colour and passes
@@ -1009,7 +1125,8 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   // than naming the resolved hex a second time. The moment the user picks a new colour
   // the override stops applying (updateTrigger computes the name again from the value),
   // which is right: the value is no longer that token's.
-  const name = nameOverride || swatchName(value);
+  const name = empty ? autoName(autoSource) : nameOverride || swatchName(value);
+  const triggerLabel = empty ? autoAria(label, autoSource, autoColourName(autoChip)) : triggerAria(label, name, hex);
   const wantDials = dials ?? (inline && !palette);
 
   // Swatches are NOT rendered here - they're the heaviest part (the whole
@@ -1039,12 +1156,10 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   // wireColorField re-parses it with the engine's strict parseColor, which is why
   // the hidden native input is now WRITE-ONLY - it is the OS picker's own control
   // and can only speak `#rrggbb`, so it cannot be the authority.
-  // A first-contact inline picker should feel like choosing a colour, not
-  // opening a colour-science console. Its editable value and two visual pick
-  // routes stay in sight; modes, dials and opacity wait behind Fine-tune. The
-  // ordinary inline editor remains byte-for-byte expanded unless its caller
-  // explicitly opts into this progressive pose.
-  const progressiveInline = inline && progressive;
+  // The progressive pose: its editable value (a hex) and two visual pick routes
+  // stay in sight; modes, dials and opacity wait behind Fine-tune. The ordinary
+  // inline editor remains byte-for-byte expanded unless its caller explicitly
+  // opts into this progressive pose.
   const folded = !inline || progressiveInline || palette;
   const inputRow = `<div class="color-input-wrap"${painted ? ` style="${Object.entries(colorInputPaint(shown)).map(([k, v]) => `${k}:${v}`).join(';')}"` : ''}>
       ${/* NO maxlength: this field takes any CSS colour ('rebeccapurple',
@@ -1061,12 +1176,24 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   const cls = `color-picker-field${float ? ' color-field--float' : ''}${block ? ' block-color-field' : ''}${inline ? ' color-field--inline' : ''}${progressiveInline ? ' color-field--progressive' : ''}${palette ? ' color-field--palette' : ''}`;
   // `swatchSource` says which list the swatch grid offers (setSwatchSource), carried on
   // the field so the lazy grid build and refreshSwatches read the same list.
-  return `<div class="${cls}" data-color-field="${eid}" data-color-canon="${escape(canon)}" data-color-notation="${modes ? 'space' : 'hex'}"${label ? ` data-color-label="${escape(label)}"` : ''}${swatchSource ? ` data-swatch-source="${escape(swatchSource)}"` : ''}>
-    ${inline ? '' : `<button type="button" class="color-trigger" data-color-trigger="${eid}" aria-haspopup="true" aria-expanded="false" aria-label="${escape(triggerAria(label, name, hex))}">
+  const autoAttrs = auto
+    ? ` data-color-auto="${autoSource}" data-color-auto-color="${escape(autoChip)}"${empty ? ' data-color-empty' : ''}`
+    : '';
+  // The way back to empty leads the popover, above the palette: one press, and the
+  // pressed state says the field already follows.
+  const autoOption = auto
+    ? `<button type="button" class="color-auto-option" data-color-auto-option="${eid}" aria-pressed="${empty}">
+        <span class="color-auto-chip${autoChip ? '' : ' color-auto-chip--unknown'}"${autoChipStyle(autoChip)} aria-hidden="true">${autoMarkHtml()}</span>
+        <span class="color-auto-label">${escape(autoActionLabel(autoSource))}</span>
+      </button>`
+    : '';
+  return `<div class="${cls}" data-color-field="${eid}" data-color-canon="${escape(canon)}" data-color-notation="${spaceNotation ? 'space' : 'hex'}"${label ? ` data-color-label="${escape(label)}"` : ''}${swatchSource ? ` data-swatch-source="${escape(swatchSource)}"` : ''}${autoAttrs}>
+    ${inline ? '' : `<button type="button" class="color-trigger" data-color-trigger="${eid}" aria-haspopup="true" aria-expanded="false" aria-label="${escape(triggerLabel)}">
       <span class="color-trigger-name">${escape(name)}</span>
-      <span class="${previewClass}" ${previewBg} aria-hidden="true"></span>
+      <span class="${previewClass}" ${previewBg} aria-hidden="true">${auto ? autoMarkHtml() : ''}</span>
     </button>`}
     <div class="color-popover" role="group" aria-label="Colour options"${inline ? '' : ' hidden'}>
+      ${autoOption}
       ${inline && !palette
         // Inline has no always-open palette (the brand editor's own tiles ARE the
         // palette). The swatch grid instead lives in a menu the result disc's edit
@@ -1493,11 +1620,13 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
    *  TEXT while the user is typing in it, but always repaints its swatch chrome. */
   const writeValueField = (field: HTMLElement, st: FieldColorState): void => {
     const input = field.querySelector<HTMLInputElement>('.color-input[data-color-hex]');
+    // An empty (automatic) field has no value to show: its state is a placeholder.
+    const empty = field.hasAttribute('data-color-empty');
     const hex = bakedHex(st);
-    paintColorInput(input, hex);
+    paintColorInput(input, empty ? '' : hex);
     paintAlphaTrack(field, hex);
     if (!input || input === document.activeElement) return;
-    const text = valueText(field, st);
+    const text = empty ? '' : valueText(field, st);
     input.value = text;
     input.title = text;
     input.classList.toggle('color-input--long', text.length > LONG_VALUE);
@@ -1520,10 +1649,13 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   };
 
   function updateTrigger(field: HTMLElement, value: string): void {
+    if (field.hasAttribute('data-color-empty')) { paintAuto(field); return; }
     const preview = field.querySelector<HTMLElement>('.color-trigger-preview');
     const nameText = field.querySelector<HTMLElement>('.color-trigger-name');
     const isTrans = value === 'transparent';
     if (preview) {
+      // The mark stays in the markup; the stylesheet shows it only on an automatic chip.
+      preview.classList.remove('color-trigger-preview--auto', 'color-trigger-preview--unknown');
       preview.classList.toggle('color-swatch--transparent', isTrans);
       preview.style.background = isTrans ? '' : (value || '#000000');
     }
@@ -1565,6 +1697,11 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   const emit = (field: HTMLElement): void => {
     const st = STATE.get(field);
     if (!st) return;
+    // Back to empty (the auto choice): the tool picks the colour again.
+    if (field.hasAttribute('data-color-empty')) {
+      onChange(field.dataset.colorField ?? '', '', { css: '', color: { ...TRANSPARENT, components: [0, 0, 0] }, mode: st.mode, baked: false, ref: null });
+      return;
+    }
     const { value, detail } = bake(st);
     onChange(field.dataset.colorField ?? '', st.ref ? { ref: st.ref, value } : value, detail);
   };
@@ -1578,6 +1715,11 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
    * projection is idempotent, so it is written unconditionally.
    */
   const afterEdit = (field: HTMLElement, st: FieldColorState, owner?: HTMLElement): void => {
+    // Any colour chosen here sets the field: it no longer follows.
+    if (field.hasAttribute('data-color-empty')) {
+      field.removeAttribute('data-color-empty');
+      paintAuto(field);
+    }
     const { value, detail } = bake(st);
     field.dataset.colorCanon = detail.css;
     syncNative(field, st);
@@ -1621,11 +1763,31 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
     });
   });
 
+  // ── Back to automatic ─────────────────────────────────────────────────────────
+  // Empties the field: the trigger shows the tool's colour again, the value field
+  // clears, and the host hears '' (see emit). Pressing it while already empty is a
+  // no-op, so a second press never re-emits.
+  scope.querySelectorAll<HTMLElement>('[data-color-auto-option]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const field = btn.closest<HTMLElement>('[data-color-field]');
+      const st = stateOf(field);
+      if (!field || !st || field.hasAttribute('data-color-empty')) return;
+      field.setAttribute('data-color-empty', '');
+      field.dataset.colorCanon = '';
+      st.ref = null;
+      writeValueField(field, st);
+      field.querySelector<HTMLElement>('.color-nearest')?.setAttribute('hidden', '');
+      paintAuto(field);
+      emit(field);
+    });
+  });
+
   /** Seed the nearest-brand hint from the field's own colour when the popover
    *  opens - updateTrigger only runs on later edits. */
   function seedNearest(field: HTMLElement | null): void {
     const st = stateOf(field);
-    if (field && st) updateNearest(field, bakedHex(st));
+    // An empty field has no colour of its own to snap: its state is a placeholder.
+    if (field && st && !field.hasAttribute('data-color-empty')) updateNearest(field, bakedHex(st));
   }
 
   // ── Palette swatches (lazy) ──────────────────────────────────────────────────
@@ -1761,6 +1923,7 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   const autoExpandFine = (field: HTMLElement): void => {
     const fine = field.querySelector<HTMLElement>('[data-color-fine]');
     if (!fine || !fine.hidden) return;                 // absent (swatchesOnly) or already open
+    if (field.hasAttribute('data-color-empty')) return; // following: the choice and the palette lead
     const st = STATE.get(field);
     const v = st ? (st.kind === 'transparent' ? 'transparent' : bakedHex(st)) : (field.dataset.colorCanon ?? '');
     const offered = swatchesFor(field.dataset.swatchSource);

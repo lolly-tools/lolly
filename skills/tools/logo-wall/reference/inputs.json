@@ -169,7 +169,7 @@
     "max": 10,
     "step": 1,
     "default": 4,
-    "help": "How many logos sit in each row."
+    "help": "How many logos sit in each row. At another canvas size, such as a tall 1080 x 1920 or an A4 page, the wall puts fewer or more in each row to fill that shape."
   },
   {
     "id": "gap",
@@ -386,6 +386,6 @@
         "checker"
       ]
     },
-    "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied."
+    "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied. At another canvas size the wall stacks fewer or more rows to fill that shape."
   }
 ]

@@ -24,6 +24,8 @@ export interface Place {
 export interface Palette {
   background: string;
   ink: string;
+  /** What background and ink are while their overrides are left empty (the theme's own). */
+  auto: { background: string; ink: string };
   muted: string;
   accent: string;
   land: string;
@@ -320,18 +322,21 @@ export async function brand(host: any, inputs: Inputs): Promise<Palette> {
     .filter((c, i, a) => c && a.indexOf(c) === i)
     .map((c) => visible(c!)) as string[];
   if (colors.length < 3) colors.push(mix(accent, '#ffffff', 0.3), mix(accent, '#657f9f', 0.5));
-  const background =
-    hex(inputs.background) ||
-    (bold
+  const auto = {
+    background: bold
       ? mix(accent, '#10151c', 0.42)
       : light
         ? mix(accent, '#ffffff', 0.96)
-        : mix(accent, '#050c13', 0.93));
-  const ink = hex(inputs.ink) || (light ? '#132629' : '#f3f4ee');
+        : mix(accent, '#050c13', 0.93),
+    ink: light ? '#132629' : '#f3f4ee',
+  };
+  const background = hex(inputs.background) || auto.background;
+  const ink = hex(inputs.ink) || auto.ink;
   return {
     accent,
     background,
     ink,
+    auto,
     muted: mix(ink, background, 0.35),
     land: inputs.theme === 'minimal' ? background : mix(accent, background, light ? 0.7 : 0.58),
     ocean: mix(accent, background, 0.94),

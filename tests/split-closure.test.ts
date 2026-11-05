@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
@@ -74,5 +75,46 @@ test('lazy tool, timeline, assets, profile and brand entries retain their requir
   for (const [entry, sheets] of Object.entries(entries)) {
     const source = readFileSync(path.join(root, 'shells/web/src', entry), 'utf8');
     for (const sheet of sheets) assert.ok(source.includes(`import '${sheet}';`), `${entry} must load ${sheet}`);
+  }
+});
+
+// A split view's orchestrator creates its context as `{} as Ctx` and fills it field by
+// field, so the compiler never sees a field that is left out. A comment that grows over
+// the publishing statement (`const x = ...; // note ctx.x = x;`) leaves the field
+// undefined, and the first module that reads it throws. 1b6298c79 did that to
+// cat.ALL_SECTION_KEYS: folding a section in Assets threw before the address and the
+// deferred tiles were updated. So every required field must be assigned in code.
+test('every required context field of a split view is assigned in code, not only in a comment', () => {
+  const plansDir = path.join(root, 'scripts/data/closure-splits');
+  const plans = readdirSync(plansDir).filter(name => name.endsWith('.json'));
+  assert.ok(plans.length >= 8, 'the closure split plans were found');
+  for (const name of plans) {
+    const plan = JSON.parse(readFileSync(path.join(plansDir, name), 'utf8')) as { file: string; outDir: string; ctxName: string; ctxType: string; prefix?: string };
+    const prefix = plan.prefix ?? '';
+    const contextFile = path.join(root, plan.outDir, `${prefix}context.ts`);
+    const context = ts.createSourceFile(contextFile, readFileSync(contextFile, 'utf8'), ts.ScriptTarget.Latest, true);
+    const required: string[] = [];
+    context.forEachChild(node => {
+      if (!ts.isInterfaceDeclaration(node) || node.name.text !== plan.ctxType) return;
+      for (const member of node.members) {
+        if (ts.isPropertySignature(member) && !member.questionToken && ts.isIdentifier(member.name)) required.push(member.name.text);
+      }
+    });
+    assert.ok(required.length > 0, `${name}: ${plan.ctxType} lists its fields in ${path.relative(root, contextFile)}`);
+    const modules = readdirSync(path.join(root, plan.outDir))
+      .filter(file => file.endsWith('.ts') && !file.endsWith('.test.ts') && file.startsWith(prefix))
+      .map(file => path.join(root, plan.outDir, file));
+    const assigned = new Set<string>();
+    for (const file of [path.join(root, plan.file), ...modules]) {
+      const visit = (node: ts.Node): void => {
+        if (ts.isBinaryExpression(node)
+          && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment
+          && ts.isPropertyAccessExpression(node.left) && ts.isIdentifier(node.left.expression)
+          && node.left.expression.text === plan.ctxName) assigned.add(node.left.name.text);
+        node.forEachChild(visit);
+      };
+      visit(ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true));
+    }
+    assert.deepEqual(required.filter(field => !assigned.has(field)), [], `${name}: ${plan.ctxName} fields no code assigns`);
   }
 });

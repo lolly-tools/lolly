@@ -309,7 +309,7 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
         if (move.stamp !== null) move.elapsed += Math.max(0, Math.min(100, now - move.stamp));
         move.stamp = now;
         const progress = Math.min(1, move.elapsed / Math.max(1, visit.opts.scrollMs));
-        visit.driver.scrollTo(move.from + (move.to - move.from) * kfEaseAt(visit.opts.ease, progress));
+        visit.driver.scrollTo(move.from + (move.to - move.from) * kfEaseAt(visit.opts.ease, progress, visit.opts.scrollMs));
         if (progress >= 1) visit.move = null;
         continue;
       }

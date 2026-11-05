@@ -591,13 +591,38 @@
   "Choose one HTML page at a time, along with its CSS files.": "Избери по една HTML страница заедно с нейните CSS файлове.",
   "Choose one HTML page with its CSS files, or CSS on its own. Up to 20 files, 2 MB in total.": "Избери една HTML страница с нейните CSS файлове или само CSS. До 20 файла, общо 2 MB.",
   "Choose up to 20 HTML and CSS files.": "Избери до 20 HTML и CSS файла.",
-  "Closest to my current palette": "Най-близка до текущата ми палитра",
+  "Closest to the current palette": "Най-близка до текущата палитра",
   "Colour preview": "Преглед на цвят",
   "Colour {position} of {count}.": "Цвят {position} от {count}.",
   "Colours and font names were read from declared styles. Layout and motion were not assessed.": "Цветове и имена на шрифтове бяха прочетени от декларирани стилове. Разположението и движението не бяха оценени.",
   "Colours were read from this SVG. Fonts and layout were not assessed.": "Цветове бяха прочетени от този SVG. Шрифтове и разположение не бяха оценени.",
   "Colours were sampled from this image. Fonts and layout were not recognised.": "Цветовете са извлечени от това изображение. Шрифтовете и разположението не са разпознати.",
   "Compare looks": "Сравни визуални стилове",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Прегледай запазени дизайн системи и няколко начални варианта. Нищо не се променя, докато не избереш Използвай.",
+  "Use this look": "Използвай този визуален стил",
+  "Previewing {name}": "Преглеждаш {name}",
+  "Choose up to two looks to compare.": "Избери до два визуални стила за сравнение.",
+  "Drop a horizontal logo": "Пусни тук хоризонтално лого",
+  "Drop a vertical logo": "Пусни тук вертикално лого",
+  "calm": "спокоен",
+  "nature": "природа",
+  "playful": "игрив",
+  "creative": "творчески",
+  "warm": "топъл",
+  "editorial": "редакционен",
+  "neutral": "неутрален",
+  "red": "червен",
+  "orange": "оранжев",
+  "yellow": "жълт",
+  "green": "зелен",
+  "teal": "синьозелен",
+  "blue": "син",
+  "purple": "лилав",
+  "pink": "розов",
+  "deep": "тъмен",
+  "pale": "блед",
+  "vivid": "ярък",
+  "muted": "приглушен",
   "Compare saved design systems and a few starting points. Nothing changes until you choose Use.": "Сравни запазени дизайн системи и няколко начални варианта. Нищо не се променя, докато не избереш Използвай.",
   "Compare these two looks": "Сравни тези два визуални стила",
   "Compare two looks at a time. Deselect one to choose another.": "Сравни два визуални стила наведнъж. Премахни избора на единия, за да избереш друг.",
@@ -730,7 +755,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Изпълнява задълбочената проверка на ИИ текст в «Проверка» и в Активи.",
   "Card size": "Размер на картите",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 изображение или файл е добавен на това устройство. Остава на това устройство и другите няма да виждат този файл.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} изображения или файла са добавени на това устройство. Остават на това устройство и другите няма да виждат тези файлове.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "{n} изображение или файл е добавен на това устройство. Остава на това устройство и другите няма да виждат този файл.",
+    "other": "{n} изображения или файла са добавени на това устройство. Остават на това устройство и другите няма да виждат тези файлове."
+  },
   "Check the version first": "Първо проверете версията",
   "Copy team link": "Копирай линка на екипа",
   "Could not create the project. Try again.": "Проектът не можа да бъде създаден. Опитайте отново.",
@@ -1307,7 +1335,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Всеки елемент е запазен в споделения проект. Локалните оригинали са в кошчето или още са на мястото си.",
   "Your local items have not changed.": "Вашите локални елементи не са променени.",
   "1 item was saved to the shared project.": "1 елемент беше запазен в споделения проект.",
-  "{n} items were saved to the shared project.": "{n} елемента бяха запазени в споделения проект.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} елемент беше запазен в споделения проект.",
+    "other": "{n} елемента бяха запазени в споделения проект."
+  },
   "Wait for the current move to finish.": "Изчакайте текущото преместване да приключи.",
   "You cannot save to that shared project.": "Не можете да запазвате в този споделен проект.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Всеки, който може да отвори {project}, ще вижда тези елементи. След като всички елементи бъдат запазени там, локалните оригинали се преместват в кошчето, откъдето можете да ги възстановите.",
@@ -1618,8 +1649,14 @@
   "file": "файл",
   "samples": "проби",
   "text": "текст",
-  "{n} changes found": "Намерени промени: {n}",
-  "{n} pages differ": "Страници, които се различават: {n}",
+  "{n} changes found": {
+    "one": "Намерена е {n} промяна",
+    "other": "Намерени са {n} промени"
+  },
+  "{n} pages differ": {
+    "one": "{n} страница се различава",
+    "other": "{n} страници се различават"
+  },
   "Draft": "Чернова",
   "Draft quality": "Качество на чернова",
   "Draft rule": "Правило в чернова",
@@ -1928,5 +1965,259 @@
   "Headlines - 36px, or 24px bold": "Заглавия - 36px или 24px удебелен",
   "Icons and borders only": "Само за икони и рамки",
   "Not usable": "Неизползваемо",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA е дефиниран за sRGB, затова цвят с широк обхват се оценява по неговото представяне в sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA е дефиниран за sRGB, затова цвят с широк обхват се оценява по неговото представяне в sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly премина към по-простия и по-бърз вид, защото това устройство рисува без графично ускорение.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly премина към по-простия и по-бърз вид, защото това устройство се затрудняваше.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Включено автоматично на {date}, защото това устройство рисува без графично ускорение.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Включено автоматично на {date}, защото това устройство се затрудняваше да изобразява интерфейса.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Автоматичното превключване е изключено на това устройство, защото избра Отмени на {date}.",
+  "Allow again": "Разреши отново",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Автоматичното превключване отново е разрешено от следващото отваряне на Lolly.",
+  "Board": "Табло",
+  "Choose for {role}": "Избери за {role}",
+  "Change {role}": "Промени {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Насоките на твоята марка, написани за хора и агенти. Агентите четат първо умението на марката, после това за текущата работа. Уменията ръководят работата; вътрешните правила в Правила са онова, което Lolly проверява.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly премина към по-простия и по-бърз вид, докато това устройство е заето. Ще се върне, когато натоварването спадне.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly премина към по-простия и по-бърз вид, докато батерията е слаба. Ще се върне, когато това устройство се зарежда.",
+  "On for now because this device is busy. It switches back when things calm down.": "Включено засега, защото това устройство е заето. Ще се върне, когато натоварването спадне.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Включено засега, защото батерията е слаба. Ще се върне, когато това устройство се зарежда.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Включено автоматично на {date}, докато това устройство беше заето. Избра Запазване.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Включено автоматично на {date}, докато батерията беше слаба. Избра Запазване.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly няма да превключва тук заради бавно устройство, защото избра Отмени на {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly няма да превключва, докато това устройство е заето или батерията е слаба, защото избра Отмени на {date}.",
+  "Use the automatic colour": "Използвай автоматичния цвят",
+  "follows the design system ({colour})": "следва дизайн системата ({colour})",
+  "follows the design system": "следва дизайн системата",
+  "automatic ({colour})": "автоматично ({colour})",
+  "automatic": "автоматично",
+  "{name} spring": "Пружина {name}",
+  "{name} (not in this design system)": "{name} (няма го в тази дизайн система)",
+  "Curves": "Криви",
+  "Springs": "Пружини",
+  "Gentle": "Мека",
+  "Quick": "Бърза",
+  "Bouncy": "Подскачаща",
+  "Custom spring": "Пружина по избор",
+  "Stiffness": "Твърдост",
+  "Damping": "Затихване",
+  "Mass": "Маса",
+  "Settles in {t} s": "Успокоява се за {t} с",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Следващият ключов кадър идва, преди пружината да се успокои. Останалата част от движението се разпределя по сегмента.",
+  "From the design system: {name}": "От дизайн системата: {name}",
+  "Editing the curve detaches it from the design system.": "Редактирането на кривата я откача от дизайн системата.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл. Задръж за Молив (Shift C) и типа сплайн",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл",
+  "Recipients can change the inputs": "Получателите могат да променят входовете",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Всеки с линка може да променя входовете му и да получи ново изображение. Заключените входове остават каквито са зададени.",
+  "{count} entries": {
+    "one": "{count} запис",
+    "other": "{count} записа"
+  },
+  "{count} files in this folder": {
+    "one": "{count} файл в тази папка",
+    "other": "{count} файла в тази папка"
+  },
+  "{n} assets": {
+    "one": "{n} ресурс",
+    "other": "{n} ресурса"
+  },
+  "{n} assets found": {
+    "one": "намерен {n} ресурс",
+    "other": "намерени {n} ресурса"
+  },
+  "{n} capabilities match": {
+    "one": "{n} съвпадаща възможност",
+    "other": "{n} съвпадащи възможности"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} направено копие · избрано",
+    "other": "{n} направени копия · избрани"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} творение, премахнато от Проекти тук, остана премахнато.",
+    "other": "{n} творения, премахнати от Проекти тук, останаха премахнати."
+  },
+  "{n} embedded files": {
+    "one": "{n} вграден файл",
+    "other": "{n} вградени файла"
+  },
+  "{n} external references": {
+    "one": "{n} външна препратка",
+    "other": "{n} външни препратки"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} файл не можа да бъде опакован и беше пропуснат",
+    "other": "{n} файла не можаха да бъдат опаковани и бяха пропуснати"
+  },
+  "{n} folders": {
+    "one": "{n} папка",
+    "other": "{n} папки"
+  },
+  "{n} font files": {
+    "one": "{n} файл на шрифт",
+    "other": "{n} файла на шрифтове"
+  },
+  "{n} images": {
+    "one": "{n} изображение",
+    "other": "{n} изображения"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} изображение не можа да бъде възстановено (пълно хранилище?)",
+    "other": "{n} изображения не можаха да бъдат възстановени (пълно хранилище?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} изображение остана с оригинала - изображенията имат само един дом; за да го преместиш, използвай Изрязване",
+    "other": "{n} изображения останаха с оригинала - изображенията имат само един дом; за да ги преместиш, използвай Изрязване"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} входно поле · важи за всеки дизайн",
+    "other": "{n} входни полета · важи за всеки дизайн"
+  },
+  "{n} items": {
+    "one": "{n} елемент",
+    "other": "{n} елемента"
+  },
+  "{n} items copied": {
+    "one": "Копиран {n} елемент",
+    "other": "Копирани {n} елемента"
+  },
+  "{n} items cut": {
+    "one": "Изрязан {n} елемент",
+    "other": "Изрязани {n} елемента"
+  },
+  "{n} items moved": {
+    "one": "{n} елемент е преместен",
+    "other": "{n} елемента са преместени"
+  },
+  "{n} items pasted": {
+    "one": "Поставен {n} елемент",
+    "other": "Поставени {n} елемента"
+  },
+  "{n} keyframes": {
+    "one": "{n} ключов кадър",
+    "other": "{n} ключови кадъра"
+  },
+  "{n} logos": {
+    "one": "{n} лого",
+    "other": "{n} лога"
+  },
+  "{n} marks found": {
+    "one": "{n} намерена марка",
+    "other": "{n} намерени марки"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} по-нов елемент е пропуснат",
+    "other": "{n} по-нови елемента са пропуснати"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} творение е видео или анимация",
+    "other": "{n} от твоите творения са видеа или анимации"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} по-стара автоматична контролна точка е пропусната",
+    "other": "{n} по-стари автоматични контролни точки са пропуснати"
+  },
+  "{n} pages": {
+    "one": "{n} страница",
+    "other": "{n} страници"
+  },
+  "{n} places": {
+    "one": "{n} място",
+    "other": "{n} места"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} точка - задръж Alt за ъгъл",
+    "other": "{n} точки - задръж Alt за ъгъл"
+  },
+  "{n} published versions": {
+    "one": "{n} публикувана версия",
+    "other": "{n} публикувани версии"
+  },
+  "{n} results": {
+    "one": "{n} резултат",
+    "other": "{n} резултата"
+  },
+  "{n} saved sessions": {
+    "one": "{n} запазена сесия",
+    "other": "{n} запазени сесии"
+  },
+  "{n} selected": {
+    "one": "{n} избран",
+    "other": "{n} избрани"
+  },
+  "{n} selected assets": {
+    "one": "{n} избран ресурс",
+    "other": "{n} избрани ресурса"
+  },
+  "{n} sessions": {
+    "one": "{n} сесия",
+    "other": "{n} сесии"
+  },
+  "{n} shapes": {
+    "one": "{n} форма",
+    "other": "{n} форми"
+  },
+  "{n} steps": {
+    "one": "{n} стъпка",
+    "other": "{n} стъпки"
+  },
+  "{n} templates": {
+    "one": "{n} шаблон",
+    "other": "{n} шаблона"
+  },
+  "{n} volume keys": {
+    "one": "{n} ключ за сила на звука",
+    "other": "{n} ключа за сила на звука"
+  },
+  "{n} words": {
+    "one": "{n} дума",
+    "other": "{n} думи"
+  },
+  "Dominant hand": "Водеща ръка",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "При два панела, на сгъваемо устройство или почти квадратен таблет, контролите са от страната, далеч от ръката, с която рисувате. Бутонът „Размяна на страните“ в заглавието на панела също променя това.",
+  "Swap sides": "Размяна на страните",
+  "Resize panes": "Преоразмеряване на панелите",
+  "Changes that didn't finish saving": "Промени, които не се запазиха докрай",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Направихте тези промени на {time} и страницата се затвори, преди да бъдат запазени. Оттогава тази дизайн система е запазена отново, в друг раздел или чрез синхронизиране.",
+  "Restore your unsaved changes": "Възстановете незапазените си промени",
+  "Keep the saved version": "Задръжте запазената версия",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Възстановяването заменя версията, запазена оттогава. Ако задържите запазената версия, незапазените промени се изтриват от това устройство.",
+  "Restored your unsaved changes.": "Незапазените ви промени са възстановени.",
+  "Kept the saved version.": "Запазената версия е задържана.",
+  "Restored the changes that hadn't finished saving.": "Промените, които не се запазиха докрай, са възстановени.",
+  "{n} file": "{n} файл",
+  "It becomes the primary. Shades and roles can follow.": "Той става основният. Нюансите и ролите могат да последват.",
+  "Start here": "Започни оттук",
+  "Browse looks →": "Разгледай стиловете →",
+  "Pick what you have →": "Избери какво имаш →",
+  "Open the picker →": "Отвори избора на цвят →",
+  "Starter greys until a colour is added.": "Стартови сиви, докато не добавиш цвят.",
+  "Lolly can’t draw in this browser yet": "Lolly още не може да рисува в този браузър",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly рисува с WebGPU, което този браузър още не предлага.",
+  "These work today:": "Те работят днес:",
+  "Chrome or Edge, kept up to date": "Chrome или Edge, обновени",
+  "Safari 26 or later": "Safari 26 или по-нов",
+  "Firefox, where WebGPU is turned on": "Firefox с включен WebGPU",
+  "Get the desktop app": "Изтегли настолното приложение",
+  "Read why": "Прочети защо",
+  "Or drop an image or a list of colours here": "Или пусни тук изображение или списък с цветове",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Тези неутрални цветове идват с началния комплект, за да има какво да показват прегледите, докато не се добавят цветове отгоре.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Избери цвят",
+  "Add a colour to the palette first.": "Първо добави цвят към палитрата.",
+  "Notify": "Известяване",
+  "Update automatically": "Автоматично обновяване",
+  "App updates": "Обновявания на приложението",
+  "Update notifications": "Известия за обновявания",
+  "Ready to install: {version}": "Готово за инсталиране: {version}",
+  "Restart now": "Рестартиране сега",
+  "Install when I quit": "Инсталиране при изход",
+  "Release notes": "Бележки по изданието",
+  "Manual download": "Ръчно изтегляне",
+  "Update could not finish. Try again or download the app.": "Обновяването не можа да завърши. Опитайте отново или изтеглете приложението.",
+  "Finish recording or exporting before updating.": "Завършете записа или експортирането преди обновяване.",
+  "Save could not finish. Save a recovery copy before updating.": "Запазването не можа да завърши. Запазете копие за възстановяване преди обновяване.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Този AppImage не може да бъде заменен тук. Изтеглете приложението в папка с права за запис.",
+  "This installation uses its package manager for updates.": "Тази инсталация използва своя мениджър на пакети за обновявания.",
+  "This desktop platform does not support in-app updates.": "Тази настолна платформа не поддържа обновявания от приложението.",
+  "Update installation was cancelled.": "Инсталирането на обновяването е отменено."
 }

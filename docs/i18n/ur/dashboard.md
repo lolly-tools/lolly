@@ -18,7 +18,7 @@ Preferences ایک لمبا صفحہ ہے جس کے کنارے **settings rail**
 
 - <!--i:usercheck--> **آپ کی تفصیلات** - آپ کا نام، رابطے کی تفصیلات اور ہیڈ شاٹ، اور **Use my details to create** سوئچ۔ [پروفائلز](/info/profile.html) بتاتا ہے کہ ٹولز انہیں کیسے استعمال کرتے ہیں۔
 - <!--i:seal--> **Content Credentials** - اختیاری تصدیق شدہ شناخت جو آپ کی ایکسپورٹس پر دستخط کرتی ہے۔ دیکھیں [Content Credentials](/info/content-credentials-identity.html)۔
-- <!--i:palette--> **ڈیزائن سسٹمز** - ڈیزائن سسٹمز بدلیں، شامل کریں، چھپائیں یا ہٹائیں۔ [Design System Setup](/info/brand-studio.html#manage-your-design-systems) ہر عمل کا احاطہ کرتا ہے۔
+- <!--i:palette--> **ڈیزائن سسٹمز** - ڈیزائن سسٹمز بدلیں، شامل کریں، چھپائیں یا ہٹائیں۔ [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) ہر عمل کا احاطہ کرتا ہے۔
 - <!--i:moon--> **ظاہری شکل** - تھیم (Light، Dark یا Brand، جو ایپ کو آپ کی پیلیٹ میں رنگتا ہے)، **Your colourway** جب ڈیزائن سسٹم ایک سے زیادہ پیش کرے ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) اور **Interface follows the design system**۔
 - <!--i:sparkle--> **Emoji** - وہ سیٹ جس سے آپ کے ایموجی بنتے ہیں جب آپ کچھ نیا شروع کریں، اس کے آرٹ ورک لائسنس کے ساتھ، اور آپ کی پیلیٹ انہیں کتنا دوبارہ رنگتی ہے (**Off**، **Subtle**، **Strong**، **Full**، **Mono** یا **Duotone**)۔ **Keep skin tones and flags** انہیں ان کے اپنے رنگوں میں رکھتا ہے۔ جو کام آپ پہلے بنا چکے وہ اپنا بنتے وقت کا سیٹ رکھتا ہے۔
 - <!--i:eyeoff--> **رسائی** - چار آرام کے سوئچ، ساتھ Sound اور Neurospicy Mode۔ دیکھیں [رسائی](#accessibility)۔
@@ -107,7 +107,7 @@ Lolly اسکرینز کو آپ کے وزٹ کرتے ہی کیش کرتا ہے، 
 - <!--i:sliders--> **Tokens** - رداس، فاصلہ، اثرات اور گریڈینٹس۔
 - <!--i:document--> **Print & CMYK** - عین انک سے مقفل رنگ، اور وہ پریس شرائط جو CMYK PDF اعلان کر سکتی ہے۔
 
-بدلنا اس ٹیب کی واحد تبدیلی ہے۔ آپ ڈیزائن سسٹم [Design System Setup](/info/brand-studio.html) میں `#/start` پر ایڈٹ کرتے ہیں، جس سے کور جڑتا ہے۔ صرف پڑھنے کا سسٹم اپنے کور پر یہ بتاتا ہے؛ آپ کے بنائے مقامی سسٹمز قابل ترمیم رہتے ہیں۔ `/b` اور `/brand` اس ٹیب کے سیدھے شارٹ لنکس ہیں۔
+بدلنا اس ٹیب کی واحد تبدیلی ہے۔ آپ ڈیزائن سسٹم [Lolly Design System Setup](/info/brand-studio.html) میں `#/start` پر ایڈٹ کرتے ہیں، جس سے کور جڑتا ہے۔ صرف پڑھنے کا سسٹم اپنے کور پر یہ بتاتا ہے؛ آپ کے بنائے مقامی سسٹمز قابل ترمیم رہتے ہیں۔ `/b` اور `/brand` اس ٹیب کے سیدھے شارٹ لنکس ہیں۔
 
 ## صلاحیتیں
 
@@ -125,7 +125,7 @@ Lolly اسکرینز کو آپ کے وزٹ کرتے ہی کیش کرتا ہے، 
 
 ## ڈیپ لنکس
 
-Settings کے ہر ٹیب اور سیکشن کا اپنا لنک ہے، جسے آپ بک مارک یا پیسٹ کر سکتے ہیں۔ [Search](/info/search.html) اپنے **Settings** نتائج کو اسی رجسٹری کی طرف اشارہ کرتا ہے جس سے Settings رینڈر ہوتی ہے، اس لیے سیکشن کا نام سرچ نتیجے کے نیچے سے بدلا نہیں جا سکتا۔
+Settings کے ہر ٹیب اور سیکشن کا اپنا لنک ہے، جسے آپ بک مارک یا پیسٹ کر سکتے ہیں۔ [Lolly Search](/info/search.html) اپنے **Settings** نتائج کو اسی رجسٹری کی طرف اشارہ کرتا ہے جس سے Settings رینڈر ہوتی ہے، اس لیے سیکشن کا نام سرچ نتیجے کے نیچے سے بدلا نہیں جا سکتا۔
 
 ::: details لنک کی ہر شکل
 
@@ -139,4 +139,4 @@ Settings کے ہر ٹیب اور سیکشن کا اپنا لنک ہے، جسے �
 
 ---
 
-**متعلقہ:** [پروفائلز](/info/profile.html) آپ کی تفصیلات اور ان سیاق کے لیے جن میں آپ بناتے ہیں۔ [Design System Setup](/info/brand-studio.html) اس کو ایڈٹ کرنے کے لیے جو Design system ٹیب دکھاتا ہے۔ [اپنا کام تلاش کریں اور بحال کریں](/info/find-your-work.html) اسٹوریج، بیک اپس اور ڈیوائسز بدلنے کے لیے۔
+**متعلقہ:** [پروفائلز](/info/profile.html) آپ کی تفصیلات اور ان سیاق کے لیے جن میں آپ بناتے ہیں۔ [Lolly Design System Setup](/info/brand-studio.html) اس کو ایڈٹ کرنے کے لیے جو Design system ٹیب دکھاتا ہے۔ [اپنا کام تلاش کریں اور بحال کریں](/info/find-your-work.html) اسٹوریج، بیک اپس اور ڈیوائسز بدلنے کے لیے۔

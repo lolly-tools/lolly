@@ -126,3 +126,35 @@ test('Tauri remote fetch is a bounded native command, not a raw HTTP plugin', ()
       `${entry} must support the same bounded instance fetch as the GUI`);
   }
 });
+
+test('device agents start through three scoped commands, never a shell or process plugin', () => {
+  const caps = json('shells/tauri-desktop/src-tauri/capabilities/default.json');
+  const permissions = (caps.permissions as Array<string | { identifier?: string }>).map(p => typeof p === 'string' ? p : p.identifier ?? '');
+  assert.ok(!permissions.some(p => p.startsWith('shell:')), 'no shell plugin permission');
+  // The update coordinator restarts or exits through its own native command (src-tauri/src/updates.rs), so the
+  // webview needs no process plugin permission at all.
+  assert.deepEqual(permissions.filter(p => p.startsWith('process:')), [], 'the webview holds no process plugin permission');
+  const pkg = json('shells/tauri-desktop/package.json');
+  assert.ok(!('@tauri-apps/plugin-shell' in (pkg.dependencies as Record<string, string>)));
+  const cargo = readFileSync(new URL('shells/tauri-desktop/src-tauri/Cargo.toml', ROOT), 'utf8');
+  assert.doesNotMatch(cargo, /^tauri-plugin-shell\s*=/m);
+
+  const lib = readFileSync(new URL('shells/tauri-desktop/src-tauri/src/lib.rs', ROOT), 'utf8');
+  for (const command of ['agents::agents_detect', 'agents::agents_run', 'agents::agents_cancel']) assert.match(lib, new RegExp(command));
+  for (const entry of ['cli.rs', 'render_server.rs']) {
+    const source = readFileSync(new URL(`shells/tauri-desktop/src-tauri/src/${entry}`, ROOT), 'utf8');
+    assert.doesNotMatch(source, /agents_/, `${entry} is headless and never starts an agent`);
+  }
+  const src = (rel: string): string => readFileSync(new URL(`shells/tauri-desktop/src-tauri/src/${rel}`, ROOT), 'utf8');
+  const process = src('agents/process.rs');
+  assert.match(process, /cmd\.env_clear\(\)/, 'agent processes start with an empty environment');
+  assert.match(process, /process_group\(0\)/, 'a cancel reaches the whole process group');
+  const run = src('agents/run.rs');
+  assert.match(run, /"--tools", ""/, 'Claude Code runs with no tools');
+  assert.match(run, /"--sandbox", "read-only"/, 'Codex runs in its read-only sandbox');
+  for (const source of [process, run, src('agents/detect.rs'), src('agents.rs')]) {
+    assert.doesNotMatch(source, /Command::new\("(?:sh|bash|zsh|cmd(?:\.exe)?|powershell)"\)/, 'no shell is started to run an agent');
+  }
+  const web = readFileSync(new URL('shells/web/src/lib/device-agents.ts', ROOT), 'utf8');
+  assert.match(web, /invoke\('agents_run', \{ agentId: agent\.id, prompt, schema: AGENT_EDIT_SCHEMA \}\)/, 'the page passes an agent id, a prompt and the schema, nothing else');
+});

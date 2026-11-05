@@ -1,18 +1,20 @@
-# Design: the free canvas
+# Lolly Design: the free canvas
 
-Design is the tool for layouts no template covers: a poster from scratch, a deck of slides, a motion piece with a soundtrack. Instead of a form of controls, you get a canvas of boxes you drag, resize, rotate and type into. It exports through the same render path as every other tool, so what you see on the canvas is the file you get.
+<a id="design-the-free-canvas"></a>
 
-This page walks the canvas from the first box to a finished deck: the window, shaping boxes, drawing your own shapes, placing 3D scenes and other tools, adding time, checking the result and presenting the finished deck. [Using Lolly](/info/using.html) covers what Design shares with every tool, such as saving and sharing.
+Lolly Design is the tool for layouts no template covers: a poster from scratch, a deck of slides, a motion piece with a soundtrack. Instead of a form of controls, you get a canvas of boxes you drag, resize, rotate and type into. It exports through the same render path as every other tool, so what you see on the canvas is the file you get.
 
-![Design's free canvas - the artboard with its surrounding pasteboard](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+This page walks the canvas from the first box to a finished deck: the window, shaping boxes, drawing your own shapes, placing 3D scenes and other tools, adding time, checking the result and presenting the finished deck. [Using Lolly](/info/using.html) covers what Lolly Design shares with every tool, such as saving and sharing.
+
+![Lolly Design's free canvas - the artboard with its surrounding pasteboard](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 ## The Design window
 
 The **top bar** starts with **Home**, the **File menu** and the document's name (click the name to rename the document). The middle holds **Undo**, **Redo**, **History**, the zoom controls (with **Fit all** and **Fit artboard**) and toggles for the **Timeline**, the **Navigator** and the **Inspector**. On the right sit **Share**, **Present** and **Export**. On a phone, the less-used buttons move into **More actions**.
 
-The **tool rail** down the side holds the Lolly menu and the tools you draw with: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, then the Timeline, Artboards and Auto-arrange buttons.
+The **tool rail** down the side holds the Lolly menu and the tools you draw with: **Pointer**, **Add a box**, **Pen** (the **Pencil** shares its button), **Edit points**, **Line**, then the Timeline, Artboards and Auto-arrange buttons.
 
-![The free-canvas tool rail: a drag grip, the Lolly menu, then Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards and Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![The free-canvas tool rail: a drag grip, the Lolly menu, then Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards and Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 The canvas works like a designer's pasteboard around the artboard:
 
@@ -79,7 +81,7 @@ Boxes, circles and rounded frames cover most layouts. For any other shape, draw 
 
 **Carry on an open path.** With the Pen on, press on either end of an open path and you are drawing that path again: each click adds a point after that end, or in front of the first point when you started from the beginning. Enter keeps the result and Escape leaves the path exactly as it was. The path stays the same box, with its fill, stroke and arrowheads, and one undo puts it back. Delete takes back only the points you added. A closed shape, a line attached to a box and a path with several parts have no free end to carry on.
 
-**Draw freehand with the Pencil.** The rail's **Pencil** button (or `Shift C`) records your stroke while you drag. When you let go, Lolly smooths the stroke into a few points with Bezier handles, keeps the sharp turns as corners, and keeps the curve within a couple of screen pixels of where your hand went. A stroke that ends near its start closes. The result is an ordinary path, with the same paint as a pen path, and you can edit its points afterwards.
+**Draw freehand with the Pencil.** Press `Shift C`, or press and hold the **Pen** button on the rail (or right-click the button) and choose **Pencil**; the button then shows the Pencil until you pick the Pen again. The Pencil records your stroke while you drag. When you let go, Lolly smooths the stroke into a few points with Bezier handles, keeps the sharp turns as corners, and keeps the curve within a couple of screen pixels of where your hand went. A stroke that ends near its start closes. The result is an ordinary path, with the same paint as a pen path, and you can edit its points afterwards.
 
 The result is an ordinary box. Move, resize, rotate, group, align, restack, fill, shade or fade the path like any other box. The first path takes the fill and stroke your brand gives a path, and each new path after that takes whatever you last used. In a tool whose brand sets nothing for paths, a new path is stroked in the colour you drew with, so the shape is never invisible.
 
@@ -122,6 +124,25 @@ Three more work on a single shape. **Outline stroke…** turns a stroke into a f
 
 The result is a new path you can keep editing with the pen, stored as plain Bezier curves, so the original spline type does not carry over. Holes are real holes: the **Fill rule** control on the stroke panel decides whether overlapping contours fill (*non-zero*) or punch through (*even-odd*). The operations refuse rather than destroy: ask to intersect two shapes that don't overlap and nothing changes. Text and image boxes have no outline, so they are left alone.
 
+## Trace an image
+
+Select one image, right-click it and choose **Trace image…** to turn the picture into editable shapes. Pick a preset and press **Trace**:
+
+- **Logo** finds a few flat colours and keeps crisp edges and true circles and lines. It refuses a picture with gradients or photo tones with a message saying why.
+- **Illustration** traces several colours as filled shapes, flat art or a posterised picture.
+- **Line art** traces dark lines on a light page as black shapes.
+- **Centreline** traces dark lines as single strokes, so you can change their weight afterwards.
+
+The shapes are added as a group just above the image, which stays where it is. Hide or delete the image to see only the paths. The trace runs on your device in a background job with a Cancel button, and nothing is uploaded. A 1500 pixel image usually takes between one and several seconds, and a busy photograph takes longer.
+
+The trace follows what the box shows, so a cropped (Cover) image traces only the visible part. These limits apply:
+
+- Images are scaled down to at most 1500 pixels on the long side before tracing, so edges are placed to a fraction of that size, not of the original.
+- One trace makes at most 1,500 shapes and 60,000 points. A photograph usually goes past that, and Lolly Design says so without changing anything. Try Logo or Line art, or a simpler picture.
+- Gradients become bands of flat colour, and soft shadows become hard-edged shapes.
+- Corner radius, a shape mask and an effect on the image box are not applied to the paths.
+- The same picture and preset always give the same shapes.
+
 ## Strokes
 
 A box, a picture, a board and a pen path can each carry a stroke: a colour, a width and a style (solid, dashed or dotted). The stroke rows sit under **Fill** in the Inspector, and the **Stroke** button on the object bar opens them.
@@ -147,7 +168,7 @@ A box can hold more than a picture. Both kinds below keep a recipe rather than a
 
 ### 3D scenes
 
-Choose **3D scene** from the rail's add menu and drag out a frame: 3D Studio opens on the new box, and what you set there comes back to the canvas. Afterwards, **Edit in 3D Studio** in the Inspector's **3D scene** section reopens the studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) covers posters, the timeline, export and sharing.
+Choose **3D scene** from the rail's add menu and drag out a frame: Lolly 3D Studio opens on the new box, and what you set there comes back to the canvas. Afterwards, **Edit in 3D Studio** in the Inspector's **3D scene** section reopens the studio. [Place a scene in Lolly Design](/info/3d-studio.html#place-a-scene-in-design) covers posters, the timeline, export and sharing.
 
 ### Tools inside a design
 
@@ -157,7 +178,7 @@ Choose **Image** from the rail's add menu, drag out a frame and pick a tool on t
 
 ## Timeline (Sequence)
 
-**Sequence** is Design's timeline: it adds time to the canvas. Every box can start at a moment, run for a length and animate in and out, and the timeline docked under the artboard is where you arrange them. Start from Design's **Video** template and a short sequence is already in place: two timed text cards on the sequence row and a procedural music bed under them, so you can see how the timeline works before you change anything.
+**Sequence** is Lolly Design's timeline: it adds time to the canvas. Every box can start at a moment, run for a length and animate in and out, and the timeline docked under the artboard is where you arrange them. Start from Lolly Design's **Video** template and a short sequence is already in place: two timed text cards on the sequence row and a procedural music bed under them, so you can see how the timeline works before you change anything.
 
 ![The Sequence timeline: the transport, the ruler, an overlay lane, the magnetic sequence row with its clips and seam chips and the Always on strip](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
@@ -185,7 +206,7 @@ Select a clip and the inspector gives the same edits as numbers: **Length**, **T
 
 ## Before you export
 
-Design checks your document before you send the file. The **Before you export** card, in the Inspector's **Document** section and again in the export panel, reads the saved layer structure, then looks at the settled canvas for clipped text and flat-colour contrast. It asks the same font registry the SVG and PDF outlining uses whether each text run has font bytes that can be embedded. Image and gradient backgrounds are listed as visual checks rather than given a made-up contrast score.
+Lolly Design checks your document before you send the file. The **Before you export** card, in the Inspector's **Document** section and again in the export panel, reads the saved layer structure, then looks at the settled canvas for clipped text and flat-colour contrast. It asks the same font registry the SVG and PDF outlining uses whether each text run has font bytes that can be embedded. Image and gradient backgrounds are listed as visual checks rather than given a made-up contrast score.
 
 ### Check a composition against the design system
 
@@ -195,9 +216,9 @@ Where a concrete colour or font suggestion exists, its button changes that one l
 
 ### House rules and the writing signal
 
-The export panel's card also checks the house rules your design system brings with it, such as text weight and alignment, approved colour pairings or a logo per surface, layer by layer. Each finding has the layer's name above the rule. A finding against a required rule is a warning, and one against an advisory rule is a note. A logo finding gives each logo's name from the catalog. A rule this build has no checker for is listed as not checked, never as followed. [Usage & rules](/info/brand-studio.html#usage-rules) lists the rules, and `lolly check` applies the same ones to a saved document.
+The export panel's card also checks the house rules your design system brings with it, such as text weight and alignment, approved colour pairings or a logo per surface, layer by layer. Each finding has the layer's name above the rule. A finding against a required rule is a warning, and one against an advisory rule is a note. A logo finding gives each logo's name from the catalog. A rule this build has no checker for is listed as not checked, never as followed. [Rules](/info/brand-studio.html#rules) lists the rules, and `lolly check` applies the same ones to a saved document.
 
-The same card shows the writing signal for the text the document draws: its band (none, weak, notable or strong), then Verify's own sentence with the score out of 100 and up to three flagged phrases, each with the layer that holds them. **Open the text in Verify** takes that text to [Verify](/#/verify) for the full reading; [AI evidence in Verify](/info/verify-ai-evidence.html) explains what the score weighs. The score is a signal, not a verdict: it counts patterns common in generated writing and cannot tell who wrote the words. Hidden layers are left out of both checks, and the card says how many.
+The same card shows the writing signal for the text the document draws: its band (none, weak, notable or strong), then Lolly Verify's own sentence with the score out of 100 and up to three flagged phrases, each with the layer that holds them. **Open the text in Verify** takes that text to [Lolly Verify](/#/verify) for the full reading; [AI evidence in Lolly Verify](/info/verify-ai-evidence.html) explains what the score weighs. The score is a signal, not a verdict: it counts patterns common in generated writing and cannot tell who wrote the words. Hidden layers are left out of both checks, and the card says how many.
 
 Findings against required house rules and a strong writing signal count toward the card's "to fix" total so they are easy to find, and advisory findings count as things to know. They inform and never block: Download stays available, and there is nothing to dismiss or record as an exception. An agent working in the open document gets the same report through its site tools ([Agents in an open document](/info/open-document-agents.html)).
 
@@ -205,7 +226,7 @@ The print checks (bleed, resolution, ink coverage and plate counts) join the sam
 
 ## Presenting
 
-A Design document made of artboards is already a deck. Press **Present** in the top bar and each artboard becomes a full-screen slide, in the order the artboards sit on the canvas. The button reads **Preview** until the document's **Design outcome** is **Slides**. The deck runs on a copy of the rendered artboards, so leaving puts you back exactly where you were.
+A Lolly Design document made of artboards is already a deck. Press **Present** in the top bar and each artboard becomes a full-screen slide, in the order the artboards sit on the canvas. The button reads **Preview** until the document's **Lolly Design outcome** is **Slides**. The deck runs on a copy of the rendered artboards, so leaving puts you back exactly where you were.
 
 The arrow beside **Present** opens **Present from this slide**, **Speaker view**, **Present with camera**, **Narrate**, **Auto-advance slides**, **Loop the deck (kiosk)** and **Export slides as video**.
 
@@ -235,8 +256,8 @@ The deck is a link too. `?present` opens straight into it and `s=` picks the sli
 
 ## Where to go next
 
-- **[Text in Design](/info/text-composition.html)**: editing text on the canvas, flowing articles through frames and typography.
+- **[Text in Lolly Design](/info/text-composition.html)**: editing text on the canvas, flowing articles through frames and typography.
 - **[Animating](/info/animating.html)**: keyframes, depth, the scene camera and Lift layers.
 - **[Import a design](/info/design-import.html)**: open a Figma, Penpot, Illustrator or InDesign file as editable boxes.
-- **[Share a design with rules](/info/create-a-tool.html)**: turn a Design document into a tool with only the inputs you choose.
+- **[Share a design with rules](/info/create-a-tool.html)**: turn a Lolly Design document into a tool with only the inputs you choose.
 - **[Export a file](/info/exporting.html)**: formats, sizes, print units and video.

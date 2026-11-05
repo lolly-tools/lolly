@@ -2,7 +2,7 @@
 
 Wpisz pytanie, a Ask Lolly odpowie sekcją tych przewodników, która je omawia, słowo w słowo, z podaną stroną źródłową i linkiem **Open in docs** prosto do tej sekcji. Nic nie jest generowane: odpowiedź jest odnajdywana, cytowana i opatrywana źródłem, na Twoim urządzeniu.
 
-Pod cytowaną sekcją znajdują się miejsca w aplikacji pasujące do tego samego pytania: narzędzie, utility, zapisany projekt, zasób katalogu, ustawienie lub strona aplikacji. Każdy wiersz tylko nawiguje. Nic w odpowiedzi nie zmienia ustawienia, nie otwiera pliku ani nie działa za Ciebie, tak samo jak w [Search](/info/search.html).
+Pod cytowaną sekcją znajdują się miejsca w aplikacji pasujące do tego samego pytania: narzędzie, utility, zapisany projekt, zasób katalogu, ustawienie lub strona aplikacji. Każdy wiersz tylko nawiguje. Nic w odpowiedzi nie zmienia ustawienia, nie otwiera pliku ani nie działa za Ciebie, tak samo jak w [Lolly Search](/info/search.html).
 
 ## Zadawanie pytania
 
@@ -60,4 +60,4 @@ Twoje pytanie nigdy nie opuszcza urządzenia. Dopasowanie działa lokalnie na pl
 
 ---
 
-**Zobacz też:** [Search](/info/search.html) o pasku, który przekazuje pytania. [Using Lolly](/info/using.html) o reszcie aplikacji. [Settings](/info/dashboard.html#available-offline) o pobraniu dokumentacji offline wcześniej.
+**Zobacz też:** [Lolly Search](/info/search.html) o pasku, który przekazuje pytania. [Using Lolly](/info/using.html) o reszcie aplikacji. [Lolly Settings](/info/dashboard.html#available-offline) o pobraniu dokumentacji offline wcześniej.

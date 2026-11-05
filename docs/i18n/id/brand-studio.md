@@ -1,10 +1,10 @@
 # Design System Setup
 
-Logo, warna, dan huruf Anda berada di satu tempat, agar setiap alat, halaman, dan ekspor menggambar dengannya. Tempat itu adalah **Design System Setup**, di `#/start`, dan slogannya menyatakan fungsinya: *Make it yours*.
+Logo, warna, dan huruf Anda berada di satu tempat, agar setiap alat, halaman, dan ekspor menggambar dengannya. Tempat itu adalah **Design System Setup**, di `#/start`.
 
 Mulai dengan apa pun yang Anda miliki. Letakkan logo dan Lolly membaca warnanya. Pilih huruf, atau letakkan file font yang dilisensikan perusahaan Anda. Setiap perubahan langsung tampak di seluruh aplikasi. Logo, font, dan token Anda tetap di perangkat ini. Memilih Google Font adalah satu-satunya langkah yang menjangkau keluar: Lolly bertanya dulu, lalu mengambil keluarga font itu sekali.
 
-Saat sudah terlihat benar, beri nama design system dan tekan **Export**. Anda mendapat satu file `.lolly` untuk disimpan, dibuka di perangkat lain, atau diserahkan kepada rekan. [Settings](/info/dashboard.html#design-system) menampilkan sistem aktif hanya-baca, dan sampulnya menaut kembali ke sini untuk menyunting.
+Saat sudah terlihat benar, beri nama design system dan tekan **Export**. Anda mendapat satu file `.lolly` untuk disimpan, dibuka di perangkat lain, atau diserahkan kepada rekan. [Lolly Settings](/info/dashboard.html#design-system) menampilkan sistem aktif hanya-baca, dan sampulnya menaut kembali ke sini untuk menyunting.
 
 ## Jadikan milik Anda dalam lima menit
 
@@ -16,34 +16,36 @@ Saat sudah terlihat benar, beri nama design system dan tekan **Export**. Anda me
 - <!--i:download--> **Export** menulis seluruh sistem sebagai satu file `LollyBrand-….lolly`.
 :::
 
-Header menunjukkan design system mana yang sedang Anda **Editing**, dan namanya adalah field yang dapat Anda ubah kapan saja. Saat suntingan pertama Anda menanyakan **What is this design system called?**, kata-kata dari logo Anda terisi bila logo mengejanya. **Save name** menyimpan nama; **Not now** mempertahankan placeholder sampai Anda mengetik satu di header. Nama itu melabeli sistem di Settings dan saat Anda berpindah, dan menjadi nama file yang ditulis **Export**.
+Bilah di bagian atas studio memuat nama design system, dan nama itu adalah field yang dapat Anda ubah kapan saja: **Enter** menyimpan nama baru dan **Escape** mengembalikan nama lama. Saat suntingan pertama Anda menanyakan **What is this design system called?**, kata-kata dari logo Anda terisi bila logo mengejanya. **Save name** menyimpan nama; **Not now** mempertahankan placeholder sampai Anda mengetik satu di bilah. Nama itu melabeli sistem di Settings dan saat Anda berpindah, dan menjadi nama file yang ditulis **Export**.
 
 ## Ruang-ruangnya
 
-Studio adalah sekumpulan ruangan dalam rel di sisi, tanpa urutan tetap: tidak ada yang bernomor dan tidak ada yang menunggu yang lain. Di ponsel rel menjadi strip chip di bawah header.
+Studio adalah sekumpulan ruangan tanpa urutan tetap: tidak ada yang bernomor dan tidak ada yang menunggu yang lain. Di desktop ruangan berada dalam satu strip di bawah bilah. Di ponsel ruangan pindah ke bilah di tepi bawah, tempat ibu jari menjangkaunya, dengan ruangan yang terbuka digulir ke tampilan; sheet palet dan tray muncul di atas bilah itu, dan bilah menyingkir saat Anda mengetik. Dengan keyboard, Tab mencapai strip sekali, dan tombol panah, Home, dan End berpindah dari ruangan ke ruangan.
 
-![Rel ruangan studio: Overview, Colours, Type, Logos, Tokens, Files, dan Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Bilah studio dan ruangannya: Board, Colours, Type, Logos, Tokens, Files, Rules, dan Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Ruangan | Yang Anda lakukan di sana | Kunci tautan |
 |---|---|---|
-| **Overview** | Lihat apa yang dimuat sistem, dengan pintu ke setiap ruangan | `overview` |
+| **Board** | Lihat apa yang dimuat sistem, dengan pintu ke setiap ruangan | `overview` |
 | **Colours** | Tambah warna, beri peran, bangun shade dan palet | `color` |
 | **Type** | Pilih empat huruf yang dibaca aplikasi, alat, dan setiap ekspor | `type` |
 | **Logos** | Tempatkan lambang Anda dalam setiap orientasi dan perlakuan | `logos` |
 | **Tokens** | Sudut, jarak, bayangan, dan setiap nilai bernama lainnya | `tokens` |
 | **Files** | File gambar, audio, dan gerak yang disimpan brand Anda | `catalogue` |
-| **Usage & rules** | Aturan yang diterapkan brand Anda, diperiksa pada contoh nyata | `usage` |
+| **Rules** | Aturan yang diterapkan brand Anda, diperiksa pada contoh nyata | `usage` |
 | **Skills** | Standar tertulis brand untuk manusia dan agen, untuk dibaca dan diunduh | `skills` |
 
-Tautkan ke ruangan dengan `#/start?area=<key>`. Ruangan Files mempertahankan kunci `catalogue`, karena kunci ruangan adalah kontrak permanen, dan `?tab=` tetap berfungsi sebagai alias lama. Kunci yang tidak dikenal membuka Overview.
+Tautkan ke ruangan dengan `#/start?area=<key>`. Ruangan Files mempertahankan kunci `catalogue`, Board mempertahankan `overview` dan Rules mempertahankan `usage`, karena kunci ruangan adalah kontrak permanen, dan `?tab=` tetap berfungsi sebagai alias lama. Kunci yang tidak dikenal membuka Board.
 
-**Dasar rel** memuat aksi untuk seluruh sistem, bukan satu ruangan. **Add from…** membawa brand masuk ([Bring a brand in](#bring-a-brand-in)), dan **Tray** menyimpan apa yang ditemukan pemindaian yang belum Anda tambahkan. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions**, dan **Restore brand settings** menyimpan dan memindahkan sistem ([Keep and move your design system](#keep-and-move-your-design-system)). Masing-masing muncul begitu ada yang bisa dikerjakannya.
+**Bilah** memuat aksi untuk seluruh sistem, bukan satu ruangan. **Add from…** membawa brand masuk ([Bring a brand in](#bring-a-brand-in)), dan **Tray** menyimpan apa yang ditemukan pemindaian yang belum Anda tambahkan. **Export** menulis sistem sebagai satu file, dan **More** memuat **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings**, dan **Design systems**, yang membuka daftar di Settings tempat Anda berpindah ([Keep and move your design system](#keep-and-move-your-design-system)). Masing-masing muncul begitu ada yang bisa dikerjakannya. Di ponsel, **Add from…** pindah ke **More** dan **Export** tampil sebagai ikonnya.
 
-## Overview
+## Board
 
-Tanpa pilihan apa pun, Overview menawarkan empat cara memulai. **Start from a reference** membuka pemilih sumber untuk logo, tangkapan layar, halaman web, atau file desain, dan **Pick a colour**, **Choose a face**, dan **Add a logo** membuka kontrol itu langsung. Membuka salah satunya tidak menulis apa pun, dan **Explore the tools** tersedia sejak awal.
+Tanpa pilihan apa pun, Board menawarkan empat cara memulai. **Start from a reference** membuka pemilih sumber untuk logo, tangkapan layar, halaman web, atau file desain, dan **Pick a colour**, **Choose a face**, dan **Add a logo** membuka kontrol itu langsung. Membuka salah satunya tidak menulis apa pun, dan **Explore the tools** tersedia sejak awal.
 
-Begitu ada yang menjadi milik Anda, Overview menampilkan apa yang Anda miliki, dengan jumlah milik Anda di depan. Colours memberi jumlah warna, dengan `· N starter` yang diredupkan bila warna warisan tampil; stripnya menaruh warna Anda lebih dulu, lalu garis tipis, lalu warna starter yang memudar. Type dibaca menurut peran (*Inter for headings*, dengan *Starter for the rest* di baris bawahnya). Logos menyatakan berapa slot terisi (atau **Not set**), Tokens menampilkan radius sudut, dan Files menyatakan **Nothing yet** selama pustaka kosong. Setiap blok membuka ruangannya.
+Begitu ada yang menjadi milik Anda, Board menampilkan apa yang Anda miliki, dengan jumlah milik Anda di depan. Colours memberi jumlah warna, dengan `· N starter` yang diredupkan bila warna warisan tampil; stripnya menaruh warna Anda lebih dulu, lalu garis tipis, lalu warna starter yang memudar. Colourways menampilkan setiap colourway sebagai ubin kecil dalam warna utamanya. Type dibaca menurut peran dan menyetel setiap keluarga dalam hurufnya sendiri (*Inter for headings*, dengan *Starter for the rest* di baris bawahnya). Logos menyatakan berapa slot terisi (atau **Not set**), Tokens menampilkan radius sudut, dan Files menyatakan **Nothing yet** selama pustaka kosong. Setiap blok membuka ruangannya.
+
+Design system yang datang bersama aplikasi dan dapat disunting, seperti Lolly Demo, memiliki semua itu sejak awal: Board menampilkan warna, colourway, huruf, dan lambangnya, dengan tag **Came with this app** di samping judul.
 
 ### Starter dan milik Anda
 
@@ -61,7 +63,7 @@ Begitu ada yang menjadi milik Anda, Overview menampilkan apa yang Anda miliki, d
 
 - Dipilih atau dipasang oleh Anda.
 - Kekuatan penuh, dan kartu bertint tempat Anda memasang huruf.
-- Dihitung di Overview dan di Tokens.
+- Dihitung di Board dan di Tokens.
 - Peran yang mengikuti peran lain berbunyi **↳ follows Primary** dan tidak mengulang nama primer.
 :::
 
@@ -106,7 +108,7 @@ Warna pertama Anda menjadi **primary**, dan sebuah chip mengonfirmasinya, sepert
 
 Warna Anda berada di samping pratinjau **In context** pada layar lebar, dan di atasnya pada layar lebih kecil. Pratinjau menampilkan poster, bagan, atau kartu antarmuka dalam palet Anda. Warna starter tetap di grup lipatnya sendiri.
 
-![Ruangan Colours pada Lolly Demo: palet dalam grup lipat, setiap warna dengan nama dan hex-nya, dan pil unduh di dasar](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Ruangan Colours pada Lolly Demo: palet dalam grup lipat, setiap warna dengan nama dan hex-nya, dan unduhan palet di bagian kepala](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Ruang Colours setelah menambahkan satu warna, dengan paletnya dan pratinjau komposisi live](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -163,7 +165,7 @@ Empat bagian terlipat berada di bawah pratinjau dan peran. Masing-masing terbuka
 
 Palet mencantumkan warna Anda dalam grup lipat, masing-masing dengan **+ Add** sendiri. Buat dan ganti nama grup sesuka Anda. Peran tidak pernah membuat ubin kedua: ubin yang ditunjuk peran mengenakan tanda kecil sebagai gantinya (**P**, **S**, **Su**, **T**). **Colour chart** di bawah ubin menampilkan warna yang sama pada **Wheel** OKLCH (seret titik untuk mewarnai ulang, klik ruang kosong untuk menambah swatch) dan bagan **Gamut**, yang menunjukkan di mana rentang yang dapat ditampilkan berakhir. `#/start?area=color&focus=chart` membuka bagan langsung.
 
-![Panel palet, setiap kelompok dapat dilipat, dengan pil unduh terparkir di tepi bawahnya](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Panel palet, setiap kelompok dapat dilipat, dengan unduhan palet di bagian kepalanya](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Roda OKLCH - sudut adalah hue, jarak keluar adalah chroma, dan abu-abu berjalan di sepanjang rel lightness di sisinya](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -179,7 +181,7 @@ Klik swatch untuk membuka editornya:
 **Menghapus swatch** aman. Shade turunan dan peran tema disembunyikan, sehingga tidak ada yang membacanya rusak, sementara warna yang Anda tambahkan dihapus.
 
 ::: details Bekerja dengan banyak swatch
-Setiap swatch memiliki handle seret. Seret untuk menyusun ulang dalam grup, atau fokuskan handle, tekan Space, gunakan tombol panah, dan tekan Space lagi untuk menjatuhkan; Escape membatalkan. Untuk memindahkan warna antar grup, gunakan kontrol **Group** editor atau pilih beberapa dan gunakan **Move to**.
+Setiap swatch memiliki handle seret. Seret untuk menyusun ulang dalam grup, atau fokuskan handle, tekan Space, gunakan tombol panah, dan tekan Space lagi untuk menjatuhkan; Escape membatalkan. Di ponsel palet menampilkan empat warna per baris dan handle muncul dalam mode Select, bukan sebagai baris di bawah setiap warna. Untuk memindahkan warna antar grup, gunakan kontrol **Group** editor atau pilih beberapa dan gunakan **Move to**.
 
 Pemilihan tidak memerlukan mode. Bilah muncul bersama ubin terpilih pertama dan pergi bersama yang terakhir.
 
@@ -196,13 +198,13 @@ Bilah berbunyi **{n} selected**, lalu **Move to**, **Give a role** (setiap warna
 
 Panel **Gradients** opsional membangun token campuran dari palet. Setiap gradien memiliki pratinjau, 2 hingga 8 stop bernama, dan sudut. Stop menunjuk ke swatch, jadi warnai ulang swatch dan gradien mengikuti. Campuran berjalan di OKLCH.
 
-Unduhan palet (token desain, CSS, SCSS, GIMP, dan Adobe Swatch Exchange) berada dalam pil di dasar palet begitu ada shade. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) menjelaskan setiap format.
+Unduhan palet (token desain, CSS, SCSS, GIMP, dan Adobe Swatch Exchange) berada di bagian kepala palet, di samping judulnya. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) menjelaskan setiap format.
 
 ## Type
 
-Tanpa huruf sendiri, ruangan hanya satu kartu: **Primary**, diset pada ukuran baca dalam huruf yang melayaninya hari ini, dengan tag **Starter**, tombol **Choose a face**, dan baris *"Nothing installs until you choose one."* Headings, code, dan italic mengikuti primary sampai Anda memilihnya; **Choose them separately** menampilkan kartunya.
+Tanpa huruf sendiri, ruangan hanya satu kartu: **Primary**, diset pada ukuran baca dalam huruf yang melayaninya hari ini, dengan tag **Starter**, tombol **Choose for Primary**, dan baris *"Nothing installs until you choose one."* Headings, code, dan italic mengikuti primary sampai Anda memilihnya; **Choose them separately** menampilkan kartunya.
 
-![Ruang Type dengan belum ada wajah yang dipilih - satu kartu pada ukuran baca, sebuah tag Starter di atasnya, dan satu Choose a face yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Ruang Type dengan belum ada wajah yang dipilih - satu kartu pada ukuran baca, sebuah tag Starter di atasnya, dan satu Choose for Primary yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Pilih satu huruf dan ruangan membuka menjadi empat kartu peran, daftar Fonts, dan spesimen langsung:
 
@@ -211,7 +213,7 @@ Pilih satu huruf dan ruangan membuka menjadi empat kartu peran, daftar Fonts, da
 - **Code**: huruf monospace untuk kode dan data.
 - **Italic**: italic sejati untuk penekanan, kutipan, dan catatan sampingan.
 
-Kartu bertint hanya di tempat Anda memasang huruf itu, dan tombolnya berbunyi **Change** pada huruf milik Anda dan **Choose a face** di tempat lain. Tidak ada di kartu yang meng-commit apa pun: tombol membuka panggung perbandingan untuk peran itu.
+Kartu bertint hanya di tempat Anda memasang huruf itu. Tombolnya menyebut peran yang dituju: **Change Headings** pada huruf milik Anda dan **Choose for Headings** di tempat lain. Baris contoh membungkus, tidak terpotong. Tidak ada di kartu yang meng-commit apa pun: tombol membuka panggung perbandingan untuk peran itu.
 
 ![Empat kartu peran tersingkap - masing-masing disetel dalam wajah yang melayaninya, dengan tag Starter di mana tidak ada yang memilih satu dan Italic mengikuti primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -219,7 +221,7 @@ Kartu bertint hanya di tempat Anda memasang huruf itu, dan tombolnya berbunyi **
 
 Panggung terbuka di dalam ruangan, di bawah kartu yang Anda tekan, dan kartu terlipat menjadi strip satu baris agar panggung tampil di layar pertama ponsel. Escape membatalkan dan mengembalikan fokus ke kartu.
 
-1. Tekan **Choose a face** pada kartu.
+1. Tekan **Choose for** dan perannya pada kartu.
 2. Ketik nama keluarga dan tekan **Preview**, atau tekan salah satu dari enam keluarga **Pinned** di bawah field.
 3. Tekan **Use this face**.
 
@@ -240,7 +242,7 @@ Token adalah nilai bernama di balik design system: warna, huruf, logo, sudut, da
 ![Ruangan Tokens: kepala dengan contoh dari sistem dan aksi file, ubin yang menghitung tiap jenis token, lalu pasangan warna beserta pembacaan kontrasnya](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **Kepala** memberi contoh dari sistem Anda sendiri (*Primary is Spearmint, #033633*) dan aksi file: **Download** (seluruh sistem sebagai token desain, atau palet dalam lima format lain), **Copy CSS**, dan **Add from…** untuk membaca file JSON kembali.
-- **Ubin** menghitung tiap jenis token dan melompat ke bagiannya: Colours, Type, Logos, Shape and spacing, More, dan All tokens. Mereka menghitung apa yang menjadi milik Anda, seperti Overview. Di ponsel ubin menggulir ke samping.
+- **Ubin** menghitung tiap jenis token dan melompat ke bagiannya: Colours, Type, Logos, Shape and spacing, More, dan All tokens. Mereka menghitung apa yang dimuat tiap bagian; bagian yang hanya memuat apa yang datang bersama starter kosong mengenakan tag **Starter**, dan sistem yang datang bersama aplikasi menghitung materinya sendiri tanpa tag. Di ponsel ubin membungkus menjadi dua baris berisi tiga.
 - **Colours** dimulai dengan pasangan yang disandingkan alat (teks pada surface, pada primary, muted pada surface) dengan pembacaan APCA dalam terang dan gelap, dan menandai **Weak contrast** bila pasangan kurang. Lalu setiap grup warna: ramp sebagai satu baris chip, warna lain dengan nilainya dan referensi yang dipakai alat, seperti `{color.brand.spearmint}`. Tekan referensi untuk menyalin referensinya. **Edit in Colours** membuka grup di ruangan Colours.
 - **Type** dan **Logos** mencantumkan huruf untuk tiap peran dan tiap slot logo, dengan **Edit in Type** dan **Edit in Logos** setelah Anda memiliki milik sendiri.
 - **Shape and spacing** memuat **Rounded corners** (`shape.radius`) dan **Spacing rhythm** (`space.base`). Masing-masing berbunyi *Lolly default* sampai Anda menggeser penggeser dan *Yours* sesudahnya, menyimpan seketika, dan dapat dibatalkan.
@@ -253,11 +255,11 @@ Bagian yang kosong menawarkan cara mengisi celahnya: **Pick a colour**, **Choose
 
 Letakkan file yang disimpan brand Anda, selain logo: file **vector**, **image**, **audio**, dan **motion** (video, Lottie, dan animasi). Mereka muncul di [Assets](/info/using.html#assets-your-library), diurutkan ke dalam bagian dan siap di pemilih aset setiap alat, dan tetap di perangkat ini.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** menjalankan pilihan brand Anda: apa yang boleh diubah orang, apa yang tetap, dan apa yang dapat diperiksa Lolly.
+**Rules** menjalankan pilihan brand Anda: apa yang boleh diubah orang, apa yang tetap, dan apa yang dapat diperiksa Lolly.
 
-![Usage & rules pada Lolly Demo: kartu Brand rules yang kosong dengan Add your first rule, lalu Try your brand in use dengan contoh yang siap dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules pada Lolly Demo: kartu Brand rules yang kosong dengan Add your first rule, lalu Try your brand in use dengan contoh yang siap dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** mencantumkan aturan Anda. **Add rule** (atau **Add your first rule**) membuka formulir singkat:
 
@@ -282,7 +284,7 @@ Build yang dikirim dengan brand tetap menampilkan aturan dan contoh yang sama se
 
 ## Bawa brand masuk
 
-**Add from…** di dasar rel membuka pemilih yang menanyakan apa yang Anda miliki, bukan format apa itu:
+**Add from…** di bilah membuka pemilih yang menanyakan apa yang Anda miliki, bukan format apa itu:
 
 - **Design tokens or a design file**: JSON DTCG atau Tokens Studio, proyek Penpot, zip set token, paket design system Lolly, atau SVG.
 - **PDF**: deck atau file panduan, dibaca di perangkat ini untuk warna, lambang, dan huruf yang disematkan.
@@ -310,11 +312,11 @@ Impor PDF dan file desain mempertahankan kontrol tinjauannya sendiri. Item di **
 
 ### Temukan dan bandingkan tampilan
 
-Buka **Find a look** dari Overview atau dari daftar design system di Settings. Jelajahi sistem yang tersimpan di perangkat ini dan beberapa contoh Lolly yang dapat dipakai ulang, dan cari menurut nama, tag warna, atau font yang dideklarasikan. **Closest to my current palette** mengurutkan menurut kemiripan warna terukur, dengan font yang cocok sebagai penentu seri; ini bukan skor kualitas.
+Buka **Find a look** dari Board atau dari daftar design system di Settings. Jelajahi sistem yang tersimpan di perangkat ini dan beberapa contoh Lolly yang dapat dipakai ulang, dan cari menurut nama, tag warna, atau font yang dideklarasikan. **Closest to my current palette** mengurutkan menurut kemiripan warna terukur, dengan font yang cocok sebagai penentu seri; ini bukan skor kualitas.
 
 Pilih satu tampilan untuk meninjaunya, atau dua untuk membandingkan berdampingan. Memilih tidak mengubah apa pun. **Use this saved system** beralih ke sana, dan **Use these colours** menerapkan warna contoh melalui checkpoint biasa, mempertahankan font Anda. **Restore brand settings** memulihkan tampilan sebelumnya. Sistem tersimpan memiliki **Search tags** yang dapat disunting di bawah **Details and design context**. Contohnya adalah resep warna asli Lolly, tanpa koleksi hasil scraping dan tanpa akun.
 
-![Bandingkan Sunroom dan Orchard berdampingan sebelum menerapkan salah satu sistem warna.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Bandingkan Sunroom dan Orchard berdampingan sebelum menerapkan salah satu sistem warna.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Simpan dan pindahkan design system Anda
 
@@ -328,11 +330,11 @@ Untuk memasukkannya kembali, gunakan **Add from… → Design tokens or a design
 
 ### Pulihkan pengaturan sebelumnya
 
-Pilih **Restore brand settings**, pilih checkpoint bertanggal, dan tekan **Restore**. Ia memulihkan warna, pengaturan huruf, dan token lain untuk brand aktif; file font dan gambar tetap seperti adanya. Lolly menyimpan pengaturan Anda saat ini sebagai **Before restore** lebih dulu, sehingga Anda dapat membalik pemulihan bahkan setelah menutup browser. 20 checkpoint terbaru disimpan di perangkat ini.
+Buka **More** di bilah, pilih **Restore brand settings**, pilih checkpoint bertanggal, dan tekan **Restore**. Ia memulihkan warna, pengaturan huruf, dan token lain untuk brand aktif; file font dan gambar tetap seperti adanya. Lolly menyimpan pengaturan Anda saat ini sebagai **Before restore** lebih dulu, sehingga Anda dapat membalik pemulihan bahkan setelah menutup browser. 20 checkpoint terbaru disimpan di perangkat ini.
 
 ### Versions
 
-Versi terbit adalah **salinan bernama yang permanen** yang disimpan di perangkat ini. Ia tidak pernah berubah, jadi alat atau tautan yang menyematkannya (dengan `designv`) terus menggambar hal yang sama. Sistem yang memiliki sesuatu milik Anda menampilkan tautan **Versions & publishing** yang tenang di dasar rel; setelah terbitan pertama Anda ia menjadi entri **Versions**. `#/start?area=versions` membukanya langsung.
+Versi terbit adalah **salinan bernama yang permanen** yang disimpan di perangkat ini. Ia tidak pernah berubah, jadi alat atau tautan yang menyematkannya (dengan `designv`) terus menggambar hal yang sama. Sistem yang memiliki sesuatu milik Anda mencantumkan **Versions & publishing** di menu **More** pada bilah; setelah terbitan pertama Anda **Versions** bergabung ke ruangan. `#/start?area=versions` membukanya langsung.
 
 - **Versi bersifat permanen.** Belum ada penghapusan, dan panel menyatakannya.
 - **Penghapusan memimpin kartu kompatibilitas**, karena token yang dihapus adalah yang merusak alat.

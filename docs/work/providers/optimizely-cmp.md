@@ -1,9 +1,15 @@
-# Optimizely CMP (kind: `optimizely-cmp`)
+# Optimizely CMP integration with Lolly (kind: `optimizely-cmp`)
 
 Connect the Optimizely CMP web DAM your website already uses, and its assets appear in the
 Lolly Work catalog. Optimizely stays the owner of those assets. If you turn on publishing,
 finished Lolly exports can also go the other way: into CMP, carrying their Content Credentials
 onto the website.
+
+## Onboarding
+
+1. Identify the website workflow, folders or labels and Lolly Work groups. Keep CMP authoritative for its web assets. Start read-only; enable `publish` only when the outbound workflow has been separately agreed.
+2. Register your app, obtain the sealed OAuth credential described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Inspect public, archived and expired samples before enabling the source.
+3. Confirm the documented endpoints, fields and download bytes on your tenant using [Lolly Verify](#verify) and the [tenant-check process](tenant-check.md). Test member access in one Lolly task. If publishing is needed, separately qualify the signer, grant and upload behaviour in [Publishing](#publishing-lolly-exports-out).
 
 ## What you need from Optimizely CMP
 
@@ -50,7 +56,6 @@ hand against your app. `lw providers auth` refuses this kind; see
 - A folder name or a label can scope an `includeSections` slice.
 
 ## Verify
-
 ```bash
 lw providers preview --kind optimizely-cmp --options '{}'   # dry run, nothing stored
 lw providers health acme-cmp
@@ -86,7 +91,8 @@ and are not yet confirmed against a live tenant.
 
 ## Off-boarding
 
-**Not an exit target.** The CMS owns these assets, so the pattern is federate in and publish out,
-not a migration away. Do not run `cutover` against this source: CMP assets keep their `ext/*`
-identity and Optimizely stays their source of truth. Every other DAM here can be left through
-the exit: [Leave a DAM](../offboarding.md).
+**Not an exit target.** This integration keeps CMP as the source for the website's assets and optionally publishes Lolly exports back. Do not run `cutover` against this source; keep its `ext/*` identities and the website's dependencies under CMP's authority.
+
+You can [self-host Lolly Work with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) while retaining the CMP connection. That deployment choice does not migrate CMP or replace its web delivery. If retiring CMP is a separate project, obtain and verify a vendor export and plan the website's links and publishing changes separately. [Leave a DAM](../offboarding.md) records the connector limits and the supported exit paths for other sources.
+
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

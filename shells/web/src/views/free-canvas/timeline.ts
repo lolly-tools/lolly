@@ -495,6 +495,7 @@ export function paintMotion(fc: FcCtx): void {
           snap: fc.penAssist.snapPathPoint,
           clearGuides: fc.gestures.clearGuides,
           clearOf: () => selectionChromeBounds(fc),
+          menu: fc.menus.contextMenuAt,
         },
       });
       fc.motionPath.paint(motionIds(fc, fc.select.getBoxes()));

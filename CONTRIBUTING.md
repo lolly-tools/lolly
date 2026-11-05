@@ -136,6 +136,16 @@ node --test "tests/**/*.test.ts"
 
 An unquoted directory (`node --test tests/`) makes current Node try to load `tests` as a module instead of discovering test files. Layout, gated tests and the conventions the suite holds itself to are in [`tests/README.md`](tests/README.md).
 
+To see what CI will say before you push, run the same gates locally:
+
+```bash
+pnpm run ci:local --changed   # only the lanes your diff against origin/main touches; lanes that build the web shell are listed as skipped
+pnpm run ci:local --changed --with-build   # the same, and run the build lanes too
+pnpm run ci:local --list      # the lanes and commands, nothing run
+```
+
+A lane marked NOT RUN needed a tool this machine lacks (Chromium, WebGPU, ffmpeg) and has not been checked; CI will still run it. See `scripts/README.md`.
+
 **If you touched any `tool.json` or a catalog asset:** see section 3 above, `pnpm run build:catalog:all` and `pnpm run validate:catalog:all`, not the singular forms.
 
 **Linting is advisory.** `pnpm run lint` is Biome, and the baseline carries thousands of pre-existing findings. It is not a CI gate, a clean run is not a precondition for merging, and you should not spend your PR fixing the backlog. Keep the files you touched tidy and move on.

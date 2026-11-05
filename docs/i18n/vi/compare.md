@@ -44,7 +44,7 @@ Dùng độc lập giữ tệp trên thiết bị. Chọn dự án chung, một 
 
 Các giới hạn này áp dụng cho mọi trang trong bộ này, nên được nêu một lần ở đây:
 
-- **Work collab hiện chạy trên một nút máy chủ duy nhất.** Quy mô và lịch sử vận hành của chúng khác với các sản phẩm lưu trữ lâu đời. [Work status and roadmap](/info/work-status.html) ghi các giới hạn hiện tại.
+- **Lolly Work collab hiện chạy trên một nút máy chủ duy nhất.** Quy mô và lịch sử vận hành của chúng khác với các sản phẩm lưu trữ lâu đời. [Lolly Work status and roadmap](/info/work-status.html) ghi các giới hạn hiện tại.
 - **Site tại [lolly.work](https://lolly.work) là một sandbox demo.** Một bản triển khai tổ chức bền vững cần lưu trữ liên tục và một đơn vị vận hành; [Install Lolly Work](/info/work-install.html) đề cập cả hai.
 - **Không có phí giấy phép phần mềm theo chỗ ngồi** cho Lolly hay Lolly Work tự lưu trữ. Lưu trữ, bộ nhớ và vận hành vẫn tốn tiền.
 - **Một chữ ký không phải một người ký đáng tin.** Bên xác minh phải tin chứng chỉ đã ký tệp trước khi hiện người ký là đáng tin; [Content Credentials Identity](/info/content-credentials-identity.html) giải thích cách làm.

@@ -20,7 +20,7 @@
  */
 import type {
   AudioAPI, AudioSource, AudioAnalyseOpts, AudioAnalysis, AssetRef, AudioCleanOpts,
-  AudioDecodeOpts, AudioDecoded, AudioFinding,
+  AudioDecodeOpts, AudioDecoded, AudioFinding, AudioLoudness, AudioLoudnessOpts, AudioAlignOpts, AudioAlignment,
 } from '@lolly-tools/core/host-v1';
 import type { ZzfxSong } from '../../../../engine/src/zzfxm.ts';
 import { renderSong } from '../lib/zzfxm-render.ts';
@@ -139,6 +139,8 @@ interface Decoded {
   sampleRate: number;
   findings: AudioFinding[];
   run?: AudioDecoded['run'];
+  /** The song's scheduled notes and tempo, kept for a MIDI export. */
+  music?: { cps: number; notes: { synth: string; time: number; duration: number; note: number; velocity: number }[] };
 }
 
 /**
@@ -164,6 +166,7 @@ async function rondoDecoded(song: RondoSong, seconds: number | undefined): Promi
     sampleRate: r.sampleRate,
     findings: r.findings.map((f) => ({ code: f.code, message: f.message, parts: [...f.parts] })),
     run: { executionClass: r.run.executionClass, source: 'rondocode', version: RONDO_EXTENSION.version, seed: r.run.seed },
+    music: { cps: r.cps, notes: r.notes },
   };
 }
 
@@ -301,6 +304,18 @@ export function createAudioAPI(): Required<AudioAPI> {
       return runAudioClean(src, opts, toPcm);
     },
 
+    /** Full EBU R128 reading. The audio module runs in a worker, loaded on first use. */
+    async loudness(src: AudioSource, opts: AudioLoudnessOpts = {}): Promise<AudioLoudness> {
+      const { runLoudness } = await import('./audio-measure-run.ts');
+      return runLoudness(src, opts, toPcm);
+    },
+
+    /** Offset between two recordings of one event. */
+    async align(a: AudioSource, b: AudioSource, opts: AudioAlignOpts = {}): Promise<AudioAlignment | null> {
+      const { runAlign } = await import('./audio-measure-run.ts');
+      return runAlign(a, b, opts, toPcm);
+    },
+
     /**
      * PCM for any source this shell can play (v1.246). Recorded audio decodes
      * through the platform; ZzFXM songs and tracker modules render through their
@@ -312,7 +327,16 @@ export function createAudioAPI(): Required<AudioAPI> {
     async decode(src: AudioSource, opts: AudioDecodeOpts = {}): Promise<AudioDecoded> {
       const d = await decodeSource(src, opts.seconds);
       const frames = d.channels[0]?.length ?? 0;
+      let midi: Uint8Array | undefined;
+      if (opts.midi && d.music) {
+        // The render is quantised up to a half-second grid; the file stops where the call asked.
+        const end = opts.seconds ?? Number.POSITIVE_INFINITY;
+        const notes = d.music.notes.filter((n) => n.time < end).map((n) => ({ ...n, duration: Math.min(n.duration, end - n.time) }));
+        const { rondoMusicToMidi } = await import('../../../../engine/src/rondo-midi.ts');
+        midi = rondoMusicToMidi({ cps: d.music.cps, notes }, { ...(opts.midi.title !== undefined ? { title: opts.midi.title } : {}), ...(opts.midi.text !== undefined ? { text: opts.midi.text } : {}) });
+      }
       return {
+        ...(midi ? { midi } : {}),
         sampleRate: d.sampleRate,
         channels: d.channels,
         seconds: d.sampleRate > 0 ? frames / d.sampleRate : 0,

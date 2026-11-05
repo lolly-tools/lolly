@@ -17,14 +17,14 @@ lolly.tools otwiera się w **Lolly Demo**, własnym przykładowym systemie proje
 Wybierz drogę odpowiednią do tego, co masz:
 
 - <!--i:palette--> **Jeden kolor.** Otwórz **Design System Setup** (`#/start`), nazwij swój system projektowy i wybierz kolor podstawowy. Lolly wyprowadza z niego pełną, dostępną paletę, z jasnymi i ciemnymi powierzchniami, tekstem i akcentami. Wybierz czcionkę i masz działającą markę.
-- <!--i:upload--> **Plik tokenów.** **Add from…** na dole szyny pokoi w Design System Setup przyjmuje plik tokenów DTCG, Tokens Studio lub Penpot, plik SVG albo paczkę `LollyBrand`. Upuść go i paleta się wypełni. Dopóki system projektowy jest pusty, **Start from a reference** w pokoju Overview otwiera ten sam selektor.
+- <!--i:upload--> **Plik tokenów.** **Add from…** na pasku u góry Design System Setup przyjmuje plik tokenów DTCG, Tokens Studio lub Penpot, plik SVG albo paczkę `LollyBrand`. Upuść go i paleta się wypełni. Dopóki system projektowy jest pusty, **Start from a reference** w pokoju Board otwiera ten sam selektor.
 - <!--i:pentool--> **Gotowy projekt.** W Design wybierz **Import a design** i upuść plik `.fig`, `.penpot`, `.ai`, `.idml` lub SVG. Zobacz [Bring in what you already have](#bring-in-what-you-already-have) poniżej.
 
 Przy pierwszym otwarciu galerii krótkie powitanie oferuje te same wybory: **Make it yours** otwiera Design System Setup, **Bring your design** otwiera selektor plików dla projektu, a **Explore the community tools** zamyka powitanie.
 
 ![Pokój Colours w Design System Setup na świeżej instalacji: jeden żywy znacznik, jedno pole i cała pierwsza decyzja](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Stamtąd siedem pokoi zaprowadzi Cię tak daleko, jak chcesz, w dowolnej kolejności: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** i **Usage & rules**. Każdy podgląd w aplikacji aktualizuje się w trakcie pisania. [Design System Setup](/info/brand-studio.html) opisuje każdy pokój.
+Stamtąd osiem pokoi zaprowadzi Cię tak daleko, jak chcesz, w dowolnej kolejności: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** i **Skills**. Każdy podgląd w aplikacji aktualizuje się w trakcie pisania. [Lolly Design System Setup](/info/brand-studio.html) opisuje każdy pokój.
 
 Czcionki są przechowywane na Twoim urządzeniu. Wybierz czcionkę Google, a Lolly zapisze plik jako zasób marki, więc Twoja typografia podróżuje offline i nic nie jest pobierane, gdy narzędzie rysuje.
 
@@ -58,7 +58,7 @@ Nie zaczynasz od pustej strony.
 
 **Prezentacje.** Upuść PowerPoint `.pptx` na Lolly, aby zapisać jego slajdy jako zasoby, napisz nową prezentację z Markdown w **Markdown Slides** albo użyj [Rebrand a deck](/info/rebrand.html), aby przenieść całą prezentację na Twój system projektowy.
 
-**Dane.** Wklej lub upuść tabelę CSV albo JSON, a powtarzalne pola narzędzia wypełnią się z niej, lub użyj [Batch](/info/batch.html#make-many-versions-of-one-design), aby wygenerować jeden gotowy plik na wiersz.
+**Dane.** Wklej lub upuść tabelę CSV albo JSON, a powtarzalne pola narzędzia wypełnią się z niej, lub użyj [Lolly Batch](/info/batch.html#make-many-versions-of-one-design), aby wygenerować jeden gotowy plik na wiersz.
 
 ### Od jednorazowego projektu do szablonu
 
@@ -72,7 +72,7 @@ Zaimportowany układ to zwykła sesja Design. **Share with rules** zamienia go w
 
 - <!--i:download--> **Eksport.** Narzędzia tworzą SVG, PDF, PNG, JPG, WebP, wideo i inne, w formatach oferowanych przez każde narzędzie, w prawdziwych rozmiarach do druku, gdy ich potrzebujesz. Zobacz [Export a file](/info/exporting.html).
 - <!--i:link--> **Udostępnij link.** Ustawienia narzędzia podróżują w jego linku, więc link otwiera ten sam plik w dowolnym miejscu.
-- <!--i:layers--> **Jeden plik na wiersz.** Steruj narzędziem z arkusza kalkulacyjnego w [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Jeden plik na wiersz.** Steruj narzędziem z arkusza kalkulacyjnego w [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatyzuj.** To samo renderowanie działa z [CLI](/info/cli.html) i z [agenta AI](/info/ai-agents.html).
 
 Link to kompletne żądanie. Nikt nie rysował poniższego wykresu: jego typ, nagłówek i cała tabela danych zostały wpisane w pasek adresu, a ten sam link rysuje ten sam wykres na każdym urządzeniu.

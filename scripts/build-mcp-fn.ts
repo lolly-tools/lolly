@@ -116,10 +116,13 @@ await build({
 // the build here instead, where the cause is in view.
 const bundled = await readFile(outfile, 'utf-8');
 // Only import/require forms count: the tracer follows those, not the package
-// names node-shell prints in its "install X" refusals.
-const leaked = ABSENT_RUNTIMES.filter((p) =>
-  new RegExp(`(?:import|require)\\(\\s*["']${p.replace(/[/@.-]/g, '\\$&')}["']|from\\s*["']${p.replace(/[/@.-]/g, '\\$&')}["']`).test(bundled),
-);
+// names node-shell prints in its "install X" refusals. A require made with
+// createRequire, `createRequire(import.meta.url)('<pkg>')`, counts too: the alias
+// above never sees it, so it would load the real package wherever it is on disk.
+const leaked = ABSENT_RUNTIMES.filter((p) => {
+  const name = p.replace(/[/@.-]/g, '\\$&');
+  return new RegExp(`(?:import|require)\\(\\s*["']${name}["']|from\\s*["']${name}["']|createRequire\\w*\\([^()]*\\)\\(\\s*["']${name}["']`).test(bundled);
+});
 if (leaked.length) {
   console.error(`✗ api/mcp/[...path].js still references ${leaked.join(', ')} - the Vercel tracer would pack them into the function`);
   process.exit(1);

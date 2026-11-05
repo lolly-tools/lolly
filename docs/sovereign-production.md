@@ -54,7 +54,7 @@ Updates arrive the way any other controlled artefact does, in two separate strea
 - **The app** is rebuilt and redistributed on your schedule: a new static bundle to the internal host, or a new binary through your device management. Nothing updates itself across the gap.
 - **The tools** are data, so shipping one never redeploys the app. Merge the tool directory into the catalogue your instance serves, rebuild the catalog ([Publish and localize a tool](/info/tool-publishing.html)), and clients pick it up on their next sync. Keep that directory in Git if you want review and an audit trail; it is an option, not a requirement.
 
-For organisation services inside a restricted network, deploy Lolly Work with reachable internal identity, storage and asset providers; its [deployment guide](/info/work-deployment.html) covers that topology. Work collabs and shared saves need the service connection even when local tools are ready for offline use.
+For organisation services inside a restricted network, deploy Lolly Work with reachable internal identity, storage and asset providers; its [deployment guide](/info/work-deployment.html) covers that topology. Lolly Work collabs and shared saves need the service connection even when local tools are ready for offline use.
 
 ## Signing happens on the device
 
@@ -81,7 +81,7 @@ Exports are ordinary files too. PNG, SVG, PDF, WebP, TIFF and the rest open in s
 None of the above asks for trust. [Verify It Yourself](/info/verify-yourself.html) is the full list of procedures, with the exact commands and the output you should see. Four speak directly to this page:
 
 ::: timeline
-- <!--i:globe--> **Watch the network.** Open the app with DevTools on the Network tab and use a tool: type an address into QR Code, change colours, export a PNG. What you type appears in no request at all.
+- <!--i:globe--> **Watch the network.** Open the app with DevTools on the Network tab and use a tool: type an address into Lolly QR Code, change colours, export a PNG. What you type appears in no request at all.
 - <!--i:pause--> **Pull the plug.** Load the app, open a tool or two, then go offline and reload. Rendering and export keep working. An app that needs a server to do the work fails this check on the first render.
 - <!--i:server--> **Enumerate the server surface.** Compare the services you run with [Server surface](/info/server-surface.html) and, where deployed, Lolly Work's API and configuration, including its database, asset providers and render worker.
 - <!--i:clock--> **Work a day offline.** For an air-gapped site, turn on **Settings → Available offline**, disconnect the machine entirely and do a full day's work.

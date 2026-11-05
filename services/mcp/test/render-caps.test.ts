@@ -37,7 +37,7 @@ test('the preview draws in a child process: a picture it cannot draw fails alone
   assert.equal(w, 40, 'a small SVG is never scaled up');
 });
 
-test('a hosted lolly_render PNG is held to the area cap and says so', async () => {
+test('a hosted lolly_render PNG is held to the area cap and reports the cap', async () => {
   process.env.LOLLY_MCP_HOSTED = '1';
   try {
     const res = await callTool('lolly_render', { toolId: 'qr-code', inputs: { url: 'https://lolly.tools/cap' }, format: 'png', width: 6000, link: false });

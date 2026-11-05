@@ -53,8 +53,8 @@ test('a placed logo leads with its ink and sets the main and text colours', {
     const colours = page.locator('[data-be-logo-colours="color"]');
     await colours.waitFor({ state: 'visible' });
     const role = (name: string) => page.locator(`[data-be-pal] .be-swatch[aria-label^="${name} - "] .be-swatch-role`).first().innerText();
-    assert.equal(await role('Red'), 'P', 'the red carries the primary role');
-    assert.equal(await role('Warm Slate Grey'), 'T', 'the brown carries the text role');
+    assert.equal(await role('Red'), 'Primary', 'the red carries the primary role');
+    assert.equal(await role('Warm Slate Grey'), 'Text', 'the brown carries the text role');
 
     await colours.locator('[data-logo-colours-act="undo"]').click();
     await colours.locator('[data-logo-colours-act="use"]').waitFor();

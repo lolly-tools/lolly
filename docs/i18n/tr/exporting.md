@@ -82,6 +82,7 @@ Tasarım sisteminin yazı tipinde dizilmiş bir logotype, her harfi dış çizgi
 | Bir Premiere devri | **Premiere XML + media** | Premiere için zamanlanmış klipler ve özgün medya (Design) |
 | Sosyal medya ve paylaşım için video | **MP4** veya **WebM** | Dosya boyutuna göre en iyi kalite (bkz. [Video](#video)) |
 | Altyazılar | **SRT** veya **VTT** | Bir video oynatıcı için zamanlanmış metin (Captions, Audiogram ve Record) |
+| Yayın altyazıları | **TTML** veya **SCC** | IMSC1.1 zamanlanmış metin ya da CEA-608 pop-on altyazılar (Captions; bkz. [Yayın altyazıları](#broadcast-captions)) |
 | Bir eğitim kursu | **SCORM (LMS)** | Sürümlü bir web sitesi, SCORM veya xAPI paketi (bkz. [SCORM](#scorm-course-packages)) |
 | Zengin metin veya bir e-posta imzası | **HTML** | Posta istemcilerine biçimlendirilmiş olarak yapışır |
 | Düz içerik | **MD** veya **TXT** | Yalnızca metin |
@@ -131,9 +132,9 @@ Lolly'nin hacimli çalışmak için üç yolu vardır; her biri farklı bir iş 
 ## Bir tablo tek bir belge olur
 **Battlecards** gibi tablo girdili bir araç her satırı bir sayfaya çevirir. Elektronik tablondan bir tablo yapıştır ve tek bir PDF al. Satırları elektronik tabloda düzelt ve yeniden yapıştır.
 ## Bir CSV satır başına bir dosya olur
-**Batch** (`#/batch`) bir CSV alır ve her satır için bir dışa aktarma render eder: isim rozetleri veya sertifikalar, her biri bir dosya, bir ZIP içinde teslim edilir. Bkz. [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) bir CSV alır ve her satır için bir dışa aktarma render eder: isim rozetleri veya sertifikalar, her biri bir dosya, bir ZIP içinde teslim edilir. Bkz. [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Birkaç tasarım tek düzenleme alır
-**Multi-edit**, farklı tasarımlarda aynı rötuşu yapmak için birkaç kayıtlı oturumu yan yana açar. Bkz. [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit**, farklı tasarımlarda aynı rötuşu yapmak için birkaç kayıtlı oturumu yan yana açar. Bkz. [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 **Projects** içinden **Render folder**, bir klasördeki ve alt klasörlerindeki her kayıtlı oturumu iç içe tek bir ZIP olarak dışa aktarır ve **Render selection** herhangi bir çoklu seçim için aynısını yapar; tek bir kayıtlı oturum kendi dosyasına render edilir. Kayıtlı bir oturum ayrıca Projects içinden, aynı ayarlarla yeniden açan bir araç bağlantısı olarak yeniden paylaşılabilir.
@@ -169,7 +170,7 @@ SVG dışa aktaran araçların çoğu ayrıca Penpot'ta düzenlemeye devam etmey
 | Tüm tasarım | Assets panelinde yeniden kullanılabilir bir bileşen |
 | Karmaşık bir çizim veya canlı tuval | Kendi başına bir görsel olarak gömülür; çevresindeki düzenlenebilir içeriğe dokunulmaz |
 
-Design'dan her çerçeve bir Penpot panosu olur. Tasarım sisteminin renkleri ve tipografileri Assets paneline, tam token kümesi Tokens paneline iner. Penpot oradan kendi kopyasını tutar: Penpot'ta düzenlenen bir token, [Design System Setup](/info/brand-studio.html) içindeki içe aktarma yoluyla geri gelir.
+Design'dan her çerçeve bir Penpot panosu olur. Tasarım sisteminin renkleri ve tipografileri Assets paneline, tam token kümesi Tokens paneline iner. Penpot oradan kendi kopyasını tutar: Penpot'ta düzenlenen bir token, [Lolly Design System Setup](/info/brand-studio.html) içindeki içe aktarma yoluyla geri gelir.
 
 ![Penpot seçiliyken dışa aktarma paneli: .penpot dosyası ve indirmenin yanında Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Sonra desteklenen bir araçtan, bir proje klasöründen veya bir seçimden **Exp
 
 Paket bitmiş içeriğini tutar ve Lolly hesabı gerektirmez. Bir Website ZIP'ini bir HTTP(S) sunucusuna koy; bir LMS ZIP'ini değiştirmeden içe aktar. Kursu paylaşmadan önce hedefi test et. Birkaç kayıtlı yaratımdan kurulan bir kurs için bkz. [Create a training course](/info/training-creators.html).
 
+### Yayın altyazıları
+
+Captions aracı **TTML** ve **SCC** olarak da dışa aktarabilir. İkisi de SRT ve VTT dosyalarıyla aynı satır listesinden yazılır; bu yüzden sözcükler ve zamanlar eşleşir.
+
+- **TTML**, ortam zamanı saat değerleri ve alt ortada tek bir bölge içeren IMSC1.1 Text Profile'dır. Altyazı başına renk, yazı tipi ya da konum taşımaz, çünkü Lolly'nin altyazıları yalnızca bir başlangıç, bir bitiş ve metin tutar.
+- **SCC**, 1. kanalda saniyede 29,97 kare hızında ve drop-frame zaman koduyla CEA-608 pop-on altyazıları taşır. Temel Kuzey Amerika karakterlerini, özel ve genişletilmiş karakterlerle birlikte destekler. Bir altyazı, karakter takımının taşıyamadığı bir karakter içeriyorsa dışa aktarma durur ve hangi karakter olduğunu söyler; böylece hiçbir şey haber verilmeden atlanmaz. Her altyazı 32 sütunda ve en fazla 15 satırda kaydırılır. Başlangıç zamanından önce yüklenemeyen bir altyazı birkaç kare geciktirilir.
+- Roll-up ve paint-on altyazılar yazılmaz.
+
+SCC çıktısı gerçek bir yayın aracına ya da donanım kod çözücüsüne karşı denenmedi. Teslimattan önce bir dosyayı kendi iş akışında sına.
+
 ### DXF (kesim dosyaları)
 
 Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding ve Wordmark, lazer kesicilerin, vinil plotterların ve CNC yazılımlarının okuduğu AutoCAD R12 değişim biçimi olan **DXF** dışa aktarır. Geometri milimetre cinsinden dış çizgi yolları olarak yazılır, metin dış çizgilenir ve renk, genellikle kesicinin işlemini yöneten en yakın AutoCAD Color Index'e eşlenir. DXF yalnızca çizgi sanatıdır: fotoğrafik veya filtreli bir bölgenin kesim yolu yoktur ve bir uyarıyla bırakılır. Raster içeriği korumak için SVG veya PDF kullan.
@@ -214,7 +225,7 @@ Kaydır, ve kamera gerçek geometrinin içinden geri çekilir: yedi yol, hiçbir
 
 ## Baskı
 
-**Print PDF**, adlandırılmış bir baskı koşuluna karşı, varsayılan olarak **Coated FOGRA39** ile CMYK yazar. Ölçülmüş mürekkep değerli marka örnekleri tam olarak dönüştürülür; diğer renkler standart bir aygıt dönüşümü kullanır. **Print TIFF** bir RIP için DeviceCMYK pikselleri yazar ve aynı baskı koşulunu TIFF meta verisinde kaydeder. Colour profile denetimi ikisini de yönetir; ayrıntı [Colour profiles](#colour-profiles) altında.
+**Print PDF**, adlandırılmış bir baskı koşuluna karşı, varsayılan olarak **Coated FOGRA39** ile CMYK yazar. Ölçülmüş mürekkep değerli marka örnekleri bu değerleri korur. Diğer renkler bir baskı profili üzerinden dönüştürülür: varsayılan olarak Lolly'nin kendi Coated FOGRA39 profili ya da **Embed** satırını seçtiğinde kendi profilin. Griler ve siyah yalnızca siyah plakada kalır; böylece küçük yazılarda çakışma hatası olmaz. FOGRA51, SWOP ve GRACoL standart bir aygıt dönüşümü kullanır. **Print TIFF** bir RIP için DeviceCMYK pikselleri yazar ve aynı baskı koşulunu TIFF meta verisinde kaydeder. Colour profile denetimi ikisini de yönetir; ayrıntı [Colour profiles](#colour-profiles) altında.
 
 **Print marks & bleed** baskı biçimlerinde kendi kartına sahiptir: milimetre cinsinden taşma payı ve Crop, Registration, Bleed, Colour bars ile Stamp ayrıntıları.
 
@@ -223,6 +234,15 @@ Bazı araçlar **çok sayfalı bir PDF** kurar: bir kapak, gerektiği kadar sayf
 **Before you export.** Panelin altındaki **Before you export** kartı, bir matbaanın göreceği şeyi söyler: biçim, boyut ve taşma payı, kesim ve taşma alanları, mürekkep kapsama, plaka sayıları ve sayfa sayısı; başlığının yanında bir kararla. Asla bir dışa aktarmayı engellemez. Design, tasarım sisteminin kurumsal stil kurallarını katman katman ve belgenin metni için yazım sinyalini içeren kendi denetimleriyle kartı her zaman gösterir ([Before you export](/info/design.html#before-you-export)) ve **Print preflight** açıkken bu baskı denetimlerini ekler. Diğer araçlarda Settings → Preferences → Feature flags altında **Print preflight** aç; varsayılan olarak kapalıdır ve bir Lolly Work dağıtımı bunu üyeleri için açabilir.
 
 **After you export.** Dosya hazır olduğunda Lolly onu geri okur ve seçtiklerinle karşılaştırır: biçim, piksel veya sayfa boyutu, klip uzunluğu, saydam arka plan, CMYK renk, HDR, Content Credentials ve bir PDF veya ZIP parolası. Farklı olan her şey dışa aktarma kartına yazılır. Her ölçüm ayardan değil dosyadan gelir ve dosyanın yanıtlayamadığı bir özellik eşleşme sayılmaz. Komut satırı tam karşılaştırmayı `--export-report` ile yazar (bkz. [Render with the CLI](/info/cli-rendering.html)).
+
+**PDF erişilebilirlik denetimleri.** Bir PDF için komut satırı, `--export-report` dosyasında `pdfAccessibility` altında 32 erişilebilirlik denetimini de listeler. Her denetimin bir kimliği, sade bir açıklaması, bir sonucu ve dosyada sorunu nerede bulduğu bilgisi vardır:
+
+- **Geçti**: denetim bir şeye baktı ve yanlış bir şey bulmadı.
+- **Başarısız**: denetim bir sorun buldu. Sayfa numaraları veya etiketleri listelenir.
+- **Geçerli değil**: dosyada bakılacak o türden bir şey yoktu; örneğin tablosu olmayan bir dosyada tablo denetimleri. Bu, dosya hakkında bir şey söylemez.
+- **Bir kişi gerekli**: altı denetim bir program tarafından değerlendirilemez (okuma sırası, renk kontrastı, yanıp sönme, betikler, zaman sınırları ve tekrarlanan bağlantılar).
+
+Liste bir hüküm değildir. Bir PDF'in PDF/UA'ya uyduğunu ya da yardımcı teknoloji kullanan kişilerin onu kullanabileceğini söylemez; dosyayı bir ekran okuyucuyla kontrol etmek için yine de bir kişi gerekir. Lolly'nin kendi PDF'leri bugün etiketleme denetimlerinden geçemiyor, çünkü dışa aktarıcılar henüz etiket yazmıyor. Denetim dosyayı cihazında okur ve hiçbir şeyi değiştirmez. Parola gerektiren dosyalar geçti değil, denetlenmedi olarak adlandırılır. Sana gönderilen bir PDF'i denetlemek için onu [Strip Hidden Data](/info/utilities.html) aracına bırak; aynı listeyi **PDF accessibility checks** altında gösterir.
 
 Design'ın denetleyici denetimleri ve Design System Setup'taki marka karşılaştırması ayrı denetimlerdir: tasarıma bakarlar, bu iki kart ise dosyaya.
 
@@ -280,7 +300,7 @@ Dışa aktarmalar bir renk profiliyle etiketlenir; böylece matbaalar, Photoshop
 - **SVG**, **EMF**, **EPS** ve **DXF**, gömülü profili olmayan vektörlerdir: SVG'nin renkleri sRGB'dir, EMF ve EPS aygıt RGB'sini kullanır, **EPS (CMYK)** DeviceCMYK yazar ve DXF AutoCAD Color Index kullanır. SVG, EPS ve DXF metni yollara dış çizgiler. EMF metni Office ve Google Slides'ta canlı ve düzenlenebilir tutar, yalnızca biçimin ifade edemediği parçalar için dış çizgilere döner; dışa aktarma panelinin **Outline fonts** seçeneği her yerde yolları zorlar. SVG ayrıca CSS kutu gölgelerini, içte ve dışta yeniden üretir.
 
 ::: details PDF/X-4 ve kendi baskı profilin
-Lolly ile hiçbir CMYK profili gelmez. Adlandırılmış bir baskı koşulu, PDF/X-4 uyumluluğunu iddia etmeden çıktı amacını yazar, çünkü PDF/X-4 profilin gömülmesini ister.
+Lolly, Fogra'nın FOGRA39 karakterizasyon verisine uydurulmuş ve CC0 altında yayımlanmış tek bir CMYK profiliyle gelir ve varsayılan baskı koşulu için renkleri bu profil üzerinden dönüştürür. Profil gömülmez, çünkü ICC sürüm 4.3'tür ve PDF/X-4 en fazla 4.2 sürümünü kabul eder. Bu yüzden adlandırılmış bir baskı koşulu, PDF/X-4 uyumluluğunu iddia etmeden çıktı amacını yazar.
 
 Kendi CMYK profilini yükle ve Colour profile denetiminde **Embed** satırını seç. Dosyanın *DestOutputProfile* değeri olarak gömülür ve dosyanın geri kalanı izin verdiğinde PDF, PDF/X-4 iddiasında bulunur. Bildirdiği baskı koşulu o profilden okunur: profilin kanıtladığı yerde kayıtlı bir ad ya da profilin kendi adı altında `Custom`.
 
@@ -400,8 +420,8 @@ Bunlar URL `format=` parametresi ve CLI `--export=` bayrağı için değerlerdir
 | Vektör | `svg` · `svgz` (gzip'lenmiş SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (kesim dosyası) |
 | Sayfa ve belge | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot tasarım dosyası) · `scorm` (kurs paketi, bir ZIP) |
 | Hareket | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Ses | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Metin ve veri | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP palette) |
+| Ses | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (Rondocode'dan MIDI notaları) |
+| Metin ve veri | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | Paketler ve bundle'lar | `zip` · `rpm` ve `tar.gz` (render, bir Linux paketine mühürlenmiş) |
 
 Birkaç kimlik bir aracın kendi dışa aktarma kodundan gelir: `ase` (Palette Lab'den Adobe Swatch Exchange) ve `exr` ile `hdr` (Darkroom'dan yüksek dinamik aralıklı rasterler). **Convert Font** sağladığın bir yazı tipi dosyasından `ttf`, `otf` ve `woff` yazar; bu yüzden çıplak bir bağlantının render edecek bir şeyi yoktur.

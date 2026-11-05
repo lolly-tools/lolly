@@ -1,0 +1,13 @@
+[package]
+name = "cadcraft-dxf"
+version = "0.15.1"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+publish = false
+description = "Standalone DXF tag reader/writer (ASCII and binary, pre-2007 code pages), from the published DXF reference (Lolly copy)"
+
+[dependencies]
+thiserror = "2"
+log = "0.4"
+encoding_rs = "0.8.35"

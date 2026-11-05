@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
-import { readPremiereXml, premiereSequenceValues } from '../../../../engine/src/premiere-xml.ts';
+import { premiereSequenceValues } from '../../../../engine/src/premiere-xml.ts';
+import { readTimeline } from '../../../../engine/src/timeline-import.ts';
 import { readZip } from '../../../../engine/src/zip.ts';
 import { choiceDialog } from '../components/confirm-dialog.ts';
 import { t } from '../i18n.ts';
@@ -53,14 +54,14 @@ export async function importPremiereFile(
     if (bytes.length > 8 * 1024 * 1024) throw new Error(t('Choose XML smaller than 8 MB.'));
     xml = new TextDecoder().decode(bytes);
   }
-  const sequence = readPremiereXml(xml, (s) =>
-    new DOMParser().parseFromString(s, 'application/xml')
-  );
+  const { sequence } = readTimeline(xml, {
+    parse: (s) => new DOMParser().parseFromString(s, 'application/xml'),
+  });
   if (interactive && !sources.size && sequence.clips.length) {
     const answer = await choiceDialog({
       title: t('Sequence media'),
       message: t(
-        'Select the media files referenced by this XML, or continue with labelled placeholders.'
+        'Select the media files referenced by this timeline, or continue with labelled placeholders.'
       ),
       choices: [
         { id: 'select', label: t('Select media files') },

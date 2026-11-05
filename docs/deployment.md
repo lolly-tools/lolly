@@ -62,7 +62,7 @@ The CSP matters most, and not for the reason you might expect. Tool hooks run th
 
 `deploy/docker/security-headers.conf` is the copyable form: six `add_header … always` lines plus an `include` of the cache headers in `deploy/docker/delivery-headers.conf`, ready to translate into whatever your host uses. With nginx, take the whole file rather than retyping the lines. nginx drops **all** inherited `add_header` directives inside any location that declares one of its own, so a location that sets `Cache-Control` ships with no security headers unless it `include`s them again.
 
-**One path gets a second policy.** `/any-site/` serves the app under the same policy with one change: `frame-src` admits any `https:` page and the loopback. A person's **Allow pages from any site** setting (Settings, Trusted sites) reloads the app at that path, so Design can show pages beyond the few video and map players the base policy allows. The reference nginx configurations express this as a second entry in the `$lolly_csp` map keyed on `$request_uri`; the YunoHost package uses `conf/any-site-headers.inc` with its own location.
+**One path gets a second policy.** `/any-site/` serves the app under the same policy with one change: `frame-src` admits any `https:` page and the loopback. A person's **Allow pages from any site** setting (Settings, Trusted sites) reloads the app at that path, so Lolly Design can show pages beyond the few video and map players the base policy allows. The reference nginx configurations express this as a second entry in the `$lolly_csp` map keyed on `$request_uri`; the YunoHost package uses `conf/any-site-headers.inc` with its own location.
 
 Serve the pair together. To withdraw the option, give `/any-site/` the base policy: the app reads the policy that path really carries and offers the setting only where `frame-src` admits `https:`. Never leave `/any-site/` with no policy at all, because a path with no Content-Security-Policy restricts nothing and the app treats the option as offered.
 
@@ -120,7 +120,7 @@ For the people you serve, link to [Use Lolly at your organisation](/info/organis
 | **Lolly Work** (`lolly-work_ynh`) | You want server features, sign-in with host accounts and shared projects. Recommended for most self-hosters. |
 | **Static Lolly** (`lolly_ynh`) | You only want to serve the app; people work on their own devices with no Lolly Work service or database. |
 
-The static package lives in this repository at `deploy/yunohost/` and is mirrored to [lolly-tools/lolly_ynh](https://github.com/lolly-tools/lolly_ynh). It downloads a prebuilt web archive, serves it through nginx and uses the normal YunoHost app permission. It is public by default and takes a whole domain, and on-device models load from `lolli.li` when first used. Install it only if that static setup is what you need:
+The static package lives in this repository at `deploy/yunohost/` and is mirrored to [lolly-tools/lolly_ynh](https://github.com/lolly-tools/lolly_ynh). It downloads a prebuilt web archive, serves it through nginx and uses the normal YunoHost app permission. It is public by default and takes a whole domain, and on-device models load from `lolli.li` when first used unless you choose to keep them on your server (see `deploy/yunohost/doc/ADMIN.md`). Install it only if that static setup is what you need:
 
 ```bash
 sudo yunohost app install https://github.com/lolly-tools/lolly_ynh

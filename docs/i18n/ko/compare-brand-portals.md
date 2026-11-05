@@ -6,7 +6,7 @@ _최종 확인일: 2026년 9월 28일._
 
 ## 기존 포털이 더 잘하는 것
 
-기존 포털은 관리형 호스팅, 지원, 광범위한 에셋 관리 워크플로를 제공해요. 예를 들어 [Frontify의 엔터프라이즈 DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management)은 에셋 검색, 접근 제어, 승인 워크플로, 배포를 결합해요. Lolly 스택은 더 젊고 승인 체인은 임의의 분기 워크플로가 아니라 순차적이에요. [Work 상태와 로드맵](/info/work-status.html)이 배포 한계를 기록해요.
+기존 포털은 관리형 호스팅, 지원, 광범위한 에셋 관리 워크플로를 제공해요. 예를 들어 [Frontify의 엔터프라이즈 DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management)은 에셋 검색, 접근 제어, 승인 워크플로, 배포를 결합해요. Lolly 스택은 더 젊고 승인 체인은 임의의 분기 워크플로가 아니라 순차적이에요. [Lolly Work 상태와 로드맵](/info/work-status.html)이 배포 한계를 기록해요.
 
 ## 겹치는 부분
 

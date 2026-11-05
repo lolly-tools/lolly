@@ -17,7 +17,7 @@ import { PEN_KINDS, alignPoints, convertKind, decodePathContours, defaultContinu
 import type { InsertResult, NodeAlignEdge, PenPointRef } from '../free-canvas-pen.ts';
 import { announce } from '../../a11y.ts';
 import { escape as escapeText } from '../../utils.ts';
-import { t, tRaw } from '../../i18n.ts';
+import { t, tRaw, tn } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { centreCtxBar, ctxTopBand } from './shared.ts';
 import type { PenPart, Point, PopItem } from './shared.ts';
@@ -43,18 +43,18 @@ export function penKindLabels(_fc: FcCtx): Record<string, string> {
  * there is a draft - so choosing the type meant drawing a path in the wrong one first
  * and converting, and `hyperbezier → cubic` is the only conversion that is lossless.
  * Picking up the pen already knowing what you want to draw is the normal case for
- * tracing, so it gets a normal path to it.
+ * tracing, so it gets a normal path to it: these rows sit at the foot of the rail's pen
+ * slot menu (pencil.ts), under the Pen and the Pencil, one radio per type with the current
+ * one checked.
  */
-export function openPenKindMenu(fc: FcCtx, anchor: HTMLElement): void {
+export function penKindItems(fc: FcCtx): PopItem[] {
   const labels = penKindLabels(fc);
-  fc.menus.spawnPopover(
-    anchor,
-    PEN_KINDS.map((k) => ({
-      label: labels[k] || k,
-      on: k === fc.penDrawKind,
-      run: () => setPenDrawKind(fc, k),
-    }))
-  );
+  return PEN_KINDS.map((k) => ({
+    label: labels[k] || k,
+    key: `spline-${k}`,
+    on: k === fc.penDrawKind,
+    run: () => setPenDrawKind(fc, k),
+  }));
 }
 /** Choose the type and arm the pen, so the menu leaves you ready to draw rather than
  *  back where you started. An in-progress draft follows the choice, exactly as it does
@@ -1236,9 +1236,7 @@ export function buildPenCtxBar(fc: FcCtx, p: AuthoredPath): void {
     `<button type="button" class="fc-cbtn" data-pen="done" data-tip="${escapeText(drawing ? t('Finish this path (Enter)') : t('Finish editing points (Esc)'))}" aria-label="${escapeText(drawing ? t('Finish this path') : t('Finish editing points'))}">${icon(SVG.penDone)}</button>` +
     `<span class="fc-readout">${escapeText(
         drawing
-          ? p.nodes.length === 1
-            ? t('1 point - hold Alt for a corner')
-            : t('{n} points - hold Alt for a corner', { n: p.nodes.length })
+          ? tn('1 point - hold Alt for a corner', '{n} points - hold Alt for a corner', { n: p.nodes.length })
           : selN
             ? t('{k} of {n} points', { k: selN, n: p.nodes.length })
             : t('{n} points', { n: p.nodes.length })
@@ -1304,7 +1302,7 @@ export function positionPenCtxBar(fc: FcCtx): void {
 export function penToolOps(fc: FcCtx) {
   return {
     penKindLabels: bindOp(fc, penKindLabels),
-    openPenKindMenu: bindOp(fc, openPenKindMenu),
+    penKindItems: bindOp(fc, penKindItems),
     setPenDrawKind: bindOp(fc, setPenDrawKind),
     penScale: bindOp(fc, penScale),
     penTol: bindOp(fc, penTol),

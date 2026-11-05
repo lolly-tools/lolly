@@ -10,9 +10,9 @@ Esta página percorre o canvas da primeira caixa até um deck pronto: a janela, 
 
 A **barra superior** começa com **Home**, o **File menu** e o nome do documento (clique no nome para renomear o documento). No meio ficam **Undo**, **Redo**, **History**, os controles de zoom (com **Fit all** e **Fit artboard**) e alternadores para a **Timeline**, o **Navigator** e o **Inspector**. À direita ficam **Share**, **Present** e **Export**. No celular, os botões menos usados vão para **More actions**.
 
-A **barra de ferramentas** na lateral reúne o menu Lolly e as ferramentas com que você desenha: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, e depois os botões Timeline, Artboards e Auto-arrange.
+A **barra de ferramentas** na lateral reúne o menu Lolly e as ferramentas com que você desenha: **Pointer**, **Add a box**, **Pen** (que divide o botão com o **Pencil**), **Edit points**, **Line**, e depois os botões Timeline, Artboards e Auto-arrange.
 
-![A barra de ferramentas da tela livre: uma alça de arraste, o menu do Lolly, depois Ponteiro, Adicionar uma caixa, Caneta, Lápis, Editar pontos, Linha, Linha do tempo, Pranchetas e Organizar automaticamente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![A barra de ferramentas da tela livre: uma alça de arraste, o menu do Lolly, depois Ponteiro, Adicionar uma caixa, Caneta, Editar pontos, Linha, Linha do tempo, Pranchetas e Organizar automaticamente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 O canvas funciona como a mesa de trabalho de um designer ao redor da prancheta:
 
@@ -79,7 +79,7 @@ Caixas, círculos e molduras arredondadas cobrem a maioria dos layouts. Para qua
 
 **Continue um caminho aberto.** Com a Pen ativa, pressione em qualquer extremidade de um caminho aberto e você volta a desenhar esse caminho: cada clique acrescenta um ponto depois dessa extremidade, ou antes do primeiro ponto quando você começou pelo início. Enter mantém o resultado e Escape deixa o caminho exatamente como estava. O caminho continua sendo a mesma caixa, com o preenchimento, o traço e as pontas de seta, e um único desfazer o devolve. Delete desfaz apenas os pontos que você acrescentou. Uma forma fechada, uma linha presa a uma caixa e um caminho com várias partes não têm extremidade livre para continuar.
 
-**Desenhe à mão livre com o Pencil.** O botão **Pencil** da barra (ou `Shift C`) grava o seu traço enquanto você arrasta. Ao soltar, o Lolly suaviza o traço em poucos pontos com alças Bezier, mantém as curvas fechadas como cantos e mantém a curva a poucos pixels de tela de onde a sua mão passou. Um traço que termina perto do início se fecha. O resultado é um caminho comum, com o mesmo preenchimento de um caminho da caneta, e você pode editar os pontos dele depois.
+**Desenhe à mão livre com o Pencil.** Pressione `Shift C`, ou mantenha pressionado o botão **Pen** na barra (ou clique com o botão direito nele) e escolha **Pencil**; o botão passa a mostrar o Pencil até você escolher o Pen de novo. O Pencil grava o seu traço enquanto você arrasta. Ao soltar, o Lolly suaviza o traço em poucos pontos com alças Bezier, mantém as curvas fechadas como cantos e mantém a curva a poucos pixels de tela de onde a sua mão passou. Um traço que termina perto do início se fecha. O resultado é um caminho comum, com o mesmo preenchimento de um caminho da caneta, e você pode editar os pontos dele depois.
 
 O resultado é uma caixa comum. Mova, redimensione, gire, agrupe, alinhe, reordene, preencha, sombreie ou esmaeça o caminho como qualquer outra caixa. O primeiro caminho recebe o preenchimento e o traço que a sua marca dá a um caminho, e cada novo caminho depois dele recebe o que você usou por último. Em uma ferramenta cuja marca não define nada para caminhos, um novo caminho recebe um traço na cor com que você desenhou, para que a forma nunca fique invisível.
 
@@ -121,6 +121,25 @@ Mais três funcionam em uma única forma. **Outline stroke…** transforma um tr
 ![Um crescente e um anel com um furo de verdade, ambos produzidos por Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 O resultado é um novo caminho que você pode continuar editando com a caneta, armazenado como curvas Bezier simples, então o tipo de spline original não se mantém. Os furos são furos de verdade: o controle **Fill rule** no painel de traço decide se contornos sobrepostos preenchem (*non-zero*) ou perfuram (*even-odd*). As operações recusam em vez de destruir: peça a interseção de duas formas que não se sobrepõem e nada muda. Caixas de texto e de imagem não têm contorno, então são deixadas de lado.
+
+## Vetorizar uma imagem
+
+Selecione uma imagem, clique nela com o botão direito e escolha **Vetorizar imagem…** para transformá-la em formas editáveis. Escolha uma predefinição e pressione **Vetorizar**:
+
+- **Logotipo** encontra algumas cores chapadas e mantém bordas nítidas e círculos e linhas exatos. Recusa uma imagem com gradientes ou tons de foto e avisa você.
+- **Ilustração** vetoriza várias cores como formas preenchidas, para arte chapada ou uma imagem posterizada.
+- **Arte de linha** vetoriza linhas escuras em uma página clara como formas pretas.
+- **Linha central** vetoriza linhas escuras como traços únicos, para você mudar a espessura depois.
+
+As formas são adicionadas como um grupo logo acima da imagem, que continua onde está. Oculte ou exclua a imagem para ver só os caminhos. A vetorização roda no seu dispositivo em uma tarefa em segundo plano com um botão Cancelar, e nada é enviado. Uma imagem de 1500 pixels costuma levar de um a vários segundos, e uma foto cheia de detalhes leva mais.
+
+A vetorização segue o que a caixa mostra, então uma imagem cortada (Cover) vetoriza só a parte visível. Estes limites se aplicam:
+
+- As imagens são reduzidas a no máximo 1500 pixels no lado maior antes da vetorização, então as bordas são posicionadas com uma fração desse tamanho, não do original.
+- Uma vetorização cria no máximo 1.500 formas e 60.000 pontos. Uma foto geralmente passa disso, e o Design avisa sem alterar nada. Experimente Logotipo ou Arte de linha, ou uma imagem mais simples.
+- Gradientes viram faixas de cor chapada, e sombras suaves viram formas de borda dura.
+- Raio dos cantos, máscara de forma e efeito na caixa da imagem não são aplicados aos caminhos.
+- A mesma imagem e a mesma predefinição sempre dão as mesmas formas.
 
 ## Traçados
 
@@ -195,9 +214,9 @@ Onde existe uma sugestão concreta de cor ou fonte, o botão dela altera aquela 
 
 ### Regras da casa e o sinal de escrita
 
-O cartão do painel de exportação também verifica as regras da casa que o seu sistema de design traz, como peso e alinhamento do texto, combinações de cores aprovadas ou um logotipo por superfície, camada por camada. Cada achado é um aviso, com o nome da camada acima da regra. Uma regra para a qual esta versão não tem verificador é listada como não verificada, nunca como cumprida. [Usage & rules](/info/brand-studio.html#usage-rules) lista as regras, e o `lolly check` aplica as mesmas a um documento salvo.
+O cartão do painel de exportação também verifica as regras da casa que o seu sistema de design traz, como peso e alinhamento do texto, combinações de cores aprovadas ou um logotipo por superfície, camada por camada. Cada achado é um aviso, com o nome da camada acima da regra. Uma regra para a qual esta versão não tem verificador é listada como não verificada, nunca como cumprida. [Rules](/info/brand-studio.html#rules) lista as regras, e o `lolly check` aplica as mesmas a um documento salvo.
 
-O mesmo cartão mostra o sinal de escrita do texto que o documento desenha: a faixa dele (none, weak, notable ou strong), depois a frase do próprio Verify com a nota de 0 a 100 e até três trechos sinalizados, cada um com a camada que os contém. **Open the text in Verify** leva esse texto ao [Verify](/#/verify) para a leitura completa; [AI evidence in Verify](/info/verify-ai-evidence.html) explica o que a nota pesa. A nota é um sinal, não um veredito: ela conta padrões comuns em textos gerados e não consegue dizer quem escreveu as palavras. Camadas ocultas ficam fora das duas verificações, e o cartão diz quantas são.
+O mesmo cartão mostra o sinal de escrita do texto que o documento desenha: a faixa dele (none, weak, notable ou strong), depois a frase do próprio Verify com a nota de 0 a 100 e até três trechos sinalizados, cada um com a camada que os contém. **Open the text in Verify** leva esse texto ao [Lolly Verify](/#/verify) para a leitura completa; [AI evidence in Verify](/info/verify-ai-evidence.html) explica o que a nota pesa. A nota é um sinal, não um veredito: ela conta padrões comuns em textos gerados e não consegue dizer quem escreveu as palavras. Camadas ocultas ficam fora das duas verificações, e o cartão diz quantas são.
 
 Os achados de regras da casa e um sinal de escrita forte entram na contagem "to fix" do cartão para serem fáceis de encontrar. Eles informam e nunca bloqueiam: o Download continua disponível, e não há nada a dispensar nem a registrar como exceção. Um agente que trabalha no documento aberto recebe o mesmo relatório por suas ferramentas do site ([Agents in an open document](/info/open-document-agents.html)).
 

@@ -547,6 +547,27 @@
       }
     },
     {
+      "token": "Affinity",
+      "name": "Affinity",
+      "category": "Vector",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "layers",
+        "editable-text",
+        "embeds-bitmaps"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Document metadata, such as the folder a file was saved in or user names, is never imported."
+      }
+    },
+    {
       "token": "HEIC",
       "name": "HEIC",
       "category": "Raster",
@@ -566,6 +587,48 @@
         "writes": [],
         "preserves": "n/a",
         "note": "The HEIF Exif and XMP items are read (authorship, capture data, GPS) - the source of the image converter's carry for iPhone photos. Lolly does not write HEIC."
+      }
+    },
+    {
+      "token": "DNG",
+      "name": "DNG",
+      "category": "Raster",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "raster",
+        "deep-color"
+      ],
+      "metadata": {
+        "reads": [
+          "exif"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Camera, lens settings and capture time are read for the import report. The developed picture is stored without them. Lolly does not write DNG."
+      }
+    },
+    {
+      "token": "Camera RAW",
+      "name": "Camera RAW",
+      "category": "Raster",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "raster",
+        "deep-color"
+      ],
+      "metadata": {
+        "reads": [
+          "exif"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Camera and exposure details are read for the import report. The developed picture is stored without them. Lolly does not write camera raw formats."
       }
     },
     {
@@ -630,6 +693,66 @@
       }
     },
     {
+      "token": "MXF",
+      "name": "MXF",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "ProRes",
+      "name": "Apple ProRes",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "DNx",
+      "name": "Avid DNxHD / DNxHR",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
       "token": "Lottie",
       "name": "Lottie",
       "category": "Motion",
@@ -666,6 +789,63 @@
         "writes": [],
         "preserves": "none",
         "note": "sequence.xml carries the sequence name and clip timing, not document metadata. When the export has metadata, it travels as lolly-metadata.json inside the package."
+      }
+    },
+    {
+      "token": "EDL",
+      "name": "EDL",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The list names reels and timecode only. Media is relinked by the file you select or left as labelled placeholders."
+      }
+    },
+    {
+      "token": "OpenTimelineIO",
+      "name": "OpenTimelineIO",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Reads the JSON schema as plain data and never runs a plugin or adapter. Media paths come from the ExternalReference target."
+      }
+    },
+    {
+      "token": "FCPXML",
+      "name": "FCPXML",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Reads one sequence from a plain .fcpxml file; the .fcpxmld bundle is not read. Media comes from the asset sources."
       }
     },
     {
@@ -760,10 +940,10 @@
       "token": "MIDI",
       "name": "MIDI",
       "category": "Audio",
-      "dir": "in",
+      "dir": "both",
       "reads": true,
-      "writes": false,
-      "roundTrips": false,
+      "writes": true,
+      "roundTrips": true,
       "features": [
         "audio",
         "sequenced"
@@ -771,7 +951,8 @@
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a"
+        "preserves": "none",
+        "note": "A Standard MIDI File has no place for a Content Credential, so Lolly Rondocode writes a text event naming the song instead. Importing a .mid never rewrites it: the original bytes are kept."
       }
     },
     {
@@ -951,10 +1132,10 @@
       "token": "DXF",
       "name": "DXF",
       "category": "Vector",
-      "dir": "out",
-      "reads": false,
+      "dir": "both",
+      "reads": true,
       "writes": true,
-      "roundTrips": false,
+      "roundTrips": true,
       "features": [
         "vector",
         "text-as-paths",
@@ -963,8 +1144,8 @@
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a",
-        "note": "A 999 comment names Lolly."
+        "preserves": "none",
+        "note": "A 999 comment names Lolly on export. An import reads layers, units and text and drops other record data."
       }
     },
     {
@@ -1263,6 +1444,42 @@
         "writes": [],
         "preserves": "none",
         "note": "NOTE, STYLE and REGION blocks are skipped on the way in. Lolly writes the WEBVTT header and cues only."
+      }
+    },
+    {
+      "token": "TTML",
+      "name": "TTML",
+      "category": "Data",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "A TTML file from Lolly is cues and text only, with no metadata block."
+      }
+    },
+    {
+      "token": "SCC",
+      "name": "SCC",
+      "category": "Data",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "An SCC file is caption control codes and text only, with no metadata block."
       }
     },
     {

@@ -7,6 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   withLogoToken, logoGroupOf, LOGO_VARIANTS, splitVariant, variantLabel, isReverseTreatment,
   LOGO_SLUG_RE, LOGO_DEFAULT_IDENTITY, isCanonicalVariant, logoAssetId, parseLogoAssetId,
@@ -261,6 +262,31 @@ test('installLogo refuses cross-shape collisions in the asset.logo namespace', a
   assert.deepEqual(slots.map(s => `${s.identity}/${s.variant}`).sort(), ['default/crest', 'sub-brand/acme']);
 });
 
+test('the blank starter\'s stand-in marks never fill the person\'s slots, and tools keep them', async () => {
+  // The real starter document: every slot points at Lolly's swirl so a tool that
+  // draws a logo still has one (it resolves {asset.logo.*} through the tokens
+  // bridge, not through this list).
+  const starterUrl = new URL('../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url);
+  const starter = JSON.parse(readFileSync(starterUrl, 'utf8'));
+  const declared = logoGroupOf(starter);
+  assert.ok(declared && Object.keys(declared).filter(k => !k.startsWith('$')).length === 8, 'tools still find a mark in every slot');
+  const host = memoryHost();
+  const catalog = new Map<string, Blob>([
+    ['lolly/tokens/brand', new Blob([JSON.stringify(starter)])],
+    ...['primary', 'reverse', 'mono', 'mono-reverse'].map(v => [`lolly/logo/${v}`, new Blob(['<svg/>'], { type: 'image/svg+xml' })] as [string, Blob]),
+  ]);
+  const assets = host.assets as typeof host.assets & Record<string, unknown>;
+  const ownBlob = assets._getBlob as (id: string) => Promise<Blob | null>;
+  assets._findMetaByType = async (_type: string, opts?: { catalogOnly?: boolean }) => (opts?.catalogOnly ? { id: 'lolly/tokens/brand' } : null);
+  assets._getBlob = async (id: string) => (await ownBlob(id)) ?? catalog.get(id) ?? null;
+
+  assert.deepEqual(await listLogos(host), [], 'every slot reads empty: Lolly\'s mark is not the person\'s logo');
+  await installLogo(host, 'vertical-primary', png('mine.png'));
+  const mine = await listLogos(host);
+  assert.deepEqual(mine.map(s => [s.variant, s.shipped]), [['vertical-primary', undefined]], 'only the mark they placed shows');
+  for (const s of mine) URL.revokeObjectURL(s.url);
+});
+
 test('while the shipped system is active, empty slots show its catalog marks, and the person\'s own still win', async () => {
   const host = memoryHost();
   const catalog = new Map<string, Blob>([
@@ -288,4 +314,53 @@ test('while the shipped system is active, empty slots show its catalog marks, an
   assert.equal(horizontal.shipped, undefined, 'an uploaded mark replaces the shipped one');
   assert.equal(mixed.find(s => s.variant === 'vertical-primary')?.shipped, true, 'and the other slot keeps the shipped mark');
   for (const s of mixed) URL.revokeObjectURL(s.url);
+});
+
+test('a copy of the shipped system lists the marks it kept, and a copy of the blank starter lists none', async () => {
+  // The person's first edit of Lolly Demo writes a head of their own that keeps the
+  // shipped logo tokens, which name catalog assets. Tools draw those marks, so the
+  // Logos room and the Board list them, flagged as shipped (not the person's file).
+  const demo = { $themes: [{ name: 'light', selectedTokenSets: { base: 'source' } }], base: { asset: { logo: {
+    'horizontal-primary': { $type: 'asset', $value: 'lolly/logo/horizontal' },
+    'vertical-primary': { $type: 'asset', $value: 'lolly/logo/primary' },
+  } } } };
+  const svg = (): Blob => new Blob(['<svg/>'], { type: 'image/svg+xml' });
+  const copyHost = (catalogTokensId: string, catalogDoc: unknown, head: unknown) => {
+    const host = memoryHost();
+    host.store.set(USER_TOKENS_ID, { id: USER_TOKENS_ID, blob: new Blob([JSON.stringify(head)]) });
+    const catalog = new Map<string, Blob>([
+      [catalogTokensId, new Blob([JSON.stringify(catalogDoc)])],
+      ['lolly/logo/horizontal', svg()], ['lolly/logo/primary', svg()],
+    ]);
+    const assets = host.assets as typeof host.assets & Record<string, unknown>;
+    const ownBlob = assets._getBlob as (id: string) => Promise<Blob | null>;
+    // The person's own head is the active tokens document; the catalog's answers a catalog-only read.
+    assets._findMetaByType = async (_type: string, opts?: { catalogOnly?: boolean }) => ({ id: opts?.catalogOnly ? catalogTokensId : USER_TOKENS_ID });
+    assets._getBlob = async (id: string) => (await ownBlob(id)) ?? catalog.get(id) ?? null;
+    return host;
+  };
+
+  const copy = copyHost('lolly/tokens/demo', demo, structuredClone(demo));
+  const kept = await listLogos(copy);
+  assert.deepEqual(kept.map(s => [s.variant, s.assetId, s.shipped]).sort(),
+    [['horizontal-primary', 'lolly/logo/horizontal', true], ['vertical-primary', 'lolly/logo/primary', true]]);
+  for (const s of kept) URL.revokeObjectURL(s.url);
+
+  await installLogo(copy, 'horizontal-primary', png('mine.png'));
+  const mixed = await listLogos(copy);
+  assert.equal(mixed.find(s => s.variant === 'horizontal-primary')?.shipped, undefined, 'an uploaded mark replaces the kept one');
+  assert.equal(mixed.find(s => s.variant === 'vertical-primary')?.shipped, true);
+  for (const s of mixed) URL.revokeObjectURL(s.url);
+
+  // A token naming a catalog asset the shipped system does not use for that slot was not kept from the shipped system.
+  const elsewhere = copyHost('lolly/tokens/demo', demo, withLogoToken(demo, 'horizontal-primary', 'lolly/logo/primary'));
+  const listed = await listLogos(elsewhere);
+  assert.deepEqual(listed.map(s => s.variant), ['vertical-primary']);
+  for (const s of listed) URL.revokeObjectURL(s.url);
+
+  // On lolly-start the shipped system is the blank starter: its swirl marks stand in, so a copy keeps none.
+  const starterUrl = new URL('../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url);
+  const starter = JSON.parse(readFileSync(starterUrl, 'utf8'));
+  assert.deepEqual(await listLogos(copyHost('lolly/tokens/brand', starter, structuredClone(starter))), [],
+    'the starter\'s stand-in marks are not the person\'s logo, in a copy either');
 });

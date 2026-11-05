@@ -15,7 +15,7 @@
 import { createHash } from 'node:crypto';
 import { summarizeInputs, CREDENTIAL_READABLE_TYPES, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps, designRecordEnvironment, designRecordFrom, extractC2paStore, readDesignRecord, readFileDesignRecord, verifyC2pa } from '@lolly/engine';
 import { modelToValues, flattenValue } from '../../../engine/src/inputs.ts';
-import type { embedC2pa, C2paSigner, DesignRecord } from '@lolly/engine';
+import type { embedC2pa, C2paIntentRecord, C2paSigner, DesignRecord } from '@lolly/engine';
 import type { ExportMeta, Profile } from '@lolly-tools/core/host-v1';
 import { designExportRouteFields, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
 
@@ -85,6 +85,11 @@ export interface BuildExportC2paOpts {
    * export outside the route selector, so their credentials are unchanged.
    */
   route?: DesignExportRouteRecord | null;
+  /**
+   * What the piece was asked to do, for a render that started from an intent (plan 350
+   * W4b). Absent for every other export, so their credentials are unchanged.
+   */
+  intent?: C2paIntentRecord | null;
 }
 
 /** Build the embedC2pa options for a shell export, INCLUDING author from the profile. */
@@ -132,6 +137,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
     ...(profile.useDetails === true && profile.firstname
       ? { author: { name: [profile.firstname, profile.lastname].filter(Boolean).join(' '), ...(profile.email ? { email: profile.email } : {}) } }
       : {}),
+    ...(o.intent ? { intent: o.intent } : {}),
     ...(o.signer ? { signer: o.signer } : {}),
     // With an identity, the dates ARE the certificate's. `dates` only ever fed the
     // ephemeral certificate generator, and an enrolled signer brings its own.

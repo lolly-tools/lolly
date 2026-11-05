@@ -374,7 +374,7 @@ export interface ArtboardImportOpts {
  * asks for one id per page and then one per box of that page, in order, so the queue
  * answers in that order and the clip and group references are rewritten through it as
  * usual. An id that repeats or is missing falls back to minting for the WHOLE import
- * and says so - a half-kept set of ids is worse than none, because the lineage that
+ * and reports that - a half-kept set of ids is worse than none, because the lineage that
  * names them would then be right about some rows and wrong about others.
  */
 function artboardMinter(
@@ -536,7 +536,7 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
   const fileEl = document.createElement('input');
   fileEl.type = 'file';
   fileEl.accept =
-    '.fig,.svg,.penpot,.zip,.psd,.psb,.ai,.pdf,.pptx,.idml,.indd,.xml,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    '.fig,.svg,.penpot,.zip,.psd,.psb,.ai,.pdf,.pptx,.idml,.indd,.af,.afdesign,.afphoto,.afpub,.aftemplate,.dxf,.xml,.fcpxml,.otio,.edl,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
   fileEl.style.display = 'none';
   panel.appendChild(fileEl);
   chooseBtn.addEventListener('click', (e) => {
@@ -1204,6 +1204,17 @@ export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): vo
       icon: icon(SVG.scissors),
       run: () => void fc.objects.removeBackgroundOnSelection(),
       disabled: !(img?.id || img?.url),
+    });
+  }
+  // ── trace image ──────────────────────────────────────────────────────────────
+  // Needs a vector-capable tool (somewhere to put the paths) and an image field.
+  // Disables rather than hides, like Remove background above.
+  if (cfg.imageField && fc.vectorCfg) {
+    items.push({
+      label: t('Trace image…'),
+      icon: icon(SVG.simplify),
+      run: () => fc.traceImage.askTraceImage(),
+      disabled: !fc.traceImage.canTraceImage(),
     });
   }
   // ── lift layers (plans/104 section 7) ─────────────────────────────────────────────

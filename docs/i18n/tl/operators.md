@@ -9,7 +9,7 @@ Magsimula sa [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html) par
 - Sinasaklaw ng [Adoption & Governance](/info/adoption-governance.html) ang rollout at ang papel ng mga brand rule.
 - Sinasaklaw ng [Identity at mga session](/info/work-identity.html) ang sign-in at group mapping. Ipinapaliwanag ng [Mga papel at grant](/info/work-permissions.html) ang mga papel, grant at ang owner guard.
 - Sinasaklaw ng [Policy at governance](/info/work-governance.html) ang mga tool overlay, naka-lock na input at policy. Sinasaklaw ng [Pamahalaan ang AI policy ng organisasyon](/info/work-ai-policy.html) ang mga approval at limitasyon sa pagpapatupad.
-- Sinasaklaw ng [Mga kontrol sa data ng account](/info/work-account-lifecycle.html) at [Work storage at data lifecycle](/info/work-data-lifecycle.html) ang mga export, offboarding, retention at mga limitasyon ng mga ito.
+- Sinasaklaw ng [Mga kontrol sa data ng account](/info/work-account-lifecycle.html) at [Lolly Work storage at data lifecycle](/info/work-data-lifecycle.html) ang mga export, offboarding, retention at mga limitasyon ng mga ito.
 - Sinasaklaw ng [Mga profile, brand at configuration ng tool](/info/configuration.html) kung aling mga tool at design system ang dala ng build ng Lolly.
 
 ## Ikonekta ang mga asset at i-review ang gawa

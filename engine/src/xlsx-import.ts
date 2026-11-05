@@ -12,8 +12,13 @@
  * Pure and DOM-free. We import ONLY `fflate` (for inflate - the engine has
  * `deflateRaw` but no pure inflater) and scan the part XML with a small,
  * bounds-safe string/regex reader (no DOM, no injected parser). Numbers, dates
- * and formulae surface as their cached string value; styling/number-format is
- * not applied (a date shows its serial or cached text, matching a CSV paste).
+ * and formulae surface as their cached string value. Number formats are applied
+ * only when the caller supplies `formatCell` (the engine stays wasm-free: a shell
+ * hands it a function backed by the xlsx-numfmt module); without one a date shows
+ * its serial or cached text, matching a CSV paste.
+ * Formulas are recomputed only when the caller supplies `recalc` (the engine stays
+ * wasm-free: a shell hands it a function backed by the gridcraft-calc module);
+ * without one a formula cell shows its saved result.
  * With `cells: 'formulas'` a formula cell yields its formula text instead
  * (`=SUM(A1:A3)`); a shared formula is rewritten for each cell it covers, and a
  * cell whose formula cannot be rewritten safely keeps its cached value and is
@@ -49,7 +54,102 @@ export interface ReadXlsxOpts {
   /** `'cached'` (default) returns each formula cell's saved result; `'formulas'`
    *  returns its formula text, starting with `=`. */
   cells?: 'cached' | 'formulas';
+  /** Show cells the way Excel does. Called once per batch of at most
+   *  {@link XLSX_FORMAT_BATCH} cells with every formatted cell of the sheet; it
+   *  must return one result per request, in order. Omit it and the output is
+   *  byte-identical to a read without number formats. A throw, a wrong-length
+   *  answer or a malformed result keeps the unformatted text. */
+  formatCell?: XlsxCellFormatter | undefined;
+  /** Recompute the workbook's formulas instead of showing their saved results.
+   *  Called once per workbook with every sheet's cells (cross-sheet references
+   *  need them all), and the answers replace the formula cells of the sheet being
+   *  read. Ignored with `cells: 'formulas'`. A throw or a malformed answer keeps
+   *  the saved results and says why in {@link ReadXlsxResult.recalc}. Array and
+   *  data-table formulas keep their saved results. */
+  recalc?: XlsxRecalculator | undefined;
+  /** Which formulas `recalc` computes. `'always'` (default) computes all of them.
+   *  `'missing'` computes only formulas the file saved no result for, which is what
+   *  files written by libraries rather than spreadsheet programs look like; every
+   *  formula with a saved result then stands in as that result, so the formulas that
+   *  depend on it see the value the author saw. */
+  recalcWhen?: 'always' | 'missing' | undefined;
 }
+
+/** A cell value in a recalculation: empty, number, text, boolean, or an error as `{ e: '#N/A' }`. */
+export type XlsxRecalcValue = number | string | boolean | null | { e: string };
+
+/** What a {@link XlsxRecalculator} is asked to compute. Rows and columns are 0-based. */
+export interface XlsxRecalcRequest {
+  sheets: { name: string; cells: { r: number; c: number; v?: XlsxRecalcValue; f?: string; legacy?: boolean }[] }[];
+  /** The workbook's date system is 1904. */
+  date1904: boolean;
+}
+
+/** What it answers: per request sheet, the value of every formula cell and every cell a dynamic array spilled into. */
+export interface XlsxRecalcResult {
+  sheets: { cells: { r: number; c: number; v: XlsxRecalcValue; vol?: true; spill?: true; bad?: string }[] }[];
+  /** Some formula calls a volatile function (NOW, RAND...), so its value belongs to this moment. */
+  volatile: boolean;
+}
+
+/** Computes a workbook's formulas. Synchronous: the shell loads its backing module first. */
+export type XlsxRecalculator = (request: XlsxRecalcRequest) => XlsxRecalcResult;
+
+/** What a recalculating read did. */
+export interface XlsxRecalcReport {
+  /** Formula cells in the workbook. */
+  formulas: number;
+  /** Cells of the returned sheet whose shown value came from the recalculation. */
+  recomputed: number;
+  /** Formula cells that kept their saved result: array and data-table formulas, formulas with table or workbook references, formulas whose text could not be recovered, and with `recalcWhen: 'missing'` every formula that had a saved result. */
+  kept: number;
+  /** Formulas the calculator could not parse. They show `#NAME?`. */
+  unparsed: number;
+  /** Formulas calling a volatile function: the shown value is the moment of this read. */
+  volatile: boolean;
+  /** Why the recalculation was skipped and the saved results kept. */
+  failed?: string;
+}
+
+/** One cell handed to a {@link XlsxCellFormatter}. */
+export interface XlsxCellFormatRequest {
+  /** The cell's number (from a numeric cell) or text (from a string cell). */
+  value: number | string;
+  /** The Excel number-format code, e.g. `m/d/yyyy` or `#,##0.00;[Red](#,##0.00)`. */
+  formatCode: string;
+  /** The workbook's date system: 1900 (default) or 1904 (`date1904`). */
+  dateSystem: 1900 | 1904;
+}
+
+/** What kind of cell a format code makes. `text` is a string value. */
+export type XlsxCellKind =
+  | 'general' | 'number' | 'currency' | 'accounting' | 'date' | 'time' | 'percentage'
+  | 'fraction' | 'scientific' | 'text' | 'special' | 'custom';
+
+/** The display of one formatted cell. */
+export interface XlsxCellFormatResult {
+  /** The cell text as Excel displays the cell. */
+  text: string;
+  kind: XlsxCellKind;
+  /** `YYYY-MM-DD` (or `YYYY-MM-DDTHH:MM:SS` when the format shows a time) for a
+   *  date cell with a real calendar date, usable as a `date` input value. */
+  iso?: string;
+}
+
+/** Formats a batch of cells. Synchronous: the shell loads its backing module first. */
+export type XlsxCellFormatter = (cells: XlsxCellFormatRequest[]) => XlsxCellFormatResult[];
+
+/** A date cell of the returned grid, with its ISO date. */
+export interface XlsxDateCell {
+  /** 0-based row in {@link ReadXlsxResult.rows}. */
+  row: number;
+  /** 0-based column. */
+  col: number;
+  iso: string;
+}
+
+/** Most cells handed to one `formatCell` call. */
+export const XLSX_FORMAT_BATCH = 50_000;
 
 /** Result of {@link readXlsx}: the chosen sheet's cells + a truncation flag. */
 export interface ReadXlsxResult {
@@ -66,6 +166,10 @@ export interface ReadXlsxResult {
   /** with `cells: 'formulas'`, formula cells returned as their cached value
    *  because their formula text could not be recovered for that cell. */
   formulaResultsKept?: number;
+  /** with `formatCell`, the date cells that have a real calendar date. */
+  dates?: XlsxDateCell[];
+  /** with `recalc`, what the recalculation did. */
+  recalc?: XlsxRecalcReport;
 }
 
 /** One worksheet of a workbook, in workbook (tab) order. */
@@ -172,6 +276,7 @@ export function openXlsx(bytes: Uint8Array): XlsxWorkbook {
 
   let declared: SheetEntry[] | undefined;
   let shared: string[] | undefined;
+  let styles: XlsxStyles | undefined;
   const sheetList = (): SheetEntry[] => (declared ??= allSheets(store));
 
   return {
@@ -195,11 +300,23 @@ export function openXlsx(bytes: Uint8Array): XlsxWorkbook {
       shared ??= readSharedStrings(store);
 
       const formulas: FormulaState = { mode: opts.cells === 'formulas' ? 'formulas' : 'cached', shared: new Map(), cells: 0, kept: 0 };
-      const { rows, truncated } = readSheet(sheetXml, shared, limit, formulas);
+      let formats: FormatState | undefined;
+      if (typeof opts.formatCell === 'function' || typeof opts.recalc === 'function') styles ??= readStyles(store);
+      if (typeof opts.formatCell === 'function' && styles) {
+        formats = { format: opts.formatCell, xfs: styles.xfs, system: styles.system, pending: [], dates: [] };
+      }
+      let recalc: RecalcState | undefined;
+      if (typeof opts.recalc === 'function' && formulas.mode === 'cached' && styles) {
+        const index = Math.max(0, sheetList().indexOf(chosen));
+        recalc = recalcWorkbook(store, sheetList(), shared, styles.system, opts.recalc, index, opts.recalcWhen === 'missing');
+      }
+      const { rows, truncated } = readSheet(sheetXml, shared, limit, formulas, formats, recalc);
       if (!rows.length) throw new Error(truncated ? 'That sheet is too large to read.' : 'That sheet has no cells.');
       return {
         rows, truncated, sheetPath: chosen.path, sheetName: chosen.name || undefined, formulaCells: formulas.cells,
         ...(formulas.mode === 'formulas' ? { formulaResultsKept: formulas.kept } : {}),
+        ...(formats ? { dates: formats.dates } : {}),
+        ...(recalc ? { recalc: recalc.report } : {}),
       };
     },
   };
@@ -415,6 +532,8 @@ function readSheet(
   shared: string[],
   limit: number,
   formulas: FormulaState,
+  formats?: FormatState,
+  recalc?: RecalcState,
 ): { rows: string[][]; truncated: boolean } {
   // Sparse fill: rowIndex → (colIndex → value). We track the max column so the
   // final grid is padded rectangular (gaps → '').
@@ -475,7 +594,9 @@ function readSheet(
     }
 
     const formula = inner.includes('<f') ? formulaText(inner, rowIdx, colIdx, formulas) : undefined;
-    const value = formula ?? cellValue(attrs, inner, shared);
+    const fresh = recalc && inner.includes('<f') ? recalc.cells.get(recalcKey(rowIdx, colIdx)) : undefined;
+    if (fresh !== undefined) recalc!.report.recomputed++;
+    const value = formula ?? (fresh !== undefined ? recalcText(fresh.v) : cellValue(attrs, inner, shared));
     if (value === '') continue; // don't materialise blank cells (still padded later)
 
     let row = grid.get(rowIdx);
@@ -486,7 +607,15 @@ function readSheet(
     row.set(colIdx, value);
     if (colIdx > maxCol) maxCol = colIdx;
     if (rowIdx > maxRow) maxRow = rowIdx;
+    if (formats && formula === undefined) queueFormat(formats, attrs, value, rowIdx, colIdx, fresh === undefined ? undefined : recalcKind(fresh.v));
   }
+
+  if (recalc) {
+    const reached = addSpills(recalc, grid, limit);
+    if (reached.row > maxRow) maxRow = reached.row;
+    if (reached.col > maxCol) maxCol = reached.col;
+  }
+  if (formats) applyFormats(formats, grid);
 
   if (maxRow < 0 || maxCol < 0) return { rows: [], truncated };
 
@@ -541,6 +670,285 @@ function cellValue(attrs: string, inner: string, shared: string[]): string {
   }
   // number / date / error - the literal cached value in <v>.
   return decodeXml(firstElemText(inner, 'v'));
+}
+
+// ─── number formats ──────────────────────────────────────────────────────────
+
+/** Excel's built-in number formats for ids 0 to 49 in en-US (ECMA-376 18.8.30).
+ *  Ids 23 to 36 and 50 and up are locale-specific and read as General. Kept in
+ *  step with the xlsx-numfmt module's own table. */
+const BUILTIN_FORMATS: Readonly<Record<number, string>> = {
+  1: '0', 2: '0.00', 3: '#,##0', 4: '#,##0.00',
+  5: '"$"#,##0_);\\("$"#,##0\\)', 6: '"$"#,##0_);[Red]\\("$"#,##0\\)',
+  7: '"$"#,##0.00_);\\("$"#,##0.00\\)', 8: '"$"#,##0.00_);[Red]\\("$"#,##0.00\\)',
+  9: '0%', 10: '0.00%', 11: '0.00E+00', 12: '# ?/?', 13: '# ??/??',
+  14: 'm/d/yyyy', 15: 'd-mmm-yy', 16: 'd-mmm', 17: 'mmm-yy', 18: 'h:mm AM/PM', 19: 'h:mm:ss AM/PM',
+  20: 'h:mm', 21: 'h:mm:ss', 22: 'm/d/yyyy h:mm',
+  37: '#,##0 ;(#,##0)', 38: '#,##0 ;[Red](#,##0)', 39: '#,##0.00;(#,##0.00)', 40: '#,##0.00;[Red](#,##0.00)',
+  41: '_(* #,##0_);_(* \\(#,##0\\);_(* "-"_);_(@_)',
+  42: '_("$"* #,##0_);_("$"* \\(#,##0\\);_("$"* "-"_);_(@_)',
+  43: '_(* #,##0.00_);_(* \\(#,##0.00\\);_(* "-"??_);_(@_)',
+  44: '_("$"* #,##0.00_);_("$"* \\(#,##0.00\\);_("$"* "-"??_);_(@_)',
+  45: 'mm:ss', 46: '[h]:mm:ss', 47: 'mmss.0', 48: '##0.0E+0', 49: '@',
+};
+
+/** Excel allows 64,000 cell formats and a few hundred custom codes; these are
+ *  generous ceilings so a crafted styles part cannot grow a table without bound. */
+const MAX_XFS = 65_536;
+const MAX_NUM_FMTS = 4096;
+/** A code longer than this is not a real format (Excel stops at 255 characters). */
+const MAX_FORMAT_CODE = 1024;
+
+interface XlsxStyles {
+  /** cellXfs index to its format code; null for General or an unknown id. */
+  xfs: (string | null)[];
+  system: 1900 | 1904;
+}
+
+/** Read the number-format side of xl/styles.xml and the workbook's date system. */
+function readStyles(store: PartStore): XlsxStyles {
+  const wb = store.text('xl/workbook.xml');
+  const pr = wb ? /<workbookPr\b[^>]*>/i.exec(wb) : null;
+  const flag = pr ? (attr(pr[0], 'date1904') ?? '').trim().toLowerCase() : '';
+  const system: 1900 | 1904 = flag === '1' || flag === 'true' ? 1904 : 1900;
+
+  const xml = store.text('xl/styles.xml');
+  if (!xml) return { xfs: [], system };
+  const custom = new Map<number, string>();
+  const fmts = /<numFmts\b[^>]*>([\s\S]*?)<\/numFmts>/i.exec(xml);
+  if (fmts) {
+    for (const m of fmts[1]!.matchAll(/<numFmt\b[^>]*>/gi)) {
+      const id = Number.parseInt(attr(m[0], 'numFmtId') ?? '', 10);
+      const code = attr(m[0], 'formatCode');
+      if (Number.isInteger(id) && id >= 0 && code && code.length <= MAX_FORMAT_CODE) custom.set(id, code);
+      if (custom.size >= MAX_NUM_FMTS) break;
+    }
+  }
+  const xfs: (string | null)[] = [];
+  const section = /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/i.exec(xml);
+  if (section) {
+    for (const m of section[1]!.matchAll(/<xf\b[^>]*>/gi)) {
+      const id = Number.parseInt(attr(m[0], 'numFmtId') ?? '0', 10);
+      const code = Number.isInteger(id) ? (custom.get(id) ?? BUILTIN_FORMATS[id] ?? null) : null;
+      xfs.push(code === null || /^\s*general\s*$/i.test(code) ? null : code);
+      if (xfs.length >= MAX_XFS) break;
+    }
+  }
+  return { xfs, system };
+}
+
+/** Per-sheet state for a read that formats cells. */
+interface FormatState {
+  format: XlsxCellFormatter;
+  xfs: (string | null)[];
+  system: 1900 | 1904;
+  pending: { row: number; col: number; req: XlsxCellFormatRequest }[];
+  dates: XlsxDateCell[];
+}
+
+const KINDS = new Set<string>([
+  'general', 'number', 'currency', 'accounting', 'date', 'time', 'percentage',
+  'fraction', 'scientific', 'text', 'special', 'custom',
+]);
+
+/** Note a cell for formatting when its style carries a non-General format and its
+ *  value is a number or a string (booleans and errors keep their text). */
+function queueFormat(f: FormatState, attrs: string, value: string, row: number, col: number, kind?: 'n' | 's' | 'b' | 'e'): void {
+  const style = attr(attrs, 's');
+  if (style === null) return;
+  const code = f.xfs[Number.parseInt(style, 10)];
+  if (!code) return;
+  const t = kind ?? (attr(attrs, 't') || 'n');
+  let v: number | string;
+  if (t === 'n') {
+    v = Number(value);
+    if (!Number.isFinite(v)) return;
+  } else if (t === 's' || t === 'inlineStr' || t === 'str') v = value;
+  else return;
+  f.pending.push({ row, col, req: { value: v, formatCode: code, dateSystem: f.system } });
+}
+
+/** Run the formatter over the queued cells and write the display text back into the grid. */
+function applyFormats(f: FormatState, grid: Map<number, Map<number, string>>): void {
+  for (let start = 0; start < f.pending.length; start += XLSX_FORMAT_BATCH) {
+    const batch = f.pending.slice(start, start + XLSX_FORMAT_BATCH);
+    let out: XlsxCellFormatResult[];
+    try {
+      out = f.format(batch.map((b) => b.req));
+    } catch {
+      continue; // formatting is cosmetic: keep the unformatted text
+    }
+    if (!Array.isArray(out) || out.length !== batch.length) continue;
+    for (let i = 0; i < batch.length; i++) {
+      const r = out[i];
+      const at = batch[i]!;
+      if (!r || typeof r.text !== 'string' || !KINDS.has(r.kind)) continue;
+      const row = grid.get(at.row);
+      if (!row) continue;
+      row.set(at.col, r.text);
+      if (typeof r.iso === 'string' && /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2})?$/.test(r.iso)) {
+        f.dates.push({ row: at.row, col: at.col, iso: r.iso });
+      }
+    }
+  }
+  f.dates.sort((a, b) => a.row - b.row || a.col - b.col);
+}
+
+// ─── recalculation ───────────────────────────────────────────────────────────
+
+/** A recalculation's answers for the sheet being read, keyed by position. */
+interface RecalcState {
+  cells: Map<number, { v: XlsxRecalcValue; spill: boolean }>;
+  report: XlsxRecalcReport;
+}
+
+/** Most sheets and formula cells handed to one recalculation. The module has its own, smaller ceilings. */
+const MAX_RECALC_SHEETS = 64;
+
+const recalcKey = (row: number, col: number): number => row * (MAX_COLS + 1) + col;
+
+/** The shown text of a recalculated value: numbers as shortest round-trip text, as a saved file writes them. */
+function recalcText(v: XlsxRecalcValue): string {
+  if (v === null) return '';
+  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : '';
+  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+  if (typeof v === 'string') return v;
+  return typeof v.e === 'string' ? v.e : '';
+}
+
+/** How the number-format step should read a recalculated value: errors and booleans keep their text. */
+function recalcKind(v: XlsxRecalcValue): 'n' | 's' | 'b' | 'e' {
+  if (typeof v === 'number') return 'n';
+  if (typeof v === 'boolean') return 'b';
+  if (v !== null && typeof v === 'object') return 'e';
+  return 's';
+}
+
+/** One cell of a sheet in the typed form a calculator wants, or null for an empty one. */
+function typedValue(attrs: string, inner: string, shared: string[]): XlsxRecalcValue {
+  const t = attr(attrs, 't') || 'n';
+  if (t === 'e') return { e: decodeXml(firstElemText(inner, 'v')).trim() };
+  if (t === 'b') return firstElemText(inner, 'v').trim() === '1';
+  const text = cellValue(attrs, inner, shared);
+  if (t === 'n') {
+    if (text.trim() === '') return null;
+    const n = Number(text);
+    return Number.isFinite(n) ? n : null;
+  }
+  return text;
+}
+
+/**
+ * Every cell of one sheet in typed form. A formula cell carries its formula, with a
+ * shared formula rewritten for its own position; the saved result is not sent, the
+ * calculator derives the result. Array and data-table formulas, and formulas whose text
+ * cannot be recovered, go as their saved result.
+ */
+function typedSheetCells(xml: string, shared: string[], counts: { formulas: number; kept: number }, onlyMissing: boolean): XlsxRecalcRequest['sheets'][number]['cells'] {
+  const cells: XlsxRecalcRequest['sheets'][number]['cells'] = [];
+  const state: FormulaState = { mode: 'formulas', shared: new Map(), cells: 0, kept: 0 };
+  const tokenRe = /<row\b[^>]*>|<c\b([^>]*?)\/>|<c\b([^>]*?)>([\s\S]*?)<\/c>/g;
+  let cursorRow = 0;
+  let cursorCol = 0;
+  let seenRow = false;
+  for (let tok = tokenRe.exec(xml); tok !== null; tok = tokenRe.exec(xml)) {
+    if (tok[0].startsWith('<row')) {
+      const n = Number.parseInt(attr(tok[0], 'r') ?? '', 10);
+      cursorRow = Number.isFinite(n) && n > 0 ? n - 1 : cursorRow + (seenRow ? 1 : 0);
+      seenRow = true;
+      cursorCol = 0;
+      continue;
+    }
+    const attrs = tok[1] !== undefined ? tok[1] : (tok[2] as string);
+    const inner = tok[1] !== undefined ? '' : (tok[3] as string);
+    const ref = attr(attrs, 'r');
+    const rc = ref ? parseRef(ref) : null;
+    const row = rc ? rc.row : cursorRow;
+    const col = rc ? rc.col : cursorCol;
+    cursorCol = col + 1;
+    if (row < 0 || col < 0 || col >= MAX_COLS || row >= MAX_ROWS) continue;
+    if (cells.length >= MAX_CELLS) break;
+    const fTag = inner.includes('<f') ? /<f\b([^>]*?)(?:\/>|>)/.exec(inner) : null;
+    if (fTag) {
+      counts.formulas++;
+      const kind = (attr(fTag[1] ?? '', 't') ?? '').toLowerCase();
+      const text = kind === 'array' || kind === 'datatable' ? undefined : formulaText(inner, row, col, state);
+      const saved = onlyMissing ? typedValue(attrs, inner, shared) : null;
+      // Table and workbook references (`Table1[Col]`, `[1]Sheet1!A1`) need parts the calculator is not given.
+      if (text && !hasBracketOutsideText(text) && !(saved !== null && saved !== '')) {
+        // A cell without the dynamic-array mark (`cm`) was saved by a program that intersected ranges.
+        cells.push({ r: row, c: col, f: text.slice(1), ...(attr(attrs, 'cm') === null ? { legacy: true } : {}) });
+        continue;
+      }
+      counts.kept++;
+    }
+    const v = typedValue(attrs, inner, shared);
+    if (v !== null) cells.push({ r: row, c: col, v });
+  }
+  return cells;
+}
+
+/** Whether a formula has `[` outside a text literal. A quoted sheet name cannot hold one, so one there is an external workbook. */
+function hasBracketOutsideText(formula: string): boolean {
+  let inText = false;
+  for (const ch of formula) {
+    if (ch === '"') inText = !inText;
+    else if (ch === '[' && !inText) return true;
+  }
+  return false;
+}
+
+/** Run the calculator over every sheet and keep the answers for the sheet at `index`. */
+function recalcWorkbook(
+  store: PartStore, sheets: SheetEntry[], shared: string[], system: 1900 | 1904, calculate: XlsxRecalculator, index: number, onlyMissing: boolean,
+): RecalcState {
+  const report: XlsxRecalcReport = { formulas: 0, recomputed: 0, kept: 0, unparsed: 0, volatile: false };
+  const out: RecalcState = { cells: new Map(), report };
+  try {
+    if (sheets.length === 0 || sheets.length > MAX_RECALC_SHEETS) throw new Error(sheets.length ? 'The workbook has too many sheets to recalculate.' : 'The workbook lists no sheets.');
+    const request: XlsxRecalcRequest = { sheets: [], date1904: system === 1904 };
+    const counts = { formulas: 0, kept: 0 };
+    sheets.forEach((s, i) => {
+      const xml = store.text(s.path);
+      if (xml == null) throw new Error('A sheet is missing or too large to recalculate.');
+      request.sheets.push({ name: s.name || `Sheet ${i + 1}`, cells: typedSheetCells(xml, shared, counts, onlyMissing) });
+    });
+    report.formulas = counts.formulas;
+    report.kept = counts.kept;
+    if (counts.formulas === counts.kept) return out; // nothing to compute
+    const answer = calculate(request);
+    const mine = answer?.sheets?.[index]?.cells;
+    if (!answer || !Array.isArray(answer.sheets) || answer.sheets.length !== sheets.length || !Array.isArray(mine)) throw new Error('The calculator returned a malformed answer.');
+    for (const sheet of answer.sheets) for (const c of sheet.cells) if (c.bad !== undefined) report.unparsed++;
+    for (const c of mine) {
+      if (!Number.isInteger(c.r) || !Number.isInteger(c.c) || c.r < 0 || c.c < 0 || c.c >= MAX_COLS) continue;
+      out.cells.set(recalcKey(c.r, c.c), { v: c.v, spill: c.spill === true });
+    }
+    report.volatile = answer.volatile === true;
+  } catch (error) {
+    out.cells.clear();
+    report.failed = error instanceof Error ? error.message : 'The recalculation failed.';
+  }
+  return out;
+}
+
+/** Add the cells a dynamic array spilled into, where the file holds nothing. Returns the furthest row and column added. */
+function addSpills(recalc: RecalcState, grid: Map<number, Map<number, string>>, limit: number): { row: number; col: number } {
+  const reached = { row: -1, col: -1 };
+  for (const [key, cell] of recalc.cells) {
+    if (!cell.spill) continue;
+    const row = Math.floor(key / (MAX_COLS + 1));
+    const col = key % (MAX_COLS + 1);
+    const text = recalcText(cell.v);
+    if (row >= limit || text === '' || grid.get(row)?.has(col)) continue;
+    let target = grid.get(row);
+    if (!target) { target = new Map<number, string>(); grid.set(row, target); }
+    target.set(col, text);
+    recalc.report.recomputed++;
+    if (row > reached.row) reached.row = row;
+    if (col > reached.col) reached.col = col;
+  }
+  return reached;
 }
 
 // ─── formulas ────────────────────────────────────────────────────────────────

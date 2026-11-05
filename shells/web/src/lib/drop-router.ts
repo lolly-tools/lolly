@@ -6,7 +6,7 @@
  * drag-and-drop handler sniffs what landed and opens a chooser sheet offering
  * only the routes that genuinely apply:
  *
- *   design file (.fig/.penpot/.idml/.indd/SVG/zip) → Design, parsed to boxes
+ *   design file (.fig/.penpot/.idml/.indd/.af family/.dxf/SVG/zip) → Design, parsed to boxes
  *   token doc / .penpot / design-system pack zip → Design System Setup
  *   PDF / .ai   → edit as a design · pages → SVG library assets · compress ·
  *                 Design System Setup (a guidelines PDF's colours, marks
@@ -44,7 +44,7 @@
  * cost is one hint pill per attached root.
  */
 
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { isTauriShell } from './instance-choice.ts';
 import { NAV_EVENTS } from '../utils.ts';
 import { navigateTo } from '../nav.ts';
@@ -72,13 +72,14 @@ import type { DesignSystemRegistry } from './design-system/registry.ts';
 type PickerModule = typeof import('../views/picker.ts');
 
 // Extension fallbacks for files whose MIME type the OS didn't fill in.
-const DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|svg|zip)$/i;
+const DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|af|afdesign|afphoto|afpub|aftemplate|dxf|svg|zip)$/i;
 // .bmp/.ico usually arrive with an image/* MIME (already accepted); the ext entries are
 // the blank-MIME backstop. .svgz is media/library only (svgz-as-design would need a
 // gunzip step in parseDesignFile).
 // Reusable binary assets own their containers; a 3MF/MOGRT ZIP is not a design document.
 const LIBRARY_ASSET_EXT_RE = /\.(mogrt|3mf|glb|stl|ttf|otf|woff2?)$/i;
-const MEDIA_EXT_RE = /\.(png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|svg|svgz|bmp|ico|cur|mp4|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|rondo|json|lottie)$/i;
+// Camera raw files (DNG, CR2, NEF...) are developed on the device and stored as ordinary pictures.
+const MEDIA_EXT_RE = /\.(dng|cr2|cr3|nef|nrw|arw|srf|sr2|pef|orf|rw2|raf|png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|svg|svgz|bmp|ico|cur|mp4|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|rondo|json|lottie)$/i;
 // A rondocode song (plan 301): `.rondo` is rondo-language text and `.rondo.json` a
 // project file. Both are audio for the library, and the `.json` one must not be
 // read as a Lottie or offered as a token document on the strength of its suffix.
@@ -96,7 +97,7 @@ const TEXT_DROP_RE = /\.(txt|md|markdown|text|js|jsx|mjs|cjs|ts|tsx|py|rb|go|rs|
 // The OOXML wordprocessing MIME (office-text.ts's DOCX_MIME), inlined so a plain
 // image drop never pulls that module's fflate + engine chunk in just to sniff.
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-const PURE_DESIGN_EXT_RE = /\.(fig|penpot|idml|indd)$/i;
+const PURE_DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|af|afdesign|afphoto|afpub|aftemplate|dxf)$/i;
 const CONTAINER_DOC_EXT_RE = /\.(xlsx|docx|pptx|epub|odt)$/i;
 // Design-system shapes (plan 97 section 8). A Penpot project always carries a token
 // document; the zip/JSON cases need evidence, below.
@@ -860,10 +861,10 @@ function previewFacts(preview: LollySessionPreview | LollyBrandPreview): string 
       : '';
   if (preview.format === 'lolly-share' && preview.kind === 'project') {
     const content = [
-      preview.sessionCount === 1 ? t('1 saved session') : t('{n} saved sessions', { n: preview.sessionCount }),
+      tn('1 saved session', '{n} saved sessions', { n: preview.sessionCount }),
       preview.folderCount === 1 ? t('1 folder') : preview.folderCount ? t('{n} folders', { n: preview.folderCount }) : null,
       preview.embeddedAssets === 1 ? t('1 embedded file') : preview.embeddedAssets ? t('{n} embedded files', { n: preview.embeddedAssets }) : null,
-      preview.referencedAssets ? (preview.referencedAssets === 1 ? t('1 external reference') : t('{n} external references', { n: preview.referencedAssets })) : null,
+      preview.referencedAssets ? (tn('1 external reference', '{n} external references', { n: preview.referencedAssets })) : null,
     ].filter(Boolean).join(' · ');
     return tRaw('“{name}” is a {size} shared project: {content}. Opening it adds its folders and sessions to Projects; it does not replace existing work.{pace}', {
       name: preview.label, size, content, pace,
@@ -872,11 +873,11 @@ function previewFacts(preview: LollySessionPreview | LollyBrandPreview): string 
   if (preview.format === 'lolly-share') {
     const templates = declaredTemplateCount(preview.manifest);
     const content = [
-      preview.embeddedAssets === 1 ? t('1 embedded file') : t('{n} embedded files', { n: preview.embeddedAssets }),
-      preview.referencedAssets ? (preview.referencedAssets === 1 ? t('1 external reference') : t('{n} external references', { n: preview.referencedAssets })) : null,
+      tn('1 embedded file', '{n} embedded files', { n: preview.embeddedAssets }),
+      preview.referencedAssets ? (tn('1 external reference', '{n} external references', { n: preview.referencedAssets })) : null,
       preview.includesDesignSystem ? t('a design system') : null,
       preview.includesTool ? t('the tool itself') : null,
-      templates === 0 ? null : templates === 1 ? t('1 template') : t('{n} templates', { n: templates }),
+      templates === 0 ? null : tn('1 template', '{n} templates', { n: templates }),
     ].filter(Boolean).join(' · ');
     const tool = preview.toolId ? tRaw(' for {tool}', { tool: preview.toolId }) : '';
     return tRaw('“{name}” is a {size} shared design{tool}. Opening it adds a new Project and {content}; it does not replace existing work.{pace}', {
@@ -885,12 +886,12 @@ function previewFacts(preview: LollySessionPreview | LollyBrandPreview): string 
   }
   const content = [
     preview.tokens ? t('tokens') : null,
-    preview.fontFiles ? (preview.fontFiles === 1 ? t('1 font file') : t('{n} font files', { n: preview.fontFiles })) : null,
-    preview.logos ? (preview.logos === 1 ? t('1 logo') : t('{n} logos', { n: preview.logos })) : null,
+    preview.fontFiles ? (tn('1 font file', '{n} font files', { n: preview.fontFiles })) : null,
+    preview.logos ? (tn('1 logo', '{n} logos', { n: preview.logos })) : null,
     preview.localSessions ? t('{n} saved sessions', { n: preview.localSessions }) : null,
     preview.localAssets ? t('{n} selected files', { n: preview.localAssets }) : null,
     preview.localTools ? t('{n} included tools (asked before installing)', { n: preview.localTools }) : null,
-    preview.versions ? (preview.versions === 1 ? t('1 published version') : t('{n} published versions', { n: preview.versions })) : null,
+    preview.versions ? (tn('1 published version', '{n} published versions', { n: preview.versions })) : null,
   ].filter(Boolean).join(' · ') || t('design-system material');
   if (preview.kind === 'instance') {
     return tRaw('“{name}” is a {size} brand workspace: {content}, {tools} tools and {assets} catalogue assets. It is added as a design system and replaces any previously loaded brand-workspace tools and catalogue.{pace}', {

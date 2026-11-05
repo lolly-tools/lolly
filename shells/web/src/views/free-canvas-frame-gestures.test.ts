@@ -371,7 +371,7 @@ test('A7: deleting an artboard re-homes its children onto the previous one, in O
   } finally { f.destroy(); }
 });
 
-test('A7: deleting the FIRST artboard leaves its children on the pasteboard, and says so', async () => {
+test('A7: deleting the FIRST artboard leaves its children on the pasteboard, and reports that', async () => {
   const f = mount(DECK());
   try {
     await settle();

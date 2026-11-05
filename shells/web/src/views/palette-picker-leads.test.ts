@@ -29,11 +29,16 @@ test('a palette colour input renders the colour field, with the leads source for
   assert.match(branch, /return paletteFieldHtml\(id, input\);/);
   const { paletteFieldHtml } = await import('./tool-input-colours.ts');
   const { colorFieldHtml, LEADS_SWATCH_SOURCE } = await import('../components/color-field.ts');
+  // These inputs declare no default, so each may be left empty and its field takes `auto`
+  // (an empty value reads as automatic), as every other colour input does.
   const leads = paletteFieldHtml('accent', { value: '#c2410c', palette: LEADS_SWATCH_SOURCE, swatchesOnly: true });
-  assert.equal(leads, colorFieldHtml('accent', '#c2410c', { swatchesOnly: true, swatchSource: LEADS_SWATCH_SOURCE }));
+  assert.equal(leads, colorFieldHtml('accent', '#c2410c', { swatchesOnly: true, swatchSource: LEADS_SWATCH_SOURCE, auto: {} }));
   assert.match(leads, /data-swatch-source="colourway-leads"/);
-  assert.equal(paletteFieldHtml('accent', { value: '#c2410c', palette: 'acme/palette/inks' }), colorFieldHtml('accent', '#c2410c', { swatchesOnly: false }),
+  assert.equal(paletteFieldHtml('accent', { value: '#c2410c', palette: 'acme/palette/inks' }), colorFieldHtml('accent', '#c2410c', { swatchesOnly: false, auto: {} }),
     'a palette asset id gets the ordinary colour field');
+  // With a default the field is never empty, so it takes no `auto` and the leads source stays.
+  assert.equal(paletteFieldHtml('accent', { value: '#c2410c', default: '#c2410c', palette: LEADS_SWATCH_SOURCE, swatchesOnly: true }),
+    colorFieldHtml('accent', '#c2410c', { swatchesOnly: true, swatchSource: LEADS_SWATCH_SOURCE }));
 });
 
 test('the palette control is treated as the colour control it now is', () => {

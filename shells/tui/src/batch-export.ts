@@ -6,14 +6,11 @@
  * Formats: svg/emf/eps and the data formats render DOM-free in pure Node; raster/pdf/
  * video render via the scoped Chromium tier once `lolly install-browser` has run (the
  * same Tier-B path a single ToolView export uses - exportToFile routes per format).
- * When a row's format needs the browser tier and it isn't installed, the row falls back
- * to HTML and SAYS so (BatchMember.note, surfaced in the progress log and the zip's
- * lolly.txt) rather than failing the batch or degrading silently. The ZIP itself can be
+ * A row that cannot produce its requested format fails visibly. The ZIP itself can be
  * password-locked via the engine's zip-crypto framer (buildEncryptedZip).
  *
  * The render itself is delegated to engine-render.exportToFile so the exportFile hook +
- * physical-unit handling stay in one place; this module re-implements only the html
- * fallback (which lives in the view, not the helper) and the packaging.
+ * physical-unit handling stay in one place; this module handles the packaging.
  */
 import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -32,12 +29,11 @@ export interface BatchMember {
   slot: string;
   label: string;
   zipPath: string;        // relative path inside the zip (nested by folder tree)
-  format: string;         // format actually written (may be 'html' via fallback)
+  format: string;         // requested format
   bytes: number;
   ok: boolean;
   reason?: string;        // set when ok === false
-  /** Set when ok but degraded: the html fallback (browser tier missing / no vector
-   *  output) or a format the tool doesn't declare. Surfaced per-row, never silent. */
+  /** Optional delivery details, surfaced per row. */
   note?: string;
 }
 
@@ -50,7 +46,7 @@ export interface ExportFolderOpts {
   /** Encryption tier when zipPassword is set. Default 'standard' (opens in any unzip,
    *  incl. Windows Explorer); 'strong' = WinZip AES-256. */
   zipTier?: ZipTier;
-  /** Preferred export format; falls back per-tool when unsupported. Default 'svg'. */
+  /** Requested export format. Default 'svg'; unsupported tools fail their row. */
   format?: string;
   unit?: string;          // default 'px'
   dpi?: number;           // default 300
@@ -102,8 +98,7 @@ function manifestText(zipName: string, folderName: string, members: BatchMember[
     'Rendered in the terminal. svg/emf/eps and data formats render natively;',
     'png/jpg/pdf/video use the scoped browser tier (one-time `lolly install-browser`).',
     ...(degraded ? [
-      'Rows marked ⚠ degraded - each note says why; a missing browser tier falls',
-      'back to HTML.',
+      'Rows marked with a note include delivery details. Failed rows are listed above.',
     ] : []),
     'A password locks the ZIP itself.',
     '',
@@ -261,20 +256,7 @@ async function packMembersToZip(
   return { zipPath, count: okMembers.length, bytes: zipBytes.length, members };
 }
 
-/**
- * When a render fails for a reason HTML can still satisfy, the batch falls back rather
- * than skipping the row - but must Report it. Returns the per-row note (surfaced in the
- * progress log and the zip's lolly.txt), or null when the failure is real and the row
- * should skip. Two honest cases: the format needs the browser tier and it isn't
- * installed, or the tool is HTML-layout with no <svg> for a vector format.
- */
-function htmlFallbackNote(msg: string): string | null {
-  if (/install[ :-]browser|browser engine|Chromium|build:web|web shell/i.test(msg))
-    return 'html fallback - run lolly install-browser for png/pdf';
-  if (/<svg>|requires an/i.test(msg))
-    return 'html fallback - this tool has no vector output';
-  return null;
-}
+
 
 /** The render dims every member of a bulk export shares. */
 interface BulkDims { unit: string; dpi: number; madeWith: false }
@@ -290,7 +272,7 @@ function bulkDims(opts: { unit?: string; dpi?: number }): BulkDims {
 }
 
 /**
- * Render ONE session into `stage/<relNoExt>.<fmt>`, with the same html fallback as
+ * Render ONE session into `stage/<relNoExt>.<fmt>`, using the same strict format policy as
  * ToolView.doExport. Never throws - a failure returns a skipped BatchMember so the batch
  * continues.
  */
@@ -307,26 +289,12 @@ async function renderSessionTo(
   try {
     const { runtime, manifest } = await mountTool(session.toolId, host, session.query, session.data);
     const avail = exportableFormats(manifest);
-    const fmt = avail.includes(want) ? want : (avail[0] ?? 'html');
-    // A batch-wide format won't exist on every tool - substitute, but report it per-row.
-    const substituted = fmt !== want ? `${want} not offered by this tool - rendered ${fmt}` : undefined;
+    if (!avail.includes(want)) throw new Error(`This tool does not offer ${want}. Choose one of: ${avail.join(', ')}.`);
+    const fmt = want;
     const zipPath = `${relNoExt}.${fmt}`;
-    try {
-      const bytes = await exportToFile(runtime, dom, manifest, fmt, join(stage, zipPath), dims);
-      if (!existsSync(join(stage, zipPath))) throw new Error('render produced no file');
-      return { slot: session.slot, label, zipPath, format: fmt, bytes, ok: true, note: substituted };
-    } catch (e) {
-      // For a BULK export, fall back to HTML (always renderable) so every member still
-      // produces a file rather than failing - but carry the honest reason per-row;
-      // interactive doExport surfaces the actionable "run install:browser" message instead.
-      const note = fmt !== 'html' ? htmlFallbackNote((e as Error).message) : null;
-      if (note) {
-        const htmlPath = `${relNoExt}.html`;
-        const bytes = await exportToFile(runtime, dom, manifest, 'html', join(stage, htmlPath), dims);
-        return { slot: session.slot, label, zipPath: htmlPath, format: 'html', bytes, ok: true, note };
-      }
-      throw e;
-    }
+    const bytes = await exportToFile(runtime, dom, manifest, fmt, join(stage, zipPath), dims);
+    if (!existsSync(join(stage, zipPath))) throw new Error('render produced no file');
+    return { slot: session.slot, label, zipPath, format: fmt, bytes, ok: true };
   } catch (e) {
     return { slot: session.slot, label, zipPath: `${relNoExt}.${want}`, format: want, bytes: 0, ok: false, reason: (e as Error).message };
   }
@@ -389,21 +357,12 @@ async function renderRowTo(
   try {
     const { runtime, manifest } = await mountTool(row.toolId, host, query);
     const avail = exportableFormats(manifest);
-    const fmt = avail.includes(want) ? want : (avail[0] ?? 'html');
-    const substituted = fmt !== want ? `${want} not offered by this tool - rendered ${fmt}` : undefined;
+    if (!avail.includes(want)) throw new Error(`This tool does not offer ${want}. Choose one of: ${avail.join(', ')}.`);
+    const fmt = want;
     const zipPath = `${relNoExt}.${fmt}`;
-    try {
-      const bytes = await exportToFile(runtime, dom, manifest, fmt, join(stage, zipPath), dims);
-      return { slot: relNoExt, label: row.toolId, zipPath, format: fmt, bytes, ok: true, note: substituted };
-    } catch (e) {
-      const note = fmt !== 'html' ? htmlFallbackNote((e as Error).message) : null;
-      if (note) {
-        const htmlPath = `${relNoExt}.html`;
-        const bytes = await exportToFile(runtime, dom, manifest, 'html', join(stage, htmlPath), dims);
-        return { slot: relNoExt, label: row.toolId, zipPath: htmlPath, format: 'html', bytes, ok: true, note };
-      }
-      throw e;
-    }
+    const bytes = await exportToFile(runtime, dom, manifest, fmt, join(stage, zipPath), dims);
+    if (!existsSync(join(stage, zipPath))) throw new Error('render produced no file');
+    return { slot: relNoExt, label: row.toolId, zipPath, format: fmt, bytes, ok: true };
   } catch (e) {
     return { slot: relNoExt, label: row.toolId, zipPath: `${relNoExt}.${want}`, format: want, bytes: 0, ok: false, reason: (e as Error).message };
   }

@@ -38,4 +38,4 @@ Run the [source qualification checks](/info/work-provider-tenant-check.html), de
 
 The customer chooses. The integration can remain in place, and supported migration paths are available when the customer decides to move. Portability remains part of the product's purpose. It should be discussed openly in the integration agreement, with no assumption that read access grants permission to copy or redistribute every source.
 
-Start with [Use Lolly with your existing DAM](/info/use-with-dam.html). For technical evaluation, continue to [Work architecture](/info/work-overview.html) and [What Lolly Work does today](/info/work-status.html).
+Start with [Use Lolly with your existing DAM](/info/use-with-dam.html). For technical evaluation, continue to [Lolly Work architecture](/info/work-overview.html) and [What Lolly Work does today](/info/work-status.html).

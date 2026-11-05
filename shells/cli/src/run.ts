@@ -8,12 +8,16 @@
  * CLI is just a different transport, not a different render engine.
  */
 
+import { shareUrlState, personalShareFields } from '../../../engine/src/share-privacy.ts';
 import { readFile, writeFile, stat } from 'node:fs/promises';
 import { resolve, basename, dirname, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
+import { xlsxFormatter } from '@lolly-tools/node-shell/xlsx-numfmt-node';
+import { xlsxRecalc } from '@lolly-tools/node-shell/gridcraft-calc-node';
+import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
-import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
@@ -67,6 +71,7 @@ function hookExecutorOpts(): { hookExecutor?: ReturnType<typeof createNodeHookEx
 }
 
 interface RunToolCliArgs {
+  inputValues?: Record<string, unknown>;
   toolId: string;
   params: Record<string, string>;
   /** Flags that appeared MORE THAN ONCE on the command line, with every value - how a
@@ -98,6 +103,15 @@ interface RunToolCliArgs {
    * the historical warning default; pasted links may name tolerated URL keys. */
   rejectUnknown?: boolean;
   toleratedUnknown?: ReadonlySet<string>;
+  /** What this file was asked to do, for a render that started from an intent (plan 350
+   *  W4b). This shell stamps the credential when it is set, because the record cannot
+   *  reach a browser tier over a URL. Set only by `renderResolvedSurface`. */
+  intentRecord?: import('@lolly/engine').C2paIntentRecord | null;
+  /** Params that arrived inside a link (`lolly <url>`) or a file someone else made
+   *  (`validate --rebuild`), not typed here. Whoever wrote them never chooses a file
+   *  on this computer: a path flag among them, or a local path in an input they
+   *  set, is refused (`refuseLinkPaths`, `linkBorneKeys`). */
+  linkParams?: ReadonlySet<string>;
   /** Where the tool's files come from. Defaults to the active profile's `tools/` view;
    *  `validate --rebuild` overrides it so a `.lolly` that carries its own tool renders
    *  against THAT copy rather than whatever this checkout happens to hold. */
@@ -243,7 +257,65 @@ export function quietVirtualConsole(jsdom: typeof import('jsdom')): InstanceType
   return vc;
 }
 
+/** CLI flags whose value points at a file on this computer, to read or to write. */
+const LOCAL_PATH_FLAGS = new Set([
+  'output', 'user-profile', 'rate-card', 'file', 'document', 'production', 'production-reference',
+  'production-report', 'production-repairs', 'export-report', 'sign-key', 'sign-cert',
+]);
+
+/** Whether a flag's value points at a file on this computer: one of the path flags,
+ *  or an input's `-data`, `-file` or `-files` import. */
+export function isLocalPathFlag(key: string): boolean {
+  return LOCAL_PATH_FLAGS.has(key) || /-(data|file|files)$/.test(key);
+}
+
+/**
+ * Refuse a link that sets a path flag. A pasted link is the state someone else
+ * chose, so it may say what to draw but never which files on this computer the CLI
+ * reads or writes; the same flag typed after the link is the person's own choice
+ * and wins over the link's.
+ */
+export function refuseLinkPaths(linkParams: ReadonlySet<string> | undefined): void {
+  const keys = [...(linkParams ?? [])].filter(isLocalPathFlag);
+  if (!keys.length) return;
+  throw refused(
+    `The link sets ${keys.map((k) => `${k}=`).join(', ')}, which point${keys.length === 1 ? 's' : ''} at files on this computer. ` +
+    'A link cannot choose files for the CLI to read or write, so nothing was rendered. Type the flag after the link instead, for example --output=out.svg.',
+    'LINK_LOCAL_PATH',
+  );
+}
+
+/**
+ * The query keys a link carried rather than this command line: every key of a
+ * pasted link (`linkParams`), and every key a packed or locked link state
+ * (`z=`, `zx=`) expanded into beyond the flags typed with the link. `typed` is
+ * the query as given, `expanded` the one parseUrlState read.
+ */
+export function linkBorneKeys(typed: URLSearchParams, expanded: string, linkParams?: ReadonlySet<string>): Set<string> {
+  const count = (sp: URLSearchParams): Map<string, number> => {
+    const n = new Map<string, number>();
+    sp.forEach((_v, k) => { n.set(k, (n.get(k) ?? 0) + 1); });
+    return n;
+  };
+  const given = count(typed);
+  const out = new Set<string>(linkParams ?? []);
+  for (const [key, n] of count(new URLSearchParams(expanded))) {
+    if (n > (linkParams?.has(key) ? 0 : (given.get(key) ?? 0))) out.add(key);
+  }
+  return out;
+}
+
 export async function runToolCli(args: RunToolCliArgs): Promise<void> {
+  if (args.params.inputs !== undefined) {
+    const path = args.params.inputs;
+    let value: unknown;
+    try { value = JSON.parse(path === '-' ? (await readStdin()).toString('utf8') : await readFile(path, 'utf8')); }
+    catch (error) { throw usageError('Could not read --inputs JSON: ' + (error as Error).message, 'BAD_INPUT'); }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw usageError('--inputs must contain an object of input values.', 'BAD_INPUT');
+    const params = { ...args.params }; delete params.inputs;
+    args = { ...args, params, inputValues: value as Record<string, unknown> };
+  }
+  refuseLinkPaths(args.linkParams);
   // `--themes=light,dark` (plan 291 M4, E24): one export per theme, each the run below
   // with that theme's `_themes` choice, written to <stem>-<theme>.<ext>.
   const themes = themesPlan(args.params, args.outputPath);
@@ -342,7 +414,7 @@ async function designSystemForRun(
   return { runDesignSystem: null, pageDesignSystem: doc };
 }
 
-async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, fetchFile: fetchFileOverride, browserTier = true, files = [] }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
+async function runToolCliCandidate({ toolId, inputValues, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, linkParams, fetchFile: fetchFileOverride, browserTier = true, files = [], intentRecord = null }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
   const productionPath = params.production, productionReference = params['production-reference'], productionReport = params['production-report'];
   if (productionPath && share) throw new Error('Production verification requires rendered bytes.');
   if (!productionPath && (productionReference || productionReport)) throw new Error('Production options require --production.');
@@ -369,7 +441,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // rewrite them. It installs nothing that already works, and returns false
   // (changing nothing) on a lean install, which keeps the honest refusal.
   const { installNodeCanvas } = await import('@lolly-tools/node-shell/canvas');
-  installNodeCanvas(dom.window as unknown as { HTMLCanvasElement?: { prototype: Record<string, unknown> } });
+  await installNodeCanvas(dom.window as unknown as { HTMLCanvasElement?: { prototype: Record<string, unknown> } });
 
   const fetchFile = fetchFileOverride ?? readToolFile;
 
@@ -447,10 +519,18 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // different transport, so a packed share link must run identically here
   // (`lolly design --z=1eJ…`). A no-op for ordinary readable params.
   const query = await expandQuery(rawQuery);
+  // Which inputs a link set (a pasted URL's keys, or what a z=/zx= state expanded
+  // into): a local path in one of them is refused below, never read.
+  const linkKeys = linkBorneKeys(usp, query, linkParams);
+  const fromLink = (inputId: string): boolean => {
+    const input = tool.manifest.inputs.find((i) => i.id === inputId);
+    return [inputId, `input.${inputId}`, input?.urlKey].some((k) => !!k && linkKeys.has(k));
+  };
   const parsedUrl = (() => {
     try { return parseUrlState(query, tool.manifest); }
     catch (error) { throw usageError((error as Error).message, 'SAMPLES_INVALID'); }
   })();
+  if (inputValues) parsedUrl.values = { ...inputValues, ...parsedUrl.values } as typeof parsedUrl.values;
   const { values, format: paramFormat, width, height, unit, dpi, password, c2pa, bleed, imprint, durable, depth, hdr, filename, cuts, sampleTimes, motionBlur, sequenceRange, profile: pressProfileParam, designVersion: designvParam, slide, video, emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam, licence: licenceParam } = parsedUrl;
 
   // `lolly run design --file=<tokens.json>` (plan 291 M4): the design system the document
@@ -505,6 +585,11 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // byte-identical output with nothing to report it). A BARE `--filename` is a usage error,
   // rejected by the entry point with every other value-taking flag (contract B5).
   const filenameFlag = filename ?? null;
+  // A link's `filename` is the download's name, as it is on the web: a bare file name
+  // in this folder, never a path elsewhere on this computer.
+  if (filenameFlag && linkKeys.has('filename') && (/[\\/]/.test(filenameFlag) || filenameFlag === '..' || filenameFlag === '.')) {
+    throw refused(`The link sets filename=${filenameFlag}, a path rather than a file name. A link cannot choose where the CLI writes, so nothing was rendered. Type --output=<path> after the link instead.`, 'LINK_LOCAL_PATH');
+  }
   if (filenameFlag && outputPath) {
     warn('FILENAME_IGNORED', `--output=${outputPath} wins over --filename=${filenameFlag}; the file is written to --output.`);
   }
@@ -546,6 +631,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   for (const input of tool.manifest.inputs ?? []) {
     if (input.type !== 'file') continue;
     const ref = values[input.id];
+    if (ref && fromLink(input.id)) {
+      throw refused(`--${input.id}: the link sets this file input, and a link cannot choose files for the CLI to read, so nothing was rendered. Type --${input.id}=<path> after the link instead.`, 'LINK_LOCAL_PATH');
+    }
     // A `multiple` file input collects an array of {path} refs (repeated --id=path).
     if (input.multiple) {
       const refs = Array.isArray(ref) ? ref : (ref ? [ref] : []);
@@ -569,15 +657,23 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // shape a web upload produces - so the runtime uses it directly instead of asking the
   // catalog for it. A catalog id (suse/logo/…) isn't a real file, so it falls through to
   // normal resolution; a tool URL stays 'remote' for compose.
+  const { fileUrlIn } = await import('./block-files.ts');
   for (const input of tool.manifest.inputs ?? []) {
     if (input.type !== 'asset') continue;
     const ref = values[input.id];
+    const fileUrl = fileUrlIn(ref);
+    if (fileUrl && fromLink(input.id)) {
+      throw refused(`--${input.id}: the link sets "${fileUrl}", a file on this computer. A link cannot choose files for the CLI to read, so nothing was rendered. Type --${input.id}=<path> after the link instead.`, 'LINK_LOCAL_PATH');
+    }
     if (!ref || typeof ref !== 'object') continue;
     const r = ref as { id?: string; source?: string };
     if (!r.id || r.source === 'remote') continue;   // tool URLs render via compose, not disk
     let st: Awaited<ReturnType<typeof stat>> | undefined;
     try { st = await stat(resolve(process.cwd(), r.id)); } catch { continue; }  // not a local file → catalog
     if (!st.isFile()) continue;
+    if (fromLink(input.id)) {
+      throw refused(`--${input.id}: the link sets "${r.id}", a file on this computer. A link cannot choose files for the CLI to read, so nothing was rendered. Type --${input.id}=<path> after the link instead.`, 'LINK_LOCAL_PATH');
+    }
     const abs = resolve(process.cwd(), r.id);
     // A rondocode song file (plan 301) becomes an audio asset holding its canonical
     // bytes. Only read here: host.audio renders it, its code in the vm class.
@@ -595,15 +691,20 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       } as unknown as InputValue;
       continue;
     }
-    const mime = mimeForFile(abs);
+    let mime = mimeForFile(abs);
+    let bytes: Uint8Array = await readFile(abs);
+    let assetName = basename(abs);
+    // A camera raw photo (DNG, CR2, CR3, NEF, ARW, RAF, ORF, RW2...) is developed on this computer
+    // and handed to the tool as a PNG, with a note on whether the colour is exact or approximate.
+    const developed = await (await import('./camera-raw.ts')).developRawPhoto(assetName, bytes);
+    if (developed) ({ name: assetName, bytes, mime } = developed);
     const isVec = mime === 'image/svg+xml';
-    const bytes = await readFile(abs);
     values[input.id] = await (await import('@lolly-tools/node-shell/jxl-asset')).prepareJxlAsset({
       source: 'user',
-      id: basename(abs),
+      id: assetName,
       type: isVec ? 'vector' : 'raster',
       format: isVec ? 'svg' : (mime.split('/')[1] || 'png'),
-      url: `data:${mime};base64,${bytes.toString('base64')}`,
+      url: `data:${mime};base64,${Buffer.from(bytes).toString('base64')}`,
       meta: { baked: true, name: basename(abs) },
     }, bytes);
   }
@@ -623,7 +724,10 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     if (sheets.length > 1 && sheet === undefined) {
       note(`ℹ ${dataPath} has ${sheets.length} sheets (${sheets.map(s => s.name).join(', ')}); reading the first. Pass --${inputId}-sheet=<name|index> to choose.`);
     }
-    const { rows, sheetName } = readXlsx(bytes, sheet !== undefined ? { sheet } : {});
+    const formatCell = await xlsxFormatter();
+    // Formulas the file saved no result for are worked out; the others keep what the author saw.
+    const recalc = await xlsxRecalc();
+    const { rows, sheetName } = readXlsx(bytes, { ...(sheet !== undefined ? { sheet } : {}), ...(formatCell ? { formatCell } : {}), ...(recalc ? { recalc, recalcWhen: 'missing' as const } : {}) });
     if (sheetName) note(`ℹ read sheet “${sheetName}” from ${dataPath}`);
     return rowsToCsv(rows);
   };
@@ -682,7 +786,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       const dataPath = params[`${input.id}-data`];
       if (input.type === 'blocks' && dataPath) dataDirs[input.id] = dirname(resolve(process.cwd(), dataPath));
     }
-    await bakeLocalBlockAssets(tool.manifest, values as Record<string, unknown>, { dataDirs });
+    await bakeLocalBlockAssets(tool.manifest, values as Record<string, unknown>, { dataDirs, fromLink });
     for (const { inputId, added } of await appendDroppedFiles({ manifest: tool.manifest, params, repeated, positionals: files, values: values as Record<string, unknown>, readStdin })) {
       note(`✓ Added ${added} picture${added === 1 ? '' : 's'} to --${inputId}`);
     }
@@ -706,8 +810,15 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   if (share) {
     const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
     settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);
-    const q = serializeUrlState(runtime.getModel(), { cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection, ...(madeWithOff ? { madeWith: false } : {}) });
-    await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${q ? '?' + q : ''}\n`);
+    const includePersonal = isOn(params['include-personal']);
+    const omitted = includePersonal ? [] : personalShareFields(runtime.getModel());
+    if (omitted.length) note(`Share link omits personal fields: ${omitted.map(field => field.id).join(', ')}. Review them before using --include-personal.`);
+    const serialize = includePersonal ? serializeUrlState : shareUrlState;
+    const q = serialize(runtime.getModel(), { format: format ?? paramFormat, width, height, unit, dpi, bleed, marks: new URLSearchParams(rawQuery).get('marks'), profile: pressProfileParam, c2pa: c2pa?.on, c2paDays: c2pa?.days, imprint: imprint ?? undefined, durable: durable ?? undefined, cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection, ...(madeWithOff ? { madeWith: false } : {}) });
+    const sharedParams = new URLSearchParams(q);
+    if (filename) sharedParams.set('filename', filename);
+    const sharedQuery = sharedParams.toString();
+    await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${sharedQuery ? '?' + sharedQuery : ''}\n`);
     return;
   }
 
@@ -870,7 +981,11 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
 
   // The runtime resolves asset refs (catalog ids → AssetRefs with a `format`), which
   // the matchExportFormat default below reads - so it's created before format resolution.
-  const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
+  // `--width`/`--height`/`--unit` are the canvas size the hooks lay out for (engine
+  // 1.293), the same CSS pixels the web shell hands a tool for that size.
+  const runtime = await createRuntime(tool, host, values, {
+    ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection, canvasSize: canvasSizeOf(width, height, unit ?? 'px'),
+  });
   // A `--_themes` choice the tool's `tokenAxes` ignores is said, never dropped silently,
   // and from here on the bridge reads in the option the tool renders in.
   settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);
@@ -1118,6 +1233,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
 
     }
     if (targetFormat === 'lottie' && video.fps != null) exportOpts.fps = video.fps;
+    // EPS (CMYK) separates through the press condition's profile (the bundled FOGRA39
+    // one by default), so the condition a print link names reaches the Node tier too.
+    if (targetFormat === 'eps-cmyk' && pressProfile) exportOpts.colorProfile = pressProfile;
 
     // ── the `s=` still-export filter (plan 112 section 10) ────────────────────────────
     // `--s=2 --export=png` renders ONE slide of a framed document, exactly as
@@ -1238,7 +1356,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       // bytes, with the identity - the same last-byte-operation rule, one tier later.
       // The visible trade: the manifest's environment assertion is then the CLI's
       // (surface: 'cli'), not the web shell's. docs/cli-signing.md says so.
-      c2pa: wantC2pa && !identity, c2paDays: c2pa?.days ?? undefined,
+      // An intent record is the same case: it has no way to reach the browser over a URL,
+      // so the credential that carries it is applied in Node below.
+      c2pa: wantC2pa && !identity && !intentRecord, c2paDays: c2pa?.days ?? undefined,
       // The deck state address, forwarded so the BROWSER tier applies the same one-slide
       // filter the web shell applies to `?s=`. Carried whenever it was given: a format the
       // filter skips is skipped there too (frameFilterApplies is the shared rule), so this
@@ -1278,7 +1398,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       // HDR still and was told `c2pa=off`, so the credential goes on the file THIS
       // process wrote. Without it an `--hdr=1` export off the browser tier would carry
       // no Content Credential at all, silently.
-      webShellExport = res.usedBrowser && !identity && !res.nodeEncoded;
+      webShellExport = res.usedBrowser && !identity && !intentRecord && !res.nodeEncoded;
       // Same third case: an HDR still marks its own pixels here, on either tier, so its
       // floor skip must be reported even when the browser supplied the source frame.
       if ((!res.usedBrowser || res.nodeEncoded) && wantImprint && res.imprinted === false) imprintFloorSkip = true;
@@ -1518,7 +1638,10 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         // The "what was this made from / where / when / how big" record, matching
         // the web shell's tools.lolly.export enrichment (shared with the TUI - 
         // buildExportC2paOpts also attaches the profile author under `useDetails`).
-        const stamped = await embedC2pa(new Uint8Array(buf), finalFormat, buildExportC2paOpts({
+        // Told not to stamp, the browser tier saves a PDF with a cross-reference stream,
+        // which the embedder cannot extend, so an intent record needs the classic table.
+        const finished = intentRecord ? await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(new Uint8Array(buf), finalFormat) : new Uint8Array(buf);
+        const stamped = await embedC2pa(finished, finalFormat, buildExportC2paOpts({
           surface: 'cli', manifest: tool.manifest, model: runtime.getModel(),
           format: finalFormat, dims: { width, height, unit, dpi }, days: c2pa?.days, profile,
           // The design system and colourway the export's own metadata records
@@ -1533,6 +1656,8 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
           ingredients: [...runtime.emojiIngredients(), ...opsIngredients],
           // Which renderer drew a Design page here (plan 326); none for the other paths.
           route: routed.record ?? null,
+          // What this file was asked to do, for a render that started from an intent.
+          intent: intentRecord,
           // Absent = the ephemeral self-signed signer, unchanged. Present, the
           // credential carries the identity's x5chain and its certificate window.
           ...(identity ? { signer: identity.signer, signerValidity: { notBefore: identity.notBefore, notAfter: identity.notAfter } } : {}),
@@ -1579,7 +1704,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       ...(C2PA_FORMATS.includes(finalFormat) ? { credential: wantC2pa } : {}),
       ...(password ? { password: true } : {}),
       ...(hdr ? { hdr: true } : {}),
-    }, new Uint8Array(buf));
+    }, new Uint8Array(buf), { pdfAccessibility: checkPdfAccessibility });
     const json = JSON.stringify(report, null, 2) + '\n';
     if (exportReportPath === '-') process.stderr.write(json); else await writeFile(exportReportPath, json);
     // A difference is a promise this run did not keep, so --strict turns it into an exit code.
@@ -1771,8 +1896,8 @@ export function exportFailure(format: string, failure: Error, domFreeError: Erro
 
 /** Flags this shell reads itself, on top of url-mode's RESERVED set. */
 export const CLI_FLAGS = new Set([
-  'press-profile', 'user-profile', 'link-password', 'html-fallback', 'help', 'version',
-  'text', 'password-stdin', 'share', 'link', 'verify', 'rate-card', 'production', 'production-reference', 'production-report', 'production-repairs',
+  'inputs', 'press-profile', 'user-profile', 'link-password', 'html-fallback', 'help', 'version',
+  'text', 'password-stdin', 'share', 'link', 'include-personal', 'verify', 'rate-card', 'production', 'production-reference', 'production-report', 'production-repairs',
   // `--export-report=<path|->` writes the requested-versus-actual report for the finished file.
   'export-report',
   // The one-word provenance opt-out (contract section 12 O2). Consumed in the render path
@@ -2324,6 +2449,8 @@ export async function listToolsCli(opts: { json?: boolean; query?: string; limit
   // "no declared capabilities" rather than failing the whole listing: `list` is how an
   // agent discovers the catalog, and one broken tool must not blind it to the rest.
   const { NODE_FORMATS } = await import('@lolly-tools/node-shell/raster');
+  const { describeEnvironment, formatReadiness } = await import('./environment.ts');
+  const environment = await describeEnvironment();
   const tools: ToolListing[] = await Promise.all(selected.map(async (t) => {
     let capabilities: string[] = [];
     let formats = t.formats ?? [];
@@ -2346,16 +2473,16 @@ export async function listToolsCli(opts: { json?: boolean; query?: string; limit
       unmetCapabilities: unmet,
       nativeFormats: formats.filter(f => NODE_FORMATS.includes(f.toLowerCase()) || t.id === 'design' && f.toLowerCase() === 'pdf'),
       runnableHere: unmet.length === 0,
+      readiness: formatReadiness(formats, environment, formats.filter(f => NODE_FORMATS.includes(f.toLowerCase()) || t.id === 'design' && f.toLowerCase() === 'pdf')),
     };
   }));
 
-  const { describeEnvironment } = await import('./environment.ts');
   const { emitResult } = await import('./envelope.ts');
   await emitResult({
     tools,
     ...(query ? { query: opts.query } : {}),
     ...(opts.limit !== undefined ? { limit: opts.limit, total: matches.length } : {}),
-    environment: await describeEnvironment(),
+    environment,
   });
 }
 

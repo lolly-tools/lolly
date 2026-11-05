@@ -126,16 +126,17 @@ export const addColorEntries = (bedit: BrandEditorCtx, entries: ColorEntry[], re
 /** The add row's field, the one place the pick card writes its live value. */
 export const addField = (bedit: BrandEditorCtx): HTMLInputElement | null => { const { root } = bedit; return root.querySelector<HTMLInputElement>('[data-ds-addc-input]'); };
 /**
- * Beat 0 spells the notations out in full under a 72px chip; the compact row
- * keeps the short sentence, because by then the person has done this once.
- * The example values stay untranslated (they are values, not prose).
+ * Beat 0 spells the notations out in full under the add area's own title; the
+ * compact one-row field (plan 346, a system with colours of its own) has no
+ * title, so its placeholder carries the area's name instead. The example values
+ * stay untranslated (they are values, not prose).
  */
 export function syncAddPlaceholder(bedit: BrandEditorCtx): void {
   const field = addField(bedit);
   if (!field) return;
   field.placeholder = bedit.beat === 0
     ? `${t('Paste a colour')} · ${COLOR_NOTATION_EXAMPLES}`
-    : t('Paste a colour, or a list');
+    : t('Paste colours or use an image');
 }
 // Role reads and writes from the strip take `bedit.state.editContext()`: the
 // mode the strip is reading, and therefore the ONE it may write, plus the lead.
@@ -191,6 +192,66 @@ export function wireAddColorMount(bedit: BrandEditorCtx): void {
     });
     cleanups.push(teardownAdd);
   }
+  wireAddColorDrop(bedit);
+}
+
+/** Text files whose colours are worth reading straight into the add row: a
+ *  stylesheet, a token file, a GIMP palette, a plain list. Binary swatch
+ *  formats (.ase) go through Add from... instead. */
+const COLOUR_TEXT = /\.(?:css|scss|less|json|txt|gpl|svg)$/i;
+/** More than enough for any palette; the parser stops at its own cap anyway. */
+const DROP_TEXT_LIMIT = 1_000_000;
+
+/**
+ * The add area is a drop area (plan 346 change 18): drop an image and the
+ * studio's own image source reads it (the same door as the image button), drop
+ * a colour list or a stylesheet and its text goes into the field, where the row
+ * parses the text as if it had been pasted. Nothing is added by the drop itself:
+ * one colour still waits for Add, several for Add all or Add selected.
+ */
+export function wireAddColorDrop(bedit: BrandEditorCtx): void {
+  const { cleanups, opts } = bedit;
+  const zone = bedit.ramps.$('[data-be-addcolor-drop]') as HTMLElement | null;
+  if (!zone) return;
+  const carries = (e: DragEvent): boolean => {
+    const types = e.dataTransfer?.types ?? [];
+    return types.includes('Files') || types.includes('text/plain');
+  };
+  const fill = (text: string): void => {
+    const field = bedit.addColor.addField();
+    if (!field || !text.trim()) return;
+    field.value = text.slice(0, DROP_TEXT_LIMIT);
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    field.focus();
+  };
+  const onOver = (e: DragEvent): void => {
+    if (!carries(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    zone.classList.add('is-dragover');
+  };
+  const onLeave = (e: DragEvent): void => {
+    if (!e.relatedTarget || !zone.contains(e.relatedTarget as Node)) zone.classList.remove('is-dragover');
+  };
+  const onDrop = (e: DragEvent): void => {
+    if (!carries(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.remove('is-dragover');
+    const files = [...(e.dataTransfer?.files ?? [])];
+    const image = files.find(f => f.type.startsWith('image/') && f.type !== 'image/svg+xml');
+    if (image) { opts.scanImage?.(image); return; }
+    const text = files.find(f => f.type.startsWith('text/') || COLOUR_TEXT.test(f.name));
+    if (text) { void text.slice(0, DROP_TEXT_LIMIT).text().then(fill, () => {}); return; }
+    fill(e.dataTransfer?.getData('text/plain') ?? '');
+  };
+  zone.addEventListener('dragover', onOver);
+  zone.addEventListener('dragleave', onLeave);
+  zone.addEventListener('drop', onDrop);
+  cleanups.push(() => {
+    zone.removeEventListener('dragover', onOver);
+    zone.removeEventListener('dragleave', onLeave);
+    zone.removeEventListener('drop', onDrop);
+  });
 }
 
 export function addColorOps(bedit: BrandEditorCtx) {
@@ -204,5 +265,6 @@ export function addColorOps(bedit: BrandEditorCtx) {
     syncAddPlaceholder: bindOp(bedit, syncAddPlaceholder),
     wireAddedChip: bindOp(bedit, wireAddedChip),
     wireAddColorMount: bindOp(bedit, wireAddColorMount),
+    wireAddColorDrop: bindOp(bedit, wireAddColorDrop),
   };
 }

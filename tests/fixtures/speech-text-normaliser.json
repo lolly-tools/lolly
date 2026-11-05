@@ -1,0 +1,804 @@
+{
+ "source": "filmcraft crates/tts-text src/normalize/tests.rs at 9c6d66114c71179f66d21933b6bf6b88311adf46 (MIT OR Apache-2.0, see its ATTRIBUTION.md)",
+ "taken": "Test inputs and expected spoken forms only. Spoken forms are written as plain lowercase-insensitive words; filmcraft's sentence-end and punctuation tokens are dropped. No normaliser or letter-to-sound code is copied.",
+ "cases": [
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "0",
+   "spoken": "zero",
+   "id": "cardinals-001",
+   "observed": "0",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "7",
+   "spoken": "seven",
+   "id": "cardinals-002",
+   "observed": "7",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "13",
+   "spoken": "thirteen",
+   "id": "cardinals-003",
+   "observed": "13",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "20",
+   "spoken": "twenty",
+   "id": "cardinals-004",
+   "observed": "20",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "34",
+   "spoken": "thirty-four",
+   "id": "cardinals-005",
+   "observed": "34",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "100",
+   "spoken": "one hundred",
+   "id": "cardinals-006",
+   "observed": "100",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "105",
+   "spoken": "one hundred five",
+   "id": "cardinals-007",
+   "observed": "105",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "999",
+   "spoken": "nine hundred ninety-nine",
+   "id": "cardinals-008",
+   "observed": "999",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "1,234",
+   "spoken": "one thousand two hundred thirty-four",
+   "id": "cardinals-009",
+   "observed": "1234",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "1,234,567",
+   "spoken": "one million two hundred thirty-four thousand five hundred sixty-seven",
+   "id": "cardinals-010",
+   "observed": "1234567",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "1000000",
+   "spoken": "one million",
+   "id": "cardinals-011",
+   "observed": "1000000",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "1000000000",
+   "spoken": "one billion",
+   "id": "cardinals-012",
+   "observed": "1000000000",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "-5",
+   "spoken": "minus five",
+   "id": "cardinals-013",
+   "observed": "-5",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "3.14",
+   "spoken": "three point one four",
+   "id": "cardinals-014",
+   "observed": "3 point 1 4",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": ".5",
+   "spoken": "point five",
+   "id": "cardinals-015",
+   "observed": "point 5",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "-2.5",
+   "spoken": "minus two point five",
+   "id": "cardinals-016",
+   "observed": "-2 point 5",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "007",
+   "spoken": "zero zero seven",
+   "id": "cardinals-017",
+   "observed": "007",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "0.5",
+   "spoken": "zero point five",
+   "id": "cardinals-018",
+   "observed": "0 point 5",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "2-3",
+   "spoken": "two to three",
+   "id": "cardinals-019",
+   "observed": "2 to 3",
+   "lolly": "gap"
+  },
+  {
+   "category": "cardinals",
+   "lang": "en-US",
+   "input": "555-0134",
+   "spoken": "five five five zero one three four",
+   "id": "cardinals-020",
+   "observed": "555 to 0134",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "1st",
+   "spoken": "first",
+   "id": "ordinals-021",
+   "observed": "1st",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "2nd",
+   "spoken": "second",
+   "id": "ordinals-022",
+   "observed": "2nd",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "3rd",
+   "spoken": "third",
+   "id": "ordinals-023",
+   "observed": "3rd",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "7th",
+   "spoken": "seventh",
+   "id": "ordinals-024",
+   "observed": "7th",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "9th",
+   "spoken": "ninth",
+   "id": "ordinals-025",
+   "observed": "9th",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "12th",
+   "spoken": "twelfth",
+   "id": "ordinals-026",
+   "observed": "12th",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "20th",
+   "spoken": "twentieth",
+   "id": "ordinals-027",
+   "observed": "20th",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "21st",
+   "spoken": "twenty-first",
+   "id": "ordinals-028",
+   "observed": "21st",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "33rd",
+   "spoken": "thirty-third",
+   "id": "ordinals-029",
+   "observed": "33rd",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "100th",
+   "spoken": "one hundredth",
+   "id": "ordinals-030",
+   "observed": "100th",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "101st",
+   "spoken": "one hundred first",
+   "id": "ordinals-031",
+   "observed": "101st",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "119th",
+   "spoken": "one hundred nineteenth",
+   "id": "ordinals-032",
+   "observed": "119th",
+   "lolly": "gap"
+  },
+  {
+   "category": "ordinals",
+   "lang": "en-US",
+   "input": "200th",
+   "spoken": "two hundredth",
+   "id": "ordinals-033",
+   "observed": "200th",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$3.50",
+   "spoken": "three dollars and fifty cents",
+   "id": "money-034",
+   "observed": "3 dollars and 50 cents",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$1",
+   "spoken": "one dollar",
+   "id": "money-035",
+   "observed": "1 dollar",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$1.00",
+   "spoken": "one dollar",
+   "id": "money-036",
+   "observed": "1 dollar and 0 cents",
+   "lolly": "gap",
+   "misread": "reads \"0 cents\" for an amount with no cents"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$1.5",
+   "spoken": "one dollar and fifty cents",
+   "id": "money-037",
+   "observed": "1 dollar and 50 cents",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$2.5",
+   "spoken": "two dollars and fifty cents",
+   "id": "money-038",
+   "observed": "2 dollars and 50 cents",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$0.5",
+   "spoken": "zero dollars and fifty cents",
+   "id": "money-039",
+   "observed": "0 dollars and 50 cents",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$1.05",
+   "spoken": "one dollar and five cents",
+   "id": "money-040",
+   "observed": "1 dollar and 5 cents",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "€1.5",
+   "spoken": "one euro and fifty cents",
+   "id": "money-041",
+   "observed": "€1 point 5",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "€2",
+   "spoken": "two euros",
+   "id": "money-042",
+   "observed": "€2",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "£1",
+   "spoken": "one pound",
+   "id": "money-043",
+   "observed": "1 pound",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$1,234.56",
+   "spoken": "one thousand two hundred thirty-four dollars and fifty-six cents",
+   "id": "money-044",
+   "observed": "1234 dollars and 56 cents",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "-$5",
+   "spoken": "minus five dollars",
+   "id": "money-045",
+   "observed": "-5 dollars",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$5 million",
+   "spoken": "five million dollars",
+   "id": "money-046",
+   "observed": "5 million dollars",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "$2.5 billion",
+   "spoken": "two point five billion dollars",
+   "id": "money-047",
+   "observed": "2 point 5 billion dollars",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "worth $40 billion",
+   "spoken": "worth forty billion dollars",
+   "id": "money-048",
+   "observed": "worth 40 billion dollars",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-US",
+   "input": "gas is $3.459 a gallon",
+   "spoken": "gas is three dollars and forty-five cents a gallon",
+   "id": "money-049",
+   "observed": "gas is 3 dollars and 459 cents a gallon",
+   "lolly": "gap",
+   "misread": "reads \"459 cents\": digits past the second decimal place are not cut"
+  },
+  {
+   "category": "money",
+   "lang": "en-GB",
+   "input": "£1.5",
+   "spoken": "one pound and fifty pence",
+   "id": "money-050",
+   "observed": "1 pound and 50 pence",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-GB",
+   "input": "£2.50",
+   "spoken": "two pounds and fifty pence",
+   "id": "money-051",
+   "observed": "2 pounds and 50 pence",
+   "lolly": "gap"
+  },
+  {
+   "category": "money",
+   "lang": "en-GB",
+   "input": "£3 Thousand",
+   "spoken": "three thousand pounds",
+   "id": "money-052",
+   "observed": "3 Thousand pounds",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "10/7/2026",
+   "spoken": "October seventh twenty twenty-six",
+   "id": "dates-053",
+   "observed": "10/7/20 26",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "Oct. 7th",
+   "spoken": "October seventh",
+   "id": "dates-054",
+   "observed": "Oct. 7th",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "Jan. 1st",
+   "spoken": "January first",
+   "id": "dates-055",
+   "observed": "Jan. 1st",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "Sept. 3rd",
+   "spoken": "September third",
+   "id": "dates-056",
+   "observed": "Sept. 3rd",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "May 5th",
+   "spoken": "May fifth",
+   "id": "dates-057",
+   "observed": "May 5th",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "9/9/1999",
+   "spoken": "September ninth nineteen ninety-nine",
+   "id": "dates-058",
+   "observed": "9/9/19 99",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "13/7/2026",
+   "spoken": "thirteen slash seven slash twenty twenty-six",
+   "id": "dates-059",
+   "observed": "13/7/20 26",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "1999",
+   "spoken": "nineteen ninety-nine",
+   "id": "dates-060",
+   "observed": "19 99",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "2005",
+   "spoken": "two thousand five",
+   "id": "dates-061",
+   "observed": "2005",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "2026",
+   "spoken": "twenty twenty-six",
+   "id": "dates-062",
+   "observed": "20 26",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "1900",
+   "spoken": "nineteen hundred",
+   "id": "dates-063",
+   "observed": "19 hundred",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "1905",
+   "spoken": "nineteen oh five",
+   "id": "dates-064",
+   "observed": "19 oh 5",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "1100",
+   "spoken": "eleven hundred",
+   "id": "dates-065",
+   "observed": "11 hundred",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "2000",
+   "spoken": "two thousand",
+   "id": "dates-066",
+   "observed": "2000",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "2100",
+   "spoken": "two thousand one hundred",
+   "id": "dates-067",
+   "observed": "21 hundred",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-US",
+   "input": "1099",
+   "spoken": "one thousand ninety-nine",
+   "id": "dates-068",
+   "observed": "1099",
+   "lolly": "gap"
+  },
+  {
+   "category": "dates",
+   "lang": "en-GB",
+   "input": "7/10/2026",
+   "spoken": "the seventh of October twenty twenty-six",
+   "id": "dates-069",
+   "observed": "7/10/20 26",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "3:30",
+   "spoken": "three thirty",
+   "id": "times-070",
+   "observed": "3 30",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "15:05",
+   "spoken": "fifteen oh five",
+   "id": "times-071",
+   "observed": "15:05",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "0:15",
+   "spoken": "zero fifteen",
+   "id": "times-072",
+   "observed": "0:15",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "03:30",
+   "spoken": "three thirty",
+   "id": "times-073",
+   "observed": "03:30",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "23:59",
+   "spoken": "twenty-three fifty-nine",
+   "id": "times-074",
+   "observed": "23:59",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "3:30pm",
+   "spoken": "three thirty p m",
+   "id": "times-075",
+   "observed": "3:30pm",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "3:30 p.m.",
+   "spoken": "three thirty p m",
+   "id": "times-076",
+   "observed": "3 30 p-m.",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "9:00 a.m.",
+   "spoken": "nine a m",
+   "id": "times-077",
+   "observed": "9 o'clock a-m.",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "9:00 PM",
+   "spoken": "nine p m",
+   "id": "times-078",
+   "observed": "9 o'clock PM",
+   "lolly": "gap"
+  },
+  {
+   "category": "times",
+   "lang": "en-US",
+   "input": "12:00",
+   "spoken": "twelve",
+   "id": "times-079",
+   "observed": "12 o'clock",
+   "lolly": "gap"
+  },
+  {
+   "category": "acronyms",
+   "lang": "en-US",
+   "input": "TDA",
+   "spoken": "T D A",
+   "id": "acronyms-080",
+   "observed": "TDA",
+   "lolly": "gap"
+  },
+  {
+   "category": "acronyms",
+   "lang": "en-US",
+   "input": "NBC",
+   "spoken": "N B C",
+   "id": "acronyms-081",
+   "observed": "NBC",
+   "lolly": "gap"
+  },
+  {
+   "category": "acronyms",
+   "lang": "en-US",
+   "input": "FBI",
+   "spoken": "F B I",
+   "id": "acronyms-082",
+   "observed": "FBI",
+   "lolly": "gap"
+  },
+  {
+   "category": "acronyms",
+   "lang": "en-US",
+   "input": "HTML",
+   "spoken": "H T M L",
+   "id": "acronyms-083",
+   "observed": "HTML",
+   "lolly": "gap"
+  },
+  {
+   "category": "acronyms",
+   "lang": "en-US",
+   "input": "NASA",
+   "spoken": "NASA",
+   "id": "acronyms-084",
+   "observed": "NASA",
+   "lolly": "handled"
+  },
+  {
+   "category": "acronyms",
+   "lang": "en-US",
+   "input": "UNESCO",
+   "spoken": "UNESCO",
+   "id": "acronyms-085",
+   "observed": "UNESCO",
+   "lolly": "handled"
+  },
+  {
+   "category": "acronyms",
+   "lang": "en-US",
+   "input": "laser",
+   "spoken": "laser",
+   "id": "acronyms-086",
+   "observed": "laser",
+   "lolly": "handled"
+  },
+  {
+   "category": "acronyms",
+   "lang": "en-US",
+   "input": "A",
+   "spoken": "A",
+   "id": "acronyms-087",
+   "observed": "A",
+   "lolly": "handled"
+  },
+  {
+   "category": "mixed",
+   "lang": "en-US",
+   "input": "Call 555-0134 by 3:30 p.m. on Oct. 7th, it's $3.50 (20% off)",
+   "spoken": "Call five five five zero one three four by three thirty p m on October seventh it's three dollars and fifty cents twenty percent off",
+   "id": "mixed-088",
+   "observed": "Call 555 to 0134 by 3 30 p-m- on Oct. 7th, it's 3 dollars and 50 cents (20% off)",
+   "lolly": "gap"
+  }
+ ],
+ "statusKey": {
+  "handled": "normalizeForSpeech output equals the spoken form after lowercasing and dropping punctuation",
+  "gap": "it does not: either numerals or symbols are left for the phonemizer to read, or the words differ. `misread` marks output that is wrong rather than merely unfinished."
+ }
+}

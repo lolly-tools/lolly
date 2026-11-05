@@ -18,6 +18,8 @@
  *     scrubbed and already filtered to the truthy rows, in one fixed key order.
  *   • verdictChecks - the per-check list, scrubbed, with a semantic `mark` each
  *     surface paints its own way (ANSI colour / Ink tone / plain glyph).
+ *   • verdictIntent - what the file says it was asked to do, with any recorded prompt
+ *     labelled as data and quoted, so it cannot pass for this tool's own words.
  *   • verdictHeadline - glyph + name + detail + tone for the top line. It resolves
  *     two terminal quirks the CLI and TUI share: `partsMadeWithLolly` elevated to
  *     a headline (opt-in via `elevateParts`, kept a flag by the engine and by the
@@ -41,6 +43,36 @@ import { VERDICT_SLUGS } from './verdict-slugs.ts';
  */
 export function cleanControlChars(v: unknown): string {
   return String(v).replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ');
+}
+
+/** What a credential records about the intent behind a file. Scrubbed, and data throughout. */
+export interface VerdictIntent {
+  facts: Array<[label: string, value: string]>;
+  /** The recorded words as one quoted line, escapes showing, or null when the file holds none. */
+  prompt: string | null;
+  /** The label that goes with `prompt`. */
+  promptNote: string | null;
+}
+
+/**
+ * The intent record for a person to read, or null when the file holds none. Free text
+ * reads as a fingerprint. Recorded prompt words stay inside quotes with their escapes
+ * showing, so a line break or a sentence in them cannot look like this tool talking.
+ */
+export function verdictIntent(report: C2paReport): VerdictIntent | null {
+  const r = report.intent;
+  if (!r) return null;
+  const raw: Array<[string, string | undefined]> = [
+    ['Purpose', r.purpose], ['Surface', r.surface], ['Tool', r.tool], ['Language', r.language],
+    ['Rules', r.rulesVersion], ['Digest', r.intentDigest],
+    ['Occasion', r.occasion && 'text, fingerprinted'], ['Audience', r.audience && 'text, fingerprinted'], ['Region', r.region && 'text, fingerprinted'],
+    ['Prompt', r.promptFingerprint && 'text, fingerprinted'],
+  ];
+  return {
+    facts: raw.filter((row): row is [string, string] => !!row[1]).map(([k, v]) => [k, cleanControlChars(v)]),
+    prompt: r.prompt === undefined ? null : cleanControlChars(JSON.stringify(r.prompt)),
+    promptNote: r.promptNote ?? null,
+  };
 }
 
 /** Semantic tone for a rendered verdict line; each surface maps it to its palette. */

@@ -1,0 +1,88 @@
+{
+  "id": "12-white-reverse",
+  "title": "White reverse text",
+  "covers": "White text reversed out of a dark ground is paper: every plate is blank inside the letters while the ground prints around them.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#143d2b"
+    },
+    {
+      "id": "t",
+      "kind": "text",
+      "frame": "page",
+      "x": 20,
+      "y": 40,
+      "w": 360,
+      "h": 110,
+      "text": "Reverse",
+      "fg": "#ffffff",
+      "fontSize": 72,
+      "font": "sans",
+      "weight": "800",
+      "align": "left",
+      "valign": "top",
+      "lineHeight": 1.1
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "tol": 3,
+      "regions": [
+        {
+          "name": "ground corner",
+          "rect": [
+            0,
+            0,
+            12,
+            12
+          ],
+          "expectFrom": {
+            "rgb": "#143d2b"
+          }
+        },
+        {
+          "name": "letter cores",
+          "rect": [
+            20,
+            40,
+            360,
+            110
+          ],
+          "expect": {
+            "C": {
+              "stat": "min",
+              "value": 0
+            },
+            "M": {
+              "stat": "min",
+              "value": 0
+            },
+            "Y": {
+              "stat": "min",
+              "value": 0
+            },
+            "K": {
+              "stat": "min",
+              "value": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

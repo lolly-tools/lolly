@@ -10,6 +10,10 @@
 import { currentTheme } from '../../theme.ts';
 import { setTheme } from '../../lib/set-theme.ts';
 import { setA11yPref } from '../../lib/a11y-prefs.ts';
+import { currentHand, onHandChange, setHand } from '../../lib/hand-pref.ts';
+import type { Hand } from '../../lib/hand-pref.ts';
+import { segHtml } from '../../lib/seg.ts';
+import { icon } from '../../lib/icons.ts';
 import type { A11yPrefs } from '../../lib/a11y-prefs.ts';
 import { setChromeFollow } from '../../lib/chrome-follow.ts';
 import { t } from '../../i18n.ts';
@@ -91,6 +95,53 @@ export const renderSaveRow = (pv: ProfileViewCtx, on: boolean) => {
     </li>`;
 };
 export const renderSaveListHtml = (pv: ProfileViewCtx) => renderSaveRow(pv, pv.renderSaveState);
+// ── Dominant hand (lib/hand-pref.ts) ────────────────────────────────────────
+// Two named choices, so a segmented control rather than a switch: a switch would
+// have to say which hand "on" means. The group is named by the visible label, and
+// the help text is its description, as on the switch rows above.
+export const handRowHtml = (_pv: ProfileViewCtx): string => {
+  const hand = currentHand();
+  const tip = helpTip(t('With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.'));
+  const seg = segHtml('hand', [
+    { id: 'right', label: t('Right') },
+    { id: 'left', label: t('Left') },
+  ], hand, '', { labelledBy: 'hand-pref-label', attr: 'data-hand-set', extraClass: 'profile-hand-seg' });
+  // The glyph sits in the switch column, so the label lines up with the switch rows
+  // above, and it shows where the controls go: mirrored for the left hand.
+  return `
+    <div class="profile-hand${hand === 'left' ? ' is-left' : ''}" id="hand-pref">
+      <span class="profile-hand-ic" aria-hidden="true">${icon('panelLeft')}</span>
+      <span class="feature-flag-label" id="hand-pref-label">${escapeText(t('Dominant hand'))}<span class="feature-flag-info a11y-pref-info help-tip-host">${tip.button}${tip.pop}</span></span>
+      ${seg}
+    </div>`;
+};
+
+/** Paint the hand control's pressed half from the hand in force. */
+function paintHand(root: Element, hand: Hand): void {
+  root.classList.toggle('is-left', hand === 'left');
+  for (const b of root.querySelectorAll<HTMLElement>('[data-hand-set]')) {
+    b.setAttribute('aria-pressed', String(b.dataset.handSet === hand));
+  }
+}
+
+/** The hand row saves on press and follows a change made elsewhere (Swap sides). */
+export function wireHandRow(pv: ProfileViewCtx): void {
+  const { host, viewEl } = pv;
+  const row = viewEl.querySelector<HTMLElement>('#hand-pref');
+  if (!row) return;
+  row.addEventListener('click', async (e) => {
+    const btn = (e.target as Element).closest<HTMLElement>('[data-hand-set]');
+    if (!btn) return;
+    const hand: Hand = btn.dataset.handSet === 'left' ? 'left' : 'right';
+    if (hand === currentHand()) return;
+    paintHand(row, hand);
+    await setHand(host, hand);
+    announce(hand === 'left' ? t('Left') : t('Right'));
+  });
+  // The view's cleanup (profile/chrome.ts) detaches this when the route changes.
+  pv.handUnsub = onHandChange((hand) => paintHand(row, hand));
+}
+
 /** The four accessibility prefs auto-save on change. */
 export function wireA11yRows(pv: ProfileViewCtx): void {
   const { a11yState, host, viewEl } = pv;
@@ -407,6 +458,8 @@ export function prefsOps(pv: ProfileViewCtx) {
     renderSaveRow: bindOp(pv, renderSaveRow),
     renderSaveListHtml: bindOp(pv, renderSaveListHtml),
     wireA11yRows: bindOp(pv, wireA11yRows),
+    handRowHtml: bindOp(pv, handRowHtml),
+    wireHandRow: bindOp(pv, wireHandRow),
     wireAppearanceRows: bindOp(pv, wireAppearanceRows),
     wireRenderSaveRows: bindOp(pv, wireRenderSaveRows),
     wireThemePick: bindOp(pv, wireThemePick),

@@ -15,7 +15,7 @@ import type { PDFContext, PDFObject } from 'pdf-lib';
 import { interpretPdfPage, parseToUnicode, toUnicodeDecoder, finalizeBoxes, safeColor } from '@lolly/engine';
 import type { PdfNode, PdfFontInfo, PdfXObject, DesignMapOptions } from '@lolly/engine';
 
-export interface DesignImport { boxes: object[]; width: number; height: number; background: string }
+export interface DesignImport { boxes: object[]; width: number; height: number; background: string; page: number; pageCount: number }
 
 type Ref = PDFObject | null | undefined;
 interface ImportNode extends PdfNode { image?: unknown }
@@ -25,7 +25,7 @@ interface Resources { fonts: Record<string, PdfFontInfo>; xobjects: Record<strin
  *  target tool's brand vocabulary (font select values + addKinds seed colours) - 
  *  see designMapFromManifest in import-design.ts; unset fields fall back to the
  *  engine's neutral lolly-start defaults. */
-export async function parsePdfBytes(bytes: Uint8Array, warn: (m: string) => void = () => {}, map?: DesignMapOptions): Promise<DesignImport> {
+export async function parsePdfBytes(bytes: Uint8Array, warn: (m: string) => void = () => {}, map?: DesignMapOptions, pageNumber = 1): Promise<DesignImport> {
   let doc: PDFDocument;
   try {
     doc = await PDFDocument.load(bytes, { ignoreEncryption: true, throwOnInvalidObject: false, updateMetadata: false });
@@ -34,9 +34,10 @@ export async function parsePdfBytes(bytes: Uint8Array, warn: (m: string) => void
   }
   const pageCount = doc.getPageCount();
   if (!pageCount) throw new Error('This PDF has no pages.');
-  if (pageCount > 1) warn(`Imported the first of ${pageCount} pages.`);
+  if (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > pageCount) throw new Error(`Choose a page from 1 to ${pageCount}.`);
+  if (pageCount > 1) warn(`Only page ${pageNumber} of ${pageCount} will be imported.`);
 
-  const page = doc.getPage(0);
+  const page = doc.getPage(pageNumber - 1);
   const ctx = doc.context;
   const node = page.node;
   const mb = page.getMediaBox();
@@ -51,6 +52,10 @@ export async function parsePdfBytes(bytes: Uint8Array, warn: (m: string) => void
   if (!nodes.length) throw new Error('Couldn’t find any importable artwork on the first page.');
 
   // No canvas/host in Node: vector paths + images collapse to positioned colour boxes.
+  const vectors = nodes.filter(node => node._vectorPath).length;
+  const images = nodes.filter(node => node._imageXObject).length;
+  if (vectors) warn(`${vectors} vector shapes become colour rectangles; paths are not retained.`);
+  if (images) warn(`${images} images become empty rectangles; image pixels are not retained.`);
   for (const n of nodes) {
     if (n._vectorPath) { n.kind = 'box'; n.fill = firstColor(n._vectorFill); clearVector(n); }
     else if (n._imageXObject) { n.kind = 'box'; n.fill = ''; delete n._imageXObject; }
@@ -58,7 +63,7 @@ export async function parsePdfBytes(bytes: Uint8Array, warn: (m: string) => void
 
   const boxes = finalizeBoxes(nodes, { prefix: 'p', ...map });
   if (!boxes.length) throw new Error('Couldn’t find any importable artwork on the first page.');
-  return { boxes, width: Math.max(1, Math.round(mb.width)), height: Math.max(1, Math.round(mb.height)), background: '#ffffff' };
+  return { boxes, width: Math.max(1, Math.round(mb.width)), height: Math.max(1, Math.round(mb.height)), background: '#ffffff', page: pageNumber, pageCount };
 }
 
 // ── pdf-lib access helpers (pure) ──────────────────────────────────────────────

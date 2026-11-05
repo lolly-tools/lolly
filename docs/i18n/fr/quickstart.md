@@ -17,14 +17,14 @@ lolly.tools s'ouvre sur **Lolly Demo**, le design system d'exemple de Lolly ; [M
 Choisis la voie qui correspond à ce que tu as :
 
 - <!--i:palette--> **Une couleur.** Ouvre **Design System Setup** (`#/start`), donne un nom à ton design system et choisis une couleur primaire. Lolly en dérive une palette complète et accessible, avec des surfaces claires et sombres, du texte et des accents. Choisis une police et tu as une marque fonctionnelle.
-- <!--i:upload--> **Un fichier de tokens.** **Add from…**, au pied du rail des pièces de Design System Setup, accepte un fichier de tokens DTCG, Tokens Studio ou Penpot, un SVG ou un pack `LollyBrand`. Dépose-le et la palette se remplit. Tant que le design system est vide, **Start from a reference** dans la pièce Overview ouvre le même sélecteur.
+- <!--i:upload--> **Un fichier de tokens.** **Add from…**, dans la barre de Design System Setup, accepte un fichier de tokens DTCG, Tokens Studio ou Penpot, un SVG ou un pack `LollyBrand`. Dépose-le et la palette se remplit. Tant que le design system est vide, **Start from a reference** dans la pièce Board ouvre le même sélecteur.
 - <!--i:pentool--> **Un design terminé.** Dans Design, choisis **Import a design** et dépose un fichier `.fig`, `.penpot`, `.ai`, `.idml` ou SVG. Voir [Reprends ce que tu as déjà](#bring-in-what-you-already-have) ci-dessous.
 
 La première fois que tu ouvres la galerie, un court message d'accueil propose les mêmes choix : **Make it yours** ouvre Design System Setup, **Bring your design** ouvre un sélecteur de fichier pour un design et **Explore the community tools** ferme l'accueil.
 
 ![La pièce Colours de Design System Setup sur une installation neuve : une pastille en direct, un champ et toute la première décision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-À partir de là, sept pièces te mènent aussi loin que tu veux, dans l'ordre que tu veux : **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** et **Usage & rules**. Chaque aperçu de l'application se met à jour pendant que tu saisis. [Design System Setup](/info/brand-studio.html) couvre chaque pièce.
+À partir de là, huit pièces te mènent aussi loin que tu veux, dans l'ordre que tu veux : **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** et **Skills**. Chaque aperçu de l'application se met à jour pendant que tu saisis. [Lolly Design System Setup](/info/brand-studio.html) couvre chaque pièce.
 
 Les polices sont conservées sur ton appareil. Choisis une Google Font et Lolly stocke le fichier comme ressource de marque, de sorte que ta typographie voyage hors ligne et que rien n'est récupéré quand un outil dessine.
 
@@ -58,7 +58,7 @@ Tu ne pars pas d'une page blanche.
 
 **Decks.** Dépose un `.pptx` PowerPoint dans Lolly pour ranger ses diapositives comme ressources, écris un nouveau deck à partir de Markdown dans **Markdown Slides**, ou utilise [Rebrand a deck](/info/rebrand.html) pour faire passer tout le deck sur ton design system.
 
-**Données.** Colle ou dépose un tableau CSV ou JSON et les champs répétables d'un outil s'en remplissent, ou [Batch](/info/batch.html#make-many-versions-of-one-design) produit un fichier terminé par ligne.
+**Données.** Colle ou dépose un tableau CSV ou JSON et les champs répétables d'un outil s'en remplissent, ou [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) produit un fichier terminé par ligne.
 
 ### D'une création ponctuelle à un modèle
 
@@ -72,7 +72,7 @@ Une mise en page importée est une session Design ordinaire. **Share with rules*
 
 - <!--i:download--> **Export.** Les outils produisent du SVG, du PDF, du PNG, du JPG, du WebP, de la vidéo et plus encore, dans les formats que chaque outil propose, aux vraies dimensions d'impression quand tu en as besoin. Voir [Export a file](/info/exporting.html).
 - <!--i:link--> **Partager un lien.** Les réglages d'un outil voyagent dans son lien, donc le lien rouvre le même fichier n'importe où.
-- <!--i:layers--> **En faire un par ligne.** Pilote un outil depuis un tableur dans [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **En faire un par ligne.** Pilote un outil depuis un tableur dans [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatiser.** Le même rendu s'exécute depuis la [CLI](/info/cli.html) et depuis un [agent IA](/info/ai-agents.html).
 
 Un lien est une requête complète. Personne n'a dessiné le graphique ci-dessous : son type, son titre et tout son tableau de données ont été saisis dans la barre d'adresse, et le même lien dessine le même graphique sur n'importe quel appareil.

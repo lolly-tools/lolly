@@ -403,6 +403,36 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
   transition: transform var(--dur-1);
 }
+/* Dominant hand (lib/hand-pref.ts): the same row as a flag, holding a two-way
+   segmented control at its end instead of a switch. Not a <label> and no hover
+   wash, because the row itself does nothing when pressed; each half is the
+   control, at the full touch target. */
+.profile-view .profile-hand {
+  display: flex; align-items: center; gap: 1rem;
+  margin-top: .5rem;
+  padding: .55rem .9rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  font-size: var(--fs-lg);
+}
+/* The glyph takes the switch's column (.feature-flag-switch is 2.4rem), so the
+   label starts where the switch rows' labels do. It shows the side the controls
+   take, and turns with the choice and with the reading direction. */
+.profile-view .profile-hand-ic {
+  flex: none; width: 2.4rem; display: grid; place-items: center;
+  color: var(--ui-color-text-muted);
+}
+.profile-view .profile-hand-ic svg {
+  width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.profile-view .profile-hand.is-left .profile-hand-ic svg,
+[dir="rtl"] .profile-view .profile-hand:not(.is-left) .profile-hand-ic svg { transform: scaleX(-1); }
+[dir="rtl"] .profile-view .profile-hand.is-left .profile-hand-ic svg { transform: none; }
+@media (prefers-reduced-motion: reduce) { .profile-view .profile-hand-ic svg { transition: none; } }
+html[data-a11y-motion="reduce"] .profile-view .profile-hand-ic svg { transition: none; }
+.profile-view .profile-hand > .feature-flag-label { flex: 1 1 auto; min-width: 0; }
+.profile-view .profile-hand-seg { flex: 0 0 auto; min-width: 11rem; }
+.profile-view .profile-hand-seg .view-seg-btn { min-height: var(--ui-size-target); }
 /* A named cluster inside the flag list (Connectors): a folded disclosure that
    starts closed, headed like a card title with its value on the right, then one
    line of scope text over its own list of toggles. */
@@ -421,6 +451,16 @@
   font-size: var(--fs-md); color: var(--ui-color-text-muted);
   line-height: 1.45; max-width: 74ch;
 }
+/* One line under a flag's row: when and why Lolly turned the Performance UI on by itself,
+   or that an Undo turned automatic switching off, with "Allow again" under the sentence. */
+.profile-view .feature-flag-note {
+  margin: .35rem 0 0; padding-inline: .9rem;
+  font-size: var(--fs-md); color: var(--ui-color-text-muted);
+  line-height: 1.45; max-width: 74ch;
+}
+/* On a line of its own, aligned with the sentence: a long sentence would leave a button
+   that follows it inline stranded at an odd indent on whatever line it wrapped to. */
+.profile-view .feature-flag-note-action { display: block; width: max-content; margin-top: .4rem; }
 /* Separates the category flags from the Pro (batch) mode flag. */
 .profile-view .feature-flag-divider {
   list-style: none;
@@ -1056,3 +1096,10 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
   .bd-modes { grid-template-columns: 1fr; }
   .bd-footer { align-items: stretch; flex-direction: column; }
 }
+
+/* Desktop updater controls share the Settings field and button primitives. */
+.profile-view #updates-row .store-manage--row { flex-wrap: wrap; padding-block: var(--sp-3); }
+.profile-view .updates-actions { justify-content: flex-start; gap: var(--sp-3); }
+.profile-view #updates-row .field-select { max-width: 100%; }
+.profile-view #updates-reason { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.profile-view #updates-notes p { white-space: pre-wrap; overflow-wrap: anywhere; }

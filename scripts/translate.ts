@@ -147,7 +147,40 @@ function walkFiles(dir: string, out: string[]): string[] {
 // the like) shipped English in all 26 locales without ever reporting as pending.
 const T_CALL_RE = /(^|[^A-Za-z0-9_$.])t(?:Raw)?\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g;
 
-/** The spa corpus: every literal t()/tRaw() source in the web shell plus the hand-listed extra keys.
+// Plural call sites: `tn('1 file', '{n} files', { n })` and `tnRaw(...)`. Both English
+// forms are literals; the catalog key is the SECOND (`other`) form. The FIRST (`one`) form
+// is also emitted as a plain key while locales still carry a singular translation under
+// it (i18n.ts falls back to it for a count of exactly 1), so a string turning plural never
+// loses its existing singular translation to a catalog regeneration. Drop the companion
+// emission once every locale holds a forms object for the key.
+const Q = `(?:'((?:[^'\\\\]|\\\\.)*)'|"((?:[^"\\\\]|\\\\.)*)")`;
+const TN_CALL_RE = new RegExp(`(^|[^A-Za-z0-9_$.])tn(?:Raw)?\\(\\s*${Q}\\s*,\\s*${Q}`, 'g');
+
+/** One plural call site's English forms. `other` is the catalog key. */
+export interface PluralSource { one: string; other: string }
+
+/** Every literal tn()/tnRaw() call in one source text, in order of appearance. */
+export function scanPluralSources(src: string): PluralSource[] {
+  const found: PluralSource[] = [];
+  for (const m of src.matchAll(TN_CALL_RE)) {
+    found.push({ one: (m[2] ?? m[3])!, other: (m[4] ?? m[5])! });
+  }
+  return found;
+}
+
+/** Every literal tn()/tnRaw() call in the web shell, de-duplicated by `other` and sorted. */
+export function extractSpaPluralSources(): PluralSource[] {
+  const srcDir = join(REPO_ROOT, 'shells', 'web', 'src');
+  const byOther = new Map<string, PluralSource>();
+  for (const file of walkFiles(srcDir, [])) {
+    for (const source of scanPluralSources(readFileSync(file, 'utf8'))) {
+      if (!byOther.has(source.other)) byOther.set(source.other, source);
+    }
+  }
+  return [...byOther.values()].sort((a, b) => a.other.localeCompare(b.other));
+}
+
+/** The spa corpus: every literal t()/tRaw()/tn()/tnRaw() source in the web shell plus the hand-listed extra keys.
  *  Exported so a test can check that a string reaches the corpus by the same scan this pipeline runs. */
 export function extractSpaKeys(): string[] {
   const srcDir = join(REPO_ROOT, 'shells', 'web', 'src');
@@ -158,6 +191,7 @@ export function extractSpaKeys(): string[] {
     let m: RegExpExecArray | null;
     while ((m = T_CALL_RE.exec(src))) keys.add((m[2] !== undefined ? m[2] : m[3])!);
   }
+  for (const { one, other } of extractSpaPluralSources()) { keys.add(other); keys.add(one); }
   const extra = JSON.parse(readFileSync(join(I18N_DIR, 'extra-keys.spa.json'), 'utf8')) as string[];
   extra.forEach(k => keys.add(k));
   return [...keys].sort();
@@ -720,6 +754,9 @@ export const DOCS_PAGES: Array<{ slug: string; src: string }> = [
   // who has lost something reads it in their own language.
   { slug: 'find-your-work', src: 'find-your-work.md' },
   { slug: 'brand-studio', src: 'brand-studio.md' },
+  // Working with partners: the partner who receives a design-system file, places a mark
+  // or builds a sponsor wall is often working in a language other than the lead brand's.
+  { slug: 'partners', src: 'partners.md' },
   { slug: 'exporting', src: 'exporting.md' },
   // The Rondocode credential detail moved here from Export a file in plan 322. The
   // colour notes that left the same page went to colour-engine, a tool-author

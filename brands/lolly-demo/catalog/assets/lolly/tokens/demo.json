@@ -533,6 +533,122 @@
           "$value": "lolly/logo/mono-reverse"
         }
       }
+    },
+    "motion": {
+      "$description": "Lolly Demo's motion: quick to start, soft to land, never fussy. Three durations, three curves and two springs. Sequence offers the curves and springs beside its own when a keyframe is eased, and a keyframe can follow one by name, so changing a token here changes every move bound to it.",
+      "duration": {
+        "$type": "duration",
+        "short": {
+          "$value": {
+            "value": 200,
+            "unit": "ms"
+          },
+          "$description": "Small changes: a colour, a nudge, a detail coming into view."
+        },
+        "medium": {
+          "$value": {
+            "value": 400,
+            "unit": "ms"
+          },
+          "$description": "Most moves across a layout."
+        },
+        "long": {
+          "$value": {
+            "value": 700,
+            "unit": "ms"
+          },
+          "$description": "Entrances and exits that cross the whole artwork."
+        }
+      },
+      "curve": {
+        "$type": "cubicBezier",
+        "standard": {
+          "$value": [
+            0.2,
+            0,
+            0,
+            1
+          ],
+          "$description": "Starts promptly and settles gently. The default for a move within the artwork."
+        },
+        "emphasised": {
+          "$value": [
+            0.05,
+            0.7,
+            0.1,
+            1
+          ],
+          "$description": "Arrives with energy and lands softly. For entrances."
+        },
+        "exit": {
+          "$value": [
+            0.3,
+            0,
+            0.8,
+            0.15
+          ],
+          "$description": "Gathers speed as it goes. For exits."
+        }
+      },
+      "spring": {
+        "$type": "transition",
+        "gentle": {
+          "$value": {
+            "duration": {
+              "value": 600,
+              "unit": "ms"
+            },
+            "delay": {
+              "value": 0,
+              "unit": "ms"
+            },
+            "timingFunction": [
+              0.2,
+              0,
+              0,
+              1
+            ]
+          },
+          "$description": "A calm settle with no visible bounce. The curve is for tools that do not read springs.",
+          "$extensions": {
+            "com.suse.lolly": {
+              "spring": {
+                "stiffness": 120,
+                "damping": 20,
+                "mass": 1
+              }
+            }
+          }
+        },
+        "bouncy": {
+          "$value": {
+            "duration": {
+              "value": 700,
+              "unit": "ms"
+            },
+            "delay": {
+              "value": 0,
+              "unit": "ms"
+            },
+            "timingFunction": [
+              0.3,
+              1.3,
+              0.6,
+              1
+            ]
+          },
+          "$description": "A playful overshoot that settles in under a second. The curve is for tools that do not read springs.",
+          "$extensions": {
+            "com.suse.lolly": {
+              "spring": {
+                "stiffness": 400,
+                "damping": 20,
+                "mass": 1
+              }
+            }
+          }
+        }
+      }
     }
   },
   "light": {

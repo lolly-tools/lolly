@@ -5,7 +5,7 @@
     "HOST_V1_OPTIONAL_APIS": {
       "module": "apis.ts",
       "kind": "FirstStatement",
-      "sha256": "fc369c16245419b4614c3655a71ff6c7dd021cdef8f03e4eba32e1b27e0d52f6"
+      "sha256": "4c82b77a69101730e961d540324d09bc94dab676d66c68ea480979d08616890a"
     },
     "HostApiName": {
       "module": "apis.ts",
@@ -90,12 +90,12 @@
     "AudioAPI": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "e0bbf1afd25c3c018d99e453415b0fb3384374085036be9d2b0fe09529e21a97"
+      "sha256": "bf7bc3a815722479e3726de0aade43bff44c6b5443fb42404ce75eba3aa1a301"
     },
     "AudioDecodeOpts": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "2237683c5e894318cb02029e852c86661c3fa529abc53c504f9c4d6f93d93967"
+      "sha256": "5ef68b4a9d3823ad4ad6dd4ca522b2a9938ef495ff63aa557593bcf4ed6c28d5"
     },
     "AudioFinding": {
       "module": "audio.ts",
@@ -105,17 +105,47 @@
     "AudioDecoded": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "c6c834745ca0f269f8fbdacebb63461afdfa3802fdaea933ac9b36ef5d5713f8"
+      "sha256": "dd33e250d283a78f0f21ad6d256a40194611ccce0317fdf25bdca254c3adbae2"
+    },
+    "AudioRepairOpts": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a46453f90cf6fdc27052c43020cb4f924f878337e7a7b959b2026cbe8c1a6b26"
+    },
+    "AudioLoudnessReport": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "1888367cc0a3f1fdbc240f4c9d5aabe76a18c257af954962f6040552bc0cd5ce"
+    },
+    "AudioLoudnessOpts": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "64165dbd54e17558afc86e653d53a77b0a3c30590f54412e20b55e46360b577a"
+    },
+    "AudioLoudness": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e7d51d512916b495e15ac2c370a9de318e1bcda1e776bba2f0f1ba93e2ecf1df"
+    },
+    "AudioAlignOpts": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "78c53defefea8708962860f4dea8fcbf316452ce482d8b0010096dda6bf1877c"
+    },
+    "AudioAlignment": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d76cdc4d0978e8fdce05726b846a341fdbb1b7debcd7d7871668d6341a7733c8"
     },
     "AudioCleanOpts": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "3a22bac59f770a21cbb480b013c9222a21c6cc107a14b2480d6670bff024a493"
+      "sha256": "a5e4dbba29640c5f5329323304f9cf090f5a364398f188f2e0001c5101ebaa51"
     },
     "AudioCleanResult": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "d33106642a68b1eb1ea32a1ec5e55a6c9240ccaf4646254d8f58b5a16b0a2b1c"
+      "sha256": "6a91ce6f1d666f08499c2b95241f44406b9c2c94a46741a2f7e9c845b54d3bcd"
     },
     "AudioSource": {
       "module": "audio.ts",
@@ -151,6 +181,61 @@
       "module": "c2pa.ts",
       "kind": "InterfaceDeclaration",
       "sha256": "7bc2b013ceee896913abbc2b1bf2a5fdc9c5aa6bcdbab61d7d188afa749e1c2b"
+    },
+    "CalcValueV1": {
+      "module": "calc.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "fa5747a271c5e110ea2d7140540c7ca4afb2b30df324a9a2f6a89359029feada"
+    },
+    "CalcCellV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5f94583b4a65e0e0531f83d2c1ce01bfcfc600efbdc9955418e4293ebf4c4e61"
+    },
+    "CalcSheetV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "914920d841b5ade5dd22345f57ef216531f2c496829648ce3be960c4f3bd0d1e"
+    },
+    "CalcClockV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ce58cd66089c008dab19c55f2b447f76f9503a84efaf04302bfad6659c725fea"
+    },
+    "CalcRequestV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e9f5991ffe83f6ba7499e2ed91fc28c15e439db3bd870553141752ec442f4573"
+    },
+    "CalcResultCellV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "3c01498aa920a05019148aad2b64516f8f9bdb065f8d20a92a36422392550485"
+    },
+    "CalcResultV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "c27c57a19d0deeed34bf3f19175a3eddc456e754a1e12b52333d47dd71f61877"
+    },
+    "CalcTableV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a9a77a28c12611f10b929f97b585cc83a051e0edde2a36069c375907365ed891"
+    },
+    "CalcTableResultV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a58cb0e81168ec7b838296e4339ab336b44c75b76d40c6f3f44f260f5e232ee0"
+    },
+    "CalcFunctionV1": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "97af73ea047fd0518f5146dca1d563772861d64b60fdca6c1cf10b233c7e4ab7"
+    },
+    "CalcAPI": {
+      "module": "calc.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d514374bed023c206c98618d869169aea774cd82b39b9a35bcd4a61c38a056c7"
     },
     "CaptureAPI": {
       "module": "capture.ts",
@@ -600,7 +685,7 @@
     "HostV1": {
       "module": "host.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "3e8bd81d388db8e16cd6902443d80bfee91c181dd0c7de163756a9c9f5020fac"
+      "sha256": "de9d73892a037be9937962d2a448db2891074bcb2936de23e5f845afdf110cbf"
     },
     "Capability": {
       "module": "host.ts",
@@ -695,7 +780,7 @@
     "MatteOpts": {
       "module": "matte.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "be0918c58cb60f45f70b11817ba23ac0ccf7317e7965f223085386749f7fc1d9"
+      "sha256": "f9f3141f4ec9309fcc22e3df550d3752126ec69e124f1e59e84ceb662335fe7c"
     },
     "MatteFeasibility": {
       "module": "matte.ts",
@@ -830,7 +915,42 @@
     "PdfAPI": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "d7f3bbd797bd38b7fe1cebeb734ce84f2be58cf1cb5b7a31aa1fadd0e5a7e091"
+      "sha256": "2afe8b66727e4316d1eab5b29943c588d180e3b86134f923de1b58fe3139a11c"
+    },
+    "PdfAccessibilityStatus": {
+      "module": "pdf.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "a53142db906997ae3bafd8b6c1590085735cba47bf21cac9e01e230ccbd1de25"
+    },
+    "PdfAccessibilityFinding": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d8535d33bc4b7ad8badf031c757c4fd47ee3bafd8c9f09535c251678549bea99"
+    },
+    "PdfAccessibilityRuleResult": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "83093f6cbb79da6ff09766f9339eb483a957d6625cbac7bf81ededece58bb8fb"
+    },
+    "PdfAccessibilityReport": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e6d693590624c03576d890ff36aef0aebf2e004bd43a298c8dbab29579bdf819"
+    },
+    "PdfAccessibilityOutcome": {
+      "module": "pdf.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "856a82fb07c8521f2aa1a22a10c92dbf6ebafbd641b0da77f14d6b9043e2aa19"
+    },
+    "PdfAccessibilityRow": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "4f02cc9140184bd386d13f6e64c301e399c1f5fdd87c5092eb7f96a2353246f2"
+    },
+    "PdfAccessibilitySummary": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b41871c66f71f40653c52e8ceb7d3d671ef021941c6977fd68b41a609cc3f09e"
     },
     "PdfPageOperation": {
       "module": "pdf.ts",
@@ -925,12 +1045,12 @@
     "PdfRedactOpts": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "a1e8e5d56867b8b2df1d8972b24e2d1df74ed30a7c794e42a6c44f4447dc8dec"
+      "sha256": "ee05157d440b31a6db7da4489e94e5ee7e7a90448615459eb244ccf34d751e78"
     },
     "PdfRedactResult": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "9a8a6ab758e7749d9e3f758510b273d6c43edccbb8abd810b07c68911789b529"
+      "sha256": "9bc01c7d9b0699e6424f583da9e4eb6a7ccf03708bc456f09bc99275ef35c0bc"
     },
     "PdfPageSvg": {
       "module": "pdf.ts",
@@ -1070,7 +1190,7 @@
     "Profile": {
       "module": "profile.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "5adf1dbcec370e763faef1373a3d510f426943e630fd2797bb56fd57aff25800"
+      "sha256": "1e3d3db5aa78c65e1fcfc9b250a4297f3fa8aefdfdc20a6a0f04a58ee1b8ab44"
     },
     "RasterAPI": {
       "module": "raster.ts",

@@ -12,3 +12,14 @@ name.en = "Lolly"
         type = "string"
         default = ""
         optional = true
+
+    [main.models]
+    name.en = "On-device models"
+
+        [main.models.models_source]
+        ask.en = "Where the on-device AI models come from"
+        help.en = "lolli.li is the default: browsers fetch the model files from the project's release host on first use. This server stores the files here (several GB, fetched and checked against the release's manifest) and serves them from this domain, and the content policy stops allowing lolli.li. Choosing this server downloads the files while the change is applied, so use the command line for a long download: yunohost app config set lolly main.models.models_source --value local. The web build must be a release that probes /models-base.txt; older releases keep using lolli.li."
+        type = "select"
+        choices.lolli = "lolli.li (default)"
+        choices.local = "This server"
+        default = "lolli"

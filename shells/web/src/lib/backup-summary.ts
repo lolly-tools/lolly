@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 
 /**
  * How much of what the person MADE rides in a backup (plans/226 section 4.7): the
@@ -21,7 +21,7 @@ export function backupHistoryNote(summary: { revisions?: number; recoveryDrafts?
   if (summary.revisions) parts.push(t('{n} creation checkpoints', { n: summary.revisions }));
   // An export over the history file's limit leaves the oldest automatic
   // checkpoints out instead of failing (plan 277 P4 section 5).
-  if (summary.checkpointsLeftOut) parts.push(summary.checkpointsLeftOut === 1 ? t('1 older automatic checkpoint left out') : t('{n} older automatic checkpoints left out', { n: summary.checkpointsLeftOut }));
+  if (summary.checkpointsLeftOut) parts.push(tn('1 older automatic checkpoint left out', '{n} older automatic checkpoints left out', { n: summary.checkpointsLeftOut }));
   if (summary.recoveryDrafts) parts.push(t('{n} protected drafts', { n: summary.recoveryDrafts }));
   if (summary.assetVersions) parts.push(t('{n} saved asset versions', { n: summary.assetVersions }));
   if (summary.fileOperations) parts.push(t('{n} file operation records', { n: summary.fileOperations }));
@@ -53,12 +53,12 @@ export function backupImportLine(summary: ImportLineSummary): string {
     summary.fileOperations, summary.fileBatches].some(n => (n ?? 0) > 0);
   const parts: string[] = [];
   if (arrived) parts.push(tRaw('Imported {sessions} and {images}', {
-    sessions: summary.sessions === 1 ? t('1 session') : t('{n} sessions', { n: summary.sessions ?? 0 }),
-    images: summary.userAssets === 1 ? t('1 image') : t('{n} images', { n: summary.userAssets ?? 0 }),
+    sessions: tn('1 session', '{n} sessions', { n: summary.sessions ?? 0 }),
+    images: tn('1 image', '{n} images', { n: summary.userAssets ?? 0 }),
   }));
   const history = backupHistoryNote(summary);
   if (history) parts.push(history.slice(3));
   if (summary.kept) parts.push(summary.kept === 1 ? t('Kept this browser’s newer copy of 1 creation.') : t('Kept this browser’s newer copy of {n} creations.', { n: summary.kept }));
-  if (summary.hidden) parts.push(summary.hidden === 1 ? t('1 creation removed from Projects here stayed removed.') : t('{n} creations removed from Projects here stayed removed.', { n: summary.hidden }));
+  if (summary.hidden) parts.push(tn('1 creation removed from Projects here stayed removed.', '{n} creations removed from Projects here stayed removed.', { n: summary.hidden }));
   return parts.length ? parts.join(' · ') : t('Nothing new to import.');
 }

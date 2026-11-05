@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-(function () {
+(function present(start) {
   var DEFAULT_CODE = "const greet = (name) => {\\n  console.log(`Hello, ${name}!`);\\n  return name;\\n};\\n\\ngreet('World');";
 
   // Indentation tab stop. Kept in lockstep with `tab-size` in the stylesheet above:
@@ -33,14 +33,38 @@
     return out;
   }
 
-  var root = document.currentScript && document.currentScript.previousElementSibling;
+  var root = start || (document.currentScript && document.currentScript.previousElementSibling);
   if (!root || root.id !== 'cc-root') root = document.getElementById('cc-root');
   if (root.__snippet) root.__snippet.destroy();
   var authoredMarkup = root.outerHTML;
+
+  // The design-system themes take their colours from the canvas's --brand-*
+  // variables, which the shell repaints after a colourway or mode switch, when this
+  // script has already run. On the shell's signal, put the authored markup back in
+  // place (the canvas keeps its element) and run again.
+  if (root.__snippetTheme) window.removeEventListener('lolly:document-theme-changed', root.__snippetTheme);
+  root.__snippetTheme = null;
+  if (/^(design-system|suse-dark|suse-light)$/.test(root.dataset.theme || 'design-system') && typeof window !== 'undefined') {
+    root.__snippetTheme = function () {
+      window.removeEventListener('lolly:document-theme-changed', root.__snippetTheme);
+      root.__snippetTheme = null;
+      if (!root.isConnected) return;
+      var holder = document.createElement('template');
+      holder.innerHTML = authoredMarkup;
+      var fresh = holder.content.firstElementChild;
+      if (!fresh) return;
+      if (root.__snippet) root.__snippet.destroy();
+      for (var a = root.attributes.length - 1; a >= 0; a--) root.removeAttribute(root.attributes[a].name);
+      for (var b = 0; b < fresh.attributes.length; b++) root.setAttribute(fresh.attributes[b].name, fresh.attributes[b].value);
+      root.innerHTML = fresh.innerHTML;
+      present(root);
+    };
+    window.addEventListener('lolly:document-theme-changed', root.__snippetTheme);
+  }
   var code = expandTabs(root.dataset.code == null ? DEFAULT_CODE : root.dataset.code.replace(/\r\n?/g, '\n'), TAB_SIZE);
   var scene = JSON.parse(root.querySelector('.cc-scene').textContent);
   var language = root.dataset.language || 'javascript';
-  var theme = root.dataset.theme || 'suse-dark';
+  var theme = root.dataset.theme || 'design-system';
   var lineNums = root.dataset.lineNumbers !== 'false';
   var showWindow = root.dataset.showWindow !== 'false';
   var shadow = root.dataset.shadow !== 'off';
@@ -227,7 +251,15 @@
     }
   })();
 
-  var t = THEMES[theme] || THEMES['suse-dark'];
+  // "Design system" follows the document's mode: the brand's surface picks between
+  // the two brand-derived themes, and their hue above follows its colourway. With
+  // no brand on the canvas (the CLI, an unbranded page) it is the dark one.
+  var themeName = theme;
+  if (theme === 'design-system') {
+    var surfaceHex = brandVar('--brand-surface');
+    themeName = surfaceHex && hexHsl(surfaceHex)[2] >= 50 ? 'suse-light' : 'suse-dark';
+  }
+  var t = THEMES[themeName] || THEMES['suse-dark'];
 
   // ── Apply theme ──────────────────────────────────────────────────────────
   var window_ = root.querySelector('#cc-window');

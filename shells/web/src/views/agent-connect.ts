@@ -28,7 +28,7 @@ import type { AgentChange } from '@lolly-tools/core/agent-presence-v1';
 import { agentRosterFor } from '../lib/agent-collaborators.ts';
 import { mountAgentRosterControls } from '../lib/agent-roster-controls.ts';
 
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
+export function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text != null) node.textContent = text;
@@ -37,13 +37,16 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
 
 const LEAD = (): string => t('An AI agent on this computer can read and change this document while you watch. Each change it makes is one step in your history, so Undo takes it back.');
 const TRUST = (): string => t('Connect only an agent you trust. It can change this document, but not your files or settings.');
+export const POLICY_OFF = (): string => t('Your organisation\'s policy does not allow AI agents on this device.');
 
-interface DialogParts { body: HTMLElement; actions: HTMLElement; status: HTMLElement; close(): void; trap(initial: HTMLElement): void; onEnter(fn: () => void): void }
+export interface DialogParts { body: HTMLElement; actions: HTMLElement; status: HTMLElement; close(): void; trap(initial: HTMLElement): void; onEnter(fn: () => void): void; onClose(fn: () => void): void }
 
-/** The shared overlay: header, body, footer, Escape and backdrop to close, focus trap. */
-function dialog(title: string): DialogParts {
+/** The shared overlay: header, body, footer, Escape and backdrop to close, focus trap.
+ *  Also used by Ask an agent (views/agent-ask.ts). */
+export function dialog(title: string): DialogParts {
   let trap: FocusTrap | undefined;
   let enter: (() => void) | null = null;
+  const closers: Array<() => void> = [];
   const overlay = el('div', 'script-audio-overlay');
   const backdrop = el('div', 'script-audio-backdrop');
   backdrop.setAttribute('aria-hidden', 'true');
@@ -66,6 +69,7 @@ function dialog(title: string): DialogParts {
   document.body.appendChild(overlay);
   const opener = document.activeElement;
   const close = (): void => {
+    for (const fn of closers.splice(0)) { try { fn(); } catch { /* a closer must not keep the dialog open */ } }
     trap?.release();
     document.removeEventListener('keydown', onKey);
     for (const ev of NAV_EVENTS) window.removeEventListener(ev, close);
@@ -84,10 +88,11 @@ function dialog(title: string): DialogParts {
     body, actions, status, close,
     trap: (initial) => { body.append(status); trap = trapFocus(overlay, { initialFocus: initial }); },
     onEnter: (fn) => { enter = fn; },
+    onClose: (fn) => { closers.push(fn); },
   };
 }
 
-function button(text: string, primary = false): HTMLButtonElement {
+export function button(text: string, primary = false): HTMLButtonElement {
   const b = el('button', primary ? 'script-audio-save' : 'script-audio-cancel', text);
   b.type = 'button';
   return b;
@@ -179,6 +184,8 @@ function failureText(reason: PairFailure): string {
 
 export interface AgentControlHost {
   allowed(): boolean;
+  /** False when the organisation's policy turns AI control off; the switch is then disabled. */
+  permitted?(): boolean;
   /** Turn the setting and the app's listener on or off; rejects with the app's message. */
   setAllowed(on: boolean): Promise<void>;
   /** The agent currently connected to this document, or '' for none. */
@@ -198,6 +205,11 @@ export function openAgentControl(host: AgentControlHost): void {
   box.checked = host.allowed();
   row.append(box, el('span', undefined, t('Allow AI control on this device')));
   d.body.append(row, el('p', 'agent-connect-note', t('While this is on, an AI agent on this computer that uses Lolly\'s MCP server can connect to the open Design document without a code. Turn it off to stop every agent.')), el('p', 'agent-connect-note', TRUST()));
+  if (host.permitted && !host.permitted()) {
+    box.checked = false;
+    box.disabled = true;
+    d.body.append(el('p', 'agent-connect-note', POLICY_OFF()));
+  }
   const who = el('p', 'agent-connect-lead');
   const off = button(t('Disconnect'));
   const again = button(t('Let it connect again'));
@@ -249,7 +261,8 @@ export function mountAgentPill(viewEl: HTMLElement, link: { client(): string; di
       if (removed) return;
       if (method === 'hello') { agent.update({ name: name() }); return; }
       const activity = method === 'document.apply' ? note
-        : method === 'history.undo' ? t('Undo last change') : method === 'look' ? t('Looking at the document') : undefined;
+        : method === 'history.undo' ? t('Undo last change') : method === 'look' ? t('Looking at the document')
+          : method === 'agent.working' ? t('Working on your request') : undefined;
       if (!activity && !change) return;
       const paused = roster.local().find(entry => entry.id === agent.id)?.phase === 'paused';
       agent.update({ name: name(), activity, ...(paused ? {} : { phase: 'working' }), ...(change ? { change } : {}) });

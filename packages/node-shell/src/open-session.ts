@@ -134,19 +134,36 @@ export interface OpenSessionInPageOptions {
 }
 
 /**
+ * `#view` carries this from the start of a navigation until its view has mounted
+ * (ROUTE_MOUNTING_ATTR in shells/web/src/lib/capture-neutral.ts). A copy, because this
+ * package cannot import a web-shell module; capture-neutral.test.ts pins the two together.
+ */
+const ROUTE_MOUNTING_ATTR = 'data-route-mounting';
+
+/**
  * Wait until the Design (or any) editor on `page` has mounted and stayed still: the
- * document surface is up and neither the Loading card nor the Opening card has shown
- * for a second. Navigating away under those cards races the mount's own writes.
+ * document surface is up, `#view` no longer carries ROUTE_MOUNTING_ATTR, and neither
+ * the Loading card nor the Opening card has shown for a second. Navigating away under
+ * those cards races the mount's own writes.
+ *
+ * The attribute is the mount signal, not the Loading card. The card stays away while
+ * index.html's boot screen is up, so a cold `goto` shows none, and the document surface
+ * is installed early in the tool mount: the Design chrome (top bar, navigator, inspector)
+ * mounts after it, from lazy imports, and applies the remembered or default open state of
+ * each panel as it does. Settled on the surface alone, a caller could read the inspector
+ * as closed, press its toggle, and close the column that had just opened.
  */
 export async function settleEditor(page: Page, timeoutMs: number, opts: { fresh?: boolean } = {}): Promise<void> {
   await page.evaluate(() => { (window as unknown as { __lollyOpenSettled?: number }).__lollyOpenSettled = 0; });
-  await page.waitForFunction((fresh: boolean) => {
+  await page.waitForFunction(([fresh, mountingAttr]) => {
     const w = window as unknown as { lolly?: { document?: unknown }; __lollyOpenSettled?: number; __lollyPrevSurface?: unknown };
     const surface = w.lolly?.document;
-    const ready = !!surface && (!fresh || surface !== w.__lollyPrevSurface) && !document.querySelector('dialog.view-loading[open], .open-progress');
+    const ready = !!surface && (!fresh || surface !== w.__lollyPrevSurface)
+      && !document.getElementById('view')?.hasAttribute(mountingAttr)
+      && !document.querySelector('dialog.view-loading[open], .open-progress');
     w.__lollyOpenSettled = ready ? (w.__lollyOpenSettled ?? 0) + 1 : 0;
     return w.__lollyOpenSettled >= 5;
-  }, !!opts.fresh, { timeout: timeoutMs, polling: 200 });
+  }, [!!opts.fresh, ROUTE_MOUNTING_ATTR] as const, { timeout: timeoutMs, polling: 200 });
 }
 
 /** Remember the mounted editor's document surface, so `settleEditor(..., {fresh: true})` waits for the next mount. */

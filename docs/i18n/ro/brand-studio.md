@@ -1,10 +1,10 @@
 # Design System Setup
 
-Logoul, culorile și fonturile tale aparțin unui singur loc, ca fiecare instrument, pagină și export să deseneze cu ele. Acel loc este **Design System Setup**, la `#/start`, iar sloganul lui spune pentru ce este: *Make it yours*.
+Logoul, culorile și fonturile tale aparțin unui singur loc, ca fiecare instrument, pagină și export să deseneze cu ele. Acel loc este **Design System Setup**, la `#/start`.
 
 Începe cu ce ai. Plasează un logo și Lolly îi citește culorile. Alege un font sau plasează fișierul de font licențiat de compania ta. Fiecare schimbare apare imediat în toată aplicația. Logoul, fonturile și tokenurile tale rămân pe acest dispozitiv. Alegerea unui Google Font este singurul pas care iese afară: Lolly întreabă mai întâi, apoi preia familia o dată.
 
-Când arată bine, dă un nume sistemului de design și apasă **Export**. Primești un singur fișier `.lolly` de păstrat, de deschis pe alt dispozitiv sau de dat unui coleg. [Settings](/info/dashboard.html#design-system) arată sistemul activ doar pentru citire, iar coperta lui trimite înapoi aici pentru editare.
+Când arată bine, dă un nume sistemului de design și apasă **Export**. Primești un singur fișier `.lolly` de păstrat, de deschis pe alt dispozitiv sau de dat unui coleg. [Lolly Settings](/info/dashboard.html#design-system) arată sistemul activ doar pentru citire, iar coperta lui trimite înapoi aici pentru editare.
 
 ## Fă-l al tău în cinci minute
 
@@ -16,34 +16,36 @@ Când arată bine, dă un nume sistemului de design și apasă **Export**. Prime
 - <!--i:download--> **Export** scrie întregul sistem ca un singur fișier `LollyBrand-….lolly`.
 :::
 
-Antetul arată ce sistem de design **Editing**, iar numele lui este un câmp pe care îl poți schimba oricând. Când prima ta editare întreabă **What is this design system called?**, cuvintele din logoul tău sunt completate dacă logoul le scrie. **Save name** păstrează numele; **Not now** păstrează un înlocuitor până îl tastezi în antet. Numele etichetează sistemul în Settings și la comutare și devine numele fișierului pe care îl scrie **Export**.
+Bara din partea de sus a studioului poartă numele sistemului de design, iar numele este un câmp pe care îl poți schimba oricând: **Enter** păstrează un nume nou, iar **Escape** îl pune la loc pe cel vechi. Când prima ta editare întreabă **What is this design system called?**, cuvintele din logoul tău sunt completate dacă logoul le scrie. **Save name** păstrează numele; **Not now** păstrează un înlocuitor până îl tastezi în bară. Numele etichetează sistemul în Settings și la comutare și devine numele fișierului pe care îl scrie **Export**.
 
 ## Camerele
 
-Studioul este un set de camere într-o bară pe margine, fără ordine fixă: nimic nu este numerotat și nimic nu așteaptă altceva. Pe telefon, bara devine o bandă de chip-uri sub antet.
+Studioul este un set de camere fără ordine fixă: nimic nu este numerotat și nimic nu așteaptă altceva. Pe desktop, camerele stau într-o singură bandă sub bară. Pe telefon se mută într-o bară de-a lungul marginii de jos, unde ajunge degetul mare, cu camera deschisă derulată în vedere; foaia paletei și tray-ul se ridică deasupra acelei bare, iar bara se dă la o parte cât tastezi. Cu o tastatură, Tab ajunge la bandă o singură dată, iar tastele săgeți, Home și End trec de la o cameră la alta.
 
-![Bara de camere a studioului: Overview, Colours, Type, Logos, Tokens, Files și Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Bara studioului și camerele ei: Board, Colours, Type, Logos, Tokens, Files, Rules și Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Cameră | Ce faci acolo | Cheie de link |
 |---|---|---|
-| **Overview** | Vezi ce conține sistemul, cu o ușă spre fiecare cameră | `overview` |
+| **Board** | Vezi ce conține sistemul, cu o ușă spre fiecare cameră | `overview` |
 | **Colours** | Adaugi culori, le dai roluri, construiești nuanțe și o paletă | `color` |
 | **Type** | Alegi cele patru fonturi pe care le citesc aplicația, instrumentele și fiecare export | `type` |
 | **Logos** | Plasezi mărcile în fiecare orientare și tratament | `logos` |
 | **Tokens** | Colțuri, spațiere, umbre și orice altă valoare cu nume | `tokens` |
 | **Files** | Imaginile, audio și fișierele de mișcare pe care le păstrează brandul tău | `catalogue` |
-| **Usage & rules** | Regulile pe care le aplică brandul tău, verificate pe exemple reale | `usage` |
+| **Rules** | Regulile pe care le aplică brandul tău, verificate pe exemple reale | `usage` |
 | **Skills** | Standardele scrise ale brandului pentru oameni și agenți, de citit și descărcat | `skills` |
 
-Fă link la o cameră cu `#/start?area=<key>`. Camera Files păstrează cheia `catalogue`, pentru că o cheie de cameră este un contract permanent, iar `?tab=` funcționează în continuare ca alias mai vechi. O cheie necunoscută deschide Overview.
+Fă link la o cameră cu `#/start?area=<key>`. Camera Files păstrează cheia `catalogue`, Board păstrează `overview`, iar Rules păstrează `usage`, pentru că o cheie de cameră este un contract permanent, iar `?tab=` funcționează în continuare ca alias mai vechi. O cheie necunoscută deschide Board.
 
-**Baza barei** conține acțiunile pentru întregul sistem, nu pentru o cameră. **Add from…** aduce un brand ([Adu un brand](#bring-a-brand-in)), iar **Tray** conține ce a găsit o scanare și nu ai adăugat încă. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** și **Restore brand settings** păstrează și mută sistemul ([Păstrează și mută sistemul tău de design](#keep-and-move-your-design-system)). Fiecare apare odată ce are ceva asupra căruia să acționeze.
+**Bara** conține acțiunile pentru întregul sistem, nu pentru o cameră. **Add from…** aduce un brand ([Adu un brand](#bring-a-brand-in)), iar **Tray** conține ce a găsit o scanare și nu ai adăugat încă. **Export** scrie sistemul ca un singur fișier, iar **More** conține **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** și **Design systems**, care deschide lista din Settings unde comuți ([Păstrează și mută sistemul tău de design](#keep-and-move-your-design-system)). Fiecare apare odată ce are ceva asupra căruia să acționeze. Pe telefon, **Add from…** se mută în **More**, iar **Export** apare ca pictogramă.
 
-## Overview
+## Board
 
-Fără nimic ales încă, Overview oferă patru moduri de a începe. **Start from a reference** deschide selectorul de surse pentru un logo, o captură de ecran, o pagină web sau un fișier de design, iar **Pick a colour**, **Choose a face** și **Add a logo** deschid direct acele controale. Deschiderea unuia nu scrie nimic, iar **Explore the tools** este acolo de la început.
+Fără nimic ales încă, Board oferă patru moduri de a începe. **Start from a reference** deschide selectorul de surse pentru un logo, o captură de ecran, o pagină web sau un fișier de design, iar **Pick a colour**, **Choose a face** și **Add a logo** deschid direct acele controale. Deschiderea unuia nu scrie nimic, iar **Explore the tools** este acolo de la început.
 
-Odată ce ceva este al tău, Overview arată ce ai, cu numerele tale în frunte. Colours dă numărul de culori, cu un `· N starter` estompat unde apar culori moștenite; banda lui pune mai întâi culorile tale, apoi o linie fină, apoi cele starter estompate. Type se citește pe roluri (*Inter for headings*, cu *Starter for the rest* pe linia de dedesubt). Logos spune câte sloturi sunt umplute (sau **Not set**), Tokens arată raza colțurilor, iar Files spune **Nothing yet** cât biblioteca este goală. Fiecare bloc își deschide camera.
+Odată ce ceva este al tău, Board arată ce ai, cu numerele tale în frunte. Colours dă numărul de culori, cu un `· N starter` estompat unde apar culori moștenite; banda lui pune mai întâi culorile tale, apoi o linie fină, apoi cele starter estompate. Colourways arată fiecare colourway ca o dală mică în culoarea ei principală. Type se citește pe roluri și pune fiecare familie în fontul ei (*Inter for headings*, cu *Starter for the rest* pe linia de dedesubt). Logos spune câte sloturi sunt umplute (sau **Not set**), Tokens arată raza colțurilor, iar Files spune **Nothing yet** cât biblioteca este goală. Fiecare bloc își deschide camera.
+
+Un sistem de design care a venit cu aplicația și poate fi editat, ca Lolly Demo, are toate acestea de la început: Board arată culorile, colourway-urile, fonturile și mărcile lui, cu o etichetă **Came with this app** lângă titlu.
 
 ### Starter și al tău
 
@@ -61,7 +63,7 @@ Odată ce ceva este al tău, Overview arată ce ai, cu numerele tale în frunte.
 
 - Ales sau instalat de tine.
 - La intensitate deplină și un card nuanțat unde ai instalat un font.
-- Numărat în Overview și în Tokens.
+- Numărat în Board și în Tokens.
 - Un rol care urmează altul scrie **↳ follows Primary**, nu repetă numele primarei.
 :::
 
@@ -106,7 +108,7 @@ Prima ta culoare devine **primara**, iar un chip o confirmă, precum *„Primary
 
 Culorile tale stau lângă o previzualizare **In context** pe un ecran lat și deasupra ei pe unul mai mic. Previzualizarea arată un afiș, o diagramă sau un card de interfață în paleta ta. Culorile starter rămân în propriul grup pliabil.
 
-![Camera Colours pe Lolly Demo: paleta în grupuri pliabile, fiecare culoare cu numele și hex-ul ei, și pastila de descărcare la bază](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Camera Colours pe Lolly Demo: paleta în grupuri pliabile, fiecare culoare cu numele și hex-ul ei, și descărcarea paletei în antet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Camera Colours după adăugarea unei culori, cu paleta ei și o previzualizare live a compoziției](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -163,7 +165,7 @@ Patru secțiuni pliate stau sub previzualizare și roluri. Fiecare se deschide d
 
 Paleta listează culorile tale în grupuri pliabile, fiecare cu propriul **+ Add**. Creează și redenumește grupuri după plac. Un rol nu face niciodată o a doua tilă: o tilă către care indică un rol poartă în schimb o mică marcă (**P**, **S**, **Su**, **T**). **Colour chart** sub tile arată aceleași culori pe **Wheel** OKLCH (trage un punct ca să recolorezi, fă clic pe spațiu gol ca să adaugi o mostră) și pe diagrama **Gamut**, care arată unde se termină gama afișabilă. `#/start?area=color&focus=chart` deschide direct diagrama.
 
-![Panoul paletei, fiecare grup putând fi restrâns, cu pastila de descărcare fixată la marginea de jos](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Panoul paletei, fiecare grup putând fi restrâns, cu descărcarea paletei în antet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Roata OKLCH - unghiul este nuanța, distanța spre exterior este saturația, iar gri-urile urmează o bandă de luminozitate pe lateral](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -179,7 +181,7 @@ Fă clic pe o mostră ca să-i deschizi editorul:
 **Ștergerea unei mostre** este sigură. Nuanțele derivate și rolurile de temă sunt ascunse, deci nimic care le citește nu se strică, în timp ce culorile adăugate de tine sunt eliminate.
 
 ::: details Lucrul cu multe mostre
-Fiecare mostră are un mâner de tragere. Trage ca să reordonezi în grup sau pune focus pe mâner, apasă Space, folosește tastele săgeți și apasă din nou Space ca să plasezi; Escape anulează. Ca să muți culori între grupuri, folosește controlul **Group** al editorului sau selectează mai multe și folosește **Move to**.
+Fiecare mostră are un mâner de tragere. Trage ca să reordonezi în grup sau pune focus pe mâner, apasă Space, folosește tastele săgeți și apasă din nou Space ca să plasezi; Escape anulează. Pe telefon, paleta arată patru culori pe rând, iar mânerele apar în modul Select, nu ca un rând sub fiecare culoare. Ca să muți culori între grupuri, folosește controlul **Group** al editorului sau selectează mai multe și folosește **Move to**.
 
 Selecția nu are nevoie de un mod. Bara apare cu prima tilă selectată și dispare cu ultima.
 
@@ -196,13 +198,13 @@ Bara scrie **{n} selected**, apoi **Move to**, **Give a role** (fiecare culoare 
 
 Panoul opțional **Gradients** construiește tokenuri de amestec din paletă. Fiecare gradient are o previzualizare, 2 până la 8 opriri cu nume și un unghi. O oprire indică o mostră, deci recolorează mostra și gradientul o urmează. Amestecurile rulează în OKLCH.
 
-Descărcările paletei (design tokens, CSS, SCSS, GIMP și Adobe Swatch Exchange) stau într-o pastilă la baza paletei odată ce există nuanțe. [Ia-ți paleta și fonturile oriunde](/info/using.html#take-your-palette-and-fonts-anywhere) descrie fiecare format.
+Descărcările paletei (design tokens, CSS, SCSS, GIMP și Adobe Swatch Exchange) stau în antetul paletei, lângă titlul ei. [Ia-ți paleta și fonturile oriunde](/info/using.html#take-your-palette-and-fonts-anywhere) descrie fiecare format.
 
 ## Tipografie
 
-Fără un font propriu, camera este un singur card: **Primary**, setat la dimensiune de citire în fontul care îl servește astăzi, cu o etichetă **Starter**, un buton **Choose a face** și linia *„Nothing installs until you choose one.”* Headings, code și italic urmează primarul până le alegi; **Choose them separately** arată cardurile lor.
+Fără un font propriu, camera este un singur card: **Primary**, setat la dimensiune de citire în fontul care îl servește astăzi, cu o etichetă **Starter**, un buton **Choose for Primary** și linia *„Nothing installs until you choose one.”* Headings, code și italic urmează primarul până le alegi; **Choose them separately** arată cardurile lor.
 
-![Camera Type fără niciun font ales încă - un card la mărime de citire, o etichetă Starter pe el și un buton plin Alege un font](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Camera Type fără niciun font ales încă - un card la mărime de citire, o etichetă Starter pe el și un buton plin Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Alege un font și camera se deschide în patru carduri de rol, lista Fonts și un specimen live:
 
@@ -211,7 +213,7 @@ Alege un font și camera se deschide în patru carduri de rol, lista Fonts și u
 - **Code**: un font monospațiat pentru cod și date.
 - **Italic**: un italic adevărat pentru accent, citate și paranteze.
 
-Un card este nuanțat doar unde ai instalat acel font, iar butonul lui scrie **Change** pe un font al tău și **Choose a face** peste tot în rest. Nimic de pe un card nu confirmă nimic: butonul deschide scena de comparare pentru acel rol.
+Un card este nuanțat doar unde ai instalat acel font. Butonul lui spune pentru ce rol este: **Change Headings** pe un font al tău și **Choose for Headings** peste tot în rest. Linia de exemplu se împachetează în loc să fie tăiată. Nimic de pe un card nu confirmă nimic: butonul deschide scena de comparare pentru acel rol.
 
 ![Cele patru carduri de rol dezvăluite - fiecare setat în fontul care îl servește, cu o etichetă Starter acolo unde nimeni nu a ales unul și Italic urmând principalul](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -219,7 +221,7 @@ Un card este nuanțat doar unde ai instalat acel font, iar butonul lui scrie **C
 
 Scena se deschide în cameră, sub cardul pe care l-ai apăsat, iar cardurile se pliază la o bandă de o linie, ca scena să apară pe primul ecran al unui telefon. Escape anulează și readuce focusul pe card.
 
-1. Apasă **Choose a face** pe card.
+1. Apasă **Choose for** și rolul pe card.
 2. Tastează un nume de familie și apasă **Preview** sau apasă una dintre cele șase familii **Pinned** de sub câmp.
 3. Apasă **Use this face**.
 
@@ -240,7 +242,7 @@ Tokenurile sunt valorile cu nume din spatele sistemului de design: culori, fontu
 ![Camera Tokens: antetul cu un exemplu din sistem și acțiunile de fișier, tile care numără fiecare fel de token, apoi perechile de culori cu citirile lor de contrast](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **Antetul** dă un exemplu din propriul sistem (*Primary is Spearmint, #033633*) și acțiunile de fișier: **Download** (întregul sistem ca design tokens sau paleta în alte cinci formate), **Copy CSS** și **Add from…** pentru a citi înapoi un fișier JSON.
-- **Tilele** numără fiecare fel de token și sar la secțiunea lui: Colours, Type, Logos, Shape and spacing, More și All tokens. Numără ce este al tău, ca Overview. Pe telefon, tilele derulează lateral.
+- **Tilele** numără fiecare fel de token și sar la secțiunea lui: Colours, Type, Logos, Shape and spacing, More și All tokens. Numără ce conține fiecare secțiune; o secțiune care conține doar ce a venit cu starterul gol poartă o etichetă **Starter**, iar un sistem venit cu aplicația își numără propriul material fără etichetă. Pe telefon, tilele se împachetează pe două rânduri de câte trei.
 - **Colours** începe cu perechile pe care instrumentele le pun împreună (text pe suprafață, pe primară, estompat pe suprafață) cu o citire APCA în deschis și închis și semnalează **Weak contrast** unde o pereche nu ajunge. Apoi fiecare grup de culori: o rampă ca un rând de chip-uri, alte culori cu valoarea lor și referința pe care o folosesc instrumentele, precum `{color.brand.spearmint}`. Apasă o referință ca s-o copiezi. **Edit in Colours** deschide un grup în camera Colours.
 - **Type** și **Logos** listează fontul pentru fiecare rol și fiecare slot de logo, cu **Edit in Type** și **Edit in Logos** odată ce ai ale tale.
 - **Shape and spacing** conține **Rounded corners** (`shape.radius`) și **Spacing rhythm** (`space.base`). Fiecare scrie *Lolly default* până miști glisorul și *Yours* după aceea, se salvează imediat și poate fi anulat.
@@ -253,11 +255,11 @@ O secțiune fără nimic în ea oferă calea de a umple golul: **Pick a colour**
 
 Plasează fișierele pe care le păstrează brandul tău, în afară de logouri: fișiere **vector**, **image**, **audio** și **motion** (video, Lottie și animații). Apar în [Assets](/info/using.html#assets-your-library), sortate pe secțiuni și gata în selectorul de resurse al fiecărui instrument, și rămân pe acest dispozitiv.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** pune alegerile brandului tău la treabă: ce pot schimba oamenii, ce rămâne fix și ce poate verifica Lolly.
+**Rules** pune alegerile brandului tău la treabă: ce pot schimba oamenii, ce rămâne fix și ce poate verifica Lolly.
 
-![Usage & rules pe Lolly Demo: un card Brand rules gol cu Add your first rule, apoi Try your brand in use cu exemplele lui gata de randat](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules pe Lolly Demo: un card Brand rules gol cu Add your first rule, apoi Try your brand in use cu exemplele lui gata de randat](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** listează regulile tale. **Add rule** (sau **Add your first rule**) deschide un scurt formular:
 
@@ -282,7 +284,7 @@ Un build care vine cu un brand fix arată aceleași reguli și exemple doar pent
 
 ## Adu un brand
 
-**Add from…** la baza barei deschide un selector care întreabă ce ai, nu ce format este:
+**Add from…** în bară deschide un selector care întreabă ce ai, nu ce format este:
 
 - **Design tokens or a design file**: JSON DTCG sau Tokens Studio, un proiect Penpot, un zip de seturi de tokenuri, un pachet de sistem de design Lolly sau un SVG.
 - **PDF**: un deck sau un fișier de ghiduri, citit pe acest dispozitiv pentru culori, mărci și fonturile încorporate.
@@ -310,11 +312,11 @@ Importurile PDF și de fișiere de design își păstrează propriile controale 
 
 ### Găsește și compară un aspect
 
-Deschide **Find a look** din Overview sau din lista de sisteme de design din Settings. Răsfoiește sistemele salvate pe acest dispozitiv și câteva exemple Lolly reutilizabile și caută după nume, etichetă de culoare sau font declarat. **Closest to my current palette** sortează după similaritatea măsurată a culorii, iar fonturile potrivite departajează egalitățile; nu este un scor de calitate.
+Deschide **Find a look** din Board sau din lista de sisteme de design din Settings. Răsfoiește sistemele salvate pe acest dispozitiv și câteva exemple Lolly reutilizabile și caută după nume, etichetă de culoare sau font declarat. **Closest to my current palette** sortează după similaritatea măsurată a culorii, iar fonturile potrivite departajează egalitățile; nu este un scor de calitate.
 
 Selectează un aspect ca să-l revizuiești sau două ca să le compari alăturat. Selectarea nu schimbă nimic. **Use this saved system** comută la el, iar **Use these colours** aplică culorile unui exemplu prin checkpoint-ul obișnuit, păstrându-ți fonturile. **Restore brand settings** recuperează aspectul anterior. Sistemele salvate au **Search tags** editabile sub **Details and design context**. Exemplele sunt rețete originale de culoare Lolly, fără colecție extrasă și fără cont.
 
-![Compară Sunroom și Orchard unul lângă altul înainte de a aplica oricare dintre sistemele de culoare.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Compară Sunroom și Orchard unul lângă altul înainte de a aplica oricare dintre sistemele de culoare.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Păstrează și mută sistemul tău de design
 
@@ -328,11 +330,11 @@ Ca să aduci unul înapoi, folosește **Add from… → Design tokens or a desig
 
 ### Restaurează setări anterioare
 
-Alege **Restore brand settings**, selectează un checkpoint datat și apasă **Restore**. Restaurează culorile, setările de font și alte tokenuri pentru brandul activ; fișierele de font și de imagine rămân cum sunt. Lolly îți salvează mai întâi setările curente ca **Before restore**, deci poți inversa o restaurare chiar și după închiderea browserului. Ultimele 20 de checkpoint-uri sunt păstrate pe acest dispozitiv.
+Deschide **More** în bară, alege **Restore brand settings**, selectează un checkpoint datat și apasă **Restore**. Restaurează culorile, setările de font și alte tokenuri pentru brandul activ; fișierele de font și de imagine rămân cum sunt. Lolly îți salvează mai întâi setările curente ca **Before restore**, deci poți inversa o restaurare chiar și după închiderea browserului. Ultimele 20 de checkpoint-uri sunt păstrate pe acest dispozitiv.
 
 ### Versions
 
-O versiune publicată este o **copie permanentă, cu nume**, păstrată pe acest dispozitiv. Nu se schimbă niciodată, deci un instrument sau un link care o fixează (cu `designv`) continuă să deseneze același lucru. Un sistem cu ceva al tău arată un discret link **Versions & publishing** la baza barei; după prima publicare devine intrarea **Versions**. `#/start?area=versions` o deschide direct.
+O versiune publicată este o **copie permanentă, cu nume**, păstrată pe acest dispozitiv. Nu se schimbă niciodată, deci un instrument sau un link care o fixează (cu `designv`) continuă să deseneze același lucru. Un sistem cu ceva al tău listează **Versions & publishing** în meniul **More** al barei; după prima publicare, **Versions** se alătură camerelor. `#/start?area=versions` o deschide direct.
 
 - **O versiune este permanentă.** Nu există încă ștergere, iar panoul spune asta.
 - **Eliminările conduc cardul de compatibilitate**, pentru că un token eliminat este ce strică un instrument.

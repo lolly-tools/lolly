@@ -45,7 +45,7 @@ import { audioTransportHtml, wireAudioTransport, type AudioTransport } from '../
 import { fmtBytes } from '../lib/format.ts';
 import { escape } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tn } from '../i18n.ts';
 import { armViewEnter } from '../view-enter.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
@@ -357,7 +357,7 @@ export async function mountScriptStudio(viewEl: HTMLElement, host: ScriptAudioHo
       meterEl.classList.remove('scriptst-meter-over');
       return;
     }
-    const count = words === 1 ? t('1 word') : t('{n} words', { n: words });
+    const count = tn('1 word', '{n} words', { n: words });
     const estimate = formatListenEstimate(estimateListenSeconds(words, Number(speedSel.value) || 1));
     const over = textarea.value.length > SOFT_CHAR_CAP;
     meterEl.textContent = over

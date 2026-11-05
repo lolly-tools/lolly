@@ -1,16 +1,16 @@
 # Past releases
 
-These are the records of earlier Lolly and Work releases: what each paired, what it
+These are the records of earlier Lolly and Lolly Work releases: what each paired, what it
 changed, its migrations and its image digests. For the current release, read
 [Release 1.1.2](release-1-1-2.md). Each release's own tagged documentation stays on
 GitHub, linked from its section.
 
 ## 1.1.1
 
-Work 1.1.1 paired the Work server and render worker with
+Lolly Work 1.1.1 paired the Lolly Work server and render worker with
 [Lolly 1.1.1](https://github.com/lolly-tools/lolly/releases/tag/v1.1.1), built from Lolly
 source `26cf05324f46dc4cacd65d12d6f454ada181fb5e`, and is published as
-[Work v1.1.1](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1). Its tagged
+[Lolly Work v1.1.1](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1). Its tagged
 [installation guide](https://github.com/lolly-tools/lolly-work/blob/v1.1.1/docs/install.md),
 [deployment options](https://github.com/lolly-tools/lolly-work/blob/v1.1.1/docs/deployment.md)
 and [documentation index](https://github.com/lolly-tools/lolly-work/blob/v1.1.1/docs/README.md)
@@ -19,17 +19,17 @@ describe it as released.
 | Component | Version or source |
 |---|---|
 | Lolly product version | 1.1.1 |
-| Work application | 1.1.1 |
-| Work Helm chart | 0.3.1; appVersion 1.1.1 |
+| Lolly Work application | 1.1.1 |
+| Lolly Work Helm chart | 0.3.1; appVersion 1.1.1 |
 | Lolly source | 26cf05324f46dc4cacd65d12d6f454ada181fb5e |
 | Engine | 1.261.0 |
 | Tool-author core | 1.4.0 |
 | Lolly web archive for YunoHost | `lolly-web-1.1.1-ynh1.tar.gz`, SHA-256 `bc78012aa407983ecc818e63be98ae1b45ed7db1dcad3f4c8d4ffe0c371116c1` |
 
-The engine version did not change from Work 1.1.0's final pin, but its content did: the
+The engine version did not change from Lolly Work 1.1.0's final pin, but its content did: the
 Lolly source moved from `3b0edf3d6` to `26cf05324`, so the packed content hashes changed.
 Audiogram 2.7.5, Captions 1.0.4 and Record 1.4.3 need engine 1.261.0 or later wherever
-they render, including the Work server.
+they render, including the Lolly Work server.
 
 ### What 1.1.1 changed
 
@@ -57,7 +57,7 @@ they render, including the Work server.
 - **Enterprise sign-in.** OIDC handling is stricter, and enterprise sessions gain scoped
   provider logout with back-channel logout endpoints; see
   [enterprise identity](enterprise-identity.md).
-- **Web app releases without restarting Work.** An optional release-pointer mode serves
+- **Web app releases without restarting Lolly Work.** An optional release-pointer mode serves
   immutable web app folders from one volume. It is off by default, and turning it on for an
   existing instance needs a one-time reviewed rollout; see
   [IMMUTABLE-SHELL-RELEASES.md](../deploy/helm/IMMUTABLE-SHELL-RELEASES.md).
@@ -100,13 +100,13 @@ pnpm run verify:engine-pin
 pnpm run typecheck
 ```
 
-Before tagging or publishing images, the exact final Work commit needs ordinary CI,
+Before tagging or publishing images, the exact final Lolly Work commit needs ordinary CI,
 including the native server image checks and the real Chromium worker checks with the
 matched signed web app. The tagged server and worker images must come from that same
-Work commit.
+Lolly Work commit.
 
-The `1.1.1~ynh1` package pairs Work 1.1.1 with the signed neutral Lolly web archive
-`https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz` (SHA-256 above). The Work archive is cut
+The `1.1.1~ynh1` package pairs Lolly Work 1.1.1 with the signed neutral Lolly web archive
+`https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz` (SHA-256 above). The Lolly Work archive is cut
 with the maintained producer after the release notes are committed, so the archive
 includes them:
 
@@ -123,8 +123,8 @@ records the current state of that package.
 ## 1.1.0
 
 The shared release is published as
-[Work v1.1.0](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.0) and
-[Lolly web-v1.1.0](https://github.com/lolly-tools/lolly/releases/tag/web-v1.1.0). Work's tag
+[Lolly Work v1.1.0](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.0) and
+[Lolly web-v1.1.0](https://github.com/lolly-tools/lolly/releases/tag/web-v1.1.0). Lolly Work's tag
 is `b17800561df9a1e39cc4befce986a20fa1c7f661` and the Lolly web tag is
 `0359d8106bccbd1da56b5552605199f0bf705472`. Lolly's desktop and mobile releases were held.
 Its tagged [installation guide](https://github.com/lolly-tools/lolly-work/blob/v1.1.0/docs/install.md),
@@ -135,11 +135,11 @@ describe it as released.
 | Component | Version or source |
 |---|---|
 | Lolly desktop product version | 1.1.0, from the Tauri configuration; native release held |
-| Work application | 1.1.0 |
-| Published Work tag source | b17800561df9a1e39cc4befce986a20fa1c7f661 |
-| Work Helm chart | 0.3.0; appVersion 1.1.0 |
+| Lolly Work application | 1.1.0 |
+| Published Lolly Work tag source | b17800561df9a1e39cc4befce986a20fa1c7f661 |
+| Lolly Work Helm chart | 0.3.0; appVersion 1.1.0 |
 | Lolly source | 0359d8106bccbd1da56b5552605199f0bf705472 |
-| Qualified Work runtime source | 464ac88d4498b00985dfbcdb47dd96655425f426 |
+| Qualified Lolly Work runtime source | 464ac88d4498b00985dfbcdb47dd96655425f426 |
 | Engine | 1.259.0 |
 | Tool-author core | 1.2.0 |
 
@@ -149,7 +149,7 @@ product version. `engine-pin.json` carries the exact Lolly origin, packed conten
 and schema hashes; `content-resolver-pin.json` carries the same resolver origin. The
 maintained producers generate both.
 
-The Work server uses that unmodified engine and core. The Chromium worker is a separate
+The Lolly Work server uses that unmodified engine and core. The Chromium worker is a separate
 image, qualified with the same signed Lolly web app and catalog, and stays optional and
 off by default. The release workflow published both server and worker tags as 1.1.0, and
 the chart uses that application version for both default image tags and the migration
@@ -157,10 +157,10 @@ Job; production installations should select the qualified immutable digests.
 
 ### What 1.1.0 carried
 
-The matched Lolly source includes the Design hierarchy and presentation work, responsive
+The matched Lolly source includes the Lolly Design hierarchy and presentation work, responsive
 editor fixes, provider-reference catalog admission, export-error propagation, complete
 delivery validators, transition token bindings, the reviewed Strip Data 1.3 metadata
-cleanup, and the reviewed source navigation, emoji popover and number field styling. Work
+cleanup, and the reviewed source navigation, emoji popover and number field styling. Lolly Work
 keeps its signed per-caller catalog, content coding verification, publication readiness,
 governed providers, collaboration and public delivery update helpers. The shared version
 records a matched application release: it does not turn on a new deployment, extra
@@ -174,7 +174,7 @@ reset their rows to make an old catalog look current.
 
 ### 1.1.0 images
 
-The tagged Work source passed
+The tagged Lolly Work source passed
 [all five ordinary CI jobs](https://github.com/lolly-tools/lolly-work/actions/runs/38284012710),
 including native server and real Chromium worker qualification on Linux amd64, and the
 Helm and deployment checks passed.
@@ -199,7 +199,7 @@ public.
 ::: details Preparing 1.1.0 and its rollback rules
 Use clean, isolated source checkouts, and keep the existing deployment's data,
 configuration, keys, pin and rollback artifacts. From the final committed Lolly source,
-refresh Work with the maintained producers:
+refresh Lolly Work with the maintained producers:
 
 ```text
 node scripts/vendor-content-resolver.ts --write
@@ -213,11 +213,11 @@ its actual engine, core and schema bytes, updates the lockfile and runs its cohe
 local test gates. Do not edit the resulting hashes or patch the bundled source, and do not
 count a skipped local test as qualifying the skipped part.
 
-Before a version tag or image publication, require ordinary CI on the exact final Work
+Before a version tag or image publication, require ordinary CI on the exact final Lolly Work
 commit and the exact Lolly source, including the native server image checks and the real
 Chromium worker checks with the matched signed web app: real SVG and PNG rendering,
 cancellation and egress controls. Keep the original workflow, source, archive, image and
-pin receipts. The tagged server and worker must come from that same Work commit. Neither
+pin receipts. The tagged server and worker must come from that same Lolly Work commit. Neither
 an older qualified set nor a metadata-only rehearsal admits these images.
 
 Generic installers stay supported for their own targets. Existing production instances
@@ -238,7 +238,7 @@ replica and room-routing limits, permissions and instance credentials are unchan
 :::
 
 ::: details The 1.1.0 YunoHost beta package
-`1.1.0~ynh3` was the beta test candidate for the engine 1.259 cohort. It paired Work
+`1.1.0~ynh3` was the beta test candidate for the engine 1.259 cohort. It paired Lolly Work
 runtime source `464ac88d4498b00985dfbcdb47dd96655425f426` with the signed neutral Lolly
 build of source `0359d8106bccbd1da56b5552605199f0bf705472`.
 
@@ -247,7 +247,7 @@ build of source `0359d8106bccbd1da56b5552605199f0bf705472`.
   base `https://lolli.li` and no model bodies. Its archive bytes, file hashes, signed P-256
   catalog and decoded gzip copies passed local checks, and its published HTTPS bytes were
   verified. These checks establish the file, not a YunoHost installation.
-- **Work archive:** [lolly-work-1.1.0-ynh3.tar.gz](https://lolli.li/lolly-work-1.1.0-ynh3.tar.gz),
+- **Lolly Work archive:** [lolly-work-1.1.0-ynh3.tar.gz](https://lolli.li/lolly-work-1.1.0-ynh3.tar.gz),
   11,889,092 bytes, SHA-256
   `e7b70e269b261bfed4bc5f7c6dce69eec84885ce2b0bf9335143a1cc3ff2efbb`, cut from clean
   packaging source `9ba7104377f6aa3102053fb26e407fa67463d336` with the maintained producer.

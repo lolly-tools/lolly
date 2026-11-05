@@ -1,5 +1,31 @@
 {
   "Speakers": "Vorbitori",
+  "Closest to the current palette": "Cea mai apropiată de paleta curentă",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Previzualizează sistemele de design salvate și câteva puncte de pornire. Nu se schimbă nimic până nu alegi Folosește.",
+  "Use this look": "Folosește acest aspect",
+  "Previewing {name}": "Previzualizare: {name}",
+  "Choose up to two looks to compare.": "Alege cel mult două aspecte de comparat.",
+  "Drop a horizontal logo": "Lasă aici un logo orizontal",
+  "Drop a vertical logo": "Lasă aici un logo vertical",
+  "calm": "calm",
+  "nature": "natură",
+  "playful": "jucăuș",
+  "creative": "creativ",
+  "warm": "cald",
+  "editorial": "editorial",
+  "neutral": "neutru",
+  "red": "roșu",
+  "orange": "portocaliu",
+  "yellow": "galben",
+  "green": "verde",
+  "teal": "petrol",
+  "blue": "albastru",
+  "purple": "mov",
+  "pink": "roz",
+  "deep": "închis",
+  "pale": "pal",
+  "vivid": "viu",
+  "muted": "estompat",
   "Sort languages": "Sortează limbile",
   "Lolly Imprint": "Lolly Imprint",
   "Hides the Lolly Imprint - a durable, invisible watermark - in the image pixels. It survives re-encoding and screenshots, so any copy of the file can be recognised later.": "Ascunde Lolly Imprint, un filigran durabil și invizibil, în pixelii imaginii. Rezistă la recodare și la capturi de ecran, așa că orice copie a fișierului poate fi recunoscută mai târziu.",
@@ -584,7 +610,11 @@
   "“{name}” is a {size} shared design{tool}. Opening it adds a new Project and {content}; it does not replace existing work.{pace}": "„{name}” este un design partajat de {size}{tool}. Deschiderea lui adaugă un proiect nou și {content}; nu înlocuiește lucrările existente.{pace}",
   "Card size": "Dimensiunea cardurilor",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Pe acest dispozitiv a fost adăugată o imagine sau un fișier. Rămâne pe acest dispozitiv, iar ceilalți nu vor vedea acel fișier.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Pe acest dispozitiv au fost adăugate {n} imagini sau fișiere. Rămân pe acest dispozitiv, iar ceilalți nu vor vedea acele fișiere.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "O imagine sau un fișier a fost adăugat pe acest dispozitiv. Rămâne pe acest dispozitiv, iar ceilalți nu vor vedea acel fișier.",
+    "few": "Pe acest dispozitiv au fost adăugate {n} imagini sau fișiere. Rămân pe acest dispozitiv, iar ceilalți nu vor vedea acele fișiere.",
+    "other": "Pe acest dispozitiv au fost adăugate {n} de imagini sau fișiere. Rămân pe acest dispozitiv, iar ceilalți nu vor vedea acele fișiere."
+  },
   "Check the version first": "Verifică mai întâi versiunea",
   "Copy team link": "Copiază linkul echipei",
   "Could not create the project. Try again.": "Proiectul nu a putut fi creat. Încearcă din nou.",
@@ -1175,7 +1205,11 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Toate elementele sunt salvate în proiectul partajat. Originalele locale sunt în Coșul de gunoi sau încă la locul lor.",
   "Your local items have not changed.": "Elementele tale locale nu s-au schimbat.",
   "1 item was saved to the shared project.": "1 element a fost salvat în proiectul partajat.",
-  "{n} items were saved to the shared project.": "{n} elemente au fost salvate în proiectul partajat.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} element a fost salvat în proiectul partajat.",
+    "few": "{n} elemente au fost salvate în proiectul partajat.",
+    "other": "{n} de elemente au fost salvate în proiectul partajat."
+  },
   "Wait for the current move to finish.": "Așteaptă să se termine mutarea în curs.",
   "You cannot save to that shared project.": "Nu poți salva în acel proiect partajat.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Toți cei care pot deschide {project} vor vedea aceste elemente. După ce fiecare element e salvat acolo, originalele locale merg în Coșul de gunoi, unde le poți restaura.",
@@ -1486,8 +1520,16 @@
   "file": "fișier",
   "samples": "eșantioane",
   "text": "text",
-  "{n} changes found": "S-au găsit {n} modificări",
-  "{n} pages differ": "{n} pagini diferă",
+  "{n} changes found": {
+    "one": "S-a găsit o modificare",
+    "few": "S-au găsit {n} modificări",
+    "other": "S-au găsit {n} de modificări"
+  },
+  "{n} pages differ": {
+    "one": "O pagină diferă",
+    "few": "{n} pagini diferă",
+    "other": "{n} de pagini diferă"
+  },
   "Draft": "Ciornă",
   "Draft quality": "Calitate ciornă",
   "Draft rule": "Regulă în ciornă",
@@ -1796,5 +1838,300 @@
   "Headlines - 36px, or 24px bold": "Titluri - 36px sau 24px aldin",
   "Icons and borders only": "Doar pictograme și borduri",
   "Not usable": "Nu poate fi folosit",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA este definit pentru sRGB, deci o culoare cu gamă largă este evaluată după redarea ei în sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA este definit pentru sRGB, deci o culoare cu gamă largă este evaluată după redarea ei în sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly a trecut la aspectul mai simplu și mai rapid, pentru că acest dispozitiv desenează fără accelerare grafică.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly a trecut la aspectul mai simplu și mai rapid, pentru că acest dispozitiv se chinuia.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Activat automat la {date}, pentru că acest dispozitiv desenează fără accelerare grafică.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Activat automat la {date}, pentru că acest dispozitiv se chinuia să deseneze interfața.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Comutarea automată este oprită pe acest dispozitiv, pentru că ai ales Anulează la {date}.",
+  "Allow again": "Permite din nou",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Comutarea automată este permisă din nou de la următoarea deschidere a Lolly.",
+  "Board": "Panou",
+  "Choose for {role}": "Alege pentru {role}",
+  "Change {role}": "Schimbă {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ghidajul brandului tău, scris pentru oameni și agenți. Agenții citesc mai întâi abilitatea brandului, apoi pe cea pentru lucrarea curentă. Abilitățile ghidează lucrarea; regulile interne din Reguli sunt ce verifică Lolly.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly a trecut la aspectul mai simplu și mai rapid cât timp acest dispozitiv este ocupat. Revine când lucrurile se liniștesc.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly a trecut la aspectul mai simplu și mai rapid cât timp bateria este descărcată. Revine când acest dispozitiv se încarcă.",
+  "On for now because this device is busy. It switches back when things calm down.": "Activ pentru moment, pentru că acest dispozitiv este ocupat. Revine când lucrurile se liniștesc.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Activ pentru moment, pentru că bateria este descărcată. Revine când acest dispozitiv se încarcă.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Activat automat la {date}, când acest dispozitiv era ocupat. Ai ales Păstrează.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Activat automat la {date}, când bateria era descărcată. Ai ales Păstrează.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly nu va comuta aici pentru un dispozitiv lent, pentru că ai ales Anulează la {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly nu va comuta cât timp acest dispozitiv este ocupat sau are bateria descărcată, pentru că ai ales Anulează la {date}.",
+  "Use the automatic colour": "Folosește culoarea automată",
+  "follows the design system ({colour})": "urmează sistemul de design ({colour})",
+  "follows the design system": "urmează sistemul de design",
+  "automatic ({colour})": "automată ({colour})",
+  "automatic": "automată",
+  "{name} spring": "Arc {name}",
+  "{name} (not in this design system)": "{name} (nu există în acest sistem de design)",
+  "Curves": "Curbe",
+  "Springs": "Arcuri",
+  "Gentle": "Blând",
+  "Quick": "Rapid",
+  "Bouncy": "Săltăreț",
+  "Custom spring": "Arc personalizat",
+  "Stiffness": "Rigiditate",
+  "Damping": "Amortizare",
+  "Mass": "Masă",
+  "Settles in {t} s": "Se stabilizează în {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Următorul cadru-cheie vine înainte ca arcul să se stabilizeze. Restul mișcării este împărțit pe tot segmentul.",
+  "From the design system: {name}": "Din sistemul de design: {name}",
+  "Editing the curve detaches it from the design system.": "Editarea curbei o deconectează de la sistemul de design.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț. Ține apăsat pentru Creion (Shift C) și tipul de spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț",
+  "Recipients can change the inputs": "Destinatarii pot schimba intrările",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Oricine are linkul poate schimba intrările și poate obține o imagine nouă. Intrările blocate rămân așa cum au fost setate.",
+  "{count} entries": {
+    "one": "{count} intrare",
+    "few": "{count} intrări",
+    "other": "{count} de intrări"
+  },
+  "{count} files in this folder": {
+    "one": "{count} fișier în acest folder",
+    "few": "{count} fișiere în acest folder",
+    "other": "{count} de fișiere în acest folder"
+  },
+  "{n} assets": {
+    "one": "{n} resursă",
+    "few": "{n} resurse",
+    "other": "{n} de resurse"
+  },
+  "{n} assets found": {
+    "one": "{n} resursă găsită",
+    "few": "{n} resurse găsite",
+    "other": "{n} de resurse găsite"
+  },
+  "{n} capabilities match": {
+    "one": "{n} capabilitate se potrivește",
+    "few": "{n} capabilități se potrivesc",
+    "other": "{n} de capabilități se potrivesc"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} copie creată · selectată",
+    "few": "{n} copii create · selectate",
+    "other": "{n} de copii create · selectate"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} creație eliminată din Proiecte aici a rămas eliminată.",
+    "few": "{n} creații eliminate din Proiecte aici au rămas eliminate.",
+    "other": "{n} de creații eliminate din Proiecte aici au rămas eliminate."
+  },
+  "{n} embedded files": {
+    "one": "{n} fișier încorporat",
+    "few": "{n} fișiere încorporate",
+    "other": "{n} de fișiere încorporate"
+  },
+  "{n} external references": {
+    "one": "{n} referință externă",
+    "few": "{n} referințe externe",
+    "other": "{n} de referințe externe"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "Un fișier nu a putut fi arhivat și a fost lăsat deoparte",
+    "few": "{n} fișiere nu au putut fi arhivate și au fost lăsate deoparte",
+    "other": "{n} de fișiere nu au putut fi arhivate și au fost lăsate deoparte"
+  },
+  "{n} folders": {
+    "one": "{n} folder",
+    "few": "{n} foldere",
+    "other": "{n} de foldere"
+  },
+  "{n} font files": {
+    "one": "{n} fișier de font",
+    "few": "{n} fișiere de font",
+    "other": "{n} de fișiere de font"
+  },
+  "{n} images": {
+    "one": "{n} imagine",
+    "few": "{n} imagini",
+    "other": "{n} de imagini"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} imagine nu a putut fi restaurată (spațiu de stocare plin?)",
+    "few": "{n} imagini nu au putut fi restaurate (spațiu de stocare plin?)",
+    "other": "{n} de imagini nu au putut fi restaurate (spațiu de stocare plin?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "O imagine a rămas cu originalul - imaginile au un singur loc; folosește Taie ca să o muți",
+    "few": "{n} imagini au rămas cu originalul - imaginile au un singur loc; folosește Taie ca să le muți",
+    "other": "{n} de imagini au rămas cu originalul - imaginile au un singur loc; folosește Taie ca să le muți"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} câmp · se aplică fiecărui design",
+    "few": "{n} câmpuri · se aplică fiecărui design",
+    "other": "{n} de câmpuri · se aplică fiecărui design"
+  },
+  "{n} items": {
+    "one": "{n} element",
+    "few": "{n} elemente",
+    "other": "{n} de elemente"
+  },
+  "{n} items copied": {
+    "one": "{n} element copiat",
+    "few": "{n} elemente copiate",
+    "other": "{n} de elemente copiate"
+  },
+  "{n} items cut": {
+    "one": "{n} element tăiat",
+    "few": "{n} elemente tăiate",
+    "other": "{n} de elemente tăiate"
+  },
+  "{n} items moved": {
+    "one": "{n} element mutat",
+    "few": "{n} elemente mutate",
+    "other": "{n} de elemente mutate"
+  },
+  "{n} items pasted": {
+    "one": "{n} element lipit",
+    "few": "{n} elemente lipite",
+    "other": "{n} de elemente lipite"
+  },
+  "{n} keyframes": {
+    "one": "{n} cadru cheie",
+    "few": "{n} cadre cheie",
+    "other": "{n} de cadre cheie"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "few": "{n} logouri",
+    "other": "{n} de logouri"
+  },
+  "{n} marks found": {
+    "one": "{n} marcaj găsit",
+    "few": "{n} marcaje găsite",
+    "other": "{n} de marcaje găsite"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} element mai nou omis",
+    "few": "{n} elemente mai noi omise",
+    "other": "{n} de elemente mai noi omise"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "O creație a ta este un videoclip sau o animație",
+    "few": "{n} dintre creațiile tale sunt videoclipuri sau animații",
+    "other": "{n} dintre creațiile tale sunt videoclipuri sau animații"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} punct de control automat mai vechi omis",
+    "few": "{n} puncte de control automate mai vechi omise",
+    "other": "{n} de puncte de control automate mai vechi omise"
+  },
+  "{n} pages": {
+    "one": "{n} pagină",
+    "few": "{n} pagini",
+    "other": "{n} de pagini"
+  },
+  "{n} places": {
+    "one": "{n} loc",
+    "few": "{n} locuri",
+    "other": "{n} de locuri"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punct - ține apăsat Alt pentru un colț",
+    "few": "{n} puncte - ține apăsat Alt pentru un colț",
+    "other": "{n} de puncte - ține apăsat Alt pentru un colț"
+  },
+  "{n} published versions": {
+    "one": "{n} versiune publicată",
+    "few": "{n} versiuni publicate",
+    "other": "{n} de versiuni publicate"
+  },
+  "{n} results": {
+    "one": "{n} rezultat",
+    "few": "{n} rezultate",
+    "other": "{n} de rezultate"
+  },
+  "{n} saved sessions": {
+    "one": "{n} sesiune salvată",
+    "few": "{n} sesiuni salvate",
+    "other": "{n} de sesiuni salvate"
+  },
+  "{n} selected": {
+    "one": "{n} selectat",
+    "few": "{n} selectate",
+    "other": "{n} selectate"
+  },
+  "{n} selected assets": {
+    "one": "{n} resursă selectată",
+    "few": "{n} resurse selectate",
+    "other": "{n} de resurse selectate"
+  },
+  "{n} sessions": {
+    "one": "{n} sesiune",
+    "few": "{n} sesiuni",
+    "other": "{n} de sesiuni"
+  },
+  "{n} shapes": {
+    "one": "{n} formă",
+    "few": "{n} forme",
+    "other": "{n} de forme"
+  },
+  "{n} steps": {
+    "one": "{n} pas",
+    "few": "{n} pași",
+    "other": "{n} de pași"
+  },
+  "{n} templates": {
+    "one": "{n} șablon",
+    "few": "{n} șabloane",
+    "other": "{n} de șabloane"
+  },
+  "{n} volume keys": {
+    "one": "{n} cheie de volum",
+    "few": "{n} chei de volum",
+    "other": "{n} de chei de volum"
+  },
+  "{n} words": {
+    "one": "{n} cuvânt",
+    "few": "{n} cuvinte",
+    "other": "{n} de cuvinte"
+  },
+  "Dominant hand": "Mâna dominantă",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Cu două panouri, pe un dispozitiv pliabil sau pe o tabletă aproape pătrată, comenzile stau pe partea opusă mâinii cu care desenezi. Schimbă părțile, din antetul panoului, schimbă și el asta.",
+  "Swap sides": "Schimbă părțile",
+  "Resize panes": "Redimensionează panourile",
+  "Changes that didn't finish saving": "Modificări care nu s-au salvat complet",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Ai făcut aceste modificări pe {time}, iar pagina s-a închis înainte să fie salvate. De atunci, acest sistem de proiectare a fost salvat din nou, într-o altă filă sau printr-o sincronizare.",
+  "Restore your unsaved changes": "Restabilește modificările nesalvate",
+  "Keep the saved version": "Păstrează versiunea salvată",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Restabilirea înlocuiește versiunea salvată de atunci. Păstrarea versiunii salvate șterge modificările nesalvate de pe acest dispozitiv.",
+  "Restored your unsaved changes.": "Modificările nesalvate au fost restabilite.",
+  "Kept the saved version.": "Versiunea salvată a fost păstrată.",
+  "Restored the changes that hadn't finished saving.": "Modificările care nu s-au salvat complet au fost restabilite.",
+  "{n} file": "{n} fișier",
+  "It becomes the primary. Shades and roles can follow.": "Devine culoarea primară. Nuanțele și rolurile pot urma.",
+  "Start here": "Începe aici",
+  "Browse looks →": "Răsfoiește look-urile →",
+  "Pick what you have →": "Alege ce ai →",
+  "Open the picker →": "Deschide selectorul →",
+  "Starter greys until a colour is added.": "Griuri de pornire până când adaugi o culoare.",
+  "Lolly can’t draw in this browser yet": "Lolly nu poate desena încă în acest browser",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly desenează cu WebGPU, pe care acest browser nu îl oferă încă.",
+  "These work today:": "Acestea funcționează azi:",
+  "Chrome or Edge, kept up to date": "Chrome sau Edge, actualizate",
+  "Safari 26 or later": "Safari 26 sau mai nou",
+  "Firefox, where WebGPU is turned on": "Firefox, cu WebGPU activat",
+  "Get the desktop app": "Descarcă aplicația desktop",
+  "Read why": "Citește de ce",
+  "Or drop an image or a list of colours here": "Sau trage aici o imagine sau o listă de culori",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Aceste culori neutre vin cu setul de pornire, ca previzualizările să aibă ce arăta până când se adaugă culori mai sus.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Alege o culoare",
+  "Add a colour to the palette first.": "Adaugă mai întâi o culoare în paletă.",
+  "Notify": "Notifică",
+  "Update automatically": "Actualizează automat",
+  "App updates": "Actualizări ale aplicației",
+  "Update notifications": "Notificări de actualizare",
+  "Ready to install: {version}": "Gata de instalare: {version}",
+  "Restart now": "Repornește acum",
+  "Install when I quit": "Instalează la închidere",
+  "Release notes": "Note de lansare",
+  "Manual download": "Descărcare manuală",
+  "Update could not finish. Try again or download the app.": "Actualizarea nu s-a putut finaliza. Încearcă din nou sau descarcă aplicația.",
+  "Finish recording or exporting before updating.": "Finalizează înregistrarea sau exportul înainte de actualizare.",
+  "Save could not finish. Save a recovery copy before updating.": "Salvarea nu s-a putut finaliza. Salvează o copie de recuperare înainte de actualizare.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Acest AppImage nu poate fi înlocuit aici. Descarcă aplicația într-un dosar cu drept de scriere.",
+  "This installation uses its package manager for updates.": "Această instalare folosește managerul de pachete pentru actualizări.",
+  "This desktop platform does not support in-app updates.": "Această platformă desktop nu acceptă actualizări din aplicație.",
+  "Update installation was cancelled.": "Instalarea actualizării a fost anulată."
 }

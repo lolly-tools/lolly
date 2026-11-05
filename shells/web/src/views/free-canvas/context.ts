@@ -41,6 +41,7 @@ import type { documentOps } from './document.ts';
 import type { dialogsOps } from './dialogs.ts';
 import type { fieldPanelsOps } from './field-panels.ts';
 import type { objectsOps } from './objects.ts';
+import type { traceImageOps } from './trace-image.ts';
 import type { opsOps } from './ops.ts';
 import type { penToolOps } from './pen-tool.ts';
 import type { penAssistOps } from './pen-assist.ts';
@@ -178,6 +179,8 @@ export interface FcCtx {
   penContinuing: { id: string; from: 'start' | 'end'; start: AuthoredPath } | null;
   /** The Pencil's live stroke in native px, or null when none is being drawn. */
   pencilStroke: Point[] | null;
+  /** The tool the rail's pen slot holds (pencil.ts): the one in use, or the one used last. */
+  penSlotTool: 'pen' | 'pencil';
   pencilRaf: number;
   penLastPaint: Box | null;
   penPaintFields: PathPaintFields;
@@ -287,7 +290,7 @@ export interface FcCtx {
   wobble: WobbleHandle;
   popover: HTMLDivElement | null;
   arrangeBtn: HTMLButtonElement | null;
-  modeBtns: Record<'select' | 'create' | 'pen' | 'line' | 'pencil', HTMLButtonElement | null>;
+  modeBtns: Record<'select' | 'create' | 'pen' | 'line', HTMLButtonElement | null>;
   nodeToolBtn: HTMLButtonElement | null;
   popoverAnchor: HTMLElement | null;
   HOLD_MS: 420;
@@ -407,6 +410,7 @@ export interface FcCtx {
   dialogs: ReturnType<typeof dialogsOps>;
   fieldPanels: ReturnType<typeof fieldPanelsOps>;
   objects: ReturnType<typeof objectsOps>;
+  traceImage: ReturnType<typeof traceImageOps>;
   ops: ReturnType<typeof opsOps>;
   penTool: ReturnType<typeof penToolOps>;
   penAssist: ReturnType<typeof penAssistOps>;

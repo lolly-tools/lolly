@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE fcpxml>
+<fcpxml version="1.10">
+  <resources>
+    <format id="r1" name="FFVideoFormat1080p2997" frameDuration="1001/30000s" width="1920" height="1080" colorSpace="1-1-1 (Rec. 709)"/>
+    <format id="r3" name="FFVideoFormat1080p24" frameDuration="1001/24000s" width="1920" height="1080"/>
+    <asset id="r2" name="Interview" start="3603600/1000s" duration="600600/1000s" hasVideo="1" hasAudio="1" format="r1" audioSources="1" audioChannels="2">
+      <media-rep kind="original-media" src="file:///Media/interview.mov"/>
+    </asset>
+    <asset id="r4" name="Cutaway" start="0s" duration="10010/1000s" hasVideo="1" format="r3">
+      <media-rep kind="original-media" src="file:///Media/cutaway.mov"/>
+    </asset>
+    <media id="r5" name="Compound"><sequence format="r1" duration="10s"><spine/></sequence></media>
+  </resources>
+  <library location="file:///Library.fcpbundle/">
+    <event name="Day 1">
+      <project name="Drop frame story">
+        <sequence format="r1" duration="300300/30000s" tcStart="3600s" tcFormat="DF" audioLayout="stereo" audioRate="48k">
+          <spine>
+            <asset-clip ref="r2" offset="3600s" name="Interview A" start="3603600/1000s" duration="5005/1000s" tcFormat="DF">
+              <asset-clip ref="r4" lane="1" offset="3603600/1000s" name="Cutaway B" start="0s" duration="2002/1000s"/>
+              <filter-video ref="r9" name="Colour"/>
+            </asset-clip>
+            <transition offset="3605005/1000s" duration="1001/1000s" name="Cross Dissolve"/>
+            <gap offset="3605005/1000s" duration="1001/1000s"/>
+            <asset-clip ref="r2" offset="3606006/1000s" name="Interview B" start="3610000/1000s" duration="3003/1000s"/>
+            <ref-clip ref="r5" offset="3609009/1000s" name="Compound" duration="2s"/>
+            <title offset="3609009/1000s" name="Lower third" duration="2s"/>
+          </spine>
+        </sequence>
+      </project>
+    </event>
+  </library>
+</fcpxml>

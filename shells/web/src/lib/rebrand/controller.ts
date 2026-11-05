@@ -913,7 +913,7 @@ export function createRebrandController(deps: RebrandControllerDepsV1): RebrandC
 
   /**
    * Write one stage's part and its checkpoint through `advance`, so a reload resumes
-   * after it. A quota refusal keeps going in memory and says so; a stale handle stops.
+   * after it. A quota refusal keeps going in memory and reports that; a stale handle stops.
    *
    * After a quota refusal the checkpoint did not move, so the next stage recorded
    * against it would be refused as out of order, and a later plan write would mark the
@@ -1974,7 +1974,7 @@ export function createRebrandController(deps: RebrandControllerDepsV1): RebrandC
    * The deck theme (plan 275 section 6, decision 33), or null for the master as
    * shipped, as one undoable step. The colours are solved again once per ground
    * group, so each holds on the ground its slide is drawn on. A look theme on a
-   * locked design system changes nothing and says so (`nothing-to-do`, one skipped).
+   * locked design system changes nothing and reports that (`nothing-to-do`, one skipped).
    */
   function setTheme(theme: DeckThemeV1 | null): Promise<RebrandEditOutcomeV1> {
     return themeEdit(

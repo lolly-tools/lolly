@@ -49,7 +49,11 @@ import {
   getConnection, saveConnection, removeConnection,
   cachedToken, cacheToken, dropToken,
 } from './provider-connections.ts';
-import type { SendTarget } from './send-target.ts';
+import {
+  ShareRefusedError, ShareUnavailableError,
+  type SendTarget, type ShareCapabilities, type ShareLinkOutcome, type ShareOptions,
+} from './send-target.ts';
+import { markShareUnavailable, shareUnavailable } from './share-links.ts';
 import type { SyncRemote, SnapshotMeta, PutOpts } from './sync-remote.ts';
 import { SyncConflictError } from './sync-remote.ts';
 
@@ -294,9 +298,80 @@ export function oneDriveSendTarget(): SendTarget {
       return {
         url: item.webUrl,
         label: item.webUrl ? t('Open in OneDrive') : t('Saved to OneDrive ({name})', { name: item.name ?? filename }),
+        ...(item.id ? { ref: item.id } : {}),
       };
     },
+    shareCapabilities: oneDriveShareCapabilities,
+    share: (ref, options) => oneDriveShare(ref, options),
+    revoke: (link) => oneDriveRevoke(link.ref, link.revokeRef ?? ''),
   };
+}
+
+// ── Share links (driveItem: createLink) ───────────────────────────────────────
+//
+// Microsoft documents `Files.ReadWrite` as the least-privileged scope for createLink,
+// and the app-folder scope this driver holds is not on that list. So the first
+// request is the test. If Graph refuses it, the connection is marked unable to
+// share, the scope is NOT widened to the whole drive to get around it, and the
+// dialog hands off to the item's own page in OneDrive ("Open OneDrive to share"),
+// where OneDrive's Share button does the job. Passwords are OneDrive Personal only,
+// so none is offered. createLink is idempotent per app and link type: asking twice
+// returns the same link, and the outcome says so.
+
+export function oneDriveShareCapabilities(): ShareCapabilities {
+  return {
+    audiences: shareUnavailable(KIND) ? [] : ['anyone', 'organisation'],
+    password: false, expiry: true, revocable: true,
+  };
+}
+
+interface GraphPermission { id?: string; link?: { webUrl?: string }; expirationDateTime?: string }
+
+export async function oneDriveShare(ref: string, options: ShareOptions, fetchFn: typeof fetch = providerFetch): Promise<ShareLinkOutcome> {
+  if (options.audience === 'people') throw new ShareRefusedError('people', t('Lolly cannot share with named people through OneDrive.'));
+  const body = {
+    type: 'view',
+    scope: options.audience === 'organisation' ? 'organization' : 'anonymous',
+    ...(options.expiresInDays !== undefined ? { expirationDateTime: new Date(Date.now() + options.expiresInDays * 86_400_000).toISOString().replace(/\.\d+Z$/, 'Z') } : {}),
+  };
+  const res = await graph(`/me/drive/items/${encodeURIComponent(ref)}/createLink`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  }, fetchFn);
+  if (!res.ok) {
+    const detail = (await res.json().catch(() => ({}))) as { error?: { code?: string; message?: string } };
+    const text = `${detail.error?.code ?? ''} ${detail.error?.message ?? ''}`;
+    const denied = res.status === 401 || res.status === 403;
+    const policy = res.status === 403 && options.audience === 'anyone' && !/scope|permission|consent/i.test(text);
+    if (denied && !policy) {
+      await markShareUnavailable(KIND);
+      let open: string | undefined;
+      try {
+        const item = await graph(`/me/drive/items/${encodeURIComponent(ref)}?$select=webUrl`, {}, fetchFn);
+        open = item.ok ? ((await item.json()) as { webUrl?: string }).webUrl : undefined;
+      } catch { /* the hand-off is a courtesy */ }
+      throw new ShareUnavailableError(t('OneDrive does not let Lolly make links with the access it has, and Lolly will not ask for more. Open the file in OneDrive and use its Share button.'), open);
+    }
+    if (policy) throw new ShareRefusedError('anyone', t('OneDrive will not make a link anyone can open. Your administrator may have turned that off.'));
+    if (res.status === 400 && options.audience === 'organisation') {
+      throw new ShareRefusedError('organisation', t('This Microsoft account has no organisation to share with. Organisation links need a work or school account.'));
+    }
+    throw new Error(t('OneDrive could not make the link ({status})', { status: res.status }));
+  }
+  const perm = (await res.json()) as GraphPermission;
+  if (!perm.link?.webUrl) throw new Error(t('OneDrive could not make the link ({status})', { status: 502 }));
+  return {
+    url: perm.link.webUrl,
+    audience: options.audience,
+    ...(perm.expirationDateTime ? { expiresAt: perm.expirationDateTime } : {}),
+    ...(perm.id ? { revokeRef: perm.id } : {}),
+    ...(res.status === 200 ? { notes: [t('This file already had a link of this kind, so OneDrive returned that link. Its settings are the ones OneDrive holds.')] } : {}),
+  };
+}
+
+/** Delete the permission that carries the link. Already gone counts as done. */
+export async function oneDriveRevoke(ref: string, permissionId: string, fetchFn: typeof fetch = providerFetch): Promise<void> {
+  const res = await graph(`/me/drive/items/${encodeURIComponent(ref)}/permissions/${encodeURIComponent(permissionId)}`, { method: 'DELETE' }, fetchFn);
+  if (!res.ok && res.status !== 404) throw new Error(t('OneDrive could not stop the sharing ({status})', { status: res.status }));
 }
 
 // ── The SyncRemote (plans/138 Tier D, WP-P1) ──────────────────────────────────

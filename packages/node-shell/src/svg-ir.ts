@@ -250,6 +250,12 @@ export interface SvgIrContext {
    *  a stroke, skew or non-uniform scale, a centred dominant-baseline) falls
    *  back to the outline path per run, so fidelity never regresses. */
   textMode?: 'outline' | 'live';
+  /** Reads the bytes behind an `<image href>` that is not inline. Left out, only
+   *  `data:` and `blob:` hrefs are read, so a walk in a Node shell never turns an
+   *  href from a tool's output into a network request (on the hosted MCP server
+   *  that href can be anything a caller typed). The web shell passes its page's
+   *  own fetch, which the browser and the page's CSP already bound. */
+  readImage?: (href: string) => Promise<Blob | null>;
 }
 
 /** Normalized vector IR consumed by engine/src/emf.js and engine/src/eps.js. */
@@ -259,14 +265,28 @@ export interface VectorIrResult {
   prims: VectorPrim[];
 }
 
+/**
+ * The bytes behind an inline `<image>` href: a `data:` or `blob:` URL, read without
+ * leaving the process, and null for anything else. The scheme is read from the parsed
+ * URL, so leading spaces or capitals cannot dress an http address up as inline data.
+ */
+export async function readInlineImage(href: string): Promise<Blob | null> {
+  let url: URL;
+  try { url = new URL(href.trim()); } catch { return null; }
+  if (url.protocol !== 'data:' && url.protocol !== 'blob:') return null;
+  return (await fetch(url.href)).blob();
+}
+
 // Decode an <image> href (a data:/blob: URL - e.g. the vector escape-hatch's PNG) to
 // opaque RGB, compositing any alpha over `bg` (EMF/EPS have no alpha channel).
-// Browser-only (canvas); returns null under jsdom (CLI) or on any failure, so the
-// caller warns + skips rather than throwing.
-async function decodeImageToRgb(href: string, bg: RgbTuple): Promise<{ w: number; h: number; rgb: Uint8Array } | null> {
+// Needs a canvas (the browser's, or the Node shells' realm canvas); returns null
+// without one, for an href `read` will not open, or on any failure, so the caller
+// warns + skips rather than throwing.
+async function decodeImageToRgb(href: string, bg: RgbTuple, read: (href: string) => Promise<Blob | null>): Promise<{ w: number; h: number; rgb: Uint8Array } | null> {
   if (typeof document === 'undefined' || typeof createImageBitmap !== 'function') return null;
   try {
-    const blob = await (await fetch(href)).blob();
+    const blob = await read(href);
+    if (!blob) return null;
     const bmp = await createImageBitmap(blob);
     const w = bmp.width, h = bmp.height;
     if (!(w > 0 && h > 0)) { bmp.close?.(); return null; }
@@ -482,7 +502,11 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
       const href = el.getAttribute('href') || el.getAttribute('xlink:href')
         || el.getAttributeNS?.('http://www.w3.org/1999/xlink', 'href') || '';
       if (!href) { warn('image with no href (skipped)'); return; }
-      const dec = await decodeImageToRgb(href, bg);
+      if (!ctx.readImage && !/^\s*(data|blob):/i.test(href)) {
+        warn('image that links to its picture instead of carrying it (skipped): only data: and blob: pictures are read here');
+        return;
+      }
+      const dec = await decodeImageToRgb(href, bg, ctx.readImage ?? readInlineImage);
       if (!dec) { warn('image could not be rasterised for this format (skipped)'); return; }
       const { x: bx, y: by } = mapPt(len(prop(el, style, 'x'), vbW), len(prop(el, style, 'y'), vbH));
       const bw = len(prop(el, style, 'width'), vbW) * sxLen * regX;

@@ -39,6 +39,93 @@
     ]
   },
   {
+    "id": "repairNoise",
+    "label": "Background noise (no model)",
+    "type": "select",
+    "default": "off",
+    "options": [
+      {
+        "value": "off",
+        "label": "Off"
+      },
+      {
+        "value": "light",
+        "label": "Light"
+      },
+      {
+        "value": "strong",
+        "label": "Strong"
+      }
+    ],
+    "help": "Steady fans, hiss and air handling. Plain signal processing that works offline and in the command line."
+  },
+  {
+    "id": "repairHum",
+    "label": "Mains hum",
+    "type": "select",
+    "default": "off",
+    "options": [
+      {
+        "value": "off",
+        "label": "Off"
+      },
+      {
+        "value": "50",
+        "label": "50 Hz"
+      },
+      {
+        "value": "60",
+        "label": "60 Hz"
+      }
+    ]
+  },
+  {
+    "id": "repairDeEss",
+    "label": "Harsh s sounds",
+    "type": "select",
+    "default": "off",
+    "options": [
+      {
+        "value": "off",
+        "label": "Off"
+      },
+      {
+        "value": "light",
+        "label": "Light"
+      },
+      {
+        "value": "strong",
+        "label": "Strong"
+      }
+    ]
+  },
+  {
+    "id": "repairDeclick",
+    "label": "Repair clicks and pops",
+    "type": "boolean",
+    "default": false
+  },
+  {
+    "id": "repairDereverb",
+    "label": "Room echo",
+    "type": "select",
+    "default": "off",
+    "options": [
+      {
+        "value": "off",
+        "label": "Off"
+      },
+      {
+        "value": "light",
+        "label": "Light"
+      },
+      {
+        "value": "strong",
+        "label": "Strong"
+      }
+    ]
+  },
+  {
     "id": "normalize",
     "label": "Loudness",
     "type": "select",

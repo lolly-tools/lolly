@@ -48,13 +48,13 @@ The third step carries the pilot. A tool opens with the brand already on it, so 
 
 Onboarding hands over control of the rules, not of the output:
 
-1. **Start from a design system.** [Lolly Demo](/info/lolly-demo.html) shows a finished one, Lolly Starter is a blank one to fill and [Design System Setup](/info/brand-studio.html) brings in your own colours, type and logos. [Brand architectures](/info/brand-architectures.html) covers parent brands, sub-brands and companions.
+1. **Start from a design system.** [Lolly Demo](/info/lolly-demo.html) shows a finished one, Lolly Starter is a blank one to fill and [Lolly Design System Setup](/info/brand-studio.html) brings in your own colours, type and logos. [Brand architectures](/info/brand-architectures.html) covers parent brands, sub-brands and companions.
 2. **Build the asset catalog:** logos, palettes and fonts as permanent ids.
 3. **Author the tools most in demand**, starting with your most common requests.
 4. **Convert one high-visibility output** and show the before and after side by side. This is the single most effective adoption lever.
 5. **Set the guard-rails.** Lock what must never change, and expose only what is meant to vary. A deployment can supply its design system managed, so people use it but cannot change its colours, type or logos ([how managed systems work](/info/configuration.html#supplied-and-local-design-systems)).
 
-![The Files room of Design System Setup, where logos, images and fonts become permanent ids a tool can call](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dcatalogue&width=1440&height=900&dpi=192&waitMs=1800&walker=1&format=svg&dark=1&filename=aud-brand-catalogue)
+![The Files room of Lolly Design System Setup, where logos, images and fonts become permanent ids a tool can call](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dcatalogue&width=1440&height=900&dpi=192&waitMs=1800&walker=1&format=svg&dark=1&filename=aud-brand-catalogue)
 
 ### The developer or platform team
 
@@ -133,4 +133,4 @@ If you are piloting Lolly, the most valuable thing you can contribute is a concr
 - **Not yet independently audited.** See [Status](#status).
 - **Not finished.** The 1.0 series started the public record; expect rough edges and change between releases.
 - **Not a turnkey pack of your templates.** Lolly is a platform: someone has to set up the design system and author the tools before producers can serve themselves.
-- **Not a fit for every workflow by default.** Design, animation and imported layouts support original creative work as well as repeatable templates. Check the editing, collaboration and governance features your team needs in the [comparisons](/info/compare.html).
+- **Not a fit for every workflow by default.** Lolly Design, animation and imported layouts support original creative work as well as repeatable templates. Check the editing, collaboration and governance features your team needs in the [comparisons](/info/compare.html).

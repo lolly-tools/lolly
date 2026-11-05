@@ -1,4 +1,4 @@
 # Lolly - Landingspaginatekst
 
-Gratis creatieve tools, met jouw regels.
-Maak mediabestanden van studiokwaliteit: geen account, geen kaart, privé en open source.
+Maak afgewerkte bestanden. Houd de controle over je content.
+Grafiek, documenten, video en drukwerk in je eigen kleuren en lettertypen: geen account, geen kaart, privé en open source.

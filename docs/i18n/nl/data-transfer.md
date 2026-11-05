@@ -152,7 +152,7 @@ De opslagmeter toont dezelfde verdeling. Opgeslagen sessies, My images en File r
 
 Deze bundel maakt een back-up van de persoonlijke bibliotheek van het apparaat. Het is geen back-up van een **Lolly Work**-instantie: organisatieaccounts, toegangsbeleid, gedeelde projecten, catalogusversies, goedkeuringen, renderjobs en auditrecords worden door die dienst bewaard. Verbind opnieuw en meld je aan om weer toegang tot gedeeld werk te krijgen; een persoonlijke bundel importeren verleent die toegang niet.
 
-Beheerders maken back-ups van serverdata, bewaren en wissen ze met de eigen gidsen van Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) en [Work storage and data lifecycle](/info/work-data-lifecycle.html). Een apparaat wissen of exporteren doet geen van die serverbewerkingen.
+Beheerders maken back-ups van serverdata, bewaren en wissen ze met de eigen gidsen van Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) en [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Een apparaat wissen of exporteren doet geen van die serverbewerkingen.
 
 ## Over shells heen
 

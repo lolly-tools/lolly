@@ -56,7 +56,7 @@ test('brand recovery survives a browser restart and preserves the settings it re
       return id;
     });
     await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
-    await page.getByRole('button', { name: 'Restore brand settings', exact: true }).click();
+    await page.locator('[data-ds-more]').click(); await page.getByRole('menuitem', { name: 'Restore brand settings', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Restore brand settings' });
     await dialog.getByLabel('Checkpoint').selectOption(id);
     await dialog.getByRole('button', { name: 'Restore checkpoint', exact: true }).focus();
@@ -82,7 +82,7 @@ test('brand recovery survives a browser restart and preserves the settings it re
     assert.equal(await read(), '#0071ce');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => { document.documentElement.dataset.a11yText = 'large'; });
-    await page.getByRole('button', { name: 'Restore brand settings', exact: true }).click();
+    await page.locator('[data-ds-more]').click(); await page.getByRole('menuitem', { name: 'Restore brand settings', exact: true }).click();
     const restored = page.getByRole('dialog', { name: 'Restore brand settings' });
     const undo = await restored.getByLabel('Checkpoint').locator('option').filter({ hasText: 'Before restore' }).getAttribute('value');
     assert.ok(undo);

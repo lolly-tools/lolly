@@ -12,7 +12,7 @@ Mula sa terminal, ang `lolly mix` ay kumukuha ng song bilang buong soundtrack; t
 
 ## Magsulat at mag-export ng song
 
-Buksan ang **Rondocode** mula sa **Utilities** para sumulat ng song sa live editor ng rondocode at marinig ito habang nagta-type ka. I-export ito bilang **WAV**, **MP3**, **M4A**, **Opus** o **FLAC**, bilang ZIP ng mga stem, bilang **MIDI**, o bilang recording ng kasalukuyang tumutugtog. Ang **Export length** ang nagtatakda kung ilang segundo ang tagal ng audio export. Ang mismong song file (`.rondo.json`) ay ang code mo gaya ng pagkakasulat at walang dalang idinagdag.
+Buksan ang **Rondocode** mula sa **Utilities** para sumulat ng song sa live editor ng rondocode at marinig ito habang nagta-type ka. I-export ito bilang **WAV**, **MP3**, **M4A**, **Opus** o **FLAC**, bilang ZIP ng mga stem, bilang **MIDI**, o bilang recording ng kasalukuyang tumutugtog. Ang Mula sa terminal, isinusulat ng `lolly rondocode --export=mid` ang parehong MIDI file. **Export length** ang nagtatakda kung ilang segundo ang tagal ng audio export. Ang mismong song file (`.rondo.json`) ay ang code mo gaya ng pagkakasulat at walang dalang idinagdag.
 
 Ang song ay maaaring umawit ng mga lyrics nito gamit ang `sing()`. Ang pag-awit ay ginagawa sa device mo ng mga na-download na voice model, at ang file na may synthesised na pag-awit ay laging nagdedeklara ng pag-awit bilang AI-generated (tingnan ang [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ Karamihan ng on-device utility ay walang isinusulat na credential, dahil binabag
 - Ang musikang kinompyut mula sa code ng song ay algorithmic media at hindi minamarkahang AI.
 
 Kapag umaawit ang song, idinedeklara ng file na AI-generated ang pag-awit na iyon sa machine-readable na anyo. Ang digital source type ng credential ay composite media na gawa gamit ang mga trained model, inililista ng record ang mga inawit na bahagi, at isang C2PA AI disclosure bawat model ang kumikilala sa bawat model na dinaanan ng pag-awit: Supertonic-3 text to speech, ang wav2vec 2.0 phoneme aligner, ang ContentVec encoder at ang RVC voice, kasama ang repository at commit na pinagho-hostan ng Lolly dito. Ang file na may synthesised na pag-awit ay hindi kailanman sine-save nang walang deklarasyong iyon.
+
+### Ano ang laman ng MIDI file
+
+Ang MIDI file ay isang Standard MIDI File, format 1. Ang unang track ay may tempo at 4/4 na time signature, at pagkatapos nito ay may isang track para sa bawat synth, na ipinangalan sa synth. Pinapanatili ng bawat note ang simula, haba at velocity nito. Ang synth na ang pangalan ay mababasa bilang instrumento, gaya ng bass, strings, pad o piano, ay nakakakuha ng katugmang General MIDI instrument, at ang pangalang parang drum ay napupunta sa channel 10. Ang tuning na hindi twelve-tone ay ni-round sa pinakamalapit na semitone gamit ang pitch bend.
+
+Hindi kayang taglayin ng MIDI file kung paano tumutunog ang isang kanta. Wala roon ang mga synth setting, filter, effect, bus, sample at pag-awit, kaya pinapatugtog ng isang DAW ang mga note gamit ang sarili nitong mga instrumento. Ang tempo ay binabasa mula sa cycles per second ng kanta, kung saan ang isang cycle ay isang bar na may apat na beat, dahil ang sariling time signature ng kanta ay hindi bahagi ng ibinabalik ng renderer.
 
 Ang MIDI file ay walang lugar para sa credential, kaya ang text event sa file ang nagdadala ng pahayag sa halip, at sinasabi ito ng export panel. Inilalarawan ng panel ang lahat ng ito bago ka mag-export, at pagkatapos ng bawat export, binabasa ng editor pabalik ang naka-save na file at iniuulat lang ang nakita ng pagbasang iyon.
 

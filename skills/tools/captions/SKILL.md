@@ -5,13 +5,13 @@ description: "Operate the Lolly Captions tool (captions) using its declared inpu
 
 # Captions
 
-Tool ID: `captions`. Tool version: `1.0.4`. Engine range: `>=1.261.0 <2.0.0`.
+Tool ID: `captions`. Tool version: `1.1.0`. Engine range: `>=1.261.0 <2.0.0`.
 
 Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
-Declared output formats: png, svg, penpot, srt, vtt, json, jpg, webp, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
+Declared output formats: png, svg, penpot, srt, vtt, ttml, scc, json, jpg, webp, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
 
 Required host APIs: none. Device capabilities: none.
 

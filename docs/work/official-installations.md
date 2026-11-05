@@ -15,11 +15,12 @@ identify the upstream packages.
 | Route | Upstream source | Current state |
 |---|---|---|
 | Server and optional worker | Public `ghcr.io/lolly-tools/lolly-work-server` and `lolly-work-render-worker` | Signed %work{version} images (current), 1.1.2 and 1.1.1 images are published for amd64 and arm64. The ready-made package's 1.1.3 server passes container qualification in CI on amd64 and arm64. The render worker's arm64 image has no runtime qualification |
-| Helm and Rancher | [Work chart](https://github.com/lolly-tools/lolly-work/tree/main/deploy/helm) | The chart carries the release version, the same number as Work and the Lolly apps. Chart 1.1.3 is published in the chart repository and listed on Artifact Hub, where the project is a verified publisher |
+| Helm and Rancher | [Lolly Work chart](https://github.com/lolly-tools/lolly-work/tree/main/deploy/helm) | The chart carries the release version, the same number as Lolly Work and the Lolly apps. Lolly Chart 1.1.3 is published in the chart repository and listed on Artifact Hub, where the project is a verified publisher |
 | Ready-made package (VM or private server) | [Shared distribution package](https://github.com/lolly-tools/lolly-work/tree/main/deploy/marketplaces) | Pins the 1.1.3 server, the complete matching neutral web app and PostgreSQL. The 1.1.3 web app takes the installation's catalogue key from the server that serves it, so a signed-in browser lists the tools; [a browser check of the 1.1.3 package](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md) passed on MulgaDC Spinifex, as a new installation and as an update from the 1.1.1 package. Record a fresh acceptance for each target |
 | UpCloud | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/upcloud) plus the ready-made package | [Ubuntu 24.04 amd64 reference for 1.1.1](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md#upcloud-reference-for-111): fresh install, public HTTPS, built-in owner and member sign-in, a checked SVG, reboot and an independent application restore passed. An upgrade across versions and recovery on a second host are open. **Not ready as a module:** no recorded acceptance has used the infrastructure module to create the machine; its own checks validate the configuration only |
 | Evroc | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/evroc) | **Not ready.** A separate European foundation that passes the provider's schema checks but has not been boot-tested on Evroc. Boot and runtime acceptance stay specific to each target |
 | YunoHost | [Project package](https://github.com/lolly-tools/lolly-work_ynh/tree/v1.1.3-ynh2) | 1.1.3~ynh2 beta. On amd64, YunoHost package_check passes install, backup and restore, upgrade from 1.1.0~ynh3 and change URL on YunoHost 12.1 and 13.0, and a signed-in browser on a fresh YunoHost 13 install lists the tools. Each installation makes its own catalogue signing key. The overall run reports level 0 only because the package is not yet in YunoHost's catalogue; catalogue registration and arm64 acceptance are pending |
+| Coolify | [Project Compose recipe](https://github.com/lolly-tools/lolly-work/tree/main/deploy/coolify) | **Not ready.** The recipe is generated for Coolify's "Docker Compose Empty" import, with the proxy, generated secrets and domain variable wired, but it has not been imported into a running Coolify. It is not in Coolify's one-click catalogue, which this project does not yet qualify for |
 | Dokploy | [Upstream blueprint](https://github.com/lolly-tools/lolly-work/tree/main/deploy/dokploy) | **Not ready.** The blueprint is generated and ready to import, but it has not been imported into a running Dokploy. Runtime acceptance on a target and admission to the public catalogue are pending |
 
 The [channel record](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/CHANNELS.md)
@@ -61,10 +62,10 @@ mirrored package is registered and qualified.
 
 ## Release verification
 
-Each Work release publishes receipts for its images, source and signatures: the current
-[Work %work{version} release](https://github.com/lolly-tools/lolly-work/releases/tag/v%work{version})
-and the earlier [Work 1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2) and
-[Work 1.1.1](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1) releases.
+Each Lolly Work release publishes receipts for its images, source and signatures: the current
+[Lolly Work %work{version} release](https://github.com/lolly-tools/lolly-work/releases/tag/v%work{version})
+and the earlier [Lolly Work 1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2) and
+[Lolly Work 1.1.1](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1) releases.
 The ready-made package reuses the 1.1.1 release and its checksum-verified, signed Lolly
 web archive. It downloads that archive from `lolli.li` on first installation and fetches
 models from the same place when someone uses them, so it needs network access;
@@ -93,10 +94,10 @@ and the identity
 The source record gives the exact chart commit; chart and application versions are
 independent.
 
-**Where your data lives.** Work keeps accounts, projects, uploaded content, password
+**Where your data lives.** Lolly Work keeps accounts, projects, uploaded content, password
 hashes and its audit history in your PostgreSQL database, and the ready-made package
 starts with telemetry off. Loading a model contacts `lolli.li`, but that is not where
-Work stores projects. [Server surface](/info/trust/server-surface.html) lists what each
+Lolly Work stores projects. [Server surface](/info/trust/server-surface.html) lists what each
 server receives and keeps.
 
 ## External services and mirrors
@@ -107,9 +108,9 @@ requirements for an offline deployment are in
 
 | Source | Used for | When it is contacted | Your own copy |
 |---|---|---|---|
-| `ghcr.io/lolly-tools` | The Work server image for the ready-made package (including UpCloud), Dokploy and Helm; the optional render worker image. YunoHost uses the `lolli.li` Work archive instead | Image pull at installation and update. Kubernetes also pulls on any node without the image | Copy each multi-platform image by digest into your registry |
+| `ghcr.io/lolly-tools` | The Lolly Work server image for the ready-made package (including UpCloud), Dokploy and Helm; the optional render worker image. YunoHost uses the `lolli.li` Lolly Work archive instead | Image pull at installation and update. Kubernetes also pulls on any node without the image | Copy each multi-platform image by digest into your registry |
 | `docker.io/library` (Docker Hub) | PostgreSQL 17 and Caddy images in the ready-made package; PostgreSQL in the Dokploy blueprint | Image pull at installation and update | Copy by digest. The same digests are also at `public.ecr.aws/docker/library/postgres` and `public.ecr.aws/docker/library/caddy` |
-| `lolli.li`, release archives | The matching neutral web app archive (ready-made package, Dokploy, YunoHost); the YunoHost Work archive | First start of each release; restarts reuse the extracted content | Serve the checksum-verified archive from your own HTTPS server and set `LW_SHELL_URL` |
+| `lolli.li`, release archives | The matching neutral web app archive (ready-made package, Dokploy, YunoHost); the YunoHost Lolly Work archive | First start of each release; restarts reuse the extracted content | Serve the checksum-verified archive from your own HTTPS server and set `LW_SHELL_URL` |
 | `lolli.li`, model files | On-device model files the web app fetches in the browser | In each person's browser, the first time they use a model feature | No mirror setting: the address is built into the 1.1.1 web app archive. See [model files](#model-files) |
 | Public ACME certificate authorities | Caddy's automatic HTTPS in the ready-made package; Dokploy's proxy; cert-manager when you configure it | At first start and before every renewal. The authority must also reach the host on TCP 80 or 443 | An internal ACME server or a certificate you supply; see [certificates](#certificates-without-public-acme) |
 | Your OIDC provider, when used | Single sign-on with `LOLLY_AUTH_MODE=oidc` | Every sign-in, from the server and the browser | A provider inside your network, or built-in email and password sign-in |
@@ -246,6 +247,9 @@ internal issuer. Dokploy's proxy has its own certificate settings.
   image, so keep the registry available while the cluster runs. If admission control
   checks image signatures, copy the signatures too and test that check against your
   registry before relying on that check.
+- **Coolify.** The recipe uses the same images and archive address as the Dokploy
+  blueprint; edit them in the service's Source Compose. Coolify's own proxy has its
+  certificate settings.
 - **Dokploy.** The blueprint uses the same server image, PostgreSQL image and archive
   address, so make the same replacements in its Compose editor. Dokploy's own
   installation and proxy have their own download sources.
@@ -269,16 +273,16 @@ address; a separate model host must also be allowed by the browser policy. Such 
 app is a different release, with its own checksum, catalogue key pins and acceptance.
 The project does not publish or qualify such a bundle yet.
 
-A web app built with an empty base asks the instance for `/models/...`. Work 1.1.2
+A web app built with an empty base asks the instance for `/models/...`. Lolly Work 1.1.2
 answers from the web app folder when the files are there, and otherwise passes the
 request to `instance.modelOrigin` (default `https://lolli.li`, see
 [configuration](configuration.md)). The browser then talks only to the instance, and
-the Work server talks to the model host. Set `modelOrigin` to `null` when the web app
+the Lolly Work server talks to the model host. Set `modelOrigin` to `null` when the web app
 carries its own models or the installation offers none.
 
 ## Operation and support
 
-The packages share the single collaboration owner every Work deployment has; more
+The packages share the single collaboration owner every Lolly Work deployment has; more
 Kubernetes capacity, a redundant database or a marketplace listing does not add
 application high availability ([why](deployment.md#one-process-owns-live-collaboration)).
 The default package has no Chromium worker, so advertise only the formats the configured

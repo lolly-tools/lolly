@@ -85,6 +85,21 @@ test('the startup check uses the default power preference and releases its devic
   assert.equal(compute.destroyed(), 0);
 });
 
+test('the startup check keeps what its adapter said about itself, and nothing else asks', async () => {
+  const gate = fakeDevice();
+  let requests = 0;
+  const info = { vendor: 'google', architecture: 'swiftshader', device: '', description: '', isFallbackAdapter: true } as GPUAdapterInfo;
+  const service = createWebGpuDeviceService(() => ({ requestAdapter: async () => { requests++; return { info, requestDevice: async () => gate.device } as GPUAdapter; } }));
+  assert.equal(service.adapterFacts(), null, 'nothing before the check');
+  await service.check();
+  assert.deepEqual(service.adapterFacts(), { vendor: 'google', architecture: 'swiftshader', device: '', description: '', isFallbackAdapter: true });
+  assert.equal(requests, 1, 'read from the check\'s own adapter: no second request');
+  // An older browser without `info` gives empty strings, never a throw.
+  const bare = createWebGpuDeviceService(() => ({ requestAdapter: async () => ({ requestDevice: async () => fakeDevice().device }) as GPUAdapter }));
+  await bare.check();
+  assert.deepEqual(bare.adapterFacts(), { vendor: '', architecture: '', device: '', description: '', isFallbackAdapter: false });
+});
+
 test('the startup check fails the same way for an absent API, a null adapter and a refused device', async () => {
   await assert.rejects(createWebGpuDeviceService(() => undefined).check(), { code: 'WEBGPU_REQUIRED' });
   await assert.rejects(createWebGpuDeviceService(() => ({ requestAdapter: async () => null })).check(), { code: 'WEBGPU_UNAVAILABLE' });

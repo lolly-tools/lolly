@@ -34,7 +34,9 @@ Most utilities run in the headless DOM. `redact` also repaints an image on a can
 
 A redacted page is a picture of the original, so one gap matters. Text, vector shapes and embedded images all come through, but shadings, tiling patterns and soft masks do not, because their decoders live in the web shell; a gradient paints as its flat fallback colour. Text and shapes, which are what a redaction covers, are complete.
 
-If that canvas is not installed, or a tool needs something only a browser can do, the CLI runs the same export in the headless Chromium ([the paint tier](/info/cli-rendering.html#what-the-cli-can-render)) and says so on stderr. If the browser or the built web shell is missing, it stops and says what to install. It never writes a file that was not actually redacted.
+A PDF can also be redacted with `--keepText=true`, which removes only what sits under the bars and keeps the rest of each page as text. The CLI checks the result before it writes the file. See [Lolly Utilities](/info/utilities.html#strip-hidden-data-and-redact).
+
+If that canvas is not installed, or a tool needs something only a browser can do, the CLI runs the same export in the headless Chromium ([the paint tier](/info/cli-rendering.html#what-the-cli-can-render)) and prints a note on stderr. If the browser or the built web shell is missing, it stops and says what to install. It never writes a file that was not actually redacted.
 
 ### Prepare and convert without a tool
 
@@ -45,7 +47,7 @@ lolly prepare report.docx --strip-hidden-data --output=report-clean.docx
 lolly files convert photo.png --to=webp --output=photo.webp
 ```
 
-`lolly prepare` inspects files for private values and hidden data, then writes cleaned copies; with no change flag it prints a report that leaves the private values themselves out. `lolly files inspect`, `files convert` and `files schema` read, convert and describe images, fonts, spreadsheets and PDFs. Neither ever overwrites an existing file. [Utilities](/info/utilities.html#prepare-for-sharing) explains both, with the same choices the app's **Prepare for sharing** and **Convert** views offer.
+`lolly prepare` inspects files for private values and hidden data, then writes cleaned copies; with no change flag it prints a report that leaves the private values themselves out. `lolly files inspect`, `files convert` and `files schema` read, convert and describe images, fonts, spreadsheets and PDFs. Neither ever overwrites an existing file. [Lolly Utilities](/info/utilities.html#prepare-for-sharing) explains both, with the same choices the app's **Prepare for sharing** and **Convert** views offer.
 
 ## Redact many copies with one link
 
@@ -118,7 +120,7 @@ A missing model is refused with the model's name and exit `3`; nothing downloads
 
 ::: details Flags for each command
 - **`lolly upscale <image> [--scale=2|4] [--model=<id>] [--max-edge=N] [--out=<file.png>] [--models]`.** Per-tile progress on stderr. The models are natively x4, and `--scale=2` trims the result. `--models` prints the roster with sizes and licences: `realesr-general-x4v3` (fast), `realesrgan-x4plus` (quality), `realesrgan-x4plus-anime` (illustration) and `gfpgan-v1.4` (face restore, flagged "can invent face details"). An image the model cannot run over is refused with the reason (exit `4`), not attempted and cut short.
-- **`lolly matte <image> [--model=u2netp|modnet] [--max-edge=N] [--edges=refined|as-drawn] [--edge-radius=12] [--edge-shift=0] [--edge-contrast=1] [--out=<file.png>] [--models]`.** With `u2netp` the edges follow the photo's own edges by default, which gives a solid subject and brings back hair the coarse model cuts through; `modnet`'s soft matte is kept as drawn unless you pass `--edges=refined`. `--edges=as-drawn` keeps the model's mask, `--edge-shift` moves the edge out or in and `--edge-contrast` hardens the edge. Every RGB pixel out is identical to the input's, and only the alpha is computed, which is why the app discloses a matte as an edit and an upscale not.
+- **`lolly matte <image> [--model=u2netp|modnet] [--max-edge=N] [--edges=refined|as-drawn] [--edge-radius=12] [--edge-shift=0] [--edge-contrast=1] [--clean-edge-colour] [--out=<file.png>] [--models]`.** With `u2netp` the edges follow the photo's own edges by default, which gives a solid subject and brings back hair the coarse model cuts through; `modnet`'s soft matte is kept as drawn unless you pass `--edges=refined`. `--edges=as-drawn` keeps the model's mask, `--edge-shift` moves the edge out or in and `--edge-contrast` hardens the edge. `--clean-edge-colour` swaps the old background's colour in the soft edge for the subject's own, which removes a green or white halo. Without it every RGB pixel out is identical to the input's, and only the alpha is computed, which is why the app discloses a matte as an edit and an upscale not.
 - **`lolly ocr <image> [--json] [--single-line] [--min-confidence=<n>] [--models]`.** `lolly ocr shot.png > shot.txt` works; `--json` adds per-line confidence and a box in source pixels.
 - **`lolly detect-ai "<text>" [--json] [--in=<file.txt>]`** (a pipe works too). Prints the estimate with its operating point and the model that made the estimate. The detector is trained on English and over-scores prose by people writing English as a second language, so short or non-Latin text is not checked, and an absent check is not an answer.
 - **`lolly reword "<sentence>" [--style=plain] [--samples=N] [--json] [--in=<file.txt>]`.** Only `--style=plain` is accepted; anything else is a usage error that says why, because the prompt asks for exactly one thing and a silently ignored style would be a quiet failure. A candidate that is longer, off-topic or changes a fact fails the gate.
@@ -163,5 +165,5 @@ voices/bf_lily.bin, tokenizer.json, and 2 more under …/models/kokoro. It is a 
 - `--yes` answers the question in advance. On a runner with no terminal and no `--yes`, the fetch downloads nothing, says how to proceed and exits `0`.
 - Every file is checked against a pinned SHA-256 **before** it is written. A mismatch writes nothing and exits `4`.
 - Each file is written as `.part` and renamed on success, so an interrupted fetch cannot leave a half-file that looks whole.
-- A model command's own refusal gives the size of the one model it needs. `lolly upscale`, for example, asks for the 4.0 MB fast model, while `lolly models fetch upscale` stages the whole 410.7 MB family and says so first.
+- A model command's own refusal gives the size of the one model it needs. `lolly upscale`, for example, asks for the 4.0 MB fast model, while `lolly models fetch upscale` stages the whole 410.7 MB family and reports that size first.
 :::

@@ -120,6 +120,35 @@ export function createLoudnessMeter(rate: number = LOUDNESS_RATE): LoudnessMeter
   };
 }
 
+/**
+ * A full EBU R128 reading (Tech 3341 and 3342): the numbers a broadcaster checks
+ * a programme against. Loudness values are LUFS, the range is LU, peaks are dB.
+ * A field is null when the programme has nothing to measure there (silence has
+ * no loudness; a clip shorter than 400 ms has no momentary reading).
+ *
+ * The engine does not compute this. A shell measures it with its audio module,
+ * so the engine stays free of WebAssembly; the type lives here so every shell and
+ * tool reads the same shape.
+ */
+export interface R128Report {
+  /** Gated programme loudness, LUFS. */
+  integrated: number | null;
+  /** Loudness of the last 400 ms, LUFS. */
+  momentary: number | null;
+  /** Loudness of the last 3 s, LUFS. */
+  shortTerm: number | null;
+  /** Loudest 400 ms window, LUFS. */
+  maxMomentary: number | null;
+  /** Loudest 3 s window, LUFS. */
+  maxShortTerm: number | null;
+  /** Loudness range, LU. */
+  loudnessRange: number | null;
+  /** Highest sample, dBFS. */
+  samplePeakDb: number | null;
+  /** Highest reconstructed peak (4x oversampled), dBTP. */
+  truePeakDb: number | null;
+}
+
 /** Whole-buffer convenience over the streaming meter. */
 export function integratedLoudness(channels: readonly Float32Array[], rate: number = LOUDNESS_RATE): number | null {
   const m = createLoudnessMeter(rate);

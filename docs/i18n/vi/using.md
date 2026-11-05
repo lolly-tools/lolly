@@ -12,7 +12,7 @@ Màn hình chính: bốn thẻ dọc phía trên và thanh ở chân. Khi một 
 
 Bốn thẻ chạy dọc phía trên màn hình chính: **Tools**, **Utilities**, **Assets** và **Projects**. Tools là thứ bạn dùng để tạo, Utilities là bàn làm việc cho các việc như chuyển đổi, kiểm tra hay dọn một tệp, Assets là thư viện của bạn và Projects giữ những gì bạn đã lưu.
 
-Thanh ở chân có **Open**, **Settings**, một ô tìm kiếm, **Verify** và **What?**. Nó hiện trên Tools, Utilities, Assets, Projects, Settings và các hướng dẫn bạn đọc trong ứng dụng, và nhường chỗ khi một công cụ được mở. [Search](/info/search.html) tới được công cụ, công việc đã lưu, tài nguyên và cài đặt của bạn từ ô đó. [Ask Lolly](/info/ask.html) trả lời một câu hỏi gõ vào bằng phần khớp trong các hướng dẫn này.
+Thanh ở chân có **Open**, **Settings**, một ô tìm kiếm, **Verify** và **What?**. Nó hiện trên Tools, Utilities, Assets, Projects, Settings và các hướng dẫn bạn đọc trong ứng dụng, và nhường chỗ khi một công cụ được mở. [Lolly Search](/info/search.html) tới được công cụ, công việc đã lưu, tài nguyên và cài đặt của bạn từ ô đó. [Ask Lolly](/info/ask.html) trả lời một câu hỏi gõ vào bằng phần khớp trong các hướng dẫn này.
 
 Nhấp một thẻ để bắt đầu việc mới trong công cụ đó. Công việc đã lưu mở lại từ **Projects**.
 
@@ -269,7 +269,7 @@ Trên màn hình hẹp, bố cục thành một cột:
 
 ## Cài đặt, âm thanh và sự thoải mái
 
-**Settings**, ở chân màn hình chính, chứa thông tin của bạn, các hệ thống thiết kế, trợ năng, lưu trữ và tải xuống ngoại tuyến. [Settings](/info/dashboard.html) vẽ ra từng thẻ.
+**Settings**, ở chân màn hình chính, chứa thông tin của bạn, các hệ thống thiết kế, trợ năng, lưu trữ và tải xuống ngoại tuyến. [Lolly Settings](/info/dashboard.html) vẽ ra từng thẻ.
 
 - **Thông tin và ảnh chân dung của bạn** điền vào mọi công cụ được xây để dùng chúng, như chữ ký email hoặc thẻ tên. [Profiles](/info/profile.html) đề cập chúng.
 - **Accessibility** có bốn công tắc thoải mái: **Reduce motion**, **Hide colourful previews**, **High contrast** và **Large text**. Chúng đổi ứng dụng xung quanh công việc của bạn, không bao giờ đổi canvas công cụ hay bản xuất.

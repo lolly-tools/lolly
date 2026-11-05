@@ -35,7 +35,7 @@ Lollyのツールには、ある種類のファイルのルールが収められ
 ![URLパラメーターとコマンドライン引数は同じ入力モデルになり、共通のランタイムと書き出しブリッジを通って実行される](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **アプリで1つずつ。** ツールを開き、フィールドを入力して**Export**を押します。[最初のファイルを作る](/info/make-something.html)で1つ作ってみましょう。
-- <!--i:layers--> **アプリでまとめて。** [Batch](/info/batch.html#make-many-versions-of-one-design)(`#/batch`)は、貼り付けまたはインポートした表を受け取り、1行につき完成ファイルを1つレンダリングします。
+- <!--i:layers--> **アプリでまとめて。** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)(`#/batch`)は、貼り付けまたはインポートした表を受け取り、1行につき完成ファイルを1つレンダリングします。
 - <!--i:cpu--> **スクリプトまたはAIエージェントから。** [CLI](/info/cli.html)はツールをヘッドレスで実行し、[MCPサーバー](/info/mcp.html)ではエージェントがツールを見つけて実行できます。ツールへのリンクにも入力値が含まれるため、リンクは完全なリクエストです。
 - <!--i:server--> **組織のサーバー経由で。** [Lolly Work](/info/organisation.html)は、組織のサインインとツールのポリシーのもとでサーバー上でレンダリングし、再開可能なジョブを保持し、出力をダウンロードまたは承認済みの配信のために保管します。
 

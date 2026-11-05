@@ -9,7 +9,7 @@ Lolly 在每个人的设备上运行。当团队需要登录、共享项目、�
 - [采用与治理](/info/adoption-governance.html)介绍了推广和品牌规则的作用。
 - [身份与会话](/info/work-identity.html)介绍了登录和组映射。[角色与授权](/info/work-permissions.html)解释了角色、授权和所有者保护。
 - [政策与治理](/info/work-governance.html)介绍了工具覆盖层、锁定的输入项和政策。[管理组织 AI 政策](/info/work-ai-policy.html)介绍了审批和执行限制。
-- [账号数据控制](/info/work-account-lifecycle.html)和 [Work 存储与数据生命周期](/info/work-data-lifecycle.html)介绍了导出、离职、保留及其限制。
+- [账号数据控制](/info/work-account-lifecycle.html)和 [Lolly Work 存储与数据生命周期](/info/work-data-lifecycle.html)介绍了导出、离职、保留及其限制。
 - [配置文件、品牌与工具配置](/info/configuration.html)介绍了某个 Lolly 构建版本携带哪些工具和设计系统。
 
 ## 连接素材并审阅作品

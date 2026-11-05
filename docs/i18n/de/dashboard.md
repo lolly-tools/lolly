@@ -18,7 +18,7 @@ Preferences ist eine lange Seite mit einer **Einstellungsleiste** an der Seite u
 
 - <!--i:usercheck--> **Your details** - Ihr Name, Ihre Kontaktdaten und Ihr Porträtfoto sowie der Schalter **Use my details to create**. [Profile](/info/profile.html) erklärt, wie Tools sie nutzen.
 - <!--i:seal--> **Content Credentials** - die optionale verifizierte Identität, die Ihre Exporte signiert. Siehe [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - Designsysteme wechseln, hinzufügen, ausblenden oder entfernen. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) behandelt jede Aktion.
+- <!--i:palette--> **Design systems** - Designsysteme wechseln, hinzufügen, ausblenden oder entfernen. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) behandelt jede Aktion.
 - <!--i:moon--> **Appearance** - das Design (Light, Dark oder Brand, das die App in Ihrer Palette malt), **Ihre Farbvariante**, wenn das Designsystem mehr als eine anbietet ([Eine Farbvariante zu Ihrer machen](/info/colourways.html#make-a-colourway-your-own)), und **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - das Set, aus dem Ihre Emoji gezeichnet werden, wenn Sie etwas Neues beginnen, mit seiner Lizenz für die Grafik, und wie stark Ihre Palette sie umfärbt (**Off**, **Subtle**, **Strong**, **Full**, **Mono** oder **Duotone**). **Keep skin tones and flags** lässt diese in ihren eigenen Farben. Bereits erstellte Arbeit behält das Set, mit dem sie erstellt wurde.
 - <!--i:eyeoff--> **Accessibility** - vier Komfortschalter, dazu Sound und Neurospicy Mode. Siehe [Barrierefreiheit](#accessibility).
@@ -107,7 +107,7 @@ Der Tab öffnet sich auf einer Titelseite in den eigenen Farben des Systems, mit
 - <!--i:sliders--> **Tokens** - Radius, Abstände, Effekte und Verläufe.
 - <!--i:document--> **Print & CMYK** - die an eine genaue Druckfarbe gebundenen Farben und die Druckbedingungen, die ein CMYK-PDF deklarieren kann.
 
-Das Wechseln ist die einzige Änderung, die dieser Tab vornimmt. Ein Designsystem bearbeiten Sie in [Design System Setup](/info/brand-studio.html) unter `#/start`, wohin die Titelseite verlinkt. Ein schreibgeschütztes System sagt das auf seiner Titelseite; lokale Systeme, die Sie erstellen, bleiben bearbeitbar. `/b` und `/brand` sind Kurzlinks direkt zu diesem Tab.
+Das Wechseln ist die einzige Änderung, die dieser Tab vornimmt. Ein Designsystem bearbeiten Sie in [Lolly Design System Setup](/info/brand-studio.html) unter `#/start`, wohin die Titelseite verlinkt. Ein schreibgeschütztes System sagt das auf seiner Titelseite; lokale Systeme, die Sie erstellen, bleiben bearbeitbar. `/b` und `/brand` sind Kurzlinks direkt zu diesem Tab.
 
 ## Capabilities
 
@@ -121,7 +121,7 @@ Dieser Tab ist geschriebene Dokumentation dessen, was Lolly kann, im Einklang mi
 
 Zuerst der Build: wie viele Tools geladen sind, wie viele Exportformate es gibt, auf wie vielen Oberflächen die Plattform läuft und wie viele Marken-Assets der Katalog trägt, mit einem Panel **Catalogue**, das aufschlüsselt, was dieser Build ausliefert.
 
-Dann Ihre eigene Seite: **Your activity** zählt, was Sie auf diesem Gerät erstellt haben, und **Recent creations** und **Latest exports** sind Stapel, durch die Sie wischen können und die jeweils erscheinen, sobald es etwas zu zeigen gibt. Beide öffnen ein Element, wie es war. Diese Zähler bleiben auf dem Gerät; eine optionale Lolly-Work-Instanz führt ihre eigenen [Organisations-Telemetrie- und Audit-Aufzeichnungen](/info/privacy.html#organisation-services-with-lolly-work).
+Dann Ihre eigene Seite: **Your activity** zählt, was Sie auf diesem Gerät erstellt haben, und **Recent creations** und **Latest exports** sind Stapel, durch die Sie wischen können und die jeweils erscheinen, sobald es etwas zu zeigen gibt. Beide öffnen ein Element, wie es war. Diese Zähler bleiben auf dem Gerät; eine optionale Lolly-Lolly Work-Instanz führt ihre eigenen [Organisations-Telemetrie- und Audit-Aufzeichnungen](/info/privacy.html#organisation-services-with-lolly-work).
 
 ## Deep Links
 
@@ -139,4 +139,4 @@ Ein Deep Link wechselt zu dem Tab, dem das Ziel gehört, öffnet jede Gruppe, in
 
 ---
 
-**Siehe auch:** [Profile](/info/profile.html) für Ihre Angaben und die Kontexte, in denen Sie erstellen. [Design System Setup](/info/brand-studio.html) zum Bearbeiten dessen, was der Tab Design system zeigt. [Ihre Arbeit finden und wiederherstellen](/info/find-your-work.html) für Speicher, Backups und den Gerätewechsel.
+**Siehe auch:** [Profile](/info/profile.html) für Ihre Angaben und die Kontexte, in denen Sie erstellen. [Lolly Design System Setup](/info/brand-studio.html) zum Bearbeiten dessen, was der Tab Design system zeigt. [Ihre Arbeit finden und wiederherstellen](/info/find-your-work.html) für Speicher, Backups und den Gerätewechsel.

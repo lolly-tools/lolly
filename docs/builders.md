@@ -9,7 +9,7 @@ New here? **[Start](/info/quickstart.html)** puts a design system and your first
 Set the rules once and keep the tools you already use. What you decide here is what every tool obeys, so a colour or a typeface is fixed in one place rather than argued about per file.
 
 - **[Import a design](/info/design-import.html)** - a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file in as an editable layout rather than a flat picture.
-- **[Design System Setup](/info/brand-studio.html)** - the on-device editor for logos, colours, type and the rest of the design system (`#/start`).
+- **[Lolly Design System Setup](/info/brand-studio.html)** - the on-device editor for logos, colours, type and the rest of the design system (`#/start`).
 - **[Design Tokens](/info/design-tokens.html)** and **[Token workflows](/info/token-workflows.html)** - the DTCG token model a design system is made of, and how it moves between tools.
 - **[Authoring Assets](/info/authoring-assets.html)** - catalog assets, tiers, locales, palettes, themable icons and fonts.
 

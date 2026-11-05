@@ -234,3 +234,78 @@ export function refineMatte(alpha: ArrayLike<number>, rgba: ArrayLike<number>, w
   }
   return out;
 }
+
+export interface DecontaminateOptions {
+  /** Reach of the finest colour estimate in pixels (default 3, 1 to 16). Two coarser scales, 4x and 16x, back it up. */
+  radius?: number;
+  /** How far a fringe pixel moves toward the estimated colour, 0 to 1 (default 1). */
+  amount?: number;
+}
+
+/** Alpha from this up is solid subject. Between SOFT_FLOOR and this is the soft edge. */
+const SOLID_ALPHA = 0.98;
+const SOFT_FLOOR = 0.02;
+/** Least weighted coverage a scale needs before its colour estimate is trusted. */
+const MIN_SUPPORT = 1e-4;
+
+/**
+ * Clean the colour of a cut-out's soft edge. A fringe pixel's colour is part
+ * subject and part old background (a green screen's green, a white studio sweep).
+ * Each one is moved toward the colour of the solid subject pixels around it,
+ * found by normalised convolution: blur the colour weighted by how solid each
+ * pixel is, divide by the blurred weight, so only subject pixels vote. Three
+ * box scales are tried fine to coarse and the finest with enough support wins,
+ * so thin fringes take a near colour and wide ones still find one.
+ *
+ * Opt-in: nothing calls this unless the caller turns it on. Alpha is never
+ * changed; RGB changes only where alpha is between SOFT_FLOOR and SOLID_ALPHA.
+ * A fringe with no solid pixel within the coarsest scale keeps its colour.
+ * Parameters (a box of radius max(r, 3), a 4x widening, strength scaled by
+ * transparency) follow the public description of photocraft's matting step
+ * (MIT OR Apache-2.0, pin 97a83f0); the code is new.
+ *
+ * `rgba` is straight RGBA, `alpha` one byte per pixel of the same size (the
+ * refined matte). Returns a new RGBA array carrying `alpha` as its alpha channel.
+ * Pure and deterministic: box means and one division per channel, no pow/exp/log.
+ */
+export function decontaminateEdgeColour(rgba: ArrayLike<number>, alpha: ArrayLike<number>, width: number, height: number, opts: DecontaminateOptions = {}): Uint8ClampedArray {
+  const n = width * height;
+  const out = new Uint8ClampedArray(n * 4);
+  let soft = false;
+  for (let i = 0; i < n; i++) {
+    out[i * 4] = rgba[i * 4]!; out[i * 4 + 1] = rgba[i * 4 + 1]!; out[i * 4 + 2] = rgba[i * 4 + 2]!; out[i * 4 + 3] = alpha[i]!;
+    const a = alpha[i]! / 255;
+    if (a > SOFT_FLOOR && a < SOLID_ALPHA) soft = true;
+  }
+  const amount = clamp01(opts.amount ?? 1);
+  if (!soft || amount === 0) return out;
+
+  const r0 = Math.max(1, Math.min(16, Math.round(opts.radius ?? 3)));
+  const radii = [r0, r0 * 4, r0 * 16];
+  const weight = new Float32Array(n);
+  for (let i = 0; i < n; i++) weight[i] = alpha[i]! / 255 >= SOLID_ALPHA ? 1 : 0;
+  const dens = radii.map((r) => boxMean(weight, width, height, r));
+  const nums: Float32Array[][] = [[], [], []];
+  const scratch = new Float32Array(n);
+  for (let c = 0; c < 3; c++) {
+    for (let i = 0; i < n; i++) scratch[i] = weight[i]! * (rgba[i * 4 + c]! / 255);
+    for (let s = 0; s < radii.length; s++) nums[s]![c] = boxMean(scratch, width, height, radii[s]!);
+  }
+  for (let i = 0; i < n; i++) {
+    const a = alpha[i]! / 255;
+    if (!(a > SOFT_FLOOR && a < SOLID_ALPHA)) continue;
+    // The more see-through the pixel, the more of its colour is the old background.
+    const k = amount * clamp01((1 - a) * 4);
+    for (let s = 0; s < radii.length; s++) {
+      const d = dens[s]![i]!;
+      if (d <= MIN_SUPPORT) continue;
+      for (let c = 0; c < 3; c++) {
+        const v = rgba[i * 4 + c]! / 255;
+        const f = nums[s]![c]![i]! / d;
+        out[i * 4 + c] = Math.round(clamp01(v + (f - v) * k) * 255);
+      }
+      break;
+    }
+  }
+  return out;
+}

@@ -193,7 +193,7 @@ test('a layered Tokens-Studio document is read and written in its own set', () =
   assert.equal(roles.surface.ref, null, 'an unfilled slot is still unset');
 
   // Write: goes into the role set (last in tokenSetOrder, so it wins), never at
-  // the document root, and says so honestly.
+  // the document root, and reports that honestly.
   assert.equal(assignRole(doc, 'surface', 'color.brand.paper'), true);
   const roleSet = (doc['Lolly roles'] as Rec).color as Rec;
   assert.equal(((roleSet.semantic as Rec).surface as Rec).$value, '{color.brand.paper}');
@@ -303,7 +303,7 @@ test('assignRole: a braced key is accepted and stored once-braced', () => {
   assert.equal((semanticAt(doc, 'light').secondary as Rec).$value, '{color.ramp.secondary.2}');
 });
 
-test('clearRole: removes the slot from every set, and says so honestly', () => {
+test('clearRole: removes the slot from every set, and reports that honestly', () => {
   const doc = derived();
   assert.equal(clearRole(doc, 'secondary'), true);
   assert.equal('secondary' in semanticAt(doc, 'light'), false);

@@ -1,5 +1,31 @@
 {
   "Speakers": "بولنے والے",
+  "Closest to the current palette": "موجودہ پیلیٹ کے سب سے قریب",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "محفوظ ڈیزائن سسٹمز اور چند ابتدائی نقاط کا پیش نظارہ دیکھیں۔ آپ کے استعمال کریں چننے تک کچھ نہیں بدلتا۔",
+  "Use this look": "یہ لُک استعمال کریں",
+  "Previewing {name}": "{name} کا پیش نظارہ جاری ہے",
+  "Choose up to two looks to compare.": "موازنے کے لیے زیادہ سے زیادہ دو لُک چنیں۔",
+  "Drop a horizontal logo": "یہاں ایک افقی لوگو ڈراپ کریں",
+  "Drop a vertical logo": "یہاں ایک عمودی لوگو ڈراپ کریں",
+  "calm": "پُرسکون",
+  "nature": "فطرت",
+  "playful": "شوخ",
+  "creative": "تخلیقی",
+  "warm": "گرم",
+  "editorial": "ادارتی",
+  "neutral": "نیوٹرل",
+  "red": "سرخ",
+  "orange": "نارنجی",
+  "yellow": "پیلا",
+  "green": "سبز",
+  "teal": "نیلگوں سبز",
+  "blue": "نیلا",
+  "purple": "جامنی",
+  "pink": "گلابی",
+  "deep": "گہرا",
+  "pale": "ہلکا",
+  "vivid": "چمکدار",
+  "muted": "مدھم",
   "Sort languages": "زبانیں ترتیب دیں",
   "Lolly Imprint": "Lolly Imprint",
   "Hides the Lolly Imprint - a durable, invisible watermark - in the image pixels. It survives re-encoding and screenshots, so any copy of the file can be recognised later.": "تصویر کے پکسلز میں Lolly Imprint چھپاتا ہے، جو ایک پائیدار، نظر نہ آنے والا واٹرمارک ہے۔ یہ ری انکوڈنگ اور اسکرین شاٹس کے بعد بھی باقی رہتا ہے، اس لیے فائل کی کوئی بھی کاپی بعد میں پہچانی جا سکتی ہے۔",
@@ -585,7 +611,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "ویریفائی اور اثاثوں میں گہری AI-ٹیکسٹ جانچ چلاتا ہے۔",
   "Card size": "کارڈ کا سائز",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "اس ڈیوائس پر 1 تصویر یا فائل شامل کی گئی تھی۔ وہ اسی ڈیوائس پر رہتی ہے، اور دوسرے اس فائل کو نہیں دیکھ سکیں گے۔",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "اس ڈیوائس پر {n} تصاویر یا فائلیں شامل کی گئی تھیں۔ وہ اسی ڈیوائس پر رہتی ہیں، اور دوسرے ان فائلوں کو نہیں دیکھ سکیں گے۔",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "اس ڈیوائس پر 1 تصویر یا فائل شامل کی گئی تھی۔ وہ اسی ڈیوائس پر رہتی ہے، اور دوسرے اس فائل کو نہیں دیکھ سکیں گے۔",
+    "other": "اس ڈیوائس پر {n} تصاویر یا فائلیں شامل کی گئی تھیں۔ وہ اسی ڈیوائس پر رہتی ہیں، اور دوسرے ان فائلوں کو نہیں دیکھ سکیں گے۔"
+  },
   "Check the version first": "پہلے ورژن چیک کریں",
   "Copy team link": "ٹیم لنک کاپی کریں",
   "Could not create the project. Try again.": "پراجیکٹ نہیں بنایا جا سکا۔ دوبارہ کوشش کریں۔",
@@ -1176,7 +1205,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "تمام آئٹمز مشترکہ پراجیکٹ میں محفوظ ہو گئے ہیں۔ مقامی اصل آئٹمز ٹریش میں ہیں یا اپنی جگہ پر ہی ہیں۔",
   "Your local items have not changed.": "آپ کے مقامی آئٹمز میں کوئی تبدیلی نہیں ہوئی۔",
   "1 item was saved to the shared project.": "1 آئٹم مشترکہ پراجیکٹ میں محفوظ ہوا۔",
-  "{n} items were saved to the shared project.": "{n} آئٹمز مشترکہ پراجیکٹ میں محفوظ ہوئے۔",
+  "{n} items were saved to the shared project.": {
+    "one": "1 آئٹم مشترکہ پراجیکٹ میں محفوظ ہوا۔",
+    "other": "{n} آئٹمز مشترکہ پراجیکٹ میں محفوظ ہوئے۔"
+  },
   "Wait for the current move to finish.": "موجودہ منتقلی مکمل ہونے کا انتظار کریں۔",
   "You cannot save to that shared project.": "آپ اس مشترکہ پراجیکٹ میں محفوظ نہیں کر سکتے۔",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "جو بھی {project} کھول سکتا ہے وہ ان آئٹمز کو دیکھے گا۔ ہر آئٹم وہاں محفوظ ہونے کے بعد مقامی اصل آئٹمز ٹریش میں چلے جاتے ہیں، جہاں سے آپ انہیں بحال کر سکتے ہیں۔",
@@ -1487,8 +1519,14 @@
   "file": "فائل",
   "samples": "نمونے",
   "text": "متن",
-  "{n} changes found": "{n} تبدیلیاں ملیں",
-  "{n} pages differ": "{n} صفحات مختلف ہیں",
+  "{n} changes found": {
+    "one": "1 تبدیلی ملی",
+    "other": "{n} تبدیلیاں ملیں"
+  },
+  "{n} pages differ": {
+    "one": "1 صفحہ مختلف ہے",
+    "other": "{n} صفحات مختلف ہیں"
+  },
   "Draft": "مسودہ",
   "Draft quality": "مسودے کا معیار",
   "Draft rule": "مسودہ اصول",
@@ -1797,5 +1835,259 @@
   "Headlines - 36px, or 24px bold": "سرخیاں - 36px، یا 24px بولڈ",
   "Icons and borders only": "صرف آئیکنز اور بارڈرز",
   "Not usable": "قابل استعمال نہیں",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA کو sRGB کے لیے بیان کیا گیا ہے، اس لیے وسیع گیمٹ والے رنگ کو اس کی sRGB رینڈرنگ پر اسکور کیا جاتا ہے۔"
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA کو sRGB کے لیے بیان کیا گیا ہے، اس لیے وسیع گیمٹ والے رنگ کو اس کی sRGB رینڈرنگ پر اسکور کیا جاتا ہے۔",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly آسان اور تیز تر Look پر آ گیا ہے، کیونکہ یہ ڈیوائس گرافکس ایکسلریشن کے بغیر ڈرا کرتی ہے۔",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly آسان اور تیز تر Look پر آ گیا ہے، کیونکہ یہ ڈیوائس سست چل رہی تھی۔",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "{date} کو خودکار طور پر آن ہوا، کیونکہ یہ ڈیوائس گرافکس ایکسلریشن کے بغیر ڈرا کرتی ہے۔",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} کو خودکار طور پر آن ہوا، کیونکہ اس ڈیوائس کو انٹرفیس ڈرا کرنے میں دشواری ہو رہی تھی۔",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "اس ڈیوائس پر خودکار تبدیلی بند ہے، کیونکہ آپ نے {date} کو کالعدم کریں منتخب کیا تھا۔",
+  "Allow again": "دوبارہ اجازت دیں",
+  "Automatic switching is allowed again from the next time you open Lolly.": "اگلی بار Lolly کھولنے سے خودکار تبدیلی کی دوبارہ اجازت ہو جائے گی۔",
+  "Board": "بورڈ",
+  "Choose for {role}": "{role} کے لیے منتخب کریں",
+  "Change {role}": "{role} تبدیل کریں",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "آپ کے برانڈ کی رہنمائی، لوگوں اور ایجنٹس کے لیے لکھی ہوئی۔ ایجنٹس پہلے برانڈ اسکل پڑھتے ہیں، پھر کام کے لیے متعلقہ اسکل۔ اسکلز کام کی رہنمائی کرتی ہیں؛ قواعد کے ہاؤس رولز وہ ہیں جو Lolly جانچتا ہے۔",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "جب تک یہ ڈیوائس مصروف ہے، Lolly آسان اور تیز تر Look پر آ گیا ہے۔ حالات پرسکون ہوتے ہی یہ واپس بدل جائے گا۔",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "جب تک بیٹری کم ہے، Lolly آسان اور تیز تر Look پر آ گیا ہے۔ یہ ڈیوائس چارج ہونے لگے تو یہ واپس بدل جائے گا۔",
+  "On for now because this device is busy. It switches back when things calm down.": "فی الحال آن ہے، کیونکہ یہ ڈیوائس مصروف ہے۔ حالات پرسکون ہوتے ہی یہ واپس بدل جائے گا۔",
+  "On for now because the battery is low. It switches back when this device is charging.": "فی الحال آن ہے، کیونکہ بیٹری کم ہے۔ یہ ڈیوائس چارج ہونے لگے تو یہ واپس بدل جائے گا۔",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "{date} کو خودکار طور پر آن ہوا، جب یہ ڈیوائس مصروف تھی۔ آپ نے رکھیں منتخب کیا۔",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "{date} کو خودکار طور پر آن ہوا، جب بیٹری کم تھی۔ آپ نے رکھیں منتخب کیا۔",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly یہاں سست ڈیوائس کی وجہ سے خودکار طور پر نہیں بدلے گا، کیونکہ آپ نے {date} کو کالعدم کریں منتخب کیا تھا۔",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "جب تک یہ ڈیوائس مصروف ہے یا بیٹری کم ہے، Lolly خودکار طور پر نہیں بدلے گا، کیونکہ آپ نے {date} کو کالعدم کریں منتخب کیا تھا۔",
+  "Use the automatic colour": "خودکار رنگ استعمال کریں",
+  "follows the design system ({colour})": "ڈیزائن سسٹم کی پیروی کرتا ہے ({colour})",
+  "follows the design system": "ڈیزائن سسٹم کی پیروی کرتا ہے",
+  "automatic ({colour})": "خودکار ({colour})",
+  "automatic": "خودکار",
+  "{name} spring": "{name} اسپرنگ",
+  "{name} (not in this design system)": "{name} (اس ڈیزائن سسٹم میں نہیں)",
+  "Curves": "وکر",
+  "Springs": "اسپرنگ",
+  "Gentle": "نرم",
+  "Quick": "تیز",
+  "Bouncy": "اچھلتا",
+  "Custom spring": "حسبِ ضرورت اسپرنگ",
+  "Stiffness": "سختی",
+  "Damping": "ڈیمپنگ",
+  "Mass": "کمیت",
+  "Settles in {t} s": "{t} سیکنڈ میں ٹھہر جاتا ہے",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "اسپرنگ کے ٹھہرنے سے پہلے اگلا کی فریم آ جاتا ہے۔ باقی حرکت پورے حصے پر پھیلا دی جاتی ہے۔",
+  "From the design system: {name}": "ڈیزائن سسٹم سے: {name}",
+  "Editing the curve detaches it from the design system.": "وکر میں ترمیم کرنے سے یہ ڈیزائن سسٹم سے الگ ہو جاتا ہے۔",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt۔ پنسل (Shift C) اور اسپلائن کی قسم کے لیے دبائے رکھیں",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt",
+  "Recipients can change the inputs": "وصول کنندگان ان پٹس تبدیل کر سکتے ہیں",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "لنک رکھنے والا کوئی بھی شخص اس کے ان پٹس تبدیل کر کے نئی تصویر حاصل کر سکتا ہے۔ لاک شدہ ان پٹس جیسے سیٹ ہیں ویسے ہی رہتے ہیں۔",
+  "{count} entries": {
+    "one": "1 اندراج",
+    "other": "{count} اندراجات"
+  },
+  "{count} files in this folder": {
+    "one": "اس فولڈر میں 1 فائل",
+    "other": "اس فولڈر میں {count} فائلیں"
+  },
+  "{n} assets": {
+    "one": "1 اثاثہ",
+    "other": "{n} اثاثے"
+  },
+  "{n} assets found": {
+    "one": "1 اثاثہ ملا",
+    "other": "{n} اثاثے ملے"
+  },
+  "{n} capabilities match": {
+    "one": "1 صلاحیت مماثل ہے",
+    "other": "{n} صلاحیتیں مماثل ہیں"
+  },
+  "{n} copies made · selected": {
+    "one": "1 کاپی بنائی گئی · منتخب",
+    "other": "{n} کاپیاں بنائی گئیں · منتخب"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "یہاں پراجیکٹس سے ہٹائی گئی 1 تخلیق ہٹائی ہی رہی۔",
+    "other": "یہاں پراجیکٹس سے ہٹائی گئیں {n} تخلیقات ہٹائی ہی رہیں۔"
+  },
+  "{n} embedded files": {
+    "one": "1 سرایت شدہ فائل",
+    "other": "{n} سرایت شدہ فائلیں"
+  },
+  "{n} external references": {
+    "one": "1 بیرونی حوالہ",
+    "other": "{n} بیرونی حوالہ جات"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "1 فائل پیک نہیں ہو سکی اور چھوڑ دی گئی",
+    "other": "{n} فائلیں پیک نہیں ہو سکیں اور چھوڑ دی گئیں"
+  },
+  "{n} folders": {
+    "one": "1 فولڈر",
+    "other": "{n} فولڈرز"
+  },
+  "{n} font files": {
+    "one": "1 فونٹ فائل",
+    "other": "{n} فونٹ فائلیں"
+  },
+  "{n} images": {
+    "one": "1 تصویر",
+    "other": "{n} تصاویر"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "1 تصویر بحال نہیں ہو سکی (اسٹوریج بھرا ہوا ہے؟)",
+    "other": "{n} تصاویر بحال نہیں ہو سکیں (اسٹوریج بھرا ہوا ہے؟)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "1 تصویر اصل کے ساتھ ہی رہی - تصاویر کا ایک ہی گھر ہوتا ہے؛ اسے منتقل کرنے کے لیے کٹ استعمال کریں",
+    "other": "{n} تصاویر اصل کے ساتھ ہی رہیں - تصاویر کا ایک ہی گھر ہوتا ہے؛ انہیں منتقل کرنے کے لیے کٹ استعمال کریں"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "1 ان پٹ · ہر ڈیزائن پر لاگو ہوتا ہے",
+    "other": "{n} ان پٹس · ہر ڈیزائن پر لاگو ہوتے ہیں"
+  },
+  "{n} items": {
+    "one": "1 آئٹم",
+    "other": "{n} آئٹمز"
+  },
+  "{n} items copied": {
+    "one": "1 آئٹم کاپی ہو گیا",
+    "other": "{n} آئٹمز کاپی ہو گئے"
+  },
+  "{n} items cut": {
+    "one": "1 آئٹم کٹ ہو گیا",
+    "other": "{n} آئٹمز کٹ ہو گئے"
+  },
+  "{n} items moved": {
+    "one": "1 آئٹم منتقل ہو گیا",
+    "other": "{n} آئٹمز منتقل ہو گئے"
+  },
+  "{n} items pasted": {
+    "one": "1 آئٹم پیسٹ ہو گیا",
+    "other": "{n} آئٹمز پیسٹ ہو گئے"
+  },
+  "{n} keyframes": {
+    "one": "1 کی فریم",
+    "other": "{n} کی فریمز"
+  },
+  "{n} logos": {
+    "one": "1 لوگو",
+    "other": "{n} لوگو"
+  },
+  "{n} marks found": {
+    "one": "1 نشان ملا",
+    "other": "{n} نشانات ملے"
+  },
+  "{n} newer items skipped": {
+    "one": "1 نیا آئٹم نظرانداز کیا گیا",
+    "other": "{n} نئے آئٹمز نظرانداز کیے گئے"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "1 تخلیق ویڈیو یا اینیمیشن ہے",
+    "other": "آپ کی {n} تخلیقات ویڈیوز یا اینیمیشنز ہیں"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "1 پرانا خودکار چیک پوائنٹ چھوڑ دیا گیا",
+    "other": "{n} پرانے خودکار چیک پوائنٹس چھوڑ دیے گئے"
+  },
+  "{n} pages": {
+    "one": "1 صفحہ",
+    "other": "{n} صفحات"
+  },
+  "{n} places": {
+    "one": "1 جگہ",
+    "other": "{n} جگہیں"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "1 پوائنٹ - کونے کے لیے Alt دبائے رکھیں",
+    "other": "{n} پوائنٹس - کونے کے لیے Alt دبائے رکھیں"
+  },
+  "{n} published versions": {
+    "one": "1 شائع شدہ ورژن",
+    "other": "{n} شائع شدہ ورژنز"
+  },
+  "{n} results": {
+    "one": "1 نتیجہ",
+    "other": "{n} نتائج"
+  },
+  "{n} saved sessions": {
+    "one": "1 محفوظ شدہ سیشن",
+    "other": "{n} محفوظ شدہ سیشنز"
+  },
+  "{n} selected": {
+    "one": "1 منتخب",
+    "other": "{n} منتخب"
+  },
+  "{n} selected assets": {
+    "one": "1 منتخب اثاثہ",
+    "other": "{n} منتخب اثاثے"
+  },
+  "{n} sessions": {
+    "one": "1 سیشن",
+    "other": "{n} سیشنز"
+  },
+  "{n} shapes": {
+    "one": "1 شکل",
+    "other": "{n} شکلیں"
+  },
+  "{n} steps": {
+    "one": "1 مرحلہ",
+    "other": "{n} مراحل"
+  },
+  "{n} templates": {
+    "one": "1 ٹیمپلیٹ",
+    "other": "{n} ٹیمپلیٹس"
+  },
+  "{n} volume keys": {
+    "one": "1 والیوم کی فریم",
+    "other": "{n} والیوم کی فریمز"
+  },
+  "{n} words": {
+    "one": "1 لفظ",
+    "other": "{n} الفاظ"
+  },
+  "Dominant hand": "غالب ہاتھ",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "دو پینز میں، فولڈ ہونے والے آلے یا تقریباً مربع ٹیبلیٹ پر، کنٹرولز آپ کے ڈرائنگ والے ہاتھ سے دور والی طرف رہتے ہیں۔ پین کے ہیڈر میں اطراف بدلیں بھی اسے بدلتا ہے۔",
+  "Swap sides": "اطراف بدلیں",
+  "Resize panes": "پینز کا سائز بدلیں",
+  "Changes that didn't finish saving": "وہ تبدیلیاں جن کا محفوظ ہونا مکمل نہیں ہوا",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "آپ نے یہ تبدیلیاں {time} کو کی تھیں، اور محفوظ ہونے سے پہلے ہی صفحہ بند ہو گیا۔ اس کے بعد یہ ڈیزائن سسٹم دوبارہ محفوظ ہو چکا ہے، کسی دوسرے ٹیب میں یا سنک کے ذریعے۔",
+  "Restore your unsaved changes": "اپنی غیر محفوظ تبدیلیاں بحال کریں",
+  "Keep the saved version": "محفوظ ورژن رکھیں",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "بحال کرنے سے اس کے بعد محفوظ ہونے والا ورژن بدل جائے گا۔ محفوظ ورژن رکھنے سے غیر محفوظ تبدیلیاں اس ڈیوائس سے حذف ہو جائیں گی۔",
+  "Restored your unsaved changes.": "آپ کی غیر محفوظ تبدیلیاں بحال کر دی گئیں۔",
+  "Kept the saved version.": "محفوظ ورژن رکھا گیا۔",
+  "Restored the changes that hadn't finished saving.": "جن تبدیلیوں کا محفوظ ہونا مکمل نہیں ہوا تھا، وہ بحال کر دی گئیں۔",
+  "{n} file": "{n} فائل",
+  "It becomes the primary. Shades and roles can follow.": "یہ بنیادی رنگ بن جاتا ہے۔ شیڈز اور کردار اس کے بعد آ سکتے ہیں۔",
+  "Start here": "یہاں سے شروع کریں",
+  "Browse looks →": "لُکس دیکھیں →",
+  "Pick what you have →": "جو آپ کے پاس ہے منتخب کریں →",
+  "Open the picker →": "رنگ چننے والا کھولیں →",
+  "Starter greys until a colour is added.": "رنگ شامل ہونے تک اسٹارٹر گرے۔",
+  "Lolly can’t draw in this browser yet": "Lolly ابھی اس براؤزر میں نہیں بنا سکتا",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly WebGPU سے بناتا ہے، جو یہ براؤزر ابھی پیش نہیں کرتا۔",
+  "These work today:": "یہ آج کام کرتے ہیں:",
+  "Chrome or Edge, kept up to date": "Chrome یا Edge، تازہ ترین",
+  "Safari 26 or later": "Safari 26 یا اس سے نیا",
+  "Firefox, where WebGPU is turned on": "Firefox، جب WebGPU آن ہو",
+  "Get the desktop app": "ڈیسک ٹاپ ایپ حاصل کریں",
+  "Read why": "وجہ پڑھیں",
+  "Or drop an image or a list of colours here": "یا یہاں کوئی تصویر یا رنگوں کی فہرست چھوڑیں",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "یہ نیوٹرل رنگ ابتدائی سیٹ کے ساتھ آئے ہیں تاکہ اوپر رنگ شامل ہونے تک پیش نظاروں میں دکھانے کو کچھ ہو۔",
+  "{role}: {value}. Choose a colour": "{role}: {value}۔ رنگ چنیں",
+  "Add a colour to the palette first.": "پہلے پیلیٹ میں ایک رنگ شامل کریں۔",
+  "Notify": "اطلاع دیں",
+  "Update automatically": "خودکار طور پر اپ ڈیٹ کریں",
+  "App updates": "ایپ کی اپ ڈیٹس",
+  "Update notifications": "اپ ڈیٹ کی اطلاعات",
+  "Ready to install: {version}": "انسٹال کرنے کے لیے تیار: {version}",
+  "Restart now": "ابھی دوبارہ شروع کریں",
+  "Install when I quit": "بند کرتے وقت انسٹال کریں",
+  "Release notes": "ریلیز نوٹس",
+  "Manual download": "دستی ڈاؤن لوڈ",
+  "Update could not finish. Try again or download the app.": "اپ ڈیٹ مکمل نہیں ہو سکی۔ دوبارہ کوشش کریں یا ایپ ڈاؤن لوڈ کریں۔",
+  "Finish recording or exporting before updating.": "اپ ڈیٹ کرنے سے پہلے ریکارڈنگ یا ایکسپورٹ مکمل کریں۔",
+  "Save could not finish. Save a recovery copy before updating.": "محفوظ کرنا مکمل نہیں ہو سکا۔ اپ ڈیٹ کرنے سے پہلے بحالی کی کاپی محفوظ کریں۔",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "اس AppImage کو یہاں تبدیل نہیں کیا جا سکتا۔ ایپ کو ایسے فولڈر میں ڈاؤن لوڈ کریں جس میں لکھا جا سکے۔",
+  "This installation uses its package manager for updates.": "یہ انسٹالیشن اپ ڈیٹس کے لیے اپنا پیکیج مینیجر استعمال کرتی ہے۔",
+  "This desktop platform does not support in-app updates.": "یہ ڈیسک ٹاپ پلیٹ فارم ایپ کے اندر اپ ڈیٹس کی سہولت نہیں دیتا۔",
+  "Update installation was cancelled.": "اپ ڈیٹ کی تنصیب منسوخ کر دی گئی۔"
 }

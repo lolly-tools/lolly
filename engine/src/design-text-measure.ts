@@ -17,8 +17,10 @@
  *     `bolder` of the layer weight, `{wNNN|}` sets a weight, `{mono|}` and
  *     `{sans|}` a face, and an italic run uses the brand italic face in every box
  *     (the shell's `em` rule reaches the canvas);
- *   - each run shaped as a whole by the injected shaper, ligatures off when
- *     tracking is set (Chromium does that) or when the layer turns them off;
+ *   - each stretch of runs in one face shaped as a whole by the injected shaper,
+ *     as Chromium shapes across the inline elements inside it (a list marker keeps
+ *     its kern with the text after it), ligatures off when tracking is set
+ *     (Chromium does that) or when the layer turns them off;
  *   - greedy breaking at Chromium's line break opportunities (`chromiumBreakOffsets`:
  *     its ASCII pair table, then UAX #14 wherever a character is not ASCII), with
  *     trailing spaces hanging, and a word wider than the line cut between graphemes;
@@ -322,9 +324,9 @@ interface Span {
 /**
  * CSS pre-wrap greedy breaking over one paragraph's advances.
  *
- * Advances come from shaping each run whole, so a character's advance carries its
- * kerning with the next one. A line that ends at a break opportunity is fitted on
- * those advances, the way Chromium fits a line. A word cut between two characters
+ * Advances come from shaping each stretch in one face whole, so a character's advance
+ * carries its kerning with the next one. A line that ends at a break opportunity is
+ * fitted on those advances, the way Chromium fits a line. A word cut between two characters
  * (`overflow-wrap: anywhere`) ends where shaping is not safe to cut, so Chromium
  * reshapes that line end; the cut is decided on the stretch shaped on its own
  * (`reshape`). Wherever the two widths would decide a fit differently, the break is
@@ -521,32 +523,49 @@ async function measureCore(spec: TextMeasureSpecV1, shaper: TextShaperV1, draw: 
     const segStart: number[] = [];
     const missingAt = new Set<number>();
     for (const [n, seg] of segments.entries()) {
-      segStart.push(advances.length);
-      const result = await shape(seg.text, seg.face);
-      for (const i of result.missing ?? []) {
-        if (!Number.isInteger(i) || i < 0 || i >= seg.text.length) continue;
-        missingAt.add(advances.length + i);
-        const ch = String.fromCodePoint(seg.text.codePointAt(i)!);
-        let set = uncovered.get(seg.face.family);
-        if (!set) {
-          set = new Set();
-          uncovered.set(seg.face.family, set);
-        }
-        set.add(ch);
-      }
+      segStart.push(faceAt.length);
       for (let i = 0; i < seg.text.length; i++) {
-        advances.push(Number.isFinite(result.advances[i]) ? result.advances[i]! : 0);
         faceAt.push(seg.face);
         segAt.push(n);
       }
     }
-    /** A stretch of the paragraph shaped on its own, run by run. */
+    // Chromium shapes neighbouring inline items in one font as one run, across the
+    // element boundaries between them, so a list marker keeps its kern with the text
+    // after it ("•  T") and so does a coloured or underlined span. Each stretch of
+    // segments in one face is shaped whole, and its runs keep their own paint.
+    const groups: Array<{ start: number; end: number; face: Face }> = [];
+    for (const [n, seg] of segments.entries()) {
+      const last = groups[groups.length - 1];
+      if (last && faceKey(last.face) === faceKey(seg.face)) last.end += seg.text.length;
+      else groups.push({ start: segStart[n]!, end: segStart[n]! + seg.text.length, face: seg.face });
+    }
+    const groupAt: number[] = [];
+    for (const [g, group] of groups.entries()) {
+      const text = drawn.slice(group.start, group.end);
+      const result = await shape(text, group.face);
+      for (const i of result.missing ?? []) {
+        if (!Number.isInteger(i) || i < 0 || i >= text.length) continue;
+        missingAt.add(group.start + i);
+        const ch = String.fromCodePoint(text.codePointAt(i)!);
+        let set = uncovered.get(group.face.family);
+        if (!set) {
+          set = new Set();
+          uncovered.set(group.face.family, set);
+        }
+        set.add(ch);
+      }
+      for (let i = 0; i < text.length; i++) {
+        advances.push(Number.isFinite(result.advances[i]) ? result.advances[i]! : 0);
+        groupAt.push(g);
+      }
+    }
+    /** A stretch of the paragraph shaped on its own, one face at a time. */
     const reshape = async (a: number, z: number): Promise<number> => {
       let total = 0;
       for (let k = a; k < z;) {
-        const n = segAt[k]!;
-        const stop = Math.min(z, segStart[n]! + segments[n]!.text.length);
-        const result = await shape(drawn.slice(k, stop), segments[n]!.face);
+        const group = groups[groupAt[k]!]!;
+        const stop = Math.min(z, group.end);
+        const result = await shape(drawn.slice(k, stop), group.face);
         for (const adv of result.advances) total += Number.isFinite(adv) ? adv : 0;
         k = stop;
       }

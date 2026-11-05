@@ -36,7 +36,7 @@
  * tool whose input accepts no fixture type, or whose hook asks for the browser tier or
  * a model this host lacks, is skipped with that reason: smoke never launches a browser,
  * and a skip is never counted as a pass. The fixtures live in the source checkout's
- * tests/fixtures, so an installed CLI with no checkout skips every transform and says so.
+ * tests/fixtures, so an installed CLI with no checkout skips every transform and reports each skip.
  */
 
 import { existsSync } from 'node:fs';

@@ -3522,6 +3522,125 @@
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
       "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture bootstrap3-template/bootstrap3-indesign-template.indd converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture lizdenys-minizine/indesign-minizine-template.indd converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture opf-neddy-flyer/Neddy_Flyer_HeatherRyan.indd converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture scml-template/scml.indt converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "fixture xmp-toolkit-bluesquare/BlueSquare.indd converts to the native package",
+      "reason": "run `node scripts/indd-corpus.ts fetch-fixtures` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "lolly adobe indd writes the package and prints warnings; adobe idml reads an .indd",
+      "reason": "fixtures not fetched",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/indd.test.ts",
+      "fullName": "truncated fixtures refuse cleanly and repeated conversions keep the instance healthy",
+      "reason": "fixtures not fetched",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/affinity.test.ts",
+      "fullName": "stage 1 opens every corpus file with its preview and facts",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/affinity.test.ts",
+      "fullName": "stage 2 maps every corpus file and its artboards stay near the embedded thumbnails",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/affinity.test.ts",
+      "fullName": "lolly affinity prints the facts, writes the preview and the Design rows",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "shells/web/src/views/affinity-import.test.ts",
+      "fullName": "artboards open as editable frames and the report reaches the warnings",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/views/affinity-import.test.ts",
+      "fullName": "with no layers and no storage to place the preview, the failure is plain and names the way out",
+      "reason": "corpus fixtures not fetched: run `node scripts/affinity-corpus.ts fetch` first",
+      "capability": "fixture",
+      "owner": "shells/web"
+    },
+    {
+      "file": "tests/xcf-oracle.test.ts",
+      "fullName": "xcf oracle: GIMP merged PNGs against readXcf composites",
+      "reason": "declared skip: set LOLLY_XCF_ORACLE=1 after pnpm run fetch:gimp-corpus",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/idml-reader.test.ts",
+      "fullName": "corpus case: a converted InDesign file keeps style-driven type",
+      "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/idml-reader.test.ts",
+      "fullName": "corpus case: master items of a converted leaflet reach its pages",
+      "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/idml-reader.test.ts",
+      "fullName": "corpus case: the tables of a converted notice become cell frames",
+      "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/idml-reader.test.ts",
+      "fullName": "corpus case: object styles reach strokes, corners and opacity in a converted guide",
+      "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
+      "capability": "fixture",
+      "owner": "tests"
     }
   ]
 }

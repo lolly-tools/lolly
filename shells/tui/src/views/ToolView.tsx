@@ -26,19 +26,19 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text, useInput, useApp } from 'ink';
 import TextInput from 'ink-text-input';
 import { MultilineInput } from '../components/MultilineInput.tsx';
 import { join, basename, dirname, extname } from 'node:path';
-import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
-import { homedir } from 'node:os';
+import { readFile } from 'node:fs/promises';
 import { isToolUrl, parseDataRows, parseTableText, c2paDefaultOn, imprintDefaultOn, isImprintFormat, isImprintContainerFormat, designRecordWords } from '@lolly/engine';
 import type { ProvenanceManifest } from '@lolly/engine';
 import { loadAssets } from '../catalog.ts';
 import type { AssetRow } from '../catalog.ts';
 import { filterAssets, assetEmoji, assetDetail } from '../lib/asset-list.ts';
 import { loadFavourites, loadHidden, sortFavouritesFirst } from '../lib/asset-favourites.ts';
-import { mountTool, renderSvg, exportToFile, exportableFormats, currentQuery, modelValues, isTransform, isCaptureTool } from '../engine-render.ts';
+import { expandHome, NotAPictureError, resolveAssetRef as resolveAsset, resolveRowPictures } from '../lib/asset-ref.ts';
+import { mountTool, setDocumentTokenSelection, renderSvg, exportToFile, exportableFormats, currentQuery, modelValues, isTransform, isCaptureTool, setCanvasSizeFrom, LinkPasswordError } from '../engine-render.ts';
 import { madeWithRowText } from '../made-with-row.ts';
 import { matchedExportFormat } from '@lolly-tools/node-shell/raster';
 import type { Runtime, Manifest } from '../engine-render.ts';
@@ -51,24 +51,38 @@ import type { InteractiveCanvas, Focusable } from '../interactive-canvas.ts';
 import { copyToClipboard } from '../clipboard.ts';
 import { buildMockup } from '../ascii-mockup.ts';
 import { useTermSize } from '../hooks.ts';
-import { theme } from '../theme.ts';
+import { cliRecipe, editInputValues, inputValuesJson, terminalReportLines } from '../terminal-workflows.ts';
+import { readTerminalBrand, type TerminalBrand } from '../brand-theme.ts';
+import { BrandStrip } from '../components/BrandStrip.tsx';
+import { describeEnvironment, formatReadiness } from '../../../cli/src/environment.ts';
+import { validateDocument } from '@lolly/engine';
+import { theme, setTerminalAppearance, setTerminalBrand, setBrandAccents, brandAccentsEnabled } from '../theme.ts';
 import { Panel } from '../components/Panel.tsx';
-import { Footer } from '../components/Footer.tsx';
+import { Footer, footerLines } from '../components/Footer.tsx';
 import type { Shortcut } from '../components/Footer.tsx';
-import { saveSession, slug, defaultExportDir, getProfile } from '../store.ts';
+import { saveSession, slug, defaultExportDir, getProfile, setProfile } from '../store.ts';
 import { fmtEmoji } from '../emoji.ts';
 import type { TuiBridge } from '../bridge.ts';
 import { deriveBlockKeys, blockParentIndex, blockTreeOrder, nestingActive, nestingConfig } from '../lib/block-tree.ts';
 import type { BlockRow, TreeEntry } from '../lib/block-tree.ts';
 import * as tbl from '../lib/table-edit.ts';
-import type { BlockFieldSpec, BlocksNesting, InputValue, TableValue } from '../../../../engine/src/inputs.ts';
+import { matchesShowIf } from '../../../../engine/src/inputs.ts';
+import { emojiParams } from '../../../../engine/src/emoji-style.ts';
+import { personalShareFields } from '../../../../engine/src/share-privacy.ts';
+import { presentInputs, inputFocus } from '../input-presentation.ts';
+import type { SavedSession } from '../store.ts';
+import type { BlockFieldSpec, BlocksNesting, InputValue, TableValue, ShowIf } from '../../../../engine/src/inputs.ts';
 
 interface ModelItem {
   id: string;
   type: string;
   label?: string;
   value: unknown;
-  options?: Array<{ value: string; label?: string }>;
+  showIf?: ShowIf;
+  group?: string;
+  help?: string;
+  required?: boolean;
+  options?: Array<{ value: string; label?: string; showIf?: ShowIf }>;
   control?: string;
   // blocks presentation members carried verbatim by the engine model.
   fields?: BlockFieldSpec[];
@@ -85,7 +99,7 @@ interface ModelItem {
 /** One "+ Add" choice for a blocks input (a discriminator value or a canvas kind). */
 interface AddKind { id: string; label: string; seed?: BlockRow }
 
-type Mode = 'browse' | 'editing' | 'editml' | 'naming' | 'addkind' | 'picking' | 'importing';
+type Mode = 'browse' | 'editing' | 'editml' | 'naming' | 'addkind' | 'picking' | 'importing' | 'linkPassword' | 'shareReview' | 'confirmExit' | 'actions' | 'report' | 'reviewEdit';
 type Focus = 'inputs' | 'export' | 'preview';
 /** Block sub-editor position: `field < 0` ⇒ ROW list; `field >= 0` ⇒ one row's FIELDS. */
 type BlockNav = { row: number; field: number };
@@ -113,10 +127,6 @@ function mimeForFile(path: string): string {
     default: return 'application/octet-stream';
   }
 }
-/** Expand a leading ~ to the home directory. */
-function expandHome(p: string): string {
-  return p.startsWith('~') && (p.length === 1 || p[1] === '/') ? homedir() + p.slice(1) : p;
-}
 const UNITS = ['px', 'mm', 'cm', 'in', 'pt'];
 // Content Credentials (C2PA) validity choices; 0 = off. Stamped into the export as its
 // last byte-operation (svg/raster/pdf that have a C2PA container).
@@ -125,7 +135,7 @@ const C2PA_DAYS = [0, 7, 30, 90, 365];
 // web shell's isDurableFmt (views/tool-actions.ts). The embed itself runs in the web
 // shell's export path, so a durable export always routes via the Tier-B browser.
 const DURABLE_FMTS = ['png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff'];
-type ExportKey = 'format' | 'width' | 'height' | 'unit' | 'dpi' | 'filename' | 'folder' | 'madewith' | 'c2pa' | 'imprint' | 'durable' | 'password';
+type ExportKey = 'format' | 'width' | 'height' | 'unit' | 'dpi' | 'filename' | 'folder' | 'madewith' | 'c2pa' | 'imprint' | 'durable' | 'password' | 'bleed' | 'marks' | 'pressProfile';
 // Export-settings rows. `cycle` fields step with ←/→; `text` fields open an editor.
 const EXPORT_FIELDS: Array<{ key: ExportKey; label: string; kind: 'cycle' | 'text' }> = [
   { key: 'format', label: 'Format', kind: 'cycle' },
@@ -142,7 +152,14 @@ const EXPORT_FIELDS: Array<{ key: ExportKey; label: string; kind: 'cycle' | 'tex
   { key: 'imprint', label: 'Imprint', kind: 'cycle' },
   { key: 'durable', label: 'Durable', kind: 'cycle' },
   { key: 'password', label: 'Password', kind: 'text' },
+  { key: 'bleed', label: 'Bleed', kind: 'text' },
+  { key: 'marks', label: 'Print marks', kind: 'text' },
+  { key: 'pressProfile', label: 'Press profile', kind: 'text' },
 ];
+
+const TOOL_SHORTCUTS: Shortcut[] = [{ key: 'tab', label: 'panel' }, { key: 'j/k', label: 'move' }, { key: '⏎/e', label: 'edit' },
+       { key: '←→', label: 'cycle' }, { key: 'x', label: 'export' }, { key: 's', label: 'save' },
+       { key: 'y', label: 'share' }, { key: '?', label: 'actions' }, { key: 'u/r', label: 'undo/redo' }, { key: 'p', label: 'preview' }, { key: 'esc', label: 'back' }];
 
 /** Map a parsed `?c2pa=` setting to a C2PA_DAYS index. On-with-no-lifetime (`?c2pa`) and
  *  an unrecognised bucket both fall to the 30-day default; an explicit off → 0.
@@ -182,10 +199,19 @@ function fmtBytes(n?: number): string {
   return `${(n / 1024 / 1024).toFixed(2)} MB`;
 }
 
-export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: string; query?: string; values?: Record<string, unknown>; bridge: TuiBridge; onBack: () => void }) {
+export function ToolView({ toolId, query, values, fromLink = false, session, bridge, onBack }: { session?: SavedSession; toolId: string; query?: string; values?: Record<string, unknown>; fromLink?: boolean; bridge: TuiBridge; onBack: () => void }) {
   const { cols, rows } = useTermSize();
+  const { suspendTerminal } = useApp();
+  const [actionSearch, setActionSearch] = useState('');
+  const [actionIndex, setActionIndex] = useState(0);
+  const [report, setReport] = useState<{ title: string; lines: Array<{ id: string; text: string }> }>({ title: '', lines: [] });
+  const [reportScroll, setReportScroll] = useState(0);
+  const reviewedShare = useRef<string | null>(null);
+  const pendingEdit = useRef<{ values: Record<string, unknown>; base: string } | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [manifest, setManifest] = useState<Manifest | null>(null);
+  const [documentThemes, setDocumentThemes] = useState<Array<{ name: string; group: string | null; id?: string; swatch?: string }>>([]);
+  const [brand, setBrand] = useState<TerminalBrand | null>(null);
   const [model, setModel] = useState<ModelItem[]>([]);
   const [focus, setFocus] = useState<Focus>('inputs');
   const [sel, setSel] = useState(0);
@@ -193,6 +219,12 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   const [exportSel, setExportSel] = useState(0);
   const [mode, setMode] = useState<Mode>('browse');
   const [draft, setDraft] = useState('');
+  const [unlock, setUnlock] = useState<{ password?: string; attempt: number }>({ attempt: 0 });
+  const saved = useRef(session ? { slot: session.slot, label: session.label, revision: session.updatedAt } : null);
+  const cleanQuery = useRef<string | null>(null);
+  const leaveAfterSave = useRef(false);
+  const saving = useRef(false);
+  const exporting = useRef(false);
   const [importId, setImportId] = useState('');   // blocks input awaiting a CSV/JSON import path
   // Block sub-editor state. `blk === null` → normal input list.
   const [blk, setBlk] = useState<BlockNav | null>(null);
@@ -254,7 +286,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   // Undo/redo: a stack of full input-model snapshots (values are already resolved, so a
   // restore is just replaying setInput - no re-mount, no asset re-resolution). `restoring`
   // guards refresh() from recording the restore itself as a new edit.
-  const histRef = useRef<{ stack: Array<{ q: string; snap: Array<{ id: string; value: unknown }> }>; idx: number }>({ stack: [], idx: -1 });
+  const histRef = useRef<{ stack: Array<{ q: string; snap: Array<{ id: string; value: unknown }>; themes?: Record<string, string> }>; idx: number }>({ stack: [], idx: -1 });
   const restoringRef = useRef(false);
   // matchExportFormat: while unlocked, the export format tracks the flagged input's
   // uploaded file format (web parity). A ?format= link or a manual Format cycle locks it.
@@ -284,7 +316,30 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   const fileRef = model.find(m => m.type === 'file')?.value as { name?: string; size?: number } | null | undefined;
 
   const stacked = cols < 80;
-  const bodyH = Math.max(8, rows - 4);
+  const blockItem = blk && model[sel]?.type === 'blocks' ? model[sel]! : null;
+  const gridItem = grid && model[sel]?.type === 'table' ? model[sel]! : null;
+  const footerShortcuts: Shortcut[] = mode === 'editml'
+    ? [{ key: '⏎', label: 'new line' }, { key: '←→↑↓', label: 'move' }, { key: '^A/^E', label: 'home/end' }, { key: 'esc', label: 'save' }]
+    : mode === 'picking'
+    ? [{ key: 'j/k', label: 'move' }, { key: '/', label: 'search' }, { key: '⏎', label: 'choose' }, { key: 'esc', label: 'cancel' }]
+    : mode === 'addkind'
+    ? [{ key: 'j/k', label: 'move' }, { key: '⏎', label: 'add' }, { key: 'esc', label: 'cancel' }]
+    : gridItem && grid
+      ? [{ key: 'hjkl', label: 'cell' }, { key: '⏎/e', label: 'edit' }, { key: 'a/A', label: 'add row/col' },
+         { key: 'd/D', label: 'del row/col' }, { key: 'i', label: 'import' }, { key: 'esc', label: 'back' }]
+    : blockItem && blk && blk.field < 0
+      ? [{ key: 'j/k', label: 'row' }, { key: '⏎', label: 'open' }, { key: 'a', label: 'add' }, { key: 'd', label: 'del' }, { key: '[ ]', label: 'move' },
+         ...(nestingActive(blockItem, topValues()) ? [{ key: '< >', label: 'nest' }] : []), { key: 'esc', label: 'back' }]
+    : blockItem && blk
+      ? [{ key: 'j/k', label: 'field' }, { key: '⏎/e', label: 'edit' }, { key: '←→', label: 'cycle' }, { key: 'spc', label: 'toggle' }, { key: 'esc', label: 'back' }]
+    : focus === 'preview' && interactive
+      ? [{ key: 'j/k', label: 'scroll' }, { key: '←→', label: 'control' }, { key: '⏎/e', label: 'use' }, { key: 'tab', label: 'panel' }, { key: 'esc', label: 'back' }]
+    : focus === 'preview'
+      ? [{ key: 'j/k', label: 'scroll' }, { key: 'g/G', label: 'top/end' }, { key: 'tab', label: 'panel' }, { key: 'p', label: 'image' }, { key: 'esc', label: 'back' }]
+    : TOOL_SHORTCUTS;
+
+  const footerH = Math.max(footerLines(footerShortcuts, undefined, cols), footerLines(TOOL_SHORTCUTS, undefined, cols));
+  const bodyH = Math.max(6, rows - 2 - footerH - (brand ? 1 : 0));
   const inputsW = stacked ? cols : Math.max(30, Math.min(46, Math.floor(cols * 0.44)));
   const rightW = stacked ? cols : cols - inputsW;
   // A utility shows its result even on a narrow (stacked) terminal, so the stacked column
@@ -294,7 +349,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   // never overdrawn - the fixed-Panel no-shake invariant holds either way.
   const stackedUtil = stacked && isUtility;
   // For a stacked utility, cap Export so Inputs (≥4) + Preview (≥3) still get room.
-  const exportH = Math.min(EXPORT_FIELDS.length + 5, Math.max(6, bodyH - 4), stackedUtil ? Math.max(6, bodyH - 7) : Infinity);
+  const exportH = Math.min(EXPORT_FIELDS.length + 5, Math.max(4, bodyH - 5), stackedUtil ? Math.max(6, bodyH - 7) : Infinity);
   const stackInputsH = Math.max(4, Math.min(Math.max(4, bodyH - exportH - 3), model.length * 2 + 3));
   const inputsH = stacked ? (stackedUtil ? stackInputsH : bodyH - exportH) : bodyH;
   const previewH = Math.max(3, stacked ? (stackedUtil ? bodyH - exportH - inputsH : bodyH - exportH) : bodyH - exportH);
@@ -303,7 +358,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   // so give it the whole screen: the content panel spans the full width with a compact
   // Export strip beneath. The rendered HTML wraps to the full width and scrolls when
   // focused (Tab → Content).
-  const docFull = htmlDoc && !stacked && model.length === 0;
+  const docFull = htmlDoc && model.length === 0;
   // A settings-less doc utility gives its Content pane the WHOLE screen while you read or
   // scroll it: the Export strip collapses to a one-line summary until you Tab onto it (then
   // it expands and the content shrinks). So a tall palette scrolls without the export
@@ -331,10 +386,18 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
     setLoading(true);
     (async () => {
       try {
-        const m = await mountTool(toolId, bridge.host, query ?? '', values);
+        const m = await mountTool(toolId, bridge.host, query ?? '', values, { fromLink, linkPassword: unlock.password, emojiStamp: session?.emoji });
         if (!alive) return;
+        if (session?.rightsDecisions) m.runtime.setRightsDecisions(session.rightsDecisions);
         setRuntime(m.runtime); setManifest(m.manifest);
-        const mdl = m.runtime.getModel() as unknown as ModelItem[];
+        const themes = await bridge.host.tokens?.themes().catch(() => []) ?? [];
+        setDocumentThemes(await Promise.all(themes.map(async choice => {
+          const selection = { ...m.runtime.tokenSelection, [choice.group ?? '']: choice.id ?? choice.name };
+          const palette = await readTerminalBrand(bridge.host, selection).catch(() => null);
+          return { ...choice, swatch: palette?.primary };
+        })));
+        if (!alive) return;
+        const mdl = presentInputs(m.runtime.getModel()) as unknown as ModelItem[];
         setModel(mdl);
         histRef.current = { stack: [], idx: -1 }; recordSnapshot(m.runtime);   // baseline for undo
         setBlk(null); setChooser(null); setLastExport(null); setPreviewScroll(0);
@@ -412,20 +475,45 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
         );
         setLoading(false);
         setRev(x => x + 1);
-      } catch (e) { if (alive) { setLoading(false); setStatus('Failed to load: ' + (e as Error).message); } }
+      } catch (e) { if (alive) { setLoading(false); if (e instanceof LinkPasswordError) { setDraft(''); setMode('linkPassword'); } setStatus('Failed to load: ' + (e as Error).message); } }
     })();
     return () => { alive = false; };
     // `values` is in the deps because two desktop-saved sessions of the SAME tool arrive
     // with the same toolId and an empty query - only the values tell them apart. The route
     // hands over one object per open, so its identity changes exactly when the session does.
-  }, [toolId, query, values, bridge.host]);
+  }, [toolId, query, values, fromLink, bridge.host, unlock]);
 
   // Close the interactive canvas's jsdom when the whole view unmounts.
   useEffect(() => () => { icRef.current?.destroy(); }, []);
+  useEffect(() => () => { runtime?.destroy(); }, [runtime]);
+
+  useEffect(() => {
+    if (!runtime) return;
+    let alive = true;
+    void readTerminalBrand(bridge.host, runtime.tokenSelection ?? {}).catch(() => null).then(next => {
+      if (!alive) return;
+      setTerminalBrand(next?.primary);
+      setBrand(next);
+    });
+    return () => { alive = false; };
+  }, [runtime, rev, bridge.host]);
 
   useEffect(() => {
     setScroll(s => (sel < s ? sel : sel >= s + visibleInputs ? sel - visibleInputs + 1 : s));
   }, [sel, visibleInputs]);
+
+  // The Export panel's width, height and unit are the canvas size (engine 1.293), as the
+  // web app's export bar is: a tool that lays itself out for the canvas (Logo Wall)
+  // redraws the preview at that shape, so the preview is the file an export writes.
+  useEffect(() => {
+    if (!runtime) return;
+    let alive = true;
+    const w = parseFloat(width), h = parseFloat(height);
+    void setCanvasSizeFrom(runtime, { width: w > 0 ? w : undefined, height: h > 0 ? h : undefined, unit })
+      .then((changed) => { if (alive && changed) setRev(x => x + 1); })
+      .catch(() => { /* a hook failure is the runtime's to report; the preview keeps the last frame */ });
+    return () => { alive = false; };
+  }, [runtime, width, height, unit]);
 
   useEffect(() => {
     // Only tools that emit an <svg> get the half-block raster; transform/capture utilities
@@ -496,7 +584,9 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   function refresh(): void {
     if (runtime) {
       const m = runtime.getModel();
-      setModel(m as unknown as ModelItem[]);
+      const shown = presentInputs(m) as unknown as ModelItem[];
+      setSel(inputFocus(shown, model[sel]?.id, sel));
+      setModel(shown);
       if (!restoringRef.current) recordSnapshot(runtime);
       // matchExportFormat: until the user (or a link) picks a format, keep the export
       // format tracking the flagged input's uploaded file (a new .jpg source → jpg).
@@ -517,35 +607,37 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
     if (h.idx >= 0 && h.stack[h.idx]!.q === q) return;
     const snap = (rt.getModel() as Array<{ id: string; value: unknown }>).map(i => ({ id: i.id, value: i.value }));
     h.stack = h.stack.slice(0, h.idx + 1);
-    h.stack.push({ q, snap });
+    h.stack.push({ q, snap, themes: rt.tokenSelection });
     if (h.stack.length > 80) h.stack.shift();
     h.idx = h.stack.length - 1;
   }
   // Replay a snapshot: set every input back to its stored value (already resolved), then
   // sync the view WITHOUT recording (restoringRef). Blocks/vector/asset/file all restore
   // through plain setInput since we kept the resolved values.
-  async function restoreSnapshot(snap: Array<{ id: string; value: unknown }>): Promise<void> {
+  async function restoreSnapshot(snap: Array<{ id: string; value: unknown }>, themes?: Record<string, string>): Promise<void> {
     if (!runtime) return;
     restoringRef.current = true;
+    await setDocumentTokenSelection(runtime, bridge.host, themes ?? {});
     for (const { id, value } of snap) { try { await runtime.setInput(id, value as never); } catch { /* input gone */ } }
-    setModel(runtime.getModel() as unknown as ModelItem[]); setRev(r => r + 1); setShareUrl('');
+    const shown = presentInputs(runtime.getModel()) as unknown as ModelItem[];
+    setSel(inputFocus(shown, model[sel]?.id, sel)); setModel(shown); setRev(r => r + 1); setShareUrl('');
     restoringRef.current = false;
   }
   function undo(): void {
     const h = histRef.current;
     if (h.idx <= 0) { setStatus('Nothing to undo'); return; }
-    h.idx -= 1; setBlk(null); void restoreSnapshot(h.stack[h.idx]!.snap); setStatus(`↶ Undo (${h.idx + 1}/${h.stack.length})`);
+    h.idx -= 1; setBlk(null); void restoreSnapshot(h.stack[h.idx]!.snap, h.stack[h.idx]!.themes); setStatus(`↶ Undo (${h.idx + 1}/${h.stack.length})`);
   }
   function redo(): void {
     const h = histRef.current;
     if (h.idx >= h.stack.length - 1) { setStatus('Nothing to redo'); return; }
-    h.idx += 1; setBlk(null); void restoreSnapshot(h.stack[h.idx]!.snap); setStatus(`↷ Redo (${h.idx + 1}/${h.stack.length})`);
+    h.idx += 1; setBlk(null); void restoreSnapshot(h.stack[h.idx]!.snap, h.stack[h.idx]!.themes); setStatus(`↷ Redo (${h.idx + 1}/${h.stack.length})`);
   }
 
   // ── Block helpers ──────────────────────────────────────────────────────────
   function topValues(): Record<string, InputValue> {
     const v: Record<string, InputValue> = {};
-    for (const m of model) v[m.id] = m.value as InputValue;
+    for (const m of runtime?.getModel() ?? []) v[m.id] = m.value as InputValue;
     return v;
   }
   function blockRows(item: ModelItem): BlockRow[] {
@@ -574,13 +666,8 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
         const dv = disc ? row[disc] : undefined;
         if (!f.showFor.includes(String(dv ?? ''))) return false;
       }
-      if (f.showIf) {
-        const ok = Object.entries(f.showIf).every(([k, v]) => {
-          const cur = ids.has(k) ? row[k] : vals[k];
-          return Array.isArray(v) ? (v as unknown[]).includes(cur) : cur === v;
-        });
-        if (!ok) return false;
-      }
+      const conditionValues = { ...vals, ...Object.fromEntries([...ids].map(id => [id, row[id]])) };
+      if (!matchesShowIf(f.showIf as ShowIf | undefined, conditionValues)) return false;
       return true;
     });
   }
@@ -690,12 +777,18 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
       case 'filename': return outName;
       case 'folder': return outDir;
       case 'password': return password;
+      case 'bleed': return linkPrint.bleed ?? '';
+      case 'marks': return linkPrint.marks ?? '';
+      case 'pressProfile': return linkPrint.pressProfile ?? '';
       default: return '';
     }
   }
   function exportFieldDisplay(key: string): string {
     switch (key) {
       case 'format': return `${fmtEmoji(fmt)} ${fmt.toUpperCase()}`;
+      case 'bleed': return linkPrint.bleed || 'none';
+      case 'marks': return linkPrint.marks || 'none';
+      case 'pressProfile': return linkPrint.pressProfile || 'default';
       case 'width': return width || 'native';
       case 'height': return height || 'native';
       case 'unit': return unit;
@@ -746,6 +839,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
       else if (f.key === 'filename') setFilename(raw.trim());
       else if (f.key === 'folder') setOutDir(raw.trim() || defaultExportDir());
       else if (f.key === 'password') setPassword(raw.trim());
+      else if (f.key === 'bleed' || f.key === 'marks' || f.key === 'pressProfile') setLinkPrint(value => ({ ...value, [f.key]: raw.trim() || undefined }));
       return;
     }
     const item = model[sel]; if (!item || !runtime) return;
@@ -799,25 +893,16 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
         const { rows, truncated } = parseDataRows(text, { fields: (item.fields ?? []) as Array<{ id: string; label?: string; type?: string }> });
         // A picture column (a Logo Wall CSV's `logo`) holds paths, catalog ids or URLs:
         // resolve each now, as setInput never does. A relative path is tried from the
-        // working directory, then beside the CSV.
+        // working directory, then beside the CSV. A file there that is not a picture
+        // refuses the import, so nothing of it is set.
         const assetFields = (item.fields ?? []).filter(f => f.type === 'asset').map(f => f.id);
-        const csvDir = dirname(expandHome(p));
-        let unresolved = 0;
-        for (const row of rows as Record<string, unknown>[]) {
-          for (const fid of assetFields) {
-            const raw = String(row[fid] ?? '').trim();
-            if (!raw) { row[fid] = null; continue; }
-            try { row[fid] = await resolveAssetRef(raw); }
-            catch {
-              try { row[fid] = await resolveAssetRef(join(csvDir, raw)); }
-              catch { row[fid] = null; unresolved++; }
-            }
-          }
-        }
+        const unresolved = await resolveRowPictures(rows as Record<string, unknown>[], assetFields, dirname(expandHome(p)), bridge.host);
         await runtime.setInput(item.id, rows as never);
         refresh();
         setStatus(`✓ Imported ${rows.length} row${rows.length === 1 ? '' : 's'} → ${item.id}${truncated ? ' (row cap reached)' : ''}${unresolved ? `; ${unresolved} picture${unresolved === 1 ? '' : 's'} not found` : ''}`);
-      } catch (e) { setStatus('Import failed: ' + (e as Error).message); }
+      } catch (e) {
+        setStatus(e instanceof NotAPictureError ? `Import refused: ${e.message} Nothing was imported.` : 'Import failed: ' + (e as Error).message);
+      }
     })();
   }
   /** Write a whole table value back through the runtime (the engine rejects ragged grids,
@@ -826,38 +911,9 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
     if (!runtime) return;
     runtime.setInput(item.id, next as never).then(refresh).catch(() => {});
   }
-  // Resolve a raw asset id / lolly.tools URL to the AssetRef the template consumes.
-  // setInput/setField do NOT re-resolve refs (only createRuntime does), so we resolve
-  // here the same way createRuntime would: a tool URL → compose.renderUrl (renders the
-  // linked tool to an embeddable ref; Node handles svg children, raster throws); anything
-  // else → a catalog asset id via host.assets.get.
-  async function resolveAssetRef(raw: string): Promise<InputValue> {
-    if (isToolUrl(raw)) {
-      const ref = await bridge.host.compose?.renderUrl?.(raw);
-      if (!ref) throw new Error('tool render unavailable in this shell');
-      return ref as InputValue;
-    }
-    // Your OWN local image (~/pics/logo.png) → a self-contained baked ref, same as the CLI.
-    const abs = expandHome(raw);
-    try {
-      const st = await stat(abs);
-      if (st.isFile()) {
-        const mime = mimeForFile(abs);
-        const isVec = mime === 'image/svg+xml';
-        const bytes = new Uint8Array(await readFile(abs));
-        return {
-          source: 'user', id: basename(abs),
-          type: isVec ? 'vector' : 'raster',
-          format: isVec ? 'svg' : (mime.split('/')[1] || 'png'),
-          url: `data:${mime};base64,${Buffer.from(bytes).toString('base64')}`,
-          meta: { baked: true, name: basename(abs) },
-        } as InputValue;
-      }
-    } catch { /* not a local file → treat as a catalog id */ }
-    const ref = await bridge.host.assets.get(raw);
-    if (!ref) throw new Error(`asset “${raw}” not found`);
-    return ref as InputValue;
-  }
+  // A raw asset id, lolly.tools URL or local picture path as the AssetRef the template
+  // reads (lib/asset-ref.ts: a file is read only when its bytes are a picture).
+  const resolveAssetRef = (raw: string): Promise<InputValue> => resolveAsset(raw, bridge.host);
   // Set a top-level `asset` input by id / URL (empty clears it).
   async function setAssetInput(id: string, raw: string): Promise<void> {
     if (!runtime) return;
@@ -888,29 +944,55 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   const pickList: AssetRow[] = pick
     ? sortFavouritesFirst(filterAssets(assets ?? [], pick.query, true).filter(a => !pickPrefs.hidden.has(a.id)), pickPrefs.favs)
     : [];
-  function saveNow(label: string): void {
-    setMode('browse'); if (!runtime) return;
-    const nm = label.trim() || name;
-    // Both halves go in: the URL-state the TUI reopens from, and the resolved values the
-    // desktop app and the web shell read (plans/202 WP3.1).
-    saveSession({ slot: `${toolId}-${Date.now()}`, toolId, label: nm, query: currentQuery(runtime), values: modelValues(runtime), updatedAt: new Date().toISOString() })
-      .then(() => setStatus(`✓ Saved project “${nm}”`)).catch(e => setStatus('Save failed: ' + (e as Error).message));
+  function documentOptions() {
+    const positive = (raw: string) => { const n = Number(raw); return Number.isFinite(n) && n > 0 ? n : undefined; };
+    return { format: fmt, width: positive(width), height: positive(height), unit, dpi: positive(dpi),
+      filename, c2pa: !!C2PA_DAYS[c2paIdx], c2paDays: C2PA_DAYS[c2paIdx], imprint: imprintOn, madeWith: madeWithOn,
+      durable: durableOn, ...linkPrint, profile: linkPrint.pressProfile };
   }
-  // Build a lolly.tools share link for the CURRENT state (the hash-share form the web
-  // Share dialog produces - reopens on web, CLI (`lolly <url>`), or the TUI's `u`).
-  // Shown full-width in the Preview panel to select-copy, and saved as a .txt backup.
-  function shareTool(): void {
+  const snapshotQuery = runtime ? currentQuery(runtime, documentOptions()) : '';
+  useEffect(() => { if (runtime && !loading && cleanQuery.current === null) cleanQuery.current = snapshotQuery; }, [runtime, loading, snapshotQuery]);
+
+  function saveNow(label: string, saveAs = false): void {
+    if (!runtime || saving.current) return;
+    let dataSnapshot: Record<string, unknown>;
+    try { dataSnapshot = modelValues(runtime); inputValuesJson(dataSnapshot); } catch (error) { setMode('browse'); setStatus('Save failed: ' + (error as Error).message); return; }
+    saving.current = true; setMode('browse');
+    const nm = label.trim() || name;
+    const prior = saveAs ? null : saved.current;
+    const slot = prior?.slot ?? `${toolId}-${crypto.randomUUID()}`;
+    const snapshot = snapshotQuery;
+    saveSession({ slot, toolId, label: nm, query: snapshot, values: dataSnapshot, rightsDecisions: runtime.rightsDecisions(), emoji: runtime.emoji.style ? emojiParams(runtime.emoji.style) : { emoji: 'none', emojifx: '' }, updatedAt: new Date().toISOString(), expectedUpdatedAt: prior?.revision ?? null })
+      .then(revision => {
+        saved.current = { slot, label: nm, revision }; cleanQuery.current = snapshot;
+        setStatus(`Saved project "${nm}"`);
+        if (leaveAfterSave.current) onBack();
+      }).catch(e => { leaveAfterSave.current = false; setStatus('Save failed: ' + (e as Error).message); })
+      .finally(() => { saving.current = false; });
+  }
+  function requestBack(): void {
+    if (runtime && cleanQuery.current !== null && snapshotQuery !== cleanQuery.current) { setMode('confirmExit'); return; }
+    onBack();
+  }
+  function shareTool(includePersonal = false): void {
     if (!runtime) return;
-    const q = currentQuery(runtime);
-    const url = `https://lolly.tools/#/tool/${toolId}${q ? '?' + q : ''}`;
-    setShareUrl(url);
-    const file = join(outDir, `${slug(name) || toolId}-link.txt`);
-    mkdir(outDir, { recursive: true }).then(() => writeFile(file, url + '\n'))
-      .then(() => setStatus(`🔗 Share link ready - saved → ${file}`))
-      .catch(() => setStatus('🔗 Share link ready (shown in Preview)'));
+    if (includePersonal && reviewedShare.current !== currentQuery(runtime, documentOptions())) { reviewShare(); setStatus('Document changed. Review the updated personal fields.'); return; }
+    const q = currentQuery(runtime, documentOptions(), !includePersonal);
+    setShareUrl(`https://lolly.tools/#/tool/${toolId}${q ? '?' + q : ''}`);
+    setMode('browse');
+    setStatus(includePersonal ? 'Share link includes the reviewed personal fields.' : 'Share link ready. Personal fields are omitted.');
+  }
+  function reviewShare(): void {
+    setReportScroll(0);
+    if (runtime && personalShareFields(runtime.getModel()).length) {
+      reviewedShare.current = currentQuery(runtime, documentOptions());
+      showReport('Review personal fields', personalShareFields(runtime.getModel()).map(field => `${field.label}: ${JSON.stringify(field.value)}`));
+      setMode('shareReview');
+    } else shareTool();
   }
   function doExport(): void {
-    if (!runtime || !manifest) return;
+    if (!runtime || !manifest || exporting.current) return;
+    exporting.current = true;
     setStatus('Exporting…');
     const w = parseFloat(width), h = parseFloat(height);
     const dpiN = parseInt(dpi, 10);
@@ -943,21 +1025,70 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
         setStatus(`✓ Wrote ${n.toLocaleString()} bytes → ${outPath}`);
       } catch (e) {
         const msg = (e as Error).message;
-        // svg/emf/eps need an <svg> in the template - HTML-layout tools don't have one.
-        // Rather than fail, fall back to HTML (always renderable in Node) so an export
-        // always produces a file, and say what happened.
-        if (/<svg>|requires an|browser engine/i.test(msg) && fmt !== 'html') {
-          const htmlPath = join(outDir, `${outName}.html`);
-          try {
-            const n = await exportToFile(runtime, bridge.dom, manifest, 'html', htmlPath, dims);
-            setStatus(`✓ ${fmt.toUpperCase()} needs the desktop app here - wrote HTML instead: ${n.toLocaleString()} bytes → ${htmlPath}`);
-            return;
-          } catch (e2) { setStatus('Export failed: ' + (e2 as Error).message); return; }
-        }
         setStatus('Export failed: ' + msg);
-      }
+      } finally { exporting.current = false; }
     })();
   }
+
+  function reportLines(lines: string[]): string[] {
+    return terminalReportLines(lines, cols - 6);
+  }
+  function showReport(title: string, lines: string[]): void { setReport({ title, lines: reportLines(lines).map(text => ({ id: crypto.randomUUID(), text })) }); setReportScroll(0); setMode('report'); }
+  async function diagnostics(): Promise<void> {
+    try {
+      const environment = await describeEnvironment();
+      showReport('Renderer readiness and diagnostics', [
+        ...formatReadiness(formats, environment).map(item => `${item.format}: ${item.state} (${item.tier}) - ${item.reason}`),
+        '', 'Recent tool logs:', ...bridge.logs,
+      ]);
+    } catch (error) { setStatus((error as Error).message); }
+  }
+  async function editExternally(): Promise<void> {
+    if (!runtime || !manifest) return;
+    const base = currentQuery(runtime);
+    try {
+      const values = Object.fromEntries(runtime.getModel().map(input => [input.id, input.value]));
+      const candidate = await editInputValues(values, suspendTerminal);
+      const validation = validateDocument({ kind: 'inputs', manifest: { ...manifest, inputs: runtime.getModel() }, value: candidate });
+      if (!validation.ok) throw new Error(validation.errors.map(issue => `${issue.path}: ${issue.message}`).join('; '));
+      const changes = Object.keys(candidate).filter(id => JSON.stringify(values[id]) !== JSON.stringify(candidate[id]));
+      if (!changes.length) { setStatus('Editor made no changes.'); return; }
+      pendingEdit.current = { values: Object.fromEntries(changes.map(id => [id, candidate[id]])), base };
+      showReport('Review editor changes', changes.map(id => `${id}: ${JSON.stringify(values[id])} -> ${JSON.stringify(candidate[id])}`));
+      setReportScroll(0); setMode('reviewEdit');
+    } catch (error) { setStatus('Editor: ' + (error as Error).message); }
+  }
+  async function applyEditor(): Promise<void> {
+    if (!runtime || !pendingEdit.current) return;
+    const pending = pendingEdit.current;
+    pendingEdit.current = null; setMode('browse');
+    if (currentQuery(runtime) !== pending.base) { setStatus('Document changed while editing. No editor changes applied.'); return; }
+    for (const [id, value] of Object.entries(pending.values)) await runtime.setInput(id, value as never);
+    refresh(); setStatus('Editor changes applied. Use undo to restore the previous inputs.');
+  }
+  const actions: Array<{ label: string; swatch?: string; run: () => void }> = [
+    { label: 'Export document', run: doExport },
+    { label: 'Save project', run: () => saveNow(saved.current?.label ?? name) },
+    { label: 'Save project as', run: () => { setDraft(saved.current?.label ?? name); setMode('naming'); } },
+    { label: 'Share link', run: reviewShare },
+    { label: 'Copy private Bash/Zsh CLI recipe', run: () => { if (runtime) { try { void flushCopy(cliRecipe(toolId, modelValues(runtime), { ...documentOptions(), tokenSelection: runtime.tokenSelection, ...(runtime.emoji.style ? { emojiStyle: JSON.stringify(runtime.emoji.style) } : { emoji: 'none' }) }, outPath)); } catch (error) { setStatus((error as Error).message); } } } },
+    { label: 'Edit inputs in VISUAL / EDITOR', run: () => { void editExternally(); } },
+    { label: 'Renderer readiness and recent logs', run: () => { void diagnostics(); } },
+    { label: 'Inspect brand palette', run: () => showReport('Brand palette', brand ? [brand.label, ...brand.choices, ...brand.swatches.map(swatch => `${swatch.label}: ${swatch.value}`)] : ['This design system has no colour tokens.']) },
+    { label: 'Copy brand palette as JSON', run: () => { if (brand) void flushCopy(JSON.stringify(brand, null, 2)); } },
+    { label: `Terminal brand accents: ${brandAccentsEnabled() ? 'on' : 'off'} (toggle)`, run: () => { const enabled = !brandAccentsEnabled(); setBrandAccents(enabled); void getProfile().then(profile => setProfile({ ...profile, terminalBrand: enabled })); setRev(value => value + 1); } },
+    { label: 'Input help', run: () => { const input = runtime?.getModel().find(input => input.id === model[sel]?.id); showReport(input?.label ?? 'Input help', [input?.help ?? 'No additional help provided.', `Input: ${input?.id ?? ''}`, `Group: ${input?.group ?? 'general'}`, input?.required ? 'Required' : 'Optional']); } },
+    ...model.map((input, index) => ({ label: `Go to input: ${input.group ? input.group + ' / ' : ''}${input.label ?? input.id}`, run: () => { setSel(index); setFocus('inputs'); setBlk(null); setGrid(null); } })),
+    { label: 'Document: use default theme choices', run: () => { if (runtime) void setDocumentTokenSelection(runtime, bridge.host, {}).then(refresh).catch(error => setStatus((error as Error).message)); } },
+    ...documentThemes.map(choice => ({ label: `Document ${choice.group || 'theme'}: ${choice.name}`, swatch: choice.swatch, run: () => {
+      if (!runtime) return;
+      void setDocumentTokenSelection(runtime, bridge.host, { ...runtime.tokenSelection, [choice.group ?? '']: choice.id ?? choice.name })
+        .then(() => { refresh(); setStatus('Document theme changed. Save to keep this choice.'); })
+        .catch(error => setStatus((error as Error).message));
+    } })),
+    ...(['terminal', 'light', 'dark'] as const).map(appearance => ({ label: `Terminal appearance: ${appearance}`, run: () => { setTerminalAppearance(appearance); void getProfile().then(profile => setProfile({ ...profile, terminalAppearance: appearance })); setRev(value => value + 1); } })),
+  ];
+  const matchingActions = actions.filter(action => action.label.toLowerCase().includes(actionSearch.toLowerCase()));
 
   // ── Interactive canvas actions (drive the tool's own live DOM) ──────────────
   function bumpIc(): void { setIcRev(r => r + 1); }
@@ -992,6 +1123,36 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   }
 
   useInput((input, key) => {
+    if (mode === 'actions') {
+      if (key.escape) setMode('browse');
+      else if (key.upArrow) setActionIndex(index => Math.max(0, index - 1));
+      else if (key.downArrow) setActionIndex(index => Math.min(Math.max(0, matchingActions.length - 1), index + 1));
+      else if (key.return) { const action = matchingActions[actionIndex]; setMode('browse'); action?.run(); }
+      return;
+    }
+    if (mode === 'report' || mode === 'reviewEdit') {
+      if (key.escape) { pendingEdit.current = null; setMode('browse'); }
+      else if (mode === 'reviewEdit' && input === 'a') void applyEditor().catch(error => setStatus((error as Error).message));
+      else if (key.upArrow || input === 'k') setReportScroll(value => Math.max(0, value - 1));
+      else if (key.downArrow || input === 'j') setReportScroll(value => Math.min(Math.max(0, report.lines.length - 1), value + 1));
+      return;
+    }
+    if (saving.current || exporting.current) return;
+    if (mode === 'linkPassword') { if (key.escape) onBack(); return; }
+    if (mode === 'confirmExit') {
+      if (key.escape) setMode('browse');
+      else if (input === 'd') onBack();
+      else if (input === 's') { leaveAfterSave.current = true; saveNow(saved.current?.label ?? name); }
+      return;
+    }
+    if (mode === 'shareReview') {
+      if (key.escape) setMode('browse');
+      else if (input === 'p') shareTool();
+      else if (input === 'a') shareTool(true);
+      else if (key.upArrow || input === 'k') setReportScroll(value => Math.max(0, value - 1));
+      else if (key.downArrow || input === 'j') setReportScroll(value => Math.min(Math.max(0, shareRows.length - 1), value + 1));
+      return;
+    }
     // Multi-line editing: the <MultilineInput> owns every key (incl. Enter for newlines
     // and Esc to save), so the view handler stays out of its way entirely.
     if (mode === 'editml') return;
@@ -1114,7 +1275,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
       return;
     }
 
-    if (key.escape || input === 'q') return onBack();
+    if (key.escape || input === 'q') return requestBack();
     if (key.tab) {
       // Cycle only the panels that exist: Inputs (if the tool has any) · Export · Preview
       // (when it's showing content). So you can Tab INTO the preview to scroll it.
@@ -1122,9 +1283,11 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
       setFocus(f => panels[(Math.max(0, panels.indexOf(f)) + 1) % panels.length]!);
       return;
     }
+    if (input === '?' || input === ':') { setActionSearch(''); setActionIndex(0); setMode('actions'); return; }
     if (input === 'x') { doExport(); return; }
-    if (input === 's') { setDraft(name); setMode('naming'); return; }
-    if (input === 'y') { shareTool(); return; }
+    if (input === 's') { if (saved.current) saveNow(saved.current.label); else { setDraft(name); setMode('naming'); } return; }
+    if (input === 'S') { setDraft(saved.current?.label ?? name); setMode('naming'); return; }
+    if (input === 'y') { reviewShare(); return; }
     if (input === 'u') { undo(); return; }
     if (input === 'r') { redo(); return; }
     if (input === 'p' && !stacked) { setShowImage(v => !v); setShareUrl(''); return; }
@@ -1218,7 +1381,6 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   const windowed = model.slice(scroll, scroll + visibleInputs);
   const range = model.length > visibleInputs ? ` ${scroll + 1}-${Math.min(scroll + visibleInputs, model.length)}/${model.length}` : '';
 
-  const blockItem = blk && model[sel]?.type === 'blocks' ? model[sel]! : null;
 
   // Normal (top-level) inputs list. A tool with no declared inputs (a reference utility
   // like Text Helper / Colour Palette / Countdown Timer) gets a friendly empty state so
@@ -1239,7 +1401,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
         const editingMlThis = active && mode === 'editml';
         return (
           <Box key={item.id} flexDirection="column">
-            <Text color={active ? theme.accentName : undefined} wrap="truncate-end">{active ? '▸ ' : '  '}{item.label ?? item.id}</Text>
+            <Text color={active ? theme.accentName : undefined} wrap="truncate-end">{active ? '▸ ' : '  '}{item.label ?? item.id}{item.required ? ' *' : ''}</Text>
             {editingMlThis
               ? <Box paddingLeft={2}><MultilineInput value={draft} onChange={setDraft} onSubmit={commit} width={Math.max(10, inputsW - 4)} height={Math.max(3, Math.min(10, inputsH - 4))} /></Box>
               : editingThis
@@ -1308,7 +1470,6 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   // Table GRID body: heading row, then body rows, cursor cell in reverse video. Column
   // widths are computed from the content and shrunk to the panel (columnWidths), so the
   // grid never wraps and the panel never shakes.
-  const gridItem = grid && model[sel]?.type === 'table' ? model[sel]! : null;
   let gridBody: ReactNode = null;
   if (gridItem && grid) {
     const t = tbl.asTable(gridItem.value);
@@ -1416,12 +1577,13 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
     </Panel>
   ) : (
     <Panel title={linkKnobs.length ? 'Export settings · from link' : 'Export settings'} width={stacked || docFull ? cols : rightW} height={docFull ? docExportH : exportH} active={focus === 'export' && !blk && !grid}>
-      {EXPORT_FIELDS.map((f, i) => {
+      {EXPORT_FIELDS.slice(Math.max(0, exportSel - Math.max(1, (docFull ? docExportH : exportH) - 5) + 1), Math.max(0, exportSel - Math.max(1, (docFull ? docExportH : exportH) - 5) + 1) + Math.max(1, (docFull ? docExportH : exportH) - 5)).map((f) => {
+        const i = EXPORT_FIELDS.indexOf(f);
         const active = focus === 'export' && !blk && !grid && i === exportSel;
         const editingThis = active && mode === 'editing' && f.kind === 'text';
         return (
           <Box key={f.key}>
-            <Box width={12}><Text color={active ? theme.accentName : theme.dim} wrap="truncate-end">{active ? '▸ ' : '  '}{f.label}</Text></Box>
+            <Box width={16}><Text color={active ? theme.accentName : theme.dim} wrap="truncate-end">{active ? '▸ ' : '  '}{f.label}</Text></Box>
             {editingThis
               ? <Box><Text color={theme.accentName}>› </Text><TextInput value={draft} onChange={setDraft} onSubmit={commit} /></Box>
               : <Text color={active ? theme.fg : undefined} wrap="truncate-end">{f.kind === 'cycle' && active ? `‹ ${exportFieldDisplay(f.key)} ›` : exportFieldDisplay(f.key)}</Text>}
@@ -1515,7 +1677,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   // Show the panel for every wide layout, and - narrow - for utilities (whose result is
   // the whole point). Non-utility narrow terminals stay single-column (no preview).
   const previewPanel = (!stacked || stackedUtil) ? (
-    <Panel key={previewTitle} title={` ${previewTitle}`} width={stacked ? cols : contentW} height={stacked ? previewH : contentH} active={focus === 'preview'}>
+    <Panel key={previewTitle} title={` ${previewTitle}`} width={stacked ? cols : contentW} height={docFull ? contentH : stacked ? previewH : contentH} active={focus === 'preview'}>
       {editingIc ? icEditor : previewBody}
       {controlLine}
     </Panel>
@@ -1523,43 +1685,54 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
 
   const promptRow = (
     <Box height={1} paddingX={1}>
-      {mode === 'naming'
-        ? <Text><Text color={theme.accentName}>Save project as: </Text><TextInput value={draft} onChange={setDraft} onSubmit={saveNow} /></Text>
+      {mode === 'confirmExit'
+        ? <Text color={theme.accentName}>Unsaved changes: s save and leave / d discard / esc stay</Text>
+        : mode === 'naming'
+        ? <Text><Text color={theme.accentName}>Save project as: </Text><TextInput value={draft} onChange={setDraft} onSubmit={label => saveNow(label, true)} /></Text>
         : mode === 'importing'
         ? <Text><Text color={theme.accentName}>{model.find(m => m.id === importId)?.type === 'table' ? 'Import table (CSV/TSV/Markdown) file: ' : 'Import data (CSV/JSON) file: '}</Text><TextInput value={draft} onChange={setDraft} onSubmit={importNow} /></Text>
         : <Text color={status.startsWith('✓') ? theme.accentName : theme.dim} wrap="truncate-end">{status || ' '}</Text>}
     </Box>
   );
 
-  const footerShortcuts: Shortcut[] = mode === 'editml'
-    ? [{ key: '⏎', label: 'new line' }, { key: '←→↑↓', label: 'move' }, { key: '^A/^E', label: 'home/end' }, { key: 'esc', label: 'save' }]
-    : mode === 'picking'
-    ? [{ key: 'j/k', label: 'move' }, { key: '/', label: 'search' }, { key: '⏎', label: 'choose' }, { key: 'esc', label: 'cancel' }]
-    : mode === 'addkind'
-    ? [{ key: 'j/k', label: 'move' }, { key: '⏎', label: 'add' }, { key: 'esc', label: 'cancel' }]
-    : gridItem && grid
-      ? [{ key: 'hjkl', label: 'cell' }, { key: '⏎/e', label: 'edit' }, { key: 'a/A', label: 'add row/col' },
-         { key: 'd/D', label: 'del row/col' }, { key: 'i', label: 'import' }, { key: 'esc', label: 'back' }]
-    : blockItem && blk && blk.field < 0
-      ? [{ key: 'j/k', label: 'row' }, { key: '⏎', label: 'open' }, { key: 'a', label: 'add' }, { key: 'd', label: 'del' }, { key: '[ ]', label: 'move' },
-         ...(nestingActive(blockItem, topValues()) ? [{ key: '< >', label: 'nest' }] : []), { key: 'esc', label: 'back' }]
-    : blockItem && blk
-      ? [{ key: 'j/k', label: 'field' }, { key: '⏎/e', label: 'edit' }, { key: '←→', label: 'cycle' }, { key: 'spc', label: 'toggle' }, { key: 'esc', label: 'back' }]
-    : focus === 'preview' && interactive
-      ? [{ key: 'j/k', label: 'scroll' }, { key: '←→', label: 'control' }, { key: '⏎/e', label: 'use' }, { key: 'tab', label: 'panel' }, { key: 'esc', label: 'back' }]
-    : focus === 'preview'
-      ? [{ key: 'j/k', label: 'scroll' }, { key: 'g/G', label: 'top/end' }, { key: 'tab', label: 'panel' }, { key: 'p', label: 'image' }, { key: 'esc', label: 'back' }]
-    : [{ key: 'tab', label: 'panel' }, { key: 'j/k', label: 'move' }, { key: '⏎/e', label: 'edit' },
-       { key: '←→', label: 'cycle' }, { key: 'x', label: 'export' }, { key: 's', label: 'save' },
-       { key: 'y', label: 'share' }, { key: 'u/r', label: 'undo/redo' }, { key: 'p', label: 'preview' }, { key: 'esc', label: 'back' }];
+  const shareRows = mode === 'shareReview' ? report.lines : [];
+  if (mode === 'linkPassword') return <Box flexDirection="column" width={cols} height={rows}>
+    <Panel title="Open password-protected link" width={cols} height={Math.max(5, rows - 2)} active>
+      <Text wrap="wrap">{status}</Text>
+      <Box><Text>Link password: </Text><TextInput mask="*" value={draft} onChange={setDraft} onSubmit={password => { setMode('browse'); setUnlock(previous => ({ password, attempt: previous.attempt + 1 })); setDraft(''); }} /></Box>
+    </Panel>
+    <Text>enter open / esc cancel</Text>
+  </Box>;
+  if (mode === 'shareReview') return <Box flexDirection="column" width={cols} height={rows}>
+    <Panel title="Review personal fields" width={cols} height={Math.max(5, rows - 2)} active>
+      <Text>These values are omitted unless you include them.</Text>
+      {shareRows.slice(reportScroll, reportScroll + Math.max(1, rows - 7)).map(line => <Text key={line.id} wrap="truncate-end">{line.text}</Text>)}
+    </Panel>
+    <Text>p omit / a include / j,k scroll / esc cancel</Text>
+  </Box>;
+
+  if (mode === 'actions' || mode === 'report' || mode === 'reviewEdit') {
+    const page = Math.max(1, rows - 6);
+    const start = Math.max(0, actionIndex - page + 1);
+    return <Box flexDirection="column" width={cols} height={rows}>
+      <Panel title={mode === 'actions' ? 'Tool actions' : report.title} width={cols} height={Math.max(4, rows - 2)} active>
+        {mode === 'actions' ? <>
+          <TextInput value={actionSearch} onChange={value => { setActionSearch(value); setActionIndex(0); }} placeholder="Find an action" />
+          {matchingActions.slice(start, start + page).map((action, index) => <Text key={action.label} color={start + index === actionIndex ? theme.accentName : theme.dim} wrap="truncate-end">{start + index === actionIndex ? '> ' : '  '}{action.swatch && process.env.NO_COLOR === undefined ? <Text color={action.swatch}>██ </Text> : null}{action.label}</Text>)}
+        </> : report.lines.slice(reportScroll, reportScroll + page).map(line => <Text key={line.id} wrap="truncate-end">{line.text || ' '}</Text>)}
+      </Panel>
+      <Text>{mode === 'actions' ? 'arrows choose / enter run / esc back' : mode === 'reviewEdit' ? 'a apply / j,k scroll / esc discard' : 'j,k scroll / esc back'}</Text>
+    </Box>;
+  }
 
   return (
     <Box flexDirection="column" width={cols} height={rows}>
       <Box height={1} paddingX={1}><Text color={theme.dim}>esc ‹ </Text><Text>Tools › </Text><Text bold color={theme.accentName}>{name}</Text><Text color={theme.dim}>{'    tab: ' + (focus === 'inputs' ? 'Inputs' : focus === 'export' ? 'Export' : interactive ? 'Live' : 'Content')}</Text></Box>
-      {stacked
-        ? <Box flexDirection="column" height={bodyH} overflow="hidden">{inputsPanel}{exportPanel}{stackedUtil ? previewPanel : null}</Box>
-        : docFull
+      {brand ? <Box height={1} flexShrink={0} paddingX={1}><BrandStrip brand={brand} columns={cols - 2} /></Box> : null}
+      {docFull
         ? <Box flexDirection="column" height={bodyH} overflow="hidden">{previewPanel}{exportPanel}</Box>
+        : stacked
+        ? <Box flexDirection="column" height={bodyH} overflow="hidden">{inputsPanel}{exportPanel}{stackedUtil ? previewPanel : null}</Box>
         : <Box height={bodyH} overflow="hidden">{inputsPanel}<Box flexDirection="column" width={rightW} overflow="hidden">{exportPanel}{previewPanel}</Box></Box>}
       {promptRow}
       <Footer shortcuts={footerShortcuts} />

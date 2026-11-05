@@ -5,7 +5,7 @@ Make a headline drift in, lift a card off the page or fly a camera across a post
 Everything here runs on your device. Nothing plays on its own: the preview moves when you press play or drag the playhead.
 
 ::: timeline
-- <!--i:pentool--> Select a box on Design's canvas.
+- <!--i:pentool--> Select a box on Lolly Design's canvas.
 - <!--i:clock--> Open the timeline, park the playhead at 0 s and choose **+Keyframe** under **More tools**, or press `Shift+K`.
 - <!--i:clock--> Move the playhead to 2 s.
 - <!--i:layers--> Drag the box to its new place and press **+Keyframe** again. Press play: the box moves between the two poses.
@@ -59,7 +59,35 @@ The **Keyframes** panel holds everything one track can be edited with:
 - **Remove N keyframes**, which is how you un-animate a box: the track is the animation;
 - the curve editor, docked at the bottom of the same panel.
 
-Curves are the shipped set: **Linear**, **Ease out**, **Ease in**, **Ease in and out**, **Overshoot**, **Anticipate**, **Smooth**, **Snappy** and **Hold**, which keeps a value until the next keyframe. Drag a handle on the docked plot and the row switches to **Custom** with the curve you drew, so the presets are a way to learn the shape rather than a limit. A curve shapes movement; a fade always ramps evenly, whichever curve the keyframe carries.
+Each keyframe's curve list has up to three groups:
+
+- **Design system**: the curves and springs your design system defines, when it has any (see [Follow the design system](#follow-the-design-system)).
+- **Curves**: **Linear**, **Ease out**, **Ease in**, **Ease in and out**, **Overshoot**, **Anticipate**, **Smooth**, **Snappy** and **Hold**, which keeps a value until the next keyframe.
+- **Springs**: **Gentle**, **Quick**, **Bouncy** and **Slow**.
+
+Drag a handle on the docked plot and the row switches to **Custom** with the curve you drew, so the presets are a way to learn the shape rather than a limit. A curve shapes movement; a fade always ramps evenly, whichever curve the keyframe carries.
+
+### Springs
+
+A spring moves like a weight on a spring: it can overshoot, bounce back and come to rest. Pick one and the docked plot shows the spring as it plays between this keyframe and the next, with three settings under it:
+
+- **Stiffness**: how strongly the spring pulls towards the next pose. Stiffer is faster.
+- **Damping**: how quickly the bounce dies away. With little damping the box bounces several times; with a lot it glides in without passing its target.
+- **Mass**: how heavy the moving thing feels. Heavier is slower and swings further.
+
+Change any of them and the row reads **Custom spring**. The line under the plot says how long the spring takes to settle, and a thin upright line on the plot marks where it comes to rest.
+
+A spring runs in real time: Bouncy settles in under a second whether the keyframes are half a second or five seconds apart, and then the box rests until the next keyframe. When the next keyframe comes before the spring has settled, the spring still arrives on that keyframe exactly: the distance it has not covered yet is spread evenly across the segment, and the dock tells you when this happens. A spring never pushes a value out of its range, so a trim, a colour or a scale overshoots only as far as that property allows.
+
+### Follow the design system
+
+A design system can define motion: durations, curves and springs (see [Motion tokens](/info/design-tokens.html#motion-tokens)). Its curves and springs are listed first, under **Design system**. Pick one and the keyframe follows the design system by name, so when the design system's curve or spring changes, every keyframe that follows it moves the new way. The dock says which curve or spring the keyframe follows; editing the curve there gives the keyframe a curve of its own and stops the link.
+
+The link remembers the curve the design system had at the moment you picked the token. Opened where that design system is not loaded, or after the curve or spring was removed from it, the keyframe plays that remembered curve, and the list shows the name with **(not in this design system)**.
+
+Cutting a clip inside a segment that follows the design system writes out the curve that segment plays, on both halves, because half of a design-system curve is not that curve.
+
+The design system's durations appear as suggestions in the Motion group's **Enter (ms)** and **Exit (ms)** fields, and in Choreograph's **Length** when one is long enough. Choosing one writes the number, as typing it would.
 
 Clicking a diamond selects it and opens this panel on that keyframe in one gesture. Dragging one moves it in time, and Alt-dragging leaves the original in place and drops a copy where you let go. Right-clicking one offers **Keyframe curve**, **Duplicate keyframe** and **Delete keyframe** without opening anything.
 
@@ -90,7 +118,7 @@ The Keyframes popup carries the same edits for the keyboard and screen readers. 
 
 ## Key one property at a time
 
-Every field in the Keyframes popup ends in a small diamond, and so do **Fill**, **Stroke**, **Stroke width** and **Corner radius** in the Design inspector while the timeline is open. The diamond keys that property alone, at the playhead:
+Every field in the Keyframes popup ends in a small diamond, and so do **Fill**, **Stroke**, **Stroke width** and **Corner radius** in the Lolly Design inspector while the timeline is open. The diamond keys that property alone, at the playhead:
 
 - **Hollow and grey**: the property is not animated.
 - **Hollow and coloured**: the property is animated, but not at this instant.
@@ -100,7 +128,7 @@ Press a hollow diamond and the property's current value is written into the keyf
 
 Because each property interpolates only between the keyframes that hold it, a colour can change over the first second while a position moves over three, each with its own curve.
 
-In the Design inspector, a property with no keyframes is an ordinary field: change the fill and the box changes. Once the property is animated, the playhead decides. Parked on a keyframe, an edit writes that keyframe; anywhere else the field shows the value the keyframes give at that moment and refuses an edit, because no keyframe there would hold the change.
+In the Lolly Design inspector, a property with no keyframes is an ordinary field: change the fill and the box changes. Once the property is animated, the playhead decides. Parked on a keyframe, an edit writes that keyframe; anywhere else the field shows the value the keyframes give at that moment and refuses an edit, because no keyframe there would hold the change.
 
 ### Which strokes can be animated
 
@@ -221,14 +249,15 @@ Between its entrance and its exit a box usually sits still. **While on screen** 
 
 ## Start from a motion starter
 
-Design's template picker has a **Motion** collection of finished loops to adapt: **Editorial loop** (readable type and a geometric mark with gentle movement), **Feature cards** (three grouped cards assemble, hold and return) and **Photo title** (a graded [Darkroom](/info/darkroom.html) image beside editable type). Each is a 6 second loop with 4 and 8 second variants. Replace the artwork, or the photo with your own upload or an edited Darkroom share link, and keep the timing.
+Lolly Design's template picker has a **Motion** collection of finished loops to adapt: **Editorial loop** (readable type and a geometric mark with gentle movement), **Feature cards** (three grouped cards assemble, hold and return) and **Photo title** (a graded [Lolly Darkroom](/info/darkroom.html) image beside editable type). Each is a 6 second loop with 4 and 8 second variants. Replace the artwork, or the photo with your own upload or an edited Lolly Darkroom share link, and keep the timing.
 
 ## Exporting a move
 
 The preview and the file are the same arithmetic, so what you see is what you get.
 
 - **Video**: MP4 or WebM, rendered frame by frame at exact times rather than recorded off the screen, so a curved motion path is followed exactly. See [Export a file](/info/exporting.html#video).
-- **Animated images**: GIF, APNG and animated WebP come from the same frame-by-frame render.
+- **Animated images**: GIF, APNG and animated WebP come from the same frame-by-frame render. Springs play exactly as in the preview, on every device.
+- **dotLottie** writes a spring as one value per frame, because Lottie has no springs, and a keyframe that follows the design system as the curve or spring the design system has at export time.
 - **dotLottie** keeps position, scale, rotation and opacity keys on shapes, paths and still images, and fill colour, stroke colour, stroke width, corner radius and path trim on shapes and paths, as native Lottie animation. A curved motion path becomes native Lottie path tangents, which players walk at the same speed Lolly does; a curved stretch whose curve overshoots is written as one key per frame, because players stop at the end of a curve. It refuses depth, tilt, blur, a camera, text and Motion entrances, exits and While on screen, and says which layer; export video for those. See [Lottie animations](/info/sequence-editor.html#lottie-animations).
 - **PowerPoint** places each object as it is drawn with no keyframes applied, and the export notes that an animation was left out.
 - **A still** is the frame at the playhead. Park the playhead where the shot looks best and export.

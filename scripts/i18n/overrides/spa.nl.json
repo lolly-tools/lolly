@@ -1,5 +1,31 @@
 {
   "Speakers": "Sprekers",
+  "Closest to the current palette": "Het dichtst bij het huidige palet",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Bekijk opgeslagen designsystemen en een paar startpunten. Er verandert niets tot je Gebruiken kiest.",
+  "Use this look": "Deze look gebruiken",
+  "Previewing {name}": "Voorvertoning: {name}",
+  "Choose up to two looks to compare.": "Kies maximaal twee looks om te vergelijken.",
+  "Drop a horizontal logo": "Zet hier een horizontaal logo neer",
+  "Drop a vertical logo": "Zet hier een verticaal logo neer",
+  "calm": "rustig",
+  "nature": "natuur",
+  "playful": "speels",
+  "creative": "creatief",
+  "warm": "warm",
+  "editorial": "redactioneel",
+  "neutral": "neutraal",
+  "red": "rood",
+  "orange": "oranje",
+  "yellow": "geel",
+  "green": "groen",
+  "teal": "petrol",
+  "blue": "blauw",
+  "purple": "paars",
+  "pink": "roze",
+  "deep": "donker",
+  "pale": "bleek",
+  "vivid": "fel",
+  "muted": "gedempt",
   "Sort languages": "Talen sorteren",
   "Lolly Imprint": "Lolly Imprint",
   "Hides the Lolly Imprint - a durable, invisible watermark - in the image pixels. It survives re-encoding and screenshots, so any copy of the file can be recognised later.": "Verbergt de Lolly Imprint, een duurzaam onzichtbaar watermerk, in de pixels van de afbeelding. Het overleeft hercodering en schermafbeeldingen, zodat elke kopie van het bestand later herkend kan worden.",
@@ -577,7 +603,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Voert de diepere AI-tekstcontrole uit bij Verifiëren en in Assets.",
   "Card size": "Kaartgrootte",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Er is 1 afbeelding of bestand toegevoegd op dit apparaat. Het blijft op dit apparaat en anderen zien dat bestand niet.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Er zijn {n} afbeeldingen of bestanden toegevoegd op dit apparaat. Ze blijven op dit apparaat en anderen zien die bestanden niet.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "Er is {n} afbeelding of bestand toegevoegd op dit apparaat. Het blijft op dit apparaat en anderen zien dat bestand niet.",
+    "other": "Er zijn {n} afbeeldingen of bestanden toegevoegd op dit apparaat. Ze blijven op dit apparaat en anderen zien die bestanden niet."
+  },
   "Check the version first": "Controleer eerst de versie",
   "Copy team link": "Teamlink kopiëren",
   "Could not create the project. Try again.": "Het project kon niet worden gemaakt. Probeer het opnieuw.",
@@ -1168,7 +1197,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Alle items zijn opgeslagen in het gedeelde project. De lokale originelen staan in de prullenbak of nog op hun plek.",
   "Your local items have not changed.": "Je lokale items zijn niet gewijzigd.",
   "1 item was saved to the shared project.": "1 item is opgeslagen in het gedeelde project.",
-  "{n} items were saved to the shared project.": "{n} items zijn opgeslagen in het gedeelde project.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} item is opgeslagen in het gedeelde project.",
+    "other": "{n} items zijn opgeslagen in het gedeelde project."
+  },
   "Wait for the current move to finish.": "Wacht tot het huidige verplaatsen klaar is.",
   "You cannot save to that shared project.": "Je kunt niet opslaan in dat gedeelde project.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Iedereen die {project} kan openen, ziet deze items. Zodra elk item daar is opgeslagen, gaan de lokale originelen naar de prullenbak, waar je ze kunt herstellen.",
@@ -1479,8 +1511,14 @@
   "file": "bestand",
   "samples": "samples",
   "text": "tekst",
-  "{n} changes found": "{n} wijzigingen gevonden",
-  "{n} pages differ": "{n} pagina’s verschillen",
+  "{n} changes found": {
+    "one": "{n} wijziging gevonden",
+    "other": "{n} wijzigingen gevonden"
+  },
+  "{n} pages differ": {
+    "one": "{n} pagina verschilt",
+    "other": "{n} pagina's verschillen"
+  },
   "Draft": "Concept",
   "Draft quality": "Conceptkwaliteit",
   "Draft rule": "Conceptregel",
@@ -1790,5 +1828,260 @@
   "Headlines - 36px, or 24px bold": "Koppen - 36px, of 24px vet",
   "Icons and borders only": "Alleen pictogrammen en randen",
   "Not usable": "Niet bruikbaar",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA is gedefinieerd voor sRGB, dus een kleur met groot gamut wordt beoordeeld op zijn sRGB-weergave."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA is gedefinieerd voor sRGB, dus een kleur met groot gamut wordt beoordeeld op zijn sRGB-weergave.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly is overgestapt op de eenvoudigere, snellere look omdat dit apparaat tekent zonder grafische versnelling.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly is overgestapt op de eenvoudigere, snellere look omdat dit apparaat het moeilijk had.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Automatisch aangezet op {date} omdat dit apparaat tekent zonder grafische versnelling.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Automatisch aangezet op {date} omdat dit apparaat moeite had om de interface te tekenen.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Automatisch overschakelen staat uit op dit apparaat, omdat je op {date} Ongedaan maken hebt gekozen.",
+  "Allow again": "Weer toestaan",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Automatisch overschakelen is weer toegestaan vanaf de volgende keer dat je Lolly opent.",
+  "Board": "Bord",
+  "Choose for {role}": "Kies voor {role}",
+  "Change {role}": "{role} wijzigen",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "De richtlijnen van je merk, geschreven voor mensen en agents. Agents lezen eerst de merkvaardigheid en daarna die voor het werk. Vaardigheden begeleiden het werk; wat Lolly controleert zijn de merkregels in Regels.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly is overgestapt op de eenvoudigere, snellere look zolang dit apparaat het druk heeft. Het gaat terug zodra het rustiger wordt.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly is overgestapt op de eenvoudigere, snellere look zolang de batterij bijna leeg is. Het gaat terug zodra dit apparaat oplaadt.",
+  "On for now because this device is busy. It switches back when things calm down.": "Voorlopig aan, omdat dit apparaat het druk heeft. Het gaat terug zodra het rustiger wordt.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Voorlopig aan, omdat de batterij bijna leeg is. Het gaat terug zodra dit apparaat oplaadt.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Automatisch aangezet op {date} toen dit apparaat het druk had. Je hebt Houden gekozen.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Automatisch aangezet op {date} toen de batterij bijna leeg was. Je hebt Houden gekozen.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly schakelt hier niet over voor een traag apparaat, omdat je op {date} Ongedaan maken hebt gekozen.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly schakelt niet over zolang dit apparaat het druk heeft of de batterij bijna leeg is, omdat je op {date} Ongedaan maken hebt gekozen.",
+  "Use the automatic colour": "Automatische kleur gebruiken",
+  "follows the design system ({colour})": "volgt het design system ({colour})",
+  "follows the design system": "volgt het design system",
+  "automatic ({colour})": "automatisch ({colour})",
+  "automatic": "automatisch",
+  "{name} spring": "Veer {name}",
+  "{name} (not in this design system)": "{name} (niet in dit design system)",
+  "Curves": "Curves",
+  "Springs": "Veren",
+  "Gentle": "Zacht",
+  "Quick": "Snel",
+  "Bouncy": "Verend",
+  "Custom spring": "Aangepaste veer",
+  "Stiffness": "Stijfheid",
+  "Damping": "Demping",
+  "Mass": "Massa",
+  "Settles in {t} s": "Komt in {t} s tot rust",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Het volgende sleutelframe komt voordat de veer tot rust komt. De rest van de beweging wordt over het segment verdeeld.",
+  "From the design system: {name}": "Uit het design system: {name}",
+  "Editing the curve detaches it from the design system.": "Als je de curve bewerkt, wordt hij losgekoppeld van het design system.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek. Houd ingedrukt voor het Potlood (Shift C) en het splinetype",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik om punten te plaatsen, sleep om te buigen, Alt voor een hoek",
+  "Recipients can change the inputs": "Ontvangers mogen de invoer wijzigen",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Iedereen met de link kan de invoer wijzigen en een nieuwe afbeelding krijgen. Vergrendelde invoer blijft zoals ingesteld.",
+  "{count} entries": {
+    "one": "{count} vermelding",
+    "other": "{count} vermeldingen"
+  },
+  "{count} files in this folder": {
+    "one": "{count} bestand in deze map",
+    "other": "{count} bestanden in deze map"
+  },
+  "{n} assets": {
+    "one": "{n} asset",
+    "other": "{n} assets"
+  },
+  "{n} assets found": {
+    "one": "{n} asset gevonden",
+    "other": "{n} assets gevonden"
+  },
+  "{n} capabilities match": {
+    "one": "{n} mogelijkheid komt overeen",
+    "other": "{n} mogelijkheden komen overeen"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} kopie gemaakt · geselecteerd",
+    "other": "{n} kopieën gemaakt · geselecteerd"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} creatie die hier uit Projecten werd verwijderd, bleef verwijderd.",
+    "other": "{n} creaties die hier uit Projecten werden verwijderd, bleven verwijderd."
+  },
+  "{n} embedded files": {
+    "one": "{n} ingebed bestand",
+    "other": "{n} ingebedde bestanden"
+  },
+  "{n} external references": {
+    "one": "{n} externe verwijzing",
+    "other": "{n} externe verwijzingen"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} bestand kon niet worden verpakt en is overgeslagen",
+    "other": "{n} bestanden konden niet worden verpakt en zijn overgeslagen"
+  },
+  "{n} folders": {
+    "one": "{n} map",
+    "other": "{n} mappen"
+  },
+  "{n} font files": {
+    "one": "{n} lettertypebestand",
+    "other": "{n} lettertypebestanden"
+  },
+  "{n} images": {
+    "one": "{n} afbeelding",
+    "other": "{n} afbeeldingen"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} afbeelding kon niet worden hersteld (opslag vol?)",
+    "other": "{n} afbeeldingen konden niet worden hersteld (opslag vol?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} afbeelding bleef bij het origineel - afbeeldingen hebben één plek; gebruik Knippen om ze te verplaatsen",
+    "other": "{n} afbeeldingen bleven bij het origineel - afbeeldingen hebben één plek; gebruik Knippen om ze te verplaatsen"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} invoerveld · geldt voor elk ontwerp",
+    "other": "{n} invoervelden · gelden voor elk ontwerp"
+  },
+  "{n} items": {
+    "one": "{n} item",
+    "other": "{n} items"
+  },
+  "{n} items copied": {
+    "one": "{n} item gekopieerd",
+    "other": "{n} items gekopieerd"
+  },
+  "{n} items cut": {
+    "one": "{n} item geknipt",
+    "other": "{n} items geknipt"
+  },
+  "{n} items moved": {
+    "one": "{n} item verplaatst",
+    "other": "{n} items verplaatst"
+  },
+  "{n} items pasted": {
+    "one": "{n} item geplakt",
+    "other": "{n} items geplakt"
+  },
+  "{n} keyframes": {
+    "one": "{n} keyframe",
+    "other": "{n} keyframes"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "other": "{n} logo's"
+  },
+  "{n} marks found": {
+    "one": "{n} merk gevonden",
+    "other": "{n} merken gevonden"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} nieuwer item overgeslagen",
+    "other": "{n} nieuwere items overgeslagen"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} van je creaties is een video of animatie",
+    "other": "{n} van je creaties zijn video's of animaties"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} ouder automatisch checkpoint weggelaten",
+    "other": "{n} oudere automatische checkpoints weggelaten"
+  },
+  "{n} pages": {
+    "one": "{n} pagina",
+    "other": "{n} pagina's"
+  },
+  "{n} places": {
+    "one": "{n} plek",
+    "other": "{n} plekken"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} punt - houd Alt ingedrukt voor een hoek",
+    "other": "{n} punten - houd Alt ingedrukt voor een hoek"
+  },
+  "{n} published versions": {
+    "one": "{n} gepubliceerde versie",
+    "other": "{n} gepubliceerde versies"
+  },
+  "{n} results": {
+    "one": "{n} resultaat",
+    "other": "{n} resultaten"
+  },
+  "{n} saved sessions": {
+    "one": "{n} opgeslagen sessie",
+    "other": "{n} opgeslagen sessies"
+  },
+  "{n} selected": {
+    "one": "{n} geselecteerd",
+    "other": "{n} geselecteerd"
+  },
+  "{n} selected assets": {
+    "one": "{n} geselecteerde asset",
+    "other": "{n} geselecteerde assets"
+  },
+  "{n} sessions": {
+    "one": "{n} sessie",
+    "other": "{n} sessies"
+  },
+  "{n} shapes": {
+    "one": "{n} vorm",
+    "other": "{n} vormen"
+  },
+  "{n} steps": {
+    "one": "{n} stap",
+    "other": "{n} stappen"
+  },
+  "{n} templates": {
+    "one": "{n} sjabloon",
+    "other": "{n} sjablonen"
+  },
+  "{n} volume keys": {
+    "one": "{n} volumetoets",
+    "other": "{n} volumetoetsen"
+  },
+  "{n} words": {
+    "one": "{n} woord",
+    "other": "{n} woorden"
+  },
+  "Importing {n} files…": "{n} bestanden importeren…",
+  "Dominant hand": "Dominante hand",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Met twee panelen, op een vouwbaar toestel of een bijna vierkante tablet, staan de bedieningselementen aan de kant weg van je tekenhand. Kanten wisselen in de kop van het paneel verandert dit ook.",
+  "Swap sides": "Kanten wisselen",
+  "Resize panes": "Formaat van panelen wijzigen",
+  "Changes that didn't finish saving": "Wijzigingen die niet helemaal zijn opgeslagen",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Je hebt deze wijzigingen gemaakt op {time} en de pagina werd gesloten voordat ze waren opgeslagen. Dit ontwerpsysteem is sindsdien opnieuw opgeslagen, in een ander tabblad of door een synchronisatie.",
+  "Restore your unsaved changes": "Niet-opgeslagen wijzigingen terugzetten",
+  "Keep the saved version": "Opgeslagen versie behouden",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Terugzetten vervangt de versie die sindsdien is opgeslagen. Als je de opgeslagen versie behoudt, worden de niet-opgeslagen wijzigingen van dit apparaat verwijderd.",
+  "Restored your unsaved changes.": "Niet-opgeslagen wijzigingen teruggezet.",
+  "Kept the saved version.": "Opgeslagen versie behouden.",
+  "Restored the changes that hadn't finished saving.": "De wijzigingen die niet helemaal waren opgeslagen, zijn teruggezet.",
+  "{n} file": "{n} bestand",
+  "It becomes the primary. Shades and roles can follow.": "Het wordt de primaire kleur. Tinten en rollen kunnen volgen.",
+  "Start here": "Begin hier",
+  "Browse looks →": "Looks bekijken →",
+  "Pick what you have →": "Kies wat je hebt →",
+  "Open the picker →": "Kleurkiezer openen →",
+  "Starter greys until a colour is added.": "Startgrijstinten tot er een kleur bij komt.",
+  "Lolly can’t draw in this browser yet": "Lolly kan in deze browser nog niet tekenen",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly tekent met WebGPU, dat deze browser nog niet biedt.",
+  "These work today:": "Deze werken vandaag:",
+  "Chrome or Edge, kept up to date": "Chrome of Edge, bijgewerkt",
+  "Safari 26 or later": "Safari 26 of nieuwer",
+  "Firefox, where WebGPU is turned on": "Firefox, als WebGPU aanstaat",
+  "Get the desktop app": "Download de desktop-app",
+  "Read why": "Lees waarom",
+  "Or drop an image or a list of colours here": "Of sleep hier een afbeelding of een lijst met kleuren naartoe",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Deze neutrale kleuren horen bij de startset, zodat de voorbeelden iets kunnen laten zien tot er hierboven kleuren worden toegevoegd.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Kies een kleur",
+  "Add a colour to the palette first.": "Voeg eerst een kleur toe aan het palet.",
+  "Notify": "Melden",
+  "Update automatically": "Automatisch bijwerken",
+  "App updates": "App-updates",
+  "Update notifications": "Updatemeldingen",
+  "Ready to install: {version}": "Klaar om te installeren: {version}",
+  "Restart now": "Nu herstarten",
+  "Install when I quit": "Installeren bij afsluiten",
+  "Release notes": "Uitgaveopmerkingen",
+  "Manual download": "Handmatig downloaden",
+  "Update could not finish. Try again or download the app.": "De update kon niet worden voltooid. Probeer het opnieuw of download de app.",
+  "Finish recording or exporting before updating.": "Rond de opname of export af voordat je bijwerkt.",
+  "Save could not finish. Save a recovery copy before updating.": "Het opslaan kon niet worden voltooid. Sla een herstelkopie op voordat je bijwerkt.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Deze AppImage kan hier niet worden vervangen. Download de app naar een beschrijfbare map.",
+  "This installation uses its package manager for updates.": "Deze installatie gebruikt de pakketbeheerder voor updates.",
+  "This desktop platform does not support in-app updates.": "Dit desktopplatform ondersteunt geen updates vanuit de app.",
+  "Update installation was cancelled.": "De installatie van de update is geannuleerd."
 }

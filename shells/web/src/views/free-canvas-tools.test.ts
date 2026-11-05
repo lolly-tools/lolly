@@ -210,12 +210,27 @@ const plainBox = (id: string, x: number, y: number): Box =>
 const MODES = ['select', 'create', 'pen', 'line', 'pencil'] as const;
 type Mode = typeof MODES[number];
 
-/** Put the editor into `m` the way a user would: through the rail. */
+/** Choose the Pen or the Pencil from the pen slot's menu: a right-click, as a hold opens
+ *  the same menu. */
+function pickFromPenSlot(f: Fixture, tool: 'pen' | 'pencil'): void {
+  btn(f, 'fc-btn-pen').dispatchEvent(new W.MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+  frames();
+  const row = f.stageEl.querySelector<HTMLButtonElement>(`.fc-popover [data-pop="${tool}"]`);
+  assert.ok(row, `the pen slot's menu offers the ${tool}`);
+  click(row!);
+  frames();
+}
+
+/** Put the editor into `m` the way a user would: through the rail. The Pen and the Pencil
+ *  share one slot: a click picks the tool the slot shows, and its menu picks the other. */
 function enter(f: Fixture, m: Mode): void {
   if (m === 'select') { click(btn(f, 'fc-btn-pointer')); frames(); return; }
-  if (m === 'pen') { click(btn(f, 'fc-btn-pen')); frames(); return; }
+  if (m === 'pen' || m === 'pencil') {
+    const slot = btn(f, 'fc-btn-pen');
+    if (slot.dataset.variant === m) { click(slot); frames(); } else pickFromPenSlot(f, m);
+    return;
+  }
   if (m === 'line') { click(btn(f, 'fc-btn-line')); frames(); return; }
-  if (m === 'pencil') { click(btn(f, 'fc-btn-pencil')); frames(); return; }
   // Create: the Add button opens a menu of kinds; the first item arms that kind.
   click(btn(f, 'fc-btn-add'));
   frames();
@@ -238,16 +253,20 @@ function stageMode(f: Fixture): Mode {
   return on[0] ?? 'select';
 }
 
-/** The rail as the USER reads it: exactly one mode button pressed, and it is `m`. */
+/** The rail as the USER reads it: exactly one mode button pressed, and it is `m`. The Pen
+ *  and the Pencil share the pen slot, whose shown tool says which of the two is out. */
 function railMode(f: Fixture): Mode {
   const map: Array<[Mode, string]> = [
     ['select', 'fc-btn-pointer'], ['create', 'fc-btn-add'], ['pen', 'fc-btn-pen'], ['line', 'fc-btn-line'],
-    ['pencil', 'fc-btn-pencil'],
   ];
+  assert.equal(f.stageEl.querySelector('.fc-btn-pencil'), null, 'the Pencil has no rail button of its own');
   const on = map.filter(([, cls]) => pressed(btn(f, cls))).map(([m]) => m);
   assert.equal(on.length, 1, `exactly one mode button is pressed, not ${on.length} (${on.join(' + ')})`);
   for (const [m, cls] of map) assert.equal(armed(btn(f, cls)), on[0] === m, `.is-armed tracks aria-pressed on .${cls}`);
-  return on[0]!;
+  if (on[0] !== 'pen') return on[0]!;
+  const shown = btn(f, 'fc-btn-pen').dataset.variant;
+  assert.ok(shown === 'pen' || shown === 'pencil', `the pressed pen slot shows the Pen or the Pencil, not ${shown}`);
+  return shown;
 }
 
 const assertMode = (f: Fixture, m: Mode, why = ''): void => {

@@ -1,6 +1,6 @@
 # Audit log
 
-Work keeps a tamper-evident, append-only record of every governed action on this deploy:
+Lolly Work keeps a tamper-evident, append-only record of every governed action on this deploy:
 sign-ins, grant and policy edits, approvals, group and lockout changes, link mints and
 revocations, provider changes, catalog changes and configuration applies. Admins read it in the
 console and auditors export a copy. Anyone who holds a copy of the head can later show that nothing

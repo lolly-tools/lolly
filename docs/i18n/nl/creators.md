@@ -20,7 +20,7 @@ Kies een tool en vul hem in, of leg een pagina vrij uit op het Design-canvas.
 
 Je design system bepaalt hoe elke tool eruitziet.
 
-- **[Design System Setup](/info/brand-studio.html)** - logo's, kleuren, typografie en de rest, één keer ingesteld op `#/start`.
+- **[Lolly Design System Setup](/info/brand-studio.html)** - logo's, kleuren, typografie en de rest, één keer ingesteld op `#/start`.
 - **[Lolly Demo in gebruik](/info/lolly-demo-in-use.html)** - colourways op echt werk, en overstappen op je eigen design system.
 - **[Merkarchitecturen](/info/brand-architectures.html)** - meerdere design systems, of één met meerdere colourways, voor één organisatie.
 - **[Samenwerken met partners](/info/partners.html)** - deel je merk met een partner, werk in een merk dat je kreeg en maak een sponsorwand.

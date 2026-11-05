@@ -1,5 +1,31 @@
 {
   "Speakers": "Mga nagsasalita",
+  "Closest to the current palette": "Pinakamalapit sa kasalukuyang palette",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "I-preview ang mga naka-save na design system at ilang panimulang punto. Walang magbabago hangga't hindi mo pinipili ang Gamitin.",
+  "Use this look": "Gamitin ang look na ito",
+  "Previewing {name}": "Pini-preview ang {name}",
+  "Choose up to two looks to compare.": "Pumili ng hanggang dalawang look na ikukumpara.",
+  "Drop a horizontal logo": "I-drop dito ang isang pahalang na logo",
+  "Drop a vertical logo": "I-drop dito ang isang patayong logo",
+  "calm": "kalmado",
+  "nature": "kalikasan",
+  "playful": "masigla",
+  "creative": "malikhain",
+  "warm": "mainit",
+  "editorial": "editoryal",
+  "neutral": "neutral",
+  "red": "pula",
+  "orange": "kahel",
+  "yellow": "dilaw",
+  "green": "berde",
+  "teal": "asul-berde",
+  "blue": "asul",
+  "purple": "lila",
+  "pink": "rosas",
+  "deep": "madilim",
+  "pale": "maputla",
+  "vivid": "matingkad",
+  "muted": "malamlam",
   "Sort languages": "Ayusin ang mga wika",
   "Lolly Imprint": "Lolly Imprint",
   "Hides the Lolly Imprint - a durable, invisible watermark - in the image pixels. It survives re-encoding and screenshots, so any copy of the file can be recognised later.": "Itinatago ang Lolly Imprint, isang matibay at invisible na watermark, sa mga pixel ng imahe. Nakakaligtas ito sa re-encoding at mga screenshot, kaya makikilala pa rin ang anumang kopya ng file sa ibang pagkakataon.",
@@ -587,7 +613,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Pinapatakbo ang mas malalim na AI-text check sa Verify at sa Mga asset.",
   "Card size": "Laki ng card",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "May 1 larawan o file na idinagdag sa device na ito. Mananatili ito sa device na ito, at hindi makikita ng iba ang file na iyon.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "May {n} larawan o file na idinagdag sa device na ito. Mananatili ang mga ito sa device na ito, at hindi makikita ng iba ang mga file na iyon.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "May {n} larawan o file na idinagdag sa device na ito. Mananatili ang mga ito sa device na ito, at hindi makikita ng iba ang mga file na iyon.",
+    "other": "May {n} larawan o file na idinagdag sa device na ito. Mananatili ang mga ito sa device na ito, at hindi makikita ng iba ang mga file na iyon."
+  },
   "Check the version first": "Tingnan muna ang bersyon",
   "Copy team link": "Kopyahin ang link ng team",
   "Could not create the project. Try again.": "Hindi nagawa ang project. Subukan ulit.",
@@ -1178,7 +1207,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Naka-save na sa shared na project ang bawat item. Nasa Trash o nasa dating lugar pa ang mga lokal na orihinal.",
   "Your local items have not changed.": "Hindi nagbago ang iyong mga lokal na item.",
   "1 item was saved to the shared project.": "Na-save ang 1 item sa shared na project.",
-  "{n} items were saved to the shared project.": "Na-save ang {n} item sa shared na project.",
+  "{n} items were saved to the shared project.": {
+    "one": "Na-save ang {n} item sa shared na project.",
+    "other": "Na-save ang {n} item sa shared na project."
+  },
   "Wait for the current move to finish.": "Hintaying matapos ang kasalukuyang paglilipat.",
   "You cannot save to that shared project.": "Hindi ka makakapag-save sa shared na project na iyon.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Makikita ng lahat ng makakabukas ng {project} ang mga item na ito. Kapag nai-save na ang bawat item doon, ililipat sa Trash ang mga lokal na orihinal, kung saan maaari mo silang ibalik.",
@@ -1489,8 +1521,14 @@
   "file": "file",
   "samples": "mga sample",
   "text": "teksto",
-  "{n} changes found": "{n} pagbabagong nahanap",
-  "{n} pages differ": "{n} pahinang magkaiba",
+  "{n} changes found": {
+    "one": "{n} pagbabago ang nahanap",
+    "other": "{n} pagbabago ang nahanap"
+  },
+  "{n} pages differ": {
+    "one": "{n} pahina ang magkaiba",
+    "other": "{n} pahina ang magkaiba"
+  },
   "Draft": "Draft",
   "Draft quality": "Kalidad ng draft",
   "Draft rule": "Draft na panuntunan",
@@ -1800,5 +1838,259 @@
   "Headlines - 36px, or 24px bold": "Mga headline - 36px, o 24px na bold",
   "Icons and borders only": "Mga icon at border lang",
   "Not usable": "Hindi magagamit",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "Ang APCA ay para sa sRGB, kaya ang wide-gamut na kulay ay sinusukat batay sa sRGB rendering nito."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "Ang APCA ay para sa sRGB, kaya ang wide-gamut na kulay ay sinusukat batay sa sRGB rendering nito.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lumipat ang Lolly sa mas simple at mas mabilis na look dahil walang graphics acceleration ang pagguhit ng device na ito.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lumipat ang Lolly sa mas simple at mas mabilis na look dahil nahihirapan ang device na ito.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Awtomatikong in-on noong {date} dahil walang graphics acceleration ang pagguhit ng device na ito.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Awtomatikong in-on noong {date} dahil nahirapan ang device na ito sa pagguhit ng interface.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Naka-off ang awtomatikong paglipat sa device na ito dahil pinili mo ang I-undo noong {date}.",
+  "Allow again": "Payagan ulit",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Papayagan na ulit ang awtomatikong paglipat sa susunod na pagbukas mo ng Lolly.",
+  "Board": "Board",
+  "Choose for {role}": "Pumili para sa {role}",
+  "Change {role}": "Baguhin ang {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ang gabay ng brand mo, isinulat para sa mga tao at agent. Binabasa muna ng agents ang brand skill, saka ang para sa gawain. Gumagabay ang skills sa trabaho; ang house rules sa Rules ang sinusuri ng Lolly.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lumipat ang Lolly sa mas simple at mas mabilis na look habang abala ang device na ito. Babalik ito kapag humupa na ang bigat.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lumipat ang Lolly sa mas simple at mas mabilis na look habang mahina ang baterya. Babalik ito kapag nagcha-charge na ang device na ito.",
+  "On for now because this device is busy. It switches back when things calm down.": "Naka-on muna dahil abala ang device na ito. Babalik ito kapag humupa na ang bigat.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Naka-on muna dahil mahina ang baterya. Babalik ito kapag nagcha-charge na ang device na ito.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Awtomatikong in-on noong {date} habang abala ang device na ito. Pinili mo ang Itago.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Awtomatikong in-on noong {date} habang mahina ang baterya. Pinili mo ang Itago.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Hindi lilipat ang Lolly rito para sa mabagal na device, dahil pinili mo ang I-undo noong {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Hindi lilipat ang Lolly habang abala ang device na ito o mahina ang baterya, dahil pinili mo ang I-undo noong {date}.",
+  "Use the automatic colour": "Gamitin ang awtomatikong kulay",
+  "follows the design system ({colour})": "sumusunod sa design system ({colour})",
+  "follows the design system": "sumusunod sa design system",
+  "automatic ({colour})": "awtomatiko ({colour})",
+  "automatic": "awtomatiko",
+  "{name} spring": "Spring na {name}",
+  "{name} (not in this design system)": "{name} (wala sa design system na ito)",
+  "Curves": "Mga curve",
+  "Springs": "Mga spring",
+  "Gentle": "Banayad",
+  "Quick": "Mabilis",
+  "Bouncy": "Talbog",
+  "Custom spring": "Custom na spring",
+  "Stiffness": "Tigas",
+  "Damping": "Damping",
+  "Mass": "Masa",
+  "Settles in {t} s": "Tumitigil sa loob ng {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Dumarating ang susunod na keyframe bago tumigil ang spring. Ikinakalat ang natitirang galaw sa buong segment.",
+  "From the design system: {name}": "Mula sa design system: {name}",
+  "Editing the curve detaches it from the design system.": "Kapag inedit ang curve, hihiwalay ito sa design system.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner. I-hold para sa Lapis (Shift C) at sa spline type",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner",
+  "Recipients can change the inputs": "Puwedeng baguhin ng recipients ang inputs",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Kahit sino na may link ay puwedeng magbago ng inputs nito at kumuha ng bagong larawan. Mananatili ang naka-lock na inputs ayon sa pagkakaset.",
+  "{count} entries": {
+    "one": "{count} entry",
+    "other": "{count} entry"
+  },
+  "{count} files in this folder": {
+    "one": "{count} file sa folder na ito",
+    "other": "{count} file sa folder na ito"
+  },
+  "{n} assets": {
+    "one": "{n} asset",
+    "other": "{n} asset"
+  },
+  "{n} assets found": {
+    "one": "{n} asset ang nahanap",
+    "other": "{n} asset ang nahanap"
+  },
+  "{n} capabilities match": {
+    "one": "{n} capability ang tumugma",
+    "other": "{n} capability ang tumugma"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} kopya ang nagawa · napili",
+    "other": "{n} kopya ang nagawa · napili"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} likhang inalis sa Mga Project dito ay nanatiling inalis.",
+    "other": "{n} likhang inalis sa Mga Project dito ay nanatiling inalis."
+  },
+  "{n} embedded files": {
+    "one": "{n} file na naka-embed",
+    "other": "{n} file na naka-embed"
+  },
+  "{n} external references": {
+    "one": "{n} panlabas na sanggunian",
+    "other": "{n} panlabas na sanggunian"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} file ang hindi na-pack at naiwan",
+    "other": "{n} file ang hindi na-pack at naiwan"
+  },
+  "{n} folders": {
+    "one": "{n} folder",
+    "other": "{n} folder"
+  },
+  "{n} font files": {
+    "one": "{n} font file",
+    "other": "{n} font file"
+  },
+  "{n} images": {
+    "one": "{n} larawan",
+    "other": "{n} larawan"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} larawan ang hindi na-restore (puno na ba ang storage?)",
+    "other": "{n} larawan ang hindi na-restore (puno na ba ang storage?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} larawan ang nanatili sa orihinal - iisa lang ang tahanan ng mga larawan; gamitin ang Cut para ilipat ang mga ito",
+    "other": "{n} larawan ang nanatili sa orihinal - iisa lang ang tahanan ng mga larawan; gamitin ang Cut para ilipat ang mga ito"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} input · para sa bawat design",
+    "other": "{n} input · para sa bawat design"
+  },
+  "{n} items": {
+    "one": "{n} item",
+    "other": "{n} item"
+  },
+  "{n} items copied": {
+    "one": "{n} item ang na-copy",
+    "other": "{n} item ang na-copy"
+  },
+  "{n} items cut": {
+    "one": "{n} item ang na-cut",
+    "other": "{n} item ang na-cut"
+  },
+  "{n} items moved": {
+    "one": "{n} item ang inilipat",
+    "other": "{n} item ang inilipat"
+  },
+  "{n} items pasted": {
+    "one": "{n} item ang na-paste",
+    "other": "{n} item ang na-paste"
+  },
+  "{n} keyframes": {
+    "one": "{n} keyframe",
+    "other": "{n} keyframe"
+  },
+  "{n} logos": {
+    "one": "{n} logo",
+    "other": "{n} logo"
+  },
+  "{n} marks found": {
+    "one": "{n} mark ang nahanap",
+    "other": "{n} mark ang nahanap"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} mas bagong item ang nilaktawan",
+    "other": "{n} mas bagong item ang nilaktawan"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} sa mga ginawa mo ay video o animation",
+    "other": "{n} sa mga ginawa mo ay video o animation"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} mas lumang awtomatikong checkpoint ang hindi ipinapakita",
+    "other": "{n} mas lumang awtomatikong checkpoint ang hindi ipinapakita"
+  },
+  "{n} pages": {
+    "one": "{n} pahina",
+    "other": "{n} pahina"
+  },
+  "{n} places": {
+    "one": "{n} lugar",
+    "other": "{n} lugar"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} point - pindutin nang matagal ang Alt para sa corner",
+    "other": "{n} point - pindutin nang matagal ang Alt para sa corner"
+  },
+  "{n} published versions": {
+    "one": "{n} nai-publish na bersyon",
+    "other": "{n} nai-publish na bersyon"
+  },
+  "{n} results": {
+    "one": "{n} resulta",
+    "other": "{n} resulta"
+  },
+  "{n} saved sessions": {
+    "one": "{n} naka-save na session",
+    "other": "{n} naka-save na session"
+  },
+  "{n} selected": {
+    "one": "{n} napili",
+    "other": "{n} napili"
+  },
+  "{n} selected assets": {
+    "one": "{n} napiling asset",
+    "other": "{n} napiling asset"
+  },
+  "{n} sessions": {
+    "one": "{n} session",
+    "other": "{n} session"
+  },
+  "{n} shapes": {
+    "one": "{n} shape",
+    "other": "{n} shape"
+  },
+  "{n} steps": {
+    "one": "{n} hakbang",
+    "other": "{n} hakbang"
+  },
+  "{n} templates": {
+    "one": "{n} template",
+    "other": "{n} template"
+  },
+  "{n} volume keys": {
+    "one": "{n} volume key",
+    "other": "{n} volume key"
+  },
+  "{n} words": {
+    "one": "{n} salita",
+    "other": "{n} salita"
+  },
+  "Dominant hand": "Nangingibabaw na kamay",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Kapag dalawa ang pane, sa foldable o halos parisukat na tablet, nasa gilid na malayo sa kamay mong pangguhit ang mga kontrol. Binabago rin ito ng Pagpalitin ang mga gilid sa header ng pane.",
+  "Swap sides": "Pagpalitin ang mga gilid",
+  "Resize panes": "Baguhin ang laki ng mga pane",
+  "Changes that didn't finish saving": "Mga pagbabagong hindi natapos i-save",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Ginawa mo ang mga pagbabagong ito noong {time}, at nagsara ang page bago na-save ang mga ito. Na-save na ulit ang design system na ito mula noon, sa ibang tab o sa pamamagitan ng sync.",
+  "Restore your unsaved changes": "Ibalik ang mga hindi na-save na pagbabago",
+  "Keep the saved version": "Panatilihin ang naka-save na bersyon",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Kapag ibinalik, papalitan nito ang bersyong na-save mula noon. Kapag pinanatili ang naka-save na bersyon, buburahin sa device na ito ang mga hindi na-save na pagbabago.",
+  "Restored your unsaved changes.": "Naibalik ang mga hindi na-save na pagbabago.",
+  "Kept the saved version.": "Pinanatili ang naka-save na bersyon.",
+  "Restored the changes that hadn't finished saving.": "Naibalik ang mga pagbabagong hindi natapos i-save.",
+  "{n} file": "{n} file",
+  "It becomes the primary. Shades and roles can follow.": "Ito ang magiging primary. Puwedeng sumunod ang mga shade at role.",
+  "Start here": "Magsimula rito",
+  "Browse looks →": "Mag-browse ng looks →",
+  "Pick what you have →": "Piliin ang mayroon ka →",
+  "Open the picker →": "Buksan ang picker →",
+  "Starter greys until a colour is added.": "Mga starter na gray hanggang may maidagdag na kulay.",
+  "Lolly can’t draw in this browser yet": "Hindi pa makakaguhit ang Lolly sa browser na ito",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Gumuguhit ang Lolly gamit ang WebGPU, na wala pa sa browser na ito.",
+  "These work today:": "Gumagana na ngayon:",
+  "Chrome or Edge, kept up to date": "Chrome o Edge na updated",
+  "Safari 26 or later": "Safari 26 o mas bago",
+  "Firefox, where WebGPU is turned on": "Firefox, kapag naka-on ang WebGPU",
+  "Get the desktop app": "Kunin ang desktop app",
+  "Read why": "Basahin kung bakit",
+  "Or drop an image or a list of colours here": "O mag-drop dito ng larawan o listahan ng mga kulay",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Kasama ng starter ang mga neutral na kulay na ito para may maipakita ang mga preview hanggang may maidagdag na kulay sa itaas.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Pumili ng kulay",
+  "Add a colour to the palette first.": "Magdagdag muna ng kulay sa paleta.",
+  "Notify": "Abisuhan",
+  "Update automatically": "Awtomatikong mag-update",
+  "App updates": "Mga update ng app",
+  "Update notifications": "Mga abiso sa update",
+  "Ready to install: {version}": "Handa nang i-install: {version}",
+  "Restart now": "I-restart ngayon",
+  "Install when I quit": "I-install kapag lumabas ako",
+  "Release notes": "Mga tala ng release",
+  "Manual download": "Manu-manong pag-download",
+  "Update could not finish. Try again or download the app.": "Hindi makumpleto ang update. Subukan muli o i-download ang app.",
+  "Finish recording or exporting before updating.": "Tapusin ang pag-record o pag-export bago mag-update.",
+  "Save could not finish. Save a recovery copy before updating.": "Hindi makumpleto ang pag-save. Mag-save ng kopya para sa pagbawi bago mag-update.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Hindi mapapalitan ang AppImage na ito rito. I-download ang app sa folder na maaaring sulatan.",
+  "This installation uses its package manager for updates.": "Ginagamit ng pag-install na ito ang package manager nito para sa mga update.",
+  "This desktop platform does not support in-app updates.": "Hindi sinusuportahan ng desktop platform na ito ang pag-update sa loob ng app.",
+  "Update installation was cancelled.": "Kinansela ang pag-install ng update."
 }

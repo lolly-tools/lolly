@@ -9,8 +9,8 @@ You need a social card, a certificate and a profile badge today, not next sprint
 
 ## One file per row
 
-Paste or import a spreadsheet in [Batch](/info/batch.html#make-many-versions-of-one-design) and get one finished file per row, in the formats and sizes you set.
+Paste or import a spreadsheet in [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) and get one finished file per row, in the formats and sizes you set.
 
-![Batch export settings: file name, default format, units, DPI and the number of rows to render](/info/shots/use-batch-toolbar.svg)
+![Lolly Batch export settings: file name, default format, units, DPI and the number of rows to render](/info/shots/use-batch-toolbar.svg)
 
-The rules themselves are set once in [Design System Setup](/info/brand-studio.html) by whoever owns the design system, and every file above follows them. When your organisation runs Lolly Work, it adds sign-in, shared projects and assets, live work collabs and approvals; see [Use Lolly at your organisation](/info/organisation.html).
+The rules themselves are set once in [Lolly Design System Setup](/info/brand-studio.html) by whoever owns the design system, and every file above follows them. When your organisation runs Lolly Work, it adds sign-in, shared projects and assets, live work collabs and approvals; see [Use Lolly at your organisation](/info/organisation.html).

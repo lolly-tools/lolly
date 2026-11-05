@@ -19,6 +19,10 @@
  * The compiled entry is tried first: where both exist, the built one is the shipped one.
  */
 
+import { parseArgs } from './args.ts';
+import { resolve } from 'node:path';
+import { hasContentMarker } from '@lolly-tools/node-shell/repo-root';
+import { usageError } from './exit-codes.ts';
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -31,6 +35,7 @@ export interface TuiLaunch {
   kind: 'package' | 'repo';
   /** The node executable's argv (after the executable itself). */
   args: string[];
+  tsconfig?: string;
 }
 
 /** Absolute path of a candidate entry, or null when it is not on this disk. */
@@ -69,7 +74,7 @@ export function resolveTuiLaunch(): TuiLaunch {
       'TSX_MISSING',
     );
   }
-  return { kind: 'repo', args: ['--import', pathToFileURL(loader).href, source] };
+  return { kind: 'repo', args: ['--import', pathToFileURL(loader).href, source], tsconfig: fileURLToPath(new URL('../../tui/tsconfig.json', import.meta.url)) };
 }
 
 /** POSIX shells report a signalled child as 128 + the signal number; match them. */
@@ -86,8 +91,12 @@ function exitCodeFrom(code: number | null, signal: NodeJS.Signals | null): numbe
  * the same sentence for the same situation and there is one place that decides.
  */
 export async function tuiCli(rest: readonly string[] = []): Promise<number> {
+  const { flags } = parseArgs([...rest]);
+  const root = flags.root ? resolve(flags.root) : undefined;
+  if (root && !hasContentMarker(root)) throw usageError('--root must name a Lolly checkout or materialized tools/catalog directory.', 'BAD_INPUT');
   const launch = resolveTuiLaunch();
-  const child = spawn(process.execPath, [...launch.args, ...rest], { stdio: 'inherit' });
+  const screenReader = flags['screen-reader'];
+  const child = spawn(process.execPath, [...launch.args, ...rest], { stdio: 'inherit', env: { ...process.env, ...(screenReader === undefined ? {} : { INK_SCREEN_READER: /^(0|false|off|no)$/i.test(screenReader) ? 'false' : 'true' }), ...(root ? { LOLLY_ROOT: root } : {}), ...(launch.tsconfig ? { TSX_TSCONFIG_PATH: launch.tsconfig } : {}) } });
   return new Promise<number>((resolve, reject) => {
     child.on('error', reject);
     child.on('close', (code, signal) => resolve(exitCodeFrom(code, signal)));

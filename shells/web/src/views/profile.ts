@@ -15,7 +15,7 @@ import { chromeFollowsDesignSystem } from '../lib/chrome-follow.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { icon } from '../lib/icons.ts';
 import { getMetrics } from '../metrics.ts';
-import { CATEGORY_FLAGS, CONNECTOR_FLAGS, JELLY_FLAG, LEARNING_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, isFlagOn } from '../feature-flags.ts';
+import { CATEGORY_FLAGS, CONNECTOR_FLAGS, SHARE_LINK_FLAGS, JELLY_FLAG, LEARNING_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, isFlagOn } from '../feature-flags.ts';
 import { ensureJelly } from '../lib/jelly.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
@@ -174,6 +174,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
     ...(jellyHidden ? [] : [JELLY_FLAG]),
     WOBBLY_FLAG, WOBBLY_MESH_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, LEARNING_FLAG, PRIVATE_COLLAB_FLAG,
     ...CONNECTOR_FLAGS,
+    ...SHARE_LINK_FLAGS,
   ]; pv.LISTED_FLAGS = LISTED_FLAGS;
 
   // ── Accessibility prefs (lib/a11y-prefs.ts) ──────────────────────────────────
@@ -255,6 +256,9 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   pv.rows.wireFlagRows();
 
   pv.prefs.wireA11yRows();
+
+  pv.handUnsub = null;
+  pv.prefs.wireHandRow();
 
   pv.prefs.wireAppearanceRows();
 

@@ -1,0 +1,16 @@
+[package]
+name = "gridcraft-core"
+version = "0.14.2"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+publish = false
+description = "GridCraft core types: cell addresses, values, errors, date serials (Lolly copy with an injected clock)"
+
+[dependencies]
+serde = { version = "1", features = ["derive", "rc"] }
+thiserror = "2"
+chrono = { version = "0.4.45", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+serde_json = { version = "1", features = ["float_roundtrip"] }

@@ -195,6 +195,7 @@ jobs:
           name: release-source-catalog-${{ inputs.target }}
           path: brands/${{ inputs.profile }}/catalog/tools/index.sig.json
           if-no-files-found: error
+          retention-days: 1
 
   compile:
     needs: [plan, source-catalog]
@@ -245,6 +246,7 @@ jobs:
           path: ${{ runner.temp }}/release-frontend-input-${{ inputs.target }}.tar.zst
           archive: false
           if-no-files-found: error
+          retention-days: 1
 
   sign-artifact:
     needs: [plan, source-catalog, compile]
@@ -323,6 +325,7 @@ jobs:
           path: release-frontend
           include-hidden-files: true
           if-no-files-found: error
+          retention-days: 1
       # The web frontend is 2.9 GB in about 47,000 files, and its two callers (deployment-suse.yml and
       # preview-web.yml) unpack this one file instead. The tar also keeps the epoch stamp that
       # build-delivery.ts gave each file, which nginx's native validators are built from.
@@ -335,3 +338,4 @@ jobs:
           path: ${{ runner.temp }}/release-frontend-web.tar.zst
           archive: false
           if-no-files-found: error
+          retention-days: 1

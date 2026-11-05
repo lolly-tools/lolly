@@ -14,13 +14,15 @@ import type { ChoreoOrder, ShowcaseId } from '../choreograph.ts';
 import type { InputValue } from '../../../../../engine/src/inputs.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { escape as escapeText } from '../../utils.ts';
-import { t } from '../../i18n.ts';
+import { t, tn } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { CHOREO_SHOWCASES, reflectChoreographChoice } from '../choreograph-options.ts';
 import { wireChoreographPreview } from '../choreograph-preview.ts';
 import { HEAD_CHOICES, ROUTE_CHOICES, dashRowOn } from './shared.ts';
 import type { ConfirmAsk, ImportMode, NumberAsk, SvgLayerPlan, SvgSourceBox } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { offerMotionDurations } from '../motion-durations.ts';
+import { ensureMotionTokens } from '../../lib/motion-tokens.ts';
 
 /**
  * Validate a typed dash pattern. The ENGINE owns this contract (it is the same parse the
@@ -649,7 +651,7 @@ export function askLiftLayers(fc: FcCtx): void {
             // when it is there the row can say WHICH element of the original page this
             // layer is. Minted by the canvas, never read out of a stranger's file.
             const label = t('Layer {n}', { n: i + 1 });
-            const nodes = L.nodes === 1 ? t('1 shape') : t('{n} shapes', { n: L.nodes });
+            const nodes = tn('1 shape', '{n} shapes', { n: L.nodes });
             const from =
               typeof L.boxId === 'string' && L.boxId
                 ? ` <span class="fc-lift-n">${escapeText(L.boxId)}</span>`
@@ -952,6 +954,10 @@ export function askChoreograph(fc: FcCtx): void {
 
   const cards = Array.from(p.querySelectorAll<HTMLButtonElement>('[data-choreo]'));
   const secIn = p.querySelector<HTMLInputElement>('[data-choreo-sec]')!;
+  // The design system's durations long enough to be a Length, as suggestions (plans/329).
+  const offerLengths = (): void => offerMotionDurations(secIn, { min: 0.8, max: 3600, unit: 's' });
+  offerLengths();
+  void ensureMotionTokens(fc.host as HostV1).then(() => { if (live()) offerLengths(); });
   const staggerIn = p.querySelector<HTMLInputElement>('[data-choreo-stagger]')!;
   const orderSel = p.querySelector<HTMLSelectElement>('[data-choreo-order]')!;
   const camIn = p.querySelector<HTMLInputElement>('[data-choreo-camera]')!;

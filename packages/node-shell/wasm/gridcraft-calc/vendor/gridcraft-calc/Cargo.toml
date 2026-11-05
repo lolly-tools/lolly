@@ -1,0 +1,16 @@
+[package]
+name = "gridcraft-calc"
+version = "0.14.2"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+publish = false
+description = "GridCraft calculation engine (Lolly copy with an injected clock and seed)"
+
+[dependencies]
+gridcraft-core = { path = "../../../xlsx-numfmt/vendor/gridcraft-core" }
+gridcraft-formula = { path = "../gridcraft-formula" }
+gridcraft-functions = { path = "../gridcraft-functions", default-features = false }
+gridcraft-numfmt = { path = "../../../xlsx-numfmt/vendor/gridcraft-numfmt" }
+gridcraft-model = { path = "../gridcraft-model" }
+log = "0.4"

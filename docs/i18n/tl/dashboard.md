@@ -18,7 +18,7 @@ Ang Preferences ay isang mahabang page na may **settings rail** sa gilid at **Se
 
 - <!--i:usercheck--> **Your details** - ang pangalan, mga detalye ng contact at headshot mo, at ang **Use my details to create** switch. Ipinapaliwanag ng [Mga profile](/info/profile.html) kung paano ginagamit ng mga tool ang mga ito.
 - <!--i:seal--> **Content Credentials** - ang opsyonal na verified identity na pumipirma sa mga export mo. Tingnan ang [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - lumipat, magdagdag, magtago o mag-alis ng design system. Sinasaklaw ng [Design System Setup](/info/brand-studio.html#manage-your-design-systems) ang bawat aksyon.
+- <!--i:palette--> **Design systems** - lumipat, magdagdag, magtago o mag-alis ng design system. Sinasaklaw ng [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) ang bawat aksyon.
 - <!--i:moon--> **Appearance** - ang theme (Light, Dark o Brand, na pinipinturahan ang app sa palette mo), **Your colourway** kapag may higit sa isang iniaalok ang design system ([Gawing iyo ang isang colourway](/info/colourways.html#make-a-colourway-your-own)) at **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - ang set na pinagguguhitan ng mga emoji mo kapag nagsimula ka ng bago, kasama ang lisensya ng artwork nito, at kung gaano kalakas ang pagre-recolor ng palette mo sa mga ito (**Off**, **Subtle**, **Strong**, **Full**, **Mono** o **Duotone**). Pinapanatili ng **Keep skin tones and flags** ang mga iyon sa sarili nilang kulay. Ang gawa mo na ay nag-iingat ng set na ginamit dito.
 - <!--i:eyeoff--> **Accessibility** - apat na comfort switch, kasama ang Sound at Neurospicy Mode. Tingnan ang [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ Bumubukas ang tab sa cover na pininturahan sa sariling mga kulay ng system, kasa
 - <!--i:sliders--> **Tokens** - radius, spacing, mga epekto at gradient.
 - <!--i:document--> **Print & CMYK** - ang mga kulay na naka-lock sa eksaktong ink, at ang mga press condition na maaaring ideklara ng CMYK PDF.
 
-Ang paglipat lang ang binabago ng tab na ito. Ine-edit mo ang design system sa [Design System Setup](/info/brand-studio.html) sa `#/start`, na nilalagyan ng link ng cover. Sinasabi ito ng cover ng read-only na system; ang mga lokal na system na ginagawa mo ay nananatiling mae-edit. Ang `/b` at `/brand` ay mga shortlink diretso sa tab na ito.
+Ang paglipat lang ang binabago ng tab na ito. Ine-edit mo ang design system sa [Lolly Design System Setup](/info/brand-studio.html) sa `#/start`, na nilalagyan ng link ng cover. Sinasabi ito ng cover ng read-only na system; ang mga lokal na system na ginagawa mo ay nananatiling mae-edit. Ang `/b` at `/brand` ay mga shortlink diretso sa tab na ito.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Pagkatapos ang sarili mong panig: binibilang ng **Your activity** ang nagawa mo 
 
 ## Mga deep link
 
-Ang bawat tab at seksyon ng Settings ay may sariling link, na puwede mong i-bookmark o i-paste. Itinuturo ng [Search](/info/search.html) ang mga resulta nitong **Settings** sa parehong registry na pinagmumulan ng pag-render ng Settings, kaya hindi mapapalitan ang pangalan ng seksyon sa ilalim ng resulta ng search.
+Ang bawat tab at seksyon ng Settings ay may sariling link, na puwede mong i-bookmark o i-paste. Itinuturo ng [Lolly Search](/info/search.html) ang mga resulta nitong **Settings** sa parehong registry na pinagmumulan ng pag-render ng Settings, kaya hindi mapapalitan ang pangalan ng seksyon sa ilalim ng resulta ng search.
 
 ::: details Bawat anyo ng link
 
@@ -139,4 +139,4 @@ Ang deep link ay lumilipat sa tab na may-ari ng target, binubuksan ang anumang g
 
 ---
 
-**Kaugnay:** [Mga profile](/info/profile.html) para sa mga detalye mo at mga kontekstong ginagawan mo. [Design System Setup](/info/brand-studio.html) para sa pag-edit ng ipinapakita ng Design system tab. [Hanapin at bawiin ang gawa mo](/info/find-your-work.html) para sa storage, backup at paglipat ng device.
+**Kaugnay:** [Mga profile](/info/profile.html) para sa mga detalye mo at mga kontekstong ginagawan mo. [Lolly Design System Setup](/info/brand-studio.html) para sa pag-edit ng ipinapakita ng Design system tab. [Hanapin at bawiin ang gawa mo](/info/find-your-work.html) para sa storage, backup at paglipat ng device.

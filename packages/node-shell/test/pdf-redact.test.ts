@@ -177,7 +177,7 @@ test('pdfPages: one self-contained SVG per page, viewBox in points, origin top-l
   assert.match(res.pages[0]!.svg, new RegExp(SECRET));
 });
 
-test('pdfPages: the cap truncates and says so', async () => {
+test('pdfPages: the cap truncates and reports the truncation', async () => {
   const src = await buildFixture();
   const res = await pdfPages(src, { maxPages: 1 });
   assert.equal(res.pages.length, 1);

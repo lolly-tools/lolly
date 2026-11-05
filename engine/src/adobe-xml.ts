@@ -19,7 +19,7 @@ export function readAdobeXml(source: string, parse: AdobeXmlParser, maxBytes = 1
   const stack: { el: Element; depth: number }[] = [{ el: doc.documentElement, depth: 1 }]; let count = 0;
   while (stack.length) {
     const { el, depth } = stack.pop()!;
-    if (++count > 50000 || depth > 64 || el.attributes.length > 128) throw new Error('Adobe XML exceeds the structure limits.');
+    if (++count > 50000 || depth > 64 || el.attributes.length > 512) throw new Error('Adobe XML exceeds the structure limits.');
     for (const child of Array.from(el.children)) stack.push({ el: child, depth: depth + 1 });
   }
   return doc;

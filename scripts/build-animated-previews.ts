@@ -393,7 +393,7 @@ async function optimizeApng(bytes: Buffer, colors: number): Promise<Buffer> {
  *
  * Unlike optimizeApng (an optimisation, so it keeps whichever file is smaller) this is a
  * CORRECTNESS pass, so its output is kept whenever ffmpeg succeeds. With no ffmpeg the
- * original is written unchanged and says so - a slightly big, slightly seamy tile beats no
+ * original is written unchanged and reports that - a slightly big, slightly seamy tile beats no
  * tile, and the KB line will show it.
  */
 async function fitVideo(bytes: Buffer, job: Job): Promise<Buffer> {

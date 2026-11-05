@@ -1,5 +1,31 @@
 {
   "Copy saved on this device.": "Salinan disimpan pada peranti ini.",
+  "Closest to the current palette": "Paling hampir dengan palet semasa",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Pratonton sistem reka bentuk tersimpan dan beberapa titik permulaan. Tiada apa berubah sehingga anda memilih Gunakan.",
+  "Use this look": "Gunakan rupa ini",
+  "Previewing {name}": "Pratonton {name}",
+  "Choose up to two looks to compare.": "Pilih sehingga dua rupa untuk dibandingkan.",
+  "Drop a horizontal logo": "Lepaskan logo mendatar di sini",
+  "Drop a vertical logo": "Lepaskan logo menegak di sini",
+  "calm": "tenang",
+  "nature": "alam",
+  "playful": "ceria",
+  "creative": "kreatif",
+  "warm": "hangat",
+  "editorial": "editorial",
+  "neutral": "neutral",
+  "red": "merah",
+  "orange": "oren",
+  "yellow": "kuning",
+  "green": "hijau",
+  "teal": "hijau kebiruan",
+  "blue": "biru",
+  "purple": "ungu",
+  "pink": "merah jambu",
+  "deep": "gelap",
+  "pale": "pucat",
+  "vivid": "terang",
+  "muted": "lembut",
   "In a project you can edit": "Dalam projek yang boleh anda sunting",
   "Make copy": "Buat salinan",
   "Save a copy on this device": "Simpan salinan pada peranti ini",
@@ -600,7 +626,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Menjalankan semakan teks AI yang lebih mendalam pada Pengesahan dan dalam Aset.",
   "Card size": "Saiz kad",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 imej atau fail telah ditambah pada peranti ini. Ia kekal pada peranti ini, dan orang lain tidak akan melihat fail itu.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} imej atau fail telah ditambah pada peranti ini. Ia kekal pada peranti ini, dan orang lain tidak akan melihat fail tersebut.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "{n} imej atau fail telah ditambah pada peranti ini. Ia kekal pada peranti ini, dan orang lain tidak akan melihat fail tersebut."
+  },
   "Check the version first": "Semak versi dahulu",
   "Copy team link": "Salin pautan pasukan",
   "Could not create the project. Try again.": "Projek tidak dapat dibuat. Cuba lagi.",
@@ -1176,7 +1204,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Semua item disimpan dalam projek dikongsi. Asal setempat berada dalam Tong Sampah atau masih di tempat asal.",
   "Your local items have not changed.": "Item setempat anda tidak berubah.",
   "1 item was saved to the shared project.": "1 item telah disimpan ke projek dikongsi.",
-  "{n} items were saved to the shared project.": "{n} item telah disimpan ke projek dikongsi.",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} item telah disimpan ke projek dikongsi."
+  },
   "Wait for the current move to finish.": "Tunggu sehingga pemindahan semasa selesai.",
   "You cannot save to that shared project.": "Anda tidak boleh menyimpan ke projek dikongsi itu.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Semua orang yang boleh membuka {project} akan melihat item ini. Selepas semua item disimpan di sana, asal setempat dipindahkan ke Tong Sampah, tempat anda boleh memulihkannya.",
@@ -1487,8 +1517,12 @@
   "file": "fail",
   "samples": "sampel",
   "text": "teks",
-  "{n} changes found": "{n} perubahan ditemui",
-  "{n} pages differ": "{n} halaman berbeza",
+  "{n} changes found": {
+    "other": "{n} perubahan ditemui"
+  },
+  "{n} pages differ": {
+    "other": "{n} halaman berbeza"
+  },
   "Draft": "Draf",
   "Draft quality": "Kualiti draf",
   "Draft rule": "Peraturan draf",
@@ -1797,5 +1831,218 @@
   "Headlines - 36px, or 24px bold": "Tajuk - 36px, atau 24px tebal",
   "Icons and borders only": "Ikon dan sempadan sahaja",
   "Not usable": "Tidak boleh digunakan",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA ditakrifkan untuk sRGB, jadi warna gamut luas dinilai pada rendering sRGB-nya."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA ditakrifkan untuk sRGB, jadi warna gamut luas dinilai pada rendering sRGB-nya.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly bertukar kepada rupa yang lebih ringkas dan pantas kerana peranti ini melukis tanpa pecutan grafik.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly bertukar kepada rupa yang lebih ringkas dan pantas kerana peranti ini sukar mengikut rentak.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Dihidupkan secara automatik pada {date} kerana peranti ini melukis tanpa pecutan grafik.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Dihidupkan secara automatik pada {date} kerana peranti ini sukar melukis antara muka.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Penukaran automatik dimatikan pada peranti ini kerana anda memilih Buat asal pada {date}.",
+  "Allow again": "Benarkan semula",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Penukaran automatik dibenarkan semula bermula kali seterusnya anda membuka Lolly.",
+  "Board": "Papan",
+  "Choose for {role}": "Pilih untuk {role}",
+  "Change {role}": "Tukar {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Panduan jenama anda, ditulis untuk manusia dan ejen. Ejen membaca kemahiran jenama dahulu, kemudian kemahiran untuk kerja yang sedang dibuat. Kemahiran memandu kerja; peraturan rumah dalam Peraturan ialah apa yang disemak oleh Lolly.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly bertukar kepada rupa yang lebih ringkas dan pantas semasa peranti ini sibuk. Ia akan bertukar semula apabila keadaan reda.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly bertukar kepada rupa yang lebih ringkas dan pantas semasa bateri rendah. Ia akan bertukar semula apabila peranti ini sedang dicas.",
+  "On for now because this device is busy. It switches back when things calm down.": "Dihidupkan buat sementara kerana peranti ini sibuk. Ia akan bertukar semula apabila keadaan reda.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Dihidupkan buat sementara kerana bateri rendah. Ia akan bertukar semula apabila peranti ini sedang dicas.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Dihidupkan secara automatik pada {date} semasa peranti ini sibuk. Anda memilih Kekalkan.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Dihidupkan secara automatik pada {date} semasa bateri rendah. Anda memilih Kekalkan.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly tidak akan bertukar di sini untuk peranti yang perlahan, kerana anda memilih Buat asal pada {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly tidak akan bertukar semasa peranti ini sibuk atau bateri rendah, kerana anda memilih Buat asal pada {date}.",
+  "Use the automatic colour": "Guna warna automatik",
+  "follows the design system ({colour})": "mengikut sistem reka bentuk ({colour})",
+  "follows the design system": "mengikut sistem reka bentuk",
+  "automatic ({colour})": "automatik ({colour})",
+  "automatic": "automatik",
+  "{name} spring": "Spring {name}",
+  "{name} (not in this design system)": "{name} (tiada dalam sistem reka bentuk ini)",
+  "Curves": "Lengkung",
+  "Springs": "Spring",
+  "Gentle": "Lembut",
+  "Quick": "Pantas",
+  "Bouncy": "Melantun",
+  "Custom spring": "Spring tersuai",
+  "Stiffness": "Kekakuan",
+  "Damping": "Redaman",
+  "Mass": "Jisim",
+  "Settles in {t} s": "Stabil dalam {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Bingkai utama seterusnya tiba sebelum spring stabil. Baki gerakan diagihkan sepanjang segmen.",
+  "From the design system: {name}": "Daripada sistem reka bentuk: {name}",
+  "Editing the curve detaches it from the design system.": "Mengedit lengkung akan memutuskannya daripada sistem reka bentuk.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut. Tahan untuk Pensel (Shift C) dan jenis spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut",
+  "Recipients can change the inputs": "Penerima boleh mengubah input",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Sesiapa yang mempunyai pautan boleh mengubah inputnya dan mendapatkan imej baharu. Input yang dikunci kekal seperti yang ditetapkan.",
+  "{count} entries": {
+    "other": "{count} entri"
+  },
+  "{count} files in this folder": {
+    "other": "{count} fail dalam folder ini"
+  },
+  "{n} assets": {
+    "other": "{n} aset"
+  },
+  "{n} assets found": {
+    "other": "{n} aset ditemui"
+  },
+  "{n} capabilities match": {
+    "other": "{n} keupayaan sepadan"
+  },
+  "{n} copies made · selected": {
+    "other": "{n} salinan dibuat · dipilih"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "{n} ciptaan yang dialih keluar daripada Projek di sini kekal dialih keluar."
+  },
+  "{n} embedded files": {
+    "other": "{n} fail tertanam"
+  },
+  "{n} external references": {
+    "other": "{n} rujukan luaran"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "{n} fail tidak dapat dibungkus dan telah ditinggalkan"
+  },
+  "{n} folders": {
+    "other": "{n} folder"
+  },
+  "{n} font files": {
+    "other": "{n} fail fon"
+  },
+  "{n} images": {
+    "other": "{n} imej"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n} imej tidak dapat dipulihkan (storan penuh?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} imej kekal dengan yang asal - imej hanya mempunyai satu rumah; guna Potong untuk memindahkannya"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "{n} input · digunakan pada setiap reka bentuk"
+  },
+  "{n} items": {
+    "other": "{n} item"
+  },
+  "{n} items copied": {
+    "other": "{n} item disalin"
+  },
+  "{n} items cut": {
+    "other": "{n} item dipotong"
+  },
+  "{n} items moved": {
+    "other": "{n} item dipindahkan"
+  },
+  "{n} items pasted": {
+    "other": "{n} item ditampal"
+  },
+  "{n} keyframes": {
+    "other": "{n} bingkai kunci"
+  },
+  "{n} logos": {
+    "other": "{n} logo"
+  },
+  "{n} marks found": {
+    "other": "{n} tanda ditemui"
+  },
+  "{n} newer items skipped": {
+    "other": "{n} item lebih baharu dilangkau"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "{n} daripada ciptaan anda ialah video atau animasi"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "{n} checkpoint automatik yang lebih lama ditinggalkan"
+  },
+  "{n} pages": {
+    "other": "{n} halaman"
+  },
+  "{n} places": {
+    "other": "{n} tempat"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} titik - tahan Alt untuk sudut"
+  },
+  "{n} published versions": {
+    "other": "{n} versi diterbitkan"
+  },
+  "{n} results": {
+    "other": "{n} hasil"
+  },
+  "{n} saved sessions": {
+    "other": "{n} sesi disimpan"
+  },
+  "{n} selected": {
+    "other": "{n} dipilih"
+  },
+  "{n} selected assets": {
+    "other": "{n} aset dipilih"
+  },
+  "{n} sessions": {
+    "other": "{n} sesi"
+  },
+  "{n} shapes": {
+    "other": "{n} bentuk"
+  },
+  "{n} steps": {
+    "other": "{n} langkah"
+  },
+  "{n} templates": {
+    "other": "{n} templat"
+  },
+  "{n} volume keys": {
+    "other": "{n} kunci volum"
+  },
+  "{n} words": {
+    "other": "{n} perkataan"
+  },
+  "Dominant hand": "Tangan dominan",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Dengan dua anak tetingkap, pada peranti boleh lipat atau tablet yang hampir segi empat sama, kawalan berada di sisi yang jauh daripada tangan yang anda gunakan untuk melukis. Tukar sisi di kepala anak tetingkap juga mengubahnya.",
+  "Swap sides": "Tukar sisi",
+  "Resize panes": "Ubah saiz anak tetingkap",
+  "Changes that didn't finish saving": "Perubahan yang belum selesai disimpan",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Anda membuat perubahan ini pada {time}, dan halaman ditutup sebelum perubahan itu disimpan. Sejak itu, sistem reka bentuk ini telah disimpan semula, dalam tab lain atau melalui penyegerakan.",
+  "Restore your unsaved changes": "Pulihkan perubahan anda yang belum disimpan",
+  "Keep the saved version": "Kekalkan versi yang disimpan",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Memulihkan akan menggantikan versi yang disimpan sejak itu. Mengekalkan versi yang disimpan akan memadamkan perubahan yang belum disimpan daripada peranti ini.",
+  "Restored your unsaved changes.": "Perubahan anda yang belum disimpan telah dipulihkan.",
+  "Kept the saved version.": "Versi yang disimpan dikekalkan.",
+  "Restored the changes that hadn't finished saving.": "Perubahan yang belum selesai disimpan telah dipulihkan.",
+  "{n} file": "{n} fail",
+  "It becomes the primary. Shades and roles can follow.": "Ia menjadi warna utama. Nada warna dan peranan boleh menyusul.",
+  "Start here": "Mula di sini",
+  "Browse looks →": "Layari rupa →",
+  "Pick what you have →": "Pilih apa yang anda ada →",
+  "Open the picker →": "Buka pemilih →",
+  "Starter greys until a colour is added.": "Kelabu permulaan sehingga warna ditambah.",
+  "Lolly can’t draw in this browser yet": "Lolly belum boleh melukis dalam pelayar ini",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly melukis dengan WebGPU, yang belum ditawarkan oleh pelayar ini.",
+  "These work today:": "Yang berfungsi hari ini:",
+  "Chrome or Edge, kept up to date": "Chrome atau Edge yang terkini",
+  "Safari 26 or later": "Safari 26 atau lebih baharu",
+  "Firefox, where WebGPU is turned on": "Firefox, jika WebGPU dihidupkan",
+  "Get the desktop app": "Dapatkan apl desktop",
+  "Read why": "Baca sebabnya",
+  "Or drop an image or a list of colours here": "Atau lepaskan imej atau senarai warna di sini",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Warna neutral ini disertakan dengan pakej permulaan supaya pratonton ada sesuatu untuk ditunjukkan sehingga warna ditambah di atas.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Pilih warna",
+  "Add a colour to the palette first.": "Tambah warna ke palet dahulu.",
+  "Notify": "Maklumkan",
+  "Update automatically": "Kemas kini secara automatik",
+  "App updates": "Kemas kini aplikasi",
+  "Update notifications": "Pemberitahuan kemas kini",
+  "Ready to install: {version}": "Sedia untuk dipasang: {version}",
+  "Restart now": "Mulakan semula sekarang",
+  "Install when I quit": "Pasang apabila saya keluar",
+  "Release notes": "Nota keluaran",
+  "Manual download": "Muat turun manual",
+  "Update could not finish. Try again or download the app.": "Kemas kini tidak dapat diselesaikan. Cuba lagi atau muat turun aplikasi.",
+  "Finish recording or exporting before updating.": "Selesaikan rakaman atau eksport sebelum mengemas kini.",
+  "Save could not finish. Save a recovery copy before updating.": "Penyimpanan tidak dapat diselesaikan. Simpan salinan pemulihan sebelum mengemas kini.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "AppImage ini tidak boleh diganti di sini. Muat turun aplikasi ke folder yang boleh ditulis.",
+  "This installation uses its package manager for updates.": "Pemasangan ini menggunakan pengurus pakejnya untuk kemas kini.",
+  "This desktop platform does not support in-app updates.": "Platform desktop ini tidak menyokong kemas kini dalam aplikasi.",
+  "Update installation was cancelled.": "Pemasangan kemas kini dibatalkan."
 }

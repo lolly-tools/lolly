@@ -82,6 +82,7 @@ Một wordmark đặt bằng kiểu chữ của hệ thống thiết kế xuất
 | Bàn giao cho Premiere | **Premiere XML + media** | Clip có thời gian và media gốc cho Premiere (Design) |
 | Video cho mạng xã hội và chia sẻ | **MP4** hoặc **WebM** | Chất lượng tốt nhất theo dung lượng tệp (xem [Video](#video)) |
 | Phụ đề | **SRT** hoặc **VTT** | Văn bản có thời gian cho trình phát video (Captions, Audiogram và Record) |
+| Phụ đề phát sóng | **TTML** hoặc **SCC** | Văn bản có thời gian IMSC1.1, hoặc phụ đề CEA-608 pop-on (Captions; xem [Phụ đề phát sóng](#broadcast-captions)) |
 | Khóa đào tạo | **SCORM (LMS)** | Một trang web có phiên bản, gói SCORM hoặc xAPI (xem [SCORM](#scorm-course-packages)) |
 | Văn bản có định dạng hoặc chữ ký email | **HTML** | Dán có định dạng vào ứng dụng thư |
 | Nội dung thuần | **MD** hoặc **TXT** | Chỉ văn bản |
@@ -131,9 +132,9 @@ Lolly có ba cách làm việc ở khối lượng lớn, mỗi cách cho một 
 ## Một bảng thành một tài liệu
 Công cụ có đầu vào bảng, như **Battlecards**, biến mỗi hàng thành một trang. Dán một bảng từ bảng tính và nhận một PDF. Sửa các hàng trong bảng tính rồi dán lại.
 ## Một CSV thành một tệp cho mỗi hàng
-**Batch** (`#/batch`) nhận một CSV và kết xuất một bản xuất cho mỗi hàng: thẻ tên hoặc chứng nhận, mỗi cái một tệp, giao trong một ZIP. Xem [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) nhận một CSV và kết xuất một bản xuất cho mỗi hàng: thẻ tên hoặc chứng nhận, mỗi cái một tệp, giao trong một ZIP. Xem [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Nhiều thiết kế một lần chỉnh sửa
-**Multi-edit** mở nhiều phiên đã lưu cạnh nhau để chỉnh sửa y hệt trên các thiết kế khác nhau. Xem [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** mở nhiều phiên đã lưu cạnh nhau để chỉnh sửa y hệt trên các thiết kế khác nhau. Xem [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Từ **Projects**, **Render folder** xuất mọi phiên đã lưu trong một thư mục và các thư mục con của nó thành một ZIP lồng nhau, và **Render selection** làm tương tự cho mọi vùng chọn nhiều; một phiên đã lưu kết xuất ra tệp riêng của nó. Một phiên đã lưu cũng có thể được chia sẻ lại dưới dạng liên kết công cụ từ Projects, mở lại với cùng cài đặt.
@@ -169,7 +170,7 @@ Hầu hết công cụ xuất SVG cũng xuất một **tệp Penpot** (`.penpot`
 | Cả thiết kế | Một component dùng lại được trong bảng Assets |
 | Một minh họa phức tạp hoặc canvas trực tiếp | Được nhúng riêng dưới dạng ảnh, nội dung chỉnh sửa được xung quanh không bị động đến |
 
-Từ Design, mỗi khung trở thành một board Penpot. Màu và kiểu chữ của hệ thống thiết kế vào bảng Assets và toàn bộ bộ token của nó vào bảng Tokens. Từ đó Penpot giữ bản sao riêng: một token được sửa trong Penpot quay lại qua việc nhập trong [Design System Setup](/info/brand-studio.html).
+Từ Design, mỗi khung trở thành một board Penpot. Màu và kiểu chữ của hệ thống thiết kế vào bảng Assets và toàn bộ bộ token của nó vào bảng Tokens. Từ đó Penpot giữ bản sao riêng: một token được sửa trong Penpot quay lại qua việc nhập trong [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Bảng xuất với Penpot được chọn: tệp .penpot, và Send to Penpot bên cạnh nút tải xuống](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Rồi chọn **Export course** từ một công cụ được hỗ trợ, một 
 
 Gói chứa nội dung hoàn chỉnh và không cần tài khoản Lolly. Đặt ZIP Website lên máy chủ HTTP(S); nhập ZIP LMS nguyên trạng. Hãy kiểm thử đích đến trước khi chia sẻ khóa học. Với khóa học dựng từ nhiều sản phẩm đã lưu, xem [Create a training course](/info/training-creators.html).
 
+### Phụ đề phát sóng
+
+Công cụ Captions cũng có thể xuất **TTML** và **SCC**. Cả hai được ghi từ cùng danh sách cue với tệp SRT và VTT, nên lời và thời gian khớp nhau.
+
+- **TTML** là IMSC1.1 Text Profile, với thời gian đồng hồ theo thời gian phương tiện và một vùng ở giữa phía dưới. Nó không mang màu, phông chữ hay vị trí cho từng phụ đề, vì phụ đề của Lolly chỉ có thời điểm bắt đầu, thời điểm kết thúc và văn bản.
+- **SCC** mang phụ đề CEA-608 pop-on trên kênh 1 ở 29,97 khung hình mỗi giây với timecode drop-frame. Nó hỗ trợ các ký tự Bắc Mỹ cơ bản cùng các ký tự đặc biệt và mở rộng. Nếu một phụ đề chứa ký tự mà bộ ký tự không mang được, việc xuất sẽ dừng và cho bạn biết ký tự nào, nên không có gì bị bỏ đi mà không báo. Mỗi phụ đề xuống dòng ở 32 cột và tối đa 15 hàng. Phụ đề không kịp nạp trước thời điểm bắt đầu sẽ bị trễ vài khung hình.
+- Phụ đề roll-up và paint-on không được ghi.
+
+Đầu ra SCC chưa được kiểm tra với công cụ phát sóng thật hay bộ giải mã phần cứng. Hãy thử một tệp trong quy trình của riêng bạn trước khi giao.
+
 ### DXF (tệp cắt)
 
 Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding và Wordmark xuất **DXF**, định dạng trao đổi AutoCAD R12 mà máy cắt laser, máy cắt decal vinyl và phần mềm CNC đọc. Hình học được ghi dưới dạng đường viền tính bằng milimét, văn bản được chuyển thành đường viền và màu ánh xạ tới AutoCAD Color Index gần nhất, thứ thường điều khiển thao tác của máy cắt. DXF chỉ là nét vẽ: vùng ảnh chụp hay có bộ lọc không có đường cắt và bị bỏ, kèm cảnh báo. Dùng SVG hoặc PDF để giữ nội dung ảnh điểm.
@@ -214,7 +225,7 @@ Cuộn xuống, và góc nhìn kéo lùi xuyên qua chính hình học đó: b�
 
 ## In
 
-**Print PDF** ghi CMYK theo một điều kiện in có tên, mặc định là **Coated FOGRA39**. Ô màu thương hiệu có giá trị mực đã đo được chuyển đổi chính xác; các màu khác dùng chuyển đổi thiết bị chuẩn. **Print TIFF** ghi điểm ảnh DeviceCMYK cho RIP và ghi cùng điều kiện in trong siêu dữ liệu TIFF. Điều khiển Colour profile chi phối cả hai; [Colour profiles](#colour-profiles) có chi tiết.
+**Print PDF** ghi CMYK theo một điều kiện in có tên, mặc định là **Coated FOGRA39**. Ô màu thương hiệu có giá trị mực đã đo được giữ nguyên các giá trị đó. Các màu khác được chuyển đổi qua một hồ sơ máy in: mặc định là hồ sơ Coated FOGRA39 của chính Lolly, hoặc hồ sơ của riêng bạn khi bạn chọn hàng **Embed** của nó. Màu xám và đen chỉ nằm trên bản đen, nên chữ nhỏ không bị lệch bản in. FOGRA51, SWOP và GRACoL dùng chuyển đổi thiết bị chuẩn. **Print TIFF** ghi điểm ảnh DeviceCMYK cho RIP và ghi cùng điều kiện in trong siêu dữ liệu TIFF. Điều khiển Colour profile chi phối cả hai; [Colour profiles](#colour-profiles) có chi tiết.
 
 **Print marks & bleed** có thẻ riêng trên các định dạng in: vùng tràn lề tính bằng milimét cộng chi tiết Crop, Registration, Bleed, Colour bars và Stamp.
 
@@ -223,6 +234,15 @@ Một số công cụ dựng **PDF nhiều trang**: một bìa, nội dung chả
 **Trước khi xuất.** Thẻ **Before you export** ở chân bảng cho biết nhà in sắp thấy gì: định dạng, kích thước và vùng tràn lề, vùng cắt và tràn lề, độ phủ mực, số bản in và số trang, kèm một kết luận cạnh tiêu đề. Nó không bao giờ chặn một bản xuất. Design luôn hiện thẻ với các kiểm tra riêng của nó, gồm quy tắc nội bộ của hệ thống thiết kế theo từng lớp và tín hiệu văn phong cho văn bản của tài liệu ([Before you export](/info/design.html#before-you-export)), và thêm các kiểm tra in này khi **Print preflight** bật. Trong các công cụ khác, bật **Print preflight** dưới Settings → Preferences → Feature flags; nó tắt theo mặc định, và một bản triển khai Lolly Work có thể bật nó cho thành viên.
 
 **Sau khi xuất.** Khi tệp sẵn sàng, Lolly đọc lại nó và so sánh với những gì bạn đã chọn: định dạng, kích thước điểm ảnh hoặc trang, độ dài clip, nền trong suốt, màu CMYK, HDR, Content Credentials và mật khẩu PDF hoặc ZIP. Bất cứ điều gì khác biệt được ghi trên thẻ xuất. Mỗi số đo đến từ tệp, không bao giờ từ cài đặt, và một thuộc tính mà tệp không trả lời được sẽ không được tính là khớp. Dòng lệnh ghi bản so sánh đầy đủ bằng `--export-report` (xem [Render with the CLI](/info/cli-rendering.html)).
+
+**Kiểm tra khả năng truy cập của PDF.** Với PDF, dòng lệnh cũng liệt kê 32 mục kiểm tra khả năng truy cập trong tệp `--export-report`, dưới `pdfAccessibility`. Mỗi mục kiểm tra có một id, mô tả đơn giản, kết quả và vị trí trong tệp nơi nó tìm thấy vấn đề:
+
+- **Đạt**: mục kiểm tra đã xem xét một thứ và không thấy gì sai.
+- **Thất bại**: mục kiểm tra tìm thấy một vấn đề. Số trang hoặc thẻ của nó được liệt kê.
+- **Không áp dụng**: tệp không có thứ gì thuộc loại đó để xem xét, chẳng hạn kiểm tra bảng trong tệp không có bảng. Điều này không nói gì về tệp.
+- **Cần một người**: sáu mục kiểm tra không thể do chương trình đánh giá (thứ tự đọc, độ tương phản màu, nhấp nháy, tập lệnh, giới hạn thời gian và liên kết lặp lại).
+
+Danh sách này không phải là phán quyết. Nó không nói rằng một PDF đạt chuẩn PDF/UA hay rằng người dùng công nghệ hỗ trợ có thể dùng nó, và vẫn cần một người kiểm tra tệp bằng trình đọc màn hình. Hiện nay các PDF của chính Lolly không đạt các mục kiểm tra gắn thẻ, vì bộ xuất chưa ghi thẻ nào. Việc kiểm tra đọc tệp trên thiết bị của bạn và không thay đổi gì. Tệp cần mật khẩu được ghi là chưa kiểm tra, không phải đạt. Để kiểm tra một PDF bạn được gửi, hãy thả nó vào [Strip Hidden Data](/info/utilities.html), nơi hiển thị cùng danh sách dưới **PDF accessibility checks**.
 
 Các kiểm tra của trình kiểm tra Design và phép so sánh thương hiệu trong Design System Setup là các kiểm tra riêng: chúng nhìn thiết kế, còn hai thẻ này nhìn tệp.
 
@@ -280,7 +300,7 @@ Bản xuất được gắn một hồ sơ màu, để các ứng dụng quản 
 - **SVG**, **EMF**, **EPS** và **DXF** là vector không có hồ sơ nhúng: màu của SVG là sRGB, EMF và EPS dùng RGB thiết bị, **EPS (CMYK)** ghi DeviceCMYK và DXF dùng AutoCAD Color Index. SVG, EPS và DXF chuyển văn bản thành đường viền. EMF giữ văn bản sống và chỉnh sửa được trong Office và Google Slides, chỉ chuyển về đường viền cho các đoạn mà định dạng không biểu đạt được; tùy chọn **Outline fonts** của bảng xuất ép dùng đường viền ở mọi nơi. SVG cũng tái tạo đổ bóng hộp CSS, trong và ngoài.
 
 ::: details PDF/X-4 và hồ sơ máy in của riêng bạn
-Không hồ sơ CMYK nào đi kèm Lolly. Một điều kiện in có tên ghi output intent mà không tuyên bố tuân thủ PDF/X-4, vì PDF/X-4 muốn hồ sơ được nhúng.
+Lolly đi kèm một hồ sơ CMYK, được khớp với dữ liệu đặc tả FOGRA39 của Fogra và phát hành theo CC0, và chuyển đổi màu qua hồ sơ đó cho điều kiện in mặc định. Hồ sơ không được nhúng, vì nó là ICC phiên bản 4.3 còn PDF/X-4 chỉ chấp nhận đến phiên bản 4.2. Vì vậy một điều kiện in có tên ghi output intent mà không tuyên bố tuân thủ PDF/X-4.
 
 Nạp hồ sơ CMYK của riêng bạn và chọn hàng **Embed** của nó trong điều khiển Colour profile. Nó được nhúng làm *DestOutputProfile* của tệp, và PDF tuyên bố PDF/X-4 bất cứ khi nào phần còn lại của tệp cho phép. Điều kiện in mà nó khai báo được đọc từ hồ sơ đó: một tên đã đăng ký nơi hồ sơ chứng minh được, hoặc `Custom` dưới tên riêng của hồ sơ.
 
@@ -400,8 +420,8 @@ Các điều khiển xuất nằm sau nút **Export** nổi, mở tấm **Export
 | Vector | `svg` · `svgz` (SVG nén gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (tệp cắt) |
 | Trang và tài liệu | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (tệp thiết kế Penpot) · `scorm` (gói khóa học, một ZIP) |
 | Chuyển động | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Âm thanh | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Văn bản và dữ liệu | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (bảng màu GIMP) |
+| Âm thanh | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (nốt MIDI, từ Rondocode) |
+| Văn bản và dữ liệu | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (bảng màu GIMP) |
 | Gói và bộ đóng gói | `zip` · `rpm` và `tar.gz` (bản kết xuất được niêm phong vào gói Linux) |
 
 Một vài id đến từ mã xuất riêng của công cụ: `ase` (Adobe Swatch Exchange, từ Palette Lab) và `exr` cùng `hdr` (ảnh điểm dải động cao, từ Darkroom). **Convert Font** ghi `ttf`, `otf` và `woff` từ tệp phông chữ bạn cung cấp, nên một liên kết trần không có gì để nó kết xuất.

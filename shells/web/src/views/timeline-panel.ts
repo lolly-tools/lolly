@@ -1365,6 +1365,7 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
   tp.openGroup = null;
   /** The popover's own content host, so a rebuild can swap the body inside it. */
   tp.groupPopHost = null;
+  tp.groupPopScroll = null;
   /**
    * A POINT anchor, not the head button: the inspector is rebuilt on every commit, so
    * the button that opened the popover is a detached node moments later. The point
@@ -1782,7 +1783,9 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
     }
   };
   canvasEl.addEventListener('lolly-canvas-painted', onCanvasPainted);
-  tp.unsubPaint = () => canvasEl.removeEventListener('lolly-canvas-painted', onCanvasPainted);
+  // The design system's motion tokens ride the same teardown (plans/329).
+  const unwireMotion = tp.kfDock.wireMotionTokens();
+  tp.unsubPaint = () => { canvasEl.removeEventListener('lolly-canvas-painted', onCanvasPainted); unwireMotion(); };
 
   /**
    * A thumbnail is a picture of the CLIP, never of the frame the playhead is parked on

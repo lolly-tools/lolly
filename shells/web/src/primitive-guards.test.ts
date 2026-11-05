@@ -651,6 +651,14 @@ const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
+  // The split layout's Swap sides button: one fixed registry icon, nothing interpolated.
+  'lib/split-panes.ts': 1,
+  // hydrateFauna's slot fill: faunaArt() markup, built only from the module's own path
+  // constants, a minted id and a name checked against the four animals; no user text.
+  'components/fauna-art.ts': 1,
+  // The register spin's mark: the static trusted LOLLY_MARK_SVG with its ids scoped; the
+  // label is written with textContent.
+  'components/lolly-spin.ts': 1,
 
   // Fixed registry icons only; sidebar labels and metadata use textContent.
   'components/asset-inspector-dock.ts': 2,
@@ -968,8 +976,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // every interpolated value is a t() literal, an icon() constant, or escape()d
   // (utils.ts) - the door/card helpers escape their area key, label and value,
   // the palette strip escapes each swatch hex before it reaches a style
-  // attribute, and the font list is escaped as one card value.
-  'lib/design-system/rooms/overview.ts': 1,
+  // attribute, and the font list is escaped as one card value. +1 reviewed
+  // 2026-11-04 (plan 346): the live column's repaint from the pure liveHtml(),
+  // whose scenes are lib/palette-preview.ts markup (every colour through its hex
+  // whitelist, pinned by palette-preview.test.ts) and whose labels are t()
+  // literals; the stage ground is an escaped hex. The Logos card's mark URLs are
+  // blob: object URLs the room minted, escaped all the same, and the corner
+  // radius reaches its style attribute only as a plain length (CSS_LENGTH).
+  'lib/design-system/rooms/overview.ts': 2,
   // Design System Setup's Versions panel (plan 97 section 6a, M7). Its one sink is
   // paint()'s whole-panel re-render from the pure versionsHtml(). Reviewed
   // 2026-08-09: the hostile input here is the user's own version LABEL and NOTE,
@@ -997,6 +1011,13 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // before it reaches the `--sw` style property, the APCA title and readout,
   // and every <option>/<optgroup> key, name and group heading.
   'lib/design-system/roles.ts': 1,
+  // The role chips at the top of Colours (plan 346 change 7). Two sinks: the
+  // chips from the pure roleChipsHtml() and the picker body from the pure
+  // rolePickerHtml(). Reviewed 2026-11-04: every interpolated value is a t()/
+  // tRaw() literal or escape()d (utils.ts) - the role id, label and value, the
+  // swatch keys, names and hexes (before the `--sw` style property too), the
+  // group headings and the caption - and the chevron is lib/icons.ts markup.
+  'lib/design-system/role-chips.ts': 2,
   // The candidate tray's panel (plan 97 section 8, M2). Two sinks, reviewed 2026-08-09:
   // the mount scaffold (t() literals and icon() constants, with both aria-labels
   // escape()d) and the candidate list, which is the pure trayHtml(). Everything
@@ -1269,6 +1290,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/free-canvas/field-panels.ts': 10,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/free-canvas/edges.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/free-canvas/document.ts': 5,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/trace-image.ts': 1,   // Trace image panel: every interpolated value is escape()d or a fixed preset id
   'views/free-canvas/dialogs.ts': 8,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/free-canvas/context-bar.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/free-canvas/connectors.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
@@ -1734,7 +1756,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // Stored labels, IDs, tags and font names pass through the shared escape helper.
   // Specimens use normalized token colours and validated font stacks; their labels
   // and attributes are escaped. Source observations use styleEvidenceHtml below.
-  'views/start/looks.ts': 3,
+  // +1 2026-11-04 (plan 346): the In context pane that previews a look. Its name is
+  // escaped; its scenes are palette-preview.ts markup, built from that module's own
+  // templates with every colour through its hex whitelist (palette-preview.test.ts);
+  // font stacks pass brandFontStack's family check and are escaped into the style.
+  'views/start/looks.ts': 4,
   // The source-details sink accepts only styleEvidenceHtml output: values and
   // translated labels are escaped, properties are allowlisted, and counts and
   // viewport dimensions were bounded by readBrandStyleEvidence before rendering.
@@ -2038,7 +2064,13 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 255 to 254: Design System Setup's Overview doors use the edge and control elevation.
     // 253 to 250: the Settings Design system tab's hero, primary chip and ink
     // ribbon went with the illustrations; the new read uses hairlines only.
-    pin: 250,
+    // 250 to 247 (plan 336): the palette download stopped floating, and the
+    // swatch tiles and the pressed Use as pill read through the edge and
+    // control elevation tokens.
+    // 247 to 243 (plan 336): the studio's glowing Add from button and its
+    // breathing keyframes went with the rail; the bar's button is a plain pill.
+    // 243 to 242 (plan 346): the Board's colour chips wear the faint edge token.
+    pin: 242,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -2055,7 +2087,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 96 → 94: the sidebar's history and language buttons took --radius-sm.
     // 92 → 91 on 2026-09-30: the Storage card's big archive button became a plain .btn.
     // 91 to 90 on 2026-10-21: the ink ribbon's 8px row left the Design system tab.
-    pin: 90,
+    // 90 to 89 (plan 346): the Board's colour chips take --radius-xs.
+    pin: 89,
     count: (t) => (t.match(/border-radius:\s*\d+(?:\.\d+)?px\s*[;}!]/g) ?? []).length,
     fix: 'use var(--radius-xs|sm|md|lg) (derived from --radius) or var(--radius) for the base panel size',
   },
@@ -2078,7 +2111,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 422 to 412 on 2026-10-21: the Settings Design system tab's hero, type
     // facts and ink ribbon went; its read sizes type with the --fs-* and
     // --ui-type-* tokens.
-    pin: 412,
+    // 412 to 409 (plan 346): the Board's title, door notes and way out read
+    // --ui-type-lead, --fs-md and --fs-sm.
+    pin: 409,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

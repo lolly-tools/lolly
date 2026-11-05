@@ -45,12 +45,12 @@ Not every tool offers every format: a link can ask only for one the tool lists i
 | `pdf-cmyk` | Print PDF: CMYK with an output intent ([Print-ready output](#print-ready-output)) |
 | `cmyk-tiff` | Print TIFF: a flattened CMYK raster |
 | `pptx` | PowerPoint deck with native editable text and shapes, and images and vectors you can extract |
-| `idml` | InDesign IDML: a static subset of the layout (Design) |
-| `premiere-xml` | Premiere XML sequence and its media files, in a ZIP (Design) |
-| `scorm` | SCORM course package, a ZIP a learning system imports (Design) |
+| `idml` | InDesign IDML: a static subset of the layout (Lolly Design) |
+| `premiere-xml` | Premiere XML sequence and its media files, in a ZIP (Lolly Design) |
+| `scorm` | SCORM course package, a ZIP a learning system imports (Lolly Design) |
 | `penpot` | Penpot design file: boards, editable shapes and the brand's colours, typographies and design tokens |
 | `docx` / `odt` | Word or OpenDocument text: headings and paragraphs read off the render, editable rather than a picture of the page |
-| `ico` | Icon bundle (Icon, Asset Export) |
+| `ico` | Icon bundle (Icon, Lolly Asset Export) |
 | `zip` | A bundle of several files, which a password can lock ([Exporting](/info/exporting.html#password-protection)) |
 | `html` | Static HTML document |
 | `md` / `txt` | Markdown or plain text |
@@ -59,14 +59,16 @@ Not every tool offers every format: a link can ask only for one the tool lists i
 | `gpl` / `ase` | Swatches for other design apps: GIMP palette and Adobe Swatch Exchange |
 | `ics` / `vcf` | Calendar event or contact card |
 | `srt` / `vtt` | Captions: SubRip and WebVTT |
+| `ttml` / `scc` | Broadcast captions: IMSC1.1 timed text and CEA-608 pop-on (Captions) |
 | `ttf` / `otf` / `woff` | Font files (Convert Font) |
 | `gif` | Animated GIF (animated tools only) |
 | `apng` | Animated PNG with full colour and real alpha (animated tools only) |
 | `webp-anim` | Animated WebP with full colour and alpha, the smallest file (animated tools only) |
-| `lottie` | dotLottie animation (Design) |
+| `lottie` | dotLottie animation (Lolly Design) |
 | `webm` | WebM video (animated tools only; Chrome, Firefox and Android) |
 | `mp4` | MP4 video (animated tools only; Safari, iOS and recent Chrome) |
 | `wav` / `mp3` / `m4a` / `opus` | Audio only: the sound with no picture |
+| `mid` | The notes of a Lolly Rondocode song as a Standard MIDI File (no audio) |
 :::
 
 ### Transparency and outlined text
@@ -154,7 +156,7 @@ Four flags change what the person sees when the link opens.
 
 ## Present a deck
 
-`present` opens a Design document as a fullscreen deck that advances on a click. Its frames become slides in presentation order. `s` picks where to start, and `kiosk` loops:
+`present` opens a Lolly Design document as a fullscreen deck that advances on a click. Its frames become slides in presentation order. `s` picks where to start, and `kiosk` loops:
 
 ```
 /t/design?z=…&present           ← from the first slide
@@ -201,7 +203,7 @@ The author appears only when you have chosen to share your details (Settings →
 ::: details When a Print PDF claims PDF/X-4
 A named condition tells a RIP what the DeviceCMYK values mean, but PDF/X-4 also wants the profile itself inside the file, and no CMYK ICC profile ships with Lolly. So a named condition writes the output intent and not the `GTS_PDFXVersion` conformance claim.
 
-Load a CMYK profile of your own, in Colour Lab or the export panel's Colour profile control, and choose its *Embed* row (`profile=own` in a link). The profile is embedded as the `DestOutputProfile`, and the file claims PDF/X-4 unless something else in the export makes the claim untrue: RGB artwork the CMYK pass could not convert, `marks=prov` (its credit is set in a standard font that is not embedded) or a strong password (X-4 forbids encryption). The output intent is written either way.
+Load a CMYK profile of your own, in Lolly Colour Lab or the export panel's Colour profile control, and choose its *Embed* row (`profile=own` in a link). The profile is embedded as the `DestOutputProfile`, and the file claims PDF/X-4 unless something else in the export makes the claim untrue: RGB artwork the CMYK pass could not convert, `marks=prov` (its credit is set in a standard font that is not embedded) or a strong password (X-4 forbids encryption). The output intent is written either way.
 
 The intent declares the registered condition only where the profile itself proves one, through its own `targ` characterisation data or a lookup Lolly made in the ICC registry. Otherwise it declares `Custom` under the profile's own name.
 :::

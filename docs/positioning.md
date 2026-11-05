@@ -32,7 +32,7 @@ Lolly's live collaboration includes direct two-device private collabs and authen
 ## Reach for Lolly when
 
 - The same kind of file is needed again and again: event tiles, badges, certificates, alerts, social cards
-- Many files come from one template and a table of values, in [Batch](/info/batch.html#make-many-versions-of-one-design) or the CLI
+- Many files come from one template and a table of values, in [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) or the CLI
 - The colours, type and assets must stay inside the design system, even on an open canvas
 - A finished Figma, Penpot, Illustrator, InDesign or PDF design should become editable and repeatable ([Import a design](/info/design-import.html))
 - The files must be made on your own devices or servers
@@ -49,9 +49,9 @@ Imported designs and shared design tokens let a team combine Lolly with speciali
 
 For teams with a curated DAM, start by keeping that library and its administrators in place. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records how integration supported adoption and approval change management. DAM vendors and implementation partners can evaluate the same arrangement through [the partner workflow](/info/dam-partners.html).
 
-A whole slide deck shows the ceiling: in **Markdown Slides** a deck is declared as data, laid out live and exported as a native, editable PowerPoint file.
+A whole slide deck shows the ceiling: in **Lolly Markdown Slides** a deck is declared as data, laid out live and exported as a native, editable PowerPoint file.
 
-![Markdown Slides in the split view: the deck's slides listed as blocks on the left, the laid-out deck rendering on the right](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+![Lolly Markdown Slides in the split view: the deck's slides listed as blocks on the left, the laid-out deck rendering on the right](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## The rules live in the tool
 

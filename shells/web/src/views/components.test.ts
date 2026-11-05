@@ -133,6 +133,12 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     const lastCarousel = featured.querySelector('.featured');
     filmstrip.click();
     assert.equal(featured.querySelector('.featured'), lastCarousel, 'cleanup removes the specimen mode listeners');
+    const previousCleanup = (view as HTMLElement & { _cleanup?: () => void })._cleanup;
+    await mountComponents(view, host);
+    previousCleanup?.();
+    assert.ok(view.querySelector('[data-cl-preview="codeEditor"] textarea'), 'an old mount cannot dispose the current editor');
+    const loadingCard = view.querySelector('[data-cl-preview="viewLoading"]')!.closest('.cl-card')!;
+    assert.equal(loadingCard.querySelector('.cl-kind')?.textContent, 'Interactive');
   } finally {
     (view as HTMLElement & { _cleanup?: () => void })._cleanup?.();
     dom.window.close();

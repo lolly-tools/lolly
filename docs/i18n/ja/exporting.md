@@ -82,6 +82,7 @@ Lolly Workは、承認ステップ、配信の受領記録、監査記録とと�
 | Premiereへの受け渡し | **Premiere XML + media** | Premiere向けの、時間指定されたクリップと元のメディア (Design) |
 | SNSや共有向けの動画 | **MP4**または**WebM** | ファイルサイズに対して最良の品質([動画](#video)をご覧ください) |
 | キャプション | **SRT**または**VTT** | 動画プレーヤー向けの時間指定テキスト (Captions、Audiogram、Record) |
+| 放送用字幕 | **TTML**または**SCC** | IMSC1.1 の時間指定テキスト、または CEA-608 ポップオン字幕 (Captions、[放送用字幕](#broadcast-captions)を参照) |
 | 研修コース | **SCORM (LMS)** | バージョン付きのウェブサイト、SCORM、またはxAPIパッケージ([SCORM](#scorm-course-packages)をご覧ください) |
 | リッチテキストまたはメール署名 | **HTML** | 書式付きでメールクライアントに貼り付けられる |
 | プレーンな内容 | **MD**または**TXT** | テキストのみ |
@@ -131,9 +132,9 @@ Lollyには、量をこなす方法が3つあり、それぞれ別の作業向�
 ## 表が1つのドキュメントになる
 **Battlecards**のように表の入力を持つツールは、すべての行を1ページにします。スプレッドシートから表を貼り付けると、1つのPDFが得られます。行はスプレッドシートで直して、もう一度貼り付けます。
 ## CSVが1行につき1ファイルになる
-**Batch**(`#/batch`)はCSVを受け取り、行ごとに1つの書き出しをレンダリングします。名札や証明書を1枚ずつのファイルで、ZIPにまとめて受け取れます。[Batch](/info/batch.html#make-many-versions-of-one-design)をご覧ください。
+**Batch**(`#/batch`)はCSVを受け取り、行ごとに1つの書き出しをレンダリングします。名札や証明書を1枚ずつのファイルで、ZIPにまとめて受け取れます。[Lolly Batch](/info/batch.html#make-many-versions-of-one-design)をご覧ください。
 ## 複数のデザインに1つの編集
-**Multi-edit**は、複数の保存済みセッションを並べて開き、異なるデザインにわたって同じ微修正を行います。[Multi-edit](/info/batch.html#edit-several-saved-designs-together)をご覧ください。
+**Multi-edit**は、複数の保存済みセッションを並べて開き、異なるデザインにわたって同じ微修正を行います。[Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together)をご覧ください。
 :::
 
 **Projects**の**Render folder**は、フォルダとそのサブフォルダ内のすべての保存済みセッションを、入れ子になった1つのZIPに書き出し、**Render selection**は、任意の複数選択に対して同じことを行います。保存済みセッション1つは、そのままそれ自身のファイルにレンダリングされます。保存済みセッションは、Projectsからツールのリンクとして再び共有することもでき、同じ設定で開き直されます。
@@ -169,7 +170,7 @@ SVGを書き出すほとんどのツールは、Penpotで編集を続けられ�
 | デザイン全体 | Assetsパネルの再利用可能なコンポーネント |
 | 複雑なイラストやライブキャンバス | 単独で画像として埋め込まれ、その周りの編集可能な内容には手を付けない |
 
-Designからは、各フレームがPenpotのボードになります。デザインシステムの色とタイポグラフィはAssetsパネルに、完全なトークンセットはTokensパネルに入ります。そこからはPenpotが独自のコピーを保持し、Penpotで編集したトークンは、[Design System Setup](/info/brand-studio.html)のインポートを通して戻ってきます。
+Designからは、各フレームがPenpotのボードになります。デザインシステムの色とタイポグラフィはAssetsパネルに、完全なトークンセットはTokensパネルに入ります。そこからはPenpotが独自のコピーを保持し、Penpotで編集したトークンは、[Lolly Design System Setup](/info/brand-studio.html)のインポートを通して戻ってきます。
 
 ![Penpotを選択したエクスポートパネル：.penpotファイルと、ダウンロードの隣にあるSend to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Designのタイムラインから、**dotLottie**は、Lottieツールで編集�
 
 パッケージには完成した内容が含まれ、Lollyのアカウントは不要です。Website ZIPはHTTP(S)ホストに置き、LMS ZIPはそのままインポートします。コースを共有する前に、行き先をテストしてください。複数の保存済みの作品から作るコースについては、[研修コースを作る](/info/training-creators.html)をご覧ください。
 
+### 放送用字幕
+
+Captions ツールは、**TTML** と **SCC** も書き出せます。どちらも SRT ファイルや VTT ファイルと同じキューのリストから作られるため、言葉とタイミングが一致します。
+
+- **TTML** は IMSC1.1 Text Profile で、メディア時間のクロックタイムと、下部中央に配置された 1 つのリージョンを使います。Lolly の字幕は開始、終了、テキストだけを持つため、字幕ごとの色、フォント、位置は含まれません。
+- **SCC** は、チャンネル 1 の CEA-608 ポップオン字幕を、毎秒 29.97 フレームのドロップフレームタイムコードで格納します。基本的な北米の文字に加え、特殊文字と拡張文字に対応しています。このセットで表せない文字が字幕に含まれていると、書き出しは停止してその文字を知らせるため、気付かないうちに欠落することはありません。各字幕は 32 桁、最大 15 行で折り返されます。開始時刻までに読み込めない字幕は、数フレーム遅れます。
+- ロールアップとペイントオンの字幕は書き出されません。
+
+SCC の出力は、実際の放送用ツールやハードウェアデコーダーでは確認されていません。納品の前に、お使いのパイプラインでファイルをテストしてください。
+
 ### DXF(カット用ファイル)
 
 Asset Export、Diagrams、Growth、Logo Wall、QR Code、Street Map、Wayfinding、Wordmarkは、レーザーカッター、ビニールプロッター、CNCソフトウェアが読むAutoCAD R12の交換形式である**DXF**を書き出します。ジオメトリはミリメートル単位のアウトラインパスとして書かれ、テキストはアウトライン化され、色は最も近いAutoCADカラーインデックスに対応付けられ、これが通常、カッターの動作を決めます。DXFは線画だけです。写真やフィルター付きの領域にはカットパスがなく、警告とともに除外されます。ラスターの内容を保つには、SVGまたはPDFを使ってください。
@@ -214,7 +225,7 @@ Street Mapは最も分かりやすい例です。デザイン全体がすでに�
 
 ## 印刷
 
-**Print PDF**は、指定された印刷条件(既定は**Coated FOGRA39**)に基づいてCMYKを書き出します。測定されたインク値を持つブランドのスウォッチは正確に変換され、それ以外の色は標準的なデバイス変換を使います。**Print TIFF**は、RIP向けのDeviceCMYKピクセルを書き出し、同じ印刷条件をTIFFのメタデータに記録します。どちらも、Colour profileコントロールが制御します。詳細は[カラープロファイル](#colour-profiles)をご覧ください。
+**Print PDF**は、指定された印刷条件(既定は**Coated FOGRA39**)に基づいてCMYKを書き出します。測定されたインク値を持つブランドのスウォッチは、その値を保ちます。それ以外の色は印刷プロファイルを通して変換されます。既定ではLolly独自のCoated FOGRA39プロファイル、**Embed**行を選んだ場合はご自身のプロファイルです。グレーと黒は黒版だけに残るため、小さな文字でも見当ずれが起きません。FOGRA51、SWOP、GRACoLは標準的なデバイス変換を使います。**Print TIFF**は、RIP向けのDeviceCMYKピクセルを書き出し、同じ印刷条件をTIFFのメタデータに記録します。どちらも、Colour profileコントロールが制御します。詳細は[カラープロファイル](#colour-profiles)をご覧ください。
 
 **Print marks & bleed**は、印刷形式に専用のカードがあります。ミリメートル単位の裁ち落としと、Crop、Registration、Bleed、Colour bars、Stamp detailsです。
 
@@ -223,6 +234,15 @@ Street Mapは最も分かりやすい例です。デザイン全体がすでに�
 **書き出す前に。** パネル下部の**Before you export**カードは、印刷会社がこれから見るものを伝えます。形式、サイズ、裁ち落とし、トリムと裁ち落としの領域、インク使用量、版数、ページ数と、見出しの横の判定です。書き出しをブロックすることはありません。Designは、デザインシステムの運用ルールをレイヤー単位で確認するものや、ドキュメントのテキストの文章シグナルなど、独自のチェックを含むカードを常に表示し([書き出す前に](/info/design.html#before-you-export))、**Print preflight**がオンのときは、これらの印刷チェックも加えます。他のツールでは、Settings → Preferences → Feature flagsで**Print preflight**をオンにします。既定ではオフで、Lolly Workの配備は、メンバー向けにオンにできます。
 
 **書き出した後に。** ファイルができると、Lollyはそれを読み戻し、選んだ設定と比較します。形式、ピクセルまたはページのサイズ、クリップの長さ、透明な背景、CMYKの色、HDR、Content Credentials、PDFまたはZIPのパスワードです。違いがあれば、書き出しカードに記されます。各測定値は設定ではなくファイルから取得し、ファイルが答えられない性質は、一致としては数えられません。コマンドラインは`--export-report`で完全な比較を書き出します([CLIでレンダリングする](/info/cli-rendering.html)をご覧ください)。
+
+**PDFアクセシビリティチェック。** PDFの場合、コマンドラインでは`--export-report`ファイルの`pdfAccessibility`の下に、32項目のアクセシビリティチェックも一覧表示されます。各チェックには、ID、わかりやすい説明、結果、そしてファイル内で問題が見つかった場所が含まれます。
+
+- **合格**: チェックで確認した結果、問題は見つかりませんでした。
+- **失敗**: チェックで問題が見つかりました。該当するページ番号またはタグが表示されます。
+- **対象外**: 表のチェックなど、そのファイルに確認対象となるものがありませんでした。ファイルの良し悪しを示すものではありません。
+- **人による確認が必要**: 6つのチェックはプログラムでは判断できません(読み上げ順序、色のコントラスト、点滅、スクリプト、制限時間、繰り返されるリンク)。
+
+この一覧は判定結果ではありません。PDFがPDF/UAに適合していることや、支援技術を使う人が利用できることを示すものではなく、スクリーンリーダーでファイルを確認する作業は引き続き人が行う必要があります。現時点ではエクスポーターがタグをまだ書き込まないため、LollyのPDFはタグ付けのチェックに失敗します。このチェックはお使いのデバイス上でファイルを読み取り、何も変更しません。パスワードが必要なファイルは、合格ではなく未チェックとして扱われます。送られてきたPDFをチェックするには、[Strip Hidden Data](/info/utilities.html)にドロップしてください。**PDF accessibility checks**の下に同じ一覧が表示されます。
 
 Designのインスペクターによるチェックと、Design System Setupでのブランド比較は別のチェックです。それらはデザインを見るもので、この2つのカードはファイルを見るものです。
 
@@ -280,7 +300,7 @@ Lollyは、現代のCSSの色をすべて読み取り、色の計算を知覚的
 - **SVG**、**EMF**、**EPS**、**DXF**は、プロファイルを埋め込まないベクターです。SVGの色はsRGB、EMFとEPSはデバイスRGBを使い、**EPS (CMYK)**はDeviceCMYKを書き出し、DXFはAutoCADカラーインデックスを使います。SVG、EPS、DXFはテキストをパスにアウトライン化します。EMFは、OfficeとGoogleスライドでテキストをライブで編集可能なまま保ち、形式で表現できないランのみアウトラインにフォールバックします。書き出しパネルの**Outline fonts**オプションは、すべてをパスにします。SVGは、CSSのボックスシャドウも内側と外側の両方で再現します。
 
 ::: details PDF/X-4と独自の印刷プロファイル
-LollyにはCMYKプロファイルが同梱されていません。名前付きの印刷条件は、PDF/X-4はプロファイルの埋め込みを求めるため、PDF/X-4への適合を主張せずに出力インテントを書き出します。
+LollyにはCMYKプロファイルが1つ付属しています。FograのFOGRA39特性データに合わせて作られ、CC0で公開されており、既定の印刷条件ではこのプロファイルを通して色を変換します。このプロファイルは埋め込まれません。ICCバージョン4.3であり、PDF/X-4が受け付けるのはバージョン4.2までだからです。そのため、名前付きの印刷条件では、PDF/X-4への適合を主張せずに出力インテントを書き出します。
 
 ご自身のCMYKプロファイルを読み込み、Colour profileコントロールの**Embed**行を選びます。それはファイルの*DestOutputProfile*として埋め込まれ、ファイルの他の部分が許すかぎり、PDFはPDF/X-4を主張します。宣言される印刷条件は、そのプロファイルから読み取られます。プロファイルが証明できる場合は登録名、そうでなければプロファイル自身の名前での`Custom`です。
 
@@ -400,8 +420,8 @@ LollyにはCMYKプロファイルが同梱されていません。名前付き�
 | ベクター | `svg` · `svgz` (gzip圧縮のSVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (カット用ファイル) |
 | ページとドキュメント | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpotのデザインファイル) · `scorm` (コースパッケージ。ZIP) |
 | モーション | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| 音声 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| テキストとデータ | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMPパレット) |
+| 音声 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDIノート(Rondocodeから)) |
+| テキストとデータ | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMPパレット) |
 | バンドルとパッケージ | `zip` · `rpm`と`tar.gz` (レンダリング結果をLinuxパッケージに封じたもの) |
 
 一部のIDは、ツール自身の書き出しコードに由来します。`ase`(Palette LabのAdobe Swatch Exchange)と、`exr`および`hdr`(Darkroomの高ダイナミックレンジのラスター)です。**Convert Font**は、ご自身が提供するフォントファイルから`ttf`、`otf`、`woff`を書き出すため、単なるリンクではレンダリングするものがありません。

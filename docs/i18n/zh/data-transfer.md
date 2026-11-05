@@ -152,7 +152,7 @@ Lolly 把你的个人库保存在设备上。备份包就是这个库迁移的�
 
 此包备份的是设备的个人库。它不是 **Lolly Work** 实例的备份：组织账号、访问政策、共享项目、目录版本、审批、渲染作业和审计记录由该服务持有。重新连接并登录即可重新获得对共享作品的访问；导入个人包不会授予该访问权限。
 
-运营者使用 Lolly Work 自己的指南备份、保留和删除服务器数据：[备份与恢复](/info/work-operations.html#backup-and-restore)和 [Work 存储与数据生命周期](/info/work-data-lifecycle.html)。清除或导出设备并不会执行其中任何一项服务器操作。
+运营者使用 Lolly Work 自己的指南备份、保留和删除服务器数据：[备份与恢复](/info/work-operations.html#backup-and-restore)和 [Lolly Work 存储与数据生命周期](/info/work-data-lifecycle.html)。清除或导出设备并不会执行其中任何一项服务器操作。
 
 ## 跨外壳
 

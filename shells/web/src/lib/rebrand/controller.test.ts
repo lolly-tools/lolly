@@ -672,7 +672,7 @@ test('a stale write is refused, changes nothing shown, and reload picks up the o
   assert.equal((await c.decide({ objectIds: ['ppt/slides/slide1.xml.4'], action: 'remove' })).ok, true);
 });
 
-test('a full device holds the edit in memory and says so', async () => {
+test('a full device holds the edit in memory and reports that', async () => {
   const { h, c } = await reviewing();
   h.store.quotaFull = true;
   const out = await c.decide({ objectIds: ['ppt/slides/slide1.xml.4'], action: 'remove' });

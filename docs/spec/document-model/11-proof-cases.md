@@ -23,13 +23,13 @@ Twelve cases come from the three pilots and the utilities. Eleven more were adde
 
 ## Pilot and utility cases
 
-**1. Constrained Design, two people.** One authored Design tool is opened twice, once in governed execution and once unmanaged (D12).
+**1. Constrained Lolly Design, two people.** One authored Design tool is opened twice, once in governed execution and once unmanaged (D12).
 Expected outcome: governed execution must enforce the mandatory rules, and the unmanaged person may reject a waivable creative rule without mutating the original definition and without keeping a false approval claim (R6, `packages/core/src/design-tool-v1.ts`).
 
-**2. Chart inside Design and inside another tool.** One chart definition is placed in a Design document and in a second tool, each with its own dataset.
+**2. Chart inside Lolly Design and inside another tool.** One chart definition is placed in a Lolly Design document and in a second tool, each with its own dataset.
 Expected outcome: typed data bindings, public overrides, brand rules and accessibility metadata must survive composition as a `chart` layer, and the two instances must keep independent identity and state (R14, `packages/core/src/chart-v1.ts`).
 
-**3. Design across print, raster and motion.** One authored Design document is rendered to a print target, a raster target and a motion target.
+**3. Lolly Design across print, raster and motion.** One authored Lolly Design document is rendered to a print target, a raster target and a motion target.
 Expected outcome: one authored contract must serve the three output targets with explicit units, resources, timing and stated differences between the outputs (D2, `engine/src/units.ts`).
 
 **4. Agenda in interactive web, slides and motion.** One schedule is published as an interactive page, as slides and as a video.
@@ -66,7 +66,7 @@ Expected outcome: their behaviour must be preserved, and the adapter must report
 **13. Typed payload round trip.** A nested chart is serialised, reopened, copied, patched, synchronised and exported.
 Expected outcome: datasets, encodings and accessibility metadata must survive every step, two concurrent edits to one payload must produce the documented outcome and no step may turn the chart into a string or a flattened image (R14, C1). The collaboration row value is a string, a number, a boolean or null, so a chart must travel as its own payload record (`packages/core/src/canvas-op-v1.ts`, `schemas/canvas-op.schema.json`). The mechanism is specified in [Source rows, payloads and patches](source-and-patches.html).
 
-**14. Second coordinate domain.** Design's `3d` layer carries its scene as a URL-encoded string inside a scalar field today (`community/design/tool.json`).
+**14. Second coordinate domain.** Lolly Design's `3d` layer carries its scene as a URL-encoded string inside a scalar field today (`community/design/tool.json`).
 Expected outcome: that scene must become a typed payload record referenced by the row, without breaking the frozen blocks wire order and without breaking an already shared link (R1, `schemas/blocks-wire-order.json`). The record must declare its length unit and its up axis, so that a GLB or USDZ export states the real size without a guess ([Source rows, payloads and patches](source-and-patches.html)).
 
 ### Concurrent merges (R1, C2)
@@ -120,7 +120,7 @@ Expected outcome: the operation must succeed with a typed outcome and no receipt
 
 ### Editable motion and nested time (R1, R10, R11, R12, R15)
 
-**26. Editable film and playback projection.** A Design scene with captured UI text and shapes, split text, a camera, a staged pointer and a soundtrack is saved as `.lolly`, opened in a fresh session, edited and exported to HTML and a movie. Change a headline, move the panel and retime the interaction. Seek to the same sample after a different sequence of earlier seeks. Open the HTML with network access disabled.
+**26. Editable film and playback projection.** A Lolly Design scene with captured UI text and shapes, split text, a camera, a staged pointer and a soundtrack is saved as `.lolly`, opened in a fresh session, edited and exported to HTML and a movie. Change a headline, move the panel and retime the interaction. Seek to the same sample after a different sequence of earlier seeks. Open the HTML with network access disabled.
 Expected outcome: text and geometry must remain editable; imported asset ids must resolve to the carried bytes; the edited values must survive another save and reopen. The player and the movie must evaluate the same authored motion, with raster and codec differences reported separately. Font dependencies must be identified, and embedded HTML fonts must not imply that the editable package carries those fonts. Audio must follow the declared time mapping. Pausing, muting or seeking the player must not alter the source revision. The last displayed sample and encoded frame count must follow an explicit endpoint policy. Plan 281 is local pilot evidence for the current adapter, not proof of general video, Lottie, 3D or arbitrary CSS support.
 
 **27. Nested motion and regeneration.** A timed composition contains a clipped panel, staggered text and a trimmed audio clip. The parent moves, rotates and changes playback rate. An author then changes one generated key and reapplies the recipe. An older reader opens the document and saves an unrelated permitted edit before restart.
@@ -129,7 +129,7 @@ Expected outcome: local geometry, transform order, clipping, opacity composition
 **28. Timed artboards as scenes.** A film has three differently sized artboards, child motion, one camera per scene, scene-owned audio and an unframed soundtrack. Move the second scene before the first through the timeline, save, reopen and export. Seek repeatedly across scene boundaries and a dissolve, then use the HTML player's scene menu.
 Expected outcome: scene membership determines which starts move, even when a member extends beyond its owner's end. Local keys and the global soundtrack stay unchanged. Each camera affects only its own scene and uses that artboard's size. Scene audio is clipped with its source trim and gain preserved. The outgoing picture holds its final in-bounds sample through a dissolve. HTML and movie contain-fit each scene consistently. Playback navigation must not change the saved source. Deleting a scene removes its members in the same undoable edit. The current adapter stores member starts in project time; passing this case does not prove nested rate or parent-transform support. Plan 281 supplies local examples and targeted tests, not an admitted general conformance suite.
 
-**29. A song that is code.** A rondocode song is uploaded as an audio asset, placed on a Design timeline as a trimmed clip and exported as a movie on the web, rendered by the CLI and decoded through the public MCP server (plan 301). A second song reaches for `fetch` inside `js{ ... }`, loops forever inside a pattern and rewrites `JSON.stringify` to forge its own output. A third calls `sing()` and `mic()`. Execution class: `vm`.
+**29. A song that is code.** A rondocode song is uploaded as an audio asset, placed on a Lolly Design timeline as a trimmed clip and exported as a movie on the web, rendered by the CLI and decoded through the public MCP server (plan 301). A second song reaches for `fetch` inside `js{ ... }`, loops forever inside a pattern and rewrites `JSON.stringify` to forge its own output. A third calls `sing()` and `mic()`. Execution class: `vm`.
 
 Expected outcome: the song's code runs only in the `vm` class on every surface, and each result records that class with the renderer's version and seed (R15). One song at one length gives the same PCM on the web and on Node; JavaScriptCore is not yet measured. The hostile song ends with a named error at the deadline of the phase it broke, its forged output is refused by the inspection step, and the host process carries on (R3). The third song renders with its sung and microphone parts named as silent, never as a complete render (R10). A host without the renderer carries the `.rondo.json` bytes unchanged through a save and a `.lolly` export (R10, C7). Passing this case does not prove the opaque-origin frame the editor runs in, which [capabilities, trust and extensions](extensions.html) leaves as an open point.
 
@@ -145,21 +145,21 @@ Spatial and fabrication examples stay paper probes in this wave (D5). They test 
 
 ## DAM resource cases added on 2026-10-15
 
-These cases extend the Design resource boundary after the DAM review (plan 314). They keep Design, Chart and Agenda as the pilots (D2). They are requirements for future contract fixtures, not claims of implemented source-history or review enforcement. Focused tests of existing seams are evidence only for the behaviour those tests exercise.
+These cases extend the Lolly Design resource boundary after the DAM review (plan 314). They keep Lolly Design, Chart and Agenda as the pilots (D2). They are requirements for future contract fixtures, not claims of implemented source-history or review enforcement. Focused tests of existing seams are evidence only for the behaviour those tests exercise.
 
 **30. Two originals and a preview.** A provider asset contains two SVG attachments and a raster preview of the second. Select the second file, save the instance, reopen, convert and deliver the selected original.
 Expected outcome: every step retains the same selected file identity and observed revision/digest. The preview remains a separate representation and never satisfies an original request. Reordering attachments changes neither selection nor identity. Existing selected-file helpers cover part of this case (`shells/web/src/lib/asset-files.ts`); durable provider pin resolution remains required (R4, R15).
 
 **31. Overwrite without a metadata change.** A source overwrites one attachment with equal-length bytes while keeping its timestamp and format metadata. Compare the catalog change token and actual byte digests, then reopen an earlier pinned instance.
-Expected outcome: a cache token alone cannot establish unchanged content. The pin returns verified earlier bytes through a qualified revision or permitted retained copy, or an explicit unavailable result. It never reads the new head as the old revision. Work currently derives the token from metadata and exposes no general historical-revision resolver (`lolly-work/server/src/catalog/federation.ts`, `lolly-work/server/src/catalog/providers/types.ts`), so full exact-pin support is not established (invariant 7, R15).
+Expected outcome: a cache token alone cannot establish unchanged content. The pin returns verified earlier bytes through a qualified revision or permitted retained copy, or an explicit unavailable result. It never reads the new head as the old revision. Lolly Work currently derives the token from metadata and exposes no general historical-revision resolver (`lolly-work/server/src/catalog/federation.ts`, `lolly-work/server/src/catalog/providers/types.ts`), so full exact-pin support is not established (invariant 7, R15).
 
-**32. Offline after authority changes.** A source is withdrawn or a processing lease expires while a member has an offline saved Design and permitted cached material. Reopen after 25 hours, edit a local caption, request a restricted original, start processing and attempt delivery.
+**32. Offline after authority changes.** A source is withdrawn or a processing lease expires while a member has an offline saved Lolly Design and permitted cached material. Reopen after 25 hours, edit a local caption, request a restricted original, start processing and attempt delivery.
 Expected outcome: held policy continues to govern permitted work (R7). Each consequential action follows its own explicit freshness and validity requirements. A historical receipt never renews access or processing permission. A local creative waiver and an editable copy cannot widen the source grant (R3, R6). Missing authority blocks only the affected operation, and existing source evidence remains history.
 
 **33. Review of one revision.** An upstream proof reviews two files, then one file is replaced or the proof membership changes. A separately staged Lolly output is also replaced with a remotely transformed result.
-Expected outcome: each decision stays bound to its reviewed subject and scope. Catalog admission, source review, contextual eligibility, conformance acceptance and final-byte approval remain separate. New output bytes need the checks and review their own delivery policy requires. Work's existing version-curation and staged-delivery paths must be represented accurately, without assigning them an unimplemented general revision-review guarantee (R8, R15; `lolly-work/server/src/catalog/submit.ts`, `lolly-work/server/src/delivery/types.ts`).
+Expected outcome: each decision stays bound to its reviewed subject and scope. Catalog admission, source review, contextual eligibility, conformance acceptance and final-byte approval remain separate. New output bytes need the checks and review their own delivery policy requires. Lolly Work's existing version-curation and staged-delivery paths must be represented accurately, without assigning them an unimplemented general revision-review guarantee (R8, R15; `lolly-work/server/src/catalog/submit.ts`, `lolly-work/server/src/delivery/types.ts`).
 
-**34. Hidden neighbours and shared credentials.** A visible source has a hidden dependant and a private generation recipe. A service credential can read both upstream; the Work member can read only the source. Repeat the query through Assets, an agent, facets, lineage and an export.
+**34. Hidden neighbours and shared credentials.** A visible source has a hidden dependant and a private generation recipe. A service credential can read both upstream; the Lolly Work member can read only the source. Repeat the query through Assets, an agent, facets, lineage and an export.
 Expected outcome: no hidden neighbour, field, identifier, count or redaction detail crosses the member's authority. Shared exposure and delegated upstream member authority are explicitly distinguished. Usage reports known recorded uses within that authority; it never promises complete tracking (R3, R15).
 
 **35. Imported incomplete generation.** Import generated bytes and a workflow sidecar whose final sampler, model revision and one input are missing. Reuse the stored image, request replay and then explicitly generate a variation.
@@ -222,7 +222,7 @@ package vehicle and distinguishes imported operation reports from execution
 observed on this device. `tests/asset-version.test.ts` also binds credential
 collection to each exact source version used by an export.
 
-The Work [source-review suite](https://github.com/lolly-tools/lolly-work/blob/24955a47957d820d4e1d6a9d0a835b0e02aeb77b/tests/catalog-source-review.test.ts) covers a frozen purpose, activation
+The Lolly Work [source-review suite](https://github.com/lolly-tools/lolly-work/blob/24955a47957d820d4e1d6a9d0a835b0e02aeb77b/tests/catalog-source-review.test.ts) covers a frozen purpose, activation
 target and file membership, replacement after request, and hidden proof members.
 These are focused implementation cases. They do not establish vendor-native
 history, historical source attributes, complete shared usage, replayable imported

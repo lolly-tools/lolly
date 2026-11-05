@@ -1,5 +1,31 @@
 {
   "Speakers": "Talare",
+  "Closest to the current palette": "Närmast den nuvarande paletten",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Förhandsgranska sparade designsystem och några startpunkter. Inget ändras förrän du väljer Använd.",
+  "Use this look": "Använd den här looken",
+  "Previewing {name}": "Förhandsvisar {name}",
+  "Choose up to two looks to compare.": "Välj upp till två looks att jämföra.",
+  "Drop a horizontal logo": "Släpp en horisontell logotyp här",
+  "Drop a vertical logo": "Släpp en vertikal logotyp här",
+  "calm": "lugn",
+  "nature": "natur",
+  "playful": "lekfull",
+  "creative": "kreativ",
+  "warm": "varm",
+  "editorial": "redaktionell",
+  "neutral": "neutral",
+  "red": "röd",
+  "orange": "orange",
+  "yellow": "gul",
+  "green": "grön",
+  "teal": "blågrön",
+  "blue": "blå",
+  "purple": "lila",
+  "pink": "rosa",
+  "deep": "mörk",
+  "pale": "blek",
+  "vivid": "klar",
+  "muted": "dämpad",
   "Sort languages": "Sortera språk",
   "Lolly Imprint": "Lolly Imprint",
   "Hides the Lolly Imprint - a durable, invisible watermark - in the image pixels. It survives re-encoding and screenshots, so any copy of the file can be recognised later.": "Döljer Lolly Imprint, en beständig osynlig vattenstämpel, i bildens pixlar. Den överlever omkodning och skärmdumpar, så varje kopia av filen kan kännas igen senare.",
@@ -577,7 +603,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Kör den djupare AI-textkontrollen i Verifiera och i Tillgångar.",
   "Card size": "Kortstorlek",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 bild eller fil lades till på den här enheten. Den stannar på den här enheten och andra ser inte filen.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} bilder eller filer lades till på den här enheten. De stannar på den här enheten och andra ser inte filerna.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "1 bild eller fil lades till på den här enheten. Den stannar på den här enheten och andra ser inte filen.",
+    "other": "{n} bilder eller filer lades till på den här enheten. De stannar på den här enheten och andra ser inte filerna."
+  },
   "Check the version first": "Kontrollera versionen först",
   "Copy team link": "Kopiera teamlänk",
   "Could not create the project. Try again.": "Det gick inte att skapa projektet. Försök igen.",
@@ -1168,7 +1197,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Alla objekt är sparade i det delade projektet. De lokala originalen ligger i papperskorgen eller kvar på sin plats.",
   "Your local items have not changed.": "Dina lokala objekt har inte ändrats.",
   "1 item was saved to the shared project.": "1 objekt sparades i det delade projektet.",
-  "{n} items were saved to the shared project.": "{n} objekt sparades i det delade projektet.",
+  "{n} items were saved to the shared project.": {
+    "one": "1 objekt sparades i det delade projektet.",
+    "other": "{n} objekt sparades i det delade projektet."
+  },
   "Wait for the current move to finish.": "Vänta tills den pågående flytten är klar.",
   "You cannot save to that shared project.": "Du kan inte spara i det delade projektet.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Alla som kan öppna {project} ser de här objekten. När varje objekt är sparat där flyttas de lokala originalen till papperskorgen, där du kan återställa dem.",
@@ -1479,8 +1511,14 @@
   "file": "fil",
   "samples": "prover",
   "text": "text",
-  "{n} changes found": "{n} ändringar hittades",
-  "{n} pages differ": "{n} sidor skiljer sig",
+  "{n} changes found": {
+    "one": "1 ändring hittades",
+    "other": "{n} ändringar hittades"
+  },
+  "{n} pages differ": {
+    "one": "1 sida skiljer sig",
+    "other": "{n} sidor skiljer sig"
+  },
   "Draft": "Utkast",
   "Draft quality": "Utkastkvalitet",
   "Draft rule": "Utkastregel",
@@ -1790,5 +1828,262 @@
   "Headlines - 36px, or 24px bold": "Rubriker - 36 px, eller 24 px fet",
   "Icons and borders only": "Endast ikoner och kantlinjer",
   "Not usable": "Inte användbar",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA är definierat för sRGB, så en färg med brett färgomfång poängsätts utifrån sin sRGB-återgivning."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA är definierat för sRGB, så en färg med brett färgomfång poängsätts utifrån sin sRGB-återgivning.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly bytte till det enklare, snabbare utseendet eftersom den här enheten ritar utan grafikacceleration.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly bytte till det enklare, snabbare utseendet eftersom den här enheten hade det tungt.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Aktiverades automatiskt den {date} eftersom den här enheten ritar utan grafikacceleration.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Aktiverades automatiskt den {date} eftersom den här enheten hade svårt att rita gränssnittet.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Automatiskt byte är avstängt på den här enheten eftersom du valde Ångra den {date}.",
+  "Allow again": "Tillåt igen",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Automatiskt byte är tillåtet igen från nästa gång du öppnar Lolly.",
+  "Board": "Tavla",
+  "Choose for {role}": "Välj för {role}",
+  "Change {role}": "Ändra {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ditt varumärkes vägledning, skriven för människor och agenter. Agenter läser varumärkesfärdigheten först, sedan den för arbetet. Färdigheter vägleder arbetet; varumärkesreglerna i Regler är det Lolly kontrollerar.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly bytte till det enklare, snabbare utseendet medan den här enheten är upptagen. Det byter tillbaka när det lugnar ner sig.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly bytte till det enklare, snabbare utseendet medan batteriet är svagt. Det byter tillbaka när den här enheten laddas.",
+  "On for now because this device is busy. It switches back when things calm down.": "På just nu eftersom den här enheten är upptagen. Det byter tillbaka när det lugnar ner sig.",
+  "On for now because the battery is low. It switches back when this device is charging.": "På just nu eftersom batteriet är svagt. Det byter tillbaka när den här enheten laddas.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Aktiverades automatiskt den {date} medan den här enheten var upptagen. Du valde Behåll.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Aktiverades automatiskt den {date} medan batteriet var svagt. Du valde Behåll.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly byter inte här för en långsam enhet, eftersom du valde Ångra den {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly byter inte medan den här enheten är upptagen eller batteriet är svagt, eftersom du valde Ångra den {date}.",
+  "Use the automatic colour": "Använd den automatiska färgen",
+  "follows the design system ({colour})": "följer designsystemet ({colour})",
+  "follows the design system": "följer designsystemet",
+  "automatic ({colour})": "automatisk ({colour})",
+  "automatic": "automatisk",
+  "{name} spring": "Fjäder {name}",
+  "{name} (not in this design system)": "{name} (finns inte i det här designsystemet)",
+  "Curves": "Kurvor",
+  "Springs": "Fjädrar",
+  "Gentle": "Mjuk",
+  "Quick": "Snabb",
+  "Bouncy": "Studsig",
+  "Custom spring": "Anpassad fjäder",
+  "Stiffness": "Styvhet",
+  "Damping": "Dämpning",
+  "Mass": "Massa",
+  "Settles in {t} s": "Stannar på {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Nästa nyckelbildruta kommer innan fjädern har stannat. Resten av rörelsen fördelas över segmentet.",
+  "From the design system: {name}": "Från designsystemet: {name}",
+  "Editing the curve detaches it from the design system.": "Om du redigerar kurvan kopplas den bort från designsystemet.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn. Håll för Blyertspennan (Shift C) och splinetypen",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn",
+  "Recipients can change the inputs": "Mottagare kan ändra indata",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Alla med länken kan ändra indata och få en ny bild. Låsta indata behåller sina inställda värden.",
+  "{count} entries": {
+    "one": "1 post",
+    "other": "{count} poster"
+  },
+  "{count} files in this folder": {
+    "one": "1 fil i den här mappen",
+    "other": "{count} filer i den här mappen"
+  },
+  "{n} assets": {
+    "one": "1 tillgång",
+    "other": "{n} tillgångar"
+  },
+  "{n} assets found": {
+    "one": "1 tillgång hittades",
+    "other": "{n} tillgångar hittades"
+  },
+  "{n} capabilities match": {
+    "one": "1 funktion matchar",
+    "other": "{n} funktioner matchar"
+  },
+  "{n} copies made · selected": {
+    "one": "1 kopia gjord · vald",
+    "other": "{n} kopior gjorda · valda"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "1 skapelse som togs bort från Projekt här förblev borttagen.",
+    "other": "{n} skapelser som togs bort från Projekt här förblev borttagna."
+  },
+  "{n} embedded files": {
+    "one": "1 inbäddad fil",
+    "other": "{n} inbäddade filer"
+  },
+  "{n} external references": {
+    "one": "1 extern referens",
+    "other": "{n} externa referenser"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "1 fil kunde inte packas och uteslöts",
+    "other": "{n} filer kunde inte packas och uteslöts"
+  },
+  "{n} folders": {
+    "one": "1 mapp",
+    "other": "{n} mappar"
+  },
+  "{n} font files": {
+    "one": "1 teckensnittsfil",
+    "other": "{n} teckensnittsfiler"
+  },
+  "{n} images": {
+    "one": "1 bild",
+    "other": "{n} bilder"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "1 bild kunde inte återställas (lagringen full?)",
+    "other": "{n} bilder kunde inte återställas (lagringen full?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "1 bild stannade kvar vid originalet - bilder har ett hem; använd Klipp ut för att flytta dem",
+    "other": "{n} bilder stannade kvar vid originalet - bilder har ett hem; använd Klipp ut för att flytta dem"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "1 fält · gäller varje design",
+    "other": "{n} fält · gäller varje design"
+  },
+  "{n} items": {
+    "one": "1 objekt",
+    "other": "{n} objekt"
+  },
+  "{n} items copied": {
+    "one": "1 objekt kopierat",
+    "other": "{n} objekt kopierade"
+  },
+  "{n} items cut": {
+    "one": "1 objekt klippt",
+    "other": "{n} objekt klippta"
+  },
+  "{n} items moved": {
+    "one": "1 objekt flyttat",
+    "other": "{n} objekt flyttade"
+  },
+  "{n} items pasted": {
+    "one": "1 objekt inklistrat",
+    "other": "{n} objekt inklistrade"
+  },
+  "{n} keyframes": {
+    "one": "1 nyckelbild",
+    "other": "{n} nyckelbilder"
+  },
+  "{n} logos": {
+    "one": "1 logotyp",
+    "other": "{n} logotyper"
+  },
+  "{n} marks found": {
+    "one": "1 märke hittades",
+    "other": "{n} märken hittades"
+  },
+  "{n} newer items skipped": {
+    "one": "1 nyare objekt hoppades över",
+    "other": "{n} nyare objekt hoppades över"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "1 skapelse är en video eller animation",
+    "other": "{n} av dina skapelser är videor eller animationer"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "1 äldre automatisk kontrollpunkt utelämnad",
+    "other": "{n} äldre automatiska kontrollpunkter utelämnade"
+  },
+  "{n} pages": {
+    "one": "1 sida",
+    "other": "{n} sidor"
+  },
+  "{n} places": {
+    "one": "1 plats",
+    "other": "{n} platser"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "1 punkt - håll Alt för ett hörn",
+    "other": "{n} punkter - håll Alt för ett hörn"
+  },
+  "{n} published versions": {
+    "one": "1 publicerad version",
+    "other": "{n} publicerade versioner"
+  },
+  "{n} results": {
+    "one": "1 resultat",
+    "other": "{n} resultat"
+  },
+  "{n} saved sessions": {
+    "one": "1 sparad session",
+    "other": "{n} sparade sessioner"
+  },
+  "{n} selected": {
+    "one": "1 vald",
+    "other": "{n} valda"
+  },
+  "{n} selected assets": {
+    "one": "1 vald tillgång",
+    "other": "{n} valda tillgångar"
+  },
+  "{n} sessions": {
+    "one": "1 session",
+    "other": "{n} sessioner"
+  },
+  "{n} shapes": {
+    "one": "1 form",
+    "other": "{n} former"
+  },
+  "{n} steps": {
+    "one": "1 steg",
+    "other": "{n} steg"
+  },
+  "{n} templates": {
+    "one": "1 mall",
+    "other": "{n} mallar"
+  },
+  "{n} volume keys": {
+    "one": "1 volymnyckel",
+    "other": "{n} volymnycklar"
+  },
+  "{n} words": {
+    "one": "1 ord",
+    "other": "{n} ord"
+  },
+  "Importing {n} files…": "Importerar {n} filer…",
+  "What do you need?": "Vad behöver du?",
+  "Dominant hand": "Dominant hand",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Med två paneler, på en vikbar enhet eller en nästan kvadratisk surfplatta, hamnar kontrollerna på sidan bort från handen du ritar med. Byt sida i panelens rubrik ändrar också detta.",
+  "Swap sides": "Byt sida",
+  "Resize panes": "Ändra storlek på panelerna",
+  "Changes that didn't finish saving": "Ändringar som inte hann sparas",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Du gjorde de här ändringarna {time} och sidan stängdes innan de sparades. Det här designsystemet har sparats igen sedan dess, i en annan flik eller genom en synkronisering.",
+  "Restore your unsaved changes": "Återställ dina osparade ändringar",
+  "Keep the saved version": "Behåll den sparade versionen",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Om du återställer ersätts versionen som sparats sedan dess. Om du behåller den sparade versionen tas de osparade ändringarna bort från den här enheten.",
+  "Restored your unsaved changes.": "Dina osparade ändringar har återställts.",
+  "Kept the saved version.": "Den sparade versionen har behållits.",
+  "Restored the changes that hadn't finished saving.": "Ändringarna som inte hann sparas har återställts.",
+  "{n} file": "{n} fil",
+  "It becomes the primary. Shades and roles can follow.": "Den blir primärfärgen. Nyanser och roller kan följa.",
+  "Start here": "Börja här",
+  "Browse looks →": "Bläddra bland looks →",
+  "Pick what you have →": "Välj det du har →",
+  "Open the picker →": "Öppna väljaren →",
+  "Starter greys until a colour is added.": "Startgrått tills en färg läggs till.",
+  "Lolly can’t draw in this browser yet": "Lolly kan inte rita i den här webbläsaren än",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly ritar med WebGPU, som den här webbläsaren inte erbjuder än.",
+  "These work today:": "Det här fungerar i dag:",
+  "Chrome or Edge, kept up to date": "Chrome eller Edge, uppdaterade",
+  "Safari 26 or later": "Safari 26 eller senare",
+  "Firefox, where WebGPU is turned on": "Firefox, med WebGPU påslaget",
+  "Get the desktop app": "Hämta skrivbordsappen",
+  "Read why": "Läs varför",
+  "Or drop an image or a list of colours here": "Eller släpp en bild eller en färglista här",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "De här neutrala färgerna följer med startpaketet, så att förhandsvisningarna har något att visa tills färger läggs till ovanför.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Välj en färg",
+  "Add a colour to the palette first.": "Lägg först till en färg i paletten.",
+  "Starter": "Startpaket",
+  "Notify": "Meddela",
+  "Update automatically": "Uppdatera automatiskt",
+  "App updates": "Appuppdateringar",
+  "Update notifications": "Uppdateringsaviseringar",
+  "Ready to install: {version}": "Klar att installera: {version}",
+  "Restart now": "Starta om nu",
+  "Install when I quit": "Installera när jag avslutar",
+  "Release notes": "Versionsinformation",
+  "Manual download": "Manuell hämtning",
+  "Update could not finish. Try again or download the app.": "Uppdateringen kunde inte slutföras. Försök igen eller hämta appen.",
+  "Finish recording or exporting before updating.": "Slutför inspelningen eller exporten innan du uppdaterar.",
+  "Save could not finish. Save a recovery copy before updating.": "Det gick inte att spara klart. Spara en återställningskopia innan du uppdaterar.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Denna AppImage kan inte ersättas här. Hämta appen till en skrivbar mapp.",
+  "This installation uses its package manager for updates.": "Denna installation använder sin pakethanterare för uppdateringar.",
+  "This desktop platform does not support in-app updates.": "Denna skrivbordsplattform stöder inte uppdateringar inifrån appen.",
+  "Update installation was cancelled.": "Installationen av uppdateringen avbröts."
 }

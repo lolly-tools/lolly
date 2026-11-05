@@ -480,7 +480,7 @@ test('an origin with no revision never overwrites: it asks first', async () => {
   assert.ok(document.querySelector('dialog[open] [data-choice="copy"]'), 'a copy is offered');
 });
 
-test('"Open theirs" that cannot open keeps the old revision and says so in the section', async () => {
+test('"Open theirs" that cannot open keeps the old revision and shows a message in the section', async () => {
   reset();
   writableSource();
   router = () => json({ error: { code: 'CONFLICT' }, current: { id: 's1', projectId: 'p1', toolId: 'qr-code', inputs: { title: 'Theirs' }, rev: 5 } }, 409);

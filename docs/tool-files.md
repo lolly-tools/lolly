@@ -55,7 +55,7 @@ A `file` value lives only in memory on the device. It is never written into a li
 
 With `layout: "canvas"` ([layouts](/info/tool-manifest.html#layout-and-sidebar)), a single `file` input becomes the working area itself: the drop zone `strip-data` opens with.
 
-![Strip Hidden Data's canvas - a drag-and-drop file zone with a Choose a file button and the note that nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=1800&walker=1&format=svg&cropSelector=%23tool-content&dark=1&filename=auth-file-input)
+![Lolly Strip Hidden Data's canvas - a drag-and-drop file zone with a Choose a file button and the note that nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=1800&walker=1&format=svg&cropSelector=%23tool-content&dark=1&filename=auth-file-input)
 
 ```json
 {

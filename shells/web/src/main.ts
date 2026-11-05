@@ -28,6 +28,9 @@ import { openDropFilePicker } from './lib/drop-file-picker.ts';
 import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welcomeSettled } from './lib/welcome-gate.ts';
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
 import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref } from './lib/a11y-prefs.ts';
+import { hydrateHand } from './lib/hand-pref.ts';
+import { startLayoutPosture } from './lib/layout-posture.ts';
+import { startFoldSegments } from './lib/fold-segment.ts';
 import { initTrustedSites } from './lib/trusted-sites.ts';
 import { appPathname } from './lib/any-site.ts';
 import { applyIframeModeAttr, forwardDeckKeys, isIframeMode } from './lib/iframe-mode.ts';
@@ -36,6 +39,7 @@ import { computeViewportInsets } from './lib/viewport-insets.ts';
 import { initI18n, loadedLang } from './i18n.ts';
 import { hydrateSfxMuted, hydrateSfxVolume, installGlobalSfx, playSfx } from './lib/sfx.ts';
 import { hydrateFeatureFlags, flagEnabledSync, isFlagOnSync, applyPerfUi, perfUiOn, PERFORMANCE_UI_FLAG } from './feature-flags.ts';
+import { perfUiAutoPending } from './lib/perf-ui-auto-state.ts';
 // The collab + nearby WIRING is installed after first paint (see installCollabWiring
 // below the import block): five registration modules whose bodies do nothing until a
 // human opens a Share dialog or arrives on #/join, but whose static graph - the private
@@ -66,6 +70,7 @@ import { initInstanceBase } from './lib/instance.ts';
 // the 47 KB of gate/policy/injectable code behind it (plans/155 WP-3). Governance
 // comes from its own registry leaf for the same reason.
 import { initOrgProbeFirst } from './org/probe.ts';
+import { setApprovalPdfPreview } from './lib/approval-request.ts';
 import { initSyncAutoPush, maybeApplyNewerAtBoot } from './lib/sync-service.ts';
 import type { BackupDeps } from './lib/sync-engine.ts';
 import { initSelectPreview } from './select-preview.ts';
@@ -91,6 +96,7 @@ import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
 // listens for invites over it.
 function installCollabWiring(): void {
   void import('./lib/collab-share-private.ts');
+  void import('./lib/share-through-section.ts');
   void import('./collab/private-opener.ts');
   void import('./lib/collab-live-mount.ts').then(m => m.installLiveCollabMount());
   void import('./lib/nearby-boot.ts')
@@ -108,6 +114,7 @@ if (isIframeMode()) forwardDeckKeys();
 // seam the tool renders the flat photo, and with DEPTH_STAGED false the seam
 // resolves null rather than offering a download that cannot succeed.
 installDepthSeam();
+setApprovalPdfPreview((blob) => import('./views/pdf-first-page.ts').then(m => m.pdfFirstPage(blob)));
 onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/tooltips.ts')).then(m => m.mountTooltips()); });
 
 /** The web capability bridge, as produced by createBridge. */
@@ -175,6 +182,13 @@ console.log('%c🍭 Welcome to Lolly', "font:600 13px/1.6 'SUSE',system-ui,-appl
 // Apply localStorage theme immediately - before the profile loads - so there
 // is no visible flash between the inline FOUC script and full JS boot.
 initTheme();
+// The layout class (phone, split or desktop) and any fold, decided before the first
+// view mounts so a view is born in the arrangement it will be shown in. The
+// pre-paint script already set the size-only answer; this adds the fold geometry
+// and follows every later fold, unfold and rotation.
+startLayoutPosture();
+// On a reported fold, the page that dialogs and the browse search keep to.
+startFoldSegments();
 // …then let `?theme=light|dark|brand` win for THIS page load only: a shared link or
 // a screenshot run pins the look without flipping the reader's stored preference.
 // Stamped straight onto [data-theme] rather than through applyTheme, which would
@@ -526,7 +540,12 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // reduced motion or on first boot, collapsing to today's instant swap. commit()
   // (after the mount, or in the catch) starts the fade - or drops the snapshot if
   // superseded by a newer navigation.
-  const fade = (prevRouteName && route.name !== prevRouteName && !returning)
+  // A loader still in #view (the boot screen, or a view's own "Loading…" line) is not a
+  // view to fade or clear. A navigation that starts before the first view has painted
+  // leaves it in place until the incoming view replaces it, as a cold deep link does,
+  // so the loading card's own check sees it and one loader shows, not two.
+  const holdingLoader = view.querySelector(':scope > p.loading') !== null;
+  const fade = (prevRouteName && route.name !== prevRouteName && !returning && !holdingLoader)
     ? beginViewFade(view)
     : null;
 
@@ -551,7 +570,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // that flash can't show; the incoming mount fills the empty container. Same-name
   // updates (the gallery's post-sync refresh) keep their content so they never
   // blank, and first boot keeps the "Loading…" skeleton until the gallery lands.
-  if (prevRouteName && route.name !== prevRouteName) view.replaceChildren();
+  if (prevRouteName && route.name !== prevRouteName && !holdingLoader) view.replaceChildren();
 
   // The dashboard leans on SUSE Mono (device readouts, hex/CMYK rows, code). It
   // isn't preloaded globally - that would tax the mono-light gallery cold-load - 
@@ -1279,6 +1298,14 @@ async function boot(): Promise<void> {
     document.head.appendChild(meta);
   }
 
+  if ('__lollyUpdater' in window && !('__LOLLY_CLI__' in window)) {
+    void import('./lib/desktop-updates.ts').then(async m => {
+      const owner = await m.startDesktopUpdates();
+      const probe = (window as { __LOLLY_UPDATER_QUALIFICATION__?: { owner?: unknown; host?: unknown } }).__LOLLY_UPDATER_QUALIFICATION__;
+      if (probe) { probe.owner = owner; probe.host = host; }
+    }).catch(error => console.warn('Desktop updates unavailable', error));
+  }
+
   // The global async-job progress toast (plans/124 WP-F). Mounted on document.body
   // OUTSIDE main#view, so it survives every router view teardown - a video/retouch
   // job keeps showing progress after the user leaves the catalog. Idempotent; owns
@@ -1415,6 +1442,8 @@ async function boot(): Promise<void> {
   // Accessibility prefs ride the profile the same way (localStorage is only
   // their FOUC mirror, applied by the index.html inline script) - reconcile.
   hydrateA11yPrefs(profile.a11y);
+  // The dominant hand rides the profile the same way (lib/hand-pref.ts).
+  hydrateHand((profile as { hand?: unknown }).hand);
   // Trusted sites (plan 288) are read once here; web page boxes and the Sandbox ask
   // lib/trusted-sites.ts synchronously from then on.
   void initTrustedSites(host);
@@ -1474,6 +1503,11 @@ async function boot(): Promise<void> {
   // pre-paint script already did this from the mirror; this reconciles it against the
   // just-hydrated profile). Opt-in, so default OFF ⇒ attribute absent ⇒ full chrome.
   applyPerfUi(isFlagOnSync(PERFORMANCE_UI_FLAG));
+  // Lolly may turn it on by itself, once, for a device that struggles to draw the chrome
+  // (lib/perf-ui-auto.ts). Never after a hand choice (asked again before each change, for
+  // other tabs) or for a scripted export; it counts only on the browse routes.
+  const perfUiHandChoice = (profile as { featureFlags?: Record<string, boolean> }).featureFlags?.[PERFORMANCE_UI_FLAG.id] !== undefined;
+  if (!scriptedExport && perfUiAutoPending(perfUiHandChoice)) onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/perf-ui-auto.ts')).then(m => m.startPerfUiAuto({ browseRoute: () => (_lastRouteName && ROUTES[_lastRouteName].footer === 'search' ? _lastRouteName : null), handChoice: async () => (await host.profile.get()).featureFlags?.[PERFORMANCE_UI_FLAG.id] !== undefined })); });
   // The persistent bottom search bar (plans/99 M1) - one instance for the whole
   // session, mounted after #view. Needs the flag mirror (hydrateFeatureFlags above,
   // for the Pro link); hidden until the first navigate() below applies the route's
@@ -1707,6 +1741,26 @@ async function boot(): Promise<void> {
     void import('./lib/design-system/brand-refresh.ts').then(module => module.mountBrandRefresh(host, catalogHostOf(host), org.config!.branding!.revision, () => parseRoute().name)).catch(console.error);
   }
 
+  // The footer's "Open" button (components/footer-nav.ts) is an action, not a route: it
+  // opens the OS file picker that feeds the SAME chooser a dropped file gets, so a
+  // .lolly / design / image can be imported without a drag. Delegated at the document so
+  // it survives the footer's between-view re-renders. CAPTURE phase, so a jelly-button's
+  // own click handling can't preempt it; and the picker is opened SYNCHRONOUSLY (the
+  // lightweight picker is already loaded) because it needs live user activation.
+  // Wired HERE, before the first navigate, because navigate() shows the footer before it
+  // waits for the WebGPU check and the incoming view. On a cold open the button is on
+  // screen for as long as that check takes, which is seconds on a software adapter, and
+  // when this was wired after the first navigate a press in that time did nothing.
+  // The chooser the picked files open navigates through the route listeners at the end
+  // of boot, so it waits for `routesListening`: a choice made before those exist would
+  // change the address and leave the old view on screen.
+  let markRoutesListening = (): void => {};
+  const routesListening = new Promise<void>((resolve) => { markRoutesListening = resolve; });
+  document.addEventListener('click', (e) => {
+    if (!(e.target instanceof Element) || !e.target.closest('[data-open-file]')) return;
+    openDropFilePicker(host as unknown as Parameters<typeof openDropFilePicker>[0], { ready: routesListening });
+  }, true);
+
   const routeName = parseRoute().name;
   // A cold gallery visit gets ONE extra chance before it falls back to waiting on the
   // whole catalog sync: whichever of the slim index and the full sync resolves first
@@ -1851,17 +1905,6 @@ async function boot(): Promise<void> {
     return m;
   });
 
-  // The footer's "Open" button (components/footer-nav.ts) is an action, not a route: it
-  // opens the OS file picker that feeds the SAME chooser a dropped file gets, so a
-  // .lolly / design / image can be imported without a drag. Delegated at the document so
-  // it survives the footer's between-view re-renders. CAPTURE phase, so a jelly-button's
-  // own click handling can't preempt it; and the picker is opened SYNCHRONOUSLY (the
-  // lightweight picker is already loaded) because it needs live user activation.
-  document.addEventListener('click', (e) => {
-    if (!(e.target instanceof Element) || !e.target.closest('[data-open-file]')) return;
-    openDropFilePicker(host as unknown as Parameters<typeof openDropFilePicker>[0]);
-  }, true);
-
   // Warm the likely-next view chunks so the first tap doesn't pay a cold dynamic-import.
   // import() promises are cached, so the later route reuses these.
   const warmTool = (): void => {
@@ -1952,6 +1995,8 @@ async function boot(): Promise<void> {
   // route the user is already on (its one-shot stashes are consumed at mount),
   // which the same-route dedup inside navigate() would otherwise swallow.
   window.addEventListener('lolly:remount', () => { navigate(host, { force: true }).catch(console.error); });
+  // The footer's Open button was wired before the first navigate; its chooser can route now.
+  markRoutesListening();
 
   document.querySelectorAll<HTMLElement>('[data-route]').forEach(btn => {
     btn.addEventListener('click', () => {

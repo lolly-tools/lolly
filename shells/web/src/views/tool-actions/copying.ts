@@ -315,6 +315,7 @@ export function wireSendTargets(ta: ActionsCtx): void {
             ? // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated in the guard above
               `<a href="${escapeText(out.url)}" target="_blank" rel="noopener">${escapeText(out.label)}</a>`
             : escapeText(out.label);
+        void import('./share-after-send.ts').then((m) => m.offerShareLink(status, target, out, name.toLowerCase().endsWith(`.${fmt}`) ? name : `${name}.${fmt}`));
       }
       bumpMetric('filesRendered');
       announce(`Sent to ${target.label}`);

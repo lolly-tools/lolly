@@ -72,7 +72,7 @@ export function sessionFramePages(session: Record<string, unknown>): string[] {
  * Settle which frame the export takes, before a browser starts. An address that points
  * at no rendered frame is refused (exit 2), the same answer `run design --document` gives.
  * A one-image format from a deck of several frames, with no `--s`, takes the first
- * frame by position and says so, so a dropped frame is never silent.
+ * frame by position and reports that, so a dropped frame is never silent.
  */
 export function sessionFrameChoice(
   pages: readonly string[], frame: string | undefined, format: DesignSessionExportFormat, name: string,
@@ -249,7 +249,7 @@ export async function runDesignSession(
     for (const line of new Set(results.flatMap((r) => r.notes ?? []))) note(line);
     // The design-system record is approved on the condition that it is visible at the
     // moment of export, so each file's record is printed, read back from its bytes:
-    // each --themes file is drawn in its own colourway and says so.
+    // each --themes file is drawn in its own colourway and reports that.
     const recordNote = async (out: Uint8Array): Promise<void> => {
       const line = await sessionRecordLine(out, plan.format);
       if (line) note(line);

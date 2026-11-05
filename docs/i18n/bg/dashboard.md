@@ -18,7 +18,7 @@ Preferences е една дълга страница с **лента с наст�
 
 - <!--i:usercheck--> **Your details**: името, контактите и снимката ти и превключвателят **Use my details to create**. [Profiles](/info/profile.html) обяснява как инструментите ги използват.
 - <!--i:seal--> **Content Credentials**: незадължителната потвърдена самоличност, която подписва експортите ти. Вж. [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems**: превключвай, добавяй, скривай или премахвай дизайн системи. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) обхваща всяко действие.
+- <!--i:palette--> **Design systems**: превключвай, добавяй, скривай или премахвай дизайн системи. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) обхваща всяко действие.
 - <!--i:moon--> **Appearance**: темата (Light, Dark или Brand, която боядисва приложението в твоята палитра), **Your colourway**, когато дизайн системата предлага повече от една ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) и **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji**: наборът, от който се рисуват емоджитата ти, когато започнеш нещо ново, с лиценза на графиката му, и колко силно палитрата ти ги преоцветява (**Off**, **Subtle**, **Strong**, **Full**, **Mono** или **Duotone**). **Keep skin tones and flags** оставя тях в собствените им цветове. Работата, която вече си направил, запазва набора, с който е направена.
 - <!--i:eyeoff--> **Accessibility**: четири превключвателя за комфорт, плюс Sound и Neurospicy Mode. Вж. [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ Lolly кешира екраните, докато ги посещаваш, ко�
 - <!--i:sliders--> **Tokens**: радиус, разстояния, ефекти и градиенти.
 - <!--i:document--> **Print & CMYK**: цветовете, заключени към точно мастило, и условията на печат, които CMYK PDF може да декларира.
 
-Превключването е единствената промяна, която този таб прави. Дизайн система редактираш в [Design System Setup](/info/brand-studio.html) на `#/start`, към който корицата води. Система само за четене го казва на корицата си; локалните системи, които създаваш, остават редактируеми. `/b` и `/brand` са кратки връзки направо към този таб.
+Превключването е единствената промяна, която този таб прави. Дизайн система редактираш в [Lolly Design System Setup](/info/brand-studio.html) на `#/start`, към който корицата води. Система само за четене го казва на корицата си; локалните системи, които създаваш, остават редактируеми. `/b` и `/brand` са кратки връзки направо към този таб.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Lolly кешира екраните, докато ги посещаваш, ко�
 
 ## Дълбоки връзки
 
-Всеки таб и раздел на Settings има собствена връзка, която можеш да запазиш в отметки или да поставиш. [Search](/info/search.html) насочва резултатите си от **Settings** към същия регистър, от който Settings се рисува, така че разделът не може да бъде преименуван изпод резултат от търсене.
+Всеки таб и раздел на Settings има собствена връзка, която можеш да запазиш в отметки или да поставиш. [Lolly Search](/info/search.html) насочва резултатите си от **Settings** към същия регистър, от който Settings се рисува, така че разделът не може да бъде преименуван изпод резултат от търсене.
 
 ::: details Всяка форма на връзка
 
@@ -139,4 +139,4 @@ Lolly кешира екраните, докато ги посещаваш, ко�
 
 ---
 
-**Свързано:** [Profiles](/info/profile.html) за данните ти и контекстите, в които създаваш. [Design System Setup](/info/brand-studio.html) за редактиране на онова, което показва табът Design system. [Find and recover your work](/info/find-your-work.html) за хранилище, архиви и преместване между устройства.
+**Свързано:** [Profiles](/info/profile.html) за данните ти и контекстите, в които създаваш. [Lolly Design System Setup](/info/brand-studio.html) за редактиране на онова, което показва табът Design system. [Find and recover your work](/info/find-your-work.html) за хранилище, архиви и преместване между устройства.

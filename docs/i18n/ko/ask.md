@@ -60,4 +60,4 @@
 
 ---
 
-**관련 문서:** 질문을 넘겨주는 막대는 [검색](/info/search.html), 앱의 나머지는 [Lolly 사용하기](/info/using.html), 문서를 먼저 오프라인으로 가져오려면 [Settings](/info/dashboard.html#available-offline)를 참고하세요.
+**관련 문서:** 질문을 넘겨주는 막대는 [검색](/info/search.html), 앱의 나머지는 [Lolly 사용하기](/info/using.html), 문서를 먼저 오프라인으로 가져오려면 [Lolly Settings](/info/dashboard.html#available-offline)를 참고하세요.

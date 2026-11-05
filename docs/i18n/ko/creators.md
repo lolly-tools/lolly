@@ -20,7 +20,7 @@
 
 디자인 시스템이 모든 도구의 모습을 정해요.
 
-- **[Design System Setup](/info/brand-studio.html)**: 로고, 색상, 글꼴 등을 `#/start`에서 한 번 설정해요.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: 로고, 색상, 글꼴 등을 `#/start`에서 한 번 설정해요.
 - **[Lolly Demo 사용하기](/info/lolly-demo-in-use.html)**: 실제 작업에서의 컬러웨이와 자신의 디자인 시스템으로 전환하기를 다뤄요.
 - **[브랜드 아키텍처](/info/brand-architectures.html)**: 한 조직의 여러 디자인 시스템, 또는 컬러웨이가 여러 개인 하나의 디자인 시스템을 다뤄요.
 - **[파트너와 함께 일하기](/info/partners.html)** - 브랜드를 파트너와 공유하고, 받은 브랜드 안에서 작업하고, 스폰서 월을 만들어요.
@@ -32,7 +32,7 @@
 
 - **[작업물 찾기와 복구](/info/find-your-work.html)**: 저장하거나 다운로드하거나 저장하지 않은 파일이 어디로 갔는지 알아봐요.
 - **[검색](/info/search.html)** 및 **[Ask Lolly](/info/ask.html)**: 도구, 저장된 작업물, 에셋, 설정을 한 번에 찾는 입력란과 이 가이드를 바탕으로 한 답변이에요.
-- **[Settings](/info/dashboard.html)**: 이 기기가 할 수 있는 일, 읽기 전용 디자인 시스템, 저장소를 다뤄요.
+- **[Lolly Settings](/info/dashboard.html)**: 이 기기가 할 수 있는 일, 읽기 전용 디자인 시스템, 저장소를 다뤄요.
 - **[즐겨찾기](/info/favourites.html)** 및 **[프로필](/info/profile.html)**: 별표 표시한 도구, 도구가 미리 채우는 정보, 접근성 스위치를 다뤄요.
 - **[기기 Sync](/info/sync.html)**: 선택한 저장소를 통해 컴퓨터와 휴대폰에서 같은 작업물을 써요.
 

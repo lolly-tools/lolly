@@ -50,9 +50,9 @@ The three rule classes do not replace source access, use conditions, processing 
 
 Rights evidence and a selected grant follow `CreativeWorkRecordV1`, `PermissionGrantV1`, `CreativeUseV1` and `UseContextV1` in `packages/core/src/rights-v1.ts`. A contextual eligibility answer must identify its source evidence, intended operation/use, issuer, observation time and freshness or validity requirement. Allowed, denied and unknown remain distinct. The draft does not implement a territory/channel evaluator; those missing semantics extend the existing rights contract rather than create another licence engine.
 
-Work must distinguish an administrator exposing a subset through a shared service credential from a connection delegated by each member. The former does not automatically reproduce personal upstream permissions (`lolly-work/server/src/catalog/providers/types.ts`). The authorised projection applies to cards, facets, counts, snippets, originals, previews, history and processing. Hidden recipe fields and lineage neighbours must not be disclosed through identifiers, totals or redaction details.
+Lolly Work must distinguish an administrator exposing a subset through a shared service credential from a connection delegated by each member. The former does not automatically reproduce personal upstream permissions (`lolly-work/server/src/catalog/providers/types.ts`). The authorised projection applies to cards, facets, counts, snippets, originals, previews, history and processing. Hidden recipe fields and lineage neighbours must not be disclosed through identifiers, totals or redaction details.
 
-The engine evaluates pinned evidence and explicit context without making permission-service requests or reading a clock (`engine/src/rights-evaluate.ts`). Work or the shell supplies current authorisation and the evaluation date where required. An eligibility receipt records the earlier answer; it is never a new grant (R15).
+The engine evaluates pinned evidence and explicit context without making permission-service requests or reading a clock (`engine/src/rights-evaluate.ts`). Lolly Work or the shell supplies current authorisation and the evaluation date where required. An eligibility receipt records the earlier answer; it is never a new grant (R15).
 
 ## The three layers
 
@@ -163,7 +163,7 @@ Two answers must stay separate, always (R8):
 
 An authority may select a suite, require stricter checks, approve references or accept an exception (R8). None of those decisions may change the meaning of a suite version already published under another identity. A local waiver is an acceptance decision and never a measurement, which is why measured conformance to the waived rule still reads failed or excepted (R6, C4).
 
-Lolly Work's planned effective-schema projection (Work plan 42, not built) and the engine's `documentSchema` (`engine/src/document-api.ts`) are the same projection of policy onto a schema. The model must specify one function for both (plan section 10.2), so that a locked input reads the same way in the shell, the command line and the MCP surface.
+Lolly Work's planned effective-schema projection (Lolly Work plan 42, not built) and the engine's `documentSchema` (`engine/src/document-api.ts`) are the same projection of policy onto a schema. The model must specify one function for both (plan section 10.2), so that a locked input reads the same way in the shell, the command line and the MCP surface.
 
 ## Open points
 

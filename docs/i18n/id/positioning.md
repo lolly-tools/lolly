@@ -28,7 +28,7 @@ Kolaborasi langsung Lolly mencakup collab privat langsung dua perangkat dan work
 ## Pilih Lolly bila
 
 - Jenis file yang sama dibutuhkan berulang kali: ubin acara, tanda pengenal, sertifikat, peringatan, kartu sosial
-- Banyak file berasal dari satu templat dan tabel nilai, di [Batch](/info/batch.html#make-many-versions-of-one-design) atau CLI
+- Banyak file berasal dari satu templat dan tabel nilai, di [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) atau CLI
 - Warna, huruf, dan aset harus tetap di dalam design system, bahkan di kanvas terbuka
 - Desain Figma, Penpot, Illustrator, InDesign, atau PDF yang sudah jadi harus menjadi dapat disunting dan dapat diulang ([Import a design](/info/design-import.html))
 - File harus dibuat di perangkat atau server Anda sendiri

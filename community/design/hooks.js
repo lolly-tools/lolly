@@ -1900,8 +1900,18 @@ var KF_MAX_KEYS = 256;   // parse caps - a blocks sub-field has no length limit 
 // truncated a max-density track ~6 KB before the engine would have - the two
 // sides reading different keyframes off the same string. The pin-test corpus
 // carries a track between the two old caps so a re-divergence fails loudly.
-var KF_MAX_CHARS = 90112;
+var KF_MAX_CHARS = 106496;
 var KF_NUM = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/; // no exponent, no '+', no NaN/Infinity
+// plans/329: a spring, esp(stiffness)(damping)(mass), optionally followed by a window
+// (span)(from)(to) in ms, and a design-system ease, et(<token path>) followed by the
+// value it had when bound. TRANSCRIBED from engine/src/kf-spring.ts (parseKfSpring,
+// KF_SPRING_LIMITS: [min, max, quantum]) and engine/src/keyframes.ts (splitRef,
+// normaliseRef, normaliseConcrete, KF_EASE_REF_MAX); the timeline-model test corpus pins
+// the two spellings together.
+var KF_SPRING = /^esp\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)(?:\(([^()]*)\)\(([^()]*)\)\(([^()]*)\))?$/;
+var KF_SPRING_LIMITS = { k: [1, 5000, 0.1], c: [0, 500, 0.01], m: [0.1, 100, 0.01], w: [0, 3600000, 0.01] };
+var KF_REF_PATH = /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*$/;
+var KF_REF_MAX = 64;
 var KF_T = /^t(-?(?:\d+(?:\.\d+)?|\.\d+))$/;
 var KF_EB = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
 // A path handle (plans/330): hi(dx)(dy) into a keyframe's position, ho(dx)(dy) out of it,
@@ -1933,11 +1943,61 @@ function kfNum(s) {
   return isFinite(n) ? n : null;
 }
 
+// One spring parameter held to its clamp and quantum.
+function kfSpringParam(n, lim) {
+  return kfQuant(clamp(n, lim[0], lim[1]), lim[2]);
+}
+
+// A spring token in canonical spelling, or ''. A window whose end does not come after
+// its start describes no motion, so the whole token is junk.
+function kfSpringEase(tok) {
+  var m = KF_SPRING.exec(tok);
+  if (!m) return '';
+  var k = kfNum(m[1]), c = kfNum(m[2]), ms = kfNum(m[3]);
+  if (k === null || c === null || ms === null) return '';
+  var L = KF_SPRING_LIMITS;
+  var head = 'esp(' + kfSpringParam(k, L.k) + ')(' + kfSpringParam(c, L.c) + ')(' + kfSpringParam(ms, L.m) + ')';
+  if (m[4] === undefined) return head;
+  var T = kfNum(m[4]), a = kfNum(m[5]), b = kfNum(m[6]);
+  if (T === null || a === null || b === null) return '';
+  var span = kfSpringParam(T, L.w);
+  if (!(span >= 1)) return '';
+  var from = kfQuant(clamp(a, 0, span), L.w[2]);
+  var to = kfQuant(clamp(b, 0, span), L.w[2]);
+  if (!(to > from)) return '';
+  return head + '(' + span + ')(' + from + ')(' + to + ')';
+}
+
+// A concrete ease (preset, bezier or plain spring), or '': what a design-system ease may
+// carry as its fallback. A reference is refused before it is parsed, which is what keeps
+// a hostile et(a)et(a)et(a)... from recursing once per repetition.
+function kfConcreteEase(tok) {
+  if (tok.slice(0, 3) === 'et(') return '';
+  var e = kfEase(tok);
+  if (!e || e === KF_HOLD_EASE) return '';
+  if (e.slice(0, 4) === 'esp(' && e.split('(').length > 4) return ''; // a window
+  return e;
+}
+
+// A design-system ease in canonical spelling, or ''. The path is read only when its
+// closing parenthesis is inside the length cap.
+function kfRefEase(tok) {
+  var close = tok.indexOf(')');
+  if (close < 4 || close > 3 + KF_REF_MAX) return '';
+  var path = tok.slice(3, close);
+  if (!KF_REF_PATH.test(path)) return '';
+  var rest = tok.slice(close + 1);
+  var fb = rest === '' ? '' : kfConcreteEase(rest);
+  return (fb === '' || fb === KF_DEFAULT_EASE) ? 'et(' + path + ')' : 'et(' + path + ')' + fb;
+}
+
 // An ease token in canonical spelling, or '' when it is not an ease at all. A custom
 // bezier landing exactly on a preset's points comes back as that preset's name.
 function kfEase(tok) {
   if (tok === KF_HOLD_EASE) return tok;
   if (Object.prototype.hasOwnProperty.call(KF_EASES, tok)) return tok;
+  if (tok.slice(0, 4) === 'esp(') return kfSpringEase(tok);
+  if (tok.slice(0, 3) === 'et(') return kfRefEase(tok);
   var m = KF_EB.exec(tok);
   if (!m) return '';
   var p = [];

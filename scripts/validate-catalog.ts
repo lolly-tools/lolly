@@ -56,6 +56,7 @@ import {
   catalogFile, contentRoots, contentUrlFile, toolDirs as resolveToolDirs, toolFile,
   readToolManifest, listToolFiles,
 } from '@lolly-tools/node-shell/content-roots';
+import { parseToolAssetId } from '@lolly-tools/node-shell/tool-asset-id';
 // The emoji bundle audit, imported rather than shelled out to: the module runs its
 // own audits only when it IS the command (see its main guard).
 import { auditBundle, checkEmojiPackSpecimen, readPackFacts } from './check-emoji-packs.ts';
@@ -77,6 +78,8 @@ import { entryFromManifest, slimEntry } from './build-catalog-index.ts';
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.ts';
 import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.ts';
+import { checkToolIntents, parseToolIntents } from '../engine/src/intent.ts';
+import { TOOL_INTENTS_FILE } from '../packages/core/src/intent-v1.ts';
 // The head-vs-version asset rule and the reserved head slug (plans/97 section 6a). Imported
 // rather than re-stated: if the validator's idea of "this is a version asset" drifts
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
@@ -164,6 +167,7 @@ const slideMasterSchema = readJson('schemas/slide-master-v1.schema.json');
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateTool = ajv.compile<any>(toolSchema);
+const validateToolIntents = ajv.compile<any>(readJson('schemas/tool-intents-v1.schema.json'));
 const validateAsset = ajv.compile<any>(assetSchema);
 const validateTokens = ajv.compile<any>(tokensSchema);
 const validateRateCard = ajv.compile<any>(rateCardSchema);
@@ -193,6 +197,15 @@ const seenToolIds = new Set<string>();
 // runtime; typing it as `any` here keeps the validator faithful without
 // re-declaring every schema shape in TypeScript.
 const toolManifests = new Map<string, any>(); // id → manifest
+
+// A sidecar in a folder with no manifest belongs to no tool, and nothing would ever read the file.
+for (const root of contentRoots().toolRoots) {
+  for (const name of readdirSync(root)) {
+    if (existsSync(join(root, name, TOOL_INTENTS_FILE)) && !existsSync(join(root, name, 'tool.json'))) {
+      errors.push(`[${name}] ${TOOL_INTENTS_FILE} has no tool.json beside it, so it belongs to no known tool`);
+    }
+  }
+}
 
 for (const dir of toolDirs) {
   const manifest = readToolManifestOptional(dir);
@@ -291,6 +304,24 @@ for (const dir of toolDirs) {
     // An allowlisted alias is recorded, not repeated on every run; the ratchet
     // is that a new one cannot ship.
     if (!CANONICAL_ALIASES.allow.includes(key)) errors.push(msg);
+  }
+  // A tool's optional intents.json, overlay-aware through the resolver: the shape, then what
+  // the schema cannot say (inputs that exist and take the role, surfaces that are named,
+  // select values on offer, one entry per purpose).
+  const intentsPath = toolFile(dir, TOOL_INTENTS_FILE);
+  if (intentsPath) {
+    const intentsText = readFileSync(intentsPath, 'utf8');
+    const parsedIntents = parseToolIntents(intentsText);
+    if (!parsedIntents.ok) {
+      for (const issue of parsedIntents.errors) errors.push(`[${dir}] ${TOOL_INTENTS_FILE} ${issue.path}: ${issue.message}`);
+    } else {
+      if (!validateToolIntents(JSON.parse(intentsText))) {
+        for (const err of validateToolIntents.errors ?? []) errors.push(`[${dir}] ${TOOL_INTENTS_FILE} ${err.instancePath} ${err.message}`);
+      }
+      for (const issue of checkToolIntents({ ...manifest, intents: parsedIntents.intents })) {
+        errors.push(`[${dir}] ${TOOL_INTENTS_FILE} ${issue.path}: ${issue.message}`);
+      }
+    }
   }
   if (manifest.render?.portable && !toolFile(dir, 'presentation.js')) {
     errors.push(`[${dir}] declares a portable presentation but has no presentation.js`);
@@ -982,8 +1013,29 @@ const RASTER_PREVIEWS: Record<string, string> = {
  * card is plain text. `drop` takes a shared entry off that pack's list and says why it does not hold
  * there; `add` gives the pack's own rasters their reasons, measured on its files. The
  * both-ways checks run on the result, and a `drop` naming no shared entry fails.
+ *
+ * suse joined this list on 1 Nov 2026. Its 29 Oct re-capture for the Jungle lead (85
+ * cards and looks, suse-lolly b3e223b) was taken on its own, and a few files from that
+ * run no longer measure the way lolly-start's do. The backdrop entries below are the
+ * borderline case of isRasterInSvgClothing: the file is still one GPU frame plus the CSS
+ * wash, and only the share of the frame moved. Re-capturing does not settle them, because
+ * the share falls either side of 60% from one capture to the next.
  */
 const RASTER_PREVIEW_CHANGES: Record<string, { drop: Record<string, string>; add: Record<string, string> }> = {
+  suse: {
+    drop: {
+      'backdrop.svg':
+        "This pack's default metaballs capture is one GPU frame under the CSS wash, as the shared entry says, but the Jungle greens encode to a 3,836 B JPEG: 59.5% of the file, under the 60% line, with 1,010 B of markup.",
+      'backdrop.look0.svg':
+        "Lava lamp in this pack: the same GPU frame and CSS wash, with the frame at 56.8% of the file, under the 60% line, and 1,526 B of markup. Nothing in it is tool geometry.",
+      'backdrop.look2.svg':
+        "Neural drift in this pack: the GPU frame is nearly flat (per-channel stddev under 1.5), so its JPEG is 2,091 B and 44.5% of the file, under the 60% line, with 1,010 B of markup. The lolly-demo drop records the same case.",
+    },
+    add: {
+      'frame.look0.svg':
+        "Browser frame around the Mesh Gradient tool's Flow mode, a WebGL fragment shader (the gradient.look2 class): one embedded <image>, 63.6% of the file, inside 3,707 B of frame markup. The same capture as lolly-demo's frame.look0.svg; a re-capture on 1 Nov 2026 measured the same.",
+    },
+  },
   'lolly-demo': {
     drop: {
       '3d-studio.svg': 'This pack carries the same WebGL frame as 3d-studio.webp, added below.',
@@ -2086,6 +2138,18 @@ for (const [toolId, manifest] of toolManifests) {
     }
     const id = (value as { id?: unknown })?.id;
     if (typeof id !== 'string' || /^(https?|data|blob):/.test(id)) return; // non-ref / runtime-fetched
+    // A picture the tool ships in its own assets folder (node-shell/tool-asset-id):
+    // it must be this tool's, and the file must be there.
+    const shipped = parseToolAssetId(id);
+    if (shipped) {
+      if (shipped.toolId !== toolId) errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") names another tool's file - a look may name only its own tool's assets`);
+      else if (!contentUrlFile(id)) errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") is not in ${toolId}/assets`);
+      return;
+    }
+    if (id.startsWith('/tools/')) {
+      errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") is not a tool asset id - use /tools/${toolId}/assets/<file>.svg|png|jpg|webp`);
+      return;
+    }
     const { baseId, theme } = parseThemedAssetId(id);
     if (baseId.includes('?')) {
       errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);

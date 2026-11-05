@@ -1,0 +1,97 @@
+{
+  "id": "09-rich-dark-tac",
+  "title": "Dark colours and total ink",
+  "covers": "Dark, saturated RGB colours separate through FOGRA39 and stay within the 330 percent total area coverage the condition allows.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "n",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 20,
+      "w": 170,
+      "h": 160,
+      "bg": "#0b1d33"
+    },
+    {
+      "id": "p",
+      "kind": "box",
+      "frame": "page",
+      "x": 210,
+      "y": 20,
+      "w": 170,
+      "h": 160,
+      "bg": "#2a0f3a"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "tol": 3,
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "deep navy 0b1d33",
+          "rect": [
+            30,
+            30,
+            150,
+            140
+          ],
+          "expectFrom": {
+            "rgb": "#0b1d33"
+          },
+          "tac": {
+            "max": 330
+          }
+        },
+        {
+          "name": "deep plum 2a0f3a",
+          "rect": [
+            220,
+            30,
+            150,
+            140
+          ],
+          "expectFrom": {
+            "rgb": "#2a0f3a"
+          },
+          "tac": {
+            "max": 330
+          }
+        }
+      ]
+    }
+  ]
+}

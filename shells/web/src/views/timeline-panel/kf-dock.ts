@@ -12,8 +12,7 @@ import { icon } from '../../lib/icons.ts';
 import { announce } from '../../a11y.ts';
 import { edgeDockWidth } from '../../lib/edge-dock.ts';
 import type { PopoverAnchor } from '../../components/body-popover.ts';
-import { EASINGS } from '../../lib/transitions.ts';
-import { KF_CAMERA_CHANNELS, KF_EASE_TOKENS, KF_HOLD_EASE, KF_Z_FIELD_CLAMP, kfEaseCss, kfEaseName, kfEaseToken } from '../../../../../engine/src/keyframes.ts';
+import { KF_CAMERA_CHANNELS, KF_HOLD_EASE, KF_Z_FIELD_CLAMP, kfEaseCss, kfEaseToken } from '../../../../../engine/src/keyframes.ts';
 import type { KfTrack } from '../../../../../engine/src/keyframes.ts';
 import { mountEasingEditor } from '../../components/easing-editor.ts';
 import { clearKfTrack, fmtTime, indexOfId, kfBoxTrack, kfDiamondAt, kfFormatChannel, kfKeyAt, kfLocalMs, kfPoseAt, kfSlideMs, kfTimelineSec, kfTrackSetEase, writeKfPose } from '../timeline-math.ts';
@@ -22,7 +21,9 @@ import { msToUnit, unitStep, unitSwitch, unitToMs } from '../timeline-units.ts';
 import { projectRate } from '../../../../../engine/src/timebase.ts';
 import type { Box } from '../timeline-math.ts';
 import { KF_Z_SLIDER, clamp, finite } from '../timeline-config.ts';
-import { kfEasePreset } from './shared.ts';
+import { fillKfEaseSelect } from '../kf-ease-picker.ts';
+import { mountKfCurveDock, kfSegmentMs } from '../kf-curve-dock.ts';
+import { MOTION_TOKENS_EVENT, ensureMotionTokens, motionTokens } from '../../lib/motion-tokens.ts';
 import type { InspectorGroup, KfLatchRefs, KfPoseField } from './shared.ts';
 import { bindOp, type TpCtx } from './context.ts';
 
@@ -430,6 +431,14 @@ export function syncKfDock(tp: TpCtx, refs: KfLatchRefs, box: Box, on: number | 
   d.editor?.destroy();
   d.editor = null;
   d.host.textContent = '';
+  // The dock sits at the foot of a tall popup, and an edit in the dock rebuilds the
+  // popup's body: once the dock is drawn again, put the reader back where they were.
+  const held = tp.groupPopScroll;
+  tp.groupPopScroll = null;
+  const keepPlace = (): void => {
+    const scroller = tp.groupPopHost?.parentElement;
+    if (scroller && held !== null) scroller.scrollTop = held;
+  };
   if (!showing) return;
   if (on === null) {
     // The same sentence the pose fields carry, for the same reason and in the same
@@ -438,6 +447,7 @@ export function syncKfDock(tp: TpCtx, refs: KfLatchRefs, box: Box, on: number | 
     note.className = 'tl-kf-dock-note';
     note.textContent = t('Move the playhead onto a keyframe, or add one.');
     d.host.appendChild(note);
+    keepPlace();
     return;
   }
   const key = kfKeyAt(kfBoxTrack(box, cfg), on);
@@ -452,15 +462,21 @@ export function syncKfDock(tp: TpCtx, refs: KfLatchRefs, box: Box, on: number | 
       'Hold keeps this pose until the next keyframe. Pick another curve to shape it.'
     );
     d.host.appendChild(note);
+    keepPlace();
     return;
   }
-  d.editor = mountEasingEditor(d.host, {
-    // The ENGINE's adapters both ways: the wire token in, the CSS bezier the editor
-    // speaks out (section 5.1 - "the adapter is mandatory", because the canonical ease wire
-    // uses commas and the kf charset bans them).
-    value: kfEaseCss(key.ease),
-    onCommit: (wire) => tp.keyframes.writeTrack(refs.id, (tr) => kfTrackSetEase(tr, on, kfEaseToken(wire))),
-  });
+  const write = (ease: string): void => tp.keyframes.writeTrack(refs.id, (tr) => kfTrackSetEase(tr, on, ease));
+  // A spring or a design-system ease (plans/329) gets the dock that edits it; a bezier
+  // keeps the editor below, unchanged.
+  d.editor = mountKfCurveDock(d.host, key.ease, kfSegmentMs(kfBoxTrack(box, cfg), on), write)
+    ?? mountEasingEditor(d.host, {
+      // The ENGINE's adapters both ways: the wire token in, the CSS bezier the editor
+      // speaks out (section 5.1 - "the adapter is mandatory", because the canonical ease wire
+      // uses commas and the kf charset bans them).
+      value: kfEaseCss(key.ease),
+      onCommit: (wire) => write(kfEaseToken(wire)),
+    });
+  keepPlace();
 }
 /**
  * The ease picker for ONE keyframe - the same vocabulary the transition picker uses.
@@ -471,42 +487,16 @@ export function kfEaseSelect(tp: TpCtx, id: string, atMs: number, ease: string, 
   const el = document.createElement('select');
   el.className = 'field-select tl-select tl-kf-ease';
   el.setAttribute('aria-label', t('Keyframe curve at {t}', { t: at }));
-  const opt = (v: string, label: string): void => {
-    const o = document.createElement('option');
-    o.value = v;
-    o.textContent = label;
-    el.appendChild(o);
-  };
-  for (const tok of KF_EASE_TOKENS) {
-    // The engine names the curve; `EASINGS` gives that name its word. One
-    // vocabulary, so a curve cannot be called two things in two places.
-    const name = kfEaseName(tok);
-    opt(
-      tok,
-      name && Object.hasOwn(EASINGS, name) ? t((EASINGS as Record<string, string>)[name]!) : tok
-    );
-  }
-  opt(KF_HOLD_EASE, t('Hold'));
   // CUSTOM IS A STATE, NOT A ROUTE (section 8's M2.7). The transition picker's
   // "Custom…" opens a popover; this list is inside a popup that already has the
   // curve editor DOCKED in it, and a second nested editor is exactly what M2.7
-  // replaced. So a keyframe whose ease is an authored bezier selects an option that
-  // says so, and dragging a handle in the dock is what puts it there - the numbers
-  // live in the dock's own readout, three lines below, rather than in this label.
-  // ONE WIRE, NORMALISED ONE WAY ON READ (plans/179 M4). The kf grammar has more than
-  // one spelling for the same curve - `eb(0.4)(0)(0.2)(1)` IS Smooth - and a seed by
-  // string equality would put a "Custom" row beside the preset it already equals, so
-  // the same curve would read as two answers depending on which control wrote it last.
-  // `parseKf` canonicalises a preset on its way in today, which is why this is a guard
-  // rather than a fix: the read side owes the same answer however the token arrived.
-  // Matched by NAME first (the engine's own vocabulary), by the CSS curve second, never
-  // by comparing token strings here.
-  const seed = kfEasePreset(ease);
-  if (!KF_EASE_TOKENS.includes(seed as (typeof KF_EASE_TOKENS)[number]) && seed !== KF_HOLD_EASE)
-    opt(seed, t('Custom'));
-  el.value = seed;
+  // replaced. So a keyframe whose ease is an authored bezier or spring selects an
+  // option that says so, and the dock is what puts it there. The groups (the design
+  // system's curves, the shipped curves, the springs) and the read-side normalisation
+  // live in kf-ease-picker.ts.
+  const picker = fillKfEaseSelect(el, ease, motionTokens());
   el.addEventListener('change', () => {
-    tp.keyframes.writeTrack(id, (track) => kfTrackSetEase(track, atMs, el.value));
+    tp.keyframes.writeTrack(id, (track) => kfTrackSetEase(track, atMs, picker.easeFor(el.value)));
   });
   return el;
 }
@@ -811,8 +801,28 @@ export function kfGroupLabel(group: string): string {
     default: return t('All keyframes');
   }
 }
+/**
+ * The design system's motion tokens (plans/329): read them for this panel's host, and
+ * when they change redraw the inspector (the curve picker lists them) and re-pose the
+ * canvas (a keyframe bound to one now plays its new value). Returns the unsubscribe.
+ */
+export function wireMotionTokens(tp: TpCtx): () => void {
+  void ensureMotionTokens(tp.host);
+  if (typeof window === 'undefined') return () => {};
+  const onChange = (): void => {
+    if (tp.disposed) return;
+    tp.inspectorKey = '\u0000';
+    tp.kfLatchKey = '\u0000';
+    tp.inspectorPane.renderInspector(tp.getBoxes());
+    try { tp.clock.reapply(); } catch { /* the clock is gone; the panel is going with it */ }
+  };
+  window.addEventListener(MOTION_TOKENS_EVENT, onChange);
+  return () => window.removeEventListener(MOTION_TOKENS_EVENT, onChange);
+}
+
 export function kfDockOps(tp: TpCtx) {
   return {
+    wireMotionTokens: bindOp(tp, wireMotionTokens),
     buildDepthControl: bindOp(tp, buildDepthControl),
     buildKeyframes: bindOp(tp, buildKeyframes),
     syncKfDock: bindOp(tp, syncKfDock),

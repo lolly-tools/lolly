@@ -8,6 +8,7 @@
  * from initFreeCanvas() by scripts/split-closure.ts.
  */
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
+import { toolPaletteAtFoot, toolRailOnEdge } from '../../lib/design-panel-layout.ts';
 import { clampRailPos, railSession, setRailSession } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
@@ -270,15 +271,11 @@ export function dockRailForTimeline(fc: FcCtx, on: boolean): void {
   // phone OR a short touch landscape, where CSS turns this same rail into the
   // horizontal palette above the timeline. Reserving that palette's full 828px
   // width as a left column reduced the artboard to the 40px safety floor.
-  // Feature-detect matchMedia (absent under jsdom/CLI, where docking is harmless).
-  if (
-    on &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia(
-      '(pointer: coarse) and (max-width: 640px), (pointer: coarse) and (max-height: 430px)'
-    ).matches
-  )
-    on = false;
+  // The same holds in two panes, where the rail is the palette at the foot of the
+  // canvas pane. toolPaletteAtFoot feature-detects matchMedia (absent under jsdom/CLI,
+  // where docking is harmless).
+  // In two panes the rail is pinned to the canvas pane's outer edge instead.
+  if (on && (toolPaletteAtFoot() || toolRailOnEdge())) on = false;
   if (on === fc.tlWantsRail) return;
   fc.tlWantsRail = on;
   applyRailMode(fc);

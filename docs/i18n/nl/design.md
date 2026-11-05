@@ -10,9 +10,9 @@ Deze pagina loopt het canvas door van het eerste vak tot een afgerond deck: het 
 
 De **bovenbalk** begint met **Home**, het **File menu** en de naam van het document (klik op de naam om het document te hernoemen). Het midden bevat **Undo**, **Redo**, **History**, de zoombediening (met **Fit all** en **Fit artboard**) en schakelaars voor de **Timeline**, de **Navigator** en de **Inspector**. Rechts staan **Share**, **Present** en **Export**. Op een telefoon verhuizen de minder gebruikte knoppen naar **More actions**.
 
-De **toolbalk** langs de zijkant bevat het Lolly-menu en de tools waarmee je tekent: **Pointer**, **Add a box**, **Pen**, **Potlood**, **Edit points**, **Line**, dan de knoppen Timeline, Artboards en Auto-arrange.
+De **toolbalk** langs de zijkant bevat het Lolly-menu en de tools waarmee je tekent: **Pointer**, **Add a box**, **Pen** (het **Potlood** deelt die knop), **Edit points**, **Line**, dan de knoppen Timeline, Artboards en Auto-arrange.
 
-![De gereedschapsbalk van het vrije canvas: een sleepgreep, het Lolly-menu, dan Pointer, Vak toevoegen, Pen, Potlood, Punten bewerken, Lijn, Tijdlijn, Tekenvlakken en Automatisch rangschikken](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![De gereedschapsbalk van het vrije canvas: een sleepgreep, het Lolly-menu, dan Pointer, Vak toevoegen, Pen, Punten bewerken, Lijn, Tijdlijn, Tekenvlakken en Automatisch rangschikken](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Het canvas werkt als de werktafel van een ontwerper rond het tekenbord:
 
@@ -79,7 +79,7 @@ Vakken, cirkels en afgeronde kaders dekken de meeste lay-outs. Teken voor elke a
 
 **Zet een open pad voort.** Met de Pen aan druk je op een van de uiteinden van een open pad en teken je dat pad opnieuw: elke klik voegt een punt toe na dat uiteinde, of vóór het eerste punt als je bij het begin startte. Enter bewaart het resultaat en Escape laat het pad precies zoals het was. Het pad blijft hetzelfde vak, met zijn vulling, lijn en pijlpunten, en één undo zet het terug. Delete haalt alleen de punten terug die je toevoegde. Een gesloten vorm, een lijn die aan een vak vastzit en een pad met meerdere delen hebben geen vrij uiteinde om voort te zetten.
 
-**Teken uit de losse hand met het Potlood.** De knop **Potlood** op de balk (of `Shift C`) neemt je streek op terwijl je sleept. Als je loslaat, maakt Lolly de streek glad tot een paar punten met Bezier-grepen, houdt scherpe bochten als hoeken en houdt de kromme binnen een paar schermpixels van waar je hand liep. Een streek die vlak bij zijn begin eindigt, sluit. Het resultaat is een gewoon pad, met dezelfde verf als een penpad, en je kunt de punten daarna bewerken.
+**Teken uit de losse hand met het Potlood.** Druk op `Shift C`, of houd de knop **Pen** op de balk ingedrukt (of klik er met rechts op) en kies **Potlood**; de knop toont daarna het Potlood tot je weer de Pen kiest. Het Potlood neemt je streek op terwijl je sleept. Als je loslaat, maakt Lolly de streek glad tot een paar punten met Bezier-grepen, houdt scherpe bochten als hoeken en houdt de kromme binnen een paar schermpixels van waar je hand liep. Een streek die vlak bij zijn begin eindigt, sluit. Het resultaat is een gewoon pad, met dezelfde verf als een penpad, en je kunt de punten daarna bewerken.
 
 Het resultaat is een gewoon vak. Verplaats, vergroot of verklein, roteer, groepeer, lijn uit, herorden, vul, schaduw of vervaag het pad zoals elk ander vak. Het eerste pad krijgt de vulling en lijn die je merk aan een pad geeft, en elk nieuw pad daarna krijgt wat je het laatst gebruikte. In een tool waarvan het merk niets voor paden instelt, krijgt een nieuw pad een lijn in de kleur waarmee je tekende, zodat de vorm nooit onzichtbaar is.
 
@@ -121,6 +121,25 @@ Drie andere werken op één vorm. **Outline stroke…** zet een lijn om in een g
 ![Een sikkel en een ring met een echt gat, beide gemaakt met Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Het resultaat is een nieuw pad dat je met de pen kunt blijven bewerken, opgeslagen als gewone Bezier-krommen, dus het oorspronkelijke splinetype gaat niet mee. Gaten zijn echte gaten: de bediening **Fill rule** in het lijnpaneel bepaalt of overlappende contouren vullen (*non-zero*) of doorboren (*even-odd*). De bewerkingen weigeren liever dan te vernietigen: vraag twee vormen die niet overlappen te doorsnijden en er verandert niets. Tekst- en afbeeldingsvakken hebben geen omtrek, dus die blijven met rust.
+
+## Een afbeelding tracen
+
+Selecteer één afbeelding, klik met de rechtermuisknop en kies **Afbeelding tracen…** om de afbeelding om te zetten in bewerkbare vormen. Kies een preset en druk op **Tracen**:
+
+- **Logo** vindt een paar egale kleuren en behoudt scherpe randen en echte cirkels en lijnen. Een afbeelding met verlopen of fototonen wordt geweigerd en dat krijg je te horen.
+- **Illustratie** tract meerdere kleuren als gevulde vormen, voor vlakke kunst of een geposteriseerde afbeelding.
+- **Lijntekening** tract donkere lijnen op een lichte pagina als zwarte vormen.
+- **Middenlijn** tract donkere lijnen als enkele lijnen, zodat je de dikte daarna kunt aanpassen.
+
+De vormen worden als groep direct boven de afbeelding toegevoegd; de afbeelding blijft waar ze is. Verberg of verwijder de afbeelding om alleen de paden te zien. De trace draait op je apparaat in een achtergrondtaak met een knop Annuleer, en er wordt niets geüpload. Een afbeelding van 1500 pixels duurt meestal een tot enkele seconden, en een drukke foto duurt langer.
+
+De trace volgt wat het kader toont, dus een bijgesneden (Cover) afbeelding tract alleen het zichtbare deel. Deze limieten gelden:
+
+- Afbeeldingen worden vóór het tracen verkleind tot maximaal 1500 pixels aan de lange kant, dus randen worden geplaatst op een fractie van die grootte, niet van het origineel.
+- Eén trace maakt maximaal 1.500 vormen en 60.000 punten. Een foto komt daar meestal overheen, en Design meldt dat zonder iets te wijzigen. Probeer Logo of Lijntekening, of een eenvoudigere afbeelding.
+- Verlopen worden banden van egale kleur en zachte schaduwen worden vormen met harde randen.
+- Hoekradius, een vormmasker en een effect op het afbeeldingskader worden niet op de paden toegepast.
+- Dezelfde afbeelding en preset geven altijd dezelfde vormen.
 
 ## Lijnen
 
@@ -195,9 +214,9 @@ Waar een concrete kleur- of lettertypesuggestie bestaat, wijzigt haar knop die e
 
 ### Huisstijlregels en het schrijfsignaal
 
-De kaart van het exportpaneel controleert ook de huisstijlregels die je design system meebrengt, zoals tekstgewicht en uitlijning, goedgekeurde kleurcombinaties of een logo per oppervlak, laag voor laag. Elke bevinding is een waarschuwing met de naam van de laag boven de regel. Een regel waarvoor deze build geen controle heeft, wordt vermeld als niet gecontroleerd, nooit als gevolgd. [Usage & rules](/info/brand-studio.html#usage-rules) noemt de regels, en `lolly check` past dezelfde toe op een opgeslagen document.
+De kaart van het exportpaneel controleert ook de huisstijlregels die je design system meebrengt, zoals tekstgewicht en uitlijning, goedgekeurde kleurcombinaties of een logo per oppervlak, laag voor laag. Elke bevinding is een waarschuwing met de naam van de laag boven de regel. Een regel waarvoor deze build geen controle heeft, wordt vermeld als niet gecontroleerd, nooit als gevolgd. [Rules](/info/brand-studio.html#rules) noemt de regels, en `lolly check` past dezelfde toe op een opgeslagen document.
 
-Dezelfde kaart toont het schrijfsignaal voor de tekst die het document tekent: de band (geen, zwak, merkbaar of sterk), dan de eigen zin van Verify met de score uit 100 en maximaal drie gemarkeerde zinsneden, elk met de laag die ze bevat. **Open the text in Verify** brengt die tekst naar [Verify](/#/verify) voor de volledige lezing; [AI-bewijs in Verify](/info/verify-ai-evidence.html) legt uit wat de score weegt. De score is een signaal, geen oordeel: ze telt patronen die gebruikelijk zijn in gegenereerde tekst en kan niet zeggen wie de woorden schreef. Verborgen lagen blijven buiten beide controles, en de kaart zegt hoeveel.
+Dezelfde kaart toont het schrijfsignaal voor de tekst die het document tekent: de band (geen, zwak, merkbaar of sterk), dan de eigen zin van Verify met de score uit 100 en maximaal drie gemarkeerde zinsneden, elk met de laag die ze bevat. **Open the text in Verify** brengt die tekst naar [Lolly Verify](/#/verify) voor de volledige lezing; [AI-bewijs in Verify](/info/verify-ai-evidence.html) legt uit wat de score weegt. De score is een signaal, geen oordeel: ze telt patronen die gebruikelijk zijn in gegenereerde tekst en kan niet zeggen wie de woorden schreef. Verborgen lagen blijven buiten beide controles, en de kaart zegt hoeveel.
 
 Bevindingen over huisstijlregels en een sterk schrijfsignaal tellen mee in het totaal "to fix" van de kaart, zodat ze makkelijk te vinden zijn. Ze informeren en blokkeren nooit: Download blijft beschikbaar, en er is niets om te negeren of als uitzondering vast te leggen. Een agent die in het open document werkt, krijgt hetzelfde rapport via zijn sitetools ([Agents in een open document](/info/open-document-agents.html)).
 

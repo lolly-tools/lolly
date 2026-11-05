@@ -77,6 +77,24 @@
             {{#unless inspectOnly}}<button type="button" class="exif-download" data-export-file data-busy-label="Stripping data…">Download clean {{kind}}{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>{{/unless}}
             <p class="exif-note">{{tailNote}}</p>
           {{/unless}}
+
+            {{#if a11yShown}}
+              <section class="exif-a11y" aria-label="PDF accessibility checks">
+                <h3>PDF accessibility checks</h3>
+                {{#if a11yRefused}}<p class="exif-note">{{a11yRefused}}</p>{{else}}
+                  <p class="exif-summary">{{a11yHeadline}}</p>
+                  <ul class="exif-findings">
+                    {{#each a11yRows}}
+                      <li class="exif-finding {{outcome}}">
+                        <span class="exif-finding-label">{{outcomeLabel}}: {{name}}</span>
+                        <span class="exif-finding-detail" title="{{description}}">{{description}}{{#if where}} Where: {{where}}.{{/if}}{{#if notes}} {{notes}}{{/if}}</span>
+                      </li>
+                    {{/each}}
+                  </ul>
+                  <p class="exif-note">{{a11yStatement}}</p>
+                {{/if}}
+              </section>
+            {{/if}}
         {{/if}}
       {{/if}}
     </div>

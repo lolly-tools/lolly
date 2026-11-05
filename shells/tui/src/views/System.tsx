@@ -27,7 +27,8 @@ type Mode = 'browse' | 'colour' | 'import' | 'resource' | 'switch' | 'tokens';
 export type SystemAction = Exclude<Mode, 'browse' | 'switch' | 'tokens'>;
 interface Summary { tokens: number; colours: number; themes: number; resources: number }
 
-export function System({ onNav, onQuit, initialAction }: {
+export function System({ onNav, onQuit, initialAction, onChanged }: {
+  onChanged?: () => void;
   onNav: (target: NavTarget) => void;
   onQuit: () => void;
   initialAction?: SystemAction;
@@ -49,6 +50,7 @@ export function System({ onNav, onQuit, initialAction }: {
     setSystems(registry.systems);
     setActive(current);
     setSummary(current ? { tokens: 0, colours: 0, themes: 0, resources: current.resources.length } : null);
+    onChanged?.();
     if (!current) return;
     const doc = await readActiveDesignSystemTokens();
     try {

@@ -12,7 +12,7 @@ Fra terminalen tar `lolly mix` en sang som hele lydsporet; se [CLI rendering](/i
 
 ## Skriv og eksporter en sang
 
-Åpne **Rondocode** fra **Utilities** for å skrive en sang i rondocodes levende redigeringsprogram og høre den mens du skriver. Eksporter den som **WAV**, **MP3**, **M4A**, **Opus** eller **FLAC**, som en ZIP med stemmer, som **MIDI**, eller som et opptak av det som spilles. **Export length** setter hvor mange sekunder en lydeksport varer. Selve sangfilen (`.rondo.json`) er koden din slik den er skrevet og bærer ingenting lagt til.
+Åpne **Rondocode** fra **Utilities** for å skrive en sang i rondocodes levende redigeringsprogram og høre den mens du skriver. Eksporter den som **WAV**, **MP3**, **M4A**, **Opus** eller **FLAC**, som en ZIP med stemmer, som **MIDI**, eller som et opptak av det som spilles. Fra terminalen skriver `lolly rondocode --export=mid` den samme MIDI-filen. **Export length** setter hvor mange sekunder en lydeksport varer. Selve sangfilen (`.rondo.json`) er koden din slik den er skrevet og bærer ingenting lagt til.
 
 En sang kan synge tekstene sine med `sing()`. Sangen lages på enheten din av nedlastede stemmemodeller, og en fil som holder syntetisert sang, deklarerer alltid sangen som AI-generert (se [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ De fleste utilities på enheten skriver ingen credential, fordi de transformerer
 - Musikk beregnet fra sangens kode er algoritmiske medier og merkes ikke som AI.
 
 Når en sang synger, deklarerer filen at sangen er AI-generert i en maskinlesbar form. Credentialens digitale kildetype er sammensatt media laget med trente modeller, posten lister de sungne delene, og én C2PA AI-erklæring per modell identifiserer hver modell sangen gikk gjennom: Supertonic-3 tekst til tale, wav2vec 2.0-fonemjusteren, ContentVec-koderen og RVC-stemmen, med repositoriet og committen Lolly hoster den fra. En fil som holder syntetisert sang, lagres aldri uten den erklæringen.
+
+### Hva MIDI-filen inneholder
+
+MIDI-filen er en Standard MIDI File, format 1. Det første sporet inneholder tempoet og et 4/4-taktmåle, og etter det er det ett spor for hver synth, oppkalt etter synthen. Hver tone beholder start, lengde og velocity. En synth med et navn som leses som et instrument, for eksempel bass, strykere, en pad eller et piano, får det tilsvarende General MIDI-instrumentet, og et trommelignende navn havner på kanal 10. En stemming som ikke er tolvtone, rundes av til nærmeste halvtone med en pitch bend.
+
+En MIDI-fil kan ikke inneholde hvordan en sang høres ut. Synth-innstillingene, filtrene, effektene, bussene, samplene og sangen er ikke med, så en DAW spiller tonene med sine egne instrumenter. Tempoet leses fra sangens sykluser per sekund, der én syklus er et takt på fire slag, fordi sangens egen taktart ikke er en del av det renderen leverer tilbake.
 
 En MIDI-fil har ikke plass til en credential, så en tekstbegivenhet i filen bærer erklæringen i stedet, og eksportpanelet sier fra om det. Panelet beskriver alt dette før du eksporterer, og etter hver eksport leser redigeringsprogrammet den lagrede filen tilbake og rapporterer bare det den lesingen fant.
 

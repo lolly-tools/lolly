@@ -9,7 +9,7 @@ Start med [Use Lolly at your organisation](/info/organisation.html) for å se hv
 - [Adoption & Governance](/info/adoption-governance.html) dekker utrullingen og merkevarereglenes rolle.
 - [Identity and sessions](/info/work-identity.html) dekker pålogging og gruppetilordning. [Roles and grants](/info/work-permissions.html) forklarer roller, tildelinger og eiervernet.
 - [Policy and governance](/info/work-governance.html) dekker verktøyoverlegg, låste inndata og policy. [Manage organisation AI policy](/info/work-ai-policy.html) dekker godkjenninger og kjøringsgrenser.
-- [Account data controls](/info/work-account-lifecycle.html) og [Work storage and data lifecycle](/info/work-data-lifecycle.html) dekker eksport, avvikling av ansatte, oppbevaring og grensene for dem.
+- [Account data controls](/info/work-account-lifecycle.html) og [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) dekker eksport, avvikling av ansatte, oppbevaring og grensene for dem.
 - [Profiles, brands and tool configuration](/info/configuration.html) dekker hvilke verktøy og designsystemer et bygg av Lolly bærer.
 
 ## Koble til ressurser og gjennomgå arbeid

@@ -34,6 +34,23 @@ export interface AudioAPI {
   clean?(src: AudioSource, opts?: AudioCleanOpts): Promise<AudioCleanResult>;
 
   /**
+   * Measure a recording against EBU R128 (BS.1770-4): momentary, short-term,
+   * integrated, loudness range and true peak, at the file's own sample rate. Pure
+   * measurement; nothing is changed. Shell support is additive: a shell without the
+   * audio module leaves this undefined, and `clean` then reports integrated
+   * loudness only. Every shell that has the module gives the same numbers.
+   */
+  loudness?(src: AudioSource, opts?: AudioLoudnessOpts): Promise<AudioLoudness>;
+
+  /**
+   * Find where recording `b` starts relative to recording `a` when both captured
+   * the same event (two microphones, a camera and a recorder). Resolves null when
+   * they share too little sound to align. A result with `reliable: false` is a
+   * guess and should be shown as one. Each clip is read up to its first 4 minutes.
+   */
+  align?(a: AudioSource, b: AudioSource, opts?: AudioAlignOpts): Promise<AudioAlignment | null>;
+
+  /**
    * Decode `src` to PCM, or render it when the audio is computed rather than
    * recorded: a rondocode song (an asset of format `rondo`, its `.rondo.json`
    * bytes or a rondocode share link), a ZzFXM song or a tracker module. v1.246.
@@ -56,6 +73,15 @@ export interface AudioDecodeOpts {
    * none. Recorded audio ignores it and returns the whole file.
    */
   seconds?: number;
+  /**
+   * Also write the song's notes as a Standard MIDI File, returned as
+   * `AudioDecoded.midi`. Only a rondocode song has notes to write; for any other
+   * source `midi` is absent from the result. The file is format 1: a conductor track (tempo, a 4/4
+   * time signature, `text` as a text event) and one track per synth, with note
+   * velocities and General MIDI programs where a synth's name maps to one. Synthesis
+   * parameters, effects, samples and tuning other than twelve-tone are not in the file.
+   */
+  midi?: { /** A text event written at tick 0 of the conductor track. */ text?: string; /** The conductor track's name. */ title?: string };
 }
 
 /** One part of a computed source the shell could not play, and why. */
@@ -75,6 +101,8 @@ export interface AudioDecoded {
   seconds: number;
   /** Empty when everything played. */
   findings: AudioFinding[];
+  /** The song as a Standard MIDI File, when the call set `AudioDecodeOpts.midi`. */
+  midi?: Uint8Array;
   /** How a computed source ran. Absent for recorded audio. */
   run?: {
     /** The document model's execution class: `vm` for a rondocode song. */
@@ -88,8 +116,74 @@ export interface AudioDecoded {
   };
 }
 
+/** Model-free repair: plain signal processing that needs no download and runs offline. */
+export interface AudioRepairOpts {
+  /** Steady background noise (fans, hiss). */
+  noise?: 'off' | 'light' | 'strong';
+  /** Mains hum and its harmonics. */
+  hum?: 'off' | '50' | '60';
+  /** Harsh "s" sounds. */
+  deEss?: 'off' | 'light' | 'strong';
+  /** Clicks and pops. */
+  declick?: boolean;
+  /** Room echo. */
+  dereverb?: 'off' | 'light' | 'strong';
+}
+
+/** EBU R128 readings. LUFS for loudness, LU for the range, dB for peaks; null where there is nothing to measure. */
+export interface AudioLoudnessReport {
+  integrated: number | null;
+  momentary: number | null;
+  shortTerm: number | null;
+  maxMomentary: number | null;
+  maxShortTerm: number | null;
+  loudnessRange: number | null;
+  samplePeakDb: number | null;
+  /** True peak, dBTP. */
+  truePeakDb: number | null;
+}
+
+export interface AudioLoudnessOpts {
+  /** Also return momentary and short-term loudness every 100 ms. */
+  series?: boolean;
+}
+
+export interface AudioLoudness extends AudioLoudnessReport {
+  sampleRate: number;
+  seconds: number;
+  /** Every 100 ms, when asked for. `null` is below the meter's floor. */
+  series?: { stepSeconds: number; momentary: (number | null)[]; shortTerm: (number | null)[] };
+}
+
+export interface AudioAlignOpts {
+  /** Largest offset to consider, in seconds. Default: anything with enough overlap. */
+  maxLagSeconds?: number;
+}
+
+export interface AudioAlignment {
+  /** Seconds `b` starts after `a` (negative when it starts before). */
+  offsetSeconds: number;
+  /** The same in samples at `sampleRate`. */
+  offsetSamples: number;
+  sampleRate: number;
+  confidence: number;
+  distinct: number;
+  /** One recording has inverted polarity. */
+  inverted: boolean;
+  /** Clear enough to trust. */
+  reliable: boolean;
+  /** A clip was longer than the aligner reads. */
+  truncated: boolean;
+}
+
 export interface AudioCleanOpts {
+  /** Model-based speech clean-up. Needs the shell's local model. */
   denoise?: 'off' | 'light' | 'strong';
+  /**
+   * Model-free repair, run before the model clean-up and the other steps. Works in
+   * every shell that has the audio module, including the command line.
+   */
+  repair?: AudioRepairOpts;
   normalize?: 'off' | -16 | -14 | -23;
   trimSilence?: boolean;
   /**
@@ -112,8 +206,13 @@ export interface AudioCleanResult {
   secondsTrimmed: number;
   loudnessBefore: number | null;
   loudnessAfter: number | null;
+  /** Sample peak in dBFS, or the true peak in dBTP when `report` is present. */
   truePeakDb: number;
   operations: string[];
+  /** Full R128 readings of the input and the output, when the shell has the audio module. */
+  report?: { before: AudioLoudnessReport; after: AudioLoudnessReport };
+  /** Clicks the declick step repaired. */
+  clicksRepaired?: number;
   /** Set when a video input was remuxed with its picture track unchanged. */
   videoPreserved?: boolean;
   /** Actual output container when it differs from the requested audio codec. */

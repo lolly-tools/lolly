@@ -42,7 +42,7 @@ const ROWS = {
   resolution: ['gridDense', 600], colourDepth: ['palette', 610], iccProfile: ['droplet', 620], viewBox: ['fitAll', 630],
   camera: ['camera', 640], lens: ['focus', 641], aperture: ['aperture', 642], exposure: ['timer', 643], iso: ['sunburst', 644],
   focalLength: ['zoomIn', 645], orientation: ['rotateCw', 646], location: ['mapPin', 647],
-  codec: ['cpu', 660], bitrate: ['dashboard', 661], sampleRate: ['noise', 662], channels: ['volumeOn', 663], frameRate: ['filmStrip', 664], frames: ['keyframe', 665],
+  codec: ['cpu', 660], bitrate: ['dashboard', 661], sampleRate: ['noise', 662], channels: ['volumeOn', 663], frameRate: ['filmStrip', 664], frames: ['keyframe', 665], timecode: ['sliders', 666], playback: ['play', 667],
   software: ['wrench', 680], keywords: ['search', 681],
   id: ['hash', 900],
   // Rows of the other lists

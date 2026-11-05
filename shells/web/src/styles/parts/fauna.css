@@ -1,0 +1,24 @@
+/* Fauna: Lolly's line drawings for the blank rooms (components/fauna-art.ts). A
+   view leaves an empty .fauna-slot where an animal belongs and hydrateFauna()
+   draws it. Like the kangaroo on the Unsaved edits dialog (parts/dialogs.css), the
+   drawing takes Lolly's tone at the guest's hue (--lolly-mark, else --lolly-tone),
+   mixed most of the way towards the theme's secondary ink, so it reads as a quiet
+   companion rather than an accent. Nothing is filled, so the animal works on any
+   ground. A host sizes the slot with --fauna-size. */
+.fauna-slot {
+  display: inline-block;
+  flex: none;
+  width: var(--fauna-size, calc(72px * var(--a11y-fs)));
+  aspect-ratio: 1;
+  vertical-align: middle;
+  pointer-events: none;
+  color: color-mix(in oklab, var(--lolly-mark, var(--lolly-tone)) 40%, hsl(var(--muted-foreground)));
+}
+.fauna-slot svg { display: block; width: 100%; height: 100%; overflow: visible; transition: opacity var(--dur-2) var(--ease-out); }
+/* Until the slot first comes into view the drawing waits unseen, so the motion
+   starts from its first pose instead of jumping back from the still. Only set when
+   motion is allowed; hydrateFauna() clears it as the motion starts. */
+.fauna-slot[data-fauna-state="waiting"] svg { opacity: 0; transition: none; }
+@media (forced-colors: active) {
+  .fauna-slot { color: CanvasText; }
+}

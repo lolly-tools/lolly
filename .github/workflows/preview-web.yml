@@ -308,14 +308,14 @@ jobs:
           path: ${{ runner.temp }}/lolly-preview-web.tar
           archive: false
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 1
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: preview-web-qualification
           path: ${{ runner.temp }}/lolly-image-receipts/*.json
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 1
 
   # The only job with packages: write. It runs no npm, no compiler and no repository
   # script: it checks the archive it was handed, pushes it by digest with a

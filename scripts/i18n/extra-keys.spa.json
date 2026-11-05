@@ -373,5 +373,11 @@
   "Icons and borders only",
   "Not usable",
   "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.",
-  "Emoji sets"
+  "Emoji sets",
+  "Supertonic-3 is under OpenRAIL-M; the voices’ source states no licence.",
+  "Google Drive share links",
+  "Dropbox share links",
+  "OneDrive share links",
+  "S3 bucket share links",
+  "Nextcloud share links"
 ]

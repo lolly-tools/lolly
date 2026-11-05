@@ -1,5 +1,31 @@
 {
   "Speakers": "Người nói",
+  "Closest to the current palette": "Gần nhất với bảng màu hiện tại",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Xem trước các hệ thống thiết kế đã lưu và vài điểm khởi đầu. Không có gì thay đổi cho đến khi bạn chọn Dùng.",
+  "Use this look": "Dùng phong cách này",
+  "Previewing {name}": "Đang xem trước {name}",
+  "Choose up to two looks to compare.": "Chọn tối đa hai phong cách để so sánh.",
+  "Drop a horizontal logo": "Thả một logo ngang vào đây",
+  "Drop a vertical logo": "Thả một logo dọc vào đây",
+  "calm": "êm dịu",
+  "nature": "thiên nhiên",
+  "playful": "vui tươi",
+  "creative": "sáng tạo",
+  "warm": "ấm",
+  "editorial": "biên tập",
+  "neutral": "trung tính",
+  "red": "đỏ",
+  "orange": "cam",
+  "yellow": "vàng",
+  "green": "xanh lá",
+  "teal": "xanh mòng két",
+  "blue": "xanh dương",
+  "purple": "tím",
+  "pink": "hồng",
+  "deep": "đậm",
+  "pale": "nhạt",
+  "vivid": "rực rỡ",
+  "muted": "trầm",
   "Sort languages": "Sắp xếp ngôn ngữ",
   "Lolly Imprint": "Lolly Imprint",
   "Hides the Lolly Imprint - a durable, invisible watermark - in the image pixels. It survives re-encoding and screenshots, so any copy of the file can be recognised later.": "Giấu Lolly Imprint, một hình mờ bền và vô hình, vào các pixel của ảnh. Nó vẫn còn sau khi tái mã hóa và chụp màn hình, nên mọi bản sao của tệp đều có thể được nhận ra sau này.",
@@ -585,7 +611,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Chạy kiểm tra văn bản AI chuyên sâu trên Xác minh và trong Tài sản.",
   "Card size": "Kích thước thẻ",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 hình ảnh hoặc tệp đã được thêm trên thiết bị này. Tệp chỉ nằm trên thiết bị này và những người khác sẽ không thấy tệp đó.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} hình ảnh hoặc tệp đã được thêm trên thiết bị này. Các tệp chỉ nằm trên thiết bị này và những người khác sẽ không thấy các tệp đó.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "{n} hình ảnh hoặc tệp đã được thêm trên thiết bị này. Các tệp chỉ nằm trên thiết bị này và những người khác sẽ không thấy các tệp đó."
+  },
   "Check the version first": "Hãy kiểm tra phiên bản trước",
   "Copy team link": "Sao chép liên kết nhóm",
   "Could not create the project. Try again.": "Không thể tạo dự án. Hãy thử lại.",
@@ -1176,7 +1204,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Mọi mục đã được lưu trong dự án được chia sẻ. Bản gốc cục bộ nằm trong Thùng rác hoặc vẫn ở nguyên chỗ.",
   "Your local items have not changed.": "Các mục cục bộ của bạn không thay đổi.",
   "1 item was saved to the shared project.": "1 mục đã được lưu vào dự án được chia sẻ.",
-  "{n} items were saved to the shared project.": "{n} mục đã được lưu vào dự án được chia sẻ.",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} mục đã được lưu vào dự án được chia sẻ."
+  },
   "Wait for the current move to finish.": "Hãy đợi lần di chuyển hiện tại hoàn tất.",
   "You cannot save to that shared project.": "Bạn không thể lưu vào dự án được chia sẻ đó.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Mọi người có thể mở {project} sẽ thấy các mục này. Sau khi mọi mục được lưu ở đó, bản gốc cục bộ sẽ chuyển vào Thùng rác, nơi bạn có thể khôi phục chúng.",
@@ -1487,8 +1517,12 @@
   "file": "tệp",
   "samples": "mẫu",
   "text": "văn bản",
-  "{n} changes found": "Tìm thấy {n} thay đổi",
-  "{n} pages differ": "{n} trang khác nhau",
+  "{n} changes found": {
+    "other": "Tìm thấy {n} thay đổi"
+  },
+  "{n} pages differ": {
+    "other": "{n} trang khác nhau"
+  },
   "Draft": "Bản nháp",
   "Draft quality": "Chất lượng bản nháp",
   "Draft rule": "Quy tắc nháp",
@@ -1797,5 +1831,218 @@
   "Headlines - 36px, or 24px bold": "Tiêu đề - 36px, hoặc 24px in đậm",
   "Icons and borders only": "Chỉ biểu tượng và đường viền",
   "Not usable": "Không dùng được",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA được định nghĩa cho sRGB, nên màu gam rộng được chấm điểm theo bản hiển thị sRGB của nó."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA được định nghĩa cho sRGB, nên màu gam rộng được chấm điểm theo bản hiển thị sRGB của nó.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn vì thiết bị này vẽ mà không có tăng tốc đồ họa.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn vì thiết bị này đang chạy khá chật vật.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Tự động bật vào {date} vì thiết bị này vẽ mà không có tăng tốc đồ họa.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Tự động bật vào {date} vì thiết bị này chật vật khi vẽ giao diện.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Tính năng tự động chuyển đã tắt trên thiết bị này vì bạn đã chọn Hoàn tác vào {date}.",
+  "Allow again": "Cho phép lại",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Tính năng tự động chuyển sẽ được cho phép lại từ lần mở Lolly tiếp theo.",
+  "Board": "Bảng",
+  "Choose for {role}": "Chọn cho {role}",
+  "Change {role}": "Thay đổi {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Hướng dẫn của thương hiệu bạn, viết cho con người và agent. Agent đọc skill thương hiệu trước, rồi skill cho công việc đang làm. Skill hướng dẫn công việc; quy tắc nội bộ trong Quy tắc là thứ Lolly kiểm tra.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn trong lúc thiết bị này đang bận. Nó sẽ đổi lại khi mọi thứ dịu xuống.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn trong lúc pin yếu. Nó sẽ đổi lại khi thiết bị này đang sạc.",
+  "On for now because this device is busy. It switches back when things calm down.": "Tạm thời bật vì thiết bị này đang bận. Nó sẽ đổi lại khi mọi thứ dịu xuống.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Tạm thời bật vì pin yếu. Nó sẽ đổi lại khi thiết bị này đang sạc.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Tự động bật vào {date} khi thiết bị này đang bận. Bạn đã chọn Giữ.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Tự động bật vào {date} khi pin yếu. Bạn đã chọn Giữ.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly sẽ không tự chuyển ở đây cho thiết bị chậm, vì bạn đã chọn Hoàn tác vào {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly sẽ không tự chuyển khi thiết bị này đang bận hoặc pin yếu, vì bạn đã chọn Hoàn tác vào {date}.",
+  "Use the automatic colour": "Dùng màu tự động",
+  "follows the design system ({colour})": "theo hệ thống thiết kế ({colour})",
+  "follows the design system": "theo hệ thống thiết kế",
+  "automatic ({colour})": "tự động ({colour})",
+  "automatic": "tự động",
+  "{name} spring": "Lò xo {name}",
+  "{name} (not in this design system)": "{name} (không có trong hệ thống thiết kế này)",
+  "Curves": "Đường cong",
+  "Springs": "Lò xo",
+  "Gentle": "Êm",
+  "Quick": "Nhanh",
+  "Bouncy": "Nảy",
+  "Custom spring": "Lò xo tùy chỉnh",
+  "Stiffness": "Độ cứng",
+  "Damping": "Giảm chấn",
+  "Mass": "Khối lượng",
+  "Settles in {t} s": "Ổn định sau {t} giây",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Khung hình chính tiếp theo đến trước khi lò xo ổn định. Phần chuyển động còn lại được rải đều trên đoạn.",
+  "From the design system: {name}": "Từ hệ thống thiết kế: {name}",
+  "Editing the curve detaches it from the design system.": "Chỉnh sửa đường cong sẽ tách nó khỏi hệ thống thiết kế.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc. Giữ để chọn Bút chì (Shift C) và kiểu spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc",
+  "Recipients can change the inputs": "Người nhận có thể thay đổi đầu vào",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Bất kỳ ai có liên kết đều có thể thay đổi đầu vào và nhận hình ảnh mới. Các đầu vào đã khóa giữ nguyên như đã đặt.",
+  "{count} entries": {
+    "other": "{count} mục"
+  },
+  "{count} files in this folder": {
+    "other": "{count} tệp trong thư mục này"
+  },
+  "{n} assets": {
+    "other": "{n} tài sản"
+  },
+  "{n} assets found": {
+    "other": "Tìm thấy {n} tài sản"
+  },
+  "{n} capabilities match": {
+    "other": "{n} khả năng khớp"
+  },
+  "{n} copies made · selected": {
+    "other": "Đã tạo {n} bản sao · đã chọn"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "{n} tác phẩm bị xóa khỏi Dự án ở đây vẫn bị xóa."
+  },
+  "{n} embedded files": {
+    "other": "{n} tệp nhúng"
+  },
+  "{n} external references": {
+    "other": "{n} tham chiếu bên ngoài"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "{n} tệp không thể đóng gói và đã bị bỏ qua"
+  },
+  "{n} folders": {
+    "other": "{n} thư mục"
+  },
+  "{n} font files": {
+    "other": "{n} tệp phông chữ"
+  },
+  "{n} images": {
+    "other": "{n} ảnh"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "Không thể khôi phục {n} ảnh (bộ nhớ đầy?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} ảnh vẫn ở vị trí gốc - ảnh chỉ có một nơi lưu; dùng Cắt để di chuyển"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "{n} mục nhập · áp dụng cho mọi thiết kế"
+  },
+  "{n} items": {
+    "other": "{n} mục"
+  },
+  "{n} items copied": {
+    "other": "Đã sao chép {n} mục"
+  },
+  "{n} items cut": {
+    "other": "Đã cắt {n} mục"
+  },
+  "{n} items moved": {
+    "other": "Đã chuyển {n} mục"
+  },
+  "{n} items pasted": {
+    "other": "Đã dán {n} mục"
+  },
+  "{n} keyframes": {
+    "other": "{n} khung hình khóa"
+  },
+  "{n} logos": {
+    "other": "{n} logo"
+  },
+  "{n} marks found": {
+    "other": "Tìm thấy {n} dấu"
+  },
+  "{n} newer items skipped": {
+    "other": "Đã bỏ qua {n} mục mới hơn"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "{n} tác phẩm của bạn là video hoặc hoạt ảnh"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "{n} điểm kiểm tra tự động cũ hơn không được hiển thị"
+  },
+  "{n} pages": {
+    "other": "{n} trang"
+  },
+  "{n} places": {
+    "other": "{n} vị trí"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} điểm - giữ Alt để tạo góc"
+  },
+  "{n} published versions": {
+    "other": "{n} phiên bản đã xuất bản"
+  },
+  "{n} results": {
+    "other": "{n} kết quả"
+  },
+  "{n} saved sessions": {
+    "other": "{n} phiên đã lưu"
+  },
+  "{n} selected": {
+    "other": "Đã chọn {n}"
+  },
+  "{n} selected assets": {
+    "other": "{n} tài sản đã chọn"
+  },
+  "{n} sessions": {
+    "other": "{n} phiên"
+  },
+  "{n} shapes": {
+    "other": "{n} hình dạng"
+  },
+  "{n} steps": {
+    "other": "{n} bước"
+  },
+  "{n} templates": {
+    "other": "{n} mẫu"
+  },
+  "{n} volume keys": {
+    "other": "{n} khóa âm lượng"
+  },
+  "{n} words": {
+    "other": "{n} từ"
+  },
+  "Dominant hand": "Tay thuận",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Khi có hai khung, trên thiết bị gập hoặc máy tính bảng gần vuông, các điều khiển nằm ở phía xa tay bạn dùng để vẽ. Nút Đổi bên ở phần đầu khung cũng thay đổi điều này.",
+  "Swap sides": "Đổi bên",
+  "Resize panes": "Đổi kích thước khung",
+  "Changes that didn't finish saving": "Các thay đổi chưa lưu xong",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Bạn đã thực hiện các thay đổi này lúc {time}, và trang đã đóng trước khi chúng được lưu. Từ đó đến nay, hệ thống thiết kế này đã được lưu lại, trong một thẻ khác hoặc qua một lần đồng bộ.",
+  "Restore your unsaved changes": "Khôi phục các thay đổi chưa lưu",
+  "Keep the saved version": "Giữ phiên bản đã lưu",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Khôi phục sẽ thay thế phiên bản đã lưu kể từ đó. Giữ phiên bản đã lưu sẽ xóa các thay đổi chưa lưu khỏi thiết bị này.",
+  "Restored your unsaved changes.": "Đã khôi phục các thay đổi chưa lưu.",
+  "Kept the saved version.": "Đã giữ phiên bản đã lưu.",
+  "Restored the changes that hadn't finished saving.": "Đã khôi phục các thay đổi chưa lưu xong.",
+  "{n} file": "{n} tệp",
+  "It becomes the primary. Shades and roles can follow.": "Nó trở thành màu chính. Các sắc độ và vai trò có thể theo sau.",
+  "Start here": "Bắt đầu tại đây",
+  "Browse looks →": "Xem các phong cách →",
+  "Pick what you have →": "Chọn thứ bạn đang có →",
+  "Open the picker →": "Mở bộ chọn màu →",
+  "Starter greys until a colour is added.": "Các sắc xám khởi đầu cho đến khi có màu được thêm.",
+  "Lolly can’t draw in this browser yet": "Lolly chưa thể vẽ trong trình duyệt này",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly vẽ bằng WebGPU, thứ mà trình duyệt này chưa hỗ trợ.",
+  "These work today:": "Những trình duyệt dùng được hôm nay:",
+  "Chrome or Edge, kept up to date": "Chrome hoặc Edge, luôn cập nhật",
+  "Safari 26 or later": "Safari 26 trở lên",
+  "Firefox, where WebGPU is turned on": "Firefox, khi đã bật WebGPU",
+  "Get the desktop app": "Tải ứng dụng máy tính",
+  "Read why": "Đọc lý do",
+  "Or drop an image or a list of colours here": "Hoặc thả một hình ảnh hay danh sách màu vào đây",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Các màu trung tính này đi kèm bộ khởi đầu để bản xem trước có thứ để hiển thị cho đến khi màu được thêm ở trên.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Chọn một màu",
+  "Add a colour to the palette first.": "Hãy thêm một màu vào bảng màu trước.",
+  "Notify": "Thông báo",
+  "Update automatically": "Tự động cập nhật",
+  "App updates": "Cập nhật ứng dụng",
+  "Update notifications": "Thông báo cập nhật",
+  "Ready to install: {version}": "Sẵn sàng cài đặt: {version}",
+  "Restart now": "Khởi động lại ngay",
+  "Install when I quit": "Cài đặt khi thoát",
+  "Release notes": "Ghi chú phát hành",
+  "Manual download": "Tải xuống thủ công",
+  "Update could not finish. Try again or download the app.": "Không thể hoàn tất cập nhật. Hãy thử lại hoặc tải ứng dụng xuống.",
+  "Finish recording or exporting before updating.": "Hoàn tất ghi âm, ghi hình hoặc xuất trước khi cập nhật.",
+  "Save could not finish. Save a recovery copy before updating.": "Không thể hoàn tất việc lưu. Hãy lưu một bản sao khôi phục trước khi cập nhật.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Không thể thay thế AppImage này tại đây. Hãy tải ứng dụng vào thư mục có quyền ghi.",
+  "This installation uses its package manager for updates.": "Bản cài đặt này dùng trình quản lý gói để cập nhật.",
+  "This desktop platform does not support in-app updates.": "Nền tảng máy tính này không hỗ trợ cập nhật trong ứng dụng.",
+  "Update installation was cancelled.": "Đã hủy cài đặt bản cập nhật."
 }

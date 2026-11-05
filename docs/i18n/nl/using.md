@@ -269,7 +269,7 @@ Op een smal scherm wordt de indeling één kolom:
 
 ## Instellingen, geluid en comfort
 
-**Settings**, onderaan het startscherm, bevat je gegevens, je design systems, toegankelijkheid, opslag en offline downloads. [Settings](/info/dashboard.html) brengt elk tabblad in kaart.
+**Settings**, onderaan het startscherm, bevat je gegevens, je design systems, toegankelijkheid, opslag en offline downloads. [Lolly Settings](/info/dashboard.html) brengt elk tabblad in kaart.
 
 - **Je gegevens en pasfoto** vullen elke tool in die ze gebruikt, zoals een e-mailhandtekening of een badge. [Profielen](/info/profile.html) behandelt ze.
 - **Toegankelijkheid** heeft vier comfortschakelaars: **Reduce motion**, **Hide colourful previews**, **High contrast** en **Large text**. Ze veranderen de app rond je werk, nooit een toolcanvas of een export.

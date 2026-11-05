@@ -11,7 +11,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { announce } from '../../a11y.ts';
 import { applyChromeBrandVars } from '../../brand-vars.ts';
 import { installUserTokens } from '../../bridge/tokens.ts';
-import { t, tRaw } from '../../i18n.ts';
+import { t, tRaw, tn } from '../../i18n.ts';
 import { stashPendingLogoFiles } from '../../lib/design-system/pending-files.ts';
 import { SITE_MAX_URL_CHARS, normalizeSiteUrl, scanWebsite } from '../../lib/design-system/sources/website.ts';
 import type { SiteScanPhase, SiteScanResult, SiteScanWarning } from '../../lib/design-system/sources/website.ts';
@@ -370,7 +370,7 @@ export function renderSiteResult(start: StartCtx, o: {
   // that through the dialog's own note line.
   const said: string[] = [...warnings];
   if (o.marks)
-    said.push(o.marks === 1 ? t('1 mark found') : t('{n} marks found', { n: o.marks }));
+    said.push(tn('1 mark found', '{n} marks found', { n: o.marks }));
   if (familyList) said.push(tRaw('Type: {list}', { list: familyList }));
   if (start.siteNameOffer) said.push(tRaw('This page calls itself {name}.', { name: start.siteNameOffer }));
   if (!said.length) said.push(t('Nothing beyond the colours came out of this page.'));

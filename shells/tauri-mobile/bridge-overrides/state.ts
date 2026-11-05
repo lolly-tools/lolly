@@ -22,6 +22,8 @@
  * workspaces, so the plugin lives only in this shell's node_modules).
  */
 
+import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import {
   BaseDirectory,
   exists,
@@ -44,6 +46,8 @@ const appDataFs: StateFs = {
   mkdirRecursive: (path) => mkdir(path, { baseDir: BaseDirectory.AppData, recursive: true }),
   readTextFile: (path) => readTextFile(path, { baseDir: BaseDirectory.AppData }),
   writeTextFile: (path, text) => writeTextFile(path, text, { baseDir: BaseDirectory.AppData }),
+  // Native temp-file, sync, rename: a crash mid-save keeps the previous document.
+  writeDocumentAtomic: (path, text) => invoke<void>('write_document_atomic', { path, contents: text }),
   readDirNames: async (path) =>
     (await readDir(path, { baseDir: BaseDirectory.AppData })).map((entry) => entry.name),
   remove: (path) => remove(path, { baseDir: BaseDirectory.AppData }),
@@ -77,3 +81,9 @@ const packFs: PackFs = {
   removeDirRecursive: (path) => remove(path, { baseDir: BaseDirectory.AppData, recursive: true }),
 };
 setPackStoreBackend(createFsPackDb(packFs));
+
+// Fold signal for the layout module (plan 345, P4). This module is on the bridge
+// boot path, so it is where the helper starts; see fold.ts for the contract.
+import { startFoldSignal } from './fold.ts';
+
+startFoldSignal({ invoke: (command) => invoke(command), listen: (event, handler) => listen(event, handler) });

@@ -6,7 +6,7 @@ Jika organisasi Anda menyimpan aset yang disetujuinya di Bynder, Frontify, Marq,
 
 ## Apa yang dilakukan portal mapan lebih baik
 
-Portal mapan menawarkan hosting terkelola, dukungan, dan alur kerja manajemen aset yang luas. Misalnya, [DAM enterprise Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) menggabungkan penemuan aset, kontrol akses, alur kerja persetujuan, dan distribusi. Tumpukan Lolly lebih muda dan rantai persetujuannya berurutan, bukan alur kerja bercabang sembarang. [Work status and roadmap](/info/work-status.html) mencatat batas deployment-nya.
+Portal mapan menawarkan hosting terkelola, dukungan, dan alur kerja manajemen aset yang luas. Misalnya, [DAM enterprise Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) menggabungkan penemuan aset, kontrol akses, alur kerja persetujuan, dan distribusi. Tumpukan Lolly lebih muda dan rantai persetujuannya berurutan, bukan alur kerja bercabang sembarang. [Lolly Work status and roadmap](/info/work-status.html) mencatat batas deployment-nya.
 
 ## Di mana keduanya beririsan
 

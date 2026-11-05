@@ -5,7 +5,7 @@ same DOM-to-SVG walker used by Lolly's documentation. Each file embeds the SUSE 
 and a signed C2PA credential identifying its source as a screen capture. The paired
 `<slug>.svg` and `<slug>.dark.svg` files let the console use the reader's theme.
 
-The capture harness starts the real Work app with in-memory demo data, an evaluation
+The capture harness starts the real Lolly Work app with in-memory demo data, an evaluation
 owner and the bundled pack. It uses fixed fixture secrets and never connects to an
 operator's database. Provider examples do not contact Google or a customer DAV server;
 the checked sample uses the real local renderer. Screenshots illustrate the app and
@@ -17,7 +17,7 @@ Capture needs Playwright and Chromium installed in the sibling Lolly checkout, o
 `PLAYWRIGHT_DIR` override pointing at their installation. Runtime docs need only the
 committed SVG files. The walker bundle is already committed here.
 
-From the Work checkout:
+From the Lolly Work checkout:
 
 ```sh
 node scripts/capture-console.ts \

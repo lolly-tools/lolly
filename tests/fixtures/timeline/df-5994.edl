@@ -1,0 +1,6 @@
+TITLE: Sixty frame drop
+FCM: DROP FRAME
+
+001  TAPE1    V     C        00:01:00;04 00:01:02;04 01:00:00;00 01:00:02;00
+002  TAPE1    V     C        00:09:59;58 00:10:00;02 01:00:02;00 01:00:02;04
+* FROM CLIP NAME: Minute boundary

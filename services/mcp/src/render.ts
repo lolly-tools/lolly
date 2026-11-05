@@ -16,11 +16,11 @@
 import {
   createRuntime, parseUrlState, expandQuery, serializeHdr, assertSampleRequest, assertMotionRequest, sampleOutputFormat,
   C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState, parseProductionSpec,
-  parseDimension, toPixels, PENPOT_MIME,
+  parseDimension, toPixels, canvasSizeOf, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa, describeIgnoredTokenChoice,
-  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, designRecordWords, guidedByWords, readDesignRecord,
+  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, designRecordWords, guidedByWords, readDesignRecord, confirmIntentRecord,
 } from '@lolly/engine';
-import type { C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord } from '@lolly/engine';
+import type { C2paIntentRecord, IntentRecordOutcome, C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord, CanvasSize } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import type { ExportBrandSkill, ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
@@ -30,7 +30,7 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
 import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
-import { isDeepFormat, DeepSourceError, needsFloatScene } from '@lolly-tools/node-shell/raster';
+import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
@@ -120,6 +120,11 @@ export interface RenderOpts {
    * record and left out with it (`madeWith: false`). Never travels in a link.
    */
   brandSkills?: ExportBrandSkill[] | null;
+  /**
+   * What this file was asked to do (plan 350 W4b), resolved here from the agent's intent
+   * by `lolly_render`. Goes in the credential this render stamps. Never travels in a link.
+   */
+  intent?: C2paIntentRecord | null;
 }
 
 /**
@@ -169,6 +174,8 @@ export interface RenderResult {
    * Absent when the file carries none (`madeWith: false`, or no design system).
    */
   designRecord?: DesignRecord;
+  /** What the delivered file holds about its intent, read back from the bytes. Absent when no intent was passed. */
+  intentRecord?: IntentRecordOutcome;
 }
 
 /**
@@ -357,6 +364,7 @@ async function mountAndDraw(
   values: Record<string, unknown>,
   emoji: EmojiRequest,
   tokenSelection?: Record<string, string>,
+  canvasSize?: CanvasSize | null,
 ): Promise<{
   runtime: Awaited<ReturnType<typeof createRuntime>>;
   canvas: Element;
@@ -367,7 +375,11 @@ async function mountAndDraw(
   // so a hook that analyses it is not racing its own time budget (plan 301).
   await prerenderSongInputs(tool.manifest.inputs ?? [], values, host);
   // The `_themes` choice (plan 291 M4): the runtime resolves token references in that theme.
-  const runtime = await createRuntime(tool, host, values as never, tokenSelection ? { tokenSelection } : undefined);
+  // The request's width and height are the canvas size the hooks lay out for (engine
+  // 1.293), the same CSS pixels the CLI and the web app hand a tool for that size.
+  const runtime = await createRuntime(tool, host, values as never, {
+    ...(tokenSelection ? { tokenSelection } : {}), ...(canvasSize ? { canvasSize } : {}),
+  });
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) throw new RenderError('render canvas missing');
   // A `_themes` choice the tool's manifest `tokenAxes` ignores (plans/319 A4) renders
@@ -453,9 +465,10 @@ export async function emojiCensus(
   profile: Profile,
   emoji: EmojiRequest,
   tokenSelection?: Record<string, string>,
+  canvasSize?: CanvasSize | null,
 ): Promise<{ ingredients: C2paSourceIngredient[]; rights: RightsEvaluationV1 }> {
   return withHost(profile, async (dom, host) => {
-    const { runtime } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
+    const { runtime } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, canvasSize);
     return {
       ingredients: runtime.emojiIngredients(),
       rights: runtime.rights({ delivery: { format: fmt, canCarryCredential: C2PA_FORMATS.includes(fmt) } }),
@@ -526,9 +539,16 @@ async function renderTierA(
   emoji: EmojiRequest,
   productionContract?: import('@lolly/engine').ProductionSpec,
   tokenSelection?: Record<string, string>,
-): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; drawn: DrawnHere; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null }> {
-  return withHost(profile, async (dom, host) => {
-    const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
+  size: TierASize = {},
+): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; drawn: DrawnHere; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null; svgSized: boolean }> {
+  return withHost(profile, async (dom, host, run) => {
+    const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, size.canvas);
+    // The PNG fast path's SVG takes the requested size only when the drawn root <svg>
+    // has a viewBox, as the CLI's and the TUI's do: without one the export would make
+    // a viewBox of that size, where the PNG has always scaled the tool's own size.
+    // The root only: a Design shape's inline <svg viewBox> is not the drawing's root.
+    const svgSized = !!size.svg && !!drawnRootSvg(canvas)?.hasAttribute('viewBox');
+    const sized: ExportOpts = svgSized ? { ...opts, width: size.svg!.width, height: size.svg!.height } : opts;
     let productionInputs: Record<string, string> | undefined;
     if (productionContract?.requirements.some(requirement => requirement.kind === 'input')) {
       const { productionInputFacts } = await import('@lolly/engine');
@@ -542,7 +562,7 @@ async function renderTierA(
     // The bridge hands back what it drew from the operations, for the stamp at the end of `render`.
     const drawn: DrawnHere = { pictures: [], route: null };
     try {
-      blob = await runtime.export(canvas as unknown as Element, fmt as ExportFormat, { ...opts, ingredientSink: drawn.pictures, onExportRoute: (record: DesignExportRouteRecord) => { drawn.route = record; } } as ExportOpts);
+      blob = await runtime.export(canvas as unknown as Element, fmt as ExportFormat, { ...sized, ingredientSink: drawn.pictures, onExportRoute: (record: DesignExportRouteRecord) => { drawn.route = record; } } as ExportOpts);
     } catch (e) {
       // A deep-format refusal ("this render has no float pixels behind it") is a
       // CLIENT-side answer about the request, not a server fault. Without this it
@@ -562,6 +582,9 @@ async function renderTierA(
       if (e instanceof RenderIntegrityError) throw new RenderError(e.message);
       throw e;
     }
+    // A picture this server would not decode leaves its step out (a Logo Wall logo
+    // keeps its own margins and size); the caller is told how many, which and why.
+    warnings.push(...run.decodeRefusals());
     return {
       ...(productionInputs ? { productionInputs } : {}),
       bytes,
@@ -576,8 +599,16 @@ async function renderTierA(
       // The metadata the export embedded, so the credential stamped below names
       // the same design system and colourway (plans/319).
       meta: runtime.lastExportMeta,
+      svgSized,
     };
   }, tokenSelection ? { tokenSelection } : {});
+}
+
+/** The size a browser-free render is made at: the canvas size its hooks lay out for,
+ *  and for the PNG fast path the width and height its SVG is exported at. */
+interface TierASize {
+  canvas?: CanvasSize | null;
+  svg?: { width: string | number; height: string | number };
 }
 
 /** Pixel area of the PNG preview `lolly_render` attaches to an SVG answer. The
@@ -609,9 +640,12 @@ export function maxRasterPixelsFor(env: NodeJS.ProcessEnv, hosted: boolean): num
  *  Output is ALWAYS bounded by MAX_RASTER_EDGE_PX, independent of the caller's
  *  `width` and of the SVG's intrinsic size (see the constant's comment), and by
  *  `maxPixels` (total area) when the caller sets one. `reduced` reports that the
- *  area cap, not the caller, chose the size. */
-async function svgToPng(svg: string, width: number | undefined, background: string | undefined, maxPixels?: number): Promise<{ png: Uint8Array; width: number; height: number; reduced: boolean }> {
+ *  area cap, not the caller, chose the size. With a `height` as well, the root
+ *  <svg> is drawn at exactly `width` x `height` px, its own viewBox and
+ *  preserveAspectRatio placing the content, the way the CLI's PNG is. */
+async function svgToPng(svg: string, width: number | undefined, background: string | undefined, maxPixels?: number, height?: number): Promise<{ png: Uint8Array; width: number; height: number; reduced: boolean }> {
   const { Resvg } = await import('@resvg/resvg-js');
+  if (width && width > 0 && height && height > 0) svg = sizeRootSvg(svg, width, height);
   // Cheap parse-only probe for the intrinsic size (viewBox/width/height) - no raster.
   const probe = new Resvg(svg, { font: { loadSystemFonts: false } });
   const iw = probe.width, ih = probe.height;
@@ -638,6 +672,14 @@ async function svgToPng(svg: string, width: number | undefined, background: stri
   });
   const img = r.render();
   return { png: img.asPng(), width: img.width, height: img.height, reduced: areaScale < wantScale && areaScale <= edgeScale };
+}
+
+/** Give the root <svg> of `svg` exactly `width` x `height` px, keeping its viewBox
+ *  and preserveAspectRatio. Only called for an SVG whose root has a viewBox. */
+export function sizeRootSvg(svg: string, width: number, height: number): string {
+  const w = Math.max(1, Math.round(width)), h = Math.max(1, Math.round(height));
+  return svg.replace(/<svg\b[^>]*>/, (tag) =>
+    tag.replace(/\s(width|height)="[^"]*"/g, '').replace(/^<svg\b/, `<svg width="${w}" height="${h}"`));
 }
 
 /** A small PNG of an SVG answer, for clients that show images but not SVG.
@@ -829,6 +871,9 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   if (o.hdr) p.set('hdr', serializeHdr(o.hdr));
   if (o.depth && o.depth !== 'auto') p.set('depth', String(o.depth));
   if (Number(p.get('cuts')) > 1 || p.has('sampletimes')) p.set('c2pa', o.c2pa?.on ? String(o.c2pa.days ?? 1) : 'off');
+  // An intent record goes in the credential this server stamps, so the browser writes none of
+  // its own. A PDF it stamped could not take a second one.
+  if (o.intent && o.c2pa?.on) p.set('c2pa', 'off');
   p.set('export', '1'); // presence flag → immediate download on load
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -960,6 +1005,7 @@ export async function stampC2pa(
     // Without it an MCP export that drew CC BY artwork records no licence for it.
     ...(ingredients.length || drawn?.pictures.length ? { ingredients: [...ingredients, ...(drawn?.pictures ?? [])] } : {}),
     route: drawn?.route ?? null,
+    intent: o.intent ?? null,
   });
   return embedC2pa(bytes, fmt as ExportFormat, opts);
 }
@@ -982,7 +1028,7 @@ export async function credentialAndRecord(
     fmt: string; exportFmt: string; deliveredFormat: string; manifest: ToolManifest; values: Record<string, unknown>;
     merged: RenderOpts; placed: C2paSourceIngredient[]; recorded: ExportMeta | null; sampled: boolean; warnings: string[]; drawn?: DrawnHere | null;
   },
-): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null }> {
+): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null; intentRecord?: IntentRecordOutcome }> {
   let bytes = out.bytes;
   type Recorded = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'>;
   // What the file's own metadata holds: the browser tier wrote it, so it is read off
@@ -997,6 +1043,8 @@ export async function credentialAndRecord(
   const record: Recorded | null = skills.length ? { ...(inFile ?? {}), brandSkills: skills } : inFile;
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
+    // Told not to stamp, the browser saves a PDF the embedder cannot extend until it has a classic table.
+    try { if (o.merged.intent) bytes = await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(bytes, o.exportFmt); } catch { /* the stamp below reports it */ }
     try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
@@ -1017,7 +1065,18 @@ export async function credentialAndRecord(
       if (fromCredential?.brandSkills?.length) designRecord = { ...(designRecord ?? {}), brandSkills: fromCredential.brandSkills };
     } catch { /* an unreadable credential gives no skills */ }
   }
-  return { bytes, designRecord };
+  // Only the finished bytes can say the intent is recorded.
+  let intentRecord: IntentRecordOutcome | undefined;
+  if (o.merged.intent) {
+    if (stamped) {
+      try { intentRecord = confirmIntentRecord(await verifyC2pa(bytes), o.merged.intent); }
+      catch { intentRecord = { state: 'not-recorded', reason: 'not-confirmed' }; }
+    } else {
+      const canCarry = C2PA_FORMATS.includes(o.exportFmt as ExportFormat);
+      intentRecord = { state: 'not-recorded', reason: !canCarry ? 'no-route' : o.merged.c2pa?.on ? 'not-confirmed' : 'no-credential' };
+    }
+  }
+  return { bytes, designRecord, ...(intentRecord ? { intentRecord } : {}) };
 }
 
 /**
@@ -1050,7 +1109,7 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   const last = run.attempts.at(-1)!;
   try { await requireProduction(last.report, last.bytes, contract); }
   catch (error) { if (error instanceof Error) Object.assign(error, { attempts: run.attempts.map(a => a.report) }); throw error; }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), ...(last.intentRecord ? { intentRecord: last.intentRecord } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
 }
 
 /** One candidate render as one request scope: its songs share the caps and one time budget. */
@@ -1103,6 +1162,9 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     madeWith: o.madeWith ?? st.madeWith ?? null,
   };
   const profile = o.profile ?? {};
+  // The canvas size every browser-free render mounts with (engine 1.293): the request's
+  // width and height in CSS pixels, or the tool's own size when either is missing.
+  const canvasSize = canvasSizeOf(merged.width, merged.height, merged.unit || 'px');
   // The set and treatment travel in the query, so one reader answers for the
   // file, the editable link and the browser tier's URL alike.
   const emoji: EmojiRequest = { emoji: st.emoji, emojifx: st.emojiFx, emojistyle: st.emojiStyle };
@@ -1131,7 +1193,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     out = { ...(await renderTierB(toolId, q, exportFmt, merged)), mime: mimeForFormat(deliveredFormat), tier: 'B' };
   } else if (TIER_A.has(exportFmt) && !floatScene) {
     try {
-      const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji, productionContract, st.tokenSelection);
+      const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji, productionContract, st.tokenSelection, { canvas: canvasSize });
       placed = r.ingredients;
       drawn = r.drawn;
       evaluation = r.rights;
@@ -1153,16 +1215,26 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
       out = { ...(await renderTierB(toolId, q, exportFmt, merged)), tier: 'B' };
     }
   } else if (exportFmt === 'png' && formats.includes('svg') && !floatScene && values.editingRange !== 'hdr') {
-    // SVG-native fast path: engine SVG → resvg PNG, no browser.
+    // SVG-native fast path: engine SVG → resvg PNG, no browser. A request with both
+    // a width and a height hands that size to the SVG export (when the drawn root
+    // <svg> has a viewBox), so a tool that lays itself out for the export's shape
+    // draws the same picture into the PNG as into an SVG of that size, and the PNG
+    // follows the height as the SVG does. One side keeps the scaling it always had.
     try {
-      const svg = await renderTierA(toolId, values, 'svg', exportOpts({ ...merged, width: undefined, height: undefined, unit: 'px' }), profile, emoji, productionContract, st.tokenSelection);
+      const requested = exportOpts(merged);
+      const both = requested.width !== undefined && requested.height !== undefined;
+      const svg = await renderTierA(toolId, values, 'svg', exportOpts({ ...merged, width: undefined, height: undefined, unit: 'px' }), profile, emoji, productionContract, st.tokenSelection, {
+        canvas: canvasSize,
+        ...(both ? { svg: { width: requested.width!, height: requested.height! } } : {}),
+      });
       // The raster below is that SVG, so it placed the same artwork.
       placed = svg.ingredients;
       evaluation = svg.rights;
       recorded = svg.meta;
       warnings.push(...svg.warnings);
       const px = targetPx(merged.width, merged.unit, merged.dpi);
-      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels);
+      const pxH = svg.svgSized ? targetPx(merged.height, merged.unit, merged.dpi) : undefined;
+      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels, pxH);
       if (png.reduced) {
         warnings.push(`PNG reduced to ${png.width} x ${png.height} px to stay within this server's ${o.maxRasterPixels!.toLocaleString('en')}-pixel raster limit. Ask for svg for a file that scales to any size.`);
       }
@@ -1201,7 +1273,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
   // no artwork and should not pay a second hydrate to be told so.
   if (out.tier.startsWith('B') && !evaluation && carriesEmojiParams(q)) {
     try {
-      const census = await emojiCensus(toolId, values, exportFmt, profile, emoji, st.tokenSelection);
+      const census = await emojiCensus(toolId, values, exportFmt, profile, emoji, st.tokenSelection, canvasSize);
       placed = census.ingredients;
       evaluation = census.rights;
     } catch (e) {
@@ -1237,6 +1309,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     ...(evaluation ? { rights: await rightsResult(evaluation, bytes) } : {}),
     ...(songs ? { songs } : {}),
     ...(designRecord ? { designRecord } : {}),
+    ...(finished.intentRecord ? { intentRecord: finished.intentRecord } : {}),
   };
 }
 

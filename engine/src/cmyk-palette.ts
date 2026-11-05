@@ -18,7 +18,7 @@
  * every shell.** Pure, DOM-free, no brand knowledge beyond the swatch list it is
  * handed.
  */
-import { rgbToCmyk } from './color.ts';
+import { rgbToCmyk, type Cmyk } from './color.ts';
 import type { FinishKind, SpotColor } from '@lolly-tools/core/host-v1';
 
 /**
@@ -85,8 +85,16 @@ export function cmykKey(r: number, g: number, b: number): string {
  * Builds a lookup map from quantised RGB keys to their locked CMYK (+ optional
  * spot name). Shared by every CMYK export path (PDF / TIFF / EPS, web and CLI)
  * for exact brand-swatch matches.
+ *
+ * `separate` converts a swatch that has no CMYK lock of its own (a spot-only
+ * lock's process equivalent). The export passes its press separation
+ * (cmyk-separation.ts), so such a swatch prints the same build as the same
+ * colour elsewhere in the artwork; the default is the device formula.
  */
-export function buildCmykPaletteMap(palette: readonly BrandPaletteEntry[]): Map<string, PaletteHit> {
+export function buildCmykPaletteMap(
+  palette: readonly BrandPaletteEntry[],
+  separate: (r: number, g: number, b: number) => Cmyk = rgbToCmyk,
+): Map<string, PaletteHit> {
   const map = new Map<string, PaletteHit>();
   for (const { hex, cmyk, spot } of palette ?? []) {
     if (!hex || (!cmyk && !spot)) continue;
@@ -98,7 +106,7 @@ export function buildCmykPaletteMap(palette: readonly BrandPaletteEntry[]): Map<
     // An explicit cmyk lock always wins; a spot-only lock derives its
     // equivalent from the swatch's own hex (same fallback used when neither
     // is locked at all).
-    const frac = cmyk && cmyk.length === 4 ? (cmyk.map(v => v / 100) as [number, number, number, number]) : rgbToCmyk(r, g, b);
+    const frac = cmyk && cmyk.length === 4 ? (cmyk.map(v => v / 100) as [number, number, number, number]) : separate(r, g, b);
     // A DECLARED FINISH never contributes to the process build, and is never
     // gamut-mapped or merged into CMYK - its build is the mask, not the swatch's
     // own colour, and an explicit cmyk anchor is deliberately overridden (a

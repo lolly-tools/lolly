@@ -14,13 +14,13 @@ Ton profil contient aussi ce que tu accumules en travaillant : sessions enregist
 | **Headshot** | Une photo facultative, recadrée en carré et conservée comme image locale, pour des outils comme les signatures d'e-mail, les cartes de citation et les organigrammes. |
 | **Use my details to create** | Un interrupteur facultatif (il affiche **Using my details** une fois activé). Il décide si tes informations voyagent comme crédit d'auteur dans les fichiers exportés et dans les lots de Batch. Il n'affecte pas le préremplissage ; voir [How tools use your profile](#how-tools-use-your-profile). |
 | **Preferences** | Ton thème, ton colourway dans chaque design system, tes réglages d'accessibilité et les parties de l'application que tu as activées dans **Feature flags**. |
-| **Your work** | Les sessions enregistrées avec leurs vignettes, organisées dans [Projects](/info/find-your-work.html), tes images importées et tes statistiques d'activité locales. |
+| **Your work** | Les sessions enregistrées avec leurs vignettes, organisées dans [Lolly Projects](/info/find-your-work.html), tes images importées et tes statistiques d'activité locales. |
 
 Rien de tout cela n'est obligatoire. Un profil vide fonctionne ; ne remplis que ce qui t'évite de taper.
 
 ![Settings sur l'onglet Preferences : le rail des réglages, et Your details avec l'interrupteur Use my details to create et les champs de nom, de contact et de lieu](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) cartographie tout le reste sous Preferences, de l'apparence et des emoji au stockage et aux téléchargements hors ligne.
+[Lolly Settings](/info/dashboard.html) cartographie tout le reste sous Preferences, de l'apparence et des emoji au stockage et aux téléchargements hors ligne.
 
 ## Toi, une équipe ou un rôle
 
@@ -83,7 +83,7 @@ Pour les auteurs d'outils : voir [`bindToProfile`](/info/tool-inputs.html#bindto
 Trois éléments se côtoient dans Settings et se confondent facilement :
 
 - <!--i:people--> **Profile** - toi, ton équipe ou le rôle dans lequel tu es : nom, coordonnées, photo et travail enregistré. Personnel, conservé sur l'appareil et portable sous forme de fichier.
-- <!--i:palette--> **Design system** - la marque : couleurs, polices et réglages avec lesquels chaque outil effectue son rendu. Partagé et cohérent plutôt que personnel ; voir [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - la marque : couleurs, polices et réglages avec lesquels chaque outil effectue son rendu. Partagé et cohérent plutôt que personnel ; voir [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - ce que l'application sait faire : les fonctions et outils qui te sont disponibles.
 
 Un profil change de qui vient un fichier ; le design system change l'aspect du fichier ; les capacités sont ce que tu peux créer.

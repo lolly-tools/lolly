@@ -8,7 +8,7 @@
  * from mountStart() by scripts/split-closure.ts.
  */
 import { updateRouteParams, bindDisclosureUrl, routeParams } from '../../lib/url-state.ts';
-import { mountOverviewRoom, readOverview } from '../../lib/design-system/rooms/overview.ts';
+import { boardState, mountOverviewRoom, readOverview } from '../../lib/design-system/rooms/overview.ts';
 import { mountUsageRoom } from '../../lib/design-system/rooms/usage.ts';
 import { mountSkillsRoom } from '../../lib/design-system/rooms/skills.ts';
 import { isStartArea } from '../../lib/design-system/start-route.ts';
@@ -16,6 +16,7 @@ import type { StartArea } from '../../lib/design-system/start-route.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { mountPaletteSheet } from '../../lib/design-system/palette-sheet.ts';
 import { bindOp, type StartCtx } from './context.ts';
+import { isSplitLayout } from '../../lib/layout-posture.ts';
 
 export const syncPaletteSheet = (start: StartCtx): void => {
   const { editorRoot, shell } = start;
@@ -43,7 +44,10 @@ export const syncPaletteSheet = (start: StartCtx): void => {
 export const syncVersionsEntry = (start: StartCtx): void => {
   const { versionsBtn, versionsLink } = start;
   if (start.activeArea === 'versions') start.versionsOffered = true;
-  if (versionsBtn) versionsBtn.hidden = !start.versionsOffered;
+  if (versionsBtn && versionsBtn.hidden === start.versionsOffered) {
+    versionsBtn.hidden = !start.versionsOffered;
+    start.bar.syncStrip(true); // the strip gained a room, so the ink re-measures
+  }
   // The first publish has to stay one press away, so a system worth exporting
   // that has never published gets the quiet entry instead of the rail one - and
   // drops it again as soon as the rail entry latches on.
@@ -80,13 +84,23 @@ const syncRecovery = (start: StartCtx, furnished: boolean): void => {
 export const refreshFurnished = (start: StartCtx): void => {
   const { host } = start;
   // The harder latch is set, so both are, and a system worth exporting is furnished.
-  if (start.worthExporting) { syncRecovery(start, true); syncFontPackage(start); return; }
+  if (start.worthExporting) { syncRecovery(start, true); syncFontPackage(start); }
+  // Ownership is the other thing read here (the bar's emphasis follows it), and
+  // it latches on `owned`: nothing in a session takes a system back. With both
+  // latches set there is nothing left to read.
+  if (start.worthExporting && start.boardState === 'owned') return;
   void readOverview(host as unknown as Parameters<typeof readOverview>[0])
     .then((model) => {
-    const { furnishedOnly, importBtn, shell } = start;
+    const { furnishedOnly, shell } = start;
       if (!shell.isConnected) return;
-      // The hero only duplicates a door while the doors are up (plans/163 F2).
-      if (model.furnished && importBtn) importBtn.hidden = false;
+      // Whose system this is decides the bar's filled action (plan 346, change
+      // 1). Add from… only duplicates a door while the doors are up (plans/163
+      // F2), and while Make it yours holds it in its menu.
+      if (start.boardState !== 'owned') {
+        start.boardState = boardState(model);
+        start.bar?.applyEmphasis();
+      }
+      if (start.worthExporting) return;
       syncRecovery(start, model.furnished);
       if (!model.worthExporting) return;
       start.worthExporting = true;
@@ -98,8 +112,16 @@ export const refreshFurnished = (start: StartCtx): void => {
       /* undiscoverable storage - the actions stay out of the way */
     });
 };
-export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boolean; sfx?: boolean } = {}): void => {
+export const selectRoom = (start: StartCtx, asked: StartArea, opts: { focus?: boolean; sfx?: boolean } = {}): void => {
   const { editorRoot, overviewPanel, roomBtns, versionsPanel } = start;
+  // In two panes (lib/layout-posture.ts) the Board is the control pane and stays in
+  // view, and the other pane is a room's work: asking for the Board there opens the
+  // room that was last open beside the Board. On a first visit nothing has been, and the
+  // other pane is the Board's own live column, the In context specimen (plan 346,
+  // change 15): the doors in one pane and the specimen in the other.
+  const split = isSplitLayout();
+  const area: StartArea = split && asked === 'overview' ? (start.lastRoom ?? 'overview') : asked;
+  if (area !== 'overview') start.lastRoom = area;
   start.activeArea = area;
   start.editor?.closeOverlays(); // a popover anchored in the outgoing room must not linger
   refreshFurnished(start); // the install path runs through here too (selectRoom('color'))
@@ -110,13 +132,17 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
     else btn.removeAttribute('aria-current');
     if (on && opts.focus) btn.focus();
   }
-  overviewPanel.hidden = area !== 'overview';
+  start.bar.syncStrip();
+  overviewPanel.hidden = !split && area !== 'overview';
+  // The live column goes with the Board: beside it on a desk, under it on a
+  // phone, the other pane in two panes until a room takes that pane.
+  start.livePanel.hidden = area !== 'overview';
   start.usagePanel.hidden = area !== 'usage';
   if (area === 'usage') {
     if (start.usage) void start.usage.refresh();
     else start.usage = mountUsageRoom(start.usagePanel, { host: start.host, studio: start.studio, changed: () => { start.rooms.refreshFurnished(); start.brand.wireRegistry(); } });
   } else start.usage?.suspend();
-  // Skills (plan 323): mounted on first open, like Usage & rules, so a studio that
+  // Skills (plan 323): mounted on first open, like Rules, so a studio that
   // never opens the room never reads a skill.
   start.skillsPanel.hidden = area !== 'skills';
   if (area === 'skills') {
@@ -125,7 +151,7 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
   } else start.skills?.suspend();
   versionsPanel.hidden = area !== 'versions';
   editorRoot?.setAttribute('data-active-tab', area);
-  if (area === 'overview') start.overview?.refresh();
+  if (area === 'overview' || split) start.overview?.refresh();
   if (area === 'versions') start.openVersions();
   syncPaletteSheet(start);
   // Room navigation consumes import actions and keeps the current workspace.
@@ -163,21 +189,41 @@ export function openFocus(start: StartCtx, area: StartArea, focus: string): void
 }
 export function wireEditorPanels(start: StartCtx): void {
   const { editorRoot, shell } = start;
-  // Under 900px the room chips pin to the top of the page, so a jump inside a room
-  // (the Tokens room's tiles, a token's detail) has to land below them, not under.
-  // --ds-sticky-top is the chips' height plus a breath; the rooms read it as
-  // scroll-margin-top (styles/parts/start.css).
-  const dsShell = shell.querySelector<HTMLElement>('.ds-shell');
-  const nav = shell.querySelector<HTMLElement>('.ds-room-nav');
-  const narrow = window.matchMedia('(max-width: 899px)');
+  // The bar (and on a desk the room strip under it) pins to the top of the page,
+  // and on a phone the rooms sit in a bar fixed to the bottom edge. Keyboard focus
+  // and a jump inside a room (the Tokens room's tiles, a skill on a phone) have to
+  // land clear of both (WCAG 2.4.11). --ds-sticky-top and --ds-sticky-bottom are
+  // their heights plus a breath, and the page reads them as its scroll padding
+  // (styles/parts/start-bar.css). They sit on the root because the root is the
+  // scroller, and they leave with the studio. Measured on every resize of either
+  // block: the window, the type size, the phone's room bar stepping aside.
+  const docEl = document.documentElement;
+  const top = shell.querySelector<HTMLElement>('.ds-top');
+  const roomBar = shell.querySelector<HTMLElement>('.ds-room-nav');
+  let observer: ResizeObserver | null = null;
+  const stopStickyTop = (): void => {
+    window.removeEventListener('resize', syncStickyTop);
+    observer?.disconnect();
+    observer = null;
+    docEl.style.removeProperty('--ds-sticky-top');
+    docEl.style.removeProperty('--ds-sticky-bottom');
+  };
   const syncStickyTop = (): void => {
-    if (!dsShell?.isConnected) { window.removeEventListener('resize', syncStickyTop); return; }
-    if (nav && narrow.matches) dsShell.style.setProperty('--ds-sticky-top', `${Math.ceil(nav.getBoundingClientRect().height) + 8}px`);
-    else dsShell.style.removeProperty('--ds-sticky-top');
+    if (!top?.isConnected) { stopStickyTop(); return; }
+    docEl.style.setProperty('--ds-sticky-top', `${Math.ceil(top.getBoundingClientRect().height) + 8}px`);
+    // Only a room bar fixed to the edge covers the page; on a desk it is part of
+    // the pinned block above.
+    const below = roomBar && getComputedStyle(roomBar).position === 'fixed' ? roomBar.getBoundingClientRect().height : 0;
+    if (below > 0) docEl.style.setProperty('--ds-sticky-bottom', `${Math.ceil(below) + 8}px`);
+    else docEl.style.removeProperty('--ds-sticky-bottom');
   };
   syncStickyTop();
   window.addEventListener('resize', syncStickyTop);
-  start.unsubStickyTop = () => window.removeEventListener('resize', syncStickyTop);
+  if (typeof ResizeObserver === 'function') {
+    observer = new ResizeObserver(() => syncStickyTop());
+    for (const el of [top, roomBar]) if (el) observer.observe(el);
+  }
+  start.unsubStickyTop = stopStickyTop;
   // Name each editor panel after the rail item that opens it (the editor renders
   // the panels; only this view knows what navigates to them).
   editorRoot?.querySelectorAll<HTMLElement>('[data-be-tab-panel]').forEach((panel) => {
@@ -214,6 +260,7 @@ export function wireRooms(start: StartCtx): void {
   start.overview = mountOverviewRoom(overviewPanel, {
     host: host as unknown as Parameters<typeof mountOverviewRoom>[1]['host'],
     editor: () => start.editor,
+    live: start.livePanel,
     goto: (area, focus) => {
       if (!isStartArea(area)) return;
       start.rooms.selectRoom(area, { focus: true, sfx: true });

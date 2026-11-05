@@ -23,7 +23,7 @@ This directory is developed inside the [Lolly repository](https://github.com/lol
 - **Static.** The package unpacks a prebuilt web build and serves it with nginx. No application service or database; YunoHost stores the package settings, and users' work stays on their devices.
 - **Whole domain.** The build resolves assets, the offline service worker and clean routes from the domain root. YunoHost infers the whole-domain requirement from the manifest: a domain question, no path question and `main.url = "/"`.
 - **Same default headers as lolly.tools.** `conf/security-headers.inc` renders the hosted deployment's policy by default. The configuration panel can add specific storage origins to `connect-src`; the saved setting survives upgrades. See [the admin guide](doc/ADMIN.md#allow-your-own-nextcloud-webdav-or-s3-server). The YunoHost tests in `tests/` check the default policy and configured additions.
-- **Models from lolli.li.** The on-device ML models are fetched on first use from the project's release host, as the desktop app does, instead of adding 1.2 GB to the download.
+- **Models from lolli.li.** The on-device ML models are fetched on first use from the project's release host, as the desktop app does, instead of adding 1.2 GB to the download. A server that wants its own copy can choose **This server** under **On-device models** in the configuration panel; the package then fetches and verifies the files and serves `/models/` itself. See [the admin guide](doc/ADMIN.md#keep-the-on-device-models-on-this-server).
 
 The governed, multi-user product is a separate package, **Lolly Work**, which serves this same web build behind its control plane and YunoHost SSO.
 
@@ -60,6 +60,7 @@ config_panel.toml      persistent settings exposed in YunoHost's configuration p
 scripts/               install, upgrade, remove, backup, restore, change_url, config, _common.sh
 conf/nginx.conf        the domain location file (root, cache tiers, SPA fallback)
 conf/security-headers.inc  the header set every location includes
+conf/models.*.inc      the /models/ and /models-base.txt locations, per model source
 doc/                   DESCRIPTION, PRE_INSTALL and ADMIN pages shown in the YunoHost admin
 tests.toml             package_check configuration
 ```

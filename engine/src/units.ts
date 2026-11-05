@@ -87,6 +87,29 @@ export function toCssPx(dim: Dimension): number {
   return dim.unit === 'px' ? dim.value : toInches(dim) * CSS_DPI;
 }
 
+/**
+ * The canvas size a tool is told about (engine 1.293, `ctx.canvasSize`), from a
+ * requested width and height: CSS pixels, a physical unit at 96 per inch. Each
+ * side is a number in `unit` or a string that carries its own unit ("210mm"),
+ * the two forms export options take. Null unless both sides are positive
+ * lengths, so a size with one side keeps the tool's own canvas. Every shell
+ * converts through here, so the web app, the CLI, the TUI and the MCP server
+ * hand a tool the same numbers for the same request.
+ */
+export function canvasSizeOf(
+  width: string | number | null | undefined,
+  height: string | number | null | undefined,
+  unit: string = 'px',
+): { width: number; height: number } | null {
+  const side = (v: string | number | null | undefined): number | null => {
+    const dim = typeof v === 'number' ? parseDimension(String(v), unit) : parseDimension(v, unit);
+    const px = dim ? toCssPx(dim) : 0;
+    return Number.isFinite(px) && px > 0 ? px : null;
+  };
+  const w = side(width), h = side(height);
+  return w !== null && h !== null ? { width: w, height: h } : null;
+}
+
 /** Re-express a dimension in another unit (e.g. native px → mm for a placeholder). */
 export function toUnit(dim: Dimension, unit: Unit): number {
   return toInches(dim) * PER_INCH[unit];

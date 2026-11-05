@@ -17,14 +17,14 @@ lolly.tools öffnet sich in **Lolly Demo**, Lollys eigenem Beispiel-Designsystem
 Wählen Sie den Weg, der zu dem passt, was Sie haben:
 
 - <!--i:palette--> **Eine Farbe.** Öffnen Sie **Design System Setup** (`#/start`), geben Sie Ihrem Designsystem einen Namen und wählen Sie eine Primärfarbe. Lolly leitet daraus eine vollständige, barrierefreie Palette ab, mit hellen und dunklen Flächen, Text und Akzenten. Wählen Sie eine Schrift, und Sie haben eine funktionierende Marke.
-- <!--i:upload--> **Eine Tokens-Datei.** **Add from…** am Fuß der Raumleiste in Design System Setup nimmt eine DTCG-, Tokens-Studio- oder Penpot-Tokens-Datei, eine SVG oder ein `LollyBrand`-Paket an. Legen Sie sie ab, und die Palette füllt sich. Solange das Designsystem noch leer ist, öffnet **Start from a reference** im Raum Overview dieselbe Auswahl.
+- <!--i:upload--> **Eine Tokens-Datei.** **Add from…** in der oberen Leiste von Design System Setup nimmt eine DTCG-, Tokens-Studio- oder Penpot-Tokens-Datei, eine SVG oder ein `LollyBrand`-Paket an. Legen Sie sie ab, und die Palette füllt sich. Solange das Designsystem noch leer ist, öffnet **Start from a reference** im Raum Board dieselbe Auswahl.
 - <!--i:pentool--> **Ein fertiges Design.** Wählen Sie in Design **Import a design** und legen Sie eine `.fig`-, `.penpot`-, `.ai`-, `.idml`- oder SVG-Datei ab. Siehe unten [Bringen Sie mit, was Sie schon haben](#bring-in-what-you-already-have).
 
 Wenn Sie die Galerie zum ersten Mal öffnen, bietet ein kurzer Willkommensdialog dieselben Möglichkeiten: **Make it yours** öffnet Design System Setup, **Bring your design** öffnet eine Dateiauswahl für ein Design, und **Explore the community tools** schließt den Willkommensdialog.
 
 ![Der Raum Colours in Design System Setup bei einer frischen Installation: ein Live-Farbfeld, ein Eingabefeld und die ganze erste Entscheidung](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Von dort führen sieben Räume so weit, wie Sie möchten, in beliebiger Reihenfolge: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** und **Usage & rules**. Jede Vorschau in der App aktualisiert sich beim Tippen. [Design System Setup](/info/brand-studio.html) behandelt jeden Raum.
+Von dort führen acht Räume so weit, wie Sie möchten, in beliebiger Reihenfolge: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** und **Skills**. Jede Vorschau in der App aktualisiert sich beim Tippen. [Lolly Design System Setup](/info/brand-studio.html) behandelt jeden Raum.
 
 Schriften bleiben auf Ihrem Gerät. Wählen Sie eine Google Font, und Lolly speichert die Datei als Marken-Asset, sodass Ihre Schrift offline mitreist und beim Zeichnen eines Tools nichts abgerufen wird.
 
@@ -58,7 +58,7 @@ Sie beginnen nicht auf einer leeren Seite.
 
 **Decks.** Legen Sie eine PowerPoint-`.pptx` auf Lolly ab, um ihre Folien als Assets abzulegen, schreiben Sie in **Markdown Slides** ein neues Deck aus Markdown oder nutzen Sie [Ein Deck neu branden](/info/rebrand.html), um das ganze Deck auf Ihr Designsystem zu übertragen.
 
-**Daten.** Fügen Sie eine CSV- oder JSON-Tabelle ein oder legen Sie sie ab, und die wiederholten Felder eines Tools füllen sich daraus, oder [Batch](/info/batch.html#make-many-versions-of-one-design) erzeugt je Zeile eine fertige Datei.
+**Daten.** Fügen Sie eine CSV- oder JSON-Tabelle ein oder legen Sie sie ab, und die wiederholten Felder eines Tools füllen sich daraus, oder [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) erzeugt je Zeile eine fertige Datei.
 
 ### Vom Einzelstück zur Vorlage
 
@@ -72,7 +72,7 @@ Ein importiertes Layout ist eine gewöhnliche Design-Sitzung. **Share with rules
 
 - <!--i:download--> **Exportieren.** Tools erzeugen SVG, PDF, PNG, JPG, WebP, Video und mehr, in den Formaten, die jedes Tool bietet, bei Bedarf in echten Druckgrößen. Siehe [Eine Datei exportieren](/info/exporting.html).
 - <!--i:link--> **Einen Link teilen.** Die Einstellungen eines Tools reisen in seinem Link, sodass der Link überall dieselbe Datei wieder öffnet.
-- <!--i:layers--> **Eine je Zeile erstellen.** Steuern Sie ein Tool aus einer Tabelle in [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Eine je Zeile erstellen.** Steuern Sie ein Tool aus einer Tabelle in [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatisieren.** Dasselbe Rendering läuft über die [CLI](/info/cli.html) und von einem [KI-Agenten](/info/ai-agents.html).
 
 Ein Link ist eine vollständige Anfrage. Niemand hat das Diagramm unten gezeichnet: Sein Typ, seine Überschrift und seine ganze Datentabelle wurden in die Adressleiste getippt, und derselbe Link zeichnet auf jedem Gerät dasselbe Diagramm.

@@ -15,15 +15,36 @@ import { loadToolFavourites, withToolFavouriteToggled, sortTools, TOOL_SORTS, TO
 import type { ToolSort } from '../lib/tool-favourites.ts';
 import { useTermSize } from '../hooks.ts';
 import { theme } from '../theme.ts';
-import { Footer } from '../components/Footer.tsx';
+import type { ImportOptions, ImportResult } from '../import-design.ts';
+import { Panel } from '../components/Panel.tsx';
+import { Footer, footerLines } from '../components/Footer.tsx';
+import type { Shortcut } from '../components/Footer.tsx';
 import { Tabs } from '../components/Tabs.tsx';
+import { BrandStrip } from '../components/BrandStrip.tsx';
+import type { TerminalBrand } from '../brand-theme.ts';
 import { fmtEmoji, catEmoji, toolIcon } from '../emoji.ts';
 import { isBrowserOnly } from '../tool-support.ts';
 
 const CARD_W = 26;
 const CARD_H = 4;   // border(2) + name(1) + subtitle(1) - cards never shrink below this
 
-export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit, onPrepare, onRebrand }: { tools: ToolEntry[]; onPrepare: () => void; onRebrand: () => void; onOpen: (id: string) => void; onOpenUrl: (url: string) => string | null; onImportFile: (path: string) => Promise<string | null>; onNav: (t: NavTarget) => void; onQuit: () => void }) {
+const GALLERY_SHORTCUTS: Shortcut[] = [
+          { key: 'hjkl', label: 'move' },
+          { key: '⏎', label: 'open' },
+          { key: '/', label: 'search' },
+          { key: 'f', label: 'star' },
+          { key: 'o', label: 'sort' },
+          { key: 'c', label: 'category' },
+          { key: 'F', label: 'favs' },
+          { key: 'u', label: 'url' },
+          { key: 'i', label: 'import' },
+          { key: '?', label: 'workflows' }, { key: 'b', label: 'batch' }, { key: 'p', label: 'prepare' },
+          { key: 'r', label: 'rebrand' },
+          { key: '2/3/4/5', label: 'proj/prof/cat/sys' },
+          { key: 'q', label: 'quit' },
+];
+
+export function Gallery({ onAutomation, brand, catalogError, onBatch, tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit, onPrepare, onRebrand }: { onAutomation: () => void; brand?: TerminalBrand | null; onBatch: () => void; catalogError?: string; tools: ToolEntry[]; onPrepare: () => void; onRebrand: () => void; onOpen: (id: string) => void; onOpenUrl: (url: string) => string | null; onImportFile: (path: string, options?: ImportOptions) => Promise<ImportResult | null>; onNav: (t: NavTarget) => void; onQuit: () => void }) {
   const { cols, rows } = useTermSize();
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -35,6 +56,17 @@ export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit,
   const [importMode, setImportMode] = useState(false);
   const [importDraft, setImportDraft] = useState('');
   const [importErr, setImportErr] = useState('');
+  const [importReview, setImportReview] = useState<ImportResult['review']>();
+  const [importBusy, setImportBusy] = useState(false);
+  async function importNow(path: string, options?: ImportOptions): Promise<void> {
+    if (importBusy) return;
+    setImportBusy(true); setImportErr('Importing...');
+    try {
+      const result = await onImportFile(path.trim(), options);
+      setImportErr(result?.error ?? ''); setImportReview(result?.review);
+      if (!result) setImportMode(false);
+    } finally { setImportBusy(false); }
+  }
   const [sel, setSel] = useState(0);
   // Star tools (persisted to profile.favourites), sort, and a favourites-only filter - parity
   // with the web gallery's ★ favourites + sort control.
@@ -72,7 +104,7 @@ export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit,
   // window so the selection stays visible on a short terminal. Cards keep their full
   // CARD_H (flexShrink:0 below) so the name line can never collapse into the format line.
   const [scrollRow, setScrollRow] = useState(0);
-  const visibleCardRows = Math.max(1, Math.floor((rows - 5) / CARD_H));   // tabs+search+footer
+  const visibleCardRows = Math.max(1, Math.floor((rows - (compactHeader ? 3 : 2) - (catalogError ? 1 : 0) - (brand ? 1 : 0) - footerLines(GALLERY_SHORTCUTS, ' ', cols)) / CARD_H));   // tabs+search+footer
   const totalRows = Math.max(1, Math.ceil(filtered.length / gridCols));
   const selRow = Math.floor(clamped / gridCols);
   useEffect(() => {
@@ -95,13 +127,18 @@ export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit,
       return; // TextInput owns the rest
     }
     if (importMode) {
-      if (key.escape) { setImportMode(false); setImportErr(''); }
+      if (importBusy) return;
+      if (key.escape) { setImportMode(false); setImportErr(''); setImportReview(undefined); }
+      else if (importReview && input === 'a') void importNow(importDraft, { page: importReview.page, acceptLossy: true });
+      else if (importReview && (key.leftArrow || key.rightArrow)) void importNow(importDraft, { page: Math.max(1, Math.min(importReview.pageCount, importReview.page + (key.rightArrow ? 1 : -1))) });
       return; // TextInput owns the rest
     }
     if (searching) {
       if (key.escape) setSearching(false);
       return; // TextInput owns the rest
     }
+    if (input === '?' || input === ':') return onAutomation();
+    if (input === 'b') return onBatch();
     if (input === 'p') return onPrepare();
     if (input === 'r') return onRebrand();
     if (input === 'q') return onQuit();
@@ -133,6 +170,15 @@ export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit,
   const rowsOfCards: ToolEntry[][] = [];
   for (let i = 0; i < pageItems.length; i += gridCols) rowsOfCards.push(pageItems.slice(i, i + gridCols));
 
+  if (importMode && importReview) return <Box flexDirection="column" width={cols} height={rows}>
+    <Panel title={`Review import: page ${importReview.page}/${importReview.pageCount}`} width={cols} height={Math.max(5, rows - 2)} active>
+      {importReview.warnings.map(warning => <Text key={warning} wrap="wrap">{warning}</Text>)}
+      <Text color={theme.dim}>No project has been saved yet.</Text>
+      <Text>{importBusy ? 'Reading page...' : importErr}</Text>
+    </Panel>
+    <Text>left/right page / a accept this page / esc cancel</Text>
+  </Box>;
+
   return (
     <Box flexDirection="column" width={cols} height={rows}>
       <Box justifyContent="space-between">
@@ -150,6 +196,8 @@ export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit,
         </Box>}
       </Box>
 
+      {brand ? <Box height={1} flexShrink={0} paddingX={1}><BrandStrip brand={brand} columns={cols - 2} /></Box> : null}
+      {catalogError ? <Box height={1} flexShrink={0} paddingX={1}><Text color={theme.warn} wrap="truncate-end">No catalog. Use --root=/path. System and files still work.</Text></Box> : null}
       {compactHeader ? <Box paddingX={1}><Text color={theme.dim}>
         {filtered.length} tool{filtered.length === 1 ? '' : 's'}
         {hidden ? ` · ${hidden} unavailable` : ''}
@@ -157,18 +205,18 @@ export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit,
         {` · ${TOOL_SORT_LABEL[sortMode]}`}
       </Text></Box> : null}
 
-      <Box paddingX={1}>
+      <Box paddingX={1} height={1} flexShrink={0}>
         {urlMode
           ? (<><Text color={theme.accentName}>Open URL: </Text><TextInput value={urlDraft} onChange={v => { setUrlDraft(v); setUrlErr(''); }} onSubmit={v => { const err = onOpenUrl(v.trim()); if (err) { setUrlErr(err); } else { setUrlMode(false); } }} /></>)
           : importMode
-            ? (<><Text color={theme.accentName}>Import PDF/.ai path: </Text><TextInput value={importDraft} onChange={v => { setImportDraft(v); setImportErr(''); }} onSubmit={v => { setImportErr('Importing…'); void onImportFile(v.trim()).then(err => { if (err) setImportErr(err); else setImportMode(false); }); }} /></>)
+            ? (<><Text color={theme.accentName}>Open .lolly/.json or PDF/.ai path: </Text><TextInput value={importDraft} onChange={v => { setImportDraft(v); setImportErr(''); }} onSubmit={v => { void importNow(v); }} /></>)
             : searching
               ? (<><Text color={theme.accentName}>Search: </Text><TextInput value={query} onChange={setQuery} onSubmit={() => { setSearching(false); setSel(0); }} /></>)
               : (<Text color={theme.dim}>{query ? `Filter: ${query}  (press / to change)` : 'Press / to search  ·  u open a URL  ·  i import a PDF'}</Text>)}
       </Box>
 
       {filtered.length === 0
-        ? <Box paddingX={1} paddingY={1}><Text color={theme.dim}>No tools match “{query}”.</Text></Box>
+        ? <Box paddingX={1} paddingY={1}><Text color={theme.dim}>{catalogError ? 'No tools loaded. Use 5 for System or p for Prepare.' : `No tools match “${query}”.`}</Text></Box>
         : (
           <Box flexDirection="column" paddingX={1} flexShrink={0}>
             {rowsOfCards.map((rowItems, ri) => (
@@ -202,22 +250,8 @@ export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit,
         )}
 
       <Footer
-        note={importErr ? (importErr === 'Importing…' ? importErr : `⚠ ${importErr}`) : importMode ? 'Type a path to a PDF or .ai file, ⏎ to import as an editable Design project' : urlErr ? `⚠ ${urlErr}` : urlMode ? 'Paste a lolly.tools tool link, ⏎ to open · esc cancels' : filtered[clamped]?.description}
-        shortcuts={[
-          { key: 'hjkl', label: 'move' },
-          { key: '⏎', label: 'open' },
-          { key: '/', label: 'search' },
-          { key: 'f', label: 'star' },
-          { key: 'o', label: 'sort' },
-          { key: 'c', label: 'category' },
-          { key: 'F', label: 'favs' },
-          { key: 'u', label: 'url' },
-          { key: 'i', label: 'import' },
-          { key: 'p', label: 'prepare' },
-          { key: 'r', label: 'rebrand' },
-          { key: '2/3/4/5', label: 'proj/prof/cat/sys' },
-          { key: 'q', label: 'quit' },
-        ]}
+        note={importErr ? (importErr === 'Importing…' ? importErr : `⚠ ${importErr}`) : importMode ? 'Open a saved document or choose a PDF/.ai page; import losses are reviewed first' : urlErr ? `⚠ ${urlErr}` : urlMode ? 'Paste a lolly.tools tool link, ⏎ to open · esc cancels' : filtered[clamped]?.description}
+        shortcuts={GALLERY_SHORTCUTS}
       />
     </Box>
   );

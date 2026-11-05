@@ -18,7 +18,7 @@ Preferences es una página larga con un **carril de ajustes** a un lado y un cam
 
 - <!--i:usercheck--> **Your details** - tu nombre, datos de contacto y foto, y el interruptor **Use my details to create**. [Profiles](/info/profile.html) explica cómo los usan las herramientas.
 - <!--i:seal--> **Content Credentials** - la identidad verificada opcional que firma tus exportaciones. Consulta [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - cambia, añade, oculta o elimina design systems. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) cubre cada acción.
+- <!--i:palette--> **Design systems** - cambia, añade, oculta o elimina design systems. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) cubre cada acción.
 - <!--i:moon--> **Appearance** - el tema (Light, Dark o Brand, que pinta la aplicación con tu paleta), **Your colourway** cuando el design system ofrece más de una ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) e **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - el conjunto con el que se dibujan tus emojis cuando empiezas algo nuevo, con su licencia de arte, y con qué intensidad tu paleta los recolorea (**Off**, **Subtle**, **Strong**, **Full**, **Mono** o **Duotone**). **Keep skin tones and flags** los deja con sus propios colores. El trabajo que ya hiciste conserva el conjunto con el que se hizo.
 - <!--i:eyeoff--> **Accessibility** - cuatro interruptores de comodidad, además de Sound y Neurospicy Mode. Consulta [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ La pestaña se abre en una portada pintada con los colores propios del sistema, 
 - <!--i:sliders--> **Tokens** - radio, espaciado, efectos y degradados.
 - <!--i:document--> **Print & CMYK** - los colores fijados a una tinta exacta, y las condiciones de prensa que puede declarar un PDF CMYK.
 
-Cambiar es el único cambio que hace esta pestaña. Editas un design system en [Design System Setup](/info/brand-studio.html) en `#/start`, al que enlaza la portada. Un sistema de solo lectura lo dice en su portada; los sistemas locales que creas siguen siendo editables. `/b` y `/brand` son atajos directos a esta pestaña.
+Cambiar es el único cambio que hace esta pestaña. Editas un design system en [Lolly Design System Setup](/info/brand-studio.html) en `#/start`, al que enlaza la portada. Un sistema de solo lectura lo dice en su portada; los sistemas locales que creas siguen siendo editables. `/b` y `/brand` son atajos directos a esta pestaña.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Luego tu propio lado: **Your activity** cuenta lo que has creado en este disposi
 
 ## Enlaces directos
 
-Cada pestaña y sección de Settings tiene su propio enlace, que puedes guardar en marcadores o pegar. [Search](/info/search.html) apunta sus resultados de **Settings** al mismo registro desde el que se dibuja Settings, así que una sección no puede cambiar de nombre sin que lo note un resultado de búsqueda.
+Cada pestaña y sección de Settings tiene su propio enlace, que puedes guardar en marcadores o pegar. [Lolly Search](/info/search.html) apunta sus resultados de **Settings** al mismo registro desde el que se dibuja Settings, así que una sección no puede cambiar de nombre sin que lo note un resultado de búsqueda.
 
 ::: details Todas las formas de enlace
 
@@ -139,4 +139,4 @@ Un enlace directo cambia a la pestaña que contiene el destino, abre cualquier g
 
 ---
 
-**Relacionado:** [Profiles](/info/profile.html) para tus datos y los contextos en los que creas. [Design System Setup](/info/brand-studio.html) para editar lo que muestra la pestaña Design system. [Find and recover your work](/info/find-your-work.html) para almacenamiento, copias de seguridad y cambio de dispositivo.
+**Relacionado:** [Profiles](/info/profile.html) para tus datos y los contextos en los que creas. [Lolly Design System Setup](/info/brand-studio.html) para editar lo que muestra la pestaña Design system. [Find and recover your work](/info/find-your-work.html) para almacenamiento, copias de seguridad y cambio de dispositivo.

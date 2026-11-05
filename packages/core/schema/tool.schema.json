@@ -266,6 +266,8 @@
               "vcf",
               "srt",
               "vtt",
+              "ttml",
+              "scc",
               "ico",
               "zip",
               "webp",
@@ -281,6 +283,7 @@
               "mp3",
               "m4a",
               "opus",
+              "mid",
               "ttf",
               "otf",
               "woff",
@@ -298,6 +301,11 @@
             "type": "string"
           },
           "description": "Section labels (input.section values) whose controls render in a denser 2-column grid instead of one control per row. A chrome-only presentation hint for input-dense pro tools; it never changes the input model, URL encoding, or determinism, and collapses back to one column on narrow panels/large-text. Wide controls (vector, blocks, textarea, asset, colour) still span the full width."
+        },
+        "themeChoicesAfter": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The id of an input after which the web shell draws the design system's choices for the document (colourway, mode and any other theme group), inside that input's section, instead of in the separate Design system section. Keyed by input id so a translated section name cannot move it. A chrome-only presentation hint like sectionIcons: it never changes the input model, URL encoding or determinism, an id that names no input leaves the separate section in place, and the CLI and TUI ignore it."
         },
         "sectionIcons": {
           "type": "object",
@@ -442,6 +450,11 @@
           "type": "boolean",
           "default": false,
           "description": "Adds a 'No BG' (transparent background) toggle to the export bar. The engine injects it into the model so hooks can react to it via onInit/onInput."
+        },
+        "followsCanvasSize": {
+          "type": "boolean",
+          "default": false,
+          "description": "The tool lays itself out for the canvas size (engine 1.293). Every hook receives ctx.canvasSize, the size the shell is making the tool at in CSS pixels (96 per inch): the requested export size when both sides are known, else render.width x render.height; templates read it as {{@canvasSize.width}} and {{@canvasSize.height}}. With this set, a change of size runs onInput with id '__canvasSize', whose patch updates computed values only, and repaints. Without it the runtime only records the size, so the tool renders exactly as before. Raise engineVersion to ^1.293.0 when you set it."
         },
         "c2pa": {
           "type": "boolean",
@@ -674,7 +687,8 @@
           "emoji",
           "models",
           "layout",
-          "fonts"
+          "fonts",
+          "calc"
         ]
       },
       "description": "Optional HostV1 APIs (`host.text`, `host.pdf`, …) this tool calls WITHOUT feature-detecting them. The runtime refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys it out there. An API the hooks guard (`if (host.text)`, `host.text?.`) is NOT required and must not be listed. `scripts/tool-requires.ts` computes this from hooks.js and can rewrite it (`--write`); `validate:catalog` warns when the two disagree. Distinct from `capabilities`, which names device abilities (camera, microphone, screen, …) rather than bridge APIs."

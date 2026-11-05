@@ -171,7 +171,7 @@ test('--designv=latest renders the edit head', async () => {
   assert.equal(logo, LOGO_ID);
 });
 
-test('an unknown slug falls through to the head and says so', async () => {
+test('an unknown slug falls through to the head and reports that', async () => {
   const { swatch, stderr } = await rendered([...RUN, '--designv=no-such-version']);
   assert.equal(swatch, '#111111', 'a render always draws - the ladder falls through, it does not fail');
   assert.match(stderr, /--designv=no-such-version names no design-system version/);
@@ -238,7 +238,7 @@ test('byte identity: a catalog with no ledger renders exactly what an inactive l
 // system, labelled from its tokens asset with the suffix trimmed), so CLI, TUI and
 // MCP exports record the same thing a browser export would.
 
-test('an export records the design system and the version it drew with, and says so', async () => {
+test('an export records the design system and the version it drew with, and reports that', async () => {
   const r = await cli([...RUN, '--designv=v2']);
   assert.equal(r.code, 0, r.stderr);
   assert.deepEqual(readDesignRecordXml(r.stdout), { designSystem: { id: 'shipped', label: 'Acme' }, designVersion: 'v2' });

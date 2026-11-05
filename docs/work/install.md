@@ -28,7 +28,7 @@ Which tools you need depends on the path you pick:
 | Section 5 (Compose) | Docker with the **Compose v2** plugin | `docker compose version` prints a version |
 | Section 7 (YunoHost) | A YunoHost server; it supplies its own runtime | - |
 
-Work's server runs its TypeScript directly on Node, with no build step. Only a
+Lolly Work's server runs its TypeScript directly on Node, with no build step. Only a
 source install needs Node on the host: the container image brings its own, and the
 YunoHost package installs it for you. The older standalone `docker-compose` is not
 the Compose v2 plugin: without the plugin, `docker compose up --build` fails with
@@ -48,11 +48,11 @@ For SLES or openSUSE, use `sudo zypper install git curl ca-certificates`.
 Install **Node 24 or later** from your distribution if it has one, or follow
 [Node's installation instructions](https://nodejs.org/en/download) for your system
 and architecture. Check `node --version` and `npm --version` before you continue:
-a distribution's unversioned `nodejs` package may be older than Work needs.
+a distribution's unversioned `nodejs` package may be older than Lolly Work needs.
 
 For containers, follow [Docker Engine's platform guide](https://docs.docker.com/engine/install/)
 and install the Compose v2 plugin. The container supplies Node, so skip host Node
-and pnpm unless you also run Work from source.
+and pnpm unless you also run Lolly Work from source.
 :::
 
 ::: details macOS
@@ -72,7 +72,7 @@ Keep that `PATH` line in your shell profile for later sessions, then continue wi
 For Linux containers instead, install
 [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/),
 start it, check `docker compose version` and follow section 5. The Lolly macOS app
-is the app people use, not the Work server.
+is the app people use, not the Lolly Work server.
 :::
 
 ::: details Windows
@@ -83,7 +83,7 @@ PowerShell window, follow [Microsoft's WSL installation guide](https://learn.mic
 wsl --install -d Ubuntu
 ```
 
-Restart if asked, open Ubuntu and create its Linux user. Keep your Work checkout
+Restart if asked, open Ubuntu and create its Linux user. Keep your Lolly Work checkout
 under the Linux home directory, for example `~/lolly-work`. Follow the Linux steps
 and section 1 inside Ubuntu. Do not paste Bash `export`, `sudo` or `$(...)`
 examples into PowerShell.
@@ -123,8 +123,8 @@ link per person. Open a printed link:
 - **The Lolly web app** at `/`, only when a built copy is present (next step).
 
 The web app, with its sign-in gate, locked tool inputs and locked profile, comes
-from the open-source Lolly repository, which Work never builds. To add it, clone
-Lolly beside Work once:
+from the open-source Lolly repository, which Lolly Work never builds. To add it, clone
+Lolly beside Lolly Work once:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git ../lolly
@@ -145,7 +145,7 @@ hoisted module layout supports the server's deployment packager.
 
 After a dependency change, run `pnpm run update:npm-licenses` and `pnpm run sbom`,
 then commit the licence metadata cache and SBOM. Tests and type checks are in the
-Work repository's [contributing guide](https://github.com/lolly-tools/lolly-work/blob/main/CONTRIBUTING.md).
+Lolly Work repository's [contributing guide](https://github.com/lolly-tools/lolly-work/blob/main/CONTRIBUTING.md).
 :::
 
 ## 2. Your first real instance
@@ -165,7 +165,7 @@ committed `packs/demo` catalog and in-memory storage.
 
 ### Sign in
 
-Open **<http://localhost:8787/admin>**. Development sign-in shows a single **Work
+Open **<http://localhost:8787/admin>**. Development sign-in shows a single **Lolly Work
 email** box; `you@example.com` is only a placeholder. Type one of the two addresses
 that `instance.example.json` lists, then choose Continue:
 
@@ -281,14 +281,14 @@ pnpm run inspect:pack /path/to/your-pack
 LW_CONFIG=./instance.json pnpm run check:setup
 ```
 
-The pack inspector uses Work's bundled engine and source resolver. It loads every
+The pack inspector uses Lolly Work's bundled engine and source resolver. It loads every
 advertised tool, checks required files and local catalog assets, and lists the
 formats the server can make apart from other declared formats. It never runs hooks
 or fetches remote assets. An optional second argument selects a source ID. With
 `LW_CONFIG` set, the command also applies that deployment's worker and
 server-rendering requirements.
 
-Work's `engine-pin.json` records the exact bundled engine and core source. Use the
+Lolly Work's `engine-pin.json` records the exact bundled engine and core source. Use the
 matching Lolly web release and tool pack. A configured worker, or a web app that
 applies policy, does not prove an exact client match: check the pack and a few
 representative renders before you accept the instance.
@@ -373,11 +373,11 @@ back to `false` and attach a Chromium render worker instead
 
 ## 5. Container (Compose)
 
-Three ways run Work on one Linux server:
+Three ways run Lolly Work on one Linux server:
 
 | | Ready-made package | Compose from source (this section) | Node and systemd (section 6) |
 |---|---|---|---|
-| You get | Work, PostgreSQL, the matching web app, Caddy HTTPS and password sign-in | Work and PostgreSQL | Work on the host's Node |
+| You get | Lolly Work, PostgreSQL, the matching web app, Caddy HTTPS and password sign-in | Lolly Work and PostgreSQL | Lolly Work on the host's Node |
 | You add | Your domain and owner email | TLS, your domain, identity and the web app if you want one | PostgreSQL, TLS, identity and the web app if you want one |
 | Configuration | Generated for you | The `instance.json` from section 2 | The `instance.json` from section 2 |
 | Guide | [Ready-made package](ready-made-package.md) | Below | [Section 6](#6-bare-metal-systemd) |
@@ -430,6 +430,15 @@ Check it with `curl -s http://localhost:8787/healthz`: the `name` must be **your
 instance name, not the example's. Then repeat the checks from section 2, signing in
 as an address **your** `dev.users` lists, or through your identity provider once you
 have set `idp.issuer` and switched development sign-in off.
+
+To keep blobs in an S3-compatible store of your own instead of PostgreSQL, the Compose
+folder has an optional `garage` profile that runs [Garage](https://garagehq.deuxfleurs.fr/)
+on the same private network. It is off unless you pass `--profile garage`. Add a
+`GARAGE_RPC_SECRET` to `.env`, run the one-time layout, bucket and key commands, set
+`LW_BLOBS_S3_CREDENTIAL` and switch `blobs.driver` to `s3` with the endpoint
+`http://garage:3900`. The exact steps are in `deploy/compose/README.md` of the Lolly Work
+repository. Decide this before the instance stores blobs: changing the driver later does
+not copy blobs already in PostgreSQL.
 
 The image sets `NODE_ENV=production`, so a missing secret stops it rather than
 falling back quietly. The pack and an optional built web app are mounted
@@ -516,10 +525,10 @@ of its own, and signs members in with the host's accounts. Make sure you pick th
 right package: [Run Lolly Work](self-host.md#yunohost-choose-lolly-work) explains
 why it is `lolly-work_ynh` and not the static `lolly_ynh`.
 
-The package is the `deploy/yunohost/` folder of the Work repository, mirrored to
+The package is the `deploy/yunohost/` folder of the Lolly Work repository, mirrored to
 [`lolly-tools/lolly-work_ynh`](https://github.com/lolly-tools/lolly-work_ynh) at each
 release. For a fresh install, use an exact tagged revision of `lolly-work_ynh`. The
-latest mirrored tag is `v1.1.1-ynh1`, which installs Work 1.1.1; the 1.1.2 package
+latest mirrored tag is `v1.1.1-ynh1`, which installs Lolly Work 1.1.1; the 1.1.2 package
 is published but not mirrored yet. Which revisions have passed their checks is
 recorded in [official installation routes](official-installations.md).
 
@@ -532,7 +541,7 @@ sudo yunohost app install https://github.com/lolly-tools/lolly-work_ynh/tree/<pu
 
 The installer asks four questions: a whole domain, the **first owner** (an existing
 YunoHost user), who may open the app (all YunoHost users by default) and the
-instance name. It fetches the matching Work and web archives
+instance name. It fetches the matching Lolly Work and web archives
 and checks both hashes. What you get is section 2's real instance with every setting
 already made:
 
@@ -546,7 +555,7 @@ already made:
   permissions from the host's LDAP. Development sign-in is off.
 - Roles are the app's YunoHost permissions (`owner`, `admin`, `approver`, `author`),
   managed in Users › Groups and permissions. The first owner holds `owner` and
-  YunoHost admins start as admins. Every YunoHost group becomes a Work group, so
+  YunoHost admins start as admins. Every YunoHost group becomes a Lolly Work group, so
   overlays and approval chains can target them straight away.
 - Secrets are generated at install and kept in the app's `.env`. `NODE_ENV` is
   production and `rateLimit.trustedProxyHops` is 1.
@@ -557,6 +566,25 @@ rest. The package keeps the API, share links, render links and the instance card
 reachable for apps that are not browsers (the `lw` command line, MCP, SCIM and a
 Lolly app connecting to this instance), because the server authenticates those
 itself.
+
+If a Nextcloud app is installed on the same YunoHost, the package finds it
+(`yunohost app list`) and prefills its address under **Configuration > Nextcloud**. The
+connection stays off until you finish it: create a dedicated Nextcloud account, share the
+brand folder with it read-only, create an app password in Nextcloud under Settings >
+Security, and paste the account's login name and that password into the panel. Switching
+it on adds two config-managed entries to `instance.json`: a
+[WebDAV catalog source](providers/webdav.md) that reads the brand folder, and a
+[WebDAV delivery destination](delivery.md#configure-a-fixed-webdav-destination) that
+writes approved exports beneath a folder you name, which must already exist. The delivery
+destination is limited to the `admins` group until you list other groups in the panel. The
+Nextcloud may also sit on another server, because the panel accepts any HTTPS address.
+Both entries read the app password from the service environment, and the server reaches
+the Nextcloud over its own address, which resolves to a private network address on a
+shared host, so the package lists that origin as an allowed private origin for providers.
+Lolly Work takes a whole domain, so a Nextcloud on the same server lives on another domain
+or subdomain. The browser-side WebDAV connection in the Lolly app is a separate feature:
+it runs from the page, so it needs that Nextcloud's CORS rules and a matching entry in the
+page's content policy.
 
 The package does not set up a Chromium render worker, so the exports on offer depend
 on the installed tool pack and renderer settings. Keep an independent protected copy

@@ -85,6 +85,7 @@ addEventListener('message', (e: MessageEvent<RenderRequest>) => {
         lang: pcm.lang,
         normalized: pcm.normalized,
         findings: pcm.findings,
+        notes: pcm.notes,
         run: pcm.run,
       },
     }, [pcm.left.buffer, pcm.right.buffer]),

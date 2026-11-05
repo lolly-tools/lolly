@@ -1,0 +1,112 @@
+publiccodeYmlVersion: "0"
+
+name: Lolly
+url: "https://github.com/lolly-tools/lolly"
+landingURL: "https://lolly.tools"
+softwareVersion: "1.1.3"
+releaseDate: "2026-10-29"
+logo: icon.svg
+
+platforms:
+  - web
+  - linux
+  - mac
+  - ios
+  - android
+
+categories:
+  - graphic-design
+  - design
+  - digital-asset-management
+  - content-management
+  - design-system
+
+developmentStatus: stable
+softwareType: "standalone/web"
+
+organisation:
+  uri: "https://github.com/lolly-tools"
+  name: "lolly-tools"
+
+legal:
+  license: MPL-2.0
+
+maintenance:
+  type: community
+  contacts:
+    - name: Andy Fitzsimon
+      email: fitzy+security@suse.com
+
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - en
+    - ar
+    - bg
+    - bn
+    - cs
+    - de
+    - es
+    - fr
+    - hi
+    - id
+    - it
+    - ja
+    - ko
+    - ms
+    - nl
+    - "no"
+    - pl
+    - pt
+    - ro
+    - sv
+    - tl
+    - tr
+    - uk
+    - ur
+    - vi
+    - zh
+    - zh-Hant
+
+description:
+  en:
+    shortDescription: Open-source tools that turn text, images and data into on-brand graphics, documents and video, rendered on your own device.
+    longDescription: |
+      Lolly is an open-source creative platform. You pick a tool, add your
+      words, images or data, and download a finished file. Your design system
+      supplies the colours, fonts and assets, so the result follows your rules.
+
+      A layout is built once, and its author chooses what other people can
+      change. Colleagues fill in the fields and the tool handles layout and
+      design rules. Tools cover QR codes, charts and diagrams, screenshot
+      frames, audio and video, PDF clean-up and a free-form Design canvas.
+
+      Editing and rendering happen on the device, so work can continue offline
+      once a tool's resources are downloaded. Files export as images, vectors,
+      PDF, editable PowerPoint decks, audio or video, with print sizes, bleed,
+      crop marks and CMYK output where the tool supports them. Exports can carry
+      Content Credentials, a signed record of how a file was made.
+
+      Lolly runs as a web app, as a Mac app for Apple silicon, as an iPhone and
+      iPad app, and from a command line, a terminal interface and an optional
+      MCP server for scripts and AI agents. The interface is available in
+      English and 26 other languages. The source is licensed under MPL-2.0, so an organisation can
+      run its own copy and add its own tools.
+    documentation: "https://lolly.tools/info/"
+    features:
+      - Ready-made tools for QR codes, charts, diagrams, frames, audio and video, and PDF clean-up
+      - A Design canvas for arranging text, images and shapes
+      - Import of designs from Figma, Penpot, Illustrator, InDesign and PDF
+      - Design systems for colours, fonts and logos, with import from DTCG, Tokens Studio and Penpot tokens
+      - Share a layout as a tool and choose which inputs others can edit
+      - Local rendering and export, with offline use after resources are downloaded
+      - Export to images, vectors, PDF, PowerPoint, audio and video, including print sizes and CMYK
+      - Content Credentials that record how a file was made
+      - Batch runs from a table of values, a command line and URL inputs
+      - Optional MCP server so AI agents can call tools
+      - User interface in English and 26 other languages
+    screenshots:
+      - docs/shots/aud-gallery-landscape.svg
+      - docs/shots/design.svg
+      - docs/shots/export-panel.svg
+      - docs/shots/brand-colours.svg

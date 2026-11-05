@@ -28,7 +28,7 @@
  * asset id shape are byte-identical to the modal path they replace.
  */
 
-import { chromaKeyAlpha, extractC2paStore, prepareC2paIngredientFromStore, refineMatte } from '@lolly/engine';
+import { chromaKeyAlpha, extractC2paStore, prepareC2paIngredientFromStore, decontaminateEdgeColour, refineMatte } from '@lolly/engine';
 import { startJob, type JobHandle } from './jobs.ts';
 import { CHROMA_DEFAULT_SOFTNESS, CHROMA_DEFAULT_SPILL, CHROMA_DEFAULT_TOLERANCE } from './video-jobs.ts';
 import { classifyMatteError, type MatteErrorKind } from './matte-error.ts';
@@ -143,6 +143,8 @@ export interface MatteJobRequest {
   /** `refined` pulls the edges onto the photo's own (plans/289 M4); `as-drawn` keeps
    *  the model's or the key's edges. Absent: the model's own default, as drawn for a key. */
   edges?: 'refined' | 'as-drawn';
+  /** Clean the old background's colour out of the soft edge. Absent: off. */
+  cleanEdgeColour?: boolean;
 }
 
 /** The container-level C2PA stamp options runMatteJob assembles (a subset of
@@ -246,15 +248,21 @@ export async function runMatteJob(
       const refined = refineMatte(alpha, req.frame.data, req.frame.width, req.frame.height);
       for (let i = 0; i < n; i++) data[i * 4 + 3] = refined[i]!;
     }
+    if (req.cleanEdgeColour) {
+      const n = req.frame.width * req.frame.height;
+      const alpha = new Uint8Array(n);
+      for (let i = 0; i < n; i++) alpha[i] = data[i * 4 + 3]!;
+      data.set(decontaminateEdgeColour(data, alpha, req.frame.width, req.frame.height));
+    }
     out = { width: req.frame.width, height: req.frame.height, data };
     editDescription = 'Background removed with a colour key (on-device)';
-    matteMeta = { method: 'chroma', edges: req.edges === 'refined' ? 'refined' : 'as-drawn' };
+    matteMeta = { method: 'chroma', edges: req.edges === 'refined' ? 'refined' : 'as-drawn', ...(req.cleanEdgeColour ? { cleanEdgeColour: true } : {}) };
   } else {
     const matte = host.matte;
     if (!matte?.isAvailable()) throw new Error(t("Couldn't remove the background. Try a smaller image, or a different model."));
     const info = matteModelInfo(matte.models(), req.model);
     editDescription = `Background removed with ${info.name} ${info.version} (on-device)`;
-    matteMeta = { model: req.model, version: info.version, edges: req.edges ?? 'model-default' };
+    matteMeta = { model: req.model, version: info.version, edges: req.edges ?? 'model-default', ...(req.cleanEdgeColour ? { cleanEdgeColour: true } : {}) };
     try {
       // run() TRANSFERS (neuters) the frame's buffer to the worker, so hand it a FRESH
       // COPY and leave the request's frame intact for the caller.
@@ -262,6 +270,7 @@ export async function runMatteJob(
       out = await matte.run(runFrame, {
         model: req.model,
         ...(req.edges === 'as-drawn' ? { refine: false as const } : req.edges === 'refined' ? { refine: {} } : {}),
+        ...(req.cleanEdgeColour ? { cleanEdgeColour: true } : {}),
         ...(ctx.signal ? { signal: ctx.signal } : {}),
         onProgress: (p) => reportProgress(ctx, p),
       });

@@ -44,7 +44,7 @@ Samodzielne użycie zachowuje pliki na urządzeniu. Wybór wspólnych projektów
 
 Te ograniczenia dotyczą każdej strony w tym zestawie, więc są podane raz tutaj:
 
-- **Collaby robocze działają dziś na jednym węźle serwera.** Ich skala i historia działania różnią się od długo ugruntowanych produktów hostowanych. [Work status and roadmap](/info/work-status.html) zapisuje bieżące ograniczenia.
+- **Collaby robocze działają dziś na jednym węźle serwera.** Ich skala i historia działania różnią się od długo ugruntowanych produktów hostowanych. [Lolly Work status and roadmap](/info/work-status.html) zapisuje bieżące ograniczenia.
 - **Witryna [lolly.work](https://lolly.work) to demonstracyjna piaskownica.** Trwałe wdrożenie organizacji wymaga trwałego magazynu i operatora; [Install Lolly Work](/info/work-install.html) omawia oba.
 - **Nie ma opłaty licencyjnej za stanowisko** za Lolly ani samodzielnie hostowane Lolly Work. Hosting, magazyn i obsługa nadal kosztują.
 - **Podpis to nie zaufany podpisujący.** Weryfikator musi zaufać certyfikatowi, który podpisał plik, zanim pokaże podpisującego jako zaufanego; [Content Credentials Identity](/info/content-credentials-identity.html) wyjaśnia jak.

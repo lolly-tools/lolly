@@ -10,7 +10,7 @@
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { applyTheme } from '../../theme.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
-import { t, tRaw } from '../../i18n.ts';
+import { t, tRaw, tn } from '../../i18n.ts';
 import { isHiddenSlot } from '../../lib/batch-slots.ts';
 import { mountModal } from '../../components/modal.ts';
 import { confirmDialog } from '../../components/confirm-dialog.ts';
@@ -820,8 +820,8 @@ export async function loadStorage(pv: ProfileViewCtx) {
       const { blob, filename, summary } = await exportBackup({ host: host as unknown as Parameters<typeof exportBackup>[0]['host'], storage: localStorage });
       await saveBlob(blob, filename);
       announce(tRaw('Exported {sessions} and {images}', {
-        sessions: summary.sessions === 1 ? t('1 session') : t('{n} sessions', { n: summary.sessions }),
-        images: summary.userAssets === 1 ? t('1 image') : t('{n} images', { n: summary.userAssets }),
+        sessions: tn('1 session', '{n} sessions', { n: summary.sessions }),
+        images: tn('1 image', '{n} images', { n: summary.userAssets }),
       }) + backupHistoryNote(summary));
       btn.textContent = t('Exported');
     } catch (err) {
@@ -881,7 +881,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
   //   'cancel'  → abort the render (Escape / backdrop / Cancel)
   function askKeepTabActive(count: number): Promise<'include' | 'skip' | 'cancel'> {
     return new Promise(resolve => {
-      const n = count === 1 ? t('1 creation is a video or animation') : t('{n} of your creations are videos or animations', { n: count });
+      const n = tn('1 creation is a video or animation', '{n} of your creations are videos or animations', { n: count });
       const content = `
           <h3 id="keepactive-title">${t('Keep this tab active?')}</h3>
           <p>${t('{n}. Those record in <strong>real time</strong>, so this browser tab must stay open and in front the whole time they render - switch away and they pause. Include them?', { n })}</p>
@@ -924,8 +924,8 @@ export async function loadStorage(pv: ProfileViewCtx) {
         const { blob, filename, summary } = await exportBackup({ host: host as unknown as Parameters<typeof exportBackup>[0]['host'], storage: localStorage });
         await saveBlob(blob, filename);
         announce(tRaw('Data backup saved: {sessions}, {images}', {
-          sessions: summary.sessions === 1 ? t('1 session') : t('{n} sessions', { n: summary.sessions }),
-          images: summary.userAssets === 1 ? t('1 image') : t('{n} images', { n: summary.userAssets }),
+          sessions: tn('1 session', '{n} sessions', { n: summary.sessions }),
+          images: tn('1 image', '{n} images', { n: summary.userAssets }),
         }) + backupHistoryNote(summary));
       } catch (err) {
         // The backup failing must not take the render down with it - it is a separate

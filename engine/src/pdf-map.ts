@@ -385,6 +385,16 @@ export interface PdfPageInput extends PdfResources {
    * missing in an export, so silence is the bug, not the safe default.
    */
   onWarn?: (code: string, detail?: string) => void;
+  /**
+   * Emit one text node per shown glyph instead of merging a run, so a caller can
+   * locate every character on its own. Merging joins glyphs across a text
+   * displacement into one node and puts a single space where the gap was, which
+   * hides where the glyphs after the gap really are. A checker that has to prove
+   * no character sits under a rectangle needs the glyphs apart. Reading order,
+   * word breaks and line merging are NOT reproduced in this mode, so the nodes
+   * are for geometry only. Off by default; the default output is unchanged.
+   */
+  glyphRuns?: boolean;
 }
 function clamp255(v: number): number { return clamp(Math.round(v * 255), 0, 255); }
 function hx(v: number): string { return clamp255(v).toString(16).padStart(2, '0'); }
@@ -448,6 +458,8 @@ export const PDF_MAP_MAX_ARRAY_DEPTH = 16;
 export const PDF_MAP_MAX_BF_RANGE = 0x10000;
 export const PDF_MAP_MAX_RUN_DEPTH = 12;
 export const PDF_MAP_MAX_PAGE_NODES = 4_000;
+/** The node ceiling when `glyphRuns` asks for one node per glyph, which a text page reaches quickly. */
+export const PDF_MAP_MAX_GLYPH_NODES = 120_000;
 export const PDF_MAP_MAX_PATTERN_NODES = 256;
 export const PDF_MAP_MAX_PATTERN_EVALS = 512;
 export const PDF_MAP_MAX_MASK_NODES = 64;
@@ -862,7 +874,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   const onWarn = page.onWarn ?? ((): void => {});
   let colourWarning = false;
   const warnCmyk = (): void => { if (!colourWarning) { colourWarning = true; onWarn('color.cmyk.approximated'); } };
-  const pageSink: Sink = { nodes, count: 0, max: PDF_MAP_MAX_PAGE_NODES };
+  const pageSink: Sink = { nodes, count: 0, max: page.glyphRuns ? PDF_MAP_MAX_GLYPH_NODES : PDF_MAP_MAX_PAGE_NODES };
 
   // Tiling-pattern collapse budgets. A page can name the same pattern dozens of
   // times (Chromium emits one per element), so results are memoised per
@@ -1179,7 +1191,20 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
 
     const showString = (codes: number[] | null): void => {
       if (!codes || !codes.length) return;
-      const fi = res.fonts && res.fonts[s.font];
+      if (!page.glyphRuns) { showStringRun(codes); return; }
+      const face = res.fonts?.[s.font];
+      const width = face?.twoByte && !face.type3 ? 2 : 1;
+      for (let i = 0; i < codes.length; i += width) {
+        // The node starts where THIS glyph does, not at the text object's last move: a text
+        // displacement since then has already carried the pen on.
+        if (!textBuf) originSet = false;
+        showStringRun(codes.slice(i, i + width));
+        flushText();
+      }
+    };
+    const showStringRun = (codes: number[] | null): void => {
+      if (!codes || !codes.length) return;
+      const fi = res.fonts?.[s.font];
       if (fi?.type3) { drawType3(codes, fi.type3); return; }
       // A PDF text object may change face or paint between adjacent spans.
       if (textBuf && (textFont !== s.font || textFill !== s.fill

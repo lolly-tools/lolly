@@ -17,8 +17,8 @@ import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
  */
 
 import { embedResolvedFont } from './export-font-data.ts';
-import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, rgbToCmyk, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
-import type { Mat2D } from '@lolly/engine';
+import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
+import type { Mat2D, SeparateRgb } from '@lolly/engine';
 import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY } from './text-svg.ts';
 import { resolveVectorFont } from './font-registry.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
@@ -57,9 +57,9 @@ import { n2, parseCssColorFull, resolveRadii, parseCssColor, objectPositionFract
 import { renderPptx, sourceAuthorOf } from './export-pptx.ts';
 import { domToRichDoc, domToDocBlocks } from './doc-blocks.ts';
 import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
-import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, drawSvgPathToPdf, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, convertShadingsToCmyk, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
+import { pureRotationDeg, buildCmykPaletteMap, applyTextTransform, drawSvgPathToPdf, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, hasRewritableColour, convertShadingsToCmyk, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
 import { paintDesignGroupPage } from './export-group-compositing.ts';
-import type { PaletteHit, BrandPaletteEntry } from './export-pdf-vector.ts';
+import type { BrandPaletteEntry } from './export-pdf-vector.ts';
 import { applyPdfX } from './export-pdfx.ts';
 import { printGeometryForSize, provenanceLabels, setPageBoxes, drawPrintMarks, finishPdfX as finishSharedPdfX, encryptPdfStrong } from '@lolly-tools/node-shell/pdf-finishing';
 import type { LabelsRecord, PdfFinishSettings } from '@lolly-tools/node-shell/pdf-finishing';
@@ -69,9 +69,11 @@ import { embedSuseFont, pdfFontEmbed, suseFontName } from './export-pdf-fonts.ts
 import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
 import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
+import { printSeparation } from '../lib/cmyk-separation.ts';
+import { rgbaToCmyk } from './export-cmyk-raster.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
-import { beginFrameClock, renderFrameAt, endFrameClock, posedFrame } from './frame-clock.ts';
+import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
 import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
@@ -338,11 +340,12 @@ import { packZip } from './export-zip.ts';
 const C2PA_STAMPABLE = new Set<string>(C2PA_FORMATS);
 
 async function renderFormat(node: Element, format: string, opts: ExportOpts = {}): Promise<Blob> {
-  const { presentationOf } = await import('./presentation.ts');
-  const presentation = presentationOf(node);
-  const restore = await presentation?.prepare(format, opts);
-  try { return await renderPreparedFormat(node, format, opts); }
-  finally { restore?.(); }
+  // A still that reads the page holds a tool whose frame clock declares a still pose for
+  // the whole render, before a declared presentation lays it out (frame-clock.ts
+  // withStillHold), so its PDF, SVG or Penpot file never catches a moment of its preview
+  // animation. Any other tool's page is read as it stands. A payload the engine already
+  // built reads no page.
+  return withStillHold(node, format, opts, opts.dataText == null, () => renderPreparedFormat(node, format, opts));
 }
 
 async function renderPreparedFormat(node: Element, format: string, opts: ExportOpts = {}): Promise<Blob> {
@@ -633,7 +636,7 @@ async function renderFormatDispatch(node: Element, format: string, opts: ExportO
     case 'ics':
     case 'vcf':
     case 'srt':
-    case 'vtt':
+    case 'vtt': case 'ttml': case 'scc':
     case 'css':
     case 'scss':
     case 'gpl':
@@ -1106,10 +1109,11 @@ function flattenRgb(rgba: Uint8ClampedArray, bg = 255): Uint8Array {
 // A print-grade CMYK TIFF, written by hand (no browser TIFF encoder exists; this
 // is the same hand-rolled-binary approach used for PNG chunks / EXIF / ICC). The
 // canvas is rasterised like the other raster formats, its sRGB pixels converted
-// per-pixel to *device* CMYK via the engine's rgbToCmyk, except where a pixel's
-// exact colour matches a brand-palette entry (buildCmykPaletteMap, shared with the
-// CMYK PDF path) - then the swatch's locked CMYK (or, for a spot-locked swatch,
-// its CMYK equivalent) is used instead of the naive conversion. A single flat
+// per-pixel through the export's press separation (lib/cmyk-separation.ts: the
+// bundled FOGRA39 profile by default, the user's own profile, or the device
+// formula), except where a pixel's exact colour matches a brand-palette entry
+// (buildCmykPaletteMap, shared with the CMYK PDF path) - then the swatch's locked
+// CMYK (or, for a spot-locked swatch, its CMYK equivalent) is used instead. A single flat
 // raster has no per-plate channel for a named ink, so a spot lock only ever
 // contributes its CMYK equivalent here - true Separation output is a PDF-only
 // capability (see renderCmykPdf); this is a deliberate scope limit, not a bug.
@@ -1140,7 +1144,8 @@ function flattenRgb(rgba: Uint8ClampedArray, bg = 255): Uint8Array {
 async function renderCmykTiff(node: Element, opts: ExportOpts): Promise<Blob> {
   const lib = await getDomToImage();
   const d = exportDims(node, opts);
-  const paletteMap = buildCmykPaletteMap(opts.palette ?? []);
+  const separation = await printSeparation(opts.colorProfile, _host as never, pdfxLog);
+  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separation.sep.separate);
   // Print finishing geometry - same engine source of truth as the PDF path. Still
   // pass no palette here: the verification bar's brand pairing is rebuilt from the
   // PDF path's `usedKeys` (an exact-substitution audit trail this per-pixel pass
@@ -1181,7 +1186,7 @@ async function renderCmykTiff(node: Element, opts: ExportOpts): Promise<Blob> {
   const W = canvas.width, H = canvas.height;
   const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
   const rgba = ctx.getImageData(0, 0, W, H).data;   // sRGB, straight (un-premultiplied)
-  const cmyk = await rgbaToDeviceCmyk(rgba, W, H, paletteMap, opts.onProgress, opts.signal);
+  const cmyk = await rgbaToCmyk(rgba, W, H, paletteMap, separationLattice(separation.sep), opts.onProgress, opts.signal);
 
   // Marks drawn AFTER conversion → registration/crop/bleed land on every plate;
   // provenance credit text is composited as K-only ink (see drawPrintMarksCmyk).
@@ -1189,52 +1194,6 @@ async function renderCmykTiff(node: Element, opts: ExportOpts): Promise<Blob> {
 
   const tiff = encodeCmykTiff(cmyk, W, H, d.dpi, opts.meta, await pressConditionLabel(opts.colorProfile));
   return new Blob([tiff as BlobPart], { type: 'image/tiff' });
-}
-
-// RGBA (0–255, sRGB) → packed CMYK bytes (0=no ink … 255=full ink), one tight
-// numeric pass over the typed array. Transparency is flattened onto white (CMYK
-// has no alpha channel and print stock is white). ~tens of ms for 1080², but a
-// large print-DPI sheet runs long on the main thread, so the pass yields to the
-// event loop every YIELD_ROWS scanlines (keeping the tab responsive) and reports
-// row progress through opts.onProgress. paletteMap (built once by the caller from
-// opts.palette, same as the CMYK PDF path) is consulted per pixel for an exact
-// brand-swatch match before falling back to the naive conversion - an empty map
-// (the common case, no locks configured) skips the lookup entirely so the hot
-// loop's arithmetic is otherwise unchanged.
-const YIELD_ROWS = 256;
-async function rgbaToDeviceCmyk(
-  rgba: Uint8ClampedArray, W: number, H: number,
-  paletteMap: Map<string, PaletteHit>,
-  onProgress?: (done: number, total: number) => void,
-  signal?: AbortSignal,
-): Promise<Uint8Array> {
-  const out = new Uint8Array(W * H * 4);
-  const hasPalette = paletteMap.size > 0;
-  for (let row = 0; row < H; row++) {
-    const base = row * W * 4;
-    for (let i = base, end = base + W * 4; i < end; i += 4) {
-      const a = rgba[i + 3]!;
-      let r = rgba[i]!, g = rgba[i + 1]!, b = rgba[i + 2]!;
-      if (a < 255) {                                 // composite over white
-        const t = a / 255, u = 255 * (1 - t);
-        r = r * t + u; g = g * t + u; b = b * t + u;
-      }
-      const rf = r / 255, gf = g / 255, bf = b / 255;
-      const hit = hasPalette ? paletteMap.get(cmykKey(rf, gf, bf)) : undefined;
-      const [c, m, y, k] = hit ? hit.cmyk : rgbToCmyk(rf, gf, bf);
-      out[i]     = (c * 255 + 0.5) | 0;
-      out[i + 1] = (m * 255 + 0.5) | 0;
-      out[i + 2] = (y * 255 + 0.5) | 0;
-      out[i + 3] = (k * 255 + 0.5) | 0;
-    }
-    if ((row + 1) % YIELD_ROWS === 0 && row + 1 < H) {
-      onProgress?.(row + 1, H);
-      signal?.throwIfAborted();      // the yield point is also the cancel point
-      await new Promise<void>((r) => setTimeout(r));         // unblock the UI thread
-    }
-  }
-  onProgress?.(H, H);
-  return out;
 }
 
 interface TiffEntry { tag: number; type: number; count: number; n?: number; data?: Uint8Array; offset?: number; }
@@ -1679,7 +1638,7 @@ async function renderWmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
 // substitutes its locked CMYK - a spot lock's CMYK equivalent, same as the CMYK
 // TIFF path, since a true PostScript /Separation colourspace is out of scope for
 // this pass (see renderCmykPdf for the PDF path, which does emit one) - else the
-// naive conversion. As with the TIFF path, a declared FINISH has no CMYK
+// export's press separation (lib/cmyk-separation.ts). As with the TIFF path, a declared FINISH has no CMYK
 // equivalent to substitute: buildCmykPaletteMap gives it FINISH_MASK_CMYK
 // (100% K), so emitEps writes a black mask, and this format cannot carry a
 // finish at all. No embedded output intent; gradients/images/alpha are
@@ -1700,12 +1659,13 @@ async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Pr
   });
   // Print geometry (bleed + marks + colour bar), when requested - same source as the
   // PDF path. Null when neither is set, so a plain EPS export is byte-identical.
-  const geo = printGeometry(node, opts);
+  const separate = cmyk ? (await printSeparation(opts.colorProfile, _host as never, pdfxLog)).sep.separate : undefined;
+  const geo = printGeometry(node, opts, opts.palette, separate);
   const text = emitEps(ir, {
     width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, cmyk,
     meta: opts.meta as { title?: string } | undefined,
     attribution: opts.metadata !== false,
-    ...(cmyk ? { cmykPalette: buildCmykPaletteMap(opts.palette ?? []) } : {}),
+    ...(cmyk && separate ? { cmykPalette: buildCmykPaletteMap(opts.palette ?? [], separate), separate } : {}),
     ...(geo ? { geometry: geo, markSpace: cmyk ? 'cmyk' as const : 'rgb' as const } : {}),
   });
   return new Blob([text], { type: 'application/postscript' });
@@ -1758,10 +1718,11 @@ function isSvgRooted(node: Element): boolean {
 
 // The whole-export geometry (the node's own box). One marks-building path only - 
 // see engine/src/print-marks.ts for the geometry, the single source of truth.
-function printGeometry(node: Element, opts: ExportOpts, paletteSource: BrandPaletteEntry[] | undefined = opts.palette): PrintGeometry | null {
+function printGeometry(node: Element, opts: ExportOpts, paletteSource: BrandPaletteEntry[] | undefined = opts.palette, separate?: SeparateRgb): PrintGeometry | null {
   const d = exportDims(node, opts);
-  return printGeometryForSize(toPoints(d.w), toPoints(d.h), opts, paletteSource);
+  return printGeometryForSize(toPoints(d.w), toPoints(d.h), opts, paletteSource, separate);
 }
+
 
 
 // Render the artwork to a PDF blob. Without geometry the page is the trim size
@@ -3592,7 +3553,9 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     if (m.description) pdfDoc.setSubject(m.description);
     if (kw.length) pdfDoc.setKeywords(kw);
   }
-  const paletteMap = buildCmykPaletteMap(opts.palette ?? []);
+  const separation = await printSeparation(opts.colorProfile, _host as never, pdfxLog);
+  const separate = separation.sep.separate;
+  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separate);
   const spotResourceNames = assignSpotResourceNames(paletteMap);
   const usedKeys = new Set<string>();   // brand palette keys actually hit during substitution
   const usedSpots = new Set<string>();  // spot names actually referenced by a content stream
@@ -3619,9 +3582,9 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     } catch { continue; }
 
     const text = new TextDecoder('latin1').decode(raw);
-    if (!/\brg\b|\bRG\b/.test(text)) continue;
+    if (!hasRewritableColour(text)) continue;
 
-    const modified = substitutePdfRgb(text, paletteMap, spotResourceNames, usedKeys, usedSpots, usedGs);
+    const modified = substitutePdfRgb(text, paletteMap, spotResourceNames, usedKeys, usedSpots, usedGs, separate);
     if (modified === text) continue;
 
     const modBytes = Uint8Array.from(modified, c => c.charCodeAt(0));
@@ -3635,7 +3598,7 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     if (sub && String(sub).includes('Form')) changedForms.push(dict);
   }
   // Gradients keep their colours in function dictionaries, which the swap above never reads.
-  await convertShadingsToCmyk(pdfDoc, paletteMap, usedKeys);
+  await convertShadingsToCmyk(pdfDoc, paletteMap, usedKeys, separate);
 
   // Materialise a /Separation colourspace for every spot a content stream actually
   // referenced above: one Type-2 exponential tint-transform function per spot (a
@@ -3729,7 +3692,7 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     const page = pdfDoc.getPage(0);
     setPageBoxes(page, geo);
     const usedPalette = (opts.palette ?? []).filter(p => usedKeys.has(paletteHitKey(p) as string));
-    const marksGeo = printGeometry(node, opts, usedPalette) ?? geo;
+    const marksGeo = printGeometry(node, opts, usedPalette, separate) ?? geo;
     await drawPrintMarks(page, marksGeo, { space: 'cmyk', labels: provenanceLabels(opts.meta) });
   }
 

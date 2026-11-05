@@ -19,6 +19,7 @@
 // continuity is preserved the same way the timeline preserves it: video-mount keys resume
 // off `data-video-key`, which survives the clone. M2 layers real media conduct on top.
 
+import { currentLayout, onLayoutChange } from '../lib/layout-posture.ts';
 import { mountPresentationProduction, type ProductionOptions } from './present-production.ts';
 import {
   buildDeck,
@@ -779,8 +780,17 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   /** How much of the viewport the whole deck fills in the overview map. */
   const OVERVIEW_MARGIN = 0.86;
 
-  /** The viewport, in CSS pixels. */
-  function viewport(): Viewport { return production?.viewport() ?? { w: window.innerWidth, h: window.innerHeight }; }
+  /** The viewport, in CSS pixels. On a tabletop fold the slide has the top half. */
+  function viewport(): Viewport {
+    if (production) return production.viewport();
+    const top = tabletopTop();
+    return { w: window.innerWidth, h: top ?? window.innerHeight };
+  }
+  /** On a half-open horizontal fold (lib/layout-posture.ts), where the slide's half ends. */
+  function tabletopTop(): number | null {
+    const s = currentLayout();
+    return s.layout === 'split' && s.posture === 'tabletop' && s.fold ? Math.round(s.fold.y) : null;
+  }
   /** One frame's authored rectangle on the canvas. */
   function frameRect(i: number): Rect {
     const s = specs[clampIndex(deck, i)]!;
@@ -1722,7 +1732,32 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
       openSpeakerInPage();
     }
   }
+  /**
+   * Tabletop (plan F5): the slide on the top half and a deck below the fold with the
+   * speaker notes, the next slide and the timer, the HUD's next and back at its foot.
+   * The deck is the in-page speaker panel, opened quietly and styled for the lower half
+   * by styles/parts/split.css. It closes again when the fold opens or the screen
+   * flattens, unless the person had opened the speaker view themselves.
+   */
+  let tabletopDeck = false;
+  function syncTabletop(): void {
+    const want = !production && tabletopTop() !== null;
+    if (want && !speaker && !speakerWin) {
+      speakerWin = null;
+      speakerDoc = document;
+      buildSpeaker(document, stage);
+      stage.classList.add('pr-speaker-on');
+      startSpeakerSession();
+      tabletopDeck = true;
+    } else if (!want && tabletopDeck) {
+      closeSpeaker();
+    }
+    stage.classList.toggle('pr-tabletop-deck', tabletopDeck && !!speaker);
+    layoutScales();
+  }
   function closeSpeaker(): void {
+    tabletopDeck = false;
+    stage.classList.remove('pr-tabletop-deck');
     releaseSourcePreview?.(); releaseSourcePreview = undefined;
     if (popupProbe) { clearTimeout(popupProbe); popupProbe = null; }
     if (!speaker && !speakerWin) return;
@@ -2026,6 +2061,8 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   stage.addEventListener('pointerdown', wake);
   stage.addEventListener('focusin', wake);
   window.addEventListener('resize', onResize);
+  // A fold, an unfold or a turn onto the table settles a beat after its resize.
+  const offLayout = onLayoutChange(syncTabletop);
   window.addEventListener('pagehide', close, { once: true });
   closeActivePresentation = close;
 
@@ -2039,6 +2076,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   stage.focus({ preventScroll: true });
   const focusTrap = trapFocus(stage, { completeTabOrder: true });
   if (production) toggleSpeaker(); else enterFullscreen();
+  syncTabletop();
   // Hydrate motion content on the clones so it actually plays in present mode: lottie
   // players and animated-SVG markers (video autoplays natively via its markup). Both are
   // async (fetch + inject); re-conduct once mounted so non-active players start paused.
@@ -2059,6 +2097,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     window.removeEventListener('focus', onWindowFocus);
     window.removeEventListener('message', onEmbedKey);
     window.removeEventListener('resize', onResize);
+    offLayout();
     if (idleTimer) clearTimeout(idleTimer);
     if (embedFocusTimer) clearTimeout(embedFocusTimer);
     if (armTimer) clearTimeout(armTimer);

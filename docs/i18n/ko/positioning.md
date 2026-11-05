@@ -28,7 +28,7 @@ Lolly의 실시간 협업에는 두 기기 간 직접 비공개 collab과, 공�
 ## Lolly를 쓰세요
 
 - 같은 종류의 파일이 반복해서 필요할 때: 행사 타일, 배지, 수료증, 알림, 소셜 카드
-- 하나의 템플릿과 값의 표로 많은 파일을 만들 때([Batch](/info/batch.html#make-many-versions-of-one-design) 또는 CLI)
+- 하나의 템플릿과 값의 표로 많은 파일을 만들 때([Lolly Batch](/info/batch.html#make-many-versions-of-one-design) 또는 CLI)
 - 열린 캔버스에서도 색상, 서체, 에셋이 디자인 시스템 안에 머물러야 할 때
 - 완성된 Figma, Penpot, Illustrator, InDesign 또는 PDF 디자인을 편집 가능하고 반복 가능하게 만들어야 할 때([디자인 가져오기](/info/design-import.html))
 - 파일을 자신의 기기나 서버에서 만들어야 할 때

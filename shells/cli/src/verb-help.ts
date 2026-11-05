@@ -241,7 +241,7 @@ Options:
   --output=<file>    where the file is written. Default: standard output. Its folder
                      must exist: a missing one is refused before a browser starts
   --s=<frame>        one frame, by id or 1-based position. A one-image format from a
-                     deck of several frames takes the first and says so
+                     deck of several frames takes the first and warns
   --c2pa=on|off      Content Credentials on or off (default: the app's own)
   --imprint=0|1      the pixel Imprint on or off (default: the app's own)
   --no-provenance    both of those off
@@ -269,6 +269,109 @@ Exit codes:
   3  no browser tier here (install one with lolly install-browser)
 `;
 
+export const PROJECTS_HELP = `lolly projects: local saved projects shared with the TUI and desktop.
+
+Usage:
+  lolly projects list [--query=text] [--json | --null] [--paths]
+  lolly projects show <slot> [--json]
+  lolly projects export <slot> --output=project.json [--json]
+  lolly projects copy <slot> [--label=name] [--json]
+
+Export includes private document state and refuses an existing destination.
+--null writes NUL-delimited slot IDs for xargs -0 or fzf --read0; --paths selects
+the actual session filenames. Ordinary JSON output keeps its existing shape.
+The state directory follows LOLLY_STATE_DIR and the shared device-store resolver.
+`;
+export const TUI_HELP = `lolly tui: interactive terminal shell.
+
+Usage: lolly tui [--root=/path/to/content] [--screen-reader]
+
+Needs an interactive terminal. Five views use keys 1 through 5. Tools: / search,
+b production batch review, u open link, i open saved document or review PDF import.
+? opens models, file conversion, learning and compose workflows.
+Tool view: ? actions, s save, S save as, x export, y review share, Esc back.
+Brand accents follow the active system and document colourway, with contrast adjustment.
+--screen-reader uses Ink's accessible renderer and keeps the normal terminal buffer.
+For linear or screen-reader workflows use list, describe, projects and --json.
+`;
+export const REPORTS_HELP = `lolly reports: convert existing check results locally.
+
+Usage: lolly reports <report.json|-> --to=junit|sarif|jsonl [--output=new-file]
+  --input-format=jsonl  accept one check envelope per line (also inferred from .jsonl)
+  --output=<path>       write a new private file; existing files are refused
+  --json                metadata envelope, requires --output
+
+Accepts check, preflight, learning findings and production batch receipts.
+Unknown reports refuse; unavailable checks stay explicit. Original check exit codes
+are recorded in the input. Conversion success means the report was written.
+Nothing is uploaded and no CI job is started.
+`;
+export const BATCH_HELP = `lolly batch: produce files from CSV/TSV rows.
+
+Usage: lolly batch <rows.csv> --out-dir=./out [options]
+  --template=<tool,tool>  print a starter CSV
+  --dry-run              inspect planned outputs and dependency readiness
+  --preflight            check row content without exporting assets
+  --jobs=1..8            isolated worker processes
+  --keep-going           continue after a row fails
+  --journal=<path>       receipt path; default out/.lolly-batch.json
+  --resume               reuse successful rows with matching source/output hashes
+  --watch                watch the CSV and file inputs; terminal progress only
+  --rows=1,3             select original row numbers
+  --expect-plan=<id>     require the planId returned by dry run
+  --strict               promote warnings to failures
+  --json                 one result envelope; incompatible with --watch
+
+The default batch path is sequential. Production controls above opt into journals.
+Ctrl-C cancels queued work and workers; completed files remain available for resume.
+`;
+
+/** `lolly intent --help`. */
+export const INTENT_HELP = `lolly intent: say what a piece has to do; Lolly chooses the tool for each surface,
+says why and shows what it could not fill.
+
+Usage:
+  lolly intent <intent.json|-> [--json]
+  lolly intent <intent.json|-> --render [--out-dir=<dir>] [--no-record-intent]
+                                        [--record-prompt] [--c2pa=<off|days>] [--json]
+
+Input:
+  A JSON file, or - to read standard input (schemas/visual-intent-v1.schema.json):
+    { "version": 1, "purpose": "recognise",
+      "surfaces": [{ "id": "a4-landscape" }, { "width": 1200, "height": 628 }],
+      "content": { "firstname": "Sam", "awardtopic": "Container Fundamentals" },
+      "occasion": "Spring cohort", "language": "de" }
+  An agent may pass "prompt" with the user's first words and leave out "purpose". The
+  answer is then intent.purpose-needed, with the purposes and tools: nothing here reads
+  meaning from a prompt, so the agent chooses a purpose and calls again.
+
+Options:
+  --render           make a file for each ready surface through the normal render path,
+                     and write the answer beside them as intent-resolution.json. A tool
+                     that needs a browser needs the browser tier (lolly install-browser)
+  --out-dir=<dir>    where --render writes. Default ./out
+  --no-record-intent leave the intent out of each file's Content Credential
+  --record-prompt    record the prompt's own words in the credential. Without this it is
+                     a fingerprint. Files travel, so leave it off for personal or
+                     confidential detail
+  --c2pa=<off|days>  the credential's lifetime, or off for none. With no credential the
+                     intent is not recorded, and the run says so
+  --json             one JSON envelope on standard output; the result is the resolution
+                     (schemas/intent-resolution-v1.schema.json) and any files made
+
+What goes in each file:
+  Purpose, surface, tool, language, the rules and vocabulary versions and the intent digest,
+  as themselves. Occasion, audience, region and the prompt as fingerprints only. Each run
+  says what it recorded, read back from the finished file.
+
+Exit codes:
+  0 every surface is ready, and made with --render
+  1 a render failed
+  2 usage: an unknown or bare flag, a missing file, a file that is not JSON
+  4 refused: an intent the parser refuses, or a surface that is not ready. The answer says
+    which role or surface, and no invented value is ever used
+`;
+
 /**
  * The verb help for an argv that asks for help, or null for the global usage. `run`
  * has its own help only on a saved session file (`lolly run deck.lolly --help`).
@@ -276,6 +379,11 @@ Exit codes:
 export function verbHelp(args: readonly string[]): string | null {
   const positionals = args.filter((a) => !a.startsWith('-') && a !== 'help');
   const verb = positionals[0];
+  if (verb === 'projects') return PROJECTS_HELP;
+  if (verb === 'reports') return REPORTS_HELP;
+  if (verb === 'tui') return TUI_HELP;
+  if (verb === 'batch') return BATCH_HELP;
+  if (verb === 'intent') return INTENT_HELP;
   if (verb === 'read') return READ_HELP;
   if (verb === 'check') return CHECK_HELP;
   if (verb === 'package') return PACKAGE_HELP;

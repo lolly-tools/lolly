@@ -98,7 +98,7 @@ export function mountUsageRoom(el: HTMLElement, opts: { host: UsageHost; readonl
     const modeLabel = (name: string): string => name.charAt(0).toUpperCase() + name.slice(1);
     const defaultMode = defaultModeName(doc);
     const groupFor = (id: string): string => system.guide?.groups.find(group => group.ruleIds.includes(id))?.label ?? '';
-    el.innerHTML = `<header class="usage-head"><div><p class="start-eyebrow">${e(activeLabel || system.label)}</p><h2>${t('Usage & rules')}</h2><p>${t('Put your design system’s choices to work. See what people can change, what stays fixed and what Lolly can check.')}</p></div>${opts.readonly ? `<span class="usage-badge">${t('Read-only')}</span>` : system.rules.length ? `<button class="btn btn--primary" type="button" data-add>${icon('plus', { size: 16 })} ${t('Add rule')}</button>` : ''}</header>
+    el.innerHTML = `<header class="usage-head"><div><p class="start-eyebrow">${e(activeLabel || system.label)}</p><h2>${t('Rules')}</h2><p>${t('Put your design system’s choices to work. See what people can change, what stays fixed and what Lolly can check.')}</p></div>${opts.readonly ? `<span class="usage-badge">${t('Read-only')}</span>` : system.rules.length ? `<button class="btn btn--primary" type="button" data-add>${icon('plus', { size: 16 })} ${t('Add rule')}</button>` : ''}</header>
       <section class="usage-rules" aria-label="${e(t('Brand rules'))}">${system.rules.length ? system.rules.map(rule => {
         const supported = (BRAND_RULE_KINDS as readonly string[]).includes(rule.kind);
         const houseRule = !supported && isHouseRule(rule.kind);

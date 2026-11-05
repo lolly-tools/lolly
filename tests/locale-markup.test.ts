@@ -25,3 +25,12 @@ test('scripts, event handlers, and unreviewed links are rejected', () => {
     assert.match(validateLocaleCatalog({ plain: attack }).join('\n'), /forbidden locale markup/);
   }
 });
+
+test('plural forms are checked form by form', () => {
+  assert.deepEqual(validateLocaleCatalog({ '{n} <strong>files</strong>': { one: 'un <strong>fichier</strong>', other: '{n} <strong>fichiers</strong>' } }), []);
+  assert.equal(validateLocaleCatalog({ '{n} <strong>files</strong>': { one: 'un fichier', other: '{n} <strong>fichiers</strong>' } }).length, 1);
+  assert.equal(validateLocaleCatalog({ '{n} files': { one: 'un fichier', other: '<script>x</script>' } }).length, 3);
+  assert.equal(validateLocaleCatalog({ '{n} files': { one: 'un fichier' } }).length, 1);
+  assert.equal(validateLocaleCatalog({ '{n} files': { une: 'x', other: 'y' } }).length, 1);
+  assert.equal(validateLocaleCatalog({ '{n} files': { other: 3 } }).length, 1);
+});

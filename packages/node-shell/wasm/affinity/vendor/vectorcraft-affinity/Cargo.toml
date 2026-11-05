@@ -1,0 +1,31 @@
+[package]
+name = "vectorcraft-affinity"
+version = "0.19.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+description = "Bounded reader for native Affinity documents: archive, object stream and document model"
+
+[lib]
+name = "vectorcraft_affinity"
+
+[features]
+# Synthetic-container builders for tests; not an Affinity exporter.
+synth = []
+
+[dependencies]
+crc32fast = "1.5"
+flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+ruzstd = "0.9.1"
+
+[dev-dependencies]
+proptest = "1"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

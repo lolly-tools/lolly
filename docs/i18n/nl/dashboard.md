@@ -18,7 +18,7 @@ Preferences is één lange pagina met een **instellingenbalk** langs de zijkant 
 
 - <!--i:usercheck--> **Your details** - je naam, contactgegevens en pasfoto, en de schakelaar **Use my details to create**. [Profielen](/info/profile.html) legt uit hoe tools ze gebruiken.
 - <!--i:seal--> **Content Credentials** - de optionele geverifieerde identiteit die je exports ondertekent. Zie [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - design systems wisselen, toevoegen, verbergen of verwijderen. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) behandelt elke actie.
+- <!--i:palette--> **Design systems** - design systems wisselen, toevoegen, verbergen of verwijderen. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) behandelt elke actie.
 - <!--i:moon--> **Appearance** - het thema (Light, Dark of Brand, dat de app in je palet schildert), **Your colourway** wanneer het design system er meer dan één biedt ([Maak een colourway van jou](/info/colourways.html#make-a-colourway-your-own)) en **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - de set waaruit je emoji worden getekend wanneer je iets nieuws begint, met de artworklicentie, en hoe sterk je palet ze herkleurt (**Off**, **Subtle**, **Strong**, **Full**, **Mono** of **Duotone**). **Keep skin tones and flags** laat die in hun eigen kleuren. Werk dat je al maakte behoudt de set waarmee het is gemaakt.
 - <!--i:eyeoff--> **Accessibility** - vier comfortschakelaars, plus Sound en Neurospicy Mode. Zie [Toegankelijkheid](#accessibility).
@@ -107,7 +107,7 @@ Het tabblad opent op een omslag geschilderd in de eigen kleuren van het systeem,
 - <!--i:sliders--> **Tokens** - radius, spacing, effecten en verlopen.
 - <!--i:document--> **Print & CMYK** - de kleuren die aan een exacte inkt zijn vergrendeld, en de drukcondities die een CMYK-PDF kan declareren.
 
-Wisselen is de enige wijziging die dit tabblad maakt. Je bewerkt een design system in [Design System Setup](/info/brand-studio.html) op `#/start`, waar het omslag naar linkt. Een alleen-lezen systeem zegt dat op zijn omslag; lokale systemen die je maakt blijven bewerkbaar. `/b` en `/brand` zijn korte links rechtstreeks naar dit tabblad.
+Wisselen is de enige wijziging die dit tabblad maakt. Je bewerkt een design system in [Lolly Design System Setup](/info/brand-studio.html) op `#/start`, waar het omslag naar linkt. Een alleen-lezen systeem zegt dat op zijn omslag; lokale systemen die je maakt blijven bewerkbaar. `/b` en `/brand` zijn korte links rechtstreeks naar dit tabblad.
 
 ## Capabilities
 
@@ -139,4 +139,4 @@ Een diepe link schakelt naar het tabblad dat het doel bezit, opent elke groep wa
 
 ---
 
-**Zie ook:** [Profielen](/info/profile.html) voor je gegevens en de contexten waarin je maakt. [Design System Setup](/info/brand-studio.html) om te bewerken wat het tabblad Design system toont. [Je werk vinden en terughalen](/info/find-your-work.html) voor opslag, back-ups en van apparaat wisselen.
+**Zie ook:** [Profielen](/info/profile.html) voor je gegevens en de contexten waarin je maakt. [Lolly Design System Setup](/info/brand-studio.html) om te bewerken wat het tabblad Design system toont. [Je werk vinden en terughalen](/info/find-your-work.html) voor opslag, back-ups en van apparaat wisselen.

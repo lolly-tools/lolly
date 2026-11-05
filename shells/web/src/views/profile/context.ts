@@ -42,6 +42,7 @@ export interface ProfileAccount {
 }
 
 export interface ProfileViewCtx {
+  updatesUnsub?: () => void;
   // ---- state (was: closure variables of mountProfile) ----
   viewEl: HTMLElement;
   host: ProfileHost;
@@ -95,12 +96,15 @@ export interface ProfileViewCtx {
   aiPolicyUnsub: (() => void) | null;
   /** Detaches the Trusted sites card from trust and policy changes (plan 288). */
   trustedSitesUnsub: (() => void) | null;
+  handUnsub: (() => void) | null;
   /** Detaches the instance card's Inbox button from the inbox count. */
   inboxUnsub: (() => void) | null;
   /** Detaches the Design systems card from design-system switches and the page's key and press listeners. */
   designSystemsUnsub: (() => void) | null;
   /** Takes down the Your colourway row and its listeners (plans/331). */
   colourwayPrefUnsub: (() => void) | null;
+  /** Stops the Performance UI row following changes made outside this view. */
+  perfUiUnsub: (() => void) | null;
   /** The colourway the person chose, for the Appearance summary; null while the design system's own is in force. */
   colourwayName: string | null;
   connectionsDetails: HTMLDetailsElement | null;

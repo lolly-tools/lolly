@@ -35,7 +35,7 @@ Elke route draait dezelfde engine op dezelfde tool, dus het bestand dat een scri
 ![URL-parameters en opdrachtregelargumenten worden hetzelfde invoermodel, uitgevoerd door één gedeelde runtime en exportbrug](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **In de app, één tegelijk.** Open een tool, vul de velden in en druk op **Export**. [Maak je eerste bestand](/info/make-something.html) leidt je door één.
-- <!--i:layers--> **In de app, veel tegelijk.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) neemt een geplakte of geïmporteerde tabel en rendert één afgerond bestand per rij.
+- <!--i:layers--> **In de app, veel tegelijk.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) neemt een geplakte of geïmporteerde tabel en rendert één afgerond bestand per rij.
 - <!--i:cpu--> **Vanuit een script of een AI-agent.** De [CLI](/info/cli.html) draait een tool headless, en met de [MCP-server](/info/mcp.html) kan een agent tools ontdekken en draaien. Een link naar een tool draagt ook zijn invoer, dus een link is een volledig verzoek.
 - <!--i:server--> **Via de server van je organisatie.** [Lolly Work](/info/organisation.html) rendert op de server onder de aanmelding en het toolbeleid van je organisatie, houdt jobs bij die hervat kunnen worden en bewaart de uitvoer voor download of goedgekeurde bezorging.
 

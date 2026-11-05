@@ -298,7 +298,9 @@ export function startInbox(opts: { initialUnread: number; principal?: string; re
   // sheet keeps what the queue cannot show (approvals, threads, times), one press
   // from the bottom of the queue (plan 320 J11).
   if (opts.review) detachLink = registerNotificationLink('workspace', { label: t('All workspace messages'), run: opts.review });
-  detachNotifications = registerNotificationSource('workspace', () => messages.map(m => ({
+  // A request that carries a file is a row of the approval queue (org/approval-queue.ts),
+  // which also acknowledges the message, so one request is never two rows.
+  detachNotifications = registerNotificationSource('workspace', () => messages.filter(m => m.data?.kind !== 'export-review').map(m => ({
     id: `workspace:${scope}:${m.id}`, ...messageWords(m),
     tone: m.severity === 'blocking' ? 'warning' as const : m.severity === 'action' ? 'action' as const : 'info' as const,
     dismissible: m.dismissible, onDismiss: () => { if (messages.find(row => row.id === m.id)?.dismissible) dismissMessage(m.id); },

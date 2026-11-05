@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * brand editor: palette download, brand pack export and import.
+ * brand editor: brand pack export and import, and the studio panels' context.
  *
  * Every function takes the shared `bedit: BrandEditorCtx` first (see context.ts). Sibling
  * calls in this file are direct; anything in another module, and any function used as
@@ -8,11 +8,10 @@
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
 import type { Unzipped } from 'fflate';
-import { exportSwatches } from '../swatch-export.ts';
-import type { SwatchExportFormat } from '../swatch-export.ts';
 import { applyChromeBrandVars } from '../../brand-vars.ts';
 import { brandFontFamilies } from '../register-user-fonts.ts';
 import { mountCataloguePanel, mountGradientsPanel, mountTokensPanel } from '../brand-studio-tabs.ts';
+import { activeDesignSystemSource } from '../design-system/active.ts';
 import { exportBrandPack, importBrandPack } from '../../brand-transfer.ts';
 import { saveBlob } from '../../pro/zip.ts';
 import { t, tRaw } from '../../i18n.ts';
@@ -64,6 +63,7 @@ export const reload = async (bedit: BrandEditorCtx): Promise<void> => {
   const { host, tokens } = bedit;
   tokens?.bust?.();
   bedit.doc = ((await tokens?.raw().catch(() => null)) as Record<string, unknown> | null) ?? bedit.doc;
+  void bedit.journal.rebase(bedit.doc); // the journal's edits now build on what was installed
   bedit.isUserBrand = true; // every reload() caller just installed on the user's behalf
   bedit.derive.reseedFromDoc();
   bedit.ramps.repaintPalette(); await bedit.type.paintFonts(); await bedit.logos.paintLogos(); void applyChromeBrandVars(host);
@@ -92,20 +92,12 @@ export const importPack = async (bedit: BrandEditorCtx, source: File | Unzipped)
     announce(t('Brand loaded'));
   }
 };
-export function wirePaletteDownload(bedit: BrandEditorCtx): void {
-  const { host, palErr, palFmtSel } = bedit;
-  bedit.ramps.$('[data-be-pal-download]')?.addEventListener('click', async () => {
-    if (palErr) palErr.hidden = true;
-    try {
-      const format = (palFmtSel?.value ?? 'tokens-json') as SwatchExportFormat;
-      const fonts = format === 'tokens-json' ? await bedit.pack.exportFonts() : undefined;
-      const { blob, filename } = exportSwatches(bedit.swatches, format, undefined, fonts?.length ? { fonts } : undefined);
-      await saveBlob(blob, filename);
-      announce(tRaw('Palette downloaded as {filename}', { filename }));
-    } catch (err) {
-      if (palErr) { palErr.textContent = String((err as { message?: unknown })?.message ?? err); palErr.hidden = false; }
-    }
-  });
+export function wireStudioPanels(bedit: BrandEditorCtx): void {
+  const { host } = bedit;
+  // The Colours room's head used to carry a format select and Download for the
+  // whole palette. One export place per scope (plan 346 change 9): the bar's
+  // Export takes the whole system, the Tokens room keeps the format tools, and
+  // the selection bar downloads a selection (pal-select.ts downloadSelection).
 
   // ── The three studio panels that live outside this file ──────────────────
   // Token editors, gradients and catalogue uploads (brand-studio-tabs.ts) - 
@@ -128,6 +120,7 @@ export function wirePaletteDownload(bedit: BrandEditorCtx): void {
     // Faces installed on this device, so the Tokens room calls a face the person's
     // own on the same test the Type room and Overview use (ownership.ts faceState).
     userFontFamilies: (): readonly string[] => [...bedit.fontFamilies.map(f => f.family), ...brandFontFamilies()],
+    supplied: (): boolean => bedit.supplied,
     // The token workspace replaced the whole document in place: the Colours room
     // reseeds its controls and palette from the new document.
     onDocReplaced: () => { bedit.derive.reseedFromDoc(); bedit.ramps.repaintPalette(); },
@@ -136,6 +129,13 @@ export function wirePaletteDownload(bedit: BrandEditorCtx): void {
   // 6.4 leaves one file door, the compare stage's own drop zone.)
   const tokensMount = bedit.ramps.$('[data-be-tokens-mount]') as HTMLElement | null; bedit.tokensMount = tokensMount as BrandEditorCtx['tokensMount'];
   const tokensPanel = tokensMount ? mountTokensPanel(tokensMount, { ...studioCtx, notify: () => bedit.state.notify('tokens') }) : null; bedit.tokensPanel = tokensPanel;
+  // A supplied system's material is its own, so the Tokens tiles drop the Starter
+  // tag once the registry has answered (plan 336). Read once: switching remounts.
+  void activeDesignSystemSource(host).then((source) => {
+    if (source !== 'shipped') return;
+    bedit.supplied = true;
+    tokensPanel?.render();
+  }, () => { /* no registry: nothing is supplied */ });
   const gradsMount = bedit.ramps.$('[data-be-grads-mount]') as HTMLElement | null; bedit.gradsMount = gradsMount as BrandEditorCtx['gradsMount'];
 }
 
@@ -171,7 +171,7 @@ export function packOps(bedit: BrandEditorCtx) {
     exportPack: bindOp(bedit, exportPack),
     reload: bindOp(bedit, reload),
     importPack: bindOp(bedit, importPack),
-    wirePaletteDownload: bindOp(bedit, wirePaletteDownload),
+    wireStudioPanels: bindOp(bedit, wireStudioPanels),
     wireGradientsPanel: bindOp(bedit, wireGradientsPanel),
   };
 }

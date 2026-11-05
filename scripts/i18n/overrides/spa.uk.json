@@ -574,13 +574,38 @@
   "Choose one HTML page at a time, along with its CSS files.": "Вибери одну HTML-сторінку за раз разом із її CSS-файлами.",
   "Choose one HTML page with its CSS files, or CSS on its own. Up to 20 files, 2 MB in total.": "Вибери одну HTML-сторінку з її CSS-файлами або лише CSS. До 20 файлів, загалом 2 MB.",
   "Choose up to 20 HTML and CSS files.": "Вибери до 20 файлів HTML і CSS.",
-  "Closest to my current palette": "Найближча до моєї поточної палітри",
+  "Closest to the current palette": "Найближча до поточної палітри",
   "Colour preview": "Попередній перегляд кольору",
   "Colour {position} of {count}.": "Колір {position} з {count}.",
   "Colours and font names were read from declared styles. Layout and motion were not assessed.": "Кольори й назви шрифтів прочитано з оголошених стилів. Компонування та рух не оцінювалися.",
   "Colours were read from this SVG. Fonts and layout were not assessed.": "Кольори прочитано з цього SVG. Шрифти та компонування не оцінювалися.",
   "Colours were sampled from this image. Fonts and layout were not recognised.": "Кольори взято з цього зображення. Шрифти та компонування не розпізнано.",
   "Compare looks": "Порівняти стилі",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Переглянь збережені системи дизайну й кілька початкових варіантів. Нічого не зміниться, доки не вибереш Використати.",
+  "Use this look": "Використати цей стиль",
+  "Previewing {name}": "Попередній перегляд: {name}",
+  "Choose up to two looks to compare.": "Вибери до двох стилів для порівняння.",
+  "Drop a horizontal logo": "Перетягни сюди горизонтальне лого",
+  "Drop a vertical logo": "Перетягни сюди вертикальне лого",
+  "calm": "спокійний",
+  "nature": "природа",
+  "playful": "грайливий",
+  "creative": "творчий",
+  "warm": "теплий",
+  "editorial": "редакційний",
+  "neutral": "нейтральний",
+  "red": "червоний",
+  "orange": "помаранчевий",
+  "yellow": "жовтий",
+  "green": "зелений",
+  "teal": "бірюзовий",
+  "blue": "синій",
+  "purple": "фіолетовий",
+  "pink": "рожевий",
+  "deep": "темний",
+  "pale": "блідий",
+  "vivid": "яскравий",
+  "muted": "приглушений",
   "Compare saved design systems and a few starting points. Nothing changes until you choose Use.": "Порівняй збережені системи дизайну й кілька початкових варіантів. Нічого не зміниться, доки не вибереш Використати.",
   "Compare these two looks": "Порівняти ці два стилі",
   "Compare two looks at a time. Deselect one to choose another.": "Порівнюй два стилі одночасно. Скасуй вибір одного, щоб вибрати інший.",
@@ -713,7 +738,12 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Запускає поглиблену перевірку ШІ-тексту на сторінці «Перевірка» та в Ресурсах.",
   "Card size": "Розмір карток",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "На цьому пристрої додано 1 зображення або файл. Він залишається на цьому пристрої, і інші його не побачать.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "На цьому пристрої додано зображень або файлів: {n}. Вони залишаються на цьому пристрої, і інші їх не побачать.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "На цьому пристрої додано {n} зображення або файл. Він залишається на цьому пристрої, і інші його не побачать.",
+    "few": "На цьому пристрої додано {n} зображення або файли. Вони залишаються на цьому пристрої, і інші їх не побачать.",
+    "many": "На цьому пристрої додано {n} зображень або файлів. Вони залишаються на цьому пристрої, і інші їх не побачать.",
+    "other": "На цьому пристрої додано {n} зображення або файла. Він залишається на цьому пристрої, і інші його не побачать."
+  },
   "Check the version first": "Спершу перевірте версію",
   "Copy team link": "Скопіювати посилання команди",
   "Could not create the project. Try again.": "Не вдалося створити проєкт. Спробуйте ще раз.",
@@ -1305,7 +1335,12 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Усі елементи збережено у спільному проєкті. Локальні оригінали в кошику або досі на місці.",
   "Your local items have not changed.": "Ваші локальні елементи не змінилися.",
   "1 item was saved to the shared project.": "1 елемент збережено у спільному проєкті.",
-  "{n} items were saved to the shared project.": "Елементів збережено у спільному проєкті: {n}.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} елемент збережено у спільному проєкті.",
+    "few": "{n} елементи збережено у спільному проєкті.",
+    "many": "{n} елементів збережено у спільному проєкті.",
+    "other": "{n} елемента збережено у спільному проєкті."
+  },
   "Wait for the current move to finish.": "Дочекайтеся завершення поточного переміщення.",
   "You cannot save to that shared project.": "Ви не можете зберігати до цього спільного проєкту.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Усі, хто може відкрити {project}, побачать ці елементи. Після збереження всіх елементів там локальні оригінали буде переміщено в кошик, де їх можна відновити.",
@@ -1616,8 +1651,18 @@
   "file": "файл",
   "samples": "зразки",
   "text": "текст",
-  "{n} changes found": "Знайдено змін: {n}",
-  "{n} pages differ": "Сторінок, що відрізняються: {n}",
+  "{n} changes found": {
+    "one": "Знайдено {n} зміну",
+    "few": "Знайдено {n} зміни",
+    "many": "Знайдено {n} змін",
+    "other": "Знайдено {n} зміни"
+  },
+  "{n} pages differ": {
+    "one": "{n} сторінка відрізняється",
+    "few": "{n} сторінки відрізняються",
+    "many": "{n} сторінок відрізняється",
+    "other": "{n} сторінки відрізняються"
+  },
   "Draft": "Чернетка",
   "Draft quality": "Якість чернетки",
   "Draft rule": "Правило-чернетка",
@@ -1926,5 +1971,341 @@
   "Headlines - 36px, or 24px bold": "Заголовки - 36 px або 24 px жирним",
   "Icons and borders only": "Лише піктограми та межі",
   "Not usable": "Непридатно",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA визначено для sRGB, тому колір із широким охопленням оцінюється за його відтворенням у sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA визначено для sRGB, тому колір із широким охопленням оцінюється за його відтворенням у sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly перейшов на простіший і швидший вигляд, бо цей пристрій малює без графічного прискорення.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly перейшов на простіший і швидший вигляд, бо цей пристрій працював із труднощами.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Автоматично ввімкнено {date}, бо цей пристрій малює без графічного прискорення.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Автоматично ввімкнено {date}, бо цьому пристрою було важко малювати інтерфейс.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Автоматичне перемикання вимкнено на цьому пристрої, бо ви вибрали Скасувати {date}.",
+  "Allow again": "Дозволити знову",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Автоматичне перемикання знову дозволено з наступного відкриття Lolly.",
+  "Board": "Дошка",
+  "Choose for {role}": "Вибрати для: {role}",
+  "Change {role}": "Змінити: {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Настанови вашого бренду, написані для людей і агентів. Агенти спершу читають навичку бренду, потім навичку для поточної роботи. Навички скеровують роботу; внутрішні правила в «Правилах» це те, що перевіряє Lolly.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly перейшов на простіший і швидший вигляд, поки цей пристрій зайнятий. Він повернеться, коли навантаження спаде.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly перейшов на простіший і швидший вигляд, поки заряд батареї низький. Він повернеться, коли цей пристрій заряджатиметься.",
+  "On for now because this device is busy. It switches back when things calm down.": "Увімкнено наразі, бо цей пристрій зайнятий. Він повернеться, коли навантаження спаде.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Увімкнено наразі, бо заряд батареї низький. Він повернеться, коли цей пристрій заряджатиметься.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Автоматично ввімкнено {date}, коли цей пристрій був зайнятий. Ви вибрали Залишити.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Автоматично ввімкнено {date}, коли заряд батареї був низький. Ви вибрали Залишити.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly не перемикатиме тут через повільний пристрій, бо ви вибрали Скасувати {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly не перемикатиме, поки цей пристрій зайнятий або заряд батареї низький, бо ви вибрали Скасувати {date}.",
+  "Use the automatic colour": "Використати автоматичний колір",
+  "follows the design system ({colour})": "дотримується дизайн-системи ({colour})",
+  "follows the design system": "дотримується дизайн-системи",
+  "automatic ({colour})": "автоматично ({colour})",
+  "automatic": "автоматично",
+  "{name} spring": "Пружина {name}",
+  "{name} (not in this design system)": "{name} (немає в цій системі дизайну)",
+  "Curves": "Криві",
+  "Springs": "Пружини",
+  "Gentle": "М’яка",
+  "Quick": "Швидка",
+  "Bouncy": "Пружна",
+  "Custom spring": "Власна пружина",
+  "Stiffness": "Жорсткість",
+  "Damping": "Загасання",
+  "Mass": "Маса",
+  "Settles in {t} s": "Заспокоюється за {t} с",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Наступний ключовий кадр настає раніше, ніж пружина заспокоїться. Решту руху розподілено на весь відрізок.",
+  "From the design system: {name}": "Із системи дизайну: {name}",
+  "Editing the curve detaches it from the design system.": "Редагування кривої від’єднує її від системи дизайну.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Перо (P) - клацніть, щоб розмістити точки, перетягніть, щоб вигнути, Alt для кута. Утримуйте для олівця (Shift C) і типу сплайна",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Перо (P) - клацніть, щоб розмістити точки, перетягніть, щоб вигнути, Alt для кута",
+  "Recipients can change the inputs": "Отримувачі можуть змінювати поля",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Будь-хто з посиланням може змінити його поля й отримати нове зображення. Заблоковані поля залишаються такими, як задано.",
+  "{count} entries": {
+    "one": "{count} запис",
+    "few": "{count} записи",
+    "many": "{count} записів",
+    "other": "{count} запису"
+  },
+  "{count} files in this folder": {
+    "one": "{count} файл у цій теці",
+    "few": "{count} файли у цій теці",
+    "many": "{count} файлів у цій теці",
+    "other": "{count} файла у цій теці"
+  },
+  "{n} assets": {
+    "one": "{n} ресурс",
+    "few": "{n} ресурси",
+    "many": "{n} ресурсів",
+    "other": "{n} ресурсу"
+  },
+  "{n} assets found": {
+    "one": "Знайдено {n} ресурс",
+    "few": "Знайдено {n} ресурси",
+    "many": "Знайдено {n} ресурсів",
+    "other": "Знайдено {n} ресурсу"
+  },
+  "{n} capabilities match": {
+    "one": "Збігається {n} можливість",
+    "few": "Збігаються {n} можливості",
+    "many": "Збігається {n} можливостей",
+    "other": "Збігається {n} можливості"
+  },
+  "{n} copies made · selected": {
+    "one": "Зроблено {n} копію · вибрано",
+    "few": "Зроблено {n} копії · вибрано",
+    "many": "Зроблено {n} копій · вибрано",
+    "other": "Зроблено {n} копії · вибрано"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} творіння, видалене з Проєктів тут, залишилося видаленим.",
+    "few": "{n} творіння, видалені з Проєктів тут, залишилися видаленими.",
+    "many": "{n} творінь, видалених з Проєктів тут, залишилися видаленими.",
+    "other": "{n} творіння, видалені з Проєктів тут, залишилися видаленими."
+  },
+  "{n} embedded files": {
+    "one": "{n} вбудований файл",
+    "few": "{n} вбудовані файли",
+    "many": "{n} вбудованих файлів",
+    "other": "{n} вбудованого файла"
+  },
+  "{n} external references": {
+    "one": "{n} зовнішнє посилання",
+    "few": "{n} зовнішні посилання",
+    "many": "{n} зовнішніх посилань",
+    "other": "{n} зовнішнього посилання"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n} файл не вдалося запакувати, його пропущено",
+    "few": "{n} файли не вдалося запакувати, їх пропущено",
+    "many": "{n} файлів не вдалося запакувати, їх пропущено",
+    "other": "{n} файла не вдалося запакувати, його пропущено"
+  },
+  "{n} folders": {
+    "one": "{n} папка",
+    "few": "{n} папки",
+    "many": "{n} папок",
+    "other": "{n} папки"
+  },
+  "{n} font files": {
+    "one": "{n} файл шрифту",
+    "few": "{n} файли шрифту",
+    "many": "{n} файлів шрифту",
+    "other": "{n} файла шрифту"
+  },
+  "{n} images": {
+    "one": "{n} зображення",
+    "few": "{n} зображення",
+    "many": "{n} зображень",
+    "other": "{n} зображення"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} зображення не вдалося відновити (сховище заповнене?)",
+    "few": "{n} зображення не вдалося відновити (сховище заповнене?)",
+    "many": "{n} зображень не вдалося відновити (сховище заповнене?)",
+    "other": "{n} зображення не вдалося відновити (сховище заповнене?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} зображення лишилося з оригіналом - у зображень один дім; використайте «Вирізати», щоб перемістити",
+    "few": "{n} зображення лишилися з оригіналом - у зображень один дім; використайте «Вирізати», щоб перемістити",
+    "many": "{n} зображень лишилися з оригіналом - у зображень один дім; використайте «Вирізати», щоб перемістити",
+    "other": "{n} зображення лишилося з оригіналом - у зображень один дім; використайте «Вирізати», щоб перемістити"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} поле введення · застосовується до кожного дизайну",
+    "few": "{n} поля введення · застосовується до кожного дизайну",
+    "many": "{n} полів введення · застосовується до кожного дизайну",
+    "other": "{n} поля введення · застосовується до кожного дизайну"
+  },
+  "{n} items": {
+    "one": "{n} елемент",
+    "few": "{n} елементи",
+    "many": "{n} елементів",
+    "other": "{n} елемента"
+  },
+  "{n} items copied": {
+    "one": "Скопійовано {n} елемент",
+    "few": "Скопійовано {n} елементи",
+    "many": "Скопійовано {n} елементів",
+    "other": "Скопійовано {n} елемента"
+  },
+  "{n} items cut": {
+    "one": "Вирізано {n} елемент",
+    "few": "Вирізано {n} елементи",
+    "many": "Вирізано {n} елементів",
+    "other": "Вирізано {n} елемента"
+  },
+  "{n} items moved": {
+    "one": "Переміщено {n} елемент",
+    "few": "Переміщено {n} елементи",
+    "many": "Переміщено {n} елементів",
+    "other": "Переміщено {n} елемента"
+  },
+  "{n} items pasted": {
+    "one": "Вставлено {n} елемент",
+    "few": "Вставлено {n} елементи",
+    "many": "Вставлено {n} елементів",
+    "other": "Вставлено {n} елемента"
+  },
+  "{n} keyframes": {
+    "one": "{n} ключовий кадр",
+    "few": "{n} ключові кадри",
+    "many": "{n} ключових кадрів",
+    "other": "{n} ключового кадру"
+  },
+  "{n} logos": {
+    "one": "{n} логотип",
+    "few": "{n} логотипи",
+    "many": "{n} логотипів",
+    "other": "{n} логотипа"
+  },
+  "{n} marks found": {
+    "one": "Знайдено {n} мітку",
+    "few": "Знайдено {n} мітки",
+    "many": "Знайдено {n} міток",
+    "other": "Знайдено {n} мітки"
+  },
+  "{n} newer items skipped": {
+    "one": "Пропущено {n} новіший елемент",
+    "few": "Пропущено {n} новіші елементи",
+    "many": "Пропущено {n} новіших елементів",
+    "other": "Пропущено {n} новішого елемента"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} з ваших робіт — це відео або анімація",
+    "few": "{n} з ваших робіт — це відео або анімація",
+    "many": "{n} з ваших робіт — це відео або анімація",
+    "other": "{n} з ваших робіт — це відео або анімація"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "Пропущено {n} старішу автоматичну контрольну точку",
+    "few": "Пропущено {n} старіші автоматичні контрольні точки",
+    "many": "Пропущено {n} старіших автоматичних контрольних точок",
+    "other": "Пропущено {n} старішої автоматичної контрольної точки"
+  },
+  "{n} pages": {
+    "one": "{n} сторінка",
+    "few": "{n} сторінки",
+    "many": "{n} сторінок",
+    "other": "{n} сторінки"
+  },
+  "{n} places": {
+    "one": "{n} місце",
+    "few": "{n} місця",
+    "many": "{n} місць",
+    "other": "{n} місця"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} точка — утримуйте Alt для кута",
+    "few": "{n} точки — утримуйте Alt для кута",
+    "many": "{n} точок — утримуйте Alt для кута",
+    "other": "{n} точки — утримуйте Alt для кута"
+  },
+  "{n} published versions": {
+    "one": "{n} опублікована версія",
+    "few": "{n} опубліковані версії",
+    "many": "{n} опублікованих версій",
+    "other": "{n} опублікованої версії"
+  },
+  "{n} results": {
+    "one": "{n} результат",
+    "few": "{n} результати",
+    "many": "{n} результатів",
+    "other": "{n} результату"
+  },
+  "{n} saved sessions": {
+    "one": "{n} збережена сесія",
+    "few": "{n} збережені сесії",
+    "many": "{n} збережених сесій",
+    "other": "{n} збереженої сесії"
+  },
+  "{n} selected": {
+    "one": "{n} вибрано",
+    "few": "{n} вибрано",
+    "many": "{n} вибрано",
+    "other": "{n} вибрано"
+  },
+  "{n} selected assets": {
+    "one": "{n} вибраний ресурс",
+    "few": "{n} вибрані ресурси",
+    "many": "{n} вибраних ресурсів",
+    "other": "{n} вибраного ресурсу"
+  },
+  "{n} sessions": {
+    "one": "{n} сесія",
+    "few": "{n} сесії",
+    "many": "{n} сесій",
+    "other": "{n} сесії"
+  },
+  "{n} shapes": {
+    "one": "{n} форма",
+    "few": "{n} форми",
+    "many": "{n} форм",
+    "other": "{n} форми"
+  },
+  "{n} steps": {
+    "one": "{n} крок",
+    "few": "{n} кроки",
+    "many": "{n} кроків",
+    "other": "{n} кроку"
+  },
+  "{n} templates": {
+    "one": "{n} шаблон",
+    "few": "{n} шаблони",
+    "many": "{n} шаблонів",
+    "other": "{n} шаблону"
+  },
+  "{n} volume keys": {
+    "one": "{n} ключ гучності",
+    "few": "{n} ключі гучності",
+    "many": "{n} ключів гучності",
+    "other": "{n} ключа гучності"
+  },
+  "{n} words": {
+    "one": "{n} слово",
+    "few": "{n} слова",
+    "many": "{n} слів",
+    "other": "{n} слова"
+  },
+  "Dominant hand": "Провідна рука",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "У двох панелях, на складному пристрої або майже квадратному планшеті, елементи керування розташовані на боці, далекому від руки, якою ви малюєте. Кнопка «Поміняти сторони» в заголовку панелі також змінює це.",
+  "Swap sides": "Поміняти сторони",
+  "Resize panes": "Змінити розмір панелей",
+  "Changes that didn't finish saving": "Зміни, які не встигли зберегтися",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Ви внесли ці зміни {time}, і сторінка закрилася, перш ніж їх було збережено. Відтоді цю дизайн-систему збережено знову, в іншій вкладці або через синхронізацію.",
+  "Restore your unsaved changes": "Відновити незбережені зміни",
+  "Keep the saved version": "Залишити збережену версію",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Відновлення замінить версію, збережену відтоді. Якщо залишити збережену версію, незбережені зміни буде видалено з цього пристрою.",
+  "Restored your unsaved changes.": "Незбережені зміни відновлено.",
+  "Kept the saved version.": "Збережену версію залишено.",
+  "Restored the changes that hadn't finished saving.": "Зміни, які не встигли зберегтися, відновлено.",
+  "{n} file": "{n} файл",
+  "It becomes the primary. Shades and roles can follow.": "Він стає основним. Відтінки та ролі можуть піти за ним.",
+  "Start here": "Почніть тут",
+  "Browse looks →": "Переглянути стилі →",
+  "Pick what you have →": "Виберіть, що маєте →",
+  "Open the picker →": "Відкрити вибір кольору →",
+  "Starter greys until a colour is added.": "Стартові сірі, доки ви не додасте колір.",
+  "Lolly can’t draw in this browser yet": "Lolly поки не може малювати в цьому браузері",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly малює за допомогою WebGPU, якого цей браузер поки не пропонує.",
+  "These work today:": "Ці вже працюють:",
+  "Chrome or Edge, kept up to date": "Chrome або Edge, оновлені",
+  "Safari 26 or later": "Safari 26 або новіший",
+  "Firefox, where WebGPU is turned on": "Firefox з увімкненим WebGPU",
+  "Get the desktop app": "Завантажити застосунок для комп’ютера",
+  "Read why": "Прочитати чому",
+  "Or drop an image or a list of colours here": "Або перетягніть сюди зображення чи список кольорів",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Ці нейтральні кольори входять до стартового набору, щоб попереднім переглядам було що показати, доки вище не додано кольори.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Виберіть колір",
+  "Add a colour to the palette first.": "Спершу додайте колір до палітри.",
+  "Notify": "Сповіщати",
+  "Update automatically": "Оновлювати автоматично",
+  "App updates": "Оновлення застосунку",
+  "Update notifications": "Сповіщення про оновлення",
+  "Ready to install: {version}": "Готово до встановлення: {version}",
+  "Restart now": "Перезапустити зараз",
+  "Install when I quit": "Встановити під час виходу",
+  "Release notes": "Примітки до випуску",
+  "Manual download": "Завантажити вручну",
+  "Update could not finish. Try again or download the app.": "Не вдалося завершити оновлення. Спробуйте ще раз або завантажте застосунок.",
+  "Finish recording or exporting before updating.": "Завершіть запис або експортування перед оновленням.",
+  "Save could not finish. Save a recovery copy before updating.": "Не вдалося завершити збереження. Перед оновленням збережіть копію для відновлення.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Цей AppImage неможливо замінити тут. Завантажте застосунок у теку з правом запису.",
+  "This installation uses its package manager for updates.": "Ця інсталяція використовує свій менеджер пакунків для оновлень.",
+  "This desktop platform does not support in-app updates.": "Ця настільна платформа не підтримує оновлення із застосунку.",
+  "Update installation was cancelled.": "Встановлення оновлення скасовано."
 }

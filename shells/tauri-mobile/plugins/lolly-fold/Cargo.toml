@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "tauri-plugin-lolly-fold"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77.2"
+description = "Fold and hinge signal for the Lolly mobile app (Jetpack WindowManager on Android; nothing on iOS)."
+license = "MPL-2.0"
+publish = false
+# tauri-plugin's build step requires `links` to match the package name.
+links = "tauri-plugin-lolly-fold"
+exclude = ["/.tauri", "/android/.tauri", "/android/build"]
+
+[lib]
+name = "tauri_plugin_lolly_fold"
+path = "src/lib.rs"
+
+[dependencies]
+tauri = { version = "2.11", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[build-dependencies]
+tauri-plugin = { version = "2.6", features = ["build"] }

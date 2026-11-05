@@ -14,16 +14,16 @@ Build a layout once, choose what other people can change, and share it as a tool
 
 ## What can I make?
 
-Start with a focused tool, or arrange your own text, images and shapes on the Design canvas.
+Start with a focused tool, or arrange your own text, images and shapes on the Lolly Design canvas.
 
 | I need to... | Try... |
 | --- | --- |
-| Make a QR code for a link | [QR Code](https://lolly.tools/t/qr-code) |
-| Frame a screenshot for a post or presentation | [Frame](https://lolly.tools/t/frame) |
-| Turn a recording into a video with a moving waveform | [Audiogram](https://lolly.tools/t/audiogram) |
-| Turn data into a chart or diagram | [Chart](https://lolly.tools/t/chart) or [Diagrams](https://lolly.tools/t/diagram-builder) |
-| Build a layout I can reuse | [Design](https://lolly.tools/t/design) |
-| Remove hidden metadata or shrink a PDF locally | [Strip Hidden Data](https://lolly.tools/t/strip-data) or [Compress](https://lolly.tools/t/compress-pdf) |
+| Make a QR code for a link | [Lolly QR Code](https://lolly.tools/t/qr-code) |
+| Frame a screenshot for a post or presentation | [Lolly Frame](https://lolly.tools/t/frame) |
+| Turn a recording into a video with a moving waveform | [Lolly Audiogram](https://lolly.tools/t/audiogram) |
+| Turn data into a chart or diagram | [Lolly Chart](https://lolly.tools/t/chart) or [Lolly Diagrams](https://lolly.tools/t/diagram-builder) |
+| Build a layout I can reuse | [Lolly Design](https://lolly.tools/t/design) |
+| Remove hidden metadata or shrink a PDF locally | [Lolly Strip Hidden Data](https://lolly.tools/t/strip-data) or [Lolly Compress](https://lolly.tools/t/compress-pdf) |
 
 Choose a tool, change its inputs, then use **Export** to download. The public app needs no account. [Make your first file](docs/make-something.md) walks you through a QR code.
 
@@ -39,7 +39,7 @@ Optional network features, sharing, Sync and organisation services have their ow
 
 ## Bring your own design system
 
-Add colours, fonts and logos in **Design System Setup**, or import design tokens from DTCG, Tokens Studio or Penpot. Community tools use your active design system. lolly.tools starts in **Lolly Demo**, Lolly's own sample design system.
+Add colours, fonts and logos in **Lolly Design System Setup**, or import design tokens from DTCG, Tokens Studio or Penpot. Community tools use your active design system. lolly.tools starts in **Lolly Demo**, Lolly's own sample design system.
 
 Import supported Figma, Penpot, Illustrator, InDesign or PDF designs into the canvas. Check the converted layout and fonts, then use **Share with rules** to choose editable inputs and package a reusable tool.
 
@@ -49,7 +49,7 @@ Import supported Figma, Penpot, Illustrator, InDesign or PDF designs into the ca
 
 Export images, vectors, PDFs, editable PowerPoint decks, audio or video where the tool supports them. Print workflows include physical sizes, bleed, crop marks and CMYK output.
 
-The format register covers **56 in, 63 out** (42 round-trip). Availability depends on the tool, browser and export path; the [format guide](https://lolly.tools/info/create/formats.html) gives the details.
+The format register covers **66 in, 66 out** (44 round-trip). Availability depends on the tool, browser and export path; the [format guide](https://lolly.tools/info/create/formats.html) gives the details.
 
 Authoring tools can attach **Content Credentials**, a signed record of how a file was made. [Read about credentials and identity](docs/content-credentials-identity.md).
 
@@ -106,7 +106,7 @@ The **engine** loads tools and drives rendering. Each **shell** supplies the pla
 | [`engine/`](engine/) | Rendering, inputs, templates and export logic |
 | [`shells/`](shells/) | Web, desktop, mobile, command-line and terminal apps |
 | [`community/`](community/) | Tools that work with different design systems |
-| [`brands/`](brands/) | Design systems, assets and brand-specific tools |
+| [`brands/`](brands/) | Lolly Design systems, assets and brand-specific tools |
 | [`packages/`](packages/) | The tool-author SDK and shared components |
 | [`schemas/`](schemas/) | Contracts for tool manifests and assets |
 | [`services/`](services/) | Optional MCP, certificate and Penpot services, and the server code they share |
@@ -129,12 +129,12 @@ Brand packs and bundled assets carry their own licences and notices. SUSE's prop
 ## Current tools
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **68 tools** today - 66 listed in the gallery, plus 2 unlisted helpers (Asset Export, Theme swap). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **68 tools** today - 66 listed in the gallery, plus 2 unlisted helpers (Lolly Asset Export, Lolly Theme swap). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
 | 3D | Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation. |
-| 3D Studio | Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls. |
+| Lolly 3D Studio | Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls. |
 | Agenda | Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars. |
 | Annotate | Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim. |
 | Audiogram | Turn a voice clip or song into a video in your design system's colours that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social. |
@@ -145,7 +145,7 @@ The Lolly Start (blank brand) catalog ships **68 tools** today - 66 listed in th
 | Calendar | Turn event details into a calendar (.ics) file for any calendar app. |
 | Captions | Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars. |
 | Certificate | Completion and award certificates from the active design system - one name at a time, or a whole roster from a CSV in Bulk from rows. |
-| Chart | Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system. |
+| Lolly Chart | Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system. |
 | Claim | Claim your name on any media you've already made - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file - all on your device, before you upload it anywhere. |
 | Clean | Clean a voice recording, trim edge silence and set its loudness on your device. |
 | Compress | Shrink a PDF by recompressing its images - on your device. |
@@ -153,50 +153,50 @@ The Lolly Start (blank brand) catalog ships **68 tools** today - 66 listed in th
 | Convert Font | Convert a font between TrueType, OpenType and WOFF - on your device. |
 | Convert Image | Turn HEIC, TIFF or any photo into WebP, JPEG or PNG - on your device. |
 | Countdown | A focused countdown with a live progress ring. Click to pause. |
-| Darkroom | Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export. |
-| Design | An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system. |
+| Lolly Darkroom | Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export. |
+| Lolly Design | An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system. |
 | Diagrams | Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV. |
-| Doc Studio | Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF. |
+| Lolly Doc Studio | Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF. |
 | Filter | One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports. |
 | Finishes | Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs. |
-| Flow Chart | Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes. |
-| Flythrough | Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video. |
+| Flow Lolly Chart | Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes. |
+| Lolly Flythrough | Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video. |
 | Frame | Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop. |
 | Gradient | Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops. |
 | Growth | Differential growth: a line that repels itself until it folds into coral. Seed it from a ring, a burst, headline letterforms or a logo, and export the result as real, plotter-ready SVG paths. |
 | Icon | Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip. |
 | Jump | A one-link landing page: your links, heading, portrait and colours on an expressive page - and the whole page lives inside the link you share. |
-| Link Card | Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size. |
-| Logo Wall | Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall. |
+| Lolly Link Card | Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size. |
+| Lolly Logo Wall | Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall. |
 | Lottie Ad | Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size. |
-| Markdown Slides | Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and the design system theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG. |
+| Lolly Markdown Slides | Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and the design system theme - in seconds. The fast text-first path to a deck; reach for the Lolly Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG. |
 | Meeting Planner | Plan a global meeting and see the time for every teammate's timezone. |
 | Pages | Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device. |
-| Palette Lab | Grow a palette from one seed colour - harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export. |
+| Lolly Palette Lab | Grow a palette from one seed colour - harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export. |
 | Pricing | Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one. |
 | Print Sheet | Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin. |
-| Prompt Card | Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the same words as text tokens. |
+| Lolly Prompt Card | Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the same words as text tokens. |
 | QR Code | Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode. |
 | Record | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
 | Redact | Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device. |
-| Rondocode | Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio, stems or MIDI with Content Credentials that record it, or keep its source. |
-| Sandbox | Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant. |
+| Lolly Rondocode | Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio, stems or MIDI with Content Credentials that record it, or keep its source. |
+| Lolly Sandbox | Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant. |
 | Scan | Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap. |
-| Screen Capture | Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured. |
+| Lolly Screen Capture | Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured. |
 | Sign | Place your signature on a PDF, optionally add a Content Credential and lock the result. |
 | Signature | Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a bit of paper. |
 | Snippet | Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion. |
 | Spatial Photo | Drop in one photo and move a camera through it: depth is read on your device, so a flat picture becomes a scene with real parallax, atmosphere and focus. |
 | Stationery | Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, ready as a print PDF. |
 | Street Map | Clean vector street-block maps of any city. Works offline. |
-| Strip Hidden Data | Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device. |
+| Lolly Strip Hidden Data | Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device. |
 | Synth | A visual instrument you play. Four scenes run live on the GPU: fluid ink, a particle swarm that flies at your headline or your logo, a feedback field, and your own camera. Every colour comes out of the design system palette, and the picture moves to your pointer, to a music track, and to a MIDI controller. Export a still or a join-free loop. |
 | Text | Find, edit, understand and transform text. Browse brand characters and emoji, work with code and logs, or create ASCII lettering. |
 | Timezone | Turn places and timezones into artwork that follows the design system. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules. |
 | Trim | Cut, turn or shrink an audio or video clip, take a poster frame or contact sheet, mute it or extract its audio on your device. |
-| URL Screenshot | Any web page, at any scroll depth, with custom CSS. |
-| Voice Recorder | Record a voice note with a live level meter and gentle coaching, then save it as MP3. |
+| Lolly URL Screenshot | Any web page, at any scroll depth, with custom CSS. |
+| Lolly Voice Recorder | Record a voice note with a live level meter and gentle coaching, then save it as MP3. |
 | Wayfinding | Directional event signs - destinations, each with an arrow. Print-ready. |
 | Wordmark | Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed. |
-| Work Avatar | A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your design system's colours and type. |
+| Lolly Work Avatar | A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your design system's colours and type. |
 <!-- tools-table:end -->

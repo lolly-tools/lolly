@@ -310,6 +310,8 @@ export async function createBridge(): Promise<WebHost> {
     apply: async (sources, inspection, choices, remove) => (await import('../lib/prepare-client.ts')).runPreparation({ action: 'apply', sources, inspection, choices, remove }),
   };
   // Font files (v1.262): inspection and the Skera worker load on first use.
+  // Spreadsheet formulas: the formula module loads on first use.
+  host.calc = (await import('./gridcraft-calc.ts')).createWebCalcAPI();
   const loadFonts = memo(async () => (await import('./fonts.ts')).createWebFontsAPI());
   host.fonts = {
     inspect: async (bytes) => (await loadFonts()).inspect(bytes),
@@ -324,6 +326,7 @@ export async function createBridge(): Promise<WebHost> {
     fromImages: async (images, opts) => (await loadPdf()).fromImages!(images, opts),
     stamp: async (bytes, opts) => (await loadPdf()).stamp!(bytes, opts),
     lock: async (bytes, password) => (await loadPdf()).lock!(bytes, password),
+    accessibility: async (bytes) => (await import('./pdf-a11y.ts')).summarisedPdfAccessibility(bytes),
     redact: async (bytes, opts) => (await import('./pdf-redact.ts')).redactPdf(bytes, opts, host),
     pages: async (bytes, opts) => (await import('./pdf-redact.ts')).pdfPages(bytes, opts, host),
   } as WebHost['pdf'];
@@ -538,6 +541,9 @@ export async function createBridge(): Promise<WebHost> {
         || typeof (window as { webkitOfflineAudioContext?: unknown }).webkitOfflineAudioContext === 'function'),
     analyse: async (src, opts) => (await loadAudio()).analyse(src, opts),
     clean: async (src, opts) => (await loadAudio()).clean(src, opts),
+    // Plan 342 K4: full R128 loudness and clip alignment, run by the audio worker.
+    loudness: async (src, opts) => (await loadAudio()).loudness(src, opts),
+    align: async (a, b, opts) => (await loadAudio()).align(a, b, opts),
     // v1.246: PCM for any playable source, a rondocode song rendered in the `vm`
     // class included. Listed here because a facade drops any method it forgets.
     decode: async (src, opts) => (await loadAudio()).decode(src, opts),

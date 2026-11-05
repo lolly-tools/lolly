@@ -8,7 +8,7 @@ Siapkan alamat web yang harus dibuka kode tersebut, dimulai dengan `https://`.
 
 ## Buat kodenya
 
-1. Buka [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Kontrolnya berada di samping pratinjau, atau di atasnya pada ponsel; apa yang ditampilkan pratinjau itulah yang akan menjadi berkas jadinya.
+1. Buka [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Kontrolnya berada di samping pratinjau, atau di atasnya pada ponsel; apa yang ditampilkan pratinjau itulah yang akan menjadi berkas jadinya.
 2. Pada **URL**, ganti alamat contoh dengan alamat Anda, secara lengkap. Pratinjau berubah saat Anda mengetik.
 3. Untuk menyesuaikan dengan warna Anda sendiri, atur **Module colour** dan **Latar belakang**. Jaga kontras yang kuat di antara keduanya, atau ponsel akan kesulitan membaca kodenya.
 4. **Quiet zone**, di bawah **Modules**, dimulai pada 4. Jaga tetap pada 4 atau lebih: margin polos itulah yang dicari oleh kamera ponsel.
@@ -38,8 +38,8 @@ Karya tersimpan tetap berada di perangkat ini, di browser atau aplikasi tempat A
 
 ## Proyek pertama lainnya
 
-- [Audiogram](/#/tool/audiogram) mengubah sebuah catatan suara menjadi video: gelombang suara yang bergerak, kata-kata Anda pada sampul, warna Anda sendiri. Jatuhkan rekamannya ke **Audio**, tambahkan **Judul**, lalu ekspor **MP4**.
-- [Filter](/#/tool/filter) mengolah sebuah foto untuk poster: titik halftone cetak, dua warna datar atau beberapa blok tona. Pilih fotonya di bawah **Gambar**, pilih sebuah **Efek**, lalu ekspor **PNG**, atau **SVG** pada efek berlabel *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) mengubah sebuah catatan suara menjadi video: gelombang suara yang bergerak, kata-kata Anda pada sampul, warna Anda sendiri. Jatuhkan rekamannya ke **Audio**, tambahkan **Judul**, lalu ekspor **MP4**.
+- [Lolly Filter](/#/tool/filter) mengolah sebuah foto untuk poster: titik halftone cetak, dua warna datar atau beberapa blok tona. Pilih fotonya di bawah **Gambar**, pilih sebuah **Efek**, lalu ekspor **PNG**, atau **SVG** pada efek berlabel *vector*.
 
 ## Selanjutnya
 

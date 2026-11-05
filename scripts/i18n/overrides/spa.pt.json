@@ -1,5 +1,31 @@
 {
   "Speakers": "Falantes",
+  "Closest to the current palette": "Mais próximo da paleta atual",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Visualize sistemas de design salvos e alguns pontos de partida. Nada muda até você escolher Usar.",
+  "Use this look": "Usar este visual",
+  "Previewing {name}": "Visualizando {name}",
+  "Choose up to two looks to compare.": "Escolha até dois visuais para comparar.",
+  "Drop a horizontal logo": "Solte aqui um logotipo horizontal",
+  "Drop a vertical logo": "Solte aqui um logotipo vertical",
+  "calm": "calmo",
+  "nature": "natureza",
+  "playful": "divertido",
+  "creative": "criativo",
+  "warm": "quente",
+  "editorial": "editorial",
+  "neutral": "neutro",
+  "red": "vermelho",
+  "orange": "laranja",
+  "yellow": "amarelo",
+  "green": "verde",
+  "teal": "verde-azulado",
+  "blue": "azul",
+  "purple": "roxo",
+  "pink": "rosa",
+  "deep": "escuro",
+  "pale": "pálido",
+  "vivid": "vibrante",
+  "muted": "suave",
   "Sort languages": "Ordenar idiomas",
   "Lolly Imprint": "Lolly Imprint",
   "Hides the Lolly Imprint - a durable, invisible watermark - in the image pixels. It survives re-encoding and screenshots, so any copy of the file can be recognised later.": "Esconde o Lolly Imprint, uma marca d'água durável e invisível, nos pixels da imagem. Ela sobrevive a recodificação e capturas de tela, então qualquer cópia do arquivo pode ser reconhecida depois.",
@@ -585,7 +611,11 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Executa a verificação de texto por IA mais profunda em Verificar e em Ativos.",
   "Card size": "Tamanho dos cartões",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "1 imagem ou arquivo foi adicionado neste dispositivo. Ele fica neste dispositivo, e outras pessoas não verão esse arquivo.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "{n} imagens ou arquivos foram adicionados neste dispositivo. Eles ficam neste dispositivo, e outras pessoas não verão esses arquivos.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "{n} imagem ou arquivo foi adicionado neste dispositivo. Ele fica neste dispositivo, e outras pessoas não verão esse arquivo.",
+    "many": "{n} di imagens ou arquivos foram adicionados neste dispositivo. Eles ficam neste dispositivo, e outras pessoas não verão esses arquivos.",
+    "other": "{n} imagens ou arquivos foram adicionados neste dispositivo. Eles ficam neste dispositivo, e outras pessoas não verão esses arquivos."
+  },
   "Check the version first": "Verifique a versão primeiro",
   "Copy team link": "Copiar link da equipe",
   "Could not create the project. Try again.": "Não foi possível criar o projeto. Tente novamente.",
@@ -1176,7 +1206,11 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Todos os itens estão salvos no projeto compartilhado. Os originais locais estão na Lixeira ou ainda no lugar.",
   "Your local items have not changed.": "Seus itens locais não mudaram.",
   "1 item was saved to the shared project.": "1 item foi salvo no projeto compartilhado.",
-  "{n} items were saved to the shared project.": "{n} itens foram salvos no projeto compartilhado.",
+  "{n} items were saved to the shared project.": {
+    "one": "{n} item foi salvo no projeto compartilhado.",
+    "many": "{n} di itens foram salvos no projeto compartilhado.",
+    "other": "{n} itens foram salvos no projeto compartilhado."
+  },
   "Wait for the current move to finish.": "Aguarde a conclusão da movimentação atual.",
   "You cannot save to that shared project.": "Você não pode salvar nesse projeto compartilhado.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "Todos que puderem abrir {project} verão estes itens. Depois que todos os itens forem salvos lá, os originais locais vão para a Lixeira, onde você pode restaurá-los.",
@@ -1487,8 +1521,16 @@
   "file": "arquivo",
   "samples": "amostras",
   "text": "texto",
-  "{n} changes found": "{n} alterações encontradas",
-  "{n} pages differ": "{n} páginas são diferentes",
+  "{n} changes found": {
+    "one": "{n} alteração encontrada",
+    "many": "{n} di alterações encontradas",
+    "other": "{n} alterações encontradas"
+  },
+  "{n} pages differ": {
+    "one": "{n} página é diferente",
+    "many": "{n} di páginas são diferentes",
+    "other": "{n} páginas são diferentes"
+  },
   "Draft": "Rascunho",
   "Draft quality": "Qualidade de rascunho",
   "Draft rule": "Regra em rascunho",
@@ -1797,5 +1839,300 @@
   "Headlines - 36px, or 24px bold": "Títulos - 36px, ou 24px em negrito",
   "Icons and borders only": "Somente ícones e bordas",
   "Not usable": "Não utilizável",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "O APCA é definido para sRGB, então uma cor de gama ampla é avaliada pela sua renderização em sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "O APCA é definido para sRGB, então uma cor de gama ampla é avaliada pela sua renderização em sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "O Lolly mudou para o visual mais simples e rápido porque este dispositivo desenha sem aceleração gráfica.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "O Lolly mudou para o visual mais simples e rápido porque este dispositivo estava com dificuldade.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Ativado automaticamente em {date} porque este dispositivo desenha sem aceleração gráfica.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Ativado automaticamente em {date} porque este dispositivo estava com dificuldade para desenhar a interface.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "A troca automática está desativada neste dispositivo porque você escolheu Desfazer em {date}.",
+  "Allow again": "Permitir de novo",
+  "Automatic switching is allowed again from the next time you open Lolly.": "A troca automática será permitida de novo a partir da próxima vez que você abrir o Lolly.",
+  "Board": "Mural",
+  "Choose for {role}": "Escolher para {role}",
+  "Change {role}": "Alterar {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "A orientação da sua marca, escrita para pessoas e agentes. Os agentes leem primeiro a skill da marca e depois a do trabalho em questão. As skills orientam o trabalho; as regras internas em Regras são o que o Lolly verifica.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "O Lolly mudou para o visual mais simples e rápido enquanto este dispositivo está ocupado. Ele volta quando as coisas se acalmarem.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "O Lolly mudou para o visual mais simples e rápido enquanto a bateria está baixa. Ele volta quando este dispositivo estiver carregando.",
+  "On for now because this device is busy. It switches back when things calm down.": "Ativado por enquanto porque este dispositivo está ocupado. Ele volta quando as coisas se acalmarem.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Ativado por enquanto porque a bateria está baixa. Ele volta quando este dispositivo estiver carregando.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Ativado automaticamente em {date} enquanto este dispositivo estava ocupado. Você escolheu Manter.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Ativado automaticamente em {date} enquanto a bateria estava baixa. Você escolheu Manter.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "O Lolly não vai trocar aqui por causa de um dispositivo lento, porque você escolheu Desfazer em {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "O Lolly não vai trocar enquanto este dispositivo estiver ocupado ou com bateria baixa, porque você escolheu Desfazer em {date}.",
+  "Use the automatic colour": "Usar a cor automática",
+  "follows the design system ({colour})": "segue o sistema de design ({colour})",
+  "follows the design system": "segue o sistema de design",
+  "automatic ({colour})": "automática ({colour})",
+  "automatic": "automática",
+  "{name} spring": "Mola {name}",
+  "{name} (not in this design system)": "{name} (não está neste sistema de design)",
+  "Curves": "Curvas",
+  "Springs": "Molas",
+  "Gentle": "Suave",
+  "Quick": "Rápida",
+  "Bouncy": "Saltitante",
+  "Custom spring": "Mola personalizada",
+  "Stiffness": "Rigidez",
+  "Damping": "Amortecimento",
+  "Mass": "Massa",
+  "Settles in {t} s": "Estabiliza em {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "O próximo quadro-chave chega antes de a mola estabilizar. O resto do movimento é distribuído pelo trecho.",
+  "From the design system: {name}": "Do sistema de design: {name}",
+  "Editing the curve detaches it from the design system.": "Editar a curva desvincula-a do sistema de design.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Caneta (P) - clique para posicionar pontos, arraste para curvar, Alt para um canto. Segure para o Lápis (Shift C) e o tipo de spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Caneta (P) - clique para posicionar pontos, arraste para curvar, Alt para um canto",
+  "Recipients can change the inputs": "Os destinatários podem alterar as entradas",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Qualquer pessoa com o link pode alterar suas entradas e obter uma nova imagem. As entradas bloqueadas continuam como definidas.",
+  "{count} entries": {
+    "one": "{count} entrada",
+    "many": "{count} di entradas",
+    "other": "{count} entradas"
+  },
+  "{count} files in this folder": {
+    "one": "{count} arquivo nesta pasta",
+    "many": "{count} di arquivos nesta pasta",
+    "other": "{count} arquivos nesta pasta"
+  },
+  "{n} assets": {
+    "one": "{n} ativo",
+    "many": "{n} di ativos",
+    "other": "{n} ativos"
+  },
+  "{n} assets found": {
+    "one": "{n} ativo encontrado",
+    "many": "{n} di ativos encontrados",
+    "other": "{n} ativos encontrados"
+  },
+  "{n} capabilities match": {
+    "one": "{n} capacidade corresponde",
+    "many": "{n} di capacidades correspondem",
+    "other": "{n} capacidades correspondem"
+  },
+  "{n} copies made · selected": {
+    "one": "{n} cópia feita · selecionada",
+    "many": "{n} di cópias feitas · selecionadas",
+    "other": "{n} cópias feitas · selecionadas"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n} criação removida de Projetos aqui continuou removida.",
+    "many": "{n} di criações removidas de Projetos aqui continuaram removidas.",
+    "other": "{n} criações removidas de Projetos aqui continuaram removidas."
+  },
+  "{n} embedded files": {
+    "one": "{n} arquivo incorporado",
+    "many": "{n} di arquivos incorporados",
+    "other": "{n} arquivos incorporados"
+  },
+  "{n} external references": {
+    "one": "{n} referência externa",
+    "many": "{n} di referências externas",
+    "other": "{n} referências externas"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "Não foi possível compactar {n} arquivo e ele ficou de fora",
+    "many": "Não foi possível compactar {n} di arquivos e eles ficaram de fora",
+    "other": "Não foi possível compactar {n} arquivos e eles ficaram de fora"
+  },
+  "{n} folders": {
+    "one": "{n} pasta",
+    "many": "{n} di pastas",
+    "other": "{n} pastas"
+  },
+  "{n} font files": {
+    "one": "{n} arquivo de fonte",
+    "many": "{n} di arquivos de fonte",
+    "other": "{n} arquivos de fonte"
+  },
+  "{n} images": {
+    "one": "{n} imagem",
+    "many": "{n} di imagens",
+    "other": "{n} imagens"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n} imagem não pôde ser restaurada (armazenamento cheio?)",
+    "many": "{n} di imagens não puderam ser restauradas (armazenamento cheio?)",
+    "other": "{n} imagens não puderam ser restauradas (armazenamento cheio?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n} imagem ficou com o original - imagens têm um único lugar; use Recortar para movê-la",
+    "many": "{n} di imagens ficaram com o original - imagens têm um único lugar; use Recortar para movê-las",
+    "other": "{n} imagens ficaram com o original - imagens têm um único lugar; use Recortar para movê-las"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n} campo · se aplica a todos os designs",
+    "many": "{n} di campos · se aplicam a todos os designs",
+    "other": "{n} campos · se aplicam a todos os designs"
+  },
+  "{n} items": {
+    "one": "{n} item",
+    "many": "{n} di itens",
+    "other": "{n} itens"
+  },
+  "{n} items copied": {
+    "one": "{n} item copiado",
+    "many": "{n} di itens copiados",
+    "other": "{n} itens copiados"
+  },
+  "{n} items cut": {
+    "one": "{n} item recortado",
+    "many": "{n} di itens recortados",
+    "other": "{n} itens recortados"
+  },
+  "{n} items moved": {
+    "one": "{n} item movido",
+    "many": "{n} di itens movidos",
+    "other": "{n} itens movidos"
+  },
+  "{n} items pasted": {
+    "one": "{n} item colado",
+    "many": "{n} di itens colados",
+    "other": "{n} itens colados"
+  },
+  "{n} keyframes": {
+    "one": "{n} quadro-chave",
+    "many": "{n} di quadros-chave",
+    "other": "{n} quadros-chave"
+  },
+  "{n} logos": {
+    "one": "{n} logotipo",
+    "many": "{n} di logotipos",
+    "other": "{n} logotipos"
+  },
+  "{n} marks found": {
+    "one": "{n} marca encontrada",
+    "many": "{n} di marcas encontradas",
+    "other": "{n} marcas encontradas"
+  },
+  "{n} newer items skipped": {
+    "one": "{n} item mais recente ignorado",
+    "many": "{n} di itens mais recentes ignorados",
+    "other": "{n} itens mais recentes ignorados"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "{n} criação é um vídeo ou animação",
+    "many": "{n} das suas criações são vídeos ou animações",
+    "other": "{n} das suas criações são vídeos ou animações"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n} checkpoint automático mais antigo deixado de fora",
+    "many": "{n} di checkpoints automáticos mais antigos deixados de fora",
+    "other": "{n} checkpoints automáticos mais antigos deixados de fora"
+  },
+  "{n} pages": {
+    "one": "{n} página",
+    "many": "{n} di páginas",
+    "other": "{n} páginas"
+  },
+  "{n} places": {
+    "one": "{n} local",
+    "many": "{n} di locais",
+    "other": "{n} locais"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n} ponto - segure Alt para um canto",
+    "many": "{n} di pontos - segure Alt para um canto",
+    "other": "{n} pontos - segure Alt para um canto"
+  },
+  "{n} published versions": {
+    "one": "{n} versão publicada",
+    "many": "{n} di versões publicadas",
+    "other": "{n} versões publicadas"
+  },
+  "{n} results": {
+    "one": "{n} resultado",
+    "many": "{n} di resultados",
+    "other": "{n} resultados"
+  },
+  "{n} saved sessions": {
+    "one": "{n} sessão salva",
+    "many": "{n} di sessões salvas",
+    "other": "{n} sessões salvas"
+  },
+  "{n} selected": {
+    "one": "{n} selecionado",
+    "many": "{n} selecionados",
+    "other": "{n} selecionados"
+  },
+  "{n} selected assets": {
+    "one": "{n} ativo selecionado",
+    "many": "{n} di ativos selecionados",
+    "other": "{n} ativos selecionados"
+  },
+  "{n} sessions": {
+    "one": "{n} sessão",
+    "many": "{n} di sessões",
+    "other": "{n} sessões"
+  },
+  "{n} shapes": {
+    "one": "{n} forma",
+    "many": "{n} di formas",
+    "other": "{n} formas"
+  },
+  "{n} steps": {
+    "one": "{n} passo",
+    "many": "{n} di passos",
+    "other": "{n} passos"
+  },
+  "{n} templates": {
+    "one": "{n} modelo",
+    "many": "{n} di modelos",
+    "other": "{n} modelos"
+  },
+  "{n} volume keys": {
+    "one": "{n} chave de volume",
+    "many": "{n} di chaves de volume",
+    "other": "{n} chaves de volume"
+  },
+  "{n} words": {
+    "one": "{n} palavra",
+    "many": "{n} di palavras",
+    "other": "{n} palavras"
+  },
+  "Dominant hand": "Mão dominante",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "Com dois painéis, num dobrável ou num tablet quase quadrado, os controles ficam do lado oposto à mão com que você desenha. Trocar lados, no cabeçalho do painel, também muda isso.",
+  "Swap sides": "Trocar lados",
+  "Resize panes": "Redimensionar painéis",
+  "Changes that didn't finish saving": "Alterações que não terminaram de ser salvas",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Você fez estas alterações em {time}, e a página foi fechada antes de elas serem salvas. Desde então, este sistema de design foi salvo de novo, em outra aba ou por uma sincronização.",
+  "Restore your unsaved changes": "Restaurar suas alterações não salvas",
+  "Keep the saved version": "Manter a versão salva",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Restaurar substitui a versão salva desde então. Manter a versão salva apaga deste dispositivo as alterações não salvas.",
+  "Restored your unsaved changes.": "Suas alterações não salvas foram restauradas.",
+  "Kept the saved version.": "A versão salva foi mantida.",
+  "Restored the changes that hadn't finished saving.": "As alterações que não terminaram de ser salvas foram restauradas.",
+  "{n} file": "{n} arquivo",
+  "It becomes the primary. Shades and roles can follow.": "Ela se torna a primária. Tons e papéis podem vir em seguida.",
+  "Start here": "Comece aqui",
+  "Browse looks →": "Ver visuais →",
+  "Pick what you have →": "Escolha o que você tem →",
+  "Open the picker →": "Abrir o seletor →",
+  "Starter greys until a colour is added.": "Cinzas iniciais até uma cor ser adicionada.",
+  "Lolly can’t draw in this browser yet": "O Lolly ainda não consegue desenhar neste navegador",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "O Lolly desenha com WebGPU, que este navegador ainda não oferece.",
+  "These work today:": "Estes funcionam hoje:",
+  "Chrome or Edge, kept up to date": "Chrome ou Edge, atualizados",
+  "Safari 26 or later": "Safari 26 ou posterior",
+  "Firefox, where WebGPU is turned on": "Firefox, com o WebGPU ativado",
+  "Get the desktop app": "Baixar o app para desktop",
+  "Read why": "Ler o motivo",
+  "Or drop an image or a list of colours here": "Ou solte aqui uma imagem ou uma lista de cores",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Estes neutros vêm com o kit inicial, para que as pré-visualizações tenham algo para mostrar até que sejam adicionadas cores acima.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Escolher uma cor",
+  "Add a colour to the palette first.": "Primeiro adicione uma cor à paleta.",
+  "Notify": "Notificar",
+  "Update automatically": "Atualizar automaticamente",
+  "App updates": "Atualizações do aplicativo",
+  "Update notifications": "Notificações de atualização",
+  "Ready to install: {version}": "Pronto para instalar: {version}",
+  "Restart now": "Reiniciar agora",
+  "Install when I quit": "Instalar ao sair",
+  "Release notes": "Notas da versão",
+  "Manual download": "Download manual",
+  "Update could not finish. Try again or download the app.": "Não foi possível concluir a atualização. Tente novamente ou baixe o aplicativo.",
+  "Finish recording or exporting before updating.": "Conclua a gravação ou a exportação antes de atualizar.",
+  "Save could not finish. Save a recovery copy before updating.": "Não foi possível concluir o salvamento. Salve uma cópia de recuperação antes de atualizar.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Este AppImage não pode ser substituído aqui. Baixe o aplicativo para uma pasta com permissão de gravação.",
+  "This installation uses its package manager for updates.": "Esta instalação usa seu gerenciador de pacotes para atualizações.",
+  "This desktop platform does not support in-app updates.": "Esta plataforma de desktop não oferece atualizações pelo aplicativo.",
+  "Update installation was cancelled.": "A instalação da atualização foi cancelada."
 }

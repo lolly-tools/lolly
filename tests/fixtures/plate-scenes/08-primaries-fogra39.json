@@ -1,0 +1,136 @@
+{
+  "id": "08-primaries-fogra39",
+  "title": "RGB primaries through FOGRA39, named press profile",
+  "covers": "Pure RGB primaries and secondaries sit outside the press gamut. With --press-profile=fogra39 each separates to the inks the bundled profile gives it.",
+  "profile": "lolly-demo",
+  "pressProfile": "fogra39",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "r",
+      "kind": "box",
+      "frame": "page",
+      "x": 14,
+      "y": 20,
+      "w": 84,
+      "h": 160,
+      "bg": "#e60012"
+    },
+    {
+      "id": "g",
+      "kind": "box",
+      "frame": "page",
+      "x": 108,
+      "y": 20,
+      "w": 84,
+      "h": 160,
+      "bg": "#00a650"
+    },
+    {
+      "id": "b",
+      "kind": "box",
+      "frame": "page",
+      "x": 202,
+      "y": 20,
+      "w": 84,
+      "h": 160,
+      "bg": "#1d4fd8"
+    },
+    {
+      "id": "y",
+      "kind": "box",
+      "frame": "page",
+      "x": 296,
+      "y": 20,
+      "w": 84,
+      "h": 160,
+      "bg": "#ffd400"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "tol": 2.5,
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "red e60012",
+          "rect": [
+            20,
+            30,
+            72,
+            140
+          ],
+          "expectFrom": {
+            "rgb": "#e60012"
+          }
+        },
+        {
+          "name": "green 00a650",
+          "rect": [
+            114,
+            30,
+            72,
+            140
+          ],
+          "expectFrom": {
+            "rgb": "#00a650"
+          }
+        },
+        {
+          "name": "blue 1d4fd8",
+          "rect": [
+            208,
+            30,
+            72,
+            140
+          ],
+          "expectFrom": {
+            "rgb": "#1d4fd8"
+          }
+        },
+        {
+          "name": "yellow ffd400",
+          "rect": [
+            302,
+            30,
+            72,
+            140
+          ],
+          "expectFrom": {
+            "rgb": "#ffd400"
+          }
+        }
+      ]
+    }
+  ]
+}

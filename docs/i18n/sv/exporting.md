@@ -82,6 +82,7 @@ Ett ordmärke satt i ditt designsystems typsnitt exporteras som SVG med varje bo
 | En överlämning till Premiere | **Premiere XML + media** | Tidsatta klipp och originalmedia för Premiere (Design) |
 | Video för sociala medier och delning | **MP4** eller **WebM** | Bästa kvalitet för filstorleken (se [Video](#video)) |
 | Undertexter | **SRT** eller **VTT** | Tidsatt text för en videospelare (Captions, Audiogram och Record) |
+| Sändningsundertexter | **TTML** eller **SCC** | IMSC1.1 tidsatt text, eller CEA-608 pop-on-undertexter (Captions; se [Sändningsundertexter](#broadcast-captions)) |
 | En utbildningskurs | **SCORM (LMS)** | En versionshanterad webbplats, SCORM- eller xAPI-paket (se [SCORM](#scorm-course-packages)) |
 | Formaterad text eller en e-postsignatur | **HTML** | Klistras in formaterat i e-postklienter |
 | Ren text | **MD** eller **TXT** | Bara text |
@@ -131,9 +132,9 @@ Lolly har tre sätt att arbeta i volym, vart och ett för ett annat jobb:
 ## En tabell blir ett dokument
 Ett verktyg med en tabellindata, som **Battlecards**, gör varje rad till en sida. Klistra in en tabell från ditt kalkylblad och få en PDF. Rätta rader i kalkylbladet och klistra in igen.
 ## En CSV blir en fil per rad
-**Batch** (`#/batch`) tar en CSV och renderar en export för varje rad: namnbrickor eller certifikat, en fil var, levererade i en ZIP. Se [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) tar en CSV och renderar en export för varje rad: namnbrickor eller certifikat, en fil var, levererade i en ZIP. Se [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Flera designer får en redigering
-**Multi-edit** öppnar flera sparade sessioner sida vid sida för samma justering över olika designer. Se [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** öppnar flera sparade sessioner sida vid sida för samma justering över olika designer. Se [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Från **Projects** exporterar **Render folder** varje sparad session i en mapp och dess undermappar som en nästlad ZIP, och **Render selection** gör detsamma för vilket flerval som helst; en sparad session renderas till sin egen fil. En sparad session kan också delas igen som en verktygslänk från Projects, som öppnar den igen med samma inställningar.
@@ -169,7 +170,7 @@ De flesta verktyg som exporterar SVG exporterar också en **Penpot-fil** (`.penp
 | Hela designen | En återanvändbar komponent i panelen Assets |
 | En komplex illustration eller levande yta | Inbäddad för sig som en bild, med det redigerbara innehållet runt den orört |
 
-Från Design blir varje ram en Penpot-tavla. Designsystemets färger och typografier hamnar i panelen Assets och dess fullständiga tokenuppsättning i panelen Tokens. Penpot behåller sin egen kopia därifrån: en token som redigerats i Penpot kommer tillbaka genom importen i [Design System Setup](/info/brand-studio.html).
+Från Design blir varje ram en Penpot-tavla. Designsystemets färger och typografier hamnar i panelen Assets och dess fullständiga tokenuppsättning i panelen Tokens. Penpot behåller sin egen kopia därifrån: en token som redigerats i Penpot kommer tillbaka genom importen i [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Exportpanelen med Penpot valt: .penpot-filen, och Send to Penpot bredvid nedladdningen](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Välj sedan **Export course** från ett verktyg som stöds, en projektmapp eller
 
 Paketet håller sitt färdiga innehåll och behöver inget Lolly-konto. Lägg en Website-ZIP på en HTTP(S)-värd; importera en LMS-ZIP oförändrad. Testa destinationen innan du delar kursen. För en kurs byggd av flera sparade skapelser, se [Skapa en utbildningskurs](/info/training-creators.html).
 
+### Sändningsundertexter
+
+Verktyget Captions kan också exportera **TTML** och **SCC**. Båda skrivs från samma replistan som SRT- och VTT-filerna, så orden och tiderna stämmer överens.
+
+- **TTML** är IMSC1.1 Text Profile, med klocktider i mediatid och en enda region nere i mitten. Den har ingen färg, typsnitt eller position per undertext, eftersom undertexterna i Lolly bara har en start, ett slut och text.
+- **SCC** innehåller CEA-608 pop-on-undertexter på kanal 1 med 29,97 bilder per sekund och drop-frame-tidkod. Den stöder de grundläggande nordamerikanska tecknen samt de speciella och utökade. Om en undertext innehåller ett tecken som teckenuppsättningen inte kan bära stoppas exporten och talar om vilket tecken det gäller, så ingenting tas bort utan att du får veta det. Varje undertext bryts vid 32 kolumner och högst 15 rader. En undertext som inte hinner laddas före starttiden fördröjs med några bilder.
+- Roll-up- och paint-on-undertexter skrivs inte.
+
+SCC-utdata har inte kontrollerats mot ett riktigt sändningsverktyg eller en hårdvaruavkodare. Testa en fil i din egen arbetsgång före leverans.
+
 ### DXF (skärfiler)
 
 Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding och Wordmark exporterar **DXF**, AutoCAD R12-utbytesformatet som laserskärare, vinylplotters och CNC-programvara läser. Geometri skrivs som konturbanor i millimeter, text konturas och färg avbildas på närmaste AutoCAD Color Index, som oftast styr skärarens operation. DXF är bara linjegrafik: en fotografisk eller filtrerad region har ingen skärbana och släpps, med en varning. Använd SVG eller PDF för att behålla rasterinnehåll.
@@ -214,7 +225,7 @@ Scrolla, och kameran dras tillbaka genom den faktiska geometrin: sju banor, inga
 
 ## Tryck
 
-**Print PDF** skriver CMYK mot ett namngivet tryckförhållande, **Coated FOGRA39** som standard. Varumärkesfärgprov med uppmätta färgvärden konverteras exakt; andra färger använder en vanlig enhetskonvertering. **Print TIFF** skriver DeviceCMYK-pixlar för en RIP och registrerar samma tryckförhållande i sina TIFF-metadata. Kontrollen Colour profile styr båda; [Färgprofiler](#colour-profiles) har detaljerna.
+**Print PDF** skriver CMYK mot ett namngivet tryckförhållande, **Coated FOGRA39** som standard. Varumärkesfärgprov med uppmätta färgvärden behåller de värdena. Andra färger konverteras via en tryckprofil: Lollys egen Coated FOGRA39-profil som standard, eller din egen profil när du väljer dess **Embed**-rad. Gråtoner och svart stannar enbart på svartplåten, så att liten text inte får passningsfel. FOGRA51, SWOP och GRACoL använder en vanlig enhetskonvertering. **Print TIFF** skriver DeviceCMYK-pixlar för en RIP och registrerar samma tryckförhållande i sina TIFF-metadata. Kontrollen Colour profile styr båda; [Färgprofiler](#colour-profiles) har detaljerna.
 
 **Print marks & bleed** har ett eget kort på tryckformaten: utfallet i millimeter plus Crop, Registration, Bleed, Colour bars och Stamp details.
 
@@ -223,6 +234,15 @@ Vissa verktyg bygger en **PDF med flera sidor**: ett omslag, innehåll som flyte
 **Innan du exporterar.** Ett kort **Before you export** längst ner i panelen säger vad ett tryckeri är på väg att se: format, storlek och utfall, beskärnings- och utfallsytor, färgtäckning, antal plåtar och sidantal, med ett utlåtande bredvid rubriken. Det blockerar aldrig en export. Design visar alltid kortet med sina egna kontroller, inklusive designsystemets organisationsregler lager för lager och skrivsignalen för dokumentets text ([Innan du exporterar](/info/design.html#before-you-export)), och lägger till de här tryckkontrollerna när **Print preflight** är på. I andra verktyg slår du på **Print preflight** under Settings → Preferences → Feature flags; den är av som standard, och en Lolly Work-installation kan slå på den för sina medlemmar.
 
 **Efter att du exporterat.** När filen är klar läser Lolly tillbaka den och jämför den med det du valde: format, pixel- eller sidstorlek, klipplängd, en transparent bakgrund, CMYK-färg, HDR, Content Credentials och ett PDF- eller ZIP-lösenord. Allt som skiljer sig skrivs på exportkortet. Varje mätning kommer från filen, aldrig från inställningen, och en egenskap som filen inte kan svara på räknas inte som en matchning. Kommandoraden skriver hela jämförelsen med `--export-report` (se [Rendera med CLI](/info/cli-rendering.html)).
+
+**Tillgänglighetskontroller för PDF.** För en PDF listar kommandoraden också 32 tillgänglighetskontroller i `--export-report`-filen, under `pdfAccessibility`. Varje kontroll har ett id, en vanlig beskrivning, ett utfall och var i filen den hittade ett problem:
+
+- **Godkänd**: kontrollen tittade på något och hittade inget fel.
+- **Misslyckad**: kontrollen hittade ett problem. Dess sidnummer eller taggar listas.
+- **Inte tillämpligt**: filen hade inget av det slaget att granska, till exempel tabellkontroller i en fil utan tabeller. Det säger inget om filen.
+- **Behöver en person**: sex kontroller kan inte bedömas av ett program (läsordning, färgkontrast, blinkningar, skript, tidsgränser och upprepade länkar).
+
+Listan är inget utlåtande. Den säger inte att en PDF uppfyller PDF/UA eller att personer som använder hjälpmedel kan använda den, och någon behöver fortfarande kontrollera filen med en skärmläsare. Lollys egna PDF-filer underkänns i taggningskontrollerna i dag, eftersom exportörerna ännu inte skriver några taggar. Kontrollen läser filen på din enhet och ändrar ingenting. Filer som kräver lösenord anges som ej kontrollerade, inte som godkända. Om du vill kontrollera en PDF du har fått, släpp den i [Strip Hidden Data](/info/utilities.html), som visar samma lista under **PDF accessibility checks**.
 
 Designinspektörens kontroller och varumärkesjämförelsen i Design System Setup är separata kontroller: de tittar på designen, medan de här två korten tittar på filen.
 
@@ -280,7 +300,7 @@ Exporter taggas med en färgprofil, så att färghanterade program som tryckerie
 - **SVG**, **EMF**, **EPS** och **DXF** är vektorer utan inbäddad profil: SVG:s färger är sRGB, EMF och EPS använder enhets-RGB, **EPS (CMYK)** skriver DeviceCMYK och DXF använder AutoCAD Color Index. SVG, EPS och DXF konturar text till banor. EMF behåller text levande och redigerbar i Office och Google Slides, och faller bara tillbaka på konturer för textavsnitt formatet inte kan uttrycka; exportpanelens alternativ **Outline fonts** tvingar banor överallt. SVG återger också CSS-rutskuggor, inåt och utåt.
 
 ::: details PDF/X-4 och din egen tryckprofil
-Ingen CMYK-profil levereras med Lolly. Ett namngivet tryckförhållande skriver utdataavsikten utan att påstå PDF/X-4-överensstämmelse, eftersom PDF/X-4 vill ha profilen inbäddad.
+Lolly levereras med en CMYK-profil, anpassad efter Fogras karakteriseringsdata för FOGRA39 och utgiven under CC0, och konverterar färger genom den för standardtryckförhållandet. Profilen bäddas inte in, eftersom den är ICC version 4.3 och PDF/X-4 accepterar versioner upp till 4.2. Ett namngivet tryckförhållande skriver därför utdataavsikten utan att påstå PDF/X-4-överensstämmelse.
 
 Läs in en egen CMYK-profil och välj dess **Embed**-rad i kontrollen Colour profile. Den bäddas in som filens *DestOutputProfile*, och PDF:en påstår PDF/X-4 så länge resten av filen tillåter det. Tryckförhållandet den deklarerar läses av från den profilen: ett registrerat namn där profilen bevisar ett, eller `Custom` under profilens eget namn.
 
@@ -400,8 +420,8 @@ Det här är värdena för URL-parametern `format=` och CLI-flaggan `--export=` 
 | Vektor | `svg` · `svgz` (gzippad SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (skärfil) |
 | Sida och dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot-designfil) · `scorm` (kurspaket, en ZIP) |
 | Rörelse | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Ljud | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Text och data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP-palett) |
+| Ljud | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDI-toner från Rondocode) |
+| Text och data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP-palett) |
 | Paket och bundlar | `zip` · `rpm` och `tar.gz` (renderingen förseglad i ett Linux-paket) |
 
 Några id:n kommer från ett verktygs egen exportkod: `ase` (Adobe Swatch Exchange, från Palette Lab) och `exr` och `hdr` (rastrer med högt dynamiskt omfång, från Darkroom). **Convert Font** skriver `ttf`, `otf` och `woff` från en typsnittsfil du tillhandahåller, så en bar länk har inget för den att rendera.

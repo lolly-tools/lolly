@@ -2,7 +2,7 @@
 
 Type a question and Ask Lolly answers with the section of these guides that covers it, word for word, with the page it came from cited and an **Open in docs** link straight to that section. Nothing is generated: the answer is retrieved, quoted and attributed, on your device.
 
-Under the quoted section sit the places in the app that match the same question: a tool, a utility, a saved project, a catalogue asset, a setting or a page of the app. Each row only navigates. Nothing in an answer changes a setting, opens a file or acts for you, the same rule [Search](/info/search.html) follows.
+Under the quoted section sit the places in the app that match the same question: a tool, a utility, a saved project, a catalogue asset, a setting or a page of the app. Each row only navigates. Nothing in an answer changes a setting, opens a file or acts for you, the same rule [Lolly Search](/info/search.html) follows.
 
 ## Asking a question
 
@@ -60,4 +60,4 @@ Your question never leaves the device. Matching runs locally against files fetch
 
 ---
 
-**Related:** [Search](/info/search.html) for the bar that hands questions over. [Using Lolly](/info/using.html) for the rest of the app. [Settings](/info/dashboard.html#available-offline) for taking the documentation offline first.
+**Related:** [Lolly Search](/info/search.html) for the bar that hands questions over. [Using Lolly](/info/using.html) for the rest of the app. [Lolly Settings](/info/dashboard.html#available-offline) for taking the documentation offline first.

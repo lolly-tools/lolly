@@ -271,7 +271,7 @@ test('sound that cannot be carried over is refused, never silently left out', as
     (e: Error) => /opus sound would be left out/.test(e.message) && /Try another container, or turn on Remove audio\./.test(e.message)
       && !/copy the picture/.test(e.message),
   );
-  // Removing the sound on purpose is fine, and says so.
+  // Removing the sound on purpose is fine, and reports that.
   const muted = await trimMedia(src.bytes, { start: 0.5, end: 0.8, mute: true, sourceName: 'clip.webm' });
   assert.deepEqual(muted.report!.tracks.map((t) => [t.kind, t.action, t.reasons.join()]), [['video', 'copy', ''], ['audio', 'drop', 'removed-by-request']]);
   assert.equal(muted.report!.sync, undefined, 'no sync check without sound');

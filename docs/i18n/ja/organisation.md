@@ -61,10 +61,10 @@ lolly.toolsから始めることもできます。**Settings**を開き、**Loll
 
 ## Lolly Workが加えるもの
 
-組織のサーバーでは、同じオープンソースプロジェクトの組織向けソフトウェアである**Lolly Work**が動作しています。ご自身だけでアプリを使う場合は、ワークアカウントもLolly Workも必要ありません。
+組織のサーバーでは、同じオープンソースプロジェクトの組織向けソフトウェアである**Lolly Lolly Work**が動作しています。ご自身だけでアプリを使う場合は、ワークアカウントもLolly Workも必要ありません。
 
 ::: details Lolly Workが追加できること
-組織は、Lollyと並べて[Lolly Work](https://github.com/lolly-tools/lolly-work)をホストし、有効にする機能を選びます。
+組織は、Lollyと並べて[Lolly Lolly Work](https://github.com/lolly-tools/lolly-work)をホストし、有効にする機能を選びます。
 
 - **サインインとアクセス。** 組織のシングルサインオン、グループに基づく権限、管理対象のプロフィール項目。管理者はSCIMでアカウントのプロビジョニングと無効化ができます。
 - **共有作業。** チームプロジェクト、共有セッション、[ワークコラボ](/info/collaborate.html#work-collabs-with-lolly-work-optional)。組織のサーバー経由でライブ編集を行います。

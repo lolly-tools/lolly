@@ -18,7 +18,7 @@ Preferences er én lang side med en **innstillingsliste** ved siden og et felt *
 
 - <!--i:usercheck--> **Your details** - navnet ditt, kontaktopplysningene og portrettbildet ditt, og bryteren **Use my details to create**. [Profiles](/info/profile.html) forklarer hvordan verktøy bruker dem.
 - <!--i:seal--> **Content Credentials** - den valgfrie verifiserte identiteten som signerer eksportene dine. Se [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - bytt, legg til, skjul eller fjern designsystemer. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) dekker hver handling.
+- <!--i:palette--> **Design systems** - bytt, legg til, skjul eller fjern designsystemer. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) dekker hver handling.
 - <!--i:moon--> **Appearance** - temaet (Light, Dark eller Brand, som maler appen i paletten din), **Your colourway** når designsystemet tilbyr mer enn én ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) og **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - settet emojiene dine tegnes fra når du starter noe nytt, med kunstverkets lisens, og hvor sterkt paletten din omfarger dem (**Off**, **Subtle**, **Strong**, **Full**, **Mono** eller **Duotone**). **Keep skin tones and flags** lar disse beholde sine egne farger. Arbeid du allerede har laget, beholder settet det ble laget med.
 - <!--i:eyeoff--> **Accessibility** - fire komfortbrytere, pluss Sound og Neurospicy Mode. Se [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ Fanen åpner på et omslag malt i systemets egne farger, med logoen, navnet i vi
 - <!--i:sliders--> **Tokens** - radius, avstand, effekter og gradienter.
 - <!--i:document--> **Print & CMYK** - fargene låst til en eksakt blekkfarge, og trykkbetingelsene en CMYK-PDF kan deklarere.
 
-Å bytte er den eneste endringen denne fanen gjør. Du redigerer et designsystem i [Design System Setup](/info/brand-studio.html) på `#/start`, som omslaget lenker til. Et skrivebeskyttet system sier det på omslaget; lokale systemer du lager, forblir redigerbare. `/b` og `/brand` er snarlenker rett til denne fanen.
+Å bytte er den eneste endringen denne fanen gjør. Du redigerer et designsystem i [Lolly Design System Setup](/info/brand-studio.html) på `#/start`, som omslaget lenker til. Et skrivebeskyttet system sier det på omslaget; lokale systemer du lager, forblir redigerbare. `/b` og `/brand` er snarlenker rett til denne fanen.
 
 ## Kapabiliteter
 
@@ -125,7 +125,7 @@ Deretter din egen side: **Your activity** teller hva du har laget på denne enhe
 
 ## Dyplenker
 
-Hver fane og del av Settings har sin egen lenke, som du kan bokmerke eller lime inn. [Search](/info/search.html) peker **Settings**-resultatene sine mot det samme registeret Settings gjengis fra, så en del kan ikke få nytt navn under et søkeresultat.
+Hver fane og del av Settings har sin egen lenke, som du kan bokmerke eller lime inn. [Lolly Search](/info/search.html) peker **Settings**-resultatene sine mot det samme registeret Settings gjengis fra, så en del kan ikke få nytt navn under et søkeresultat.
 
 ::: details Alle former for lenke
 
@@ -139,4 +139,4 @@ En dyplenke bytter til fanen som eier målet, åpner enhver gruppe det ligger fo
 
 ---
 
-**Related:** [Profiles](/info/profile.html) for detaljene dine og kontekstene du lager i. [Design System Setup](/info/brand-studio.html) for å redigere det Design system-fanen viser. [Find and recover your work](/info/find-your-work.html) for lagring, sikkerhetskopier og å flytte mellom enheter.
+**Related:** [Profiles](/info/profile.html) for detaljene dine og kontekstene du lager i. [Lolly Design System Setup](/info/brand-studio.html) for å redigere det Design system-fanen viser. [Find and recover your work](/info/find-your-work.html) for lagring, sikkerhetskopier og å flytte mellom enheter.

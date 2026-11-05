@@ -82,6 +82,7 @@ Un wordmark setat în fontul sistemului tău de design se exportă ca SVG cu fie
 | Un transfer către Premiere | **Premiere XML + media** | Clipuri cronometrate și media originale pentru Premiere (Design) |
 | Video pentru social și partajare | **MP4** sau **WebM** | Cea mai bună calitate pentru dimensiunea fișierului (vezi [Video](#video)) |
 | Subtitrări | **SRT** sau **VTT** | Text cronometrat pentru un player video (Captions, Audiogram și Record) |
+| Subtitrări pentru difuzare | **TTML** sau **SCC** | Text cronometrat IMSC1.1 sau subtitrări pop-on CEA-608 (Captions; vezi [Subtitrări pentru difuzare](#broadcast-captions)) |
 | Un curs de instruire | **SCORM (LMS)** | Un site versionat, pachet SCORM sau xAPI (vezi [SCORM](#scorm-course-packages)) |
 | Text îmbogățit sau o semnătură de email | **HTML** | Se lipește formatat în clienți de email |
 | Conținut simplu | **MD** sau **TXT** | Doar text |
@@ -131,9 +132,9 @@ Lolly are trei moduri de a lucra în volum, fiecare pentru altă sarcină:
 ## Un tabel devine un document
 Un instrument cu o intrare de tip tabel, precum **Battlecards**, transformă fiecare rând într-o pagină. Lipește un tabel din foaia ta de calcul și primești un PDF. Corectează rânduri în foaia de calcul și lipește din nou.
 ## Un CSV devine un fișier pe rând
-**Batch** (`#/batch`) ia un CSV și randează un export pentru fiecare rând: ecusoane sau certificate, câte un fișier, livrate într-un ZIP. Vezi [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) ia un CSV și randează un export pentru fiecare rând: ecusoane sau certificate, câte un fișier, livrate într-un ZIP. Vezi [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Mai multe designuri primesc o editare
-**Multi-edit** deschide mai multe sesiuni salvate unul lângă altul pentru același retuș pe designuri diferite. Vezi [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** deschide mai multe sesiuni salvate unul lângă altul pentru același retuș pe designuri diferite. Vezi [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Din **Projects**, **Render folder** exportă fiecare sesiune salvată dintr-un dosar și din subdosarele lui ca un singur ZIP imbricat, iar **Render selection** face același lucru pentru orice selecție multiplă; o sesiune salvată se randează în propriul fișier. O sesiune salvată poate fi partajată din nou ca link de instrument din Projects, care o redeschide cu aceleași setări.
@@ -169,7 +170,7 @@ Cele mai multe instrumente care exportă SVG exportă și un **fișier Penpot** 
 | Întregul design | O componentă reutilizabilă în panoul Assets |
 | O ilustrație complexă sau un canvas viu | Încorporat singur ca imagine, cu conținutul editabil din jur neatins |
 
-Din Design, fiecare cadru devine o placă Penpot. Culorile și tipografiile sistemului de design ajung în panoul Assets, iar setul lui complet de tokenuri în panoul Tokens. De acolo Penpot își păstrează propria copie: un token editat în Penpot revine prin importul din [Design System Setup](/info/brand-studio.html).
+Din Design, fiecare cadru devine o placă Penpot. Culorile și tipografiile sistemului de design ajung în panoul Assets, iar setul lui complet de tokenuri în panoul Tokens. De acolo Penpot își păstrează propria copie: un token editat în Penpot revine prin importul din [Lolly Design System Setup](/info/brand-studio.html).
 
 ![Panoul de export cu Penpot selectat: fișierul .penpot, și Send to Penpot lângă butonul de descărcare](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Apoi alege **Export course** dintr-un instrument acceptat, un dosar de proiect s
 
 Pachetul conține conținutul lui terminat și nu are nevoie de cont Lolly. Pune un ZIP Website pe o gazdă HTTP(S); importă un ZIP LMS neschimbat. Testează destinația înainte să partajezi cursul. Pentru un curs construit din mai multe creații salvate, vezi [Creează un curs de instruire](/info/training-creators.html).
 
+### Subtitrări pentru difuzare
+
+Instrumentul Captions poate exporta și **TTML** și **SCC**. Ambele sunt scrise din aceeași listă de replici ca fișierele SRT și VTT, deci cuvintele și timpii se potrivesc.
+
+- **TTML** este IMSC1.1 Text Profile, cu ore de ceas în timp media și o singură regiune jos, la centru. Nu conține culoare, font sau poziție pentru fiecare subtitrare, pentru că subtitrările din Lolly au doar un început, un sfârșit și text.
+- **SCC** conține subtitrări pop-on CEA-608 pe canalul 1, la 29,97 de cadre pe secundă, cu timecode drop-frame. Acceptă caracterele de bază nord-americane, plus cele speciale și extinse. Dacă o subtitrare conține un caracter pe care setul nu îl poate purta, exportul se oprește și îți spune care este caracterul, deci nimic nu se pierde fără știre. Fiecare subtitrare se împarte pe 32 de coloane și cel mult 15 rânduri. O subtitrare care nu poate fi încărcată înainte de ora de început este întârziată cu câteva cadre.
+- Subtitrările roll-up și paint-on nu sunt scrise.
+
+Ieșirea SCC nu a fost verificată cu un instrument real de difuzare sau cu un decodor hardware. Testează un fișier în propriul tău pipeline înainte de livrare.
+
 ### DXF (fișiere de tăiere)
 
 Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding și Wordmark exportă **DXF**, formatul de schimb AutoCAD R12 pe care îl citesc tăietoarele laser, plotterele de vinil și software-ul CNC. Geometria este scrisă ca căi de contur în milimetri, textul este conturat, iar culoarea se mapează pe cea mai apropiată culoare din AutoCAD Color Index, care de obicei conduce operațiunea tăietorului. DXF este doar artă liniară: o regiune fotografică sau filtrată nu are cale de tăiere și este omisă, cu un avertisment. Folosește SVG sau PDF ca să păstrezi conținutul raster.
@@ -214,7 +225,7 @@ Derulează, iar camera se retrage prin geometria efectivă: șapte căi, fără 
 
 ## Tipar
 
-**Print PDF** scrie CMYK față de o condiție de presă numită, implicit **Coated FOGRA39**. Mostrele de brand cu valori de cerneală măsurate se convertesc exact; celelalte culori folosesc o conversie standard de dispozitiv. **Print TIFF** scrie pixeli DeviceCMYK pentru un RIP și înregistrează aceeași condiție de presă în metadatele TIFF. Controlul Colour profile le conduce pe amândouă; [Profiluri de culoare](#colour-profiles) are detaliile.
+**Print PDF** scrie CMYK față de o condiție de presă numită, implicit **Coated FOGRA39**. Mostrele de brand cu valori de cerneală măsurate își păstrează acele valori. Celelalte culori sunt convertite printr-un profil de presă: profilul Coated FOGRA39 propriu Lolly, implicit, sau profilul tău când alegi rândul **Embed**. Grisurile și negrul rămân doar pe placa neagră, astfel încât textul mic să nu iasă din registru. FOGRA51, SWOP și GRACoL folosesc o conversie standard de dispozitiv. **Print TIFF** scrie pixeli DeviceCMYK pentru un RIP și înregistrează aceeași condiție de presă în metadatele TIFF. Controlul Colour profile le conduce pe amândouă; [Profiluri de culoare](#colour-profiles) are detaliile.
 
 **Print marks & bleed** are propriul card pe formatele de tipar: bleed-ul în milimetri plus detaliile Crop, Registration, Bleed, Colour bars și Stamp.
 
@@ -223,6 +234,15 @@ Unele instrumente construiesc un **PDF cu mai multe pagini**: o copertă, conți
 **Înainte să exporți.** Un card **Before you export** la baza panoului spune ce urmează să vadă o tipografie: format, dimensiune și bleed, zonele de tăiere și bleed, acoperirea cu cerneală, numărul de plăci și numărul de pagini, cu un verdict lângă titlu. Nu blochează niciodată un export. Design arată mereu cardul cu propriile verificări, inclusiv regulile de casă ale sistemului de design strat cu strat și semnalul de scriere pentru textul documentului ([Înainte să exporți](/info/design.html#before-you-export)), și adaugă aceste verificări de tipar când **Print preflight** este activ. În alte instrumente, activează **Print preflight** în Settings → Preferences → Feature flags; este oprit implicit, iar o instalare Lolly Work îl poate activa pentru membrii ei.
 
 **După export.** Odată ce fișierul e gata, Lolly îl citește înapoi și îl compară cu ce ai ales: format, dimensiune în pixeli sau pagină, lungimea clipului, fundal transparent, culoare CMYK, HDR, Content Credentials și o parolă de PDF sau ZIP. Tot ce diferă este scris pe cardul de export. Fiecare măsurătoare vine din fișier, niciodată din setare, iar o proprietate la care fișierul nu poate răspunde nu este numărată ca potrivire. Linia de comandă scrie comparația completă cu `--export-report` (vezi [Randează cu CLI](/info/cli-rendering.html)).
+
+**Verificări de accesibilitate PDF.** Pentru un PDF, linia de comandă listează și 32 de verificări de accesibilitate în fișierul `--export-report`, sub `pdfAccessibility`. Fiecare verificare are un id, o descriere simplă, un rezultat și locul din fișier unde a găsit o problemă:
+
+- **Trecut**: verificarea a examinat ceva și nu a găsit nimic greșit.
+- **Eșuat**: verificarea a găsit o problemă. Sunt listate numerele de pagină sau etichetele.
+- **Nu se aplică**: fișierul nu avea nimic de acel fel de examinat, cum ar fi verificările de tabele într-un fișier fără tabele. Asta nu spune nimic despre fișier.
+- **Necesită o persoană**: șase verificări nu pot fi judecate de un program (ordinea de citire, contrastul culorilor, sclipirile, scripturile, limitele de timp și linkurile repetate).
+
+Lista nu este un verdict. Nu spune că un PDF respectă PDF/UA sau că persoanele care folosesc tehnologii asistive îl pot folosi, iar o persoană trebuie totuși să verifice fișierul cu un cititor de ecran. PDF-urile Lolly proprii eșuează astăzi la verificările de etichetare, pentru că exportatoarele nu scriu încă etichete. Verificarea citește fișierul pe dispozitivul tău și nu schimbă nimic. Fișierele care cer o parolă sunt indicate ca neverificate, nu ca trecute. Pentru a verifica un PDF primit, trage-l în [Strip Hidden Data](/info/utilities.html), care arată aceeași listă sub **PDF accessibility checks**.
 
 Verificările inspectorului Design și compararea brandului din Design System Setup sunt verificări separate: ele se uită la design, în timp ce aceste două carduri se uită la fișier.
 
@@ -280,7 +300,7 @@ Exporturile sunt etichetate cu un profil de culoare, deci aplicațiile cu gestio
 - **SVG**, **EMF**, **EPS** și **DXF** sunt vectori fără profil încorporat: culorile SVG sunt sRGB, EMF și EPS folosesc RGB de dispozitiv, **EPS (CMYK)** scrie DeviceCMYK, iar DXF folosește AutoCAD Color Index. SVG, EPS și DXF conturează textul în căi. EMF păstrează textul viu și editabil în Office și Google Slides, revenind la contururi doar pentru secvențele pe care formatul nu le poate exprima; opțiunea **Outline fonts** a panoului de export forțează căi peste tot. SVG reproduce și umbrele CSS ale casetelor, în interior și în exterior.
 
 ::: details PDF/X-4 și propriul profil de presă
-Lolly nu livrează niciun profil CMYK. O condiție de presă numită scrie output intent fără să pretindă conformitate PDF/X-4, pentru că PDF/X-4 vrea profilul încorporat.
+Lolly livrează un singur profil CMYK, potrivit datelor de caracterizare FOGRA39 de la Fogra și publicat sub CC0, și convertește culorile prin el pentru condiția de presă implicită. Profilul nu este încorporat, pentru că este ICC versiunea 4.3, iar PDF/X-4 acceptă versiuni până la 4.2. O condiție de presă numită scrie deci output intent fără să pretindă conformitate PDF/X-4.
 
 Încarcă un profil CMYK propriu și alege rândul lui **Embed** în controlul Colour profile. Este încorporat ca *DestOutputProfile* al fișierului, iar PDF-ul pretinde PDF/X-4 oricând restul fișierului permite. Condiția de presă pe care o declară este citită din acel profil: un nume înregistrat unde profilul dovedește unul sau `Custom` sub numele propriu al profilului.
 
@@ -400,8 +420,8 @@ Acestea sunt valorile pentru parametrul URL `format=` și indicatorul CLI `--exp
 | Vector | `svg` · `svgz` (SVG arhivat gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (fișier de tăiere) |
 | Pagină și document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (fișier de design Penpot) · `scorm` (pachet de curs, un ZIP) |
 | Mișcare | `gif` · `apng` (PNG animat) · `webp-anim` (WebP animat) · `svg-anim` (SVG animat) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Text și date | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (paletă GIMP) |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (note MIDI, din Rondocode) |
+| Text și date | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paletă GIMP) |
 | Bundle-uri și pachete | `zip` · `rpm` și `tar.gz` (randarea sigilată într-un pachet Linux) |
 
 Câteva id-uri vin din codul de export propriu al unui instrument: `ase` (Adobe Swatch Exchange, din Palette Lab) și `exr` și `hdr` (rastere cu gamă dinamică înaltă, din Darkroom). **Convert Font** scrie `ttf`, `otf` și `woff` dintr-un fișier de font pe care îl furnizezi, deci un link simplu nu are ce să randeze pentru el.

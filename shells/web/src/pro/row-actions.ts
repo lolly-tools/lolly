@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { RowSelection, BATCH_PAGE_SIZE, rowPage, duplicateRows, removeRows, restoreRows } from './row-selection.ts';
 import { deriveColumns } from './model.ts';
-import { t, tRaw } from '../i18n.ts';
+import { t, tRaw, tnRaw } from '../i18n.ts';
 import { announce } from '../a11y.ts';
 
 interface Row {
@@ -37,7 +37,7 @@ export function mountRowActions<R extends Row>(root: HTMLElement, state: State<R
     const n = selection.ids.size;
     const current = visible();
     const count = q<HTMLElement>('[data-selection-count]');
-    count.textContent = n ? tRaw('{n} selected', { n }) : t('Select rows to work on a group');
+    count.textContent = n ? tnRaw('{n} selected', '{n} selected', { n }) : t('Select rows to work on a group');
     bar.classList.toggle('has-selection', n > 0);
     q<HTMLElement>('[data-selected-actions]').hidden = !n;
     q<HTMLElement>('[data-selection-hint]').hidden = n > 0;

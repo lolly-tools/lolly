@@ -44,6 +44,7 @@
  *   mkdirRecursive(path)      → Promise<void>
  *   readTextFile(path)        → Promise<string>
  *   writeTextFile(path, text) → Promise<void>
+ *   writeDocumentAtomic?(path, text) → Promise<void>   (crash-safe; see below)
  *   readDirNames(path)        → Promise<string[]>   (entry names, not entries)
  *   remove(path)              → Promise<void>
  */
@@ -63,6 +64,13 @@ export interface StateFs {
   mkdirRecursive(path: string): Promise<void>;
   readTextFile(path: string): Promise<string>;
   writeTextFile(path: string, text: string): Promise<void>;
+  /**
+   * Crash-safe write: the destination ends up whole with either its old or its
+   * new content, even if the app dies mid-save. Shells bind it to the native
+   * `write_document_atomic` command. Optional so tests and any adapter without
+   * the command still work; the fallback is `writeDocument` below.
+   */
+  writeDocumentAtomic?(path: string, text: string): Promise<void>;
   /** Entry NAMES, not entry objects - all this module reads. */
   readDirNames(path: string): Promise<string[]>;
   remove(path: string): Promise<void>;
@@ -139,6 +147,16 @@ function stateLog(level: 'warn' | 'info', message: string, meta?: Record<string,
 }
 
 /**
+ * Write a document, slot or migration file. Goes through the adapter's atomic
+ * write when it has one. The plain-write fallback is for adapters without the
+ * command (unit tests, older builds): it can leave a truncated file if the app
+ * dies mid-write, which is the failure the atomic path exists to prevent.
+ */
+function writeDocument(fs: StateFs, path: string, text: string): Promise<void> {
+  return fs.writeDocumentAtomic ? fs.writeDocumentAtomic(path, text) : fs.writeTextFile(path, text);
+}
+
+/**
  * Build the state API over an `fs` adapter. One instance per shell; the migration
  * memo below is per instance, matching the old module-level `migrationPromise`.
  */
@@ -201,10 +219,10 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
           const targetText = await fs.readTextFile(`${STATE_DIR}/${canonical}`);
           const target = JSON.parse(targetText) as ParsedRecord;
           if ((raw.updatedAt ?? '') > (target?.updatedAt ?? '')) {
-            await fs.writeTextFile(`${STATE_DIR}/${canonical}`, text);
+            await writeDocument(fs, `${STATE_DIR}/${canonical}`, text);
           }
         } else {
-          await fs.writeTextFile(`${STATE_DIR}/${canonical}`, text);
+          await writeDocument(fs, `${STATE_DIR}/${canonical}`, text);
         }
         await fs.remove(`${STATE_DIR}/${name}`);
       } catch {
@@ -216,7 +234,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     // is idempotent - already-canonical files are skipped instantly).
     if (failures === 0) {
       try {
-        await fs.writeTextFile(MIGRATION_MARKER, '1');
+        await writeDocument(fs, MIGRATION_MARKER, '1');
       } catch { /* retry next launch */ }
     }
   }
@@ -270,7 +288,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       savedAt,
       ...sessionVersionStamp(),
     };
-    await fs.writeTextFile(slotPath(slot), JSON.stringify(record, null, 2));
+    await writeDocument(fs, slotPath(slot), JSON.stringify(record, null, 2));
   }
 
   return {

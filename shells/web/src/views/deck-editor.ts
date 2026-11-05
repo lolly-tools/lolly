@@ -1754,20 +1754,25 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
 
   // Reserve the stage band the freeform chrome occupies - the slide bar + arrange toolbar +
   // inspector across the top - so fitCanvas fits the canvas BELOW them (--stage-reserve-*, read
-  // by tool.ts). Layout mode reserves nothing (the bars keep floating over the canvas edges as
-  // before). Only re-fits when the reservation actually CHANGES, so its own canvas-resize
-  // dispatch can't loop against the ResizeObserver that dispatch wakes. Freeform docks the bar
-  // stack from the top and leaves the filmstrip floating, so only a top band is reserved.
+  // by tool.ts). Phone layout mode also clears the controls sheet and floating export bar.
+  // Desktop layout mode keeps its floating bars. Re-fit only when a reservation changes,
+  // so canvas-resize cannot loop against the ResizeObserver that dispatch wakes.
   function syncFreeReserve(): void {
     let top = '', bottom = '';
+    const mobile = window.matchMedia?.('(max-width: 640px)').matches ?? false;
+    const stageRect = stageEl.getBoundingClientRect();
+    const sheetBottom = mobile ? stageEl.parentElement?.querySelector('.sidebar')?.getBoundingClientRect().bottom : 0;
+    const visibleTop = Math.max(stageRect.top, sheetBottom || 0);
     if (!freeChrome.hidden) {
       const barH = bar.getBoundingClientRect().height || 0;
-      freeChrome.style.top = Math.round(barH) + 'px';   // dock the toolbars just under the slide bar
+      freeChrome.style.top = Math.round(bar.offsetTop + barH) + 'px';
       const chromeH = freeChrome.getBoundingClientRect().height || 0;
-      top = Math.round(barH + chromeH + 12) + 'px';
-      // The canvas shifts down into the band; reserve the filmstrip too so its bottom doesn't
-      // slide under it.
-      bottom = Math.round((strip.getBoundingClientRect().height || 0) + 6) + 'px';
+      top = Math.round(Math.max(0, bar.getBoundingClientRect().bottom - visibleTop) + chromeH + 12) + 'px';
+    } else if (mobile) {
+      top = Math.round(Math.max(0, bar.getBoundingClientRect().bottom - visibleTop) + 12) + 'px';
+    }
+    if (!freeChrome.hidden || mobile) {
+      bottom = Math.round(stageRect.bottom - strip.getBoundingClientRect().top + 6) + 'px';
     }
     if (stageEl.style.getPropertyValue('--stage-reserve-top') === top &&
         stageEl.style.getPropertyValue('--stage-reserve-bottom') === bottom) return;

@@ -509,7 +509,7 @@ test('a slide that is a picture plus objects of its own is left alone, with a wa
   assert.equal(out.warnings[0]?.code, 'nodes-truncated');
   assert.deepEqual(out.warnings[0]?.objectIds, [`${slide.id}.Im0`, own.id]);
 
-  // A turned picture is not cut up either, and says so.
+  // A turned picture is not cut up either, and reports that.
   const turned = sourceSlide(0, 'page/1');
   const first = turned.objects[0];
   assert.ok(first);

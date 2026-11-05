@@ -38,7 +38,10 @@ import {
   getConnection, saveConnection, removeConnection,
   cachedToken, cacheToken, dropToken, cachedConnection, hasConnection,
 } from './provider-connections.ts';
-import type { SendTarget } from './send-target.ts';
+import {
+  ShareRefusedError, ShareUnavailableError,
+  type SendTarget, type ShareCapabilities, type ShareLinkOutcome, type ShareOptions,
+} from './send-target.ts';
 import type { SyncRemote, SnapshotMeta, PutOpts } from './sync-remote.ts';
 import { SyncConflictError } from './sync-remote.ts';
 
@@ -167,6 +170,7 @@ export async function disconnectDropbox(fetchFn: typeof fetch = providerFetch): 
       await fetchFn(`${API}/auth/token/revoke`, { method: 'POST', headers: { Authorization: `Bearer ${held}` } });
     } catch { /* revocation is a courtesy; the wipe below is the guarantee */ }
   }
+  sharingGrantedThisSession = false;
   await removeConnection(KIND);
 }
 
@@ -225,9 +229,147 @@ export function dropboxSendTarget(): SendTarget {
         const link = await rpc('files/get_temporary_link', { path: file.path_lower ?? `/${filename}` });
         if (typeof link.link === 'string') url = link.link;
       } catch { /* the upload stands; the label carries the outcome */ }
-      return { url, label: t('Saved to Dropbox ({path})', { path: file.path_display ?? `/${filename}` }) };
+      return { url, label: t('Saved to Dropbox ({path})', { path: file.path_display ?? `/${filename}` }), ref: file.path_lower ?? `/${filename}` };
     },
+    shareCapabilities: dropboxShareCapabilities,
+    share: (ref, options) => dropboxShare(ref, options),
+    revoke: (link) => dropboxRevoke(link.revokeRef ?? link.url),
   };
+}
+
+// ── Share links (sharing/create_shared_link_with_settings) ────────────────────
+//
+// Making a link needs the `sharing.write` scope, which an ordinary Send does not.
+// It is asked for ONLY here, the first time a person creates a link, as a second
+// consent that adds to what they already granted (include_granted_scopes). Until
+// the Dropbox app's own console lists the scope, that consent is refused by Dropbox
+// and the person is told so; Send itself is untouched either way.
+//
+// Dropbox lets a Basic plan make a public link but not set a password or expiry.
+// An expiry that is refused is dropped and the link says so. A PASSWORD that is
+// refused is not dropped: a link that is open when the person asked for it to be
+// locked is wider than asked, so that is reported as a refusal instead.
+
+const SHARE_SCOPE = 'sharing.write';
+let sharingGrantedThisSession = false;
+
+export function dropboxShareCapabilities(): ShareCapabilities {
+  return { audiences: ['anyone', 'organisation'], password: true, expiry: true, revocable: true };
+}
+
+/** Run the second, incremental consent for `sharing.write`. */
+async function grantSharingScope(fetchFn: typeof fetch): Promise<string> {
+  const conn = await getConnection(KIND);
+  const appKey = conn?.config?.clientId;
+  const cfg = {
+    ...grantCfg(),
+    ...(appKey ? { clientId: appKey } : {}),
+    scopes: `${SCOPES} ${SHARE_SCOPE}`,
+    extraAuthParams: { token_access_type: 'offline', include_granted_scopes: 'user' },
+  };
+  let set: TokenSet;
+  try {
+    set = await codeGrant(cfg, fetchFn, await authorizeVia());
+  } catch (error) {
+    const msg = String((error as Error)?.message ?? '');
+    if (/scope|access_denied/i.test(msg) && !/cancel|closed/i.test(msg)) {
+      throw new ShareUnavailableError(t('Dropbox did not allow sharing. The app needs the sharing.write permission switched on in the Dropbox App Console first.'));
+    }
+    throw error;
+  }
+  remember(set);
+  sharingGrantedThisSession = true;
+  if (conn) {
+    await saveConnection({
+      ...conn,
+      ...(conn.persist && set.refreshToken ? { refreshToken: set.refreshToken } : {}),
+      scopes: `${SCOPES} ${SHARE_SCOPE}`,
+    });
+  }
+  return set.accessToken;
+}
+
+interface DropboxErrorBody { error_summary?: string; error?: { '.tag'?: string; settings_error?: { '.tag'?: string }; shared_link_already_exists?: { metadata?: { url?: string } } } }
+
+/** POST a sharing RPC. Asks for the scope up front when this connection has not
+ *  been given it, and again if Dropbox answers `missing_scope`. */
+async function sharingRpc(path: string, body: unknown, fetchFn: typeof fetch): Promise<Response> {
+  const conn = await getConnection(KIND);
+  const have = sharingGrantedThisSession || !!conn?.scopes?.split(' ').includes(SHARE_SCOPE);
+  let tok = have ? await token(fetchFn) : await grantSharingScope(fetchFn);
+  const doPost = (tk: string) => fetchFn(`${API}/${path}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${tk}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  let res = await doPost(tok);
+  if (res.status === 401) {
+    const text = await res.clone().text().catch(() => '');
+    if (text.includes('missing_scope')) { tok = await grantSharingScope(fetchFn); }
+    else { dropToken(KIND); tok = await token(fetchFn); }
+    res = await doPost(tok);
+  }
+  return res;
+}
+
+/** Dropbox timestamps are second-precision UTC. */
+const dropboxTime = (iso: string): string => iso.replace(/\.\d+Z$/, 'Z');
+
+export async function dropboxShare(ref: string, options: ShareOptions, fetchFn: typeof fetch = providerFetch): Promise<ShareLinkOutcome> {
+  if (options.audience === 'people') throw new ShareRefusedError('people', t('Lolly cannot share with named people through Dropbox.'));
+  const expiresAt = options.expiresInDays !== undefined ? new Date(Date.now() + options.expiresInDays * 86_400_000).toISOString() : undefined;
+  const settings = (withExtras: boolean): Record<string, unknown> => ({
+    audience: { '.tag': options.audience === 'organisation' ? 'team' : 'public' },
+    access: { '.tag': 'viewer' },
+    ...(withExtras && options.password ? { require_password: true, link_password: options.password } : {}),
+    ...(withExtras && expiresAt ? { expires: dropboxTime(expiresAt) } : {}),
+  });
+  const attempt = (withExtras: boolean) => sharingRpc('sharing/create_shared_link_with_settings', { path: ref, settings: settings(withExtras) }, fetchFn);
+  const notes: string[] = [];
+  let res = await attempt(true);
+  let err: DropboxErrorBody = res.ok ? {} : ((await res.clone().json().catch(() => ({}))) as DropboxErrorBody);
+
+  if (!res.ok && err.error?.['.tag'] === 'settings_error') {
+    // A Basic plan cannot set a password or an expiry. Say what was dropped.
+    if (options.password) {
+      throw new ShareRefusedError(options.audience, t('Your Dropbox plan does not allow a password on a link, so no link was made. You can make one without a password.'));
+    }
+    if (options.audience === 'organisation') {
+      throw new ShareRefusedError('organisation', t('Your Dropbox account has no team to share with.'));
+    }
+    if (expiresAt) {
+      res = await attempt(false);
+      err = res.ok ? {} : ((await res.clone().json().catch(() => ({}))) as DropboxErrorBody);
+      if (res.ok) notes.push(t('Your Dropbox plan does not allow an expiry date, so this link does not expire. Stop sharing to switch it off.'));
+    }
+  }
+  if (!res.ok && err.error?.['.tag'] === 'shared_link_already_exists') {
+    const url = err.error.shared_link_already_exists?.metadata?.url;
+    if (!url) throw new Error(t('This file already has a Dropbox link with other settings. Manage that link in Dropbox.'));
+    return { url, audience: options.audience, revokeRef: url, notes: [t('This file already had a link, so Lolly reused that link. Its settings are the ones Dropbox holds.')] };
+  }
+  if (res.status === 403 || (!res.ok && err.error?.['.tag'] === 'access_denied')) {
+    throw new ShareRefusedError(options.audience, t('Dropbox will not make this link. Your team administrator may have turned link sharing off.'));
+  }
+  if (!res.ok) throw new Error(t('Dropbox could not make the link ({status})', { status: res.status }));
+  const made = (await res.json()) as { url?: string; expires?: string };
+  if (!made.url) throw new Error(t('Dropbox could not make the link ({status})', { status: 502 }));
+  return {
+    url: made.url,
+    audience: options.audience,
+    ...(made.expires ? { expiresAt: made.expires } : {}),
+    revokeRef: made.url,
+    ...(notes.length ? { notes } : {}),
+  };
+}
+
+/** Revoke a shared link by its url. A link already gone counts as done. */
+export async function dropboxRevoke(url: string, fetchFn: typeof fetch = providerFetch): Promise<void> {
+  const res = await sharingRpc('sharing/revoke_shared_link', { url }, fetchFn);
+  if (res.ok) return;
+  const err = (await res.json().catch(() => ({}))) as DropboxErrorBody;
+  if (res.status === 409 && /not_found/.test(err.error_summary ?? '')) return;
+  throw new Error(t('Dropbox could not stop the sharing ({status})', { status: res.status }));
 }
 
 // ── The SyncRemote (plans/138 B1) ─────────────────────────────────────────────

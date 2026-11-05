@@ -1,0 +1,155 @@
+{
+  "oracle": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "filter": "ebur128=peak=true",
+  "programmes": {
+    "sine_997": {
+      "rate": 48000,
+      "channels": 2,
+      "integrated": -20.006,
+      "loudnessRange": 0,
+      "truePeakDb": -20,
+      "samples": [
+        {
+          "at": 5,
+          "m": -20,
+          "s": -20
+        },
+        {
+          "at": 10,
+          "m": -20,
+          "s": -20
+        }
+      ]
+    },
+    "pink_noise": {
+      "rate": 48000,
+      "channels": 2,
+      "integrated": -17.614,
+      "loudnessRange": 0.03,
+      "truePeakDb": -6.897231303772358,
+      "samples": [
+        {
+          "at": 5,
+          "m": -17.46,
+          "s": -17.607
+        },
+        {
+          "at": 10,
+          "m": -17.564,
+          "s": -17.617
+        },
+        {
+          "at": 15,
+          "m": -17.616,
+          "s": -17.62
+        }
+      ]
+    },
+    "speech_like": {
+      "rate": 48000,
+      "channels": 2,
+      "integrated": -24.975,
+      "loudnessRange": 6.73,
+      "truePeakDb": -7.786796738202401,
+      "samples": [
+        {
+          "at": 5,
+          "m": -27.914,
+          "s": -24.649
+        },
+        {
+          "at": 10,
+          "m": -26.453,
+          "s": -27.475
+        },
+        {
+          "at": 15,
+          "m": -23.451,
+          "s": -23.662
+        },
+        {
+          "at": 20,
+          "m": -29.409,
+          "s": -27.919
+        },
+        {
+          "at": 25,
+          "m": null,
+          "s": -29.959
+        }
+      ]
+    },
+    "gated_stereo": {
+      "rate": 48000,
+      "channels": 2,
+      "integrated": -21.547,
+      "loudnessRange": 20.06,
+      "truePeakDb": -17.99258909764874,
+      "samples": [
+        {
+          "at": 5,
+          "m": -18.683,
+          "s": -18.683
+        },
+        {
+          "at": 10,
+          "m": -33.004,
+          "s": -34.765
+        },
+        {
+          "at": 15,
+          "m": -61.628,
+          "s": -37.763
+        },
+        {
+          "at": 20,
+          "m": null,
+          "s": null
+        }
+      ]
+    },
+    "intersample_peak": {
+      "rate": 48000,
+      "channels": 2,
+      "integrated": 2.43,
+      "loudnessRange": 0,
+      "truePeakDb": -0.3184593219433848,
+      "samples": [
+        {
+          "at": 5,
+          "m": 2.437,
+          "s": 2.437
+        }
+      ]
+    },
+    "speech_mono_44k": {
+      "rate": 44100,
+      "channels": 1,
+      "integrated": -34.038,
+      "loudnessRange": 8.52,
+      "truePeakDb": -10.812150244815385,
+      "samples": [
+        {
+          "at": 5,
+          "m": -35.558,
+          "s": -35.501
+        },
+        {
+          "at": 10,
+          "m": -39.989,
+          "s": -39.116
+        },
+        {
+          "at": 15,
+          "m": -32.79,
+          "s": -39.543
+        },
+        {
+          "at": 20,
+          "m": -34.05,
+          "s": -30.976
+        }
+      ]
+    }
+  }
+}

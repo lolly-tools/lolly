@@ -32,6 +32,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - svg-readers   : colour/layer/custom-geometry/path readers over one hostile SVG string
  *   - keyframes     : parse/normalise/evaluate the URL-mode `kf` wire grammar
  *   - midi          : Standard MIDI event walker plus note-to-pattern mapping
+ *   - smf           : lossless Standard MIDI File reader, then the writer must give the same bytes back
  *   - zzfxm         : guarded procedural-song object validation and PCM rendering
  *   - rondo-source  : rondocode song files and share links (base64url + dictionary DEFLATE)
  *   - rondo-staged  : the validator between the rondocode vm and the DSP (packages/rondo)
@@ -48,6 +49,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - c2pa-containers: attachC2paStore(bytes, fmt, store) + embedC2paInPdf - the placement-side container walkers
  *   - url-pack      : unpackToken(token) + expandQuery(query) - the `z` param decoder (DEFLATE bomb caps)
  *   - wav           : parseWav(bytes) - the RIFF/WAVE container walker
+ *   - video-probe   : probeVideoContainer(bytes) - the MOV/MP4/MXF header probe (no decode)
  *   - depth-hint    : depthHint(bytes) - the ingest bit-depth header sniff (web shell lib)
  *   - lut-parse     : parseCubeLut / parse3dlLut - the .cube/.3dl colour-grade LUT readers
  *   - docx-read     : readDocx(parts, parseXml) + isDocx, then both doc-md serialisers
@@ -55,13 +57,14 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - layout-abi    : raw WASM layout_alloc/layout_solve bytes through Rust serde_json and modern flex/grid routines
  *   - penpot-layout : importPenpotLayouts + penpotChildrenPaintOrder, then Design request placement/evaluation
  *   - design-guides : v1/v2 guide text/JSON, canonical reparse and finite snap targets without DOM
+ *   - dxf           : the DXF reader (WASM tag reader, entity list), then the flattener and Design boxes over what it returns
  *   - font-inspect  : inspectFont + glyphsForText over a real variable TTF, its WOFF wrapper and crafted overlapping cmap 4/12 tables (sfnt directory, name, fvar, cmap 4/12)
  */
 
 import { storeZip } from '../../engine/src/zip.ts';
 import { inspectFont, glyphsForText } from '../../engine/src/font-inspect.ts';
 import { sfntToWoff } from '../../engine/src/font-convert.ts';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { readEmojiPack } from '../../engine/src/emoji-pack.ts';
 import { prepareEmojiSvg, emojiSvgMarkup } from '../../engine/src/emoji-svg.ts';
 import { emojiGraphemes, segmentEmojiText } from '../../engine/src/emoji-segment.ts';
@@ -78,6 +81,7 @@ import {
 } from '../../engine/src/c2pa-extract.ts';
 import { unpackToken, expandQuery, hasPackedState, packQuery } from '../../engine/src/url-pack.ts';
 import { parseWav } from '../../engine/src/wav.ts';
+import { bytesProbeSource, probeVideoContainer, VideoProbeError } from '../../engine/src/video-container-probe.ts';
 import { parseCubeLut, parse3dlLut } from '../../engine/src/grade.ts';
 import { readPsd } from '../../engine/src/psd.ts';
 import { writePsd } from '../../engine/src/psd-write.ts';
@@ -144,6 +148,7 @@ import { parseSampleTimes, sequenceSampleTimes } from '../../engine/src/sequence
 import { parseMotionParams } from '../../engine/src/motion-sampling.ts';
 import { validRequest, validateNegotiation, validateHttpHeaders, allowedOrigin } from '../../services/mcp/src/negotiation.ts';
 import { midiToSong, parseMidi } from '../../engine/src/midi.ts';
+import { readSmf, writeSmf, SmfError } from '../../engine/src/smf.ts';
 import { renderZzfxm, type ZzfxSong } from '../../engine/src/zzfxm.ts';
 import { packRadiance, parseRadianceHeader, readRadiance } from '../../engine/src/radiance.ts';
 import { assembleSealMessage, parseSealRecords } from '../../engine/src/seal.ts';
@@ -1249,6 +1254,46 @@ export const wavTarget: FuzzTarget = {
   async invoke(bytes) { parseWav(bytes); },
 };
 
+// ── video-probe: the MOV/MP4/MXF container probe ──────────────────────────────
+
+function probeBox(type: string, ...body: Uint8Array[]): Uint8Array {
+  const b = concat(body);
+  return concat([u32be(8 + b.length), bytesOf(type), b]);
+}
+
+function probeMovSeed(code: string): Uint8Array {
+  const z = (n: number): Uint8Array => new Uint8Array(n);
+  const u16b = (n: number): Uint8Array => Uint8Array.of((n >>> 8) & 0xff, n & 0xff);
+  const entry = probeBox(code, z(6), u16b(1), z(16), u16b(64), u16b(48), u32be(0x480000), u32be(0x480000), z(4), u16b(1), z(32), u16b(24), u16b(0xffff));
+  const stbl = probeBox('stbl', probeBox('stsd', z(4), u32be(1), entry), probeBox('stts', z(4), u32be(1), u32be(25), u32be(1000)));
+  const trak = probeBox('trak', probeBox('mdia', probeBox('mdhd', z(8), u32be(25000), u32be(50000), z(4)), probeBox('hdlr', z(4), bytesOf('vide'), z(12)), probeBox('minf', stbl)));
+  return concat([probeBox('ftyp', bytesOf('qt  '), u32be(0), bytesOf('qt  ')), probeBox('mdat', z(8)), probeBox('moov', probeBox('mvhd', z(8), u32be(1000), u32be(2000), z(80)), trak)]);
+}
+
+function probeMxfSeed(): Uint8Array {
+  const ul = (...r: number[]): Uint8Array => Uint8Array.from([0x06, 0x0e, 0x2b, 0x34, ...r]);
+  const ber = (n: number): Uint8Array => Uint8Array.of(0x83, (n >> 16) & 255, (n >> 8) & 255, n & 255);
+  const tag = (t: number, v: Uint8Array): Uint8Array => concat([Uint8Array.of(t >> 8, t & 255, v.length >> 8, v.length & 255), v]);
+  const desc = concat([ul(0x02, 0x53, 0x01, 0x01, 0x0d, 0x01, 0x01, 0x01, 0x01, 0x01, 0x28, 0x00), ber(60),
+    tag(0x3203, u32be(1920)), tag(0x3202, u32be(1080)), tag(0x3001, concat([u32be(25), u32be(1)])),
+    tag(0x3201, ul(0x04, 0x01, 0x01, 0x0a, 0x04, 0x01, 0x02, 0x02, 0x71, 0x26, 0, 0))]);
+  const pack = concat([Uint8Array.of(0, 1, 0, 3), u32be(1), new Uint8Array(24), u32be(0), u32be(desc.length), new Uint8Array(24),
+    ul(0x04, 0x01, 0x01, 0x09, 0x0d, 0x01, 0x02, 0x01, 0x01, 0x01, 0, 0), u32be(0), u32be(16)]);
+  return concat([ul(0x02, 0x05, 0x01, 0x01, 0x0d, 0x01, 0x02, 0x01, 0x01, 0x02, 0x04, 0x00), ber(pack.length), pack, desc]);
+}
+
+export const videoProbeTarget: FuzzTarget = {
+  name: 'video-probe',
+  async seeds() {
+    return [probeMovSeed('apch'), probeMovSeed('avc1'), probeMovSeed('AVdh'), probeMxfSeed()];
+  },
+  // Contract: null for foreign bytes, a VideoProbeError for a recognised container
+  // that cannot be read. Any other throw, a hang or a runaway allocation is a finding.
+  async invoke(bytes) {
+    try { await probeVideoContainer(bytesProbeSource(bytes)); } catch (e) { if (!(e instanceof VideoProbeError)) throw e; }
+  },
+};
+
 // depthHint (shells/web/src/lib/image-sample.ts): the ingest path's bit-depth
 // header sniff. Contract mirrors the house reader rule: never throws - hostile,
 // truncated, or lying headers answer nulls - and every read is a bounded slice,
@@ -1592,6 +1637,23 @@ export const midiTarget: FuzzTarget = {
   async invoke(bytes) {
     const parsed = parseMidi(bytes);
     midiToSong(parsed);
+  },
+};
+
+export const smfTarget: FuzzTarget = {
+  name: 'smf',
+  async seeds() {
+    const dir = new URL('../fixtures/smf/', import.meta.url);
+    return readdirSync(dir).filter((f) => f.endsWith('.mid')).map((f) => new Uint8Array(readFileSync(new URL(f, dir))));
+  },
+  async invoke(bytes) {
+    let file: ReturnType<typeof readSmf>;
+    try { file = readSmf(bytes, { maxBytes: 1 << 20, maxEvents: 100_000 }); } catch (e) {
+      if (e instanceof SmfError) throw e;
+      throw new Error(`readSmf threw a non-SmfError: ${String(e)}`);
+    }
+    const back = writeSmf(file);
+    if (back.length !== bytes.length || back.some((b, i) => b !== bytes[i])) throw new Error('SMF read then write did not give the same bytes');
   },
 };
 
@@ -1991,6 +2053,40 @@ export const adobeXmlTarget: FuzzTarget = {
     else readCameraRawPreset(source, parseXml);
   },
 };
+export const timelineEdlTarget: FuzzTarget = {
+  name: 'timeline-edl',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/timeline/df-2997.edl', import.meta.url))), new Uint8Array(await readFile(new URL('../fixtures/timeline/df-5994.edl', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const { readEdl } = await import('../../engine/src/timeline-edl.ts');
+    const source = new TextDecoder().decode(bytes);
+    readEdl(source);
+  },
+};
+export const timelineOtioTarget: FuzzTarget = {
+  name: 'timeline-otio',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/timeline/mixed-rate.otio', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const { readOtio } = await import('../../engine/src/timeline-otio.ts');
+    readOtio(new TextDecoder().decode(bytes));
+  },
+};
+export const timelineFcpxmlTarget: FuzzTarget = {
+  name: 'timeline-fcpxml',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/timeline/df-2997.fcpxml', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const { readFcpxml } = await import('../../engine/src/timeline-fcpxml.ts');
+    readFcpxml(new TextDecoder().decode(bytes), parseXml);
+  },
+};
 export const adobePsdTarget: FuzzTarget = {
   name: 'adobe-psd',
   async seeds() {
@@ -2005,15 +2101,339 @@ export const adobePsdTarget: FuzzTarget = {
     kernel.roundTrip(bytes);
   },
 };
+export const xlsxNumfmtTarget: FuzzTarget = {
+  name: 'xlsx-numfmt',
+  async seeds() {
+    const { storeZip } = await import('../../engine/src/zip.ts');
+    const enc = (t: string) => new TextEncoder().encode(t);
+    // Stored (not deflated) parts, so a mutation reaches the XML or the format codes instead of breaking the zip.
+    const book = (styles: string, cells: string) => storeZip([
+      { name: 'xl/workbook.xml', bytes: enc('<workbook xmlns:r="r"><workbookPr date1904="1"/><sheets><sheet name="Data" sheetId="1" r:id="rId1"/></sheets></workbook>') },
+      { name: 'xl/_rels/workbook.xml.rels', bytes: enc('<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>') },
+      { name: 'xl/worksheets/sheet1.xml', bytes: enc(`<worksheet><sheetData><row r="1">${cells}</row></sheetData></worksheet>`) },
+      { name: 'xl/styles.xml', bytes: enc(styles) },
+    ]);
+    const custom = '<styleSheet><numFmts count="3"><numFmt numFmtId="164" formatCode="yyyy-mm-dd"/><numFmt numFmtId="165" formatCode="[&gt;100]&quot;big&quot;;[&lt;0]&quot;neg&quot;;0.0%"/><numFmt numFmtId="166" formatCode="@&quot; units&quot;"/></numFmts><cellXfs count="5"><xf numFmtId="164"/><xf numFmtId="165"/><xf numFmtId="14"/><xf numFmtId="12"/><xf numFmtId="166"/></cellXfs></styleSheet>';
+    const cells = '<c r="A1" s="0"><v>45000.5</v></c><c r="B1" s="1"><v>-5</v></c><c r="C1" s="2"><v>60</v></c><c r="D1" s="3"><v>3.75</v></c><c r="E1" s="4" t="inlineStr"><is><t>bolts</t></is></c>';
+    return [book(custom, cells), enc('0.00E+00;[Red]\\(#,##0\\);"zero";@" units"')];
+  },
+  async invoke(bytes) {
+    const { loadXlsxNumfmtKernel } = await import('../../packages/node-shell/src/xlsx-numfmt-node.ts');
+    const { readXlsx } = await import('../../engine/src/xlsx-import.ts');
+    const kernel = await loadXlsxNumfmtKernel();
+    // The mutated bytes are read as a workbook (styles reader, batching) and, as text, as a raw format code.
+    const code = new TextDecoder('latin1').decode(bytes.subarray(0, 400));
+    kernel.format([{ value: 45000.5, formatCode: code, dateSystem: 1900 }, { value: 'text', formatCode: code, dateSystem: 1904 }, { value: -0.0042, formatCode: code, dateSystem: 1900 }]);
+    readXlsx(bytes, { formatCell: kernel.formatCell });
+  },
+};
+// Spreadsheet formulas (packages/node-shell/wasm/gridcraft-calc): formula text from a table cell or a
+// workbook, and the JSON request that carries a formula. Contract: a value or an error on the cell, or a refusal
+// message for the whole request; never a trap, a hang or a result of the wrong shape. Seeds are
+// ordinary formulas and one small request; mutations reach the lexer, the parser, the reference
+// forms, array constants, LET and LAMBDA, and the request reader.
+export const formulaCalcTarget: FuzzTarget = {
+  name: 'formula-calc',
+  async seeds() {
+    const enc = (t: string) => new TextEncoder().encode(t);
+    const request = JSON.stringify({ now: 1_790_000_000_000, seed: 3, sheets: [{ name: 'Data', cells: [{ r: 0, c: 0, v: 2 }, { r: 1, c: 0, v: 'x' }, { r: 2, c: 0, f: 'SUM(A1:A2)' }] }] });
+    return [
+      enc('SUM(A1:A3)*IF(B2>1,"a","b")&TEXT(NOW(),"yyyy-mm-dd")'),
+      enc("VLOOKUP(\"k\",'Sheet 2'!$A$1:$C$9,3,FALSE)+INDEX({1,2;3,4},2,1)"),
+      enc('LET(x,SEQUENCE(3),y,x*2,SUM(y))+LAMBDA(a,a+1)(2)'),
+      enc('XLOOKUP(1,A:A,B:B,"none")&SUMIFS(C2:C9,A2:A9,">=1",B2:B9,"<>")&Table1[[#This Row],[Col]]'),
+      enc(request),
+    ];
+  },
+  async invoke(bytes) {
+    const { createCalcEngine } = await import('../../engine/src/calc.ts');
+    const { compileGridcraftCalc, createGridcraftCalcRunner } = await import('../../packages/node-shell/src/gridcraft-calc.ts');
+    const { readFile } = await import('node:fs/promises');
+    fuzzCalc ??= (async () => {
+      const wasm = await readFile(new URL('../../packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm', import.meta.url));
+      const runner = createGridcraftCalcRunner(await compileGridcraftCalc(new Uint8Array(wasm)));
+      return { runner, engine: createCalcEngine(runner, () => ({ now: 1_790_000_000_000, seed: 1 })) };
+    })();
+    const { runner, engine } = await fuzzCalc;
+    // A trap is the one failure: the runner reports it with this message and a refusal never does.
+    const notATrap = (error: unknown): void => { if (error instanceof Error && /stopped on this input/.test(error.message)) throw new WebAssembly.RuntimeError(error.message); };
+    // As formula text in a cell beside data, so references resolve.
+    const text = new TextDecoder().decode(bytes.subarray(0, 4096));
+    try {
+      const out = engine.evaluate({ sheets: [{ name: 'Data', cells: [{ r: 0, c: 0, v: 2 }, { r: 1, c: 0, v: 'x' }, { r: 0, c: 1, f: text }, { r: 1, c: 1, f: text, legacy: true }] }] });
+      if (out.sheets.length !== 1 || out.sheets[0]!.cells.length < 2) throw new WebAssembly.RuntimeError('A formula request lost its cells.');
+    } catch (error) { notATrap(error); if (error instanceof WebAssembly.RuntimeError) throw error; }
+    // As the whole request body.
+    try { runner(1, bytes); } catch (error) { notATrap(error); }
+  },
+};
+let fuzzCalc: Promise<{ runner: import('../../engine/src/calc.ts').CalcRunner; engine: import('../../engine/src/calc.ts').CalcEngine }> | undefined;
+// PatchMatch inpainting (packages/node-shell/wasm/inpaint). Mutated bytes become a small image and
+// mask, and also a size header that disagrees with the lengths. A run must return a buffer of
+// matching length or throw InpaintKernelError. Sizes stay small, so each case is quick.
+export const inpaintTarget: FuzzTarget = {
+  name: 'inpaint',
+  async seeds() {
+    const w = 24, h = 20, px = new Uint8Array(w * h * 4), mask = new Uint8Array(w * h);
+    for (let i = 0; i < w * h; i++) { px[i * 4] = (i * 7) & 255; px[i * 4 + 1] = (i * 3) & 255; px[i * 4 + 2] = 120; px[i * 4 + 3] = 255; }
+    for (let y = 8; y < 13; y++) for (let x = 9; x < 15; x++) mask[y * w + x] = 1;
+    const out = new Uint8Array(8 + px.length + mask.length);
+    new DataView(out.buffer).setUint32(0, w, true); new DataView(out.buffer).setUint32(4, h, true);
+    out.set(px, 8); out.set(mask, 8 + px.length);
+    return [out];
+  },
+  async invoke(bytes) {
+    const { loadInpaintKernel } = await import('../../packages/node-shell/src/inpaint-node.ts');
+    const { InpaintKernelError } = await import('../../packages/node-shell/src/inpaint.ts');
+    const kernel = await loadInpaintKernel();
+    if (bytes.length < 8) return;
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const w = (dv.getUint32(0, true) % 40) + 1, h = (dv.getUint32(4, true) % 40) + 1;
+    const pixels = new Uint8Array(w * h * 4), mask = new Uint8Array(w * h);
+    pixels.set(bytes.subarray(8, 8 + pixels.length));
+    mask.set(bytes.subarray(8 + pixels.length, 8 + pixels.length + mask.length));
+    try {
+      const out = kernel.fill(pixels, w, h, mask);
+      if (out.length !== pixels.length) throw new Error('inpaint returned the wrong size');
+    } catch (error) { if (!(error instanceof InpaintKernelError)) throw error; }
+    // Sizes that disagree with the lengths must be refused.
+    try { kernel.fill(bytes.subarray(8), dv.getUint32(0, true), dv.getUint32(4, true), bytes.subarray(0, 4)); } catch (error) { if (!(error instanceof InpaintKernelError)) throw error; }
+  },
+};
+// Image trace (packages/node-shell/wasm/image-trace): pixels from the shell's own decoder, plus an
+// 8-byte header (width, height) the module checks. Contract: a result the wire reader accepts or an
+// ImageTraceError refusal; never a trap or a hang. Seeds are a tiny logo and a tiny line drawing;
+// mutations reach the header (sizes that disagree with the length) and the pixel values.
+export const imageTraceTarget: FuzzTarget = {
+  name: 'image-trace',
+  async seeds() {
+    const { logoFixture, lineArtFixture } = await import('../helpers/image-trace-fixtures.ts');
+    const pack = (f: { width: number; height: number; rgba: Uint8Array }) => {
+      const out = new Uint8Array(8 + f.rgba.length);
+      new DataView(out.buffer).setUint32(0, f.width, true); new DataView(out.buffer).setUint32(4, f.height, true);
+      out.set(f.rgba, 8); return out;
+    };
+    return [pack(logoFixture(24)), pack(lineArtFixture(24))];
+  },
+  async invoke(bytes) {
+    const { loadImageTraceKernel } = await import('../../packages/node-shell/src/image-trace-node.ts');
+    const { ImageTraceError } = await import('../../engine/src/image-trace.ts');
+    const kernel = await loadImageTraceKernel();
+    if (bytes.length < 8) return;
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    // Small sizes only, so a mutated header does not ask the module for megapixels on every case.
+    const w = (dv.getUint32(0, true) % 48) + 1, h = (dv.getUint32(4, true) % 48) + 1;
+    const pixels = new Uint8Array(w * h * 4);
+    pixels.set(bytes.subarray(8, 8 + pixels.length));
+    for (const preset of ['logo', 'illustration', 'line-art', 'centreline'] as const) {
+      try { kernel.trace(pixels, w, h, preset); } catch (error) { if (!(error instanceof ImageTraceError)) throw error; }
+    }
+    // The raw header path: the declared size and the length need not agree.
+    try { kernel.trace(bytes.subarray(8), dv.getUint32(0, true), dv.getUint32(4, true), 'illustration'); } catch (error) { if (!(error instanceof ImageTraceError)) throw error; }
+  },
+};
+// PDF accessibility check (packages/node-shell/wasm/pdf-a11y): reads an arbitrary user PDF.
+// Contract: a report or a typed PdfAccessibilityError refusal; never a trap, a hang or an
+// answer the transport cannot parse. Seeds are a small untagged PDF and a tagged one with a
+// table and a figure, so mutations reach the xref reader, the content scan and the structure walk.
+export const pdfA11yTarget: FuzzTarget = {
+  name: 'pdf-a11y',
+  async seeds() {
+    const enc = (t: string) => new TextEncoder().encode(t);
+    const build = (bodies: string[], root: string) => {
+      let out = '%PDF-1.7\n'; const offsets: number[] = [];
+      bodies.forEach((b, i) => { offsets.push(out.length); out += `${i + 1} 0 obj\n${b}\nendobj\n`; });
+      const xref = out.length;
+      out += `xref\n0 ${bodies.length + 1}\n0000000000 65535 f \n${offsets.map(o => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`;
+      return enc(`${out}trailer << /Size ${bodies.length + 1} /Root 1 0 R ${root} >>\nstartxref\n${xref}\n%%EOF\n`);
+    };
+    const stream = (d: string) => `<< /Length ${d.length} >>\nstream\n${d}\nendstream`;
+    const page = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R /Annots [9 0 R] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> >>';
+    const content = '/Figure << /MCID 0 >> BDC 0 0 10 10 re f EMC /P << /MCID 1 >> BDC BT /F1 12 Tf 20 100 Td (Hi) Tj ET EMC';
+    return [
+      build(['<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R >>', stream('0 0 10 10 re f')], ''),
+      build(['<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 5 0 R /MarkInfo << /Marked true >> /Lang (en) >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', page, stream(content),
+        '<< /Type /StructTreeRoot /K [6 0 R 7 0 R 8 0 R] >>', '<< /S /Figure /Pg 3 0 R /K 0 >>', '<< /S /P /Pg 3 0 R /K 1 >>', '<< /S /Table /Pg 3 0 R /K [] >>',
+        '<< /Type /Annot /Subtype /Link /Rect [0 0 10 10] >>'], ''),
+    ];
+  },
+  async invoke(bytes) {
+    const { checkPdfAccessibility } = await import('../../packages/node-shell/src/pdf-a11y-node.ts');
+    const { PdfAccessibilityError } = await import('../../packages/node-shell/src/pdf-a11y.ts');
+    const { summarisePdfAccessibility } = await import('../../engine/src/pdf-accessibility.ts');
+    try { summarisePdfAccessibility(await checkPdfAccessibility(bytes)); } catch (error) { if (!(error instanceof PdfAccessibilityError)) throw error; }
+  },
+};
+// Keep text PDF redaction (packages/node-shell/wasm/pdf-a11y, operation 2, then the shell's own
+// check): rewrites an arbitrary user PDF. Contract: a typed PdfKeepTextError refusal or a result
+// the shell's check accepted; never a trap, a hang, or an answer without bytes. Seeds are
+// generated PDFs with text, pictures and drawings, mutated with the boxes held fixed.
+export const pdfRedactKeepTarget: FuzzTarget = {
+  name: 'pdf-redact-keep',
+  async seeds() {
+    const { makeCorpusPdf } = await import('../lib-keep-text-corpus.ts');
+    return [(await makeCorpusPdf(5)).bytes, (await makeCorpusPdf(9)).bytes];
+  },
+  async invoke(bytes) {
+    const { loadPdfA11yKernel } = await import('../../packages/node-shell/src/pdf-a11y-node.ts');
+    const { PdfKeepTextError } = await import('../../packages/node-shell/src/pdf-a11y.ts');
+    const { redactKeepText } = await import('../../packages/node-shell/src/pdf-redact-keep.ts');
+    const bars = [{ page: 1, x: 20, y: 40, w: 120, h: 30 }, { page: 1, x: 100, y: 200, w: 90, h: 60 }];
+    try {
+      const run = await redactKeepText(await loadPdfA11yKernel(), bytes, { bars } as never);
+      if (!(run.bytes instanceof Uint8Array) || run.bytes.length === 0) throw new Error('an accepted result had no bytes');
+    } catch (error) {
+      if (!(error instanceof PdfKeepTextError)) throw error;
+      // A trap is reported as a refusal; the fuzzer must still see it as the crash it is.
+      if (error.cause instanceof WebAssembly.RuntimeError) throw error.cause;
+    }
+  },
+};
+// INDD to IDML converter (packages/node-shell/wasm/indd): the most untrusted binary the Design
+// import touches. Contract: a typed InddError refusal or a conversion with warnings; never a
+// trap, hang or output over the declared 128 MiB limit. Seeds are a signature-only page set and,
+// when `node scripts/indd-corpus.ts fetch-fixtures` has run, the smallest open fixture.
+export const inddTarget: FuzzTarget = {
+  name: 'indd',
+  async seeds() {
+    const page = new Uint8Array(8 * 4096);
+    page.set([0x06, 0x06, 0xed, 0xf5, 0xd8, 0x1d, 0x46, 0xe5, 0xbd, 0x31, 0xef, 0xe7, 0xfe, 0x74, 0xb7, 0x1d]);
+    page.set(new TextEncoder().encode('DOCUMENT'), 16); page[24] = 1;
+    new DataView(page.buffer).setUint32(0x118, 8, true);
+    const seeds = [page];
+    try {
+      const { readFileSync } = await import('node:fs');
+      seeds.push(new Uint8Array(readFileSync(new URL('../../plans/corpora/indd-fixtures/xmp-toolkit-bluesquare/BlueSquare.indd', import.meta.url))));
+    } catch { /* The fixture is optional. */ }
+    return seeds;
+  },
+  async invoke(bytes) {
+    const { loadInddKernel } = await import('../../packages/node-shell/src/indd-node.ts');
+    const { InddError } = await import('../../packages/node-shell/src/indd.ts');
+    try { (await loadInddKernel()).convert(bytes, 'fuzz.indd'); }
+    catch (error) {
+      if (!(error instanceof InddError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+    }
+  },
+};
+// Camera raw decoder (packages/node-shell/wasm/camera-raw): untrusted camera files, TIFF IFD chains,
+// lossless and lossy JPEG tiles and vendor maker notes. Contract: a typed CameraRawError refusal or a
+// developed picture within the declared 512 MiB module memory; never a trap, hang or oversized
+// result. Seeds are small synthetic Bayer DNG and TIFF/EP files, so a run takes the same time everywhere.
+export const cameraRawTarget: FuzzTarget = {
+  name: 'camera-raw',
+  async seeds() {
+    const { buildDng } = await import('../camera-raw-fixtures.ts');
+    const scene = (x: number, y: number): [number, number, number] => [x / 24, y / 16, 0.4];
+    return [
+      buildDng({ width: 24, height: 16, scene, iso: 400, exposureTime: [1, 125], orientation: 6 }),
+      buildDng({ width: 24, height: 16, scene, dng: false, make: 'NIKON CORPORATION', model: 'NIKON D-TEST' }),
+    ];
+  },
+  async invoke(bytes) {
+    const { loadCameraRawKernel } = await import('../../packages/node-shell/src/camera-raw-node.ts');
+    const { CameraRawError } = await import('../../packages/node-shell/src/camera-raw.ts');
+    try { (await loadCameraRawKernel()).open(bytes, 'fast'); }
+    catch (error) {
+      if (!(error instanceof CameraRawError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+    }
+  },
+};
+// DXF reader (packages/node-shell/wasm/dxf): untrusted CAD files. Contract: a typed DxfError refusal or
+// a flat entity list that the flattener and the Design mapper then handle; never a trap, hang or
+// output over the declared limits. Seeds are synthetic ASCII, binary R13+ and binary R12 drawings.
+export const dxfTarget: FuzzTarget = {
+  name: 'dxf',
+  async seeds() {
+    const f = await import('../fixtures/dxf/synthetic.ts');
+    const ascii = f.dxfText({
+      layers: [{ name: 'WALLS', aci: 1 }, { name: 'TEXT', aci: 3, flags: 1 }],
+      styles: [{ name: 'PLAN', font: 'arial.ttf', typeface: 'Arial' }, { name: 'OLD', font: 'simplex.shx' }],
+      blocks: [{ name: 'DOOR', base: [1, 0], entities: f.line(1, 0, 3, 0) }, { name: 'SITE', xref: 'site.dwg' }],
+      entities: [
+        ...f.line(0, 0, 10, 0, 'WALLS'), ...f.circle(5, 5, 2), ...f.arc(0, 0, 4, 10, 80), ...f.ellipse(2, 2, 3, 0, 0.5),
+        ...f.lwpolyline([[0, 0, 0.5], [4, 0], [4, 3]], true), ...f.polyline([[0, 0], [2, 1, 0.3], [4, 0]]),
+        ...f.spline(3, [0, 0, 0, 0, 1, 1, 1, 1], [[0, 0], [1, 2], [2, -2], [3, 0]]), ...f.fitSpline([[0, 0], [1, 1], [2, 0]]),
+        ...f.text(1, 1, 0.5, 'Hall', 'PLAN'), ...f.mtext(2, 2, 0.5, '{\\fCalibri|b0;Living\\PRoom}', 'PLAN'),
+        ...f.insert('DOOR', 3, 3, '0', [[41, 2], [50, 90], [70, 2], [44, 3]]), ...f.insert('SITE', 0, 0),
+        [0, 'HATCH'], [8, 'WALLS'],
+      ],
+    });
+    return [new TextEncoder().encode(ascii), f.dxfBinary(ascii), f.dxfBinary(ascii, true)];
+  },
+  async invoke(bytes) {
+    const { loadDxfKernel } = await import('../../packages/node-shell/src/dxf-node.ts');
+    const { DxfError } = await import('../../packages/node-shell/src/dxf.ts');
+    const { flattenDxf } = await import('../../engine/src/dxf-import.ts');
+    const { dxfToDesign } = await import('../../engine/src/dxf-design.ts');
+    let raw: Parameters<typeof flattenDxf>[0];
+    try { raw = (await loadDxfKernel()).read(bytes); }
+    catch (error) {
+      if (!(error instanceof DxfError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+      return;
+    }
+    dxfToDesign(flattenDxf(raw));
+  },
+};
+// Affinity reader (packages/node-shell/wasm/affinity): untrusted container, zstd/zlib entries and a
+// tagged object stream. Contract: a typed AffinityError refusal or a result under the declared
+// limits; never a trap, hang or oversized response. Seeds are a header-only container and, when
+// `node scripts/affinity-corpus.ts fetch` has run, the smallest public documents.
+export const affinityTarget: FuzzTarget = {
+  name: 'affinity',
+  async seeds() {
+    const head = new Uint8Array(96), v = new DataView(head.buffer);
+    head.set([0x00, 0xff, 0x4b, 0x41]); v.setUint16(4, 12, true); head.set(new TextEncoder().encode('nsrP'), 8); head.set(new TextEncoder().encode('#Inf'), 12);
+    v.setBigUint64(16, 72n, true); head.set(new TextEncoder().encode('Prot'), 64);
+    const seeds = [head];
+    try {
+      const { readFileSync, readdirSync, statSync } = await import('node:fs');
+      const dir = new URL('../../plans/corpora/affinity/', import.meta.url);
+      const files = readdirSync(dir).filter(f => /\.(af|afdesign)$/.test(f)).map(f => ({ f, size: statSync(new URL(f, dir)).size })).sort((a, b) => a.size - b.size).slice(0, 4);
+      for (const { f } of files) seeds.push(new Uint8Array(readFileSync(new URL(f, dir))));
+    } catch { /* The corpus is optional. */ }
+    return seeds;
+  },
+  async invoke(bytes) {
+    const { loadAffinityKernel } = await import('../../packages/node-shell/src/affinity-node.ts');
+    const { AffinityError } = await import('../../packages/node-shell/src/affinity.ts');
+    try {
+      const kernel = await loadAffinityKernel();
+      kernel.inspect(bytes, 'fuzz.af');
+      kernel.model(bytes);
+    } catch (error) {
+      if (!(error instanceof AffinityError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+    }
+  },
+};
 export const idmlReadTarget: FuzzTarget = {
   name: 'idml-read',
   async seeds() {
     const { storeZip } = await import('../../engine/src/zip.ts');
     const encode = (s: string) => new TextEncoder().encode(s);
-    return [storeZip([
-      { name: 'designmap.xml', bytes: encode('<Document xmlns:p="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"><p:Spread src="Spreads/a.xml"/></Document>') },
-      { name: 'Spreads/a.xml', bytes: encode('<Spread><Page GeometricBounds="0 0 600 400"/><Rectangle FillColor="Color/Black"><Properties><PathGeometry><PathPointType Anchor="20 30"/><PathPointType Anchor="200 250"/></PathGeometry></Properties></Rectangle></Spread>') },
-    ])];
+    const ns = 'xmlns:p="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"';
+    const geometry = '<Properties><PathGeometry><PathPointType Anchor="20 30"/><PathPointType Anchor="200 250"/></PathGeometry></Properties>';
+    const plain = storeZip([
+      { name: 'designmap.xml', bytes: encode(`<Document ${ns}><p:Spread src="Spreads/a.xml"/></Document>`) },
+      { name: 'Spreads/a.xml', bytes: encode(`<Spread><Page GeometricBounds="0 0 600 400"/><Rectangle FillColor="Color/Black">${geometry}</Rectangle></Spread>`) },
+    ]);
+    // Styles with a BasedOn chain, a master page item, a table in a story and an object style.
+    const rich = storeZip([
+      { name: 'designmap.xml', bytes: encode(`<Document ${ns}><p:Styles src="Resources/Styles.xml"/><p:MasterSpread src="MasterSpreads/m.xml"/><p:Story src="Stories/t.xml"/><p:Spread src="Spreads/a.xml"/></Document>`) },
+      { name: 'Resources/Styles.xml', bytes: encode('<Styles><ParagraphStyle Self="ParagraphStyle/A" PointSize="12"><Properties><BasedOn type="object">ParagraphStyle/B</BasedOn></Properties></ParagraphStyle><ParagraphStyle Self="ParagraphStyle/B" FontStyle="Bold"><Properties><BasedOn type="object">ParagraphStyle/A</BasedOn></Properties></ParagraphStyle><ObjectStyle Self="ObjectStyle/O" FillColor="Color/Black" StrokeWeight="2" CornerOption="RoundedCorner" CornerRadius="4"/></Styles>') },
+      { name: 'MasterSpreads/m.xml', bytes: encode(`<MasterSpread Self="MasterSpread/m"><Page GeometricBounds="0 0 600 400" AppliedMaster="MasterSpread/m"/><Rectangle Self="mr" FillColor="Color/Black">${geometry}</Rectangle></MasterSpread>`) },
+      { name: 'Stories/t.xml', bytes: encode('<Story Self="t"><ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/A"><CharacterStyleRange><Content>Hello</Content><Br/><Table Self="tb"><Row Self="r" Name="0" SingleRowHeight="20"/><Column Self="c" Name="0" SingleColumnWidth="40"/><Cell Self="x" Name="0:0" RowSpan="1" ColumnSpan="1"><ParagraphStyleRange><CharacterStyleRange><Content>Cell</Content></CharacterStyleRange></ParagraphStyleRange></Cell></Table></CharacterStyleRange></ParagraphStyleRange></Story>') },
+      { name: 'Spreads/a.xml', bytes: encode(`<Spread><Page GeometricBounds="0 0 600 400" AppliedMaster="MasterSpread/m"/><Rectangle AppliedObjectStyle="ObjectStyle/O">${geometry}</Rectangle><TextFrame ParentStory="t">${geometry}</TextFrame></Spread>`) },
+    ]);
+    return [plain, rich];
   },
   async invoke(bytes) {
     const { readZip } = await import('../../engine/src/zip.ts');
@@ -2098,9 +2518,126 @@ export const fontInspectTarget: FuzzTarget = {
   async invoke(bytes) { inspectFont(bytes); glyphsForText(bytes, 'Hello, Wörld'); },
 };
 
+// Audio DSP module (packages/node-shell/wasm/audio-dsp): the raw byte ABI that the decoded PCM
+// of an untrusted recording reaches through the shell. Contract: a status 0 or 1 reply with a
+// bounded result; never a trap, hang or unbounded allocation. Each call gets a fresh instance
+// that already holds a meter (handle 1) and a repair chain (handle 2), so mutated process,
+// read and flush requests reach real state. The first input byte picks the operation.
+export const audioDspTarget: FuzzTarget = {
+  name: 'audio-dsp',
+  async seeds() {
+    const enc = new TextEncoder();
+    const req = (op: number, json: string, floats: number[] = []): Uint8Array => {
+      const head = enc.encode(json);
+      const out = new Uint8Array(1 + 4 + head.length + floats.length * 4);
+      out[0] = op;
+      new DataView(out.buffer).setUint32(1, head.length, true);
+      out.set(head, 5);
+      for (let i = 0; i < floats.length; i++) new DataView(out.buffer).setFloat32(5 + head.length + i * 4, floats[i]!, true);
+      return out;
+    };
+    const wave = Array.from({ length: 480 }, (_, i) => 0.2 * Math.sin(i / 7));
+    return [
+      req(1, '{"sampleRate":48000,"channels":2,"series":true}'),
+      req(2, '{"handle":1}', wave),
+      req(3, '{"handle":1}'),
+      req(4, '{"sampleRate":44100,"channels":1,"chain":[{"id":"dehum","params":{"frequency":1}},{"id":"denoise"},{"id":"deesser"},{"id":"dereverb"},{"id":"declick"}]}'),
+      req(5, '{"handle":2}', wave),
+      req(6, '{"handle":2}'),
+      req(7, '{"sampleRate":8000,"framesA":240,"maxLag":100}', wave),
+      req(8, '{"handle":1}'),
+    ];
+  },
+  async invoke(bytes) {
+    const { readFileSync } = await import('node:fs');
+    const wasm = new WebAssembly.Module(readFileSync(new URL('../../packages/node-shell/wasm/audio-dsp/audio-dsp.wasm', import.meta.url)));
+    const api = new WebAssembly.Instance(wasm, {}).exports as unknown as {
+      memory: WebAssembly.Memory; audio_dsp_alloc(n: number): number; audio_dsp_free(p: number): void;
+      audio_dsp_run(p: number, n: number, op: number): number; audio_dsp_result_len(): number;
+    };
+    const send = (op: number, body: Uint8Array): number => {
+      if (!body.length) return -1;
+      const p = api.audio_dsp_alloc(body.length);
+      if (!p) return -1;
+      new Uint8Array(api.memory.buffer, p, body.length).set(body);
+      const status = api.audio_dsp_run(p, body.length, op);
+      api.audio_dsp_free(p);
+      return status;
+    };
+    const json = (text: string): Uint8Array => {
+      const head = new TextEncoder().encode(text);
+      const out = new Uint8Array(4 + head.length);
+      new DataView(out.buffer).setUint32(0, head.length, true);
+      out.set(head, 4);
+      return out;
+    };
+    send(1, json('{"sampleRate":48000,"channels":2,"series":true}'));
+    send(4, json('{"sampleRate":48000,"channels":1,"chain":[{"id":"denoise"},{"id":"dehum"},{"id":"declick"}]}'));
+    const status = send(bytes[0]! % 9, bytes.subarray(1));
+    if (status !== -1 && status !== 0 && status !== 1) throw new Error(`audio-dsp: unexpected status ${status}`);
+    if (api.audio_dsp_result_len() > 160 * 1024 * 1024) throw new Error('audio-dsp: oversized result');
+  },
+};
+
+export const captionsSccTarget: FuzzTarget = {
+  name: 'captions-scc',
+  async seeds() {
+    const { cuesToScc } = await import('../../engine/src/captions-scc.ts');
+    const cues = [{ start: 3, end: 5, text: 'Hello, world' }, { start: 5, end: 8.5, text: 'Ñandú ♪ {x}\nsecond line' }, { start: 70, end: 72, text: 'After the minute' }];
+    return [new TextEncoder().encode(cuesToScc(cues).text), new TextEncoder().encode(cuesToScc(cues, { dropFrame: false }).text),
+      new TextEncoder().encode('Scenarist_SCC V1.0\n\n00:00:00:00\t9425 9425 94ad 94ad c1c2 94ad 94ad 4344\n\n00:00:02:00\t942c 942c\n')];
+  },
+  async invoke(bytes) {
+    const { sccToCues, cuesToScc } = await import('../../engine/src/captions-scc.ts');
+    const { cues } = sccToCues(new TextDecoder().decode(bytes));
+    cuesToScc(cues, { onUnsupported: 'replace' });
+  },
+};
+export const intentTarget: FuzzTarget = {
+  name: 'intent',
+  async seeds() {
+    const direct = { version: 1, purpose: 'direct', surfaces: [{ id: 'social-square', format: 'svg' }], content: { url: 'https://example.com' }, occasion: 'Launch' };
+    const sized = { version: 1, purpose: 'offer', surfaces: [{ width: 210, height: 297, unit: 'mm' }], content: { data: { columns: ['a'], rows: [['1']] }, heading: 'H' }, language: 'de-DE', prefer: { toolId: 'b' } };
+    const prompt = { version: 1, prompt: 'A card for the spring launch', recordPrompt: false };
+    const sidecar = { version: 1, intents: [{ purpose: 'offer', needs: ['data'], roles: { data: 'rows' }, set: { rows: '' }, surfaces: { slide: {} } }] };
+    return [direct, sized, prompt, sidecar].map((value) => new TextEncoder().encode(JSON.stringify(value)));
+  },
+  async invoke(bytes) {
+    const { resolveIntent, parseToolIntents, IntentInvalidError } = await import('../../engine/src/intent.ts');
+    parseToolIntents(new TextDecoder().decode(bytes));
+    const tools = [
+      { id: 'a', version: '1', inputs: [{ id: 'url', type: 'url', required: true }, { id: 'heading', type: 'text', default: 'Sample' }], render: { width: 600, height: 600, formats: ['svg', 'png'] }, intents: [{ purpose: 'direct' as const, needs: ['url'] }] },
+      { id: 'b', version: '1', inputs: [{ id: 'rows', type: 'table' }, { id: 'heading', type: 'text' }, { id: 'size', type: 'select', options: [{ value: 'a4', width: 210, height: 297, unit: 'mm' }] }, { id: 'language', type: 'select', options: [{ value: 'de' }] }], render: { width: 794, height: 1123, formats: ['pdf'], followsCanvasSize: true }, intents: [{ purpose: 'offer' as const, roles: { data: 'rows' } }] },
+    ];
+    let value: unknown;
+    try { value = JSON.parse(new TextDecoder().decode(bytes)); } catch { return; }
+    try {
+      const answer = await resolveIntent(value, tools);
+      // The answer must survive what every caller does with it next.
+      JSON.stringify(answer);
+    } catch (err) {
+      if (!(err instanceof IntentInvalidError)) throw err;
+    }
+  },
+};
+export const captionsTtmlTarget: FuzzTarget = {
+  name: 'captions-ttml',
+  async seeds() {
+    const { cuesToTtml } = await import('../../engine/src/captions-ttml.ts');
+    const cues = [{ start: 1, end: 2.5, text: 'Hello & goodbye' }, { start: 3, end: 4, text: 'Two\nlines' }];
+    const timed = '<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" ttp:frameRate="30" ttp:frameRateMultiplier="1000 1001"><body begin="5s"><div begin="00:00:01:15"><p begin="30t" end="60t">x<br/><span begin="1s" end="2s">y</span></p></div></body></tt>';
+    return [new TextEncoder().encode(cuesToTtml(cues)), new TextEncoder().encode(timed)];
+  },
+  async invoke(bytes) {
+    const { ttmlToCues, cuesToTtml } = await import('../../engine/src/captions-ttml.ts');
+    const { cues } = ttmlToCues(new TextDecoder().decode(bytes), parseXml);
+    cuesToTtml(cues);
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, adobePsdTarget, idmlReadTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, formulaCalcTarget, pdfA11yTarget, pdfRedactKeepTarget, inddTarget, cameraRawTarget, affinityTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget, inpaintTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,
@@ -2112,10 +2649,10 @@ export const ALL_TARGETS: FuzzTarget[] = [
   epubReadTarget, jpegStructureTarget,
   rasterDecodeTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
-  derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
+  derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget, videoProbeTarget,
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
-  svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
+  svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget, fontInspectTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget, imageTraceTarget, intentTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

@@ -574,13 +574,38 @@
   "Choose one HTML page at a time, along with its CSS files.": "Bir HTML sayfasını tek tek seçin, bu sayfaya ait CSS dosyalarıyla birlikte.",
   "Choose one HTML page with its CSS files, or CSS on its own. Up to 20 files, 2 MB in total.": "Bir HTML sayfası ve bu sayfaya ait CSS dosyalarını, veya sadece CSS dosyalarını seçin. En fazla 20 dosya, toplam 2 MB.",
   "Choose up to 20 HTML and CSS files.": "En fazla 20 HTML ve CSS dosyasını seçin.",
-  "Closest to my current palette": "Mevcut paletime en yakın",
+  "Closest to the current palette": "Mevcut palete en yakın",
   "Colour preview": "Renk önizlemesi",
   "Colour {position} of {count}.": "{count} renkten {position}. renk.",
   "Colours and font names were read from declared styles. Layout and motion were not assessed.": "Renkler ve yazı tipi adları tanımlanmış stillerden okundu. Düzen ve hareket değerlendirilmedi.",
   "Colours were read from this SVG. Fonts and layout were not assessed.": "Renkler bu SVG’den okundu. Yazı tipleri ve düzen değerlendirilmedi.",
   "Colours were sampled from this image. Fonts and layout were not recognised.": "Renkler bu görüntüden örneklendi. Yazı tipleri ve düzen tanınmadı.",
   "Compare looks": "Görünümleri karşılaştır",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "Kaydedilen tasarım sistemlerini ve bazı başlangıç noktalarını önizleyin. Kullan seçeneğini seçene kadar hiçbir şey değişmez.",
+  "Use this look": "Bu görünümü kullan",
+  "Previewing {name}": "{name} önizleniyor",
+  "Choose up to two looks to compare.": "Karşılaştırmak için en fazla iki görünüm seçin.",
+  "Drop a horizontal logo": "Buraya yatay bir logo bırakın",
+  "Drop a vertical logo": "Buraya dikey bir logo bırakın",
+  "calm": "sakin",
+  "nature": "doğa",
+  "playful": "eğlenceli",
+  "creative": "yaratıcı",
+  "warm": "sıcak",
+  "editorial": "editoryal",
+  "neutral": "nötr",
+  "red": "kırmızı",
+  "orange": "turuncu",
+  "yellow": "sarı",
+  "green": "yeşil",
+  "teal": "petrol mavisi",
+  "blue": "mavi",
+  "purple": "mor",
+  "pink": "pembe",
+  "deep": "koyu",
+  "pale": "soluk",
+  "vivid": "canlı",
+  "muted": "mat",
   "Compare saved design systems and a few starting points. Nothing changes until you choose Use.": "Kaydedilen tasarım sistemlerini ve bazı başlangıç noktalarını karşılaştırın. Kullan seçeneğini seçene kadar hiçbir şey değişmez.",
   "Compare these two looks": "Bu iki görünümü karşılaştır",
   "Compare two looks at a time. Deselect one to choose another.": "İki görünümü aynı anda karşılaştırın. Başka birini seçmek için birinin seçimini kaldırın.",
@@ -713,7 +738,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "Doğrulama'da ve Varlıklar'da daha derin AI metin kontrolünü çalıştırır.",
   "Card size": "Kart boyutu",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "Bu cihaza 1 görsel veya dosya eklendi. Bu cihazda kalır ve başkaları o dosyayı görmez.",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "Bu cihaza {n} görsel veya dosya eklendi. Bu cihazda kalırlar ve başkaları o dosyaları görmez.",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "Bu cihaza 1 görsel veya dosya eklendi. Bu cihazda kalır ve başkaları o dosyayı görmez.",
+    "other": "Bu cihaza {n} görsel veya dosya eklendi. Bu cihazda kalırlar ve başkaları o dosyaları görmez."
+  },
   "Check the version first": "Önce sürümü kontrol edin",
   "Copy team link": "Ekip bağlantısını kopyala",
   "Could not create the project. Try again.": "Proje oluşturulamadı. Tekrar deneyin.",
@@ -1305,7 +1333,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "Tüm öğeler paylaşılan projeye kaydedildi. Yerel özgün dosyalar çöp kutusunda veya hâlâ yerinde.",
   "Your local items have not changed.": "Yerel öğeleriniz değişmedi.",
   "1 item was saved to the shared project.": "1 öğe paylaşılan projeye kaydedildi.",
-  "{n} items were saved to the shared project.": "{n} öğe paylaşılan projeye kaydedildi.",
+  "{n} items were saved to the shared project.": {
+    "one": "1 öğe paylaşılan projeye kaydedildi.",
+    "other": "{n} öğe paylaşılan projeye kaydedildi."
+  },
   "Wait for the current move to finish.": "Mevcut taşıma işleminin bitmesini bekleyin.",
   "You cannot save to that shared project.": "Bu paylaşılan projeye kaydedemezsiniz.",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "{project} projesini açabilen herkes bu öğeleri görecek. Tüm öğeler oraya kaydedildikten sonra yerel özgün dosyalar, geri yükleyebileceğiniz çöp kutusuna taşınır.",
@@ -1616,8 +1647,14 @@
   "file": "dosya",
   "samples": "örnekler",
   "text": "metin",
-  "{n} changes found": "{n} değişiklik bulundu",
-  "{n} pages differ": "{n} sayfa farklı",
+  "{n} changes found": {
+    "one": "1 değişiklik bulundu",
+    "other": "{n} değişiklik bulundu"
+  },
+  "{n} pages differ": {
+    "one": "1 sayfa farklı",
+    "other": "{n} sayfa farklı"
+  },
   "Draft": "Taslak",
   "Draft quality": "Taslak kalitesi",
   "Draft rule": "Taslak kural",
@@ -1926,5 +1963,259 @@
   "Headlines - 36px, or 24px bold": "Başlıklar - 36 px veya 24 px kalın",
   "Icons and borders only": "Yalnızca simgeler ve kenarlıklar",
   "Not usable": "Kullanılamaz",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA, sRGB için tanımlanmıştır; bu yüzden geniş gamutlu bir renk sRGB görünümüyle puanlanır."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA, sRGB için tanımlanmıştır; bu yüzden geniş gamutlu bir renk sRGB görünümüyle puanlanır.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly daha sade ve hızlı görünüme geçti, çünkü bu cihaz grafik hızlandırma olmadan çizim yapıyor.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly daha sade ve hızlı görünüme geçti, çünkü bu cihaz zorlanıyordu.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "{date} tarihinde otomatik olarak açıldı, çünkü bu cihaz grafik hızlandırma olmadan çizim yapıyor.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} tarihinde otomatik olarak açıldı, çünkü bu cihaz arayüzü çizmekte zorlanıyordu.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Otomatik geçiş bu cihazda kapalı, çünkü {date} tarihinde Geri al'ı seçtin.",
+  "Allow again": "Yeniden izin ver",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Otomatik geçişe, Lolly'yi bir sonraki açışından itibaren yeniden izin verilir.",
+  "Board": "Pano",
+  "Choose for {role}": "{role} için seç",
+  "Change {role}": "{role} değiştir",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Markanın rehberliği, insanlar ve aracılar için yazılmış. Aracılar önce marka becerisini, sonra eldeki işe uygun olanı okur. Beceriler işi yönlendirir; Kurallar'daki kurum kuralları Lolly'nin denetlediği şeydir.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Bu cihaz meşgulken Lolly daha sade ve hızlı görünüme geçti. İşler yatışınca geri dönecek.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Pil azken Lolly daha sade ve hızlı görünüme geçti. Bu cihaz şarj olmaya başlayınca geri dönecek.",
+  "On for now because this device is busy. It switches back when things calm down.": "Şimdilik açık, çünkü bu cihaz meşgul. İşler yatışınca geri dönecek.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Şimdilik açık, çünkü pil az. Bu cihaz şarj olmaya başlayınca geri dönecek.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Bu cihaz meşgulken {date} tarihinde otomatik olarak açıldı. Koru'yu seçtin.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Pil azken {date} tarihinde otomatik olarak açıldı. Koru'yu seçtin.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly burada yavaş bir cihaz için geçiş yapmayacak, çünkü {date} tarihinde Geri al'ı seçtin.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly bu cihaz meşgulken ya da pil azken geçiş yapmayacak, çünkü {date} tarihinde Geri al'ı seçtin.",
+  "Use the automatic colour": "Otomatik rengi kullan",
+  "follows the design system ({colour})": "tasarım sistemini izliyor ({colour})",
+  "follows the design system": "tasarım sistemini izliyor",
+  "automatic ({colour})": "otomatik ({colour})",
+  "automatic": "otomatik",
+  "{name} spring": "{name} yay",
+  "{name} (not in this design system)": "{name} (bu tasarım sisteminde yok)",
+  "Curves": "Eğriler",
+  "Springs": "Yaylar",
+  "Gentle": "Yumuşak",
+  "Quick": "Hızlı",
+  "Bouncy": "Zıplayan",
+  "Custom spring": "Özel yay",
+  "Stiffness": "Sertlik",
+  "Damping": "Sönümleme",
+  "Mass": "Kütle",
+  "Settles in {t} s": "{t} sn içinde durulur",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Yay durulmadan önce sonraki anahtar kare gelir. Hareketin geri kalanı bölüm boyunca dağıtılır.",
+  "From the design system: {name}": "Tasarım sisteminden: {name}",
+  "Editing the curve detaches it from the design system.": "Eğriyi düzenlemek onu tasarım sisteminden ayırır.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt. Kurşun kalem (Shift C) ve spline türü için basılı tut",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt",
+  "Recipients can change the inputs": "Alıcılar girdileri değiştirebilir",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "Bağlantıya sahip herkes girdileri değiştirip yeni bir görsel alabilir. Kilitli girdiler ayarlandığı gibi kalır.",
+  "{count} entries": {
+    "one": "1 giriş",
+    "other": "{count} giriş"
+  },
+  "{count} files in this folder": {
+    "one": "Bu klasörde 1 dosya",
+    "other": "Bu klasörde {count} dosya"
+  },
+  "{n} assets": {
+    "one": "1 varlık",
+    "other": "{n} varlık"
+  },
+  "{n} assets found": {
+    "one": "1 varlık bulundu",
+    "other": "{n} varlık bulundu"
+  },
+  "{n} capabilities match": {
+    "one": "1 yetenek eşleşiyor",
+    "other": "{n} yetenek eşleşiyor"
+  },
+  "{n} copies made · selected": {
+    "one": "1 kopya oluşturuldu · seçili",
+    "other": "{n} kopya oluşturuldu · seçili"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "Burada Projeler'den kaldırılan 1 tasarım kaldırılmış olarak bırakıldı.",
+    "other": "Burada Projeler'den kaldırılan {n} tasarım kaldırılmış olarak bırakıldı."
+  },
+  "{n} embedded files": {
+    "one": "1 gömülü dosya",
+    "other": "{n} gömülü dosya"
+  },
+  "{n} external references": {
+    "one": "1 harici başvuru",
+    "other": "{n} harici başvuru"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "1 dosya paketlenemediği için atlandı",
+    "other": "{n} dosya paketlenemediği için atlandı"
+  },
+  "{n} folders": {
+    "one": "1 klasör",
+    "other": "{n} klasör"
+  },
+  "{n} font files": {
+    "one": "1 yazı tipi dosyası",
+    "other": "{n} yazı tipi dosyası"
+  },
+  "{n} images": {
+    "one": "1 görsel",
+    "other": "{n} görsel"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "1 görsel geri yüklenemedi (depolama dolu mu?)",
+    "other": "{n} görsel geri yüklenemedi (depolama dolu mu?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "1 görsel orijinaliyle kaldı - görsellerin tek bir yuvası var; taşımak için Kes'i kullan",
+    "other": "{n} görsel orijinaliyle kaldı - görsellerin tek bir yuvası var; taşımak için Kes'i kullan"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "1 girdi · her tasarıma uygulanır",
+    "other": "{n} girdi · her tasarıma uygulanır"
+  },
+  "{n} items": {
+    "one": "1 öğe",
+    "other": "{n} öğe"
+  },
+  "{n} items copied": {
+    "one": "1 öğe kopyalandı",
+    "other": "{n} öğe kopyalandı"
+  },
+  "{n} items cut": {
+    "one": "1 öğe kesildi",
+    "other": "{n} öğe kesildi"
+  },
+  "{n} items moved": {
+    "one": "1 öğe taşındı",
+    "other": "{n} öğe taşındı"
+  },
+  "{n} items pasted": {
+    "one": "1 öğe yapıştırıldı",
+    "other": "{n} öğe yapıştırıldı"
+  },
+  "{n} keyframes": {
+    "one": "1 anahtar kare",
+    "other": "{n} anahtar kare"
+  },
+  "{n} logos": {
+    "one": "1 logo",
+    "other": "{n} logo"
+  },
+  "{n} marks found": {
+    "one": "1 işaret bulundu",
+    "other": "{n} işaret bulundu"
+  },
+  "{n} newer items skipped": {
+    "one": "1 daha yeni öğe atlandı",
+    "other": "{n} daha yeni öğe atlandı"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "Tasarımlarından 1 tanesi video veya animasyon",
+    "other": "Tasarımlarından {n} tanesi video veya animasyon"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "1 eski otomatik kontrol noktası atlandı",
+    "other": "{n} eski otomatik kontrol noktası atlandı"
+  },
+  "{n} pages": {
+    "one": "1 sayfa",
+    "other": "{n} sayfa"
+  },
+  "{n} places": {
+    "one": "1 yer",
+    "other": "{n} yer"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "1 nokta - köşe için Alt tuşunu basılı tut",
+    "other": "{n} nokta - köşe için Alt tuşunu basılı tut"
+  },
+  "{n} published versions": {
+    "one": "1 yayımlanmış sürüm",
+    "other": "{n} yayımlanmış sürüm"
+  },
+  "{n} results": {
+    "one": "1 sonuç",
+    "other": "{n} sonuç"
+  },
+  "{n} saved sessions": {
+    "one": "1 kayıtlı oturum",
+    "other": "{n} kayıtlı oturum"
+  },
+  "{n} selected": {
+    "one": "1 seçili",
+    "other": "{n} seçili"
+  },
+  "{n} selected assets": {
+    "one": "1 seçili varlık",
+    "other": "{n} seçili varlık"
+  },
+  "{n} sessions": {
+    "one": "1 oturum",
+    "other": "{n} oturum"
+  },
+  "{n} shapes": {
+    "one": "1 şekil",
+    "other": "{n} şekil"
+  },
+  "{n} steps": {
+    "one": "1 adım",
+    "other": "{n} adım"
+  },
+  "{n} templates": {
+    "one": "1 şablon",
+    "other": "{n} şablon"
+  },
+  "{n} volume keys": {
+    "one": "1 ses düzeyi anahtarı",
+    "other": "{n} ses düzeyi anahtarı"
+  },
+  "{n} words": {
+    "one": "1 kelime",
+    "other": "{n} kelime"
+  },
+  "Dominant hand": "Baskın el",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "İki bölmede, katlanabilir bir cihazda ya da neredeyse kare bir tablette, denetimler çizim yaptığınız elin uzak tarafında durur. Bölme başlığındaki Tarafları değiştir de bunu değiştirir.",
+  "Swap sides": "Tarafları değiştir",
+  "Resize panes": "Bölmeleri yeniden boyutlandır",
+  "Changes that didn't finish saving": "Kaydı tamamlanmayan değişiklikler",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "Bu değişiklikleri {time} tarihinde yaptın ve sayfa, değişiklikler kaydedilmeden kapandı. Bu tasarım sistemi o zamandan beri başka bir sekmede ya da bir eşitlemeyle yeniden kaydedildi.",
+  "Restore your unsaved changes": "Kaydedilmemiş değişikliklerini geri yükle",
+  "Keep the saved version": "Kaydedilmiş sürümü tut",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "Geri yüklemek, o zamandan beri kaydedilen sürümün yerine geçer. Kaydedilmiş sürümü tutmak, kaydedilmemiş değişiklikleri bu cihazdan siler.",
+  "Restored your unsaved changes.": "Kaydedilmemiş değişikliklerin geri yüklendi.",
+  "Kept the saved version.": "Kaydedilmiş sürüm tutuldu.",
+  "Restored the changes that hadn't finished saving.": "Kaydı tamamlanmayan değişiklikler geri yüklendi.",
+  "{n} file": "{n} dosya",
+  "It becomes the primary. Shades and roles can follow.": "Bu, birincil olur. Tonlar ve roller ardından gelebilir.",
+  "Start here": "Buradan başla",
+  "Browse looks →": "Görünümlere göz at →",
+  "Pick what you have →": "Elindekini seç →",
+  "Open the picker →": "Seçiciyi aç →",
+  "Starter greys until a colour is added.": "Bir renk eklenene kadar başlangıç grileri.",
+  "Lolly can’t draw in this browser yet": "Lolly bu tarayıcıda henüz çizim yapamıyor",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly WebGPU ile çizer; bu tarayıcı henüz WebGPU sunmuyor.",
+  "These work today:": "Bugün çalışanlar:",
+  "Chrome or Edge, kept up to date": "Güncel Chrome veya Edge",
+  "Safari 26 or later": "Safari 26 veya üstü",
+  "Firefox, where WebGPU is turned on": "WebGPU açıkken Firefox",
+  "Get the desktop app": "Masaüstü uygulamasını indir",
+  "Read why": "Nedenini oku",
+  "Or drop an image or a list of colours here": "Ya da buraya bir görsel veya renk listesi bırak",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "Bu nötr renkler başlangıç paketiyle gelir, böylece yukarıya renk eklenene kadar önizlemelerin gösterecek bir şeyi olur.",
+  "{role}: {value}. Choose a colour": "{role}: {value}. Bir renk seç",
+  "Add a colour to the palette first.": "Önce palete bir renk ekle.",
+  "Notify": "Bildir",
+  "Update automatically": "Otomatik güncelle",
+  "App updates": "Uygulama güncellemeleri",
+  "Update notifications": "Güncelleme bildirimleri",
+  "Ready to install: {version}": "Yüklemeye hazır: {version}",
+  "Restart now": "Şimdi yeniden başlat",
+  "Install when I quit": "Çıkarken yükle",
+  "Release notes": "Sürüm notları",
+  "Manual download": "Elle indir",
+  "Update could not finish. Try again or download the app.": "Güncelleme tamamlanamadı. Yeniden deneyin veya uygulamayı indirin.",
+  "Finish recording or exporting before updating.": "Güncellemeden önce kaydı veya dışa aktarmayı tamamlayın.",
+  "Save could not finish. Save a recovery copy before updating.": "Kaydetme tamamlanamadı. Güncellemeden önce bir kurtarma kopyası kaydedin.",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "Bu AppImage burada değiştirilemiyor. Uygulamayı yazılabilir bir klasöre indirin.",
+  "This installation uses its package manager for updates.": "Bu kurulum, güncellemeler için paket yöneticisini kullanır.",
+  "This desktop platform does not support in-app updates.": "Bu masaüstü platformu uygulama içinden güncellemeyi desteklemiyor.",
+  "Update installation was cancelled.": "Güncelleme yüklemesi iptal edildi."
 }

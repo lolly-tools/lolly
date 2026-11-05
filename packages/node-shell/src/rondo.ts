@@ -133,7 +133,15 @@ export interface RondoRendered {
   seconds: number;
   findings: AudioFinding[];
   run: ComputedAudioRunInfo;
+  /** The song's tempo in cycles per second and the notes it schedules, for a MIDI export. */
+  music: RondoMusic;
   report: ComputedAudioRun;
+}
+
+/** What a MIDI file of a song is made from. */
+export interface RondoMusic {
+  cps: number;
+  notes: { synth: string; time: number; duration: number; note: number; velocity: number }[];
 }
 
 /** Wall time spent rendering songs for one audio host, against `RondoCaps.budgetMs`. */
@@ -154,6 +162,7 @@ interface Kept {
   seconds: number;
   findings: AudioFinding[];
   run: ComputedAudioRunInfo;
+  music: RondoMusic;
 }
 
 const kept = new Map<string, Kept>();
@@ -347,6 +356,7 @@ function runWorker(job: RondoWorkerJob, caps: RondoCaps, timeoutMs: number, limi
         channels: [left, right],
         seconds: reply.seconds,
         findings: reply.findings.map(f => ({ code: f.code, message: f.message, parts: [...f.parts] })),
+        music: { cps: reply.cps, notes: Array.isArray(reply.notes) ? reply.notes.map(n => ({ ...n })) : [] },
         run: {
           executionClass: reply.run.executionClass,
           source: 'rondocode',
@@ -382,6 +392,7 @@ const copyOf = (k: Kept): Kept => ({
   ...k,
   channels: [k.channels[0].slice(), k.channels[1].slice()],
   findings: k.findings.map(f => ({ ...f, parts: [...f.parts] })),
+  music: { cps: k.music.cps, notes: k.music.notes.map(n => ({ ...n })) },
 });
 
 /**
@@ -410,6 +421,7 @@ export async function renderRondoSong(
     seconds: k.seconds,
     findings: k.findings,
     run: k.run,
+    music: k.music,
     report: {
       key, source: 'rondocode', name: song.name, sourceDigest, seconds: k.seconds, sampleRate: k.sampleRate,
       findings: k.findings.map(f => ({ ...f, parts: [...f.parts] })), run: { ...k.run }, cached,

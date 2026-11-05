@@ -1,0 +1,68 @@
+[package]
+name = "lolly-pdf-a11y"
+version = "0.1.0"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+members = [".", "vendor/pdfcraft-a11y", "vendor/pdfcraft-content", "vendor/pdfcraft-cos", "vendor/pdfcraft-crypt", "vendor/pdfcraft-filters", "vendor/pdfcraft-model", "vendor/pdfcraft-fonts", "vendor/pdfcraft-annot", "vendor/pdfcraft-forms", "vendor/pdfcraft-edit", "vendor/pdfcraft-xfa", "vendor/pdfcraft-redact"]
+resolver = "3"
+# The vendored dependency crates keep unit tests that need dev dependencies Lolly does not vendor, so
+# `cargo test` runs the adapter and the checker, whose rule tests need none.
+default-members = [".", "vendor/pdfcraft-a11y"]
+
+[workspace.package]
+version = "0.16.1"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+repository = "https://github.com/storytold/pdfcraft"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+cognitive_complexity = "deny"
+too_many_arguments = "deny"
+wildcard_imports = "deny"
+dbg_macro = "warn"
+todo = "warn"
+
+[workspace.dependencies]
+pdfcraft-filters = { path = "vendor/pdfcraft-filters", version = "0.16.1" }
+pdfcraft-cos = { path = "vendor/pdfcraft-cos", version = "0.16.1" }
+pdfcraft-crypt = { path = "vendor/pdfcraft-crypt", version = "0.16.1" }
+pdfcraft-model = { path = "vendor/pdfcraft-model", version = "0.16.1" }
+pdfcraft-content = { path = "vendor/pdfcraft-content", version = "0.16.1" }
+pdfcraft-a11y = { path = "vendor/pdfcraft-a11y", version = "0.16.1" }
+pdfcraft-fonts = { path = "vendor/pdfcraft-fonts", version = "0.16.1" }
+pdfcraft-annot = { path = "vendor/pdfcraft-annot", version = "0.16.1" }
+pdfcraft-forms = { path = "vendor/pdfcraft-forms", version = "0.16.1" }
+pdfcraft-edit = { path = "vendor/pdfcraft-edit", version = "0.16.1" }
+pdfcraft-xfa = { path = "vendor/pdfcraft-xfa", version = "0.16.1" }
+pdfcraft-redact = { path = "vendor/pdfcraft-redact", version = "0.16.1" }
+hayro-syntax = "0.7.2"
+hayro-ccitt = "0.3"
+flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
+fax = "0.2.7"
+thiserror = "2"
+chrono = { version = "0.4.45", default-features = false, features = ["std"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pdfcraft-a11y = { workspace = true }
+pdfcraft-cos = { workspace = true }
+pdfcraft-model = { workspace = true }
+pdfcraft-redact = { workspace = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

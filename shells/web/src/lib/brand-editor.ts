@@ -60,6 +60,7 @@
  * a detached editor (route changed mid-op) never writes to a dead node.
  */
 
+import { createLatestSaveQueue } from './latest-save-queue.ts';
 import '../styles/parts/brand-studio.css';
 import '../styles/parts/tool.css';
 import './oklch-slice.css';
@@ -97,6 +98,7 @@ import { compareStageOps } from './brand-editor/compare-stage.ts';
 import { logosOps } from './brand-editor/logos.ts';
 import { logoIntakeOps } from './brand-editor/logo-intake.ts';
 import { packOps } from './brand-editor/pack.ts';
+import { journalOps } from './brand-editor/journal.ts';
 export type { BrandTabKey, BrandEditorOptions } from './brand-editor/shared.ts'; // every .be-* rule - rides this module's lazy chunk
          // .help-tip-btn/-pop/-host - the shared chunk the tool
                                            // view and /profile already pull for the same primitive
@@ -183,6 +185,8 @@ export interface BrandEditorHandle {
    *  nothing until a card is chosen. False when the room did not render.
    *  Additive, plan 182 section 3a. */
   openTypeStage?: (role: FontRole) => boolean;
+  /** The colours the In context scenes are painted from, in their order, so the Board's specimen is the same picture. Additive, plan 346. */
+  contextHexes?: () => string[];
 }
 
 export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts: BrandEditorOptions = {}): Promise<BrandEditorHandle> {
@@ -203,6 +207,12 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   bedit.logos = logosOps(bedit);
   bedit.logoIntake = logoIntakeOps(bedit);
   bedit.pack = packOps(bedit);
+  bedit.journal = journalOps(bedit);
+  bedit.editJournal = null;
+  bedit.journalSlotId = '';
+  bedit.journalReplayed = false;
+  bedit.journalChoices = [];
+  bedit.journalCard = null;
   bedit.root = root;
   bedit.host = host;
   bedit.opts = opts;
@@ -288,6 +298,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   // empty on any brand that ships no starter - so the palette and the Overview
   // count agree about which colours nobody chose. See readStarterDoc.
   bedit.starterSwatches = new Set<string>();
+  bedit.supplied = false;
   bedit.revealedStarterGroup = null;
 
   // Ownership still informs Overview and mobile affordances; it never hides palette editing.
@@ -321,7 +332,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
    * surface (palette tiles, wheel, locks, generator, the add row), so this is
    * also the one place that flags colour-tab activity to the host.
    */
-  bedit.saveQueue = Promise.resolve();
+  bedit.saveQueue = createLatestSaveQueue();
   bedit.saveRevision = 0;
 
   /** Set once the Replace-palette review card exists (it is declared far below
@@ -591,7 +602,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
 
   // The logo-colour pathway (plan 320 S1): a placed mark carries the design
   // system's real colours, so its card asks which one is the main colour (or,
-  // on a still-unbranded install, applies the likeliest answer and says so).
+  // on a still-unbranded install, applies the likeliest answer and reports that).
   bedit.logoOffer = null;
   // The candidate tray (plan 97 section 8) - the HOST's, whenever it has one, because
   // two live trays over one storage key erase each other (see BrandEditorOptions
@@ -650,9 +661,12 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
 
   bedit.logoIntake.wireIntakeZone();
 
-  bedit.pack.wirePaletteDownload();
+  bedit.pack.wireStudioPanels();
 
   bedit.pack.wireGradientsPanel();
+
+  // Last, once everything is drawn: save an edit the load put back, or ask about one it could not.
+  bedit.journal.afterMount();
 
   return {
     teardown: () => {
@@ -670,7 +684,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     reload: bedit.pack.reload,
     // The host calls this on every room change, which is also when a post-add
     // chip stops being about anything the person can see.
-    closeOverlays: () => { bedit.swatchEditor.closeEditor(); bedit.addColor.clearAddedChip(); },
+    closeOverlays: () => { bedit.swatchEditor.closeEditor(); bedit.addColor.clearAddedChip(); bedit.roleChips?.close(); },
     onPalette: (cb) => { paletteObservers.add(cb); return () => { paletteObservers.delete(cb); }; },
     openColorChart: () => {
       if (!bedit.chartDetails) return false;
@@ -680,6 +694,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     },
     openWing: (key) => bedit.curveEditor.openWing(key),
     colourBeat: () => bedit.beat,
+    contextHexes: () => bedit.derive.paletteHexes(),
     openStarterGroup: (group) => {
       const name = String(group || '').trim();
       if (!name) return false;
@@ -697,10 +712,9 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     },
     openPickCard: () => {
       // Anchored on the palette's own "+ Add swatch", which is on screen at every
-      // beat. The add row's chip sits inside the folded "Paste colours or use an
-      // image", where it measures 0x0 and the card would land at the panel's
-      // corner. On a phone the card ignores the anchor and docks to the bottom
-      // edge (see openPickCard).
+      // beat and sits right under the add area, so the card opens beside the
+      // palette it will add to. On a phone the card ignores the anchor and docks
+      // to the bottom edge (see openPickCard).
       const panel = '[data-be-tab-panel="color"]';
       const anchor = (bedit.ramps.$(`${panel} .be-pal [data-be-add="custom"]:not([data-be-add-group])`)
         ?? bedit.ramps.$(`${panel} [data-ds-addc-pick]`)) as HTMLElement | null;

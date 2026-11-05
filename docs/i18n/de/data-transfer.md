@@ -150,9 +150,9 @@ Die Speicheranzeige zeigt dieselbe Aufteilung. Saved sessions, My images und Fil
 
 ## Organisationsdaten mit Lolly Work
 
-Dieses Bundle sichert die persönliche Bibliothek des Geräts. Es ist kein Backup einer **Lolly-Work**-Instanz: Organisationskonten, Zugriffsrichtlinien, gemeinsame Projekte, Katalogversionen, Freigaben, Render-Aufträge und Audit-Aufzeichnungen werden von diesem Dienst gehalten. Verbinden Sie sich erneut und melden Sie sich an, um wieder Zugriff auf gemeinsame Arbeit zu erhalten; der Import eines persönlichen Bundles gewährt diesen Zugriff nicht.
+Dieses Bundle sichert die persönliche Bibliothek des Geräts. Es ist kein Backup einer **Lolly-Lolly Work**-Instanz: Organisationskonten, Zugriffsrichtlinien, gemeinsame Projekte, Katalogversionen, Freigaben, Render-Aufträge und Audit-Aufzeichnungen werden von diesem Dienst gehalten. Verbinden Sie sich erneut und melden Sie sich an, um wieder Zugriff auf gemeinsame Arbeit zu erhalten; der Import eines persönlichen Bundles gewährt diesen Zugriff nicht.
 
-Betreiber sichern, bewahren und löschen Serverdaten mit den eigenen Leitfäden von Lolly Work: [Backup und Wiederherstellung](/info/work-operations.html#backup-and-restore) und [Work-Speicherung und Datenlebenszyklus](/info/work-data-lifecycle.html). Das Leeren oder Exportieren eines Geräts führt keinen dieser Servervorgänge aus.
+Betreiber sichern, bewahren und löschen Serverdaten mit den eigenen Leitfäden von Lolly Work: [Backup und Wiederherstellung](/info/work-operations.html#backup-and-restore) und [Lolly Work-Speicherung und Datenlebenszyklus](/info/work-data-lifecycle.html). Das Leeren oder Exportieren eines Geräts führt keinen dieser Servervorgänge aus.
 
 ## Über Shells hinweg
 

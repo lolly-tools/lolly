@@ -136,7 +136,8 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reor
     // field moves. Text direction follows at slot 112, the token links at 113, and
     // the web page box's link, layout width and load rule (plan 288) at 114-116.
     // Web styling and interaction fields occupy 117-120; dynamic layout rules
-    // (plan 305) follow at 121-156; page ownership is appended at 157.
+    // (plan 305) follow at 121-156; page ownership is appended at 157. Stroke
+    // position and the four per-side stroke widths follow at 158-162.
     assert.deepEqual(fields.slice(72).map((f) => f.id),
       ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry', 'pan', 'duck', 'pitch', 'varispeed', 'fx', 'stackOf', 'hidden', 'locked', 'slideTransition', 'plainText', 'scene', 'animationId', 'animationEdits', 'textStory', 'textFrame', 'pathPaint', 'vectorSource', 'textWrap', 'master', 'role', 'furniture', 'archetype', 'textDirection', 'tokenLinks', 'web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts',
         'layout', 'layoutOwner', 'layoutOrder', 'layoutDirection', 'layoutWrap',
@@ -145,9 +146,10 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reor
         'layoutMinW', 'layoutMaxW', 'layoutMinH', 'layoutMaxH',
         'layoutMarginTop', 'layoutMarginRight', 'layoutMarginBottom', 'layoutMarginLeft',
         'layoutAbsolute', 'layoutSelf', 'layoutJustifySelf', 'layoutRow', 'layoutColumn',
-        'layoutRowSpan', 'layoutColumnSpan', 'layoutArea', 'layoutX', 'layoutY', 'layoutAngle', 'pageId'],
+        'layoutRowSpan', 'layoutColumnSpan', 'layoutArea', 'layoutX', 'layoutY', 'layoutAngle', 'pageId',
+        'strokeAlign', 'strokeTop', 'strokeRight', 'strokeBottom', 'strokeLeft'],
       `${brand}: a deck/flip/class field was inserted out of order - appended slots must stay put`);
-    assert.equal(fields.length, 158, `${brand}: expected 158 sub-fields, got ${fields.length}`);
+    assert.equal(fields.length, 163, `${brand}: expected 163 sub-fields, got ${fields.length}`);
     assert.equal(fields[157]!.id, 'pageId', `${brand}: pageId is not the appended tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.

@@ -1,10 +1,10 @@
 # Design System Setup
 
-Logo, màu sắc và kiểu chữ của bạn thuộc về một nơi, để mọi công cụ, trang và bản xuất đều vẽ bằng chúng. Nơi đó là **Design System Setup**, tại `#/start`, và khẩu hiệu của nó nói nó để làm gì: *Make it yours*.
+Logo, màu sắc và kiểu chữ của bạn thuộc về một nơi, để mọi công cụ, trang và bản xuất đều vẽ bằng chúng. Nơi đó là **Design System Setup**, tại `#/start`.
 
 Bắt đầu với bất cứ gì bạn có. Thả một logo vào và Lolly đọc màu của nó. Chọn một kiểu chữ, hoặc thả tệp phông chữ mà công ty bạn có giấy phép. Mỗi thay đổi hiện khắp ứng dụng ngay. Logo, phông chữ và token của bạn ở lại trên thiết bị này. Chọn một Google Font là bước duy nhất với ra ngoài: Lolly hỏi trước, rồi tải họ phông chữ một lần.
 
-Khi nó trông đúng, đặt tên cho hệ thống thiết kế và nhấn **Export**. Bạn nhận một tệp `.lolly` để giữ, để mở trên thiết bị khác hoặc đưa cho đồng nghiệp. [Settings](/info/dashboard.html#design-system) hiện hệ thống đang dùng ở chế độ chỉ đọc, và bìa của nó liên kết về đây để chỉnh sửa.
+Khi nó trông đúng, đặt tên cho hệ thống thiết kế và nhấn **Export**. Bạn nhận một tệp `.lolly` để giữ, để mở trên thiết bị khác hoặc đưa cho đồng nghiệp. [Lolly Settings](/info/dashboard.html#design-system) hiện hệ thống đang dùng ở chế độ chỉ đọc, và bìa của nó liên kết về đây để chỉnh sửa.
 
 ## Biến nó thành của bạn trong năm phút
 
@@ -16,34 +16,36 @@ Khi nó trông đúng, đặt tên cho hệ thống thiết kế và nhấn **Ex
 - <!--i:download--> **Export** ghi cả hệ thống thành một tệp `LollyBrand-….lolly`.
 :::
 
-Tiêu đề cho biết hệ thống thiết kế nào bạn đang **Editing**, và tên của nó là một ô bạn có thể đổi bất cứ lúc nào. Khi chỉnh sửa đầu tiên hỏi **What is this design system called?**, các chữ từ logo của bạn được điền sẵn nếu logo viết rõ chúng. **Save name** giữ tên; **Not now** giữ một tên tạm cho đến khi bạn gõ vào tiêu đề. Tên gắn nhãn hệ thống trong Settings và khi bạn chuyển, và trở thành tên tệp mà **Export** ghi.
+Thanh ngang đầu studio mang tên hệ thống thiết kế, và tên là một ô bạn có thể đổi bất cứ lúc nào: **Enter** giữ tên mới và **Escape** đặt lại tên cũ. Khi chỉnh sửa đầu tiên hỏi **What is this design system called?**, các chữ từ logo của bạn được điền sẵn nếu logo viết rõ chúng. **Save name** giữ tên; **Not now** giữ một tên tạm cho đến khi bạn gõ vào thanh. Tên gắn nhãn hệ thống trong Settings và khi bạn chuyển, và trở thành tên tệp mà **Export** ghi.
 
 ## Các phòng
 
-Studio là một tập các phòng trong thanh dọc bên cạnh, không theo thứ tự cố định: không gì được đánh số và không gì phải chờ gì khác. Trên điện thoại, thanh trở thành một dải chip dưới tiêu đề.
+Studio là một tập các phòng không theo thứ tự cố định: không gì được đánh số và không gì phải chờ gì khác. Trên máy tính, các phòng nằm trong một dải dưới thanh. Trên điện thoại, chúng chuyển xuống một thanh ở mép dưới, nơi ngón cái với tới, với phòng đang mở được cuộn vào tầm nhìn; bảng màu và khay nổi lên phía trên thanh đó, và thanh tránh sang bên khi bạn gõ. Với bàn phím, Tab tới dải đó một lần, còn phím mũi tên, Home và End di chuyển từ phòng này sang phòng khác.
 
-![Thanh phòng của studio: Overview, Colours, Type, Logos, Tokens, Files và Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Thanh của studio và các phòng: Board, Colours, Type, Logos, Tokens, Files, Rules và Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Phòng | Bạn làm gì ở đó | Khóa liên kết |
 |---|---|---|
-| **Overview** | Xem hệ thống chứa gì, với một cửa vào từng phòng | `overview` |
+| **Board** | Xem hệ thống chứa gì, với một cửa vào từng phòng | `overview` |
 | **Colours** | Thêm màu, gán vai trò, tạo sắc độ và bảng màu | `color` |
 | **Type** | Chọn bốn kiểu chữ mà ứng dụng, công cụ và mọi bản xuất đọc | `type` |
 | **Logos** | Đặt dấu hiệu của bạn ở mọi hướng và cách xử lý | `logos` |
 | **Tokens** | Bo góc, khoảng cách, đổ bóng và mọi giá trị có tên khác | `tokens` |
 | **Files** | Các tệp ảnh, âm thanh và chuyển động mà thương hiệu của bạn giữ | `catalogue` |
-| **Usage & rules** | Các quy tắc thương hiệu của bạn áp dụng, được kiểm tra trên ví dụ thật | `usage` |
+| **Rules** | Các quy tắc thương hiệu của bạn áp dụng, được kiểm tra trên ví dụ thật | `usage` |
 | **Skills** | Các tiêu chuẩn thành văn của thương hiệu cho con người và tác tử, để đọc và tải xuống | `skills` |
 
-Liên kết tới một phòng bằng `#/start?area=<key>`. Phòng Files giữ khóa `catalogue`, vì khóa phòng là cam kết vĩnh viễn, và `?tab=` vẫn hoạt động như bí danh cũ. Khóa không xác định mở Overview.
+Liên kết tới một phòng bằng `#/start?area=<key>`. Phòng Files giữ khóa `catalogue`, Board giữ `overview` và Rules giữ `usage`, vì khóa phòng là cam kết vĩnh viễn, và `?tab=` vẫn hoạt động như bí danh cũ. Khóa không xác định mở Board.
 
-**Chân thanh** chứa các hành động cho cả hệ thống thay vì một phòng. **Add from…** đưa một thương hiệu vào ([Bring a brand in](#bring-a-brand-in)), và **Tray** giữ những gì một lần quét tìm thấy mà bạn chưa thêm. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** và **Restore brand settings** giữ và chuyển hệ thống ([Keep and move your design system](#keep-and-move-your-design-system)). Mỗi cái xuất hiện khi có gì để nó tác động.
+**Thanh** chứa các hành động cho cả hệ thống thay vì một phòng. **Add from…** đưa một thương hiệu vào ([Bring a brand in](#bring-a-brand-in)), và **Tray** giữ những gì một lần quét tìm thấy mà bạn chưa thêm. **Export** ghi hệ thống thành một tệp, còn **More** chứa **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** và **Design systems**, mở danh sách trong Settings nơi bạn chuyển ([Keep and move your design system](#keep-and-move-your-design-system)). Mỗi cái xuất hiện khi có gì để nó tác động. Trên điện thoại, **Add from…** chuyển vào **More** và **Export** hiện dưới dạng biểu tượng của nó.
 
-## Overview
+## Board
 
-Khi chưa chọn gì, Overview đưa ra bốn cách bắt đầu. **Start from a reference** mở bộ chọn nguồn cho logo, ảnh chụp màn hình, trang web hoặc tệp thiết kế, còn **Pick a colour**, **Choose a face** và **Add a logo** mở trực tiếp các điều khiển đó. Mở một cái không ghi gì, và **Explore the tools** có sẵn từ đầu.
+Khi chưa chọn gì, Board đưa ra bốn cách bắt đầu. **Start from a reference** mở bộ chọn nguồn cho logo, ảnh chụp màn hình, trang web hoặc tệp thiết kế, còn **Pick a colour**, **Choose a face** và **Add a logo** mở trực tiếp các điều khiển đó. Mở một cái không ghi gì, và **Explore the tools** có sẵn từ đầu.
 
-Khi có thứ gì là của riêng bạn, Overview hiện những gì bạn có, với số lượng của riêng bạn dẫn đầu. Colours cho số lượng màu, với `· N starter` mờ nơi màu kế thừa hiện ra; dải của nó đặt màu của bạn trước, rồi một đường mảnh, rồi các màu starter đã mờ. Type đọc theo vai trò (*Inter for headings*, với *Starter for the rest* ở dòng dưới). Logos cho biết bao nhiêu ô đã điền (hoặc **Not set**), Tokens hiện bán kính bo góc và Files nói **Nothing yet** khi thư viện còn trống. Mỗi khối mở phòng của nó.
+Khi có thứ gì là của riêng bạn, Board hiện những gì bạn có, với số lượng của riêng bạn dẫn đầu. Colours cho số lượng màu, với `· N starter` mờ nơi màu kế thừa hiện ra; dải của nó đặt màu của bạn trước, rồi một đường mảnh, rồi các màu starter đã mờ. Colourways hiện mỗi colourway thành một ô nhỏ bằng màu dẫn của nó. Type đọc theo vai trò và đặt mỗi họ chữ bằng chính kiểu chữ của nó (*Inter for headings*, với *Starter for the rest* ở dòng dưới). Logos cho biết bao nhiêu ô đã điền (hoặc **Not set**), Tokens hiện bán kính bo góc và Files nói **Nothing yet** khi thư viện còn trống. Mỗi khối mở phòng của nó.
+
+Một hệ thống thiết kế đi kèm ứng dụng và chỉnh sửa được, như Lolly Demo, có tất cả những điều đó ngay từ đầu: Board hiện màu, colourway, kiểu chữ và dấu hiệu của nó, với thẻ **Came with this app** bên cạnh tiêu đề.
 
 ### Starter và của bạn
 
@@ -61,7 +63,7 @@ Khi có thứ gì là của riêng bạn, Overview hiện những gì bạn có,
 
 - Do bạn chọn hoặc cài.
 - Đủ độ đậm, và một thẻ nhuộm màu nơi bạn cài một kiểu chữ.
-- Được đếm trên Overview và trong Tokens.
+- Được đếm trên Board và trong Tokens.
 - Một vai trò theo vai trò khác đọc **↳ follows Primary** thay vì lặp lại tên của primary.
 :::
 
@@ -106,7 +108,7 @@ Màu đầu tiên của bạn trở thành **primary**, và một chip xác nh�
 
 Màu của bạn nằm cạnh bản xem trước **In context** trên màn hình rộng, và phía trên nó trên màn hình nhỏ hơn. Bản xem trước hiện một áp phích, biểu đồ hay thẻ giao diện trong bảng màu của bạn. Màu starter ở trong nhóm gập riêng của chúng.
 
-![Phòng Colours trên Lolly Demo: bảng màu trong các nhóm gập, mỗi màu có tên và mã hex, và viên thuốc tải xuống ở chân](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Phòng Colours trên Lolly Demo: bảng màu trong các nhóm gập, mỗi màu có tên và mã hex, và bản tải bảng màu ở phần đầu](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Phòng Colours sau khi thêm một màu, cùng bảng màu và một bản xem trước bố cục trực tiếp](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -163,7 +165,7 @@ Bốn phần gập nằm dưới bản xem trước và các vai trò. Mỗi ph�
 
 Bảng màu liệt kê màu của bạn trong các nhóm gập, mỗi nhóm có **+ Add** riêng. Tạo và đổi tên nhóm tùy ý. Một vai trò không bao giờ tạo ô thứ hai: ô mà một vai trò trỏ tới đeo một dấu nhỏ thay thế (**P**, **S**, **Su**, **T**). **Colour chart** bên dưới các ô hiện cùng các màu trên **Wheel** OKLCH (kéo một chấm để nhuộm lại, nhấp khoảng trống để thêm ô màu) và biểu đồ **Gamut**, cho thấy dải hiển thị được kết thúc ở đâu. `#/start?area=color&focus=chart` mở thẳng biểu đồ.
 
-![Bảng bảng màu, mọi nhóm có thể gấp lại, với nút tải xuống đặt ở mép dưới cùng](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Bảng bảng màu, mọi nhóm có thể gấp lại, với bản tải bảng màu ở phần đầu](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Bánh xe OKLCH - góc là sắc độ (hue), khoảng cách ra ngoài là độ bão hòa (chroma) và các màu xám chạy theo một dải độ sáng dọc theo cạnh bên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -179,7 +181,7 @@ Nhấp một ô màu để mở trình chỉnh sửa của nó:
 **Xóa một ô màu** là an toàn. Các sắc độ suy ra và vai trò chủ đề bị ẩn, nên không gì đọc chúng bị hỏng, còn màu bạn thêm thì bị gỡ.
 
 ::: details Làm việc với nhiều ô màu
-Mỗi ô màu có một tay kéo. Kéo để sắp xếp lại trong nhóm, hoặc đặt tiêu điểm vào tay kéo, nhấn Space, dùng phím mũi tên và nhấn Space lần nữa để thả; Escape hủy. Để chuyển màu giữa các nhóm, dùng điều khiển **Group** của trình chỉnh sửa hoặc chọn nhiều ô và dùng **Move to**.
+Mỗi ô màu có một tay kéo. Kéo để sắp xếp lại trong nhóm, hoặc đặt tiêu điểm vào tay kéo, nhấn Space, dùng phím mũi tên và nhấn Space lần nữa để thả; Escape hủy. Trên điện thoại, bảng màu hiện bốn màu một hàng và các tay kéo xuất hiện trong chế độ Select, thay vì một hàng dưới mỗi màu. Để chuyển màu giữa các nhóm, dùng điều khiển **Group** của trình chỉnh sửa hoặc chọn nhiều ô và dùng **Move to**.
 
 Chọn không cần chế độ. Thanh xuất hiện với ô đầu tiên được chọn và rời đi với ô cuối.
 
@@ -196,13 +198,13 @@ Thanh đọc **{n} selected**, rồi **Move to**, **Give a role** (mỗi màu nh
 
 Bảng **Gradients** tùy chọn dựng các token pha trộn từ bảng màu. Mỗi chuyển sắc có bản xem trước, 2 đến 8 điểm dừng có tên và một góc. Một điểm dừng trỏ tới một ô màu, nên nhuộm lại ô màu và chuyển sắc theo. Các phép pha chạy trong OKLCH.
 
-Các bản tải bảng màu (design token, CSS, SCSS, GIMP và Adobe Swatch Exchange) nằm trong một viên thuốc ở chân bảng màu khi đã có sắc độ. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) mô tả từng định dạng.
+Các bản tải bảng màu (design token, CSS, SCSS, GIMP và Adobe Swatch Exchange) nằm ở phần đầu của bảng màu, bên cạnh tiêu đề. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) mô tả từng định dạng.
 
 ## Type
 
-Khi chưa có kiểu chữ riêng, phòng là một thẻ: **Primary**, đặt cỡ đọc bằng kiểu chữ đang phục vụ hôm nay, với thẻ **Starter**, nút **Choose a face** và dòng *"Nothing installs until you choose one."* Headings, code và italic theo primary cho đến khi bạn chọn chúng; **Choose them separately** hiện các thẻ của chúng.
+Khi chưa có kiểu chữ riêng, phòng là một thẻ: **Primary**, đặt cỡ đọc bằng kiểu chữ đang phục vụ hôm nay, với thẻ **Starter**, nút **Choose for Primary** và dòng *"Nothing installs until you choose one."* Headings, code và italic theo primary cho đến khi bạn chọn chúng; **Choose them separately** hiện các thẻ của chúng.
 
-![Phòng Type khi chưa chọn kiểu chữ nào - một thẻ ở cỡ đọc, mang nhãn Starter, và một nút Choose a face đã tô đậm](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Phòng Type khi chưa chọn kiểu chữ nào - một thẻ ở cỡ đọc, mang nhãn Starter, và một nút Choose for Primary đã tô đậm](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Chọn một kiểu chữ và phòng mở thành bốn thẻ vai trò, danh sách Fonts và một mẫu chữ trực tiếp:
 
@@ -211,7 +213,7 @@ Chọn một kiểu chữ và phòng mở thành bốn thẻ vai trò, danh sác
 - **Code**: kiểu chữ đơn cách cho mã và dữ liệu.
 - **Italic**: chữ nghiêng thật cho nhấn mạnh, trích dẫn và chú thích bên lề.
 
-Một thẻ chỉ được nhuộm màu nơi bạn cài kiểu chữ đó, và nút của nó nói **Change** trên kiểu chữ của riêng bạn và **Choose a face** ở mọi nơi khác. Không gì trên thẻ xác nhận điều gì: nút mở sân khấu so sánh cho vai trò đó.
+Một thẻ chỉ được nhuộm màu nơi bạn cài kiểu chữ đó. Nút của nó cho biết nó dành cho vai trò nào: **Change Headings** trên kiểu chữ của riêng bạn và **Choose for Headings** ở mọi nơi khác. Dòng mẫu xuống dòng thay vì bị cắt. Không gì trên thẻ xác nhận điều gì: nút mở sân khấu so sánh cho vai trò đó.
 
 ![Bốn thẻ vai trò được mở ra - mỗi thẻ đặt trong kiểu chữ phục vụ nó, mang nhãn Starter ở nơi chưa ai chọn, và Italic đang theo primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -219,7 +221,7 @@ Một thẻ chỉ được nhuộm màu nơi bạn cài kiểu chữ đó, và n
 
 Sân khấu mở bên trong phòng, dưới thẻ bạn đã nhấn, và các thẻ gập thành một dải một dòng để sân khấu hiện trên màn hình đầu của điện thoại. Escape hủy và trả tiêu điểm về thẻ.
 
-1. Nhấn **Choose a face** trên thẻ.
+1. Nhấn **Choose for** và vai trò trên thẻ.
 2. Gõ tên họ phông chữ và nhấn **Preview**, hoặc nhấn một trong sáu họ **Pinned** dưới ô.
 3. Nhấn **Use this face**.
 
@@ -240,7 +242,7 @@ Token là các giá trị có tên đằng sau hệ thống thiết kế: màu s
 ![Phòng Tokens: phần đầu với ví dụ từ hệ thống và các hành động tệp, các ô đếm từng loại token, rồi các cặp màu kèm chỉ số tương phản](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **Phần đầu** đưa ra một ví dụ từ hệ thống của chính bạn (*Primary is Spearmint, #033633*) và các hành động tệp: **Download** (cả hệ thống dưới dạng design token, hoặc bảng màu theo năm định dạng khác), **Copy CSS** và **Add from…** để đọc lại một tệp JSON.
-- **Các ô** đếm từng loại token và nhảy tới phần của nó: Colours, Type, Logos, Shape and spacing, More và All tokens. Chúng đếm những gì là của riêng bạn, như Overview. Trên điện thoại các ô cuộn ngang.
+- **Các ô** đếm từng loại token và nhảy tới phần của nó: Colours, Type, Logos, Shape and spacing, More và All tokens. Chúng đếm những gì mỗi phần chứa; một phần chỉ chứa những gì đi kèm bản khởi đầu trống mang thẻ **Starter**, còn hệ thống đi kèm ứng dụng đếm tài liệu của chính nó mà không có thẻ. Trên điện thoại các ô xếp thành hai hàng ba ô.
 - **Colours** bắt đầu với các cặp mà công cụ đặt cùng nhau (chữ trên bề mặt, trên primary, muted trên bề mặt) kèm chỉ số APCA ở sáng và tối, và đánh dấu **Weak contrast** nơi một cặp chưa đạt. Rồi mọi nhóm màu: một dải dưới dạng một hàng chip, các màu khác kèm giá trị và tham chiếu mà công cụ dùng, như `{color.brand.spearmint}`. Nhấn một tham chiếu để sao chép tham chiếu. **Edit in Colours** mở một nhóm trong phòng Colours.
 - **Type** và **Logos** liệt kê kiểu chữ cho mỗi vai trò và mỗi ô logo, với **Edit in Type** và **Edit in Logos** khi bạn đã có của riêng mình.
 - **Shape and spacing** chứa **Rounded corners** (`shape.radius`) và **Spacing rhythm** (`space.base`). Mỗi cái đọc *Lolly default* cho đến khi bạn kéo thanh trượt và *Yours* sau đó, lưu ngay và hoàn tác được.
@@ -253,11 +255,11 @@ Một phần trống đưa ra cách lấp khoảng trống: **Pick a colour**, *
 
 Thả các tệp mà thương hiệu của bạn giữ, ngoài logo: tệp **vector**, **image**, **audio** và **motion** (video, Lottie và hoạt ảnh). Chúng xuất hiện trong [Assets](/info/using.html#assets-your-library), xếp vào các phần và sẵn sàng trong bộ chọn tài nguyên của mọi công cụ, và chúng ở lại trên thiết bị này.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** đưa các lựa chọn thương hiệu của bạn vào hoạt động: người ta được đổi gì, gì giữ cố định và Lolly kiểm tra được gì.
+**Rules** đưa các lựa chọn thương hiệu của bạn vào hoạt động: người ta được đổi gì, gì giữ cố định và Lolly kiểm tra được gì.
 
-![Usage & rules trên Lolly Demo: thẻ Brand rules trống với Add your first rule, rồi Try your brand in use với các ví dụ sẵn sàng kết xuất](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules trên Lolly Demo: thẻ Brand rules trống với Add your first rule, rồi Try your brand in use với các ví dụ sẵn sàng kết xuất](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** liệt kê các quy tắc của bạn. **Add rule** (hoặc **Add your first rule**) mở một biểu mẫu ngắn:
 
@@ -282,7 +284,7 @@ Một bản dựng đi kèm thương hiệu cố định hiện cùng các quy t
 
 ## Mang một thương hiệu vào
 
-**Add from…** ở chân thanh mở một bộ chọn hỏi bạn có gì, không hỏi định dạng là gì:
+**Add from…** trong thanh mở một bộ chọn hỏi bạn có gì, không hỏi định dạng là gì:
 
 - **Design tokens or a design file**: JSON DTCG hoặc Tokens Studio, dự án Penpot, zip các bộ token, gói hệ thống thiết kế Lolly hoặc SVG.
 - **PDF**: bộ trang hoặc tệp hướng dẫn thương hiệu, được đọc trên thiết bị này để lấy màu, dấu hiệu và kiểu chữ nhúng.
@@ -310,11 +312,11 @@ Việc nhập PDF và tệp thiết kế giữ các điều khiển xem lại ri
 
 ### Tìm và so sánh một diện mạo
 
-Mở **Find a look** từ Overview hoặc từ danh sách hệ thống thiết kế trong Settings. Duyệt các hệ thống đã lưu trên thiết bị này và vài ví dụ Lolly dùng lại được, và tìm theo tên, thẻ màu hoặc phông chữ đã khai báo. **Closest to my current palette** sắp xếp theo độ tương đồng màu đã đo, với phông chữ khớp phân định khi hòa; đó không phải điểm chất lượng.
+Mở **Find a look** từ Board hoặc từ danh sách hệ thống thiết kế trong Settings. Duyệt các hệ thống đã lưu trên thiết bị này và vài ví dụ Lolly dùng lại được, và tìm theo tên, thẻ màu hoặc phông chữ đã khai báo. **Closest to my current palette** sắp xếp theo độ tương đồng màu đã đo, với phông chữ khớp phân định khi hòa; đó không phải điểm chất lượng.
 
 Chọn một diện mạo để xem, hoặc hai để so sánh cạnh nhau. Việc chọn không đổi gì. **Use this saved system** chuyển sang nó, và **Use these colours** áp dụng màu của một ví dụ qua điểm kiểm tra thông thường, giữ phông chữ của bạn. **Restore brand settings** khôi phục diện mạo trước. Các hệ thống đã lưu có **Search tags** chỉnh sửa được dưới **Details and design context**. Các ví dụ là công thức màu Lolly nguyên bản, không có bộ sưu tập cào về và không cần tài khoản.
 
-![So sánh Sunroom và Orchard cạnh nhau trước khi áp dụng một trong hai hệ thống màu.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![So sánh Sunroom và Orchard cạnh nhau trước khi áp dụng một trong hai hệ thống màu.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Giữ và chuyển hệ thống thiết kế của bạn
 
@@ -328,11 +330,11 @@ Chọn một diện mạo để xem, hoặc hai để so sánh cạnh nhau. Vi�
 
 ### Khôi phục cài đặt trước
 
-Chọn **Restore brand settings**, chọn một điểm kiểm tra có ngày và nhấn **Restore**. Nó khôi phục màu, cài đặt kiểu chữ và các token khác của thương hiệu đang dùng; tệp phông chữ và ảnh giữ nguyên. Lolly lưu cài đặt hiện tại của bạn là **Before restore** trước, để bạn đảo ngược việc khôi phục ngay cả sau khi đóng trình duyệt. 20 điểm kiểm tra gần nhất được giữ trên thiết bị này.
+Mở **More** trong thanh, chọn **Restore brand settings**, chọn một điểm kiểm tra có ngày và nhấn **Restore**. Nó khôi phục màu, cài đặt kiểu chữ và các token khác của thương hiệu đang dùng; tệp phông chữ và ảnh giữ nguyên. Lolly lưu cài đặt hiện tại của bạn là **Before restore** trước, để bạn đảo ngược việc khôi phục ngay cả sau khi đóng trình duyệt. 20 điểm kiểm tra gần nhất được giữ trên thiết bị này.
 
 ### Phiên bản
 
-Một phiên bản đã xuất bản là một **bản sao vĩnh viễn, có tên** giữ trên thiết bị này. Nó không bao giờ đổi, nên một công cụ hoặc liên kết ghim nó (bằng `designv`) tiếp tục vẽ cùng một thứ. Một hệ thống có thứ gì của riêng bạn hiện liên kết lặng lẽ **Versions & publishing** ở chân thanh; sau lần xuất bản đầu tiên nó trở thành mục **Versions**. `#/start?area=versions` mở thẳng nó.
+Một phiên bản đã xuất bản là một **bản sao vĩnh viễn, có tên** giữ trên thiết bị này. Nó không bao giờ đổi, nên một công cụ hoặc liên kết ghim nó (bằng `designv`) tiếp tục vẽ cùng một thứ. Một hệ thống có thứ gì của riêng bạn liệt kê **Versions & publishing** trong menu **More** của thanh; sau lần xuất bản đầu tiên **Versions** gia nhập các phòng. `#/start?area=versions` mở thẳng nó.
 
 - **Một phiên bản là vĩnh viễn.** Chưa có xóa, và bảng nói rõ điều đó.
 - **Các mục gỡ bỏ dẫn đầu thẻ tương thích**, vì token bị gỡ là thứ làm hỏng công cụ.

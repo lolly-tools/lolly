@@ -10,9 +10,9 @@ Den här sidan går igenom ytan från den första rutan till en färdig presenta
 
 **Översta listen** börjar med **Home**, **File menu** och dokumentets namn (klicka på namnet för att döpa om dokumentet). Mitten håller **Undo**, **Redo**, **History**, zoomkontrollerna (med **Fit all** och **Fit artboard**) och växlarna för **Timeline**, **Navigator** och **Inspector**. Till höger sitter **Share**, **Present** och **Export**. På en telefon flyttas de mindre använda knapparna in i **More actions**.
 
-**Verktygsfältet** längs sidan håller Lolly-menyn och verktygen du ritar med: **Pointer**, **Add a box**, **Pen**, **Blyertspenna**, **Edit points**, **Line**, sedan knapparna Timeline, Artboards och Auto-arrange.
+**Verktygsfältet** längs sidan håller Lolly-menyn och verktygen du ritar med: **Pointer**, **Add a box**, **Pen** (**Blyertspenna** delar knapp med den), **Edit points**, **Line**, sedan knapparna Timeline, Artboards och Auto-arrange.
 
-![Den fria arbetsytans verktygslist: ett draghandtag, Lolly-menyn, sedan Pekare, Lägg till en ruta, Penna, Blyertspenna, Redigera punkter, Linje, Tidslinje, Ritytor och Ordna automatiskt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Den fria arbetsytans verktygslist: ett draghandtag, Lolly-menyn, sedan Pekare, Lägg till en ruta, Penna, Redigera punkter, Linje, Tidslinje, Ritytor och Ordna automatiskt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Ytan fungerar som en designers arbetsbord runt ritytan:
 
@@ -79,7 +79,7 @@ Rutor, cirklar och rundade ramar täcker de flesta layouter. För varje annan fo
 
 **Fortsätt på en öppen bana.** Med Pen på trycker du på någon av ändarna av en öppen bana, och då ritar du den banan igen: varje klick lägger till en punkt efter den änden, eller framför den första punkten när du började från början. Enter behåller resultatet och Escape lämnar banan exakt som den var. Banan förblir samma ruta, med sin fyllning, kontur och pilspetsar, och ett enda ångra sätter tillbaka den. Delete tar bara tillbaka de punkter du lade till. En sluten form, en linje fäst vid en ruta och en bana med flera delar har ingen fri ände att fortsätta på.
 
-**Rita frihand med blyertspennan.** Knappen **Blyertspenna** i verktygsfältet (eller `Shift C`) registrerar ditt drag medan du drar. När du släpper jämnar Lolly ut dragningen till några få punkter med Bezier-handtag, behåller de skarpa vändningarna som hörn och håller kurvan inom ett par skärmpixlar från där din hand gick. Ett drag som slutar nära sin början sluts. Resultatet är en vanlig bana, med samma färg som en penna-bana, och du kan redigera dess punkter efteråt.
+**Rita frihand med blyertspennan.** Tryck `Shift C`, eller tryck och håll knappen **Pen** i verktygsfältet (eller högerklicka på knappen) och välj **Blyertspenna**; knappen visar sedan Blyertspennan tills du väljer Pen igen. Blyertspennan registrerar ditt drag medan du drar. När du släpper jämnar Lolly ut dragningen till några få punkter med Bezier-handtag, behåller de skarpa vändningarna som hörn och håller kurvan inom ett par skärmpixlar från där din hand gick. Ett drag som slutar nära sin början sluts. Resultatet är en vanlig bana, med samma färg som en penna-bana, och du kan redigera dess punkter efteråt.
 
 Resultatet är en vanlig ruta. Flytta, ändra storlek på, rotera, gruppera, justera, ändra ordning på, fyll, skugga eller tona banan som vilken annan ruta som helst. Den första banan får den fyllning och linje som ditt varumärke ger en bana, och varje ny bana därefter får det du senast använde. I ett verktyg där varumärket inte anger något för banor ritas en ny bana med linje i färgen du ritade med, så formen aldrig är osynlig.
 
@@ -121,6 +121,25 @@ Tre till fungerar på en enda form. **Outline stroke…** gör en linje till en 
 ![En halvmåne och en ring med ett riktigt hål, båda skapade med Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Resultatet är en ny bana som du kan fortsätta redigera med pennan, lagrad som vanliga Bézierkurvor, så den ursprungliga splinetypen följer inte med. Hål är riktiga hål: kontrollen **Fill rule** på linjepanelen avgör om överlappande konturer fylls (*non-zero*) eller stansas igenom (*even-odd*). Operationerna vägrar hellre än förstör: be om att skära två former som inte överlappar och ingenting ändras. Text- och bildrutor har ingen kontur, så de lämnas ifred.
+
+## Spåra en bild
+
+Markera en bild, högerklicka på den och välj **Spåra bild…** för att göra om bilden till redigerbara former. Välj en förinställning och tryck på **Spåra**:
+
+- **Logotyp** hittar några enfärgade ytor och behåller skarpa kanter samt äkta cirklar och linjer. Den avvisar en bild med toningar eller fototoner och säger det.
+- **Illustration** spårar flera färger som fyllda former, platt grafik eller en posteriserad bild.
+- **Linjeteckning** spårar mörka linjer på en ljus sida som svarta former.
+- **Mittlinje** spårar mörka linjer som enkla streck, så att du kan ändra deras tjocklek efteråt.
+
+Formerna läggs till som en grupp precis ovanför bilden, som ligger kvar. Dölj eller radera bilden för att bara se banorna. Spårningen körs på din enhet i ett bakgrundsjobb med en Avbryt-knapp, och inget laddas upp. En bild på 1500 pixlar tar vanligtvis mellan en och flera sekunder, och ett upptaget fotografi tar längre tid.
+
+Spårningen följer det rutan visar, så en beskuren bild (Cover) spåras bara i den synliga delen. Följande gränser gäller:
+
+- Bilder skalas ned till högst 1500 pixlar på långsidan före spårning, så kanterna placeras med en bråkdel av den storleken, inte av originalets.
+- En spårning ger högst 1 500 former och 60 000 punkter. Ett fotografi går oftast över det, och Design säger det utan att ändra något. Prova Logotyp eller Linjeteckning, eller en enklare bild.
+- Toningar blir band av enfärgad yta, och mjuka skuggor blir former med hårda kanter.
+- Hörnradie, en formmask och en effekt på bildrutan tillämpas inte på banorna.
+- Samma bild och samma förinställning ger alltid samma former.
 
 ## Konturer
 
@@ -195,9 +214,9 @@ Där ett konkret färg- eller typsnittsförslag finns ändrar dess knapp just de
 
 ### Organisationens regler och skrivsignalen
 
-Exportpanelens kort kontrollerar också de organisationsregler som ditt designsystem medför, som textvikt och justering, godkända färgpar eller en logotyp per yta, lager för lager. Varje fynd är en varning med lagrets namn ovanför regeln. En regel som det här bygget saknar kontroll för listas som inte kontrollerad, aldrig som följd. [Usage & rules](/info/brand-studio.html#usage-rules) listar reglerna, och `lolly check` tillämpar samma regler på ett sparat dokument.
+Exportpanelens kort kontrollerar också de organisationsregler som ditt designsystem medför, som textvikt och justering, godkända färgpar eller en logotyp per yta, lager för lager. Varje fynd är en varning med lagrets namn ovanför regeln. En regel som det här bygget saknar kontroll för listas som inte kontrollerad, aldrig som följd. [Rules](/info/brand-studio.html#rules) listar reglerna, och `lolly check` tillämpar samma regler på ett sparat dokument.
 
-Samma kort visar skrivsignalen för texten dokumentet ritar: dess band (ingen, svag, märkbar eller stark), sedan Verifys egen mening med poängen av 100 och upp till tre flaggade fraser, var och en med lagret som håller dem. **Open the text in Verify** tar texten till [Verify](/#/verify) för hela läsningen; [AI evidence in Verify](/info/verify-ai-evidence.html) förklarar vad poängen väger in. Poängen är en signal, inte en dom: den räknar mönster som är vanliga i genererad text och kan inte avgöra vem som skrivit orden. Dolda lager lämnas utanför båda kontrollerna, och kortet anger hur många.
+Samma kort visar skrivsignalen för texten dokumentet ritar: dess band (ingen, svag, märkbar eller stark), sedan Verifys egen mening med poängen av 100 och upp till tre flaggade fraser, var och en med lagret som håller dem. **Open the text in Verify** tar texten till [Lolly Verify](/#/verify) för hela läsningen; [AI evidence in Verify](/info/verify-ai-evidence.html) förklarar vad poängen väger in. Poängen är en signal, inte en dom: den räknar mönster som är vanliga i genererad text och kan inte avgöra vem som skrivit orden. Dolda lager lämnas utanför båda kontrollerna, och kortet anger hur många.
 
 Fynd mot organisationens regler och en stark skrivsignal räknas in i kortets summa "to fix" så att de är lätta att hitta. De informerar och blockerar aldrig: Download förblir tillgänglig, och det finns inget att avfärda eller registrera som ett undantag. En agent som arbetar i det öppna dokumentet får samma rapport genom sina webbplatsverktyg ([Agenter i ett öppet dokument](/info/open-document-agents.html)).
 

@@ -491,7 +491,7 @@ test('the section A.7.1.3 carve-out reads as coverage, not as damage', () => {
 
 test('a file whose text was never searched is not reported as clean', () => {
   // The mirror of the never-accuse rule: never exonerate either. The engine
-  // declines to read past 16 MiB and says so; the shell used to answer with a
+  // declines to read past 16 MiB and reports that; the shell used to answer with a
   // flat "This file carries no C2PA manifest".
   const r = baseReport({
     found: false, state: 'none', format: 'html',

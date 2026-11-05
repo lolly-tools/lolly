@@ -1,81 +1,111 @@
 {
   "title": "Who is it for?",
   "doors": [
-    { "id": "start", "name": "Start", "sub": "I am new here", "mascot": "kookaburra", "lanes": [
-      { "tab": "Try it", "mascot": "ringtail-possum",
-        "pitch": "Open QR Code, type a web address and download the finished file. It takes a minute, and you need no account and nothing installed.",
-        "cta": { "label": "Open QR Code ↗", "href": "#/tool/qr-code" },
+    { "id": "you", "name": "Just you", "sub": "one file, no account", "mascot": "kookaburra", "lanes": [
+      { "tab": "Your first file", "mascot": "ringtail-possum",
+        "pitch": "Open Lolly QR Code, type a web address and download the finished file. It takes a minute, and you need no account and nothing installed.",
+        "cta": { "label": "Open Lolly QR Code ↗", "href": "#/tool/qr-code" },
         "doc": { "label": "Make your first file", "slug": "make-something" } },
       { "tab": "Make it yours",
         "pitch": "Lolly opens wearing Lolly Demo, its own sample design system. Give it your colours, fonts and logos once, and every tool wears them from then on.",
-        "cta": { "label": "Open Design System Setup ↗", "href": "#/start" },
+        "cta": { "label": "Open Lolly Design System Setup ↗", "href": "#/start" },
         "doc": { "label": "Start", "slug": "quickstart" } },
-      { "tab": "Install",
-        "pitch": "Lolly runs in a current browser. Install the app when you want it in your dock or app menu, with native file dialogs.",
-        "doc": { "label": "Install Lolly", "slug": "install" } },
-      { "tab": "Questions",
-        "pitch": "Why it is free, where your files go, how to get the apps and who makes Lolly.",
-        "doc": { "label": "Questions & answers", "slug": "faq" } }
-    ] },
-    { "id": "create", "name": "Create", "sub": "I make things", "mascot": "quokka", "lanes": [
-      { "tab": "Make", "mascot": "bandicoot",
-        "pitch": "Pick a tool and fill in a few fields, or lay it out yourself on an open canvas. The finished file comes out right either way: colours, fonts and layout are already sorted.",
-        "cta": { "label": "Open the app ↗", "href": "#/" },
+      { "tab": "Everyday files",
+        "pitch": "A certificate, a signature, a calendar file, a print sheet or a card for a link: pick the tool, fill in the fields and download. Each one comes out in your colours and type.",
+        "cta": { "label": "Browse the tools ↗", "href": "#/" },
         "doc": { "label": "Make something", "slug": "make-something" } },
-      { "tab": "Animate", "mascot": "pelican",
-        "pitch": "Text that moves, scenes on a timeline, motion that stays on-brand. Cut clips, music and voiceover in Sequence, then export video, GIF or animated SVG.",
-        "cta": { "label": "Open Design ↗", "href": "#/tool/design" },
-        "doc": { "label": "Animating", "slug": "animating" } },
-      { "tab": "Record", "mascot": "quoll",
-        "pitch": "Record a clean take with live coaching, or turn a voice note into a finished video with Audiogram. No camera, no makeup needed.",
-        "cta": { "label": "Open Record ↗", "href": "#/tool/record" },
-        "doc": { "label": "Using Lolly", "slug": "using" } },
-      { "tab": "Collaborate", "mascot": "dolphin",
-        "pitch": "Two people, two devices, one design, edited live. Share an invite across the table and both screens hold the same session: there is no server in the middle.",
-        "cta": { "label": "Start in Design ↗", "href": "#/tool/design" },
-        "doc": { "label": "Working together", "slug": "collaborate" } },
-      { "tab": "Post", "mascot": "whale",
-        "pitch": "Send it where it was asked for: a link that carries the design, one .lolly file, print-true PDF, video or slides - or straight to Discord, Google Drive and the places you already post.",
-        "cta": { "label": "Open the app ↗", "href": "#/" },
-        "doc": { "label": "Exporting", "slug": "exporting" } },
-      { "tab": "Teams", "mascot": "wedge-tailed-eagle",
-        "pitch": "Playbooks for four teams: a seller with a meeting tomorrow, a marketer with forty sizes to fill, a newsroom on deadline and a legal reviewer cleaning a file before it travels.",
-        "links": [
-          { "label": "For sales teams", "slug": "sales" },
-          { "label": "For marketing teams", "slug": "marketing" },
-          { "label": "For the newsroom", "slug": "press" },
-          { "label": "For legal teams", "slug": "legal" }
-        ],
-        "doc": { "label": "Create", "slug": "creators" } }
+      { "tab": "Your library",
+        "pitch": "The Assets view holds the files, fonts and colours you add, all in one place. Find a piece again, change the piece and use the same art in any tool.",
+        "cta": { "label": "Open the Assets view ↗", "href": "#/a" },
+        "doc": { "label": "Using Lolly", "slug": "using" } }
     ] },
-    { "id": "automate", "name": "Automate", "sub": "I set up the system", "mascot": "koala", "lanes": [
-      { "tab": "Designers", "mascot": "lorikeet",
-        "pitch": "Bring finished work in, set the rules once, keep the tools you already use.",
+    { "id": "team", "name": "A small team or club", "sub": "the same look, no designer", "mascot": "quokka", "lanes": [
+      { "tab": "One design system", "mascot": "bandicoot",
+        "pitch": "A sports club, a choir, a local group: set the colours, type and logo once, and everyone's posters, notices and certificates match, with no designer on hand.",
+        "cta": { "label": "Set up a design system ↗", "href": "#/start" },
+        "doc": { "label": "Start", "slug": "quickstart" } },
+      { "tab": "Share the look",
+        "pitch": "Export the design system as one .lolly file and send the file round. Each person who opens the file gets the same colours, type and logos in their own Lolly.",
+        "cta": { "label": "Open Lolly Design System Setup ↗", "href": "#/start" },
+        "doc": { "label": "Lolly Design System Setup", "slug": "brand-studio" } },
+      { "tab": "Edit together", "mascot": "dolphin",
+        "pitch": "Two people, two devices, one design, edited live. Share an invite across the table and both screens hold the same session: there is no server in the middle.",
+        "cta": { "label": "Start in Lolly Design ↗", "href": "#/tool/design" },
+        "doc": { "label": "Working together", "slug": "collaborate" } },
+      { "tab": "Post and send", "mascot": "whale",
+        "pitch": "Send each piece where it was asked for: a link that carries the design, print-true PDF, video or slides, or straight to Discord, Google Drive and the places you already post.",
+        "cta": { "label": "Open the app ↗", "href": "#/" },
+        "doc": { "label": "Export a file", "slug": "exporting" } }
+    ] },
+    { "id": "clients", "name": "Clients and partners", "sub": "several brands, one app", "mascot": "lorikeet", "lanes": [
+      { "tab": "Each client", "mascot": "koala",
+        "pitch": "An agency, a studio or a freelancer keeps a design system per client, with that client's logos and fonts inside, and switches as the work changes. Each piece is drawn in the system you chose for the piece.",
+        "cta": { "label": "Set up a design system ↗", "href": "#/start" },
+        "doc": { "label": "Brand architectures", "slug": "brand-architectures" } },
+      { "tab": "A brand you were given", "mascot": "quoll",
+        "pitch": "A partner sent their design system as a .lolly file? Open the file and make the piece in their colours, with their rules, from your own Lolly.",
+        "cta": { "label": "Open Lolly Design System Setup ↗", "href": "#/start" },
+        "doc": { "label": "Working with partners", "slug": "partners" } },
+      { "tab": "Two brands on one piece",
+        "pitch": "A sponsor's logo on the poster, a joint announcement, a wall of partner marks for the event: the lead brand draws the piece, and the partner's mark goes in as artwork.",
+        "cta": { "label": "Open Lolly Logo Wall ↗", "href": "#/tool/logo-wall" },
+        "doc": { "label": "Working with partners", "slug": "partners" } },
+      { "tab": "Bring work in",
+        "pitch": "Bring finished work in, set the rules once and keep the tools you already use.",
         "links": [
           { "label": "Importing from other tools", "slug": "design-import", "note": ".fig .penpot .ai .idml svg" },
-          { "label": "Design System Setup", "slug": "brand-studio", "note": "#/start" },
           { "label": "Design tokens", "slug": "design-tokens", "note": "DTCG" }
         ],
-        "cta": { "label": "Set up a design system ↗", "href": "#/start" },
-        "doc": { "label": "Automate", "slug": "builders" } },
-      { "tab": "Developers", "mascot": "kookaburra-lolly",
-        "pitch": "One render path. The app, the CLI and an agent all make the same file.",
+        "doc": { "label": "Import a design", "slug": "design-import" } }
+    ] },
+    { "id": "public", "name": "Classes, events and the public", "sub": "many people, many languages", "mascot": "pelican", "lanes": [
+      { "tab": "Certificates and agendas", "mascot": "wedge-tailed-eagle",
+        "pitch": "A certificate for each name on a list, an agenda for the day, a diagram for the lesson. Fill in the fields once, then make one file per row of a spreadsheet.",
+        "cta": { "label": "Open Certificate ↗", "href": "#/tool/certificate" },
+        "doc": { "label": "Batch and Lolly Multi-edit", "slug": "batch" } },
+      { "tab": "On the day",
+        "pitch": "Wayfinding signs, a countdown on the big screen, a dressed booth and a sponsor wall, all in the event's colours.",
+        "cta": { "label": "Browse the tools ↗", "href": "#/" },
+        "doc": { "label": "Working with partners", "slug": "partners" } },
+      { "tab": "In 27 languages",
+        "pitch": "The app and its documentation come in 27 languages, and Certificate has a Language field, so one layout serves every language in the room.",
+        "doc": { "label": "Inclusive Design", "slug": "inclusive-design" } },
+      { "tab": "For everyone", "mascot": "echidna",
+        "pitch": "Reduced motion, high contrast, larger text and calmer previews are one switch each, and the file Lolly makes stays the same whichever you choose.",
+        "cta": { "label": "Open Accessibility ↗", "href": "#/settings?focus=a11y-section" },
+        "doc": { "label": "Inclusive Design", "slug": "inclusive-design" } }
+    ] },
+    { "id": "developers", "name": "Developers and agents", "sub": "the same file, by script", "mascot": "bin-chicken", "lanes": [
+      { "tab": "CLI and TUI", "mascot": "kookaburra-lolly",
+        "pitch": "One render path. The app, the terminal and an agent all make the same file.",
         "links": [
           { "label": "CLI", "slug": "cli", "note": "lolly qr-code --url=…" },
-          { "label": "MCP Server", "slug": "mcp", "note": "agents" },
+          { "label": "TUI", "slug": "tui", "note": "full screen" },
           { "label": "Host API", "slug": "host-api", "note": "host.*" }
         ],
         "doc": { "label": "Automate", "slug": "builders" } },
-      { "tab": "AI", "mascot": "bin-chicken",
-        "pitch": "Agents are first-class users. Anything a person can make in the app, an agent can make through the MCP server or the CLI: the same tools, the same brand rules and the same render path, and the file still says who made it.",
+      { "tab": "MCP server",
+        "pitch": "An open MCP endpoint with no token and no sign-in: list the tools, read a tool's inputs, check them and render the file.",
         "links": [
-          { "label": "MCP Server", "slug": "mcp", "note": "agents" },
-          { "label": "CLI", "slug": "cli", "note": "lolly qr-code --url=… --export=png" },
-          { "label": "Our AI stance", "slug": "ai-stance" }
+          { "label": "AI Agents", "slug": "ai-agents" }
+        ],
+        "doc": { "label": "MCP Server", "slug": "mcp" } },
+      { "tab": "GitHub Action",
+        "pitch": "Render on-brand files in CI with the same flags you use at your desk: one file, or one for each row of a CSV.",
+        "links": [
+          { "label": "The render action", "href": "https://github.com/lolly-tools/lolly/tree/main/action", "note": "action.yml" },
+          { "label": "CLI batch and automation", "slug": "cli-automation", "note": "lolly batch" }
+        ],
+        "doc": { "label": "CLI batch and automation", "slug": "cli-automation" } },
+      { "tab": "AI agents",
+        "pitch": "Agents are first-class users. Anything a person can make in the app, an agent can make through the MCP server or the CLI: the same tools, the same brand rules and the same render path, and each file still records who made the file.",
+        "links": [
+          { "label": "Our AI stance", "slug": "ai-stance" },
+          { "label": "Brand skills", "slug": "brand-skills" }
         ],
         "doc": { "label": "AI Agents", "slug": "ai-agents" } }
     ] },
-    { "id": "manage", "name": "Manage", "sub": "I run it for a team", "mascot": "platypus", "lanes": [
+    { "id": "organisation", "name": "An organisation", "sub": "sign-in, rules, review", "mascot": "platypus", "lanes": [
       { "tab": "Members",
         "pitch": "Your organisation runs Lolly Work? Connect the app to its address and sign in. Its tools, design systems and shared projects appear, and your own saves stay yours.",
         "cta": { "label": "Open Settings ↗", "href": "#/settings?focus=instance-section" },
@@ -87,37 +117,24 @@
           { "label": "Governance", "slug": "work-governance", "note": "policy" },
           { "label": "Approvals", "slug": "work-approvals" }
         ],
-        "doc": { "label": "Manage", "slug": "operators" } }
-    ] },
-    { "id": "deploy", "name": "Deploy", "sub": "I host it", "mascot": "wombat", "lanes": [
-      { "tab": "Lolly",
-        "pitch": "A static host is the easy path. Air-gapped is the same install.",
+        "doc": { "label": "Manage", "slug": "operators" } },
+      { "tab": "Host Lolly", "mascot": "wombat",
+        "pitch": "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.",
         "links": [
-          { "label": "Deployment", "slug": "deployment", "note": "static · MDM · hybrid" },
-          { "label": "Configuration", "slug": "configuration", "note": "profiles · policy" },
+          { "label": "Deployment", "slug": "deployment", "note": "static · air-gapped · YunoHost" },
+          { "label": "Run your own Lolly Work server", "slug": "work-self-host" },
           { "label": "Build Guide", "slug": "build-guide", "note": "MPL-2.0" }
         ],
         "doc": { "label": "Deploy", "slug": "operate" } },
-      { "tab": "Lolly Work",
-        "pitch": "The organisation server is open source too. Run it on one machine, on Kubernetes or with your platform team.",
+      { "tab": "Trust", "mascot": "magpie",
+        "pitch": "Most data exfiltration is mundane: a confidential file handed to a stranger's website for a ten-second job. Lolly's utilities do those jobs inside the app, with no account and no server in the middle. A file Lolly makes can say who made the file, and Lolly Verify reads that record back.",
         "links": [
-          { "label": "Run your own Work server", "slug": "work-self-host" },
-          { "label": "Install Lolly Work", "slug": "work-install" }
+          { "label": "Privacy", "slug": "privacy" },
+          { "label": "Verify it yourself", "slug": "verify-yourself" },
+          { "label": "The utilities", "href": "#/utilities", "note": "redact · strip · compress" }
         ],
-        "doc": { "label": "Deploy", "slug": "operate" } }
-    ] },
-    { "id": "trust", "name": "Trust", "sub": "I answer for it", "mascot": "echidna", "lanes": [
-      { "tab": "Security", "mascot": "magpie",
-        "pitch": "Most data exfiltration is mundane: a confidential file handed to a stranger's website for a ten-second job. Lolly's utilities do those jobs inside the app, with no account and no server in the middle, so there is nothing for a data-loss policy to chase.",
-        "cta": { "label": "Open the utilities ↗", "href": "#/utilities" },
-        "doc": { "label": "Trust", "slug": "trust" } },
-      { "tab": "Privacy",
-        "pitch": "What stays with you, what each optional service receives and what Lolly never collects, written out in full.",
-        "doc": { "label": "Privacy", "slug": "privacy" } },
-      { "tab": "Verify",
-        "pitch": "A file Lolly makes can say who made it and with what. Drop any file on Verify to read its Content Credentials and check them yourself.",
-        "cta": { "label": "Open Verify ↗", "href": "#/verify" },
-        "doc": { "label": "Verify it yourself", "slug": "verify-yourself" } }
+        "cta": { "label": "Open Lolly Verify ↗", "href": "#/verify" },
+        "doc": { "label": "Trust", "slug": "trust" } }
     ] }
   ]
 }

@@ -27,7 +27,6 @@ import { escape } from '../../utils.ts';
 import { segHtml } from '../seg.ts';
 import { FONT_ROLES, colorIdentity } from '../design-system/ownership.ts';
 import type { FaceState } from '../design-system/ownership.ts';
-import type { RoleId } from '../design-system/roles.ts';
 import type { LogoRoleOffer } from '../design-system/logo-roles.ts';
 
 // ── Host shape ──────────────────────────────────────────────────────────────
@@ -63,9 +62,9 @@ export const FOREGROUNDS: ReadonlyArray<{ id: Fg; label: string }> = [
   { id: 'auto', label: t('Auto') }, { id: 'light', label: t('Light') }, { id: 'dark', label: t('Dark') },
 ];
 // The palette download formats, as the bulk bar's Download menu lists them
-// (plan 182 section 5.5) - the same six lib/swatch-export.ts serves the pane's
-// download dock. The dock keeps its own <select>, whose tokens-json option
-// carries a "Penpot / Tokens Studio" note the menu has no room for.
+// (plan 182 section 5.5): the six lib/swatch-export.ts serves. The Colours
+// room's head carried a download dock of its own until plan 346 change 9; the
+// whole system's export is the bar's Export and the Tokens room's.
 export const PALETTE_FORMATS: ReadonlyArray<{ id: SwatchExportFormat; label: string }> = [
   { id: 'tokens-json', label: t('Design tokens (JSON)') },
   { id: 'css-vars', label: t('CSS variables') },
@@ -186,18 +185,15 @@ export function typeRoleSample(role: FontRole): string {
 /**
  * The role button's two strings, kept in one place because they have to agree.
  *
- * The button is icon-free but ROLE-free too: "Change" on its own would be four
- * identical buttons on four cards, so the accessible name names the role. WCAG
- * 2.5.3 (Label in Name) then requires the visible words to be IN that name - 
- * speech control says "click Change", and a name of "Change the Headings face"
- * matches while "Choose the Headings face" over a visible "Change" does not.
- * Both strings below are built so the visible label is a literal prefix of the
- * spoken one, in every state. `paintRoleCards` rewrites BOTH together.
+ * The button says which role it is for: four cards with four identical "Choose a
+ * face" buttons read as one control repeated (plan 336 P10). The visible words ARE
+ * the accessible name, so speech control and a screen reader hear exactly what is
+ * on the button (WCAG 2.5.3, Label in Name). Plain text out: the scaffold escapes
+ * it and `paintRoleCards` writes it as textContent, both strings together.
  */
 export function typeRoleActStrings(roleLabel: string, isSet: boolean): { text: string; name: string } {
-  return isSet
-    ? { text: t('Change'), name: tRaw('Change the {role} face', { role: roleLabel }) }
-    : { text: t('Choose a face'), name: tRaw('Choose a face for {role}', { role: roleLabel }) };
+  const text = isSet ? tRaw('Change {role}', { role: roleLabel }) : tRaw('Choose for {role}', { role: roleLabel });
+  return { text, name: text };
 }
 
 /**
@@ -227,7 +223,7 @@ export function typeRoleCardHtml(def: TypeRoleDef): string {
       <p class="be-typecard-sample${def.mono ? ' be-typecard-sample--mono' : ''}"
         style="font-family:${def.css}${def.slanted ? ';font-style:italic' : ''}">${typeRoleSample(def.id)}</p>
       <button type="button" class="be-btn be-typecard-act" data-be-typecard-choose="${def.id}"
-        aria-label="${escape(act.name)}"><span data-be-typecard-actlabel>${act.text}</span></button>
+        aria-label="${escape(act.name)}"><span data-be-typecard-actlabel>${escape(act.text)}</span></button>
       ${def.id === 'brand'
       ? `<span class="be-typecard-note">${t('Nothing installs until you choose one.')}</span>`
       : ''}
@@ -720,19 +716,6 @@ export function tileHtml(s: BrandSwatch, idx: number, roleGlyph?: string): strin
   return swatchTile({ label: s.name, hex: s.hex, locked: !!s.lock }, { idx, roleGlyph });
 }
 
-/**
- * The corner mark an assigned tile wears (plan 182 section 4.2).
- *
- * Two letters for Surface because S is already Secondary's, and the whole point
- * of the glyph is that it is readable at 10px on a 44px tile without a legend.
- * Untranslated on purpose - it is a mark, not a word (the `PANTONE 186 C`
- * precedent), and the Roles strip beside it carries the translated names.
- */
-// Partial: the contract has seven slots (plan 182 section 5.7) and only these
-// four earn a mark. Muted, edge and on-primary are derived company for the
-// colours above them - a tile wearing four glyphs would be a legend, not a mark.
-export const ROLE_GLYPH: Partial<Record<RoleId, string>> = { primary: 'P', secondary: 'S', surface: 'Su', text: 'T' };
-
 /** Identity of one starter swatch: its key AND its stored value. The definition
  *  and the reason both halves are needed live in lib/design-system/ownership.ts,
  *  which is where every room's "did somebody choose this?" answer comes from;
@@ -822,6 +805,15 @@ export interface BrandEditorOptions {
    * the button at all.
    */
   scanImage?: (file: File) => void;
+  /**
+   * Where "Changes that didn't finish saving" appears (lib/brand-editor/journal.ts): the
+   * host's slot under the design system's name, so the choice is in view whichever room
+   * is open. Absent, the editor shows it at the top of its own root.
+   */
+  journalSlot?: () => HTMLElement | null;
+  /** Say that an edit which had not finished saving was put back and is saving now.
+   *  Absent, the note is only announced to a screen reader. */
+  onJournalRestored?: () => void;
 }
 // The colour-harmony the "Build the palette" generator suggests accents from - 
 // either a fixed SchemeKind (complement/adjacent/triad/tetrad) or the parametric

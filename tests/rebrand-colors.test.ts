@@ -494,7 +494,7 @@ test('per ground group, no text sits under its minimum without an unresolved row
       const ground = group.groundBySlide?.[slide];
       if (!target || !ground) {
         const said = group.ground === 'deck' ? Boolean(fg.unresolved) : issues.some((one) => one.useId === pair.foreground && one.ground === group.ground);
-        assert.ok(said, `${pair.foreground} has no target on ${group.ground} and says so`);
+        assert.ok(said, `${pair.foreground} has no target on ${group.ground} and reports that`);
         continue;
       }
       assert.ok(contrastRatio(target, ground.hex) >= pair.minimum || fg.unresolved, `${pair.foreground} on ${group.ground}`);

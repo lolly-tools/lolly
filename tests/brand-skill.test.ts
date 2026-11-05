@@ -219,6 +219,14 @@ test('coverage: colours agree or are missing, an exclusive font conflicts, rules
   assert.ok(!rows.some((r) => r.kind === 'font' && r.section === 'Logo'), 'a brand name on a logo line is not a font statement');
 });
 
+test('coverage: a statement with no rule of its kind points at the Rules room by its current name', () => {
+  const { rows } = brandSkillCoverage(parseBrandSkill(PLAIN).body, { colours: [], fonts: [], houseRules: [] });
+  const unruled = rows.find((r) => r.status === 'guidance-only' && r.ruleKind === 'text-case');
+  assert.ok(unruled, 'the text-case statement has no rule to check it');
+  assert.equal(unruled.detail, 'Not checked: the design system has no text-case rule. One could be drafted in the Rules room.');
+  assert.ok(!rows.some((r) => r.detail.includes('Usage & rules')), 'the room is called Rules in the studio');
+});
+
 test('coverage facts come straight from a brief', () => {
   const facts = brandSkillCoverageFacts({ colors: [{ path: 'c.a', value: '#000000', name: 'A' }], fonts: [{ path: 'f', value: 'X' }], houseRules: [{ id: 'r', kind: 'text-case', label: 'L' }] });
   assert.deepEqual(facts, { colours: [{ value: '#000000', name: 'A', path: 'c.a' }], fonts: ['X'], houseRules: [{ id: 'r', kind: 'text-case', label: 'L' }] });

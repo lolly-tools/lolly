@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
+import { isPhoneLayout } from '../layout-posture.ts';
 import { colorToHex } from '@lolly/engine';
 import { nameColor } from '../color-namer.ts';
 import { getSwatchFaces, getSwatchPrintOverride, primaryAnchorPath, setSwatchValue } from '../brand-doc.ts';
@@ -245,7 +246,8 @@ export const openPickCard = (bedit: BrandEditorCtx, anchor: HTMLElement, current
   });
   editorChip?.style.setProperty('--sw', hex);
   if (nameInput) nameInput.value = nameColor(hex);
-  bedit.pickSheet = typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 640px)')?.matches;
+  // The phone layout, not the raw width: in two panes the card anchors to its swatch.
+  bedit.pickSheet = typeof window !== 'undefined' && isPhoneLayout();
   editorEl.classList.toggle('is-picksheet', bedit.pickSheet);
   bedit.editorAnchor = bedit.pickSheet ? null : anchor;
   editorEl.hidden = false;             // before positioning - the clamp measures offsetHeight

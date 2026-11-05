@@ -74,6 +74,32 @@ test('a corrupt catalog download is refused before any cache write', async conte
   assert.equal(writes, 0);
 });
 
+// A link export (`?format=png&export`) and a framed tool never run the idle warming pass
+// that fills the core tier, so on a fresh browser the brand logo was "not cached" and
+// every Certificate, Stationery or Agenda exported from a link came out without one.
+test('a core-tier asset missing from the cache is fetched, verified and stored on first read', async context => {
+  const body = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 2"/>';
+  const checksum = `sha256-${createHash('sha256').update(body).digest('base64')}`;
+  const readObjectUrl = globalThis.fetch;
+  const fetched: string[] = [];
+  context.mock.method(globalThis, 'fetch', async (url: string) => { fetched.push(String(url)); return new Response(body, { headers: { 'Content-Type': 'image/svg+xml' } }); });
+  const meta = { id: 'demo/logo/horizontal', type: 'vector', version: '3', tier: 'core', formats: [{ format: 'svg', url: '/logo.svg', checksum }] };
+  const stored = new Map<string, unknown>();
+  const db = {
+    get: async (store: string, key: string) => store === 'asset-meta' ? meta : store === 'asset-blob' ? stored.get(key) : undefined,
+    put: async (store: string, value: unknown, key: string) => { if (store === 'asset-blob') stored.set(key, value); },
+  };
+  const api = createAssetsAPI(db as never);
+  const ref = await api.get(meta.id);
+  assert.deepEqual(fetched, ['/logo.svg']);
+  assert.ok(stored.has('demo/logo/horizontal:svg:3'), 'the bytes are kept under the key the warming pass checks');
+  assert.equal(await (await readObjectUrl(ref.url)).text(), body);
+  // A second read is served from the cache.
+  await api.get(meta.id);
+  assert.equal(fetched.length, 1);
+  URL.revokeObjectURL(ref.url);
+});
+
 test('an untyped query admits every type', () => {
   for (const t of ['raster', 'vector', 'video', 'audio', 'text', 'data', 'font']) {
     assert.equal(typeMatches(t, undefined), true, `${t} under no filter`);

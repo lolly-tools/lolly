@@ -16,7 +16,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   KF_CHANNELS, KF_CAMERA_CHANNELS, KF_CLAMPS, KF_Z_FIELD_CLAMP, KF_QUANTA, KF_BEZIER_QUANTUM,
-  KF_MAX_KEYS, KF_MAX_CHARS, KF_MAX_TIME_MS, KF_MAX_BLUR, KF_CHARSET_RE,
+  KF_MAX_KEYS, KF_MAX_CHARS, KF_MAX_TIME_MS, KF_MAX_BLUR, KF_CHARSET_RE, KF_EASE_REF_MAX,
   KF_EASE_TOKENS, KF_EASE_PRESETS, KF_HOLD_EASE, KF_DEFAULT_EASE, KF_HOLD_CSS,
   KF_GUARD_U, KF_GUARD_BAND, KF_EFF_MAX, DOF_K, DEFAULT_CAMERA, DEFAULT_PERSPECTIVE,
   isKfChannel, isKfSafe, cubicBezierAt, normaliseKfEase, kfEasePoints, kfEaseAt,
@@ -179,8 +179,10 @@ test('parse caps: KF_MAX_KEYS keyframes and KF_MAX_CHARS chars, both reported th
 // clamp or add a channel and this test tells you to re-derive KF_MAX_CHARS.
 test('the char cap DOMINATES the key cap: a full-density track always fits', () => {
   // The widest wire form of one keyframe, re-derived from the tables rather than quoted:
-  // `t` at its cap + the widest custom bezier + every channel at the longest spelling its
-  // clamp and quantum allow + one separator per token.
+  // `t` at its cap + the widest ease + every channel at the longest spelling its clamp
+  // and quantum allow + one separator per token. The widest ease is a design-system ease
+  // (plans/329): `et(` + a path at KF_EASE_REF_MAX + `)` + the widest bezier as its
+  // fallback, which is wider than any spring, plain or windowed.
   let channelChars = 0;
   for (const ch of KF_CHANNELS) {
     const [lo, hi] = KF_CLAMPS[ch];
@@ -195,7 +197,13 @@ test('the char cap DOMINATES the key cap: a full-density track always fits', () 
     }
     channelChars += widest;
   }
-  const widestEase = 'eb(0.999)(-9.999)(0.999)(-9.999)'.length; // x∈[0,1], y∈±10, q=0.001
+  const widestBezier = 'eb(0.999)(-9.999)(0.999)(-9.999)'; // x∈[0,1], y∈±10, q=0.001
+  const widestRef = `et(${'a'.repeat(KF_EASE_REF_MAX)})${widestBezier}`;
+  const widestSpring = 'esp(4999.9)(499.99)(99.99)(3599999.99)(3599999.98)(3599999.99)';
+  assert.equal(normaliseKfEase(widestRef), widestRef, 'the widest bound ease is canonical as written');
+  assert.equal(normaliseKfEase(widestSpring), widestSpring, 'and so is the widest windowed spring');
+  assert.ok(widestSpring.length < widestRef.length);
+  const widestEase = widestRef.length;
   // The two path handles (plans/330), each on the x/y clamp and quantum, plus a separator each.
   const xq = KF_QUANTA.x;
   const widestNum = `${Number((KF_CLAMPS.x[0] + xq).toFixed(6))}`.length;
@@ -210,13 +218,13 @@ test('the char cap DOMINATES the key cap: a full-density track always fits', () 
   // "derived, not picked" has to have a derivation that reproduces, so the prose is
   // pinned here rather than left to be read: change a clamp, a quantum or the channel
   // list and this fails beside the headroom assertion above, naming both figures.
-  assert.equal(widestKey, 333, 'the widest single keyframe, as the docblock states it');
-  assert.equal(fullDensity, 85_503, 'a full-density 256-key track, as the docblock states it');
+  assert.equal(widestKey, 401, 'the widest single keyframe, as the docblock states it');
+  assert.equal(fullDensity, 102_911, 'a full-density 256-key track, as the docblock states it');
 
   // …and empirically, on the worst track the grammar can express.
   const worst = Array.from({ length: KF_MAX_KEYS }, (_v, i) => ({
     t: KF_MAX_TIME_MS - (KF_MAX_KEYS - 1 - i),
-    ease: 'eb(0.999)(-9.999)(0.999)(-9.999)',
+    ease: widestRef,
     v: Object.fromEntries(KF_CHANNELS.map((ch) => [ch, KF_CLAMPS[ch][0] + KF_QUANTA[ch]])),
     hi: [KF_CLAMPS.x[0] + xq, KF_CLAMPS.y[0] + xq],
     ho: [KF_CLAMPS.x[0] + xq, KF_CLAMPS.y[0] + xq],

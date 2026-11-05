@@ -173,7 +173,7 @@ export function wireUpdatesAndHotFolder(pv: ProfileViewCtx): void {
   const { params, shellUpdater, viewEl } = pv;
   // App updates (plans/202 WP4.1) - the three-button state machine in the "Lolly
   // instance" card. Its whole implementation is views/profile-updates.ts.
-  wireUpdatesRow(viewEl, shellUpdater, params);
+  pv.updatesUnsub = wireUpdatesRow(viewEl, shellUpdater, params);
 
   // Hot folder (plans/174 #9) - desktop shells only; the boot module owns the
   // key and the invoke, this block is pure form wiring.
@@ -215,6 +215,7 @@ export function wireCleanup(pv: ProfileViewCtx): void {
   // tear any down when the router swaps this view out (main.js calls _cleanup) so an
   // orphaned top-layer <dialog> can't block the next view.
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
+    pv.updatesUnsub?.();
     closeConfirmDialogs();
     openProfileModals.forEach(m => m.close());
     openProfileModals.clear();
@@ -233,12 +234,16 @@ export function wireCleanup(pv: ProfileViewCtx): void {
     pv.aiPolicyUnsub = null;
     pv.trustedSitesUnsub?.();
     pv.trustedSitesUnsub = null;
+    pv.handUnsub?.();
+    pv.handUnsub = null;
     pv.inboxUnsub?.();
     pv.inboxUnsub = null;
     pv.designSystemsUnsub?.();
     pv.designSystemsUnsub = null;
     pv.colourwayPrefUnsub?.();
     pv.colourwayPrefUnsub = null;
+    pv.perfUiUnsub?.();
+    pv.perfUiUnsub = null;
   };
 }
 

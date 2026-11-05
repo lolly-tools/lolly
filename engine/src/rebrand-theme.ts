@@ -33,7 +33,7 @@
  * measured, including the many whose source states no ground of its own, which the
  * census never pairs a text with (`measuredGrounds`). `setDeckTheme` refuses a look
  * on a locked design system; `setSlideGround` leaves a slide whose layout has no dark
- * version where it is and says so. A Brand ground is read from the stored theme, so
+ * version where it is and reports that. A Brand ground is read from the stored theme, so
  * the solve and the compile cannot draw two different ones. Undo is capture and restore:
  * `captureThemeRows` takes `capturePlanRows` and adds the deck theme, which that
  * function does not read yet, and `restoreThemeRows` puts all of it back.
@@ -421,7 +421,7 @@ export interface SlideGroundPlanV1 {
  * stored Brand theme's hue, else the primary colour (`brandGroundPath`).
  *
  * A layout with no variant cannot move, except to Brand on a dark deck: it stays on
- * the deck's ground, not moved, and says so (`noVariant`), which is what the compile
+ * the deck's ground, not moved, and reports that (`noVariant`), which is what the compile
  * draws, so the solve and the compile agree.
  *
  * `opts.hue` is read no more: a hue that is not stored on the plan would let the

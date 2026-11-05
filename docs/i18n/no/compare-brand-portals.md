@@ -6,7 +6,7 @@ Hvis organisasjonen din har sine godkjente ressurser i Bynder, Frontify, Marq el
 
 ## Hva en etablert portal gjør bedre
 
-Etablerte portaler tilbyr administrert hosting, støtte og omfattende arbeidsflyter for ressursforvaltning. [Frontifys enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombinerer for eksempel ressursoppdagelse, tilgangskontroller, godkjenningsarbeidsflyter og distribusjon. Lolly-stakken er yngre, og godkjenningskjedene er sekvensielle i stedet for vilkårlige forgrenende arbeidsflyter. [Work status and roadmap](/info/work-status.html) registrerer driftsgrensene.
+Etablerte portaler tilbyr administrert hosting, støtte og omfattende arbeidsflyter for ressursforvaltning. [Frontifys enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombinerer for eksempel ressursoppdagelse, tilgangskontroller, godkjenningsarbeidsflyter og distribusjon. Lolly-stakken er yngre, og godkjenningskjedene er sekvensielle i stedet for vilkårlige forgrenende arbeidsflyter. [Lolly Work status and roadmap](/info/work-status.html) registrerer driftsgrensene.
 
 ## Hvor de overlapper
 

@@ -28,7 +28,7 @@ La collaboration en direct de Lolly comprend des collabs privées directes entre
 ## Choisis Lolly quand
 
 - Le même type de fichier est nécessaire encore et encore : tuiles d'événements, badges, certificats, alertes, cartes sociales
-- Beaucoup de fichiers viennent d'un seul modèle et d'un tableau de valeurs, dans [Batch](/info/batch.html#make-many-versions-of-one-design) ou la CLI
+- Beaucoup de fichiers viennent d'un seul modèle et d'un tableau de valeurs, dans [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) ou la CLI
 - Les couleurs, la typographie et les ressources doivent rester dans le design system, même sur un canevas ouvert
 - Un design Figma, Penpot, Illustrator, InDesign ou PDF terminé doit devenir modifiable et répétable ([Import a design](/info/design-import.html))
 - Les fichiers doivent être créés sur tes propres appareils ou serveurs

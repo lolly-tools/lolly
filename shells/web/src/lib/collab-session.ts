@@ -208,7 +208,7 @@ export interface CollabSessionHandle {
   /** A work gateway already meters each authenticated sender. Its combined feed
    * includes checkpoint projections; still validate every op against this model. */
   readonly admission?: 'work-room';
-  readonly saveIn?: CollabStream<CollabSaveState>;
+  readonly saveIn?: CollabStream<CollabSaveState> & { settled?(): boolean };
   /** The convergence document, shared by private and work transports. */
   readonly adapter: CanvasSyncAdapter;
   /** This client's own role. */

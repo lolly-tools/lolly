@@ -34,7 +34,7 @@
 import { PREF_KEYS, type exportBackup } from '../data-transfer.ts';
 import { packBackupAsset, unpackBackupAsset } from './backup-asset-record.ts';
 import { sessionSavedAt } from './backup-sessions.ts';
-import { isDiscardedSlot, isHiddenSlot } from './batch-slots.ts';
+import { isDiscardedSlot, isHiddenSlot, isJournalSlot } from './batch-slots.ts';
 import { mergeProfileRecords } from './profile-merge.ts';
 import { sha256Hex } from './sync-keys.ts';
 import { FROZEN_PREFIX } from '../bridge/version-assets-contract.ts';
@@ -155,7 +155,8 @@ export async function collectLocalRecords(deps: RecordDeps, only?: ReadonlySet<s
 
   for (const row of await host.state.list()) {
     // Discarded edits stay with their history, on this device.
-    if (isDiscardedSlot(row.slot) || !want('session', row.slot)) continue;
+    // Unsaved-edit journal entries stay with the tabs that wrote them, on this device.
+    if (isDiscardedSlot(row.slot) || isJournalSlot(row.slot) || !want('session', row.slot)) continue;
     const data = await host.state.load(row.slot);
     if (!data) continue;
     add(await makeRecord('session', row.slot, {
@@ -255,7 +256,7 @@ export async function writeLocalRecord(
 export async function removeLocalRecord(deps: RecordDeps, kind: RecordKind, id: string): Promise<boolean> {
   const { host, storage } = deps;
   if (kind === 'session') {
-    if (isDiscardedSlot(id) || !host.state.delete) return false;
+    if (isDiscardedSlot(id) || isJournalSlot(id) || !host.state.delete) return false;
     await host.state.delete(id);
     return true;
   }

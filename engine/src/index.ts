@@ -40,7 +40,7 @@ export type {
   InRealmOnlyHookName, HookInitDoneMsg, HookInvokeDoneMsg, HookReportMsg, HookHostCallMsg, HookLogMsg, HookWorkerOut,
   HookWorkerPort, HookWorkerCoreOpts,
 } from './hook-worker-core.ts';
-export type { HookExecutor, Hooks, RuntimeViewState } from './runtime.ts';
+export type { HookExecutor, Hooks, RuntimeViewState, CanvasSize } from './runtime.ts';
 // Emoji (1.196): the runtime draws every emoji in a rendered tree from the
 // chosen pinned pack. TYPES ONLY here on purpose - the pinned Unicode tables are
 // half a megabyte, so the modules themselves stay behind the runtime's dynamic
@@ -129,6 +129,7 @@ export {
   UNITS, CSS_DPI, isUnit, parseDimension,
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
 } from './units.ts';
+export { canvasSizeOf } from './units.ts';
 export {
   frameRect, framingStyle, normalizeFraming, isNeutralFraming, isTilted,
   framingQuad, projectFramingPoint, minZoomForCover, FRAMING_PERSPECTIVE,
@@ -142,6 +143,8 @@ export {
   FINISH_MASK_CMYK, buildCmykPaletteMap, cmykKey, paletteHasFinish,
 } from './cmyk-palette.ts';
 export type { BrandPaletteEntry, PaletteHit, PaletteSpotHit } from './cmyk-palette.ts';
+export { iccSeparation, separationLattice, DEVICE_SEPARATION, NEUTRAL_EPSILON } from './cmyk-separation.ts';
+export type { CmykSeparation, SeparateRgb } from './cmyk-separation.ts';
 export {
   parseColor, parseColorToSrgb8, convertColor, gamutMapSrgb,
   colorToSrgb, colorToSrgb8, colorToHexString, formatColor,
@@ -194,6 +197,9 @@ export type {
 // property is compared with a value read from the output bytes, and the report is
 // bound to those bytes by SHA-256 (plan 203 rank 12).
 export { verifyExport, compareExport, exportRequestFromJob } from './preflight-output.ts';
+export { PDF_ACCESSIBILITY_RULES, PDF_ACCESSIBILITY_RULE_IDS, PDF_ACCESSIBILITY_STATEMENTS, pdfAccessibilityOutcome, pdfAccessibilityRows, pdfAccessibilityCounts, pdfAccessibilityHeadline, summarisePdfAccessibility, pdfAccessibilityOutcomeLabel, pdfAccessibilityText } from './pdf-accessibility.ts';
+export type { PdfAccessibilityReader, PdfAccessibilitySummary, PdfAccessibilityRow, PdfAccessibilityOutcome } from './pdf-accessibility.ts';
+export type { VerifyExportReaders } from './preflight-output.ts';
 export type { ExportRequest, ExportCheck, ExportReport, ExportValue } from './preflight-output.ts';
 export { inspectOutput } from './output-facts.ts';
 export type { OutputFacts } from './output-facts.ts';
@@ -247,11 +253,18 @@ export type {
 export { analysePcm, fftInPlace } from './audio-analyse.ts';
 export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analyse.ts';
 export { cleanAudioPcm, resamplePcm, cleanAudioPreview } from './audio-clean.ts';
+export { planRepair, repairRequested } from './audio-repair.ts';
+export type { AudioRepairOpts, RepairStage, RepairStageId, RepairStrength } from './audio-repair.ts';
 // Captions (host.speech, v1.96) - spoken-word timings in, subtitle cues out. The
 // grouping and VTT/SRT timestamp maths live here so the browser and a headless
 // export break caption lines at the same words.
 export { groupWordsToCues, cuesForSlide, cuesToVtt, cuesToSrt, cueAt } from './captions.ts';
-export type { CaptionCue, GroupWordsOpts } from './captions.ts';
+export type { CaptionCue, GroupWordsOpts, CaptionIssue } from './captions.ts';
+export { CaptionFormatError } from './captions.ts';
+export { cuesToScc, sccToCues, frameToTimecode, timecodeToFrame, withOddParity, hasOddParity, SCC_LIMITS } from './captions-scc.ts';
+export type { SccReadOptions, SccReadResult, SccWriteOptions, SccWriteResult } from './captions-scc.ts';
+export { cuesToTtml, ttmlToCues, parseTtmlTime, TTML_LIMITS, IMSC11_TEXT_PROFILE } from './captions-ttml.ts';
+export type { TtmlReadOptions, TtmlReadResult, TtmlWriteOptions, TtmlTiming } from './captions-ttml.ts';
 // Text AI-likelihood signals (plans/125) - a string in, a tiered SIGNAL (never a
 // verdict) out: byte-level artifact tells on digital text, chatbot-boilerplate
 // phrase evidence, English-gated writing-style heuristics, per-finding heat
@@ -329,6 +342,12 @@ export {
   parseMidi, midiToSong, midiToZzfxm,
   MIDI_MAX_NOTES, MIDI_MAX_STEPS, MIDI_MAX_VOICES,
 } from './midi.ts';
+export { readSmf, writeSmf, smfTimeDivision, smfTempo, smfTimeSignature, smfKeySignature, smfText, smfTextEvent, smfTempoEvent, smfTimeSignatureEvent, smfKeySignatureEvent, smfEndOfTrack, SmfError, SMF_LIMITS, SMF_MAX_VLQ, } from './smf.ts';
+export type { SmfFile, SmfHeader, SmfEvent, SmfChannelEvent, SmfMetaEvent, SmfSysexEvent, SmfTrackChunk, SmfUnknownChunk, SmfLimits, SmfErrorCode, SmfWriteOptions, SmfTimeDivision, SmfChannelType, } from './smf.ts';
+export { notesToSmfFile, notesToMidiBytes, gmProgramFor, looksPercussive, voiceChannel, velocityToMidi } from './smf-export.ts';
+export type { MidiNote, MidiVoiceSpec, MidiExportOptions } from './smf-export.ts';
+export { rondoMusicToMidi } from './rondo-midi.ts';
+export type { RondoMusicInput } from './rondo-midi.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
 // The seed → spec draw behind `zzfxm:<seed>`. Engine-side so every shell composes
 // the SAME song from one id; the draw order is a frozen contract (see the fn).
@@ -494,6 +513,10 @@ export type { DashSegment, DashFitOpts } from './dash-fit.ts';
 export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';
+export { importDxf, flattenDxf, looksLikeDxf, dxfReportLines, dxfUnits, aciToHex, DXF_LIMITS } from './dxf-import.ts';
+export type { DxfRaw, DxfReader, DxfImport, DxfImportOptions, DxfReport, DxfStroke, DxfText, DxfUnits } from './dxf-import.ts';
+export { dxfToDesign, DXF_MAX_BOXES } from './dxf-design.ts';
+export type { DxfDesignResult } from './dxf-design.ts';
 export { emitWmf } from './wmf.ts';
 export { buildPptxParts, EMU_PER_PX } from './pptx.ts';
 export type {
@@ -542,7 +565,11 @@ export type {
 } from './pdfx.ts';
 export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, collectAiIngredientDeclarations, C2PA_FORMATS, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput, C2paCredentialedIngredient, C2paSourceIngredient, C2paRightsRecord, C2paIngredientInput } from './c2pa.ts';
-export { LOLLY_RIGHTS_ASSERTION } from './c2pa.ts';
+export { LOLLY_RIGHTS_ASSERTION, LOLLY_APPROVAL_ASSERTION } from './c2pa.ts';
+export { LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE } from './c2pa.ts';
+export type { C2paApprovalRecord, C2paIntentRecord } from './c2pa.ts';
+export { APPROVAL_RECORD_FORMATS, artworkUnchanged, recordApprovalInCredential } from './c2pa-approval.ts';
+export type { ApprovalNotRecordedReason, ApprovalRecordOutcome, RecordApprovalOptions } from './c2pa-approval.ts';
 export { verifyC2pa, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, collectIngredientRecords, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
 export type { C2paReport, C2paCheck, ParsedCertificate, C2paIngredientRecord } from './c2pa-verify.ts';
 export type { Signer as C2paSigner } from './c2pa.ts';
@@ -620,6 +647,9 @@ export { embedWavInfo } from './riff-meta.ts';
 export { parseDataRows, rowsToCsv, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export { expandDerivedFormats } from './derived-formats.ts';
 export { readXlsx, listXlsxSheets, DEFAULT_XLSX_ROW_LIMIT } from './xlsx-import.ts';
+export type { XlsxCellFormatter, XlsxCellFormatRequest, XlsxCellFormatResult, XlsxCellKind, XlsxDateCell, XlsxRecalculator, XlsxRecalcRequest, XlsxRecalcResult, XlsxRecalcReport, XlsxRecalcValue } from './xlsx-import.ts';
+export { createCalcEngine, createCalcAPI, xlsxRecalculator, isFormulaText, valueText, CALC_TABLE_MAX_CELLS } from './calc.ts';
+export type { CalcRunner, CalcClockSource, CalcEngine } from './calc.ts';
 export { writeXlsx, colLetters } from './xlsx-write.ts';
 export { writeEpub } from './epub.ts';
 export {
@@ -745,6 +775,14 @@ export { peakChroma, chromaAxisMax, chromaTickStep } from './gamut-axis.ts';
 // per candidate, never an index into an ordering (Display-P3 is not inside
 // Rec.2020). The picker and the Colour Lab sliders share this classifier.
 export { gamutTier, gamutTierProbe, BEYOND_TIER, GAMUT_TIER_LADDER } from './gamut-tier.ts';
+// Visual intent: what a piece has to do, resolved to a tool for each surface. Pure, no model
+// in the path; the vocabulary and result types live in @lolly-tools/core/intent-v1.
+export { INTENT_RULES_VERSION, IntentInvalidError, parseVisualIntent, resolveIntent, parseToolIntents, loadIntentTools, checkToolIntents } from './intent.ts';
+export type { IntentToolSource, ParsedVisualIntent, ParseToolIntentsResult, ParseVisualIntentResult, ToolIntentIssue } from './intent.ts';
+// The record a file made from an intent carries, and the words for each outcome.
+export { INTENT_RECORD_CODES, confirmIntentRecord, intentRecordFor, intentRecordWords } from './intent-record.ts';
+export type { IntentNotRecordedReason, IntentRecordChoice, IntentRecordCode, IntentRecordOutcome } from './intent-record.ts';
+
 // An ICC profile as a gamut: parse the bytes, then hand `iccGamutSource(p, intent)`
 // to any gamut function above. The reader is hardened (never throws, returns null
 // on malformed bytes) because profile bytes arrive from the user's own files.
@@ -782,8 +820,8 @@ export { inpaintTelea } from './inpaint.ts';
 export { healFrame, spotHealPremultiplied, healCoverageBounds } from './heal.ts';
 export type { HealFrame, HealMode, HealOptions } from './heal.ts';
 // Matte edges pulled onto the photo (plans/289 M4): the guided filter both mattes run after the model.
-export { boxMean, guidedFilter, refineMatte, resizeMask } from './guided-matte.ts';
-export type { MatteRefineOptions } from './guided-matte.ts';
+export { boxMean, decontaminateEdgeColour, guidedFilter, refineMatte, resizeMask } from './guided-matte.ts';
+export type { DecontaminateOptions, MatteRefineOptions } from './guided-matte.ts';
 export type { InpaintFrame } from './inpaint.ts';
 // Colour grading - the .cube/.3dl readers, the tetrahedral sampler, the RGBA
 // frame apply and the film grain + vignette pass, promoted out of the darkroom
@@ -897,6 +935,15 @@ export type { KfHandle, KfPathSplit } from './keyframes.ts';
 // stroke width, corner radius and trim, written as `--lolly-kf-*` custom properties.
 export { KF_LOOK_CHANNELS, KF_FILL_CHANNELS, KF_STROKE_CHANNELS, KF_LOOK_VARS, isKfLookChannel } from './kf-look.ts';
 export { kfLookUsed, kfLookPose, kfLookVars, kfColourKey, kfColourCss, kfOklabOf, kfTrimSpan, kfOutlinePath } from './kf-look.ts';
+// 1.296 (plans/329) - spring eases and design-system motion tokens on the `kf` wire:
+// `esp(k)(c)(m)` springs, `et(<path>)` bindings and the table the shell installs.
+export { KF_EASE_REF_MAX, setKfEaseTokens, kfEaseTokensSnapshot, kfBindEase } from './keyframes.ts';
+export { kfEaseKind, kfEaseTokenPath, kfEaseResolved, kfEaseSpring, kfEaseSpringName } from './keyframes.ts';
+export type { KfEaseKind, KfEaseTokenOptions } from './keyframes.ts';
+export { KF_SPRING_PRESETS, kfSpring, kfSpringToken, kfSpringSettleMs } from './kf-spring.ts';
+export type { KfSpring, KfSpringPresetName } from './kf-spring.ts';
+export { readMotionTokens, readHostMotionTokens, motionEaseMap } from './motion-tokens.ts';
+export type { MotionTokens, MotionCurveToken, MotionDurationToken } from './motion-tokens.ts';
 export type { KfOklab, KfTrimSpan, KfLookVarOpts, KfOutlineShape } from './kf-look.ts';
 export type {
   KfChannel, KfCameraChannel, KfPose, KfEasePresetToken, KfEasePreset, KfEaseSubdivision,
@@ -910,6 +957,7 @@ export { ENGINE_VERSION } from './version.ts';
 export { base64ToBytes } from './bytes.ts';
 export { createTruePeakLimiter, activitySpans } from './audio-dynamics.ts';
 export { createLoudnessMeter, integratedLoudness, normalizeGain, LOUDNESS_RATE } from './audio-loudness.ts';
+export type { R128Report } from './audio-loudness.ts';
 export { parseFxChain, serializeFxChain, processFxPcm, FX_PRESETS, FX_CHAIN_MAX_CHARS } from './audio-fx.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';
@@ -1263,6 +1311,13 @@ export { readCameraRawPreset } from './camera-raw-preset.ts';
 export type { CameraRawPreset } from './camera-raw-preset.ts';
 export { readPremiereXml, writePremiereXml, premiereSequenceValues, framesToSeconds, secondsToFrames } from './premiere-xml.ts';
 export type { InterchangeRate, InterchangeClip, InterchangeSequence } from './premiere-xml.ts';
+export { readEdl } from './timeline-edl.ts';
+export type { EdlOptions } from './timeline-edl.ts';
+export { readOtio } from './timeline-otio.ts';
+export { readFcpxml } from './timeline-fcpxml.ts';
+export { readTimeline, detectTimelineFormat } from './timeline-import.ts';
+export type { TimelineFormat, TimelineReadOptions } from './timeline-import.ts';
+export { timecodeToFrames, framesToTimecode } from './timeline-common.ts';
 export { readIdmlSpreads } from './idml-read.ts';
 
 export { createDesignLayoutEvaluator, hasDesignLayout, validateDesignLayout, designLayoutSourceEdit, parseLayoutTrack } from './design-layout.ts';

@@ -29,6 +29,8 @@ import { playSfx } from '../sfx.ts';
 import { helpTip } from '../../components/help-tip.ts';
 import { ROLE_IDS, readRoles, roleLabel } from '../design-system/roles.ts';
 import { leadTokenSet } from '../design-system/leads.ts';
+import { MAGPIE_SLOT } from '../design-system/logo-tile.ts';
+import { APPROVED_FAUNA, hydrateFauna } from '../../components/fauna-art.ts';
 import { CONTRASTS, DEFAULT_PRIMARY, FOREGROUNDS, INTENSITIES, PALETTE_FORMATS, RAMP_LABEL, SCHEMES, TYPE_ROLES, deriveSafe, finishLabel, mountPrintLock, previewHtml, typeRoleCardHtml } from './shared.ts';
 import type { Contrast, Fg, HarmonyKind, Scheme, Surface } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
@@ -262,7 +264,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
           <div class="be-logo-intake" data-be-logo-intake>
             <label class="be-logo-intake-drop">
               <input type="file" class="visually-hidden" data-be-logo-multi multiple accept="image/png,image/jpeg,image/svg+xml,image/webp" aria-label="${escapeText(t('Choose logo files'))}">
-              <span class="be-logo-intake-glyph" aria-hidden="true">${icon('uploadImage', { size: 20 })}</span>
+              <span class="be-logo-intake-glyph" aria-hidden="true">${icon('uploadImage', { size: 20 })}</span>${MAGPIE_SLOT}
               <span class="be-logo-intake-lead">${t('Drop marks here, or choose several at once')}</span>
               <span class="be-logo-intake-hint">${t('Each file is read for its shape and its ink, then offered the slot it looks like. Nothing is placed until you tap.')}</span>
             </label>
@@ -278,37 +280,47 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       <div class="be-tab be-tab--split" data-be-tab-panel="color">
       <aside class="be-split-side" data-be-split-side aria-label="${escapeText(t('Palette'))}">
       <!-- Inner scroller: the panels scroll in here (≥1100px, the pane's height
-           viewport-anchored by the host - see brand-studio.css) while the
-           download dock below stays OUTSIDE it, keeping its seat at the pane's
-           bottom edge however far the palette scrolls. -->
+           viewport-anchored by the host - see brand-studio.css). -->
       <div class="be-split-scroll" data-be-split-scroll>
       <div class="be-panel be-palette">
         <div class="be-palette-heading"><h2>${t('Colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        ${/* The first decision leads the room (plan 346 change 7): which colour
+              plays each role. One chip per role; the full strip, with every slot
+              and its contrast, stays in the Colour roles wing for experts. Export
+              lives in the bar and the Tokens room, so the head carries none. */''}
+        <div class="be-rolechips-mount" data-be-rolechips></div>
+        ${/* Paste, sample or drop (plan 346 change 18): a visible field at the top
+              of the room rather than a disclosure. Dashed, because it is a drop
+              area - an image or a list of colours can be dropped anywhere on the area. */''}
+        <section class="be-addcolor" data-be-addcolor-drop aria-labelledby="be-addcolor-lead">
+          <div class="be-addcolor-head">
+            <span class="be-addcolor-lead" id="be-addcolor-lead">${t('Paste colours or use an image')}</span>
+            <span class="be-addcolor-hint">${t('Or drop an image or a list of colours here')}</span>
+            <span class="fauna-slot" data-fauna="lorikeet" data-fauna-watch="paste" aria-hidden="true"></span>
+          </div>
+          ${/* Beat 0's whole room (plan 182 section 3a): the pick row, and one
+                quiet sentence saying what arrives later and where a file goes
+                instead. */''}
+          <div data-be-addcolor></div>
+
+          ${/* The answer to one add (plan 137 C1): the colour, its name, and the two
+                things worth doing next. Static markup filled in place (textContent
+                and one custom property) so a swatch name never reaches a markup
+                sink. Styled as a suggestion row (be-suggest), the same kind of
+                row the panel has always used. */''}
+          <div class="be-suggest be-added" data-be-added hidden>
+            <span class="be-suggest-note">
+              <span class="be-suggest-sw" data-be-added-sw aria-hidden="true"></span>
+              <span data-be-added-name></span>
+            </span>
+            <button type="button" class="be-btn" data-be-added-primary>${t('Use as primary?')}</button>
+            <button type="button" class="be-btn" data-be-added-tune>${t('Fine-tune')}</button>
+            <button type="button" class="be-suggest-dismiss" data-be-added-dismiss aria-label="${escapeText(t('Dismiss'))}">&#x2715;</button>
+          </div>
+        </section>
         <div class="be-logo-colours" data-be-logo-colours="color" hidden></div>
         <div class="be-pal" data-be-pal></div>
         <button type="button" class="be-pal-restore" data-be-undo hidden>${t('Undo')}</button>
-      <details class="be-addcolor"><summary>${t("Paste colours or use an image")}</summary>
-        ${/* Beat 0's whole room (plan 182 section 3a): a title, a line, the pick
-              row, and one quiet sentence saying what arrives later and where a
-              file goes instead. It replaces the panel head rather than joining
-              it - two headings over one control is the wall this beat removes. */''}
-        <div data-be-addcolor></div>
-
-        ${/* The answer to one add (plan 137 C1): the colour, its name, and the two
-              things worth doing next. Static markup filled in place (textContent
-              and one custom property) so a swatch name never reaches a markup
-              sink. Styled as a suggestion row (be-suggest), the same kind of
-              row the panel has always used. */''}
-        <div class="be-suggest be-added" data-be-added hidden>
-          <span class="be-suggest-note">
-            <span class="be-suggest-sw" data-be-added-sw aria-hidden="true"></span>
-            <span data-be-added-name></span>
-          </span>
-          <button type="button" class="be-btn" data-be-added-primary>${t('Use as primary?')}</button>
-          <button type="button" class="be-btn" data-be-added-tune>${t('Fine-tune')}</button>
-          <button type="button" class="be-suggest-dismiss" data-be-added-dismiss aria-label="${escapeText(t('Dismiss'))}">&#x2715;</button>
-        </div>
-      </details>
 
         <!-- The colour charts, demoted to a folded card - repainted on open,
              since a hidden mount measures 0×0 (see the toggle wiring below).
@@ -331,26 +343,12 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       <div class="be-panel be-gradients" data-be-grads-mount></div>
       </div>
 
-      <!-- Download-all - a floating pill (the catalog toolbar's clothes) at the
-           pane's anchored bottom edge, so exporting the palette never scrolls
-           away. Lives OUTSIDE .be-split-scroll - see above. -->
-      <div class="be-pal-dock" data-be-pal-dock>
-        <select class="field-select field-select--auto field-select--sm be-pal-fmt-sel" data-be-pal-fmt aria-label="${escapeText(t('Download the palette as'))}">
-          <option value="tokens-json">${t('Design tokens (JSON)')} &middot; Penpot / Tokens Studio</option>
-          <option value="css-vars">${t('CSS variables')}</option>
-          <option value="css-classes">${t('CSS classes')}</option>
-          <option value="scss">${t('SCSS variables')}</option>
-          <option value="gpl">${t('GIMP palette (.gpl)')}</option>
-          <option value="ase">${t('Adobe Swatch Exchange (.ase)')}</option>
-        </select>
-        <button type="button" class="be-btn be-btn--sm" data-be-pal-download data-sfx="whoosh">${t('Download')}</button>
-      </div>
       </aside>
       <div class="be-split-main">
       ${/* ── Level 0: the one control. Adding a colour writes exactly one token
              (plan 97 section 7.1) - nothing is derived, suggested-into, or demanded. */''}
       <section class="be-context" aria-label="${escapeText(t('Palette previews'))}">
-        <div class="be-context-head"><h2>${t('In context')}</h2><span data-be-preview-source>${t('Your palette')}</span></div>
+        <div class="be-context-head"><h2>${t('In context')}</h2><span data-be-preview-source>${t('Palette')}</span></div>
         <div class="be-previews" data-be-previews></div>
         ${segHtml('preview-scene', [{ id: '0', label: t('Poster') }, { id: '1', label: t('Chart') }, { id: '2', label: t('UI card') }], '0', t('Preview scene'), { attr: 'data-scene', groupAttr: 'data-be-scenes' })}
       </section>
@@ -739,13 +737,17 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
                 pressed. */''}
           <div class="be-editor-actions">
             <button type="button" class="be-editor-del" data-be-editor-del hidden>${t('Delete')}</button>
-            <button type="button" class="be-editor-del be-editor-cancel" data-be-editor-cancel hidden>${t('Cancel')}</button>
+            <button type="button" class="be-btn be-editor-cancel" data-be-editor-cancel hidden>${t('Cancel')}</button>
             <button type="button" class="be-cta be-editor-done" data-be-editor-done>${t('Save')}</button>
             <button type="button" class="be-cta be-editor-done be-editor-add" data-be-editor-add hidden>${t('Add colour')}</button>
           </div>
         </div>
       </div>
     </div>`;
+  // The Logos room's one animal: the magpie in the drop area. Only the intake is
+  // hydrated, so the Colours room's lorikeet place stays empty (one per view).
+  const intake = root.querySelector<HTMLElement>('[data-be-logo-intake]');
+  if (intake) hydrateFauna(intake, { only: APPROVED_FAUNA });
 }
 
 export function wireStepsSlider(bedit: BrandEditorCtx): void {

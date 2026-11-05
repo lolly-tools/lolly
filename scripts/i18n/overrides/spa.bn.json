@@ -1,5 +1,31 @@
 {
   "Copy saved on this device.": "কপি এই ডিভাইসে সেভ হয়েছে।",
+  "Closest to the current palette": "বর্তমান প্যালেটের সবচেয়ে কাছের",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "সংরক্ষিত ডিজাইন সিস্টেম ও কয়েকটি শুরুর বিন্দু প্রিভিউ করুন। আপনি ব্যবহার করুন না বাছা পর্যন্ত কিছু বদলায় না।",
+  "Use this look": "এই লুক ব্যবহার করুন",
+  "Previewing {name}": "{name} প্রিভিউ হচ্ছে",
+  "Choose up to two looks to compare.": "তুলনার জন্য সর্বোচ্চ দুটি লুক বাছুন।",
+  "Drop a horizontal logo": "এখানে একটি অনুভূমিক লোগো ছাড়ুন",
+  "Drop a vertical logo": "এখানে একটি উল্লম্ব লোগো ছাড়ুন",
+  "calm": "শান্ত",
+  "nature": "প্রকৃতি",
+  "playful": "চঞ্চল",
+  "creative": "সৃজনশীল",
+  "warm": "উষ্ণ",
+  "editorial": "সম্পাদকীয়",
+  "neutral": "নিরপেক্ষ",
+  "red": "লাল",
+  "orange": "কমলা",
+  "yellow": "হলুদ",
+  "green": "সবুজ",
+  "teal": "নীলচে সবুজ",
+  "blue": "নীল",
+  "purple": "বেগুনি",
+  "pink": "গোলাপি",
+  "deep": "গাঢ়",
+  "pale": "ফিকে",
+  "vivid": "উজ্জ্বল",
+  "muted": "নিষ্প্রভ",
   "In a project you can edit": "আপনি এডিট করতে পারেন এমন প্রজেক্টে",
   "Make copy": "কপি বানান",
   "Save a copy on this device": "এই ডিভাইসে একটি কপি সেভ করুন",
@@ -600,7 +626,10 @@
   "Runs the deeper AI text check on Verify and in Assets.": "ভেরিফাই আর অ্যাসেট-এ গভীর AI-টেক্সট চেক চালায়।",
   "Card size": "কার্ডের আকার",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "এই ডিভাইসে ১টি ছবি বা ফাইল যোগ করা হয়েছে। এটি এই ডিভাইসেই থাকবে, অন্যরা সেই ফাইল দেখতে পাবেন না।",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "এই ডিভাইসে {n}টি ছবি বা ফাইল যোগ করা হয়েছে। সেগুলো এই ডিভাইসেই থাকবে, অন্যরা সেই ফাইলগুলো দেখতে পাবেন না।",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "one": "এই ডিভাইসে {n}টি ছবি বা ফাইল যোগ করা হয়েছে। সেগুলো এই ডিভাইসেই থাকবে, অন্যরা সেই ফাইলগুলো দেখতে পাবেন না।",
+    "other": "এই ডিভাইসে {n}টি ছবি বা ফাইল যোগ করা হয়েছে। সেগুলো এই ডিভাইসেই থাকবে, অন্যরা সেই ফাইলগুলো দেখতে পাবেন না।"
+  },
   "Check the version first": "আগে সংস্করণটি দেখে নিন",
   "Copy team link": "টিম লিংক কপি করুন",
   "Could not create the project. Try again.": "প্রজেক্ট তৈরি করা যায়নি। আবার চেষ্টা করুন।",
@@ -1177,7 +1206,10 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "সব আইটেম শেয়ার করা প্রজেক্টে সংরক্ষিত হয়েছে। স্থানীয় মূল কপি ট্র্যাশে আছে বা নিজের জায়গাতেই আছে।",
   "Your local items have not changed.": "আপনার স্থানীয় আইটেম বদলায়নি।",
   "1 item was saved to the shared project.": "১টি আইটেম শেয়ার করা প্রজেক্টে সংরক্ষিত হয়েছে।",
-  "{n} items were saved to the shared project.": "{n}টি আইটেম শেয়ার করা প্রজেক্টে সংরক্ষিত হয়েছে।",
+  "{n} items were saved to the shared project.": {
+    "one": "{n}টি আইটেম শেয়ার করা প্রজেক্টে সংরক্ষিত হয়েছে।",
+    "other": "{n}টি আইটেম শেয়ার করা প্রজেক্টে সংরক্ষিত হয়েছে।"
+  },
   "Wait for the current move to finish.": "বর্তমান সরানো শেষ হওয়া পর্যন্ত অপেক্ষা করুন।",
   "You cannot save to that shared project.": "আপনি সেই শেয়ার করা প্রজেক্টে সংরক্ষণ করতে পারবেন না।",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "যে-ই {project} খুলতে পারে সে এই আইটেমগুলো দেখবে। প্রতিটি আইটেম সেখানে সংরক্ষিত হওয়ার পর স্থানীয় মূল কপি ট্র্যাশে চলে যায়, যেখান থেকে আপনি ফিরিয়ে আনতে পারেন।",
@@ -1488,8 +1520,14 @@
   "file": "ফাইল",
   "samples": "নমুনা",
   "text": "টেক্সট",
-  "{n} changes found": "{n}টি পরিবর্তন পাওয়া গেছে",
-  "{n} pages differ": "{n}টি পৃষ্ঠা আলাদা",
+  "{n} changes found": {
+    "one": "{n}টি পরিবর্তন পাওয়া গেছে",
+    "other": "{n}টি পরিবর্তন পাওয়া গেছে"
+  },
+  "{n} pages differ": {
+    "one": "{n}টি পৃষ্ঠা আলাদা",
+    "other": "{n}টি পৃষ্ঠা আলাদা"
+  },
   "Draft": "ড্রাফ্ট",
   "Draft quality": "ড্রাফ্টের মান",
   "Draft rule": "ড্রাফ্ট নিয়ম",
@@ -1798,5 +1836,259 @@
   "Headlines - 36px, or 24px bold": "শিরোনাম - 36px, অথবা 24px বোল্ড",
   "Icons and borders only": "শুধু আইকন ও বর্ডারের জন্য",
   "Not usable": "ব্যবহারযোগ্য নয়",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA sRGB-এর জন্য নির্ধারিত, তাই ওয়াইড-গ্যামুট রংকে তার sRGB রূপে স্কোর করা হয়।"
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA sRGB-এর জন্য নির্ধারিত, তাই ওয়াইড-গ্যামুট রংকে তার sRGB রূপে স্কোর করা হয়।",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে, কারণ এই ডিভাইস গ্রাফিক্স অ্যাক্সিলারেশন ছাড়াই ছবি আঁকে।",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে, কারণ এই ডিভাইসটি ধীর চলছিল।",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "{date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে, কারণ এই ডিভাইস গ্রাফিক্স অ্যাক্সিলারেশন ছাড়াই ছবি আঁকে।",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে, কারণ এই ডিভাইসে ইন্টারফেস আঁকতে সমস্যা হচ্ছিল।",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "এই ডিভাইসে স্বয়ংক্রিয় পরিবর্তন বন্ধ আছে, কারণ আপনি {date} তারিখে আনডু বেছে নিয়েছিলেন।",
+  "Allow again": "আবার অনুমতি দিন",
+  "Automatic switching is allowed again from the next time you open Lolly.": "পরের বার Lolly খোলার সময় থেকে স্বয়ংক্রিয় পরিবর্তন আবার চালু থাকবে।",
+  "Board": "বোর্ড",
+  "Choose for {role}": "{role}-এর জন্য বেছে নিন",
+  "Change {role}": "{role} পরিবর্তন করুন",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "আপনার ব্র্যান্ডের নির্দেশিকা, মানুষ ও এজেন্টের জন্য লেখা। এজেন্ট প্রথমে ব্র্যান্ড স্কিল পড়ে, তারপর হাতের কাজের স্কিল। স্কিল কাজে পথ দেখায়; নিয়মসমূহে থাকা হাউস রুলস Lolly যাচাই করে।",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "এই ডিভাইসটি ব্যস্ত থাকার সময় Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে। চাপ কমলে এটি আবার আগের অবস্থায় ফিরবে।",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "ব্যাটারি কম থাকার সময় Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে। এই ডিভাইস চার্জ হতে শুরু করলে এটি আবার আগের অবস্থায় ফিরবে।",
+  "On for now because this device is busy. It switches back when things calm down.": "আপাতত চালু আছে, কারণ এই ডিভাইসটি ব্যস্ত। চাপ কমলে এটি আবার আগের অবস্থায় ফিরবে।",
+  "On for now because the battery is low. It switches back when this device is charging.": "আপাতত চালু আছে, কারণ ব্যাটারি কম। এই ডিভাইস চার্জ হতে শুরু করলে এটি আবার আগের অবস্থায় ফিরবে।",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "এই ডিভাইসটি ব্যস্ত থাকার সময় {date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে। আপনি রাখুন বেছে নিয়েছেন।",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "ব্যাটারি কম থাকার সময় {date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে। আপনি রাখুন বেছে নিয়েছেন।",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "ধীর ডিভাইসের জন্য Lolly এখানে নিজে থেকে পাল্টাবে না, কারণ আপনি {date} তারিখে আনডু বেছে নিয়েছিলেন।",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "এই ডিভাইস ব্যস্ত থাকলে বা ব্যাটারি কম থাকলে Lolly নিজে থেকে পাল্টাবে না, কারণ আপনি {date} তারিখে আনডু বেছে নিয়েছিলেন।",
+  "Use the automatic colour": "স্বয়ংক্রিয় রং ব্যবহার করুন",
+  "follows the design system ({colour})": "ডিজাইন সিস্টেম অনুসরণ করে ({colour})",
+  "follows the design system": "ডিজাইন সিস্টেম অনুসরণ করে",
+  "automatic ({colour})": "স্বয়ংক্রিয় ({colour})",
+  "automatic": "স্বয়ংক্রিয়",
+  "{name} spring": "{name} স্প্রিং",
+  "{name} (not in this design system)": "{name} (এই ডিজাইন সিস্টেমে নেই)",
+  "Curves": "কার্ভ",
+  "Springs": "স্প্রিং",
+  "Gentle": "কোমল",
+  "Quick": "দ্রুত",
+  "Bouncy": "বাউন্সি",
+  "Custom spring": "কাস্টম স্প্রিং",
+  "Stiffness": "দৃঢ়তা",
+  "Damping": "ড্যাম্পিং",
+  "Mass": "ভর",
+  "Settles in {t} s": "{t} সেকেন্ডে স্থির হয়",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "স্প্রিং স্থির হওয়ার আগেই পরের কীফ্রেম আসে। বাকি চলন অংশটি জুড়ে ছড়িয়ে দেওয়া হয়।",
+  "From the design system: {name}": "ডিজাইন সিস্টেম থেকে: {name}",
+  "Editing the curve detaches it from the design system.": "কার্ভ সম্পাদনা করলে এটি ডিজাইন সিস্টেম থেকে বিচ্ছিন্ন হয়।",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "পেন (P) - পয়েন্ট বসাতে ক্লিক করুন, বাঁকাতে টানুন, কোণের জন্য Alt। পেন্সিল (Shift C) ও স্প্লাইন টাইপের জন্য চেপে ধরুন",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "পেন (P) - পয়েন্ট বসাতে ক্লিক করুন, বাঁকাতে টানুন, কোণের জন্য Alt",
+  "Recipients can change the inputs": "প্রাপকেরা ইনপুট পরিবর্তন করতে পারবে",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "লিংক থাকলে যে কেউ এর ইনপুট পরিবর্তন করে নতুন ছবি পেতে পারেন। লক করা ইনপুট যেমন সেট করা আছে তেমনই থাকবে।",
+  "{count} entries": {
+    "one": "{count}টি এন্ট্রি",
+    "other": "{count}টি এন্ট্রি"
+  },
+  "{count} files in this folder": {
+    "one": "এই ফোল্ডারে {count}টি ফাইল",
+    "other": "এই ফোল্ডারে {count}টি ফাইল"
+  },
+  "{n} assets": {
+    "one": "{n}টি অ্যাসেট",
+    "other": "{n}টি অ্যাসেট"
+  },
+  "{n} assets found": {
+    "one": "{n}টি অ্যাসেট পাওয়া গেছে",
+    "other": "{n}টি অ্যাসেট পাওয়া গেছে"
+  },
+  "{n} capabilities match": {
+    "one": "{n}টি ক্ষমতা মেলে",
+    "other": "{n}টি ক্ষমতা মেলে"
+  },
+  "{n} copies made · selected": {
+    "one": "{n}টি কপি তৈরি হয়েছে · নির্বাচিত",
+    "other": "{n}টি কপি তৈরি হয়েছে · নির্বাচিত"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "one": "{n}টি সৃষ্টি, যেগুলো এখানে প্রজেক্ট থেকে সরানো হয়েছিল, সরানোই থেকে গেছে।",
+    "other": "{n}টি সৃষ্টি, যেগুলো এখানে প্রজেক্ট থেকে সরানো হয়েছিল, সরানোই থেকে গেছে।"
+  },
+  "{n} embedded files": {
+    "one": "{n}টি এম্বেড করা ফাইল",
+    "other": "{n}টি এম্বেড করা ফাইল"
+  },
+  "{n} external references": {
+    "one": "{n}টি বাহ্যিক রেফারেন্স",
+    "other": "{n}টি বাহ্যিক রেফারেন্স"
+  },
+  "{n} files could not be packed and were left out": {
+    "one": "{n}টি ফাইল প্যাক করা যায়নি এবং বাদ পড়েছে",
+    "other": "{n}টি ফাইল প্যাক করা যায়নি এবং বাদ পড়েছে"
+  },
+  "{n} folders": {
+    "one": "{n}টি ফোল্ডার",
+    "other": "{n}টি ফোল্ডার"
+  },
+  "{n} font files": {
+    "one": "{n}টি ফন্ট ফাইল",
+    "other": "{n}টি ফন্ট ফাইল"
+  },
+  "{n} images": {
+    "one": "{n}টি ছবি",
+    "other": "{n}টি ছবি"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "one": "{n}টি ছবি পুনরুদ্ধার করা যায়নি (স্টোরেজ ভর্তি?)",
+    "other": "{n}টি ছবি পুনরুদ্ধার করা যায়নি (স্টোরেজ ভর্তি?)"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "one": "{n}টি ছবি মূলের সাথেই থেকে গেছে - ছবির একটাই ঠিকানা থাকে; সরাতে কাট ব্যবহার করুন",
+    "other": "{n}টি ছবি মূলের সাথেই থেকে গেছে - ছবির একটাই ঠিকানা থাকে; সরাতে কাট ব্যবহার করুন"
+  },
+  "{n} inputs · applies to every design": {
+    "one": "{n}টি ইনপুট · প্রতিটি ডিজাইনে প্রযোজ্য",
+    "other": "{n}টি ইনপুট · প্রতিটি ডিজাইনে প্রযোজ্য"
+  },
+  "{n} items": {
+    "one": "{n}টি আইটেম",
+    "other": "{n}টি আইটেম"
+  },
+  "{n} items copied": {
+    "one": "{n}টি আইটেম কপি করা হয়েছে",
+    "other": "{n}টি আইটেম কপি করা হয়েছে"
+  },
+  "{n} items cut": {
+    "one": "{n}টি আইটেম কাট করা হয়েছে",
+    "other": "{n}টি আইটেম কাট করা হয়েছে"
+  },
+  "{n} items moved": {
+    "one": "{n}টি আইটেম সরানো হয়েছে",
+    "other": "{n}টি আইটেম সরানো হয়েছে"
+  },
+  "{n} items pasted": {
+    "one": "{n}টি আইটেম পেস্ট করা হয়েছে",
+    "other": "{n}টি আইটেম পেস্ট করা হয়েছে"
+  },
+  "{n} keyframes": {
+    "one": "{n}টি কীফ্রেম",
+    "other": "{n}টি কীফ্রেম"
+  },
+  "{n} logos": {
+    "one": "{n}টি লোগো",
+    "other": "{n}টি লোগো"
+  },
+  "{n} marks found": {
+    "one": "{n}টি মার্ক পাওয়া গেছে",
+    "other": "{n}টি মার্ক পাওয়া গেছে"
+  },
+  "{n} newer items skipped": {
+    "one": "{n}টি নতুনতর আইটেম বাদ দেওয়া হয়েছে",
+    "other": "{n}টি নতুনতর আইটেম বাদ দেওয়া হয়েছে"
+  },
+  "{n} of your creations are videos or animations": {
+    "one": "আপনার সৃষ্টিগুলির মধ্যে {n}টি ভিডিও বা অ্যানিমেশন",
+    "other": "আপনার সৃষ্টিগুলির মধ্যে {n}টি ভিডিও বা অ্যানিমেশন"
+  },
+  "{n} older automatic checkpoints left out": {
+    "one": "{n}টি পুরনো স্বয়ংক্রিয় চেকপয়েন্ট বাদ পড়েছে",
+    "other": "{n}টি পুরনো স্বয়ংক্রিয় চেকপয়েন্ট বাদ পড়েছে"
+  },
+  "{n} pages": {
+    "one": "{n}টি পৃষ্ঠা",
+    "other": "{n}টি পৃষ্ঠা"
+  },
+  "{n} places": {
+    "one": "{n}টি জায়গা",
+    "other": "{n}টি জায়গা"
+  },
+  "{n} points - hold Alt for a corner": {
+    "one": "{n}টি পয়েন্ট - কোণের জন্য Alt চেপে ধরুন",
+    "other": "{n}টি পয়েন্ট - কোণের জন্য Alt চেপে ধরুন"
+  },
+  "{n} published versions": {
+    "one": "{n}টি প্রকাশিত ভার্সন",
+    "other": "{n}টি প্রকাশিত ভার্সন"
+  },
+  "{n} results": {
+    "one": "{n}টি ফলাফল",
+    "other": "{n}টি ফলাফল"
+  },
+  "{n} saved sessions": {
+    "one": "{n}টি সংরক্ষিত সেশন",
+    "other": "{n}টি সংরক্ষিত সেশন"
+  },
+  "{n} selected": {
+    "one": "{n}টি নির্বাচিত",
+    "other": "{n}টি নির্বাচিত"
+  },
+  "{n} selected assets": {
+    "one": "{n}টি নির্বাচিত অ্যাসেট",
+    "other": "{n}টি নির্বাচিত অ্যাসেট"
+  },
+  "{n} sessions": {
+    "one": "{n}টি সেশন",
+    "other": "{n}টি সেশন"
+  },
+  "{n} shapes": {
+    "one": "{n}টি শেপ",
+    "other": "{n}টি শেপ"
+  },
+  "{n} steps": {
+    "one": "{n}টি ধাপ",
+    "other": "{n}টি ধাপ"
+  },
+  "{n} templates": {
+    "one": "{n}টি টেমপ্লেট",
+    "other": "{n}টি টেমপ্লেট"
+  },
+  "{n} volume keys": {
+    "one": "{n}টি ভলিউম কীফ্রেম",
+    "other": "{n}টি ভলিউম কীফ্রেম"
+  },
+  "{n} words": {
+    "one": "{n}টি শব্দ",
+    "other": "{n}টি শব্দ"
+  },
+  "Dominant hand": "প্রধান হাত",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "দুটি প্যানে, ভাঁজযোগ্য ডিভাইস বা প্রায় বর্গাকার ট্যাবলেটে, নিয়ন্ত্রণগুলি আপনার আঁকার হাতের উল্টো দিকে থাকে। প্যানের শিরোনামে থাকা পাশ বদলান বোতামও এটি বদলায়।",
+  "Swap sides": "পাশ বদলান",
+  "Resize panes": "প্যানের আকার বদলান",
+  "Changes that didn't finish saving": "যে পরিবর্তনগুলো সেভ হওয়া শেষ হয়নি",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "আপনি এই পরিবর্তনগুলো {time}-এ করেছিলেন, আর সেভ হওয়ার আগেই পেজটি বন্ধ হয়ে যায়। তারপর থেকে এই ডিজাইন সিস্টেমটি আবার সেভ হয়েছে, অন্য একটি ট্যাবে বা সিঙ্ক করে।",
+  "Restore your unsaved changes": "আপনার সেভ না হওয়া পরিবর্তনগুলো ফিরিয়ে আনুন",
+  "Keep the saved version": "সেভ করা সংস্করণটি রাখুন",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "ফিরিয়ে আনলে তারপর সেভ হওয়া সংস্করণটি বদলে যাবে। সেভ করা সংস্করণটি রাখলে সেভ না হওয়া পরিবর্তনগুলো এই ডিভাইস থেকে মুছে যাবে।",
+  "Restored your unsaved changes.": "আপনার সেভ না হওয়া পরিবর্তনগুলো ফিরিয়ে আনা হয়েছে।",
+  "Kept the saved version.": "সেভ করা সংস্করণটি রাখা হয়েছে।",
+  "Restored the changes that hadn't finished saving.": "যে পরিবর্তনগুলো সেভ হওয়া শেষ হয়নি, সেগুলো ফিরিয়ে আনা হয়েছে।",
+  "{n} file": "{n}টি ফাইল",
+  "It becomes the primary. Shades and roles can follow.": "এটি প্রাইমারি হয়ে যায়। শেড ও ভূমিকা এরপর আসতে পারে।",
+  "Start here": "এখান থেকে শুরু করুন",
+  "Browse looks →": "লুক দেখুন →",
+  "Pick what you have →": "আপনার যা আছে বেছে নিন →",
+  "Open the picker →": "রং বাছাইকারী খুলুন →",
+  "Starter greys until a colour is added.": "রং যোগ না হওয়া পর্যন্ত স্টার্টার ধূসর।",
+  "Lolly can’t draw in this browser yet": "Lolly এখনও এই ব্রাউজারে আঁকতে পারে না",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly WebGPU দিয়ে আঁকে, যা এই ব্রাউজার এখনও দেয় না।",
+  "These work today:": "এগুলো আজ কাজ করে:",
+  "Chrome or Edge, kept up to date": "Chrome বা Edge, হালনাগাদ রাখা",
+  "Safari 26 or later": "Safari 26 বা পরের সংস্করণ",
+  "Firefox, where WebGPU is turned on": "Firefox, যেখানে WebGPU চালু আছে",
+  "Get the desktop app": "ডেস্কটপ অ্যাপ নিন",
+  "Read why": "কেন, পড়ুন",
+  "Or drop an image or a list of colours here": "অথবা এখানে একটি ছবি বা রঙের তালিকা ছেড়ে দিন",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "এই নিউট্রাল রংগুলো শুরুর সেটের সঙ্গে এসেছে, যাতে ওপরে রং যোগ না হওয়া পর্যন্ত প্রিভিউতে দেখানোর কিছু থাকে।",
+  "{role}: {value}. Choose a colour": "{role}: {value}। একটি রং বেছে নিন",
+  "Add a colour to the palette first.": "আগে প্যালেটে একটি রং যোগ করুন।",
+  "Notify": "জানান",
+  "Update automatically": "স্বয়ংক্রিয়ভাবে আপডেট করুন",
+  "App updates": "অ্যাপের আপডেট",
+  "Update notifications": "আপডেটের বিজ্ঞপ্তি",
+  "Ready to install: {version}": "ইনস্টল করার জন্য প্রস্তুত: {version}",
+  "Restart now": "এখনই পুনরায় চালু করুন",
+  "Install when I quit": "বন্ধ করার সময় ইনস্টল করুন",
+  "Release notes": "রিলিজ নোট",
+  "Manual download": "ম্যানুয়াল ডাউনলোড",
+  "Update could not finish. Try again or download the app.": "আপডেট সম্পূর্ণ করা যায়নি। আবার চেষ্টা করুন বা অ্যাপটি ডাউনলোড করুন।",
+  "Finish recording or exporting before updating.": "আপডেট করার আগে রেকর্ডিং বা এক্সপোর্ট শেষ করুন।",
+  "Save could not finish. Save a recovery copy before updating.": "সেভ সম্পূর্ণ করা যায়নি। আপডেট করার আগে পুনরুদ্ধারের জন্য একটি কপি সেভ করুন।",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "এই AppImage এখানে প্রতিস্থাপন করা যায় না। লেখা যায় এমন ফোল্ডারে অ্যাপটি ডাউনলোড করুন।",
+  "This installation uses its package manager for updates.": "এই ইনস্টলেশন আপডেটের জন্য এর প্যাকেজ ম্যানেজার ব্যবহার করে।",
+  "This desktop platform does not support in-app updates.": "এই ডেস্কটপ প্ল্যাটফর্ম অ্যাপের ভেতর থেকে আপডেট সমর্থন করে না।",
+  "Update installation was cancelled.": "আপডেট ইনস্টল বাতিল করা হয়েছে।"
 }

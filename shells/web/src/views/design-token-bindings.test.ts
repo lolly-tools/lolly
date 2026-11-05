@@ -20,7 +20,7 @@ function mount(host: HostV1) {
   const root = document.createElement('div'); document.body.append(root);
   const model: ModelPort = { blockId: 'boxes', cfg: { idField: 'id', xField: 'x', yField: 'y', wField: 'w', hField: 'h', rotationField: 'rot', fontSizeField: 'fontSize', weightField: 'weight' } as BoxFieldConfig, frame: null, getBoxes: () => rows, commit: next => { rows = next; commits++; }, setField: () => {}, subscribe: () => () => {}, getInput: () => 'sdr', setInput: () => {} };
   const destroy = mountDesignTokenBindings(root, { host, metadataField: 'links', fields, fieldIds: ['fontSize', 'weight'], model, ids: ['a'] });
-  return { root, rows: () => rows, commits: () => commits, destroy: () => { destroy(); root.remove(); } };
+  return { root, rows: () => rows, commits: () => commits, busy: () => destroy.busy(), destroy: () => { destroy(); root.remove(); } };
 }
 test('individual projected restore succeeds and scalar replacement remains available', async () => {
   const h = mount({ tokens: { get: async () => set } } as HostV1);
@@ -38,6 +38,23 @@ test('individual projected restore succeeds and scalar replacement remains avail
     picker.value = 'small'; picker.dispatchEvent(new Event('change')); await tick();
     assert.equal(replacement.rows()[0]!.fontSize, 12); assert.equal(readBlockTokenBindings(replacement.rows()[0]!.links).fontSize?.adapter, undefined);
   } finally { replacement.destroy(); }
+});
+test('an open token list holds the inspector until a token is picked or focus leaves', async () => {
+  const h = mount({ tokens: { get: async () => set } } as HostV1);
+  try {
+    assert.equal(h.busy(), false, 'a shut list holds nothing');
+    h.root.querySelector<HTMLButtonElement>('[data-token-choose]')!.click(); await tick();
+    const picker = h.root.querySelector<HTMLSelectElement>('[data-token-options] select')!;
+    assert.equal(document.activeElement, picker, 'Link a token focuses the list');
+    assert.equal(h.busy(), true, 'a rebuild now would close the list being chosen from');
+    picker.blur();
+    assert.equal(h.busy(), false, 'focus leaving the list lets the inspector rebuild');
+    picker.focus();
+    assert.equal(h.busy(), true);
+    picker.value = 'small'; picker.dispatchEvent(new Event('change')); await tick();
+    assert.equal(h.rows()[0]!.fontSize, 12);
+    assert.equal(h.busy(), false, 'a picked token lets the inspector show the link');
+  } finally { h.destroy(); }
 });
 test('changing property during the second token lookup cancels the old commit', async () => {
   let finish: (value: typeof set) => void = () => {}, calls = 0;

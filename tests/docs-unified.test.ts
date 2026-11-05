@@ -32,7 +32,7 @@ test('all imported Work guides keep their console identities and original screen
   const tracked = new Set(execFileSync('git', ['ls-files'], { cwd: DOCS_ROOT, encoding: 'utf8' }).trim().split('\n'));
   for (const source of Object.values(bundle.sourcePaths)) assert.ok(tracked.has(source), source + ' must ship in a plain clone');
   const guides = registry.pages.filter(p => p.work);
-  assert.equal(guides.length, 67);
+  assert.equal(guides.length, 68);
   const index = JSON.parse(bundle.files['docs.json']!.toString());
   const entries = index.sections.flatMap((s: { docs: Array<{ slug: string; path: string }> }) => s.docs);
   assert.deepEqual(entries.map((p: { slug: string }) => p.slug).sort(), guides.map(p => p.work!.slug).sort());
@@ -55,7 +55,7 @@ test('public Work links resolve relative guides, assets, fragments and instance 
   const publicText = publicWorkMarkdown(markdown, provider, registry);
   assert.ok(publicText.includes(`/info/${page('work-install').path}.html?mode=demo#9-connect-a-source`));
   assert.ok(publicText.includes('/info/shots/work/provider-gdrive-setup.svg'));
-  assert.ok(publicText.includes('`/admin#/providers` on your Work instance'));
+  assert.ok(publicText.includes('`/admin#/providers` on your Lolly Work instance'));
   assert.ok(publicText.includes('[unchanged](../install.md)'));
   assert.ok(publicWorkMarkdown('[guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md#first)', page('deployment'), registry).includes(`/info/${page('work-install').path}.html#first`));
 });

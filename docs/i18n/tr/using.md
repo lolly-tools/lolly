@@ -12,7 +12,7 @@ Ana ekran: üstte dört sekme ve altta çubuk. Açılan bir araç, denetimlerini
 
 Ana ekranın üstünde dört sekme yer alır: **Tools**, **Utilities**, **Assets** ve **Projects**. Tools ile üretirsin, Utilities bir dosyayı dönüştürmek, denetlemek veya temizlemek gibi işler için tezgâhlardır, Assets kitaplığındır ve Projects kaydettiklerini tutar.
 
-Alttaki çubuk **Open**, **Settings**, bir arama alanı, **Verify** ve **What?** içerir. Tools, Utilities, Assets, Projects, Settings ve uygulamada okuduğun kılavuzlarda görünür, bir araç açılınca kenara çekilir. [Search](/info/search.html), araçlarına, kayıtlı işlerine, varlıklarına ve ayarlarına o alandan ulaşır. [Ask Lolly](/info/ask.html), yazılı bir soruyu bu kılavuzların eşleşen bölümüyle yanıtlar.
+Alttaki çubuk **Open**, **Settings**, bir arama alanı, **Verify** ve **What?** içerir. Tools, Utilities, Assets, Projects, Settings ve uygulamada okuduğun kılavuzlarda görünür, bir araç açılınca kenara çekilir. [Lolly Search](/info/search.html), araçlarına, kayıtlı işlerine, varlıklarına ve ayarlarına o alandan ulaşır. [Ask Lolly](/info/ask.html), yazılı bir soruyu bu kılavuzların eşleşen bölümüyle yanıtlar.
 
 O araçta yeni bir şey başlatmak için bir karta tıkla. Kayıtlı işler bunun yerine **Projects** içinden yeniden açılır.
 
@@ -269,7 +269,7 @@ Dar bir ekranda düzen tek sütun olur:
 
 ## Ayarlar, ses ve rahatlık
 
-Ana ekranın altındaki **Settings**, ayrıntılarını, tasarım sistemlerini, erişilebilirliği, depolamayı ve çevrimdışı indirmeleri tutar. [Settings](/info/dashboard.html) her sekmeyi haritalar.
+Ana ekranın altındaki **Settings**, ayrıntılarını, tasarım sistemlerini, erişilebilirliği, depolamayı ve çevrimdışı indirmeleri tutar. [Lolly Settings](/info/dashboard.html) her sekmeyi haritalar.
 
 - **Ayrıntıların ve profil fotoğrafın**, bir e-posta imzası veya rozet gibi bunları kullanmak için yapılmış her aracı doldurur. [Profiles](/info/profile.html) bunları kapsar.
 - **Accessibility** dört rahatlık anahtarına sahiptir: **Reduce motion**, **Hide colourful previews**, **High contrast** ve **Large text**. Çalışmanın etrafındaki uygulamayı değiştirirler, asla bir araç tuvalini veya bir dışa aktarmayı değil.

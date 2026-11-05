@@ -98,7 +98,7 @@ Feature flags slår deler av Lolly på eller av. I frittstående bruk velger du 
 
 ## Hva skiller nytteverktøy fra verktøy?
 
-En utility gjør én rask jobb på en fil du allerede har, som å komprimere en PDF, konvertere et bilde eller fjerne skjulte data, og mange av dem kjører på enheten din uten at noe lastes opp. De finnes for at jobbene folk vanligvis gir til et tilfeldig nettsted, blir i Lolly. Å komprimere en kontrakt, konvertere feriebilder med posisjonen fortsatt inni eller lime inn et token i en nettbasert formaterer burde ikke bety å gi filen til et nettsted med ukjent oppbevaring, jurisdiksjon og forretningsmodell. [Utilities](/info/utilities.html) lister dem, og [The trade we never agreed to](/info/status-quo.html) forteller historien bak dem.
+En utility gjør én rask jobb på en fil du allerede har, som å komprimere en PDF, konvertere et bilde eller fjerne skjulte data, og mange av dem kjører på enheten din uten at noe lastes opp. De finnes for at jobbene folk vanligvis gir til et tilfeldig nettsted, blir i Lolly. Å komprimere en kontrakt, konvertere feriebilder med posisjonen fortsatt inni eller lime inn et token i en nettbasert formaterer burde ikke bety å gi filen til et nettsted med ukjent oppbevaring, jurisdiksjon og forretningsmodell. [Lolly Utilities](/info/utilities.html) lister dem, og [The trade we never agreed to](/info/status-quo.html) forteller historien bak dem.
 
 ![Utilities-visningen: Strip Hidden Data, Compress PDF, Convert Image og de andre jobbene på enheten, alle på ett sted](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

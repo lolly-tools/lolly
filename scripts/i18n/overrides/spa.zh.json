@@ -1,5 +1,31 @@
 {
   "Speakers": "使用者",
+  "Closest to the current palette": "最接近当前的调色板",
+  "Preview saved design systems and a few starting points. Nothing changes until you choose Use.": "预览已保存的设计系统和一些起点。在你选择“使用”之前不会有任何改变。",
+  "Use this look": "使用这种风格",
+  "Previewing {name}": "正在预览 {name}",
+  "Choose up to two looks to compare.": "最多选择两种风格进行比较。",
+  "Drop a horizontal logo": "将横向标志拖放到这里",
+  "Drop a vertical logo": "将竖向标志拖放到这里",
+  "calm": "沉静",
+  "nature": "自然",
+  "playful": "活泼",
+  "creative": "创意",
+  "warm": "温暖",
+  "editorial": "编辑感",
+  "neutral": "中性",
+  "red": "红",
+  "orange": "橙",
+  "yellow": "黄",
+  "green": "绿",
+  "teal": "蓝绿",
+  "blue": "蓝",
+  "purple": "紫",
+  "pink": "粉",
+  "deep": "深",
+  "pale": "淡",
+  "vivid": "鲜艳",
+  "muted": "柔和",
   "Sort languages": "语言排序",
   "Lolly Imprint": "Lolly Imprint",
   "Hides the Lolly Imprint - a durable, invisible watermark - in the image pixels. It survives re-encoding and screenshots, so any copy of the file can be recognised later.": "将 Lolly Imprint（一种持久的隐形水印）隐藏在图像像素中。它能经受重新编码和截图，因此文件的任何副本以后都能被识别出来。",
@@ -585,7 +611,9 @@
   "Runs the deeper AI text check on Verify and in Assets.": "在“验证”和“素材”中运行深度 AI 文本检测。",
   "Card size": "卡片大小",
   "1 image or file was added on this device. It stays on this device, and others will not see that file.": "此设备上添加了 1 张图片或文件。它只保留在此设备上，其他人看不到该文件。",
-  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": "此设备上添加了 {n} 张图片或文件。它们只保留在此设备上，其他人看不到这些文件。",
+  "{n} images or files were added on this device. They stay on this device, and others will not see those files.": {
+    "other": "此设备上添加了 {n} 张图片或文件。它们只保留在此设备上，其他人看不到这些文件。"
+  },
   "Check the version first": "请先核对版本",
   "Copy team link": "复制团队链接",
   "Could not create the project. Try again.": "无法创建项目。请重试。",
@@ -1176,7 +1204,9 @@
   "Every item is saved in the shared project. Local originals are in Trash or still in place.": "所有项目都已保存到共享项目。本地原件在回收站中或仍在原处。",
   "Your local items have not changed.": "你的本地项目未发生变化。",
   "1 item was saved to the shared project.": "1 个项目已保存到共享项目。",
-  "{n} items were saved to the shared project.": "{n} 个项目已保存到共享项目。",
+  "{n} items were saved to the shared project.": {
+    "other": "{n} 个项目已保存到共享项目。"
+  },
   "Wait for the current move to finish.": "请等待当前移动完成。",
   "You cannot save to that shared project.": "你无法保存到该共享项目。",
   "Everyone who can open {project} will see these items. After every item is saved there, the local originals move to Trash, where you can restore them.": "所有能打开 {project} 的人都会看到这些项目。全部保存到那里后，本地原件会移到回收站，你可以在那里还原。",
@@ -1487,8 +1517,12 @@
   "file": "文件",
   "samples": "采样",
   "text": "文本",
-  "{n} changes found": "发现 {n} 处更改",
-  "{n} pages differ": "{n} 个页面不同",
+  "{n} changes found": {
+    "other": "发现 {n} 处更改"
+  },
+  "{n} pages differ": {
+    "other": "{n} 个页面不同"
+  },
   "Draft": "草稿",
   "Draft quality": "草稿质量",
   "Draft rule": "草稿规则",
@@ -1799,5 +1833,218 @@
   "Headlines - 36px, or 24px bold": "标题 - 36px，或 24px 粗体",
   "Icons and borders only": "仅限图标和边框",
   "Not usable": "不可用",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA 是针对 sRGB 定义的，因此广色域颜色会按其 sRGB 呈现结果评分。"
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA 是针对 sRGB 定义的，因此广色域颜色会按其 sRGB 呈现结果评分。",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "这台设备在没有图形加速的情况下绘制，所以 Lolly 已切换为更简单、更快的外观。",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "这台设备运行吃力，所以 Lolly 已切换为更简单、更快的外观。",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "已于 {date} 自动开启，因为这台设备在没有图形加速的情况下绘制。",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "已于 {date} 自动开启，因为这台设备绘制界面时运行吃力。",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "由于你在 {date} 选了“撤销”，这台设备已关闭自动切换。",
+  "Allow again": "再次允许",
+  "Automatic switching is allowed again from the next time you open Lolly.": "从下次打开 Lolly 起，会再次允许自动切换。",
+  "Board": "看板",
+  "Choose for {role}": "为{role}选择",
+  "Change {role}": "更改{role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "你品牌的指南，为人和代理而写。代理会先读品牌技能，再读针对当前工作的技能。技能指导工作；而“规则”中的内部规范，才是 Lolly 会检查的内容。",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "这台设备忙碌期间，Lolly 已切换为更简单、更快的外观。等情况平稳后会自动切换回来。",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "电量偏低期间，Lolly 已切换为更简单、更快的外观。这台设备开始充电后会自动切换回来。",
+  "On for now because this device is busy. It switches back when things calm down.": "暂时开启，因为这台设备正忙碌。等情况平稳后会自动切换回来。",
+  "On for now because the battery is low. It switches back when this device is charging.": "暂时开启，因为电量偏低。这台设备开始充电后会自动切换回来。",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "已于 {date} 在这台设备忙碌时自动开启。你选了“保留”。",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "已于 {date} 在电量偏低时自动开启。你选了“保留”。",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "由于你在 {date} 选了“撤销”，Lolly 不会在这里因设备运行缓慢而自动切换。",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "由于你在 {date} 选了“撤销”，Lolly 不会在这台设备忙碌或电量偏低时自动切换。",
+  "Use the automatic colour": "使用自动颜色",
+  "follows the design system ({colour})": "跟随设计系统（{colour}）",
+  "follows the design system": "跟随设计系统",
+  "automatic ({colour})": "自动（{colour}）",
+  "automatic": "自动",
+  "{name} spring": "{name}弹簧",
+  "{name} (not in this design system)": "{name}（不在此设计系统中）",
+  "Curves": "曲线",
+  "Springs": "弹簧",
+  "Gentle": "柔和",
+  "Quick": "快速",
+  "Bouncy": "弹跳",
+  "Custom spring": "自定义弹簧",
+  "Stiffness": "刚度",
+  "Damping": "阻尼",
+  "Mass": "质量",
+  "Settles in {t} s": "{t} 秒后静止",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "弹簧静止之前就到了下一个关键帧。剩余的运动会平均分配到整个片段。",
+  "From the design system: {name}": "来自设计系统：{name}",
+  "Editing the curve detaches it from the design system.": "编辑曲线会使其与设计系统断开。",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "钢笔 (P) - 点击放置节点，拖动生成曲线，按 Alt 切换尖角。长按可选铅笔 (Shift C) 和样条类型",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "钢笔 (P) - 点击放置节点，拖动生成曲线，按 Alt 切换尖角",
+  "Recipients can change the inputs": "收件人可以更改输入",
+  "Anyone with the link can change its inputs and get a new image. Locked inputs stay as set.": "任何拿到链接的人都可以更改其输入并获得新图像。已锁定的输入保持原设置。",
+  "{count} entries": {
+    "other": "{count} 条记录"
+  },
+  "{count} files in this folder": {
+    "other": "此文件夹中有 {count} 个文件"
+  },
+  "{n} assets": {
+    "other": "{n} 个素材"
+  },
+  "{n} assets found": {
+    "other": "找到 {n} 个素材"
+  },
+  "{n} capabilities match": {
+    "other": "{n} 项功能匹配"
+  },
+  "{n} copies made · selected": {
+    "other": "已生成 {n} 份副本 · 已选择"
+  },
+  "{n} creations removed from Projects here stayed removed.": {
+    "other": "在此从项目中移除的 {n} 件作品，仍保持移除。"
+  },
+  "{n} embedded files": {
+    "other": "{n} 个嵌入文件"
+  },
+  "{n} external references": {
+    "other": "{n} 个外部引用"
+  },
+  "{n} files could not be packed and were left out": {
+    "other": "{n} 个文件未能打包，已跳过"
+  },
+  "{n} folders": {
+    "other": "{n} 个文件夹"
+  },
+  "{n} font files": {
+    "other": "{n} 个字体文件"
+  },
+  "{n} images": {
+    "other": "{n} 张图片"
+  },
+  "{n} images couldn’t be restored (storage full?)": {
+    "other": "{n} 张图片无法恢复（存储空间已满？）"
+  },
+  "{n} images stayed with the original - images have one home; use Cut to move them": {
+    "other": "{n} 张图片留在了原位置 - 图片只能属于一处；如需移动请使用剪切"
+  },
+  "{n} inputs · applies to every design": {
+    "other": "{n} 个输入项 · 应用于每个设计"
+  },
+  "{n} items": {
+    "other": "{n} 个项目"
+  },
+  "{n} items copied": {
+    "other": "已复制 {n} 个项目"
+  },
+  "{n} items cut": {
+    "other": "已剪切 {n} 个项目"
+  },
+  "{n} items moved": {
+    "other": "已移动 {n} 个项目"
+  },
+  "{n} items pasted": {
+    "other": "已粘贴 {n} 个项目"
+  },
+  "{n} keyframes": {
+    "other": "{n} 个关键帧"
+  },
+  "{n} logos": {
+    "other": "{n} 个标志"
+  },
+  "{n} marks found": {
+    "other": "发现 {n} 个标记"
+  },
+  "{n} newer items skipped": {
+    "other": "已跳过 {n} 个较新的项目"
+  },
+  "{n} of your creations are videos or animations": {
+    "other": "你的作品中有 {n} 个是视频或动画"
+  },
+  "{n} older automatic checkpoints left out": {
+    "other": "已略过 {n} 个较旧的自动检查点"
+  },
+  "{n} pages": {
+    "other": "{n} 页"
+  },
+  "{n} places": {
+    "other": "{n} 处"
+  },
+  "{n} points - hold Alt for a corner": {
+    "other": "{n} 个点 - 按住 Alt 可切换为尖角"
+  },
+  "{n} published versions": {
+    "other": "{n} 个已发布版本"
+  },
+  "{n} results": {
+    "other": "{n} 个结果"
+  },
+  "{n} saved sessions": {
+    "other": "{n} 个已保存的会话"
+  },
+  "{n} selected": {
+    "other": "已选择 {n} 个"
+  },
+  "{n} selected assets": {
+    "other": "已选择 {n} 个素材"
+  },
+  "{n} sessions": {
+    "other": "{n} 个会话"
+  },
+  "{n} shapes": {
+    "other": "{n} 个形状"
+  },
+  "{n} steps": {
+    "other": "{n} 个步骤"
+  },
+  "{n} templates": {
+    "other": "{n} 个模板"
+  },
+  "{n} volume keys": {
+    "other": "{n} 个音量关键帧"
+  },
+  "{n} words": {
+    "other": "{n} 个词"
+  },
+  "Dominant hand": "惯用手",
+  "With two panes, on a foldable or a near-square tablet, the controls sit on the side away from your drawing hand. Swap sides in the pane header changes this too.": "在双窗格布局中（折叠屏设备或近似方形的平板），控件位于远离绘画手的一侧。窗格标题中的“左右互换”也可以更改此设置。",
+  "Swap sides": "左右互换",
+  "Resize panes": "调整窗格大小",
+  "Changes that didn't finish saving": "未完成保存的更改",
+  "You made these changes on {time}, and the page closed before they were saved. This design system has been saved again since then, in another tab or by a sync.": "你在 {time} 做了这些更改，页面在保存前就关闭了。此后，这个设计系统已在另一个标签页中或通过同步再次保存。",
+  "Restore your unsaved changes": "恢复未保存的更改",
+  "Keep the saved version": "保留已保存的版本",
+  "Restoring replaces the version saved since. Keeping the saved version deletes the unsaved changes from this device.": "恢复会替换此后保存的版本。保留已保存的版本会从此设备删除未保存的更改。",
+  "Restored your unsaved changes.": "已恢复未保存的更改。",
+  "Kept the saved version.": "已保留已保存的版本。",
+  "Restored the changes that hadn't finished saving.": "已恢复未完成保存的更改。",
+  "{n} file": "{n} 个文件",
+  "It becomes the primary. Shades and roles can follow.": "它会成为主色。色阶和角色可以随之而来。",
+  "Start here": "从这里开始",
+  "Browse looks →": "浏览风格 →",
+  "Pick what you have →": "选择你已有的 →",
+  "Open the picker →": "打开取色器 →",
+  "Starter greys until a colour is added.": "添加颜色之前，这里是入门灰色。",
+  "Lolly can’t draw in this browser yet": "Lolly 暂时无法在此浏览器中绘制",
+  "Lolly draws with WebGPU, which this browser doesn’t offer yet.": "Lolly 使用 WebGPU 绘制，而此浏览器尚未提供 WebGPU。",
+  "These work today:": "目前可用：",
+  "Chrome or Edge, kept up to date": "保持更新的 Chrome 或 Edge",
+  "Safari 26 or later": "Safari 26 或更高版本",
+  "Firefox, where WebGPU is turned on": "已开启 WebGPU 的 Firefox",
+  "Get the desktop app": "获取桌面应用",
+  "Read why": "了解原因",
+  "Or drop an image or a list of colours here": "或将图片或颜色列表拖放到这里",
+  "These neutrals came with the starter, so the previews have something to show until colours are added above.": "这些中性色随初始配置提供，在上方添加颜色之前，预览会用它们来显示。",
+  "{role}: {value}. Choose a colour": "{role}：{value}。选择颜色",
+  "Add a colour to the palette first.": "请先向调色板添加一种颜色。",
+  "Notify": "通知",
+  "Update automatically": "自动更新",
+  "App updates": "应用更新",
+  "Update notifications": "更新通知",
+  "Ready to install: {version}": "已准备好安装：{version}",
+  "Restart now": "立即重启",
+  "Install when I quit": "退出时安装",
+  "Release notes": "发行说明",
+  "Manual download": "手动下载",
+  "Update could not finish. Try again or download the app.": "无法完成更新。请重试或下载应用。",
+  "Finish recording or exporting before updating.": "请先完成录制或导出，再进行更新。",
+  "Save could not finish. Save a recovery copy before updating.": "无法完成保存。请在更新前保存一份恢复副本。",
+  "This AppImage cannot be replaced here. Download the app to a writable folder.": "无法在此位置替换此 AppImage。请将应用下载到可写入的文件夹。",
+  "This installation uses its package manager for updates.": "此安装通过软件包管理器更新。",
+  "This desktop platform does not support in-app updates.": "此桌面平台不支持应用内更新。",
+  "Update installation was cancelled.": "已取消安装更新。"
 }

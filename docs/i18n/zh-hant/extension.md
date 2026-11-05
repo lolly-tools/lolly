@@ -2,9 +2,9 @@
 
 網頁無法讀取另一個網站的像素，所以 Lolly 網頁應用程式需要協助才能對頁面截圖。在 Chromium 系列瀏覽器（Chrome、Edge、Brave、Arc 或 Opera，Chrome 111 起）中，免費的 **Lolly URL Screenshot** 擴充功能提供這項協助，使用與桌面應用程式相同的擷取。安裝後：
 
-- **[URL Screenshot](/t/url-shot)** 把你編排的頁面儲存為檔案；
+- **[Lolly URL Screenshot](/t/url-shot)** 把你編排的頁面儲存為檔案；
 - 貼進圖片欄位的網址，可以用 **Screenshot this page** 變成該頁面的螢幕截圖；
-- [Design System Setup](/info/brand-studio.html) 中的 **Website** 來源可以讀取一個頁面來開始建立設計系統。
+- [Lolly Design System Setup](/info/brand-studio.html) 中的 **Website** 來源可以讀取一個頁面來開始建立設計系統。
 
 每個請求都由你核准，而桌面應用程式在沒有擴充功能的情況下也能完成相同的工作。
 

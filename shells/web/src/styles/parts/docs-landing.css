@@ -62,6 +62,13 @@ html[data-theme="dark"] .quicknav{background:hsl(var(--background) / .9)}
 .hero .hero-btn{user-select:auto;-webkit-user-select:auto; }
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 55% at 50% -5%,hsl(var(--band-accent) / .13) 0%,transparent 65%);pointer-events:none}
 #heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:color-dodge;opacity:.6}
+/* Phones (plan 341): the hero is one narrow column of words, and the format chips
+   drifting through it sat behind the H1 and the lollipop as noise. The field fades
+   to a trace over the hero (--hero-h, measured by NAV_SOLID_JS) and runs at full
+   strength behind the covers. Without the measure, the mask covers the whole wrap. */
+@media(max-width:600px){
+  #heroCanvas{-webkit-mask-image:linear-gradient(180deg,rgb(0 0 0 / .18) 0,rgb(0 0 0 / .18) calc(var(--hero-h,100%) - 5rem),#000 var(--hero-h,100%));mask-image:linear-gradient(180deg,rgb(0 0 0 / .18) 0,rgb(0 0 0 / .18) calc(var(--hero-h,100%) - 5rem),#000 var(--hero-h,100%))}
+}
 .hero h1{font-size:clamp(2.75rem,6vw,5rem);line-height:1.05;margin-bottom:1.5rem;color:hsl(var(--on-band-dark));position:relative;padding-left:.3em;font-weight:200}
 /* The hero's headline statement - the page's single h1, above the pilot pill in the
    details column. Displayed in SUSE Mono, uppercased in CSS ONLY: the DOM text stays
@@ -80,7 +87,7 @@ html[data-theme="dark"] .quicknav{background:hsl(var(--background) / .9)}
    the whole line and the badge lands out at the viewport edge. It carries the width
    the link used to own (the link now fills it). The logo is no longer the page's h1
    (that is the hero statement above now), so it is a plain mark; the badge stays a
-   SIBLING of the logo link, not inside it, so "Verify this logo's credentials" is not
+   SIBLING of the logo link, not inside it, so the badge's own name is not
    folded into the logo link's accessible name. The reset just clears default box
    metrics on the mark. */
 .hero-logo-slot{position:relative;width:clamp(180px,32vw,340px);margin:0 auto 1.5rem}
@@ -265,12 +272,12 @@ html[data-a11y-motion="reduce"] .btn-primary:hover,html[data-a11y-motion="reduce
    carries the meaning.                                                         */
 /* The hero's stack (statement, subtitle, CTA pair) clears 720px, the shortest
    laptop viewport this page is designed for. The download rail closed the hero
-   until 2026-09-02; it now has its own band (.downloads-section, between the
-   persona device and lolly.work), so these gaps are the hero's own. Nothing here
+   until 2026-09-02; it now has its own band (.downloads-section, after the Lolly
+   Work band since plan 341), so these gaps are the hero's own. Nothing here
    resizes the buttons or the H1. */
 .hero .subtitle{margin-bottom:1.9rem}
 .hero-cta{margin-bottom:1.6rem}
-/* ── beat 4a: get the app - the rail on the hero's dark surface ──────────── */
+/* ── beat 4c: get the app - the rail on the hero's dark surface ──────────── */
 .downloads-section{padding:0 1.5rem 3.5rem}
 .downloads-inner{max-width:1120px;margin:0 auto;padding:1.6rem 1.6rem 1.5rem;border-radius:14px;color:hsl(var(--on-band-dark));background:linear-gradient(180deg,color-mix(in oklab,hsl(var(--primary)) 34%,#0b1512) 0%,color-mix(in oklab,hsl(var(--primary)) 15%,#0a120f) 100%)}
 .hero-downloads{position:relative;margin:0}
@@ -278,7 +285,7 @@ html[data-a11y-motion="reduce"] .btn-primary:hover,html[data-a11y-motion="reduce
 .dl-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;
   color:hsl(var(--on-band-dark) / .85)}
 .dl-lead{font-size:.8rem;color:hsl(var(--on-band-dark) / .66);font-weight:300}
-/* Two rows, each a small label over its own grid. The rows are separate grids
+/* Three rows (apps, Linux, terminal and automation), each a small label over its own grid. The rows are separate grids
    rather than one grid of twelve, so a row always starts on a fresh line under
    its label whatever the width.
    Six columns, then three, then two (the phone block below): every step divides
@@ -311,6 +318,7 @@ html[data-a11y-motion="reduce"] .btn-primary:hover,html[data-a11y-motion="reduce
    blue for the hover only. */
 .dl-tile[data-dl="yunohost"]{--dl-accent:#e8eef2}
 .dl-tile[data-dl="windows"]{--dl-accent:#4cc2ff}
+.dl-tile[data-dl="github"]{--dl-accent:#e8eef2}
 
 /* The wash: an accent-tinted glow that grows from behind the mark on hover. Sits
    under the content (the tile is an isolation root), so it never touches the
@@ -394,6 +402,9 @@ html[data-a11y-motion="reduce"] .btn-primary:hover,html[data-a11y-motion="reduce
    see, so the hover takes the band's Green Apple instead. */
 .dl-more:hover,.dl-more:focus-visible,
 .dl-verify:hover,.dl-verify:focus-visible{color:hsl(var(--band-accent));text-decoration:none;gap:.6rem}
+/* The phone fold (plan 341): a checkbox and its label, both absent from 601px up, so
+   a wide screen shows every row and the switch never takes a tab stop there. */
+.dl-fold-cb,.dl-fold{display:none}
 
 /* Phones. "Above the fold" is the whole point of putting the rail in the hero, and
    on a 430x860 phone the hero's own stack spent 808px before the rail started - so
@@ -459,6 +470,19 @@ html[data-a11y-motion="reduce"] .btn-primary:hover,html[data-a11y-motion="reduce
   .dl-note{display:none}
   .dl-os::after{content:none}
   .dl-more{margin-top:.4rem}
+  /* The rows fold behind one switch, so the dark block is a heading, a button and two
+     links (about 200px) instead of most of a screen. The checkbox stays in the
+     accessibility tree, visually hidden, and the label is the visible control. */
+  .dl-fold-cb{display:block;position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .dl-fold{display:inline-flex;align-items:center;gap:.45em;min-height:2.75rem;margin:.1rem 0 .2rem;padding:.5rem 1rem;border:1px solid hsl(var(--on-band-dark) / .3);border-radius:999px;color:hsl(var(--on-band-dark));font-size:.875rem;font-weight:700;cursor:pointer}
+  .dl-fold:hover{border-color:hsl(var(--band-accent))}
+  .dl-fold svg{width:1em;height:1em;flex:none}
+  .dl-fold-cb:checked + .dl-fold svg{transform:rotate(90deg)}
+  .dl-fold-cb:checked + .dl-fold .dl-fold-show,
+  .dl-fold-cb:not(:checked) + .dl-fold .dl-fold-hide{display:none}
+  .dl-fold-cb:focus-visible + .dl-fold{outline:2px solid hsl(var(--band-accent));outline-offset:3px}
+  .dl-fold-cb:not(:checked) ~ .dl-rows{display:none}
+  .dl-fold-cb:checked ~ .dl-rows{margin-top:.6rem}
 }
 /* The narrowest phones (360px class). Two columns still beat one, which would
    make the band twelve rows tall, so the band and the tile give up a little more
@@ -1321,6 +1345,9 @@ html[data-a11y-motion="reduce"] .covers-open-btn{transition:none}
 .covers-dots{display:flex;gap:6px}
 .covers-dot{width:8px;height:8px;border-radius:50%;background:hsl(var(--on-band-dark) / .3);border:0;padding:0;cursor:pointer;transition:all .2s ease}
 .covers-dot[aria-current="true"]{background:hsl(var(--primary));width:22px;border-radius:4px}
+/* One muted line under the dots that says what the fan shows (plan 341). The fan runs
+   edge to edge, so the line keeps its own gutter and measure. */
+.covers-caption{max-width:min(40rem,calc(100% - 2rem));margin:.9rem auto 0;text-align:center;font-size:.875rem;line-height:1.45;color:hsl(var(--on-band-dark) / .68);text-wrap:balance}
 @media (prefers-reduced-motion: reduce){.covers--fan .cover-card{transition:none}}
 html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
 
@@ -1331,6 +1358,9 @@ html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
 .whatwhy-body{color:var(--muted);max-width:52ch;margin:0 0 1rem}
 .whatwhy-maxim{margin:0 0 1rem;max-width:52ch}
 .whatwhy-stats{display:flex;gap:1.6rem;flex-wrap:wrap;margin:.5rem 0 1rem;  }
+/* A narrow phone fitted three counters and orphaned "27 languages" on a row of its
+   own; two by two keeps the four together. */
+@media (max-width:420px){.whatwhy-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem .75rem}}
 .whatwhy-stat{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit; text-align:center;}
 .whatwhy-stat b{font-family:'SUSE Mono','SF Mono',monospace;font-size:1.7rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));}
 .whatwhy-stat span{font-size:.6875rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
@@ -1349,32 +1379,41 @@ html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
    dark and brand while staying a step softer than the body ink. */
 .persona-title{margin-bottom:1.25rem;text-align:center; color:color-mix(in oklab,var(--green) 65%,var(--page)) }
 .persona-radio,.lane-radio{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
-/* Six doors, one per documentation pathway (Start, Create, Automate, Manage, Deploy,
-   Trust): one row on a wide screen, two rows of three on a narrow one and three rows
-   of two on a phone, so every door stays one tap away without scrolling past a stack. */
+/* Six doors, one per kind of person (plan 341: Just you; A small team or club; Clients
+   and partners; Classes, events and the public; Developers and agents; An
+   organisation): one row on a wide screen, two rows of three on a narrow one, and one
+   scrolling row of pills on a phone. Each door is a small card with its mascot on top,
+   so a long name like "Classes, events and the public" takes the card's full width
+   and wraps to two lines rather than four. */
 .persona-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
 @media (max-width:1099px){.persona-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.persona-tab{display:flex;flex-direction:column;gap:4px;padding:.9rem 1rem;border-radius:12px;background:var(--page);cursor:pointer;position:relative;transition:border-color .2s ease,transform .2s ease;padding-right:3.9rem;min-height:4.75rem}
-.persona-mascot{position:absolute;right:.35rem;top:50%;transform:translateY(-50%);width:4.6em;height:4.6em;object-fit:contain;pointer-events:none}
+.persona-tab{display:flex;flex-direction:column;gap:3px;padding:.8rem .9rem .95rem;border:1px solid color-mix(in oklab,var(--border) 70%,transparent);border-radius:12px;background:var(--page);cursor:pointer;position:relative;transition:border-color .2s ease,transform .2s ease}
+.persona-mascot{order:-1;align-self:flex-start;width:3.6em;height:3.6em;margin:0 0 .35rem -.2rem;object-fit:contain;object-position:left bottom;pointer-events:none}
 /* The platypus is a wide animal: in the shared square it read as a smudge (Andy,
    2026-09-03), so it keeps about a third more room than the others. */
-.persona-mascot[src$="platypus.webp"]{width:6.2em;height:6.2em; margin-top:-.6em}
+.persona-mascot[src$="platypus.webp"]{width:4.8em}
 .persona-tab:hover{border-color:var(--muted);transform:translateY(-2px)}
-.persona-name{font-family:'SUSE Mono',monospace;font-weight:600;font-size:1.1rem}
-.persona-sub{font-size:.8125rem;color:var(--muted)}
-#door-start:checked ~ .persona-tabs label[for="door-start"],
-#door-create:checked ~ .persona-tabs label[for="door-create"],
-#door-automate:checked ~ .persona-tabs label[for="door-automate"],
-#door-manage:checked ~ .persona-tabs label[for="door-manage"],
-#door-deploy:checked ~ .persona-tabs label[for="door-deploy"],
-#door-trust:checked ~ .persona-tabs label[for="door-trust"]{border-color:var(--green);background:color-mix(in oklab,var(--green) 30%,var(--page))}
+.persona-name{font-weight:700;font-size:1rem;line-height:1.2;text-wrap:balance}
+.persona-sub{font-size:.8125rem;line-height:1.3;color:var(--muted)}
+/* Japanese has no spaces between words, so a balanced door name could break inside a
+   word ("小さなチー / ムやクラブ"). auto-phrase moves each break to a phrase boundary; a
+   browser without auto-phrase keeps the old break, and no other language matches. */
+:lang(ja) :is(.persona-name,.persona-sub,.lane-pane h3,.lane-tab){word-break:auto-phrase}
+#door-you:checked ~ .persona-tabs label[for="door-you"],
+#door-team:checked ~ .persona-tabs label[for="door-team"],
+#door-clients:checked ~ .persona-tabs label[for="door-clients"],
+#door-public:checked ~ .persona-tabs label[for="door-public"],
+#door-developers:checked ~ .persona-tabs label[for="door-developers"],
+#door-organisation:checked ~ .persona-tabs label[for="door-organisation"]{border-color:var(--green);background:color-mix(in oklab,var(--green) 30%,var(--page))}
 .persona-tabs img{transition: all .5s ease; filter:drop-shadow( 0 1px 14px color-mix(in oklab,var(--green) 86%,var(--page)))}
-#door-start:not(:checked) ~ .persona-tabs label[for="door-start"] img,
-#door-create:not(:checked) ~ .persona-tabs label[for="door-create"] img,
-#door-automate:not(:checked) ~ .persona-tabs label[for="door-automate"] img,
-#door-manage:not(:checked) ~ .persona-tabs label[for="door-manage"] img,
-#door-deploy:not(:checked) ~ .persona-tabs label[for="door-deploy"] img,
-#door-trust:not(:checked) ~ .persona-tabs label[for="door-trust"] img{filter:grayscale(.6) brightness(1.3) contrast(1.16) ; opacity:.2; transform:scale(.8) translate(1em, -1.5em)}
+/* An unselected door keeps its mascot in colour, a step quieter than the lit one: the
+   old near-invisible grey read as switched off, not as "pick me" (plan 341). */
+#door-you:not(:checked) ~ .persona-tabs label[for="door-you"] img,
+#door-team:not(:checked) ~ .persona-tabs label[for="door-team"] img,
+#door-clients:not(:checked) ~ .persona-tabs label[for="door-clients"] img,
+#door-public:not(:checked) ~ .persona-tabs label[for="door-public"] img,
+#door-developers:not(:checked) ~ .persona-tabs label[for="door-developers"] img,
+#door-organisation:not(:checked) ~ .persona-tabs label[for="door-organisation"] img{filter:saturate(.8); opacity:.72; transform:scale(.9)}
 /* Reduced motion: a door changes state without moving. The ghost rule above takes its
    transition from .persona-tabs img, so one rule there stops every door's mascot. Do not
    restate a transition on the ghost rule: its ids would out-rank this one. */
@@ -1384,25 +1423,25 @@ html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
 }
 html[data-a11y-motion="reduce"] .persona-tab:hover{transform:none}
 html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
-#door-start:checked ~ .persona-tabs label[for="door-start"] .persona-sub,
-#door-create:checked ~ .persona-tabs label[for="door-create"] .persona-sub,
-#door-automate:checked ~ .persona-tabs label[for="door-automate"] .persona-sub,
-#door-manage:checked ~ .persona-tabs label[for="door-manage"] .persona-sub,
-#door-deploy:checked ~ .persona-tabs label[for="door-deploy"] .persona-sub,
-#door-trust:checked ~ .persona-tabs label[for="door-trust"] .persona-sub{color:var(--text)}
-#door-start:focus-visible ~ .persona-tabs label[for="door-start"],
-#door-create:focus-visible ~ .persona-tabs label[for="door-create"],
-#door-automate:focus-visible ~ .persona-tabs label[for="door-automate"],
-#door-manage:focus-visible ~ .persona-tabs label[for="door-manage"],
-#door-deploy:focus-visible ~ .persona-tabs label[for="door-deploy"],
-#door-trust:focus-visible ~ .persona-tabs label[for="door-trust"]{outline:2px solid var(--green);outline-offset:3px}
+#door-you:checked ~ .persona-tabs label[for="door-you"] .persona-sub,
+#door-team:checked ~ .persona-tabs label[for="door-team"] .persona-sub,
+#door-clients:checked ~ .persona-tabs label[for="door-clients"] .persona-sub,
+#door-public:checked ~ .persona-tabs label[for="door-public"] .persona-sub,
+#door-developers:checked ~ .persona-tabs label[for="door-developers"] .persona-sub,
+#door-organisation:checked ~ .persona-tabs label[for="door-organisation"] .persona-sub{color:var(--text)}
+#door-you:focus-visible ~ .persona-tabs label[for="door-you"],
+#door-team:focus-visible ~ .persona-tabs label[for="door-team"],
+#door-clients:focus-visible ~ .persona-tabs label[for="door-clients"],
+#door-public:focus-visible ~ .persona-tabs label[for="door-public"],
+#door-developers:focus-visible ~ .persona-tabs label[for="door-developers"],
+#door-organisation:focus-visible ~ .persona-tabs label[for="door-organisation"]{outline:2px solid var(--green);outline-offset:3px}
 .persona-pane{display:none;margin-top:1.5rem;padding:1.5rem;border:1px solid var(--ui-color-border-default);border-radius:12px;background:var(--page);position:relative}
-#door-start:checked ~ .persona-panes .persona-pane:nth-child(1),
-#door-create:checked ~ .persona-panes .persona-pane:nth-child(2),
-#door-automate:checked ~ .persona-panes .persona-pane:nth-child(3),
-#door-manage:checked ~ .persona-panes .persona-pane:nth-child(4),
-#door-deploy:checked ~ .persona-panes .persona-pane:nth-child(5),
-#door-trust:checked ~ .persona-panes .persona-pane:nth-child(6){display:block}
+#door-you:checked ~ .persona-panes .persona-pane:nth-child(1),
+#door-team:checked ~ .persona-panes .persona-pane:nth-child(2),
+#door-clients:checked ~ .persona-panes .persona-pane:nth-child(3),
+#door-public:checked ~ .persona-panes .persona-pane:nth-child(4),
+#door-developers:checked ~ .persona-panes .persona-pane:nth-child(5),
+#door-organisation:checked ~ .persona-panes .persona-pane:nth-child(6){display:block}
 .lane-cols{display:grid;grid-template-columns:200px minmax(0,1fr);gap:.5rem 1.8rem;align-items:start}
 .lane-tabs{display:flex;flex-direction:column;gap:2px}
 .lane-tab{text-align:start;padding:.65rem .85rem;border-inline-start:2px solid var(--border);cursor:pointer;font-size:.9rem;font-weight:600;color:var(--muted);transition:color .15s ease,border-color .15s ease,background .15s ease}
@@ -1466,20 +1505,32 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
 .lane-radio:nth-of-type(5):focus-visible ~ .lane-cols .lane-tabs .lane-tab:nth-child(5),
 .lane-radio:nth-of-type(6):focus-visible ~ .lane-cols .lane-tabs .lane-tab:nth-child(6){outline:2px solid var(--green);outline-offset:2px}
 @media (max-width:719px){
-  .persona-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .persona-tab{padding-right:3.3rem}
-  .persona-name{font-size:1rem}
-  .persona-mascot{width:3.8em;height:3.8em}
-  .persona-mascot[src$="platypus.webp"]{width:5em;height:5em}
+  /* Phones: the doors are one row of pills that scrolls sideways, each with its
+     mascot in colour, and the row fades at the inline end so the doors past the
+     edge are known to exist. The end padding lets the last pill scroll clear of
+     the fade. */
+  .persona-tabs{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;padding:2px 2.5rem 6px 2px;margin-inline:-2px;-webkit-mask-image:linear-gradient(to right,#000 82%,transparent);mask-image:linear-gradient(to right,#000 82%,transparent)}
+  [dir="rtl"] .persona-tabs{-webkit-mask-image:linear-gradient(to left,#000 82%,transparent);mask-image:linear-gradient(to left,#000 82%,transparent)}
+  .persona-tabs::-webkit-scrollbar{display:none}
+  /* The text column never goes narrower than its longest word, and the pill widens
+     to hold it: a one-word name such as "Un'organizzazione" no longer runs into the
+     padding. When every word fits the 11.25rem pill, nothing moves. */
+  .persona-tab{flex:0 0 auto;width:11.25rem;min-width:min-content;display:grid;grid-template-columns:2.6rem minmax(min-content,1fr);grid-template-rows:auto auto;column-gap:.55rem;row-gap:1px;align-content:center;align-items:center;padding:.5rem .7rem .5rem .45rem;border-radius:14px;scroll-snap-align:start;min-height:3.9rem}
+  .persona-mascot,.persona-mascot[src$="platypus.webp"]{grid-row:1 / span 2;grid-column:1;width:2.6rem;height:2.6rem;margin:0;object-position:center}
+  .persona-name{grid-column:2;font-size:.875rem;text-wrap:pretty}
+  .persona-sub{grid-column:2;font-size:.75rem}
   .lane-cols{grid-template-columns:1fr}
-  .lane-tabs{flex-direction:row;overflow-x:auto;padding-bottom:4px}
-  .lane-tab{border-inline-start:0;border-bottom:2px solid var(--border);white-space:nowrap}
+  /* Lane tabs wrap to a second row rather than scrolling off the edge (the old row
+     clipped at "Ques…" with no sign that more followed). */
+  .lane-tabs{flex-direction:row;flex-wrap:wrap;gap:6px;padding-bottom:4px}
+  /* A pill with a full border on phones; the side rail above is the wide-screen form. */
+  .lane-tabs>.lane-tab{border:1px solid var(--border);border-radius:999px;padding:.45rem .8rem;font-size:.85rem}
   .lane-radio:nth-of-type(1):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(1),
   .lane-radio:nth-of-type(2):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(2),
   .lane-radio:nth-of-type(3):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(3),
   .lane-radio:nth-of-type(4):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(4),
   .lane-radio:nth-of-type(5):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(5),
-  .lane-radio:nth-of-type(6):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(6){border-inline-start:0;border-bottom-color:var(--green)}
+  .lane-radio:nth-of-type(6):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(6){border-color:var(--green);background:color-mix(in oklab,var(--green) 22%,var(--page))}
   /* Phones: the active pane goes back to flow, so the mascot floats at the
      inline end with the heading and first lines beside it, and the copy takes
      the full width once past it. */
@@ -1489,9 +1540,9 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
   .lane-radio:nth-of-type(4):checked ~ .lane-cols .lane-panes .lane-pane:nth-child(4),
   .lane-radio:nth-of-type(5):checked ~ .lane-cols .lane-panes .lane-pane:nth-child(5),
   .lane-radio:nth-of-type(6):checked ~ .lane-cols .lane-panes .lane-pane:nth-child(6){display:block}
-  .lane-mascot{float:inline-end;width:6.5rem;margin-inline-start:1rem;margin-block-end:.5rem}
-  .lane-mascot[data-shot$="wedge-tailed-eagle.webp"]{width:9.5rem}
-  .lane-mascot[data-shot$="whale.webp"]{width:12rem}
+  .lane-mascot{float:inline-end;width:5rem;margin-inline-start:1rem;margin-block-end:.5rem}
+  .lane-mascot[data-shot$="wedge-tailed-eagle.webp"]{width:7.5rem}
+  .lane-mascot[data-shot$="whale.webp"]{width:9rem}
   /* The float already clears the copy past the bird here; the desktop hangs (the
      lorikeet's, pelican's and ibis's negative margins above) would run a tail over the
      first link row or pull the bird out of the pane. Same specificity as those rules,
@@ -1503,6 +1554,9 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
 .work-section{padding:0 1.5rem 3.5rem}
 .work-inner{max-width:1120px;margin:0 auto;padding:1.5rem 1.6rem;border:1px solid var(--border);border-radius:14px;background:color-mix(in oklab,hsl(var(--band-accent)) 20%,var(--page))}
 .work-cols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem 2rem;align-items:center}
+/* The product's name over the heading (plan 341: the band used to leave "Lolly Work"
+   to the two link labels). */
+.work-eyebrow{margin:0 0 .3rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text))}
 .work-heading{font-size:1.25rem;font-weight:800;text-transform:none;letter-spacing:0;margin:0 0 .4rem;text-wrap:balance}
 .work-body{margin:0;color:var(--band-primary);max-width:62ch;font-size:.95rem}
 .work-links{display:flex;flex-direction:column;gap:.6rem;align-items:flex-start}

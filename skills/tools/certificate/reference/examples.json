@@ -1,8 +1,9 @@
 [
   {
-    "label": "Course completion",
+    "label": "Classic course completion",
     "values": {
       "certKind": "completion",
+      "style": "classic",
       "firstname": "Ana",
       "lastname": "Kovač",
       "awardtopic": "Container Fundamentals",
@@ -13,9 +14,10 @@
     }
   },
   {
-    "label": "Award",
+    "label": "Modern award",
     "values": {
       "certKind": "award",
+      "style": "modern",
       "firstname": "Tomás",
       "lastname": "Herrera",
       "awardtopic": "The 2026 Innovation Award",
@@ -27,23 +29,11 @@
     }
   },
   {
-    "label": "Appreciation",
-    "values": {
-      "certKind": "appreciation",
-      "firstname": "Priya",
-      "lastname": "Nair",
-      "awardtopic": "Two years of volunteering",
-      "awarddate": "2026-03-02",
-      "presenter": "Jonas Weber",
-      "presenterTitle": "Community Lead",
-      "company": "Riverside Library"
-    }
-  },
-  {
-    "label": "Achievement on screen",
+    "label": "Minimal achievement, square post",
     "values": {
       "certKind": "achievement",
-      "pageSize": "screen",
+      "style": "minimal",
+      "pageSize": "social-square",
       "firstname": "Lena",
       "lastname": "Fischer",
       "awardtopic": "Top of the 2026 cohort",
@@ -51,6 +41,21 @@
       "presenter": "Maya Lindqvist",
       "presenterTitle": "Programme Director",
       "company": "Northwind Institute"
+    }
+  },
+  {
+    "label": "Celebration thank you, portrait post",
+    "values": {
+      "certKind": "appreciation",
+      "style": "celebration",
+      "pageSize": "social-portrait",
+      "firstname": "Priya",
+      "lastname": "Nair",
+      "awardtopic": "Two years of volunteering",
+      "awarddate": "2026-03-02",
+      "presenter": "Jonas Weber",
+      "presenterTitle": "Community Lead",
+      "company": "Riverside Library"
     }
   }
 ]

@@ -13,8 +13,21 @@
  *  - `--logos-file=-` reads one picture's bytes from stdin;
  *  - a CSV's `logo` column may name pictures beside the CSV, and its `tier` column
  *    groups the wall under headings;
+ *  - `--width`/`--height` at another shape (an A4 page, 1080 x 1920) lay the wall
+ *    out for that shape, in the SVG and in the PNG resvg draws from it;
  *  - files given to a tool with no such input, a file that is not a picture and a
- *    missing file are refused with exit 2 before anything is rendered.
+ *    missing file are refused with exit 2 before anything is rendered;
+ *  - a path written into a row (a CSV column, `--logos=` JSON) is read only when the
+ *    file's bytes are a picture, whatever it is called, so a CSV someone sent cannot
+ *    copy a credentials file into the exported SVG (exit 2, nothing written);
+ *  - an SVG is a file whose root element is `<svg>`, found past a long DOCTYPE, so
+ *    a legacy Illustrator logo is a picture as a file, an argument or a CSV row;
+ *  - a local path inside a link (a pasted lolly.tools URL or a `z=` state), and a
+ *    link that sets a flag pointing at a file, are refused with exit 4: the link's
+ *    author does not choose files on the computer that runs the command.
+ *  - tier headings are set in the design system's heading face: `--text=live` lists
+ *    that face in the font-family attribute and the default SVG outlines the headings
+ *    from that face, never from a bare generic family.
  *
  * Run with: node --test tests/cli-logo-wall.test.ts
  */
@@ -27,7 +40,9 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { acceptsMime, imageMime, parsePathList } from '../shells/cli/src/block-files.ts';
-import { unknownFlags } from '../shells/cli/src/run.ts';
+import { isLocalPathFlag, linkBorneKeys, unknownFlags } from '../shells/cli/src/run.ts';
+import { packQuery } from '../engine/src/url-pack.ts';
+import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BIN = join(ROOT, 'shells', 'cli', 'bin', 'lolly.ts');
@@ -44,13 +59,21 @@ await writeFile(join(root, 'logos', 'c.svg'), svg('#2e7d32'));
 await writeFile(join(root, 'logos', 'd.png'), PNG);
 await writeFile(join(root, 'logos', 'e.png'), PNG);
 await writeFile(join(root, 'logos', 'notes.txt'), 'not a picture');
+// A legacy Illustrator export: a DOCTYPE and ENTITY block put its <svg> at byte 722.
+const ILLUSTRATOR = await readFile(join(ROOT, 'tests', 'fixtures', 'adobe', 'illustrator-legacy-logo.svg'));
+await writeFile(join(root, 'logos', 'illustrator.svg'), ILLUSTRATOR);
+await writeFile(join(root, 'logos', 'page.html'), '<!DOCTYPE html><html><body><svg viewBox="0 0 10 10"></svg></body></html>');
+// A secret that must never reach an exported file, under a picture's name too.
+const CANARY = 'SECRET-CANARY-1234567890';
+await writeFile(join(root, 'credentials'), `[default]\naws_secret_access_key = ${CANARY}\n`);
+await writeFile(join(root, 'logos', 'disguised.png'), CANARY);
 await writeFile(join(root, 'logos', 'sponsors.csv'), 'logo,tier\na.svg,Gold partners\nd.png,Gold partners\nb.svg,Silver partners\nc.svg,Silver partners\ne.png,Silver partners\n');
 
-function cli(args: string[], stdin?: Buffer | string): Promise<{ stdout: Buffer; stderr: string; code: number }> {
+function cli(args: string[], stdin?: Buffer | string, env: Record<string, string> = {}): Promise<{ stdout: Buffer; stderr: string; code: number }> {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [BIN, ...args], {
       cwd: join(root, 'logos'),
-      env: { ...process.env, NO_COLOR: '1', LOLLY_WEB_DIST: join(root, 'no-web-shell') },
+      env: { ...process.env, NO_COLOR: '1', LOLLY_WEB_DIST: join(root, 'no-web-shell'), ...env },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     const out: Buffer[] = [];
@@ -117,6 +140,74 @@ test('a CSV names pictures beside it, and its tier column groups the wall', { sk
   assert.match(text, /<rect x="0" y="0" width="1280" height="720" fill="#/, '--transparentBg=0 paints the background');
 });
 
+test('an export at another shape fills it, in the SVG and in the PNG drawn from it', { skip: SKIP }, async (t) => {
+  // An A4 page as SVG: the page's own size, and a wall laid out for its shape.
+  const page = await cli(['run', 'logo-wall', 'a.svg', 'b.svg', 'c.svg', 'd.png', 'e.png', '--width=210', '--height=297', '--unit=mm', '--output=a4.svg', '--no-provenance']);
+  ok(page);
+  const svg = await readFile(join(root, 'logos', 'a4.svg'), 'utf8');
+  assert.match(svg, /<svg class="lw-svg"[^>]*width="210mm" height="297mm"/);
+  const [, , w, h] = /viewBox="([^"]+)"/.exec(svg)![1]!.split(' ').map(Number);
+  assert.ok(Math.abs(w! / h! - 210 / 297) < 1e-3, `viewBox ${w} x ${h} has the page's shape`);
+
+  // 1080 x 1920 as PNG: the logos reach the lower part of the picture, where a
+  // letterboxed 16:9 wall would leave it empty.
+  const tall = await cli(['run', 'logo-wall', 'a.svg', 'b.svg', 'c.svg', 'd.png', 'e.png', '--width=1080', '--height=1920', '--output=tall.png', '--no-provenance']);
+  ok(tall);
+  let sharp: typeof import('sharp')['default'];
+  try { sharp = (await import('sharp')).default; } catch { t.skip('sharp unavailable on this platform'); return; }
+  const { data, info } = await sharp(join(root, 'logos', 'tall.png')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  assert.deepEqual([info.width, info.height], [1080, 1920]);
+  let lower = 0;
+  for (let y = Math.round(info.height * 0.75); y < info.height; y++) {
+    for (let x = 0; x < info.width; x++) if (data[(y * info.width + x) * 4 + 3]! > 0) lower++;
+  }
+  assert.ok(lower > 1000, `logos drawn in the lowest quarter (${lower} px)`);
+});
+
+// Lolly Demo is the public demo design system (parent-owned, so on every clone): its
+// heading face (font.display) differs from its text face (font.brand), which is what
+// shows the headings follow the heading face rather than the text face.
+const DEMO_TOKENS = join(ROOT, 'brands', 'lolly-demo', 'catalog', 'assets', 'lolly', 'tokens', 'demo.json');
+const DEMO_SKIP = SKIP || (!existsSync(DEMO_TOKENS) && 'lolly-demo design system not on disk');
+
+test('tier headings are set in the design system\'s heading face, live and outlined', { skip: DEMO_SKIP }, async () => {
+  const font = JSON.parse(await readFile(DEMO_TOKENS, 'utf8')).base.font as Record<string, { $value: string }>;
+  const display = font.display!.$value, brand = font.brand!.$value;
+  assert.notEqual(display, brand, 'the demo design system has a heading face of its own');
+  const demo = { LOLLY_PROFILE: 'lolly-demo' };
+
+  // Live text lists the heading face first, then the text face, never a bare generic.
+  const live = await cli(['run', 'logo-wall', '--logos-data=sponsors.csv', '--text=live', '--output=faces-live.svg', '--no-provenance'], undefined, demo);
+  ok(live);
+  const faces = [...(await readFile(join(root, 'logos', 'faces-live.svg'), 'utf8')).matchAll(/<text class="lw-heading"[^>]*\sfont-family="([^"]*)"/g)].map((m) => m[1]);
+  assert.deepEqual(faces, [`${display}, ${brand}, sans-serif`, `${display}, ${brand}, sans-serif`]);
+
+  // The default SVG outlines each heading, and the glyphs are the heading face's own:
+  // the same outline host.text shapes for that face at the heading's 22 px, weight 600.
+  const outlined = await cli(['run', 'logo-wall', '--logos-data=sponsors.csv', '--output=faces-outlined.svg', '--no-provenance'], undefined, demo);
+  ok(outlined);
+  const svgText = await readFile(join(root, 'logos', 'faces-outlined.svg'), 'utf8');
+  assert.doesNotMatch(svgText, /<text\b/, 'no heading is left as live text');
+  const heads = [...svgText.matchAll(/<path\b[^>]*\sd="([^"]+)"[^>]*class="lw-heading"/g)].map((m) => m[1]);
+  assert.equal(heads.length, 2, 'both headings are outlines');
+  const text = createNodeTextAPI({ repoRoot: ROOT });
+  const shape = async (family: string) => {
+    const face = await text.fontUrl!(family, { weight: 600, italic: false });
+    assert.ok(face, `${family} resolves on this shell`);
+    return (await text.toPath({ text: 'Gold partners', fontUrl: face!.url, fontSize: 22, variations: face!.variations })).d;
+  };
+  assert.equal(heads[0], await shape(display), `outlined from ${display}`);
+  assert.notEqual(heads[0], await shape(brand), `not from the text face, ${brand}`);
+});
+
+test('a row can name a placeholder logo the tool ships, as the example look does', { skip: SKIP }, async () => {
+  const r = await cli(['run', 'logo-wall', '--logos=[{"logo":"/tools/logo-wall/assets/your-logo.svg","tier":"Gold partners"}]', '--output=shipped.svg', '--no-provenance']);
+  ok(r);
+  const text = await readFile(join(root, 'logos', 'shipped.svg'), 'utf8');
+  assert.deepEqual(images(text), ['svg+xml'], 'the shipped file is drawn, carried as its own bytes');
+  assert.doesNotMatch(r.stderr, /Failed to resolve|Tool asset not found/);
+});
+
 test('files the wall cannot take are refused before anything renders', { skip: SKIP }, async () => {
   const qr = await cli(['run', 'qr-code', 'a.svg', '--output=qr.svg']);
   assert.equal(qr.code, 2);
@@ -133,10 +224,128 @@ test('files the wall cannot take are refused before anything renders', { skip: S
   assert.equal(existsSync(join(root, 'logos', 'x.svg')), false);
 });
 
+const canaryIn = (bytes: Buffer): boolean =>
+  bytes.includes(CANARY) || bytes.includes(Buffer.from(CANARY).toString('base64').slice(0, 20));
+
+test('a CSV or a --logos path that is not a picture is refused, and nothing is written', { skip: SKIP }, async () => {
+  await writeFile(join(root, 'logos', 'leak.csv'), `logo,tier\na.svg,Gold\n${join(root, 'credentials')},Gold\n`);
+  const csv = await cli(['run', 'logo-wall', '--logos-data=leak.csv', '--output=leak.svg', '--no-provenance']);
+  assert.equal(csv.code, 2, csv.stderr);
+  assert.match(csv.stderr, /is a file on this computer but not a picture this shell recognises, so it was not read/);
+  assert.equal(existsSync(join(root, 'logos', 'leak.svg')), false, 'no file was written');
+
+  // A picture's name is not a picture: the bytes decide.
+  const named = await cli(['run', 'logo-wall', '--logos=[{"logo":"disguised.png"}]', '--output=named.svg', '--no-provenance']);
+  assert.equal(named.code, 2, named.stderr);
+  assert.equal(existsSync(join(root, 'logos', 'named.svg')), false);
+  const dropped = await cli(['run', 'logo-wall', 'disguised.png', '--output=dropped.svg']);
+  assert.equal(dropped.code, 2, dropped.stderr);
+  assert.match(dropped.stderr, /"disguised.png" is not a picture this shell recognises/);
+  for (const r of [csv, named, dropped]) assert.equal(canaryIn(Buffer.from(r.stderr)), false);
+});
+
+test('a legacy Illustrator SVG, its <svg> after a long DOCTYPE, is a picture everywhere a file is read', { skip: SKIP }, async () => {
+  assert.ok(ILLUSTRATOR.indexOf('<svg') > 512, 'the root element sits past the first 512 bytes');
+  const file = await cli(['run', 'logo-wall', '--logos-file=illustrator.svg', '--output=ai-file.svg', '--no-provenance']);
+  ok(file);
+  assert.deepEqual(images(await readFile(join(root, 'logos', 'ai-file.svg'), 'utf8')), ['svg+xml']);
+
+  const positional = await cli(['run', 'logo-wall', 'illustrator.svg', 'a.svg', '--output=ai-args.png', '--no-provenance']);
+  ok(positional);
+  assert.match(positional.stderr, /Added 2 pictures to --logos/);
+
+  await writeFile(join(root, 'logos', 'ai.csv'), 'logo,tier\nillustrator.svg,Gold\n');
+  const csv = await cli(['run', 'logo-wall', '--logos-data=ai.csv', '--output=ai-csv.svg', '--no-provenance']);
+  ok(csv);
+  assert.deepEqual(images(await readFile(join(root, 'logos', 'ai-csv.svg'), 'utf8')), ['svg+xml']);
+
+  // An HTML page that holds a drawing is still not a picture.
+  const page = await cli(['run', 'logo-wall', '--logos=[{"logo":"page.html"}]', '--output=page.svg', '--no-provenance']);
+  assert.equal(page.code, 2, page.stderr);
+  assert.match(page.stderr, /"page.html" is a file on this computer but not a picture this shell recognises/);
+  assert.equal(existsSync(join(root, 'logos', 'page.svg')), false);
+});
+
+test('a path typed into --logos still reads the picture', { skip: SKIP }, async () => {
+  const r = await cli(['run', 'logo-wall', '--logos=[{"logo":"./a.svg"},{"logo":{"id":"d.png"}}]', '--output=typed.svg', '--no-provenance']);
+  ok(r);
+  assert.deepEqual(images(await readFile(join(root, 'logos', 'typed.svg'), 'utf8')), ['svg+xml', 'png']);
+});
+
+test('a local path inside a pasted link or a z= state is refused', { skip: SKIP }, async () => {
+  const rows = JSON.stringify([{ logo: join(root, 'logos', 'd.png') }]);
+  const link = `https://lolly.tools/#/tool/logo-wall?logos=${encodeURIComponent(rows)}`;
+  const pasted = await cli([link, '--output=pasted.svg', '--no-provenance']);
+  assert.equal(pasted.code, 4, pasted.stderr);
+  assert.match(pasted.stderr, /the link sets a logo of ".*d\.png", a file on this computer\. A link cannot choose files for the CLI to read/);
+  assert.equal(existsSync(join(root, 'logos', 'pasted.svg')), false);
+
+  const token = await packQuery(`logos=${encodeURIComponent(rows)}`);
+  assert.ok(token, 'the packer is available');
+  const packed = await cli(['run', 'logo-wall', `--z=${token}`, '--output=packed.svg', '--no-provenance']);
+  assert.equal(packed.code, 4, packed.stderr);
+  assert.match(packed.stderr, /A link cannot choose files for the CLI to read/);
+  assert.equal(existsSync(join(root, 'logos', 'packed.svg')), false);
+
+  // A file: URL in the row is the same thing spelled as a URL.
+  const fileRows = JSON.stringify([{ logo: { url: `file://${join(root, 'credentials')}`, type: 'raster' } }]);
+  const fileLink = await cli([`https://lolly.tools/#/tool/logo-wall?logos=${encodeURIComponent(fileRows)}`, '--output=file-url.svg', '--no-provenance']);
+  assert.equal(fileLink.code, 4, fileLink.stderr);
+  assert.match(fileLink.stderr, /the link sets a logo of "file:\/\/.*credentials", a file on this computer/);
+  assert.equal(existsSync(join(root, 'logos', 'file-url.svg')), false);
+
+  // The same picture typed after the link is the person's own choice.
+  const typed = await cli([link, `--logos=${rows}`, '--output=typed-after.svg', '--no-provenance']);
+  ok(typed);
+  assert.deepEqual(images(await readFile(join(root, 'logos', 'typed-after.svg'), 'utf8')), ['png']);
+});
+
+test('a link that sets a flag pointing at a file is refused', { skip: SKIP }, async () => {
+  for (const [query, flag] of [
+    [`logos-data=${encodeURIComponent(join(root, 'credentials'))}`, 'logos-data='],
+    [`logos-file=${encodeURIComponent(join(root, 'credentials'))}`, 'logos-file='],
+    [`output=${encodeURIComponent(join(root, 'overwritten.svg'))}`, 'output='],
+  ] as const) {
+    const r = await cli([`https://lolly.tools/#/tool/logo-wall?${query}`, '--no-provenance']);
+    assert.equal(r.code, 4, r.stderr);
+    assert.ok(r.stderr.includes(`The link sets ${flag}`), r.stderr);
+  }
+  const named = await cli([`https://lolly.tools/#/tool/logo-wall?filename=${encodeURIComponent('../escaped.svg')}`, '--no-provenance']);
+  assert.equal(named.code, 4, named.stderr);
+  assert.match(named.stderr, /The link sets filename=\.\.\/escaped\.svg, a path rather than a file name/);
+  assert.equal(existsSync(join(root, 'overwritten.svg')), false);
+  assert.equal(existsSync(join(root, 'escaped.svg')), false);
+});
+
+test('link-borne keys: a pasted link\'s, and what a packed state adds beyond the typed flags', () => {
+  const typed = new URLSearchParams('z=tok&w=10');
+  assert.deepEqual([...linkBorneKeys(typed, 'logos=a&w=10')], ['logos']);
+  assert.deepEqual([...linkBorneKeys(typed, 'logos=a&w=5&w=10')].sort(), ['logos', 'w'], 'a key the state also set counts');
+  assert.deepEqual([...linkBorneKeys(new URLSearchParams('logos=a&w=1'), 'logos=a&w=1', new Set(['logos']))], ['logos']);
+  assert.deepEqual([...linkBorneKeys(new URLSearchParams('logos=a'), 'logos=a')], [], 'all typed');
+  for (const flag of ['output', 'logos-data', 'logos-file', 'logos-files', 'user-profile', 'document', 'sign-key']) assert.ok(isLocalPathFlag(flag), flag);
+  for (const flag of ['logos', 'filename', 'width', 'format']) assert.equal(isLocalPathFlag(flag), false, flag);
+});
+
 test('the helpers read pictures by their bytes and keep the web drop filter', () => {
   assert.equal(imageMime('logo.bin', PNG), 'image/png');
   assert.equal(imageMime('logo.png', new TextEncoder().encode(svg('#000'))), 'image/svg+xml');
   assert.equal(imageMime('notes.txt', new TextEncoder().encode('hello')), 'application/octet-stream');
+  assert.equal(imageMime('notes.png', new TextEncoder().encode('hello')), 'application/octet-stream', 'the name alone is not a picture');
+  assert.equal(imageMime('scan.tif', new Uint8Array([0x49, 0x49, 0x2a, 0, 8, 0, 0, 0])), 'image/tiff');
+  // Text that merely starts like a picture is not one, so a notes or secrets file is never
+  // baked into an export. Plain prose stands in for the secrets file, so the history scan
+  // has nothing to flag.
+  for (const text of ['BMW owners meet on Thursday at the depot', 'GIFT ideas for the team, none of them pictures', 'RIFF raff and WEBP notes', 'II*x is not a header']) {
+    assert.equal(imageMime('logo.bmp', new TextEncoder().encode(text)), 'application/octet-stream', text);
+  }
+  const bmp = new Uint8Array(54); bmp.set([0x42, 0x4d]); bmp[14] = 40;
+  assert.equal(imageMime('logo.bin', bmp), 'image/bmp', 'a BITMAPINFOHEADER bitmap');
+  assert.equal(imageMime('logo.bin', new TextEncoder().encode('GIF89a\x01\x00\x01\x00')), 'image/gif');
+  assert.equal(imageMime('logo.bin', new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10])), 'image/jpeg');
+  assert.equal(imageMime('logo.svg', ILLUSTRATOR), 'image/svg+xml', 'past a DOCTYPE and ENTITY block');
+  assert.equal(imageMime('page.svg', new TextEncoder().encode('<html><body><svg></svg></body></html>')), 'application/octet-stream', 'a page that holds a drawing');
+  assert.equal(imageMime('notes.svg', new TextEncoder().encode('draw <svg> here')), 'application/octet-stream', 'text that mentions <svg');
   assert.equal(acceptsMime('image/*', 'image/svg+xml'), true);
   assert.equal(acceptsMime(undefined, 'application/pdf'), false);
   assert.equal(acceptsMime('image/png, image/svg+xml', 'image/jpeg'), false);

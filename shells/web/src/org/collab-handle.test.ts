@@ -679,3 +679,18 @@ test('terminal closure makes the mounted document read-only while reconnecting k
   assert.equal(runtime.getModel()[0]!.value, 'Saved title');
   mounted.close();
 });
+
+test('save settlement follows durable receipts and failures, independent of display messages', () => {
+  const fake = fakeProvider({ status: 'live' });
+  let deliver: ((event: WorkCollabEvent) => void) | undefined;
+  const subscribe = fake.provider.on.bind(fake.provider);
+  fake.provider.on = listener => { deliver = listener; return subscribe(listener); };
+  const handle = createWorkCollabHandle(fake.provider);
+  assert.equal(handle.saveIn!.settled!(), true);
+  fake.setState({ pending: 1 }); assert.equal(handle.saveIn!.settled!(), false);
+  fake.setState({ pending: 0 }); assert.equal(handle.saveIn!.settled!(), true);
+  deliver!({ kind: 'error', code: 'local-save-failed', message: 'Disk full' });
+  assert.equal(handle.saveIn!.settled!(), false);
+  fake.setState({ localSaveFailed: false }); assert.equal(handle.saveIn!.settled!(), true);
+  handle.close();
+});

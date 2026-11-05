@@ -17,14 +17,14 @@ lolly.tools dibuka dalam **Lolly Demo**, sistem reka bentuk contoh Lolly sendiri
 Pilih laluan yang sepadan dengan apa yang anda ada:
 
 - <!--i:palette--> **Satu warna.** Buka **Design System Setup** (`#/start`), namakan sistem reka bentuk anda dan pilih warna utama. Lolly menerbitkan palet lengkap yang mudah diakses daripadanya, dengan permukaan cerah dan gelap, teks dan aksen. Pilih fon dan anda mempunyai jenama yang berfungsi.
-- <!--i:upload--> **Fail token.** **Add from…**, di kaki rel bilik dalam Design System Setup, menerima fail token DTCG, Tokens Studio atau Penpot, SVG atau pek `LollyBrand`. Letakkannya di situ dan palet terisi. Selagi sistem reka bentuk masih kosong, **Start from a reference** dalam bilik Overview membuka pemilih yang sama.
+- <!--i:upload--> **Fail token.** **Add from…**, dalam bar di bahagian atas Design System Setup, menerima fail token DTCG, Tokens Studio atau Penpot, SVG atau pek `LollyBrand`. Letakkannya di situ dan palet terisi. Selagi sistem reka bentuk masih kosong, **Start from a reference** dalam bilik Board membuka pemilih yang sama.
 - <!--i:pentool--> **Reka bentuk yang siap.** Dalam Design, pilih **Import a design** dan letakkan fail `.fig`, `.penpot`, `.ai`, `.idml` atau SVG. Lihat [Bawa masuk apa yang anda sudah ada](#bring-in-what-you-already-have) di bawah.
 
 Kali pertama anda membuka galeri, sambutan ringkas menawarkan pilihan yang sama: **Make it yours** membuka Design System Setup, **Bring your design** membuka pemilih fail untuk reka bentuk dan **Explore the community tools** menutup sambutan.
 
 ![Bilik Colours dalam Design System Setup pada pemasangan baharu: satu cip langsung, satu medan dan keseluruhan keputusan pertama](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Dari situ, tujuh bilik membawanya sejauh yang anda mahu, dalam sebarang susunan: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** dan **Usage & rules**. Setiap pratonton dalam apl dikemas kini semasa anda menaip. [Design System Setup](/info/brand-studio.html) meliputi setiap bilik.
+Dari situ, lapan bilik membawanya sejauh yang anda mahu, dalam sebarang susunan: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** dan **Skills**. Setiap pratonton dalam apl dikemas kini semasa anda menaip. [Lolly Design System Setup](/info/brand-studio.html) meliputi setiap bilik.
 
 Fon disimpan pada peranti anda. Pilih Google Font dan Lolly menyimpan fail sebagai aset jenama, jadi tipografi anda dibawa luar talian dan tiada apa-apa diambil apabila alat melukis.
 
@@ -58,7 +58,7 @@ Anda tidak bermula daripada halaman kosong.
 
 **Dek.** Letakkan `.pptx` PowerPoint pada Lolly untuk memfailkan slaidnya sebagai aset, tulis dek baharu daripada Markdown dalam **Markdown Slides**, atau gunakan [Rebrand a deck](/info/rebrand.html) untuk memindahkan seluruh dek ke sistem reka bentuk anda.
 
-**Data.** Tampal atau letakkan jadual CSV atau JSON dan medan berulang alat terisi daripadanya, atau [Batch](/info/batch.html#make-many-versions-of-one-design) membuat satu fail siap bagi setiap baris.
+**Data.** Tampal atau letakkan jadual CSV atau JSON dan medan berulang alat terisi daripadanya, atau [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) membuat satu fail siap bagi setiap baris.
 
 ### Daripada kerja sekali guna kepada templat
 
@@ -72,7 +72,7 @@ Reka letak yang diimport ialah sesi Design biasa. **Share with rules** menukarny
 
 - <!--i:download--> **Eksport.** Alat menghasilkan SVG, PDF, PNG, JPG, WebP, video dan lagi, dalam format yang ditawarkan setiap alat, pada saiz cetak sebenar apabila anda perlu. Lihat [Export a file](/info/exporting.html).
 - <!--i:link--> **Kongsi pautan.** Tetapan alat dibawa dalam pautannya, jadi pautan membuka semula fail yang sama di mana-mana.
-- <!--i:layers--> **Buat satu bagi setiap baris.** Gerakkan alat daripada hamparan dalam [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:layers--> **Buat satu bagi setiap baris.** Gerakkan alat daripada hamparan dalam [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automasikan.** Render yang sama berjalan daripada [CLI](/info/cli.html) dan daripada [ejen AI](/info/ai-agents.html).
 
 Pautan ialah permintaan yang lengkap. Tiada siapa melukis carta di bawah: jenisnya, tajuknya dan keseluruhan jadual datanya ditaip ke dalam bar alamat, dan pautan yang sama melukis carta yang sama pada mana-mana peranti.

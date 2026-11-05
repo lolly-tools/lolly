@@ -1,0 +1,13 @@
+[package]
+name = "gridcraft-formula"
+version = "0.14.2"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+publish = false
+description = "GridCraft formula language: lexer, parser, printer and reference adjustment"
+
+[dependencies]
+gridcraft-core = { path = "../../../xlsx-numfmt/vendor/gridcraft-core" }
+serde = { version = "1", features = ["derive", "rc"] }
+thiserror = "2"

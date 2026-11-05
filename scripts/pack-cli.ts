@@ -259,6 +259,16 @@ const runtimeOnly = (source: string): boolean => {
   return statSync(source).isDirectory() ? !RUST_ONLY_DIRS.has(name) : !RUST_ONLY_FILES.has(name);
 };
 cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(PKG, 'wasm/adobe-psd'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/xlsx-numfmt'), join(PKG, 'wasm/xlsx-numfmt'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/gridcraft-calc'), join(PKG, 'wasm/gridcraft-calc'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/inpaint'), join(PKG, 'wasm/inpaint'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/image-trace'), join(PKG, 'wasm/image-trace'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/pdf-a11y'), join(PKG, 'wasm/pdf-a11y'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/dxf'), join(PKG, 'wasm/dxf'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/audio-dsp'), join(PKG, 'wasm/audio-dsp'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/indd'), join(PKG, 'wasm/indd'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/camera-raw'), join(PKG, 'wasm/camera-raw'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/affinity'), join(PKG, 'wasm/affinity'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(PKG, 'wasm/layout-kernel'), { recursive: true, filter: runtimeOnly });
 // The geometry kernels (geometry-host-node.ts, loaded for every render's host.geom) and
 // Skera (fonts.ts, host.fonts subsetting) are read from ../wasm/<module>/ beside the
@@ -281,6 +291,7 @@ const result = await build({
     cli: join(REPO, 'shells/cli/bin/lolly.ts'),
     tui: join(REPO, 'shells/tui/src/main.tsx'),
     'rebrand-worker': join(REPO, 'shells/cli/src/rebrand-worker.ts'),
+    'batch-worker': join(REPO, 'shells/cli/src/batch-worker.ts'),
   },
   outdir: join(PKG, 'dist'),
   bundle: true,

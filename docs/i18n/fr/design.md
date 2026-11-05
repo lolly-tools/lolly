@@ -10,9 +10,9 @@ Cette page parcourt le canevas du premier bloc au deck terminé : la fenêtre, l
 
 La **top bar** commence par **Home**, le **File menu** et le nom du document (clique sur le nom pour renommer le document). Le milieu contient **Undo**, **Redo**, **History**, les contrôles de zoom (avec **Fit all** et **Fit artboard**) et les boutons pour la **Timeline**, le **Navigator** et l'**Inspector**. À droite se trouvent **Share**, **Present** et **Export**. Sur un téléphone, les boutons les moins utilisés passent dans **More actions**.
 
-Le **tool rail** sur le côté contient le menu Lolly et les outils avec lesquels tu dessines : **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, puis les boutons Timeline, Artboards et Auto-arrange.
+Le **tool rail** sur le côté contient le menu Lolly et les outils avec lesquels tu dessines : **Pointer**, **Add a box**, **Pen** (le **Pencil** partage son bouton), **Edit points**, **Line**, puis les boutons Timeline, Artboards et Auto-arrange.
 
-![La barre d'outils du canevas libre : une poignée de déplacement, le menu Lolly, puis Pointeur, Ajouter une boîte, Plume, Crayon, Modifier les points, Ligne, Chronologie, Plans de travail et Rangement automatique](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![La barre d'outils du canevas libre : une poignée de déplacement, le menu Lolly, puis Pointeur, Ajouter une boîte, Plume, Modifier les points, Ligne, Chronologie, Plans de travail et Rangement automatique](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Le canevas fonctionne comme la table de travail d'un designer autour du plan de travail :
 
@@ -79,7 +79,7 @@ Les blocs, les cercles et les cadres arrondis couvrent la plupart des mises en p
 
 **Poursuis un tracé ouvert.** Avec le Pen actif, appuie sur l'une des extrémités d'un tracé ouvert et tu dessines de nouveau ce tracé : chaque clic ajoute un point après cette extrémité, ou devant le premier point si tu es parti du début. Enter conserve le résultat et Escape laisse le tracé exactement comme il était. Le tracé reste le même bloc, avec son remplissage, son trait et ses pointes de flèche, et un seul Annuler le remet en état. Delete reprend seulement les points que tu as ajoutés. Une forme fermée, une ligne attachée à un bloc et un tracé en plusieurs parties n'ont pas d'extrémité libre à prolonger.
 
-**Dessine à main levée avec le Pencil.** Le bouton **Pencil** du rail (ou `Shift C`) enregistre ton trait pendant que tu fais glisser. Quand tu relâches, Lolly lisse le trait en quelques points avec des poignées de Bézier, garde les virages vifs comme angles, et maintient la courbe à quelques pixels d'écran près de l'endroit où est passée ta main. Un trait qui se termine près de son début se ferme. Le résultat est un tracé ordinaire, avec la même peinture qu'un tracé au stylo, et tu peux ensuite en modifier les points.
+**Dessine à main levée avec le Pencil.** Appuie sur `Shift C`, ou maintiens le bouton **Pen** sur le rail (ou fais un clic droit sur le bouton) et choisis **Pencil** ; le bouton affiche ensuite le Pencil jusqu'à ce que tu choisisses à nouveau le Pen. Le Pencil enregistre ton trait pendant que tu fais glisser. Quand tu relâches, Lolly lisse le trait en quelques points avec des poignées de Bézier, garde les virages vifs comme angles, et maintient la courbe à quelques pixels d'écran près de l'endroit où est passée ta main. Un trait qui se termine près de son début se ferme. Le résultat est un tracé ordinaire, avec la même peinture qu'un tracé au stylo, et tu peux ensuite en modifier les points.
 
 Le résultat est un bloc ordinaire. Déplace, redimensionne, fais pivoter, groupe, aligne, réordonne, remplis, ombre ou estompe le tracé comme n'importe quel autre bloc. Le premier tracé prend le remplissage et le trait que ta marque donne à un tracé, et chaque nouveau tracé prend ensuite ce que tu as utilisé en dernier. Dans un outil dont la marque ne définit rien pour les tracés, un nouveau tracé est dessiné dans la couleur avec laquelle tu as dessiné, pour que la forme ne soit jamais invisible.
 
@@ -121,6 +121,25 @@ Trois autres fonctions agissent sur une seule forme. **Outline stroke…** trans
 ![Un croissant et un anneau avec un vrai trou, tous deux produits par Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Le résultat est un nouveau tracé que tu peux continuer de modifier au stylo, stocké sous forme de courbes de Bézier simples, donc le type de spline d'origine n'est pas conservé. Les trous sont de vrais trous : le contrôle **Fill rule** du panneau de trait décide si les contours qui se chevauchent se remplissent (*non-zero*) ou se percent (*even-odd*). Les opérations refusent plutôt que de détruire : demande d'intersecter deux formes qui ne se chevauchent pas et rien ne change. Les blocs de texte et d'image n'ont pas de contour, ils sont donc laissés tels quels.
+
+## Vectoriser une image
+
+Sélectionne une image, fais un clic droit dessus et choisis **Vectoriser l'image…** pour la transformer en formes modifiables. Choisis un préréglage et appuie sur **Vectoriser** :
+
+- **Logo** trouve quelques aplats de couleur et garde des bords nets, de vrais cercles et de vraies lignes. Il refuse une image avec des dégradés ou des tons photographiques et te le dit.
+- **Illustration** vectorise plusieurs couleurs en formes remplies, un dessin en aplats ou une image postérisée.
+- **Dessin au trait** vectorise des lignes sombres sur une page claire en formes noires.
+- **Ligne centrale** vectorise des lignes sombres en contours simples, pour que tu puisses en changer l'épaisseur ensuite.
+
+Les formes sont ajoutées sous forme de groupe juste au-dessus de l'image, qui reste en place. Masque ou supprime l'image pour ne voir que les tracés. La vectorisation s'exécute sur ton appareil dans une tâche d'arrière-plan avec un bouton Annuler, et rien n'est envoyé. Une image de 1 500 pixels prend en général entre une et plusieurs secondes, et une photographie chargée prend plus de temps.
+
+La vectorisation suit ce que montre le bloc, donc une image recadrée (Cover) ne vectorise que la partie visible. Ces limites s'appliquent :
+
+- Les images sont réduites à 1 500 pixels au plus sur le grand côté avant la vectorisation, donc les bords sont placés à une fraction de cette taille, pas de l'original.
+- Une vectorisation produit au plus 1 500 formes et 60 000 points. Une photographie dépasse en général cette limite, et Design le dit sans rien modifier. Essaie Logo ou Dessin au trait, ou une image plus simple.
+- Les dégradés deviennent des bandes de couleur unie et les ombres douces des formes à bords nets.
+- Le rayon des angles, un masque de forme et un effet sur le bloc d'image ne sont pas appliqués aux tracés.
+- La même image et le même préréglage donnent toujours les mêmes formes.
 
 ## Strokes
 
@@ -195,9 +214,9 @@ Là où une suggestion concrète de couleur ou de police existe, son bouton modi
 
 ### Règles maison et signal d'écriture
 
-La carte du panneau d'export vérifie aussi les règles maison que ton design system apporte, comme le poids et l'alignement du texte, les associations de couleurs approuvées ou un logo par support, calque par calque. Chaque constat est un avertissement avec le nom du calque au-dessus de la règle. Une règle pour laquelle cette version n'a pas de vérificateur est listée comme non vérifiée, jamais comme respectée. [Usage & rules](/info/brand-studio.html#usage-rules) liste les règles, et `lolly check` applique les mêmes à un document enregistré.
+La carte du panneau d'export vérifie aussi les règles maison que ton design system apporte, comme le poids et l'alignement du texte, les associations de couleurs approuvées ou un logo par support, calque par calque. Chaque constat est un avertissement avec le nom du calque au-dessus de la règle. Une règle pour laquelle cette version n'a pas de vérificateur est listée comme non vérifiée, jamais comme respectée. [Rules](/info/brand-studio.html#rules) liste les règles, et `lolly check` applique les mêmes à un document enregistré.
 
-La même carte montre le signal d'écriture du texte que le document dessine : sa bande (aucun, faible, notable ou fort), puis la phrase propre de Verify avec le score sur 100 et jusqu'à trois expressions signalées, chacune avec le calque qui les contient. **Open the text in Verify** envoie ce texte à [Verify](/#/verify) pour la lecture complète ; [AI evidence in Verify](/info/verify-ai-evidence.html) explique ce que pèse le score. Le score est un signal, pas un verdict : il compte des motifs courants dans l'écriture générée et ne peut pas dire qui a écrit les mots. Les calques masqués sont écartés des deux vérifications, et la carte indique combien.
+La même carte montre le signal d'écriture du texte que le document dessine : sa bande (aucun, faible, notable ou fort), puis la phrase propre de Verify avec le score sur 100 et jusqu'à trois expressions signalées, chacune avec le calque qui les contient. **Open the text in Verify** envoie ce texte à [Lolly Verify](/#/verify) pour la lecture complète ; [AI evidence in Verify](/info/verify-ai-evidence.html) explique ce que pèse le score. Le score est un signal, pas un verdict : il compte des motifs courants dans l'écriture générée et ne peut pas dire qui a écrit les mots. Les calques masqués sont écartés des deux vérifications, et la carte indique combien.
 
 Les constats de règles maison et un signal d'écriture fort comptent dans le total « à corriger » de la carte pour être faciles à repérer. Ils informent et ne bloquent jamais : Download reste disponible, et il n'y a rien à écarter ni à enregistrer comme exception. Un agent qui travaille dans le document ouvert reçoit le même rapport via ses outils de site ([Agents in an open document](/info/open-document-agents.html)).
 

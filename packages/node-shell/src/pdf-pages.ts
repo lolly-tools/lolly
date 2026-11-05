@@ -374,7 +374,7 @@ function weightFromName(name: string): number {
  * external PDF renderer, so a page rasterised here and the same page rasterised in
  * the browser come from one set of numbers.
  *
- * What this half does NOT carry, and says so rather than pretending: shadings,
+ * What this half does NOT carry, and lists the gaps rather than pretending: shadings,
  * tiling patterns and graphics-state soft masks. Their decoders live in
  * shells/web/src/lib/pdf-objects.ts, inside a shell this package must not import
  * from. A gradient therefore paints the flat back-stop

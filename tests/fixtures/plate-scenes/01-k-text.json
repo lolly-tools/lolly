@@ -1,0 +1,139 @@
+{
+  "id": "01-k-text",
+  "title": "Pure K text",
+  "covers": "Black and near-black text separates onto the K plate only; the paper stays blank.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "a",
+      "kind": "text",
+      "frame": "page",
+      "x": 20,
+      "y": 16,
+      "w": 360,
+      "h": 80,
+      "text": "Plate K",
+      "fg": "#000000",
+      "fontSize": 56,
+      "font": "sans",
+      "weight": "800",
+      "align": "left",
+      "valign": "top",
+      "lineHeight": 1.1
+    },
+    {
+      "id": "b",
+      "kind": "text",
+      "frame": "page",
+      "x": 20,
+      "y": 108,
+      "w": 360,
+      "h": 80,
+      "text": "Ink 90",
+      "fg": "#1a1a1a",
+      "fontSize": 52,
+      "font": "sans",
+      "weight": "800",
+      "align": "left",
+      "valign": "top",
+      "lineHeight": 1.1
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true,
+    "pageSizePt": [
+      300,
+      150
+    ]
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "black text",
+          "rect": [
+            20,
+            16,
+            360,
+            80
+          ],
+          "expect": {
+            "C": {
+              "stat": "max",
+              "value": 0
+            },
+            "M": {
+              "stat": "max",
+              "value": 0
+            },
+            "Y": {
+              "stat": "max",
+              "value": 0
+            },
+            "K": {
+              "stat": "max",
+              "min": 99
+            }
+          }
+        },
+        {
+          "name": "near-black text",
+          "rect": [
+            20,
+            108,
+            360,
+            80
+          ],
+          "expect": {
+            "C": {
+              "stat": "max",
+              "value": 0
+            },
+            "M": {
+              "stat": "max",
+              "value": 0
+            },
+            "Y": {
+              "stat": "max",
+              "value": 0
+            },
+            "K": {
+              "stat": "max",
+              "min": 87,
+              "max": 93
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

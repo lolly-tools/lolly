@@ -109,3 +109,44 @@ export function renderStagedSong(song: StagedSong, seconds: number): RenderedPcm
   }
   return { sampleRate: mix.sampleRate, left: mix.left, right: mix.right, normalized: mix.normalized };
 }
+
+/** One scheduled note of a staged song, in seconds, for a MIDI export. */
+export interface RondoNote {
+  /** The synth that plays the note. */
+  synth: string;
+  /** Start in seconds. */
+  time: number;
+  /** Length in seconds; a note never released runs to the end of the render. */
+  duration: number;
+  /** MIDI note number, possibly fractional (a custom tuning). */
+  note: number;
+  /** The event's own velocity, or 1 when it carried none. */
+  velocity: number;
+}
+
+/**
+ * The notes a staged song schedules, paired from its noteOn and noteOff events per
+ * synth. Parameter events are not notes and are left out. A noteOn with an `end`
+ * fraction is not shortened here (the pairing uses the scheduler's own noteOff).
+ * Sorted by start time, then synth, then pitch, so the same song gives the same list.
+ */
+export function notesOf(song: StagedSong, seconds: number, cap = 200_000): RondoNote[] {
+  const out: RondoNote[] = [];
+  for (const [synth, events] of song.events) {
+    const open = new Map<number, { time: number; velocity: number }[]>();
+    const close = (note: number, at: number): void => {
+      const stack = open.get(note);
+      const on = stack?.shift();
+      if (on && out.length < cap) out.push({ synth, time: on.time, duration: Math.max(0, at - on.time), note, velocity: on.velocity });
+    };
+    for (const e of [...events].sort((a, b) => a.time - b.time)) {
+      if (e.type === 'noteOn') {
+        const l = open.get(e.note) ?? [];
+        l.push({ time: e.time, velocity: Math.max(0, Math.min(1, e.velocity)) });
+        open.set(e.note, l);
+      } else if (e.type === 'noteOff') close(e.note, e.time);
+    }
+    for (const note of open.keys()) while (open.get(note)!.length) close(note, seconds);
+  }
+  return out.sort((a, b) => a.time - b.time || (a.synth < b.synth ? -1 : a.synth > b.synth ? 1 : 0) || a.note - b.note);
+}

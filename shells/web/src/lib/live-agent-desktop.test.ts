@@ -5,8 +5,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { serveDesktop } from './live-agent-desktop.ts';
+import { aiControlPermitted, allowAiControl, serveDesktop } from './live-agent-desktop.ts';
 import type { LiveEditor } from './live-agent.ts';
+import { aiPolicy } from './ai-policy.ts';
 
 const editor = (): LiveEditor => ({
   tool: 'design', engine: 'test', surface: 'desktop', rows: () => [{ id: 'a' }], size: () => ({ width: 1, height: 1 }), selection: () => [],
@@ -61,4 +62,21 @@ test('a request that arrives as the view closes is answered, not left to time ou
   serving.stop();
   const late = await app.send('document.get');
   assert.match(late.error.message, /Design document was closed/);
+});
+
+test('Allow AI control is off, and requests from the app are refused, while a managed policy leaves out agents', async () => {
+  aiPolicy.apply({ version: 1, enabled: true, capabilities: ['speech'], maxAgeSeconds: 60 });
+  try {
+    assert.equal(aiControlPermitted(), false);
+    assert.equal(allowAiControl(), false);
+    const app = fakeApp();
+    const serving = serveDesktop(app.invoke, editor);
+    assert.match((await app.send('hello', { protocol: 'live-v1' })).error.message, /organisation's policy/);
+    aiPolicy.apply({ version: 1, enabled: true, capabilities: ['agents'], maxAgeSeconds: 60 });
+    assert.equal(aiControlPermitted(), true);
+    assert.ok((await app.send('hello', { protocol: 'live-v1' })).result);
+    serving.stop();
+  } finally {
+    aiPolicy.setManaged(false);
+  }
 });

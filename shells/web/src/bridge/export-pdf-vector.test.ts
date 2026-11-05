@@ -20,7 +20,7 @@ import {
   withPdfClipRect, withPdfRoundedClip, pdfApplyClip, withPdfRotation,
   drawSvgPathToPdf, svgArcToBeziers, applyTextTransform,
   buildCmykPaletteMap, assignSpotResourceNames, cmykKey, paletteHitKey,
-  pdfColorHit, cmykN, substitutePdfRgb, preserveAspectRatioAlign,
+  pdfColorHit, cmykN, substitutePdfRgb, hasRewritableColour, preserveAspectRatioAlign,
   parseSvgColor, FINISH_MASK_CMYK,
 } from './export-pdf-vector.ts';
 import { readFileSync } from 'node:fs';
@@ -417,6 +417,56 @@ test('substitutePdfRgb: process lock → k/K operators; unmatched → generic co
     substitutePdfRgb('0.2 0.4 0.6 rg', map, spotNames),
     `/GSfk gs ${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} k`,
   );
+});
+
+test('substitutePdfRgb: a press separation converts unmatched colours, and black still overprints', () => {
+  const map = buildCmykPaletteMap([]);
+  const spotNames = assignSpotResourceNames(map);
+  // A stand-in separation with the press rule's shape: neutrals on K alone,
+  // everything else a four-ink build the device formula would never write.
+  const press = (r: number, g: number, b: number): [number, number, number, number] =>
+    r === g && g === b ? [0, 0, 0, 1 - r] : [0.1, 0.2, 0.3, 0.4];
+  const usedGs = new Set<string>();
+  const out = substitutePdfRgb('0 0 0 rg 0.2 0.4 0.6 RG', map, spotNames, undefined, undefined, usedGs, press);
+  assert.equal(out, '/GSfo gs 0 0 0 1 k /GSsk gs 0.1 0.2 0.3 0.4 K');
+  assert.deepEqual([...usedGs].sort(), ['GSfo', 'GSsk']);
+});
+
+test('substitutePdfRgb: DeviceGray keeps its ink, takes a brand swatch, and black overprints', () => {
+  // The print plate scenes found black written as \`0 g\` skipping the brand's black
+  // build and knocking the colour out under black text. A grey keeps the ink DeviceGray
+  // always printed with (K = 1 - v), even where a press separation would tone-match the grey.
+  const press = (): [number, number, number, number] => [0, 0, 0, 0.9];
+  const plain = buildCmykPaletteMap([]);
+  const usedGs = new Set<string>();
+  assert.equal(
+    substitutePdfRgb('BT 0 g (Hi) Tj ET 0.5 G 0.7 g', plain, assignSpotResourceNames(plain), undefined, undefined, usedGs, press),
+    'BT /GSfo gs 0 0 0 1 k (Hi) Tj ET /GSsk gs 0 0 0 0.5 K /GSfk gs 0 0 0 0.3 k',
+  );
+  assert.deepEqual([...usedGs].sort(), ['GSfk', 'GSfo', 'GSsk']);
+  // A grey matching a brand swatch with measured ink keeps that build (a rich black knocks out).
+  const brand = buildCmykPaletteMap([{ hex: '#000000', cmyk: [71, 60, 43, 100] }]);
+  assert.equal(substitutePdfRgb('0. g', brand, assignSpotResourceNames(brand)), '/GSfk gs 0.71 0.6 0.43 1 k');
+  // A `gs` operator, an image resource and a `Tg`-like token are not grey colours.
+  assert.equal(substitutePdfRgb('/GS1 gs /Img1 Do 12 Tg', plain, assignSpotResourceNames(plain)), '/GS1 gs /Img1 Do 12 Tg');
+});
+
+test('substitutePdfRgb: black type is 100% K and overprints, even where the brand black is a rich build', () => {
+  // A brand mapping #000000 to a rich black (or a spot) keeps that build for black areas,
+  // but black text sets on K alone and overprints, by press convention.
+  const brand = buildCmykPaletteMap([{ hex: '#000000', cmyk: [71, 60, 43, 100] }]);
+  const names = assignSpotResourceNames(brand);
+  assert.equal(
+    substitutePdfRgb('0 g 0 0 50 50 re f BT 0 g (Hi) Tj 0 0 0 rg (A) Tj 0.2 0.4 0.6 rg (B) Tj ET', brand, names),
+    '/GSfk gs 0.71 0.6 0.43 1 k 0 0 50 50 re f BT /GSfo gs 0 0 0 1 k (Hi) Tj /GSfo gs 0 0 0 1 k (A) Tj '
+      + `/GSfk gs ${cmykN(rgbToCmyk(0.2, 0.4, 0.6)[0])} ${cmykN(rgbToCmyk(0.2, 0.4, 0.6)[1])} ${cmykN(rgbToCmyk(0.2, 0.4, 0.6)[2])} ${cmykN(rgbToCmyk(0.2, 0.4, 0.6)[3])} k (B) Tj ET`,
+  );
+});
+
+test('hasRewritableColour: a stream with only DeviceGray colours is still rewritten', () => {
+  assert.equal(hasRewritableColour('q 0. g 10 10 50 50 re f Q'), true);
+  assert.equal(hasRewritableColour('0.2 0.4 0.6 RG'), true);
+  assert.equal(hasRewritableColour('/GS1 gs /Img1 Do'), false);
 });
 
 test('substitutePdfRgb: spot lock switches to the /Separation colourspace at full tint', () => {

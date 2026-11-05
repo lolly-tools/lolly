@@ -435,7 +435,7 @@ export function brandSkillCoverage(body: string, facts: BrandSkillCoverageFactsV
       const rules = rulesByKind.get(p.kind) ?? [];
       push(`rule:${section}:${p.kind}`, rules.length
         ? { status: 'checked', kind: 'rule', section, line: row.line, text: text.slice(0, 160), ruleKind: p.kind, ruleIds: rules.map((r) => r.id), detail: `Lolly checks this kind of statement with ${rules.map((r) => r.label ?? r.id).join(', ')}. Read the rule to see whether it says the same thing.` }
-        : { status: 'guidance-only', kind: 'rule', section, line: row.line, text: text.slice(0, 160), ruleKind: p.kind, detail: `Not checked: the design system has no ${p.kind} rule. One could be drafted in Usage & rules.` });
+        : { status: 'guidance-only', kind: 'rule', section, line: row.line, text: text.slice(0, 160), ruleKind: p.kind, detail: `Not checked: the design system has no ${p.kind} rule. One could be drafted in the Rules room.` });
     }
     for (const p of UNCHECKED_PATTERNS) {
       // A section named for the topic ("Orphans and widows") counts for its lines.

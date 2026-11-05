@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { isPhoneLayout } from '../lib/layout-posture.ts';
 import { shareUrlState } from '../lib/share-privacy.ts';
 import { prepareInputPanel } from './tool-input-model.ts';
 import { flattenValue } from '../../../../engine/src/inputs.ts';
@@ -38,8 +39,8 @@ import { escape } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { mountModal } from '../components/modal.ts';
 import { announce } from '../a11y.ts';
-import { colorFieldHtml } from '../components/color-field.ts';
-import { paletteFieldHtml, wireToolColourFields } from './tool-input-colours.ts';
+import { blockColourFieldHtml, colourInputHtml, paintAutoColours,
+  paletteFieldHtml, wireToolColourFields } from './tool-input-colours.ts';
 import { helpTip, wireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
 import {
   customSliderHtml,
@@ -268,7 +269,7 @@ function syncInputs(
   toolId?: string
 ): InputModelItem[] {
   if (canSkipInputsRebuild(el, model, prevModel)) {
-    patchEditedBlockPreview(el);
+    patchEditedBlockPreview(el); paintAutoColours(el, runtime); // the tool's colours can move without a rebuild
     return model;
   }
   renderInputs(el, model, runtime, host, onDirty, toolId);
@@ -430,12 +431,12 @@ function makeBlocksDropper({
   return { accept, plural, addFiles };
 }
 
-// The controls panel is a drag-to-size snap sheet at phone widths, not a sidebar
-// (lib/mobile-sheet.ts, whose default mq this literal matches - the same breakpoint
-// views/tool.ts reads for its own mobile branches). Read live, never cached: a
-// rotate or a resize crosses it without remounting the tool.
-const inSheetMode = (): boolean =>
-  typeof matchMedia !== 'undefined' && matchMedia('(max-width: 640px)').matches;
+// The controls panel is a drag-to-size snap sheet in the phone layout, not a sidebar
+// (lib/mobile-sheet.ts, whose default query this is - the phone LAYOUT, so a 626px
+// foldable in two panes, whose controls are a full-height pane, is not a sheet).
+// Read live, never cached: a rotate, a fold or a resize crosses it without
+// remounting the tool.
+const inSheetMode = (): boolean => typeof matchMedia !== 'undefined' && isPhoneLayout();
 
 /**
  * Whether an input section renders unfolded. A section the user has already opened
@@ -1883,7 +1884,7 @@ export function renderInputs(
       // it through the SAME importer (parseDataRows). One importer, two spreadsheet formats.
       if (/\.xlsx$/i.test(file.name)) {
         try {
-          const { rows } = readXlsx(new Uint8Array(await file.arrayBuffer()));
+          const { rows } = readXlsx(new Uint8Array(await file.arrayBuffer()), { formatCell: await (await import('../bridge/xlsx-numfmt.ts')).xlsxFormatter(), ...await (await import('../bridge/gridcraft-calc.ts')).xlsxRecalcOptions() });
           ioFlash(btn, await applyData(rowsToCsv(rows), inp, 'csv'));
         } catch (e) {
           announce((e as { message?: string })?.message || 'Could not read that spreadsheet.', {
@@ -2774,7 +2775,7 @@ function controlHtml(
     case 'color-picker':
       // Shared SUSE colour picker (see components/color-field.js).
       // `swatchesOnly` makes it a palette-restricted picker (no hex/native/alpha).
-      return colorFieldHtml(id, input.value, { swatchesOnly: input.swatchesOnly === true });
+      return colourInputHtml(id, input);
     case 'palette-picker':
       return paletteFieldHtml(id, input);
     case 'asset-picker': {
@@ -3072,7 +3073,7 @@ function controlHtml(
           // into this block's row (see the ':' route in the wiring below).
           return labelled(
             f,
-            colorFieldHtml(fieldId, String(item[f.id] ?? '').trim(), { block: true })
+            blockColourFieldHtml(fieldId, String(item[f.id] ?? '').trim(), f)
           );
         }
 

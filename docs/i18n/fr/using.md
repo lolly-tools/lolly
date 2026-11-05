@@ -12,7 +12,7 @@ L'écran d'accueil : quatre onglets en haut et la barre en bas. Un outil, une fo
 
 Quatre onglets courent en haut de l'écran d'accueil : **Tools**, **Utilities**, **Assets** et **Projects**. Tools, c'est ce avec quoi tu crées ; Utilities, ce sont des établis pour des tâches comme convertir, vérifier ou nettoyer un fichier ; Assets est ta bibliothèque et Projects contient ce que tu as enregistré.
 
-La barre en bas contient **Open**, **Settings**, un champ de recherche, **Verify** et **What?**. Elle s'affiche sur Tools, Utilities, Assets, Projects, Settings et les guides que tu lis dans l'application, et s'efface dès qu'un outil est ouvert. [Search](/info/search.html) atteint tes outils, ton travail enregistré, tes ressources et tes réglages depuis ce champ. [Ask Lolly](/info/ask.html) répond à une question saisie avec la section correspondante de ces guides.
+La barre en bas contient **Open**, **Settings**, un champ de recherche, **Verify** et **What?**. Elle s'affiche sur Tools, Utilities, Assets, Projects, Settings et les guides que tu lis dans l'application, et s'efface dès qu'un outil est ouvert. [Lolly Search](/info/search.html) atteint tes outils, ton travail enregistré, tes ressources et tes réglages depuis ce champ. [Ask Lolly](/info/ask.html) répond à une question saisie avec la section correspondante de ces guides.
 
 Clique sur une carte pour commencer quelque chose de nouveau dans cet outil. Le travail enregistré se rouvre plutôt depuis **Projects**.
 
@@ -269,7 +269,7 @@ Sur un écran étroit, la mise en page passe sur une seule colonne :
 
 ## Réglages, son et confort
 
-**Settings**, au pied de l'écran d'accueil, contient tes informations, tes design systems, l'accessibilité, le stockage et les téléchargements hors ligne. [Settings](/info/dashboard.html) cartographie chaque onglet.
+**Settings**, au pied de l'écran d'accueil, contient tes informations, tes design systems, l'accessibilité, le stockage et les téléchargements hors ligne. [Lolly Settings](/info/dashboard.html) cartographie chaque onglet.
 
 - **Tes informations et ta photo** remplissent tout outil conçu pour les utiliser, comme une signature d'e-mail ou un badge. [Profiles](/info/profile.html) les couvre.
 - **Accessibility** a quatre interrupteurs de confort : **Reduce motion**, **Hide colourful previews**, **High contrast** et **Large text**. Ils changent l'application autour de ton travail, jamais le canevas d'un outil ni un export.

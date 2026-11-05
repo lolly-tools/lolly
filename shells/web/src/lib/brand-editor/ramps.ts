@@ -17,8 +17,8 @@ import type { BrandSwatch, PrintLock } from '../brand-doc.ts';
 import { t } from '../../i18n.ts';
 import { segHtml } from '../seg.ts';
 import { colourBeat } from '../design-system/beats.ts';
-import { ROLE_IDS, readRoles } from '../design-system/roles.ts';
-import { RAMP_LABEL, ROLE_GLYPH, starterId } from './shared.ts';
+import { ROLE_IDS, readRoles, roleLabel } from '../design-system/roles.ts';
+import { RAMP_LABEL, starterId } from './shared.ts';
 import type { CurveMarks } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
@@ -65,8 +65,11 @@ export const isStarterSwatch = (bedit: BrandEditorCtx, s: BrandSwatch): boolean 
  *  is decided on (plan 182 sections 3a, 4.2). Roles are skipped for the reason
  *  paletteHtml skips them: an alias is not a colour somebody added. */
 export const ownColorCount = (bedit: BrandEditorCtx): number => bedit.swatches.filter(s => s.kind !== 'semantic' && !isStarterSwatch(bedit, s)).length;
-/** Which swatch wears which role mark, read off the doc's own aliases so the
- *  glyph and the Roles strip can never disagree. */
+/** Which swatch wears which role label, read off the doc's own aliases so the
+ *  tile and the role chips can never disagree. The label is the role's own
+ *  name ("Primary"), not the old corner letter (plan 346 change 7): a "P" or an
+ *  "Su" needed a legend, and the chips above the palette now say the same thing
+ *  in words. A swatch that plays two roles shows the first of the four. */
 export const roleGlyphsNow = (bedit: BrandEditorCtx): Map<string, string> => {
   const out = new Map<string, string>();
   let resolve: ((key: string) => unknown) | undefined;
@@ -77,8 +80,7 @@ export const roleGlyphsNow = (bedit: BrandEditorCtx): Map<string, string> => {
   const held = readRoles(bedit.doc, bedit.state.editContext(), resolve);
   for (const role of ROLE_IDS) {
     const ref = held[role]?.ref;
-    const glyph = ROLE_GLYPH[role];
-    if (ref && glyph && !out.has(ref)) out.set(ref, glyph);
+    if (ref && !out.has(ref)) out.set(ref, roleLabel(role));
   }
   return out;
 };
@@ -98,20 +100,26 @@ export const repaintPalette = (bedit: BrandEditorCtx): void => {
   const excluded = new Set(getExcludedSwatches(bedit.doc));
   bedit.swatches = walkSwatches(bedit.doc, bedit.state.editContext(), resolve).filter(s => !excluded.has(s.key));
   if (palMount) {
-    // Keep user-folded sections folded across the innerHTML replace (every
-    // group renders `open` by default) - the same re-render/state guard the
-    // gradients panel's details carries. Session-only; no persistence.
-    const closed = new Set(
-      [...palMount.querySelectorAll<HTMLDetailsElement>('.be-pal-group:not([open])')]
+    // Keep each section's fold across the innerHTML replace - the same
+    // re-render/state guard the gradients panel's details carries. Groups
+    // render `open` by default and the starter group renders folded once there
+    // are colours of the person's own, so both directions are remembered: a
+    // starter group someone opened (or that was open when their first colour
+    // arrived) stays open. Session-only; no persistence.
+    const foldOf = (open: boolean): Set<string> => new Set(
+      [...palMount.querySelectorAll<HTMLDetailsElement>(`.be-pal-group${open ? '[open]' : ':not([open])'}`)]
         .map(d => d.dataset.beGroup ?? '').filter(Boolean),
     );
+    const closed = foldOf(false), opened = foldOf(true);
     palMount.innerHTML = paletteHtml(bedit.swatches, bedit.starterSwatches, {
       roles: roleGlyphsNow(bedit), starterGroup: bedit.revealedStarterGroup,
       groups: paletteGroups(bedit.doc), order: paletteOrder(bedit.doc), hidden: excluded.size,
     });
-    if (closed.size) {
+    if (closed.size || opened.size) {
       palMount.querySelectorAll<HTMLDetailsElement>('.be-pal-group').forEach(d => {
-        if (closed.has(d.dataset.beGroup ?? '')) d.open = false;
+        const g = d.dataset.beGroup ?? '';
+        if (closed.has(g)) d.open = false;
+        else if (opened.has(g)) d.open = true;
       });
     }
   }

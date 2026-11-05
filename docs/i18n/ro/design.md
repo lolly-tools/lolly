@@ -10,9 +10,9 @@ Această pagină parcurge canvasul de la prima casetă până la un deck termina
 
 **Bara de sus** începe cu **Home**, **File menu** și numele documentului (fă clic pe nume ca să redenumești documentul). La mijloc sunt **Undo**, **Redo**, **History**, controalele de zoom (cu **Fit all** și **Fit artboard**) și comutatoare pentru **Timeline**, **Navigator** și **Inspector**. În dreapta stau **Share**, **Present** și **Export**. Pe telefon, butoanele mai rar folosite trec în **More actions**.
 
-**Bara de unelte** de pe margine conține meniul Lolly și uneltele cu care desenezi: **Pointer**, **Add a box**, **Pen**, **Instrumentul creion**, **Edit points**, **Line**, apoi butoanele Timeline, Artboards și Auto-arrange.
+**Bara de unelte** de pe margine conține meniul Lolly și uneltele cu care desenezi: **Pointer**, **Add a box**, **Pen** (butonul lui îl împarte cu **Instrumentul creion**), **Edit points**, **Line**, apoi butoanele Timeline, Artboards și Auto-arrange.
 
-![Bara de instrumente a canvasului liber: un mâner de tragere, meniul Lolly, apoi Pointer, Add a box, Pen, Instrumentul creion, Edit points, Line, Timeline, Artboards și Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Bara de instrumente a canvasului liber: un mâner de tragere, meniul Lolly, apoi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards și Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Canvasul funcționează ca o masă de lucru a designerului în jurul planșei:
 
@@ -79,7 +79,7 @@ Casetele, cercurile și cadrele rotunjite acoperă cele mai multe layouturi. Pen
 
 **Continuă o cale deschisă.** Cu Pen pornit, apasă pe oricare capăt al unei căi deschise și desenezi din nou acea cale: fiecare clic adaugă un punct după acel capăt sau în fața primului punct când ai pornit de la început. Enter păstrează rezultatul, iar Escape lasă calea exact cum era. Calea rămâne aceeași casetă, cu umplerea, conturul și vârfurile de săgeată, iar un singur undo o aduce înapoi. Delete anulează doar punctele pe care le-ai adăugat. O formă închisă, o linie atașată unei casete și o cale cu mai multe părți nu au capăt liber din care să continui.
 
-**Desenează liber cu Instrumentul creion.** Butonul **Instrumentul creion** de pe bară (sau `Shift C`) înregistrează trasul cât tragi. Când dai drumul, Lolly netezește trasul în câteva puncte cu mânere Bezier, păstrează cotiturile ascuțite ca colțuri și ține curba la câțiva pixeli de ecran de locul pe unde a mers mâna ta. Un traseu care se termină aproape de început se închide. Rezultatul este o cale obișnuită, cu aceeași vopsea ca o cale cu Pen, iar punctele ei se pot edita după aceea.
+**Desenează liber cu Instrumentul creion.** Apasă `Shift C` sau ține apăsat butonul **Pen** de pe bară (sau fă clic dreapta pe buton) și alege **Instrumentul creion**; butonul arată apoi Instrumentul creion până când alegi din nou Pen. Instrumentul creion înregistrează trasul cât tragi. Când dai drumul, Lolly netezește trasul în câteva puncte cu mânere Bezier, păstrează cotiturile ascuțite ca colțuri și ține curba la câțiva pixeli de ecran de locul pe unde a mers mâna ta. Un traseu care se termină aproape de început se închide. Rezultatul este o cale obișnuită, cu aceeași vopsea ca o cale cu Pen, iar punctele ei se pot edita după aceea.
 
 Rezultatul este o casetă obișnuită. Mută, redimensionează, rotește, grupează, aliniază, reordonează, umple, umbrește sau estompează calea ca orice altă casetă. Prima cale primește umplerea și conturul pe care brandul tău le dă unei căi, iar fiecare cale nouă de după primește ce ai folosit ultima dată. Într-un instrument al cărui brand nu setează nimic pentru căi, o cale nouă are contur în culoarea cu care ai desenat, deci forma nu este niciodată invizibilă.
 
@@ -121,6 +121,25 @@ Selectează două sau mai multe forme, fă clic dreapta pe canvas (atingere cu d
 ![O semilună și un inel cu o gaură reală, ambele produse de Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Rezultatul este o cale nouă pe care o poți edita în continuare cu pen-ul, stocată ca simple curbe Bezier, deci tipul original de spline nu se păstrează. Găurile sunt găuri reale: controlul **Fill rule** din panoul de contur decide dacă contururile suprapuse umplu (*non-zero*) sau perforează (*even-odd*). Operațiile refuză, nu distrug: dacă ceri intersecția a două forme care nu se suprapun, nu se schimbă nimic. Casetele de text și imagine nu au contur, deci sunt lăsate neatinse.
+
+## Trasează o imagine
+
+Selectează o imagine, dă clic dreapta pe ea și alege **Trasează imaginea…** ca să transformi poza în forme editabile. Alege un preset și apasă **Trasează**:
+
+- **Logo** găsește câteva culori plate și păstrează margini clare, cercuri și linii exacte. Refuză o imagine cu gradienți sau tonuri de fotografie și îți spune asta.
+- **Ilustrație** trasează mai multe culori ca forme pline, pentru grafică plată sau o imagine posterizată.
+- **Desen liniar** trasează liniile închise de pe o pagină deschisă ca forme negre.
+- **Linie centrală** trasează liniile închise ca trasee simple, ca să le poți schimba grosimea după aceea.
+
+Formele sunt adăugate ca grup chiar deasupra imaginii, care rămâne unde este. Ascunde sau șterge imaginea ca să vezi doar traseele. Trasarea rulează pe dispozitivul tău ca o sarcină în fundal, cu un buton Anulează, și nu se încarcă nimic. O imagine de 1500 de pixeli durează de obicei între o secundă și câteva secunde, iar o fotografie încărcată durează mai mult.
+
+Trasarea urmează ce arată caseta, deci o imagine tăiată (Cover) trasează doar partea vizibilă. Se aplică aceste limite:
+
+- Imaginile sunt micșorate la cel mult 1500 de pixeli pe latura lungă înainte de trasare, deci marginile sunt plasate la o fracțiune din acea dimensiune, nu din cea a originalului.
+- O trasare creează cel mult 1.500 de forme și 60.000 de puncte. O fotografie depășește de obicei limita, iar Design spune asta fără să schimbe nimic. Încearcă Logo sau Desen liniar ori o imagine mai simplă.
+- Gradienții devin benzi de culoare plată, iar umbrele fine devin forme cu margini dure.
+- Raza colțurilor, o mască de formă și un efect de pe caseta imaginii nu se aplică traseelor.
+- Aceeași imagine și același preset dau întotdeauna aceleași forme.
 
 ## Contururi
 
@@ -195,9 +214,9 @@ Unde există o sugestie concretă de culoare sau font, butonul ei schimbă acel 
 
 ### Reguli de casă și semnalul de scriere
 
-Cardul panoului de export verifică și regulile de casă pe care le aduce sistemul tău de design, precum greutatea și alinierea textului, perechile de culori aprobate sau un logo pe suprafață, strat cu strat. Fiecare constatare este un avertisment cu numele stratului deasupra regulii. O regulă pentru care această versiune nu are verificator este listată ca neverificată, niciodată ca respectată. [Usage & rules](/info/brand-studio.html#usage-rules) listează regulile, iar `lolly check` le aplică pe aceleași unui document salvat.
+Cardul panoului de export verifică și regulile de casă pe care le aduce sistemul tău de design, precum greutatea și alinierea textului, perechile de culori aprobate sau un logo pe suprafață, strat cu strat. Fiecare constatare este un avertisment cu numele stratului deasupra regulii. O regulă pentru care această versiune nu are verificator este listată ca neverificată, niciodată ca respectată. [Rules](/info/brand-studio.html#rules) listează regulile, iar `lolly check` le aplică pe aceleași unui document salvat.
 
-Același card arată semnalul de scriere pentru textul desenat de document: banda lui (none, weak, notable sau strong), apoi propria propoziție a Verify cu scorul din 100 și până la trei fraze semnalate, fiecare cu stratul care le conține. **Open the text in Verify** duce acel text în [Verify](/#/verify) pentru citirea completă; [Dovezi AI în Verify](/info/verify-ai-evidence.html) explică ce cântărește scorul. Scorul este un semnal, nu un verdict: numără tipare comune în scrisul generat și nu poate spune cine a scris cuvintele. Straturile ascunse sunt lăsate în afara ambelor verificări, iar cardul spune câte.
+Același card arată semnalul de scriere pentru textul desenat de document: banda lui (none, weak, notable sau strong), apoi propria propoziție a Verify cu scorul din 100 și până la trei fraze semnalate, fiecare cu stratul care le conține. **Open the text in Verify** duce acel text în [Lolly Verify](/#/verify) pentru citirea completă; [Dovezi AI în Verify](/info/verify-ai-evidence.html) explică ce cântărește scorul. Scorul este un semnal, nu un verdict: numără tipare comune în scrisul generat și nu poate spune cine a scris cuvintele. Straturile ascunse sunt lăsate în afara ambelor verificări, iar cardul spune câte.
 
 Constatările de reguli de casă și un semnal puternic de scriere se numără în totalul „de reparat” al cardului, ca să fie ușor de găsit. Ele informează și nu blochează niciodată: Download rămâne disponibil și nu e nimic de respins sau de înregistrat ca excepție. Un agent care lucrează în documentul deschis primește același raport prin instrumentele lui de site ([Agenți într-un document deschis](/info/open-document-agents.html)).
 

@@ -48,6 +48,8 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { LANGS } from '../engine/src/lang.ts';
+
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p: string) => readFileSync(resolve(repoRoot, p), 'utf-8');
 
@@ -83,9 +85,9 @@ const MOVED_OFF_LANDING = ['formats.json', 'formats-catalog.json', 'import.json'
  * string under it is excused from THAT rule and no other.
  */
 const CLAIMS_ALLOW: Record<string, Array<[file: string, path: string]>> = {
-  // The hero's cycling words carry the offline claim ("available offline") and
-  // the page's one esoteric term ("content sovereignty").
-  'hero-cycle': [['hero-chrome.json', 'cycle']],
+  // The hero cycle needs no exception: since plan 341 its words are short claims
+  // ("is yours", "is private" ...) with no offline phrase in them, and the privacy
+  // receipt stands in for the offline claim above the fold.
   // The Why column IS the offline claim - its one home on the door.
   'offline-statement': [['whatwhy.json', 'why.statement']],
   // FINAL copy, pinned identical in three homes, that happens to contain the phrase.
@@ -185,7 +187,11 @@ const OFFLINE_PHRASES: Array<[string, RegExp]> = [
   ['works offline',   /works?\s+(fully\s+)?offline/i],
   ['fully offline',   /(fully|entirely|completely)\s+offline/i],
   ['nothing leaves',  /nothing\s+(you\s+\w+\s+)?(ever\s+)?leaves/i],
-  ['never leaves',    /never\s+leaves/i],
+  // "never leave" and "leave your device" as well (plan 341): the Utilities cover
+  // said "files never leave your device" and passed, because the rule wanted the
+  // singular "never leaves" and "ON your device".
+  ['never leaves',    /never\s+leaves?\b/i],
+  ['leaves the device', /\bleaves?\s+(your|the)\s+(own\s+)?(device|machine|computer)/i],
   ['no upload',       /(no|nothing is|never)\s+upload(ed|s)?\b/i],
   ['on your device',  /on\s+(your|the)\s+(own\s+)?(device|machine|computer)/i],
   ['on-device',       /\bon-device\b/i],
@@ -196,19 +202,18 @@ function offend(text: string): string[] {
 }
 
 /**
- * The hero cycle's first word IS the H1's esoteric term (plans/177) - the one
- * other permitted "sovereign(ty)" on the page, keyed to the exact literal so a
- * reworded hero retires its own exemption. Andy shortened the five claims to
- * single words on 2026-09-02 ("is sovereign /is inclusive /is ethical AI / is private /
- * free"); the long forms live on their receipt pages.
+ * The hero cycle's first word: what a reduced-motion reader, a screenshot and a
+ * share preview see, so it carries the page's main claim. Plan 341 (Andy,
+ * 2026-11-01): "is yours", the kitchen-table form of content sovereignty, replaced
+ * "is sovereign" (a sovereign rules; the person is sovereign over their content,
+ * Lolly is not sovereign over anything). The long forms live on the receipt pages.
  */
-const CYCLE_H1 = 'is sovereign';
+const CYCLE_H1 = 'is yours';
 
-test('say offline once: the hero cycle carries the claim and the Why column states it', () => {
+test('say offline once: the hero stays clear of the claim and the Why column states it', () => {
   // plans/177: the hero is "Lolly is <cycling word>" + a tagline and a one-liner
-  // from site.md. The offline claim above the fold is the cycle word "available
-  // offline" (a marked hero-cycle allow block in build.ts); the subtitle lines
-  // must not repeat it.
+  // from site.md. Above the fold the privacy receipt in the cycle stands in for the
+  // offline claim; neither the cycle words nor the subtitle lines may state the claim.
   const heroLines = heroSection.split('\n').filter(l => l.trim() && !l.startsWith('#'));
   assert.ok(heroLines.length >= 2, 'the hero subtitle should still be at least two lines (tagline + one-liner)');
   for (const line of heroLines) {
@@ -219,7 +224,8 @@ test('say offline once: the hero cycle carries the claim and the Why column stat
   // Andy's 2026-09-02 short form: single words. The privacy receipt is the
   // cycle's stand-in for the offline claim (the Why column states it in full).
   assert.ok(hero.cycle.some((c) => c.slug === 'privacy'), 'the hero cycle must carry the privacy receipt');
-  assert.equal(words[0], CYCLE_H1, 'the hero cycle must lead with the one esoteric term');
+  assert.equal(words[0], CYCLE_H1, 'the hero cycle must lead with "is yours", the page\'s main claim');
+  for (const w of words) assert.deepEqual(offend(w), [], `hero cycle word states the offline claim: ${w}`);
   for (const c of hero.cycle) assert.match(buildTs, new RegExp(`slug: '${c.slug}'`), `cycle word "${c.word}" links a page that is not registered: ${c.slug}`);
 
   // The Why column must actually make the full claim - a purge that purged
@@ -232,10 +238,9 @@ test('say offline once: the hero cycle carries the claim and the Why column stat
 });
 
 test('say offline once: no second telling in the landing sources', () => {
-  // build.ts: the landing region, minus the three marked carriers (the hero cycle's
-  // "available offline" word; the Why column IS the claim; the sceptic paragraph is
-  // FINAL copy that happens to contain the phrase).
-  const region = stripComments(withoutAllow(landingRegion(), 'hero-cycle', 'offline-statement', 'sceptic-paragraph'));
+  // build.ts: the landing region, minus the two marked carriers (the Why column IS
+  // the claim; the sceptic paragraph is FINAL copy that happens to contain the phrase).
+  const region = stripComments(withoutAllow(landingRegion(), 'offline-statement', 'sceptic-paragraph'));
   assert.deepEqual(offend(region), [], 'docs/build.ts landing region repeats the offline claim');
 
   // site.md is the hero alone since plans/177 (the audience tabs retired to the
@@ -244,9 +249,9 @@ test('say offline once: no second telling in the landing sources', () => {
   assert.equal(audienceSections.length, 0,
     'site.md grew extra --- sections - the plans/177 landing takes only the hero from site.md');
 
-  // The landing content files, minus the three marked carriers.
+  // The landing content files, minus the two marked carriers.
   for (const name of LANDING_JSON) {
-    for (const [path, str] of jsonStringsExcept(name, 'hero-cycle', 'offline-statement', 'sceptic-paragraph')) {
+    for (const [path, str] of jsonStringsExcept(name, 'offline-statement', 'sceptic-paragraph')) {
       assert.deepEqual(offend(str), [], `docs/site/${name} ${path} repeats the offline claim: ${str}`);
     }
   }
@@ -274,11 +279,12 @@ test('say offline once: the moved bands are no longer landing sources', () => {
   assert.match(buildTs, /function renderFormatsPage[\s\S]{0,400}formatsSection\(/,
     'the formats page must host the three-zone table itself');
   // …and the landing still reaches both pages: formats through the What column's
-  // stat tiles, design-import through the Designers lane of the persona device.
+  // stat tiles, design-import through a lane of the persona device (Clients and
+  // partners > Bring work in, since plan 341).
   const statSlugs = (siteJson('whatwhy.json') as { stats: Array<{ slug: string }> }).stats.map((s) => s.slug);
   assert.ok(statSlugs.includes('formats'), 'a What-column stat tile must link the formats page');
   const laneSlugs = jsonStringsWithPaths(siteJson('persona.json')).filter(([p]) => p.endsWith('.slug')).map(([, v]) => v);
-  assert.ok(laneSlugs.includes('design-import'), 'the Designers lane must link the design-import page');
+  assert.ok(laneSlugs.includes('design-import'), 'a persona lane (Bring work in) must link the design-import page');
 });
 
 // ── 2. no competitor names outside the FAQ ───────────────────────────────────
@@ -321,7 +327,7 @@ test('design-app names appear only where a file is being brought IN', () => {
   }
   // The interop sentence moved to the design-import page's own band with the
   // import teaser (plans/177); the reader with a drawer full of .fig files still
-  // meets it there, and the landing's Designers lane names only the extensions.
+  // meets it there, and the landing's Bring work in lane lists only the extensions.
   const importJson = jsonStrings(JSON.parse(read('docs/site/import.json'))).join('\n');
   assert.match(importJson, /Figma, Penpot, Illustrator, InDesign or any SVG/);
 });
@@ -353,9 +359,9 @@ test('the sceptic paragraph is byte-identical in all three homes', () => {
 
 /**
  * The rulebook list (plan 117 section 1), minus the two entries no regex can judge (see
- * the header). Each entry is [label, regex]. "sovereignty" is allowed in exactly
- * one place - the hero H1 - which is why hero-chrome.json's `statement` is
- * checked separately below rather than scanned here.
+ * the header). Each entry is [label, regex]. "sovereignty" was allowed in the hero
+ * H1 until plan 341 retired "is sovereign" (Andy, 2026-11-01); it is now banned on
+ * the landing like the rest, and the long form lives on content-sovereignty.md.
  */
 const BANNED_WORDS: Array<[string, RegExp]> = [
   ['deterministic', /\bdeterminis(tic|m)\b/i],
@@ -379,21 +385,14 @@ test('banned words stay off the landing', () => {
   // The hero, and the copy the landing composes in build.ts (its t() literals -
   // code identifiers and comments are not copy).
   assert.deepEqual(banned(heroSection), [], 'the hero subtitle carries a banned word');
-  // 2026-08-17 (Andy): the behind-block assurance deliberately closes on the H1's own
-  // term ("zero-trust creative sovereignty for all") - the ONE body-copy reuse the
-  // one-esoteric-term rule admits. Keyed to that exact phrase, so rewording the line
-  // retires the exemption and any third 'sovereignty' on the landing still fails.
-  const SOVEREIGNTY_HOME = /zero-trust creative sovereignty for all/;
+  // No exceptions since plan 341: the behind-block line that closed on "creative
+  // sovereignty" is gone, and the hero cycle no longer opens on "is sovereign".
   for (const copy of tLiterals(landingRegion())) {
-    const hits = banned(copy).filter((w) => !(w === 'sovereignty' && (SOVEREIGNTY_HOME.test(copy) || copy === CYCLE_H1)));
-    assert.deepEqual(hits, [], `landing copy carries a banned word: ${copy}`);
+    assert.deepEqual(banned(copy), [], `landing copy carries a banned word: ${copy}`);
   }
-  // The landing content files: the same two "sovereignty" exceptions, keyed
-  // to the exact copy so a reworded line retires its own exemption.
   for (const name of LANDING_JSON) {
     for (const [path, s] of jsonStringsWithPaths(siteJson(name))) {
-      const hits = banned(s).filter((w) => !(w === 'sovereignty' && (SOVEREIGNTY_HOME.test(s) || s === CYCLE_H1)));
-      assert.deepEqual(hits, [], `docs/site/${name} ${path} carries a banned word: ${s}`);
+      assert.deepEqual(banned(s), [], `docs/site/${name} ${path} carries a banned word: ${s}`);
     }
   }
   for (const name of LANDING_SITE_MD) {
@@ -401,13 +400,17 @@ test('banned words stay off the landing', () => {
   }
 });
 
-test('"sovereign" is the page\'s one esoteric term, and it leads the H1', () => {
+test('the H1 opens on "Lolly is yours" and never calls Lolly an AI', () => {
   // The H1 is "Lolly is <cycling word>"; the first word is what stands under
-  // reduced motion and what the page opens on - FINAL copy, the single
-  // deliberate-curiosity claim the door makes.
+  // reduced motion and what the page opens on - FINAL copy (plan 341).
   const hero = siteJson('hero-chrome.json') as { lead: string; cycle: Array<{ word: string }> };
   assert.equal(hero.lead, 'Lolly');
   assert.equal(hero.cycle[0]!.word, CYCLE_H1);
+  // "Lolly is ethical AI" read as a claim that Lolly is an AI, which it is not; the
+  // receipt page is about Lolly's position on AI, so the word says that instead.
+  for (const c of hero.cycle) {
+    assert.ok(!/^is\s+(\w+\s+)?AI\b/i.test(c.word), `"Lolly ${c.word}" calls Lolly an AI`);
+  }
 });
 
 test('the persona device jumps into the app where the plan says it can', () => {
@@ -416,24 +419,60 @@ test('the persona device jumps into the app where the plan says it can', () => {
   // door cannot quietly drift to "read the docs" everywhere. "Open the app" names
   // the tools view (#/) rather than the bare root, which was landing a returning
   // visitor on the dashboard (Andy, 2026-09-02).
-  const persona = siteJson('persona.json') as { doors: Array<{ id: string; lanes: Array<{ tab: string; cta?: { href: string }; doc: { slug: string } }> }> };
+  type LaneLink = { label: string; slug?: string; href?: string };
+  const persona = siteJson('persona.json') as { doors: Array<{ id: string; lanes: Array<{ tab: string; cta?: { href: string }; doc: { slug: string }; links?: LaneLink[] }> }> };
   const ctas: Record<string, string | null> = {};
   for (const d of persona.doors) for (const l of d.lanes) ctas[`${d.id}/${l.tab}`] = l.cta?.href ?? null;
-  // The doors are the six documentation pathways (Andy, 2026-10-23), so a reader
-  // who picks one on the landing meets the same name in the navigation.
-  assert.deepEqual(persona.doors.map((d) => d.id), ['start', 'create', 'automate', 'manage', 'deploy', 'trust']);
+  // The doors are PEOPLE (plan 341, Andy 2026-11-01): the five audiences the old
+  // pathway doors left without a door now have one. The six documentation pathways
+  // keep their one telling in the strip, asserted below, so a name on the landing
+  // still matches a name in the navigation.
+  assert.deepEqual(persona.doors.map((d) => d.id), ['you', 'team', 'clients', 'public', 'developers', 'organisation']);
   assert.deepEqual(ctas, {
-    'start/Try it': '#/tool/qr-code', 'start/Make it yours': '#/start', 'start/Install': null, 'start/Questions': null,
-    'create/Make': '#/', 'create/Animate': '#/tool/design', 'create/Record': '#/tool/record',
-    'create/Collaborate': '#/tool/design', 'create/Post': '#/', 'create/Teams': null,
-    'automate/Designers': '#/start', 'automate/Developers': null, 'automate/AI': null,
-    'manage/Members': '#/settings?focus=instance-section', 'manage/Administrators': null,
-    'deploy/Lolly': null, 'deploy/Lolly Work': null,
-    'trust/Security': '#/utilities', 'trust/Privacy': null, 'trust/Verify': '#/verify',
+    'you/Your first file': '#/tool/qr-code', 'you/Make it yours': '#/start', 'you/Everyday files': '#/', 'you/Your library': '#/a',
+    'team/One design system': '#/start', 'team/Share the look': '#/start', 'team/Edit together': '#/tool/design', 'team/Post and send': '#/',
+    'clients/Each client': '#/start', 'clients/A brand you were given': '#/start', 'clients/Two brands on one piece': '#/tool/logo-wall', 'clients/Bring work in': null,
+    'public/Certificates and agendas': '#/tool/certificate', 'public/On the day': '#/', 'public/In 27 languages': null, 'public/For everyone': '#/settings?focus=a11y-section',
+    'developers/CLI and TUI': null, 'developers/MCP server': null, 'developers/GitHub Action': null, 'developers/AI agents': null,
+    'organisation/Members': '#/settings?focus=instance-section', 'organisation/Administrators': null, 'organisation/Host Lolly': null, 'organisation/Trust': '#/verify',
   });
-  // Every lane's docs page is a registered page.
+  // Every lane's docs page, and every docs page a lane link opens, is a registered
+  // page; a link with no slug opens an app route or the Lolly repository.
   for (const d of persona.doors) for (const l of d.lanes) {
     assert.match(buildTs, new RegExp(`slug: '${l.doc.slug}'`), `${d.id}/${l.tab} links an unregistered page: ${l.doc.slug}`);
+    for (const k of l.links ?? []) {
+      if (k.slug) assert.match(buildTs, new RegExp(`slug: '${k.slug}'`), `${d.id}/${l.tab} link "${k.label}" opens an unregistered page: ${k.slug}`);
+      else assert.match(k.href ?? '', /^(#\/|https:\/\/github\.com\/lolly-tools\/)/, `${d.id}/${l.tab} link "${k.label}" has neither a docs slug nor an app or repository href`);
+    }
+  }
+  // No tab ends in "it": a lane tab renders as the pane's heading, and a heading that
+  // ends in "it" makes the reader guess what "it" is (the docs vernacular rule).
+  for (const d of persona.doors) for (const l of d.lanes) {
+    assert.ok(!/\bit$/i.test(l.tab.trim()), `${d.id}/${l.tab}: a lane heading ends in "it"`);
+  }
+  // The strip above the What column is where the six documentation pathways live now.
+  assert.match(landingRegion(), /pathwaysBand\(pathwaysStrip\(lang, '\/info\/index\.html'/,
+    'the landing must keep the pathways strip: it is the one telling of the six documentation sections');
+});
+
+test('a number typed into the landing copy matches the live count it states', () => {
+  // The counters are live (whatwhy.json gives a counter, never a number), but two
+  // lines carry a number in words: the covers caption and the languages lane. Each
+  // is held to the count it describes, so adding a cover or a language fails here
+  // instead of shipping a stale sentence.
+  const cv = siteJson('covers.json') as { caption?: string; covers: unknown[] };
+  const WORDS: Record<string, number> = { twelve: 12, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, twenty: 20 };
+  const said = /^(\w+) design systems/i.exec(cv.caption ?? '')?.[1]?.toLowerCase();
+  assert.ok(said && said in WORDS, `the covers caption should open with the number of covers in words: ${cv.caption}`);
+  assert.equal(WORDS[said!], cv.covers.length, `the covers caption says ${said} but the fan holds ${cv.covers.length} covers`);
+  // Every language including English (plan 341, decision 9): the LANGS register.
+  const langs = LANGS.length;
+  for (const name of LANDING_JSON) {
+    for (const [path, str] of jsonStringsWithPaths(siteJson(name))) {
+      for (const m of str.matchAll(/\b(\d+) languages\b/g)) {
+        assert.equal(Number(m[1]), langs, `docs/site/${name} ${path} says ${m[1]} languages; LANGS holds ${langs} (English included)`);
+      }
+    }
   }
 });
 

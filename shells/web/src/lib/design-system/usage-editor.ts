@@ -22,7 +22,7 @@ const option = (value: string, label: string, selected?: string): string => `<op
  */
 export function editUsageRule(opts: { host: UsageHost; doc: unknown; system: BrandSystemV1; mode: string; rule?: BrandRuleV1; save(system: BrandSystemV1): Promise<void>; closed(): void }) {
   const original = opts.rule;
-  const modal = mountModal(`<header><p class="start-eyebrow">${t('Usage & rules')}</p><h2>${t(original ? 'Edit rule' : 'Add a rule')}</h2><p>${t('Choose what this example allows. Your brand’s names stay separate from Lolly’s fields.')}</p></header>
+  const modal = mountModal(`<header><p class="start-eyebrow">${t('Rules')}</p><h2>${t(original ? 'Edit rule' : 'Add a rule')}</h2><p>${t('Choose what this example allows. Your brand’s names stay separate from Lolly’s fields.')}</p></header>
     <form class="usage-rule-form">
       <label>${t('Rule name')}<input class="field-input" name="label" maxlength="160" required value="${e(original?.label ?? '')}" placeholder="${e(t('For example, Beacon accents'))}"></label>
       <div class="usage-form-pair"><label>${t('Check')}<select class="field-select" name="kind">${BRAND_RULE_KINDS.map(kind => option(kind, RULE_LABELS[kind]!, original?.kind ?? 'color-choices')).join('')}</select></label>

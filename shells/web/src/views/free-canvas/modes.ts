@@ -76,6 +76,7 @@ export function setMode(fc: FcCtx,
     else if (next === 'pencil') fc.pencil.enterPencil();
   }
   if (next === 'create') enterCreate(fc, o.kind);
+  fc.pencil.syncSlot(); // the pen slot shows the Pen or the Pencil, whichever was picked last
   syncModeUI(fc);
   // Scale is a mode of the pointer, so every other tool ends Scale. The new tool
   // announces itself, so this exit stays quiet.
@@ -195,9 +196,9 @@ export function syncModeUI(fc: FcCtx): void {
   };
   flag(modeBtns.select, fc.mode === 'select' && !fc.nodeToolActive);
   flag(modeBtns.create, fc.mode === 'create');
-  flag(modeBtns.pen, fc.mode === 'pen');
+  // The pen slot holds the Pen and the Pencil (pencil.ts), and is pressed while either is out.
+  flag(modeBtns.pen, fc.mode === 'pen' || fc.mode === 'pencil');
   flag(modeBtns.line, fc.mode === 'line');
-  flag(modeBtns.pencil, fc.mode === 'pencil');
   flag(fc.nodeToolBtn, fc.nodeToolActive);
   // A tool switch need not repaint the chrome, and only the pointer has grab zones: the
   // handles take their own presses again in any other tool (plan 311, zones.ts).

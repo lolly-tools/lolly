@@ -12,7 +12,7 @@ Dari terminal, `lolly mix` menerima lagu sebagai seluruh soundtrack; lihat [CLI 
 
 ## Tulis dan ekspor lagu
 
-Buka **Rondocode** dari **Utilities** untuk menulis lagu di editor langsung rondocode dan mendengarnya saat Anda mengetik. Ekspor sebagai **WAV**, **MP3**, **M4A**, **Opus**, atau **FLAC**, sebagai ZIP stem, sebagai **MIDI**, atau sebagai rekaman apa yang sedang diputar. **Export length** menetapkan berapa detik ekspor audio berlangsung. File lagu itu sendiri (`.rondo.json`) adalah kode Anda sebagaimana ditulis dan tidak membawa tambahan apa pun.
+Buka **Rondocode** dari **Utilities** untuk menulis lagu di editor langsung rondocode dan mendengarnya saat Anda mengetik. Ekspor sebagai **WAV**, **MP3**, **M4A**, **Opus**, atau **FLAC**, sebagai ZIP stem, sebagai **MIDI**, atau sebagai rekaman apa yang sedang diputar. Dari terminal, `lolly rondocode --export=mid` menulis file MIDI yang sama. **Export length** menetapkan berapa detik ekspor audio berlangsung. File lagu itu sendiri (`.rondo.json`) adalah kode Anda sebagaimana ditulis dan tidak membawa tambahan apa pun.
 
 Lagu dapat menyanyikan liriknya dengan `sing()`. Nyanyian dibuat di perangkat Anda oleh model suara yang diunduh, dan file yang memuat nyanyian sintetis selalu mendeklarasikan nyanyian itu sebagai buatan AI (lihat [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ Sebagian besar utilitas di perangkat tidak menulis kredensial, karena mentransfo
 - Musik yang dihitung dari kode lagu adalah media algoritmik dan tidak ditandai sebagai AI.
 
 Bila lagu bernyanyi, file mendeklarasikan nyanyian itu buatan AI dalam bentuk yang dapat dibaca mesin. Tipe sumber digital kredensial adalah media komposit yang dibuat dengan model terlatih, catatan mencantumkan bagian yang dinyanyikan, dan satu pengungkapan AI C2PA per model mengidentifikasi setiap model yang dilalui nyanyian: text to speech Supertonic-3, aligner fonem wav2vec 2.0, encoder ContentVec, dan suara RVC, dengan repositori dan commit tempat Lolly meng-host-nya. File yang memuat nyanyian sintetis tidak pernah disimpan tanpa deklarasi itu.
+
+### Isi file MIDI
+
+File MIDI adalah Standard MIDI File, format 1. Track pertama menyimpan tempo dan birama 4/4, lalu ada satu track untuk setiap synth, diberi nama sesuai synth tersebut. Setiap nada mempertahankan awal, panjang, dan velocity-nya. Synth yang namanya terbaca sebagai instrumen, seperti bass, strings, pad, atau piano, mendapat instrumen General MIDI yang sesuai, dan nama yang menyerupai drum masuk ke kanal 10. Penalaan yang bukan dua belas nada dibulatkan ke semiton terdekat dengan pitch bend.
+
+File MIDI tidak dapat menyimpan bagaimana suara sebuah lagu. Pengaturan synth, filter, efek, bus, sampel, dan nyanyian tidak ada di dalamnya, sehingga DAW memainkan nada dengan instrumennya sendiri. Tempo dibaca dari siklus per detik lagu, dengan satu siklus sebagai satu birama empat ketukan, karena birama bawaan lagu bukan bagian dari yang dikembalikan renderer.
 
 File MIDI tidak memiliki tempat untuk kredensial, jadi peristiwa teks di dalam file membawa pernyataannya, dan panel ekspor memberi tahu Anda. Panel menjelaskan semua ini sebelum Anda mengekspor, dan setelah setiap ekspor editor membaca kembali file tersimpan dan hanya melaporkan apa yang ditemukan pembacaan itu.
 

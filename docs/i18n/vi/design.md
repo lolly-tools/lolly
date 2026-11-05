@@ -10,9 +10,9 @@ Trang này dẫn qua canvas từ hộp đầu tiên đến một bộ trang hoà
 
 **Thanh trên** bắt đầu với **Home**, **File menu** và tên tài liệu (nhấp tên để đổi tên tài liệu). Giữa là **Undo**, **Redo**, **History**, các điều khiển thu phóng (với **Fit all** và **Fit artboard**) và công tắc cho **Timeline**, **Navigator** và **Inspector**. Bên phải là **Share**, **Present** và **Export**. Trên điện thoại, các nút ít dùng hơn chuyển vào **More actions**.
 
-**Thanh công cụ** dọc bên cạnh chứa menu Lolly và các công cụ bạn vẽ: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, rồi các nút Timeline, Artboards và Auto-arrange.
+**Thanh công cụ** dọc bên cạnh chứa menu Lolly và các công cụ bạn vẽ: **Pointer**, **Add a box**, **Pen** (dùng chung nút với **Pencil**), **Edit points**, **Line**, rồi các nút Timeline, Artboards và Auto-arrange.
 
-![Thanh công cụ của canvas tự do: tay cầm kéo, menu Lolly, rồi Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards và Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Thanh công cụ của canvas tự do: tay cầm kéo, menu Lolly, rồi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards và Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Canvas hoạt động như bàn dán của nhà thiết kế quanh artboard:
 
@@ -79,7 +79,7 @@ Hộp, hình tròn và khung bo góc bao quát hầu hết bố cục. Với b�
 
 **Nối tiếp một đường dẫn hở.** Với Pen đang bật, nhấn vào một đầu của đường dẫn hở và bạn lại đang vẽ đường dẫn đó: mỗi lần nhấp thêm một điểm sau đầu đó, hoặc trước điểm đầu tiên khi bạn bắt đầu từ phía đầu. Enter giữ kết quả và Escape để đường dẫn đúng như trước. Đường dẫn vẫn là cùng một hộp, với lớp tô, nét và đầu mũi tên của nó, và một lần undo đưa nó về như cũ. Delete chỉ lấy lại các điểm bạn vừa thêm. Một hình khép kín, một đường nối vào hộp và một đường dẫn có nhiều phần không có đầu tự do để nối tiếp.
 
-**Vẽ tự do bằng Pencil.** Nút **Pencil** của thanh công cụ (hoặc `Shift C`) ghi nét của bạn khi bạn kéo. Khi bạn thả, Lolly làm mượt nét thành vài điểm có tay nắm Bezier, giữ các khúc ngoặt gắt làm góc, và giữ đường cong trong vòng vài pixel màn hình so với nơi tay bạn đi. Một nét kết thúc gần điểm đầu sẽ khép lại. Kết quả là một đường dẫn bình thường, với cùng lớp sơn như đường dẫn của Pen, và bạn có thể chỉnh các điểm của nó sau đó.
+**Vẽ tự do bằng Pencil.** Nhấn `Shift C`, hoặc nhấn giữ nút **Pen** trên thanh công cụ (hoặc nhấp chuột phải vào nút) và chọn **Pencil**; sau đó nút hiện Pencil cho đến khi bạn chọn lại Pen. Pencil ghi nét của bạn khi bạn kéo. Khi bạn thả, Lolly làm mượt nét thành vài điểm có tay nắm Bezier, giữ các khúc ngoặt gắt làm góc, và giữ đường cong trong vòng vài pixel màn hình so với nơi tay bạn đi. Một nét kết thúc gần điểm đầu sẽ khép lại. Kết quả là một đường dẫn bình thường, với cùng lớp sơn như đường dẫn của Pen, và bạn có thể chỉnh các điểm của nó sau đó.
 
 Kết quả là một hộp bình thường. Di chuyển, đổi kích thước, xoay, nhóm, căn chỉnh, sắp xếp lại lớp, tô, đổ bóng hoặc làm mờ đường dẫn như bất kỳ hộp nào khác. Đường dẫn đầu tiên nhận màu tô và nét mà thương hiệu của bạn dành cho đường dẫn, và mỗi đường dẫn mới sau đó nhận những gì bạn dùng gần nhất. Trong một công cụ mà thương hiệu không đặt gì cho đường dẫn, đường dẫn mới được vẽ nét bằng màu bạn vẽ, nên hình không bao giờ vô hình.
 
@@ -121,6 +121,25 @@ Ba thao tác khác dùng cho một hình đơn. **Outline stroke…** biến né
 ![Một hình lưỡi liềm và một chiếc nhẫn có lỗ thật, cả hai đều tạo bằng Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Kết quả là một đường dẫn mới bạn có thể tiếp tục chỉnh bằng bút, lưu dưới dạng đường cong Bezier thường, nên kiểu spline ban đầu không được giữ lại. Lỗ là lỗ thật: điều khiển **Fill rule** trên bảng nét quyết định các đường viền chồng nhau sẽ tô (*non-zero*) hay đục thủng (*even-odd*). Các thao tác từ chối thay vì phá hủy: yêu cầu giao hai hình không chồng nhau và không có gì thay đổi. Hộp văn bản và hộp ảnh không có đường viền, nên được bỏ qua.
+
+## Vector hóa một ảnh
+
+Chọn một ảnh, nhấp chuột phải và chọn **Vector hóa ảnh…** để biến bức ảnh thành các hình có thể chỉnh sửa. Chọn một preset và nhấn **Vector hóa**:
+
+- **Logo** tìm vài màu phẳng và giữ viền sắc nét, hình tròn và đường thẳng chuẩn. Nó từ chối ảnh có chuyển sắc hoặc tông ảnh chụp và cho bạn biết.
+- **Minh hoạ** vector hóa nhiều màu thành các hình tô đầy, tranh phẳng hoặc ảnh đã posterize.
+- **Nét vẽ** vector hóa các đường tối trên nền sáng thành hình màu đen.
+- **Đường tâm** vector hóa các đường tối thành nét đơn, để bạn đổi độ dày của chúng sau đó.
+
+Các hình được thêm vào dưới dạng một nhóm ngay trên ảnh, còn ảnh vẫn ở nguyên chỗ. Hãy ẩn hoặc xóa ảnh để chỉ thấy các đường dẫn. Quá trình vector hóa chạy trên thiết bị của bạn trong một tác vụ nền có nút Hủy bỏ, và không có gì được tải lên. Một ảnh 1500 pixel thường mất từ một đến vài giây, còn ảnh chụp phức tạp mất lâu hơn.
+
+Bản vector hóa bám theo những gì khung hiển thị, nên ảnh bị cắt (Cover) chỉ được vector hóa phần nhìn thấy. Áp dụng các giới hạn sau:
+
+- Ảnh được thu nhỏ còn tối đa 1500 pixel ở cạnh dài trước khi vector hóa, nên viền được đặt chính xác đến một phần nhỏ của kích thước đó, không phải của ảnh gốc.
+- Một lần vector hóa tạo tối đa 1.500 hình và 60.000 điểm. Ảnh chụp thường vượt mức này, và Design cho bạn biết mà không thay đổi gì. Hãy thử Logo hoặc Nét vẽ, hoặc một ảnh đơn giản hơn.
+- Chuyển sắc trở thành các dải màu phẳng, và bóng đổ mềm trở thành các hình có viền cứng.
+- Bán kính góc, mặt nạ hình dạng và hiệu ứng trên khung ảnh không được áp dụng cho các đường dẫn.
+- Cùng một ảnh và cùng một preset luôn cho ra cùng các hình.
 
 ## Strokes
 
@@ -195,9 +214,9 @@ Nơi có gợi ý màu hoặc phông chữ cụ thể, nút của nó đổi đ�
 
 ### Quy tắc nội bộ và tín hiệu văn phong
 
-Thẻ của bảng xuất cũng kiểm tra các quy tắc nội bộ (house rules) mà hệ thống thiết kế của bạn mang theo, như độ đậm và căn lề văn bản, cặp màu được duyệt hoặc logo cho từng bề mặt, theo từng lớp. Mỗi phát hiện là một cảnh báo với tên lớp phía trên quy tắc. Một quy tắc mà bản dựng này không có bộ kiểm tra được liệt kê là chưa kiểm tra, không bao giờ là đã tuân theo. [Usage & rules](/info/brand-studio.html#usage-rules) liệt kê các quy tắc, và `lolly check` áp dụng chính các quy tắc đó cho một tài liệu đã lưu.
+Thẻ của bảng xuất cũng kiểm tra các quy tắc nội bộ (house rules) mà hệ thống thiết kế của bạn mang theo, như độ đậm và căn lề văn bản, cặp màu được duyệt hoặc logo cho từng bề mặt, theo từng lớp. Mỗi phát hiện là một cảnh báo với tên lớp phía trên quy tắc. Một quy tắc mà bản dựng này không có bộ kiểm tra được liệt kê là chưa kiểm tra, không bao giờ là đã tuân theo. [Rules](/info/brand-studio.html#rules) liệt kê các quy tắc, và `lolly check` áp dụng chính các quy tắc đó cho một tài liệu đã lưu.
 
-Cùng thẻ hiện tín hiệu văn phong cho văn bản mà tài liệu vẽ: dải của nó (none, weak, notable hoặc strong), rồi câu riêng của Verify với điểm trên 100 và tối đa ba cụm từ bị đánh dấu, mỗi cụm kèm lớp chứa chúng. **Open the text in Verify** đưa văn bản đó tới [Verify](/#/verify) để đọc đầy đủ; [AI evidence in Verify](/info/verify-ai-evidence.html) giải thích điểm cân nhắc những gì. Điểm là một tín hiệu, không phải phán quyết: nó đếm các mẫu thường gặp trong văn bản do máy sinh và không thể biết ai viết các từ. Lớp ẩn bị loại khỏi cả hai kiểm tra, và thẻ cho biết có bao nhiêu.
+Cùng thẻ hiện tín hiệu văn phong cho văn bản mà tài liệu vẽ: dải của nó (none, weak, notable hoặc strong), rồi câu riêng của Verify với điểm trên 100 và tối đa ba cụm từ bị đánh dấu, mỗi cụm kèm lớp chứa chúng. **Open the text in Verify** đưa văn bản đó tới [Lolly Verify](/#/verify) để đọc đầy đủ; [AI evidence in Verify](/info/verify-ai-evidence.html) giải thích điểm cân nhắc những gì. Điểm là một tín hiệu, không phải phán quyết: nó đếm các mẫu thường gặp trong văn bản do máy sinh và không thể biết ai viết các từ. Lớp ẩn bị loại khỏi cả hai kiểm tra, và thẻ cho biết có bao nhiêu.
 
 Các phát hiện quy tắc nội bộ và tín hiệu văn phong mạnh được tính vào tổng "to fix" của thẻ để dễ tìm. Chúng thông báo và không bao giờ chặn: Download vẫn dùng được, và không có gì để bỏ qua hay ghi nhận như ngoại lệ. Một tác tử làm việc trong tài liệu đang mở nhận cùng báo cáo qua công cụ site của nó ([Agents in an open document](/info/open-document-agents.html)).
 

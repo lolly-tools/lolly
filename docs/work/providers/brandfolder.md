@@ -1,8 +1,8 @@
-# Brandfolder (kind: `brandfolder`)
+# Brandfolder integration with Lolly (kind: `brandfolder`)
 
 Connect a Brandfolder and its assets appear in the Lolly Work catalog, with Brandfolder's
 approval flag and availability dates carried across. Brandfolder stays the source
-of truth: Work stores references plus its own governance settings, and reads the files when
+of truth: Lolly Work stores references plus its own governance settings, and reads the files when
 someone uses them.
 
 ## Deployment evidence
@@ -11,12 +11,18 @@ Successful Brandfolder integration at SUSE is reported in [How SUSE connected Br
 
 That account confirms use of the integration, not every optional mapping. The two availability field names below retain their separate live-check requirement. Brandfolder outbound delivery is a different adapter and remains subject to its own [destination qualification](../delivery.md).
 
+## Onboarding
+
+1. Choose the Brandfolder, sections and Lolly Work groups for one production task. The API key can see more than those members should, so set explicit exposure groups and decide whether to require the native approval flag.
+2. Follow the [four-step connection](README.md#connect-a-source-in-four-steps) using the key and Brandfolder id below. Sync and inspect the mapped sample before an owner enables the source.
+3. Check several attachments, originals and thumbnails, then test allowed and refused member access in a Lolly tool. Qualify the availability field names on your tenant before relying on release or expiry dates; see the [tenant check](tenant-check.md).
+
 ## What you need from Brandfolder
 
 - **A Brandfolder API key**, from *My Profile > Integrations > API key*. An admin-level key sees
   the whole Brandfolder. It is a bearer token, so treat it as a secret.
 - **The Brandfolder id**: the `…/brandfolders/<id>` part of the admin URL, or from the v4 API.
-- No app registration and no scopes. Choose what federates with Work's **exposure** settings,
+- No app registration and no scopes. Choose what federates with Lolly Work's **exposure** settings,
   not with the key.
 
 ## Credential shape
@@ -46,7 +52,6 @@ lw providers credential acme-bf     # prompts; never argv, never shell history
   field names are not yet confirmed against a live tenant.
 
 ## Verify
-
 ```bash
 lw providers preview  --kind brandfolder --options '{"brandfolderId":"…"}'   # dry run, nothing stored
 lw providers health acme-bf
@@ -58,7 +63,7 @@ A good preview prints `health ok - brandfolder` and a mapped sample (`health.ok:
 
 ## Notes / limits
 
-- **Signed, short-lived file links.** Work fetches each storage or thumbnail link again on every
+- **Signed, short-lived file links.** Lolly Work fetches each storage or thumbnail link again on every
   request and streams the file. No upstream link is stored, and fetches are pinned to the
   `brandfolder.com` and `bfldr.com` hosts.
 - **Several files per asset.** An asset with several attachments appears as one asset with a
@@ -72,7 +77,8 @@ A good preview prints `health ok - brandfolder` and a mapped sample (`health.ok:
 
 ## Off-boarding
 
-Brandfolder is a source you can leave through the exit. Its approval flag and its
-availability dates are read natively, so that governance travels with the copies, although the
-two availability field names still await a live check. Timing, cadence and the readiness of
-each DAM: [Leave a DAM](../offboarding.md).
+Brandfolder supports the materialize, drift and cutover sequence in [Leave a DAM](../offboarding.md). First follow the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) to choose the Lolly Work instance and durable store that will receive the copies.
+
+Rehearse with assets containing several attachments and compare every required original with a direct Brandfolder download. The driver reads approval and availability fields, but the two availability field names still need a live check. Export required history, rights evidence and unmapped metadata separately. Accept the copies, access rules and old references before retiring the source.
+
+Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

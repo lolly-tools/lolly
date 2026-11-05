@@ -196,6 +196,8 @@ const BOTTOM_SURFACES: Array<{
   { cls: 'store-selbar',     file: 'styles/parts/profile.css',      keyboard: true },
   { cls: 'be-bulkbar',       file: 'styles/parts/brand-studio.css', keyboard: true, safeVia: '--stu-sheet-h' },
   { cls: 'gallery-footer',   file: 'styles/parts/gallery.css',      keyboard: true, safeVia: 'padding-bottom' },
+  // The studio's room bar on a phone (plan 336): full bleed like the gallery footer.
+  { cls: 'ds-room-nav',      file: 'styles/parts/start-bar.css',    keyboard: true, safeVia: 'padding-bottom' },
   { cls: 'gallery-bulkbar',  file: 'styles/parts/gallery.css',      keyboard: false },
   { cls: 'pro-toast',        file: 'pro/run-overlay.css',           keyboard: false },
   { cls: 'beam-toast',       file: 'components/beam-toast.css',     keyboard: false },
@@ -318,10 +320,16 @@ test('both draggable bottom sheets clamp their dvh height against the keyboard',
       const sites = rules(read(file)).filter((r) => r.selector.includes(gate))
         .flatMap((r) => decls(r.body).filter(([p]) => p === token).map(([, value]) => ({ value, line: r.line, selector: r.selector })));
       assert.ok(sites.length > 0, `${file}: no ${gate} rule declares ${token} - the ${state} height of ${what} has moved, so this clamp can no longer be verified`);
+      // The clamp may live in a token the height refers to (--sheet-room), so a
+      // var() is resolved one level against that token's own declarations.
+      const clamp = /calc\([^)]*100dvh[^)]*var\(\s*--vv-bottom/;
+      const declared = (name: string) => rules(read(file)).flatMap((r) => decls(r.body).filter(([p]) => p === name).map(([, v]) => v));
+      const clamped = (value: string) => clamp.test(value)
+        || [...value.matchAll(/var\(\s*(--[\w-]+)/g)].some((m) => m[1] !== undefined && m[1] !== token && declared(m[1]).some((v) => clamp.test(v)));
       for (const s of sites) {
         // dvh does NOT shrink for the soft keyboard, so a bare 90dvh sheet keeps its
         // lowest controls (and its own drag grip) underneath it with no way to reach them.
-        assert.match(s.value, /calc\([^)]*100dvh[^)]*var\(\s*--vv-bottom/,
+        assert.ok(clamped(s.value),
           `${file}:${s.line}: ${gate} sets ${token}: ${s.value} without a calc(100dvh - var(--vv-bottom, 0px) …) clamp - dvh does not shrink for the soft keyboard, so ${what} at ${state} leaves its lowest controls and its own drag grip under the keyboard. The min() is a no-op while --vv-bottom is 0px (plans/132)`);
       }
     }
@@ -381,7 +389,7 @@ test('every docs surface behind the fixed chrome row consumes --docs-chrome-clea
 const BOTTOM_ANCHOR_ALLOW: Array<{ file: string; selector: string; why: string }> = [
   {
     file: 'styles/parts/brand-studio.css', selector: '.start > .stu-sheet',
-    why: 'the studio sheet itself: a full-width surface with a background, which SHOULD reach the screen edge. Its own `padding-bottom: var(--safe-bottom)` lifts the contents out of the gesture strip, and its height is the vv-clamped --stu-sheet-h.',
+    why: 'the studio sheet itself: a full-width surface with a background, docked on the studio room bar (bottom: var(--ds-roombar-h), which carries the inset) or reaching the screen edge where there is none. Its own padding-bottom falls back to var(--safe-bottom) there, and its height is the vv-clamped --stu-sheet-h.',
   },
   {
     file: 'styles/parts/brand-studio.css', selector: '.start > .stu-sheet-grip',

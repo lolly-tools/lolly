@@ -8,7 +8,7 @@
  * from initTimelinePanel() by scripts/split-closure.ts.
  */
 import { clipFrameRate } from '../../lib/clip-frame-rate.ts';
-import { t } from '../../i18n.ts';
+import { t, tn } from '../../i18n.ts';
 import { icon } from '../../lib/icons.ts';
 import type { IconName } from '../../lib/icons.ts';
 import { announce } from '../../a11y.ts';
@@ -28,6 +28,7 @@ import type { InspectorGroup, KfPoseField } from './shared.ts';
 import { msToUnit, unitSwitch, unitToMs, type TimeUnit } from '../timeline-units.ts';
 import { projectRate } from '../../../../../engine/src/timebase.ts';
 import { bindOp, type TpCtx } from './context.ts';
+import { offerMotionDurations } from '../motion-durations.ts';
 
 /** One group of the clip inspector. Shut by default, always. */
 export function inspectorGroup(tp: TpCtx, gid: string, labelText: string, glyph: IconName): InspectorGroup {
@@ -118,14 +119,12 @@ export function buildCameraGroup(tp: TpCtx, id: string, box: Box): void {
   const g = inspectorGroup(tp, 'camera', t('Camera'), 'camera');
   inspector.appendChild(g.root);
   // What the segment reads at a glance: how many poses this camera holds. A camera
-  // with none is the scene default - one still shot - and says so.
+  // with none is the scene default - one still shot - and reports that.
   const n = kfBoxTrack(box, cfg).length;
   g.setSummary([
     n === 0
       ? t('Not animated')
-      : n === 1
-        ? t('1 keyframe')
-        : t('{n} keyframes', { n: String(n) }),
+      : tn('1 keyframe', '{n} keyframes', { n: String(n) }),
   ]);
 
   const moves = document.createElement('div');
@@ -242,6 +241,9 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
   // re-read rather than assumed to still match. The DOCKED curve editor holds a rAF
   // loop and a document listener of its own, so it is torn down rather than dropped
   // (its own loop self-terminates when detached, but the listener does not).
+  // Read before the dock comes down: once its editor is gone the popup is shorter and
+  // its scroll position is already lost.
+  tp.groupPopScroll = tp.kfLatch?.dock?.editor ? (tp.groupPopHost?.parentElement?.scrollTop ?? null) : null;
   tp.kfLatch?.dock?.editor?.destroy();
   tp.kfLatch = null;
   tp.kfLatchKey = '\u0000';
@@ -723,18 +725,16 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
       enterRow.appendChild(play);
     }
     animG.body.appendChild(enterRow);
-    animG.body.appendChild(
-      row(
-        t('Enter (ms)'),
-        numField(finite(box[cfg.enterMsField], 400), 50, 100, (v) =>
-          tp.helpers.write(
-            tp.helpers.patchBox(getBoxes(), id, {
-              [cfg.enterMsField]: Math.round(clamp(v, MIN_TRANSITION_MS, MAX_TRANSITION_MS)),
-            })
-          )
-        )
+    const enterMs = numField(finite(box[cfg.enterMsField], 400), 50, 100, (v) =>
+      tp.helpers.write(
+        tp.helpers.patchBox(getBoxes(), id, {
+          [cfg.enterMsField]: Math.round(clamp(v, MIN_TRANSITION_MS, MAX_TRANSITION_MS)),
+        })
       )
     );
+    animG.body.appendChild(row(t('Enter (ms)'), enterMs));
+    // The design system's durations as suggestions (plans/329).
+    offerMotionDurations(enterMs, { min: MIN_TRANSITION_MS, max: MAX_TRANSITION_MS, unit: 'ms' });
     // The curve sits beside its duration, not beside its kind: "how long" and "how it
     // moves over that time" are the pair a user tunes together. Offered only where the
     // manifest declares a field for it - a tool that never asked for authored easing is
@@ -751,18 +751,15 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
         )
       )
     );
-    animG.body.appendChild(
-      row(
-        t('Exit (ms)'),
-        numField(finite(box[cfg.exitMsField], 400), 50, 100, (v) =>
-          tp.helpers.write(
-            tp.helpers.patchBox(getBoxes(), id, {
-              [cfg.exitMsField]: Math.round(clamp(v, MIN_TRANSITION_MS, MAX_TRANSITION_MS)),
-            })
-          )
-        )
+    const exitMs = numField(finite(box[cfg.exitMsField], 400), 50, 100, (v) =>
+      tp.helpers.write(
+        tp.helpers.patchBox(getBoxes(), id, {
+          [cfg.exitMsField]: Math.round(clamp(v, MIN_TRANSITION_MS, MAX_TRANSITION_MS)),
+        })
       )
     );
+    animG.body.appendChild(row(t('Exit (ms)'), exitMs));
+    offerMotionDurations(exitMs, { min: MIN_TRANSITION_MS, max: MAX_TRANSITION_MS, unit: 'ms' });
     if (cfg.exitEaseField)
       animG.body.appendChild(
         row(t('Exit curve'), easeSelect(cfg.exitEaseField, box[cfg.exitEaseField]))
@@ -934,9 +931,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
     kfG.setSummary([
       n === 0
         ? t('Not animated')
-        : n === 1
-          ? t('1 keyframe')
-          : t('{n} keyframes', { n: String(n) }),
+        : tn('1 keyframe', '{n} keyframes', { n: String(n) }),
     ]);
 
     if (n === 0 && !isCamera) {
@@ -1135,7 +1130,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
         const meta = document.createElement('span');
         meta.className = 'tl-volume-keys field-label';
         meta.textContent =
-          vCount === 1 ? t('1 volume key') : t('{n} volume keys', { n: String(vCount) });
+          tn('1 volume key', '{n} volume keys', { n: String(vCount) });
         const clearBtn = tp.helpers.btn('tl-volume-clear', t('Clear volume keys'), icon('scissors'));
         clearBtn.removeAttribute('data-tip');
         clearBtn.title = t('Clear volume keys');

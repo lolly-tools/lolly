@@ -25,7 +25,7 @@ import { t } from '../i18n.ts';
 import {
   getConnection, saveConnection, removeConnection, hasConnection,
 } from './provider-connections.ts';
-import type { SendTarget } from './send-target.ts';
+import type { SendTarget, ShareCapabilities, ShareLinkOutcome, ShareOptions } from './send-target.ts';
 import type { SyncRemote, SnapshotMeta, PutOpts } from './sync-remote.ts';
 import { metaFromHeaders, preconditionHeaders, SyncConflictError } from './sync-remote.ts';
 import { providerFetch } from './provider-auth.ts';
@@ -204,9 +204,63 @@ export function s3SendTarget(): SendTarget {
       return {
         ...(publicBase ? { url: `${publicBase}/${encodeS3Key(key)}` } : {}),
         label: t('Uploaded to {bucket}/{key}', { bucket: cfg.bucket, key }),
+        ref: key,
       };
     },
+    shareCapabilities: s3ShareCapabilities,
+    share: (ref, options) => s3Share(ref, options),
   };
+}
+
+// ── Share links (presigned GET) ───────────────────────────────────────────────
+//
+// The link is the object's own address with a SigV4 signature in the query string,
+// made on this device from the key pair already saved. Nothing is sent anywhere to
+// make it and nothing can switch it off early: it works until it expires, and S3
+// caps that at seven days. The permanent alternative is `publicBaseUrl`, which the
+// send outcome already uses when a bucket has one.
+
+/** S3's longest presigned lifetime, in seconds. */
+export const S3_PRESIGN_MAX_SECONDS = 604_800;
+
+export function s3ShareCapabilities(): ShareCapabilities {
+  return { audiences: ['anyone'], password: false, expiry: true, expiryRequired: true, maxExpiryDays: 7, revocable: false };
+}
+
+/** RFC 3986 encoding of one query component, the form SigV4 canonicalises. */
+const rfc3986 = (v: string): string => encodeURIComponent(v).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+
+/** A presigned GET url for one key. Pure given `when`; exported for tests. */
+export async function presignGetUrl(
+  cfg: Pick<S3Config, 'endpoint' | 'bucket' | 'region' | 'accessKeyId' | 'secretAccessKey'>,
+  key: string, expiresSeconds: number, when = new Date(),
+): Promise<string> {
+  if (!(expiresSeconds >= 1) || expiresSeconds > S3_PRESIGN_MAX_SECONDS) throw new Error(t('A bucket link can last from one second to seven days.'));
+  const url = objectUrl(cfg as S3Config, key);
+  const [amzDate, date] = amzDates(when);
+  const scope = `${date}/${cfg.region}/s3/aws4_request`;
+  const query: Array<[string, string]> = [
+    ['X-Amz-Algorithm', 'AWS4-HMAC-SHA256'],
+    ['X-Amz-Credential', `${cfg.accessKeyId}/${scope}`],
+    ['X-Amz-Date', amzDate],
+    ['X-Amz-Expires', String(Math.floor(expiresSeconds))],
+    ['X-Amz-SignedHeaders', 'host'],
+  ];
+  query.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  const canonicalQuery = query.map(([k, v]) => `${rfc3986(k)}=${rfc3986(v)}`).join('&');
+  const canonical = ['GET', url.pathname, canonicalQuery, `host:${url.host}\n`, 'host', 'UNSIGNED-PAYLOAD'].join('\n');
+  const stringToSign = ['AWS4-HMAC-SHA256', amzDate, scope, await sha256Hex(canonical)].join('\n');
+  const signature = hex(await hmac(await deriveSigningKey(cfg.secretAccessKey, date, cfg.region, 's3'), stringToSign));
+  return `${url.origin}${url.pathname}?${canonicalQuery}&X-Amz-Signature=${signature}`;
+}
+
+export async function s3Share(ref: string, options: ShareOptions): Promise<ShareLinkOutcome> {
+  const cfg = await s3Config();
+  if (!cfg) throw new Error(t('Set up your bucket in Profile first'));
+  const days = options.expiresInDays ?? 7;
+  const seconds = Math.round(days * 86_400);
+  const link = await presignGetUrl(cfg, ref, seconds);
+  return { url: link, audience: 'anyone', expiresAt: new Date(Date.now() + seconds * 1000).toISOString() };
 }
 
 // ── The SyncRemote (plans/138 B1) ─────────────────────────────────────────────

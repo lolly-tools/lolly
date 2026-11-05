@@ -1,0 +1,38 @@
+{
+  "_note": "Openly licensed public floor plans for the DXF importer. Each entry is pinned to a commit and a SHA-256. The licence was read from the repository's own licence file at that commit and is recorded here. Files are fetched into plans/corpora/dxf-floor-plans (gitignored) and are never committed or redistributed by Lolly, which matters for the ShareAlike file. Ordinary tests need none of them.",
+  "files": [
+    {
+      "path": "bjnortier-dxf/floorplan.dxf",
+      "url": "https://raw.githubusercontent.com/bjnortier/dxf/cb571d1d7631dd0daaf923a256d75ef0917ff806/test/resources/floorplan.dxf",
+      "size": 1117143,
+      "sha256": "6d761ecb1ab59664425eb1dcc6837a12611536c8e03e3f7855951a76786d159c",
+      "licence": "MIT",
+      "licenceSource": "https://github.com/bjnortier/dxf/blob/cb571d1d7631dd0daaf923a256d75ef0917ff806/LICENSE",
+      "attribution": "Copyright (c) 2014-2018 Ben Nortier, bjnortier/dxf test resources",
+      "source": "https://github.com/bjnortier/dxf",
+      "notes": "AC1018 architectural plan in millimetres with text, blocks, leaders, hatches and paper-space viewports. The same file ships in jscad/sample-files, whose README states MIT."
+    },
+    {
+      "path": "techinc-acta/ACTA_floorplan.dxf",
+      "url": "https://raw.githubusercontent.com/techinc/ACTAFloorplan/d3c7614f30acd354b5ca1a1bee32efd4f6c3396b/ACTA_floorplan.dxf",
+      "size": 34762,
+      "sha256": "1260febe366b64277e60cb1c89b6419f0e9693a4405c5323f9bff64cc18f3807",
+      "licence": "CC-BY-SA-3.0",
+      "licenceSource": "https://github.com/techinc/ACTAFloorplan/blob/d3c7614f30acd354b5ca1a1bee32efd4f6c3396b/LICENSE",
+      "attribution": "ACTA space floor plan, techinc/ACTAFloorplan (Creative Commons Attribution-ShareAlike 3.0 Unported)",
+      "source": "https://github.com/techinc/ACTAFloorplan",
+      "notes": "AC1021 hackerspace plan in centimetres, written by dxflib/LibreCAD (dxfrw 0.5.10), with dimensions. ShareAlike: read here only, never redistributed."
+    },
+    {
+      "path": "ccwi-building-plan-viewer/simple_floorplan.dxf",
+      "url": "https://raw.githubusercontent.com/CCWI/building-plan-viewer/f156f9d4f8469ebe2b4eaa532c617e466744da6a/docs/simple_floorplan.dxf",
+      "size": 16196,
+      "sha256": "95468ed5c528d0d94ff62551c13b309f2515360db01154750932137f2aa528b4",
+      "licence": "MIT",
+      "licenceSource": "https://github.com/CCWI/building-plan-viewer/blob/f156f9d4f8469ebe2b4eaa532c617e466744da6a/LICENSE",
+      "attribution": "Copyright (c) 2022 Competence Center Wirtschaftsinformatik Hochschule Muenchen, CCWI/building-plan-viewer",
+      "source": "https://github.com/CCWI/building-plan-viewer",
+      "notes": "AC1015 room polygons in metres, the README's example of a simple plan."
+    }
+  ]
+}

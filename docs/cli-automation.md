@@ -35,7 +35,7 @@ A **`toolId`** column is required. **`format`**, **`width`**, **`height`**, **`u
 
 Any reserved URL parameter also works as a column, because a row's cells are read exactly as a link's query is. `bleed`, `marks` and `press-profile` work that way; add them to the header by hand.
 
-The header *is* the namespace, so a batch has no `--input.<id>=` escape. An input whose id is one of those reserved names (`asset-export` declares `width` and `height`) cannot be set per row. `--template=` leaves it out and says which inputs it dropped; render those with `lolly run … --input.width=…`.
+Use an `input.<id>` column when an input shares a reserved name: `input.width` sets the tool's width input while `width` sets the export width. The starter `--template=` leaves reserved-name inputs out and reports them; add their prefixed columns when needed.
 
 **A transform tool runs from a batch too** (a file in, bytes out, such as `strip-data`). Put the input file's path in the tool's own file column; it resolves against the working directory, as on `lolly run`. Leave that row's `format`, `width`, `height`, `unit` and `dpi` blank, because the output follows the input file, and `--template=` warns which columns those are. The output is named from the row's `filename` or the input file, with the extension of the bytes the tool produced.
 
@@ -44,6 +44,95 @@ The header *is* the namespace, so a batch has no `--input.<id>=` escape. An inpu
 A batch stops at a failing row unless you pass `--keep-going`. Either way, its exit code is the **worst row's**, and `--json` gives one document with a per-row `exit`, so a pipeline can retry just the exit-`3` rows on a runner that has a browser. A batch writes a folder rather than one archive, so you choose your own `zip` or `tar`; the TUI's batch packs a ZIP instead. `--output` is refused, because one path cannot name many files; use `--out-dir`.
 
 The app's **Batch** view (`#/batch`) is the same idea as an interactive grid.
+
+## Plan, resume and watch production batches
+
+These production controls are available in the current checkout. A standalone CLI
+package needs a build that includes these changes.
+
+```bash
+lolly batch rows.csv --dry-run --json --out-dir=./out
+lolly batch rows.csv --preflight --jobs=2 --json --out-dir=./out
+lolly batch rows.csv --jobs=2 --keep-going --out-dir=./out
+lolly batch rows.csv --resume --jobs=2 --out-dir=./out
+lolly batch rows.csv --watch --jobs=2 --out-dir=./out
+```
+
+Dry run reports planned paths and dependency readiness without exporting. Preflight
+checks row content; renderer readiness is a separate report. Workers run in separate
+processes, with a maximum of eight, so tool DOM/global state cannot cross jobs.
+`lolly preflight --batch=rows.csv` also checks a batch.
+
+The default receipt is `out/.lolly-batch.json`; `--journal=path` chooses another.
+Resume reuses a successful output only when the row, source/content snapshot and
+output hash still match. Changed files, tools, tokens or assets invalidate reuse.
+Network, live media, model, composition, external assets and unqualified hook paths
+are conservative reruns. Renderer-dependent raster/PDF jobs are also rerun until their
+renderer inputs have a qualified snapshot; native-format jobs can be reused. A source change during a run makes its rows ineligible for reuse. Receipts
+record reused versus newly rendered rows; failed rows are retried.
+
+`--rows=1,3` selects original 1-based rows. A dry run returns a `planId`;
+`--expect-plan=<id>` refuses a changed review before starting workers. The TUI queue
+uses these same controls. An output-directory lock prevents overlapping runs; after
+a crash, resume recovers a same-user lock only when its PID is dead and the lock has
+not changed during the check. Live, malformed and replaced locks are retained.
+
+Watch monitors the named CSV and its file-input paths, with debounce. It does not
+watch every catalog/model directory. Output changes do not trigger another run.
+Watch uses terminal progress; `--watch --json` refuses because ordinary JSON mode
+produces one result per invocation. Run separate JSON jobs for machine consumers.
+Interrupting stops queued jobs and workers, records completed results and preserves
+finished outputs for resume.
+
+## Private inputs and saved projects
+
+```bash
+lolly run qr-code --inputs=inputs.json --output=qr.svg
+lolly run qr-code --inputs=- --output=qr.svg < inputs.json
+lolly projects list --query=conference --json
+lolly projects show '<slot>' --json
+lolly projects export '<slot>' --output=project.json
+lolly projects copy '<slot>' --label='Conference copy'
+```
+
+Input JSON holds values rather than shell flags; explicit flags win. Loaded binary
+inputs need their original file paths rather than an expanded JSON byte array. A project export
+contains private document state, refuses an existing destination and can be opened
+in the TUI. Projects are read from the device's shared session directory.
+
+`run --share` omits personal/profile-bound fields and lists omitted field IDs on
+stderr. `--include-personal` explicitly includes those fields after review. Requested
+size and format travel with the link. Export passwords do not travel with that link.
+
+## Convert check results for local automation
+
+Save a command's normal JSON envelope, then convert that result without rerunning the check:
+
+```bash
+lolly check design.json --browser=off --json > check.json
+lolly reports check.json --to=junit --output=checks.xml
+lolly reports check.json --to=sarif --output=checks.sarif
+lolly reports checks.jsonl --to=junit --output=combined.xml
+cat check.json | lolly reports - --to=jsonl
+lolly projects list --query=conference --null | xargs -0 -I '{}' lolly projects show '{}'
+lolly projects list --null --paths
+```
+
+`reports` accepts check/preflight/learning findings and production batch receipts. JSONL
+input holds one original report per line; `--input-format=jsonl` selects that input on
+stdin. JSONL output holds one normalized finding or row outcome per line. This is report
+transport; ordinary batch rendering still takes its existing CSV/TSV transport.
+
+JUnit retains failures and skipped/unavailable coverage. SARIF retains document pointers,
+layer/page/theme context and stable finding fingerprints. A physical source location appears
+only when the original finding supplied a file and line; document coordinates do not become
+invented source lines. Unknown report shapes refuse. Existing output files are refused.
+Conversion success means the report was written; the original command's verdict still
+belongs to its saved envelope. Nothing is uploaded and no CI job starts.
+
+Project `--null` output carries stable slot IDs, including names with spaces or newlines.
+`--paths` selects the actual session files instead. `--json` and `--null` are separate output
+choices; default project discovery keeps its existing JSON shape.
 
 ## Render-check the catalog (lolly smoke)
 
@@ -89,7 +178,7 @@ pnpm --silent run cli preflight 'https://lolly.tools/t/qr-code?url=…&format=pd
 | `--run-length=<n>` | The quantity the cost is worked out for. |
 | `--use-expired-rates` | Opt in past a card's `validUntil`; otherwise expired rates hide the money figures while the counts still show. |
 
-There is no `--out`: the report goes to stdout, so redirect it (`lolly preflight qr-code --json > report.json`). Three flags are refused rather than ignored: `--rates` (the flag is `--rate-card`), `--batch` (not built yet, and a silently ignored `--batch=rows.csv` would print one job's report that reads like fifty) and `--out`.
+There is no `--out`: the report goes to stdout, so redirect it (`lolly preflight qr-code --json > report.json`). `--rates` is also refused; the flag is `--rate-card`. For many jobs, `lolly preflight --batch=rows.csv` uses the production batch checks described above.
 
 Preflight exits `0` when there is nothing to fix, `4` when a check says no (an error finding, or a warning under `--strict`) and `2` when it could not run: an unknown tool, an unreadable manifest, a `zx=` link with no password or a refused flag. It never exits `1`. A count that cannot be **taken**, such as "needs the artwork on screen", "no brand palette resolved" or "no physical page size was set", is a stated gap in the report, not a failure. With `--json`, stdout holds exactly one document on every path, including exit `2`; read the findings at `.result.findings`.
 
@@ -101,9 +190,10 @@ The optional `checks` list records which rules ran: each is `completed` (includi
 If your brand declares a spot ink that is really a **finish** (a foil, an emboss, a spot varnish, a cutting rule), Lolly writes it as its own named plate in every CMYK file (the CMYK PDF, the CMYK TIFF and `eps-cmyk`), with a 100% black mask as its process fallback, so a RIP that flattens spots prints an obvious mask rather than a plausible metallic. Overprint is not built anywhere in Lolly, so that plate knocks out the artwork beneath the finish. Agree with your printer how they want the finish supplied before you send the file.
 :::
 
-## Check a Design document in CI (lolly check)
+<a id="check-a-design-document-in-ci-lolly-check"></a>
+## Check a Lolly Design document in CI (lolly check)
 
-`lolly check` gives one findings list for a Design document, a `.lolly` or an export, and its exit code is the branch:
+`lolly check` gives one findings list for a Lolly Design document, a `.lolly` or an export, and its exit code is the branch:
 
 ```bash
 lolly check slides.lolly --source=old.inventory.json --json > check.json
@@ -179,6 +269,22 @@ Even bare, only some formats repeat byte for byte. Measured by hashing two conse
 Two limits the table cannot show. Format-level reproducibility is not tool-level: a tool that draws the current time or the weather gives different bytes in any format, and that is the tool doing its job. And these runs were on one machine, back to back; a different OS, font set or engine version moves the bytes of anything that shapes text.
 
 So check the hash of an SVG rendered with `--no-provenance` into a lockfile if you like. Do **not** build a CI gate on the hash of a PDF, an ICS, a JPEG, a paint-tier PNG or anything signed: compare those by rendering and inspecting. [Determinism](/info/determinism.html) explains why the same inputs give the same render.
+
+## The GitHub Action
+
+The repository carries a GitHub Action, in the `action/` folder of the source, that runs this CLI inside a GitHub job: one render, or one file for each row of a CSV or TSV. The flags it passes are the same `--key=value` flags you type at a desk. Until the action has a release of its own, pin it to a commit:
+
+```yaml
+- uses: lolly-tools/lolly/action@<commit>
+  id: render
+  with:
+    tool: qr-code
+    args-json: '["--url=https://example.com"]'
+    format: svg
+- run: ls "${{ steps.render.outputs.out-dir }}"
+```
+
+`rows` takes the path of a batch sheet instead of `tool`, and `browser: 'true'` installs the scoped browser for raster, PDF and video from tools that lay out in HTML. [The action's README](https://github.com/lolly-tools/lolly/tree/main/action) lists every input and output, with a pinned commit and worked examples.
 
 ## Organisation jobs with Lolly Work
 

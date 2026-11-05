@@ -2,7 +2,7 @@
 
 Ketik pertanyaan dan Ask Lolly menjawab dengan bagian panduan ini yang membahasnya, kata demi kata, dengan halaman asalnya dikutip dan tautan **Open in docs** langsung ke bagian itu. Tidak ada yang dihasilkan: jawaban diambil, dikutip, dan diatribusikan, di perangkat Anda.
 
-Di bawah bagian yang dikutip terdapat tempat-tempat di aplikasi yang cocok dengan pertanyaan yang sama: alat, utilitas, proyek tersimpan, aset katalog, pengaturan, atau halaman aplikasi. Setiap baris hanya bernavigasi. Tidak ada dalam jawaban yang mengubah pengaturan, membuka file, atau bertindak untuk Anda, aturan yang sama dengan yang diikuti [Search](/info/search.html).
+Di bawah bagian yang dikutip terdapat tempat-tempat di aplikasi yang cocok dengan pertanyaan yang sama: alat, utilitas, proyek tersimpan, aset katalog, pengaturan, atau halaman aplikasi. Setiap baris hanya bernavigasi. Tidak ada dalam jawaban yang mengubah pengaturan, membuka file, atau bertindak untuk Anda, aturan yang sama dengan yang diikuti [Lolly Search](/info/search.html).
 
 ## Mengajukan pertanyaan
 
@@ -60,4 +60,4 @@ Pertanyaan Anda tidak pernah meninggalkan perangkat. Pencocokan berjalan secara 
 
 ---
 
-**Terkait:** [Search](/info/search.html) untuk bilah yang menyerahkan pertanyaan. [Using Lolly](/info/using.html) untuk sisa aplikasi. [Settings](/info/dashboard.html#available-offline) untuk membawa dokumentasi offline lebih dulu.
+**Terkait:** [Lolly Search](/info/search.html) untuk bilah yang menyerahkan pertanyaan. [Using Lolly](/info/using.html) untuk sisa aplikasi. [Lolly Settings](/info/dashboard.html#available-offline) untuk membawa dokumentasi offline lebih dulu.

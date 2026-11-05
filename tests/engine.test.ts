@@ -299,7 +299,7 @@ test('frame-address: selectFramePage - the still-export filter both shells apply
   assert.equal((selectFramePage(pages, '2.3') as { index: number }).index, 1);
 
   // Out of range / unknown id / a document with no pages: 'unmatched', never a
-  // silent fall back to page 1. The web keeps the fan-out and says so; the CLI refuses.
+  // silent fall back to page 1. The web keeps the fan-out and warns; the CLI refuses.
   assert.equal(selectFramePage(pages, '4').kind, 'unmatched');
   assert.equal(selectFramePage(pages, '0').kind, 'unmatched');
   assert.equal(selectFramePage(pages, 'nope').kind, 'unmatched');

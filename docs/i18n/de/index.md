@@ -1,4 +1,4 @@
 # Lolly - Text der Startseite
 
-Kostenlose kreative Tools, mit Ihren Regeln.
-Erstellen Sie Mediendateien in Studioqualität: ohne Konto, ohne Karte, privat und Open Source.
+Erstellen Sie fertige Dateien. Behalten Sie die Kontrolle über Ihre Inhalte.
+Grafiken, Dokumente, Video und Druck in Ihren Farben und Ihrer Schrift: ohne Konto, ohne Karte, privat und Open Source.

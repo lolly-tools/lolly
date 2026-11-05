@@ -1,0 +1,105 @@
+{
+  "about": "Hand-maintained. One record per model family, keyed by the first path segment under /models/ in models-manifest.json. Each record is what the publisher states, copied from the model cards and from the fetch scripts under scripts/fetch-*-models.ts. It is a record of their words and not a clearance: Lolly does not say a model is safe to use for any purpose. converterLicence is an SPDX id or name when the party that made the ONNX files states one, 'none-stated' when its repository states no licence, 'not-recorded' when this repository never recorded what the converter states, and 'not-applicable' when the files are used as the publisher released them or were converted by Lolly. acceptRequired is true when the publisher's terms carry use restrictions that the person should see before the download. offerLine, when present, is the English sentence Profile and the in-place offer show before the download.",
+  "families": {
+    "ai-detect": {
+      "licence": "MIT",
+      "url": "https://huggingface.co/MayZhou/e5-small-lora-ai-generated-detector",
+      "upstream": { "repo": "MayZhou/e5-small-lora-ai-generated-detector", "revision": "main, 2024-11 (upstream ships safetensors only)" },
+      "convertedBy": "Lolly (local optimum-cli ONNX export, int8 quantised)",
+      "converterLicence": "not-applicable",
+      "acceptRequired": false,
+      "note": "The upstream card states MIT. The ONNX files were made locally from that revision; config.json also carries id2label written from the model card."
+    },
+    "depth": {
+      "licence": "Apache-2.0",
+      "url": "https://github.com/DepthAnything/Depth-Anything-V2",
+      "upstream": { "repo": "DepthAnything/Depth-Anything-V2 (Small checkpoint)", "revision": "onnx-community/depth-anything-v2-small at 4472b7362082ad9968fee890ca0f1e5aca36b93d" },
+      "convertedBy": "onnx-community (transformers.js export)",
+      "converterLicence": "Apache-2.0",
+      "acceptRequired": false,
+      "note": "The publisher states Apache-2.0 for the Small checkpoint only. The Base and Large checkpoints are stated as CC-BY-NC-4.0 and are not used."
+    },
+    "embed": {
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
+      "upstream": { "repo": "sentence-transformers/all-MiniLM-L6-v2", "revision": "Xenova/all-MiniLM-L6-v2 main; each file pinned by sha256" },
+      "convertedBy": "Xenova (ONNX re-export)",
+      "converterLicence": "Apache-2.0",
+      "acceptRequired": false,
+      "note": "The fetch script records Apache-2.0 for both the upstream repository and the ONNX re-export."
+    },
+    "kokoro": {
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX-timestamped",
+      "upstream": { "repo": "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped", "revision": "main; each file pinned by sha256" },
+      "convertedBy": "onnx-community (timestamped ONNX export, q8)",
+      "converterLicence": "Apache-2.0",
+      "acceptRequired": false,
+      "note": "The fetch script records Apache-2.0 for this repository, which also carries the 28 voice files."
+    },
+    "matte": {
+      "licence": "Apache-2.0",
+      "url": "https://github.com/xuebinqin/U-2-Net",
+      "upstream": { "repo": "xuebinqin/U-2-Net (u2netp) and ZHKKKe/MODNet (modnet)", "revision": "rembg release v0.0.0 (u2netp); Xenova/modnet main (modnet); each file pinned by sha256" },
+      "convertedBy": "danielgatis/rembg (u2netp); Xenova/modnet (modnet)",
+      "converterLicence": "not-recorded",
+      "acceptRequired": false,
+      "note": "Both upstream projects state Apache-2.0. What the two converters' own repositories state was not recorded here. A background remover under a non-commercial licence was left out."
+    },
+    "ocr": {
+      "licence": "Apache-2.0",
+      "url": "https://github.com/PaddlePaddle/PaddleOCR",
+      "upstream": { "repo": "PaddlePaddle/PP-OCRv5_mobile_det and PP-OCRv5_mobile_rec; dictionary from PaddleOCR main", "revision": "ilaylow/PP_OCRv5_mobile_onnx main; each file pinned by sha256" },
+      "convertedBy": "ilaylow (paddle2onnx conversion)",
+      "converterLicence": "not-recorded",
+      "acceptRequired": false,
+      "note": "PaddleOCR states Apache-2.0 for the toolkit and the PP-OCRv5 weights. What the converter's repository states was not recorded here."
+    },
+    "reword": {
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct",
+      "upstream": { "repo": "HuggingFaceTB/SmolLM2-360M-Instruct", "revision": "main; each file pinned by sha256" },
+      "convertedBy": "HuggingFaceTB (the onnx/ folder of the same repository)",
+      "converterLicence": "Apache-2.0",
+      "acceptRequired": false,
+      "note": "The publisher states Apache-2.0 for the repository, including its ONNX exports."
+    },
+    "sing": {
+      "licence": "OpenRAIL-M (Supertonic-3); Apache-2.0 (wav2vec2 vocabulary); none stated (rondocode-sing files)",
+      "url": "https://huggingface.co/Supertone/supertonic-3",
+      "upstream": { "repo": "Supertone/supertonic-3; facebook/wav2vec2-lv-60-espeak-cv-ft; hi-im-vijay/rondocode-sing", "revision": "3cadd1ee6394adea1bd021217a0e650ede09a323; ae45363bf3413b374fecd9dc8bc1df0e24c3b7f4; 528c7e4eaec2a0a71cb6f02c2169f16ee11c55b1" },
+      "convertedBy": "hi-im-vijay (rondocode-sing)",
+      "converterLicence": "none-stated",
+      "acceptRequired": true,
+      "note": "Supertone's OpenRAIL-M licence has use-based restrictions that bind anyone using the weights; its LICENSE.txt travels with the files. The rondocode-sing repository states no licence and no provenance for the phoneme, ContentVec and voice-generator files, and the two int8 Supertonic builds were made by rondocode's author. Hosting them was a deliberate choice made with that known.",
+      "offerLine": "Supertonic-3 is under OpenRAIL-M; the voices’ source states no licence."
+    },
+    "trustmark": {
+      "licence": "MIT",
+      "url": "https://github.com/adobe/trustmark",
+      "upstream": { "repo": "adobe/trustmark", "revision": "main (js/tm_watermark.js model list); each file pinned by sha256" },
+      "convertedBy": "Adobe (published as ONNX at cai-watermark.adobe.net)",
+      "converterLicence": "not-applicable",
+      "acceptRequired": false,
+      "note": "The repository states MIT. The files are used as Adobe published them."
+    },
+    "upscale": {
+      "licence": "BSD-3-Clause (Real-ESRGAN); Apache-2.0 (GFPGAN, BlazeFace)",
+      "url": "https://github.com/xinntao/Real-ESRGAN",
+      "upstream": { "repo": "xinntao/Real-ESRGAN; TencentARC/GFPGAN; google/mediapipe (BlazeFace)", "revision": "mirrors at main; each file pinned by sha256" },
+      "convertedBy": "OwlMaster/AllFilesRope, SceneWorks/real-esrgan-onnx, facefusion/models-3.0.0, garavv/blazeface-onnx; the anime model by Lolly (scripts/convert-anime-upscale-onnx.py)",
+      "converterLicence": "not-recorded",
+      "acceptRequired": false,
+      "note": "The licence recorded is the upstream project's, read from its own repository. A community converter can attach different terms to its repository; those were not recorded here and are re-checked on each pin refresh."
+    },
+    "whisper": {
+      "licence": "MIT",
+      "url": "https://huggingface.co/openai/whisper-base",
+      "upstream": { "repo": "openai/whisper-base", "revision": "onnx-community/whisper-base_timestamped main; each file pinned by sha256" },
+      "convertedBy": "onnx-community (timestamped ONNX export, q8)",
+      "converterLicence": "none-stated",
+      "acceptRequired": false,
+      "note": "The upstream model is stated as MIT. The onnx-community _timestamped repository carries no licence tag."
+    }
+  }
+}

@@ -2,9 +2,9 @@
 
 Halaman web tidak dapat membaca piksel situs lain, jadi aplikasi web Lolly membutuhkan bantuan untuk menangkap layar halaman. Di browser berbasis Chromium (Chrome, Edge, Brave, Arc, atau Opera, dari Chrome 111), ekstensi gratis **Lolly URL Screenshot** memberi bantuan itu, memakai penangkapan yang sama dengan aplikasi desktop. Dengan ekstensi terpasang:
 
-- **[URL Screenshot](/t/url-shot)** menyimpan halaman yang Anda susun sebagai file;
+- **[Lolly URL Screenshot](/t/url-shot)** menyimpan halaman yang Anda susun sebagai file;
 - alamat web yang ditempel ke slot gambar dapat menjadi tangkapan layar halaman itu, dengan **Screenshot this page**;
-- sumber **Website** di [Design System Setup](/info/brand-studio.html) dapat membaca satu halaman untuk memulai design system.
+- sumber **Website** di [Lolly Design System Setup](/info/brand-studio.html) dapat membaca satu halaman untuk memulai design system.
 
 Anda menyetujui setiap permintaan, dan aplikasi desktop mengerjakan pekerjaan yang sama tanpa ekstensi.
 

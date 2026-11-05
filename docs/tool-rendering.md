@@ -23,6 +23,7 @@ Templates are Handlebars and **logic-less by design**, so people who are not pro
 - `{{value}}` - HTML-escapes by default. Always use this for user input.
 - `{{{value}}}` - raw, no escape. Only for trusted, system-generated HTML.
 - Block helpers: `{{#if}}`, `{{#each}}`, `{{#unless}}`. No arbitrary JS.
+- `{{@canvasSize.width}}` and `{{@canvasSize.height}}` - the size the tool is being made at, in CSS pixels (engine v1.293): the export size someone chose, else the manifest's `render.width` and `render.height`. A tool that prints it declares `render.followsCanvasSize`, so the canvas redraws when the size changes ([When the canvas size changes](/info/tool-hooks.html#when-the-canvas-size-changes)).
 
 `wordmark` is about as small as a template gets: one string, one face, one weight. Everything below came from the link's parameters flowing into `{{ }}` slots.
 
@@ -54,10 +55,30 @@ A template may paint into a `<canvas>` instead of markup, as `3d`, `synth`, `gra
 | Contract | What to do | Without it |
 | --- | --- | --- |
 | **Readiness** | When the first frame arrives late (a model or library is loading), set `window.__toolHasReadySignal = true` at the top of the template script, then dispatch `tool:ready` on `document` once the first frame is painted. The shell waits for it before capturing. | A slow first frame exports blank. |
-| **The frame clock** | For animated output (GIF, APNG, animated WebP and frame-by-frame video), store `canvas.__lollyFrameRender = function (t) { … }` on the canvas element. It renders the exact frame at loop time `t` in `[0, 1)`; stills call it with `0`. While the shell drives frames it sets `canvas.__lollyFrameDriven = true`, so stop your own `requestAnimationFrame` loop from advancing while the flag is set. | The export cannot ask for an exact frame. A function stored on `window` instead of the canvas leaks across tool navigation. |
+| **The frame clock** | For animated output (GIF, APNG, animated WebP and frame-by-frame video), store `canvas.__lollyFrameRender = function (t) { … }` on the canvas element. It renders the exact frame at loop time `t` in `[0, 1)`; a still calls it with `0`, as set out below the table. While the shell drives frames it sets `canvas.__lollyFrameDriven = true`, so stop your own `requestAnimationFrame` loop from advancing while the flag is set. | The export cannot ask for an exact frame. A function stored on `window` instead of the canvas leaks across tool navigation. |
 | **Real-time video** | Mark the canvas `data-capture-stream`, and WebM or MP4 export records it live through `captureStream()` instead of frame by frame. | A self-looping animation is recorded frame by frame instead of as one continuous loop with no cut at the join. |
 
-The frame clock also receives two optional arguments: the clip length in seconds and the export's pixel size as `{ width, height }`. A function that declares only `t` ignores them. During a clip every call carries both, including the extra calls an export makes to find which parts of the frame stay still and the repaint that follows, so a tool that reads them sees the same length and size on every frame.
+The frame clock also receives two optional arguments: the clip length in seconds and the export's pixel size as `{ width, height }`. A function that declares only `t` ignores them. During a clip every call carries both, including the extra calls an export makes to find which parts of the frame stay still and the repaint that follows, so a tool that reads them sees the same length and size on every frame. A template drawn in markup rather than on a canvas can still carry a clock: give it a 0 by 0 `<canvas>` that paints nothing, as Growth and Certificate do.
+
+A raster still (PNG, JPEG, WebP, AVIF, JPEG XL, TIFF, BMP and CMYK TIFF, and each size of an icon) calls every clock once with `t` 0, no clip length and the file's pixel size, after your `beforeExport` hook has run, and sets `__lollyFrameDriven` only while it makes that picture.
+
+The other stills read the page as it stands, unless your clock declares a still pose. Set `stillPose` on the function when `t` 0 with no clip length draws the finished piece:
+
+```js
+canvas.__lollyFrameRender = function (t, clipSec) { /* … */ };
+canvas.__lollyFrameRender.stillPose = true;
+```
+
+Certificate declares one, so a print file never catches a moment of its reveal. For a clock with `stillPose`, an SVG, SVGZ, PDF, CMYK PDF, Penpot, EPS (RGB and CMYK), EMF, WMF, DXF, Word, OpenDocument, PowerPoint, HTML, Markdown or plain-text still does two more things:
+
+- **It poses your tool first.** The shell sets the flag and calls the clock once, with `t` 0 and no size, before anything else in the export runs, your `beforeExport` hook included, so the hook already sees the finished pose. A capture the shell makes outside a tool's export, such as the docs pipeline's page capture, has no hook to run and makes the same call before it reads the page.
+- **It keeps your tool still until the file is written.** The flag stays set while the export reads the page and is cleared afterwards, so your own loop cannot move a part under the export.
+
+Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and Lolly Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those formats never call the clock or set the flag, and they read the page as your own loop left the page.
+
+**Not held, declared or not:** clips (GIF, APNG, animated WebP, animated SVG, WebM and MP4, which drive the clock frame by frame), sound, Lottie, IDML, Premiere XML and data files (JSON, CSV, calendar, contact, subtitle, stylesheet and palette files, and Markdown from a `template.md`). A ZIP or a Linux package holds each file inside under that file's own format. A sequence stage's still is the frame at its playhead, so the shell leaves the stage alone.
+
+CLI, TUI and MCP renders that go through the web shell get the same treatment.
 
 **GPU rendering (WebGL, WebGPU).** Never let the export path read a GPU canvas directly. A WebGPU canvas is cleared as soon as its frame is presented and has no `preserveDrawingBuffer`, so anything read later is blank, and a WebGL canvas only survives the read with `preserveDrawingBuffer: true`, which costs memory and a copy per frame. Render into a detached scratch canvas instead and, inside the same frame callback, draw it onto the visible 2D canvas:
 
@@ -126,7 +147,7 @@ The `penpot` format keeps this same vector set, as editable Penpot shapes instea
 
 ### Letting the document bring its own CSS
 
-A tool can also give the person using it a stylesheet - Design does, as its `customCss`
+A tool can also give the person using it a stylesheet - Lolly Design does, as its `customCss`
 input. Three rules make that safe, and a tool that offers user CSS is expected to follow
 all three (`community/design/hooks.js` is the reference; `tests/design-custom-css.test.ts`
 is the test to copy):
@@ -138,7 +159,7 @@ is the test to copy):
 2. **Emit, then let the shell scope.** The shell re-scopes template `<style>` to the tool
    canvas (`scopeTemplateStyles`), and its scoper handles top-level `@keyframes` correctly,
    so real animations belong at the document level rather than nested per element.
-3. **Give the CSS something to aim at.** Free-text rules need stable handles: Design stamps
+3. **Give the CSS something to aim at.** Free-text rules need stable handles: Lolly Design stamps
    `data-frame-id` on each artboard, sanitised `data-frame-state` tokens from a per-frame
    `state` field, and a per-box `cls` field whose tokens join the element's class list
    (`.callout { … }`). Those pass through the same parse-and-re-serialise treatment as any
@@ -160,6 +181,7 @@ Some tools export data beside the rendered image: a calendar invite, a contact c
   - `{{icsStamp meetingTime}}` - a `date`/`datetime-local` value → iCalendar basic form (`20260915T143000`).
   - `{{rfcText x}}` - escape an iCalendar (RFC 5545) **or** vCard (RFC 6350) text field (`\` `;` `,` newline).
   - `{{csvCell x}}` - quote a CSV field per RFC 4180 only when needed.
+- **`ttml` / `scc`** - broadcast captions from a sibling template. Unlike `srt` and `vtt`, the template does not carry the file text: `template.ttml` or `template.scc` is `{{{cuesJson}}}`, a JSON list of `{start, end, text}` cues in seconds (or `{"cues": [...]}`), and the engine writes the file. SCC refuses a caption with a character CEA-608 cannot carry. TTML downloads as `application/ttml+xml`, SCC as `text/plain`.
 - **`srt` / `vtt`** (v1.150) - the same sibling-template mechanism, for subtitle sidecars: ship `template.srt` or `template.vtt`. The cue text itself is a hook extra (a captions tool already holds one in its target input), so the template is usually a single `{{captions}}`. SRT downloads as `text/plain` (SubRip has no registered MIME), WebVTT as `text/vtt`.
 - **`css` / `scss` / `gpl`** - the same sibling-template mechanism, for palette output: ship `template.css`, `template.scss` or `template.gpl`. `color-palette` is the reference (its `ase` sibling is binary, so that one comes from an `exportStill` hook instead of a template).
 
@@ -195,12 +217,12 @@ stage.__lollyPlayback = {
 
 `seek` must draw a frame directly, forwards or backwards, without starting another clock. `portableMarkup` supplies the authored markup with any prepared emoji artwork; leave out transient selection, caret and animation writes. Omit the method when the freshly filled template is enough. `animated: false` produces a still with no transport controls. Snippet's presentation runtime is a working example.
 
-The shell bundles the shared Sequence evaluator into the player when it builds, and the export embeds that code in the HTML, so playback needs no app server. Tools keep their own scene evaluation; they do not implement another transport or copy Design's keyframe maths. The CLI uses its browser render tier for trusted tools that declare portable presentations, as it does for Design's HTML export.
+The shell bundles the shared Sequence evaluator into the player when it builds, and the export embeds that code in the HTML, so playback needs no app server. Tools keep their own scene evaluation; they do not implement another transport or copy Lolly Design's keyframe maths. The CLI uses its browser render tier for trusted tools that declare portable presentations, as it does for Lolly Design's HTML export.
 
 ::: details What people get from an HTML export
-Design and Snippet offer HTML in the export format menu. The file embeds its fonts, images and playback code, and opens paused with play, replay, seek and fullscreen controls; a Design soundtrack adds mute and volume. Space or K toggles playback, the arrow keys seek, M toggles sound and F toggles fullscreen. Playback works offline.
+Lolly Design and Snippet offer HTML in the export format menu. The file embeds its fonts, images and playback code, and opens paused with play, replay, seek and fullscreen controls; a Lolly Design soundtrack adds mute and volume. Space or K toggles playback, the arrow keys seek, M toggles sound and F toggles fullscreen. Playback works offline.
 
-Design supports native layers, mixed audio and several timed artboards as scenes. Each scene has its own camera and child animation window, the player offers a scene menu and Page Up and Page Down jump between scenes. Artboards of different sizes fit inside the output size with the same proportions the movie exporter uses. Cuts, fades and bounded custom fades follow the movie transition policy; slide, morph and flight transitions become dissolves for now.
+Lolly Design supports native layers, mixed audio and several timed artboards as scenes. Each scene has its own camera and child animation window, the player offers a scene menu and Page Up and Page Down jump between scenes. Artboards of different sizes fit inside the output size with the same proportions the movie exporter uses. Cuts, fades and bounded custom fades follow the movie transition policy; slide, morph and flight transitions become dissolves for now.
 
-Timeline's **Place in order** arranges artboards as timed scenes. Dragging a scene in the sequence moves its members' start times and leaves their local keys unchanged. Audio assigned to an artboard stops at that scene's bounds, and an audio layer outside any frame can span the whole film. An untimed deck gets five seconds per page during export without changing the saved document. A still Design exports without transport controls. Embedded video, Lottie and 3D produce an explicit HTML export error, because their playback adapters are separate work.
+Timeline's **Place in order** arranges artboards as timed scenes. Dragging a scene in the sequence moves its members' start times and leaves their local keys unchanged. Audio assigned to an artboard stops at that scene's bounds, and an audio layer outside any frame can span the whole film. An untimed deck gets five seconds per page during export without changing the saved document. A still Lolly Design exports without transport controls. Embedded video, Lottie and 3D produce an explicit HTML export error, because their playback adapters are separate work.
 :::

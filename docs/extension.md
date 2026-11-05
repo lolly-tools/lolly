@@ -2,21 +2,21 @@
 
 A web page cannot read the pixels of another website, so the Lolly web app needs help to screenshot a page. In a Chromium-based browser (Chrome, Edge, Brave, Arc or Opera, from Chrome 111), the free **Lolly URL Screenshot** extension gives that help, using the same capture the desktop app uses. With it installed:
 
-- **[URL Screenshot](/t/url-shot)** saves the page you composed as a file;
+- **[Lolly URL Screenshot](/t/url-shot)** saves the page you composed as a file;
 - a web address pasted into an image slot can become a screenshot of that page, with **Screenshot this page**;
-- the **Website** source in [Design System Setup](/info/brand-studio.html) can read one page to start a design system.
+- the **Website** source in [Lolly Design System Setup](/info/brand-studio.html) can read one page to start a design system.
 
 You approve every request, and the desktop app does the same jobs without the extension.
 
 ## Before you install
 
-Until the extension is installed, **URL Screenshot** still opens, so you can compose a shot. A note at the top of the tool's controls says what is missing.
+Until the extension is installed, **Lolly URL Screenshot** still opens, so you can compose a shot. A note at the top of the tool's controls says what is missing.
 
 ![The URL Screenshot tool's note offering the extension, shown when capture to file has no host to run on](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
 Every control works while you wait: the target URL, the scroll depth, the settle delay, the crop insets and the recolour. Only the capture itself needs the extension.
 
-![The URL Screenshot controls with a target URL, scroll depth, settle delay and crop insets, all usable before the extension exists](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
+![The Lolly URL Screenshot controls with a target URL, scroll depth, settle delay and crop insets, all usable before the extension exists](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Install
 
@@ -28,7 +28,7 @@ Every control works while you wait: the target URL, the scroll depth, the settle
 2. Open `chrome://extensions`.
 3. Turn on **Developer mode** (top right).
 4. Click **Load unpacked** and choose the `dist/chrome-extension/` folder.
-5. Reload the Lolly tab. Detection happens when the page loads, so the "Get the extension" prompt disappears. **URL Screenshot** (under Utilities) can then save captures to a file and becomes available in Batch mode.
+5. Reload the Lolly tab. Detection happens when the page loads, so the "Get the extension" prompt disappears. **Lolly URL Screenshot** (under Utilities) can then save captures to a file and becomes available in Lolly Batch mode.
 
 For a local development server, run `pnpm run pack:chrome-extension:dev` and load `dist/chrome-extension-dev` instead. That package also accepts `http://localhost:5173` and has **Development** in its name.
 
@@ -53,9 +53,10 @@ The capture runs in your browser, on your network, so `localhost` and internal s
 
 While a capture runs you may briefly see a *"…started debugging this browser"* banner on the temporary tab. That is the DevTools Protocol at work, and the banner clears when the shot is done.
 
-## Reading a site for Design System Setup
+<a id="reading-a-site-for-design-system-setup"></a>
+## Reading a site for Lolly Design System Setup
 
-The **Website** source in Design System Setup starts a design system from a site you already have. In a Chromium browser the extension reads the page. In the desktop app, the app fetches the page itself. In a browser with no extension, the Website tile is not offered.
+The **Website** source in Lolly Design System Setup starts a design system from a site you already have. In a Chromium browser the extension reads the page. In the desktop app, the app fetches the page itself. In a browser with no extension, the Website tile is not offered.
 
 - **One address, one page.** After you approve, the extension opens the page in the same kind of background tab, reads the rendered markup, the stylesheet text and a handful of icon and logo images, then closes the tab. It does not follow links or crawl.
 - **Stylesheets hosted elsewhere** (a CDN or a font service) are fetched too, because the page's colours and type live in them. Cross-origin requests go without your cookies; same-origin requests use them, as the page itself would.

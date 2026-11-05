@@ -10,9 +10,9 @@ Questa pagina percorre la tela dal primo box a un deck finito: la finestra, la m
 
 La **barra superiore** inizia con **Home**, il **File menu** e il nome del documento (fai clic sul nome per rinominare il documento). Al centro ci sono **Undo**, **Redo**, **History**, i controlli di zoom (con **Fit all** e **Fit artboard**) e gli interruttori per **Timeline**, **Navigator** e **Inspector**. A destra si trovano **Share**, **Present** e **Export**. Su un telefono, i pulsanti meno usati passano in **More actions**.
 
-La **barra degli strumenti** sul lato contiene il menu Lolly e gli strumenti con cui disegni: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, poi i pulsanti Timeline, Artboards e Auto-arrange.
+La **barra degli strumenti** sul lato contiene il menu Lolly e gli strumenti con cui disegni: **Pointer**, **Add a box**, **Pen** (la **Pencil** condivide il suo pulsante), **Edit points**, **Line**, poi i pulsanti Timeline, Artboards e Auto-arrange.
 
-![La barra degli strumenti del canvas libero: una maniglia di trascinamento, il menu Lolly, poi Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards e Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![La barra degli strumenti del canvas libero: una maniglia di trascinamento, il menu Lolly, poi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards e Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 La tela funziona come il banco di lavoro di un designer attorno all'artboard:
 
@@ -79,7 +79,7 @@ Box, cerchi e riquadri arrotondati coprono la maggior parte dei layout. Per ogni
 
 **Continua un tracciato aperto.** Con la Pen attiva, premi su una delle due estremità di un tracciato aperto e disegni di nuovo quel tracciato: ogni clic aggiunge un punto dopo quell'estremità, oppure davanti al primo punto se sei partito dall'inizio. Enter mantiene il risultato ed Escape lascia il tracciato esattamente com'era. Il tracciato resta lo stesso box, con riempimento, tratto e punte di freccia, e un solo annulla lo riporta indietro. Delete annulla solo i punti che hai aggiunto. Una forma chiusa, una linea collegata a un box e un tracciato con più parti non hanno un'estremità libera da cui continuare.
 
-**Disegna a mano libera con la Pencil.** Il pulsante **Pencil** della barra (o `Shift C`) registra il tuo tratto mentre trascini. Quando rilasci, Lolly semplifica il tratto in pochi punti con maniglie di Bezier, mantiene le svolte nette come angoli e tiene la curva entro un paio di pixel dello schermo da dove è passata la tua mano. Un tratto che finisce vicino al suo inizio si chiude. Il risultato è un normale tracciato, con la stessa vernice di un tracciato a penna, e puoi modificarne i punti in seguito.
+**Disegna a mano libera con la Pencil.** Premi `Shift C`, oppure tieni premuto il pulsante **Pen** sulla barra (o fai clic destro sul pulsante) e scegli **Pencil**; il pulsante mostra poi la Pencil finché non scegli di nuovo la Pen. La Pencil registra il tuo tratto mentre trascini. Quando rilasci, Lolly semplifica il tratto in pochi punti con maniglie di Bezier, mantiene le svolte nette come angoli e tiene la curva entro un paio di pixel dello schermo da dove è passata la tua mano. Un tratto che finisce vicino al suo inizio si chiude. Il risultato è un normale tracciato, con la stessa vernice di un tracciato a penna, e puoi modificarne i punti in seguito.
 
 Il risultato è un normale box. Sposta, ridimensiona, ruota, raggruppa, allinea, riordina, riempi, ombreggia o sfuma il tracciato come qualsiasi altro box. Il primo tracciato prende il riempimento e il tratto che il tuo brand assegna a un tracciato, e ogni nuovo tracciato successivo prende ciò che hai usato per ultimo. In uno strumento il cui brand non imposta nulla per i tracciati, un nuovo tracciato viene tracciato nel colore con cui hai disegnato, così la forma non è mai invisibile.
 
@@ -121,6 +121,25 @@ Altre tre operazioni agiscono su una singola forma. **Outline stroke…** trasfo
 ![Una mezzaluna e un anello con un vero foro, entrambi prodotti da Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Il risultato è un nuovo tracciato che puoi continuare a modificare con la penna, memorizzato come semplici curve di Bezier, quindi il tipo di spline originale non viene mantenuto. I fori sono veri fori: il controllo **Fill rule** nel pannello del tratto decide se i contorni sovrapposti si riempiono (*non-zero*) o si bucano (*even-odd*). Le operazioni rifiutano piuttosto che distruggere: se chiedi di intersecare due forme che non si sovrappongono, non cambia nulla. I box di testo e di immagine non hanno un contorno, quindi vengono lasciati stare.
+
+## Traccia un’immagine
+
+Seleziona un’immagine, fai clic con il pulsante destro e scegli **Traccia immagine…** per trasformarla in forme modificabili. Scegli un preset e premi **Traccia**:
+
+- **Logo** trova pochi colori piatti e mantiene bordi nitidi, cerchi e linee precisi. Rifiuta un’immagine con sfumature o toni fotografici e te lo dice.
+- **Illustrazione** traccia più colori come forme piene, per grafiche piatte o immagini posterizzate.
+- **Disegno al tratto** traccia le linee scure su una pagina chiara come forme nere.
+- **Linea centrale** traccia le linee scure come singoli contorni, così puoi cambiarne lo spessore in seguito.
+
+Le forme vengono aggiunte come gruppo subito sopra l’immagine, che resta dov’è. Nascondi o elimina l’immagine per vedere solo i tracciati. Il tracciamento viene eseguito sul tuo dispositivo in un processo in background con un pulsante Annulla, e non viene caricato nulla. Un’immagine di 1500 pixel richiede di solito da uno a qualche secondo, mentre una fotografia complessa richiede di più.
+
+Il tracciamento segue ciò che mostra il riquadro, quindi un’immagine ritagliata (Cover) traccia solo la parte visibile. Valgono questi limiti:
+
+- Le immagini vengono ridotte a un massimo di 1500 pixel sul lato lungo prima del tracciamento, quindi i bordi sono posizionati con la precisione di quella dimensione, non dell’originale.
+- Un tracciamento crea al massimo 1.500 forme e 60.000 punti. Una fotografia di solito supera questi limiti e Design te lo dice senza modificare nulla. Prova Logo o Disegno al tratto, oppure un’immagine più semplice.
+- Le sfumature diventano bande di colore piatto e le ombre morbide diventano forme dai bordi netti.
+- Raggio degli angoli, maschera di forma ed effetti sul riquadro dell’immagine non vengono applicati ai tracciati.
+- La stessa immagine e lo stesso preset danno sempre le stesse forme.
 
 ## Tratti
 
@@ -195,9 +214,9 @@ Dove esiste un suggerimento concreto di colore o font, il suo pulsante cambia qu
 
 ### Regole di stile e segnale di scrittura
 
-La scheda del pannello di esportazione controlla anche le regole di stile che il tuo design system porta con sé, come peso e allineamento del testo, abbinamenti di colore approvati o un logo per superficie, livello per livello. Ogni rilievo è un avviso con il nome del livello sopra la regola. Una regola per cui questa build non ha un controllo è elencata come non controllata, mai come rispettata. [Usage & rules](/info/brand-studio.html#usage-rules) elenca le regole, e `lolly check` applica le stesse a un documento salvato.
+La scheda del pannello di esportazione controlla anche le regole di stile che il tuo design system porta con sé, come peso e allineamento del testo, abbinamenti di colore approvati o un logo per superficie, livello per livello. Ogni rilievo è un avviso con il nome del livello sopra la regola. Una regola per cui questa build non ha un controllo è elencata come non controllata, mai come rispettata. [Rules](/info/brand-studio.html#rules) elenca le regole, e `lolly check` applica le stesse a un documento salvato.
 
-La stessa scheda mostra il segnale di scrittura per il testo che il documento disegna: la sua fascia (nessuno, debole, notevole o forte), poi la frase di Verify con il punteggio su 100 e fino a tre frasi segnalate, ciascuna con il livello che le contiene. **Open the text in Verify** porta quel testo a [Verify](/#/verify) per la lettura completa; [AI evidence in Verify](/info/verify-ai-evidence.html) spiega cosa pesa il punteggio. Il punteggio è un segnale, non un verdetto: conta schemi comuni nella scrittura generata e non può dire chi ha scritto le parole. I livelli nascosti sono esclusi da entrambi i controlli, e la scheda dice quanti sono.
+La stessa scheda mostra il segnale di scrittura per il testo che il documento disegna: la sua fascia (nessuno, debole, notevole o forte), poi la frase di Verify con il punteggio su 100 e fino a tre frasi segnalate, ciascuna con il livello che le contiene. **Open the text in Verify** porta quel testo a [Lolly Verify](/#/verify) per la lettura completa; [AI evidence in Verify](/info/verify-ai-evidence.html) spiega cosa pesa il punteggio. Il punteggio è un segnale, non un verdetto: conta schemi comuni nella scrittura generata e non può dire chi ha scritto le parole. I livelli nascosti sono esclusi da entrambi i controlli, e la scheda dice quanti sono.
 
 I rilievi sulle regole di stile e un segnale di scrittura forte contano nel totale "to fix" della scheda, così sono facili da trovare. Informano e non bloccano mai: Download resta disponibile, e non c'è nulla da ignorare né da registrare come eccezione. Un agente che lavora nel documento aperto riceve lo stesso report tramite i suoi strumenti del sito ([Agents in an open document](/info/open-document-agents.html)).
 

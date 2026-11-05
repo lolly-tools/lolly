@@ -155,10 +155,11 @@
     ],
     "InDesign": [
       "Reads .idml markup export",
+      "Named styles, master items and tables carry over",
       "Text stays editable",
       "Images extracted",
       "Brand-conformed editable session",
-      "Writes .idml from a Design document: one page per artboard"
+      "Writes .idml from a Lolly Design document: one page per artboard"
     ],
     "Figma": [
       "Decodes .fig entirely in-browser",
@@ -231,9 +232,10 @@
     ],
     "MIDI": [
       "Score, not a recording",
-      "Rendered to on-device synth track",
+      "Rendered to on-device synth track, velocity kept as loudness",
       "Note & step counts capped",
-      "Import-only music bed"
+      "Written by Lolly Rondocode: notes, velocities, GM instruments",
+      "Synth settings, effects and samples are not in the file"
     ],
     "MOD": [
       "Tracker module with sample patterns",
@@ -287,6 +289,7 @@
       "Text outlined to paths",
       "Nearest AutoCAD Color Index (ACI)",
       "Line-art only, rasters dropped",
+      "Reads ASCII and binary DXF (R12 to 2018) into Lolly Design",
       "Records its source (999 comment)"
     ],
     "CMYK TIFF": [
@@ -425,8 +428,10 @@
       "WOFF2 (Brotli) is read-detected but not written"
     ],
     "XLSX": [
-      "Reads the first worksheet, resolved through workbook.xml order",
+      "Reads one worksheet: the first in workbook.xml order by default, or the one you choose by name or position",
+      "Number formats apply: dates in the 1900 and 1904 systems, currency, percentages, fractions, conditional and text sections",
       "Shared strings, inline text, numbers, booleans and formula results resolve",
+      "Formulas saved without a result are worked out (about 510 functions); formulas that have a result keep it",
       "Up to 1,000 rows; macro-enabled .xlsm is refused; import-only"
     ],
     "GZ": [
@@ -463,15 +468,25 @@
       "Plays in an HTML video track element",
       "On the way in, cue settings and inline tags are dropped and NOTE and STYLE blocks skipped"
     ],
+    "TTML": [
+      "IMSC1.1 Text Profile with media-time clock times",
+      "One bottom-centre region, no per-caption styling",
+      "Written from the Captions tool; the engine also reads TTML1 and TTML2"
+    ],
+    "SCC": [
+      "CEA-608 pop-on captions on channel 1 at 29.97 fps, drop-frame timecode",
+      "Characters outside the 608 set refuse the write",
+      "Not yet checked against a real broadcast tool"
+    ],
     "STL": [
       "Triangle mesh, geometry only",
       "Read on device, never uploaded",
-      "Rendered by 3D Studio as a still or turntable"
+      "Rendered by Lolly 3D Studio as a still or turntable"
     ],
     "3MF": [
       "Zipped 3D-printing package",
       "Read on device, never uploaded",
-      "Rendered by 3D Studio as a still or turntable"
+      "Rendered by Lolly 3D Studio as a still or turntable"
     ],
     "RPM": [
       "RPM v4, noarch, unsigned",
@@ -479,6 +494,42 @@
       "Brand fonts as a font package",
       "lolly pack and lolly icons in the terminal",
       "Byte-identical output for the same input"
+    ],
+    "EDL": [
+      "Reads CMX 3600 events: cuts, record and source timecode",
+      "Drop-frame and non-drop timecode at 29.97 and 59.94",
+      "Audio channels, FROM CLIP NAME and SOURCE FILE comments",
+      "Rate chosen by you; up to 10,000 events"
+    ],
+    "OpenTimelineIO": [
+      "Reads .otio JSON: tracks, clips, gaps and source ranges",
+      "Clips at different rates on one timeline",
+      "Reports transitions, nesting, effects and speed changes",
+      "Up to 10,000 clips and 128 tracks"
+    ],
+    "FCPXML": [
+      "Reads versions 1.8 to 1.11, one sequence",
+      "Primary storyline, connected clips on lanes and gaps",
+      "Drop-frame timecode and mixed media rates",
+      "Reports compound clips, titles, transitions, effects and retiming"
+    ],
+    "MXF": [
+      "Names codec, size, rate and timecode",
+      "OP1a and OP-Atom headers read",
+      "Identified, decoded by the device where available",
+      "Original file kept as-is"
+    ],
+    "ProRes": [
+      "Profile named: Proxy to 4444 XQ",
+      "No ProRes decoder bundled",
+      "Identified, decoded by the device where available",
+      "Original file kept as-is"
+    ],
+    "DNx": [
+      "DNxHD ID or DNxHR profile named",
+      "No DNx decoder bundled",
+      "Identified, decoded by the device where available",
+      "Original file kept as-is"
     ]
   },
   "_unsupported_note": "Known gaps per format token, shown in the dialog under 'Not yet supported'. Editorial and accurate, not exhaustive: seed only what is genuinely true today. A format with no entry shows no gap list. Expand this during the format-support roadmap review.",
@@ -508,7 +559,8 @@
       "WOFF2 (Brotli) is read-detected but not written"
     ],
     "XLSX": [
-      "First worksheet only",
+      "Number formats follow US English: locale-specific formats show the stored value",
+      "A formula with a saved result keeps that result; only formulas saved without one are worked out, and array formulas, data tables and table or workbook references are not",
       "Import-only (round-trip out via CSV/JSON)"
     ],
     "InDesign": [
@@ -528,6 +580,18 @@
     "RPM": [
       "No GPG signature: sign the package with rpmsign before publishing it to a repository",
       "Data packages only (noarch); no compiled programs"
+    ],
+    "EDL": [
+      "Import only: Lolly does not write an EDL",
+      "Dissolves and wipes import as cuts; speed changes play at normal speed"
+    ],
+    "OpenTimelineIO": [
+      "Import only: Lolly does not write .otio",
+      "Nested stacks, transitions, effects and speed changes are not applied"
+    ],
+    "FCPXML": [
+      "Import only: Lolly does not write FCPXML",
+      "Compound and multicam clips, titles, transitions and effects are not applied"
     ]
   },
   "formats": [
@@ -755,7 +819,7 @@
         "lossless",
         "lossy"
       ],
-      "desc": "A still-image format with lossy and lossless coding. Lolly keeps imported originals and prepares an oriented 8-bit sRGB view for editing, including an SDR view of deeper or HDR sources. New renders encode those 8-bit pixels. Convert can also wrap an original JPEG and restore its complete bytes, including metadata, after verification. Animation and extra channels are refused. JPEG XL output does not carry signed Content Credentials.",
+      "desc": "A still-image format with lossy and lossless coding. Lolly keeps imported originals and prepares an oriented 8-bit sRGB view for editing, including an SDR view of deeper or HDR sources. New renders encode those 8-bit pixels. Lolly Convert can also wrap an original JPEG and restore its complete bytes, including metadata, after verification. Animation and extra channels are refused. JPEG XL output does not carry signed Content Credentials.",
       "metadata": {
         "reads": [
           "xmp"
@@ -843,7 +907,7 @@
         "audio",
         "lossy"
       ],
-      "desc": "The everywhere audio format for music and voice: compressed to a small file that plays in any app or device. Lolly's Voice Recorder saves your mic take as MP3 by default (transcoded on your device), and MP3 audio you bring in can become the music bed under a video.",
+      "desc": "The everywhere audio format for music and voice: compressed to a small file that plays in any app or device. Lolly's Lolly Voice Recorder saves your mic take as MP3 by default (transcoded on your device), and MP3 audio you bring in can become the music bed under a video.",
       "metadata": {
         "reads": [],
         "writes": [
@@ -865,7 +929,7 @@
         "lossy",
         "provenance"
       ],
-      "desc": "An audio-only MP4 file, usually holding AAC-encoded sound, the format Apple devices and many browsers record natively. It sounds a little better than MP3 at the same size. Lolly's Voice Recorder can save your take as M4A, and imported M4A audio can drive a video's music bed. As an MP4-family file it carries a Content Credential over the same binding as MP4 - so a synthetic or AI-voiced clip stays attributable.",
+      "desc": "An audio-only MP4 file, usually holding AAC-encoded sound, the format Apple devices and many browsers record natively. It sounds a little better than MP3 at the same size. Lolly's Lolly Voice Recorder can save your take as M4A, and imported M4A audio can drive a video's music bed. As an MP4-family file it carries a Content Credential over the same binding as MP4 - so a synthetic or AI-voiced clip stays attributable.",
       "metadata": {
         "reads": [
           "xmp"
@@ -933,7 +997,7 @@
         "animation",
         "provenance"
       ],
-      "desc": "The course-package format every learning management system imports: Moodle, Canvas, Blackboard, SAP SuccessFactors and the rest. From a Design deck, Lolly writes a zip with the SCORM 1.2 manifest every LMS imports, a launch page that steps through the slides and reports completion to the LMS, the slides themselves (as vector where the artboards allow it), and the narrated film with its caption track - speaker notes read by an on-device voice. Export-only, and built in the browser: the desktop and web apps make it, the CLI does not.",
+      "desc": "The course-package format every learning management system imports: Moodle, Canvas, Blackboard, SAP SuccessFactors and the rest. From a Lolly Design deck, Lolly writes a zip with the SCORM 1.2 manifest every LMS imports, a launch page that steps through the slides and reports completion to the LMS, the slides themselves (as vector where the artboards allow it), and the narrated film with its caption track - speaker notes read by an on-device voice. Export-only, and built in the browser: the desktop and web apps make it, the CLI does not.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -986,7 +1050,7 @@
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "The export bundle from Penpot, the open-source design tool. It imports as an editable Lolly session with text and shapes intact, and Lolly writes one back: a Design's frames become boards, boxes become editable shapes and text, any other tool's vector render becomes shapes or one picture, and the brand's colours, typographies and design tokens ride inside the file. Penpot is where brand tokens round-trip both ways, since Lolly's palette uses the same DTCG design-token format Penpot reads and writes natively.",
+      "desc": "The export bundle from Penpot, the open-source design tool. It imports as an editable Lolly session with text and shapes intact, and Lolly writes one back: a Lolly Design's frames become boards, boxes become editable shapes and text, any other tool's vector render becomes shapes or one picture, and the brand's colours, typographies and design tokens ride inside the file. Penpot is where brand tokens round-trip both ways, since Lolly's palette uses the same DTCG design-token format Penpot reads and writes natively.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1024,7 +1088,7 @@
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). Lolly can't read a raw .indd, but InDesign's File → Export → InDesign Markup gives an .idml that comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. Lolly writes one back from a Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
+      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). An .idml from InDesign's File → Export → InDesign Markup comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. Named paragraph, character and object styles, master page items and tables carry over, and the import report lists what was approximated or dropped. A native .indd or .indt is converted to IDML on the device first, as a preview, up to 128 MB. Lolly writes one back from a Lolly Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1051,6 +1115,26 @@
       }
     },
     {
+      "token": "Affinity",
+      "name": "Affinity",
+      "full": "Affinity documents (.af, .afdesign, .afphoto, .afpub)",
+      "category": "Vector",
+      "dir": "in",
+      "features": [
+        "vector",
+        "layers",
+        "editable-text",
+        "embeds-bitmaps"
+      ],
+      "desc": "Native Affinity files: .af from Affinity 3 and .afdesign, .afphoto and .afpub from Affinity 1 and 2. They open in Lolly Design on the device, in the browser and in the command line, with no upload and no Affinity software. Each artboard (or page) becomes a frame; groups, rectangles, curves, text, tables and pictures become editable layers, and effects, adjustments and anything approximated are listed in the import report. If the layers cannot be read, Affinity's own embedded preview opens as one picture instead. Import only, up to 96 MB; the layout was learned without a published specification, so a file from an untested Affinity build can fall back to its preview.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Document metadata, such as the folder a file was saved in or user names, is never imported."
+      }
+    },
+    {
       "token": "HEIC",
       "name": "HEIC",
       "full": "High Efficiency Image Container (HEIF)",
@@ -1069,6 +1153,46 @@
         "writes": [],
         "preserves": "n/a",
         "note": "The HEIF Exif and XMP items are read (authorship, capture data, GPS) - the source of the image converter's carry for iPhone photos. Lolly does not write HEIC."
+      }
+    },
+    {
+      "token": "DNG",
+      "name": "DNG",
+      "full": "Digital Negative (Adobe DNG)",
+      "category": "Raster",
+      "dir": "in",
+      "features": [
+        "raster",
+        "deep-color"
+      ],
+      "desc": "The open raw photo format from Adobe, and the one many phones and cameras write when they shoot raw. Lolly develops a DNG on your device with the colour matrices stored in the file, so the colour is exact rather than guessed. It reads uncompressed, Deflate, lossless JPEG and lossy JPEG DNG, Bayer and three-colour sensors, white balance, baseline exposure, crop and orientation, then stores a normal picture that opens in Lolly Darkroom and every other photo tool. It's import-only, up to 192 MB and about 50 megapixels in the 512 MB the decoder is allowed. The raw file itself is not kept, and a DNG that uses JPEG XL compression is not supported.",
+      "metadata": {
+        "reads": [
+          "exif"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Camera, lens settings and capture time are read for the import report. The developed picture is stored without them. Lolly does not write DNG."
+      }
+    },
+    {
+      "token": "Camera RAW",
+      "name": "Camera RAW",
+      "full": "Camera raw files (CR2, CR3, NEF, ARW, RAF, ORF, RW2, PEF)",
+      "category": "Raster",
+      "dir": "in",
+      "features": [
+        "raster",
+        "deep-color"
+      ],
+      "desc": "The raw files from Canon, Nikon, Sony, Fujifilm, Olympus, Panasonic and Pentax cameras. Lolly develops CR2, NEF, ARW, ORF, RW2 and uncompressed RAF files on your device and stores a normal picture. These formats carry no colour matrices, so the colour is approximate: Lolly fits it to the JPEG the camera embedded in the same file, labels the result \"approximate colour\" in the import report, and says how close the fit is. Variants it cannot decode, such as Canon CR3 and sRAW, compressed RAF and compressed PEF, open the camera's embedded JPEG preview instead, also labelled. It's import-only, up to 192 MB and about 50 megapixels. The raw file itself is not kept.",
+      "metadata": {
+        "reads": [
+          "exif"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Camera and exposure details are read for the import report. The developed picture is stored without them. Lolly does not write camera raw formats."
       }
     },
     {
@@ -1130,6 +1254,63 @@
       }
     },
     {
+      "token": "MXF",
+      "name": "MXF",
+      "full": "Material Exchange Format",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "desc": "The broadcast and post-production container used by cameras, Avid and archives. Lolly reads the header (SMPTE 377, OP1a and OP-Atom) to find the picture codec, size, frame rate, start timecode and sound tracks, and keeps the original file as it is. It is identified, decoded by the device where available: no browser plays MXF, so Lolly says what the file holds and asks for an H.264, HEVC or AV1 copy from your editing app. It comes in but isn't a Lolly export format.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "ProRes",
+      "name": "Apple ProRes",
+      "full": "Apple ProRes (in a MOV)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "desc": "Apple's editing codec, in a QuickTime MOV. Lolly reads the profile (Proxy, LT, 422, 422 HQ, 4444, 4444 XQ) from the file header and ships no ProRes decoder of its own. It is identified, decoded by the device where available: Safari and the Lolly desktop app on a Mac open it with Apple's own decoder. Elsewhere Lolly keeps the original and suggests an H.264, HEVC or AV1 copy. It comes in but isn't a Lolly export format.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
+      "token": "DNx",
+      "name": "Avid DNxHD / DNxHR",
+      "full": "Avid DNxHD and DNxHR (VC-3)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "desc": "Avid's editing codec (SMPTE VC-3), in an MXF or MOV. Lolly reads the DNxHD compression ID or DNxHR profile from the file header and ships no DNx decoder of its own. It is identified, decoded by the device where available; most devices have no DNx decoder, so Lolly keeps the original and suggests an H.264, HEVC or AV1 copy from your editing app. It comes in but isn't a Lolly export format.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Only the container headers are read, for the codec, size, rate and timecode. No metadata is read from or written to the file."
+      }
+    },
+    {
       "token": "Lottie",
       "name": "Lottie",
       "full": "Lottie / Bodymovin Animation",
@@ -1158,12 +1339,66 @@
         "audio",
         "multi-file-bundle"
       ],
-      "desc": "The XML sequence format Adobe Premiere Pro reads and writes for moving an edit between apps. Lolly opens a sequence.xml, or a zip holding one with its Media folder, as a timed Design sequence, relinking the media you select or leaving labelled placeholders. From a Design sequence of unprocessed video, audio and image clips, Lolly writes a zip with sequence.xml, the original media bytes and readable credits, on the web and in the CLI. Titles, effects and anything else that needs rendering go out as video instead.",
+      "desc": "The XML sequence format Adobe Premiere Pro reads and writes for moving an edit between apps. Lolly opens a sequence.xml, or a zip holding one with its Media folder, as a timed Lolly Design sequence, relinking the media you select or leaving labelled placeholders. From a Design sequence of unprocessed video, audio and image clips, Lolly writes a zip with sequence.xml, the original media bytes and readable credits, on the web and in the CLI. Titles, effects and anything else that needs rendering go out as video instead.",
       "metadata": {
         "reads": [],
         "writes": [],
         "preserves": "none",
         "note": "sequence.xml carries the sequence name and clip timing, not document metadata. When the export has metadata, it travels as lolly-metadata.json inside the package."
+      }
+    },
+    {
+      "token": "EDL",
+      "name": "EDL",
+      "full": "CMX 3600 edit decision list (.edl)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "desc": "The plain-text cut list that editing and grading apps trade. Lolly opens a CMX 3600 EDL in Sequence with its clips, gaps, In and Out points, drop-frame or non-drop timecode and audio channels. A list carries no frame rate, so Lolly asks for one (or assumes 29.97 for drop-frame lists and 24 otherwise) and reports the assumption. Dissolves, wipes, speed changes, locators and colour decisions are listed in the import report rather than applied.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The list names reels and timecode only. Media is relinked by the file you select or left as labelled placeholders."
+      }
+    },
+    {
+      "token": "OpenTimelineIO",
+      "name": "OpenTimelineIO",
+      "full": "OpenTimelineIO timeline (.otio)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "desc": "The Academy Software Foundation's open timeline format, as JSON. Lolly opens an .otio timeline in Sequence with its video and audio tracks, clips, gaps, source ranges, rates and start time, including clips at different rates on one timeline. Transitions, nested stacks, effects and speed changes are listed in the import report rather than applied.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Reads the JSON schema as plain data and never runs a plugin or adapter. Media paths come from the ExternalReference target."
+      }
+    },
+    {
+      "token": "FCPXML",
+      "name": "FCPXML",
+      "full": "Final Cut Pro XML, versions 1.8 to 1.11 (.fcpxml)",
+      "category": "Motion",
+      "dir": "in",
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "desc": "Final Cut Pro's own interchange format, also written by DaVinci Resolve and others. Lolly opens an .fcpxml in Sequence with the primary storyline, connected clips on their lanes, gaps, source ranges, rational rates and drop-frame timecode, including media at different rates. Compound and multicam clips, titles, transitions, effects and retiming are listed in the import report rather than applied.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Reads one sequence from a plain .fcpxml file; the .fcpxmld bundle is not read. Media comes from the asset sources."
       }
     },
     {
@@ -1255,16 +1490,17 @@
       "name": "MIDI",
       "full": "Musical Instrument Digital Interface (.mid)",
       "category": "Audio",
-      "dir": "in",
+      "dir": "both",
       "features": [
         "audio",
         "sequenced"
       ],
-      "desc": "Not a recording but a score: MIDI stores which notes to play and when, so the file is tiny and the sound is produced on playback. Lolly converts an imported .mid into a small on-device synth track you can use as a music bed, capping note and step counts so a pathological file can't hang the tab.",
+      "desc": "Not a recording but a score: MIDI stores which notes to play and when, so the file is tiny and the sound is produced on playback. Lolly converts an imported .mid into a small on-device synth track you can use as a music bed, keeping each note's velocity as its loudness and capping note and step counts so a pathological file can't hang the tab. Lolly Rondocode writes a song's notes as a format-1 .mid with one track per synth, velocities, and General MIDI instruments where a synth's name maps to one.",
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a"
+        "preserves": "none",
+        "note": "A Standard MIDI File has no place for a Content Credential, so Lolly Rondocode writes a text event naming the song instead. Importing a .mid never rewrites it: the original bytes are kept."
       }
     },
     {
@@ -1325,7 +1561,7 @@
       "features": [
         "3d"
       ],
-      "desc": "The plain triangle-mesh format of 3D printing and CAD, with geometry only and no colour or texture. 3D Studio loads your own .stl on your device, never uploaded, to render as a still or a turntable. An input for 3D Studio, not a Lolly export format.",
+      "desc": "The plain triangle-mesh format of 3D printing and CAD, with geometry only and no colour or texture. Lolly 3D Studio loads your own .stl on your device, never uploaded, to render as a still or a turntable. An input for Lolly 3D Studio, not a Lolly export format.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1341,7 +1577,7 @@
       "features": [
         "3d"
       ],
-      "desc": "The zipped XML successor to STL that 3D-printing tools use, able to carry colour and several objects in one file. 3D Studio loads your own .3mf on your device, never uploaded, to render as a still or a turntable. An input for 3D Studio, not a Lolly export format.",
+      "desc": "The zipped XML successor to STL that 3D-printing tools use, able to carry colour and several objects in one file. Lolly 3D Studio loads your own .3mf on your device, never uploaded, to render as a still or a turntable. An input for Lolly 3D Studio, not a Lolly export format.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1436,18 +1672,18 @@
       "name": "DXF",
       "full": "Drawing Exchange Format",
       "category": "Vector",
-      "dir": "out",
+      "dir": "both",
       "features": [
         "vector",
         "text-as-paths",
         "print"
       ],
-      "desc": "The file a cutting machine reads: laser cutters, vinyl plotters and CNC/CAD software all speak DXF. Lolly writes outline paths in real millimetres (curves smoothed to a fine tolerance, text outlined, colours mapped to the nearest AutoCAD Color Index that usually picks the cutting operation). It's line-art only, so photographic or filtered regions are dropped with a warning.",
+      "desc": "The file a cutting machine reads: laser cutters, vinyl plotters and CNC/CAD software all speak DXF. Lolly also opens DXF floor plans and drawings in Lolly Design: each layer becomes a group of line and curve paths with text as text boxes, scaled from the file's own units, and the import report lists external references, paper space, SHX fonts and anything not drawn. Lolly writes outline paths in real millimetres (curves smoothed to a fine tolerance, text outlined, colours mapped to the nearest AutoCAD Color Index that usually picks the cutting operation). It's line-art only, so photographic or filtered regions are dropped with a warning.",
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a",
-        "note": "A 999 comment names Lolly."
+        "preserves": "none",
+        "note": "A 999 comment names Lolly on export. An import reads layers, units and text and drops other record data."
       }
     },
     {
@@ -1735,6 +1971,40 @@
       }
     },
     {
+      "token": "TTML",
+      "name": "TTML",
+      "full": "Timed Text Markup Language (IMSC1.1)",
+      "category": "Data",
+      "dir": "out",
+      "features": [
+        "editable-text"
+      ],
+      "desc": "The XML caption format broadcasters and streaming services deliver, written as the IMSC1.1 Text Profile with media-time clock times and one bottom-centre region. The Captions tool exports its cues as .ttml. Colour, font and position are not written, because Lolly's captions hold a start, an end and text. The engine can also read TTML1 and TTML2 files, honouring begin, end and dur on the body, div and p elements, but the Captions tool does not take a .ttml through Add data yet.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "A TTML file from Lolly is cues and text only, with no metadata block."
+      }
+    },
+    {
+      "token": "SCC",
+      "name": "SCC",
+      "full": "Scenarist Closed Caption",
+      "category": "Data",
+      "dir": "out",
+      "features": [
+        "editable-text"
+      ],
+      "desc": "The text file that carries CEA-608 closed captions for broadcast tools. The Captions tool writes pop-on captions on channel 1 at 29.97 fps with drop-frame timecode, using the basic North American characters plus the special and extended ones. A character the set cannot carry stops the export and is named in the message, never dropped. Roll-up and paint-on captions are not written. This writer has not been checked against a real broadcast tool, so test a file in your own pipeline before delivery.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "An SCC file is caption control codes and text only, with no metadata block."
+      }
+    },
+    {
       "token": "DTCG",
       "name": "DTCG",
       "full": "W3C Design Tokens",
@@ -1979,7 +2249,7 @@
       "features": [
         "data-table"
       ],
-      "desc": "Excel's spreadsheet workbook. Drop one and a tool's repeating fields fill from its first sheet, up to 1,000 rows, exactly like a pasted CSV with the first row becoming the column headers. Lolly reads the cells directly (shared strings, inline text, numbers, dates and formula results). Macro-enabled .xlsm workbooks are refused. Import-only.",
+      "desc": "Excel's spreadsheet workbook. Drop one and a tool's repeating fields fill from a sheet you can choose (the first by default), up to 1,000 rows, exactly like a pasted CSV with the first row becoming the column headers. Lolly reads the cells directly (shared strings, inline text, numbers, dates and formula results) and applies their number formats, so dates, currency, percentages and fractions arrive as Excel shows them. A formula the file saved no result for, as files written by libraries often are, is worked out on your device; every other formula keeps the value it was saved with. Macro-enabled .xlsm workbooks are refused. Import-only.",
       "metadata": {
         "reads": [],
         "writes": [],

@@ -11,7 +11,8 @@ import { imageDimensions } from './penpot-file.ts';
 import { lottieImageMime, readLottie, selectLottie, writeDotLottie } from './dotlottie.ts';
 import { compileLottieSequence, lottieStatic as fixed, type LottieSequenceLayer } from './lottie-sequence.ts';
 import { animateLottieLook } from './lottie-look.ts';
-import { parseKf } from './keyframes.ts';
+import { parseKf, withKfEaseTokens } from './keyframes.ts';
+import { motionEaseMap, readHostMotionTokens } from './motion-tokens.ts';
 import { applyLottieEdits } from './lottie-edit.ts';
 import { attributionCompanion } from './rights-attribution.ts';
 import { checkCompanionReadback } from './rights-companion.ts';
@@ -57,6 +58,12 @@ export async function exportDesignLottie(opts: ExportOpts & { fps?: number }, ho
   const durationMs = finite.length ? Math.max(...finite.map(box => start(box) + Math.round(clamp(num(box.dur), 0.1, 3600) * 1000))) : 5000;
   const layers: LottieSequenceLayer[] = [];
   const fps = num(opts.fps, num(values.projectFps, 30));
+  // A keyframe bound to a design-system curve or spring plays the token's value NOW
+  // (plans/329). The host's tokens are installed only around the synchronous compile
+  // steps below, so nothing else evaluating meanwhile sees them; a host with no token
+  // API keeps whatever its shell installed.
+  const motion = await readHostMotionTokens(host);
+  const eased = <T>(fn: () => T): T => (motion ? withKfEaseTokens(motionEaseMap(motion), fn) : fn());
   const background = opts.background === 'transparent' || yes(values.transparentBg) ? null : await paint(frame?.bg ?? values.background, host);
   if (background) layers.push({ name: 'Background', x: 0, y: 0, w: width, h: height, rotation: 0, opacity: 1, startMs: 0, durationMs,
     content: { kind: 'shape', shapes: [{ ty: 'rc', p: fixed([width / 2, height / 2]), s: fixed([width, height]), r: fixed(0) }, { ty: 'fl', c: fixed(background), o: fixed(background[3]! * 100), r: 1 }] } });
@@ -93,16 +100,16 @@ export async function exportDesignLottie(opts: ExportOpts & { fps?: number }, ho
       layer.x = op.box.x; layer.y = op.box.y; layer.w = op.box.w; layer.h = op.box.h;
       layer.rotation = op.pose?.rot ?? 0; layer.opacity = op.opacity / 100;
       // Keyed fill, stroke, stroke width, corner radius and trim (plans/328), as native animated shape properties.
-      layer.content = { kind: 'shape', shapes: animateLottieLook(designDrawLottie(op), {
+      layer.content = { kind: 'shape', shapes: eased(() => animateLottieLook(designDrawLottie(op), {
         name: layer.name, track: parseKf(layer.kf), startMs: layer.startMs, durationMs: layer.durationMs, fps,
         w: layer.w, h: layer.h, shape: box.kind === 'path' ? 'path' : String(box.shape ?? ''),
         radius: String(box.shape ?? '') === 'rounded' ? Math.max(0, num(box.radius, 16)) : 0,
         strokeWidth: op.stroke?.width ?? 0,
-      }) };
+      })) };
     }
     layers.push(layer);
   }
-  let animation = compileLottieSequence({ width, height, fps, durationMs, layers });
+  let animation = eased(() => compileLottieSequence({ width, height, fps, durationMs, layers }));
   const range = sequenceRange(parseSequenceMarks(values.sequenceMarks), durationMs);
   if (range.fromMs || range.toMs < durationMs) animation = compileLottieSequence({ width, height, fps, durationMs: range.toMs - range.fromMs, layers: [{ name: 'Sequence range', x: 0, y: 0, w: width, h: height, rotation: 0, opacity: 1, startMs: 0, durationMs: range.toMs - range.fromMs, content: { kind: 'animation', animation, clipInMs: range.fromMs, speed: 1, fit: 'contain' } }] });
   const extras = opts.rights ? attributionCompanion(opts.rights.plan).files.map(file => ({ name: file.name, bytes: new TextEncoder().encode(file.text) })) : [];

@@ -10,9 +10,9 @@ Ta strona prowadzi przez kanwę od pierwszego boksu do gotowej prezentacji: okno
 
 **Górny pasek** zaczyna się od **Home**, **File menu** i nazwy dokumentu (kliknij nazwę, aby zmienić nazwę dokumentu). Środek zawiera **Undo**, **Redo**, **History**, kontrolki powiększenia (z **Fit all** i **Fit artboard**) oraz przełączniki **Timeline**, **Navigator** i **Inspector**. Po prawej są **Share**, **Present** i **Export**. Na telefonie rzadziej używane przyciski przechodzą do **More actions**.
 
-**Szyna narzędzi** z boku zawiera menu Lolly i narzędzia do rysowania: **Pointer**, **Add a box**, **Pen**, **Ołówek**, **Edit points**, **Line**, a potem przyciski Timeline, Artboards i Auto-arrange.
+**Szyna narzędzi** z boku zawiera menu Lolly i narzędzia do rysowania: **Pointer**, **Add a box**, **Pen** (jego przycisk dzieli **Ołówek**), **Edit points**, **Line**, a potem przyciski Timeline, Artboards i Auto-arrange.
 
-![Listwa narzędzi wolnej kanwy: uchwyt do przeciągania, menu Lolly, dalej Pointer, Add a box, Pen, Ołówek, Edit points, Line, Timeline, Artboards i Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Listwa narzędzi wolnej kanwy: uchwyt do przeciągania, menu Lolly, dalej Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards i Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Kanwa działa jak stół projektanta wokół obszaru roboczego:
 
@@ -79,7 +79,7 @@ Boksy, koła i zaokrąglone ramki pokrywają większość układów. Dla każdeg
 
 **Kontynuuj otwartą ścieżkę.** Przy włączonym Pen naciśnij jeden z końców otwartej ścieżki, a znów rysujesz tę ścieżkę: każde kliknięcie dodaje punkt za tym końcem lub przed pierwszym punktem, jeśli zacząłeś od początku. Enter zachowuje wynik, a Escape zostawia ścieżkę dokładnie taką, jaka była. Ścieżka pozostaje tym samym boksem, z wypełnieniem, obrysem i grotami, a jedno cofnięcie przywraca ją. Delete cofa tylko dodane przez Ciebie punkty. Zamknięty kształt, linia przypięta do boksu i ścieżka z kilkoma częściami nie mają wolnego końca do kontynuowania.
 
-**Rysuj odręcznie Ołówkiem.** Przycisk **Ołówek** na szynie (lub `Shift C`) zapisuje Twoją kreskę podczas przeciągania. Gdy puścisz, Lolly wygładza kreskę do kilku punktów z uchwytami Beziera, zachowuje ostre zakręty jako rogi i trzyma krzywą w granicach kilku pikseli ekranu od miejsca, którędy poszła Twoja ręka. Kreska kończąca się blisko początku zamyka się. Wynikiem jest zwykła ścieżka, z takim samym wypełnieniem jak ścieżka z Pen, i możesz potem edytować jej punkty.
+**Rysuj odręcznie Ołówkiem.** Naciśnij `Shift C` albo naciśnij i przytrzymaj przycisk **Pen** na szynie (lub kliknij go prawym przyciskiem) i wybierz **Ołówek**; przycisk pokazuje potem Ołówek, dopóki znowu nie wybierzesz Pen. Ołówek zapisuje Twoją kreskę podczas przeciągania. Gdy puścisz, Lolly wygładza kreskę do kilku punktów z uchwytami Beziera, zachowuje ostre zakręty jako rogi i trzyma krzywą w granicach kilku pikseli ekranu od miejsca, którędy poszła Twoja ręka. Kreska kończąca się blisko początku zamyka się. Wynikiem jest zwykła ścieżka, z takim samym wypełnieniem jak ścieżka z Pen, i możesz potem edytować jej punkty.
 
 Wynik jest zwykłym boksem. Przesuwaj, zmieniaj rozmiar, obracaj, grupuj, wyrównuj, zmieniaj kolejność, wypełniaj, cieniuj lub wyblaszczaj ścieżkę jak każdy inny box. Pierwsza ścieżka dostaje wypełnienie i obrys, które Twoja marka nadaje ścieżce, a każda następna dostaje to, czego ostatnio użyłeś. W narzędziu, w którym marka nie ustawia niczego dla ścieżek, nowa ścieżka jest obrysowana kolorem, którym rysowałeś, więc kształt nigdy nie jest niewidoczny.
 
@@ -121,6 +121,25 @@ Trzy kolejne działają na pojedynczym kształcie. **Outline stroke…** zamieni
 ![Półksiężyc i pierścień z prawdziwym otworem, oba utworzone przez Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Wynik to nowa ścieżka, którą możesz dalej edytować piórem, zapisana jako zwykłe krzywe Beziera, więc pierwotny typ splajnu się nie przenosi. Otwory są prawdziwymi otworami: kontrolka **Fill rule** w panelu obrysu decyduje, czy nakładające się kontury wypełniają (*non-zero*), czy przebijają (*even-odd*). Operacje odmawiają zamiast niszczyć: poproś o przecięcie dwóch kształtów, które się nie nakładają, a nic się nie zmieni. Boksy tekstu i obrazu nie mają konturu, więc są pomijane.
+
+## Wektoryzacja obrazu
+
+Zaznacz jeden obraz, kliknij go prawym przyciskiem myszy i wybierz **Wektoryzuj obraz…**, aby zamienić go w edytowalne kształty. Wybierz preset i naciśnij **Wektoryzuj**:
+
+- **Logo** znajduje kilka płaskich kolorów i zachowuje ostre krawędzie oraz prawdziwe koła i linie. Odrzuca obraz z gradientami lub tonami fotografii i mówi o tym.
+- **Ilustracja** wektoryzuje kilka kolorów jako wypełnione kształty, dla płaskiej grafiki lub posteryzowanego obrazu.
+- **Rysunek liniowy** wektoryzuje ciemne linie na jasnym tle jako czarne kształty.
+- **Linia środkowa** wektoryzuje ciemne linie jako pojedyncze obrysy, więc możesz potem zmienić ich grubość.
+
+Kształty są dodawane jako grupa tuż nad obrazem, który zostaje na swoim miejscu. Ukryj lub usuń obraz, aby zobaczyć tylko ścieżki. Wektoryzacja działa na twoim urządzeniu jako zadanie w tle z przyciskiem Anuluj i nic nie jest przesyłane. Obraz o szerokości 1500 pikseli zwykle zajmuje od jednej do kilku sekund, a złożone zdjęcie trwa dłużej.
+
+Wektoryzacja podąża za tym, co pokazuje ramka, więc przycięty (Cover) obraz jest wektoryzowany tylko w widocznej części. Obowiązują te ograniczenia:
+
+- Przed wektoryzacją obrazy są zmniejszane do co najwyżej 1500 pikseli dłuższego boku, więc krawędzie są ustawiane z dokładnością do ułamka tego rozmiaru, a nie oryginału.
+- Jedna wektoryzacja tworzy co najwyżej 1500 kształtów i 60 000 punktów. Zdjęcie zwykle to przekracza, a Design mówi o tym, niczego nie zmieniając. Spróbuj Logo lub Rysunku liniowego albo prostszego obrazu.
+- Gradienty zamieniają się w pasy płaskiego koloru, a miękkie cienie w kształty o ostrych krawędziach.
+- Promień zaokrąglenia rogów, maska kształtu i efekt na ramce obrazu nie są stosowane do ścieżek.
+- Ten sam obraz i ten sam preset zawsze dają te same kształty.
 
 ## Obrysy
 
@@ -195,9 +214,9 @@ Tam, gdzie istnieje konkretna sugestia koloru lub czcionki, jej przycisk zmienia
 
 ### Reguły organizacji i sygnał pisania
 
-Karta w panelu eksportu sprawdza też reguły organizacji, które niesie Twój system projektowy, takie jak grubość i wyrównanie tekstu, zatwierdzone zestawienia kolorów lub logo na powierzchnię, warstwa po warstwie. Każde ustalenie jest ostrzeżeniem z nazwą warstwy nad regułą. Reguła, dla której ta kompilacja nie ma sprawdzacza, jest wymieniana jako niesprawdzona, nigdy jako spełniona. [Usage & rules](/info/brand-studio.html#usage-rules) wymienia reguły, a `lolly check` stosuje te same do zapisanego dokumentu.
+Karta w panelu eksportu sprawdza też reguły organizacji, które niesie Twój system projektowy, takie jak grubość i wyrównanie tekstu, zatwierdzone zestawienia kolorów lub logo na powierzchnię, warstwa po warstwie. Każde ustalenie jest ostrzeżeniem z nazwą warstwy nad regułą. Reguła, dla której ta kompilacja nie ma sprawdzacza, jest wymieniana jako niesprawdzona, nigdy jako spełniona. [Rules](/info/brand-studio.html#rules) wymienia reguły, a `lolly check` stosuje te same do zapisanego dokumentu.
 
-Ta sama karta pokazuje sygnał pisania dla tekstu rysowanego przez dokument: jego pasmo (none, weak, notable lub strong), potem własne zdanie Verify z wynikiem w skali do 100 i do trzema oznaczonymi frazami, każda z warstwą, która ją zawiera. **Open the text in Verify** zabiera ten tekst do [Verify](/#/verify) na pełny odczyt; [AI evidence in Verify](/info/verify-ai-evidence.html) wyjaśnia, co waży wynik. Wynik jest sygnałem, a nie wyrokiem: liczy wzorce częste w tekstach generowanych i nie potrafi powiedzieć, kto napisał słowa. Ukryte warstwy są pomijane w obu kontrolach, a karta podaje ile.
+Ta sama karta pokazuje sygnał pisania dla tekstu rysowanego przez dokument: jego pasmo (none, weak, notable lub strong), potem własne zdanie Verify z wynikiem w skali do 100 i do trzema oznaczonymi frazami, każda z warstwą, która ją zawiera. **Open the text in Verify** zabiera ten tekst do [Lolly Verify](/#/verify) na pełny odczyt; [AI evidence in Verify](/info/verify-ai-evidence.html) wyjaśnia, co waży wynik. Wynik jest sygnałem, a nie wyrokiem: liczy wzorce częste w tekstach generowanych i nie potrafi powiedzieć, kto napisał słowa. Ukryte warstwy są pomijane w obu kontrolach, a karta podaje ile.
 
 Ustalenia dotyczące reguł organizacji i silny sygnał pisania liczą się do sumy "to fix" na karcie, aby łatwo je znaleźć. Informują i nigdy nie blokują: Download pozostaje dostępny i nie ma niczego do odrzucenia ani zapisania jako wyjątek. Agent pracujący w otwartym dokumencie dostaje ten sam raport przez swoje narzędzia witryny ([Agents in an open document](/info/open-document-agents.html)).
 

@@ -9,6 +9,13 @@ export interface DesignShortcutRow {
   label: string;
   /** A touch gesture named in words rather than a key chord: the sheet lets it wrap. */
   gesture?: boolean;
+  /**
+   * When the row is live, as `class:name`. A row whose keys another row also uses must say
+   * which gate it works under; two rows may share a key only if their gates are in the same
+   * class with different names (one drag kind at a time, one focus owner at a time). The
+   * exclusivity test in design-shortcut-exclusivity.test.ts reads this.
+   */
+  gate?: string;
 }
 
 export interface DesignShortcutGroup {
@@ -49,7 +56,7 @@ export function designShortcutGroups(
         { keys: 'N', label: t('Edit points') },
         // Read during a pen drag (free-canvas/pen-assist.ts), not at the press, so Shift-click
         // keeps adding a point to the selection.
-        { keys: 'Shift', label: t('While drawing or dragging points: angles in 15 degree steps') },
+        { keys: 'Shift', label: t('While drawing or dragging points: angles in 15 degree steps'), gate: 'drag:points' },
         { keys: 'Enter / F2', label: t('Edit selected text') },
         { keys: 'Esc', label: t('Leave the current mode or selection') },
       ],
@@ -78,12 +85,12 @@ export function designShortcutGroups(
       label: t('Transform'),
       rows: [
         { keys: 'K', label: t('Scale mode: handles scale fonts, strokes, radii and effects, not only the box') },
-        { keys: 'Shift', label: t('While resizing: keep proportions') },
-        { keys: 'Shift', label: t('While rotating: turn in 15 degree steps') },
-        { keys: alt, label: t('While resizing or scaling: work from the centre') },
-        { keys: mod, label: t('While resizing or scaling: no snapping') },
-        { keys: `${alt} / ${mod}`, label: t('While rotating: turn freely') },
-        { keys: `${alt} / ${mod}`, label: t('While moving: no snapping') },
+        { keys: 'Shift', label: t('While resizing: keep proportions'), gate: 'drag:resize' },
+        { keys: 'Shift', label: t('While rotating: turn in 15 degree steps'), gate: 'drag:rotate' },
+        { keys: alt, label: t('While resizing or scaling: work from the centre'), gate: 'drag:resize' },
+        { keys: mod, label: t('While resizing or scaling: no snapping'), gate: 'drag:resize' },
+        { keys: `${alt} / ${mod}`, label: t('While rotating: turn freely'), gate: 'drag:rotate' },
+        { keys: `${alt} / ${mod}`, label: t('While moving: no snapping'), gate: 'drag:move' },
         { keys: t('Two-finger pinch'), label: t('Scale the selection'), gesture: true },
         { keys: t('Two-finger twist'), label: t('Rotate the selection'), gesture: true },
         { keys: t('Two-finger drag'), label: t('Move the selection'), gesture: true },

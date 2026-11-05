@@ -139,7 +139,7 @@
       ],
       "details": {
         "inputSource": "SVG markup from a slide picture (`asvg:svgBlip`) plus an injected XML parser, and `a:custGeom` path lists already read by `pptx-read.ts`",
-        "bounds": "`VECTOR_ITEM_MAX_NODES = 20_000`, `VECTOR_ITEM_MAX_ENCODED = 400_000` characters per Design path value, `MAX_DEPTH = 64`, `MAX_USE_DEPTH = 8` with a `<use>` cycle check, `VECTOR_ITEMS_MAX = 2000` items and `VECTOR_ITEMS_MAX_CHARS = 1_048_576` characters of path data per object, `VECTOR_DECK_ITEMS_MAX = 20_000` per deck, `MAX_VECTOR_ROWS_PER_OBJECT = 400`, `MAX_VECTOR_ROWS_PER_FRAME = 1200`",
+        "bounds": "`VECTOR_ITEM_MAX_NODES = 20_000`, `VECTOR_ITEM_MAX_ENCODED = 400_000` characters per Lolly Design path value, `MAX_DEPTH = 64`, `MAX_USE_DEPTH = 8` with a `<use>` cycle check, `VECTOR_ITEMS_MAX = 2000` items and `VECTOR_ITEMS_MAX_CHARS = 1_048_576` characters of path data per object, `VECTOR_DECK_ITEMS_MAX = 20_000` per deck, `MAX_VECTOR_ROWS_PER_OBJECT = 400`, `MAX_VECTOR_ROWS_PER_FRAME = 1200`",
         "directTests": "`tests/svg-items.test.ts`",
         "fuzzCoverage": "`svg-items` (`svgItemsOf` then `vectorItemsToRows` and `vectorItemsSvg`)",
         "notes": "DOM-free. Foreign namespaces are ignored, an invisible part is dropped, and an unsupported part is left out with its reason in `omitted`. Reaching a cap stops the read with `cap-reached` and the caller keeps the picture."
@@ -217,7 +217,7 @@
       ],
       "details": {
         "inputSource": "the marker structure of any JPEG - one a user uploaded, and one our own export pipeline is about to stamp",
-        "bounds": "`JPEG_MAX_SEGMENTS = 4096`, `JPEG_MAX_APP_ID = 64`; every length field is checked against the buffer before it is acted on, and entropy data is walked (`FF 00` stuffing, `FF D0`\u2013`FF D7` restarts) rather than searched",
+        "bounds": "`JPEG_MAX_SEGMENTS = 4096`, `JPEG_MAX_APP_ID = 64`; every length field is checked against the buffer before it is acted on, and entropy data is walked (`FF 00` stuffing, `FF D0`–`FF D7` restarts) rather than searched",
         "directTests": "`tests/jpeg-segments.test.ts`",
         "fuzzCoverage": "`jpeg-structure` (scan/find/body/splice over minimal, MPF and mutated files)",
         "notes": "The one shared JPEG marker walker/writer, replacing three ad-hoc \"skip the leading APP0\" insertion points now that segment ORDER carries meaning (an MPF index stores absolute offsets, so it must precede ICC). The contract is split by side: the reader follows the house rule - never throws, `null` when the bytes are not a JPEG, a short scan flagged `truncated` when they are malformed - while `insertJpegSegments` follows the splicer convention it replaces and returns the input bytes untouched, all or nothing, on any problem. The structural invariant \"no reported segment ends past the buffer\" is asserted on every scan in the tests, including a few hundred seeded mutations of a real `sharp`-encoded file."
@@ -372,11 +372,11 @@
         "lut-parse"
       ],
       "details": {
-        "inputSource": "a `.cube` or `.3dl` colour LUT the user picked in Darkroom",
+        "inputSource": "a `.cube` or `.3dl` colour LUT the user picked in Lolly Darkroom",
         "bounds": "`CUBE_MAX_N = 129`, `TDL_MAX_N = 65` (grid size), declared in the hooks beside the parsers",
         "directTests": "none of its own; the fuzz target is the coverage",
         "fuzzCoverage": "`lut-parse` (both parsers, over the real hook source)",
-        "notes": "The one **tool-data** parser that reads untrusted bytes, listed here because the input source is the same as every row above. Hooks ship as plain script rather than a module, so the target lifts the two functions out with `new Function` exactly the way the engine runtime compiles them. A controlled \"not a \u2026 LUT\" / \"too large\" throw is the desired outcome; hangs and allocation blow-ups are the findings."
+        "notes": "The one **tool-data** parser that reads untrusted bytes, listed here because the input source is the same as every row above. Hooks ship as plain script rather than a module, so the target lifts the two functions out with `new Function` exactly the way the engine runtime compiles them. A controlled \"not a … LUT\" / \"too large\" throw is the desired outcome; hangs and allocation blow-ups are the findings."
       }
     },
     "engine/src/video-meta.ts": {
@@ -416,8 +416,8 @@
         "inputSource": "the container a manifest is being spliced into - ordinarily Lolly's own render output, but on the ingest and re-attach paths a file a stranger sent",
         "bounds": "none named; the bounds are per-grammar and structural (each PNG chunk, JPEG segment, GIF block, RIFF/TIFF IFD, BMFF box, EBML element and PDF xref offset is validated against the buffer before it is acted on)",
         "directTests": "`tests/c2pa-containers.test.ts`, plus `tests/c2pa-formats.test.ts` and `tests/c2pa.test.ts` in aggregate",
-        "fuzzCoverage": "`c2pa-containers` (`sniffFormat` \u2192 `attachC2paStore`, or `embedC2paInPdf` for PDF)",
-        "notes": "Placement, not extraction - but placing means walking the host container's grammar, so it belongs here rather than under \"Writers\". Contract: it **throws** on a container it refuses to modify, so only a hang, a stack overflow or an allocation blow-up counts as a finding. `c2pa-containers-tiff-forged-ifd-pointer.bin` is a saved regression: a hostile TIFF IFD pointer. The target's format\u2192placer map is a `Record<Exclude<SniffFormat, \u2026>>` on purpose, so adding a placeable format without adding its placer row is a compile error rather than a silent forever-fuzzed-as-PNG."
+        "fuzzCoverage": "`c2pa-containers` (`sniffFormat` → `attachC2paStore`, or `embedC2paInPdf` for PDF)",
+        "notes": "Placement, not extraction - but placing means walking the host container's grammar, so it belongs here rather than under \"Writers\". Contract: it **throws** on a container it refuses to modify, so only a hang, a stack overflow or an allocation blow-up counts as a finding. `c2pa-containers-tiff-forged-ifd-pointer.bin` is a saved regression: a hostile TIFF IFD pointer. The target's format→placer map is a `Record<Exclude<SniffFormat, …>>` on purpose, so adding a placeable format without adding its placer row is a compile error rather than a silent forever-fuzzed-as-PNG."
       }
     },
     "engine/src/c2pa-verify.ts": {
@@ -430,7 +430,7 @@
         "bounds": "`MAX_CHAIN_INTERMEDIATES = 8`",
         "directTests": "`tests/c2pa-verify.test.ts`, `tests/c2pa-trust.test.ts`, `tests/c2pa-verdict.test.ts`, `tests/c2pa-c2patool-conformance.test.ts`",
         "fuzzCoverage": "`c2pa-verify` (`verifyC2pa`)",
-        "notes": "Reports failures as named checks rather than throwing, so a malformed manifest is a failed check and never an escaped exception. Chain walking consumes each intermediate at most once, so no A\u2192B\u2192A loop, and hostile chains are bounded to a trivial O(cap\u00b2)."
+        "notes": "Reports failures as named checks rather than throwing, so a malformed manifest is a failed check and never an escaped exception. Chain walking consumes each intermediate at most once, so no A→B→A loop, and hostile chains are bounded to a trivial O(cap²)."
       }
     },
     "engine/src/der-read.ts": {
@@ -497,7 +497,7 @@
         "bounds": "`BRAND_IMPORT_MAX_PART_BYTES/CHARS = 16 MB/M chars`, `BRAND_IMPORT_MAX_JSON_UNITS = 64 M`, `BRAND_IMPORT_MAX_ENTRIES = 50,000`, `BRAND_IMPORT_MAX_PAGE_PARTS = 25,000`, `BRAND_IMPORT_MAX_TOKEN_DOCS = 512`, `BRAND_IMPORT_MAX_SET_FILES = 2,048`, `BRAND_IMPORT_MAX_TOKEN_SETS = 4,096`, `BRAND_IMPORT_MAX_NODES = 1,000,000`, `BRAND_IMPORT_MAX_DEPTH = 64`",
         "directTests": "`tests/brand-import.test.ts`",
         "fuzzCoverage": "`brand-import` (all three token containers plus both Penpot page censuses)",
-        "notes": "Takes already-parsed JSON and already-unzipped path\u2192bytes entries, so the engine applies structural and aggregate budgets independently of the caller's inflation guard. Extraction never throws; a limit violation fails the whole operation closed instead of returning a partial token document or census. Page discovery is one bounded collection plus sort, not manifest-files \u00d7 archive-entries work."
+        "notes": "Takes already-parsed JSON and already-unzipped path→bytes entries, so the engine applies structural and aggregate budgets independently of the caller's inflation guard. Extraction never throws; a limit violation fails the whole operation closed instead of returning a partial token document or census. Page discovery is one bounded collection plus sort, not manifest-files × archive-entries work."
       }
     },
     "engine/src/tar-read.ts": {
@@ -527,7 +527,7 @@
       }
     },
     "engine/src/url-pack.ts": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "url-pack"
       ],
@@ -536,7 +536,7 @@
         "bounds": "`MAX_TOKEN = 64 KB`, `MAX_UNPACKED = 256 KB`; `PBKDF2_ITERATIONS = 210_000`, `ENC_SALT_BYTES = 16`, `ENC_IV_BYTES = 12` on the encrypted variant",
         "directTests": "`tests/url-pack.test.ts`",
         "fuzzCoverage": "`url-pack` (`unpackToken` + `hasPackedState`, over both the token text and its decoded bytes)",
-        "notes": "The one module whose entire input is a URL param. Both caps exist because raw DEFLATE expands roughly 1000\u00d7, so a decompression bomb must not hang the tab."
+        "notes": "The one module whose entire input is a URL param. Both caps exist because raw DEFLATE expands roughly 1000×, so a decompression bomb must not hang the tab."
       }
     },
     "engine/src/keyframes.ts": {
@@ -553,12 +553,12 @@
       }
     },
     "engine/src/present-interact.ts": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "present-interact"
       ],
       "details": {
-        "inputSource": "a Design web box's authored `interactOpts` field and standalone presentation depth values from documents or hand-edited share URLs",
+        "inputSource": "a Lolly Design web box's authored `interactOpts` field and standalone presentation depth values from documents or hand-edited share URLs",
         "bounds": "1,024 UTF-8 bytes per options wire; 32 stops; depth text at most 256 UTF-16 code units and fragment names at most 128 characters; finite depth/page length clamped to 0-1,000,000, percentages to 0-100, seconds to 1-600, pause seconds to 0-600 and scroll milliseconds to 0-10,000",
         "directTests": "`tests/present-interact.test.ts`, `tests/present-interact.browser.test.ts`",
         "fuzzCoverage": "`present-interact` mutates standalone depths, valid controls, duplicate/prototype keys, malformed URI escapes and byte/stop limits through parse, canonical serialise/reparse, stop resolution and auto sampling",
@@ -631,6 +631,19 @@
         "notes": "Header states the hardening explicitly: every offset bounds-checked, malformed track lengths clamped to the buffer, note count and step span capped."
       }
     },
+    "engine/src/smf.ts": {
+      "family": "Audio, video and animation",
+      "fuzzTargets": [
+        "smf"
+      ],
+      "details": {
+        "inputSource": "a `.mid` a user uploaded or opened, read by the lossless Standard MIDI File reader",
+        "bounds": "`SMF_LIMITS`: 64 MiB input, 4096 tracks, 4096 unknown chunks, 1,000,000 events, 4 MiB per meta or sysex payload; variable-length quantities are at most four bytes",
+        "directTests": "`tests/smf.test.ts`, `tests/smf-corpus.test.ts`",
+        "fuzzCoverage": "`smf` (every accepted input must write back to the same bytes; every refusal must be an `SmfError`)",
+        "notes": "Chunk lengths past the end of the file are refused rather than clamped, and a meta or sysex event cancels running status, so a malformed file fails with a code and a byte offset."
+      }
+    },
     "engine/src/wav.ts": {
       "family": "Audio, video and animation",
       "fuzzTargets": [
@@ -641,7 +654,7 @@
         "bounds": "`MAX_CHANNELS = 32`",
         "directTests": "`tests/wav.test.ts`",
         "fuzzCoverage": "`wav` (`parseWav`)",
-        "notes": "Chunk walking cannot run backwards or off the end regardless of declared sizes. Unknown encodings (\u00b5-law, ADPCM, a compressed payload in a RIFF skin) are refused by name rather than misread as PCM, because misreading them yields full-scale noise that would look like a plausibly loud track."
+        "notes": "Chunk walking cannot run backwards or off the end regardless of declared sizes. Unknown encodings (µ-law, ADPCM, a compressed payload in a RIFF skin) are refused by name rather than misread as PCM, because misreading them yields full-scale noise that would look like a plausibly loud track."
       }
     },
     "engine/src/zzfxm.ts": {
@@ -651,7 +664,7 @@
       ],
       "details": {
         "inputSource": "a `ZzfxSong`, which on the MIDI and MOD paths derives from a user file or fetched JSON",
-        "bounds": "128 instruments \u00d7 21 params, 1,024 patterns, 4,096 sequence items, 32 channels, 32,768 steps/pattern, five-minute stereo output, 50 M mix-sample operations, 30-second individual synths and 120-second aggregate sample cache; BPM/note/numeric ranges are named public constants",
+        "bounds": "128 instruments × 21 params, 1,024 patterns, 4,096 sequence items, 32 channels, 32,768 steps/pattern, five-minute stereo output, 50 M mix-sample operations, 30-second individual synths and 120-second aggregate sample cache; BPM/note/numeric ranges are named public constants",
         "directTests": "`tests/zzfxm.test.ts`, `tests/zzfxm-seed-parity.test.ts`",
         "fuzzCoverage": "`zzfxm` (JSON and byte-derived song objects through the real guarded renderer)",
         "notes": "The two vendored MIT functions remain unchanged behind guarded public wrappers. Validation rejects ragged rows, invalid references and allocation-driving totals before either the upstream synth or mixer allocates. Direct `zzfxG`, `zzfxM`, and `renderZzfxm` calls all pass the same budgets."
@@ -767,7 +780,7 @@
         "lottie-edits"
       ],
       "details": {
-        "inputSource": "Instance-local animationEdits revisions from Design documents and compact URLs",
+        "inputSource": "Instance-local animationEdits revisions from Lolly Design documents and compact URLs",
         "bounds": "256 KiB UTF-8 revision, 512 edits, JSON depth 64; source SHA-256 binding; allowlisted layer fields and property tracks; finite values, dimensions and ordered keys checked before mutation",
         "directTests": "`tests/lottie-edit.test.ts`, `tests/design-lottie.test.ts`, `tests/lottie-internal.browser.test.ts`, `tests/lottie.browser.test.ts`",
         "fuzzCoverage": "`lottie-edits` mutates layer and property revisions against a pinned synthetic source",
@@ -932,7 +945,7 @@
       }
     },
     "engine/src/vector-paint.ts": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "vector-paint"
       ],
@@ -997,7 +1010,7 @@
       }
     },
     "services/mcp/src/negotiation.ts": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "mcp-negotiation"
       ],
@@ -1029,7 +1042,7 @@
       ],
       "details": {
         "inputSource": "User-supplied Adobe interchange files. Platform parsing and media lookup are supplied by the shell.",
-        "bounds": "1 MiB XML, Camera Raw namespace only, duplicate settings refused, numeric values checked and clamped to Darkroom ranges",
+        "bounds": "1 MiB XML, Camera Raw namespace only, duplicate settings refused, numeric values checked and clamped to Lolly Darkroom ranges",
         "directTests": "`tests/adobe-interchange.test.ts`",
         "fuzzCoverage": "`adobe-xml` mutates maintained independent format seeds.",
         "notes": "Explicit values only; unmapped controls and process differences are reported. Legacy Lua presets are refused."
@@ -1048,6 +1061,97 @@
         "notes": "Rational frame rates remain in the interchange model. Lolly clock conversion and unsupported effects are reported. No media path is fetched implicitly."
       }
     },
+    "engine/src/intent.ts": {
+      "family": "Lolly Design documents, links and agent requests",
+      "fuzzTargets": [
+        "intent"
+      ],
+      "details": {
+        "inputSource": "A visual intent written by a person or an agent, as JSON through the CLI or MCP, and a tool's intents.json from its content pack.",
+        "bounds": "2 MiB serialised, 64 KiB per intents.json; prompt 2,000 characters, refused rather than cut; 200 characters of each free-text field; 32 surfaces; 64 content roles from a closed list; nesting depth 16; sizes up to 100,000 px",
+        "directTests": "`tests/intent.test.ts`, `tests/intent-cli.test.ts`, `services/mcp/test/intent.test.ts`",
+        "fuzzCoverage": "`intent` mutates a purpose request, a sized request, a prompt-only request and an intents.json, and serialises every answer.",
+        "notes": "Unknown keys, roles, purposes and surfaces are refused by name, and keys that could reach a prototype are refused at any depth. Nothing reads meaning from the prompt or the free text. No model in the path."
+      }
+    },
+    "engine/src/captions-scc.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "captions-scc"
+      ],
+      "details": {
+        "inputSource": "User-supplied SCC caption files, read and written as plain text.",
+        "bounds": "4 MiB text; 200,000 lines; 2,000,000 byte pairs; 20,000 captions; 2,000 characters and 15 rows per written caption; timecodes checked, dropped drop-frame labels refused, order enforced",
+        "directTests": "`tests/captions-broadcast.test.ts`",
+        "fuzzCoverage": "`captions-scc` mutates written pop-on files in drop-frame and non-drop form plus a roll-up file, and writes every read result back.",
+        "notes": "Pop-on, channel 1 only. Roll-up, paint-on, text mode, other channels and styling are reported, never dropped silently. Characters outside the set refuse the write unless replacement is asked for. Not checked against a real broadcast tool."
+      }
+    },
+    "engine/src/captions-ttml.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "captions-ttml"
+      ],
+      "details": {
+        "inputSource": "User-supplied TTML and IMSC1 files. The XML parser is supplied by the shell.",
+        "bounds": "8 MiB XML through the shared XML admission (no DTD or entities, 50,000 elements, depth 64); 20,000 captions of at most 10,000 characters; times capped at 100 hours; media time base only",
+        "directTests": "`tests/captions-broadcast.test.ts`",
+        "fuzzCoverage": "`captions-ttml` mutates a written IMSC1 file and a hand-built file with frame, tick and nested time containers, and writes every read result back.",
+        "notes": "Styling and layout are ignored and noted. Bad or open-ended paragraphs are skipped and listed. Sequential containers are read as parallel with a note."
+      }
+    },
+    "engine/src/timeline-edl.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "timeline-edl"
+      ],
+      "details": {
+        "inputSource": "User-supplied timeline interchange files. Platform parsing and media lookup are supplied by the shell.",
+        "bounds": "8 MiB text; 200,000 lines of at most 2,048 characters; 10,000 events; 128 audio channels; timecode fields checked against the rate",
+        "directTests": "`tests/timeline-interchange.test.ts`",
+        "fuzzCoverage": "`timeline-edl` mutates Lolly-authored fixtures, including drop-frame 29.97 and 59.94 and mixed-rate cases.",
+        "notes": "The frame rate is supplied by the caller. Transitions, speed changes, locators and colour decisions are reported, never dropped silently."
+      }
+    },
+    "engine/src/timeline-otio.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "timeline-otio"
+      ],
+      "details": {
+        "inputSource": "User-supplied timeline interchange files. Platform parsing and media lookup are supplied by the shell.",
+        "bounds": "16 MiB JSON; 400,000 nodes; depth 64; 128 tracks; 10,000 clips; paths 8,192 characters",
+        "directTests": "`tests/timeline-interchange.test.ts`",
+        "fuzzCoverage": "`timeline-otio` mutates Lolly-authored fixtures, including drop-frame 29.97 and 59.94 and mixed-rate cases.",
+        "notes": "Plain JSON only, no schema upgrades run. Transitions, nested compositions, effects and speed changes are reported."
+      }
+    },
+    "engine/src/timeline-fcpxml.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "timeline-fcpxml"
+      ],
+      "details": {
+        "inputSource": "User-supplied timeline interchange files. Platform parsing and media lookup are supplied by the shell.",
+        "bounds": "8 MiB XML through the shared XML admission; versions 1.8 to 1.11; storyline depth 16; 10,000 clips; 128 tracks",
+        "directTests": "`tests/timeline-interchange.test.ts`",
+        "fuzzCoverage": "`timeline-fcpxml` mutates Lolly-authored fixtures, including drop-frame 29.97 and 59.94 and mixed-rate cases.",
+        "notes": "XML parser is injected. Compound clips, multicam, titles, transitions and effects are reported. Bundles (.fcpxmld) are not read."
+      }
+    },
+    "engine/src/timeline-import.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "timeline-edl"
+      ],
+      "details": {
+        "inputSource": "User-supplied timeline interchange files. Platform parsing and media lookup are supplied by the shell.",
+        "bounds": "Dispatches by content to the readers above and the Premiere XML reader; no limits of its own",
+        "directTests": "`tests/timeline-interchange.test.ts`",
+        "fuzzCoverage": "`timeline-edl` mutates Lolly-authored fixtures, including drop-frame 29.97 and 59.94 and mixed-rate cases.",
+        "notes": "Detection looks at the first 4 KiB and never at the file name."
+      }
+    },
     "packages/node-shell/src/adobe-psd.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [
@@ -1061,6 +1165,163 @@
         "notes": "Pinned PhotoCraft parser and writer. No-edit source preservation is verified separately from visual fidelity by the optional 258-file pinned corpus. Conventional inputs retain the established engine reader."
       }
     },
+    "engine/src/xlsx-import.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "xlsx-numfmt",
+        "formula-calc"
+      ],
+      "details": {
+        "inputSource": "User-picked .xlsx workbooks. The shell reads the file and supplies the number-format function and the recalculation function; the engine owns the unzip and the XML scan.",
+        "bounds": "32 MiB per part, 256 MiB inflated in total, 2,000,000 cells, 16,384 columns, 16,777,216 padded cells; styles read at most 65,536 cell formats and 4,096 custom codes, each code up to 1,024 characters; at most 50,000 cells per formatter call; a recalculation reads every sheet (at most 64) through the same 2,000,000-cell cap and hands the module at most 400,000 cells and 100,000 formulas",
+        "directTests": "`tests/xlsx-import.test.ts`, `tests/xlsx-numfmt.test.ts`, `tests/gridcraft-calc.test.ts`",
+        "fuzzCoverage": "`xlsx-numfmt` mutates a stored-zip workbook with a styles part, so the styles reader, batching and the format codes are all reached. `formula-calc` feeds mutated formula text and request bodies to the formula module.",
+        "notes": "Without a formatter or recalculator the output is byte-identical to a read without them. A function that throws or returns a wrong-sized or malformed answer keeps the saved text and the read says why. Formulas are evaluated only when the caller supplies `recalc`; array, data-table, table-reference and workbook-reference formulas keep their saved results."
+      }
+    },
+    "packages/node-shell/src/xlsx-numfmt.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "xlsx-numfmt"
+      ],
+      "details": {
+        "inputSource": "Cell values and Excel number-format codes from a workbook the engine has already unzipped. The shell loads the WASM module.",
+        "bounds": "16 MiB request, 100,000 cells and 4,096 format codes per request, 1,024 bytes per code, 32 KiB per text value, 32 MiB of output; 512 MiB WASM memory cap; the module imports nothing from the host",
+        "directTests": "`tests/xlsx-numfmt.test.ts`, the vendored crates' `cargo test --workspace`",
+        "fuzzCoverage": "`xlsx-numfmt` also feeds mutated bytes through the module as raw format codes.",
+        "notes": "Pinned GridCraft number-format engine. The clock is an injected value, so output depends only on the request. Numbers are parsed with exact float round-tripping."
+      }
+    },
+    "engine/src/calc.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "formula-calc"
+      ],
+      "details": {
+        "inputSource": "Formula text from a tool's table input, from a workbook the engine has already unzipped, or from a tool calling host.calc. The shell loads the WASM module and supplies the clock and seed.",
+        "bounds": "100,000 table cells; the module takes at most 64 sheets, 400,000 cells, 100,000 formulas, 8,192 characters per formula, 32 KiB per text value and 16 MiB per request, and returns at most 32 MiB; arrays over 4,194,304 cells and more than 100,000 lambda calls per cell end in an error value; 512 MiB WASM memory cap; the module imports nothing from the host",
+        "directTests": "`tests/gridcraft-calc.test.ts`, `tests/quote-tool.test.ts`, the vendored crates' `cargo test --workspace`",
+        "fuzzCoverage": "`formula-calc` evaluates mutated formula text as a modern and as a legacy cell, and sends mutated bytes as the whole request, so the lexer, parser, evaluator and request reader are all reached.",
+        "notes": "Pinned GridCraft calculation engine. A formula that cannot be parsed is reported on its cell and evaluates to #NAME?. The clock and random seed are request fields, so output depends only on the request; a result carries the clock it read. Work is bounded by the limits above rather than by a timer, so a request near them can hold the page for a moment."
+      }
+    },
+    "packages/node-shell/src/gridcraft-calc.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "formula-calc"
+      ],
+      "details": {
+        "inputSource": "Request bytes from engine/src/calc.ts. The shell loads the WASM module.",
+        "bounds": "16 MiB request and 40 MiB response in the transport; the module's own limits are listed under engine/src/calc.ts; an instance that grew past 256 MiB is replaced after the call",
+        "directTests": "`tests/gridcraft-calc.test.ts`",
+        "fuzzCoverage": "`formula-calc` sends mutated bytes through the transport as a raw request.",
+        "notes": "The module aborts instead of unwinding, so a trap drops the instance, fails the call with a plain message and starts a fresh instance on the next call."
+      }
+    },
+    "packages/node-shell/src/inpaint.ts": {
+      "family": "Images and colour",
+      "fuzzTargets": [
+        "inpaint"
+      ],
+      "details": {
+        "inputSource": "Pixels and a painted mask from the Retouch dialog, taken from an image the user opened. The shell loads the WASM module.",
+        "bounds": "16,777,216 pixels per image, a request of 16 bytes plus 5 bytes per pixel, a processed window of 13,000,000 pixels, patch radius 1 to 8; 2 GiB WASM memory cap; the module imports nothing from the host",
+        "directTests": "`tests/inpaint-patchmatch.test.ts`, the adapter's `cargo test`",
+        "fuzzCoverage": "`inpaint` feeds mutated bytes as a small image and mask, and as a header whose sizes disagree with the lengths.",
+        "notes": "Pinned LightCraft PatchMatch kernel with its thread pool removed. A fixed-seed generator makes the same request give the same bytes. A mask with no unmasked pixel to copy from is refused."
+      }
+    },
+    "packages/node-shell/src/pdf-a11y.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "pdf-a11y"
+      ],
+      "details": {
+        "inputSource": "User-picked PDFs and the PDFs Lolly exports. The shell reads the file and the module reads it again for the accessibility checks; nothing is written back.",
+        "bounds": "256 MiB input, 16 MiB of report, 512 MiB WASM memory cap, 200 findings per check; stream decoding uses the vendored reader's per-page budgets; the module imports nothing from the host",
+        "directTests": "`tests/pdf-a11y.test.ts`, the checker's own `cargo test` (34 rule tests plus the adapter's)",
+        "fuzzCoverage": "`pdf-a11y` mutates an untagged PDF and a tagged one with a figure, a table and a link, so the cross-reference reader, the content scan, the structure walk and the transport parser are all reached.",
+        "notes": "Pinned PdfCraft 47f42ba0 (MIT OR Apache-2.0) with its tagging and auto-fix code removed and one inline-image patch recorded in the vendored UPSTREAM.md. It reads only: no PDF is written. Encrypted files are refused by name, not opened. The result lists checks and is not a conformance verdict."
+      }
+    },
+    "packages/node-shell/src/dxf.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "dxf"
+      ],
+      "details": {
+        "inputSource": "User-supplied DXF drawings (ASCII or binary, R12 to 2018) from Lolly Design's Import a design, the CLI and the MCP file route. Platform file access is supplied by the shell; the reader itself imports no host functions.",
+        "bounds": "32 MiB input, 2,000,000 group codes (counted before ASCII text is decoded), 250,000 entities, 10,000 blocks, 10,000 layers, 2,000 text styles, 3,000,000 points in all and 100,000 per entity, 16 KiB per text item, 256-byte names, 48 MiB JSON output; 512 MiB WASM memory cap with a 1 MiB stack; a trap retires the instance",
+        "directTests": "`tests/dxf-import.test.ts`, the vendored crate's own `cargo test` and the adapter's 14 unit tests (`cargo test --workspace` in `packages/node-shell/wasm/dxf`)",
+        "fuzzCoverage": "`dxf` mutates synthetic ASCII, binary R13+ and binary R12 drawings through the Node loader, then the flattener and the Lolly Design mapper.",
+        "notes": "Pinned CADCraft cadcraft-dxf 258c89fb (MIT OR Apache-2.0); the one source change, one-byte group codes for R12 binary, is recorded in its UPSTREAM.md. Only the tag reader is vendored: no DWG reader and no drawing model. The adapter's entity mapping is Lolly's own, written from the published DXF Reference. The reader denies unsafe code and panics."
+      }
+    },
+    "engine/src/dxf-import.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "dxf"
+      ],
+      "details": {
+        "inputSource": "The reader's entity list, which comes from an untrusted DXF file; the shell supplies the reader.",
+        "bounds": "Block nesting 8 deep with a self-containing block refused by name; 200,000 drawn entities and 100,000 block placements in all, which stops exponential fan-out; 10,000 copies per array insert; 2,500,000 path segments; 5,000 text items; coordinates over 1e9 are dropped; Lolly Design import makes at most 2,000 boxes and splits a layer into boxes of 4,000 segments",
+        "directTests": "`tests/dxf-import.test.ts`",
+        "fuzzCoverage": "`dxf` runs every mutated file through the flattener and `dxfToDesign` after the reader.",
+        "notes": "XREFs, paper space, SHX fonts, hidden layers and every entity type that is not drawn are counted in the report instead of guessed at. A text style's TrueType name is used as written; no font is chosen for the file."
+      }
+    },
+    "packages/node-shell/src/audio-dsp.ts": {
+      "family": "Audio, video and animation",
+      "fuzzTargets": [
+        "audio-dsp"
+      ],
+      "details": {
+        "inputSource": "PCM decoded from a user-picked recording by the shell, plus the repair settings a tool passes. The shell loads the WASM module.",
+        "bounds": "160 MiB per request and reply; at most 8 open sessions, 8 channels, 8 chain stages; sample rate 8 to 192 kHz; clip alignment reads at most 12M samples per clip; non-finite samples are replaced by silence; 512 MiB WASM memory cap; the module imports nothing from the host",
+        "directTests": "`tests/audio-dsp.test.ts`, the vendored crate's `cargo test --release` and the adapter's `cargo test`",
+        "fuzzCoverage": "`audio-dsp` mutates every operation's request (open, push, read, process, flush, align, close) against a live meter and repair chain.",
+        "notes": "Pinned FilmCraft audio DSP crate with no dependencies and no unsafe code. Long recordings stream through sessions in chunks, and the result does not depend on where the chunks are cut. There is no clock or random input, so output depends only on the request."
+      }
+    },
+    "packages/node-shell/src/affinity.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "affinity"
+      ],
+      "details": {
+        "inputSource": "User-supplied native Affinity files (.af, .afdesign, .afphoto, .afpub). Platform file access is supplied by the shell; the reader itself imports no host functions.",
+        "bounds": "96 MiB input, 96 MiB per archive entry and 256 MiB extracted, a 64 MiB zstd window, 32 megapixels of decoded pixel layers, 128 MiB of returned pictures, 48 MiB of model JSON, 128 levels of layers and 384 of object nesting, 500000 layers; 1 GiB WASM memory cap with a 1 MiB stack; a trap retires the instance",
+        "directTests": "`tests/affinity.test.ts`, the vendored crate's own `cargo test` unit and property tests, `scripts/affinity-corpus.ts` (51 public documents, SHA-256 pinned)",
+        "fuzzCoverage": "`affinity` mutates a header-only container and, when fetched, the four smallest public documents, through the Node loader, running both operations.",
+        "notes": "Pinned vectorcraft-affinity 05d5f99 (MIT OR Apache-2.0). Afread-derived with no specification and AI-assisted; the account is in its UPSTREAM.md and was accepted on 2026-11-02. Every archive entry is CRC-checked. The model JSON is bounded again by the shared TypeScript wrapper and then mapped by the pure engine module design-map-affinity.ts, which caps pages, boxes and canvas size. The reader denies panics and unsafe code."
+      }
+    },
+    "packages/node-shell/src/camera-raw.ts": {
+      "family": "Images and colour",
+      "fuzzTargets": [
+        "camera-raw"
+      ],
+      "details": {
+        "inputSource": "User-supplied camera raw files (.dng, .cr2, .cr3, .nef, .nrw, .arw, .raf, .orf, .rw2, .pef): an upload, a drop or a photo path on the command line. Platform file access is supplied by the shell; the decoder itself imports no host functions.",
+        "bounds": "192 MiB input, 64 megapixels, 256 MiB for any one buffer, and a refusal before development when input, sensor data and the 16-bit frame together would pass 480 MiB; 512 MiB WASM memory cap with a 1 MiB stack; 24 warnings of 400 characters; a trap retires the instance; the web shell runs it on a worker with a 3 minute budget",
+        "directTests": "`tests/camera-raw.test.ts`, `tests/camera-raw-cli.test.ts`, `shells/web/src/bridge/camera-raw-worker-client.test.ts`, the vendored crate's own `cargo test` (134 unit and 86 integration tests, including hostile-file and truncation tests), `scripts/camera-raw-corpus.ts`",
+        "fuzzCoverage": "`camera-raw` mutates small synthetic Bayer DNG and TIFF/EP files through the Node loader. Real files from `scripts/camera-raw-corpus.ts` are decoded by that script, not fuzzed.",
+        "notes": "Pinned storytold photocraft raw 97a83f07 (MIT OR Apache-2.0), clean-room caveats recorded in its UPSTREAM.md; the JPEG XL decoder is left out. DNG colour is exact; every other format is a per-file fit to the embedded JPEG and is labelled approximate colour. The decoder forbids unsafe code and denies unwrap, expect and panic."
+      }
+    },
+    "packages/node-shell/src/indd.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "indd"
+      ],
+      "details": {
+        "inputSource": "User-supplied native InDesign files (.indd, .indt). Platform file access is supplied by the shell; the converter itself imports no host functions.",
+        "bounds": "128 MiB input, 128 MiB IDML output through a capped sink, 500 warnings of 400 characters in 128 KiB, 256-byte document name; 1 GiB WASM memory cap with a 1 MiB stack; a trap retires the instance",
+        "directTests": "`tests/indd.test.ts`, the vendored crate's own `cargo test` (166 unit and hostile-document tests, 11 fixture tests), `scripts/indd-corpus.ts`",
+        "fuzzCoverage": "`indd` mutates a signature-only page set and, when fetched, the smallest open fixture, through the Node loader.",
+        "notes": "Pinned storytold indd-utils 136f973a (MIT OR Apache-2.0), clean-room caveats recorded in its UPSTREAM.md. Output is IDML that the bounded IDML reader then parses; the import is labelled a preview. The converter denies panics and unsafe code."
+      }
+    },
     "engine/src/idml-read.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [
@@ -1068,19 +1329,19 @@
       ],
       "details": {
         "inputSource": "Unzipped user IDML parts; linked image bytes and XML parsing are supplied by the shell.",
-        "bounds": "4096 entries, 128 MiB aggregate parts, 8 MiB XML parts with common XML structure limits; 256 spreads, 10000 items per spread and 100000 total items, 32 M preview pixels; linked images capped at 64 MiB.",
-        "directTests": "`tests/adobe-interchange.test.ts`",
-        "fuzzCoverage": "`idml-read` mutates an independently assembled ZIP through bounded extraction and the shared reader.",
-        "notes": "All spreads and page bounds are retained. Named direct styles and supported text runs are mapped; unsupported formatting is reported. External links are never fetched implicitly."
+        "bounds": "4096 entries, 128 MiB aggregate parts, 8 MiB XML parts with common XML structure limits; 256 spreads, 256 master spreads nested at most 8 deep, 10000 items per spread and 100000 total items, 32 M preview pixels; 20000 named styles with BasedOn chains cut at 32 levels and at loops; 200000 text runs and 16 MiB of text; tables of at most 5000 cells and 512 tracks, 20000 cells per document; linked images capped at 64 MiB.",
+        "directTests": "`tests/adobe-interchange.test.ts`, `tests/idml-reader.test.ts`",
+        "fuzzCoverage": "`idml-read` mutates an independently assembled ZIP, including a package with a BasedOn loop, a self-based master, a table and an object style, through bounded extraction and the shared reader.",
+        "notes": "All spreads and page bounds are retained. Paragraph, character and object styles resolve through BasedOn chains; master items are placed on pages; tables become grouped cell frames. What Lolly Design cannot carry (paragraph spacing, indents, text wrap, effects) is counted and reported, never claimed as InDesign parity. External links are never fetched implicitly."
       }
     },
     "packages/node-shell/wasm/layout-kernel/src/lib.rs (layout_solve)": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "layout-abi"
       ],
       "details": {
-        "inputSource": "UTF-8 JSON bytes serialized from imported, collaborative or tool-supplied Design layout requests; the raw WASM ABI is independently callable",
+        "inputSource": "UTF-8 JSON bytes serialized from imported, collaborative or tool-supplied Lolly Design layout requests; the raw WASM ABI is independently callable",
         "bounds": "`MAX_BYTES = 8 MiB` for owned input and output, one live input buffer; `MAX_ITEMS = 20,000`, `MAX_TRACKS_PER_AXIS = 1,024`, `MAX_GRID_CELLS = 65,536`, `MAX_GRID_SPAN_WORK = 262,144`, `MAX_ALLOCATION_WORK = 262,144`, `MAX_SCALAR = 1e7`; serde_json default recursion limit 128; linked linear memory 32 MiB including 1 MiB stack",
         "directTests": "`tests/layout-kernel.test.ts`, `tests/layout-fuzz.test.ts`, native crate tests and pinned modern fixtures",
         "fuzzCoverage": "`layout-abi` sends mutated raw bytes directly through `layout_alloc` and `layout_solve`, reaching `request.rs::solve` and its Rust `serde_json::from_slice` before the modern flex/grid routines",
@@ -1088,25 +1349,25 @@
       }
     },
     "engine/src/penpot-layout.ts (importPenpotLayouts)": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "penpot-layout"
       ],
       "details": {
         "inputSource": "Already-decoded native binfile-v3 shape records and finalized imported boxes from a user Penpot archive",
-        "bounds": "Archive admission in `design-import.ts`: `MAX_IMPORT_BYTES = 100 MiB`, `MAX_ZIP_ENTRY_BYTES = 128 MiB`, `MAX_ZIP_TOTAL_BYTES = 512 MiB`; mapped output uses Design `MAX_LAYOUT_LAYERS = 20,000`, `MAX_LAYOUT_TRACKS = 4,096`, `MAX_LAYOUT_OWNER_RECORDS = 65` and `MAX_LAYOUT_SCALAR = 1e7`",
+        "bounds": "Archive admission in `design-import.ts`: `MAX_IMPORT_BYTES = 100 MiB`, `MAX_ZIP_ENTRY_BYTES = 128 MiB`, `MAX_ZIP_TOTAL_BYTES = 512 MiB`; mapped output uses Lolly Design `MAX_LAYOUT_LAYERS = 20,000`, `MAX_LAYOUT_TRACKS = 4,096`, `MAX_LAYOUT_OWNER_RECORDS = 65` and `MAX_LAYOUT_SCALAR = 1e7`",
         "directTests": "`tests/penpot-layout.test.ts`, `tests/layout-fuzz.test.ts`, `tests/design-import-modes.test.ts`",
-        "fuzzCoverage": "`penpot-layout` mutates writer-produced native flex/grid shape JSON through `penpotChildrenPaintOrder`, `importPenpotLayouts` and the real Design evaluator",
+        "fuzzCoverage": "`penpot-layout` mutates writer-produced native flex/grid shape JSON through `penpotChildrenPaintOrder`, `importPenpotLayouts` and the real Lolly Design evaluator",
         "notes": "The existing brand-import target only reaches token and page-census readers. This target covers layout-specific native properties, owner/source identity alignment, typed tracks, grid cell memberships and sizing. Findings are preserved by the mapper and converted to a controlled error by the fuzz caller, matching the web import refusal. Archive inflation itself remains in the existing shell reader."
       }
     },
     "engine/src/design-layout.ts": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "penpot-layout"
       ],
       "details": {
-        "inputSource": "Authored and imported Design layer/track records supplied through `host.layout.evaluate`; grid track strings and placement records may be collaborative or tool-supplied",
+        "inputSource": "Authored and imported Lolly Design layer/track records supplied through `host.layout.evaluate`; grid track strings and placement records may be collaborative or tool-supplied",
         "bounds": "`MAX_LAYOUT_LAYERS = 20,000`, `MAX_LAYOUT_TRACKS = 4,096`, `MAX_LAYOUT_OWNER_RECORDS = 65`, `MAX_LAYOUT_SCALAR = 1e7`, `MAX_LAYOUT_TEXT_LAYER_CHARS = 65,536`, `MAX_LAYOUT_TEXT_DOCUMENT_CHARS = 1 M`; `MAX_LAYOUT_TRACKS_PER_AXIS = 1,024`, `MAX_LAYOUT_GRID_CELLS = 65,536`, `MAX_LAYOUT_GRID_WORK = 262,144`, `MAX_LAYOUT_PASSES = 16`, `MAX_LAYOUT_REFLOW_WORK = 320,000`; named solver/projection cache ceilings",
         "directTests": "`tests/design-layout.test.ts`, `tests/layout-fuzz.test.ts`",
         "fuzzCoverage": "`penpot-layout` reaches `validateDesignLayout`, `parseLayoutTrack`, `designLayoutRequest` placement and `createDesignLayoutEvaluator` with the real WASM solver",
@@ -1114,12 +1375,12 @@
       }
     },
     "shells/web/src/views/design-guides.ts": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "design-guides"
       ],
       "details": {
-        "inputSource": "Authored, restored or shared Design guide text, including direct gd URL parameters and decoded z/zx state; legacy x/y JSON and compact v1/v2 wires",
+        "inputSource": "Authored, restored or shared Lolly Design guide text, including direct gd URL parameters and decoded z/zx state; legacy x/y JSON and compact v1/v2 wires",
         "bounds": "v1 has no local input-length or record-count cap. v2 parses JSON before considering only the first MAX_DESIGN_GUIDE_RECORDS = 1,000 array rows; IDs match [\\w-]{1,80} and are unique; coordinates and rotation must be finite numbers. Packed z/zx transport separately enforces url-pack.ts MAX_TOKEN = 64 KiB and MAX_UNPACKED = 256 KiB; these limits do not apply to direct gd or codec callers.",
         "directTests": "`tests/design-guides-fuzz.test.ts`, `shells/web/src/views/design-guides.test.ts`, `tests/design-guides.browser.test.ts`",
         "fuzzCoverage": "`design-guides` mutates writer-derived v1, legacy JSON and v2 text through parseDesignGuides, parseGuideRecords, both canonical writers and guideSnapTargets without mounting DOM",
@@ -1127,12 +1388,12 @@
       }
     },
     "engine/src/design-hierarchy.ts": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "design-hierarchy"
       ],
       "details": {
-        "inputSource": "Design boxes and pages from compact URL blocks, saved .lolly documents, collaborative edits and native Penpot imports",
+        "inputSource": "Lolly Design boxes and pages from compact URL blocks, saved .lolly documents, collaborative edits and native Penpot imports",
         "bounds": "20,000 layers, 256 pages, 64 ancestors, IDs of 160 UTF-16 units, names of 1,000 units, finite geometry magnitudes at most 1e7, and at most 256 reported findings; indexes and migration results are weakly cached by immutable input-array revision",
         "directTests": "`tests/design-hierarchy.test.ts`, `tests/design-hierarchy-fuzz.test.ts`, `tests/design-hierarchy-import.browser.test.ts`",
         "fuzzCoverage": "`design-hierarchy` mutates writer-derived legacy-group migration and nested/page document JSON through graph admission, cached indexes, ancestor/descendant traversal, bounds, flags and canonical reparse",
@@ -1140,19 +1401,23 @@
       }
     },
     "packages/core/src/lolly-features.ts": {
-      "family": "Design documents, links and agent requests",
-      "fuzzTargets": ["lolly-hierarchy"],
+      "family": "Lolly Design documents, links and agent requests",
+      "fuzzTargets": [
+        "lolly-hierarchy"
+      ],
       "details": {
-        "inputSource": "Parsed .lolly session values, project sessions, templates and bundled Design input manifests",
+        "inputSource": "Parsed .lolly session values, project sessions, templates and bundled Lolly Design input manifests",
         "bounds": "One shared budget of 200,000 inspected or queued values; iterative traversal with cycle detection; canonical flat box records are inspected once without traversing opaque text and paint payloads; exhausting the scan conservatively requires reader 8",
         "directTests": "`tests/design-hierarchy-lolly.test.ts`, `tests/design-hierarchy-lolly-fuzz.test.ts`",
         "fuzzCoverage": "`lolly-hierarchy` mutates real web and Node writer ZIP files through the shared feature scan and semantic reader gates",
-        "notes": "This detector identifies feature requirements, not graph validity. Nonempty Design pages/pageId values, real group records and hierarchy input declarations require reader 7; group opacity, blend and non-fixed sizing require reader 8. Flat legacy tags retain existing gates. Missing, lowered or nonnumeric gates are refused after payload parsing. Model graph admission remains in design-hierarchy.ts."
+        "notes": "This detector identifies feature requirements, not graph validity. Nonempty Lolly Design pages/pageId values, real group records and hierarchy input declarations require reader 7; group opacity, blend and non-fixed sizing require reader 8. Flat legacy tags retain existing gates. Missing, lowered or nonnumeric gates are refused after payload parsing. Model graph admission remains in design-hierarchy.ts."
       }
     },
     "shells/web/src/lib/lolly-pack.ts": {
-      "family": "Design documents, links and agent requests",
-      "fuzzTargets": ["lolly-hierarchy"],
+      "family": "Lolly Design documents, links and agent requests",
+      "fuzzTargets": [
+        "lolly-hierarchy"
+      ],
       "details": {
         "inputSource": "Portable .lolly share ZIPs carrying saved sessions, project folders, templates and bundled tools",
         "bounds": "Existing unzip limits remain 512 MiB per part and 2 GiB total; projects admit at most 2,000 sessions and 500 folders; templates retain their existing 200-record cap; feature detection has one 200,000-value budget",
@@ -1162,8 +1427,10 @@
       }
     },
     "packages/node-shell/src/lolly-file.ts": {
-      "family": "Design documents, links and agent requests",
-      "fuzzTargets": ["lolly-hierarchy"],
+      "family": "Lolly Design documents, links and agent requests",
+      "fuzzTargets": [
+        "lolly-hierarchy"
+      ],
       "details": {
         "inputSource": "Portable .lolly session and reusable-tool ZIPs opened by Node shells",
         "bounds": "Engine ZIP reader caps input and total inflated bytes at 512 MiB, each entry at 256 MiB and inventory at 10,000 entries; shared semantic feature detection inspects at most 200,000 values",
@@ -1173,12 +1440,12 @@
       }
     },
     "engine/src/design-layer-ops.ts": {
-      "family": "Design documents, links and agent requests",
+      "family": "Lolly Design documents, links and agent requests",
       "fuzzTargets": [
         "design-hierarchy"
       ],
       "details": {
-        "inputSource": "Stable-ID layerOperations and layerPatches from MCP and the live editor agent bridge, over existing Design layer records",
+        "inputSource": "Stable-ID layerOperations and layerPatches from MCP and the live editor agent bridge, over existing Lolly Design layer records",
         "bounds": "The hierarchy adapter admits 20,000 layer records, 256 explicit pages, 64 ancestors and finite scalar geometry up to 1e7; operations are ordered transactions over copied rows and reject ambiguous identities, missing clone IDs, cycles and cross-domain reorder",
         "directTests": "`tests/design-layer-ops.test.ts`, `services/mcp/test/design-agent.test.ts`, `tests/design-hierarchy-fuzz.test.ts`",
         "fuzzCoverage": "`design-hierarchy` mutates document JSON and derived or supplied operation/patch lists through nested duplicate, cascade remove, reparent, reorder validation and final graph admission",
@@ -1196,6 +1463,32 @@
         "directTests": "`tests/font-inspect.test.ts`, `tests/font-convert-tool.test.ts`",
         "fuzzCoverage": "`font-inspect` mutates a real variable TTF, its WOFF wrapper and crafted fonts whose cmap format 4 segments and format 12 groups overlap, through `inspectFont` and `glyphsForText`",
         "notes": "Reads cmap formats 4 and 12 only; other formats report no coverage. Reading stops at the first format 4 end code that does not ascend and at the first format 12 group that overlaps or goes backwards; the spec requires both in ascending order. WOFF2 and collections are refused by name. The subset path refuses before any work on outlines other than TrueType and on restricting fsType values (font-subset-policy.ts), then re-parses the output with the same reader."
+      }
+    },
+    "packages/node-shell/src/pdf-redact-keep.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "pdf-redact-keep"
+      ],
+      "details": {
+        "inputSource": "User-picked PDFs, rewritten by the pdf-a11y module's redaction operation, and then the rewritten file read again by Lolly's own PDF reader. The boxes come from the Redact tool.",
+        "bounds": "256 MiB request, 10,000 boxes, 512 MiB WASM memory cap, the vendored reader's per-page stream budgets; the check reads at most 64 MiB of content per page and 120,000 glyph nodes, and refuses a page with more, with pictures inside its content stream, or with an unreadable picture; the module imports nothing from the host",
+        "directTests": "`tests/redact-keep-text.test.ts` (including a 120-file generated corpus read by an oracle that shares no code with the check) and the Keep text scenarios in `tests/redact.test.ts`",
+        "fuzzCoverage": "`pdf-redact-keep` mutates generated PDFs holding text, pictures and drawings with the boxes fixed, so the reader, the content rewriter, the writer and the check are all reached. A trap in the module is reported as a crash.",
+        "notes": "Fail closed: a result is returned only when the check finds no glyph, picture pixel, drawing or annotation under any box and can place every glyph near a box. Partly covered drawings are clipped rather than cut, so their outline data stays in the file. Upstream's glyph margin is narrowed (vendored UPSTREAM.md)."
+      }
+    },
+    "engine/src/video-container-probe.ts": {
+      "family": "Audio, video and animation",
+      "fuzzTargets": [
+        "video-probe"
+      ],
+      "details": {
+        "inputSource": "A MOV, MP4 or MXF a user imported, read through a bounded `read(offset, length)` source",
+        "bounds": "4,096 top-level boxes, 32 MiB movie box, 100,000 child boxes per level, 2^20 timing entries, 64 tracks; MXF run-in 64 KiB, 16 MiB header metadata, 200,000 KLV items; 64-bit values above 2^53 and any read past the end of the file are refused",
+        "directTests": "`tests/video-container-probe.test.ts`, `tests/video-no-patent-codecs.test.ts`",
+        "fuzzCoverage": "`video-probe` (`probeVideoContainer`) over ProRes, H.264 and DNx MOV seeds and an OP1a MXF seed",
+        "notes": "Container structure only: sample entries, config records, MXF descriptors and labels. Nothing is decoded. Bytes that are none of the three containers answer null; a recognised but unreadable file throws `VideoProbeError` with a code (truncated, malformed, too-large)."
       }
     }
   }

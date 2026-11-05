@@ -44,6 +44,8 @@
  * See `plans/65-preflight-and-cost.md` section 3 (the findings model) and section 6 (honesty rules).
  */
 
+import type { PdfAccessibilitySummary } from './host-v1/pdf.ts';
+
 // ─── Severity ───────────────────────────────────────────────────────────────
 
 /**
@@ -297,6 +299,7 @@ export type FindingId =
   | 'output.fonts-not-embedded'
   | 'output.live-text'
   | 'output.over-byte-budget'
+  | 'output.pdf-accessibility'
   | 'output.unverified'
   | (string & {});
 
@@ -448,7 +451,7 @@ export const PREFLIGHT_FORMAT_VERSION = 1;
 export type ExportProperty =
   | 'format' | 'bytes' | 'width' | 'height' | 'page-width' | 'page-height' | 'pages'
   | 'dpi' | 'duration' | 'frames' | 'nature' | 'alpha' | 'colour' | 'icc' | 'hdr'
-  | 'metadata' | 'credential' | 'encryption' | 'fonts'
+  | 'metadata' | 'credential' | 'encryption' | 'fonts' | 'pdf-accessibility'
   | (string & {});
 
 /** A requested or measured value. Units are fixed per property and stated in `basis`. */
@@ -502,6 +505,12 @@ export interface ExportReport {
   readonly gaps: readonly Finding[];
   /** Fixed sentences that qualify every report, such as what a present credential does not prove. */
   readonly statements: readonly string[];
+  /**
+   * The PDF accessibility checks for a PDF output, when the shell supplied the reader.
+   * It lists which checks passed, failed, did not apply or need a person. It is not a
+   * verdict, and `statements` says so.
+   */
+  readonly pdfAccessibility?: PdfAccessibilitySummary;
 }
 
 /** The `$format` discriminator for an export report on disk. */

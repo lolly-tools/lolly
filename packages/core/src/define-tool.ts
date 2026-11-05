@@ -19,10 +19,29 @@ export interface HookModelItem {
   [key: string]: unknown;
 }
 
+/**
+ * The size a tool is being made at (engine 1.293), in CSS pixels at 96 per inch:
+ * the export size a shell was asked for when both sides are known, otherwise the
+ * manifest's `render.width` x `render.height`. A physical size arrives converted,
+ * so an A4 page is 793.7 x 1122.5. Every shell computes it with the engine's
+ * `canvasSizeOf`, so the web app, the CLI, the TUI and the MCP server hand a tool
+ * the same numbers for the same request.
+ */
+export interface CanvasSize {
+  readonly width: number;
+  readonly height: number;
+}
+
 /** The lifecycle context every hook receives (mirrors the engine runtime). */
 export interface HookContext {
   /** Effective tool language, including a per-render language override. */
   lang?: string;
+  /**
+   * The canvas size (engine 1.293). Absent on an older engine, where the canvas is
+   * the manifest's size. A tool that declares `render.followsCanvasSize` gets an
+   * `onInput` run with `id: '__canvasSize'` whenever it changes.
+   */
+  canvasSize?: CanvasSize;
   /** The current input model - one entry per declared input. */
   model: HookModelItem[];
   /** The capability bridge - the supported, portable API surface for hooks. */
@@ -42,6 +61,12 @@ export interface ExportHookContext {
   lang?: string;
   /** Current inputs, added in engine 1.216 for validation without DOM reads. */
   model: HookModelItem[];
+  /**
+   * The canvas size the node was drawn at (engine 1.293). `opts.width` and
+   * `opts.height` are the export's own size, which can differ (a batch row, or a
+   * caller that never set the canvas size).
+   */
+  canvasSize?: CanvasSize;
   /** The render target (a DOM node in shells that have one). */
   node: unknown;
   format: string;

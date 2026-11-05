@@ -12,7 +12,7 @@ Depuis le terminal, `lolly mix` prend une chanson comme bande-son entière ; voi
 
 ## Écrire et exporter une chanson
 
-Ouvre **Rondocode** depuis **Utilities** pour écrire une chanson dans l'éditeur en direct de rondocode et l'entendre pendant que tu tapes. Exporte-la en **WAV**, **MP3**, **M4A**, **Opus** ou **FLAC**, en ZIP de pistes séparées, en **MIDI**, ou en enregistrement de ce qui joue. **Export length** fixe le nombre de secondes d'un export audio. Le fichier de chanson lui-même (`.rondo.json`) est ton code tel qu'il est écrit et ne porte rien d'ajouté.
+Ouvre **Rondocode** depuis **Utilities** pour écrire une chanson dans l'éditeur en direct de rondocode et l'entendre pendant que tu tapes. Exporte-la en **WAV**, **MP3**, **M4A**, **Opus** ou **FLAC**, en ZIP de pistes séparées, en **MIDI**, ou en enregistrement de ce qui joue. Depuis le terminal, `lolly rondocode --export=mid` écrit le même fichier MIDI. **Export length** fixe le nombre de secondes d'un export audio. Le fichier de chanson lui-même (`.rondo.json`) est ton code tel qu'il est écrit et ne porte rien d'ajouté.
 
 Une chanson peut chanter ses paroles avec `sing()`. Le chant est produit sur ton appareil par des modèles de voix téléchargés, et un fichier qui contient un chant synthétisé déclare toujours ce chant comme généré par IA (voir [AI features](/info/ai-features.html)).
 
@@ -36,6 +36,12 @@ La plupart des utilitaires sur l'appareil n'écrivent aucun credential, car ils 
 - La musique calculée à partir du code de la chanson est un média algorithmique et n'est pas marquée comme IA.
 
 Quand une chanson chante, le fichier déclare ce chant comme généré par IA sous une forme lisible par machine. Le type de source numérique du credential est un média composite réalisé avec des modèles entraînés, l'enregistrement liste les parties chantées, et une déclaration IA C2PA par modèle identifie chaque modèle par lequel le chant est passé : la synthèse vocale Supertonic-3, l'aligneur de phonèmes wav2vec 2.0, l'encodeur ContentVec et la voix RVC, avec le dépôt et le commit d'où Lolly l'héberge. Un fichier contenant un chant synthétisé n'est jamais enregistré sans cette déclaration.
+
+### Ce que contient le fichier MIDI
+
+Le fichier MIDI est un Standard MIDI File, format 1. La première piste contient le tempo et une signature rythmique 4/4, puis il y a une piste pour chaque synthé, nommée d'après le synthé. Chaque note garde son début, sa durée et sa vélocité. Un synthé dont le nom évoque un instrument, comme une basse, des cordes, un pad ou un piano, reçoit l'instrument General MIDI correspondant, et un nom qui évoque une batterie va sur le canal 10. Un accordage qui n'est pas à douze tons est arrondi au demi-ton le plus proche avec un pitch bend.
+
+Un fichier MIDI ne peut pas contenir le son d'une chanson. Les réglages des synthés, les filtres, les effets, les bus, les samples et le chant n'y sont pas, donc une DAW joue les notes avec ses propres instruments. Le tempo est lu à partir des cycles par seconde de la chanson, un cycle valant une mesure de quatre temps, parce que la signature rythmique propre à la chanson ne fait pas partie de ce que le moteur de rendu renvoie.
 
 Un fichier MIDI n'a pas de place pour un credential, donc un événement texte dans le fichier porte la déclaration à la place, et le panneau d'export te le dit. Le panneau décrit tout cela avant que tu exportes, et après chaque export l'éditeur relit le fichier enregistré et ne rend compte que de ce que cette lecture a trouvé.
 

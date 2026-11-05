@@ -1,0 +1,84 @@
+/* Cascade layer: views, from app.css. Loaded eagerly with the app's stylesheet (not from
+   lib/boot-error.ts), because a bundle without a CSS loader must be able to import that module. */
+/*
+ * The unsupported-environment card (lib/boot-error.ts webGpuGate; plan 346,
+ * changes 13 and 21). A door, not an error: Lolly's own calm card on the page's
+ * ground, in the neutral surface every panel uses. No red, no thick border, and
+ * a filled action for the one thing that always works here, the desktop app.
+ */
+
+/* The card is the only thing on the page, so the page centres it. */
+#view:has(> .webgpu-gate) {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--sp-7) 16px;
+}
+
+.webgpu-gate {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: var(--sp-4);
+  width: min(100%, 34rem);
+  padding: var(--sp-8);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-panel);
+  color: var(--ui-color-text-default);
+  text-align: start;
+}
+/* The page's heading, in the studio's own face: base.css hands every h1 the
+   design system's display face, and this card is Lolly speaking, not the guest. */
+.webgpu-gate-title {
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--ui-type-lead);
+  font-weight: 750;
+  letter-spacing: var(--ui-type-tracking-tight);
+  line-height: 1.25;
+}
+.webgpu-gate-lead {
+  margin: 0;
+  font-size: var(--fs-xl);
+  line-height: 1.5;
+}
+.webgpu-gate-label {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--ui-type-tracking-label);
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.webgpu-gate-browsers {
+  display: grid;
+  gap: var(--sp-1);
+  margin: 0;
+  padding-inline-start: var(--sp-7);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--ui-color-text-muted);
+}
+.webgpu-gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+.webgpu-gate-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ui-size-target);
+  text-decoration: none;
+}
+/* The koala (components/fauna-art.ts), in flow above the heading at the card's
+   inline end, so a long heading in any language never runs under it. */
+.webgpu-gate > .fauna-slot {
+  justify-self: end;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .webgpu-gate { padding: var(--sp-7); }
+}

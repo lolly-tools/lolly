@@ -15,6 +15,7 @@
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { TableValue } from '@lolly/engine';
 import { readXlsx, listXlsxSheets } from '@lolly/engine';
+import type { XlsxCellFormatter, XlsxRecalculator } from '@lolly/engine';
 import { mountDataGrid, type DataGridHandle } from '../components/data-grid.ts';
 import { sourceToGrid, gridToTarget } from '../lib/convert-codecs.ts';
 import { t } from '../i18n.ts';
@@ -48,8 +49,10 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
     <div class="platform-layout data-view">
       <header class="plat-header">
         <h1 class="plat-title">${t('Spreadsheet')}</h1>
-        <p class="plat-sub">${t('Open, read and edit a spreadsheet on your device - no internet, no Excel needed. Nothing is uploaded.')}</p>
-        <a class="btn" href="#/compare?mode=table">${t('Compare table files')}</a>
+        <div class="plat-header-text">
+          <p class="plat-sub">${t('Open, read and edit a spreadsheet on your device - no internet, no Excel needed. Nothing is uploaded.')}</p>
+          <a class="btn" href="#/compare?mode=table">${t('Compare table files')}</a>
+        </div>
       </header>
       <div class="data-drop" data-drop tabindex="0" role="button" aria-label="${t('Drop a spreadsheet to open')}">
         <p>${t('Drop an .xlsx, .csv, .tsv or .json here, or choose one.')}</p>
@@ -91,6 +94,10 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
   let baseName = 'sheet';
   // Parse worksheets lazily, but retain each edited grid while the book is open.
   let xlsxBytes: Uint8Array | null = null;
+  // Supplied once an .xlsx is picked, so sheets read later show Excel's number formats.
+  let formatCell: XlsxCellFormatter | undefined;
+  // The same for formulas the file saved no result for.
+  let recalc: XlsxRecalculator | undefined;
   let activeSheet = 0;
   const sheets = new Map<number, { value: TableValue; note?: string }>();
   let generation = 0;
@@ -165,7 +172,7 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
   }
 
   function readSheet(bytes: Uint8Array, sheet: number): { value: TableValue; note?: string } {
-    const { rows, truncated } = readXlsx(bytes, { sheet, limit: VIEW_ROW_LIMIT });
+    const { rows, truncated } = readXlsx(bytes, { sheet, limit: VIEW_ROW_LIMIT, ...(formatCell ? { formatCell } : {}), ...(recalc ? { recalc, recalcWhen: 'missing' as const } : {}) });
     return { value: gridFromRows(rows), note: truncated ? t('Showing the first {n} rows.').replace('{n}', String(VIEW_ROW_LIMIT)) : undefined };
   }
 
@@ -175,6 +182,9 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (!active || current !== generation) return;
       const isXlsx = /\.xlsx$/i.test(file.name);
+      if (isXlsx) formatCell = await (await import('../bridge/xlsx-numfmt.ts')).xlsxFormatter();
+      if (isXlsx) recalc = await (await import('../bridge/gridcraft-calc.ts')).xlsxRecalc();
+      if (!active || current !== generation) return;
       const names = isXlsx ? listXlsxSheets(bytes).map((s) => s.name) : [];
       const kind = /\.tsv$/i.test(file.name) ? 'tsv' : /\.json$/i.test(file.name) ? 'json' : 'csv';
       const first = isXlsx ? readSheet(bytes, 0) : { value: gridFromRows(sourceToGrid(kind, bytes)), note: undefined };

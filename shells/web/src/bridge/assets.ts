@@ -5,11 +5,11 @@
  * Resolution order for host.assets.get(id):
  *   1. user-assets store (if id starts with 'user/')
  *   2. asset-blob store (cached library asset)
- *   3. on-demand fetch from catalog URL (if 'on-demand' tier and net OK)
+ *   3. fetch from the catalog URL, then cache (any tier, when net is OK)
  *   4. throw if unavailable
  *
  * Tier behaviour:
- *   - core      → bundled with shell, always present
+ *   - core      → warmed on idle after boot, fetched on a miss before that
  *   - catalog   → synced at boot via catalog/sync.js
  *   - on-demand → fetched lazily, then cached
  */
@@ -17,6 +17,7 @@
 import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers, parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
 import type { GradeLut } from '../../../../engine/src/grade.ts';
 import { photoLookGpuRecipe } from '../../../../packages/node-shell/src/pixel-kernel-recipe.ts';
+import { parseToolAssetId } from '../../../../packages/node-shell/src/tool-asset-id.ts';
 // c2pa-verify is LAZY on purpose. It is the entry to the whole provenance
 // cluster (c2pa + c2pa-extract + c2pa-containers + c2pa-verdict + c2pa-trust +
 // video-meta, ~65 KB gz), and this module is on the boot path, so a static
@@ -534,6 +535,22 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         return await (await import('./url-asset.ts')).resolveUrlAsset(id);
       }
 
+      // A picture a tool ships beside its manifest, `/tools/<tool-id>/assets/<file>`
+      // (packages/node-shell/src/tool-asset-id.ts), as a tool's example looks name
+      // their pictures. Tool files are signed with the catalog, so the bytes come
+      // through the verified resource read (a blob: URL) when this instance checks
+      // signatures, and from this instance's own tool path otherwise.
+      const shipped = parseToolAssetId(id);
+      if (shipped) {
+        const { verifiedResourceURL, catalogResourceAddress } = await import('../catalog/tool-bytes.ts');
+        const verified = await verifiedResourceURL(id);
+        return {
+          source: 'remote', id, type: shipped.type, format: shipped.format,
+          url: verified === id ? catalogResourceAddress(id).href : verified,
+          meta: { name: shipped.file },
+        };
+      }
+
       // A presentation modifier can ride in the id, chosen at pick time and
       // baked into a derived copy at resolve. The base asset is always
       // resolved normally first (blob cache keyed by base id):
@@ -595,11 +612,14 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         let blob = await db.get('asset-blob', blobKey);
         if (!blob) {
           if (historical) throw new Error(`Asset version unavailable: ${id} (${version})`);
-          if (meta.tier === 'on-demand') {
-            blob = await fetchAndCacheOnce(meta, format, blobKey);
-          } else {
-            throw new Error(`Asset not cached: ${id} (tier: ${meta.tier})`);
-          }
+          // Every tier is fetched on a miss, core included. The core tier is normally
+          // already on the device, but only after the idle warming pass in main.ts, and
+          // a scripted export or a framed tool never runs that pass. Refusing here is
+          // what dropped the brand logo from every link export on a fresh browser: the
+          // tool asked for bytes it needed to draw and got "not cached". The fetch is
+          // the warming pass's own (checksum-verified, stored under the same key), and
+          // a download that pass already has in flight is shared, not repeated.
+          blob = await fetchAndCacheOnce(meta, format, blobKey);
         }
         return blob;
       };

@@ -340,7 +340,7 @@ test('a refused Open in Design names its reason in words, and its notes go to th
   assert.match(text(view.querySelector('[data-sec="notes"]')), /1 object is on the Not placed artboard/);
 });
 
-test('Open in Design waits only for what cannot be answered here, and says so beside the button', () => {
+test('Open in Design waits only for what cannot be answered here, and shows the reason beside the button', () => {
   const settled = planSettled();
   const controller = new StubController(reviewState({ plan: settled, preview: previewFor(settled.revision), previewStale: true }));
   const { view } = mount(controller);

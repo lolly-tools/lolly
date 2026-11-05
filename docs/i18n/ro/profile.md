@@ -14,13 +14,13 @@ Profilul tău conține și ce acumulezi cât lucrezi: sesiuni salvate, imagini �
 | **Headshot** | O fotografie opțională, decupată pătrat și păstrată ca imagine locală, pentru instrumente precum semnăturile de email, cardurile de citate și organigramele. |
 | **Use my details to create** | Un singur comutator opt-in (scrie **Using my details** după ce e activat). Decide dacă detaliile tale călătoresc drept credit de autor în fișierele exportate și în rulările Batch. Nu afectează completarea automată; vezi [Cum folosesc instrumentele profilul tău](#how-tools-use-your-profile). |
 | **Preferences** | Tema, colourway-ul tău în fiecare sistem de design, setările de accesibilitate și ce părți ale aplicației ai activat în **Feature flags**. |
-| **Your work** | Sesiuni salvate cu miniaturile lor, organizate în [Projects](/info/find-your-work.html), imaginile încărcate și statisticile locale de activitate. |
+| **Your work** | Sesiuni salvate cu miniaturile lor, organizate în [Lolly Projects](/info/find-your-work.html), imaginile încărcate și statisticile locale de activitate. |
 
 Nimic nu este obligatoriu. Un profil gol funcționează; completează doar ce îți scutește tastarea.
 
 ![Settings, fila Preferences: bara de setări și Your details cu comutatorul Use my details to create și câmpurile de nume, contact și locație](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) cartografiază tot restul din Preferences, de la aspect și emoji la stocare și descărcări offline.
+[Lolly Settings](/info/dashboard.html) cartografiază tot restul din Preferences, de la aspect și emoji la stocare și descărcări offline.
 
 ## Tu, o echipă sau un rol
 
@@ -45,7 +45,7 @@ Un manager de evenimente care are nevoie trei zile pe an de căsuța evenimentul
 ::: details Profiluri într-o organizație care folosește Lolly Work
 Când te autentifici în [Lolly-ul unei organizații](/info/organisation.html), Lolly Work poate furniza câmpuri de profil verificate de la furnizorul ei de identitate și poate fixa câmpuri sau preferințe sub politica organizației. Un câmp administrat este etichetat în aplicație.
 
-Acea autentificare controlează și accesul la proiecte și resurse comune. Un fișier de profil de echipă rămâne un fișier local: nu acordă apartenența la organizație și nu înlocuiește un cont Work. **Use my details to create** controlează creditul din exporturile tale, nu autentificarea sau înregistrările de audit ale organizației. Vezi [Confidențialitate](/info/privacy.html#organisation-services-with-lolly-work).
+Acea autentificare controlează și accesul la proiecte și resurse comune. Un fișier de profil de echipă rămâne un fișier local: nu acordă apartenența la organizație și nu înlocuiește un cont Lolly Work. **Use my details to create** controlează creditul din exporturile tale, nu autentificarea sau înregistrările de audit ale organizației. Vezi [Confidențialitate](/info/privacy.html#organisation-services-with-lolly-work).
 :::
 
 ## Păstrează mai multe, folosește unul
@@ -83,7 +83,7 @@ Autori de instrumente: vezi [`bindToProfile`](/info/tool-inputs.html#bindtoprofi
 Trei lucruri stau aproape în Settings și se confundă ușor:
 
 - <!--i:people--> **Profile** - tu, echipa ta sau rolul în care ești: nume, contact, fotografie și munca salvată. Personal, păstrat pe dispozitiv și portabil ca fișier.
-- <!--i:palette--> **Design system** - brandul: culorile, fonturile și setările cu care randează fiecare instrument. Comun și consecvent, nu personal; vezi [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - brandul: culorile, fonturile și setările cu care randează fiecare instrument. Comun și consecvent, nu personal; vezi [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - ce poate face aplicația: funcțiile și instrumentele disponibile pentru tine.
 
 Un profil schimbă de la cine este un fișier; sistemul de design schimbă cum arată fișierul; capabilitățile sunt ce poți face.

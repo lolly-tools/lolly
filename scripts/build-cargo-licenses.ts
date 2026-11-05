@@ -47,6 +47,16 @@ const CRATE_DIRS = [
   'shells/tauri-mobile/src-tauri',
   'packages/node-shell/wasm/skera',
   'packages/node-shell/wasm/adobe-psd',
+  'packages/node-shell/wasm/xlsx-numfmt',
+  'packages/node-shell/wasm/gridcraft-calc',
+  'packages/node-shell/wasm/inpaint',
+  'packages/node-shell/wasm/image-trace',
+  'packages/node-shell/wasm/pdf-a11y',
+  'packages/node-shell/wasm/dxf',
+  'packages/node-shell/wasm/audio-dsp',
+  'packages/node-shell/wasm/indd',
+  'packages/node-shell/wasm/camera-raw',
+  'packages/node-shell/wasm/affinity',
 ];
 
 // First-party workspace crates: no `license` field in Cargo.toml, but they are

@@ -772,19 +772,19 @@
     },
     {
       "file": "certificate.look0.svg",
-      "bytes": 18081,
-      "sha": "a27ad76c7c264224",
-      "stddev": 47.296,
-      "inkRatio": 0.11475,
+      "bytes": 7504,
+      "sha": "21432114d91a9344",
+      "stddev": 49.765,
+      "inkRatio": 0.12981,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 47.296,
-          "inkRatio": 0.11475
+          "stddev": 49.765,
+          "inkRatio": 0.12981
         },
         "black": {
-          "stddev": 47.296,
-          "inkRatio": 0.11475
+          "stddev": 49.765,
+          "inkRatio": 0.12981
         }
       },
       "blank": false,
@@ -792,19 +792,19 @@
     },
     {
       "file": "certificate.look1.svg",
-      "bytes": 18314,
-      "sha": "3f3c6b991d7fa302",
-      "stddev": 47.723,
-      "inkRatio": 0.1157,
+      "bytes": 6365,
+      "sha": "2e12b9efefaf46c5",
+      "stddev": 116.999,
+      "inkRatio": 0.36734,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 47.723,
-          "inkRatio": 0.1157
+          "stddev": 116.999,
+          "inkRatio": 0.36734
         },
         "black": {
-          "stddev": 47.723,
-          "inkRatio": 0.1157
+          "stddev": 116.999,
+          "inkRatio": 0.36734
         }
       },
       "blank": false,
@@ -812,19 +812,19 @@
     },
     {
       "file": "certificate.look2.svg",
-      "bytes": 17947,
-      "sha": "3c691115ee431cad",
-      "stddev": 47.392,
-      "inkRatio": 0.1135,
+      "bytes": 5933,
+      "sha": "823afe9cbcc3e04d",
+      "stddev": 35.603,
+      "inkRatio": 0.05536,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 47.392,
-          "inkRatio": 0.1135
+          "stddev": 35.603,
+          "inkRatio": 0.05536
         },
         "black": {
-          "stddev": 47.392,
-          "inkRatio": 0.1135
+          "stddev": 35.603,
+          "inkRatio": 0.05536
         }
       },
       "blank": false,
@@ -832,19 +832,19 @@
     },
     {
       "file": "certificate.look3.svg",
-      "bytes": 18090,
-      "sha": "ec49b6c9d9c8c5b5",
-      "stddev": 47.827,
-      "inkRatio": 0.11712,
+      "bytes": 11149,
+      "sha": "ce23a4f96df2b8ab",
+      "stddev": 45.667,
+      "inkRatio": 0.11679,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 47.827,
-          "inkRatio": 0.11712
+          "stddev": 45.667,
+          "inkRatio": 0.11679
         },
         "black": {
-          "stddev": 47.827,
-          "inkRatio": 0.11712
+          "stddev": 45.64,
+          "inkRatio": 0.11679
         }
       },
       "blank": false,
@@ -852,19 +852,19 @@
     },
     {
       "file": "certificate.svg",
-      "bytes": 18081,
-      "sha": "5be2cf196212c76c",
-      "stddev": 47.296,
-      "inkRatio": 0.11475,
+      "bytes": 7508,
+      "sha": "f1d695e16ec56691",
+      "stddev": 49.765,
+      "inkRatio": 0.12981,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 47.296,
-          "inkRatio": 0.11475
+          "stddev": 49.765,
+          "inkRatio": 0.12981
         },
         "black": {
-          "stddev": 47.296,
-          "inkRatio": 0.11475
+          "stddev": 49.765,
+          "inkRatio": 0.12981
         }
       },
       "blank": false,
@@ -2731,25 +2731,44 @@
       "sparse": false
     },
     {
-      "file": "logo-wall.svg",
-      "bytes": 3384,
-      "sha": "774ea98b98aa52ce",
-      "stddev": 6.203,
-      "inkRatio": 0.01305,
-      "ground": "black",
+      "file": "logo-wall.look0.svg",
+      "bytes": 32309,
+      "sha": "67ea8b08c8cab1b7",
+      "stddev": 30.649,
+      "inkRatio": 0.05347,
+      "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 3.094,
-          "inkRatio": 0.0073
+          "stddev": 30.649,
+          "inkRatio": 0.05347
         },
         "black": {
-          "stddev": 6.203,
-          "inkRatio": 0.01305
+          "stddev": 6.278,
+          "inkRatio": 0.03155
         }
       },
       "blank": false,
-      "sparse": true,
-      "reason": "near-empty: only 1.31% of pixels differ from the background"
+      "sparse": false
+    },
+    {
+      "file": "logo-wall.svg",
+      "bytes": 32309,
+      "sha": "cc5167205e0a9f69",
+      "stddev": 30.649,
+      "inkRatio": 0.05347,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 30.649,
+          "inkRatio": 0.05347
+        },
+        "black": {
+          "stddev": 6.278,
+          "inkRatio": 0.03155
+        }
+      },
+      "blank": false,
+      "sparse": false
     },
     {
       "file": "lottie-digi-ad.svg",

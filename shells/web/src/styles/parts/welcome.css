@@ -11,17 +11,21 @@
  * variables (shell chrome, not brand values).
  */
 
-/* One fixed size for every page of the two-page carousel ON DESKTOP: the body
-   scrolls, the footer does not move, and neither can be clipped. The height is
-   stated as well as capped so a short page does not shrink the dialog when the
-   user pages back and forth; the cap also replaces the UA default max-height,
-   which used to cut the last line off a 393x852 phone with no scrollbar to show
-   for it. Phones size to content instead - see the 640px block below. */
+/* One size for every page of the two-page carousel ON DESKTOP: the body
+   scrolls, the footer does not move, and neither can be clipped. The dialog
+   opens at page 1's own height (no empty band above the heading or under the
+   doors) and components/welcome-dialog.ts holds that height inline, so page 2
+   scrolls inside the same shell instead of resizing it (plan 346, change 14).
+   The cap replaces the UA default max-height, which used to cut the last line
+   off a 393x852 phone with no scrollbar to show the rest. Phones size to content
+   on every page - see the 640px block below. */
 .welcome-dialog {
   border: 1px solid hsl(var(--border));
   padding: 0;
   width: min(1080px, 94vw);
-  block-size: min(680px, calc(100dvh - 32px));
+  /* fit-content, not auto: a modal dialog is inset on every side, so an auto
+     height stretches it to the viewport. */
+  block-size: fit-content;
   max-block-size: calc(100dvh - 32px);
   display: flex;
   flex-direction: column;
@@ -36,16 +40,14 @@
    parts/dialogs.css - three declarations that were identical in three sheets.) */
 
 /* The one scrolling region - the page content. `min-height: 0` is what lets a flex
-   child actually scroll instead of growing the dialog past its stated height. The
-   page is centred while it fits (the dialog keeps one height for both pages, and
-   the shorter page would otherwise stack against the top with a gap under it);
-   `safe` drops back to top-aligned once it overflows, so the first line is never
-   scrolled out of reach. */
+   child actually scroll instead of growing the dialog past its held height. A
+   page shorter than the held height is centred; `safe` drops back to top-aligned
+   once a page overflows, so the first line is never scrolled out of reach. */
 .welcome-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 28px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
   justify-content: safe center;
@@ -74,7 +76,7 @@
      three stacked doors plus the footer only just exceed a 393x740 viewport,
      and a content-height dialog keeps the whole third door (CTA included) on
      screen wherever it fits (audit 167 F-A6). Still capped, still scrollable. */
-  .welcome-dialog { block-size: auto; max-block-size: calc(100dvh - 16px); }
+  .welcome-dialog { block-size: fit-content; max-block-size: calc(100dvh - 16px); }
   .welcome-body { padding: 20px; }
   .welcome-foot { padding: 12px 20px; }
   .welcome-card { padding: 12px; gap: 6px; }
@@ -222,22 +224,26 @@
 .welcome-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
 @media (max-width: 640px) { .welcome-cards { grid-template-columns: 1fr; } }
 
+/* A door: the same surface as the studio Board's doors and Start here row
+   (styles/parts/start.css), a hairline ring and a soft lift rather than a
+   border, which read as an accent on a tinted chrome. Hover lifts it further. */
 .welcome-card {
   display: flex;
   flex-direction: column;
   gap: 8px;
   text-align: left;
   padding: 16px;
-  border: 1px solid hsl(var(--border));
+  border: 0;
   border-radius: calc(var(--radius) * 1.4);
-  background: hsl(var(--background));
+  background: hsl(var(--card));
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-control);
   color: hsl(var(--foreground));
   font: inherit;
   cursor: pointer;
-  transition: border-color var(--dur-1), background var(--dur-1), transform var(--dur-1);
+  transition: box-shadow var(--dur-1), background var(--dur-1), transform var(--dur-1);
 }
-.welcome-card:hover { border-color: hsl(var(--primary) / 0.55); transform: translateY(-1px); }
-/* The lead card is marked by its wash; at rest every card wears the neutral hairline and the accent edge arrives on hover. */
+.welcome-card:hover { box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating); transform: translateY(-1px); }
+/* The lead card is marked by its wash; at rest no card wears an accent edge. */
 .welcome-card--brand {
   background: hsl(var(--primary) / 0.06);
 }

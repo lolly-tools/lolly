@@ -6,7 +6,7 @@ Jeśli Twoja organizacja trzyma zatwierdzone zasoby w Bynder, Frontify, Marq lub
 
 ## Co robi lepiej ugruntowany portal
 
-Ugruntowane portale oferują zarządzany hosting, wsparcie i rozbudowane przepływy zarządzania zasobami. [Enterprise DAM Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) na przykład łączy wyszukiwanie zasobów, kontrolę dostępu, przepływy zatwierdzania i dystrybucję. Stos Lolly jest młodszy, a jego łańcuchy zatwierdzania są sekwencyjne, a nie dowolnymi rozgałęzionymi przepływami. [Work status and roadmap](/info/work-status.html) zapisuje jego ograniczenia wdrożeniowe.
+Ugruntowane portale oferują zarządzany hosting, wsparcie i rozbudowane przepływy zarządzania zasobami. [Enterprise DAM Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) na przykład łączy wyszukiwanie zasobów, kontrolę dostępu, przepływy zatwierdzania i dystrybucję. Stos Lolly jest młodszy, a jego łańcuchy zatwierdzania są sekwencyjne, a nie dowolnymi rozgałęzionymi przepływami. [Lolly Work status and roadmap](/info/work-status.html) zapisuje jego ograniczenia wdrożeniowe.
 
 ## Gdzie się pokrywają
 

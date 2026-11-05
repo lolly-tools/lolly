@@ -37,6 +37,12 @@ export interface ModalHandle<T> {
   el: HTMLDialogElement;
   /** Close (if not already closed/removed) and resolve `onClose` with `result`. Idempotent. */
   close(result?: T): void;
+  /**
+   * Turn the same open dialog into a modal or a non-modal one, in place: the node,
+   * its focus and its scroll stay (a fold that brings two panes in or out must not
+   * re-create a dialog the person is working in).
+   */
+  setModal(modal: boolean): void;
 }
 
 export interface ModalOptions<T> {
@@ -67,6 +73,11 @@ export interface ModalOptions<T> {
    *  that closes it later (the "Opening…" card's Cancel, which waits for the mount to
    *  stop). Omitted, Escape closes with cancelValue. */
   onEscape?: (el: HTMLDialogElement) => void;
+  /** Open as a modal (`showModal()`, the default) or, when false, as a non-modal
+   *  dialog in the page (`show()`): no backdrop, nothing made inert, and Escape
+   *  still closes the dialog. The two-pane layout opens an inspector this way beside the
+   *  list it inspects. */
+  modal?: boolean;
 }
 
 import { adoptFloatCluster, releaseFloatCluster } from '../lib/float-cluster.ts';
@@ -114,7 +125,17 @@ export function mountModal<T = void>(content: string, opts: ModalOptions<T>): Mo
   // the stack record and its owed history entry outlive the dialog, and the next
   // Back press gets eaten by the phantom. close() is idempotent, so the event its
   // own `dlg.close()` above fires is a no-op re-entry.
-  dlg.addEventListener('close', () => close());
+  // A modality switch closes the dialog natively and reopens it at once; the close
+  // event it queues is not a dismissal, so it is counted out here.
+  let switching = 0;
+  dlg.addEventListener('close', () => { if (switching > 0) { switching--; return; } close(); });
+  // A non-modal dialog gets no `cancel` on Escape, so its Escape is a key listener.
+  dlg.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.defaultPrevented || dlg.matches(':modal')) return;
+    e.preventDefault();
+    if (opts.onEscape) opts.onEscape(dlg);
+    else close(cancelResult());
+  });
   dlg.addEventListener('click', (e) => {
     // Click outside the content box (on the ::backdrop) dismisses. A <dialog>'s own
     // click target is the dialog element itself whether the hit lands on its padding
@@ -135,12 +156,33 @@ export function mountModal<T = void>(content: string, opts: ModalOptions<T>): Mo
   // caller's initialFocus or an adopted float opens something of its own.
   if (opts.backStack !== false) back = registerOverlay(record);
 
-  dlg.showModal();
-  // Everything outside a modal dialog is inert and below the top layer, so the
-  // body-level floating cluster (job toast + undo toasts) moves in with us -
-  // progress and Undo stay visible and interactive over the dialog.
-  adoptFloatCluster(dlg);
+  // The one place this dialog opens, modal or not, at mount and on a switch.
+  const open = (modal: boolean, isSwitch: boolean): void => {
+    if (modal) {
+      dlg.showModal();
+      // Everything outside a modal dialog is inert and below the top layer, so the
+      // body-level floating cluster (job toast + undo toasts) moves in with us -
+      // progress and Undo stay visible and interactive over the dialog.
+      adoptFloatCluster(dlg);
+    } else {
+      // In the page, the cluster is visible where it already lives.
+      if (isSwitch) releaseFloatCluster(dlg);
+      dlg.show();
+    }
+  };
+  open(opts.modal !== false, false);
   opts.initialFocus?.(dlg)?.focus();
 
-  return { el: dlg, close };
+  const setModal = (modal: boolean): void => {
+    if (settled || !dlg.open || dlg.matches(':modal') === modal) return;
+    const active = document.activeElement;
+    const scrolls = [...dlg.querySelectorAll('*')].filter((n) => n.scrollTop).map((n) => [n, n.scrollTop] as const);
+    switching++;
+    dlg.close();
+    open(modal, true);
+    for (const [n, top] of scrolls) n.scrollTop = top;
+    if (active instanceof HTMLElement && dlg.contains(active)) active.focus({ preventScroll: true });
+  };
+
+  return { el: dlg, close, setModal };
 }

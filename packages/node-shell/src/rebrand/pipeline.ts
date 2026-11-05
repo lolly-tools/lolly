@@ -14,7 +14,7 @@
  * shading, pattern and soft-mask decoders live in the web shell, so a PDF read
  * here uses the pure `NODE_PDF_IMAGE_CODEC` and the canvas-free shading and
  * pattern readers in `../pdf-read.ts`: a picture whose soft mask cannot be
- * composited (a JPEG base) is stored opaque and says so, an axial or radial
+ * composited (a JPEG base) is stored opaque and reports that, an axial or radial
  * gradient is painted, and a fill that needs the web's PostScript calculator is
  * not painted and the slide says so (`source-pdf.ts` states each).
  *

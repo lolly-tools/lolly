@@ -38,3 +38,14 @@ The in-app error names this exact situation when the server is unreachable.
 Uploads land at `remote.php/dav/files/<user>/<folder>/<name>` with the file's
 real MIME type, and the outcome link opens the folder in the Nextcloud Files
 app.
+
+## Share links
+
+**Create a share link** calls the OCS Share API
+(`POST /ocs/v2.php/apps/files_sharing/api/v1/shares`, public link, read-only)
+with the same app password, optionally with a password and an expiry date.
+Your server decides the final expiry, and Lolly shows what it returned. **Stop
+sharing** deletes the share. On the web the `OCS-APIRequest` header starts a
+CORS preflight, so the server must answer it for this origin; the desktop apps
+need nothing extra. An administrator can turn public links off, and Lolly says
+so when that happens.

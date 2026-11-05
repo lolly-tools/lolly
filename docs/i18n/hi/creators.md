@@ -20,7 +20,7 @@
 
 आपका design system तय करता है कि हर टूल कैसा दिखे।
 
-- **[Design System Setup](/info/brand-studio.html)**: लोगो, रंग, टाइप और बाकी सब, `#/start` पर एक बार सेट करें।
+- **[Lolly Design System Setup](/info/brand-studio.html)**: लोगो, रंग, टाइप और बाकी सब, `#/start` पर एक बार सेट करें।
 - **[उपयोग में Lolly Demo](/info/lolly-demo-in-use.html)**: असली काम पर colourway, और अपने design system पर जाना।
 - **[Brand architectures](/info/brand-architectures.html)**: एक संगठन के लिए कई design system, या कई colourway वाला एक।
 - **[Working with partners](/info/partners.html)**: अपना ब्रांड किसी भागीदार से साझा करें, आपको दिए गए ब्रांड में काम करें और स्पॉन्सर वॉल बनाएँ।
@@ -31,8 +31,8 @@
 ## अपना काम खोजें और रखें
 
 - **[Find and recover your work](/info/find-your-work.html)**: सहेजी, डाउनलोड की या बिना सहेजी फ़ाइल कहाँ गई।
-- **[Search](/info/search.html)** और **[Ask Lolly](/info/ask.html)**: आपके टूल, सहेजे काम, एसेट और सेटिंग के लिए एक फ़ील्ड, और इन गाइड से उत्तर।
-- **[Settings](/info/dashboard.html)**: यह डिवाइस क्या कर सकता है, केवल-पढ़ने के लिए आपका design system और आपका स्टोरेज।
+- **[Lolly Search](/info/search.html)** और **[Ask Lolly](/info/ask.html)**: आपके टूल, सहेजे काम, एसेट और सेटिंग के लिए एक फ़ील्ड, और इन गाइड से उत्तर।
+- **[Lolly Settings](/info/dashboard.html)**: यह डिवाइस क्या कर सकता है, केवल-पढ़ने के लिए आपका design system और आपका स्टोरेज।
 - **[Your favourites](/info/favourites.html)** और **[Profiles](/info/profile.html)**: तारांकित टूल, वह ब्योरा जिससे टूल पहले से भरते हैं और एक्सेसिबिलिटी स्विच।
 - **[Sync your devices](/info/sync.html)**: आपके चुने स्टोरेज से, कंप्यूटर और फ़ोन पर वही काम।
 

@@ -46,6 +46,7 @@
  * additions must answer in those units or the readout lies.
  */
 import { compactDesignViewport } from '../lib/design-panel-layout.ts';
+import { behindSplitTab, onDockTabChange, revealSplitTab } from '../lib/edge-dock.ts';
 import { t } from '../i18n.ts';
 import { isTypingTarget } from '../lib/typing-target.ts';
 import { icon, type IconName } from '../lib/icons.ts';
@@ -126,7 +127,8 @@ export interface DesignTopbarOpts {
   /**
    * The right-edge dock, when the host has one. `zoomDocked()` is a LIVE read - true
    * while the compact zoom bar holds a slot in the column - and `subscribe` fires on
-   * every change to who is docked, returning its own unsubscribe. Absent means the bar
+   * every change to who is docked, returning its own unsubscribe. The panel toggles
+   * follow it too, since docking a panel can put another behind a tab. Absent means the bar
    * keeps its zoom cluster at all times, which is what every host without a dock wants.
    */
   dock?: {
@@ -375,16 +377,28 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     opts.timeline.toggle();
     syncToggles();
   });
+  // In two panes (views/design-split.ts) the navigator, as the Layers tab, and the
+  // inspector are tabs of one control pane. One that is open behind the other tab is
+  // not on screen: its toggle reads off, and a press brings that tab forward instead of
+  // closing a panel the person cannot see. Off two panes both reads change nothing.
+  const navigator = {
+    toggle: (): void => { if (!revealSplitTab('layers')) opts.navigator.toggle(); },
+    isOpen: (): boolean => opts.navigator.isOpen() && !behindSplitTab('layers'),
+  };
+  const inspector = opts.inspector ? {
+    toggle: (): void => { if (!revealSplitTab('inspector')) opts.inspector?.toggle(); },
+    isOpen: (): boolean => !!opts.inspector?.isOpen() && !behindSplitTab('inspector'),
+  } : undefined;
   const navBtn = mkBtn('navigator', t('Navigator'), icon('dock'), { text: t('Navigator') });
   navBtn.setAttribute('aria-pressed', 'false');
   navBtn.setAttribute('data-tip', `${t('Navigator')} (${ALT_KEY}2)`);
-  navBtn.addEventListener('click', () => { opts.navigator.toggle(); syncToggles(); });
+  navBtn.addEventListener('click', () => { navigator.toggle(); syncToggles(); });
   centre.append(timelineBtn, navBtn);
-  const inspBtn = opts.inspector ? mkBtn('inspector', t('Inspector'), icon('sliders'), { text: t('Inspector') }) : null;
+  const inspBtn = inspector ? mkBtn('inspector', t('Inspector'), icon('sliders'), { text: t('Inspector') }) : null;
   if (inspBtn) {
     inspBtn.setAttribute('aria-pressed', 'false');
     inspBtn.setAttribute('data-tip', `${t('Inspector')} (${ALT_KEY}3)`);
-    inspBtn.addEventListener('click', () => { opts.inspector?.toggle(); syncToggles(); });
+    inspBtn.addEventListener('click', () => { inspector?.toggle(); syncToggles(); });
     centre.append(inspBtn);
   }
 
@@ -665,8 +679,8 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
   // document because the bar never holds focus - it is the stage's chrome, not a panel.
   const PANEL_KEYS: Record<string, (() => void) | undefined> = {
     Digit1: () => opts.timeline.toggle(),
-    Digit2: () => opts.navigator.toggle(),
-    Digit3: opts.inspector ? () => opts.inspector?.toggle() : undefined,
+    Digit2: () => navigator.toggle(),
+    Digit3: inspector ? () => inspector.toggle() : undefined,
   };
   function onPanelKey(e: KeyboardEvent): void {
     if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
@@ -761,8 +775,8 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     const timelineVisibilityChanged = timelineBtn.hidden !== hideTimeline;
     timelineBtn.hidden = hideTimeline;
     timelineBtn.setAttribute('aria-pressed', opts.timeline.isOpen() ? 'true' : 'false');
-    navBtn.setAttribute('aria-pressed', opts.navigator.isOpen() ? 'true' : 'false');
-    inspBtn?.setAttribute('aria-pressed', opts.inspector?.isOpen() ? 'true' : 'false');
+    navBtn.setAttribute('aria-pressed', navigator.isOpen() ? 'true' : 'false');
+    inspBtn?.setAttribute('aria-pressed', inspector?.isOpen() ? 'true' : 'false');
     if (timelineVisibilityChanged) syncDensity();
   }
 
@@ -802,7 +816,9 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     }
     measure();
   }
-  const unsubDock = opts.dock?.subscribe(() => syncDock()) ?? null;
+  const unsubDock = opts.dock?.subscribe(() => { syncDock(); syncToggles(); }) ?? null;
+  // A click on the control pane's tab strip changes which panel is on screen.
+  const unsubTab = onDockTabChange(syncToggles);
 
   // ── density: the bar folds by its OWN width, never by the viewport ─────────────
   // The sidebars and the right dock steal width from the bar, so a viewport media
@@ -870,8 +886,8 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     }
     if (opts.timelineEnabled?.() !== false)
       rows.push({ label: t('Timeline'), glyph: GLYPH.timeline, checked: () => opts.timeline.isOpen(), run: () => opts.timeline.toggle() });
-    rows.push({ label: t('Navigator'), glyph: icon('dock'), checked: () => opts.navigator.isOpen(), run: () => opts.navigator.toggle() });
-    if (opts.inspector) rows.push({ label: t('Inspector'), glyph: icon('sliders'), checked: () => !!opts.inspector?.isOpen(), closeOnSelect: true, run: () => opts.inspector?.toggle() });
+    rows.push({ label: t('Navigator'), glyph: icon('dock'), checked: () => navigator.isOpen(), run: () => navigator.toggle() });
+    if (inspector) rows.push({ label: t('Inspector'), glyph: icon('sliders'), checked: () => inspector.isOpen(), closeOnSelect: true, run: () => inspector.toggle() });
     if (density === 'min' || density === 'phone') {
       rows.push({ label: t('Share'), glyph: icon('share'), run: () => opts.share() });
       rows.push(...presentRows());
@@ -931,6 +947,7 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
       ro?.disconnect();
       try { unsubZoom(); } catch { /* a fake port may not return one */ }
       try { unsubDock?.(); } catch { /* same */ }
+      unsubTab();
       if (lastReserve !== priorReserve) {
         if (priorReserve) opts.stageEl.style.setProperty('--stage-reserve-top', priorReserve);
         else opts.stageEl.style.removeProperty('--stage-reserve-top');

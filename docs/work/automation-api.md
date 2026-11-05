@@ -1,6 +1,8 @@
-# Automate with the Work API
+# Automate with the Lolly Work API
 
-Your Work server can render on-brand files for a script, a pipeline or an agent, with the same
+<a id="automate-with-the-work-api"></a>
+
+Your Lolly Work server can render on-brand files for a script, a pipeline or an agent, with the same
 tools, design system and policy the Lolly apps use. This page takes you from a token to a
 finished file, then covers the rest of the automation surface: schemas, the document verbs,
 background jobs, batches and provider assets.
@@ -11,7 +13,7 @@ Every other route the console, the `lw` CLI and the apps call is in the
 ## Render your first file
 
 ::: timeline
-- <!--i:lock--> **Get a token.** An owner mints one for the script: `lw tokens create --label ci --role admin`. The secret, `lwt_…`, is shown once.
+- <!--i:lock--> **Get a token.** An owner mints one for the script, with only the reach it needs: `lw tokens create --label ci --scopes render`. The secret, `lwt_…`, is shown once.
 - <!--i:search--> **Ask what the token may do.** `GET /api/v1/discovery/me` answers with the formats this server renders and whether the token may render at all.
 - <!--i:document--> **Read the tool's inputs.** `GET /api/v1/schema/qr-code` returns the inputs this caller may set, after policy and design-system rules.
 - <!--i:download--> **Render.** `POST /api/v1/render` with the tool, the format and the inputs returns the file.
@@ -38,15 +40,40 @@ then a render that answers with the file or with a job.
 ## Before you start: a token and a permission
 
 **The token.** Service tokens are minted by owners (`token.manage`), from the console or
-`lw tokens create --label <name> --role <role> [--days <n>]`. The label says which automation
-holds the token, up to 80 characters. The role is any role but `guest`. A token lasts 90 days
-unless you choose 1 to 365. Send it as `Authorization: Bearer lwt_…`; the `lw` CLI reads it from
-`LW_TOKEN` or `--token`. The routes are in [service tokens](api.md#service-tokens).
+`lw tokens create --label <name> --scopes <scope,...> [--tools <id,...>] [--days <n>]`. The label
+says which automation holds the token, up to 80 characters. A token lasts 90 days unless you
+choose 1 to 365. Send it as `Authorization: Bearer lwt_…`; the `lw` CLI reads it from `LW_TOKEN`
+or `--token`. The routes are in [service tokens](api.md#service-tokens).
+
+**The scopes.** Scopes say which routes a token may reach:
+
+| Scope | What it opens |
+|---|---|
+| `render` | `POST /api/v1/render`, durable renders, render batches, `POST /api/v1/batch`, their jobs, tool schemas and `POST /api/v1/validate` |
+| `documents` | compile, validate, inspect, measure, optimize, diff and package, their jobs and tool schemas |
+| `files` | uploads and file references |
+| `delivery` | listing destinations, sending this token's own finished job to one, and reading or retrying those deliveries |
+| `catalog.read` | catalog files, tool files, catalog fields and catalog search |
+| `audit.read` | the audit trail and its head |
+
+Every scoped token can read `GET /api/v1/discovery`, `GET /api/v1/discovery/me` and
+`GET /api/auth/session`. Any other route answers `403 TOKEN_SCOPE`, and new routes stay closed
+until a release adds them to a scope. `--tools` limits the token to the tools you list, wherever a
+request gives a tool id: schemas, renders, batches, jobs and the document verbs. Scopes and the tool list are
+fixed when the token is minted, so a change means a new token.
+
+**The role.** A token with scopes and no `--role` takes the `automation` role, which holds
+`tool.use`, `export.server`, `delivery.create`, `catalog.read` and `audit.export`, so a `render`
+token needs no admin authority. No person can hold this role. You can also combine scopes with
+another role, and then a route must pass both: a `viewer` token with the `render` scope still
+cannot render, because a scope only narrows. A token with no scopes reaches all that its role
+allows, as before, and needs `--role`, which is any role but `guest` or `automation`.
 
 **The permission.** Rendering on the server needs `tool.use` for the tool and `export.server`.
-Admins hold `export.server` by default and a grant can give it to anyone else, so a token with
-the `member` role cannot render until someone grants that permission. The other verbs need
-`tool.use` for any tool they name.
+Admins and the `automation` role hold `export.server` by default and a grant can give it to anyone
+else, so a token with the `member` role cannot render until someone grants that permission. The
+other verbs need `tool.use` for any tool they name. A deny grant on `user:svc_<id>` applies to a
+scoped token as it does to any other.
 
 **What a token is.** A token acts as its own account, with its role and no groups. Its jobs and
 [file references](api.md#file-references) belong to the token, not to the owner who minted the
@@ -63,8 +90,8 @@ for that job's result.
 
 | Route | Who | What it answers |
 |---|---|---|
-| `GET /api/v1/discovery` | public | What this deployment can do, the same for everyone: document API and engine versions, server render formats, hooked tools, Content Credentials, automation verbs and batch limits, live collaboration, document agents, whether [file references](api.md#file-references) are on (`files.references`), and `unavailable` entries for what it lacks. Shared caches may hold it; it carries an ETag |
-| `GET /api/v1/discovery/me` | member or service token; anyone on an instance that is not `gated` | What the caller can do: `principal` (`member`, `service` or `guest`), `can` bits for `tool.use`, `export.server`, `export.request`, `delivery.create` and `catalog.read`, provider reference schemes that resolve for the caller, limits, the render worker's live readiness when one is configured, and `unavailable` entries. Private, never cached |
+| `GET /api/v1/discovery` | public | What this deployment can do, the same for everyone: document API and engine versions, server render formats, hooked tools, Content Credentials, automation verbs and batch limits, live collaboration, document agents, the [organisation MCP endpoint](#connect-an-agent-over-mcp) (`agents.organisationMcp`), whether [file references](api.md#file-references) are on (`files.references`), and `unavailable` entries for what it lacks. Shared caches may hold it; it carries an ETag |
+| `GET /api/v1/discovery/me` | member or service token; anyone on an instance that is not `gated` | What the caller can do: `principal` (`member`, `service` or `guest`), `can` bits for `tool.use`, `export.server`, `export.request`, `delivery.create` and `catalog.read`, which a scoped token holds only when its scopes reach them, provider reference schemes that resolve for the caller, for a scoped token its `token` with `scopes`, `scopesVersion` and `tools`, limits, the render worker's live readiness when one is configured, and `unavailable` entries. Private, never cached |
 | `GET /api/v1/discovery/tools?limit=&cursor=` | as above | The tools the caller can use, sorted by id, 25 a page by default and at most 100. Each entry has `name`, `version`, `renderer`, the server `formats` the caller may request, `can.render`, its schema URL and `unavailable` entries. `next` is an opaque cursor, or `null` on the last page |
 | `GET /api/v1/schema/:toolId?view=&format=` | `tool.use` | The caller's effective input schema (below). `view=raw` returns the tool's own schema and needs `policy.edit`. `format` selects the output format whose design-system rules apply. Without it, the schema carries only the rules that apply to every format |
 
@@ -111,7 +138,7 @@ with a stable `code` and a `reason`:
 | `UNSUPPORTED_FORMAT` | the deployment does not produce this format on the server; the web app can still export that format |
 | `HOOKED_TOOL_NEEDS_CHROMIUM` | the tool runs scripts, and no worker is configured |
 | `TOOL_REQUIRES_UNMET` | the tool needs host APIs the in-process render host does not provide |
-| `SVG_TEMPLATE_REQUIRED` | server rendering needs an SVG template |
+| `SVG_TEMPLATE_REQUIRED` | the tool lays out HTML, which needs the Chromium render worker, and no worker is configured |
 | `FORMAT_NOT_ALLOWED` | tool policy does not allow the format |
 | `FORBIDDEN` | the caller lacks the permission, such as `export.server` for `render` |
 | `RENDER_BUSY` / `WORKER_UNREACHABLE` | the configured worker is at capacity or did not answer its readiness check |
@@ -213,7 +240,8 @@ Jobs belong to the member or service token that created them. Repeating a reques
 ### Callbacks
 
 A job can call you back when it settles. `callbackUrl` is used only when it exactly matches the
-instance's own webhook endpoint, `notify.webhook.url` ([configuration](configuration.md#notify)).
+instance's own webhook endpoint, `notify.webhook.url` ([configuration](configuration.md#notify)), or
+uses an origin listed in [`automation.callbacks.allowedOrigins`](configuration.md#automation).
 Each callback carries `x-lolly-timestamp` and an `x-lolly-signature` header signed with
 `LW_WEBHOOK_SECRET`, and its body is `{ jobId, state, resultUrl, resultToken, deliveryId }`.
 
@@ -223,14 +251,14 @@ completed job resource carries the same `resultToken`, and `null` before then.
 
 ::: note The token in the result URL is deprecated
 The token used to travel in the URL, as `resultUrl?token=…`, and a URL ends up in access, proxy
-and CDN logs. In Work 1.1.2 `resultUrl` still carries `?token=` and the result route still
+and CDN logs. In Lolly Work 1.1.2 `resultUrl` still carries `?token=` and the result route still
 accepts the query token, answering with a `Deprecation` header
 ([RFC 9745](https://www.rfc-editor.org/rfc/rfc9745)). A later release drops the query from
 `resultUrl` and refuses a query token, so move receivers to the header now.
 :::
 
 Callbacks go through a durable outbox. The write that settles a job also stores its callback,
-and any Work process sends callbacks that are due, so a callback left unanswered by a restart is
+and any Lolly Work process sends callbacks that are due, so a callback left unanswered by a restart is
 sent again afterwards.
 
 Every attempt for one job carries the same id, in `x-lolly-delivery-id` and as `deliveryId` in
@@ -241,7 +269,7 @@ attempts in all.
 
 The job reports `callback: { id, state, attempts, lastOutcome, lastStatus, nextAttemptAt }`:
 
-- `state` is `pending`, `acknowledged` (the receiver answered 2xx) or `failed`. Work never
+- `state` is `pending`, `acknowledged` (the receiver answered 2xx) or `failed`. Lolly Work never
   reports a callback as delivered, because a 2xx answer does not show what the receiver did next.
 - `lastOutcome` is `acknowledged`, `refused`, `uncertain` (the request may have reached the
   receiver) or `not-sent` (the URL is not approved, or no signing secret is configured).
@@ -307,18 +335,67 @@ requirements.
   cannot reconstruct. Failed required checks return no artifact and keep
   `PRODUCTION_VERIFICATION_FAILED` diagnostics on the render record. See
   [production still checks](renders.md#production-still-checks-and-permitted-repairs).
+- **Callbacks.** `callbackUrl` on a render or batch request sends one signed `POST` when it finishes,
+  through the same outbox as job callbacks, and a batch calls back once. The URL is refused at
+  submission unless this instance accepts that URL. See [be told when a render finishes](renders.md#be-told-when-a-render-finishes).
+- **Delivery.** `POST /api/v1/renders/:id/deliveries` sends a finished output to an organisation
+  destination by reference, under the same rules as a job output
+  ([delivering an automation output](delivery.md#delivering-an-automation-output)).
 - **Render batches.** `POST /api/v1/render-batches` creates a parent and up to 200 independent
-  child renders in one atomic step. Read its ordered rows and output receipts, download a JSON manifest,
-  cancel unfinished rows, or retry a terminal batch while keeping its successful children. The
+  child renders in one atomic step, from typed rows or from a governed data source with `bind`. Read
+  its ordered rows and output receipts, download a JSON manifest or the outputs as one ZIP, cancel
+  unfinished rows, or retry a terminal batch while keeping its successful children. The
   [batch API](renders.md#batches-with-durable-rows) is separate from the `/api/v1/batch` job and
   ZIP contract.
+
+## Connect an agent over MCP
+
+`/api/v1/mcp` is the organisation MCP endpoint. An agent connects with a service token and can then do what that token can do across this instance, and nothing more. MCP (Model Context Protocol) is the standard way AI clients connect to tools.
+
+Each tool call runs the HTTP route the table names, as the token. The scope check, the token's role and tool list, tool visibility, input policy and validation are the ones those routes always apply, so the endpoint adds no authority of its own.
+
+```bash
+lw tokens create --label brand-agent --scopes render --tools qr-code,event-card
+export LW_TOKEN=lwt_...
+lw mcp config --base https://work.example.com
+```
+
+`lw mcp config` prints paste-ready settings for your MCP client. The settings name the `LW_TOKEN` variable and never hold the token. The console shows the same settings when you mint a service token.
+
+| Tool | What it does | Route | Reached with |
+|---|---|---|---|
+| `list_tools` | The tools this token may use, a page at a time | `GET /api/v1/discovery/tools` | `render` or `documents` |
+| `describe_tool` | One tool's effective input schema | `GET /api/v1/schema/:toolId` | `render` or `documents` |
+| `validate` | Check input values without rendering | `POST /api/v1/validate` | `render` or `documents` |
+| `render_tool` | Submit a durable render | `POST /api/v1/renders` | `render` |
+| `get_render` | State, attempts, failure and receipt | `GET /api/v1/renders/:id` | `render` |
+| `get_render_output` | The finished file, or a link to it | `GET /api/v1/renders/:id/output/default` | `render` |
+| `cancel_render` | Stop queued or running work | `DELETE /api/v1/renders/:id` | `render` |
+| `submit_batch` | Up to 200 rows as one batch | `POST /api/v1/render-batches` | `render` |
+| `get_batch` | Counts and ordered rows | `GET /api/v1/render-batches/:id` | `render` |
+| `search_assets` | Search catalog assets by text | `GET /api/v1/catalog/search` | `catalog.read` |
+| `list_destinations` | The organisation destinations this token may send to | `GET /api/v1/destinations` | `delivery` |
+| `deliver_render` | Send a finished render to a destination | `POST /api/v1/renders/:id/deliveries` | `delivery` and `render` |
+
+- **Only a service token.** A person's session and an invitation key are refused with `401`. A person connects an agent through [a document or project invitation](document-agents.md), which is a different endpoint. A revoked or expired token stops at its next call.
+- **Tools the token can reach.** `tools/list` leaves out a tool its scopes do not open or its role cannot do. A tool called by name gets the route's own refusal, such as `TOKEN_SCOPE` or `FORBIDDEN`. A token with no scopes gets the tools its role allows. A role that may render only through a grant on one tool does not see the render tools listed, and its calls still work.
+- **Policy.** `describe_tool` leaves out hidden inputs and shows locked ones as `readOnly` with their value. A durable render checks policy at each attempt, so a locked input sent to `render_tool` records a failed attempt with `INPUT_LOCKED`. Call `validate` first to see a problem at once.
+- **Errors.** A refused call returns `isError: true` with `{ code, message, status }` and the route's own details, using the same codes as HTTP.
+- **Sending a file.** `deliver_render` sends this token's own finished render, unchanged, and needs a Content Credential on the file, as [delivery](delivery.md) does for any send. A destination with an approval chain refuses a token with `HUMAN_APPROVAL_REQUIRED` and sends nothing, because a token can neither ask for approval nor give one. A member sends those files.
+- **Files.** A file up to 1 MiB comes back in the result, as an image or a resource. A larger one comes back as a link that needs the same token.
+- **Data, not instructions.** Tool descriptions on this endpoint are fixed text. Anything a tool author or policy editor wrote, and the contents of any file, arrive only inside a result. The endpoint tells clients to read results as data.
+- **Records and limits.** The audit log records `mcp.connect` and each `mcp.tool-call` with the token's label, the tool, the outcome and the refusal code, never the input values. Each message counts once against `rateLimit.automation`.
+- **No session.** The endpoint keeps no state between calls, so any replica can answer. `GET` answers `405`.
+- **Hosts without a long-lived server.** A function-only host leaves out the render tools, and discovery reports `agents.organisationMcp.renderTools: false`.
+
+Approvals, retries, delivery of a `/jobs` result and the other document verbs stay on the HTTP routes.
 
 ## Limits and errors
 
 The automation routes share the `rateLimit.automation` bucket, per client IP: discovery, schemas,
-the document verbs, renders, batches and jobs, `GET /render/…`, agent connections and the
+the document verbs, renders, batches and jobs, `GET /render/…`, agent connections, the organisation MCP endpoint and the
 outbound delivery `POST`s. That includes the public `GET /api/v1/discovery`, so reading it never
-costs a sign-in attempt. The bucket is admission control, not pricing: Work keeps no
+costs a sign-in attempt. The bucket is admission control, not pricing: Lolly Work keeps no
 per-principal quota or usage account for these routes. Sizes are in
 [configuration](configuration.md#ratelimit).
 
@@ -329,16 +406,21 @@ links.
 | Code | Status | Meaning |
 |---|---|---|
 | `INVALID_INPUT` | 400 | a required field is missing or malformed |
+| `TOOL_NOT_FOUND` | 404 | no tool has this id on this instance |
+| `TOOL_UNAVAILABLE` | 500 | the tool exists, but this server could not read its files |
 | `DOCUMENT_API_ERROR` | 400 | the compile, inspect, diff, measure, optimize or package operation could not be performed |
 | `DATA_BINDING_ERROR` | 400 | a live JSON or CSV provider binding could not resolve, parse, query or validate |
 | `UNSUPPORTED_FORMAT` | 400 | a format this deployment cannot produce (org-config's `render.formats` lists what it can) |
 | `FORMAT_NOT_ALLOWED` | 403 | the format exists here, but this tool's overlay policy excludes that format |
+| `TOKEN_SCOPE` | 403 | the service token's scopes do not cover this route; `requiredScopes` lists the scopes that open it, when any do |
 | `INPUT_LOCKED` | 422 | a locked input was supplied by the caller |
 | `INPUT_HIDDEN` | 422 | the caller supplied an input that policy hides from them |
 | `INPUT_NOT_ALLOWED` | 422 | the value is not one of those a choice rule allows |
 | `BRAND_RULE_VIOLATION` | 422 | a render input breaks a reviewed design-system rule for that format |
 | `ROW_VALIDATION_FAILED` | 422 | a batch row does not satisfy the selected tool contract |
 | `IDEMPOTENCY_KEY_REUSED` | 409 | the caller reused an idempotency key for different request bytes |
+| `CALLBACK_URL_NOT_ALLOWED` | 403 | a durable render or batch named a callback URL this instance does not send to |
+| `OUTPUT_EXPIRED` | 410 | [output retention](renders.md#hosting-and-recovery) removed this output; its record and receipt remain |
 | `HOOKED_TOOL_NEEDS_CHROMIUM` | 501 | the tool runs scripts and no worker is configured (org-config's `render.hookedTools` is `false`) |
 | `TOOL_REQUIRES_UNMET` | 501 | the manifest's `requires` lists a `host.*` API the in-process render host lacks (`text`, `compose`, `audio`, the device APIs); route the tool through the Chromium worker |
 | `RENDER_BUSY` | 503 | the render worker is at capacity; retry after `Retry-After` seconds |
@@ -349,4 +431,4 @@ links.
 - Persistent renders and their evidence: [recoverable renders](renders.md)
 - Sending large files in parts: [resumable uploads](resumable-uploads.md)
 - The same surface from a terminal: [lw CLI](cli.md)
-- Agents that work inside one document: [document agents](document-agents.md)
+- Agents that work inside one document or project: [document agents](document-agents.md)

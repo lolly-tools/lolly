@@ -17,14 +17,14 @@ lolly.tools খোলে **Lolly Demo**-তে, Lolly-র নিজস্ব ন
 আপনার হাতে যা আছে তার সঙ্গে মেলে এমন পথ বেছে নিন:
 
 - <!--i:palette--> **একটি রঙ।** **Design System Setup** (`#/start`) খুলুন, ডিজাইন সিস্টেমের একটি নাম দিন ও একটি প্রাথমিক রঙ বাছুন। Lolly তা থেকে হালকা ও গাঢ় সারফেস, টেক্সট ও অ্যাকসেন্টসহ একটি সম্পূর্ণ, অ্যাক্সেসযোগ্য প্যালেট তৈরি করে। একটি ফন্ট বাছলেই আপনার একটি কার্যকর ব্র্যান্ড হয়ে যায়।
-- <!--i:upload--> **একটি টোকেন ফাইল।** Design System Setup-এর রুম রেলের নিচের **Add from…** একটি DTCG, Tokens Studio বা Penpot টোকেন ফাইল, একটি SVG বা একটি `LollyBrand` প্যাক নেয়। সেটি ফেলে দিন, প্যালেট ভরে যাবে। ডিজাইন সিস্টেম ফাঁকা থাকা অবস্থায় Overview রুমের **Start from a reference** একই পিকার খোলে।
+- <!--i:upload--> **একটি টোকেন ফাইল।** Design System Setup-এর বারের **Add from…** একটি DTCG, Tokens Studio বা Penpot টোকেন ফাইল, একটি SVG বা একটি `LollyBrand` প্যাক নেয়। সেটি ফেলে দিন, প্যালেট ভরে যাবে। ডিজাইন সিস্টেম ফাঁকা থাকা অবস্থায় Board রুমের **Start from a reference** একই পিকার খোলে।
 - <!--i:pentool--> **একটি সম্পন্ন ডিজাইন।** Design-এ **Import a design** বেছে একটি `.fig`, `.penpot`, `.ai`, `.idml` বা SVG ফাইল ফেলুন। নিচের [আপনার যা আছে তা আনুন](#bring-in-what-you-already-have) দেখুন।
 
 গ্যালারি প্রথমবার খুললে একটি সংক্ষিপ্ত স্বাগত একই পছন্দগুলো দেয়: **Make it yours** Design System Setup খোলে, **Bring your design** একটি ডিজাইনের জন্য ফাইল পিকার খোলে, এবং **Explore the community tools** স্বাগত বন্ধ করে।
 
 ![একেবারে নতুন ইনস্টলে Design System Setup-এর Colours রুম: একটি লাইভ চিপ, একটি ফিল্ড এবং প্রথম সিদ্ধান্তের পুরোটা](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-সেখান থেকে সাতটি রুম আপনাকে যতদূর খুশি, যেকোনো ক্রমে নিয়ে যায়: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** এবং **Usage & rules**। অ্যাপের প্রতিটি প্রিভিউ আপনি টাইপ করতে করতে হালনাগাদ হয়। প্রতিটি রুম [Design System Setup](/info/brand-studio.html)-এ আছে।
+সেখান থেকে আটটি রুম আপনাকে যতদূর খুশি, যেকোনো ক্রমে নিয়ে যায়: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** এবং **Skills**। অ্যাপের প্রতিটি প্রিভিউ আপনি টাইপ করতে করতে হালনাগাদ হয়। প্রতিটি রুম [Lolly Design System Setup](/info/brand-studio.html)-এ আছে।
 
 ফন্ট আপনার ডিভাইসে রাখা হয়। একটি Google Font বাছলে Lolly ফাইলটি ব্র্যান্ড অ্যাসেট হিসেবে রাখে, ফলে আপনার টাইপ অফলাইনে চলে আর টুল আঁকার সময় কিছু আনা হয় না।
 
@@ -58,7 +58,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 **ডেক।** PowerPoint `.pptx` Lolly-তে ফেললে তার স্লাইডগুলো অ্যাসেট হিসেবে জমা হয়, **Markdown Slides**-এ Markdown থেকে নতুন ডেক লিখুন, অথবা পুরো ডেক আপনার ডিজাইন সিস্টেমে নিতে [Rebrand a deck](/info/rebrand.html) ব্যবহার করুন।
 
-**ডেটা।** একটি CSV বা JSON টেবিল পেস্ট করুন বা ফেলুন, তাতে একটি টুলের পুনরাবৃত্ত ফিল্ড ভরে যায়, অথবা [Batch](/info/batch.html#make-many-versions-of-one-design) প্রতি সারির জন্য একটি সম্পন্ন ফাইল বানায়।
+**ডেটা।** একটি CSV বা JSON টেবিল পেস্ট করুন বা ফেলুন, তাতে একটি টুলের পুনরাবৃত্ত ফিল্ড ভরে যায়, অথবা [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) প্রতি সারির জন্য একটি সম্পন্ন ফাইল বানায়।
 
 ### একবারের ডিজাইন থেকে টেমপ্লেটে
 
@@ -72,7 +72,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 - <!--i:download--> **এক্সপোর্ট।** টুলগুলো SVG, PDF, PNG, JPG, WebP, ভিডিও ও আরও বানায়, প্রতিটি টুল যে ফরম্যাট দেয় তাতে, দরকার হলে প্রকৃত প্রিন্ট মাপে। দেখুন [Export a file](/info/exporting.html)।
 - <!--i:link--> **লিংক শেয়ার করুন।** একটি টুলের সেটিংস তার লিংকেই থাকে, তাই লিংকটি যেকোনো জায়গায় একই ফাইল আবার খোলে।
-- <!--i:layers--> **প্রতি সারিতে একটি বানান।** [Batch](/info/batch.html#make-many-versions-of-one-design)-এ স্প্রেডশিট থেকে টুল চালান।
+- <!--i:layers--> **প্রতি সারিতে একটি বানান।** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)-এ স্প্রেডশিট থেকে টুল চালান।
 - <!--i:cpu--> **স্বয়ংক্রিয় করুন।** একই রেন্ডার [CLI](/info/cli.html) থেকে এবং [AI এজেন্ট](/info/ai-agents.html) থেকে চলে।
 
 একটি লিংক একটি সম্পূর্ণ অনুরোধ। নিচের চার্টটি কেউ আঁকেনি: এর ধরন, শিরোনাম ও পুরো ডেটা টেবিল ঠিকানা-বারে টাইপ করা হয়েছিল, আর একই লিংক যেকোনো ডিভাইসে একই চার্ট আঁকে।

@@ -9,7 +9,7 @@ Lolly her kişinin cihazında çalışır. Bir ekibin giriş, paylaşılan proje
 - [Adoption & Governance](/info/adoption-governance.html) kullanıma alma sürecini ve marka kurallarının rolünü kapsar.
 - [Identity and sessions](/info/work-identity.html) girişi ve grup eşlemesini kapsar. [Roles and grants](/info/work-permissions.html) rolleri, yetkileri ve sahip korumasını açıklar.
 - [Policy and governance](/info/work-governance.html) araç bindirmelerini, kilitli girdileri ve politikayı kapsar. [Manage organisation AI policy](/info/work-ai-policy.html) onayları ve yürütme sınırlarını kapsar.
-- [Account data controls](/info/work-account-lifecycle.html) ve [Work storage and data lifecycle](/info/work-data-lifecycle.html) dışa aktarmaları, ayrılışı, saklamayı ve sınırlarını kapsar.
+- [Account data controls](/info/work-account-lifecycle.html) ve [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) dışa aktarmaları, ayrılışı, saklamayı ve sınırlarını kapsar.
 - [Profiles, brands and tool configuration](/info/configuration.html) bir Lolly derlemesinin hangi araçları ve tasarım sistemlerini taşıdığını kapsar.
 
 ## Varlıkları bağla ve işi incele

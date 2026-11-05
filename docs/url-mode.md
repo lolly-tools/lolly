@@ -94,7 +94,7 @@ The extension is the author's choice of fidelity. An `svg` child stays a true ve
 
 A child draws in the theme and [colourway](/info/colourways.html) of the document it sits in, so a QR code in a dark document is dark. A link that carries its own `_themes` keeps that choice for the groups it names.
 
-Design uses this path: a tool placed in a Design document is an embed URL rendered this way. Both this form and the declarative `composes` block in a manifest need the tool to declare the `compose` capability; [Composition and brand overlays](/info/tool-composition.html) covers the declarative form.
+Lolly Design uses this path: a tool placed in a Lolly Design document is an embed URL rendered this way. Both this form and the declarative `composes` block in a manifest need the tool to declare the `compose` capability; [Composition and brand overlays](/info/tool-composition.html) covers the declarative form.
 
 ::: details How a child's theme choices combine with the document's
 A link that carries `_themes` of its own keeps its choice for the groups it names, and the document's choices fill in the rest: `_themes={"":"light"}` inside a dark Beach document draws the child light, in Beach. A document that made no choice of its own draws in the choices its design system is set to, so those fill in the rest instead.
@@ -118,7 +118,7 @@ lolly qr-code \
 
 ## Long and private links
 
-A readable link such as `?color=30BA78&theme=dark` can be edited by hand. A complex document is different. A Design file with dozens of boxes, each with coordinates, colours and text, runs to thousands of characters. Pasted links, social crawlers, QR codes and some servers still fail past about 2,000.
+A readable link such as `?color=30BA78&theme=dark` can be edited by hand. A complex document is different. A Lolly Design file with dozens of boxes, each with coordinates, colours and text, runs to thousands of characters. Pasted links, social crawlers, QR codes and some servers still fail past about 2,000.
 
 ### Packed links (`z`)
 

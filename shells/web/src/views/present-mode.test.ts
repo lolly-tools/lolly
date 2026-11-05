@@ -887,7 +887,7 @@ test('speaker view: a popup closed from its own titlebar is reaped (button reset
 // ---- P4: the speaker view always says where it went ---------------------------------
 // The defect: `s` called window.open, the popup was blocked, and the tab showed nothing at
 // all. The popup stays the preferred path; a blocked or vanished one falls back in place
-// and says so.
+// and reports that.
 const noteText = () => stageEl()?.querySelector<HTMLElement>('.pr-note')?.textContent ?? '';
 
 /** A same-realm stand-in popup (createHTMLDocument shares this JSDOM realm, so importNode
@@ -901,7 +901,7 @@ function fakePopup(): Window & { closed: boolean } {
   } as unknown as Window & { closed: boolean };
 }
 
-test('speaker view: a blocked popup falls back to the in-page panel and says so', () => {
+test('speaker view: a blocked popup falls back to the in-page panel and reports that', () => {
   const src = makeRichSource([{ id: 'a', notes: 'hi' }, { id: 'b' }]);
   const realOpen = win.open;
   win.open = (() => null) as unknown as typeof win.open;   // the blocker's answer

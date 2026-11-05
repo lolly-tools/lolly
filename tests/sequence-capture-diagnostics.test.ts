@@ -195,7 +195,7 @@ test('a recorded capture is passed through unchanged and replayed as the same ca
     empty: 0, emptyPlates: [], unread: 2 }, 'stand-in canvases have no readback, and the summary says so rather than calling them empty');
 });
 
-test('a replay refuses a capture that does not match the recording, and says so on the share', async () => {
+test('a replay refuses a capture that does not match the recording, and reports that on the share', async () => {
   const library = { async toCanvas(_node: unknown, _options: unknown) { return { id: 'plate' }; } };
   for (const [node, options, why] of [
     [shotNode('10'), shot(101), /asked for/],

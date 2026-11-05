@@ -99,6 +99,7 @@ import { documentOps } from './free-canvas/document.ts';
 import { dialogsOps } from './free-canvas/dialogs.ts';
 import { fieldPanelsOps } from './free-canvas/field-panels.ts';
 import { objectsOps } from './free-canvas/objects.ts';
+import { traceImageOps } from './free-canvas/trace-image.ts';
 import { opsOps } from './free-canvas/ops.ts';
 import { penToolOps } from './free-canvas/pen-tool.ts';
 import { penAssistOps } from './free-canvas/pen-assist.ts';
@@ -133,6 +134,7 @@ import { frameTitlesOps } from './free-canvas/frame-titles.ts';
 import { frameStepOps } from './free-canvas/frame-step.ts';
 import { zoomMarqueeOps } from './free-canvas/zoom-marquee.ts';
 import { preloadGeometryKernels } from '../bridge/geometry-host.ts';
+import { ensureMotionTokens } from '../lib/motion-tokens.ts';
 export { clampRailPos, stageBlockers, ctxTopBand, centreCtxBar, FC_TILT } from './free-canvas/shared.ts';
 export type { DeepLinkState, CtxTopBand } from './free-canvas/shared.ts';
 
@@ -239,6 +241,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.dialogs = dialogsOps(fc);
   fc.fieldPanels = fieldPanelsOps(fc);
   fc.objects = objectsOps(fc);
+  fc.traceImage = traceImageOps(fc);
   fc.ops = opsOps(fc);
   fc.layout = layoutOps(fc);
   fc.penTool = penToolOps(fc);
@@ -602,6 +605,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
           radiusField: cfg.radiusField || '', shapeField: cfg.shapeField || '',
         }
       : null; fc.timeCfg = timeCfg;
+  // A tool that keys motion follows the design system's motion tokens (plans/329): a
+  // keyframe bound to one plays the token's value here and in every export.
+  if (timeCfg?.kfField) void ensureMotionTokens(host as HostV1);
   // Can this tool import a design AS timed scenes (frames → timeline clips) at all?
   // Time-capable + import-capable. Design qualifies (it declares the time model), so it
   // OFFERS the "as scenes vs replace the board" choice (plans/104 section 337) - on the drop
@@ -735,6 +741,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.penPullBroken = false;
   fc.penContinuing = null; // the open path a draft carries on, if it began on one's end
   fc.pencilStroke = null; // the Pencil's live freehand stroke, native px
+  fc.penSlotTool = 'pen'; // the pen slot's tool: the Pen until the Pencil is picked
   fc.pencilRaf = 0;
   // The paint the user last put on a path, so the NEXT path they draw matches it - the
   // drawing-app convention, and the reason a session of pen work doesn't mean recolouring
@@ -1434,13 +1441,13 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.popover = null;
   fc.arrangeBtn = null; // popover anchor (captured, not by index)
   /** The mode buttons, captured by buildToolbar - see syncModeUI. Absent ones stay null:
-   *  pen and connect are opt-in, so not every tool has all four. */
-  const modeBtns: Record<'select' | 'create' | 'pen' | 'line' | 'pencil', HTMLButtonElement | null> = {
+   *  pen and connect are opt-in, so not every tool has all four. The Pencil has none of
+   *  its own: it shares the pen's slot (pencil.ts). */
+  const modeBtns: Record<'select' | 'create' | 'pen' | 'line', HTMLButtonElement | null> = {
     select: null,
     create: null,
     pen: null,
     line: null,
-    pencil: null,
   }; fc.modeBtns = modeBtns;
   fc.nodeToolBtn = null; // the Node tool (opt-in, cv.pathField)
   /** The control the open popover belongs to: it owns the trigger's `aria-expanded`,
@@ -2399,6 +2406,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       // for the enhancer's own reap would hold a WebGL context until some other tool paints.
       void sceneSelection?.then(m => m.destroyDesignScenes()).catch(() => {});
       fc.disposed = true;
+      // A native InDesign conversion in flight stops with the canvas.
+      void import('../bridge/indd.ts').then(m => m.cancelInddConversion()).catch(() => {});
       // A drag in flight holds capture-phase modifier listeners on the window.
       fc.gestureKeysOff?.();
       fc.gestureKeysOff = null;

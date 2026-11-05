@@ -13,8 +13,8 @@ A catalog provider brings remote assets **into** Lolly, normally read-only. Deli
 generated output **out**. Reusing one credential for both would silently turn read authority
 into write authority, so the two keep separate contracts, registries and secrets.
 
-- **Personal targets stay personal.** A person's own send targets stay on their device. Work
-  cannot see, disable, redirect, credential or choose them, and they never appear in Work
+- **Personal targets stay personal.** A person's own send targets stay on their device. Lolly Work
+  cannot see, disable, redirect, credential or choose them, and they never appear in Lolly Work
   configuration, grants, history or credentials.
 - **Organisation credentials stay on the server.** A shell receives only
   `{id, kind, label, formats, maxBytes, visibility, projectFiles?}`, after group and permission
@@ -36,7 +36,7 @@ into write authority, so the two keep separate contracts, registries and secrets
 
 ## Pick an adapter
 
-| Adapter | Credential | After writing, Work checks | Revoke |
+| Adapter | Credential | After writing, Lolly Work checks | Revoke |
 |---|---|---|---|
 | `s3` | `<accessKeyId>:<secretAccessKey>` | a signed `HEAD` confirms the size | no |
 | `webdav` | `<username>:<app-password>`, or `bearer:<token>` | authenticated `HEAD` and a bounded `GET` confirm size and SHA-256 | no |
@@ -96,7 +96,7 @@ Set the referenced secret in the deployment environment:
 LW_DESTINATION_CAMPAIGN_ARCHIVE='<accessKeyId>:<secretAccessKey>'
 ```
 
-`publicBaseUrl` is optional and means exactly what it says: when present, Work marks the
+`publicBaseUrl` is optional and means exactly what it says: when present, Lolly Work marks the
 destination public and returns the matching object URL in the receipt. An unguessable public URL
 is not access control.
 
@@ -130,7 +130,7 @@ credentialed collection URL.
 
 ### Configure a signed-HTTPS destination
 
-This adapter connects an organisation-owned publishing service without tying Work to its vendor
+This adapter connects an organisation-owned publishing service without tying Lolly Work to its vendor
 or API. The target is one exact HTTPS endpoint, not a webhook a person types in:
 
 ```json
@@ -146,7 +146,7 @@ or API. The target is one exact HTTPS endpoint, not a webhook a person types in:
 }
 ```
 
-Set the referenced variable to a dedicated random HMAC secret. Work sends the raw export body
+Set the referenced variable to a dedicated random HMAC secret. Lolly Work sends the raw export body
 with `x-lolly-delivery-id`, `x-lolly-format`, a base64url `x-lolly-name`,
 `x-lolly-content-sha256`, `x-lolly-timestamp` and `x-lolly-signature: v1=<hex-hmac-sha256>`.
 The signed canonical string is:
@@ -200,7 +200,7 @@ Upload](https://developers.smartsheet.com/api/brandfolder/openapi/binary_upload)
 temporary upload ticket, uploads the original, then creates one asset in the chosen section.
 Brandfolder's temporary object URL is reachable by its importer and managed by the vendor. As of
 October 2026, Brandfolder's documentation says upload URLs expire after 24 hours and temporary
-objects after seven days. Work never publishes its own source blob or returns those temporary URLs
+objects after seven days. Lolly Work never publishes its own source blob or returns those temporary URLs
 to the shell.
 
 A private progress record is saved before creation and again with the created asset ID, so a
@@ -268,7 +268,7 @@ the whole digest, and works out the format from the bytes, with the stored filen
 fallback. The destination's format list and size limit apply, and no browser download and upload
 round trip is needed.
 
-- The original stays in its project. Work stages an unchangeable private copy for retry, and
+- The original stays in its project. Lolly Work stages an unchangeable private copy for retry, and
   keeps the source reference only on the server.
 - The configured submit scan hook runs before the file leaves, with the same reject and error
   policy as catalog admission. No hook means no scan was performed.
@@ -284,7 +284,7 @@ does not make arbitrary catalog or device files eligible.
 ## What happens when you send
 
 A raw body is accepted only when it carries Lolly's C2PA export assertion. Before anything leaves,
-Work records its SHA-256 and stages the exact bytes in the configured BlobStore.
+Lolly Work records its SHA-256 and stages the exact bytes in the configured BlobStore.
 
 ::: figure work-delivery-lifecycle
 A delivery waits for approval when its destination has a chain, then is queued, delivered or failed. A retry sends the same staged bytes again; a reject or a withdrawal ends the delivery.
@@ -311,21 +311,24 @@ A delivery waits for approval when its destination has a chain, then is queued, 
 ### Delivering an automation output
 
 `POST /api/v1/jobs/:id/deliveries` sends a completed `render` job owned by the same member or
-service principal. The JSON body is `{ "destinationId": "campaign-archive", "name": "Launch
-poster" }`; an optional `format` must equal the job's recorded format and cannot override that format.
+service principal, and `POST /api/v1/renders/:id/deliveries` does the same for a succeeded
+[durable render](renders.md). The JSON body is `{ "destinationId": "campaign-archive", "name": "Launch
+poster" }`; an optional `format` must equal the recorded format and cannot override that format. Both
+routes run one code path, and a durable render also checks that its owner still holds the tool and
+`export.server`.
 
-When the job completes, Work records a SHA-256 over the actual output bytes, independently of the
+When the job completes, Lolly Work records a SHA-256 over the actual output bytes, independently of the
 storage provider (an S3 ETag is not a portable content digest). Delivery reads the stored result,
 checks it against that digest, verifies its Lolly Content Credential again, then points the
 delivery's private `sourceRef` at the existing blob. There is no download and upload round trip
 and no second stored copy. Jobs completed before digests were stored must be rendered again
 before this route can deliver them.
 
-The receipt shows `sourceJobId` for correlation, never the private storage reference. The source
-job cannot be deleted while any delivery keeps its output (`409 JOB_OUTPUT_IN_USE`), even after a
-successful send, so retry and audit cannot be undermined by deleting their evidence. Durable render
-jobs from `/api/v1/renders` cannot be delivered this way yet ([Render jobs and
-batches](renders.md#hosting-and-recovery)).
+The receipt shows `sourceJobId` or `sourceRenderId` for correlation, never the private storage
+reference. The source job cannot be deleted while any delivery keeps its output (`409
+JOB_OUTPUT_IN_USE`), even after a successful send, so retry and audit cannot be undermined by deleting
+their evidence. A durable render's [output retention](renders.md#hosting-and-recovery) leaves alone
+any output a delivery points at, for the same reason.
 
 ### Optional human approval
 
@@ -360,8 +363,8 @@ lw grants add group:contractors delivery.create 'destination:campaign-archive' -
 - When a destination has an `approvalChain`, `delivery.create` allows staging and requesting
   review, not the send itself; the approval chain and its separation-of-duties rules decide that.
 - For an automation output, the same action adds no general storage authority: the caller must
-  own the job, it must be a finished `render`, its recorded format cannot change and its stored
-  bytes pass integrity and C2PA checks again.
+  own the job or durable render, it must be a finished render, its recorded format cannot change and
+  its stored bytes pass integrity and C2PA checks again.
 - Losing the permission stops new sends and retries, but does not erase the caller's own
   receipts. `delivery.create` has no authority over personal send targets.
 
@@ -383,11 +386,11 @@ Discovery and history routes are in the [API reference](api.md#outbound-delivery
 ## Check a destination against a live system
 
 The S3 adapter has been checked against a live S3-compatible host. WebDAV and signed HTTPS have
-injected-wire tests, and opt-in checks in the Work repository that have not yet run against a real
+injected-wire tests, and opt-in checks in the Lolly Work repository that have not yet run against a real
 tenant or receiver, so neither is called live-verified.
 
 ::: details The opt-in interoperability checks
-Three gated tests in the Work repository check each adapter against a real endpoint. Each is
+Three gated tests in the Lolly Work repository check each adapter against a real endpoint. Each is
 skipped unless its switch is set to `1`. It writes inert text under a random `canary-<uuid>`
 delivery id and removes that exact object afterwards, or fails and lists each id whose removal it
 could not confirm. None of them lists or browses the remote side or prints a credential.

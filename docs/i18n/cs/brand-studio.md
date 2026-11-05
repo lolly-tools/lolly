@@ -1,10 +1,10 @@
 # Design System Setup
 
-Tvé logo, barvy a písma patří na jedno místo, aby je každý nástroj, stránka a export používaly. Tím místem je **Design System Setup** na `#/start` a jeho slogan říká, k čemu slouží: *Make it yours*.
+Tvé logo, barvy a písma patří na jedno místo, aby je každý nástroj, stránka a export používaly. Tím místem je **Design System Setup** na `#/start`.
 
 Začni s tím, co máš. Vlož logo a Lolly přečte jeho barvy. Vyber písmo nebo přetáhni soubor písma, který tvá firma licencuje. Každá změna se hned projeví v celé aplikaci. Tvé logo, písma a tokeny zůstávají na tomto zařízení. Výběr Google Font je jediný krok, který sahá ven: Lolly se nejprve zeptá a pak rodinu jednou stáhne.
 
-Když to vypadá správně, dej designovému systému jméno a stiskni **Export**. Dostaneš jeden soubor `.lolly` k uchování, otevření na jiném zařízení nebo předání kolegovi. [Settings](/info/dashboard.html#design-system) ukazuje aktivní systém jen pro čtení a jeho obálka odkazuje zpět sem pro úpravy.
+Když to vypadá správně, dej designovému systému jméno a stiskni **Export**. Dostaneš jeden soubor `.lolly` k uchování, otevření na jiném zařízení nebo předání kolegovi. [Lolly Settings](/info/dashboard.html#design-system) ukazuje aktivní systém jen pro čtení a jeho obálka odkazuje zpět sem pro úpravy.
 
 ## Udělej to po svém za pět minut
 
@@ -16,34 +16,36 @@ Když to vypadá správně, dej designovému systému jméno a stiskni **Export*
 - <!--i:download--> **Export** zapíše celý systém jako jeden soubor `LollyBrand-….lolly`.
 :::
 
-Záhlaví ukazuje, který designový systém **Editing** právě upravuješ, a jeho jméno je pole, které můžeš kdykoli změnit. Když tvá první úprava položí otázku **What is this design system called?**, slova z tvého loga se předvyplní, pokud je logo vypisuje. **Save name** jméno ponechá; **Not now** ponechá zástupné jméno, dokud jej nenapíšeš do záhlaví. Jméno označuje systém v Settings a při přepínání a stává se názvem souboru, který **Export** zapíše.
+Lišta v horní části studia nese jméno designového systému a jméno je pole, které můžeš kdykoli změnit: **Enter** nové jméno ponechá a **Escape** vrátí staré. Když tvá první úprava položí otázku **What is this design system called?**, slova z tvého loga se předvyplní, pokud je logo vypisuje. **Save name** jméno ponechá; **Not now** ponechá zástupné jméno, dokud jej nenapíšeš do lišty. Jméno označuje systém v Settings a při přepínání a stává se názvem souboru, který **Export** zapíše.
 
 ## Místnosti
 
-Studio je sada místností v liště po straně, bez pevného pořadí: nic není číslované a nic na ničem nezávisí. Na telefonu se lišta stane pásem čipů pod záhlavím.
+Studio je sada místností bez pevného pořadí: nic není číslované a nic na ničem nezávisí. U stolu leží místnosti v jednom pásu pod lištou. Na telefonu se přesunou do lišty u spodního okraje, kam dosáhne palec, s otevřenou místností posunutou do zorného pole; list s paletou a zásobník vyjíždějí nad tuto lištu a lišta při psaní ustoupí. S klávesnicí se Tab dostane na pás jednou a šipky, Home a End se pohybují mezi místnostmi.
 
-![Lišta místností studia: Overview, Colours, Type, Logos, Tokens, Files a Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Lišta studia a její místnosti: Board, Colours, Type, Logos, Tokens, Files, Rules a Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Místnost | Co tam děláš | Klíč odkazu |
 |---|---|---|
-| **Overview** | Podívej se, co systém obsahuje, s dveřmi do každé místnosti | `overview` |
+| **Board** | Podívej se, co systém obsahuje, s dveřmi do každé místnosti | `overview` |
 | **Colours** | Přidej barvy, dej jim role, vytvoř odstíny a paletu | `color` |
 | **Type** | Vyber čtyři řezy, které čtou aplikace, nástroje a každý export | `type` |
 | **Logos** | Umísti své značky v každé orientaci a úpravě | `logos` |
 | **Tokens** | Rohy, mezery, stíny a každá další pojmenovaná hodnota | `tokens` |
 | **Files** | Obrázky, zvuk a pohybové soubory, které tvá značka uchovává | `catalogue` |
-| **Usage & rules** | Pravidla, která tvá značka uplatňuje, ověřená na skutečných příkladech | `usage` |
+| **Rules** | Pravidla, která tvá značka uplatňuje, ověřená na skutečných příkladech | `usage` |
 | **Skills** | Psané standardy značky pro lidi a agenty, ke čtení a stažení | `skills` |
 
-Na místnost odkazuj pomocí `#/start?area=<key>`. Místnost Files si ponechává klíč `catalogue`, protože klíč místnosti je trvalý závazek, a `?tab=` stále funguje jako starší alias. Neznámý klíč otevře Overview.
+Na místnost odkazuj pomocí `#/start?area=<key>`. Místnost Files si ponechává klíč `catalogue`, Board si ponechává `overview` a Rules si ponechává `usage`, protože klíč místnosti je trvalý závazek, a `?tab=` stále funguje jako starší alias. Neznámý klíč otevře Board.
 
-**Patka lišty** drží akce pro celý systém, ne pro jednu místnost. **Add from…** přináší značku ([Přines značku](#bring-a-brand-in)) a **Tray** drží, co sken našel a ty jsi to ještě nepřidal. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** a **Restore brand settings** systém uchovávají a přesouvají ([Uchovej a přesuň designový systém](#keep-and-move-your-design-system)). Každá se objeví, až je na čem působit.
+**Lišta** drží akce pro celý systém, ne pro jednu místnost. **Add from…** přináší značku ([Přines značku](#bring-a-brand-in)) a **Tray** drží, co sken našel a ty jsi to ještě nepřidal. **Export** zapíše systém jako jeden soubor a **More** drží **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** a **Design systems**, které otevře seznam v Settings, kde přepínáš ([Uchovej a přesuň designový systém](#keep-and-move-your-design-system)). Každá se objeví, až je na čem působit. Na telefonu se **Add from…** přesune do **More** a **Export** se ukáže jako ikona.
 
-## Overview
+## Board
 
-Dokud nic není zvoleno, Overview nabízí čtyři způsoby, jak začít. **Start from a reference** otevře výběr zdroje pro logo, snímek obrazovky, webovou stránku nebo návrhový soubor a **Pick a colour**, **Choose a face** a **Add a logo** otevřou přímo tyto ovládací prvky. Jejich otevření nic nezapisuje a **Explore the tools** je tu od začátku.
+Dokud nic není zvoleno, Board nabízí čtyři způsoby, jak začít. **Start from a reference** otevře výběr zdroje pro logo, snímek obrazovky, webovou stránku nebo návrhový soubor a **Pick a colour**, **Choose a face** a **Add a logo** otevřou přímo tyto ovládací prvky. Jejich otevření nic nezapisuje a **Explore the tools** je tu od začátku.
 
-Jakmile je cokoli tvé vlastní, Overview ukazuje, co máš, s tvými vlastními počty napřed. Colours uvádí počet barev, s tlumeným `· N starter` tam, kde se ukazují zděděné barvy; jeho pás staví tvé barvy první, pak tenkou čáru, pak vybledlé startovní. Type se čte po rolích (*Inter for headings*, s *Starter for the rest* na řádku pod tím). Logos říká, kolik slotů je vyplněno (nebo **Not set**), Tokens ukazuje poloměr rohů a Files říká **Nothing yet**, dokud je knihovna prázdná. Každý blok otevře svou místnost.
+Jakmile je cokoli tvé vlastní, Board ukazuje, co máš, s tvými vlastními počty napřed. Colours uvádí počet barev, s tlumeným `· N starter` tam, kde se ukazují zděděné barvy; jeho pás staví tvé barvy první, pak tenkou čáru, pak vybledlé startovní. Colourways ukazuje každý colourway jako malou dlaždici v jeho hlavní barvě. Type se čte po rolích a každou rodinu sází jejím vlastním řezem (*Inter for headings*, s *Starter for the rest* na řádku pod tím). Logos říká, kolik slotů je vyplněno (nebo **Not set**), Tokens ukazuje poloměr rohů a Files říká **Nothing yet**, dokud je knihovna prázdná. Každý blok otevře svou místnost.
+
+Designový systém, který přišel s aplikací a lze ho upravovat, například Lolly Demo, to všechno má od začátku: Board ukazuje jeho barvy, colourways, řezy a značky, se štítkem **Came with this app** vedle nadpisu.
 
 ### Starter a tvoje
 
@@ -61,7 +63,7 @@ Jakmile je cokoli tvé vlastní, Overview ukazuje, co máš, s tvými vlastními
 
 - Zvolené nebo nainstalované tebou.
 - Plná síla a odstíněná karta tam, kde jsi nainstaloval řez.
-- Počítá se v Overview a v Tokens.
+- Počítá se na Boardu a v Tokens.
 - Role, která následuje jinou, se čte **↳ follows Primary**, místo aby opakovala název primární.
 :::
 
@@ -106,7 +108,7 @@ Tvá první barva se stane **primární** a čip to potvrdí, například *"Prim
 
 Tvé barvy leží vedle náhledu **In context** na široké obrazovce a nad ním na menší. Náhled ukazuje plakát, graf nebo kartu rozhraní v tvé paletě. Startovní barvy zůstávají ve vlastní sbalitelné skupině.
 
-![Místnost Colours v Lolly Demo: paleta ve sbalitelných skupinách, každá barva se jménem a hexem, a pilulka ke stažení dole](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Místnost Colours v Lolly Demo: paleta ve sbalitelných skupinách, každá barva se jménem a hexem, a stažení palety v hlavičce](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Místnost Colours po přidání jedné barvy, s její paletou a živým náhledem kompozice](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -163,7 +165,7 @@ Systém s colourways si při přestavbě zachová každý colourway. Kanonický 
 
 Paleta vypisuje tvé barvy ve sbalitelných skupinách, každá s vlastním **+ Add**. Skupiny vytvářej a přejmenovávej, jak chceš. Role nikdy nevytvoří druhou dlaždici: dlaždice, na kterou role ukazuje, nese místo toho malou značku (**P**, **S**, **Su**, **T**). **Colour chart** pod dlaždicemi ukazuje tytéž barvy na **Wheel** OKLCH (táhni tečku pro přebarvení, klikni na prázdné místo pro přidání vzorku) a v grafu **Gamut**, který ukazuje, kde končí zobrazitelný rozsah. `#/start?area=color&focus=chart` otevře graf přímo.
 
-![Panel palety, každá skupina sbalitelná, s pilulkou pro stažení zaparkovanou na jejím dolním okraji](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Panel palety, každá skupina sbalitelná, se stažením palety v její hlavičce](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Kolo OKLCH - úhel je odstín, vzdálenost od středu je sytost a šedé odstíny jedou po dráze jasu na okraji](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -179,7 +181,7 @@ Klikni na vzorek pro otevření jeho editoru:
 **Smazání vzorku** je bezpečné. Odvozené odstíny a role motivu se skryjí, takže nic, co je čte, nepřestane fungovat, zatímco barvy, které jsi přidal, se odstraní.
 
 ::: details Práce s mnoha vzorky
-Každý vzorek má úchyt pro přetažení. Přetažením změníš pořadí v rámci skupiny, nebo zaměř úchyt, stiskni Space, použij šipky a znovu stiskni Space pro upuštění; Escape ruší. Pro přesun barev mezi skupinami použij ovládací prvek **Group** editoru nebo vyber několik a použij **Move to**.
+Každý vzorek má úchyt pro přetažení. Přetažením změníš pořadí v rámci skupiny, nebo zaměř úchyt, stiskni Space, použij šipky a znovu stiskni Space pro upuštění; Escape ruší. Na telefonu paleta ukazuje čtyři barvy v řadě a úchyty se objeví v režimu Select, místo řádku pod každou barvou. Pro přesun barev mezi skupinami použij ovládací prvek **Group** editoru nebo vyber několik a použij **Move to**.
 
 Výběr nepotřebuje žádný režim. Lišta se objeví s první vybranou dlaždicí a zmizí s poslední.
 
@@ -196,13 +198,13 @@ Lišta se čte **{n} selected**, pak **Move to**, **Give a role** (každá barva
 
 Volitelný panel **Gradients** staví tokeny přechodů z palety. Každý přechod má náhled, 2 až 8 pojmenovaných zarážek a úhel. Zarážka ukazuje na vzorek, takže přebarvi vzorek a přechod ho následuje. Přechody běží v OKLCH.
 
-Stažení palety (designové tokeny, CSS, SCSS, GIMP a Adobe Swatch Exchange) leží v pilulce dole v paletě, jakmile jsou odstíny. Každý formát popisuje [Vezmi svou paletu a písma kamkoli](/info/using.html#take-your-palette-and-fonts-anywhere).
+Stažení palety (designové tokeny, CSS, SCSS, GIMP a Adobe Swatch Exchange) leží v hlavičce palety, vedle jejího nadpisu. Každý formát popisuje [Vezmi svou paletu a písma kamkoli](/info/using.html#take-your-palette-and-fonts-anywhere).
 
 ## Typ
 
-Bez vlastního řezu je místnost jedna karta: **Primary**, sázená ve velikosti pro čtení v řezu, který ji dnes obsluhuje, se štítkem **Starter**, tlačítkem **Choose a face** a řádkem *"Nothing installs until you choose one."* Headings, kód a kurzíva následují primární, dokud je nevybereš; **Choose them separately** ukáže jejich karty.
+Bez vlastního řezu je místnost jedna karta: **Primary**, sázená ve velikosti pro čtení v řezu, který ji dnes obsluhuje, se štítkem **Starter**, tlačítkem **Choose for Primary** a řádkem *"Nothing installs until you choose one."* Headings, kód a kurzíva následují primární, dokud je nevybereš; **Choose them separately** ukáže jejich karty.
 
-![Místnost Type bez zatím zvoleného řezu - jedna karta ve čtecí velikosti, na ní štítek Starter, a jedno vyplněné Vyber řez](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Místnost Type bez zatím zvoleného řezu - jedna karta ve čtecí velikosti, na ní štítek Starter, a jedno vyplněné Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Vyber jeden řez a místnost se otevře do čtyř karet rolí, seznamu Fonts a živého vzorku:
 
@@ -211,7 +213,7 @@ Vyber jeden řez a místnost se otevře do čtyř karet rolí, seznamu Fonts a �
 - **Code**: monospace řez pro kód a data.
 - **Italic**: skutečná kurzíva pro důraz, citace a vsuvky.
 
-Karta je odstíněná jen tam, kde jsi ten řez nainstaloval, a její tlačítko říká **Change** u vlastního řezu a **Choose a face** všude jinde. Nic na kartě nic nepotvrzuje: tlačítko otevře porovnávací scénu pro tu roli.
+Karta je odstíněná jen tam, kde jsi ten řez nainstaloval, a její tlačítko říká, pro kterou roli je: **Change Headings** u vlastního řezu a **Choose for Headings** všude jinde. Ukázková řádka se zalamuje, místo aby se oříznula. Nic na kartě nic nepotvrzuje: tlačítko otevře porovnávací scénu pro tu roli.
 
 ![Odhalené čtyři karty rolí - každá sazená v řezu, který ji obsluhuje, se štítkem Starter tam, kde nikdo nevybral, a Italic řídící se primárním](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -219,7 +221,7 @@ Karta je odstíněná jen tam, kde jsi ten řez nainstaloval, a její tlačítko
 
 Scéna se otevře uvnitř místnosti, pod kartou, kterou jsi stiskl, a karty se sbalí na jednořádkový pás, aby scéna byla vidět na první obrazovce telefonu. Escape zruší a vrátí fokus na kartu.
 
-1. Stiskni **Choose a face** na kartě.
+1. Stiskni **Choose for** a roli na kartě.
 2. Napiš název rodiny a stiskni **Preview**, nebo stiskni jednu ze šesti rodin **Pinned** pod polem.
 3. Stiskni **Use this face**.
 
@@ -240,7 +242,7 @@ Tokeny jsou pojmenované hodnoty za designovým systémem: barvy, písma, loga, 
 ![Místnost Tokens: hlavička s příkladem ze systému a akcemi souborů, dlaždice počítající každý druh tokenu, pak dvojice barev s údaji o kontrastu](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **Hlavička** dává příklad z tvého vlastního systému (*Primary is Spearmint, #033633*) a akce souborů: **Download** (celý systém jako designové tokeny, nebo paleta v pěti dalších formátech), **Copy CSS** a **Add from…** pro zpětné načtení souboru JSON.
-- **Dlaždice** počítají každý druh tokenu a skáčou na jeho sekci: Colours, Type, Logos, Shape and spacing, More a All tokens. Počítají, co je tvé vlastní, jako Overview. Na telefonu se dlaždice posouvají do strany.
+- **Dlaždice** počítají každý druh tokenu a skáčou na jeho sekci: Colours, Type, Logos, Shape and spacing, More a All tokens. Počítají, co daná sekce drží; sekce, která drží jen to, co přišlo s prázdným startem, nese štítek **Starter**, a systém, který přišel s aplikací, počítá svůj materiál bez něj. Na telefonu se dlaždice zalamují do dvou řad po třech.
 - **Colours** začíná dvojicemi, které nástroje spojují (text na povrchu, na primární, tlumený na povrchu) s údajem APCA ve světlém a tmavém a označí **Weak contrast**, kde dvojice nedosahuje. Pak každá skupina barev: rampa jako jedna řada čipů, ostatní barvy s hodnotou a odkazem, který nástroje používají, například `{color.brand.spearmint}`. Stiskni odkaz pro jeho zkopírování. **Edit in Colours** otevře skupinu v místnosti Colours.
 - **Type** a **Logos** vypisují řez pro každou roli a každý slot loga, s **Edit in Type** a **Edit in Logos**, jakmile máš vlastní.
 - **Shape and spacing** drží **Rounded corners** (`shape.radius`) a **Spacing rhythm** (`space.base`). Každý se čte *Lolly default*, dokud nepohneš posuvníkem, a *Yours* poté, ukládá hned a lze jej vrátit.
@@ -253,11 +255,11 @@ Sekce, ve které nic není, nabídne cestu, jak mezeru vyplnit: **Pick a colour*
 
 Vlož soubory, které tvá značka uchovává, kromě log: soubory **vector**, **image**, **audio** a **motion** (video, Lottie a animace). Objeví se v [Assets](/info/using.html#assets-your-library), roztříděné do sekcí a připravené ve výběru assetů každého nástroje, a zůstávají na tomto zařízení.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** nasazuje volby tvé značky do práce: co lidé mohou měnit, co zůstává pevné a co Lolly umí zkontrolovat.
+**Rules** nasazuje volby tvé značky do práce: co lidé mohou měnit, co zůstává pevné a co Lolly umí zkontrolovat.
 
-![Usage & rules v Lolly Demo: prázdná karta Brand rules s Add your first rule, pak Try your brand in use s příklady připravenými k vykreslení](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules v Lolly Demo: prázdná karta Brand rules s Add your first rule, pak Try your brand in use s příklady připravenými k vykreslení](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** vypisuje tvá pravidla. **Add rule** (nebo **Add your first rule**) otevře krátký formulář:
 
@@ -282,7 +284,7 @@ Sestavení dodávané s pevnou značkou ukazuje stejná pravidla a příklady je
 
 ## Přines vlastní značku
 
-**Add from…** dole na liště otevře výběr, který se ptá, co máš, ne jaký je to formát:
+**Add from…** v liště otevře výběr, který se ptá, co máš, ne jaký je to formát:
 
 - **Design tokens or a design file**: DTCG nebo Tokens Studio JSON, projekt Penpot, zip sad tokenů, balíček designového systému Lolly nebo SVG.
 - **PDF**: prezentace nebo soubor se zásadami, čtený na tomto zařízení kvůli barvám, značkám a vloženým písmům.
@@ -310,11 +312,11 @@ Importy PDF a návrhových souborů mají vlastní ovládací prvky revize. Polo
 
 ### Najdi a porovnej vzhled
 
-Otevři **Find a look** z Overview nebo ze seznamu designových systémů v Settings. Procházej systémy uložené na tomto zařízení a několik opakovaně použitelných příkladů Lolly a hledej podle jména, štítku barvy nebo deklarovaného písma. **Closest to my current palette** řadí podle změřené podobnosti barev, přičemž shodná písma rozhodují při shodě; není to hodnocení kvality.
+Otevři **Find a look** z Boardu nebo ze seznamu designových systémů v Settings. Procházej systémy uložené na tomto zařízení a několik opakovaně použitelných příkladů Lolly a hledej podle jména, štítku barvy nebo deklarovaného písma. **Closest to my current palette** řadí podle změřené podobnosti barev, přičemž shodná písma rozhodují při shodě; není to hodnocení kvality.
 
 Vyber jeden vzhled pro prohlédnutí nebo dva pro porovnání vedle sebe. Výběr nic nemění. **Use this saved system** na něj přepne a **Use these colours** uplatní barvy příkladu obvyklým kontrolním bodem, přičemž ponechá tvá písma. **Restore brand settings** obnoví předchozí vzhled. Uložené systémy mají upravitelné **Search tags** pod **Details and design context**. Příklady jsou původní barevné recepty Lolly, bez stahované sbírky a bez účtu.
 
-![Porovnej Sunroom a Orchard vedle sebe, než použiješ kterýkoli z barevných systémů.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Porovnej Sunroom a Orchard vedle sebe, než použiješ kterýkoli z barevných systémů.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Uchovej a přesuň designový systém
 
@@ -328,11 +330,11 @@ Chceš-li jednu vrátit, použij **Add from… → Design tokens or a design fil
 
 ### Obnov dřívější nastavení
 
-Zvol **Restore brand settings**, vyber datovaný kontrolní bod a stiskni **Restore**. Obnoví barvy, nastavení písma a další tokeny aktivní značky; soubory písem a obrázků zůstávají, jak jsou. Lolly nejprve uloží tvé aktuální nastavení jako **Before restore**, takže obnovení můžeš vrátit i po zavření prohlížeče. Na tomto zařízení se uchovává posledních 20 kontrolních bodů.
+Otevři **More** v liště, zvol **Restore brand settings**, vyber datovaný kontrolní bod a stiskni **Restore**. Obnoví barvy, nastavení písma a další tokeny aktivní značky; soubory písem a obrázků zůstávají, jak jsou. Lolly nejprve uloží tvé aktuální nastavení jako **Before restore**, takže obnovení můžeš vrátit i po zavření prohlížeče. Na tomto zařízení se uchovává posledních 20 kontrolních bodů.
 
 ### Verze
 
-Zveřejněná verze je **trvalá pojmenovaná kopie** uchovaná na tomto zařízení. Nikdy se nemění, takže nástroj nebo odkaz, který ji připne (pomocí `designv`), kreslí stále totéž. Systém s něčím tvým vlastním ukazuje tichý odkaz **Versions & publishing** dole na liště; po prvním zveřejnění se stane položkou **Versions**. `#/start?area=versions` jej otevře přímo.
+Zveřejněná verze je **trvalá pojmenovaná kopie** uchovaná na tomto zařízení. Nikdy se nemění, takže nástroj nebo odkaz, který ji připne (pomocí `designv`), kreslí stále totéž. Systém s něčím tvým vlastním uvádí **Versions & publishing** v nabídce **More** v liště; po prvním zveřejnění se **Versions** přidá k místnostem. `#/start?area=versions` jej otevře přímo.
 
 - **Verze je trvalá.** Zatím neexistuje mazání a panel to říká.
 - **Odstranění vedou kartu kompatibility,** protože odstraněný token je to, co rozbije nástroj.

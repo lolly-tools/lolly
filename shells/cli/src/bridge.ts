@@ -20,7 +20,9 @@ import { fetchPublicBytes, MAX_PUBLIC_ASSET_BYTES, PUBLIC_IMAGE_TYPES } from '@l
 // (the pptx read path uses it); the engine hands back entries and the caller zips them,
 // exactly the split the web shell's lib/zip.ts sits on.
 import { zipSync } from 'fflate';
-import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId, readDesignSystemIdentity, SHIPPED_DESIGN_SYSTEM_ID, injectSvgMeta } from '@lolly/engine';
+import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, canvasSizeOf, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId, readDesignSystemIdentity, SHIPPED_DESIGN_SYSTEM_ID, injectSvgMeta } from '@lolly/engine';
+import type { SeparateRgb } from '@lolly/engine';
+import { pressSeparationFor } from '@lolly-tools/node-shell/press-separation-node';
 import { isRasterPhotoLook, parseLutText, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook, type GradeLut, type PhotoTreatment } from '@lolly/engine';
 import type {
   HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts,
@@ -57,6 +59,8 @@ import { createNetAPI, matchesNetworkUrl } from '@lolly-tools/node-shell/net';
 // throws (which is what the byte-pinned goldens in tests/cli-export-golden.test.ts
 // caught).
 import { svgDomToIr } from '@lolly-tools/node-shell/svg-ir';
+import { drawnRootSvg } from '@lolly-tools/node-shell/raster';
+import { materializeSvgVariables } from '../../../packages/node-shell/src/svg-css.ts';
 import type { SvgIrFont } from '@lolly-tools/node-shell/svg-ir';
 import type { FontStyleSlice } from '@lolly-tools/node-shell/text-svg';
 
@@ -71,6 +75,7 @@ import { repoRoot } from '@lolly-tools/node-shell/repo-root';
 import {
   contentUrlFile, readAssetIndex, readToolText,
 } from '@lolly-tools/node-shell/content-roots';
+import { parseToolAssetId } from '@lolly-tools/node-shell/tool-asset-id';
 // host.text (HarfBuzz text-to-path). RELATIVE for the same reason as repo-root above - 
 // this file is inlined into the Vercel MCP function, where a bare @lolly-tools/node-shell
 // specifier would dangle. Lazily loads its WASM on first shape, so attaching it is free.
@@ -97,6 +102,7 @@ import {
 // factories return null on a lean install so the capability stays honestly absent.
 import { createNodePdfRedact } from '@lolly-tools/node-shell/pdf-redact';
 import { createNodeRasterAPI } from '@lolly-tools/node-shell/canvas';
+import type { DecodeLimits } from '@lolly-tools/node-shell/canvas';
 // host.speech (Kokoro TTS + Whisper transcription). RELATIVE for the same MCP-bundle
 // reason; it resolves transformers.js lazily and returns null when the runtime is
 // absent, so importing it costs nothing and a lean install leaves host.speech undefined.
@@ -248,6 +254,8 @@ interface CliExportRenderOpts extends ExportOpts {
 type IconThemeDef = ReturnType<typeof parseIconThemesDoc>[number];
 
 interface CliBridgeOpts {
+  /** Explicit catalog snapshot; an empty list supports content-free setup screens. */
+  catalogAssets?: CatalogAsset[];
   profile?: Profile;
   dom: { window: Window & typeof globalThis };
   /** The loaded manifest's `network.allowlist` - what host.net may fetch this
@@ -271,6 +279,13 @@ interface CliBridgeOpts {
   capturePublicOnly?: boolean;
   /** Hosted asset readers use bounded public HTTP connections and MIME checks. */
   publicOnlyAssets?: boolean;
+  /**
+   * What decoding a picture may allocate (`DecodeLimits`): `host.raster`, the HDR
+   * source decode and a photo look's bake all check the picture's stated size
+   * against it before allocating. The hosted MCP server passes one per render; a
+   * person's own CLI/TUI leaves it off.
+   */
+  decodeLimits?: DecodeLimits;
   /** Hosted renderers without a member AI lease omit model-backed APIs.
    * Standalone CLI/TUI behaviour remains enabled by default. */
   aiEnabled?: boolean;
@@ -328,6 +343,11 @@ function rondoRecordOf(bytes: Uint8Array): RondoSourceV1 | null {
 /** Each CLI bridge's way to move its own reads to another theme selection, keyed by the bridge. */
 const selectionFollowers = new WeakMap<HostV1, (selection: Record<string, string>) => void>();
 
+/** Move shell-owned token reads, including native export CSS, to an interactive document. */
+export function selectCliBridgeTokens(host: HostV1, selection: Record<string, string> = {}): void {
+  selectionFollowers.get(host)?.(selection);
+}
+
 /** Two selections name the same choices, whatever their key order. */
 function sameSelection(a: Record<string, string> | undefined, b: Record<string, string> | undefined): boolean {
   const ka = Object.keys(a ?? {}), kb = Object.keys(b ?? {});
@@ -360,13 +380,13 @@ export function followRuntimeSelection(
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, catalogAssets, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, decodeLimits, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
   // brand file alone: a shared asset root (an emoji pack, plan 252) is mounted outside
   // every brand catalog and belongs in the listing of every profile.
-  const assetIndex = readAssetIndex() as { assets: CatalogAsset[] };
+  const assetIndex = { assets: catalogAssets ?? (readAssetIndex() as { assets: CatalogAsset[] }).assets };
   const assetById = new Map<string, CatalogAsset>(assetIndex.assets.map((a): [string, CatalogAsset] => [a.id, a]));
 
   /** An asset format's site-absolute url (`/catalog/assets/...`) onto disk. Assets
@@ -426,7 +446,7 @@ export async function createCliBridge(
       return new Uint8Array(await response.arrayBuffer());
     },
     async sdr(bytes) {
-      const canvas = await (await import('@lolly-tools/node-shell/canvas')).decodeToCanvas(bytes);
+      const canvas = await (await import('@lolly-tools/node-shell/canvas')).decodeToCanvas(bytes, undefined, decodeLimits);
       if (!canvas) throw new Error('SDR decoding needs the optional Node canvas adapter.');
       return { width: canvas.width, height: canvas.height, data: canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data };
     },
@@ -506,7 +526,7 @@ export async function createCliBridge(
         const lut = look.kind === 'lut' ? await lutFor(resolvePhotoLook(look, themeKey).lut) : null;
         if (look.kind === 'lut' && !lut) throw new Error(`the LUT of photo look ${look.id} is unavailable`);
         const { bakePhotoLookBytes } = await import('../../../packages/node-shell/src/photo-look.ts');
-        const baked = await bakePhotoLookBytes(bytes, look, { mime, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}) });
+        const baked = await bakePhotoLookBytes(bytes, look, { mime, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}), ...(decodeLimits ? { limits: decodeLimits } : {}) });
         if (!baked) {
           if (!lookCanvasWarned) host.log('warn', `photo look ${look.id} was left out: this install has no canvas (@napi-rs/canvas) to bake it, so the plain picture is used.`);
           lookCanvasWarned = true;
@@ -613,7 +633,7 @@ export async function createCliBridge(
    * a pinned version reaches the preserved bytes here too.
    *
    * An unresolvable version degrades to the head rather than to a blank render,
-   * and says so: an author who typed a slug and silently got a different design
+   * and reports that: an author who typed a slug and silently got a different design
    * system has the one failure this shell refuses to be quiet about.
    */
   let releasePins: import('../../../engine/src/design-version.ts').PinnedAsset[] = [];
@@ -776,6 +796,8 @@ export async function createCliBridge(
   host.scan = createNodeScanAPI();
   // host.fonts (v1.262) - font inspection and verified Skera subsetting, WASM read off disk.
   host.fonts = (await import('@lolly-tools/node-shell/fonts')).createNodeFontsAPI();
+  // host.calc - spreadsheet formulas over the committed WASM, read off disk on first use.
+  host.calc = (await import('@lolly-tools/node-shell/gridcraft-calc-node')).createNodeCalcAPI();
   host.prepare = (await import('@lolly/engine')).createPrepareAPI();
   host.compare = (await import('@lolly/engine')).createCompareAPI();
   let layout: Promise<import('@lolly-tools/core/host-v1').LayoutAPI> | undefined;
@@ -881,6 +903,16 @@ export async function createCliBridge(
         return baked
           ? { ...plain, id, url: baked.url, format: baked.format, original: undefined, meta: { ...plain.meta, treatment: lookedInline.treatment, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) } }
           : { ...plain, id };
+      }
+      // A picture a tool ships beside its manifest, `/tools/<tool-id>/assets/<file>`
+      // (node-shell/tool-asset-id), as a tool's example looks name their pictures:
+      // read from that tool's folder in the active profile, nowhere else.
+      const shipped = parseToolAssetId(id);
+      if (shipped) {
+        const file = contentUrlFile(id);
+        if (!file) throw new Error(`Tool asset not found: ${id}`);
+        const bytes = await readFile(file);
+        return { source: 'remote', id, type: shipped.type, format: shipped.format, url: `data:${shipped.mime};base64,${bytes.toString('base64')}`, meta: { name: shipped.file } };
       }
       if (/^data:/i.test(id)) {
         const mime = /^data:([^;,]+)/i.exec(id)?.[1] ?? '';
@@ -1117,8 +1149,11 @@ export async function createCliBridge(
  * tool may sit an editor-only sibling next to its `<svg>` - e.g. qr-code's
  * scannability warnings (plans/162) - without forfeiting its browser-free vector
  * path. The hidden sibling is never in the exported bytes: only the `<svg>` is.
+ *
+ * One rule with node-shell's `drawnRootSvg`, which the browser-free PNG reads to
+ * decide whether this export takes the requested size.
  */
-const NON_DRAWABLE = new Set(['script', 'style', 'template', 'link', 'meta']);
+const rootSvgOf = drawnRootSvg;
 /**
  * What a Design page drawn from the operations hands back to run.ts, which stamps the
  * credential (plan 326): the route that drew it, through `onExportRoute`, and each
@@ -1132,19 +1167,6 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
   for (const ingredient of ingredients) {
     if (o.ingredientSink && !o.ingredientSink.some((p) => p.activeLabel === ingredient.activeLabel)) o.ingredientSink.push(ingredient);
   }
-}
-
-function rootSvgOf(node: Element | null): Element | null {
-  let cur: Element | null = node;
-  for (let depth = 0; cur && depth < 8; depth++) {
-    if (cur.tagName?.toLowerCase() === 'svg') return cur;
-    const kids = Array.from(cur.children).filter(
-      (el) => !NON_DRAWABLE.has(el.tagName.toLowerCase()) && !el.hasAttribute('data-export-hide'),
-    );
-    if (kids.length !== 1) return null;
-    cur = kids[0] ?? null;
-  }
-  return null;
 }
 
   host.export = {
@@ -1162,6 +1184,10 @@ function rootSvgOf(node: Element | null): Element | null {
         return (await import('../../../engine/src/deep-export.ts')).exportDeepFrame(opts.deepFrame, format, { ...opts, hdr: !!opts.hdr }, {
           jxl: async request => (await import('@lolly-tools/node-shell/jxl')).runJxl(request),
         });
+      }
+      if (format !== 'html') {
+        const svg = rootSvgOf(node);
+        if (svg) materializeSvgVariables(svg);
       }
       if (format === 'lottie') return (await import('../../../engine/src/design-lottie.ts')).exportDesignLottie(opts, host);
       if (format === 'idml') return (await import('../../../engine/src/design-idml.ts')).exportDesignIdml(opts, host);
@@ -1303,7 +1329,7 @@ function rootSvgOf(node: Element | null): Element | null {
         const lowered = svgToPenpotDoc(svgText, { ...shared, background: opts.background, notes: why });
         // A `data:` <image> is decoded by the engine itself; anything else would need a
         // fetch, and an unresolved placeholder is simply not added - the writer drops an
-        // image shape whose media is missing and says so in its warnings.
+        // image shape whose media is missing and lists that in its warnings.
         let doc = lowered?.doc;
         if (!doc) {
           // Nothing Penpot has a construct for: keep the SVG whole as one picture on
@@ -1342,7 +1368,10 @@ function rootSvgOf(node: Element | null): Element | null {
         // EPS is vector PostScript built from the same SVG IR as EMF - text is
         // outlined upstream (svgDomToIr shapes live <text> via host.text; an
         // unresolvable family throws), so the emitter writes no fonts. eps-cmyk
-        // is naive DeviceCMYK: no embedded output intent (same as the web shell).
+        // is DeviceCMYK separated through the press condition's profile (the
+        // bundled FOGRA39 one by default, the device formula for a condition with
+        // none; packages/node-shell/src/press-separation-node.ts). It carries no
+        // embedded output intent, same as the web shell.
         //
         // The brand cmykPalette IS threaded now, through the SAME shared builder
         // the web shell's three CMYK sinks use (engine/src/cmyk-palette.ts). It
@@ -1354,10 +1383,11 @@ function rootSvgOf(node: Element | null): Element | null {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
         const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, label: 'EPS' });
+        const separate = format === 'eps-cmyk' ? (await pressSeparationFor(opts.colorProfile)).separate : undefined;
         const text = emitEps(ir, {
           width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi,
           cmyk: format === 'eps-cmyk',
-          ...(format === 'eps-cmyk' ? { cmykPalette: await brandCmykPalette(host) } : {}),
+          ...(separate ? { cmykPalette: await brandCmykPalette(host, separate), separate } : {}),
           meta: opts.meta as { title?: string } | undefined,
         });
         return new Blob([text], { type: 'application/postscript' });
@@ -1536,6 +1566,10 @@ function rootSvgOf(node: Element | null): Element | null {
 
   // PDF metadata inspect + strip is pure pdf-lib and needs no browser.
   host.pdf = createPdfAPI();
+  host.pdf.accessibility = async (bytes) => {
+    const [{ checkPdfAccessibility }, { summarisePdfAccessibility }] = await Promise.all([import('@lolly-tools/node-shell/pdf-a11y-node'), import('../../../engine/src/pdf-accessibility.ts')]);
+    return summarisePdfAccessibility(await checkPdfAccessibility(bytes));
+  };
 
   // pdf.redact + pdf.pages (plan 183 WS4) - the two PdfAPI members that REBUILD
   // PIXELS. They used to be web-only, so `lolly redact` on a PDF escalated a black
@@ -1556,7 +1590,7 @@ function rootSvgOf(node: Element | null): Element | null {
   // canvas. `canRaster()` is the sync probe a tool branches on before deciding what
   // to render, and it now answers honestly here instead of being absent (which every
   // hook reads as "headless, refuse"). Conditional for the same reason as above.
-  const raster = createNodeRasterAPI(publicOnlyAssets ? { readUrl: readHostedSource } : {});
+  const raster = createNodeRasterAPI({ ...(publicOnlyAssets ? { readUrl: readHostedSource } : {}), ...(decodeLimits ? { limits: decodeLimits } : {}) });
   if (raster) host.raster = raster;
 
   // host.c2pa.sign (v1.85; widened v1.104) - freshly sign a manifest into finished
@@ -1642,7 +1676,10 @@ function rootSvgOf(node: Element | null): Element | null {
       const childTool = await loadTool(toolId, composeFetchFile);
       // Pass the ANCESTOR stack (_stack), not `path`: createRuntime re-appends the
       // child's id, so `path` would double-count and hit the depth guard early.
-      const childRuntime = await createRuntime(childTool, host, inputs as Parameters<typeof createRuntime>[2], { composeStack: _stack });
+      // The child is drawn at the size asked for, so it is told that canvas size (engine 1.293).
+      const childRuntime = await createRuntime(childTool, host, inputs as Parameters<typeof createRuntime>[2], {
+        composeStack: _stack, canvasSize: canvasSizeOf(width, height, unit || 'px'),
+      });
       const el = w.document.createElement('div');
       el.innerHTML = childRuntime.getHydrated();
       // A composed child is exported through host.export.render directly, never
@@ -1843,7 +1880,7 @@ function mimeFor(format: string): string {
  * `host.tokens.colors()` yields an empty map, which is byte-identical to the
  * previous behaviour (every colour falls through to the generic conversion).
  */
-async function brandCmykPalette(host: HostV1): Promise<Map<string, { cmyk: [number, number, number, number] }>> {
+async function brandCmykPalette(host: HostV1, separate?: SeparateRgb): Promise<Map<string, { cmyk: [number, number, number, number] }>> {
   try {
     const colors = await host.tokens?.colors?.();
     if (!Array.isArray(colors) || colors.length === 0) return new Map();
@@ -1852,7 +1889,7 @@ async function brandCmykPalette(host: HostV1): Promise<Map<string, { cmyk: [numb
       ...(Array.isArray(c.cmyk) ? { cmyk: c.cmyk } : {}),
       label: c.name,
       spot: c.spot ?? null,
-    })));
+    })), separate);
   } catch {
     return new Map();
   }

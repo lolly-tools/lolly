@@ -181,7 +181,7 @@ async function renderVideo(result: HTMLElement, bytes: Uint8Array, file: File, h
 
   // Extract audio - reuse the catalog dialog UNCHANGED (its own format picker, WP-F
   // background job, and the c2pa.edited + source-video-as-ingredient stamp). It saves a
-  // derived audio asset to the catalog rather than downloading, and says so itself.
+  // derived audio asset to the catalog rather than downloading, and reports that itself.
   result.querySelector<HTMLButtonElement>('[data-extract]')?.addEventListener('click', async () => {
     const { openExtractAudioDialog } = await import('../lib/extract-audio.ts');
     await openExtractAudioDialog(host as unknown as ExtractAudioHost, {

@@ -1,0 +1,240 @@
+{
+  "id": "05-brand-swatches-measured",
+  "title": "Brand swatches with measured CMYK",
+  "covers": "Four Lolly Demo swatches keep their measured CMYK exactly when the RIP flattens spots, and each rides its own named plate when it keeps them.",
+  "profile": "lolly-demo",
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "a",
+      "kind": "box",
+      "frame": "page",
+      "x": 14,
+      "y": 20,
+      "w": 84,
+      "h": 160,
+      "bg": "#ace1ad"
+    },
+    {
+      "id": "b",
+      "kind": "box",
+      "frame": "page",
+      "x": 108,
+      "y": 20,
+      "w": 84,
+      "h": 160,
+      "bg": "#da1889"
+    },
+    {
+      "id": "c",
+      "kind": "box",
+      "frame": "page",
+      "x": 202,
+      "y": 20,
+      "w": 84,
+      "h": 160,
+      "bg": "#5fcaff"
+    },
+    {
+      "id": "d",
+      "kind": "box",
+      "frame": "page",
+      "x": 296,
+      "y": 20,
+      "w": 84,
+      "h": 160,
+      "bg": "#50c369"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true,
+    "separations": [
+      "H140_L085_C030",
+      "H350_L050_C075",
+      "H235_L075_C040",
+      "H145_L070_C060"
+    ]
+  },
+  "passes": [
+    {
+      "name": "spots kept",
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Pandanus",
+          "rect": [
+            20,
+            30,
+            72,
+            140
+          ],
+          "expect": {
+            "H140_L085_C030": 100,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Fuchsia",
+          "rect": [
+            114,
+            30,
+            72,
+            140
+          ],
+          "expect": {
+            "H350_L050_C075": 100,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Sky",
+          "rect": [
+            208,
+            30,
+            72,
+            140
+          ],
+          "expect": {
+            "H235_L075_C040": 100,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Green Apple",
+          "rect": [
+            302,
+            30,
+            72,
+            140
+          ],
+          "expect": {
+            "H145_L070_C060": 100,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "spots flattened to the process alternate",
+      "rip": [
+        "-dMaxSpots=0"
+      ],
+      "tol": 1.5,
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Pandanus 42/0/46/0",
+          "rect": [
+            20,
+            30,
+            72,
+            140
+          ],
+          "expect": {
+            "C": 42,
+            "M": 0,
+            "Y": 46,
+            "K": 0
+          }
+        },
+        {
+          "name": "Fuchsia 12/99/0/0",
+          "rect": [
+            114,
+            30,
+            72,
+            140
+          ],
+          "expect": {
+            "C": 12,
+            "M": 99,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Sky 62/4/0/0",
+          "rect": [
+            208,
+            30,
+            72,
+            140
+          ],
+          "expect": {
+            "C": 62,
+            "M": 4,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Green Apple 72/0/82/0",
+          "rect": [
+            302,
+            30,
+            72,
+            140
+          ],
+          "expect": {
+            "C": 72,
+            "M": 0,
+            "Y": 82,
+            "K": 0
+          }
+        }
+      ]
+    }
+  ]
+}

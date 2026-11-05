@@ -15,7 +15,12 @@ import type { Profile } from '@lolly-tools/core/host-v1';
 // one edge dragged the whole control plane onto the preload set of every visit for
 // a read that answers null on any deployment without one (see org/governance.ts).
 import { orgFlagGovernance } from './org/governance.ts';
-import { parseDesignExportRouteChoice, type DesignExportRouteChoice } from '../../../engine/src/design-export-route.ts';
+// Type only: engine/src/runtime.ts imports design-export-route.ts, so the build seats it
+// in the engine-render chunk, and a value import here put that chunk (with Handlebars
+// and Ajv) on first paint. exportRouteChoice() loads it when an export asks.
+import type { DesignExportRouteChoice } from '../../../engine/src/design-export-route.ts';
+// A leaf that imports nothing: the automatic Performance UI decision this device stored.
+import { perfUiAutoOn } from './lib/perf-ui-auto-state.ts';
 
 export interface FeatureFlag {
   id: string;
@@ -68,6 +73,26 @@ export const CONNECTOR_FLAGS: readonly FeatureFlag[] = [
   { id: 'conn-discord',  label: 'Discord',             connector: 'discord'  },
   { id: 'conn-linkedin', label: 'LinkedIn',            connector: 'linkedin' },
 ];
+
+// Share links - one switch per provider kind that can make a link after Send. Same
+// opt-out shape as the connectors: ON unless someone turns it off, and a link is only
+// ever made when the person asks for one. The id carries the kind and is a persisted key.
+export const SHARE_LINK_FLAGS: readonly FeatureFlag[] = [
+  { id: 'share-gdrive',   label: 'Google Drive share links',  connector: 'gdrive'   },
+  { id: 'share-dropbox',  label: 'Dropbox share links',       connector: 'dropbox'  },
+  { id: 'share-o365',     label: 'OneDrive share links',      connector: 'o365'     },
+  { id: 'share-s3',       label: 'S3 bucket share links',     connector: 's3'       },
+  { id: 'share-webdav',   label: 'Nextcloud share links',     connector: 'webdav'   },
+];
+
+const SHARE_LINK_BY_KIND = new Map(SHARE_LINK_FLAGS.map(f => [f.connector!, f]));
+
+/** May this provider kind make share links? Read at call time. A kind with no
+ *  flag is not gated here. */
+export function shareLinksEnabled(kind: string): boolean {
+  const f = SHARE_LINK_BY_KIND.get(kind);
+  return !f || isFlagOnSync(f);
+}
 
 const CONNECTOR_BY_KIND = new Map(CONNECTOR_FLAGS.map(f => [f.connector!, f]));
 
@@ -167,6 +192,13 @@ export const PREFLIGHT_FLAG: FeatureFlag = {
 // reflects the flag onto <html> and notifies mounted effects. Saved effect preferences
 // remain independent. Deliberately CHROME-ONLY: it never reaches the tool canvas or the export stages, so a
 // render (and its export, whose geometry is shared with the CLI) is never altered.
+//
+// Lolly can also turn it on by itself (lib/perf-ui-auto.ts): for good, for a device that
+// struggles to draw the chrome, or for a while, for one that is constrained (busy, hot or
+// low on battery). That decision is a device-local record
+// (lib/perf-ui-auto-state.ts), never a profile value, so it does not follow the profile
+// to a faster device. A hand-set profile value always wins over it: isFlagOn and
+// hydrateFeatureFlags below read the record only when the profile has no value.
 export const PERFORMANCE_UI_FLAG: FeatureFlag = {
   id: 'perf-ui',
   label: 'Performance UI',
@@ -191,8 +223,13 @@ export const EXPORT_GPU_FLAG: FeatureFlag = {
 /** Storage key for the internal export route override (`auto`, `ops` or `legacy`). */
 export const EXPORT_ROUTE_KEY = 'lolly.exportRoute';
 
-/** The export route this device asks for: the stored override first, then the flag. */
-export function exportRouteChoice(): DesignExportRouteChoice {
+/**
+ * The export route this device asks for: the stored override first, then the flag.
+ * Async because the parser loads on first use, off the boot path; its callers are the
+ * export routes, which have already loaded the same module.
+ */
+export async function exportRouteChoice(): Promise<DesignExportRouteChoice> {
+  const { parseDesignExportRouteChoice } = await import('../../../engine/src/design-export-route.ts');
   try {
     const stored = parseDesignExportRouteChoice(localStorage.getItem(EXPORT_ROUTE_KEY));
     if (stored) return stored;
@@ -350,6 +387,7 @@ export function isFlagOn(profile: Profile | null | undefined, flag: FeatureFlag)
   const saved = profile?.featureFlags?.[flag.id];
   if (gov?.hidden) return gov.default ?? builtin;
   if (saved !== undefined) return saved;
+  if (flag.id === PERFORMANCE_UI_FLAG.id && perfUiAutoOn()) return true;
   return gov?.default ?? builtin;
 }
 
@@ -358,7 +396,7 @@ export function isFlagOn(profile: Profile | null | undefined, flag: FeatureFlag)
 // gallery/catalog/projects popovers - can gate on a flag without awaiting the profile.
 // Hydrated from the profile at boot; kept in sync on each toggle. Defaults ON (like
 // flagEnabled), so an unhydrated mirror still shows opt-out features.
-const FLAG_MIRROR_KEY = 'lolly:featureFlags';
+export const FLAG_MIRROR_KEY = 'lolly:featureFlags';
 
 // In-memory flag overrides - NEVER persisted. The ?neuro demo deep-link
 // (lib/neuro-demo.ts) lights a flag for exactly one page load without touching the
@@ -391,6 +429,9 @@ export function hydrateFeatureFlags(profile: Profile | null | undefined): void {
   // entry - which is what makes a fresh device read it as on (PRIVATE_COLLAB_FLAG
   // since 2026-08-10; it stays in this list because the list is "every standalone
   // flag", not "every opt-in one").
+  // An automatic Performance UI decision on this device counts only while the profile
+  // holds no hand choice; the bake below would otherwise write its OFF default.
+  if (eff[PERFORMANCE_UI_FLAG.id] === undefined && perfUiAutoOn()) eff[PERFORMANCE_UI_FLAG.id] = true;
   for (const f of [NEUROSPICY_FLAG, JELLY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, LEARNING_FLAG, PRIVATE_COLLAB_FLAG, NEARBY_DISCOVERY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG]) {
     if (eff[f.id] === undefined && f.default === false) eff[f.id] = false;
   }

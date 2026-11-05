@@ -22,12 +22,14 @@ import { t, tRaw } from '../../i18n.ts';
 import { aiSignalsChip, assetAiKind } from '../../lib/genai-pill.ts';
 import { announce } from '../../a11y.ts';
 import { mountModal } from '../../components/modal.ts';
+import { followSplitPane, inspectorPaneWanted } from '../../lib/split-inspector.ts';
 import { publishSiteInspection } from '../../lib/site-tools-context.ts';
 import { setSearchBarQuery } from '../../components/search-bar.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { destroyLottiePlayers, lottiePlayerFor, mountLottieMarker } from '../lottie-mount.ts';
 import { extractAssetMetadata, leavesOriginalUnread, metadataFromBytes, recordedMetadata } from '../../lib/asset-metadata.ts';
 import { mergeMetaRows, metaRow } from '../../lib/meta-rows.ts';
+import { approvedRow, openApprovedRequest } from './approved-row.ts';
 import { formatMetaInstant } from '../../lib/meta-dates.ts';
 import { analyzeVerifyText } from '../valid-text.ts';
 import { categoryLabel, libCategory } from '../../lib/asset-category.ts';
@@ -474,6 +476,7 @@ export function buildSheet(dt: DetailsCtx): void {
             const extra = inFolders.length > 2 ? ` +${inFolders.length - 2}` : '';
             return metaRow('projects', t('Projects'), `${names}${extra}`);
           })()}
+          ${approvedRow(ref)}
           ${metaRow('id', t('ID'), `<code>${escapeText(ref.id)}</code>`)}
         </dl>
         ${dt.rondo.rondoSectionHtml()}
@@ -493,12 +496,16 @@ export function buildSheet(dt: DetailsCtx): void {
   dt.dlAsPopover = null;
   let clearSiteInspection: (() => void) | undefined;
   let disposeInspector: (() => void) | undefined;
+  // In two panes (lib/split-inspector.ts) the details are the pane beside the browser.
+  let stopPane: (() => void) | undefined;
   const modal = mountModal(content, {
     className: 'cat-details',
+    modal: !inspectorPaneWanted(),
     backStack: !cat.preview,
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onEscape: () => dt.sheet.dismissLayer(),
     onClose: () => {
+      stopPane?.();
       clearSiteInspection?.();
       disposeInspector?.();
       destroyModelPreview?.();
@@ -531,6 +538,7 @@ export function buildSheet(dt: DetailsCtx): void {
     },
   }); dt.modal = modal;
   const dlg = modal.el; dt.dlg = dlg;
+  stopPane = followSplitPane(modal, { id: 'assets' });
   clearSiteInspection = publishSiteInspection(() => dlg.isConnected ? dt.ref : null);
   if (ref.type === 'model') {
     const preview = dlg.querySelector<HTMLElement>('.cat-preview-content');
@@ -1322,6 +1330,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       return;
     }
     if (act === 'add-to-project') { await cat.bulk.addToProject([ref.id], [ref]); return; }
+    if (act === 'open-approval') { openApprovedRequest(ref); return; }
     // "Download as" (text assets): a format menu anchored to its toolbar button,
     // mounted inside THIS dialog. The items carry data-act="dl-text", so their
     // clicks bubble to this same dispatcher - the menu is pure presentation.

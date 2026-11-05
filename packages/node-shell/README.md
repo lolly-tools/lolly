@@ -57,7 +57,8 @@ to use means adding its subpath in the same commit.
 | `speech-whisper` | the pure half of Whisper transcription: the model pins, the silence floors, chunk planning at the quietest moment near each 25 s boundary, timestamp repair and stitching. `shells/web/src/lib/speech-whisper.ts` re-exports it |
 | `tts-blend` | `blendStyleRow()` and `phonemesForWord()` - the two per-chunk inputs every Kokoro model call takes: the weighted style row for a voice blend, and a word's hand-written IPA with its own punctuation kept. `shells/web/src/lib/tts-blend.ts` re-exports it |
 | `pdf-pages` (internal) | `scanPdfPages()` - the pdf-lib walk (page content stream + resolved fonts/xobjects/extgstates/OCGs) that feeds the engine's pure `interpretPdfPage`, for EVERY page and never throwing. The first-page-only versions of this walk in `shells/web/src/views/pdf-import.ts` and `shells/tui/src/import/pdf.ts` should call it. Also `openPdfForRender()` - the same walk plus embedded-raster resolution, serialised through the engine's `pdfNodesToSvg`, so a page can be RENDERED here and not only read |
-| `canvas` | `isCanvasAvailable()` / `createNodeRasterAPI()` (host.raster) / `installNodeCanvas()` - a real 2D canvas over `@napi-rs/canvas`, conditionally attached like sharp. The install makes a jsdom realm genuinely raster-capable (`getContext('2d')`, `toBlob`, `Image`, `createImageBitmap`, `URL.createObjectURL`) so a tool hook that rebuilds pixels runs headlessly instead of escalating to a browser |
+| `tool-asset-id` | `parseToolAssetId()` - the asset id `/tools/<tool-id>/assets/<file>` that names a picture a tool ships in its own folder, so an example look can name its pictures by path instead of carrying their bytes. One narrow grammar for the web shell (which reads the file through its verified catalog fetch) and the Node shells (which read it from the profile's tool folder) |
+| `canvas` | `isCanvasAvailable()` / `createNodeRasterAPI()` (host.raster) / `installNodeCanvas()` - a real 2D canvas over `@napi-rs/canvas`, conditionally attached like sharp. The install makes a jsdom realm genuinely raster-capable (`getContext('2d')`, `toBlob`, `Image`, `createImageBitmap`, `URL.createObjectURL`) so a tool hook that rebuilds pixels runs headlessly instead of escalating to a browser. `DecodeLimits` (`hostedDecodeLimits()` on the hosted MCP server) refuse a picture by its stated size before any pixels are allocated, with the bytes (never a label) deciding whether a picture is an SVG, and `decodeRefusalWarnings()` gives how many pictures a render left out and which |
 | `pdf-redact-core` | the DOM-free maths + pdf-lib rebuild BOTH redaction halves share: DPI clamp, point→pixel bar mapping, radius inflation, stamp layout, grayscale, `buildImagePdf()`. `shells/web/src/bridge/pdf-redact-core.ts` re-exports it |
 | `pdf-redact` | `redactPdf()` / `pdfPages()` (host.pdf.redact + host.pdf.pages) - rasterise-and-rebuild over `openPdfForRender` → resvg → the canvas, with every number from `pdf-redact-core` so a bar covers identical pixels in the terminal and in the browser |
 | `image-redact` (internal) | `redactImage()` - the redact utility's raster repaint without a browser: composite onto white, optional colour drain, bars at full opacity, re-encode so no EXIF/XMP/ICC/C2PA can survive. Owns `paintBars()`, the one mark painter the PDF half uses too |
@@ -104,9 +105,11 @@ and fail at runtime. The check is reading the module you are about to import.
 `svg-ir` was the one that had to change shape to make the move: it reached
 `bridge/font-registry.ts`, which reads IndexedDB and `document.fonts`. The font resolver
 is INJECTED now (`SvgIrContext.resolveFont`), so the web shim passes `resolveVectorFont`
-and a shell with no registry passes nothing. Its `<image>` decode and `pdf`'s canvas
-image recompression stay where they are, both feature-detected, both already skipped in
-Node.
+and a shell with no registry passes nothing. Its `<image>` decode reads only inline
+`data:` and `blob:` pictures unless the caller passes `SvgIrContext.readImage` (the web
+shim passes the page's own fetch), so a Node shell with a realm canvas never turns an
+href in a tool's output into a request. `pdf`'s canvas image recompression is
+feature-detected and runs wherever `installNodeCanvas` has put a canvas.
 
 Heavy dependencies (`playwright-core`, `@resvg/resvg-js`) are imported dynamically at
 point of use, so importing the package pulls no browser or native module at startup.

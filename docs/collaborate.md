@@ -3,7 +3,7 @@
 Two people can edit the same tool session at the same time, each on their own device. There are two ways to do this, and the right one depends on where you both are.
 
 - **A private collab** connects two devices directly. Use it at the same table or on the same network, even with no internet. You need no account, and your edits go straight between the two devices.
-- **A work collab** runs through your organisation's Lolly Work instance. Use it when your organisation offers one and you are on different networks. It has its own section: [Work collabs with Lolly Work](#work-collabs-with-lolly-work-optional).
+- **A work collab** runs through your organisation's Lolly Work instance. Use it when your organisation offers one and you are on different networks. It has its own section: [Collabs through Lolly Work](#work-collabs-with-lolly-work-optional).
 
 ![Two people, one session. On the same network, a private collab. With the same cloud storage connected, a private collab over shared cloud. In an organisation that runs Lolly Work, a work collab.](/info/diagrams/concepts/collab-ways.svg)
 
@@ -95,7 +95,7 @@ While you wait, the screen counts down how long the current invite still works. 
 - **As a link.** The reply is a `#/join-reply?ans=...` address. Opened on the device that made the invite, it hands the reply to the waiting window, which moves on by itself. The tab that opened it says so and can be closed.
 - **As a code.** Paste it into **Paste the reply code here** on the waiting screen and press **Connect**.
 
-**You can test with two tabs on one device.** If you open your own invite in another tab, the join screen notices and says so in one line you can dismiss. The pairing is real; it just joins two windows of one browser.
+**You can test with two tabs on one device.** If you open your own invite in another tab, the join screen notices and shows a one-line message you can dismiss. The pairing is real; it just joins two windows of one browser.
 
 ::: details If the reply reaches the wrong window
 A reply pasted into the invite door is recognised as a reply, and you are told which window it belongs in. A reply link opened on a device where no window is waiting says so and leaves the code on screen to copy. A device with more than one invite waiting says so too, and leaves the code for you to paste into the right one rather than guessing.
@@ -155,7 +155,7 @@ the sidebar ring and the canvas outline fit one frame. The captured peer was in 
 which draws no canvas region of its own, so only the sidebar half shows.
 -->
 
-**Pointers appear on canvas tools.** In a tool with a freeform canvas, such as Design, you see the other person's pointer. **Show pointers** in **Collaboration settings** on the pill turns pointers off for you. In a form tool the canvas is a rendered preview, so the focus rings show where the other person is working instead. Presence is never written into the render: rings, outlines and pointers are painted on a layer over the render, so they cannot change a byte of what you export.
+**Pointers appear on canvas tools.** In a tool with a freeform canvas, such as Lolly Design, you see the other person's pointer. **Show pointers** in **Collaboration settings** on the pill turns pointers off for you. In a form tool the canvas is a rendered preview, so the focus rings show where the other person is working instead. Presence is never written into the render: rings, outlines and pointers are painted on a layer over the render, so they cannot change a byte of what you export.
 
 **Your undo is yours.** A change arriving from the other device never goes onto your undo stack, so you cannot undo something you did not do. When you undo, the old value goes back and travels to the other device like any other edit.
 
@@ -227,7 +227,8 @@ watchdog. If a hand-driven run is impractical, leave the shot out rather than st
 table quotes the screen.
 -->
 
-## Work collabs with Lolly Work (optional)
+<a id="work-collabs-with-lolly-work-optional"></a>
+## Collabs through Lolly Work (optional)
 
 [Lolly Work](/info/organisation.html) is the Lolly project's organisation service. An instance your organisation runs adds shared projects, sign-in and access policies around the same tools. You can use Lolly and private collabs without Lolly Work.
 

@@ -1,0 +1,21 @@
+[package]
+name = "lolly-camera-raw"
+version = "0.1.0"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+photocraft-raw = { path = "vendor/photocraft-raw" }
+zune-jpeg = "0.5"
+zune-core = "0.5"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

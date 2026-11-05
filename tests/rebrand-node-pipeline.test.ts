@@ -519,7 +519,7 @@ for (const profile of ['lolly-start', 'suse']) {
   });
 }
 
-test('a profile with no slide master gets the neutral master and says so', async () => {
+test('a profile with no slide master gets the neutral master and reports that', async () => {
   const root = mkdtempSync(join(tmpdir(), 'lolly-rebrand-profile-'));
   mkdirSync(join(root, 'tools'), { recursive: true });
   mkdirSync(join(root, 'cat', 'assets', 'x', 'tokens'), { recursive: true });

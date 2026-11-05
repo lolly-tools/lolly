@@ -10,9 +10,9 @@ Halaman ini menelusuri kanvas dari kotak pertama hingga deck selesai: jendela, m
 
 **Bilah atas** dimulai dengan **Home**, **File menu**, dan nama dokumen (klik nama untuk mengganti nama dokumen). Bagian tengah memuat **Undo**, **Redo**, **History**, kontrol zoom (dengan **Fit all** dan **Fit artboard**), dan sakelar untuk **Timeline**, **Navigator**, dan **Inspector**. Di kanan ada **Share**, **Present**, dan **Export**. Di ponsel, tombol yang lebih jarang dipakai pindah ke **More actions**.
 
-**Rel alat** di sisi memuat menu Lolly dan alat untuk menggambar: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, lalu tombol Timeline, Artboards, dan Auto-arrange.
+**Rel alat** di sisi memuat menu Lolly dan alat untuk menggambar: **Pointer**, **Add a box**, **Pen** (tombolnya dipakai bersama **Pencil**), **Edit points**, **Line**, lalu tombol Timeline, Artboards, dan Auto-arrange.
 
-![Rel tool kanvas bebas: pegangan seret, menu Lolly, lalu Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Rel tool kanvas bebas: pegangan seret, menu Lolly, lalu Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Kanvas bekerja seperti pasteboard desainer di sekitar artboard:
 
@@ -79,7 +79,7 @@ Kotak, lingkaran, dan bingkai bulat mencakup sebagian besar tata letak. Untuk be
 
 **Lanjutkan path terbuka.** Dengan Pen aktif, tekan salah satu ujung path terbuka dan Anda menggambar path itu lagi: setiap klik menambah titik setelah ujung itu, atau di depan titik pertama bila Anda mulai dari awal. Enter mempertahankan hasilnya dan Escape membiarkan path persis seperti semula. Path tetap kotak yang sama, dengan isian, garis, dan kepala panahnya, dan satu undo mengembalikannya. Delete hanya menarik kembali titik yang Anda tambahkan. Bentuk tertutup, garis yang terpasang pada kotak, dan path dengan beberapa bagian tidak memiliki ujung bebas untuk dilanjutkan.
 
-**Gambar bebas dengan Pencil.** Tombol **Pencil** di rel (atau `Shift C`) merekam goresan Anda selama menyeret. Saat dilepas, Lolly menghaluskan goresan menjadi beberapa titik dengan handle Bezier, mempertahankan belokan tajam sebagai sudut, dan menjaga kurva dalam jarak beberapa piksel layar dari jalur tangan Anda. Goresan yang berakhir dekat awalnya akan menutup. Hasilnya adalah path biasa, dengan cat yang sama seperti path pen, dan Anda dapat menyunting titiknya sesudahnya.
+**Gambar bebas dengan Pencil.** Tekan `Shift C`, atau tekan dan tahan tombol **Pen** di rel (atau klik kanan tombol itu) dan pilih **Pencil**; setelah itu tombol menampilkan Pencil sampai Anda memilih Pen lagi. Pencil merekam goresan Anda selama menyeret. Saat dilepas, Lolly menghaluskan goresan menjadi beberapa titik dengan handle Bezier, mempertahankan belokan tajam sebagai sudut, dan menjaga kurva dalam jarak beberapa piksel layar dari jalur tangan Anda. Goresan yang berakhir dekat awalnya akan menutup. Hasilnya adalah path biasa, dengan cat yang sama seperti path pen, dan Anda dapat menyunting titiknya sesudahnya.
 
 Hasilnya adalah kotak biasa. Pindahkan, ubah ukuran, putar, kelompokkan, ratakan, susun ulang, isi, beri bayangan, atau pudarkan path seperti kotak lain. Path pertama mengambil isian dan garis yang diberikan brand Anda untuk path, dan setiap path baru sesudahnya mengambil apa pun yang terakhir Anda pakai. Pada alat yang brand-nya tidak menetapkan apa pun untuk path, path baru digaris dengan warna yang Anda pakai untuk menggambar, sehingga bentuk tidak pernah tak terlihat.
 
@@ -121,6 +121,25 @@ Tiga lagi bekerja pada satu bentuk. **Outline stroke…** mengubah garis menjadi
 ![Bulan sabit dan cincin dengan lubang sungguhan, keduanya dihasilkan oleh Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Hasilnya adalah path baru yang dapat terus Anda sunting dengan pen, disimpan sebagai kurva Bezier biasa, sehingga tipe spline aslinya tidak terbawa. Lubang adalah lubang sungguhan: kontrol **Fill rule** pada panel garis menentukan apakah kontur yang tumpang tindih terisi (*non-zero*) atau berlubang (*even-odd*). Operasi menolak daripada merusak: minta memotong irisan dua bentuk yang tidak tumpang tindih dan tidak ada yang berubah. Kotak teks dan gambar tidak memiliki kontur, jadi dibiarkan.
+
+## Menelusuri gambar
+
+Pilih satu gambar, klik kanan, lalu pilih **Telusuri gambar…** untuk mengubah gambar menjadi bentuk yang bisa diedit. Pilih preset dan tekan **Telusuri**:
+
+- **Logo** menemukan beberapa warna solid dan mempertahankan tepi tajam, lingkaran dan garis yang sejati. Gambar dengan gradien atau nada foto akan ditolak, dan Anda diberi tahu.
+- **Ilustrasi** menelusuri beberapa warna sebagai bentuk terisi, seni datar atau gambar yang diposterisasi.
+- **Line art** menelusuri garis gelap pada halaman terang sebagai bentuk hitam.
+- **Garis tengah** menelusuri garis gelap sebagai stroke tunggal, sehingga Anda bisa mengubah ketebalannya setelahnya.
+
+Bentuk ditambahkan sebagai grup tepat di atas gambar, yang tetap di tempatnya. Sembunyikan atau hapus gambar untuk melihat path saja. Penelusuran berjalan di perangkat Anda sebagai tugas latar dengan tombol Batalkan, dan tidak ada yang diunggah. Gambar 1500 piksel biasanya butuh satu hingga beberapa detik, dan foto yang ramai butuh lebih lama.
+
+Penelusuran mengikuti apa yang ditampilkan kotak, jadi gambar yang dipotong (Cover) hanya menelusuri bagian yang terlihat. Batasan berikut berlaku:
+
+- Gambar diperkecil hingga maksimal 1500 piksel di sisi terpanjang sebelum ditelusuri, sehingga tepi ditempatkan dengan ketelitian sebagian dari ukuran itu, bukan ukuran aslinya.
+- Satu penelusuran menghasilkan maksimal 1.500 bentuk dan 60.000 titik. Foto biasanya melampaui batas itu, dan Design memberi tahu tanpa mengubah apa pun. Coba Logo atau Line art, atau gambar yang lebih sederhana.
+- Gradien menjadi pita warna solid, dan bayangan lembut menjadi bentuk bertepi keras.
+- Radius sudut, mask bentuk, dan efek pada kotak gambar tidak diterapkan ke path.
+- Gambar dan preset yang sama selalu menghasilkan bentuk yang sama.
 
 ## Strokes
 
@@ -195,9 +214,9 @@ Bila ada saran warna atau font yang konkret, tombolnya mengubah satu layer itu, 
 
 ### Aturan baku dan sinyal tulisan
 
-Kartu di panel ekspor juga memeriksa aturan baku yang dibawa design system Anda, seperti bobot dan perataan teks, pasangan warna yang disetujui, atau logo per permukaan, layer demi layer. Setiap temuan adalah peringatan dengan nama layer di atas aturannya. Aturan yang tidak memiliki pemeriksa di build ini dicantumkan sebagai tidak diperiksa, tidak pernah sebagai dipenuhi. [Usage & rules](/info/brand-studio.html#usage-rules) mencantumkan aturannya, dan `lolly check` menerapkan aturan yang sama pada dokumen tersimpan.
+Kartu di panel ekspor juga memeriksa aturan baku yang dibawa design system Anda, seperti bobot dan perataan teks, pasangan warna yang disetujui, atau logo per permukaan, layer demi layer. Setiap temuan adalah peringatan dengan nama layer di atas aturannya. Aturan yang tidak memiliki pemeriksa di build ini dicantumkan sebagai tidak diperiksa, tidak pernah sebagai dipenuhi. [Rules](/info/brand-studio.html#rules) mencantumkan aturannya, dan `lolly check` menerapkan aturan yang sama pada dokumen tersimpan.
 
-Kartu yang sama menampilkan sinyal tulisan untuk teks yang digambar dokumen: bandnya (none, weak, notable, atau strong), lalu kalimat Verify sendiri dengan skor dari 100 dan hingga tiga frasa yang ditandai, masing-masing dengan layer yang memuatnya. **Open the text in Verify** membawa teks itu ke [Verify](/#/verify) untuk pembacaan penuh; [AI evidence in Verify](/info/verify-ai-evidence.html) menjelaskan apa yang ditimbang skor. Skor adalah sinyal, bukan vonis: ia menghitung pola yang umum dalam tulisan buatan mesin dan tidak dapat mengetahui siapa yang menulis kata-kata itu. Layer tersembunyi tidak disertakan dalam kedua pemeriksaan, dan kartu menyebut jumlahnya.
+Kartu yang sama menampilkan sinyal tulisan untuk teks yang digambar dokumen: bandnya (none, weak, notable, atau strong), lalu kalimat Verify sendiri dengan skor dari 100 dan hingga tiga frasa yang ditandai, masing-masing dengan layer yang memuatnya. **Open the text in Verify** membawa teks itu ke [Lolly Verify](/#/verify) untuk pembacaan penuh; [AI evidence in Verify](/info/verify-ai-evidence.html) menjelaskan apa yang ditimbang skor. Skor adalah sinyal, bukan vonis: ia menghitung pola yang umum dalam tulisan buatan mesin dan tidak dapat mengetahui siapa yang menulis kata-kata itu. Layer tersembunyi tidak disertakan dalam kedua pemeriksaan, dan kartu menyebut jumlahnya.
 
 Temuan aturan baku dan sinyal tulisan yang kuat dihitung dalam total "to fix" kartu agar mudah ditemukan. Keduanya menginformasikan dan tidak pernah memblokir: Download tetap tersedia, dan tidak ada yang perlu diabaikan atau dicatat sebagai pengecualian. Agen yang bekerja di dokumen terbuka mendapatkan laporan yang sama melalui alat situsnya ([Agents in an open document](/info/open-document-agents.html)).
 

@@ -2,7 +2,7 @@
 import type { RevisionArchiveAPI, RevisionArchive, RevisionArchiveSummary } from '../bridge/revision-archive-format.ts';
 import { MAX_REVISION_ARCHIVE_BYTES } from '../bridge/revision-limits.ts';
 import { entrySink, readJson, type BundleEntry, type PartSink, type PartWriter } from './bundle.ts';
-import { isDiscardedSlot } from './batch-slots.ts';
+import { isDiscardedSlot, isJournalSlot } from './batch-slots.ts';
 
 interface SessionRow { slot: string; toolId?: unknown; toolVersion?: unknown; label?: unknown; thumb?: string | null; updatedAt?: string | null; savedAt?: string | null }
 export interface BackupState {
@@ -156,7 +156,8 @@ export async function writeBackupSessions(state: BackupState, sink: PartSink, op
     const captured = new Set(slots);
     // Each other session is read, written and let go in turn, never all held at once.
     for (const row of await state.list()) {
-      if (captured.has(row.slot) || (options.mode === 'sync' && isDiscardedSlot(row.slot))) continue;
+      // An unsaved-edit journal entry belongs to this device's open tabs, never to a copy.
+      if (captured.has(row.slot) || isJournalSlot(row.slot) || (options.mode === 'sync' && isDiscardedSlot(row.slot))) continue;
       const data = await state.load(row.slot);
       if (!data) continue;
       await rows.item({ slot: row.slot, toolId: row.toolId, toolVersion: row.toolVersion,
@@ -205,6 +206,7 @@ export async function restoreBackupSessions(state: BackupState, files: Record<st
     if (!row || typeof row.slot !== 'string' || !row.data || captured.has(row.slot)) continue;
     // A sync copy from an older build may still carry discarded edits: they stay where they were made.
     if (options.mode === 'sync' && isDiscardedSlot(row.slot)) continue;
+    if (isJournalSlot(row.slot)) continue;
     if (savedHere?.has(row.slot) && !incomingIsNewer(savedHere.get(row.slot), sessionSavedAt(row))) {
       if (incomingIsNewer(sessionSavedAt(row), savedHere.get(row.slot))) keptHere++;   // this browser's copy is newer
       continue;

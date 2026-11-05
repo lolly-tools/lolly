@@ -1,0 +1,27 @@
+[package]
+name = "lolly-xlsx-numfmt"
+version = "0.1.0"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+members = [".", "vendor/gridcraft-core", "vendor/gridcraft-numfmt"]
+resolver = "3"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+gridcraft-core = { path = "vendor/gridcraft-core" }
+gridcraft-numfmt = { path = "vendor/gridcraft-numfmt" }
+serde = { version = "1", features = ["derive"] }
+# float_roundtrip: a cell value must parse to the exact double the file stored.
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

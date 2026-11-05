@@ -18,7 +18,7 @@ Preferences একটি দীর্ঘ পৃষ্ঠা, পাশে এক
 
 - <!--i:usercheck--> **Your details** - আপনার নাম, যোগাযোগের বিবরণ ও হেডশট, এবং **Use my details to create** সুইচ। টুল সেগুলো কীভাবে ব্যবহার করে তা [Profiles](/info/profile.html)-এ ব্যাখ্যা করা।
 - <!--i:seal--> **Content Credentials** - ঐচ্ছিক যাচাইকৃত পরিচয় যা আপনার এক্সপোর্টে সাইন করে। দেখুন [Content Credentials](/info/content-credentials-identity.html)।
-- <!--i:palette--> **Design systems** - ডিজাইন সিস্টেম বদলান, যোগ করুন, লুকান বা সরান। প্রতিটি অ্যাকশন [Design System Setup](/info/brand-studio.html#manage-your-design-systems)-এ আছে।
+- <!--i:palette--> **Design systems** - ডিজাইন সিস্টেম বদলান, যোগ করুন, লুকান বা সরান। প্রতিটি অ্যাকশন [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems)-এ আছে।
 - <!--i:moon--> **Appearance** - থিম (Light, Dark বা Brand, যা অ্যাপকে আপনার প্যালেটে রাঙায়), **Your colourway** যখন ডিজাইন সিস্টেম একাধিক দেয় ([কালারওয়ে নিজের করে নিন](/info/colourways.html#make-a-colourway-your-own)) এবং **Interface follows the design system**।
 - <!--i:sparkle--> **Emoji** - নতুন কিছু শুরু করলে আপনার ইমোজি যে সেট থেকে আঁকা হয়, তার শিল্পকর্ম লাইসেন্সসহ, এবং আপনার প্যালেট সেগুলো কতটা পুনরায় রাঙায় (**Off**, **Subtle**, **Strong**, **Full**, **Mono** বা **Duotone**)। **Keep skin tones and flags** সেগুলোকে নিজেদের রঙে রাখে। আপনার আগে করা কাজ যে সেটে বানানো হয়েছিল সেটিই রাখে।
 - <!--i:eyeoff--> **Accessibility** - চারটি আরামের সুইচ, সঙ্গে Sound ও Neurospicy Mode। দেখুন [Accessibility](#accessibility)।
@@ -107,7 +107,7 @@ Lolly আপনার ভিজিট করা স্ক্রিন ক্য�
 - <!--i:sliders--> **Tokens** - ব্যাসার্ধ, ফাঁক, ইফেক্ট ও গ্রেডিয়েন্ট।
 - <!--i:document--> **Print & CMYK** - যে রঙ একটি নির্দিষ্ট ইঙ্কে লক করা, এবং যে প্রেস অবস্থা একটি CMYK PDF ঘোষণা করতে পারে।
 
-বদলানো এই ট্যাবের একমাত্র পরিবর্তন। আপনি `#/start`-এ [Design System Setup](/info/brand-studio.html)-এ একটি ডিজাইন সিস্টেম সম্পাদনা করেন, যেখানে কভার লিংক করে। কেবল-পঠনযোগ্য সিস্টেম তার কভারে তা বলে; আপনার বানানো স্থানীয় সিস্টেম সম্পাদনাযোগ্য থাকে। `/b` ও `/brand` সরাসরি এই ট্যাবের শর্টলিংক।
+বদলানো এই ট্যাবের একমাত্র পরিবর্তন। আপনি `#/start`-এ [Lolly Design System Setup](/info/brand-studio.html)-এ একটি ডিজাইন সিস্টেম সম্পাদনা করেন, যেখানে কভার লিংক করে। কেবল-পঠনযোগ্য সিস্টেম তার কভারে তা বলে; আপনার বানানো স্থানীয় সিস্টেম সম্পাদনাযোগ্য থাকে। `/b` ও `/brand` সরাসরি এই ট্যাবের শর্টলিংক।
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Lolly আপনার ভিজিট করা স্ক্রিন ক্য�
 
 ## Deep links
 
-Settings-এর প্রতিটি ট্যাব ও অংশের নিজস্ব লিংক আছে, যা আপনি বুকমার্ক বা পেস্ট করতে পারেন। [Search](/info/search.html) তার **Settings** ফলাফল সেই একই রেজিস্ট্রির দিকে নির্দেশ করে যা থেকে Settings রেন্ডার হয়, তাই একটি অংশের নাম সার্চ ফলাফলের পায়ের নিচ থেকে বদলানো যায় না।
+Settings-এর প্রতিটি ট্যাব ও অংশের নিজস্ব লিংক আছে, যা আপনি বুকমার্ক বা পেস্ট করতে পারেন। [Lolly Search](/info/search.html) তার **Settings** ফলাফল সেই একই রেজিস্ট্রির দিকে নির্দেশ করে যা থেকে Settings রেন্ডার হয়, তাই একটি অংশের নাম সার্চ ফলাফলের পায়ের নিচ থেকে বদলানো যায় না।
 
 ::: details লিংকের প্রতিটি রূপ
 
@@ -139,4 +139,4 @@ Settings-এর প্রতিটি ট্যাব ও অংশের নি
 
 ---
 
-**সম্পর্কিত:** আপনার বিবরণ ও আপনার তৈরির প্রেক্ষাপটের জন্য [Profiles](/info/profile.html)। Design system ট্যাব যা দেখায় তা সম্পাদনার জন্য [Design System Setup](/info/brand-studio.html)। স্টোরেজ, ব্যাকআপ ও ডিভাইস বদলানোর জন্য [Find and recover your work](/info/find-your-work.html)।
+**সম্পর্কিত:** আপনার বিবরণ ও আপনার তৈরির প্রেক্ষাপটের জন্য [Profiles](/info/profile.html)। Design system ট্যাব যা দেখায় তা সম্পাদনার জন্য [Lolly Design System Setup](/info/brand-studio.html)। স্টোরেজ, ব্যাকআপ ও ডিভাইস বদলানোর জন্য [Find and recover your work](/info/find-your-work.html)।

@@ -5,6 +5,7 @@ import test from 'node:test';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { settleEditor } from '../packages/node-shell/src/open-session.ts';
 import type { CanvasCommitEl } from '../shells/web/src/lib/canvas-commit.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 test('whole typography links undo together, preserve local edits and reopen', { skip: origin ? false : 'set LOLLY_EXPORT_TEST_URL', timeout: 180000 }, async () => {
   const browser = await getBrowser({ graphics: 'auto' });
@@ -28,6 +29,10 @@ test('whole typography links undo together, preserve local edits and reopen', { 
     await slot.locator('summary').click();
     await slot.locator('[data-design-token-property]').selectOption('__typography');
     await slot.locator('[data-token-choose]').click();
+    // A late repaint (a mounted audit, a timeline key change, the emoji row) must not
+    // shut the list while it is open: force one, as a slow runner meets one by chance.
+    await slot.locator('[data-token-options] select').waitFor();
+    await page.evaluate(async () => { const port = '/src/views/tool/emoji-doc.ts'; (await import(port) as { notifyEmojiDocument(): void }).notifyEmojiDocument(); });
     await slot.locator('[data-token-options] select').selectOption('verification.heading');
     const read = () => page.evaluate(() => ((document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!().find(input => input.id === 'boxes')!.value as Array<Record<string, unknown>>).find(row => row.id === 'hook')!);
     await page.waitForFunction(() => {
@@ -52,7 +57,8 @@ test('whole typography links undo together, preserve local edits and reopen', { 
     await page.waitForFunction(() => ((document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!().find(input => input.id === 'boxes')!.value as Array<Record<string, unknown>>).find(row => row.id === 'hook')?.fontSize === 48);
     await page.locator('[data-topbar="undo"]').click();
     await page.waitForFunction(() => ((document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!().find(input => input.id === 'boxes')!.value as Array<Record<string, unknown>>).find(row => row.id === 'hook')?.fontSize === 55);
-    const saved = page.url(); await page.goto(saved); await page.waitForFunction(() => !!(document.getElementById('tool-canvas') as CanvasCommitEl)?.__lollyModel); await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
+    // The address is written about 400 ms after the last paint; wait for the undo to reach the address bar.
+    const saved = await settledUrl(page); await page.goto(saved); await page.waitForFunction(() => !!(document.getElementById('tool-canvas') as CanvasCommitEl)?.__lollyModel); await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
     const reopened = await read(); assert.equal(Number(reopened.fontSize), 55); assert.equal(JSON.parse(String(reopened.tokenLinks)).fontSize.custom, true); assert.equal(Number(reopened.lineHeight), 1.4);
   } finally { await context.close(); await closeBrowser(); }
 });

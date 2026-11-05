@@ -4025,6 +4025,26 @@ function renderStagedSong(song, seconds) {
   }
   return { sampleRate: mix.sampleRate, left: mix.left, right: mix.right, normalized: mix.normalized };
 }
+function notesOf(song, seconds, cap = 2e5) {
+  const out = [];
+  for (const [synth, events] of song.events) {
+    const open = /* @__PURE__ */ new Map();
+    const close = (note, at2) => {
+      const stack = open.get(note);
+      const on2 = stack?.shift();
+      if (on2 && out.length < cap) out.push({ synth, time: on2.time, duration: Math.max(0, at2 - on2.time), note, velocity: on2.velocity });
+    };
+    for (const e of [...events].sort((a, b) => a.time - b.time)) {
+      if (e.type === "noteOn") {
+        const l = open.get(e.note) ?? [];
+        l.push({ time: e.time, velocity: Math.max(0, Math.min(1, e.velocity)) });
+        open.set(e.note, l);
+      } else if (e.type === "noteOff") close(e.note, e.time);
+    }
+    for (const note of open.keys()) while (open.get(note).length) close(note, seconds);
+  }
+  return out.sort((a, b) => a.time - b.time || (a.synth < b.synth ? -1 : a.synth > b.synth ? 1 : 0) || a.note - b.note);
+}
 
 // packages/rondo/src/vm.ts
 import {
@@ -4306,6 +4326,7 @@ async function renderRondo(req, env) {
     cps: staged.prepared.cps,
     lang: staged.prepared.lang,
     findings: [...extra, ...findingsFor(song, staged.prepared)],
+    notes: notesOf(song, staged.seconds),
     run: { executionClass: EXECUTION_CLASS, seed: VM_SEED, upstream: UPSTREAM_COMMIT, adapter: ADAPTER_REVISION }
   };
 }
@@ -4335,6 +4356,7 @@ async function main() {
       lang: pcm.lang,
       normalized: pcm.normalized,
       findings: pcm.findings,
+      notes: pcm.notes,
       run: pcm.run
     };
     for (const ch of [pcm.left, pcm.right]) {

@@ -29,7 +29,7 @@ import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 
 // The one tool reader this shell has (run.ts), not a second path join of its own.
 const fetchFile = readToolFile;
-const slug = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'out';
+export const batchSlug = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'out';
 
 /** Print a starter CSV grid for the given tool ids (their input columns + reserved). */
 export async function batchTemplateCli(toolIds: string[], opts: { json?: boolean } = {}): Promise<void> {
@@ -194,7 +194,7 @@ export async function runBatchCli(csvPath: string, opts: { outDir: string; keepG
       continue;
     }
     const fmt = row.format ?? tool.format;
-    const base = row.filename ? slug(row.filename.replace(/\.[^.]+$/, '')) : slug(row.toolId);
+    const base = row.filename ? batchSlug(row.filename.replace(/\.[^.]+$/, '')) : batchSlug(row.toolId);
     const outputPath = join(outDir, `${seq}-${base}.${fmt}`);
     try {
       await runToolCli({ toolId: row.toolId, params, outputPath, format: row.format ?? fmt });
@@ -234,8 +234,8 @@ async function runTransformRow(
   const source = tool.fileInput ? params[tool.fileInput] : undefined;
   const named = row.filename ? extname(row.filename).slice(1).toLowerCase() : '';
   const base = row.filename
-    ? slug(row.filename.replace(/\.[^.]+$/, ''))
-    : source ? slug(basename(source).replace(/\.[^.]+$/, '')) : slug(row.toolId);
+    ? batchSlug(row.filename.replace(/\.[^.]+$/, ''))
+    : source ? batchSlug(basename(source).replace(/\.[^.]+$/, '')) : batchSlug(row.toolId);
   // The value of the select that chose the container (clean `audioFormat`, convert-image
   // `target`), from the row or the manifest default, when it names a declared format.
   const chosen = tool.containerChoices

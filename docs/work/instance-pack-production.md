@@ -1,7 +1,7 @@
 # Build a verified instance pack
 
 You need this page when your instance serves your own tools or design system and you
-are releasing a new version of them. Work mounts a plain folder of tools and catalogue
+are releasing a new version of them. Lolly Work mounts a plain folder of tools and catalogue
 data, the raw pack. It is not Lolly's distributable `.lolly` archive. Build it from the
 exact signed web app release whenever tools, asset addresses or generated renditions
 change, so the server serves the same bytes the web app verifies. Rebuilding it from the
@@ -11,10 +11,10 @@ source resolver instead can produce different indexes and tool bytes.
 - <!--i:seal--> **Start from a signed release.** An extracted final web app release and its reviewed custody file.
 - <!--i:shieldcheck--> **Verify the release.** The producer checks the manifest, the public key pin and the signed catalogue with Lolly's own verifier.
 - <!--i:folder--> **Copy the raw pack.** Exact identity files under `tools/` and `catalog/`, with signed indexes untouched.
-- <!--i:server--> **Mount it in Work.** Work signs the catalogue for each caller when it serves the pack.
+- <!--i:server--> **Mount it in Lolly Work.** Lolly Work signs the catalogue for each caller when it serves the pack.
 :::
 
-Run the maintained producer from a qualified Work checkout with its vendored
+Run the maintained producer from a qualified Lolly Work checkout with its vendored
 engine and resolver pinned to the reviewed Lolly source. Use clean, isolated
 Lolly source at a full commit, an extracted final signed release and a fresh
 output directory. The command installs nothing, signs nothing and contacts no
@@ -67,7 +67,7 @@ It rechecks the tree while copying. Review binds this release to its clean
 source and profile; the manifest alone does not prove how the build was made.
 Keep the original build, CI and qualification evidence with the pack.
 
-The complete manifest may list up to 120,000 files, the same bound Work applies
+The complete manifest may list up to 120,000 files, the same bound Lolly Work applies
 to a shell release manifest. The catalogue delivery inventory inside the tree
 keeps its own bound of 100,000 rows.
 
@@ -85,7 +85,7 @@ for byte the same as the release. Web chunks and serving configuration remain
 in the shell.
 
 The producer omits compression siblings and `catalog/tools/index.sig.json`.
-Work creates its caller-specific catalogue signature when serving the pack;
+Lolly Work creates its caller-specific catalogue signature when serving the pack;
 the build envelope would not describe that filtered response. Release mode
 refuses `--exclude`, `--allow-dirty` and nonempty output directories. Any desired
 exclusions must happen before the frontend catalogue is signed. Signed indexes

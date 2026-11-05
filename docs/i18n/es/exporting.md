@@ -82,6 +82,7 @@ Un logotipo tipográfico compuesto con la tipografía de tu design system se exp
 | Una entrega a Premiere | **Premiere XML + media** | Clips temporizados y medios originales para Premiere (Design) |
 | Vídeo para redes sociales y compartir | **MP4** o **WebM** | La mejor calidad para el tamaño de archivo (consulta [Video](#video)) |
 | Subtítulos | **SRT** o **VTT** | Texto temporizado para un reproductor de vídeo (Captions, Audiogram y Record) |
+| Subtítulos de emisión | **TTML** o **SCC** | Texto temporizado IMSC1.1, o subtítulos pop-on CEA-608 (Captions; consulta [Subtítulos de emisión](#broadcast-captions)) |
 | Un curso de formación | **SCORM (LMS)** | Un sitio web con versión, paquete SCORM o xAPI (consulta [SCORM](#scorm-course-packages)) |
 | Texto enriquecido o una firma de correo | **HTML** | Se pega con formato en los clientes de correo |
 | Contenido simple | **MD** o **TXT** | Solo texto |
@@ -131,9 +132,9 @@ Lolly tiene tres maneras de trabajar en volumen, cada una para un trabajo distin
 ## Una tabla se convierte en un documento
 Una herramienta con una entrada de tabla, como **Battlecards**, convierte cada fila en una página. Pega una tabla de tu hoja de cálculo y obtén un PDF. Corrige filas en la hoja de cálculo y vuelve a pegar.
 ## Un CSV se convierte en un archivo por fila
-**Batch** (`#/batch`) toma un CSV y renderiza una exportación por cada fila: credenciales o certificados, un archivo cada uno, entregados en un ZIP. Consulta [Batch](/info/batch.html#make-many-versions-of-one-design).
+**Batch** (`#/batch`) toma un CSV y renderiza una exportación por cada fila: credenciales o certificados, un archivo cada uno, entregados en un ZIP. Consulta [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Varios diseños reciben una edición
-**Multi-edit** abre varias sesiones guardadas lado a lado para el mismo retoque en diseños distintos. Consulta [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+**Multi-edit** abre varias sesiones guardadas lado a lado para el mismo retoque en diseños distintos. Consulta [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
 Desde **Projects**, **Render folder** exporta todas las sesiones guardadas de una carpeta y sus subcarpetas como un ZIP anidado, y **Render selection** hace lo mismo con cualquier selección múltiple; una sesión guardada se renderiza a su propio archivo. Una sesión guardada también se puede compartir de nuevo como enlace de herramienta desde Projects, que la reabre con los mismos ajustes.
@@ -169,7 +170,7 @@ La mayoría de las herramientas que exportan SVG también exportan un **archivo 
 | Todo el diseño | Un componente reutilizable en el panel Assets |
 | Una ilustración compleja o un lienzo en vivo | Incrustado por separado como imagen, con el contenido editable alrededor intacto |
 
-Desde Design, cada marco se convierte en un tablero de Penpot. Los colores y tipografías del design system llegan al panel Assets y su conjunto completo de tokens al panel Tokens. Penpot conserva allí su propia copia: un token editado en Penpot vuelve mediante la importación en [Design System Setup](/info/brand-studio.html).
+Desde Design, cada marco se convierte en un tablero de Penpot. Los colores y tipografías del design system llegan al panel Assets y su conjunto completo de tokens al panel Tokens. Penpot conserva allí su propia copia: un token editado en Penpot vuelve mediante la importación en [Lolly Design System Setup](/info/brand-studio.html).
 
 ![El panel de exportación con Penpot elegido: el archivo .penpot, y Send to Penpot junto a la descarga](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ Luego elige **Export course** en una herramienta compatible, una carpeta de proy
 
 El paquete contiene su contenido terminado y no necesita cuenta de Lolly. Pon un ZIP de Website en un host HTTP(S); importa un ZIP de LMS sin cambios. Prueba el destino antes de compartir el curso. Para un curso creado a partir de varias creaciones guardadas, consulta [Create a training course](/info/training-creators.html).
 
+### Subtítulos de emisión
+
+La herramienta Captions también puede exportar **TTML** y **SCC**. Ambos se escriben a partir de la misma lista de indicaciones que los archivos SRT y VTT, así que las palabras y los tiempos coinciden.
+
+- **TTML** es el IMSC1.1 Text Profile, con tiempos de reloj según el tiempo del contenido multimedia y una región abajo y centrada. No lleva color, fuente ni posición por subtítulo, porque los subtítulos de Lolly solo tienen un inicio, un final y texto.
+- **SCC** lleva subtítulos pop-on CEA-608 en el canal 1 a 29,97 fotogramas por segundo con código de tiempo drop-frame. Admite los caracteres básicos norteamericanos más los especiales y extendidos. Si un subtítulo contiene un carácter que el conjunto no puede llevar, la exportación se detiene y te dice cuál, así que nada se pierde sin aviso. Cada subtítulo se ajusta a 32 columnas y como máximo 15 filas. Un subtítulo que no puede cargarse antes de su hora de inicio se retrasa unos fotogramas.
+- Los subtítulos roll-up y paint-on no se escriben.
+
+La salida SCC no se ha comprobado con una herramienta de emisión real ni con un decodificador de hardware. Prueba un archivo en tu propio flujo antes de entregarlo.
+
 ### DXF (archivos de corte)
 
 Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding y Wordmark exportan **DXF**, el formato de intercambio AutoCAD R12 que leen las cortadoras láser, los plóteres de vinilo y el software CNC. La geometría se escribe como trazados de contorno en milímetros, el texto se contornea y el color se asigna al AutoCAD Color Index más cercano, que suele determinar la operación de la cortadora. DXF es solo arte lineal: una región fotográfica o con filtros no tiene trazado de corte y se descarta, con una advertencia. Usa SVG o PDF para conservar el contenido de trama.
@@ -214,7 +225,7 @@ Desplázate, y la cámara se aleja a través de la geometría real: siete rutas,
 
 ## Impresión
 
-**Print PDF** escribe CMYK frente a una condición de prensa con nombre, **Coated FOGRA39** por defecto. Las muestras de marca con valores de tinta medidos se convierten exactamente; los demás colores usan una conversión de dispositivo estándar. **Print TIFF** escribe píxeles DeviceCMYK para un RIP y registra la misma condición de prensa en sus metadatos TIFF. El control Colour profile maneja ambos; [Colour profiles](#colour-profiles) tiene el detalle.
+**Print PDF** escribe CMYK frente a una condición de prensa con nombre, **Coated FOGRA39** por defecto. Las muestras de marca con valores de tinta medidos conservan esos valores. Los demás colores se convierten mediante un perfil de prensa: el perfil Coated FOGRA39 propio de Lolly por defecto, o tu propio perfil cuando eliges su fila **Embed**. Los grises y el negro se quedan solo en la plancha negra, así que el texto pequeño no puede desregistrarse. FOGRA51, SWOP y GRACoL usan una conversión de dispositivo estándar. **Print TIFF** escribe píxeles DeviceCMYK para un RIP y registra la misma condición de prensa en sus metadatos TIFF. El control Colour profile maneja ambos; [Colour profiles](#colour-profiles) tiene el detalle.
 
 **Print marks & bleed** tiene su propia tarjeta en los formatos de impresión: el sangrado en milímetros más los detalles de Crop, Registration, Bleed, Colour bars y Stamp.
 
@@ -223,6 +234,15 @@ Algunas herramientas crean un **PDF de varias páginas**: una portada, contenido
 **Before you export.** Una tarjeta **Before you export** al pie del panel dice lo que está a punto de ver una imprenta: formato, tamaño y sangrado, áreas de corte y sangrado, cobertura de tinta, número de planchas y número de páginas, con un veredicto junto a su encabezado. Nunca bloquea una exportación. Design siempre muestra la tarjeta con sus propias comprobaciones, incluidas las normas internas del design system capa por capa y la señal de redacción del texto del documento ([Before you export](/info/design.html#before-you-export)), y añade estas comprobaciones de impresión cuando **Print preflight** está activado. En otras herramientas, activa **Print preflight** en Settings → Preferences → Feature flags; está desactivado por defecto, y un despliegue de Lolly Work puede activarlo para sus miembros.
 
 **After you export.** Cuando el archivo está listo, Lolly lo vuelve a leer y lo compara con lo que elegiste: formato, tamaño en píxeles o de página, duración del clip, un fondo transparente, color CMYK, HDR, Content Credentials y una contraseña de PDF o ZIP. Todo lo que difiere se escribe en la tarjeta de exportación. Cada medición procede del archivo, nunca del ajuste, y una propiedad que el archivo no puede responder no se cuenta como coincidencia. La línea de comandos escribe la comparación completa con `--export-report` (consulta [Render with the CLI](/info/cli-rendering.html)).
+
+**Comprobaciones de accesibilidad de PDF.** En un PDF, la línea de comandos también enumera 32 comprobaciones de accesibilidad en el archivo `--export-report`, bajo `pdfAccessibility`. Cada comprobación tiene un id, una descripción clara, un resultado y el lugar del archivo donde encontró un problema:
+
+- **Superado**: la comprobación examinó algo y no encontró nada malo.
+- **No se ha logrado**: la comprobación encontró un problema. Se enumeran sus números de página o etiquetas.
+- **No aplicable**: el archivo no tenía nada de ese tipo que examinar, como las comprobaciones de tablas en un archivo sin tablas. Esto no dice nada sobre el archivo.
+- **Necesita a una persona**: un programa no puede juzgar seis comprobaciones (orden de lectura, contraste de color, destellos, scripts, límites de tiempo y enlaces repetidos).
+
+La lista no es un veredicto. No dice que un PDF cumpla PDF/UA ni que las personas que usan tecnología de asistencia puedan usarlo, y aún hace falta que una persona revise el archivo con un lector de pantalla. Los PDF propios de Lolly hoy no superan las comprobaciones de etiquetado, porque los exportadores todavía no escriben etiquetas. La comprobación lee el archivo en tu dispositivo y no cambia nada. Los archivos que piden contraseña se indican como no comprobados, no como superados. Para comprobar un PDF que te enviaron, suéltalo en [Strip Hidden Data](/info/utilities.html), que muestra la misma lista bajo **Comprobaciones de accesibilidad de PDF**.
 
 Las comprobaciones del inspector de Design y la comparación de marca en Design System Setup son comprobaciones distintas: miran el diseño, mientras que estas dos tarjetas miran el archivo.
 
@@ -280,7 +300,7 @@ Las exportaciones se etiquetan con un perfil de color, para que las aplicaciones
 - **SVG**, **EMF**, **EPS** y **DXF** son vectores sin perfil incrustado: los colores de SVG son sRGB, EMF y EPS usan RGB de dispositivo, **EPS (CMYK)** escribe DeviceCMYK y DXF usa el AutoCAD Color Index. SVG, EPS y DXF contornean el texto a trazados. EMF mantiene el texto vivo y editable en Office y Google Slides, recurriendo a contornos solo para los tramos que el formato no puede expresar; la opción **Outline fonts** del panel de exportación fuerza trazados en todas partes. SVG también reproduce las sombras de caja de CSS, interiores y exteriores.
 
 ::: details PDF/X-4 y tu propio perfil de prensa
-Lolly no incluye ningún perfil CMYK. Una condición de prensa con nombre escribe la intención de salida sin afirmar la conformidad con PDF/X-4, porque PDF/X-4 requiere el perfil incrustado.
+Lolly incluye un perfil CMYK, ajustado a los datos de caracterización FOGRA39 de Fogra y publicado bajo CC0, y convierte los colores a través de él para la condición de prensa por defecto. El perfil no se incrusta, porque es ICC versión 4.3 y PDF/X-4 acepta versiones hasta la 4.2. Por eso una condición de prensa con nombre escribe la intención de salida sin afirmar conformidad con PDF/X-4.
 
 Carga un perfil CMYK propio y elige su fila **Embed** en el control Colour profile. Se incrusta como el *DestOutputProfile* del archivo, y el PDF afirma PDF/X-4 siempre que el resto del archivo lo permita. La condición de prensa que declara se lee de ese perfil: un nombre registrado donde el perfil lo demuestra, o `Custom` bajo el propio nombre del perfil.
 
@@ -400,8 +420,8 @@ Estos son los valores del parámetro de URL `format=` y del indicador de la CLI 
 | Vector | `svg` · `svgz` (SVG comprimido con gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (archivo de corte) |
 | Página y documento | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (archivo de diseño de Penpot) · `scorm` (paquete de curso, un ZIP) |
 | Movimiento | `gif` · `apng` (PNG animado) · `webp-anim` (WebP animado) · `svg-anim` (SVG animado) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Texto y datos | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (paleta de GIMP) |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (notas MIDI, desde Rondocode) |
+| Texto y datos | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paleta de GIMP) |
 | Paquetes y bundles | `zip` · `rpm` y `tar.gz` (el renderizado sellado en un paquete de Linux) |
 
 Unos pocos ID proceden del propio código de exportación de una herramienta: `ase` (Adobe Swatch Exchange, de Palette Lab) y `exr` y `hdr` (tramas de alto rango dinámico, de Darkroom). **Convert Font** escribe `ttf`, `otf` y `woff` a partir de un archivo de fuente que aportas, así que un enlace simple no tiene nada que renderizar para ella.

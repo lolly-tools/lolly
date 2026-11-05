@@ -18,7 +18,7 @@ Preferences, yanda bir **ayarlar rayı** ve rayın üstünde yazdıkça onu filt
 
 - <!--i:usercheck--> **Your details** - adın, iletişim bilgilerin ve profil fotoğrafın ile **Use my details to create** anahtarı. Araçların bunları nasıl kullandığını [Profiles](/info/profile.html) açıklar.
 - <!--i:seal--> **Content Credentials** - dışa aktarmalarını imzalayan isteğe bağlı doğrulanmış kimlik. Bkz. [Content Credentials](/info/content-credentials-identity.html).
-- <!--i:palette--> **Design systems** - tasarım sistemlerini değiştir, ekle, gizle veya kaldır. Her eylemi [Design System Setup](/info/brand-studio.html#manage-your-design-systems) kapsar.
+- <!--i:palette--> **Design systems** - tasarım sistemlerini değiştir, ekle, gizle veya kaldır. Her eylemi [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) kapsar.
 - <!--i:moon--> **Appearance** - tema (Light, Dark veya uygulamayı paletinle boyayan Brand), tasarım sistemi birden fazla sunduğunda **Your colourway** ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) ve **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - yeni bir şey başlattığında emojilerinin çizildiği set, sanat çalışması lisansı ve paletinin onları ne kadar güçlü yeniden renklendirdiği (**Off**, **Subtle**, **Strong**, **Full**, **Mono** veya **Duotone**). **Keep skin tones and flags** onları kendi renklerinde bırakır. Zaten yaptığın iş, yapıldığı seti korur.
 - <!--i:eyeoff--> **Accessibility** - dört rahatlık anahtarı, ayrıca Sound ve Neurospicy Mode. Bkz. [Accessibility](#accessibility).
@@ -107,7 +107,7 @@ Sekme, sistemin kendi renkleriyle boyanmış bir kapakla açılır; logosu, gör
 - <!--i:sliders--> **Tokens** - yarıçap, aralık, efektler ve gradyanlar.
 - <!--i:document--> **Print & CMYK** - tam bir mürekkebe kilitlenmiş renkler ve bir CMYK PDF'in bildirebileceği baskı koşulları.
 
-Geçiş yapmak bu sekmenin yaptığı tek değişikliktir. Bir tasarım sistemini, kapağın bağlandığı `#/start` adresindeki [Design System Setup](/info/brand-studio.html) içinde düzenlersin. Salt okunur bir sistem bunu kapağında söyler; oluşturduğun yerel sistemler düzenlenebilir kalır. `/b` ve `/brand` doğrudan bu sekmeye kısa bağlantılardır.
+Geçiş yapmak bu sekmenin yaptığı tek değişikliktir. Bir tasarım sistemini, kapağın bağlandığı `#/start` adresindeki [Lolly Design System Setup](/info/brand-studio.html) içinde düzenlersin. Salt okunur bir sistem bunu kapağında söyler; oluşturduğun yerel sistemler düzenlenebilir kalır. `/b` ve `/brand` doğrudan bu sekmeye kısa bağlantılardır.
 
 ## Capabilities
 
@@ -125,7 +125,7 @@ Sonra kendi tarafın: **Your activity** bu cihazda yaptıklarını sayar; **Rece
 
 ## Derin bağlantılar
 
-Settings'in her sekmesinin ve bölümünün yer imine ekleyebileceğin veya yapıştırabileceğin kendi bağlantısı vardır. [Search](/info/search.html), **Settings** sonuçlarını Settings'in render edildiği aynı kayıt defterine yönlendirir; böylece bir bölüm, bir arama sonucunun altından yeniden adlandırılamaz.
+Settings'in her sekmesinin ve bölümünün yer imine ekleyebileceğin veya yapıştırabileceğin kendi bağlantısı vardır. [Lolly Search](/info/search.html), **Settings** sonuçlarını Settings'in render edildiği aynı kayıt defterine yönlendirir; böylece bir bölüm, bir arama sonucunun altından yeniden adlandırılamaz.
 
 ::: details Bağlantının her biçimi
 
@@ -139,4 +139,4 @@ Derin bir bağlantı hedefin sahibi sekmeye geçer, içinde katlandığı her gr
 
 ---
 
-**İlgili:** ayrıntıların ve yarattığın bağlamlar için [Profiles](/info/profile.html). Design system sekmesinin gösterdiklerini düzenlemek için [Design System Setup](/info/brand-studio.html). Depolama, yedekler ve cihaz taşıma için [Find and recover your work](/info/find-your-work.html).
+**İlgili:** ayrıntıların ve yarattığın bağlamlar için [Profiles](/info/profile.html). Design system sekmesinin gösterdiklerini düzenlemek için [Lolly Design System Setup](/info/brand-studio.html). Depolama, yedekler ve cihaz taşıma için [Find and recover your work](/info/find-your-work.html).

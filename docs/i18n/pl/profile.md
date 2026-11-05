@@ -14,13 +14,13 @@ Twój profil przechowuje też to, co gromadzisz w trakcie pracy: zapisane sesje,
 | **Headshot** | Opcjonalne zdjęcie, przycięte do kwadratu i zachowane jako lokalny obraz, dla narzędzi takich jak podpisy e-mail, karty cytatów i schematy organizacyjne. |
 | **Use my details to create** | Jeden przełącznik zgody (po włączeniu brzmi **Using my details**). Decyduje, czy Twoje dane podróżują jako podpis autora w wyeksportowanych plikach i w przebiegach Batch. Nie wpływa na wstępne wypełnianie; zobacz [How tools use your profile](#how-tools-use-your-profile). |
 | **Preferences** | Twój motyw, Twój colourway w każdym systemie projektowym, ustawienia dostępności i to, które części aplikacji włączyłeś w **Feature flags**. |
-| **Your work** | Zapisane sesje z miniaturami, uporządkowane w [Projects](/info/find-your-work.html), Twoje wgrane obrazy i lokalne statystyki aktywności. |
+| **Your work** | Zapisane sesje z miniaturami, uporządkowane w [Lolly Projects](/info/find-your-work.html), Twoje wgrane obrazy i lokalne statystyki aktywności. |
 
 Nic z tego nie jest wymagane. Pusty profil działa; wypełnij tylko to, co oszczędza Ci pisania.
 
 ![Settings na karcie Preferences: szyna ustawień oraz Your details z przełącznikiem Use my details to create i polami imienia, kontaktu i lokalizacji](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Settings](/info/dashboard.html) mapuje wszystko inne w Preferences, od wyglądu i emoji po pamięć i pobrania offline.
+[Lolly Settings](/info/dashboard.html) mapuje wszystko inne w Preferences, od wyglądu i emoji po pamięć i pobrania offline.
 
 ## Ty, zespół lub rola
 
@@ -45,7 +45,7 @@ Menedżer wydarzeń przez trzy dni w roku chce skrzynki wydarzenia i submarki wy
 ::: details Profile w organizacji używającej Lolly Work
 Gdy logujesz się do [Lolly organizacji](/info/organisation.html), Lolly Work może dostarczyć zweryfikowane pola profilu od swojego dostawcy tożsamości i ustalić pola lub preferencje zgodnie z polityką organizacji. Zarządzane pole jest oznaczone w aplikacji.
 
-To logowanie kontroluje też dostęp do wspólnych projektów i zasobów. Plik profilu zespołu to nadal plik lokalny: nie daje członkostwa w organizacji ani nie zastępuje konta Work. **Use my details to create** kontroluje podpis w Twoich eksportach, a nie logowanie ani zapisy audytu organizacji. Zobacz [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+To logowanie kontroluje też dostęp do wspólnych projektów i zasobów. Plik profilu zespołu to nadal plik lokalny: nie daje członkostwa w organizacji ani nie zastępuje konta Lolly Work. **Use my details to create** kontroluje podpis w Twoich eksportach, a nie logowanie ani zapisy audytu organizacji. Zobacz [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 :::
 
 ## Trzymaj kilka, używaj jednego
@@ -83,7 +83,7 @@ Autorzy narzędzi: zobacz [`bindToProfile`](/info/tool-inputs.html#bindtoprofile
 Trzy rzeczy stoją blisko siebie w Settings i łatwo je pomylić:
 
 - <!--i:people--> **Profile** - Ty, Twój zespół lub rola, w której jesteś: imię i nazwisko, kontakt, zdjęcie i zapisana praca. Osobisty, przechowywany na urządzeniu i przenośny jako plik.
-- <!--i:palette--> **Design system** - marka: kolory, czcionki i ustawienia, z którymi renderuje każde narzędzie. Wspólny i spójny, a nie osobisty; zobacz [Design System Setup](/info/brand-studio.html).
+- <!--i:palette--> **Design system** - marka: kolory, czcionki i ustawienia, z którymi renderuje każde narzędzie. Wspólny i spójny, a nie osobisty; zobacz [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - co potrafi aplikacja: funkcje i narzędzia dostępne dla Ciebie.
 
 Profil zmienia to, od kogo jest plik; system projektowy zmienia to, jak plik wygląda; możliwości to to, co możesz stworzyć.

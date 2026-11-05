@@ -10,9 +10,9 @@ Halaman ini menelusuri kanvas daripada kotak pertama hingga dek siap: tetingkap,
 
 **Bar atas** bermula dengan **Home**, **File menu** dan nama dokumen (klik nama untuk menamakan semula dokumen). Bahagian tengah mengandungi **Undo**, **Redo**, **History**, kawalan zum (dengan **Fit all** dan **Fit artboard**) dan togol untuk **Timeline**, **Navigator** dan **Inspector**. Di kanan terdapat **Share**, **Present** dan **Export**. Pada telefon, butang yang kurang digunakan berpindah ke **More actions**.
 
-**Rel alat** di sisi menyimpan menu Lolly dan alat yang anda gunakan untuk melukis: **Pointer**, **Add a box**, **Pen**, **Pensel**, **Edit points**, **Line**, kemudian butang Timeline, Artboards dan Auto-arrange.
+**Rel alat** di sisi menyimpan menu Lolly dan alat yang anda gunakan untuk melukis: **Pointer**, **Add a box**, **Pen** (**Pensel** berkongsi butangnya), **Edit points**, **Line**, kemudian butang Timeline, Artboards dan Auto-arrange.
 
-![Rel alat kanvas bebas: pemegang seret, menu Lolly, kemudian Pointer, Add a box, Pen, Pensel, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Rel alat kanvas bebas: pemegang seret, menu Lolly, kemudian Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Kanvas berfungsi seperti papan tampal pereka di sekeliling artboard:
 
@@ -79,7 +79,7 @@ Kotak, bulatan dan bingkai bulat meliputi kebanyakan reka letak. Untuk sebarang 
 
 **Sambung laluan terbuka.** Dengan Pen hidup, tekan pada mana-mana hujung laluan terbuka dan anda melukis laluan itu semula: setiap klik menambah titik selepas hujung itu, atau di hadapan titik pertama apabila anda bermula dari awal. Enter menyimpan hasilnya dan Escape membiarkan laluan tepat seperti asalnya. Laluan kekal kotak yang sama, dengan isian, strok dan kepala anak panahnya, dan satu undo mengembalikannya. Delete hanya menarik balik titik yang anda tambah. Bentuk tertutup, garisan yang dipasang pada kotak dan laluan dengan beberapa bahagian tidak mempunyai hujung bebas untuk disambung.
 
-**Lukis bebas dengan Pensel.** Butang **Pensel** pada rel (atau `Shift C`) merekod goresan anda semasa anda menyeret. Apabila anda melepaskan, Lolly melicinkan goresan itu menjadi beberapa titik dengan pemegang Bezier, mengekalkan belokan tajam sebagai sudut, dan mengekalkan lengkung dalam lingkungan beberapa piksel skrin daripada tempat tangan anda bergerak. Goresan yang berakhir berhampiran permulaannya akan tertutup. Hasilnya ialah laluan biasa, dengan cat yang sama seperti laluan pen, dan anda boleh menyunting titiknya selepas itu.
+**Lukis bebas dengan Pensel.** Tekan `Shift C`, atau tekan dan tahan butang **Pen** pada rel (atau klik kanan butang) dan pilih **Pensel**; butang itu kemudian menunjukkan Pensel sehingga anda memilih Pen semula. Pensel merekod goresan anda semasa anda menyeret. Apabila anda melepaskan, Lolly melicinkan goresan itu menjadi beberapa titik dengan pemegang Bezier, mengekalkan belokan tajam sebagai sudut, dan mengekalkan lengkung dalam lingkungan beberapa piksel skrin daripada tempat tangan anda bergerak. Goresan yang berakhir berhampiran permulaannya akan tertutup. Hasilnya ialah laluan biasa, dengan cat yang sama seperti laluan pen, dan anda boleh menyunting titiknya selepas itu.
 
 Hasilnya ialah kotak biasa. Gerak, ubah saiz, putar, kumpul, jajar, susun semula, isi, teduh atau pudarkan laluan seperti kotak lain. Laluan pertama mengambil isian dan lejang yang diberikan jenama anda kepada laluan, dan setiap laluan baharu selepas itu mengambil apa sahaja yang anda guna terakhir. Dalam alat yang jenamanya tidak menetapkan apa-apa untuk laluan, laluan baharu dilejang dalam warna yang anda lukis, jadi bentuk tidak pernah tidak kelihatan.
 
@@ -121,6 +121,25 @@ Tiga lagi berfungsi pada satu bentuk. **Outline stroke…** menukar lejang menja
 ![Bulan sabit dan gelang dengan lubang sebenar, kedua-duanya dihasilkan oleh Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Hasilnya ialah laluan baharu yang boleh anda terus sunting dengan pen, disimpan sebagai lengkung Bezier biasa, jadi jenis spline asal tidak dibawa. Lubang ialah lubang sebenar: kawalan **Fill rule** pada panel lejang menentukan sama ada kontur bertindih mengisi (*non-zero*) atau menebuk (*even-odd*). Operasi menolak dan bukan memusnahkan: minta persilangan dua bentuk yang tidak bertindih dan tiada apa-apa berubah. Kotak teks dan imej tidak mempunyai garis luar, jadi ia dibiarkan.
+
+## Surih imej
+
+Pilih satu imej, klik kanan padanya dan pilih **Surih imej…** untuk menukar gambar itu kepada bentuk yang boleh diedit. Pilih pratetap dan tekan **Surih**:
+
+- **Logo** mencari beberapa warna rata dan mengekalkan tepi yang tajam serta bulatan dan garisan yang tepat. Ia menolak gambar yang mempunyai gradien atau ton foto dan memberitahu anda.
+- **Ilustrasi** menyurih beberapa warna sebagai bentuk berisi, untuk seni rata atau gambar yang diposterkan.
+- **Lukisan garisan** menyurih garisan gelap pada halaman cerah sebagai bentuk hitam.
+- **Garis tengah** menyurih garisan gelap sebagai satu lejang, supaya anda boleh mengubah ketebalannya kemudian.
+
+Bentuk ditambah sebagai kumpulan tepat di atas imej, yang kekal di tempatnya. Sembunyikan atau padam imej untuk melihat laluan sahaja. Penyurihan berjalan pada peranti anda sebagai tugas latar belakang dengan butang Batal, dan tiada apa-apa dimuat naik. Imej 1500 piksel biasanya mengambil masa antara satu hingga beberapa saat, dan foto yang padat mengambil masa lebih lama.
+
+Penyurihan mengikut apa yang dipaparkan oleh kotak, jadi imej yang dipangkas (Cover) hanya menyurih bahagian yang kelihatan. Had berikut dikenakan:
+
+- Imej dikecilkan kepada paling banyak 1500 piksel pada sisi panjang sebelum disurih, jadi tepi diletakkan mengikut sebahagian kecil saiz itu, bukan saiz asal.
+- Satu surihan menghasilkan paling banyak 1,500 bentuk dan 60,000 titik. Foto biasanya melebihi had itu, dan Design memberitahu anda tanpa mengubah apa-apa. Cuba Logo atau Lukisan garisan, atau gambar yang lebih ringkas.
+- Gradien menjadi jalur warna rata, dan bayang lembut menjadi bentuk bertepi keras.
+- Jejari sudut, topeng bentuk dan kesan pada kotak imej tidak dikenakan pada laluan.
+- Gambar dan pratetap yang sama sentiasa menghasilkan bentuk yang sama.
 
 ## Strok
 
@@ -195,9 +214,9 @@ Di mana cadangan warna atau fon konkrit wujud, butangnya mengubah satu lapisan i
 
 ### Peraturan dalaman dan isyarat penulisan
 
-Kad panel eksport juga menyemak peraturan dalaman yang dibawa sistem reka bentuk anda, seperti berat dan penjajaran teks, pasangan warna yang diluluskan atau logo bagi setiap permukaan, lapisan demi lapisan. Setiap dapatan ialah amaran dengan nama lapisan di atas peraturan. Peraturan yang tiada penyemaknya dalam binaan ini disenaraikan sebagai tidak disemak, tidak pernah sebagai dipatuhi. [Usage & rules](/info/brand-studio.html#usage-rules) menyenaraikan peraturan, dan `lolly check` menggunakan yang sama pada dokumen tersimpan.
+Kad panel eksport juga menyemak peraturan dalaman yang dibawa sistem reka bentuk anda, seperti berat dan penjajaran teks, pasangan warna yang diluluskan atau logo bagi setiap permukaan, lapisan demi lapisan. Setiap dapatan ialah amaran dengan nama lapisan di atas peraturan. Peraturan yang tiada penyemaknya dalam binaan ini disenaraikan sebagai tidak disemak, tidak pernah sebagai dipatuhi. [Rules](/info/brand-studio.html#rules) menyenaraikan peraturan, dan `lolly check` menggunakan yang sama pada dokumen tersimpan.
 
-Kad yang sama menunjukkan isyarat penulisan bagi teks yang dilukis dokumen: jalurnya (tiada, lemah, ketara atau kuat), kemudian ayat Verify sendiri dengan skor daripada 100 dan sehingga tiga frasa yang ditandakan, masing-masing dengan lapisan yang memegangnya. **Open the text in Verify** membawa teks itu ke [Verify](/#/verify) untuk bacaan penuh; [AI evidence in Verify](/info/verify-ai-evidence.html) menerangkan apa yang ditimbang oleh skor. Skor ialah isyarat, bukan keputusan: ia mengira corak yang biasa dalam tulisan janaan dan tidak dapat mengetahui siapa yang menulis perkataan itu. Lapisan tersembunyi ditinggalkan daripada kedua-dua semakan, dan kad menyatakan berapa banyak.
+Kad yang sama menunjukkan isyarat penulisan bagi teks yang dilukis dokumen: jalurnya (tiada, lemah, ketara atau kuat), kemudian ayat Verify sendiri dengan skor daripada 100 dan sehingga tiga frasa yang ditandakan, masing-masing dengan lapisan yang memegangnya. **Open the text in Verify** membawa teks itu ke [Lolly Verify](/#/verify) untuk bacaan penuh; [AI evidence in Verify](/info/verify-ai-evidence.html) menerangkan apa yang ditimbang oleh skor. Skor ialah isyarat, bukan keputusan: ia mengira corak yang biasa dalam tulisan janaan dan tidak dapat mengetahui siapa yang menulis perkataan itu. Lapisan tersembunyi ditinggalkan daripada kedua-dua semakan, dan kad menyatakan berapa banyak.
 
 Dapatan peraturan dalaman dan isyarat penulisan yang kuat dikira dalam jumlah "to fix" kad supaya mudah dijumpai. Ia memaklumkan dan tidak pernah menyekat: Download kekal tersedia, dan tiada apa-apa untuk ditolak atau direkodkan sebagai pengecualian. Ejen yang bekerja dalam dokumen terbuka mendapat laporan yang sama melalui alat tapaknya ([Agents in an open document](/info/open-document-agents.html)).
 

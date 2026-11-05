@@ -12,7 +12,7 @@ Ang home screen: apat na tab sa itaas at ang bar sa ibaba. Ang tool, kapag bukas
 
 Apat na tab ang nasa itaas ng home screen: **Tools**, **Utilities**, **Assets** at **Projects**. Ang Tools ay ang ginagamit mo sa paggawa, ang Utilities ay mga workbench para sa mga gawain tulad ng pag-convert, pag-check o paglilinis ng file, ang Assets ang library mo at hawak ng Projects ang mga na-save mo.
 
-Hawak ng bar sa ibaba ang **Open**, **Settings**, search field, **Verify** at **What?**. Lumalabas ito sa Tools, Utilities, Assets, Projects, Settings at sa mga gabay na binabasa mo sa app, at tumatabi kapag bukas na ang tool. Naaabot ng [Search](/info/search.html) ang mga tool, naka-save na gawa, asset at setting mo mula sa field na iyon. Sinasagot ng [Ask Lolly](/info/ask.html) ang tinype na tanong gamit ang katugmang seksyon ng mga gabay na ito.
+Hawak ng bar sa ibaba ang **Open**, **Settings**, search field, **Verify** at **What?**. Lumalabas ito sa Tools, Utilities, Assets, Projects, Settings at sa mga gabay na binabasa mo sa app, at tumatabi kapag bukas na ang tool. Naaabot ng [Lolly Search](/info/search.html) ang mga tool, naka-save na gawa, asset at setting mo mula sa field na iyon. Sinasagot ng [Ask Lolly](/info/ask.html) ang tinype na tanong gamit ang katugmang seksyon ng mga gabay na ito.
 
 Mag-click ng card para magsimula ng bago sa tool na iyon. Ang naka-save na gawa ay muling bumubukas mula sa **Projects**.
 
@@ -269,7 +269,7 @@ Sa makitid na screen, nagiging isang column ang layout:
 
 ## Settings, tunog at ginhawa
 
-Hawak ng **Settings**, sa paanan ng home screen, ang mga detalye mo, mga design system mo, accessibility, storage at offline download. Inilalarawan ng [Settings](/info/dashboard.html) ang bawat tab.
+Hawak ng **Settings**, sa paanan ng home screen, ang mga detalye mo, mga design system mo, accessibility, storage at offline download. Inilalarawan ng [Lolly Settings](/info/dashboard.html) ang bawat tab.
 
 - Ang **mga detalye at headshot mo** ay pumupuno sa anumang tool na ginawang gumamit sa kanila, tulad ng email signature o badge. Sinasaklaw ng [Mga profile](/info/profile.html) ang mga ito.
 - Ang **Accessibility** ay may apat na comfort switch: **Reduce motion**, **Hide colourful previews**, **High contrast** at **Large text**. Binabago nila ang app sa paligid ng gawa mo, hindi kailanman ang tool canvas o export.

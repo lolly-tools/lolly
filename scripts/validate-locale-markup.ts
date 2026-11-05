@@ -23,6 +23,8 @@ const ALLOWED_TAGS = new Set([
   '</a>',
 ]);
 
+const PLURAL_FORMS = new Set(['zero', 'one', 'two', 'few', 'many', 'other']);
+
 function tags(value: string): string[] {
   return [...value.matchAll(/<[^>]+>/g)].map((match) => match[0]);
 }
@@ -33,17 +35,28 @@ export function validateLocaleCatalog(
 ): string[] {
   const errors: string[] = [];
   for (const [source, translated] of Object.entries(catalog)) {
-    if (typeof translated !== 'string') {
+    // A count string may hold CLDR plural forms ({ one, few, other, ... }); each form is
+    // checked like a plain translation.
+    const forms = translated && typeof translated === 'object' && !Array.isArray(translated)
+      ? Object.entries(translated as Record<string, unknown>) : null;
+    if (typeof translated !== 'string' && !forms) {
       errors.push(`${filename}: ${JSON.stringify(source)} has a non-string translation`);
       continue;
     }
-    const sourceTags = tags(source);
-    const translatedTags = tags(translated);
-    for (const tag of [...sourceTags, ...translatedTags]) {
-      if (!ALLOWED_TAGS.has(tag)) errors.push(`${filename}: forbidden locale markup ${JSON.stringify(tag)} in ${JSON.stringify(source)}`);
+    if (forms && (!forms.some(([form]) => form === 'other')
+      || forms.some(([form, value]) => !PLURAL_FORMS.has(form) || typeof value !== 'string'))) {
+      errors.push(`${filename}: ${JSON.stringify(source)} has plural forms that are not CLDR categories with string values, or no "other" form`);
+      continue;
     }
-    if (JSON.stringify(translatedTags) !== JSON.stringify(sourceTags)) {
-      errors.push(`${filename}: translation changed the source markup structure for ${JSON.stringify(source)}`);
+    const sourceTags = tags(source);
+    for (const value of forms ? forms.map(([, v]) => v as string) : [translated as string]) {
+      const translatedTags = tags(value);
+      for (const tag of [...sourceTags, ...translatedTags]) {
+        if (!ALLOWED_TAGS.has(tag)) errors.push(`${filename}: forbidden locale markup ${JSON.stringify(tag)} in ${JSON.stringify(source)}`);
+      }
+      if (JSON.stringify(translatedTags) !== JSON.stringify(sourceTags)) {
+        errors.push(`${filename}: translation changed the source markup structure for ${JSON.stringify(source)}`);
+      }
     }
   }
   return errors;

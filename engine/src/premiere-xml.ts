@@ -4,8 +4,10 @@ import { readAdobeXml, adobeChild, adobeChildren, adobeText, escapeAdobeXml as e
 import type { AssetRef } from './bridge/host-v1.ts';
 
 export interface InterchangeRate { numerator: number; denominator: number }
-export interface InterchangeClip { id: string; name: string; kind: 'video' | 'audio'; track: number; start: number; end: number; in: number; out: number; path: string; sourceRate: InterchangeRate; width: number; height: number }
-export interface InterchangeSequence { name: string; rate: InterchangeRate; width: number; height: number; duration: number; clips: InterchangeClip[]; notes: string[] }
+/** `sourceStart` is the media's first timecode frame, in `sourceRate` frames, when `in` and `out` are absolute timecode. */
+export interface InterchangeClip { id: string; name: string; kind: 'video' | 'audio'; track: number; start: number; end: number; in: number; out: number; path: string; sourceRate: InterchangeRate; width: number; height: number; sourceStart?: number }
+/** `timecodeStart` is the sequence's first timecode frame and `dropFrame` its counting mode, both kept for display and re-export. */
+export interface InterchangeSequence { name: string; rate: InterchangeRate; width: number; height: number; duration: number; clips: InterchangeClip[]; notes: string[]; timecodeStart?: number; dropFrame?: boolean }
 export const framesToSeconds = (frames: number, rate: InterchangeRate): number => frames * rate.denominator / rate.numerator;
 export const secondsToFrames = (seconds: number, rate: InterchangeRate): number => Math.round(seconds * rate.numerator / rate.denominator);
 /** Media lookup is explicit IO supplied by the caller, never a path read by the engine. */
@@ -17,7 +19,7 @@ export async function premiereSequenceValues(sequence: InterchangeSequence, reso
   const assets = new Map<string, AssetRef | null>();
   for (const [index, clip] of sequence.clips.entries()) {
     if (!assets.has(clip.path)) assets.set(clip.path, await resolveMedia(clip.path));
-    const image = assets.get(clip.path), start = framesToSeconds(clip.start, sequence.rate), dur = framesToSeconds(clip.end - clip.start, sequence.rate), clipIn = framesToSeconds(clip.in, clip.sourceRate);
+    const image = assets.get(clip.path), start = framesToSeconds(clip.start, sequence.rate), dur = framesToSeconds(clip.end - clip.start, sequence.rate), clipIn = Math.max(0, framesToSeconds(clip.in - (clip.sourceStart ?? 0), clip.sourceRate));
     const sourceDur = framesToSeconds(clip.out - clip.in, clip.sourceRate);
     if (Math.abs(sourceDur - dur) > 0.000001) notes.push(`${clip.name}: source duration differs from its timeline interval; speed remapping is unsupported.`);
     if (!image) notes.push(`${clip.name}: missing media ${clip.path || '(no path)'}. A labelled placeholder was added.`);

@@ -14,6 +14,7 @@ crate-type = ["rlib"]
 # Explicit test build only; generated media and assertions are absent from shipped binaries.
 presentation-probe = []
 webgpu-probe = []
+updater-probe = []
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -118,6 +119,9 @@ objc2-web-kit = { version = "0.3", default-features = false, features = ["std", 
 # fetched; only the headers named here are compiled.
 objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSString", "NSURL", "NSUserDefaults"] }
 objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSDocumentController", "NSMenu", "NSMenuItem", "NSResponder", "NSWindow"] }
+# Device agent detection (src/agents/detect.rs) reads CFBundleIdentifier from each
+# app's Info.plist, which may be binary. Tauri already builds this crate on macOS.
+plist = "1"
 
 [patch.crates-io]
 glib = { path = "../../../vendor/glib" }

@@ -8,7 +8,7 @@ Ai la îndemână adresa web pe care codul trebuie s-o deschidă, care începe c
 
 ## Creează codul
 
-1. Deschide [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Comenzile stau lângă previzualizare, sau deasupra ei pe telefon; ce arată previzualizarea este ce va fi fișierul.
+1. Deschide [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Comenzile stau lângă previzualizare, sau deasupra ei pe telefon; ce arată previzualizarea este ce va fi fișierul.
 2. La **URL**, înlocuiește adresa de exemplu cu a ta, completă. Previzualizarea se schimbă pe măsură ce tastezi.
 3. Ca să-ți potrivești propriile culori, setează **Module colour** și **Fundal**. Păstrează un contrast puternic între ele, altfel telefoanele au dificultăți la citirea codului.
 4. **Quiet zone**, sub **Modules**, începe la 4. Păstreaz-o la 4 sau mai mult: acea margine simplă este ce caută camera unui telefon.
@@ -38,8 +38,8 @@ Lucrarea salvată rămâne pe acest dispozitiv, în browserul sau aplicația pe 
 
 ## Alte prime proiecte
 
-- [Audiogram](/#/tool/audiogram) transformă o notă vocală într-un video: o formă de undă în mișcare, cuvintele tale pe copertă, culorile tale. Trage înregistrarea în **Audio**, adaugă un **Titlu**, apoi exportă **MP4**.
-- [Filter](/#/tool/filter) tratează o fotografie pentru un poster: puncte de semiton tipărite, două culori plate sau câteva blocuri de tonuri. Alege fotografia sub **Imagine**, alege un **Efect**, apoi exportă **PNG**, sau **SVG** pe un efect marcat *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) transformă o notă vocală într-un video: o formă de undă în mișcare, cuvintele tale pe copertă, culorile tale. Trage înregistrarea în **Audio**, adaugă un **Titlu**, apoi exportă **MP4**.
+- [Lolly Filter](/#/tool/filter) tratează o fotografie pentru un poster: puncte de semiton tipărite, două culori plate sau câteva blocuri de tonuri. Alege fotografia sub **Imagine**, alege un **Efect**, apoi exportă **PNG**, sau **SVG** pe un efect marcat *vector*.
 
 ## În continuare
 

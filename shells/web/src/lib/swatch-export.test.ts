@@ -197,15 +197,15 @@ test('both enumerating UIs offer every format - none is reachable in only one', 
   // Production sources only: a test file may list formats of its own as fixtures.
   const catalog = [readFileSync(join(HERE, '../views/assets.ts'), 'utf8'), ...readdirSync(catDir).filter((n) => n.endsWith('.ts') && !n.endsWith('.test.ts')).sort().map((n) => readFileSync(join(catDir, n), 'utf8'))].join('\n');
 
-  // The option body is t('label') optionally followed by an untranslated
-  // annotation (tokens-json carries "· Penpot / Tokens Studio" - product names
-  // don't translate, and appending keeps the 26 existing locale strings valid).
-  const editorOpts = [...editor.matchAll(/<option value="([a-z-]+)">\$\{t\('(?:[^']*)'\)\}[^<]*<\/option>/g)]
+  // The brand editor enumerates them once, in PALETTE_FORMATS (brand-editor/
+  // shared.ts), which the selection bar's Download menu lists. The Colours
+  // room's head no longer carries a palette dock of its own (plan 346 change 9).
+  const editorOpts = [...editor.matchAll(/\{ id: '([a-z-]+)', label: t\('[^']*'\) \}/g)]
     .map(m => m[1]!)
     .filter(v => (FORMATS as string[]).includes(v));
   const catalogOpts = [...catalog.matchAll(/\{ fmt: '([a-z-]+)', label: '[^']*' \}/g)].map(m => m[1]!);
 
-  assert.deepEqual(editorOpts, FORMATS, 'brand editor palette dock <select>');
+  assert.deepEqual(editorOpts, FORMATS, 'brand editor selection bar Download menu (PALETTE_FORMATS)');
   assert.deepEqual(
     [...catalogOpts].sort(), [...FORMATS].sort(),
     'catalog SWATCH_DOWNLOADS (its own order puts .ase/.gpl last)',

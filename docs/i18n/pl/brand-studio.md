@@ -1,10 +1,10 @@
 # Design System Setup
 
-Twoje logo, kolory i kroje pisma należą w jednym miejscu, aby każde narzędzie, strona i eksport rysowały z nich. Tym miejscem jest **Design System Setup** pod `#/start`, a jego hasło mówi, do czego służy: *Make it yours*.
+Twoje logo, kolory i kroje pisma należą w jednym miejscu, aby każde narzędzie, strona i eksport rysowały z nich. Tym miejscem jest **Design System Setup** pod `#/start`.
 
 Zacznij od tego, co masz. Upuść logo, a Lolly odczyta jego kolory. Wybierz krój pisma albo upuść plik czcionki, którą licencjonuje Twoja firma. Każda zmiana od razu widać w całej aplikacji. Twoje logo, czcionki i tokeny zostają na tym urządzeniu. Wybór czcionki Google to jedyny krok, który sięga na zewnątrz: Lolly najpierw pyta, a potem pobiera rodzinę raz.
 
-Gdy wygląda dobrze, nazwij system projektowy i naciśnij **Export**. Dostajesz jeden plik `.lolly` do zachowania, otwarcia na innym urządzeniu lub przekazania współpracownikowi. [Settings](/info/dashboard.html#design-system) pokazuje aktywny system tylko do odczytu, a jego okładka prowadzi tu do edycji.
+Gdy wygląda dobrze, nazwij system projektowy i naciśnij **Export**. Dostajesz jeden plik `.lolly` do zachowania, otwarcia na innym urządzeniu lub przekazania współpracownikowi. [Lolly Settings](/info/dashboard.html#design-system) pokazuje aktywny system tylko do odczytu, a jego okładka prowadzi tu do edycji.
 
 ## Zrób to swoje w pięć minut
 
@@ -16,34 +16,36 @@ Gdy wygląda dobrze, nazwij system projektowy i naciśnij **Export**. Dostajesz 
 - <!--i:download--> **Export** zapisuje cały system jako jeden plik `LollyBrand-….lolly`.
 :::
 
-Nagłówek pokazuje, który system projektowy **Editing**, a jego nazwa jest polem, które możesz zmienić w każdej chwili. Gdy pierwsza edycja pyta **What is this design system called?**, słowa z Twojego logo są wypełnione, jeśli logo je zapisuje. **Save name** zachowuje nazwę; **Not now** zostawia zastępczą, dopóki nie wpiszesz jej w nagłówku. Nazwa opisuje system w Settings i przy przełączaniu oraz staje się nazwą pliku zapisywanego przez **Export**.
+Pasek u góry studia pokazuje nazwę systemu projektowego, a nazwa jest polem, które możesz zmienić w każdej chwili: **Enter** zachowuje nową nazwę, a **Escape** przywraca starą. Gdy pierwsza edycja pyta **What is this design system called?**, słowa z Twojego logo są wypełnione, jeśli logo je zapisuje. **Save name** zachowuje nazwę; **Not now** zostawia zastępczą, dopóki nie wpiszesz jej na pasku. Nazwa opisuje system w Settings i przy przełączaniu oraz staje się nazwą pliku zapisywanego przez **Export**.
 
 ## Pokoje
 
-Studio to zestaw pokoi na szynie z boku, w dowolnej kolejności: nic nie jest numerowane i nic nie czeka na nic innego. Na telefonie szyna staje się paskiem znaczników pod nagłówkiem.
+Studio to zestaw pokoi w dowolnej kolejności: nic nie jest numerowane i nic nie czeka na nic innego. Na komputerze pokoje leżą w jednym rzędzie pod paskiem. Na telefonie przenoszą się na pasek wzdłuż dolnej krawędzi, gdzie sięga kciuk, a otwarty pokój jest przewinięty do widoku; arkusz palety i Tray unoszą się nad tym paskiem, a pasek ustępuje na czas pisania. Na klawiaturze Tab trafia do tego rzędu raz, a klawisze strzałek, Home i End przechodzą z pokoju do pokoju.
 
-![Szyna pokoi studia: Overview, Colours, Type, Logos, Tokens, Files i Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Pasek studia i jego pokoje: Board, Colours, Type, Logos, Tokens, Files, Rules i Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Pokój | Co tam robisz | Klucz linku |
 |---|---|---|
-| **Overview** | Zobacz, co zawiera system, z drzwiami do każdego pokoju | `overview` |
+| **Board** | Zobacz, co zawiera system, z drzwiami do każdego pokoju | `overview` |
 | **Colours** | Dodawaj kolory, nadawaj im role, buduj odcienie i paletę | `color` |
 | **Type** | Wybierz cztery kroje, które czytają aplikacja, narzędzia i każdy eksport | `type` |
 | **Logos** | Umieść swoje znaki w każdej orientacji i wariancie | `logos` |
 | **Tokens** | Rogi, odstępy, cienie i każda inna nazwana wartość | `tokens` |
 | **Files** | Obrazy, audio i pliki ruchu, które przechowuje Twoja marka | `catalogue` |
-| **Usage & rules** | Reguły, które stosuje Twoja marka, sprawdzane na prawdziwych przykładach | `usage` |
+| **Rules** | Reguły, które stosuje Twoja marka, sprawdzane na prawdziwych przykładach | `usage` |
 | **Umiejętności** | Spisane standardy marki dla ludzi i agentów, do czytania i pobrania | `skills` |
 
-Do pokoju prowadzi `#/start?area=<key>`. Pokój Files zachowuje klucz `catalogue`, ponieważ klucz pokoju to trwały kontrakt, a `?tab=` nadal działa jako starszy alias. Nieznany klucz otwiera Overview.
+Do pokoju prowadzi `#/start?area=<key>`. Pokój Files zachowuje klucz `catalogue`, Board zachowuje `overview`, a Rules zachowuje `usage`, ponieważ klucz pokoju to trwały kontrakt, a `?tab=` nadal działa jako starszy alias. Nieznany klucz otwiera Board.
 
-**Stopa szyny** zawiera akcje dla całego systemu, a nie dla jednego pokoju. **Add from…** wprowadza markę ([Bring a brand in](#bring-a-brand-in)), a **Tray** przechowuje to, co znalazło skanowanie, a czego jeszcze nie dodałeś. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** i **Restore brand settings** zachowują i przenoszą system ([Keep and move your design system](#keep-and-move-your-design-system)). Każdy pojawia się, gdy jest na czym działać.
+**Pasek** zawiera akcje dla całego systemu, a nie dla jednego pokoju. **Add from…** wprowadza markę ([Bring a brand in](#bring-a-brand-in)), a **Tray** przechowuje to, co znalazło skanowanie, a czego jeszcze nie dodałeś. **Export** zapisuje system jako jeden plik, a **More** zawiera **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** i **Design systems**, który otwiera listę w Settings, gdzie przełączasz systemy ([Keep and move your design system](#keep-and-move-your-design-system)). Każdy pojawia się, gdy jest na czym działać. Na telefonie **Add from…** przenosi się do **More**, a **Export** wygląda jak ikona.
 
-## Overview
+## Board
 
-Gdy nic jeszcze nie wybrano, Overview oferuje cztery sposoby na start. **Start from a reference** otwiera selektor źródła dla logo, zrzutu ekranu, strony internetowej lub pliku projektu, a **Pick a colour**, **Choose a face** i **Add a logo** otwierają te kontrolki bezpośrednio. Otwarcie którejś niczego nie zapisuje, a **Explore the tools** jest od początku.
+Gdy nic jeszcze nie wybrano, Board oferuje cztery sposoby na start. **Start from a reference** otwiera selektor źródła dla logo, zrzutu ekranu, strony internetowej lub pliku projektu, a **Pick a colour**, **Choose a face** i **Add a logo** otwierają te kontrolki bezpośrednio. Otwarcie którejś niczego nie zapisuje, a **Explore the tools** jest od początku.
 
-Gdy cokolwiek jest Twoje, Overview pokazuje, co masz, z Twoimi własnymi liczbami na przodzie. Colours podaje liczbę kolorów, z przygaszonym `· N starter` tam, gdzie widać odziedziczone kolory; jego pasek stawia Twoje kolory pierwsze, potem cienką linię, potem wyblakłe kolory startowe. Type czyta się według ról (*Inter for headings*, z *Starter for the rest* w linii poniżej). Logos mówi, ile slotów jest wypełnionych (lub **Not set**), Tokens pokazuje promień rogu, a Files mówi **Nothing yet**, gdy biblioteka jest pusta. Każdy blok otwiera swój pokój.
+Gdy cokolwiek jest Twoje, Board pokazuje, co masz, z Twoimi własnymi liczbami na przodzie. Colours podaje liczbę kolorów, z przygaszonym `· N starter` tam, gdzie widać odziedziczone kolory; jego pasek stawia Twoje kolory pierwsze, potem cienką linię, potem wyblakłe kolory startowe. Colourways pokazuje każdy colourway jako mały kafelek w kolorze wiodącym. Type czyta się według ról i ustawia każdą rodzinę w jej własnym kroju (*Inter for headings*, z *Starter for the rest* w linii poniżej). Logos mówi, ile slotów jest wypełnionych (lub **Not set**), Tokens pokazuje promień rogu, a Files mówi **Nothing yet**, gdy biblioteka jest pusta. Każdy blok otwiera swój pokój.
+
+System projektowy, który przyszedł z aplikacją i można go edytować, jak Lolly Demo, ma to wszystko od początku: Board pokazuje jego kolory, colourway, kroje i znaki, z tagiem **Came with this app** obok nagłówka.
 
 ### Starter i Twoje
 
@@ -61,7 +63,7 @@ Gdy cokolwiek jest Twoje, Overview pokazuje, co masz, z Twoimi własnymi liczbam
 
 - Wybrane lub zainstalowane przez Ciebie.
 - Pełna siła i zabarwiona karta tam, gdzie zainstalowałeś krój.
-- Liczone w Overview i w Tokens.
+- Liczone w Board i w Tokens.
 - Rola, która podąża za inną, brzmi **↳ follows Primary**, zamiast powtarzać nazwę koloru podstawowego.
 :::
 
@@ -106,7 +108,7 @@ Twój pierwszy kolor staje się **primary**, a znacznik to potwierdza, na przyk�
 
 Twoje kolory leżą obok podglądu **In context** na szerokim ekranie i nad nim na mniejszym. Podgląd pokazuje plakat, wykres lub kartę interfejsu w Twojej palecie. Kolory startowe zostają we własnej zwijanej grupie.
 
-![Pokój Colours w Lolly Demo: paleta w zwijanych grupach, każdy kolor z nazwą i hex, oraz pigułka pobierania na dole](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Pokój Colours w Lolly Demo: paleta w zwijanych grupach, każdy kolor z nazwą i hex, oraz pobieranie palety w nagłówku](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Pokój Colours po dodaniu jednego koloru, z jego paletą i żywym podglądem kompozycji](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -163,7 +165,7 @@ Cztery zwinięte sekcje leżą pod podglądem i rolami. Każda otwiera się bezp
 
 Paleta wymienia Twoje kolory w zwijanych grupach, każda z własnym **+ Add**. Twórz i zmieniaj nazwy grup, jak chcesz. Rola nigdy nie tworzy drugiego kafla: kafel, na który wskazuje rola, nosi zamiast tego mały znak (**P**, **S**, **Su**, **T**). **Colour chart** pod kaflami pokazuje te same kolory na **Wheel** OKLCH (przeciągnij kropkę, aby przekolorować, kliknij puste miejsce, aby dodać próbkę) i wykresie **Gamut**, który pokazuje, gdzie kończy się zakres wyświetlania. `#/start?area=color&focus=chart` otwiera wykres bezpośrednio.
 
-![Panel palety, każda grupa zwijalna, z pigułką pobierania umieszczoną przy dolnej krawędzi](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Panel palety, każda grupa zwijalna, z pobieraniem palety w nagłówku](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Koło OKLCH - kąt to odcień, odległość od środka to nasycenie, a szarości poruszają się po pasku jasności z boku](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -179,7 +181,7 @@ Kliknij próbkę, aby otworzyć jej edytor:
 **Usuwanie próbki** jest bezpieczne. Wyprowadzone odcienie i role motywu są ukrywane, więc nic, co je czyta, się nie psuje, a dodane przez Ciebie kolory są usuwane.
 
 ::: details Praca z wieloma próbkami
-Każda próbka ma uchwyt do przeciągania. Przeciągnij, aby zmienić kolejność w grupie, lub ustaw fokus na uchwycie, naciśnij Space, użyj klawiszy strzałek i naciśnij Space ponownie, aby upuścić; Escape anuluje. Aby przenieść kolory między grupami, użyj kontrolki **Group** edytora lub zaznacz kilka i użyj **Move to**.
+Każda próbka ma uchwyt do przeciągania. Przeciągnij, aby zmienić kolejność w grupie, lub ustaw fokus na uchwycie, naciśnij Space, użyj klawiszy strzałek i naciśnij Space ponownie, aby upuścić; Escape anuluje. Na telefonie paleta pokazuje cztery kolory w rzędzie, a uchwyty pojawiają się w trybie Select, zamiast jako rząd pod każdym kolorem. Aby przenieść kolory między grupami, użyj kontrolki **Group** edytora lub zaznacz kilka i użyj **Move to**.
 
 Zaznaczanie nie wymaga trybu. Pasek pojawia się z pierwszym zaznaczonym kaflem i znika z ostatnim.
 
@@ -196,13 +198,13 @@ Pasek brzmi **{n} selected**, potem **Move to**, **Give a role** (każdy kolor d
 
 Opcjonalny panel **Gradients** buduje tokeny przejść z palety. Każdy gradient ma podgląd, od 2 do 8 nazwanych punktów i kąt. Punkt wskazuje próbkę, więc przekoloruj próbkę, a gradient podąży. Przejścia liczą się w OKLCH.
 
-Pobrania palety (tokeny projektowe, CSS, SCSS, GIMP i Adobe Swatch Exchange) leżą w pigułce na dole palety, gdy są odcienie. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) opisuje każdy format.
+Pobrania palety (tokeny projektowe, CSS, SCSS, GIMP i Adobe Swatch Exchange) leżą w nagłówku palety, obok jej tytułu. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) opisuje każdy format.
 
 ## Typografia
 
-Bez własnego kroju pokój to jedna karta: **Primary**, złożona w rozmiarze do czytania w kroju, który obsługuje go dziś, z tagiem **Starter**, przyciskiem **Choose a face** i linią *"Nothing installs until you choose one."* Headings, code i italic podążają za primary, dopóki ich nie wybierzesz; **Choose them separately** pokazuje ich karty.
+Bez własnego kroju pokój to jedna karta: **Primary**, złożona w rozmiarze do czytania w kroju, który obsługuje go dziś, z tagiem **Starter**, przyciskiem **Choose for Primary** i linią *"Nothing installs until you choose one."* Headings, code i italic podążają za primary, dopóki ich nie wybierzesz; **Choose them separately** pokazuje ich karty.
 
-![Pokój Type z jeszcze niewybranym krojem - jedna karta w rozmiarze czytelnym, ze znacznikiem Starter, i jedno wypełnione Choose a face](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Pokój Type z jeszcze niewybranym krojem - jedna karta w rozmiarze czytelnym, ze znacznikiem Starter, i jedno wypełnione Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Wybierz jeden krój, a pokój otwiera się na cztery karty ról, listę Fonts i próbkę na żywo:
 
@@ -211,7 +213,7 @@ Wybierz jeden krój, a pokój otwiera się na cztery karty ról, listę Fonts i 
 - **Code**: krój o stałej szerokości dla kodu i danych.
 - **Italic**: prawdziwa kursywa do wyróżnień, cytatów i dygresji.
 
-Karta jest zabarwiona tylko tam, gdzie zainstalowałeś ten krój, a jej przycisk brzmi **Change** dla Twojego własnego kroju i **Choose a face** wszędzie indziej. Nic na karcie niczego nie zatwierdza: przycisk otwiera scenę porównania dla tej roli.
+Karta jest zabarwiona tylko tam, gdzie zainstalowałeś ten krój. Jej przycisk mówi, dla jakiej roli jest: **Change Headings** dla Twojego własnego kroju i **Choose for Headings** wszędzie indziej. Linia próbki zawija się zamiast się ucinać. Nic na karcie niczego nie zatwierdza: przycisk otwiera scenę porównania dla tej roli.
 
 ![Odsłonięte cztery karty ról - każda złożona w kroju, który ją obsługuje, ze znacznikiem Starter tam, gdzie nikt nie wybrał, i Italic podążającym za primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -219,7 +221,7 @@ Karta jest zabarwiona tylko tam, gdzie zainstalowałeś ten krój, a jej przycis
 
 Scena otwiera się wewnątrz pokoju, pod naciśniętą kartą, a karty zwijają się do paska jednej linii, aby scena była widoczna na pierwszym ekranie telefonu. Escape anuluje i zwraca fokus na kartę.
 
-1. Naciśnij **Choose a face** na karcie.
+1. Naciśnij **Choose for** i rolę na karcie.
 2. Wpisz nazwę rodziny i naciśnij **Preview**, albo naciśnij jedną z sześciu rodzin **Pinned** pod polem.
 3. Naciśnij **Use this face**.
 
@@ -240,7 +242,7 @@ Tokeny to nazwane wartości za systemem projektowym: kolory, kroje pisma, logo, 
 ![Pokój Tokens: nagłówek z przykładem z systemu i akcjami na pliku, kafle liczące każdy rodzaj tokenu, potem pary kolorów z odczytami kontrastu](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **Nagłówek** podaje przykład z Twojego systemu (*Primary is Spearmint, #033633*) i akcje na pliku: **Download** (cały system jako tokeny projektowe lub paleta w pięciu innych formatach), **Copy CSS** i **Add from…** do wczytania pliku JSON z powrotem.
-- **Kafle** liczą każdy rodzaj tokenu i przeskakują do jego sekcji: Colours, Type, Logos, Shape and spacing, More i All tokens. Liczą to, co Twoje, jak Overview. Na telefonie kafle przewijają się w bok.
+- **Kafle** liczą każdy rodzaj tokenu i przeskakują do jego sekcji: Colours, Type, Logos, Shape and spacing, More i All tokens. Liczą to, co zawiera każda sekcja; sekcja zawierająca tylko to, co przyszło z pustym szablonem startowym, nosi tag **Starter**, a system, który przyszedł z aplikacją, liczy własny materiał bez tagu. Na telefonie kafle zawijają się do dwóch rzędów po trzy.
 - **Colours** zaczyna się od par, które narzędzia zestawiają (tekst na powierzchni, na kolorze podstawowym, przygaszony na powierzchni) z odczytem APCA w jasnym i ciemnym oraz oznacza **Weak contrast**, gdzie para nie dosięga. Potem każda grupa kolorów: rampa jako jeden rząd znaczników, inne kolory z wartością i odwołaniem, którego używają narzędzia, takim jak `{color.brand.spearmint}`. Naciśnij odwołanie, aby je skopiować. **Edit in Colours** otwiera grupę w pokoju Colours.
 - **Type** i **Logos** wymieniają krój dla każdej roli i każdy slot logo, z **Edit in Type** i **Edit in Logos**, gdy masz własne.
 - **Shape and spacing** zawiera **Rounded corners** (`shape.radius`) i **Spacing rhythm** (`space.base`). Każdy brzmi *Lolly default*, dopóki nie przesuniesz suwaka, i *Yours* potem, zapisuje się od razu i można go cofnąć.
@@ -253,11 +255,11 @@ Sekcja, w której nic nie ma, oferuje sposób na wypełnienie luki: **Pick a col
 
 Upuść pliki, które przechowuje Twoja marka, poza logo: pliki **vector**, **image**, **audio** i **motion** (wideo, Lottie i animacje). Pojawiają się w [Assets](/info/using.html#assets-your-library), posortowane w sekcje i gotowe w selektorze zasobów każdego narzędzia, i zostają na tym urządzeniu.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** wprawia w ruch wybory Twojej marki: co ludzie mogą zmieniać, co pozostaje stałe i co Lolly może sprawdzić.
+**Rules** wprawia w ruch wybory Twojej marki: co ludzie mogą zmieniać, co pozostaje stałe i co Lolly może sprawdzić.
 
-![Usage & rules w Lolly Demo: pusta karta Brand rules z Add your first rule, potem Try your brand in use z gotowymi do renderowania przykładami](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules w Lolly Demo: pusta karta Brand rules z Add your first rule, potem Try your brand in use z gotowymi do renderowania przykładami](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** wymienia Twoje reguły. **Add rule** (lub **Add your first rule**) otwiera krótki formularz:
 
@@ -282,7 +284,7 @@ Kompilacja dostarczana ze stałą marką pokazuje te same reguły i przykłady t
 
 ## Wprowadź markę
 
-**Add from…** na dole szyny otwiera selektor, który pyta, co masz, a nie jaki to format:
+**Add from…** na pasku otwiera selektor, który pyta, co masz, a nie jaki to format:
 
 - **Design tokens or a design file**: JSON DTCG lub Tokens Studio, projekt Penpot, zip zestawów tokenów, paczka systemu projektowego Lolly lub SVG.
 - **PDF**: prezentacja lub plik wytycznych, czytany na tym urządzeniu pod kątem kolorów, znaków i osadzonych krojów.
@@ -310,11 +312,11 @@ Importy PDF i plików projektowych zachowują własne kontrolki przeglądu. Elem
 
 ### Znajdź i porównaj wygląd
 
-Otwórz **Find a look** z Overview lub z listy systemów projektowych w Settings. Przeglądaj systemy zapisane na tym urządzeniu i kilka przykładów Lolly wielokrotnego użytku oraz szukaj po nazwie, tagu koloru lub deklarowanej czcionce. **Closest to my current palette** sortuje według zmierzonego podobieństwa kolorów, a pasujące czcionki rozstrzygają remisy; to nie jest ocena jakości.
+Otwórz **Find a look** z Board lub z listy systemów projektowych w Settings. Przeglądaj systemy zapisane na tym urządzeniu i kilka przykładów Lolly wielokrotnego użytku oraz szukaj po nazwie, tagu koloru lub deklarowanej czcionce. **Closest to my current palette** sortuje według zmierzonego podobieństwa kolorów, a pasujące czcionki rozstrzygają remisy; to nie jest ocena jakości.
 
 Zaznacz jeden wygląd, aby go przejrzeć, lub dwa, aby porównać obok siebie. Zaznaczanie niczego nie zmienia. **Use this saved system** przełącza na niego, a **Use these colours** stosuje kolory przykładu przez zwykły punkt kontrolny, zachowując Twoje czcionki. **Restore brand settings** przywraca poprzedni wygląd. Zapisane systemy mają edytowalne **Search tags** w **Details and design context**. Przykłady to oryginalne przepisy kolorów Lolly, bez zeskrobanej kolekcji i bez konta.
 
-![Porównaj Sunroom i Orchard obok siebie, zanim zastosujesz którykolwiek z systemów kolorów.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+![Porównaj Sunroom i Orchard obok siebie, zanim zastosujesz którykolwiek z systemów kolorów.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
 ## Zachowaj i przenieś swój system projektowy
 
@@ -328,11 +330,11 @@ Aby przywrócić jeden, użyj **Add from… → Design tokens or a design file**
 
 ### Przywróć wcześniejsze ustawienia
 
-Wybierz **Restore brand settings**, zaznacz datowany punkt kontrolny i naciśnij **Restore**. Przywraca kolory, ustawienia typografii i inne tokeny aktywnej marki; pliki czcionek i obrazów zostają bez zmian. Lolly najpierw zapisuje Twoje bieżące ustawienia jako **Before restore**, więc możesz cofnąć przywrócenie nawet po zamknięciu przeglądarki. Na tym urządzeniu zachowywanych jest ostatnich 20 punktów kontrolnych.
+Otwórz **More** na pasku, wybierz **Restore brand settings**, zaznacz datowany punkt kontrolny i naciśnij **Restore**. Przywraca kolory, ustawienia typografii i inne tokeny aktywnej marki; pliki czcionek i obrazów zostają bez zmian. Lolly najpierw zapisuje Twoje bieżące ustawienia jako **Before restore**, więc możesz cofnąć przywrócenie nawet po zamknięciu przeglądarki. Na tym urządzeniu zachowywanych jest ostatnich 20 punktów kontrolnych.
 
 ### Wersje
 
-Opublikowana wersja to **stała, nazwana kopia** zachowana na tym urządzeniu. Nigdy się nie zmienia, więc narzędzie lub link, który ją przypina (przez `designv`), rysuje wciąż to samo. System z czymś Twoim pokazuje cichy link **Versions & publishing** na dole szyny; po pierwszej publikacji staje się wpisem **Versions**. `#/start?area=versions` otwiera go bezpośrednio.
+Opublikowana wersja to **stała, nazwana kopia** zachowana na tym urządzeniu. Nigdy się nie zmienia, więc narzędzie lub link, który ją przypina (przez `designv`), rysuje wciąż to samo. System z czymś Twoim wymienia **Versions & publishing** w menu **More** na pasku; po pierwszej publikacji **Versions** dołącza do pokoi. `#/start?area=versions` otwiera go bezpośrednio.
 
 - **Wersja jest stała.** Nie ma jeszcze usuwania, a panel o tym mówi.
 - **Usunięcia otwierają kartę zgodności**, ponieważ usunięty token to to, co psuje narzędzie.

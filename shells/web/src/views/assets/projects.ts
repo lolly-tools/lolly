@@ -8,7 +8,7 @@ import { listTeamFiles, type TeamFile } from '../../org/team-files.ts';
 import { listTeamFolders, teamItemFolder, teamFolderPath, type TeamFolder } from '../../org/team-folders.ts';
 import { projectFileUrl, prepareProjectAsset } from '../../org/team-project-assets.ts';
 import { escape as esc } from '../../utils.ts';
-import { t } from '../../i18n.ts';
+import { t, tn } from '../../i18n.ts';
 import type { CatCtx } from './context.ts';
 
 export const projectSourceId = (project = '', folder = '') => JSON.stringify(['team-projects', project, folder]);
@@ -89,7 +89,7 @@ export function projectsOps(cat: CatCtx) {
     const selection = projectSourceSelection(cat.sourceSelection)!, project = projects.find(row => row.id === selection.project), refs = visible();
     page = Math.min(page, Math.max(0, Math.ceil(refs.length / 100) - 1));
     const heading = [project?.name ?? t('Shared projects'), ...teamFolderPath(folders, selection.folder || null).map(folder => folder.name)].join(' / ');
-    return `<section class="cat-remote" aria-label="${t('Shared projects')}" aria-busy="${loading}"><h2>${esc(heading)}</h2><p>${t('Files retain project access. Adding one to the library is a separate submission.')}</p><p role="${error ? 'alert' : 'status'}">${esc(loading ? t('Loading…') : error || (refs.length === 1 ? t('1 file in this folder') : t('{count} files in this folder', { count: refs.length })))}</p><button type="button" class="btn" data-project-assets="refresh">${t('Refresh')}</button>${!selection.project ? `<p>${t('Choose a shared project in Sources to browse its files and folders.')}</p>` : ''}<div class="cat-grid">${refs.slice(page * 100, (page + 1) * 100).map(cat.thumbs.assetTile).join('')}</div>${refs.length > 100 ? `<div class="cat-remote-controls"><button type="button" class="btn" data-project-assets="previous"${page ? '' : ' disabled'}>${t('Previous page')}</button><span>${page + 1}</span><button type="button" class="btn" data-project-assets="next"${(page + 1) * 100 < refs.length ? '' : ' disabled'}>${t('Next page')}</button></div>` : ''}</section>`;
+    return `<section class="cat-remote" aria-label="${t('Shared projects')}" aria-busy="${loading}"><h2>${esc(heading)}</h2><p>${t('Files retain project access. Adding one to the library is a separate submission.')}</p><p role="${error ? 'alert' : 'status'}">${esc(loading ? t('Loading…') : error || (tn('1 file in this folder', '{count} files in this folder', { count: refs.length })))}</p><button type="button" class="btn" data-project-assets="refresh">${t('Refresh')}</button>${!selection.project ? `<p>${t('Choose a shared project in Sources to browse its files and folders.')}</p>` : ''}<div class="cat-grid">${refs.slice(page * 100, (page + 1) * 100).map(cat.thumbs.assetTile).join('')}</div>${refs.length > 100 ? `<div class="cat-remote-controls"><button type="button" class="btn" data-project-assets="previous"${page ? '' : ' disabled'}>${t('Previous page')}</button><span>${page + 1}</span><button type="button" class="btn" data-project-assets="next"${(page + 1) * 100 < refs.length ? '' : ' disabled'}>${t('Next page')}</button></div>` : ''}</section>`;
   };
   const click = (event: Event) => {
     const action = (event.target as Element).closest<HTMLElement>('[data-project-assets]')?.dataset.projectAssets;

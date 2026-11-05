@@ -245,31 +245,47 @@ function catalogSource(bin: string, info: PdfInfo): string {
 // Clone the Catalog dict source with /AF + /Names→/EmbeddedFiles attached.
 // Inline values are merged in place; an indirect /Names, indirect /AF or a
 // pre-existing /EmbeddedFiles tree is out of scope → clear "cannot attach".
-function catalogWithAttachment(src: string, fsRef: string): string {
+//
+// `update` is the one exception, for a credential update over a file that already
+// carries one. It repoints a tree holding only this writer's own manifest.c2pa entry
+// at the new filespec. The earlier revision stays in the file below the new one, as in
+// any incremental update. A tree holding anything else still refuses: those are
+// someone's attachments, and they are not this writer's to touch.
+function catalogWithAttachment(src: string, fsRef: string, update = false): string {
   const efEntry = `/EmbeddedFiles << /Names [(manifest.c2pa) ${fsRef}] >>`;
   const entries = dictEntries(src);
   const find = (k: string) => entries.find((e) => e.key === k);
-  const edits: { at: number; text: string }[] = [];
+  const edits: { at: number; text: string; remove?: number }[] = [];
   const names = find('Names');
+  let priorRef: string | null = null;
   if (names) {
     const val = src.slice(names.valStart, names.valEnd);
     if (!val.startsWith('<<')) throw new Error('C2PA embed: catalog /Names is an indirect object; cannot attach');
-    if (dictEntries(val).some((e) => e.key === 'EmbeddedFiles')) {
-      throw new Error('C2PA embed: PDF already has an /EmbeddedFiles name tree; cannot attach');
+    const tree = dictEntries(val).find((e) => e.key === 'EmbeddedFiles');
+    if (tree) {
+      if (!update) throw new Error('C2PA embed: PDF already has an /EmbeddedFiles name tree; cannot attach');
+      const treeSrc = val.slice(tree.valStart, tree.valEnd);
+      const own = /^<<\s*\/Names\s*\[\s*\(manifest\.c2pa\)\s+(\d+\s+\d+\s+R)\s*\]\s*>>$/.exec(treeSrc.trim());
+      if (!own) throw new Error('C2PA embed: PDF holds other embedded files; cannot update its credential');
+      priorRef = own[1]!;
+      edits.push({ at: names.valStart + tree.valStart, remove: treeSrc.length, text: `<< /Names [(manifest.c2pa) ${fsRef}] >>` });
+    } else {
+      edits.push({ at: names.valEnd - 2, text: ` ${efEntry} ` });
     }
-    edits.push({ at: names.valEnd - 2, text: ` ${efEntry} ` });
   }
   const af = find('AF');
   if (af) {
     if (src[af.valStart] !== '[') throw new Error('C2PA embed: catalog /AF is not an inline array; cannot attach');
-    edits.push({ at: af.valEnd - 1, text: ` ${fsRef}` });
+    const afSrc = src.slice(af.valStart, af.valEnd);
+    if (priorRef && afSrc.includes(priorRef)) edits.push({ at: af.valStart + afSrc.indexOf(priorRef), remove: priorRef.length, text: fsRef });
+    else edits.push({ at: af.valEnd - 1, text: ` ${fsRef}` });
   }
   let tailAdd = '';
   if (!af) tailAdd += ` /AF [${fsRef}]`;
   if (!names) tailAdd += ` /Names << ${efEntry} >>`;
   if (tailAdd) edits.push({ at: src.length - 2, text: tailAdd + ' ' });
   let out = src;
-  for (const e of edits.sort((a, b) => b.at - a.at)) out = out.slice(0, e.at) + e.text + out.slice(e.at);
+  for (const e of edits.sort((a, b) => b.at - a.at)) out = out.slice(0, e.at) + e.text + out.slice(e.at + (e.remove ?? 0));
   return out;
 }
 
@@ -286,14 +302,14 @@ const xrefEntryLine = (offset: number, gen: number): string => `${String(offset)
  * table (the classic form); cross-reference streams throw a clear Error the
  * shell treats as "cannot attach".
  */
-export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
+export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
   if (!(pdfBytes instanceof Uint8Array)) throw new Error('C2PA embed: pdfBytes must be a Uint8Array');
   const bin = bytesToBin(pdfBytes);
   const info = parsePdf(bin);
   const fsNum = info.maxNum + 1; // FileSpec dict
   const efNum = info.maxNum + 2; // EmbeddedFile stream
   const fsRef = `${fsNum} 0 R`;
-  const catalog = catalogWithAttachment(catalogSource(bin, info), fsRef);
+  const catalog = catalogWithAttachment(catalogSource(bin, info), fsRef, !!approval);
 
   const sep = bin.endsWith('\n') || bin.endsWith('\r') ? '' : '\n';
   const catObj = `${info.root.num} ${info.root.gen} obj\n${catalog}\nendobj\n`;
@@ -334,7 +350,7 @@ export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerat
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates, format: 'application/pdf',
+    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates, format: 'application/pdf',
     assetHash: { exclusions, hash, pad: padBytes },
     ...internals,
   });
@@ -1867,7 +1883,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === 'bmff';
 
-  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates = {}, signer } = opts;
+  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates = {}, signer } = opts;
   // As in embedC2paInPdf: signer + chain bytes frozen once per embed so every
   // pass across the two-pass layout signs identical protected-header bytes.
   const sig: Signer = signer ?? (await generateSigner(dates));
@@ -1879,7 +1895,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates, format: container.mime,
+    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates, format: container.mime,
     assetHash: isBmff ? { bmff: true, hash, pad: padBytes } : { exclusions, hash, pad: padBytes },
     ...internals,
   });

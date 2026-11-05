@@ -28,8 +28,8 @@ import { DATA_FORMATS } from '../../../../engine/src/runtime.ts';
 
 const SOURCE = readFileSync(fileURLToPath(new URL('./export.ts', import.meta.url)), 'utf8');
 
-/** Every `case '<format>':` label in export.ts's dispatch switch. */
-const CASES = new Set(Array.from(SOURCE.matchAll(/^\s*case '([a-z0-9-]+)':/gm), (m) => m[1]!));
+/** Every `case '<format>':` label in export.ts's dispatch switch, including labels stacked on one line. */
+const CASES = new Set(Array.from(SOURCE.matchAll(/\bcase '([a-z0-9-]+)':/g), (m) => m[1]!));
 
 test('the switch was actually found (the scan is not vacuous)', () => {
   assert.ok(CASES.size > 20, `only ${CASES.size} case labels - the regex stopped matching`);

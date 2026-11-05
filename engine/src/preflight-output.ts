@@ -37,6 +37,7 @@ import type { PreflightJob } from './preflight.ts';
 import { CUTS_FORMATS, HDR_FORMATS, MOTION_FORMATS, PRINT_MARK_FORMATS, RASTER_FORMATS, SEPARATING_FORMATS } from './preflight.ts';
 import { sha256Hex } from './bytes.ts';
 import { ENGINE_VERSION } from './version.ts';
+import { PDF_ACCESSIBILITY_STATEMENTS, pdfAccessibilityHeadline, summarisePdfAccessibility, type PdfAccessibilityReader } from './pdf-accessibility.ts';
 
 export type { ExportCheck, ExportReport, ExportValue } from '@lolly-tools/core';
 
@@ -544,16 +545,47 @@ function echo(req: ExportRequest): Record<string, ExportValue> {
   return out;
 }
 
+/** What a shell can add to `verifyExport` beyond the bytes. */
+export interface VerifyExportReaders {
+  /**
+   * Reads a PDF with the accessibility module. The engine never loads WebAssembly, so the
+   * shell supplies this. Without it the report has no PDF accessibility section.
+   */
+  readonly pdfAccessibility?: PdfAccessibilityReader;
+}
+
 /**
  * Read the output bytes and compare them with the request.
  *
  * The report's `output.sha256` is computed over the same bytes the facts were
- * read from, so the report describes exactly one file.
+ * read from, so the report describes exactly one file. For a PDF, a shell that
+ * supplies `readers.pdfAccessibility` also gets the 32 PDF accessibility checks,
+ * listed and never summed into a verdict.
  */
-export async function verifyExport(request: ExportRequest, bytes: Uint8Array): Promise<ExportReport> {
+export async function verifyExport(request: ExportRequest, bytes: Uint8Array, readers: VerifyExportReaders = {}): Promise<ExportReport> {
   const input = bytes instanceof Uint8Array ? bytes : new Uint8Array(0);
   const facts = inspectOutput(input);
   const { checks, findings } = compareExport(request, facts);
+  const extraStatements: string[] = [];
+  let pdfAccessibility: ExportReport['pdfAccessibility'];
+  if (readers.pdfAccessibility && facts.container === 'pdf') {
+    try {
+      const raw = await readers.pdfAccessibility(input);
+      if (raw) {
+        pdfAccessibility = summarisePdfAccessibility(raw);
+        const headline = pdfAccessibilityHeadline(pdfAccessibility.counts);
+        checks.push({ property: 'pdf-accessibility', requested: notSet, actual: known(headline), state: 'reported', basis: 'pdf.accessibility-check' });
+        findings.push({
+          id: 'output.pdf-accessibility', severity: 'info', message: headline,
+          evidence: { passed: pdfAccessibility.counts.pass, failed: pdfAccessibility.counts.fail, notApplicable: pdfAccessibility.counts['not-applicable'], needsPerson: pdfAccessibility.counts['needs-person'] },
+        });
+        extraStatements.push(PDF_ACCESSIBILITY_STATEMENTS[0]!, PDF_ACCESSIBILITY_STATEMENTS[1]!);
+      }
+    } catch (error) {
+      const why = error instanceof Error && error.message ? error.message : 'The PDF accessibility check did not finish.';
+      findings.push({ id: 'check.incomplete', severity: 'info', needs: 'not-resolved', message: `The PDF accessibility check could not complete: ${why}`, evidence: { check: 'pdf-accessibility' } });
+    }
+  }
   return {
     $format: 'lolly-export-report',
     formatVersion: 1,
@@ -563,6 +595,7 @@ export async function verifyExport(request: ExportRequest, bytes: Uint8Array): P
     checks,
     findings,
     gaps: findings.filter(f => !!f.needs),
-    statements: EXPORT_REPORT_STATEMENTS,
+    statements: [...EXPORT_REPORT_STATEMENTS, ...extraStatements],
+    ...(pdfAccessibility ? { pdfAccessibility } : {}),
   };
 }

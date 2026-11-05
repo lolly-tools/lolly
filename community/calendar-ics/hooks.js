@@ -369,5 +369,16 @@ function build(model) {
   };
 }
 
-async function onInit({ model }) { return build(model); }
-async function onInput({ model }) { return build(model); }
+async function renderCalendar({ model }) {
+  let calendarAccent = '#30ba78';
+  if (host.tokens && host.tokens.resolve) {
+    try {
+      const resolved = await host.tokens.resolve('{color.semantic.primary}');
+      if (typeof resolved === 'string' && resolved.trim()) calendarAccent = resolved;
+    } catch { /* Keep the card usable without a design system. */ }
+  }
+  return { ...build(model), calendarAccent };
+}
+
+async function onInit(ctx) { return renderCalendar(ctx); }
+async function onInput(ctx) { return renderCalendar(ctx); }

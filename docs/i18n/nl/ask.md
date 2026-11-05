@@ -60,4 +60,4 @@ Je vraag verlaat het apparaat nooit. De matching draait lokaal tegen bestanden d
 
 ---
 
-**Zie ook:** [Zoeken](/info/search.html) voor de balk die vragen doorgeeft. [Lolly gebruiken](/info/using.html) voor de rest van de app. [Settings](/info/dashboard.html#available-offline) om de documentatie eerst offline te nemen.
+**Zie ook:** [Zoeken](/info/search.html) voor de balk die vragen doorgeeft. [Lolly gebruiken](/info/using.html) voor de rest van de app. [Lolly Settings](/info/dashboard.html#available-offline) om de documentatie eerst offline te nemen.

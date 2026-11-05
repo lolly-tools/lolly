@@ -2,7 +2,7 @@
 
 Most software asks for your trust. This section does the opposite: every claim Lolly makes about your content, your data and its own behaviour is written down here with the mechanism that enforces it, so you can check rather than believe.
 
-> **The internet is optional with Lolly: use it when it helps, never surrender control.** A font you pick, a place you look up, a link you share: things happen online only because you asked. Nothing you make leaves your device unless you send it or turn on a feature that does, such as Sync. The app asks before it downloads an on-device AI model, and Design System Setup asks before it fetches a font from Google. Nobody is listening in. Go offline and everything you have keeps working. **Freedom is sweet.**
+> **The internet is optional with Lolly: use it when it helps, never surrender control.** A font you pick, a place you look up, a link you share: things happen online only because you asked. Nothing you make leaves your device unless you send it or turn on a feature that does, such as Sync. The app asks before it downloads an on-device AI model, and Lolly Design System Setup asks before it fetches a font from Google. Nobody is listening in. Go offline and everything you have keeps working. **Freedom is sweet.**
 >
 > The receipts: the [Privacy Policy](/info/privacy.html) lists every request the app can make, and [Verify It Yourself](/info/verify-yourself.html) shows you how to check each one.
 
@@ -10,13 +10,13 @@ Most software asks for your trust. This section does the opposite: every claim L
 
 ## Where did this content come from?
 
-The media Lolly renders carries [Content Credentials](/info/content-credentials-identity.html) by default. When a file arrives with a history already attached, Lolly keeps it rather than flattening it, so the chain survives an edit. Drop any file on [Verify](/#/verify) and the record comes back, worked out on your device:
+The media Lolly renders carries [Content Credentials](/info/content-credentials-identity.html) by default. When a file arrives with a history already attached, Lolly keeps it rather than flattening it, so the chain survives an edit. Drop any file on [Lolly Verify](/#/verify) and the record comes back, worked out on your device:
 
-![The full Verify verdict for a generated storm image - the image itself, a green Made with Lolly pill, the intact-credential and unchanged-bytes badges and the provenance scorecard](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1240&height=940&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-masthead)
+![The full Lolly Verify verdict for a generated storm image - the image itself, a green Made with Lolly pill, the intact-credential and unchanged-bytes badges and the provenance scorecard](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1240&height=940&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-masthead)
 
 - <!--i:seal--> [**Content Credentials**](/info/content-credentials-identity.html): what gets signed, what each verdict means and how to put your name on your files.
-- <!--i:check--> [**What Verify checks**](/info/what-verify-checks.html): the Imprint, AI declarations, watermarks, SEAL signatures and hidden data, beyond the credential.
-- <!--i:sparkle--> [**AI evidence in Verify**](/info/verify-ai-evidence.html): located clues that text or a layout may be machine-written, as evidence rather than a verdict.
+- <!--i:check--> [**What Lolly Verify checks**](/info/what-verify-checks.html): the Imprint, AI declarations, watermarks, SEAL signatures and hidden data, beyond the credential.
+- <!--i:sparkle--> [**AI evidence in Lolly Verify**](/info/verify-ai-evidence.html): located clues that text or a layout may be machine-written, as evidence rather than a verdict.
 - <!--i:people--> [**Creative rights and credits**](/info/creative-rights.html): how a source's licence is recorded, what it asks of your use and how the credit travels in the file.
 - <!--i:cpu--> [**Content Credentials engineering**](/info/content-credentials-engineering.html): the signing architecture, the engine contracts and the CA service.
 
@@ -44,7 +44,7 @@ Lolly renders on your device. That is not a privacy setting added afterwards: it
 - <!--i:usercheck--> [**Input, not impersonation**](/info/input-not-impersonation.html): what an AI agent can supply, and what it can never claim.
 - <!--i:sparkle--> [**Generated once, rendered the same**](/info/ai-features.html): Lolly's own AI features, and why inventing pixels is marked while removing them is not.
 - <!--i:document--> [**AI marking and the EU AI Act**](/info/eu-ai-act.html): how Lolly preserves, declares and verifies AI marks for an Article 50 review.
-- <!--i:people--> [**Inclusive Design**](/info/inclusive-design.html): who the software is built to work for, and the tests that hold it there.
+- <!--i:people--> [**Inclusive Lolly Design**](/info/inclusive-design.html): who the software is built to work for, and the tests that hold it there.
 - <!--i:star--> [**Tenets**](/info/tenets.html), [**Beatrice Warde**](/info/beatrice-warde.html) and [**Shoulders of giants**](/info/shoulders-of-giants.html): what we believe, the typographer whose words we adapted and everyone Lolly is built from.
 
 ## The refusal, and why it is free

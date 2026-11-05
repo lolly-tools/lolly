@@ -1,4 +1,4 @@
 # Lolly - tekst strony głównej
 
-Darmowe narzędzia kreatywne, według Twoich zasad.
-Twórz pliki multimedialne w jakości studyjnej: bez konta, bez karty, prywatnie i na otwartym kodzie.
+Twórz gotowe pliki. Zachowaj kontrolę nad swoimi treściami.
+Grafika, dokumenty, wideo i druk w twoich kolorach i kroju: bez konta, bez karty, prywatnie i open source.

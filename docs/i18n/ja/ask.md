@@ -60,4 +60,4 @@
 
 ---
 
-**関連:** 質問を引き渡すバーについては[検索](/info/search.html)。アプリのそれ以外の部分は[Lollyを使う](/info/using.html)。ドキュメントを先にオフラインにするには[Settings](/info/dashboard.html#available-offline)。
+**関連:** 質問を引き渡すバーについては[検索](/info/search.html)。アプリのそれ以外の部分は[Lollyを使う](/info/using.html)。ドキュメントを先にオフラインにするには[Lolly Settings](/info/dashboard.html#available-offline)。

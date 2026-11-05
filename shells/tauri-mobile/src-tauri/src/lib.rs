@@ -1,4 +1,6 @@
 mod public_network;
+#[path = "../../../tauri-shared/native/atomic_write.rs"]
+mod atomic_write;
 #[path = "../../../tauri-shared/tauri-embedded-assets.rs"]
 mod embedded_assets;
 mod remote_fetch;
@@ -238,6 +240,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_lolly_auth::init())
+        .plugin(tauri_plugin_lolly_fold::init())
         .manage(MobileEvents::default())
         // The website source for Design System Setup (plans/97 section 9)
         // was the first command of this shell's own, because it has to enforce
@@ -245,6 +248,7 @@ pub fn run() {
         // queue is the second. Remote HTTP is a bounded command rather than a
         // webview-visible plugin; everything else is fs or the shared bridge.
         .invoke_handler(mobile_commands(tauri::generate_handler![
+            atomic_write::write_document_atomic,
             site_fetch::site_fetch,
             remote_fetch::remote_fetch,
             mobile_poll_events,
@@ -258,6 +262,9 @@ pub fn run() {
                     .on_web_resource_request(embedded_assets::correct)
                     .build()?;
             }
+            // Leftovers of an interrupted save. setup() returns before the page can
+            // invoke a command, so this still runs before its first state read.
+            atomic_write::sweep_stale_temps(app.handle());
             Ok(())
         })
         .build(context)

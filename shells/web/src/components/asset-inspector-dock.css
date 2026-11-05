@@ -83,3 +83,13 @@
   .cat-inspector-collapse { display: none; }
   .cat-details:has(> .cat-details-header) .cat-inspector-head { position: static; }
 }
+
+/* Two panes (lib/split-inspector.ts): the details are a pane beside the browser and
+   the split divider sizes them, so the inspector's own grip, collapse and rail go,
+   and a collapse remembered from the desk does not fold the pane away. Gated on
+   html[data-layout="split"], absent everywhere else. */
+html[data-layout="split"] .cat-details.is-split-pane .cat-inspector-grip,
+html[data-layout="split"] .cat-details.is-split-pane .cat-inspector-collapse,
+html[data-layout="split"] .cat-details.is-split-pane .cat-inspector-rail { display: none; }
+html[data-layout="split"] .cat-details.is-split-pane .cat-inspector-head { display: block; }
+html[data-layout="split"] .cat-details.is-split-pane .cat-inspector-scroll { display: flex; }

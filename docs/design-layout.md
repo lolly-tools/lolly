@@ -1,6 +1,8 @@
-# Layout in Design
+# Layout in Lolly Design
 
-A card grid that reflows when you add a card, a page of slides you can reorder, a group you move as one: this page covers the layout features of [Design](/info/using.html). It explains dynamic layouts, groups and pages, and the number fields and view controls you use to place things precisely.
+<a id="layout-in-design"></a>
+
+A card grid that reflows when you add a card, a page of slides you can reorder, a group you move as one: this page covers the layout features of [Lolly Design](/info/using.html). It explains dynamic layouts, groups and pages, and the number fields and view controls you use to place things precisely.
 
 ## Dynamic layouts
 
@@ -22,7 +24,7 @@ Native Penpot imports keep their supported flex and grid rules, including nested
 
 ## Groups and pages
 
-A Design session can hold named pages, each with its own artboards and nested groups. Use **Pages** above the layer tree to add, rename, reorder, duplicate or remove a page. Switching pages restores your selection and view without changing the saved document or another collaborator's page. Projects and their folders still organise whole sessions.
+A Lolly Design session can hold named pages, each with its own artboards and nested groups. Use **Pages** above the layer tree to add, rename, reorder, duplicate or remove a page. Switching pages restores your selection and view without changing the saved document or another collaborator's page. Projects and their folders still organise whole sessions.
 
 Groups appear as named containers in the layer tree:
 
@@ -35,7 +37,7 @@ Edit **Opacity** and **Blend mode** in a group's Appearance section; they apply 
 
 ## Precise numbers and the view
 
-Number fields in the inspector work the same way everywhere in Design:
+Number fields in the inspector work the same way everywhere in Lolly Design:
 
 - drag the grip beside a value to adjust it, or click the number to type;
 - Shift makes a drag or arrow-key step ten times larger, and Alt ten times smaller;

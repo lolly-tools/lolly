@@ -82,6 +82,7 @@ Lolly Work 也可以把檔案交付到已設定的 S3、WebDAV 與 HTTP 目的�
 | 交給 Premiere 的交接檔 | **Premiere XML + media** | 供 Premiere 使用的定時片段與原始媒體（Design） |
 | 供社群與分享的影片 | **MP4** 或 **WebM** | 以檔案大小而言品質最佳（請見[影片](#video)） |
 | 字幕 | **SRT** 或 **VTT** | 供影片播放器使用的定時文字（Captions、Audiogram 與 Record） |
+| 廣播字幕 | **TTML** 或 **SCC** | IMSC1.1 定時文字，或 CEA-608 pop-on 字幕（Captions；請見[廣播字幕](#broadcast-captions)） |
 | 訓練課程 | **SCORM (LMS)** | 有版本的網站、SCORM 或 xAPI 套件（請見 [SCORM](#scorm-course-packages)） |
 | 富文字或電子郵件簽名檔 | **HTML** | 以格式化的方式貼入郵件用戶端 |
 | 純內容 | **MD** 或 **TXT** | 僅文字 |
@@ -131,9 +132,9 @@ Lolly 有三種大量處理的方式，各有不同用途：
 ## 表格變成一份文件
 有表格輸入的工具（例如 **Battlecards**）會把每一列變成一頁。從你的試算表貼上表格，就得到一份 PDF。在試算表中修正列，再貼上一次。
 ## CSV 變成每列一個檔案
-**Batch**（`#/batch`）接受 CSV 並為每一列渲染一個匯出：名牌或證書，每個一個檔案，以 ZIP 交付。請見 [Batch](/info/batch.html#make-many-versions-of-one-design)。
+**Batch**（`#/batch`）接受 CSV 並為每一列渲染一個匯出：名牌或證書，每個一個檔案，以 ZIP 交付。請見 [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)。
 ## 數份設計一次編輯
-**Multi-edit** 並排開啟數個已儲存的工作階段，對不同設計進行相同的修飾。請見 [Multi-edit](/info/batch.html#edit-several-saved-designs-together)。
+**Multi-edit** 並排開啟數個已儲存的工作階段，對不同設計進行相同的修飾。請見 [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together)。
 :::
 
 在 **Projects** 中，**Render folder** 會把資料夾及其子資料夾中的每個已儲存工作階段匯出為一個巢狀 ZIP，**Render selection** 對任何多重選取做同樣的事；單一已儲存的工作階段則渲染成它自己的檔案。已儲存的工作階段也可以從 Projects 再次以工具連結分享，以相同設定重新開啟它。
@@ -169,7 +170,7 @@ PowerPoint 也是一條進入的路：[重塑簡報品牌](/info/rebrand.html)�
 | 整份設計 | Assets 面板中可重複使用的元件 |
 | 複雜的插圖或即時畫布 | 單獨以圖片嵌入，周圍可編輯的內容不受影響 |
 
-從 Design 匯出時，每個框架都成為 Penpot 看板。設計系統的色彩與字體排印進入 Assets 面板，其完整 token 集合進入 Tokens 面板。Penpot 從那裡保有自己的副本：在 Penpot 中編輯的 token 會經由 [Design System Setup](/info/brand-studio.html) 的匯入帶回來。
+從 Design 匯出時，每個框架都成為 Penpot 看板。設計系統的色彩與字體排印進入 Assets 面板，其完整 token 集合進入 Tokens 面板。Penpot 從那裡保有自己的副本：在 Penpot 中編輯的 token 會經由 [Lolly Design System Setup](/info/brand-studio.html) 的匯入帶回來。
 
 ![已選擇 Penpot 的匯出面板:.penpot 檔案,以及下載按鈕旁的 Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -200,6 +201,16 @@ PowerPoint 也是一條進入的路：[重塑簡報品牌](/info/rebrand.html)�
 
 套件包含它完成的內容，不需要 Lolly 帳號。將 Website ZIP 放到 HTTP(S) 主機上；LMS ZIP 則原封不動匯入。在分享課程之前先測試目的地。至於由數個已儲存創作組成的課程，請見[建立訓練課程](/info/training-creators.html)。
 
+### 廣播字幕
+
+Captions 工具還可以匯出 **TTML** 和 **SCC**。兩者都由與 SRT 和 VTT 檔案相同的字幕片段清單產生，所以文字和時間一致。
+
+- **TTML** 是 IMSC1.1 Text Profile，使用媒體時間的時鐘時間和一個底部置中的區域。它不帶每則字幕的顏色、字型或位置，因為 Lolly 的字幕只包含開始、結束和文字。
+- **SCC** 在頻道 1 上承載 CEA-608 pop-on 字幕，影格率為每秒 29.97 格，使用 drop-frame 時間碼。它支援基本的北美字元以及特殊和擴充字元。如果某則字幕包含該字元集無法承載的字元，匯出會停止並告訴你是哪個字元，因此不會有內容被悄悄丟棄。每則字幕依 32 欄、最多 15 列換行。無法在開始時間之前載入的字幕會延遲幾格。
+- 不寫入 roll-up 和 paint-on 字幕。
+
+SCC 輸出尚未用真實的廣播工具或硬體解碼器檢驗過。交付前請在你自己的流程中測試檔案。
+
 ### DXF（切割檔案）
 
 Asset Export、Diagrams、Growth、Logo Wall、QR Code、Street Map、Wayfinding 與 Wordmark 匯出 **DXF**，這是雷射切割機、割字機與 CNC 軟體讀取的 AutoCAD R12 交換格式。幾何以公釐為單位的輪廓路徑寫出，文字會轉外框，色彩對應到最接近的 AutoCAD Color Index，這通常決定切割機的操作。DXF 只有線條圖：照片或套用濾鏡的區域沒有切割路徑，會被捨棄並附上警告。要保留點陣內容，請使用 SVG 或 PDF。
@@ -214,7 +225,7 @@ Street Map 是最清楚的例子。整份設計本來就是筆畫，所以每條
 
 ## 列印
 
-**Print PDF** 對照具名的印刷條件寫出 CMYK，預設為 **Coated FOGRA39**。有測量油墨值的品牌色票會精確轉換；其他色彩使用標準的裝置轉換。**Print TIFF** 為 RIP 寫出 DeviceCMYK 像素，並在其 TIFF 中繼資料中記錄相同的印刷條件。Colour profile 控制項驅動兩者；[色彩描述檔](#colour-profiles)有詳細說明。
+**Print PDF** 對照具名的印刷條件寫出 CMYK，預設為 **Coated FOGRA39**。有測量油墨值的品牌色票會保留這些數值。其他色彩會透過印刷描述檔轉換：預設使用 Lolly 自己的 Coated FOGRA39 描述檔，或在你選擇其 **Embed** 列時使用你自己的描述檔。灰色與黑色只保留在黑版上，因此小字不會套印不準。FOGRA51、SWOP 與 GRACoL 使用標準的裝置轉換。**Print TIFF** 為 RIP 寫出 DeviceCMYK 像素，並在其 TIFF 中繼資料中記錄相同的印刷條件。Colour profile 控制項驅動兩者；[色彩描述檔](#colour-profiles)有詳細說明。
 
 **Print marks & bleed** 在列印格式上有自己的卡片：以公釐計的出血，加上 Crop、Registration、Bleed、Colour bars 與 Stamp 詳細資料。
 
@@ -223,6 +234,15 @@ Street Map 是最清楚的例子。整份設計本來就是筆畫，所以每條
 **匯出之前。** 面板底部的 **Before you export** 卡片說明印刷廠即將看到什麼：格式、大小與出血、裁切與出血區域、油墨覆蓋量、色版數量與頁數，標題旁附有判定。它絕不阻擋匯出。Design 一律以自己的檢查顯示該卡片，包括逐層的設計系統內部規範，以及文件文字的寫作訊號（[匯出之前](/info/design.html#before-you-export)），並在 **Print preflight** 開啟時加入這些列印檢查。在其他工具中，請在 Settings → Preferences → Feature flags 下開啟 **Print preflight**；它預設為關閉，而 Lolly Work 部署可以為其成員開啟它。
 
 **匯出之後。** 檔案就緒後，Lolly 會讀回它，並與你的選擇比較：格式、像素或頁面大小、片段長度、透明背景、CMYK 色彩、HDR、Content Credentials，以及 PDF 或 ZIP 密碼。任何不同之處都會寫在匯出卡片上。每項測量都來自檔案，絕不來自設定，而檔案無法回答的屬性不會被算作相符。命令列以 `--export-report` 寫出完整的比較（請見[用 CLI 渲染](/info/cli-rendering.html)）。
+
+**PDF 無障礙檢查。** 對於 PDF，命令列還會在 `--export-report` 檔案的 `pdfAccessibility` 下列出 32 項無障礙檢查。每項檢查都有一個 id、一段白話說明、一個結果，以及它在檔案中發現問題的位置：
+
+- **通過**：該檢查查看了某些內容，沒有發現問題。
+- **失敗**：該檢查發現了問題。會列出相關的頁碼或標籤。
+- **不適用**：檔案中沒有該類內容可供檢查，例如沒有表格的檔案中的表格檢查。這不代表檔案本身的任何情況。
+- **需要人工**：有六項檢查無法由程式判斷（閱讀順序、色彩對比、閃爍、指令碼、時間限制與重複連結）。
+
+這份清單不是結論。它並不表示某個 PDF 符合 PDF/UA，也不表示使用輔助技術的人可以使用它，仍然需要有人用螢幕閱讀器檢查檔案。Lolly 自己的 PDF 目前無法通過標籤檢查，因為匯出器尚未寫入任何標籤。檢查在你的裝置上讀取檔案，不會變更任何內容。需要密碼的檔案會被標為未檢查，而不是通過。要檢查別人寄給你的 PDF，請把它拖進 [Strip Hidden Data](/info/utilities.html)，它會在 **PDF accessibility checks** 下顯示同樣的清單。
 
 Design 的 inspector 檢查與 Design System Setup 中的品牌比較是獨立的檢查：它們檢視設計，而這兩張卡片檢視檔案。
 
@@ -280,7 +300,7 @@ Lolly 讀取每種現代 CSS 色彩，以感知方式進行色彩運算，並以
 - **SVG**、**EMF**、**EPS** 與 **DXF** 是沒有內嵌描述檔的向量：SVG 的色彩是 sRGB，EMF 與 EPS 使用裝置 RGB，**EPS (CMYK)** 寫出 DeviceCMYK，DXF 使用 AutoCAD Color Index。SVG、EPS 與 DXF 會把文字轉成路徑外框。EMF 讓文字在 Office 與 Google Slides 中保持即時且可編輯，只有該格式無法表達的區段才退回外框；匯出面板的 **Outline fonts** 選項則強制到處都使用路徑。SVG 也會重現 CSS 方塊陰影，包括內陰影與外陰影。
 
 ::: details PDF/X-4 與你自己的印刷描述檔
-Lolly 不附帶任何 CMYK 描述檔。具名的印刷條件會寫出輸出意圖，但不宣稱符合 PDF/X-4，因為 PDF/X-4 要求內嵌描述檔。
+Lolly 附帶一個 CMYK 描述檔，它依 Fogra 的 FOGRA39 特性化資料擬合，並以 CC0 釋出，預設印刷條件下的色彩都透過它轉換。該描述檔不會內嵌，因為它是 ICC 4.3 版，而 PDF/X-4 最高接受 4.2 版。因此具名的印刷條件會寫出輸出意圖，但不宣稱符合 PDF/X-4。
 
 載入你自己的 CMYK 描述檔，並在 Colour profile 控制項中選擇它的 **Embed** 列。它會作為檔案的 *DestOutputProfile* 內嵌，而只要檔案的其餘部分允許，PDF 就宣稱符合 PDF/X-4。它宣告的印刷條件是從該描述檔讀出的：描述檔能證明時是已登記的名稱，否則是以描述檔自己名稱表示的 `Custom`。
 
@@ -400,8 +420,8 @@ Lolly 不附帶任何 CMYK 描述檔。具名的印刷條件會寫出輸出意�
 | 向量 | `svg` · `svgz`（gzip 壓縮的 SVG） · `emf` · `wmf` · `eps` · `eps-cmyk`（EPS CMYK） · `dxf`（切割檔案） |
 | 頁面與文件 | `pdf` · `pdf-cmyk`（Print PDF） · `pptx`（PowerPoint） · `docx`（Word） · `odt`（OpenDocument Text） · `idml`（InDesign） · `penpot`（Penpot 設計檔案） · `scorm`（課程套件，一個 ZIP） |
 | 動態 | `gif` · `apng`（Animated PNG） · `webp-anim`（Animated WebP） · `svg-anim`（Animated SVG） · `webm` · `mp4` · `lottie`（dotLottie） · `premiere-xml`（Premiere XML + media） |
-| 音訊 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| 文字與資料 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl`（GIMP 調色盤） |
+| 音訊 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (MIDI 音符，來自 Rondocode) |
+| 文字與資料 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl`（GIMP 調色盤） |
 | 套件與封裝 | `zip` · `rpm` 與 `tar.gz`（封入 Linux 套件的渲染結果） |
 
 有幾個 id 來自工具自己的匯出程式碼：`ase`（Adobe Swatch Exchange，來自 Palette Lab）以及 `exr` 與 `hdr`（高動態範圍點陣圖，來自 Darkroom）。**Convert Font** 從你提供的字型檔案寫出 `ttf`、`otf` 與 `woff`，所以單純的連結沒有東西可供它渲染。

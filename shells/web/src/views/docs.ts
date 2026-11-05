@@ -41,7 +41,7 @@ import '../styles/parts/docs-chrome.css';
 import '../styles/parts/docs.css';
 import '../styles/parts/docs-components.css';
 import { escape, safeHref } from '../utils.ts';
-import { t, tRaw, currentLang, normalizeLang, docsInfoHref, LANG_ICON_SVG, type Lang } from '../i18n.ts';
+import { t, tRaw, currentLang, normalizeLang, docsHref, docsInfoHref, LANG_ICON_SVG, type Lang } from '../i18n.ts';
 import { armViewEnter } from '../view-enter.ts';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
 import { createThemeToggle } from '../components/theme-toggle.ts';
@@ -192,11 +192,13 @@ export async function mountDocs(
   const showStatus = (message: string, extra = ''): void => {
     contentEl.innerHTML = `<p class="docs-status">${escape(message)}${extra}</p>`;
   };
-  // The static-page escape hatch every failure branch below appends. `url` is the
-  // first-party /info/ path built above (route-constrained slug), and the gate keeps
-  // that true if the construction ever changes.
+  // The static-page escape hatch every failure branch below appends: the page in the
+  // reader's language, which is the first-party /info/ path above, or the same page on
+  // lolly.tools when this build leaves that language out (route-constrained slug either
+  // way). The gate keeps the scheme to https or a path if the construction ever changes.
+  const staticPage = docsHref(slug, lang);
   // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated in the guard above
-  const openDocsLink = safeHref(url) ? ` <a href="${escape(url)}" target="_blank" rel="noopener">${t('Open the docs')}</a>` : '';
+  const openDocsLink = safeHref(staticPage) ? ` <a href="${escape(staticPage)}" target="_blank" rel="noopener">${t('Open the docs')}</a>` : '';
 
   // A build may ship English-only docs - the mobile app prunes the locale page
   // trees from its embed for size (shells/tauri-mobile build:frontend). The

@@ -10,9 +10,9 @@ Dinadaanan ng pahinang ito ang canvas mula sa unang kahon hanggang sa tapos na d
 
 Nagsisimula ang **top bar** sa **Home**, ang **File menu** at ang pangalan ng dokumento (i-click ang pangalan para palitan ang pangalan ng dokumento). Nasa gitna ang **Undo**, **Redo**, **History**, ang mga kontrol sa zoom (kasama ang **Fit all** at **Fit artboard**) at mga toggle para sa **Timeline**, **Navigator** at **Inspector**. Sa kanan ay ang **Share**, **Present** at **Export**. Sa phone, lumilipat sa **More actions** ang mga bihirang gamitin na button.
 
-Hawak ng **tool rail** sa gilid ang Lolly menu at ang mga tool na ginagamit mo sa pagguhit: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, saka ang mga button ng Timeline, Artboards at Auto-arrange.
+Hawak ng **tool rail** sa gilid ang Lolly menu at ang mga tool na ginagamit mo sa pagguhit: **Pointer**, **Add a box**, **Pen** (kahati nito sa button ang **Pencil**), **Edit points**, **Line**, saka ang mga button ng Timeline, Artboards at Auto-arrange.
 
-![Ang tool rail ng free canvas: isang drag grip, ang Lolly menu, tapos Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards at Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Ang tool rail ng free canvas: isang drag grip, ang Lolly menu, tapos Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards at Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Gumagana ang canvas tulad ng pasteboard ng designer sa paligid ng artboard:
 
@@ -79,7 +79,7 @@ Sakop ng mga kahon, bilog at bilugang frame ang karamihan ng layout. Para sa anu
 
 **Ituloy ang bukas na path.** Nakabukas ang Pen, pindutin ang alinmang dulo ng bukas na path at muli mong iginuguhit ang path na iyon: bawat click ay nagdaragdag ng punto pagkatapos ng dulong iyon, o sa harap ng unang punto kapag nagsimula ka sa simula. Itinatago ng Enter ang resulta at iniiwan ng Escape ang path nang eksakto kung paano ito dati. Nananatiling parehong kahon ang path, kasama ang fill, stroke at arrowhead nito, at ibinabalik ito ng isang undo. Binabawi lang ng Delete ang mga punto na idinagdag mo. Ang saradong hugis, ang linyang nakakabit sa kahon at ang path na may ilang bahagi ay walang malayang dulo na maitutuloy.
 
-**Gumuhit ng freehand gamit ang Pencil.** Itinatala ng **Pencil** button ng rail (o `Shift C`) ang stroke mo habang nagda-drag ka. Pagbitaw mo, pinapakinis ng Lolly ang stroke sa ilang punto na may Bezier handle, iniingatan ang matatalim na liko bilang sulok, at pinananatili ang kurba sa loob ng ilang screen pixel mula sa dinaanan ng kamay mo. Ang stroke na nagtatapos malapit sa simula nito ay sumasara. Ang resulta ay karaniwang path, na may parehong paint ng pen path, at puwede mong i-edit ang mga punto nito pagkatapos.
+**Gumuhit ng freehand gamit ang Pencil.** Pindutin ang `Shift C`, o pindutin nang matagal ang **Pen** button sa rail (o i-right-click ang button) at piliin ang **Pencil**; pagkatapos, ipinapakita ng button ang Pencil hanggang piliin mo ulit ang Pen. Itinatala ng Pencil ang stroke mo habang nagda-drag ka. Pagbitaw mo, pinapakinis ng Lolly ang stroke sa ilang punto na may Bezier handle, iniingatan ang matatalim na liko bilang sulok, at pinananatili ang kurba sa loob ng ilang screen pixel mula sa dinaanan ng kamay mo. Ang stroke na nagtatapos malapit sa simula nito ay sumasara. Ang resulta ay karaniwang path, na may parehong paint ng pen path, at puwede mong i-edit ang mga punto nito pagkatapos.
 
 Ang resulta ay karaniwang kahon. Ilipat, i-resize, i-rotate, i-group, i-align, i-restack, punan, i-shade o i-fade ang path tulad ng anumang ibang kahon. Ang unang path ay kumukuha ng fill at stroke na ibinibigay ng brand mo sa path, at ang bawat bagong path pagkatapos ay kumukuha ng huli mong ginamit. Sa tool na walang itinatakda ang brand para sa mga path, ang bagong path ay may stroke sa kulay na ginamit mo sa pagguhit, kaya hindi kailanman di-nakikita ang hugis.
 
@@ -121,6 +121,25 @@ Tatlo pa ang gumagana sa isang hugis. Ang **Outline stroke…** ay ginagawang pu
 ![Isang gasuklay at isang singsing na may tunay na butas, parehong gawa ng Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Ang resulta ay bagong path na puwede mong ituloy na i-edit gamit ang pen, naka-store bilang simpleng Bezier curve, kaya hindi nadadala ang orihinal na spline type. Tunay na butas ang mga butas: ang **Fill rule** control sa stroke panel ang nagpapasya kung pinupunan ng magkapatong na contour (*non-zero*) o tumatagos (*even-odd*). Tumatanggi ang mga operasyon sa halip na manira: kung hihilingin mong i-intersect ang dalawang hugis na hindi magkapatong, walang magbabago. Ang mga text at image box ay walang outline, kaya hindi sila ginagalaw.
+
+## Mag-trace ng larawan
+
+Pumili ng isang larawan, i-right-click ito at piliin ang **I-trace ang larawan…** para gawing mga hugis na maeedit ang larawan. Pumili ng preset at pindutin ang **I-trace**:
+
+- Ang **Logo** ay nakakakita ng ilang flat na kulay at pinananatili ang malinis na gilid at tunay na bilog at linya. Tinatanggihan nito ang larawang may gradient o photo tone at sinasabi ito.
+- Ang **Ilustrasyon** ay nagta-trace ng ilang kulay bilang mga punong hugis, flat na art o posterised na larawan.
+- Ang **Line art** ay nagta-trace ng madilim na linya sa maliwanag na pahina bilang mga itim na hugis.
+- Ang **Centreline** ay nagta-trace ng madilim na linya bilang mga solong stroke, kaya mapapalitan mo ang bigat nila pagkatapos.
+
+Idinaragdag ang mga hugis bilang group sa ibabaw lang ng larawan, na nananatili sa kinalalagyan nito. Itago o i-delete ang larawan para makita lang ang mga path. Tumatakbo ang trace sa device mo bilang background job na may Cancel button, at walang ina-upload. Karaniwang tumatagal ng isa hanggang ilang segundo ang 1500 pixel na larawan, at mas matagal ang abalang litrato.
+
+Sinusunod ng trace ang ipinapakita ng kahon, kaya ang naka-crop na (Cover) na larawan ay tina-trace lang ang nakikitang bahagi. Ito ang mga limitasyon:
+
+- Ini-scale pababa ang mga larawan sa hanggang 1500 pixel sa mahabang gilid bago i-trace, kaya ang mga gilid ay nilalagay sa bahagi ng laking iyon, hindi ng orihinal.
+- Ang isang trace ay gumagawa ng hanggang 1,500 hugis at 60,000 point. Karaniwang lumalampas dito ang litrato, at sinasabi ito ng Design nang walang binabago. Subukan ang Logo o Line art, o mas simpleng larawan.
+- Nagiging mga banda ng flat na kulay ang mga gradient, at nagiging matigas ang gilid na mga hugis ang malalambot na anino.
+- Hindi ina-apply sa mga path ang corner radius, shape mask at effect sa kahon ng larawan.
+- Ang parehong larawan at preset ay laging nagbibigay ng parehong mga hugis.
 
 ## Mga stroke
 
@@ -195,9 +214,9 @@ Kung may konkretong suhestiyon sa kulay o font, binabago ng button nito ang isan
 
 ### Mga house rule at ang writing signal
 
-Sinusuri din ng card ng export panel ang mga house rule na dala ng design system mo, tulad ng bigat at alignment ng text, aprubadong pagpapares ng kulay o logo bawat surface, layer por layer. Ang bawat natuklasan ay babala na may pangalan ng layer sa itaas ng rule. Ang rule na walang checker ang build na ito ay inililista bilang hindi nasuri, hindi kailanman bilang sinusunod. Inililista ng [Usage & rules](/info/brand-studio.html#usage-rules) ang mga rule, at ang `lolly check` ay naglalapat ng parehong mga ito sa naka-save na dokumento.
+Sinusuri din ng card ng export panel ang mga house rule na dala ng design system mo, tulad ng bigat at alignment ng text, aprubadong pagpapares ng kulay o logo bawat surface, layer por layer. Ang bawat natuklasan ay babala na may pangalan ng layer sa itaas ng rule. Ang rule na walang checker ang build na ito ay inililista bilang hindi nasuri, hindi kailanman bilang sinusunod. Inililista ng [Rules](/info/brand-studio.html#rules) ang mga rule, at ang `lolly check` ay naglalapat ng parehong mga ito sa naka-save na dokumento.
 
-Ipinapakita ng parehong card ang writing signal para sa text na iginuguhit ng dokumento: ang band nito (none, weak, notable o strong), saka ang sariling pangungusap ng Verify na may score na ang kabuuan ay 100 at hanggang tatlong naka-flag na parirala, bawat isa kasama ang layer na may hawak sa kanila. Dinadala ng **Open the text in Verify** ang text na iyon sa [Verify](/#/verify) para sa buong pagbasa; ipinapaliwanag ng [AI evidence in Verify](/info/verify-ai-evidence.html) kung ano ang tinitimbang ng score. Ang score ay signal, hindi hatol: binibilang nito ang mga pattern na karaniwan sa generated na pagsulat at hindi nito masasabi kung sino ang sumulat ng mga salita. Hindi isinasama sa dalawang check ang mga nakatagong layer, at sinasabi ng card kung ilan.
+Ipinapakita ng parehong card ang writing signal para sa text na iginuguhit ng dokumento: ang band nito (none, weak, notable o strong), saka ang sariling pangungusap ng Verify na may score na ang kabuuan ay 100 at hanggang tatlong naka-flag na parirala, bawat isa kasama ang layer na may hawak sa kanila. Dinadala ng **Open the text in Verify** ang text na iyon sa [Lolly Verify](/#/verify) para sa buong pagbasa; ipinapaliwanag ng [AI evidence in Verify](/info/verify-ai-evidence.html) kung ano ang tinitimbang ng score. Ang score ay signal, hindi hatol: binibilang nito ang mga pattern na karaniwan sa generated na pagsulat at hindi nito masasabi kung sino ang sumulat ng mga salita. Hindi isinasama sa dalawang check ang mga nakatagong layer, at sinasabi ng card kung ilan.
 
 Ang mga natuklasan sa house rule at malakas na writing signal ay bumibilang sa kabuuang "to fix" ng card para madaling mahanap. Nagbibigay-alam lang sila at hindi kailanman humaharang: nananatiling available ang Download, at walang i-dismiss o itatala bilang exception. Ang agent na gumagawa sa bukas na dokumento ay nakakakuha ng parehong ulat sa pamamagitan ng mga site tool nito ([Mga agent sa bukas na dokumento](/info/open-document-agents.html)).
 
