@@ -26,7 +26,7 @@ reach at all. The action in each table then decides what that caller may do ther
 | A person | the `lw_session` cookie, from signing in on the instance or approving a device sign-in | every route their role and grants allow |
 | A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | a scoped token reaches only the routes its scopes open and the action there allows; a token with no scopes reaches routes gated by an action its role holds: automation (but not `GET /render/…`), uploads and file references, catalog submissions of bytes or uploads, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals, deliveries to a destination that needs approval, live collaboration, telemetry consent, comments, versions, history, access requests, project file uploads and submitting a project file to the catalog |
 | A guest | the `lw_guest` cookie, from joining through a guest-edit link | only what the link grants: the document and tool it opens (that tool's files under `/tools/*`, a catalog that lists only that tool and `GET /render/…` for it), its own session and telemetry |
-| An agent | `Authorization: Bearer <key>` on `/api/workspace/mcp` only: `POST` for MCP calls, `DELETE` to disconnect ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API |
+| An agent | `Authorization: Bearer <key>` on `/api/workspace/mcp` only: `POST` for MCP calls, `DELETE` to disconnect ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API. A service token uses [`/api/v1/mcp`](#organisation-mcp) instead |
 | An identity provider | a SCIM bearer on `/scim/v2/*` only ([SCIM](#scim-provisioning)) | the SCIM protocol routes |
 | A signed link | the `?s=` signature on `/l/:id`, plus the `lw_link_<id>` cookie for a password link | that link's target |
 | A job receiver | the `x-lw-job-token` header on `GET /api/v1/jobs/:id/result` | that one job's result, for 24 hours |
@@ -402,6 +402,17 @@ check still runs. [Who can call what](#who-can-call-what) lists where a token is
 refused, and [Automate with the Lolly Work API](automation-api.md) lists the scopes and shows a
 first call.
 See [service tokens](enterprise-identity.md#service-tokens).
+
+### Organisation MCP
+
+| Route | Auth | Notes |
+|---|---|---|
+| `POST /api/v1/mcp` | service token | MCP over Streamable HTTP, with no session. Each tool call runs the route it mirrors as the token |
+| `GET /api/v1/mcp` | service token | `405`, because the endpoint has no server-to-client stream |
+
+A person's session gets `401 SERVICE_TOKEN_REQUIRED`, and a request from another origin gets
+`403 ORIGIN_REFUSED`. [Connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp) lists the
+tools and the route each one runs.
 
 ### SCIM provisioning
 
