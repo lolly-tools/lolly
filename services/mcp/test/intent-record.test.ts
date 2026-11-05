@@ -7,6 +7,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { generateSigner } from '../../../engine/src/c2pa.ts';
+import { recordApprovalInCredential } from '../../../engine/src/c2pa-approval.ts';
 import { dispatch } from '../src/server.ts';
 import { exportUrl } from '../src/render.ts';
 import type { JsonRpcResponse } from '../src/protocol.ts';
@@ -188,4 +190,30 @@ test('a digest or a choice sent by the caller is not read: the record states wha
   const resolved = await call('lolly_resolve_intent', { intent: INTENT });
   const answer = resolved as unknown as { structuredContent: { intentDigest: string } };
   assert.equal(json.report.intent.intentDigest, answer.structuredContent.intentDigest, 'the same intent gives the same digest in both tools');
+});
+
+test('lolly_verify reports an approval as the signer\'s record, and says so when the file changed', async () => {
+  const rendered = await call('lolly_render', { ...RENDER, c2pa: '30' });
+  const reviewed = Buffer.from(fileOf(rendered).base64, 'base64');
+  const dates = { notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + 86_400_000) };
+  const outcome = await recordApprovalInCredential(reviewed, 'svg', { approvalId: 'apr_abc12345', decidedAt: '2026-11-05T10:15:00.000Z', signer: await generateSigner(dates), dates });
+  assert.equal(outcome.status, 'recorded');
+  if (outcome.status !== 'recorded') return;
+  const read = async (bytes: Uint8Array): Promise<{ text: string; json: Record<string, any> }> => {
+    const seen = await call('lolly_verify', { file: { base64: Buffer.from(bytes).toString('base64'), name: 'out.svg' } });
+    return { text: seen.content[0]!.text!, json: JSON.parse(seen.content[1]!.text!) };
+  };
+  const intact = await read(outcome.bytes);
+  assert.match(intact.text, /Approval:\n\s+Request\s+apr_abc12345/);
+  assert.match(intact.text, /A record the signer made/);
+  assert.equal(intact.json.report.approval.approvalId, 'apr_abc12345');
+  assert.doesNotMatch(intact.text, /compliant/i);
+
+  const artwork = Buffer.from(outcome.bytes).indexOf('<rect');
+  assert.ok(artwork > 0);
+  const changed = new Uint8Array(outcome.bytes);
+  changed[artwork + 1] = 'R'.charCodeAt(0);
+  const broken = await read(changed);
+  assert.match(broken.text, /changed after the approval was recorded/);
+  assert.match(broken.text, /does not match the signed record/);
 });

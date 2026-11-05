@@ -7,7 +7,9 @@
 .asset-viewer-fallback { object-fit:contain; width:100%; min-height:0; flex:1; }
 .cat-details.has-format-viewer .cat-details-preview { display:flex; flex-direction:column; overflow:hidden; }
 .cat-details.has-format-viewer .cat-details-nav { display:none; }
-.cat-details.has-format-viewer { width:min(96vw,100rem); }
+/* clip, not hidden: a sheet with hidden overflow is still a scroller, and an open inspector
+   section gives this one overflow to scroll, which slides the header and Close out of view. */
+.cat-details.has-format-viewer { width:min(96vw,100rem); overflow:clip; }
 .asset-viewer-details-toggle { display:none; }
 .asset-pdf-workspace { position:relative; flex:1; min-height:0; display:flex; }
 .asset-pdf-scroll { position:absolute; inset:0; overflow:auto; overscroll-behavior:contain; }
@@ -39,7 +41,7 @@
   /* The viewer fills the screen under the dialog's header, and the whole inspector (name,
      Download, Details and the rest) takes the same space when the header's Details button
      is pressed. Both sit in the one grid row under the header, so the header covers neither. */
-  .cat-details.has-format-viewer { width:100vw; max-width:100vw; height:100dvh; max-height:100dvh; margin:0; border-radius:0; overflow:hidden; }
+  .cat-details.has-format-viewer { width:100vw; max-width:100vw; height:100dvh; max-height:100dvh; margin:0; border-radius:0; overflow:clip; }
   .cat-details[open].has-format-viewer { display:grid; grid-template:auto minmax(0, 1fr) / minmax(0, 1fr); }
   .cat-details.has-format-viewer > :is(.cat-details-preview, .cat-inspector) { grid-area:2 / 1; }
   .cat-details.has-format-viewer .cat-details-preview { height:auto; max-height:none; min-height:0; padding:0 0 env(safe-area-inset-bottom); border-radius:0; }

@@ -49,7 +49,7 @@ import { wireTextHandoffs } from '../lib/text-handoff.ts';
 import { icon as glyph, type IconName } from '../lib/icons.ts';
 import { t, tRaw, tn } from '../i18n.ts';
 import { inputsDigestHtml, seedValuesFromDigest } from './valid-made-from.ts';
-export { inputsDigestHtml };
+import { recordPanelsHtml } from './valid-record.ts';
 // The WP-F async-job foundation: the watermark work is heavy and long, so it runs
 // as a registered job with the global toast owning progress and cancel, rather
 // than as an in-view bar that dies with the view. See the deep-scan job section below.
@@ -1660,7 +1660,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
           ${factsBlock}
         </div>
       </details>` : '';
-  const panelsBlock = `<div class="valid-panels">${madeFromBlock}${scriptBlock}${sourcesBlock}${summaryBlock}${checksBlock}${renderMetadata(meta, fileIndex)}</div>`;
+  const panelsBlock = `<div class="valid-panels">${recordPanelsHtml(report)}${madeFromBlock}${scriptBlock}${sourcesBlock}${summaryBlock}${checksBlock}${renderMetadata(meta, fileIndex)}</div>`;
   // The two "key validations" + the signed-by caption shown under the "Made with
   // Lolly" pill - only for the flagship lolly hero; every other good state keeps
   // the single prose sub + identityLine above.

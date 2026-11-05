@@ -611,6 +611,7 @@
 .cat-inspector-heading { margin: 0 0 10px; }
 .cat-provenance-meta { margin: 12px 0 0; }
 .cat-provenance-meta > div { grid-template-columns: 1fr; gap: 4px; }
+.cat-record-line { display: block; padding-block: var(--sp-2); margin-block: calc(var(--sp-2) * -1); max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: start; }
 .cat-provenance-meta .cat-details-ai { display: block; font-size: var(--fs-sm); }
 .cat-details-provenance .cat-details-cred { margin: 10px 0 0; gap: 10px; }
 .cat-act-verify { font-size: var(--fs-sm); }

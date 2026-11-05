@@ -354,14 +354,14 @@ A published version is a **permanent, named copy** kept on this device. It never
 
 ### Publish a brand page
 
-A brand page is one address for people and for agents: a page that shows the logos, colours, type and examples, with the same facts in files beside the page. **Publish a brand page**, under Versions & publishing, shows the live page and, beside the page:
+A [brand page](/info/brand-page.html) is one address for people and for agents: a page that shows the logos, colours, type and examples, with the same facts in files beside the page. **Publish a brand page**, under Versions & publishing, shows the live page and, beside the page:
 
 - **Goes public**: every file, grouped, with its size.
 - **Held back**: what stayed out, and why. A logo with no recorded licence stays out until you tick the logo's name. A font file needs a recorded licence that allows passing it on, and the page shows an outlined specimen when the file stays out. Internal brand skills never appear.
 - **What was checked**: colour pairs per colourway and mode, and the house rules. These are measurements, not a verdict.
 - **In your words**: a usage statement and a contact. The page prints what you write and Lolly adds no licence or legal claim. A switch turns off the "Made with Lolly" line in the footer.
 
-**Download folder** saves the folder as a ZIP for you to host wherever you choose, and nothing goes public until you do. An instance that serves brand pages also offers **Publish to** its address, which is one explicit press, and goes through its approval chain when it has one. A managed design system publishes only when its manager allows.
+**Download folder** saves the folder as a ZIP for you to host wherever you choose, and nothing goes public until you do. In a terminal, `lolly system publish --out=<dir>` writes the same folder. An instance that serves brand pages also offers **Publish to** its address, which is one explicit press, and goes through its approval chain when it has one. A managed design system publishes only when its manager allows.
 
 ### Connect an agent
 
@@ -394,10 +394,6 @@ Changing what a server supplies is an administrator's task: its operator changes
 ## Use design context outside the app
 
 **Download design context** saves the token document, resolved colours, declared font families, asset ids, source evidence where recorded, coverage and explicit rules, with no font files and no proof of ownership. The command line reads the file with no server: `lolly system import` makes it the terminal's design system and `lolly system check` checks Lolly Design inputs against the saved context. [Bring your design system](/info/cli.html#bring-your-design-system) covers the import and [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) covers the check, and an MCP client reads the same brief from `lolly://design-context` ([MCP Server](/info/mcp.html)).
-
-### Publish a brand page
-
-A [brand page](/info/brand-page.html) gives your design system one address: logos, colours, type and rules for people, with tokens, `DESIGN.md` and skills for agents in the same folder. In a terminal, `lolly system publish --out=<dir>` writes the folder and lists what it held back. Nothing goes public until you host the folder, on any static host or on [Lolly Work](/info/work-design-system-administration.html#host-a-brand-page).
 
 ## Where to go next
 
