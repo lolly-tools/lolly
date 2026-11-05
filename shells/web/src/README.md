@@ -13,13 +13,13 @@ Roughly 853,000 lines of TypeScript, tests included, and 65,000 lines of CSS.
 | `lib/` | 898 files, 185,293 lines | 548 files, 106,479 lines | 13 files, 1,856 lines |
 | `bridge/` | 256 files, 57,533 lines | 146 files, 29,973 lines | none |
 | `components/` | 134 files, 30,780 lines | 64 files, 16,298 lines | 24 files, 1,633 lines |
-| `org/` | 85 files, 21,394 lines | 58 files, 17,539 lines | none |
+| `org/` | 85 files, 21,410 lines | 58 files, 17,574 lines | none |
 | `collab/` | 20 files, 13,570 lines | 22 files, 14,247 lines | none |
 | `pro/` | 32 files, 9,426 lines | 16 files, 2,305 lines | 3 files, 1,256 lines |
 | `catalog/` | 12 files, 2,116 lines | 10 files, 1,256 lines | none |
 | `capture/` | 5 files, 781 lines | none | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 12 files, 2,183 lines | 142 files, 58,154 lines |
+| `styles/` | none | 12 files, 2,183 lines | 142 files, 58,157 lines |
 
 Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,740 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,390 of that.
 <!-- web-src-dirs:end -->

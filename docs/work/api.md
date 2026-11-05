@@ -1308,7 +1308,7 @@ messages and comment notices arrive.
 | `GET /api/v1/approvals/approvers` | member |
 | `POST /api/v1/approvals/:id/act` | `approval.act` |
 | `POST /api/v1/approvals/:id/withdraw` | member (submitter) |
-| `GET /api/v1/approvals/:id/artifact` | an eligible reviewer or someone who acted; the requester once approved |
+| `GET /api/v1/approvals/:id/artifact` | an eligible reviewer or someone who acted; the requester once approved. An approved request answers with the approved file and `x-lolly-approval-record`; `?file=reviewed` answers with the bytes as reviewed |
 | `GET /api/v1/inbox` | member - `{ messages, unread }` with `ETag: "ib-<16 hex>"` and `cache-control: private, no-cache`; a matching `If-None-Match` answers `304`, so a shell can check often for one header. `messages` holds the caller's messages and comment notices; `unread` counts both, and the tag moves when either changes |
 | `POST /api/v1/inbox/:id/ack` | member - dismisses the message for the caller. For a comment notice (`cn_…`) it deletes the caller's own notice row and nothing else, so the next reply in that thread shows a notice again |
 | `GET/POST /api/v1/messages` | `message.send` |

@@ -197,6 +197,21 @@ const boundedText = (value: unknown, what: string, max = 4096): string => {
   return value;
 };
 const SHA256_TEXT = /^sha256:[0-9a-f]{64}$/;
+const APPROVAL_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+
+// The approval assertion's map. Refuses rather than coerces, and refuses any field it
+// does not name: this record travels in files people share, so what it can hold is
+// fixed here and widening it is a decision, not a parameter.
+function approvalAssertionMap(a: C2paApprovalRecord): Record<string, unknown> {
+  for (const key of Object.keys(a)) {
+    if (key !== 'approvalId' && key !== 'decidedAt' && key !== 'reviewedSha256') throw new Error(`c2pa: an approval record cannot carry '${key.slice(0, 40)}'`);
+  }
+  if (typeof a.approvalId !== 'string' || !APPROVAL_ID.test(a.approvalId)) throw new Error('c2pa: approval.approvalId must be an identifier');
+  if (typeof a.decidedAt !== 'string' || !ISO_INSTANT.test(a.decidedAt) || Number.isNaN(Date.parse(a.decidedAt))) throw new Error('c2pa: approval.decidedAt must be an ISO 8601 date and time');
+  if (typeof a.reviewedSha256 !== 'string' || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
+  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+}
 
 // The c2pa.ingredient.v3 map for a source with no credential of its own.
 // Key order is fixed here; there is no earlier byte layout to preserve.
@@ -289,6 +304,13 @@ interface BuildC2paManifestOptions {
    */
   aiDisclosure?: C2paAiDisclosureInput | readonly C2paAiDisclosureInput[];
   /**
+   * Records an approval decision as {@link LOLLY_APPROVAL_ASSERTION}. Only an update
+   * can carry one: the manifest must name a credentialed parentOf ingredient, the
+   * credential of the file as it was reviewed. Absent, the output is byte-identical
+   * to before this option existed.
+   */
+  approval?: C2paApprovalRecord;
+  /**
    * The C2PA specification version this manifest declares it was produced to
    * (SemVer). C2PA 2.4 moved the field OUT of the claim and INTO
    * `claim_generator_info`, which is where this writes it; the claim-level field
@@ -336,6 +358,8 @@ export interface EmbedOptions {
    * one assertion per model (see {@link buildC2paManifest}).
    */
   aiDisclosure?: C2paAiDisclosureInput | readonly C2paAiDisclosureInput[];
+  /** An approval record, for an update over a credentialed parent. See {@link buildC2paManifest}. */
+  approval?: C2paApprovalRecord;
   /** `claim_generator_info.specVersion` (SemVer) - see {@link C2PA_SPEC_VERSION}. */
   specVersion?: string;
   dates?: Dates;
@@ -748,6 +772,25 @@ export const LOLLY_EXPORT_ASSERTION = 'tools.lolly.export';
  */
 export const LOLLY_RIGHTS_ASSERTION = 'tools.lolly.rights';
 
+/**
+ * Lolly's approval record (CBOR, `{ version: 1, approvalId, decidedAt, reviewedSha256 }`):
+ * the request a person decided, when the decision was made and the digest of the exact
+ * file they reviewed. It says that a signer recorded a decision and never what the
+ * decision covered, and it is not a verdict on the work. The shape is closed on purpose:
+ * the writer refuses any other field, so names, groups, comments and chain names cannot
+ * reach a shared file that way.
+ */
+export const LOLLY_APPROVAL_ASSERTION = 'tools.lolly.approval';
+
+/** What {@link LOLLY_APPROVAL_ASSERTION} records, and all that it records. */
+export interface C2paApprovalRecord {
+  approvalId: string;
+  /** ISO 8601 date and time of the decision. */
+  decidedAt: string;
+  /** `sha256:<64 hex>` of the file as it was reviewed. */
+  reviewedSha256: string;
+}
+
 // The BMFF (mp4) hard-binding assertion label - used here (buildC2paManifest
 // picks it over the byte-range c2pa.hash.data for bmff assets) and by
 // c2pa-containers.ts's BMFF placer/digest, which imports it back from here.
@@ -979,6 +1022,7 @@ export async function buildC2paManifest({
   actions: actionSteps,
   ingredients,
   aiDisclosure,
+  approval,
   specVersion,
   assetHash,
   format = 'application/pdf',
@@ -1046,6 +1090,11 @@ export async function buildC2paManifest({
   // manifest.multipleParents). The components of a composition are componentOf.
   if (relationships.filter((r) => r === 'parentOf').length > 1) {
     throw new Error('c2pa: a manifest may carry only one parentOf ingredient (manifest.multipleParents) - mark the components componentOf');
+  }
+  // An approval is recorded over a credential that already exists. A first credential
+  // written only to say "approved" would state a history this signer never saw.
+  if (approval && !ingList.some((ing, i) => relationships[i] === 'parentOf' && !isSourceIngredient(ing))) {
+    throw new Error('c2pa: an approval record needs a credentialed parentOf ingredient');
   }
   // Build each ingredient's c2pa.ingredient.v3 assertion FIRST: the opened or
   // placed action below must reference it via parameters.ingredients (the spec
@@ -1216,6 +1265,12 @@ export async function buildC2paManifest({
     rightsBox = jumbfSuperbox(UUID_CBOR_CONTENT, LOLLY_RIGHTS_ASSERTION, isoBox('cbor', encodeCbor({ version: 1, sources: rightsSources })));
     storeBoxes.push(rightsBox);
   }
+  // The approval record, last: every manifest without one keeps its exact bytes.
+  let approvalBox: Uint8Array | null = null;
+  if (approval) {
+    approvalBox = jumbfSuperbox(UUID_CBOR_CONTENT, LOLLY_APPROVAL_ASSERTION, isoBox('cbor', encodeCbor(approvalAssertionMap(approval))));
+    storeBoxes.push(approvalBox);
+  }
   const assertionStore = jumbfSuperbox(UUID_ASSERTION_STORE, 'c2pa.assertions', ...storeBoxes);
 
   // JUMBF-box hashed URIs cover the superbox PAYLOAD - the jumd description box
@@ -1231,6 +1286,7 @@ export async function buildC2paManifest({
     ...(await Promise.all(aiBoxes.map(async (a) => ({ url: `self#jumbf=c2pa.assertions/${a.label}`, hash: await sha256(a.box.subarray(8)) })))),
     ...ingredientRefs,
     ...(rightsBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_RIGHTS_ASSERTION}`, hash: await sha256(rightsBox.subarray(8)) }] : []),
+    ...(approvalBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_APPROVAL_ASSERTION}`, hash: await sha256(approvalBox.subarray(8)) }] : []),
   ];
 
   // v2 claim map (c2pa.claim.v2): no free-text claim_generator, no dc:format; a

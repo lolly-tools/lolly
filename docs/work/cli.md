@@ -180,11 +180,12 @@ and `submit` takes `--callback-url <url>` here too.
 ```bash
 lw approvals                                # your requests and inbox
 lw approvals artifact <id> --out card.png   # the file an export review carries
+lw approvals artifact <id> --out card.png --reviewed   # the bytes as reviewed
 ```
 
 `artifact` works for an eligible reviewer, for someone who acted on the request, and for the
 requester once the request is approved. It checks the whole file against its recorded digest before
-writing anything. These commands need a person's session from `lw login`. A service token cannot read
+writing anything, and says whether the approval is recorded in that file. These commands need a person's session from `lw login`. A service token cannot read
 approvals, because a decision about a file is a person's act. Decide in the console, where the file
 is on screen. See [review an exported file](approvals.md#review-an-exported-file).
 

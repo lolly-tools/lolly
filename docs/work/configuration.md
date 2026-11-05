@@ -300,6 +300,7 @@ default, and suggests the password tick for `example.com` addresses:
 | `approvalArtifacts.instanceBudgetBytes` | `1073741824` | bytes all stored request files may hold (1 GiB). Over it: `413 APPROVAL_ARTIFACT_BUDGET` |
 | `approvalArtifacts.closedRetentionDays` | `30` | days a rejected request keeps its file; `0` keeps the file with the record. A withdrawn request's file goes at once |
 | `approvalArtifacts.approvedRetentionDays` | `0` | days an approved request keeps its file; `0` keeps the file with the record |
+| `approvalArtifacts.recordInCredentials` | `true` | whether a request may ask for its [approval to be recorded in the approved file's Content Credentials](approvals.md#review-an-exported-file). It also needs a signing identity. `false` leaves every approved file as reviewed |
 
 Both blocks take whole numbers above zero, and the caps nest:
 `maxFileBytes` no larger than `projectBudgetBytes` (or `ownerBudgetBytes`), and that no larger

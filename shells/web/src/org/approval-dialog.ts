@@ -56,7 +56,7 @@ interface ExportReviewBody {
   nominees: string[];
   exportReview: {
     uploadId: string; checksum: string; toolId: string; format: string; name: string;
-    query?: string; sessionId?: string; widthPx?: number; heightPx?: number;
+    query?: string; sessionId?: string; widthPx?: number; heightPx?: number; recordInCredentials?: boolean;
   };
 }
 
@@ -65,7 +65,13 @@ interface ExportReviewBody {
 const QUERY_LIMIT_CHARS = 256 * 1024;
 
 /** What the instance says about how large a request's file may be. */
-export interface ExportReviewLimits { maxFileBytes: number; partBytes: number }
+export interface ExportReviewLimits {
+  maxFileBytes: number;
+  partBytes: number;
+  /** True when this instance can write the approval into the approved file's Content
+   *  Credentials. Absent, nothing about it is offered. */
+  recordInCredentials?: boolean;
+}
 
 // ── Pure helpers (exported for tests) ─────────────────────────────────────────
 
@@ -98,6 +104,8 @@ export function buildApprovalBody(o: { subjectRef: string; title: string; chainI
 export function buildExportReviewBody(o: {
   uploadId: string; checksum: string; toolId: string; title: string; chainId: string; nominee: string;
   artifact: ApprovalArtifact; widthPx?: number; heightPx?: number;
+  /** The person's choice, sent only where the instance offers one. */
+  recordInCredentials?: boolean;
 }): ExportReviewBody {
   const { artifact } = o;
   return {
@@ -107,6 +115,7 @@ export function buildExportReviewBody(o: {
       ...(artifact.query !== undefined && artifact.query.length <= QUERY_LIMIT_CHARS ? { query: artifact.query } : {}),
       ...(artifact.sessionId ? { sessionId: artifact.sessionId } : {}),
       ...(o.widthPx ? { widthPx: o.widthPx } : {}), ...(o.heightPx ? { heightPx: o.heightPx } : {}),
+      ...(o.recordInCredentials !== undefined ? { recordInCredentials: o.recordInCredentials } : {}),
     },
   };
 }
@@ -243,6 +252,11 @@ export function openApprovalDialog(ctx: ApprovalRequestContext, limits?: ExportR
         <div class="approval-file-stage" data-file-stage></div>
         <p class="approval-file-facts" data-file-facts></p>
         <p class="approval-file-note">${escape(t('Reviewers see this exact file. You get it once it is approved.'))}</p>
+        ${limits?.recordInCredentials ? `<label class="approval-file-record">
+          <input type="checkbox" class="field-check" data-record-approval checked>
+          <span>${escape(t('Record this approval in the file’s Content Credentials'))}
+            <small>${escape(t('Adds the approval id, the date and the reviewed file’s digest. No names.'))}</small></span>
+        </label>` : ''}
       </div>` : `<p class="approval-file-note">${escape(t('The file is not attached, so reviewers see only the title.'))}</p>`}
 
       <label style="display:flex;flex-direction:column;gap:.25rem;font-size:13px;font-weight:600">
@@ -376,8 +390,10 @@ export function openApprovalDialog(ctx: ApprovalRequestContext, limits?: ExportR
         uploadId ??= await sendApprovalFile(artifact, checksum, limits.partBytes, (sent, total) => {
           if (total > limits.partBytes && dialog.isConnected) submitBtn.textContent = tRaw('Sending… {percent}%', { percent: Math.round((sent / total) * 100) });
         });
+        const record = dialog.querySelector<HTMLInputElement>('[data-record-approval]');
         body = buildExportReviewBody({ uploadId, checksum, toolId, title, chainId, nominee: chosen, artifact,
-          ...(fileSize ? { widthPx: fileSize.width, heightPx: fileSize.height } : {}) });
+          ...(fileSize ? { widthPx: fileSize.width, heightPx: fileSize.height } : {}),
+          ...(record ? { recordInCredentials: record.checked } : {}) });
       } catch (error) {
         failed(fileRefusal(error instanceof ApprovalArtifactError ? error.code : undefined));
         return;

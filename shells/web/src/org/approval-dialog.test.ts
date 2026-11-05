@@ -40,6 +40,14 @@ test('buildApprovalBody assembles the documented POST shape (single nominee)', (
   );
 });
 
+test('buildExportReviewBody sends the recording choice only when the instance offered it', () => {
+  const artifact = { blob: new Blob(['x']), name: 'card.png' };
+  const base = { uploadId: 'upl_a', checksum: 'c'.repeat(64), toolId: 't', title: 'T', chainId: 'c', nominee: 'u', artifact };
+  assert.equal(buildExportReviewBody(base).exportReview.recordInCredentials, undefined);
+  assert.equal(buildExportReviewBody({ ...base, recordInCredentials: true }).exportReview.recordInCredentials, true);
+  assert.equal(buildExportReviewBody({ ...base, recordInCredentials: false }).exportReview.recordInCredentials, false, 'an opt-out travels as a stated choice');
+});
+
 test('buildExportReviewBody names the sent file, reports the values and states no digest of them', () => {
   const blob = new Blob(['x'], { type: 'image/png' });
   const body = buildExportReviewBody({ uploadId: 'upl_a', checksum: 'c'.repeat(64), toolId: 'event-badge', title: 'Q3', chainId: 'brand', nominee: 'u2',
@@ -146,6 +154,33 @@ test('nominee search filters the fetched list client-side (no re-fetch)', async 
   const shown = dlg.querySelectorAll('[data-approver-id]');
   assert.equal(shown.length, 1);
   assert.equal(shown[0]!.getAttribute('data-approver-id'), 'u3');
+});
+
+test('the recording choice appears only where the instance offers it and starts ticked', async () => {
+  const artifact = { blob: new Blob(['x'], { type: 'image/png' }), name: 'card.png' };
+  const limits = { maxFileBytes: 1024, partBytes: 1024 };
+
+  reset();
+  servingApprovers();
+  openApprovalDialog({ toolId: 'event-badge', artifact }, limits);
+  await tick();
+  assert.equal(document.querySelector('[data-record-approval]'), null, 'nothing is offered without the capability');
+
+  reset();
+  servingApprovers();
+  openApprovalDialog({ toolId: 'event-badge', artifact }, { ...limits, recordInCredentials: true });
+  await tick();
+  const box = document.querySelector<HTMLInputElement>('[data-record-approval]');
+  assert.ok(box, 'offered when the instance can write it');
+  assert.equal(box!.checked, true, 'pre-checked, and visible at the moment of the action');
+  assert.match(box!.closest('label')!.textContent || '', /Content Credentials/);
+  assert.match(box!.closest('label')!.textContent || '', /No names/);
+
+  reset();
+  servingApprovers();
+  openApprovalDialog({ toolId: 'event-badge' }, { ...limits, recordInCredentials: true });
+  await tick();
+  assert.equal(document.querySelector('[data-record-approval]'), null, 'with no file there is nothing to record into');
 });
 
 test('choose a nominee → submit POSTs the documented body, then closes on 201', async () => {
