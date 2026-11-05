@@ -45,7 +45,7 @@
     "file": "/catalog/previews/covers/chart.light.svg"
    },
    "dark": {
-    "templateId": "brand-bars",
+    "templateId": "brand-bars-dark",
     "file": "/catalog/previews/covers/chart.dark.svg"
    }
   },
@@ -80,6 +80,42 @@
    "dark": {
     "templateId": "speaker",
     "file": "/catalog/previews/covers/quote-card.dark.webp"
+   }
+  },
+  "week": {
+   "version": "1.0.0",
+   "light": {
+    "file": "/catalog/previews/covers/week.light.svg"
+   },
+   "dark": {
+    "file": "/catalog/previews/covers/week.dark.svg"
+   }
+  },
+  "scorecard": {
+   "version": "1.0.0",
+   "light": {
+    "file": "/catalog/previews/covers/scorecard.light.svg"
+   },
+   "dark": {
+    "file": "/catalog/previews/covers/scorecard.dark.svg"
+   }
+  },
+  "email": {
+   "version": "1.0.0",
+   "light": {
+    "file": "/catalog/previews/covers/email.light.svg"
+   },
+   "dark": {
+    "file": "/catalog/previews/covers/email.dark.svg"
+   }
+  },
+  "brief": {
+   "version": "1.0.0",
+   "light": {
+    "file": "/catalog/previews/covers/brief.light.svg"
+   },
+   "dark": {
+    "file": "/catalog/previews/covers/brief.dark.svg"
    }
   },
   "quote": {
