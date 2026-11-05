@@ -295,6 +295,12 @@ default, and suggests the password tick for `example.com` addresses:
 | `uploads.uploadTtlHours` | `24` | the longest an unfinished upload stays open; at most 720. It expires sooner, 15 minutes after its begin or its last accepted part |
 | `uploads.readyTtlHours` | `24` | how long a finished upload can be named after it finished; at most 720. A catalog submission removes its upload sooner |
 | `uploads.fileTtlHours` | `168` | how long a finished file reference can be read and named after it finished (a week); at most 720. Its owner can delete it sooner |
+| `approvalArtifacts.enabled` | `true` | whether an [approval request can carry its file](approvals.md#review-an-exported-file). Nothing is stored until a chain is bound to a tool and someone asks for a review. Off, shells send a request with the tool's id and no file |
+| `approvalArtifacts.maxFileBytes` | `67108864` | largest file one request can carry (64 MiB); at most `536870912` (512 MiB). Over it: `413 UPLOAD_TOO_LARGE` |
+| `approvalArtifacts.instanceBudgetBytes` | `1073741824` | bytes all stored request files may hold (1 GiB). Over it: `413 APPROVAL_ARTIFACT_BUDGET` |
+| `approvalArtifacts.closedRetentionDays` | `30` | days a rejected request keeps its file; `0` keeps the file with the record. A withdrawn request's file goes at once |
+| `approvalArtifacts.approvedRetentionDays` | `0` | days an approved request keeps its file; `0` keeps the file with the record |
+| `approvalArtifacts.recordInCredentials` | `true` | whether a request may ask for its [approval to be recorded in the approved file's Content Credentials](approvals.md#review-an-exported-file). It also needs a signing identity. `false` leaves every approved file as reviewed |
 
 Both blocks take whole numbers above zero, and the caps nest:
 `maxFileBytes` no larger than `projectBudgetBytes` (or `ownerBudgetBytes`), and that no larger
@@ -372,6 +378,7 @@ want to bound blob growth - see
 | `activity.mode` | `delegated` | `off` disables the activity timeline and agent activity dashboard; `owner-only` restricts them to owners; `delegated` also admits principals holding `audit.export`. Audit reads of those feeds record the reader and filter names, without query values. Security audit endpoints retain their own permissions |
 | `activity.auditSessionUpdates` | `true` | record routine API document saves as `session.update`. Set `false` to omit those new events; other security events and shared document history remain |
 | `retention.telemetryDays` | `0` | delete telemetry events older than this; `0` keeps everything |
+| `retention.renderOutputDays` | `0` | remove durable render output bytes older than this; `0` keeps everything. The record, receipt and identity stay, and an output a delivery points at is kept ([output retention](renders.md#hosting-and-recovery)). Runs daily on the long-lived server |
 | `retention.auditDays` | `0` | trim audit rows older than this. The chain stays verifiable (the boundary's seq + hash are anchored before anything is deleted, and the head row is never trimmed), and a trim never passes the SIEM delivery cursor - an unreachable receiver pauses audit retention rather than losing events. See [operations](operations.md#retention-and-erasure) |
 | `fleet.minEngine` | *unset* | advisory engine version floor (dotted, e.g. `"1.140.0"`): below-floor engines are highlighted in the Fleet view with an upgrade nudge; nothing is blocked or force-upgraded |
 
@@ -631,6 +638,19 @@ never reaches the policy-as-code document or any shell.
 Wiring ClamAV or an ICAP gateway is written up in
 [operations](operations.md#pre-store-scan-hook-for-submissions).
 
+## `automation`
+
+Where automation may call back to. Absent (the default) leaves callbacks with the one endpoint in
+`notify.webhook.url`.
+
+| Key | Default | What it does |
+|---|---|---|
+| `callbacks.allowedOrigins` | `[]` | exact HTTPS origins a job, durable render or render batch may name as its callback URL, such as `https://hooks.example.com`. A path or a plain `http` origin is refused at boot, and so is a list without `LW_WEBHOOK_SECRET`, because a callback is always signed |
+
+A durable render or batch that asks for any other URL is refused at submission. Every send checks the
+list again, so removing an origin stops callbacks still waiting. See [be told when a render
+finishes](renders.md#be-told-when-a-render-finishes).
+
 ## `notify`
 
 Notification egress. Absent (the default) means dormant: zero egress. Sends only to
@@ -858,7 +878,7 @@ instead ([hiding tags](catalog.md#hiding-tags)).
 | `LW_CREDENTIAL_SECRET` | once a provider credential is stored | master key sealing credentials at rest (AES-256-GCM) |
 | `LW_METRICS_TOKEN` | to scrape remotely | bearer token for `/metrics`. Required in production and proxied deployments; unset permits loopback only in an unproxied evaluation instance |
 | `LW_SMTP_PASSWORD` | with `notify.smtp.user` | the relay password (AUTH PLAIN) |
-| `LW_WEBHOOK_SECRET` | with `notify.webhook` | HMAC key signing every outbound webhook event |
+| `LW_WEBHOOK_SECRET` | with `notify.webhook` or `automation.callbacks.allowedOrigins` | HMAC key signing every outbound webhook event and callback |
 | `LW_RENDER_API_URL_SECRET` | with `renderApi.resultUrls.signedDays` above `0` | HMAC key signing migration API result URLs. Rotating it ends every URL already handed out |
 | `LW_SIEM_SECRET` | with `siem.url` | HMAC key signing every forwarded audit batch |
 | `LW_OFREP_TOKEN` | with `featureFlags.ofrep`, when the flag service asks for a credential | sent to the flag service as a bearer token, or as `X-API-Key` with `featureFlags.ofrep.auth: "api-key"`. The Helm chart reads it from `secrets.ofrepToken` or from the same key in `existingSecret` |

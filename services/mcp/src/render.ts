@@ -18,9 +18,9 @@ import {
   C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState, parseProductionSpec,
   parseDimension, toPixels, canvasSizeOf, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa, describeIgnoredTokenChoice,
-  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, designRecordWords, guidedByWords, readDesignRecord,
+  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, designRecordWords, guidedByWords, readDesignRecord, confirmIntentRecord,
 } from '@lolly/engine';
-import type { C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord, CanvasSize } from '@lolly/engine';
+import type { C2paIntentRecord, IntentRecordOutcome, C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord, CanvasSize } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import type { ExportBrandSkill, ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
@@ -120,6 +120,11 @@ export interface RenderOpts {
    * record and left out with it (`madeWith: false`). Never travels in a link.
    */
   brandSkills?: ExportBrandSkill[] | null;
+  /**
+   * What this file was asked to do (plan 350 W4b), resolved here from the agent's intent
+   * by `lolly_render`. Goes in the credential this render stamps. Never travels in a link.
+   */
+  intent?: C2paIntentRecord | null;
 }
 
 /**
@@ -169,6 +174,8 @@ export interface RenderResult {
    * Absent when the file carries none (`madeWith: false`, or no design system).
    */
   designRecord?: DesignRecord;
+  /** What the delivered file holds about its intent, read back from the bytes. Absent when no intent was passed. */
+  intentRecord?: IntentRecordOutcome;
 }
 
 /**
@@ -864,6 +871,9 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   if (o.hdr) p.set('hdr', serializeHdr(o.hdr));
   if (o.depth && o.depth !== 'auto') p.set('depth', String(o.depth));
   if (Number(p.get('cuts')) > 1 || p.has('sampletimes')) p.set('c2pa', o.c2pa?.on ? String(o.c2pa.days ?? 1) : 'off');
+  // An intent record goes in the credential this server stamps, so the browser writes none of
+  // its own. A PDF it stamped could not take a second one.
+  if (o.intent && o.c2pa?.on) p.set('c2pa', 'off');
   p.set('export', '1'); // presence flag → immediate download on load
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -995,6 +1005,7 @@ export async function stampC2pa(
     // Without it an MCP export that drew CC BY artwork records no licence for it.
     ...(ingredients.length || drawn?.pictures.length ? { ingredients: [...ingredients, ...(drawn?.pictures ?? [])] } : {}),
     route: drawn?.route ?? null,
+    intent: o.intent ?? null,
   });
   return embedC2pa(bytes, fmt as ExportFormat, opts);
 }
@@ -1017,7 +1028,7 @@ export async function credentialAndRecord(
     fmt: string; exportFmt: string; deliveredFormat: string; manifest: ToolManifest; values: Record<string, unknown>;
     merged: RenderOpts; placed: C2paSourceIngredient[]; recorded: ExportMeta | null; sampled: boolean; warnings: string[]; drawn?: DrawnHere | null;
   },
-): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null }> {
+): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null; intentRecord?: IntentRecordOutcome }> {
   let bytes = out.bytes;
   type Recorded = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'>;
   // What the file's own metadata holds: the browser tier wrote it, so it is read off
@@ -1032,6 +1043,8 @@ export async function credentialAndRecord(
   const record: Recorded | null = skills.length ? { ...(inFile ?? {}), brandSkills: skills } : inFile;
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
+    // Told not to stamp, the browser saves a PDF the embedder cannot extend until it has a classic table.
+    try { if (o.merged.intent) bytes = await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(bytes, o.exportFmt); } catch { /* the stamp below reports it */ }
     try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
@@ -1052,7 +1065,18 @@ export async function credentialAndRecord(
       if (fromCredential?.brandSkills?.length) designRecord = { ...(designRecord ?? {}), brandSkills: fromCredential.brandSkills };
     } catch { /* an unreadable credential gives no skills */ }
   }
-  return { bytes, designRecord };
+  // Only the finished bytes can say the intent is recorded.
+  let intentRecord: IntentRecordOutcome | undefined;
+  if (o.merged.intent) {
+    if (stamped) {
+      try { intentRecord = confirmIntentRecord(await verifyC2pa(bytes), o.merged.intent); }
+      catch { intentRecord = { state: 'not-recorded', reason: 'not-confirmed' }; }
+    } else {
+      const canCarry = C2PA_FORMATS.includes(o.exportFmt as ExportFormat);
+      intentRecord = { state: 'not-recorded', reason: !canCarry ? 'no-route' : o.merged.c2pa?.on ? 'not-confirmed' : 'no-credential' };
+    }
+  }
+  return { bytes, designRecord, ...(intentRecord ? { intentRecord } : {}) };
 }
 
 /**
@@ -1085,7 +1109,7 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   const last = run.attempts.at(-1)!;
   try { await requireProduction(last.report, last.bytes, contract); }
   catch (error) { if (error instanceof Error) Object.assign(error, { attempts: run.attempts.map(a => a.report) }); throw error; }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), ...(last.intentRecord ? { intentRecord: last.intentRecord } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
 }
 
 /** One candidate render as one request scope: its songs share the caps and one time budget. */
@@ -1285,6 +1309,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     ...(evaluation ? { rights: await rightsResult(evaluation, bytes) } : {}),
     ...(songs ? { songs } : {}),
     ...(designRecord ? { designRecord } : {}),
+    ...(finished.intentRecord ? { intentRecord: finished.intentRecord } : {}),
   };
 }
 

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "demonstrate",
+      "needs": [
+        "image"
+      ],
+      "set": {
+        "url": ""
+      }
+    }
+  ]
+}

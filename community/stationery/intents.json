@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "identify",
+      "needs": [
+        "firstname"
+      ],
+      "set": {
+        "lastname": "",
+        "jobTitle": "",
+        "email": "",
+        "phone": "",
+        "company": "",
+        "url": "",
+        "address": "",
+        "tagline": "",
+        "body": ""
+      }
+    }
+  ]
+}

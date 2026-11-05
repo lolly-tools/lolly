@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "announce",
+      "needs": [
+        "url",
+        "heading"
+      ],
+      "set": {
+        "body": "",
+        "siteName": ""
+      }
+    },
+    {
+      "purpose": "promote",
+      "needs": [
+        "url",
+        "heading"
+      ],
+      "set": {
+        "body": "",
+        "siteName": ""
+      }
+    }
+  ]
+}

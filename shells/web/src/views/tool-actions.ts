@@ -33,6 +33,7 @@ import { markupOps } from './tool-actions/markup.ts';
 import { learningOps } from './tool-actions/learning.ts';
 import { rightsOps } from './tool-actions/rights-row.ts';
 import { wiringOps } from './tool-actions/wiring.ts';
+import { approvalStateOps } from './tool-actions/approval-state.ts';
 import { startingFormat } from '../lib/touch-export-format.ts';
 
 
@@ -92,6 +93,7 @@ function renderActions(
   ta.rights = rightsOps(ta);
   ta.wiring = wiringOps(ta);
   ta.learning = learningOps(ta);
+  ta.approvalState = approvalStateOps(ta);
   ta.el = el as ActionsCtx['el'];
   ta.manifest = manifest;
   ta.runtime = runtime;

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "schedule",
+      "needs": [
+        "data"
+      ],
+      "roles": {
+        "heading": "title",
+        "subheading": "subtitle",
+        "data": "sessions"
+      },
+      "set": {
+        "title": "",
+        "subtitle": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "purpose": "compare",
+      "needs": [
+        "data"
+      ],
+      "set": {
+        "chartIntent": "compare"
+      },
+      "surfaces": {
+        "slide": {},
+        "screen": {},
+        "social-landscape": {},
+        "social-square": {},
+        "social-portrait": {},
+        "story": {},
+        "banner": {}
+      }
+    },
+    {
+      "purpose": "explain",
+      "needs": [
+        "data"
+      ],
+      "set": {
+        "chartIntent": "relationship"
+      },
+      "surfaces": {
+        "slide": {},
+        "screen": {},
+        "social-landscape": {},
+        "social-square": {},
+        "social-portrait": {},
+        "story": {},
+        "banner": {}
+      }
+    },
+    {
+      "purpose": "report",
+      "needs": [
+        "data"
+      ],
+      "set": {
+        "chartIntent": "auto"
+      },
+      "surfaces": {
+        "slide": {},
+        "screen": {},
+        "social-landscape": {},
+        "social-square": {},
+        "social-portrait": {},
+        "story": {},
+        "banner": {}
+      }
+    }
+  ]
+}
