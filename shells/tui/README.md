@@ -93,3 +93,9 @@ pnpm install
 ```
 
 Commit changes to files in this directory directly, as part of the normal repo. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 3.
+
+The terminal now follows the active brand with contrast-adjusted accents, a palette strip
+and colourway chips in the action picker. Authored/export colours stay exact. Brand accents
+can be disabled; `NO_COLOR` retains the names without paint. `lolly tui --screen-reader`
+uses Ink's accessible output without entering the alternate screen. Tools `?` opens a
+reviewed workflow launcher for the existing models, file, learning and compose commands.

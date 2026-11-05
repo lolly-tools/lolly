@@ -120,3 +120,8 @@ pnpm install
 ```
 
 Commit changes to files in this directory directly, as part of the normal repo. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 3.
+
+`reports <saved.json|-> --to=junit|sarif|jsonl` converts existing check results locally,
+including production receipts. JSONL input can combine envelopes. It uploads nothing
+and refuses existing destinations. `projects list --null [--paths]` supplies stable
+project IDs or filenames for NUL-aware pipelines. The default envelope stays unchanged.

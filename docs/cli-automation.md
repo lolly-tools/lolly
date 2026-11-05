@@ -104,6 +104,36 @@ in the TUI. Projects are read from the device's shared session directory.
 stderr. `--include-personal` explicitly includes those fields after review. Requested
 size and format travel with the link. Export passwords do not travel with that link.
 
+## Convert check results for local automation
+
+Save a command's normal JSON envelope, then convert that result without rerunning the check:
+
+```bash
+lolly check design.json --browser=off --json > check.json
+lolly reports check.json --to=junit --output=checks.xml
+lolly reports check.json --to=sarif --output=checks.sarif
+lolly reports checks.jsonl --to=junit --output=combined.xml
+cat check.json | lolly reports - --to=jsonl
+lolly projects list --query=conference --null | xargs -0 -I '{}' lolly projects show '{}'
+lolly projects list --null --paths
+```
+
+`reports` accepts check/preflight/learning findings and production batch receipts. JSONL
+input holds one original report per line; `--input-format=jsonl` selects that input on
+stdin. JSONL output holds one normalized finding or row outcome per line. This is report
+transport; ordinary batch rendering still takes its existing CSV/TSV transport.
+
+JUnit retains failures and skipped/unavailable coverage. SARIF retains document pointers,
+layer/page/theme context and stable finding fingerprints. A physical source location appears
+only when the original finding supplied a file and line; document coordinates do not become
+invented source lines. Unknown report shapes refuse. Existing output files are refused.
+Conversion success means the report was written; the original command's verdict still
+belongs to its saved envelope. Nothing is uploaded and no CI job starts.
+
+Project `--null` output carries stable slot IDs, including names with spaces or newlines.
+`--paths` selects the actual session files instead. `--json` and `--null` are separate output
+choices; default project discovery keeps its existing JSON shape.
+
 ## Render-check the catalog (lolly smoke)
 
 ```bash

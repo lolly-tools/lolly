@@ -19,6 +19,7 @@ import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import { toolFetchFile } from './catalog.ts';
 import { getProfile } from './store.ts';
+import { selectCliBridgeTokens, applyBrandVars } from '../../cli/src/bridge.ts';
 // The same allowlisted-fetch module every shell builds host.net from (the web
 // bridge re-exports this one) - one matcher, no drift.
 import { createNetAPI } from '@lolly-tools/node-shell/net';
@@ -28,6 +29,7 @@ import type { JSDOM } from 'jsdom';
 
 export type Runtime = Awaited<ReturnType<typeof createRuntime>>;
 export type Manifest = Awaited<ReturnType<typeof loadTool>>['manifest'];
+const runtimeHosts = new WeakMap<Runtime, HostV1>();
 
 /**
  * The tool a pasted lolly.tools link opens, with its settings, or why it opens
@@ -104,14 +106,26 @@ export async function mountTool(
     if (hit) throw new LinkLocalFileError(hit);
   }
   const initial = values ? { ...reserved.values, ...values } : reserved.values;
+  const selection = values?.__tokenSelection as Record<string, string> | undefined ?? reserved.tokenSelection ?? undefined;
+  selectCliBridgeTokens(host, selection);
   // The link's size is the canvas size the hooks first lay out for (engine 1.293); the
   // Export panel's width and height move it from there (setCanvasSizeFrom).
   const runtime = await createRuntime(tool, host, initial as Parameters<typeof createRuntime>[2], {
     canvasSize: canvasSizeOf(reserved.width, reserved.height, reserved.unit ?? 'px'),
-    tokenSelection: values?.__tokenSelection as Record<string, string> | undefined ?? reserved.tokenSelection ?? undefined,
+    tokenSelection: selection,
   });
+  selectCliBridgeTokens(host, runtime.tokenSelection);
+  runtimeHosts.set(runtime, host);
   await (await import('./document-emoji.ts')).seedEmoji(runtime,host,reserved,values);
   return { runtime, manifest: tool.manifest, reserved };
+}
+
+/** Keep engine inputs and shell-owned CSS/native exports on the same colourway. */
+export async function setDocumentTokenSelection(runtime: Runtime, host: HostV1, selection: Record<string, string>): Promise<void> {
+  runtimeHosts.set(runtime, host);
+  selectCliBridgeTokens(host, selection);
+  try { await runtime.setTokenSelection(selection); }
+  finally { selectCliBridgeTokens(host, runtime.tokenSelection); }
 }
 
 /**
@@ -190,6 +204,17 @@ function canvasOf(dom: JSDOM): HTMLElement {
   return c;
 }
 
+async function hydrateCanvas(runtime: Runtime, dom: JSDOM): Promise<HTMLElement> {
+  const canvas = canvasOf(dom);
+  canvas.innerHTML = runtime.getHydrated();
+  for (const name of Array.from({ length: canvas.style.length }, (_, index) => canvas.style.item(index))) {
+    if (name.startsWith('--')) canvas.style.removeProperty(name);
+  }
+  const host = runtimeHosts.get(runtime);
+  if (host) await applyBrandVars(canvas, host);
+  return canvas;
+}
+
 /**
  * Render the runtime's CURRENT state to an SVG string, or null when this tool can't
  * produce SVG in a pure-Node shell (HTML-layout tools need a browser engine). Used
@@ -203,8 +228,7 @@ function canvasOf(dom: JSDOM): HTMLElement {
  */
 export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims): Promise<string | null> {
   try {
-    const canvas = canvasOf(dom);
-    canvas.innerHTML = runtime.getHydrated();
+    const canvas = await hydrateCanvas(runtime, dom);
     // The terminal preview is a surface a person looks at, so it draws emoji from
     // the chosen set like any other canvas. Stated here rather than left to the
     // side effect of the export below, which walks the same node a moment later.
@@ -312,8 +336,7 @@ export async function exportToFile(
   // 3. Engine-native formats (svg/emf/eps + text/data): the DOM-free path.
   const floatScene = needsFloatScene(manifest.id, modelValues(runtime).editingRange, fmt, dims.hdrParam);
   if (NODE_FORMATS.includes(fmt) && !floatScene) {
-    const canvas = canvasOf(dom);
-    canvas.innerHTML = runtime.getHydrated();
+    const canvas = await hydrateCanvas(runtime, dom);
     // Qualify a physical unit onto the value (e.g. 210 + mm → "210mm"); px passes as a
     // number. Blank → the tool's native size. Mirrors shells/cli/src/run.ts.
     const u = dims.unit || 'px';

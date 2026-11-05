@@ -60,6 +60,7 @@ import { createNetAPI, matchesNetworkUrl } from '@lolly-tools/node-shell/net';
 // caught).
 import { svgDomToIr } from '@lolly-tools/node-shell/svg-ir';
 import { drawnRootSvg } from '@lolly-tools/node-shell/raster';
+import { materializeSvgVariables } from '../../../packages/node-shell/src/svg-css.ts';
 import type { SvgIrFont } from '@lolly-tools/node-shell/svg-ir';
 import type { FontStyleSlice } from '@lolly-tools/node-shell/text-svg';
 
@@ -341,6 +342,11 @@ function rondoRecordOf(bytes: Uint8Array): RondoSourceV1 | null {
 
 /** Each CLI bridge's way to move its own reads to another theme selection, keyed by the bridge. */
 const selectionFollowers = new WeakMap<HostV1, (selection: Record<string, string>) => void>();
+
+/** Move shell-owned token reads, including native export CSS, to an interactive document. */
+export function selectCliBridgeTokens(host: HostV1, selection: Record<string, string> = {}): void {
+  selectionFollowers.get(host)?.(selection);
+}
 
 /** Two selections name the same choices, whatever their key order. */
 function sameSelection(a: Record<string, string> | undefined, b: Record<string, string> | undefined): boolean {
@@ -1178,6 +1184,10 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         return (await import('../../../engine/src/deep-export.ts')).exportDeepFrame(opts.deepFrame, format, { ...opts, hdr: !!opts.hdr }, {
           jxl: async request => (await import('@lolly-tools/node-shell/jxl')).runJxl(request),
         });
+      }
+      if (format !== 'html') {
+        const svg = rootSvgOf(node);
+        if (svg) materializeSvgVariables(svg);
       }
       if (format === 'lottie') return (await import('../../../engine/src/design-lottie.ts')).exportDesignLottie(opts, host);
       if (format === 'idml') return (await import('../../../engine/src/design-idml.ts')).exportDesignIdml(opts, host);

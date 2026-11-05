@@ -65,5 +65,9 @@ test('source TUI mounts in a real terminal from the root and an unrelated direct
         env: { ...process.env, LOLLY_PROFILE: 'lolly-demo', LOLLY_STATE_DIR: join(dir, 'state'), TERM: 'xterm-256color', NO_COLOR: '1' },
       });
     }
+    await run('python3', [join(REPO, 'tests/helpers/tui-pty.py'), process.execPath, LOLLY, 'tui', '--screen-reader'], {
+      cwd: dir, timeout: 45000,
+      env: { ...process.env, LOLLY_PROFILE: 'lolly-demo', LOLLY_STATE_DIR: join(dir, 'reader-state'), TERM: 'xterm-256color', NO_COLOR: '1' },
+    });
   } finally { await rm(dir, { recursive: true, force: true }); }
 });

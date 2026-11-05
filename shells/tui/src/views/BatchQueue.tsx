@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { spawn, type ChildProcess } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import type { ChildProcess } from 'node:child_process';
+import { startCliProcess, stopCliProcess } from '../cli-process.ts';
 import { Box, Text, useInput } from 'ink';
 import TextInput from 'ink-text-input';
 import { Panel } from '../components/Panel.tsx';
@@ -13,16 +12,6 @@ import { terminalReportLines } from '../terminal-workflows.ts';
 import { Footer, footerLines } from '../components/Footer.tsx';
 
 const REPORT_SHORTCUTS = [{ key: 'j/k', label: 'scroll' }, { key: 'esc', label: 'back' }];
-
-function stopChild(child: ChildProcess | null): void {
-  if (!child?.pid) return;
-  try {
-    if (process.platform === 'win32') child.kill('SIGTERM');
-    else process.kill(-child.pid, 'SIGTERM');
-  } catch {
-    /* Already stopped. */
-  }
-}
 
 interface QueueJob {
   row: number;
@@ -42,14 +31,6 @@ interface QueueResult {
   error?: string;
   reused?: boolean;
   report?: unknown;
-}
-
-function cliEntry(): string {
-  for (const name of ['../../../cli/bin/lolly.ts', './cli.js']) {
-    const path = fileURLToPath(new URL(name, import.meta.url));
-    if (existsSync(path)) return path;
-  }
-  throw new Error('The CLI is missing beside this TUI installation.');
 }
 
 /** A review surface over the CLI production runner, with one isolated owner per run. */
@@ -76,7 +57,7 @@ export function BatchQueue({ onBack }: { onBack: () => void }) {
   const alive = useRef(true);
   useEffect(() => {
     const stop = (): void => {
-      stopChild(child.current);
+      stopCliProcess(child.current);
     };
     process.on('exit', stop);
     return () => {
@@ -93,7 +74,6 @@ export function BatchQueue({ onBack }: { onBack: () => void }) {
     setStatus(mode === 'plan' ? 'Reading dependencies...' : 'Starting workers...');
     try {
       const args = [
-        cliEntry(),
         'batch',
         path,
         `--out-dir=${outDir}`,
@@ -115,15 +95,12 @@ export function BatchQueue({ onBack }: { onBack: () => void }) {
         );
         args.push(mode === 'preflight' ? '--preflight' : '--resume');
       }
-      const processChild = spawn(process.execPath, args, {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        detached: process.platform !== 'win32',
-      });
+      const processChild = startCliProcess(args);
       child.current = processChild;
       let stdout = '';
       processChild.stdout.on('data', (data: Buffer) => {
         stdout += data.toString();
-        if (stdout.length > 8 * 1024 * 1024) processChild.kill('SIGTERM');
+        if (stdout.length > 8 * 1024 * 1024) stopCliProcess(processChild);
       });
       processChild.stderr.on('data', (data: Buffer) => {
         if (alive.current) setStatus(data.toString().trim().split('\n').at(-1) ?? '');
@@ -171,7 +148,7 @@ export function BatchQueue({ onBack }: { onBack: () => void }) {
     }
     if (busy) {
       if (input === 'c' || key.escape) {
-        stopChild(child.current);
+        stopCliProcess(child.current);
         setStatus('Cancelling workers...');
       }
       return;

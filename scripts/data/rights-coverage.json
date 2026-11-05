@@ -661,10 +661,11 @@
         "shells/cli/src/models.ts",
         "shells/cli/src/smoke.ts",
         "shells/cli/src/projects.ts",
+        "shells/cli/src/reports.ts",
         "shells/tui/src/folders.ts",
         "shells/tui/src/terminal-workflows.ts"
       ],
-      "note": "The standard output writer and JSON envelope every command uses; check, measure, preflight and validation reports; the reproducibility receipt; model downloads; the catalog render gate's check renders; lolly projects, which lists and exports this device's saved project records as JSON; the TUI's folder list; and the TUI's private temporary file of the person's own input values for an external editor. None is a creative delivery, and a command that writes a work is registered under its own path."
+      "note": "The standard output writer and JSON envelope every command uses; check, measure, preflight and validation reports; the reproducibility receipt; model downloads; the catalog render gate's check renders; lolly projects, which lists and exports this device's saved project records as JSON; lolly reports, which turns saved check results into JSON lines, JUnit or SARIF; the TUI's folder list; and the TUI's private temporary file of the person's own input values for an external editor. None is a creative delivery, and a command that writes a work is registered under its own path."
     },
     {
       "id": "delivery.native-save",

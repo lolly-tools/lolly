@@ -57,6 +57,8 @@ Usage:
   lolly system diff <tokens.json>           compare authored and resolved token changes
   lolly system generate --recipe=<file>     review a portable colour, spacing or type scale
   lolly system sync <file> --base=<file> --revision=<id>  review an upstream update
+  lolly reports <report.json|-> --to=junit|sarif|jsonl [--output=new-file]
+                                           convert saved check results locally
   lolly list [--q=words] [--limit=1..100]  list or scope tools (explicit spelling)
   lolly describe <tool-id> [--all]         show essential inputs; --all shows every input
   lolly run <tool-id> [--flags]            render
@@ -445,7 +447,7 @@ process.stdout.on('error', (err: NodeJS.ErrnoException) => {
 // A raw argv scan is enough: `--json` has one spelling and no bare-value trap. The
 // command name is re-set accurately by main() once the parse succeeds; this pre-set is
 // only the fallback for a failure that happens before that.
-const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
 const rawFirst = args.find(a => !a.startsWith('-'));
 beginCommand(
   RAW_VERBS.has(rawFirst ?? '') ? rawFirst! : 'lolly',
@@ -527,7 +529,7 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
   beginCommand(cmd === 'adobe' || cmd === 'affinity' || cmd === 'dxf' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
@@ -553,6 +555,11 @@ async function main(): Promise<void> {
     if (!positionals[1]) throw usageError('inspect --motion requires a delivered media file.');
     const report = await inspectMotionBytes(new Uint8Array(await readFile(positionals[1])));
     process.stdout.write(JSON.stringify(report, null, 2) + '\n');
+    return;
+  }
+  if (cmd === 'reports') {
+    const { reportsCli } = await import('../src/reports.ts');
+    await reportsCli(positionals.slice(1), flags, g.json);
     return;
   }
   if (cmd === 'learning') {
