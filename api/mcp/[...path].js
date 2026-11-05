@@ -179794,6 +179794,21 @@ function verdictIntent(report4) {
     promptNote: r5.promptNote ?? null
   };
 }
+function verdictApproval(report4) {
+  const r5 = report4.approval;
+  if (!r5) return null;
+  const intact = report4.state === "valid";
+  return {
+    intact,
+    facts: [
+      ["Request", cleanControlChars(r5.approvalId)],
+      ["Decided", cleanControlChars(r5.decidedAt)],
+      ["Reviewed", cleanControlChars(r5.reviewedSha256)],
+      ["This file", intact ? "unchanged since the signer recorded this approval" : "does not match the signed record"]
+    ],
+    note: intact ? "A record the signer made. It says what the signer recorded and is not a review of the work." : "This file changed after the approval was recorded, or the record itself was altered."
+  };
+}
 function verdictFacts(report4) {
   const c = report4.claim;
   if (!c) return [];
@@ -195860,6 +195875,12 @@ function verifyText(name, report4, headline) {
   for (const chk of verdictChecks(report4)) {
     const mark = chk.mark === "ok" ? "\u2713" : chk.mark === "info" ? "\u2139" : "\u2715";
     lines.push(`  ${mark} ${chk.code} - ${chk.explanation}`);
+  }
+  const approval = verdictApproval(report4);
+  if (approval) {
+    lines.push("Approval:");
+    for (const [k, v] of approval.facts) lines.push(`  ${k.padEnd(11)} ${v}`);
+    lines.push(`  ${approval.note}`);
   }
   const intent = verdictIntent(report4);
   if (intent) {

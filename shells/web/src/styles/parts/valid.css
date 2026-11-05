@@ -956,6 +956,19 @@
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; overflow: hidden;
 }
 .valid-script-actions { display: flex; gap: var(--ui-space-panel); }
+/* ── Record panels - approval and intent, as the signer recorded them
+   (views/valid-record.ts). The warning takes the house .guide-warn voice, and a prompt
+   reads as a quotation: its own box, its own label, wrapping as the person wrote the words. */
+.valid-record .valid-input-row dd { font-family: inherit; flex-wrap: wrap; }
+.valid-record-code { font-family: var(--ui-type-mono-family); overflow-wrap: anywhere; }
+.valid-record-prompt { margin: 0; display: grid; gap: var(--sp-3); min-width: 0; }
+.valid-record-prompt-label { font-size: var(--ui-type-label); font-weight: 600; color: var(--ui-color-text-muted); }
+.valid-record-quote-box {
+  padding: var(--sp-5) var(--sp-6); border-radius: var(--ui-radius-control); min-width: 0;
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 60%, transparent); border: 1px solid var(--ui-color-border-default);
+}
+.valid-record-quote { margin: 0; font-size: var(--ui-type-label); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.valid-record-quote.is-clamped { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; overflow: hidden; }
 
 .valid-panel {
   display: grid; gap: var(--sp-6); align-content: start; min-width: 0;

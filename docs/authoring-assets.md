@@ -110,6 +110,16 @@ Record where each asset comes from. A missing record means "not recorded", never
 
 A `.lolly` pack holds back catalog files whose licence is unrecorded or not yet interpreted, unless the sender chooses to include them, so record `license` and `rights` on anything meant to travel. [Creative rights and credits](/info/creative-rights.html) explains the rest.
 
+## Approval and intent in Details
+
+Open a file in Assets and its **Details** list shows what its Content Credential records. **Approval** gives the date of the decision, **Made for** gives the purpose and surface, and **Prompt** gives one line of a recorded prompt. Each row opens the matching panel under **Origins & credentials**, and these are the same panels [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records) draws. The **Checks** lamps add an **Approval** lamp when a record exists.
+
+An approved file you kept from a request has one **Approval** row, and it keeps its way back to the request. If the file no longer matches its credential, a warning appears under the file's name, outside every section.
+
+A PDF added through the upload area becomes editable vector assets, so its credential does not travel with them. To read a PDF's record, keep the approved file from its request or open the original in Lolly Verify.
+
+The `approved` tag on a kept file is the way to filter for approved files. There is no filter on the credential record itself, because reading it would mean opening every file.
+
 ## Tiers
 
 The tier decides when a device downloads an asset.

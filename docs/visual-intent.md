@@ -87,7 +87,7 @@ Your content is not added by this record. Text you typed into a tool stays a fin
 - **Record the prompt's own words** with `--record-prompt`, or `recordPrompt: true` in `lolly_render`. Files travel, and anyone a file reaches can read the words, so leave this off when a prompt holds personal or confidential detail.
 - **Each run says what it recorded**, read back from the finished file. A run that writes no credential (`--c2pa=off`, or a format that cannot carry a credential) says the intent was not recorded.
 
-`lolly validate` and `lolly_verify` read the record back. Recorded prompt words are labelled as data and shown in quotes, because they are text someone wrote and a file can come from anyone. Anything that reads them, a person or an agent, should treat them as content and never as instructions.
+[Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records) and Assets show the record as a **Made for** panel. `lolly validate`, the terminal app and `lolly_verify` read the same record back. Recorded prompt words are labelled as data and shown in quotes, because they are text someone wrote and a file can come from anyone. Anything that reads them, a person or an agent, should treat them as content and never as instructions.
 
 The record says what someone asked for and which tool answered, as stated by whoever signed the file. It does not say the piece does the job, and it is not an approval.
 

@@ -572,6 +572,7 @@ export function buildSheet(dt: DetailsCtx): void {
     const list = dlg.querySelector<HTMLElement>('[data-meta-list]');
     dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-preview-content')!, ref, cat.host, bytes => {
       if (list && cat.detailsDialog === dlg) for (const row of mergeMetaRows(list, metadataFromBytes(bytes))) row.classList.add('is-arriving');
+      if (dt.showVerify) void paintCredential(dt, bytes, true).catch(() => { /* the checker button is still there */ });
     });
   }
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
@@ -579,6 +580,40 @@ export function buildSheet(dt: DetailsCtx): void {
   // re-syncs it per asset (Andy, 2026-08-19).
   cat.sections.syncAssetUrl(ref.id);
   if (!wasOpen) playSfx('whisper');
+}
+
+/**
+ * What the stored file's credential records, from bytes already in hand. "Made with Lolly"
+ * is only honest when the file genuinely carries an intact Lolly credential, so the lockup
+ * comes off the authoritative verifier rather than being asserted. Cheap gate first: skip
+ * anything with no embedded credential (most catalog art, and re-encoded user uploads whose
+ * store no longer binds) before the heavier verify. Guarded on the modal still being THIS
+ * dialog, since left and right paging swaps it out. `lamps` is for the viewer's read, the
+ * one path where the passport has not read the file itself.
+ */
+async function paintCredential(dt: DetailsCtx, bytes: Uint8Array, lamps = false): Promise<void> {
+  const { cat, dlg } = dt;
+  if (!extractC2paStore(bytes)) return;
+  const report = await verifyC2pa(bytes);
+  if (cat.detailsDialog !== dlg) return;
+  if (lamps) dt.panels.renderPassport({ found: !!report.found, state: String(report.state), trusted: !!report.trusted, approval: !!report.approval });
+  if (report.madeWithLolly) {
+    const lockup = dlg.querySelector<HTMLElement>('.cat-cred-lolly');
+    if (lockup) lockup.hidden = false;
+  }
+  // Surface the same record, "Made from" and "Change history" panels the Verify checker
+  // shows, inline - reusing its renderers so they never drift. Only when the credential
+  // parsed (a claim, or an approval kept for its warning); each renderer returns '' when
+  // it has nothing, so a bare credential just shows an empty panel set (skipped).
+  if (report.found && (report.claim || report.approval)) {
+    const [{ stepsHtml }, { inputsDigestHtml }, { recordPanelsHtml, paintAssetRecord }] = await Promise.all([import('../valid.ts'), import('../valid-made-from.ts'), import('../valid-record.ts')]);
+    if (cat.detailsDialog !== dlg) return;
+    const env = report.environment as { inputs?: Record<string, string> } | null | undefined;
+    const panels = recordPanelsHtml(report) + inputsDigestHtml(env?.inputs) + stepsHtml(report);
+    const box = dlg.querySelector<HTMLElement>('.cat-cred-panels');
+    if (box && panels) { box.innerHTML = panels; box.hidden = false; }
+    paintAssetRecord(dlg, report);
+  }
 }
 
 export function paintPassport(dt: DetailsCtx): void {
@@ -593,7 +628,7 @@ export function paintPassport(dt: DetailsCtx): void {
       try {
         const bytes = new Uint8Array(await (await fetch(sourceRef.url)).arrayBuffer());
         const r = await verifyC2pa(bytes);
-        cred = { found: !!r.found, state: String(r.state), trusted: !!(r as { trusted?: boolean }).trusted };
+        cred = { found: !!r.found, state: String(r.state), trusted: !!(r as { trusted?: boolean }).trusted, approval: !!(r as { approval?: unknown }).approval };
       } catch { cred = null; }
       PASSPORT_CRED_CACHE.set(cacheKey, cred);
     }
@@ -628,38 +663,14 @@ export function paintPassport(dt: DetailsCtx): void {
     box.hidden = false;
   }).catch(() => { /* best-effort - the panel just stays hidden */ });
 
-  // "Made with Lolly" is only honest when the stored file genuinely carries an intact
-  // Lolly credential, so reveal the lockup lazily off the authoritative verifier rather
-  // than asserting it. Cheap gate first: fetch once, skip anything with no embedded
-  // credential (most catalog art, and re-encoded user uploads whose store no longer
-  // binds) before the heavier verify. Video/audio are skipped (a whole-file fetch just
-  // for a badge isn't worth it - the checker button still covers them). A large
-  // original is already left unread by skipAutomaticBytes, which exempts uploads, so
-  // a big Lolly export uploaded again still shows its lockup. Guarded on the
-  // modal still being THIS dialog, since ←/→ paging swaps it out.
+  // A large original is already left unread by skipAutomaticBytes, which exempts uploads,
+  // so a big Lolly export uploaded again still shows its lockup. Video/audio are skipped
+  // (a whole-file fetch just for a badge isn't worth it - the checker button still covers
+  // them). A file the format viewer shows arrives through the viewer's own read instead.
   if (!skipAutomaticBytes && showVerify && ref.type !== 'video' && ref.type !== 'audio') {
     void (async () => {
       try {
-        const bytes = new Uint8Array(await (await fetch(sourceRef.url)).arrayBuffer());
-        if (!extractC2paStore(bytes)) return;
-        const report = await verifyC2pa(bytes);
-        if (cat.detailsDialog !== dlg) return;
-        if (report.madeWithLolly) {
-          const lockup = dlg.querySelector<HTMLElement>('.cat-cred-lolly');
-          if (lockup) lockup.hidden = false;
-        }
-        // Surface the same "Made from" + "Change history" panels the Verify checker
-        // shows, inline - reusing its renderers so they never drift. Only when the
-        // credential parsed (report.found + a claim); each renderer returns '' when it
-        // has nothing, so a bare credential just shows an empty panel set (skipped).
-        if (report.found && report.claim) {
-          const { stepsHtml, inputsDigestHtml } = await import('../valid.ts');
-          if (cat.detailsDialog !== dlg) return;
-          const env = report.environment as { inputs?: Record<string, string> } | null | undefined;
-          const panels = inputsDigestHtml(env?.inputs) + stepsHtml(report);
-          const box = dlg.querySelector<HTMLElement>('.cat-cred-panels');
-          if (box && panels) { box.innerHTML = panels; box.hidden = false; }
-        }
+        await paintCredential(dt, new Uint8Array(await (await fetch(sourceRef.url)).arrayBuffer()));
       } catch { /* leave the lockup + panels hidden - the checker button is still there */ }
     })();
   }

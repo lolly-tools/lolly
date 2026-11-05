@@ -678,7 +678,7 @@ export function analyzeVerifyText(text: string, source: TextSignalSource): TextS
 // guidance grammar: fact/warn/hint/unlit, where unlit is never a verdict.
 
 export interface VerifyLampCue {
-  id: 'provenance' | 'integrity' | 'origin' | 'signals';
+  id: 'provenance' | 'integrity' | 'origin' | 'signals' | 'approval';
   label: string;
   state: 'fact' | 'warn' | 'hint' | 'unlit';
   word: string;
@@ -748,5 +748,12 @@ export function verifyLampCues(input: VerifyLampInput): VerifyLampCue[] {
     }
   }
 
-  return [provenance, integrity, origin, signals];
+  const cues = [provenance, integrity, origin, signals];
+  // Only when a record exists: no approval in a file is not a finding about the file.
+  if (report.approval) {
+    cues.push(report.state === 'valid'
+      ? { id: 'approval', label: 'Approval', state: 'fact', word: 'record intact', detail: 'The file holds an approval record and its credential verifies. It says what the signer recorded, not that the work is right.' }
+      : { id: 'approval', label: 'Approval', state: 'warn', word: 'record does not check', detail: 'The file holds an approval record, but its credential does not verify.' });
+  }
+  return cues;
 }

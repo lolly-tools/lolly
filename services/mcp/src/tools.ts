@@ -19,7 +19,7 @@ import { MOTION_EXPORT_ARGS, motionExportSettings, type MotionExportSettings } f
 // Relative import (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // serverless bundle, same as render.ts's node-shell imports.
 import { VERDICT_SLUGS } from '@lolly-tools/node-shell/verdict-slugs';
-import { cleanControlChars, verdictFacts, verdictChecks, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
+import { cleanControlChars, verdictFacts, verdictChecks, verdictApproval, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 import type { ExportBrandSkill } from '@lolly-tools/core/host-v1';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
@@ -865,6 +865,13 @@ function verifyText(name: string, report: VerifyReport, headline: string): strin
   }
   // What the file records about the creative work inside it - a separate question
   // from whether the credential verifies, and printed as one (plan 253).
+  // An approval the signer recorded, worded as the signer's statement, never as a verdict.
+  const approval = verdictApproval(report);
+  if (approval) {
+    lines.push('Approval:');
+    for (const [k, v] of approval.facts) lines.push(`  ${k.padEnd(11)} ${v}`);
+    lines.push(`  ${approval.note}`);
+  }
   // What the file says it was asked to do. Any recorded prompt is words someone wrote, so
   // it is labelled as data and quoted, and it can never read as part of this report.
   const intent = verdictIntent(report);

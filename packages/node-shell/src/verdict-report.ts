@@ -75,6 +75,33 @@ export function verdictIntent(report: C2paReport): VerdictIntent | null {
   };
 }
 
+/** What a credential records about an approval. Scrubbed, and data throughout. */
+export interface VerdictApproval {
+  /** False when the file holds a record but its credential does not verify. */
+  intact: boolean;
+  facts: Array<[label: string, value: string]>;
+  note: string;
+}
+
+/** The approval record for a person to read, or null when the file holds none. */
+export function verdictApproval(report: C2paReport): VerdictApproval | null {
+  const r = report.approval;
+  if (!r) return null;
+  const intact = report.state === 'valid';
+  return {
+    intact,
+    facts: [
+      ['Request', cleanControlChars(r.approvalId)],
+      ['Decided', cleanControlChars(r.decidedAt)],
+      ['Reviewed', cleanControlChars(r.reviewedSha256)],
+      ['This file', intact ? 'unchanged since the signer recorded this approval' : 'does not match the signed record'],
+    ],
+    note: intact
+      ? 'A record the signer made. It says what the signer recorded and is not a review of the work.'
+      : 'This file changed after the approval was recorded, or the record itself was altered.',
+  };
+}
+
 /** Semantic tone for a rendered verdict line; each surface maps it to its palette. */
 export type VerdictTone = 'good' | 'warn' | 'bad' | 'dim';
 

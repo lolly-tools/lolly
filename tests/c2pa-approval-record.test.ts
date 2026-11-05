@@ -18,6 +18,7 @@ import { embedC2pa, generateSigner, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSER
 import { APPROVAL_RECORD_FORMATS, artworkUnchanged, recordApprovalInCredential } from '../engine/src/c2pa-approval.ts';
 import { extractC2paStore, parseC2paStore, prepareC2paIngredient, verifyC2pa } from '../engine/src/c2pa-verify.ts';
 import { decodeCbor } from '../engine/src/c2pa-extract.ts';
+import { verdictApproval } from '../packages/node-shell/src/verdict-report.ts';
 
 const hasC2patool = spawnSync('c2patool', ['--version']).status === 0;
 const DATES = { notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + 86_400_000) };
@@ -308,3 +309,27 @@ for (const [format, ext] of [['png', 'png'], ['jpg', 'jpg'], ['svg', 'svg'], ['p
     assert.deepEqual(report.beyondTrust, []);
   });
 }
+
+test('terminals and agents read the record in the same words, and say so when a file changed', async () => {
+  const signer = await signerFor();
+  const outcome = await recordApprovalInCredential(await reviewedFile('png', signer), 'png', { ...APPROVAL, signer, dates: DATES });
+  assert.equal(outcome.status, 'recorded');
+  if (outcome.status !== 'recorded') return;
+  const intact = verdictApproval(await verifyC2pa(outcome.bytes))!;
+  assert.equal(intact.intact, true);
+  assert.ok(intact.facts.some(([k, v]) => k === 'Request' && v === APPROVAL.approvalId));
+  assert.ok(intact.facts.some(([k, v]) => k === 'Reviewed' && v === outcome.record.reviewedSha256));
+  assert.match(intact.note, /A record the signer made/);
+  assert.doesNotMatch(JSON.stringify(intact), /compliant|on brand|\bsafe\b/i, 'never a verdict');
+
+  const changed = new Uint8Array(outcome.bytes);
+  changed[200] = changed[200]! ^ 0x01;
+  const report = await verifyC2pa(changed);
+  assert.equal(report.state, 'invalid');
+  const warned = verdictApproval(report)!;
+  assert.equal(warned.intact, false, 'the reader keeps a record that failed, and this says it failed');
+  assert.ok(warned.facts.some(([k, v]) => k === 'This file' && /does not match/.test(v)));
+  assert.match(warned.note, /changed after the approval was recorded/);
+
+  assert.equal(verdictApproval(await verifyC2pa(await reviewedFile('png', signer))), null, 'no record, no section');
+});

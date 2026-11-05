@@ -20,7 +20,8 @@ import { icon, type IconName } from './icons.ts';
  * the order most people look for them: what the asset is, how big it is, when it
  * was made or added, who it comes from and what using it asks of you, how it is
  * filed, then the encoding and camera detail, and the id last. Rank 0 marks a row
- * that never joins that list (a provenance, song, swatch, source or project row).
+ * that never joins that list (a provenance, song, swatch, source or project row), or
+ * that its owner places by hand, as the credential record's rows go ahead of the id.
  * A third entry gives the row a late fact would only repeat: an upload's import
  * date is the date it was added, and a song's tagged artist is usually its author.
  */
@@ -53,7 +54,7 @@ const ROWS = {
   library: ['building', 0], sourceId: ['hash', 0], indexedVersion: ['history', 0], sourceModified: ['pen', 0], lastSync: ['refresh', 0],
   listingStatus: ['checklist', 0], availability: ['eye', 0], availableFrom: ['calendar', 0], availableUntil: ['calendar', 0],
   validFrom: ['calendar', 0], validUntil: ['calendar', 0],
-  approval: ['seal', 0], selectedFile: ['document', 0], fileRole: ['layers', 0], originalAvailability: ['download', 0],
+  approval: ['seal', 0], purpose: ['focus', 0], prompt: ['quote', 0], selectedFile: ['document', 0], fileRole: ['layers', 0], originalAvailability: ['download', 0],
   kind: ['grid', 0], where: ['folder', 0], contains: ['layersStack', 0], created: ['calendar', 0], lastOpened: ['eye', 0], favourite: ['star', 0],
 } as const satisfies Record<string, readonly [IconName, number] | readonly [IconName, number, string]>;
 

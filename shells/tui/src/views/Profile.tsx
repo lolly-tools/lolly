@@ -14,7 +14,7 @@ import { homedir } from 'node:os';
 import { verifyC2pa, resolveVerdict } from '@lolly/engine';
 import { getProfile, setProfile, backupData, listSessions } from '../store.ts';
 import { loadTrustAnchors, describeAnchors } from '../trust-anchors.ts';
-import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictSources } from '@lolly-tools/node-shell/verdict-report';
+import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictApproval, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
 import { exportSessions } from '../batch-export.ts';
 import { loadFavourites, loadHidden } from '../lib/asset-favourites.ts';
 import { loadToolFavourites } from '../lib/tool-favourites.ts';
@@ -177,6 +177,20 @@ export function Profile({ bridge, onNav, onQuit }: { bridge: TuiBridge; onNav: (
           const tone = chk.mark === 'ok' ? 'good' : chk.mark === 'info' ? 'dim' : 'bad';
           const mark = chk.mark === 'ok' ? '✓' : chk.mark === 'info' ? 'ℹ' : '✕';
           push(`  ${mark} ${chk.code} - ${chk.explanation}`, tone);
+        }
+        // An approval and an intent the signer recorded, as the other surfaces word them.
+        // A recorded prompt stays quoted and labelled, because it is text someone wrote.
+        const approval = verdictApproval(report);
+        if (approval) {
+          push('  Approval', 'dim');
+          for (const [k, val] of approval.facts) push(`    ${k.padEnd(11)} ${val}`, 'fg');
+          push(`    ${approval.note}`, approval.intact ? 'dim' : 'bad');
+        }
+        const intent = verdictIntent(report);
+        if (intent) {
+          push('  Intent', 'dim');
+          for (const [k, val] of intent.facts) push(`    ${k.padEnd(11)} ${val}`, 'fg');
+          if (intent.prompt) { push(`    ${intent.promptNote}`, 'dim'); push(`    ${'Prompt'.padEnd(11)} ${intent.prompt}`, 'fg'); }
         }
         // What the file records about the creative work inside it, kept apart from
         // the verdict (plan 253, section 9.2) and worded by the same shared renderer

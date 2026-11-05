@@ -126,7 +126,7 @@ export interface CatCtx {
   COLLAPSE_KEY: "lolly-catalog-collapsed";
   ALL_SECTION_KEYS: string[];
   FIRST_VISIT_COLLAPSED: string[];
-  PASSPORT_CRED_CACHE: Map<string, { found: boolean; state: string; trusted: boolean; } | null>;
+  PASSPORT_CRED_CACHE: Map<string, { found: boolean; state: string; trusted: boolean; approval?: boolean; } | null>;
   modulesPlayable: boolean | null;
   SWATCH_DOWNLOADS: { fmt: SwatchExportFormat; label: string }[];
   bulkBarCfg: BulkBarConfig;
