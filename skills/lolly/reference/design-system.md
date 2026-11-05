@@ -45,7 +45,8 @@ local uploads. Name the required system and package only permitted resources.
 
 A brand page is one published folder that works as a press kit and an agent kit.
 
-**To publish:** `lolly system publish --out=<dir> [--origin=<url>]
+**To publish:** a person can use **Publish a brand page** in Design System Setup. In a
+terminal, `lolly system publish --out=<dir> [--origin=<url>]
 [--usage-file=<file>] [--include=<id,id>] [--no-examples] [--no-made-with-link]`.
 The command only writes a folder, so nothing goes public until someone hosts the
 folder, on any static host or with `lw brand-pages publish <dir>` on a Lolly Work
@@ -68,7 +69,8 @@ to you. A digest shows a file matches the manifest, not who published the page.
 [--logos-surface=light|dark]` works for any tool with a list that takes dropped
 pictures. It takes the logo the page declares for that surface and prints what the
 page says about use: report those words to the person, and do not read them as
-permission. The hosted web app cannot fetch a stranger's address.
+permission. The hosted web app cannot fetch a stranger's address, and its **Add from…**
+takes a page's folder for the tokens only.
 
 **To bring tokens in:** `lolly system import DESIGN.md [--dry-run]`.
 

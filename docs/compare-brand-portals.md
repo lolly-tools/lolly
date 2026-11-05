@@ -34,7 +34,7 @@ Both cover approved assets, locked templates, access control, review and distrib
 | Licences and credits | Lolly records the licence of each source a file uses and prepares the credits it owes; [Creative rights and credits](/info/creative-rights.html) explains what it records and where credits are written. It does not clear rights. |
 | Reporting | Asset-use and download counts, tool and export activity, dashboards and an audit trail. Usage attribution follows the deployment's telemetry policy; the default attribution setting requires consent. |
 | Distribution | Expiring, revocable links, shared collections, guest access and delivery to configured organisation destinations. |
-| A public brand page | `lolly system publish` writes a static [brand page](/info/brand-page.html): logos, colours, type, rules and examples for people, with tokens, `DESIGN.md` and skills for agents. You host the folder, or an administrator turns on [brand page hosting](/info/work-design-system-administration.html#host-a-brand-page) in Lolly Work, which is off by default. |
+| A public brand page | Lolly writes a static [brand page](/info/brand-page.html), from Lolly Design System Setup or the command line: logos, colours, type, rules and examples for people, with tokens, `DESIGN.md` and skills for agents. You host the folder, or an administrator turns on [brand page hosting](/info/work-design-system-administration.html#host-a-brand-page) in Lolly Work, which is off by default. |
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) and [Policy and governance](/info/work-governance.html) describe these features and their configuration.
 

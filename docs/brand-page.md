@@ -26,7 +26,11 @@ The folder is static: no scripts, no tracking and nothing loaded from another si
 
 ## Publish a page
 
-Publishing takes one command, and the command only writes a folder:
+Either route only writes a folder, and nothing goes public until you put the folder on a host.
+
+**In the app.** Open [Lolly Design System Setup](/info/brand-studio.html#publish-a-brand-page) and choose **Publish a brand page**, under Versions & publishing. You see the live page, every file that goes public, what was held back and why, and the checks. **Download folder** saves a ZIP. An instance that serves brand pages also offers **Publish to** its address.
+
+**In a terminal.**
 
 ```bash
 lolly system publish --out=./brand-page --origin=https://example.com/brand/acme
@@ -144,7 +148,7 @@ Lolly reads a page as data from someone else:
 
 **What the digest does not tell you.** A digest shows that a file is the one the manifest lists. Nothing yet shows who published a page, so check the address yourself. The usage statement is the publisher's text. Lolly reports the words and does not read them as permission.
 
-**In the web app.** The hosted app's Content Security Policy allows named hosts only, so the app cannot fetch a stranger's address. Trusting a site does not change that.
+**In the web app.** The hosted app's Content Security Policy allows named hosts only, so the app cannot fetch a stranger's address. Trusting a site does not change that. **Add from…** in Lolly Design System Setup takes a page's folder or a ZIP of the folder, checks every file against `brand.json` and adds the tokens for your review.
 
 **What you get in the file.** The logo goes into the row as a picture, as a dropped file does. The row does not remember the page, so a newer logo on the page does not change a file you already made.
 
@@ -176,7 +180,6 @@ To draw with the brand rather than read about the brand, use [Lolly's MCP server
 
 ## What is not built yet
 
-- **Publishing from the app.** Publishing is a terminal command today.
 - **A signed page.** See [what the digest does not tell you](#take-a-logo-from-someones-page).
 - **A file that leads back to its page.** Nothing in an exported file records a page's address.
 - **Partner rules in a page.** Clear space, minimum size and allowed treatments are not fields yet. [Working with partners](/info/partners.html) covers what to do today.
