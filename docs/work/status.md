@@ -94,8 +94,8 @@ when you match clients to a release.
 
 ## Not built yet
 
-- **Scoped service tokens.** A token has a role, an expiry, last-use metadata and
-  revocation. Narrower scopes are not built.
+- **Per-token quotas.** A service token can be narrowed by scope and tool, and the automation
+  routes share one per-address rate limit. No per-token quota or usage account exists yet.
 - **Editable defaults.** An overlay stores `defaults` but does not apply them. Clients,
   collaboration, automation and server renders still need one agreed precedence.
 - **Watermarks tied to approval.** `until-approved` is not linked to approval state, and
