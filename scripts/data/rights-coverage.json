@@ -88,6 +88,7 @@
         "shells/cli/src/adobe.ts",
         "shells/cli/src/affinity.ts",
         "shells/cli/src/dxf.ts",
+        "shells/cli/src/import-design.ts",
         "shells/cli/src/document.ts",
         "shells/cli/src/read.ts",
         "services/mcp/src/tools.ts",
@@ -729,6 +730,7 @@
         "shells/web/src/views/penpot-import.ts",
         "shells/web/src/views/idml-import.ts",
         "shells/web/src/views/affinity-import.ts",
+        "shells/web/src/views/bannerbear-import.ts",
         "shells/web/src/views/lottie-import.ts",
         "shells/web/src/views/premiere-import.ts",
         "engine/src/idml-read.ts"
