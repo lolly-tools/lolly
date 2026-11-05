@@ -26,7 +26,7 @@
     "recordPrompt": {
       "type": "boolean",
       "default": false,
-      "description": "Reserved for recording the prompt with a render. Records nothing yet."
+      "description": "Asks a render to record the prompt's own words in the file's credential. By default a fingerprint is recorded. A run's own answer wins."
     },
     "occasion": { "type": "string", "maxLength": 200, "description": "Free text. Recorded, and read by nothing that decides." },
     "audience": { "type": "string", "maxLength": 200, "description": "Free text. Recorded, and read by nothing that decides." },

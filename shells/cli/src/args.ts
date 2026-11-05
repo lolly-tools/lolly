@@ -193,10 +193,10 @@ export const COMPOSE_VALUE_FLAGS = ['inventory', 'source', 'size', 'theme', 'the
 export const COMPOSE_BOOL_FLAGS = ['list', 'suggest', 'force'] as const;
 /** `lolly compose` flags whose value is a path, for completion. */
 export const COMPOSE_PATH_FLAGS = ['inventory', 'source', 'file', 'master', 'output', 'edits-out'] as const;
-/** `lolly intent` flags that take a value (plan 350 W4). `out-dir` is where `--render` writes. */
-export const INTENT_VALUE_FLAGS = ['out-dir'] as const;
-/** `lolly intent`'s on/off flags: `render` makes the files as well as the answer. */
-export const INTENT_BOOL_FLAGS = ['render'] as const;
+/** `lolly intent` flags that take a value (plan 350 W4). `out-dir` is where `--render` writes, `c2pa` is URL mode's credential setting. */
+export const INTENT_VALUE_FLAGS = ['out-dir', 'c2pa'] as const;
+/** `lolly intent`'s on/off flags: `render` makes the files as well as the answer, and the other two say what goes in their credentials. */
+export const INTENT_BOOL_FLAGS = ['render', 'no-record-intent', 'record-prompt'] as const;
 /** The `--fit` values `lolly compose` takes, for its own check and for completion. */
 export const COMPOSE_FIT_VALUES = ['report', 'shrink'] as const;
 /** The `--browser` values `lolly check` takes, for its own check and for completion. */

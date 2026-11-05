@@ -103,6 +103,10 @@ interface RunToolCliArgs {
    * the historical warning default; pasted links may name tolerated URL keys. */
   rejectUnknown?: boolean;
   toleratedUnknown?: ReadonlySet<string>;
+  /** What this file was asked to do, for a render that started from an intent (plan 350
+   *  W4b). This shell stamps the credential when it is set, because the record cannot
+   *  reach a browser tier over a URL. Set only by `renderResolvedSurface`. */
+  intentRecord?: import('@lolly/engine').C2paIntentRecord | null;
   /** Params that arrived inside a link (`lolly <url>`) or a file someone else made
    *  (`validate --rebuild`), not typed here. Whoever wrote them never chooses a file
    *  on this computer: a path flag among them, or a local path in an input they
@@ -410,7 +414,7 @@ async function designSystemForRun(
   return { runDesignSystem: null, pageDesignSystem: doc };
 }
 
-async function runToolCliCandidate({ toolId, inputValues, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, linkParams, fetchFile: fetchFileOverride, browserTier = true, files = [] }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
+async function runToolCliCandidate({ toolId, inputValues, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, linkParams, fetchFile: fetchFileOverride, browserTier = true, files = [], intentRecord = null }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
   const productionPath = params.production, productionReference = params['production-reference'], productionReport = params['production-report'];
   if (productionPath && share) throw new Error('Production verification requires rendered bytes.');
   if (!productionPath && (productionReference || productionReport)) throw new Error('Production options require --production.');
@@ -1352,7 +1356,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // bytes, with the identity - the same last-byte-operation rule, one tier later.
       // The visible trade: the manifest's environment assertion is then the CLI's
       // (surface: 'cli'), not the web shell's. docs/cli-signing.md says so.
-      c2pa: wantC2pa && !identity, c2paDays: c2pa?.days ?? undefined,
+      // An intent record is the same case: it has no way to reach the browser over a URL,
+      // so the credential that carries it is applied in Node below.
+      c2pa: wantC2pa && !identity && !intentRecord, c2paDays: c2pa?.days ?? undefined,
       // The deck state address, forwarded so the BROWSER tier applies the same one-slide
       // filter the web shell applies to `?s=`. Carried whenever it was given: a format the
       // filter skips is skipped there too (frameFilterApplies is the shared rule), so this
@@ -1392,7 +1398,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // HDR still and was told `c2pa=off`, so the credential goes on the file THIS
       // process wrote. Without it an `--hdr=1` export off the browser tier would carry
       // no Content Credential at all, silently.
-      webShellExport = res.usedBrowser && !identity && !res.nodeEncoded;
+      webShellExport = res.usedBrowser && !identity && !intentRecord && !res.nodeEncoded;
       // Same third case: an HDR still marks its own pixels here, on either tier, so its
       // floor skip must be reported even when the browser supplied the source frame.
       if ((!res.usedBrowser || res.nodeEncoded) && wantImprint && res.imprinted === false) imprintFloorSkip = true;
@@ -1632,7 +1638,10 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         // The "what was this made from / where / when / how big" record, matching
         // the web shell's tools.lolly.export enrichment (shared with the TUI - 
         // buildExportC2paOpts also attaches the profile author under `useDetails`).
-        const stamped = await embedC2pa(new Uint8Array(buf), finalFormat, buildExportC2paOpts({
+        // Told not to stamp, the browser tier saves a PDF with a cross-reference stream,
+        // which the embedder cannot extend, so an intent record needs the classic table.
+        const finished = intentRecord ? await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(new Uint8Array(buf), finalFormat) : new Uint8Array(buf);
+        const stamped = await embedC2pa(finished, finalFormat, buildExportC2paOpts({
           surface: 'cli', manifest: tool.manifest, model: runtime.getModel(),
           format: finalFormat, dims: { width, height, unit, dpi }, days: c2pa?.days, profile,
           // The design system and colourway the export's own metadata records
@@ -1647,6 +1656,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
           ingredients: [...runtime.emojiIngredients(), ...opsIngredients],
           // Which renderer drew a Design page here (plan 326); none for the other paths.
           route: routed.record ?? null,
+          // What this file was asked to do, for a render that started from an intent.
+          intent: intentRecord,
           // Absent = the ephemeral self-signed signer, unchanged. Present, the
           // credential carries the identity's x5chain and its certificate window.
           ...(identity ? { signer: identity.signer, signerValidity: { notBefore: identity.notBefore, notAfter: identity.notAfter } } : {}),

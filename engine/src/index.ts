@@ -566,7 +566,8 @@ export type {
 export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, collectAiIngredientDeclarations, C2PA_FORMATS, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput, C2paCredentialedIngredient, C2paSourceIngredient, C2paRightsRecord, C2paIngredientInput } from './c2pa.ts';
 export { LOLLY_RIGHTS_ASSERTION, LOLLY_APPROVAL_ASSERTION } from './c2pa.ts';
-export type { C2paApprovalRecord } from './c2pa.ts';
+export { LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE } from './c2pa.ts';
+export type { C2paApprovalRecord, C2paIntentRecord } from './c2pa.ts';
 export { APPROVAL_RECORD_FORMATS, artworkUnchanged, recordApprovalInCredential } from './c2pa-approval.ts';
 export type { ApprovalNotRecordedReason, ApprovalRecordOutcome, RecordApprovalOptions } from './c2pa-approval.ts';
 export { verifyC2pa, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, collectIngredientRecords, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
@@ -778,6 +779,9 @@ export { gamutTier, gamutTierProbe, BEYOND_TIER, GAMUT_TIER_LADDER } from './gam
 // in the path; the vocabulary and result types live in @lolly-tools/core/intent-v1.
 export { INTENT_RULES_VERSION, IntentInvalidError, parseVisualIntent, resolveIntent, parseToolIntents, loadIntentTools, checkToolIntents } from './intent.ts';
 export type { IntentToolSource, ParsedVisualIntent, ParseToolIntentsResult, ParseVisualIntentResult, ToolIntentIssue } from './intent.ts';
+// The record a file made from an intent carries, and the words for each outcome.
+export { INTENT_RECORD_CODES, confirmIntentRecord, intentRecordFor, intentRecordWords } from './intent-record.ts';
+export type { IntentNotRecordedReason, IntentRecordChoice, IntentRecordCode, IntentRecordOutcome } from './intent-record.ts';
 
 // An ICC profile as a gamut: parse the bytes, then hand `iccGamutSource(p, intent)`
 // to any gamut function above. The reader is hardened (never throws, returns null

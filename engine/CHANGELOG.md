@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.306.0
+
+- Intent in Content Credentials: `EmbedOptions.intent` writes a `tools.lolly.intent` assertion (`LOLLY_INTENT_ASSERTION`, `C2paIntentRecord`), after every other assertion, so a manifest without one keeps its exact bytes. The shape is closed: closed values read as themselves, and occasion, audience, region and the prompt are `sha256:` fingerprints unless the run asks for the prompt's words.
+- `C2paReport.intent` reads the record from a credential that verifies, with `promptNote` (`INTENT_PROMPT_NOTE`) beside any recorded prompt words, because they are text someone wrote.
+- New module `intent-record.ts`: `intentRecordFor` builds the record from a resolution with stable refusals (`INTENT_RECORD_CODES`), `confirmIntentRecord` decides "recorded" from a readback, and `intentRecordWords` gives every surface the same words.
+
 ## 1.305.0
 
 - Visual intent (new module `intent.ts`): `resolveIntent` takes what a piece has to do (`VisualIntentV1` in `@lolly-tools/core/intent-v1`) and the tools a caller may consider, and answers with `IntentResolutionV1`: for each surface the chosen tool, its input values, gaps, unused content, candidates with reasons and refusals with reasons. Pure and deterministic, with no model in the path. A request with a `prompt` and no `purpose` is answered `purpose-needed`, carrying the purposes and tools so the calling agent can choose: the prompt is carried and digested and never read. `parseVisualIntent` refuses with stable codes, and `checkToolIntents` is the catalog validator's rule set.

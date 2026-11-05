@@ -106,6 +106,7 @@
     "./pdf-redact": "./src/pdf-redact.ts",
     "./pdf-redact-core": "./src/pdf-redact-core.ts",
     "./verdict-slugs": "./src/verdict-slugs.ts",
+    "./pdf-classic": "./src/pdf-classic.ts",
     "./verdict-report": "./src/verdict-report.ts",
     "./trust-anchors": "./src/trust-anchors.ts",
     "./signing-identity": "./src/signing-identity.ts",
