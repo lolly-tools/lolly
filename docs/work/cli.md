@@ -36,6 +36,7 @@ lw login --email admin@example.test         # the dev provider (dev.enabled only
 | Host the signed instance pack | `instance pack`, `instance pack-rm` | [Hosting the instance pack](#hosting-the-instance-pack) |
 | Let people sign in | `invite add`, `invite ls`, `invite rm` | [Invitations](#invitations) |
 | Give automation its own identity | `tokens` | [Service tokens](#service-tokens) |
+| Connect an agent with a service token | `mcp config` | [MCP settings](#mcp-settings) |
 | Render and recover renders | `renders`, `render-batches` | [Recoverable renders](#recoverable-renders) |
 | Send finished files to a destination | `destinations`, `deliveries` | [Organization delivery](#organization-delivery) |
 | Manage grants and policy as code | `grants`, `export`, `apply` | [Governance](#governance) |
@@ -110,15 +111,27 @@ well. See [identity](identity.md#who-may-sign-in).
 ## Service tokens
 
 ```bash
-lw tokens create --label ci --role admin    # owner; the secret prints once - store it now
-lw tokens                                   # list (label, role, last used, revoked)
+lw tokens create --label ci --scopes render,files --tools qr-code   # owner; the secret prints once - store it now
+lw tokens create --label sync --role admin  # no scopes: all that the role can reach
+lw tokens                                   # list (label, role, scopes, tools, last used, revoked)
 lw tokens revoke <id>
 LW_TOKEN=lwt_… lw export --out governance.json    # any command, authenticated as the automation
 ```
 
 A token outranks a stored session cookie when both are present - automation acts as the
 automation, never as whoever last signed in on the machine. Tokens drive the action-gated
-API (export/apply, providers, fleet, audit); the member-workflow commands refuse them.
+API (export/apply, providers, fleet, audit); the member-workflow commands refuse them. A scoped
+token reaches only what its scopes open, and other commands answer `403 TOKEN_SCOPE`. The scopes
+are in the [automation guide](automation-api.md#before-you-start-a-token-and-a-permission).
+
+## MCP settings
+
+```bash
+lw mcp config --base https://work.example.com
+lw mcp config --name brand --token-env WORK_TOKEN --json
+```
+
+This prints settings for an MCP client to reach the [organisation MCP endpoint](automation-api.md#connect-an-agent-over-mcp). The command makes no request. The settings name an environment variable (`LW_TOKEN` unless you pass `--token-env`) and never hold the token.
 
 ## Recoverable renders
 

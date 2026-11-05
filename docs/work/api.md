@@ -24,9 +24,9 @@ reach at all. The action in each table then decides what that caller may do ther
 | Caller | How it identifies itself | What it can reach |
 |---|---|---|
 | A person | the `lw_session` cookie, from signing in on the instance or approving a device sign-in | every route their role and grants allow |
-| A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | routes gated by an action its role holds: automation (but not `GET /render/…`), uploads and file references, catalog submissions of bytes or uploads, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals, deliveries to a destination that needs approval, live collaboration, telemetry consent, comments, versions, history, access requests, project file uploads and submitting a project file to the catalog |
+| A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | a scoped token reaches only the routes its scopes open and the action there allows; a token with no scopes reaches routes gated by an action its role holds: automation (but not `GET /render/…`), uploads and file references, catalog submissions of bytes or uploads, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals, deliveries to a destination that needs approval, live collaboration, telemetry consent, comments, versions, history, access requests, project file uploads and submitting a project file to the catalog |
 | A guest | the `lw_guest` cookie, from joining through a guest-edit link | only what the link grants: the document and tool it opens (that tool's files under `/tools/*`, a catalog that lists only that tool and `GET /render/…` for it), its own session and telemetry |
-| An agent | `Authorization: Bearer <key>` on `/api/workspace/mcp` only: `POST` for MCP calls, `DELETE` to disconnect ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API |
+| An agent | `Authorization: Bearer <key>` on `/api/workspace/mcp` only: `POST` for MCP calls, `DELETE` to disconnect ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API. A service token uses [`/api/v1/mcp`](#organisation-mcp) instead |
 | An identity provider | a SCIM bearer on `/scim/v2/*` only ([SCIM](#scim-provisioning)) | the SCIM protocol routes |
 | A signed link | the `?s=` signature on `/l/:id`, plus the `lw_link_<id>` cookie for a password link | that link's target |
 | A job receiver | the `x-lw-job-token` header on `GET /api/v1/jobs/:id/result` | that one job's result, for 24 hours |
@@ -43,6 +43,7 @@ a per-person limit, given in their rows. The sizes are in
 |---|---|---|
 | `UNAUTHORIZED` | 401 | no session, or this deployment is sign-in gated |
 | `FORBIDDEN` | 403 | the required action is missing |
+| `TOKEN_SCOPE` | 403 | a scoped service token called a route its scopes do not open |
 | `OWNER_ONLY_ACTION` | 403 | an owner-only escalation was attempted |
 | `GUEST_LINKS_DISABLED` | 403 | guest links are off on this deployment |
 | `BAD_SIGNATURE` | 403 | link signature invalid |
@@ -390,15 +391,28 @@ stores nothing, so its subject is `request`). A note is recorded only as its len
 
 | Route | Action | Notes |
 |---|---|---|
-| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint: body `{ label, role, ttlDays? }`. `label` says which automation holds the token (up to 80 characters), `role` is any role but `guest`, and `ttlDays` is a whole number from 1 to 365 (90 by default). `201` with the token record and `token`, the secret (`lwt_…`), which appears in this response and never again |
-| `GET /api/v1/tokens` | `token.manage` (**owner**) | list with expiry, last-used and revocation state - never secrets |
+| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint: body `{ label, role?, scopes?, tools?, ttlDays? }`. `label` says which automation holds the token (up to 80 characters). `scopes` lists `render`, `documents`, `files`, `delivery`, `catalog.read` or `audit.read`, and a route no listed scope opens answers `403 TOKEN_SCOPE`. With `scopes` and no `role` the token takes the `automation` role; with no `scopes`, `role` is required and is any role but `guest` or `automation`. `tools` lists up to 64 tool ids and needs the `render` or `documents` scope. `ttlDays` is a whole number from 1 to 365 (90 by default). `201` with the token record and `token`, the secret (`lwt_…`), which appears in this response and never again |
+| `GET /api/v1/tokens` | `token.manage` (**owner**) | `{ tokens, legacyUnboundedCount, scopeVocabulary }`: each token's role, `scopes`, `tools` (`null` when it has none), expiry, last-used and revocation state, never secrets, and every scope with a plain-language `label` and `description` |
 | `DELETE /api/v1/tokens/:id` | `token.manage` (**owner**) | revoke: `200 { ok: true }`, or `404` for a token that is unknown or already revoked; the very next use gets `401` |
 
 A minted token rides `Authorization: Bearer lwt_…` and resolves to a synthetic
 principal carrying the token's role (no groups): permissions, grants and audit see it like any
-member (`user:svc_<id>` actor). [Who can call what](#who-can-call-what) lists where a token is
-accepted and refused, and [Automate with the Lolly Work API](automation-api.md) shows a first call.
+member (`user:svc_<id>` actor). Scopes are checked first and only narrow: the route's own action
+check still runs. [Who can call what](#who-can-call-what) lists where a token is accepted and
+refused, and [Automate with the Lolly Work API](automation-api.md) lists the scopes and shows a
+first call.
 See [service tokens](enterprise-identity.md#service-tokens).
+
+### Organisation MCP
+
+| Route | Auth | Notes |
+|---|---|---|
+| `POST /api/v1/mcp` | service token | MCP over Streamable HTTP, with no session. Each tool call runs the route it mirrors as the token |
+| `GET /api/v1/mcp` | service token | `405`, because the endpoint has no server-to-client stream |
+
+A person's session gets `401 SERVICE_TOKEN_REQUIRED`, and a request from another origin gets
+`403 ORIGIN_REFUSED`. [Connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp) lists the
+tools and the route each one runs.
 
 ### SCIM provisioning
 
