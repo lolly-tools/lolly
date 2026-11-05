@@ -607,6 +607,19 @@ A configuration that breaks the jurisdiction rule, carries an unknown key or mar
 instance's own hostname `publicOnly` stops the server at boot. See [Put a CDN in front of Lolly Work](edge-cdn.md)
 for the rule, the settings that must stay off on each provider, purges and the probe.
 
+## `renderApi`
+
+The migration API for people moving off a hosted render API. Off by default, and every `/compat/`
+route then answers `404`. [Move from a hosted render API](move-from-render-api.md) is the guide.
+
+| Key | Default | What it does |
+|---|---|---|
+| `enabled` | `false` | turn on the `/compat/` routes |
+| `mappingsFile` | *unset* | a JSON file of template mappings, read at boot. A bad file stops the server starting |
+| `templates` | `[]` | the same mappings inline |
+| `resultUrls.signedDays` | `30` | how long a result URL works after its render finished, 0 to 3650. `0` means result URLs need the bearer token. Above `0` needs `LW_RENDER_API_URL_SECRET` |
+| `urlApi.actAs` | *unset* | the service token Placid URL API renders act as |
+
 ## `submit`
 
 The instance-side half of catalog submit: a single optional pre-store scan hook. Everything an
@@ -866,6 +879,7 @@ instead ([hiding tags](catalog.md#hiding-tags)).
 | `LW_METRICS_TOKEN` | to scrape remotely | bearer token for `/metrics`. Required in production and proxied deployments; unset permits loopback only in an unproxied evaluation instance |
 | `LW_SMTP_PASSWORD` | with `notify.smtp.user` | the relay password (AUTH PLAIN) |
 | `LW_WEBHOOK_SECRET` | with `notify.webhook` or `automation.callbacks.allowedOrigins` | HMAC key signing every outbound webhook event and callback |
+| `LW_RENDER_API_URL_SECRET` | with `renderApi.resultUrls.signedDays` above `0` | HMAC key signing migration API result URLs. Rotating it ends every URL already handed out |
 | `LW_SIEM_SECRET` | with `siem.url` | HMAC key signing every forwarded audit batch |
 | `LW_OFREP_TOKEN` | with `featureFlags.ofrep`, when the flag service asks for a credential | sent to the flag service as a bearer token, or as `X-API-Key` with `featureFlags.ofrep.auth: "api-key"`. The Helm chart reads it from `secrets.ofrepToken` or from the same key in `existingSecret` |
 | `LW_RENDER_WORKER_SECRET` | with a render worker | shared HMAC key; must match the worker |

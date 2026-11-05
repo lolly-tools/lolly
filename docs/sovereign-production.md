@@ -114,6 +114,7 @@ Lolly is built inside SUSE, a European infrastructure company with more than thr
 
 ## Related
 
+- [Move from a hosted render API](/info/work-move-from-render-api.html): bring image production from Bannerbear or Placid onto your own server, one template at a time.
 - [Constraints](/info/constraints.html): the brand rules live in the tool rather than in each file.
 - [Determinism](/info/determinism.html): the same render on your own hardware as in anyone else's browser.
 - [Reproducibility](/info/reproducibility.html): the inputs travel as text you keep.

@@ -98,6 +98,13 @@ Brandfolder has successful integration use reported at SUSE, including administr
 The console's Fleet view lists the Lolly versions that talk to your server, which helps
 when you match clients to a release.
 
+## Built from public documentation only
+
+- **[The move from a hosted render API](move-from-render-api.md).** The Bannerbear V5, Bannerbear
+  V2 and Placid adapters, off by default, are built from those vendors' public documentation and
+  fixtures. They have not been run against a live account, and no vendor account is held for
+  testing. The guide has a check list for anyone who holds one.
+
 ## Not built yet
 
 - **Per-token quotas.** A service token can be narrowed by scope and tool, and the automation

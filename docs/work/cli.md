@@ -189,6 +189,22 @@ writing anything, and says whether the approval is recorded in that file. These 
 approvals, because a decision about a file is a person's act. Decide in the console, where the file
 is on screen. See [review an exported file](approvals.md#review-an-exported-file).
 
+## Moving from a hosted render API
+
+`lw render-api` reads a Bannerbear or Placid account, keeps references, checks a mapping and measures a
+render against a reference. [Move from a hosted render API](move-from-render-api.md) has the stages.
+
+```bash
+lw render-api inventory --from placid --token-env PLACID_KEY --out ./move
+lw render-api sample --from placid --template <id> --token-env PLACID_KEY --values request.json --out ./refs --spend-credits
+lw render-api check --mapping mapping.json
+lw render-api compare --from placid --mapping mapping.json --template <id> --reference ./refs/<id>.png --values request.json
+```
+
+`inventory` and `sample` need no Work server. `sample` spends credits on your vendor account and refuses
+to run without `--spend-credits`. A vendor key is read from the variable `--token-env` names and is never
+printed. `check` and `compare` exit `2` when a template cannot run or a render differs.
+
 ## Organization delivery
 
 ```bash
