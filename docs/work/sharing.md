@@ -185,8 +185,8 @@ batches](renders.md).
 `enforce.watermark` on a tool overlay adds a diagonal, tiling **PREVIEW** brick pattern to the
 SVG root before any rasterisation, so both `svg` and `png` carry the pattern. Alternating brick rows
 use `#0002` and `#fff2`, so the watermark reads on light and dark artwork alike. Each setting is in
-[the enforce block](governance.md#the-enforce-block), and `until-approved` lifts the pattern once
-[a matching request is approved](governance.md#a-watermark-that-follows-approval).
+[the enforce block](governance.md#the-enforce-block). `until-approved` lifts the pattern everywhere,
+share links included, once [a matching request is approved](governance.md#a-watermark-that-follows-approval).
 
 ## Provenance
 

@@ -95,16 +95,16 @@ With `until-approved`, a server render carries the PREVIEW pattern unless an app
 [export review](approvals.md) matches it: the same tool, the same tool version, the same format
 and the same input values. A different value, a new tool version or another format stays marked
 until someone approves that one too. A request in review, rejected or withdrawn leaves the mark on.
-A decision takes effect on the next render. A caller asking for the preview mark still gets the
-mark, and `always` and `never` keep their meaning.
+A decision takes effect on the next render. An approved match lifts the mark everywhere, including
+share links and a caller asking for a preview. `always` and `never` keep their meaning.
 
 Set a chain in **Approval chain for exports** as well. Without a chain, nobody can approve the
 tool, so its renders stay marked, and the console says so.
 
-Server renders under this rule are never stored by a browser or shared cache. An
-`x-lolly-watermark` header says how each one came out: `Marked until approved`,
-`Approved, not marked` or `Marked as a preview`. A durable render's output carries the same words,
-and its receipt gives the id of the approval that matched. The words are in the record, not the artwork.
+Server renders under this rule, share links included, are never stored by a browser or shared
+cache. An `x-lolly-watermark` header says how each one came out: `Marked until approved` or
+`Approved, not marked`. A durable render's output carries the same words, and its receipt gives the
+id of the approval that matched. The words are in the record, not the artwork.
 
 - **Upgrading.** Until this release `until-approved` was stored and not enforced. An instance
   already holding the setting starts showing PREVIEW on the first render after the upgrade. Change

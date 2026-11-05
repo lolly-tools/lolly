@@ -210,8 +210,8 @@ a review of one selected instance file; the API supports bounded sets.
 
 An overlay can set `enforce.watermark: 'until-approved'` and pair it with a chain. Server renders of
 that tool then carry the PREVIEW pattern until a request for the same tool version, format and input
-values is approved. Work adds no PREVIEW pattern to the file under review itself, because that is
-the file being approved. [A watermark that follows approval](governance.md#a-watermark-that-follows-approval)
+values is approved. An approved match lifts the pattern everywhere, including share links. Work adds
+no PREVIEW pattern to the file under review itself, because that is the file being approved. [A watermark that follows approval](governance.md#a-watermark-that-follows-approval)
 has the rule and its limits.
 
 ## Check the state of a request
