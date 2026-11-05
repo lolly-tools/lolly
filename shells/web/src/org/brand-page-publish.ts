@@ -24,7 +24,7 @@ async function publishBundle(base: string, capability: BrandPagesCapability, bun
   const checksum = await artifactChecksum(blob);
   const uploadId = await sendApprovalFile({ blob, name: 'brand-page.zip' }, checksum, capability.partBytes, undefined, 'brand-page');
   const res = await instanceFetch(instancePath('/api/v1/brand-pages'), { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ uploadId, checksum }) });
-  const body = await res.json().catch(() => null) as { page?: { slug?: string }; unchanged?: boolean; approvalId?: string; error?: { message?: string; code?: string } | string } | null;
+  const body = await res.json().catch(() => null) as { page?: { slug?: string; url?: string }; unchanged?: boolean; approvalId?: string; error?: { message?: string; code?: string } | string } | null;
   if (!res.ok) {
     const failure = typeof body?.error === 'object' ? body.error : undefined;
     throw new Error(failure?.message || failure?.code || `HTTP ${res.status}`);
@@ -32,7 +32,8 @@ async function publishBundle(base: string, capability: BrandPagesCapability, bun
   const slug = body?.page?.slug;
   if (!slug) throw new Error('The instance did not name the page.');
   return {
-    url: `${base}/brand/${encodeURIComponent(slug)}/`,
+    // The instance's own answer first: its public address can differ from this shell's.
+    url: body?.page?.url || `${base}/brand/${encodeURIComponent(slug)}/`,
     state: body?.approvalId ? 'pending' : body?.unchanged ? 'unchanged' : 'live',
   };
 }

@@ -34,14 +34,14 @@ test('publishing sends the parts in the brand-page scope, then names the upload 
     if (url.endsWith('/api/v1/uploads') && init.method === 'POST') return { status: 201, body: { upload: { id: 'upl_1' } } };
     if (url.includes('/parts/')) return { status: 200, body: {} };
     if (url.endsWith('/finalize')) return { status: 200, body: {} };
-    if (url.endsWith('/api/v1/brand-pages')) return { status: 201, body: { page: { slug: 'acme' } } };
+    if (url.endsWith('/api/v1/brand-pages')) return { status: 201, body: { page: { slug: 'acme', url: 'https://work.example.com/brand/acme/' } } };
     return { status: 404, body: {} };
   });
   try {
     const hosting = connectedInstanceFrom({ brandPages: CAPABILITY }, true)!.brandPages!;
     const result = await hosting.publish({ bundle: new Uint8Array([1, 2, 3, 4, 5, 6]) });
     assert.equal(result.state, 'live');
-    assert.match(result.url, /\/brand\/acme\/$/);
+    assert.equal(result.url, 'https://work.example.com/brand/acme/', 'the instance\'s own address');
     const begun = JSON.parse(String(stub.calls[0]!.init.body));
     assert.equal(begun.scope, 'brand-page');
     assert.equal(begun.parts.length, 2, 'split at partBytes');
