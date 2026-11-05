@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import { generateSigner } from '../../../engine/src/c2pa.ts';
 import { recordApprovalInCredential } from '../../../engine/src/c2pa-approval.ts';
 import { dispatch } from '../src/server.ts';
+import { exportUrl } from '../src/render.ts';
 import type { JsonRpcResponse } from '../src/protocol.ts';
 
 interface Result { isError?: boolean; content: Array<{ type: string; text?: string; mimeType?: string; data?: string; resource?: { blob?: string; text?: string } }> }
@@ -88,14 +89,64 @@ test('recordPrompt puts the words in, the result says so, and verify returns the
   assert.deepEqual(stray, [], 'no escape sequence reaches a reader');
 });
 
-test('MCP credentials stay opt-in: with no c2pa nothing is added, and the result says the intent was not recorded', async () => {
-  const rendered = await call('lolly_render', { ...RENDER, intent: INTENT, recordPrompt: true });
-  assert.ok(!rendered.isError);
+test('passing intent turns the credential on for this render, at the default lifetime, and the result says so', async () => {
+  const rendered = await call('lolly_render', { ...RENDER, intent: INTENT });
+  assert.ok(!rendered.isError, JSON.stringify(rendered.content));
   const header = rendered.content[0]!.text!;
-  assert.match(header, /The intent was not recorded: this render wrote no Content Credential\. Pass c2pa/);
-  assert.equal(/Recorded the intent/.test(header), false);
+  assert.match(header, /Recorded the intent in this file's Content Credentials/);
+  assert.match(header, /Passing intent added this Content Credential to the file: self-signed, valid for 30 days\./);
+  assert.match(header, /c2pa: "off" for no credential/);
   const { json } = await verify(rendered);
+  assert.equal(json.report.state, 'valid');
+  assert.equal(json.report.intent.purpose, 'direct');
+  assert.match(json.report.intent.promptFingerprint, /^sha256:/, 'the prompt stays a fingerprint');
+  assert.equal(json.report.intent.prompt, undefined);
+});
+
+test('a lifetime the caller chose is theirs, and the result does not claim the intent added the credential', async () => {
+  const rendered = await call('lolly_render', { ...RENDER, intent: INTENT, c2pa: '90' });
+  const header = rendered.content[0]!.text!;
+  assert.match(header, /Recorded the intent/);
+  assert.equal(/Passing intent added/.test(header), false);
+  assert.equal(/c2pa: "off"/.test(header), false);
+});
+
+test('an explicit c2pa: "off" still wins: no credential, no record, and the result says so', async () => {
+  const rendered = await call('lolly_render', { ...RENDER, intent: INTENT, c2pa: 'off' });
+  assert.ok(!rendered.isError, JSON.stringify(rendered.content));
+  const header = rendered.content[0]!.text!;
+  assert.match(header, /The intent was not recorded: this render wrote no Content Credential\./);
+  assert.equal(/Recorded the intent/.test(header), false);
+  assert.equal(/Passing intent added/.test(header), false);
+  const { json } = await verify(rendered);
+  assert.equal(json.report.state, 'none', 'there is no credential in the file');
   assert.equal(json.report.intent, undefined);
+});
+
+test('recordIntent: false with no c2pa adds no credential, as a render with no intent would not', async () => {
+  const rendered = await call('lolly_render', { ...RENDER, intent: INTENT, recordIntent: false });
+  assert.match(rendered.content[0]!.text!, /The intent was not recorded, as asked\./);
+  const { json } = await verify(rendered);
+  assert.equal(json.report.state, 'none');
+});
+
+test('a render with no intent and no c2pa does not change by a byte: no credential is added', async () => {
+  const plain = await call('lolly_render', { ...RENDER });
+  const again = await call('lolly_render', { ...RENDER });
+  assert.equal(/credential|intent/i.test(plain.content[0]!.text!), false, plain.content[0]!.text!);
+  assert.equal(fileOf(plain).base64, fileOf(again).base64, 'the file is the same both times, so nothing signed or timed went in');
+  assert.equal((await verify(plain)).json.report.state, 'none');
+});
+
+test('the browser never stamps a file that carries an intent, whichever way c2pa is set', () => {
+  const intent = { purpose: 'direct' } as never;
+  const urlFor = (o: Parameters<typeof exportUrl>[4]): URLSearchParams => {
+    const url = exportUrl('http://shell.test', 'certificate', 'firstname=Sam', 'pdf', o);
+    return new URLSearchParams(url.slice(url.indexOf('?') + 1));
+  };
+  assert.equal(urlFor({ intent, c2pa: { on: true, days: null } }).get('c2pa'), 'off');
+  assert.equal(urlFor({ intent, c2pa: { on: false, days: null } }).get('c2pa'), 'off');
+  assert.equal(urlFor({ c2pa: null }).get('c2pa'), null, 'a render with no intent keeps the export as it was');
 });
 
 test('recordIntent: false writes no record over a credential, and says so', async () => {

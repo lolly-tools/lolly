@@ -187195,7 +187195,7 @@ function exportUrl(base, toolId, query2, fmt6, o) {
   if (o.hdr) p.set("hdr", serializeHdr(o.hdr));
   if (o.depth && o.depth !== "auto") p.set("depth", String(o.depth));
   if (Number(p.get("cuts")) > 1 || p.has("sampletimes")) p.set("c2pa", o.c2pa?.on ? String(o.c2pa.days ?? 1) : "off");
-  if (o.intent && o.c2pa?.on) p.set("c2pa", "off");
+  if (o.intent) p.set("c2pa", "off");
   p.set("export", "1");
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -187402,6 +187402,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
   const values = { ...st.values };
   if (o.transparentBg !== void 0) values["transparentBg"] = o.transparentBg;
   if (o.convertPaths !== void 0) values["convertPaths"] = o.convertPaths;
+  const credentialFromIntent = !!o.intent && !o.c2pa && !st.c2pa;
   const merged = {
     ...o,
     width: o.width ?? st.width ?? void 0,
@@ -187409,7 +187410,9 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     unit: o.unit ?? st.unit ?? void 0,
     dpi: o.dpi ?? st.dpi ?? void 0,
     password: o.password ?? st.password ?? void 0,
-    c2pa: o.c2pa ?? st.c2pa ?? null,
+    // The credential is the one place an intent record can go, so an intent turns it on for
+    // this render. An explicit setting, `c2pa: "off"` included, still wins.
+    c2pa: o.c2pa ?? st.c2pa ?? (credentialFromIntent ? { on: true, days: null } : null),
     // The `hdr=` request, the CLI/MCP's only float pixel source (see exportOpts).
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? void 0,
@@ -187532,7 +187535,8 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     ...evaluation ? { rights: await rightsResult(evaluation, bytes2) } : {},
     ...songs ? { songs } : {},
     ...designRecord ? { designRecord } : {},
-    ...finished.intentRecord ? { intentRecord: finished.intentRecord } : {}
+    ...finished.intentRecord ? { intentRecord: finished.intentRecord } : {},
+    ...credentialFromIntent ? { credentialFromIntent } : {}
   };
 }
 async function rightsResult(evaluation, bytes2) {
@@ -194440,7 +194444,7 @@ var RESOLVE_INTENT_OUTPUT_SCHEMA = {
 };
 var RESOLVE_INTENT_TOOL_DEF = {
   name: "lolly_resolve_intent",
-  description: "Say what a piece has to do, and get back the tool for each surface, its input values, what is missing and why. Read only: nothing is rendered or stored. No model is in this path, so it never reads meaning from text. If you are happy to carry your user's first words in the work you return, pass them as `prompt`, then read them yourself and choose the `purpose`: a prompt with no purpose comes back as outcome `purpose-needed` (code `intent.purpose-needed`) with the purposes, the tools that serve each, the surfaces and the roles, so you can call again with a purpose, surfaces and content. A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`, plus `exportDims` as width, height and unit when `sizeSetBy` is `export`. To record the intent in the file, also pass `intent`, `surface` and `c2pa` to lolly_render. A surface with status `needs-content` lists the roles to supply in `gaps`; supply them from your user, never invent them. `defaultsInUse` names the tool wording that would still print.",
+  description: 'Say what a piece has to do, and get back the tool for each surface, its input values, what is missing and why. Read only: nothing is rendered or stored. No model is in this path, so it never reads meaning from text. If you are happy to carry your user\'s first words in the work you return, pass them as `prompt`, then read them yourself and choose the `purpose`: a prompt with no purpose comes back as outcome `purpose-needed` (code `intent.purpose-needed`) with the purposes, the tools that serve each, the surfaces and the roles, so you can call again with a purpose, surfaces and content. A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`, plus `exportDims` as width, height and unit when `sizeSetBy` is `export`. To record the intent in the file, also pass `intent` and `surface` to lolly_render, which adds a Content Credential unless you pass c2pa: "off". A surface with status `needs-content` lists the roles to supply in `gaps`; supply them from your user, never invent them. `defaultsInUse` names the tool wording that would still print.',
   inputSchema: {
     type: "object",
     properties: {
@@ -194471,7 +194475,7 @@ function intentTools() {
 var RENDER_INTENT_ARGS = {
   intent: {
     type: "object",
-    description: "The intent this file answers, the object you gave lolly_resolve_intent. The server resolves it again and works out what to record itself. Refused with code intent.tool-not-candidate when toolId does not answer it on that surface. Recorded in the Content Credential, so also pass c2pa: with no credential nothing is recorded, and the result says so. Recorded as written: purpose, surface, tool, language, the rules and vocabulary versions and the intent digest. As fingerprints only: occasion, audience, region and the prompt."
+    description: 'The intent this file answers, the object you gave lolly_resolve_intent. The server resolves it again and works out what to record itself. Refused with code intent.tool-not-candidate when toolId does not answer it on that surface. Recorded in a Content Credential, so passing intent adds one to this file: self-signed and valid for 30 days, unless c2pa sets the lifetime. With c2pa: "off" the file holds no credential and no record, and the result says so. Recorded as written: purpose, surface, tool, language, the rules and vocabulary versions and the intent digest. As fingerprints only: occasion, audience, region and the prompt.'
   },
   surface: { type: "string", maxLength: 64, description: "Which surface of `intent` this file is for. Needed when the intent names more than one." },
   recordIntent: { type: "boolean", description: "Default true when `intent` is given. False records nothing about the intent in the file." },
@@ -194507,14 +194511,15 @@ async function intentRenderSettings(args, toolId) {
   if (!chosen.ok) return { error: { code: chosen.code, message: chosen.message } };
   return recordIntent === false ? { record: null, optedOut: true } : { record: chosen.record, optedOut: false };
 }
-function intentRecordText(outcome) {
+function intentRecordText(outcome, credentialFromIntent = false) {
   if (!outcome) return "";
   const lines = intentRecordWords(outcome);
   if (outcome.state === "recorded") {
+    if (credentialFromIntent) lines.push("Passing intent added this Content Credential to the file: self-signed, valid for 30 days.");
     if (outcome.promptInFile) lines.push("Leave recordPrompt off when a prompt holds personal or confidential detail.");
-    lines.push("Pass recordIntent: false to leave the intent out.");
+    lines.push(credentialFromIntent ? 'Pass recordIntent: false to leave the intent out, or c2pa: "off" for no credential.' : "Pass recordIntent: false to leave the intent out.");
   } else if (outcome.reason === "no-credential") {
-    lines.push('Pass c2pa (for example "30") to record the intent.');
+    lines.push('Leave out c2pa: "off" to record the intent.');
   }
   return lines.join(" ");
 }
@@ -195533,7 +195538,7 @@ var TOOL_DEFS = [
   },
   {
     name: "lolly_render",
-    description: "Render a Lolly tool to an on-brand asset (PNG/SVG/PDF/\u2026). Returns the image plus an editable lolly.tools link. After lolly_resolve_intent, pass `intent`, `surface` and `c2pa` to record what the file was asked to do. The result says what was recorded, read back from the file.",
+    description: 'Render a Lolly tool to an on-brand asset (PNG/SVG/PDF/\u2026). Returns the image plus an editable lolly.tools link. After lolly_resolve_intent, pass `intent` and `surface` to record what the file was asked to do. That adds a Content Credential to this file unless you pass c2pa: "off". The result says what was recorded, read back from the file.',
     inputSchema: {
       type: "object",
       properties: {
@@ -196127,7 +196132,7 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           designRecordText(result.designRecord),
           // The intent, shown at the moment of export as the approval asks, in words read
           // back from the delivered file. It says plainly when the prompt is in the file.
-          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" })
+          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" }, result.credentialFromIntent === true)
         ].filter(Boolean).join("\n");
         const content2 = [{ type: "text", text: header }];
         if (holdResult && result.bytes.byteLength > RESULT_LINK_THRESHOLD) {
