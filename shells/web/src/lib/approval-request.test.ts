@@ -65,7 +65,7 @@ test('the view makes a file only when the opener asks for one, and a broken chec
 test('working state is dormant until registered, and goes with its opener', () => {
   _clearApprovalOpenerForTests();
   assert.equal(approvalWork(), undefined);
-  const work = { status: async () => null, approvedFile: async () => ({ blob: new Blob([]), name: '' }), open: () => {}, sessions: async () => new Map() };
+  const work = { status: async () => null, files: async () => [], approvedFile: async () => ({ blob: new Blob([]), name: '' }), open: () => {}, sessions: async () => new Map() };
   const off = registerApprovalOpener(() => {}, { work });
   assert.equal(approvalWork(), work);
   off();

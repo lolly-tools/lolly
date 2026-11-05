@@ -553,6 +553,7 @@ export function wireCostSlot(ta: ActionsCtx): void {
     if (!inp) return;
     const onDimChange = () => {
       ta.sizeUserSet = true;
+      ta.approvalState.sizeChanged();
       onUrlSync?.(key);
       ta.video.refreshCanvasPreview();
       invalidatePreview();

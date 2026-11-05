@@ -77,7 +77,7 @@ test('one read per view, and none with no flow registered', async () => {
   registerApprovalOpener(() => {}, {
     work: {
       status: async () => null,
-      approvedFile: async () => ({ blob: new Blob([]), name: '' }),
+      files: async () => [], approvedFile: async () => ({ blob: new Blob([]), name: '' }),
       open: () => {},
       sessions: async () => { reads++; return new Map([['s1', approved]]); },
     },
@@ -87,7 +87,7 @@ test('one read per view, and none with no flow registered', async () => {
   registerApprovalOpener(() => {}, {
     work: {
       status: async () => null,
-      approvedFile: async () => ({ blob: new Blob([]), name: '' }),
+      files: async () => [], approvedFile: async () => ({ blob: new Blob([]), name: '' }),
       open: () => {},
       sessions: async () => { throw new Error('offline'); },
     },

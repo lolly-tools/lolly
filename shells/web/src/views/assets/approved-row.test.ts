@@ -19,7 +19,7 @@ const { registerApprovalOpener, _clearApprovalOpenerForTests } = await import('.
 const link = (instance: string) => ({ meta: { approval: { id: 'apr_1', instance, sha256: 'a', decidedAt: '2026-11-02T00:00:00Z' } } });
 const opened: string[] = [];
 const register = (): void => {
-  registerApprovalOpener(() => {}, { work: { status: async () => null, approvedFile: async () => ({ blob: new Blob([]), name: '' }), open: (id) => { opened.push(id); }, sessions: async () => new Map() } });
+  registerApprovalOpener(() => {}, { work: { status: async () => null, files: async () => [], approvedFile: async () => ({ blob: new Blob([]), name: '' }), open: (id) => { opened.push(id); }, sessions: async () => new Map() } });
 };
 
 test('an ordinary asset has no row', () => {

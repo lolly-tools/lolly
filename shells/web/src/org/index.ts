@@ -1141,6 +1141,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
             if (!orgConfigState?.approvals?.exportReview?.match) return null;
             try { return await (await import('./approval-work.ts')).approvalStatus(query, signal); } catch { return null; }
           },
+          files: async (id) => (await import('./approval-work.ts')).approvalFiles(id),
           approvedFile: async (id) => (await import('./approval-work.ts')).approvedFile(id),
           open: openApprovalRequestSheet,
           sessions: async () => {

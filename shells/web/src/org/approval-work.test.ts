@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import {
-  _resetApprovalsForTests, approvalStatus, approvedFile, currentApproval, decideApproval, decidedAt, fetchApprovalFile, fileNameOf, findApproval, listApprovals,
+  _resetApprovalsForTests, approvalFiles, approvalStatus, approvedFile, currentApproval, decideApproval, decidedAt, fetchApprovalFile, fileNameOf, filesLike, findApproval, listApprovals,
   rowFromBody, sessionApprovals, statusFromBody, type ApprovalRow,
 } from './approval-work.ts';
 
@@ -199,4 +199,37 @@ test('queue: a request to decide, and my own request once decided', () => {
 test('queue: a request title is data, kept as written', () => {
   const entries = approvalNotifications([row({ title: 'O\'Brien <b>&' })], 'i', () => {}, () => {});
   assert.equal(entries[0]!.title, 'Review O\'Brien <b>&');
+});
+
+test('filesLike: a request and its siblings by tool, format, tool version and inputs, newest first', () => {
+  const key = { inputsDigest: 'd1', widthPx: 600, heightPx: 600 };
+  const list = [
+    row({ id: 'a', state: 'approved', createdAt: '2026-11-01T00:00:00Z', actions: [{ action: 'approve', actorName: 'R', at: '2026-11-02T00:00:00Z', step: 0 }] }, key),
+    row({ id: 'b', state: 'in_review', createdAt: '2026-11-03T00:00:00Z' }, { ...key, widthPx: 1200, heightPx: 1200 }),
+    row({ id: 'c', state: 'rejected', createdAt: '2026-11-02T00:00:00Z' }, { ...key, widthPx: 800, heightPx: 800 }),
+    row({ id: 'gone', state: 'withdrawn', createdAt: '2026-11-04T00:00:00Z' }, key),
+    row({ id: 'inputs', createdAt: '2026-11-04T00:00:00Z' }, { ...key, inputsDigest: 'd2' }),
+    row({ id: 'format', createdAt: '2026-11-04T00:00:00Z' }, { ...key, format: 'png' }),
+    row({ id: 'tool', createdAt: '2026-11-04T00:00:00Z' }, { ...key, toolId: 'poster' }),
+    row({ id: 'version', createdAt: '2026-11-04T00:00:00Z' }, { ...key, toolVersion: '2.0.0' }),
+  ];
+  assert.deepEqual(filesLike(list, 'a'), [
+    { approvalId: 'b', state: 'in_review', format: 'svg', video: false, widthPx: 1200, heightPx: 1200 },
+    { approvalId: 'c', state: 'rejected', format: 'svg', video: false, widthPx: 800, heightPx: 800 },
+    { approvalId: 'a', state: 'approved', format: 'svg', video: false, widthPx: 600, heightPx: 600, decidedAt: '2026-11-02T00:00:00Z' },
+  ]);
+  assert.deepEqual(filesLike(list, 'nope'), [], 'a request the list does not hold');
+  const unread = [row({ id: 'x' }, { inputsDigest: null }), row({ id: 'y' }, { inputsDigest: null })];
+  assert.deepEqual(filesLike(unread, 'x').map(file => file.approvalId), ['x'], 'no digest, no provable sibling');
+  assert.deepEqual(filesLike([row({ id: 'v' }, { preview: 'video' })], 'v')[0]?.video, true);
+  assert.deepEqual(filesLike([row({ id: 'p' }, { format: 'pdf', preview: 'pdf' })], 'p'), [{ approvalId: 'p', state: 'in_review', format: 'pdf', video: false }], 'no recorded size');
+});
+
+test('approvalFiles reads the list fresh, so a request sent a moment ago is there', async () => {
+  reset();
+  router = () => json({ approvals: [wire({ id: 'a' }, { inputsDigest: 'd1' })] });
+  assert.deepEqual((await approvalFiles('a')).map(file => file.approvalId), ['a']);
+  router = () => json({ approvals: [wire({ id: 'b', createdAt: '2026-11-02T00:00:00Z' }, { inputsDigest: 'd1' }), wire({ id: 'a' }, { inputsDigest: 'd1' })] });
+  assert.deepEqual((await approvalFiles('a')).map(file => file.approvalId), ['b', 'a']);
+  assert.equal(calls.length, 2);
 });

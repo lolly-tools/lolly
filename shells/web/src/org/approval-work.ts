@@ -11,7 +11,7 @@
  * Comments describe a generic "instance" capability, never a specific product.
  */
 import { instanceFetch, instancePath } from '../lib/instance.ts';
-import type { ApprovalStatus, SessionApproval } from '../lib/approval-request.ts';
+import type { ApprovalFile, ApprovalStatus, SessionApproval } from '../lib/approval-request.ts';
 import { ApprovalArtifactError, artifactChecksum } from './approval-artifact.ts';
 
 /** The stored file behind a request, in the instance's own words. */
@@ -24,6 +24,8 @@ export interface ExportReviewRow {
   preview: 'image' | 'video' | 'audio' | 'pdf' | 'none';
   toolId: string;
   toolVersion: string | null;
+  /** What identifies the inputs. Null when the instance could not read them. */
+  inputsDigest: string | null;
   fingerprint: string;
   sessionId?: string;
   widthPx?: number;
@@ -84,7 +86,8 @@ export function rowFromBody(row: unknown): ApprovalRow | null {
     exportReview: {
       sha256: file.sha256, size: Number(file.size) || 0, name: text(file.name), format: text(file.format), mediaType: text(file.mediaType),
       preview: preview === 'image' || preview === 'video' || preview === 'audio' || preview === 'pdf' ? preview : 'none',
-      toolId: text(file.toolId), toolVersion: typeof file.toolVersion === 'string' ? file.toolVersion : null, fingerprint: file.fingerprint,
+      toolId: text(file.toolId), toolVersion: typeof file.toolVersion === 'string' ? file.toolVersion : null,
+      inputsDigest: typeof file.inputsDigest === 'string' ? file.inputsDigest : null, fingerprint: file.fingerprint,
       artifactUrl: file.artifactUrl,
       ...(typeof file.sessionId === 'string' ? { sessionId: file.sessionId } : {}),
       ...(typeof file.widthPx === 'number' ? { widthPx: file.widthPx } : {}),
@@ -114,6 +117,30 @@ export function sessionApprovals(rows: readonly ApprovalRow[]): Map<string, Sess
     } });
   }
   return new Map([...newest].map(([slot, { value }]) => [slot, value]));
+}
+
+/** One request's file and the files of its siblings: requests for the same tool, format,
+ *  tool version and inputs. Newest first, leaving out withdrawn requests. A request with no
+ *  digest has no provable siblings. Empty when the rows do not hold the request. Pure. */
+export function filesLike(list: readonly ApprovalRow[], id: string): ApprovalFile[] {
+  const named = list.find(row => row.id === id)?.exportReview;
+  if (!named) return [];
+  const sibling = (file: ExportReviewRow): boolean => !!named.inputsDigest && file.inputsDigest === named.inputsDigest
+    && file.toolId === named.toolId && file.format === named.format && file.toolVersion === named.toolVersion;
+  return list
+    .filter(row => row.state !== 'withdrawn' && (row.id === id || sibling(row.exportReview)))
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0))
+    .map((row): ApprovalFile => {
+      const file = row.exportReview;
+      const approved = row.state === 'approved';
+      return {
+        approvalId: row.id, state: approved ? 'approved' : row.state === 'rejected' ? 'rejected' : 'in_review',
+        format: file.format, video: file.preview === 'video',
+        ...(file.widthPx !== undefined ? { widthPx: file.widthPx } : {}),
+        ...(file.heightPx !== undefined ? { heightPx: file.heightPx } : {}),
+        ...(approved ? { decidedAt: decidedAt(row) } : {}),
+      };
+    });
 }
 
 /** The instance's answer about one tool's inputs, or null when it is not one. Pure. */
@@ -238,6 +265,11 @@ export async function approvedFile(id: string): Promise<{ blob: Blob; name: stri
   const digest = /^"([a-f0-9]{64})"$/.exec(res.headers.get('etag') ?? '')?.[1];
   if (digest && globalThis.crypto?.subtle && (await artifactChecksum(blob)) !== digest) throw new ApprovalArtifactError(res.status, 'ARTIFACT_DIGEST_MISMATCH');
   return { blob, name: fileNameOf(res.headers.get('content-disposition')) };
+}
+
+/** A request's file and its siblings, from a fresh read of the list. */
+export async function approvalFiles(id: string): Promise<ApprovalFile[]> {
+  return filesLike(await listApprovals(0), id);
 }
 
 /** The file name a download header gives, or a plain fallback. Pure. */

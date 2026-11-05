@@ -67,9 +67,25 @@ export interface SessionApproval {
 
 /** What a registered approval flow can tell and fetch for a view. Every method is
  *  optional work for the view: it holds no knowledge of where the answers come from. */
+/** What one request records about its file, to compare with the current settings. */
+export interface ApprovalFile {
+  approvalId: string;
+  state: 'in_review' | 'approved' | 'rejected';
+  format: string;
+  /** Absent when the requesting app could not measure the file, as with a PDF. */
+  widthPx?: number;
+  heightPx?: number;
+  /** A video's encoder can move a side by a pixel to reach an even size. */
+  video: boolean;
+  decidedAt?: string;
+}
+
 export interface ApprovalWork {
   /** The state of these inputs, or null when this instance does not say. */
   status(query: { toolId: string; format: string; query: string }, signal?: AbortSignal): Promise<ApprovalStatus | null>;
+  /** This request's file, and the files of other requests for the same tool, format,
+   *  tool version and inputs, newest first. Empty when the list does not hold this request. */
+  files(approvalId: string): Promise<ApprovalFile[]>;
   /** The approved file's exact bytes. Rejects when they are not released to this person. */
   approvedFile(approvalId: string): Promise<{ blob: Blob; name: string }>;
   /** Open the request, with its file and its history. */

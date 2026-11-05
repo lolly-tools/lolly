@@ -183,7 +183,7 @@ test('a request with a file opens here when an approval flow is registered, and 
   assert.equal(row('rev1').querySelector('a[data-act="inbox-open"]')?.getAttribute('href'), '/admin#/approvals');
   await reset([message]);
   const opened: string[] = [];
-  registerApprovalOpener(() => {}, { work: { status: async () => null, approvedFile: async () => ({ blob: new Blob([]), name: '' }), open: (id) => { opened.push(id); }, sessions: async () => new Map() } });
+  registerApprovalOpener(() => {}, { work: { status: async () => null, files: async () => [], approvedFile: async () => ({ blob: new Blob([]), name: '' }), open: (id) => { opened.push(id); }, sessions: async () => new Map() } });
   openInboxSheet({});
   await settle();
   assert.equal(row('rev1').querySelector('a[data-act="inbox-open"]'), null);
