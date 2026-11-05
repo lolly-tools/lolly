@@ -126,8 +126,8 @@ A rejected or withdrawn request never releases the file to the requester.
 
 **In the app.** The export bar shows where the current inputs stand, in the control Download would
 hold: **Request approval**, then **In review**, then **Download approved file**. Change an input or
-the format and it goes back to **Request approval**, with "Changed since approval." under it. A
-rejected request says "Not approved." with **See why**. Download approved file fetches the stored
+the format and the control goes back to **Request approval**, and the line below reads "Changed
+since approval." A rejected request says "Not approved." with **See why**. Download approved file fetches the stored
 bytes and runs no export, so the file is the one that was reviewed.
 
 Requests you can decide and decisions on your own requests appear in the app's notifications.
