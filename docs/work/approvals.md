@@ -144,6 +144,10 @@ Requests you can decide and decisions on your own requests appear in the app's n
 the console, which stays the place for chains and history. A saved session with a request shows
 **In review** or **Approved** on its card in Projects and in its info sheet.
 
+The app shows this queue and sheet to anyone who holds `export.request` or `approval.act`, including
+a grant on one chain alone. This only tells the app to look: the routes still decide who may read a
+file, request or act.
+
 **Add to project** on an approved request puts the file in a project. A device folder keeps a
 reference to your own copy in Assets, and that copy links back to the request. A shared project
 receives a file copy, which does not carry the link. Neither reaches the organisation catalog.
