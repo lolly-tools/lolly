@@ -220,7 +220,9 @@ Verbs that matter to an agent: `list`, `describe <id> [--all]`, `run <id>`,
 `batch <rows.csv>`, `smoke`, `assets`, `preflight`, `read <deck>` (the content
 inventory, `--media=<dir>` writes the pictures), `check <file>` (every check in one
 findings list, `--source=<deck|inventory.json>` adds fidelity) and
-`system context` (the design brief as JSON). For Design: `run design
+`system context` (the design brief as JSON), `intent <file>` (the tool for each
+surface, from a stated purpose) and `system publish --out=<dir>` (a brand page
+folder). For Design: `run design
 --document=<file|-> [--s=<slide>]` renders a document whose rows may carry
 authoring keys (a placeholder picture such as `photo:title` is drawn only once
 `package --asset` has given it bytes, so preview and check the `.lolly`);

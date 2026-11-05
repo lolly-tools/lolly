@@ -501,6 +501,18 @@
       "description": "How masterbrands, divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities in Lolly."
     },
     {
+      "slug": "brand-page",
+      "title": "Brand pages",
+      "src": "brand-page.md",
+      "description": "Publish one folder that works as a press kit and an agent kit: logos, colours, type, rules and examples, with a list of what the rights on record hold back.",
+      "section": "create",
+      "path": "create/brand-page",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
       "slug": "colourways",
       "title": "Colourways",
       "src": "colourways.md",

@@ -255,6 +255,8 @@ Terminal design systems are kept differently. `lolly system init`, `import`, `ad
 
 ## Publish a brand page
 
+[Brand pages](/info/brand-page.html) explains what a page is for, what goes public and how to read someone else's page.
+
 `lolly system publish --out=<dir>` writes one folder that works as a press kit and an agent kit: `index.html` with its markdown twin `index.md`, `brand.json`, `DESIGN.md`, `AGENTS.md`, `llms.txt`, `checks.json`, tokens per colourway and mode, and the logos, fonts, public brand skills and examples that may go public. Nothing leaves your machine. You read the folder and host the folder where you choose.
 
 The source is `--file=<tokens>`, then a content profile you name with `--profile=<name>` or `LOLLY_PROFILE`, then the active terminal system. A profile is never published by default, and a pack marked as managed also needs `--manager-allows`.
@@ -269,7 +271,7 @@ The source is `--file=<tokens>`, then a content profile you name with `--profile
 | `--no-made-with-link` | Leave out the "Made with Lolly" link in the page's footer. It is on by default. |
 | `--name=<name>`, `--id=<id>` | Override the name and the id. |
 
-**What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A font file needs a recorded licence that allows passing the file on, and `--include` does not change that: the page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.
+**What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A logo whose rights record says `own-work`, with its owner and terms, travels as "Owner-published, not an open licence" ([Publish your own marks](/info/brand-page.html#publish-your-own-marks)). A font file needs a recorded licence that allows passing the file on, and `--include` does not change that: the page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.
 
 **What is checked.** `checks.json` holds contrast measurements of the colour pairs in every colourway and mode, and house rule checks on example documents. These measure token pairs and examples. They do not judge a finished piece.
 

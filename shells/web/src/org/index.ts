@@ -207,6 +207,8 @@ export interface OrgConfig {
   /** Present when this caller's request can carry its exported file, and how large
    *  that file may be. Absent ⇒ the request goes without a file, and the dialog says so. */
   approvals?: { exportReview?: { maxFileBytes: number; partBytes: number; match?: boolean; recordInCredentials?: boolean } };
+  /** Present when this instance serves brand pages and this caller may publish one. */
+  brandPages?: BrandPagesCapability;
   /** Fixed organisation-owned outbound targets already filtered for this
    *  caller. Provider options and credentials never enter the shell. */
   destinations?: OrgDeliveryDestination[];
@@ -356,6 +358,8 @@ export function orgSession(): Session | null {
 
 export { orgAgentInvitesEnabled } from './document-agent-config.ts';
 import { setAgentInviteAvailability } from './document-agent-config.ts';
+import { setConnectedInstance } from '../lib/brand-page-hosting.ts';
+import { connectedInstanceFrom, type BrandPagesCapability } from './brand-page-publish.ts';
 import { homeHref, setHomeDestination } from '../lib/home-destination.ts';
 
 /** Control-plane governance for one feature flag, or null when this control plane
@@ -555,6 +559,7 @@ async function forgetMemberHere(): Promise<void> {
   setInstallTag(null);
   session = null;
   orgConfigState = null;
+  setConnectedInstance(null);
   orgConfigEtag = null;
 }
 
@@ -1098,6 +1103,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // Before boot's first navigate reads the address: the instance's home view.
       applyHomeView(orgConfigState);
       applyProfilePolicy(orgConfigState);
+      setConnectedInstance(connectedInstanceFrom(orgConfigState, !!authState));
       // Populate the generic export-policy seam (download vs. request-approval) from
       // the caller's capability bits + per-tool approval chains, and register the
       // approval-request opener. The opener lazy-imports the dialog only when a member
@@ -1384,6 +1390,7 @@ export function _resetOrgForTests(): void {
   authState = null;
   setHomeDestination();
   setAgentInviteAvailability(false, null);
+  setConnectedInstance(null);
   inboxModule?._resetInboxForTests();
   inboxModule = null;
   inboxLoad = null;

@@ -103,6 +103,14 @@ async function settle(): Promise<void> {
 
 // ── Pure render ──────────────────────────────────────────────────────────────
 
+test('the brand page and agent rows show only when their sheets can open', () => {
+  assert.doesNotMatch(versionsHtml(model()), /data-ds-v-brand-page|data-ds-v-connect-agent/);
+  const both = versionsHtml({ ...model(), share: { brandPage: true, connectAgent: true } });
+  assert.match(both, /data-ds-v-brand-page/);
+  assert.match(both, /data-ds-v-connect-agent/);
+  assert.match(versionsHtml({ ...model(), share: { brandPage: true, connectAgent: false } }), /data-ds-v-brand-page/);
+});
+
 test('the resting state is a line, not an empty panel', () => {
   assert.match(versionsHtml(null), /ds-v-loading/);
 });

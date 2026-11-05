@@ -155,7 +155,7 @@ export function renderShell(start: StartCtx): void {
              label) or drop a file on it. The format tiles lead so people
              recognise THEIR export at a glance, in preference order. -->
         <label class="start-import-drop" data-start-import-drop>
-          <input type="file" class="start-import-file visually-hidden" accept=".json,application/json,.penpot,.svg,image/svg+xml,.zip,application/zip,.lolly" aria-label="${escapeText(t('Choose a design or brand file'))}">
+          <input type="file" class="start-import-file visually-hidden" accept=".json,application/json,.penpot,.svg,image/svg+xml,.zip,application/zip,.lolly,.md,.markdown,text/markdown" aria-label="${escapeText(t('Choose a design or brand file'))}">
           <span class="start-import-formats" role="list" aria-label="${escapeText(t('Accepted formats, in preference order'))}">
             ${IMPORT_FORMATS.map(
               (f) => `
@@ -168,6 +168,11 @@ export function renderShell(start: StartCtx): void {
           </span>
           <span class="be-btn start-import-btn" aria-hidden="true">${t('Choose a design or brand file…')}</span>
           <span class="start-import-drophint">${t('or drag & drop it here')}</span>
+        </label>
+        <!-- A brand page is a folder. A file input cannot take one and a file at once. -->
+        <label class="be-btn start-import-folder">
+          <input type="file" class="visually-hidden" data-start-import-folder webkitdirectory multiple aria-label="${escapeText(t('Choose a brand page folder'))}">
+          <span>${t('Choose a brand page folder')}</span>
         </label>
         <!-- tabindex="-1": the result is a status message with controls in it, so
              it takes focus when it appears rather than being announced whole. -->

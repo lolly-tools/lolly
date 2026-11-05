@@ -24,7 +24,7 @@ export const onKey = (start: StartCtx, e: KeyboardEvent): void => {
   // The import dialog owns the key while it's open: the native <dialog> handles
   // Escape itself (its `cancel` event), but the keydown still bubbles up here -
   // without this guard one press would close the dialog AND leave the studio.
-  if (start.importModal || start.looksModal || start.recovery?.el.isConnected || start.usage?.modalOpen() || start.skills?.modalOpen()) return;
+  if (document.querySelector('dialog.brand-page-sheet[open]') || start.importModal || start.looksModal || start.recovery?.el.isConnected || start.usage?.modalOpen() || start.skills?.modalOpen()) return;
   // The bar's menus close themselves on this Escape (components/body-popover.ts),
   // and their listeners run after this one, so the studio must not also leave.
   if (start.moreMenu?.isOpen() || start.makeMenu?.isOpen()) return;
