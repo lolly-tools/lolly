@@ -27,6 +27,8 @@ export interface ApprovalArtifact {
   query?: string;
   /** The saved session this came from, when there is one. */
   sessionId?: string;
+  /** A picture of a PDF's first page, for the requester's own dialog. Never sent. */
+  firstPage?: () => Promise<Blob | null>;
 }
 
 export interface ApprovalRequestContext {

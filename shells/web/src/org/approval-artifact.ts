@@ -108,15 +108,3 @@ export async function sendApprovalFile(
     throw error;
   }
 }
-
-/** A local picture of the first page of a PDF, as an object URL, or null. It lets the
- *  requester see what they are sending and is never sent. */
-export async function pdfFirstPageUrl(blob: Blob): Promise<string | null> {
-  try {
-    const { openPdfFile } = await import('../views/pdf-import.ts');
-    const handle = await openPdfFile(blob);
-    const page = await handle.pageToSvg(0, { warn: () => {} });
-    if (!page?.svg || !page.elementCount) return null;
-    return URL.createObjectURL(new Blob([page.svg], { type: 'image/svg+xml' }));
-  } catch { return null; }
-}

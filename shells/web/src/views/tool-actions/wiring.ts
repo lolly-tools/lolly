@@ -586,6 +586,13 @@ export function wireCostRows(ta: ActionsCtx): void {
   );
 }
 
+/** A PDF's first page as a picture, for the requester's own dialog, or null. */
+async function pdfFirstPage(blob: Blob): Promise<Blob | null> {
+  const { openPdfFile } = await import('../pdf-import.ts');
+  const page = await (await openPdfFile(blob)).pageToSvg(0, { warn: () => {} });
+  return page?.svg && page.elementCount ? new Blob([page.svg], { type: 'image/svg+xml' }) : null;
+}
+
 export function wireApprovalAndActions(ta: ActionsCtx): void {
   const { canvasEl: liveCanvasEl, desktopExport, el, experience, exportDefaults, exportUnscaled, formatEl, formats, hasToolAudioInput, host, isDesignTool, manifest, pkgInner, runtime: liveRuntime } = ta;
   // The "Request approval" CTA (present in place of Download only when the export
@@ -600,7 +607,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       if (!approvalWantsArtifact(manifest.id)) { openApprovalRequest({ toolId: manifest.id, title: manifest.name }); return; }
       void exportClick(e, (file) => openApprovalRequest({
         toolId: manifest.id, title: manifest.name,
-        artifact: { blob: file.blob, name: file.name, query: file.query, ...(ta.activeSlot ? { sessionId: ta.activeSlot } : {}) },
+        artifact: { blob: file.blob, name: file.name, query: file.query, firstPage: () => pdfFirstPage(file.blob), ...(ta.activeSlot ? { sessionId: ta.activeSlot } : {}) },
       }));
     }
   );

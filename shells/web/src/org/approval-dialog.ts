@@ -30,7 +30,7 @@ import { t, tRaw } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { announce } from '../a11y.ts';
 import { fmtBytes } from '../lib/format.ts';
-import { ApprovalArtifactError, artifactChecksum, artifactFormat, pdfFirstPageUrl, sendApprovalFile } from './approval-artifact.ts';
+import { ApprovalArtifactError, artifactChecksum, artifactFormat, sendApprovalFile } from './approval-artifact.ts';
 
 // ── Contract types (the server product's documented shapes) ───────────────────
 
@@ -210,11 +210,9 @@ function showFile(stage: HTMLElement, artifact: ApprovalArtifact, onSize: (width
     stage.replaceChildren(audio);
   } else if (format === 'pdf') {
     none(artifact.name);
-    void pdfFirstPageUrl(artifact.blob).then((url) => {
-      if (!url) return;
-      urls.push(url);
-      if (stage.isConnected) picture(url, false); else URL.revokeObjectURL(url);
-    });
+    void artifact.firstPage?.().then((page) => {
+      if (page && stage.isConnected) picture(objectUrl(page), false);
+    }).catch(() => {});
   } else none(artifact.name);
   return () => { for (const url of urls) URL.revokeObjectURL(url); };
 }
