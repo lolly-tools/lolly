@@ -18,7 +18,7 @@ Each server draws with the design system of its own content profile. The public 
 
 ## Choose an endpoint
 
-Every endpoint offers the same twenty-two tools. They differ in who can connect and which formats they can make, because only some run a headless browser.
+Every endpoint offers the same twenty-three tools. They differ in who can connect and which formats they can make, because only some run a headless browser.
 
 | Endpoint | Who can connect | What it makes |
 |---|---|---|
@@ -64,7 +64,7 @@ In Claude Code the same connection is one command:
 claude mcp add --transport http lolly https://lolly.tools/api/mcp
 ```
 
-In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the twenty-two tools):
+In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the twenty-three tools):
 
 ```bash
 curl -s -X POST https://lolly.tools/api/mcp \
@@ -100,7 +100,7 @@ Then ask the agent to *"list the Lolly tools"* or *"render the wordmark tool as 
 }
 ```
 
-A quick check with `curl` (expect a JSON list of the twenty-two tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
+A quick check with `curl` (expect a JSON list of the twenty-three tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
 
 ```bash
 curl -s -X POST https://mcp.lolly.tools/mcp \
@@ -133,7 +133,7 @@ Installing the plugin grants no account-wide access. Keep invitations private. D
 
 ### On your own machine
 
-From a checkout, `pnpm run mcp` starts the server over stdio, with no token. The local server lists the twenty-two tools, the six `files_*` tools and the nine live tools that join an open document ([Agents in an open document](/info/open-document-agents.html)). `pnpm run mcp:http` runs the long-lived HTTP service instead. [Run the server yourself](#run-the-server-yourself) covers hosting one for other people.
+From a checkout, `pnpm run mcp` starts the server over stdio, with no token. The local server lists the twenty-three tools, the six `files_*` tools and the nine live tools that join an open document ([Agents in an open document](/info/open-document-agents.html)). `pnpm run mcp:http` runs the long-lived HTTP service instead. [Run the server yourself](#run-the-server-yourself) covers hosting one for other people.
 
 ## How an agent uses the server
 
@@ -157,7 +157,7 @@ Formats are per tool: you can only ask for one the tool declares, and `lolly_des
 One predicate decides when a call needs the browser tier, shared by the CLI, the TUI and this server, keyed on a typed `NEEDS_BROWSER` marker rather than on the wording of an error. The open endpoint's "that needs the browser tier" refusal and the CLI's exit `3` are the same judgement.
 :::
 
-## The twenty-two tools
+## The twenty-three tools
 
 **Discover and describe:**
 

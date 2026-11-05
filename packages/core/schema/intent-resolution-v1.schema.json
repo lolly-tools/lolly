@@ -84,7 +84,7 @@
     "choice": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["toolId", "toolVersion", "fit", "format", "inputs", "exportDims", "gaps", "unused", "defaultsInUse", "notes"],
+      "required": ["toolId", "toolVersion", "fit", "format", "inputs", "exportDims", "sizeSetBy", "gaps", "unused", "defaultsInUse", "notes"],
       "properties": {
         "toolId": { "type": "string" },
         "toolVersion": { "type": ["string", "null"] },
@@ -97,6 +97,7 @@
           "required": ["width", "height", "unit"],
           "properties": { "width": { "type": "number" }, "height": { "type": "number" }, "unit": { "$ref": "#/$defs/unit" } }
         },
+        "sizeSetBy": { "enum": ["input", "export"], "description": "input: an input in `inputs` sets the size, so pass no export size. export: pass exportDims as width, height and unit." },
         "gaps": {
           "type": "array",
           "items": {

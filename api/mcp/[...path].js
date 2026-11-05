@@ -104840,7 +104840,7 @@ function surfaceFit(tool, entry2, surface) {
   const { width, height, unit: unit2 } = surface;
   const own4 = { width, height, unit: unit2 };
   if (surface.named && entry2.surfaces && Object.hasOwn(entry2.surfaces, surface.id)) {
-    return { fit: "declared", overlay: entry2.surfaces[surface.id] ?? {}, dims: own4, message: `The tool declares surface ${surface.id}.` };
+    return { fit: "declared", overlay: entry2.surfaces[surface.id] ?? {}, dims: own4, sizeSetBy: "export", message: `The tool declares surface ${surface.id}.` };
   }
   const options2 = sizedOptions(tool);
   const exact = options2.find((o) => sameSize(o.width, o.height, o.unit, width, height, unit2));
@@ -104849,6 +104849,9 @@ function surfaceFit(tool, entry2, surface) {
       fit: "declared",
       overlay: { [exact.input]: exact.value },
       dims: { width: exact.width, height: exact.height, unit: exact.unit },
+      // The option is the tool's own size, so the tool applies the option. Passing the same
+      // size as an export size as well lays some tools out differently.
+      sizeSetBy: "input",
       message: `The tool's ${exact.input} option ${String(exact.value)} is this size.`
     };
   }
@@ -104858,15 +104861,16 @@ function surfaceFit(tool, entry2, surface) {
       fit: "option",
       overlay: { [shaped.input]: shaped.value },
       dims: own4,
+      sizeSetBy: "export",
       message: `The tool's ${shaped.input} option ${String(shaped.value)} is this shape, and exports at this size.`
     };
   }
   if (tool.render?.followsCanvasSize === true) {
-    return { fit: "follows", overlay: {}, dims: own4, message: "The tool lays itself out for the canvas size." };
+    return { fit: "follows", overlay: {}, dims: own4, sizeSetBy: "export", message: "The tool lays itself out for the canvas size." };
   }
   const naturalWidth = tool.render?.width, naturalHeight = tool.render?.height;
   if (typeof naturalWidth === "number" && typeof naturalHeight === "number" && sameShape(naturalWidth, naturalHeight, width, height)) {
-    return { fit: "natural", overlay: {}, dims: own4, message: `The tool's own ${naturalWidth} by ${naturalHeight} is this shape.` };
+    return { fit: "natural", overlay: {}, dims: own4, sizeSetBy: "export", message: `The tool's own ${naturalWidth} by ${naturalHeight} is this shape.` };
   }
   return null;
 }
@@ -105004,6 +105008,7 @@ function evaluateTool(tool, intent, purpose, surface) {
         format,
         inputs,
         exportDims: fit.dims,
+        sizeSetBy: fit.sizeSetBy,
         gaps,
         unused,
         defaultsInUse,
@@ -193757,7 +193762,7 @@ var intent_resolution_v1_schema_default = {
     choice: {
       type: "object",
       additionalProperties: false,
-      required: ["toolId", "toolVersion", "fit", "format", "inputs", "exportDims", "gaps", "unused", "defaultsInUse", "notes"],
+      required: ["toolId", "toolVersion", "fit", "format", "inputs", "exportDims", "sizeSetBy", "gaps", "unused", "defaultsInUse", "notes"],
       properties: {
         toolId: { type: "string" },
         toolVersion: { type: ["string", "null"] },
@@ -193770,6 +193775,7 @@ var intent_resolution_v1_schema_default = {
           required: ["width", "height", "unit"],
           properties: { width: { type: "number" }, height: { type: "number" }, unit: { $ref: "#/$defs/unit" } }
         },
+        sizeSetBy: { enum: ["input", "export"], description: "input: an input in `inputs` sets the size, so pass no export size. export: pass exportDims as width, height and unit." },
         gaps: {
           type: "array",
           items: {
@@ -193916,7 +193922,7 @@ var RESOLVE_INTENT_OUTPUT_SCHEMA = {
 };
 var RESOLVE_INTENT_TOOL_DEF = {
   name: "lolly_resolve_intent",
-  description: "Say what a piece has to do, and get back the tool for each surface, its input values, what is missing and why. Read only: nothing is rendered or stored. No model is in this path, so it never reads meaning from text. If you are happy to carry your user's first words in the work you return, pass them as `prompt`, then read them yourself and choose the `purpose`: a prompt with no purpose comes back as outcome `purpose-needed` (code `intent.purpose-needed`) with the purposes, the tools that serve each, the surfaces and the roles, so you can call again with a purpose, surfaces and content. A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`. A surface with status `needs-content` lists the roles to supply in `gaps`; supply them from your user, never invent them. `defaultsInUse` names the tool wording that would still print.",
+  description: "Say what a piece has to do, and get back the tool for each surface, its input values, what is missing and why. Read only: nothing is rendered or stored. No model is in this path, so it never reads meaning from text. If you are happy to carry your user's first words in the work you return, pass them as `prompt`, then read them yourself and choose the `purpose`: a prompt with no purpose comes back as outcome `purpose-needed` (code `intent.purpose-needed`) with the purposes, the tools that serve each, the surfaces and the roles, so you can call again with a purpose, surfaces and content. A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`, plus `exportDims` as width, height and unit when `sizeSetBy` is `export`. A surface with status `needs-content` lists the roles to supply in `gaps`; supply them from your user, never invent them. `defaultsInUse` names the tool wording that would still print.",
   inputSchema: {
     type: "object",
     properties: {

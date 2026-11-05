@@ -327,15 +327,15 @@ test('surfaces: a stated size answers for itself, in the tool\'s own terms, and 
   });
   const answer = await resolveIntent(ask({ surfaces: [{ id: 'letter-portrait' }, { id: 'social-square' }, { id: 'banner' }, { id: 'story' }] }), [certificateLike]);
   const [letter, square, banner, story] = answer.surfaces;
-  assert.deepEqual([letter!.chosen!.fit, letter!.chosen!.inputs, letter!.chosen!.exportDims], ['declared', { page: 'letter' }, { width: 216, height: 279, unit: 'mm' }], 'the tool\'s own size, not the request\'s');
+  assert.deepEqual([letter!.chosen!.fit, letter!.chosen!.inputs, letter!.chosen!.exportDims, letter!.chosen!.sizeSetBy], ['declared', { page: 'letter' }, { width: 216, height: 279, unit: 'mm' }, 'input'], 'the tool\'s own size, set by the tool\'s own option');
   assert.deepEqual(square!.chosen!.inputs, { page: 'first-square' }, 'manifest order settles a tie');
-  assert.deepEqual([banner!.chosen!.fit, banner!.chosen!.inputs, banner!.chosen!.exportDims], ['option', { page: 'wide' }, { width: 1200, height: 400, unit: 'px' }], 'the right shape, exported at the asked size');
+  assert.deepEqual([banner!.chosen!.fit, banner!.chosen!.inputs, banner!.chosen!.exportDims, banner!.chosen!.sizeSetBy], ['option', { page: 'wide' }, { width: 1200, height: 400, unit: 'px' }, 'export'], 'the right shape, exported at the asked size');
   assert.equal(story!.status, 'refused');
   assert.equal(answer.outcome, 'partial');
 
   const declared = tool({ id: 'b', inputs: [{ id: 'size', type: 'select', options: ['wide', 'square'] }], render: { width: 1, height: 1, formats: ['png', 'jpeg'] }, intents: [{ purpose: 'promote', surfaces: { slide: { size: 'wide' } } }] });
   const slide = (await resolveIntent(ask({ surfaces: [{ id: 'slide', format: 'jpg' }] }), [declared])).surfaces[0]!.chosen!;
-  assert.deepEqual([slide.fit, slide.inputs, slide.format], ['declared', { size: 'wide' }, 'jpeg'], 'jpg and jpeg are one format, in the tool\'s spelling');
+  assert.deepEqual([slide.fit, slide.inputs, slide.format, slide.sizeSetBy], ['declared', { size: 'wide' }, 'jpeg', 'export'], 'jpg and jpeg are one format, in the tool\'s spelling');
   assert.equal((await resolveIntent(ask({ surfaces: [{ width: 500, height: 500, unit: 'mm' }] }), [tool({ id: 'c' })])).surfaces[0]!.chosen!.format, 'pdf', 'a physical size is print');
   assert.equal((await resolveIntent(ask({ surfaces: [{ width: 500, height: 500 }] }), [tool({ id: 'c' })])).surfaces[0]!.chosen!.format, 'png');
   assert.equal((await resolveIntent(ask(), [tool({ id: 'c', render: { width: 9, height: 9, formats: ['tiff', 'webp'] } })])).surfaces[0]!.chosen!.format, 'tiff', 'else the tool\'s first');

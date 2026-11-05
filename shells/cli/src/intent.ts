@@ -99,11 +99,9 @@ export async function renderResolvedSurface(
     await runToolCli({
       toolId: choice.toolId,
       inputValues: choice.inputs,
-      params: {
-        width: String(choice.exportDims.width),
-        height: String(choice.exportDims.height),
-        unit: choice.exportDims.unit,
-      },
+      params: choice.sizeSetBy === 'export'
+        ? { width: String(choice.exportDims.width), height: String(choice.exportDims.height), unit: choice.exportDims.unit }
+        : {},
       outputPath: path,
       format: choice.format,
       rejectUnknown: true,

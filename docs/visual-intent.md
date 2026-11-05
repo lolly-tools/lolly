@@ -113,7 +113,7 @@ Nothing in Lolly reads meaning from a prompt. There is no keyword matching and n
 1. Call `lolly_resolve_intent` with `{ "version": 1, "prompt": "…" }`. You can skip this step when you already know the purpose list.
 2. The answer has the outcome `purpose-needed` and the code `intent.purpose-needed`. It carries the purposes, what each one means and which tools serve it, the surfaces and the roles.
 3. Choose a purpose and surfaces, take the content from your user's words, and call again with the `prompt`, `purpose`, `surfaces` and `content`.
-4. Render each `ready` surface with `lolly_render`, using its `toolId`, `inputs` and `format`.
+4. Render each `ready` surface with `lolly_render`, using its `toolId`, `inputs` and `format`. When `sizeSetBy` is `export`, pass `exportDims` as the width, height and unit too. When `sizeSetBy` is `input`, one of the inputs sets the size already.
 5. Where a surface says `needs-content`, ask your user for the roles in `gaps`. Do not fill them in yourself.
 
 The prompt travels with the request and comes back in the answer, apart from the closed values and the free text. It counts towards the digest, and it changes nothing about the choice. A request with neither a prompt nor a purpose is refused.

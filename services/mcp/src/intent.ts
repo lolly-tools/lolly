@@ -51,7 +51,7 @@ export const RESOLVE_INTENT_TOOL_DEF = {
     'Read only: nothing is rendered or stored. No model is in this path, so it never reads meaning from text. ' +
     'If you are happy to carry your user\'s first words in the work you return, pass them as `prompt`, then read them yourself and choose the `purpose`: ' +
     'a prompt with no purpose comes back as outcome `purpose-needed` (code `intent.purpose-needed`) with the purposes, the tools that serve each, the surfaces and the roles, so you can call again with a purpose, surfaces and content. ' +
-    'A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`. ' +
+    'A surface with status `ready` is rendered by calling lolly_render with its chosen `toolId`, `inputs` and `format`, plus `exportDims` as width, height and unit when `sizeSetBy` is `export`. ' +
     'A surface with status `needs-content` lists the roles to supply in `gaps`; supply them from your user, never invent them. `defaultsInUse` names the tool wording that would still print.',
   inputSchema: {
     type: 'object',

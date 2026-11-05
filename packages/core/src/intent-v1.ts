@@ -372,7 +372,13 @@ export interface IntentChoiceV1 {
   format: string;
   /** Input values to render with: `set`, then content, then the surface's own overlay. */
   inputs: Record<string, unknown>;
+  /** The size the file comes out at. */
   exportDims: IntentExportDimsV1;
+  /**
+   * What sets that size. `input`: one of `inputs` is a size option, and the tool applies it, so
+   * a render passes no export size. `export`: pass `exportDims` as the render's width, height and unit.
+   */
+  sizeSetBy: 'input' | 'export';
   gaps: IntentGapV1[];
   unused: IntentUnusedV1[];
   /** Inputs that will print the tool's own default wording or sample, since nothing set them. */

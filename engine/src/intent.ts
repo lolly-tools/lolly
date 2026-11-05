@@ -334,6 +334,7 @@ interface FitAnswer {
   fit: IntentFitV1;
   overlay: Record<string, unknown>;
   dims: { width: number; height: number; unit: IntentSurfaceUnitV1 };
+  sizeSetBy: 'input' | 'export';
   message: string;
 }
 
@@ -378,7 +379,7 @@ function surfaceFit(tool: IntentToolFactsV1, entry: ToolIntentV1, surface: Inten
   const { width, height, unit } = surface;
   const own = { width, height, unit };
   if (surface.named && entry.surfaces && Object.hasOwn(entry.surfaces, surface.id)) {
-    return { fit: 'declared', overlay: entry.surfaces[surface.id] ?? {}, dims: own, message: `The tool declares surface ${surface.id}.` };
+    return { fit: 'declared', overlay: entry.surfaces[surface.id] ?? {}, dims: own, sizeSetBy: 'export', message: `The tool declares surface ${surface.id}.` };
   }
   const options = sizedOptions(tool);
   const exact = options.find((o) => sameSize(o.width, o.height, o.unit, width, height, unit));
@@ -387,6 +388,9 @@ function surfaceFit(tool: IntentToolFactsV1, entry: ToolIntentV1, surface: Inten
       fit: 'declared',
       overlay: { [exact.input]: exact.value },
       dims: { width: exact.width, height: exact.height, unit: exact.unit as IntentSurfaceUnitV1 },
+      // The option is the tool's own size, so the tool applies the option. Passing the same
+      // size as an export size as well lays some tools out differently.
+      sizeSetBy: 'input',
       message: `The tool's ${exact.input} option ${String(exact.value)} is this size.`,
     };
   }
@@ -396,15 +400,16 @@ function surfaceFit(tool: IntentToolFactsV1, entry: ToolIntentV1, surface: Inten
       fit: 'option',
       overlay: { [shaped.input]: shaped.value },
       dims: own,
+      sizeSetBy: 'export',
       message: `The tool's ${shaped.input} option ${String(shaped.value)} is this shape, and exports at this size.`,
     };
   }
   if (tool.render?.followsCanvasSize === true) {
-    return { fit: 'follows', overlay: {}, dims: own, message: 'The tool lays itself out for the canvas size.' };
+    return { fit: 'follows', overlay: {}, dims: own, sizeSetBy: 'export', message: 'The tool lays itself out for the canvas size.' };
   }
   const naturalWidth = tool.render?.width, naturalHeight = tool.render?.height;
   if (typeof naturalWidth === 'number' && typeof naturalHeight === 'number' && sameShape(naturalWidth, naturalHeight, width, height)) {
-    return { fit: 'natural', overlay: {}, dims: own, message: `The tool's own ${naturalWidth} by ${naturalHeight} is this shape.` };
+    return { fit: 'natural', overlay: {}, dims: own, sizeSetBy: 'export', message: `The tool's own ${naturalWidth} by ${naturalHeight} is this shape.` };
   }
   return null;
 }
@@ -563,7 +568,7 @@ function evaluateTool(
       fitRank: FIT_RANK[fit.fit],
       candidate: { toolId: tool.id, fit: fit.fit, preferred, missing, contentUsed: bound.size, reasons },
       choice: {
-        toolId: tool.id, toolVersion: tool.version ?? null, fit: fit.fit, format, inputs, exportDims: fit.dims,
+        toolId: tool.id, toolVersion: tool.version ?? null, fit: fit.fit, format, inputs, exportDims: fit.dims, sizeSetBy: fit.sizeSetBy,
         gaps, unused, defaultsInUse, notes,
       },
     },
