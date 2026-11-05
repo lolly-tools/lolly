@@ -75,8 +75,11 @@ export async function readProfileBrandPageSources(opts: { profile?: string; root
       const path = file ? contentUrlFile(file.url, roots) : null;
       const family = typeof asset.meta?.family === 'string' ? asset.meta.family : asset.name;
       if (!file || !path || !family) continue;
+      const licenceUrl = typeof asset.meta?.licenceFile === 'string' ? asset.meta.licenceFile : null;
+      const licencePath = licenceUrl ? contentUrlFile(licenceUrl, roots) : null;
       fonts.push({
         family, format: file.format, bytes: readFileSync(path),
+        ...(licencePath ? { licenceText: readFileSync(licencePath) } : {}),
         ...(typeof asset.meta?.weight === 'string' || typeof asset.meta?.weight === 'number' ? { weight: String(asset.meta.weight) } : {}),
         ...(typeof asset.meta?.style === 'string' ? { style: asset.meta.style } : {}),
         ...(asset.license !== undefined ? { license: asset.license } : {}), ...(asset.rights !== undefined ? { rights: asset.rights } : {}),

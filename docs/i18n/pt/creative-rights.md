@@ -59,7 +59,7 @@ O Lolly nunca diz "copyright verified", "legally safe", "fully cleared" nem "rig
 - **Quando você remove metadados.** A remoção informa quantos créditos de origem o arquivo deixou de carregar, oferece o texto do crédito e oferece um arquivo limpo com os créditos em um arquivo separado. Os bytes removidos nunca são recarimbados.
 
 ::: details As licenças que o Lolly revisou
-Versão das regras `rights-rules-2026-10-30.1`. Cada regra foi lida do próprio texto legal da licença, e a seção de onde veio é citada aqui e ao lado da regra em `engine/src/rights-profiles.ts`. Uma versão e uma jurisdição são mantidas como registradas: uma declaração CC BY 3.0 mantém a própria versão em vez de ser informada como 4.0 porque o seletor do app prefere a 4.0.
+Versão das regras `rights-rules-2026-11-05.1`. Cada regra foi lida do próprio texto legal da licença, e a seção de onde veio é citada aqui e ao lado da regra em `engine/src/rights-profiles.ts`. Uma versão e uma jurisdição são mantidas como registradas: uma declaração CC BY 3.0 mantém a própria versão em vez de ser informada como 4.0 porque o seletor do app prefere a 4.0.
 
 | Licença | O que ela pede de um uso que o Lolly pode fazer | Lido de |
 |---|---|---|

@@ -59,7 +59,7 @@ Lolly tidak pernah mengatakan "hak cipta terverifikasi", "aman secara hukum", "s
 - **Saat Anda menghapus metadata.** Pelucutan memberi tahu berapa banyak kredit sumber yang tidak lagi dibawa file, menawarkan teks kredit, dan menawarkan file bersih dengan kredit di file terpisah. Byte yang dilucuti tidak pernah distempel ulang.
 
 ::: details Lisensi yang telah ditinjau Lolly
-Versi aturan `rights-rules-2026-10-30.1`. Setiap aturan dibaca dari teks hukum lisensi itu sendiri, dan bagian asalnya dikutip di sini dan di samping aturan di `engine/src/rights-profiles.ts`. Versi dan port dipertahankan sebagaimana tercatat: deklarasi CC BY 3.0 mempertahankan versinya sendiri dan tidak dilaporkan sebagai 4.0 karena pemilih aplikasi lebih menyukai 4.0.
+Versi aturan `rights-rules-2026-11-05.1`. Setiap aturan dibaca dari teks hukum lisensi itu sendiri, dan bagian asalnya dikutip di sini dan di samping aturan di `engine/src/rights-profiles.ts`. Versi dan port dipertahankan sebagaimana tercatat: deklarasi CC BY 3.0 mempertahankan versinya sendiri dan tidak dilaporkan sebagai 4.0 karena pemilih aplikasi lebih menyukai 4.0.
 
 | Lisensi | Apa yang diminta dari pemakaian yang dapat dilakukan Lolly | Dibaca dari |
 |---|---|---|

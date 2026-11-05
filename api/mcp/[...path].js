@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.308.0";
+    ENGINE_VERSION = "1.309.0";
   }
 });
 
@@ -37168,7 +37168,7 @@ var RIGHTS_RULES_VERSION, NO_CREDIT, CC_BY_CREDIT, REVIEWED, RECOGNISED, PROFILE
 var init_rights_profiles = __esm({
   "engine/src/rights-profiles.ts"() {
     "use strict";
-    RIGHTS_RULES_VERSION = "rights-rules-2026-10-30.1";
+    RIGHTS_RULES_VERSION = "rights-rules-2026-11-05.1";
     NO_CREDIT = {
       creator: false,
       title: false,
@@ -179458,6 +179458,37 @@ function evidenceArrayOf(value2) {
   const rights = value2.rights;
   return Array.isArray(rights) ? rights.slice(0, 16) : [];
 }
+var OWNER_PUBLISHED = "Owner-published, not an open licence";
+var OWNER_HOLDER_MAX = 256;
+var OWNER_TERMS_MAX = 1024;
+function ownerPublished(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  const works = value2.works;
+  const work = Array.isArray(works) ? works[0] : value2;
+  if (!work || typeof work !== "object" || Array.isArray(work)) return null;
+  const { creators, rights, grants } = work;
+  if (!Array.isArray(creators) || !Array.isArray(rights) || !Array.isArray(grants)) return null;
+  const declared = rights.slice(0, 16).some((row) => {
+    const evidence = row;
+    return !!evidence && typeof evidence.declaration === "string" && !!evidence.declaration.trim() && evidence.status !== "missing" && evidence.status !== "not-applicable";
+  });
+  const owner3 = creators.slice(0, 64).find((party) => {
+    const row = party;
+    return !!row && row.role === "owner" && typeof row.name === "string" && !!row.name.trim();
+  });
+  const grant = grants.slice(0, 16).find((row) => {
+    const entry2 = row;
+    return !!entry2 && entry2.kind === "own-work" && entry2.asserted === true && typeof entry2.scope === "string" && !!entry2.scope.trim();
+  });
+  if (!declared || !owner3 || !grant) return null;
+  return { holder: owner3.name.trim().slice(0, OWNER_HOLDER_MAX), terms: grant.scope.trim().slice(0, OWNER_TERMS_MAX) };
+}
+function claimsOwnWork(value2) {
+  const works = value2 && typeof value2 === "object" ? value2.works : null;
+  const work = Array.isArray(works) ? works[0] : value2;
+  const grants = work && typeof work === "object" ? work.grants : null;
+  return Array.isArray(grants) && grants.slice(0, 16).some((grant) => !!grant && grant.kind === "own-work");
+}
 function redistribution(meta) {
   const declared = assetLicenceDeclaration(meta);
   const normalised = declared ? normaliseLicence(declared) : null;
@@ -179466,6 +179497,15 @@ function redistribution(meta) {
   const notices = assetRightsNotices(meta.rights);
   if (meta.brandLock === true) {
     return { travels: false, kind: "policy", reason: "this brand pack is authoritative on this device", licence, notices };
+  }
+  if (!profile2?.reviewed) {
+    const owner3 = ownerPublished(meta.rights);
+    if (owner3) {
+      return { travels: true, kind: "licence", reason: "", licence: OWNER_PUBLISHED, notices: notices.includes(owner3.terms) ? notices : [...notices, owner3.terms], owner: owner3 };
+    }
+    if (claimsOwnWork(meta.rights)) {
+      return { travels: false, kind: "unknown", reason: "the own-work record is missing its owner, its terms or its licence declaration", licence, notices };
+    }
   }
   if (!declared) return { travels: false, kind: "unknown", reason: "licence not recorded", licence, notices };
   if (!profile2?.reviewed) {

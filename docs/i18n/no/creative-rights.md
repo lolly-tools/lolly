@@ -59,7 +59,7 @@ Lolly sier aldri "copyright verified", "legally safe", "fully cleared" eller "ri
 - **Når du fjerner metadata.** Stripping forteller deg hvor mange kildekreditter filen ikke lenger bærer, tilbyr kredittteksten og tilbyr en ren fil med kredittene i en separat fil. Strippede bytes stemples aldri på nytt.
 
 ::: details Lisensene Lolly har gjennomgått
-Regelversjon `rights-rules-2026-10-30.1`. Hver regel ble lest fra lisensens egen juridiske tekst, og avsnittet den kom fra, er sitert her og ved siden av regelen i `engine/src/rights-profiles.ts`. En versjon og en port beholdes som registrert: en CC BY 3.0-erklæring beholder sin egen versjon i stedet for å rapporteres som 4.0 fordi appens velger foretrekker 4.0.
+Regelversjon `rights-rules-2026-11-05.1`. Hver regel ble lest fra lisensens egen juridiske tekst, og avsnittet den kom fra, er sitert her og ved siden av regelen i `engine/src/rights-profiles.ts`. En versjon og en port beholdes som registrert: en CC BY 3.0-erklæring beholder sin egen versjon i stedet for å rapporteres som 4.0 fordi appens velger foretrekker 4.0.
 
 | Lisens | Hva den ber om for en bruk Lolly kan gjøre | Lest fra |
 |---|---|---|
