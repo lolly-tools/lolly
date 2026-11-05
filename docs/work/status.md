@@ -41,7 +41,8 @@ What Lolly Work %work{version} does, what to check on your own systems before yo
   [Organisation delivery destinations](delivery.md).
 - **Approvals.** Ordered chains with `any`, quorum and `all` rules. Separation of duties.
   Review of a frozen set of source files, and of one exact exported file, whose approved download
-  is the file reviewed. See [Approvals](approvals.md).
+  is the file reviewed. An `until-approved` tool's server renders stay marked PREVIEW until a
+  request for the same inputs is approved. See [Approvals](approvals.md).
 - **Records.** Content Credentials signing, a hash-chained audit log, telemetry dashboards and
   SIEM forwarding. See [Audit log](audit.md) and [Telemetry and dashboards](telemetry.md).
 - **Agents.** Invite an MCP agent to one document or one project, under your own identity.
@@ -99,8 +100,6 @@ when you match clients to a release.
   revocation. Narrower scopes are not built.
 - **Editable defaults.** An overlay stores `defaults` but does not apply them. Clients,
   collaboration, automation and server renders still need one agreed precedence.
-- **Watermarks tied to approval.** `until-approved` is not linked to approval state. See
-  [the enforce block](governance.md#the-enforce-block).
 - **One overlay key.** `enforce.c2pa` is declared, and the write paths refuse that key.
 - **Ending one chosen session.** An admin can end all of a person's sessions, not one of
   them. See [Sign-in and sessions](identity.md#offboarding-disable-and-revocation).
