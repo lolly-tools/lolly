@@ -218,7 +218,7 @@ the mint is the one moment you can copy the bearer. The IdP then drives `/scim/v
 ## Data lifecycle
 
 ```bash
-lw retention run            # apply the stated retention policy now (trims telemetry + audit, sweeps expired uploads)
+lw retention run            # apply the stated retention policy now (trims telemetry + audit, sweeps expired uploads, removes approval files past retention)
 lw users erase <id>         # erasure: delete the person's row + de-attribute their telemetry
 ```
 
