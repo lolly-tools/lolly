@@ -310,7 +310,7 @@ Choose the design-file source and the next card lists the accepted formats as ic
 - A **`DESIGN.md`** (`.md`) goes to **Try these colours** with its tokens as written. Its prose can be kept as a draft brand skill.
 - A **brand page folder**, picked as a folder, dropped, or zipped, goes to the same review. Every file is checked against the folder's `brand.json`, and one that does not match refuses the whole folder. It adds the tokens. Logos and fonts stay in the folder.
 
-Lolly reads a brand page from files you hand it. It does not fetch another site's address.
+Lolly reads a brand page from files you supply. It does not fetch another site's address.
 
 ### Review a reference
 
@@ -357,7 +357,7 @@ A published version is a **permanent, named copy** kept on this device. It never
 A brand page is one address for people and for agents: a page that shows the logos, colours, type and examples, with the same facts in files beside the page. **Publish a brand page**, under Versions & publishing, shows the live page and, beside the page:
 
 - **Goes public**: every file, grouped, with its size.
-- **Held back**: what stayed out, and why. A logo with no recorded licence stays out unless you tick it. A font file needs a recorded licence that allows passing it on, and the page shows an outlined specimen when the file stays out. Internal brand skills never appear.
+- **Held back**: what stayed out, and why. A logo with no recorded licence stays out until you tick the logo's name. A font file needs a recorded licence that allows passing it on, and the page shows an outlined specimen when the file stays out. Internal brand skills never appear.
 - **What was checked**: colour pairs per colourway and mode, and the house rules. These are measurements, not a verdict.
 - **In your words**: a usage statement and a contact. The page prints what you write and Lolly adds no licence or legal claim. A switch turns off the "Made with Lolly" line in the footer.
 
