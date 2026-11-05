@@ -265,3 +265,21 @@ test('a file over the limit says so and cannot be sent', async () => {
   assert.equal(dialogEl.querySelector<HTMLButtonElement>('[data-act="submit"]')!.disabled, true);
   dialogEl.querySelector<HTMLButtonElement>('[data-act="cancel"]')!.click();
 });
+
+test('a PDF shows its name, then the first page the view can draw', async () => {
+  reset();
+  (globalThis.URL as unknown as { createObjectURL: (b: unknown) => string }).createObjectURL = () => 'blob:page';
+  (globalThis.URL as unknown as { revokeObjectURL: (u: string) => void }).revokeObjectURL = () => {};
+  servingApprovers();
+  let finish: (page: Blob | null) => void = () => {};
+  const firstPage = () => new Promise<Blob | null>((resolve) => { finish = resolve; });
+  openApprovalDialog({ toolId: 'event-badge', artifact: { blob: new Blob(['%PDF-1.7'], { type: 'application/pdf' }), name: 'badge.pdf', firstPage } }, { maxFileBytes: 1024, partBytes: 4 });
+  await tick();
+  const dialogEl = document.querySelector('dialog')!;
+  const stage = dialogEl.querySelector('[data-file-stage]')!;
+  assert.equal(stage.textContent, 'badge.pdf');
+  finish(new Blob(['<svg/>'], { type: 'image/svg+xml' }));
+  await tick(); await tick();
+  assert.equal(stage.querySelector('img')?.getAttribute('src'), 'blob:page');
+  dialogEl.querySelector<HTMLButtonElement>('[data-act="cancel"]')!.click();
+});
