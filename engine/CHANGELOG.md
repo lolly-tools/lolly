@@ -6,7 +6,7 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.306.0
+## 1.304.0
 
 - `tools.lolly.approval`: a signed record that an approval was decided, with the approval id, the decided time and the reviewed file's SHA-256, and nothing else. The writer refuses any other field, and refuses a record with no credentialed parent. `embedC2pa` takes it as the additive `approval` option; without one, output is unchanged.
 - `recordApprovalInCredential` adds the update over a reviewed file (PNG, JPEG, SVG, PDF) and reports `recorded` only after a readback confirms the record, an intact credential and unchanged artwork. Any other result is `not-recorded` with a reason, and the caller keeps the reviewed bytes. `artworkUnchanged` is the comparison it uses.
